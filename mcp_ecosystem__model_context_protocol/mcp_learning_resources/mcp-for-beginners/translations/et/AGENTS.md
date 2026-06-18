@@ -2,11 +2,11 @@
 
 ## Projekti ülevaade
 
-**MCP algajatele** on avatud lähtekoodiga hariduslik õppekava Model Context Protocol (MCP) õppimiseks – standardiseeritud raamistik AI mudelite ja kliendirakenduste vaheliseks suhtluseks. See repositoorium pakub põhjalikke õppematerjale koos praktiliste koodinäidetega mitmes programmeerimiskeeles.
+**MCP algajatele** on avatud lähtekoodiga õppekava Model Context Protocoli (MCP) õppimiseks – standardiseeritud raamistik AI mudelite ja kliendirakenduste vahelisteks suhtlusteks. See hoidla pakub terviklikke õppematerjale praktiliste koodinäidete abil mitmes programmeerimiskeeles.
 
-### Peamised tehnoloogiad
+### Põhitehnoloogiad
 
-- **Programmeerimiskeeled**: C#, Java, JavaScript, TypeScript, Python, Rust
+- **Programmeermiskeeled**: C#, Java, JavaScript, TypeScript, Python, Rust
 - **Raamistikud ja SDK-d**: 
   - MCP SDK (`@modelcontextprotocol/sdk`)
   - Spring Boot (Java)
@@ -14,38 +14,38 @@
   - LangChain4j (Java)
 - **Andmebaasid**: PostgreSQL koos pgvector laiendusega
 - **Pilveplatvormid**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
-- **Ehitusvahendid**: npm, Maven, pip, Cargo
-- **Dokumentatsioon**: Markdown koos automaatse mitmekeelse tõlkega (48+ keelt)
+- **Build-tööriistad**: npm, Maven, pip, Cargo
+- **Dokumentatsioon**: Markdown koos automatiseeritud mitmekeelse tõlkega (48+ keelt)
 
 ### Arhitektuur
 
-- **11 põhikomponenti (00-11)**: Järjestikune õppeprotsess alustades põhitõdedest kuni keerukamate teemadeni
-- **Praktilised laborid**: Praktilised harjutused koos täielike lahenduskoodidega mitmes keeles
-- **Näidisprojektid**: Töötavad MCP serveri ja kliendi rakendused
-- **Tõlkesüsteem**: Automaatne GitHub Actions töövoog mitmekeelse toe jaoks
-- **Pildifailid**: Keskne pildikataloog koos tõlgitud versioonidega
+- **11 põhimoodulit (00-11)**: Järjestikune õppeteek fundamentidest edasijõudnuteni
+- **Praktilised laborid**: Praktikaharjutused täielike lahendustega mitmes keeles
+- **Näidisprojektid**: Töötav MCP serveri ja kliendi rakendused
+- **Tõlkesüsteem**: Automatiseeritud GitHub Actions töövoog mitmekeelse toe jaoks
+- **Pildifailid**: Keskne kaust piltidega, millel on tõlgitud versioonid
 
-## Seadistuskäsud
+## Seadistamise käsud
 
-See on dokumentatsioonile keskenduv repositoorium. Enamik seadistust toimub individuaalsete näidisprojektide ja laborite sees.
+See hoidla keskendub dokumentatsioonile. Enamus seadistust toimub individuaalsetes näidisprojektides ja laborites.
 
-### Repositooriumi seadistamine
+### Hoidla seadistamine
 
 ```bash
-# Clone the repository
+# Kopeeri hoidla
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
 
-### Näidisprojektidega töötamine
+### Töötamine näidisprojektidega
 
 Näidisprojektid asuvad:
-- `03-GettingStarted/samples/` - Keelepõhised näited
-- `03-GettingStarted/01-first-server/solution/` - Esimese serveri rakendused
-- `03-GettingStarted/02-client/solution/` - Kliendi rakendused
-- `11-MCPServerHandsOnLabs/` - Põhjalikud andmebaasi integreerimise laborid
+- `03-GettingStarted/samples/` - keelespetsiifilised näited
+- `03-GettingStarted/01-first-server/solution/` - esimese serveri rakendused
+- `03-GettingStarted/02-client/solution/` - kliendi rakendused
+- `11-MCPServerHandsOnLabs/` - põhjalikud andmebaasi integreerimise laborid
 
-Igal näidisprojektil on oma seadistusjuhised:
+Igal näidisprojektil on enda seadistusjuhised:
 
 #### TypeScript/JavaScript projektid
 ```bash
@@ -58,7 +58,7 @@ npm start
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# või
 pip install -e .
 python main.py
 ```
@@ -74,53 +74,53 @@ mvn spring-boot:run
 
 ### Dokumentatsiooni struktuur
 
-- **Moodulid 00-11**: Põhiõppekava sisu järjestatud kujul
-- **translations/**: Keelepõhised versioonid (automaatselt genereeritud, mitte otse redigeerida)
+- **Moodulid 00-11**: Põhikursuse sisu järjestatult
+- **translations/**: Keeleteemalised versioonid (automaatselt genereeritud, mitte redigeerida)
 - **translated_images/**: Lokaliseeritud pildiversioonid (automaatselt genereeritud)
-- **images/**: Algupärased pildid ja diagrammid
+- **images/**: Algallikaga pildid ja skeemid
 
 ### Dokumentatsiooni muudatuste tegemine
 
-1. Redigeeri ainult ingliskeelseid markdown-faile juurmoodulite kataloogides (00-11)
-2. Uuenda vajadusel pilte kataloogis `images/`
-3. GitHub Action nimega co-op-translator genereerib automaatselt tõlked
-4. Tõlked genereeritakse uuesti, kui muudatused lükatakse põhiharusse
+1. Muutke ainult ingliskeelseid markdown-faile juurmoodulite kataloogides (00-11)
+2. Vajadusel uuendage pilte kaustas `images/`
+3. co-op-translator GitHub Action genereerib tõlked automaatselt
+4. Tõlked uuendatakse iga pushi korral main harusse
 
 ### Tõlgetega töötamine
 
 - **Automaatne tõlge**: GitHub Actions töövoog haldab kõiki tõlkeid
-- **Ära muuda käsitsi** faile kataloogis `translations/`
-- Tõlkemetaandmed on iga tõlgitud faili sees
-- Toetatud keeled: 48+ keelt, sealhulgas araabia, hiina, prantsuse, saksa, hindi, jaapani, korea, portugali, vene, hispaania ja paljud teised
+- **Ärge käsitsi muutke** faile kaustas `translations/`
+- Tõlgetes on arhiivitud metaandmed sees
+- Toetatud keeled: 48+ keelt, nagu araabia, hiina, prantsuse, saksa, hindi, jaapani, korea, portugali, vene, hispaania jt
 
-## Testimisjuhised
+## Testimise juhised
 
 ### Dokumentatsiooni valideerimine
 
-Kuna tegemist on peamiselt dokumentatsioonirepositooriumiga, keskendub testimine järgmistele:
+Kuna tegemist on peamiselt dokumentatsiooni hoidla, keskendub testimine:
 
-1. **Linkide valideerimine**: Kontrolli, et kõik sisemised lingid töötavad
+1. **Lingivalideerimine**: Kontrollige, et kõik siselingid toimivad
 ```bash
-# Check for broken markdown links
+# Kontrolli katkiseid markdowni linke
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Koodinäidete valideerimine**: Testi, et koodinäited kompileeruvad/töötavad
+2. **Koodinäidete valideerimine**: Testida, et koodinäited kompileeruvad/jooksevad
 ```bash
-# Navigate to specific sample and run its tests
+# Liigu konkreetse proovini ja käivita selle testid
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Markdown lintimine**: Kontrolli vorminduse järjepidevust
+3. **Markdowni stiililintimine**: Kontrolli vormingu järjepidevust
 ```bash
-# Use markdownlint if needed
+# Kasutage vajadusel markdownlinti
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
 ### Näidisprojektide testimine
 
-Igal keelepõhisel näidisel on oma testimisjuhised:
+Igal keelespetsiifilisel näidisel on oma testimismeetod:
 
 #### TypeScript/JavaScript
 ```bash
@@ -140,39 +140,39 @@ mvn test
 mvn verify
 ```
 
-## Koodistiili juhised
+## Koodi stiilijuhised
 
 ### Dokumentatsiooni stiil
 
-- Kasuta selget, algajasõbralikku keelt
-- Lisa koodinäiteid mitmes keeles, kui võimalik
-- Järgi markdowni parimaid tavasid:
-  - Kasuta ATX-stiilis päiseid (`#` süntaks)
-  - Kasuta piiritletud koodiblokke koos keele identifikaatoritega
-  - Lisa piltidele kirjeldav alt-tekst
-  - Hoia rea pikkused mõistlikud (ei ole ranget piirangut, kuid ole mõistlik)
+- Kasutage selget, algajatele sobilikku keelt
+- Lisage koodinäiteid mitmes keeles, kui võimalik
+- Järgige markdowni parimaid tavasid:
+  - Kasutage ATX stiilis päiseid (`#` süntaks)
+  - Kasutage sulgudega kodeblokke koos keelesildiga
+  - Lisage piltidele kirjeldav alternatiivtekst
+  - Hoidke ridade pikkus mõistlik (vaikset piiri pole, aga olge mõistlikud)
 
 ### Koodinäidete stiil
 
 #### TypeScript/JavaScript
-- Kasuta ES mooduleid (`import`/`export`)
-- Järgi TypeScripti rangete režiimide konventsioone
-- Lisa tüübimärkused
-- Sihtmärgiks ES2022
+- Kasutage ES mooduleid (`import`/`export`)
+- Järgige TypeScript ranget režiimi
+- Lisage tüübimärkused
+- Sihtige ES2022
 
 #### Python
-- Järgi PEP 8 stiilijuhiseid
-- Kasuta tüübivihjeid, kui sobilik
-- Lisa funktsioonidele ja klassidele docstringid
-- Kasuta kaasaegseid Python funktsioone (3.8+)
+- Järgige PEP 8 stiilijuhiseid
+- Kasutage tüübi vihjeid vastavalt vajadusele
+- Lisage funktsioonidele ja klassidele docstringid
+- Kasutage kaasaegseid Pythoni funktsioone (3.8+)
 
 #### Java
-- Järgi Spring Boot konventsioone
-- Kasuta Java 21 funktsioone
-- Järgi standardset Maven projekti struktuuri
-- Lisa Javadoc kommentaarid
+- Järgige Spring Booti juhiseid
+- Kasutage Java 21 võimalusi
+- Järgige tavapärast Maven projekti struktuuri
+- Lisage Javadoc kommentaarid
 
-### Failide organiseerimine
+### Failide korraldus
 
 ```
 <module-number>-<ModuleName>/
@@ -186,116 +186,118 @@ mvn verify
     └── <language>/
 ```
 
-## Ehitus ja juurutamine
+## Build ja paigaldus
 
-### Dokumentatsiooni juurutamine
+### Dokumentatsiooni avaldamine
 
-Repositoorium kasutab dokumentatsiooni majutamiseks GitHub Pages või sarnast (kui rakendatav). Muudatused põhiharus käivitavad:
+Hoidla kasutab dokumentatsiooni hostimiseks GitHub Pages või sarnast lahendust (kui rakendub). Muudatused päästavad käivitama:
 
 1. Tõlketöövoo (`.github/workflows/co-op-translator.yml`)
 2. Kõigi ingliskeelsete markdown-failide automaatse tõlke
 3. Piltide lokaliseerimise vastavalt vajadusele
 
-### Ehitusprotsessi pole vaja
+### Ehitusprotsess pole vajalik
 
-See repositoorium sisaldab peamiselt markdown-dokumentatsiooni. Põhiõppekava sisu jaoks pole vaja kompileerimist ega ehitusetappi.
+See hoidla sisaldab peamiselt markdown dokumentatsiooni. Tuuma õppekava jaoks pole vajalik kompileerimis- ega build-faas.
 
-### Näidisprojektide juurutamine
+### Näidisprojektide kasutuselevõtt
 
-Individuaalsetel näidisprojektidel võivad olla juurutusjuhised:
-- Vaata `03-GettingStarted/09-deployment/` MCP serveri juurutamise juhiseid
-- Azure Container Apps juurutamise näited kataloogis `11-MCPServerHandsOnLabs/`
+Individuaalsetel näidisprojektidel võivad olla implanteerimisjuhised:
+- Vaata `03-GettingStarted/09-deployment/` MCP serveri juurutamise juhendit
+- Azure Container Apps näited kaustas `11-MCPServerHandsOnLabs/`
 
-## Kaastöö juhised
+## Panustamise juhised
 
-### Pull Request protsess
+### Pull Request'i protsess
 
-1. **Fork ja kloonimine**: Forki repositoorium ja klooni oma fork lokaalselt
-2. **Loo haru**: Kasuta kirjeldavaid harunimesid (nt `fix/typo-module-3`, `add/python-example`)
-3. **Tee muudatused**: Redigeeri ainult ingliskeelseid markdown-faile (mitte tõlkeid)
-4. **Testi lokaalselt**: Kontrolli, et markdown kuvatakse õigesti
+1. **Fork ja klooni**: Forkige hoidla ja kloonige oma isiklik koopia lokaalselt
+2. **Looge haru**: Kasutage kirjeldavaid harunimesid (nt `fix/typo-module-3`, `add/python-example`)
+3. **Tee muudatusi**: Muutke ainult ingliskeelseid markdown-faile (mitte tõlkeid)
+4. **Testi lokaalselt**: Kontrolli markdowni korrektset renderdamist
 5. **Esita PR**: Kasuta selgeid PR pealkirju ja kirjeldusi
-6. **CLA**: Allkirjasta Microsofti kaastöö litsentsileping, kui seda küsitakse
+6. **CLA**: Kui küsitakse, allkirjasta Microsofti kaasautorite litsentsileping
 
-### PR pealkirja formaat
+### PR pealkirjade vorming
 
-Kasuta selgeid, kirjeldavaid pealkirju:
+Kasuta selgeid ja kirjeldavaid tiitleid:
 - `[Module XX] Lühikirjeldus` moodulispetsiifiliste muudatuste jaoks
-- `[Samples] Kirjeldus` näidiskoodi muudatuste jaoks
+- `[Samples] Kirjeldus` näidiskoodimuudatuste jaoks
 - `[Docs] Kirjeldus` üldise dokumentatsiooni uuenduste jaoks
 
 ### Mida panustada
 
-- Dokumentatsiooni või koodinäidete veaparandused
+- Veaparandused dokumentatsioonis või koodinäidetes
 - Uued koodinäited täiendavates keeltes
-- Olemasoleva sisu täpsustused ja täiustused
-- Uued juhtumiuuringud või praktilised näited
-- Probleemide aruanded ebaselge või vale sisu kohta
+- Selgitused ja täiustused olemasolevatele sisudele
+- Uued juhtumiuuringud või praktikad
+- Probleemiaruanded ebaselge või valesti esitatud sisu kohta
 
-### Mida mitte teha
+### Mida MITTE teha
 
-- Ära muuda otse faile kataloogis `translations/`
-- Ära muuda kataloogi `translated_images/`
-- Ära lisa suuri binaarfaile ilma aruteluta
-- Ära muuda tõlketöövoo faile ilma kooskõlastuseta
+- Ärge redigeerige otseselt faile kaustas `translations/`
+- Ärge muutke faile kaustas `translated_images/`
+- Ärge lisage suuri binaarfailisid ilma eelneva aruteluta
+- Ärge muutke tõlketöövoo faile ilma koordineerimiseta
 
-## Täiendavad märkused
+## Lisamärkused
 
-### Repositooriumi hooldus
+### Hoidla hooldus
 
-- **Muudatuste logi**: Kõik olulised muudatused dokumenteeritakse failis `changelog.md`
-- **Õpijuhend**: Kasuta `study_guide.md` õppekava navigeerimise ülevaateks
-- **Probleemimallid**: Kasuta GitHubi probleemimalle veaaruannete ja funktsioonisoovide jaoks
-- **Käitumisjuhend**: Kõik kaastöötajad peavad järgima Microsofti avatud lähtekoodi käitumisjuhendit
+- **Muudatuste logi**: Kõik olulised muudatused on dokumenteeritud failis `changelog.md`
+- **Õppejuhend**: Kasutage `study_guide.md` õppekava navigeerimiseks
+- **Probleemimallid**: Kasutage GitHubi issue-malle vigade ja funktsioonisoovide jaoks
+- **Käitumisreeglid**: Kõik panustajad peavad järgima Microsofti avatud lähtekoodi käitumisreegleid
 
-### Õppimisrada
+### Õppeteek
 
-Järgi mooduleid järjestatud kujul (00-11) optimaalseks õppimiseks:
-1. **00-02**: Põhitõed (Sissejuhatus, Põhimõisted, Turvalisus)
-2. **03**: Praktiline alustamine
-3. **04-05**: Praktiline rakendamine ja keerukamad teemad
-4. **06-10**: Kogukond, parimad tavad ja reaalsed rakendused
-5. **11**: Põhjalikud andmebaasi integreerimise laborid (13 järjestikust laborit)
+Järgige mooduleid järjekorras (00-11) parima õppimise jaoks:
+1. **00-02**: Põhitõed (Sissejuhatus, põhikontseptsioonid, turvalisus)
+2. **03**: Käed-külge esmane rakendamine
+3. **04-05**: Praktiline rakendamine ja edasijõudnud teemad
+4. **06-10**: Kogukond, parimad praktikad ja reaalse maailma rakendused
+5. **11**: Põhjalikud andmebaaside integreerimise laborisessioonid (13 järjestikust laborit)
 
-### Tugimaterjalid
+### Tugiteenused
 
 - **Dokumentatsioon**: https://modelcontextprotocol.io/
 - **Spetsifikatsioon**: https://spec.modelcontextprotocol.io/
 - **Kogukond**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discord server
-- **Seotud kursused**: Vaata README.md teisi Microsofti õpiradasid
+- **Discord**: Microsoft Foundry Discord server
+- **Seotud kursused**: Vaata README.md teisi Microsofti õpiteid
 
-### Tavalised tõrkeotsingud
+### Levinumad tõrkeotsingu küsimused
 
-**K: Minu PR ei läbi tõlke kontrolli**
-V: Veendu, et redigeerisid ainult ingliskeelseid markdown-faile juurmoodulite kataloogides, mitte tõlgitud versioone.
+**K: Minu PR ei läbi tõlke kontrolli**  
+V: Veenduge, et muutsite ainult ingliskeelseid markdown-faile juurmoodulites, mitte tõlgitud versioone.
 
-**K: Kuidas lisada uut keelt?**
-V: Keeletuge hallatakse co-op-translator töövoo kaudu. Ava probleem, et arutada uue keele lisamist.
+**K: Kuidas lisada uut keelt?**  
+V: Keeletuge hallatakse co-op-translator töövoo kaudu. Avage teema, et arutada uute keelete lisamist.
 
-**K: Koodinäited ei tööta**
-V: Veendu, et järgiksid konkreetse näidise README seadistusjuhiseid. Kontrolli, et sul on õiged versioonid sõltuvustest paigaldatud.
+**K: Koodinäited ei tööta**  
+V: Järgige konkreetse näidise README seadistusjuhiseid. Kontrollige, et sõltuvuste versioonid on korrektsed.
 
-**K: Pildid ei kuvata**
-V: Kontrolli, et pilditeed oleksid suhtelised ja kasutaksid kaldkriipse. Pildid peaksid olema kataloogis `images/` või `translated_images/` lokaliseeritud versioonide jaoks.
+**K: Pildid ei kuvata**  
+V: Kontrollige, et pilditeed on suhtelised ja kasutavad kaldkriipse. Pildid peaksid asuma kaustas `images/` või `translated_images/` lokaliseeritud versioonidena.
 
 ### Jõudluse kaalutlused
 
 - Tõlketöövoog võib võtta mitu minutit
-- Suured pildid tuleks enne commitimist optimeerida
-- Hoia individuaalsed markdown-failid keskendunud ja mõistliku suurusega
-- Kasuta suhtelisi linke parema teisaldatavuse jaoks
+- Suured pildid optimeerida enne commiti
+- Hoidke markdown failid fookuses ja mõõduka suurusega
+- Kasutage suhtelisi linke parema kaasaskantavuse jaoks
 
 ### Projekti juhtimine
 
-See projekt järgib Microsofti avatud lähtekoodi praktikaid:
-- MIT litsents koodi ja dokumentatsiooni jaoks
-- Microsofti avatud lähtekoodi käitumisjuhend
-- Kaastöö litsentsileping (CLA) on nõutav
-- Turvalisuse küsimused: Järgi SECURITY.md juhiseid
-- Tugi: Vaata SUPPORT.md abiressursside jaoks
+See projekt järgib Microsofti avatud lähtekoodi praktikaid:  
+- MIT litsents koodi ja dokumentatsiooni jaoks  
+- Microsofti avatud lähtekoodi käitumisreeglid  
+- CLA nõutav panustamiseks  
+- Turvaprobleemid: järgige juhiseid failist SECURITY.md  
+- Tugi: vaata SUPPORT.md abiressursside jaoks
 
 ---
 
-**Lahtiütlus**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame tagada täpsust, palume arvestada, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Algne dokument selle algses keeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitame kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgenduste eest.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

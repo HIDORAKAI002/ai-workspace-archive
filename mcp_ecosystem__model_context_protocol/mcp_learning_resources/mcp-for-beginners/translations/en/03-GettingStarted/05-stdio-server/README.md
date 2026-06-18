@@ -24,7 +24,7 @@ By the end of this lesson, you will be able to:
 
 ## stdio Transport - How it Works
 
-The stdio transport is one of two supported transport types in the current MCP specification (2025-06-18). Here's how it works:
+The stdio transport is one of two supported transport types in the current MCP specification (2025-11-25). Here's how it works:
 
 - **Simple Communication**: The server reads JSON-RPC messages from standard input (`stdin`) and sends messages to standard output (`stdout`).
 - **Process-based**: The client launches the MCP server as a subprocess.
@@ -76,7 +76,7 @@ import logging
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-# Create a server instance
+# Create server instance
 server = Server("example-server")
 
 @server.tool()
@@ -589,7 +589,7 @@ Now that you've learned how to build MCP servers with the stdio transport, you c
 
 ## Additional Resources
 
-- [MCP Specification 2025-06-18](https://spec.modelcontextprotocol.io/specification/) - Official specification
+- [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) - Official specification
 - [MCP SDK Documentation](https://github.com/modelcontextprotocol/sdk) - SDK references for all languages
 - [Community Examples](../../06-CommunityContributions/README.md) - More server examples from the community
 

@@ -1,4 +1,4 @@
-# 🚀 Modül 1: AI Toolkit Temelleri
+# 🚀 Modül 1: Microsoft Foundry Toolkit Temelleri
 
 [![Süre](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
 [![Zorluk](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
@@ -7,102 +7,102 @@
 ## 📋 Öğrenme Hedefleri
 
 Bu modülün sonunda şunları yapabileceksiniz:
-- ✅ Visual Studio Code için AI Toolkit’i kurup yapılandırmak
-- ✅ Model Kataloğu’nda gezmek ve farklı model kaynaklarını anlamak
-- ✅ Playground’u kullanarak modelleri test etmek ve denemeler yapmak
+- ✅ Microsoft Foundry Toolkit Uzantısını VS Code için yüklemek ve yapılandırmak
+- ✅ Model Kataloğu'nda gezmek ve farklı model kaynaklarını anlamak
+- ✅ Model testi ve denemeleri için Playground'u kullanmak
 - ✅ Agent Builder ile özel AI ajanları oluşturmak
-- ✅ Farklı sağlayıcılar arasındaki model performansını karşılaştırmak
+- ✅ Farklı sağlayıcılar arasında model performansını karşılaştırmak
 - ✅ Prompt mühendisliği için en iyi uygulamaları uygulamak
 
-## 🧠 AI Toolkit’e (AITK) Giriş
+## 🧠 Microsoft Foundry Toolkit'e Giriş
 
-**Visual Studio Code için AI Toolkit**, Microsoft’un VS Code’u kapsamlı bir AI geliştirme ortamına dönüştüren amiral gemisi eklentisidir. AI araştırması ile pratik uygulama geliştirme arasındaki boşluğu kapatarak, üretken AI’yı her seviyeden geliştirici için erişilebilir kılar.
+**Microsoft Foundry Toolkit Uzantısı for VS Code**, Microsoft’un bayrak uzantısıdır ve VS Code'u kapsamlı bir AI geliştirme ortamına dönüştürür. AI araştırması ile pratik uygulama geliştirme arasındaki köprüyü kurar ve üretken AI’yı her beceri seviyesinden geliştiriciye erişilebilir hale getirir.
 
-### 🌟 Temel Özellikler
+### 🌟 Önemli Özellikler
 
 | Özellik | Açıklama | Kullanım Alanı |
 |---------|-------------|----------|
 | **🗂️ Model Kataloğu** | GitHub, ONNX, OpenAI, Anthropic, Google’dan 100+ modele erişim | Model keşfi ve seçimi |
 | **🔌 BYOM Desteği** | Kendi modellerinizi (yerel/uzaktan) entegre edin | Özel model dağıtımı |
 | **🎮 Etkileşimli Playground** | Sohbet arayüzü ile gerçek zamanlı model testi | Hızlı prototipleme ve test |
-| **📎 Çok Modlu Destek** | Metin, görsel ve ekleri işleyin | Karmaşık AI uygulamaları |
-| **⚡ Toplu İşleme** | Birden fazla promptu aynı anda çalıştırın | Verimli test iş akışları |
-| **📊 Model Değerlendirme** | Dahili metrikler (F1, alaka, benzerlik, tutarlılık) | Performans değerlendirmesi |
+| **📎 Çok Modlu Destek** | Metin, resim ve eklentileri işleyin | Karmaşık AI uygulamaları |
+| **⚡ Toplu İşleme** | Birden fazla promptu eş zamanlı çalıştırın | Verimli test iş akışları |
+| **📊 Model Değerlendirme** | Yerleşik metrikler (F1, alaka, benzerlik, tutarlılık) | Performans değerlendirmesi |
 
-### 🎯 AI Toolkit Neden Önemli?
+### 🎯 Microsoft Foundry Toolkit Neden Önemli?
 
 - **🚀 Hızlandırılmış Geliştirme**: Fikirden prototipe dakikalar içinde
 - **🔄 Birleşik İş Akışı**: Birden fazla AI sağlayıcısı için tek arayüz
-- **🧪 Kolay Deney**: Karmaşık kurulum olmadan modelleri karşılaştırma
+- **🧪 Kolay Deney**: Karmaşık kurulum olmadan modelleri karşılaştırın
 - **📈 Üretime Hazır**: Prototipten dağıtıma sorunsuz geçiş
 
-## 🛠️ Önkoşullar & Kurulum
+## 🛠️ Önkoşullar ve Kurulum
 
-### 📦 AI Toolkit Eklentisini Kurma
+### 📦 Microsoft Foundry Toolkit Uzantısını Yükleyin
 
-**Adım 1: Eklentiler Marketine Erişim**
+**Adım 1: Uzantılar Marketine Erişim**
 1. Visual Studio Code’u açın
-2. Eklentiler görünümüne gidin (`Ctrl+Shift+X` veya `Cmd+Shift+X`)
-3. "AI Toolkit" araması yapın
+2. Uzantılar görünümüne gidin (`Ctrl+Shift+X` veya `Cmd+Shift+X`)
+3. "Microsoft Foundry Toolkit" araması yapın
 
-**Adım 2: Sürüm Seçimi**
-- **🟢 Yayın**: Üretim kullanımı için önerilir
-- **🔶 Ön sürüm**: En yeni özelliklere erken erişim
+**Adım 2: Sürümünüzü Seçin**
+- **🟢 Yayın (Release)**: Üretim kullanımı için önerilir
+- **🔶 Ön Sürüm (Pre-release)**: Öncü özelliklere erken erişim
 
-**Adım 3: Kurulum ve Etkinleştirme**
+**Adım 3: Yükleyin ve Etkinleştirin**
 
-![AI Toolkit Eklentisi](../../../../translated_images/tr/aitkext.d28945a03eed003c.webp)
+![Microsoft Foundry Toolkit Uzantısı](../../../../translated_images/tr/aitkext.d28945a03eed003c.webp)
 
 ### ✅ Doğrulama Kontrol Listesi
-- [ ] AI Toolkit simgesi VS Code yan panelinde görünüyor
-- [ ] Eklenti etkin ve aktif durumda
-- [ ] Çıktı panelinde kurulum hatası yok
+- [ ] Microsoft Foundry Toolkit simgesi VS Code yan çubuğunda görünüyor
+- [ ] Uzantı etkin ve aktif durumda
+- [ ] Çıktı panelinde yükleme hatası yok
 
-## 🧪 Uygulamalı Alıştırma 1: GitHub Modellerini Keşfetmek
+## 🧪 Uygulamalı Egzersiz 1: GitHub Modellerini Keşfetmek
 
-**🎯 Amaç**: Model Kataloğu’nu öğrenmek ve ilk AI modelinizi test etmek
+**🎯 Hedef**: Model Kataloğu’nu ustaca kullanmak ve ilk AI modelinizi test etmek
 
 ### 📊 Adım 1: Model Kataloğu’nda Gezinme
 
-Model Kataloğu, AI ekosistemine açılan kapınızdır. Birden fazla sağlayıcıdan modelleri bir araya getirerek keşfetmeyi ve karşılaştırmayı kolaylaştırır.
+Model Kataloğu AI ekosisteminize açılan kapıdır. Birden fazla sağlayıcıdan modelleri bir araya getirir, keşfetmeyi ve karşılaştırmayı kolaylaştırır.
 
 **🔍 Gezinme Rehberi:**
 
-AI Toolkit yan panelinde **MODELS - Catalog** seçeneğine tıklayın
+Microsoft Foundry Toolkit yan çubuğunda **MODELS - Catalog** tıklayın
 
 ![Model Kataloğu](../../../../translated_images/tr/aimodel.263ed2be013d8fb0.webp)
 
-**💡 İpucu**: Kullanım senaryonuza uygun özelliklere sahip modellere (örneğin, kod üretimi, yaratıcı yazım, analiz) dikkat edin.
+**💡 İpucu**: Kullanım durumunuza uygun belirli yeteneklere sahip modellere bakın (ör. kod üretimi, yaratıcı yazım, analiz).
 
-**⚠️ Not**: GitHub’da barındırılan modeller (yani GitHub Modelleri) ücretsizdir ancak istek ve token limitlerine tabidir. GitHub dışı modellere (Azure AI veya diğer uç noktalar üzerinden barındırılan) erişmek için uygun API anahtarı veya kimlik doğrulama sağlamanız gerekir.
+**⚠️ Not**: GitHub’da barındırılan modeller (yani GitHub Modelleri) ücretsizdir ancak isteklerde ve tokenlarda oran sınırlamalarına tabidir. Azure AI veya diğer uç noktalar üzerinden barındırılan GitHub dışı modellere erişmek isterseniz ilgili API anahtarını veya kimlik doğrulamasını sağlamanız gerekir.
 
-### 🚀 Adım 2: İlk Modelinizi Ekleme ve Yapılandırma
+### 🚀 Adım 2: İlk Modelinizi Ekleyin ve Yapılandırın
 
 **Model Seçim Stratejisi:**
-- **GPT-4.1**: Karmaşık akıl yürütme ve analiz için en iyisi
-- **Phi-4-mini**: Basit görevler için hafif ve hızlı yanıtlar
+- **GPT-4.1**: Karmaşık muhakeme ve analizler için en iyisi
+- **Phi-4-mini**: Basit görevler için hafif, hızlı yanıtlar
 
 **🔧 Yapılandırma Süreci:**
-1. Katalogdan **OpenAI GPT-4.1** modelini seçin
-2. **Add to My Models** butonuna tıklayın - model kullanım için kaydedilir
-3. **Try in Playground** seçeneği ile test ortamını başlatın
+1. Katalogdan **OpenAI GPT-4.1** seçin
+2. **Add to My Models** (Modellerime Ekle) tıklayın - model kullanım için kaydedilir
+3. **Try in Playground** (Playground'da Deneyin) seçeneği ile test ortamını başlatın
 4. Modelin başlatılmasını bekleyin (ilk kurulum biraz zaman alabilir)
 
 ![Playground Kurulumu](../../../../translated_images/tr/playground.dd6f5141344878ca.webp)
 
 **⚙️ Model Parametrelerini Anlama:**
-- **Temperature**: Yaratıcılığı kontrol eder (0 = deterministik, 1 = yaratıcı)
+- **Temperature**: Yaratıcılığı kontrol eder (0 = belirleyici, 1 = yaratıcı)
 - **Max Tokens**: Maksimum yanıt uzunluğu
-- **Top-p**: Yanıt çeşitliliği için nucleus sampling
+- **Top-p**: Yanıt çeşitliliği için nükleus örnekleme
 
-### 🎯 Adım 3: Playground Arayüzünü Öğrenme
+### 🎯 Adım 3: Playground Arayüzünü Öğrenin
 
-Playground, AI deney laboratuvarınızdır. Potansiyelini en iyi şekilde kullanmak için:
+Playground AI deney laboratuvarınızdır. Potansiyelini en üst düzeye çıkarmak için:
 
 **🎨 Prompt Mühendisliği En İyi Uygulamaları:**
-1. **Spesifik Olun**: Net ve detaylı talimatlar daha iyi sonuç verir
+1. **Belirgin Olun**: Net, detaylı talimatlar daha iyi sonuç verir
 2. **Bağlam Sağlayın**: İlgili arka plan bilgisini ekleyin
-3. **Örnek Kullanın**: Modelin ne istediğinizi anlaması için örnekler gösterin
+3. **Örnek Kullanın**: Modelin ne istediğinizi örneklerle gösterin
 4. **Yineleyin**: İlk sonuçlara göre promptları geliştirin
 
 **🧪 Test Senaryoları:**
@@ -119,44 +119,44 @@ Playground, AI deney laboratuvarınızdır. Potansiyelini en iyi şekilde kullan
 
 ![Test Sonuçları](../../../../translated_images/tr/result.1dfcf211fb359cf6.webp)
 
-### 🏆 Zorluk Alıştırması: Model Performans Karşılaştırması
+### 🏆 Zorluk Egzersizi: Model Performans Karşılaştırması
 
-**🎯 Hedef**: Aynı promptları kullanarak farklı modellerin güçlü yönlerini anlamak
+**🎯 Amaç**: Aynı promptlarla farklı modelleri karşılaştırarak güçlerini anlayın
 
 **📋 Talimatlar:**
-1. Çalışma alanınıza **Phi-4-mini** modelini ekleyin
-2. Hem GPT-4.1 hem de Phi-4-mini için aynı promptu kullanın
+1. Çalışma alanınıza **Phi-4-mini** ekleyin
+2. GPT-4.1 ve Phi-4-mini için aynı promptu kullanın
 
 ![set](../../../../translated_images/tr/set.88132df189ecde2c.webp)
 
 3. Yanıt kalitesi, hız ve doğruluğu karşılaştırın
-4. Bulgularınızı sonuçlar bölümünde belgeleyin
+4. Bulgularınızı sonuç bölümüne kaydedin
 
 ![Model Karşılaştırması](../../../../translated_images/tr/compare.97746cd0f9074955.webp)
 
-**💡 Keşfedilecek Temel Noktalar:**
-- LLM ve SLM ne zaman tercih edilmeli
+**💡 Keşfedilecek Önemli Noktalar:**
+- LLM ile SLM’nin ne zaman kullanılacağı
 - Maliyet ve performans dengeleri
-- Modellerin uzmanlaşmış yetenekleri
+- Farklı modellerin uzmanlaşmış yetenekleri
 
-## 🤖 Uygulamalı Alıştırma 2: Agent Builder ile Özel Ajanlar Oluşturma
+## 🤖 Uygulamalı Egzersiz 2: Agent Builder ile Özel Ajanlar Oluşturma
 
-**🎯 Amaç**: Belirli görevler ve iş akışları için özel AI ajanları yaratmak
+**🎯 Hedef**: Belirli görevler ve iş akışları için özel AI ajanları yaratmak
 
-### 🏗️ Adım 1: Agent Builder’ı Anlamak
+### 🏗️ Adım 1: Agent Builder'ı Anlama
 
-Agent Builder, AI Toolkit’in gerçek gücünü gösterdiği yerdir. Büyük dil modellerinin gücünü özel talimatlar, parametreler ve uzman bilgisiyle birleştirerek amaç odaklı AI asistanları oluşturmanızı sağlar.
+Agent Builder Microsoft Foundry Toolkit'in gerçek gücüdür. Büyük dil modellerini özel talimatlar, parametreler ve uzman bilgi ile birleştirerek amaç odaklı AI asistanları oluşturmanızı sağlar.
 
 **🧠 Ajan Mimarisi Bileşenleri:**
-- **Temel Model**: Ana LLM (GPT-4, Groks, Phi vb.)
-- **Sistem Promptu**: Ajanın kişiliğini ve davranışını tanımlar
+- **Çekirdek Model**: Temel LLM (GPT-4, Groks, Phi vb.)
+- **Sistem Promptu**: Ajan kişiliği ve davranışı tanımlar
 - **Parametreler**: Optimum performans için ince ayar ayarları
-- **Araç Entegrasyonu**: Harici API’ler ve MCP servislerine bağlantı
-- **Bellek**: Konuşma bağlamı ve oturum sürekliliği
+- **Araç Entegrasyonları**: Harici API’ler ve MCP servislerine bağlanma
+- **Hafıza**: Konuşma bağlamı ve oturum devamlılığı
 
 ![Agent Builder Arayüzü](../../../../translated_images/tr/agentbuilder.25895b2d2f8c02e7.webp)
 
-### ⚙️ Adım 2: Ajan Yapılandırmasına Derin Bakış
+### ⚙️ Adım 2: Ajan Yapılandırması Derinlemesine
 
 **🎨 Etkili Sistem Promptları Oluşturma:**
 ```markdown
@@ -178,25 +178,25 @@ You are a [specific role] with expertise in [domain].
 Provide 2-3 examples of ideal interactions
 ```
 
-*Tabii ki, Generate System Prompt’u kullanarak AI’dan prompt oluşturma ve optimize etme desteği alabilirsiniz*
+*Tabii ki, Prompt oluşturmayı optimize etmek ve geliştirmek için AI kullanmak adına Sistem Promptu Oluştur seçeneğini de kullanabilirsiniz*
 
 **🔧 Parametre Optimizasyonu:**
 | Parametre | Önerilen Aralık | Kullanım Alanı |
-|-----------|-----------------|----------------|
+|-----------|-----------------|----------|
 | **Temperature** | 0.1-0.3 | Teknik/faktüel yanıtlar |
-| **Temperature** | 0.7-0.9 | Yaratıcı/beyin fırtınası görevleri |
-| **Max Tokens** | 500-1000 | Kısa ve öz yanıtlar |
+| **Temperature** | 0.7-0.9 | Yaratıcı/fikir üretme görevleri |
+| **Max Tokens** | 500-1000 | Özlü yanıtlar |
 | **Max Tokens** | 2000-4000 | Detaylı açıklamalar |
 
-### 🐍 Adım 3: Pratik Alıştırma - Python Programlama Ajanı
+### 🐍 Adım 3: Pratik Egzersiz - Python Programlama Ajanı
 
-**🎯 Görev**: Özel bir Python kodlama asistanı oluşturmak
+**🎯 Görev**: Özel bir Python kodlama asistanı oluşturun
 
 **📋 Yapılandırma Adımları:**
 
-1. **Model Seçimi**: **Claude 3.5 Sonnet**’i seçin (kod için mükemmel)
+1. **Model Seçimi**: **Claude 3.5 Sonnet**'i seçin (kodu için mükemmel)
 
-2. **Sistem Prompt Tasarımı**:
+2. **Sistem Promptu Tasarımı**:
 ```markdown
 # Python Programming Expert Agent
 
@@ -226,7 +226,7 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 3. **Parametre Yapılandırması**:
    - Temperature: 0.2 (tutarlı, güvenilir kod için)
    - Max Tokens: 2000 (detaylı açıklamalar)
-   - Top-p: 0.9 (denge yaratıcı)
+   - Top-p: 0.9 (dengeli yaratıcılık)
 
 ![Python Ajan Yapılandırması](../../../../translated_images/tr/pythonagent.5e51b406401c165f.webp)
 
@@ -234,42 +234,46 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 
 **Test Senaryoları:**
 1. **Temel Fonksiyon**: "Asal sayıları bulan bir fonksiyon oluştur"
-2. **Karmaşık Algoritma**: "Ekleme, silme ve arama metodları olan ikili arama ağacı uygula"
-3. **Gerçek Dünya Problemi**: "Oran sınırlaması ve yeniden denemeleri yöneten bir web kazıyıcı oluştur"
+2. **Karmaşık Algoritma**: "Ekleme, silme ve arama metodları ile ikili arama ağacı uygula"
+3. **Gerçek Dünya Problemi**: "Oran sınırlaması ve tekrarları yöneten bir web kazıyıcı oluştur"
 4. **Hata Ayıklama**: "Bu kodu düzelt [hatalı kodu yapıştır]"
 
 **🏆 Başarı Kriterleri:**
 - ✅ Kod hatasız çalışıyor
 - ✅ Uygun dokümantasyon içeriyor
-- ✅ Python en iyi uygulamalarına uyuyor
+- ✅ Python en iyi uygulamalarını takip ediyor
 - ✅ Açık açıklamalar sağlıyor
-- ✅ İyileştirme önerileri sunuyor
+- ✅ İyileştirme önerilerinde bulunuyor
 
-## 🎓 Modül 1 Sonu & Sonraki Adımlar
+## 🎓 Modül 1 Sonu ve Sonraki Adımlar
 
 ### 📊 Bilgi Kontrolü
 
 Anlayışınızı test edin:
-- [ ] Kataloğundaki modeller arasındaki farkları açıklayabilir misiniz?
-- [ ] Özel bir ajan oluşturup test ettiniz mi?
-- [ ] Farklı kullanım senaryoları için parametreleri nasıl optimize edeceğinizi anlıyor musunuz?
+- [ ] Kataloğundaki modeller arasındaki farkı açıklayabilir misiniz?
+- [ ] Özel bir ajan oluşturup test etmeyi başarabildiniz mi?
+- [ ] Farklı kullanım durumları için parametreleri nasıl optimize edeceğinizi anlıyor musunuz?
 - [ ] Etkili sistem promptları tasarlayabilir misiniz?
 
 ### 📚 Ek Kaynaklar
 
-- **AI Toolkit Dokümantasyonu**: [Resmi Microsoft Belgeleri](https://github.com/microsoft/vscode-ai-toolkit)
+- **Microsoft Foundry Toolkit Dokümantasyonu**: [Resmi Microsoft Belgeleri](https://github.com/microsoft/vscode-ai-toolkit)
 - **Prompt Mühendisliği Rehberi**: [En İyi Uygulamalar](https://platform.openai.com/docs/guides/prompt-engineering)
-- **AI Toolkit Modelleri**: [Geliştirme Aşamasındaki Modeller](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Microsoft Foundry Toolkit Modelleri**: [Geliştirilen Modeller](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Tebrikler!** AI Toolkit’in temellerini öğrendiniz ve daha gelişmiş AI uygulamaları geliştirmeye hazırsınız!
+**🎉 Tebrikler!** Microsoft Foundry Toolkit temellerini öğrendiniz ve daha gelişmiş AI uygulamaları geliştirmeye hazırsınız!
 
 ### 🔜 Sonraki Modüle Geçin
 
-Daha gelişmiş özellikler için devam edin: **[Modül 2: MCP ile AI Toolkit Temelleri](../lab2/README.md)** burada şunları öğreneceksiniz:
+Daha gelişmiş özellikler için hazırsanız, devam edin: **[Modül 2: Microsoft Foundry Toolkit ile MCP Temelleri](../lab2/README.md)** ve şunları öğrenin:
 - Ajanlarınızı Model Context Protocol (MCP) kullanarak harici araçlara bağlama
 - Playwright ile tarayıcı otomasyon ajanları oluşturma
-- MCP sunucularını AI Toolkit ajanlarınızla entegre etme
+- MCP sunucularını Microsoft Foundry Toolkit ajanlarınızla entegre etme
 - Ajanlarınızı harici veri ve yeteneklerle güçlendirme
 
-**Feragatname**:  
-Bu belge, AI çeviri servisi [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba gösterilse de, otomatik çevirilerin hatalar veya yanlışlıklar içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu oluşabilecek yanlış anlamalar veya yorum hatalarından sorumlu değiliz.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,59 +1,59 @@
-# ادغام پروتکل زمینه مدل (MCP) با Azure AI Foundry
+# یکپارچه‌سازی پروتکل زمینه مدل (MCP) با Microsoft Foundry
 
-این راهنما نحوه ادغام سرورهای پروتکل زمینه مدل (MCP) با عامل‌های Azure AI Foundry را نشان می‌دهد که امکان هماهنگی قدرتمند ابزارها و قابلیت‌های هوش مصنوعی سازمانی را فراهم می‌کند.
+این راهنما نشان می‌دهد که چگونه سرورهای پروتکل زمینه مدل (MCP) را با عوامل Microsoft Foundry یکپارچه کنید تا امکان ارکستراسیون قدرتمند ابزارها و قابلیت‌های هوش مصنوعی سازمانی فراهم شود.
 
 ## مقدمه
 
-پروتکل زمینه مدل (MCP) یک استاندارد باز است که به برنامه‌های هوش مصنوعی اجازه می‌دهد به‌صورت امن به منابع داده و ابزارهای خارجی متصل شوند. هنگامی که با Azure AI Foundry ادغام شود، MCP به عامل‌ها امکان می‌دهد به خدمات، APIها و منابع داده خارجی مختلف به‌صورت استاندارد دسترسی داشته و با آن‌ها تعامل کنند.
+پروتکل زمینه مدل (MCP) یک استاندارد باز است که به برنامه‌های هوش مصنوعی اجازه می‌دهد به‌صورت امن به منابع داده‌ای و ابزارهای خارجی متصل شوند. زمانی که MCP با Microsoft Foundry یکپارچه می‌شود، به عوامل امکان می‌دهد به سرویس‌ها، API‌ها و منابع داده خارجی متنوعی به شکلی استاندارد دسترسی پیدا کرده و با آن‌ها تعامل داشته باشند.
 
-این ادغام، انعطاف‌پذیری اکوسیستم ابزارهای MCP را با چارچوب قدرتمند عامل‌های Azure AI Foundry ترکیب می‌کند و راه‌حل‌های هوش مصنوعی سازمانی با قابلیت‌های سفارشی‌سازی گسترده ارائه می‌دهد.
+این یکپارچه‌سازی، انعطاف‌پذیری اکوسیستم ابزارهای MCP را با چارچوب قدرتمند عوامل Microsoft Foundry ترکیب می‌کند و راهکارهای هوش مصنوعی در سطح سازمانی با امکانات گسترده سفارشی‌سازی را فراهم می‌سازد.
 
-**توجه:** اگر می‌خواهید از MCP در سرویس عامل Azure AI Foundry استفاده کنید، در حال حاضر فقط مناطق زیر پشتیبانی می‌شوند: westus، westus2، uaenorth، southindia و switzerlandnorth
+**نکته:** اگر می‌خواهید MCP را در سرویس عامل Microsoft Foundry استفاده کنید، در حال حاضر فقط مناطق زیر پشتیبانی می‌شوند: westus، westus2، uaenorth، southindia و switzerlandnorth
 
-## اهداف یادگیری
+## اهداف آموزشی
 
 در پایان این راهنما، قادر خواهید بود:
 
 - پروتکل زمینه مدل و مزایای آن را درک کنید
-- سرورهای MCP را برای استفاده با عامل‌های Azure AI Foundry راه‌اندازی کنید
-- عامل‌ها را با ادغام ابزار MCP ایجاد و پیکربندی کنید
+- سرورهای MCP را برای استفاده با عوامل Microsoft Foundry راه‌اندازی کنید
+- عوامل را با یکپارچه‌سازی ابزار MCP ایجاد و پیکربندی کنید
 - مثال‌های عملی با استفاده از سرورهای واقعی MCP پیاده‌سازی کنید
-- پاسخ‌ها و ارجاعات ابزارها را در مکالمات عامل مدیریت کنید
+- پاسخ‌ها و ارجاعات ابزارها را در گفت‌وگوهای عامل مدیریت نمایید
 
 ## پیش‌نیازها
 
 قبل از شروع، اطمینان حاصل کنید که:
 
-- اشتراک Azure با دسترسی به AI Foundry دارید
+- اشتراک Azure با دسترسی به Microsoft Foundry دارید
 - Python 3.10+ یا .NET 8.0+ نصب شده است
 - Azure CLI نصب و پیکربندی شده است
-- مجوزهای لازم برای ایجاد منابع هوش مصنوعی را دارید
+- مجوزهای مناسب برای ایجاد منابع هوش مصنوعی را دارید
 
 ## پروتکل زمینه مدل (MCP) چیست؟
 
-پروتکل زمینه مدل روشی استاندارد برای اتصال برنامه‌های هوش مصنوعی به منابع داده و ابزارهای خارجی است. مزایای کلیدی آن عبارتند از:
+پروتکل زمینه مدل روشی استاندارد برای اتصال برنامه‌های هوش مصنوعی به منابع داده و ابزارهای خارجی است. مزایای کلیدی عبارتند از:
 
-- **ادغام استاندارد**: رابطی یکنواخت در سراسر ابزارها و خدمات مختلف
-- **امنیت**: مکانیزم‌های احراز هویت و مجوزدهی امن
-- **انعطاف‌پذیری**: پشتیبانی از منابع داده، APIها و ابزارهای سفارشی متنوع
-- **قابلیت توسعه**: افزودن آسان قابلیت‌ها و ادغام‌های جدید
+- **یکپارچه‌سازی استاندارد**: رابط کاربری یکنواخت در سراسر ابزارها و سرویس‌های مختلف
+- **امنیت**: مکانیزم‌های امن احراز هویت و مجوزدهی
+- **انعطاف‌پذیری**: پشتیبانی از منابع داده متنوع، API‌ها و ابزارهای سفارشی
+- **گسترش‌پذیری**: سهولت افزودن قابلیت‌های جدید و یکپارچه‌سازی‌ها
 
-## راه‌اندازی MCP با Azure AI Foundry
+## راه‌اندازی MCP با Microsoft Foundry
 
 ### پیکربندی محیط
 
 محیط توسعه مورد نظر خود را انتخاب کنید:
 
-- [پیاده‌سازی Python](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [پیاده‌سازی .NET](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [پیاده‌سازی پایتون](#پیاده‌سازی-پایتون)
+- [پیاده‌سازی دات‌نت](#codeblock5)
 
 ---
 
-## پیاده‌سازی Python
+## پیاده‌سازی پایتون
 
-***توجه*** می‌توانید این [دفترچه یادداشت](mcp_support_python.ipynb) را اجرا کنید
+***نکته*** می‌توانید این [دفترچه یادداشت](./mcp_support_python.ipynb) را اجرا کنید
 
-### ۱. نصب بسته‌های مورد نیاز
+### 1. نصب بسته‌های مورد نیاز
 
 ```bash
 pip install azure-ai-projects -U
@@ -62,7 +62,7 @@ pip install azure-identity -U
 pip install mcp==1.11.0 -U
 ```
 
-### ۲. وارد کردن وابستگی‌ها
+### 2. واردکردن وابستگی‌ها
 
 ```python
 import os, time
@@ -71,14 +71,14 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.agents.models import McpTool, RequiredMcpToolCall, SubmitToolApprovalAction, ToolApproval
 ```
 
-### ۳. پیکربندی تنظیمات MCP
+### 3. پیکربندی تنظیمات MCP
 
 ```python
 mcp_server_url = os.environ.get("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
 mcp_server_label = os.environ.get("MCP_SERVER_LABEL", "mslearn")
 ```
 
-### ۴. مقداردهی اولیه کلاینت پروژه
+### 4. مقداردهی اولیه کلاینت پروژه
 
 ```python
 project_client = AIProjectClient(
@@ -87,23 +87,23 @@ project_client = AIProjectClient(
 )
 ```
 
-### ۵. ایجاد ابزار MCP
+### 5. ایجاد ابزار MCP
 
 ```python
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # اختیاری: ابزارهای مجاز را مشخص کنید
 )
 ```
 
-### ۶. مثال کامل Python
+### 6. مثال کامل پایتون
 
 ```python
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # ایجاد یک ایجنت جدید با ابزارهای MCP
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # ایجاد نخ برای ارتباط
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # ایجاد پیام به نخ
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # مدیریت تاییدیه ابزارها و اجرای ایجنت
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # نمایش مکالمه
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -178,25 +178,25 @@ with project_client:
 
 ---
 
-## پیاده‌سازی .NET
+## پیاده‌سازی دات‌نت
 
-***توجه*** می‌توانید این [دفترچه یادداشت](mcp_support_dotnet.ipynb) را اجرا کنید
+***نکته*** می‌توانید این [دفترچه یادداشت](./mcp_support_dotnet.ipynb) را اجرا کنید
 
-### ۱. نصب بسته‌های مورد نیاز
+### 1. نصب بسته‌های مورد نیاز
 
 ```csharp
 #r "nuget: Azure.AI.Agents.Persistent, 1.1.0-beta.4"
 #r "nuget: Azure.Identity, 1.14.2"
 ```
 
-### ۲. وارد کردن وابستگی‌ها
+### 2. واردکردن وابستگی‌ها
 
 ```csharp
 using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 ```
 
-### ۳. پیکربندی تنظیمات
+### 3. پیکربندی تنظیمات
 
 ```csharp
 var projectEndpoint = "https://your-project-endpoint.services.ai.azure.com/api/projects/your-project";
@@ -206,13 +206,13 @@ var mcpServerLabel = "mslearn";
 PersistentAgentsClient agentClient = new(projectEndpoint, new DefaultAzureCredential());
 ```
 
-### ۴. ایجاد تعریف ابزار MCP
+### 4. ایجاد تعریف ابزار MCP
 
 ```csharp
 MCPToolDefinition mcpTool = new(mcpServerLabel, mcpServerUrl);
 ```
 
-### ۵. ایجاد عامل با ابزارهای MCP
+### 5. ایجاد عامل با ابزارهای MCP
 
 ```csharp
 PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
@@ -223,7 +223,7 @@ PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
    );
 ```
 
-### ۶. مثال کامل .NET
+### 6. مثال کامل دات‌نت
 
 ```csharp
 // Create thread and message
@@ -301,17 +301,17 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 هنگام پیکربندی ابزارهای MCP برای عامل خود، می‌توانید چندین پارامتر مهم را مشخص کنید:
 
-### پیکربندی Python
+### پیکربندی پایتون
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # شناسه برای سرور MCP
+    server_url="https://api.example.com/mcp", # نقطه پایانی سرور MCP
+    allowed_tools=[],                       # اختیاری: ابزارهای مجاز را مشخص کنید
 )
 ```
 
-### پیکربندی .NET
+### پیکربندی دات‌نت
 
 ```csharp
 MCPToolDefinition mcpTool = new(
@@ -324,59 +324,63 @@ MCPToolDefinition mcpTool = new(
 
 هر دو پیاده‌سازی از هدرهای سفارشی برای احراز هویت پشتیبانی می‌کنند:
 
-### Python
+### پایتون
 ```python
 mcp_tool.update_headers("SuperSecret", "123456")
 ```
 
-### .NET
+### دات‌نت
 ```csharp
 MCPToolResource mcpToolResource = new(mcpServerLabel);
 mcpToolResource.UpdateHeader("SuperSecret", "123456");
 ```
 
-## رفع مشکلات رایج
+## عیب‌یابی مشکلات رایج
 
-### ۱. مشکلات اتصال
-- بررسی کنید که URL سرور MCP در دسترس باشد
-- اعتبارنامه‌های احراز هویت را بررسی کنید
-- اتصال شبکه را اطمینان حاصل کنید
+### 1. مشکلات اتصال
+- اطمینان از دسترسی به آدرس سرور MCP
+- بررسی اعتبارنامه‌های احراز هویت
+- اطمینان از اتصال شبکه
 
-### ۲. خطاهای فراخوانی ابزار
-- آرگومان‌ها و قالب‌بندی ابزار را بازبینی کنید
-- نیازمندی‌های خاص سرور را بررسی کنید
-- مدیریت خطای مناسب را پیاده‌سازی کنید
+### 2. خطاهای فراخوانی ابزار
+- بازبینی پارامترها و قالب‌بندی ابزار
+- بررسی نیازمندی‌های سرور خاص
+- پیاده‌سازی مدیریت خطای مناسب
 
-### ۳. مشکلات عملکرد
-- فرکانس فراخوانی ابزار را بهینه کنید
-- در صورت لزوم کشینگ را پیاده‌سازی کنید
-- زمان پاسخ سرور را نظارت کنید
+### 3. مشکلات عملکرد
+- بهینه‌سازی فرکانس فراخوانی ابزار
+- استفاده از کش در صورت لزوم
+- پایش زمان پاسخ سرور
 
 ## مراحل بعدی
 
-برای بهبود بیشتر ادغام MCP خود:
+برای بهبود بیشتر یکپارچه‌سازی MCP خود:
 
-1. **کاوش سرورهای سفارشی MCP**: سرورهای MCP خود را برای منابع داده اختصاصی بسازید
+1. **کاوش سرورهای سفارشی MCP**: ساخت سرورهای MCP اختصاصی برای منابع داده مالکیتی خود
 2. **پیاده‌سازی امنیت پیشرفته**: افزودن OAuth2 یا مکانیزم‌های احراز هویت سفارشی
-3. **نظارت و تحلیل**: پیاده‌سازی لاگ‌گیری و نظارت بر استفاده از ابزارها
-4. **مقیاس‌پذیری راه‌حل**: در نظر گرفتن تعادل بار و معماری‌های توزیع‌شده سرور MCP
+3. **پایش و تجزیه‌وتحلیل**: پیاده‌سازی لاگ‌گیری و مانیتورینگ برای استفاده از ابزارها
+4. **مقیاس‌پذیری راه‌حل شما**: در نظر گرفتن تعادل بار و معماری‌های سرور MCP توزیع‌شده
 
 ## منابع اضافی
 
-- [مستندات Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- [مستندات Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - [نمونه‌های پروتکل زمینه مدل](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [مروری بر عامل‌های Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [نمای کلی عوامل Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [مشخصات MCP](https://spec.modelcontextprotocol.io/)
 
 ## پشتیبانی
 
 برای پشتیبانی و سوالات بیشتر:
-- مستندات [Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/) را بررسی کنید
-- منابع جامعه [MCP](https://modelcontextprotocol.io/) را مشاهده کنید
+- مستندات [Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/) را مرور کنید
+- به منابع جامعه [MCP](https://modelcontextprotocol.io/) مراجعه کنید
 
-## گام بعدی
+## گام بعدی 
 
 - [5.14 مهندسی زمینه MCP](../mcp-contextengineering/README.md)
 
-**سلب مسئولیت**:  
-این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما در تلاش برای دقت هستیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است حاوی خطاها یا نواقصی باشند. سند اصلی به زبان بومی خود باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما مسئول هیچ گونه سوءتفاهم یا تفسیر نادرستی که از استفاده این ترجمه ناشی شود، نیستیم.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**سلب مسئولیت**:
+این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما در تلاش برای دقت هستیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است شامل خطاها یا نادرستی‌هایی باشند. سند اصلی به زبان مادری خود باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما در قبال هرگونه سوء تفاهم یا برداشت نادرست ناشی از استفاده از این ترجمه مسئولیتی نداریم.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

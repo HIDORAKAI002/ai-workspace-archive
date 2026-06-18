@@ -2,43 +2,43 @@
 
 ## 🎯 Qué Cubre Este Laboratorio
 
-Este laboratorio práctico te guía en la configuración de un entorno de desarrollo completo para construir servidores MCP con integración de PostgreSQL. Configurarás todas las herramientas necesarias, desplegarás recursos en Azure y validarás tu configuración antes de proceder con la implementación.
+Este laboratorio práctico te guía a través de la configuración de un entorno de desarrollo completo para construir servidores MCP con integración de PostgreSQL. Configurarás todas las herramientas necesarias, desplegarás recursos de Azure y validarás tu configuración antes de proceder con la implementación.
 
-## Descripción General
+## Resumen
 
-Un entorno de desarrollo adecuado es crucial para el desarrollo exitoso de servidores MCP. Este laboratorio proporciona instrucciones paso a paso para configurar Docker, servicios de Azure, herramientas de desarrollo y validar que todo funcione correctamente en conjunto.
+Un entorno de desarrollo adecuado es crucial para el éxito del desarrollo del servidor MCP. Este laboratorio proporciona instrucciones paso a paso para configurar Docker, servicios de Azure, herramientas de desarrollo y validar que todo funcione correctamente en conjunto.
 
-Al final de este laboratorio, tendrás un entorno de desarrollo completamente funcional listo para construir el servidor MCP de Zava Retail.
+Al final de este laboratorio, tendrás un entorno de desarrollo completamente funcional listo para construir el servidor Zava Retail MCP.
 
 ## Objetivos de Aprendizaje
 
-Al finalizar este laboratorio, serás capaz de:
+Al finalizar este laboratorio, podrás:
 
-- **Instalar y configurar** todas las herramientas de desarrollo necesarias
-- **Desplegar recursos en Azure** requeridos para el servidor MCP
+- **Instalar y configurar** todas las herramientas de desarrollo requeridas
+- **Desplegar recursos de Azure** necesarios para el servidor MCP
 - **Configurar contenedores Docker** para PostgreSQL y el servidor MCP
-- **Validar** tu configuración de entorno con conexiones de prueba
-- **Solucionar problemas** comunes de configuración y errores
+- **Validar** la configuración de tu entorno con conexiones de prueba
+- **Solucionar problemas** comunes de configuración y despliegue
 - **Comprender** el flujo de trabajo de desarrollo y la estructura de archivos
 
 ## 📋 Verificación de Requisitos Previos
 
-Antes de comenzar, asegúrate de tener:
+Antes de comenzar, asegúrate de contar con:
 
 ### Conocimientos Requeridos
-- Uso básico de la línea de comandos (Windows Command Prompt/PowerShell)
-- Comprensión de las variables de entorno
-- Familiaridad con el control de versiones Git
+- Uso básico de línea de comandos (Windows Command Prompt/PowerShell)
+- Comprensión de variables de entorno
+- Familiaridad con control de versiones Git
 - Conceptos básicos de Docker (contenedores, imágenes, volúmenes)
 
 ### Requisitos del Sistema
 - **Sistema Operativo**: Windows 10/11, macOS o Linux
-- **RAM**: Mínimo 8GB (16GB recomendado)
+- **RAM**: Mínimo 8GB (recomendado 16GB)
 - **Almacenamiento**: Al menos 10GB de espacio libre
 - **Red**: Conexión a Internet para descargas y despliegue en Azure
 
 ### Requisitos de Cuenta
-- **Suscripción de Azure**: El nivel gratuito es suficiente
+- **Suscripción de Azure**: La capa gratuita es suficiente
 - **Cuenta de GitHub**: Para acceso al repositorio
 - **Cuenta de Docker Hub**: (Opcional) Para publicar imágenes personalizadas
 
@@ -46,7 +46,7 @@ Antes de comenzar, asegúrate de tener:
 
 ### 1. Instalar Docker Desktop
 
-Docker proporciona el entorno de contenedores para nuestra configuración de desarrollo.
+Docker provee el entorno containerizado para nuestra configuración de desarrollo.
 
 #### Instalación en Windows
 
@@ -59,10 +59,10 @@ Docker proporciona el entorno de contenedores para nuestra configuración de des
 
 2. **Instalar y Configurar**:
    - Ejecuta el instalador como Administrador
-   - Habilita la integración con WSL 2 cuando se te solicite
-   - Reinicia tu computadora al completar la instalación
+   - Habilita la integración WSL 2 cuando se te solicite
+   - Reinicia tu computadora al finalizar la instalación
 
-3. **Verificar Instalación**:
+3. **Verificar la Instalación**:
    ```cmd
    docker --version
    docker-compose --version
@@ -72,16 +72,16 @@ Docker proporciona el entorno de contenedores para nuestra configuración de des
 
 1. **Descargar e Instalar**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Descargar desde https://desktop.docker.com/mac/stable/Docker.dmg
+   # O usar Homebrew
    brew install --cask docker
    ```
 
 2. **Iniciar Docker Desktop**:
-   - Abre Docker Desktop desde Aplicaciones
+   - Inicia Docker Desktop desde Aplicaciones
    - Completa el asistente de configuración inicial
 
-3. **Verificar Instalación**:
+3. **Verificar la Instalación**:
    ```bash
    docker --version
    docker-compose --version
@@ -96,7 +96,7 @@ Docker proporciona el entorno de contenedores para nuestra configuración de des
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Cierra sesión y vuelve a iniciarla para que los cambios de grupo tengan efecto
    ```
 
 2. **Instalar Docker Compose**:
@@ -121,10 +121,10 @@ winget install Microsoft.AzureCLI
 #### Instalación en macOS
 
 ```bash
-# Using Homebrew
+# Usando Homebrew
 brew install azure-cli
 
-# Or using installer
+# O usando el instalador
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
@@ -142,20 +142,20 @@ sudo dnf install azure-cli
 #### Verificar y Autenticar
 
 ```bash
-# Check installation
+# Comprobar instalación
 az version
 
-# Login to Azure
+# Iniciar sesión en Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Establecer suscripción predeterminada (si tienes varias)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
 ### 3. Instalar Git
 
-Git es necesario para clonar el repositorio y el control de versiones.
+Git es necesario para clonar el repositorio y control de versiones.
 
 #### Windows
 
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git generalmente viene preinstalado, pero puedes actualizarlo mediante Homebrew
 brew install git
 ```
 
@@ -185,7 +185,7 @@ sudo dnf install git
 
 ### 4. Instalar VS Code
 
-Visual Studio Code proporciona el entorno de desarrollo integrado con soporte para MCP.
+Visual Studio Code provee el entorno de desarrollo integrado con soporte MCP.
 
 #### Instalación
 
@@ -205,7 +205,7 @@ sudo snap install code --classic
 Instala estas extensiones de VS Code:
 
 ```bash
-# Install via command line
+# Instalar vía línea de comandos
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
@@ -223,7 +223,7 @@ O instálalas desde VS Code:
 
 ### 5. Instalar Python
 
-Python 3.8+ es requerido para el desarrollo del servidor MCP.
+Python 3.8+ es requerido para el desarrollo de servidores MCP.
 
 #### Windows
 
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# Usando Homebrew
 brew install python@3.11
 ```
 
@@ -254,8 +254,8 @@ sudo dnf install python3.11 python3.11-pip
 #### Verificar Instalación
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Debería mostrar Python 3.11.x
+pip --version      # Debería mostrar la versión de pip
 ```
 
 ## 🚀 Configuración del Proyecto
@@ -263,40 +263,40 @@ pip --version      # Should show pip version
 ### 1. Clonar el Repositorio
 
 ```bash
-# Clone the main repository
+# Clona el repositorio principal
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Navega al directorio del proyecto
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Verifica la estructura del repositorio
 ls -la
 ```
 
-### 2. Crear un Entorno Virtual de Python
+### 2. Crear Entorno Virtual de Python
 
 ```bash
-# Create virtual environment
+# Crear entorno virtual
 python -m venv mcp-env
 
-# Activate virtual environment
+# Activar entorno virtual
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Actualizar pip
 python -m pip install --upgrade pip
 ```
 
 ### 3. Instalar Dependencias de Python
 
 ```bash
-# Install development dependencies
+# Instalar dependencias de desarrollo
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Verificar paquetes clave
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
@@ -304,23 +304,23 @@ pip list | grep azure
 
 ## ☁️ Despliegue de Recursos en Azure
 
-### 1. Comprender los Requisitos de Recursos
+### 1. Entender los Requisitos de Recursos
 
 Nuestro servidor MCP requiere estos recursos de Azure:
 
 | **Recurso** | **Propósito** | **Costo Estimado** |
-|-------------|--------------|--------------------|
-| **Azure AI Foundry** | Hospedaje y gestión de modelos de IA | $10-50/mes |
-| **Despliegue de OpenAI** | Modelo de incrustación de texto (text-embedding-3-small) | $5-20/mes |
-| **Application Insights** | Monitoreo y telemetría | $5-15/mes |
+|-------------|---------------|--------------------|
+| **Microsoft Foundry** | Hospedaje y gestión de modelos AI | $10-50/mes |
+| **Despliegue OpenAI** | Modelo de incrustación de texto (text-embedding-3-small) | $5-20/mes |
+| **Application Insights** | Monitorización y telemetría | $5-15/mes |
 | **Grupo de Recursos** | Organización de recursos | Gratis |
 
-### 2. Desplegar Recursos en Azure
+### 2. Desplegar Recursos de Azure
 
-#### Opción A: Despliegue Automático (Recomendado)
+#### Opción A: Despliegue Automatizado (Recomendado)
 
 ```bash
-# Navigate to infrastructure directory
+# Navegar al directorio de infraestructura
 cd infra
 
 # Windows - PowerShell
@@ -330,28 +330,28 @@ cd infra
 ./deploy.sh
 ```
 
-El script de despliegue realizará:
+El script de despliegue hará:
 1. Crear un grupo de recursos único
-2. Desplegar recursos de Azure AI Foundry
+2. Desplegar recursos de Microsoft Foundry
 3. Desplegar el modelo text-embedding-3-small
 4. Configurar Application Insights
 5. Crear un principal de servicio para autenticación
-6. Generar un archivo `.env` con la configuración
+6. Generar el archivo `.env` con la configuración
 
 #### Opción B: Despliegue Manual
 
 Si prefieres control manual o el script automático falla:
 
 ```bash
-# Set variables
+# Establecer variables
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Crear grupo de recursos
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Implementar plantilla principal
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,16 +359,16 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Verificar Despliegue en Azure
+### 3. Verificar el Despliegue en Azure
 
 ```bash
-# Check resource group
+# Verificar grupo de recursos
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Listar recursos desplegados
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Probar servicio de IA
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
@@ -376,10 +376,10 @@ az cognitiveservices account show \
 
 ### 4. Configurar Variables de Entorno
 
-Después del despliegue, deberías tener un archivo `.env`. Verifica que contenga:
+Luego del despliegue, deberías tener un archivo `.env`. Verifica que contenga:
 
 ```bash
-# .env file contents
+# Contenido del archivo .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Configuración de la base de datos (para desarrollo)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -398,9 +398,9 @@ POSTGRES_PASSWORD=your-secure-password
 
 ## 🐳 Configuración del Entorno Docker
 
-### 1. Comprender la Composición de Docker
+### 1. Entender la Composición Docker
 
-Nuestro entorno de desarrollo utiliza Docker Compose:
+Nuestro entorno de desarrollo usa Docker Compose:
 
 ```yaml
 # docker-compose.yml overview
@@ -432,44 +432,44 @@ services:
 ### 2. Iniciar el Entorno de Desarrollo
 
 ```bash
-# Ensure you're in the project root directory
+# Asegúrate de estar en el directorio raíz del proyecto
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Iniciar los servicios
 docker-compose up -d
 
-# Check service status
+# Comprobar el estado del servicio
 docker-compose ps
 
-# View logs
+# Ver los registros
 docker-compose logs -f
 ```
 
-### 3. Verificar Configuración de la Base de Datos
+### 3. Verificar la Configuración de la Base de Datos
 
 ```bash
-# Connect to PostgreSQL container
+# Conectar al contenedor de PostgreSQL
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Revisar la estructura de la base de datos
 \dt retail.*
 
-# Verify sample data
+# Verificar datos de ejemplo
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Salir de PostgreSQL
 \q
 ```
 
 ### 4. Probar el Servidor MCP
 
 ```bash
-# Check MCP server health
+# Verificar la salud del servidor MCP
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Probar el punto final básico de MCP
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
@@ -478,7 +478,7 @@ curl -X POST http://localhost:8000/mcp \
 
 ## 🔧 Configuración de VS Code
 
-### 1. Configurar la Integración MCP
+### 1. Configurar Integración MCP
 
 Crea la configuración MCP en VS Code:
 
@@ -506,7 +506,7 @@ Crea la configuración MCP en VS Code:
 }
 ```
 
-### 2. Configurar el Entorno de Python
+### 2. Configurar Entorno Python
 
 ```json
 // .vscode/settings.json
@@ -525,30 +525,30 @@ Crea la configuración MCP en VS Code:
 }
 ```
 
-### 3. Probar la Integración con VS Code
+### 3. Probar Integración en VS Code
 
 1. **Abre el proyecto en VS Code**:
    ```bash
    code .
    ```
 
-2. **Abrir AI Chat**:
+2. **Abre AI Chat**:
    - Presiona `Ctrl+Shift+P` (Windows/Linux) o `Cmd+Shift+P` (macOS)
    - Escribe "AI Chat" y selecciona "AI Chat: Open Chat"
 
-3. **Probar Conexión al Servidor MCP**:
+3. **Prueba conexión al servidor MCP**:
    - En AI Chat, escribe `#zava` y selecciona uno de los servidores configurados
    - Pregunta: "¿Qué tablas están disponibles en la base de datos?"
-   - Deberías recibir una respuesta con las tablas de la base de datos de retail
+   - Deberías recibir una respuesta listando las tablas de la base de datos retail
 
 ## ✅ Validación del Entorno
 
-### 1. Verificación Completa del Sistema
+### 1. Comprobación Completa del Sistema
 
 Ejecuta este script de validación para verificar tu configuración:
 
 ```bash
-# Create validation script
+# Crear script de validación
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Verificar versión de Python
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Verificar paquetes necesarios
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Verificar Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Verificar Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Verificar variables de entorno
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Verificar conexión a la base de datos
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Probar consulta
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Verificar servidor MCP
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Verificar servicio Azure AI
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Esto fallará si las credenciales son inválidas
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,11 +716,11 @@ async def main():
 
 EOF
 
-# Run validation
+# Ejecutar validación
 python validate_setup.py
 ```
 
-### 2. Lista de Verificación Manual
+### 2. Lista de Validación Manual
 
 **✅ Herramientas Básicas**
 - [ ] Docker versión 20.10+ instalado y funcionando
@@ -729,150 +729,150 @@ python validate_setup.py
 - [ ] Git 2.30+ instalado
 - [ ] VS Code con extensiones requeridas
 
-**✅ Recursos de Azure**
+**✅ Recursos Azure**
 - [ ] Grupo de recursos creado exitosamente
-- [ ] Proyecto de AI Foundry desplegado
-- [ ] Modelo text-embedding-3-small de OpenAI desplegado
+- [ ] Proyecto AI Foundry desplegado
+- [ ] Modelo OpenAI text-embedding-3-small desplegado
 - [ ] Application Insights configurado
 - [ ] Principal de servicio creado con permisos adecuados
 
 **✅ Configuración del Entorno**
 - [ ] Archivo `.env` creado con todas las variables requeridas
 - [ ] Credenciales de Azure funcionando (prueba con `az account show`)
-- [ ] Contenedor de PostgreSQL ejecutándose y accesible
-- [ ] Datos de muestra cargados en la base de datos
+- [ ] Contenedor PostgreSQL corriendo y accesible
+- [ ] Datos de ejemplo cargados en la base de datos
 
-**✅ Integración con VS Code**
+**✅ Integración VS Code**
 - [ ] `.vscode/mcp.json` configurado
-- [ ] Intérprete de Python configurado al entorno virtual
+- [ ] Intérprete Python configurado al entorno virtual
 - [ ] Servidores MCP aparecen en AI Chat
-- [ ] Se pueden ejecutar consultas de prueba a través de AI Chat
+- [ ] Puede ejecutar consultas de prueba a través de AI Chat
 
 ## 🛠️ Solución de Problemas Comunes
 
 ### Problemas con Docker
 
-**Problema**: Los contenedores de Docker no inician
+**Problema**: Los contenedores Docker no se inician  
 ```bash
-# Check Docker service status
+# Comprobar el estado del servicio Docker
 docker info
 
-# Check available resources
+# Comprobar recursos disponibles
 docker system df
 
-# Clean up if needed
+# Limpiar si es necesario
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Reiniciar Docker Desktop (Windows/macOS)
+# O reiniciar el servicio Docker (Linux)
 sudo systemctl restart docker
 ```
 
-**Problema**: Falla la conexión a PostgreSQL
+**Problema**: La conexión a PostgreSQL falla  
 ```bash
-# Check container logs
+# Verificar los registros del contenedor
 docker-compose logs postgres
 
-# Verify container is healthy
+# Verificar que el contenedor esté saludable
 docker-compose ps
 
-# Test direct connection
+# Probar la conexión directa
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
 
-### Problemas de Despliegue en Azure
+### Problemas en Despliegue Azure
 
-**Problema**: Falla el despliegue en Azure
+**Problema**: El despliegue en Azure falla  
 ```bash
-# Check Azure CLI authentication
+# Verificar la autenticación de Azure CLI
 az account show
 
-# Verify subscription permissions
+# Verificar permisos de suscripción
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Comprobar el registro del proveedor de recursos
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
 
-**Problema**: Falla la autenticación del servicio de IA
+**Problema**: Fallo en autenticación del servicio AI  
 ```bash
-# Test service principal
+# Probar el principal del servicio
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Verificar el despliegue del servicio de IA
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
 
-### Problemas con el Entorno de Python
+### Problemas en Entorno Python
 
-**Problema**: Falla la instalación de paquetes
+**Problema**: La instalación de paquetes falla  
 ```bash
-# Upgrade pip and setuptools
+# Actualizar pip y setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Limpiar la caché de pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# Instalar paquetes uno por uno para identificar problemas
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
 
-**Problema**: VS Code no encuentra el intérprete de Python
+**Problema**: VS Code no encuentra el intérprete Python  
 ```bash
-# Show Python interpreter paths
+# Mostrar rutas del intérprete de Python
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Primero activa el entorno virtual
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Luego abre VS Code
 code .
 ```
 
 ## 🎯 Puntos Clave
 
-Después de completar este laboratorio, deberías tener:
+Después de completar este laboratorio, deberías contar con:
 
 ✅ **Entorno de Desarrollo Completo**: Todas las herramientas instaladas y configuradas  
-✅ **Recursos de Azure Desplegados**: Servicios de IA e infraestructura de soporte  
-✅ **Entorno Docker Ejecutándose**: Contenedores de PostgreSQL y servidor MCP  
-✅ **Integración con VS Code**: Servidores MCP configurados y accesibles  
-✅ **Configuración Validada**: Todos los componentes probados y funcionando juntos  
-✅ **Conocimientos de Solución de Problemas**: Problemas comunes y soluciones  
+✅ **Recursos Azure Desplegados**: Servicios AI e infraestructura de soporte  
+✅ **Entorno Docker Funcionando**: Contenedores de PostgreSQL y servidor MCP  
+✅ **Integración en VS Code**: Servidores MCP configurados y accesibles  
+✅ **Configuración Validada**: Todos los componentes probados y trabajando en conjunto  
+✅ **Conocimiento para Solucionar Problemas**: Problemas comunes y sus soluciones  
 
-## 🚀 Próximos Pasos
+## 🚀 Qué Sigue
 
 Con tu entorno listo, continúa con **[Laboratorio 04: Diseño y Esquema de Base de Datos](../04-Database/README.md)** para:
 
-- Explorar el esquema de la base de datos de retail en detalle
-- Comprender el modelado de datos multi-tenant
+- Explorar el esquema de la base de datos retail en detalle
+- Entender el modelado de datos multi-tenant
 - Aprender sobre la implementación de Seguridad a Nivel de Fila
-- Trabajar con datos de muestra de retail
+- Trabajar con datos de ejemplo retail
 
 ## 📚 Recursos Adicionales
 
 ### Herramientas de Desarrollo
-- [Documentación de Docker](https://docs.docker.com/) - Referencia completa de Docker
-- [Referencia de Azure CLI](https://docs.microsoft.com/cli/azure/) - Comandos de Azure CLI
-- [Documentación de VS Code](https://code.visualstudio.com/docs) - Configuración del editor y extensiones
+- [Documentación Docker](https://docs.docker.com/) - Referencia completa de Docker
+- [Referencia Azure CLI](https://docs.microsoft.com/cli/azure/) - Comandos Azure CLI
+- [Documentación VS Code](https://code.visualstudio.com/docs) - Configuración del editor y extensiones
 
-### Servicios de Azure
-- [Documentación de Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Configuración de servicios de IA
-- [Servicio OpenAI de Azure](https://docs.microsoft.com/azure/cognitive-services/openai/) - Despliegue de modelos de IA
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Configuración de monitoreo
+### Servicios Azure
+- [Documentación Microsoft Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Configuración del servicio AI
+- [Servicio Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Despliegue de modelos AI
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Configuración de monitorización
 
-### Desarrollo en Python
-- [Entornos Virtuales en Python](https://docs.python.org/3/tutorial/venv.html) - Gestión de entornos
-- [Documentación de AsyncIO](https://docs.python.org/3/library/asyncio.html) - Patrones de programación asíncrona
-- [Documentación de FastAPI](https://fastapi.tiangolo.com/) - Patrones de frameworks web
+### Desarrollo Python
+- [Entornos Virtuales Python](https://docs.python.org/3/tutorial/venv.html) - Gestión de entornos
+- [Documentación AsyncIO](https://docs.python.org/3/library/asyncio.html) - Patrones de programación asíncrona
+- [Documentación FastAPI](https://fastapi.tiangolo.com/) - Patrones de desarrollo web
 
 ---
 
@@ -880,5 +880,7 @@ Con tu entorno listo, continúa con **[Laboratorio 04: Diseño y Esquema de Base
 
 ---
 
-**Descargo de responsabilidad**:  
-Este documento ha sido traducido utilizando el servicio de traducción automática [Co-op Translator](https://github.com/Azure/co-op-translator). Aunque nos esforzamos por garantizar la precisión, tenga en cuenta que las traducciones automatizadas pueden contener errores o imprecisiones. El documento original en su idioma nativo debe considerarse como la fuente autorizada. Para información crítica, se recomienda una traducción profesional realizada por humanos. No nos hacemos responsables de malentendidos o interpretaciones erróneas que puedan surgir del uso de esta traducción.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Descargo de responsabilidad**:
+Este documento ha sido traducido utilizando el servicio de traducción automática [Co-op Translator](https://github.com/Azure/co-op-translator). Aunque nos esforzamos por la precisión, tenga en cuenta que las traducciones automatizadas pueden contener errores o inexactitudes. El documento original en su idioma nativo debe considerarse la fuente autorizada. Para información crítica, se recomienda una traducción profesional humana. No somos responsables de cualquier malentendido o interpretación errónea que surja del uso de esta traducción.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

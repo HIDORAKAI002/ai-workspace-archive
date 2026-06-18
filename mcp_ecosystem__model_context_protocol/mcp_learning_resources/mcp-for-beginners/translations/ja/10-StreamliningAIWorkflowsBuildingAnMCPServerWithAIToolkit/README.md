@@ -1,4 +1,4 @@
-# AIワークフローの効率化：AI Toolkitを用いたMCPサーバー構築
+# AIワークフローの効率化：Microsoft Foundry ToolkitでMCPサーバーを構築する
 
 [![MCP Spec](https://img.shields.io/badge/MCP%20Spec-2025--11--25-blue.svg)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://python.org)
@@ -8,140 +8,140 @@
 
 ## 🎯 概要
 
-[![Build AI Agents in VS Code: 4 Hands-On Labs with MCP and AI Toolkit](../../../translated_images/ja/11.0f6db6a0fb606885.webp)](https://youtu.be/r34Csn3rkeQ)
+[![Build AI Agents in VS Code: 4 Hands-On Labs with MCP and Microsoft Foundry Toolkit](../../../translated_images/ja/11.0f6db6a0fb606885.webp)](https://youtu.be/r34Csn3rkeQ)
 
-_(上の画像をクリックするとこのレッスンの動画が視聴できます)_
+_(上の画像をクリックして本レッスンの動画を視聴できます)_
 
-**Model Context Protocol (MCP) ワークショップ**へようこそ！この包括的なハンズオンワークショップでは、最先端技術を融合し、AIアプリケーション開発の革命を起こします：
+<strong>Model Context Protocol (MCP) ワークショップ</strong>へようこそ！この包括的なハンズオンワークショップは、AIアプリケーション開発を革新する2つの最先端技術を組み合わせています：
 
-- **🔗 Model Context Protocol (MCP)**：シームレスなAIツール統合のためのオープン標準
-- **🛠️ Visual Studio Code用AI Toolkit (AITK)**：Microsoftの強力なAI開発拡張機能
+- **🔗 Model Context Protocol (MCP)**: シームレスなAIツール統合のためのオープンスタンダード
+- **🛠️ Microsoft Foundry Toolkit for VS Code**: Microsoftによる強力なAI開発拡張機能
 
-### 🎓 学べること
+### 🎓 学習内容
 
-このワークショップの最後には、AIモデルと実世界のツールやサービスを橋渡しするインテリジェントなアプリケーション構築の技術を習得します。自動テストからカスタムAPI統合まで、複雑なビジネス課題を解決する実践的なスキルを身につけます。
+このワークショップの終了時には、AIモデルと現実のツール・サービスをつなぐ知的アプリケーションの構築スキルを習得します。自動テストからカスタムAPI統合まで、複雑なビジネス課題を解決する実践力を身につけます。
 
 ## 🏗️ 技術スタック
 
 ### 🔌 Model Context Protocol (MCP)
 
-MCPはAIのための **「USB-C」** です。AIモデルを外部ツールやデータソースに接続するためのユニバーサルスタンダードです。
+MCPはAIのための<strong>「USB-C」</strong>－AIモデルを外部ツールやデータソースに接続するための汎用規格です。
 
 **✨ 主な特徴：**
 
-- 🔄 **標準化された統合**：AIツール接続のためのユニバーサルインターフェース
-- 🏛️ **柔軟なアーキテクチャ**：stdio/SSEトランスポートを使ったローカル＆リモートサーバー対応
-- 🧰 **豊富なエコシステム**：ツール、プロンプト、リソースが一つのプロトコルに集約
-- 🔒 **企業向けの信頼性**：組み込みのセキュリティと信頼性
+- 🔄 <strong>標準化された統合</strong>：AIとツールの接続に共通インターフェースを提供
+- 🏛️ <strong>柔軟なアーキテクチャ</strong>：stdio/SSEトランスポートを介したローカル・リモートサーバー対応
+- 🧰 <strong>豊富なエコシステム</strong>：ツール、プロンプト、リソースが一つのプロトコル内に
+- 🔒 <strong>エンタープライズ対応</strong>：セキュリティと信頼性を内蔵
 
-**🎯 MCPが重要な理由：**  
-USB-Cがケーブルの混乱を解消したように、MCPはAI統合の複雑さを解消します。1つのプロトコルで無限の可能性を提供します。
+**🎯 MCPの重要性：**
+USB-Cがケーブルの混乱を終わらせたように、MCPはAI統合の複雑さを解消します。1つのプロトコルで無限の可能性を。
 
-### 🤖 Visual Studio Code用AI Toolkit (AITK)
+### 🤖 Microsoft Foundry Toolkit for VS Code
 
-Microsoftの旗艦AI開発拡張機能で、VS Codeを強力なAI開発環境に変えます。
+Microsoftの代表的なAI開発拡張機能で、VS CodeをAI開発の強力なツールに変えます。
 
-**🚀 主な機能：**
+**🚀 コア機能：**
 
-- 📦 **モデルカタログ**：Azure AI、GitHub、Hugging Face、Ollamaのモデルにアクセス
-- ⚡ **ローカル推論**：ONNX最適化済みのCPU/GPU/NPU実行
-- 🏗️ **エージェントビルダー**：MCP統合によるビジュアルAIエージェント開発
-- 🎭 **マルチモーダル対応**：テキスト、ビジョン、構造化出力のサポート
+- 📦 <strong>モデルカタログ</strong>：Azure AI、GitHub、Hugging Face、Ollamaからモデルにアクセス
+- ⚡ <strong>ローカル推論</strong>：ONNX最適化CPU/GPU/NPUでの実行
+- 🏗️ <strong>エージェントビルダー</strong>：MCP統合によるビジュアルAIエージェント開発
+- 🎭 <strong>マルチモーダル</strong>：テキスト、ビジョン、構造化出力対応
 
 **💡 開発メリット：**
 
-- ゼロコンフィグでモデルデプロイ
+- 設定不要のモデル配備
 - ビジュアルプロンプトエンジニアリング
 - リアルタイムテストプレイグラウンド
 - シームレスなMCPサーバー統合
 
-## 📚 学習ジャーニー
+## 📚 学習の道筋
 
-### [🚀 モジュール1：AI Toolkitの基礎](./lab1/README.md)
+### [🚀 モジュール1: Microsoft Foundry Toolkitの基本](./lab1/README.md)
 
-**所要時間**：15分
+<strong>時間</strong>：15分
 
-- 🛠️ VS Code用AI Toolkitのインストールと設定
+- 🛠️ VS Code向けMicrosoft Foundry Toolkitのインストールと設定
 - 🗂️ モデルカタログの探索（GitHub、ONNX、OpenAI、Anthropic、Googleの100以上のモデル）
-- 🎮 リアルタイムモデルテストのためのインタラクティブプレイグラウンドの習得
-- 🤖 初めてのAIエージェント構築（エージェントビルダー使用）
-- 📊 内蔵メトリクス（F1、関連度、類似度、一貫性）でモデル性能評価
-- ⚡ バッチ処理とマルチモーダル機能の学習
+- 🎮 インタラクティブプレイグラウンドでのリアルタイムモデルテスト
+- 🤖 エージェントビルダーで初のAIエージェント作成
+- 📊 内蔵メトリクス（F1、関連性、類似性、一貫性）でモデル性能評価
+- ⚡ バッチ処理とマルチモーダル対応の習得
 
-**🎯 学習成果**：AITK機能を理解し実用的なAIエージェントを作成
+**🎯 学習成果**：Microsoft Foundry Toolkitの機能を包括的に理解し、機能的なAIエージェントを作成する
 
-### [🌐 モジュール2：MCPとAI Toolkitの基礎](./lab2/README.md)
+### [🌐 モジュール2: MCPとMicrosoft Foundry Toolkitの基本](./lab2/README.md)
 
-**所要時間**：20分
+<strong>時間</strong>：20分
 
-- 🧠 Model Context Protocol (MCP)のアーキテクチャとコンセプト習得
-- 🌐 MicrosoftのMCPサーバーエコシステムの探索
+- 🧠 Model Context Protocol（MCP）のアーキテクチャと概念の習得
+- 🌐 MicrosoftのMCPサーバーエコシステムを探る
 - 🤖 Playwright MCPサーバーを使ったブラウザ自動化エージェント構築
-- 🔧 MCPサーバーをAI Toolkitのエージェントビルダーと統合
-- 📊 エージェント内でのMCPツール設定とテスト
-- 🚀 MCP対応エージェントの本番環境向けエクスポートとデプロイ
+- 🔧 MCPサーバーとMicrosoft Foundry Toolkitエージェントビルダーの統合
+- 📊 エージェント内でのMCPツールの設定とテスト
+- 🚀 MCP搭載エージェントのエクスポートと本番展開
 
-**🎯 学習成果**：外部ツールを駆使した強力なAIエージェントを展開
+**🎯 学習成果**：MCPを活用した外部ツール強化型AIエージェントのデプロイ
 
-### [🔧 モジュール3：AI Toolkitによる高度なMCP開発](./lab3/README.md)
+### [🔧 モジュール3: Microsoft Foundry Toolkitによる高度なMCP開発](./lab3/README.md)
 
-**所要時間**：20分
+<strong>時間</strong>：20分
 
-- 💻 AI Toolkitを用いたカスタムMCPサーバー作成
-- 🐍 最新MCP Python SDK（v1.9.3）の設定と活用
-- 🔍 MCP Inspectorによるデバッグ環境構築と利用
-- 🛠️ プロフェッショナルなデバッグワークフローで気象MCPサーバー構築
-- 🧪 エージェントビルダーとInspectorの両環境でMCPサーバーデバッグ
+- 💻 Microsoft Foundry Toolkitを使ったカスタムMCPサーバー作成
+- 🐍 最新MCP Python SDK（v1.9.3）設定と利用
+- 🔍 MCP Inspectorを使ったデバッグ環境の設定と活用
+- 🛠️ プロフェッショナルなデバッグワークフローで天気情報MCPサーバー構築
+- 🧪 エージェントビルダーとInspectorの両環境でMCPサーバーをデバッグ
 
-**🎯 学習成果**：最新ツールによるMCPサーバー開発とデバッグ技術の習得
+**🎯 学習成果**：モダンツールを使ったカスタムMCPサーバー開発とデバッグ技術習得
 
-### [🐙 モジュール4：実践的なMCP開発 - カスタムGitHubクローンサーバー](./lab4/README.md)
+### [🐙 モジュール4: 実践的MCP開発 - カスタムGitHubクローンサーバー](./lab4/README.md)
 
-**所要時間**：30分
+<strong>時間</strong>：30分
 
-- 🏗️ 開発ワークフロー用の実用的なGitHubクローンMCPサーバー構築
-- 🔄 バリデーションとエラーハンドリングを備えたスマートなリポジトリクローン機能実装
-- 📁 インテリジェントなディレクトリ管理とVS Code統合の作成
-- 🤖 カスタムMCPツールと連携したGitHub Copilotエージェントモード使用
-- 🛡️ 本番環境向けの信頼性とクロスプラットフォーム対応適用
+- 🏗️ 開発ワークフローのための実用的GitHubクローンMCPサーバー作成
+- 🔄 バリデーションおよびエラーハンドリング実装によるスマートリポジトリクローン
+- 📁 インテリジェントなディレクトリ管理とVS Code連携
+- 🤖 カスタムMCPツールと組み合わせたGitHub Copilotエージェントモード活用
+- 🛡️ 本番対応の信頼性とクロスプラットフォーム互換性の適用
 
-**🎯 学習成果**：実際の開発ワークフローを効率化する本番対応MCPサーバー展開
+**🎯 学習成果**：実際の開発ワークフローを効率化する本番対応MCPサーバーの展開
 
-## 💡 実際の応用例とインパクト
+## 💡 実世界での応用と影響
 
-### 🏢 企業向けユースケース
+### 🏢 エンタープライズユースケース
 
 #### 🔄 DevOps自動化
 
-開発ワークフローをインテリジェントに自動化：
+スマートな自動化で開発ワークフローを変革：
 
-- **スマートリポジトリ管理**：AIによるコードレビューとマージ判断
-- **インテリジェントCI/CD**：コード変更に基づく自動パイプライン最適化
-- **課題トリアージ**：自動バグ分類および割り当て
+- <strong>スマートリポジトリ管理</strong>：AIによるコードレビューとマージ判断
+- **インテリジェントCI/CD**：コード変更に基づくパイプラインの自動最適化
+- <strong>課題トリアージ</strong>：バグの自動分類と割り当て
 
-#### 🧪 品質保証革命
+#### 🧪 品質保証の革新
 
-AI駆動の自動化でテストを向上：
+AI駆動によるテスト自動化で品質向上：
 
-- **インテリジェントテスト生成**：網羅的なテストスイートの自動作成
-- **ビジュアル回帰テスト**：AI搭載のUI変更検出
-- **パフォーマンス監視**：問題の事前検知と解決
+- <strong>インテリジェントテスト生成</strong>：包括的なテストスイートを自動作成
+- <strong>ビジュアルリグレッションテスト</strong>：UI変更のAI検知
+- <strong>パフォーマンス監視</strong>：問題の事前検知と解決
 
-#### 📊 データパイプラインインテリジェンス
+#### 📊 データパイプラインのインテリジェンス
 
-スマートなデータ処理ワークフロー構築：
+より賢くデータ処理ワークフローを構築：
 
 - **適応型ETLプロセス**：自己最適化型データ変換
-- **異常検知**：リアルタイムデータ品質監視
-- **インテリジェントルーティング**：スマートなデータフロー管理
+- <strong>異常検知</strong>：リアルタイムのデータ品質監視
+- <strong>インテリジェントルーティング</strong>：スマートなデータフロー管理
 
 #### 🎧 顧客体験の向上
 
-卓越した顧客インタラクションの創出：
+卓越した顧客対応の創出：
 
-- **コンテキスト認識サポート**：顧客履歴にアクセスできるAIエージェント
-- **プロアクティブな問題解決**：予測型カスタマーサービス
-- **マルチチャネル統合**：プラットフォームを超えた統合AI体験
+- <strong>コンテキスト認識サポート</strong>：顧客履歴にアクセス可能なAIエージェント
+- <strong>先回りした問題解決</strong>：予測型カスタマーサービス
+- <strong>マルチチャネル統合</strong>：プラットフォーム横断の統一AI体験
 
 ## 🛠️ 前提条件とセットアップ
 
@@ -149,79 +149,79 @@ AI駆動の自動化でテストを向上：
 
 | コンポーネント | 要件 | 備考 |
 |-----------|-------------|-------|
-| **OS** | Windows 10以降、macOS 10.15以降、Linux | いずれも最新のOS |
-| **Visual Studio Code** | 最新の安定版 | AITKに必須 |
-| **Node.js** | v18.0以上とnpm | MCPサーバー開発用 |
-| **Python** | 3.10以上 | Python製MCPサーバー用（任意） |
-| **メモリ** | 最低8GB RAM | ローカルモデルは16GB推奨 |
+| **OS** | Windows 10+, macOS 10.15+, Linux | 最新のモダンOS |
+| **Visual Studio Code** | 最新安定版 | Microsoft Foundry Toolkit必須 |
+| **Node.js** | v18.0+ と npm | MCPサーバー開発用 |
+| **Python** | 3.10+ | PythonによるMCPサーバーはオプション |
+| <strong>メモリ</strong> | 最低8GB RAM | ローカルモデル用は16GB推奨 |
 
 ### 🔧 開発環境
 
 #### 推奨VS Code拡張機能
 
-- **AI Toolkit** (ms-windows-ai-studio.windows-ai-studio)
+- **Microsoft Foundry Toolkit** (ms-windows-ai-studio.windows-ai-studio)
 - **Python** (ms-python.python)
 - **Python Debugger** (ms-python.debugpy)
-- **GitHub Copilot** (GitHub.copilot) - 任意ですが便利
+- **GitHub Copilot** (GitHub.copilot) - オプションながら役立つ
 
-#### 任意ツール
+#### オプションツール
 
-- **uv**: 最新のPythonパッケージマネージャー
-- **MCP Inspector**: MCPサーバー用ビジュアルデバッグツール
-- **Playwright**: Web自動化サンプル用
+- **uv**：最新のPythonパッケージマネージャー
+- **MCP Inspector**：MCPサーバー向け視覚デバッグツール
+- **Playwright**：ウェブ自動化サンプル用
 
-## 🎖️ 学習成果と認定パス
+## 🎖️ 学習成果と認定ルート
 
 ### 🏆 スキルマスタリーチェックリスト
 
-このワークショップ修了により、以下の技術を習得できます：
+本ワークショップ修了で以下のマスタリーを達成します：
 
 #### 🎯 コア能力
 
-- [ ] **MCPプロトコルマスター**：アーキテクチャと実装パターンの深い理解
-- [ ] **AITK熟練**：AI Toolkitを用いた高速開発のエキスパートレベル操作
-- [ ] **カスタムサーバー開発**：本番用MCPサーバーの構築・展開・運用
-- [ ] **ツール統合の優秀性**：既存の開発ワークフローとAIのシームレス接続
-- [ ] **課題解決応用**：実ビジネス課題への学んだスキルの適用
+- [ ] **MCPプロトコルの習熟**：アーキテクチャと実装パターンの深い理解
+- [ ] **Microsoft Foundry Toolkit熟練**：迅速開発のためのツール使用の専門技術
+- [ ] <strong>カスタムサーバー開発</strong>：本番向けMCPサーバーの構築、デプロイ、保守
+- [ ] <strong>ツール統合の卓越性</strong>：AIと既存開発ワークフローのシームレス連携
+- [ ] <strong>問題解決応用</strong>：習得スキルのビジネス課題への適用力
 
 #### 🔧 技術スキル
 
-- [ ] VS CodeでのAI Toolkit設定と構成
+- [ ] VS CodeでMicrosoft Foundry Toolkitをセットアップし設定
 - [ ] カスタムMCPサーバーの設計・実装
-- [ ] GitHubモデルとのMCPアーキテクチャ統合
-- [ ] Playwrightによる自動化テストワークフロー構築
-- [ ] 本番環境向けAIエージェントのデプロイ
+- [ ] GitHubモデルとMCPアーキテクチャの統合
+- [ ] Playwrightを使った自動テストワークフロー構築
+- [ ] 本番環境用AIエージェントの展開
 - [ ] MCPサーバーのデバッグと性能最適化
 
-#### 🚀 高度な機能
+#### 🚀 高度な能力
 
-- [ ] エンタープライズ規模のAI統合アーキテクチャ設計
-- [ ] AIアプリケーションにおけるセキュリティベストプラクティス実装
-- [ ] スケーラブルなMCPサーバーアーキテクチャ設計
-- [ ] 特定領域向けカスタムツールチェーン作成
-- [ ] AIネイティブ開発のメンター役
+- [ ] エンタープライズ規模のAI統合設計
+- [ ] AIアプリケーションのセキュリティベストプラクティス実装
+- [ ] 拡張可能なMCPサーバーアーキテクチャ設計
+- [ ] 特定ドメイン向けカスタムツールチェーンの作成
+- [ ] AIネイティブ開発のメンター育成
 
 ## 📖 追加リソース
 
-- [MCP仕様書 (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [AI Toolkit GitHubリポジトリ](https://github.com/microsoft/vscode-ai-toolkit)
-- [サンプルMCPサーバーコレクション](https://github.com/modelcontextprotocol/servers)
+- [MCP仕様書（2025-11-25）](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Microsoft Foundry Toolkit GitHubリポジトリ](https://github.com/microsoft/vscode-ai-toolkit)
+- [サンプルMCPサーバー集](https://github.com/modelcontextprotocol/servers)
 - [ベストプラクティスガイド](https://modelcontextprotocol.io/docs/best-practices)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - セキュリティベストプラクティス
+- [OWASP MCP トップ10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - セキュリティベストプラクティス
 
 ---
 
-**🚀 AI開発ワークフローを変革する準備はできましたか？**
+**🚀 AI開発ワークフローを革新する準備はできましたか？**
 
-MCPとAI Toolkitでインテリジェントなアプリケーションの未来を共に創りましょう！
+MCPとMicrosoft Foundry Toolkitで知的アプリケーションの未来をともに築きましょう！
 
-## 次のステップ
+## 次に進む
 
-続ける：[モジュール11：MCPサーバーハンズオンラボ](../11-MCPServerHandsOnLabs/README.md)
+続けて：[モジュール11：MCPサーバーハンズオンラボ](../11-MCPServerHandsOnLabs/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**免責事項**：  
-本書類はAI翻訳サービス[Co-op Translator](https://github.com/Azure/co-op-translator)を使用して翻訳されました。正確性を目指しておりますが、自動翻訳には誤りや不正確な点が含まれる場合があります。原文の母国語版が正式な情報源と見なされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の使用により生じた誤解や誤訳について、当方は一切の責任を負いかねます。
+**免責事項**：
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

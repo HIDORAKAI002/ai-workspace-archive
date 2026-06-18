@@ -1,16 +1,21 @@
 # Támogatás
 
-## Hogyan jelentsünk hibákat és kérjünk segítséget  
+## Hogyan lehet hibajegyeket benyújtani és segítséget kapni  
 
-Ez a projekt a GitHub Issues-t használja hibák és funkciókérések nyomon követésére. Kérjük, hogy új hibajelentés vagy kérés előtt nézze át a meglévő issue-kat, hogy elkerülje az ismétléseket. Új hibák vagy kérések esetén hozzon létre új Issue-t.
+Ez a projekt a GitHub Issues-t használja hibák és funkciókérések követésére. Új hibák benyújtása előtt kérjük, keresse meg a meglévő 
+hibajegyeket, hogy elkerülje az ismétléseket. Új hibák vagy igények esetén kérjük, nyisson egy új hibajegyet.
 
-Segítségért és kérdések esetén a projekttel kapcsolatban kérjük:
-- Nézze meg az [Azure AI Foundry Discord](https://discord.com/invite/ByRwuEEgH4) csatornát, ahol szakértők és fejlesztőtársak gyűlnek össze
-- Használja a [Model Context Protocol Community](https://modelcontextprotocol.io/community/) erőforrásait protokollal kapcsolatos kérdésekhez
+Segítségért és kérdésekért az alábbiakat tegye:
+- Ellenőrizze a [Microsoft Foundry Discord](https://discord.com/invite/ByRwuEEgH4) szervert, ahol szakértők és fejlesztőtársak gyűlnek össze
+- Használja a [Model Context Protocol Community](https://modelcontextprotocol.io/community/) erőforrásait a protokollal kapcsolatos kérdésekhez
 
-## Microsoft támogatási irányelvek  
+## Microsoft támogatási irányelve  
 
-A Model Context Protocol (MCP) for Beginners projekthez nyújtott támogatás kizárólag a fent felsorolt erőforrásokra korlátozódik.
+A Model Context Protocol (MCP) for Beginners projekthez nyújtott támogatás az itt felsorolt erőforrásokra korlátozódik.
 
-**Jogi nyilatkozat**:  
-Ez a dokumentum az AI fordító szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár a pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén szakmai, emberi fordítást javaslunk. Nem vállalunk felelősséget a fordítás használatából eredő félreértésekért vagy téves értelmezésekért.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -2,13 +2,13 @@
 
 ## Előfeltételek
 
-- Python 3.8 vagy újabb
+- Python 3.8 vagy újabb verzió
 - pip (Python csomagkezelő)
 - Internetkapcsolat a Microsoft Learn Docs MCP szerverhez való csatlakozáshoz
 
 ## Telepítés
 
-1. Klónozd ezt a repót vagy töltsd le a projekt fájlokat.
+1. Klónozd ezt a tárolót vagy töltsd le a projekt fájlokat.
 2. Telepítsd a szükséges függőségeket:
 
    ```bash
@@ -18,28 +18,28 @@
 ## Használat
 
 ### 1. Forgatókönyv: Egyszerű lekérdezés a Docs MCP-hez
-Egy parancssoros kliens, amely csatlakozik a Docs MCP szerverhez, elküldi a lekérdezést, és megjeleníti az eredményt.
+Egy parancssori kliens, amely csatlakozik a Docs MCP szerverhez, elküld egy lekérdezést, és kiírja az eredményt.
 
 1. Futtasd a szkriptet:
    ```bash
    python scenario1.py
    ```
-2. Írd be a dokumentációval kapcsolatos kérdésedet a promptba.
+2. Írd be a dokumentációs kérdésed a promptnál.
 
 ### 2. Forgatókönyv: Tanulási terv generátor (Chainlit webalkalmazás)
-Egy webes felület (Chainlit segítségével), amely lehetővé teszi a felhasználók számára, hogy személyre szabott, heti bontású tanulási tervet készítsenek bármely technikai témához.
+Egy webes felület (Chainlit használatával), amely lehetővé teszi a felhasználók számára, hogy személyre szabott, hét-hét tanulási tervet készítsenek bármely műszaki témában.
 
 1. Indítsd el a Chainlit alkalmazást:
    ```bash
    chainlit run scenario2.py
    ```
-2. Nyisd meg a terminálban megadott helyi URL-t (pl. http://localhost:8000) a böngésződben.
-3. A chat ablakban írd be a tanulási témát és a tanulás időtartamát (pl. "AI-900 vizsga, 8 hét").
-4. Az alkalmazás válaszol egy heti bontású tanulási tervvel, amely tartalmazza a releváns Microsoft Learn dokumentáció linkjeit.
+2. Nyisd meg a terminálban megadott helyi URL-t (például http://localhost:8000) a böngésződben.
+3. A chat ablakban írd be a tanulási témát és az eltervezett hetek számát (például: "AI-900 bizonyítvány, 8 hét").
+4. Az alkalmazás válaszként hét-hétenkénti tanulási tervet fog megjeleníteni, Microsoft Learn dokumentációkra mutató hivatkozásokkal.
 
 **Szükséges környezeti változók:**
 
-A 2. forgatókönyv (Chainlit webalkalmazás Azure OpenAI-val) használatához a következő környezeti változókat kell beállítanod egy `.env` fájlban a `python` könyvtárban:
+A 2. forgatókönyv (Chainlit webalkalmazás Azure OpenAI-vel) használatához állítsd be a következő környezeti változókat egy `.env` fájlban a `python` könyvtárban:
 
 ```
 AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=
@@ -48,48 +48,48 @@ AZURE_OPENAI_ENDPOINT=
 AZURE_OPENAI_API_VERSION=
 ```
 
-Töltsd ki ezeket az értékeket az Azure OpenAI erőforrás részleteivel, mielőtt futtatnád az alkalmazást.
+Töltsd ki ezeket az értékeket az Azure OpenAI forrásod adataival, mielőtt futtatnád az alkalmazást.
 
 > [!TIP]
-> Könnyen telepítheted saját modelljeidet az [Azure AI Foundry](https://ai.azure.com/) segítségével.
+> Saját modellek könnyen telepíthetők a [Microsoft Foundry](https://ai.azure.com/) segítségével.
 
-### 3. Forgatókönyv: Dokumentáció a szerkesztőben MCP szerverrel VS Code-ban
+### 3. Forgatókönyv: Beépített Docs MCP szerverrel Visual Studio Code-ban
 
-Ahelyett, hogy böngészőfülek között váltanál a dokumentáció kereséséhez, közvetlenül a Microsoft Learn Docs-t hozhatod be a VS Code-ba az MCP szerver segítségével. Ez lehetővé teszi, hogy:
-- Dokumentációt keress és olvass közvetlenül a VS Code-ban anélkül, hogy elhagynád a kódolási környezetet.
-- Dokumentációs hivatkozásokat adj hozzá, és linkeket illessz be közvetlenül a README vagy kurzus fájlokba.
-- GitHub Copilotot és MCP-t együtt használj egy zökkenőmentes, AI-alapú dokumentációs munkafolyamathoz.
+Ahelyett, hogy böngészőfület váltanál a dokumentáció kereséséhez, behozhatod a Microsoft Learn Docs-ot közvetlenül a VS Code-ba az MCP szerveren keresztül. Ez lehetővé teszi, hogy:
+- Dokumentációt keress és olvass a VS Code-ban anélkül, hogy elhagynád a kódoló környezeted.
+- Hivatkozz dokumentációra és illessz be linkeket közvetlenül a README vagy tanfolyam fájlokba.
+- Együtt használd a GitHub Copilotot és MCP-t egy zökkenőmentes, MI-alapú dokumentációs munkafolyamathoz.
 
-**Példa felhasználási esetek:**
-- Gyorsan adj hozzá hivatkozásokat egy README-hez, miközben kurzus- vagy projekt-dokumentációt írsz.
-- Használd a Copilotot kód generálására, és az MCP-t releváns dokumentáció keresésére és idézésére.
-- Maradj fókuszált a szerkesztőben, és növeld a produktivitást.
+**Példák használatra:**
+- Gyorsan adj hozzá hivatkozási linkeket egy README-hez tanfolyam vagy projekt dokumentáció írásakor.
+- Használd a Copilotot kódgenerálásra és MCP-t releváns dokumentumok gyors megtalálására és hivatkozására.
+- Maradj fókuszban a szerkesztődben és növeld a termelékenységet.
 
 > [!IMPORTANT]
-> Győződj meg róla, hogy érvényes [`mcp.json`](../../../../../../09-CaseStudy/docs-mcp/solution/scenario3/mcp.json) konfigurációval rendelkezel a munkaterületedben (helye: `.vscode/mcp.json`).
+> Győződj meg arról, hogy van érvényes [`mcp.json`](../../../../../../09-CaseStudy/docs-mcp/solution/scenario3/mcp.json) konfigurációd a munkaterületen (helye: `.vscode/mcp.json`).
 
 ## Miért Chainlit a 2. forgatókönyvhöz?
 
-A Chainlit egy modern, nyílt forráskódú keretrendszer beszélgetés-alapú webalkalmazások építéséhez. Egyszerűvé teszi chat-alapú felhasználói felületek létrehozását, amelyek backend szolgáltatásokhoz, például a Microsoft Learn Docs MCP szerverhez csatlakoznak. Ez a projekt a Chainlit segítségével egy egyszerű, interaktív módot kínál személyre szabott tanulási tervek valós idejű generálására. A Chainlit használatával gyorsan építhetsz és telepíthetsz chat-alapú eszközöket, amelyek növelik a produktivitást és a tanulást.
+A Chainlit egy modern, nyílt forráskódú keretrendszer beszélgető webalkalmazások létrehozásához. Megkönnyíti csevegőalapú felhasználói felületek létrehozását, amelyek kapcsolódnak back-end szolgáltatásokhoz, mint például a Microsoft Learn Docs MCP szerverhez. Ez a projekt a Chainlit-et használja, hogy egyszerű, interaktív módon generáljon személyre szabott tanulási terveket valós időben. A Chainlit segítségével gyorsan építhetsz és telepíthetsz csevegőalapú eszközöket, amelyek növelik a termelékenységet és a tanulást.
 
-## Mit csinál ez az alkalmazás?
+## Mit csinál ez?
 
-Ez az alkalmazás lehetővé teszi a felhasználók számára, hogy személyre szabott tanulási tervet készítsenek egyszerűen egy téma és egy időtartam megadásával. Az alkalmazás elemzi a bevitt adatokat, lekérdezéseket küld a Microsoft Learn Docs MCP szervernek releváns tartalomért, és az eredményeket strukturált, heti bontású tervvé szervezi. Minden hét ajánlásai megjelennek a chatben, így könnyen követheted és nyomon követheted a haladásodat. Az integráció biztosítja, hogy mindig a legfrissebb, legrelevánsabb tanulási forrásokat kapd.
+Ez az alkalmazás lehetővé teszi a felhasználók számára, hogy egyszerűen megadják a témát és az időtartamot, majd személyre szabott tanulási tervet készítsenek. Az alkalmazás feldolgozza a bemenetet, lekérdezést küld a Microsoft Learn Docs MCP szervernek a releváns tartalomért, majd eredményeket strukturált, hét-hétenkénti terv formájában rendezi. Az egyes hetek ajánlásai a chatben jelennek meg, így könnyű követni és nyomon követni a haladást. Az integráció garantálja, hogy mindig a legfrissebb és leginkább releváns tanulási forrásokhoz férsz hozzá.
 
-## Példa lekérdezések
+## Minta lekérdezések
 
-Próbáld ki ezeket a lekérdezéseket a chat ablakban, hogy lásd, hogyan reagál az alkalmazás:
+Próbáld ki ezeket a lekérdezéseket a chat ablakban, hogy lásd, hogyan válaszol az alkalmazás:
 
-- `AI-900 vizsga, 8 hét`
-- `Azure Functions tanulása, 4 hét`
+- `AI-900 bizonyítvány, 8 hét`
+- `Azure Functions tanulás, 4 hét`
 - `Azure DevOps, 6 hét`
-- `Adatmérnökség az Azure-on, 10 hét`
+- `Adatmérnökség Azure-on, 10 hét`
 - `Microsoft biztonsági alapok, 5 hét`
 - `Power Platform, 7 hét`
 - `Azure AI szolgáltatások, 12 hét`
-- `Felhőarchitektúra, 9 hét`
+- `Felhő architektúra, 9 hét`
 
-Ezek a példák bemutatják az alkalmazás rugalmasságát különböző tanulási célok és időkeretek esetén.
+Ezek a példák megmutatják az alkalmazás rugalmasságát különféle tanulási célokhoz és időtartamokhoz.
 
 ## Hivatkozások
 
@@ -98,5 +98,7 @@ Ezek a példák bemutatják az alkalmazás rugalmasságát különböző tanulá
 
 ---
 
-**Felelősségkizárás**:  
-Ez a dokumentum az [Co-op Translator](https://github.com/Azure/co-op-translator) AI fordítási szolgáltatás segítségével készült. Bár törekszünk a pontosságra, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az eredeti nyelvén tekintendő hiteles forrásnak. Kritikus információk esetén javasolt professzionális, emberi fordítást igénybe venni. Nem vállalunk felelősséget a fordítás használatából eredő félreértésekért vagy téves értelmezésekért.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

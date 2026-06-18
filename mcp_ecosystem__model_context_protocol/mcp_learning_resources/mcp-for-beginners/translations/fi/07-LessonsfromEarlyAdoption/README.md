@@ -2,26 +2,26 @@
 
 [![Lessons from MCP Early Adopters](../../../translated_images/fi/08.980bb2babbaadd8a.webp)](https://youtu.be/jds7dSmNptE)
 
-_(Klikkaa yllä olevaa kuvaa katsoaksesi tämän oppitunnin videon)_
+_(Napsauta yllä olevaa kuvaa nähdäksesi tämän oppitunnin videon)_
 
 ## 🎯 Mitä tämä moduuli kattaa
 
-Tämä moduuli tutkii, miten todelliset organisaatiot ja kehittäjät hyödyntävät Model Context Protocolia (MCP) ratkaistakseen todellisia haasteita ja edistääkseen innovaatiota. Yksityiskohtaisten tapaustutkimusten, käytännön projektien ja esimerkkien kautta opit, miten MCP mahdollistaa turvallisen ja skaalautuvan tekoälyn integraation, joka yhdistää kielimallit, työkalut ja yritystiedot.
+Tämä moduuli tutkii, kuinka todelliset organisaatiot ja kehittäjät hyödyntävät Model Context Protocolia (MCP) ratkaistakseen todellisia haasteita ja edistääkseen innovaatiota. Yksityiskohtaisten tapaustutkimusten, käytännön projektien ja käytännön esimerkkien kautta opit, kuinka MCP mahdollistaa turvallisen, skaalautuvan tekoälyn integroinnin, joka yhdistää kielimallit, työkalut ja yritystiedot.
 
-### 📚 Katso MCP käytännössä
+### 📚 Näe MCP toiminnassa
 
-Haluatko nähdä näiden periaatteiden soveltamisen tuotantovalmiisiin työkaluihin? Tutustu [**10 Microsoftin MCP-palvelimeen, jotka muuttavat kehittäjien tuottavuutta**](microsoft-mcp-servers.md), jossa esitellään aitoja Microsoft MCP -palvelimia, joita voit käyttää jo tänään.
+Haluatko nähdä näiden periaatteiden soveltamisen tuotantovalmiisiin työkaluihin? Tutustu [**10 Microsoft MCP -palvelimeen, jotka mullistavat kehittäjien tuottavuuden**](microsoft-mcp-servers.md), jotka esittelevät todellisia Microsoftin MCP-palvelimia, joita voit käyttää jo tänään.
 
-## Yleiskuva
+## Yleiskatsaus
 
-Tässä oppitunnissa käsitellään, miten varhaiset käyttäjät ovat hyödyntäneet Model Context Protocolia (MCP) ratkaistakseen todellisen maailman haasteita ja edistääkseen innovaatiota eri toimialoilla. Yksityiskohtaisten tapaustutkimusten ja käytännön projektien avulla näet, miten MCP mahdollistaa standardoidun, turvallisen ja skaalautuvan tekoälyintegraation—yhdistäen suuria kielimalleja, työkaluja ja yritystietoja yhtenäisessä kehikossa. Saat käytännön kokemusta MCP-pohjaisten ratkaisujen suunnittelusta ja rakentamisesta, opit todistetuista toteutusmalleista ja löydät parhaita käytäntöjä MCP:n käyttöönottoon tuotantoympäristöissä. Oppitunti nostaa esiin myös nousevia trendejä, tulevia suuntauksia ja avoimen lähdekoodin resursseja, joiden avulla pysyt MCP-teknologian ja sen kehittyvän ekosysteemin kärjessä.
+Tämä oppitunti tutkii, miten varhaiset käyttäjät ovat hyödyntäneet Model Context Protocolia (MCP) ratkaistakseen todellisia haasteita ja edistääkseen innovaatioita eri toimialoilla. Yksityiskohtaisten tapaustutkimusten ja käytännön projektien kautta näet, kuinka MCP mahdollistaa standardoidun, turvallisen ja skaalautuvan tekoälyn integraation — yhdistäen suuria kielimalleja, työkaluja ja yrityksen tietoja yhtenäisessä kehitysympäristössä. Saat käytännön kokemusta MCP-pohjaisten ratkaisujen suunnittelusta ja rakentamisesta, opit todistetuista toteutusmalleista ja löydät parhaat käytännöt MCP:n käyttöönottoon tuotantoympäristöissä. Oppitunti korostaa myös nousevia trendejä, tulevia suuntauksia ja avoimen lähdekoodin resursseja, jotka auttavat pysymään MCP-teknologian ja sen kehittyvän ekosysteemin kärjessä.
 
 ## Oppimistavoitteet
 
-- Analysoida todellisen maailman MCP-toteutuksia eri toimialoilla
-- Suunnitella ja rakentaa kokonaisia MCP-pohjaisia sovelluksia
-- Tutkia MCP-teknologian nousevia trendejä ja tulevia suuntia
-- Soveltaa parhaita käytäntöjä todellisissa kehitysskenaarioissa
+- Analysoida todellisia MCP-toteutuksia eri toimialoilla  
+- Suunnitella ja rakentaa täydellisiä MCP-pohjaisia sovelluksia  
+- Tutkia nousevia trendejä ja tulevia suuntauksia MCP-teknologiassa  
+- Soveltaa parhaita käytäntöjä todellisissa kehitysskenaarioissa  
 
 ## Todelliset MCP-toteutukset
 
@@ -29,15 +29,15 @@ Tässä oppitunnissa käsitellään, miten varhaiset käyttäjät ovat hyödynt�
 
 Monikansallinen yritys toteutti MCP-pohjaisen ratkaisun standardoidakseen tekoälyvuorovaikutukset asiakastukijärjestelmissään. Tämä mahdollisti heille:
 
-- Yhdenmukaisen käyttöliittymän luomisen useille LLM-palveluntarjoajille
-- Johdonmukaisen kehotteiden hallinnan osastojen välillä
-- Vahvojen tietoturva- ja noudattamiskontrollien implementoinnin
-- Helpon vaihdon eri tekoälymallien välillä tarpeiden mukaisesti
+- Yhdenmukaisen käyttöliittymän useille LLM-palveluntarjoajille  
+- Johdonmukaisen kehotehallinnan eri osastoilla  
+- Vankat turvallisuus- ja vaatimustenmukaisuuskontrollit  
+- Helpon siirtymisen eri tekoälymallien välillä tarpeen mukaan  
 
 **Tekninen toteutus:**
 
 ```python
-# Python MCP -palvelimen toteutus asiakastukeen
+# Python MCP -palvelimen toteutus asiakastukea varten
 import logging
 import asyncio
 from modelcontextprotocol import create_server, ServerConfig
@@ -96,16 +96,16 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
   
-**Tulokset:** Mallikustannukset vähenivät 30 %, vastausten yhdenmukaisuus parani 45 % ja noudattamisprosessit vahvistuivat globaalissa toiminnassa.
+**Tulokset:** Mallikustannukset laskivat 30 %, vastausjohdonmukaisuus parani 45 % ja vaatimustenmukaisuus lisääntyi globaalissa toiminnassa.
 
-### Tapaustutkimus 2: Terveydenhuollon diagnoosiassistentti
+### Tapaustutkimus 2: Terveydenhuollon diagnostinen apuri
 
-Terveydenhuollon palveluntarjoaja kehitti MCP-infrastruktuurin integroidakseen useita erikoistuneita lääketieteellisiä tekoälymalleja varmistaen samalla, että arkaluontoinen potilastieto pysyy suojattuna:
+Terveydenhuollon tarjoaja kehitti MCP-infrastruktuurin integroidakseen useita erikoistuneita lääketieteen tekoälymalleja varmistaen samalla, että arkaluontoiset potilastiedot pysyivät suojattuina:
 
-- Saumaton vaihto yleislääketieteen ja erikoismallien välillä
-- Tiukat tietosuojakontrollit ja auditointijäljet
-- Integraatio olemassa olevaan sähköiseen potilastietojärjestelmään (EHR)
-- Johdonmukainen kehotteiden suunnittelu lääketieteelliseen terminologiaan
+- Saumaton siirtyminen yleislääketieteen ja erikoisalojen mallien välillä  
+- Tiukat yksityisyydensuojakontrollit ja tarkastuspolut  
+- Integrointi olemassa oleviin sähköisiin potilastietojärjestelmiin (EHR)  
+- Johdonmukainen kehoteinsinöörityö lääketieteellisessä terminologiassa  
 
 **Tekninen toteutus:**
 
@@ -173,16 +173,16 @@ public class DiagnosticAssistant
 }
 ```
   
-**Tulokset:** Parantuneet diagnoosiehdotukset lääkäreille, täysi HIPAA-yhteensopivuus sekä merkittävä kontekstinvaihdon vähentäminen järjestelmien välillä.
+**Tulokset:** Paransi lääkärien diagnostisia ehdotuksia säilyttäen täydellisen HIPAA-vaatimustenmukaisuuden ja merkittävästi vähensi kontekstin vaihtamista eri järjestelmien välillä.
 
 ### Tapaustutkimus 3: Rahoituspalveluiden riskianalyysi
 
-Rahoituslaitos otti MCP:n käyttöön standardoidakseen riskianalyysiprosessinsa eri osastojen kesken:
+Rahoituslaitos otti MCP:n käyttöön standardoidakseen riskianalyysiprosessinsa eri osastoilla:
 
-- Luotiin yhtenäinen käyttöliittymä luottoriskille, petosten havainnolle ja sijoitusriskimalleille
-- Toteutettiin tiukat käyttöoikeuksien hallintamekanismit ja malliversiointi
-- Varmistettiin kaikkien tekoälysuositusten auditointi
-- Ylläpidettiin johdonmukaista tiedon muotoilua eri järjestelmissä
+- Loivat yhdenmukaisen käyttöliittymän luottoriskin, petosten havainnon ja sijoitusriskimallien hallintaan  
+- Toteuttivat tiukat käyttöoikeuskontrollit ja malliversioinnin  
+- Varmistivat kaikkien tekoälysuositusten auditoinnin  
+- Säilyttivät johdonmukaisen tietojen muotoilun eri järjestelmien välillä  
 
 **Tekninen toteutus:**
 
@@ -193,7 +193,7 @@ import org.mcp.security.*;
 
 public class FinancialRiskMCPServer {
     public static void main(String[] args) {
-        // Luo MCP -palvelin taloudellisten vaatimustenmukaisuustoimintojen kanssa
+        // Luo MCP -palvelin taloudellisen vaatimustenmukaisuuden ominaisuuksilla
         MCPServer server = new MCPServerBuilder()
             .withModelProviders(
                 new ModelProvider("risk-assessment-primary", new AzureOpenAIProvider()),
@@ -216,27 +216,27 @@ public class FinancialRiskMCPServer {
 }
 ```
   
-**Tulokset:** Parantunut säädösten noudattaminen, 40 % nopeammat mallin käyttöönottojaksot ja parantunut riskinarvioinnin yhdenmukaisuus osastojen välillä.
+**Tulokset:** Parantunut sääntelyvaatimusten noudattaminen, 40 % nopeammat mallien käyttöönottojaksot ja parantunut riskinarvioinnin johdonmukaisuus osastoilla.
 
-### Tapaustutkimus 4: Microsoft Playwright MCP -palvelin selainautomaatiolle
+### Tapaustutkimus 4: Microsoft Playwright MCP-palvelin selainautomaatioon
 
-Microsoft kehitti [Playwright MCP -palvelimen](https://github.com/microsoft/playwright-mcp) mahdollistamaan turvallisen, standardoidun selainautomaation Model Context Protocolin avulla. Tämä tuotantovalmiiksi suunniteltu palvelin mahdollistaa tekoälyagenttien ja LLM:ien vuorovaikutuksen verkkoselainten kanssa hallitusti, auditoitavasti ja laajennettavasti—käyttötapauksina muun muassa automatisoitu verkkotestaus, datan poiminta ja päätepisteestä päätepisteeseen -työnkulut.
+Microsoft kehitti [Playwright MCP -palvelimen](https://github.com/microsoft/playwright-mcp) tarjoamaan turvallisen, standardoidun selainautomaation Model Context Protocolin kautta. Tämä tuotantovalmis palvelin mahdollistaa tekoälyagenttien ja LLM:ien vuorovaikutuksen verkkoselaimien kanssa hallitulla, auditoitavalla ja laajennettavalla tavalla — mahdollistaen esimerkiksi automatisoidun verkkotestauksen, tiedon louhinnan ja end-to-end-työnkulut.
 
-> **🎯 Tuotantovalmiina Työkalu**
-> 
-> Tämä tapaustutkimus esittelee aidon MCP-palvelimen, jota voit käyttää jo tänään! Lue lisää Playwright MCP -palvelimesta ja muista 9 tuotantovalmiista Microsoft MCP -palvelimesta oppaassamme [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#8--playwright-mcp-server).
+> **🎯 Tuotantovalmis työkalu**  
+>  
+> Tämä tapaustutkimus esittelee todellisen MCP-palvelimen, jota voit käyttää jo tänään! Lue lisää Playwright MCP -palvelimesta ja muista yhdeksästä tuotantovalmiista Microsoft MCP -palvelimesta oppaassamme [**Microsoft MCP -palvelimet**](microsoft-mcp-servers.md#8--playwright-mcp-server).
 
-**Keskeiset ominaisuudet:**
-- Tarjoaa selainautomaatiotoiminnot (navigointi, lomakkeiden täyttö, näytönkaappaus jne.) MCP-työkaluina
-- Toteuttaa tiukat käyttöoikeusvalvonnat ja hiekkalaatikkoympäristön estämään luvattomat toimet
-- Tarjoaa yksityiskohtaiset auditointilokit kaikista selaimen vuorovaikutuksista
-- Tukee integraatiota Azure OpenAI:n ja muiden LLM-palveluntarjoajien kanssa agenttien ohjaamaa automaatiota varten
-- Voimaa GitHub Copilotin Koodausagentin verkkoselailutoiminnot
+**Keskeiset ominaisuudet:**  
+- Tarjoaa selainautomaatiokykyjä (navigointi, lomakkeiden täyttö, kuvakaappauksen ottaminen jne.) MCP-työkaluina  
+- Toteuttaa tiukat käyttöoikeuskontrollit ja hiekkalaatikoinnin luvattomien toimintojen estämiseksi  
+- Tarjoaa yksityiskohtaiset tarkastuslokit kaikista selainvuorovaikutuksista  
+- Tukee integraatiota Azure OpenAI:n ja muiden LLM-palveluntarjoajien kanssa agenttiohjatuksi automaatioksi  
+- Voimanlähteenä GitHub Copilotin Coding Agent -selainominaisuuksille  
 
 **Tekninen toteutus:**
 
 ```typescript
-// TypeScript: Rekisteröidään Playwright-selaimen automaatiotyökalut MCP-palvelimeen
+// TypeScript: Rekisteröidään Playwright-selainautomaatio työkalut MCP-palvelimella
 import { createServer, ToolDefinition } from 'modelcontextprotocol';
 import { launch } from 'playwright';
 
@@ -246,7 +246,7 @@ const server = createServer({
   description: 'MCP server for browser automation using Playwright'
 });
 
-// Rekisteröi työkalu URL-osoitteeseen navigointiin ja kuvakaappauksen ottamiseen
+// Rekisteröi työkalu URL-osoitteeseen siirtymiseen ja näytönkuvan ottamiseen
 server.tools.register(
   new ToolDefinition({
     name: 'navigate_and_screenshot',
@@ -269,31 +269,31 @@ server.tools.register(
 server.listen(8080);
 ```
   
-**Tulokset:**
+**Tulokset:**  
 
-- Mahdollisti turvallisen, ohjelmoitavan selainautomaation tekoälyagenteille ja LLM:ille  
-- Vähensi manuaalisen testauksen työtä ja paransi web-sovellusten testikattavuutta  
-- Tarjosi uudelleenkäytettävän, laajennettavan kehyksen selainpohjaisten työkalujen integrointiin yritysympäristöissä  
-- Voimaa GitHub Copilotin verkkoselaustoiminnot
+- Mahdollisti turvallisen, ohjelmallisen selainautomaation tekoälyagenteille ja LLM:ille  
+- Vähensi manuaalisen testauksen työmäärää ja paransi verkkosovellusten testikattavuutta  
+- Tarjosi uudelleenkäytettävän, laajennettavan kehityskehyksen selainpohjaisten työkalujen integrointiin yritysympäristöissä  
+- Mahdollistaa GitHub Copilotin web-selainominaisuudet  
 
-**Viitteet:**
+**Viitteet:**  
 
 - [Playwright MCP Server GitHub -repositorio](https://github.com/microsoft/playwright-mcp)  
-- [Microsoftin tekoäly- ja automaatioratkaisut](https://azure.microsoft.com/en-us/products/ai-services/)
+- [Microsoftin tekoäly- ja automaatiopalvelut](https://azure.microsoft.com/en-us/products/ai-services/)
 
-### Tapaustutkimus 5: Azure MCP – Yritystason Model Context Protocol -palveluna
+### Tapaustutkimus 5: Azure MCP – Yritystason Model Context Protocol -palvelu
 
-Azure MCP Server ([https://aka.ms/azmcp](https://aka.ms/azmcp)) on Microsoftin hallinnoima, yritystason Model Context Protocol -toteutus, suunniteltu tarjoamaan skaalautuvia, turvallisia ja noudattamiskelpoisia MCP-palvelimen ominaisuuksia pilvipalveluna. Azure MCP mahdollistaa organisaatioiden nopean MCP-palvelimien käyttöönoton, hallinnan ja integroinnin Azure AI:n, datan ja tietoturvapalveluiden kanssa vähentäen operatiivista kuormaa ja kiihdyttäen tekoälyn käyttöönottoa.
+Azure MCP Server ([https://aka.ms/azmcp](https://aka.ms/azmcp)) on Microsoftin hallinnoima, yritystason toteutus Model Context Protocolista, suunniteltu tarjoamaan skaalautuvat, turvalliset ja vaatimustenmukaiset MCP-palvelinominaisuudet pilvipalveluna. Azure MCP mahdollistaa organisaatioille nopean MCP-palvelimien käyttöönoton, hallinnan ja integroinnin Azure AI:n, datan ja turvallisuuspalveluiden kanssa, vähentäen operatiivista kuormaa ja nopeuttaen tekoälyn käyttöönottoa.
 
-> **🎯 Tuotantovalmiina Työkalu**
-> 
-> Tämä on aito MCP-palvelin, jota voit käyttää jo tänään! Lue lisää Azure AI Foundryn MCP-palvelimesta oppaassamme [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md).
+> **🎯 Tuotantovalmis työkalu**  
+>  
+> Tämä on todellinen MCP-palvelin, jota voit käyttää jo tänään! Lue lisää Microsoft Foundry MCP -palvelimesta oppaassamme [**Microsoft MCP -palvelimet**](microsoft-mcp-servers.md).
 
-- Täysin hallinnoitu MCP-palvelininfrastruktuuri sisäänrakennetulla skaalaamisella, valvonnalla ja tietoturvalla
-- Luontainen integraatio Azure OpenAI:n, Azure AI Searchin ja muiden Azuren palveluiden kanssa
-- Yritystason tunnistus ja valtuutus Microsoft Entra ID:n kautta
-- Tuki räätälöidyille työkaluille, kehottemalleille ja resurssien liittimille
-- Tietoturvan ja säädösten vaatimustenmukaisuus yrityksissä
+- Täysin hallinnoitu MCP-palvelimen ylläpito sisäänrakennetulla skaalauksella, valvonnalla ja turvallisuudella  
+- Natiivikäyttö Azure OpenAI:n, Azure AI Searchin ja muiden Azuren palveluiden kanssa  
+- Yrityksen tunnistautuminen ja valtuutus Microsoft Entra ID:n kautta  
+- Tuki räätälöidyille työkaluilla, kehoteideoille ja resurssiliittimille  
+- Vaatimustenmukaisuus yritysturvallisuus- ja sääntelyvaatimusten kanssa  
 
 **Tekninen toteutus:**
 
@@ -323,254 +323,254 @@ spec:
 ```
   
 **Tulokset:**  
-- Lyhensi yrityksen tekoälyprojektien arvoon pääsyn aikaa tarjoamalla käyttövalmiin, vaatimustenmukaisen MCP-palvelin-alustan  
+- Vähensi yritysten tekoälyprojektien aika-arvoa tarjoamalla käyttövalmiin, vaatimustenmukaisen MCP-palvelinalustan  
 - Yksinkertaisti LLM:ien, työkalujen ja yritystietolähteiden integrointia  
-- Paransi turvallisuutta, havainnoitavuutta ja operatiivista tehokkuutta MCP-kuormituksille  
-- Paransi koodin laatua Azure SDK:n parhaiden käytäntöjen ja nykyisten tunnistusmallien avulla
+- Paransi MCP-kuormien turvallisuutta, havaittavuutta ja operatiivista tehokkuutta  
+- Paransi koodin laatua Azure SDK:n parhaiden käytäntöjen ja nykyaikaisten tunnistautumismallien avulla  
 
 **Viitteet:**  
-- [Azure MCP Dokumentaatio](https://aka.ms/azmcp)  
+- [Azure MCP -dokumentaatio](https://aka.ms/azmcp)  
 - [Azure MCP Server GitHub -repositorio](https://github.com/Azure/azure-mcp)  
 - [Azure AI -palvelut](https://azure.microsoft.com/en-us/products/ai-services/)  
 - [Microsoft MCP Center](https://mcp.azure.com)
 
 ## Tapaustutkimus 6: NLWeb  
-MCP (Model Context Protocol) on nouseva protokolla, jonka avulla chatboteilla ja tekoälyavustajilla on mahdollista kommunikoida työkalujen kanssa. Jokainen NLWeb-instanssi on myös MCP-palvelin, joka tukee yhtä ydintoimintoa, ask-metodia, jolla voi esittää sivustolle luonnolliskielisiä kysymyksiä. Vastauksessa hyödynnetään schema.org:ia, laajasti käytettyä sanastoa verkkotietojen kuvaamiseen. Vapaasti sanottuna MCP on NLWeb yhtä kuin Http on HTML:lle. NLWeb yhdistää protokollat, Schema.org-muodot ja esimerkkikoodin auttaakseen sivustoja luomaan nämä päätepisteet nopeasti hyödyttäen sekä ihmisiä keskustelupohjaisten käyttöliittymien kautta että koneita luonnollisissa agenttien välisissä vuorovaikutuksissa.
+MCP (Model Context Protocol) on nouseva protokolla chatbotien ja tekoälyassistenttien välistä työkalujen vuorovaikutusta varten. Jokainen NLWeb-instanssi on myös MCP-palvelin, joka tukee yhtä ydintoimintoa, ask, jolla verkkosivustolle voidaan esittää kysymys luonnollisella kielellä. Palautettu vastaus hyödyntää schema.orgia, laajasti käytettyä sanastoa verkkotiedon kuvaamiseen. Karkeasti puhuttuna MCP on NLWeb samaan tapaan kuin Http on HTML:lle. NLWeb yhdistää protokollat, Schema.org-muodot ja mallikoodin auttaakseen sivustoja luomaan nämä päätepisteet nopeasti, hyödyttäen sekä ihmisiä keskustelukäyttöliittymien että koneiden luonnollisen agenttien välisen vuorovaikutuksen kautta.
 
-NLWeb koostuu kahdesta erillisestä osasta.  
-- Protokolla, joka on hyvin yksinkertainen aluksi, sivuston kanssa luonnollisella kielellä kommunikointiin ja formaatti, joka hyödyntää jsonia ja schema.orgia vastauksen muotoilussa. Katso REST API:n dokumentaatio saadaksesi lisätietoja.  
-- Yksinkertainen toteutus kohdasta (1), joka hyödyntää olemassa olevaa merkintää, sivustoille, jotka voidaan abstrahoida esineiden listaksi (tuotteet, reseptit, nähtävyydet, arvostelut jne.). Yhdessä käyttöliittymäkomponenttien kanssa sivustot voivat helposti tarjota keskustelupohjaisia käyttöliittymiä sisältöönsä. Katso dokumentaatio "Life of a chat query" saadaksesi lisätietoja tämän toiminnasta.
+NLWeb koostuu kahdesta erillisestä osasta:  
+- Protokoista, joka on hyvin yksinkertainen aloittaa sivuston luonnollisen kielen rajapintana, ja muodosta, joka hyödyntää jsonia ja schema.orgia vastauksen palauttamiseen. Katso REST API -dokumentaatio lisätiedoista.  
+- Yksinkertaisesta toteutuksesta (1), joka hyödyntää olemassa olevaa merkkausta, sivustoille, jotka voidaan abstrahoida tuoteluetteloiksi (tuotteet, reseptit, nähtävyydet, arvostelut jne.). Yhdessä käyttöliittymäwidgätien kanssa sivustot voivat helposti tarjota keskustelupohjaisia käyttöliittymiä sisällölleen. Katso dokumentaatio Life of a chat query vaiheista lisätietoja siitä, miten tämä toimii.
 
 **Viitteet:**  
-- [Azure MCP Dokumentaatio](https://aka.ms/azmcp)  
+- [Azure MCP -dokumentaatio](https://aka.ms/azmcp)  
 - [NLWeb](https://github.com/microsoft/NlWeb)
 
-### Tapaustutkimus 7: Azure AI Foundry MCP Server – Yritysten tekoälyagenttien integrointi
+### Tapaustutkimus 7: Microsoft Foundry MCP Server – Yritystason tekoälyagenttien integrointi
 
-Azure AI Foundry MCP -palvelimet osoittavat, miten MCP:tä voidaan käyttää tekoälyagenttien ja työnkulkujen orkestrointiin ja hallintaan yritysympäristöissä. Integroimalla MCP Azure AI Foundryn kanssa organisaatiot voivat standardoida agenttien vuorovaikutuksia, hyödyntää Foundryn työnkulun hallintaa ja varmistaa turvalliset, skaalautuvat käyttöönotot.
+Microsoft Foundry MCP -palvelimet demonstroivat, kuinka MCP:tä voidaan käyttää tekoälyagenttien ja työnkulkujen orkestrointiin ja hallintaan yritysympäristöissä. Integroimalla MCP Microsoft Foundryn kanssa organisaatiot voivat standardisoida agenttien vuorovaikutuksen, hyödyntää Foundryn työnkulkujen hallintaa ja varmistaa turvalliset, skaalautuvat käyttöönotot.
 
-> **🎯 Tuotantovalmiina Työkalu**
-> 
-> Tämä on aito MCP-palvelin, jota voit käyttää jo tänään! Lue lisää Azure AI Foundry MCP -palvelimesta oppaassamme [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#9--azure-ai-foundry-mcp-server).
+> **🎯 Tuotantovalmis työkalu**  
+>  
+> Tämä on todellinen MCP-palvelin, jota voit käyttää jo tänään! Lue lisää Microsoft Foundry MCP -palvelimesta oppaassamme [**Microsoft MCP -palvelimet**](microsoft-mcp-servers.md#9--microsoft-foundry-mcp-server).
 
-**Keskeiset ominaisuudet:**
-- Laaja pääsy Azuren tekoälyekosysteemiin, mukaan lukien mallikatalogit ja käyttöönoton hallinta
-- Tiedon indeksointi Azure AI Searchin avulla RAG-sovelluksiin
-- Arviointityökalut tekoälymallien suorituskyvyn ja laadun varmistamiseen
-- Integraatio Azure AI Foundryn katalogin ja labratorioiden uusimpiin tutkimusmalleihin
-- Agenttien hallinta- ja arviointiominaisuudet tuotantokäyttöön
+**Keskeiset ominaisuudet:**  
+- Kattava pääsy Azuren tekoälyekosysteemiin, mukaan lukien malliluettelot ja käyttöönoton hallinta  
+- Tietämyksen indeksointi Azure AI Searchilla RAG-sovelluksiin  
+- Työkalut tekoälymallien suorituskyvyn arviointiin ja laadunvarmistukseen  
+- Integraatio Microsoft Foundry Catalogin ja Labsin huippututkimusmalleihin  
+- Agenttien hallinta- ja arviointimahdollisuudet tuotantotilanteissa  
 
-**Tulokset:**
-- Nopea prototypointi ja kestävä seuranta tekoälyagenttien työnkuluissa
-- Saumaton integraatio Azure AI -palvelujen kanssa edistyneissä skenaarioissa
-- Yhtenäinen käyttöliittymä agenttiputkien rakentamiseen, käyttöönottoon ja valvontaan
-- Parantunut turvallisuus, säädösten noudattaminen ja operatiivinen tehokkuus yrityksissä
-- Kiihdytetty tekoälyn käyttöönotto hallitusti monimutkaisten agenttikäyttöisten prosessien ohessa
+**Tulokset:**  
+- Nopea prototypointi ja vankka valvonta tekoälyagenttien työnkuluissa  
+- Saumaton integrointi Azure AI -palveluiden kanssa kehittyneissä tilanteissa  
+- Yhtenäinen käyttöliittymä agenttiputkien rakentamiseen, käyttöönottoon ja valvontaan  
+- Parannettu turvallisuus, vaatimustenmukaisuus ja operatiivinen tehokkuus yrityksissä  
+- Tekoälyn käyttöönoton nopeuttaminen hallinnoimalla monimutkaisia agenttivetoisia prosesseja  
 
-**Viitteet:**
-- [Azure AI Foundry MCP Server GitHub -repositorio](https://github.com/azure-ai-foundry/mcp-foundry)  
-- [Azure AI Agenttien integrointi MCP:n kanssa (Microsoft Foundry Blog)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)
+**Viitteet:**  
+- [Microsoft Foundry MCP Server GitHub -repositorio](https://github.com/azure-ai-foundry/mcp-foundry)  
+- [Azure AI -agenttien integrointi MCP:n kanssa (Microsoft Foundry Blogi)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)
 
 ### Tapaustutkimus 8: Foundry MCP Playground – Kokeilu ja prototypointi
 
-Foundry MCP Playground tarjoaa käyttövalmiin ympäristön MCP-palvelinten ja Azure AI Foundryn integraatioiden kokeiluun. Kehittäjät voivat nopeasti luoda prototyyppejä, testata ja arvioida tekoälymallien ja agenttityönkulkujen toimintoja hyödyntämällä resursseja Azure AI Foundryn katalogista ja laboratorioista. Leikkikenttä helpottaa käyttöönottoa, tarjoaa esimerkkiprojekteja ja tukee yhteisöllistä kehitystä, tehden parhaiden käytäntöjen ja uusien skenaarioiden tutkimisesta vaivattomampaa vähäisellä hallinnollisella vaivalla. Se on erityisen hyödyllinen tiimeille, jotka haluavat validoida ideoita, jakaa kokeiluja ja nopeuttaa oppimista ilman monimutkaista infrastruktuuria. Alhaisemman kynnyksen ansiosta leikkikenttä edistää innovaatioita ja yhteisön panoksia MCP- ja Azure AI Foundry -ekosysteemissä.
+Foundry MCP Playground tarjoaa käyttövalmiin ympäristön MCP-palvelinten ja Microsoft Foundry -integraatioiden kokeiluun. Kehittäjät voivat nopeasti prototyypittää, testata ja arvioida tekoälymalleja ja agenttien työnkulkuja Microsoft Foundryn Catalogin ja Labsin resurssien avulla. Playground yksinkertaistaa asetuksen, tarjoaa malliprojekteja ja tukee yhteistyökehitystä, tehden parhaiden käytäntöjen ja uusien tilanteiden tutkimisesta helppoa ilman monimutkaista infrastruktuuria. Se on erityisen hyödyllinen tiimeille, jotka haluavat validoida ideoita, jakaa kokeiluja ja nopeuttaa oppimista.
 
-**Viitteet:**
+**Viitteet:**  
 
 - [Foundry MCP Playground GitHub -repositorio](https://github.com/azure-ai-foundry/foundry-mcp-playground)
 
-### Tapaustutkimus 9: Microsoft Learn Docs MCP Server – Tekoälypohjainen dokumentaatiojärjestelmä
+### Tapaustutkimus 9: Microsoft Learn Docs MCP Server – Tekoälyllä tehostettu dokumentaatio
 
-Microsoft Learn Docs MCP Server on pilvipalveluna toimiva palvelin, joka tarjoaa tekoälyavustajille reaaliaikaisen pääsyn viralliseen Microsoft-dokumentaatioon Model Context Protocolin kautta. Tämä tuotantovalmiiksi suunniteltu palvelin yhdistää laajan Microsoft Learn -ekosysteemin ja mahdollistaa semanttisen haun kaikissa virallisissa Microsoft-lähteissä.
+Microsoft Learn Docs MCP Server on pilvipalveluna toimiva palvelu, joka tarjoaa tekoälyavustajille reaaliaikaisen pääsyn viralliseen Microsoft-dokumentaatioon Model Context Protocolin kautta. Tämä tuotantovalmis palvelin yhdistyy laajaan Microsoft Learn -ekosysteemiin ja mahdollistaa semanttisen haun kaikista virallisista Microsoftin lähteistä.
 
-> **🎯 Tuotantovalmiina Työkalu**
-> 
-> Tämä on aito MCP-palvelin, jota voit käyttää jo tänään! Lue lisää Microsoft Learn Docs MCP Serveristä oppaassamme [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#1--microsoft-learn-docs-mcp-server).
+> **🎯 Tuotantovalmis työkalu**  
+>  
+> Tämä on todellinen MCP-palvelin, jota voit käyttää jo tänään! Lue lisää Microsoft Learn Docs MCP Serveristä oppaassamme [**Microsoft MCP -palvelimet**](microsoft-mcp-servers.md#1--microsoft-learn-docs-mcp-server).
 
-**Keskeiset ominaisuudet:**
-- Reaaliaikainen pääsy viralliseen Microsoftin dokumentaatioon, Azure-dokumentaatioon ja Microsoft 365 -dokumentaatioon
-- Edistyneet semanttisen haun ominaisuudet, jotka ymmärtävät kontekstin ja tarkoituksen
-- Aina ajan tasalla oleva tieto Microsoft Learnin sisällön julkaisemisen myötä
-- Laaja kattavuus Microsoft Learnista, Azure-dokumentaatiosta ja Microsoft 365 -lähteistä
-- Palauttaa jopa 10 korkealaatuista sisältöosaa artikkelien otsikoiden ja URL-osoitteiden kera
+**Keskeiset ominaisuudet:**  
+- Reaaliaikainen pääsy viralliseen Microsoft-dokumentaatioon, Azure-dokumentaatioon ja Microsoft 365 -dokumentaatioon  
+- Edistyneet semanttiset hakutoiminnot, jotka ymmärtävät kontekstin ja tarkoituksen  
+- Aina ajan tasalla oleva tieto Microsoft Learn -sisällön julkaisemisen myötä  
+- Kattava sisältö Microsoft Learnista, Azure-dokumentaatiosta ja Microsoft 365 -lähteistä  
+- Palauttaa jopa 10 korkealaatuista sisältöpalasta artikkelin otsikoiden ja URL-osoitteiden kanssa  
 
-**Miksi tämä on tärkeää:**
-- Ratkaisee "vanhentunut tekoälytieto" -ongelman Microsoft-teknologioissa
-- Varmistaa, että tekoälyavustajilla on pääsy uusimpiin .NET-, C#-, Azure- ja Microsoft 365 -ominaisuuksiin
-- Tarjoaa auktoritatiivisen, ensikäden tiedon tarkkaan koodin generointiin
-- Oleellinen kehittäjille, jotka työskentelevät nopeasti kehittyvien Microsoft-teknologioiden kanssa
+**Miksi se on kriittinen:**  
+- Ratkaisee "vanhentuneen tekoälytiedon" ongelman Microsoft-teknologioissa  
+- Varmistaa, että tekoälyavustajilla on pääsy uusimpiin .NET-, C#-, Azure- ja Microsoft 365 -ominaisuuksiin  
+- Tarjoaa auktoritatiivista, ensikäden tietoa tarkkaan koodin generointiin  
+- Olennaista kehittäjille, jotka työskentelevät nopeasti kehittyvien Microsoft-teknologioiden parissa  
 
-**Tulokset:**
-- Merkittävästi parantunut tekoälyn generoiman koodin tarkkuus Microsoft-teknologioissa
-- Vähemmän aikaa käytetty ajantasaisen dokumentaation ja parhaiden käytäntöjen etsimiseen
-- Parantunut kehittäjien tuottavuus kontekstia ymmärtävän dokumentaation haun ansiosta
-- Saumaton integraatio kehitystyönkulkuun ilman, että tarvitsee poistua IDE:stä
+**Tulokset:**  
+- Merkittävästi parantunut tekoälyn generoiman koodin tarkkuus Microsoft-teknologioissa  
+- Vähentynyt aika ajantasaisen dokumentaation ja parhaiden käytäntöjen etsimiseen  
+- Parantunut kehittäjien tuottavuus kontekstia huomioivan dokumentaation haun ansiosta  
+- Saumaton integraatio kehitystyönkulkujen kanssa ilman IDE:n vaihtoa  
 
-**Viitteet:**
+**Viitteet:**  
 - [Microsoft Learn Docs MCP Server GitHub -repositorio](https://github.com/MicrosoftDocs/mcp)  
-- [Microsoft Learn Dokumentaatio](https://learn.microsoft.com/)
+- [Microsoft Learn -dokumentaatio](https://learn.microsoft.com/)
 
 ## Käytännön projektit
 
 ### Projekti 1: Rakenna monitoimittajainen MCP-palvelin
 
-**Tavoite:** Luo MCP-palvelin, joka osaa ohjata pyynnöt useille tekoälymallin tarjoajille määriteltyjen kriteerien perusteella.
+**Tavoite:** Luo MCP-palvelin, joka voi ohjata pyynnöt useille tekoälymallipalveluntarjoajille tiettyjen kriteerien perusteella.
 
 **Vaatimukset:**
 
-- Tue vähintään kolmea eri mallin tarjoajaa (esim. OpenAI, Anthropic, paikalliset mallit)  
-- Toteuta reititysmekanismi pyynnön metatietojen perusteella  
-- Luo konfigurointijärjestelmä palveluntarjoajien tunnistetietojen hallintaan  
+- Tuki vähintään kolmelle eri mallipalveluntarjoajalle (esim. OpenAI, Anthropic, paikalliset mallit)  
+- Toteuta reititysmekanismi pyyntöjen metatietojen perusteella  
+- Luo määritysjärjestelmä palveluntarjoajien tunnistetietojen hallintaan  
 - Lisää välimuisti suorituskyvyn ja kustannusten optimointiin  
-- Rakenna yksinkertainen hallintapaneeli käytön seurantaan
+- Rakenna yksinkertainen kojelauta käytön seurantaan  
 
 **Toteutusvaiheet:**
 
-1. Perusta MCP-palvelininfrastruktuuri  
-2. Toteuta sovittimet jokaiselle tekoälymallipalvelulle  
+1. Perusta perus MCP-palvelininfrastruktuuri  
+2. Toteuta palveluntarjoajien adapterit jokaiselle tekoälymallipalvelulle  
 3. Luo reitityslogiikka pyynnön attribuuttien perusteella  
-4. Lisää välimuistimekanismit useille pyynnöille  
-5. Kehitä seurantapaneeli  
-6. Testaa erilaisilla pyyntökuvioilla
+4. Lisää välimuistimekanismit toistuville pyynnöille  
+5. Kehitä seurantakojelauta  
+6. Testaa eri pyynnönkuvioilla  
 
-**Teknologiat:** Valitse Python (.NET/Java/Python mieltymyksesi mukaan), Redis välimuistia varten ja yksinkertainen web-kehys hallintapaneelille.
+**Teknologiat:** Valitse Pythonista (.NET/Java/Python oman mieltymyksesi mukaan), Redis välimuistiksi sekä yksinkertainen web-kehys kojelaudalle.
 
-### Projekti 2: Yrityksen kehotteiden hallintajärjestelmä
-**Tavoite:** Kehittää MCP-pohjainen järjestelmä prompt-mallien hallintaan, versiointiin ja käyttöönottoon organisaation laajuisesti.
+### Projekti 2: Yrityksen kehotehallintajärjestelmä
+
+**Tavoite:** Kehitä MCP-pohjainen järjestelmä kehoteiden mallipohjien hallintaan, versiointiin ja käyttöönottoon organisaatiossa.
 
 **Vaatimukset:**
-
-- Luo keskitetty arkisto prompt-malleille
-- Toteuta versiointi- ja hyväksyntätyönkulut
-- Rakenna mallien testausominaisuudet näytesyötteillä
-- Kehitä roolipohjainen käyttöoikeuksien hallinta
-- Luo API mallien hakemiseen ja käyttöönottoon
+- Luo keskitetty repositorio kehotepohjille
+- Toteuta versiohallinta ja hyväksymisprosessit
+- Rakenna pohjien testausmahdollisuudet esimerkkisyötteillä
+- Kehitä roolipohjaiset käyttöoikeudet
+- Luo API pohjien hakemiseen ja käyttöönottoon
 
 **Toteutusvaiheet:**
 
-1. Suunnittele tietokantakaavio mallien tallennusta varten
-2. Luo ydintoiminnot mallien CRUD-toimintoja varten
+1. Suunnittele tietokantakaavio pohjien tallennusta varten
+2. Luo ydintoiminnot pohjien CRUD-toimintoihin API:lle
 3. Toteuta versiointijärjestelmä
-4. Rakenna hyväksyntätyönkulku
+4. Rakenna hyväksymisprosessi
 5. Kehitä testauskehys
-6. Luo yksinkertainen verkkokäyttöliittymä hallintaa varten
-7. Integroi MCP-palvelimen kanssa
+6. Luo yksinkertainen web-käyttöliittymä hallintaan
+7. Integroi MCP-palvelimeen
 
-**Teknologiat:** Valitsemasi backend-framework, SQL- tai NoSQL-tietokanta ja frontend-framework hallintaliittymälle.
+**Teknologiat:** Valitsemasi backend-kehys, SQL- tai NoSQL-tietokanta sekä frontend-kehys hallintaliittymälle.
 
 ### Projekti 3: MCP-pohjainen sisällöntuotantoalusta
 
-**Tavoite:** Rakentaa sisällöntuotantoalusta, joka hyödyntää MCP:tä tarjoten yhdenmukaisia tuloksia eri sisältötyypeille.
+**Tavoite:** Rakenna sisällöntuotantoalusta, joka hyödyntää MCP:tä tarjoten yhtenäisiä tuloksia eri sisältötyypeille.
 
 **Vaatimukset:**
 
-- Tuki useille sisältöformaatioille (blogikirjoitukset, sosiaalinen media, markkinointisisältö)
-- Toteuta mallipohjainen tuotanto mukautusmahdollisuuksilla
+- Tue useita sisältöformaatteja (blogikirjoitukset, sosiaalinen media, markkinointi)
+- Toteuta pohjapohjainen generointi räätälöintimahdollisuuksilla
 - Luo sisällön arviointi- ja palautteenantojärjestelmä
 - Seuraa sisällön suorituskykymittareita
 - Tue sisällön versiointia ja iterointia
 
 **Toteutusvaiheet:**
 
-1. Perusta MCP-asiakasinfrastruktuuri
-2. Luo malleja eri sisältötyypeille
+1. Perusta MCP-asiakasrajapinta
+2. Luo pohjia eri sisältötyypeille
 3. Rakenna sisällöntuotantoputki
 4. Toteuta arviointijärjestelmä
-5. Kehitä mittareiden seuranta
-6. Luo käyttöliittymä mallien hallintaan ja sisällöntuotantoon
+5. Kehitä mittariseurantajärjestelmä
+6. Luo käyttöliittymä pohjien hallintaan ja sisällöntuotantoon
 
-**Teknologiat:** Valitsemasi ohjelmointikieli, web-framework ja tietokantajärjestelmä.
+**Teknologiat:** Valitse ohjelmointikieli, verkkokehys ja tietokantajärjestelmä mieltymyksesi mukaan.
 
-## MCP-teknologian tulevaisuuden suuntaukset
+## MCP-teknologian tulevat suunnat
 
 ### Nousevat trendit
 
 1. **Monimodaalinen MCP**
-   - MCP:n laajentaminen yhteisten rajapintojen tarjoamiseksi kuviin, ääniin ja videoihin perustuville malleille
-   - Poikkimodaalisen päättelyn kykyjen kehittäminen
-   - Standardoidut prompt-muodot eri modaliteeteille
+   - MCP:n laajentaminen vakioimaan vuorovaikutus kuvan, äänen ja videon mallien kanssa
+   - Poikkimodaalisen päättelyn kyvykkyyksien kehittäminen
+   - Vakioidut kehotemuodot eri modalityypeille
 
-2. **Federatiivinen MCP-infrastruktuuri**
-   - Hajautetut MCP-verkostot resurssien jakamiseksi organisaatioiden välillä
-   - Standardoidut protokollat mallien turvalliseen jakamiseen
-   - Yksityisyyttä suojaavat laskentatekniikat
+2. **Federoitu MCP-infrastruktuuri**
+   - Hajautetut MCP-verkostot, jotka voivat jakaa resursseja organisaatioiden välillä
+   - Vakioidut protokollat turvalliseen mallien jakamiseen
+   - Yksityisyydensuojaavat laskentatekniikat
 
 3. **MCP-markkinapaikat**
-   - Ekosysteemit MCP-mallipohjien ja laajennusten jakamiseen ja kaupallistamiseen
+   - Ekosysteemit MCP-pohjien ja lisäosien jakamiseen ja kaupallistamiseen
    - Laadunvarmistus- ja sertifiointiprosessit
-   - Integraatiot mallimarkkinapaikkoihin
+   - Integraatio mallimarkkinapaikkoihin
 
-4. **MCP osa- ja reunalaskennassa**
-   - MCP-standardien mukauttaminen resurssirajoitettuihin reunalaitteisiin
-   - Optimoidut protokollat pienikaistaisiin ympäristöihin
-   - Erikoistuneet MCP-toteutukset IoT-ekosysteemeihin
+4. **MCP reunalaskennassa**
+   - MCP-standardien sovittaminen resurssirajoitteisille reunalaitteille
+   - Optimoidut protokollat matalan kaistanleveyden ympäristöihin
+   - Erityissovellukset MCP:lle IoT-ekosysteemeissä
 
 5. **Sääntelykehykset**
-   - MCP-laajennusten kehittäminen sääntelyn noudattamiseen
-   - Standardoidut auditointiketjut ja selitettävyyden rajapinnat
-   - Integraatiot kasvaviin tekoälyn hallintakehyksiin
+   - MCP-laajennusten kehitys säädösten noudattamiseen
+   - Vakioidut auditointilokit ja selitettävyyden rajapinnat
+   - Integraatio kehittyviin tekoälyn hallintakehyksiin
 
 ### Microsoftin MCP-ratkaisut
 
-Microsoft ja Azure ovat kehittäneet useita avoimen lähdekoodin arkistoja MCP:n eri käyttötapojen tukemiseksi:
+Microsoft ja Azure ovat kehittäneet useita avoimen lähdekoodin repositorioita tukemaan kehittäjiä MCP:n toteutuksessa eri käyttötapauksiin:
 
-#### Microsoft Organization
+#### Microsoft-organisaatio
 
-1. [playwright-mcp](https://github.com/microsoft/playwright-mcp) - Playwright MCP -palvelin selaimen automaatioon ja testaukseen
-2. [files-mcp-server](https://github.com/microsoft/files-mcp-server) - OneDrive MCP -palvelintoteutus paikallista testausta ja yhteisön panosta varten
-3. [NLWeb](https://github.com/microsoft/NlWeb) - NLWeb on avoimien protokollien ja työkaluvalikoiman kokoelma, jonka päätavoitteena on luoda perusta AI-verkolle
+1. [playwright-mcp](https://github.com/microsoft/playwright-mcp) – Playwright MCP -palvelin selaimen automaatioon ja testaukseen
+2. [files-mcp-server](https://github.com/microsoft/files-mcp-server) – OneDrive MCP -palvelinsovellus paikalliseen testaukseen ja yhteisöpanokseen
+3. [NLWeb](https://github.com/microsoft/NlWeb) – NLWeb on kokoelma avoimia protokollia ja niihin liittyviä avoimen lähdekoodin työkaluja, keskittyen perustason rakentamiseen tekoälyn verkkosovelluksille
 
-#### Azure-Samples Organization
+#### Azure-Samples -organisaatio
 
-1. [mcp](https://github.com/Azure-Samples/mcp) - Linkkejä esimerkkeihin, työkaluihin ja resursseihin MCP-palvelimien rakentamiseen ja integrointiin Azurella monilla kielillä
-2. [mcp-auth-servers](https://github.com/Azure-Samples/mcp-auth-servers) - Esimerkkipalvelimia, jotka demonstroivat autentikointia nykyisen Model Context Protocol -määritelmän mukaisesti
-3. [remote-mcp-functions](https://github.com/Azure-Samples/remote-mcp-functions) - Etä-MCP-palvelintoteutusten aloitussivu Azure Functionsissa kielikohtaisilla repositorioilla
-4. [remote-mcp-functions-python](https://github.com/Azure-Samples/remote-mcp-functions-python) - Pikakäynnistysmalli räätälöityjen etä-MCP-palvelimien rakentamiseen ja käyttöönottoon Pythonilla Azure Functionsissa
-5. [remote-mcp-functions-dotnet](https://github.com/Azure-Samples/remote-mcp-functions-dotnet) - Pikakäynnistysmalli räätälöityjen etä-MCP-palvelimien rakentamiseen ja käyttöönottoon .NET/C#-tekniikalla Azure Functionsissa
-6. [remote-mcp-functions-typescript](https://github.com/Azure-Samples/remote-mcp-functions-typescript) - Pikakäynnistysmalli räätälöityjen etä-MCP-palvelimien rakentamiseen ja käyttöönottoon TypeScriptilla Azure Functionsissa
-7. [remote-mcp-apim-functions-python](https://github.com/Azure-Samples/remote-mcp-apim-functions-python) - Azure API Management tekoälyporttina etä-MCP-palvelimiin Pythonilla
-8. [AI-Gateway](https://github.com/Azure-Samples/AI-Gateway) - APIM ❤️ AI-kokeiluja, mukaan lukien MCP-ominaisuudet, integraatio Azure OpenAI:hin ja AI Foundryyn
+1. [mcp](https://github.com/Azure-Samples/mcp) – Linkkejä esimerkkeihin, työkaluihin ja resursseihin MCP-palvelimien rakentamiseksi ja integroimiseksi Azuren eri kielillä
+2. [mcp-auth-servers](https://github.com/Azure-Samples/mcp-auth-servers) – Referenssipohjaiset MCP-palvelimet autentikoinnin demonstrointiin nykyisen Model Context Protocol -määrityksen mukaisesti
+3. [remote-mcp-functions](https://github.com/Azure-Samples/remote-mcp-functions) – Aloitussivu etä-MCP-palvelinsovelluksille Azure Functions -ympäristössä eri kielirepositoriin linkityksillä
+4. [remote-mcp-functions-python](https://github.com/Azure-Samples/remote-mcp-functions-python) – Nopea aloituspohja etä-MCP-palvelinten rakentamiseen ja käyttöönottoon Pythonilla Azure Functions -palvelussa
+5. [remote-mcp-functions-dotnet](https://github.com/Azure-Samples/remote-mcp-functions-dotnet) – Nopea aloituspohja etä-MCP-palvelinten rakentamiseen ja käyttöönottoon .NET/C#-ympäristössä Azure Functionsilla
+6. [remote-mcp-functions-typescript](https://github.com/Azure-Samples/remote-mcp-functions-typescript) – Nopea aloituspohja etä-MCP-palvelinten rakentamiseen ja käyttöönottoon TypeScriptillä Azure Functionsilla
+7. [remote-mcp-apim-functions-python](https://github.com/Azure-Samples/remote-mcp-apim-functions-python) – Azure API Management tekoälysillan roolissa etä-MCP-palvelimille Pythonilla
+8. [AI-Gateway](https://github.com/Azure-Samples/AI-Gateway) – APIM ❤️ AI -kokeiluja MCP-ominaisuuksin, integroitu Azure OpenAI:hin ja AI Foundryyn
 
-Nämä arkistot tarjoavat erilaisia toteutuksia, malleja ja resursseja Model Context Protocolin eri ohjelmointikielille ja Azuren palveluille. Ne kattavat perustason palvelintoteutuksista autentikointiin, pilvikäyttöönottoon ja yritysintegrointiin.
+Nämä repositoriot tarjoavat monipuolisia toteutuksia, pohjia ja resursseja MCP:n hyödyntämiseen eri ohjelmointikielillä ja Azuren palveluissa kattaen peruspalvelinsovellukset, autentikoinnin, pilvikäytön ja yritysintegroinnin skenaariot.
 
 #### MCP-resurssihakemisto
 
-Virallisessa Microsoft MCP -arkistossa sijaitseva [MCP Resources directory](https://github.com/microsoft/mcp/tree/main/Resources) tarjoaa kuratoidun kokoelman esimerkkiresursseja, prompt-malleja ja työkalumääritelmiä MCP-palvelimien käyttöön. Tämä hakemisto auttaa kehittäjiä alkuun MCP:n kanssa tarjoamalla uudelleenkäytettäviä rakennuspalikoita ja parhaiden käytäntöjen esimerkkejä:
+Virallisessa Microsoftin MCP-respositorissa oleva [MCP Resources -hakemisto](https://github.com/microsoft/mcp/tree/main/Resources) tarjoaa kuratoidun kokoelman esimerkkiresursseja, kehotepohjia ja työkalumäärittelyjä MCP-palvelimien käyttöön. Tämä hakemisto auttaa kehittäjiä pääsemään nopeasti alkuun MCP:n kanssa tarjoamalla uudelleenkäytettäviä rakennuspalikoita ja parhaita käytäntöjä:
 
-- **Prompt-mallit:** Valmiita prompt-malleja yleisiin tekoälytehtäviin ja tilanteisiin, jotka voi sopeuttaa omiin MCP-palvelintoteutuksiin.
-- **Työkalumääritelmät:** Esimerkkityökaluskeemat ja metatiedot työkalujen yhdenmukaistamiseksi ja kutsumiseksi eri MCP-palvelimilla.
-- **Resurssinäytteet:** Esimerkkimääritelmiä tietolähteiden, rajapintojen ja ulkoisten palveluiden yhdistämiseen MCP-kehyksessä.
-- **Referenssitoteutukset:** Käytännön esimerkkejä siitä, miten jäsentää ja järjestää resursseja, promptteja ja työkaluja aidon maailman MCP-projekteissa.
+- **Kehotepohjat:** Valmiita kehotepohjia yleisiin tekoälytehtäviin ja -skenaarioihin, joita voi muokata omiin MCP-palvelintoteutuksiin
+- **Työkalumäärittelyt:** Esimerkkityökalumallit ja metatiedot työkalujen standardoituun integrointiin ja kutsumiseen eri MCP-palvelimilla
+- **Resurssiesimerkit:** Esimerkkejä resurssimäärittelyistä, joita käytetään yhteyden muodostamiseen tietolähteisiin, rajapintoihin ja ulkoisiin palveluihin MCP-kehyksessä
+- **Referenssitoteutukset:** Käytännön näytteitä siitä, miten resursseja, kehotteita ja työkaluja jäsennellään MCP-projekteissa
 
-Nämä resurssit nopeuttavat kehitystä, edistävät standardisointia ja tukevat parhaiden käytäntöjen noudattamista MCP-pohjaisten ratkaisujen rakentamisessa ja käyttöönotossa.
+Nämä resurssit vauhdittavat kehitystä, edistävät standardisointia ja varmistavat parhaat käytännöt MCP-pohjaisten ratkaisujen rakentamisessa ja käyttöönotossa.
 
-#### MCP Resources Directory
+#### MCP-resurssihakemisto
 
-- [MCP Resources (Sample Prompts, Tools, and Resource Definitions)](https://github.com/microsoft/mcp/tree/main/Resources)
+- [MCP-resurssit (esimerkkikehotteet, työkalut ja resurssimääritykset)](https://github.com/microsoft/mcp/tree/main/Resources)
 
 ### Tutkimusmahdollisuudet
 
-- Tehokkaat promptin optimointimenetelmät MCP-kehyksissä
-- Turvallisuusmallit monivuokraajaympäristöihin MCP:ssa
-- Suorituskyvyn vertailu eri MCP-toteutusten kesken
-- Formaalien varmennusmenetelmien tutkimus MCP-palvelimille
+- Tehokkaat kehotteiden optimointitekniikat MCP-kehyksessä
+- Turvallisuusmallit monen asiakkaan MCP-järjestelmiin
+- Suorituskyvyn vertailuanalyysit eri MCP-toteutuksissa
+- Formaalit varmennusmenetelmät MCP-palvelimille
 
 ## Yhteenveto
 
-Model Context Protocol (MCP) muovaa nopeasti tulevaisuutta kohti standardoitua, turvallista ja yhteentoimivaa tekoälyintegraatiota eri toimialoilla. Tämän oppitunnin tapaustutkimusten ja käytännön projektien avulla olet nähnyt, kuinka varhaiset omaksujat, kuten Microsoft ja Azure, hyödyntävät MCP:tä ratkaistakseen todellisia haasteita, kiihdyttääkseen tekoälyn käyttöönottoa sekä varmistaakseen vaatimustenmukaisuuden, turvallisuuden ja skaalautuvuuden. MCP:n modulaarinen lähestymistapa mahdollistaa organisaatioiden yhdistää laajat kielimallit, työkalut ja yritystiedot yhtenäiseksi ja auditointikelpoiseksi kehykseksi. MCP:n kehittyessä aktiivinen mukanaolo yhteisössä, avoimen lähdekoodin resurssien tutkiminen ja parhaiden käytäntöjen soveltaminen ovat avainasemassa vahvojen ja tulevaisuuden tekoälyratkaisujen rakentamisessa.
+Model Context Protocol (MCP) muokkaa nopeasti tulevaisuutta vakioidulle, turvalliselle ja yhteentoimivalle tekoälyintegraatiolle eri toimialoilla. Tämä oppitunti on esitellyt käytännön esimerkkejä ja projekteja, joissa Microsoft ja Azure ovat varhaisina omaksujina hyödyntäneet MCP:tä ratkoakseen todellisia haasteita, nopeuttaakseen tekoälyn käyttöönottoa sekä varmistaakseen vaatimustenmukaisuuden, turvallisuuden ja skaalautuvuuden. MCP:n modulaarinen lähestymistapa mahdollistaa organisaatioiden liittää laaja kielimalleja, työkaluja ja yritysdatan yhtenäiseen ja auditoitavaan kehykseen. MCP:n kehittyessä aktiivinen yhteisön osallistuminen, avoimen lähdekoodin resurssien hyödyntäminen ja parhaiden käytäntöjen soveltaminen ovat avainasemassa rakentamaan vankkoja, tulevaisuuden tekoälyratkaisuja.
 
 ## Lisäresurssit
 
-- [MCP Foundry GitHub -arkisto](https://github.com/azure-ai-foundry/mcp-foundry)
+- [MCP Foundry GitHub -repositorio](https://github.com/azure-ai-foundry/mcp-foundry)
 - [Foundry MCP Playground](https://github.com/azure-ai-foundry/foundry-mcp-playground)
-- [Azure AI Agenttien integrointi MCP:n kanssa (Microsoft Foundry Blog)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)
-- [MCP GitHub -arkisto (Microsoft)](https://github.com/microsoft/mcp)
-- [MCP-resurssihakemisto (Esimerkkipromptit, työkalut ja resurssimääritelmät)](https://github.com/microsoft/mcp/tree/main/Resources)
-- [MCP-yhteisö ja dokumentaatio](https://modelcontextprotocol.io/introduction)
-- [MCP-spesifikaatio (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Azure AI -agenttien integrointi MCP:hen (Microsoft Foundry Blog)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)
+- [MCP GitHub -repositorio (Microsoft)](https://github.com/microsoft/mcp)
+- [MCP-resurssihakemisto (esimerkkikehotteet, työkalut ja resurssimääritykset)](https://github.com/microsoft/mcp/tree/main/Resources)
+- [MCP-yhteisö & dokumentaatio](https://modelcontextprotocol.io/introduction)
+- [MCP-määritys (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [Azure MCP -dokumentaatio](https://aka.ms/azmcp)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Turvallisuuden parhaat käytännöt
-- [Playwright MCP Server - GitHub](https://github.com/microsoft/playwright-mcp)
+- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) – Turvallisuuden parhaat käytännöt
+- [Playwright MCP Server GitHub reposti](https://github.com/microsoft/playwright-mcp)
 - [Files MCP Server (OneDrive)](https://github.com/microsoft/files-mcp-server)
 - [Azure-Samples MCP](https://github.com/Azure-Samples/mcp)
 - [MCP Auth Servers (Azure-Samples)](https://github.com/Azure-Samples/mcp-auth-servers)
@@ -580,24 +580,24 @@ Model Context Protocol (MCP) muovaa nopeasti tulevaisuutta kohti standardoitua, 
 - [Remote MCP Functions TypeScript (Azure-Samples)](https://github.com/Azure-Samples/remote-mcp-functions-typescript)
 - [Remote MCP APIM Functions Python (Azure-Samples)](https://github.com/Azure-Samples/remote-mcp-apim-functions-python)
 - [AI-Gateway (Azure-Samples)](https://github.com/Azure-Samples/AI-Gateway)
-- [Microsoft AI- ja automaatioratkaisut](https://azure.microsoft.com/en-us/products/ai-services/)
+- [Microsoftin tekoäly- ja automaatioratkaisut](https://azure.microsoft.com/en-us/products/ai-services/)
 
 ## Harjoitukset
 
-1. Analysoi jokin tapauksista ja ehdota vaihtoehtoinen toteutustapa.
-2. Valitse yksi projekti-ideoista ja laadi yksityiskohtainen tekninen määrittely.
-3. Tutki toimiala, jota ei ole käsitelty tapaustutkimuksissa, ja hahmottele, miten MCP voisi ratkaista sen erityishaasteet.
-4. Tutki yhtä tulevaisuudensuuntaa ja luo konsepti uudelle MCP-laajennukselle sen tukemiseksi.
+1. Analysoi yksi tapaustutkimuksista ja ehdota vaihtoehtoinen toteutuslähestymistapa.
+2. Valitse yksi projektiehdotuksista ja laadi yksityiskohtainen tekninen spesifikaatio.
+3. Tutki toimiala, jota tapaustutkimuksissa ei käsitelty, ja hahmottele miten MCP voisi ratkaista sen erityisiä haasteita.
+4. Tutki yhtä tulevaisuuden suuntaa ja kehitä konsepti uudelle MCP-laajennukselle sen tukemiseksi.
 
-## Mitä seuraavaksi
+## Seuraavaksi
 
 Tutustu lisää: [Microsoft MCP Servers](./microsoft-mcp-servers.md)
 
-Jatka: [Module 8: Best Practices](../08-BestPractices/README.md)
+Jatka: [Moduuli 8: Parhaat käytännöt](../08-BestPractices/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Vastuuvapauslauseke**:
-Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Pyrimme tarkkuuteen, mutta otathan huomioon, että automaattiset käännökset voivat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen ja sitova lähde. Tärkeissä tiedoissa suosittelemme ammattilaisen tekemää ihmiskäännöstä. Emme ole vastuussa mahdollisista väärinymmärryksistä tai tulkinnoista, jotka johtuvat tämän käännöksen käytöstä.
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

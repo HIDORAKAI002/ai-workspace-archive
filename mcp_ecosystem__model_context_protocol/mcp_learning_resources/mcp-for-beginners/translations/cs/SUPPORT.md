@@ -1,16 +1,20 @@
 # Podpora
 
-## Jak hlásit problémy a získat pomoc  
+## Jak podávat problémy a získat pomoc
 
-Tento projekt používá GitHub Issues pro sledování chyb a požadavků na nové funkce. Před založením nového problému prosím vyhledejte již existující, abyste se vyhnuli duplicitám. Pro nové problémy založte svůj bug nebo požadavek na funkci jako nový Issue.
+Tento projekt používá GitHub Issues pro sledování chyb a požadavků na funkce. Před podáním nových problémů prosím vyhledejte existující problémy, abyste se vyhnuli duplicitám. Nové chyby nebo požadavky na funkce podávejte jako nový problém (Issue).
 
-Pro pomoc a dotazy ohledně používání tohoto projektu prosím:
-- Navštivte [Azure AI Foundry Discord](https://discord.com/invite/ByRwuEEgH4), kde se scházejí odborníci a další vývojáři
+Pro pomoc a otázky ohledně používání tohoto projektu prosím:
+- Zkontrolujte [Microsoft Foundry Discord](https://discord.com/invite/ByRwuEEgH4), kde se shromažďují experti a další vývojáři
 - Využijte zdroje [Model Context Protocol Community](https://modelcontextprotocol.io/community/) pro otázky týkající se protokolu
 
-## Microsoft Support Policy  
+## Podpora Microsoftu
 
-Podpora projektu Model Context Protocol (MCP) for Beginners je omezena na výše uvedené zdroje.
+Podpora pro projekt Model Context Protocol (MCP) pro začátečníky je omezena na výše uvedené zdroje.
 
-**Prohlášení o vyloučení odpovědnosti**:  
-Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). I když usilujeme o přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Původní dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro důležité informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoliv nedorozumění nebo nesprávné výklady vyplývající z použití tohoto překladu.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Prohlášení o omezení odpovědnosti**:
+Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o co největší přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Originální dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro kritické informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoli nedorozumění nebo nesprávné interpretace vzniklé použitím tohoto překladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

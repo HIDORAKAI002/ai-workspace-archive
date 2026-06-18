@@ -1,27 +1,27 @@
-# Yritysintegrointi
+# Yritysintegraatio
 
-Kun rakennat MCP-palvelimia yrityskontekstissa, sinun on usein integroitava olemassa oleviin tekoälyalustoihin ja -palveluihin. Tässä osiossa käsitellään, kuinka MCP integroidaan yritysjärjestelmiin, kuten Azure OpenAI:hin ja Microsoft AI Foundryyn, mahdollistaen kehittyneet tekoälyominaisuudet ja työkalujen orkestroinnin.
+Rakentaessasi MCP-palvelimia yritysympäristössä, sinun täytyy usein integroida olemassa oleviin tekoälyalustoihin ja -palveluihin. Tässä osiossa käsitellään, kuinka MCP integroidaan yritysjärjestelmiin kuten Azure OpenAI ja Microsoft AI Foundry, mikä mahdollistaa edistyneet tekoälyominaisuudet ja työkalujen orkestroinnin.
 
 ## Johdanto
 
-Tässä oppitunnissa opit, kuinka Model Context Protocol (MCP) integroidaan yritysten tekoälyjärjestelmiin, keskittyen erityisesti Azure OpenAI:hin ja Microsoft AI Foundryyn. Näiden integraatioiden avulla voit hyödyntää tehokkaita tekoälymalleja ja -työkaluja samalla säilyttäen MCP:n joustavuuden ja laajennettavuuden.
+Tässä oppitunnissa opit, kuinka Model Context Protocol (MCP) integroidaan yritysten tekoälyjärjestelmiin, keskittyen Azure OpenAI:hin ja Microsoft AI Foundryyn. Nämä integraatiot antavat mahdollisuuden hyödyntää tehokkaita tekoälymalleja ja työkaluja samalla säilyttäen MCP:n joustavuuden ja laajennettavuuden.
 
 ## Oppimistavoitteet
 
-Tämän oppitunnin lopussa osaat:
+Oppitunnin lopussa osaat:
 
-- Integroida MCP:n Azure OpenAI:hin hyödyntääksesi sen tekoälyominaisuuksia.
+- Integroida MCP:n Azure OpenAI:n kanssa sen tekoälyominaisuuksien hyödyntämiseksi.
 - Toteuttaa MCP-työkalujen orkestroinnin Azure OpenAI:n kanssa.
-- Yhdistää MCP:n Microsoft AI Foundryyn kehittyneiden tekoälyagenttien ominaisuuksien hyödyntämiseksi.
-- Hyödyntää Azure Machine Learningia (ML) ML-putkistojen suorittamiseen ja mallien rekisteröimiseen MCP-työkaluina.
+- Yhdistää MCP:n Microsoft AI Foundryyn saadaksesi kehittyneitä tekoälyagentin ominaisuuksia.
+- Hyödyntää Azure Machine Learningiä (ML) ML-putkien suorittamisessa ja mallien rekisteröimisessä MCP-työkaluina.
 
 ## Azure OpenAI -integraatio
 
-Azure OpenAI tarjoaa pääsyn tehokkaisiin tekoälymalleihin, kuten GPT-4:ään ja muihin. MCP:n integrointi Azure OpenAI:hin mahdollistaa näiden mallien hyödyntämisen samalla säilyttäen MCP:n työkalujen orkestroinnin joustavuuden.
+Azure OpenAI tarjoaa pääsyn tehokkaisiin tekoälymalleihin kuten GPT-4 ja muihin. MCP:n integroiminen Azure OpenAI:n kanssa mahdollistaa näiden mallien käytön säilyttäen MCP:n työkalujen orkestroinnin joustavuuden.
 
-### C#-toteutus
+### C# Toteutus
 
-Tässä koodiesimerkissä näytetään, kuinka MCP integroidaan Azure OpenAI:hin käyttämällä Azure OpenAI SDK:ta.
+Tässä koodiesimerkissä demonstroidaan, kuinka integroidaan MCP Azure OpenAI:n kanssa Azure OpenAI SDK:n avulla.
 
 ```csharp
 // .NET Azure OpenAI Integration
@@ -85,24 +85,24 @@ namespace EnterpriseIntegration
 }
 ```
 
-Edellä olevassa koodissa olemme:
+Edellisessä koodissa olemme:
 
-- Konfiguroineet Azure OpenAI -asiakkaan käyttämällä päätepistettä, käyttöönoton nimeä ja API-avainta.
-- Luoneet metodin `GetCompletionWithToolsAsync` hakemaan vastauksia työkalutuen kanssa.
-- Käsitelleet työkalukutsut vastauksessa.
+- Konfiguroineet Azure OpenAI -asiakkaan päätepisteen, käyttöönoton nimen ja API-avaimen avulla.
+- Luoneet metodin `GetCompletionWithToolsAsync`, joka hakee tekoälyn vastauksia työkalutuen kanssa.
+- Käsitelleet työkalukutsuja vastauksessa.
 
-Sinua kannustetaan toteuttamaan varsinainen työkalujen käsittelylogiikka oman MCP-palvelimesi asetusten perusteella.
+Kannustamme sinua toteuttamaan varsinaisen työkalukäsittelylogiikan oman MCP-palvelinympäristösi mukaan.
 
-## Microsoft AI Foundry -integraatio
+## Microsoft Foundry -integraatio
 
-Azure AI Foundry tarjoaa alustan tekoälyagenttien rakentamiseen ja käyttöönottoon. MCP:n integrointi AI Foundryyn mahdollistaa sen ominaisuuksien hyödyntämisen samalla säilyttäen MCP:n joustavuuden.
+Microsoft Foundry tarjoaa alustan tekoälyagenttien rakentamiseen ja käyttöönottoon. MCP:n integroiminen Microsoft Foundryyn antaa sinun hyödyntää sen ominaisuuksia säilyttäen MCP:n joustavuuden.
 
-Alla olevassa koodissa kehitetään agentti-integraatio, joka käsittelee pyyntöjä ja työkalukutsuja MCP:n avulla.
+Alla olevassa koodissa kehitämme Agent-integraation, joka käsittelee pyyntöjä ja hoitaa työkalukutsuja MCP:n avulla.
 
 ### Java-toteutus
 
 ```java
-// Java AI Foundry Agent Integration
+// Java AI Foundry Agent -integrointi
 package com.example.mcp.enterprise;
 
 import com.microsoft.aifoundry.AgentClient;
@@ -125,26 +125,26 @@ public class AIFoundryMcpBridge {
     }
     
     public AgentResponse processAgentRequest(AgentRequest request) {
-        // Process the AI Foundry Agent request
+        // Käsittele AI Foundry Agent -pyyntö
         AgentResponse initialResponse = agentClient.processRequest(request);
         
-        // Check if the agent requested to use tools
+        // Tarkista, pyysikö agentti käyttämään työkaluja
         if (initialResponse.getToolCalls() != null && !initialResponse.getToolCalls().isEmpty()) {
-            // For each tool call, route it to the appropriate MCP tool
+            // Reititä jokainen työkalukutsu sopivalle MCP-työkalulle
             for (AgentToolCall toolCall : initialResponse.getToolCalls()) {
                 String toolName = toolCall.getName();
                 Map<String, Object> parameters = toolCall.getArguments();
                 
-                // Execute the tool using MCP
+                // Suorita työkalu MCP:n avulla
                 ToolResponse mcpResponse = mcpClient.executeTool(toolName, parameters);
                 
-                // Create tool response for AI Foundry
+                // Luo työkalun vastaus AI Foundrylle
                 AgentToolResponse toolResponse = new AgentToolResponse(
                     toolCall.getId(),
                     mcpResponse.getResult()
                 );
                 
-                // Submit tool response back to the agent
+                // Lähetä työkalun vastaus takaisin agentille
                 initialResponse = agentClient.submitToolResponse(
                     request.getConversationId(), 
                     toolResponse
@@ -157,20 +157,20 @@ public class AIFoundryMcpBridge {
 }
 ```
 
-Edellä olevassa koodissa olemme:
+Edellisessä koodissa olemme:
 
-- Luoneet `AIFoundryMcpBridge`-luokan, joka integroituu sekä AI Foundryyn että MCP:hen.
-- Toteuttaneet metodin `processAgentRequest`, joka käsittelee AI Foundryn agenttipyynnön.
-- Käsitelleet työkalukutsut suorittamalla ne MCP-asiakkaan kautta ja palauttamalla tulokset AI Foundryn agentille.
+- Luoneet luokan `AIFoundryMcpBridge`, joka integroi sekä AI Foundryn että MCP:n.
+- Toteuttaneet metodin `processAgentRequest`, joka käsittelee AI Foundry -agentin pyyntöjä.
+- Käsitelleet työkalukutsuja suorittamalla ne MCP-asiakkaan kautta ja palauttamalla tulokset AI Foundry -agentille.
 
-## MCP:n integrointi Azure ML:ään
+## MCP:n integroiminen Azure ML:n kanssa
 
-MCP:n integrointi Azure Machine Learningin (ML) kanssa mahdollistaa Azuren tehokkaiden ML-ominaisuuksien hyödyntämisen samalla säilyttäen MCP:n joustavuuden. Tätä integraatiota voidaan käyttää ML-putkistojen suorittamiseen, mallien rekisteröimiseen työkaluina ja laskentaresurssien hallintaan.
+MCP:n integrointi Azure Machine Learningin (ML) kanssa mahdollistaa Azuren tehokkaiden ML-ominaisuuksien hyödyntämisen säilyttäen MCP:n joustavuuden. Tätä integraatiota voidaan käyttää ML-putkien suorittamiseen, mallien rekisteröimiseen työkaluna sekä laskentaresurssien hallintaan.
 
 ### Python-toteutus
 
 ```python
-# Python Azure AI Integration
+# Python Azure AI -integraatio
 from mcp_client import McpClient
 from azure.ai.ml import MLClient
 from azure.identity import DefaultAzureCredential
@@ -180,10 +180,10 @@ import asyncio
 
 class EnterpriseAiIntegration:
     def __init__(self, mcp_server_url, subscription_id, resource_group, workspace_name):
-        # Set up MCP client
+        # Aseta MCP-asiakas
         self.mcp_client = McpClient(server_url=mcp_server_url)
         
-        # Set up Azure ML client
+        # Aseta Azure ML -asiakas
         self.credential = DefaultAzureCredential()
         self.ml_client = MLClient(
             self.credential,
@@ -194,7 +194,7 @@ class EnterpriseAiIntegration:
     
     async def execute_ml_pipeline(self, pipeline_name, input_data):
         """Executes an ML pipeline in Azure ML"""
-        # First process the input data using MCP tools
+        # Käsittele ensin syötteen tiedot MCP-työkaluilla
         processed_data = await self.mcp_client.execute_tool(
             "dataPreprocessor",
             {
@@ -203,7 +203,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Submit the pipeline to Azure ML
+        # Lähetä putkisto Azure ML:ään
         pipeline_job = self.ml_client.jobs.create_or_update(
             entity={
                 "name": pipeline_name,
@@ -215,7 +215,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Return job information
+        # Palauta työn tiedot
         return {
             "job_id": pipeline_job.id,
             "status": pipeline_job.status,
@@ -224,22 +224,22 @@ class EnterpriseAiIntegration:
     
     async def register_ml_model_as_tool(self, model_name, model_version="latest"):
         """Registers an Azure ML model as an MCP tool"""
-        # Get model details
+        # Hae mallin tiedot
         if model_version == "latest":
             model = self.ml_client.models.get(name=model_name, label="latest")
         else:
             model = self.ml_client.models.get(name=model_name, version=model_version)
         
-        # Create deployment environment
+        # Luo käyttöönottoympäristö
         env = Environment(
             name="mcp-model-env",
             conda_file="./environments/inference-env.yml"
         )
         
-        # Set up compute
+        # Aseta laskentaresurssit
         compute = self.ml_client.compute.get("mcp-inference")
         
-        # Deploy model as online endpoint
+        # Ota malli käyttöön online-päätepisteenä
         deployment = self.ml_client.online_deployments.create_or_update(
             endpoint_name=f"mcp-{model_name}",
             deployment={
@@ -255,22 +255,22 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Create MCP tool schema based on model schema
+        # Luo MCP-työkalun skeema mallin skeeman perusteella
         tool_schema = {
             "type": "object",
             "properties": {},
             "required": []
         }
         
-        # Add input properties based on model schema
+        # Lisää syöteominaisuudet mallin skeeman perusteella
         for input_name, input_spec in model.signature.inputs.items():
             tool_schema["properties"][input_name] = {
                 "type": self._map_ml_type_to_json_type(input_spec.type)
             }
             tool_schema["required"].append(input_name)
         
-        # Register as MCP tool
-        # In a real implementation, you would create a tool that calls the endpoint
+        # Rekisteröi MCP-työkaluna
+        # Todellisessa toteutuksessa loisit työkalun, joka kutsuu päätepistettä
         return {
             "model_name": model_name,
             "model_version": model.version,
@@ -291,17 +291,21 @@ class EnterpriseAiIntegration:
         return mapping.get(ml_type, "string")
 ```
 
-Edellä olevassa koodissa olemme:
+Edellisessä koodissa olemme:
 
-- Luoneet `EnterpriseAiIntegration`-luokan, joka integroi MCP:n Azure ML:ään.
-- Toteuttaneet `execute_ml_pipeline`-metodin, joka käsittelee syötteitä MCP-työkalujen avulla ja lähettää ML-putkiston Azure ML:ään.
-- Toteuttaneet `register_ml_model_as_tool`-metodin, joka rekisteröi Azure ML -mallin MCP-työkaluksi, mukaan lukien tarvittavan käyttöympäristön ja laskentaresurssien luomisen.
-- Mappanneet Azure ML:n tietotyypit JSON-skeematyyppeihin työkalujen rekisteröintiä varten.
-- Käyttäneet asynkronista ohjelmointia käsittelemään mahdollisesti pitkäkestoisia operaatioita, kuten ML-putkistojen suorittamista ja mallien rekisteröintiä.
+- Luoneet luokan `EnterpriseAiIntegration`, joka yhdistää MCP:n Azure ML:n kanssa.
+- Toteuttaneet metodin `execute_ml_pipeline`, joka käsittelee syötteitä MCP-työkaluilla ja lähettää ML-putken Azure ML:lle.
+- Toteuttaneet metodin `register_ml_model_as_tool`, joka rekisteröi Azure ML -mallin MCP-työkaluksi, mukaan lukien tarvittavan käyttöönottoympäristön ja laskentaresurssit.
+- Mapanneet Azure ML:n tietotyypit JSON-skeematyyppeihin työkalurekisteröintiä varten.
+- Käyttäneet asynkronista ohjelmointia käsitelläksemme mahdollisesti pitkään kestäviä operaatioita kuten ML-putkien suoritus ja mallin rekisteröinti.
 
 ## Mitä seuraavaksi
 
 - [5.2 Multi modality](../mcp-multi-modality/README.md)
 
-**Vastuuvapauslauseke**:  
-Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, huomioithan, että automaattiset käännökset voivat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäisellä kielellä tulisi pitää ensisijaisena lähteenä. Kriittisen tiedon osalta suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa väärinkäsityksistä tai virhetulkinnoista, jotka johtuvat tämän käännöksen käytöstä.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vastuuvapauslauseke**:
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

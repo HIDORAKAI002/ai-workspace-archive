@@ -1,84 +1,84 @@
-# Pengantar Integrasi Database MCP
+# Pendahuluan Integrasi Database MCP
 
-## 🎯 Apa yang Dibahas dalam Lab Ini
+## 🎯 Apa yang Dicakup Lab Ini
 
-Lab pengantar ini memberikan gambaran menyeluruh tentang cara membangun server Model Context Protocol (MCP) dengan integrasi database. Anda akan memahami kasus bisnis, arsitektur teknis, dan aplikasi dunia nyata melalui studi kasus analitik Zava Retail di https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
+Lab pengantar ini memberikan gambaran komprehensif tentang membangun server Model Context Protocol (MCP) dengan integrasi database. Anda akan memahami kasus bisnis, arsitektur teknis, dan aplikasi dunia nyata melalui penggunaan analitik Zava Retail di https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
 
-## Gambaran Umum
+## Ikhtisar
 
-**Model Context Protocol (MCP)** memungkinkan asisten AI untuk mengakses dan berinteraksi dengan sumber data eksternal secara aman dan real-time. Ketika digabungkan dengan integrasi database, MCP membuka kemampuan yang kuat untuk aplikasi AI berbasis data.
+**Model Context Protocol (MCP)** memungkinkan asisten AI mengakses dan berinteraksi secara aman dengan sumber data eksternal secara real-time. Ketika digabungkan dengan integrasi database, MCP membuka kemampuan kuat untuk aplikasi AI berbasis data.
 
-Jalur pembelajaran ini mengajarkan Anda cara membangun server MCP siap produksi yang menghubungkan asisten AI ke data penjualan ritel melalui PostgreSQL, dengan menerapkan pola perusahaan seperti Row Level Security, pencarian semantik, dan akses data multi-tenant.
+Jalur pembelajaran ini mengajarkan Anda membangun server MCP siap produksi yang menghubungkan asisten AI ke data penjualan ritel melalui PostgreSQL, menerapkan pola perusahaan seperti Keamanan Level Baris, pencarian semantik, dan akses data multi-penyewa.
 
 ## Tujuan Pembelajaran
 
-Pada akhir lab ini, Anda akan dapat:
+Setelah menyelesaikan lab ini, Anda akan mampu:
 
-- **Mendefinisikan** Model Context Protocol dan manfaat utamanya untuk integrasi database
-- **Mengidentifikasi** komponen utama arsitektur server MCP dengan database
-- **Memahami** studi kasus Zava Retail dan kebutuhan bisnisnya
-- **Mengenali** pola perusahaan untuk akses database yang aman dan skalabel
-- **Mendaftar** alat dan teknologi yang digunakan sepanjang jalur pembelajaran ini
+- **Mendefinisikan** Model Context Protocol dan manfaat inti untuk integrasi database  
+- **Mengidentifikasi** komponen utama arsitektur server MCP dengan database  
+- **Memahami** kasus penggunaan Zava Retail dan kebutuhan bisnisnya  
+- **Mengenali** pola perusahaan untuk akses database yang aman dan skalabel  
+- **Mendaftar** alat dan teknologi yang digunakan sepanjang jalur pembelajaran ini  
 
 ## 🧭 Tantangan: AI Bertemu Data Dunia Nyata
 
 ### Keterbatasan AI Tradisional
 
-Asisten AI modern sangat kuat tetapi menghadapi keterbatasan signifikan saat bekerja dengan data bisnis dunia nyata:
+Asisten AI modern sangat kuat namun menghadapi batasan signifikan saat bekerja dengan data bisnis dunia nyata:
 
 | **Tantangan** | **Deskripsi** | **Dampak Bisnis** |
-|---------------|-----------------|-------------------|
-| **Pengetahuan Statis** | Model AI yang dilatih pada dataset tetap tidak dapat mengakses data bisnis terkini | Wawasan usang, peluang terlewatkan |
-| **Silo Data** | Informasi terkunci dalam database, API, dan sistem yang tidak dapat dijangkau AI | Analisis tidak lengkap, alur kerja terfragmentasi |
-| **Kendala Keamanan** | Akses langsung ke database meningkatkan risiko keamanan dan kepatuhan | Penerapan terbatas, persiapan data manual |
-| **Kueri Kompleks** | Pengguna bisnis membutuhkan pengetahuan teknis untuk mendapatkan wawasan data | Adopsi berkurang, proses tidak efisien |
+|---------------|---------------|-------------------|
+| **Pengetahuan Statis** | Model AI dilatih pada dataset tetap tidak bisa mengakses data bisnis saat ini | Wawasan usang, peluang terlewatkan |
+| **Silos Data** | Informasi terkunci di database, API, dan sistem yang tidak dapat dijangkau AI | Analisis tidak lengkap, alur kerja terfragmentasi |
+| **Kendala Keamanan** | Akses database langsung menimbulkan kekhawatiran keamanan dan kepatuhan | Penyebaran terbatas, persiapan data manual |
+| **Query Kompleks** | Pengguna bisnis membutuhkan pengetahuan teknis untuk mengambil wawasan data | Adopsi berkurang, proses tidak efisien |
 
 ### Solusi MCP
 
 Model Context Protocol mengatasi tantangan ini dengan menyediakan:
 
-- **Akses Data Real-time**: Asisten AI dapat melakukan kueri ke database dan API secara langsung
-- **Integrasi Aman**: Akses terkontrol dengan autentikasi dan izin
-- **Antarmuka Bahasa Alami**: Pengguna bisnis dapat bertanya dengan bahasa sehari-hari
-- **Protokol Standar**: Dapat digunakan di berbagai platform dan alat AI
+- **Akses Data Real-time**: Asisten AI mengquery database dan API langsung  
+- **Integrasi Aman**: Akses terkendali dengan otentikasi dan izin  
+- **Antarmuka Bahasa Alami**: Pengguna bisnis mengajukan pertanyaan dengan bahasa sehari-hari  
+- **Protokol Standar**: Berfungsi di berbagai platform dan alat AI  
 
-## 🏪 Kenali Zava Retail: Studi Kasus Pembelajaran Kita https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
+## 🏪 Kenalkan Zava Retail: Studi Kasus Pembelajaran Kita https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
-Sepanjang jalur pembelajaran ini, kita akan membangun server MCP untuk **Zava Retail**, sebuah rantai ritel DIY fiktif dengan beberapa lokasi toko. Skenario realistis ini menunjukkan implementasi MCP tingkat perusahaan.
+Sepanjang jalur pembelajaran ini, kita akan membangun server MCP untuk **Zava Retail**, rantai ritel DIY fiksi dengan banyak lokasi toko. Skenario realistis ini menunjukkan implementasi MCP kelas perusahaan.
 
 ### Konteks Bisnis
 
-**Zava Retail** mengoperasikan:
-- **8 toko fisik** di negara bagian Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
-- **1 toko online** untuk penjualan e-commerce
-- **Katalog produk beragam** termasuk alat, perangkat keras, perlengkapan taman, dan bahan bangunan
-- **Manajemen multi-level** dengan manajer toko, manajer regional, dan eksekutif
+**Zava Retail** mengoperasikan:  
+- **8 toko fisik** di seluruh negara bagian Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)  
+- **1 toko online** untuk penjualan e-commerce  
+- **Katalog produk beragam** termasuk alat, perangkat keras, perlengkapan taman, dan bahan bangunan  
+- **Manajemen bertingkat** dengan manajer toko, manajer regional, dan eksekutif  
 
 ### Kebutuhan Bisnis
 
-Manajer toko dan eksekutif membutuhkan analitik berbasis AI untuk:
+Manajer toko dan eksekutif memerlukan analitik bertenaga AI untuk:
 
-1. **Menganalisis kinerja penjualan** di berbagai toko dan periode waktu
-2. **Melacak tingkat inventaris** dan mengidentifikasi kebutuhan restocking
-3. **Memahami perilaku pelanggan** dan pola pembelian
-4. **Menemukan wawasan produk** melalui pencarian semantik
-5. **Menghasilkan laporan** dengan kueri bahasa alami
-6. **Menjaga keamanan data** dengan kontrol akses berbasis peran
+1. **Menganalisis kinerja penjualan** di berbagai toko dan periode waktu  
+2. **Melacak tingkat inventaris** dan mengidentifikasi kebutuhan restock  
+3. **Memahami perilaku pelanggan** dan pola pembelian  
+4. **Menemukan wawasan produk** lewat pencarian semantik  
+5. **Menghasilkan laporan** dengan query bahasa alami  
+6. **Mempertahankan keamanan data** dengan kontrol akses berbasis peran  
 
 ### Kebutuhan Teknis
 
 Server MCP harus menyediakan:
 
-- **Akses data multi-tenant** di mana manajer toko hanya melihat data toko mereka
-- **Kueri fleksibel** yang mendukung operasi SQL kompleks
-- **Pencarian semantik** untuk penemuan produk dan rekomendasi
-- **Data real-time** yang mencerminkan kondisi bisnis terkini
-- **Autentikasi aman** dengan keamanan tingkat baris (Row Level Security)
-- **Arsitektur skalabel** yang mendukung banyak pengguna secara bersamaan
+- **Akses data multi-penyewa** dimana manajer toko hanya melihat data tokonya  
+- **Query fleksibel** mendukung operasi SQL kompleks  
+- **Pencarian semantik** untuk penemuan produk dan rekomendasi  
+- **Data real-time** mencerminkan kondisi bisnis saat ini  
+- **Otentikasi aman** dengan keamanan level baris  
+- **Arsitektur skalabel** mendukung banyak pengguna bersamaan  
 
-## 🏗️ Gambaran Arsitektur Server MCP
+## 🏗️ Ikhtisar Arsitektur Server MCP
 
-Server MCP kita menerapkan arsitektur berlapis yang dioptimalkan untuk integrasi database:
+Server MCP kami mengimplementasikan arsitektur berlapis yang dioptimalkan untuk integrasi database:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -117,122 +117,122 @@ Server MCP kita menerapkan arsitektur berlapis yang dioptimalkan untuk integrasi
 │               (Text Embeddings)                            │
 └─────────────────────────────────────────────────────────────┘
 ```
-
+  
 ### Komponen Utama
 
-#### **1. Lapisan Server MCP**
-- **FastMCP Framework**: Implementasi server MCP modern dengan Python
-- **Pendaftaran Alat**: Definisi alat deklaratif dengan keamanan tipe
-- **Konteks Permintaan**: Manajemen identitas pengguna dan sesi
-- **Penanganan Kesalahan**: Manajemen kesalahan dan logging yang kuat
+#### **1. Lapisan Server MCP**  
+- **FastMCP Framework**: Implementasi server MCP Python modern  
+- **Registrasi Alat**: Definisi alat deklaratif dengan keamanan tipe  
+- **Konteks Permintaan**: Identitas pengguna dan manajemen sesi  
+- **Penanganan Error**: Manajemen error dan logging yang tangguh  
 
-#### **2. Lapisan Integrasi Database**
-- **Connection Pooling**: Manajemen koneksi asyncpg yang efisien
-- **Schema Provider**: Penemuan skema tabel dinamis
-- **Query Executor**: Eksekusi SQL yang aman dengan konteks RLS
-- **Manajemen Transaksi**: Kepatuhan ACID dan penanganan rollback
+#### **2. Lapisan Integrasi Database**  
+- **Connection Pooling**: Manajemen koneksi asyncpg efisien  
+- **Schema Provider**: Penemuan skema tabel dinamis  
+- **Query Executor**: Eksekusi SQL aman dengan konteks RLS  
+- **Manajemen Transaksi**: Kepatuhan ACID dan penanganan rollback  
 
-#### **3. Lapisan Keamanan**
-- **Row Level Security**: PostgreSQL RLS untuk isolasi data multi-tenant
-- **Identitas Pengguna**: Autentikasi dan otorisasi manajer toko
-- **Kontrol Akses**: Izin yang terperinci dan jejak audit
-- **Validasi Input**: Pencegahan injeksi SQL dan validasi kueri
+#### **3. Lapisan Keamanan**  
+- **Keamanan Level Baris**: PostgreSQL RLS untuk isolasi data multi-penyewa  
+- **Identitas Pengguna**: Otentikasi dan otorisasi manajer toko  
+- **Kontrol Akses**: Izin terperinci dan jejak audit  
+- **Validasi Input**: Pencegahan SQL injection dan validasi query  
 
-#### **4. Lapisan Peningkatan AI**
-- **Pencarian Semantik**: Embedding vektor untuk penemuan produk
-- **Integrasi Azure OpenAI**: Pembuatan embedding teks
-- **Algoritma Kemiripan**: Pencarian kemiripan cosine pgvector
-- **Optimasi Pencarian**: Pengindeksan dan penyetelan kinerja
+#### **4. Lapisan Peningkatan AI**  
+- **Pencarian Semantik**: Embedding vektor untuk penemuan produk  
+- **Integrasi Azure OpenAI**: Generasi embedding teks  
+- **Algoritme Kemiripan**: Pencarian kemiripan kosinus pgvector  
+- **Optimasi Pencarian**: Pengindeksan dan penyetelan kinerja  
 
-## 🔧 Teknologi yang Digunakan
+## 🔧 Tumpukan Teknologi
 
 ### Teknologi Inti
 
 | **Komponen** | **Teknologi** | **Tujuan** |
-|---------------|----------------|-------------|
+|--------------|---------------|------------|
 | **Framework MCP** | FastMCP (Python) | Implementasi server MCP modern |
 | **Database** | PostgreSQL 17 + pgvector | Data relasional dengan pencarian vektor |
 | **Layanan AI** | Azure OpenAI | Embedding teks dan model bahasa |
-| **Kontainerisasi** | Docker + Docker Compose | Lingkungan pengembangan |
-| **Platform Cloud** | Microsoft Azure | Penerapan produksi |
-| **Integrasi IDE** | VS Code | AI Chat dan alur kerja pengembangan |
+| **Containerisasi** | Docker + Docker Compose | Lingkungan pengembangan |
+| **Platform Cloud** | Microsoft Azure | Penyebaran produksi |
+| **Integrasi IDE** | VS Code | Chat AI dan alur kerja pengembangan |
 
 ### Alat Pengembangan
 
 | **Alat** | **Tujuan** |
-|----------|-------------|
-| **asyncpg** | Driver PostgreSQL berkinerja tinggi |
+|----------|------------|
+| **asyncpg** | Driver PostgreSQL performa tinggi |
 | **Pydantic** | Validasi dan serialisasi data |
 | **Azure SDK** | Integrasi layanan cloud |
-| **pytest** | Kerangka kerja pengujian |
-| **Docker** | Kontainerisasi dan penerapan |
+| **pytest** | Kerangka pengujian |
+| **Docker** | Containerisasi dan penyebaran |
 
-### Stack Produksi
+### Tumpukan Produksi
 
 | **Layanan** | **Sumber Daya Azure** | **Tujuan** |
-|-------------|-----------------------|-------------|
+|-------------|---------------------|------------|
 | **Database** | Azure Database for PostgreSQL | Layanan database terkelola |
-| **Kontainer** | Azure Container Apps | Hosting kontainer tanpa server |
-| **Layanan AI** | Azure AI Foundry | Model OpenAI dan endpoint |
-| **Pemantauan** | Application Insights | Observabilitas dan diagnostik |
+| **Container** | Azure Container Apps | Hosting container tanpa server |
+| **Layanan AI** | Microsoft Foundry | Model dan endpoint OpenAI |
+| **Monitoring** | Application Insights | Observabilitas dan diagnostik |
 | **Keamanan** | Azure Key Vault | Manajemen rahasia dan konfigurasi |
 
 ## 🎬 Skenario Penggunaan Dunia Nyata
 
-Mari kita eksplorasi bagaimana pengguna berinteraksi dengan server MCP kita:
+Mari jelajahi bagaimana pengguna berbeda berinteraksi dengan server MCP kami:
 
-### Skenario 1: Tinjauan Kinerja Manajer Toko
+### Skenario 1: Review Kinerja Manajer Toko
 
 **Pengguna**: Sarah, Manajer Toko Seattle  
 **Tujuan**: Menganalisis kinerja penjualan kuartal terakhir
 
-**Kueri Bahasa Alami**:
-> "Tunjukkan 10 produk teratas berdasarkan pendapatan untuk toko saya di Q4 2024"
+**Query Bahasa Alami**:
+> "Tunjukkan 10 produk teratas berdasarkan pendapatan untuk toko saya di kuartal 4 2024"
 
 **Apa yang Terjadi**:
-1. VS Code AI Chat mengirimkan kueri ke server MCP
-2. Server MCP mengidentifikasi konteks toko Sarah (Seattle)
-3. Kebijakan RLS memfilter data hanya untuk toko Seattle
-4. Kueri SQL dibuat dan dijalankan
-5. Hasil diformat dan dikembalikan ke AI Chat
-6. AI memberikan analisis dan wawasan
+1. VS Code AI Chat mengirim query ke server MCP  
+2. Server MCP mengidentifikasi konteks toko Sarah (Seattle)  
+3. Kebijakan RLS menyaring data hanya untuk toko Seattle  
+4. Query SQL dibuat dan dijalankan  
+5. Hasil diformat dan dikembalikan ke AI Chat  
+6. AI memberikan analisis dan wawasan  
 
 ### Skenario 2: Penemuan Produk dengan Pencarian Semantik
 
-**Pengguna**: Mike, Manajer Inventaris  
-**Tujuan**: Menemukan produk yang mirip dengan permintaan pelanggan
+**Pengguna**: Mike, Manajer Inventori  
+**Tujuan**: Menemukan produk mirip permintaan pelanggan
 
-**Kueri Bahasa Alami**:
-> "Produk apa yang kita jual yang mirip dengan 'konektor listrik tahan air untuk penggunaan luar ruangan'?"
+**Query Bahasa Alami**:
+> "Produk apa yang kami jual yang mirip dengan 'konektor listrik tahan air untuk penggunaan luar ruangan'?"
 
 **Apa yang Terjadi**:
-1. Kueri diproses oleh alat pencarian semantik
-2. Azure OpenAI menghasilkan vektor embedding
-3. pgvector melakukan pencarian kemiripan
-4. Produk terkait diberi peringkat berdasarkan relevansi
-5. Hasil mencakup detail produk dan ketersediaan
-6. AI menyarankan alternatif dan peluang bundling
+1. Query diproses oleh alat pencarian semantik  
+2. Azure OpenAI menghasilkan embedding vektor  
+3. pgvector melakukan pencarian kemiripan  
+4. Produk terkait diurutkan berdasarkan relevansi  
+5. Hasil mencakup detail produk dan ketersediaan  
+6. AI menyarankan alternatif dan peluang bundling  
 
 ### Skenario 3: Analitik Lintas Toko
 
 **Pengguna**: Jennifer, Manajer Regional  
-**Tujuan**: Membandingkan kinerja di semua toko
+**Tujuan**: Membandingkan kinerja semua toko
 
-**Kueri Bahasa Alami**:
+**Query Bahasa Alami**:
 > "Bandingkan penjualan berdasarkan kategori untuk semua toko dalam 6 bulan terakhir"
 
 **Apa yang Terjadi**:
-1. Konteks RLS diatur untuk akses manajer regional
-2. Kueri multi-toko kompleks dibuat
-3. Data diaggregasi di seluruh lokasi toko
-4. Hasil mencakup tren dan perbandingan
-5. AI mengidentifikasi wawasan dan rekomendasi
+1. Konteks RLS diset untuk akses manajer regional  
+2. Query multi-toko kompleks dibuat  
+3. Data diagregasi dari berbagai lokasi toko  
+4. Hasil mencakup tren dan perbandingan  
+5. AI mengidentifikasi wawasan dan rekomendasi  
 
-## 🔒 Pendalaman Keamanan dan Multi-Tenancy
+## 🔒 Keamanan dan Penyelaman Mendalam Multi-Tenancy
 
-Implementasi kita memprioritaskan keamanan tingkat perusahaan:
+Implementasi kami memprioritaskan keamanan kelas perusahaan:
 
-### Row Level Security (RLS)
+### Keamanan Level Baris (RLS)
 
 PostgreSQL RLS memastikan isolasi data:
 
@@ -247,64 +247,66 @@ CREATE POLICY regional_manager_policy ON retail.orders
   FOR ALL TO regional_managers
   USING (store_id = ANY(get_user_store_list()));
 ```
-
+  
 ### Manajemen Identitas Pengguna
 
-Setiap koneksi MCP mencakup:
-- **ID Manajer Toko**: Pengidentifikasi unik untuk konteks RLS
-- **Penugasan Peran**: Izin dan tingkat akses
-- **Manajemen Sesi**: Token autentikasi yang aman
-- **Logging Audit**: Riwayat akses lengkap
+Setiap koneksi MCP mencakup:  
+- **ID Manajer Toko**: Identifikasi unik untuk konteks RLS  
+- **Penetapan Peran**: Izin dan tingkat akses  
+- **Manajemen Sesi**: Token otentikasi aman  
+- **Logging Audit**: Riwayat akses lengkap  
 
 ### Perlindungan Data
 
-Lapisan keamanan yang beragam:
-- **Enkripsi Koneksi**: TLS untuk semua koneksi database
-- **Pencegahan Injeksi SQL**: Hanya kueri yang diparameterkan
-- **Validasi Input**: Validasi permintaan yang komprehensif
-- **Penanganan Kesalahan**: Tidak ada data sensitif dalam pesan kesalahan
+Banyak lapisan keamanan:  
+- **Enkripsi Koneksi**: TLS untuk semua koneksi database  
+- **Pencegahan SQL Injection**: Hanya query berparameter  
+- **Validasi Input**: Validasi permintaan menyeluruh  
+- **Penanganan Error**: Tidak ada data sensitif dalam pesan error  
 
 ## 🎯 Poin Penting
 
-Setelah menyelesaikan pengantar ini, Anda seharusnya memahami:
+Setelah menyelesaikan pengantar ini, Anda harus memahami:
 
 ✅ **Nilai MCP**: Bagaimana MCP menjembatani asisten AI dan data dunia nyata  
 ✅ **Konteks Bisnis**: Kebutuhan dan tantangan Zava Retail  
-✅ **Gambaran Arsitektur**: Komponen utama dan interaksinya  
-✅ **Teknologi yang Digunakan**: Alat dan kerangka kerja yang digunakan sepanjang jalur ini  
-✅ **Model Keamanan**: Akses data multi-tenant dan perlindungan  
-✅ **Pola Penggunaan**: Skenario kueri dunia nyata dan alur kerja  
+✅ **Ikhtisar Arsitektur**: Komponen utama dan interaksinya  
+✅ **Tumpukan Teknologi**: Alat dan framework yang digunakan  
+✅ **Model Keamanan**: Akses data multi-penyewa dan perlindungan  
+✅ **Pola Penggunaan**: Skenario query dan alur kerja dunia nyata  
 
-## 🚀 Langkah Selanjutnya
+## 🚀 Selanjutnya
 
-Siap untuk mendalami lebih jauh? Lanjutkan dengan:
+Siap mendalami lebih jauh? Lanjutkan dengan:
 
 **[Lab 01: Konsep Arsitektur Inti](../01-Architecture/README.md)**
 
-Pelajari pola arsitektur server MCP, prinsip desain database, dan implementasi teknis mendetail yang mendukung solusi analitik ritel kita.
+Pelajari pola arsitektur server MCP, prinsip desain database, dan implementasi teknis rinci yang menggerakkan solusi analitik ritel kami.
 
 ## 📚 Sumber Daya Tambahan
 
 ### Dokumentasi MCP
-- [Spesifikasi MCP](https://modelcontextprotocol.io/docs/) - Dokumentasi resmi protokol
-- [MCP untuk Pemula](https://aka.ms/mcp-for-beginners) - Panduan pembelajaran MCP yang komprehensif
-- [Dokumentasi FastMCP](https://github.com/modelcontextprotocol/python-sdk) - Dokumentasi SDK Python
+- [Spesifikasi MCP](https://modelcontextprotocol.io/docs/) - Dokumentasi protokol resmi  
+- [MCP untuk Pemula](https://aka.ms/mcp-for-beginners) - Panduan pembelajaran MCP lengkap  
+- [Dokumentasi FastMCP](https://github.com/modelcontextprotocol/python-sdk) - Dokumentasi SDK Python  
 
 ### Integrasi Database
-- [Dokumentasi PostgreSQL](https://www.postgresql.org/docs/) - Referensi lengkap PostgreSQL
-- [Panduan pgvector](https://github.com/pgvector/pgvector) - Dokumentasi ekstensi vektor
-- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - Panduan RLS PostgreSQL
+- [Dokumentasi PostgreSQL](https://www.postgresql.org/docs/) - Referensi lengkap PostgreSQL  
+- [Panduan pgvector](https://github.com/pgvector/pgvector) - Dokumentasi ekstensi vektor  
+- [Keamanan Level Baris](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - Panduan RLS PostgreSQL  
 
 ### Layanan Azure
-- [Dokumentasi Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Integrasi layanan AI
-- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Layanan database terkelola
-- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Kontainer tanpa server
+- [Dokumentasi Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Integrasi layanan AI  
+- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Layanan database terkelola  
+- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Container tanpa server  
 
 ---
 
-**Disclaimer**: Ini adalah latihan pembelajaran menggunakan data ritel fiktif. Selalu ikuti kebijakan tata kelola dan keamanan data organisasi Anda saat menerapkan solusi serupa di lingkungan produksi.
+**Penafian**: Ini adalah latihan pembelajaran menggunakan data ritel fiksi. Selalu ikuti kebijakan tata kelola data dan keamanan organisasi Anda saat mengimplementasikan solusi serupa di lingkungan produksi.
 
 ---
 
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan layanan penerjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk memberikan hasil yang akurat, harap diperhatikan bahwa terjemahan otomatis dapat mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang otoritatif. Untuk informasi yang bersifat kritis, disarankan menggunakan jasa penerjemahan manusia profesional. Kami tidak bertanggung jawab atas kesalahpahaman atau interpretasi yang keliru yang timbul dari penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk mencapai akurasi, harap diketahui bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sah. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang keliru yang timbul dari penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -2,7 +2,7 @@
 
 ## Přehled projektu
 
-**MCP pro začátečníky** je open-source vzdělávací program zaměřený na učení Model Context Protocol (MCP) - standardizovaného rámce pro interakce mezi AI modely a klientskými aplikacemi. Tento repozitář poskytuje komplexní výukové materiály s praktickými příklady kódu v různých programovacích jazycích.
+**MCP pro začátečníky** je open-source vzdělávací kurz pro výuku Model Context Protocol (MCP) - standardizovaný rámec pro interakce mezi AI modely a klientskými aplikacemi. Tento repozitář poskytuje komplexní výukové materiály s praktickými ukázkami kódu ve více programovacích jazycích.
 
 ### Klíčové technologie
 
@@ -19,33 +19,33 @@
 
 ### Architektura
 
-- **11 základních modulů (00-11)**: Sekvenční učební cesta od základů po pokročilá témata
-- **Praktické laboratoře**: Praktická cvičení s kompletními řešeními v různých jazycích
+- **11 klíčových modulů (00-11)**: Postupná cesta učením od základů po pokročilá témata
+- **Praktické laboratoře**: Praktická cvičení s kompletním řešením v několika jazycích
 - **Ukázkové projekty**: Funkční implementace MCP serveru a klienta
-- **Systém překladu**: Automatizovaný workflow GitHub Actions pro podporu více jazyků
-- **Obrazové materiály**: Centralizovaný adresář obrázků s přeloženými verzemi
+- **Překladový systém**: Automatizovaný GitHub Actions workflow pro podporu více jazyků
+- **Obrazové zdroje**: Centralizovaný adresář s obrázky s překlady
 
 ## Příkazy pro nastavení
 
-Tento repozitář je zaměřen na dokumentaci. Většina nastavení probíhá v jednotlivých ukázkových projektech a laboratořích.
+Toto je repozitář zaměřený na dokumentaci. Většina nastavení probíhá v jednotlivých ukázkových projektech a laboratořích.
 
 ### Nastavení repozitáře
 
 ```bash
-# Clone the repository
+# Naklonujte repozitář
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
 
 ### Práce s ukázkovými projekty
 
-Ukázkové projekty se nacházejí v:
-- `03-GettingStarted/samples/` - Příklady specifické pro jednotlivé jazyky
-- `03-GettingStarted/01-first-server/solution/` - Implementace prvního serveru
+Ukázkové projekty jsou umístěny v:
+- `03-GettingStarted/samples/` - Příkladové kódy pro jednotlivé jazyky
+- `03-GettingStarted/01-first-server/solution/` - První implementace serveru
 - `03-GettingStarted/02-client/solution/` - Implementace klienta
-- `11-MCPServerHandsOnLabs/` - Laboratoře s komplexní integrací databáze
+- `11-MCPServerHandsOnLabs/` - Rozsáhlé laboratoře s integrací databáze
 
-Každý ukázkový projekt obsahuje vlastní pokyny k nastavení:
+Každý ukázkový projekt obsahuje vlastní instrukce pro nastavení:
 
 #### Projekty v TypeScript/JavaScript
 ```bash
@@ -58,7 +58,7 @@ npm start
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# nebo
 pip install -e .
 python main.py
 ```
@@ -70,57 +70,57 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-## Workflow vývoje
+## Vývojový proces
 
 ### Struktura dokumentace
 
-- **Moduly 00-11**: Základní obsah učebního programu v sekvenčním pořadí
-- **translations/**: Jazykové verze (automaticky generované, neupravovat přímo)
+- **Moduly 00-11**: Hlavní obsah kurzu v postupném pořadí
+- **translations/**: Verze pro jednotlivé jazyky (automaticky generované, neupravovat ručně)
 - **translated_images/**: Lokalizované verze obrázků (automaticky generované)
 - **images/**: Zdrojové obrázky a diagramy
 
-### Změny v dokumentaci
+### Provádění změn v dokumentaci
 
-1. Upravujte pouze anglické markdown soubory v hlavních adresářích modulů (00-11)
-2. Aktualizujte obrázky v adresáři `images/`, pokud je to potřeba
+1. Upravujte pouze anglické markdown soubory v hlavních složkách modulů (00-11)
+2. V případě potřeby aktualizujte obrázky v adresáři `images/`
 3. GitHub Action co-op-translator automaticky vygeneruje překlady
-4. Překlady se regenerují při každém push na hlavní větev
+4. Překlady jsou automaticky znovu generovány při pushi do hlavní větve
 
 ### Práce s překlady
 
-- **Automatizovaný překlad**: Workflow GitHub Actions zajišťuje všechny překlady
-- **NEUPRAVUJTE** soubory v adresáři `translations/`
-- Metadata překladu jsou vložena do každého přeloženého souboru
+- **Automatizovaný překlad**: Workflow GitHub Actions spravuje všechny překlady
+- **NEUpravovat ručně** soubory v adresáři `translations/`
+- Metadata o překladu jsou vložena v každém přeloženém souboru
 - Podporované jazyky: 48+ jazyků včetně arabštiny, čínštiny, francouzštiny, němčiny, hindštiny, japonštiny, korejštiny, portugalštiny, ruštiny, španělštiny a dalších
 
-## Pokyny k testování
+## Instrukce pro testování
 
 ### Validace dokumentace
 
-Protože se jedná primárně o dokumentační repozitář, testování se zaměřuje na:
+Jelikož se jedná především o repozitář dokumentace, testování zahrnuje:
 
-1. **Validace odkazů**: Ověřte, že všechny interní odkazy fungují
+1. **Kontrola odkazů**: Zajistit funkčnost všech interních odkazů
 ```bash
-# Check for broken markdown links
+# Zkontrolujte nefunkční markdown odkazy
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Validace ukázek kódu**: Otestujte, zda ukázky kódu lze zkompilovat/spustit
+2. **Validace ukázek kódu**: Otestovat, že ukázky kódu kompilují a běží
 ```bash
-# Navigate to specific sample and run its tests
+# Přejděte k určitému vzorku a spusťte jeho testy
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Linting Markdownu**: Zkontrolujte konzistenci formátování
+3. **Lintování markdownu**: Kontrola konzistence formátování
 ```bash
-# Use markdownlint if needed
+# Použijte markdownlint, pokud je to potřeba
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
 ### Testování ukázkových projektů
 
-Každý ukázkový projekt specifický pro jazyk obsahuje vlastní přístup k testování:
+Každý jazykový vzorový projekt obsahuje vlastní testovací postup:
 
 #### TypeScript/JavaScript
 ```bash
@@ -140,37 +140,37 @@ mvn test
 mvn verify
 ```
 
-## Pokyny ke stylu kódu
+## Pravidla stylu kódu
 
 ### Styl dokumentace
 
-- Používejte jasný, srozumitelný jazyk vhodný pro začátečníky
-- Zahrňte ukázky kódu v různých jazycích, kde je to možné
-- Dodržujte nejlepší praktiky pro markdown:
-  - Používejte hlavičky ve stylu ATX (`#` syntaxe)
-  - Používejte ohraničené bloky kódu s identifikátory jazyků
-  - Zahrňte popisný alt text pro obrázky
-  - Udržujte rozumnou délku řádků (bez pevného limitu, ale buďte rozumní)
+- Používejte jasný, přívětivý jazyk pro začátečníky
+- Zahrnujte ukázky kódu ve více jazycích, kde je to vhodné
+- Dodržujte osvědčené postupy markdownu:
+  - Používejte ATX hlavičky (`#` syntax)
+  - Používejte ohraničené bloky kódu s označením jazyka
+  - Přidávejte popisný alt text k obrázkům
+  - Udržujte rozumnou délku řádků (žádné tvrdé limity, ale rozumně)
 
 ### Styl ukázek kódu
 
 #### TypeScript/JavaScript
 - Používejte ES moduly (`import`/`export`)
-- Dodržujte konvence přísného režimu TypeScriptu
-- Zahrňte anotace typů
-- Cílujte na ES2022
+- Dodržujte režim přísného TypeScriptu
+- Používejte typové anotace
+- Cílová verze ES2022
 
 #### Python
-- Dodržujte pokyny stylu PEP 8
-- Používejte typové nápovědy, kde je to vhodné
-- Zahrňte docstringy pro funkce a třídy
+- Dodržujte stylové doporučení PEP 8
+- Používejte typové hinty, kde vhodné
+- Přidávejte docstringy pro funkce a třídy
 - Používejte moderní funkce Pythonu (3.8+)
 
 #### Java
 - Dodržujte konvence Spring Boot
-- Používejte funkce Java 21
-- Dodržujte standardní strukturu projektu Maven
-- Zahrňte komentáře Javadoc
+- Používejte vlastnosti Javy 21
+- Dodržujte standardní strukturu Maven projektu
+- Přidávejte komentáře Javadoc
 
 ### Organizace souborů
 
@@ -190,38 +190,38 @@ mvn verify
 
 ### Nasazení dokumentace
 
-Repozitář využívá GitHub Pages nebo podobné pro hosting dokumentace (pokud je to relevantní). Změny v hlavní větvi spouštějí:
+Repozitář používá GitHub Pages nebo podobné pro hostování dokumentace (pokud je to relevantní). Změny v hlavní větvi spouštějí:
 
 1. Workflow překladu (`.github/workflows/co-op-translator.yml`)
-2. Automatizovaný překlad všech anglických markdown souborů
-3. Lokalizaci obrázků podle potřeby
+2. Automatický překlad všech anglických markdown souborů
+3. Lokalizaci obrázků dle potřeby
 
-### Není potřeba proces sestavení
+### Není potřeba sestavení
 
-Tento repozitář primárně obsahuje dokumentaci v markdownu. Pro základní obsah učebního programu není potřeba žádná kompilace nebo krok sestavení.
+Repozitář obsahuje především markdownové dokumenty. Pro hlavní obsah kurzu není nutný žádný krok sestavení nebo kompilace.
 
 ### Nasazení ukázkových projektů
 
-Jednotlivé ukázkové projekty mohou mít pokyny k nasazení:
-- Viz `03-GettingStarted/09-deployment/` pro pokyny k nasazení MCP serveru
+Jednotlivé ukázkové projekty mohou mít vlastní instrukce pro nasazení:
+- Viz `03-GettingStarted/09-deployment/` pro nasazení MCP serveru
 - Příklady nasazení Azure Container Apps v `11-MCPServerHandsOnLabs/`
 
-## Pokyny pro přispěvatele
+## Pravidla přispívání
 
-### Proces pull requestu
+### Proces Pull Requestů
 
-1. **Fork a klonování**: Forkněte repozitář a klonujte svůj fork lokálně
-2. **Vytvořte větev**: Používejte popisné názvy větví (např. `fix/typo-module-3`, `add/python-example`)
-3. **Proveďte změny**: Upravujte pouze anglické markdown soubory (ne překlady)
-4. **Otestujte lokálně**: Ověřte, že markdown se správně vykresluje
-5. **Odešlete PR**: Používejte jasné názvy a popisy PR
-6. **CLA**: Podepište Microsoft Contributor License Agreement, když budete vyzváni
+1. **Rozvětvit a klonovat**: Vytvořte fork repozitáře a klonujte ho lokálně
+2. **Vytvořit větev**: Používejte popisné názvy větví (např. `fix/typo-module-3`, `add/python-example`)
+3. **Provést změny**: Upravujte pouze anglické markdown soubory (ne překlady)
+4. **Otestovat lokálně**: Ověřte správné vykreslení markdownu
+5. **Odeslat PR**: Používejte jasné názvy a popisy PR
+6. **CLA**: Podepište Microsoft Contributor License Agreement, až budete vyzváni
 
 ### Formát názvu PR
 
-Používejte jasné, popisné názvy:
-- `[Module XX] Stručný popis` pro změny specifické pro moduly
-- `[Samples] Popis` pro změny ukázkového kódu
+Používejte jasné a popisné názvy:
+- `[Module XX] Stručný popis` pro změny v konkrétním modulu
+- `[Samples] Popis` pro změny v ukázkovém kódu
 - `[Docs] Popis` pro obecné aktualizace dokumentace
 
 ### Co přispívat
@@ -230,72 +230,74 @@ Používejte jasné, popisné názvy:
 - Nové ukázky kódu v dalších jazycích
 - Upřesnění a vylepšení stávajícího obsahu
 - Nové případové studie nebo praktické příklady
-- Hlásit problémy s nejasným nebo nesprávným obsahem
+- Hlásení problémů s nejasným nebo nesprávným obsahem
 
-### Co NEDĚLAT
+### Co nedělat
 
-- Neupravujte přímo soubory v adresáři `translations/`
-- Neupravujte adresář `translated_images/`
-- Nepřidávejte velké binární soubory bez předchozí diskuse
-- Neměňte soubory workflow překladu bez koordinace
+- Neupravovat přímo soubory v adresáři `translations/`
+- Neupravovat adresář `translated_images/`
+- Nepřidávat velké binární soubory bez domluvy
+- Neměnit workflow soubory pro překlad bez koordinace
 
 ## Další poznámky
 
 ### Údržba repozitáře
 
-- **Changelog**: Všechny významné změny jsou dokumentovány v `changelog.md`
-- **Studijní průvodce**: Použijte `study_guide.md` pro přehled navigace učebním programem
-- **Šablony problémů**: Použijte šablony GitHub pro hlášení chyb a požadavky na funkce
+- **Změnový log**: Všechny významné změny jsou dokumentovány v `changelog.md`
+- **Studijní průvodce**: Použijte `study_guide.md` pro přehled orientace v kurzu
+- **Šablony issue**: Používejte GitHub issue šablony pro hlášení chyb a požadavky na funkce
 - **Kodex chování**: Všichni přispěvatelé musí dodržovat Microsoft Open Source Code of Conduct
 
-### Učební cesta
+### Cesta učením
 
-Postupujte podle modulů v sekvenčním pořadí (00-11) pro optimální učení:
-1. **00-02**: Základy (Úvod, základní koncepty, bezpečnost)
+Postupujte moduly v pořadí (00-11) pro optimální učení:
+1. **00-02**: Základy (Úvod, klíčové koncepty, bezpečnost)
 2. **03**: Začínáme s praktickou implementací
 3. **04-05**: Praktická implementace a pokročilá témata
-4. **06-10**: Komunita, nejlepší praktiky a aplikace v reálném světě
-5. **11**: Komplexní laboratoře integrace databáze (13 sekvenčních laboratoří)
+4. **06-10**: Komunita, osvědčené postupy a reálné aplikace
+5. **11**: Komplexní laboratoře s databázovou integrací (13 po sobě jdoucích laboratoří)
 
 ### Zdroje podpory
 
 - **Dokumentace**: https://modelcontextprotocol.io/
 - **Specifikace**: https://spec.modelcontextprotocol.io/
 - **Komunita**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Discord server Microsoft Azure AI Foundry
-- **Související kurzy**: Viz README.md pro další vzdělávací programy Microsoftu
+- **Discord**: Microsoft Foundry Discord server
+- **Související kurzy**: Viz README.md pro další Microsoft learning paths
 
-### Časté problémy
+### Běžné potíže a řešení
 
-**Q: Můj PR neprošel kontrolou překladu**
-A: Ujistěte se, že jste upravili pouze anglické markdown soubory v hlavních adresářích modulů, nikoli přeložené verze.
+**Q: Můj PR neprojde kontrolou překladu**  
+A: Ujistěte se, že jste upravovali pouze anglické markdown soubory v hlavních složkách modulů, nikoli přeložené verze.
 
-**Q: Jak přidám nový jazyk?**
-A: Podpora jazyků je spravována prostřednictvím workflow co-op-translator. Otevřete problém a diskutujte o přidání nových jazyků.
+**Q: Jak přidat nový jazyk?**  
+A: Podpora jazyků je řízena workflow co-op-translator. Otevřete issue pro diskuzi o přidání nového jazyka.
 
-**Q: Ukázky kódu nefungují**
-A: Ujistěte se, že jste postupovali podle pokynů k nastavení v konkrétním README ukázky. Zkontrolujte, zda máte nainstalované správné verze závislostí.
+**Q: Ukázky kódu nefungují**  
+A: Zkontrolujte, zda jste postupovali podle instalačních instrukcí v README konkrétní ukázky. Zajistěte správné verze závislostí.
 
-**Q: Obrázky se nezobrazují**
-A: Ověřte, že cesty k obrázkům jsou relativní a používají dopředné lomítka. Obrázky by měly být v adresáři `images/` nebo `translated_images/` pro lokalizované verze.
+**Q: Obrázky se nezobrazují**  
+A: Ověřte, že cesty k obrázkům jsou relativní a používají lomítka dopředu. Obrázky by měly být v adresáři `images/` nebo `translated_images/` pro lokalizované verze.
 
 ### Výkonnostní úvahy
 
 - Workflow překladu může trvat několik minut
-- Velké obrázky by měly být optimalizovány před commitováním
-- Udržujte jednotlivé markdown soubory zaměřené a rozumně velké
+- Velké obrázky optimalizujte před commitem
+- Udržujte jednotlivé markdown soubory přehledné a rozumně velké
 - Používejte relativní odkazy pro lepší přenositelnost
 
-### Řízení projektu
+### Správa projektu
 
-Tento projekt dodržuje praktiky open source Microsoftu:
-- MIT License pro kód a dokumentaci
-- Microsoft Open Source Code of Conduct
-- CLA vyžadováno pro přispěvatele
-- Bezpečnostní problémy: Dodržujte pokyny v SECURITY.md
+Tento projekt dodržuje otevřené postupy Microsoftu:  
+- MIT licence pro kód a dokumentaci  
+- Microsoft Open Source Code of Conduct  
+- Pro příspěvky vyžadována CLA  
+- Bezpečnostní záležitosti: Řiďte se pokyny v SECURITY.md  
 - Podpora: Viz SUPPORT.md pro zdroje pomoci
 
 ---
 
-**Prohlášení**:  
-Tento dokument byl přeložen pomocí služby AI pro překlady [Co-op Translator](https://github.com/Azure/co-op-translator). I když se snažíme o přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Původní dokument v jeho původním jazyce by měl být považován za autoritativní zdroj. Pro důležité informace doporučujeme profesionální lidský překlad. Neodpovídáme za žádná nedorozumění nebo nesprávné interpretace vyplývající z použití tohoto překladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Prohlášení o omezení odpovědnosti**:
+Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o co největší přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Originální dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro kritické informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoli nedorozumění nebo nesprávné interpretace vzniklé použitím tohoto překladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

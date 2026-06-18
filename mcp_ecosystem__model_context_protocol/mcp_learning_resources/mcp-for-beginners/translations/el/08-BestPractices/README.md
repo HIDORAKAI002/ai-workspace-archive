@@ -1,89 +1,89 @@
-# Καλύτερες Πρακτικές Ανάπτυξης MCP
+# Βέλτιστες Πρακτικές Ανάπτυξης MCP
 
-[![Καλύτερες Πρακτικές Ανάπτυξης MCP](../../../translated_images/el/09.d0f6d86c9d72134c.webp)](https://youtu.be/W56H9W7x-ao)
+[![Βέλτιστες Πρακτικές Ανάπτυξης MCP](../../../translated_images/el/09.d0f6d86c9d72134c.webp)](https://youtu.be/W56H9W7x-ao)
 
-_(Κάντε κλικ στην εικόνα παραπάνω για να δείτε το βίντεο αυτής της ενότητας)_
+_(Κάντε κλικ στην εικόνα παραπάνω για να δείτε το βίντεο αυτού του μαθήματος)_
 
 ## Επισκόπηση
 
-Αυτή η ενότητα εστιάζει σε προχωρημένες καλύτερες πρακτικές για την ανάπτυξη, δοκιμή και ανάπτυξη MCP servers και λειτουργιών σε παραγωγικά περιβάλλοντα. Καθώς τα οικοσυστήματα MCP γίνονται πιο πολύπλοκα και σημαντικά, η τήρηση καθιερωμένων προτύπων εξασφαλίζει αξιοπιστία, διαχειρισιμότητα και διαλειτουργικότητα. Αυτή η ενότητα συγκεντρώνει πρακτική σοφία από πραγματικές υλοποιήσεις MCP για να σας καθοδηγήσει στη δημιουργία ανθεκτικών, αποδοτικών servers με αποτελεσματικούς πόρους, προτροπές και εργαλεία.
+Αυτό το μάθημα εστιάζει σε προηγμένες βέλτιστες πρακτικές για την ανάπτυξη, τον έλεγχο και την ανάπτυξη διακομιστών και λειτουργιών MCP σε περιβάλλοντα παραγωγής. Καθώς τα οικοσυστήματα MCP γίνονται πιο πολύπλοκα και σημαντικά, η τήρηση καθιερωμένων προτύπων εξασφαλίζει αξιοπιστία, διατηρησιμότητα και διαλειτουργικότητα. Αυτό το μάθημα συγκεντρώνει πρακτική σοφία που αποκτήθηκε από πραγματικές υλοποιήσεις MCP για να σας καθοδηγήσει στη δημιουργία σταθερών, αποτελεσματικών διακομιστών με αποδοτικούς πόρους, προτροπές και εργαλεία.
 
 ## Στόχοι Μάθησης
 
-Στο τέλος αυτής της ενότητας, θα μπορείτε να:
+Μέχρι το τέλος αυτού του μαθήματος, θα μπορείτε να:
 
-- Εφαρμόζετε βέλτιστες πρακτικές του κλάδου στον σχεδιασμό MCP servers και λειτουργιών
-- Δημιουργείτε ολοκληρωμένες στρατηγικές δοκιμών για MCP servers
-- Σχεδιάζετε αποδοτικά, επαναχρησιμοποιούμενα πρότυπα ροής εργασίας για πολύπλοκες εφαρμογές MCP
-- Υλοποιείτε σωστή διαχείριση σφαλμάτων, καταγραφής και παρατηρησιμότητας σε MCP servers
-- Βελτιστοποιείτε υλοποιήσεις MCP για απόδοση, ασφάλεια και διαχειρισιμότητα
+- Εφαρμόζετε βέλτιστες πρακτικές του κλάδου στο σχεδιασμό διακομιστών και λειτουργιών MCP
+- Δημιουργείτε ολοκληρωμένες στρατηγικές δοκιμών για διακομιστές MCP
+- Σχεδιάζετε αποδοτικά, επαναχρησιμοποιήσιμα μοτίβα ροής εργασιών για πολύπλοκες εφαρμογές MCP
+- Εφαρμόζετε σωστή διαχείριση σφαλμάτων, καταγραφή και παρατηρησιμότητα σε διακομιστές MCP
+- Βελτιστοποιείτε τις υλοποιήσεις MCP για απόδοση, ασφάλεια και διατηρησιμότητα
 
 ## Βασικές Αρχές MCP
 
 Πριν εμβαθύνετε σε συγκεκριμένες πρακτικές υλοποίησης, είναι σημαντικό να κατανοήσετε τις βασικές αρχές που καθοδηγούν την αποτελεσματική ανάπτυξη MCP:
 
-1. **Τυποποιημένη Επικοινωνία**: Το MCP χρησιμοποιεί JSON-RPC 2.0 ως θεμέλιο, παρέχοντας μια συνεπή μορφή για αιτήσεις, απαντήσεις και διαχείριση σφαλμάτων σε όλες τις υλοποιήσεις.
+1. **Τυποποιημένη Επικοινωνία**: Το MCP χρησιμοποιεί JSON-RPC 2.0 ως βάση, παρέχοντας ένα συνεπές πρότυπο για αιτήματα, απαντήσεις και διαχείριση σφαλμάτων σε όλες τις υλοποιήσεις.
 
-2. **Σχεδιασμός με επίκεντρο τον Χρήστη**: Προτεραιοποιήστε πάντα τη συγκατάθεση, τον έλεγχο και τη διαφάνεια προς τον χρήστη στις υλοποιήσεις MCP σας.
+2. **Σχεδιασμός με Κέντρο τον Χρήστη**: Πάντα να δίνετε προτεραιότητα στη συγκατάθεση, τον έλεγχο και τη διαφάνεια για τον χρήστη στις υλοποιήσεις MCP σας.
 
-3. **Ασφάλεια Πρώτα**: Υλοποιήστε ισχυρά μέτρα ασφαλείας όπως αυθεντικοποίηση, αδειοδότηση, επικύρωση και περιορισμό ρυθμού.
+3. **Πρώτα η Ασφάλεια**: Εφαρμόστε ισχυρά μέτρα ασφαλείας, όπως αυθεντικοποίηση, εξουσιοδότηση, επικύρωση και περιορισμό ρυθμού.
 
-4. **Μοντέλο Αρχιτεκτονικής**: Σχεδιάστε τους MCP servers σας με μοντέρνα προσέγγιση, όπου κάθε εργαλείο και πόρος έχει σαφή και εστιασμένο σκοπό.
+4. **Μοντελοποιημένη Αρχιτεκτονική**: Σχεδιάστε τους διακομιστές MCP με μια μοντελοποιημένη προσέγγιση, όπου κάθε εργαλείο και πόρος έχει σαφή, εστιασμένο σκοπό.
 
-5. **Κατάσταση Συνδέσεων**: Εκμεταλλευτείτε την ικανότητα του MCP να διατηρεί κατάσταση σε πολλαπλά αιτήματα για πιο συνεκτικές και συμφραζόμενες αλληλεπιδράσεις.
+5. **Συνδέσεις με Κατάσταση**: Εκμεταλλευτείτε την ικανότητα του MCP να διατηρεί κατάσταση μεταξύ πολλαπλών αιτημάτων για πιο συνεκτικές και ευφυείς αλληλεπιδράσεις.
 
-## Επίσημες Καλύτερες Πρακτικές MCP
+## Επίσημες Βέλτιστες Πρακτικές MCP
 
-Οι ακόλουθες καλύτερες πρακτικές προέρχονται από την επίσημη τεκμηρίωση του Model Context Protocol:
+Οι ακόλουθες βέλτιστες πρακτικές προέρχονται από την επίσημη τεκμηρίωση του Model Context Protocol:
 
-### Καλύτερες Πρακτικές Ασφάλειας
+### Βέλτιστες Πρακτικές Ασφαλείας
 
-1. **Συγκατάθεση Χρήστη και Έλεγχος**: Απαιτείται πάντα ρητή συγκατάθεση χρήστη πριν την πρόσβαση σε δεδομένα ή εκτέλεση ενεργειών. Παρέχετε σαφή έλεγχο σε ποια δεδομένα κοινοποιούνται και ποιες ενέργειες εξουσιοδοτούνται.
+1. **Συγκατάθεση και Έλεγχος Χρήστη**: Πάντα απαιτείται ρητή συγκατάθεση χρήστη πριν την πρόσβαση σε δεδομένα ή την εκτέλεση λειτουργιών. Παρέχετε σαφή έλεγχο σχετικά με τα δεδομένα που κοινοποιούνται και τις εξουσιοδοτημένες ενέργειες.
 
-2. **Ιδιωτικότητα Δεδομένων**: Αποκαλύπτετε δεδομένα χρήστη μόνο με ρητή συγκατάθεση και τα προστατεύετε με κατάλληλους ελέγχους πρόσβασης. Προστατευτείτε έναντι μη εξουσιοδοτημένης μετάδοσης δεδομένων.
+2. **Απόρρητο Δεδομένων**: Αποκαλύπτετε δεδομένα χρήστη μόνο με ρητή συγκατάθεση και τα προστατεύετε με κατάλληλους ελέγχους πρόσβασης. Προστατεύεστε από μη εξουσιοδοτημένη μετάδοση δεδομένων.
 
-3. **Ασφάλεια Εργαλείων**: Απαιτείτε ρητή συγκατάθεση χρήστη πριν την εκκίνηση οποιουδήποτε εργαλείου. Διασφαλίζετε ότι οι χρήστες κατανοούν τη λειτουργικότητα κάθε εργαλείου και εφαρμόζετε ισχυρά όρια ασφάλειας.
+3. **Ασφάλεια Εργαλείων**: Απαιτείτε ρητή συγκατάθεση χρήστη πριν την κλήση οποιουδήποτε εργαλείου. Διασφαλίζετε ότι οι χρήστες κατανοούν τη λειτουργικότητα κάθε εργαλείου και επιβάλλετε αυστηρά όρια ασφαλείας.
 
-4. **Έλεγχος Άδειας Εργαλείων**: Διαμορφώνετε ποια εργαλεία επιτρέπεται να χρησιμοποιεί ένα μοντέλο κατά τη διάρκεια μιας συνεδρίας, διασφαλίζοντας πρόσβαση μόνο σε ρητά εξουσιοδοτημένα εργαλεία.
+4. **Έλεγχος Δικαιωμάτων Εργαλείων**: Ρυθμίστε ποια εργαλεία επιτρέπεται να χρησιμοποιεί ένα μοντέλο κατά τη διάρκεια μιας συνεδρίας, εξασφαλίζοντας ότι είναι προσβάσιμα μόνο τα ρητά εξουσιοδοτημένα εργαλεία.
 
-5. **Αυθεντικοποίηση**: Απαιτείται σωστή αυθεντικοποίηση πριν τη χορήγηση πρόσβασης σε εργαλεία, πόρους ή ευαίσθητες λειτουργίες μέσω API keys, OAuth tokens ή άλλων ασφαλών μεθόδων αυθεντικοποίησης.
+5. **Αυθεντικοποίηση**: Απαιτείστε σωστή αυθεντικοποίηση πριν χορηγήσετε πρόσβαση σε εργαλεία, πόρους ή ευαίσθητες λειτουργίες, χρησιμοποιώντας API keys, OAuth tokens ή άλλες ασφαλείς μεθόδους αυθεντικοποίησης.
 
-6. **Επικύρωση Παραμέτρων**: Εφαρμόζετε επικύρωση για όλες τις κλήσεις εργαλείων ώστε να αποτρέψετε τη μετάδοση κακοσχηματισμένων ή κακόβουλων εισόδων στην υλοποίηση εργαλείων.
+6. **Επικύρωση Παραμέτρων**: Επιβάλλετε επικύρωση για όλες τις κλήσεις εργαλείων ώστε να αποτραπεί η μετάδοση κακόβουλων ή κακοδιατυπωμένων εισόδων.
 
-7. **Περιορισμός Ρυθμού**: Εφαρμόζετε περιορισμό ρυθμού για την αποτροπή κακής χρήσης και εξασφάλιση δίκαιης χρήσης των πόρων του server.
+7. **Περιορισμός Ρυθμού**: Εφαρμόστε περιορισμό ρυθμού για να αποτρέψετε κατάχρηση και να εξασφαλίσετε δίκαιη χρήση πόρων διακομιστή.
 
-### Καλύτερες Πρακτικές Υλοποίησης
+### Βέλτιστες Πρακτικές Υλοποίησης
 
-1. **Διαπραγμάτευση Δυνατοτήτων**: Κατά τη ρύθμιση σύνδεσης, ανταλλάσσετε πληροφορίες για υποστηριζόμενες λειτουργίες, εκδόσεις πρωτοκόλλου, διαθέσιμα εργαλεία και πόρους.
+1. **Διαπραγμάτευση Δυνατοτήτων**: Κατά την εγκατάσταση σύνδεσης, ανταλλάξτε πληροφορίες για τις υποστηριζόμενες λειτουργίες, τις εκδόσεις πρωτοκόλλου, τα διαθέσιμα εργαλεία και πόρους.
 
-2. **Σχεδιασμός Εργαλείων**: Δημιουργείτε εστιασμένα εργαλεία που κάνουν ένα πράγμα καλά, αντί για μονολιθικά εργαλεία που χειρίζονται πολλαπλές ανησυχίες.
+2. **Σχεδιασμός Εργαλείων**: Δημιουργήστε εστιασμένα εργαλεία που κάνουν ένα πράγμα καλά, αντί για μονολιθικά εργαλεία που χειρίζονται πολλαπλές ανησυχίες.
 
-3. **Διαχείριση Σφαλμάτων**: Υλοποιείτε τυποποιημένα μηνύματα και κωδικούς σφαλμάτων για να διευκολύνουν τη διάγνωση, την ομαλή διαχείριση αποτυχιών και την παροχή χρήσιμων ανατροφοδοτήσεων.
+3. **Διαχείριση Σφαλμάτων**: Υλοποιήστε τυποποιημένα μηνύματα και κωδικούς σφαλμάτων που βοηθούν στη διάγνωση προβλημάτων, τη διαχείριση αποτυχιών με αξιοπρέπεια και την παροχή χρήσιμου ανατροφοδοτικού μηνύματος.
 
-4. **Καταγραφή**: Διαμορφώνετε δομημένα logs για έλεγχο, αποσφαλμάτωση και παρακολούθηση αλληλεπιδράσεων πρωτοκόλλου.
+4. **Καταγραφή**: Ρυθμίστε δομημένα αρχεία καταγραφής για έλεγχο, αποσφαλμάτωση και παρακολούθηση αλληλεπιδράσεων πρωτοκόλλου.
 
-5. **Παρακολούθηση Προόδου**: Για λειτουργίες μεγάλης διάρκειας, αναφέρετε ενημερώσεις προόδου για να ενεργοποιήσετε αλληλεπίδραση με ανταπόκριση χρήστη.
+5. **Παρακολούθηση Προόδου**: Για μακροχρόνιες λειτουργίες, αναφέρετε ενημερώσεις προόδου για την υποστήριξη ανταποκρινόμενων διεπαφών χρήστη.
 
-6. **Ακύρωση Αιτήσεων**: Επιτρέπετε στους πελάτες να ακυρώνουν αιτήσεις που βρίσκονται σε εξέλιξη και δεν είναι πλέον απαραίτητες ή διαρκούν υπερβολικά.
+6. **Ακύρωση Αιτημάτων**: Επιτρέψτε στους πελάτες να ακυρώνουν αιτήματα που βρίσκονται σε εξέλιξη και δεν είναι πλέον απαραίτητα ή απαιτούν πολύ χρόνο.
 
 ## Πρόσθετες Αναφορές
 
-Για τις πιο πρόσφατες πληροφορίες σχετικά με τις καλύτερες πρακτικές MCP, ανατρέξτε σε:
+Για τις πιο ενημερωμένες πληροφορίες σχετικά με τις βέλτιστες πρακτικές MCP, αναφερθείτε σε:
 
 - [Τεκμηρίωση MCP](https://modelcontextprotocol.io/)
 - [Προδιαγραφή MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [Αποθετήριο GitHub](https://github.com/modelcontextprotocol)
-- [Καλύτερες Πρακτικές Ασφάλειας](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Κίνδυνοι ασφάλειας και αντιμετώπιση
-- [Εργαστήριο Ασφάλειας MCP Summit (Sherpa)](https://azure-samples.github.io/sherpa/) - Πρακτική εκπαίδευση ασφάλειας
+- [Βέλτιστες Πρακτικές Ασφαλείας](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices)
+- [OWASP MCP Τοπ 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Κίνδυνοι ασφάλειας και μέτρα αντιμετώπισης
+- [Εργαστήριο Ασφάλειας MCP Security Summit (Sherpa)](https://azure-samples.github.io/sherpa/) - Πρακτική εκπαίδευση ασφαλείας
 
-## Παραδείγματα Πρακτικών Υλοποίησης
+## Παραδείγματα Πρακτικής Υλοποίησης
 
-### Καλύτερες Πρακτικές Σχεδίασης Εργαλείων
+### Βέλτιστες Πρακτικές Σχεδιασμού Εργαλείων
 
 #### 1. Αρχή Μοναδικής Ευθύνης
 
-Κάθε εργαλείο MCP πρέπει να έχει σαφή, εστιασμένο σκοπό. Αντί να δημιουργείτε μονολιθικά εργαλεία που επιχειρούν να χειριστούν πολλαπλές ανησυχίες, αναπτύξτε εξειδικευμένα εργαλεία που διαπρέπουν σε συγκεκριμένες εργασίες.
+Κάθε εργαλείο MCP πρέπει να έχει σαφή, εστιασμένο σκοπό. Αντί να δημιουργείτε μονολιθικά εργαλεία που προσπαθούν να διαχειριστούν πολλαπλές ανησυχίες, αναπτύξτε εξειδικευμένα εργαλεία που διαπρέπουν σε συγκεκριμένες εργασίες.
 
 ```csharp
 // A focused tool that does one thing well
@@ -145,10 +145,10 @@ public class WeatherForecastTool : ITool
 
 #### 2. Συνεπής Διαχείριση Σφαλμάτων
 
-Υλοποιήστε ισχυρή διαχείριση σφαλμάτων με ενημερωτικά μηνύματα σφαλμάτων και κατάλληλα μηχανισμούς ανάκτησης.
+Εφαρμόστε ισχυρή διαχείριση σφαλμάτων με πληροφοριακά μηνύματα και κατάλληλους μηχανισμούς ανάκαμψης.
 
 ```python
-# Παράδειγμα Python με εκτενή διαχείριση σφαλμάτων
+# Παράδειγμα Python με πλήρη διαχείριση σφαλμάτων
 class DataQueryTool:
     def get_name(self):
         return "dataQuery"
@@ -158,13 +158,13 @@ class DataQueryTool:
     
     async def execute(self, parameters):
         try:
-            # Επικύρωση παραμέτρων
+            # Επαλήθευση παραμέτρων
             if "query" not in parameters:
                 raise ToolParameterError("Missing required parameter: query")
                 
             query = parameters["query"]
             
-            # Επικύρωση ασφαλείας
+            # Επαλήθευση ασφάλειας
             if self._contains_unsafe_sql(query):
                 raise ToolSecurityError("Query contains potentially unsafe SQL")
             
@@ -179,11 +179,11 @@ class DataQueryTool:
             except asyncio.TimeoutError:
                 raise ToolExecutionError("Database query timed out after 10 seconds")
             except DatabaseConnectionError as e:
-                # Τα σφάλματα σύνδεσης μπορεί να είναι προσωρινά
+                # Τα σφάλματα σύνδεσης μπορεί να είναι παροδικά
                 self._log_error("Database connection error", e)
                 raise ToolExecutionError(f"Database connection error: {str(e)}")
             except DatabaseQueryError as e:
-                # Τα σφάλματα ερωτήματος είναι πιθανώς σφάλματα πελάτη
+                # Τα σφάλματα ερωτήματος πιθανόν να είναι σφάλματα πελάτη
                 self._log_error("Database query error", e)
                 raise ToolExecutionError(f"Invalid query: {str(e)}")
                 
@@ -191,7 +191,7 @@ class DataQueryTool:
             # Αφήστε τα σφάλματα ειδικά για το εργαλείο να περάσουν
             raise
         except Exception as e:
-            # Γενική σύλληψη για απρόβλεπτα σφάλματα
+            # Γενική διαχείριση για απροσδόκητα σφάλματα
             self._log_error("Unexpected error in DataQueryTool", e)
             raise ToolExecutionError(f"An unexpected error occurred: {str(e)}")
     
@@ -206,10 +206,10 @@ class DataQueryTool:
 
 #### 3. Επικύρωση Παραμέτρων
 
-Επικυρώνετε πάντα διεξοδικά τις παραμέτρους για να αποτρέψετε κακοσχηματισμένες ή κακόβουλες εισόδους.
+Πάντα επικυρώνετε πλήρως τις παραμέτρους για να αποτρέψετε κακοδιατυπωμένες ή κακόβουλες εισόδους.
 
 ```javascript
-// Παράδειγμα JavaScript/TypeScript με λεπτομερή επικύρωση παραμέτρων
+// Παράδειγμα JavaScript/TypeScript με λεπτομερή επαλήθευση παραμέτρων
 class FileOperationTool {
   getName() {
     return "fileOperation";
@@ -244,7 +244,7 @@ class FileOperationTool {
   }
   
   async execute(parameters) {
-    // 1. Επικύρωση παρουσίας παραμέτρου
+    // 1. Επαλήθευση παρουσίας παραμέτρου
     if (!parameters.operation) {
       throw new ToolError("Missing required parameter: operation");
     }
@@ -253,7 +253,7 @@ class FileOperationTool {
       throw new ToolError("Missing required parameter: path");
     }
     
-    // 2. Επικύρωση τύπων παραμέτρων
+    // 2. Επαλήθευση τύπων παραμέτρων
     if (typeof parameters.operation !== "string") {
       throw new ToolError("Parameter 'operation' must be a string");
     }
@@ -262,18 +262,18 @@ class FileOperationTool {
       throw new ToolError("Parameter 'path' must be a string");
     }
     
-    // 3. Επικύρωση τιμών παραμέτρων
+    // 3. Επαλήθευση τιμών παραμέτρων
     const validOperations = ["read", "write", "delete"];
     if (!validOperations.includes(parameters.operation)) {
       throw new ToolError(`Invalid operation. Must be one of: ${validOperations.join(", ")}`);
     }
     
-    // 4. Επικύρωση παρουσίας περιεχομένου για λειτουργία εγγραφής
+    // 4. Επαλήθευση παρουσίας περιεχομένου για λειτουργία εγγραφής
     if (parameters.operation === "write" && !parameters.content) {
       throw new ToolError("Content parameter is required for write operation");
     }
     
-    // 5. Επικύρωση ασφάλειας διαδρομής
+    // 5. Επαλήθευση ασφάλειας διαδρομής
     if (!this.isPathWithinAllowedDirectories(parameters.path)) {
       throw new ToolError("Access denied: path is outside of allowed directories");
     }
@@ -283,18 +283,18 @@ class FileOperationTool {
   }
   
   isPathWithinAllowedDirectories(path) {
-    // Υλοποίηση έλεγχου ασφάλειας διαδρομής
+    // Υλοποίηση ελέγχου ασφάλειας διαδρομής
     // ...
   }
 }
 ```
 
-### Παραδείγματα Υλοποίησης Ασφάλειας
+### Παραδείγματα Υλοποίησης Ασφαλείας
 
-#### 1. Αυθεντικοποίηση και Αδειοδότηση
+#### 1. Αυθεντικοποίηση και Εξουσιοδότηση
 
 ```java
-// Παράδειγμα Java με έλεγχο ταυτότητας και εξουσιοδότηση
+// Παράδειγμα Java με αυθεντικοποίηση και εξουσιοδότηση
 public class SecureDataAccessTool implements Tool {
     private final AuthenticationService authService;
     private final AuthorizationService authzService;
@@ -317,7 +317,7 @@ public class SecureDataAccessTool implements Tool {
     
     @Override
     public ToolResponse execute(ToolRequest request) {
-        // 1. Εξαγωγή πλαισίου ελέγχου ταυτότητας
+        // 1. Εξαγωγή πλαισίου αυθεντικοποίησης
         String authToken = request.getContext().getAuthToken();
         
         // 2. Αυθεντικοποίηση χρήστη
@@ -328,7 +328,7 @@ public class SecureDataAccessTool implements Tool {
             return ToolResponse.error("Authentication failed: " + e.getMessage());
         }
         
-        // 3. Έλεγχος εξουσιοδότησης για τη συγκεκριμένη λειτουργία
+        // 3. Έλεγχος εξουσιοδότησης για την συγκεκριμένη ενέργεια
         String dataId = request.getParameters().get("dataId").getAsString();
         String operation = request.getParameters().get("operation").getAsString();
         
@@ -337,7 +337,7 @@ public class SecureDataAccessTool implements Tool {
             return ToolResponse.error("Access denied: Insufficient permissions for this operation");
         }
         
-        // 4. Συνέχεια με εξουσιοδοτημένη λειτουργία
+        // 4. Συνέχεια με εξουσιοδοτημένη ενέργεια
         try {
             switch (operation) {
                 case "read":
@@ -433,14 +433,14 @@ public class RateLimitingMiddleware
 }
 ```
 
-## Καλύτερες Πρακτικές Δοκιμών
+## Βέλτιστες Πρακτικές Δοκιμών
 
-### 1. Μονάδα Δοκιμής Εργαλείων MCP
+### 1. Μονάδα Δοκιμών Εργαλείων MCP
 
-Δοκιμάζετε πάντα τα εργαλεία σας απομονωμένα, χρησιμοποιώντας mock εξωτερικών εξαρτήσεων:
+Πάντα δοκιμάζετε τα εργαλεία σας απομονωμένα, κάνοντας χρήση ψευτομαζικών εξαρτήσεων:
 
 ```typescript
-// Παράδειγμα TypeScript για μονάδα δοκιμής εργαλείου
+// Παράδειγμα unit test εργαλείου σε TypeScript
 describe('WeatherForecastTool', () => {
   let tool: WeatherForecastTool;
   let mockWeatherService: jest.Mocked<IWeatherService>;
@@ -474,7 +474,7 @@ describe('WeatherForecastTool', () => {
       days: 3
     });
     
-    // Επιβεβαίωση
+    // Επαλήθευση
     expect(mockWeatherService.getForecasts).toHaveBeenCalledWith('Seattle', 3);
     expect(response.content[0].text).toContain('Seattle');
     expect(response.content[0].text).toContain('Sunny');
@@ -484,7 +484,7 @@ describe('WeatherForecastTool', () => {
     // Προετοιμασία
     mockWeatherService.getForecasts.mockRejectedValue(new Error('Service unavailable'));
     
-    // Εκτέλεση και Επιβεβαίωση
+    // Εκτέλεση & Επαλήθευση
     await expect(tool.execute({
       location: 'Seattle',
       days: 3
@@ -493,15 +493,15 @@ describe('WeatherForecastTool', () => {
 });
 ```
 
-### 2. Ολοκληρωμένη Δοκιμή
+### 2. Δοκιμή Ολοκλήρωσης
 
-Δοκιμάστε ολόκληρη τη ροή από αιτήματα πελάτη έως απαντήσεις server:
+Δοκιμάστε ολόκληρη τη ροή από τα αιτήματα πελατών μέχρι τις απαντήσεις διακομιστή:
 
 ```python
-# Παράδειγμα δοκιμής ολοκλήρωσης Python
+# Παράδειγμα ολοκλήρωσης δοκιμής Python
 @pytest.mark.asyncio
 async def test_mcp_server_integration():
-    # Εκκίνηση ενός διακομιστή δοκιμών
+    # Εκκίνηση διακομιστή δοκιμής
     server = McpServer()
     server.register_tool(WeatherForecastTool(MockWeatherService()))
     await server.start(port=5000)
@@ -510,17 +510,17 @@ async def test_mcp_server_integration():
         # Δημιουργία πελάτη
         client = McpClient("http://localhost:5000")
         
-        # Δοκιμή ανίχνευσης εργαλείων
+        # Δοκιμή ανίχνευσης εργαλείου
         tools = await client.discover_tools()
         assert "weatherForecast" in [t.name for t in tools]
         
-        # Δοκιμή εκτέλεσης εργαλείων
+        # Δοκιμή εκτέλεσης εργαλείου
         response = await client.execute_tool("weatherForecast", {
             "location": "Seattle",
             "days": 3
         })
         
-        # Επαλήθευση απάντησης
+        # Επαλήθευση απόκρισης
         assert response.status_code == 200
         assert "Seattle" in response.content[0].text
         assert len(json.loads(response.content[0].text)["forecasts"]) == 3
@@ -532,9 +532,9 @@ async def test_mcp_server_integration():
 
 ## Βελτιστοποίηση Απόδοσης
 
-### 1. Στρατηγικές Cache
+### 1. Στρατηγικές CACHE
 
-Υλοποιήστε κατάλληλη cache για μείωση λανθάνουσας κατάστασης και χρήσης πόρων:
+Εφαρμόστε κατάλληλο caching για να μειώσετε την καθυστέρηση και τη χρήση πόρων:
 
 ```csharp
 // C# example with caching
@@ -603,18 +603,18 @@ public class CachedWeatherTool : ITool
 }
 ```
 
-#### 2. Ενεση Εξαρτήσεων και Δοκιμασιμότητα
+#### 2. Εισαγωγή Εξαρτήσεων και Δοκιμασιμότητα
 
-Σχεδιάστε εργαλεία ώστε να λαμβάνουν τις εξαρτήσεις τους μέσω injection κατασκευαστή, κάνοντάς τα δοκιμάσιμα και παραμετροποιήσιμα:
+Σχεδιάστε τα εργαλεία να λαμβάνουν τις εξαρτήσεις τους μέσω εισαγωγής στο κατασκευαστή, καθιστώντας τα δοκιμάσιμα και παραμετροποιήσιμα:
 
 ```java
-// Παράδειγμα Java με ενέσιμη εξάρτηση
+// Παράδειγμα Java με εισαγωγή εξαρτήσεων
 public class CurrencyConversionTool implements Tool {
     private final ExchangeRateService exchangeService;
     private final CacheService cacheService;
     private final Logger logger;
     
-    // Εξαρτήσεις που εγχύονται μέσω κατασκευαστή
+    // Εξαρτήσεις εισάγονται μέσω κατασκευαστή
     public CurrencyConversionTool(
             ExchangeRateService exchangeService,
             CacheService cacheService,
@@ -629,9 +629,9 @@ public class CurrencyConversionTool implements Tool {
 }
 ```
 
-#### 3. Συνθετά Εργαλεία
+#### 3. Συνθετικά Εργαλεία
 
-Σχεδιάστε εργαλεία που μπορούν να συντεθούν μαζί για τη δημιουργία πιο σύνθετων ροών εργασίας:
+Σχεδιάστε εργαλεία που μπορούν να συνδυαστούν για να δημιουργήσουν πιο πολύπλοκες εργασίες:
 
 ```python
 # Παράδειγμα Python που δείχνει συνθέσιμα εργαλεία
@@ -645,7 +645,7 @@ class DataAnalysisTool(Tool):
     def get_name(self):
         return "dataAnalysis"
     
-    # Αυτό το εργαλείο μπορεί να χρησιμοποιήσει αποτελέσματα από το εργαλείο dataFetch
+    # Αυτό το εργαλείο μπορεί να χρησιμοποιήσει τα αποτελέσματα από το εργαλείο dataFetch
     async def execute_async(self, request):
         # Υλοποίηση...
         pass
@@ -654,7 +654,7 @@ class DataVisualizationTool(Tool):
     def get_name(self):
         return "dataVisualize"
     
-    # Αυτό το εργαλείο μπορεί να χρησιμοποιήσει αποτελέσματα από το εργαλείο dataAnalysis
+    # Αυτό το εργαλείο μπορεί να χρησιμοποιήσει τα αποτελέσματα από το εργαλείο dataAnalysis
     async def execute_async(self, request):
         # Υλοποίηση...
         pass
@@ -662,13 +662,13 @@ class DataVisualizationTool(Tool):
 # Αυτά τα εργαλεία μπορούν να χρησιμοποιηθούν ανεξάρτητα ή ως μέρος μιας ροής εργασίας
 ```
 
-### Καλύτερες Πρακτικές Σχεδίασης Σχήματος
+### Βέλτιστες Πρακτικές Σχεδιασμού Σχήματος
 
-Το σχήμα είναι η σύμβαση μεταξύ μοντέλου και εργαλείου σας. Καλά σχεδιασμένα σχήματα οδηγούν σε καλύτερη χρήση των εργαλείων.
+Το σχήμα είναι το συμβόλαιο μεταξύ του μοντέλου και του εργαλείου σας. Καλοσχεδιασμένα σχήματα οδηγούν σε καλύτερη χρηστικότητα εργαλείων.
 
 #### 1. Σαφείς Περιγραφές Παραμέτρων
 
-Περιλαμβάνετε πάντα περιγραφικές πληροφορίες για κάθε παράμετρο:
+Πάντα να περιλαμβάνετε περιγραφικές πληροφορίες για κάθε παράμετρο:
 
 ```csharp
 public object GetSchema()
@@ -707,7 +707,7 @@ public object GetSchema()
 
 #### 2. Περιορισμοί Επικύρωσης
 
-Περιλαμβάνετε περιορισμούς επικύρωσης για αποτροπή μη έγκυρων εισόδων:
+Περιλάβετε περιορισμούς επικύρωσης για να αποτρέψετε άκυρες εισόδους:
 
 ```java
 Map<String, Object> getSchema() {
@@ -749,7 +749,7 @@ Map<String, Object> getSchema() {
 
 #### 3. Συνεπείς Δομές Επιστροφής
 
-Διατηρείτε συνέπεια στις δομές απάντησης για ευκολότερη ερμηνεία από τα μοντέλα:
+Διατηρήστε συνέπεια στις δομές των απαντήσεων για να διευκολύνετε την ερμηνεία των αποτελεσμάτων από τα μοντέλα:
 
 ```python
 async def execute_async(self, request):
@@ -757,7 +757,7 @@ async def execute_async(self, request):
         # Επεξεργασία αιτήματος
         results = await self._search_database(request.parameters["query"])
         
-        # Να επιστρέφει πάντα μια συνεπή δομή
+        # Πάντα επιστρέφει μια συνεπή δομή
         return ToolResponse(
             result={
                 "matches": [self._format_item(item) for item in results],
@@ -790,11 +790,11 @@ def _format_item(self, item):
 
 ### Διαχείριση Σφαλμάτων
 
-Ισχυρή διαχείριση σφαλμάτων είναι κρίσιμη για την αξιοπιστία των εργαλείων MCP.
+Η ισχυρή διαχείριση σφαλμάτων είναι κρίσιμη για τα εργαλεία MCP ώστε να διατηρήσουν αξιοπιστία.
 
-#### 1. Ομαλή Διαχείριση Σφαλμάτων
+#### 1. Λειτουργική Διαχείριση Σφαλμάτων
 
-Χειριστείτε τα σφάλματα στα κατάλληλα επίπεδα και παρέχετε ενημερωτικά μηνύματα:
+Διαχειρίζεστε τα σφάλματα στα κατάλληλα επίπεδα και παρέχετε ενημερωτικά μηνύματα:
 
 ```csharp
 public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
@@ -838,7 +838,7 @@ public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
 
 #### 2. Δομημένες Απαντήσεις Σφαλμάτων
 
-Επιστρέψτε δομημένες πληροφορίες σφαλμάτων όπου είναι δυνατόν:
+Επιστρέφετε δομημένες πληροφορίες σφαλμάτων όταν είναι δυνατό:
 
 ```java
 @Override
@@ -862,15 +862,15 @@ public ToolResponse execute(ToolRequest request) {
                 .build();
         }
         
-        // Επαναρίψη άλλων εξαιρέσεων ως ToolExecutionException
+        // Επανεκτέλεση άλλων εξαιρέσεων ως ToolExecutionException
         throw new ToolExecutionException("Tool execution failed: " + ex.getMessage(), ex);
     }
 }
 ```
 
-#### 3. Λογική Επανάληψης
+#### 3. Λογική Επαναπροσπάθειας
 
-Υλοποιήστε κατάλληλη λογική επανάληψης σε προσωρινές αποτυχίες:
+Εφαρμόστε κατάλληλη λογική επαναπροσπάθειας για παροδικά σφάλματα:
 
 ```python
 async def execute_async(self, request):
@@ -887,20 +887,20 @@ async def execute_async(self, request):
             if retry_count >= max_retries:
                 raise ToolExecutionException(f"Operation failed after {max_retries} attempts: {str(e)}")
                 
-            # Εκθετική αναμονή επανεκκίνησης
+            # Εκθετική απόσβεση
             delay = base_delay * (2 ** (retry_count - 1))
             logging.warning(f"Transient error, retrying in {delay}s: {str(e)}")
             await asyncio.sleep(delay)
         except Exception as e:
-            # Μη προσωρινό σφάλμα, μη προσπαθήσετε ξανά
+            # Μη παροδικό σφάλμα, μην επαναλάβετε την προσπάθεια
             raise ToolExecutionException(f"Operation failed: {str(e)}")
 ```
 
 ### Βελτιστοποίηση Απόδοσης
 
-#### 1. Cache
+#### 1. Caching
 
-Υλοποιήστε cache για δαπανηρές λειτουργίες:
+Εφαρμόστε caching για ακριβές σε πόρους λειτουργίες:
 
 ```csharp
 public class CachedDataTool : IMcpTool
@@ -948,7 +948,7 @@ public class CachedDataTool : IMcpTool
 
 #### 2. Ασύγχρονη Επεξεργασία
 
-Χρησιμοποιήστε προγραμματιστικά πρότυπα ασύγχρονης εκτέλεσης για λειτουργίες I/O:
+Χρησιμοποιήστε ασύγχρονες προγραμματιστικές τεχνικές για λειτουργίες εισόδου/εξόδου:
 
 ```java
 public class AsyncDocumentProcessingTool implements Tool {
@@ -959,23 +959,23 @@ public class AsyncDocumentProcessingTool implements Tool {
     public ToolResponse execute(ToolRequest request) {
         String documentId = request.getParameters().get("documentId").asText();
         
-        // Για διεργασίες μεγάλης διάρκειας, επιστρέψτε αμέσως ένα αναγνωριστικό επεξεργασίας
+        // Για μακροχρόνιες εργασίες, επιστρέψτε αμέσως ένα αναγνωριστικό επεξεργασίας
         String processId = UUID.randomUUID().toString();
         
         // Ξεκινήστε την ασύγχρονη επεξεργασία
         CompletableFuture.runAsync(() -> {
             try {
-                // Εκτελέστε διεργασία μεγάλης διάρκειας
+                // Εκτελέστε μακροχρόνια λειτουργία
                 documentService.processDocument(documentId);
                 
-                // Ενημερώστε την κατάσταση (συνήθως θα αποθηκευόταν σε βάση δεδομένων)
+                // Ενημερώστε την κατάσταση (συνήθως αποθηκεύεται σε βάση δεδομένων)
                 processStatusRepository.updateStatus(processId, "completed");
             } catch (Exception ex) {
                 processStatusRepository.updateStatus(processId, "failed", ex.getMessage());
             }
         }, executorService);
         
-        // Επιστρέψτε άμεση απάντηση με το αναγνωριστικό της διεργασίας
+        // Επιστρέψτε άμεση απόκριση με αναγνωριστικό διαδικασίας
         Map<String, Object> result = new HashMap<>();
         result.put("processId", processId);
         result.put("status", "processing");
@@ -999,7 +999,7 @@ public class AsyncDocumentProcessingTool implements Tool {
 
 #### 3. Περιορισμός Πόρων
 
-Υλοποιήστε περιορισμό χρήσης πόρων για αποφυγή υπερφόρτωσης:
+Εφαρμόστε περιορισμό πόρων για να αποφύγετε την υπερφόρτωση:
 
 ```python
 class ThrottledApiTool(Tool):
@@ -1010,7 +1010,7 @@ class ThrottledApiTool(Tool):
         )
     
     async def execute_async(self, request):
-        # Ελέγξτε αν μπορούμε να προχωρήσουμε ή πρέπει να περιμένουμε
+        # Ελέγξτε αν μπορούμε να συνεχίσουμε ή πρέπει να περιμένουμε
         delay = self.rate_limiter.get_delay_time()
         
         if delay > 0:
@@ -1019,10 +1019,10 @@ class ThrottledApiTool(Tool):
                     f"Rate limit exceeded. Please try again in {delay:.1f} seconds."
                 )
             else:
-                # Περιμένετε τον κατάλληλο χρόνο καθυστέρησης
+                # Περιμένετε για τον κατάλληλο χρόνο καθυστέρησης
                 await asyncio.sleep(delay)
         
-        # Καταναλώστε ένα διακριτικό και προχωρήστε με το αίτημα
+        # Καταναλώστε ένα token και προχωρήστε με το αίτημα
         self.rate_limiter.consume()
         
         # Κλήση API
@@ -1043,7 +1043,7 @@ class TokenBucketRateLimiter:
             if self.tokens >= 1:
                 return 0
             
-            # Υπολογίστε τον χρόνο μέχρι το επόμενο διαθέσιμο διακριτικό
+            # Υπολογίστε τον χρόνο μέχρι να είναι διαθέσιμο το επόμενο token
             return (1 - self.tokens) / self.tokens_per_second
     
     async def consume(self):
@@ -1055,17 +1055,17 @@ class TokenBucketRateLimiter:
         now = time.time()
         elapsed = now - self.last_refill
         
-        # Προσθέστε νέα διακριτικά βάσει του περασμένου χρόνου
+        # Προσθέστε νέα tokens βάσει του περασμένου χρόνου
         new_tokens = elapsed * self.tokens_per_second
         self.tokens = min(self.bucket_size, self.tokens + new_tokens)
         self.last_refill = now
 ```
 
-### Καλύτερες Πρακτικές Ασφάλειας
+### Βέλτιστες Πρακτικές Ασφαλείας
 
 #### 1. Επικύρωση Εισόδου
 
-Επικυρώνετε πάντα διεξοδικά τις παραμέτρους εισόδου:
+Πάντα επικυρώνετε πλήρως τις παραμέτρους εισόδου:
 
 ```csharp
 public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
@@ -1106,35 +1106,35 @@ public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
 }
 ```
 
-#### 2. Ελέγχοι Αδειοδότησης
+#### 2. Έλεγχοι Εξουσιοδότησης
 
-Υλοποιήστε σωστούς ελέγχους αδειοδότησης:
+Εφαρμόστε σωστούς ελέγχους εξουσιοδότησης:
 
 ```java
 @Override
 public ToolResponse execute(ToolRequest request) {
-    // Λήψη πλαισίου χρήστη από το αίτημα
+    // Πάρε το πλαίσιο χρήστη από το αίτημα
     UserContext user = request.getContext().getUserContext();
     
-    // Έλεγχος αν ο χρήστης έχει τα απαιτούμενα δικαιώματα
+    // Έλεγξε αν ο χρήστης έχει τα απαιτούμενα δικαιώματα
     if (!authorizationService.hasPermission(user, "documents:read")) {
         throw new ToolExecutionException("User does not have permission to access documents");
     }
     
-    // Για συγκεκριμένους πόρους, έλεγχος πρόσβασης σε αυτόν τον πόρο
+    // Για συγκεκριμένους πόρους, έλεγξε την πρόσβαση σε αυτόν τον πόρο
     String documentId = request.getParameters().get("documentId").asText();
     if (!documentService.canUserAccess(user.getId(), documentId)) {
         throw new ToolExecutionException("Access denied to the requested document");
     }
     
-    // Προχωρήστε με την εκτέλεση του εργαλείου
+    // Προχώρα με την εκτέλεση του εργαλείου
     // ...
 }
 ```
 
 #### 3. Διαχείριση Ευαίσθητων Δεδομένων
 
-Χειριστείτε προσεκτικά ευαίσθητα δεδομένα:
+Διαχειριστείτε ευαίσθητα δεδομένα με προσοχή:
 
 ```python
 class SecureDataTool(Tool):
@@ -1155,7 +1155,7 @@ class SecureDataTool(Tool):
         # Λάβετε δεδομένα χρήστη
         user_data = await self.user_service.get_user_data(user_id)
         
-        # Φιλτράρετε ευαίσθητα πεδία εκτός εάν ζητηθούν ρητά ΚΑΙ είναι εξουσιοδοτημένα
+        # Φιλτράρετε ευαίσθητα πεδία εκτός αν ζητηθούν ρητώς ΚΑΙ ο χρήστης είναι εξουσιοδοτημένος
         if not include_sensitive or not self._is_authorized_for_sensitive_data(request):
             user_data = self._redact_sensitive_fields(user_data)
         
@@ -1170,28 +1170,28 @@ class SecureDataTool(Tool):
         # Δημιουργήστε ένα αντίγραφο για να αποφύγετε την τροποποίηση του πρωτοτύπου
         redacted = user_data.copy()
         
-        # Αποκρύψτε συγκεκριμένα ευαίσθητα πεδία
+        # Λογοκρίνετε συγκεκριμένα ευαίσθητα πεδία
         sensitive_fields = ["ssn", "creditCardNumber", "password"]
         for field in sensitive_fields:
             if field in redacted:
                 redacted[field] = "REDACTED"
         
-        # Αποκρύψτε εμφωλευμένα ευαίσθητα δεδομένα
+        # Λογοκρίνετε εμφωλευμένα ευαίσθητα δεδομένα
         if "financialInfo" in redacted:
             redacted["financialInfo"] = {"available": True, "accessRestricted": True}
         
         return redacted
 ```
 
-## Καλύτερες Πρακτικές Δοκιμών για Εργαλεία MCP
+## Βέλτιστες Πρακτικές Δοκιμής για Εργαλεία MCP
 
-Η ολοκληρωμένη δοκιμή εξασφαλίζει ότι τα εργαλεία MCP λειτουργούν σωστά, χειρίζονται ακραίες περιπτώσεις και ενσωματώνονται σωστά με το υπόλοιπο σύστημα.
+Η ολοκληρωμένη δοκιμή διασφαλίζει ότι τα εργαλεία MCP λειτουργούν σωστά, χειρίζονται ακραίες περιπτώσεις και ενσωματώνονται σωστά με το υπόλοιπο σύστημα.
 
 ### Μονάδα Δοκιμής
 
 #### 1. Δοκιμάστε Κάθε Εργαλείο Απομονωμένα
 
-Δημιουργήστε εστιασμένες δοκιμές για τη λειτουργικότητα κάθε εργαλείου:
+Δημιουργήστε εστιασμένες δοκιμές για τη λειτουργία κάθε εργαλείου:
 
 ```csharp
 [Fact]
@@ -1251,14 +1251,14 @@ public async Task WeatherTool_InvalidLocation_ThrowsToolExecutionException()
 }
 ```
 
-#### 2. Δοκιμή Επικύρωσης Σχήματος
+#### 2. Δοκιμές Επικύρωσης Σχήματος
 
-Ελέγξτε ότι τα σχήματα είναι έγκυρα και εφαρμόζουν σωστά περιορισμούς:
+Ελέγξτε ότι τα σχήματα είναι έγκυρα και επιβάλλουν σωστά τους περιορισμούς:
 
 ```java
 @Test
 public void testSchemaValidation() {
-    // Δημιουργία στιγμιότυπου εργαλείου
+    // Δημιουργία στιγμιοτύπου εργαλείου
     SearchTool searchTool = new SearchTool();
     
     // Λήψη σχήματος
@@ -1286,7 +1286,7 @@ public void testSchemaValidation() {
     ProcessingReport missingReport = jsonSchema.validate(missingRequired);
     assertFalse(missingReport.isSuccess());
     
-    // Δοκιμή άκυρου τύπου παραμέτρου
+    // Δοκιμή μη έγκυρου τύπου παραμέτρου
     JsonNode invalidType = objectMapper.createObjectNode()
         .put("query", "test")
         .put("limit", "not-a-number");
@@ -1298,7 +1298,7 @@ public void testSchemaValidation() {
 
 #### 3. Δοκιμές Διαχείρισης Σφαλμάτων
 
-Δημιουργήστε συγκεκριμένες δοκιμές για καταστάσεις σφάλματος:
+Δημιουργήστε συγκεκριμένες δοκιμές για συνθήκες σφαλμάτων:
 
 ```python
 @pytest.mark.asyncio
@@ -1306,7 +1306,7 @@ async def test_api_tool_handles_timeout():
     # Τακτοποίηση
     tool = ApiTool(timeout=0.1)  # Πολύ σύντομο χρονικό όριο
     
-    # Μίμηση ενός αιτήματος που θα λήξει ο χρόνος του
+    # Προσομοίωση ενός αιτήματος που θα υπερβεί το χρονικό όριο
     with aioresponses() as mocked:
         mocked.get(
             "https://api.example.com/data",
@@ -1318,7 +1318,7 @@ async def test_api_tool_handles_timeout():
             parameters={"url": "https://api.example.com/data"}
         )
         
-        # Εκτέλεση & Επιβεβαίωση
+        # Εκτέλεση & Επαλήθευση
         with pytest.raises(ToolExecutionException) as exc_info:
             await tool.execute_async(request)
         
@@ -1330,7 +1330,7 @@ async def test_api_tool_handles_rate_limiting():
     # Τακτοποίηση
     tool = ApiTool()
     
-    # Μίμηση απάντησης με περιορισμό ρυθμού
+    # Προσομοίωση μιας απόκρισης με περιορισμό ρυθμού
     with aioresponses() as mocked:
         mocked.get(
             "https://api.example.com/data",
@@ -1344,19 +1344,19 @@ async def test_api_tool_handles_rate_limiting():
             parameters={"url": "https://api.example.com/data"}
         )
         
-        # Εκτέλεση & Επιβεβαίωση
+        # Εκτέλεση & Επαλήθευση
         with pytest.raises(ToolExecutionException) as exc_info:
             await tool.execute_async(request)
         
-        # Επαλήθευση ότι η εξαίρεση περιέχει πληροφορίες για το όριο ρυθμού
+        # Επαλήθευση ότι η εξαίρεση περιέχει πληροφορίες για τον περιορισμό ρυθμού
         error_msg = str(exc_info.value).lower()
         assert "rate limit" in error_msg
         assert "try again" in error_msg
 ```
 
-### Ολοκληρωμένη Δοκιμή
+### Δοκιμή Ολοκλήρωσης
 
-#### 1. Δοκιμή Αλυσιδωτής Λειτουργίας Εργαλείων
+#### 1. Δοκιμή Αλυσίδας Εργαλείων
 
 Δοκιμάστε εργαλεία που λειτουργούν μαζί σε αναμενόμενους συνδυασμούς:
 
@@ -1397,9 +1397,9 @@ public async Task DataProcessingWorkflow_CompletesSuccessfully()
 }
 ```
 
-#### 2. Δοκιμή MCP Server
+#### 2. Δοκιμή Διακομιστή MCP
 
-Δοκιμάστε το MCP server με πλήρη εγγραφή και εκτέλεση εργαλείων:
+Δοκιμάστε τον διακομιστή MCP με πλήρη καταχώρηση και εκτέλεση εργαλείων:
 
 ```java
 @SpringBootTest
@@ -1414,7 +1414,7 @@ public class McpServerIntegrationTest {
     
     @Test
     public void testToolDiscovery() throws Exception {
-        // Δοκιμάστε το endpoint ανακάλυψης
+        // Δοκιμάστε το σημείο ανίχνευσης
         mockMvc.perform(get("/mcp/tools"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.tools").isArray())
@@ -1425,7 +1425,7 @@ public class McpServerIntegrationTest {
     
     @Test
     public void testToolExecution() throws Exception {
-        // Δημιουργία αιτήματος εργαλείου
+        // Δημιουργήστε αίτημα εργαλείου
         Map<String, Object> request = new HashMap<>();
         request.put("toolName", "calculator");
         
@@ -1435,7 +1435,7 @@ public class McpServerIntegrationTest {
         parameters.put("b", 7);
         request.put("parameters", parameters);
         
-        // Αποστολή αιτήματος και επαλήθευση απόκρισης
+        // Στείλτε αίτημα και επαληθεύστε την απόκριση
         mockMvc.perform(post("/mcp/execute")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
@@ -1445,7 +1445,7 @@ public class McpServerIntegrationTest {
     
     @Test
     public void testToolValidation() throws Exception {
-        // Δημιουργία μη έγκυρου αιτήματος εργαλείου
+        // Δημιουργήστε μη έγκυρο αίτημα εργαλείου
         Map<String, Object> request = new HashMap<>();
         request.put("toolName", "calculator");
         
@@ -1455,7 +1455,7 @@ public class McpServerIntegrationTest {
         // Λείπει η παράμετρος "b"
         request.put("parameters", parameters);
         
-        // Αποστολή αιτήματος και επαλήθευση απόκρισης σφάλματος
+        // Στείλτε αίτημα και επαληθεύστε την απάντηση λάθους
         mockMvc.perform(post("/mcp/execute")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
@@ -1465,17 +1465,17 @@ public class McpServerIntegrationTest {
 }
 ```
 
-#### 3. Ολική Δοκιμή
+#### 3. Δοκιμή Τέλους-σε-Τέλος
 
-Δοκιμάστε ολοκληρωμένες ροές εργασίας από προτροπή μοντέλου έως εκτέλεση εργαλείου:
+Δοκιμάστε πλήρεις ροές εργασιών από την προτροπή μοντέλου έως την εκτέλεση εργαλείων:
 
 ```python
 @pytest.mark.asyncio
 async def test_model_interaction_with_tool():
-    # Τακτοποίηση - Ρύθμιση του πελάτη MCP και του υποδειγματικού μοντέλου
+    # Ταξινόμηση - Ρύθμιση πελάτη MCP και ψευδούς μοντέλου
     mcp_client = McpClient(server_url="http://localhost:5000")
     
-    # Απεικόνιση απαντήσεων μοντέλου
+    # Απαντήσεις ψευδούς μοντέλου
     mock_model = MockLanguageModel([
         MockResponse(
             "What's the weather in Seattle?",
@@ -1490,7 +1490,7 @@ async def test_model_interaction_with_tool():
         )
     ])
     
-    # Απεικόνιση απάντησης εργαλείου καιρού
+    # Απάντηση εργαλείου καιρού ψευδούς
     with aioresponses() as mocked:
         mocked.post(
             "http://localhost:5000/mcp/execute",
@@ -1506,7 +1506,7 @@ async def test_model_interaction_with_tool():
             }
         )
         
-        # Εκτέλεση
+        # Ενέργεια
         response = await mcp_client.send_prompt(
             "What's the weather in Seattle?",
             model=mock_model,
@@ -1522,11 +1522,11 @@ async def test_model_interaction_with_tool():
         assert response.tool_calls[0].tool_name == "weatherForecast"
 ```
 
-### Δοκιμή Απόδοσης
+### Δοκιμές Απόδοσης
 
 #### 1. Δοκιμή Φορτίου
 
-Δοκιμάστε πόσα ταυτόχρονα αιτήματα μπορεί να διαχειριστεί ο MCP server σας:
+Δοκιμάστε πόσα ταυτόχρονα αιτήματα μπορεί να χειριστεί ο διακομιστής MCP:
 
 ```csharp
 [Fact]
@@ -1559,7 +1559,7 @@ public async Task McpServer_HandlesHighConcurrency()
 }
 ```
 
-#### 2. Δοκιμή Αντοχής
+#### 2. Δοκιμή Στρες
 
 Δοκιμάστε το σύστημα υπό ακραίο φορτίο:
 
@@ -1570,13 +1570,13 @@ public void testServerUnderStress() {
     int rampUpTimeSeconds = 60;
     int testDurationSeconds = 300;
     
-    // Ρυθμίστε το JMeter για δοκιμές φόρτου
+    // Ρύθμιση του JMeter για δοκιμή φόρτου
     StandardJMeterEngine jmeter = new StandardJMeterEngine();
     
-    // Διαμορφώστε το σχέδιο δοκιμής του JMeter
+    // Διαμόρφωση σχεδίου δοκιμής JMeter
     HashTree testPlanTree = new HashTree();
     
-    // Δημιουργήστε σχέδιο δοκιμής, ομάδα νημάτων, δειγματολήπτες κ.λπ.
+    // Δημιουργία σχεδίου δοκιμής, ομάδας νημάτων, δειγματοληπτών κ.λπ.
     TestPlan testPlan = new TestPlan("MCP Server Stress Test");
     testPlanTree.add(testPlan);
     
@@ -1588,7 +1588,7 @@ public void testServerUnderStress() {
     
     testPlanTree.add(threadGroup);
     
-    // Προσθέστε HTTP δειγματολήπτη για εκτέλεση εργαλείου
+    // Προσθήκη δειγματολήπτη HTTP για εκτέλεση εργαλείου
     HTTPSampler toolExecutionSampler = new HTTPSampler();
     toolExecutionSampler.setDomain("localhost");
     toolExecutionSampler.setPort(5000);
@@ -1599,29 +1599,29 @@ public void testServerUnderStress() {
     
     threadGroup.add(toolExecutionSampler);
     
-    // Προσθέστε ακροατές
+    // Προσθήκη ακροατών
     SummaryReport summaryReport = new SummaryReport();
     threadGroup.add(summaryReport);
     
-    // Εκτελέστε τη δοκιμή
+    // Εκτέλεση δοκιμής
     jmeter.configure(testPlanTree);
     jmeter.run();
     
-    // Επαληθεύστε τα αποτελέσματα
+    // Επικύρωση αποτελεσμάτων
     assertEquals(0, summaryReport.getErrorCount());
     assertTrue(summaryReport.getAverage() < 200); // Μέσος χρόνος απόκρισης < 200ms
     assertTrue(summaryReport.getPercentile(90.0) < 500); // 90ο εκατοστημόριο < 500ms
 }
 ```
 
-#### 3. Παρακολούθηση και Ανάλυση
+#### 3. Παρακολούθηση και Προφίλ
 
 Ρυθμίστε παρακολούθηση για μακροχρόνια ανάλυση απόδοσης:
 
 ```python
-# Ρυθμίστε την παρακολούθηση για έναν διακομιστή MCP
+# Διαμορφώστε την παρακολούθηση για έναν διακομιστή MCP
 def configure_monitoring(server):
-    # Ρυθμίστε μετρικές Prometheus
+    # Ορίστε μετρικές Prometheus
     prometheus_metrics = {
         "request_count": Counter("mcp_requests_total", "Total MCP requests"),
         "request_latency": Histogram(
@@ -1647,10 +1647,10 @@ def configure_monitoring(server):
         )
     }
     
-    # Προσθέστε ενδιάμεσο λογισμικό για χρονισμό και καταγραφή μετρικών
+    # Προσθέστε ενδιάμεσο λογισμικό για τη χρονική ανάλυση και την καταγραφή μετρικών
     server.add_middleware(PrometheusMiddleware(prometheus_metrics))
     
-    # Αποκαλύψτε το σημείο τερματισμού μετρικών
+    # Εκθέστε το σημείο τερματισμού μετρικών
     @server.router.get("/metrics")
     async def metrics():
         return generate_latest()
@@ -1658,29 +1658,29 @@ def configure_monitoring(server):
     return server
 ```
 
-## Πρότυπα Σχεδίασης Ροών Εργασίας MCP
+## Μοτίβα Σχεδιασμού Ροής Εργασιών MCP
 
-Οι καλά σχεδιασμένες ροές εργασίας MCP βελτιώνουν αποδοτικότητα, αξιοπιστία και διαχειρισιμότητα. Ακολουθούν βασικά πρότυπα:
+Οι καλά σχεδιασμένες ροές εργασιών MCP βελτιώνουν την αποδοτικότητα, αξιοπιστία και διατηρησιμότητα. Ακολουθούν βασικά μοτίβα που πρέπει να ακολουθείτε:
 
-### 1. Πρότυπο Αλυσιδωτής Ροής Εργαλείων
+### 1. Μοτίβο Αλυσίδας Εργαλείων
 
-Συνδέστε πολλαπλά εργαλεία σε ακολουθία όπου η έξοδος κάθε εργαλείου γίνεται είσοδος για το επόμενο:
+Συνδέστε πολλαπλά εργαλεία σε μια αλληλουχία όπου η έξοδος κάθε εργαλείου γίνεται είσοδος για το επόμενο:
 
 ```python
 # Υλοποίηση αλυσίδας εργαλείων Python
 class ChainWorkflow:
     def __init__(self, tools_chain):
-        self.tools_chain = tools_chain  # Λίστα με ονόματα εργαλείων προς εκτέλεση κατά σειρά
+        self.tools_chain = tools_chain  # Λίστα με ονόματα εργαλείων για εκτέλεση στη σειρά
     
     async def execute(self, mcp_client, initial_input):
         current_result = initial_input
         all_results = {"input": initial_input}
         
         for tool_name in self.tools_chain:
-            # Εκτέλεση κάθε εργαλείου στην αλυσίδα, μεταβιβάζοντας το προηγούμενο αποτέλεσμα
+            # Εκτέλεση κάθε εργαλείου στην αλυσίδα, περνώντας το προηγούμενο αποτέλεσμα
             response = await mcp_client.execute_tool(tool_name, current_result)
             
-            # Αποθήκευση αποτελέσματος και χρήση ως είσοδος για το επόμενο εργαλείο
+            # Αποθήκευση αποτελέσματος και χρήση ως είσοδο για το επόμενο εργαλείο
             all_results[tool_name] = response.result
             current_result = response.result
         
@@ -1703,9 +1703,9 @@ result = await data_processing_chain.execute(
 )
 ```
 
-### 2. Πρότυπο Dispatcher
+### 2. Μοτίβο Διανομέα
 
-Χρησιμοποιήστε ένα κεντρικό εργαλείο που διανέμει σε εξειδικευμένα εργαλεία βάσει εισόδου:
+Χρησιμοποιήστε ένα κεντρικό εργαλείο που αναθέτει σε εξειδικευμένα εργαλεία βάσει εισόδου:
 
 ```csharp
 public class ContentDispatcherTool : IMcpTool
@@ -1785,7 +1785,7 @@ public class ContentDispatcherTool : IMcpTool
 }
 ```
 
-### 3. Πρότυπο Παράλληλης Επεξεργασίας
+### 3. Μοτίβο Παράλληλης Επεξεργασίας
 
 Εκτελέστε πολλαπλά εργαλεία ταυτόχρονα για αποδοτικότητα:
 
@@ -1798,7 +1798,7 @@ public class ParallelDataProcessingWorkflow {
     }
     
     public WorkflowResult execute(String datasetId) {
-        // Βήμα 1: Ανάκτηση μεταδεδομένων συνόλου δεδομένων (σύγχρονο)
+        // Βήμα 1: Ανάκτηση μεταδεδομένων συνόλου δεδομένων (συγχρονικά)
         ToolResponse metadataResponse = mcpClient.executeTool("datasetMetadata", 
             Map.of("datasetId", datasetId));
         
@@ -1838,11 +1838,11 @@ public class ParallelDataProcessingWorkflow {
         combinedResults.put("correlations", correlationAnalysis.join().getResult());
         combinedResults.put("outliers", outlierDetection.join().getResult());
         
-        // Βήμα 4: Δημιουργία συνοπτικής αναφοράς
+        // Βήμα 4: Δημιουργία περιληπτικής αναφοράς
         ToolResponse summaryResponse = mcpClient.executeTool("reportGenerator", 
             Map.of("analysisResults", combinedResults));
         
-        // Επιστροφή του πλήρους αποτελέσματος της ροής εργασίας
+        // Επιστροφή ολοκληρωμένου αποτελέσματος ροής εργασίας
         WorkflowResult result = new WorkflowResult();
         result.setDatasetId(datasetId);
         result.setAnalysisResults(combinedResults);
@@ -1853,7 +1853,7 @@ public class ParallelDataProcessingWorkflow {
 }
 ```
 
-### 4. Πρότυπο Ανάκτησης από Σφάλματα
+### 4. Μοτίβο Ανάκτησης Σφαλμάτων
 
 Υλοποιήστε ομαλές εναλλακτικές λύσεις σε αποτυχίες εργαλείων:
 
@@ -1864,7 +1864,7 @@ class ResilientWorkflow:
     
     async def execute_with_fallback(self, primary_tool, fallback_tool, parameters):
         try:
-            # Δοκιμάστε πρώτα το κύριο εργαλείο
+            # Δοκιμάστε πρώτα το πρωτεύον εργαλείο
             response = await self.client.execute_tool(primary_tool, parameters)
             return {
                 "result": response.result,
@@ -1875,9 +1875,9 @@ class ResilientWorkflow:
             # Καταγράψτε την αποτυχία
             logging.warning(f"Primary tool '{primary_tool}' failed: {str(e)}")
             
-            # Επιστροφή στο εφεδρικό εργαλείο
+            # Επιστροφή σε δευτερεύον εργαλείο
             try:
-                # Ίσως χρειαστεί να μετασχηματίσετε τις παραμέτρους για το εφεδρικό εργαλείο
+                # Ίσως χρειαστεί μετάλλαξη παραμέτρων για το εργαλείο επιστροφής
                 fallback_params = self._adapt_parameters(parameters, primary_tool, fallback_tool)
                 
                 response = await self.client.execute_tool(fallback_tool, fallback_params)
@@ -1897,21 +1897,21 @@ class ResilientWorkflow:
     def _adapt_parameters(self, params, from_tool, to_tool):
         """Adapt parameters between different tools if needed"""
         # Αυτή η υλοποίηση θα εξαρτηθεί από τα συγκεκριμένα εργαλεία
-        # Για αυτό το παράδειγμα, θα επιστρέψουμε απλώς τις αρχικές παραμέτρους
+        # Για αυτό το παράδειγμα, απλώς θα επιστρέψουμε τις αρχικές παραμέτρους
         return params
 
 # Παράδειγμα χρήσης
 async def get_weather(workflow, location):
     return await workflow.execute_with_fallback(
-        "premiumWeatherService",  # Κύριο (επί πληρωμή) API καιρού
+        "premiumWeatherService",  # Πρωτεύον (επί πληρωμή) API καιρού
         "basicWeatherService",    # Εφεδρικό (δωρεάν) API καιρού
         {"location": location}
     )
 ```
 
-### 5. Πρότυπο Σύνθεσης Ροών Εργασίας
+### 5. Μοτίβο Σύνθεσης Ροής Εργασίας
 
-Δημιουργήστε σύνθετες ροές εργασίας συνθέτοντας απλούστερες:
+Δημιουργήστε πολύπλοκες ροές εργασίας συνθέτοντας απλούστερες:
 
 ```csharp
 public class CompositeWorkflow : IWorkflow
@@ -1958,37 +1958,37 @@ var result = await documentWorkflow.ExecuteAsync(new WorkflowContext {
 });
 ```
 
-# Δοκιμή MCP Servers: Καλύτερες Πρακτικές και Κορυφαίες Συμβουλές
+# Δοκιμές Διακομιστών MCP: Βέλτιστες Πρακτικές και Κορυφαίες Συμβουλές
 
 ## Επισκόπηση
 
-Η δοκιμή αποτελεί κρίσιμο στοιχείο για την ανάπτυξη αξιόπιστων, υψηλής ποιότητας MCP servers. Αυτός ο οδηγός παρέχει ολοκληρωμένες καλύτερες πρακτικές και συμβουλές για τη δοκιμή των MCP servers σας καθ' όλη τη διάρκεια ανάπτυξης, από δοκιμές μονάδας έως ολοκληρωμένες και end-to-end επικυρώσεις.
+Οι δοκιμές αποτελούν κρίσιμο στοιχείο για την ανάπτυξη αξιόπιστων, υψηλής ποιότητας διακομιστών MCP. Αυτός ο οδηγός παρέχει ολοκληρωμένες βέλτιστες πρακτικές και συμβουλές για τη δοκιμή των διακομιστών MCP κατά τη διάρκεια του κύκλου ζωής ανάπτυξης, από τις δοκιμές μονάδας μέχρι τη δοκιμή ολοκλήρωσης και την επικύρωση τέλους-σε-τέλος.
 
-## Γιατί η Δοκιμή είναι Σημαντική για τους MCP Servers
+## Γιατί οι Δοκιμές Είναι Σημαντικές για Διακομιστές MCP
 
-Οι MCP servers λειτουργούν ως ουσιαστικό ενδιάμεσο λογισμικό μεταξύ μοντέλων AI και πελατειακών εφαρμογών. Η διεξοδική δοκιμή εξασφαλίζει:
+Οι διακομιστές MCP λειτουργούν ως κρίσιμο ενδιάμεσο στρώμα μεταξύ AI μοντέλων και εφαρμογών πελάτη. Η εμπεριστατωμένη δοκιμή διασφαλίζει:
 
-- Αξιοπιστία σε παραγωγικά περιβάλλοντα
-- Ακριβή διαχείριση αιτήσεων και απαντήσεων
+- Αξιοπιστία σε περιβάλλοντα παραγωγής
+- Ακριβή διαχείριση αιτημάτων και απαντήσεων
 - Σωστή υλοποίηση προδιαγραφών MCP
 - Ανθεκτικότητα σε αποτυχίες και ακραίες περιπτώσεις
 - Συνεπή απόδοση υπό διάφορα φορτία
 
-## Δοκιμή Μονάδας για MCP Servers
+## Δοκιμές Μονάδας για Διακομιστές MCP
 
-### Δοκιμή Μονάδας (Βάση)
+### Δοκιμές Μονάδας (Θεμέλιο)
 
-Οι δοκιμές μονάδας επαληθεύουν τα επιμέρους στοιχεία του MCP server σας απομονωμένα.
+Οι δοκιμές μονάδας επαληθεύουν μεμονωμένα εξαρτήματα του διακομιστή MCP απομονωμένα.
 
-#### Τι να Δοκιμάσετε
+#### Τι να δοκιμάσετε
 
-1. **Διαχειριστές Πόρων**: Δοκιμάστε ανεξάρτητα τη λογική κάθε διαχειριστή πόρου  
-2. **Υλοποιήσεις Εργαλείων**: Επαληθεύστε τη συμπεριφορά των εργαλείων με διάφορες εισόδους  
-3. **Πρότυπα Προτροπών**: Βεβαιωθείτε ότι τα πρότυπα προτροπών αποδίδονται σωστά  
+1. **Διαχειριστές Πόρων**: Δοκιμάστε τη λογική κάθε διαχειριστή πόρων ανεξάρτητα  
+2. **Υλοποιήσεις Εργαλείων**: Επαληθεύστε τη συμπεριφορά εργαλείων με διάφορες εισόδους  
+3. **Πρότυπα Προτροπών**: Εξασφαλίστε ότι τα πρότυπα προτροπών αποδίδονται σωστά  
 4. **Επικύρωση Σχήματος**: Δοκιμάστε τη λογική επικύρωσης παραμέτρων  
 5. **Διαχείριση Σφαλμάτων**: Επαληθεύστε τις απαντήσεις σφαλμάτων για μη έγκυρες εισόδους
 
-#### Καλύτερες Πρακτικές για Δοκιμές Μονάδας
+#### Βέλτιστες Πρακτικές για Δοκιμές Μονάδας
 
 ```csharp
 // Example unit test for a calculator tool in C#
@@ -2014,9 +2014,9 @@ public async Task CalculatorTool_Add_ReturnsCorrectSum()
 ```
 
 ```python
-# Παράδειγμα δοκιμής μονάδας για ένα εργαλείο αριθμομηχανής σε Python
+# Παράδειγμα unit test για ένα εργαλείο αριθμομηχανής σε Python
 def test_calculator_tool_add():
-    # Διάταξη
+    # Προετοιμασία
     calculator = CalculatorTool()
     parameters = {
         "operation": "add",
@@ -2032,19 +2032,19 @@ def test_calculator_tool_add():
     assert result["value"] == 12
 ```
 
-### Ολοκληρωμένη Δοκιμή (Μεσαίο Επίπεδο)
+### Δοκιμές Ολοκλήρωσης (Μεσαίο Επίπεδο)
 
-Οι ολοκληρωμένες δοκιμές επαληθεύουν τις αλληλεπιδράσεις μεταξύ των στοιχείων του MCP server σας.
+Οι δοκιμές ολοκλήρωσης επαληθεύουν τις αλληλεπιδράσεις μεταξύ στοιχείων του διακομιστή MCP.
 
-#### Τι να Δοκιμάσετε
+#### Τι να δοκιμάσετε
 
-1. **Εκκίνηση Server**: Δοκιμάστε την εκκίνηση του server με διάφορες ρυθμίσεις  
-2. **Εγγραφή Διαδρομών**: Επαληθεύστε ότι όλα τα endpoints είναι σωστά καταχωρημένα  
-3. **Διαχείριση Αιτήσεων**: Δοκιμάστε πλήρη κύκλο αίτησης-απάντησης  
-4. **Διασπορά Σφαλμάτων**: Βεβαιωθείτε ότι τα σφάλματα διαχειρίζονται σωστά σε όλα τα στοιχεία  
-5. **Αυθεντικοποίηση & Αδειοδότηση**: Δοκιμάστε μηχανισμούς ασφαλείας
+1. **Εκκίνηση Διακομιστή**: Δοκιμάστε την εκκίνηση με διάφορες ρυθμίσεις  
+2. **Καταχώρηση Διαδρομών**: Επαληθεύστε ότι όλα τα endpoints έχουν καταχωρηθεί σωστά  
+3. **Επεξεργασία Αιτημάτων**: Δοκιμάστε τον πλήρη κύκλο αιτήματος-απόκρισης  
+4. **Διάχυση Σφαλμάτων**: Εξασφαλίστε σωστή διαχείριση σφαλμάτων σε όλα τα στοιχεία  
+5. **Αυθεντικοποίηση & Εξουσιοδότηση**: Δοκιμάστε τους μηχανισμούς ασφάλειας
 
-#### Καλύτερες Πρακτικές για Ολοκληρωμένη Δοκιμή
+#### Βέλτιστες Πρακτικές για Δοκιμές Ολοκλήρωσης
 
 ```csharp
 // Example integration test for MCP server in C#
@@ -2080,27 +2080,27 @@ public async Task Server_ProcessToolRequest_ReturnsValidResponse()
 }
 ```
 
-### Δοκιμή End-to-End (Ανώτερο Επίπεδο)
+### Δοκιμές Τέλους-σε-Τέλος (Ψηλότερο Επίπεδο)
 
-Οι δοκιμές end-to-end επαληθεύουν τη συμπεριφορά ολόκληρου του συστήματος από πελάτη έως server.
+Οι δοκιμές τέλους-σε-τέλος επαληθεύουν τη συνολική συμπεριφορά του συστήματος από τον πελάτη μέχρι τον διακομιστή.
 
-#### Τι να Δοκιμάσετε
+#### Τι να δοκιμάσετε
 
-1. **Επικοινωνία Πελάτη-Server**: Δοκιμάστε πλήρεις κύκλους αίτησης-απάντησης  
-2. **Πραγματικά SDK Πελάτη**: Δοκιμάστε με πραγματικές υλοποιήσεις πελατών  
-3. **Απόδοση Υπό Φόρτο**: Επαληθεύστε τη συμπεριφορά με πολλαπλές ταυτόχρονες αιτήσεις  
+1. **Επικοινωνία Πελάτη-Διακομιστή**: Δοκιμάστε πλήρεις κύκλους αιτήματος-απόκρισης  
+2. **Πραγματικά SDK Πελατών**: Δοκιμάστε με πραγματικές υλοποιήσεις πελατών  
+3. **Απόδοση Υπό Φορτίο**: Επαληθεύστε τη συμπεριφορά με πολλαπλά ταυτόχρονα αιτήματα  
 4. **Ανάκτηση από Σφάλματα**: Δοκιμάστε την ανάκτηση του συστήματος από αποτυχίες  
-5. **Λειτουργίες Μεγάλης Διάρκειας**: Επαληθεύστε τη διαχείριση streaming και μακροχρόνιων λειτουργιών
+5. **Μακροχρόνιες Λειτουργίες**: Επαληθεύστε τη διαχείριση ροών και μακροχρόνιων εργασιών  
 
-#### Καλύτερες Πρακτικές για Δοκιμή E2E
+#### Βέλτιστες Πρακτικές για Δοκιμές E2E
 
 ```typescript
-// Παράδειγμα E2E δοκιμής με έναν πελάτη σε TypeScript
+// Παράδειγμα ολοκληρωμένου (E2E) τεστ με πελάτη σε TypeScript
 describe('MCP Server E2E Tests', () => {
   let client: McpClient;
   
   beforeAll(async () => {
-    // Εκκίνηση διακομιστή σε περιβάλλον δοκιμής
+    // Εκκίνηση διακομιστή σε περιβάλλον δοκιμών
     await startTestServer();
     client = new McpClient('http://localhost:5000');
   });
@@ -2126,16 +2126,16 @@ describe('MCP Server E2E Tests', () => {
 
 ## Στρατηγικές Mocking για Δοκιμές MCP
 
-Το mocking είναι απαραίτητο για την απομόνωση στοιχείων κατά τη δοκιμή.
+Το mocking είναι απαραίτητο για την απομόνωση εξαρτημάτων κατά τη διάρκεια δοκιμών.
 
-### Συστατικά που θα Mockάρετε
+### Εξαρτήματα για Mocking
 
-1. **Εξωτερικά Μοντέλα AI**: Mock απαντήσεις μοντέλων για προβλέψιμη δοκιμή  
-2. **Εξωτερικές Υπηρεσίες**: Mock API εξαρτήσεις (βάσεις δεδομένων, υπηρεσίες τρίτων)  
-3. **Υπηρεσίες Αυθεντικοποίησης**: Mock παρόχους ταυτοποίησης  
-4. **Πάροχοι Πόρων**: Mock δαπανηρούς διαχειριστές πόρων
+1. **Εξωτερικά AI Μοντέλα**: Κάντε mock τις απαντήσεις μοντέλων για προβλέψιμες δοκιμές  
+2. **Εξωτερικές Υπηρεσίες**: Κάντε mock API εξαρτήσεις (βάσεις δεδομένων, υπηρεσίες τρίτων)  
+3. **Υπηρεσίες Αυθεντικοποίησης**: Κάντε mock παρόχους ταυτότητας  
+4. **Πάροχοι Πόρων**: Κάντε mock δαπανηρούς διαχειριστές πόρων
 
-### Παράδειγμα: Mock απάντησης μοντέλου AI
+### Παράδειγμα: Mocking Απάντησης AI Μοντέλου
 
 ```csharp
 // C# example with Moq
@@ -2162,34 +2162,34 @@ def test_with_mock_model(mock_model):
         "finish_reason": "completed"
     }
     
-    # Χρήση mock στη δοκιμή
+    # Χρησιμοποίηση mock στο τεστ
     server = McpServer(model_client=mock_model)
-    # Συνεχίστε με τη δοκιμή
+    # Συνέχεια με το τεστ
 ```
 
-## Δοκιμή Απόδοσης
+## Δοκιμές Απόδοσης
 
-Η δοκιμή απόδοσης είναι καθοριστική για παραγωγικούς MCP servers.
+Οι δοκιμές απόδοσης είναι κρίσιμες για διακομιστές MCP παραγωγής.
 
 ### Τι να Μετρήσετε
 
-1. **Καθυστέρηση**: Χρόνος απόκρισης στα αιτήματα  
-2. **Διαμεταγωγή**: Αιτήματα που διαχειρίζονται ανά δευτερόλεπτο  
+1. **Καθυστέρηση**: Χρόνος απόκρισης αιτημάτων  
+2. **Ροή**: Αιτήματα που διαχειρίζονται ανά δευτερόλεπτο  
 3. **Χρήση Πόρων**: Χρήση CPU, μνήμης, δικτύου  
-4. **Διαχείριση Συγχρονισμού**: Συμπεριφορά σε παράλληλα αιτήματα  
-5. **Χαρακτηριστικά Κλιμάκωσης**: Απόδοση με αύξηση φορτίου
+4. **Διαχείριση Ταυτόχρονης Εκτέλεσης**: Συμπεριφορά υπό παράλληλα αιτήματα  
+5. **Ιδιότητες Κλιμάκωσης**: Απόδοση με αύξηση φορτίου  
 
-### Εργαλεία για Δοκιμή Απόδοσης
+### Εργαλεία για Δοκιμές Απόδοσης
 
-- **k6**: Εργαλείο φόρτωσης ανοιχτού κώδικα  
-- **JMeter**: Ολοκληρωμένη δοκιμή απόδοσης  
-- **Locust**: Δοκιμή φόρτωσης βασισμένη σε Python  
-- **Azure Load Testing**: Δοκιμή απόδοσης στο cloud
+- **k6**: Εργαλείο ανοικτού κώδικα για δοκιμές φόρτου  
+- **JMeter**: Εκτενείς δοκιμές απόδοσης  
+- **Locust**: Δοκιμές φόρτου βασισμένες σε Python  
+- **Azure Load Testing**: Δοκιμές απόδοσης στο cloud  
 
-### Παράδειγμα: Βασική Δοκιμή Φόρτου με k6
+### Παράδειγμα: Βασική Δοκιμή Φορτίου με k6
 
 ```javascript
-// σενάριο k6 για δοκιμή φόρτου διακομιστή MCP
+// σενάριο k6 για δοκιμή φόρτωσης διακομιστή MCP
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -2226,15 +2226,16 @@ export default function () {
 }
 ```
 
-## Αυτοματοποίηση Δοκιμών για MCP Servers
+## Αυτοματοποίηση Δοκιμών για Διακομιστές MCP
 
-Η αυτοματοποίηση των δοκιμών εξασφαλίζει συνεπή ποιότητα και γρηγορότερους κύκλους ανατροφοδότησης.
+Η αυτοματοποίηση των δοκιμών εξασφαλίζει συνεπή ποιότητα και ταχύτερη ανατροφοδότηση.
 
 ### Ενσωμάτωση CI/CD
-1. **Εκτέλεση Μονάδων Ελέγχου σε Αιτήματα Pull**: Εξασφαλίστε ότι οι αλλαγές κώδικα δεν διακόπτουν την υπάρχουσα λειτουργικότητα  
-2. **Δοκιμές Ενσωμάτωσης σε Στάδιο Δοκιμών**: Εκτελέστε δοκιμές ενσωμάτωσης σε προπαραγωγικά περιβάλλοντα  
-3. **Βάσεις Απόδοσης**: Διατηρήστε σημεία αναφοράς απόδοσης για την ανίχνευση υποβιβασμών  
-4. **Έλεγχοι Ασφαλείας**: Αυτοματοποιήστε τους ελέγχους ασφαλείας ως μέρος της ροής εργασίας  
+
+1. **Εκτέλεση Δοκιμών Μονάδας σε Pull Requests**: Εξασφαλίστε ότι οι αλλαγές κώδικα δεν βλάπτουν την υπάρχουσα λειτουργικότητα
+2. **Δοκιμές Ενσωμάτωσης στο Staging**: Εκτελέστε δοκιμές ενσωμάτωσης σε περιβάλλοντα προ-παραγωγής  
+3. **Βάσεις Απόδοσης**: Διατηρήστε σημεία αναφοράς απόδοσης για ανίχνευση υφέσεων  
+4. **Σαρώσεις Ασφαλείας**: Αυτοματοποιήστε τις δοκιμές ασφαλείας ως μέρος της ροής εργασίας  
 
 ### Παράδειγμα CI Pipeline (GitHub Actions)
 
@@ -2274,20 +2275,20 @@ jobs:
     - name: Performance Tests
       run: dotnet run --project tests/PerformanceTests/PerformanceTests.csproj
 ```
-  
-## Έλεγχος Συμμόρφωσης με τις Προδιαγραφές MCP
+
+## Δοκιμή Συμμόρφωσης με Προδιαγραφές MCP
 
 Επαληθεύστε ότι ο διακομιστής σας υλοποιεί σωστά τις προδιαγραφές MCP.
 
-### Σημαντικοί Τομείς Συμμόρφωσης
+### Βασικοί Τομείς Συμμόρφωσης
 
-1. **Σημεία Άκρου API**: Δοκιμάστε τα απαιτούμενα σημεία άκρου (/resources, /tools, κτλ.)  
-2. **Μορφή Αιτήματος/Απάντησης**: Επαληθεύστε τη συμμόρφωση με το σχήμα  
-3. **Κωδικοί Σφάλματος**: Βεβαιωθείτε για σωστούς κωδικούς κατάστασης για διάφορα σενάρια  
-4. **Τύποι Περιεχομένου**: Δοκιμάστε τη διαχείριση διαφορετικών τύπων περιεχομένου  
-5. **Ροή Ταυτοποίησης**: Επαληθεύστε μηχανισμούς ταυτοποίησης σύμφωνα με τις προδιαγραφές  
+1. **Σημεία πρόσβασης API**: Δοκιμάστε τα απαιτούμενα endpoints (/resources, /tools, κλπ.)  
+2. **Μορφή Αιτήματος/Απόκρισης**: Επικυρώστε τη συμμόρφωση με το σχήμα  
+3. **Κωδικοί Σφαλμάτων**: Επαληθεύστε τους σωστούς κωδικούς κατάστασης για διάφορα σενάρια  
+4. **Τύποι Περιεχομένου**: Δοκιμάστε το χειρισμό διαφορετικών τύπων περιεχομένου  
+5. **Ροή Πιστοποίησης**: Επαληθεύστε μηχανισμούς πιστοποίησης σύμφωνους με τις προδιαγραφές  
 
-### Σύνολο Δοκιμών Συμμόρφωσης
+### Πακέτο Δοκιμών Συμμόρφωσης
 
 ```csharp
 [Fact]
@@ -2313,61 +2314,61 @@ public async Task Server_ResourceEndpoint_ReturnsCorrectSchema()
     });
 }
 ```
-  
-## Top 10 Συμβουλές για Αποτελεσματικό Έλεγχο Διακομιστών MCP  
 
-1. **Δοκιμάστε Ξεχωριστά τους Ορισμούς Εργαλείων**: Επαληθεύστε τους ορισμούς σχήματος ξεχωριστά από τη λογική εργαλείων  
-2. **Χρησιμοποιήστε Παραμετροποιημένες Δοκιμές**: Ελέγξτε τα εργαλεία με ποικιλία εισόδων, συμπεριλαμβανομένων ακραίων περιπτώσεων  
-3. **Ελέγξτε τις Απαντήσεις Σφάλματος**: Βεβαιωθείτε για σωστή διαχείριση σφαλμάτων για όλες τις πιθανές καταστάσεις  
-4. **Δοκιμάστε τη Λογική Εξουσιοδότησης**: Εξασφαλίστε σωστό έλεγχο πρόσβασης για διαφορετικούς ρόλους χρηστών  
-5. **Παρακολουθήστε την Κάλυψη των Δοκιμών**: Στοχεύστε σε υψηλή κάλυψη για κώδικα κρίσιμης διαδρομής  
-6. **Δοκιμάστε Ροές Streaming**: Επαληθεύστε σωστή διαχείριση περιεχομένου συνεχούς ροής  
+## Κορυφαίες 10 Συμβουλές για Αποτελεσματικές Δοκιμές Διακομιστή MCP
+
+1. **Δοκιμάστε Ξεχωριστά τους Ορισμούς Εργαλείων**: Επαληθεύστε τους ορισμούς του σχήματος ανεξάρτητα από τη λογική των εργαλείων  
+2. **Χρησιμοποιήστε Παραμετροποιημένες Δοκιμές**: Δοκιμάστε εργαλεία με ποικιλία εισόδων, συμπεριλαμβανομένων οριακών περιπτώσεων  
+3. **Ελέγξτε τις Αποκρίσεις Σφαλμάτων**: Επαληθεύστε τον σωστό χειρισμό σφαλμάτων για όλες τις πιθανές συνθήκες σφάλματος  
+4. **Δοκιμάστε τη Λογική Εξουσιοδότησης**: Διασφαλίστε τον σωστό έλεγχο πρόσβασης για διαφορετικούς ρόλους χρηστών  
+5. **Παρακολουθήστε την Κάλυψη Δοκιμών**: Στοχεύστε σε υψηλή κάλυψη του κώδικα κρίσιμης διαδρομής  
+6. **Δοκιμάστε Ροές Δεδομένων (Streaming)**: Επαληθεύστε τον σωστό χειρισμό του streaming περιεχομένου  
 7. **Προσομοιώστε Προβλήματα Δικτύου**: Δοκιμάστε τη συμπεριφορά υπό κακές συνθήκες δικτύου  
-8. **Δοκιμάστε Όρια Πόρων**: Επαληθεύστε τη συμπεριφορά όταν επιτυγχάνονται όρια ή ποσοστώσεις  
-9. **Αυτοματοποιήστε Δοκιμές Υποβιβασμού**: Δημιουργήστε σύνολο που εκτελείται σε κάθε αλλαγή κώδικα  
-10. **Τεκμηριώστε τις Περιπτώσεις Δοκιμής**: Διατηρήστε ξεκάθαρη τεκμηρίωση σεναρίων δοκιμών  
+8. **Δοκιμάστε Όρια Πόρων**: Επαληθεύστε τη συμπεριφορά όταν φτάνετε σε ποσοστώσεις ή όρια ρυθμού  
+9. **Αυτοματοποιήστε Δοκιμές Υφέσεων**: Δημιουργήστε ένα σύνολο που τρέχει σε κάθε αλλαγή κώδικα  
+10. **Τεκμηριώστε τις Περιπτώσεις Δοκιμής**: Διατηρήστε σαφή τεκμηρίωση των σεναρίων δοκιμής  
 
-## Συνήθη Σφάλματα στον Έλεγχο
+## Συνήθη Σφάλματα στις Δοκιμές
 
-- **Υπερβολική εξάρτηση από δοκιμές ομαλής διαδρομής**: Φροντίστε να ελέγχετε τα σφάλματα διεξοδικά  
+- **Υπερβολική εξάρτηση από δοκιμές ευνοϊκών σεναρίων**: Φροντίστε να δοκιμάζετε διεξοδικά όλες τις περιπτώσεις σφαλμάτων  
 - **Αγνόηση των δοκιμών απόδοσης**: Εντοπίστε σημεία συμφόρησης πριν επηρεάσουν την παραγωγή  
-- **Δοκιμές μόνο σε απομόνωση**: Συνδυάστε μονάδες, ενσωμάτωση και end-to-end δοκιμές  
-- **Ανεπαρκής κάλυψη API**: Εξασφαλίστε ότι όλα τα σημεία άκρου και οι λειτουργίες ελέγχονται  
-- **Ασυνεπή περιβάλλοντα δοκιμής**: Χρησιμοποιήστε κοντέινερ για συνεπή περιβάλλοντα δοκιμών  
+- **Δοκιμές μόνο σε απομόνωση**: Συνδυάστε μονάδες, ενσωμάτωση και E2E δοκιμές  
+- **Ελλιπής κάλυψη API**: Διασφαλίστε ότι όλα τα endpoints και λειτουργίες έχουν δοκιμαστεί  
+- **Ασυνεπή περιβάλλοντα δοκιμών**: Χρησιμοποιήστε containers για συνεπή περιβάλλοντα δοκιμών  
 
 ## Συμπέρασμα
 
-Μια ολοκληρωμένη στρατηγική δοκιμών είναι απαραίτητη για την ανάπτυξη αξιόπιστων, ποιοτικών διακομιστών MCP. Εφαρμόζοντας τις βέλτιστες πρακτικές και συμβουλές που περιγράφονται σε αυτόν τον οδηγό, μπορείτε να εξασφαλίσετε ότι οι υλοποιήσεις MCP σας πληρούν τα υψηλότερα πρότυπα ποιότητας, αξιοπιστίας και απόδοσης.  
+Μια ολοκληρωμένη στρατηγική δοκιμών είναι απαραίτητη για την ανάπτυξη αξιόπιστων, υψηλής ποιότητας διακομιστών MCP. Εφαρμόζοντας τις βέλτιστες πρακτικές και συμβουλές που περιγράφονται σε αυτό τον οδηγό, μπορείτε να εξασφαλίσετε ότι οι υλοποιήσεις MCP πληρούν τα υψηλότερα πρότυπα ποιότητας, αξιοπιστίας και απόδοσης.  
 
 ## Βασικά Σημεία
 
-1. **Σχεδιασμός Εργαλείων**: Ακολουθήστε την αρχή της μίας ευθύνης, χρησιμοποιήστε ένεση εξαρτήσεων και σχεδιάστε για συνθετότητα  
-2. **Σχεδιασμός Σχήματος**: Δημιουργήστε σαφή, καλά τεκμηριωμένα σχήματα με κατάλληλους περιορισμούς επικύρωσης  
+1. **Σχεδίαση Εργαλείων**: Ακολουθήστε την αρχή της μοναδικής ευθύνης, χρησιμοποιήστε εξάρτηση injection και σχεδιάστε για συνθετότητα  
+2. **Σχεδίαση Σχήματος**: Δημιουργήστε σαφή, καλά τεκμηριωμένα σχήματα με κατάλληλους περιορισμούς επικύρωσης  
 3. **Διαχείριση Σφαλμάτων**: Υλοποιήστε ομαλή διαχείριση σφαλμάτων, δομημένες απαντήσεις σφαλμάτων και λογική επανάληψης  
-4. **Απόδοση**: Χρησιμοποιήστε caching, ασύγχρονη επεξεργασία και ρυθμιστική διαχείριση πόρων  
-5. **Ασφάλεια**: Εφαρμόστε εκτενή επικύρωση εισόδου, ελέγχους εξουσιοδότησης και διαχείριση ευαίσθητων δεδομένων  
+4. **Απόδοση**: Χρησιμοποιήστε caching, ασύγχρονη επεξεργασία και περιορισμό πόρων  
+5. **Ασφάλεια**: Εφαρμόστε σχολαστική επικύρωση εισόδου, ελέγχους εξουσιοδότησης και χειρισμό ευαίσθητων δεδομένων  
 6. **Δοκιμές**: Δημιουργήστε ολοκληρωμένες μονάδες, ενσωμάτωσης και end-to-end δοκιμές  
-7. **Πρότυπα Ροής Εργασιών**: Εφαρμόστε καθιερωμένα πρότυπα όπως αλυσίδες, δρομολογητές και παράλληλη επεξεργασία  
+7. **Πρότυπα Ροής Εργασίας**: Εφαρμόστε καθιερωμένα πρότυπα όπως αλυσίδες, διανομείς και παράλληλη επεξεργασία  
 
 ## Άσκηση
 
 Σχεδιάστε ένα εργαλείο MCP και ροή εργασίας για ένα σύστημα επεξεργασίας εγγράφων που:
 
-1. Δέχεται έγγραφα σε πολλαπλές μορφές (PDF, DOCX, TXT)  
+1. Αποδέχεται έγγραφα σε πολλαπλές μορφές (PDF, DOCX, TXT)  
 2. Εξάγει κείμενο και βασικές πληροφορίες από τα έγγραφα  
-3. Ταξινομεί τα έγγραφα κατά τύπο και περιεχόμενο  
-4. Δημιουργεί περίληψη για κάθε έγγραφο  
+3. Ταξινομεί έγγραφα με βάση τον τύπο και το περιεχόμενο  
+4. Δημιουργεί σύνοψη για κάθε έγγραφο  
 
 Υλοποιήστε τα σχήματα εργαλείων, τη διαχείριση σφαλμάτων και ένα πρότυπο ροής εργασίας που ταιριάζει καλύτερα σε αυτό το σενάριο. Σκεφτείτε πώς θα δοκιμάζατε αυτή την υλοποίηση.  
 
 ## Πόροι
 
-1. Ενταχθείτε στην κοινότητα MCP στο [Azure AI Foundry Discord Community](https://aka.ms/foundrydevs) για να μένετε ενημερωμένοι για τις τελευταίες εξελίξεις  
-2. Συνεισφέρετε σε ανοιχτού κώδικα [MCP projects](https://github.com/modelcontextprotocol)  
-3. Εφαρμόστε τις αρχές MCP στις πρωτοβουλίες AI της δικής σας οργάνωσης  
+1. Γίνετε μέλος της κοινότητας MCP στο [Microsoft Foundry Discord Community](https://aka.ms/foundrydevs) για να μένετε ενημερωμένοι για τις τελευταίες εξελίξεις  
+2. Συμβάλλετε σε έργα MCP ανοικτού κώδικα [MCP projects](https://github.com/modelcontextprotocol)  
+3. Εφαρμόστε τις αρχές MCP στην δική σας οργάνωση AI  
 4. Εξερευνήστε εξειδικευμένες υλοποιήσεις MCP για τον κλάδο σας.  
-5. Σκεφτείτε να παρακολουθήσετε εξελιγμένα μαθήματα σε συγκεκριμένα θέματα MCP, όπως πολυτροπική ενσωμάτωση ή ενσωμάτωση επιχειρησιακών εφαρμογών.  
-6. Πειραματιστείτε με τη δημιουργία των δικών σας εργαλείων και ροών MCP χρησιμοποιώντας τις αρχές που μάθατε μέσω του [Hands on Lab](../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)  
+5. Σκεφτείτε να παρακολουθήσετε προχωρημένα μαθήματα σε συγκεκριμένα θέματα MCP, όπως πολυτροπική ενσωμάτωση ή ενσωμάτωση επιχειρησιακών εφαρμογών.  
+6. Πειραματιστείτε κατασκευάζοντας τα δικά σας εργαλεία και ροές εργασίας MCP χρησιμοποιώντας τις αρχές που μάθατε μέσω του [Hands on Lab](../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)  
 
 ## Τι Ακολουθεί
 
@@ -2377,5 +2378,5 @@ public async Task Server_ResourceEndpoint_ReturnsCorrectSchema()
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Αποποίηση ευθυνών**:
-Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης μέσω τεχνητής νοημοσύνης [Co-op Translator](https://github.com/Azure/co-op-translator). Ενώ καταβάλλουμε κάθε προσπάθεια για ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις μπορεί να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη γλώσσα του θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρωπογενής μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Ενώ επιδιώκουμε την ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

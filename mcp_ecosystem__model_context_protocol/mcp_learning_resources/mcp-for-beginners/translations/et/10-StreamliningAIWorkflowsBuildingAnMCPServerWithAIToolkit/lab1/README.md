@@ -1,111 +1,111 @@
-# 🚀 Moodul 1: AI Toolkit'i põhialused
+# 🚀 Moodul 1: Microsoft Foundry Toolkit põhialused
 
-[![Kestus](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
-[![Raskusaste](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
-[![Eeltingimused](https://img.shields.io/badge/Prerequisites-VS%20Code-orange.svg)]()
+[![Duration](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
+[![Difficulty](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
+[![Prerequisites](https://img.shields.io/badge/Prerequisites-VS%20Code-orange.svg)]()
 
 ## 📋 Õpieesmärgid
 
-Selle mooduli lõpuks oskad:
-- ✅ Installida ja seadistada AI Toolkit'i Visual Studio Code'i jaoks
-- ✅ Navigeerida mudelikataloogis ja mõista erinevaid mudelite allikaid
-- ✅ Kasutada Playground'i mudelite testimiseks ja katsetamiseks
-- ✅ Luua kohandatud AI agente Agent Builder'i abil
-- ✅ Võrrelda mudelite jõudlust erinevate pakkujate vahel
-- ✅ Rakendada parimaid praktikaid promptide koostamisel
+Selle mooduli lõpuks suudad sa:
+- ✅ Installida ja konfigureerida Microsoft Foundry Toolkit laienduse VS Code jaoks
+- ✅ Navigeerida Mudelite kataloogis ja mõista erinevaid mudelite allikaid
+- ✅ Kasutada mänguväljakut mudelite testimiseks ja katsetamiseks
+- ✅ Luuia kohandatud tehisintellekti agente Agent Builderi abil
+- ✅ Võrrelda mudelite jõudlust erinevate teenusepakkujate vahel
+- ✅ Rakendada parimaid tavasid promptide loomisel
 
-## 🧠 Sissejuhatus AI Toolkit'i (AITK)
+## 🧠 Sissejuhatus Microsoft Foundry Toolkiti
 
-**AI Toolkit for Visual Studio Code** on Microsofti juhtiv laiendus, mis muudab VS Code'i terviklikuks AI arenduskeskkonnaks. See ühendab AI uurimistöö praktilise rakenduse arendamisega, muutes generatiivse AI kättesaadavaks igasuguse tasemega arendajatele.
+**Microsoft Foundry Toolkit laiendus VS Code’i jaoks** on Microsofti lipulaevlaiendus, mis muudab VS Code’i kõikehõlmavaks tehisintellekti arenduskeskkonnaks. See sillutab tehisintellekti uurimistöö ja praktilise rakenduste arendamise vahelise lõhe, muutes generatiivse AI kättesaadavaks arendajatele kõigil oskustasemetel.
 
-### 🌟 Põhivõimalused
+### 🌟 Peamised Võimalused
 
-| Funktsioon | Kirjeldus | Kasutusjuht |
-|------------|-----------|-------------|
-| **🗂️ Mudelikataloog** | Juurdepääs enam kui 100 mudelile GitHubist, ONNXist, OpenAI-st, Anthropicust, Google'ist | Mudelite avastamine ja valik |
-| **🔌 BYOM tugi** | Integreeri oma mudelid (kohalik/kaug) | Kohandatud mudelite juurutamine |
-| **🎮 Interaktiivne Playground** | Reaalajas mudelite testimine vestlusliidese abil | Kiire prototüüpimine ja testimine |
-| **📎 Multimodaalne tugi** | Töötle teksti, pilte ja manuseid | Keerukad AI rakendused |
-| **⚡ Partii töötlemine** | Käivita mitu prompti samaaegselt | Tõhusad testimisvood |
-| **📊 Mudelite hindamine** | Sisseehitatud mõõdikud (F1, asjakohasus, sarnasus, koherentsus) | Jõudluse hindamine |
+| Funktsioon | Kirjeldus | Kasutusjuhtum |
+|---------|-------------|----------|
+| **🗂️ Mudelite kataloog** | Ligipääs 100+ mudelile GitHubist, ONNX-ist, OpenAI-st, Anthropicust, Google’ist | Mudelite avastamine ja valimine |
+| **🔌 BYOM tugi** | Integreeri oma mudelid (kohalikud/kaugserveril) | Kohandatud mudelite kasutuselevõtt |
+| **🎮 Interaktiivne mänguväljak** | Reaalajas mudelite testimine vestluse liidese kaudu | Kiire prototüüpimine ja testimine |
+| **📎 Mitmemodaalne tugi** | Töötleb teksti, pilte ja manuseid | Komplekssed tehisintellekti rakendused |
+| **⚡ Partiidena töötlemine** | Käivitab mitu prompti korraga | Tõhus testimisvoog |
+| **📊 Mudelite hindamine** | Sisseehitatud mõõdikud (F1, asjakohasus, sarnasused, sidusus) | Jõudluse hindamine |
 
-### 🎯 Miks AI Toolkit on oluline
+### 🎯 Miks Microsoft Foundry Toolkit on oluline
 
 - **🚀 Kiirendatud arendus**: Ideest prototüübini minutitega
 - **🔄 Ühtne töövoog**: Üks liides mitme AI pakkuja jaoks
-- **🧪 Lihtne katsetamine**: Võrdle mudeleid ilma keeruka seadistuseta
-- **📈 Valmis tootmiseks**: Sujuv üleminek prototüübist juurutamiseni
+- **🧪 Lihtne eksperimenteerimine**: Võrdle mudeleid ilma keeruka seadistuseta
+- **📈 Tootmiseks valmis**: Sujuv üleminek prototüübist juurutusse
 
-## 🛠️ Eeltingimused ja seadistamine
+## 🛠️ Eeltingimused & seadistamine
 
-### 📦 AI Toolkit'i laienduse installimine
+### 📦 Installeeri Microsoft Foundry Toolkit laiendus
 
-**Samm 1: Juurdepääs laienduste turule**
+**Samm 1: Ava laienduste turg**
 1. Ava Visual Studio Code
-2. Navigeeri laienduste vaatesse (`Ctrl+Shift+X` või `Cmd+Shift+X`)
-3. Otsi "AI Toolkit"
+2. Liigu laienduste vaatesse (`Ctrl+Shift+X` või `Cmd+Shift+X`)
+3. Otsi „Microsoft Foundry Toolkit“
 
-**Samm 2: Vali versioon**
-- **🟢 Release**: Soovitatav tootmiskasutuseks
-- **🔶 Pre-release**: Varajane juurdepääs uusimatele funktsioonidele
+**Samm 2: Vali oma versioon**
+- **🟢 Vabastus**: Soovitatav tootmiskasutuseks
+- **🔶 Eelversioon**: Varajane juurdepääs uuenduslikele funktsioonidele
 
-**Samm 3: Installi ja aktiveeri**
+**Samm 3: Paigalda ja aktiveeri**
 
-![AI Toolkit'i laiendus](../../../../translated_images/et/aitkext.d28945a03eed003c.webp)
+![Microsoft Foundry Toolkit Extension](../../../../translated_images/et/aitkext.d28945a03eed003c.webp)
 
-### ✅ Kontroll-loend
-- [ ] AI Toolkit'i ikoon ilmub VS Code'i külgribale
+### ✅ Kontrollnimekiri
+- [ ] Microsoft Foundry Toolkit ikoon on nähtav VS Code külgribal
 - [ ] Laiendus on lubatud ja aktiveeritud
-- [ ] Installimisvigu ei esine väljundpaneelil
+- [ ] Paigaldusvigasid ei ole väljundpaneelis
 
 ## 🧪 Praktiline harjutus 1: GitHubi mudelite uurimine
 
-**🎯 Eesmärk**: Valda mudelikataloogi ja testi oma esimest AI mudelit
+**🎯 Eesmärk**: Valda Mudelite kataloogi ja testi oma esimest AI mudelit
 
-### 📊 Samm 1: Navigeeri mudelikataloogis
+### 📊 Samm 1: Navigeeri Mudelite kataloogis
 
-Mudelikataloog on sinu värav AI ökosüsteemi. See koondab mudeleid mitmelt pakkujalt, muutes valikute avastamise ja võrdlemise lihtsaks.
+Mudelite kataloog on sinu värav tehisintellekti ökosüsteemi. See koondab mudeleid mitmetelt pakkujatelt, lihtsustades avastamist ja võrdlemist.
 
-**🔍 Navigeerimisjuhend:**
+**🔍 Navigatsioonijuhend:**
 
-Klõpsa **MODELS - Catalog** AI Toolkit'i külgribal
+Klõpsa Microsoft Foundry Toolkiti külgribal **MODELS - Catalog**
 
-![Mudelikataloog](../../../../translated_images/et/aimodel.263ed2be013d8fb0.webp)
+![Model Catalog](../../../../translated_images/et/aimodel.263ed2be013d8fb0.webp)
 
-**💡 Näpunäide**: Otsi mudeleid, millel on spetsiifilised võimed, mis sobivad sinu kasutusjuhtumiga (nt koodi genereerimine, loovkirjutamine, analüüs).
+**💡 Näpunäide**: Otsi mudeleid, millel on spetsiifilised võimalused, mis sobivad sinu kasutusjuhtumiga (nt koodi genereerimine, loovkirjutamine, analüüs).
 
-**⚠️ Märkus**: GitHubis hostitud mudelid (st GitHub Models) on tasuta kasutamiseks, kuid nendele kehtivad päringute ja tokenite määrad. Kui soovid kasutada mitte-GitHubi mudeleid (nt Azure AI või muude lõpp-punktide kaudu hostitud mudeleid), pead esitama vastava API võtme või autentimise.
+**⚠️ Märkus**: GitHubis majutatud mudelid (st GitHubi mudelid) on tasuta kasutamiseks, kuid nende kasutamist piirab kiirus- ja tokenipiirang. Kui soovid kasutada mitt-GitHubi mudeleid (välistel serveritel nagu Azure AI või muud lõpp-punktid), pead sisestama sobiva API võtme või autentsuse.
 
 ### 🚀 Samm 2: Lisa ja konfigureeri oma esimene mudel
 
 **Mudeli valimise strateegia:**
-- **GPT-4.1**: Parim keerukate põhjenduste ja analüüsi jaoks
-- **Phi-4-mini**: Kerge, kiire vastus lihtsate ülesannete jaoks
+- **GPT-4.1**: Parim keerukate arutluste ja analüüsi jaoks
+- **Phi-4-mini**: Kerge, kiire vastustega lihtsate ülesannete jaoks
 
 **🔧 Konfigureerimisprotsess:**
-1. Vali **OpenAI GPT-4.1** kataloogist
-2. Klõpsa **Add to My Models** - see registreerib mudeli kasutamiseks
-3. Vali **Try in Playground**, et käivitada testimiskeskkond
-4. Oota mudeli initsialiseerimist (esmakordne seadistamine võib võtta hetke)
+1. Vali kataloogist **OpenAI GPT-4.1**
+2. Klõpsa **Lisa minu mudelite hulka** - see registreerib mudeli kasutamiseks
+3. Vali **Proovi mänguväljakus**, et avada testikeskkond
+4. Oota mudeli initsialiseerimist (esmane seadistus võib hetk aega võtta)
 
-![Playground'i seadistamine](../../../../translated_images/et/playground.dd6f5141344878ca.webp)
+![Playground Setup](../../../../translated_images/et/playground.dd6f5141344878ca.webp)
 
 **⚙️ Mudeli parameetrite mõistmine:**
-- **Temperature**: Kontrollib loovust (0 = deterministlik, 1 = loov)
+- **Temperatuur**: Kontrollib loovust (0 = deterministlik, 1 = loominguline)
 - **Max Tokens**: Maksimaalne vastuse pikkus
-- **Top-p**: Tuumproovide võtmine vastuse mitmekesisuse jaoks
+- **Top-p**: Ydinnäidis vastuse mitmekesisuse jaoks
 
-### 🎯 Samm 3: Valda Playground'i liidest
+### 🎯 Samm 3: Valda mänguväljaku liidest
 
-Playground on sinu AI katsetamise labor. Siin on, kuidas selle potentsiaali maksimeerida:
+Mänguväljak on sinu AI katselabor. Siin on, kuidas selle potentsiaali maksimeerida:
 
-**🎨 Promptide koostamise parimad praktikad:**
-1. **Ole konkreetne**: Selged ja detailirohked juhised annavad paremaid tulemusi
-2. **Anna kontekst**: Lisa asjakohast taustainfot
-3. **Kasuta näiteid**: Näita mudelile, mida soovid, kasutades näiteid
-4. **Iteratsioon**: Täienda prompti esialgsete tulemuste põhjal
+**🎨 Parimad tavad promptide loomisel:**
+1. **Ole konkreetne**: Selged ja üksikasjalikud juhised annavad paremaid tulemusi
+2. **Pakku konteksti**: Sisalda asjakohane taustinfo
+3. **Kasuta näiteid**: Näita mudelile, mida soovid, näidete abil
+4. **Itereeri**: Täienda prompti põhjal esialgseid tulemusi
 
-**🧪 Testimissenaariumid:**
+**🧪 Teststsenaariumid:**
 ```markdown
 # Example 1: Code Generation
 "Write a Python function that calculates the factorial of a number using recursion. Include error handling and docstrings."
@@ -117,46 +117,46 @@ Playground on sinu AI katsetamise labor. Siin on, kuidas selle potentsiaali maks
 "Analyze this sales data and provide insights: [paste your data]. Focus on trends, anomalies, and actionable recommendations."
 ```
 
-![Testimistulemused](../../../../translated_images/et/result.1dfcf211fb359cf6.webp)
+![Testing Results](../../../../translated_images/et/result.1dfcf211fb359cf6.webp)
 
-### 🏆 Väljakutse harjutus: Mudelite jõudluse võrdlemine
+### 🏆 Väljakutseharjutus: Mudelite jõudluse võrdlus
 
-**🎯 Eesmärk**: Võrdle erinevaid mudeleid identsete promptidega, et mõista nende tugevusi
+**🎯 Eesmärk**: Võrdle erinevaid mudeleid sama promptiga, et mõista nende tugevusi
 
 **📋 Juhised:**
 1. Lisa **Phi-4-mini** oma tööruumi
-2. Kasuta sama prompti nii GPT-4.1 kui Phi-4-mini puhul
+2. Kasuta sama prompti nii GPT-4.1 kui ka Phi-4-mini puhul
 
-![Seadistamine](../../../../translated_images/et/set.88132df189ecde2c.webp)
+![set](../../../../translated_images/et/set.88132df189ecde2c.webp)
 
 3. Võrdle vastuste kvaliteeti, kiirust ja täpsust
-4. Dokumenteeri oma järeldused tulemuste jaotises
+4. Kirjuta oma leiud tulemustesse
 
-![Mudelite võrdlus](../../../../translated_images/et/compare.97746cd0f9074955.webp)
+![Model Comparison](../../../../translated_images/et/compare.97746cd0f9074955.webp)
 
-**💡 Olulised avastused:**
+**💡 Olulised tähelepanekud:**
 - Millal kasutada LLM-i vs SLM-i
 - Kulude ja jõudluse kompromissid
-- Erinevate mudelite spetsialiseeritud võimed
+- Eripärased võimed erinevate mudelite puhul
 
-## 🤖 Praktiline harjutus 2: Kohandatud agentide loomine Agent Builder'i abil
+## 🤖 Praktiline harjutus 2: Kohandatud agentide loomine Agent Builderiga
 
-**🎯 Eesmärk**: Loo spetsialiseeritud AI agendid, mis on kohandatud konkreetsete ülesannete ja töövoogude jaoks
+**🎯 Eesmärk**: Loo spetsialiseeritud AI agendid kindlate ülesannete ja töövoogude jaoks
 
-### 🏗️ Samm 1: Agent Builder'i mõistmine
+### 🏗️ Samm 1: Agent Builderi mõistmine
 
-Agent Builder on koht, kus AI Toolkit tõeliselt särab. See võimaldab luua eesmärgipõhiseid AI assistente, mis ühendavad suurte keelemudelite võimsuse kohandatud juhiste, spetsiifiliste parameetrite ja eriteadmistega.
+Agent Builder on koht, kus Microsoft Foundry Toolkit tõeliselt särab. See võimaldab luua eesmärgipäraseid tehisintellekti assistente, kes kombineerivad suurte keelemudelite jõu kohandatud juhiste, spetsiifiliste parameetrite ja eriteadmistega.
 
 **🧠 Agendi arhitektuuri komponendid:**
-- **Põhimudel**: Alus LLM (GPT-4, Groks, Phi jne)
-- **Süsteemi prompt**: Määratleb agendi isiksuse ja käitumise
-- **Parameetrid**: Täpselt häälestatud seaded optimaalseks jõudluseks
-- **Tööriistade integreerimine**: Ühendus väliste API-de ja MCP teenustega
+- **Tuumikmudel**: Põhimudelisuur keelemudel (GPT-4, Groks, Phi jms)
+- **Süsteemi prompt**: Defineerib agendi isiksuse ja käitumise
+- **Parameetrid**: Täpsustatud seaded optimaalseks jõudluseks
+- **Tööriistade integratsioon**: Ühenda väliste API-de ja MCP teenustega
 - **Mälu**: Vestluse kontekst ja sessiooni püsivus
 
-![Agent Builder'i liides](../../../../translated_images/et/agentbuilder.25895b2d2f8c02e7.webp)
+![Agent Builder Interface](../../../../translated_images/et/agentbuilder.25895b2d2f8c02e7.webp)
 
-### ⚙️ Samm 2: Agendi konfiguratsiooni süvaanalüüs
+### ⚙️ Samm 2: Agentide konfiguratsiooni süvavaade
 
 **🎨 Tõhusate süsteemi promptide loomine:**
 ```markdown
@@ -178,25 +178,25 @@ You are a [specific role] with expertise in [domain].
 Provide 2-3 examples of ideal interactions
 ```
 
-*Loomulikult võid kasutada ka Generate System Prompt'i, et AI aitaks sul prompti luua ja optimeerida*
+*Muidugi võid ka kasutada Generate System Prompt funktsiooni, et lasta AI-l aidata promptide genereerimist ja optimeerimist*
 
 **🔧 Parameetrite optimeerimine:**
-| Parameeter | Soovitatav vahemik | Kasutusjuht |
-|------------|--------------------|-------------|
-| **Temperature** | 0.1-0.3 | Tehnilised/faktilised vastused |
-| **Temperature** | 0.7-0.9 | Loovad/ajurünnaku ülesanded |
+| Parameeter | Soovituslik vahemik | Kasutusjuhtum |
+|-----------|------------------|----------|
+| **Temperatuur** | 0.1-0.3 | Tehnilised/faktipõhised vastused |
+| **Temperatuur** | 0.7-0.9 | Loovad/ajurünnakuga ülesanded |
 | **Max Tokens** | 500-1000 | Lühikesed vastused |
-| **Max Tokens** | 2000-4000 | Üksikasjalikud selgitused |
+| **Max Tokens** | 2000-4000 | Üksikasjalikud seletused |
 
 ### 🐍 Samm 3: Praktiline harjutus - Python programmeerimise agent
 
-**🎯 Missioon**: Loo spetsialiseeritud Python'i koodi assistent
+**🎯 Missioon**: Loo spetsialiseeritud Python koodi assistent
 
-**📋 Konfiguratsiooni sammud:**
+**📋 Konfigureerimise sammud:**
 
 1. **Mudeli valik**: Vali **Claude 3.5 Sonnet** (suurepärane koodi jaoks)
 
-2. **Süsteemi prompti kujundamine**:
+2. **Süsteemi promptide kujundamine**:
 ```markdown
 # Python Programming Expert Agent
 
@@ -224,54 +224,56 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 ```
 
 3. **Parameetrite seadistamine**:
-   - Temperature: 0.2 (järjepideva ja usaldusväärse koodi jaoks)
-   - Max Tokens: 2000 (üksikasjalikud selgitused)
+   - Temperatuur: 0.2 (järjepidev, usaldusväärne kood)
+   - Max Tokens: 2000 (üksikasjalikud seletused)
    - Top-p: 0.9 (tasakaalustatud loovus)
 
-![Python agendi konfiguratsioon](../../../../translated_images/et/pythonagent.5e51b406401c165f.webp)
+![Python Agent Configuration](../../../../translated_images/et/pythonagent.5e51b406401c165f.webp)
 
-### 🧪 Samm 4: Testi oma Python'i agenti
+### 🧪 Samm 4: Testi oma Python agenti
 
-**Testimissenaariumid:**
-1. **Lihtne funktsioon**: "Loo funktsioon algarvude leidmiseks"
-2. **Keerukas algoritm**: "Rakenda binaarne otsingupuu koos lisamise, kustutamise ja otsimise meetoditega"
-3. **Reaalmaailma probleem**: "Ehita veebikraapija, mis käsitleb määralimiite ja korduskatseid"
-4. **Silumine**: "Paranda see kood [kleebi vigane kood]"
+**Teststsenaariumid:**
+1. **Põhifunktsioon**: „Loo funktsioon algarvude leidmiseks“
+2. **Keerukas algoritm**: „Rakenda binaarpuu päringupuuga: sisesta, kustuta, otsi meetodid“
+3. **Reaalmaailma probleem**: „Loo veebikraaper, mis haldab päringute kiirusepiirangut ja proovib uuesti“
+4. **Silumise**: „Paranda see kood [kleebi vigane kood]“
 
 **🏆 Edukriteeriumid:**
-- ✅ Kood töötab vigadeta
-- ✅ Sisaldab korrektset dokumentatsiooni
-- ✅ Järgib Python'i parimaid praktikaid
-- ✅ Annab selged selgitused
-- ✅ Soovitab täiustusi
+- ✅ Kood töötab ilma vigadeta
+- ✅ Sisaldab korralikku dokumentatsiooni
+- ✅ Järgib Python parimaid tavasid
+- ✅ Annab selged seletused
+- ✅ Soovitab parendusi
 
 ## 🎓 Moodul 1 kokkuvõte ja järgmised sammud
 
 ### 📊 Teadmiste kontroll
 
 Testi oma arusaamist:
-- [ ] Kas oskad selgitada mudelite erinevusi kataloogis?
+- [ ] Kas suudad selgitada kataloogis mudelite erinevust?
 - [ ] Kas oled edukalt loonud ja testinud kohandatud agenti?
 - [ ] Kas mõistad, kuidas optimeerida parameetreid erinevate kasutusjuhtude jaoks?
-- [ ] Kas oskad kujundada tõhusaid süsteemi prompti?
+- [ ] Kas suudad kujundada tõhusaid süsteemi promte?
 
-### 📚 Täiendavad ressursid
+### 📚 Lisamaterjalid
 
-- **AI Toolkit'i dokumentatsioon**: [Microsofti ametlikud dokumendid](https://github.com/microsoft/vscode-ai-toolkit)
-- **Promptide koostamise juhend**: [Parimad praktikad](https://platform.openai.com/docs/guides/prompt-engineering)
-- **Mudelid AI Toolkit'is**: [Arenduses olevad mudelid](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Microsoft Foundry Toolkit dokumentatsioon**: [Ametlik Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
+- **Prompt Engineering juhend**: [Parimad tavad](https://platform.openai.com/docs/guides/prompt-engineering)
+- **Mudelite ülevaade Microsoft Foundry Toolkitis**: [Mudelite areng](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Palju õnne!** Oled omandanud AI Toolkit'i põhialused ja valmis looma keerukamaid AI rakendusi!
+**🎉 Palju õnne!** Sa oled valdanud Microsoft Foundry Toolkiti põhialused ja oled valmis looma veelgi arenenumaid AI rakendusi!
 
 ### 🔜 Jätka järgmise mooduliga
 
-Valmis keerukamateks võimalusteks? Jätka **[Moodul 2: MCP AI Toolkit'i põhialused](../lab2/README.md)**, kus õpid:
-- Ühendama oma agente väliste tööriistadega Model Context Protocol'i (MCP) abil
-- Looma brauseri automatiseerimise agente Playwright'i abil
-- Integreerima MCP servereid oma AI Toolkit'i agentidega
-- Võimendama oma agente väliste andmete ja võimalustega
+Soovid edasijõudnutele mõeldud võimekusi? Jätka **[Moodul 2: MCP Microsoft Foundry Toolkit põhialused](../lab2/README.md)**, kus õpid, kuidas:
+- Ühendada oma agendid väliste tööriistadega Model Context Protocol (MCP) abil
+- Luua brauseri automaatika agente Playwrightiga
+- Integreerida MCP servereid Microsoft Foundry Toolkit agentidega
+- Võimendada oma agente välise andmevoo ja võimetega
 
 ---
 
-**Lahtiütlus**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame tagada täpsust, palume arvestada, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Algne dokument selle algses keeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitame kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgenduste eest.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

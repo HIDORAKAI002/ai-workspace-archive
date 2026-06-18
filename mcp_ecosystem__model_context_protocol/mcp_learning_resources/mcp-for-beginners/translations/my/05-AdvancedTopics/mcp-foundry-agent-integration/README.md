@@ -1,59 +1,59 @@
-# Model Context Protocol (MCP) ကို Azure AI Foundry နှင့် ပေါင်းစပ်ခြင်း
+# Model Context Protocol (MCP) ကို Microsoft Foundry နှင့် ပေါင်းစပ်ခြင်း
 
-ဤလမ်းညွှန်သည် Model Context Protocol (MCP) ဆာဗာများကို Azure AI Foundry အေးဂျင့်များနှင့် ပေါင်းစပ်၍ အင်အားကြီးသော ကိရိယာများ စီမံခန့်ခွဲမှုနှင့် စီးပွားရေးအဆင့် AI စွမ်းဆောင်ရည်များကို အသုံးပြုနိုင်ရန် ပြသထားသည်။
+ဤလမ်းညွှန်သည် Model Context Protocol (MCP) ဆာဗာများကို Microsoft Foundry အေးဂျင့်များနှင့် ပေါင်းစပ်၍ အင်မတန်အားကောင်းသော ကိရိယာစီစဉ်ခြင်းနှင့် စီးပွားရေးအဆင့် AI စွမ်းဆောင်ရည်များကို အသုံးပြုနိုင်ရန် ဖော်ပြသည်။
 
 ## နိဒါန်း
 
-Model Context Protocol (MCP) သည် AI အက်ပလီကေးရှင်းများကို ပြင်ပဒေတာရင်းမြစ်များနှင့် ကိရိယာများနှင့် လုံခြုံစိတ်ချစွာ ချိတ်ဆက်နိုင်စေရန် ဖွင့်လှစ်ထားသော စံသတ်မှတ်ချက်တစ်ခုဖြစ်သည်။ Azure AI Foundry နှင့် ပေါင်းစပ်သည့်အခါ MCP သည် အေးဂျင့်များအား အမျိုးမျိုးသော ပြင်ပဝန်ဆောင်မှုများ၊ API များနှင့် ဒေတာရင်းမြစ်များကို စံပြုထားသည့် နည်းလမ်းဖြင့် ဝင်ရောက်အသုံးပြုနိုင်စေသည်။
+Model Context Protocol (MCP) သည် AI အက်ပလิเคရှင်းများကို အပြင်အဆင်ဒေတာအရင်းမြစ်များနှင့် ကိရိယာများသို့ လုံခြုံစိတ်ချစွာ ချိတ်ဆက်ပေးသော ဖွင့်လှစ်သော စံချိန်စံညွှန်းတစ်ခုဖြစ်သည်။ Microsoft Foundry နှင့် ပေါင်းစပ်စဉ် MCP သည် အေးဂျင့်များအား အပြင်အဆင်ဝန်ဆောင်မှုများ၊ API များနှင့် ဒေတာအရင်းမြစ်အမျိုးမျိုးကို စံချိန်တင်းစွာ လိုက်လျောညီထွေဖြင့် ဝင်ရောက် ဆက်သွယ် စက်မှုလုပ်ငန်းအသုံး AI ဖြေရှင်းချက်များ ပေးသည်။
 
-ဤပေါင်းစပ်မှုသည် MCP ၏ ကိရိယာပတ်ဝန်းကျင်၏ လွတ်လပ်မှုနှင့် Azure AI Foundry ၏ ခိုင်မာသော အေးဂျင့် ဖရိမ်ဝတ်ကို ပေါင်းစပ်ကာ စီးပွားရေးအဆင့် AI ဖြေရှင်းချက်များကို ကျယ်ပြန့်စွာ စိတ်ကြိုက်ပြင်ဆင်နိုင်စေသည်။
+ဤပေါင်းစပ်မှုသည် MCP ၏ ကိရိယာ ecosystem ၏ ရွေ့လျားနိုင်သည့် လွတ်လပ်မှုနှင့် Microsoft Foundry ၏ ခိုင်မာသော အေးဂျင့် ဖွဲ့စည်းပုံကို ပေါင်းစပ်စေ၍ စီးပွားရေးအဆင့် AI ဖြေရှင်းချက်များကို ကျယ်ပြန့်စွာ ချိန်ညှိနိုင်မှုများနှင့် ပေးစွမ်းသည်။
 
-**[!NOTE]** Azure AI Foundry Agent Service တွင် MCP ကို အသုံးပြုလိုပါက လက်ရှိတွင် အောက်ပါဒေသများသာ ထောက်ပံ့ထားပါသည်။ westus, westus2, uaenorth, southindia နှင့် switzerlandnorth
+**မှတ်ချက်။** Microsoft Foundry Agent Service တွင် MCP ကို အသုံးပြုလိုပါက လက်ရှိတွင် အောက်ပါ ဒေသများသာ ပံ့ပိုးမှု ရှိပါသည်။ westus, westus2, uaenorth, southindia နှင့် switzerlandnorth
 
-## သင်ယူရမည့် ရည်မှန်းချက်များ
+## သင်ယူရမည့် ရည်ရွယ်ချက်များ
 
-ဤလမ်းညွှန်ပြီးဆုံးသည်နှင့်အတူ သင်သည် -
+ဤလမ်းညွှန်ကုန်ဆုံးချိန်တွင် အောက်ပါအရာများကို သိရှိနိုင်ပါမည် -
 
-- Model Context Protocol ၏ အဓိပ္ပါယ်နှင့် အကျိုးကျေးဇူးများကို နားလည်နိုင်မည်
-- Azure AI Foundry အေးဂျင့်များနှင့် အသုံးပြုရန် MCP ဆာဗာများကို တပ်ဆင်နိုင်မည်
-- MCP ကိရိယာ ပေါင်းစပ်ထားသော အေးဂျင့်များကို ဖန်တီးပြီး ပြင်ဆင်နိုင်မည်
-- အမှန်တကယ် MCP ဆာဗာများကို အသုံးပြု၍ လက်တွေ့ ဥပမာများကို အကောင်အထည်ဖော်နိုင်မည်
-- အေးဂျင့် စကားပြောများတွင် ကိရိယာတုံ့ပြန်မှုများနှင့် ကိုးကားချက်များကို ကိုင်တွယ်နိုင်မည်
+- Model Context Protocol နှင့် ၎င်း၏ အကျိုးကျေးဇူးများကို နားလည်ခြင်း
+- Microsoft Foundry အေးဂျင့်များအတွက် MCP ဆာဗာများကို တပ်ဆင်ခြင်း
+- MCP ကိရိယာ ပေါင်းစပ်ခြင်းဖြင့် အေးဂျင့်များဖန်တီးခြင်းနှင့် ဆက်တင်ပြုလုပ်ခြင်း
+- အမှန်တကယ် MCP ဆာဗာများကို အသုံးပြု၍ လက်တွေ့ ဥပမာများ အကောင်အထည်ဖော်ခြင်း
+- အေးဂျင့်တွေ အတွင်းကိရိယာတုံ့ပြန်မှုများနှင့် ကိုးကားချက်များကို ကိုင်တွယ်ခြင်း
 
-## မတိုင်မီ လိုအပ်ချက်များ
+## လိုအပ်ချက်များ
 
-စတင်မတိုင်မီ အောက်ပါအချက်များရှိရန် သေချာပါစေ -
+စတင်မတိုင်မီ မဖြစ်မနေရှိရမည့်အရာများမှာ -
 
-- AI Foundry ဝင်ရောက်ခွင့်ပါသော Azure စာရင်းသွင်းမှု
+- Microsoft Foundry အသုံးပြုခွင့်ပါရှိသော Azure စားသုံးသူ ဖြစ်ရပါမည်
 - Python 3.10+ သို့မဟုတ် .NET 8.0+
-- Azure CLI တပ်ဆင်ပြီး ပြင်ဆင်ထားခြင်း
-- AI အရင်းအမြစ်များ ဖန်တီးခွင့်ရှိခြင်း
+- Azure CLI တပ်ဆင်ပြီး ပြင်ဆင်ထားရမည်
+- AI အရင်းအမြစ်ဖန်တီးခွင့်များ ရရှိထားရမည်
 
-## Model Context Protocol (MCP) ဆိုတာဘာလဲ?
+## Model Context Protocol (MCP) ဆိုတာ ဘာလဲ?
 
-Model Context Protocol သည် AI အက်ပလီကေးရှင်းများကို ပြင်ပဒေတာရင်းမြစ်များနှင့် ကိရိယာများနှင့် ချိတ်ဆက်ရန် စံပြုထားသည့် နည်းလမ်းတစ်ခုဖြစ်သည်။ အဓိက အကျိုးကျေးဇူးများမှာ -
+Model Context Protocol သည် AI အက်ပလิเคရှင်းများအတွက် အပြင်အဆင်ဒေတာအရင်းမြစ်များနှင့် ကိရိယာများကို ချိတ်ဆက်ရန် စံချိန်စံညွှန်းထားသော နည်းလမ်းတစ်ခုဖြစ်သည်။ အရေးကြီးသော အကျိုးကျေးဇူးများမှာ -
 
-- **စံပြုထားသော ပေါင်းစပ်မှု**: ကိရိယာနှင့် ဝန်ဆောင်မှုအမျိုးမျိုးအတွက် တူညီသော အင်တာဖေ့စ်
-- **လုံခြုံမှု**: လုံခြုံသော အတည်ပြုခြင်းနှင့် ခွင့်ပြုခြင်းစနစ်များ
-- **လွတ်လပ်မှု**: အမျိုးမျိုးသော ဒေတာရင်းမြစ်များ၊ API များနှင့် စိတ်ကြိုက်ကိရိယာများကို ထောက်ပံ့မှု
-- **တိုးချဲ့နိုင်မှု**: စွမ်းဆောင်ရည်အသစ်များနှင့် ပေါင်းစပ်မှုများကို လွယ်ကူစွာ ထည့်သွင်းနိုင်ခြင်း
+- **စံချိန်တင်းသိပ်သည့် ပေါင်းစပ်မှု** - ကိရိယာများနှင့် ဝန်ဆောင်မှုများ အတူတူ ဂရုတစိုက် ဆက်သွယ်နိုင်ခြင်း
+- **လုံခြုံရေး** - လုံခြုံစိတ်ချမှုနှင့် အတည်ပြုခြင်း စနစ်များ
+- **ရွေ့လျားနိုင်မှု** - အမျိုးမျိုးသော ဒေတာအရင်းမြစ်များ၊ API များနှင့် ပုံမှန်မဟုတ်သော ကိရိယာများကို ထောက်ပံ့ခြင်း
+- **တိုးချဲ့နိုင်မှု** - အသစ်သော စွမ်းအားများနှင့် ပေါင်းစပ်မှုများ လွယ်ကူစွာ ထည့်သွင်းနိုင်ခြင်း
 
-## Azure AI Foundry နှင့် MCP တပ်ဆင်ခြင်း
+## Microsoft Foundry နှင့် MCP တပ်ဆင်ခြင်း
 
-### ပတ်ဝန်းကျင် ပြင်ဆင်ခြင်း
+### ပတ်ဝန်းကျင် သတ်မှတ်ခြင်း
 
-သင်နှစ်သက်ရာ ဖွံ့ဖြိုးရေး ပတ်ဝန်းကျင်ကို ရွေးချယ်ပါ -
+သင့်အားနှစ်သက်ရာ ဖွံ့ဖြိုးရေး ပတ်ဝန်းကျင်ကို ရွေးပါ -
 
-- [Python Implementation](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [.NET Implementation](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Python Implementation](#python-implementation)
+- [.NET Implementation](#codeblock5)
 
 ---
 
 ## Python Implementation
 
-***[!NOTE]*** သင်သည် ဤ [notebook](mcp_support_python.ipynb) ကို ပြေးနိုင်သည်
+***မှတ်ချက်*** သင်သည် ဤ [notebook](./mcp_support_python.ipynb) ကို လည်ပတ်နိုင်သည်။
 
-### ၁။ လိုအပ်သော ပက်ကေ့ဂျ်များ တပ်ဆင်ခြင်း
+### 1. လိုအပ်သော ပါကေ့များ တပ်ဆင်ခြင်း
 
 ```bash
 pip install azure-ai-projects -U
@@ -62,7 +62,7 @@ pip install azure-identity -U
 pip install mcp==1.11.0 -U
 ```
 
-### ၂။ လိုအပ်သော အရာများကို သွင်းယူခြင်း
+### 2. လိုအပ်သော မျက်နှာပြင်များ import ပြုလုပ်ခြင်း
 
 ```python
 import os, time
@@ -71,14 +71,14 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.agents.models import McpTool, RequiredMcpToolCall, SubmitToolApprovalAction, ToolApproval
 ```
 
-### ၃။ MCP ဆက်တင်များ ပြင်ဆင်ခြင်း
+### 3. MCP ဆက်တင်များ ပြင်ဆင်ခြင်း
 
 ```python
 mcp_server_url = os.environ.get("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
 mcp_server_label = os.environ.get("MCP_SERVER_LABEL", "mslearn")
 ```
 
-### ၄။ Project Client ကို စတင်ဖန်တီးခြင်း
+### 4. Project Client စတင်တည်ဆောက်ခြင်း
 
 ```python
 project_client = AIProjectClient(
@@ -87,23 +87,23 @@ project_client = AIProjectClient(
 )
 ```
 
-### ၅။ MCP ကိရိယာ ဖန်တီးခြင်း
+### 5. MCP Tool ဖန်တီးခြင်း
 
 ```python
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # အလျော့အလလုတ်: ခွင့်ပြုထားသည့်ကိရိယာများကိုသတ်မှတ်ပါ
 )
 ```
 
-### ၆။ Python ဥပမာ ပြည့်စုံ
+### 6. Python နမူနာ ပြည့်စုံ
 
 ```python
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # MCP ကိရိယာများဖြင့် ကိရိယာအသစ်တစ်ခု ဖန်တီးပါ
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # ဆက်သွယ်မှုအတွက် အကြောင်းပြု တာဝတျဖစ် များဖန်တီးပါ
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # တာဝတျသို့ စာတယ်ပို့ပါ
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # ကိရိယာအတည်ပြုချက်များကို ကိုင်တွယ်ပြီး ကိရိယာကို အလုပ်လုပ်ပါ
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # စကားပြောပွဲကို ပြပါ
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,23 +180,23 @@ with project_client:
 
 ## .NET Implementation
 
-***[!NOTE]*** သင်သည် ဤ [notebook](mcp_support_dotnet.ipynb) ကို ပြေးနိုင်သည်
+***မှတ်ချက်*** သင်သည် ဤ [notebook](./mcp_support_dotnet.ipynb) ကို လည်ပတ်နိုင်သည်။
 
-### ၁။ လိုအပ်သော ပက်ကေ့ဂျ်များ တပ်ဆင်ခြင်း
+### 1. လိုအပ်သော ပါကေ့များ တပ်ဆင်ခြင်း
 
 ```csharp
 #r "nuget: Azure.AI.Agents.Persistent, 1.1.0-beta.4"
 #r "nuget: Azure.Identity, 1.14.2"
 ```
 
-### ၂။ လိုအပ်သော အရာများကို သွင်းယူခြင်း
+### 2. လိုအပ်သော မျက်နှာပြင်များ import ပြုလုပ်ခြင်း
 
 ```csharp
 using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 ```
 
-### ၃။ ဆက်တင်များ ပြင်ဆင်ခြင်း
+### 3. ဆက်တင်များ ပြင်ဆင်ခြင်း
 
 ```csharp
 var projectEndpoint = "https://your-project-endpoint.services.ai.azure.com/api/projects/your-project";
@@ -206,13 +206,13 @@ var mcpServerLabel = "mslearn";
 PersistentAgentsClient agentClient = new(projectEndpoint, new DefaultAzureCredential());
 ```
 
-### ၄။ MCP ကိရိယာ သတ်မှတ်ချက် ဖန်တီးခြင်း
+### 4. MCP Tool သတ်မှတ်ချက် ဖန်တီးခြင်း
 
 ```csharp
 MCPToolDefinition mcpTool = new(mcpServerLabel, mcpServerUrl);
 ```
 
-### ၅။ MCP ကိရိယာများပါရှိသော အေးဂျင့် ဖန်တီးခြင်း
+### 5. MCP Tool များပါဝင်သည့် အေးဂျင့် ဖန်တီးခြင်း
 
 ```csharp
 PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
@@ -223,7 +223,7 @@ PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
    );
 ```
 
-### ၆။ .NET ဥပမာ ပြည့်စုံ
+### 6. .NET နမူနာ ပြည့်စုံ
 
 ```csharp
 // Create thread and message
@@ -297,21 +297,21 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ---
 
-## MCP ကိရိယာ ပြင်ဆင်မှု ရွေးချယ်စရာများ
+## MCP Tool ဆက်တင် ရွေးချယ်စရာများ
 
-အေးဂျင့်အတွက် MCP ကိရိယာများကို ပြင်ဆင်ရာတွင် အရေးကြီးသော ပါရာမီတာများကို သတ်မှတ်နိုင်သည် -
+သင့်အေးဂျင့်အတွက် MCP Tool များကို ပြင်ဆင်စဉ် အရေးကြီးသော ပါရာမီတာများ ရွေးချယ်နိုင်ပါသည် -
 
-### Python ပြင်ဆင်မှု
+### Python ဆက်တင်
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # MCP ဆာဗာအတွက် အိုင်ဒင်တီဖိုင်ယာ
+    server_url="https://api.example.com/mcp", # MCP ဆာဗာ အဆုံးအမှတ်
+    allowed_tools=[],                       # ရွေးချယ်စရာ: ခွင့်ပြုထားသောကိရိယာများကို သတ်မှတ်ပါ
 )
 ```
 
-### .NET ပြင်ဆင်မှု
+### .NET ဆက်တင်
 
 ```csharp
 MCPToolDefinition mcpTool = new(
@@ -322,7 +322,7 @@ MCPToolDefinition mcpTool = new(
 
 ## အတည်ပြုခြင်းနှင့် Header များ
 
-နှစ်မျိုးစလုံးတွင် အတည်ပြုခြင်းအတွက် စိတ်ကြိုက် header များ ထောက်ပံ့သည် -
+နှစ်ခုလုံးတွင် အတည်ပြုမှုအတွက် စိတ်တိုင်းကျ Header များကို ထောက်ပံ့သည် -
 
 ### Python
 ```python
@@ -335,48 +335,52 @@ MCPToolResource mcpToolResource = new(mcpServerLabel);
 mcpToolResource.UpdateHeader("SuperSecret", "123456");
 ```
 
-## ဖြစ်ပေါ်နိုင်သော ပြဿနာများ ဖြေရှင်းနည်း
+## ရိုးရှင်းသော ပြဿနာများ ပြင်ဆင်နည်း
 
-### ၁။ ချိတ်ဆက်မှု ပြဿနာများ
-- MCP ဆာဗာ URL သည် ဝင်ရောက်နိုင်မှုရှိကြောင်း စစ်ဆေးပါ
-- အတည်ပြုချက် အချက်အလက်များကို စစ်ဆေးပါ
-- ကွန်ယက် ချိတ်ဆက်မှု ရှိကြောင်း သေချာစေပါ
+### 1. ချိတ်ဆက်မှု ပြဿနာများ
+- MCP ဆာဗာ URL သက်ဆိုင်ရာ ဖွင့်လှစ်နိုင်မှုရှိမရှိ စစ်ဆေးပါ
+- အတည်ပြုလက်မှတ် စစ်ဆေးပါ
+- ကွန်ယက်ချိတ်ဆက်မှုရှိမှု သေချာစေပါ
 
-### ၂။ ကိရိယာ ခေါ်ဆိုမှု မအောင်မြင်ခြင်း
-- ကိရိယာ အချက်အလက်များနှင့် ဖော်မတ်ကို ပြန်လည်စစ်ဆေးပါ
-- ဆာဗာအထူးလိုအပ်ချက်များကို စစ်ဆေးပါ
-- မှားယွင်းမှု ကိုင်တွယ်မှုကို မှန်ကန်စွာ အကောင်အထည်ဖော်ပါ
+### 2. ကိရိယာ ခေါ်ယူမှု မအောင်မြင်ခြင်း
+- ကိရိယာအကြောင်းအရာများနှင့် ပုံစံစစ်ဆေးပါ
+- ဆာဗာသည် ထူးခြားလိုအပ်ချက်များရှိမရှိ စစ်ဆေးပါ
+- သင့်တော်သော အမှားစီမံခန့်ခွဲမှု ထည့်သွင်းပါ
 
-### ၃။ စွမ်းဆောင်ရည် ပြဿနာများ
-- ကိရိယာ ခေါ်ဆိုမှု အကြိမ်ရေကို တိုးတက်အောင် ပြင်ဆင်ပါ
-- လိုအပ်သလို cache ကို အသုံးပြုပါ
-- ဆာဗာ တုံ့ပြန်ချိန်များကို စောင့်ကြည့်ပါ
+### 3. စွမ်းဆောင်ရည် ပြဿနာများ
+- ကိရိယာ ခေါ်ယူမှု အကြိမ်ရေ စနစ်တကျ ထိန်းချုပ်ပါ
+- သင့်တော်သော cache ကို အသုံးပြုပါ
+- ဆာဗာ တုံ့ပြန်ချိန်များကို ကြည့်ရှု စောင့်ကြည့်ပါ
 
 ## နောက်တစ်ဆင့်များ
 
-MCP ပေါင်းစပ်မှုကို ပိုမိုတိုးတက်စေရန် -
+MCP ပေါင်းစပ်မှုကို ထပ်မံတိုးတက်စေရန် -
 
-1. **စိတ်ကြိုက် MCP ဆာဗာများ ရှာဖွေပါ**: ကိုယ်ပိုင် ဒေတာရင်းမြစ်များအတွက် MCP ဆာဗာများ တည်ဆောက်ပါ
-2. **လုံခြုံရေး မြှင့်တင်ပါ**: OAuth2 သို့မဟုတ် စိတ်ကြိုက် အတည်ပြုစနစ်များ ထည့်သွင်းပါ
-3. **စောင့်ကြည့်မှုနှင့် သုံးသပ်မှု**: ကိရိယာ အသုံးပြုမှုအတွက် မှတ်တမ်းတင်ခြင်းနှင့် စောင့်ကြည့်မှု ထည့်သွင်းပါ
-4. **ဖြေရှင်းချက်ကို တိုးချဲ့ပါ**: လုပ်ငန်းခွဲခြားခြင်းနှင့် ဖြန့်ဝေထားသော MCP ဆာဗာ ဖွဲ့စည်းမှုများကို စဉ်းစားပါ
+1. **စိတ်ကြိုက် MCP ဆာဗာများ ရေးဆွဲခြင်း** - ကိုယ်ပိုင် ဒေတာအရင်းမြစ်များအတွက် MCP ဆာဗာများ ဖန်တီးပါ
+2. **လုံခြုံရေး အဆင့်မြှင့်တင်ခြင်း** - OAuth2 သို့မဟုတ် စိတ်ကြိုက် အတည်ပြုစနစ်များ ထည့်သွင်းပါ
+3. **စောင့်ကြည့်မှုနှင့် စစ်တမ်းများ** - ကိရိယာ အသုံးပြုမှုများနှင့် တုံ့ပြန်မှုများကို မှတ်တမ်းတင်ခြင်းနှင့် စောင့်ကြည့်မှုများ ပြုလုပ်ပါ
+4. **ဖြေရှင်းချက်များ ကျယ်ပြန့်စေရန်** - အလုပ်ချိန် ချိန်ဆ သင့်တော်သော load balancing နှင့် ပြန်ဖြန့်ဖြူး MCP ဆာဗာ ဖွဲ့စည်းမှုများ ကို စဉ်းစားပါ
 
-## အပိုဆောင်း အရင်းအမြစ်များ
+## အပိုင်းဆက်ဖတ်ရန် အရင်းအမြစ်များ
 
-- [Azure AI Foundry စာတမ်းများ](https://learn.microsoft.com/azure/ai-foundry/)
+- [Microsoft Foundry စာတမ်းများ](https://learn.microsoft.com/azure/ai-foundry/)
 - [Model Context Protocol နမူနာများ](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Azure AI Foundry အေးဂျင့်များ အကျဉ်းချုပ်](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Microsoft Foundry Agents အကြောင်း](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [MCP သတ်မှတ်ချက်](https://spec.modelcontextprotocol.io/)
 
 ## အထောက်အပံ့
 
-ထပ်မံအထောက်အပံ့နှင့် မေးခွန်းများအတွက် -
-- [Azure AI Foundry စာတမ်းများ](https://learn.microsoft.com/azure/ai-foundry/) ကို ပြန်လည်ကြည့်ရှုပါ
-- [MCP အသိုင်းအဝိုင်း အရင်းအမြစ်များ](https://modelcontextprotocol.io/) ကို စစ်ဆေးပါ
+ထပ်ဆောင်း အကူအညီများနှင့် မေးခွန်းများအတွက် -
+- [Microsoft Foundry စာတမ်းများ](https://learn.microsoft.com/azure/ai-foundry/) ကို ပြန်လည်လေ့လာပါ။
+- [MCP လူမှုအသိုင်းအဝိုင်း အရင်းအမြစ်များ](https://modelcontextprotocol.io/) ကို စစ်ဆေးကြည့်ပါ။
 
-## နောက်တစ်ဆင့်
+## နောက်ဆုံး အဆင့်
 
 - [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
 
-**အကြောင်းကြားချက်**  
-ဤစာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) ဖြင့် ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှန်ကန်မှုအတွက် ကြိုးစားသော်လည်း၊ အလိုအလျောက် ဘာသာပြန်ခြင်းသည် အမှားများ သို့မဟုတ် မှားယွင်းချက်များ ပါဝင်နိုင်ကြောင်း သတိပြုပါရန် မေတ္တာရပ်ခံအပ်ပါသည်။ မူရင်းစာတမ်းကို မိမိဘာသာစကားဖြင့်သာ တရားဝင်အရင်းအမြစ်အဖြစ် ယူဆသင့်ပါသည်။ အရေးကြီးသော အချက်အလက်များအတွက် လူ့ဘာသာပြန်ပညာရှင်မှ ဘာသာပြန်ခြင်းကို အကြံပြုပါသည်။ ဤဘာသာပြန်ချက်ကို အသုံးပြုရာမှ ဖြစ်ပေါ်လာနိုင်သည့် နားလည်မှုမှားယွင်းမှုများအတွက် ကျွန်ုပ်တို့သည် တာဝန်မယူပါ။
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ပြောကြားချက်**
+ဤစာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) အသုံးပြု၍ ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှန်ကန်မှုအတွက် ကြိုးပမ်းနေသော်လည်း၊ စက်ကိရိယာဘာသာပြန်ခြင်းများတွင် အမှားများ သို့မဟုတ် မှားယွင်းချက်များ ပါဝင်နိုင်ကြောင်း သတိပြုပါရန် လိုအပ်ပါသည်။ မူလစာတမ်းကို မူရင်းဘာသာဖြင့်သာ ယုံကြည်စိတ်ချရသော အချက်အလက်အဖြစ် သတ်မှတ်သင့်သည်။ အရေးကြီးသည့် သတင်းအချက်အလက်များအတွက် ပရော်ဖက်ရှင်နယ် လူသားဘာသာပြန်သူဝန်ဆောင်မှုကို အကြံပြုပါသည်။ ဤဘာသာပြန်ချက်ကို အသုံးပြုခြင်းမှ ဖြစ်ပေါ်လာသော နားလည်မှုကွာခြားမှုများ သို့မဟုတ် မမှန်ကန်သော အသုံးပြုမှုများအတွက် ကျွန်ုပ်တို့ တာဝန်မခံပါ။
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

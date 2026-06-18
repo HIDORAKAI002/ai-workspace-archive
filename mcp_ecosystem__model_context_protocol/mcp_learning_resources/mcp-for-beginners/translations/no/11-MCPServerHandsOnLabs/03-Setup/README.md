@@ -1,110 +1,110 @@
 # Miljøoppsett
 
-## 🎯 Hva Denne Labben Dekker
+## 🎯 Hva dette laboratoriet dekker
 
-Denne praktiske labben veileder deg gjennom oppsettet av et komplett utviklingsmiljø for å bygge MCP-servere med PostgreSQL-integrasjon. Du vil konfigurere alle nødvendige verktøy, distribuere Azure-ressurser og validere oppsettet før du går videre med implementeringen.
+Dette praktiske laboratoriet guider deg gjennom å sette opp et komplett utviklingsmiljø for å bygge MCP-servere med PostgreSQL-integrasjon. Du vil konfigurere alle nødvendige verktøy, distribuere Azure-ressurser og validere oppsettet ditt før du går videre med implementering.
 
 ## Oversikt
 
-Et riktig utviklingsmiljø er avgjørende for vellykket MCP-serverutvikling. Denne labben gir trinnvise instruksjoner for oppsett av Docker, Azure-tjenester, utviklingsverktøy og validering av at alt fungerer korrekt sammen.
+Et riktig utviklingsmiljø er avgjørende for suksessfull MCP-serverutvikling. Dette laboratoriet gir trinnvise instruksjoner for å sette opp Docker, Azure-tjenester, utviklingsverktøy og validere at alt fungerer riktig sammen.
 
-Ved slutten av denne labben vil du ha et fullt funksjonelt utviklingsmiljø klart for å bygge Zava Retail MCP-serveren.
+Ved slutten av dette laboratoriet vil du ha et fullt fungerende utviklingsmiljø klart til å bygge Zava Retail MCP-serveren.
 
 ## Læringsmål
 
-Ved slutten av denne labben vil du kunne:
+Ved slutten av dette laboratoriet vil du kunne:
 
-- **Installere og konfigurere** alle nødvendige utviklingsverktøy
-- **Distribuere Azure-ressurser** som trengs for MCP-serveren
-- **Sette opp Docker-containere** for PostgreSQL og MCP-serveren
-- **Validere** miljøoppsettet med testtilkoblinger
-- **Feilsøke** vanlige oppsettproblemer og konfigurasjonsutfordringer
-- **Forstå** utviklingsarbeidsflyten og filstrukturen
+- **Installere og konfigurere** alle nødvendige utviklingsverktøy  
+- **Distribuere Azure-ressurser** som trengs for MCP-serveren  
+- **Sette opp Docker-containere** for PostgreSQL og MCP-serveren  
+- **Validere** miljøoppsettet ditt med testtilkoblinger  
+- **Feilsøke** vanlige oppsettproblemer og konfigurasjonsproblemer  
+- **Forstå** utviklingsarbeidsflyten og filstrukturen  
 
 ## 📋 Forutsetninger
 
 Før du starter, sørg for at du har:
 
-### Nødvendig Kunnskap
-- Grunnleggende bruk av kommandolinje (Windows Command Prompt/PowerShell)
-- Forståelse av miljøvariabler
-- Kjennskap til Git versjonskontroll
-- Grunnleggende Docker-konsepter (containere, bilder, volumer)
+### Nødvendig kunnskap
+- Grunnleggende bruk av kommandolinje (Windows Command Prompt/PowerShell)  
+- Forståelse av miljøvariabler  
+- Kjennskap til Git versjonskontroll  
+- Grunnleggende Docker-konsepter (containere, bilder, volum)  
 
 ### Systemkrav
-- **Operativsystem**: Windows 10/11, macOS eller Linux
-- **RAM**: Minimum 8GB (16GB anbefalt)
-- **Lagring**: Minst 10GB ledig plass
-- **Nettverk**: Internettforbindelse for nedlastinger og Azure-distribusjon
+- **Operativsystem**: Windows 10/11, macOS eller Linux  
+- **RAM**: Minimum 8GB (16GB anbefalt)  
+- **Lagring**: Minst 10GB ledig plass  
+- **Nettverk**: Internettforbindelse for nedlastinger og Azure-distribusjon  
 
-### Kontoer
-- **Azure-abonnement**: Gratisnivå er tilstrekkelig
-- **GitHub-konto**: For tilgang til repository
-- **Docker Hub-konto**: (Valgfritt) For publisering av egendefinerte bilder
+### Kontokrav
+- **Azure-abonnement**: Gratisnivå er tilstrekkelig  
+- **GitHub-konto**: For tilgang til depot  
+- **Docker Hub-konto**: (Valgfritt) For publisering av egne bilder  
 
 ## 🛠️ Verktøyinstallasjon
 
 ### 1. Installer Docker Desktop
 
-Docker gir det containeriserte miljøet for vårt utviklingsoppsett.
+Docker gir den containeriserte miljøet for vårt utviklingsoppsett.
 
 #### Windows-installasjon
 
-1. **Last ned Docker Desktop**:
+1. **Last ned Docker Desktop**:  
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
+  
+2. **Installer og konfigurer**:  
+   - Kjør installasjonsprogrammet som administrator  
+   - Aktiver WSL 2-integrasjon når du blir spurt  
+   - Start datamaskinen på nytt når installasjonen er ferdig  
 
-2. **Installer og konfigurer**:
-   - Kjør installasjonsprogrammet som Administrator
-   - Aktiver WSL 2-integrasjon når du blir bedt om det
-   - Start datamaskinen på nytt når installasjonen er fullført
-
-3. **Bekreft installasjon**:
+3. **Verifiser installasjonen**:  
    ```cmd
    docker --version
    docker-compose --version
    ```
-
+  
 #### macOS-installasjon
 
-1. **Last ned og installer**:
+1. **Last ned og installer**:  
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Last ned fra https://desktop.docker.com/mac/stable/Docker.dmg
+   # Eller bruk Homebrew
    brew install --cask docker
    ```
+  
+2. **Start Docker Desktop**:  
+   - Åpne Docker Desktop fra Programmer  
+   - Fullfør veiviseren for første oppstart  
 
-2. **Start Docker Desktop**:
-   - Åpne Docker Desktop fra Programmer
-   - Fullfør den innledende oppsettsveiviseren
-
-3. **Bekreft installasjon**:
+3. **Verifiser installasjonen**:  
    ```bash
    docker --version
    docker-compose --version
    ```
-
+  
 #### Linux-installasjon
 
-1. **Installer Docker Engine**:
+1. **Installer Docker Engine**:  
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Logg ut og inn igjen for at gruppeendringer skal tre i kraft
    ```
-
-2. **Installer Docker Compose**:
+  
+2. **Installer Docker Compose**:  
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
-
+  
 ### 2. Installer Azure CLI
 
 Azure CLI muliggjør distribusjon og administrasjon av Azure-ressurser.
@@ -117,17 +117,17 @@ winget install Microsoft.AzureCLI
 
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
-
+  
 #### macOS-installasjon
 
 ```bash
-# Using Homebrew
+# Bruke Homebrew
 brew install azure-cli
 
-# Or using installer
+# Eller bruke installasjonsprogrammet
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
-
+  
 #### Linux-installasjon
 
 ```bash
@@ -138,24 +138,24 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
-
-#### Bekreft og autentiser
+  
+#### Verifiser og autentiser
 
 ```bash
-# Check installation
+# Sjekk installasjonen
 az version
 
-# Login to Azure
+# Logg inn på Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Sett standardabonnement (hvis du har flere)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
-
+  
 ### 3. Installer Git
 
-Git er nødvendig for å klone repository og versjonskontroll.
+Git er nødvendig for å klone depotet og versjonskontroll.
 
 #### Windows
 
@@ -165,14 +165,14 @@ winget install Git.Git
 
 # Or download from: https://git-scm.com/download/win
 ```
-
+  
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git er vanligvis forhåndsinstallert, men du kan oppdatere via Homebrew
 brew install git
 ```
-
+  
 #### Linux
 
 ```bash
@@ -182,7 +182,7 @@ sudo apt update && sudo apt install git
 # RHEL/CentOS
 sudo dnf install git
 ```
-
+  
 ### 4. Installer VS Code
 
 Visual Studio Code gir det integrerte utviklingsmiljøet med MCP-støtte.
@@ -199,31 +199,31 @@ brew install --cask visual-studio-code
 # Linux (Ubuntu/Debian)
 sudo snap install code --classic
 ```
-
+  
 #### Nødvendige utvidelser
 
 Installer disse VS Code-utvidelsene:
 
 ```bash
-# Install via command line
+# Installer via kommandolinje
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
-
-Eller installer via VS Code:
-1. Åpne VS Code
-2. Gå til Utvidelser (Ctrl+Shift+X)
-3. Installer:
-   - **Python** (Microsoft)
-   - **Docker** (Microsoft)
-   - **Azure Account** (Microsoft)
-   - **JSON** (Microsoft)
+  
+Eller installer via VS Code:  
+1. Åpne VS Code  
+2. Gå til Utvidelser (Ctrl+Shift+X)  
+3. Installer:  
+   - **Python** (Microsoft)  
+   - **Docker** (Microsoft)  
+   - **Azure Account** (Microsoft)  
+   - **JSON** (Microsoft)  
 
 ### 5. Installer Python
 
-Python 3.8+ er nødvendig for MCP-serverutvikling.
+Python 3.8+ kreves for MCP-serverutvikling.
 
 #### Windows
 
@@ -233,14 +233,14 @@ winget install Python.Python.3.11
 
 # Or download from: https://www.python.org/downloads/
 ```
-
+  
 #### macOS
 
 ```bash
-# Using Homebrew
+# Bruke Homebrew
 brew install python@3.11
 ```
-
+  
 #### Linux
 
 ```bash
@@ -250,77 +250,77 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 # RHEL/CentOS
 sudo dnf install python3.11 python3.11-pip
 ```
-
-#### Bekreft installasjon
+  
+#### Verifiser installasjonen
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Skal vise Python 3.11.x
+pip --version      # Skal vise pip-versjon
 ```
-
+  
 ## 🚀 Prosjektoppsett
 
-### 1. Klon repository
+### 1. Klon depotet
 
 ```bash
-# Clone the main repository
+# Klon hovedrepoet
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Gå til prosjektmappen
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Bekreft repositorie-strukturen
 ls -la
 ```
-
-### 2. Opprett Python-virtuelt miljø
+  
+### 2. Opprett Python virtuelt miljø
 
 ```bash
-# Create virtual environment
+# Opprett virtuelt miljø
 python -m venv mcp-env
 
-# Activate virtual environment
+# Aktiver virtuelt miljø
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Oppgrader pip
 python -m pip install --upgrade pip
 ```
-
+  
 ### 3. Installer Python-avhengigheter
 
 ```bash
-# Install development dependencies
+# Installer utviklingsavhengigheter
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Verifiser nøkkelpakker
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
-
+  
 ## ☁️ Azure-ressursdistribusjon
 
-### 1. Forstå ressurskrav
+### 1. Forstå ressurskravene
 
-Vår MCP-server krever disse Azure-ressursene:
+Vår MCP-server trenger disse Azure-ressursene:
 
 | **Ressurs** | **Formål** | **Estimert kostnad** |
-|-------------|------------|----------------------|
-| **Azure AI Foundry** | Hosting og administrasjon av AI-modeller | $10-50/måned |
-| **OpenAI-distribusjon** | Tekstinnbeddingsmodell (text-embedding-3-small) | $5-20/måned |
+|-------------|------------|---------------------|
+| **Microsoft Foundry** | Hosting og styring av AI-modeller | $10-50/måned |
+| **OpenAI Deployment** | Tekst-embedding modell (text-embedding-3-small) | $5-20/måned |
 | **Application Insights** | Overvåking og telemetri | $5-15/måned |
-| **Resource Group** | Ressursorganisering | Gratis |
+| **Resource Group** | Organisering av ressurser | Gratis |
 
 ### 2. Distribuer Azure-ressurser
 
 #### Alternativ A: Automatisk distribusjon (anbefalt)
 
 ```bash
-# Navigate to infrastructure directory
+# Naviger til infrastrukturkatalogen
 cd infra
 
 # Windows - PowerShell
@@ -329,57 +329,57 @@ cd infra
 # macOS/Linux - Bash
 ./deploy.sh
 ```
-
-Distribusjonsskriptet vil:
-1. Opprette en unik ressursgruppe
-2. Distribuere Azure AI Foundry-ressurser
-3. Distribuere text-embedding-3-small-modellen
-4. Konfigurere Application Insights
-5. Opprette en tjenesteprinsipal for autentisering
-6. Generere `.env`-fil med konfigurasjon
+  
+Distribusjonsskriptet vil:  
+1. Opprette en unik ressursgruppe  
+2. Deplisere Microsoft Foundry-ressurser  
+3. Deplisere text-embedding-3-small modellen  
+4. Konfigurere Application Insights  
+5. Opprette en tjenesteprinsipp for autentisering  
+6. Generere `.env`-fil med konfigurasjon  
 
 #### Alternativ B: Manuell distribusjon
 
 Hvis du foretrekker manuell kontroll eller det automatiske skriptet feiler:
 
 ```bash
-# Set variables
+# Sett variabler
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Opprett ressursgruppe
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Distribuer hovedmal
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
   --parameters location=$LOCATION \
   --parameters resourcePrefix="zava-mcp"
 ```
-
-### 3. Bekreft Azure-distribusjon
+  
+### 3. Verifiser Azure-distribusjon
 
 ```bash
-# Check resource group
+# Sjekk ressursgruppe
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# List distribuerte ressurser
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Test AI-tjeneste
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
-
+  
 ### 4. Konfigurer miljøvariabler
 
-Etter distribusjon bør du ha en `.env`-fil. Bekreft at den inneholder:
+Etter distribusjon skal du ha en `.env`-fil. Verifiser at den inneholder:
 
 ```bash
-# .env file contents
+# Innhold i .env-filen
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,19 +388,19 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Databasekonfigurasjon (for utvikling)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
+  
+## 🐳 Docker miljøoppsett
 
-## 🐳 Docker-miljøoppsett
+### 1. Forstå Docker Compose
 
-### 1. Forstå Docker-komposisjon
-
-Vårt utviklingsmiljø bruker Docker Compose:
+Utviklingsmiljøet vårt bruker Docker Compose:
 
 ```yaml
 # docker-compose.yml overview
@@ -428,59 +428,59 @@ services:
     env_file:
       - .env
 ```
-
+  
 ### 2. Start utviklingsmiljøet
 
 ```bash
-# Ensure you're in the project root directory
+# Sørg for at du er i prosjektets rotmappe
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Start tjenestene
 docker-compose up -d
 
-# Check service status
+# Sjekk tjenestens status
 docker-compose ps
 
-# View logs
+# Se på logger
 docker-compose logs -f
 ```
-
-### 3. Bekreft databaseoppsett
+  
+### 3. Verifiser databaseoppsett
 
 ```bash
-# Connect to PostgreSQL container
+# Koble til PostgreSQL-beholder
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Sjekk databasestruktur
 \dt retail.*
 
-# Verify sample data
+# Verifiser eksempeldata
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Avslutt PostgreSQL
 \q
 ```
-
+  
 ### 4. Test MCP-server
 
 ```bash
-# Check MCP server health
+# Sjekk MCP-serverens helse
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Test grunnleggende MCP-endepunkt
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
-
+  
 ## 🔧 VS Code-konfigurasjon
 
 ### 1. Konfigurer MCP-integrasjon
 
-Opprett VS Code MCP-konfigurasjon:
+Lag VS Code MCP-konfigurasjon:
 
 ```json
 // .vscode/mcp.json
@@ -505,7 +505,7 @@ Opprett VS Code MCP-konfigurasjon:
     "inputs": []
 }
 ```
-
+  
 ### 2. Konfigurer Python-miljø
 
 ```json
@@ -524,31 +524,31 @@ Opprett VS Code MCP-konfigurasjon:
     }
 }
 ```
-
+  
 ### 3. Test VS Code-integrasjon
 
-1. **Åpne prosjektet i VS Code**:
+1. **Åpne prosjektet i VS Code**:  
    ```bash
    code .
    ```
+  
+2. **Åpne AI Chat**:  
+   - Trykk `Ctrl+Shift+P` (Windows/Linux) eller `Cmd+Shift+P` (macOS)  
+   - Skriv "AI Chat" og velg "AI Chat: Open Chat"  
 
-2. **Åpne AI Chat**:
-   - Trykk `Ctrl+Shift+P` (Windows/Linux) eller `Cmd+Shift+P` (macOS)
-   - Skriv "AI Chat" og velg "AI Chat: Open Chat"
-
-3. **Test MCP-servertilkobling**:
-   - I AI Chat, skriv `#zava` og velg en av de konfigurerte serverne
-   - Spør: "Hvilke tabeller er tilgjengelige i databasen?"
-   - Du bør få et svar som viser detaljene for detaljhandelsdatabasens tabeller
+3. **Test MCP-servertilkobling**:  
+   - I AI Chat, skriv `#zava` og velg en av de konfigurerte serverne  
+   - Spør: "Hvilke tabeller er tilgjengelige i databasen?"  
+   - Du skal motta et svar med en liste over butikkdatabasens tabeller  
 
 ## ✅ Validering av miljø
 
 ### 1. Omfattende systemkontroll
 
-Kjør dette valideringsskriptet for å bekrefte oppsettet ditt:
+Kjør dette valideringsskriptet for å verifisere oppsettet:
 
 ```bash
-# Create validation script
+# Lag valideringsskript
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Sjekk Python-versjon
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Sjekk nødvendige pakker
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Sjekk Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Sjekk Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Sjekk miljøvariabler
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Sjekk databaseforbindelse
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Test spørring
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Sjekk MCP-server
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Sjekk Azure AI-tjeneste
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Dette vil feile hvis legitimasjon er ugyldig
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,163 +716,163 @@ async def main():
 
 EOF
 
-# Run validation
+# Kjør validering
 python validate_setup.py
 ```
+  
+### 2. Manuell valideringsliste
 
-### 2. Manuell valideringssjekkliste
+**✅ Grunnleggende verktøy**  
+- [ ] Docker versjon 20.10+ installert og kjører  
+- [ ] Azure CLI 2.40+ installert og autentisert  
+- [ ] Python 3.8+ med pip installert  
+- [ ] Git 2.30+ installert  
+- [ ] VS Code med nødvendige utvidelser  
 
-**✅ Grunnleggende verktøy**
-- [ ] Docker versjon 20.10+ installert og kjører
-- [ ] Azure CLI 2.40+ installert og autentisert
-- [ ] Python 3.8+ med pip installert
-- [ ] Git 2.30+ installert
-- [ ] VS Code med nødvendige utvidelser
+**✅ Azure-ressurser**  
+- [ ] Ressursgruppe opprettet vellykket  
+- [ ] AI Foundry-prosjekt distribuert  
+- [ ] OpenAI text-embedding-3-small modell distribuert  
+- [ ] Application Insights konfigurert  
+- [ ] Tjenesteprinsipp opprettet med riktige tillatelser  
 
-**✅ Azure-ressurser**
-- [ ] Ressursgruppe opprettet vellykket
-- [ ] AI Foundry-prosjekt distribuert
-- [ ] OpenAI text-embedding-3-small-modell distribuert
-- [ ] Application Insights konfigurert
-- [ ] Tjenesteprinsipal opprettet med riktige tillatelser
+**✅ Miljøkonfigurasjon**  
+- [ ] `.env`-fil opprettet med alle nødvendige variabler  
+- [ ] Azure-legitimasjon fungerer (test med `az account show`)  
+- [ ] PostgreSQL-container kjører og er tilgjengelig  
+- [ ] Eksempeldata lastet inn i databasen  
 
-**✅ Miljøkonfigurasjon**
-- [ ] `.env`-fil opprettet med alle nødvendige variabler
-- [ ] Azure-legitimasjon fungerer (test med `az account show`)
-- [ ] PostgreSQL-container kjører og er tilgjengelig
-- [ ] Eksempeldata lastet inn i databasen
-
-**✅ VS Code-integrasjon**
-- [ ] `.vscode/mcp.json` konfigurert
-- [ ] Python-tolk satt til virtuelt miljø
-- [ ] MCP-servere vises i AI Chat
-- [ ] Kan utføre testspørringer via AI Chat
+**✅ VS Code-integrasjon**  
+- [ ] `.vscode/mcp.json` konfigurert  
+- [ ] Python-interpreter satt til virtuelt miljø  
+- [ ] MCP-servere vises i AI Chat  
+- [ ] Kan kjøre testspørringer gjennom AI Chat  
 
 ## 🛠️ Feilsøking av vanlige problemer
 
 ### Docker-problemer
 
-**Problem**: Docker-containere starter ikke
+**Problem**: Docker-containere starter ikke  
 ```bash
-# Check Docker service status
+# Sjekk status for Docker-tjenesten
 docker info
 
-# Check available resources
+# Sjekk tilgjengelige ressurser
 docker system df
 
-# Clean up if needed
+# Rydd opp om nødvendig
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Start Docker Desktop på nytt (Windows/macOS)
+# Eller start Docker-tjenesten på nytt (Linux)
 sudo systemctl restart docker
 ```
-
-**Problem**: PostgreSQL-tilkobling feiler
+  
+**Problem**: PostgreSQL-tilkobling feiler  
 ```bash
-# Check container logs
+# Sjekk containerlogger
 docker-compose logs postgres
 
-# Verify container is healthy
+# Verifiser at containeren er sunn
 docker-compose ps
 
-# Test direct connection
+# Test direkte tilkobling
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
+  
+### Azure distribusjonsproblemer
 
-### Azure-distribusjonsproblemer
-
-**Problem**: Azure-distribusjon feiler
+**Problem**: Azure-distribusjon feiler  
 ```bash
-# Check Azure CLI authentication
+# Sjekk Azure CLI-autentisering
 az account show
 
-# Verify subscription permissions
+# Bekreft abonnementstillatelser
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Sjekk registrering av ressurstilbyder
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-
-**Problem**: Autentisering av AI-tjeneste feiler
+  
+**Problem**: AI-tjeneste autentisering feiler  
 ```bash
-# Test service principal
+# Test tjenesteprinsipp
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Verifiser distribusjon av AI-tjeneste
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
+  
+### Python miljøproblemer
 
-### Python-miljøproblemer
-
-**Problem**: Installasjon av pakker feiler
+**Problem**: Pakkedistribusjon feiler  
 ```bash
-# Upgrade pip and setuptools
+# Oppgrader pip og setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Tøm pip-bufferen
 pip cache purge
 
-# Install packages one by one to identify issues
+# Installer pakker én etter én for å identifisere problemer
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-
-**Problem**: VS Code finner ikke Python-tolk
+  
+**Problem**: VS Code finner ikke Python-interpreter  
 ```bash
-# Show Python interpreter paths
+# Vis Python-tolkerstier
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Aktiver virtuelt miljø først
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Åpne deretter VS Code
 code .
 ```
+  
+## 🎯 Viktige punkter
 
-## 🎯 Viktige Lærdommer
-
-Etter å ha fullført denne labben, bør du ha:
+Etter å ha fullført dette laboratoriet, bør du ha:
 
 ✅ **Komplett utviklingsmiljø**: Alle verktøy installert og konfigurert  
 ✅ **Azure-ressurser distribuert**: AI-tjenester og støttende infrastruktur  
-✅ **Docker-miljø kjører**: PostgreSQL- og MCP-servercontainere  
+✅ **Docker-miljø kjørende**: PostgreSQL og MCP-servercontainere  
 ✅ **VS Code-integrasjon**: MCP-servere konfigurert og tilgjengelige  
-✅ **Validert oppsett**: Alle komponenter testet og fungerer sammen  
+✅ **Validerte oppsett**: Alle komponenter testet og fungerer sammen  
 ✅ **Feilsøkingskunnskap**: Vanlige problemer og løsninger  
 
-## 🚀 Hva Nå?
+## 🚀 Hva nå?
 
 Med miljøet klart, fortsett til **[Lab 04: Database Design and Schema](../04-Database/README.md)** for å:
 
-- Utforske detaljhandelsdatabasens skjema i detalj
-- Forstå flertenant datamodellering
-- Lære om implementering av radnivåsikkerhet
-- Arbeide med eksempeldata for detaljhandel
+- Utforske butikkdatabaseskjemaet i detalj  
+- Forstå flertenant datamodellering  
+- Lære om implementering av Row Level Security  
+- Jobbe med eksempeldata for detaljhandel  
 
 ## 📚 Tilleggsressurser
 
-### Utviklingsverktøy
-- [Docker-dokumentasjon](https://docs.docker.com/) - Komplett Docker-referanse
-- [Azure CLI-referanse](https://docs.microsoft.com/cli/azure/) - Azure CLI-kommandoer
-- [VS Code-dokumentasjon](https://code.visualstudio.com/docs) - Editor-konfigurasjon og utvidelser
+### Utviklingsverktøy  
+- [Docker Documentation](https://docs.docker.com/) - Fullstendig Docker-referanse  
+- [Azure CLI Reference](https://docs.microsoft.com/cli/azure/) - Azure CLI-kommandoer  
+- [VS Code Documentation](https://code.visualstudio.com/docs) - Editor-konfigurasjon og utvidelser  
 
-### Azure-tjenester
-- [Azure AI Foundry-dokumentasjon](https://docs.microsoft.com/azure/ai-foundry/) - Konfigurasjon av AI-tjenester
-- [Azure OpenAI-tjeneste](https://docs.microsoft.com/azure/cognitive-services/openai/) - Distribusjon av AI-modeller
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Oppsett av overvåking
+### Azure-tjenester  
+- [Microsoft Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry/) - AI-tjenestekonfigurasjon  
+- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - Distribusjon av AI-modeller  
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Overvåkingsoppsett  
 
-### Python-utvikling
-- [Python virtuelle miljøer](https://docs.python.org/3/tutorial/venv.html) - Miljøadministrasjon
-- [AsyncIO-dokumentasjon](https://docs.python.org/3/library/asyncio.html) - Asynkrone programmeringsmønstre
-- [FastAPI-dokumentasjon](https://fastapi.tiangolo.com/) - Webrammeverksmønstre
+### Python utvikling  
+- [Python Virtual Environments](https://docs.python.org/3/tutorial/venv.html) - Miljøhåndtering  
+- [AsyncIO Documentation](https://docs.python.org/3/library/asyncio.html) - Async programmeringsmønstre  
+- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Web-rammeverkmønstre  
 
 ---
 
@@ -880,5 +880,7 @@ Med miljøet klart, fortsett til **[Lab 04: Database Design and Schema](../04-Da
 
 ---
 
-**Ansvarsfraskrivelse**:  
-Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi tilstreber nøyaktighet, vær oppmerksom på at automatiserte oversettelser kan inneholde feil eller unøyaktigheter. Det originale dokumentet på sitt opprinnelige språk bør anses som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Ansvarsfraskrivelse**:
+Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal betraktes som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

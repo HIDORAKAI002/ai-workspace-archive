@@ -1,8 +1,8 @@
 # Örnekleme - Özellikleri İstemciye Devretme
 
-Bazen, MCP İstemcisi ve MCP Sunucusunun ortak bir hedefe ulaşmak için işbirliği yapması gerekir. Sunucunun istemcide bulunan bir LLM'in yardımına ihtiyaç duyduğu bir durumunuz olabilir. Bu durumda, kullanmanız gereken şey örneklemedir.
+Bazen, ortak bir hedefe ulaşmak için MCP İstemcisi ve MCP Sunucusunun birlikte çalışması gerekir. Sunucunun, istemci üzerinde bulunan bir LLM'in yardımına ihtiyaç duyduğu bir durum olabilir. Bu durum için, kullanmanız gereken şey örneklemedir.
 
-Hadi bazı kullanım durumlarını ve örneklemeyi içeren bir çözümün nasıl oluşturulacağını keşfedelim.
+Bazı kullanım durumlarını ve örnekleme içeren bir çözümün nasıl kurulacağını inceleyelim.
 
 ## Genel Bakış
 
@@ -12,13 +12,13 @@ Bu derste, Örneklemenin ne zaman ve nerede kullanılacağını ve nasıl yapıl
 
 Bu bölümde:
 
-- Örneklemenin ne olduğunu ve ne zaman kullanılması gerektiğini açıklayacağız.
-- MCP'de Örnekleme nasıl yapılandırılır göstereceğiz.
-- Örneklemenin uygulamada örneklerini sunacağız.
+- Örneklemenin ne olduğunu ve ne zaman kullanılacağını açıklayacağız.
+- MCP'de Örneklemenin nasıl yapılandırılacağını göstereceğiz.
+- Örneklemenin uygulamadaki örneklerini sunacağız.
 
 ## Örnekleme Nedir ve Neden Kullanılır?
 
-Örnekleme, aşağıdaki şekilde çalışan gelişmiş bir özelliktir:
+Örnekleme, şu şekilde çalışan ileri bir özelliktir:
 
 ```mermaid
 sequenceDiagram
@@ -33,12 +33,13 @@ sequenceDiagram
     MCP Client->>LLM: Blog yazısı özeti oluştur
     LLM->>MCP Client: Özet sonucu
     MCP Client->>MCP Server: Örnekleme yanıtı (özet)
-    MCP Server->>MCP Client: Blog yazısı tamamla (taslak + özet)
+    MCP Server->>MCP Client: Blog yazısını tamamla (taslak + özet)
     MCP Client->>User: Blog yazısı hazır
 ```
+
 ### Örnekleme isteği
 
-Tamam, şimdi gerçekçi bir senaryoya genel bir bakışımız var, sunucunun istemciye gönderdiği örnekleme isteğinden bahsedelim. Böyle bir isteğin JSON-RPC formatında nasıl görünebileceği şöyle:
+Tamam, şimdi güvenilir bir senaryoya genel bir bakışımız var, sunucunun istemciye gönderdiği örnekleme isteğinden bahsedelim. Böyle bir istek JSON-RPC formatında şöyle görünebilir:
 
 ```json
 {
@@ -70,17 +71,17 @@ Tamam, şimdi gerçekçi bir senaryoya genel bir bakışımız var, sunucunun is
 }
 ```
 
-Burada vurgulanması gereken birkaç nokta var:
+Burada belirtmeye değer birkaç şey var:
 
-- İçerik -> metin altında bulunan İstek, LLM'in blog gönderisi içeriğini özetlemesi için bir talimattır.
+- İçerik -> metin altında bulunan İstek, LLM'e blog yazısı içeriğini özetlemesi için verilen talimattır.
 
-- **modelPreferences**. Bu bölüm tam olarak budur: bir tercih, LLM ile kullanılacak yapılandırma için bir öneri. Kullanıcı bu önerilere uyabilir veya değiştirebilir. Bu durumda, kullanılacak modele ve hız ile zeka önceliğine dair öneriler vardır.
-- **systemPrompt**, LLM'inize kişilik veren ve rehberlik talimatları içeren normal sistem isteminizdir.
-- **maxTokens**, bu görev için önerilen kullanılacak token sayısını belirtmek için kullanılan başka bir özelliktir.
+- **modelPreferences**. Bu bölüm tam olarak budur, bir tercih, LLM ile hangi yapılandırmanın kullanılacağına dair bir öneridir. Kullanıcı, bu önerilere uyabilir veya değiştirebilir. Bu durumda kullanılacak model, hız ve zeka önceliği hakkında öneriler vardır.
+- **systemPrompt**, bu sizin normal sistem isteminizdir, LLM'e bir kişilik verir ve rehberlik talimatları içerir.
+- **maxTokens**, bu, bu görev için kaç token kullanılmasının önerildiğini belirtmek için kullanılan başka bir özelliktir.
 
 ### Örnekleme yanıtı
 
-Bu yanıt, MCP İstemcisinin MCP Sunucusuna geri gönderdiği ve istemcinin LLM'i çağırıp yanıtı bekledikten sonra oluşturduğu mesajdır. JSON-RPC formatında şöyle görünebilir:
+Bu yanıt, MCP İstemcisinin MCP Sunucusuna gönderdiği cevaptır ve istemcinin LLM'i çağırması, yanıtı beklemesi ve sonra bu mesajı oluşturmasının sonucudur. JSON-RPC formatında böyle görünebilir:
 
 ```json
 {
@@ -98,13 +99,13 @@ Bu yanıt, MCP İstemcisinin MCP Sunucusuna geri gönderdiği ve istemcinin LLM'
 }
 ```
 
-Yanıtın, istediğimiz şekilde blog gönderisi özeti olduğunu fark edin. Ayrıca kullanılan `model`'in istediğimiz değil ama "claude-3-sonnet" yerine "gpt-5" olduğunu görün. Bu, kullanıcının ne kullanacağına kararını değiştirebileceğini ve örnekleme isteğinizin bir öneri olduğunu göstermek içindir.
+Yanıtın blog yazısının özetinden oluştuğuna dikkat edin, tam da talep ettiğimiz gibi. Ayrıca kullanılan `model`'in bizim istediğimiz değil "gpt-5" olduğunu, "claude-3-sonnet" yerine tercih edildiğini görebilirsiniz. Bu, kullanıcının ne kullanacağına kararını değiştirebileceğini ve örnekleme isteğinizin bir öneri olduğunu göstermek içindir.
 
-Tamam, ana akışı ve kullanışlı görevi, "blog gönderisi oluşturma + özet" için anladığımıza göre, bunu çalıştırmak için ne yapmamız gerektiğine bakalım.
+Tamam, ana akışı ve işe yarar görevi anladığımıza göre "blog yazısı oluşturma + özet" için, bunu çalıştırmak için neler yapmamız gerektiğine bakalım.
 
 ### Mesaj türleri
 
-Örnekleme mesajları sadece metinle sınırlı değildir, aynı zamanda resim ve ses de gönderebilirsiniz. JSON-RPC burada nasıl farklı görünür:
+Örnekleme mesajları sadece metinle sınırlı değildir; ayrıca resim ve ses de gönderebilirsiniz. İşte JSON-RPC'nin nasıl farklı göründüğü:
 
 **Metin**
 
@@ -135,13 +136,13 @@ Tamam, ana akışı ve kullanışlı görevi, "blog gönderisi oluşturma + öze
 }
 ```
 
-> NOT: Örnekleme hakkında daha detaylı bilgi için [resmi belgelere](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling) göz atabilirsiniz.
+> NOT: Örnekleme hakkında daha detaylı bilgi için, [resmi dokümanları](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling) inceleyin.
 
-## İstemcide Örnekleme Nasıl Yapılandırılır
+## İstemcide Örneklemenin Yapılandırılması
 
-> Not: Sadece bir sunucu oluşturuyorsanız, burada çok bir şeyi yapmanıza gerek yok.
+> Not: Sadece bir sunucu oluşturuyorsanız, burada çok bir şey yapmanıza gerek yoktur.
 
-Bir istemcide aşağıdaki özelliği şu şekilde belirtmeniz gerekir:
+Bir istemcide, aşağıdaki özelliği şu şekilde belirtmeniz gerekir:
 
 ```json
 {
@@ -151,20 +152,20 @@ Bir istemcide aşağıdaki özelliği şu şekilde belirtmeniz gerekir:
 }
 ```
 
-Böylece seçilen istemciniz sunucuyla başlatılırken bu özellik alınacaktır.
+Bu, seçtiğiniz istemci sunucu ile başlatıldığında alınacaktır.
 
-## Örneklemenin Uygulamadaki Örneği - Blog Gönderisi Yaratma
+## Örnekleme Eyleminde Örnek - Bir Blog Yazısı Oluşturma
 
-Bir örnekleme sunucusunu birlikte kodlayalım, aşağıdakileri yapmamız gerekecek:
+Bir örnekleme sunucusu kodlayalım, şunları yapmamız gerekecek:
 
 1. Sunucuda bir araç oluşturun.
-1. Bu araç bir örnekleme isteği oluşturmalı
+1. Bu araç bir örnekleme isteği oluşturmalı.
 1. Araç, istemcinin örnekleme isteğine yanıt vermesini beklemeli.
-1. Sonra araç sonucu üretilmeli.
+1. Ardından araç sonucu üretilmeli.
 
-Adım adım koda bakalım:
+Adım adım kodu görelim:
 
-### -1- Aracı oluştur
+### -1- Aracı oluşturun
 
 **python**
 
@@ -175,7 +176,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Örnekleme isteği oluştur
+### -2- Bir örnekleme isteği oluşturun
 
 Aracınızı aşağıdaki kodla genişletin:
 
@@ -203,7 +204,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Yanıtı bekle ve yanıtı döndür
+### -3- Yanıtı bekleyin ve yanıtı döndürün
 
 **python**
 
@@ -212,7 +213,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# tamamlanmış ürünü iade edin
+# tam ürünü geri döndür
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -281,7 +282,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # tam blog yazısını döndür
+    # tamamlanmış blog yazısını döndür
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -295,12 +296,12 @@ if __name__ == "__main__":
 # uygulamayı çalıştır: python server.py
 ```
 
-### -5- Visual Studio Code'da test etme
+### -5- Visual Studio Code'da test etmek
 
-Bunu Visual Studio Code'da test etmek için şu adımları izleyin:
+Bunu Visual Studio Code'da test etmek için şunları yapın:
 
 1. Terminalde sunucuyu başlatın
-1. *mcp.json* dosyasına ekleyin (ve başlatıldığından emin olun) örneğin şöyle:
+1. *mcp.json* dosyasına ekleyin (ve başlatıldığından emin olun); şöyle bir şey olabilir:
 
    ```json
    "servers": {
@@ -317,31 +318,31 @@ Bunu Visual Studio Code'da test etmek için şu adımları izleyin:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Örnekleme işleminin gerçekleşmesine izin verin. Bunu ilk defa test ettiğinizde ek bir diyaloğun onaylanması istenecek, ardından sizi bir aracı çalıştırmak için normal diyalogla karşılayacaktır.
+1. Örneklemenin gerçekleşmesine izin verin. Bunu ilk kez test ettiğinizde, kabul etmeniz gereken ek bir iletişim kutusu çıkacak, ardından normal araç çalıştırma iletişim kutusu görünecektir.
 
-1. Sonuçları inceleyin. Sonuçları hem GitHub Copilot Sohbet'te güzel şekilde görebilir hem de ham JSON yanıtını inceleyebilirsiniz.
+1. Sonuçları inceleyin. Sonuçları GitHub Copilot Sohbet'te güzelce render edilmiş olarak görebilirsiniz, ayrıca ham JSON yanıtını da inceleyebilirsiniz.
 
-**Bonus**. Visual Studio Code araçları örneklemeyi çok iyi destekler. Örnekleme erişimini kurulu sunucunuzda aşağıdaki şekilde yapılandırabilirsiniz:
+**Bonus**. Visual Studio Code araçları örnekleme için harika destek sunar. Kurulu sunucunuza örnekleme erişimini şu şekilde yapılandırabilirsiniz:
 
 1. Uzantılar bölümüne gidin.
-1. "MCP SERVERS - INSTALLED" bölümündeki kurulu sunucunuzun dişli ikonunu seçin.
-1 "Model Erişimini Yapılandır" seçeneğini seçin, burada GitHub Copilot'un örnekleme yaparken hangi Modelleri kullanabileceğini seçebilirsiniz. Ayrıca son zamanlarda gerçekleşen tüm örnekleme isteklerini "Örnekleme isteklerini göster" seçeneğiyle görebilirsiniz.
+1. "MCP SUNUCULARI - KURULU" bölümündeki kurulu sunucunuzun dişli simgesini seçin.
+1. "Model Erişimini Yapılandır" öğesini seçin, burada GitHub Copilot'un örnekleme yaparken kullanmasına izin verilen modelleri seçebilirsiniz. Ayrıca "Örnekleme İsteklerini Göster"i seçerek yakın zamanda gerçekleşen tüm örnekleme isteklerini görebilirsiniz.
 
 ## Ödev
 
-Bu ödevde, biraz farklı bir Örnekleme, yani ürün açıklaması oluşturmaya destek veren bir örnekleme entegrasyonu oluşturacaksınız. İşte senaryonuz:
+Bu ödevde, biraz farklı bir Örnekleme oluşturacaksınız, yani ürün açıklaması üretmeyi destekleyen bir örnekleme entegrasyonu. İşte senaryonuz:
 
-**Senaryo**: E-ticaret ofis çalışanı, ürün açıklaması oluşturmanın çok uzun sürdüğünden yardım istiyor. Bu nedenle, "title" ve "keywords" argümanlarıyla "create_product" adında bir aracı çağırabileceğiniz ve tam bir ürün oluşturacak bir çözüm yapmanız gerekiyor, "description" alanı ise istemcinin LLM'i tarafından doldurulacak.
+**Senaryo**: Bir e-ticarette arka ofis çalışanı, ürün açıklamaları oluşturmanın çok fazla zaman aldığını düşünüyor. Bu nedenle, "create_product" adlı bir aracı "başlık" ve "anahtar kelimeler" argümanları ile çağırabileceğiniz ve tam bir ürünü, istemcinin LLM'i tarafından doldurulacak "açıklama" alanı dahil olmak üzere üretecek bir çözüm inşa edeceksiniz.
 
-İPUCU: Daha önce öğrendiklerinizi kullanarak bu sunucuyu ve aracını bir örnekleme isteği kullanarak oluşturun.
+İPUCU: Daha önce öğrendiklerinizi kullanarak bu sunucuyu ve aracını örnekleme isteği kullanarak oluşturun.
 
 ## Çözüm
 
 [Çözüm](./solution/README.md)
 
-## Önemli Noktalar
+## Temel Noktalar
 
-Örnekleme, sunucunun LLM yardımına ihtiyaç duyduğunda görevleri istemciye devretmesini sağlayan güçlü bir özelliktir.
+Örnekleme, sunucunun bir LLM'in yardımına ihtiyaç duyduğunda görevleri istemciye devretmesini sağlayan güçlü bir özelliktir.
 
 ## Sonraki Adımlar
 
@@ -350,6 +351,6 @@ Bu ödevde, biraz farklı bir Örnekleme, yani ürün açıklaması oluşturmaya
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Feragatname**:  
-Bu belge, yapay zeka çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba göstersek de, otomatik çevirilerin hatalar veya yanlışlıklar içerebileceğini lütfen unutmayın. Orijinal belge, kendi özgün dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı nedeniyle ortaya çıkan herhangi bir yanlış anlama veya yorumdan sorumlu değiliz.
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

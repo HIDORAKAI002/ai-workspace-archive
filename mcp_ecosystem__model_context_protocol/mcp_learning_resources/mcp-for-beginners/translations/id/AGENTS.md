@@ -2,9 +2,9 @@
 
 ## Gambaran Proyek
 
-**MCP untuk Pemula** adalah kurikulum pendidikan sumber terbuka untuk mempelajari Model Context Protocol (MCP) - sebuah kerangka kerja standar untuk interaksi antara model AI dan aplikasi klien. Repository ini menyediakan materi pembelajaran yang komprehensif dengan contoh kode praktis dalam berbagai bahasa pemrograman.
+**MCP untuk Pemula** adalah kurikulum pendidikan sumber terbuka untuk mempelajari Model Context Protocol (MCP) - sebuah kerangka standar untuk interaksi antara model AI dan aplikasi klien. Repositori ini menyediakan materi pembelajaran komprehensif dengan contoh kode praktik dalam berbagai bahasa pemrograman.
 
-### Teknologi Utama
+### Teknologi Kunci
 
 - **Bahasa Pemrograman**: C#, Java, JavaScript, TypeScript, Python, Rust
 - **Framework & SDK**: 
@@ -12,7 +12,7 @@
   - Spring Boot (Java)
   - FastMCP (Python)
   - LangChain4j (Java)
-- **Basis Data**: PostgreSQL dengan ekstensi pgvector
+- **Database**: PostgreSQL dengan ekstensi pgvector
 - **Platform Cloud**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
 - **Alat Build**: npm, Maven, pip, Cargo
 - **Dokumentasi**: Markdown dengan terjemahan otomatis multi-bahasa (48+ bahasa)
@@ -20,19 +20,19 @@
 ### Arsitektur
 
 - **11 Modul Inti (00-11)**: Jalur pembelajaran berurutan dari dasar hingga topik lanjutan
-- **Lab Praktis**: Latihan praktis dengan kode solusi lengkap dalam berbagai bahasa
+- **Lab Praktik**: Latihan praktis dengan kode solusi lengkap dalam berbagai bahasa
 - **Proyek Contoh**: Implementasi server dan klien MCP yang berfungsi
 - **Sistem Terjemahan**: Workflow GitHub Actions otomatis untuk dukungan multi-bahasa
 - **Aset Gambar**: Direktori gambar terpusat dengan versi terjemahan
 
 ## Perintah Setup
 
-Ini adalah repository yang berfokus pada dokumentasi. Sebagian besar setup dilakukan dalam proyek contoh dan lab individu.
+Ini adalah repositori yang berfokus pada dokumentasi. Sebagian besar setup terjadi dalam proyek contoh dan lab individual.
 
-### Setup Repository
+### Setup Repositori
 
 ```bash
-# Clone the repository
+# Gandakan repositori
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
@@ -43,7 +43,7 @@ Proyek contoh terletak di:
 - `03-GettingStarted/samples/` - Contoh spesifik bahasa
 - `03-GettingStarted/01-first-server/solution/` - Implementasi server pertama
 - `03-GettingStarted/02-client/solution/` - Implementasi klien
-- `11-MCPServerHandsOnLabs/` - Lab integrasi basis data yang komprehensif
+- `11-MCPServerHandsOnLabs/` - Lab integrasi database komprehensif
 
 Setiap proyek contoh memiliki instruksi setup sendiri:
 
@@ -58,7 +58,7 @@ npm start
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# atau
 pip install -e .
 python main.py
 ```
@@ -74,53 +74,53 @@ mvn spring-boot:run
 
 ### Struktur Dokumentasi
 
-- **Modul 00-11**: Konten kurikulum inti dalam urutan berurutan
-- **translations/**: Versi spesifik bahasa (dihasilkan otomatis, jangan edit langsung)
-- **translated_images/**: Versi gambar yang dilokalkan (dihasilkan otomatis)
+- **Modul 00-11**: Konten kurikulum inti berurutan
+- **translations/**: Versi bahasa spesifik (otomatis dibuat, jangan diedit langsung)
+- **translated_images/**: Versi gambar yang sudah dilokalkan (otomatis dibuat)
 - **images/**: Gambar dan diagram sumber
 
-### Membuat Perubahan pada Dokumentasi
+### Membuat Perubahan Dokumentasi
 
-1. Edit hanya file markdown bahasa Inggris di direktori modul root (00-11)
+1. Edit hanya file markdown Inggris di direktori modul utama (00-11)
 2. Perbarui gambar di direktori `images/` jika diperlukan
-3. GitHub Action co-op-translator akan secara otomatis menghasilkan terjemahan
-4. Terjemahan dihasilkan ulang saat ada push ke cabang utama
+3. GitHub Action co-op-translator akan membuat terjemahan secara otomatis
+4. Terjemahan dihasilkan ulang saat push ke cabang main
 
 ### Bekerja dengan Terjemahan
 
 - **Terjemahan Otomatis**: Workflow GitHub Actions menangani semua terjemahan
-- **Jangan Edit Secara Manual** file di direktori `translations/`
-- Metadata terjemahan disematkan di setiap file terjemahan
-- Bahasa yang didukung: 48+ bahasa termasuk Arab, Cina, Prancis, Jerman, Hindi, Jepang, Korea, Portugis, Rusia, Spanyol, dan banyak lagi
+- **Jangan edit manual** file di direktori `translations/`
+- Metadata terjemahan disematkan dalam setiap file terjemahan
+- Bahasa didukung: 48+ bahasa termasuk Arab, Cina, Perancis, Jerman, Hindi, Jepang, Korea, Portugis, Rusia, Spanyol, dan banyak lagi
 
 ## Instruksi Pengujian
 
 ### Validasi Dokumentasi
 
-Karena ini terutama adalah repository dokumentasi, pengujian berfokus pada:
+Karena ini terutama repositori dokumentasi, pengujian fokus pada:
 
 1. **Validasi Tautan**: Pastikan semua tautan internal berfungsi
 ```bash
-# Check for broken markdown links
+# Periksa tautan markdown yang rusak
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Validasi Contoh Kode**: Uji bahwa contoh kode dapat dikompilasi/dijalankan
+2. **Validasi Contoh Kode**: Uji agar contoh kode dapat dikompilasi/dijalankan
 ```bash
-# Navigate to specific sample and run its tests
+# Navigasikan ke sampel tertentu dan jalankan pengujiannya
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
 3. **Linting Markdown**: Periksa konsistensi format
 ```bash
-# Use markdownlint if needed
+# Gunakan markdownlint jika diperlukan
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
 ### Pengujian Proyek Contoh
 
-Setiap contoh spesifik bahasa memiliki pendekatan pengujian sendiri:
+Setiap sampel khusus bahasa memiliki pendekatan pengujian tersendiri:
 
 #### TypeScript/JavaScript
 ```bash
@@ -140,17 +140,17 @@ mvn test
 mvn verify
 ```
 
-## Panduan Gaya Kode
+## Pedoman Gaya Kode
 
 ### Gaya Dokumentasi
 
 - Gunakan bahasa yang jelas dan ramah pemula
-- Sertakan contoh kode dalam berbagai bahasa jika memungkinkan
+- Sertakan contoh kode dalam berbagai bahasa bila memungkinkan
 - Ikuti praktik terbaik markdown:
-  - Gunakan header gaya ATX (`#` sintaks)
-  - Gunakan blok kode berpagar dengan identifikasi bahasa
-  - Sertakan teks alt deskriptif untuk gambar
-  - Jaga panjang baris tetap masuk akal (tidak ada batas keras, tetapi tetap bijaksana)
+  - Gunakan header gaya ATX (`#` syntax)
+  - Gunakan blok kode berpagar dengan pengenal bahasa
+  - Tambahkan teks alt deskriptif untuk gambar
+  - Jaga panjang baris wajar (tidak ada batas keras, tapi masuk akal)
 
 ### Gaya Contoh Kode
 
@@ -158,11 +158,11 @@ mvn verify
 - Gunakan modul ES (`import`/`export`)
 - Ikuti konvensi mode ketat TypeScript
 - Sertakan anotasi tipe
-- Targetkan ES2022
+- Target ES2022
 
 #### Python
 - Ikuti panduan gaya PEP 8
-- Gunakan petunjuk tipe jika sesuai
+- Gunakan petunjuk tipe bila sesuai
 - Sertakan docstring untuk fungsi dan kelas
 - Gunakan fitur Python modern (3.8+)
 
@@ -172,7 +172,7 @@ mvn verify
 - Ikuti struktur proyek Maven standar
 - Sertakan komentar Javadoc
 
-### Organisasi File
+### Organisasi Berkas
 
 ```
 <module-number>-<ModuleName>/
@@ -190,112 +190,114 @@ mvn verify
 
 ### Deployment Dokumentasi
 
-Repository ini menggunakan GitHub Pages atau serupa untuk hosting dokumentasi (jika berlaku). Perubahan pada cabang utama memicu:
+Repositori menggunakan GitHub Pages atau sejenis untuk hosting dokumentasi (jika berlaku). Perubahan ke cabang utama akan memicu:
 
 1. Workflow terjemahan (`.github/workflows/co-op-translator.yml`)
-2. Terjemahan otomatis semua file markdown bahasa Inggris
+2. Terjemahan otomatis semua file markdown berbahasa Inggris
 3. Lokalisasi gambar jika diperlukan
 
 ### Tidak Ada Proses Build yang Diperlukan
 
-Repository ini terutama berisi dokumentasi markdown. Tidak ada langkah kompilasi atau build yang diperlukan untuk konten kurikulum inti.
+Repositori ini terutama berisi dokumentasi markdown. Tidak diperlukan langkah kompilasi atau build untuk konten kurikulum inti.
 
 ### Deployment Proyek Contoh
 
-Proyek contoh individu mungkin memiliki instruksi deployment:
+Proyek contoh individual mungkin memiliki instruksi deployment:
 - Lihat `03-GettingStarted/09-deployment/` untuk panduan deployment server MCP
 - Contoh deployment Azure Container Apps di `11-MCPServerHandsOnLabs/`
 
-## Panduan Kontribusi
+## Pedoman Kontribusi
 
 ### Proses Pull Request
 
-1. **Fork dan Clone**: Fork repository dan clone fork Anda secara lokal
-2. **Buat Cabang**: Gunakan nama cabang yang deskriptif (misalnya, `fix/typo-module-3`, `add/python-example`)
-3. **Lakukan Perubahan**: Edit hanya file markdown bahasa Inggris (bukan terjemahan)
-4. **Uji Secara Lokal**: Verifikasi bahwa markdown dirender dengan benar
+1. **Fork dan Clone**: Fork repositori dan clone fork Anda secara lokal
+2. **Buat Cabang**: Gunakan nama cabang deskriptif (misal, `fix/typo-module-3`, `add/python-example`)
+3. **Buat Perubahan**: Edit hanya file markdown bahasa Inggris (tidak terjemahan)
+4. **Uji Secara Lokal**: Pastikan markdown terlihat benar
 5. **Kirim PR**: Gunakan judul dan deskripsi PR yang jelas
 6. **CLA**: Tanda tangani Microsoft Contributor License Agreement saat diminta
 
 ### Format Judul PR
 
 Gunakan judul yang jelas dan deskriptif:
-- `[Module XX] Deskripsi singkat` untuk perubahan spesifik modul
-- `[Samples] Deskripsi` untuk perubahan kode contoh
+- `[Module XX] Deskripsi singkat` untuk perubahan modul spesifik
+- `[Samples] Deskripsi` untuk perubahan contoh kode
 - `[Docs] Deskripsi` untuk pembaruan dokumentasi umum
 
-### Apa yang Dapat Dikontribusikan
+### Apa yang Harus Dikontribusikan
 
-- Perbaikan bug dalam dokumentasi atau contoh kode
+- Perbaikan bug pada dokumentasi atau contoh kode
 - Contoh kode baru dalam bahasa tambahan
-- Klarifikasi dan peningkatan konten yang ada
+- Klarifikasi dan perbaikan konten yang ada
 - Studi kasus baru atau contoh praktis
 - Laporan masalah untuk konten yang tidak jelas atau salah
 
 ### Apa yang Tidak Boleh Dilakukan
 
-- Jangan langsung mengedit file di direktori `translations/`
-- Jangan mengedit direktori `translated_images/`
-- Jangan menambahkan file biner besar tanpa diskusi
-- Jangan mengubah file workflow terjemahan tanpa koordinasi
+- Jangan langsung edit file di direktori `translations/`
+- Jangan edit direktori `translated_images/`
+- Jangan tambahkan berkas biner besar tanpa diskusi
+- Jangan ubah file workflow terjemahan tanpa koordinasi
 
 ## Catatan Tambahan
 
-### Pemeliharaan Repository
+### Pemeliharaan Repositori
 
 - **Changelog**: Semua perubahan signifikan didokumentasikan di `changelog.md`
 - **Panduan Studi**: Gunakan `study_guide.md` untuk gambaran navigasi kurikulum
-- **Template Masalah**: Gunakan template masalah GitHub untuk laporan bug dan permintaan fitur
+- **Template Isu**: Gunakan template isu GitHub untuk laporan bug dan permintaan fitur
 - **Kode Etik**: Semua kontributor harus mengikuti Microsoft Open Source Code of Conduct
 
 ### Jalur Pembelajaran
 
-Ikuti modul secara berurutan (00-11) untuk pembelajaran yang optimal:
-1. **00-02**: Dasar-dasar (Pengantar, Konsep Inti, Keamanan)
-2. **03**: Memulai dengan implementasi praktis
+Ikuti modul secara berurutan (00-11) untuk pembelajaran optimal:
+1. **00-02**: Dasar (Pengantar, Konsep Inti, Keamanan)
+2. **03**: Memulai dengan implementasi langsung
 3. **04-05**: Implementasi praktis dan topik lanjutan
 4. **06-10**: Komunitas, praktik terbaik, dan aplikasi dunia nyata
-5. **11**: Lab integrasi basis data yang komprehensif (13 lab berurutan)
+5. **11**: Lab integrasi database komprehensif (13 lab berurutan)
 
-### Sumber Daya Dukungan
+### Sumber Dukungan
 
 - **Dokumentasi**: https://modelcontextprotocol.io/
 - **Spesifikasi**: https://spec.modelcontextprotocol.io/
 - **Komunitas**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Server Discord Microsoft Azure AI Foundry
+- **Discord**: Server Discord Microsoft Foundry
 - **Kursus Terkait**: Lihat README.md untuk jalur pembelajaran Microsoft lainnya
 
 ### Pemecahan Masalah Umum
 
-**T: PR saya gagal dalam pemeriksaan terjemahan**
-J: Pastikan Anda hanya mengedit file markdown bahasa Inggris di direktori modul root, bukan versi terjemahan.
+**Q: PR saya gagal pemeriksaan terjemahan**  
+A: Pastikan Anda hanya mengedit file markdown bahasa Inggris di direktori modul utama, bukan versi terjemahan.
 
-**T: Bagaimana cara menambahkan bahasa baru?**
-J: Dukungan bahasa dikelola melalui workflow co-op-translator. Buka masalah untuk mendiskusikan penambahan bahasa baru.
+**Q: Bagaimana cara menambahkan bahasa baru?**  
+A: Dukungan bahasa diatur melalui workflow co-op-translator. Buka isu untuk membahas penambahan bahasa baru.
 
-**T: Contoh kode tidak berfungsi**
-J: Pastikan Anda telah mengikuti instruksi setup di README spesifik contoh. Periksa bahwa Anda memiliki versi dependensi yang benar terinstal.
+**Q: Contoh kode tidak berfungsi**  
+A: Pastikan Anda mengikuti instruksi setup pada README sampel terkait. Periksa versi dependensi sudah benar.
 
-**T: Gambar tidak muncul**
-J: Verifikasi bahwa jalur gambar bersifat relatif dan menggunakan garis miring maju. Gambar harus berada di direktori `images/` atau `translated_images/` untuk versi yang dilokalkan.
+**Q: Gambar tidak muncul**  
+A: Pastikan path gambar relatif dan gunakan garis miring maju. Gambar harus berada di direktori `images/` atau `translated_images/` untuk versi lokal.
 
-### Pertimbangan Kinerja
+### Pertimbangan Performa
 
-- Workflow terjemahan mungkin memerlukan beberapa menit untuk selesai
-- Gambar besar harus dioptimalkan sebelum dikomit
-- Jaga file markdown individu tetap fokus dan berukuran wajar
-- Gunakan tautan relatif untuk portabilitas yang lebih baik
+- Workflow terjemahan bisa memakan waktu beberapa menit
+- Gambar besar sebaiknya dioptimalkan sebelum commit
+- Simpan file markdown individual tetap fokus dan berukuran wajar
+- Gunakan tautan relatif untuk portabilitas lebih baik
 
 ### Tata Kelola Proyek
 
-Proyek ini mengikuti praktik sumber terbuka Microsoft:
-- Lisensi MIT untuk kode dan dokumentasi
-- Microsoft Open Source Code of Conduct
-- CLA diperlukan untuk kontribusi
-- Masalah keamanan: Ikuti pedoman SECURITY.md
-- Dukungan: Lihat SUPPORT.md untuk sumber daya bantuan
+Proyek ini mengikuti praktik sumber terbuka Microsoft:  
+- Lisensi MIT untuk kode dan dokumentasi  
+- Microsoft Open Source Code of Conduct  
+- CLA diwajibkan untuk kontribusi  
+- Masalah keamanan: Ikuti pedoman SECURITY.md  
+- Dukungan: Lihat SUPPORT.md untuk sumber bantuan
 
 ---
 
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan layanan penerjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk memberikan hasil yang akurat, harap diperhatikan bahwa terjemahan otomatis dapat mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang otoritatif. Untuk informasi yang bersifat kritis, disarankan menggunakan jasa penerjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau interpretasi yang keliru yang timbul dari penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk mencapai akurasi, harap diketahui bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sah. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang keliru yang timbul dari penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

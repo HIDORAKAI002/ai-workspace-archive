@@ -1,10 +1,10 @@
 # AGENTS.md
 
-## Pregled projekta
+## Pregled Projekta
 
-**MCP za početnike** je otvoreni edukacijski kurikulum za učenje Model Context Protocol (MCP) - standardiziranog okvira za interakcije između AI modela i klijentskih aplikacija. Ovaj repozitorij pruža sveobuhvatne materijale za učenje s praktičnim primjerima koda u više programskih jezika.
+**MCP za početnike** je edukativni kurikulum otvorenog koda za učenje Model Context Protocola (MCP) - standardiziranog okvira za interakcije između AI modela i klijentskih aplikacija. Ovaj repozitorij pruža sveobuhvatne materijale za učenje s praktičnim primjerima koda na više programskih jezika.
 
-### Ključne tehnologije
+### Ključne Tehnologije
 
 - **Programski jezici**: C#, Java, JavaScript, TypeScript, Python, Rust
 - **Okviri i SDK-ovi**: 
@@ -15,112 +15,112 @@
 - **Baze podataka**: PostgreSQL s pgvector ekstenzijom
 - **Cloud platforme**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
 - **Alati za izgradnju**: npm, Maven, pip, Cargo
-- **Dokumentacija**: Markdown s automatskim prijevodom na više jezika (48+ jezika)
+- **Dokumentacija**: Markdown s automatskim prevođenjem na više jezika (48+ jezika)
 
 ### Arhitektura
 
 - **11 osnovnih modula (00-11)**: Sekvencijalni put učenja od osnova do naprednih tema
-- **Praktične radionice**: Vježbe s kompletnim rješenjima koda u više jezika
-- **Primjerni projekti**: Funkcionalne implementacije MCP servera i klijenta
-- **Sustav za prijevod**: Automatski GitHub Actions tijek rada za podršku više jezika
+- **Praktične radionice**: Vježbe s kompletnim kodom rješenja na više jezika
+- **Primjerni projekti**: Funkcionalni MCP server i klijentske implementacije
+- **Sustav prijevoda**: Automatizirani GitHub Actions tijek za podršku više jezika
 - **Slike**: Centralizirani direktorij slika s prevedenim verzijama
 
-## Postavljanje repozitorija
+## Komande za Postavljanje
 
-Ovo je repozitorij fokusiran na dokumentaciju. Većina postavljanja odvija se unutar pojedinačnih primjernih projekata i radionica.
+Ovo je repozitorij fokusiran na dokumentaciju. Većina postavljanja odvija se unutar pojedinačnih primjera i radionica.
 
-### Postavljanje repozitorija
+### Postavljanje Repozitorija
 
 ```bash
-# Clone the repository
+# Klonirajte spremište
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
 
-### Rad s primjernim projektima
+### Rad s Primjernim Projektima
 
 Primjerni projekti nalaze se u:
 - `03-GettingStarted/samples/` - Primjeri specifični za jezik
-- `03-GettingStarted/01-first-server/solution/` - Implementacije prvog servera
-- `03-GettingStarted/02-client/solution/` - Implementacije klijenta
-- `11-MCPServerHandsOnLabs/` - Sveobuhvatne radionice za integraciju baza podataka
+- `03-GettingStarted/01-first-server/solution/` - Prve implementacije servera
+- `03-GettingStarted/02-client/solution/` - Implementacije klijenata
+- `11-MCPServerHandsOnLabs/` - Sveobuhvatne radionice integracije baza podataka
 
 Svaki primjerni projekt sadrži vlastite upute za postavljanje:
 
-#### TypeScript/JavaScript projekti
+#### TypeScript/JavaScript Projekti
 ```bash
 cd <project-directory>
 npm install
 npm start
 ```
 
-#### Python projekti
+#### Python Projekti
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# ili
 pip install -e .
 python main.py
 ```
 
-#### Java projekti
+#### Java Projekti
 ```bash
 cd <project-directory>
 mvn clean install
 mvn spring-boot:run
 ```
 
-## Radni tijek razvoja
+## Razvojni Radni Tok
 
-### Struktura dokumentacije
+### Struktura Dokumentacije
 
-- **Moduli 00-11**: Osnovni sadržaj kurikuluma u sekvencijalnom redoslijedu
-- **translations/**: Verzije na različitim jezicima (automatski generirane, ne uređivati izravno)
-- **translated_images/**: Lokalizirane verzije slika (automatski generirane)
+- **Moduli 00-11**: Osnovni sadržaj kurikuluma u sekvencijalnom redu
+- **translations/**: Verzije po jezicima (auto-generirane, nemojte uređivati izravno)
+- **translated_images/**: Lokalizirane verzije slika (auto-generirane)
 - **images/**: Izvorne slike i dijagrami
 
-### Izmjene dokumentacije
+### Izmjene u Dokumentaciji
 
-1. Uređujte samo engleske markdown datoteke u glavnim direktorijima modula (00-11)
-2. Ažurirajte slike u direktoriju `images/` ako je potrebno
-3. GitHub Action co-op-translator automatski će generirati prijevode
-4. Prijevodi se ponovno generiraju pri svakom pushu na glavnu granu
+1. Uređujte samo engleske markdown datoteke u korijenskim direktorijima modula (00-11)
+2. Po potrebi ažurirajte slike u `images/` direktoriju
+3. co-op-translator GitHub Action će automatski generirati prijevode
+4. Prijevodi se ponovno generiraju pri pushu na glavnu granu
 
-### Rad s prijevodima
+### Rad s Prijevodima
 
-- **Automatski prijevod**: GitHub Actions tijek rada upravlja svim prijevodima
-- **NE uređujte** datoteke u direktoriju `translations/`
+- **Automatski prijevod**: GitHub Actions rukuje svim prijevodima
+- **NE uređujte ručno** datoteke u `translations/` direktoriju
 - Metapodaci prijevoda ugrađeni su u svaku prevedenu datoteku
 - Podržani jezici: 48+ jezika uključujući arapski, kineski, francuski, njemački, hindi, japanski, korejski, portugalski, ruski, španjolski i mnoge druge
 
-## Upute za testiranje
+## Upute za Testiranje
 
-### Validacija dokumentacije
+### Validacija Dokumentacije
 
-Budući da je ovo prvenstveno repozitorij dokumentacije, testiranje se fokusira na:
+Budući da je ovo prvenstveno repozitorij za dokumentaciju, testiranje se fokusira na:
 
-1. **Validacija poveznica**: Provjerite rade li sve interne poveznice
+1. **Validacija poveznica**: Provjerite da sve interne poveznice rade
 ```bash
-# Check for broken markdown links
+# Provjerite postoje li pokvarene markdown poveznice
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Validacija primjera koda**: Testirajte da se primjeri koda kompajliraju/pokreću
+2. **Validacija primjera koda**: Testirajte da se primjeri koda kompajliraju/izvršavaju
 ```bash
-# Navigate to specific sample and run its tests
+# Navigirajte do određenog uzorka i pokrenite njegove testove
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Linting Markdowna**: Provjerite dosljednost formatiranja
+3. **Markdown linting**: Provjerite dosljednost formatiranja
 ```bash
-# Use markdownlint if needed
+# Koristite markdownlint ako je potrebno
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
-### Testiranje primjernih projekata
+### Testiranje Primjernih Projekata
 
-Svaki primjerni projekt specifičan za jezik uključuje vlastiti pristup testiranju:
+Svaki primjerni projekt za odgovarajući jezik sadrži vlastiti pristup testiranju:
 
 #### TypeScript/JavaScript
 ```bash
@@ -140,39 +140,39 @@ mvn test
 mvn verify
 ```
 
-## Smjernice za stil koda
+## Smjernice za Stil Koda
 
-### Stil dokumentacije
+### Stil Dokumentacije
 
-- Koristite jasan, jednostavan jezik prilagođen početnicima
-- Uključite primjere koda u više jezika gdje je primjenjivo
-- Slijedite najbolje prakse za markdown:
-  - Koristite ATX-stil zaglavlja (`#` sintaksa)
-  - Koristite ograđene blokove koda s identifikatorima jezika
-  - Uključite opisni alt tekst za slike
-  - Održavajte razumnu duljinu linija (bez stroge granice, ali budite praktični)
+- Koristite jasan jezik prilagođen početnicima
+- Uključite primjere koda na više jezika gdje je primjenjivo
+- Slijedite najbolje prakse markdowna:
+  - Koristite ATX zaglavlja (`#` sintaksa)
+  - Koristite ograničene blokove koda s oznakama jezika
+  - Dodajte opisni alt tekst za slike
+  - Držite duljinu linija razumnom (bez stroge granice, ali razumno)
 
-### Stil primjera koda
+### Stil Primjera Koda
 
 #### TypeScript/JavaScript
 - Koristite ES module (`import`/`export`)
-- Slijedite konvencije stroge mode u TypeScriptu
+- Slijedite TypeScript strogi način rada
 - Uključite anotacije tipova
 - Ciljajte ES2022
 
 #### Python
 - Slijedite PEP 8 smjernice za stil
-- Koristite tipne oznake gdje je primjenjivo
+- Koristite tipne naznake gdje je prikladno
 - Uključite docstringove za funkcije i klase
-- Koristite moderne značajke Pythona (3.8+)
+- Koristite moderne Python značajke (3.8+)
 
 #### Java
-- Slijedite konvencije Spring Boota
-- Koristite značajke Java 21
-- Slijedite standardnu strukturu Maven projekata
+- Slijedite Spring Boot konvencije
+- Koristite Java 21 značajke
+- Slijedite standardnu Maven strukturu projekta
 - Uključite Javadoc komentare
 
-### Organizacija datoteka
+### Organizacija Datoteka
 
 ```
 <module-number>-<ModuleName>/
@@ -186,116 +186,118 @@ mvn verify
     └── <language>/
 ```
 
-## Izgradnja i implementacija
+## Izgradnja i Implementacija
 
-### Implementacija dokumentacije
+### Implementacija Dokumentacije
 
-Repozitorij koristi GitHub Pages ili slične alate za hosting dokumentacije (ako je primjenjivo). Promjene u glavnoj grani pokreću:
+Repozitorij koristi GitHub Pages ili slično za hosting dokumentacije (ako je primjenjivo). Promjene na glavnoj grani pokreću:
 
-1. Tijek rada za prijevod (`.github/workflows/co-op-translator.yml`)
+1. Tijek prijevoda (`.github/workflows/co-op-translator.yml`)
 2. Automatski prijevod svih engleskih markdown datoteka
-3. Lokalizaciju slika prema potrebi
+3. Lokalizaciju slika po potrebi
 
-### Nije potrebna izgradnja
+### Nije Potreban Proces Izgradnje
 
-Ovaj repozitorij prvenstveno sadrži markdown dokumentaciju. Nije potrebna kompilacija ili korak izgradnje za osnovni sadržaj kurikuluma.
+Ovaj repozitorij prvenstveno sadrži markdown dokumentaciju. Za osnovni sadržaj kurikuluma nije potreban korak kompajliranja ili izgradnje.
 
-### Implementacija primjernih projekata
+### Implementacija Primjernih Projekata
 
 Pojedinačni primjerni projekti mogu imati upute za implementaciju:
 - Pogledajte `03-GettingStarted/09-deployment/` za upute o implementaciji MCP servera
-- Primjeri implementacije na Azure Container Apps u `11-MCPServerHandsOnLabs/`
+- Primjeri implementacije Azure Container Apps u `11-MCPServerHandsOnLabs/`
 
-## Smjernice za doprinos
+## Smjernice za Doprinos
 
-### Proces pull requesta
+### Proces Pull Requesta
 
-1. **Fork i kloniranje**: Forkajte repozitorij i klonirajte svoj fork lokalno
+1. **Fork i kloniranje**: Forkajte repozitorij i lokalno klonirajte svoj fork
 2. **Kreirajte granu**: Koristite opisne nazive grana (npr. `fix/typo-module-3`, `add/python-example`)
-3. **Izvršite promjene**: Uređujte samo engleske markdown datoteke (ne prijevode)
-4. **Testirajte lokalno**: Provjerite da se markdown pravilno prikazuje
-5. **Podnesite PR**: Koristite jasne naslove i opise PR-a
-6. **CLA**: Potpišite Microsoft Contributor License Agreement kada se to zatraži
+3. **Napravite izmjene**: Uređujte samo engleske markdown datoteke (ne prijevode)
+4. **Testirajte lokalno**: Provjerite da se markdown ispravno prikazuje
+5. **Pošaljite PR**: Koristite jasne naslove i opise PR-a
+6. **CLA**: Potpišite Microsoft Contributor License Agreement kad se zatraži
 
-### Format naslova PR-a
+### Format Naslova PR-a
 
 Koristite jasne, opisne naslove:
-- `[Module XX] Kratak opis` za promjene specifične za module
-- `[Samples] Opis` za promjene primjernog koda
+- `[Module XX] Kratak opis` za promjene specifične za modul
+- `[Samples] Opis` za izmjene primjera koda
 - `[Docs] Opis` za opća ažuriranja dokumentacije
 
-### Što doprinijeti
+### Što Doprinijeti
 
-- Ispravci grešaka u dokumentaciji ili primjernom kodu
-- Novi primjeri koda u dodatnim jezicima
+- Ispravke grešaka u dokumentaciji ili primjerima koda
+- Novi primjeri koda na dodatnim jezicima
 - Pojašnjenja i poboljšanja postojećeg sadržaja
-- Nove studije slučaja ili praktični primjeri
-- Prijave problema za nejasan ili netočan sadržaj
+- Novi studiji slučaja ili praktični primjeri
+- Izvještaji o problemima za nejasan ili netočan sadržaj
 
-### Što NE raditi
+### Što NE Raditi
 
-- Ne uređujte datoteke u direktoriju `translations/`
-- Ne uređujte direktorij `translated_images/`
-- Ne dodajte velike binarne datoteke bez prethodne rasprave
-- Ne mijenjajte datoteke tijeka rada za prijevod bez koordinacije
+- Nemojte direktno uređivati datoteke u `translations/` direktoriju
+- Nemojte uređivati `translated_images/` direktorij
+- Nemojte dodavati velike binarne datoteke bez prethodne rasprave
+- Nemojte mijenjati datoteke tijeka prijevoda bez koordinacije
 
-## Dodatne napomene
+## Dodatne Napomene
 
-### Održavanje repozitorija
+### Održavanje Repozitorija
 
-- **Changelog**: Sve značajne promjene dokumentirane su u `changelog.md`
-- **Vodič za učenje**: Koristite `study_guide.md` za pregled navigacije kurikulumom
-- **Predlošci za probleme**: Koristite GitHub predloške za prijavu grešaka i zahtjeve za značajke
-- **Kodeks ponašanja**: Svi suradnici moraju slijediti Microsoft Open Source Code of Conduct
+- **Dnevnik promjena**: Sve značajne promjene dokumentirane u `changelog.md`
+- **Vodič kroz učenje**: Koristite `study_guide.md` za pregled navigacije kurikulumom
+- **Predlošci za probleme**: Koristite GitHub predloške za prijave grešaka i zahtjeve za značajke
+- **Kodeks ponašanja**: Svi suradnici moraju slijediti Microsoft Open Source Kodeks Ponašanja
 
-### Put učenja
+### Put Učenja
 
 Slijedite module u sekvencijalnom redoslijedu (00-11) za optimalno učenje:
-1. **00-02**: Osnove (Uvod, Osnovni koncepti, Sigurnost)
-2. **03**: Prvi koraci s praktičnom implementacijom
+1. **00-02**: Osnove (Uvod, osnovni koncepti, sigurnost)
+2. **03**: Početak s praktičnom implementacijom
 3. **04-05**: Praktična implementacija i napredne teme
-4. **06-10**: Zajednica, najbolje prakse i primjene u stvarnom svijetu
-5. **11**: Sveobuhvatne radionice za integraciju baza podataka (13 sekvencijalnih radionica)
+4. **06-10**: Zajednica, najbolje prakse i stvarne primjene
+5. **11**: Sveobuhvatne radionice integracije baza podataka (13 uzastopnih radionica)
 
-### Resursi za podršku
+### Resursi za Podršku
 
 - **Dokumentacija**: https://modelcontextprotocol.io/
 - **Specifikacija**: https://spec.modelcontextprotocol.io/
 - **Zajednica**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discord server
-- **Povezani tečajevi**: Pogledajte README.md za ostale Microsoftove putove učenja
+- **Discord**: Microsoft Foundry Discord server
+- **Povezani tečajevi**: Pogledajte README.md za ostale Microsoft staze učenja
 
-### Česta pitanja
+### Uobičajeni Problemi i Rješenja
 
-**P: Moj PR ne prolazi provjeru prijevoda**
-O: Provjerite jeste li uređivali samo engleske markdown datoteke u glavnim direktorijima modula, a ne prevedene verzije.
+**P: Moj PR ne prolazi provjeru prijevoda**  
+O: Provjerite jeste li uređivali samo engleske markdown datoteke u korijenskim direktorijima modula, a ne prevedene verzije.
 
-**P: Kako dodati novi jezik?**
-O: Podrška za jezike upravlja se putem tijeka rada co-op-translator. Otvorite problem za raspravu o dodavanju novih jezika.
+**P: Kako dodati novi jezik?**  
+O: Podrška jezicima upravlja se kroz co-op-translator tijek rada. Otvorite issue za razgovor o dodavanju novih jezika.
 
-**P: Primjeri koda ne rade**
-O: Provjerite jeste li slijedili upute za postavljanje u README specifičnom za primjer. Provjerite imate li instalirane ispravne verzije ovisnosti.
+**P: Primjeri koda ne rade**  
+O: Provjerite jeste li slijedili upute za postavljanje u README-u specifičnog primjera. Provjerite imate li ispravne verzije ovisnosti.
 
-**P: Slike se ne prikazuju**
-O: Provjerite jesu li putanje slika relativne i koriste li kosu crtu. Slike bi trebale biti u direktoriju `images/` ili `translated_images/` za lokalizirane verzije.
+**P: Slike se ne prikazuju**  
+O: Provjerite da su putanje do slika relativne i koriste kosu crtu. Slike trebaju biti u `images/` direktoriju ili u `translated_images/` za lokalizirane verzije.
 
-### Razmatranja performansi
+### Razmatranja Performansi
 
-- Tijek rada za prijevod može potrajati nekoliko minuta
-- Velike slike treba optimizirati prije predaje
-- Održavajte pojedinačne markdown datoteke fokusiranim i razumno velikim
+- Tijek prijevoda može trajati nekoliko minuta
+- Velike slike treba optimizirati prije commita
+- Držite pojedinačne markdown datoteke fokusiranima i razumnog opsega
 - Koristite relativne poveznice za bolju prenosivost
 
-### Upravljanje projektom
+### Upravljanje Projektom
 
-Ovaj projekt slijedi Microsoftove prakse otvorenog koda:
+Ovaj projekt slijedi Microsoft prakse otvorenog koda:
 - MIT licenca za kod i dokumentaciju
-- Microsoft Open Source Code of Conduct
-- CLA potreban za doprinose
-- Sigurnosni problemi: Slijedite smjernice u SECURITY.md
-- Podrška: Pogledajte SUPPORT.md za resurse pomoći
+- Microsoft Open Source Kodeks ponašanja
+- Naznačena CLA za doprinos
+- Sigurnosna pitanja: slijedite upute u SECURITY.md
+- Podrška: pogledajte SUPPORT.md za izvore pomoći
 
 ---
 
-**Odricanje od odgovornosti**:  
-Ovaj dokument je preveden pomoću AI usluge za prevođenje [Co-op Translator](https://github.com/Azure/co-op-translator). Iako nastojimo osigurati točnost, imajte na umu da automatski prijevodi mogu sadržavati pogreške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za ključne informacije preporučuje se profesionalni prijevod od strane čovjeka. Ne preuzimamo odgovornost za nesporazume ili pogrešna tumačenja koja mogu proizaći iz korištenja ovog prijevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Napomena**:
+Ovaj dokument je preveden korištenjem AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati greške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za važne informacije preporuča se profesionalni ljudski prijevod. Nismo odgovorni za bilo kakva nesporazumevanja ili pogrešne interpretacije koje proizlaze iz korištenja ovog prijevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

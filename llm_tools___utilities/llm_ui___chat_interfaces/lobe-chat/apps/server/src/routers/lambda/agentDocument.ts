@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import { withScopedPermission } from '@/business/server/trpc-middlewares/rbacPermission';
 import { wsCompatProcedure } from '@/business/server/trpc-middlewares/workspaceAuth';
+import { TopicTrigger } from '@/const/topic';
 import { AgentDocumentModel } from '@/database/models/agentDocuments';
 import { TopicModel } from '@/database/models/topic';
 import { TopicDocumentModel } from '@/database/models/topicDocument';
@@ -252,6 +253,56 @@ export const agentDocumentRouter = router({
     )
     .query(async ({ ctx, input }) => {
       return ctx.agentDocumentService.getDocument(input.agentId, input.filename);
+    }),
+
+  /**
+   * Return the chat topic that anchors the doc-scoped conversation for this
+   * `(documentId, agentId)` pair, creating it idempotently on the first call.
+   *
+   * Topics are marked with `trigger='document'` so they stay out of the main
+   * sidebar history (`MAIN_SIDEBAR_EXCLUDE_TRIGGERS` already excludes them).
+   * The mapping is persisted through `topic_documents`, so subsequent calls
+   * resolve the same topic id.
+   */
+  getOrCreateChatTopic: agentDocumentProcedure
+    .input(
+      z.object({
+        agentId: z.string(),
+        documentId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.topicModel.findByAgentAndDocumentTrigger({
+        agentId: input.agentId,
+        documentId: input.documentId,
+        trigger: TopicTrigger.Document,
+      });
+      if (existing) return { topicId: existing.id };
+
+      const document = await ctx.agentDocumentService.findRowByDocumentId(
+        input.agentId,
+        input.documentId,
+      );
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `Document not found for agentId=${input.agentId}`,
+        });
+      }
+
+      const title = document.title || document.filename || 'Document chat';
+      const topic = await ctx.topicModel.create({
+        agentId: input.agentId,
+        title,
+        trigger: TopicTrigger.Document,
+      });
+
+      await ctx.topicDocumentModel.associate({
+        documentId: input.documentId,
+        topicId: topic.id,
+      });
+
+      return { topicId: topic.id };
     }),
 
   /**

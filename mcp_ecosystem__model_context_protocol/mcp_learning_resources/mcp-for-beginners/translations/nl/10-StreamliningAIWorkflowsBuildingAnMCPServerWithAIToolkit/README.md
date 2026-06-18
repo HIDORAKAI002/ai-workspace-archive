@@ -1,4 +1,4 @@
-# Stroomlijnen van AI Workflows: Het Bouwen van een MCP Server met AI Toolkit
+# Het stroomlijnen van AI-workflows: het bouwen van een MCP-server met Microsoft Foundry Toolkit
 
 [![MCP Spec](https://img.shields.io/badge/MCP%20Spec-2025--11--25-blue.svg)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://python.org)
@@ -8,220 +8,220 @@
 
 ## 🎯 Overzicht
 
-[![Build AI Agents in VS Code: 4 Hands-On Labs with MCP and AI Toolkit](../../../translated_images/nl/11.0f6db6a0fb606885.webp)](https://youtu.be/r34Csn3rkeQ)
+[![Build AI Agents in VS Code: 4 Hands-On Labs with MCP and Microsoft Foundry Toolkit](../../../translated_images/nl/11.0f6db6a0fb606885.webp)](https://youtu.be/r34Csn3rkeQ)
 
 _(Klik op de afbeelding hierboven om de video van deze les te bekijken)_
 
-Welkom bij de **Model Context Protocol (MCP) Workshop**! Deze uitgebreide praktische workshop combineert twee baanbrekende technologieën om AI-applicatieontwikkeling te revolutioneren:
+Welkom bij de **Model Context Protocol (MCP) Workshop**! Deze uitgebreide hands-on workshop combineert twee geavanceerde technologieën om AI-toepassingen te revolutioneren:
 
-- **🔗 Model Context Protocol (MCP)**: Een open standaard voor naadloze integratie van AI-tools
-- **🛠️ AI Toolkit voor Visual Studio Code (AITK)**: Microsofts krachtige AI-ontwikkelextensie
+- **🔗 Model Context Protocol (MCP)**: Een open standaard voor naadloze AI-toolintegratie
+- **🛠️ Microsoft Foundry Toolkit-extensie voor VS Code**: Microsofts krachtige AI-ontwikkelextensie
 
-### 🎓 Wat Je Zal Leren
+### 🎓 Wat je zult leren
 
-Aan het einde van deze workshop beheers je de kunst van het bouwen van intelligente applicaties die AI-modellen verbinden met tools en diensten uit de echte wereld. Van geautomatiseerd testen tot aangepaste API-integraties, je verwerft praktische vaardigheden om complexe zakelijke uitdagingen op te lossen.
+Aan het einde van deze workshop beheers je de kunst van het bouwen van intelligente applicaties die AI-modellen koppelen aan echte tools en diensten. Van geautomatiseerd testen tot aangepaste API-integraties, je krijgt praktische vaardigheden om complexe zakelijke uitdagingen op te lossen.
 
-## 🏗️ Technologiestack
+## 🏗️ Technologie-Stack
 
 ### 🔌 Model Context Protocol (MCP)
 
-MCP is de **"USB-C voor AI"** - een universele standaard die AI-modellen verbindt met externe tools en databronnen.
+MCP is de **"USB-C voor AI"** - een universele standaard die AI-modellen verbindt met externe tools en datasources.
 
-**✨ Belangrijkste Kenmerken:**
+**✨ Belangrijkste kenmerken:**
 
-- 🔄 **Gestandaardiseerde Integratie**: Universele interface voor AI-toolverbindingen
-- 🏛️ **Flexibele Architectuur**: Lokale & externe servers via stdio/SSE transport
-- 🧰 **Rijk Ecosysteem**: Tools, prompts en bronnen in één protocol
-- 🔒 **Enterprise-Klaar**: Ingebouwde beveiliging en betrouwbaarheid
+- 🔄 **Gestandaardiseerde integratie**: Universele interface voor AI-toolverbindingen
+- 🏛️ **Flexibele architectuur**: Lokale en externe servers via stdio/SSE transport
+- 🧰 **Rijk ecosysteem**: Tools, prompts en bronnen binnen één protocol
+- 🔒 **Enterprise-klaar**: Ingebouwde beveiliging en betrouwbaarheid
 
-**🎯 Waarom MCP Belangrijk Is:**
-Net zoals USB-C de kabelchaos heeft geëlimineerd, verwijdert MCP de complexiteit van AI-integraties. Eén protocol, oneindige mogelijkheden.
+**🎯 Waarom MCP belangrijk is:**
+Net zoals USB-C kabelchaos elimineerde, vereenvoudigt MCP de complexiteit van AI-integraties. Eén protocol, oneindige mogelijkheden.
 
-### 🤖 AI Toolkit voor Visual Studio Code (AITK)
+### 🤖 Microsoft Foundry Toolkit-extensie voor VS Code
 
-Microsofts vlaggenschip AI-ontwikkelextensie die VS Code transformeert tot een AI-krachtpatser.
+Microsoft’s toonaangevende AI-ontwikkelextensie die VS Code transformeert tot een AI-krachtpatser.
 
 **🚀 Kernmogelijkheden:**
 
 - 📦 **Modelcatalogus**: Toegang tot modellen van Azure AI, GitHub, Hugging Face, Ollama
-- ⚡ **Lokale Inferentie**: ONNX-geoptimaliseerde CPU/GPU/NPU uitvoering
-- 🏗️ **Agent Builder**: Visuele AI-agentontwikkeling met MCP integratie
-- 🎭 **Multi-Modal**: Ondersteuning voor tekst, beeld en gestructureerde output
+- ⚡ **Lokale inferentie**: ONNX-geoptimaliseerde CPU/GPU/NPU uitvoering
+- 🏗️ **Agent Builder**: Visuele AI-agentontwikkeling met MCP-integratie
+- 🎭 **Multi-modale ondersteuning**: Tekst-, visuele en gestructureerde output
 
 **💡 Ontwikkelvoordelen:**
 
-- Zero-config modeluitrol
-- Visuele prompt engineering
+- Configuratievrij modeldeployment
+- Visuele prompt-engineering
 - Real-time testomgeving
-- Naadloze MCP server integratie
+- Naadloze integratie met MCP-servers
 
 ## 📚 Leertraject
 
-### [🚀 Module 1: AI Toolkit Basisprincipes](./lab1/README.md)
+### [🚀 Module 1: Microsoft Foundry Toolkit Basisprincipes](./lab1/README.md)
 
 **Duur**: 15 minuten
 
-- 🛠️ Installeer en configureer AI Toolkit voor VS Code
+- 🛠️ Microsoft Foundry Toolkit installeren en configureren voor VS Code
 - 🗂️ Verken de Modelcatalogus (100+ modellen van GitHub, ONNX, OpenAI, Anthropic, Google)
-- 🎮 Beheers de interactieve speelomgeving voor real-time modeltesten
+- 🎮 Beheers de interactieve Playground voor real-time modeltesten
 - 🤖 Bouw je eerste AI-agent met Agent Builder
 - 📊 Evalueer modelprestaties met ingebouwde metrics (F1, relevantie, gelijkenis, coherentie)
-- ⚡ Leer batchverwerking en multi-modal ondersteuning
+- ⚡ Leer batchverwerking en multi-modale ondersteuning
 
-**🎯 Leerresultaat**: Creëer een functionele AI-agent met een volledig begrip van AITK-mogelijkheden
+**🎯 Leerresultaat**: Maak een functionele AI-agent met een uitgebreid begrip van Microsoft Foundry Toolkit-mogelijkheden
 
-### [🌐 Module 2: MCP met AI Toolkit Basisprincipes](./lab2/README.md)
+### [🌐 Module 2: MCP met Microsoft Foundry Toolkit Basisprincipes](./lab2/README.md)
 
 **Duur**: 20 minuten
 
-- 🧠 Beheers Model Context Protocol (MCP) architectuur en concepten
-- 🌐 Verken het MCP server-ecosysteem van Microsoft
-- 🤖 Bouw een browser-automatiseringsagent met Playwright MCP server
-- 🔧 Integreer MCP-servers met AI Toolkit Agent Builder
+- 🧠 Beheers de Model Context Protocol (MCP) architectuur en concepten
+- 🌐 Verken Microsoft’s MCP-server-ecosysteem
+- 🤖 Bouw een browserautomatiseringsagent met Playwright MCP-server
+- 🔧 Integreer MCP-servers met Microsoft Foundry Toolkit Agent Builder
 - 📊 Configureer en test MCP-tools binnen je agents
 - 🚀 Exporteer en implementeer MCP-aangedreven agents voor productiegebruik
 
-**🎯 Leerresultaat**: Zet een AI-agent in productie die is versterkt met externe tools via MCP
+**🎯 Leerresultaat**: Implementeer een AI-agent die is versterkt met externe tools via MCP
 
-### [🔧 Module 3: Geavanceerde MCP Ontwikkeling met AI Toolkit](./lab3/README.md)
+### [🔧 Module 3: Geavanceerde MCP-ontwikkeling met Microsoft Foundry Toolkit](./lab3/README.md)
 
 **Duur**: 20 minuten
 
-- 💻 Maak aangepaste MCP-servers met AI Toolkit
+- 💻 Maak aangepaste MCP-servers met Microsoft Foundry Toolkit
 - 🐍 Configureer en gebruik de nieuwste MCP Python SDK (v1.9.3)
-- 🔍 Stel MCP Inspector in en gebruik deze voor debugging
-- 🛠️ Bouw een Weather MCP Server met professionele debugging workflows
-- 🧪 Debug MCP-servers in zowel Agent Builder als Inspector omgevingen
+- 🔍 Stel MCP Inspector in en gebruik het voor debugging
+- 🛠️ Bouw een Weather MCP Server met professionele debug-workflows
+- 🧪 Debug MCP-servers in zowel Agent Builder als Inspector-omgevingen
 
 **🎯 Leerresultaat**: Ontwikkel en debug aangepaste MCP-servers met moderne tooling
 
-### [🐙 Module 4: Praktische MCP Ontwikkeling - Aangepaste GitHub Clone Server](./lab4/README.md)
+### [🐙 Module 4: Praktische MCP-ontwikkeling - Custom GitHub Clone Server](./lab4/README.md)
 
 **Duur**: 30 minuten
 
-- 🏗️ Bouw een realistische GitHub Clone MCP Server voor ontwikkelworkflows
-- 🔄 Implementeer slimme repository-cloning met validatie en foutafhandeling
-- 📁 Creëer intelligente directorybeheer en VS Code integratie
+- 🏗️ Bouw een real-world GitHub Clone MCP-server voor ontwikkelworkflows
+- 🔄 Implementeer slimme repository cloning met validatie en foutafhandeling
+- 📁 Maak intelligent mapbeheer en VS Code-integratie
 - 🤖 Gebruik GitHub Copilot Agent Mode met aangepaste MCP-tools
-- 🛡️ Pas productieklaar betrouwbaarheid en cross-platform compatibiliteit toe
+- 🛡️ Pas productieklare betrouwbaarheid en platformoverstijgende compatibiliteit toe
 
-**🎯 Leerresultaat**: Zet een productieklaar MCP-server in die echte ontwikkelworkflows stroomlijnt
+**🎯 Leerresultaat**: Implementeer een productieklare MCP-server die echte ontwikkelworkflows vereenvoudigt
 
-## 💡 Toepassingen en Impact in de Praktijk
+## 💡 Praktische Toepassingen & Impact
 
-### 🏢 Enterprise Use Cases
+### 🏢 Enterprise-gebruikscases
 
-#### 🔄 DevOps Automatisering
+#### 🔄 DevOps-automatisering
 
 Transformeer je ontwikkelworkflow met intelligente automatisering:
 
-- **Slim Repositorybeheer**: AI-gedreven code review en merge-beslissingen
-- **Intelligente CI/CD**: Geautomatiseerde pijplijnoptimalisatie op basis van codewijzigingen
-- **Issue Triage**: Automatische bugclassificatie en toewijzing
+- **Slim repositorybeheer**: AI-gestuurde code review en merge-besluiten
+- **Intelligente CI/CD**: Geautomatiseerde pipeline-optimalisatie op basis van codewijzigingen
+- **Issue-triage**: Automatische bugclassificatie en toewijzing
 
 #### 🧪 Kwaliteitsborging Revolutie
 
-Verhoog testen met AI-gestuurde automatisering:
+Verhoog testen met AI-ondersteunde automatisering:
 
-- **Intelligente Testgeneratie**: Automatisch uitgebreide testsuites creëren
-- **Visuele Regressietest**: AI-gestuurde UI-wijzigingsdetectie
-- **Prestaties Monitoring**: Proactieve probleemidentificatie en -oplossing
+- **Intelligente testgeneratie**: Maak automatisch uitgebreide test suites
+- **Visuele regressietests**: AI-gedreven UI-wijzigingsdetectie
+- **Performance monitoring**: Proactieve probleemherkenning en -oplossing
 
-#### 📊 Data Pipeline Intelligentie
+#### 📊 Data pipeline intelligentie
 
-Bouw slimmere gegevensverwerkingsworkflows:
+Bouw slimmere dataverwerkingsworkflows:
 
-- **Adaptieve ETL-processen**: Zelfoptimaliserende datatransformaties
+- **Adaptieve ETL-processen**: Zelfoptimaliserende data-transformaties
 - **Anomaliedetectie**: Real-time bewaking van datakwaliteit
-- **Intelligente Routering**: Slim datavoorraadbeheer
+- **Intelligent routeren**: Slim beheer van datastromen
 
-#### 🎧 Verbetering van Klantbeleving
+#### 🎧 Verbetering van de klantbeleving
 
 Creëer uitzonderlijke klantinteracties:
 
-- **Contextbewuste Ondersteuning**: AI-agents met toegang tot klantgeschiedenis
-- **Proactieve Probleemoplossing**: Voorspellende klantenservice
-- **Multi-Channel Integratie**: Geünificeerde AI-ervaring over platforms heen
+- **Contextbewuste ondersteuning**: AI-agents met toegang tot klantgeschiedenis
+- **Proactieve probleemoplossing**: Predictieve klantenservice
+- **Multi-channel integratie**: Geünificeerde AI-ervaring over platforms
 
 ## 🛠️ Vereisten & Setup
 
-### 💻 Systeemvereisten
+### 💻 Systeemeisen
 
-| Component           | Vereiste            | Notities                          |
-|---------------------|---------------------|----------------------------------|
-| **Besturingssysteem**| Windows 10+, macOS 10.15+, Linux | Elke moderne OS                 |
-| **Visual Studio Code**| Laatste stabiele versie | Vereist voor AITK              |
-| **Node.js**          | v18.0+ en npm       | Voor MCP-server ontwikkeling     |
-| **Python**           | 3.10+               | Optioneel voor Python MCP servers|
-| **Geheugen**         | Minimaal 8GB RAM    | 16GB aanbevolen voor lokale modellen |
+| Component        | Vereiste                | Opmerkingen                    |
+|------------------|-------------------------|-------------------------------|
+| **Besturingssysteem** | Windows 10+, macOS 10.15+, Linux | Elk modern OS                 |
+| **Visual Studio Code** | Laatste stabiele versie  | Vereist voor Microsoft Foundry Toolkit |
+| **Node.js**          | v18.0+ en npm           | Voor MCP-serverontwikkeling    |
+| **Python**           | 3.10+                   | Optioneel voor Python MCP-servers |
+| **Geheugen**         | Minimaal 8GB RAM        | 16GB aanbevolen voor lokale modellen |
 
 ### 🔧 Ontwikkelomgeving
 
-#### Aanbevolen VS Code Extensies
+#### Aanbevolen VS Code-extensies
 
-- **AI Toolkit** (ms-windows-ai-studio.windows-ai-studio)
+- **Microsoft Foundry Toolkit** (ms-windows-ai-studio.windows-ai-studio)
 - **Python** (ms-python.python)
 - **Python Debugger** (ms-python.debugpy)
-- **GitHub Copilot** (GitHub.copilot) - Optioneel maar nuttig
+- **GitHub Copilot** (GitHub.copilot) - Optioneel maar handig
 
-#### Optionele Tools
+#### Optionele tools
 
-- **uv**: Moderne Python package manager
-- **MCP Inspector**: Visuele debugging tool voor MCP-servers
+- **uv**: Moderne Python pakketbeheerder
+- **MCP Inspector**: Visuele debugtool voor MCP-servers
 - **Playwright**: Voor webautomatiseringsvoorbeelden
 
 ## 🎖️ Leerresultaten & Certificeringspad
 
-### 🏆 Overzicht Vaardigheden
+### 🏆 Checklist vaardigheden
 
-Door deze workshop te voltooien, bereik je beheersing in:
+Door deze workshop af te ronden, bereik je meesterschap in:
 
 #### 🎯 Kerncompetenties
 
-- [ ] **MCP Protocol Beheersing**: Diepgaand begrip van architectuur en implementatiepatronen
-- [ ] **AITK Vaardigheid**: Expertgebruik van AI Toolkit voor snelle ontwikkeling
-- [ ] **Aangepaste Serverontwikkeling**: Bouwen, implementeren en onderhouden van productieservers MCP
-- [ ] **Toolintegratie Uitmuntendheid**: Naadloze verbinding van AI met bestaande ontwikkelworkflows
-- [ ] **Probleemoplossing Toepassing**: Toepassen van geleerde vaardigheden op echte zakelijke uitdagingen
+- [ ] **MCP Protocolbeheersing**: Diepgaand begrip van architectuur en implementatiepatronen
+- [ ] **Microsoft Foundry Toolkit-vaardigheid**: Expertgebruik van Microsoft Foundry Toolkit voor snelle ontwikkeling
+- [ ] **Aangepaste serverontwikkeling**: Bouwen, uitrollen en onderhouden van productie-MCP-servers
+- [ ] **Toolintegratie-excellentie**: Naadloze koppeling van AI met bestaande ontwikkelworkflows
+- [ ] **Probleemoplossingsvaardigheden**: Toepassen van geleerde vaardigheden op echte zakelijke uitdagingen
 
-#### 🔧 Technische Vaardigheden
+#### 🔧 Technische vaardigheden
 
-- [ ] AI Toolkit opzetten en configureren in VS Code
-- [ ] Aangepaste MCP-servers ontwerpen en implementeren
-- [ ] GitHub-modellen integreren met MCP-architectuur
-- [ ] Geautomatiseerde testworkflows bouwen met Playwright
-- [ ] AI-agents inzetten voor productiegebruik
-- [ ] MCP-serverprestaties debuggen en optimaliseren
+- [ ] Microsoft Foundry Toolkit instellen en configureren in VS Code
+- [ ] Ontwerpen en implementeren van aangepaste MCP-servers
+- [ ] Integreren van GitHub-modellen met MCP-architectuur
+- [ ] Automatische testworkflows bouwen met Playwright
+- [ ] AI-agents uitrollen voor productiegebruik
+- [ ] Debuggen en optimaliseren van MCP-serverprestaties
 
-#### 🚀 Geavanceerde Capaciteiten
+#### 🚀 Geavanceerde capaciteiten
 
-- [ ] Enterprise-scale AI-integraties ontwerpen
-- [ ] Beveiligingsbest practices implementeren voor AI-applicaties
-- [ ] Schaalbare MCP serverarchitecturen ontwerpen
-- [ ] Aangepaste toolchains creëren voor specifieke domeinen
-- [ ] Anderen coachen in AI-native ontwikkeling
+- [ ] Architectuur van AI-integraties op ondernemingsniveau
+- [ ] Implementeren van beveiligingsbest practices voor AI-applicaties
+- [ ] Ontwerpen van schaalbare MCP-serverarchitecturen
+- [ ] Creëren van aangepaste toolchains voor specifieke domeinen
+- [ ] Anderen begeleiden in AI-native ontwikkeling
 
-## 📖 Aanvullende Bronnen
+## 📖 Aanvullende bronnen
 
-- [MCP Specificatie (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [AI Toolkit GitHub Repository](https://github.com/microsoft/vscode-ai-toolkit)
-- [Collectie van Voorbeeld MCP Servers](https://github.com/modelcontextprotocol/servers)
-- [Gids met Best Practices](https://modelcontextprotocol.io/docs/best-practices)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Security best practices
+- [MCP-specificatie (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Microsoft Foundry Toolkit GitHub-repository](https://github.com/microsoft/vscode-ai-toolkit)
+- [Voorbeeldverzameling MCP-servers](https://github.com/modelcontextprotocol/servers)
+- [Best Practices Gids](https://modelcontextprotocol.io/docs/best-practices)
+- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Beveiligingsbest practices
 
 ---
 
 **🚀 Klaar om je AI-ontwikkelworkflow te revolutioneren?**
 
-Laten we samen de toekomst van intelligente applicaties bouwen met MCP en AI Toolkit!
+Laten we samen de toekomst van intelligente applicaties bouwen met MCP en Microsoft Foundry Toolkit!
 
-## Wat Nu?
+## Wat nu
 
 Ga verder naar: [Module 11: MCP Server Hands-On Labs](../11-MCPServerHandsOnLabs/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsdienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel wij streven naar nauwkeurigheid, dient u er rekening mee te houden dat automatische vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

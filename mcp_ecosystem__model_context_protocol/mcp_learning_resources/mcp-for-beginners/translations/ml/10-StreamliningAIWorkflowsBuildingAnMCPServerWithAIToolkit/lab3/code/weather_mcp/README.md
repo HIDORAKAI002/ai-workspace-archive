@@ -1,73 +1,73 @@
-# കാലാവസ്ഥ MCP സെർവർ
+# കാലാവസ്ഥ MCP സർവർ
 
-കാലാവസ്ഥാ ടൂൾസ് മോക് റസ്പോൺസുകളോടുകൂടി നടപ്പിലാക്കുന്ന പൈറ്റൺ MCP സർവറിന്റെ ഒരു സാമ്പിൾ ഇത്. നിങ്ങളുടെ സ്വന്തം MCP സർവർക്ക് സ്‌കാഫോൾഡായി ഇത് ഉപയോഗിക്കാം. ഇതിൽ താഴെപ്പറഞ്ഞ പ്രത്യേകതകൾ ഉൾക്കൊള്ളുന്നു:
+കൃത്രിമ പ്രതികരണങ്ങളോടുകൂടിയ കാലാവസ്ഥാ ഉപകരണങ്ങൾ പിന്തുടരുന്ന Python ലെ ഒരു സാമ്പിൾ MCP സർവർ ആണ് ഇത്. ഇത് നിങ്ങളുടെ സ്വന്തം MCP സർവറിനുള്ള ഞാൻ scaffolding ആയി ഉപയോഗിക്കാനാണ്. ഇതിൽ താഴെപ്പറയുന്ന സവിശേഷതകൾ ഉൾപ്പെടുന്നു:
 
-- **കാലാവസ്ഥ ടൂൾ**: നൽകിയ സ്ഥലത്തെ അടിസ്ഥാനമാക്കി മോക് ചെയ്ത കാലാവസ്ഥാ വിവരം നൽകുന്ന ഒരു ടൂൾ.
-- **ഏജന്റ് ബിൽഡറുമായി കണക്ട് ചെയ്യുക**: ടെസ്റ്റിംഗിനും ഡീബഗ് ചെയ്യുന്നതിനുമായി MCP സർവറെ ഏജന്റ് ബിൽഡറുമായി കണക്ട് ചെയ്യാനുള്ള സംവിധാനം.
-- **[MCP ഇൻസ്‌പെക്ടറിൽ](https://github.com/modelcontextprotocol/inspector) ഡീബഗ് ചെയ്യുക**: MCP ഇൻസ്‌പെക്ടർ ഉപയോഗിച്ച് MCP സർവർ ഡീബഗ് ചെയ്യാനുള്ള സംവിധാനം.
+- **കാലാവസ്ഥാ ഉപകരണം**: നൽകിയ സ്ഥലത്തിന്റെ അടിസ്ഥാനത്തിൽ കൃത്രിമകാലാവസ്ഥാ വിവരങ്ങൾ നൽകുന്ന ഒരു ഉപകരണം.
+- **എജന്റ് ബിൽഡറുമായി ബന്ധിപ്പിക്കുക**: ടെസ്റ്റിങ്ങിനും ഡീബഗിംഗിനും MCP സർവറെ എജന്റ്ബിൽഡറുമായി ബന്ധിപ്പിക്കാൻ അനുവദിക്കുന്ന ഒരു സവിശേഷത.
+- **[MCP ഇൻസ്‌പെക്റ്ററിൽ](https://github.com/modelcontextprotocol/inspector) ഡീബഗ് ചെയ്യുക**: MCP ഇൻസ്‌പെക്റ്റർ ഉപയോഗിച്ച് MCP സർവർ ഡീബഗിംഗിന് അനുവദിക്കുന്ന ഒരു സവിശേഷത.
 
-## കാലാവസ്ഥ MCP സെർവർ ടെംപ്ലേറ്റ് ഉപയോഗിച്ച് തുടങ്ങാം
+## കാലാവസ്ഥ MCP സർവർ ടെംപ്ലേറ്റുമായി തുടങ്ങുക
 
-> **അവശ്യകാര്യങ്ങൾ**
+> **പ്രാഥമിക ആവശ്യങ്ങൾ**
 >
-> നിങ്ങളുടെ ലോക്കൽ ഡെവ് മെഷീനിൽ MCP സർവർ ഓടിക്കാനായി, നിങ്ങള്ക്ക് ആവശ്യമായവ:
+> നിങ്ങളുടെ ലോക്കൽ ഡെവ് മെഷീനിൽ MCP സർവർ പ്രവർത്തിപ്പിക്കാൻ വേണ്ടതാണ്:
 >
 > - [Python](https://www.python.org/)
-> - (*ഐച്ഛികം - uv ആണ് നിങ്ങൾക്ക് ഇഷ്ടം എങ്കിൽ*) [uv](https://github.com/astral-sh/uv)
-> - [Python Debugger Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy)
+> - (*ഐച്ഛികം - നിങ്ങൾ uv ഇഷ്ടപ്പെടുകയാണെങ്കിൽ*) [uv](https://github.com/astral-sh/uv)
+> - [Python ഡീബഗർ എക്സ്റ്റൻഷൻ](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy)
 
-## പരിസരം തയ്യാറാക്കുക
+## പരിസ്ഥിതി ഒരുക്കുക
 
-ഈ പ്രોજക്റ്റിന്റെ പരിസരം സജ്ജമാക്കാൻ രണ്ടു സമീപനങ്ങളുണ്ട്. നിങ്ങളുടെ ഇഷ്ടാനുസരണം ഏതെങ്കിലും ഒരു തെരഞ്ഞെടുക്കാം.
+ഈ പ്രൊജക്റ്റിനുള്ള പരിസ്ഥിതിയെ രണ്ട് വഴികളിലൂടെ സജ്ജമാക്കാവുന്നതാണ്. നിങ്ങളുടെ ഇഷ്ടാനുസരണം ഏതെങ്കിലും ഒരു വഴി തിരഞ്ഞെടുക്കാം.
 
-> заметка: വിർച്ച്വൽ പരിസരം സൃഷ്‌ടിക്കാനായി ശേഷം VSCode അല്ലെങ്കിൽ ടർമിനൽ റീലോഡ് ചെയ്ത് വിർച്ച്വൽ പരിസരം പൈതൺ ഉപയോഗിക്കുന്നതായി ഉറപ്പുവരുത്തുക.
+> കുറിപ്പ്: വേർച്വൽ പരിസ്ഥിതി സൃഷ്ടിച്ചതിന് ശേഷം പൈത്തൺ ഉപയോഗിക്കാൻ VSCode അല്ലെങ്കിൽ ടെർമിനൽ റീലോഡ് ചെയ്യുക.
 
-| സമീപനം | ഘട്ടങ്ങൾ |
-| -------- | -------- |
-| `uv` ഉപയോഗിച്ച് | 1. വിർച്ച്വൽ പരിസരം സൃഷ്ടിക്കുക: `uv venv` <br>2. VSCode കമാൻഡ് "***Python: Select Interpreter***" പ്രവർത്തിപ്പിച്ച് സൃഷ്ടിച്ച വിർച്ച്വൽ പരിസരത്തിലെ പൈതൺ തിരഞ്ഞെടുക്കുക <br>3. ആവശ്യങ്ങളായ ഡിപ്പൻഡൻസികൾ ഇൻസ്റ്റാൾ ചെയ്യുക (ഡെവ് ഡിപ്പൻഡൻസികൾ ഉൾപ്പെടെ): `uv pip install -r pyproject.toml --extra dev` |
-| `pip` ഉപയോഗിച്ച് | 1. വിർച്ച്വൽ പരിസരം സൃഷ്ടിക്കുക: `python -m venv .venv` <br>2. VSCode കമാൻഡ് "***Python: Select Interpreter***" പ്രവർത്തിപ്പിച്ച് സൃഷ്ടിച്ച വിർച്ച്വൽ പരിസരത്തിലെ പൈതൺ തിരഞ്ഞെടുക്കുക<br>3. ആവശ്യങ്ങളായ ഡിപ്പൻഡൻസികൾ ഇൻസ്റ്റാൾ ചെയ്യുക (ഡെവ് ഡിപ്പൻഡൻസികൾ ഉൾപ്പെടെ): `pip install -e .[dev]` | 
+| വഴി | ഘട്ടങ്ങൾ |
+| -------- | ----- |
+| `uv` ഉപയോഗിച്ച് | 1. വേർച്വൽ പരിസ്ഥിതി സൃഷ്ടിക്കുക: `uv venv` <br>2. VSCode കമാൻഡ് "***Python: Select Interpreter***" ഓടച്ച് സൃഷ്ടിച്ച വേർച്വൽ പരിസ്ഥിതിയിലെ പൈത്തൺ തിരഞ്ഞെടുക്കുക <br>3. ആശ്രിതങ്ങൾ ഇൻസ്റ്റാൾ ചെയ്യുക (ഡെവ് ആശ്രിതങ്ങൾ ഉൾപ്പെടെ): `uv pip install -r pyproject.toml --extra dev` |
+| `pip` ഉപയോഗിച്ച് | 1. വേർച്വൽ പരിസ്ഥിതി സൃഷ്ടിക്കുക: `python -m venv .venv` <br>2. VSCode കമാൻഡ് "***Python: Select Interpreter***" ഓടിച്ച് സൃഷ്ടിച്ച വേർച്വൽ പരിസ്ഥിതിയിലെ പൈത്തൺ തിരഞ്ഞെടുക്കുക<br>3. ആശ്രിതങ്ങൾ ഇൻസ്റ്റാൾ ചെയ്യുക (ഡെവ് ആശ്രിതങ്ങൾ ഉൾപ്പെടെ): `pip install -e .[dev]` | 
 
-പരിസ്ഥിതി സജ്ജീകരിച്ചതിനു ശേഷം, MCP ക്ലയന്റ് ആയി ഏജന്റ് ബിൽഡർ ഉപയോഗിച്ച് നിങ്ങളുടെ ലോക്കൽ ഡെവ് മെഷീനിൽ സെർവർ ഓടിക്കാം:
-1. VS Code ഡീബഗ് പാനൽ തുറക്കുക. `Debug in Agent Builder` തിരഞ്ഞെടുത്ത് `F5` അമർത്തി MCP സർവർ ഡീബഗ് ആരംഭിക്കുക.
-2. AI Toolkit Agent Builder ഉപയോഗിച്ച് [ഈ പ്രോംപ്റ്റ്](../../../../../../../../../../../open_prompt_builder) ഉപയോഗിച്ച് സെർവർ പരീക്ഷിക്കുക. സെർവർ സ്വയം ഏജന്റ് ബിൽഡറുമായി ബന്ധപ്പെടും.
-3. പ്രോംപ്റ്റിൽ `Run` ക്ലിക്ക് ചെയ്ത് സെർവർ ടെസ്റ്റ് ചെയ്യുക.
+പരിസ്ഥിതി സജ്ജമാക്കിയതിന് ശേഷം, Agent Builder മുഖാന്തിരം MCP ക്ലയന്റ് ആയി നിങ്ങളുടെ ലോക്കൽ ഡെവ് മെഷീനിൽ സർവർ ഓടിക്കാം:
+1. VS Code ഡീബഗ് പാനൽ തുറക്കുക. `Debug in Agent Builder` തിരഞ്ഞെടുക്കുക അല്ലെങ്കിൽ `F5` അമർത്തി MCP സർവർ ഡീബഗിംഗ് ആരംഭിക്കുക.
+2. Microsoft Foundry Toolkit Agent Builder ഉപയോഗിച്ച് [ഈ പ്രോംപ്റ്റ്](../../../../../../../../../../../open_prompt_builder) ഉപയോഗിച്ച് സർവർ പരിശോധിക്കുക. സർവർ സ്വയം എജന്റ് ബിൽഡറുമായി ബന്ധിപ്പിക്കും.
+3. `Run` ക്ലിക്ക് ചെയ്ത് പ്രോംപ്റ്റുമായി സർവർ ടെസ്റ്റ് ചെയ്യുക.
 
-**അഭിനന്ദനങ്ങൾ**! ഏജന്റ് ബിൽഡറുമായി MCP ക്ലയന്റ് ആയി നിങ്ങളുടെ ലൊക്കൽ ഡെവ് മെഷീനിൽ കാലാവസ്ഥ MCP സർവർ വിജയകരമായി പ്രവർത്തിപ്പിച്ചു.
+**അഭിനന്ദനങ്ങൾ**! നിങ്ങൾ വിജയകരമായി Agent Builder വഴിയാണ് MCP ക്ലയന്റ് ആയി നിങ്ങളുടെ ലോക്കൽ ഡെവ് മെഷീനിൽ കാലാവസ്ഥ MCP സർവർ ഓടിച്ചത്.
 ![DebugMCP](https://raw.githubusercontent.com/microsoft/windows-ai-studio-templates/refs/heads/dev/mcpServers/mcp_debug.gif)
 
-## ടെംപ്ലേറ്റിൽ ഉൾപ്പെടുന്നത്
+## ടെംപ്ലേറ്റിൽ ഉൾപ്പെടുത്തിയിരിക്കുന്നത്
 
-| ഫോള്ഡർ / ഫയൽ| ഉള്ളടക്കം                                   |
-| -------------- | ------------------------------------------ |
-| `.vscode`      | ഡീബഗിങിനായി VSCode ഫയലുകൾ               |
-| `.aitk`        | AI Toolkit-നുള്ള കോൺഫിഗറേഷൻ               |
-| `src`          | കാലാവസ്ഥ MCP സർവറിന്റെ ഉറവഴി കോഡ്           |
+| ഫോള്ഡർ / ഫയൽ| ഉള്ളടക്കം                                      |
+| ------------ | -------------------------------------------- |
+| `.vscode`    | ഡീബഗിംഗിനുള്ള VSCode ഫയലുകൾ                 |
+| `.aitk`      | Microsoft Foundry Toolkit നുള്ള ക്രമീകരണങ്ങൾ    |
+| `src`        | കാലാവസ്ഥ MCP സർവറിനുള്ള സോഴ്‌സ് കോഡ്           |
 
 ## കാലാവസ്ഥ MCP സർവർ എങ്ങനെ ഡീബഗ് ചെയ്യാം
 
 > കുറിപ്പുകൾ:
-> - [MCP ഇൻസ്‌പെക്ടർ](https://github.com/modelcontextprotocol/inspector) MCP സർവറുകളുടെ ടെസ്റ്റിങ്ങിനും ഡീബഗിങിനും ദൃശ്യമേഖല ഡവലപ്പർ ടൂൾ ആണ്.
-> - എല്ലാ ഡീബഗ് മോഡുകളും ബ്രേക്ക്പോയിൻറ് പിന്തുണയ്ക്കുന്നു, അതിൽ ടൂൾ നടപ്പാക്കൽ കോഡിൽ ബ്രേക്ക്പോയിൻറുകൾ ചേർക്കാം.
+> - [MCP ഇൻസ്‌പെക്റ്റർ](https://github.com/modelcontextprotocol/inspector) MCP സർവറുകൾ ടെസ്റ്റ് ചെയ്യാനും ഡീബഗ് ചെയ്യാനുമുള്ള ദൃശ്യ ഡെവലപ്പർ ഉപകരണം ആണ്.
+> - എല്ലാ ഡീബഗ് മോഡുകളും ബ്രേക്ക്‌പോയിന്റുകൾ പിന്തുണയ്ക്കുന്നു, അതുകൊണ്ട് ഉപകരണത്തിന്റെ പൂർത്തിയാക്കിയ കോഡിൽ ബ്രേക്ക്‌പോയിന്റുകൾ ചേർക്കാം.
 
-| ഡീബഗ് മോഡ് | വിവരണം | ഡീബഗ് നടത്താനുള്ള ഘട്ടങ്ങൾ |
-| ----------- | -------- | -------------------------- |
-| ഏജന്റ് ബിൽഡർ | AI Toolkit വഴി ഏജന്റ് ബിൽഡറിലെ MCP സർവർ ഡീബഗ് ചെയ്യുക. | 1. VS Code ഡീബഗ് പാനൽ തുറക്കുക. `Debug in Agent Builder` തിരഞ്ഞെടുത്ത് `F5` അമർത്തുക.<br>2. AI Toolkit Agent Builder ഉപയോഗിച്ച് [ഈ പ്രോംപ്റ്റ്](../../../../../../../../../../../open_prompt_builder) ഉപയോഗിച്ച് സെർവർ ടെസ്റ്റ് ചെയ്യുക. സെർവർ സ്വയം ഏജന്റ് ബിൽഡറുമായി ബന്ധപ്പെടും.<br>3. പ്രോംപ്റ്റിൽ `Run` ക്ലിക്ക് ചെയ്ത് ടെസ്റ്റ് ചെയ്യുക. |
-| MCP ഇൻസ്‌പെക്ടർ | MCP ഇൻസ്‌പെക്ടർ ഉപയോഗിച്ച് MCP സർവർ ഡീബഗ് ചെയ്യുക. | 1. [Node.js](https://nodejs.org/) ഇൻസ്റ്റാൾ ചെയ്യുക<br>2. ഇൻസ്‌പെക്ടർ സജ്ജീകരിക്കുക: `cd inspector` && `npm install` <br>3. VS Code ഡീബഗ് പാനൽ തുറക്കുക. `Debug SSE in Inspector (Edge)` അല്ലെങ്കിൽ `Debug SSE in Inspector (Chrome)` തിരഞ്ഞെടുത്ത് `F5` അമർത്തുക.<br>4. MCP ഇൻസ്‌പെക്ടർ ബ്രൗസറിൽ തുറക്കുമ്പോൾ, `Connect` ബട്ടൺ അമർത്തി MCP സർവറുമായി ബന്ധിപ്പിക്കുക.<br>5. പിന്നീട് `List Tools` വിൻഡോയിൽ നിന്നും ടൂൾ തിരഞ്ഞെടുക്കുക, പാരാമീറ്ററുകൾ നൽകുക, പിന്നീട് `Run Tool` അമർത്തി സെർവർ കോഡ് ഡീബഗ് ചെയ്യുക.<br> |
+| ഡീബഗ് മോഡ് | വിവരണം | ഡീബഗ് ചെയ്യാനുള്ള ഘട്ടങ്ങൾ |
+| ---------- | ----------- | --------------- |
+| എജന്റ് ബിൽഡർ | Microsoft Foundry Toolkit വഴി MCP സർവർ എജന്റ് ബിൽഡറിൽ ഡീബഗ് ചെയ്യുക. | 1. VS Code ഡീബഗ് പാനൽ തുറക്കുക. `Debug in Agent Builder` തിരഞ്ഞെടുക്കുകയും `F5` അമർത്തി MCP സർവർ ഡീബഗിംഗ് തുടങ്ങുക.<br>2. Microsoft Foundry Toolkit Agent Builder ഉപയോഗിച്ച് [ഈ പ്രോംപ്റ്റ്](../../../../../../../../../../../open_prompt_builder) ഉപയോഗിച്ച് സർവർ ടെസ്‌റ്റ് ചെയ്യുക. MCP സർവർ സ്വയം എജന്റ് ബിൽഡറുമായി ബന്ധിപ്പിക്കും.<br>3. `Run` ക്ലിക്ക് ചെയ്തു പ്രോംപ്റ്റ് ഉപയോഗിച്ച് സർവർ പരിശോധിക്കുക. |
+| MCP ഇൻസ്‌പെക്റ്റർ | MCP ഇൻസ്‌പെക്റ്റർ ഉപയോഗിച്ച് MCP സർവർ ഡീബഗ് ചെയ്യുക. | 1. [Node.js](https://nodejs.org/) ഇൻസ്റ്റാൾ ചെയ്യുക<br> 2. ഇൻസ്‌പെക്റ്റർ സജ്ജമാക്കുക: `cd inspector` && `npm install` <br> 3. VS Code ഡീബഗ് പാനൽ തുറക്കുക. `Debug SSE in Inspector (Edge)` അല്ലെങ്കിൽ `Debug SSE in Inspector (Chrome)` തിരഞ്ഞെടുക്കുക. F5 അമർത്തി ഡീബഗിംഗ് തുടങ്ങുക.<br> 4. MCP ഇൻസ്‌പെക്റ്റർ ബ്രൗസറിൽ തുടങ്ങി കഴിഞ്ഞാൽ, `Connect` ബട്ടൺ ക്ലിക്ക് ചെയ്ത് ഈ MCP സർവറെ ബന്ധിപ്പിക്കുക.<br> 5. തുടർന്ന് `List Tools` ചെയ്യാം, ഒരു ഉപകരണം തിരഞ്ഞെടുക്കാം, പാരാമീറ്ററുകൾ നൽകാം, പിന്നെ `Run Tool` വഴി നിങ്ങളുടെ സർവർ കോഡ് ഡീബഗ് ചെയ്യാം.<br> |
 
-## ഡീഫോൾട്ട് പോർട്ടുകളും അനുകൂലനങ്ങളും
+## ഡിഫോൾട്ട് പോർട്ടുകളും ക്രമീകരണങ്ങളും
 
-| ഡീബഗ് മോഡ് | പോർട്ടുകൾ | നിർവചനങ്ങൾ | അനുകൂലനങ്ങൾ | കുറിപ്പ് |
-| ------------ | ---------- | -------- | ------------ | -------- |
-| ഏജന്റ് ബിൽഡർ | 3001 | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | മേൽപ്പറഞ്ഞ പോർട്ടുകൾ മാറ്റാൻ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) എഡിറ്റ് ചെയ്യുക. | അനുയോജ്യം ഇല്ല |
-| MCP ഇൻസ്‌പെക്ടർ | 3001 (സർവർ); 5173 & 3000 (ഇൻസ്‌പെക്ടർ) | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | മേൽപ്പറഞ്ഞ പോർട്ടുകൾ മാറ്റാൻ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) എഡിറ്റ് ചെയ്യുക.| അനുയോജ്യം ഇല്ല |
+| ഡീബഗ് മോഡ് | പോർട്ടുകൾ | നിർവചനങ്ങൾ | ക്രമീകരണങ്ങൾ | കുറിപ്പ് |
+| ---------- | ----- | ------------ | -------------- |-------------- |
+| എജന്റ് ബിൽഡർ | 3001 | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) എഡിറ്റ് ചെയ്ത് പോർട്ടുകൾ മാറ്റാം. | ബാധകമല്ല |
+| MCP ഇൻസ്‌പെക്റ്റർ | 3001 (സർവർ); 5173, 3000 (ഇൻസ്‌പെക്റ്റർ) | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) എഡിറ്റ് ചെയ്ത് പോർട്ടുകൾ മാറ്റാം.| ബാധകമല്ല |
 
-## ഫീഡ്ബാക്ക്
+## പ്രതികരണം
 
-ഈ ടെംപ്ലേറ്റിനെക്കുറിച്ചോ നിർദ്ദേശങ്ങളുണ്ടെങ്കിൽ, ദയവായി [AI Toolkit GitHub റിപ്പോസിറ്ററിയിൽ](https://github.com/microsoft/vscode-ai-toolkit/issues) ഒരു ഇഷ്യൂ തുറക്കൂ.
+ഈ ടെംപ്ലേറ്റിനായി നിങ്ങളുടെ അഭിപ്രായങ്ങൾ അല്ലെങ്കിൽ നിർദ്ദേശങ്ങൾ ഉണ്ടെങ്കിൽ, ദയവായി [Microsoft Foundry Toolkit GitHub റിപ്പോസിറ്ററിയിൽ](https://github.com/microsoft/vscode-ai-toolkit/issues) ഒരു ഇഷ്യൂ തുറക്കുക.
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**പ്രത്യാഖ്യാനം**:  
-ഈ രേഖ AI വിവർത്തന സേവനമായ [Co-op Translator](https://github.com/Azure/co-op-translator) ഉപയോഗിച്ച് വിവർത്തനം ചെയ്‌തതാണ്. നാം ശരിയായതിലേക്കു ശ്രമിച്ചെങ്കിലും, ഓട്ടോമാറ്റിക് വിവർത്തനങ്ങളിൽ പിഴവുകൾ അല്ലെങ്കിൽ കൃത്യതാ പിഴവുകൾ ഉണ്ടാകാൻ സാധ്യതയുണ്ടെന്നും ശ്രദ്ധിക്കുക. പ്രാഥമിക ഭാഷയിലുള്ള മൗലിക പകർപ്പാണ് വിശ്വസനീയമായ ഉറവിടം എന്നത് പരിഗണിക്കാവുന്നതാണ്. നിർണായക വിവരങ്ങൾക്കായി പ്രൊഫഷണൽ മനുഷ്യര്‍ നടത്തിയ വിവർത്തനം ശുപാർശ ചെയ്യപ്പെടുന്നു. ഈ വിവർത്തനത്തിന്റെ ഉപയോഗത്തിൽ നിന്ന് ഉണ്ടാകുന്ന തെറ്റിദ്ധാരണകൾക്കും വ്യാഖ്യാന പിഴവുകൾക്കും ഞങ്ങൾ ഉത്തരവാദിത്വം വഹിച്ചു കൊള്ളുന്നില്ല.
+**അറിയിപ്പ്**:
+ഈ രേഖ AI പരിഭാഷാ സേവനം [Co-op Translator](https://github.com/Azure/co-op-translator) ഉപയോഗിച്ച് പരിഭാഷപ്പെടുത്തിയതാണ്. ഞങ്ങൾ കൃത്യതയ്ക്കായി ശ്രമിക്കുന്നുവെങ്കിലും, ഓട്ടോമേറ്റഡ് പരിഭാഷകളിൽ പിഴവുകൾ അല്ലെങ്കിൽ തെറ്റായ വിവരങ്ങൾ ഉണ്ടാകാൻ സാധ്യതയുണ്ട്. അതിന്റെ സ്വാഭാവിക ഭാഷയിലുള്ള അസൽ രേഖയാണ് പ്രാമാണികമായ ഉറവിടമായി പരിഗണിക്കേണ്ടത്. നിർണായകമായ വിവരങ്ങൾക്ക്, പ്രൊഫഷണൽ മനുഷ്യ പരിഭാഷ ശുപാർശ ചെയ്യുന്നു. ഈ പരിഭാഷ ഉപയോഗിച്ച് ഉണ്ടാകുന്ന തെറ്റിദ്ധാരണകൾ അല്ലെങ്കിൽ തെറ്റായ വ്യാഖ്യാനങ്ങൾക്കായി ഞങ്ങൾ ഉത്തരവാദികളല്ല.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

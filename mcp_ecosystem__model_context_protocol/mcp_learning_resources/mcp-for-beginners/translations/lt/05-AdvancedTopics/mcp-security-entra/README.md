@@ -1,131 +1,131 @@
-# AI darbo eigų apsauga: Entra ID autentifikacija Model Context Protocol serveriams
+# AI darbo eigų apsauga: Entra ID autentifikavimas Model Context Protocol serveriams
 
 ## Įvadas
-Apsaugoti savo Model Context Protocol (MCP) serverį yra taip pat svarbu, kaip užrakinti savo namų duris. Palikdami MCP serverį atvirą, jūs rizikuojate, kad jūsų įrankiai ir duomenys bus pasiekiami neautorizuotiems asmenims, o tai gali sukelti saugumo pažeidimus. Microsoft Entra ID siūlo patikimą debesų pagrindu veikiančią tapatybės ir prieigos valdymo sprendimą, kuris užtikrina, kad tik autorizuoti vartotojai ir programos galėtų sąveikauti su jūsų MCP serveriu. Šiame skyriuje sužinosite, kaip apsaugoti savo AI darbo eigas naudojant Entra ID autentifikaciją.
+Jūsų Model Context Protocol (MCP) serverio apsauga yra tokia pat svarbi, kaip ir namų durų užrakinimas. Palikus MCP serverį atvirą, jūsų įrankiai ir duomenys tampa pažeidžiami neteisėtam prieigos gavimui, kas gali lemti saugumo pažeidimus. Microsoft Entra ID siūlo tvirtą debesyje pagrįstą tapatybės ir prieigos valdymo sprendimą, užtikrinantį, kad su jūsų MCP serveriu sąveikautų tik autorizuoti vartotojai ir programos. Šiame skyriuje sužinosite, kaip apsaugoti savo AI darbo eigas naudojant Entra ID autentifikavimą.
 
 ## Mokymosi tikslai
-Šio skyriaus pabaigoje jūs galėsite:
+Šio skyriaus pabaigoje galėsite:
 
 - Suprasti MCP serverių apsaugos svarbą.
-- Paaiškinti Microsoft Entra ID ir OAuth 2.0 autentifikacijos pagrindus.
-- Atpažinti skirtumus tarp viešųjų ir konfidencialių klientų.
-- Įgyvendinti Entra ID autentifikaciją tiek vietiniuose (viešasis klientas), tiek nuotoliniuose (konfidencialus klientas) MCP serverio scenarijuose.
-- Taikyti saugumo geriausias praktikas kuriant AI darbo eigas.
+- Išaiškinti Microsoft Entra ID ir OAuth 2.0 autentifikavimo pagrindus.
+- Atpažinti skirtumą tarp viešųjų ir konfidencialių klientų.
+- Įgyvendinti Entra ID autentifikavimą tiek vietiniuose (viešojo kliento), tiek nuotoliniuose (konfidencialaus kliento) MCP serverių scenarijuose.
+- Taikyti geriausias saugumo praktikas kuriant AI darbo eigas.
 
 ## Saugumas ir MCP
 
-Kaip nepaliktumėte savo namų durų neužrakintų, taip neturėtumėte palikti MCP serverio atviro visiems. AI darbo eigų apsauga yra būtina, norint kurti patikimas, saugias ir patvarias programas. Šiame skyriuje sužinosite, kaip naudoti Microsoft Entra ID, kad apsaugotumėte savo MCP serverius ir užtikrintumėte, jog tik autorizuoti vartotojai ir programos galėtų sąveikauti su jūsų įrankiais ir duomenimis.
+Kaip ir neužrakintumėte namų priekinės durys, neturėtumėte palikti MCP serverio atviro bet kam. AI darbo eigų apsauga yra būtina stiprioms, patikimoms ir saugioms programoms kurti. Šiame skyriuje susipažinsite, kaip naudoti Microsoft Entra ID MCP serverių apsaugai, užtikrinant, kad tik autorizuoti vartotojai ir programos galėtų naudotis jūsų įrankiais ir duomenimis.
 
-## Kodėl MCP serverių saugumas yra svarbus
+## Kodėl saugumas svarbus MCP serveriams
 
-Įsivaizduokite, kad jūsų MCP serveris turi įrankį, kuris gali siųsti el. laiškus arba pasiekti klientų duomenų bazę. Neapsaugotas serveris reikštų, kad bet kas galėtų naudotis tuo įrankiu, o tai galėtų sukelti neautorizuotą duomenų prieigą, šlamštą ar kitas kenkėjiškas veiklas.
+Įsivaizduokite, kad jūsų MCP serveryje yra įrankis, galintis siųsti el. laiškus arba pasiekti klientų duomenų bazę. Nesaugus serveris reikštų, kad bet kas galėtų naudotis šiuo įrankiu, kas leistų neteisėtai prieiti prie duomenų, siųsti šlamštą ar vykdyti kitas kenksmingas veiklas.
 
-Įgyvendindami autentifikaciją, jūs užtikrinate, kad kiekvienas serverio užklausimas būtų patikrintas, patvirtinant vartotojo ar programos, kuri pateikė užklausą, tapatybę. Tai yra pirmas ir svarbiausias žingsnis apsaugant jūsų AI darbo eigas.
+Įgyvendindami autentifikaciją, užtikrinate, kad kiekvienas užklausos atsiuntimas į serverį būtų patikrintas, patvirtinant užklausos pateikėjo tapatybę. Tai pirmasis ir svarbiausias žingsnis apsaugant jūsų AI darbo eigas.
 
 ## Įvadas į Microsoft Entra ID
 
-[**Microsoft Entra ID**](https://adoption.microsoft.com/microsoft-security/entra/) yra debesų pagrindu veikianti tapatybės ir prieigos valdymo paslauga. Galvokite apie ją kaip apie universalų apsaugos darbuotoją jūsų programoms. Ji tvarko sudėtingą vartotojų tapatybių patvirtinimo (autentifikacijos) ir jų leidimų nustatymo (autorizacijos) procesą.
+[**Microsoft Entra ID**](https://adoption.microsoft.com/microsoft-security/entra/) yra debesyje veikianti tapatybės ir prieigos valdymo paslauga. Galvokite apie ją kaip universalią apsaugą jūsų programoms. Ji tvarko sudėtingą vartotojų tapatybės patikros (autentifikacijos) procesą ir nustato, ką vartotojai gali daryti (autorizaciją).
 
 Naudodami Entra ID galite:
 
-- Užtikrinti saugų vartotojų prisijungimą.
+- Leisti vartotojams saugiai prisijungti.
 - Apsaugoti API ir paslaugas.
-- Valdyti prieigos politiką iš vienos vietos.
+- Valdyti prieigos politiką iš centrinės vietos.
 
-MCP serveriams Entra ID suteikia patikimą ir plačiai pripažintą sprendimą, leidžiantį valdyti, kas gali pasiekti jūsų serverio galimybes.
+MCP serveriams Entra ID suteikia tvirtą ir plačiai patikimą sprendimą, leidžiantį valdyti, kas gali pasiekti jūsų serverio funkcijas.
 
 ---
 
-## Magijos supratimas: kaip veikia Entra ID autentifikacija
+## Suprasti magiją: kaip veikia Entra ID autentifikacija
 
-Entra ID naudoja atvirus standartus, tokius kaip **OAuth 2.0**, autentifikacijai tvarkyti. Nors detalės gali būti sudėtingos, pagrindinė koncepcija yra paprasta ir gali būti suprantama per analogiją.
+Entra ID naudoja atvirus standartus, tokius kaip **OAuth 2.0**, autentifikacijos valdymui. Nors detalės gali būti sudėtingos, pagrindinė idėja paprasta ir gali būti suprasta naudojant analogiją.
 
-### Paprastas OAuth 2.0 paaiškinimas: Valet raktas
+### Švelnus įvadas į OAuth 2.0: Valet rakto pavyzdys
 
-Pagalvokite apie OAuth 2.0 kaip apie valet paslaugą jūsų automobiliui. Kai atvykstate į restoraną, jūs neduodate valet darbuotojui pagrindinio rakto. Vietoj to, jūs pateikiate **valet raktą**, kuris turi ribotas teises – jis gali užvesti automobilį ir užrakinti duris, bet negali atidaryti bagažinės ar daiktadėžės.
+Įsivaizduokite OAuth 2.0 kaip valet paslaugą jūsų automobiliui. Kai atvykstate į restoraną, jūs neįteikiate valetyje pilno automobilio rakto. Vietoj to duodate **valet raktą**, kuris turi ribotas teises – gali užvesti automobilį ir užrakinti duris, bet negali atidaryti bagažinės ar pirštinės skyrelio.
 
 Šioje analogijoje:
 
-- **Jūs** esate **Vartotojas**.
-- **Jūsų automobilis** yra **MCP serveris** su savo vertingais įrankiais ir duomenimis.
-- **Valet darbuotojas** yra **Microsoft Entra ID**.
-- **Automobilių stovėjimo aikštelės prižiūrėtojas** yra **MCP klientas** (programa, bandanti pasiekti serverį).
-- **Valet raktas** yra **Prieigos žetonas**.
+- **Jūs** esate **vartotojas**.
+- **Jūsų automobilis** yra **MCP serveris** su vertingais įrankiais ir duomenimis.
+- **Valet** yra **Microsoft Entra ID**.
+- **Automobilių stovėjimo prižiūrėtojas** yra **MCP klientas** (programa, bandanti prisijungti prie serverio).
+- **Valet raktas** yra **prieigos žetonas**.
 
-Prieigos žetonas yra saugus teksto eilutė, kurią MCP klientas gauna iš Entra ID po to, kai jūs prisijungiate. Klientas tada pateikia šį žetoną MCP serveriui su kiekviena užklausa. Serveris gali patikrinti žetoną, kad įsitikintų, jog užklausa yra teisėta ir kad klientas turi reikiamus leidimus, visai netvarkydamas jūsų tikrųjų prisijungimo duomenų (pvz., slaptažodžio).
+Prieigos žetonas yra saugus teksto eilutė, kurią MCP klientas gauna iš Entra ID prisijungus. Klientas kiekvienam užklausos atsiuntimui pateikia šį žetoną MCP serveriui. Serveris patikrina žetoną, kad įsitikintų, jog užklausa yra teisėta ir kad klientas turi reikiamas teises, o tai daroma be faktinio slaptažodžio valdymo.
 
 ### Autentifikacijos eiga
 
-Štai kaip procesas veikia praktiškai:
+Štai kaip šis procesas veikia praktiškai:
 
 ```mermaid
 sequenceDiagram
-    actor User as 👤 User
-    participant Client as 🖥️ MCP Client
+    actor User as 👤 Vartotojas
+    participant Client as 🖥️ MCP Klientas
     participant Entra as 🔐 Microsoft Entra ID
-    participant Server as 🔧 MCP Server
+    participant Server as 🔧 MCP Serveris
 
-    Client->>+User: Please sign in to continue.
-    User->>+Entra: Enters credentials (username/password).
-    Entra-->>Client: Here is your access token.
-    User-->>-Client: (Returns to the application)
+    Client->>+User: Prašome prisijungti, norint tęsti.
+    User->>+Entra: Įveda prisijungimo duomenis (vartotojo vardas/slaptažodis).
+    Entra-->>Client: Štai jūsų prieigos raktas.
+    User-->>-Client: (Grįžta į programą)
 
-    Client->>+Server: I need to use a tool. Here is my access token.
-    Server->>+Entra: Is this access token valid?
-    Entra-->>-Server: Yes, it is.
-    Server-->>-Client: Token is valid. Here is the result of the tool.
+    Client->>+Server: Man reikia naudoti įrankį. Štai mano prieigos raktas.
+    Server->>+Entra: Ar šis prieigos raktas galioja?
+    Entra-->>-Server: Taip, galioja.
+    Server-->>-Client: Raktas galioja. Štai įrankio rezultatas.
 ```
 
 ### Microsoft Authentication Library (MSAL) pristatymas
 
-Prieš pereinant prie kodo, svarbu pristatyti pagrindinį komponentą, kurį matysite pavyzdžiuose: **Microsoft Authentication Library (MSAL)**.
+Prieš pradedant su kodu, svarbu pristatyti pagrindinę dalį, kurią pamatysite pavyzdžiuose: **Microsoft Authentication Library (MSAL)**.
 
-MSAL yra Microsoft sukurta biblioteka, kuri labai palengvina kūrėjams autentifikacijos procesą. Vietoj to, kad rašytumėte visą sudėtingą kodą, skirtą saugumo žetonams tvarkyti, prisijungimams valdyti ir sesijoms atnaujinti, MSAL atlieka visą sunkų darbą.
+MSAL yra Microsoft sukurta biblioteka, kuri palengvina kūrėjams autentifikacijos valdymą. Vietoje to, kad rašytumėte sudėtingą kodą saugumo žetonų tvarkymui, prisijungimų valdymui ir sesijų atnaujinimui, MSAL atlieka šiuos darbus už jus.
 
-Naudoti tokią biblioteką kaip MSAL yra labai rekomenduojama, nes:
+Naudoti MSAL labai rekomenduojama, nes:
 
-- **Tai saugu:** Ji įgyvendina pramonės standartus ir saugumo geriausias praktikas, sumažindama pažeidžiamumų riziką jūsų kode.
-- **Tai supaprastina kūrimą:** Ji abstrahuoja OAuth 2.0 ir OpenID Connect protokolų sudėtingumą, leidžiant jums pridėti patikimą autentifikaciją prie savo programos vos keliomis kodo eilutėmis.
-- **Ji yra palaikoma:** Microsoft aktyviai palaiko ir atnaujina MSAL, kad būtų sprendžiamos naujos saugumo grėsmės ir platformos pokyčiai.
+- **Ji saugi:** įgyvendina pramonės standartų protokolus ir geriausias saugumo praktikas, mažindama riziką savo kode turėti spragų.
+- **Palengvina kūrimą:** abstrahuoja OAuth 2.0 ir OpenID Connect sudėtingumą, leidžiant vos keliomis eilutėmis pridėti tvirtą autentifikaciją į programą.
+- **Ji palaikoma:** Microsoft aktyviai atnaujina ir prižiūri MSAL, kad apsaugotų nuo naujų saugumo grėsmių ir atnaujintų platformų pokyčius.
 
-MSAL palaiko įvairias programavimo kalbas ir programų karkasus, įskaitant .NET, JavaScript/TypeScript, Python, Java, Go ir mobiliąsias platformas, tokias kaip iOS ir Android. Tai reiškia, kad galite naudoti tuos pačius autentifikacijos modelius visoje savo technologijų infrastruktūroje.
+MSAL palaiko daug programavimo kalbų ir programų karkasų, įskaitant .NET, JavaScript/TypeScript, Python, Java, Go bei mobiliąsias platformas kaip iOS ir Android. Tai reiškia, kad galite taikyti nuoseklius autentifikacijos modelius visame savo technologijų komplekte.
 
-Norėdami sužinoti daugiau apie MSAL, galite peržiūrėti oficialią [MSAL apžvalgos dokumentaciją](https://learn.microsoft.com/entra/identity-platform/msal-overview).
+Daugiau apie MSAL galite sužinoti oficialioje [MSAL apžvalgos dokumentacijoje](https://learn.microsoft.com/entra/identity-platform/msal-overview).
 
 ---
 
-## MCP serverio apsauga su Entra ID: žingsnis po žingsnio vadovas
+## Jūsų MCP serverio apsauga naudojant Entra ID: žingsnis po žingsnio
 
-Dabar pereikime prie to, kaip apsaugoti vietinį MCP serverį (tą, kuris bendrauja per `stdio`) naudojant Entra ID. Šiame pavyzdyje naudojamas **viešasis klientas**, kuris tinka programoms, veikiančioms vartotojo kompiuteryje, pvz., darbalaukio programoms ar vietiniams kūrimo serveriams.
+Dabar pereikime, kaip apsaugoti vietinį MCP serverį (kuris bendrauja per `stdio`) naudojant Entra ID. Šis pavyzdys naudoja **viešą klientą**, tinkantį programoms, veikiančioms vartotojo mašinoje, pavyzdžiui, darbalaukio programai ar vietinio vystymo serveriui.
 
-### Scenarijus 1: Vietinio MCP serverio apsauga (su viešuoju klientu)
+### Scenarijus 1: Vietinio MCP serverio apsauga (su viešu klientu)
 
-Šiame scenarijuje nagrinėsime vietinį MCP serverį, kuris veikia lokaliai, bendrauja per `stdio` ir naudoja Entra ID vartotojo autentifikacijai prieš suteikdamas prieigą prie savo įrankių. Serveris turės vieną įrankį, kuris gauna vartotojo profilio informaciją iš Microsoft Graph API.
+Šiame scenarijuje aptarsime MCP serverį, kuris veikia vietoje, bendrauja per `stdio` ir naudoja Entra ID vartotojo autentifikavimui prieš suteikdamas prieigą prie įrankių. Serveryje bus įrankis, kuris gauna vartotojo profilio informaciją iš Microsoft Graph API.
 
-#### 1. Programos nustatymas Entra ID
+#### 1. Programos sukūrimas Entra ID
 
-Prieš rašydami bet kokį kodą, turite užregistruoti savo programą Microsoft Entra ID. Tai informuoja Entra ID apie jūsų programą ir suteikia jai leidimą naudoti autentifikacijos paslaugą.
+Prieš rašant kodą, turite užregistruoti savo programą Microsoft Entra ID. Tai informuoja Entra ID apie jūsų programą ir suteikia teises naudotis autentifikacijos paslauga.
 
 1. Eikite į **[Microsoft Entra portalą](https://entra.microsoft.com/)**.
 2. Pasirinkite **App registrations** ir spustelėkite **New registration**.
-3. Suteikite savo programai pavadinimą (pvz., „Mano vietinis MCP serveris“).
+3. Suteikite programai pavadinimą (pvz., „My Local MCP Server“).
 4. Skiltyje **Supported account types** pasirinkite **Accounts in this organizational directory only**.
-5. Šiam pavyzdžiui galite palikti **Redirect URI** tuščią.
-6. Spustelėkite **Register**.
+5. Šiame pavyzdyje **Redirect URI** palikite tuščią.
+6. Spauskite **Register**.
 
-Užregistravę, užsirašykite **Application (client) ID** ir **Directory (tenant) ID**. Jums jų prireiks kode.
+Užregistravus, užsirašykite **Application (client) ID** ir **Directory (tenant) ID** – šios reikės kodo rašyme.
 
 #### 2. Kodo analizė
 
-Pažvelkime į pagrindines kodo dalis, kurios tvarko autentifikaciją. Pilnas šio pavyzdžio kodas yra prieinamas [Entra ID - Local - WAM](https://github.com/Azure-Samples/mcp-auth-servers/tree/main/src/entra-id-local-wam) aplanke [mcp-auth-servers GitHub saugykloje](https://github.com/Azure-Samples/mcp-auth-servers).
+Pažiūrėkime pagrindines kodo dalis, valdančias autentifikaciją. Visas šio pavyzdžio kodas yra [Entra ID - Local - WAM](https://github.com/Azure-Samples/mcp-auth-servers/tree/main/src/entra-id-local-wam) kataloge [mcp-auth-servers GitHub saugykloje](https://github.com/Azure-Samples/mcp-auth-servers).
 
 **`AuthenticationService.cs`**
 
 Ši klasė atsakinga už sąveiką su Entra ID.
 
-- **`CreateAsync`**: Šis metodas inicijuoja `PublicClientApplication` iš MSAL (Microsoft Authentication Library). Jis sukonfigūruotas su jūsų programos `clientId` ir `tenantId`.
-- **`WithBroker`**: Tai leidžia naudoti brokerį (pvz., Windows Web Account Manager), kuris suteikia saugesnę ir sklandesnę vieno prisijungimo patirtį.
-- **`AcquireTokenAsync`**: Tai pagrindinis metodas. Jis pirmiausia bando gauti žetoną tyliai (tai reiškia, kad vartotojui nereikės vėl prisijungti, jei jis jau turi galiojančią sesiją). Jei tylus žetonas negali būti gautas, jis paragins vartotoją prisijungti interaktyviai.
+- **`CreateAsync`**: inicializuoja `PublicClientApplication` iš MSAL. Ji konfigūruojama jūsų programos `clientId` ir `tenantId`.
+- **`WithBroker`**: leidžia naudoti brokerį (pvz., Windows Web Account Manager), suteikiantį saugesnį ir sklandesnį vieno prisijungimo patirtį.
+- **`AcquireTokenAsync`**: pagrindinis metodas. Iš pradžių bando tyliai gauti žetoną (jei vartotojas jau turi galiojančią sesiją, jam nereikia vėl prisijungti). Jei tyliai žetonas negali būti gautas, vartotojui bus pasiūlyta prisijungti interaktyviai.
 
 ```csharp
 // Simplified for clarity
@@ -177,8 +177,8 @@ public async Task<string> AcquireTokenAsync()
 
 Čia nustatomas MCP serveris ir integruojama autentifikacijos paslauga.
 
-- **`AddSingleton<AuthenticationService>`**: Tai registruoja `AuthenticationService` priklausomybių injekcijos konteineryje, kad jis galėtų būti naudojamas kitose programos dalyse (pvz., mūsų įrankyje).
-- **`GetUserDetailsFromGraph` įrankis**: Šis įrankis reikalauja `AuthenticationService` egzemplioriaus. Prieš ką nors darydamas, jis kviečia `authService.AcquireTokenAsync()`, kad gautų galiojantį prieigos žetoną. Jei autentifikacija sėkminga, jis naudoja žetoną, kad saugiai iškviestų Microsoft Graph API ir gautų vartotojo informaciją.
+- **`AddSingleton<AuthenticationService>`**: registruoja `AuthenticationService` priklausomybių injekcijos konteineryje, kad kitos programos dalys (pvz., mūsų įrankis) galėtų jį naudoti.
+- **`GetUserDetailsFromGraph` įrankis**: šis įrankis reikalauja `AuthenticationService` egzemplioriaus. Prieš pradėdamas veikti, jis kviečia `authService.AcquireTokenAsync()`, kad gautų galiojantį prieigos žetoną. Jei autentifikacija pavyksta, žetonas naudojamas kvietimui Microsoft Graph API gauti vartotojo duomenis.
 
 ```csharp
 // Simplified for clarity
@@ -208,84 +208,84 @@ public static async Task<string> GetUserDetailsFromGraph(
 
 #### 3. Kaip viskas veikia kartu
 
-1. Kai MCP klientas bando naudoti `GetUserDetailsFromGraph` įrankį, įrankis pirmiausia kviečia `AcquireTokenAsync`.
-2. `AcquireTokenAsync` paleidžia MSAL biblioteką, kad patikrintų, ar yra galiojantis žetonas.
-3. Jei žetonas nerandamas, MSAL per brokerį paragins vartotoją prisijungti su savo Entra ID paskyra.
-4. Kai vartotojas prisijungia, Entra ID išduoda prieigos žetoną.
-5. Įrankis gauna žetoną ir naudoja jį, kad saugiai iškviestų Microsoft Graph API.
-6. Vartotojo informacija grąžinama MCP klientui.
+1. Kai MCP klientas bando naudoti įrankį `GetUserDetailsFromGraph`, įrankis pirmiausia kviečia `AcquireTokenAsync`.
+2. `AcquireTokenAsync` iškviečia MSAL biblioteką, kuri tikrina ar yra galiojantis žetonas.
+3. Jei žetonas nerandamas, MSAL per brokerį paprašo vartotojo prisijungti su Entra ID paskyra.
+4. Prisijungus vartotojui, Entra ID išduoda prieigos žetoną.
+5. Įrankis gauna žetoną ir naudoja jį saugiam kvietimui į Microsoft Graph API.
+6. Vartotojo duomenys grąžinami MCP klientui.
 
-Šis procesas užtikrina, kad tik autentifikuoti vartotojai galėtų naudotis įrankiu, efektyviai apsaugodami jūsų vietinį MCP serverį.
+Šis procesas užtikrina, kad įrankį gali naudoti tik autentifikuoti vartotojai, efektyviai apsaugant jūsų vietinį MCP serverį.
 
 ### Scenarijus 2: Nuotolinio MCP serverio apsauga (su konfidencialiu klientu)
 
-Kai jūsų MCP serveris veikia nuotoliniame kompiuteryje (pvz., debesų serveryje) ir bendrauja per protokolą, pvz., HTTP Streaming, saugumo reikalavimai yra kitokie. Šiuo atveju turėtumėte naudoti **konfidencialų klientą** ir **Autorizacijos kodo srautą**. Tai yra saugesnis metodas, nes programos slaptažodžiai niekada nėra atskleidžiami naršyklei.
+Kai jūsų MCP serveris veikia nuotoliniame įrenginyje (pvz., debesų serveryje) ir bendrauja per protokolą kaip HTTP Streaming, saugumo reikalavimai skiriasi. Tokiu atveju turėtumėte naudoti **konfidencialų klientą** ir **Authorization Code Flow**. Tai saugesnis metodas, nes programos slaptažodžiai niekada nėra atskleidžiami naršyklei.
 
-Šis pavyzdys naudoja TypeScript pagrindu sukurtą MCP serverį, kuris naudoja Express.js HTTP užklausoms tvarkyti.
+Šis pavyzdys naudoja TypeScript MCP serverį, kuris naudoja Express.js HTTP užklausų tvarkymui.
 
-#### 1. Programos nustatymas Entra ID
+#### 1. Programos sukūrimas Entra ID
 
-Nustatymas Entra ID yra panašus į viešąjį klientą, tačiau su viena svarbia išimtimi: jums reikia sukurti **kliento slaptažodį**.
+Entra ID nustatymai panašūs kaip viešam klientui, bet su svarbiu skirtumu: jums reikia sukurti **kliento slaptažodį**.
 
 1. Eikite į **[Microsoft Entra portalą](https://entra.microsoft.com/)**.
-2. Savo programos registracijoje eikite į **Certificates & secrets** skirtuką.
-3. Spustelėkite **New client secret**, suteikite jam aprašymą ir spustelėkite **Add**.
-4. **Svarbu:** Nedelsdami nukopijuokite slaptažodžio reikšmę. Jūs negalėsite jos matyti vėliau.
-5. Taip pat turite sukonfigūruoti **Redirect URI**. Eikite į **Authentication** skirtuką, spustelėkite **Add a platform**, pasirinkite **Web** ir įveskite savo programos peradresavimo URI (pvz., `http://localhost:3001/auth/callback`).
+2. Jūsų programos registracijoje pasirinkite skirtuką **Certificates & secrets**.
+3. Spauskite **New client secret**, pridėkite aprašymą ir spauskite **Add**.
+4. **Svarbu:** Nedelsdami nukopijuokite slaptažodžio reikšmę. Jos daugiau negalėsite peržiūrėti.
+5. Taip pat turite konfigūruoti **Redirect URI**. Eikite į skirtuką **Authentication**, spustelėkite **Add a platform**, pasirinkite **Web** ir įveskite savo programos redirect URI (pvz., `http://localhost:3001/auth/callback`).
 
-> **⚠️ Svarbi saugumo pastaba:** Produkcijos programoms Microsoft primygtinai rekomenduoja naudoti **autentifikaciją be slaptažodžių**, pvz., **Managed Identity** arba **Workload Identity Federation**, vietoj kliento slaptažodžių. Kliento slaptažodžiai kelia saugumo riziką, nes jie gali būti atskleisti arba pažeisti. Valdomos tapatybės suteikia saugesnį būdą, nes nereikia saugoti kredencialų jūsų kode ar konfigūracijoje.
+> **⚠️ Svarbus saugumo patarimas:** Produkcijai Microsoft labai rekomenduoja naudoti **autentifikaciją be slaptumo** metodus, kaip **Managed Identity** arba **Workload Identity Federation**, o ne naudoti kliento slaptažodžius. Kliento slaptažodžiai gali būti paviešinti arba kompromituoti. Valdomos tapatybės suteikia saugesnį būdą, nes nereikia laikyti prisijungimo duomenų programos kode ar konfigūracijoje.
 >
-> Daugiau informacijos apie valdomas tapatybes ir kaip jas įgyvendinti rasite [Valdomų tapatybių Azure ištekliams apžvalgoje](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview).
+> Daugiau apie valdomas tapatybes ir kaip jas įgyvendinti žr. [Managed identities for Azure resources apžvalgą](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview).
 
 #### 2. Kodo analizė
 
-Šis pavyzdys naudoja sesijomis pagrįstą metodą. Kai vartotojas autentifikuojasi, serveris saugo prieigos žetoną ir atnaujinimo žetoną sesijoje ir suteikia vartotojui sesijos žetoną. Šis sesijos žetonas naudojamas vėlesnėms užklausoms. Pilnas šio pavyzdžio kodas yra prieinamas [Entra ID - Confidential client](https://github.com/Azure-Samples/mcp-auth-servers/tree/main/src/entra-id-cca-session) aplanke [mcp-auth-servers GitHub saugykloje](https://github.com/Azure-Samples/mcp-auth-servers).
+Šis pavyzdys naudoja sesijų pagrindu veikiančią sistemą. Vartotojui autentifikavus, serveris saugo prieigos ir atnaujinimo žetonus sesijoje ir suteikia vartotojui sesijos žetoną. Šis sesijos žetonas naudojamas tolimesnėms užklausoms. Visas pavyzdžio kodas yra [Entra ID - Confidential client](https://github.com/Azure-Samples/mcp-auth-servers/tree/main/src/entra-id-cca-session) kataloge [mcp-auth-servers GitHub saugykloje](https://github.com/Azure-Samples/mcp-auth-servers).
 
 **`Server.ts`**
 
 Šis failas nustato Express serverį ir MCP transporto sluoksnį.
 
-- **`requireBearerAuth`**: Tai yra tarpinė programinė įranga, kuri apsaugo `/sse` ir `/message` galinius taškus. Ji tikrina, ar `Authorization` antraštėje yra galiojantis žetonas.
-- **`EntraIdServerAuthProvider`**: Tai yra pasirinktinė klasė, kuri įgyvendina `McpServerAuthorizationProvider` sąsają. Ji atsakinga už OAuth 2.0 srauto tvarkymą.
-- **`/auth/callback`**: Šis galinis taškas tvarko peradresavimą iš Entra ID po to, kai vartotojas autentifikuojasi. Jis keičia autorizacijos kodą į prieigos žetoną ir atnaujinimo žetoną.
+- **`requireBearerAuth`**: tarpinė programinė įranga, sauganti `/sse` ir `/message` galinius taškus. Ji tikrina ar užklausos `Authorization` antraštėje yra galiojantis nešėjo žetonas.
+- **`EntraIdServerAuthProvider`**: tai pasirinktinė klasė, įgyvendinanti `McpServerAuthorizationProvider` sąsają. Ji tvarko OAuth 2.0 procesą.
+- **`/auth/callback`**: šis galinis taškas tvarko nukreipimą iš Entra ID po to, kai vartotojas prisijungė. Jis keičia autorizacijos kodą į prieigos ir atnaujinimo žetonus.
 
 ```typescript
-// Simplified for clarity
+// Supaprastinta aiškumui
 const app = express();
 const { server } = createServer();
 const provider = new EntraIdServerAuthProvider();
 
-// Protect the SSE endpoint
+// Apsaugokite SSE galinį tašką
 app.get("/sse", requireBearerAuth({
   provider,
   requiredScopes: ["User.Read"]
 }), async (req, res) => {
-  // ... connect to the transport ...
+  // ... prisijungti prie transporto ...
 });
 
-// Protect the message endpoint
+// Apsaugokite žinutės galinį tašką
 app.post("/message", requireBearerAuth({
   provider,
   requiredScopes: ["User.Read"]
 }), async (req, res) => {
-  // ... handle the message ...
+  // ... apdoroti žinutę ...
 });
 
-// Handle the OAuth 2.0 callback
+// Tvarkyti OAuth 2.0 atgalinį kvietimą
 app.get("/auth/callback", (req, res) => {
   provider.handleCallback(req.query.code, req.query.state)
     .then(result => {
-      // ... handle success or failure ...
+      // ... tvarkyti sėkmę ar nesėkmę ...
     });
 });
 ```
 
 **`Tools.ts`**
 
-Šis failas apibrėžia įrankius, kuriuos teikia MCP serveris. `getUserDetails` įrankis yra panašus į ankstesnį pavyzdį, tačiau jis gauna prieigos žetoną iš sesijos.
+Šis failas apibrėžia MCP serverio teikiamus įrankius. Įrankis `getUserDetails` yra panašus į ankstesnį, bet gauna prieigos žetoną iš sesijos.
 
 ```typescript
-// Simplified for clarity
+// Supaprastinta aiškumui
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name } = request.params;
   const context = request.params?.context as { token?: string } | undefined;
@@ -296,7 +296,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       throw new AuthenticationError("Authentication token is missing or invalid. Ensure the token is provided in the request context.");
     }
 
-    // Get the Entra ID token from the session store
+    // Gauti Entra ID žetoną iš sesijos saugyklos
     const tokenData = tokenStore.getToken(sessionToken);
     const entraIdToken = tokenData.accessToken;
 
@@ -308,107 +308,113 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     const user = await graphClient.api('/me').get();
 
-    // ... return user details ...
+    // ... grąžinti vartotojo duomenis ...
   }
 });
 ```
 
 **`auth/EntraIdServerAuthProvider.ts`**
 
-Ši klasė tvarko logiką:
+Ši klasė valdo logiką:
 
-- Peradresuoja vartotoją į Entra ID prisijungimo puslapį.
-- Keičia autorizacijos kodą į prieigos žetoną.
-- Saugo žetonus `tokenStore`.
-- Atnaujina prieigos žetoną, kai jis baigiasi.
+- Vartotojo nukreipimą į Entra ID prisijungimo puslapį.
+- Autorizacijos kodo keitimą į prieigos žetoną.
+- Žetonų saugojimą `tokenStore`.
+- Prieigos žetono atnaujinimą jam pasibaigus.
 
-#### 3.
-4. Serveris pakeičia kodą į prieigos ir atnaujinimo žetonus, juos saugo ir sukuria sesijos žetoną, kuris siunčiamas klientui.  
-5. Klientas dabar gali naudoti šį sesijos žetoną `Authorization` antraštėje visiems būsimiems užklausoms MCP serveriui.  
-6. Kai iškviečiamas `getUserDetails` įrankis, jis naudoja sesijos žetoną, kad surastų Entra ID prieigos žetoną, ir tada naudoja jį Microsoft Graph API užklausoms.  
+#### 3. Kaip viskas veikia kartu
 
-Šis procesas yra sudėtingesnis nei viešojo kliento procesas, tačiau būtinas internetui prieinamoms galutiniams taškams. Kadangi nuotoliniai MCP serveriai yra pasiekiami per viešąjį internetą, jiems reikalingos stipresnės saugumo priemonės, kad būtų apsaugota nuo neteisėtos prieigos ir galimų atakų.  
+1. Kai vartotojas pirmą kartą bando prisijungti prie MCP serverio, `requireBearerAuth` tarpinė programinė įranga nustato, kad nėra galimos galiojančios sesijos ir nukreipia vartotoją į Entra ID prisijungimo puslapį.
+2. Vartotojas prisijungia naudodamas savo Entra ID paskyrą.
+3. Entra ID nukreipia vartotoją atgal į `/auth/callback` galinį tašką su autorizacijos kodu.  
+4. Serveris keičia kodą į prieigos raktą ir atnaujinimo raktą, juos saugo ir sukuria sesijos raktą, kuris siunčiamas klientui.  
+5. Klientas dabar gali naudoti šį sesijos raktą `Authorization` antraštėje visiems būsimams MCP serverio užklausoms.  
+6. Kai kviečiamas `getUserDetails` įrankis, jis naudoja sesijos raktą, kad gautų Entra ID prieigos raktą, o tada naudoja jį kviesdamas Microsoft Graph API.
 
-## Saugumo geriausios praktikos  
+Šis srautas yra sudėtingesnis nei viešo kliento srautas, tačiau reikalingas interneto galiniams taškams. Kadangi nuotoliniai MCP serveriai yra pasiekiami per viešą internetą, jiems reikia stipresnių saugumo priemonių, kad apsisaugotų nuo neteisėtos prieigos ir galimų atakų.
 
-- **Visada naudokite HTTPS**: Užšifruokite komunikaciją tarp kliento ir serverio, kad apsaugotumėte žetonus nuo perėmimo.  
-- **Įgyvendinkite vaidmenimis pagrįstą prieigos kontrolę (RBAC)**: Ne tik tikrinkite, *ar* vartotojas yra autentifikuotas, bet ir *ką* jis yra įgaliotas daryti. Galite apibrėžti vaidmenis Entra ID ir tikrinti juos MCP serveryje.  
-- **Stebėkite ir audituokite**: Registruokite visus autentifikacijos įvykius, kad galėtumėte aptikti ir reaguoti į įtartiną veiklą.  
-- **Valdykite užklausų ribojimą ir srauto kontrolę**: Microsoft Graph ir kitos API įgyvendina užklausų ribojimą, kad būtų išvengta piktnaudžiavimo. Įgyvendinkite eksponentinį atsitraukimą ir pakartotinio bandymo logiką savo MCP serveryje, kad sklandžiai tvarkytumėte HTTP 429 (Per daug užklausų) atsakymus. Apsvarstykite galimybę talpinti dažnai pasiekiamus duomenis, kad sumažintumėte API užklausų skaičių.  
-- **Saugus žetonų saugojimas**: Saugokite prieigos ir atnaujinimo žetonus saugiai. Vietinėms programoms naudokite sistemos saugaus saugojimo mechanizmus. Serverio programoms apsvarstykite galimybę naudoti užšifruotą saugojimą arba saugių raktų valdymo paslaugas, tokias kaip Azure Key Vault.  
-- **Žetonų galiojimo laiko valdymas**: Prieigos žetonai turi ribotą galiojimo laiką. Įgyvendinkite automatinį žetonų atnaujinimą naudojant atnaujinimo žetonus, kad užtikrintumėte sklandžią vartotojo patirtį be pakartotinio autentifikavimo.  
-- **Apsvarstykite Azure API Management naudojimą**: Nors saugumo įgyvendinimas tiesiogiai MCP serveryje suteikia smulkią kontrolę, API vartai, tokie kaip Azure API Management, gali automatiškai tvarkyti daugelį šių saugumo klausimų, įskaitant autentifikaciją, autorizaciją, užklausų ribojimą ir stebėjimą. Jie suteikia centralizuotą saugumo sluoksnį, kuris yra tarp jūsų klientų ir MCP serverių. Daugiau informacijos apie API vartų naudojimą su MCP rasite mūsų [Azure API Management Your Auth Gateway For MCP Servers](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690).  
+## Saugumo Geriausios Praktikos
 
-## Pagrindinės išvados  
+- **Visada naudokite HTTPS**: Užšifruokite ryšį tarp kliento ir serverio, kad apsaugotumėte raktus nuo perėmimo.  
+- **Įgyvendinkite rolėmis pagrįstą prieigos valdymą (RBAC)**: Ne tik tikrinkite, *ar* vartotojas yra autentifikuotas, bet ir *ką* jis yra įgaliotas daryti. Galite apibrėžti roles Entra ID ir tikrinti jas savo MCP serveryje.  
+- **Stebėkite ir audituokite**: Registruokite visas autentifikacijos įvykius, kad galėtumėte aptikti ir reaguoti į įtartiną veiklą.  
+- **Valdykite užklausų dažnio ribojimą ir srauto kontroliavimą**: Microsoft Graph ir kitos API naudoja užklausų dažnio ribojimą, kad apsisaugotų nuo piktnaudžiavimo. Įgyvendinkite eksponentinį atsitraukimą ir bandymų pakartojimo logiką savo MCP serveryje, kad tvarkingai apdorotumėte HTTP 429 (per daug užklausų) atsakymus. Apsvarstykite galimybę kešuoti dažnai naudojamus duomenis, kad sumažintumėte API kvietimų skaičių.  
+- **Saugus raktų saugojimas**: Prieigos ir atnaujinimo raktus saugokite saugiai. Vietinėms programoms naudokite sistemos saugaus saugojimo mechanizmus. Serverinėms programoms apsvarstykite galimybę naudoti užšifruotą saugyklą arba saugias raktų valdymo paslaugas, kaip Azure Key Vault.  
+- **Raktų galiojimo terminų valdymas**: Prieigos raktams taikoma ribota galiojimo trukmė. Įgyvendinkite automatinį raktų atnaujinimą naudojant atnaujinimo raktus, kad užtikrintumėte sklandžią vartotojo patirtį be būtinybės pakartotinai autentifikuotis.  
+- **Apsvarstykite Azure API Management naudojimą**: Nors saugumą tiesiogiai MCP serveryje įgyvendinti leidžia tiksliau kontroliuoti, API vartai, tokie kaip Azure API Management, gali automatiškai valdyti daug šių saugumo aspektų, įskaitant autentifikavimą, autorizavimą, užklausų dažnio ribojimą ir stebėjimą. Jie suteikia centralizuotą saugumo sluoksnį, kuris stovi tarp jūsų klientų ir MCP serverių. Daugiau informacijos apie API vartų naudojimą su MCP rasite mūsų [Azure API Management Your Auth Gateway For MCP Servers](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690).
 
-- MCP serverio saugumas yra būtinas norint apsaugoti jūsų duomenis ir įrankius.  
-- Microsoft Entra ID suteikia patikimą ir mastelį palaikančią autentifikacijos ir autorizacijos sprendimą.  
-- Naudokite **viešąjį klientą** vietinėms programoms ir **konfidencialų klientą** nuotoliniams serveriams.  
-- **Autorizacijos kodo procesas** yra saugiausias pasirinkimas internetinėms programoms.  
+## Pagrindinės Išvados
 
-## Pratimai  
+- Jūsų MCP serverio saugumas yra esminis duomenų ir įrankių apsaugai.  
+- Microsoft Entra ID suteikia patikimą ir pritaikomą sprendimą autentifikavimui ir autorizavimui.  
+- Naudokite **viešą klientą** vietinėms programoms ir **konfidencialų klientą** nuotoliniams serveriams.  
+- **Autorizacijos kodo srautas** yra saugiausias pasirinkimas žiniatinklio programoms.
 
-1. Pagalvokite apie MCP serverį, kurį galėtumėte sukurti. Ar tai būtų vietinis serveris ar nuotolinis serveris?  
-2. Atsižvelgiant į jūsų atsakymą, ar naudotumėte viešąjį ar konfidencialų klientą?  
-3. Kokius leidimus jūsų MCP serveris prašytų, kad galėtų atlikti veiksmus prieš Microsoft Graph?  
+## Užduotis
 
-## Praktiniai pratimai  
+1. Pagalvokite apie MCP serverį, kurį galėtumėte sukurti. Ar jis būtų vietinis, ar nuotolinis serveris?  
+2. Remdamiesi atsakymu, ar naudotumėte viešą ar konfidencialų klientą?  
+3. Kokius leidimus jūsų MCP serveris prašytų atlikti veiksmus su Microsoft Graph?
 
-### Pratimas 1: Programos registravimas Entra ID  
-Eikite į Microsoft Entra portalą.  
-Registruokite naują programą savo MCP serveriui.  
-Užsirašykite Programos (kliento) ID ir Katalogo (nuomininko) ID.  
+## Praktinės Užduotys
 
-### Pratimas 2: Vietinio MCP serverio saugumo užtikrinimas (Viešasis klientas)  
-- Sekite kodo pavyzdį, kad integruotumėte MSAL (Microsoft Authentication Library) vartotojo autentifikacijai.  
-- Išbandykite autentifikacijos procesą, iškviesdami MCP įrankį, kuris gauna vartotojo informaciją iš Microsoft Graph.  
+### Užduotis 1: Registruoti programą Entra ID  
+Nukeliaukite į Microsoft Entra portalą.  
+Užregistruokite naują programą savo MCP serveriui.  
+Užsirašykite Programos (kliento) ID ir katalogo (nuomininko) ID.
 
-### Pratimas 3: Nuotolinio MCP serverio saugumo užtikrinimas (Konfidencialus klientas)  
-- Registruokite konfidencialų klientą Entra ID ir sukurkite kliento slaptąjį raktą.  
-- Konfigūruokite savo Express.js MCP serverį naudoti Autorizacijos kodo procesą.  
-- Išbandykite apsaugotus galutinius taškus ir patvirtinkite prieigos žetonų pagrįstą prieigą.  
+### Užduotis 2: Saugoti vietinį MCP serverį (Viešas klientas)  
+- Sekite kodo pavyzdį, kad integruotumėte MSAL (Microsoft Authentication Library) vartotojo autentifikavimui.  
+- Išbandykite autentifikacijos srautą kviesdami MCP įrankį, kuris paima vartotojo informaciją iš Microsoft Graph.
 
-### Pratimas 4: Saugumo geriausių praktikų taikymas  
-- Įgalinkite HTTPS savo vietiniam ar nuotoliniam serveriui.  
-- Įgyvendinkite vaidmenimis pagrįstą prieigos kontrolę (RBAC) savo serverio logikoje.  
-- Pridėkite žetonų galiojimo laiko valdymą ir saugų žetonų saugojimą.  
+### Užduotis 3: Saugoti nuotolinį MCP serverį (Konfidencialus klientas)  
+- Užregistruokite konfidencialų klientą Entra ID ir sukurkite kliento slaptąjį raktą.  
+- Konfigūruokite savo Express.js MCP serverį naudoti autorizacijos kodo srautą.  
+- Išbandykite apsaugotus galinius taškus ir patvirtinkite prieigą pagal raktą.
 
-## Ištekliai  
+### Užduotis 4: Taikyti geriausias saugumo praktikas  
+- Įjunkite HTTPS savo vietiniam ar nuotoliniam serveriui.  
+- Įgyvendinkite rolėmis pagrįstą prieigos valdymą (RBAC) serveryje.  
+- Pridėkite raktų galiojimo terminų valdymą ir saugų raktų saugojimą.
+
+## Ištekliai
 
 1. **MSAL apžvalgos dokumentacija**  
-   Sužinokite, kaip Microsoft Authentication Library (MSAL) leidžia saugiai gauti žetonus įvairiose platformose:  
-   [MSAL Overview on Microsoft Learn](https://learn.microsoft.com/en-gb/entra/msal/overview)  
+Sužinokite, kaip Microsoft Authentication Library (MSAL) užtikrina saugų raktų gavimą įvairiose platformose:  
+[MSAL Overview on Microsoft Learn](https://learn.microsoft.com/en-gb/entra/msal/overview)
 
-2. **Azure-Samples/mcp-auth-servers GitHub saugykla**  
-   MCP serverių pavyzdinės įgyvendinimo demonstracijos autentifikacijos procesams:  
-   [Azure-Samples/mcp-auth-servers on GitHub](https://github.com/Azure-Samples/mcp-auth-servers)  
+2. **Azure-Samples/mcp-auth-servers GitHub repozitorijus**  
+MCP serverių autentifikacijos srautų pavyzdžiai:  
+[Azure-Samples/mcp-auth-servers on GitHub](https://github.com/Azure-Samples/mcp-auth-servers)
 
-3. **Valdomų identitetų Azure ištekliams apžvalga**  
-   Supraskite, kaip pašalinti slaptažodžius naudojant sistemos arba vartotojo priskirtus valdomus identitetus:  
-   [Managed Identities Overview on Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/)  
+3. **Valdomų tapatybių apžvalga Azure ištekliams**  
+Sužinokite, kaip atsikratyti slaptųjų raktų naudojant sistemos arba vartotojo priskirtas valdomas tapatybes:  
+[Managed Identities Overview on Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/)
 
-4. **Azure API Management: Jūsų autentifikacijos vartai MCP serveriams**  
-   Išsamus vadovas apie APIM naudojimą kaip saugų OAuth2 vartus MCP serveriams:  
-   [Azure API Management Your Auth Gateway For MCP Servers](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)  
+4. **Azure API Management: jūsų autentifikacijos vartai MCP serveriams**  
+Gilus panirimas į APIM kaip saugų OAuth2 vartų sprendimą MCP serveriams:  
+[Azure API Management Your Auth Gateway For MCP Servers](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)
 
 5. **Microsoft Graph leidimų nuoroda**  
-   Išsamus deleguotų ir programos leidimų sąrašas Microsoft Graph:  
-   [Microsoft Graph Permissions Reference](https://learn.microsoft.com/zh-tw/graph/permissions-reference)  
+Išsamus deleguotų ir programos leidimų sąrašas Microsoft Graph:  
+[Microsoft Graph Permissions Reference](https://learn.microsoft.com/zh-tw/graph/permissions-reference)
 
-## Mokymosi rezultatai  
-Baigę šį skyrių, galėsite:  
+## Mokymosi Rezultatai  
+Baigę šią dalį sugebėsite:
 
-- Paaiškinti, kodėl autentifikacija yra svarbi MCP serveriams ir AI darbo eigoms.  
-- Nustatyti ir konfigūruoti Entra ID autentifikaciją tiek vietinio, tiek nuotolinio MCP serverio scenarijams.  
-- Pasirinkti tinkamą kliento tipą (viešąjį ar konfidencialų) pagal jūsų serverio diegimą.  
-- Įgyvendinti saugaus kodo praktikas, įskaitant žetonų saugojimą ir vaidmenimis pagrįstą autorizaciją.  
-- Pasitikėti MCP serverio ir jo įrankių apsauga nuo neteisėtos prieigos.  
+- Paaiškinti, kodėl autentifikacija yra svarbi MCP serveriams ir DI darbo eigoms.  
+- Nustatyti ir konfigūruoti Entra ID autentifikaciją vietiniuose ir nuotoliniuose MCP serverio scenarijuose.  
+- Pasirinkti tinkamą kliento tipą (viešas ar konfidencialus) pagal serverio diegimą.  
+- Įgyvendinti saugaus programavimo praktikas, įskaitant raktų saugojimą ir rolėmis pagrįstą autorizaciją.  
+- Užtikrintai apsaugoti savo MCP serverį ir jo įrankius nuo neteisėtos prieigos.
 
-## Kas toliau  
+## Kas toliau
 
-- [5.13 Model Context Protocol (MCP) Integration with Azure AI Foundry](../mcp-foundry-agent-integration/README.md)  
+- [5.13 Model Context Protocol (MCP) integracija su Microsoft Foundry](../mcp-foundry-agent-integration/README.md)
 
 ---
 
-**Atsakomybės apribojimas**:  
-Šis dokumentas buvo išverstas naudojant AI vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Kritinei informacijai rekomenduojama naudoti profesionalų žmogaus vertimą. Mes neprisiimame atsakomybės už nesusipratimus ar klaidingus interpretavimus, atsiradusius dėl šio vertimo naudojimo.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

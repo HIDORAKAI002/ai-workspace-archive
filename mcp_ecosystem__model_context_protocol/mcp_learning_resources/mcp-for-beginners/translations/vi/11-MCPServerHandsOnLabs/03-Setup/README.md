@@ -1,118 +1,115 @@
 # Thiết Lập Môi Trường
 
-## 🎯 Nội Dung Của Lab Này
+## 🎯 Lab này Bao Gồm Những Gì
 
-Lab thực hành này hướng dẫn bạn thiết lập một môi trường phát triển hoàn chỉnh để xây dựng các máy chủ MCP với tích hợp PostgreSQL. Bạn sẽ cấu hình các công cụ cần thiết, triển khai tài nguyên Azure, và xác thực thiết lập trước khi tiến hành triển khai.
+Lab thực hành này hướng dẫn bạn cách thiết lập một môi trường phát triển đầy đủ để xây dựng các máy chủ MCP với tích hợp PostgreSQL. Bạn sẽ cấu hình tất cả các công cụ cần thiết, triển khai tài nguyên Azure và kiểm tra thiết lập trước khi tiến hành thực hiện.
 
 ## Tổng Quan
 
-Một môi trường phát triển đúng chuẩn là yếu tố quan trọng để phát triển máy chủ MCP thành công. Lab này cung cấp hướng dẫn từng bước để thiết lập Docker, các dịch vụ Azure, công cụ phát triển, và kiểm tra xem mọi thứ hoạt động chính xác cùng nhau.
+Một môi trường phát triển đúng cách là rất quan trọng để phát triển máy chủ MCP thành công. Lab này cung cấp hướng dẫn từng bước để thiết lập Docker, các dịch vụ Azure, công cụ phát triển, đồng thời xác thực rằng mọi thứ hoạt động chính xác cùng nhau.
 
-Kết thúc lab này, bạn sẽ có một môi trường phát triển hoàn chỉnh sẵn sàng để xây dựng máy chủ MCP của Zava Retail.
+Kết thúc lab này, bạn sẽ có một môi trường phát triển hoàn chỉnh để xây dựng máy chủ Zava Retail MCP.
 
 ## Mục Tiêu Học Tập
 
-Kết thúc lab này, bạn sẽ có thể:
+Kết thúc lab, bạn sẽ có thể:
 
-- **Cài đặt và cấu hình** tất cả các công cụ phát triển cần thiết  
-- **Triển khai tài nguyên Azure** cần thiết cho máy chủ MCP  
-- **Thiết lập các container Docker** cho PostgreSQL và máy chủ MCP  
-- **Xác thực** thiết lập môi trường của bạn với các kết nối thử nghiệm  
-- **Khắc phục sự cố** các vấn đề thiết lập và cấu hình thường gặp  
-- **Hiểu** quy trình phát triển và cấu trúc tệp  
+- **Cài đặt và cấu hình** tất cả các công cụ phát triển cần thiết
+- **Triển khai tài nguyên Azure** cần cho máy chủ MCP
+- **Thiết lập container Docker** cho PostgreSQL và máy chủ MCP
+- **Xác thực** thiết lập môi trường với các kết nối thử nghiệm
+- **Khắc phục sự cố** các vấn đề phổ biến về thiết lập và cấu hình
+- **Hiểu** quy trình phát triển và cấu trúc tập tin
 
-## 📋 Kiểm Tra Điều Kiện Tiên Quyết
+## 📋 Kiểm Tra Yêu Cầu Tiền Đề
 
-Trước khi bắt đầu, hãy đảm bảo bạn có:
+Trước khi bắt đầu, hãy đảm bảo bạn đã có:
 
-### Kiến Thức Yêu Cầu
-- Sử dụng cơ bản dòng lệnh (Windows Command Prompt/PowerShell)  
-- Hiểu về biến môi trường  
-- Quen thuộc với kiểm soát phiên bản Git  
-- Các khái niệm cơ bản về Docker (container, image, volume)  
+### Kiến Thức Cần Thiết
+- Sử dụng dòng lệnh cơ bản (Windows Command Prompt/PowerShell)
+- Hiểu biết về biến môi trường
+- Quen thuộc với quản lý phiên bản Git
+- Khái niệm Docker cơ bản (container, image, volume)
 
 ### Yêu Cầu Hệ Thống
-- **Hệ điều hành**: Windows 10/11, macOS, hoặc Linux  
-- **RAM**: Tối thiểu 8GB (khuyến nghị 16GB)  
-- **Dung lượng lưu trữ**: Ít nhất 10GB trống  
-- **Mạng**: Kết nối Internet để tải xuống và triển khai Azure  
+- **Hệ Điều Hành**: Windows 10/11, macOS hoặc Linux
+- **RAM**: Tối thiểu 8GB (khuyến nghị 16GB)
+- **Dung Lượng Lưu Trữ**: Ít nhất 10GB trống
+- **Mạng**: Kết nối internet để tải xuống và triển khai Azure
 
 ### Yêu Cầu Tài Khoản
-- **Đăng ký Azure**: Gói miễn phí là đủ  
-- **Tài khoản GitHub**: Để truy cập kho lưu trữ  
-- **Tài khoản Docker Hub**: (Tùy chọn) Để xuất bản image tùy chỉnh  
+- **Đăng ký Azure**: Phiên bản miễn phí là đủ
+- **Tài khoản GitHub**: Để truy cập kho mã nguồn
+- **Tài khoản Docker Hub**: (Tùy chọn) Để xuất bản image tùy chỉnh
 
 ## 🛠️ Cài Đặt Công Cụ
 
-### 1. Cài Đặt Docker Desktop
+### 1. Cài Docker Desktop
 
 Docker cung cấp môi trường container hóa cho thiết lập phát triển của chúng ta.
 
-#### Cài Đặt Trên Windows
+#### Cài trên Windows
 
-1. **Tải xuống Docker Desktop**:  
+1. **Tải Docker Desktop**:
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
-  
-2. **Cài đặt và cấu hình**:  
-   - Chạy trình cài đặt với quyền Quản trị viên  
-   - Bật tích hợp WSL 2 khi được yêu cầu  
-   - Khởi động lại máy tính sau khi hoàn tất cài đặt  
 
-3. **Xác minh cài đặt**:  
+2. **Cài đặt và Cấu hình**:
+   - Chạy trình cài đặt với quyền Administrator
+   - Kích hoạt tích hợp WSL 2 khi được yêu cầu
+   - Khởi động lại máy tính sau khi cài đặt xong
+
+3. **Xác minh cài đặt**:
    ```cmd
    docker --version
    docker-compose --version
    ```
-  
 
-#### Cài Đặt Trên macOS
+#### Cài trên macOS
 
-1. **Tải xuống và cài đặt**:  
+1. **Tải và cài đặt**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Tải xuống từ https://desktop.docker.com/mac/stable/Docker.dmg
+   # Hoặc sử dụng Homebrew
    brew install --cask docker
    ```
-  
-2. **Khởi động Docker Desktop**:  
-   - Mở Docker Desktop từ Applications  
-   - Hoàn thành trình hướng dẫn thiết lập ban đầu  
 
-3. **Xác minh cài đặt**:  
+2. **Khởi động Docker Desktop**:
+   - Mở Docker Desktop từ Applications
+   - Hoàn tất trình trợ giúp thiết lập ban đầu
+
+3. **Xác minh cài đặt**:
    ```bash
    docker --version
    docker-compose --version
    ```
-  
 
-#### Cài Đặt Trên Linux
+#### Cài trên Linux
 
-1. **Cài đặt Docker Engine**:  
+1. **Cài Docker Engine**:
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Đăng xuất và đăng nhập lại để các thay đổi nhóm có hiệu lực
    ```
-  
-2. **Cài đặt Docker Compose**:  
+
+2. **Cài Docker Compose**:
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
-  
 
-### 2. Cài Đặt Azure CLI
+### 2. Cài Azure CLI
 
-Azure CLI cho phép triển khai và quản lý tài nguyên Azure.
+Azure CLI giúp triển khai và quản lý tài nguyên Azure.
 
-#### Cài Đặt Trên Windows
+#### Cài trên Windows
 
 ```cmd
 # Using Windows Package Manager
@@ -120,20 +117,18 @@ winget install Microsoft.AzureCLI
 
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
-  
 
-#### Cài Đặt Trên macOS
+#### Cài trên macOS
 
 ```bash
-# Using Homebrew
+# Sử dụng Homebrew
 brew install azure-cli
 
-# Or using installer
+# Hoặc sử dụng trình cài đặt
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
-  
 
-#### Cài Đặt Trên Linux
+#### Cài trên Linux
 
 ```bash
 # Ubuntu/Debian
@@ -143,28 +138,26 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
-  
 
-#### Xác Minh và Xác Thực
+#### Xác minh và Đăng nhập
 
 ```bash
-# Check installation
+# Kiểm tra cài đặt
 az version
 
-# Login to Azure
+# Đăng nhập vào Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Đặt đăng ký mặc định (nếu bạn có nhiều đăng ký)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
-  
 
-### 3. Cài Đặt Git
+### 3. Cài Git
 
-Git cần thiết để clone kho lưu trữ và kiểm soát phiên bản.
+Git cần thiết để sao chép kho mã nguồn và quản lý phiên bản.
 
-#### Windows
+#### Trên Windows
 
 ```cmd
 # Using Windows Package Manager
@@ -172,17 +165,15 @@ winget install Git.Git
 
 # Or download from: https://git-scm.com/download/win
 ```
-  
 
-#### macOS
+#### Trên macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git thường được cài sẵn, nhưng bạn có thể cập nhật qua Homebrew
 brew install git
 ```
-  
 
-#### Linux
+#### Trên Linux
 
 ```bash
 # Ubuntu/Debian
@@ -191,13 +182,12 @@ sudo apt update && sudo apt install git
 # RHEL/CentOS
 sudo dnf install git
 ```
-  
 
-### 4. Cài Đặt VS Code
+### 4. Cài VS Code
 
 Visual Studio Code cung cấp môi trường phát triển tích hợp với hỗ trợ MCP.
 
-#### Cài Đặt
+#### Cài đặt
 
 ```cmd
 # Windows
@@ -209,34 +199,33 @@ brew install --cask visual-studio-code
 # Linux (Ubuntu/Debian)
 sudo snap install code --classic
 ```
-  
 
-#### Các Tiện Ích Mở Rộng Cần Thiết
+#### Các tiện ích mở rộng cần thiết
 
 Cài đặt các tiện ích mở rộng VS Code sau:
 
 ```bash
-# Install via command line
+# Cài đặt qua dòng lệnh
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
-  
-Hoặc cài đặt qua VS Code:  
-1. Mở VS Code  
-2. Đi tới Extensions (Ctrl+Shift+X)  
-3. Cài đặt:  
-   - **Python** (Microsoft)  
-   - **Docker** (Microsoft)  
-   - **Azure Account** (Microsoft)  
-   - **JSON** (Microsoft)  
 
-### 5. Cài Đặt Python
+Hoặc cài qua VS Code:
+1. Mở VS Code
+2. Vào Extensions (Ctrl+Shift+X)
+3. Cài đặt:
+   - **Python** (Microsoft)
+   - **Docker** (Microsoft)
+   - **Azure Account** (Microsoft)
+   - **JSON** (Microsoft)
 
-Python 3.8+ cần thiết cho phát triển máy chủ MCP.
+### 5. Cài Python
 
-#### Windows
+Python 3.8+ là yêu cầu phát triển máy chủ MCP.
+
+#### Trên Windows
 
 ```cmd
 # Using Windows Package Manager
@@ -244,17 +233,15 @@ winget install Python.Python.3.11
 
 # Or download from: https://www.python.org/downloads/
 ```
-  
 
-#### macOS
+#### Trên macOS
 
 ```bash
-# Using Homebrew
+# Sử dụng Homebrew
 brew install python@3.11
 ```
-  
 
-#### Linux
+#### Trên Linux
 
 ```bash
 # Ubuntu/Debian
@@ -263,82 +250,77 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 # RHEL/CentOS
 sudo dnf install python3.11 python3.11-pip
 ```
-  
 
-#### Xác Minh Cài Đặt
+#### Xác minh cài đặt
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Nên hiển thị Python 3.11.x
+pip --version      # Nên hiển thị phiên bản pip
 ```
-  
 
 ## 🚀 Thiết Lập Dự Án
 
-### 1. Clone Kho Lưu Trữ
+### 1. Sao chép kho mã nguồn
 
 ```bash
-# Clone the main repository
+# Sao chép kho chính
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Điều hướng đến thư mục dự án
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Xác minh cấu trúc kho lưu trữ
 ls -la
 ```
-  
 
-### 2. Tạo Môi Trường Ảo Python
+### 2. Tạo môi trường ảo Python
 
 ```bash
-# Create virtual environment
+# Tạo môi trường ảo
 python -m venv mcp-env
 
-# Activate virtual environment
+# Kích hoạt môi trường ảo
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Nâng cấp pip
 python -m pip install --upgrade pip
 ```
-  
 
-### 3. Cài Đặt Các Phụ Thuộc Python
+### 3. Cài đặt các phụ thuộc Python
 
 ```bash
-# Install development dependencies
+# Cài đặt các phụ thuộc phát triển
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Xác minh các gói chính
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
-  
 
 ## ☁️ Triển Khai Tài Nguyên Azure
 
-### 1. Hiểu Yêu Cầu Tài Nguyên
+### 1. Hiểu các yêu cầu tài nguyên
 
 Máy chủ MCP của chúng ta yêu cầu các tài nguyên Azure sau:
 
-| **Tài Nguyên**         | **Mục Đích**                     | **Chi Phí Ước Tính**       |  
-|-------------------------|----------------------------------|----------------------------|  
-| **Azure AI Foundry**    | Lưu trữ và quản lý mô hình AI   | $10-50/tháng              |  
-| **OpenAI Deployment**   | Mô hình nhúng văn bản (text-embedding-3-small) | $5-20/tháng |  
-| **Application Insights**| Giám sát và đo lường           | $5-15/tháng               |  
-| **Resource Group**      | Tổ chức tài nguyên              | Miễn phí                  |  
+| **Tài nguyên** | **Mục đích** | **Chi phí ước tính** |
+|--------------|-------------|-------------------|
+| **Microsoft Foundry** | Lưu trữ và quản lý mô hình AI | $10-50/tháng |
+| **OpenAI Deployment** | Mô hình nhúng văn bản (text-embedding-3-small) | $5-20/tháng |
+| **Application Insights** | Giám sát và thu thập dữ liệu | $5-15/tháng |
+| **Resource Group** | Tổ chức tài nguyên | Miễn phí |
 
-### 2. Triển Khai Tài Nguyên Azure
+### 2. Triển khai tài nguyên Azure
 
-#### Tùy Chọn A: Triển Khai Tự Động (Khuyến Nghị)
+#### Lựa chọn A: Triển khai tự động (Khuyến nghị)
 
 ```bash
-# Navigate to infrastructure directory
+# Điều hướng đến thư mục hạ tầng
 cd infra
 
 # Windows - PowerShell
@@ -347,59 +329,57 @@ cd infra
 # macOS/Linux - Bash
 ./deploy.sh
 ```
-  
-Script triển khai sẽ:  
-1. Tạo một nhóm tài nguyên duy nhất  
-2. Triển khai tài nguyên Azure AI Foundry  
-3. Triển khai mô hình text-embedding-3-small  
-4. Cấu hình Application Insights  
-5. Tạo service principal để xác thực  
-6. Tạo tệp `.env` với cấu hình  
 
-#### Tùy Chọn B: Triển Khai Thủ Công
+Script triển khai sẽ:
+1. Tạo nhóm tài nguyên duy nhất
+2. Triển khai tài nguyên Microsoft Foundry
+3. Triển khai mô hình text-embedding-3-small
+4. Cấu hình Application Insights
+5. Tạo service principal để xác thực
+6. Tạo file `.env` với cấu hình
 
-Nếu bạn muốn kiểm soát thủ công hoặc script tự động bị lỗi:
+#### Lựa chọn B: Triển khai thủ công
+
+Nếu bạn muốn kiểm soát thủ công hoặc script tự động thất bại:
 
 ```bash
-# Set variables
+# Thiết lập biến
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Tạo nhóm tài nguyên
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Triển khai mẫu chính
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
   --parameters location=$LOCATION \
   --parameters resourcePrefix="zava-mcp"
 ```
-  
 
-### 3. Xác Minh Triển Khai Azure
+### 3. Xác minh triển khai Azure
 
 ```bash
-# Check resource group
+# Kiểm tra nhóm tài nguyên
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Liệt kê các tài nguyên đã triển khai
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Kiểm tra dịch vụ AI
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
-  
 
-### 4. Cấu Hình Biến Môi Trường
+### 4. Cấu hình biến môi trường
 
-Sau khi triển khai, bạn sẽ có tệp `.env`. Xác minh rằng nó chứa:
+Sau khi triển khai, bạn sẽ có file `.env`. Kiểm tra nội dung bao gồm:
 
 ```bash
-# .env file contents
+# Nội dung tệp .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -408,20 +388,19 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Cấu hình cơ sở dữ liệu (cho phát triển)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
-  
 
 ## 🐳 Thiết Lập Môi Trường Docker
 
-### 1. Hiểu Thành Phần Docker
+### 1. Hiểu Docker Composition
 
-Môi trường phát triển của chúng ta sử dụng Docker Compose:
+Môi trường phát triển sử dụng Docker Compose:
 
 ```yaml
 # docker-compose.yml overview
@@ -449,63 +428,59 @@ services:
     env_file:
       - .env
 ```
-  
 
-### 2. Khởi Động Môi Trường Phát Triển
+### 2. Khởi động môi trường phát triển
 
 ```bash
-# Ensure you're in the project root directory
+# Đảm bảo bạn đang ở thư mục gốc của dự án
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Khởi động các dịch vụ
 docker-compose up -d
 
-# Check service status
+# Kiểm tra trạng thái dịch vụ
 docker-compose ps
 
-# View logs
+# Xem nhật ký
 docker-compose logs -f
 ```
-  
 
-### 3. Xác Minh Thiết Lập Cơ Sở Dữ Liệu
+### 3. Kiểm tra thiết lập database
 
 ```bash
-# Connect to PostgreSQL container
+# Kết nối tới container PostgreSQL
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Kiểm tra cấu trúc cơ sở dữ liệu
 \dt retail.*
 
-# Verify sample data
+# Xác minh dữ liệu mẫu
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Thoát PostgreSQL
 \q
 ```
-  
 
-### 4. Kiểm Tra Máy Chủ MCP
+### 4. Thử máy chủ MCP
 
 ```bash
-# Check MCP server health
+# Kiểm tra sức khỏe máy chủ MCP
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Kiểm tra điểm cuối MCP cơ bản
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
-  
 
 ## 🔧 Cấu Hình VS Code
 
-### 1. Cấu Hình Tích Hợp MCP
+### 1. Cấu hình tích hợp MCP
 
-Tạo cấu hình MCP trong VS Code:
+Tạo cấu hình MCP cho VS Code:
 
 ```json
 // .vscode/mcp.json
@@ -530,9 +505,8 @@ Tạo cấu hình MCP trong VS Code:
     "inputs": []
 }
 ```
-  
 
-### 2. Cấu Hình Môi Trường Python
+### 2. Cấu hình môi trường Python
 
 ```json
 // .vscode/settings.json
@@ -550,32 +524,31 @@ Tạo cấu hình MCP trong VS Code:
     }
 }
 ```
-  
 
-### 3. Kiểm Tra Tích Hợp VS Code
+### 3. Thử tích hợp VS Code
 
-1. **Mở dự án trong VS Code**:  
+1. **Mở dự án trong VS Code**:
    ```bash
    code .
    ```
-  
-2. **Mở AI Chat**:  
-   - Nhấn `Ctrl+Shift+P` (Windows/Linux) hoặc `Cmd+Shift+P` (macOS)  
-   - Gõ "AI Chat" và chọn "AI Chat: Open Chat"  
 
-3. **Kiểm Tra Kết Nối Máy Chủ MCP**:  
-   - Trong AI Chat, gõ `#zava` và chọn một trong các máy chủ đã cấu hình  
-   - Hỏi: "Có những bảng nào trong cơ sở dữ liệu?"  
-   - Bạn sẽ nhận được phản hồi liệt kê các bảng cơ sở dữ liệu bán lẻ  
+2. **Mở AI Chat**:
+   - Nhấn `Ctrl+Shift+P` (Windows/Linux) hoặc `Cmd+Shift+P` (macOS)
+   - Gõ "AI Chat" và chọn "AI Chat: Open Chat"
+
+3. **Thử kết nối máy chủ MCP**:
+   - Trong AI Chat, gõ `#zava` và chọn một trong các máy chủ cấu hình
+   - Hỏi: "Có những bảng nào trong cơ sở dữ liệu?"
+   - Bạn sẽ nhận được danh sách các bảng dữ liệu bán lẻ trong database
 
 ## ✅ Xác Thực Môi Trường
 
-### 1. Kiểm Tra Hệ Thống Toàn Diện
+### 1. Kiểm tra hệ thống tổng quát
 
-Chạy script xác thực này để kiểm tra thiết lập của bạn:
+Chạy script kiểm tra sau để xác minh thiết lập:
 
 ```bash
-# Create validation script
+# Tạo tập lệnh kiểm tra
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -594,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Kiểm tra phiên bản Python
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -602,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Kiểm tra các gói cần thiết
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -611,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Kiểm tra Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -621,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Kiểm tra Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -631,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Kiểm tra biến môi trường
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -648,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Kiểm tra kết nối cơ sở dữ liệu
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -658,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Thử truy vấn
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -672,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Kiểm tra máy chủ MCP
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -685,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Kiểm tra dịch vụ AI Azure
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -693,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Điều này sẽ thất bại nếu thông tin xác thực không hợp lệ
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -743,173 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Chạy kiểm tra
 python validate_setup.py
 ```
-  
 
-### 2. Danh Sách Kiểm Tra Xác Thực Thủ Công
+### 2. Danh sách kiểm tra xác thực thủ công
 
-**✅ Công Cụ Cơ Bản**  
-- [ ] Docker phiên bản 20.10+ đã cài đặt và chạy  
-- [ ] Azure CLI 2.40+ đã cài đặt và xác thực  
-- [ ] Python 3.8+ với pip đã cài đặt  
-- [ ] Git 2.30+ đã cài đặt  
-- [ ] VS Code với các tiện ích mở rộng cần thiết  
+**✅ Công cụ cơ bản**
+- [ ] Docker phiên bản 20.10+ được cài và đang chạy
+- [ ] Azure CLI 2.40+ được cài và đăng nhập
+- [ ] Python 3.8+ có pip được cài
+- [ ] Git 2.30+ được cài
+- [ ] VS Code với các tiện ích mở rộng cần thiết
 
-**✅ Tài Nguyên Azure**  
-- [ ] Nhóm tài nguyên đã tạo thành công  
-- [ ] Dự án AI Foundry đã triển khai  
-- [ ] Mô hình text-embedding-3-small đã triển khai  
-- [ ] Application Insights đã cấu hình  
-- [ ] Service principal đã tạo với quyền phù hợp  
+**✅ Tài nguyên Azure**
+- [ ] Nhóm tài nguyên được tạo thành công
+- [ ] Dự án AI Foundry được triển khai
+- [ ] Mô hình OpenAI text-embedding-3-small được triển khai
+- [ ] Application Insights được cấu hình
+- [ ] Service principal được tạo với quyền hợp lệ
 
-**✅ Cấu Hình Môi Trường**  
-- [ ] Tệp `.env` đã tạo với tất cả các biến cần thiết  
-- [ ] Thông tin xác thực Azure hoạt động (kiểm tra với `az account show`)  
-- [ ] Container PostgreSQL đang chạy và có thể truy cập  
-- [ ] Dữ liệu mẫu đã tải vào cơ sở dữ liệu  
+**✅ Cấu hình môi trường**
+- [ ] File `.env` được tạo với các biến cần thiết
+- [ ] Thông tin đăng nhập Azure hoạt động (thử với `az account show`)
+- [ ] Container PostgreSQL đang chạy và có thể truy cập
+- [ ] Dữ liệu mẫu đã được tải vào database
 
-**✅ Tích Hợp VS Code**  
-- [ ] `.vscode/mcp.json` đã cấu hình  
-- [ ] Trình thông dịch Python được đặt thành môi trường ảo  
-- [ ] Máy chủ MCP xuất hiện trong AI Chat  
-- [ ] Có thể thực hiện các truy vấn thử nghiệm qua AI Chat  
+**✅ Tích hợp VS Code**
+- [ ] File `.vscode/mcp.json` được cấu hình
+- [ ] Bộ thông dịch Python đặt là môi trường ảo
+- [ ] Máy chủ MCP hiển thị trong AI Chat
+- [ ] Có thể thực thi truy vấn thử nghiệm qua AI Chat
 
-## 🛠️ Khắc Phục Sự Cố Thường Gặp
+## 🛠️ Khắc Phục Sự Cố Phổ Biến
 
-### Vấn Đề Docker
+### Vấn đề Docker
 
-**Vấn Đề**: Container Docker không khởi động  
+**Vấn đề**: Docker container không khởi động được  
 ```bash
-# Check Docker service status
+# Kiểm tra trạng thái dịch vụ Docker
 docker info
 
-# Check available resources
+# Kiểm tra tài nguyên có sẵn
 docker system df
 
-# Clean up if needed
+# Dọn dẹp nếu cần
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Khởi động lại Docker Desktop (Windows/macOS)
+# Hoặc khởi động lại dịch vụ Docker (Linux)
 sudo systemctl restart docker
 ```
-  
-**Vấn Đề**: Kết nối PostgreSQL thất bại  
+
+**Vấn đề**: Kết nối PostgreSQL thất bại  
 ```bash
-# Check container logs
+# Kiểm tra nhật ký container
 docker-compose logs postgres
 
-# Verify container is healthy
+# Xác minh container khỏe mạnh
 docker-compose ps
 
-# Test direct connection
+# Kiểm tra kết nối trực tiếp
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
-  
 
-### Vấn Đề Triển Khai Azure
+### Vấn đề Triển khai Azure
 
-**Vấn Đề**: Triển khai Azure thất bại  
+**Vấn đề**: Triển khai Azure thất bại  
 ```bash
-# Check Azure CLI authentication
+# Kiểm tra xác thực Azure CLI
 az account show
 
-# Verify subscription permissions
+# Xác minh quyền đăng ký
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Kiểm tra việc đăng ký nhà cung cấp tài nguyên
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-  
-**Vấn Đề**: Xác thực dịch vụ AI thất bại  
+
+**Vấn đề**: Xác thực dịch vụ AI thất bại  
 ```bash
-# Test service principal
+# Kiểm tra dịch vụ chính
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Xác minh triển khai dịch vụ AI
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
-  
 
-### Vấn Đề Môi Trường Python
+### Vấn đề môi trường Python
 
-**Vấn Đề**: Cài đặt gói thất bại  
+**Vấn đề**: Cài đặt gói thất bại  
 ```bash
-# Upgrade pip and setuptools
+# Nâng cấp pip và setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Xóa bộ nhớ đệm pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# Cài đặt các gói từng cái một để xác định vấn đề
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-  
-**Vấn Đề**: VS Code không tìm thấy trình thông dịch Python  
+
+**Vấn đề**: VS Code không tìm thấy bộ thông dịch Python  
 ```bash
-# Show Python interpreter paths
+# Hiển thị đường dẫn trình thông dịch Python
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Kích hoạt môi trường ảo trước
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Sau đó mở VS Code
 code .
 ```
-  
 
-## 🎯 Những Điều Cần Nhớ
+## 🎯 Những Điểm Cần Ghi Nhớ Chính
 
-Sau khi hoàn thành lab này, bạn sẽ có:
+Kết thúc lab này, bạn sẽ có:
 
-✅ **Môi Trường Phát Triển Hoàn Chỉnh**: Tất cả công cụ đã cài đặt và cấu hình  
-✅ **Tài Nguyên Azure Đã Triển Khai**: Dịch vụ AI và cơ sở hạ tầng hỗ trợ  
-✅ **Môi Trường Docker Đang Chạy**: Container PostgreSQL và máy chủ MCP  
-✅ **Tích Hợp VS Code**: Máy chủ MCP đã cấu hình và có thể truy cập  
-✅ **Thiết Lập Đã Xác Thực**: Tất cả thành phần đã kiểm tra và hoạt động cùng nhau  
-✅ **Kiến Thức Khắc Phục Sự Cố**: Các vấn đề thường gặp và giải pháp  
+✅ **Môi trường phát triển đầy đủ**: Cài đặt và cấu hình tất cả công cụ  
+✅ **Tài nguyên Azure được triển khai**: Dịch vụ AI và hạ tầng hỗ trợ  
+✅ **Môi trường Docker hoạt động**: Container PostgreSQL và máy chủ MCP  
+✅ **Tích hợp VS Code**: Máy chủ MCP được cấu hình và truy cập được  
+✅ **Thiết lập được xác thực**: Tất cả thành phần được kiểm tra và hoạt động  
+✅ **Kiến thức khắc phục sự cố**: Hiểu rõ các vấn đề phổ biến và cách giải quyết  
 
-## 🚀 Tiếp Theo
+## 🚀 Tiếp Theo Là Gì
 
-Với môi trường của bạn đã sẵn sàng, tiếp tục với **[Lab 04: Thiết Kế Cơ Sở Dữ Liệu và Schema](../04-Database/README.md)** để:
+Khi môi trường đã sẵn sàng, hãy tiếp tục với **[Lab 04: Thiết Kế Cơ Sở Dữ Liệu và Lược Đồ](../04-Database/README.md)** để:
 
-- Khám phá chi tiết schema cơ sở dữ liệu bán lẻ  
-- Hiểu về mô hình dữ liệu đa người thuê  
-- Tìm hiểu về triển khai Bảo Mật Cấp Dòng (Row Level Security)  
-- Làm việc với dữ liệu mẫu bán lẻ  
+- Khám phá chi tiết lược đồ cơ sở dữ liệu bán lẻ
+- Hiểu mô hình hóa dữ liệu đa người thuê
+- Tìm hiểu về triển khai Row Level Security
+- Làm việc với dữ liệu mẫu bán lẻ
 
 ## 📚 Tài Nguyên Bổ Sung
 
 ### Công Cụ Phát Triển
-- [Tài liệu Docker](https://docs.docker.com/) - Tham khảo đầy đủ về Docker  
-- [Tham khảo Azure CLI](https://docs.microsoft.com/cli/azure/) - Lệnh Azure CLI  
-- [Tài liệu VS Code](https://code.visualstudio.com/docs) - Cấu hình trình soạn thảo và tiện ích mở rộng  
+- [Tài liệu Docker](https://docs.docker.com/) - Tham khảo Docker đầy đủ
+- [Tham khảo Azure CLI](https://docs.microsoft.com/cli/azure/) - Các lệnh Azure CLI
+- [Tài liệu VS Code](https://code.visualstudio.com/docs) - Cấu hình và tiện ích mở rộng cho trình soạn thảo
 
-### Dịch Vụ Azure
-- [Tài liệu Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Cấu hình dịch vụ AI  
-- [Dịch vụ Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Triển khai mô hình AI  
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Thiết lập giám sát  
+### Dịch vụ Azure
+- [Tài liệu Microsoft Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Cấu hình dịch vụ AI
+- [Dịch vụ Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Triển khai mô hình AI
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Cài đặt giám sát
 
 ### Phát Triển Python
-- [Môi Trường Ảo Python](https://docs.python.org/3/tutorial/venv.html) - Quản lý môi trường  
-- [Tài liệu AsyncIO](https://docs.python.org/3/library/asyncio.html) - Mẫu lập trình bất đồng bộ  
-- [Tài liệu FastAPI](https://fastapi.tiangolo.com/) - Mẫu framework web  
+- [Môi trường ảo Python](https://docs.python.org/3/tutorial/venv.html) - Quản lý môi trường
+- [Tài liệu AsyncIO](https://docs.python.org/3/library/asyncio.html) - Mẫu lập trình bất đồng bộ
+- [Tài liệu FastAPI](https://fastapi.tiangolo.com/) - Mẫu framework web
 
 ---
 
-**Tiếp Theo**: Môi trường đã sẵn sàng? Tiếp tục với [Lab 04: Thiết Kế Cơ Sở Dữ Liệu và Schema](../04-Database/README.md)  
+**Tiếp theo**: Môi trường đã sẵn sàng? Tiếp tục với [Lab 04: Thiết Kế Cơ Sở Dữ Liệu và Lược Đồ](../04-Database/README.md)
 
 ---
 
-**Tuyên bố miễn trừ trách nhiệm**:  
-Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng các bản dịch tự động có thể chứa lỗi hoặc không chính xác. Tài liệu gốc bằng ngôn ngữ bản địa nên được coi là nguồn thông tin chính thức. Đối với các thông tin quan trọng, khuyến nghị sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm cho bất kỳ sự hiểu lầm hoặc diễn giải sai nào phát sinh từ việc sử dụng bản dịch này.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Tuyên bố miễn trừ trách nhiệm**:
+Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc sai sót. Tài liệu gốc bằng ngôn ngữ gốc nên được coi là nguồn tin chính thức. Đối với thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm về bất kỳ hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

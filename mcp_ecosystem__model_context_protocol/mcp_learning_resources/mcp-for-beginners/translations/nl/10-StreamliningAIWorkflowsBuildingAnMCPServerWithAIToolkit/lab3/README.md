@@ -1,34 +1,34 @@
-# 🔧 Module 3: Geavanceerde MCP-ontwikkeling met AI Toolkit
+# 🔧 Module 3: Geavanceerde MCP-ontwikkeling met Microsoft Foundry Toolkit
 
 ![Duration](https://img.shields.io/badge/Duration-20_minutes-blue?style=flat-square)
-![AI Toolkit](https://img.shields.io/badge/AI_Toolkit-Required-orange?style=flat-square)
+![Microsoft Foundry Toolkit](https://img.shields.io/badge/Microsoft_Foundry_Toolkit-Required-orange?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10+-green?style=flat-square)
 ![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.9.3-purple?style=flat-square)
 ![Inspector](https://img.shields.io/badge/MCP_Inspector-0.14.0-blue?style=flat-square)
 
 ## 🎯 Leerdoelen
 
-Aan het einde van deze lab kun je:
+Aan het einde van deze lab ben je in staat om:
 
-- ✅ Eigen MCP-servers maken met behulp van de AI Toolkit
-- ✅ De nieuwste MCP Python SDK (v1.9.3) configureren en gebruiken
-- ✅ De MCP Inspector instellen en gebruiken voor debugging
-- ✅ MCP-servers debuggen in zowel Agent Builder als Inspector omgevingen
-- ✅ Geavanceerde workflows voor MCP-serverontwikkeling begrijpen
+- ✅ Aangepaste MCP-servers te maken met behulp van de Microsoft Foundry Toolkit
+- ✅ De nieuwste MCP Python SDK (v1.9.3) te configureren en te gebruiken
+- ✅ De MCP Inspector in te stellen en te gebruiken voor debugging
+- ✅ MCP-servers te debuggen in zowel Agent Builder als Inspector omgevingen
+- ✅ Geavanceerde workflows voor MCP-serverontwikkeling te begrijpen
 
 ## 📋 Vereisten
 
-- Lab 2 (MCP Fundamentals) voltooid
-- VS Code met AI Toolkit extensie geïnstalleerd
+- Voltooiing van Lab 2 (MCP Fundamentals)
+- VS Code met geïnstalleerde Microsoft Foundry Toolkit extensie
 - Python 3.10+ omgeving
-- Node.js en npm voor het opzetten van Inspector
+- Node.js en npm voor de Inspector installatie
 
-## 🏗️ Wat je gaat bouwen
+## 🏗️ Wat je bouwt
 
-In deze lab maak je een **Weather MCP Server** die laat zien:
-- Eigen MCP-server implementatie
-- Integratie met AI Toolkit Agent Builder
-- Professionele debugging workflows
+In deze lab maak je een **Weather MCP Server** die de volgende aspecten demonstreert:
+- Implementatie van een aangepaste MCP-server
+- Integratie met Microsoft Foundry Toolkit Agent Builder
+- Professionele debugging-workflows
 - Moderne MCP SDK gebruikspatronen
 
 ---
@@ -36,10 +36,10 @@ In deze lab maak je een **Weather MCP Server** die laat zien:
 ## 🔧 Overzicht Kerncomponenten
 
 ### 🐍 MCP Python SDK
-De Model Context Protocol Python SDK vormt de basis voor het bouwen van eigen MCP-servers. Je gebruikt versie 1.9.3 met verbeterde debuggingmogelijkheden.
+De Model Context Protocol Python SDK biedt de basis voor het bouwen van aangepaste MCP-servers. Je gebruikt versie 1.9.3 met verbeterde debugging-mogelijkheden.
 
 ### 🔍 MCP Inspector
-Een krachtig debuggingtool dat biedt:
+Een krachtig debugging-instrument dat het volgende biedt:
 - Real-time server monitoring
 - Visualisatie van tool-uitvoering
 - Inspectie van netwerkverzoeken/-antwoorden
@@ -51,9 +51,9 @@ Een krachtig debuggingtool dat biedt:
 
 ### Stap 1: Maak een WeatherAgent in Agent Builder
 
-1. **Start Agent Builder** in VS Code via de AI Toolkit extensie
+1. **Start Agent Builder** in VS Code via de Microsoft Foundry Toolkit extensie
 2. **Maak een nieuwe agent** met de volgende configuratie:
-   - Agentnaam: `WeatherAgent`
+   - Agent Naam: `WeatherAgent`
 
 ![Agent Creation](../../../../translated_images/nl/Agent.c9c33f6a412b4cde.webp)
 
@@ -63,11 +63,11 @@ Een krachtig debuggingtool dat biedt:
 2. **Selecteer "MCP Server"** uit de beschikbare opties
 3. **Kies "Create A new MCP Server"**
 4. **Selecteer de `python-weather` template**
-5. **Geef je server een naam:** `weather_mcp`
+5. **Noem je server:** `weather_mcp`
 
 ![Python Template Selection](../../../../translated_images/nl/Pythontemplate.9d0a2913c6491500.webp)
 
-### Stap 3: Open en Bekijk het Project
+### Stap 3: Open en Bekijken van het Project
 
 1. **Open het gegenereerde project** in VS Code
 2. **Bekijk de projectstructuur:**
@@ -88,11 +88,12 @@ Een krachtig debuggingtool dat biedt:
 
 ### Stap 4: Upgrade naar de nieuwste MCP SDK
 
-> **🔍 Waarom upgraden?** We willen de nieuwste MCP SDK (v1.9.3) en Inspector service (0.14.0) gebruiken voor verbeterde functies en betere debugging.
+> **🔍 Waarom upgraden?** We willen de nieuwste MCP SDK (v1.9.3) en de Inspector service (0.14.0) gebruiken voor verbeterde functionaliteiten en betere debuggingmogelijkheden.
 
-#### 4a. Update Python-afhankelijkheden
+#### 4a. Update Python Afhankelijkheden
 
 **Bewerk `pyproject.toml`:** update [./code/weather_mcp/pyproject.toml](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/pyproject.toml)
+
 
 #### 4b. Update Inspector Configuratie
 
@@ -102,13 +103,14 @@ Een krachtig debuggingtool dat biedt:
 
 **Bewerk `inspector/package-lock.json`:** update [./code/weather_mcp/inspector/package-lock.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package-lock.json)
 
-> **📝 Opmerking:** Dit bestand bevat uitgebreide afhankelijkheidsdefinities. Hieronder staat de essentiële structuur - de volledige inhoud zorgt voor correcte afhankelijkheidsresolutie.
+> **📝 Opmerking:** Dit bestand bevat uitgebreide afhankelijkheidsdefinities. Hieronder staat de essentiële structuur – de volledige inhoud zorgt voor correcte afhankelijkheidsresolutie.
 
-> **⚡ Volledige Package Lock:** Het complete package-lock.json bevat ongeveer 3000 regels afhankelijkheidsdefinities. Bovenstaand toont de belangrijkste structuur - gebruik het meegeleverde bestand voor volledige afhankelijkheidsresolutie.
+
+> **⚡ Volledige Package Lock:** Het volledige package-lock.json-bestand bevat ~3000 regels met afhankelijkheidsdefinities. Bovenstaand bevat de sleutelstructuur – gebruik het aangeleverde bestand voor volledige afhankelijkheidsresolutie.
 
 ### Stap 5: Configureer VS Code Debugging
 
-*Let op: kopieer het bestand op het opgegeven pad om het overeenkomstige lokale bestand te vervangen*
+*Opmerking: kopieer het bestand op het opgegeven pad om het overeenkomstige lokale bestand te vervangen*
 
 #### 5a. Update Launch Configuratie
 
@@ -291,13 +293,14 @@ Een krachtig debuggingtool dat biedt:
 }
 ```
 
+
 ---
 
-## 🚀 Je MCP Server draaien en testen
+## 🚀 Je MCP Server Uitvoeren en Testen
 
-### Stap 6: Installeer afhankelijkheden
+### Stap 6: Installeer Afhankelijkheden
 
-Na het aanbrengen van de configuratiewijzigingen, voer je de volgende commando’s uit:
+Na het aanbrengen van de configuratiewijzigingen, voer je de volgende commando's uit:
 
 **Installeer Python-afhankelijkheden:**
 ```bash
@@ -312,10 +315,10 @@ npm install
 
 ### Stap 7: Debuggen met Agent Builder
 
-1. **Druk op F5** of gebruik de **"Debug in Agent Builder"** configuratie
-2. **Selecteer de samengestelde configuratie** in het debugpaneel
+1. **Druk op F5** of gebruik de configuratie **"Debug in Agent Builder"**
+2. **Selecteer de samengestelde configuratie** vanuit het debugpaneel
 3. **Wacht tot de server is gestart** en Agent Builder opent
-4. **Test je weather MCP server** met natuurlijke taalvragen
+4. **Test je weather MCP-server** met natuurlijke taal queries
 
 Voer een prompt in zoals deze
 
@@ -335,7 +338,7 @@ How's the weather like in Seattle
 
 ### Stap 8: Debuggen met MCP Inspector
 
-1. **Gebruik de "Debug in Inspector"** configuratie (Edge of Chrome)
+1. **Gebruik de configuratie "Debug in Inspector"** (Edge of Chrome)
 2. **Open de Inspector interface** via `http://localhost:6274`
 3. **Verken de interactieve testomgeving:**
    - Bekijk beschikbare tools
@@ -349,42 +352,46 @@ How's the weather like in Seattle
 
 ## 🎯 Belangrijkste Leerresultaten
 
-Door deze lab te voltooien heb je:
+Door deze lab te voltooien, heb je:
 
-- [x] **Een eigen MCP-server gemaakt** met AI Toolkit templates
+- [x] **Een aangepaste MCP-server aangemaakt** met Microsoft Foundry Toolkit templates
 - [x] **Geüpgraded naar de nieuwste MCP SDK** (v1.9.3) voor verbeterde functionaliteit
 - [x] **Professionele debugging workflows geconfigureerd** voor zowel Agent Builder als Inspector
-- [x] **De MCP Inspector opgezet** voor interactieve servertests
-- [x] **VS Code debugging configuraties beheerst** voor MCP-ontwikkeling
+- [x] **De MCP Inspector ingericht** voor interactieve servertests
+- [x] **VS Code debugging configuraties onder de knie gekregen** voor MCP-ontwikkeling
 
-## 🔧 Geavanceerde Functies Verkennen
+## 🔧 Geavanceerde Functies Onderzocht
 
 | Functie | Beschrijving | Gebruikssituatie |
 |---------|--------------|------------------|
 | **MCP Python SDK v1.9.3** | Laatste protocolimplementatie | Moderne serverontwikkeling |
-| **MCP Inspector 0.14.0** | Interactieve debuggingtool | Real-time servertesten |
+| **MCP Inspector 0.14.0** | Interactief debugging-instrument | Real-time servertests |
 | **VS Code Debugging** | Geïntegreerde ontwikkelomgeving | Professionele debugging workflow |
-| **Agent Builder Integratie** | Directe AI Toolkit koppeling | End-to-end agenttesten |
+| **Agent Builder Integratie** | Directe Microsoft Foundry Toolkit koppeling | End-to-end agent testen |
 
 ## 📚 Aanvullende Bronnen
 
 - [MCP Python SDK Documentatie](https://modelcontextprotocol.io/docs/sdk/python)
-- [AI Toolkit Extensie Gids](https://code.visualstudio.com/docs/ai/ai-toolkit)
+- [Microsoft Foundry Toolkit Extensiehandleiding](https://code.visualstudio.com/docs/ai/ai-toolkit)
 - [VS Code Debugging Documentatie](https://code.visualstudio.com/docs/editor/debugging)
 - [Model Context Protocol Specificatie](https://modelcontextprotocol.io/docs/concepts/architecture)
 
 ---
 
-**🎉 Gefeliciteerd!** Je hebt Lab 3 succesvol afgerond en kunt nu eigen MCP-servers maken, debuggen en uitrollen met professionele ontwikkelworkflows.
+**🎉 Gefeliciteerd!** Je hebt Lab 3 succesvol afgerond en kunt nu aangepaste MCP-servers creëren, debuggen en uitrollen met professionele ontwikkelworkflows.
 
-### 🔜 Ga door naar de volgende module
+### 🔜 Ga verder naar de volgende module
 
-Klaar om je MCP-vaardigheden toe te passen in een echte ontwikkelworkflow? Ga verder naar **[Module 4: Praktische MCP-ontwikkeling - Custom GitHub Clone Server](../lab4/README.md)** waar je:
-- Een productieklare MCP-server bouwt die GitHub repository-operaties automatiseert
-- Functionaliteit voor het klonen van GitHub repositories via MCP implementeert
-- Eigen MCP-servers integreert met VS Code en GitHub Copilot Agent Mode
-- Eigen MCP-servers test en uitrolt in productieomgevingen
+Klaar om je MCP-vaardigheden toe te passen in een echte ontwikkelworkflow? Ga verder naar **[Module 4: Praktische MCP-ontwikkeling - Aangepaste GitHub Clone Server](../lab4/README.md)**, waar je:
+- Een productieklare MCP-server bouwt die GitHub-repositorybewerkingen automatiseert
+- Functionaliteit implementeert voor het klonen van GitHub repositories via MCP
+- Aangepaste MCP-servers integreert met VS Code en GitHub Copilot Agent Mode
+- Aangepaste MCP-servers test en uitrolt in productieomgevingen
 - Praktische workflowautomatisering voor ontwikkelaars leert
 
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsdienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet als de gezaghebbende bron worden beschouwd. Voor cruciale informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

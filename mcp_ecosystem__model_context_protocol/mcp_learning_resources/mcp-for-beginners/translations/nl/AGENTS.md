@@ -4,7 +4,7 @@
 
 **MCP voor Beginners** is een open-source educatief curriculum voor het leren van het Model Context Protocol (MCP) - een gestandaardiseerd raamwerk voor interacties tussen AI-modellen en clienttoepassingen. Deze repository biedt uitgebreide leermaterialen met praktische codevoorbeelden in meerdere programmeertalen.
 
-### Belangrijke technologieën
+### Belangrijkste Technologieën
 
 - **Programmeertalen**: C#, Java, JavaScript, TypeScript, Python, Rust
 - **Frameworks & SDK's**: 
@@ -12,58 +12,58 @@
   - Spring Boot (Java)
   - FastMCP (Python)
   - LangChain4j (Java)
-- **Databases**: PostgreSQL met pgvector-extensie
+- **Databases**: PostgreSQL met pgvector extensie
 - **Cloudplatforms**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
-- **Buildtools**: npm, Maven, pip, Cargo
-- **Documentatie**: Markdown met geautomatiseerde meertalige vertaling (48+ talen)
+- **Build Tools**: npm, Maven, pip, Cargo
+- **Documentatie**: Markdown met geautomatiseerde vertaling in meerdere talen (48+ talen)
 
 ### Architectuur
 
-- **11 Kernmodules (00-11)**: Een stapsgewijze leerroute van basisprincipes tot geavanceerde onderwerpen
-- **Praktische Labs**: Praktische oefeningen met volledige oplossingscode in meerdere talen
-- **Voorbeeldprojecten**: Werkende MCP-server- en clientimplementaties
-- **Vertalingssysteem**: Geautomatiseerde GitHub Actions-workflow voor meertalige ondersteuning
-- **Afbeeldingsbestanden**: Gecentraliseerde afbeeldingsmap met vertaalde versies
+- **11 Kernmodules (00-11)**: Opeenvolgend leertraject van basisprincipes tot geavanceerde onderwerpen
+- **Hands-on Labs**: Praktische oefeningen met complete oplossingscode in meerdere talen
+- **Voorbeeldprojecten**: Werkende MCP server- en clientimplementaties
+- **Vertalingssysteem**: Geautomatiseerde GitHub Actions workflow voor meertalige ondersteuning
+- **Afbeeldingsbestanden**: Gecentraliseerde map met afbeeldingen en vertaalde versies
 
-## Setupcommando's
+## Setup Commando's
 
-Dit is een documentatiegerichte repository. De meeste setup vindt plaats binnen individuele voorbeeldprojecten en labs.
+Dit is een op documentatie gericht repository. De meeste setup vindt plaats binnen individuele voorbeeldprojecten en labs.
 
 ### Repository Setup
 
 ```bash
-# Clone the repository
+# Clone de repository
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
 
-### Werken met voorbeeldprojecten
+### Werken met Voorbeeldprojecten
 
-Voorbeeldprojecten zijn te vinden in:
-- `03-GettingStarted/samples/` - Taal-specifieke voorbeelden
+Voorbeeldprojecten bevinden zich in:
+- `03-GettingStarted/samples/` - Taal specifieke voorbeelden
 - `03-GettingStarted/01-first-server/solution/` - Eerste serverimplementaties
 - `03-GettingStarted/02-client/solution/` - Clientimplementaties
-- `11-MCPServerHandsOnLabs/` - Uitgebreide labs voor database-integratie
+- `11-MCPServerHandsOnLabs/` - Uitgebreide database-integratie labs
 
-Elk voorbeeldproject bevat eigen setupinstructies:
+Elk voorbeeldproject bevat zijn eigen setup instructies:
 
-#### TypeScript/JavaScript-projecten
+#### TypeScript/JavaScript Projecten
 ```bash
 cd <project-directory>
 npm install
 npm start
 ```
 
-#### Python-projecten
+#### Python Projecten
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# of
 pip install -e .
 python main.py
 ```
 
-#### Java-projecten
+#### Java Projecten
 ```bash
 cd <project-directory>
 mvn clean install
@@ -74,53 +74,53 @@ mvn spring-boot:run
 
 ### Documentatiestructuur
 
-- **Modules 00-11**: Kerncurriculum inhoud in stapsgewijze volgorde
-- **translations/**: Taal-specifieke versies (automatisch gegenereerd, niet direct bewerken)
+- **Modules 00-11**: Kerninhoud curriculum in opeenvolgende volgorde
+- **translations/**: Taal specifieke versies (automatisch gegenereerd, niet direct bewerken)
 - **translated_images/**: Gelokaliseerde afbeeldingsversies (automatisch gegenereerd)
 - **images/**: Bronafbeeldingen en diagrammen
 
-### Wijzigingen in documentatie aanbrengen
+### Documentatiewijzigingen Aanbrengen
 
-1. Bewerk alleen de Engelse markdown-bestanden in de hoofdmodulemappen (00-11)
+1. Bewerk alleen de Engelse markdown-bestanden in de hoofddirectories van modules (00-11)
 2. Werk afbeeldingen bij in de map `images/` indien nodig
 3. De co-op-translator GitHub Action genereert automatisch vertalingen
-4. Vertalingen worden opnieuw gegenereerd bij een push naar de hoofdbranch
+4. Vertalingen worden opnieuw gegenereerd bij pushen naar de main branch
 
-### Werken met vertalingen
+### Werken met Vertalingen
 
-- **Geautomatiseerde vertaling**: GitHub Actions-workflow verzorgt alle vertalingen
-- **NIET handmatig bewerken** van bestanden in de map `translations/`
-- Vertalingsmetadata is ingebed in elk vertaald bestand
-- Ondersteunde talen: 48+ talen, waaronder Arabisch, Chinees, Frans, Duits, Hindi, Japans, Koreaans, Portugees, Russisch, Spaans en vele anderen
+- **Geautomatiseerde Vertaling**: GitHub Actions workflow verzorgt alle vertalingen
+- **Niet handmatig bewerken** van bestanden in de `translations/` map
+- Vertaalmetadata is ingebed in elk vertaald bestand
+- Ondersteunde talen: 48+ talen inclusief Arabisch, Chinees, Frans, Duits, Hindi, Japans, Koreaans, Portugees, Russisch, Spaans, en vele anderen
 
 ## Testinstructies
 
-### Validatie van documentatie
+### Documentatie Validatie
 
-Aangezien dit voornamelijk een documentatierepository is, richt testen zich op:
+Aangezien dit vooral een documentatierepository is, ligt de focus van testen op:
 
-1. **Linkvalidatie**: Zorg ervoor dat alle interne links werken
+1. **Linkvalidatie**: Controleer of alle interne links werken
 ```bash
-# Check for broken markdown links
+# Controleren op gebroken markdown-links
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Validatie van codevoorbeelden**: Test of codevoorbeelden compileren/uitvoeren
+2. **Codevoorbeeldvalidatie**: Test dat codevoorbeelden compileren/draaien
 ```bash
-# Navigate to specific sample and run its tests
+# Navigeer naar een specifiek voorbeeld en voer de tests uit
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Markdown-linting**: Controleer op consistentie in opmaak
+3. **Markdown Linting**: Controleer consistente opmaak
 ```bash
-# Use markdownlint if needed
+# Gebruik markdownlint indien nodig
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
-### Testen van voorbeeldprojecten
+### Testen van Voorbeeldprojecten
 
-Elk taal-specifiek voorbeeld heeft zijn eigen testaanpak:
+Elk taal-specifiek voorbeeld bevat zijn eigen testaanpak:
 
 #### TypeScript/JavaScript
 ```bash
@@ -140,37 +140,37 @@ mvn test
 mvn verify
 ```
 
-## Richtlijnen voor codestijl
+## Code Style Richtlijnen
 
 ### Documentatiestijl
 
-- Gebruik duidelijke, beginnersvriendelijke taal
-- Voeg codevoorbeelden toe in meerdere talen waar van toepassing
-- Volg best practices voor markdown:
-  - Gebruik ATX-stijl headers (`#`-syntax)
-  - Gebruik afgebakende codeblokken met taalidentificatie
-  - Voeg beschrijvende alt-tekst toe voor afbeeldingen
-  - Houd de lengte van regels redelijk (geen harde limiet, maar wees verstandig)
+- Gebruik duidelijke, beginner-vriendelijke taal
+- Neem codevoorbeelden op in meerdere talen waar van toepassing
+- Volg markdown best practices:
+  - Gebruik ATX-koppen (`#` syntaxis)
+  - Gebruik fenced codeblocks met taalaanduiding
+  - Voeg beschrijvende alt-tekst toe aan afbeeldingen
+  - Houd regelbreedtes redelijk (geen harde limiet, maar wees verstandig)
 
-### Stijl van codevoorbeelden
+### Codevoorbeeldstijl
 
 #### TypeScript/JavaScript
-- Gebruik ES-modules (`import`/`export`)
-- Volg TypeScript-strict mode-conventies
+- Gebruik ES modules (`import`/`export`)
+- Volg TypeScript strict mode conventies
 - Voeg typeannotaties toe
 - Richt op ES2022
 
 #### Python
-- Volg PEP 8-stijlrichtlijnen
+- Volg PEP 8 stijlrichtlijnen
 - Gebruik type hints waar passend
-- Voeg docstrings toe voor functies en klassen
-- Gebruik moderne Python-functies (3.8+)
+- Voeg docstrings toe aan functies en klassen
+- Gebruik moderne Python features (3.8+)
 
 #### Java
-- Volg Spring Boot-conventies
-- Gebruik Java 21-functies
-- Volg standaard Maven-projectstructuur
-- Voeg Javadoc-commentaar toe
+- Volg Spring Boot conventies
+- Gebruik Java 21 features
+- Volg standaard Maven projectstructuur
+- Voeg Javadoc commentaar toe
 
 ### Bestandsorganisatie
 
@@ -186,116 +186,118 @@ mvn verify
     └── <language>/
 ```
 
-## Build en implementatie
+## Build en Deployment
 
-### Implementatie van documentatie
+### Documentatie Deployment
 
-De repository gebruikt GitHub Pages of een vergelijkbare service voor het hosten van documentatie (indien van toepassing). Wijzigingen in de hoofdbranch activeren:
+De repository gebruikt GitHub Pages of soortgelijk voor documentatie hosting (indien van toepassing). Wijzigingen op de main branch triggeren:
 
-1. Vertalingsworkflow (`.github/workflows/co-op-translator.yml`)
+1. Vertaalworkflow (`.github/workflows/co-op-translator.yml`)
 2. Geautomatiseerde vertaling van alle Engelse markdown-bestanden
 3. Lokalisatie van afbeeldingen indien nodig
 
-### Geen buildproces vereist
+### Geen Buildproces Vereist
 
-Deze repository bevat voornamelijk markdown-documentatie. Er is geen compilatie- of buildstap nodig voor de kerncurriculuminhoud.
+Deze repository bevat voornamelijk markdown-documentatie. Geen compilatie- of buildstap nodig voor de kerninhoud van het curriculum.
 
-### Implementatie van voorbeeldprojecten
+### Deployment van Voorbeeldprojecten
 
-Individuele voorbeeldprojecten kunnen implementatie-instructies bevatten:
-- Zie `03-GettingStarted/09-deployment/` voor richtlijnen voor MCP-serverimplementatie
-- Voorbeelden van implementatie in Azure Container Apps in `11-MCPServerHandsOnLabs/`
+Individuele voorbeeldprojecten kunnen deploymentinstructies hebben:
+- Zie `03-GettingStarted/09-deployment/` voor MCP server deployment richtlijnen
+- Azure Container Apps deployment voorbeelden in `11-MCPServerHandsOnLabs/`
 
-## Richtlijnen voor bijdragen
+## Bijdrager Richtlijnen
 
-### Pull Request-proces
+### Pull Request Proces
 
 1. **Fork en Clone**: Fork de repository en clone je fork lokaal
-2. **Maak een branch**: Gebruik beschrijvende branchnamen (bijv. `fix/typo-module-3`, `add/python-example`)
-3. **Breng wijzigingen aan**: Bewerk alleen Engelse markdown-bestanden (geen vertalingen)
-4. **Test lokaal**: Controleer of markdown correct wordt weergegeven
-5. **Dien PR in**: Gebruik duidelijke PR-titels en beschrijvingen
-6. **CLA**: Onderteken de Microsoft Contributor License Agreement wanneer daarom wordt gevraagd
+2. **Maak een Branch aan**: Gebruik beschrijvende branchnamen (bijv. `fix/typo-module-3`, `add/python-example`)
+3. **Breng Wijzigingen aan**: Bewerk alleen Engelse markdown-bestanden (geen vertalingen)
+4. **Test Lokaal**: Controleer dat markdown correct renderen
+5. **Dien PR in**: Gebruik duidelijke PR titels en omschrijvingen
+6. **CLA**: Onderteken de Microsoft Contributor License Agreement als daarom gevraagd wordt
 
-### Formaat PR-titel
+### PR Titel-formaat
 
 Gebruik duidelijke, beschrijvende titels:
 - `[Module XX] Korte beschrijving` voor module-specifieke wijzigingen
-- `[Samples] Beschrijving` voor wijzigingen in voorbeeldcode
-- `[Docs] Beschrijving` voor algemene documentatie-updates
+- `[Samples] Beschrijving` voor voorbeeldcode wijzigingen
+- `[Docs] Beschrijving` voor algemene documentatie updates
 
 ### Wat bij te dragen
 
 - Bugfixes in documentatie of codevoorbeelden
 - Nieuwe codevoorbeelden in extra talen
-- Verduidelijkingen en verbeteringen van bestaande inhoud
+- Verduidelijkingen en verbeteringen aan bestaande inhoud
 - Nieuwe casestudy's of praktische voorbeelden
-- Probleemrapporten voor onduidelijke of onjuiste inhoud
+- Issue-rapporten voor onduidelijke of onjuiste inhoud
 
 ### Wat NIET te doen
 
-- Bewerk geen bestanden direct in de map `translations/`
-- Bewerk geen bestanden in de map `translated_images/`
+- Bewerk niet direct bestanden in de `translations/` map
+- Bewerk niet de `translated_images/` map
 - Voeg geen grote binaire bestanden toe zonder overleg
-- Wijzig geen bestanden van de vertalingsworkflow zonder coördinatie
+- Wijzig de vertaalworkflowbestanden niet zonder afstemming
 
-## Aanvullende opmerkingen
+## Aanvullende Aantekeningen
 
-### Onderhoud van de repository
+### Repository Onderhoud
 
 - **Changelog**: Alle belangrijke wijzigingen worden gedocumenteerd in `changelog.md`
-- **Studiegids**: Gebruik `study_guide.md` voor een overzicht van het curriculum
-- **Probleemsjablonen**: Gebruik GitHub-probleemsjablonen voor bugrapporten en functieverzoeken
+- **Studiegids**: Gebruik `study_guide.md` voor overzicht van curriculumnavigatie
+- **Issue Templates**: Gebruik GitHub issue templates voor bugmeldingen en feature-verzoeken
 - **Gedragscode**: Alle bijdragers moeten de Microsoft Open Source Code of Conduct volgen
 
-### Leerroute
+### Leertraject
 
-Volg modules in stapsgewijze volgorde (00-11) voor optimaal leren:
+Volg modules in opeenvolgende volgorde (00-11) voor optimale leerervaring:
 1. **00-02**: Basisprincipes (Introductie, Kernconcepten, Beveiliging)
-2. **03**: Aan de slag met praktische implementatie
+2. **03**: Aan de slag met hands-on implementatie
 3. **04-05**: Praktische implementatie en geavanceerde onderwerpen
-4. **06-10**: Gemeenschap, best practices en toepassingen in de praktijk
-5. **11**: Uitgebreide labs voor database-integratie (13 opeenvolgende labs)
+4. **06-10**: Community, beste praktijken en real-world toepassingen
+5. **11**: Uitgebreide database-integratie labs (13 opeenvolgende labs)
 
 ### Ondersteuningsbronnen
 
 - **Documentatie**: https://modelcontextprotocol.io/
 - **Specificatie**: https://spec.modelcontextprotocol.io/
-- **Gemeenschap**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discord-server
-- **Gerelateerde cursussen**: Zie README.md voor andere Microsoft-leerroutes
+- **Community**: https://github.com/orgs/modelcontextprotocol/discussions
+- **Discord**: Microsoft Foundry Discord server
+- **Verwante Cursussen**: Zie README.md voor andere Microsoft-leertrajecten
 
-### Veelvoorkomende problemen oplossen
+### Veelvoorkomende Problemen
 
-**Vraag: Mijn PR faalt bij de vertalingscontrole**
-Antwoord: Zorg ervoor dat je alleen Engelse markdown-bestanden in de hoofdmodulemappen hebt bewerkt, niet de vertaalde versies.
+**V: Mijn PR faalt de vertaalcontrole**  
+A: Zorg dat je alleen de Engelse markdown-bestanden in de hoofdmaps van de modules hebt bewerkt, niet de vertaalde versies.
 
-**Vraag: Hoe voeg ik een nieuwe taal toe?**
-Antwoord: Taalondersteuning wordt beheerd via de co-op-translator-workflow. Open een issue om het toevoegen van nieuwe talen te bespreken.
+**V: Hoe voeg ik een nieuwe taal toe?**  
+A: Taalondersteuning wordt beheerd via de co-op-translator workflow. Open een issue om nieuwe talen te bespreken.
 
-**Vraag: Codevoorbeelden werken niet**
-Antwoord: Zorg ervoor dat je de setupinstructies in de specifieke README van het voorbeeld hebt gevolgd. Controleer of je de juiste versies van afhankelijkheden hebt geïnstalleerd.
+**V: Codevoorbeelden werken niet**  
+A: Zorg dat je de setupinstructies in de specifieke sample README hebt gevolgd. Controleer of de juiste versies van dependencies zijn geïnstalleerd.
 
-**Vraag: Afbeeldingen worden niet weergegeven**
-Antwoord: Controleer of afbeeldingspaden relatief zijn en gebruik forward slashes. Afbeeldingen moeten zich bevinden in de map `images/` of `translated_images/` voor gelokaliseerde versies.
+**V: Afbeeldingen worden niet weergegeven**  
+A: Controleer of afbeeldingspaden relatief zijn en gebruik forward slashes. Afbeeldingen moeten in de `images/` map of `translated_images/` voor gelokaliseerde versies staan.
 
 ### Prestatieoverwegingen
 
-- De vertalingsworkflow kan enkele minuten duren
-- Grote afbeeldingen moeten worden geoptimaliseerd voordat ze worden gecommit
+- Vertaalworkflow kan enkele minuten duren om te voltooien
+- Grote afbeeldingen moeten worden geoptimaliseerd vóór commit
 - Houd individuele markdown-bestanden gefocust en redelijk van omvang
 - Gebruik relatieve links voor betere draagbaarheid
 
-### Projectbeheer
+### Projectbestuur
 
-Dit project volgt Microsoft open source-praktijken:
-- MIT-licentie voor code en documentatie
-- Microsoft Open Source Code of Conduct
-- CLA vereist voor bijdragen
-- Beveiligingsproblemen: Volg de richtlijnen in SECURITY.md
-- Ondersteuning: Zie SUPPORT.md voor hulpbronnen
+Dit project volgt Microsoft open source-praktijken:  
+- MIT-licentie voor code en documentatie  
+- Microsoft Open Source Code of Conduct  
+- CLA vereist voor bijdragen  
+- Beveiligingskwesties: volg SECURITY.md richtlijnen  
+- Ondersteuning: zie SUPPORT.md voor hulpbronnen
 
 ---
 
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsservice [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u zich ervan bewust te zijn dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor cruciale informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

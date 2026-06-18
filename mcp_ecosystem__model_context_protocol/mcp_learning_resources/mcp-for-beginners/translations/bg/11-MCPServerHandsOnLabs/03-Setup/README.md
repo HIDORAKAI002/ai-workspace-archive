@@ -1,54 +1,54 @@
 # Настройка на средата
 
-## 🎯 Какво обхваща този лабораторен урок
+## 🎯 Какво обхваща тази лаборатория
 
-Този практически урок ви води през настройката на пълна среда за разработка за създаване на MCP сървъри с интеграция на PostgreSQL. Ще конфигурирате всички необходими инструменти, ще разположите ресурси в Azure и ще валидирате настройката си, преди да преминете към реализацията.
+Тази практическа лаборатория ви води през настройването на пълна развойна среда за изграждане на MCP сървъри с интеграция на PostgreSQL. Ще конфигурирате всички необходими инструменти, ще разположите Azure ресурси и ще валидирате настройката си преди да продължите с имплементацията.
 
-## Обзор
+## Преглед
 
-Правилната среда за разработка е от съществено значение за успешното създаване на MCP сървъри. Този урок предоставя стъпка по стъпка инструкции за настройка на Docker, услуги в Azure, инструменти за разработка и валидиране на тяхната съвместна работа.
+Правилната развойна среда е ключова за успешна разработка на MCP сървър. Тази лаборатория предоставя стъпка по стъпка инструкции за инсталиране на Docker, Azure услуги, развойни инструменти и валидиране, че всичко работи правилно заедно.
 
-До края на урока ще имате напълно функционална среда за разработка, готова за създаване на MCP сървъра за Zava Retail.
+В края на лабораторията ще разполагате с напълно функционална развойна среда, готова за изграждане на Zava Retail MCP сървър.
 
-## Цели на обучението
+## Учебни цели
 
-До края на този урок ще можете:
+В края на тази лаборатория ще можете да:
 
-- **Да инсталирате и конфигурирате** всички необходими инструменти за разработка
-- **Да разположите ресурси в Azure**, необходими за MCP сървъра
-- **Да настроите Docker контейнери** за PostgreSQL и MCP сървъра
-- **Да валидирате** настройката на средата си с тестови връзки
-- **Да отстранявате проблеми** с настройката и конфигурацията
-- **Да разберете** работния процес на разработка и структурата на файловете
+- **Инсталирате и конфигурирате** всички необходими развойни инструменти
+- **Разположите Azure ресурси** необходими за MCP сървъра
+- **Настроите Docker контейнери** за PostgreSQL и MCP сървъра
+- **Валидирате** настройката на средата посредством тестови връзки
+- **Отстранявате проблеми** с често срещани конфигурационни грешки
+- **Разбирате** разработчическия работен процес и структурата на файловете
 
-## 📋 Проверка на предпоставките
+## 📋 Проверка на предварителните изисквания
 
-Преди да започнете, уверете се, че разполагате със следното:
+Преди да започнете, уверете се, че имате:
 
 ### Необходими знания
-- Основни умения за работа с командния ред (Windows Command Prompt/PowerShell)
+- Основна работа с команден ред (Windows Command Prompt/PowerShell)
 - Разбиране на променливи на средата
-- Запознаване с Git за контрол на версиите
-- Основни концепции за Docker (контейнери, изображения, обеми)
+- Познания по Git за контрол на версиите
+- Основни концепции за Docker (контейнери, образи, томове)
 
 ### Системни изисквания
 - **Операционна система**: Windows 10/11, macOS или Linux
 - **RAM**: Минимум 8GB (препоръчително 16GB)
-- **Съхранение**: Поне 10GB свободно пространство
-- **Мрежа**: Интернет връзка за изтегляния и разполагане в Azure
+- **Съхранение**: Най-малко 10GB свободно пространство
+- **Мрежа**: Интернет връзка за изтегляния и Azure деплоймънт
 
 ### Изисквания за акаунти
-- **Абонамент за Azure**: Безплатният план е достатъчен
-- **Акаунт в GitHub**: За достъп до хранилището
-- **Акаунт в Docker Hub**: (По избор) За публикуване на персонализирани изображения
+- **Azure абонамент**: достатъчен е безплатният слой
+- **GitHub акаунт**: за достъп до репозитория
+- **Docker Hub акаунт**: (по избор) за публикуване на персонализирани образи
 
 ## 🛠️ Инсталиране на инструменти
 
 ### 1. Инсталиране на Docker Desktop
 
-Docker предоставя контейнеризираната среда за нашата разработка.
+Docker предоставя контейнеризираната среда за нашата развойна настройка.
 
-#### Инсталиране на Windows
+#### Инсталация за Windows
 
 1. **Изтеглете Docker Desktop**:
    ```cmd
@@ -58,9 +58,9 @@ Docker предоставя контейнеризираната среда за
    ```
 
 2. **Инсталирайте и конфигурирайте**:
-   - Стартирайте инсталатора като администратор
-   - Активирайте интеграцията с WSL 2, когато бъдете подканени
-   - Рестартирайте компютъра след завършване на инсталацията
+   - Стартирайте инсталатора като Администратор
+   - Активирайте интеграцията с WSL 2 при поискване
+   - Рестартирайте компютъра след приключване на инсталацията
 
 3. **Проверете инсталацията**:
    ```cmd
@@ -68,18 +68,18 @@ Docker предоставя контейнеризираната среда за
    docker-compose --version
    ```
 
-#### Инсталиране на macOS
+#### Инсталация за macOS
 
 1. **Изтеглете и инсталирайте**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Изтеглете от https://desktop.docker.com/mac/stable/Docker.dmg
+   # Или използвайте Homebrew
    brew install --cask docker
    ```
 
 2. **Стартирайте Docker Desktop**:
    - Стартирайте Docker Desktop от Applications
-   - Завършете началния съветник за настройка
+   - Завършете началната помощна програма
 
 3. **Проверете инсталацията**:
    ```bash
@@ -87,7 +87,7 @@ Docker предоставя контейнеризираната среда за
    docker-compose --version
    ```
 
-#### Инсталиране на Linux
+#### Инсталация за Linux
 
 1. **Инсталирайте Docker Engine**:
    ```bash
@@ -96,7 +96,7 @@ Docker предоставя контейнеризираната среда за
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Излезте и влезте отново, за да влязат в сила промените в групите
    ```
 
 2. **Инсталирайте Docker Compose**:
@@ -107,9 +107,9 @@ Docker предоставя контейнеризираната среда за
 
 ### 2. Инсталиране на Azure CLI
 
-Azure CLI позволява разполагане и управление на ресурси в Azure.
+Azure CLI позволява разгръщане и управление на Azure ресурси.
 
-#### Инсталиране на Windows
+#### Инсталация за Windows
 
 ```cmd
 # Using Windows Package Manager
@@ -118,17 +118,17 @@ winget install Microsoft.AzureCLI
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
 
-#### Инсталиране на macOS
+#### Инсталация за macOS
 
 ```bash
-# Using Homebrew
+# Използване на Homebrew
 brew install azure-cli
 
-# Or using installer
+# Или използване на инсталатор
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
-#### Инсталиране на Linux
+#### Инсталация за Linux
 
 ```bash
 # Ubuntu/Debian
@@ -142,20 +142,20 @@ sudo dnf install azure-cli
 #### Проверка и автентикация
 
 ```bash
-# Check installation
+# Проверете инсталацията
 az version
 
-# Login to Azure
+# Влезте в Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Задайте подразбираща се абонамент (ако имате няколко)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
 ### 3. Инсталиране на Git
 
-Git е необходим за клониране на хранилището и контрол на версиите.
+Git е необходим за клониране на репозитория и контрол на версиите.
 
 #### Windows
 
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git обикновено е предварително инсталиран, но можете да го актуализирате чрез Homebrew
 brew install git
 ```
 
@@ -185,9 +185,9 @@ sudo dnf install git
 
 ### 4. Инсталиране на VS Code
 
-Visual Studio Code предоставя интегрираната среда за разработка с поддръжка за MCP.
+Visual Studio Code предоставя интегрираната развойна среда с поддръжка за MCP.
 
-#### Инсталиране
+#### Инсталация
 
 ```cmd
 # Windows
@@ -200,19 +200,19 @@ brew install --cask visual-studio-code
 sudo snap install code --classic
 ```
 
-#### Необходими разширения
+#### Задължителни разширения
 
 Инсталирайте тези разширения за VS Code:
 
 ```bash
-# Install via command line
+# Инсталиране чрез команден ред
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
 
-Или инсталирайте чрез VS Code:
+Или ги инсталирайте през VS Code:
 1. Отворете VS Code
 2. Отидете на Extensions (Ctrl+Shift+X)
 3. Инсталирайте:
@@ -223,7 +223,7 @@ code --install-extension ms-vscode.azure-account
 
 ### 5. Инсталиране на Python
 
-Python 3.8+ е необходим за разработката на MCP сървъра.
+Python 3.8+ е необходим за разработка на MCP сървър.
 
 #### Windows
 
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# Използване на Homebrew
 brew install python@3.11
 ```
 
@@ -254,73 +254,73 @@ sudo dnf install python3.11 python3.11-pip
 #### Проверка на инсталацията
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Трябва да показва Python 3.11.x
+pip --version      # Трябва да показва версията на pip
 ```
 
 ## 🚀 Настройка на проекта
 
-### 1. Клониране на хранилището
+### 1. Клониране на репозитория
 
 ```bash
-# Clone the main repository
+# Клонирайте основното хранилище
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Навигирайте до директорията на проекта
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Проверете структурата на хранилището
 ls -la
 ```
 
-### 2. Създаване на виртуална среда за Python
+### 2. Създаване на виртуална Python среда
 
 ```bash
-# Create virtual environment
+# Създаване на виртуална среда
 python -m venv mcp-env
 
-# Activate virtual environment
+# Активиране на виртуална среда
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Обновяване на pip
 python -m pip install --upgrade pip
 ```
 
-### 3. Инсталиране на зависимости за Python
+### 3. Инсталиране на Python зависимости
 
 ```bash
-# Install development dependencies
+# Инсталирайте зависимости за разработка
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Проверете ключовите пакети
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
 
-## ☁️ Разполагане на ресурси в Azure
+## ☁️ Разгръщане на Azure ресурси
 
 ### 1. Разбиране на изискванията за ресурси
 
-Нашият MCP сървър изисква следните ресурси в Azure:
+Нашият MCP сървър изисква следните Azure ресурси:
 
-| **Ресурс** | **Цел** | **Ориентировъчна цена** |
-|------------|---------|-----------------------|
-| **Azure AI Foundry** | Хостинг и управление на AI модели | $10-50/месец |
-| **OpenAI Deployment** | Модел за текстово вграждане (text-embedding-3-small) | $5-20/месец |
-| **Application Insights** | Мониторинг и телеметрия | $5-15/месец |
+| **Ресурс** | **Цел** | **Прогнозна цена** |
+|--------------|-------------|-------------------|
+| **Microsoft Foundry** | Хостинг и управление на AI модели | 10-50 долара/месец |
+| **OpenAI Deployment** | Модел за вграждане на текст (text-embedding-3-small) | 5-20 долара/месец |
+| **Application Insights** | Мониторинг и телеметрия | 5-15 долара/месец |
 | **Resource Group** | Организация на ресурси | Безплатно |
 
-### 2. Разполагане на ресурси в Azure
+### 2. Разгръщане на Azure ресурси
 
-#### Опция А: Автоматизирано разполагане (Препоръчително)
+#### Опция А: Автоматизирано разгръщане (препоръчително)
 
 ```bash
-# Navigate to infrastructure directory
+# Отидете в директорията с инфраструктура
 cd infra
 
 # Windows - PowerShell
@@ -330,28 +330,28 @@ cd infra
 ./deploy.sh
 ```
 
-Скриптът за разполагане ще:
-1. Създаде уникална група ресурси
-2. Разположи ресурси за Azure AI Foundry
+Скриптът за разгръщане ще:
+1. Създаде уникална ресурсна група
+2. Разположи Microsoft Foundry ресурси
 3. Разположи модела text-embedding-3-small
 4. Конфигурира Application Insights
-5. Създаде service principal за автентикация
+5. Създаде служебен принципал за автентикация
 6. Генерира `.env` файл с конфигурация
 
-#### Опция Б: Ръчно разполагане
+#### Опция Б: Ръчно разгръщане
 
-Ако предпочитате ръчен контрол или автоматизираният скрипт не успее:
+Ако предпочитате ръчно управление или автоматизираният скрипт не работи:
 
 ```bash
-# Set variables
+# Задаване на променливи
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Създаване на ресурсна група
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Разгръщане на основния шаблон
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,27 +359,27 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Проверка на разполагането в Azure
+### 3. Проверка на Azure разгръщането
 
 ```bash
-# Check resource group
+# Проверете ресурсната група
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Изброяване на разположените ресурси
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Тествайте AI услугата
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
 
-### 4. Конфигуриране на променливи на средата
+### 4. Конфигуриране на променливите на средата
 
-След разполагането трябва да имате `.env` файл. Уверете се, че съдържа:
+След разгръщането, би трябвало да имате `.env` файл. Уверете се, че съдържа:
 
 ```bash
-# .env file contents
+# Съдържание на .env файла
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Конфигурация на базата данни (за разработка)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -400,7 +400,7 @@ POSTGRES_PASSWORD=your-secure-password
 
 ### 1. Разбиране на Docker композицията
 
-Нашата среда за разработка използва Docker Compose:
+Нашата развойна среда използва Docker Compose:
 
 ```yaml
 # docker-compose.yml overview
@@ -429,47 +429,47 @@ services:
       - .env
 ```
 
-### 2. Стартиране на средата за разработка
+### 2. Стартиране на развойната среда
 
 ```bash
-# Ensure you're in the project root directory
+# Уверете се, че сте в основната директория на проекта
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Стартирайте услугите
 docker-compose up -d
 
-# Check service status
+# Проверете статуса на услугата
 docker-compose ps
 
-# View logs
+# Прегледайте регистрационните файлове
 docker-compose logs -f
 ```
 
 ### 3. Проверка на настройката на базата данни
 
 ```bash
-# Connect to PostgreSQL container
+# Свържете се с контейнера на PostgreSQL
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Проверете структурата на базата данни
 \dt retail.*
 
-# Verify sample data
+# Проверете пробните данни
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Излезте от PostgreSQL
 \q
 ```
 
 ### 4. Тест на MCP сървъра
 
 ```bash
-# Check MCP server health
+# Проверете здравето на MCP сървъра
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Тествайте основната крайна точка на MCP
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
@@ -478,9 +478,9 @@ curl -X POST http://localhost:8000/mcp \
 
 ## 🔧 Конфигурация на VS Code
 
-### 1. Конфигуриране на MCP интеграция
+### 1. Конфигуриране на MCP интеграцията
 
-Създайте MCP конфигурация за VS Code:
+Създайте VS Code конфигурация за MCP:
 
 ```json
 // .vscode/mcp.json
@@ -506,7 +506,7 @@ curl -X POST http://localhost:8000/mcp \
 }
 ```
 
-### 2. Конфигуриране на Python среда
+### 2. Конфигуриране на Python средата
 
 ```json
 // .vscode/settings.json
@@ -525,7 +525,7 @@ curl -X POST http://localhost:8000/mcp \
 }
 ```
 
-### 3. Тест на интеграцията с VS Code
+### 3. Тест на VS Code интеграцията
 
 1. **Отворете проекта във VS Code**:
    ```bash
@@ -536,19 +536,19 @@ curl -X POST http://localhost:8000/mcp \
    - Натиснете `Ctrl+Shift+P` (Windows/Linux) или `Cmd+Shift+P` (macOS)
    - Въведете "AI Chat" и изберете "AI Chat: Open Chat"
 
-3. **Тест на връзката с MCP сървъра**:
-   - В AI Chat въведете `#zava` и изберете един от конфигурираните сървъри
-   - Попитайте: "Какви таблици са налични в базата данни?"
-   - Трябва да получите отговор с изброяване на таблиците в ритейл базата данни
+3. **Тествайте връзка с MCP сървъра**:
+   - В AI Chat напишете `#zava` и изберете един от конфигурираните сървъри
+   - Попитайте: "Какви таблици има в базата данни?"
+   - Трябва да получите отговор с изброяване на таблиците в търговската база данни
 
-## ✅ Валидиране на средата
+## ✅ Валидация на средата
 
-### 1. Комплексна проверка на системата
+### 1. Комплексна системна проверка
 
 Стартирайте този скрипт за валидиране на настройката:
 
 ```bash
-# Create validation script
+# Създаване на скрипт за валидация
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Проверка на версията на Python
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Проверка на нужните пакети
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Проверка на Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Проверка на Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Проверка на променливите на средата
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Проверка на връзката с базата данни
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Тестово запитване
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Проверка на MCP сървъра
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Проверка на Azure AI услугата
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Това ще се провали, ако идентификационните данни са невалидни
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Изпълнение на валидацията
 python validate_setup.py
 ```
 
-### 2. Ръчен списък за проверка
+### 2. Ръчен проверочен списък
 
 **✅ Основни инструменти**
-- [ ] Инсталирана и работеща версия на Docker 20.10+
+- [ ] Инсталиран и работещ Docker версия 20.10+
 - [ ] Инсталиран и автентикиран Azure CLI 2.40+
 - [ ] Инсталиран Python 3.8+ с pip
 - [ ] Инсталиран Git 2.30+
-- [ ] VS Code с необходимите разширения
+- [ ] VS Code със задължителните разширения
 
-**✅ Ресурси в Azure**
-- [ ] Успешно създадена група ресурси
-- [ ] Разположен проект за AI Foundry
-- [ ] Разположен модел text-embedding-3-small
+**✅ Azure ресурси**
+- [ ] Успешно създадена ресурсна група
+- [ ] Разгърнат AI Foundry проект
+- [ ] Разгънат OpenAI модел text-embedding-3-small
 - [ ] Конфигуриран Application Insights
-- [ ] Създаден service principal с правилни разрешения
+- [ ] Създаден служебен принципал с правилни разрешения
 
 **✅ Конфигурация на средата**
 - [ ] Създаден `.env` файл с всички необходими променливи
-- [ ] Работещи Azure идентификационни данни (тест с `az account show`)
+- [ ] Работещи Azure креденшъли (проверете с `az account show`)
 - [ ] Работещ и достъпен PostgreSQL контейнер
-- [ ] Заредени примерни данни в базата данни
+- [ ] Заредени примерни данни в базата
 
-**✅ Интеграция с VS Code**
+**✅ VS Code интеграция**
 - [ ] Конфигуриран `.vscode/mcp.json`
-- [ ] Python интерпретатор настроен към виртуалната среда
-- [ ] MCP сървърите се появяват в AI Chat
-- [ ] Могат да се изпълняват тестови заявки чрез AI Chat
+- [ ] Настроен Python интерпретатор към виртуалната среда
+- [ ] MCP сървъри се показват в AI Chat
+- [ ] Възможност за изпълнение на тестови заявки през AI Chat
 
-## 🛠️ Отстраняване на често срещани проблеми
+## 🛠️ Отстраняване на чести проблеми
 
 ### Проблеми с Docker
 
-**Проблем**: Docker контейнерите не стартират
+**Проблем**: Docker контейнерите не стартират  
 ```bash
-# Check Docker service status
+# Проверете състоянието на Docker услугата
 docker info
 
-# Check available resources
+# Проверете наличните ресурси
 docker system df
 
-# Clean up if needed
+# Почистете, ако е необходимо
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Рестартирайте Docker Desktop (Windows/macOS)
+# Или рестартирайте Docker услугата (Linux)
 sudo systemctl restart docker
 ```
 
-**Проблем**: Връзката с PostgreSQL не успява
+**Проблем**: Връзката с PostgreSQL неуспешна  
 ```bash
-# Check container logs
+# Проверете дневниците на контейнера
 docker-compose logs postgres
 
-# Verify container is healthy
+# Проверете дали контейнерът е здрав
 docker-compose ps
 
-# Test direct connection
+# Тествайте директна връзка
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
 
-### Проблеми с разполагането в Azure
+### Проблеми с Azure разгръщане
 
-**Проблем**: Разполагането в Azure не успява
+**Проблем**: Azure разгръщането неуспешно  
 ```bash
-# Check Azure CLI authentication
+# Проверете удостоверяване на Azure CLI
 az account show
 
-# Verify subscription permissions
+# Проверете разрешенията на абонамента
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Проверете регистрацията на доставчика на ресурси
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
 
-**Проблем**: Автентикацията на AI услугата не успява
+**Проблем**: Автентикация към AI услугата неуспешна  
 ```bash
-# Test service principal
+# Тествайте главния на услугата
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Потвърдете внедряването на AI услуга
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
 
 ### Проблеми с Python средата
 
-**Проблем**: Инсталирането на пакети не успява
+**Проблем**: Неуспешна инсталация на пакети  
 ```bash
-# Upgrade pip and setuptools
+# Актуализирайте pip и setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Изчистете кеша на pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# Инсталирайте пакетите един по един, за да идентифицирате проблеми
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
 
-**Проблем**: VS Code не може да намери Python интерпретатор
+**Проблем**: VS Code не намира Python интерпретатор  
 ```bash
-# Show Python interpreter paths
+# Показване на пътищата до интерпретатора на Python
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Активирайте първо виртуалната среда
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# След това отворете VS Code
 code .
 ```
 
 ## 🎯 Основни изводи
 
-След завършване на този урок трябва да имате:
+След завършване на тази лаборатория трябва да имате:
 
-✅ **Пълна среда за разработка**: Всички инструменти инсталирани и конфигурирани  
-✅ **Разположени ресурси в Azure**: AI услуги и поддържаща инфраструктура  
-✅ **Работеща Docker среда**: Контейнери за PostgreSQL и MCP сървъра  
-✅ **Интеграция с VS Code**: MCP сървърите конфигурирани и достъпни  
+✅ **Пълна развойна среда**: Всички инструменти инсталирани и конфигурирани  
+✅ **Разгърнати Azure ресурси**: AI услуги и инфраструктура  
+✅ **Работеща Docker среда**: Контейнери за PostgreSQL и MCP сървър  
+✅ **Интеграция с VS Code**: Конфигурирани и достъпни MCP сървъри  
 ✅ **Валидирана настройка**: Всички компоненти тествани и работещи заедно  
-✅ **Знания за отстраняване на проблеми**: Често срещани проблеми и решения  
+✅ **Знания за отстраняване на проблеми**: Чести проблеми и решения  
 
 ## 🚀 Какво следва
 
-С готова среда продължете към **[Лабораторен урок 04: Дизайн и схема на базата данни](../04-Database/README.md)**, за да:
+С готова среда продължете към **[Лаб 04: Дизайн и схема на базата данни](../04-Database/README.md)** за да:
 
-- Разгледате подробно схемата на ритейл базата данни
-- Разберете моделирането на данни за много наематели
-- Научите за имплементацията на Row Level Security
-- Работите с примерни ритейл данни
+- Прегледате подробно схемата на търговската база данни
+- Разберете моделиране за мулти-тенант среди
+- Научите за прилагане на Row Level Security
+- Работите с примерни търговски данни
 
 ## 📚 Допълнителни ресурси
 
-### Инструменти за разработка
-- [Документация за Docker](https://docs.docker.com/) - Пълно ръководство за Docker
-- [Референция за Azure CLI](https://docs.microsoft.com/cli/azure/) - Команди за Azure CLI
-- [Документация за VS Code](https://code.visualstudio.com/docs) - Конфигурация на редактора и разширения
+### Развойни инструменти
+- [Документация на Docker](https://docs.docker.com/) - Пълна справка за Docker
+- [Справка за Azure CLI](https://docs.microsoft.com/cli/azure/) - Команди на Azure CLI
+- [Документация за VS Code](https://code.visualstudio.com/docs) - Конфигурация и разширения на редактора
 
-### Услуги в Azure
-- [Документация за Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Конфигурация на AI услуги
-- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - Разполагане на AI модели
+### Azure услуги
+- [Документация на Microsoft Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Конфигурация на AI услугата
+- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - Разгръщане на AI модел
 - [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Настройка на мониторинг
 
 ### Python разработка
 - [Python виртуални среди](https://docs.python.org/3/tutorial/venv.html) - Управление на среди
-- [Документация за AsyncIO](https://docs.python.org/3/library/asyncio.html) - Модели за асинхронно програмиране
-- [Документация за FastAPI](https://fastapi.tiangolo.com/) - Модели за уеб рамки
+- [Документация AsyncIO](https://docs.python.org/3/library/asyncio.html) - Патерни за асинхронно програмиране
+- [FastAPI документация](https://fastapi.tiangolo.com/) - Уеб фреймуърк патерни
 
 ---
 
-**Следващо**: Средата е готова? Продължете с [Лабораторен урок 04: Дизайн и схема на базата данни](../04-Database/README.md)
+**Следващо**: Средата е готова? Продължете с [Лаб 04: Дизайн и схема на базата данни](../04-Database/README.md)
 
 ---
 
-**Отказ от отговорност**:  
-Този документ е преведен с помощта на AI услуга за превод [Co-op Translator](https://github.com/Azure/co-op-translator). Въпреки че се стремим към точност, моля, имайте предвид, че автоматичните преводи може да съдържат грешки или неточности. Оригиналният документ на неговия изходен език трябва да се счита за авторитетен източник. За критична информация се препоръчва професионален превод от човек. Ние не носим отговорност за каквито и да било недоразумения или погрешни интерпретации, произтичащи от използването на този превод.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Отказ от отговорност**:
+Този документ е преведен с помощта на AI преводачески услуга [Co-op Translator](https://github.com/Azure/co-op-translator). Въпреки че се стремим към точност, моля имайте предвид, че автоматизираните преводи могат да съдържат грешки или неточности. Оригиналният документ на неговия роден език трябва да се счита за авторитетен източник. За критична информация се препоръчва професионален човешки превод. Ние не носим отговорност за каквито и да е недоразумения или неправилни тълкувания, произтичащи от използването на този превод.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

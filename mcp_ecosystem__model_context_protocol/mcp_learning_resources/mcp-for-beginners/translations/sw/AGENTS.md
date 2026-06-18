@@ -2,50 +2,50 @@
 
 ## Muhtasari wa Mradi
 
-**MCP kwa Kompyuta** ni mtaala wa elimu wa chanzo huria kwa ajili ya kujifunza Model Context Protocol (MCP) - mfumo sanifu wa mawasiliano kati ya mifano ya AI na programu za wateja. Hifadhi hii inatoa vifaa vya kujifunza vya kina pamoja na mifano ya msimbo wa vitendo katika lugha mbalimbali za programu.
+**MCP kwa Waanzilishi** ni mtaala wa elimu huria kwa ajili ya kujifunza Model Context Protocol (MCP) - mfumo uliosawazishwa kwa mwingiliano kati ya mifano ya AI na programu za wateja. Hifadhi hii hutoa vifaa vya elimu kamili pamoja na mifano ya nambari ya vitendo katika lugha mbalimbali za programu.
 
 ### Teknolojia Muhimu
 
 - **Lugha za Programu**: C#, Java, JavaScript, TypeScript, Python, Rust
-- **Frameworks & SDKs**: 
+- **Mfumo na SDK**: 
   - MCP SDK (`@modelcontextprotocol/sdk`)
   - Spring Boot (Java)
   - FastMCP (Python)
   - LangChain4j (Java)
-- **Hifadhidata**: PostgreSQL na upanuzi wa pgvector
-- **Majukwaa ya Wingu**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
+- **Hifadhidata**: PostgreSQL na ugani wa pgvector
+- **Majukwaa ya Wingu**: Azure (Container Apps, OpenAI, Usalama wa Maudhui, Application Insights)
 - **Zana za Ujenzi**: npm, Maven, pip, Cargo
-- **Nyaraka**: Markdown na tafsiri ya lugha nyingi kiotomatiki (lugha 48+)
+- **Nyaraka**: Markdown na tafsiri ya lugha nyingi kwa njia ya moja kwa moja (lugha 48+)
 
-### Muundo wa Mfumo
+### Mimarishano
 
-- **Moduli 11 za Msingi (00-11)**: Njia ya kujifunza kwa mpangilio kutoka misingi hadi mada za juu
-- **Maabara ya Vitendo**: Mazoezi ya vitendo na msimbo wa suluhisho kamili katika lugha mbalimbali
-- **Miradi ya Mfano**: Utekelezaji wa seva ya MCP na wateja
-- **Mfumo wa Tafsiri**: Mtiririko wa kazi wa GitHub Actions kwa msaada wa lugha nyingi
-- **Picha**: Saraka ya picha iliyojikita na matoleo yaliyotafsiriwa
+- **Moduli 11 Za Msingi (00-11)**: Njia ya kujifunza mfululizo kutoka misingi hadi mada za juu
+- **Maabara za Vitendo**: Mazoezi ya vitendo na msimbo kamili katika lugha nyingi
+- **Miradi ya Mfano**: Utekelezaji wa seva na mteja wa MCP unaofanya kazi
+- **Mfumo wa Tafsiri**: Kazi ya GitHub Actions kwa usaidizi wa lugha nyingi
+- **Maktaba ya Picha**: Saraka ya picha iliyojumuishwa pamoja na matoleo yaliyotafsiriwa
 
-## Amri za Usanidi
+## Amri za Kuanzisha
 
-Hii ni hifadhi inayolenga nyaraka. Usanidi mwingi hufanyika ndani ya miradi ya mfano na maabara.
+Hii ni hifadhi inayolenga nyaraka. Uanzishaji mwingi hufanyika ndani ya miradi ya mfano na maabara binafsi.
 
-### Usanidi wa Hifadhi
+### Kuanzisha Hifadhi
 
 ```bash
-# Clone the repository
+# Nakili hazina
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
 
-### Kufanya Kazi na Miradi ya Mfano
+### Kufanya kazi na Miradi ya Mfano
 
 Miradi ya mfano iko katika:
-- `03-GettingStarted/samples/` - Mifano maalum ya lugha
+- `03-GettingStarted/samples/` - Mifano maalum kwa lugha
 - `03-GettingStarted/01-first-server/solution/` - Utekelezaji wa seva ya kwanza
-- `03-GettingStarted/02-client/solution/` - Utekelezaji wa wateja
-- `11-MCPServerHandsOnLabs/` - Maabara ya kina ya ujumuishaji wa hifadhidata
+- `03-GettingStarted/02-client/solution/` - Utekelezaji wa mteja
+- `11-MCPServerHandsOnLabs/` - Maabara za muingiliano wa hifadhidata kamili
 
-Kila mradi wa mfano una maagizo yake ya usanidi:
+Kila mradi wa mfano una maelekezo yake ya kuanzisha:
 
 #### Miradi ya TypeScript/JavaScript
 ```bash
@@ -58,7 +58,7 @@ npm start
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# au
 pip install -e .
 python main.py
 ```
@@ -74,26 +74,26 @@ mvn spring-boot:run
 
 ### Muundo wa Nyaraka
 
-- **Moduli 00-11**: Maudhui ya mtaala wa msingi kwa mpangilio
-- **translations/**: Matoleo maalum ya lugha (yanayotengenezwa kiotomatiki, usihariri moja kwa moja)
-- **translated_images/**: Matoleo ya picha yaliyotafsiriwa (yanayotengenezwa kiotomatiki)
-- **images/**: Picha za chanzo na michoro
+- **Moduli 00-11**: Yaliyomo ya mtaala wa msingi kwa mfuatano
+- **translations/**: Toleo la lugha maalum (limezalishwa moja kwa moja, usibadilishe moja kwa moja)
+- **translated_images/**: Toleo la picha lililocomezwa (limezalishwa moja kwa moja)
+- **images/**: Picha na michoro ya asili
 
 ### Kufanya Mabadiliko ya Nyaraka
 
-1. Hariri faili za markdown za Kiingereza pekee katika saraka za moduli za mizizi (00-11)
-2. Sasisha picha katika saraka ya `images/` ikiwa inahitajika
-3. Mtiririko wa kazi wa GitHub Action wa co-op-translator utazalisha tafsiri kiotomatiki
-4. Tafsiri zinazalishwa upya wakati wa kusukuma kwenye tawi kuu
+1. Hariri tu faili za markdown za Kiingereza katika saraka kuu za moduli (00-11)
+2. Sasisha picha katika saraka `images/` ikiwa inahitajika
+3. Kazi ya co-op-translator GitHub Action itaandaa tafsiri moja kwa moja
+4. Tafsiri zitatengenezwa upya pindi mabadiliko yapatikane kwenye tawi kuu
 
 ### Kufanya Kazi na Tafsiri
 
-- **Tafsiri ya Kiotomatiki**: Mtiririko wa kazi wa GitHub Actions hushughulikia tafsiri zote
-- **USIHARIRI** faili moja kwa moja katika saraka ya `translations/`
+- **Tafsiri ya Moja kwa Moja**: Mtiririko wa GitHub Actions hutekeleza tafsiri zote
+- **Usihariri Moja kwa Moja** faili katika saraka `translations/`
 - Metadata ya tafsiri imejumuishwa katika kila faili iliyotafsiriwa
-- Lugha zinazoungwa mkono: Lugha 48+ ikiwa ni pamoja na Kiarabu, Kichina, Kifaransa, Kijerumani, Kihindi, Kijapani, Kikorea, Kireno, Kirusi, Kihispania, na nyingine nyingi
+- Lugha zinazoungwa mkono: Zaidi ya lugha 48 zikiwemo Kiarabu, Kichina, Kifaransa, Kijerumani, Kihindi, Kijapani, Kikorea, Kireno, Kirusi, Kihispania, na nyingine nyingi
 
-## Maagizo ya Kupima
+## Maelekezo ya Kupima
 
 ### Uthibitishaji wa Nyaraka
 
@@ -101,26 +101,26 @@ Kwa kuwa hii ni hifadhi inayolenga nyaraka, upimaji unalenga:
 
 1. **Uthibitishaji wa Viungo**: Hakikisha viungo vyote vya ndani vinafanya kazi
 ```bash
-# Check for broken markdown links
+# Angalia viungo vyovyovyovy ya markdown
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Uthibitishaji wa Mifano ya Msimbo**: Jaribu kwamba mifano ya msimbo inakamilika/inakimbia
+2. **Uthibitishaji wa Mifano ya Nambari**: Jaribu mifano ya nambari ikiwa inaendeshwa/sikomeshwa
 ```bash
-# Navigate to specific sample and run its tests
+# Elekeza kwenye sampuli maalum na fanya majaribio yake
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Linting ya Markdown**: Angalia uthabiti wa muundo
+3. **Kukagua Muundo wa Markdown**: Angalia muafaka wa muundo
 ```bash
-# Use markdownlint if needed
+# Tumia markdownlint ikiwa inahitajika
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
-### Upimaji wa Miradi ya Mfano
+### Kupima Miradi ya Mfano
 
-Kila mfano maalum wa lugha unajumuisha mbinu yake ya upimaji:
+Kila mfano wa lugha una mbinu yake ya upimaji:
 
 #### TypeScript/JavaScript
 ```bash
@@ -140,37 +140,37 @@ mvn test
 mvn verify
 ```
 
-## Miongozo ya Mtindo wa Msimbo
+## Miongozo ya Mtindo wa Nambari
 
 ### Mtindo wa Nyaraka
 
-- Tumia lugha wazi, inayofaa kwa kompyuta
-- Jumuisha mifano ya msimbo katika lugha mbalimbali inapowezekana
-- Fuata mbinu bora za markdown:
-  - Tumia vichwa vya ATX (`#` syntax)
-  - Tumia vizuizi vya msimbo vilivyo na vitambulisho vya lugha
-  - Jumuisha maandishi ya maelezo kwa picha
-  - Weka urefu wa mistari kuwa wa busara (hakuna kikomo kigumu, lakini uwe na busara)
+- Tumia lugha wazi, rafiki kwa waanzilishi
+- Jumuisha mifano ya nambari katika lugha nyingi inapowezekana
+- Fuata taratibu bora za markdown:
+  - Tumia vichwa vya ATX (`#` mtindo)
+  - Tumia vifunga vya msimbo vilivyo na kitambulisho cha lugha
+  - Jumuisha maelezo ya alt kwa picha
+  - Dumisha urefu wa mistari kwa kiasi kinachofaa (hakuna kikomo kigumu, lakini kuwa na busara)
 
-### Mtindo wa Mifano ya Msimbo
+### Mtindo wa Mfano wa Nambari
 
 #### TypeScript/JavaScript
 - Tumia moduli za ES (`import`/`export`)
-- Fuata kanuni za hali kali za TypeScript
+- Fuata kanuni za hali ngumu za TypeScript
 - Jumuisha maelezo ya aina
 - Lenga ES2022
 
 #### Python
-- Fuata miongozo ya mtindo wa PEP 8
+- Fuata miongozo ya mtindo ya PEP 8
 - Tumia vidokezo vya aina inapofaa
-- Jumuisha maelezo ya kazi na madarasa
-- Tumia vipengele vya kisasa vya Python (3.8+)
+- Jumuisha docstrings kwa kazi na madarasa
+- Tumia sifa mpya za Python (3.8+)
 
 #### Java
 - Fuata kanuni za Spring Boot
-- Tumia vipengele vya Java 21
-- Fuata muundo wa mradi wa Maven wa kawaida
-- Jumuisha maoni ya Javadoc
+- Tumia sifa za Java 21
+- Fuata muundo wa kawaida wa mradi wa Maven
+- Jumuisha maelezo ya Javadoc
 
 ### Mpangilio wa Faili
 
@@ -186,116 +186,118 @@ mvn verify
     └── <language>/
 ```
 
-## Ujenzi na Utekelezaji
+## Ujenzi na Ueneaji
 
-### Utekelezaji wa Nyaraka
+### Ueneaji wa Nyaraka
 
-Hifadhi hutumia GitHub Pages au sawa kwa ajili ya kuhifadhi nyaraka (ikiwa inafaa). Mabadiliko kwenye tawi kuu husababisha:
+Hifadhi inatumia GitHub Pages au sawa kwa hosting ya nyaraka (ikiwa inahitajika). Mabadiliko kwenye tawi kuu hutuma:
 
-1. Mtiririko wa kazi wa tafsiri (`.github/workflows/co-op-translator.yml`)
-2. Tafsiri ya kiotomatiki ya faili zote za markdown za Kiingereza
-3. Ujanibishaji wa picha inapohitajika
+1. Mtiririko wa tafsiri (`.github/workflows/co-op-translator.yml`)
+2. Tafsiri ya moja kwa moja ya faili zote za markdown za Kiingereza
+3. Uhamishaji wa picha mahali inapohitajika
 
-### Hakuna Mchakato wa Ujenzi Unaohitajika
+### Hakuna Mchakato wa Ujenzi Unahitajika
 
-Hifadhi hii ina nyaraka za markdown pekee. Hakuna hatua ya ujenzi au mkusanyiko inayohitajika kwa maudhui ya mtaala wa msingi.
+Hifadhi hii hasa ina nyaraka za markdown. Hakuna hatua ya kukusanya au kujenga inahitajika kwa mtaala mkuu.
 
-### Utekelezaji wa Miradi ya Mfano
+### Ueneaji wa Miradi ya Mfano
 
-Miradi ya mfano ya mtu binafsi inaweza kuwa na maagizo ya utekelezaji:
-- Tazama `03-GettingStarted/09-deployment/` kwa mwongozo wa utekelezaji wa seva ya MCP
-- Mifano ya utekelezaji wa Azure Container Apps katika `11-MCPServerHandsOnLabs/`
+Miradi binafsi ya mfano inaweza kuwa na maelekezo ya kueneza:
+- Angalia `03-GettingStarted/09-deployment/` kwa mwongozo wa ueneaji seva ya MCP
+- Mifano ya ueneaji ya Azure Container Apps katika `11-MCPServerHandsOnLabs/`
 
 ## Miongozo ya Kuchangia
 
-### Mchakato wa Ombi la Kuvuta
+### Mchakato wa Ombi la Kutoa
 
-1. **Fork na Clone**: Fork hifadhi na clone fork yako kwa ndani
-2. **Unda Tawi**: Tumia majina ya tawi yanayoelezea (mfano, `fix/typo-module-3`, `add/python-example`)
-3. **Fanya Mabadiliko**: Hariri faili za markdown za Kiingereza pekee (si tafsiri)
-4. **Jaribu kwa Ndani**: Hakikisha markdown inaonyeshwa vizuri
-5. **Wasilisha PR**: Tumia vichwa na maelezo wazi vya PR
-6. **CLA**: Saini Mkataba wa Leseni ya Mchangiaji wa Microsoft unapoulizwa
+1. **Fungua Tawi na Nakili**: Fikia hifadhi na nakili tawi lako mahali pako
+2. **Tengeneza Tawi**: Tumia majina ya tawi yanayoelezea (mfano, `fix/typo-module-3`, `add/python-example`)
+3. **Fanya Mabadiliko**: Hariri tu faili za markdown za Kiingereza (si tafsiri)
+4. **Jaribu Kwenye Kiasili**: Hakiki kuwa markdown inaonekana vyema
+5. **Wasilisha PR**: Tumia vichwa na maelezo ya PR kwa uwazi
+6. **Saini CLA**: Saini Makubaliano ya Mtoaji wa Microsoft ikipotakiwa
 
 ### Muundo wa Kichwa cha PR
 
 Tumia vichwa vya wazi, vinavyoelezea:
-- `[Module XX] Maelezo mafupi` kwa mabadiliko maalum ya moduli
-- `[Samples] Maelezo` kwa mabadiliko ya msimbo wa mfano
-- `[Docs] Maelezo` kwa masasisho ya nyaraka za jumla
+- `[Module XX] Maelezo ya kifupi` kwa mabadiliko ya moduli
+- `[Samples] Maelezo` kwa mabadiliko ya kodi za mfano
+- `[Docs] Maelezo` kwa masasisho ya nyaraka kwa ujumla
 
-### Nini cha Kuchangia
+### Unachochangia
 
-- Marekebisho ya hitilafu katika nyaraka au mifano ya msimbo
-- Mifano mpya ya msimbo katika lugha za ziada
-- Ufafanuzi na maboresho ya maudhui yaliyopo
-- Masomo mapya ya kesi au mifano ya vitendo
-- Ripoti za masuala kwa maudhui yasiyoeleweka au yasiyo sahihi
+- Marekebisho ya makosa katika nyaraka au mifano ya nambari
+- Mifano ya nambari mpya katika lugha za ziada
+- Ufafanuzi na maboresho kwa yaliyomo tayari
+- Masomo mapya au mifano ya vitendo
+- Ripoti za matatizo kwa yaliyomo yasiyo wazi au yenye makosa
 
-### Nini USIFANYE
+### Usifanye Haya
 
-- Usihariri faili moja kwa moja katika saraka ya `translations/`
-- Usihariri saraka ya `translated_images/`
+- Usihariri moja kwa moja faili katika saraka `translations/`
+- Usihariri saraka `translated_images/`
 - Usiongeze faili kubwa za binary bila majadiliano
-- Usibadilishe faili za mtiririko wa kazi wa tafsiri bila uratibu
+- Usibadilishe faili za mtiririko wa tafsiri bila uratibu
 
-## Vidokezo vya Ziada
+## Maelezo Zaidi
 
-### Matengenezo ya Hifadhi
+### Utunzaji wa Hifadhi
 
-- **Changelog**: Mabadiliko yote makubwa yanarekodiwa katika `changelog.md`
-- **Mwongozo wa Kujifunza**: Tumia `study_guide.md` kwa muhtasari wa urambazaji wa mtaala
-- **Violezo vya Masuala**: Tumia violezo vya masuala vya GitHub kwa ripoti za hitilafu na maombi ya vipengele
-- **Kanuni za Maadili**: Wote wanaochangia lazima wafuate Kanuni za Maadili za Microsoft Open Source
+- **Changelog**: Mabadiliko yote makubwa yameandikwa katika `changelog.md`
+- **Mwongozo wa Kusoma**: Tumia `study_guide.md` kwa muhtasari wa mtaala
+- **Violezo vya Masuala**: Tumia violezo vya masuala ya GitHub kwa ripoti za makosa na maombi ya vipengele
+- **Kanuni za Maadili**: Washiriki wote lazima wafuate Kanuni za Maadili ya Chanzo Huria ya Microsoft
 
 ### Njia ya Kujifunza
 
-Fuata moduli kwa mpangilio (00-11) kwa kujifunza bora:
-1. **00-02**: Misingi (Utangulizi, Dhana za Msingi, Usalama)
-2. **03**: Kuanza na utekelezaji wa vitendo
+Fuata moduli kwa mpangilio mfululizo (00-11) kwa kujifunza bora:
+1. **00-02**: Misingi (Utangulizi, Dhahania Muhimu, Usalama)
+2. **03**: Kuanzishwa na utekelezaji wa vitendo
 3. **04-05**: Utekelezaji wa vitendo na mada za juu
 4. **06-10**: Jamii, mbinu bora, na matumizi halisi
-5. **11**: Maabara ya kina ya ujumuishaji wa hifadhidata (maabara 13 kwa mpangilio)
+5. **11**: Maabara kamili za muingiliano wa hifadhidata (maabara 13 mfululizo)
 
-### Rasilimali za Msaada
+### Vyanzo vya Msaada
 
 - **Nyaraka**: https://modelcontextprotocol.io/
-- **Vipimo**: https://spec.modelcontextprotocol.io/
-- **Jamii**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discord server
-- **Kozi Zinazohusiana**: Tazama README.md kwa njia nyingine za kujifunza za Microsoft
+- **Maelezo ya Kiufundi**: https://spec.modelcontextprotocol.io/
+- **Jumuiya**: https://github.com/orgs/modelcontextprotocol/discussions
+- **Discord**: Seva ya Microsoft Foundry Discord
+- **Kozi Zinazohusiana**: Angalia README.md kwa njia nyingine za kujifunza Microsoft
 
-### Masuala ya Kawaida ya Utatuzi
+### Changamoto Za Kawaida
 
-**Q: PR yangu inashindwa ukaguzi wa tafsiri**
-A: Hakikisha umehariri faili za markdown za Kiingereza pekee katika saraka za moduli za mizizi, si matoleo yaliyotafsiriwa.
+**Q: PR yangu inashindwa katika ukaguzi wa tafsiri**  
+A: Hakikisha umehariri tu faili za markdown za Kiingereza katika saraka kuu za moduli, si matoleo yaliyotafsiriwa.
 
-**Q: Ninawezaje kuongeza lugha mpya?**
-A: Msaada wa lugha unasimamiwa kupitia mtiririko wa kazi wa co-op-translator. Fungua suala kujadili kuongeza lugha mpya.
+**Q: Ninawezaje kuongeza lugha mpya?**  
+A: Usaidizi wa lugha husimamiwa kupitia mtiririko wa co-op-translator. Fungua suala ili kujadili kuongeza lugha mpya.
 
-**Q: Mifano ya msimbo haifanyi kazi**
-A: Hakikisha umefuata maagizo ya usanidi katika README ya mfano husika. Angalia kwamba una matoleo sahihi ya utegemezi yaliyosakinishwa.
+**Q: Mifano ya nambari haitoendi kazi**  
+A: Hakikisha umefuata maelekezo ya kuanzisha katika README ya mfano husika. Angalia kuwa una toleo sahihi la utegemezi.
 
-**Q: Picha haziwezi kuonyeshwa**
-A: Thibitisha njia za picha ni za jamaa na tumia mistari ya mbele. Picha zinapaswa kuwa katika saraka ya `images/` au `translated_images/` kwa matoleo yaliyotafsiriwa.
+**Q: Picha hazionekani**  
+A: Hakikisha njia za picha ni za jamaa na tumia slashi ya mbele. Picha zinapaswa kuwa katika saraka `images/` au `translated_images/` kwa matoleo ya lokaliza.
 
-### Mazingatio ya Utendaji
+### Mambo ya Kufikiria Kuhusu Utendaji
 
-- Mtiririko wa kazi wa tafsiri unaweza kuchukua dakika kadhaa kukamilika
-- Picha kubwa zinapaswa kuboreshwa kabla ya kujitolea
-- Weka faili za markdown za mtu binafsi zikiwa zinalenga na zenye ukubwa wa busara
+- Mtiririko wa tafsiri unaweza kuchukua dakika kadhaa kukamilika
+- Picha kubwa zitakuwa bora zigawanywe kabla ya kujitolea
+- Dumisha faili za markdown zinazojikita na za ukubwa unaofaa
 - Tumia viungo vya jamaa kwa kubebeka bora
 
-### Usimamizi wa Mradi
+### Udhibiti wa Mradi
 
-Mradi huu unafuata mbinu za chanzo huria za Microsoft:
-- Leseni ya MIT kwa msimbo na nyaraka
-- Kanuni za Maadili za Microsoft Open Source
-- CLA inahitajika kwa michango
-- Masuala ya usalama: Fuata miongozo ya SECURITY.md
-- Msaada: Tazama SUPPORT.md kwa rasilimali za msaada
+Mradi huu hufuata taratibu za chanzo huria za Microsoft:  
+- Leseni ya MIT kwa msimbo na nyaraka  
+- Kanuni za Maadili ya Chanzo Huria ya Microsoft  
+- CLA inahitajika kwa michango  
+- Matatizo ya Usalama: Fuata miongozo ya SECURITY.md  
+- Msaada: Angalia SUPPORT.md kwa vyanzo vya msaada
 
 ---
 
-**Kanusho**:  
-Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kuhakikisha usahihi, tafadhali fahamu kuwa tafsiri za kiotomatiki zinaweza kuwa na makosa au kutokuwa sahihi. Hati ya asili katika lugha yake ya awali inapaswa kuzingatiwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu ya binadamu inapendekezwa. Hatutawajibika kwa kutoelewana au tafsiri zisizo sahihi zinazotokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

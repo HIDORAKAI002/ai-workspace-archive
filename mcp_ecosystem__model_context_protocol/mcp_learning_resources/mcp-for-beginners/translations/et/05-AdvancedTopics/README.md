@@ -1,75 +1,75 @@
 # Täiustatud teemad MCP-s
 
-[![Täiustatud MCP: turvalised, skaleeritavad ja multimodaalsed tehisintellekti agendid](../../../translated_images/et/06.42259eaf91fccfc6.webp)](https://youtu.be/4yjmGvJzYdY)
+[![Advanced MCP: Secure, Scalable, and Multi-modal AI Agents](../../../translated_images/et/06.42259eaf91fccfc6.webp)](https://youtu.be/4yjmGvJzYdY)
 
-_(Vaadake selle tunni videot, klõpsates ülaloleval pildil)_
+_(Video vaatamiseks klõpsake ülaloleval pildil)_
 
-See peatükk käsitleb Model Context Protocoli (MCP) rakenduse täiustatud teemasid, sealhulgas multimodaalset integreerimist, skaleeritavust, turvalisuse parimaid tavasid ja ärilist integreerimist. Need teemad on olulised vastupidavate ja tootmiskõlblike MCP rakenduste ehitamiseks, mis suudavad täita kaasaegsete tehisintellekti süsteemide nõudmisi.
+See peatükk käsitleb mitmeid täiustatud teemasid Model Context Protocol’i (MCP) rakendamises, sealhulgas mitme modaalisusega integratsiooni, skaleeritavust, turvalisuse parimaid tavasid ja ettevõtte integratsiooni. Need teemad on olulised, et ehitada vastupidavaid ja tootmiskõlblikke MCP rakendusi, mis vastavad tänapäevaste tehisintellekti süsteemide nõuetele.
 
 ## Ülevaade
 
-See tund käsitleb MCP rakenduse täiustatud kontseptsioone, keskendudes multimodaalsele integreerimisele, skaleeritavusele, turvalisuse parimatele tavadele ja ärilisele integreerimisele. Need teemad on hädavajalikud tootmiskõlblike MCP rakenduste loomisel, mis suudavad äri keskkondades toime tulla keerukate nõudmistega.
+See õppetund uurib täiustatud mõisteid Model Context Protocol'i rakendamises, keskendudes mitme modaalisusega integratsioonile, skaleeritavusele, turvalisuse parimatele tavadele ja ettevõtte integratsioonile. Need teemad on olulised tootmistasemel MCP rakenduste loomiseks, mis suudavad toime tulla keerukate nõuetega ettevõtte keskkondades.
 
 ## Õpieesmärgid
 
-Selle tunni lõpuks oskad:
+Selle õppetunni lõpuks oskad sa:
 
-- Rakendada multimodaalseid võimalusi MCP raamistikus
-- Disainida skaleeritavaid MCP arhitektuure kõrge koormusega stsenaariumide jaoks
-- Rakendada MCP turvapõhimõtetega kooskõlas olevaid turvalisuse parimaid tavasid
-- Integreerida MCP äriliste AI süsteemide ja raamistikudega
+- Rakendada mitme modaalisusega võimalusi MCP raamistikus
+- Kujundada skaleeritavaid MCP arhitektuure kõrge nõudluse stsenaariumite jaoks
+- Rakendada turvalisuse parimaid tavasid MCP turvapõhimõtetega kooskõlas
+- Integreerida MCP ettevõtte AI süsteemide ja raamistikudega
 - Optimeerida jõudlust ja töökindlust tootmiskeskkondades
 
-## Tunnid ja näidistööd
+## Õppetunnid ja näidistööprojektid
 
 | Link | Pealkiri | Kirjeldus |
 |------|----------|-----------|
-| [5.1 Integreerimine Azure'iga](./mcp-integration/README.md) | Azure'iga integreerimine | Õpi, kuidas integreerida oma MCP server Azure'iga |
-| [5.2 Multimodaalne näidis](./mcp-multi-modality/README.md) | MCP multimodaalsed näited | Näited heli-, pildi- ja multimodaalsest vastusest |
-| [5.3 MCP OAuth2 näidis](../../../05-AdvancedTopics/mcp-oauth2-demo) | MCP OAuth2 demo | Minimalistlik Spring Boot rakendus, mis demonstreerib OAuth2 kasutamist MCP-ga nii autoriseerimise kui ka ressursiserverina. Näitab turvalist tokeni väljastamist, kaitstud lõpp-punkte, Azure Container Apps’ide juurutamist ja API halduse integratsiooni. |
-| [5.4 Root Contextid](./mcp-root-contexts/README.md) | Root kontekstid | Õpi rohkem root konteksti kohta ja kuidas neid rakendada |
-| [5.5 Marsruutimine](./mcp-routing/README.md) | Marsruutimine | Õpi erinevat tüüpi marsruutimist |
-| [5.6 Võtlemine](./mcp-sampling/README.md) | Võtlemine | Õpi, kuidas töötada võtlemisega |
-| [5.7 Skalendamine](./mcp-scaling/README.md) | Skalendamine | Õpi skaleerimisest |
+| [5.1 Integratsioon Azure’iga](./mcp-integration/README.md) | Integratsioon Azure’iga | Õpi, kuidas integreerida oma MCP server Azure platvormil |
+| [5.2 Mitme modaalisuse näidis](./mcp-multi-modality/README.md) | MCP mitme modaalisuse näited | Näidised heli, pildi ja mitme modaalisuse vastuste jaoks |
+| [5.3 MCP OAuth2 näidis](../../../05-AdvancedTopics/mcp-oauth2-demo) | MCP OAuth2 demonstreerimine | Minimalistlik Spring Boot rakendus, mis näitab OAuth2 kasutamist MCP-ga nii autoriseerimis- kui ka ressursiserverina. Näitab turvalist tokeni väljastamist, kaitstud lõpp-punkte, Azure Container Apps’i juurutamist ja API halduse integratsiooni. |
+| [5.4 Juurekontekstid](./mcp-root-contexts/README.md) | Juurekontekstid | Õpi rohkem juurekonteksti kohta ja kuidas neid rakendada |
+| [5.5 Marsruutimine](./mcp-routing/README.md) | Marsruutimine | Õpi erinevaid marsruutimise tüüpe |
+| [5.6 Valimine](./mcp-sampling/README.md) | Valimine | Õpi, kuidas töötada valimisega |
+| [5.7 Skaleerimine](./mcp-scaling/README.md) | Skaleerimine | Õpi skaleerimise kohta |
 | [5.8 Turvalisus](./mcp-security/README.md) | Turvalisus | Kaitse oma MCP serverit |
-| [5.9 Veebipõhine otsing MCP](./web-search-mcp/README.md) | Veebiotsing MCP | Python MCP server ja klient, mis integreerub SerpAPI-ga reaalajas veebipäringu, uudiste, toodete otsinguks ja küsimustele vastamiseks. Näitab tööriistade koordineerimist, väliste API-de integreerimist ja tugevat vigade käitlemist. |
-| [5.10 Reaalaegne voogedastus](./mcp-realtimestreaming/README.md) | Voogedastus | Reaalaegne andmevoogude edastamine on tänapäeva andmepõhises maailmas hädavajalik, kus ettevõtted ja rakendused vajavad kohest juurdepääsu teabele, et teha õigeaegseid otsuseid.|
-| [5.11 Reaalaegne veebipäring](./mcp-realtimesearch/README.md) | Veebiotsing | Kuidas MCP muudab reaalaegset veebipäringut, pakkudes standardiseeritud lähenemisviisi konteksti haldamiseks AI mudelite, otsingumootorite ja rakenduste vahel. | 
-| [5.12 Entra ID autentimine Model Context Protocol serveritele](./mcp-security-entra/README.md) | Entra ID autentimine | Microsoft Entra ID pakub tugevat pilvepõhist identiteedi- ja juurdepääsuhalduse lahendust, aidates tagada, et ainult volitatud kasutajad ja rakendused saavad suhelda teie MCP serveriga.|
-| [5.13 Azure AI Foundry agendi integreerimine](./mcp-foundry-agent-integration/README.md) | Azure AI Foundry integreerimine | Õpi, kuidas integreerida Model Context Protocol serverid Azure AI Foundry agentidega, võimaldades võimsat tööriistade orkestreerimist ja ärilise AI võimekust standardiseeritud väliste andmeallikate ühendustega.|
-| [5.14 Konteksti inseneriteadus](./mcp-contextengineering/README.md) | Konteksti inseneriteadus | Tuleviku võimalused konteksti inseneritehnoloogiate jaoks MCP serverites, sealhulgas konteksti optimeerimine, dünaamiline konteksti haldamine ja tõhusate promptide inseneritehnika strateegiad MCP raamistikus.|
-| [5.15 MCP kohandatud transport](./mcp-transport/README.md) | Kohandatud transport | Õpi, kuidas rakendada kohandatud transpordimehhanisme spetsiaalsete MCP kommunikatsioonistseenaride jaoks.|
-| [5.16 Protokolli funktsioonide põhjalik käsitlus](./mcp-protocol-features/README.md) | Protokolli funktsioonid | Valda edasijõudnud protokolli funktsioone, sealhulgas edenemiseteavitusi, päringu tühistamist, ressursimallide ja vigade käitlemise mustreid.|
-| [5.17 Vastanduvad mitme-agendi mõtlemine](./mcp-adversarial-agents/README.md) | Vastanduvad agendid | Kasuta kahte vastandliku seisukohaga agenti, kes jagavad ühte MCP tööriistakomplekti, et tabada hallutsinatsioone, esile tuua äärejuhtumeid ja toota paremini kalibreeritud väljundeid struktureeritud debati läbi.|
+| [5.9 Veebipõhine otsing MCP](./web-search-mcp/README.md) | Veebipõhine otsing MCP | Python MCP server ja klient, mis integreerub SerpAPI-ga reaalajas veebi-, uudiste-, tootega seotud otsinguks ja Q&A jaoks. Näitab mitme tööriista orkestreerimist, väliste API-de integratsiooni ja tugevat veakäsitlust. |
+| [5.10 Reaalajas voogedastus](./mcp-realtimestreaming/README.md) | Voogedastus | Reaalaja andmevoogude voogedastus on tänapäeval andmepõhises maailmas hädavajalik, kus ettevõtted ja rakendused vajavad otsest ligipääsu infole, et teha õigeaegseid otsuseid. |
+| [5.11 Reaalajas veebipõhine otsing](./mcp-realtimesearch/README.md) | Veebipõhine otsing | Reaalajas veebipõhise otsingu kuidas MCP muudab reaalajas veebipõhist otsingut, pakkudes standardiseeritud lähenemist konteksti haldamisele tehisintellekti mudelite, otsingumootorite ja rakenduste vahel. |
+| [5.12 Entra ID autentimine Model Context Protocol serverite jaoks](./mcp-security-entra/README.md) | Entra ID autentimine | Microsoft Entra ID pakub tugevat pilvepõhist identiteedi- ja juurdepääsuhalduse lahendust, aidates tagada, et ainult volitatud kasutajad ja rakendused saavad suhelda sinu MCP serveriga. |
+| [5.13 Microsoft Foundry agendi integratsioon](./mcp-foundry-agent-integration/README.md) | Microsoft Foundry integratsioon | Õpi, kuidas integreerida Model Context Protocol serverid Microsoft Foundry agentidega, võimaldades võimsaid tööriista orkestreerimise ja ettevõtte AI võimalusi standardiseeritud väliste andmeallikate ühendustega. |
+| [5.14 Konteksti inseneriteadus](./mcp-contextengineering/README.md) | Konteksti inseneriteadus | Tulevikuvõimalused konteksti inseneriteaduse tehnikate jaoks MCP serverites, sealhulgas konteksti optimeerimine, dünaamiline konteksti haldamine ja strateegiad tõhusa promptide loomise jaoks MCP raamistikus. |
+| [5.15 MCP kohandatud transport](./mcp-transport/README.md) | Kohandatud transport | Õpi, kuidas rakendada kohandatud transpordimehhanisme spetsiaalsete MCP kommunikatsioonistseenarite jaoks. |
+| [5.16 Protokolli funktsioonide süvamereuuring](./mcp-protocol-features/README.md) | Protokolli funktsioonid | Mõista täiustatud protokolli funktsioone, sealhulgas progressiteavitusi, päringu katkestamist, ressursimalle ja veakäsitluse mustreid. |
+| [5.17 Vastuoluline mitmeagendi mõtlemine](./mcp-adversarial-agents/README.md) | Vastuolulised agendid | Kasuta kahte vastandlikku agenti, kes kasutavad sama MCP tööriistakomplekti, et tabada hallutsinatsioone, tuua esile servajuhtumid ja toota paremini kalibreeritud väljundeid struktureeritud debati kaudu. |
 
-> **Uus MCP spetsifikatsioonis 2025-11-25**: Spetsifikatsioon sisaldab nüüd eksperimentaalset tuge **Ülesannetele** (pikajalised toimingud edenemise jälgimisega), **Tööriistade anotatsioonidele** (tööriista käitumise metainformatsioon turvalisuse jaoks), **URL režiimi päringule** (spetsiifilise URL sisu taotlemine klientidelt) ja täiustatud **Root’idele** (tööruumi konteksti halduseks). Vaata [MCP spetsifikatsiooni muudatuste logi](https://spec.modelcontextprotocol.io/) täieliku info saamiseks.
+> **MCP spetsifikatsioonis 2025-11-25 uus:** Spetsifikatsioon sisaldab nüüd katsetuslikku tuge **ülesannetele** (pikkadele operatsioonidele koos edenemistraktsiooniga), **tööriistade annotatsioonidele** (metaandmed tööriistade käitumise kohta ohutuse tagamiseks), **URL viisi tuvastamisele** (kliendilt spetsiifilise URL sisu pärimiseks) ja täiustatud **juurte** (tööruumi konteksti haldamiseks). Täispikkade üksikasjade saamiseks vaata [MCP spetsifikatsiooni muudatuste logi](https://spec.modelcontextprotocol.io/).
 
-## Täiendavad viited
+## Lisaviited
 
-Kõige värskema info saamiseks täiustatud MCP teemade kohta, vaata:
+Uuema info saamiseks täiustatud MCP teemadel vaata:
 - [MCP dokumentatsioon](https://modelcontextprotocol.io/)
 - [MCP spetsifikatsioon (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [GitHubi hoidla](https://github.com/modelcontextprotocol)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Turvariskid ja leevendused
-- [MCP turvasumma töötoa Sherpa](https://azure-samples.github.io/sherpa/) - Praktiline turvakoolitus
+- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - turvariskid ja leevendused
+- [MCP turvalisuse tippkohtumise töötoad (Sherpa)](https://azure-samples.github.io/sherpa/) - praktiline turvalisuse koolitus
 
-## Peamised võtmeisendid
+## Olulised järeldused
 
-- Mitmemodaalsed MCP rakendused laiendavad AI võimeid tekstipõhisest töötlemisest kaugemale
-- Skaleeritavus on ärikasutusteks hädavajalik ning seda saab lahendada horisontaalse ja vertikaalse skaleerimisega
-- Kõikehõlmavad turvameetmed kaitsevad andmeid ja tagavad nõuetekohase ligipääsu kontrolli
-- Äriline integreerimine platvormidega nagu Azure OpenAI ja Microsoft AI Foundry parandab MCP võimekust
+- Mitme modaalisusega MCP rakendused laiendavad tehisintellekti võimeid tekstipõhisest töötlemisest kaugemale
+- Skaleeritavus on oluline ettevõtte juurutuste puhul ning seda saab lahendada horisontaalse ja vertikaalse skaleerimisega
+- Ulatuslikud turvameetmed kaitsevad andmeid ja tagavad nõuetekohase juurdepääsukontrolli
+- Ettevõtte integratsioon platvormidega nagu Azure OpenAI ja Microsoft AI Foundry suurendab MCP võimekust
 - Täiustatud MCP rakendused saavad kasu optimeeritud arhitektuuridest ja hoolikast ressursside haldamisest
 
 ## Harjutus
 
-Disaini äriklassi MCP rakendus konkreetse juhtumianalüüsi jaoks:
+Kavanda ettevõtte tasemel MCP rakendus konkreetse kasutusjuhtumi jaoks:
 
-1. Määra õigus oma juhtumianalüüsi multimodaalsed nõuded
-2. Määratle turvakontrollid tundlike andmete kaitsmiseks
-3. Kavanda skaleeritav arhitektuur, mis suudab toime tulla muutuvate koormustega
-4. Planeeri integratsioonipunktid äriliste AI süsteemidega
-5. Kirjuta üles võimalikud jõudluspiirangud ja neile lahendused
+1. Määra oma kasutusjuhtumi mitme modaalisuse nõuded
+2. Kirjuta üles turbekontrollid tundlike andmete kaitsmiseks
+3. Kujunda skaleeritav arhitektuur, mis suudab toime tulla muutuva koormusega
+4. Plaani integratsioonipunktid ettevõtte AI süsteemidega
+5. Dokumenteeri võimalikud jõudlustakistused ja leevendusstrateegiad
 
 ## Täiendavad ressursid
 
@@ -78,15 +78,15 @@ Disaini äriklassi MCP rakendus konkreetse juhtumianalüüsi jaoks:
 
 ---
 
-## Mis järgmiseks
+## Mis järgmisena
 
-Avasta selle mooduli tunnid alustades: [5.1 MCP integreerimine](./mcp-integration/README.md)
+Uuri selle mooduli õppetunde alustades: [5.1 MCP integratsioon](./mcp-integration/README.md)
 
-Kui oled selle mooduli lõpetanud, jätka: [Moodul 6: Kogukonna panused](../06-CommunityContributions/README.md)
+Kui oled selle mooduli lõpetanud, liigu edasi: [Moodul 6: Kogukonna panused](../06-CommunityContributions/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Vastutusest vabastamine**:  
-See dokument on tõlgitud tehisintellekti tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame täpsust, palun arvestage, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Originaaldokument oma emakeeles tuleks pidada ametlikuks allikaks. Olulise info puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti mõistmiste eest.
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

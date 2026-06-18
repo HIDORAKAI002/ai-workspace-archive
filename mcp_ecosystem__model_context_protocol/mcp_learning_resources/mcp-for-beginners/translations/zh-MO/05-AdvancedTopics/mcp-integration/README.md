@@ -1,27 +1,27 @@
 # 企業整合
 
-在企業環境中構建 MCP 伺服器時，通常需要與現有的 AI 平台和服務進行整合。本節將介紹如何將 MCP 與企業系統（如 Azure OpenAI 和 Microsoft AI Foundry）整合，以實現高級 AI 功能和工具協作。
+在企業環境中構建 MCP 伺服器時，您常常需要與現有的 AI 平台和服務整合。本節涵蓋如何將 MCP 與企業系統如 Azure OpenAI 和 Microsoft AI Foundry 進行整合，啟用進階的 AI 能力與工具編排。
 
-## 簡介
+## 介紹
 
-在本課程中，您將學習如何將模型上下文協議（MCP）與企業 AI 系統整合，重點是 Azure OpenAI 和 Microsoft AI Foundry。這些整合使您能夠利用強大的 AI 模型和工具，同時保持 MCP 的靈活性和可擴展性。
+在本課程中，您將學習如何將模型上下文協議 (MCP) 與企業 AI 系統整合，重點是 Azure OpenAI 與 Microsoft AI Foundry。這些整合使您能夠利用強大的 AI 模型和工具，同時保持 MCP 的靈活性與可擴展性。
 
 ## 學習目標
 
 完成本課程後，您將能夠：
 
-- 將 MCP 與 Azure OpenAI 整合以利用其 AI 功能。
-- 使用 Azure OpenAI 實現 MCP 工具協作。
-- 將 MCP 與 Microsoft AI Foundry 結合以實現高級 AI 代理功能。
-- 利用 Azure 機器學習（ML）執行 ML 管道並將模型註冊為 MCP 工具。
+- 將 MCP 與 Azure OpenAI 整合以利用其 AI 能力。
+- 實作 MCP 工具編排與 Azure OpenAI。
+- 結合 MCP 與 Microsoft AI Foundry 以實現進階的 AI 代理能力。
+- 利用 Azure 機器學習 (ML) 執行 ML 管線並將模型註冊為 MCP 工具。
 
 ## Azure OpenAI 整合
 
-Azure OpenAI 提供了對強大 AI 模型（如 GPT-4 等）的訪問。將 MCP 與 Azure OpenAI 整合，能讓您在保持 MCP 工具協作靈活性的同時，利用這些模型。
+Azure OpenAI 提供對 GPT-4 等強大 AI 模型的存取。將 MCP 與 Azure OpenAI 整合可讓您利用這些模型，同時保持 MCP 工具編排的靈活性。
 
-### C# 實現
+### C# 實作
 
-以下程式碼片段展示了如何使用 Azure OpenAI SDK 將 MCP 與 Azure OpenAI 整合。
+在此代碼片段中，我們展示如何使用 Azure OpenAI SDK 將 MCP 與 Azure OpenAI 整合。
 
 ```csharp
 // .NET Azure OpenAI Integration
@@ -85,24 +85,24 @@ namespace EnterpriseIntegration
 }
 ```
 
-在上述程式碼中，我們：
+在以上程式碼中，我們已經：
 
-- 配置了 Azure OpenAI 用戶端，包括端點、部署名稱和 API 金鑰。
-- 創建了一個方法 `GetCompletionWithToolsAsync`，用於獲取支持工具的補全結果。
-- 處理了回應中的工具調用。
+- 使用端點、部署名稱及 API 金鑰配置 Azure OpenAI 用戶端。
+- 創建了一個名為 `GetCompletionWithToolsAsync` 的方法，以獲取具備工具支援的完成結果。
+- 處理了回應中的工具呼叫。
 
-建議您根據具體的 MCP 伺服器設置實現實際的工具處理邏輯。
+建議您根據自身的 MCP 伺服器設置實作實際的工具處理邏輯。
 
-## Microsoft AI Foundry 整合
+## Microsoft Foundry 整合
 
-Azure AI Foundry 提供了一個構建和部署 AI 代理的平台。將 MCP 與 AI Foundry 整合，能讓您在保持 MCP 靈活性的同時，利用其功能。
+Microsoft Foundry 提供建構和部署 AI 代理的平台。將 MCP 與 Microsoft Foundry 整合可讓您利用其功能，同時維持 MCP 的彈性。
 
-以下程式碼展示了一個代理整合的實現，該代理處理請求並使用 MCP 處理工具調用。
+以下程式碼中，我們開發了一個代理整合，使用 MCP 處理請求並管理工具呼叫。
 
-### Java 實現
+### Java 實作
 
 ```java
-// Java AI Foundry Agent Integration
+// Java AI Foundry 代理整合
 package com.example.mcp.enterprise;
 
 import com.microsoft.aifoundry.AgentClient;
@@ -125,26 +125,26 @@ public class AIFoundryMcpBridge {
     }
     
     public AgentResponse processAgentRequest(AgentRequest request) {
-        // Process the AI Foundry Agent request
+        // 處理 AI Foundry 代理請求
         AgentResponse initialResponse = agentClient.processRequest(request);
         
-        // Check if the agent requested to use tools
+        // 檢查代理是否請求使用工具
         if (initialResponse.getToolCalls() != null && !initialResponse.getToolCalls().isEmpty()) {
-            // For each tool call, route it to the appropriate MCP tool
+            // 對每個工具呼叫，轉發至適當的 MCP 工具
             for (AgentToolCall toolCall : initialResponse.getToolCalls()) {
                 String toolName = toolCall.getName();
                 Map<String, Object> parameters = toolCall.getArguments();
                 
-                // Execute the tool using MCP
+                // 使用 MCP 執行工具
                 ToolResponse mcpResponse = mcpClient.executeTool(toolName, parameters);
                 
-                // Create tool response for AI Foundry
+                // 為 AI Foundry 建立工具回應
                 AgentToolResponse toolResponse = new AgentToolResponse(
                     toolCall.getId(),
                     mcpResponse.getResult()
                 );
                 
-                // Submit tool response back to the agent
+                // 將工具回應提交回代理
                 initialResponse = agentClient.submitToolResponse(
                     request.getConversationId(), 
                     toolResponse
@@ -157,20 +157,20 @@ public class AIFoundryMcpBridge {
 }
 ```
 
-在上述程式碼中，我們：
+在以上程式碼中，我們已經：
 
-- 創建了一個 `AIFoundryMcpBridge` 類，該類整合了 AI Foundry 和 MCP。
-- 實現了一個方法 `processAgentRequest`，用於處理 AI Foundry 代理請求。
-- 通過 MCP 用戶端執行工具調用，並將結果提交回 AI Foundry 代理。
+- 創建了一個 `AIFoundryMcpBridge` 類別，結合了 AI Foundry 與 MCP。
+- 實作了一個 `processAgentRequest` 方法，處理 AI Foundry 的代理請求。
+- 透過 MCP 用戶端執行工具呼叫，並將結果回傳給 AI Foundry 代理。
 
 ## MCP 與 Azure ML 的整合
 
-將 MCP 與 Azure 機器學習（ML）整合，能讓您在保持 MCP 靈活性的同時，利用 Azure 強大的 ML 功能。此整合可用於執行 ML 管道、將模型註冊為工具以及管理計算資源。
+整合 MCP 與 Azure 機器學習 (ML) 讓您能夠利用 Azure 強大的 ML 功能，同時保持 MCP 的彈性。此整合可用於執行 ML 管線、註冊模型為工具及管理運算資源。
 
-### Python 實現
+### Python 實作
 
 ```python
-# Python Azure AI Integration
+# Python Azure AI 整合
 from mcp_client import McpClient
 from azure.ai.ml import MLClient
 from azure.identity import DefaultAzureCredential
@@ -180,10 +180,10 @@ import asyncio
 
 class EnterpriseAiIntegration:
     def __init__(self, mcp_server_url, subscription_id, resource_group, workspace_name):
-        # Set up MCP client
+        # 設定 MCP 用戶端
         self.mcp_client = McpClient(server_url=mcp_server_url)
         
-        # Set up Azure ML client
+        # 設定 Azure ML 用戶端
         self.credential = DefaultAzureCredential()
         self.ml_client = MLClient(
             self.credential,
@@ -194,7 +194,7 @@ class EnterpriseAiIntegration:
     
     async def execute_ml_pipeline(self, pipeline_name, input_data):
         """Executes an ML pipeline in Azure ML"""
-        # First process the input data using MCP tools
+        # 首先使用 MCP 工具處理輸入資料
         processed_data = await self.mcp_client.execute_tool(
             "dataPreprocessor",
             {
@@ -203,7 +203,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Submit the pipeline to Azure ML
+        # 提交管線至 Azure ML
         pipeline_job = self.ml_client.jobs.create_or_update(
             entity={
                 "name": pipeline_name,
@@ -215,7 +215,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Return job information
+        # 回傳工作資訊
         return {
             "job_id": pipeline_job.id,
             "status": pipeline_job.status,
@@ -224,22 +224,22 @@ class EnterpriseAiIntegration:
     
     async def register_ml_model_as_tool(self, model_name, model_version="latest"):
         """Registers an Azure ML model as an MCP tool"""
-        # Get model details
+        # 取得模型詳細資料
         if model_version == "latest":
             model = self.ml_client.models.get(name=model_name, label="latest")
         else:
             model = self.ml_client.models.get(name=model_name, version=model_version)
         
-        # Create deployment environment
+        # 建立部署環境
         env = Environment(
             name="mcp-model-env",
             conda_file="./environments/inference-env.yml"
         )
         
-        # Set up compute
+        # 設定運算資源
         compute = self.ml_client.compute.get("mcp-inference")
         
-        # Deploy model as online endpoint
+        # 部署模型為線上端點
         deployment = self.ml_client.online_deployments.create_or_update(
             endpoint_name=f"mcp-{model_name}",
             deployment={
@@ -255,22 +255,22 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Create MCP tool schema based on model schema
+        # 根據模型結構建立 MCP 工具結構
         tool_schema = {
             "type": "object",
             "properties": {},
             "required": []
         }
         
-        # Add input properties based on model schema
+        # 根據模型結構新增輸入屬性
         for input_name, input_spec in model.signature.inputs.items():
             tool_schema["properties"][input_name] = {
                 "type": self._map_ml_type_to_json_type(input_spec.type)
             }
             tool_schema["required"].append(input_name)
         
-        # Register as MCP tool
-        # In a real implementation, you would create a tool that calls the endpoint
+        # 註冊為 MCP 工具
+        # 在實際實作中，您會建立一個呼叫端點的工具
         return {
             "model_name": model_name,
             "model_version": model.version,
@@ -291,17 +291,21 @@ class EnterpriseAiIntegration:
         return mapping.get(ml_type, "string")
 ```
 
-在上述程式碼中，我們：
+在以上程式碼中，我們已經：
 
-- 創建了一個 `EnterpriseAiIntegration` 類，該類將 MCP 與 Azure ML 整合。
-- 實現了一個 `execute_ml_pipeline` 方法，該方法使用 MCP 工具處理輸入數據，並將 ML 管道提交到 Azure ML。
-- 實現了一個 `register_ml_model_as_tool` 方法，該方法將 Azure ML 模型註冊為 MCP 工具，包括創建必要的部署環境和計算資源。
-- 將 Azure ML 數據類型映射到 JSON 架構類型以進行工具註冊。
-- 使用異步編程處理可能耗時的操作，例如 ML 管道執行和模型註冊。
+- 創建一個 `EnterpriseAiIntegration` 類別，整合 MCP 與 Azure ML。
+- 實作一個 `execute_ml_pipeline` 方法，使用 MCP 工具處理輸入資料並提交 ML 管線至 Azure ML。
+- 實作一個 `register_ml_model_as_tool` 方法，將 Azure ML 模型註冊為 MCP 工具，包含建立必要的部署環境及運算資源。
+- 將 Azure ML 資料類型映射至 JSON 架構類型以進行工具註冊。
+- 採用非同步程式設計來處理可能耗時的操作，如 ML 管線執行及模型註冊。
 
 ## 下一步
 
 - [5.2 多模態](../mcp-multi-modality/README.md)
 
-**免責聲明**：  
-本文件已使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。我們致力於提供準確的翻譯，但請注意，自動翻譯可能包含錯誤或不準確之處。應以原始語言的文件作為權威來源。對於關鍵資訊，建議尋求專業人工翻譯。我們對因使用此翻譯而引起的任何誤解或錯誤解讀概不負責。
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責聲明**：
+本文件使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們力求準確，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議尋求專業人工翻譯。我們不對因使用本翻譯而引起的任何誤解或曲解承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

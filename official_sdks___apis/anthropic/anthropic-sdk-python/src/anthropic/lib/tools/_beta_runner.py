@@ -24,6 +24,7 @@ import httpx
 from ..._types import Body, Query, Headers, NotGiven
 from ..._utils import consume_sync_iterator, consume_async_iterator
 from ...types.beta import BetaMessage, BetaMessageParam
+from ..._base_client import merge_headers
 from ._tool_dispatch import tool_registry, tool_error_content
 from ._beta_functions import (
     ToolError,
@@ -34,7 +35,7 @@ from ._beta_functions import (
     BetaBuiltinFunctionTool,
     BetaAsyncBuiltinFunctionTool,
 )
-from .._stainless_helpers import stainless_helper_header
+from .._stainless_helpers import helper_header, stainless_helper_header
 from ._beta_compaction_control import DEFAULT_THRESHOLD, DEFAULT_SUMMARY_PROMPT, CompactionControl
 from ..streaming._beta_messages import BetaMessageStream, BetaAsyncMessageStream
 from ...types.beta.parsed_beta_message import ResponseFormatT, ParsedBetaMessage, ParsedBetaContentBlock
@@ -83,7 +84,7 @@ class BaseToolRunner(Generic[AnyFunctionToolT, ResponseFormatT]):
             messages=params.get("messages"),
         )
         if helper_header:
-            merged_headers = {**helper_header, **(options.get("extra_headers") or {})}
+            merged_headers = merge_headers(helper_header, options.get("extra_headers") or {})
             options = {**options, "extra_headers": merged_headers}
         self._options = options
         self._messages_modified = False
@@ -230,7 +231,7 @@ class BaseSyncToolRunner(BaseToolRunner[BetaRunnableTool, ResponseFormatT], Gene
             model=model,
             messages=messages,
             max_tokens=self._params["max_tokens"],
-            extra_headers={"X-Stainless-Helper": "compaction"},
+            extra_headers=helper_header("compaction"),
         )
 
         log.info(f"Compaction complete. New token usage: {response.usage.output_tokens}")
@@ -518,7 +519,7 @@ class BaseAsyncToolRunner(
             model=model,
             messages=messages,
             max_tokens=self._params["max_tokens"],
-            extra_headers={"X-Stainless-Helper": "compaction"},
+            extra_headers=helper_header("compaction"),
         )
 
         log.info(f"Compaction complete. New token usage: {response.usage.output_tokens}")

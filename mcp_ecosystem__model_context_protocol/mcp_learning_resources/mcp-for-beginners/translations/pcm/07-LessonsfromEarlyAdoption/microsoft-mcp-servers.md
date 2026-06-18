@@ -1,94 +1,94 @@
-# 🚀 10 Microsoft MCP Servers Wey Dey Change How Developers Dey Work
+# 🚀 10 Microsoft MCP Servers We Dey Transform Developer Productivity
 
 ## 🎯 Wetin You Go Learn for Dis Guide
 
-Dis guide go show you ten Microsoft MCP servers wey dey change how developers dey use AI assistants. Instead of just talk wetin MCP servers fit do, we go show you servers wey don already dey make sense for daily development work for Microsoft and other places.
+Dis practical guide dey show ten Microsoft MCP servers wey dey actively transform how developers dey work with AI assistants. Instead make we just talk wetin MCP servers fit do, we go show you servers wey don dey make real difference for daily development workflow for Microsoft and beyond.
 
-Every server wey dey dis guide na based on how people dey use am for real life and wetin developers talk about am. You go learn wetin each server dey do, why e matter, and how you fit use am well for your own projects. Whether you be newbie for MCP or you wan expand wetin you don already get, dis servers na some of the most useful tools wey Microsoft get.
+Each server for dis guide select based on real-world use and developer feedback. You go sabi no only wetin each server dey do, but why e important and how you fit get beta use from am for your own projects. Whether you be total new for MCP or you wan expand your current setup, dis servers dey represent some of the most practical and impactful tools wey dey the Microsoft space.
 
 > **💡 Quick Start Tip**
 > 
-> You no sabi MCP before? No wahala! Dis guide dey friendly for beginners. We go explain things as we dey go, and you fit always check our [Introduction to MCP](../00-Introduction/README.md) and [Core Concepts](../01-CoreConcepts/README.md) modules if you wan understand more.
+> You be new for MCP? No worry! Dis guide design to be beginner-friendly. We go explain concepts as we dey go, and you fit always refer back to our [Introduction to MCP](../00-Introduction/README.md) and [Core Concepts](../01-CoreConcepts/README.md) modules for deeper background.
 
 ## Overview
 
-Dis guide go show you ten Microsoft MCP servers wey dey change how developers dey use AI assistants and external tools. From Azure resource management to document processing, dis servers dey show the power of Model Context Protocol to make development work smooth and productive.
+Dis comprehensive guide dey explore ten Microsoft MCP servers wey dey revolutionize how developers dey interact with AI assistants and external tools. From Azure resource management to document processing, these servers dey show the power of the Model Context Protocol to create smooth, productive development workflows.
 
 ## Learning Objectives
 
-By the time you finish dis guide, you go:
-- Understand how MCP servers dey make developers work better
-- Learn about the most important MCP servers wey Microsoft don create
-- See practical ways to use each server
-- Know how to set up and configure dis servers for VS Code and Visual Studio
-- Explore the MCP ecosystem and wetin the future hold
+By di end of dis guide, you go:
+- Understand how MCP servers dey improve developer productivity
+- Learn about Microsoft's most important MCP server applications
+- Discover practical uses for each server
+- Know how to set up and configure these servers for VS Code and Visual Studio
+- Explore the wider MCP ecosystem and future plans
 
-## 🔧 Wetin Be MCP Servers: Beginner's Guide
+## 🔧 Understanding MCP Servers: A Beginner's Guide
 
 ### Wetin Be MCP Servers?
 
-If you be beginner for Model Context Protocol (MCP), you fit dey ask: "Wetin be MCP server, and why e concern me?" Make we use simple example.
+If you be beginner for di Model Context Protocol (MCP), you fit dey wonder: "Wetin exactly be MCP server, and why I suppose dey care?" Make we start with simple example.
 
-Think of MCP servers like special assistants wey dey help your AI coding partner (like GitHub Copilot) connect to other tools and services. Just like how you dey use different apps for your phone—one for weather, one for map, one for bank—MCP servers dey give your AI assistant power to work with different development tools and services.
+Think say MCP servers be special helpers wey dey help your AI coding companion (like GitHub Copilot) connect to external tools and services. Just like how you dey use different apps for your phone for different work—one for weather, one for GPS, one for banking—MCP servers dey give your AI assistant power to interact with different development tools and services.
 
-### The Problem Wey MCP Servers Dey Solve
+### Di Wahala We MCP Servers Dey Solve
 
 Before MCP servers, if you wan:
-- Check your Azure resources
+- Check your Azure things dem
 - Create GitHub issue
 - Query your database
-- Search documentation
+- Search through work documents
 
-You go need stop coding, open browser, go the website, and do the thing manually. Dis kain waka go dey break your flow and reduce your productivity.
+You gats stop to code, open browser, go for correct website, then do the work. This constant switching from one thing to another dey break your flow and reduce how productive you fit be.
 
 ### How MCP Servers Dey Change Your Development Experience
 
-With MCP servers, you no need leave your development environment (like VS Code, Visual Studio, etc.). You fit just tell your AI assistant to help you do the work. For example:
+With MCP servers, you fit remain for your development environment (VS Code, Visual Studio, etc.) and just ask your AI assistant to handle these things. For example:
 
-**Before:**
+**Instead of this old workflow:**
 1. Stop coding
 2. Open browser
 3. Go Azure portal
-4. Find storage account details
-5. Go back to VS Code
+4. Check storage account details
+5. Return to VS Code
 6. Continue coding
 
-**Now:**
+**You fit now do this:**
 1. Ask AI: "Wetin be the status of my Azure storage accounts?"
-2. Continue coding with the info wey AI give you
+2. Continue coding with the correct information
 
 ### Key Benefits for Beginners
 
-#### 1. 🔄 **Stay Focused**
+#### 1. 🔄 **Stay Inside Your Flow State**
 - No need to dey jump from one app to another
-- Concentrate on the code wey you dey write
-- Reduce the stress of managing different tools
+- Focus on the code wey you dey write
+- Reduce mental wahala of managing different tools
 
-#### 2. 🤖 **Use Natural Language**
-- No need to cram SQL syntax, just talk wetin you need
-- Forget Azure CLI commands, just explain wetin you wan do
-- Make AI handle the technical wahala while you focus on the logic
+#### 2. 🤖 **Use Normal Talk Instead of Complex Commands**
+- No need to sabi SQL syntax well well, just describe the data you need
+- No need to remember Azure CLI commands, just explain wetin you wan do
+- Make AI handle the technical stuff while you focus on your logic
 
-#### 3. 🔗 **Connect Tools Together**
-- Combine different services to create powerful workflows
-- Example: "Get all recent GitHub issues and create Azure DevOps work items"
-- Automate things without writing long scripts
+#### 3. 🔗 **Join Many Tools Together**
+- Create powerful workflows by mixing different services
+- Example: "Fetch all recent GitHub issues and create Azure DevOps work items for dem"
+- Build automation without writing complex scripts
 
-#### 4. 🌐 **Join a Growing Ecosystem**
-- Use servers wey Microsoft, GitHub, and other companies don build
-- Mix tools from different vendors without stress
-- Enjoy a standard system wey dey work with different AI assistants
+#### 4. 🌐 **Enjoy A Growing Ecosystem**
+- Benefit from servers wey Microsoft, GitHub, and other companies build
+- Mix and match tools from different vendors without wahala
+- Join standardized ecosystem wey dey work well with different AI assistants
 
-#### 5. 🛠️ **Learn by Doing**
-- Start with pre-built servers to understand how e dey work
-- Later, build your own servers as you sabi more
-- Use SDKs and documentation wey dey available to guide you
+#### 5. 🛠️ **Learn By Doing**
+- Start with pre-built servers to understand the ideas
+- Slowly build your own servers as you dey more comfortable
+- Use available SDKs and docs to guide you for learning
 
-### Real-Life Example for Beginners
+### Real World Example for Beginners
 
-Imagine say you dey learn web development and you dey work on your first project. See how MCP servers fit help:
+Make we say you be new to web development and you dey work on your first project. See how MCP servers fit help:
 
-**Before:**
+**Old style:**
 ```
 1. Code a feature
 2. Open browser → Navigate to GitHub
@@ -108,296 +108,301 @@ Imagine say you dey learn web development and you dey work on your first project
 5. Continue coding with all the information you need
 ```
 
-### The Enterprise Standard Advantage
+### Di Enterprise Standard Benefit
 
-MCP don dey become standard for the industry, meaning:
-- **Consistency**: Same experience across different tools
-- **Interoperability**: Servers from different vendors dey work together
-- **Future-proofing**: Skills and setups go work with different AI assistants
+MCP dey become industry-wide standard, which mean:
+- **Consistency**: Similar experience across different tools and companies
+- **Interoperability**: Servers from different vendors fit work together
+- **Future-proofing**: Skills and setups fit transfer between AI assistants
 - **Community**: Big ecosystem of shared knowledge and resources
 
-### Getting Started: Wetin You Go Learn
+### How to Start: Wetin You Go Learn
 
-For dis guide, we go talk about 10 Microsoft MCP servers wey dey useful for developers of all levels. Each server dey designed to:
+For dis guide, we go check 10 Microsoft MCP servers wey developers for all levels fit use well. Each server designed to:
 - Solve common development problems
 - Reduce repetitive work
 - Improve code quality
-- Help you learn better
+- Make learning better
 
 > **💡 Learning Tip**
 > 
-> If you no sabi MCP at all, start with our [Introduction to MCP](../00-Introduction/README.md) and [Core Concepts](../01-CoreConcepts/README.md) modules first. Then come back here to see how dis things dey work with real Microsoft tools.
+> If you be new for MCP, start with our [Introduction to MCP](../00-Introduction/README.md) and [Core Concepts](../01-CoreConcepts/README.md) modules first. Then come back here to see these ideas for real with Microsoft tools.
 >
-> For more info about MCP, check Maria Naggaga's post: [Connect Once, Integrate Anywhere with MCP](https://devblogs.microsoft.com/blog/connect-once-integrate-anywhere-with-mcps).
+> For extra context on MCP importance, check Maria Naggaga post: [Connect Once, Integrate Anywhere with MCP](https://devblogs.microsoft.com/blog/connect-once-integrate-anywhere-with-mcps).
 
-## How to Start MCP for VS Code and Visual Studio 🚀
+## How to Start MCP with VS Code and Visual Studio 🚀
 
-Setting up MCP servers no hard if you dey use Visual Studio Code or Visual Studio 2022 with GitHub Copilot.
+Setting up these MCP servers easy if you dey use Visual Studio Code or Visual Studio 2022 with GitHub Copilot.
 
 ### VS Code Setup
 
-Here be the steps for VS Code:
+Here na the basic way for VS Code:
 
-1. **Enable Agent Mode**: For VS Code, switch to Agent mode for the Copilot Chat window
+1. **Enable Agent Mode**: For VS Code, switch to Agent mode in Copilot Chat window
 2. **Configure MCP Servers**: Add server settings to your VS Code settings.json file
-3. **Start Servers**: Click "Start" for the servers wey you wan use
-4. **Select Tools**: Choose which MCP servers you wan enable for your session
+3. **Start Servers**: Click "Start" button for each server you want to use
+4. **Select Tools**: Choose which MCP servers to run for your current session
 
 For full setup instructions, check [VS Code MCP documentation](https://code.visualstudio.com/docs/copilot/copilot-mcp).
 
-> **💡 Pro Tip: Manage MCP Servers Like a Pro!**
+> **💡 Pro Tip: Manage MCP Servers like pro!**
 > 
-> The VS Code Extensions view now get [new UI to manage MCP Servers](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_use-mcp-tools-in-agent-mode)! You fit start, stop, and manage any installed MCP Servers easily. Try am!
+> VS Code Extensions view now get [new UI to manage MCP Servers](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_use-mcp-tools-in-agent-mode)! You fit quick start, stop, and manage any installed MCP Servers with simple interface. Try am!
 
 ### Visual Studio 2022 Setup
 
 For Visual Studio 2022 (version 17.14 or later):
 
-1. **Enable Agent Mode**: Click "Ask" dropdown for GitHub Copilot Chat window, then select "Agent"
-2. **Create Configuration File**: Create `.mcp.json` file for your solution directory (e.g., `<SOLUTIONDIR>\.mcp.json`)
-3. **Configure Servers**: Add MCP server settings using the standard MCP format
-4. **Tool Approval**: Approve the tools wey you wan use with the right permissions
+1. **Enable Agent Mode**: Click "Ask" dropdown for GitHub Copilot Chat window then select "Agent"
+2. **Create Config File**: Make `.mcp.json` file for your solution folder (recommended: `<SOLUTIONDIR>\.mcp.json`)
+3. **Configure Servers**: Add your MCP server configs with standard MCP format
+4. **Tool Approval**: When asked, approve tools you want use with scope permissions
 
 For full Visual Studio setup instructions, check [Visual Studio MCP documentation](https://learn.microsoft.com/visualstudio/ide/mcp-servers).
 
-Each MCP server get its own setup requirements (connection strings, authentication, etc.), but the process dey similar for both IDEs.
+Each MCP server get im own config needs (connection strings, authentication, etc.), but setup style dey the same for both IDEs.
 
-## Lessons from Microsoft MCP Servers 🛠️
+## Lesson From Microsoft MCP Servers 🛠️
 
 ### 1. 📚 Microsoft Learn Docs MCP Server
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Microsoft_Docs_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=microsoft.docs.mcp&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Flearn.microsoft.com%2Fapi%2Fmcp%22%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Microsoft_Docs_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=microsoft.docs.mcp&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Flearn.microsoft.com%2Fapi%2Fmcp%22%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/mcp)
 
-**Wetin e dey do**: Dis server dey give AI assistants real-time access to Microsoft documentation through Model Context Protocol. E connect to `https://learn.microsoft.com/api/mcp` and fit search Microsoft Learn, Azure docs, Microsoft 365 docs, and other official sources.
+**Wetin e dey do**: Microsoft Learn Docs MCP Server na cloud-hosted service wey dey give AI assistants real-time access to official Microsoft documentation via Model Context Protocol. E connect to `https://learn.microsoft.com/api/mcp` and enable semantic search for Microsoft Learn, Azure docs, Microsoft 365 docs, and other official Microsoft sources.
 
-**Why e dey useful**: E dey help developers get up-to-date info about .NET, C#, Azure SDKs, and other Microsoft tools. Instead of guesswork, you go get correct, modern code and best practices.
+**Why e useful**: E fit look like "just documentation," but dis server important for every developer wey dey use Microsoft tech. One big complaint from .NET developers about AI coding assistants be say dem no dey updated for latest .NET and C# versions. Microsoft Learn Docs MCP Server solve am by giving real-time access to current docs, API references, and best practices. Whether you dey use latest Azure SDKs, explore new C# 13 features, or run advanced .NET Aspire patterns, this server dey make sure your AI assistant get up-to-date, correct info to produce accurate, modern code.
 
-**Real-life use**: Ask questions like "Wetin be the az cli commands to create Azure container app?" or "How I fit configure Entity Framework for ASP.NET Core?" The server go give you correct answers with links to the source.
+**Real-world use**: "Wetin be az cli commands to create Azure container app according to Microsoft Learn official docs?" or "How I fit setup Entity Framework with dependency injection for ASP.NET Core?" Or "Check this code make sure e follow Microsoft Learn docs performance advice." The server dey give wide coverage for Microsoft Learn, Azure docs, and Microsoft 365 docs using advanced semantic search to find the best info. E fit return up to 10 top content pieces with article titles and URLs, always using the latest Microsoft docs as dem publish am.
+
+**Example**: The server run `microsoft_docs_search` tool wey fit do semantic search for Microsoft's official technical docs. Once setup, you fit ask "How I fit implement JWT authentication for ASP.NET Core?" then get detailed official answer with source links. Search quality dey top because e understand context – like when you ask about "containers" inside Azure, e go return Azure Container Instances docs; if you ask about "containers" for .NET, e go give you C# collection info.
+
+Dis one useful well well for fast changing or recently updated libraries and uses. For example, for some recent projects, I want use features for latest .NET Aspire and Microsoft.Extensions.AI releases. By adding Microsoft Learn Docs MCP server, I fit get not just API docs but also walkthroughs and guides wey just publish.
 
 > **💡 Pro Tip**
 > 
-> Add system prompt or [copilot-instructions.md](https://docs.github.com/copilot/how-tos/custom-instructions/adding-repository-custom-instructions-for-github-copilot) to encourage AI to use MCP tools. Example: "You fit use `microsoft.docs.mcp` to search Microsoft documentation for questions about C#, Azure, ASP.NET Core, or Entity Framework."
+> Even tool-friendly models need push to use MCP tools! Try add system prompt or [copilot-instructions.md](https://docs.github.com/copilot/how-tos/custom-instructions/adding-repository-custom-instructions-for-github-copilot) like: "You get access to `microsoft.docs.mcp` – use this tool to search Microsoft latest official docs when question na Microsoft tech like C#, Azure, ASP.NET Core, or Entity Framework."
 >
-> Check [C# .NET Janitor chat mode](https://github.com/awesome-copilot/chatmodes/blob/main/csharp-dotnet-janitor.chatmode.md) for example of how dis server dey help clean and modernize C# code.
+> For good example, check [C# .NET Janitor chat mode](https://github.com/awesome-copilot/chatmodes/blob/main/csharp-dotnet-janitor.chatmode.md) from Awesome GitHub Copilot repo. Dis mode use Microsoft Learn Docs MCP server to help clean and modernize C# code with latest tips and patterns.
 
 ### 2. ☁️ Azure MCP Server
-
-
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Azure_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Azure%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fazure-mcp%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Azure_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fazure-mcp%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Azure/azure-mcp)
 
-**Wetin e dey do**: Azure MCP Server na one full package wey get more than 15 special Azure service connectors wey go carry all Azure things enter your AI workflow. No be just one server e be – na one strong collection wey include resource management, database connection (PostgreSQL, SQL Server), Azure Monitor log analysis with KQL, Cosmos DB integration, and plenty other things.
+**Wetin e dey do**: Azure MCP Server na big suite wey get more than 15 special Azure service connectors wey go carry all Azure system enter your AI workflow. E no be only one server – na strong collection wey get resource management, database connection (PostgreSQL, SQL Server), Azure Monitor log analysis using KQL, Cosmos DB integration, plus plenty moa.
 
-**Why e dey useful**: No be only to manage Azure resources, this server go help you make your code better when you dey use Azure SDKs. If you use Azure MCP for Agent mode, e no go just help you write code – e go help you write *better* Azure code wey follow the latest authentication patterns, error handling best practices, and use the newest SDK features. Instead of getting random code wey fit work, you go get code wey follow Azure's recommended patterns for production workloads.
+**Why e useful**: E no stop for just managing Azure resources, dis server go improve your code quality well well wen you dey work with Azure SDKs. Wen you use Azure MCP for Agent mode, e no just help you write code – e help you write *better* Azure code wey follow current authentication patterns, beta error handling, plus use the latest SDK features. Instead make you get normal code wey fit work, you go get code wey follow Azure correct patterns for production work.
 
-**Key modules wey dey include**:
-- **🗄️ Database Connectors**: Natural language access to Azure Database for PostgreSQL and SQL Server
-- **📊 Azure Monitor**: Log analysis and operational insights wey dey powered by KQL
+**Key modules include**:
+- **🗄️ Database Connectors**: Direct natural language access to Azure Database for PostgreSQL and SQL Server
+- **📊 Azure Monitor**: KQL-powered log analysis and operational insights
 - **🌐 Resource Management**: Full Azure resource lifecycle management
 - **🔐 Authentication**: DefaultAzureCredential and managed identity patterns
 - **📦 Storage Services**: Blob Storage, Queue Storage, and Table Storage operations
 - **🚀 Container Services**: Azure Container Apps, Container Instances, and AKS management
-- **Plenty other special connectors**
+- **And many more specialized connectors**
 
-**Real-world use**: "List my Azure storage accounts", "Query my Log Analytics workspace for errors wey happen in the last hour", or "Help me build one Azure application wey dey use Node.js with proper authentication"
+**Real-life use**: "List my Azure storage accounts", "Query my Log Analytics workspace for errors in the last hour", or "Help me build an Azure application using Node.js with proper authentication"
 
-**Full demo scenario**: This na one full walkthrough wey go show how Azure MCP and GitHub Copilot for Azure extension for VS Code fit work together. If you don install both and you ask:
+**Full demo scenario**: Dis na full walkthrough wey go show power of combining Azure MCP with GitHub Copilot for Azure extension for VS Code. Wen you get both install and you type:
 
-> "Create one Python script wey go upload file to Azure Blob Storage using DefaultAzureCredential authentication. The script go connect to my Azure storage account wey dem call 'mycompanystorage', upload to one container wey dem call 'documents', create one test file wey get current timestamp to upload, handle errors well and give better output, follow Azure best practices for authentication and error handling, include comments wey explain how DefaultAzureCredential authentication dey work, and make the script well-structured with proper functions and documentation."
+> "Create a Python script wey go upload file to Azure Blob Storage using DefaultAzureCredential authentication. The script suppose connect to my Azure storage account wey dem call 'mycompanystorage', upload to container wey dem call 'documents', create test file with current timestamp to upload, handle errors well well and give better output, follow Azure best practices for authentication and error handling, put comments wey explain how DefaultAzureCredential authentication dey work, and organize the script well with proper functions and documentation."
 
-Azure MCP Server go generate one complete, production-ready Python script wey:
-- Use the latest Azure Blob Storage SDK with proper async patterns
-- Implement DefaultAzureCredential with full fallback chain explanation
+Azure MCP Server go generate complete, production-ready Python script wey:
+- Use latest Azure Blob Storage SDK with correct async patterns
+- Use DefaultAzureCredential with full fallback chain explanation
 - Get strong error handling with specific Azure exception types
 - Follow Azure SDK best practices for resource management and connection handling
-- Provide detailed logging and better console output
-- Create one well-structured script wey get functions, documentation, and type hints
+- Provide detailed logging and clear console output
+- Create correct script with functions, documentation, and type hints
 
-Wetin make this thing special be say without Azure MCP, you fit get random blob storage code wey fit work but e no go follow current Azure patterns. With Azure MCP, you go get code wey use the latest authentication methods, handle Azure-specific error scenarios, and follow Microsoft's recommended practices for production applications.
+Wetin make dis special na say without Azure MCP, you fit get normal blob storage code wey fit work but no follow current Azure patterns. With Azure MCP, you go get code wey use latest authentication methods, handle Azure-specific errors well, and follow Microsoft correct production application ways.
 
-**Featured example**: I don struggle plenty times to remember the exact commands for `az` and `azd` CLIs for quick use. E dey always be two-step process for me: first I go check the syntax, then I go run the command. Sometimes I go just enter the portal and dey click around to finish work because I no wan admit say I no remember CLI syntax. To fit describe wetin I want dey sweet, and e even better say I fit do am without leaving my IDE!
+**Featured example**: I don struggle to remember specific commands for `az` and `azd` CLIs for quick use. E dey always two-step process for me: first I go check syntax, then run the command. Sometimes I just enter portal and click around to finish work because I no want talk say I no fit remember CLI syntax. To just talk wetin I want na better thing, plus to do am without comot for IDE na beta!
 
-Dem get one better list of use cases for the [Azure MCP repository](https://github.com/Azure/azure-mcp?tab=readme-ov-file#-what-can-you-do-with-the-azure-mcp-server) wey fit help you start. For full setup guides and advanced configuration options, check the [official Azure MCP documentation](https://learn.microsoft.com/azure/developer/azure-mcp-server/).
+You get beta list of use cases for [Azure MCP repository](https://github.com/Azure/azure-mcp?tab=readme-ov-file#-what-can-you-do-with-the-azure-mcp-server) to start. For full setup guides and advanced configuration options, check [official Azure MCP documentation](https://learn.microsoft.com/azure/developer/azure-mcp-server/).
 
 ### 3. 🐙 GitHub MCP Server
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=github&config=%7B%22type%22%3A%20%22http%22%2C%22url%22%3A%20%22https%3A%2F%2Fapi.githubcopilot.com%2Fmcp%2F%22%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=github&config=%7B%22type%22%3A%20%22http%22%2C%22url%22%3A%20%22https%3A%2F%2Fapi.githubcopilot.com%2Fmcp%2F%22%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/github/github-mcp-server)
 
-**Wetin e dey do**: GitHub MCP Server na the official server wey dey connect GitHub ecosystem well, e dey offer both hosted remote access and local Docker deployment options. No be just basic repository operations – e na full toolkit wey include GitHub Actions management, pull request workflows, issue tracking, security scanning, notifications, and advanced automation capabilities.
+**Wetn e dey do**: Official GitHub MCP Server dey integrate well well with GitHub complete ecosystem, e fit work for hosted remote access and local Docker deployment. E no just deal with normal repository work – e get tools for GitHub Actions management, pull request workflows, issue tracking, security scanning, notifications, plus advanced automation.
 
-**Why e dey useful**: This server go change how you dey interact with GitHub by bringing the full platform experience enter your development environment. Instead of dey switch between VS Code and GitHub.com for project management, code reviews, and CI/CD monitoring, you fit handle everything with natural language commands while you dey focus on your code.
+**Why e useful**: Dis server go change how you dey interact with GitHub by carrying the full platform experience come your development environment. Instead make you dey waka between VS Code and GitHub.com for project management, code reviews, and CI/CD check, you fit do everything with natural language commands while you just dey focus on your code.
 
 > **ℹ️ Note: Different Types of 'Agents'**
 > 
-> No confuse this GitHub MCP Server with GitHub's Coding Agent (the AI agent wey you fit assign issues to for automated coding tasks). GitHub MCP Server dey work inside VS Code's Agent mode to provide GitHub API integration, while GitHub's Coding Agent na separate feature wey dey create pull requests when dem assign am to GitHub issues.
+> No mix up dis GitHub MCP Server with GitHub's Coding Agent (the AI agent wey you fit assign issues for automated coding tasks). GitHub MCP Server dey work inside VS Code Agent mode to give GitHub API integration, but GitHub Coding Agent na different feature wey dey create pull requests when e assign to GitHub issues.
 
-**Key capabilities wey e get**:
-- **⚙️ GitHub Actions**: Full CI/CD pipeline management, workflow monitoring, and artifact handling
+**Key capabilities include**:
+- **⚙️ GitHub Actions**: CI/CD pipeline management, workflow monitoring, artifact handling
 - **🔀 Pull Requests**: Create, review, merge, and manage PRs with full status tracking
 - **🐛 Issues**: Full issue lifecycle management, commenting, labeling, and assignment
 - **🔒 Security**: Code scanning alerts, secret detection, and Dependabot integration
-- **🔔 Notifications**: Smart notification management and repository subscription control
-- **📁 Repository Management**: File operations, branch management, and repository administration
-- **👥 Collaboration**: User and organization search, team management, and access control
+- **🔔 Notifications**: Smart notification management and repo subscription control
+- **📁 Repository Management**: File operations, branch management, and repo administration
+- **👥 Collaboration**: User and org search, team management, and access control
 
-**Real-world use**: "Create pull request from my feature branch", "Show me all failed CI runs this week", "List open security alerts for my repositories", or "Find all issues wey dem assign to me across my organizations"
+**Real-life use**: "Create pull request from my feature branch", "Show me all failed CI runs this week", "List open security alerts for my repositories", or "Find all issues assigned to me across my organisations"
 
-**Full demo scenario**: This na one strong workflow wey dey show GitHub MCP Server power:
+**Full demo scenario**: Dis na powerful workflow wey show GitHub MCP Server capability:
 
-> "I need to prepare for our sprint review. Show me all pull requests wey I don create this week, check the status of our CI/CD pipelines, create one summary of any security alerts wey we need to address, and help me draft release notes based on merged PRs wey get the 'feature' label."
+> "I need prepare for our sprint review. Show me all pull requests wey I create this week, check our CI/CD pipelines status, create summary of any security alerts wey we need fix, and help me draft release notes based on merged PRs wey get 'feature' label."
 
 GitHub MCP Server go:
-- Query your recent pull requests with full status information
-- Analyze workflow runs and highlight any failures or performance issues
+- Query your recent pull requests with detailed status
+- Analyze workflow runs and highlight any failures or performance wahala
 - Compile security scanning results and prioritize critical alerts
-- Generate full release notes by extracting information from merged PRs
-- Provide actionable next steps for sprint planning and release preparation
+- Generate detailed release notes by taking info from merged PRs
+- Provide next steps for sprint planning and release prep
 
-**Featured example**: I dey enjoy using this for code review workflows. Instead of dey jump between VS Code, GitHub notifications, and pull request pages, I fit talk "Show me all PRs wey dey wait for my review" and then "Add comment to PR #123 wey dey ask about the error handling for the authentication method." The server go handle the GitHub API calls, keep context about the discussion, and even help me write better review comments.
+**Featured example**: I like use dis for code review workflow. Instead of jump between VS Code, GitHub notifications, and pull request pages, I fit talk "Show me all PRs wey dey wait for my review" then "Add comment for PR #123 wey ask about error handling for authentication method." Server dey handle GitHub API calls, remember context about discussion, and even help me write better review comments.
 
-**Authentication options**: The server dey support both OAuth (e dey easy for VS Code) and Personal Access Tokens, with configurable toolsets to enable only the GitHub functionality wey you need. You fit run am as remote hosted service for quick setup or locally via Docker for full control.
+**Authentication options**: Server support both OAuth (smooth for VS Code) and Personal Access Tokens, with settings to enable only GitHub features wey you need. You fit run am as remote hosted service for quick setup or run local with Docker for full control.
 
 > **💡 Pro Tip**
 > 
-> Enable only the toolsets wey you need by configuring the `--toolsets` parameter for your MCP server settings to reduce context size and make AI tool selection better. For example, add `"--toolsets", "repos,issues,pull_requests,actions"` to your MCP configuration args for core development workflows, or use `"--toolsets", "notifications, security"` if na GitHub monitoring capabilities you dey focus on.
+> Enable only the tools wey you need by setting `--toolsets` parameter for your MCP server settings to reduce context size and make AI tool choice better. For example, add `"--toolsets", "repos,issues,pull_requests,actions"` for core development work, or `"--toolsets", "notifications, security"` if you mainly want GitHub monitoring.
+
 ### 4. 🔄 Azure DevOps MCP Server
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Azure_DevOps_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Azure%20DevOps%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-azure-devops%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Azure_DevOps_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20DevOps%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-azure-devops%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/azure-devops-mcp)
 
-**Wetin e dey do**: E dey connect to Azure DevOps services for full project management, work item tracking, build pipeline management, and repository operations.
+**Wetin e dey do**: E dey connect to Azure DevOps services for full project management, work item tracking, build pipeline management, plus repository operations.
 
-**Why e dey useful**: For teams wey dey use Azure DevOps as their main DevOps platform, this MCP server go stop the constant tab-switching between your development environment and Azure DevOps web interface. You fit manage work items, check build statuses, query repositories, and handle project management tasks directly from your AI assistant.
+**Why e useful**: For teams wey dey use Azure DevOps as their main DevOps platform, dis MCP server go stop you from always dey change tab between your development environment and Azure DevOps web page. You fit manage work items, check build status, query repos, and run project management task through your AI assistant directly.
 
-**Real-world use**: "Show me all active work items for the current sprint for the WebApp project", "Create bug report for the login issue wey I just find", or "Check the status of our build pipelines and show me any recent failures"
+**Real-life use**: "Show me all active work items for current sprint for WebApp project", "Create bug report for login problem wey I just find", or "Check status of our build pipelines and show any recent failure"
 
-**Featured example**: You fit check the status of your team current sprint with one simple query like "Show me all active work items for the current sprint for the WebApp project" or "Create bug report for the login issue wey I just find" without leaving your development environment.
+**Featured example**: You fit easily check your team current sprint status with simple query like "Show me all active work items for current sprint for WebApp project" or "Create bug report for login problem wey I just find" without comot from your dev environment.
 
 ### 5. 📝 MarkItDown MCP Server
-[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_MarkItDown_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=MarkItDown%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-markitdown%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_MarkItDown_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=MarkItDown%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-markitdown%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/markitdown)
+[![Install for VS Code](https://img.shields.io/badge/VS_Code-Install_MarkItDown_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=MarkItDown%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-markitdown%40latest%22%5D%7D) [![Install for VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_MarkItDown_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=MarkItDown%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-markitdown%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/markitdown)
 
-**Wetin e dey do**: MarkItDown na one kain server wey dey convert different file formats go better Markdown wey AI fit use well and e dey good for text analysis workflows.
+**Wetin e dey do**: MarkItDown na full pack document conversion server wey dey change different kind file formats go beta-quality Markdown, wey dem optimize for LLM consumption and text analysis workflows.
 
-**Why e dey useful**: E dey very important for modern documentation workflows! MarkItDown sabi handle plenty file formats and e dey make sure say e no spoil important document structure like headings, lists, tables, and links. Unlike tools wey just dey extract text anyhow, e dey focus on keeping the meaning and formatting wey go make sense for AI and human beings.
+**Why e dey useful**: E important well-well for modern documentation workflows! MarkItDown sabi handle plenty file formats well well while e still keep important document structure like headings, lists, tables, and links. E no be like normal text extraction tool, e dey focus on to hold the semantic meaning and formatting wey go good for both AI processing and make humans fit read am well.
 
-**File formats wey e support**:
+**Supported file formats**:
 - **Office Documents**: PDF, PowerPoint (PPTX), Word (DOCX), Excel (XLSX/XLS)
 - **Media Files**: Images (with EXIF metadata and OCR), Audio (with EXIF metadata and speech transcription)
 - **Web Content**: HTML, RSS feeds, YouTube URLs, Wikipedia pages
-- **Data Formats**: CSV, JSON, XML, ZIP files (e dey process contents inside am one by one)
+- **Data Formats**: CSV, JSON, XML, ZIP files (e go handle contents recursively)
 - **Publishing Formats**: EPub, Jupyter notebooks (.ipynb)
 - **Email**: Outlook messages (.msg)
 - **Advanced**: Azure Document Intelligence integration for better PDF processing
 
-**Advanced capabilities**: MarkItDown fit use LLM-powered image descriptions (if you get OpenAI client), Azure Document Intelligence for better PDF processing, audio transcription for speech content, and e get plugin system wey fit extend am to other file formats.
+**Advanced capabilities**: MarkItDown fit do LLM-powered image descriptions (if you get OpenAI client), e get Azure Document Intelligence for better PDF processing, e fit do audio transcription for speech content, plus e get plugin system to add more file formats.
 
-**Real-world use**: "Convert this PowerPoint presentation to Markdown for our documentation site", "Extract text from this PDF wey get correct heading structure", or "Change this Excel spreadsheet to readable table format"
+**Real-world use**: "Convert this PowerPoint presentation go Markdown for our documentation site", "Extract text from this PDF with correct heading structure", or "Change this Excel spreadsheet to readable table format"
 
 **Featured example**: As dem talk for [MarkItDown docs](https://github.com/microsoft/markitdown#why-markdown):
 
-> Markdown dey very close to plain text, e no get plenty formatting, but e still dey represent important document structure. Mainstream LLMs, like OpenAI's GPT-4o, sabi Markdown well well, and dem dey use am for their response even if you no ask dem. This one mean say dem don train on plenty Markdown-formatted text, and dem understand am well. Another good thing be say Markdown dey save tokens.
+> Markdown close well-well to plain text, e get small small markup or formatting, but e still get way to show important document structure. Mainstream LLMs, like OpenAI’s GPT-4o, dey "talk" Markdown from them born, and them dey add Markdown to dem replies without anybody tell dem. E show say dem don train with correct plenty Markdown-formatted text, and dem sabi am well. Plus e make Markdown tokens no dey go waste.
 
-MarkItDown sabi keep document structure well, wey dey important for AI workflows. For example, if e dey convert PowerPoint presentation, e go keep slide organization with correct headings, extract tables as Markdown tables, include alt text for images, and e go even process speaker notes. Charts go turn to readable data tables, and the Markdown wey e go produce go still dey follow the original presentation flow. This one make am perfect for AI systems or to create documentation from slides.
+MarkItDown sabi well well to keep document structure, wey dey important for AI workflows. For example, when e dey convert PowerPoint presentation, e go hold how slide dem dey arranged with correct headings, e go extract tables as Markdown tables, e put alt text for images, and e go even process speaker notes. Charts go change to data tables wey person fit read, and the Markdown wey come out go hold logical order like original presentation. This one make am beta for putting presentation content into AI systems or to create documentation from slides wey dey already.
 
 ### 6. 🗃️ SQL Server MCP Server
 
-[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_SQL_Database-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Azure%20SQL%20Database&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fmcp%40latest%22%2C%22server%22%2C%22start%22%2C%22--namespace%22%2C%22sql%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_SQL_Database-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20SQL%20Database&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fmcp%40latest%22%2C%22server%22%2C%22start%22%2C%22--namespace%22%2C%22sql%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Azure/azure-mcp)
+[![Install for VS Code](https://img.shields.io/badge/VS_Code-Install_SQL_Database-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Azure%20SQL%20Database&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fmcp%40latest%22%2C%22server%22%2C%22start%22%2C%22--namespace%22%2C%22sql%22%5D%7D) [![Install for VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_SQL_Database-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20SQL%20Database&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fmcp%40latest%22%2C%22server%22%2C%22start%22%2C%22--namespace%22%2C%22sql%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Azure/azure-mcp)
 
-**Wetin e dey do**: E dey give you access to SQL Server databases (on-premises, Azure SQL, or Fabric) through natural language.
+**Wetin e dey do**: E dey give conversational access to SQL Server databases (for inside your own place, Azure SQL, or Fabric)
 
-**Why e dey useful**: E be like PostgreSQL server but e dey work for Microsoft SQL ecosystem. Just connect with simple connection string and start dey query with natural language – no need to dey switch context!
+**Why e dey useful**: E be like PostgreSQL server but e dey for Microsoft SQL system. You fit connect with simple connection string and start to ask questions as normal talk – no need to waka change context!
 
-**Real-world use**: "Find all orders wey dem never fulfill for the last 30 days" go turn to correct SQL queries and e go return formatted results.
+**Real-world use**: "Find all orders wey dem never fulfill for last 30 days" go turn to correct SQL queries and e go bring formatted results
 
-**Featured example**: Once you don set up your database connection, you fit start dey talk to your data straight away. The blog post show example wey e ask simple question: "which database you dey connect to?" The MCP server go use the correct database tool, connect to your SQL Server instance, and return details about your current database connection – all this one without writing any SQL code. The server sabi do plenty database operations from schema management to data manipulation, all through natural language prompts. For full setup instructions and configuration examples with VS Code and Claude Desktop, check: [Introducing MSSQL MCP Server (Preview)](https://devblogs.microsoft.com/azure-sql/introducing-mssql-mcp-server/).
+**Featured example**: Once you set up your database connection, you fit start to chat with your data sharp sharp. The blog post yan how e dey work with simple question: "which database you connect to?" MCP server go respond by calling the right database tool, join your SQL Server instance, and show details about your current database connection – all this without you write one line of SQL. The server dey handle full database operations from schema management to data manipulation, you go do all dis with natural language prompts. For full setup instructions and example configuration with VS Code and Claude Desktop, check: [Introducing MSSQL MCP Server (Preview)](https://devblogs.microsoft.com/azure-sql/introducing-mssql-mcp-server/).
+
 
 ### 7. 🎭 Playwright MCP Server
 
-[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Playwright_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Playwright%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-playwright%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Playwright_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Playwright%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-playwright%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/playwright-mcp)
+[![Install for VS Code](https://img.shields.io/badge/VS_Code-Install_Playwright_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Playwright%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-playwright%40latest%22%5D%7D) [![Install for VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Playwright_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Playwright%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-playwright%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/playwright-mcp)
 
-**Wetin e dey do**: E dey allow AI agents interact with web pages for testing and automation.
+**Wetin e dey do**: E let AI agents take interact with web pages for testing and automation
 
 > **ℹ️ Powering GitHub Copilot**
 > 
-> The Playwright MCP Server dey power GitHub Copilot's Coding Agent, wey give am web browsing capabilities! [Learn more about this feature](https://github.blog/changelog/2025-07-02-copilot-coding-agent-now-has-its-own-web-browser/).
+> The Playwright MCP Server power GitHub Copilot Coding Agent, e dey give am web browsing powers! [Learn more about this feature](https://github.blog/changelog/2025-07-02-copilot-coding-agent-now-has-its-own-web-browser/).
 
-**Why e dey useful**: E dey perfect for automated testing wey natural language descriptions dey drive. AI fit navigate websites, fill forms, and extract data through structured accessibility snapshots – na serious power be this!
+**Why e dey useful**: E perfect for automated testing wey natural language talk drive am. AI fit waka through websites, fill forms, and extract data through structured accessibility snapshots – na serious power!
 
-**Real-world use**: "Test the login flow and confirm say dashboard dey load well" or "Generate test wey go search for products and check the results page" – all this one no need the application's source code.
+**Real-world use**: "Test the login flow and make sure say the dashboard load well" or "Generate test wey go search for products and check the results page" – and you no need the source code of the app
 
-**Featured example**: My teammate Debbie O'Brien don dey do better work with Playwright MCP Server recently! For example, she show how you fit generate complete Playwright tests even if you no get access to the application's source code. For her example, she ask Copilot to create test for one movie search app: navigate to the site, search for "Garfield," and confirm say the movie dey show for results. The MCP open browser session, check the page structure using DOM snapshots, find the correct selectors, and generate fully working TypeScript test wey pass for the first run.
+**Featured example**: My teammate Debbie O'Brien dey do beta work with Playwright MCP Server recently! For example, she show how you fit make full Playwright test without even get the app source code. For her scenario, she ask Copilot to create test for movie search app: waka enter site, search "Garfield," then check if movie show for results. MCP start browser session, explore page structure using DOM snapshots, find correct selectors, and generate full working TypeScript test wey pass first time.
 
-The thing wey make this powerful na say e dey connect natural language instructions with executable test code. Traditional methods dey require manual test writing or access to the codebase for context. But with Playwright MCP, you fit test external sites, client applications, or do black-box testing wey no need code access.
+The power here be say e connect natural language instructions to test code wey e fit run. Normally, people go need to write test code or get access to source code for context. But with Playwright MCP, you fit test external sites, client apps, or do black-box testing wey no need code access.
+
 
 ### 8. 💻 Dev Box MCP Server
 
-[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Dev_Box_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Dev%20Box%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-devbox%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Dev_Box_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Dev%20Box%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-devbox%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/mcp)
+[![Install for VS Code](https://img.shields.io/badge/VS_Code-Install_Dev_Box_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Dev%20Box%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-devbox%40latest%22%5D%7D) [![Install for VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Dev_Box_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Dev%20Box%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-devbox%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/mcp)
 
-**Wetin e dey do**: E dey manage Microsoft Dev Box environments through natural language.
+**Wetin e dey do**: E dey manage Microsoft Dev Box environments through natural language
 
-**Why e dey useful**: E dey make development environment management easy! You fit create, configure, and manage development environments without needing to remember specific commands.
+**Why e dey useful**: E make managing development environment easy well-well! You fit create, configure, and manage development environments without need remember commands.
 
-**Real-world use**: "Set up new Dev Box wey get latest .NET SDK and configure am for our project", "Check status of all my development environments", or "Create standardized demo environment for our team presentations"
+**Real-world use**: "Set up new Dev Box with the latest .NET SDK and configure am for our project", "Check status of all my development environments" or "Create standard demo environment for our team presentations"
 
-**Featured example**: I dey enjoy using Dev Box for personal development. My lightbulb moment na when James Montemagno explain how Dev Box dey good for conference demos, because e get super-fast ethernet connection no matter the conference / hotel / airplane wifi wey I dey use. In fact, I recently practice conference demo while my laptop dey tethered to my phone hotspot as I dey ride bus from Bruges to Antwerp! But my next step na to explore more team management for multiple development environments and standardized demo environments. Another big use case wey I dey hear from customers and coworkers na to use Dev Box for preconfigured development environments. For all these cases, using MCP to configure and manage Dev Boxes go allow you use natural language interaction, all while you dey inside your development environment.
+**Featured example**: I like use Dev Box for my personal development. The lightbulb moment na when James Montemagno explain how Dev Box beta for conference demos, because e get super fast ethernet connection no matter the conference / hotel / airplane wifi I dey use. I even do some conference demo practice while my laptop dey tether to my phone hotspot as I dey travel from Bruges to Antwerp by bus! But my next plan na to learn how teams fit manage multiple development environments and standardized demo environments. Another big use case I hear from customers and coworkers be say people dey use Dev Box for preconfigured development environments. For both cases, to use MCP to configure and manage Dev Boxes make you fit write natural language interaction, and you fit still dey your development environment.
 
-### 9. 🤖 Azure AI Foundry MCP Server
-[![Install for VS Code](https://img.shields.io/badge/VS_Code-Install_Azure_AI_Foundry_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D) [![Install for VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Azure_AI_Foundry_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/azure-ai-foundry/mcp-foundry)
+### 9. 🤖 Microsoft Foundry MCP Server
+[![Install for VS Code](https://img.shields.io/badge/VS_Code-Install_Microsoft_Foundry_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D) [![Install for VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Microsoft_Foundry_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/azure-ai-foundry/mcp-foundry)
 
-**Wetin e dey do**: Azure AI Foundry MCP Server dey give developers beta access to all di AI tools wey dey Azure, like model catalogs, deployment management, knowledge indexing wit Azure AI Search, and evaluation tools. Dis experimental server dey make di work wey dey between AI development and Azure AI infrastructure easy, so you fit build, deploy, and test AI apps well well.
+**Wetin e dey do**: Microsoft Foundry MCP Server dey provide developers beta-bet access to Azure AI system dem, e get model catalog, deployment management, knowledge indexing wit Azure AI Search, and evaluation tools. Dis experimental server dey link the gap between AI development and Azure strong AI infrastructure, e dey make am easy to build, deploy, and check AI apps.
 
-**Why e dey useful**: Dis server go change di way you dey use Azure AI services. Instead of dey waka between Azure portal, documentation, and your IDE, you fit find models, deploy services, manage knowledge bases, and test AI performance just by using natural language commands. E go sweet developers wey dey build RAG (Retrieval-Augmented Generation) apps, dey manage multi-model deployments, or dey do full AI evaluation pipelines.
+**Why e dey useful**: Dis server go change di way wey you dey work wit Azure AI services by bring enterprise-grade AI powers come inside your development workflow. Instead of make you dey waka between Azure portal, documentation, and your IDE, you fit discover models, deploy services, manage knowledge bases, and test AI performance wit natural language commands. E heavy for developers wey dey build RAG (Retrieval-Augmented Generation) apps, dey manage multi-model deployment dem, or dey run full AI evaluation pipelines.
 
-**Key developer features**:
-- **🔍 Model Discovery & Deployment**: Find models for Azure AI Foundry, see di full gist about di models wit code examples, and deploy dem to Azure AI Services.
-- **📚 Knowledge Management**: Create and manage Azure AI Search indexes, add documents, set up indexers, and build RAG systems wey make sense.
-- **⚡ AI Agent Integration**: Connect wit Azure AI Agents, ask dem questions, and test how dem dey perform for real-life situations.
-- **📊 Evaluation Framework**: Run full text and agent evaluations, create markdown reports, and make sure say your AI apps dey work well.
-- **🚀 Prototyping Tools**: Get instructions for GitHub-based prototyping and access Azure AI Foundry Labs for di latest research models.
+**Main developer powers**:
+- **🔍 Model Discovery & Deployment**: Explore Microsoft Foundry model catalog, see detailed model info plus code samples, come deploy models to Azure AI Services
+- **📚 Knowledge Management**: Create and run Azure AI Search indexes, add documents, set up indexers, and build strong RAG systems
+- **⚡ AI Agent Integration**: Connect to Azure AI Agents, ask agents tins, and check agent performance for production
+- **📊 Evaluation Framework**: Run full text and agent evaluations, generate markdown reports, and do quality assurance for AI apps
+- **🚀 Prototyping Tools**: Get setup instructions for GitHub-based prototyping and access Microsoft Foundry Labs for sharp research models
 
-**How developers dey use am for real life**: "Deploy Phi-4 model to Azure AI Services for my app", "Create new search index for my documentation RAG system", "Test my agent response quality", or "Find di best reasoning model for my complex analysis work."
+**Real-life developer use**: "Deploy Phi-4 model to Azure AI Services for my app", "Create new search index for my documentation RAG system", "Run evaluation on my agent responses based on quality metrics", or "Find the best reasoning model for my complex analysis work"
 
-**Full demo example**: Imagine say you wan build customer support agent. You fit talk say:
+**Full demo scenario**: Here na powerful AI development flow:
 
-> "I dey build customer support agent. Help me find beta reasoning model from di catalog, deploy am to Azure AI Services, create knowledge base from our documentation, set up evaluation framework to test response quality, and help me prototype di integration wit GitHub token for testing."
+> "I dey build customer support agent. Help me find correct reasoning model from catalog, deploy am to Azure AI Services, create knowledge base from our docs, set evaluation framework to test response quality, then help me prototype integration wit GitHub token for testing."
 
-Di Azure AI Foundry MCP Server go:
-- Search di model catalog to recommend di best reasoning models wey fit your needs.
-- Give you deployment commands and quota info for di Azure region wey you choose.
-- Set up Azure AI Search indexes wit correct schema for your documentation.
-- Arrange evaluation pipelines wit quality metrics and safety checks.
-- Generate prototyping code wit GitHub authentication for quick testing.
-- Provide setup guides wey match your technology stack.
+Microsoft Foundry MCP Server go:
+- Ask model catalog for best reasoning models based on your need
+- Give deployment commands and quota info for your Azure region
+- Set up Azure AI Search indexes with proper schema for your docs
+- Configure evaluation pipelines wit quality metrics and safety checks
+- Generate prototyping code wit GitHub auth for quick testing
+- Provide full setup guides for your technology stack
 
-**Example wey stand out**: As developer, I dey always struggle to sabi all di LLM models wey dey. I sabi some popular ones, but I dey feel say I dey miss out on some beta productivity and efficiency gains. Tokens and quotas dey stress me – I no dey sure if I dey pick di correct model for di correct task or if I dey waste my budget. I hear about dis MCP Server from James Montemagno when I dey ask my teammates for MCP Server recommendations, and I dey excited to try am! Di model discovery feature go help me well as I wan explore beyond di usual suspects and find models wey dey optimized for specific tasks. Di evaluation framework go also help me confirm say I dey get better results, no be just dey try new things for trying sake.
+**Featured example**: As developer, I don struggle to keep up wit different LLM models wey dey. I sabi some main ones, but I dey feel say I dey miss some productivity and efficiency gains. Tokens and quotas dey stress me and e hard to manage – I no sure if I dey pick right model for right work or if I dey waste budget. I jam dis MCP Server from James Montemagno wen I dey ask teammates for MCP Server tori for this post, and I dey excited to use am! Model discovery powers dey sharp for person like me wey want explore beyond normal suspects and find models wey dey optimize for specific tasks. Evaluation framework go help me confirm say I dey get better results, no be only dey try different tins for fun.
 
 > **ℹ️ Experimental Status**
 > 
-> Dis MCP server na experimental and dem still dey work on am. Features and APIs fit change. E good for exploring Azure AI capabilities and building prototypes, but make sure say e stable enough for production use.
+> Dis MCP server na experimental and e dey active development. Features and APIs fit change. E good to explore Azure AI powers and build prototypes, but make sure you check stability before production.
 
 ### 10. 🏢 Microsoft 365 Agents Toolkit MCP Server
 
 [![Install for VS Code](https://img.shields.io/badge/VS_Code-Install_M365_Agents_Toolkit-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=M365AgentsToolkit%20Server&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22@microsoft%2Fm365agentstoolkit-mcp%40latest%22%2C%22server%22%2C%22start%22%5D%7D) [![Install for VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_M365_Agents_Toolkit-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=M365AgentsToolkit%20Server&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22@microsoft%2Fm365agentstoolkit-mcp%40latest%22%2C%22server%22%2C%22start%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/OfficeDev/microsoft-365-agents-toolkit)
 
-**Wetin e dey do**: E dey give developers di tools wey dem need to build AI agents and apps wey go work well wit Microsoft 365 and Microsoft 365 Copilot, like schema validation, sample code, and troubleshooting help.
+**Wetin e dey do**: E provide developers beta tools to build AI agents and applications wey dey hook with Microsoft 365 and Microsoft 365 Copilot, including schema validation, sample code, and troubleshooting help.
 
-**Why e dey useful**: To build for Microsoft 365 and Copilot no easy because of di complex manifest schemas and di specific development patterns. Dis MCP server go bring all di tools wey you need enter your coding environment, so you fit validate schemas, find sample code, and solve common problems without dey waka go documentation every time.
+**Why e dey useful**: To build for Microsoft 365 and Copilot need complex manifest schemas and special development styles. Dis MCP server bring important development resources into your code environment, e help you check schemas, find sample codes, and troubleshoot common wahala without dey always check documents.
 
-**Real-life use**: "Check my declarative agent manifest and correct any schema errors", "Show me sample code to use Microsoft Graph API plugin", or "Help me solve my Teams app authentication wahala."
+**Real-life use**: "Make I validate my declarative agent manifest and fix any schema errors", "Show me sample code for Microsoft Graph API plugin", or "Help me troubleshoot my Teams app login wahala"
 
-**Example wey stand out**: I talk to my friend John Miller after we meet for Build about M365 Agents, and e recommend dis MCP. E go sweet developers wey dey new to M365 Agents because e dey provide templates, sample code, and scaffolding to start work without too much stress. Di schema validation feature go help avoid manifest structure errors wey fit waste hours of debugging.
+**Featured example**: I yan my friend John Miller wen I meet am for Build about M365 Agents, and e recommend dis MCP. This one fit be sweet for developers wey dey new to M365 Agents because e get templates, sample code, and scaffolding wey go allow dem start quick without drowing for docs. Schema validation features dey sharp for avoid manifest structure errors wey fit cause debugging wahala for hours.
 
 > **💡 Pro Tip**
 > 
-> Use dis server together wit di Microsoft Learn Docs MCP Server for full M365 development support – one go give you official documentation while di other one go give you practical tools and troubleshooting help.
+> Use this server along Microsoft Learn Docs MCP Server for full M365 development support – one dey give official docs while dis one dey give practical development tools and troubleshooting help.
 
-## Wetin Next? 🔮
+## Wetin next? 🔮
 
 ## 📋 Conclusion
 
-Di Model Context Protocol (MCP) dey change di way developers dey interact wit AI assistants and external tools. Dis 10 Microsoft MCP servers dey show how MCP fit make AI integration smooth, so developers fit focus on their work while dey use powerful external tools.
+Model Context Protocol (MCP) dey change how developers dey interact wit AI assistants and outside tools. These 10 Microsoft MCP servers show the power of standard AI integration, e allow smooth workflows wey keep developers for their flow state while dem dey access strong external powers.
 
-From di full Azure ecosystem integration to special tools like Playwright for browser automation and MarkItDown for document processing, dis servers dey show how MCP fit boost productivity for different development scenarios. Di standardized protocol dey make sure say all dis tools dey work together well, so developers go enjoy smooth experience.
+From full Azure ecosystem integration to special tools like Playwright for browser automation and MarkItDown for document handling, these servers show how MCP fit boost productivity for different development kind. The standard protocol make sure these tools fit work well together, create one smooth development experience.
 
-As di MCP ecosystem dey grow, make sure say you dey follow di community, dey try new servers, and dey build custom solutions to get di best from your development work. Di open standard nature of MCP mean say you fit mix and match tools from different vendors to create di perfect workflow wey go fit your needs.
+As MCP system go continue to develop, to dey involved with community, explore new servers and build custom solutions go be key to maximize your development productivity. The open standard way MCP work mean you fit mix different vendor tools to create perfect workflow for your needs.
 
 ## 🔗 Additional Resources
 
@@ -413,17 +418,17 @@ As di MCP ecosystem dey grow, make sure say you dey follow di community, dey try
 
 ## 🎯 Exercises
 
-1. **Install and Configure**: Set up one MCP server for your VS Code environment and test di basic features.
-2. **Workflow Integration**: Plan development workflow wey go use at least three different MCP servers.
-3. **Custom Server Planning**: Find one task for your daily development work wey fit benefit from custom MCP server and create di plan for am.
-4. **Performance Analysis**: Compare how MCP servers dey perform versus di traditional way for common development tasks.
-5. **Security Assessment**: Check di security risks of using MCP servers for your development environment and suggest best practices.
+1. **Install and Configure**: Set up one of the MCP servers for your VS Code environment and try basic things.
+2. **Workflow Integration**: Design one development workflow wey combine at least three different MCP servers.
+3. **Custom Server Planning**: Identify one task for your daily development wey go benefit from custom MCP server, then create spec for am.
+4. **Performance Analysis**: Compare how efficient MCP servers dem dey over traditional methods for common dev tasks.
+5. **Security Assessment**: Check security side of using MCP servers for your dev environment and suggest best practice.
 
 Next:[Best Practices](../08-BestPractices/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dis dokyument don use AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator) do di translation. Even as we dey try make am accurate, abeg sabi say automated translations fit get mistake or no dey correct well. Di original dokyument wey dey for im native language na di main source wey you go trust. For important information, e good make professional human translation dey use. We no go fit take blame for any misunderstanding or wrong interpretation wey fit happen because you use dis translation.
+**Disclaimer**:
+Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you know say automated translation fit get errors or mistakes. Di original document for dia own language na im be di correct source. For important info, make person wey sabi human translation do am. We no go responsible for any misunderstanding or wrong understanding wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

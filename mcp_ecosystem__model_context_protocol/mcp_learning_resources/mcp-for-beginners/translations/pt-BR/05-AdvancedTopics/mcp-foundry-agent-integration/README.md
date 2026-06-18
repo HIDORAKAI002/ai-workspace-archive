@@ -1,59 +1,59 @@
-# Integração do Model Context Protocol (MCP) com Azure AI Foundry
+# Integração do Protocolo de Contexto de Modelo (MCP) com o Microsoft Foundry
 
-Este guia demonstra como integrar servidores Model Context Protocol (MCP) com agentes Azure AI Foundry, possibilitando uma orquestração poderosa de ferramentas e capacidades de IA corporativa.
+Este guia demonstra como integrar servidores do Protocolo de Contexto de Modelo (MCP) com agentes do Microsoft Foundry, permitindo uma poderosa orquestração de ferramentas e capacidades de IA empresarial.
 
 ## Introdução
 
-Model Context Protocol (MCP) é um padrão aberto que permite que aplicações de IA se conectem de forma segura a fontes de dados e ferramentas externas. Quando integrado ao Azure AI Foundry, o MCP permite que agentes acessem e interajam com diversos serviços externos, APIs e fontes de dados de maneira padronizada.
+O Protocolo de Contexto de Modelo (MCP) é um padrão aberto que permite que aplicações de IA se conectem de forma segura a fontes externas de dados e ferramentas. Quando integrado ao Microsoft Foundry, o MCP permite que agentes acessem e interajam com vários serviços externos, APIs e fontes de dados de maneira padronizada.
 
-Essa integração combina a flexibilidade do ecossistema de ferramentas do MCP com a estrutura robusta de agentes do Azure AI Foundry, oferecendo soluções de IA corporativas com amplas possibilidades de personalização.
+Essa integração combina a flexibilidade do ecossistema de ferramentas do MCP com a estrutura robusta de agentes do Microsoft Foundry, fornecendo soluções de IA em nível empresarial com amplas capacidades de personalização.
 
-**Note:** Se você deseja usar MCP no Azure AI Foundry Agent Service, atualmente apenas as seguintes regiões são suportadas: westus, westus2, uaenorth, southindia e switzerlandnorth
+**Nota:** Se desejar usar o MCP no Serviço de Agentes do Microsoft Foundry, atualmente apenas as seguintes regiões são suportadas: westus, westus2, uaenorth, southindia e switzerlandnorth
 
 ## Objetivos de Aprendizagem
 
 Ao final deste guia, você será capaz de:
 
-- Compreender o Model Context Protocol e seus benefícios
-- Configurar servidores MCP para uso com agentes Azure AI Foundry
+- Entender o Protocolo de Contexto de Modelo e seus benefícios
+- Configurar servidores MCP para uso com agentes do Microsoft Foundry
 - Criar e configurar agentes com integração de ferramentas MCP
 - Implementar exemplos práticos usando servidores MCP reais
-- Gerenciar respostas de ferramentas e citações em conversas dos agentes
+- Tratar respostas das ferramentas e citações em conversas com agentes
 
 ## Pré-requisitos
 
 Antes de começar, certifique-se de que você possui:
 
-- Uma assinatura Azure com acesso ao AI Foundry
+- Uma assinatura Azure com acesso ao Microsoft Foundry
 - Python 3.10+ ou .NET 8.0+
-- Azure CLI instalado e configurado
-- Permissões adequadas para criar recursos de IA
+- Azure CLI instalada e configurada
+- Permissões apropriadas para criar recursos de IA
 
-## O que é Model Context Protocol (MCP)?
+## O que é o Protocolo de Contexto de Modelo (MCP)?
 
-Model Context Protocol é uma forma padronizada para aplicações de IA se conectarem a fontes de dados e ferramentas externas. Os principais benefícios incluem:
+O Protocolo de Contexto de Modelo é uma forma padronizada para aplicações de IA se conectarem a fontes externas de dados e ferramentas. Os principais benefícios incluem:
 
-- **Integração Padronizada**: Interface consistente entre diferentes ferramentas e serviços
+- **Integração padronizada**: Interface consistente entre diferentes ferramentas e serviços
 - **Segurança**: Mecanismos seguros de autenticação e autorização
-- **Flexibilidade**: Suporte a diversas fontes de dados, APIs e ferramentas personalizadas
-- **Extensibilidade**: Facilidade para adicionar novas funcionalidades e integrações
+- **Flexibilidade**: Suporte para diversas fontes de dados, APIs e ferramentas personalizadas
+- **Extensibilidade**: Fácil de adicionar novas capacidades e integrações
 
-## Configurando MCP com Azure AI Foundry
+## Configurando o MCP com Microsoft Foundry
 
 ### Configuração do Ambiente
 
 Escolha seu ambiente de desenvolvimento preferido:
 
-- [Implementação em Python](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [Implementação em .NET](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Implementação Python](#implementação-python)
+- [Implementação .NET](#codeblock5)
 
 ---
 
-## Implementação em Python
+## Implementação Python
 
-***Note*** Você pode executar este [notebook](mcp_support_python.ipynb)
+***Nota*** Você pode executar este [notebook](./mcp_support_python.ipynb)
 
-### 1. Instalar Pacotes Necessários
+### 1. Instale os Pacotes Necessários
 
 ```bash
 pip install azure-ai-projects -U
@@ -62,7 +62,7 @@ pip install azure-identity -U
 pip install mcp==1.11.0 -U
 ```
 
-### 2. Importar Dependências
+### 2. Importe as Dependências
 
 ```python
 import os, time
@@ -71,14 +71,14 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.agents.models import McpTool, RequiredMcpToolCall, SubmitToolApprovalAction, ToolApproval
 ```
 
-### 3. Configurar as Definições do MCP
+### 3. Configure as Configurações do MCP
 
 ```python
 mcp_server_url = os.environ.get("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
 mcp_server_label = os.environ.get("MCP_SERVER_LABEL", "mslearn")
 ```
 
-### 4. Inicializar o Cliente do Projeto
+### 4. Inicialize o Cliente do Projeto
 
 ```python
 project_client = AIProjectClient(
@@ -87,13 +87,13 @@ project_client = AIProjectClient(
 )
 ```
 
-### 5. Criar a Ferramenta MCP
+### 5. Crie a Ferramenta MCP
 
 ```python
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # Opcional: especifique as ferramentas permitidas
 )
 ```
 
@@ -103,7 +103,7 @@ mcp_tool = McpTool(
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # Criar um novo agente com ferramentas MCP
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # Criar thread para comunicação
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # Criar mensagem para thread
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # Gerenciar aprovações de ferramentas e executar agente
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # Exibir conversa
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -178,25 +178,25 @@ with project_client:
 
 ---
 
-## Implementação em .NET
+## Implementação .NET
 
-***Note*** Você pode executar este [notebook](mcp_support_dotnet.ipynb)
+***Nota*** Você pode executar este [notebook](./mcp_support_dotnet.ipynb)
 
-### 1. Instalar Pacotes Necessários
+### 1. Instale os Pacotes Necessários
 
 ```csharp
 #r "nuget: Azure.AI.Agents.Persistent, 1.1.0-beta.4"
 #r "nuget: Azure.Identity, 1.14.2"
 ```
 
-### 2. Importar Dependências
+### 2. Importe as Dependências
 
 ```csharp
 using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 ```
 
-### 3. Configurar as Definições
+### 3. Configure as Configurações
 
 ```csharp
 var projectEndpoint = "https://your-project-endpoint.services.ai.azure.com/api/projects/your-project";
@@ -206,13 +206,13 @@ var mcpServerLabel = "mslearn";
 PersistentAgentsClient agentClient = new(projectEndpoint, new DefaultAzureCredential());
 ```
 
-### 4. Criar a Definição da Ferramenta MCP
+### 4. Crie a Definição da Ferramenta MCP
 
 ```csharp
 MCPToolDefinition mcpTool = new(mcpServerLabel, mcpServerUrl);
 ```
 
-### 5. Criar Agente com Ferramentas MCP
+### 5. Crie o Agente com Ferramentas MCP
 
 ```csharp
 PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
@@ -299,15 +299,15 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ## Opções de Configuração da Ferramenta MCP
 
-Ao configurar ferramentas MCP para seu agente, você pode especificar vários parâmetros importantes:
+Ao configurar ferramentas MCP para o seu agente, você pode especificar vários parâmetros importantes:
 
 ### Configuração em Python
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # Identificador para o servidor MCP
+    server_url="https://api.example.com/mcp", # Endpoint do servidor MCP
+    allowed_tools=[],                       # Opcional: especifique as ferramentas permitidas
 )
 ```
 
@@ -320,9 +320,9 @@ MCPToolDefinition mcpTool = new(
 );
 ```
 
-## Autenticação e Headers
+## Autenticação e Cabeçalhos
 
-Ambas as implementações suportam headers personalizados para autenticação:
+Ambas as implementações suportam cabeçalhos personalizados para autenticação:
 
 ### Python
 ```python
@@ -342,41 +342,45 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 - Confira as credenciais de autenticação
 - Garanta a conectividade de rede
 
-### 2. Falhas em Chamadas de Ferramentas
-- Revise os argumentos e a formatação das chamadas
-- Verifique requisitos específicos do servidor
+### 2. Falhas nas Chamadas das Ferramentas
+- Revise os argumentos e o formato da ferramenta
+- Verifique os requisitos específicos do servidor
 - Implemente tratamento adequado de erros
 
 ### 3. Problemas de Desempenho
-- Otimize a frequência das chamadas às ferramentas
-- Utilize cache quando apropriado
+- Otimize a frequência das chamadas das ferramentas
+- Implemente cache quando apropriado
 - Monitore os tempos de resposta do servidor
 
 ## Próximos Passos
 
 Para aprimorar ainda mais sua integração MCP:
 
-1. **Explore Servidores MCP Personalizados**: Construa seus próprios servidores MCP para fontes de dados proprietárias
+1. **Explore Servidores MCP Personalizados**: Crie seus próprios servidores MCP para fontes de dados proprietárias
 2. **Implemente Segurança Avançada**: Adicione OAuth2 ou mecanismos personalizados de autenticação
-3. **Monitore e Analise**: Implemente logging e monitoramento do uso das ferramentas
-4. **Escale Sua Solução**: Considere balanceamento de carga e arquiteturas distribuídas para servidores MCP
+3. **Monitoramento e Análise**: Implemente registros e monitoramento do uso das ferramentas
+4. **Escalabilidade da Solução**: Considere balanceamento de carga e arquiteturas distribuídas de servidores MCP
 
 ## Recursos Adicionais
 
-- [Documentação do Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
-- [Exemplos do Model Context Protocol](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Visão Geral dos Agentes Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Documentação do Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- [Exemplos do Protocolo de Contexto de Modelo](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
+- [Visão Geral dos Agentes Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [Especificação MCP](https://spec.modelcontextprotocol.io/)
 
 ## Suporte
 
 Para suporte adicional e dúvidas:
-- Consulte a [documentação do Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
-- Verifique os [recursos da comunidade MCP](https://modelcontextprotocol.io/)
+- Consulte a [documentação do Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- Confira os [recursos da comunidade MCP](https://modelcontextprotocol.io/)
 
 ## O que vem a seguir
 
-- [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
+- [5.14 Engenharia de Contexto MCP](../mcp-contextengineering/README.md)
 
-**Aviso Legal**:  
-Este documento foi traduzido utilizando o serviço de tradução por IA [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos para garantir a precisão, esteja ciente de que traduções automáticas podem conter erros ou imprecisões. O documento original em seu idioma nativo deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações incorretas decorrentes do uso desta tradução.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Aviso Legal**:
+Este documento foi traduzido usando o serviço de tradução por IA [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos pela precisão, por favor, esteja ciente de que traduções automatizadas podem conter erros ou imprecisões. O documento original em seu idioma nativo deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações incorretas decorrentes do uso desta tradução.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

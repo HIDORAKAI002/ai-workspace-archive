@@ -1,269 +1,378 @@
-# 🌐 ਮੋਡੀਊਲ 2: MCP ਨਾਲ AI Toolkit ਦੇ ਮੂਲ ਤੱਤ
+# 🌐 Module 2: MCP with Microsoft Foundry Toolkit Fundamentals
 
 [![Duration](https://img.shields.io/badge/Duration-20%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Intermediate-yellow.svg)]()
 [![Prerequisites](https://img.shields.io/badge/Prerequisites-Module%201%20Complete-orange.svg)]()
 
-## 📋 ਸਿੱਖਣ ਦੇ ਲਕੜੀ
+## 📋 ਲਰਨਿੰਗ ਉਦੇਸ਼
 
-ਇਸ ਮੋਡੀਊਲ ਦੇ ਅੰਤ ਤੱਕ, ਤੁਸੀਂ ਸਮਰੱਥ ਹੋਵੋਗੇ:
-- ✅ Model Context Protocol (MCP) ਦੀ ਬਣਤਰ ਅਤੇ ਫਾਇਦੇ ਸਮਝਣਾ
-- ✅ Microsoft ਦੇ MCP ਸਰਵਰ ਪਰਿਵਾਰ ਨੂੰ ਖੋਜਣਾ
-- ✅ MCP ਸਰਵਰਾਂ ਨੂੰ AI Toolkit Agent Builder ਨਾਲ ਜੋੜਨਾ
-- ✅ Playwright MCP ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਇੱਕ ਕਾਰਗਰ ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ ਏਜੰਟ ਬਣਾਉਣਾ
+ਇਸ ਮੋਡੀਊਲ ਦੇ ਅੰਤ ਤੱਕ, ਤੁਸੀਂ ਇਹ ਸਮਝ ਸਕੋਗੇ:
+- ✅ ਮਾਡਲ ਕੰਟੈਕਸਟ ਪ੍ਰੋਟੋਕੋਲ (MCP) ਦੀ ਬਣਤਰ ਅਤੇ ਲਾਭ
+- ✅ ਮਾਈਕ੍ਰੋਸੌਫਟ ਦੇ MCP ਸਰਵਰ ਇਕੋਸਿਸਟਮ ਦੀ ਜਾਂਚ
+- ✅ MCP ਸਰਵਰਾਂ ਨੂੰ Microsoft Foundry Toolkit Agent Builder ਨਾਲ ਜੋੜਨਾ
+- ✅ Playwright MCP ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਕਾਰਗਰ ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ ਏਜੰਟ ਬਣਾਉਣਾ
 - ✅ ਆਪਣੇ ਏਜੰਟਾਂ ਵਿੱਚ MCP ਟੂਲਾਂ ਨੂੰ ਸੰਰਚਿਤ ਅਤੇ ਟੈਸਟ ਕਰਨਾ
-- ✅ MCP-ਚਲਿਤ ਏਜੰਟਾਂ ਨੂੰ ਨਿਰਯਾਤ ਅਤੇ ਉਤਪਾਦਨ ਲਈ ਤਿਆਰ ਕਰਨਾ
+- ✅ ਪ੍ਰੋਡਕਸ਼ਨ ਲਈ MCP-ਪਾਵਰਡ ਏਜੰਟਾਂ ਦਾ ਐਕਸਪੋਰਟ ਅਤੇ ਡਿਪਲੌਇ ਕਰਨਾ
 
-## 🎯 ਮੋਡੀਊਲ 1 'ਤੇ ਅਧਾਰਿਤ
+## 🎯 ਮੋਡੀਊਲ 1 ’ਤੇ ਨਿਰਮਾਣ ਕਰਨਾ
 
-ਮੋਡੀਊਲ 1 ਵਿੱਚ, ਅਸੀਂ AI Toolkit ਦੇ ਬੁਨਿਆਦੀ ਗੁਣ ਸਿੱਖੇ ਅਤੇ ਆਪਣਾ ਪਹਿਲਾ Python ਏਜੰਟ ਬਣਾਇਆ। ਹੁਣ ਅਸੀਂ ਤੁਹਾਡੇ ਏਜੰਟਾਂ ਨੂੰ ਬਾਹਰੀ ਟੂਲਾਂ ਅਤੇ ਸੇਵਾਵਾਂ ਨਾਲ ਜੋੜ ਕੇ **ਮਜ਼ਬੂਤ** ਕਰਾਂਗੇ, ਇਹ ਸਭ ਸੰਭਵ ਹੈ ਇਨਕਲਾਬੀ **Model Context Protocol (MCP)** ਦੇ ਜ਼ਰੀਏ।
+ਮੋਡੀਊਲ 1 ਵਿੱਚ, ਅਸੀਂ Microsoft Foundry Toolkit ਦੇ ਬੁਨਿਆਦੀ ਤੱਤਾਂ ਵਿੱਚ ਮਾਹਰਤਾ ਹਾਸਲ ਕੀਤੀ ਅਤੇ ਆਪਣਾ ਪਹਿਲਾ Python ਏਜੰਟ ਬਣਾਇਆ। ਹੁਣ ਅਸੀਂ ਤੁਹਾਡੇ ਏਜੰਟਾਂ ਨੂੰ **ਸੁਪਰਚਾਰ্জ** ਕਰਾਂਗੇ ਉਹਨਾਂ ਨੂੰ ਬਾਹਰੀ ਟੂਲਾਂ ਅਤੇ ਸੇਵਾਵਾਂ ਨਾਲ Model Context Protocol (MCP) ਰਾਹੀਂ ਜੋੜ ਕੇ।
 
-ਇਸਨੂੰ ਇੱਕ ਸਧਾਰਣ ਕੈਲਕੁਲੇਟਰ ਤੋਂ ਪੂਰੇ ਕੰਪਿਊਟਰ ਵਿੱਚ ਅੱਪਗ੍ਰੇਡ ਕਰਨ ਵਾਂਗ ਸੋਚੋ - ਤੁਹਾਡੇ AI ਏਜੰਟ ਹੁਣ ਇਹ ਸਮਰੱਥਾ ਪ੍ਰਾਪਤ ਕਰਨਗੇ:
+ਇਸਨੂੰ ਸਮਝੋ ਜਿਵੇਂ ਕਿ ਇੱਕ ਸਧਾਰਨ ਕੈਲਕੁਲੇਟਰ ਤੋਂ ਪੂਰੇ ਕੰਪਿਊਟਰ ਵੱਲ ਅੱਪਗ੍ਰੇਡ ਕਰਨਾ - ਤੁਹਾਡੇ AI ਏਜੰਟ ਹੇਠ ਲਿਖੀਆਂ ਸਮਰੱਥਾਵਾਂ ਪ੍ਰਾਪਤ ਕਰ ਲੈਂਗੇ:
 - 🌐 ਵੈੱਬਸਾਈਟਾਂ ਨੂੰ ਬ੍ਰਾਊਜ਼ ਅਤੇ ਇੰਟਰੈਕਟ ਕਰਨਾ
-- 📁 ਫਾਈਲਾਂ ਤੱਕ ਪਹੁੰਚ ਅਤੇ ਉਨ੍ਹਾਂ ਨੂੰ ਸੰਭਾਲਣਾ
-- 🔧 ਉਦਯੋਗਿਕ ਪ੍ਰਣਾਲੀਆਂ ਨਾਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ
-- 📊 APIs ਤੋਂ ਰੀਅਲ-ਟਾਈਮ ਡੇਟਾ ਪ੍ਰੋਸੈਸ ਕਰਨਾ
+- 📁 ਫਾਈਲਾਂ ਤੱਕ ਪਹੁੰਚ ਅਤੇ ਉਨ੍ਹਾਂ ਨੂੰ ਸੰਜੋਣਾ
+- 🔧 ਐਂਟਰਪ੍ਰਾਈਜ਼ ਸਿਸਟਮਾਂ ਨਾਲ ਇੰਟੀਗਰੇਸ਼ਨ
+- 📊 APIs ਤੋਂ ਰੀਅਲ-ਟਾਈਮ ਡਾਟਾ ਪ੍ਰੋਸੈਸ ਕਰਨਾ
 
-## 🧠 Model Context Protocol (MCP) ਨੂੰ ਸਮਝਣਾ
+## 🧠 ਮਾਡਲ ਕੰਟੈਕਸਟ ਪ੍ਰੋਟੋਕੋਲ (MCP) ਨੂੰ ਸਮਝਣਾ
 
 ### 🔍 MCP ਕੀ ਹੈ?
 
-Model Context Protocol (MCP) AI ਐਪਲੀਕੇਸ਼ਨਾਂ ਲਈ **"USB-C"** ਵਾਂਗ ਹੈ - ਇੱਕ ਇਨਕਲਾਬੀ ਖੁੱਲਾ ਮਿਆਰ ਜੋ ਵੱਡੇ ਭਾਸ਼ਾ ਮਾਡਲਾਂ (LLMs) ਨੂੰ ਬਾਹਰੀ ਟੂਲਾਂ, ਡੇਟਾ ਸਰੋਤਾਂ ਅਤੇ ਸੇਵਾਵਾਂ ਨਾਲ ਜੋੜਦਾ ਹੈ। ਜਿਵੇਂ USB-C ਨੇ ਕੇਬਲਾਂ ਦੀ ਗੜਬੜ ਖਤਮ ਕਰ ਦਿੱਤੀ ਇੱਕ ਯੂਨੀਵਰਸਲ ਕਨੈਕਟਰ ਦੇ ਨਾਲ, MCP ਵੀ AI ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਦੀ ਜਟਿਲਤਾ ਨੂੰ ਇੱਕ ਮਿਆਰੀ ਪ੍ਰੋਟੋਕੋਲ ਨਾਲ ਖਤਮ ਕਰਦਾ ਹੈ।
+Model Context Protocol (MCP) ਹੈ **"USB-Cs ਫਾਰ AI applications"** - ਇੱਕ ਇਨਕਲਾਬੀ ਖੁੱਲ੍ਹਾ ਮਾਪਦੰਡ ਜੋ ਵੱਡੇ ਭਾਸ਼ਾ ਮਾਡਲਾਂ (LLMs) ਨੂੰ ਬਾਹਰੀ ਟੂਲਾਂ, ਡਾਟਾ ਸਰੋਤਾਂ, ਅਤੇ ਸੇਵਾਵਾਂ ਨਾਲ ਜੋੜਦਾ ਹੈ। ਜਿਵੇਂ USB-C ਨੇ ਕੇਬਲ ਗੜਬੜ ਖਤਮ ਕਰਕੇ ਇੱਕ ਸਰਵਜਨਕ ਕਨੈਕਟਰ ਦਿੱਤਾ, MCP ਵੀ AI ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਦੀ ਜਟਿਲਤਾ ਨੂੰ ਇੱਕ ਮਿਆਰੀ ਪ੍ਰੋਟੋਕੋਲ ਨਾਲ ਦੂਰ ਕਰਦਾ ਹੈ।
 
 ### 🎯 MCP ਕਿਹੜੀ ਸਮੱਸਿਆ ਹੱਲ ਕਰਦਾ ਹੈ
 
 **MCP ਤੋਂ ਪਹਿਲਾਂ:**
-- 🔧 ਹਰ ਟੂਲ ਲਈ ਵਿਲੱਖਣ ਇੰਟੀਗ੍ਰੇਸ਼ਨ
-- 🔄 ਵੈਂਡਰ ਲਾਕ-ਇਨ ਅਤੇ ਖਾਸ ਹੱਲ
-- 🔒 ਅਣਪਛਾਤੇ ਕਨੈਕਸ਼ਨਾਂ ਕਾਰਨ ਸੁਰੱਖਿਆ ਖਤਰੇ
-- ⏱️ ਬੁਨਿਆਦੀ ਇੰਟੀਗ੍ਰੇਸ਼ਨਾਂ ਲਈ ਮਹੀਨੇ ਲੱਗਦੇ ਸਨ
+- 🔧 ਹਰ ਟੂਲ ਲਈ ਕਸਟਮ ਇੰਟੀਗ੍ਰੇਸ਼ਨ
+- 🔄 ਪ੍ਰੋਪ੍ਰਾਇਟਰੀ ਹਲਾਂ ਨਾਲ ਵੇਂਡਰ ਲੌਕ-ਇਨ  
+- 🔒 ਐਡ-ਹੌਕ ਕਨੈਕਸ਼ਨਾਂ ਤੋਂ ਸੁਰੱਖਿਆ ਖਤਰੇ
+- ⏱️ ਬੁਨਿਆਦੀ ਇੰਟੀਗ੍ਰੇਸ਼ਨਾਂ ਲਈ ਮਹੀਨੇ ਲੱਗਦੇ
 
 **MCP ਨਾਲ:**
-- ⚡ ਤੁਰੰਤ ਟੂਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ
-- 🔄 ਵੈਂਡਰ-ਅਗਨੋਸਟਿਕ ਬਣਤਰ
-- 🛡️ ਅੰਦਰੂਨੀ ਸੁਰੱਖਿਆ ਦੇ ਸਰਵੋਤਮ ਤਰੀਕੇ
-- 🚀 ਨਵੀਆਂ ਸਮਰੱਥਾਵਾਂ ਜੋੜਨ ਲਈ ਕੁਝ ਮਿੰਟ
+- ⚡ ਪਲੱਗ-ਐਂਡ-ਪਲੇ ਟੂਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ
+- 🔄 ਵੇਂਡਰ ਅਗਨੋਸਟਿਕ ਆਰਕੀਟੈਕਚਰ
+- 🛡️ ਬਿਲਟ-ਇਨ ਸੁਰੱਖਿਆ ਦੀਆਂ ਸਭ ਤੋਂ ਵਧੀਆ ਪ੍ਰਥਾਵਾਂ
+- 🚀 ਨਵੇਂ ਸਮਰੱਥਾਵਾਂ ਸ਼ਾਮਲ ਕਰਨ ਵਿੱਚ ਮਿਨਟਾਂ
 
-### 🏗️ MCP ਦੀ ਬਣਤਰ ਦਾ ਵਿਸਥਾਰ
+### 🏗️ MCP ਦੀ ਬਣਤਰ ਦੀ ਵਿਸਥਾਰਪੂਰਕ ਜਾਣਕਾਰੀ
 
-MCP ਇੱਕ **ਕਲਾਇੰਟ-ਸਰਵਰ ਬਣਤਰ** ਨੂੰ ਫਾਲੋ ਕਰਦਾ ਹੈ ਜੋ ਇੱਕ ਸੁਰੱਖਿਅਤ ਅਤੇ ਸਕੇਲਬਲ ਪਰਿਵਾਰ ਬਣਾਉਂਦਾ ਹੈ:
+MCP ਇੱਕ **ਕਲਾਇੰਟ-ਸਰਵਰ ਬਣਤਰ** ਦੀ ਪਾਲਣਾ ਕਰਦਾ ਹੈ ਜੋ ਇੱਕ ਸੁਰੱਖਿਅਤ, ਸਕੇਲਬਲ ਇਕੋਸਿਸਟਮ ਬਣਾਉਂਦਾ ਹੈ:
 
 ```mermaid
 graph TB
-    A[AI Application/Agent] --> B[MCP Client]
-    B --> C[MCP Server 1: Files]
-    B --> D[MCP Server 2: Web APIs]
-    B --> E[MCP Server 3: Database]
-    B --> F[MCP Server N: Custom Tools]
+    A[ਏਆਈ ਐਪਲੀਕੇਸ਼ਨ/ਏਜੰਟ] --> B[MCP ਕਲਾਇੰਟ]
+    B --> C[MCP ਸਰਵਰ 1: ਫਾਇਲਾਂ]
+    B --> D[MCP ਸਰਵਰ 2: ਵੈੱਬ ਏਪੀਆਈਜ਼]
+    B --> E[MCP ਸਰਵਰ 3: ਡਾਟਾਬੇਸ]
+    B --> F[MCP ਸਰਵਰ N: ਕਸਟਮ ਟੂਲਜ਼]
     
-    C --> G[Local File System]
-    D --> H[External APIs]
-    E --> I[Database Systems]
-    F --> J[Enterprise Systems]
+    C --> G[ਲੋਕਲ ਫਾਇਲ ਸਿਸਟਮ]
+    D --> H[ਬਾਹਰੀ ਏਪੀਆਈਜ਼]
+    E --> I[ਡਾਟਾਬੇਸ ਸਿਸਟਮ]
+    F --> J[ਐਂਟਰਪ੍ਰਾਈਜ਼ ਸਿਸਟਮ]
 ```
 
-**🔧 ਮੁੱਖ ਹਿੱਸੇ:**
+**🔧 ਮੁੱਖ ਭਾਗ:**
 
-| ਹਿੱਸਾ | ਭੂਮਿਕਾ | ਉਦਾਹਰਨਾਂ |
-|-------|---------|------------|
-| **MCP Hosts** | ਐਪਲੀਕੇਸ਼ਨ ਜੋ MCP ਸੇਵਾਵਾਂ ਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹਨ | Claude Desktop, VS Code, AI Toolkit |
-| **MCP Clients** | ਪ੍ਰੋਟੋਕੋਲ ਹੈਂਡਲਰ (1:1 ਸਰਵਰਾਂ ਨਾਲ) | ਹੋਸਟ ਐਪਲੀਕੇਸ਼ਨਾਂ ਵਿੱਚ ਬਣੇ ਹੋਏ |
-| **MCP Servers** | ਮਿਆਰੀ ਪ੍ਰੋਟੋਕੋਲ ਰਾਹੀਂ ਸਮਰੱਥਾਵਾਂ ਪ੍ਰਦਾਨ ਕਰਦੇ ਹਨ | Playwright, Files, Azure, GitHub |
-| **Transport Layer** | ਸੰਚਾਰ ਦੇ ਤਰੀਕੇ | stdio, HTTP, WebSockets |
+| ਭਾਗ | ਭੂਮਿਕਾ | ਉਦਾਹਰਨ |
+|-----------|------|----------|
+| **MCP ਮੇਜ਼ਬਾਨ** | ਐਪਲੀਕੇਸ਼ਨ ਜੋ MCP ਸੇਵਾਵਾਂ ਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹਨ | Claude Desktop, VS Code, Microsoft Foundry Toolkit |
+| **MCP ਕਲਾਇੰਟਸ** | ਪ੍ਰੋਟੋਕੋਲ ਹੈਂਡਲਰ (1:1 ਸਰਵਰ ਨਾਲ) | ਮੇਜ਼ਬਾਨ ਐਪਲੀਕੇਸ਼ਨਾਂ ਵਿੱਚ ਨਿਰਮਿਤ |
+| **MCP ਸਰਵਰਸ** | ਮਿਆਰੀ ਪ੍ਰੋਟੋਕੋਲ ਰਾਹੀਂ ਸਮਰੱਥਾਵਾਂ ਪ੍ਰਦਰਸ਼ਿਤ ਕਰਦੇ ਹਨ | Playwright, Files, Azure, GitHub |
+| **ਟਰਾਂਸਪੋਰਟ ਲੇਅਰ** | ਸੰਚਾਰ ਵਿਧੀਆਂ | stdio, HTTP, WebSockets |
 
-## 🏢 Microsoft ਦਾ MCP ਸਰਵਰ ਪਰਿਵਾਰ
 
-Microsoft MCP ਪਰਿਵਾਰ ਵਿੱਚ ਅਗਵਾਈ ਕਰਦਾ ਹੈ ਇੱਕ ਵਿਸ਼ਾਲ ਉਦਯੋਗਿਕ-ਗਰੇਡ ਸਰਵਰਾਂ ਦੇ ਸੈੱਟ ਨਾਲ ਜੋ ਵਾਸਤਵਿਕ ਕਾਰੋਬਾਰੀ ਜ਼ਰੂਰਤਾਂ ਨੂੰ ਪੂਰਾ ਕਰਦੇ ਹਨ।
+## 🏢 Microsoft ਦੇ MCP ਸਰਵਰ ਇਕੋਸਿਸਟਮ
 
-### 🌟 ਪ੍ਰਮੁੱਖ Microsoft MCP ਸਰਵਰ
+Microsoft ਇੱਕ ਵਿਸਤ੍ਰਿਤ ਏਂਟਰਪ੍ਰਾਈਜ਼-ਗਰੇਡ ਸਰਵਰਾਂ ਦੇ ਸੂਟ ਨਾਲ MCP ਇਕੋਸਿਸਟਮ ਦੀ ਅਗਵਾਈ ਕਰਦਾ ਹੈ ਜੋ ਹਕੀਕਤੀ ਦੁਨੀਆ ਦੇ ਕਾਰੋਬਾਰੀ ਜਰੂਰਤਾਂ ਨੂੰ ਪੂਰਾ ਕਰਦੇ ਹਨ।
 
-#### 1. ☁️ Azure MCP Server  
-**🔗 Repository**: [azure/azure-mcp](https://github.com/azure/azure-mcp)  
-**🎯 ਮਕਸਦ**: AI ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਨਾਲ Azure ਸਰੋਤਾਂ ਦਾ ਵਿਸ਼ਤ੍ਰਿਤ ਪ੍ਰਬੰਧਨ
+### 🌟 Microsoft ਦੇ ਮੁੱਖ MCP ਸਰਵਰ
 
-**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**  
-- ਘੋਸ਼ਣਾਤਮਕ ਇੰਫਰਾਸਟਰੱਕਚਰ ਪ੍ਰੋਵਿਜ਼ਨਿੰਗ  
-- ਰੀਅਲ-ਟਾਈਮ ਸਰੋਤ ਨਿਗਰਾਨੀ  
-- ਲਾਗਤ ਅਨੁਕੂਲਤਾ ਸਿਫਾਰਸ਼ਾਂ  
+#### 1. ☁️ Azure MCP Server
+**🔗 ਰਿਪੋਜ਼ਟਰੀ**: [azure/azure-mcp](https://github.com/azure/azure-mcp)
+**🎯 ਮਕਸਦ**: AI ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਨਾਲ ਵਿਆਪਕ Azure ਸਰੋਤ ਪ੍ਰਬੰਧਨ
+
+**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**
+- ਸਰਚਨਾ ਅਭਿਆਸ ਬਿਆਨਕ
+- ਰੀਅਲ-ਟਾਈਮ ਸਰੋਤ ਮਾਨੀਟਰਿੰਗ
+- ਖ਼ਰਚ ਬੱਚਤ ਸਿਫ਼ਾਰਸ਼ਾਂ
 - ਸੁਰੱਖਿਆ ਅਨੁਕੂਲਤਾ ਜਾਂਚ
 
-**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**  
-- AI ਸਹਾਇਤਾ ਨਾਲ Infrastructure-as-Code  
-- ਆਟੋਮੈਟਿਕ ਸਰੋਤ ਸਕੇਲਿੰਗ  
-- ਕਲਾਉਡ ਲਾਗਤ ਅਨੁਕੂਲਤਾ  
+**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**
+- AI ਸਹਾਇਤਾ ਨਾਲ Infrastructure-as-Code
+- ਆਟੋਮੈਟਿਕ ਸਰੋਤ ਸਕੇਲਿੰਗ
+- ਕਲਾਉਡ ਖਰਚ ਬਚਤ
 - DevOps ਵਰਕਫਲੋ ਆਟੋਮੇਸ਼ਨ
 
-#### 2. 📊 Microsoft Dataverse MCP  
-**📚 ਦਸਤਾਵੇਜ਼**: [Microsoft Dataverse Integration](https://go.microsoft.com/fwlink/?linkid=2320176)  
-**🎯 ਮਕਸਦ**: ਕਾਰੋਬਾਰੀ ਡੇਟਾ ਲਈ ਕੁਦਰਤੀ ਭਾਸ਼ਾ ਇੰਟਰਫੇਸ
+#### 2. 📊 Microsoft Dataverse MCP
+**📚 ਦਸਤਾਵੇਜ਼ੀਕਰਨ**: [Microsoft Dataverse Integration](https://go.microsoft.com/fwlink/?linkid=2320176)
+**🎯 ਮਕਸਦ**: ਕਾਰੋਬਾਰੀ ਡਾਟਾ ਲਈ ਕੁਦਰਤੀ ਭਾਸ਼ਾ ਇੰਟਰਫੇਸ
 
-**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**  
-- ਕੁਦਰਤੀ ਭਾਸ਼ਾ ਵਿੱਚ ਡੇਟਾਬੇਸ ਕਵੈਰੀਜ਼  
-- ਕਾਰੋਬਾਰੀ ਸੰਦਰਭ ਦੀ ਸਮਝ  
-- ਕਸਟਮ ਪ੍ਰਾਂਪਟ ਟੈਮਪਲੇਟ  
-- ਉਦਯੋਗਿਕ ਡੇਟਾ ਗਵਰਨੈਂਸ
+**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**
+- ਕੁਦਰਤੀ ਭਾਸ਼ਾ ਡਾਟਾਬੇਸ ਕਵੈਰੀਜ਼
+- ਕਾਰੋਬਾਰੀ ਸੰਦੇਸ਼ ਸਮਝਣਾ
+- ਕਸਟਮ ਪ੍ਰਾਂਪਟ ਟੈਂਪਲੇਟ
+- ਐਂਟਰਪ੍ਰਾਈਜ਼ ਡਾਟਾ ਗਵਰਨੈਂਸ
 
-**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**  
-- ਕਾਰੋਬਾਰੀ ਬੁੱਧੀਮਤਾ ਰਿਪੋਰਟਿੰਗ  
-- ਗਾਹਕ ਡੇਟਾ ਵਿਸ਼ਲੇਸ਼ਣ  
-- ਵਿਕਰੀ ਪਾਈਪਲਾਈਨ ਅੰਦਰੂਨੀ ਜਾਣਕਾਰੀ  
-- ਅਨੁਕੂਲਤਾ ਡੇਟਾ ਕਵੈਰੀਜ਼
+**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**
+- ਕਾਰੋਬਾਰੀ ਬੁੱਧਿਮਤਾ ਰਿਪੋਰਟਿੰਗ
+- ਗਾਹਕ ਡਾਟਾ ਵਿਸ਼ਲੇਸ਼ਣ
+- ਵਿਕਰੀ ਪਾਈਪਲਾਈਨ ਜਾਣਕਾਰੀ
+- ਅਨੁਕੂਲਤਾ ਡਾਟਾ ਸਵਾਲ
 
-#### 3. 🌐 Playwright MCP Server  
-**🔗 Repository**: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)  
+#### 3. 🌐 Playwright MCP Server
+**🔗 ਰਿਪੋਜ਼ਟਰੀ**: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)
 **🎯 ਮਕਸਦ**: ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ ਅਤੇ ਵੈੱਬ ਇੰਟਰੈਕਸ਼ਨ ਸਮਰੱਥਾਵਾਂ
 
-**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**  
-- ਕ੍ਰਾਸ-ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ (Chrome, Firefox, Safari)  
-- ਸਮਝਦਾਰ ਐਲੀਮੈਂਟ ਪਛਾਣ  
-- ਸਕ੍ਰੀਨਸ਼ਾਟ ਅਤੇ PDF ਤਿਆਰ ਕਰਨਾ  
-- ਨੈੱਟਵਰਕ ਟ੍ਰੈਫਿਕ ਨਿਗਰਾਨੀ
+**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**
+- ਕ੍ਰਾਸ-ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ (Chrome, Firefox, Safari)
+- ਬੁੱਧੀਮਾਨ ਤੱਤ ਪਛਾਣ
+- ਸਕ੍ਰੀਨਸ਼ਾਟ ਅਤੇ PDF ਜੇਨਰੇਸ਼ਨ
+- ਨੈੱਟਵਰਕ ਟ੍ਰੈਫਿਕ ਮਾਨੀਟਰਨਗ
 
-**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**  
-- ਆਟੋਮੇਟਿਕ ਟੈਸਟਿੰਗ ਵਰਕਫਲੋਜ਼  
-- ਵੈੱਬ ਸਕ੍ਰੈਪਿੰਗ ਅਤੇ ਡੇਟਾ ਨਿਕਾਸ  
-- UI/UX ਨਿਗਰਾਨੀ  
+**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**
+- ਆਟੋਮੇਟਡ ਟੈਸਟਿੰਗ ਵਰਕਫਲੋਜ਼
+- ਵੈੱਬ ਸਕ੍ਰੈਪਿੰਗ ਅਤੇ ਡਾਟਾ ਐਕਸਟ੍ਰੈਕਸ਼ਨ
+- UI/UX ਮਾਨੀਟਰਿੰਗ
 - ਮੁਕਾਬਲਾਤੀ ਵਿਸ਼ਲੇਸ਼ਣ ਆਟੋਮੇਸ਼ਨ
 
-#### 4. 📁 Files MCP Server  
-**🔗 Repository**: [microsoft/files-mcp-server](https://github.com/microsoft/files-mcp-server)  
-**🎯 ਮਕਸਦ**: ਸਮਝਦਾਰ ਫਾਈਲ ਸਿਸਟਮ ਓਪਰੇਸ਼ਨ
+#### 4. 📁 Files MCP Server
+**🔗 ਰਿਪੋਜ਼ਟਰੀ**: [microsoft/files-mcp-server](https://github.com/microsoft/files-mcp-server)
+**🎯 ਮਕਸਦ**: ਸਮਝਦਾਰ ਫਾਈਲ ਸਿਸਟਮ ਕੰਮ
 
-**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**  
-- ਘੋਸ਼ਣਾਤਮਕ ਫਾਈਲ ਪ੍ਰਬੰਧਨ  
-- ਸਮੱਗਰੀ ਸਿੰਕ੍ਰੋਨਾਈਜ਼ੇਸ਼ਨ  
-- ਵਰਜ਼ਨ ਕੰਟਰੋਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ  
-- ਮੈਟਾਡੇਟਾ ਨਿਕਾਸ
+**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**
+- ਬਿਆਨਕ ਫਾਈਲ ਪ੍ਰਬੰਧਨ
+- ਸਮੱਗਰੀ ਸਮਨ্বਯ
+- ਵਰਜਨ ਕੰਟਰੋਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ
+- ਮੈਟਾ ਡਾਟਾ ਐਕਸਟ੍ਰੈਕਸ਼ਨ
 
-**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**  
-- ਦਸਤਾਵੇਜ਼ ਪ੍ਰਬੰਧਨ  
-- ਕੋਡ ਰਿਪੋਜ਼ਿਟਰੀ ਸੰਗਠਨ  
-- ਸਮੱਗਰੀ ਪ੍ਰਕਾਸ਼ਨ ਵਰਕਫਲੋਜ਼  
-- ਡੇਟਾ ਪਾਈਪਲਾਈਨ ਫਾਈਲ ਹੈਂਡਲਿੰਗ
+**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**
+- ਦਸਤਾਵੇਜ਼ ਪ੍ਰਬੰਧਨ
+- ਕੋਡ ਰਿਪੋਜ਼ਟਰੀ ਆਯੋਜਨਾ
+- ਸਮੱਗਰੀ ਪ੍ਰਕਾਸ਼ਨ ਵਰਕਫਲੋਜ਼
+- ਡਾਟਾ ਪਾਈਪਲਾਈਨ ਫਾਈਲ ਹੈਂਡਲਿੰਗ
 
-#### 5. 📝 MarkItDown MCP Server  
-**🔗 Repository**: [microsoft/markitdown](https://github.com/microsoft/markitdown)  
-**🎯 ਮਕਸਦ**: ਉੱਨਤ Markdown ਪ੍ਰੋਸੈਸਿੰਗ ਅਤੇ ਸੰਸ਼ੋਧਨ
+#### 5. 📝 MarkItDown MCP Server
+**🔗 ਰਿਪੋਜ਼ਟਰੀ**: [microsoft/markitdown](https://github.com/microsoft/markitdown)
+**🎯 ਮਕਸਦ**: ਉ avanzadoMarkdown ਪੈਸਿੰਗ ਅਤੇ ਮਿਊਟੀਲੇਸ਼ਨ
 
-**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**  
-- ਧਨਾਢ Markdown ਪਾਰਸਿੰਗ  
-- ਫਾਰਮੈਟ ਬਦਲਾਅ (MD ↔ HTML ↔ PDF)  
-- ਸਮੱਗਰੀ ਦੀ ਬਣਤਰ ਵਿਸ਼ਲੇਸ਼ਣ  
-- ਟੈਮਪਲੇਟ ਪ੍ਰੋਸੈਸਿੰਗ
+**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**
+- ਰਿਚ Markdown ਪਾਰਸਿੰਗ
+- ਫਾਰਮੈਟ ਕਨਵਰਜ਼ਨ (MD ↔ HTML ↔ PDF)
+- ਸਮੱਗਰੀ ਦੀ ਬਣਤਰ ਵਿਸ਼ਲੇਸ਼ਣ
+- ਟੈਂਪਲੇਟ ਪ੍ਰੋਸੈਸਿੰਗ
 
-**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**  
-- ਤਕਨੀਕੀ ਦਸਤਾਵੇਜ਼ ਵਰਕਫਲੋਜ਼  
-- ਸਮੱਗਰੀ ਪ੍ਰਬੰਧਨ ਪ੍ਰਣਾਲੀਆਂ  
-- ਰਿਪੋਰਟ ਤਿਆਰ ਕਰਨਾ  
+**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**
+- ਤਕਨੀਕੀ ਦਸਤਾਵੇਜ਼ ਵਰਕਫਲੋਜ਼
+- ਸਮੱਗਰੀ ਪ੍ਰਬੰਧਨ ਪ੍ਰਣਾਲੀਆਂ
+- ਰਿਪੋਰਟ ਜੇਨਰੇਸ਼ਨ
 - ਗਿਆਨ ਅਧਾਰ ਆਟੋਮੇਸ਼ਨ
 
-#### 6. 📈 Clarity MCP Server  
-**📦 ਪੈਕੇਜ**: [@microsoft/clarity-mcp-server](https://www.npmjs.com/package/@microsoft/clarity-mcp-server)  
-**🎯 ਮਕਸਦ**: ਵੈੱਬ ਵਿਸ਼ਲੇਸ਼ਣ ਅਤੇ ਉਪਭੋਗਤਾ ਵਿਹਾਰ ਦੀ ਜਾਣਕਾਰੀ
+#### 6. 📈 Clarity MCP Server
+**📦 ਪੈਕੇਜ**: [@microsoft/clarity-mcp-server](https://www.npmjs.com/package/@microsoft/clarity-mcp-server)
+**🎯 ਮਕਸਦ**: ਵੈੱਬ ਵਿਸ਼ਲੇਸ਼ਣ ਅਤੇ ਉਪਭੋਗਤਾ ਵਿਹਾਰ ਸੂਝ
 
-**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**  
-- ਹੀਟਮੈਪ ਡੇਟਾ ਵਿਸ਼ਲੇਸ਼ਣ  
-- ਉਪਭੋਗਤਾ ਸੈਸ਼ਨ ਰਿਕਾਰਡਿੰਗ  
-- ਪ੍ਰਦਰਸ਼ਨ ਮੈਟਰਿਕਸ  
+**✨ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ:**
+- ਹੀਟਮੈਪ ਡਾਟਾ ਵਿਸ਼ਲੇਸ਼ਣ
+- ਉਪਭੋਗਤਾ ਸੈਸ਼ਨ ਰਿਕਾਰਡਿੰਗਜ਼
+- ਪ੍ਰਦਰਸ਼ਨ ਮੈਟਰਿਕਸ
 - ਕਨਵਰਜ਼ਨ ਫਨਲ ਵਿਸ਼ਲੇਸ਼ਣ
 
-**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**  
-- ਵੈੱਬਸਾਈਟ ਅਨੁਕੂਲਤਾ  
-- ਉਪਭੋਗਤਾ ਅਨੁਭਵ ਖੋਜ  
-- A/B ਟੈਸਟਿੰਗ ਵਿਸ਼ਲੇਸ਼ਣ  
-- ਕਾਰੋਬਾਰੀ ਬੁੱਧੀਮਤਾ ਡੈਸ਼ਬੋਰਡ
+**🚀 ਵਰਤੋਂ ਦੇ ਕੇਸ:**
+- ਵੈੱਬਸਾਈਟ ਅਨੁਕੂਲਤਾ
+- ਉਪਭੋਗਤਾ ਅਨੁਭਵ ਖੋਜ
+- A/B ਟੈਸਟਿੰਗ ਵਿਸ਼ਲੇਸ਼ਣ
+- ਕਾਰੋਬਾਰੀ ਬੁੱਧਿਮਤਾ ਡੈਸ਼ਬੋਰਡ
 
-### 🌍 ਕਮਿਊਨਿਟੀ ਪਰਿਵਾਰ
+### 🌍 ਕਮਿਊਨਿਟੀ ਇਕੋਸਿਸਟਮ
 
-Microsoft ਦੇ ਸਰਵਰਾਂ ਤੋਂ ਇਲਾਵਾ, MCP ਪਰਿਵਾਰ ਵਿੱਚ ਸ਼ਾਮਲ ਹਨ:  
-- **🐙 GitHub MCP**: ਰਿਪੋਜ਼ਿਟਰੀ ਪ੍ਰਬੰਧਨ ਅਤੇ ਕੋਡ ਵਿਸ਼ਲੇਸ਼ਣ  
-- **🗄️ ਡੇਟਾਬੇਸ MCPs**: PostgreSQL, MySQL, MongoDB ਇੰਟੀਗ੍ਰੇਸ਼ਨ  
-- **☁️ ਕਲਾਉਡ ਪ੍ਰਦਾਤਾ MCPs**: AWS, GCP, Digital Ocean ਟੂਲ  
+Microsoft ਦੇ ਸਰਵਰਾਂ ਤੋਂ ਇਲਾਵਾ, MCP ਇਕੋਸਿਸਟਮ ਵਿੱਚ ਸ਼ਾਮਿਲ ਹਨ:
+- **🐙 GitHub MCP**: ਰਿਪੋਜ਼ਟਰੀ ਪ੍ਰਬੰਧਨ ਅਤੇ ਕੋਡ ਵਿਸ਼ਲੇਸ਼ਣ
+- **🗄️ ਡੇਟਾਬੇਸ MCPs**: PostgreSQL, MySQL, MongoDB ਇੰਟੀਗ੍ਰੇਸ਼ਨ
+- **☁️ ਕਲਾਉਡ ਪ੍ਰਦਾਤਾ MCPs**: AWS, GCP, Digital Ocean ਟੂਲ
 - **📧 ਸੰਚਾਰ MCPs**: Slack, Teams, Email ਇੰਟੀਗ੍ਰੇਸ਼ਨ
 
-## 🛠️ ਪ੍ਰਯੋਗਸ਼ਾਲਾ: ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ ਏਜੰਟ ਬਣਾਉਣਾ
+## 🛠️ ਹੱਥ-ਅਨ ਲੈਬ: ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ ਏਜੰਟ ਬਣਾਉਣਾ
 
-**🎯 ਪ੍ਰੋਜੈਕਟ ਦਾ ਮਕਸਦ**: Playwright MCP ਸਰਵਰ ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਇੱਕ ਸਮਝਦਾਰ ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ ਏਜੰਟ ਬਣਾਉਣਾ ਜੋ ਵੈੱਬਸਾਈਟਾਂ 'ਤੇ ਨੈਵੀਗੇਟ ਕਰ ਸਕੇ, ਜਾਣਕਾਰੀ ਇਕੱਠੀ ਕਰ ਸਕੇ ਅਤੇ ਜਟਿਲ ਵੈੱਬ ਇੰਟਰੈਕਸ਼ਨਾਂ ਨੂੰ ਅੰਜਾਮ ਦੇ ਸਕੇ।
+**🎯 ਪ੍ਰੋਜੈਕਟ ਟੀਚਾ**: Playwright MCP ਸਰਵਰ ਦੀ ਵਰਤੋਂ ਕਰਦਿਆਂ ਇੱਕ ਸਮਝਦਾਰ ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ ਏਜੰਟ ਬਣਾਉਣਾ ਜੋ ਵੈੱਬਸਾਈਟਾਂ 'ਤੇ ਜਾ ਸਕੇ, ਜਾਣਕਾਰੀ ਨਿਕਾਲ ਸਕੇ ਅਤੇ ਜਟਿਲ ਵੈੱਬ ਇੰਟਰੈਕਸ਼ਨਾਂ ਨੂੰ ਕਰ ਸਕੇ।
 
-### 🚀 ਪਹਿਲਾ ਚਰਨ: ਏਜੰਟ ਦੀ ਬੁਨਿਆਦ ਸੈੱਟ ਕਰਨਾ
+### 🚀 ਚਰਨ 1: ਏਜੰਟ ਬੁਨਿਆਦੀ ਸੈਟਅਪ
 
-#### ਕਦਮ 1: ਆਪਣਾ ਏਜੰਟ ਸ਼ੁਰੂ ਕਰੋ  
-1. **AI Toolkit Agent Builder ਖੋਲ੍ਹੋ**  
-2. **ਨਵਾਂ ਏਜੰਟ ਬਣਾਓ** ਹੇਠਾਂ ਦਿੱਤੀ ਸੰਰਚਨਾ ਨਾਲ:  
-   - **ਨਾਮ**: `BrowserAgent`  
-   - **ਮਾਡਲ**: GPT-4o ਚੁਣੋ  
+#### ਕਦਮ 1: ਆਪਣੇ ਏਜੰਟ ਨੂੰ ਸ਼ੁਰੂ ਕਰੋ
+1. **Microsoft Foundry Toolkit Agent Builder ਖੋਲ੍ਹੋ**
+2. **ਨਵਾਂ ਏਜੰਟ ਬਣਾਓ** ਇਸ ਸੰਰਚਨਾ ਨਾਲ:
+   - **ਨਾਂ**: `BrowserAgent`
+   - **ਮਾਡਲ**: GPT-4o ਚੁਣੋ
 
 ![BrowserAgent](../../../../translated_images/pa/BrowserAgent.09c1adde5e136573.webp)
 
-### 🔧 ਦੂਜਾ ਚਰਨ: MCP ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਵਰਕਫਲੋ
 
-#### ਕਦਮ 3: MCP ਸਰਵਰ ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਸ਼ਾਮਲ ਕਰੋ  
-1. Agent Builder ਵਿੱਚ ਟੂਲ ਸੈਕਸ਼ਨ 'ਤੇ ਜਾਓ  
-2. **"Add Tool"** 'ਤੇ ਕਲਿੱਕ ਕਰੋ ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਮੀਨੂ ਖੋਲ੍ਹਣ ਲਈ  
-3. ਉਪਲਬਧ ਵਿਕਲਪਾਂ ਵਿੱਚੋਂ **"MCP Server"** ਚੁਣੋ  
+### 🔧 ਚਰਨ 2: MCP ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਵਰਕਫਲੋ
+
+#### ਕਦਮ 3: MCP ਸਰਵਰ ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਸ਼ਾਮਲ ਕਰੋ
+1. **Agent Builder ਵਿੱਚ ਟੂਲ ਸੈਕਸ਼ਨ ਤੇ ਜਾਓ**
+2. **"Add Tool" 'ਤੇ ਕਲਿਕ ਕਰੋ** ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਮੀਨੂ ਖੋਲ੍ਹਣ ਲਈ
+3. **ਉਪਲਬਧ ਵਿਕਲਪਾਂ ਵਿੱਚੋਂ "MCP Server" ਚੁਣੋ**
 
 ![AddMCP](../../../../translated_images/pa/AddMCP.afe3308ac20aa944.webp)
 
-**🔍 ਟੂਲ ਕਿਸਮਾਂ ਨੂੰ ਸਮਝਣਾ:**  
-- **Built-in Tools**: ਪਹਿਲਾਂ ਤੋਂ ਸੰਰਚਿਤ AI Toolkit ਫੰਕਸ਼ਨ  
-- **MCP Servers**: ਬਾਹਰੀ ਸੇਵਾ ਇੰਟੀਗ੍ਰੇਸ਼ਨ  
-- **Custom APIs**: ਤੁਹਾਡੇ ਆਪਣੇ ਸੇਵਾ ਐਂਡਪੌਇੰਟ  
-- **Function Calling**: ਮਾਡਲ ਫੰਕਸ਼ਨ ਤੱਕ ਸਿੱਧਾ ਪਹੁੰਚ
+**🔍 ਟੂਲ ਕਿਸਮਾਂ ਨੂੰ ਸਮਝਣਾ:**
+- **ਬਿਲਟ-ਇਨ ਟੂਲਜ਼**: ਪਹਿਲਾਂ ਤੋਂ ਸੰਰਚਿਤ Microsoft Foundry Toolkit ਫੰਕਸ਼ਨ
+- **MCP ਸਰਵਰ**: ਬਾਹਰੀ ਸੇਵਾ ਇੰਟੀਗ੍ਰੇਸ਼ਨ
+- **ਕਸਟਮ APIs**: ਤੁਹਾਡੇ ਖੁਦ ਦੇ ਸਰਵਿਸ ਐਂਡਪੌਇੰਟ
+- **ਫੰਕਸ਼ਨ ਕਾਲਿੰਗ**: ਸਿੱਧਾ ਮਾਡਲ ਫੰਕਸ਼ਨ ਐਕਸੈੱਸ
 
-#### ਕਦਮ 4: MCP ਸਰਵਰ ਚੁਣੋ  
-1. ਅੱਗੇ ਵਧਣ ਲਈ **"MCP Server"** ਵਿਕਲਪ ਚੁਣੋ  
+#### ਕਦਮ 4: MCP ਸਰਵਰ ਚੋਣ
+1. **"MCP Server" ਵਿਕਲਪ ਚੁਣੋ**
 ![AddMCPServer](../../../../translated_images/pa/AddMCPServer.69b911ccef872cbd.webp)
 
-2. ਉਪਲਬਧ ਇੰਟੀਗ੍ਰੇਸ਼ਨਾਂ ਨੂੰ ਵੇਖਣ ਲਈ MCP ਕੈਟਾਲੌਗ ਬ੍ਰਾਊਜ਼ ਕਰੋ  
+2. **ਇੰਟੀਗ੍ਰੇਸ਼ਨਾਂ ਦੀ ਲਿਸਟ ਵੇਖਣ ਲਈ MCP ਕੈਟਾਲਾਗ ਬ੍ਰਾਊਜ਼ ਕਰੋ**
 ![MCPCatalog](../../../../translated_images/pa/MCPCatalog.a817d05314569900.webp)
 
-### 🎮 ਤੀਜਾ ਚਰਨ: Playwright MCP ਸੰਰਚਨਾ
 
-#### ਕਦਮ 5: Playwright ਚੁਣੋ ਅਤੇ ਸੰਰਚਿਤ ਕਰੋ  
-1. Microsoft ਦੇ ਪ੍ਰਮਾਣਿਤ ਸਰਵਰਾਂ ਤੱਕ ਪਹੁੰਚ ਲਈ **"Use Featured MCP Servers"** 'ਤੇ ਕਲਿੱਕ ਕਰੋ  
-2. ਪ੍ਰਮੁੱਖ ਸੂਚੀ ਵਿੱਚੋਂ **"Playwright"** ਚੁਣੋ  
-3. ਡਿਫਾਲਟ MCP ID ਸਵੀਕਾਰ ਕਰੋ ਜਾਂ ਆਪਣੇ ਵਾਤਾਵਰਣ ਲਈ ਕਸਟਮਾਈਜ਼ ਕਰੋ  
+### 🎮 ਚਰਨ 3: Playwright MCP ਸੰਰਚਨਾ
+
+#### ਕਦਮ 5: Playwright ਚੁਣੋ ਅਤੇ ਸੰਰਚਿਤ ਕਰੋ
+1. **"Use Featured MCP Servers" ਤੇ ਕਲਿਕ ਕਰੋ Microsoft ਦੇ ਪ੍ਰਮਾਣਿਤ ਸਰਵਰ ਤੱਕ ਪਹੁੰਚ ਲਈ**
+2. **ਲਿਸਟ ਵਿੱਚੋਂ "Playwright" ਚੁਣੋ**
+3. **ਡਿਫਾਲਟ MCP ID ਸਵੀਕਾਰ ਕਰੋ ਜਾਂ ਆਪਣੇ ਵਾਤਾਵਰਣ ਲਈ ਕਸਟਮਾਈਜ਼ ਕਰੋ**
 
 ![MCPID](../../../../translated_images/pa/MCPID.67d446052979e819.webp)
 
-#### ਕਦਮ 6: Playwright ਸਮਰੱਥਾਵਾਂ ਨੂੰ ਯੋਗ ਕਰੋ  
-**🔑 ਜਰੂਰੀ ਕਦਮ**: ਵੱਧ ਤੋਂ ਵੱਧ ਕਾਰਗਰਤਾ ਲਈ ਸਾਰੇ Playwright ਮੈਥਡ ਚੁਣੋ  
+#### ਕਦਮ 6: Playwright ਦੀਆਂ ਸਮਰੱਥਾਵਾਂ ਯੋਗ ਕਰੋ
+**🔑 ਜ਼ਰੂਰੀ ਕਦਮ**: ਸਰਵਿਆਪਤ ਕਾਰਗੁਜ਼ਾਰੀ ਲਈ ਸਾਰੇ Playwright ਢੰਗਾਂ ਨੂੰ ਚੁਣੋ
 
 ![Tools](../../../../translated_images/pa/Tools.3ea23c447b4d9fec.webp)
 
-**🛠️ ਜਰੂਰੀ Playwright ਟੂਲ:**  
-- **ਨੈਵੀਗੇਸ਼ਨ**: `goto`, `goBack`, `goForward`, `reload`  
-- **ਇੰਟਰੈਕਸ਼ਨ**: `click`, `fill`, `press`, `hover`, `drag`  
-- **ਨਿਕਾਸ**: `textContent`, `innerHTML`, `getAttribute`  
-- **ਵੈਰੀਫਿਕੇਸ਼ਨ**: `isVisible`, `isEnabled`, `waitForSelector`  
-- **ਕੈਪਚਰ**: `screenshot`, `pdf`, `video`  
+**🛠️ ਮੁੱਖ Playwright ਟੂਲਜ਼:**
+- **ਨੈਵੀਗੇਸ਼ਨ**: `goto`, `goBack`, `goForward`, `reload`
+- **ਇੰਟਰੈਕਸ਼ਨ**: `click`, `fill`, `press`, `hover`, `drag`
+- **ਐਕਸਟ੍ਰੈਕਸ਼ਨ**: `textContent`, `innerHTML`, `getAttribute`
+- **ਪ੍ਰਮਾਣਿਕਤਾ**: `isVisible`, `isEnabled`, `waitForSelector`
+- **ਕੈਪਚਰ**: `screenshot`, `pdf`, `video`
 - **ਨੈੱਟਵਰਕ**: `setExtraHTTPHeaders`, `route`, `waitForResponse`
 
-#### ਕਦਮ 7: ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਸਫਲਤਾ ਦੀ ਜਾਂਚ ਕਰੋ  
-**✅ ਸਫਲਤਾ ਦੇ ਨਿਸ਼ਾਨ:**  
-- ਸਾਰੇ ਟੂਲ Agent Builder ਇੰਟਰਫੇਸ ਵਿੱਚ ਦਿਖਾਈ ਦੇ ਰਹੇ ਹਨ  
-- ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਪੈਨਲ ਵਿੱਚ ਕੋਈ ਗਲਤੀ ਸੁਨੇਹਾ ਨਹੀਂ  
-- Playwright ਸਰਵਰ ਸਥਿਤੀ "Connected" ਦਿਖਾ ਰਿਹਾ ਹੈ  
+#### ਕਦਮ 7: ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਦੀ ਸਫਲਤਾ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
+**✅ ਸਫਲਤਾ ਨਿਸ਼ਾਨ:**
+- ਸਾਰੇ ਟੂਲ Agent Builder ਇੰਟਰਫੇਸ ਵਿੱਚ ਦਿੱਖ ਰਹੇ ਹਨ
+- ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਪੈਨਲ ਵਿੱਚ ਕੋਈ ਗਲਤੀ ਸੁਨੇਹੇ ਨਹੀਂ
+- Playwright ਸਰਵਰ ਦੀ ਸਥਿਤੀ "Connected" ਦਿਖਾ ਰਹੀ ਹੈ
 
 ![AgentTools](../../../../translated_images/pa/AgentTools.053cfb96a17e0219.webp)
 
-**🔧 ਆਮ ਸਮੱਸਿਆਵਾਂ ਅਤੇ ਹੱਲ:**  
-- **ਕਨੈਕਸ਼ਨ ਫੇਲ**: ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਅਤੇ ਫਾਇਰਵਾਲ ਸੈਟਿੰਗਾਂ ਚੈੱਕ ਕਰੋ  
-- **ਟੂਲ ਗਾਇਬ**: ਸੈੱਟਅਪ ਦੌਰਾਨ ਸਾਰੀਆਂ ਸਮਰੱਥਾਵਾਂ ਚੁਣੀਆਂ ਗਈਆਂ ਹਨ ਇਹ ਯਕੀਨੀ ਬਣ
-IMPORTANT RULES:
-1. ਅਨੁਵਾਦ ਦੇ ਆਲੇ-ਦੁਆਲੇ '''markdown ਜਾਂ ਹੋਰ ਕਿਸੇ ਵੀ ਟੈਗ ਨੂੰ ਨਾ ਜੋੜੋ
-2. ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਅਨੁਵਾਦ ਬਹੁਤ ਜ਼ਿਆਦਾ ਸ਼ਾਬਦਿਕ ਨਾ ਲੱਗੇ
-3. ਟਿੱਪਣੀਆਂ ਦਾ ਵੀ ਅਨੁਵਾਦ ਕਰੋ
-4. ਇਹ ਫਾਈਲ Markdown ਫਾਰਮੈਟ ਵਿੱਚ ਲਿਖੀ ਗਈ ਹੈ - ਇਸਨੂੰ XML ਜਾਂ HTML ਵਾਂਗ ਨਾ ਸਮਝੋ
-5. ਅਨੁਵਾਦ ਨਾ ਕਰੋ:
-   - [!NOTE], [!WARNING], [!TIP], [!IMPORTANT], [!CAUTION]
-   - ਵੈਰੀਏਬਲ ਨਾਮ, ਫੰਕਸ਼ਨ ਨਾਮ, ਕਲਾਸ ਨਾਮ
-   - @@INLINE_CODE_x@@ ਜਾਂ @@CODE_BLOCK_x@@ ਵਰਗੇ ਪਲੇਸਹੋਲਡਰ
-   - URLs ਜਾਂ ਪਾਥ
-6. ਸਾਰੇ ਮੂਲ markdown ਫਾਰਮੈਟਿੰਗ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖੋ
-7. ਸਿਰਫ ਅਨੁਵਾਦਿਤ ਸਮੱਗਰੀ ਵਾਪਸ ਕਰੋ, ਕਿਸੇ ਹੋਰ ਟੈਗ ਜਾਂ ਮਾਰਕਅੱਪ ਦੇ ਬਿਨਾਂ
+**🔧 ਆਮ ਸਮੱਸਿਆਵਾਂ ਅਤੇ ਹੱਲ:**
+- **ਕਨੈਕਸ਼ਨ ਅਸਫਲ**: ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਅਤੇ ਫਾਇਰਵਾਲ ਸੈਟਿੰਗਜ਼ ਦੀ ਜਾਂਚ ਕਰੋ
+- **ਟੂਲ ਮੌਜੂਦ ਨਹੀਂ**: ਯਕੀਨ ਕਰੋ ਕਿ ਸਾਰੀਆਂ ਸਮਰੱਥਾਵਾਂ ਚੁਣੀਆਂ ਗਈਆਂ ਹਨ
+- **ਪ੍ਰਮਿਸ਼ਨ ਚੁਕ**: VS Code ਕੋਲ ਲੋੜੀਂਦੇ ਪ੍ਰਣਾਲੀ ਅਧਿਕਾਰ ਹਨ ਇਹ ਚੈੱਕ ਕਰੋ
 
-- ਸ਼ੁਰੂ ਤੋਂ ਇੱਕ Weather MCP ਸਰਵਰ ਬਣਾਓ
+### 🎯 ਚਰਨ 4: ਅਡਵਾਂਸਡ ਪ੍ਰਾਂਪਟ ਇੰਜੀਨੀਅਰਿੰਗ
 
-**ਅਸਵੀਕਾਰੋਪਣ**:  
-ਇਹ ਦਸਤਾਵੇਜ਼ AI ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਅਨੁਵਾਦਿਤ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾ ਲਈ ਕੋਸ਼ਿਸ਼ ਕਰਦੇ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮਰਥਤਾਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਪ੍ਰਮਾਣਿਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਮਹੱਤਵਪੂਰਨ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੀ ਵਰਤੋਂ ਤੋਂ ਉਤਪੰਨ ਕਿਸੇ ਵੀ ਗਲਤਫਹਮੀ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆ ਲਈ ਜ਼ਿੰਮੇਵਾਰ ਨਹੀਂ ਹਾਂ।
+#### ਕਦਮ 8: ਸਮਝਦਾਰ ਸਿਸਟਮ ਪ੍ਰਾਂਪਟ ਡਿਜ਼ਾਈਨ ਕਰੋ
+Playwright ਦੀਆਂ ਪੂਰੀਆਂ ਸਮਰੱਥਾਵਾਂ ਨੂੰ ਵਰਤਦੇ ਹੋਏ ਮਨੋਹਰ ਪ੍ਰਾਂਪਟ ਬਣਾਓ:
+
+```markdown
+# Web Automation Expert System Prompt
+
+## Core Identity
+You are an advanced web automation specialist with deep expertise in browser automation, web scraping, and user experience analysis. You have access to Playwright tools for comprehensive browser control.
+
+## Capabilities & Approach
+### Navigation Strategy
+- Always start with screenshots to understand page layout
+- Use semantic selectors (text content, labels) when possible
+- Implement wait strategies for dynamic content
+- Handle single-page applications (SPAs) effectively
+
+### Error Handling
+- Retry failed operations with exponential backoff
+- Provide clear error descriptions and solutions
+- Suggest alternative approaches when primary methods fail
+- Always capture diagnostic screenshots on errors
+
+### Data Extraction
+- Extract structured data in JSON format when possible
+- Provide confidence scores for extracted information
+- Validate data completeness and accuracy
+- Handle pagination and infinite scroll scenarios
+
+### Reporting
+- Include step-by-step execution logs
+- Provide before/after screenshots for verification
+- Suggest optimizations and alternative approaches
+- Document any limitations or edge cases encountered
+
+## Ethical Guidelines
+- Respect robots.txt and rate limiting
+- Avoid overloading target servers
+- Only extract publicly available information
+- Follow website terms of service
+```
+
+#### ਕਦਮ 9: ਡਾਇਨਾਮਿਕ ਯੂਜ਼ਰ ਪ੍ਰਾਂਪਟ ਬਣਾਓ
+ਵੱਖ-ਵੱਖ ਸਮਰੱਥਾਵਾਂ ਨੂੰ ਦਰਸਾਉਣ ਵਾਲੇ ਪ੍ਰਾਂਪਟ ਬਣਾਓ:
+
+**🌐 ਵੈੱਬ ਵਿਸ਼ਲੇਸ਼ਣ ਉਦਾਹਰਨ:**
+```markdown
+Navigate to github.com/kinfey and provide a comprehensive analysis including:
+1. Repository structure and organization
+2. Recent activity and contribution patterns  
+3. Documentation quality assessment
+4. Technology stack identification
+5. Community engagement metrics
+6. Notable projects and their purposes
+
+Include screenshots at key steps and provide actionable insights.
+```
+
+![Prompt](../../../../translated_images/pa/Prompt.bfc846605db4999f.webp)
+
+### 🚀 ਚਰਨ 5: ਕਿਰਿਆਨਵਯਨ ਅਤੇ ਟੈਸਟਿੰਗ
+
+#### ਕਦਮ 10: ਆਪਣੀ ਪਹਿਲੀ ਆਟੋਮੇਸ਼ਨ ਚਲਾਓ
+1. **"Run" ਤੇ ਕਲਿਕ ਕਰਕੇ ਆਟੋਮੇਸ਼ਨ ਲਾਂਚ ਕਰੋ**
+2. **ਰੀਅਲ-ਟਾਈਮ ਕਿਰਿਆ ਨਿਰੀਖਣ ਕਰੋ**:
+   - Chrome ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੈਟਿਕ ਖੁਲਦਾ ਹੈ
+   - ਏਜੰਟ ਟਾਰਗੇਟ ਵੈੱਬਸਾਈਟ ਤੇ ਜਾਂਦਾ ਹੈ
+   - ਹਰ ਮੁੱਖ ਕਦਮ ਦੀ ਸਕ੍ਰੀਨਸ਼ਾਟ ਲੈਂਦਾ ਹੈ
+   - ਵਿਸ਼ਲੇਸ਼ਣ ਨਤੀਜੇ ਰੀਅਲ-ਟਾਈਮ ਵਿੱਚ ਆਉਂਦੇ ਹਨ
+
+![Browser](../../../../translated_images/pa/Browser.ec011d0bd64d0d11.webp)
+
+#### ਕਦਮ 11: ਨਤੀਜਿਆਂ ਅਤੇ ਸੂਝਾਂ ਦੀ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ
+Agent Builder ਦੀ ਇੰਟਰਫੇਸ ਵਿੱਚ ਵਿਆਪਕ ਵਿਸ਼ਲੇਸ਼ਣ ਦੀ ਸਮੀਖਿਆ ਕਰੋ:
+
+![Result](../../../../translated_images/pa/Result.8638f2b6703e9ea6.webp)
+
+### 🌟 ਚਰਨ 6: ਅਡਵਾਂਸਡ ਸਮਰੱਥਾਵਾਂ ਅਤੇ ਡਿਪਲੌਇਮੈਂਟ
+
+#### ਕਦਮ 12: ਐਕਸਪੋਰਟ ਅਤੇ ਪ੍ਰੋਡਕਸ਼ਨ ਡਿਪਲੌਇਮੈਂਟ
+Agent Builder ਅਨੇਕ ਡਿਪਲੌਇਮੈਂਟ ਵਿਕਲਪ ਸਹਾਇਤਾ ਕਰਦਾ ਹੈ:
+
+![Code](../../../../translated_images/pa/Code.d9eeeead0b96db0c.webp)
+
+## 🎓 Module 2 ਸੰਖੇਪ ਅਤੇ ਅਗਲੇ ਕਦਮ
+
+### 🏆 ਪ੍ਰਾਪਤੀ ਖੋਲ੍ਹੀ: MCP ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਮਾਹਿਰ
+
+**✅ ਮਾਹਰ ਹੈਂ:**
+- [ ] MCP ਦੀ ਬਣਤਰ ਅਤੇ ਲਾਭ ਸਮਝਣਾ
+- [ ] Microsoft ਦੇ MCP ਸਰਵਰ ਇਕੋਸਿਸਟਮ ਵਿੱਚ ਭਾਲ ਕਰਨਾ
+- [ ] Playwright MCP ਨੂੰ Microsoft Foundry Toolkit ਨਾਲ ਜੋੜਨਾ
+- [ ] ਸੁਧਰੇ ਹੋਏ ਬ੍ਰਾਊਜ਼ਰ ਆਟੋਮੇਸ਼ਨ ਏਜੰਟ ਬਣਾਉਣਾ
+- [ ] ਵੈੱਬ ਆਟੋਮੇਸ਼ਨ ਲਈ ਅਗਾਂਹ ਪ੍ਰਾਂਪਟ ਇੰਜੀਨੀਅਰਿੰਗ
+
+### 📚 ਵਾਧੂ ਸਾਧਨ
+
+- **🔗 MCP ਵਿਸ਼ੇਸ਼ਗਤਾ**: [ਅਧਿਕਤਮ ਪ੍ਰੋਟੋਕੋਲ ਦਸਤਾਵੇਜ਼](https://modelcontextprotocol.io/)
+- **🛠️ Playwright API**: [ਪੂਰੀ ਮੈਥਡ ਰੈਫਰੈਂਸ](https://playwright.dev/docs/api/class-playwright)
+- **🏢 Microsoft MCP ਸਰਵਰਸ**: [ਐਂਟਰਪ੍ਰਾਈਜ਼ ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਗਾਈਡ](https://github.com/microsoft/mcp-servers)
+- **🌍 ਕਮਿਊਨਿਟੀ ਉਦਾਹਰਨਾਂ**: [MCP Server Gallery](https://github.com/modelcontextprotocol/servers)
+
+**🎉 ਵਧਾਈਆਂ!** ਤੁਸੀਂ MCP ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਵਿੱਚ ਸਫਲਤਾ ਹਾਸਲ ਕਰ ਲਈ ਹੈ ਅਤੇ ਹੁਣ ਤੁਸੀਂ ਬਾਹਰੀ ਟੂਲ ਸਮਰੱਥਾਵਾਂ ਵਾਲੇ ਪ੍ਰੋਡਕਸ਼ਨ-ਰੇਡੀ AI ਏਜੰਟ ਬਣਾ ਸਕਦੇ ਹੋ!
+
+
+### 🔜 ਅਗਲੇ ਮੋਡੀਊਲ ਤੇ ਜਾਰੀ ਰੱਖੋ
+
+ਆਪਣੀਆਂ MCP ਹੁਨਰਤਾਂ ਅਗਲੇ ਪੱਧਰ ’ਤੇ ਲੈ ਜਾਣ ਲਈ ਤਿਆਰ? ਅੱਗੇ ਵਧੋ **[Module 3: Advanced MCP Development with Microsoft Foundry Toolkit](../lab3/README.md)** ਜਿੱਥੇ ਤੁਸੀਂ ਸਿੱਖੋਗੇ:
+- ਆਪਣੇ ਕਸਟਮ MCP ਸਰਵਰ ਬਣਾਉਣਾ
+- ਨਵੀਂ MCP Python SDK ਸੰਰਚਿਤ ਅਤੇ ਵਰਤਣਾ
+- MCP ਇੰਸਪੈਕਟਰ ਡਿਬੱਗਿੰਗ ਲਈ ਸੈੱਟਅਪ ਕਰਨਾ
+- ਅਗਾਂਹ MCP ਸਰਵਰ ਵਿਕਾਸ ਵਰਕਫਲੋਜ਼ ਵਿੱਚ ਮਾਹਰ ਬਣਨਾ
+- ਸ਼ੁਰੂ ਤੋਂ Weather MCP Server ਬਣਾਉਣਾ
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ਅਸਵੀਕਾਰੋਪਣ**:
+ਇਸ ਦਸਤਾਵੇਜ਼ ਦਾ ਅਨੁਵਾਦ ਏਆਈ ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾਵਾਂ ਲਈ ਯਤਨਸ਼ੀਲ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮੱਤਿਆਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਅਧਿਕਾਰਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਜਰੂਰੀ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫ਼ਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੇ ਉਪਯੋਗ ਤੋਂ ਪੈਦਾ ਹੋਣ ਵਾਲੀਆਂ ਕਿਸੇ ਵੀ ਗਲਤਫਹਿਮੀਆਂ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆਵਾਂ ਲਈ ਜਵਾਬਦੇਹ ਨਹੀਂ ਹਾਂ।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

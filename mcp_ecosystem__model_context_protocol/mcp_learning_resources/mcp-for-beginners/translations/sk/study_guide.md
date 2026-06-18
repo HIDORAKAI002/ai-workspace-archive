@@ -1,156 +1,157 @@
-# Model Context Protocol (MCP) pre začiatočníkov - študijný sprievodca
+# Model Context Protocol (MCP) pre začiatočníkov - Študijný sprievodca
 
-Tento študijný sprievodca poskytuje prehľad štruktúry a obsahu repozitára pre kurz „Model Context Protocol (MCP) pre začiatočníkov“. Použite tento sprievodca na efektívnu navigáciu v repozitári a maximálne využitie dostupných zdrojov.
+Tento študijný sprievodca poskytuje prehľad o štruktúre a obsahu repozitára pre učebný plán „Model Context Protocol (MCP) pre začiatočníkov“. Použite tento sprievodca na efektívnu orientáciu v repozitári a maximálne využitie dostupných zdrojov.
 
 ## Prehľad repozitára
 
-Model Context Protocol (MCP) je štandardizovaný rámec pre interakcie medzi AI modelmi a klientskymi aplikáciami. MCP pôvodne vytvorila spoločnosť Anthropic, teraz ho udržiava širšia komunita MCP prostredníctvom oficiálnej GitHub organizácie. Tento repozitár poskytuje komplexný učebný plán s praktickými príkladmi kódu v C#, Java, JavaScript, Python a TypeScript, ktorý je určený pre AI vývojárov, systémových architektov a softvérových inžinierov.
+Model Context Protocol (MCP) je štandardizovaný rámec pre interakcie medzi AI modelmi a klientskymi aplikáciami. Pôvodne vytvorený spoločnosťou Anthropic, MCP je teraz udržiavaný širšou komunitou MCP prostredníctvom oficiálnej GitHub organizácie. Tento repozitár poskytuje komplexný učebný plán s praktickými ukážkami kódu v C#, Java, JavaScript, Python a TypeScript, navrhnutý pre AI vývojárov, systémových architektov a softvérových inžinierov.
 
 ## Vizualizácia učebného plánu
 
 ```mermaid
 mindmap
-  root((MCP pre Začiatočníkov))
+  root((MCP pre začiatočníkov))
     00. Úvod
       ::icon(fa fa-book)
-      (Prehľad Protokolu)
-      (Výhody Štandardizácie)
-      (Reálne Príklady Použitia)
-      (Základy Integrácie AI)
-    01. Základné Koncepty
+      (Prehľad protokolu)
+      (Výhody štandardizácie)
+      (Príklady používania v reálnom svete)
+      (Základy integrácie AI)
+    01. Základné koncepty
       ::icon(fa fa-puzzle-piece)
-      (Klient-Server Architektúra)
-      (Komponenty Protokolu)
-      (Vzorové Vzory Správ)
-      (Prenosové Mechanizmy)
-      (Úlohy - Experimentálne)
-      (Anotácie Nástrojov)
+      (Klient-server architektúra)
+      (Komponenty protokolu)
+      (Vzory správy)
+      (Prenosové mechanizmy)
+      (Úlohy - experimentálne)
+      (Anotácie nástrojov)
     02. Bezpečnosť
       ::icon(fa fa-shield)
-      (Hrozby Špecifické pre AI)
-      (Najlepšie Praktiky 2025)
-      (Bezpečnosť Obsahu Azure)
-      (Autentifikácia a Autorizácia)
-      (Microsoft Ochrana Promptov)
+      (Hrozby špecifické pre AI)
+      (Najlepšie praktiky 2025)
+      (Azure obsahová bezpečnosť)
+      (Autentifikácia a autorizácia)
+      (Microsoft prompt štíty)
       (OWASP MCP Top 10)
-      (Sherpa Bezpečnostný Workshop)
+      (Sherpa bezpečnostný workshop)
     03. Začíname
       ::icon(fa fa-rocket)
-      (Prvá Implementácia Servera)
-      (Vývoj Klienta)
-      (Integrácia LLM Klienta)
+      (Prvá implementácia servera)
+      (Vývoj klienta)
+      (Integrácia LLM klienta)
       (Rozšírenia VS Code)
-      (Nastavenie SSE Servera)
-      (HTTP Streaming)
-      (Integrácia AI Nástrojov)
-      (Testovacie Frameworky)
-      (Pokročilé Použitie Servera)
-      (Jednoduchá Autentifikácia)
-      (Strategie Nasadenia)
-      (Nastavenie MCP Hostiteľov)
-      (MCP Inšpektor)
-    04. Praktická Implementácia
+      (Nastavenie SSE servera)
+      (HTTP streamovanie)
+      (Integrácia AI nástrojového balíka)
+      (Testovacie rámce)
+      (Pokročilé používanie servera)
+      (Jednoduchá autentifikácia)
+      (Stratégie nasadenia)
+      (Nastavenie MCP hostiteľov)
+      (MCP inspektor)
+    04. Praktická implementácia
       ::icon(fa fa-code)
-      (SDK pre Viacero Jazykov)
-      (Testovanie a Ladenie)
-      (Šablóny Promptov)
-      (Ukážkové Projekty)
-      (Vzory Produkčného Použitia)
-      (Strategie Stránkovania)
-    05. Pokročilé Témy
+      (SDK pre viacero jazykov)
+      (Testovanie a ladenie)
+      (Šablóny promptov)
+      (Ukážkové projekty)
+      (Produkčné vzory)
+      (Stratégie stránkovania)
+    05. Pokročilé témy
       ::icon(fa fa-graduation-cap)
-      (Inžinierstvo Kontextu)
-      (Integrácia Foundry Agenta)
-      (Viacmodálne AI Pracovné Procesy)
-      (OAuth2 Autentifikácia)
-      (Vyhľadávanie v Reálnom Čase)
-      (Streamingové Protokoly)
-      (Koreňové Kontexty)
-      (Strategie Smerovania)
-      (Vzorkovacie Techniky)
-      (Riešenia Škálovania)
-      (Spevňovanie Bezpečnosti)
+      (Inžinierstvo kontextu)
+      (Integrácia Foundry agenta)
+      (Multi-modálne AI pracovné toky)
+      (OAuth2 autentifikácia)
+      (Vyhľadávanie v reálnom čase)
+      (Streamingové protokoly)
+      (Root kontexty)
+      (Stratégie routovania)
+      (Techniky vzorkovania)
+      (Riešenia škálovania)
+      (Zosilnenie bezpečnosti)
       (Integrácia Entra ID)
-      (Webové Vyhľadávanie MCP)
-      (Hlboký Rozbor Funkcií Protokolu)
-      (Adversariálne Multiagentné Uvažovanie)
+      (Webové vyhľadávanie MCP)
+      (Hĺbkový ponor do funkcií protokolu)
+      (Adversariálne multi-agentné uvažovanie)
       
     06. Komunita
       ::icon(fa fa-users)
-      (Príspevky do Kódu)
+      (Príspevky do kódu)
       (Dokumentácia)
-      (Ekosystém MCP Klientov)
-      (Registrov MCP Serverov)
-      (Nástroje na Generovanie Obrázkov)
+      (Ekosystém MCP klientov)
+      (Registrácia MCP serverov)
+      (Nástroje na generovanie obrázkov)
       (Spolupráca na GitHub)
-    07. Skoré Prijatie
+    07. Skoré prijatie
       ::icon(fa fa-lightbulb)
-      (Produkčné Nasadenia)
-      (Microsoft MCP Servery)
-      (Azure MCP Služba)
-      (Prípadové Štúdie Podnikov)
-      (Budúci Plán)
-    08. Najlepšie Praktiky
+      (Produkčné nasadenia)
+      (Microsoft MCP servery)
+      (Azure MCP služba)
+      (Prípadové štúdie pre podniky)
+      (Plán vývoja do budúcna)
+    08. Najlepšie postupy
       ::icon(fa fa-check)
-      (Optimalizácia Výkonu)
-      (Odolnosť voči Chybám)
-      (Odlolnosť Systému)
-      (Monitorovanie a Pozorovateľnosť)
-    09. Prípadové Štúdie
+      (Optimalizácia výkonnosti)
+      (Odolnosť voči chybám)
+      (Odolnosť systému)
+      (Monitorovanie a pozorovateľnosť)
+    09. Prípadové štúdie
       ::icon(fa fa-file-text)
-      (Správa API Azure)
-      (AI Cestovný Agent)
+      (Azure API manažment)
+      (AI cestovný agent)
       (Integrácia Azure DevOps)
       (Dokumentácia MCP)
-      (Register MCP na GitHub)
+      (Registrácia MCP na GitHub)
       (Integrácia VS Code)
-      (Reálne Implementácie)
-    10. Praktický Workshop
+      (Implementácie v reálnom svete)
+    10. Praktický workshop
       ::icon(fa fa-laptop)
-      (Základy MCP Servera)
-      (Pokročilý Vývoj)
-      (Integrácia AI Nástrojov)
-      (Produkčné Nasadenie)
-      (Štruktúra 4 Laboratórií)
-    11. Laboratóriá Integrácie Databázy
+      (Základy MCP servera)
+      (Pokročilý vývoj)
+      (Integrácia AI nástrojového balíka)
+      (Produkčné nasadenie)
+      (Štruktúra 4 laboratórií)
+    11. Laboratóriá integrácie databáz
       ::icon(fa fa-database)
       (Integrácia PostgreSQL)
-      (Prípad Použitia Retail Analytiky)
-      (Bezpečnosť na Úrovni Riadku)
-      (Sémantické Vyhľadávanie)
-      (Produkčné Nasadenie)
-      (Štruktúra 13 Laboratórií)
-      (Praktické Učenie)
+      (Prípad použitia retail analýzy)
+      (Bezpečnosť na úrovni riadkov)
+      (Sémantické vyhľadávanie)
+      (Produkčné nasadenie)
+      (Štruktúra 13 laboratórií)
+      (Praktické učenie)
 ```
+
 ## Štruktúra repozitára
 
-Repozitár je organizovaný do jedenástich hlavných sekcií, pričom každá sa zameriava na rôzne aspekty MCP:
+Repozitár je usporiadaný do jedenástich hlavných sekcií, z ktorých každá sa zameriava na rôzne aspekty MCP:
 
 1. **Úvod (00-Introduction/)**
-   - Prehľad Model Context Protocolu
+   - Prehľad Model Context Protocol
    - Prečo je štandardizácia dôležitá v AI pipeline
    - Praktické prípady použitia a výhody
 
 2. **Základné koncepty (01-CoreConcepts/)**
    - Klient-server architektúra
    - Kľúčové komponenty protokolu
-   - Vzory odosielania správ v MCP
+   - Komunikačné vzory v MCP
 
 3. **Bezpečnosť (02-Security/)**
-   - Hrozby bezpečnosti v systémoch založených na MCP
+   - Bezpečnostné hrozby v systémoch založených na MCP
    - Najlepšie postupy pre zabezpečenie implementácií
    - Stratégie autentifikácie a autorizácie
-   - **Komplexná bezpečnostná dokumentácia**:
+   - **Komplexná dokumentácia o bezpečnosti**:
      - MCP bezpečnostné najlepšie postupy 2025
      - Príručka implementácie Azure Content Safety
-     - MCP bezpečnostné kontroly a techniky
-     - Rýchla referencia najlepších MCP praktík
+     - Kontroly a techniky bezpečnosti MCP
+     - Rýchla referencia najlepších bezpečnostných praktík MCP
    - **Kľúčové bezpečnostné témy**:
-     - Útoky založené na vkladaní promptov a zatrucovaní nástrojov
-     - Únos relácií a problémy s nejasným sprostredkovateľom
+     - Útoky na prompt injekciu a otravu nástrojov
+     - Únos relácie a dilematu zmäteného zástupcu
      - Zraniteľnosti pri prenose tokenov
      - Nadmerné oprávnenia a kontrola prístupu
-     - Zabezpečenie dodávateľského reťazca pre AI komponenty
+     - Bezpečnosť dodávateľského reťazca AI komponentov
      - Integrácia Microsoft Prompt Shields
 
 4. **Začínáme (03-GettingStarted/)**
@@ -161,48 +162,48 @@ Repozitár je organizovaný do jedenástich hlavných sekcií, pričom každá s
      - Prvú implementáciu servera
      - Vývoj klienta
      - Integráciu LLM klienta
-     - Integráciu do VS Code
+     - Integráciu vo VS Code
      - Server-Sent Events (SSE) server
      - Pokročilé využitie servera
      - HTTP streamovanie
      - Integráciu AI Toolkit
      - Testovacie stratégie
-     - Pokyny pre nasadenie
+     - Nasadzovacie pokyny
 
 5. **Praktická implementácia (04-PracticalImplementation/)**
-   - Použitie SDK v rôznych programovacích jazykoch
-   - Ladenie, testovanie a techniky overovania
-   - Vytváranie znovupoužiteľných prompt šablón a pracovných tokov
-   - Ukážkové projekty s príkladmi implementácií
+   - Používanie SDK v rôznych programovacích jazykoch
+   - Ladenie, testovanie a validačné techniky
+   - Vytváranie znovupoužiteľných šablón promptov a pracovných tokov
+   - Ukážkové projekty s implementačnými príkladmi
 
 6. **Pokročilé témy (05-AdvancedTopics/)**
    - Techniky inžinierstva kontextu
    - Integrácia Foundry agenta
-   - Multi-modálne AI pracovné toky
+   - Multimodálne AI pracovné toky
    - Ukážky autentifikácie OAuth2
-   - Schopnosti vyhľadávania v reálnom čase
+   - Funkcie vyhľadávania v reálnom čase
    - Streamovanie v reálnom čase
    - Implementácia root kontextov
-   - Stratégie smerovania
-   - Techniky sampling-u
-   - Prístupy k škálovaniu
+   - Stratégiami routingu
+   - Techniky vzorkovania
+   - Prístupy škálovania
    - Bezpečnostné úvahy
-   - Integrácia bezpečnosti Entra ID
+   - Integrácia zabezpečenia Entra ID
    - Integrácia webového vyhľadávania
-   - Adversariálne multi-agentné uvažovanie (vzor debát)
+   - Adversariálne multi-agentné uvažovanie (debatujúce vzory)
 
 7. **Príspevky komunity (06-CommunityContributions/)**
-   - Ako prispievať kódom a dokumentáciou
+   - Ako prispieť kód a dokumentáciu
    - Spolupráca cez GitHub
-   - Vylepšenia a spätná väzba riadená komunitou
+   - Vylepšenia a spätná väzba zo strany komunity
    - Používanie rôznych MCP klientov (Claude Desktop, Cline, VSCode)
    - Práca s populárnymi MCP servermi vrátane generovania obrázkov
 
-8. **Lekcie z raného prijatia (07-LessonsfromEarlyAdoption/)**
+8. **Lekcie z raného adopčného obdobia (07-LessonsfromEarlyAdoption/)**
    - Reálne implementácie a úspešné príbehy
-   - Budovanie a nasadzovanie riešení založených na MCP
+   - Vytváranie a nasadzovanie riešení založených na MCP
    - Trendy a budúca roadmapa
-   - **Sprievodca Microsoft MCP servermi**: Komplexný sprievodca 10 produkčne pripravenými Microsoft MCP servermi vrátane:
+   - **Príručka Microsoft MCP Serverov**: Komplexný návod na 10 produkčných Microsoft MCP serverov vrátane:
      - Microsoft Learn Docs MCP Server
      - Azure MCP Server (15+ špecializovaných konektorov)
      - GitHub MCP Server
@@ -211,81 +212,81 @@ Repozitár je organizovaný do jedenástich hlavných sekcií, pričom každá s
      - SQL Server MCP Server
      - Playwright MCP Server
      - Dev Box MCP Server
-     - Azure AI Foundry MCP Server
+     - Microsoft Foundry MCP Server
      - Microsoft 365 Agents Toolkit MCP Server
 
 9. **Najlepšie praktiky (08-BestPractices/)**
    - Ladenie výkonu a optimalizácia
    - Návrh MCP systémov odolných voči chybám
-   - Testovanie a stratégie odolnosti
+   - Testovacie a odolnostné stratégie
 
 10. **Prípadové štúdie (09-CaseStudy/)**
-    - **Sedem komplexných prípadových štúdií** demonštrujúcich všestrannosť MCP naprieč rozmanitými scénarmi:
-    - **Azure AI Travel Agents**: viac-agentná orchestrácia s Azure OpenAI a AI Vyhľadávaním
-    - **Integrácia Azure DevOps**: automatizácia workflow procesov s aktualizáciami dát z YouTube
-    - **Získavanie dokumentácie v reálnom čase**: Python konzolový klient so streamovaním HTTP
-    - **Interaktívny generátor študijného plánu**: Chainlit webová aplikácia s konverzačnou AI
-    - **Dokumentácia priamo v editore**: Integrácia VS Code s GitHub Copilot pracovnými tokmi
-    - **Azure API Management**: podniková API integrácia s tvorbou MCP servera
-    - **GitHub MCP Registry**: vývoj ekosystému a platforma agentickej integrácie
-    - Príklady implementácií pokrývajúce podnikové integrácie, produktivitu vývojárov a rozvoj ekosystému
+    - **Sedem komplexných prípadových štúdií** demonštrujúcich všestrannosť MCP v rôznorodých scenároch:
+    - **Azure AI cestovné agenti**: Multi-agentná orchestrácia s Azure OpenAI a AI Search
+    - **Integrácia Azure DevOps**: Automatizácia pracovných procesov s YouTube dátovými aktualizáciami
+    - **Vyhľadávanie dokumentácie v reálnom čase**: Python konzolový klient s HTTP streamovaním
+    - **Interaktívny generátor študijných plánov**: Chainlit webová aplikácia s konverzačnou AI
+    - **Dokumentácia v editore**: Integrácia vo VS Code s GitHub Copilot pracovnými tokmi
+    - **Azure API Management**: Podniková API integrácia s vytváraním MCP servera
+    - **GitHub MCP Registry**: Vývoj ekosystému a platforma pre agentickú integráciu
+    - Implementačné príklady pokrývajúce podnikové integrácie, produktivitu vývojárov a vývoj ekosystémov
 
 11. **Praktický workshop (10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/)**
-    - Komplexný praktický workshop kombinujúci MCP s AI Toolkit
-    - Budovanie inteligentných aplikácií prepájajúcich AI modely s nástrojmi reálneho sveta
+    - Komplexný praktický workshop spájajúci MCP s AI Toolkit
+    - Vytváranie inteligentných aplikácií prepájajúcich AI modely so svetovými nástrojmi
     - Praktické moduly pokrývajúce základy, vývoj vlastného servera a stratégie produkčného nasadenia
-    - **Štruktúra laboratórií**:
-      - Laboratórium 1: Základy MCP servera
-      - Laboratórium 2: Pokročilý vývoj MCP servera
-      - Laboratórium 3: Integrácia AI Toolkit
-      - Laboratórium 4: Produkčné nasadenie a škálovanie
-    - Laboratórny prístup s krokmi na každý krok
+    - **Štruktúra labákov**:
+      - Lab 1: Základy MCP servera
+      - Lab 2: Pokročilý vývoj MCP servera
+      - Lab 3: Integrácia AI Toolkit
+      - Lab 4: Produkčné nasadenie a škálovanie
+    - Prístup učenia založený na labákoch s krokmi po kroku
 
-12. **Laboratória integrácie MCP server databázy (11-MCPServerHandsOnLabs/)**
-    - **Komplexná vzdelávacia cesta s 13 laboratóriami** pre tvorbu produkčne pripravených MCP serverov s PostgreSQL integráciou
-    - **Reálna implementácia retailovej analytiky** použitím prípadu Zava Retail
-    - **Podnikové vzory** vrátane Row Level Security (RLS), sémantického vyhľadávania a viacnájomníckeho prístupu k dátam
-    - **Kompletná štruktúra laboratórií**:
-      - **Laboratóriá 00-03: Základy** - Úvod, architektúra, bezpečnosť, nastavenie prostredia
-      - **Laboratóriá 04-06: Tvorba MCP servera** - návrh databázy, implementácia MCP servera, vývoj nástrojov
-      - **Laboratóriá 07-09: Pokročilé funkcie** - sémantické vyhľadávanie, testovanie a ladenie, integrácia VS Code
-      - **Laboratóriá 10-12: Produkcia a najlepšie praktiky** - nasadenie, monitorovanie, optimalizácia
-    - **Použité technológie**: FastMCP framework, PostgreSQL, Azure OpenAI, Azure Container Apps, Application Insights
-    - **Výsledky učenia**: Produkčne pripravené MCP servery, vzory integrácie databázy, analytika poháňaná AI, podniková bezpečnosť
+12. **Labáky pre integráciu MCP servera s databázou (11-MCPServerHandsOnLabs/)**
+    - **Komplexná 13-labová vzdelávacia cesta** pre vývoj produkčných MCP serverov s integráciou PostgreSQL
+    - **Reálna implementácia v maloobchode** použitím prípadu Zava Retail
+    - **Podnikové vzory** vrátane Row Level Security (RLS), sémantického vyhľadávania a multi-tenant prístupu k dátam
+    - **Kompletná štruktúra labákov**:
+      - **Labáky 00-03: Základy** - Úvod, architektúra, bezpečnosť, nastavenie prostredia
+      - **Labáky 04-06: Vytvorenie MCP servera** - Návrh databázy, implementácia MCP servera, vývoj nástrojov
+      - **Labáky 07-09: Pokročilé funkcie** - Sémantické vyhľadávanie, testovanie a ladenie, integrácia VS Code
+      - **Labáky 10-12: Produkcia a najlepšie praktiky** - Nasadenie, monitoring, optimalizácia
+    - **Technológie zahrnuté**: FastMCP framework, PostgreSQL, Azure OpenAI, Azure Container Apps, Application Insights
+    - **Výsledky učenia**: Produkčné MCP servery, vzory integrácie databázy, analytika podporovaná AI, podniková bezpečnosť
 
 ## Ďalšie zdroje
 
-Repozitár obsahuje podporné zdroje:
+Repozitár obsahuje aj podporné zdroje:
 
-- **Zložka obrázkov**: obsahuje diagramy a ilustrácie používané v celom učebnom pláne
-- **Preklady**: podpora viacerých jazykov s automatizovanými prekladmi dokumentácie
+- **Zložka Images**: Obsahuje diagramy a ilustrácie používané v učebnom pláne
+- **Preklady**: Podpora viacerých jazykov s automatickými prekladmi dokumentácie
 - **Oficiálne MCP zdroje**:
   - [MCP Dokumentácia](https://modelcontextprotocol.io/)
   - [MCP Špecifikácia](https://spec.modelcontextprotocol.io/)
-  - [MCP GitHub Repozitár](https://github.com/modelcontextprotocol)
+  - [MCP GitHub repozitár](https://github.com/modelcontextprotocol)
 
 ## Ako používať tento repozitár
 
-1. **Sekvenčné učenie**: Prejdite kapitoly v poriadku (od 00 do 11) pre štruktúrovaný vzdelávací zážitok.
-2. **Jazykovo špecifické zameranie**: Ak vás zaujíma konkrétny programovací jazyk, preskúmajte adresáre so vzorkami v preferovanom jazyku.
+1. **Sekvenčné učenie**: Sledujte kapitoly v poradí (00 až 11) pre štruktúrovaný výučbový zážitok.
+2. **Zameranie na konkrétny jazyk**: Ak máte záujem o konkrétny programovací jazyk, preskúmajte priečinky so vzorkami pre implementácie vo vašom preferovanom jazyku.
 3. **Praktická implementácia**: Začnite sekciou „Začínáme“ pre nastavenie prostredia a vytvorenie prvého MCP servera a klienta.
-4. **Pokročilé skúmanie**: Po zvládnutí základov sa ponorte do pokročilých tém na rozšírenie vedomostí.
-5. **Zapojenie komunity**: Pridajte sa ku komunite MCP prostredníctvom diskusií na GitHube a kanálov Discordu, aby ste sa spojili s odborníkmi a ďalšími vývojármi.
+4. **Pokročilé skúmanie**: Keď sa oboznámite so základmi, ponorte sa do pokročilých tém a rozšírte svoje znalosti.
+5. **Zapojenie komunity**: Pripojte sa ku komunite MCP prostredníctvom GitHub diskusií a Discord kanálov, aby ste sa spojili s odborníkmi a ďalšími vývojármi.
 
 ## MCP klienti a nástroje
 
-Kurz pokrýva rôznych MCP klientov a nástrojov:
+Učebný plán pokrýva rôznych MCP klientov a nástroje:
 
 1. **Oficiálni klienti**:
-   - Visual Studio Code
+   - Visual Studio Code 
    - MCP vo Visual Studio Code
    - Claude Desktop
-   - Claude vo VSCode
+   - Claude vo VSCode 
    - Claude API
 
 2. **Klienti komunity**:
    - Cline (terminálový)
-   - Cursor (editor kódu)
+   - Cursor (kódový editor)
    - ChatMCP
    - Windsurf
 
@@ -297,7 +298,7 @@ Kurz pokrýva rôznych MCP klientov a nástrojov:
 
 ## Populárne MCP servery
 
-Repozitár predstavuje rôzne MCP servery vrátane:
+Repozitár predstavuje rôzne MCP servery, vrátane:
 
 1. **Oficiálne Microsoft MCP servery**:
    - Microsoft Learn Docs MCP Server
@@ -308,7 +309,7 @@ Repozitár predstavuje rôzne MCP servery vrátane:
    - SQL Server MCP Server
    - Playwright MCP Server
    - Dev Box MCP Server
-   - Azure AI Foundry MCP Server
+   - Microsoft Foundry MCP Server
    - Microsoft 365 Agents Toolkit MCP Server
 
 2. **Oficiálne referenčné servery**:
@@ -322,7 +323,7 @@ Repozitár predstavuje rôzne MCP servery vrátane:
    - Stable Diffusion WebUI
    - Replicate
 
-4. **Nástroje pre vývoj**:
+4. **Vývojové nástroje**:
    - Git MCP
    - Terminal Control
    - Code Assistant
@@ -332,17 +333,17 @@ Repozitár predstavuje rôzne MCP servery vrátane:
    - Microsoft Teams
    - Jira & Confluence
 
-## Príspevky do repozitára
+## Príspevky
 
-Tento repozitár vítá príspevky od komunity. Pozrite sekciu Príspevky komunity pre návod, ako efektívne prispievať do MCP ekosystému.
+Tento repozitár víta príspevky od komunity. Pozrite si sekciu Príspevky komunity pre usmernenie, ako efektívne prispieť do ekosystému MCP.
 
 ----
 
-*Tento študijný sprievodca bol naposledy aktualizovaný 5. februára 2026, reflektujúc najnovšiu MCP Špecifikáciu 2025-11-25 a poskytuje prehľad repozitára k tomuto dátumu. Obsah repozitára môže byť po tomto dátume aktualizovaný.*
+*Tento študijný sprievodca bol naposledy aktualizovaný 5. februára 2026, odrážajúc najnovšiu MCP špecifikáciu 2025-11-25 a poskytuje prehľad repozitára k tomuto dátumu. Obsah repozitára môže byť po tomto dátume aktualizovaný.*
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Zrieknutie sa zodpovednosti**:
-Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Aj keď sa snažíme o presnosť, majte prosím na pamäti, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Originálny dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nezodpovedáme za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

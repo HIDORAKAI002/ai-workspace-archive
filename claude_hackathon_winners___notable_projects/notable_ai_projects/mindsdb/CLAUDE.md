@@ -65,6 +65,55 @@ git push
 
 > The parent repo stores a commit SHA pointer to each submodule, not the code itself. Always push from inside the submodule first, then update the pointer in the parent.
 
+## Working on module branches (multi-developer)
+
+The superproject pins each submodule to a commit. To let everyone develop on
+their own module branches without fighting over pins or drowning in `git status`
+noise, the workflow is:
+
+**1. `.gitmodules` sets `ignore = all` on every submodule.** Day-to-day branch
+work in a submodule never shows up as a superproject change — `git status` in the
+parent stays clean no matter what branch each module is on. (This is the only
+setting that silences "new commits in `<module>`"; `ignore = dirty` does not.)
+
+**2. Pick your branches in `dev.env`** (gitignored — copy from `dev.env.example`):
+
+```bash
+cp dev.env.example dev.env
+# REF=feat/my-thing            # all modules on one branch…
+# API_REF=feat/server-thing    # …or override per module
+```
+
+**3. `make` is the single source of truth for refs** — both run paths follow `dev.env`:
+
+| Command | What it does |
+|---|---|
+| `make refs` | print the refs the next run will use |
+| `make use` | check out those refs across all submodules |
+| `make dev` / `make dev-web` | run the **local submodule source** (`--reload`) — follows the checked-out branch |
+| `make server` | (re)install the **Electron desktop server** from `API_REF`/`AGENT_REF` |
+| `make app` | run the Electron desktop app (auto-update disabled so it can't revert your branch) |
+| `make baseline` | snap every submodule back to the superproject's pinned commits |
+| `make pin` | record the submodules' current commits as the superproject pins (a deliberate commit) |
+
+> Two run paths, same refs: `make dev`/`dev-web` execute the local source, so they
+> follow whatever `make use` checked out. The desktop app runs a `uv`-tool-installed
+> server keyed by `COWORK_SERVER_REF`/`ANTON_REF` (see
+> `frontend/src/main/server-source.ts`); `make server`/`make app` set those from the
+> same `dev.env`. Keep both on the same ref — they share `~/.cowork/cowork.db`, so a
+> migration applied by one must exist in the other (else the app crashes on startup
+> with `Can't locate revision …`). `make flush` resets when they drift.
+
+**4. Bumping pins is deliberate.** Because submodules are ignored, the *only* way a
+pin changes is `make pin` (after a submodule PR merges and you push the submodule).
+Pushing from inside the submodule first still applies — `make pin` just records the
+new SHA in the superproject as one reviewable commit.
+
+**5. Snap back to baselines** when you're *not* developing a module: `make baseline`
+(`git submodule update --init --recursive`). With `ignore = all`, `git status` won't
+remind you a teammate's pin bump left a module behind — run `make baseline` after
+pulling the superproject to align.
+
 ## Running locally (web browser mode)
 
 After initializing submodules, start the full stack with:

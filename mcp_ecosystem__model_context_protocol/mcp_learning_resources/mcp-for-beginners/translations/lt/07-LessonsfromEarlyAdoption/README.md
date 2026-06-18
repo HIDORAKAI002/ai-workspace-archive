@@ -1,40 +1,40 @@
-# 🌟 Pamokos iš Ankstyvųjų Naudotojų
+# 🌟 Pamokos iš ankstyvųjų vartotojų
 
-[![Pamokos iš MCP Ankstyvųjų Naudotojų](../../../translated_images/lt/08.980bb2babbaadd8a.webp)](https://youtu.be/jds7dSmNptE)
+[![Lessons from MCP Early Adopters](../../../translated_images/lt/08.980bb2babbaadd8a.webp)](https://youtu.be/jds7dSmNptE)
 
-_(Spustelėkite aukščiau esantį paveikslėlį, kad peržiūrėtumėte vaizdo įrašą apie šią pamoką)_
+_(Spustelėkite aukščiau esantį paveikslėlį, norėdami peržiūrėti šios pamokos vaizdo įrašą)_
 
-## 🎯 Ką apima šis modulis
+## 🎯 Ką apžvelgia šis modulis
 
-Šis modulis nagrinėja, kaip tikros organizacijos ir kūrėjai naudoja Modelio Konteksto Protokolą (MCP) spręsti realias problemas ir skatinti inovacijas. Per išsamias atvejų studijas, praktinius projektus ir pavyzdžius sužinosite, kaip MCP užtikrina saugų, mastelį turintį AI integravimą, jungiantį kalbos modelius, įrankius ir verslo duomenis.
+Šis modulis nagrinėja, kaip tikros organizacijos ir programuotojai naudoja Model Context Protocol (MCP), spręsdami tikras problemas ir skatindami inovacijas. Per išsamius atvejų tyrimus, praktinius projektus ir realius pavyzdžius atrasite, kaip MCP leidžia saugiai ir mastelį keičiant integruoti dirbtinį intelektą, jungiant kalbos modelius, įrankius ir įmonių duomenis.
 
-### 📚 Pamatykite MCP veikiant
+### 📚 Pažiūrėkite MCP veikiant
 
-Norite pamatyti, kaip šie principai taikomi produkcijai paruoštuose įrankiuose? Peržiūrėkite mūsų [**10 Microsoft MCP serverių, kurie keičia kūrėjų produktyvumą**](microsoft-mcp-servers.md), kuriuose pristatomi tikri Microsoft MCP serveriai, kuriuos galite naudoti jau šiandien.
+Norite pamatyti, kaip šios principai taikomi gamybai paruoštuose įrankiuose? Peržiūrėkite mūsų [**10 Microsoft MCP serverių, kurie transformuoja programuotojų produktyvumą**](microsoft-mcp-servers.md), kuriuose pristatomi realūs Microsoft MCP serveriai, kuriuos galite naudoti šiandien.
 
 ## Apžvalga
 
-Ši pamoka nagrinėja, kaip ankstyvieji naudotojai panaudojo Modelio Konteksto Protokolą (MCP) realioms pasaulio problemoms spręsti ir inovacijoms skatinti įvairiose pramonės šakose. Per išsamias atvejų studijas ir praktinius projektus pamatysite, kaip MCP leidžia standartizuotą, saugią ir mastelio keičiamą AI integraciją – jungiant didelius kalbos modelius, įrankius ir verslo duomenis į vieningą sistemą. Įgysite praktinės patirties projektuodami ir kuriant MCP pagrindu veikiančius sprendimus, sužinosite patvirtintus diegimo modelius ir geriausias praktikas MCP diegimui gamybinėse aplinkose. Pamoka taip pat išryškina naujas tendencijas, ateities kryptis ir atviro kodo išteklius, kurie padės jums išlikti MCP technologijos ir jos besivystančios ekosistemos priekyje.
+Ši pamoka nagrinėja, kaip ankstyvieji vartotojai pasinaudojo Model Context Protocol (MCP), spręsdami realaus pasaulio iššūkius ir skatindami inovacijas įvairiose pramonės šakose. Per išsamius atvejų tyrimus ir praktinius projektus pamatysite, kaip MCP leidžia standartizuoti, saugiai ir mastelio keičiamai integruoti dirbtinį intelektą — sujungiant didelius kalbos modelius, įrankius ir įmonių duomenis į vieningą sistemą. Įgysite praktinės patirties projektuojant ir kuriant MCP pagrindu veikiančius sprendimus, sužinosite patikrintus įgyvendinimo modelius ir atraskite geriausias praktikas MCP diegimui gamybos aplinkose. Pamoka taip pat apžvelgia kylančias tendencijas, ateities kryptis ir atvirojo kodo išteklius, kurie padės jums išlikti priekyje MCP technologijų ir evoliucinės ekosistemos.
 
-## Mokymosi Tikslai
+## Mokymosi tikslai
 
-- Analizuoti realius MCP diegimus skirtingose pramonės šakose
-- Projektuoti ir kurti pilnai funkcionuojančias aplicações, pagrįstas MCP
-- Tyrinėti naujus trendus ir ateities kryptis MCP technologijoje
-- Taikyti geriausias praktikas tikrose kūrimo situacijose
+- Išanalizuoti realaus pasaulio MCP įgyvendinimus įvairiose pramonės šakose
+- Projektuoti ir kurti pilnas MCP pagrindu veikiančias programas
+- Išnagrinėti kylančias tendencijas ir ateities kryptis MCP technologijoje
+- Taikyti geriausias praktikas tikrose programavimo situacijose
 
-## Realių MCP Diegimų Atvejai
+## Realiojo pasaulio MCP įgyvendinimai
 
-### Atvejo Studija 1: Verslo Klientų Aptarnavimo Automatizavimas
+### Atvejo studija 1: Įmonių klientų aptarnavimo automatizavimas
 
-Tarptautinė korporacija įdiegė MCP pagrindu veikiančią sistemą, standartizuojančią AI sąveikas jų klientų aptarnavimo sistemose. Tai leido jiems:
+Tarptautinė korporacija įdiegė MCP pagrindu veikiančią sistemą, kad standartizuotų dirbtinio intelekto sąveikas savo klientų aptarnavimo sistemose. Tai leido jiems:
 
 - Sukurti vieningą sąsają keliems LLM tiekėjams
-- Išlaikyti nuoseklų užklausų (prompt) valdymą skirtingose skyriuose
-- Įgyvendinti tvirtus saugumo ir atitikties kontrolės mechanizmus
-- Lengvai keisti AI modelius pagal specifinius poreikius
+- Išlaikyti nuoseklų prašymų valdymą tarp skyrių
+- Įdiegti patikimas saugumo ir atitikties kontrolės sistemas
+- Lengvai perjungti skirtingus AI modelius pagal specifinius poreikius
 
-**Techninis Įdiegimas:**
+**Techninis įgyvendinimas:**
 
 ```python
 # Python MCP serverio įgyvendinimas klientų aptarnavimui
@@ -47,7 +47,7 @@ from modelcontextprotocol.resources import ResourceDefinition
 from modelcontextprotocol.prompts import PromptDefinition
 from modelcontextprotocol.tool import ToolDefinition
 
-# Konfigūruoti žurnalo fiksavimą
+# Konfigūruoti žurnalus
 logging.basicConfig(level=logging.INFO)
 
 async def main():
@@ -70,7 +70,7 @@ async def main():
         lambda params: get_customer_documentation(params)
     )
     
-    # Užregistruoti šablonus su užuominomis
+    # Užregistruoti užklausų šablonus
     server.prompts.register(
         PromptDefinition(
             name="support_template",
@@ -95,19 +95,19 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+  
+**Rezultatai:** 30% sumažintos modelių sąnaudos, 45% pagerintas atsakymų nuoseklumas ir sustiprinta atitiktis visoje pasaulinėje veikloje.
 
-**Rezultatai:** 30% sumažėjusios modelių sąnaudos, 45% pagerėjusi atsakymų nuoseklumas ir sustiprinta atitiktis visame pasauliniame veikime.
+### Atvejo studija 2: Sveikatos priežiūros diagnostikos asistentas
 
-### Atvejo Studija 2: Sveikatos Priežiūros Diagnostikos Asistentas
+Sveikatos priežiūros paslaugų teikėjas sukūrė MCP infrastruktūrą, integruojančią kelis specializuotus medicininius AI modelius, užtikrindamas, kad jautri pacientų informacija būtų apsaugota:
 
-Sveikatos priežiūros įstaiga sukūrė MCP infrastruktūrą, integruodama kelis specializuotus medicinos AI modelius ir užtikrindama jautrios pacientų informacijos apsaugą:
+- Sklandus perjungimas tarp bendrųjų ir specialistų medicinos modelių
+- Griežtos privatumo kontrolės ir audito pėdsakai
+- Integracija su esamomis Elektroninių sveikatos įrašų (EHR) sistemomis
+- Nuosekli prašymų kūrimo praktika medicininės terminologijos atžvilgiu
 
-- Sklandus perjungimas tarp bendrųjų ir specializuotų medicinos modelių
-- Griežtos privatumo kontrolės ir audito takai
-- Integracija su esamomis Elektroninės Sveikatos Įrašų (EHR) sistemomis
-- Nuosekli užklausų inžinerija medicinos terminologijai
-
-**Techninis Įdiegimas:**
+**Techninis įgyvendinimas:**
 
 ```csharp
 // C# MCP host application implementation in healthcare application
@@ -172,28 +172,28 @@ public class DiagnosticAssistant
     }
 }
 ```
+  
+**Rezultatai:** Pagerinti gydytojų diagnostikos pasiūlymai, išlaikant visišką HIPAA atitiktį ir ženkliai sumažinant konteksto keitimąsi tarp sistemų.
 
-**Rezultatai:** Pagerintos diagnostikos rekomendacijos gydytojams, išlaikant pilną HIPAA atitiktį ir žymiai sumažinant konteksto keitimo tarp sistemų dažnumą.
+### Atvejo studija 3: Finansinių paslaugų rizikos analizė
 
-### Atvejo Studija 3: Finansinių Paslaugų Rizikos Analizė
+Finansų institucija įdiegė MCP, kad standartizuotų rizikos analizės procesus skirtinguose skyriuose:
 
-Finansų institucija įdiegė MCP standartizuodama rizikos analizės procesus skirtinguose skyriuose:
-
-- Sukurta vieninga sąsaja kredito rizikos, sukčiavimo aptikimo ir investicijų rizikos modeliams
-- Įdiegtos griežtos prieigos valdymo bei modelių versijavimo priemonės
-- Užtikrinta visų AI rekomendacijų audituojamumas
+- Sukurtas vieningas sąsajos sluoksnis kredito rizikos, sukčiavimo aptikimo ir investicijų rizikos modeliams
+- Įdiegta griežta prieigos kontrolė ir modelių versijų valdymas
+- Užtikrintas visų AI rekomendacijų audituojamumas
 - Išlaikytas nuoseklus duomenų formatavimas įvairiose sistemose
 
-**Techninis Įdiegimas:**
+**Techninis įgyvendinimas:**
 
 ```java
-// Java MCP serveris finansinės rizikos vertinimui
+// Java MCP serveris finansinių rizikų vertinimui
 import org.mcp.server.*;
 import org.mcp.security.*;
 
 public class FinancialRiskMCPServer {
     public static void main(String[] args) {
-        // Sukurti MCP serverį su finansinės atitikties funkcijomis
+        // Sukurti MCP serverį su finansinio atitikimo funkcijomis
         MCPServer server = new MCPServerBuilder()
             .withModelProviders(
                 new ModelProvider("risk-assessment-primary", new AzureOpenAIProvider()),
@@ -215,28 +215,28 @@ public class FinancialRiskMCPServer {
     }
 }
 ```
+  
+**Rezultatai:** Pagerinta reguliavimo atitiktis, 40% greitesnis modelių diegimo ciklas ir pagerinta rizikos vertinimo nuoseklumas tarp skyrių.
 
-**Rezultatai:** Pagerinta reguliavimo atitiktis, 40% greitesni modelių diegimo ciklai ir pagerintas rizikos vertinimo nuoseklumas skyriuose.
+### Atvejo studija 4: Microsoft Playwright MCP serveris naršyklės automatizavimui
 
-### Atvejo Studija 4: Microsoft Playwright MCP Serveris Naršyklės Automatizavimui
+Microsoft sukūrė [Playwright MCP serverį](https://github.com/microsoft/playwright-mcp), leidžiantį saugią, standartizuotą naršyklės automatizavimą naudojant Model Context Protocol. Šis gamybai paruoštas serveris leidžia AI agentams ir LLM sąveikauti su interneto naršyklėmis kontroliuojamu, audituojamu ir išplėstiniu būdu – tai leidžia naudoti automatinį tinklalapių testavimą, duomenų išgavimą ir end-to-end darbo eigas.
 
-Microsoft sukūrė [Playwright MCP serverį](https://github.com/microsoft/playwright-mcp), leidžiantį saugiai ir standartizuotai automatizuoti naršyklių veiksmus per Modelio Konteksto Protokolą. Šis produkcijai paruoštas serveris leidžia AI agentams ir didelių kalbos modelių sistemoms kontroliuojamai, audituojamai ir išplečiamai sąveikauti su interneto naršyklėmis – leidžiant tokius naudojimo atvejus kaip automatizuotas svetainių testavimas, duomenų išgavimas ir end-to-end darbotvarkės.
+> **🎯 Gamybai paruoštas įrankis**  
+>  
+> Ši atvejo studija pristato tikrą MCP serverį, kurį galite naudoti šiandien! Sužinokite daugiau apie Playwright MCP serverį ir dar 9 kitus gamybai paruoštus Microsoft MCP serverius mūsų [**Microsoft MCP serverių vadove**](microsoft-mcp-servers.md#8--playwright-mcp-server).
 
-> **🎯 Produkcijai Paruoštas Įrankis**
-> 
-> Ši atvejo studija pristato tikrą MCP serverį, kurį galite naudoti jau šiandien! Sužinokite daugiau apie Playwright MCP Serverį ir kitus 9 produkcijai paruoštus Microsoft MCP serverius mūsų [**Microsoft MCP serverių gide**](microsoft-mcp-servers.md#8--playwright-mcp-server).
+**Pagrindinės savybės:**  
+- Atveria naršyklės automatikos galimybes (navigaciją, formų pildymą, ekrano nuotraukų fiksavimą ir kt.) kaip MCP įrankius  
+- Įgyvendina griežtas prieigos kontrolės ir izoliuotas aplinkas (sandboxing), kad būtų užkirstas kelias neteisėtoms operacijoms  
+- Teikia detalizuotas audito žurnalo įrašus visoms naršyklės sąveikoms  
+- Palaiko integraciją su Azure OpenAI ir kitais LLM tiekėjais agentais pagrįstai automatizacijai  
+- Maitina GitHub Copilot programavimo agentą su naršyklės galimybėmis  
 
-**Pagrindinės Savybės:**
-- Atveria naršyklės automatizavimo galimybes (navigacija, formų pildymas, ekrano kopijų fiksavimas ir kt.) kaip MCP įrankius
-- Įgyvendina griežtą prieigos valdymą ir smėlio dėžę (sandboxing), kad būtų užkirstas kelias neautorizuotoms užduotims
-- Teikia detalius audito žurnalus apie visas naršyklės sąveikas
-- Palaiko integraciją su Azure OpenAI ir kitais LLM teikėjais agentų valdomai automatizacijai
-- Maitina GitHub Copilot Kodo Agentą su naršyklės galimybėmis
-
-**Techninis Įdiegimas:**
+**Techninis įgyvendinimas:**
 
 ```typescript
-// TypeScript: Įrašomas Playwright naršyklės automatizavimo įrankis MCP serveryje
+// TypeScript: Playwright naršyklės automatizavimo įrankių registravimas MCP serveryje
 import { createServer, ToolDefinition } from 'modelcontextprotocol';
 import { launch } from 'playwright';
 
@@ -246,7 +246,7 @@ const server = createServer({
   description: 'MCP server for browser automation using Playwright'
 });
 
-// Užregistruokite įrankį naršymui į URL ir ekrano nuotraukos fiksavimui
+// Užregistruokite įrankį URL naršymui ir ekrano nuotraukos fiksavimui
 server.tools.register(
   new ToolDefinition({
     name: 'navigate_and_screenshot',
@@ -268,34 +268,34 @@ server.tools.register(
 // Paleisti MCP serverį
 server.listen(8080);
 ```
-
+  
 **Rezultatai:**
 
-- Užtikrintas saugus, programinis naršyklių automatizavimas AI agentams ir LLM
-- Sumažintas rankinis testavimo darbas ir pagerintas testavimo aprėptis žiniatinklio aplikacijoms
-- Pateikta pernaudojama, išplečiama sistema naršyklės pagrindu vykdomai įrankių integracijai verslo aplinkoje
-- Maitina GitHub Copilot naršyklės galimybes
+- Leidžia saugią, programiškai valdoma naršyklės automatizaciją AI agentams ir LLM  
+- Sumažina rankinio testavimo pastangas ir pagerina interneto programų testavimo aprėptį  
+- Suteikia pakartotinai naudojamą, išplėstą naršyklės įrankių integracijos sistemą įmonių aplinkose  
+- Maitina GitHub Copilot naršyklės galimybes  
 
-**Nuorodos:**
+**Nuorodos:**  
 
-- [Playwright MCP Serverio GitHub saugykla](https://github.com/microsoft/playwright-mcp)
-- [Microsoft AI ir automatizavimo sprendimai](https://azure.microsoft.com/en-us/products/ai-services/)
+- [Playwright MCP serverio GitHub saugykla](https://github.com/microsoft/playwright-mcp)  
+- [Microsoft AI ir automatizavimo sprendimai](https://azure.microsoft.com/en-us/products/ai-services/)  
 
-### Atvejo Studija 5: Azure MCP – Verslo Lygio Modelio Konteksto Protokolas kaip Paslauga
+### Atvejo studija 5: Azure MCP – įmonių klasės Model Context Protocol kaip paslauga
 
-Azure MCP Serveris ([https://aka.ms/azmcp](https://aka.ms/azmcp)) yra Microsoft valdomas, verslo lygio Modelio Konteksto Protokolo įgyvendinimas, skirtas teikti mastelio keičiamas, saugias ir atitinkančias reikalavimus MCP serverio galimybes kaip debesijos paslaugą. Azure MCP leidžia organizacijoms greitai diegti, valdyti ir integruoti MCP serverius su Azure AI, duomenų ir saugumo paslaugomis, sumažinant operatyvinę naštą ir spartinant AI pritaikymą.
+Azure MCP serveris ([https://aka.ms/azmcp](https://aka.ms/azmcp)) yra Microsoft valdomas, įmonių klasės Model Context Protocol įgyvendinimas, sukurtas suteikti mastelio keičiamas, saugias ir atitikties reikalavimus atitinkančias MCP serverio galimybes kaip debesijos paslaugą. Azure MCP leidžia organizacijoms greitai diegti, valdyti bei integruoti MCP serverius su Azure AI, duomenų ir saugumo paslaugomis, mažinant operacijų naštą ir spartinant DI diegimą.
 
-> **🎯 Produkcijai Paruoštas Įrankis**
-> 
-> Tai tikras MCP serveris, kurį galite naudoti jau šiandien! Sužinokite daugiau apie Azure AI Foundry MCP Serverį mūsų [**Microsoft MCP serverių gide**](microsoft-mcp-servers.md).
+> **🎯 Gamybai paruoštas įrankis**  
+>  
+> Tai tikras MCP serveris, kurį galite naudoti šiandien! Sužinokite daugiau apie Microsoft Foundry MCP serverį mūsų [**Microsoft MCP serverių vadove**](microsoft-mcp-servers.md).
 
-- Pilnai valdomas MCP serverio priegloba su įmontuotu masteliavimo, stebėjimo ir saugumo palaikymu
-- Natūrali integracija su Azure OpenAI, Azure AI Search ir kitomis Azure paslaugomis
-- Verslo lygio autentifikacija ir autorizacija per Microsoft Entra ID
-- Palaikymas pasirinktiniams įrankiams, užklausų šablonams ir išteklių jungikliams
-- Atitiktis verslo saugumo ir reglamentavimo reikalavimams
+- Visapusiškai valdoma MCP serverio talpinimo paslauga su įmontuotomis mastelio keitimo, stebėjimo ir saugumo funkcijomis  
+- Gili integracija su Azure OpenAI, Azure AI Search ir kitomis Azure paslaugomis  
+- Įmonių autentifikacija ir autorizacija per Microsoft Entra ID  
+- Palaikymas pasirinktiniams įrankiams, prašymų šablonams ir išteklių jungtims  
+- Atitiktis įmonių saugumo ir reguliavimo reikalavimams  
 
-**Techninis Įdiegimas:**
+**Techninis įgyvendinimas:**
 
 ```yaml
 # Example: Azure MCP server deployment configuration (YAML)
@@ -321,259 +321,259 @@ spec:
     enabled: true
     logAnalyticsWorkspace: <your-log-analytics-id>
 ```
+  
+**Rezultatai:**  
+- Sutrumpintas laikas iki vertės įgyvendinimo įmonių DI projektuose teikiant paruoštą, atitinkantį MCP serverio platformą  
+- Supaprastinta LLM, įrankių ir įmonių duomenų šaltinių integracija  
+- Pagerintas saugumas, stebėsena ir operatyvinis efektyvumas MCP darbiniams krūviams  
+- Pagerinta kodo kokybė naudojant Azure SDK geriausias praktikas ir naujausius autentifikavimo modelius  
+
+**Nuorodos:**  
+- [Azure MCP dokumentacija](https://aka.ms/azmcp)  
+- [Azure MCP serverio GitHub saugykla](https://github.com/Azure/azure-mcp)  
+- [Azure AI paslaugos](https://azure.microsoft.com/en-us/products/ai-services/)  
+- [Microsoft MCP centras](https://mcp.azure.com)  
+
+## Atvejo studija 6: NLWeb  
+MCP (Model Context Protocol) yra kylančioji protokolo versija, skirta pokalbių robotams ir DI asistentams sąveikauti su įrankiais. Kiekviena NLWeb instancija taip pat yra MCP serveris, palaikantis vieną pagrindinį metodą – ask, kuris naudojamas užduoti klausimus svetainei natūralia kalba. Grąžinamas atsakymas naudoja schema.org – plačiai naudojamą žodyną interneto duomenims aprašyti. Kalbant paprastai, MCP yra NLWeb taip, kaip Http yra HTML. NLWeb jungia protokolus, Schema.org formatą ir pavyzdinį kodą, kad padėtų svetainėms greitai kurti šiuos galinius taškus, naudingus tiek žmonėms per pokalbių sąsajas, tiek mašinoms per natūralią agentų tarpusavio sąveiką.
+
+Yra dvi aiškios NLWeb komponentų dalys:  
+- Protokolas, labai paprastas pradėti, skirtas sąveikai su svetaine natūralia kalba ir formatas, naudodamas json ir schema.org grąžintam atsakymui. Plačiau žr. REST API dokumentacijoje.  
+- Paprasta (1) įgyvendinimo versija, kuri naudoja esamus žymėjimus svetainėms, kurias galima abstrahuoti kaip prekių, receptų, lankytinų vietų, atsiliepimų sąrašus. Kartu su valdymo elementų rinkiniu svetainės gali lengvai pasiūlyti pokalbių sąsajas savo turiniui. Plačiau apie šio veikimo principus žr. Life of a chat query dokumentacijoje.
+
+**Nuorodos:**  
+- [Azure MCP dokumentacija](https://aka.ms/azmcp)  
+- [NLWeb](https://github.com/microsoft/NlWeb)  
+
+### Atvejo studija 7: Microsoft Foundry MCP serveris – įmonių DI agentų integracija
+
+Microsoft Foundry MCP serveriai demonstruoja, kaip MCP gali būti naudojamas DI agentų ir darbo eigų valdymui įmonės aplinkose. Integruojant MCP su Microsoft Foundry, organizacijos gali standartizuoti agentų sąveikas, pasinaudoti Foundry darbo eigos valdymo galimybėmis ir užtikrinti saugų, mastelio keičiamos diegimą.
+
+> **🎯 Gamybai paruoštas įrankis**  
+>  
+> Tai tikras MCP serveris, kurį galite naudoti šiandien! Sužinokite daugiau apie Microsoft Foundry MCP serverį mūsų [**Microsoft MCP serverių vadove**](microsoft-mcp-servers.md#9--microsoft-foundry-mcp-server).
+
+**Pagrindinės savybės:**  
+- Pilnas priėjimas prie Azure DI ekosistemos, įskaitant modelių katalogus ir diegimo valdymą  
+- Žinių indeksavimas su Azure AI Search RAG programoms  
+- Vertinimo įrankiai DI modelių veikimui ir kokybės kontrolei  
+- Integracija su Microsoft Foundry katalogu ir laboratorijomis pažangiems tyrimų modeliams  
+- Agentų valdymo ir vertinimo galimybės gamybos scenarijuose  
 
 **Rezultatai:**  
-- Sutrumpintas laikas iki vertės gavimo verslo AI projektuose, suteikiant paruoštą naudoti, atitinkantį reikalavimus MCP serverio platformą
-- Supaprastinta LLM, įrankių ir verslo duomenų šaltinių integracija
-- Pagerintas saugumas, stebimumas ir veiklos efektyvumas MCP darbo krūviams
-- Pagerinta kodo kokybė taikant Azure SDK geriausias praktikas ir standartines autentifikacijos schemas
+- Greitas DI agentų darbo eigų prototipavimas ir patikima stebėsena  
+- Sklandi integracija su Azure DI paslaugomis pažangiems scenarijams  
+- Vieninga sąsaja agentų srautų kūrimui, diegimui ir stebėjimui  
+- Pagerintas saugumas, atitiktis ir operatyvinis veiksmingumas įmonėms  
+- Spartina DI diegimą išlaikant kontrolę sudėtingiems agentų procesams  
 
 **Nuorodos:**  
-- [Azure MCP dokumentacija](https://aka.ms/azmcp)
-- [Azure MCP Serverio GitHub saugykla](https://github.com/Azure/azure-mcp)
-- [Azure AI paslaugos](https://azure.microsoft.com/en-us/products/ai-services/)
-- [Microsoft MCP centras](https://mcp.azure.com)
+- [Microsoft Foundry MCP serverio GitHub saugykla](https://github.com/azure-ai-foundry/mcp-foundry)  
+- [Integracija Azure DI agentų su MCP (Microsoft Foundry tinklaraštis)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)  
 
-## Atvejo Studija 6: NLWeb  
-MCP (Modelio Konteksto Protokolas) yra naujoviškas protokolas pokalbių robotams ir AI asistentams bendrauti su įrankiais. Kiekviena NLWeb instancija taip pat yra MCP serveris, kuris palaiko vieną pagrindinį metodą – ask, naudojamą klausimams interneto svetainei natūralia kalba užduoti. Grąžinamas atsakymas naudoja schema.org – plačiai naudojamą žodyną interneto duomenims aprašyti. Paprastai tariant, MCP yra NLWeb, kaip HTTP yra HTML. NLWeb sujungia protokolus, Schema.org formatus ir pavyzdinį kodą, kad padėtų svetainėms greitai kurti šias galines sąsajas, naudingas tiek žmonėms per pokalbių vartotojo sąsajas, tiek mašinoms per natūralų agentų tarpusavio bendravimą.
+### Atvejo studija 8: Foundry MCP Playground – eksperimentavimas ir prototipavimas
 
-NLWeb sudaro du atskiri komponentai.
-- Protokolas, iš pradžių labai paprastas, svetainės sąsajai natūralia kalba ir formatas, panaudojant json ir schema.org grąžinamiems atsakymams. Daugiau informacijos žr. REST API dokumentacijoje.
-- Paprasta (1) įgyvendinimo versija, kuri panaudoja esamą žymėjimą svetainėms, kurios gali būti abstrahuotos kaip elementų sąrašai (produktai, receptai, lankytini objektai, apžvalgos ir kt.). Kartu su vartotojo sąsajos valdiklių rinkiniu svetainės gali lengvai suteikti pokalbių vartotojo sąsajas savo turiniui. Daugiau informacijos žr. dokumentacijoje apie pokalbio užklausos gyvenimo ciklą, kaip tai veikia.
+Foundry MCP Playground suteikia paruoštą aplinką MCP serverių ir Microsoft Foundry integracijų eksperimentavimui. Kūrėjai gali greitai prototipuoti, testuoti ir vertinti DI modelius bei agentų darbo eigas, naudodami Microsoft Foundry katalogo ir laboratorijų išteklius. Playground supaprastina įrangos parengimą, pateikia pavyzdinius projektus bei palaiko bendradarbiavimą, todėl lengva tyrinėti gerąsias praktikas ir naujus scenarijus su minimalia našta. Tai ypač naudinga komandoms, norinčioms patvirtinti idėjas, dalintis eksperimentais ir spartinti mokymąsi be sudėtingos infrastruktūros. Mažindamas pradžios kliūtis, playground skatina inovacijas ir bendruomenės indėlius MCP ir Microsoft Foundry ekosistemoje.
 
 **Nuorodos:**  
-- [Azure MCP dokumentacija](https://aka.ms/azmcp)
-- [NLWeb](https://github.com/microsoft/NlWeb)
 
-### Atvejo Studija 7: Azure AI Foundry MCP Serveris – Įmonių AI Agentų Integracija
+- [Foundry MCP Playground GitHub saugykla](https://github.com/azure-ai-foundry/foundry-mcp-playground)  
 
-Azure AI Foundry MCP serveriai demonstruoja, kaip MCP galima naudoti AI agentų ir darbo srautų organizavimui bei valdymui įmonių aplinkose. Integruojant MCP su Azure AI Foundry, organizacijos gali standartizuoti agentų sąveikas, naudoti Foundry darbo srautų valdymą ir užtikrinti saugius bei mastelio keičiamus diegimus.
+### Atvejo studija 9: Microsoft Learn Docs MCP serveris – DI varomas dokumentacijos prieinamumas
 
-> **🎯 Produkcijai Paruoštas Įrankis**
-> 
-> Tai tikras MCP serveris, kurį galite naudoti jau šiandien! Sužinokite daugiau apie Azure AI Foundry MCP Serverį mūsų [**Microsoft MCP serverių gide**](microsoft-mcp-servers.md#9--azure-ai-foundry-mcp-server).
+Microsoft Learn Docs MCP serveris yra debesyje talpinama paslauga, leidžianti DI asistentams gauti realaus laiko prieigą prie oficialių Microsoft dokumentų per Model Context Protocol. Šis gamybai paruoštas serveris jungiasi prie išsamaus Microsoft Learn ekosistemos ir leidžia semantinę paiešką visuose oficialiuose Microsoft šaltiniuose.
 
-**Pagrindinės Savybės:**
-- Išsamus prieigos taškas į Azure AI ekosistemą, įskaitant modelių katalogus ir diegimų valdymą
-- Žinių indeksavimas su Azure AI Search RAG aplikacijoms
-- AI modelių našumo ir kokybės užtikrinimo įrankiai
-- Integracija su Azure AI Foundry katalogu ir laboratorijomis pažangių tyrimų modeliams
-- Agentų valdymo ir vertinimo galimybės gamybinėms situacijoms
+> **🎯 Gamybai paruoštas įrankis**  
+>  
+> Tai tikras MCP serveris, kurį galite naudoti šiandien! Sužinokite daugiau apie Microsoft Learn Docs MCP serverį mūsų [**Microsoft MCP serverių vadove**](microsoft-mcp-servers.md#1--microsoft-learn-docs-mcp-server).
 
-**Rezultatai:**
-- Greitas AI agentų darbo srautų prototipavimas ir patikimas stebėjimas
-- Sklandi integracija su Azure AI paslaugomis pažangiems scenarijams
-- Vieninga sąsaja agentų jungtims, diegimui ir monitoriavimui
-- Pagerintas saugumas, atitiktis ir veiklos efektyvumas įmonėms
-- Spartesnis AI diegimas kartu išlaikant kontrolę sudėtingiems agentų procesams
+**Pagrindinės savybės:**  
+- Realaus laiko prieiga prie oficialios Microsoft dokumentacijos, Azure dokumentų bei Microsoft 365 dokumentų  
+- Pažangios semantinės paieškos galimybės, suprantančios kontekstą ir ketinimus  
+- Visada atnaujinta informacija, kai pasirodo Microsoft Learn turinys  
+- Išsamus visų Microsoft Learn, Azure ir Microsoft 365 šaltinių aprėptis  
+- Grąžina iki 10 aukštos kokybės turinio fragmentų su straipsnių pavadinimais ir URL  
 
-**Nuorodos:**
-- [Azure AI Foundry MCP Serverio GitHub saugykla](https://github.com/azure-ai-foundry/mcp-foundry)
-- [Azure AI agentų integracija su MCP (Microsoft Foundry tinklaraštis)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)
+**Kodėl tai svarbu:**  
+- Sprendžia „pasenusių DI žinių“ problemą Microsoft technologijoms  
+- Užtikrina, kad DI asistentai turi prieigą prie naujausių .NET, C#, Azure ir Microsoft 365 funkcijų  
+- Teikia autoritetingą, pirmojo šaltinio informaciją tiksliam kodo generavimui  
+- Esminis įrankis programuotojams, dirbantiems su sparčiai besivystančiomis Microsoft technologijomis  
 
-### Atvejo Studija 8: Foundry MCP Playground – Eksperimentai ir Prototipavimas
+**Rezultatai:**  
+- Drastiškai pagerinta DI generuojamo kodo tikslumas Microsoft technologijų srityje  
+- Sumažintas laikas, praleidžiamas ieškant naujausios dokumentacijos ir geriausių praktikų  
+- Pagerintas programuotojų produktyvumas su kontekstiniu dokumentacijos gavimu  
+- Sklandi integracija su kūrimo darbo eigomis nepaliekant IDE  
 
-Foundry MCP Playground siūlo paruoštą naudojimui aplinką MCP serverių ir Azure AI Foundry integracijų eksperimentavimui. Kūrėjai gali greitai kurti prototipus, testuoti ir vertinti AI modelius bei agentų darbo srautus, naudodami Azure AI Foundry katalogo ir laboratorijų resursus. Playground supaprastina diegimą, suteikia pavyzdinius projektus ir palaiko bendradarbiavimą, leidžiant lengvai tyrinėti geriausias praktikas ir naujas situacijas su minimaliu papildomu darbu. Tai ypač naudinga komandoms, kurios nori patvirtinti idėjas, dalintis eksperimentais ir pagreitinti mokymąsi be sudėtingos infrastruktūros. Sumažindamas įėjimo kliūtis, playground skatina inovacijas ir bendruomenės indėlius MCP ir Azure AI Foundry ekosistemoje.
+**Nuorodos:**  
+- [Microsoft Learn Docs MCP serverio GitHub saugykla](https://github.com/MicrosoftDocs/mcp)  
+- [Microsoft Learn dokumentacija](https://learn.microsoft.com/)  
 
-**Nuorodos:**
+## Praktiniai projektai
 
-- [Foundry MCP Playground GitHub saugykla](https://github.com/azure-ai-foundry/foundry-mcp-playground)
+### Projektas 1: Sukurkite daugiatiekį MCP serverį
 
-### Atvejo Studija 9: Microsoft Learn Docs MCP Serveris – Dokumentacijos pasiekimas su AI pagalba
-
-Microsoft Learn Docs MCP Serveris yra debesyje talpinama paslauga, teikianti AI asistentams realaus laiko prieigą prie oficialios Microsoft dokumentacijos per Modelio Konteksto Protokolą. Šis produkcijai paruoštas serveris jungiasi prie plataus Microsoft Learn ekosistemos ir leidžia semantiškai ieškoti visose oficialiose Microsoft šaltiniuose.
-
-> **🎯 Produkcijai Paruoštas Įrankis**
-> 
-> Tai tikras MCP serveris, kurį galite naudoti jau šiandien! Sužinokite daugiau apie Microsoft Learn Docs MCP Serverį mūsų [**Microsoft MCP serverių gide**](microsoft-mcp-servers.md#1--microsoft-learn-docs-mcp-server).
-
-**Pagrindinės Savybės:**
-- Realiojo laiko prieiga prie oficialios Microsoft dokumentacijos, Azure dokumentų ir Microsoft 365 dokumentacijos
-- Pažangios semantinio paieškos galimybės, suprantančios kontekstą ir ketinimus
-- Visada atnaujinta informacija, kai publikuojamas Microsoft Learn turinys
-- Išsami aprėptis apima Microsoft Learn, Azure dokumentaciją ir Microsoft 365 šaltinius
-- Grąžina iki 10 aukštos kokybės turinio dalių su straipsnių pavadinimais ir nuorodomis
-
-**Kodėl tai svarbu:**
-- Sprendžia „pasenusių AI žinių“ problemą Microsoft technologijų srityje
-- Užtikrina AI asistentams prieigą prie naujausių .NET, C#, Azure ir Microsoft 365 funkcijų
-- Teikia autoritetingą pirmosios šalies informaciją tiksliam kodo generavimui
-- Esminis įrankis kūrėjams, dirbantiems su sparčiai besivystančiomis Microsoft technologijomis
-
-**Rezultatai:**
-- Žymiai pagerinta AI sugeneruoto kodo tikslumas Microsoft technologijose
-- Sumažintas laikas, praleidžiamas ieškant aktualios dokumentacijos ir geriausių praktikų
-- Pagerintas kūrėjų produktyvumas dėl kontekstą suprantančios dokumentacijos paieškos
-- Sklandi integracija su kūrimo procesais nepaliekant IDE
-
-**Nuorodos:**
-- [Microsoft Learn Docs MCP Serverio GitHub saugykla](https://github.com/MicrosoftDocs/mcp)
-- [Microsoft Learn dokumentacija](https://learn.microsoft.com/)
-
-## Praktiniai Projektai
-
-### Projektas 1: Sukurkite Daugia-Tiekėjų MCP Serverį
-
-**Tikslas:** Sukurti MCP serverį, kuris galėtų nukreipti užklausas keliems AI modelių tiekėjams pagal tam tikrus kriterijus.
+**Tikslas:** Sukurti MCP serverį, galintį nukreipti užklausas keliems AI modelių tiekėjams pagal specifinius kriterijus.
 
 **Reikalavimai:**
 
-- Palaikyti bent tris skirtingus modelių tiekėjus (pvz., OpenAI, Anthropic, vietinius modelius)
-- Įgyvendinti maršrutizavimo mechanizmą, pagrįstą užklausos metaduomenimis
-- Sukurti konfigūravimo sistemą tiekėjų kredencialiams valdyti
-- Įdiegti kešavimą našumo ir sąnaudų optimizavimui
-- Sukurti paprastą stebėjimo skydelį naudojimui
-
-**Įgyvendinimo Etapai:**
-
-1. Įdiegti pagrindinę MCP serverio infrastruktūrą
-2. Įgyvendinti tiekėjų adapterius kiekvienai AI modeliavimo paslaugai
-3. Sukurti maršrutizavimo logiką pagal užklausos atributus
-4. Įdiegti kešavimo mechanizmus dažnoms užklausoms
-5. Parengti stebėjimo skydelį
-6. Testuoti su įvairiais užklausų modeliais
-
-**Technologijos:** Pasirinkite Python (.NET/Java/Python pagal pageidavimą), Redis kešavimui ir paprastą web karkasą skydeliui sukurti.
-
-### Projektas 2: Verslo Užklausų Valdymo Sistema
-**Tikslas:** Sukurti MCP pagrindu veikiančią sistemą, skirtą šablonų valdymui, versijavimui ir diegimui organizacijoje.
-
-**Reikalavimai:**
-
-- Sukurti centralizuotą šablonų saugyklą
-- Įdiegti versijavimo ir patvirtinimo darbo eigas
-- Sukurti galimybes testuoti šablonus su pavyzdiniais įvestimis
-- Vystyti vaidmenimis pagrįstą prieigos kontrolę
-- Sukurti API šablonų gavimui ir diegimui
+- Palaikyti bent tris skirtingus modelių tiekėjus (pvz., OpenAI, Anthropic, vietiniai modeliai)  
+- Įgyvendinti užklausų maršrutizavimo mechanizmą, remiantis užklausų metaduomenimis  
+- Sukurti konfigūracijos sistemą tiekėjų kredencialiams valdyti  
+- Pridėti talpyklą našumo ir sąnaudų optimizavimui  
+- Sukurti paprastą informacijos panelę naudojimui stebimui  
 
 **Įgyvendinimo žingsniai:**
 
-1. Sukurti duomenų bazės schemą šablonų saugojimui
-2. Sukurti pagrindinį API šablonų CRUD operacijoms
-3. Įgyvendinti versijavimo sistemą
-4. Sukurti patvirtinimo darbo eigą
-5. Vystyti testavimo sistemą
-6. Sukurti paprastą žiniatinklio sąsają valdymui
-7. Integruoti su MCP serveriu
+1. Paruošti pagrindinę MCP serverio infrastruktūrą  
+2. Įdiegti tiekėjų adapterius kiekvienai AI modeliui teikiančiai paslaugai  
+3. Sukurti maršrutizavimo logiką pagal užklausų atributus  
+4. Įgyvendinti talpyklos mechanizmus dažnoms užklausoms  
+5. Sukurti stebėjimo informacijos panelę  
+6. Išbandyti su įvairiomis užklausų schemomis  
 
-**Technologijos:** Jūsų pasirinktas backend karkasas, SQL arba NoSQL duomenų bazė bei frontendo karkasas valdymo sąsajai.
+**Technologijos:** Pasirinkite Python (.NET/Java/Python pagal jūsų pageidavimą), Redis talpyklai ir paprastą žiniatinklio karkasą informacijos panelės kūrimui.
+
+### Projektas 2: Įmonių prašymų valdymo sistema
+
+**Tikslas:** Sukurti MCP pagrindu veikiančią sistemą, skirtą prašymų šablonų valdymui, versijavimui ir diegimui visoje organizacijoje.
+
+**Reikalavimai:**
+- Sukurti centralizuotą šablonų saugyklą
+- Įgyvendinti versijų valdymo ir patvirtinimo darbo eigas
+- Sukurti šablonų testavimo galimybes su pavyzdiniais įvesties duomenimis
+- Sukurti vaidmenimis pagrįstą prieigos valdymą
+- Sukurti API šablonų gavimui ir diegimui
+
+**Įgyvendinimo veiksmai:**
+
+1. Suprojektuoti duomenų bazės schemą šablonų saugojimui
+2. Sukurti pagrindinį API šablonų CRUD operacijoms
+3. Įgyvendinti versijų valdymo sistemą
+4. Sukurti patvirtinimo darbo eigą
+5. Sukurti testavimo sistemą
+6. Sukurti paprastą žiniatinklio sąsają valdymui
+7. Integruotis su MCP serveriu
+
+**Technologijos:** Pasirinktas backend karkasas, SQL arba NoSQL duomenų bazė ir frontend karkasas valdymo sąsajai.
 
 ### Projektas 3: MCP pagrindu veikianti turinio kūrimo platforma
 
-**Tikslas:** Sukurti turinio kūrimo platformą, kuri pasitelkia MCP, siekiant užtikrinti nuoseklius rezultatus skirtingų turinio tipų generavimui.
+**Tikslas:** Sukurti turinio kūrimo platformą, kuri panaudoja MCP, siekiant užtikrinti nuoseklius rezultatus įvairiuose turinio tipuose.
 
 **Reikalavimai:**
 
-- Palaikyti kelis turinio formatus (tinklaraščio straipsniai, socialinių tinklų turinys, rinkodaros tekstas)
-- Įgyvendinti šablonų pagrindu veikiantį generavimą su individualizavimo galimybėmis
-- Sukurti turinio peržiūros ir grįžtamojo ryšio sistemą
-- Stebėti turinio veiklos rodiklius
-- Palaikyti turinio versijavimą ir iteracijas
+- Palaikyti kelis turinio formatus (tinklaraščio įrašai, socialinė žiniasklaida, rinkodaros tekstai)
+- Įgyvendinti šablonais pagrįstą generavimą su pritaikymo galimybėmis
+- Sukurti turinio peržiūros ir atsiliepimų sistemą
+- Stebėti turinio našumo metrikas
+- Palaikyti turinio versijavimą ir iteravimą
 
-**Įgyvendinimo žingsniai:**
+**Įgyvendinimo veiksmai:**
 
-1. Įdiegti MCP kliento infrastruktūrą
+1. Paruošti MCP kliento infrastruktūrą
 2. Sukurti šablonus skirtingiems turinio tipams
 3. Sukurti turinio generavimo procesą
 4. Įgyvendinti peržiūros sistemą
-5. Vystyti veiklos rodiklių stebėjimo sistemą
+5. Kurti metrikų sekimo sistemą
 6. Sukurti vartotojo sąsają šablonų valdymui ir turinio generavimui
 
-**Technologijos:** Jūsų pasirinkta programavimo kalba, žiniatinklio karkasas ir duomenų bazės sistema.
+**Technologijos:** Jūsų pageidaujama programavimo kalba, žiniatinklio karkasas ir duomenų bazių sistema.
 
-## MCP technologijos ateities kryptys
+## Tolimesnės MCP technologijos kryptys
 
 ### Kylančios tendencijos
 
-1. **Daugiakomponentis MCP**
-   - MCP plėtra siekiant standartizuoti sąveiką su vaizdų, garso ir video modeliais
-   - Kryžminio modalumo samprotavimo galimybių vystymas
-   - Standartizuoti užklausų formatai skirtingoms modalumams
+1. **Daugiaplanis MCP**
+   - MCP plėtra, skirta standartizuoti sąveikas su vaizdo, garso ir vaizdo modeliais
+   - Kryžminio modalumo mąstymo galimybių vystymas
+   - Standartizuotos užklausų formos skirtingoms modalumams
 
 2. **Federuota MCP infrastruktūra**
-   - Išskirstytos MCP tinklai, galintys dalintis resursais tarp organizacijų
+   - Paskirstytos MCP tinklo sistemos, galinčios dalytis ištekliais tarp organizacijų
    - Standartizuoti protokolai saugiam modelių dalijimuisi
-   - Privatumą saugančios skaičiavimo technologijos
+   - Privatumo saugojimo skaičiavimo technikos
 
 3. **MCP turgavietės**
-   - Ekosistemos MCP šablonų ir papildinių dalijimuisi bei monetizavimui
+   - Ekosistemos MCP šablonų ir papildinių dalijimuisi ir pelnui
    - Kokybės užtikrinimo ir sertifikavimo procesai
    - Integracija su modelių turgavietėmis
 
-4. **MCP periferinėje skaičiavimo infrastruktūroje**
-   - MCP standartų pritaikymas ribotų išteklių periferinėms įrenginiams
-   - Optimizuoti protokolai mažo pralaidumo aplinkoms
-   - Specializuotos MCP realizacijos IoT ekosistemoms
+4. **MCP krašto kompiuterijai**
+   - MCP standartų pritaikymas resursų ribojimuose esančioms krašto įrenginiams
+   - Optimizuoti protokolai mažu pralaidumu pasižyminčioms aplinkoms
+   - Specializuoti MCP sprendimai IoT ekosistemoms
 
-5. **Reguliaciniai pagrindai**
-   - MCP plėtiniai, skirti reguliavimo atitikčiai užtikrinti
-   - Standartizuotos audito sekos ir paaiškinamumo sąsajos
-   - Integracija su kylančiais AI valdymo principais
+5. **Reguliavimo sistemos**
+   - MCP plėtiniai reguliavimo atitikties užtikrinimui
+   - Standartizuotos audito sekos ir aiškinamumo sąsajos
+   - Integracija su naujomis AI valdymo sistemomis
 
-### Microsoft MCP sprendimai
+### MCP sprendimai iš Microsoft
 
-Microsoft ir Azure sukūrė keletą atvirojo kodo saugyklų, kurios padeda programuotojams MCP įgyvendinti įvairiose situacijose:
+Microsoft ir Azure sukūrė keletą atvirojo kodo saugyklų, kad padėtų kūrėjams įgyvendinti MCP įvairiose situacijose:
 
 #### Microsoft organizacija
 
-1. [playwright-mcp](https://github.com/microsoft/playwright-mcp) – Playwright MCP serveris naršyklės automatizavimui ir testavimui
-2. [files-mcp-server](https://github.com/microsoft/files-mcp-server) – OneDrive MCP serverio realizacija vietiniam testavimui ir bendruomenės indėliui
-3. [NLWeb](https://github.com/microsoft/NlWeb) – NLWeb yra atvirų protokolų ir susijusių atvirojo kodo įrankių rinkinys. Jo pagrindinis tikslas – sukurti AI tinklo pagrindų sluoksnį
+1. [playwright-mcp](https://github.com/microsoft/playwright-mcp) - Playwright MCP serveris naršyklių automatizavimui ir testavimui
+2. [files-mcp-server](https://github.com/microsoft/files-mcp-server) - OneDrive MCP serverio įgyvendinimas vietiniam testavimui ir bendruomenės prisidėjimui
+3. [NLWeb](https://github.com/microsoft/NlWeb) - NLWeb yra atvirų protokolų ir susijusių įrankių rinkinys, orientuotas į pamatinį sluoksnį AI žiniatinkliui
 
 #### Azure-Samples organizacija
 
-1. [mcp](https://github.com/Azure-Samples/mcp) – Nuorodos į pavyzdžius, įrankius ir resursus MCP serverių kūrimui ir integracijai Azure keliomis kalbomis
-2. [mcp-auth-servers](https://github.com/Azure-Samples/mcp-auth-servers) – Pavyzdiniai MCP serveriai su dabartiniu Model Context Protocol autentifikavimo specifiškumu
-3. [remote-mcp-functions](https://github.com/Azure-Samples/remote-mcp-functions) – Pradinis puslapis nutolusių MCP serverių implementacijoms Azure Functions su nuorodomis kalbų specifiniams saugykloms
-4. [remote-mcp-functions-python](https://github.com/Azure-Samples/remote-mcp-functions-python) – Greito starto šablonas kuriant ir diegiant nuotolinius MCP serverius su Azure Functions ir Python
-5. [remote-mcp-functions-dotnet](https://github.com/Azure-Samples/remote-mcp-functions-dotnet) – Greito starto šablonas kuriant ir diegiant nuotolinius MCP serverius su Azure Functions ir .NET/C#
-6. [remote-mcp-functions-typescript](https://github.com/Azure-Samples/remote-mcp-functions-typescript) – Greito starto šablonas kuriant ir diegiant nuotolinius MCP serverius su Azure Functions ir TypeScript
-7. [remote-mcp-apim-functions-python](https://github.com/Azure-Samples/remote-mcp-apim-functions-python) – Azure API valdymas kaip AI vartai į nuotolinius MCP serverius naudojant Python
-8. [AI-Gateway](https://github.com/Azure-Samples/AI-Gateway) – APIM ❤️ AI eksperimentai su MCP galimybėmis, integracija su Azure OpenAI ir AI Foundry
+1. [mcp](https://github.com/Azure-Samples/mcp) - Nuorodos į pavyzdžius, įrankius ir resursus MCP serverių kūrimui ir integracijai Azure naudojant įvairias kalbas
+2. [mcp-auth-servers](https://github.com/Azure-Samples/mcp-auth-servers) - MCP serverių pavyzdžiai, demonstruojantys autentifikaciją pagal Model Context Protocol specifikaciją
+3. [remote-mcp-functions](https://github.com/Azure-Samples/remote-mcp-functions) - Nukreipimo puslapis nuotolinėms MCP serverių įgyvendinimo Azure Functions su kalbinių saugyklų nuorodomis
+4. [remote-mcp-functions-python](https://github.com/Azure-Samples/remote-mcp-functions-python) - Greito starto šablonas kuriant ir diegiant pasirinktinius nuotolinius MCP serverius naudojant Azure Functions su Python
+5. [remote-mcp-functions-dotnet](https://github.com/Azure-Samples/remote-mcp-functions-dotnet) - Greito starto šablonas kuriant ir diegiant pasirinktinius nuotolinius MCP serverius naudojant Azure Functions su .NET/C#
+6. [remote-mcp-functions-typescript](https://github.com/Azure-Samples/remote-mcp-functions-typescript) - Greito starto šablonas kuriant ir diegiant pasirinktinius nuotolinius MCP serverius naudojant Azure Functions su TypeScript
+7. [remote-mcp-apim-functions-python](https://github.com/Azure-Samples/remote-mcp-apim-functions-python) - Azure API valdymas kaip AI vartai nuotoliniams MCP serveriams naudojant Python
+8. [AI-Gateway](https://github.com/Azure-Samples/AI-Gateway) - APIM ❤️ AI eksperimentai įskaitant MCP galimybes, integruojami su Azure OpenAI ir AI Foundry
 
-Šios saugyklos siūlo įvairias realizacijas, šablonus ir resursus dirbant su Model Context Protocol skirtingomis programavimo kalbomis bei Azure paslaugomis. Jos apima panaudojimo atvejus nuo bazinių serverių realizacijų iki autentifikavimo, debesijos diegimo ir įmonių integracijos scenarijų.
+Šios saugyklos teikia įvairius įgyvendinimus, šablonus ir resursus darbui su Model Context Protocol įvairiomis programavimo kalbomis ir Azure paslaugomis. Jos aprėpia nuo pagrindinių serverių įgyvendinimų iki autentifikacijos, debesų diegimo ir įmonių integracijos scenarijų.
 
-#### MCP resursų katalogas
+#### MCP Resursų katalogas
 
-[MCP resursų katalogas](https://github.com/microsoft/mcp/tree/main/Resources) oficialioje Microsoft MCP saugykloje suteikia kruopščiai atrinktą pavyzdinių resursų, užklausų šablonų ir įrankių aprašų kolekciją MCP serveriams. Šis katalogas yra sukurtas siekiant padėti programuotojams greitai pradėti darbą su MCP, siūlant pakartotinai naudojamus elementus ir geriausių praktikų pavyzdžius:
+[Oficialios Microsoft MCP saugyklos MCP Resources katalogas](https://github.com/microsoft/mcp/tree/main/Resources) suteikia atrinktų pavyzdinių resursų, užklausų šablonų ir įrankių apibrėžimų kolekciją Model Context Protocol serverių naudojimui. Šis katalogas skirtas padėti kūrėjams greitai pradėti darbą su MCP, siūlant pakartotinai naudojamus elementus ir gerosios praktikos pavyzdžius:
 
-- **Užklausų šablonai:** Paruošti naudoti šablonai dažniems AI uždaviniams ir scenarijoms, kuriuos galima pritaikyti savo MCP serverių realizacijoms.
-- **Įrankių aprašai:** Pavyzdinės įrankių schemos ir meta duomenys integracijos ir kvietimo standartizavimui skirtinguose MCP serveriuose.
-- **Išteklių pavyzdžiai:** Pavyzdiniai išteklių aprašai duomenų šaltinių, API ir išorinių paslaugų prijungimui MCP aplinkoje.
-- **Referencinės realizacijos:** Praktiniai pavyzdžiai, rodantys, kaip tvarkyti ir organizuoti išteklius, užklausas ir įrankius realiuose MCP projektuose.
+- **Užklausų šablonai:** Paruošti naudoti šablonai dažniausioms AI užduotims ir scenarijams, kuriuos galima pritaikyti savo MCP serverių įgyvendinimams.
+- **Įrankių apibrėžimai:** Pavyzdinės įrankių schemos ir metaduomenys įrankių integracijai ir kvietimui standartizuoti įvairiuose MCP serveriuose.
+- **Išteklių pavyzdžiai:** Pavyzdiniai išteklių apibrėžimai duomenų šaltiniams, API ir išorinėms paslaugoms jungti MCP sistemoje.
+- **Nuorodiniai įgyvendinimai:** Praktiniai pavyzdžiai, demonstruojantys, kaip struktūruoti ir organizuoti išteklius, užklausas ir įrankius realiuose MCP projektuose.
 
-Šie resursai pagreitina vystymą, skatina standartizaciją ir padeda užtikrinti geriausias praktikas kuriant ir diegiant MCP pagrindu veikiančius sprendimus.
+Šie resursai pagreitina vystymą, skatina standartizaciją ir padeda užtikrinti gerąsias praktikas kuriant ir diegiant MCP pagrindu veikiančius sprendimus.
 
-#### MCP resursų katalogas
+#### MCP Resursų katalogas
 
-- [MCP resursai (pavyzdiniai užklausimai, įrankiai ir išteklių aprašai)](https://github.com/microsoft/mcp/tree/main/Resources)
+- [MCP Resursai (pavyzdinės užklausos, įrankiai ir išteklių apibrėžimai)](https://github.com/microsoft/mcp/tree/main/Resources)
 
 ### Tyrimų galimybės
 
-- Efektyvūs užklausų optimizavimo būdai MCP sistemose
-- Saugumo modeliai daugnuomenei MCP diegimui
-- Veiklos lyginamoji analizė skirtingose MCP realizacijose
-- Formalaus tikrinimo metodai MCP serveriams
+- Efektyvios užklausų optimizavimo technikos MCP sistemose
+- Saugumo modeliai daugianuominėms MCP diegimams
+- Veikimo našumo testavimas skirtinguose MCP įgyvendinimuose
+- Formalūs patikrinimo metodai MCP serveriams
 
-## Išvada
+## Išvados
 
-Model Context Protocol (MCP) sparčiai formuoja ateitį, kurioje AI integracija yra standartizuota, saugi ir tarpusavyje suderinama pramonės šakose. Per šio modulio atvejų analizę ir praktinius projektus matėte, kaip ankstyvųjų pritaikymo pavyzdžių kūrėjai, tarp jų Microsoft ir Azure, pasitelkia MCP spręsdami realias problemas, spartindami AI diegimą ir užtikrindami atitiktį, saugumą bei mastelį. MCP modulinė architektūra leidžia organizacijoms vieningoje, audituojamoje aplinkoje prijungti didelius kalbos modelius, įrankius ir įmonių duomenis. MCP toliau vystantis, svarbu aktyviai dalyvauti bendruomenėje, tirti atvirojo kodo išteklius ir taikyti geriausias praktikas, siekiant kurti patikimus, ateičiai pasiruošusius AI sprendimus.
+Model Context Protocol (MCP) sparčiai formuoja ateitį standartizuotos, saugios ir tarpusavyje suderinamos AI integracijos srityje pramonėje. Per šios pamokos atvejų analizę ir praktinius projektus matėte, kaip ankstyvieji naudotojai – įskaitant Microsoft ir Azure – panaudoja MCP realių iššūkių sprendimui, AI įsisavinimo spartinimui bei atitikties, saugumo ir mastelio užtikrinimui. MCP modulinis pobūdis leidžia organizacijoms sujungti didelius kalbos modelius, įrankius ir verslo duomenis į vieningą, patikrintiną sistemą. Kadangi MCP nuolat vystosi, aktyvus bendruomenės dalyvavimas, atviro kodo išteklių tyrinėjimas ir geriausių praktikų taikymas bus raktas kuriant tvirtus, ateičiai pritaikytus AI sprendimus.
 
 ## Papildomi ištekliai
 
 - [MCP Foundry GitHub saugykla](https://github.com/azure-ai-foundry/mcp-foundry)
-- [Foundry MCP žaidimų aikštelė](https://github.com/azure-ai-foundry/foundry-mcp-playground)
+- [Foundry MCP Playground](https://github.com/azure-ai-foundry/foundry-mcp-playground)
 - [Azure AI agentų integracija su MCP (Microsoft Foundry tinklaraštis)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)
 - [MCP GitHub saugykla (Microsoft)](https://github.com/microsoft/mcp)
-- [MCP resursų katalogas (pavyzdiniai užklausimai, įrankiai ir išteklių aprašai)](https://github.com/microsoft/mcp/tree/main/Resources)
+- [MCP Resursų katalogas (pavyzdinės užklausos, įrankiai ir išteklių apibrėžimai)](https://github.com/microsoft/mcp/tree/main/Resources)
 - [MCP bendruomenė ir dokumentacija](https://modelcontextprotocol.io/introduction)
 - [MCP specifikacija (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [Azure MCP dokumentacija](https://aka.ms/azmcp)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) – Saugumo geriausios praktikos
+- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Saugumo gerosios praktikos
 - [Playwright MCP serverio GitHub saugykla](https://github.com/microsoft/playwright-mcp)
 - [Files MCP serveris (OneDrive)](https://github.com/microsoft/files-mcp-server)
 - [Azure-Samples MCP](https://github.com/Azure-Samples/mcp)
-- [MCP Autentifikavimo serveriai (Azure-Samples)](https://github.com/Azure-Samples/mcp-auth-servers)
+- [MCP Auth serveriai (Azure-Samples)](https://github.com/Azure-Samples/mcp-auth-servers)
 - [Remote MCP Functions (Azure-Samples)](https://github.com/Azure-Samples/remote-mcp-functions)
 - [Remote MCP Functions Python (Azure-Samples)](https://github.com/Azure-Samples/remote-mcp-functions-python)
 - [Remote MCP Functions .NET (Azure-Samples)](https://github.com/Azure-Samples/remote-mcp-functions-dotnet)
@@ -582,22 +582,22 @@ Model Context Protocol (MCP) sparčiai formuoja ateitį, kurioje AI integracija 
 - [AI-Gateway (Azure-Samples)](https://github.com/Azure-Samples/AI-Gateway)
 - [Microsoft AI ir automatizavimo sprendimai](https://azure.microsoft.com/en-us/products/ai-services/)
 
-## Pratimai
+## Užduotys
 
-1. Išanalizuokite vieną iš atvejų studijų ir pasiūlykite alternatyvų įgyvendinimo požiūrį.
-2. Pasirinkite vieną iš projektų idėjų ir sukurkite išsamią techninę specifikaciją.
-3. Ištirkite sektorių, neaptartą atvejų studijose, ir apibrėžkite, kaip MCP galėtų spręsti jo specifines problemas.
-4. Ištirkite vieną iš ateities krypčių ir sukurkite naujo MCP plėtinio koncepciją, ją palaikantį.
+1. Išanalizuokite vieną iš atvejų ir pasiūlykite alternatyvų įgyvendinimo metodą.
+2. Pasirinkite vieną projekto idėją ir sukurkite detalią techninę specifikaciją.
+3. Ištirkite pramonės šaką, kurios aprašyme nėra, ir aprašykite, kaip MCP galėtų spręsti jos specifinius iššūkius.
+4. Išnagrinėkite vieną iš ateities krypčių ir sukurkite konceptą naujam MCP plėtimui ją palaikyti.
 
 ## Kas toliau
 
-Tęskite pažinimą: [Microsoft MCP serveriai](./microsoft-mcp-servers.md)
+Tęskite: [Microsoft MCP serveriai](./microsoft-mcp-servers.md)
 
-Sekite į: [8 modulis: Geriausios praktikos](../08-BestPractices/README.md)
+Toliau: [8 modulis: Geriausios praktikos](../08-BestPractices/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Atsakomybės apribojimas**:
-Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors stengiamės užtikrinti tikslumą, prašome atkreipti dėmesį, kad automatizuoti vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turi būti laikomas autoritetingu šaltiniu. Dėl svarbios informacijos rekomenduojama naudoti profesionalų žmogišką vertimą. Mes neprisiimame atsakomybės už bet kokius nesusipratimus ar neteisingus aiškinimus, kylančius naudojantis šiuo vertimu.
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

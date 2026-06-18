@@ -2,117 +2,114 @@
 
 ## 🎯 ما يغطيه هذا المختبر
 
-هذا المختبر العملي يوجهك خلال إعداد بيئة تطوير كاملة لبناء خوادم MCP مع تكامل PostgreSQL. ستقوم بتكوين جميع الأدوات اللازمة، نشر موارد Azure، والتحقق من إعدادك قبل البدء في التنفيذ.
+يرشدك هذا المختبر العملي خلال إعداد بيئة تطوير كاملة لبناء خوادم MCP مع تكامل PostgreSQL. ستقوم بتكوين جميع الأدوات اللازمة، ونشر موارد Azure، والتحقق من إعدادك قبل المتابعة بالتنفيذ.
 
 ## نظرة عامة
 
-بيئة التطوير المناسبة ضرورية لتطوير خوادم MCP بنجاح. يوفر هذا المختبر تعليمات خطوة بخطوة لإعداد Docker، خدمات Azure، أدوات التطوير، والتحقق من أن كل شيء يعمل بشكل صحيح معًا.
+بيئة التطوير المناسبة ضرورية لنجاح تطوير خادم MCP. يوفر هذا المختبر تعليمات خطوة بخطوة لإعداد Docker، وخدمات Azure، وأدوات التطوير، والتحقق من أن كل شيء يعمل بشكل صحيح معًا.
 
-بنهاية هذا المختبر، ستكون لديك بيئة تطوير وظيفية بالكامل جاهزة لبناء خادم Zava Retail MCP.
+بنهاية هذا المختبر، سيكون لديك بيئة تطوير وظيفية كاملة جاهزة لبناء خادم Zava Retail MCP.
 
 ## أهداف التعلم
 
-بنهاية هذا المختبر، ستكون قادرًا على:
+بنهاية هذا المختبر، ستتمكن من:
 
-- **تثبيت وتكوين** جميع أدوات التطوير المطلوبة  
-- **نشر موارد Azure** اللازمة لخادم MCP  
-- **إعداد حاويات Docker** لـ PostgreSQL وخادم MCP  
-- **التحقق** من إعداد البيئة باستخدام اتصالات اختبار  
-- **حل المشكلات** الشائعة المتعلقة بالإعداد ومشاكل التكوين  
-- **فهم** سير العمل وهيكل الملفات للتطوير  
+- **تثبيت وتكوين** جميع أدوات التطوير المطلوبة
+- **نشر موارد Azure** اللازمة لخادم MCP
+- **إعداد حاويات Docker** لـ PostgreSQL وخادم MCP
+- **التحقق** من إعداد بيئتك باتصالات اختبارية
+- **استكشاف الأخطاء الشائعة** ومشاكل التكوين وإصلاحها
+- **فهم** سير عمل التطوير وهيكل الملفات
 
-## 📋 التحقق من المتطلبات الأساسية
+## 📋 التحقق من المتطلبات المسبقة
 
-قبل البدء، تأكد من توفر ما يلي:
+قبل البدء، تأكد من أن لديك:
 
 ### المعرفة المطلوبة
-- استخدام أساسي لسطر الأوامر (Windows Command Prompt/PowerShell)  
-- فهم المتغيرات البيئية  
-- الإلمام بنظام التحكم في الإصدارات Git  
-- مفاهيم Docker الأساسية (الحاويات، الصور، الأحجام)  
+- استخدام أساسي لواجهة الأوامر (موجه الأوامر في ويندوز / PowerShell)
+- فهم لمتغيرات البيئة
+- الإلمام بنظام التحكم في الإصدارات Git
+- مفاهيم Docker الأساسية (الحاويات، الصور، التخزين)
 
 ### متطلبات النظام
-- **نظام التشغيل**: Windows 10/11، macOS، أو Linux  
-- **الذاكرة العشوائية (RAM)**: الحد الأدنى 8GB (يوصى بـ 16GB)  
-- **التخزين**: على الأقل 10GB مساحة فارغة  
-- **الشبكة**: اتصال بالإنترنت للتنزيلات ونشر Azure  
+- **نظام التشغيل**: ويندوز 10/11، ماك أو إس، أو لينكس
+- **ذاكرة الوصول العشوائي**: 8 جيجابايت على الأقل (16 جيجابايت موصى به)
+- **التخزين**: مساحة خالية لا تقل عن 10 جيجابايت
+- **الشبكة**: اتصال إنترنت للتنزيلات ونشر Azure
 
 ### متطلبات الحساب
-- **اشتراك Azure**: الطبقة المجانية كافية  
-- **حساب GitHub**: للوصول إلى المستودع  
-- **حساب Docker Hub**: (اختياري) لنشر الصور المخصصة  
+- **اشتراك Azure**: الطبقة المجانية كافية
+- **حساب GitHub**: للوصول إلى المستودعات
+- **حساب Docker Hub**: (اختياري) لنشر الصور المخصصة
 
 ## 🛠️ تثبيت الأدوات
 
 ### 1. تثبيت Docker Desktop
 
-يوفر Docker البيئة المعبأة لحاويات التطوير.
+يوفر Docker البيئة المحكومة للحاويات لإعداد التطوير لدينا.
 
-#### تثبيت Windows
+#### تثبيت على ويندوز
 
-1. **تحميل Docker Desktop**:  
+1. **تحميل Docker Desktop**:
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
-  
-2. **التثبيت والتكوين**:  
-   - قم بتشغيل المثبت كمسؤول  
-   - قم بتمكين تكامل WSL 2 عند الطلب  
-   - أعد تشغيل الكمبيوتر بعد اكتمال التثبيت  
 
-3. **التحقق من التثبيت**:  
+2. **التثبيت والتكوين**:
+   - تشغيل المثبت كمسؤول
+   - تمكين تكامل WSL 2 عند الطلب
+   - أعد تشغيل الكمبيوتر عند اكتمال التثبيت
+
+3. **تحقق من التثبيت**:
    ```cmd
    docker --version
    docker-compose --version
    ```
-  
 
-#### تثبيت macOS
+#### تثبيت على ماك أو إس
 
-1. **التحميل والتثبيت**:  
+1. **التحميل والتثبيت**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # حمل من https://desktop.docker.com/mac/stable/Docker.dmg
+   # أو استخدم Homebrew
    brew install --cask docker
    ```
-  
-2. **تشغيل Docker Desktop**:  
-   - قم بتشغيل Docker Desktop من التطبيقات  
-   - أكمل معالج الإعداد الأولي  
 
-3. **التحقق من التثبيت**:  
+2. **تشغيل Docker Desktop**:
+   - افتح Docker Desktop من التطبيقات
+   - أكمل معالج الإعداد الأولي
+
+3. **تحقق من التثبيت**:
    ```bash
    docker --version
    docker-compose --version
    ```
-  
 
-#### تثبيت Linux
+#### تثبيت على لينكس
 
-1. **تثبيت Docker Engine**:  
+1. **تثبيت Docker Engine**:
    ```bash
-   # Ubuntu/Debian
+   # أوبونتو/ديبيان
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # قم بتسجيل الخروج ثم الدخول مرة أخرى لتفعيل تغييرات المجموعة
    ```
-  
-2. **تثبيت Docker Compose**:  
+
+2. **تثبيت Docker Compose**:
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
-  
 
 ### 2. تثبيت Azure CLI
 
-يتيح Azure CLI نشر وإدارة موارد Azure.
+تمكّن Azure CLI من نشر وإدارة موارد Azure.
 
-#### تثبيت Windows
+#### تثبيت على ويندوز
 
 ```cmd
 # Using Windows Package Manager
@@ -120,51 +117,47 @@ winget install Microsoft.AzureCLI
 
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
-  
 
-#### تثبيت macOS
+#### تثبيت على ماك أو إس
 
 ```bash
-# Using Homebrew
+# استخدام Homebrew
 brew install azure-cli
 
-# Or using installer
+# أو باستخدام المثبت
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
-  
 
-#### تثبيت Linux
+#### تثبيت على لينكس
 
 ```bash
-# Ubuntu/Debian
+# أوبونتو/ديبيان
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-# RHEL/CentOS
+# آر إتش إي إل/سينت أو إس
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
-  
 
 #### التحقق والمصادقة
 
 ```bash
-# Check installation
+# التحقق من التثبيت
 az version
 
-# Login to Azure
+# تسجيل الدخول إلى أزور
 az login
 
-# Set default subscription (if you have multiple)
+# تعيين الاشتراك الافتراضي (إذا كان لديك عدة اشتراكات)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
-  
 
 ### 3. تثبيت Git
 
 Git مطلوب لاستنساخ المستودع والتحكم في الإصدارات.
 
-#### Windows
+#### ويندوز
 
 ```cmd
 # Using Windows Package Manager
@@ -172,26 +165,23 @@ winget install Git.Git
 
 # Or download from: https://git-scm.com/download/win
 ```
-  
 
-#### macOS
+#### ماك أو إس
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# عادةً ما يكون Git مثبتًا مسبقًا، لكن يمكنك التحديث عبر Homebrew
 brew install git
 ```
-  
 
-#### Linux
+#### لينكس
 
 ```bash
-# Ubuntu/Debian
+# أوبونتو/ديبيان
 sudo apt update && sudo apt install git
 
-# RHEL/CentOS
+# ريد هات إنتربرايز لينكس/سنت أو إس
 sudo dnf install git
 ```
-  
 
 ### 4. تثبيت VS Code
 
@@ -209,35 +199,33 @@ brew install --cask visual-studio-code
 # Linux (Ubuntu/Debian)
 sudo snap install code --classic
 ```
-  
 
 #### الإضافات المطلوبة
 
-قم بتثبيت إضافات VS Code التالية:  
+قم بتثبيت هذه الإضافات لـ VS Code:
 
 ```bash
-# Install via command line
+# التثبيت عبر سطر الأوامر
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
-  
 
-أو قم بالتثبيت من خلال VS Code:  
-1. افتح VS Code  
-2. انتقل إلى الإضافات (Ctrl+Shift+X)  
-3. قم بتثبيت:  
-   - **Python** (Microsoft)  
-   - **Docker** (Microsoft)  
-   - **Azure Account** (Microsoft)  
-   - **JSON** (Microsoft)  
+أو التثبيت من خلال VS Code:
+1. افتح VS Code
+2. انتقل إلى الإضافات (Ctrl+Shift+X)
+3. ثبّت:
+   - **Python** (مايكروسوفت)
+   - **Docker** (مايكروسوفت)
+   - **Azure Account** (مايكروسوفت)
+   - **JSON** (مايكروسوفت)
 
 ### 5. تثبيت Python
 
 Python 3.8+ مطلوب لتطوير خادم MCP.
 
-#### Windows
+#### ويندوز
 
 ```cmd
 # Using Windows Package Manager
@@ -245,163 +233,153 @@ winget install Python.Python.3.11
 
 # Or download from: https://www.python.org/downloads/
 ```
-  
 
-#### macOS
+#### ماك أو إس
 
 ```bash
-# Using Homebrew
+# استخدام Homebrew
 brew install python@3.11
 ```
-  
 
-#### Linux
+#### لينكس
 
 ```bash
-# Ubuntu/Debian
+# أوبونتو/ديبيان
 sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 
-# RHEL/CentOS
+# ريد هات إنتربرايز لينكس/سنت أوس
 sudo dnf install python3.11 python3.11-pip
 ```
-  
 
 #### التحقق من التثبيت
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # يجب أن يعرض Python 3.11.x
+pip --version      # يجب أن يعرض إصدار pip
 ```
-  
 
 ## 🚀 إعداد المشروع
 
 ### 1. استنساخ المستودع
 
 ```bash
-# Clone the main repository
+# استنساخ المستودع الرئيسي
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# الانتقال إلى دليل المشروع
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# التحقق من هيكل المستودع
 ls -la
 ```
-  
 
-### 2. إنشاء بيئة Python الافتراضية
+### 2. إنشاء بيئة افتراضية لبايثون
 
 ```bash
-# Create virtual environment
+# إنشاء بيئة افتراضية
 python -m venv mcp-env
 
-# Activate virtual environment
-# Windows
+# تفعيل البيئة الافتراضية
+# ويندوز
 mcp-env\Scripts\activate
 
-# macOS/Linux
+# ماك أو إس/لينكس
 source mcp-env/bin/activate
 
-# Upgrade pip
+# تحديث البيب
 python -m pip install --upgrade pip
 ```
-  
 
-### 3. تثبيت تبعيات Python
+### 3. تثبيت تبعيات بايثون
 
 ```bash
-# Install development dependencies
+# تثبيت تبعيات التطوير
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# التحقق من الحزم الرئيسية
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
-  
 
 ## ☁️ نشر موارد Azure
 
 ### 1. فهم متطلبات الموارد
 
-يتطلب خادم MCP هذه الموارد من Azure:
+يتطلب خادم MCP لدينا هذه الموارد من Azure:
 
-| **المورد** | **الغرض** | **التكلفة التقديرية** |  
-|------------|-----------|-----------------------|  
-| **Azure AI Foundry** | استضافة وإدارة النماذج الذكية | $10-50/شهريًا |  
-| **OpenAI Deployment** | نموذج تضمين النصوص (text-embedding-3-small) | $5-20/شهريًا |  
-| **Application Insights** | المراقبة والقياس | $5-15/شهريًا |  
-| **Resource Group** | تنظيم الموارد | مجاني |  
+| **المورد** | **الغرض** | **التكلفة المقدرة** |
+|--------------|-------------|-------------------|
+| **Microsoft Foundry** | استضافة وإدارة نماذج الذكاء الاصطناعي | 10-50 دولار شهريا |
+| **OpenAI Deployment** | نموذج تضمين النصوص (text-embedding-3-small) | 5-20 دولار شهريا |
+| **Application Insights** | المراقبة والقياسات | 5-15 دولار شهريا |
+| **Resource Group** | تنظيم الموارد | مجاني |
 
 ### 2. نشر موارد Azure
 
-#### الخيار A: النشر التلقائي (موصى به)
+#### الخيار أ: النشر التلقائي (موصى به)
 
 ```bash
-# Navigate to infrastructure directory
+# انتقل إلى مجلد البنية التحتية
 cd infra
 
-# Windows - PowerShell
+# ويندوز - باورشل
 ./deploy.ps1
 
-# macOS/Linux - Bash
+# ماك أو إس / لينكس - باش
 ./deploy.sh
 ```
-  
 
-سيقوم سكربت النشر بـ:  
-1. إنشاء مجموعة موارد فريدة  
-2. نشر موارد Azure AI Foundry  
-3. نشر نموذج text-embedding-3-small  
-4. تكوين Application Insights  
-5. إنشاء خدمة رئيسية للمصادقة  
-6. إنشاء ملف `.env` مع التكوين  
+سينفذ سكربت النشر التالي:
+1. إنشاء مجموعة موارد فريدة
+2. نشر موارد Microsoft Foundry
+3. نشر نموذج text-embedding-3-small
+4. تكوين Application Insights
+5. إنشاء حساب خدمة للمصادقة
+6. إنشاء ملف `.env` للتكوين
 
-#### الخيار B: النشر اليدوي
+#### الخيار ب: النشر اليدوي
 
-إذا كنت تفضل التحكم اليدوي أو فشل السكربت التلقائي:  
+إذا فضلت السيطرة اليدوية أو فشل السكربت التلقائي:
 
 ```bash
-# Set variables
+# تعيين المتغيرات
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# إنشاء مجموعة الموارد
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# نشر النموذج الرئيسي
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
   --parameters location=$LOCATION \
   --parameters resourcePrefix="zava-mcp"
 ```
-  
 
 ### 3. التحقق من نشر Azure
 
 ```bash
-# Check resource group
+# التحقق من مجموعة الموارد
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# سرد الموارد المنشورة
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# اختبار خدمة الذكاء الاصطناعي
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
-  
 
-### 4. تكوين المتغيرات البيئية
+### 4. تكوين متغيرات البيئة
 
-بعد النشر، يجب أن يكون لديك ملف `.env`. تحقق من أنه يحتوي على:  
+بعد النشر، يجب أن يكون لديك ملف `.env`. تحقق من احتوائه على:
 
 ```bash
-# .env file contents
+# محتويات ملف .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -410,20 +388,19 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# إعدادات قاعدة البيانات (للتطوير)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
-  
 
 ## 🐳 إعداد بيئة Docker
 
-### 1. فهم تكوين Docker
+### 1. فهم تكوين Docker Compose
 
-تستخدم بيئة التطوير لدينا Docker Compose:  
+تستخدم بيئة التطوير لدينا Docker Compose:
 
 ```yaml
 # docker-compose.yml overview
@@ -451,63 +428,59 @@ services:
     env_file:
       - .env
 ```
-  
 
 ### 2. بدء بيئة التطوير
 
 ```bash
-# Ensure you're in the project root directory
+# تأكد من أنك في دليل جذر المشروع
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# بدء الخدمات
 docker-compose up -d
 
-# Check service status
+# تحقق من حالة الخدمة
 docker-compose ps
 
-# View logs
+# عرض السجلات
 docker-compose logs -f
 ```
-  
 
 ### 3. التحقق من إعداد قاعدة البيانات
 
 ```bash
-# Connect to PostgreSQL container
+# الاتصال بحاوية PostgreSQL
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# فحص هيكل قاعدة البيانات
 \dt retail.*
 
-# Verify sample data
+# التحقق من بيانات العينة
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# الخروج من PostgreSQL
 \q
 ```
-  
 
 ### 4. اختبار خادم MCP
 
 ```bash
-# Check MCP server health
+# التحقق من صحة خادم MCP
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# اختبار نقطة نهاية MCP الأساسية
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
-  
 
 ## 🔧 تكوين VS Code
 
 ### 1. تكوين تكامل MCP
 
-قم بإنشاء تكوين MCP لـ VS Code:  
+إنشاء تكوين MCP لـ VS Code:
 
 ```json
 // .vscode/mcp.json
@@ -532,9 +505,8 @@ curl -X POST http://localhost:8000/mcp \
     "inputs": []
 }
 ```
-  
 
-### 2. تكوين بيئة Python
+### 2. تكوين بيئة بايثون
 
 ```json
 // .vscode/settings.json
@@ -552,32 +524,31 @@ curl -X POST http://localhost:8000/mcp \
     }
 }
 ```
-  
 
 ### 3. اختبار تكامل VS Code
 
-1. **افتح المشروع في VS Code**:  
+1. **افتح المشروع في VS Code**:
    ```bash
    code .
    ```
-  
-2. **افتح AI Chat**:  
-   - اضغط `Ctrl+Shift+P` (Windows/Linux) أو `Cmd+Shift+P` (macOS)  
-   - اكتب "AI Chat" واختر "AI Chat: Open Chat"  
 
-3. **اختبر اتصال خادم MCP**:  
-   - في AI Chat، اكتب `#zava` واختر أحد الخوادم المكونة  
-   - اسأل: "ما هي الجداول المتوفرة في قاعدة البيانات؟"  
-   - يجب أن تتلقى ردًا يسرد جداول قاعدة بيانات البيع بالتجزئة  
+2. **افتح دردشة AI**:
+   - اضغط `Ctrl+Shift+P` (ويندوز/لينكس) أو `Cmd+Shift+P` (ماك أو إس)
+   - اكتب "AI Chat" واختر "AI Chat: Open Chat"
+
+3. **اختبر اتصال خادم MCP**:
+   - في دردشة AI، اكتب `#zava` واختر أحد الخوادم المُعدة
+   - اسأل: "ما هي الجداول المتوفرة في قاعدة البيانات؟"
+   - يجب أن تتلقى ردًا يعرض جداول قاعدة بيانات التجزئة
 
 ## ✅ التحقق من البيئة
 
 ### 1. فحص النظام الشامل
 
-قم بتشغيل سكربت التحقق هذا للتحقق من إعدادك:  
+شغل سكربت التحقق هذا للتحقق من إعدادك:
 
 ```bash
-# Create validation script
+# إنشاء برنامج التحقق
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -596,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # التحقق من إصدار بايثون
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -604,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # التحقق من الحزم المطلوبة
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -613,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # التحقق من Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -623,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # التحقق من Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -633,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # التحقق من متغيرات البيئة
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -650,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # التحقق من اتصال قاعدة البيانات
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -660,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # اختبار الاستعلام
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -674,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # التحقق من خادم MCP
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -687,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # التحقق من خدمة Azure AI
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -695,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # هذا سيفشل إذا كانت بيانات الاعتماد غير صحيحة
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -745,176 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# تشغيل التحقق
 python validate_setup.py
 ```
-  
 
-### 2. قائمة التحقق اليدوية للتحقق
+### 2. قائمة التحقق اليدوية
 
-**✅ الأدوات الأساسية**  
-- [ ] تم تثبيت وتشغيل Docker الإصدار 20.10+  
-- [ ] تم تثبيت Azure CLI الإصدار 2.40+ والمصادقة  
-- [ ] Python 3.8+ مثبت مع pip  
-- [ ] Git الإصدار 2.30+ مثبت  
-- [ ] VS Code مع الإضافات المطلوبة  
+**✅ الأدوات الأساسية**
+- [ ] تثبيت Docker إصدار 20.10+ ويعمل
+- [ ] تثبيت Azure CLI 2.40+ ومصادقة ناجحة
+- [ ] Python 3.8+ مع pip مثبت
+- [ ] Git 2.30+ مثبت
+- [ ] VS Code مع الإضافات المطلوبة
 
-**✅ موارد Azure**  
-- [ ] تم إنشاء مجموعة الموارد بنجاح  
-- [ ] تم نشر مشروع AI Foundry  
-- [ ] تم نشر نموذج text-embedding-3-small  
-- [ ] تم تكوين Application Insights  
-- [ ] تم إنشاء خدمة رئيسية مع الأذونات المناسبة  
+**✅ موارد Azure**
+- [ ] إنشاء مجموعة موارد بنجاح
+- [ ] نشر مشروع AI Foundry
+- [ ] نشر نموذج text-embedding-3-small OpenAI
+- [ ] تكوين Application Insights
+- [ ] إنشاء حساب خدمة بالصلاحيات المناسبة
 
-**✅ تكوين البيئة**  
-- [ ] تم إنشاء ملف `.env` مع جميع المتغيرات المطلوبة  
-- [ ] تعمل بيانات اعتماد Azure (اختبر باستخدام `az account show`)  
-- [ ] حاوية PostgreSQL تعمل ويمكن الوصول إليها  
-- [ ] تم تحميل بيانات العينة في قاعدة البيانات  
+**✅ تكوين البيئة**
+- [ ] ملف `.env` يحتوي على كل المتغيرات المطلوبة
+- [ ] بيانات اعتماد Azure تعمل (اختبر بـ `az account show`)
+- [ ] حاوية PostgreSQL تعمل ومتاحة
+- [ ] تحميل بيانات نموذجية في قاعدة البيانات
 
-**✅ تكامل VS Code**  
-- [ ] تم تكوين `.vscode/mcp.json`  
-- [ ] تم تعيين مترجم Python إلى البيئة الافتراضية  
-- [ ] تظهر خوادم MCP في AI Chat  
-- [ ] يمكن تنفيذ استعلامات الاختبار عبر AI Chat  
+**✅ تكامل VS Code**
+- [ ] تكوين `.vscode/mcp.json`
+- [ ] تعيين مفسر بايثون إلى البيئة الافتراضية
+- [ ] ظهور خوادم MCP في دردشة AI
+- [ ] إمكانية تنفيذ استعلامات اختبارية من خلال دردشة AI
 
-## 🛠️ حل المشكلات الشائعة
+## 🛠️ استكشاف الأخطاء الشائعة وإصلاحها
 
-### مشاكل Docker
+### مشكلات Docker
 
-**المشكلة**: الحاويات لا تبدأ  
+**المشكلة**: لا تبدأ حاويات Docker
 ```bash
-# Check Docker service status
+# تحقق من حالة خدمة Docker
 docker info
 
-# Check available resources
+# تحقق من الموارد المتاحة
 docker system df
 
-# Clean up if needed
+# قم بالتنظيف إذا لزم الأمر
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# أعد تشغيل Docker Desktop (ويندوز/ماك)
+# أو أعد تشغيل خدمة Docker (لينكس)
 sudo systemctl restart docker
 ```
-  
 
-**المشكلة**: فشل اتصال PostgreSQL  
+**المشكلة**: فشل اتصال PostgreSQL
 ```bash
-# Check container logs
+# تحقق من سجلات الحاوية
 docker-compose logs postgres
 
-# Verify container is healthy
+# تحقق من أن الحاوية سليمة
 docker-compose ps
 
-# Test direct connection
+# اختبار الاتصال المباشر
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
-  
 
-### مشاكل نشر Azure
+### مشكلات نشر Azure
 
-**المشكلة**: فشل نشر Azure  
+**المشكلة**: فشل نشر Azure
 ```bash
-# Check Azure CLI authentication
+# التحقق من مصادقة Azure CLI
 az account show
 
-# Verify subscription permissions
+# التحقق من أذونات الاشتراك
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# التحقق من تسجيل مزود الموارد
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-  
 
-**المشكلة**: فشل مصادقة خدمة الذكاء الاصطناعي  
+**المشكلة**: فشل مصادقة خدمة AI
 ```bash
-# Test service principal
+# اختبار موفر الخدمة
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# التحقق من نشر خدمة الذكاء الاصطناعي
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
-  
 
-### مشاكل بيئة Python
+### مشكلات بيئة Python
 
-**المشكلة**: فشل تثبيت الحزم  
+**المشكلة**: فشل تثبيت الحزمة
 ```bash
-# Upgrade pip and setuptools
+# ترقية pip و setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# مسح ذاكرة التخزين المؤقت لـ pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# تثبيت الحزم واحدة تلو الأخرى لتحديد المشاكل
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-  
 
-**المشكلة**: VS Code لا يمكنه العثور على مترجم Python  
+**المشكلة**: VS Code لا يجد مفسر Python
 ```bash
-# Show Python interpreter paths
-which python  # macOS/Linux
-where python  # Windows
+# عرض مسارات مترجم بايثون
+which python  # ماك أو إس/لينكس
+where python  # ويندوز
 
-# Activate virtual environment first
-source mcp-env/bin/activate  # macOS/Linux
-mcp-env\Scripts\activate     # Windows
+# قم بتنشيط البيئة الافتراضية أولاً
+source mcp-env/bin/activate  # ماك أو إس/لينكس
+mcp-env\Scripts\activate     # ويندوز
 
-# Then open VS Code
+# ثم افتح VS Code
 code .
 ```
-  
 
 ## 🎯 النقاط الرئيسية
 
-بعد إكمال هذا المختبر، يجب أن تكون قد أنجزت:
+بعد إتمام هذا المختبر، يجب أن تكون لديك:
 
-✅ **بيئة تطوير كاملة**: تم تثبيت وتكوين جميع الأدوات  
-✅ **نشر موارد Azure**: خدمات الذكاء الاصطناعي والبنية التحتية الداعمة  
-✅ **تشغيل بيئة Docker**: حاويات PostgreSQL وخادم MCP  
-✅ **تكامل VS Code**: تم تكوين خوادم MCP ويمكن الوصول إليها  
-✅ **إعداد تم التحقق منه**: تم اختبار جميع المكونات وتعمل معًا  
-✅ **معرفة حل المشكلات**: المشكلات الشائعة والحلول  
+✅ **بيئة تطوير كاملة**: كل الأدوات مثبتة ومُعدة  
+✅ **موارد Azure منشورة**: خدمات الذكاء الاصطناعي والبنية التحتية الداعمة  
+✅ **بيئة Docker تعمل**: حاويات PostgreSQL وخادم MCP  
+✅ **تكامل VS Code**: تنفيذ تكوينات MCP والوصول إليها  
+✅ **إعداد مُتحقق**: جميع المكونات مختبرة وتعمل معًا  
+✅ **معرفة استكشاف الأخطاء**: المشكلات الشائعة والحلول  
 
 ## 🚀 ما التالي
 
-مع جاهزية بيئتك، تابع إلى **[مختبر 04: تصميم قاعدة البيانات والمخطط](../04-Database/README.md)** لـ:
+مع جاهزية بيئتك، تابع إلى **[المختبر 04: تصميم قاعدة البيانات والمخطط](../04-Database/README.md)** لـ:
 
-- استكشاف مخطط قاعدة بيانات البيع بالتجزئة بالتفصيل  
-- فهم نمذجة البيانات متعددة المستأجرين  
-- تعلم تنفيذ أمان مستوى الصفوف  
-- العمل مع بيانات البيع بالتجزئة النموذجية  
+- استكشاف مخطط قاعدة بيانات التجزئة بتفصيل
+- فهم نمذجة البيانات متعددة المستأجرين
+- التعرف على تنفيذ أمان مستوى الصف
+- العمل مع بيانات تجزئة نموذجية
 
-## 📚 موارد إضافية
+## 📚 مصادر إضافية
 
 ### أدوات التطوير
-- [وثائق Docker](https://docs.docker.com/) - مرجع Docker الكامل  
-- [مرجع Azure CLI](https://docs.microsoft.com/cli/azure/) - أوامر Azure CLI  
-- [وثائق VS Code](https://code.visualstudio.com/docs) - إعدادات المحرر والإضافات  
+- [توثيق Docker](https://docs.docker.com/) - مرجع شامل لدعم Docker
+- [مرجع Azure CLI](https://docs.microsoft.com/cli/azure/) - أوامر Azure CLI
+- [توثيق VS Code](https://code.visualstudio.com/docs) - إعداد المحرر والإضافات
 
 ### خدمات Azure
-- [وثائق Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - تكوين خدمات الذكاء الاصطناعي  
-- [خدمة Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - نشر نماذج الذكاء الاصطناعي  
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - إعداد المراقبة  
+- [توثيق Microsoft Foundry](https://docs.microsoft.com/azure/ai-foundry/) - تكوين خدمة الذكاء الاصطناعي
+- [خدمة Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - نشر نماذج الذكاء الاصطناعي
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - إعداد المراقبة
 
 ### تطوير Python
-- [بيئات Python الافتراضية](https://docs.python.org/3/tutorial/venv.html) - إدارة البيئة  
-- [وثائق AsyncIO](https://docs.python.org/3/library/asyncio.html) - أنماط البرمجة غير المتزامنة  
-- [وثائق FastAPI](https://fastapi.tiangolo.com/) - أنماط إطار العمل  
+- [بيئات Python الافتراضية](https://docs.python.org/3/tutorial/venv.html) - إدارة البيئة
+- [توثيق AsyncIO](https://docs.python.org/3/library/asyncio.html) - أنماط البرمجة غير المتزامنة
+- [توثيق FastAPI](https://fastapi.tiangolo.com/) - أنماط أطر الويب
 
 ---
 
-**التالي**: هل البيئة جاهزة؟ تابع مع [مختبر 04: تصميم قاعدة البيانات والمخطط](../04-Database/README.md)
+**التالي**: هل البيئة جاهزة؟ تابع مع [المختبر 04: تصميم قاعدة البيانات والمخطط](../04-Database/README.md)
 
 ---
 
-**إخلاء المسؤولية**:  
-تم ترجمة هذا المستند باستخدام خدمة الترجمة بالذكاء الاصطناعي [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى لتحقيق الدقة، يرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو معلومات غير دقيقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الرسمي. للحصول على معلومات حاسمة، يُوصى بالاستعانة بترجمة بشرية احترافية. نحن غير مسؤولين عن أي سوء فهم أو تفسيرات خاطئة ناتجة عن استخدام هذه الترجمة.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**تنويه**:
+تمت ترجمة هذا المستند باستخدام خدمة الترجمة بالذكاء الاصطناعي [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى للدقة، يرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الرسمي والمعتمد. للمعلومات الهامة، يُنصح بالاستعانة بترجمة بشرية محترفة. نحن غير مسؤولين عن أي سوء فهم أو تفسير ناتج عن استخدام هذه الترجمة.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

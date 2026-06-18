@@ -2,15 +2,21 @@
 
 ## Kako prijaviti probleme i dobiti pomoć  
 
-Ovaj projekt koristi GitHub Issues za praćenje bugova i zahtjeva za novim značajkama. Prije nego što prijavite novi problem, molimo vas da pretražite postojeće issue-e kako biste izbjegli duplikate. Za nove probleme, prijavite bug ili zahtjev za značajkom kao novi Issue.
+Ovaj projekt koristi GitHub Issues za praćenje bugova i zahtjeva za značajkama. Molimo pretražite postojeće  
+probleme prije prijave novih kako biste izbjegli duplikate. Za nove probleme, prijavite svoj bug ili  
+zahtjev za značajkom kao novi Issue.
 
-Za pomoć i pitanja vezana uz korištenje ovog projekta, molimo:
-- Provjerite [Azure AI Foundry Discord](https://discord.com/invite/ByRwuEEgH4) gdje se okupljaju stručnjaci i drugi developeri
-- Iskoristite resurse [Model Context Protocol Community](https://modelcontextprotocol.io/community/) za pitanja vezana uz protokol
+Za pomoć i pitanja o korištenju ovog projekta, molimo:  
+- Provjerite [Microsoft Foundry Discord](https://discord.com/invite/ByRwuEEgH4) gdje se okupljaju stručnjaci i kolege developeri  
+- Koristite resurse [Model Context Protocol Community](https://modelcontextprotocol.io/community/) za pitanja vezana uz protokol
 
 ## Microsoftova politika podrške  
 
-Podrška za projekt Model Context Protocol (MCP) for Beginners ograničena je na gore navedene resurse.
+Podrška za projekt Model Context Protocol (MCP) za početnike ograničena je na gore navedene resurse.
 
-**Odricanje od odgovornosti**:  
-Ovaj dokument je preveden korištenjem AI usluge za prevođenje [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati pogreške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za kritične informacije preporučuje se profesionalni ljudski prijevod. Ne snosimo odgovornost za bilo kakva nesporazume ili pogrešna tumačenja koja proizlaze iz korištenja ovog prijevoda.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Napomena**:
+Ovaj dokument je preveden korištenjem AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati greške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za važne informacije preporuča se profesionalni ljudski prijevod. Nismo odgovorni za bilo kakva nesporazumevanja ili pogrešne interpretacije koje proizlaze iz korištenja ovog prijevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

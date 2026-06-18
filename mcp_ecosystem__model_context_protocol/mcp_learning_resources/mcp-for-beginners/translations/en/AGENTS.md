@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**MCP for Beginners** is an open-source educational curriculum designed to teach the Model Context Protocol (MCP), a standardized framework for interactions between AI models and client applications. This repository offers comprehensive learning materials, including hands-on code examples in various programming languages.
+**MCP for Beginners** is an open-source educational curriculum for learning the Model Context Protocol (MCP) - a standardized framework for interactions between AI models and client applications. This repository provides comprehensive learning materials with hands-on code examples across multiple programming languages.
 
 ### Key Technologies
 
@@ -19,15 +19,15 @@
 
 ### Architecture
 
-- **11 Core Modules (00-11)**: A sequential learning path covering fundamentals to advanced topics
+- **11 Core Modules (00-11)**: Sequential learning path from fundamentals to advanced topics
 - **Hands-on Labs**: Practical exercises with complete solution code in multiple languages
-- **Sample Projects**: Fully functional MCP server and client implementations
+- **Sample Projects**: Working MCP server and client implementations
 - **Translation System**: Automated GitHub Actions workflow for multi-language support
-- **Image Assets**: Centralized image directory with localized versions
+- **Image Assets**: Centralized images directory with translated versions
 
 ## Setup Commands
 
-This repository primarily focuses on documentation. Most setup steps are specific to individual sample projects and labs.
+This is a documentation-focused repository. Most setup occurs within individual sample projects and labs.
 
 ### Repository Setup
 
@@ -45,7 +45,7 @@ Sample projects are located in:
 - `03-GettingStarted/02-client/solution/` - Client implementations
 - `11-MCPServerHandsOnLabs/` - Comprehensive database integration labs
 
-Each sample project includes its own setup instructions:
+Each sample project contains its own setup instructions:
 
 #### TypeScript/JavaScript Projects
 ```bash
@@ -74,45 +74,45 @@ mvn spring-boot:run
 
 ### Documentation Structure
 
-- **Modules 00-11**: Core curriculum content organized sequentially
-- **translations/**: Auto-generated language-specific versions (do not edit directly)
+- **Modules 00-11**: Core curriculum content in sequential order
+- **translations/**: Language-specific versions (auto-generated, do not edit directly)
 - **translated_images/**: Localized image versions (auto-generated)
 - **images/**: Source images and diagrams
 
 ### Making Documentation Changes
 
 1. Edit only the English markdown files in the root module directories (00-11)
-2. Update images in the `images/` directory if necessary
+2. Update images in the `images/` directory if needed
 3. The co-op-translator GitHub Action will automatically generate translations
-4. Translations are regenerated upon pushing to the main branch
+4. Translations are regenerated on push to main branch
 
 ### Working with Translations
 
 - **Automated Translation**: GitHub Actions workflow handles all translations
-- **Do NOT manually edit** files in the `translations/` directory
+- **Do NOT manually edit** files in `translations/` directory
 - Translation metadata is embedded in each translated file
-- Supported languages: Over 48 languages, including Arabic, Chinese, French, German, Hindi, Japanese, Korean, Portuguese, Russian, Spanish, and more
+- Supported languages: 48+ languages including Arabic, Chinese, French, German, Hindi, Japanese, Korean, Portuguese, Russian, Spanish, and many more
 
 ## Testing Instructions
 
 ### Documentation Validation
 
-Since this repository is primarily documentation-focused, testing involves:
+Since this is primarily a documentation repository, testing focuses on:
 
-1. **Link Validation**: Ensure all internal links are functional
+1. **Link Validation**: Ensure all internal links work
 ```bash
 # Check for broken markdown links
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Code Sample Validation**: Verify that code examples compile and run correctly
+2. **Code Sample Validation**: Test that code examples compile/run
 ```bash
 # Navigate to specific sample and run its tests
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Markdown Linting**: Check for formatting consistency
+3. **Markdown Linting**: Check formatting consistency
 ```bash
 # Use markdownlint if needed
 npx markdownlint-cli2 "**/*.md" "#node_modules"
@@ -120,7 +120,7 @@ npx markdownlint-cli2 "**/*.md" "#node_modules"
 
 ### Sample Project Testing
 
-Each language-specific sample project includes its own testing instructions:
+Each language-specific sample includes its own testing approach:
 
 #### TypeScript/JavaScript
 ```bash
@@ -145,12 +145,12 @@ mvn verify
 ### Documentation Style
 
 - Use clear, beginner-friendly language
-- Provide code examples in multiple languages where applicable
+- Include code examples in multiple languages where applicable
 - Follow markdown best practices:
   - Use ATX-style headers (`#` syntax)
   - Use fenced code blocks with language identifiers
   - Include descriptive alt text for images
-  - Maintain reasonable line lengths (no strict limit, but avoid overly long lines)
+  - Keep line lengths reasonable (no hard limit, but be sensible)
 
 ### Code Sample Style
 
@@ -164,12 +164,12 @@ mvn verify
 - Follow PEP 8 style guidelines
 - Use type hints where appropriate
 - Include docstrings for functions and classes
-- Utilize modern Python features (3.8+)
+- Use modern Python features (3.8+)
 
 #### Java
 - Follow Spring Boot conventions
 - Use Java 21 features
-- Adhere to standard Maven project structure
+- Follow standard Maven project structure
 - Include Javadoc comments
 
 ### File Organization
@@ -190,21 +190,21 @@ mvn verify
 
 ### Documentation Deployment
 
-The repository uses GitHub Pages or similar platforms for hosting documentation (if applicable). Changes to the main branch trigger:
+The repository uses GitHub Pages or similar for documentation hosting (if applicable). Changes to the main branch trigger:
 
 1. Translation workflow (`.github/workflows/co-op-translator.yml`)
 2. Automated translation of all English markdown files
-3. Localization of images as needed
+3. Image localization as needed
 
 ### No Build Process Required
 
-This repository primarily contains markdown documentation. No compilation or build step is required for the core curriculum content.
+This repository primarily contains markdown documentation. No compilation or build step is needed for the core curriculum content.
 
 ### Sample Project Deployment
 
-Individual sample projects may include deployment instructions:
-- Refer to `03-GettingStarted/09-deployment/` for MCP server deployment guidance
-- Azure Container Apps deployment examples are available in `11-MCPServerHandsOnLabs/`
+Individual sample projects may have deployment instructions:
+- See `03-GettingStarted/09-deployment/` for MCP server deployment guidance
+- Azure Container Apps deployment examples in `11-MCPServerHandsOnLabs/`
 
 ## Contributing Guidelines
 
@@ -213,7 +213,7 @@ Individual sample projects may include deployment instructions:
 1. **Fork and Clone**: Fork the repository and clone your fork locally
 2. **Create a Branch**: Use descriptive branch names (e.g., `fix/typo-module-3`, `add/python-example`)
 3. **Make Changes**: Edit English markdown files only (not translations)
-4. **Test Locally**: Verify that markdown renders correctly
+4. **Test Locally**: Verify markdown renders correctly
 5. **Submit PR**: Use clear PR titles and descriptions
 6. **CLA**: Sign the Microsoft Contributor License Agreement when prompted
 
@@ -226,7 +226,7 @@ Use clear, descriptive titles:
 
 ### What to Contribute
 
-- Fixes for bugs in documentation or code samples
+- Bug fixes in documentation or code samples
 - New code examples in additional languages
 - Clarifications and improvements to existing content
 - New case studies or practical examples
@@ -234,9 +234,9 @@ Use clear, descriptive titles:
 
 ### What NOT to Do
 
-- Do not directly edit files in the `translations/` directory
-- Do not modify the `translated_images/` directory
-- Do not add large binary files without prior discussion
+- Do not directly edit files in `translations/` directory
+- Do not edit `translated_images/` directory
+- Do not add large binary files without discussion
 - Do not change translation workflow files without coordination
 
 ## Additional Notes
@@ -244,13 +244,13 @@ Use clear, descriptive titles:
 ### Repository Maintenance
 
 - **Changelog**: All significant changes are documented in `changelog.md`
-- **Study Guide**: Use `study_guide.md` for an overview of the curriculum
+- **Study Guide**: Use `study_guide.md` for curriculum navigation overview
 - **Issue Templates**: Use GitHub issue templates for bug reports and feature requests
-- **Code of Conduct**: All contributors must adhere to the Microsoft Open Source Code of Conduct
+- **Code of Conduct**: All contributors must follow the Microsoft Open Source Code of Conduct
 
 ### Learning Path
 
-Follow the modules sequentially (00-11) for optimal learning:
+Follow modules in sequential order (00-11) for optimal learning:
 1. **00-02**: Fundamentals (Introduction, Core Concepts, Security)
 2. **03**: Getting Started with hands-on implementation
 3. **04-05**: Practical implementation and advanced topics
@@ -262,8 +262,8 @@ Follow the modules sequentially (00-11) for optimal learning:
 - **Documentation**: https://modelcontextprotocol.io/
 - **Specification**: https://spec.modelcontextprotocol.io/
 - **Community**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discord server
-- **Related Courses**: Refer to README.md for other Microsoft learning paths
+- **Discord**: Microsoft Foundry Discord server
+- **Related Courses**: See README.md for other Microsoft learning paths
 
 ### Common Troubleshooting
 
@@ -274,10 +274,10 @@ A: Ensure you only edited English markdown files in the root module directories,
 A: Language support is managed through the co-op-translator workflow. Open an issue to discuss adding new languages.
 
 **Q: Code samples aren't working**
-A: Ensure you've followed the setup instructions in the specific sample's README. Verify that you have the correct versions of dependencies installed.
+A: Ensure you've followed the setup instructions in the specific sample's README. Check that you have the correct versions of dependencies installed.
 
 **Q: Images aren't displaying**
-A: Check that image paths are relative and use forward slashes. Images should be located in the `images/` directory or `translated_images/` for localized versions.
+A: Verify image paths are relative and use forward slashes. Images should be in the `images/` directory or `translated_images/` for localized versions.
 
 ### Performance Considerations
 
@@ -293,9 +293,11 @@ This project follows Microsoft open source practices:
 - Microsoft Open Source Code of Conduct
 - CLA required for contributions
 - Security issues: Follow SECURITY.md guidelines
-- Support: Refer to SUPPORT.md for assistance
+- Support: See SUPPORT.md for help resources
 
 ---
 
-**Disclaimer**:  
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we aim for accuracy, please note that automated translations may include errors or inaccuracies. The original document in its native language should be regarded as the authoritative source. For critical information, professional human translation is advised. We are not responsible for any misunderstandings or misinterpretations resulting from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

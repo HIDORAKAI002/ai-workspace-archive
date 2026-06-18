@@ -28,7 +28,7 @@ import anyio
 from .._retry import TRANSIENT_ERRORS, is_fatal_status_error
 from ..._types import Headers
 from ._tool_dispatch import tool_registry, run_runnable_tool, tool_error_content
-from .._scoped_client import HelperTag, _copy_client_with_bearer_auth
+from .._scoped_client import _copy_client_with_bearer_auth
 from ._beta_functions import (
     ToolError,
     BetaRunnableTool,
@@ -36,6 +36,7 @@ from ._beta_functions import (
     BetaFunctionToolResultType,
     aclose_runnable_tool,
 )
+from .._stainless_helpers import helper_header
 from ...types.beta.sessions import BetaManagedAgentsAgentToolUseEvent, BetaManagedAgentsAgentCustomToolUseEvent
 from ...types.beta.sessions.beta_managed_agents_user_tool_result_event_params import (
     Content as _SessionContent,
@@ -208,9 +209,6 @@ class DispatchedToolCall:
     owner (the split-client partial-fulfilment behavior)."""
 
 
-_HELPER: HelperTag = "session-tool-runner"
-
-
 def _scoped_client(client: AsyncAnthropic, environment_key: str | None) -> AsyncAnthropic:
     """Build the runner's request client.
 
@@ -220,8 +218,10 @@ def _scoped_client(client: AsyncAnthropic, environment_key: str | None) -> Async
     mutated).
     """
     if environment_key is not None:
-        return _copy_client_with_bearer_auth(client, auth_token=environment_key, helper=_HELPER)
-    return client.with_options(default_headers={"x-stainless-helper": _HELPER})
+        return _copy_client_with_bearer_auth(
+            client, auth_token=environment_key, helper="session-tool-runner"
+        )
+    return client.with_options(default_headers=helper_header("session-tool-runner"))
 
 
 def _to_session_content(content: BetaFunctionToolResultType) -> list[_SessionContent]:
@@ -354,8 +354,9 @@ class SessionToolRunner:
         # the parent client's ``default_headers`` propagate via its
         # ``client.copy()``; per the SDK's standard ``extra_headers``
         # precedence a caller header overrides the scoped client's same-named
-        # default for that request, so this is for caller passthrough (trace
-        # ids etc.), not auth.
+        # default for that request (``x-stainless-helper`` is the exception —
+        # a caller value appends to the runner's tag rather than replacing it),
+        # so this is for caller passthrough (trace ids etc.), not auth.
         self.extra_headers = extra_headers
 
     async def __aiter__(self) -> AsyncIterator[DispatchedToolCall]:

@@ -2,51 +2,51 @@
 
 ## 🎯 本實驗涵蓋內容
 
-這個實作實驗將指導您設置完整的開發環境，用於建立與 PostgreSQL 整合的 MCP 伺服器。您將配置所有必要工具、部署 Azure 資源，並在開始實作之前驗證您的設置。
+本實驗室將引導您完成建置整合 PostgreSQL 的 MCP 伺服器開發環境的完整設定。您將配置所有必要的工具、部署 Azure 資源，並驗證設定是否正確，然後再進行實作。
 
 ## 概述
 
-適當的開發環境對於成功開發 MCP 伺服器至關重要。本實驗提供逐步指導，幫助您設置 Docker、Azure 服務、開發工具，並驗證所有組件是否能正確協同工作。
+適當的開發環境對於成功開發 MCP 伺服器至關重要。本實驗室提供逐步指引，協助您設定 Docker、Azure 服務、開發工具，並驗證所有元件是否協同運作。
 
-完成本實驗後，您將擁有一個完全功能的開發環境，準備好用於建立 Zava Retail MCP 伺服器。
+完成本實驗後，您將擁有一個完整可用的開發環境，準備建置 Zava Retail MCP 伺服器。
 
 ## 學習目標
 
-完成本實驗後，您將能夠：
+完成本實驗後，您將能：
 
-- **安裝並配置**所有必要的開發工具
-- **部署 Azure 資源**以支持 MCP 伺服器
-- **設置 Docker 容器**以運行 PostgreSQL 和 MCP 伺服器
-- **驗證**您的環境設置是否正常運行
-- **排除故障**常見的設置問題和配置問題
-- **理解**開發工作流程和文件結構
+- <strong>安裝及配置</strong> 所有必要的開發工具
+- **部署 Azure 資源**，以支援 MCP 伺服器
+- **設定 Docker 容器**，包含 PostgreSQL 與 MCP 伺服器
+- <strong>驗證</strong> 環境設定的連線測試
+- <strong>排解</strong> 常見設定問題及配置錯誤
+- <strong>理解</strong> 開發工作流程與檔案結構
 
 ## 📋 先決條件檢查
 
-在開始之前，請確保您具備以下條件：
+開始前，請確認您已具備：
 
-### 必需知識
-- 基本命令行使用（Windows Command Prompt/PowerShell）
-- 環境變數的基本概念
+### 必備知識
+- 基本指令列操作（Windows 命令提示字元/PowerShell）
+- 環境變數基礎認知
 - 熟悉 Git 版本控制
-- 基本 Docker 概念（容器、映像、卷）
+- 基本 Docker 概念（容器、映像檔、卷）
 
-### 系統要求
-- **操作系統**：Windows 10/11、macOS 或 Linux
-- **RAM**：至少 8GB（建議 16GB）
-- **存儲空間**：至少 10GB 可用空間
-- **網絡**：下載和部署 Azure 所需的網絡連接
+### 系統需求
+- <strong>作業系統</strong>：Windows 10/11、macOS 或 Linux
+- <strong>記憶體</strong>：至少 8GB（建議 16GB）
+- <strong>儲存空間</strong>：至少 10GB 可用空間
+- <strong>網路</strong>：具備網際網路連線以下載及部署 Azure 資源
 
-### 帳戶要求
-- **Azure 訂閱**：免費層即可
-- **GitHub 帳戶**：用於存取倉庫
-- **Docker Hub 帳戶**：（可選）用於發布自定義映像
+### 帳號需求
+- **Azure 訂閱**：免費方案足夠
+- **GitHub 帳號**：存取原始碼庫
+- **Docker Hub 帳號**：（選用）發布自訂映像檔
 
 ## 🛠️ 工具安裝
 
 ### 1. 安裝 Docker Desktop
 
-Docker 提供了我們開發設置所需的容器化環境。
+Docker 提供容器化開發環境。
 
 #### Windows 安裝
 
@@ -57,12 +57,12 @@ Docker 提供了我們開發設置所需的容器化環境。
    winget install Docker.DockerDesktop
    ```
 
-2. **安裝並配置**：
-   - 以管理員身份運行安裝程序
-   - 當提示時啟用 WSL 2 集成
-   - 安裝完成後重新啟動計算機
+2. <strong>安裝與設定</strong>：
+   - 以系統管理員權限執行安裝程式
+   - 被提示時開啟 WSL 2 整合功能
+   - 安裝完成後重新啟動電腦
 
-3. **驗證安裝**：
+3. <strong>驗證安裝成功</strong>：
    ```cmd
    docker --version
    docker-compose --version
@@ -70,18 +70,18 @@ Docker 提供了我們開發設置所需的容器化環境。
 
 #### macOS 安裝
 
-1. **下載並安裝**：
+1. <strong>下載並安裝</strong>：
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # 從 https://desktop.docker.com/mac/stable/Docker.dmg 下載
+   # 或者使用 Homebrew
    brew install --cask docker
    ```
 
 2. **啟動 Docker Desktop**：
-   - 從應用程序中啟動 Docker Desktop
-   - 完成初始設置向導
+   - 從「應用程式」啟動 Docker Desktop
+   - 完成初始設定精靈
 
-3. **驗證安裝**：
+3. <strong>驗證安裝成功</strong>：
    ```bash
    docker --version
    docker-compose --version
@@ -89,14 +89,14 @@ Docker 提供了我們開發設置所需的容器化環境。
 
 #### Linux 安裝
 
-1. **安裝 Docker Engine**：
+1. **安裝 Docker 引擎**：
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # 登出然後重新登入以使群組更改生效
    ```
 
 2. **安裝 Docker Compose**：
@@ -107,7 +107,7 @@ Docker 提供了我們開發設置所需的容器化環境。
 
 ### 2. 安裝 Azure CLI
 
-Azure CLI 用於部署和管理 Azure 資源。
+Azure CLI 用於部署及管理 Azure 資源。
 
 #### Windows 安裝
 
@@ -121,10 +121,10 @@ winget install Microsoft.AzureCLI
 #### macOS 安裝
 
 ```bash
-# Using Homebrew
+# 使用 Homebrew
 brew install azure-cli
 
-# Or using installer
+# 或使用安裝程式
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
@@ -139,23 +139,23 @@ sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
 
-#### 驗證並認證
+#### 驗證與登入
 
 ```bash
-# Check installation
+# 檢查安裝
 az version
 
-# Login to Azure
+# 登入 Azure
 az login
 
-# Set default subscription (if you have multiple)
+# 設定預設訂閱（如果你有多個）
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
 ### 3. 安裝 Git
 
-Git 用於克隆倉庫和版本控制。
+Git 是原始碼庫克隆與版本控制所需。
 
 #### Windows
 
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git 通常已預先安裝，但您可以透過 Homebrew 更新
 brew install git
 ```
 
@@ -185,7 +185,7 @@ sudo dnf install git
 
 ### 4. 安裝 VS Code
 
-Visual Studio Code 提供了支持 MCP 的集成開發環境。
+Visual Studio Code 提供具備 MCP 支援的整合開發環境。
 
 #### 安裝
 
@@ -200,30 +200,30 @@ brew install --cask visual-studio-code
 sudo snap install code --classic
 ```
 
-#### 必需擴展
+#### 必要擴充套件
 
-安裝以下 VS Code 擴展：
+安裝以下 VS Code 擴充套件：
 
 ```bash
-# Install via command line
+# 通過命令行安裝
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
 
-或者通過 VS Code 安裝：
-1. 打開 VS Code
-2. 前往擴展（Ctrl+Shift+X）
+或透過 VS Code 安裝：
+1. 開啟 VS Code
+2. 前往擴充功能 (Ctrl+Shift+X)
 3. 安裝：
-   - **Python**（Microsoft）
-   - **Docker**（Microsoft）
-   - **Azure Account**（Microsoft）
-   - **JSON**（Microsoft）
+   - **Python** (Microsoft)
+   - **Docker** (Microsoft)
+   - **Azure Account** (Microsoft)
+   - **JSON** (Microsoft)
 
 ### 5. 安裝 Python
 
-MCP 伺服器開發需要 Python 3.8+。
+MCP 伺服器開發需 Python 3.8+。
 
 #### Windows
 
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# 使用 Homebrew
 brew install python@3.11
 ```
 
@@ -254,49 +254,49 @@ sudo dnf install python3.11 python3.11-pip
 #### 驗證安裝
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # 應顯示 Python 3.11.x
+pip --version      # 應顯示 pip 版本
 ```
 
-## 🚀 項目設置
+## 🚀 專案設定
 
-### 1. 克隆倉庫
+### 1. 克隆原始碼庫
 
 ```bash
-# Clone the main repository
+# 複製主要資源庫
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# 移動到專案目錄
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# 驗證資源庫結構
 ls -la
 ```
 
-### 2. 創建 Python 虛擬環境
+### 2. 建立 Python 虛擬環境
 
 ```bash
-# Create virtual environment
+# 建立虛擬環境
 python -m venv mcp-env
 
-# Activate virtual environment
-# Windows
+# 啟動虛擬環境
+# Windows 作業系統
 mcp-env\Scripts\activate
 
-# macOS/Linux
+# macOS/Linux 作業系統
 source mcp-env/bin/activate
 
-# Upgrade pip
+# 升級 pip 工具
 python -m pip install --upgrade pip
 ```
 
-### 3. 安裝 Python 依賴項
+### 3. 安裝 Python 相依套件
 
 ```bash
-# Install development dependencies
+# 安裝開發依賴項
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# 驗證主要套件
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
@@ -304,23 +304,23 @@ pip list | grep azure
 
 ## ☁️ Azure 資源部署
 
-### 1. 理解資源需求
+### 1. 瞭解資源需求
 
-我們的 MCP 伺服器需要以下 Azure 資源：
+MCP 伺服器需要以下 Azure 資源：
 
-| **資源** | **用途** | **估計成本** |
-|----------|----------|-------------|
-| **Azure AI Foundry** | AI 模型託管和管理 | 每月 $10-50 |
-| **OpenAI 部署** | 文本嵌入模型（text-embedding-3-small） | 每月 $5-20 |
-| **Application Insights** | 監控和遙測 | 每月 $5-15 |
-| **資源組** | 資源組織 | 免費 |
+| <strong>資源</strong> | <strong>用途</strong> | <strong>預估費用</strong> |
+|--------------|-------------|-------------------|
+| **Microsoft Foundry** | AI 模型託管及管理 | $10-50/月 |
+| **OpenAI 部署** | 文字嵌入模型 (text-embedding-3-small) | $5-20/月 |
+| **Application Insights** | 監控與遙測 | $5-15/月 |
+| <strong>資源群組</strong> | 資源組織 | 免費 |
 
 ### 2. 部署 Azure 資源
 
-#### 選項 A：自動部署（推薦）
+#### 選項 A：自動化部署（推薦）
 
 ```bash
-# Navigate to infrastructure directory
+# 導航到基礎設施目錄
 cd infra
 
 # Windows - PowerShell
@@ -330,28 +330,28 @@ cd infra
 ./deploy.sh
 ```
 
-部署腳本將執行以下操作：
-1. 創建唯一的資源組
-2. 部署 Azure AI Foundry 資源
+部署腳本包含：
+1. 建立唯一資源群組
+2. 部署 Microsoft Foundry 資源
 3. 部署 text-embedding-3-small 模型
 4. 配置 Application Insights
-5. 創建服務主體以進行認證
-6. 生成 `.env` 文件並配置
+5. 建立服務主體以用於驗證
+6. 生成含設定的 `.env` 檔案
 
 #### 選項 B：手動部署
 
-如果您偏好手動控制或自動腳本失敗：
+若您偏好手動操作或自動腳本失敗：
 
 ```bash
-# Set variables
+# 設定變數
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# 建立資源群組
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# 部署主範本
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,27 +359,27 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. 驗證 Azure 部署
+### 3. 驗證 Azure 部署結果
 
 ```bash
-# Check resource group
+# 檢查資源組
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# 列出已部署資源
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# 測試AI服務
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
 
-### 4. 配置環境變數
+### 4. 設定環境變數
 
-部署完成後，您應該擁有一個 `.env` 文件。驗證其內容是否包含：
+部署完成後，您應有一份 `.env` 檔案。請確認該檔案包含：
 
 ```bash
-# .env file contents
+# .env 文件內容
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# 數據庫配置（用於開發）
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -396,11 +396,11 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
 
-## 🐳 Docker 環境設置
+## 🐳 Docker 環境設定
 
-### 1. 理解 Docker 組成
+### 1. 瞭解 Docker 組態
 
-我們的開發環境使用 Docker Compose：
+開發環境採用 Docker Compose：
 
 ```yaml
 # docker-compose.yml overview
@@ -432,44 +432,44 @@ services:
 ### 2. 啟動開發環境
 
 ```bash
-# Ensure you're in the project root directory
+# 確保你位於專案根目錄
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# 啟動服務
 docker-compose up -d
 
-# Check service status
+# 檢查服務狀態
 docker-compose ps
 
-# View logs
+# 查看日誌
 docker-compose logs -f
 ```
 
-### 3. 驗證數據庫設置
+### 3. 驗證資料庫設定
 
 ```bash
-# Connect to PostgreSQL container
+# 連接到 PostgreSQL 容器
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# 檢查資料庫結構
 \dt retail.*
 
-# Verify sample data
+# 驗證範本資料
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# 離開 PostgreSQL
 \q
 ```
 
 ### 4. 測試 MCP 伺服器
 
 ```bash
-# Check MCP server health
+# 檢查 MCP 伺服器狀態
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# 測試基本 MCP 端點
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
@@ -478,9 +478,9 @@ curl -X POST http://localhost:8000/mcp \
 
 ## 🔧 VS Code 配置
 
-### 1. 配置 MCP 集成
+### 1. 設定 MCP 整合
 
-創建 VS Code MCP 配置：
+建立 VS Code MCP 設定：
 
 ```json
 // .vscode/mcp.json
@@ -525,30 +525,30 @@ curl -X POST http://localhost:8000/mcp \
 }
 ```
 
-### 3. 測試 VS Code 集成
+### 3. 測試 VS Code 整合
 
-1. **在 VS Code 中打開項目**：
+1. **在 VS Code 開啟專案：**
    ```bash
    code .
    ```
 
-2. **打開 AI 聊天**：
+2. **開啟 AI Chat：**
    - 按 `Ctrl+Shift+P`（Windows/Linux）或 `Cmd+Shift+P`（macOS）
-   - 輸入 "AI Chat" 並選擇 "AI Chat: Open Chat"
+   - 輸入「AI Chat」並選擇「AI Chat: Open Chat」
 
-3. **測試 MCP 伺服器連接**：
-   - 在 AI 聊天中輸入 `#zava` 並選擇已配置的伺服器之一
-   - 詢問："數據庫中有哪些表？"
-   - 您應該收到列出零售數據庫表的回應
+3. **測試 MCP 伺服器連線：**
+   - 在 AI Chat 中輸入 `#zava` 並選擇已配置的伺服器
+   - 詢問：「資料庫中有哪些表格？」
+   - 您應會收到列出零售資料庫表格的回答
 
 ## ✅ 環境驗證
 
 ### 1. 全面系統檢查
 
-運行此驗證腳本以檢查您的設置：
+執行此驗證腳本來確認設定：
 
 ```bash
-# Create validation script
+# 建立驗證腳本
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # 檢查 Python 版本
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # 檢查所需套件
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # 檢查 Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # 檢查 Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # 檢查環境變數
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # 檢查資料庫連線
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # 測試查詢
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # 檢查 MCP 伺服器
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # 檢查 Azure AI 服務
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # 如果憑證無效將會失敗
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# 執行驗證
 python validate_setup.py
 ```
 
 ### 2. 手動驗證清單
 
 **✅ 基本工具**
-- [ ] Docker 版本 20.10+ 已安裝並運行
-- [ ] Azure CLI 2.40+ 已安裝並認證
-- [ ] Python 3.8+ 已安裝並包含 pip
-- [ ] Git 2.30+ 已安裝
-- [ ] VS Code 已安裝所需擴展
+- [ ] 已安裝及啟動 Docker 版本 20.10 以上
+- [ ] 已安裝並登入 Azure CLI 2.40 以上
+- [ ] 已安裝 Python 3.8 以上及 pip
+- [ ] 已安裝 Git 2.30 以上
+- [ ] VS Code 並安裝必要擴充套件
 
 **✅ Azure 資源**
-- [ ] 資源組成功創建
-- [ ] AI Foundry 項目已部署
-- [ ] OpenAI text-embedding-3-small 模型已部署
-- [ ] Application Insights 已配置
-- [ ] 服務主體已創建並具有適當權限
+- [ ] 成功建立資源群組
+- [ ] 成功部署 AI Foundry 專案
+- [ ] 成功部署 OpenAI text-embedding-3-small 模型
+- [ ] Application Insights 配置完成
+- [ ] 服務主體建立並具備權限
 
 **✅ 環境配置**
-- [ ] `.env` 文件已創建並包含所有必要變數
-- [ ] Azure 認證正常（使用 `az account show` 測試）
-- [ ] PostgreSQL 容器正在運行並可訪問
-- [ ] 數據庫中已加載示例數據
+- [ ] 建立 .env 檔並配置完整變數
+- [ ] Azure 認證運作正常（用 `az account show` 測試）
+- [ ] PostgreSQL 容器運行中且可存取
+- [ ] 資料庫載入樣本資料
 
-**✅ VS Code 集成**
-- [ ] `.vscode/mcp.json` 已配置
-- [ ] Python 解釋器設置為虛擬環境
-- [ ] MCP 伺服器出現在 AI 聊天中
-- [ ] 能夠通過 AI 聊天執行測試查詢
+**✅ VS Code 整合**
+- [ ] 配置 .vscode/mcp.json
+- [ ] Python 解譯器設為虛擬環境
+- [ ] MCP 伺服器於 AI Chat 列出
+- [ ] 能透過 AI Chat 執行測試查詢
 
-## 🛠️ 常見問題排查
+## 🛠️ 常見問題排解
 
 ### Docker 問題
 
-**問題**：Docker 容器無法啟動
+<strong>問題</strong>：Docker 容器無法啟動  
 ```bash
-# Check Docker service status
+# 檢查 Docker 服務狀態
 docker info
 
-# Check available resources
+# 檢查可用資源
 docker system df
 
-# Clean up if needed
+# 如有需要，清理
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# 重新啟動 Docker Desktop（Windows/macOS）
+# 或重新啟動 Docker 服務（Linux）
 sudo systemctl restart docker
 ```
-
-**問題**：PostgreSQL 連接失敗
+  
+<strong>問題</strong>：PostgreSQL 連線失敗  
 ```bash
-# Check container logs
+# 檢查容器日誌
 docker-compose logs postgres
 
-# Verify container is healthy
+# 驗證容器是否健康
 docker-compose ps
 
-# Test direct connection
+# 測試直接連線
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
-
+  
 ### Azure 部署問題
 
-**問題**：Azure 部署失敗
+<strong>問題</strong>：Azure 部署失敗  
 ```bash
-# Check Azure CLI authentication
+# 檢查 Azure CLI 認證
 az account show
 
-# Verify subscription permissions
+# 驗證訂閱權限
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# 檢查資源提供者註冊
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-
-**問題**：AI 服務認證失敗
+  
+<strong>問題</strong>：AI 服務驗證失敗  
 ```bash
-# Test service principal
+# 測試服務主體
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# 驗證人工智能服務部署
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
-
+  
 ### Python 環境問題
 
-**問題**：包安裝失敗
+<strong>問題</strong>：套件安裝失敗  
 ```bash
-# Upgrade pip and setuptools
+# 升級 pip 同 setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# 清除 pip 快取
 pip cache purge
 
-# Install packages one by one to identify issues
+# 一個一個安裝套件以識別問題
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-
-**問題**：VS Code 找不到 Python 解釋器
+  
+<strong>問題</strong>：VS Code 找不到 Python 解譯器  
 ```bash
-# Show Python interpreter paths
+# 顯示 Python 解譯器路徑
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# 先啟動虛擬環境
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# 然後開啟 VS Code
 code .
 ```
+  
+## 🎯 主要重點回顧
 
-## 🎯 關鍵要點
+完成本實驗後，您應已：
 
-完成本實驗後，您應該具備：
+✅ <strong>完整開發環境</strong>：所有工具均已安裝及配置完成  
+✅ **Azure 資源已部署**：AI 服務及支援架構就緒  
+✅ **Docker 環境運行中**：PostgreSQL 與 MCP 伺服器容器皆啟動  
+✅ **VS Code 整合完成**：MCP 伺服器配置並可存取  
+✅ <strong>環境驗證無誤</strong>：各組件測試並順利協同  
+✅ <strong>排錯知識</strong>：掌握常見問題與解法  
 
-✅ **完整的開發環境**：所有工具已安裝並配置  
-✅ **Azure 資源已部署**：AI 服務和支持基礎設施  
-✅ **Docker 環境正在運行**：PostgreSQL 和 MCP 伺服器容器  
-✅ **VS Code 集成**：MCP 伺服器已配置並可訪問  
-✅ **已驗證的設置**：所有組件已測試並協同工作  
-✅ **故障排除知識**：常見問題及解決方案  
+## 🚀 後續步驟
 
-## 🚀 下一步
+環境準備就緒後，繼續進行 **[實驗 04：資料庫設計與架構](../04-Database/README.md)**，內容包含：
 
-環境準備就緒後，繼續進行 **[實驗 04：數據庫設計與架構](../04-Database/README.md)**：
+- 深入探索零售資料庫結構
+- 理解多租戶資料建模
+- 學習列水平安全性實作
+- 實作零售範例資料
 
-- 詳細探索零售數據庫架構
-- 理解多租戶數據建模
-- 學習行級安全性實現
-- 使用零售數據示例進行操作
-
-## 📚 其他資源
+## 📚 額外資源
 
 ### 開發工具
-- [Docker 文檔](https://docs.docker.com/) - 完整的 Docker 參考
-- [Azure CLI 參考](https://docs.microsoft.com/cli/azure/) - Azure CLI 命令
-- [VS Code 文檔](https://code.visualstudio.com/docs) - 編輯器配置和擴展
+- [Docker 文件](https://docs.docker.com/) - 完整 Docker 參考資料
+- [Azure CLI 參考](https://docs.microsoft.com/cli/azure/) - Azure CLI 指令說明
+- [VS Code 文件](https://code.visualstudio.com/docs) - 編輯器設定與擴充套件
 
 ### Azure 服務
-- [Azure AI Foundry 文檔](https://docs.microsoft.com/azure/ai-foundry/) - AI 服務配置
+- [Microsoft Foundry 文件](https://docs.microsoft.com/azure/ai-foundry/) - AI 服務配置說明
 - [Azure OpenAI 服務](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI 模型部署
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - 監控設置
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - 監控設定說明
 
 ### Python 開發
-- [Python 虛擬環境](https://docs.python.org/3/tutorial/venv.html) - 環境管理
-- [AsyncIO 文檔](https://docs.python.org/3/library/asyncio.html) - 異步編程模式
-- [FastAPI 文檔](https://fastapi.tiangolo.com/) - Web 框架模式
+- [Python 虛擬環境](https://docs.python.org/3/tutorial/venv.html) - 環境管理教學
+- [AsyncIO 文件](https://docs.python.org/3/library/asyncio.html) - 非同步程式設計範例
+- [FastAPI 文件](https://fastapi.tiangolo.com/) - Web 框架教學
 
 ---
 
-**下一步**：環境準備就緒？繼續進行 [實驗 04：數據庫設計與架構](../04-Database/README.md)
+<strong>下一步</strong>：環境已準備好？請繼續 [實驗 04：資料庫設計與架構](../04-Database/README.md)
 
 ---
 
-**免責聲明**：  
-本文件已使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。儘管我們努力確保翻譯的準確性，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於關鍵資訊，建議使用專業人工翻譯。我們對因使用此翻譯而產生的任何誤解或錯誤解釋不承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責聲明**：
+本文件使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們力求準確，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議尋求專業人工翻譯。我們不對因使用本翻譯而引起的任何誤解或曲解承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

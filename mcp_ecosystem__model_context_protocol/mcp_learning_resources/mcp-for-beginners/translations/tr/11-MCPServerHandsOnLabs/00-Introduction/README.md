@@ -1,26 +1,26 @@
 # MCP Veritabanı Entegrasyonuna Giriş
 
-## 🎯 Bu Laboratuvar Neleri Kapsıyor?
+## 🎯 Bu Laboratuvarın Kapsamı
 
-Bu giriş laboratuvarı, Model Context Protocol (MCP) sunucularını veritabanı entegrasyonu ile oluşturmanın kapsamlı bir özetini sunar. İş senaryosunu, teknik mimariyi ve gerçek dünya uygulamalarını, https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail adresindeki Zava Retail analitik kullanım örneği üzerinden anlayacaksınız.
+Bu giriş laboratuvarı, Model Context Protocol (MCP) sunucularını veritabanı entegrasyonu ile oluşturma sürecine kapsamlı bir genel bakış sağlar. İş vakasını, teknik mimariyi ve gerçek dünya uygulamalarını https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail adresindeki Zava Retail analiz kullanım vakası üzerinden anlayacaksınız.
 
 ## Genel Bakış
 
-**Model Context Protocol (MCP)**, yapay zeka asistanlarının harici veri kaynaklarına gerçek zamanlı olarak güvenli bir şekilde erişmesini ve etkileşimde bulunmasını sağlar. Veritabanı entegrasyonu ile birleştirildiğinde, MCP veri odaklı yapay zeka uygulamaları için güçlü yetenekler sunar.
+**Model Context Protocol (MCP)**, yapay zeka asistanlarının dış veri kaynaklarına gerçek zamanlı, güvenli erişim sağlamasına ve etkileşimde bulunmasına olanak tanır. Veritabanı entegrasyonu ile birleştiğinde, MCP veri odaklı yapay zeka uygulamaları için güçlü yeteneklerin kilidini açar.
 
-Bu öğrenme yolu, yapay zeka asistanlarını PostgreSQL aracılığıyla perakende satış verilerine bağlayan, satır düzeyinde güvenlik, anlamsal arama ve çok kiracılı veri erişimi gibi kurumsal desenleri uygulayan üretime hazır MCP sunucuları oluşturmayı öğretir.
+Bu öğrenme yolu size PostgreSQL aracılığıyla perakende satış verilerine bağlanan ve Satır Düzeyinde Güvenlik, anlamsal arama ve çoklu kiracı veri erişimi gibi kurumsal desenleri uygulayan üretim hazır MCP sunucuları oluşturmayı öğretir.
 
 ## Öğrenme Hedefleri
 
 Bu laboratuvarın sonunda şunları yapabileceksiniz:
 
-- **Tanımlamak**: Model Context Protocol'ü ve veritabanı entegrasyonu için temel faydalarını
-- **Belirlemek**: Veritabanları ile MCP sunucu mimarisinin temel bileşenlerini
-- **Anlamak**: Zava Retail kullanım örneğini ve iş gereksinimlerini
-- **Tanımak**: Güvenli, ölçeklenebilir veritabanı erişimi için kurumsal desenleri
-- **Listelemek**: Bu öğrenme yolunda kullanılan araçlar ve teknolojiler
+- **Tanımlamak** Model Context Protocol'ü ve veritabanı entegrasyonu için temel faydalarını
+- **Belirlemek** veritabanı içeren bir MCP sunucu mimarisinin temel bileşenlerini
+- **Anlamak** Zava Retail kullanım vakasını ve iş gereksinimlerini
+- **Tanımak** güvenli, ölçeklenebilir veritabanı erişimi için kurumsal desenleri
+- **Listelemek** bu öğrenme yolu boyunca kullanılan araçlar ve teknolojiler
 
-## 🧭 Zorluk: Yapay Zeka ve Gerçek Dünya Verileri
+## 🧭 Zorluk: Yapay Zeka Gerçek Dünya Verisiyle Buluşuyor
 
 ### Geleneksel Yapay Zeka Sınırlamaları
 
@@ -28,55 +28,55 @@ Modern yapay zeka asistanları son derece güçlüdür ancak gerçek dünya iş 
 
 | **Zorluk** | **Açıklama** | **İş Etkisi** |
 |------------|--------------|---------------|
-| **Statik Bilgi** | Sabit veri setleriyle eğitilmiş yapay zeka modelleri güncel iş verilerine erişemez | Güncel olmayan içgörüler, kaçırılan fırsatlar |
-| **Veri Siloları** | Bilgiler veritabanlarında, API'lerde ve yapay zekanın erişemediği sistemlerde kilitli | Eksik analiz, parçalanmış iş akışları |
-| **Güvenlik Kısıtlamaları** | Doğrudan veritabanı erişimi güvenlik ve uyumluluk sorunları yaratır | Sınırlı dağıtım, manuel veri hazırlığı |
-| **Karmaşık Sorgular** | İş kullanıcılarının veri içgörülerini çıkarmak için teknik bilgiye ihtiyacı var | Azalan benimseme, verimsiz süreçler |
+| **Statik Bilgi** | Sabit veri kümeleriyle eğitilen yapay zeka modelleri güncel iş verilerine erişemez | Güncel olmayan içgörüler, kaçırılan fırsatlar |
+| **Veri Siloları** | Veritabanlarında, API’lerde ve sistemlerde kilitli bilgiler yapay zekanın erişemediği yerlerde kalır | Eksik analiz, parçalanmış iş akışları |
+| **Güvenlik Kısıtlamaları** | Doğrudan veritabanı erişimi güvenlik ve uyumluluk endişesi yaratır | Sınırlı dağıtım, manuel veri hazırlığı |
+| **Karmaşık Sorgular** | İş kullanıcılarının veri içgörüsü çıkarmak için teknik bilgiye ihtiyacı vardır | Azalan benimseme, verimsiz süreçler |
 
 ### MCP Çözümü
 
-Model Context Protocol bu zorlukları şu şekilde çözer:
+Model Context Protocol bu zorlukları şu imkanlarla giderir:
 
-- **Gerçek Zamanlı Veri Erişimi**: Yapay zeka asistanları canlı veritabanlarını ve API'leri sorgular
-- **Güvenli Entegrasyon**: Kimlik doğrulama ve izinlerle kontrol edilen erişim
-- **Doğal Dil Arayüzü**: İş kullanıcıları sorularını sade bir İngilizce ile sorar
-- **Standartlaştırılmış Protokol**: Farklı yapay zeka platformları ve araçlarıyla çalışır
+- **Gerçek Zamanlı Veri Erişimi**: Yapay zeka asistanları canlı veritabanları ve API'lere sorgu yapar
+- **Güvenli Entegrasyon**: Kimlik doğrulama ve izinlerle kontrollü erişim
+- **Doğal Dil Arayüzü**: İş kullanıcıları sorularını basit İngilizce ile sorar
+- **Standartlaştırılmış Protokol**: Farklı yapay zeka platformları ve araçları arasında çalışır
 
-## 🏪 Zava Retail ile Tanışın: Öğrenme Vaka Çalışmamız https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
+## 🏪 Zava Retail ile Tanışın: Öğrenme Vaka Analizimiz https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
-Bu öğrenme yolunda, **Zava Retail** için bir MCP sunucusu oluşturacağız. Zava Retail, birden fazla mağaza lokasyonuna sahip kurgusal bir DIY perakende zinciridir. Bu gerçekçi senaryo, kurumsal düzeyde MCP uygulamasını gösterir.
+Bu öğrenme yolu boyunca, çoklu mağaza konumlarına sahip kurgusal bir DIY perakende zinciri olan **Zava Retail** için bir MCP sunucusu oluşturacağız. Bu gerçekçi senaryo kurumsal sınıf MCP uygulamasını gösterir.
 
 ### İş Bağlamı
 
-**Zava Retail** şu şekilde faaliyet gösterir:
-- **Washington eyaletinde 8 fiziksel mağaza** (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
-- **1 çevrimiçi mağaza** e-ticaret satışları için
-- **Çeşitli ürün kataloğu**: araçlar, donanım, bahçe malzemeleri ve yapı malzemeleri
-- **Çok seviyeli yönetim**: mağaza yöneticileri, bölge yöneticileri ve yöneticiler
+**Zava Retail** işletiyor:
+- Washington eyaletinde **8 fiziksel mağaza** (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
+- E-ticaret satışları için **1 çevrimiçi mağaza**
+- Araçlar, donanım, bahçe malzemeleri ve inşaat malzemeleri dahil **çeşitli ürün kataloğu**
+- Mağaza müdürleri, bölgesel müdürler ve yöneticilerden oluşan **çok katmanlı yönetim**
 
 ### İş Gereksinimleri
 
-Mağaza yöneticileri ve yöneticiler yapay zeka destekli analitiklere ihtiyaç duyar:
+Mağaza müdürleri ve yöneticiler, yapay zeka destekli analizlerle şunları yapabilmelidir:
 
-1. **Satış performansını analiz etmek** mağazalar ve zaman dilimleri arasında
-2. **Stok seviyelerini takip etmek** ve yeniden stoklama ihtiyaçlarını belirlemek
-3. **Müşteri davranışını anlamak** ve satın alma eğilimlerini analiz etmek
-4. **Ürün içgörülerini keşfetmek** anlamsal arama ile
+1. Mağazalar ve zaman dilimleri arasında **satış performansını analiz etmek**
+2. **Envanter seviyelerini takip etmek** ve yeniden stok ihtiyaçlarını belirlemek
+3. **Müşteri davranışlarını ve satın alma modellerini anlamak**
+4. **Anlamsal arama yoluyla ürün içgörülerini keşfetmek**
 5. **Doğal dil sorguları ile raporlar oluşturmak**
-6. **Veri güvenliğini sağlamak** rol tabanlı erişim kontrolü ile
+6. **Rol tabanlı erişim kontrolü ile veri güvenliğini sağlamak**
 
 ### Teknik Gereksinimler
 
-MCP sunucusu şunları sağlamalıdır:
+MCP sunucusu sağlamalıdır:
 
-- **Çok kiracılı veri erişimi**: Mağaza yöneticileri yalnızca kendi mağazalarının verilerini görür
-- **Esnek sorgulama**: Karmaşık SQL işlemlerini destekler
-- **Anlamsal arama**: Ürün keşfi ve önerileri için
-- **Gerçek zamanlı veri**: Mevcut iş durumunu yansıtır
-- **Güvenli kimlik doğrulama**: Satır düzeyinde güvenlik ile
-- **Ölçeklenebilir mimari**: Birden fazla eşzamanlı kullanıcıyı destekler
+- **Çoklu kiracı veri erişimi**; mağaza müdürleri sadece kendi mağazalarının verilerini görür
+- **Esnek sorgulama**; karmaşık SQL işlemlerini destekler
+- **Anlamsal arama**; ürün keşfi ve önerileri için
+- **Gerçek zamanlı veriler**; güncel iş durumunu yansıtır
+- **Güvenli kimlik doğrulama**; satır düzeyinde güvenlik ile
+- **Ölçeklenebilir mimari**; birden fazla eşzamanlı kullanıcı destekler
 
-## 🏗️ MCP Sunucu Mimari Genel Bakış
+## 🏗️ MCP Sunucu Mimarisi Genel Bakış
 
 MCP sunucumuz, veritabanı entegrasyonu için optimize edilmiş katmanlı bir mimari uygular:
 
@@ -122,26 +122,26 @@ MCP sunucumuz, veritabanı entegrasyonu için optimize edilmiş katmanlı bir mi
 
 #### **1. MCP Sunucu Katmanı**
 - **FastMCP Framework**: Modern Python MCP sunucu uygulaması
-- **Araç Kaydı**: Tip güvenliği ile deklaratif araç tanımları
+- **Araç Kaydı**: Tip güvenliği ile bildirisel araç tanımlamaları
 - **İstek Bağlamı**: Kullanıcı kimliği ve oturum yönetimi
-- **Hata Yönetimi**: Güçlü hata yönetimi ve günlükleme
+- **Hata Yönetimi**: Sağlam hata yönetimi ve kayıt tutma
 
 #### **2. Veritabanı Entegrasyon Katmanı**
 - **Bağlantı Havuzu**: Verimli asyncpg bağlantı yönetimi
 - **Şema Sağlayıcı**: Dinamik tablo şeması keşfi
-- **Sorgu Yürütücü**: RLS bağlamı ile güvenli SQL yürütme
-- **İşlem Yönetimi**: ACID uyumluluğu ve geri alma işlemleri
+- **Sorgu Yürütücü**: RLS bağlamıyla güvenli SQL yürütme
+- **İşlem Yönetimi**: ACID uyumluluğu ve geri alma işlemi
 
 #### **3. Güvenlik Katmanı**
-- **Satır Düzeyinde Güvenlik**: Çok kiracılı veri izolasyonu için PostgreSQL RLS
-- **Kullanıcı Kimliği**: Mağaza yöneticisi kimlik doğrulama ve yetkilendirme
-- **Erişim Kontrolü**: İnce ayarlı izinler ve denetim izleri
+- **Satır Düzeyinde Güvenlik**: PostgreSQL RLS ile çoklu kiracı veri izolasyonu
+- **Kullanıcı Kimliği**: Mağaza müdürü kimlik doğrulama ve yetkilendirme
+- **Erişim Kontrolü**: İnce taneli izinler ve denetim yolları
 - **Girdi Doğrulama**: SQL enjeksiyon önleme ve sorgu doğrulama
 
 #### **4. Yapay Zeka Geliştirme Katmanı**
-- **Anlamsal Arama**: Ürün keşfi için vektör gömme
+- **Anlamsal Arama**: Ürün keşfi için vektör gömme teknolojileri
 - **Azure OpenAI Entegrasyonu**: Metin gömme oluşturma
-- **Benzerlik Algoritmaları**: pgvector kosin benzerlik araması
+- **Benzerlik Algoritmaları**: pgvector kosinüs benzerlik araması
 - **Arama Optimizasyonu**: İndeksleme ve performans ayarı
 
 ## 🔧 Teknoloji Yığını
@@ -151,9 +151,9 @@ MCP sunucumuz, veritabanı entegrasyonu için optimize edilmiş katmanlı bir mi
 | **Bileşen** | **Teknoloji** | **Amaç** |
 |-------------|---------------|----------|
 | **MCP Framework** | FastMCP (Python) | Modern MCP sunucu uygulaması |
-| **Veritabanı** | PostgreSQL 17 + pgvector | İlişkisel veri ve vektör arama |
-| **Yapay Zeka Hizmetleri** | Azure OpenAI | Metin gömme ve dil modelleri |
-| **Konteynerizasyon** | Docker + Docker Compose | Geliştirme ortamı |
+| **Veritabanı** | PostgreSQL 17 + pgvector | Vektör arama destekli ilişkisel veri |
+| **Yapay Zeka Servisleri** | Azure OpenAI | Metin gömmeleri ve dil modelleri |
+| **Konteynerleştirme** | Docker + Docker Compose | Geliştirme ortamı |
 | **Bulut Platformu** | Microsoft Azure | Üretim dağıtımı |
 | **IDE Entegrasyonu** | VS Code | Yapay zeka sohbeti ve geliştirme iş akışı |
 
@@ -163,78 +163,78 @@ MCP sunucumuz, veritabanı entegrasyonu için optimize edilmiş katmanlı bir mi
 |----------|----------|
 | **asyncpg** | Yüksek performanslı PostgreSQL sürücüsü |
 | **Pydantic** | Veri doğrulama ve serileştirme |
-| **Azure SDK** | Bulut hizmeti entegrasyonu |
+| **Azure SDK** | Bulut hizmet entegrasyonu |
 | **pytest** | Test çerçevesi |
-| **Docker** | Konteynerizasyon ve dağıtım |
+| **Docker** | Konteynerleştirme ve dağıtım |
 
 ### Üretim Yığını
 
-| **Hizmet** | **Azure Kaynağı** | **Amaç** |
+| **Servis** | **Azure Kaynağı** | **Amaç** |
 |------------|-------------------|----------|
 | **Veritabanı** | Azure Database for PostgreSQL | Yönetilen veritabanı hizmeti |
 | **Konteyner** | Azure Container Apps | Sunucusuz konteyner barındırma |
-| **Yapay Zeka Hizmetleri** | Azure AI Foundry | OpenAI modelleri ve uç noktaları |
-| **İzleme** | Application Insights | Gözlemlenebilirlik ve tanılama |
-| **Güvenlik** | Azure Key Vault | Gizlilik ve yapılandırma yönetimi |
+| **Yapay Zeka Servisleri** | Microsoft Foundry | OpenAI modelleri ve uç noktaları |
+| **İzleme** | Application Insights | İzlenebilirlik ve teşhis |
+| **Güvenlik** | Azure Key Vault | Gizli veriler ve yapılandırma yönetimi |
 
 ## 🎬 Gerçek Dünya Kullanım Senaryoları
 
-Farklı kullanıcıların MCP sunucumuzla nasıl etkileşimde bulunduğunu keşfedelim:
+Farklı kullanıcıların MCP sunucumuzla nasıl etkileşime girdiğini keşfedelim:
 
-### Senaryo 1: Mağaza Yöneticisi Performans İncelemesi
+### Senaryo 1: Mağaza Müdürü Performans İncelemesi
 
-**Kullanıcı**: Sarah, Seattle Mağaza Yöneticisi  
+**Kullanıcı**: Sarah, Seattle Mağaza Müdürü  
 **Hedef**: Geçen çeyreğin satış performansını analiz etmek
 
 **Doğal Dil Sorgusu**:
-> "2024'ün 4. çeyreğinde mağazam için en fazla gelir getiren ilk 10 ürünü göster"
+> "2024 4. çeyrek için mağazamda gelir bazında en iyi 10 ürünü göster"
 
 **Ne Olur**:
-1. VS Code Yapay Zeka Sohbeti sorguyu MCP sunucusuna gönderir
-2. MCP sunucusu Sarah'ın mağaza bağlamını (Seattle) tanımlar
-3. RLS politikaları verileri yalnızca Seattle mağazasıyla sınırlar
+1. VS Code AI Chat sorguyu MCP sunucusuna gönderir
+2. MCP sunucusu Sarah’nın mağaza bağlamını (Seattle) tanır
+3. RLS politikaları veriyi sadece Seattle mağazasına filtreler
 4. SQL sorgusu oluşturulur ve yürütülür
-5. Sonuçlar biçimlendirilir ve Yapay Zeka Sohbetine geri gönderilir
+5. Sonuçlar biçimlendirilir ve AI Sohbet’e gönderilir
 6. Yapay zeka analiz ve içgörüler sağlar
 
 ### Senaryo 2: Anlamsal Arama ile Ürün Keşfi
 
-**Kullanıcı**: Mike, Stok Yöneticisi  
-**Hedef**: Müşteri talebine benzer ürünleri bulmak
+**Kullanıcı**: Mike, Envanter Müdürü  
+**Hedef**: Müşteri isteğine benzer ürünleri bulmak
 
 **Doğal Dil Sorgusu**:
-> "Dış mekan kullanımı için su geçirmez elektrik bağlantılarına benzer hangi ürünleri satıyoruz?"
+> "Dış mekan kullanımı için su geçirmez elektrik konektörlerine benzeyen hangi ürünleri satıyoruz?"
 
 **Ne Olur**:
 1. Sorgu anlamsal arama aracı tarafından işlenir
 2. Azure OpenAI gömme vektörü oluşturur
-3. pgvector benzerlik araması yapar
-4. İlgili ürünler alaka düzeyine göre sıralanır
-5. Sonuçlar ürün detayları ve stok durumu içerir
-6. Yapay zeka alternatifler ve paketleme fırsatları önerir
+3. pgvector benzerlik araması gerçekleştirir
+4. İlgili ürünler alaka derecesine göre sıralanır
+5. Sonuçlar ürün detayları ve stok durumunu içerir
+6. Yapay zeka alternatifler ve paket teklifleri önerir
 
-### Senaryo 3: Mağazalar Arası Analitik
+### Senaryo 3: Mağazalar Arası Analiz
 
-**Kullanıcı**: Jennifer, Bölge Yöneticisi  
-**Hedef**: Tüm mağazalar arasında performansı karşılaştırmak
+**Kullanıcı**: Jennifer, Bölgesel Müdür  
+**Hedef**: Tüm mağazalar arasında performans karşılaştırması yapmak
 
 **Doğal Dil Sorgusu**:
-> "Son 6 ayda tüm mağazalar için kategori bazında satışları karşılaştır"
+> "Son 6 ay için tüm mağazalarda kategori bazında satış karşılaştırması yap"
 
 **Ne Olur**:
-1. RLS bağlamı bölge yöneticisi erişimi için ayarlanır
+1. Bölgesel müdür erişimi için RLS bağlamı ayarlanır
 2. Karmaşık çok mağazalı sorgu oluşturulur
-3. Veriler mağaza lokasyonları arasında birleştirilir
-4. Sonuçlar eğilimler ve karşılaştırmalar içerir
+3. Mağaza lokasyonları bazında veri toplanır
+4. Sonuçlar trendler ve karşılaştırmalar içerir
 5. Yapay zeka içgörüler ve öneriler sunar
 
-## 🔒 Güvenlik ve Çok Kiracılılık Derinlemesine İnceleme
+## 🔒 Güvenlik ve Çoklu Kiracıya Derinlemesine Bakış
 
 Uygulamamız kurumsal düzeyde güvenliği önceliklendirir:
 
 ### Satır Düzeyinde Güvenlik (RLS)
 
-PostgreSQL RLS veri izolasyonunu sağlar:
+PostgreSQL RLS veri izolasyonunu garanti eder:
 
 ```sql
 -- Store managers see only their store's data
@@ -248,63 +248,65 @@ CREATE POLICY regional_manager_policy ON retail.orders
   USING (store_id = ANY(get_user_store_list()));
 ```
 
-### Kullanıcı Kimliği Yönetimi
+### Kullanıcı Kimlik Yönetimi
 
 Her MCP bağlantısı şunları içerir:
-- **Mağaza Yöneticisi Kimliği**: RLS bağlamı için benzersiz tanımlayıcı
+- **Mağaza Müdürü Kimliği**: RLS bağlamı için benzersiz tanımlayıcı
 - **Rol Ataması**: İzinler ve erişim seviyeleri
-- **Oturum Yönetimi**: Güvenli kimlik doğrulama jetonları
-- **Denetim Günlüğü**: Tam erişim geçmişi
+- **Oturum Yönetimi**: Güvenli kimlik doğrulama tokenları
+- **Denetim Kaydı**: Tam erişim geçmişi
 
 ### Veri Koruma
 
 Birden fazla güvenlik katmanı:
-- **Bağlantı Şifreleme**: Tüm veritabanı bağlantıları için TLS
-- **SQL Enjeksiyon Önleme**: Yalnızca parametreli sorgular
+- **Bağlantı Şifrelemesi**: Tüm veritabanı bağlantılarında TLS
+- **SQL Enjeksiyon Önlemi**: Yalnızca parametreli sorgular
 - **Girdi Doğrulama**: Kapsamlı istek doğrulama
-- **Hata Yönetimi**: Hata mesajlarında hassas veri yok
+- **Hata Yönetimi**: Hatalarda hassas veri yok
 
 ## 🎯 Temel Çıkarımlar
 
-Bu giriş bölümünü tamamladıktan sonra şunları anlamış olmalısınız:
+Bu giriş laboratuvarını tamamladıktan sonra şunları anlamalısınız:
 
-✅ **MCP Değer Önerisi**: MCP'nin yapay zeka asistanlarını gerçek dünya verileriyle nasıl bağladığı  
+✅ **MCP Değer Önerisi**: MCP'nin yapay zeka asistanları ile gerçek dünya verisini nasıl köprülediği  
 ✅ **İş Bağlamı**: Zava Retail'in gereksinimleri ve zorlukları  
 ✅ **Mimari Genel Bakış**: Temel bileşenler ve etkileşimleri  
 ✅ **Teknoloji Yığını**: Kullanılan araçlar ve çerçeveler  
-✅ **Güvenlik Modeli**: Çok kiracılı veri erişimi ve koruma  
+✅ **Güvenlik Modeli**: Çoklu kiracı veri erişimi ve koruması  
 ✅ **Kullanım Desenleri**: Gerçek dünya sorgu senaryoları ve iş akışları  
 
-## 🚀 Sıradaki Adım
+## 🚀 Sırada Ne Var
 
-Daha derine inmeye hazır mısınız? Şunlarla devam edin:
+Daha derine inmeye hazır mısınız? Devam edin:
 
 **[Lab 01: Temel Mimari Kavramlar](../01-Architecture/README.md)**
 
-MCP sunucu mimari desenleri, veritabanı tasarım ilkeleri ve perakende analitik çözümümüzü güçlendiren ayrıntılı teknik uygulama hakkında bilgi edinin.
+MCP sunucu mimarisi desenlerini, veritabanı tasarım prensiplerini ve perakende analiz çözümümüzü güçlendiren ayrıntılı teknik uygulamayı öğrenin.
 
 ## 📚 Ek Kaynaklar
 
-### MCP Belgeleri
-- [MCP Spesifikasyonu](https://modelcontextprotocol.io/docs/) - Resmi protokol belgeleri
-- [MCP için Başlangıç Kılavuzu](https://aka.ms/mcp-for-beginners) - Kapsamlı MCP öğrenme rehberi
-- [FastMCP Belgeleri](https://github.com/modelcontextprotocol/python-sdk) - Python SDK belgeleri
+### MCP Dokümantasyonu
+- [MCP Spesifikasyonu](https://modelcontextprotocol.io/docs/) - Resmi protokol dokümantasyonu  
+- [Başlangıç için MCP](https://aka.ms/mcp-for-beginners) - Kapsamlı MCP öğrenme rehberi  
+- [FastMCP Dokümantasyonu](https://github.com/modelcontextprotocol/python-sdk) - Python SDK dokümanları  
 
 ### Veritabanı Entegrasyonu
-- [PostgreSQL Belgeleri](https://www.postgresql.org/docs/) - Tam PostgreSQL referansı
-- [pgvector Kılavuzu](https://github.com/pgvector/pgvector) - Vektör uzantısı belgeleri
-- [Satır Düzeyinde Güvenlik](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS rehberi
+- [PostgreSQL Dokümantasyonu](https://www.postgresql.org/docs/) - Eksiksiz PostgreSQL referansı  
+- [pgvector Kılavuzu](https://github.com/pgvector/pgvector) - Vektör eklentisi dokümantasyonu  
+- [Satır Düzeyinde Güvenlik](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS rehberi  
 
-### Azure Hizmetleri
-- [Azure OpenAI Belgeleri](https://docs.microsoft.com/azure/cognitive-services/openai/) - Yapay zeka hizmeti entegrasyonu
-- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Yönetilen veritabanı hizmeti
-- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Sunucusuz konteynerler
-
----
-
-**Uyarı**: Bu, kurgusal perakende verilerini kullanan bir öğrenme egzersizidir. Benzer çözümleri üretim ortamlarında uygularken her zaman kuruluşunuzun veri yönetimi ve güvenlik politikalarını takip edin.
+### Azure Servisleri
+- [Azure OpenAI Dokümantasyonu](https://docs.microsoft.com/azure/cognitive-services/openai/) - Yapay zeka servis entegrasyonu  
+- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Yönetilen veritabanı hizmeti  
+- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Sunucusuz konteynerler  
 
 ---
 
-**Feragatname**:  
-Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluğu sağlamak için çaba göstersek de, otomatik çevirilerin hata veya yanlışlıklar içerebileceğini lütfen unutmayın. Belgenin orijinal dili, yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımından kaynaklanan yanlış anlamalar veya yanlış yorumlamalar için sorumluluk kabul edilmemektedir.
+**Feragatname**: Bu, kurgusal perakende verileri kullanılarak yapılan bir öğrenme alıştırmasıdır. Benzer çözümleri üretim ortamlarında uygularken her zaman kuruluşunuzun veri yönetişimi ve güvenlik politikalarına uyunuz.
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

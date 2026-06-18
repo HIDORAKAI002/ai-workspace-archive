@@ -1,24 +1,24 @@
-# Échantillonnage - déléguer des fonctionnalités au Client
+# Échantillonnage - déléguer les fonctionnalités au Client
 
-Parfois, vous avez besoin que le Client MCP et le Serveur MCP collaborent pour atteindre un objectif commun. Vous pouvez avoir un cas où le Serveur nécessite l'aide d'un LLM qui est hébergé sur le client. Pour cette situation, l'échantillonnage est ce que vous devez utiliser.
+Parfois, vous avez besoin que le Client MCP et le Serveur MCP collaborent pour atteindre un objectif commun. Vous pourriez avoir un cas où le Serveur nécessite l'aide d'un LLM qui se trouve sur le client. Pour cette situation, l’échantillonnage est ce que vous devriez utiliser.
 
-Explorons quelques cas d'utilisation et comment construire une solution impliquant l'échantillonnage.
+Explorons quelques cas d'utilisation et comment construire une solution impliquant l’échantillonnage.
 
 ## Vue d'ensemble
 
-Dans cette leçon, nous nous concentrons sur l'explication du moment et du lieu pour utiliser l'Échantillonnage et comment le configurer.
+Dans cette leçon, nous nous concentrons sur l'explication de quand et où utiliser l’échantillonnage et comment le configurer.
 
 ## Objectifs d'apprentissage
 
 Dans ce chapitre, nous allons :
 
-- Expliquer ce qu'est l'échantillonnage et quand l'utiliser.
-- Montrer comment configurer l'échantillonnage dans MCP.
-- Fournir des exemples d'échantillonnage en action.
+- Expliquer ce qu’est l’échantillonnage et quand l’utiliser.
+- Montrer comment configurer l’échantillonnage dans MCP.
+- Fournir des exemples d’échantillonnage en action.
 
-## Qu'est-ce que l'échantillonnage et pourquoi l'utiliser ?
+## Qu’est-ce que l’échantillonnage et pourquoi l’utiliser ?
 
-L'échantillonnage est une fonctionnalité avancée qui fonctionne de la manière suivante :
+L’échantillonnage est une fonctionnalité avancée qui fonctionne de la manière suivante :
 
 ```mermaid
 sequenceDiagram
@@ -29,16 +29,17 @@ sequenceDiagram
 
     User->>MCP Client: Rédiger un article de blog
     MCP Client->>MCP Server: Appel d'outil (brouillon d'article)
-    MCP Server->>MCP Client: Demande d'échantillonnage (créer un résumé)
-    MCP Client->>LLM: Générer un résumé d'article
+    MCP Server->>MCP Client: Requête d'échantillonnage (créer un résumé)
+    MCP Client->>LLM: Générer un résumé de l'article
     LLM->>MCP Client: Résultat du résumé
     MCP Client->>MCP Server: Réponse d'échantillonnage (résumé)
     MCP Server->>MCP Client: Article complet (brouillon + résumé)
     MCP Client->>User: Article prêt
 ```
-### Requête d'échantillonnage
 
-Ok, maintenant que nous avons une vue d'ensemble d'un scénario crédible, parlons de la requête d'échantillonnage que le serveur renvoie au client. Voici à quoi peut ressembler une telle requête au format JSON-RPC :
+### Requête d’échantillonnage
+
+D'accord, maintenant que nous avons une vue d'ensemble crédible d’un scénario, parlons de la requête d’échantillonnage que le serveur renvoie au client. Voici à quoi peut ressembler une telle requête au format JSON-RPC :
 
 ```json
 {
@@ -70,17 +71,17 @@ Ok, maintenant que nous avons une vue d'ensemble d'un scénario crédible, parlo
 }
 ```
 
-Il y a quelques points à souligner ici :
+Il y a quelques éléments ici qui méritent d’être soulignés :
 
-- Prompt, sous content -> text, est notre prompt qui est une instruction pour que le LLM résume le contenu d'un article de blog.
+- Le prompt, sous content -> text, est notre prompt qui est une instruction pour le LLM afin de résumer le contenu d’un article de blog.
 
-- **modelPreferences**. Cette section est juste cela, une préférence, une recommandation de la configuration à utiliser avec le LLM. L'utilisateur peut choisir de suivre ces recommandations ou de les modifier. Dans ce cas, il y a des recommandations concernant le modèle à utiliser ainsi que la priorité entre vitesse et intelligence.
-- **systemPrompt**, c'est votre prompt système normal qui donne une personnalité à votre LLM et contient des instructions de guidage.
-- **maxTokens**, c'est une autre propriété qui sert à indiquer combien de tokens sont recommandés pour cette tâche.
+- **modelPreferences**. Cette section est justement cela, une préférence, une recommandation de la configuration à utiliser avec le LLM. L'utilisateur peut choisir de suivre ces recommandations ou de les modifier. Dans ce cas, il y a des recommandations sur le modèle à utiliser ainsi que sur la priorité entre vitesse et intelligence.
+- **systemPrompt**, c’est votre prompt système normal qui donne à votre LLM une personnalité et contient des instructions de guidage.
+- **maxTokens**, c’est une autre propriété utilisée pour indiquer combien de tokens sont recommandés pour cette tâche.
 
-### Réponse d'échantillonnage
+### Réponse d’échantillonnage
 
-Cette réponse est ce que le Client MCP finit par renvoyer au Serveur MCP et est le résultat de l'appel du client au LLM, l'attente de cette réponse, puis la construction de ce message. Voici à quoi cela peut ressembler en JSON-RPC :
+Cette réponse est ce que le Client MCP finit par renvoyer au Serveur MCP et est le résultat de l’appel du client au LLM, attend cette réponse, puis construit ce message. Voici à quoi cela peut ressembler en JSON-RPC :
 
 ```json
 {
@@ -98,13 +99,13 @@ Cette réponse est ce que le Client MCP finit par renvoyer au Serveur MCP et est
 }
 ```
 
-Notez comment la réponse est un résumé de l'article de blog, tout comme nous l'avions demandé. Notez aussi que le `model` utilisé n'est pas celui que nous avons demandé mais "gpt-5" au lieu de "claude-3-sonnet". Cela illustre que l'utilisateur peut changer d'avis sur ce qu'il veut utiliser et que votre requête d'échantillonnage est une recommandation.
+Notez comment la réponse est un résumé de l’article de blog tout comme nous l’avons demandé. Notez aussi comment le `model` utilisé n’est pas celui que nous avons demandé mais "gpt-5" au lieu de "claude-3-sonnet". Cela illustre que l’utilisateur peut changer d’avis quant à ce qu’il veut utiliser et que votre requête d’échantillonnage est une recommandation.
 
-Ok, maintenant que nous comprenons le flux principal et une tâche utile pour l'utiliser "création + résumé d'article de blog", voyons ce que nous devons faire pour que cela fonctionne.
+D'accord, maintenant que nous comprenons le flux principal et une tâche utile pour laquelle l’utiliser : « création d’article de blog + résumé », voyons ce que nous devons faire pour que cela fonctionne.
 
 ### Types de messages
 
-Les messages d'échantillonnage ne sont pas limités au texte mais vous pouvez également envoyer des images et de l'audio. Voici comment le JSON-RPC diffère :
+Les messages d’échantillonnage ne sont pas limités au texte, mais vous pouvez aussi envoyer des images et des audios. Voici comment le JSON-RPC est différent :
 
 **Texte**
 
@@ -115,7 +116,7 @@ Les messages d'échantillonnage ne sont pas limités au texte mais vous pouvez �
 }
 ```
 
-**Contenu d'image**
+**Contenu image**
 
 ```json
 {
@@ -135,11 +136,11 @@ Les messages d'échantillonnage ne sont pas limités au texte mais vous pouvez �
 }
 ```
 
-> NOTE : pour plus d'informations détaillées sur l'échantillonnage, consultez la [documentation officielle](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling)
+> NOTE : pour plus d’informations détaillées sur l’échantillonnage, consultez les [docs officielles](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Comment configurer l'échantillonnage dans le Client
+## Comment configurer l’échantillonnage dans le client
 
-> Note : si vous ne construisez que le serveur, vous n'avez pas grand-chose à faire ici.
+> Note : si vous ne construisez qu’un serveur, vous n’avez pas besoin de faire grand-chose ici.
 
 Dans un client, vous devez spécifier la fonctionnalité suivante comme ceci :
 
@@ -153,18 +154,18 @@ Dans un client, vous devez spécifier la fonctionnalité suivante comme ceci :
 
 Celle-ci sera alors prise en compte lorsque votre client choisi s'initialisera avec le serveur.
 
-## Exemple d'échantillonnage en action - Créer un article de blog
+## Exemple d’échantillonnage en action - Créer un article de blog
 
-Codons ensemble un serveur d'échantillonnage, nous devrons faire les étapes suivantes :
+Codons ensemble un serveur d’échantillonnage, nous devrons faire ce qui suit :
 
-1. Créer un outil sur le Serveur.
-1. Cet outil doit créer une requête d'échantillonnage.
-1. L'outil doit attendre la réponse à la requête d'échantillonnage du client.
-1. Puis le résultat de l'outil doit être produit.
+1. Créer un outil sur le Serveur.  
+1. Cet outil doit créer une requête d’échantillonnage  
+1. L’outil doit attendre que la requête d’échantillonnage du client soit répondue.  
+1. Puis le résultat de l’outil doit être produit.
 
 Voyons le code étape par étape :
 
-### -1- Créer l'outil
+### -1- Créer l’outil
 
 **python**
 
@@ -175,7 +176,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Créer une requête d'échantillonnage
+### -2- Créer une requête d’échantillonnage
 
 Étendez votre outil avec le code suivant :
 
@@ -212,7 +213,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# renvoyer le produit complet
+# retourner le produit complet
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -295,12 +296,12 @@ if __name__ == "__main__":
 # exécuter l'application avec : python server.py
 ```
 
-### -5- Tester dans Visual Studio Code
+### -5- Testez-le dans Visual Studio Code
 
 Pour tester cela dans Visual Studio Code, faites ce qui suit :
 
-1. Démarrez le serveur dans le terminal
-1. Ajoutez-le à *mcp.json* (et assurez-vous qu'il est lancé) comme ceci par exemple :
+1. Démarrez le serveur dans le terminal  
+1. Ajoutez-le dans *mcp.json* (et assurez-vous qu’il est démarré), quelque chose comme ceci :
 
    ```json
    "servers": {
@@ -317,23 +318,23 @@ Pour tester cela dans Visual Studio Code, faites ce qui suit :
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Laissez l'échantillonnage se faire. La première fois que vous testerez cela, une boîte de dialogue supplémentaire vous sera présentée et que vous devrez accepter, puis vous verrez la boîte de dialogue normale vous demandant de lancer un outil.
+1. Laissez l’échantillonnage se faire. La première fois que vous testez cela, un dialogue supplémentaire vous sera présenté que vous devrez accepter, puis vous verrez le dialogue normal vous demandant d’exécuter un outil.
 
-1. Inspectez les résultats. Vous verrez les résultats bien rendus dans GitHub Copilot Chat mais vous pouvez aussi inspecter la réponse JSON brute.
+1. Inspectez les résultats. Vous verrez les résultats affichés joliment dans GitHub Copilot Chat mais vous pouvez aussi consulter la réponse JSON brute.
 
-**Bonus**. Les outils de Visual Studio Code supportent très bien l'échantillonnage. Vous pouvez configurer l'accès à l'échantillonnage sur votre serveur installé en procédant ainsi :
+**Bonus**. Les outils de Visual Studio Code ont un excellent support pour l’échantillonnage. Vous pouvez configurer l’accès à l’échantillonnage sur votre serveur installé en procédant ainsi :
 
-1. Naviguez vers la section d'extensions.
-1. Sélectionnez l'icône d'engrenage pour votre serveur installé dans la section "MCP SERVERS - INSTALLED".
-1. Sélectionnez "Configure Model Access", ici vous pouvez choisir quels modèles GitHub Copilot est autorisé à utiliser lors d'échantillonnages. Vous pouvez aussi voir toutes les requêtes d'échantillonnage récentes en sélectionnant "Show Sampling requests".
+1. Naviguez vers la section des extensions.  
+1. Sélectionnez l’icône d’engrenage pour votre serveur installé dans la section "MCP SERVERS - INSTALLED".  
+1. Sélectionnez "Configure Model Access", ici vous pouvez sélectionner quels modèles GitHub Copilot est autorisé à utiliser lors de l’échantillonnage. Vous pouvez également voir toutes les requêtes d’échantillonnage récentes en sélectionnant "Show Sampling requests".
 
 ## Exercice
 
-Dans cet exercice, vous allez construire un échantillonnage légèrement différent, à savoir une intégration d'échantillonnage qui supporte la génération d'une description de produit. Voici votre scénario :
+Dans cet exercice, vous allez construire un échantillonnage légèrement différent, à savoir une intégration d’échantillonnage qui supporte la génération d’une description produit. Voici votre scénario :
 
-**Scénario** : L'employé du back office d'un e-commerce a besoin d'aide, cela prend trop de temps de générer des descriptions de produit. Par conséquent, vous devez construire une solution où vous pouvez appeler un outil "create_product" avec "title" et "keywords" comme arguments et il devrait produire un produit complet incluant un champ "description" qui doit être rempli par le LLM d'un client.
+**Scénario** : Le travailleur du back office d’un e-commerce a besoin d’aide, cela prend beaucoup trop de temps de générer des descriptions de produit. Par conséquent, vous devez construire une solution où vous pouvez appeler un outil "create_product" avec "title" et "keywords" comme arguments et il devrait produire un produit complet incluant un champ "description" qui doit être rempli par un LLM côté client.
 
-CONSEIL : utilisez ce que vous avez appris plus tôt pour construire ce serveur et son outil en utilisant une requête d'échantillonnage.
+CONSEIL : utilisez ce que vous avez appris précédemment pour construire ce serveur et son outil en utilisant une requête d’échantillonnage.
 
 ## Solution
 
@@ -341,15 +342,15 @@ CONSEIL : utilisez ce que vous avez appris plus tôt pour construire ce serveur 
 
 ## Points clés à retenir
 
-L'échantillonnage est une fonctionnalité puissante qui permet au serveur de déléguer des tâches au client lorsqu'il a besoin de l'aide d'un LLM.
+L’échantillonnage est une fonctionnalité puissante qui permet au serveur de déléguer des tâches au client lorsqu’il a besoin de l’aide d’un LLM.
 
-## Et après ?
+## Quelles sont les prochaines étapes
 
-- [Chapitre 4 - Implémentation pratique](../../04-PracticalImplementation/README.md)
+- [Chapitre 4 - Mise en œuvre pratique](../../04-PracticalImplementation/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Avis de non-responsabilité** :  
-Ce document a été traduit à l’aide du service de traduction automatisée [Co-op Translator](https://github.com/Azure/co-op-translator). Bien que nous nous efforcions d’assurer l’exactitude, veuillez noter que les traductions automatiques peuvent contenir des erreurs ou des inexactitudes. Le document original dans sa langue d’origine doit être considéré comme la source faisant foi. Pour les informations critiques, une traduction professionnelle par un humain est recommandée. Nous déclinons toute responsabilité en cas de malentendus ou d’interprétations erronées résultant de l’utilisation de cette traduction.
+**Avertissement** :
+Ce document a été traduit à l'aide du service de traduction automatique [Co-op Translator](https://github.com/Azure/co-op-translator). Bien que nous nous efforçions d'assurer l'exactitude, veuillez noter que les traductions automatisées peuvent contenir des erreurs ou des inexactitudes. Le document original dans sa langue native doit être considéré comme la source faisant autorité. Pour les informations critiques, il est recommandé de recourir à une traduction professionnelle réalisée par un humain. Nous ne saurions être tenus responsables des malentendus ou erreurs d'interprétation découlant de l'utilisation de cette traduction.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -2,7 +2,7 @@
 
 ## Prehľad projektu
 
-**MCP pre začiatočníkov** je open-source vzdelávací program na učenie Model Context Protocol (MCP) - štandardizovaného rámca pre interakcie medzi AI modelmi a klientskými aplikáciami. Tento repozitár poskytuje komplexné vzdelávacie materiály s praktickými ukážkami kódu v rôznych programovacích jazykoch.
+**MCP pre začiatočníkov** je open-source vzdelávacia osnova na učenie Model Context Protocol (MCP) – štandardizovaný rámec pre interakcie medzi AI modelmi a klientskymi aplikáciami. Tento repozitár poskytuje komplexné vzdelávacie materiály s praktickými príkladmi kódu v rôznych programovacích jazykoch.
 
 ### Kľúčové technológie
 
@@ -14,25 +14,25 @@
   - LangChain4j (Java)
 - **Databázy**: PostgreSQL s rozšírením pgvector
 - **Cloudové platformy**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
-- **Nástroje na zostavenie**: npm, Maven, pip, Cargo
+- **Nástroje pre build**: npm, Maven, pip, Cargo
 - **Dokumentácia**: Markdown s automatizovaným prekladom do viacerých jazykov (48+ jazykov)
 
 ### Architektúra
 
-- **11 hlavných modulov (00-11)**: Sekvenčná vzdelávacia cesta od základov po pokročilé témy
-- **Praktické cvičenia**: Praktické úlohy s kompletným riešením kódu v rôznych jazykoch
+- **11 hlavních modulov (00-11)**: Sekvenčná učebná cesta od základov po pokročilé témy
+- **Praktické laboratóriá**: Praktické cvičenia s kompletným riešením v rôznych jazykoch
 - **Ukážkové projekty**: Funkčné implementácie MCP servera a klienta
-- **Systém prekladov**: Automatizovaný workflow GitHub Actions na podporu viacerých jazykov
-- **Obrazové materiály**: Centralizovaný adresár obrázkov s preloženými verziami
+- **Prekladový systém**: Automatizovaný GitHub Actions workflow na podporu viacerých jazykov
+- **Obrázkové zdroje**: Centralizovaný adresár pre obrázky s preloženými verziami
 
 ## Príkazy na nastavenie
 
-Toto je repozitár zameraný na dokumentáciu. Väčšina nastavení sa vykonáva v rámci jednotlivých ukážkových projektov a cvičení.
+Toto je repozitár zameraný na dokumentáciu. Väčšina nastavení prebieha v jednotlivých ukážkových projektoch a laboratóriách.
 
 ### Nastavenie repozitára
 
 ```bash
-# Clone the repository
+# Naklonujte repozitár
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
@@ -40,12 +40,12 @@ cd mcp-for-beginners
 ### Práca s ukážkovými projektmi
 
 Ukážkové projekty sa nachádzajú v:
-- `03-GettingStarted/samples/` - Ukážky špecifické pre jazyk
-- `03-GettingStarted/01-first-server/solution/` - Implementácie prvého servera
+- `03-GettingStarted/samples/` - Príklady podľa jazyka
+- `03-GettingStarted/01-first-server/solution/` - Prvé implementácie servera
 - `03-GettingStarted/02-client/solution/` - Implementácie klienta
-- `11-MCPServerHandsOnLabs/` - Komplexné cvičenia na integráciu databázy
+- `11-MCPServerHandsOnLabs/` - Komplexné laboratóriá integrácie databázy
 
-Každý ukážkový projekt obsahuje vlastné pokyny na nastavenie:
+Každý ukážkový projekt obsahuje vlastné inštrukcie na nastavenie:
 
 #### Projekty v TypeScript/JavaScript
 ```bash
@@ -54,73 +54,73 @@ npm install
 npm start
 ```
 
-#### Projekty v Python
+#### Projekty v Pythone
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# alebo
 pip install -e .
 python main.py
 ```
 
-#### Projekty v Java
+#### Projekty v Jave
 ```bash
 cd <project-directory>
 mvn clean install
 mvn spring-boot:run
 ```
 
-## Workflow vývoja
+## Vývojový proces
 
 ### Štruktúra dokumentácie
 
-- **Moduly 00-11**: Obsah hlavného kurikula v sekvenčnom poradí
-- **translations/**: Jazykovo špecifické verzie (automaticky generované, neupravovať priamo)
+- **Moduly 00-11**: Základný obsah osnovy v sekvenčnom poradí
+- **translations/**: Verzie podľa jazyka (automaticky generované, neupravujte priamo)
 - **translated_images/**: Lokalizované verzie obrázkov (automaticky generované)
 - **images/**: Zdrojové obrázky a diagramy
 
-### Zmeny v dokumentácii
+### Úprava dokumentácie
 
-1. Upravujte iba anglické markdown súbory v hlavných adresároch modulov (00-11)
-2. Aktualizujte obrázky v adresári `images/`, ak je to potrebné
-3. GitHub Action s názvom co-op-translator automaticky vygeneruje preklady
-4. Preklady sa regenerujú pri pushnutí do hlavnej vetvy
+1. Upraviť iba anglické markdown súbory v koreňových adresároch modulov (00-11)
+2. Ak treba, aktualizovať obrázky v adresári `images/`
+3. GitHub Action co-op-translator automaticky vygeneruje preklady
+4. Preklady sa znovu generujú pri pushnutí do hlavnej vetvy
 
 ### Práca s prekladmi
 
-- **Automatizovaný preklad**: Workflow GitHub Actions spracováva všetky preklady
-- **NEUPRAVUJTE manuálne** súbory v adresári `translations/`
-- Metaúdaje prekladu sú vložené v každom preloženom súbore
-- Podporované jazyky: 48+ jazykov vrátane arabčiny, čínštiny, francúzštiny, nemčiny, hindčiny, japončiny, kórejčiny, portugalčiny, ruštiny, španielčiny a mnohých ďalších
+- **Automatizovaný preklad**: Workflow v GitHub Actions spravuje všetky preklady
+- **NEUPRAVUJTE ručne** súbory v adresári `translations/`
+- Metadata prekladu sú vložené do každého preloženého súboru
+- Podporované jazyky: 48+ jazykov vrátane arabčiny, čínštiny, francúzštiny, nemčiny, hindčiny, japončiny, kórejčiny, portugalčiny, ruštiny, španielčiny a ďalších
 
-## Pokyny na testovanie
+## Inštrukcie na testovanie
 
 ### Validácia dokumentácie
 
-Keďže ide primárne o repozitár dokumentácie, testovanie sa zameriava na:
+Keďže ide predovšetkým o repozitár dokumentácie, testovanie sa sústreďuje na:
 
-1. **Validáciu odkazov**: Overte, že všetky interné odkazy fungujú
+1. **Validáciu odkazov**: Overiť funkčnosť všetkých interných odkazov
 ```bash
-# Check for broken markdown links
+# Skontrolujte poškodené markdown odkazy
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Validáciu ukážok kódu**: Otestujte, či ukážky kódu sa dajú skompilovať/spustiť
+2. **Validáciu ukážok kódu**: Overiť, či sa príklady kódu kompilujú/spúšťajú
 ```bash
-# Navigate to specific sample and run its tests
+# Prejdite na konkrétny príklad a spustite jeho testy
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Lintovanie Markdown**: Skontrolujte konzistenciu formátovania
+3. **Markdown linting**: Skontrolovať formátovaciu konzistentnosť
 ```bash
-# Use markdownlint if needed
+# Použite markdownlint podľa potreby
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
 ### Testovanie ukážkových projektov
 
-Každá jazykovo špecifická ukážka obsahuje vlastný prístup k testovaniu:
+Každý ukážkový projekt podľa jazyka má vlastný spôsob testovania:
 
 #### TypeScript/JavaScript
 ```bash
@@ -140,37 +140,37 @@ mvn test
 mvn verify
 ```
 
-## Štýlové pokyny pre kód
+## Pravidlá štýlu kódu
 
 ### Štýl dokumentácie
 
-- Používajte jasný, priateľský jazyk pre začiatočníkov
-- Zahrňte ukážky kódu vo viacerých jazykoch, kde je to možné
-- Dodržiavajte najlepšie praktiky pre Markdown:
+- Používajte jasný, zrozumiteľný jazyk pre začiatočníkov
+- Zahrňte príklady kódu v rôznych jazykoch, kde je to vhodné
+- Dodržiavajte najlepšie markdown praktiky:
   - Používajte hlavičky štýlu ATX (`#` syntax)
-  - Používajte ohraničené bloky kódu s identifikátormi jazykov
-  - Zahrňte popisný alt text pre obrázky
-  - Udržujte rozumnú dĺžku riadkov (bez pevného limitu, ale buďte rozumní)
+  - Používajte ohraničené bloky kódu s identifikátormi jazyka
+  - Pridajte popisné alt texty pre obrázky
+  - Udržujte primeranú dĺžku riadkov (nie je pevne stanovený limit, ale buďte rozumní)
 
-### Štýl ukážok kódu
+### Štýl ukážkových kódov
 
 #### TypeScript/JavaScript
 - Používajte ES moduly (`import`/`export`)
-- Dodržiavajte konvencie prísneho režimu TypeScript
-- Zahrňte anotácie typov
+- Dodržiavajte prísny režim TypeScriptu
+- Používajte anotácie typov
 - Cieľová verzia ES2022
 
 #### Python
-- Dodržiavajte štýlové pokyny PEP 8
-- Používajte typové anotácie, kde je to vhodné
-- Zahrňte docstringy pre funkcie a triedy
-- Používajte moderné funkcie Pythonu (3.8+)
+- Dodržiavajte konvencie PEP 8
+- Používajte typové náznaky, kde je to vhodné
+- Pridajte docstringy pre funkcie a triedy
+- Používajte moderné Python vlastnosti (3.8+)
 
 #### Java
 - Dodržiavajte konvencie Spring Boot
-- Používajte funkcie Java 21
+- Používajte vlastnosti Javy 21
 - Dodržiavajte štandardnú štruktúru projektu Maven
-- Zahrňte komentáre Javadoc
+- Pridajte Javadoc komentáre
 
 ### Organizácia súborov
 
@@ -186,116 +186,118 @@ mvn verify
     └── <language>/
 ```
 
-## Zostavenie a nasadenie
+## Build a nasadenie
 
 ### Nasadenie dokumentácie
 
-Repozitár používa GitHub Pages alebo podobné na hosting dokumentácie (ak je to relevantné). Zmeny v hlavnej vetve spúšťajú:
+Repozitár používa GitHub Pages alebo podobné služby pre hostovanie dokumentácie (ak sa uplatňuje). Zmeny v hlavnej vetve spustia:
 
-1. Workflow pre preklad (`.github/workflows/co-op-translator.yml`)
+1. Prekladový workflow (`.github/workflows/co-op-translator.yml`)
 2. Automatizovaný preklad všetkých anglických markdown súborov
 3. Lokalizáciu obrázkov podľa potreby
 
-### Nie je potrebný proces zostavenia
+### Nie je potrebný build proces
 
-Tento repozitár primárne obsahuje dokumentáciu v markdown. Nie je potrebná kompilácia ani krok zostavenia pre obsah hlavného kurikula.
+Tento repozitár obsahuje predovšetkým markdown dokumentáciu. Nie je potrebné žiadne kompilovanie alebo buildovanie pre obsah osnovy.
 
 ### Nasadenie ukážkových projektov
 
-Jednotlivé ukážkové projekty môžu mať pokyny na nasadenie:
-- Pozrite si `03-GettingStarted/09-deployment/` pre pokyny na nasadenie MCP servera
+Jednotlivé ukážkové projekty môžu obsahovať inštrukcie na nasadenie:
+- Pozrite `03-GettingStarted/09-deployment/` pre návod na nasadenie MCP servera
 - Príklady nasadenia Azure Container Apps v `11-MCPServerHandsOnLabs/`
 
-## Pokyny pre prispievanie
+## Pravidlá pre príspevky
 
-### Proces Pull Request
+### Proces pull requestov
 
-1. **Fork a klonovanie**: Forknite repozitár a klonujte svoj fork lokálne
-2. **Vytvorte vetvu**: Používajte popisné názvy vetiev (napr. `fix/typo-module-3`, `add/python-example`)
-3. **Urobte zmeny**: Upravujte iba anglické markdown súbory (nie preklady)
-4. **Testujte lokálne**: Overte, že markdown sa správne zobrazuje
+1. **Fork a klonovanie**: Urobte fork repozitára a klonujte váš fork lokálne
+2. **Vytvorte vetvu**: Používajte zrozumiteľné názvy vetiev (napr. `fix/typo-module-3`, `add/python-example`)
+3. **Urobte zmeny**: Upraviť iba anglické markdown súbory (nie preklady)
+4. **Testujte lokálne**: Overte správne zobrazenie markdownu
 5. **Odošlite PR**: Používajte jasné názvy a popisy PR
 6. **CLA**: Podpíšte Microsoft Contributor License Agreement, keď budete vyzvaní
 
-### Formát názvu PR
+### Formát názvov PR
 
-Používajte jasné, popisné názvy:
+Používajte jasné a popisné titulky:
 - `[Module XX] Stručný popis` pre zmeny špecifické pre modul
-- `[Samples] Popis` pre zmeny ukážkového kódu
+- `[Samples] Popis` pre zmeny v ukážkovom kóde
 - `[Docs] Popis` pre všeobecné aktualizácie dokumentácie
 
-### Čo prispievať
+### Čo prispieť
 
-- Opravy chýb v dokumentácii alebo ukážkovom kóde
+- Opravy chýb v dokumentácii alebo ukážkovej kóde
 - Nové ukážky kódu v ďalších jazykoch
-- Spresnenia a vylepšenia existujúceho obsahu
+- Vysvetlenia a zlepšenia existujúceho obsahu
 - Nové prípadové štúdie alebo praktické príklady
 - Hlásenia problémov s nejasným alebo nesprávnym obsahom
 
-### Čo NEROBIŤ
+### Čo nerobiť
 
-- Neupravujte priamo súbory v adresári `translations/`
+- Neupravujte priamo súbory v `translations/`
 - Neupravujte adresár `translated_images/`
-- Nepridávajte veľké binárne súbory bez diskusie
-- Nezmeňte súbory workflow prekladu bez koordinácie
+- Nepřidávajte veľké binárne súbory bez konzultácie
+- Nezmeňte súbory prekladového workflow bez dohody
 
-## Dodatočné poznámky
+## Ďalšie poznámky
 
 ### Údržba repozitára
 
-- **Changelog**: Všetky významné zmeny sú zdokumentované v `changelog.md`
-- **Študijný sprievodca**: Použite `study_guide.md` na prehľad navigácie kurikula
-- **Šablóny problémov**: Použite šablóny GitHub problémov na hlásenie chýb a požiadaviek na funkcie
-- **Kódex správania**: Všetci prispievatelia musia dodržiavať Microsoft Open Source Code of Conduct
+- **Zoznam zmien**: Všetky významné zmeny sú zdokumentované v `changelog.md`
+- **Študijný sprievodca**: Používajte `study_guide.md` na prehľad navigácie kurikula
+- **Šablóny issues**: Používajte GitHub šablóny issues pre hlásenia chýb a požiadavky na funkcie
+- **Kód správania**: Všetci prispievatelia musia dodržiavať Microsoft Open Source Code of Conduct
 
-### Vzdelávacia cesta
+### Učebná cesta
 
-Nasledujte moduly v sekvenčnom poradí (00-11) pre optimálne učenie:
-1. **00-02**: Základy (Úvod, Základné koncepty, Bezpečnosť)
-2. **03**: Začiatok s praktickou implementáciou
+Pre optimálne učenie postupujte podľa modulov v sekvenčnom poradí (00-11):
+1. **00-02**: Základy (Úvod, základné koncepty, bezpečnosť)
+2. **03**: Začiatky s praktickou implementáciou
 3. **04-05**: Praktická implementácia a pokročilé témy
-4. **06-10**: Komunita, najlepšie praktiky a aplikácie v reálnom svete
-5. **11**: Komplexné cvičenia na integráciu databázy (13 sekvenčných cvičení)
+4. **06-10**: Komunita, najlepšie praktiky a reálne aplikácie
+5. **11**: Komplexné laboratóriá integrácie databázy (13 sekvenčných laboratórií)
 
 ### Podporné zdroje
 
 - **Dokumentácia**: https://modelcontextprotocol.io/
 - **Špecifikácia**: https://spec.modelcontextprotocol.io/
 - **Komunita**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Discord server Microsoft Azure AI Foundry
-- **Súvisiace kurzy**: Pozrite si README.md pre ďalšie vzdelávacie cesty Microsoftu
+- **Discord**: Microsoft Foundry Discord server
+- **Súvisiace kurzy**: Pozrite README.md pre ďalšie vzdelávacie cesty Microsoftu
 
-### Bežné problémy
+### Bežné riešenie problémov
 
-**Otázka: Môj PR zlyháva pri kontrole prekladu**
-Odpoveď: Uistite sa, že ste upravili iba anglické markdown súbory v hlavných adresároch modulov, nie preložené verzie.
+**Otázka: Môj PR neprejde kontrolou prekladu**  
+Odpoveď: Uistite sa, že ste upravovali iba anglické markdown súbory v koreňových adresároch modulov, nie preložené verzie.
 
-**Otázka: Ako pridám nový jazyk?**
-Odpoveď: Podpora jazykov je spravovaná cez workflow co-op-translator. Otvorte problém na diskusiu o pridávaní nových jazykov.
+**Otázka: Ako pridám nový jazyk?**  
+Odpoveď: Podpora jazykov je riadená workflow co-op-translator. Otvorte issue pre diskusiu o pridaní nového jazyka.
 
-**Otázka: Ukážky kódu nefungujú**
-Odpoveď: Uistite sa, že ste dodržali pokyny na nastavenie v README konkrétnej ukážky. Skontrolujte, či máte nainštalované správne verzie závislostí.
+**Otázka: Ukážkové kódy nefungujú**  
+Odpoveď: Skontrolujte, že ste dodržali inštrukcie na nastavenie v README konkrétnej ukážky. Overte, že máte správne verzie závislostí.
 
-**Otázka: Obrázky sa nezobrazujú**
-Odpoveď: Overte, že cesty k obrázkom sú relatívne a používajú lomky. Obrázky by mali byť v adresári `images/` alebo `translated_images/` pre lokalizované verzie.
+**Otázka: Obrázky sa nezobrazujú**  
+Odpoveď: Overte, či sú cesty k obrázkom relatívne a používajú lomky dopredu. Obrázky by mali byť v adresári `images/` alebo `translated_images/` pre lokalizované verzie.
 
-### Výkonnostné úvahy
+### Výkonové úvahy
 
-- Workflow prekladu môže trvať niekoľko minút na dokončenie
-- Veľké obrázky by mali byť optimalizované pred commitom
-- Udržujte jednotlivé markdown súbory zamerané a rozumne veľké
-- Používajte relatívne odkazy pre lepšiu prenosnosť
+- Prekladový workflow môže trvať niekoľko minút
+- Veľké obrázky by sa mali optimalizovať pred commitom
+- Udržujte jednotlivé markdown súbory prehľadné a primerane veľké
+- Používajte relatívne odkazy pre lepšiu prenositeľnosť
 
 ### Správa projektu
 
-Tento projekt dodržiava praktiky open source od Microsoftu:
-- MIT licencia pre kód a dokumentáciu
-- Microsoft Open Source Code of Conduct
-- CLA požadované pre príspevky
-- Bezpečnostné problémy: Dodržiavajte pokyny v SECURITY.md
-- Podpora: Pozrite si SUPPORT.md pre zdroje pomoci
+Tento projekt dodržiava Microsoft open source praktiky:  
+- MIT licencia pre kód a dokumentáciu  
+- Microsoft Open Source Code of Conduct  
+- Vyžaduje sa CLA pre príspevky  
+- Bezpečnostné problémy: riadiť sa SECURITY.md usmerneniami  
+- Podpora: pozrite SUPPORT.md pre zdroje pomoci
 
 ---
 
-**Upozornenie**:  
-Tento dokument bol preložený pomocou služby AI prekladu [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, prosím, berte na vedomie, že automatizované preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho rodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

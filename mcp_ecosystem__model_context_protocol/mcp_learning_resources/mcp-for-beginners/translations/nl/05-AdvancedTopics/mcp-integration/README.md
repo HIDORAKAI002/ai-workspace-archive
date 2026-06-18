@@ -1,27 +1,27 @@
 # Enterprise-integratie
 
-Bij het bouwen van MCP-servers in een zakelijke context moet je vaak integreren met bestaande AI-platforms en -diensten. In deze sectie wordt uitgelegd hoe je MCP kunt integreren met bedrijfssystemen zoals Azure OpenAI en Microsoft AI Foundry, zodat je geavanceerde AI-mogelijkheden en toolorkestratie kunt benutten.
+Bij het bouwen van MCP-servers in een bedrijfscontext moet je vaak integreren met bestaande AI-platformen en -services. Deze sectie behandelt hoe je MCP integreert met bedrijfsystemen zoals Azure OpenAI en Microsoft AI Foundry, waarmee geavanceerde AI-mogelijkheden en toolorkestratie worden mogelijk gemaakt.
 
 ## Introductie
 
-In deze les leer je hoe je het Model Context Protocol (MCP) kunt integreren met zakelijke AI-systemen, met de nadruk op Azure OpenAI en Microsoft AI Foundry. Deze integraties stellen je in staat om krachtige AI-modellen en tools te gebruiken, terwijl je de flexibiliteit en uitbreidbaarheid van MCP behoudt.
+In deze les leer je hoe je het Model Context Protocol (MCP) integreert met enterprise AI-systemen, met focus op Azure OpenAI en Microsoft AI Foundry. Deze integraties stellen je in staat krachtige AI-modellen en tools te benutten, terwijl je de flexibiliteit en uitbreidbaarheid van MCP behoudt.
 
 ## Leerdoelen
 
 Aan het einde van deze les kun je:
 
-- MCP integreren met Azure OpenAI om gebruik te maken van de AI-mogelijkheden.
-- MCP-toolorkestratie implementeren met Azure OpenAI.
+- MCP integreren met Azure OpenAI om diens AI-mogelijkheden te benutten.
+- Implementeren van MCP toolorkestratie met Azure OpenAI.
 - MCP combineren met Microsoft AI Foundry voor geavanceerde AI-agentmogelijkheden.
-- Azure Machine Learning (ML) benutten voor het uitvoeren van ML-pijplijnen en het registreren van modellen als MCP-tools.
+- Azure Machine Learning (ML) inzetten om ML-pijplijnen uit te voeren en modellen als MCP-tools te registreren.
 
-## Integratie met Azure OpenAI
+## Azure OpenAI-integratie
 
-Azure OpenAI biedt toegang tot krachtige AI-modellen zoals GPT-4 en andere. Door MCP te integreren met Azure OpenAI kun je deze modellen gebruiken, terwijl je de flexibiliteit van MCP's toolorkestratie behoudt.
+Azure OpenAI biedt toegang tot krachtige AI-modellen zoals GPT-4 en anderen. Het integreren van MCP met Azure OpenAI stelt je in staat deze modellen te gebruiken, terwijl de flexibiliteit van MCP's toolorkestratie behouden blijft.
 
 ### C#-implementatie
 
-In deze codevoorbeeld laten we zien hoe je MCP kunt integreren met Azure OpenAI met behulp van de Azure OpenAI SDK.
+In dit codevoorbeeld laten we zien hoe MCP te integreren met Azure OpenAI via de Azure OpenAI SDK.
 
 ```csharp
 // .NET Azure OpenAI Integration
@@ -85,24 +85,24 @@ namespace EnterpriseIntegration
 }
 ```
 
-In de bovenstaande code hebben we:
+In bovenstaande code hebben we:
 
-- De Azure OpenAI-client geconfigureerd met de endpoint, implementatienaam en API-sleutel.
-- Een methode `GetCompletionWithToolsAsync` gemaakt om completions te verkrijgen met ondersteuning voor tools.
-- Toolaanroepen in de respons afgehandeld.
+- De Azure OpenAI-client geconfigureerd met de endpoint, naam van de deployment en API-sleutel.
+- Een methode `GetCompletionWithToolsAsync` gemaakt om completions met toolondersteuning te verkrijgen.
+- Toolaanroepen in de response afgehandeld.
 
-Je wordt aangemoedigd om de daadwerkelijke logica voor het afhandelen van tools te implementeren op basis van jouw specifieke MCP-serverconfiguratie.
+We raden je aan de daadwerkelijke toolafhandelingslogica te implementeren op basis van jouw specifieke MCP-serverconfiguratie.
 
-## Integratie met Microsoft AI Foundry
+## Microsoft Foundry-integratie
 
-Azure AI Foundry biedt een platform voor het bouwen en implementeren van AI-agents. Door MCP te integreren met AI Foundry kun je gebruikmaken van de mogelijkheden, terwijl je de flexibiliteit van MCP behoudt.
+Microsoft Foundry biedt een platform voor het bouwen en deployen van AI-agents. Het integreren van MCP met Microsoft Foundry maakt het mogelijk de capaciteiten ervan te benutten, terwijl de flexibiliteit van MCP behouden blijft.
 
-In de onderstaande code ontwikkelen we een agentintegratie die verzoeken verwerkt en toolaanroepen afhandelt met behulp van MCP.
+In onderstaande code ontwikkelen we een agentintegratie die verzoeken verwerkt en toolaanroepen afhandelt via MCP.
 
 ### Java-implementatie
 
 ```java
-// Java AI Foundry Agent Integration
+// Java AI Foundry Agent Integratie
 package com.example.mcp.enterprise;
 
 import com.microsoft.aifoundry.AgentClient;
@@ -125,26 +125,26 @@ public class AIFoundryMcpBridge {
     }
     
     public AgentResponse processAgentRequest(AgentRequest request) {
-        // Process the AI Foundry Agent request
+        // Verwerk het AI Foundry Agent verzoek
         AgentResponse initialResponse = agentClient.processRequest(request);
         
-        // Check if the agent requested to use tools
+        // Controleer of de agent heeft gevraagd om tools te gebruiken
         if (initialResponse.getToolCalls() != null && !initialResponse.getToolCalls().isEmpty()) {
-            // For each tool call, route it to the appropriate MCP tool
+            // Routeer elke tooloproep naar het juiste MCP-gereedschap
             for (AgentToolCall toolCall : initialResponse.getToolCalls()) {
                 String toolName = toolCall.getName();
                 Map<String, Object> parameters = toolCall.getArguments();
                 
-                // Execute the tool using MCP
+                // Voer het gereedschap uit met MCP
                 ToolResponse mcpResponse = mcpClient.executeTool(toolName, parameters);
                 
-                // Create tool response for AI Foundry
+                // Maak een gereedschapsreactie voor AI Foundry
                 AgentToolResponse toolResponse = new AgentToolResponse(
                     toolCall.getId(),
                     mcpResponse.getResult()
                 );
                 
-                // Submit tool response back to the agent
+                // Dien de gereedschapsreactie terug in bij de agent
                 initialResponse = agentClient.submitToolResponse(
                     request.getConversationId(), 
                     toolResponse
@@ -157,20 +157,20 @@ public class AIFoundryMcpBridge {
 }
 ```
 
-In de bovenstaande code hebben we:
+In bovenstaande code hebben we:
 
-- Een klasse `AIFoundryMcpBridge` gemaakt die integreert met zowel AI Foundry als MCP.
+- Een `AIFoundryMcpBridge`-klasse gemaakt die integreert met zowel AI Foundry als MCP.
 - Een methode `processAgentRequest` geïmplementeerd die een AI Foundry-agentverzoek verwerkt.
-- Toolaanroepen afgehandeld door ze uit te voeren via de MCP-client en de resultaten terug te sturen naar de AI Foundry-agent.
+- Toolaanroepen afgehandeld door deze via de MCP-client uit te voeren en de resultaten terug te sturen naar de AI Foundry-agent.
 
-## Integratie van MCP met Azure ML
+## MCP integreren met Azure ML
 
-Door MCP te integreren met Azure Machine Learning (ML) kun je gebruikmaken van de krachtige ML-mogelijkheden van Azure, terwijl je de flexibiliteit van MCP behoudt. Deze integratie kan worden gebruikt om ML-pijplijnen uit te voeren, modellen als tools te registreren en compute resources te beheren.
+Het integreren van MCP met Azure Machine Learning (ML) stelt je in staat de krachtige ML-mogelijkheden van Azure te benutten, terwijl de flexibiliteit van MCP behouden blijft. Deze integratie kan gebruikt worden om ML-pijplijnen uit te voeren, modellen als tools te registreren en compute resources te beheren.
 
 ### Python-implementatie
 
 ```python
-# Python Azure AI Integration
+# Python Azure AI-integratie
 from mcp_client import McpClient
 from azure.ai.ml import MLClient
 from azure.identity import DefaultAzureCredential
@@ -180,10 +180,10 @@ import asyncio
 
 class EnterpriseAiIntegration:
     def __init__(self, mcp_server_url, subscription_id, resource_group, workspace_name):
-        # Set up MCP client
+        # MCP-client instellen
         self.mcp_client = McpClient(server_url=mcp_server_url)
         
-        # Set up Azure ML client
+        # Azure ML-client instellen
         self.credential = DefaultAzureCredential()
         self.ml_client = MLClient(
             self.credential,
@@ -194,7 +194,7 @@ class EnterpriseAiIntegration:
     
     async def execute_ml_pipeline(self, pipeline_name, input_data):
         """Executes an ML pipeline in Azure ML"""
-        # First process the input data using MCP tools
+        # Verwerk eerst de invoergegevens met MCP-tools
         processed_data = await self.mcp_client.execute_tool(
             "dataPreprocessor",
             {
@@ -203,7 +203,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Submit the pipeline to Azure ML
+        # Dien de pijplijn in bij Azure ML
         pipeline_job = self.ml_client.jobs.create_or_update(
             entity={
                 "name": pipeline_name,
@@ -215,7 +215,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Return job information
+        # Retourneer jobinformatie
         return {
             "job_id": pipeline_job.id,
             "status": pipeline_job.status,
@@ -224,22 +224,22 @@ class EnterpriseAiIntegration:
     
     async def register_ml_model_as_tool(self, model_name, model_version="latest"):
         """Registers an Azure ML model as an MCP tool"""
-        # Get model details
+        # Verkrijg modelgegevens
         if model_version == "latest":
             model = self.ml_client.models.get(name=model_name, label="latest")
         else:
             model = self.ml_client.models.get(name=model_name, version=model_version)
         
-        # Create deployment environment
+        # Maak implementatieomgeving aan
         env = Environment(
             name="mcp-model-env",
             conda_file="./environments/inference-env.yml"
         )
         
-        # Set up compute
+        # Stel compute in
         compute = self.ml_client.compute.get("mcp-inference")
         
-        # Deploy model as online endpoint
+        # Implementeer model als online endpoint
         deployment = self.ml_client.online_deployments.create_or_update(
             endpoint_name=f"mcp-{model_name}",
             deployment={
@@ -255,22 +255,22 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Create MCP tool schema based on model schema
+        # Maak MCP-tool-schema op basis van modelschema
         tool_schema = {
             "type": "object",
             "properties": {},
             "required": []
         }
         
-        # Add input properties based on model schema
+        # Voeg invoereigenschappen toe op basis van modelschema
         for input_name, input_spec in model.signature.inputs.items():
             tool_schema["properties"][input_name] = {
                 "type": self._map_ml_type_to_json_type(input_spec.type)
             }
             tool_schema["required"].append(input_name)
         
-        # Register as MCP tool
-        # In a real implementation, you would create a tool that calls the endpoint
+        # Registreer als MCP-tool
+        # In een echte implementatie zou u een tool maken die het endpoint aanroept
         return {
             "model_name": model_name,
             "model_version": model.version,
@@ -291,17 +291,21 @@ class EnterpriseAiIntegration:
         return mapping.get(ml_type, "string")
 ```
 
-In de bovenstaande code hebben we:
+In bovenstaande code hebben we:
 
-- Een klasse `EnterpriseAiIntegration` gemaakt die MCP integreert met Azure ML.
-- Een methode `execute_ml_pipeline` geïmplementeerd die invoergegevens verwerkt met MCP-tools en een ML-pijplijn indient bij Azure ML.
-- Een methode `register_ml_model_as_tool` geïmplementeerd die een Azure ML-model registreert als een MCP-tool, inclusief het creëren van de benodigde implementatieomgeving en compute resources.
-- Azure ML-datatypen gemapt naar JSON-schema-typen voor toolregistratie.
-- Asynchrone programmering gebruikt om mogelijk langdurige operaties zoals ML-pijplijnuitvoering en modelregistratie af te handelen.
+- Een `EnterpriseAiIntegration`-klasse gemaakt die MCP integreert met Azure ML.
+- Een `execute_ml_pipeline`-methode geïmplementeerd die inputdata verwerkt met MCP-tools en een ML-pijplijn indient bij Azure ML.
+- Een `register_ml_model_as_tool`-methode geïmplementeerd die een Azure ML-model registreert als MCP-tool, inclusief het aanmaken van de benodigde deploymentomgeving en compute resources.
+- Azure ML-datatypes gemapt naar JSON schema types voor toolregistratie.
+- Asynchrone programmatie gebruikt om mogelijk langdurige activiteiten zoals het uitvoeren van ML-pijplijnen en modelregistratie af te handelen.
 
-## Wat nu
+## Wat volgt
 
-- [5.2 Multi-modaliteit](../mcp-multi-modality/README.md)
+- [5.2 Multi modaliteit](../mcp-multi-modality/README.md)
 
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsservice [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u zich ervan bewust te zijn dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor cruciale informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

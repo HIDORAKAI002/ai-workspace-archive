@@ -1,37 +1,37 @@
-# Stsenaarium 3: Toimetaja sees olevad dokumendid MCP serveriga VS Code'is
+# Stsenaarium 3: Toimetajasisesed dokumendid MCP serveriga VS Codes
 
 ## Ülevaade
 
-Selles stsenaariumis õpid, kuidas tuua Microsoft Learn dokumendid otse oma Visual Studio Code'i keskkonda, kasutades MCP serverit. Selle asemel, et pidevalt brauseri vahelehtede vahel vahetada, et dokumentatsiooni otsida, saad juurdepääsu ametlikele dokumentidele, neid otsida ja viidata otse oma toimetajas. See lähenemine lihtsustab töövoogu, hoiab sind keskendununa ja võimaldab sujuvat integreerimist selliste tööriistadega nagu GitHub Copilot.
+Selles stsenaariumis õpid, kuidas tuua Microsoft Learn Docs otse oma Visual Studio Code’i keskkonda, kasutades MCP serverit. Selle asemel, et pidevalt brauseri vahekaarte dokumentatsiooni otsimiseks vahetada, saad ametlikke dokumente otsida, lugeda ja viidata otse oma redaktoris. See lähenemine lihtsustab sinu töövoogu, hoiab sind keskendununa ja võimaldab sujuvat integreerimist tööriistadega nagu GitHub Copilot.
 
-- Otsi ja loe dokumente otse VS Code'is, lahkumata oma kodeerimiskeskkonnast.
-- Viita dokumentatsioonile ja lisa lingid otse oma README või kursuse failidesse.
-- Kasuta GitHub Copilotit ja MCP-d koos sujuvaks, tehisintellektil põhinevaks dokumentatsioonitöövooks.
+- Otsi ja loe dokumente VS Codes ilma koodimiskeskkonnast lahkumata.
+- Viita dokumentatsioonile ja sisesta linke otse oma README või kursuse failidesse.
+- Kasuta GitHub Copilotit ja MCP-d koos sujuvaks, tehisintellektipõhiseks dokumentatsiooni töövooks.
 
 ## Õpieesmärgid
 
-Selle peatüki lõpuks mõistad, kuidas seadistada ja kasutada MCP serverit VS Code'is, et täiustada oma dokumentatsiooni ja arendustöövoogu. Sa oskad:
+Selle peatüki lõpuks mõistad, kuidas seadistada ja kasutada MCP serverit VS Codes, et parandada oma dokumentatsiooni ja arendustöövoogu. Sa oskad:
 
-- Seadistada oma tööruumi MCP serveri kasutamiseks dokumentatsiooni otsinguks.
-- Otsida ja lisada dokumentatsiooni otse VS Code'ist.
-- Kombineerida GitHub Copiloti ja MCP võimekust produktiivsemaks, tehisintellekti abil täiustatud töövooks.
+- Konfigureerida oma tööruumi, et kasutada MCP serverit dokumentatsiooni otsimiseks.
+- Otsida ja sisestada dokumentatsiooni otse VS Codes.
+- Ühendada GitHub Copiloti ja MCP jõud ühtseks produktiivseks, tehisintellektiga täiustatud töövooguks.
 
-Need oskused aitavad sul püsida keskendununa, parandada dokumentatsiooni kvaliteeti ja suurendada oma tootlikkust arendaja või tehnilise kirjutajana.
+Need oskused aitavad sul hoida keskendumist, parandada dokumentatsiooni kvaliteeti ja suurendada oma tootlikkust arendaja või tehnilise kirjutajana.
 
 ## Lahendus
 
-Toimetaja sees dokumentatsioonile juurdepääsu saavutamiseks järgige samme, mis integreerivad MCP serveri VS Code'i ja GitHub Copilotiga. See lahendus sobib ideaalselt kursuste autoritele, dokumentatsiooni kirjutajatele ja arendajatele, kes soovivad töötada dokumentide ja Copilotiga otse toimetajas.
+Toimetajasise dokumentatsiooni ligipääsu saavutamiseks järgibid samme, mis integreerivad MCP serveri VS Code’i ja GitHub Copilotiga. See lahendus sobib ideaalselt kursuse autoritele, dokumentatsiooni kirjutajatele ja arendajatele, kes soovivad keskenduda redaktoris olles dokumentide ja Copilotiga töötamisel.
 
-- Lisa kiiresti viitelinke README-sse, kirjutades kursuse või projekti dokumentatsiooni.
-- Kasuta Copilotit koodi genereerimiseks ja MCP-d, et koheselt leida ja viidata asjakohastele dokumentidele.
-- Püsi keskendununa oma toimetajas ja suurenda tootlikkust.
+- Lisa kiiresti viitelinke README faili kursuse- või projektdokumentatsiooni kirjutamise ajal.
+- Kasuta Copilotit koodi genereerimiseks ja MCP-d, et viivitamatult leida ja viidata asjakohastele dokumentidele.
+- Hoia fookus toimetajas ja suurenda tootlikkust.
 
-### Samm-sammuline juhend
+### Samm-sammult juhend
 
-Alustamiseks järgi neid samme. Iga sammu jaoks saad lisada ekraanipildi kaustast "assets", et protsessi visuaalselt illustreerida.
+Alustamiseks järgi neid samme. Iga sammu juurde võid lisada ka ekraanipildi `assets` kaustast, mis illustreerib protsessi visuaalselt.
 
 1. **Lisa MCP konfiguratsioon:**
-   Loo oma projekti juurkausta `.vscode/mcp.json` fail ja lisa järgmine konfiguratsioon:
+   Oma projekti juurkataloogis loo `.vscode/mcp.json` fail ja lisa järgmine konfiguratsioon:
    ```json
    {
      "servers": {
@@ -41,54 +41,57 @@ Alustamiseks järgi neid samme. Iga sammu jaoks saad lisada ekraanipildi kaustas
      }
    }
    ```
-   See konfiguratsioon ütleb VS Code'ile, kuidas ühendada [`Microsoft Learn Docs MCP serveriga`](https://github.com/MicrosoftDocs/mcp).
+   See konfiguratsioon ütleb VS Code’ile, kuidas ühenduda [`Microsoft Learn Docs MCP serveriga`](https://github.com/MicrosoftDocs/mcp).
    
-   ![1. samm: Lisa mcp.json .vscode kausta](../../../../../../translated_images/et/step1-mcp-json.c06a007fccc3edfa.webp)
+   ![Samm 1: Lisa mcp.json .vscode kausta](../../../../../../translated_images/et/step1-mcp-json.c06a007fccc3edfa.webp)
     
 2. **Ava GitHub Copilot Chat paneel:**
-   Kui sul pole veel GitHub Copilot laiendust installitud, mine VS Code'i laienduste vaatesse ja installi see. Sa saad selle otse alla laadida [Visual Studio Code Marketplace'ist](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat). Seejärel ava Copilot Chat paneel külgribalt.
+   Kui sul pole veel GitHub Copiloti laiendust installitud, ava VS Code’i Laienduste vaade ja installi see. Võid selle alla laadida otse [Visual Studio Code Marketplace’ilt](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat). Siis ava vasakpoolsest küljeribalt Copilot Chat paneel.
 
-   ![2. samm: Ava Copilot Chat paneel](../../../../../../translated_images/et/step2-copilot-panel.f1cc86e9b9b8cd1a.webp)
+   ![Samm 2: Ava Copilot Chat paneel](../../../../../../translated_images/et/step2-copilot-panel.f1cc86e9b9b8cd1a.webp)
 
-3. **Luba agent-režiim ja kontrolli tööriistu:**
-   Luba Copilot Chat paneelil agent-režiim.
+3. **Luba agendi režiim ja kontrolli tööriistu:**
+   Copilot Chat paneelis luba agendi režiim.
 
-   ![3. samm: Luba agent-režiim ja kontrolli tööriistu](../../../../../../translated_images/et/step3-agent-mode.cdc32520fd7dd1d1.webp)
+   ![Samm 3: Luba agendi režiim ja kontrolli tööriistu](../../../../../../translated_images/et/step3-agent-mode.cdc32520fd7dd1d1.webp)
 
-   Pärast agent-režiimi lubamist kontrolli, et MCP server oleks loetletud ühe saadaoleva tööriistana. See tagab, et Copilot agent saab dokumentatsiooniserverile juurde pääseda ja asjakohast teavet hankida.
+   Pärast agendi režiimi lubamist kontrolli, kas MCP server on saadaval tööriistana. See tagab, et Copiloti agent pääseb dokumentatsiooniserverile ligi asjakohase info toomiseks.
    
-   ![3. samm: Kontrolli MCP serveri tööriista](../../../../../../translated_images/et/step3-verify-mcp-tool.76096a6329cbfecd.webp)
-4. **Alusta uut vestlust ja esita agentile küsimus:**
-   Ava Copilot Chat paneelil uus vestlus. Nüüd saad esitada agentile oma dokumentatsiooniga seotud küsimusi. Agent kasutab MCP serverit, et hankida ja kuvada asjakohast Microsoft Learn dokumentatsiooni otse sinu toimetajas.
+   ![Samm 3: Kontrolli MCP serveri tööriista](../../../../../../translated_images/et/step3-verify-mcp-tool.76096a6329cbfecd.webp)
+4. **Alusta uut vestlust ja esita agendile päring:**
+   Ava Copilot Chat paneelis uus vestlus. Nüüd saad esitada agendile dokumentatsiooniga seotud küsimusi. Agent kasutab MCP serverit, et tuua ja kuvada asjakohast Microsoft Learn dokumentatsiooni otse redaktoris.
 
-   - *"Ma püüan koostada õppeplaani teema X jaoks. Kavatsen seda õppida 8 nädalat, palun soovita iga nädala jaoks sobivat sisu."*
+   - *"Püüan kirjutada õppimiskava teemal X. Kavatsen seda uurida 8 nädala jooksul, palun soovita iga nädala kohta sisu, mida peaksin võtma."*
 
-   ![4. samm: Esita agentile küsimus vestluses](../../../../../../translated_images/et/step4-prompt-chat.12187bb001605efc.webp)
+   ![Samm 4: Esita agendile päring vestluses](../../../../../../translated_images/et/step4-prompt-chat.12187bb001605efc.webp)
 
-5. **Reaalajas päring:**
+5. **Otsepäring:**
 
-   > Võtame reaalajas päringu [#get-help](https://discord.gg/D6cRhjHWSC) jaotisest Azure AI Foundry Discordis ([vaata algset sõnumit](https://discord.com/channels/1113626258182504448/1385498306720829572)):
+   > Võtame otsepäringu Microsoft Foundry Discordi [#get-help](https://discord.gg/D6cRhjHWSC) sektsioonist ([originaalsõnum](https://discord.com/channels/1113626258182504448/1385498306720829572)):
    
-   *"Otsin vastuseid, kuidas juurutada mitme agendi lahendust, kus AI agendid on välja töötatud Azure AI Foundry's. Ma näen, et otsest juurutusmeetodit, nagu Copilot Studio kanalid, pole. Millised on erinevad viisid, kuidas seda juurutust teha, et ettevõtte kasutajad saaksid suhelda ja töö tehtud? On palju artikleid/blogisid, mis ütlevad, et selle töö tegemiseks saab kasutada Azure Bot teenust, mis võib toimida silla rollis MS Teamsi ja Azure AI Foundry agentide vahel. Kas see töötab, kui seadistan Azure boti, mis ühendub Azure AI Foundry Orkestreerimisagendiga Azure funktsiooni kaudu, et orkestreerimist teostada, või pean looma iga mitme agendi lahenduse osa jaoks eraldi Azure funktsiooni, et teha orkestreerimist Bot Frameworkis? Kõik muud ettepanekud on teretulnud."*
+   *"Ma otsin vastuseid, kuidas paigaldada mitmeagendiline lahendus Azure AI Foundryl arendatud AI agentidega. Näen, et puudub otsene juurutusmeetod, näiteks Copilot Studio kanalid. Millised on erinevad võimalused selle juurutamiseks ettevõtte kasutajatele, kes soovivad suhelda ja töö ära teha?
+On palju artikleid/blogisid, mis väidavad, et selle töö jaoks saab kasutada Azure Bot teenust, mis võiks olla sild Microsoft Teamsi ja Azure AI Foundry agendite vahel. Kas see töötab, kui ma seadistan Azure boti, mis ühendub Azure AI Foundry Orchestrator agendiga Azure funktsiooni kaudu orkestreerimiseks, või pean ma looma eraldi Azure funktsioonid iga AI agendi jaoks, mis on mitmeagendilise lahenduse osa, et orkestreerida Bot Frameworki tasandil? Muud soovitused on väga teretulnud."*
 
-   ![5. samm: Reaalajas päringud](../../../../../../translated_images/et/step5-live-queries.49db3e4a50bea273.webp)
+   ![Samm 5: Otsepäringud](../../../../../../translated_images/et/step5-live-queries.49db3e4a50bea273.webp)
 
-   Agent vastab asjakohaste dokumentatsioonilinkide ja kokkuvõtetega, mida saad seejärel otse oma markdown-failidesse lisada või kasutada viidetena oma koodis.
+   Agent vastab asjakohaste dokumentatsioonilinkide ja kokkuvõtetega, mida saad otse oma markdown failidesse sisestada või koodis viidetena kasutada.
    
 ### Näidispäringud
 
-Siin on mõned näidispäringud, mida võid proovida. Need päringud näitavad, kuidas MCP server ja Copilot saavad koos töötada, et pakkuda koheseid, kontekstitundlikke dokumente ja viiteid, lahkumata VS Code'ist:
+Siin on mõned näited päringutest, mida saad proovida. Need päringud demonstreerivad, kuidas MCP server ja Copilot saavad koos töötada, et pakkuda koheseid, kontekstiteadlikke dokumentatsiooni ja viiteid ilma VS Code’i lahkumata:
 
-- "Näita, kuidas kasutada Azure Functions'i triggereid."
-- "Lisa link ametlikule dokumentatsioonile Azure Key Vaulti kohta."
-- "Millised on parimad tavad Azure'i ressursside turvamiseks?"
-- "Leia kiire alustamise juhend Azure AI teenuste jaoks."
+- "Näita, kuidas kasutada Azure Functions trigger’eid."
+- "Lisa link ametlikule Azure Key Vault dokumentatsioonile."
+- "Millised on parimad praktikad Azure ressursside turvamiseks?"
+- "Leia Azure AI teenuste alustusjuhend."
 
-Need päringud näitavad, kuidas MCP server ja Copilot saavad koos töötada, et pakkuda koheseid, kontekstitundlikke dokumente ja viiteid, lahkumata VS Code'ist.
-
----
+Need päringud näitavad, kuidas MCP server ja Copilot võivad koos töötades pakkuda hetkelisi, kontekstiteadlikke dokumente ja viiteid VS Code’i keskkonnas.
 
 ---
 
-**Lahtiütlus**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame tagada täpsust, palume arvestada, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Algne dokument selle algses keeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitame kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgenduste eest.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

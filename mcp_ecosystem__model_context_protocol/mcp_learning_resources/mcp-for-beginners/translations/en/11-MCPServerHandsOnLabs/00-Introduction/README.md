@@ -2,21 +2,21 @@
 
 ## 🎯 What This Lab Covers
 
-This introductory lab provides a detailed overview of building Model Context Protocol (MCP) servers with database integration. You'll explore the business case, technical architecture, and practical applications through the Zava Retail analytics use case at https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
+This introduction lab provides a comprehensive overview of building Model Context Protocol (MCP) servers with database integration. You'll understand the business case, technical architecture, and real-world applications through the Zava Retail analytics use case at https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
 
 ## Overview
 
-**Model Context Protocol (MCP)** allows AI assistants to securely access and interact with external data sources in real-time. When paired with database integration, MCP enables powerful capabilities for data-driven AI applications.
+**Model Context Protocol (MCP)** enables AI assistants to securely access and interact with external data sources in real-time. When combined with database integration, MCP unlocks powerful capabilities for data-driven AI applications.
 
-This learning path guides you in creating production-ready MCP servers that connect AI assistants to retail sales data via PostgreSQL, incorporating enterprise patterns like Row Level Security, semantic search, and multi-tenant data access.
+This learning path teaches you to build production-ready MCP servers that connect AI assistants to retail sales data through PostgreSQL, implementing enterprise patterns like Row Level Security, semantic search, and multi-tenant data access.
 
 ## Learning Objectives
 
 By the end of this lab, you will be able to:
 
-- **Define** Model Context Protocol and its key advantages for database integration
-- **Identify** essential components of an MCP server architecture with databases
-- **Understand** the Zava Retail use case and its business needs
+- **Define** Model Context Protocol and its core benefits for database integration
+- **Identify** key components of an MCP server architecture with databases
+- **Understand** the Zava Retail use case and its business requirements
 - **Recognize** enterprise patterns for secure, scalable database access
 - **List** the tools and technologies used throughout this learning path
 
@@ -24,7 +24,7 @@ By the end of this lab, you will be able to:
 
 ### Traditional AI Limitations
 
-Modern AI assistants are highly capable but face significant challenges when dealing with real-world business data:
+Modern AI assistants are incredibly powerful but face significant limitations when working with real-world business data:
 
 | **Challenge** | **Description** | **Business Impact** |
 |---------------|-----------------|-------------------|
@@ -35,12 +35,12 @@ Modern AI assistants are highly capable but face significant challenges when dea
 
 ### The MCP Solution
 
-Model Context Protocol addresses these challenges by offering:
+Model Context Protocol addresses these challenges by providing:
 
 - **Real-time Data Access**: AI assistants query live databases and APIs
 - **Secure Integration**: Controlled access with authentication and permissions
 - **Natural Language Interface**: Business users ask questions in plain English
-- **Standardized Protocol**: Works across various AI platforms and tools
+- **Standardized Protocol**: Works across different AI platforms and tools
 
 ## 🏪 Meet Zava Retail: Our Learning Case Study https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
@@ -173,7 +173,7 @@ Our MCP server implements a layered architecture optimized for database integrat
 |-------------|-------------------|-------------|
 | **Database** | Azure Database for PostgreSQL | Managed database service |
 | **Container** | Azure Container Apps | Serverless container hosting |
-| **AI Services** | Azure AI Foundry | OpenAI models and endpoints |
+| **AI Services** | Microsoft Foundry | OpenAI models and endpoints |
 | **Monitoring** | Application Insights | Observability and diagnostics |
 | **Security** | Azure Key Vault | Secrets and configuration management |
 
@@ -306,5 +306,7 @@ Learn about MCP server architecture patterns, database design principles, and th
 
 ---
 
-**Disclaimer**:  
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we aim for accuracy, please note that automated translations may contain errors or inaccuracies. The original document in its native language should be regarded as the authoritative source. For critical information, professional human translation is recommended. We are not responsible for any misunderstandings or misinterpretations resulting from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

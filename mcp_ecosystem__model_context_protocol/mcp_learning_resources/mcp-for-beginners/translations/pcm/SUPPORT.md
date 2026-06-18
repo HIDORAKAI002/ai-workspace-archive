@@ -1,20 +1,22 @@
 # Support
 
-## How you go fit report wahala and get help  
+## How to file issues and get help  
 
-Dis project dey use GitHub Issues to track bugs and feature requests. Abeg make you search di issues wey don dey already before you go report new one so you no go repeat am. If you wan report new wahala, abeg file your bug or feature request as new Issue.
+Dis project dey use GitHub Issues to track bugs and feature requests. Abeg search the existing 
+issues before you file new issues to avoid duplicates. For new issues, file your bug or 
+feature request as new Issue.
 
-If you need help or you get question about how to use dis project, abeg:
-- Check di [Azure AI Foundry Discord](https://discord.com/invite/ByRwuEEgH4) wey experts and other developers dey gather
-- Use di [Model Context Protocol Community](https://modelcontextprotocol.io/community/) resources for any question wey concern di protocol
+For help and questions about how to use dis project, abeg:
+- Check di [Microsoft Foundry Discord](https://discord.com/invite/ByRwuEEgH4) wey experts and fellow developers dey gather
+- Use di [Model Context Protocol Community](https://modelcontextprotocol.io/community/) resources for protocol-related questions
 
 ## Microsoft Support Policy  
 
-Support for di Model Context Protocol (MCP) for Beginners project na only di resources wey dem list above.
+Support for di Model Context Protocol (MCP) for Beginners project dey limited to di resources wey dem list above.
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dis dokyument don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even though we dey try make am accurate, abeg make you sabi say automated translations fit get mistake or no dey correct well. Di original dokyument for im native language na di main source wey you go trust. For important information, e better make professional human translation dey use. We no go fit take blame for any misunderstanding or wrong interpretation wey fit happen because you use dis translation.
+**Disclaimer**:
+Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you know say automated translation fit get errors or mistakes. Di original document for dia own language na im be di correct source. For important info, make person wey sabi human translation do am. We no go responsible for any misunderstanding or wrong understanding wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

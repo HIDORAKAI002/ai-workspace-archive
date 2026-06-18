@@ -110,6 +110,12 @@ export interface ChatInputProps {
    */
   children?: ReactNode;
   /**
+   * Render the editor as a single-row strip by dropping the action bar footer.
+   * Send still works through Enter; pair with `showControlBar={false}` to also
+   * drop the control bar. Defaults to false — other chat surfaces stay untouched.
+   */
+  compact?: boolean;
+  /**
    * Custom node to render in place of the default ControlBar
    * (Local/Cloud/Approval). When provided, replaces the default bar.
    */
@@ -197,6 +203,7 @@ const ChatInput = memo<ChatInputProps>(
   ({
     actionBarStyle,
     allowExpand,
+    compact = false,
     disableFollowUpVariant,
     disableQueue,
     disableSend,
@@ -400,6 +407,7 @@ const ChatInput = memo<ChatInputProps>(
           <DesktopChatInput
             actionBarStyle={actionBarStyle}
             borderRadius={12}
+            compact={compact}
             controlBarSlot={controlBarSlot}
             extraActionItems={extraActionItems}
             hidden={hasPendingInterventions}

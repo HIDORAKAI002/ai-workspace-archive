@@ -2,17 +2,19 @@
 
 ## Kuidas esitada probleeme ja saada abi  
 
-Selle projekti jaoks kasutatakse GitHub Issues, et jälgida vigu ja funktsioonitaotlusi. Enne uue probleemi esitamist otsige olemasolevaid probleeme, et vältida duplikaate. Uute probleemide korral esitage oma viga või funktsioonitaotlus uue probleemina.
+See projekt kasutab GitHub Issues võimalusi vigade ja funktsioonisoovituste jälgimiseks. Palun otsige olemasolevaid probleeme enne uute esitamise ajal, et vältida kordusi. Uute probleemide korral esitage oma viga või funktsioonisoovitus uue probleemina.
 
 Abi ja küsimuste korral selle projekti kasutamise kohta:
-- Vaadake [Azure AI Foundry Discordi](https://discord.com/invite/ByRwuEEgH4), kus kogunevad eksperdid ja arendajad
-- Kasutage [Model Context Protocol Community](https://modelcontextprotocol.io/community/) ressursse protokolliga seotud küsimuste jaoks
+- Kontrollige [Microsoft Foundry Discordi](https://discord.com/invite/ByRwuEEgH4), kus kogunevad eksperdid ja arendajad
+- Kasutage [Model Context Protocol Community](https://modelcontextprotocol.io/community/) ressursse protokolli seotud küsimuste jaoks
 
 ## Microsofti tugipoliitika  
 
-Model Context Protocol (MCP) for Beginners projekti tugi on piiratud ülaltoodud ressurssidega.
+Toetus Model Context Protocol (MCP) for Beginners projektile on piiratud eespool loetletud ressurssidega.
 
 ---
 
-**Vastutusest loobumine**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame tagada täpsust, palume arvestada, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Algne dokument selle algses keeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitame kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgenduste eest.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

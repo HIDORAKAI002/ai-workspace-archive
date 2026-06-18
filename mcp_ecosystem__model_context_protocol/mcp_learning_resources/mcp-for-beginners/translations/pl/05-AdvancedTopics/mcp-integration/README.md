@@ -1,27 +1,27 @@
-# Integracja w przedsiębiorstwie
+# Integracja przedsiębiorstw
 
-Podczas tworzenia serwerów MCP w kontekście przedsiębiorstwa często konieczne jest zintegrowanie ich z istniejącymi platformami i usługami AI. W tej sekcji omówimy, jak zintegrować MCP z systemami przedsiębiorstwa, takimi jak Azure OpenAI i Microsoft AI Foundry, aby umożliwić zaawansowane możliwości AI oraz orkiestrację narzędzi.
+Budując serwery MCP w kontekście przedsiębiorstwa, często musisz integrować się z istniejącymi platformami i usługami AI. Ta sekcja opisuje, jak integrować MCP z systemami przedsiębiorstwowymi, takimi jak Azure OpenAI i Microsoft AI Foundry, umożliwiając zaawansowane możliwości sztucznej inteligencji i orkiestrację narzędzi.
 
 ## Wprowadzenie
 
-W tej lekcji dowiesz się, jak zintegrować Model Context Protocol (MCP) z systemami AI w przedsiębiorstwie, koncentrując się na Azure OpenAI i Microsoft AI Foundry. Te integracje pozwalają wykorzystać potężne modele AI i narzędzia, jednocześnie zachowując elastyczność i rozszerzalność MCP.
+W tej lekcji nauczysz się, jak integrować Model Context Protocol (MCP) z systemami AI dla przedsiębiorstw, koncentrując się na Azure OpenAI i Microsoft AI Foundry. Te integracje pozwalają na wykorzystanie potężnych modeli AI i narzędzi, zachowując jednocześnie elastyczność i rozszerzalność MCP.
 
 ## Cele nauki
 
-Po ukończeniu tej lekcji będziesz w stanie:
+Po zakończeniu tej lekcji będziesz potrafił:
 
-- Zintegrować MCP z Azure OpenAI, aby korzystać z jego możliwości AI.
+- Zintegrować MCP z Azure OpenAI, aby wykorzystać jego możliwości AI.
 - Zaimplementować orkiestrację narzędzi MCP z Azure OpenAI.
 - Połączyć MCP z Microsoft AI Foundry, aby uzyskać zaawansowane możliwości agentów AI.
-- Wykorzystać Azure Machine Learning (ML) do uruchamiania potoków ML i rejestrowania modeli jako narzędzi MCP.
+- Wykorzystać Azure Machine Learning (ML) do wykonywania potoków ML i rejestracji modeli jako narzędzi MCP.
 
 ## Integracja z Azure OpenAI
 
-Azure OpenAI zapewnia dostęp do potężnych modeli AI, takich jak GPT-4 i inne. Integracja MCP z Azure OpenAI pozwala korzystać z tych modeli, jednocześnie zachowując elastyczność orkiestracji narzędzi MCP.
+Azure OpenAI udostępnia dostęp do potężnych modeli AI, takich jak GPT-4 i inne. Integracja MCP z Azure OpenAI pozwala na wykorzystanie tych modeli, zachowując elastyczność orkiestracji narzędzi MCP.
 
 ### Implementacja w C#
 
-W tym fragmencie kodu pokazujemy, jak zintegrować MCP z Azure OpenAI za pomocą Azure OpenAI SDK.
+W tym fragmencie kodu pokazujemy, jak zintegrować MCP z Azure OpenAI przy użyciu SDK Azure OpenAI.
 
 ```csharp
 // .NET Azure OpenAI Integration
@@ -87,22 +87,22 @@ namespace EnterpriseIntegration
 
 W powyższym kodzie:
 
-- Skonfigurowaliśmy klienta Azure OpenAI z użyciem punktu końcowego, nazwy wdrożenia i klucza API.
-- Utworzyliśmy metodę `GetCompletionWithToolsAsync`, aby uzyskać wyniki z obsługą narzędzi.
+- Skonfigurowaliśmy klienta Azure OpenAI z punktem końcowym, nazwą wdrożenia i kluczem API.
+- Utworzyliśmy metodę `GetCompletionWithToolsAsync` do uzyskiwania uzupełnień z obsługą narzędzi.
 - Obsłużyliśmy wywołania narzędzi w odpowiedzi.
 
-Zachęcamy do zaimplementowania rzeczywistej logiki obsługi narzędzi w oparciu o specyficzną konfigurację serwera MCP.
+Zalecamy implementację rzeczywistej logiki obsługi narzędzi w oparciu o specyficzną konfigurację Twojego serwera MCP.
 
-## Integracja z Microsoft AI Foundry
+## Integracja z Microsoft Foundry
 
-Azure AI Foundry oferuje platformę do tworzenia i wdrażania agentów AI. Integracja MCP z AI Foundry pozwala wykorzystać jej możliwości, jednocześnie zachowując elastyczność MCP.
+Microsoft Foundry oferuje platformę do tworzenia i wdrażania agentów AI. Integracja MCP z Microsoft Foundry pozwala wykorzystać jej możliwości, zachowując elastyczność MCP.
 
-W poniższym kodzie opracowujemy integrację agenta, który przetwarza żądania i obsługuje wywołania narzędzi za pomocą MCP.
+W poniższym kodzie tworzymy integrację agenta, która przetwarza żądania i obsługuje wywołania narzędzi za pomocą MCP.
 
 ### Implementacja w Javie
 
 ```java
-// Java AI Foundry Agent Integration
+// Integracja agenta Java AI Foundry
 package com.example.mcp.enterprise;
 
 import com.microsoft.aifoundry.AgentClient;
@@ -125,26 +125,26 @@ public class AIFoundryMcpBridge {
     }
     
     public AgentResponse processAgentRequest(AgentRequest request) {
-        // Process the AI Foundry Agent request
+        // Przetwórz żądanie agenta AI Foundry
         AgentResponse initialResponse = agentClient.processRequest(request);
         
-        // Check if the agent requested to use tools
+        // Sprawdź, czy agent zażądał użycia narzędzi
         if (initialResponse.getToolCalls() != null && !initialResponse.getToolCalls().isEmpty()) {
-            // For each tool call, route it to the appropriate MCP tool
+            // Dla każdego wywołania narzędzia skieruj je do odpowiedniego narzędzia MCP
             for (AgentToolCall toolCall : initialResponse.getToolCalls()) {
                 String toolName = toolCall.getName();
                 Map<String, Object> parameters = toolCall.getArguments();
                 
-                // Execute the tool using MCP
+                // Wykonaj narzędzie za pomocą MCP
                 ToolResponse mcpResponse = mcpClient.executeTool(toolName, parameters);
                 
-                // Create tool response for AI Foundry
+                // Utwórz odpowiedź narzędzia dla AI Foundry
                 AgentToolResponse toolResponse = new AgentToolResponse(
                     toolCall.getId(),
                     mcpResponse.getResult()
                 );
                 
-                // Submit tool response back to the agent
+                // Prześlij odpowiedź narzędzia z powrotem do agenta
                 initialResponse = agentClient.submitToolResponse(
                     request.getConversationId(), 
                     toolResponse
@@ -159,18 +159,18 @@ public class AIFoundryMcpBridge {
 
 W powyższym kodzie:
 
-- Utworzyliśmy klasę `AIFoundryMcpBridge`, która integruje się zarówno z AI Foundry, jak i MCP.
-- Zaimplementowaliśmy metodę `processAgentRequest`, która przetwarza żądanie agenta AI Foundry.
-- Obsłużyliśmy wywołania narzędzi, wykonując je za pomocą klienta MCP i przesyłając wyniki z powrotem do agenta AI Foundry.
+- Utworzyliśmy klasę `AIFoundryMcpBridge`, która integruje AI Foundry i MCP.
+- Zaimplementowaliśmy metodę `processAgentRequest` przetwarzającą żądanie agenta AI Foundry.
+- Obsłużyliśmy wywołania narzędzi, wykonując je przez klienta MCP i przesyłając wyniki z powrotem do agenta AI Foundry.
 
 ## Integracja MCP z Azure ML
 
-Integracja MCP z Azure Machine Learning (ML) pozwala wykorzystać potężne możliwości ML Azure, jednocześnie zachowując elastyczność MCP. Ta integracja może być używana do uruchamiania potoków ML, rejestrowania modeli jako narzędzi oraz zarządzania zasobami obliczeniowymi.
+Integracja MCP z Azure Machine Learning (ML) pozwala korzystać z potężnych możliwości ML Azure, zachowując elastyczność MCP. Ta integracja może być używana do wykonywania potoków ML, rejestrowania modeli jako narzędzi i zarządzania zasobami obliczeniowymi.
 
 ### Implementacja w Pythonie
 
 ```python
-# Python Azure AI Integration
+# Integracja Python z Azure AI
 from mcp_client import McpClient
 from azure.ai.ml import MLClient
 from azure.identity import DefaultAzureCredential
@@ -180,10 +180,10 @@ import asyncio
 
 class EnterpriseAiIntegration:
     def __init__(self, mcp_server_url, subscription_id, resource_group, workspace_name):
-        # Set up MCP client
+        # Skonfiguruj klienta MCP
         self.mcp_client = McpClient(server_url=mcp_server_url)
         
-        # Set up Azure ML client
+        # Skonfiguruj klienta Azure ML
         self.credential = DefaultAzureCredential()
         self.ml_client = MLClient(
             self.credential,
@@ -194,7 +194,7 @@ class EnterpriseAiIntegration:
     
     async def execute_ml_pipeline(self, pipeline_name, input_data):
         """Executes an ML pipeline in Azure ML"""
-        # First process the input data using MCP tools
+        # Najpierw przetwórz dane wejściowe za pomocą narzędzi MCP
         processed_data = await self.mcp_client.execute_tool(
             "dataPreprocessor",
             {
@@ -203,7 +203,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Submit the pipeline to Azure ML
+        # Prześlij pipeline do Azure ML
         pipeline_job = self.ml_client.jobs.create_or_update(
             entity={
                 "name": pipeline_name,
@@ -215,7 +215,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Return job information
+        # Zwróć informacje o zadaniu
         return {
             "job_id": pipeline_job.id,
             "status": pipeline_job.status,
@@ -224,22 +224,22 @@ class EnterpriseAiIntegration:
     
     async def register_ml_model_as_tool(self, model_name, model_version="latest"):
         """Registers an Azure ML model as an MCP tool"""
-        # Get model details
+        # Pobierz szczegóły modelu
         if model_version == "latest":
             model = self.ml_client.models.get(name=model_name, label="latest")
         else:
             model = self.ml_client.models.get(name=model_name, version=model_version)
         
-        # Create deployment environment
+        # Utwórz środowisko wdrożeniowe
         env = Environment(
             name="mcp-model-env",
             conda_file="./environments/inference-env.yml"
         )
         
-        # Set up compute
+        # Skonfiguruj zasoby obliczeniowe
         compute = self.ml_client.compute.get("mcp-inference")
         
-        # Deploy model as online endpoint
+        # Wdróż model jako punkt końcowy online
         deployment = self.ml_client.online_deployments.create_or_update(
             endpoint_name=f"mcp-{model_name}",
             deployment={
@@ -255,22 +255,22 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Create MCP tool schema based on model schema
+        # Utwórz schemat narzędzia MCP na podstawie schematu modelu
         tool_schema = {
             "type": "object",
             "properties": {},
             "required": []
         }
         
-        # Add input properties based on model schema
+        # Dodaj właściwości wejściowe na podstawie schematu modelu
         for input_name, input_spec in model.signature.inputs.items():
             tool_schema["properties"][input_name] = {
                 "type": self._map_ml_type_to_json_type(input_spec.type)
             }
             tool_schema["required"].append(input_name)
         
-        # Register as MCP tool
-        # In a real implementation, you would create a tool that calls the endpoint
+        # Zarejestruj jako narzędzie MCP
+        # W rzeczywistej implementacji utworzyłbyś narzędzie wywołujące punkt końcowy
         return {
             "model_name": model_name,
             "model_version": model.version,
@@ -294,14 +294,18 @@ class EnterpriseAiIntegration:
 W powyższym kodzie:
 
 - Utworzyliśmy klasę `EnterpriseAiIntegration`, która integruje MCP z Azure ML.
-- Zaimplementowaliśmy metodę `execute_ml_pipeline`, która przetwarza dane wejściowe za pomocą narzędzi MCP i przesyła potok ML do Azure ML.
-- Zaimplementowaliśmy metodę `register_ml_model_as_tool`, która rejestruje model Azure ML jako narzędzie MCP, w tym tworzenie niezbędnego środowiska wdrożeniowego i zasobów obliczeniowych.
-- Mapowaliśmy typy danych Azure ML na typy schematów JSON w celu rejestracji narzędzi.
-- Wykorzystaliśmy programowanie asynchroniczne do obsługi potencjalnie długotrwałych operacji, takich jak uruchamianie potoków ML i rejestracja modeli.
+- Zaimplementowaliśmy metodę `execute_ml_pipeline`, która przetwarza dane wejściowe za pomocą narzędzi MCP i uruchamia potok ML w Azure ML.
+- Zaimplementowaliśmy metodę `register_ml_model_as_tool`, która rejestruje model Azure ML jako narzędzie MCP, w tym tworzy niezbędne środowisko wdrożeniowe i zasoby obliczeniowe.
+- Mapowaliśmy typy danych Azure ML na typy schematu JSON do rejestracji narzędzi.
+- Użyliśmy programowania asynchronicznego, aby obsłużyć potencjalnie długotrwałe operacje, takie jak wykonanie potoku ML i rejestracja modelu.
 
 ## Co dalej
 
 - [5.2 Multi modality](../mcp-multi-modality/README.md)
 
-**Zastrzeżenie**:  
-Ten dokument został przetłumaczony za pomocą usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Chociaż dokładamy wszelkich starań, aby tłumaczenie było precyzyjne, prosimy pamiętać, że automatyczne tłumaczenia mogą zawierać błędy lub nieścisłości. Oryginalny dokument w jego rodzimym języku powinien być uznawany za autorytatywne źródło. W przypadku informacji o kluczowym znaczeniu zaleca się skorzystanie z profesjonalnego tłumaczenia przez człowieka. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z użycia tego tłumaczenia.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Zastrzeżenie**:
+Niniejszy dokument został przetłumaczony za pomocą usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Choć dążymy do dokładności, prosimy pamiętać, że automatyczne tłumaczenia mogą zawierać błędy lub niedokładności. Oryginalny dokument w jego języku źródłowym należy uznawać za autorytatywne źródło. W przypadku informacji krytycznych zalecane jest skorzystanie z profesjonalnego tłumaczenia wykonanego przez człowieka. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z użycia tego tłumaczenia.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
