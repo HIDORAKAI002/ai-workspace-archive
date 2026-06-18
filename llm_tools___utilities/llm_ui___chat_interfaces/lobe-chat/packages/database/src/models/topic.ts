@@ -30,7 +30,7 @@ import {
 } from 'drizzle-orm';
 
 import type { TopicItem } from '../schemas';
-import { agents, messagePlugins, messages, threads, topics } from '../schemas';
+import { agents, messagePlugins, messages, threads, topicDocuments, topics } from '../schemas';
 import type { LobeChatDatabase } from '../type';
 import { sanitizeBm25Query } from '../utils/bm25';
 import { genEndDateWhere, genRangeWhere, genStartDateWhere, genWhere } from '../utils/genWhere';
@@ -450,6 +450,33 @@ export class TopicModel {
     return this.db.query.topics.findFirst({
       where: and(eq(topics.id, id), this.ownership()),
     });
+  };
+
+  /**
+   * Find the unique topic an agent shares with a document for a given trigger
+   * (e.g. the doc-anchored chat topic provisioned by
+   * `agentDocument.getOrCreateChatTopic`). Joins through `topic_documents`.
+   */
+  findByAgentAndDocumentTrigger = async (params: {
+    agentId: string;
+    documentId: string;
+    trigger: string;
+  }): Promise<TopicItem | undefined> => {
+    const result = await this.db
+      .select({ topic: topics })
+      .from(topics)
+      .innerJoin(topicDocuments, eq(topicDocuments.topicId, topics.id))
+      .where(
+        and(
+          this.ownership(),
+          eq(topics.agentId, params.agentId),
+          eq(topics.trigger, params.trigger),
+          eq(topicDocuments.documentId, params.documentId),
+        ),
+      )
+      .limit(1);
+
+    return result[0]?.topic;
   };
 
   /**
