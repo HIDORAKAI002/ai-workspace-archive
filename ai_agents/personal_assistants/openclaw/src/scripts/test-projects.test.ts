@@ -897,7 +897,10 @@ describe("test-projects args", () => {
       },
       {
         config: "test/vitest/vitest.e2e.config.ts",
-        forwardedArgs: ["test/openclaw-launcher.e2e.test.ts"],
+        forwardedArgs: [
+          "test/e2e/qa-lab/plugins/plugin-lifecycle-probe.e2e.test.ts",
+          "test/openclaw-launcher.e2e.test.ts",
+        ],
         includePatterns: null,
         watchMode: false,
       },
