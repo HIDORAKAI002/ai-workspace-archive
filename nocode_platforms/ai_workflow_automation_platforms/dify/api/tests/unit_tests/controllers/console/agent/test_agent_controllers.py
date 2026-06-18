@@ -1,4 +1,4 @@
-from inspect import unwrap
+from inspect import getsource, unwrap
 from types import SimpleNamespace
 from typing import Any, cast
 
@@ -95,6 +95,7 @@ def _agent_app_composer_response() -> dict:
 def _app_detail_obj(**overrides):
     data = {
         "id": "app-1",
+        "tenant_id": "tenant-1",
         "name": "Iris",
         "description": "Agent app",
         "mode_compatible_with_agent": "agent",
@@ -118,7 +119,6 @@ def _app_detail_obj(**overrides):
         "deleted_tools": [],
         "site": None,
         "bound_agent_id": "00000000-0000-0000-0000-000000000001",
-        "tenant_id": "tenant-1",
     }
     data.update(overrides)
     return SimpleNamespace(**data)
@@ -175,6 +175,11 @@ def test_agent_v2_console_routes_are_agent_id_first() -> None:
         "/apps/<uuid:app_id>/agent-sandbox/files",
     ):
         assert route not in paths
+
+
+def test_agent_app_write_routes_do_not_reuse_app_billing_quota() -> None:
+    for route_class in (AgentAppListApi, AgentAppCopyApi):
+        assert '@cloud_edition_billing_resource_check("apps")' not in getsource(route_class)
 
 
 @pytest.fixture

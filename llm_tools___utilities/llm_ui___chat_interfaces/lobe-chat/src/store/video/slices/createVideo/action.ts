@@ -1,4 +1,3 @@
-import { ENABLE_BUSINESS_FEATURES } from '@lobechat/business-const';
 import { t } from 'i18next';
 
 import { handleGenerationPromptModerationError } from '@/business/client/handleGenerationPromptModerationError';
@@ -6,6 +5,7 @@ import { handleLobeHubModelDeprecatedError } from '@/business/client/handleLobeH
 import { markUserValidAction } from '@/business/client/markUserValidAction';
 import { message } from '@/components/AntdStaticMethods';
 import { videoService } from '@/services/video';
+import { getServerConfigStoreState, serverConfigSelectors } from '@/store/serverConfig';
 import { type StoreSetter } from '@/store/types';
 
 import { type VideoStore } from '../../store';
@@ -94,7 +94,11 @@ export class CreateVideoActionImpl {
         );
       }
 
-      if (ENABLE_BUSINESS_FEATURES) {
+      const serverConfigState = getServerConfigStoreState();
+      const enableBusinessFeatures =
+        !!serverConfigState && serverConfigSelectors.enableBusinessFeatures(serverConfigState);
+
+      if (enableBusinessFeatures) {
         markUserValidAction();
       }
 
