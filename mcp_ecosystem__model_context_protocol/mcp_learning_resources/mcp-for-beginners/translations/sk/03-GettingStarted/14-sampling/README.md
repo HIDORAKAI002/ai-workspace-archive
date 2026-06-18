@@ -1,24 +1,24 @@
 # Sampling - delegovanie funkcií klientovi
 
-Niekedy potrebujete, aby MCP klient a MCP server spolupracovali na dosiahnutí spoločného cieľa. Môže sa stať, že server potrebuje pomoc LLM, ktorý je na kliente. Pre takúto situáciu by ste mali použiť sampling.
+Niekedy je potrebné, aby MCP klient a MCP server spolupracovali na dosiahnutí spoločného cieľa. Môže nastať situácia, kedy server potrebuje pomoc LLM, ktorý beží na kliente. V takom prípade by ste mali použiť sampling.
 
-Pozrime sa na niektoré prípady použitia a ako vybudovať riešenie zahŕňajúce sampling.
+Preskúmajme niekoľko prípadov použitia a ako zostaviť riešenie zahŕňajúce sampling.
 
 ## Prehľad
 
-V tejto lekcii sa zameriame na vysvetlenie, kedy a kde používať sampling a ako ho nakonfigurovať.
+V tejto lekcii sa zameriame na vysvetlenie, kedy a kde použiť sampling a ako ho nakonfigurovať.
 
 ## Ciele učenia
 
 V tejto kapitole:
 
-- Vysvetlíme, čo je sampling a kedy ho používať.
-- Ukážeme ako nakonfigurovať sampling v MCP.
-- Poskytneme príklady použitia samplingu v praxi.
+- Vysvetlíme, čo je sampling a kedy ho použiť.
+- Ukážeme, ako konfigurovať sampling v MCP.
+- Poskytneme príklady samplingu v praxi.
 
-## Čo je sampling a prečo ho používať?
+## Čo je Sampling a prečo ho používať?
 
-Sampling je pokročilá funkcia, ktorá funguje nasledujúcim spôsobom:
+Sampling je pokročilá funkcia, ktorá funguje nasledovne:
 
 ```mermaid
 sequenceDiagram
@@ -27,18 +27,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Autor blogového príspevku
+    User->>MCP Client: Vytvoriť blogový príspevok
     MCP Client->>MCP Server: Volanie nástroja (návrh blogového príspevku)
-    MCP Server->>MCP Client: Žiadosť o vzorkovanie (vytvoriť zhrnutie)
-    MCP Client->>LLM: Vygenerovať zhrnutie blogového príspevku
+    MCP Server->>MCP Client: Požiadavka na vzorkovanie (vytvoriť zhrnutie)
+    MCP Client->>LLM: Generovať zhrnutie blogového príspevku
     LLM->>MCP Client: Výsledok zhrnutia
     MCP Client->>MCP Server: Odpoveď na vzorkovanie (zhrnutie)
     MCP Server->>MCP Client: Kompletný blogový príspevok (návrh + zhrnutie)
     MCP Client->>User: Blogový príspevok pripravený
 ```
-### Požiadavka na sampling
 
-Dobre, teraz máme celkový pohľad na vierohodný scenár, poďme sa porozprávať o požiadavke na sampling, ktorú server odosiela klientovi. Takto môže vyzerať taká požiadavka vo formáte JSON-RPC:
+### Sampling request
+
+Dobre, teraz máme prehľad o dôveryhodnom scenári, pozrime sa na sampling request, ktorý server posiela späť klientovi. Takýto request môže vyzerať v JSON-RPC formáte takto:
 
 ```json
 {
@@ -70,17 +71,17 @@ Dobre, teraz máme celkový pohľad na vierohodný scenár, poďme sa porozpráv
 }
 ```
 
-Tu je niekoľko vecí, ktoré stojí za to vyzdvihnúť:
+Je tu niekoľko vecí, na ktoré stojí za to poukázať:
 
-- Prompt, pod content -> text, je naša výzva, ktorá je inštrukciou pre LLM na zhrnutie obsahu blogového príspevku.
+- Prompt, pod content -> text, je naša výzva, ktorá je inštrukciou pre LLM zhrnúť obsah blogového príspevku.
 
-- **modelPreferences**. Táto časť predstavuje preferenciu, odporúčanie, akú konfiguráciu použiť s LLM. Používateľ si môže zvoliť, či bude tieto odporúčania dodržiavať alebo ich zmeniť. V tomto prípade sú odporúčania týkajúce sa modelu na použitie a priorít rýchlosti a inteligencie.
-- **systemPrompt**, toto je váš bežný systémový prompt, ktorý dáva vašemu LLM osobnosť a obsahuje pokyny.
-- **maxTokens**, ďalšia vlastnosť, ktorá uvádza, koľko tokenov sa odporúča použiť pre túto úlohu.
+- **modelPreferences**. Táto sekcia je práve to, preferencia, odporúčanie konfigurácie, ktorú treba použiť s LLM. Používateľ si môže zvoliť, či pôjde podľa týchto odporúčaní alebo ich zmení. V tomto prípade sú odporúčania ohľadom modelu, ktorý použiť, a priorít rýchlosti a inteligencie.
+- **systemPrompt**, toto je váš bežný systémový prompt, ktorý dáva LLM osobnosť a obsahuje usmerňovacie inštrukcie.
+- **maxTokens**, toto je ďalší parameter, ktorý určuje, koľko tokenov je odporúčané použiť pre túto úlohu.
 
-### Odpoveď na sampling
+### Sampling response
 
-Táto odpoveď je to, čo MCP klient nakoniec pošle späť MCP serveru, je výsledkom toho, že klient zavolá LLM, počká na odpoveď a potom vytvorí túto správu. Takto to môže vyzerať vo formáte JSON-RPC:
+Táto odpoveď je to, čo MCP klient po zavolaní LLM nakoniec pošle späť MCP serveru a je výsledkom; klient počká na odpoveď a potom zostaví túto správu. Takto môže vyzerať v JSON-RPC:
 
 ```json
 {
@@ -98,13 +99,13 @@ Táto odpoveď je to, čo MCP klient nakoniec pošle späť MCP serveru, je výs
 }
 ```
 
-Všimnite si, že odpoveď je abstrakt blogového príspevku presne tak, ako sme požadovali. Tiež všimnite, že použitý `model` nie je ten, ktorý sme požadovali, ale "gpt-5" namiesto "claude-3-sonnet". Toto ilustruje, že používateľ si môže zmeniť názor, čo použiť, a že vaša požiadavka na sampling je odporúčanie.
+Všimnite si, že odpoveď je abstrakt blogového príspevku, presne ako sme požadovali. Tiež si všimnite, že použitý `model` nie je ten, ktorý sme pôvodne vybrali, ale "gpt-5" namiesto "claude-3-sonnet". Toto ilustruje, že používateľ môže zmeniť názor, čo použiť, a že váš sampling request je len odporúčaním.
 
-Dobre, teraz keď chápeme hlavný tok a užitočnú úlohu na ktorú ho použiť "vytváranie blogového príspevku + abstrakt", pozrime sa, čo je potrebné spraviť, aby to fungovalo.
+Dobre, keď teraz rozumieme hlavnému toku a užitočnej úlohe, na ktorú sa to hodí „tvorba blogového príspevku + abstrakt“, pozrime sa, čo treba urobiť, aby to fungovalo.
 
 ### Typy správ
 
-Sampling správy nie sú obmedzené len na text, môžete tiež posielať obrázky a zvuk. Takto vyzerá JSON-RPC v rôznych prípadoch:
+Sampling správy nie sú obmedzené len na text, môžete tiež posielať obrázky a zvuk. Tu je, ako vyzerá JSON-RPC v rôznych prípadoch:
 
 **Text**
 
@@ -115,7 +116,7 @@ Sampling správy nie sú obmedzené len na text, môžete tiež posielať obráz
 }
 ```
 
-**Obsah obrázka**
+**Obsah obrázku**
 
 ```json
 {
@@ -125,7 +126,7 @@ Sampling správy nie sú obmedzené len na text, môžete tiež posielať obráz
 }
 ```
 
-**Audio obsah**
+**Obsah zvuku**
 
 ```json
 {
@@ -135,13 +136,13 @@ Sampling správy nie sú obmedzené len na text, môžete tiež posielať obráz
 }
 ```
 
-> NOTE: pre podrobnejšie informácie o samplingu, pozrite si [oficiálnu dokumentáciu](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling)
+> NOTE: pre podrobnejšie informácie o samplingu navštívte [oficiálnu dokumentáciu](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Ako nakonfigurovať sampling v klientovi
+## Ako konfigurovať Sampling v Klientovi
 
-> Poznámka: ak vytvárate iba server, nemusíte tu robiť veľa.
+> Poznámka: ak budujete iba server, veľa tu nastavovať nemusíte.
 
-V klientovi musíte zadať túto funkciu nasledovne:
+V kliente je potrebné špecifikovať nasledujúcu funkciu takto:
 
 ```json
 {
@@ -151,16 +152,16 @@ V klientovi musíte zadať túto funkciu nasledovne:
 }
 ```
 
-Táto konfigurácia bude zachytená, keď sa zvolený klient inicializuje so serverom.
+Táto funkcia bude potom použitá, keď sa vybraný klient inicializuje so serverom.
 
-## Príklad samplingu v praxi - vytvorenie blogového príspevku
+## Príklad použitia Sampling - vytvorenie blogového príspevku
 
-Naprogramujme sampling server spolu, musíme urobiť nasledovné:
+Nasledujme spolu kódovanie sampling servera, budeme musieť spraviť nasledovné:
 
 1. Vytvoriť nástroj na serveri.
-1. Tento nástroj by mal vytvoriť sampling požiadavku.
-1. Nástroj by mal počkať na odpoveď na sampling požiadavku od klienta.
-1. Následne by sa mal vyprodukovať výsledok nástroja.
+2. Tento nástroj by mal vytvoriť sampling request.
+3. Nástroj by mal počkať na odpoveď na sampling request od klienta.
+4. Potom by mal vyprodukovať výsledok nástroja.
 
 Pozrime sa na kód krok po kroku:
 
@@ -175,7 +176,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Vytvorenie sampling požiadavky
+### -2- Vytvorenie sampling requestu
 
 Rozšírte svoj nástroj o nasledujúci kód:
 
@@ -203,7 +204,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Čakanie na odpoveď a vrátenie odpovede
+### -3- Čakanie na odpoveď a vrátenie výsledku
 
 **python**
 
@@ -219,7 +220,7 @@ return json.dumps({
 })
 ```
 
-### -4- Komplet kód
+### -4- Kompletný kód
 
 **python**
 
@@ -297,10 +298,10 @@ if __name__ == "__main__":
 
 ### -5- Testovanie vo Visual Studio Code
 
-Ak to chcete otestovať vo Visual Studio Code, urobte nasledovné:
+Ak chcete otestovať toto vo Visual Studio Code, urobte nasledovné:
 
-1. Spustite server v termináli
-1. Pridajte ho do *mcp.json* (a uistite sa, že je spustený), napríklad takto:
+1. Spustite server v termináli.
+2. Pridajte ho do *mcp.json* (a uistite sa, že je spustený), napríklad takto:
 
    ```json
    "servers": {
@@ -311,45 +312,45 @@ Ak to chcete otestovať vo Visual Studio Code, urobte nasledovné:
    }
    ```
 
-1. Zadajte výzvu:
+3. Napíšte prompt:
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Povoliť sampling. Pri prvom teste sa zobrazí ďalší dialóg, ktorý musíte potvrdiť a potom uvidíte bežný dialóg na spustenie nástroja.
+4. Povoliť sampling. Pri prvom teste sa vám zobrazí dodatočný dialóg, ktorý musíte prijať, potom uvidíte bežný dialóg, ktorý vás požiada o spustenie nástroja.
 
-1. Skontrolujte výsledky. Výsledky uvidíte pekne zobrazené v GitHub Copilot Chate, ale môžete tiež pozrieť surovú JSON odpoveď.
+5. Skontrolujte výsledky. Výsledky uvidíte pekne zobrazené v GitHub Copilot Chate, ale môžete si tiež pozrieť surovú JSON odpoveď.
 
-**Bonus**. Nástroje vo Visual Studio Code majú výbornú podporu pre sampling. Sampling prístup môžete nastaviť na vašom nainštalovanom serveri takto:
+**Bonus**. Visual Studio Code nástroje majú skvelú podporu samplingu. Môžete konfiguráciu samplingu na vašom nainštalovanom serveri nájsť takto:
 
 1. Prejdite do sekcie rozšírení.
-1. Vyberte ikonu ozubeného kolieska pre váš nainštalovaný server v sekcii "MCP SERVERS - INSTALLED".
-1 Vyberte "Configure Model Access", tu môžete vybrať, ktoré modely môže GitHub Copilot použiť pri vykonávaní samplingu. Tiež môžete vidieť všetky nedávne sampling požiadavky výberom "Show Sampling requests".
+2. Vyberte ikonku ozubeného kolieska pri vašom nainštalovanom serveri v sekcii "MCP SERVERS - INSTALLED".
+3. Vyberte "Configure Model Access", tu si môžete vybrať, ktoré modely môže GitHub Copilot používať pri samplingu. Tiež môžete vidieť všetky nedávne sampling requesty výberom "Show Sampling requests".
 
 ## Zadanie
 
-V tomto zadaní vytvoríte trochu iný sampling, konkrétne sampling integráciu, ktorá podporuje generovanie popisu produktu. Tu je váš scenár:
+V tomto zadaní vytvoríte mierne odlišný sampling, konkrétne sampling integráciu, ktorá podporuje generovanie popisov produktov. Tu je váš scenár:
 
-**Scenár**: Zamestnanec back office e-shopu potrebuje pomoc, generovanie popisov produktov mu zaberá príliš veľa času. Preto máte vytvoriť riešenie, kde zavoláte nástroj "create_product" s argumentmi "title" a "keywords" a mal by vygenerovať kompletný produkt vrátane poľa "description", ktoré by mal vyplniť LLM na klientovi.
+**Scenár**: Pracovník na back office v e-commerce potrebuje pomoc, trvá príliš dlho generovať popisy produktov. Preto máte vytvoriť riešenie, kde môžete zavolať nástroj "create_product" s argumentmi "title" a "keywords" a mal by vyprodukovať kompletný produkt vrátane poľa "description", ktoré by mal vyplniť LLM na strane klienta.
 
-TIP: použite, čo ste sa naučili skôr na vytvorenie tohto servera a jeho nástroja pomocou sampling požiadavky.
+TIP: použite to, čo ste sa naučili skôr, na zostavenie tohto servera a jeho nástroja pomocou sampling requestu.
 
 ## Riešenie
 
-[Riešenie](./solution/README.md)
+[Solution](./solution/README.md)
 
-## Kľúčové zhrnutie
+## Kľúčové poznatky
 
-Sampling je silná funkcia, ktorá umožňuje serveru delegovať úlohy klientovi, keď potrebuje pomoc LLM.
+Sampling je výkonná funkcia, ktorá umožňuje serveru delegovať úlohy klientovi, keď potrebuje pomoc LLM.
 
-## Čo ďalej
+## Čo nasleduje
 
 - [Kapitola 4 - Praktická implementácia](../../04-PracticalImplementation/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Upozornenie**:  
-Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Aj keď sa snažíme o presnosť, vezmite prosím na vedomie, že automatizované preklady môžu obsahovať chyby alebo nepresnosti. Originálny dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za akékoľvek nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

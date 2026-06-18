@@ -1,4 +1,4 @@
-# 🌐 モジュール 2: MCP と AI Toolkit 基礎
+# 🌐 モジュール 2: Microsoft Foundry Toolkit 基礎による MCP
 
 [![Duration](https://img.shields.io/badge/Duration-20%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Intermediate-yellow.svg)]()
@@ -6,20 +6,20 @@
 
 ## 📋 学習目標
 
-このモジュールの終了時には、以下ができるようになります：
+このモジュールの終了時には、以下ができるようになります:
 - ✅ Model Context Protocol (MCP) のアーキテクチャと利点を理解する
-- ✅ Microsoft の MCP サーバーエコシステムを探る
-- ✅ MCP サーバーを AI Toolkit Agent Builder と統合する
-- ✅ Playwright MCP を使った実用的なブラウザ自動化エージェントを構築する
-- ✅ エージェント内で MCP ツールを設定・テストする
-- ✅ MCP 搭載エージェントをエクスポートし、本番環境に展開する
+- ✅ Microsoft の MCP サーバーエコシステムを探索する
+- ✅ MCP サーバーを Microsoft Foundry Toolkit Agent Builder と統合する
+- ✅ Playwright MCP を用いた機能的なブラウザ自動化エージェントを構築する
+- ✅ エージェント内で MCP ツールを設定およびテストする
+- ✅ MCP を活用したエージェントをエクスポートし、本番環境にデプロイする
 
-## 🎯 モジュール 1 の内容を踏まえて
+## 🎯 モジュール 1 からのステップアップ
 
-モジュール 1 では AI Toolkit の基本を習得し、最初の Python エージェントを作成しました。ここからは、革新的な **Model Context Protocol (MCP)** を通じて外部ツールやサービスと接続し、エージェントを **パワーアップ** させます。
+モジュール 1 では Microsoft Foundry Toolkit の基本を習得し、最初の Python エージェントを作成しました。今度は、革新的な **Model Context Protocol (MCP)** を使って、エージェントを外部ツールやサービスに接続し、<strong>パワーアップ</strong>しましょう。
 
-これは、単なる電卓からフルコンピューターへのアップグレードのようなものです。あなたの AI エージェントは以下の能力を得ます：
-- 🌐 ウェブサイトの閲覧と操作
+これを、簡単な計算機からフルコンピュータへのアップグレードと考えてください。これにより AI エージェントは以下の能力を得ます:
+- 🌐 ウェブサイトの閲覧と対話
 - 📁 ファイルへのアクセスと操作
 - 🔧 エンタープライズシステムとの統合
 - 📊 API からのリアルタイムデータ処理
@@ -28,234 +28,237 @@
 
 ### 🔍 MCP とは？
 
-Model Context Protocol (MCP) は AI アプリケーションのための **「USB-C」** のような存在です。大規模言語モデル（LLM）を外部ツール、データソース、サービスに接続する革新的なオープン標準です。USB-C がケーブルの混乱を一つの汎用コネクタで解決したように、MCP は AI 統合の複雑さを一つの標準プロトコルで解消します。
+Model Context Protocol (MCP) は、AI アプリケーションのための **「USB-C」** とも言える革新的なオープンスタンダードで、大規模言語モデル（LLM）を外部ツール、データソース、サービスに接続します。USB-C がケーブル混乱を解消したように、MCP は AI 統合の複雑さを一つの標準化されたプロトコルで解決します。
 
-### 🎯 MCP が解決する課題
+### 🎯 MCP が解決する問題
 
-**MCP 導入前：**
+**MCP 前:**
 - 🔧 ツールごとにカスタム統合が必要
-- 🔄 ベンダーロックインによる独自ソリューション依存
-- 🔒 臨時接続によるセキュリティリスク
-- ⏱️ 基本統合でも数ヶ月の開発期間
+- 🔄 ベンダーロックインによる閉鎖的なソリューション
+- 🔒 アドホックな接続によるセキュリティリスク
+- ⏱️ 基本的な統合に数か月を要す
 
-**MCP 導入後：**
+**MCP 後:**
 - ⚡ プラグアンドプレイのツール統合
 - 🔄 ベンダーに依存しないアーキテクチャ
-- 🛡️ セキュリティのベストプラクティスを標準搭載
-- 🚀 新機能追加が数分で完了
+- 🛡️ セキュリティベストプラクティスの組み込み
+- 🚀 新機能追加は数分で可能
 
 ### 🏗️ MCP アーキテクチャの詳細
 
-MCP は **クライアント・サーバーアーキテクチャ** を採用し、安全でスケーラブルなエコシステムを構築します：
+MCP は安全でスケーラブルなエコシステムを構築する<strong>クライアント-サーバーアーキテクチャ</strong>を採用しています：
 
 ```mermaid
 graph TB
-    A[AI Application/Agent] --> B[MCP Client]
-    B --> C[MCP Server 1: Files]
-    B --> D[MCP Server 2: Web APIs]
-    B --> E[MCP Server 3: Database]
-    B --> F[MCP Server N: Custom Tools]
+    A[AIアプリケーション/エージェント] --> B[MCPクライアント]
+    B --> C[MCPサーバー1: ファイル]
+    B --> D[MCPサーバー2: Web API]
+    B --> E[MCPサーバー3: データベース]
+    B --> F[MCPサーバーN: カスタムツール]
     
-    C --> G[Local File System]
-    D --> H[External APIs]
-    E --> I[Database Systems]
-    F --> J[Enterprise Systems]
+    C --> G[ローカルファイルシステム]
+    D --> H[外部API]
+    E --> I[データベースシステム]
+    F --> J[エンタープライズシステム]
 ```
 
-**🔧 コアコンポーネント：**
+**🔧 コアコンポーネント:**
 
 | コンポーネント | 役割 | 例 |
 |-----------|------|----------|
-| **MCP Hosts** | MCP サービスを利用するアプリケーション | Claude Desktop、VS Code、AI Toolkit |
-| **MCP Clients** | プロトコルハンドラー（サーバーと1対1） | ホストアプリに組み込み |
-| **MCP Servers** | 標準プロトコルで機能を提供 | Playwright、Files、Azure、GitHub |
-| **Transport Layer** | 通信手段 | stdio、HTTP、WebSockets |
+| **MCP ホスト** | MCP サービスを利用するアプリケーション | Claude Desktop, VS Code, Microsoft Foundry Toolkit |
+| **MCP クライアント** | プロトコルハンドラー（サーバーと 1:1） | ホストアプリケーションに組み込み済み |
+| **MCP サーバー** | 標準プロトコルを介して機能を公開 | Playwright, Files, Azure, GitHub |
+| <strong>トランスポート層</strong> | 通信手段 | stdio, HTTP, WebSockets |
+
 
 ## 🏢 Microsoft の MCP サーバーエコシステム
 
-Microsoft は実際のビジネスニーズに応えるエンタープライズグレードのサーバー群で MCP エコシステムをリードしています。
+Microsoft は実際のビジネスニーズに応えるエンタープライズグレードの包括的な MCP サーバー群で MCP エコシステムを牽引しています。
 
-### 🌟 Microsoft MCP サーバーの紹介
+### 🌟 注目の Microsoft MCP サーバー
 
-#### 1. ☁️ Azure MCP Server
-**🔗 リポジトリ**: [azure/azure-mcp](https://github.com/azure/azure-mcp)  
-**🎯 目的**: AI 統合による包括的な Azure リソース管理
+#### 1. ☁️ Azure MCP サーバー
+**🔗 リポジトリ**: [azure/azure-mcp](https://github.com/azure/azure-mcp)
+**🎯 目的**: AI 統合による包括的 Azure リソース管理
 
-**✨ 主な特徴：**
-- 宣言的インフラ構築
+**✨ 主な特徴:**
+- 宣言的なインフラプロビジョニング
 - リアルタイムリソース監視
-- コスト最適化の提案
+- コスト最適化の推奨
 - セキュリティコンプライアンスチェック
 
-**🚀 利用例：**
-- AI 支援の Infrastructure-as-Code
+**🚀 ユースケース:**
+- AI支援の Infrastructure-as-Code
 - 自動リソーススケーリング
 - クラウドコスト最適化
 - DevOps ワークフロー自動化
 
 #### 2. 📊 Microsoft Dataverse MCP
-**📚 ドキュメント**: [Microsoft Dataverse Integration](https://go.microsoft.com/fwlink/?linkid=2320176)  
+**📚 ドキュメント**: [Microsoft Dataverse Integration](https://go.microsoft.com/fwlink/?linkid=2320176)
 **🎯 目的**: ビジネスデータの自然言語インターフェース
 
-**✨ 主な特徴：**
+**✨ 主な特徴:**
 - 自然言語によるデータベースクエリ
-- ビジネスコンテキストの理解
+- ビジネス文脈の理解
 - カスタムプロンプトテンプレート
 - エンタープライズデータガバナンス
 
-**🚀 利用例：**
+**🚀 ユースケース:**
 - ビジネスインテリジェンスレポート
 - 顧客データ分析
 - セールスパイプラインの洞察
 - コンプライアンスデータクエリ
 
-#### 3. 🌐 Playwright MCP Server
-**🔗 リポジトリ**: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)  
-**🎯 目的**: ブラウザ自動化とウェブ操作機能
+#### 3. 🌐 Playwright MCP サーバー
+**🔗 リポジトリ**: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)
+**🎯 目的**: ブラウザ自動化とウェブインタラクション機能
 
-**✨ 主な特徴：**
-- クロスブラウザ自動化（Chrome、Firefox、Safari）
+**✨ 主な特徴:**
+- クロスブラウザ自動化 (Chrome, Firefox, Safari)
 - インテリジェントな要素検出
-- スクリーンショット・PDF生成
+- スクリーンショットおよび PDF 生成
 - ネットワークトラフィック監視
 
-**🚀 利用例：**
+**🚀 ユースケース:**
 - 自動テストワークフロー
 - ウェブスクレイピングとデータ抽出
-- UI/UX 監視
-- 競合分析の自動化
+- UI/UX モニタリング
+- 競合分析自動化
 
-#### 4. 📁 Files MCP Server
-**🔗 リポジトリ**: [microsoft/files-mcp-server](https://github.com/microsoft/files-mcp-server)  
+#### 4. 📁 Files MCP サーバー
+**🔗 リポジトリ**: [microsoft/files-mcp-server](https://github.com/microsoft/files-mcp-server)
 **🎯 目的**: インテリジェントなファイルシステム操作
 
-**✨ 主な特徴：**
+**✨ 主な特徴:**
 - 宣言的ファイル管理
 - コンテンツ同期
 - バージョン管理統合
 - メタデータ抽出
 
-**🚀 利用例：**
+**🚀 ユースケース:**
 - ドキュメント管理
 - コードリポジトリ整理
 - コンテンツ公開ワークフロー
-- データパイプラインのファイル処理
+- データパイプラインファイル処理
 
-#### 5. 📝 MarkItDown MCP Server
-**🔗 リポジトリ**: [microsoft/markitdown](https://github.com/microsoft/markitdown)  
-**🎯 目的**: 高度な Markdown 処理と操作
+#### 5. 📝 MarkItDown MCP サーバー
+**🔗 リポジトリ**: [microsoft/markitdown](https://github.com/microsoft/markitdown)
+**🎯 目的**: 高機能な Markdown 処理・操作
 
-**✨ 主な特徴：**
+**✨ 主な特徴:**
 - リッチな Markdown パース
-- フォーマット変換（MD ↔ HTML ↔ PDF）
+- 形式変換 (MD ↔ HTML ↔ PDF)
 - コンテンツ構造解析
 - テンプレート処理
 
-**🚀 利用例：**
+**🚀 ユースケース:**
 - 技術文書ワークフロー
 - コンテンツ管理システム
 - レポート生成
 - ナレッジベース自動化
 
-#### 6. 📈 Clarity MCP Server
-**📦 パッケージ**: [@microsoft/clarity-mcp-server](https://www.npmjs.com/package/@microsoft/clarity-mcp-server)  
-**🎯 目的**: ウェブ解析とユーザー行動の洞察
+#### 6. 📈 Clarity MCP サーバー
+**📦 パッケージ**: [@microsoft/clarity-mcp-server](https://www.npmjs.com/package/@microsoft/clarity-mcp-server)
+**🎯 目的**: ウェブ解析とユーザー行動インサイト
 
-**✨ 主な特徴：**
+**✨ 主な特徴:**
 - ヒートマップデータ解析
 - ユーザーセッション録画
 - パフォーマンス指標
 - コンバージョンファネル分析
 
-**🚀 利用例：**
-- ウェブサイト最適化
-- ユーザー体験調査
+**🚀 ユースケース:**
+- サイト最適化
+- ユーザーエクスペリエンス調査
 - A/B テスト分析
 - ビジネスインテリジェンスダッシュボード
 
 ### 🌍 コミュニティエコシステム
 
-Microsoft のサーバーに加え、MCP エコシステムには以下も含まれます：
-- **🐙 GitHub MCP**：リポジトリ管理とコード解析
-- **🗄️ データベース MCP**：PostgreSQL、MySQL、MongoDB 統合
-- **☁️ クラウドプロバイダー MCP**：AWS、GCP、Digital Ocean ツール
-- **📧 コミュニケーション MCP**：Slack、Teams、メール統合
+Microsoft のサーバーに加え、MCP エコシステムには以下も含まれます:
+- **🐙 GitHub MCP**: リポジトリ管理とコード解析
+- **🗄️ データベース MCP**: PostgreSQL、MySQL、MongoDB 統合
+- **☁️ クラウドプロバイダー MCP**: AWS、GCP、Digital Ocean ツール
+- **📧 コミュニケーション MCP**: Slack、Teams、メール統合
 
-## 🛠️ ハンズオンラボ：ブラウザ自動化エージェントの構築
+## 🛠️ ハンズオンラボ: ブラウザ自動化エージェントの構築
 
-**🎯 プロジェクト目標**：Playwright MCP サーバーを使い、ウェブサイトをナビゲートし情報を抽出、複雑なウェブ操作を行うインテリジェントなブラウザ自動化エージェントを作成する。
+**🎯 プロジェクト目標**: Playwright MCP サーバーを使用し、ウェブサイトをナビゲートし情報抽出や複雑なWeb操作を行うインテリジェントなブラウザ自動化エージェントを作成する。
 
-### 🚀 フェーズ 1：エージェント基盤のセットアップ
+### 🚀 フェーズ 1: エージェント基盤設定
 
 #### ステップ 1: エージェントの初期化
-1. **AI Toolkit Agent Builder を開く**
-2. **新規エージェント作成** 以下の設定で：
-   - **名前**：`BrowserAgent`
-   - **モデル**：GPT-4o を選択
+1. **Microsoft Foundry Toolkit Agent Builder を開く**
+2. <strong>新しいエージェントを作成</strong>し、次の設定を行う:
+   - <strong>名前</strong>: `BrowserAgent`
+   - <strong>モデル</strong>: GPT-4o を選択
 
 ![BrowserAgent](../../../../translated_images/ja/BrowserAgent.09c1adde5e136573.webp)
 
-### 🔧 フェーズ 2：MCP 統合ワークフロー
 
-#### ステップ 3: MCP サーバー統合の追加
-1. **Agent Builder のツールセクションに移動**
-2. **「Add Tool」をクリック** して統合メニューを開く
-3. **「MCP Server」を選択**
+### 🔧 フェーズ 2: MCP 統合ワークフロー
+
+#### ステップ 3: MCP サーバー統合を追加
+1. Agent Builder の <strong>ツールセクション</strong>へ移動
+2. <strong>「ツールを追加」</strong>をクリックして統合メニューを開く
+3. 利用可能なオプションから **「MCP サーバー」** を選択
 
 ![AddMCP](../../../../translated_images/ja/AddMCP.afe3308ac20aa944.webp)
 
-**🔍 ツールタイプの理解：**
-- **Built-in Tools**：事前設定済みの AI Toolkit 機能
-- **MCP Servers**：外部サービス統合
-- **Custom APIs**：独自サービスエンドポイント
-- **Function Calling**：モデルの関数直接呼び出し
+**🔍 ツールタイプの理解:**
+- <strong>組み込みツール</strong>: 事前設定された Microsoft Foundry Toolkit の機能
+- **MCP サーバー**: 外部サービス統合
+- **カスタム API**: 独自のサービスエンドポイント
+- <strong>関数コール</strong>: モデルの関数に直接アクセス
 
-#### ステップ 4: MCP サーバーの選択
-1. **「MCP Server」オプションを選択して続行**
+#### ステップ 4: MCP サーバー選択
+1. **「MCP サーバー」** オプションを選択して続行
 ![AddMCPServer](../../../../translated_images/ja/AddMCPServer.69b911ccef872cbd.webp)
 
-2. **MCP カタログを閲覧し利用可能な統合を探す**
+2. 利用可能な統合を探索するため **MCP カタログ** を閲覧
 ![MCPCatalog](../../../../translated_images/ja/MCPCatalog.a817d05314569900.webp)
 
-### 🎮 フェーズ 3：Playwright MCP の設定
+
+### 🎮 フェーズ 3: Playwright MCP 設定
 
 #### ステップ 5: Playwright の選択と設定
-1. **「Use Featured MCP Servers」をクリックし Microsoft の認定サーバーにアクセス**
-2. **リストから「Playwright」を選択**
-3. **デフォルトの MCP ID を受け入れるか環境に合わせてカスタマイズ**
+1. **「特集 MCP サーバーを使用」** をクリックし Microsoft の検証済みサーバーへアクセス
+2. 特集リストから **「Playwright」** を選択
+3. デフォルトの MCP ID を承諾、または環境に合わせてカスタマイズ
 
 ![MCPID](../../../../translated_images/ja/MCPID.67d446052979e819.webp)
 
 #### ステップ 6: Playwright 機能の有効化
-**🔑 重要なステップ**：最大限の機能を得るために Playwright の全メソッドを選択
+**🔑 重要なステップ**: すべての Playwright メソッドを選択し最大限の機能を有効にする
 
 ![Tools](../../../../translated_images/ja/Tools.3ea23c447b4d9fec.webp)
 
-**🛠️ 必須 Playwright ツール：**
-- **ナビゲーション**：`goto`, `goBack`, `goForward`, `reload`
-- **操作**：`click`, `fill`, `press`, `hover`, `drag`
-- **抽出**：`textContent`, `innerHTML`, `getAttribute`
-- **検証**：`isVisible`, `isEnabled`, `waitForSelector`
-- **キャプチャ**：`screenshot`, `pdf`, `video`
-- **ネットワーク**：`setExtraHTTPHeaders`, `route`, `waitForResponse`
+**🛠️ 必須 Playwright ツール:**
+- <strong>ナビゲーション</strong>: `goto`, `goBack`, `goForward`, `reload`
+- <strong>操作</strong>: `click`, `fill`, `press`, `hover`, `drag`
+- <strong>抽出</strong>: `textContent`, `innerHTML`, `getAttribute`
+- <strong>検証</strong>: `isVisible`, `isEnabled`, `waitForSelector`
+- <strong>キャプチャ</strong>: `screenshot`, `pdf`, `video`
+- <strong>ネットワーク</strong>: `setExtraHTTPHeaders`, `route`, `waitForResponse`
 
-#### ステップ 7: 統合の成功確認
-**✅ 成功の目安：**
-- すべてのツールが Agent Builder のインターフェースに表示される
-- 統合パネルにエラーメッセージがない
-- Playwright サーバーのステータスが「Connected」と表示される
+#### ステップ 7: 統合成功の確認
+**✅ 成功の指標:**
+- すべてのツールが Agent Builder インターフェースに表示されている
+- 統合パネルにエラーメッセージが表示されていない
+- Playwright サーバーのステータスが「Connected」と表示
 
 ![AgentTools](../../../../translated_images/ja/AgentTools.053cfb96a17e0219.webp)
 
-**🔧 よくある問題の対処法：**
-- **接続失敗**：インターネット接続とファイアウォール設定を確認
-- **ツールが表示されない**：セットアップ時に全機能が選択されているか確認
-- **権限エラー**：VS Code に必要なシステム権限があるか確認
+**🔧 よくある問題のトラブルシューティング:**
+- <strong>接続失敗</strong>: インターネット接続とファイアウォール設定を確認
+- <strong>ツール欠落</strong>: 設定時にすべての機能が選択されているか確認
+- <strong>権限エラー</strong>: VS Code に必要なシステム権限があるか検証
 
-### 🎯 フェーズ 4：高度なプロンプト設計
+### 🎯 フェーズ 4: 高度なプロンプト設計
 
 #### ステップ 8: インテリジェントなシステムプロンプトの設計
-Playwright の全機能を活用する洗練されたプロンプトを作成：
+Playwright の全機能を活かす高度なプロンプトを作成:
 
 ```markdown
 # Web Automation Expert System Prompt
@@ -295,10 +298,10 @@ You are an advanced web automation specialist with deep expertise in browser aut
 - Follow website terms of service
 ```
 
-#### ステップ 9: 動的なユーザープロンプトの作成
-さまざまな機能を示すプロンプトを設計：
+#### ステップ 9: 動的ユーザープロンプトの作成
+各種機能を示すプロンプトを設計:
 
-**🌐 ウェブ解析の例：**
+**🌐 ウェブ解析の例:**
 ```markdown
 Navigate to github.com/kinfey and provide a comprehensive analysis including:
 1. Repository structure and organization
@@ -313,58 +316,63 @@ Include screenshots at key steps and provide actionable insights.
 
 ![Prompt](../../../../translated_images/ja/Prompt.bfc846605db4999f.webp)
 
-### 🚀 フェーズ 5：実行とテスト
+### 🚀 フェーズ 5: 実行とテスト
 
 #### ステップ 10: 最初の自動化を実行
-1. **「Run」をクリックして自動化シーケンスを開始**
-2. **リアルタイム実行を監視**：
+1. <strong>「実行」をクリック</strong>して自動化シーケンスを開始
+2. <strong>リアルタイムの実行状況を監視</strong>:
    - Chrome ブラウザが自動起動
    - エージェントがターゲットサイトに移動
-   - 主要なステップごとにスクリーンショットを取得
+   - 各主要ステップのスクリーンショットが取得される
    - 分析結果がリアルタイムでストリームされる
 
 ![Browser](../../../../translated_images/ja/Browser.ec011d0bd64d0d11.webp)
 
 #### ステップ 11: 結果と洞察の分析
-Agent Builder のインターフェースで詳細な分析結果を確認：
+Agent Builder のインターフェースで包括的な分析結果を確認:
 
 ![Result](../../../../translated_images/ja/Result.8638f2b6703e9ea6.webp)
 
-### 🌟 フェーズ 6：高度な機能と展開
+### 🌟 フェーズ 6: 高度な機能とデプロイ
 
-#### ステップ 12: エクスポートと本番展開
-Agent Builder は複数の展開オプションをサポート：
+#### ステップ 12: エクスポートと本番デプロイ
+Agent Builder は複数のデプロイオプションに対応:
 
 ![Code](../../../../translated_images/ja/Code.d9eeeead0b96db0c.webp)
 
-## 🎓 モジュール 2 のまとめと次のステップ
+## 🎓 モジュール 2 要約と次のステップ
 
-### 🏆 達成したスキル：MCP 統合マスター
+### 🏆 達成アンロック: MCP 統合マスター
 
-**✅ 習得内容：**
+**✅ 習得スキル:**
 - [ ] MCP のアーキテクチャと利点の理解
-- [ ] Microsoft の MCP サーバーエコシステムの活用
-- [ ] Playwright MCP と AI Toolkit の統合
+- [ ] Microsoft の MCP サーバーエコシステムのナビゲート
+- [ ] Playwright MCP と Microsoft Foundry Toolkit の統合
 - [ ] 高度なブラウザ自動化エージェントの構築
-- [ ] ウェブ自動化のための高度なプロンプト設計
+- [ ] ウェブ自動化向け高度なプロンプト設計
 
 ### 📚 追加リソース
 
-- **🔗 MCP 仕様**： [公式プロトコルドキュメント](https://modelcontextprotocol.io/)
-- **🛠️ Playwright API**： [完全なメソッドリファレンス](https://playwright.dev/docs/api/class-playwright)
-- **🏢 Microsoft MCP サーバー**： [エンタープライズ統合ガイド](https://github.com/microsoft/mcp-servers)
-- **🌍 コミュニティ例**： [MCP サーバーギャラリー](https://github.com/modelcontextprotocol/servers)
+- **🔗 MCP 仕様**: [公式プロトコルドキュメント](https://modelcontextprotocol.io/)
+- **🛠️ Playwright API**: [完全なメソッドリファレンス](https://playwright.dev/docs/api/class-playwright)
+- **🏢 Microsoft MCP サーバー**: [エンタープライズ統合ガイド](https://github.com/microsoft/mcp-servers)
+- **🌍 コミュニティ事例**: [MCP サーバーギャラリー](https://github.com/modelcontextprotocol/servers)
 
-**🎉 おめでとうございます！** MCP 統合をマスターし、外部ツール機能を備えた本番対応の AI エージェントを構築できるようになりました！
+**🎉 おめでとうございます！** MCP 統合を習得し、外部ツール機能を備えた本番対応の AI エージェントを構築できるようになりました！
+
 
 ### 🔜 次のモジュールへ進む
 
-MCP スキルをさらに高めたいですか？次の **[モジュール 3: AI Toolkit を使った高度な MCP 開発](../lab3/README.md)** では、以下を学びます：
+MCP スキルをさらに高める準備はできましたか？**[モジュール 3: Microsoft Foundry Toolkit での高度な MCP 開発](../lab3/README.md)** へ進み、以下を学びます:
 - 独自のカスタム MCP サーバーの作成
-- 最新の MCP Python SDK の設定と利用
-- MCP Inspector を使ったデバッグ
+- 最新の MCP Python SDK の設定と使用
+- デバッグ用 MCP インスペクターのセットアップ
 - 高度な MCP サーバー開発ワークフローの習得
-- ゼロからWeather MCPサーバーを構築する
+- ゼロからの天気 MCP サーバー構築
 
-**免責事項**：  
-本書類はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を使用して翻訳されました。正確性の向上に努めておりますが、自動翻訳には誤りや不正確な部分が含まれる可能性があります。原文の言語によるオリジナル文書が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や誤訳についても、当方は一切の責任を負いかねます。
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責事項**：
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

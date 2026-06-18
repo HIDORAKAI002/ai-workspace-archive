@@ -69,6 +69,7 @@ graph TB
         Monitor[Application Insights]
     end
 ```
+
 ### **C# Implementation - Event Grid Transport**
 
 ```csharp
@@ -239,21 +240,21 @@ class EventGridMcpTransport:
         """Register message handler for incoming events"""
         self.message_handler = handler
 
-# Azure Functions implementation
+# Implementación de Azure Functions
 import azure.functions as func
 import logging
 
 def main(event: func.EventGridEvent) -> None:
     """Azure Functions Event Grid trigger for MCP messages"""
     try:
-        # Parse MCP message from Event Grid event
+        # Análisis del mensaje MCP del evento Event Grid
         mcp_message = json.loads(event.get_body().decode('utf-8'))
         
-        # Process MCP message
+        # Procesar mensaje MCP
         response = process_mcp_message(mcp_message)
         
-        # Send response back via Event Grid
-        # (Implementation would create new Event Grid client)
+        # Enviar respuesta a través de Event Grid
+        # (La implementación crearía un nuevo cliente de Event Grid)
         
     except Exception as e:
         logging.error(f"Error processing MCP Event Grid message: {e}")
@@ -283,6 +284,7 @@ graph TB
     EH --> Retention
     EH --> Scaling
 ```
+
 ### **C# Implementation - Event Hubs Transport**
 
 ```csharp
@@ -473,7 +475,7 @@ class EventHubsMcpTransport:
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
-            "timestamp": "2025-01-14T10:30:00Z"  # Use actual timestamp
+            "timestamp": "2025-01-14T10:30:00Z"  # Use real timestamp
         }
         
         async with self.producer:
@@ -494,7 +496,7 @@ class EventHubsMcpTransport:
         async with self.consumer:
             await self.consumer.receive(
                 on_event=self._on_event_received(message_handler),
-                starting_position="-1"  # Start from beginning
+                starting_position="-1"  # Start from the beginning
             )
     
     def _on_event_received(self, handler: Callable):
@@ -823,7 +825,7 @@ The examples provided demonstrate production-ready patterns for implementing cus
 
 ## **Additional Resources**
 
-- [MCP Specification 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/)
+- [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
 - [Azure Event Grid Documentation](https://docs.microsoft.com/azure/event-grid/)
 - [Azure Event Hubs Documentation](https://docs.microsoft.com/azure/event-hubs/)
 - [Azure Functions Event Grid Trigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
@@ -834,7 +836,7 @@ The examples provided demonstrate production-ready patterns for implementing cus
 ---
 
 > *This guide focuses on practical implementation patterns for production MCP systems. Always validate transport implementations against your specific requirements and Azure service limits.*
-> **Current Standard**: This guide reflects [MCP Specification 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/) transport requirements and advanced transport patterns for enterprise environments.
+> **Current Standard**: This guide reflects [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) transport requirements and advanced transport patterns for enterprise environments.
 
 
 ## What's Next
@@ -844,5 +846,5 @@ The examples provided demonstrate production-ready patterns for implementing cus
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

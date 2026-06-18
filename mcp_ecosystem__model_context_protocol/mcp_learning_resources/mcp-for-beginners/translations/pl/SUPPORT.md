@@ -2,15 +2,19 @@
 
 ## Jak zgłaszać problemy i uzyskać pomoc  
 
-Ten projekt korzysta z GitHub Issues do śledzenia błędów i propozycji funkcji. Przed zgłoszeniem nowego problemu, prosimy o sprawdzenie istniejących zgłoszeń, aby uniknąć duplikatów. Nowe błędy lub propozycje funkcji zgłaszaj jako nowe Issue.
+Ten projekt korzysta z GitHub Issues do śledzenia błędów i próśb o nowe funkcje. Przed zgłoszeniem nowych problemów prosimy o przeszukanie istniejących zgłoszeń, aby uniknąć duplikatów. W przypadku nowych problemów zgłoś swój błąd lub prośbę o funkcję jako nowe Issue.
 
 W celu uzyskania pomocy i pytań dotyczących korzystania z tego projektu, prosimy o:
-- Sprawdzenie [Azure AI Foundry Discord](https://discord.com/invite/ByRwuEEgH4), gdzie spotykają się eksperci i inni deweloperzy
-- Skorzystanie z zasobów [Model Context Protocol Community](https://modelcontextprotocol.io/community/) dotyczących pytań związanych z protokołem
+- Sprawdzenie [Microsoft Foundry Discord](https://discord.com/invite/ByRwuEEgH4), gdzie spotykają się eksperci i inni deweloperzy
+- Korzystanie z zasobów [Model Context Protocol Community](https://modelcontextprotocol.io/community/) dotyczących pytań związanych z protokołem
 
-## Polityka wsparcia Microsoft  
+## Polityka wsparcia Microsoftu  
 
-Wsparcie dla projektu Model Context Protocol (MCP) for Beginners jest ograniczone do wymienionych powyżej zasobów.
+Wsparcie dla projektu Model Context Protocol (MCP) for Beginners jest ograniczone do wyżej wymienionych zasobów.
 
-**Zastrzeżenie**:  
-Niniejszy dokument został przetłumaczony przy użyciu usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mimo że dążymy do dokładności, prosimy mieć na uwadze, że automatyczne tłumaczenia mogą zawierać błędy lub nieścisłości. Oryginalny dokument w języku źródłowym powinien być uznawany za źródło autorytatywne. W przypadku informacji o kluczowym znaczeniu zalecane jest skorzystanie z profesjonalnego tłumaczenia wykonanego przez człowieka. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z korzystania z tego tłumaczenia.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Zastrzeżenie**:
+Niniejszy dokument został przetłumaczony za pomocą usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Choć dążymy do dokładności, prosimy pamiętać, że automatyczne tłumaczenia mogą zawierać błędy lub niedokładności. Oryginalny dokument w jego języku źródłowym należy uznawać za autorytatywne źródło. W przypadku informacji krytycznych zalecane jest skorzystanie z profesjonalnego tłumaczenia wykonanego przez człowieka. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z użycia tego tłumaczenia.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

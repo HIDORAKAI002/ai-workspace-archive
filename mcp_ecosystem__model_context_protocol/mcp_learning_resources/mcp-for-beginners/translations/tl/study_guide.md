@@ -1,26 +1,26 @@
 # Model Context Protocol (MCP) para sa mga Nagsisimula - Gabay sa Pag-aaral
 
-Ang gabay sa pag-aaral na ito ay nagbibigay ng pangkalahatang ideya ng estruktura ng repositoryo at nilalaman para sa kurikulum na "Model Context Protocol (MCP) para sa mga Nagsisimula." Gamitin ang gabay na ito upang mahusay na mag-navigate sa repositoryo at magamit nang lubos ang mga magagamit na mapagkukunan.
+Ang gabay na ito sa pag-aaral ay nagbibigay ng pangkalahatang-ideya ng istruktura at nilalaman ng repositoryo para sa kurikulum na "Model Context Protocol (MCP) para sa mga Nagsisimula". Gamitin ang gabay na ito upang mas mahusay na mag-navigate sa repositoryo at masulit ang mga magagamit na mapagkukunan.
 
 ## Pangkalahatang-ideya ng Repositoryo
 
-Ang Model Context Protocol (MCP) ay isang naka-standardize na balangkas para sa mga pakikipag-ugnayan sa pagitan ng mga AI models at mga client application. Orihinal na nilikha ng Anthropic, ang MCP ay ngayon pinangangalagaan ng mas malawak na komunidad ng MCP sa pamamagitan ng opisyal na organisasyon sa GitHub. Ang repositoryong ito ay nagbibigay ng komprehensibong kurikulum na may mga praktikal na halimbawa ng code sa C#, Java, JavaScript, Python, at TypeScript, na dinisenyo para sa mga AI developer, system architect, at software engineer.
+Ang Model Context Protocol (MCP) ay isang standard na balangkas para sa interaksyon sa pagitan ng mga AI na modelo at client applications. Unang nilikha ng Anthropic, ang MCP ay ngayon pinamamahalaan ng mas malawak na komunidad ng MCP sa pamamagitan ng opisyal na organisasyon sa GitHub. Ang repositoryong ito ay naglalaman ng komprehensibong kurikulum na may mga praktikal na halimbawa ng code sa C#, Java, JavaScript, Python, at TypeScript, na dinisenyo para sa mga developer ng AI, mga arkitekto ng sistema, at mga inhinyero ng software.
 
 ## Visual Curriculum Map
 
 ```mermaid
 mindmap
-  root((MCP para sa mga Baguhan))
+  root((MCP para sa Mga Nagsisimula))
     00. Panimula
       ::icon(fa fa-book)
-      (Pangkalahatang-ideya ng Protocol)
+      (Pangkalahatang-ideya ng Protokol)
       (Mga Benepisyo ng Standardisasyon)
-      (Mga Tunay na Kaso ng Paggamit)
-      (Mga Pangunahing Kaalaman sa Pag-integrate ng AI)
+      (Mga Paggamit sa Tunay na Mundo)
+      (Mga Pangunahing Kaalaman sa Integrasyon ng AI)
     01. Pangunahing Konsepto
       ::icon(fa fa-puzzle-piece)
-      (Arkitektura ng Kliyente-Serber)
-      (Mga Bahagi ng Protocol)
+      (Arkitekturang Kliyente-Serber)
+      (Mga Bahagi ng Protokol)
       (Mga Pattern ng Mensahe)
       (Mga Mekanismo ng Transportasyon)
       (Mga Gawain - Eksperimental)
@@ -28,51 +28,51 @@ mindmap
     02. Seguridad
       ::icon(fa fa-shield)
       (Mga Partikular na Banta sa AI)
-      (Pinakamahusay na Mga Praktis 2025)
+      (Pinakamahusay na Kasanayan 2025)
       (Kaligtasan ng Nilalaman sa Azure)
-      (Awtorisasyon at Awtoridad)
+      (Awtorisasyon at Pagpapatunay)
       (Microsoft Prompt Shields)
       (OWASP MCP Nangungunang 10)
       (Sherpa Security Workshop)
     03. Pagsisimula
       ::icon(fa fa-rocket)
-      (Unang Implementasyon ng Serber)
-      (Pag-unlad ng Kliyente)
+      (Unang Pagpapatupad ng Serber)
+      (Pag-develop ng Kliyente)
       (Integrasyon ng LLM Client)
       (Mga Extension ng VS Code)
-      (Pag-set up ng SSE Serber)
+      (Setup ng SSE Server)
       (HTTP Streaming)
       (Integrasyon ng AI Toolkit)
-      (Mga Framework sa Pagsusuri)
-      (Mga Advanced na Paggamit ng Serber)
+      (Mga Balangkas ng Pagsusuri)
+      (Mahusay na Paggamit ng Serber)
       (Simpleng Awtorisasyon)
       (Mga Estratehiya sa Deployment)
-      (Pag-set up ng MCP Hosts)
-      (MCP Inspector)
-    04. Praktikal na Implementasyon
+      (Setup ng MCP Hosts)
+      (MCP Inspektor)
+    04. Praktikal na Pagpapatupad
       ::icon(fa fa-code)
       (Multi-Language SDKs)
       (Pagsusuri at Pag-debug)
-      (Mga Template ng Prompt)
+      (Prompt Templates)
       (Mga Halimbawang Proyekto)
       (Mga Pattern sa Produksyon)
       (Mga Estratehiya sa Pagination)
     05. Mga Advanced na Paksa
       ::icon(fa fa-graduation-cap)
-      (Pag-inhenyeriya ng Konteksto)
+      (Inhenyeriyang Konteksto)
       (Integrasyon ng Foundry Agent)
-      (Multi-modal na Workflow ng AI)
+      (Multi-modal AI Workflows)
       (OAuth2 Authentication)
-      (Real-time na Paghahanap)
+      (Real-time Search)
       (Mga Protocol ng Streaming)
-      (Mga Root Contexts)
+      (Mga Root Context)
       (Mga Estratehiya sa Routing)
       (Mga Teknik sa Sampling)
       (Mga Solusyon sa Scaling)
       (Pagpapalakas ng Seguridad)
       (Integrasyon ng Entra ID)
       (Web Search MCP)
-      (Malalim na Pagsisid sa Mga Tampok ng Protocol)
+      (Malalim na Pagsusuri ng Mga Tampok ng Protokol)
       (Adversarial Multi-Agent Reasoning)
       
     06. Komunidad
@@ -80,185 +80,186 @@ mindmap
       (Mga Kontribusyon sa Code)
       (Dokumentasyon)
       (Ecosystem ng MCP Client)
-      (Rehistro ng MCP Server)
-      (Mga Kasangkapan sa Paggawa ng Larawan)
+      (Registry ng MCP Server)
+      (Mga Kasangkapan sa Paggawa ng Imahe)
       (Pakikipagtulungan sa GitHub)
     07. Maagang Pagtanggap
       ::icon(fa fa-lightbulb)
-      (Deployment sa Produksyon)
-      (Mga Serber ng Microsoft MCP)
+      (Mga Pag-deploy sa Produksyon)
+      (Microsoft MCP Servers)
       (Serbisyo ng Azure MCP)
-      (Mga Kaso ng Negosyo)
-      (Mapa ng Landas sa Hinaharap)
-    08. Pinakamahusay na Mga Praktis
+      (Mga Kaso sa Enterprise)
+      (Hinaharap na Roadmap)
+    08. Pinakamahusay na Kasanayan
       ::icon(fa fa-check)
-      (Pag-optimize ng Pagganap)
-      (Fault Tolerance)
+      (Pag-optimize ng Performance)
+      (Pagpapanatili sa Kalagayan ng Mali)
       (Tibay ng Sistema)
-      (Monitoring at Observability)
-    09. Mga Kaso ng Pag-aaral
+      (Pagsubaybay at Observability)
+    09. Mga Kaso sa Pag-aaral
       ::icon(fa fa-file-text)
       (Pamamahala ng Azure API)
       (AI Travel Agent)
       (Integrasyon ng Azure DevOps)
       (Dokumentasyon ng MCP)
-      (Rehistro ng MCP sa GitHub)
+      (Registry ng GitHub MCP)
       (Integrasyon ng VS Code)
-      (Mga Tunay na Implementasyon)
+      (Mga Tunay na Pagpapatupad)
     10. Hands-on Workshop
       ::icon(fa fa-laptop)
       (Mga Pangunahing Kaalaman sa MCP Server)
-      (Pinalawak na Pag-unlad)
+      (Advanced na Pag-develop)
       (Integrasyon ng AI Toolkit)
-      (Deployment sa Produksyon)
-      (Estruktura ng 4-Lab)
-    11. Mga Laboratoryo sa Integrasyon ng Database
+      (Pag-deploy sa Produksyon)
+      (Istruktura ng 4-Lab)
+    11. Mga Laboratoryo ng Integrasyon ng Database
       ::icon(fa fa-database)
       (Integrasyon ng PostgreSQL)
-      (Kaso sa Paggamit sa Retail Analytics)
-      (Seguridad sa Antas ng Hilera)
+      (Paggamit sa Retail Analytics)
+      (Seguridad ng Antas ng Hanay)
       (Semantic Search)
-      (Deployment sa Produksyon)
-      (Estruktura ng 13-Lab)
-      (Hands-on na Pagkatuto)
+      (Pag-deploy sa Produksyon)
+      (Istruktura ng 13-Lab)
+      (Hands-on na Pag-aaral)
 ```
-## Estruktura ng Repositoryo
 
-Ang repositoryo ay naka-organisa sa labing-isang pangunahing seksyon, bawat isa ay nakatuon sa iba't ibang aspeto ng MCP:
+## Istruktura ng Repositoryo
+
+Ang repositoryo ay nakaayos sa labing-isang pangunahing seksyon, bawat isa ay nakatuon sa iba't ibang aspeto ng MCP:
 
 1. **Introduksyon (00-Introduction/)**
-   - Pangkalahatang ideya ng Model Context Protocol
-   - Bakit mahalaga ang standardization sa AI pipelines
-   - Mga praktikal na kaso ng paggamit at benepisyo
+   - Pangkalahatang-ideya ng Model Context Protocol
+   - Bakit mahalaga ang standardisasyon sa mga AI pipeline
+   - Mga praktikal na kaso at benepisyo
 
 2. **Pangunahing Konsepto (01-CoreConcepts/)**
-   - Client-server architecture
-   - Mga pangunahing bahagi ng protocol
+   - Arkitektura ng client-server
+   - Pangunahing bahagi ng protocol
    - Mga pattern ng messaging sa MCP
 
 3. **Seguridad (02-Security/)**
-   - Mga banta sa seguridad sa mga MCP-based na sistema
-   - Pinakamahuhusay na gawi para sa pag-secure ng implementations
+   - Mga banta sa seguridad sa mga sistemang batay sa MCP
+   - Mga pinakamahusay na kasanayan para sa seguradong pagpapatupad
    - Mga estratehiya sa authentication at authorization
    - **Komprehensibong Dokumentasyon sa Seguridad**:
      - MCP Security Best Practices 2025
      - Azure Content Safety Implementation Guide
      - MCP Security Controls and Techniques
      - MCP Best Practices Quick Reference
-   - **Mga Pangunahing Paksa sa Seguridad**:
-     - Prompt injection at mga tool poisoning attacks
+   - **Pangunahing Paksa sa Seguridad**:
+     - Prompt injection at tool poisoning attacks
      - Session hijacking at confused deputy problems
      - Token passthrough vulnerabilities
-     - Sobra-sobrang permiso at access control
-     - Supply chain security para sa mga AI components
-     - Microsoft Prompt Shields integration
+     - Sobrang mga pahintulot at kontrol sa access
+     - Seguridad ng supply chain para sa mga sangkap ng AI
+     - Pagsasama ng Microsoft Prompt Shields
 
-4. **Pagsisimula (03-GettingStarted/)**
-   - Setup at configuration ng kapaligiran
-   - Paggawa ng mga pangunahing MCP server at client
-   - Integrasyon sa umiiral na mga aplikasyon
+4. **Pagpapasimula (03-GettingStarted/)**
+   - Pagsasaayos ng kapaligiran at konfigurasyon
+   - Paglikha ng mga pangunahing server at client ng MCP
+   - Integrasyon sa mga umiiral nang aplikasyon
    - Kasama ang mga seksyon para sa:
      - Unang implementasyon ng server
      - Pagde-develop ng client
-     - LLM client integration
-     - VS Code integration
+     - Integrasyon ng LLM client
+     - Integrasyon ng VS Code
      - Server-Sent Events (SSE) server
      - Advanced na paggamit ng server
      - HTTP streaming
-     - AI Toolkit integration
+     - Integrasyon ng AI Toolkit
      - Mga estratehiya sa pagsubok
      - Mga patnubay sa deployment
 
 5. **Praktikal na Implementasyon (04-PracticalImplementation/)**
-   - Paggamit ng mga SDK sa iba't ibang programming languages
-   - Pag-debug, pagsubok, at mga teknik sa pagpapatunay
-   - Paglikha ng mga reusable prompt templates at workflows
-   - Mga sample project na may mga halimbawa ng implementasyon
+   - Paggamit ng SDKs sa iba't ibang programming languages
+   - Mga teknik sa debugging, testing, at validation
+   - Paggawa ng reusable prompt templates at workflows
+   - Mga halimbawa ng proyekto na may implementasyon
 
 6. **Mga Advanced na Paksa (05-AdvancedTopics/)**
    - Mga teknik sa context engineering
    - Integrasyon ng foundry agent
    - Multi-modal AI workflows 
-   - OAuth2 authentication demos
-   - Mga kakayahan sa real-time search
+   - Mga demo ng OAuth2 authentication
+   - Kakayahan sa real-time na paghahanap
    - Real-time streaming
-   - Mga implementasyon ng root contexts
+   - Implementasyon ng root contexts
    - Mga estratehiya sa routing
-   - Sampling techniques
-   - Mga paraan ng scaling
+   - Mga teknik sa sampling
+   - Mga pamamaraan sa scaling
    - Mga pagsasaalang-alang sa seguridad
-   - Entra ID security integration
-   - Web search integration
-   - Adversarial multi-agent reasoning (debate patterns)
+   - Integrasyon ng Entra ID security
+   - Integrasyon ng web search
+   - Adversarial multi-agent reasoning (mga pattern ng debate)
 
-7. **Ambag ng Komunidad (06-CommunityContributions/)**
+7. **Kontribusyon ng Komunidad (06-CommunityContributions/)**
    - Paano mag-ambag ng code at dokumentasyon
    - Pakikipagtulungan sa pamamagitan ng GitHub
-   - Mga pagpapabuti at feedback na pinapangunahan ng komunidad
+   - Mga pagbuti at feedback na pinasimunuan ng komunidad
    - Paggamit ng iba't ibang MCP clients (Claude Desktop, Cline, VSCode)
-   - Paggawa gamit ang mga popular na MCP server kabilang ang image generation
+   - Paggawa sa mga tanyag na MCP servers kabilang ang image generation
 
-8. **Mga Aral mula sa Maagang Pagtanggap (07-LessonsfromEarlyAdoption/)**
-   - Mga tunay na implementasyon at kuwento ng tagumpay
-   - Paggawa at pag-deploy ng mga solusyon batay sa MCP
-   - Mga trend at hinaharap na roadmap
-   - **Microsoft MCP Servers Guide**: Komprehensibong gabay sa 10 production-ready na Microsoft MCP server kabilang ang:
+8. **Mga Aral mula sa Maagang Paggamit (07-LessonsfromEarlyAdoption/)**
+   - Mga implementasyong totoong mundo at mga kwento ng tagumpay
+   - Pagtatayo at pag-deploy ng mga solusyon na batay sa MCP
+   - Mga uso at hinaharap na roadmap
+   - **Microsoft MCP Servers Guide**: Komprehensibong gabay sa 10 production-ready na Microsoft MCP servers kabilang ang:
      - Microsoft Learn Docs MCP Server
-     - Azure MCP Server (15+ specialized connectors)
+     - Azure MCP Server (15+ na espesyal na connector)
      - GitHub MCP Server
      - Azure DevOps MCP Server
      - MarkItDown MCP Server
      - SQL Server MCP Server
      - Playwright MCP Server
      - Dev Box MCP Server
-     - Azure AI Foundry MCP Server
+     - Microsoft Foundry MCP Server
      - Microsoft 365 Agents Toolkit MCP Server
 
-9. **Pinakamahuhusay na Gawi (08-BestPractices/)**
-   - Pag-tune ng performance at optimization
-   - Pagdidisenyo ng fault-tolerant MCP systems
-   - Mga estratehiya sa pagsubok at resiliency
+9. **Mga Pinakamahusay na Kasanayan (08-BestPractices/)**
+   - Pag-tune at pag-optimize ng performance
+   - Pagdidisenyo ng fault-tolerant na MCP systems
+   - Mga estratehiya sa testing at resiliency
 
-10. **Mga Pag-aaral ng Kaso (09-CaseStudy/)**
-    - **Pito na komprehensibong mga case studies** na nagpapakita ng kakayahang magamit ng MCP sa iba't ibang sitwasyon:
+10. **Mga Case Study (09-CaseStudy/)**
+    - **Pito na komprehensibong case studies** na nagpapakita ng kakayahan ng MCP sa iba't ibang senaryo:
     - **Azure AI Travel Agents**: Multi-agent orchestration gamit ang Azure OpenAI at AI Search
-    - **Azure DevOps Integration**: Pag-automate ng workflow processes gamit ang mga update sa data mula YouTube
-    - **Real-Time Documentation Retrieval**: Python console client na may streaming HTTP
+    - **Integrasyon ng Azure DevOps**: Pag-automate ng mga workflow gamit ang YouTube data updates
+    - **Real-Time Documentation Retrieval**: Python console client gamit ang streaming HTTP
     - **Interactive Study Plan Generator**: Chainlit web app na may conversational AI
-    - **In-Editor Documentation**: VS Code integration sa mga GitHub Copilot workflow
-    - **Azure API Management**: Enterprise API integration gamit ang MCP server creation
-    - **GitHub MCP Registry**: Ecosystem development at agentic integration platform
-    - Mga halimbawa ng implementasyon mula sa enterprise integration, developer productivity, at ecosystem development
+    - **In-Editor Documentation**: VS Code integration gamit ang GitHub Copilot workflows
+    - **Azure API Management**: Enterprise API integration na may paggawa ng MCP server
+    - **GitHub MCP Registry**: Ecosystem development at platform ng agentic integration
+    - Mga halimbawa ng implementasyon na sumasaklaw sa enterprise integration, developer productivity, at ecosystem development
 
 11. **Hands-on Workshop (10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/)**
     - Komprehensibong hands-on workshop na pinagsasama ang MCP at AI Toolkit
-    - Paggawa ng mga intelligent na aplikasyon na nag-uugnay ng AI models sa mga totoong gamit
-    - Mga praktikal na module na sumasaklaw sa mga pundasyon, custom server development, at mga estratehiya sa production deployment
-    - **Estruktura ng Lab**:
+    - Pagtatayo ng mga intelligent application na nag-uugnay ng AI models sa mga totoong mundo na tool
+    - Mga praktikal na module na sumasaklaw sa mga pundasyon, custom server development, at estratehiya sa production deployment
+    - **Istruktura ng Lab**:
       - Lab 1: MCP Server Fundamentals
       - Lab 2: Advanced MCP Server Development
       - Lab 3: AI Toolkit Integration
       - Lab 4: Production Deployment at Scaling
-    - Lab-based na paraan ng pag-aaral na may hakbang-hakbang na mga tagubilin
+    - Pamamaraan ng pagkatuto batay sa lab na may hakbang-hakbang na mga tagubilin
 
-12. **MCP Server Database Integration Labs (11-MCPServerHandsOnLabs/)**
-    - **Komprehensibong 13-lab na learning path** para sa paggawa ng production-ready na MCP servers na may PostgreSQL integration
-    - **Implementasyon sa totoong buhay ng retail analytics** gamit ang Zava Retail use case
-    - **Enterprise-grade patterns** kabilang ang Row Level Security (RLS), semantic search, at multi-tenant data access
-    - **Kumpletong Estruktura ng Lab**:
-      - **Labs 00-03: Mga Pundasyon** - Introduksyon, Arkitektura, Seguridad, Setup ng Kapaligiran
-      - **Labs 04-06: Paggawa ng MCP Server** - Database Design, MCP Server Implementation, Pagde-develop ng Tool
-      - **Labs 07-09: Mga Advanced na Tampok** - Semantic Search, Pagsubok at Pag-debug, VS Code Integration
-      - **Labs 10-12: Production at Pinakamahuhusay na Gawi** - Deployment, Monitoring, Optimization
+12. **Mga MCP Server Database Integration Labs (11-MCPServerHandsOnLabs/)**
+    - **Komprehensibong 13-lab na landas ng pagkatuto** para sa paggawa ng production-ready na MCP servers na may PostgreSQL integrasyon
+    - **Implementasyon ng retail analytics sa totoong mundo** gamit ang Zava Retail use case
+    - **Enterprise-grade na mga pattern** kabilang ang Row Level Security (RLS), semantic search, at multi-tenant data access
+    - **Kumpletong Istruktura ng Lab**:
+      - **Labs 00-03: Mga Pundasyon** - Introduksyon, Arkitektura, Seguridad, Pagsasaayos ng Kapaligiran
+      - **Labs 04-06: Pagtatayo ng MCP Server** - Disenyo ng Database, Implementasyon ng MCP Server, Pagbuo ng Tool
+      - **Labs 07-09: Mga Advanced na Katangian** - Semantic Search, Testing at Debugging, Integrasyon ng VS Code
+      - **Labs 10-12: Produksyon at Pinakamahusay na Kasanayan** - Deployment, Monitoring, Optimisasyon
     - **Mga Teknolohiyang Saklaw**: FastMCP framework, PostgreSQL, Azure OpenAI, Azure Container Apps, Application Insights
-    - **Mga Resulta ng Pag-aaral**: Production-ready MCP servers, mga pattern sa database integration, AI-powered analytics, enterprise security
+    - **Mga Resulta ng Pagkatuto**: Production-ready MCP servers, database integration patterns, AI-powered analytics, enterprise security
 
 ## Karagdagang Mga Mapagkukunan
 
 Kasama sa repositoryo ang mga sumusuportang mapagkukunan:
 
-- **Images folder**: Naglalaman ng mga diagram at ilustrasyon na ginamit sa buong kurikulum
-- **Mga Salin**: Multi-language support na may automated na pagsasalin ng dokumentasyon
+- **Folder ng Mga Larawan**: Naglalaman ng mga diagram at ilustrasyon na ginamit sa buong kurikulum
+- **Mga Pagsasalin**: Suporta sa maraming wika na may awtomatikong pagsasalin ng dokumentasyon
 - **Opisyal na MCP Resources**:
   - [MCP Documentation](https://modelcontextprotocol.io/)
   - [MCP Specification](https://spec.modelcontextprotocol.io/)
@@ -266,15 +267,15 @@ Kasama sa repositoryo ang mga sumusuportang mapagkukunan:
 
 ## Paano Gamitin ang Repositoryong Ito
 
-1. **Sunod-sunod na Pag-aaral**: Sundin ang mga kabanata nang sunud-sunod (00 hanggang 11) para sa isang maayos na karanasan sa pag-aaral.
-2. **Pokus sa Isang Wika**: Kung interesado ka sa isang partikular na programming language, tuklasin ang mga samples directory para sa mga implementasyon sa nais mong wika.
-3. **Praktikal na Implementasyon**: Magsimula sa seksyong "Getting Started" para i-setup ang iyong kapaligiran at gumawa ng iyong unang MCP server at client.
-4. **Advanced na Eksplorasyon**: Kapag komportable ka na sa mga pangunahing kaalaman, sumisid sa mga advanced na paksa upang palawakin ang iyong kaalaman.
-5. **Pakikipagtulungan sa Komunidad**: Sumali sa MCP community sa pamamagitan ng GitHub discussions at Discord channels upang makipag-ugnayan sa mga eksperto at kapwa developer.
+1. **Sunod-sunod na Pagkatuto**: Sundin ang mga kabanata nang sunod-sunod (00 hanggang 11) para sa istrukturadong karanasan sa pagkatuto.
+2. **Pokús sa Partikular na Wika**: Kung interesado ka sa isang partikular na programming language, tuklasin ang mga sample directories para sa mga implementasyon sa iyong gustong wika.
+3. **Praktikal na Implementasyon**: Magsimula sa seksyong "Getting Started" upang isaayos ang iyong kapaligiran at likhain ang iyong unang MCP server at client.
+4. **Advanced na Pagsisid**: Kapag pamilyar ka na sa mga batayan, pasukin ang mga advanced na paksa upang palawakin ang iyong kaalaman.
+5. **Pakikilahok sa Komunidad**: Sumali sa komunidad ng MCP sa pamamagitan ng mga diskusyon sa GitHub at mga Discord channel para kumonekta sa mga eksperto at kapwa developer.
 
-## MCP Clients at Mga Tool
+## Mga MCP Clients at Tool
 
-Sinasaklaw ng kurikulum ang iba't ibang MCP clients at mga tool:
+Tinutugunan ng kurikulum ang iba't ibang MCP clients at tool:
 
 1. **Opisyal na Clients**:
    - Visual Studio Code 
@@ -289,26 +290,26 @@ Sinasaklaw ng kurikulum ang iba't ibang MCP clients at mga tool:
    - ChatMCP
    - Windsurf
 
-3. **Mga Tool sa Pamamahala ng MCP**:
+3. **Mga MCP Management Tools**:
    - MCP CLI
    - MCP Manager
    - MCP Linker
    - MCP Router
 
-## Mga Sikat na MCP Server
+## Mga Popular na MCP Servers
 
-Ipinapakilala ng repositoryo ang iba't ibang MCP server, kabilang ang:
+Ipinapakilala ng repositoryo ang iba't ibang MCP servers, kabilang ang:
 
 1. **Opisyal na Microsoft MCP Servers**:
    - Microsoft Learn Docs MCP Server
-   - Azure MCP Server (15+ specialized connectors)
+   - Azure MCP Server (15+ na espesyal na connector)
    - GitHub MCP Server
    - Azure DevOps MCP Server
    - MarkItDown MCP Server
    - SQL Server MCP Server
    - Playwright MCP Server
    - Dev Box MCP Server
-   - Azure AI Foundry MCP Server
+   - Microsoft Foundry MCP Server
    - Microsoft 365 Agents Toolkit MCP Server
 
 2. **Opisyal na Reference Servers**:
@@ -317,32 +318,32 @@ Ipinapakilala ng repositoryo ang iba't ibang MCP server, kabilang ang:
    - Memory
    - Sequential Thinking
 
-3. **Image Generation**:
+3. **Pagbuo ng Imahe**:
    - Azure OpenAI DALL-E 3
    - Stable Diffusion WebUI
    - Replicate
 
-4. **Mga Development Tools**:
+4. **Mga Tool sa Pag-unlad**:
    - Git MCP
    - Terminal Control
    - Code Assistant
 
-5. **Mga Specialized Server**:
+5. **Espesyal na mga Server**:
    - Salesforce
    - Microsoft Teams
    - Jira & Confluence
 
-## Pagsusulong
+## Pag-aambag
 
-Tinatanggap ng repositoryong ito ang mga ambag mula sa komunidad. Tingnan ang seksyong Ambag ng Komunidad para sa mga gabay kung paano epektibong makapag-ambag sa MCP ecosystem.
+Malugod na tinatanggap ng repositoryong ito ang mga kontribusyon mula sa komunidad. Tingnan ang seksyon na Kontribusyon ng Komunidad para sa gabay kung paano epektibong makapag-ambag sa ecosystem ng MCP.
 
 ----
 
-*Ang gabay sa pag-aaral na ito ay huling na-update noong Pebrero 5, 2026, na sumasalamin sa pinakabagong MCP Specification 2025-11-25 at nagbibigay ng pangkalahatang-ideya ng repositoryo hanggang sa petsang iyon. Maaring ma-update ang nilalaman ng repositoryo pagkatapos ng petsang ito.*
+*Ang gabay sa pag-aaral na ito ay huling na-update noong Pebrero 5, 2026, na sumasalamin sa pinakabagong MCP Specification 2025-11-25 at nagbibigay ng pangkalahatang-ideya ng repositoryo hanggang sa petsang iyon. Maaaring ma-update ang nilalaman ng repositoryo pagkatapos ng petsang ito.*
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Paunawa**:  
-Ang dokumentong ito ay isinalin gamit ang serbisyong AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagamat nagsusumikap kami para sa katumpakan, pakatandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o kamalian. Ang orihinal na dokumento sa kanyang sariling wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang hindi pagkakaunawaan o maling interpretasyon na bunga ng paggamit ng pagsasaling ito.
+**Pagtatanggi**:
+Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't nagsusumikap kami para sa katumpakan, pakatandaan na ang awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang maling pagkakaintindi o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

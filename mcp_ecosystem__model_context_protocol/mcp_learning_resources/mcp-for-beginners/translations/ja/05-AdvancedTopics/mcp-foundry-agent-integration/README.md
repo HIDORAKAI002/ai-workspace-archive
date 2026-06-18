@@ -1,57 +1,57 @@
-# Model Context Protocol (MCP) と Azure AI Foundry の統合
+# Model Context Protocol (MCP) と Microsoft Foundry の統合
 
-このガイドでは、Model Context Protocol (MCP) サーバーを Azure AI Foundry エージェントと統合し、強力なツールオーケストレーションとエンタープライズ向けAI機能を実現する方法を説明します。
+このガイドでは、Model Context Protocol (MCP) サーバーを Microsoft Foundry エージェントと統合し、強力なツールオーケストレーションおよびエンタープライズ AI 機能を実現する方法を説明します。
 
 ## はじめに
 
-Model Context Protocol (MCP) は、AIアプリケーションが外部のデータソースやツールに安全に接続できるようにするオープンスタンダードです。Azure AI Foundry と統合することで、MCPはエージェントがさまざまな外部サービス、API、データソースに標準化された方法でアクセスし、操作できるようにします。
+Model Context Protocol (MCP) は、AI アプリケーションが外部データソースやツールに安全に接続できるようにするオープン標準です。Microsoft Foundry と統合することで、MCP はエージェントがさまざまな外部サービス、API、およびデータソースに標準化された方法でアクセスし、対話することを可能にします。
 
-この統合により、MCPのツールエコシステムの柔軟性と Azure AI Foundry の堅牢なエージェントフレームワークが組み合わさり、カスタマイズ性の高いエンタープライズ向けAIソリューションを提供します。
+この統合により、MCP のツールエコシステムの柔軟性と Microsoft Foundry の堅牢なエージェントフレームワークが結合され、幅広いカスタマイズ機能を持つエンタープライズグレードの AI ソリューションが提供されます。
 
-**Note:** Azure AI Foundry Agent ServiceでMCPを使用する場合、現在サポートされているリージョンは westus、westus2、uaenorth、southindia、switzerlandnorth のみです。
+**Note:** Microsoft Foundry Agent Service で MCP を使用したい場合、現在サポートされているリージョンは westus、westus2、uaenorth、southindia、および switzerlandnorth のみです。
 
 ## 学習目標
 
-このガイドを終える頃には、以下ができるようになります：
+このガイドの終了時には、以下ができるようになります：
 
-- Model Context Protocol の概要と利点を理解する
-- Azure AI Foundry エージェントで使用するための MCP サーバーをセットアップする
-- MCPツール統合を用いたエージェントの作成と設定
-- 実際の MCP サーバーを使った実践的な例の実装
-- エージェントの会話におけるツールの応答や引用の取り扱い
+- Model Context Protocol とその利点を理解する
+- Microsoft Foundry エージェントで使用するための MCP サーバーをセットアップする
+- MCP ツール統合を行ったエージェントを作成および設定する
+- 実際の MCP サーバーを使用した実用例を実装する
+- エージェントとの対話でのツールの応答および引用を適切に処理する
 
 ## 前提条件
 
-開始する前に、以下を準備してください：
+開始する前に、以下を確認してください：
 
-- AI Foundry アクセス権のある Azure サブスクリプション
-- Python 3.10以上 または .NET 8.0以上
-- Azure CLI のインストールと設定
-- AIリソース作成に必要な権限
+- Microsoft Foundry へのアクセス権を持つ Azure サブスクリプション
+- Python 3.10+ または .NET 8.0+
+- Azure CLI がインストールされ設定済みであること
+- AI リソースを作成するための適切な権限
 
 ## Model Context Protocol (MCP) とは？
 
-Model Context Protocol は、AIアプリケーションが外部のデータソースやツールに接続するための標準化された方法です。主な利点は以下の通りです：
+Model Context Protocol は、AI アプリケーションが外部データソースやツールに接続するための標準化された方法です。主な利点は以下の通りです：
 
-- **標準化された統合**：異なるツールやサービス間で一貫したインターフェースを提供
-- **セキュリティ**：安全な認証と認可の仕組みを備える
-- **柔軟性**：多様なデータソース、API、カスタムツールに対応
-- **拡張性**：新しい機能や統合を簡単に追加可能
+- <strong>標準化された統合</strong>：異なるツールやサービス間で一貫したインターフェース
+- <strong>セキュリティ</strong>：安全な認証および承認機構
+- <strong>柔軟性</strong>：様々なデータソース、API、カスタムツールをサポート
+- <strong>拡張性</strong>：新機能や統合の追加が容易
 
-## Azure AI Foundry での MCP セットアップ
+## Microsoft Foundry における MCP のセットアップ
 
 ### 環境設定
 
 お好みの開発環境を選択してください：
 
-- [Python 実装](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [.NET 実装](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Python 実装](#python-実装)
+- [.NET 実装](#codeblock5)
 
 ---
 
 ## Python 実装
 
-***Note*** この [ノートブック](mcp_support_python.ipynb) を実行できます
+***Note*** この [ノートブック](./mcp_support_python.ipynb) を実行できます
 
 ### 1. 必要なパッケージのインストール
 
@@ -93,17 +93,17 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # オプション: 使用可能なツールを指定してください
 )
 ```
 
-### 6. Python 完全例
+### 6. 完成した Python 例
 
 ```python
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # MCPツールを使って新しいエージェントを作成する
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # 通信のためのスレッドを作成する
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # スレッドにメッセージを作成する
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # ツールの承認を処理し、エージェントを実行する
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # 会話を表示する
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,7 +180,7 @@ with project_client:
 
 ## .NET 実装
 
-***Note*** この [ノートブック](mcp_support_dotnet.ipynb) を実行できます
+***Note*** この [ノートブック](./mcp_support_dotnet.ipynb) を実行できます
 
 ### 1. 必要なパッケージのインストール
 
@@ -212,7 +212,7 @@ PersistentAgentsClient agentClient = new(projectEndpoint, new DefaultAzureCreden
 MCPToolDefinition mcpTool = new(mcpServerLabel, mcpServerUrl);
 ```
 
-### 5. MCP ツールを使ったエージェントの作成
+### 5. MCP ツール付きエージェントの作成
 
 ```csharp
 PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
@@ -223,7 +223,7 @@ PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
    );
 ```
 
-### 6. .NET 完全例
+### 6. 完成した .NET 例
 
 ```csharp
 // Create thread and message
@@ -297,17 +297,17 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ---
 
-## MCP ツールの設定オプション
+## MCP ツール設定オプション
 
-エージェント用に MCP ツールを設定する際、いくつかの重要なパラメーターを指定できます：
+エージェント用の MCP ツールを設定する際には、いくつかの重要なパラメーターを指定できます：
 
 ### Python 設定
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # MCPサーバーの識別子
+    server_url="https://api.example.com/mcp", # MCPサーバーのエンドポイント
+    allowed_tools=[],                       # オプション: 許可されたツールを指定する
 )
 ```
 
@@ -320,9 +320,9 @@ MCPToolDefinition mcpTool = new(
 );
 ```
 
-## 認証とヘッダー
+## 認証およびヘッダー
 
-両実装とも認証用のカスタムヘッダーをサポートしています：
+両実装は認証のためにカスタムヘッダーをサポートしています：
 
 ### Python
 ```python
@@ -338,45 +338,49 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 ## よくある問題のトラブルシューティング
 
 ### 1. 接続の問題
-- MCPサーバーのURLがアクセス可能か確認する
-- 認証情報をチェックする
-- ネットワーク接続を確認する
+- MCP サーバーの URL がアクセス可能か確認
+- 認証情報を確認
+- ネットワーク接続を確保
 
 ### 2. ツール呼び出しの失敗
 - ツールの引数やフォーマットを見直す
-- サーバー固有の要件を確認する
-- 適切なエラーハンドリングを実装する
+- サーバー固有の要件をチェック
+- 適切なエラー処理を実装
 
 ### 3. パフォーマンスの問題
-- ツール呼び出しの頻度を最適化する
-- 適切なキャッシュを導入する
-- サーバーの応答時間を監視する
+- ツール呼び出し頻度を最適化
+- キャッシュを適切に実装
+- サーバーの応答時間を監視
 
 ## 次のステップ
 
-MCP統合をさらに強化するために：
+MCP 統合をさらに強化するには：
 
-1. **カスタム MCP サーバーの構築**：独自のデータソース向けに MCP サーバーを作成する
-2. **高度なセキュリティの実装**：OAuth2 やカスタム認証機構を追加する
-3. **監視と分析**：ツール使用状況のログ記録と監視を実装する
-4. **ソリューションのスケールアップ**：負荷分散や分散型 MCP サーバーアーキテクチャを検討する
+1. **カスタム MCP サーバーの探求**：独自のデータソース向け MCP サーバーを構築
+2. <strong>高度なセキュリティの実装</strong>：OAuth2 やカスタム認証機構を追加
+3. <strong>監視と分析</strong>：ツール使用のログおよび監視を実装
+4. <strong>ソリューションのスケール</strong>：負荷分散や分散 MCP サーバーアーキテクチャを検討
 
 ## 追加リソース
 
-- [Azure AI Foundry ドキュメント](https://learn.microsoft.com/azure/ai-foundry/)
+- [Microsoft Foundry ドキュメント](https://learn.microsoft.com/azure/ai-foundry/)
 - [Model Context Protocol サンプル](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Azure AI Foundry エージェント概要](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Microsoft Foundry エージェント概要](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [MCP 仕様](https://spec.modelcontextprotocol.io/)
 
 ## サポート
 
-追加のサポートや質問については：
-- [Azure AI Foundry ドキュメント](https://learn.microsoft.com/azure/ai-foundry/) をご覧ください
-- [MCP コミュニティリソース](https://modelcontextprotocol.io/) を確認してください
+追加サポートや質問については：
+- [Microsoft Foundry ドキュメント](https://learn.microsoft.com/azure/ai-foundry/) を参照
+- [MCP コミュニティリソース](https://modelcontextprotocol.io/) を確認
 
-## 次に進む
+## 次へ 
 
 - [5.14 MCP コンテキストエンジニアリング](../mcp-contextengineering/README.md)
 
-**免責事項**：  
-本書類はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を使用して翻訳されました。正確性の向上に努めておりますが、自動翻訳には誤りや不正確な部分が含まれる可能性があります。原文の言語によるオリジナル文書が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や誤訳についても、当方は一切の責任を負いかねます。
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責事項**：
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,115 +1,115 @@
-# Környezet Beállítása
+# Környezet beállítása
 
-## 🎯 Mit Tartalmaz Ez a Gyakorlat?
+## 🎯 Mit tartalmaz ez a labor
 
-Ez a gyakorlati útmutató végigvezet egy teljes fejlesztői környezet beállításán MCP szerverek PostgreSQL integrációval történő fejlesztéséhez. Konfigurálni fogod a szükséges eszközöket, telepítesz Azure erőforrásokat, és ellenőrzöd a beállítást, mielőtt elkezdenéd a megvalósítást.
+Ez a gyakorlati laborvezető végigvezeti a teljes fejlesztési környezet beállításán MCP szerverekhez PostgreSQL integrációval. Beállítod az összes szükséges eszközt, telepíted az Azure erőforrásokat, és ellenőrzöd a beállítást, mielőtt folytatnád a megvalósítást.
 
 ## Áttekintés
 
-Egy megfelelő fejlesztői környezet kulcsfontosságú az MCP szerverek sikeres fejlesztéséhez. Ez a gyakorlat lépésről lépésre bemutatja, hogyan állítsd be a Docker-t, az Azure szolgáltatásokat, a fejlesztői eszközöket, és hogyan ellenőrizd, hogy minden megfelelően működik együtt.
+A megfelelő fejlesztési környezet kritikus a sikeres MCP szerver fejlesztéshez. Ez a labor lépésről lépésre mutatja be a Docker, Azure szolgáltatások, fejlesztői eszközök beállítását és annak ellenőrzését, hogy minden helyesen működik együtt.
 
-A gyakorlat végére egy teljesen működőképes fejlesztői környezeted lesz, amely készen áll a Zava Retail MCP szerver fejlesztésére.
+A labor végére teljesen működő fejlesztési környezettel leszel felvértezve, készen a Zava Retail MCP szerver fejlesztésére.
 
-## Tanulási Célok
+## Tanulási célok
 
-A gyakorlat végére képes leszel:
+A labor végére képes leszel:
 
 - **Telepíteni és konfigurálni** az összes szükséges fejlesztői eszközt
-- **Telepíteni Azure erőforrásokat**, amelyek szükségesek az MCP szerverhez
+- **Telepíteni Azure erőforrásokat**, amelyek az MCP szerverhez kellenek
 - **Beállítani Docker konténereket** PostgreSQL-hez és az MCP szerverhez
 - **Ellenőrizni** a környezet beállítását tesztkapcsolatokkal
-- **Hibakeresni** gyakori beállítási problémákat és konfigurációs hibákat
-- **Megérteni** a fejlesztési munkafolyamatot és a fájlszerkezetet
+- **Hibakeresni** gyakori telepítési és konfigurációs problémákat
+- **Érteni** a fejlesztési munkafolyamatot és a fájlstruktúrát
 
-## 📋 Előfeltételek Ellenőrzése
+## 📋 Előfeltételek ellenőrzése
 
-Mielőtt elkezdenéd, győződj meg róla, hogy rendelkezel az alábbiakkal:
+A kezdés előtt győződj meg róla, hogy rendelkezel:
 
-### Szükséges Ismeretek
-- Alapvető parancssori használat (Windows Command Prompt/PowerShell)
-- Környezeti változók megértése
-- Git verziókezelés ismerete
-- Alapvető Docker fogalmak (konténerek, képek, kötetek)
+### Szükséges ismeretek
+- Alap parancssori használat (Windows Command Prompt/PowerShell)
+- Környezeti változók ismerete
+- Git verziókezelő ismerete
+- Alap Docker fogalmak (konténerek, képek, kötetek)
 
 ### Rendszerkövetelmények
-- **Operációs Rendszer**: Windows 10/11, macOS vagy Linux
+- **Operációs rendszer**: Windows 10/11, macOS vagy Linux
 - **RAM**: Minimum 8GB (ajánlott 16GB)
 - **Tárhely**: Legalább 10GB szabad hely
 - **Hálózat**: Internetkapcsolat letöltésekhez és Azure telepítéshez
 
-### Fiókkövetelmények
-- **Azure Előfizetés**: Ingyenes szint elegendő
-- **GitHub Fiók**: A repozitórium eléréséhez
-- **Docker Hub Fiók**: (Opcionális) Egyedi képek közzétételéhez
+### Fiók követelmények
+- **Azure előfizetés**: Ingyenes szint elegendő
+- **GitHub fiók**: Repository eléréséhez
+- **Docker Hub fiók**: (Opcionális) Egyedi képek publikálásához
 
-## 🛠️ Eszközök Telepítése
+## 🛠️ Eszköz telepítés
 
-### 1. Docker Desktop Telepítése
+### 1. Docker Desktop telepítése
 
-A Docker biztosítja a konténerizált környezetet a fejlesztési beállításhoz.
+A Docker biztosítja a konténerizált környezetet a fejlesztéshez.
 
-#### Windows Telepítés
+#### Windows telepítés
 
-1. **Docker Desktop Letöltése**:
+1. **Töltsd le a Docker Desktopot**:
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
 
-2. **Telepítés és Konfigurálás**:
-   - Futtasd az installer-t rendszergazdaként
+2. **Telepítsd és konfiguráld**:
+   - Futtasd az telepítőt rendszergazdaként
    - Engedélyezd a WSL 2 integrációt, amikor kéri
-   - Indítsd újra a számítógépet a telepítés befejezése után
+   - Indítsd újra a számítógéped a telepítés befejezése után
 
-3. **Telepítés Ellenőrzése**:
+3. **Ellenőrizd a telepítést**:
    ```cmd
    docker --version
    docker-compose --version
    ```
 
-#### macOS Telepítés
+#### macOS telepítés
 
-1. **Letöltés és Telepítés**:
+1. **Töltsd le és telepítsd**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Töltse le a https://desktop.docker.com/mac/stable/Docker.dmg oldalról
+   # Vagy használja a Homebrew-t
    brew install --cask docker
    ```
 
-2. **Docker Desktop Indítása**:
-   - Indítsd el a Docker Desktopot az Alkalmazásokból
-   - Fejezd be a kezdeti beállítási varázslót
+2. **Indítsd el a Docker Desktopot**:
+   - Indítsd el az Alkalmazások közül a Docker Desktopot
+   - Fejezd be a kezdő beállító varázslót
 
-3. **Telepítés Ellenőrzése**:
+3. **Ellenőrizd a telepítést**:
    ```bash
    docker --version
    docker-compose --version
    ```
 
-#### Linux Telepítés
+#### Linux telepítés
 
-1. **Docker Engine Telepítése**:
+1. **Telepítsd a Docker motort**:
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Jelentkezzen ki és be, hogy a csoportváltozások érvénybe lépjenek
    ```
 
-2. **Docker Compose Telepítése**:
+2. **Telepítsd a Docker Compose-t**:
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
 
-### 2. Azure CLI Telepítése
+### 2. Azure CLI telepítése
 
 Az Azure CLI lehetővé teszi az Azure erőforrások telepítését és kezelését.
 
-#### Windows Telepítés
+#### Windows telepítés
 
 ```cmd
 # Using Windows Package Manager
@@ -118,17 +118,17 @@ winget install Microsoft.AzureCLI
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
 
-#### macOS Telepítés
+#### macOS telepítés
 
 ```bash
-# Using Homebrew
+# Homebrew használata
 brew install azure-cli
 
-# Or using installer
+# Vagy telepítő használata
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
-#### Linux Telepítés
+#### Linux telepítés
 
 ```bash
 # Ubuntu/Debian
@@ -139,23 +139,23 @@ sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
 
-#### Ellenőrzés és Hitelesítés
+#### Ellenőrzés és hitelesítés
 
 ```bash
-# Check installation
+# Telepítés ellenőrzése
 az version
 
-# Login to Azure
+# Bejelentkezés az Azure-ba
 az login
 
-# Set default subscription (if you have multiple)
+# Alapértelmezett előfizetés beállítása (ha több is van)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
-### 3. Git Telepítése
+### 3. Git telepítése
 
-A Git szükséges a repozitórium klónozásához és a verziókezeléshez.
+A Git szükséges a repository klónozásához és verziókezeléshez.
 
 #### Windows
 
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# A Git általában előre telepítve van, de frissítheted Homebrew-n keresztül
 brew install git
 ```
 
@@ -183,9 +183,9 @@ sudo apt update && sudo apt install git
 sudo dnf install git
 ```
 
-### 4. VS Code Telepítése
+### 4. VS Code telepítése
 
-A Visual Studio Code integrált fejlesztői környezetet biztosít MCP támogatással.
+A Visual Studio Code az integrált fejlesztői környezet MCP támogatással.
 
 #### Telepítés
 
@@ -200,12 +200,12 @@ brew install --cask visual-studio-code
 sudo snap install code --classic
 ```
 
-#### Szükséges Bővítmények
+#### Szükséges bővítmények
 
 Telepítsd ezeket a VS Code bővítményeket:
 
 ```bash
-# Install via command line
+# Telepítés parancssoron keresztül
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
@@ -215,15 +215,15 @@ code --install-extension ms-vscode.azure-account
 Vagy telepítsd a VS Code-on keresztül:
 1. Nyisd meg a VS Code-ot
 2. Menj a Bővítményekhez (Ctrl+Shift+X)
-3. Telepítsd:
+3. Telepítsd a következőket:
    - **Python** (Microsoft)
    - **Docker** (Microsoft)
    - **Azure Account** (Microsoft)
    - **JSON** (Microsoft)
 
-### 5. Python Telepítése
+### 5. Python telepítése
 
-Python 3.8+ szükséges az MCP szerver fejlesztéséhez.
+A Python 3.8+ szükséges az MCP szerver fejlesztéséhez.
 
 #### Windows
 
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# A Homebrew használata
 brew install python@3.11
 ```
 
@@ -251,76 +251,76 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 sudo dnf install python3.11 python3.11-pip
 ```
 
-#### Telepítés Ellenőrzése
+#### Ellenőrizd a telepítést
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Python 3.11.x-et kell mutatnia
+pip --version      # A pip verzióját kell mutatnia
 ```
 
-## 🚀 Projekt Beállítása
+## 🚀 Projekt beállítása
 
-### 1. Repozitórium Klónozása
+### 1. Klónozd a repositoryt
 
 ```bash
-# Clone the main repository
+# Klónozza a fő tárházat
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Navigáljon a projekt könyvtárba
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Ellenőrizze a tárház szerkezetét
 ls -la
 ```
 
-### 2. Python Virtuális Környezet Létrehozása
+### 2. Hozz létre Python virtuális környezetet
 
 ```bash
-# Create virtual environment
+# Virtuális környezet létrehozása
 python -m venv mcp-env
 
-# Activate virtual environment
+# Virtuális környezet aktiválása
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Pip frissítése
 python -m pip install --upgrade pip
 ```
 
-### 3. Python Függőségek Telepítése
+### 3. Telepítsd a Python függőségeket
 
 ```bash
-# Install development dependencies
+# Fejlesztési függőségek telepítése
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Kulcs csomagok ellenőrzése
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
 
-## ☁️ Azure Erőforrások Telepítése
+## ☁️ Azure erőforrások telepítése
 
-### 1. Erőforrás Követelmények Megértése
+### 1. Ismerd meg az erőforrás igényeket
 
-Az MCP szerverhez az alábbi Azure erőforrásokra van szükség:
+Az MCP szerverünk a következő Azure erőforrásokat igényli:
 
-| **Erőforrás** | **Cél** | **Becsült Költség** |
-|---------------|---------|--------------------|
-| **Azure AI Foundry** | AI modellek hosztolása és kezelése | $10-50/hónap |
-| **OpenAI Telepítés** | Szövegbeágyazási modell (text-embedding-3-small) | $5-20/hónap |
-| **Application Insights** | Monitorozás és telemetria | $5-15/hónap |
+| **Erőforrás** | **Feladat** | **Becsült költség** |
+|---------------|-------------|---------------------|
+| **Microsoft Foundry** | AI modell hosztolás és kezelése | 10-50 USD/hó |
+| **OpenAI Deployment** | Szöveg beágyazás modell (text-embedding-3-small) | 5-20 USD/hó |
+| **Application Insights** | Monitoring és telemetria | 5-15 USD/hó |
 | **Erőforráscsoport** | Erőforrások szervezése | Ingyenes |
 
-### 2. Azure Erőforrások Telepítése
+### 2. Azure erőforrások telepítése
 
-#### Opció A: Automatikus Telepítés (Ajánlott)
+#### A lehetőség: Automatikus telepítés (ajánlott)
 
 ```bash
-# Navigate to infrastructure directory
+# Navigálás az infrastruktúra könyvtárhoz
 cd infra
 
 # Windows - PowerShell
@@ -330,28 +330,28 @@ cd infra
 ./deploy.sh
 ```
 
-A telepítési szkript a következőket végzi el:
+A telepítő script elvégzi:
 1. Egyedi erőforráscsoport létrehozása
-2. Azure AI Foundry erőforrások telepítése
-3. A text-embedding-3-small modell telepítése
+2. Microsoft Foundry erőforrások telepítése
+3. text-embedding-3-small modell telepítése
 4. Application Insights konfigurálása
-5. Szolgáltatási főazonosító létrehozása hitelesítéshez
+5. Szolgáltatási principal létrehozása hitelesítéshez
 6. `.env` fájl generálása konfigurációval
 
-#### Opció B: Manuális Telepítés
+#### B lehetőség: Kézi telepítés
 
-Ha inkább manuálisan szeretnéd kezelni, vagy az automatikus szkript nem működik:
+Ha inkább manuálisan szeretnéd vezérelni vagy az automatikus script nem működik:
 
 ```bash
-# Set variables
+# Változók beállítása
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Erőforráscsoport létrehozása
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Fő sablon telepítése
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,27 +359,27 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Azure Telepítés Ellenőrzése
+### 3. Azure telepítés ellenőrzése
 
 ```bash
-# Check resource group
+# Ellenőrizze az erőforráscsoportot
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Listázza a telepített erőforrásokat
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# AI szolgáltatás tesztelése
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
 
-### 4. Környezeti Változók Konfigurálása
+### 4. Környezeti változók beállítása
 
-A telepítés után rendelkezned kell egy `.env` fájllal. Ellenőrizd, hogy tartalmazza:
+A telepítés után rendelkezned kell `.env` fájllal. Ellenőrizd, hogy tartalmazza:
 
 ```bash
-# .env file contents
+# .env fájl tartalma
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Adatbázis konfiguráció (fejlesztéshez)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -396,11 +396,11 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
 
-## 🐳 Docker Környezet Beállítása
+## 🐳 Docker környezet beállítása
 
-### 1. Docker Kompozíció Megértése
+### 1. Ismerd meg a Docker kompozíciót
 
-A fejlesztői környezet Docker Compose-t használ:
+Fejlesztési környezetünk Docker Compose-t használ:
 
 ```yaml
 # docker-compose.yml overview
@@ -429,58 +429,58 @@ services:
       - .env
 ```
 
-### 2. Fejlesztői Környezet Indítása
+### 2. Indítsd el a fejlesztési környezetet
 
 ```bash
-# Ensure you're in the project root directory
+# Győződj meg róla, hogy a projekt gyökérkönyvtárában vagy
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Indítsd el a szolgáltatásokat
 docker-compose up -d
 
-# Check service status
+# Ellenőrizd a szolgáltatások állapotát
 docker-compose ps
 
-# View logs
+# Nézd meg a naplókat
 docker-compose logs -f
 ```
 
-### 3. Adatbázis Beállítás Ellenőrzése
+### 3. Ellenőrizd az adatbázis beállítását
 
 ```bash
-# Connect to PostgreSQL container
+# Csatlakozás a PostgreSQL konténerhez
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Adatbázis szerkezet ellenőrzése
 \dt retail.*
 
-# Verify sample data
+# Mintaadatok ellenőrzése
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Kilépés a PostgreSQL-ből
 \q
 ```
 
-### 4. MCP Szerver Tesztelése
+### 4. Teszteld az MCP szervert
 
 ```bash
-# Check MCP server health
+# Ellenőrizze az MCP szerver állapotát
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Alapvető MCP végpont tesztelése
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
 
-## 🔧 VS Code Konfiguráció
+## 🔧 VS Code konfiguráció
 
-### 1. MCP Integráció Konfigurálása
+### 1. MCP integráció beállítása
 
-Hozd létre a VS Code MCP konfigurációt:
+Hozz létre VS Code MCP konfigurációt:
 
 ```json
 // .vscode/mcp.json
@@ -506,7 +506,7 @@ Hozd létre a VS Code MCP konfigurációt:
 }
 ```
 
-### 2. Python Környezet Konfigurálása
+### 2. Python környezet konfigurálása
 
 ```json
 // .vscode/settings.json
@@ -525,7 +525,7 @@ Hozd létre a VS Code MCP konfigurációt:
 }
 ```
 
-### 3. VS Code Integráció Tesztelése
+### 3. Teszteld a VS Code integrációt
 
 1. **Nyisd meg a projektet a VS Code-ban**:
    ```bash
@@ -533,22 +533,22 @@ Hozd létre a VS Code MCP konfigurációt:
    ```
 
 2. **Nyisd meg az AI Chat-et**:
-   - Nyomd meg a `Ctrl+Shift+P` (Windows/Linux) vagy `Cmd+Shift+P` (macOS) billentyűkombinációt
-   - Írd be: "AI Chat" és válaszd az "AI Chat: Open Chat" opciót
+   - Nyomd meg a `Ctrl+Shift+P`-t (Windows/Linux) vagy `Cmd+Shift+P`-t (macOS)
+   - Írd be: „AI Chat” és válaszd az „AI Chat: Open Chat”-et
 
-3. **MCP Szerver Kapcsolat Tesztelése**:
-   - Az AI Chat-ben írd be: `#zava` és válaszd ki az egyik konfigurált szervert
-   - Kérdezd meg: "Milyen táblák érhetők el az adatbázisban?"
-   - Válaszként meg kell kapnod a kiskereskedelmi adatbázis tábláinak listáját
+3. **Teszteld az MCP szerver kapcsolatot**:
+   - Az AI Chat-ben írd be: `#zava` és válassz egy konfigurált szervert
+   - Kérdezd meg: „Milyen táblák érhetők el az adatbázisban?”
+   - Egy válasznak kell érkeznie a kiskereskedelmi adatbázis tábláiról
 
-## ✅ Környezet Ellenőrzése
+## ✅ Környezet ellenőrzése
 
-### 1. Átfogó Rendszer Ellenőrzés
+### 1. Átfogó rendszerellenőrzés
 
-Futtasd ezt az ellenőrzési szkriptet a beállításod ellenőrzéséhez:
+Futtasd ezt az ellenőrző scriptet a beállításod validálásához:
 
 ```bash
-# Create validation script
+# Érvényesítési szkript létrehozása
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Python verzió ellenőrzése
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Szükséges csomagok ellenőrzése
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Docker ellenőrzése
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Azure CLI ellenőrzése
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Környezeti változók ellenőrzése
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Adatbázis kapcsolat ellenőrzése
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Lekérdezés tesztelése
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # MCP szerver ellenőrzése
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Azure AI szolgáltatás ellenőrzése
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Sikertelen lesz, ha a hitelesítő adatok érvénytelenek
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Érvényesítés futtatása
 python validate_setup.py
 ```
 
-### 2. Manuális Ellenőrzési Lista
+### 2. Manuális ellenőrzési lista
 
-**✅ Alapvető Eszközök**
+**✅ Alap eszközök**
 - [ ] Docker 20.10+ verzió telepítve és fut
 - [ ] Azure CLI 2.40+ telepítve és hitelesítve
 - [ ] Python 3.8+ pip-pel telepítve
 - [ ] Git 2.30+ telepítve
 - [ ] VS Code a szükséges bővítményekkel
 
-**✅ Azure Erőforrások**
+**✅ Azure erőforrások**
 - [ ] Erőforráscsoport sikeresen létrehozva
 - [ ] AI Foundry projekt telepítve
 - [ ] OpenAI text-embedding-3-small modell telepítve
 - [ ] Application Insights konfigurálva
-- [ ] Szolgáltatási főazonosító megfelelő jogosultságokkal létrehozva
+- [ ] Szolgáltatási principal megfelelő jogosultságokkal létrehozva
 
-**✅ Környezet Konfiguráció**
-- [ ] `.env` fájl létrehozva az összes szükséges változóval
-- [ ] Azure hitelesítő adatok működnek (teszteld az `az account show` paranccsal)
+**✅ Környezeti konfiguráció**
+- [ ] `.env` fájl létrehozva minden szükséges változóval
+- [ ] Azure hitelesítő adatok működnek (teszteld `az account show`-val)
 - [ ] PostgreSQL konténer fut és elérhető
 - [ ] Mintaadatok betöltve az adatbázisba
 
-**✅ VS Code Integráció**
+**✅ VS Code integráció**
 - [ ] `.vscode/mcp.json` konfigurálva
-- [ ] Python interpreter beállítva a virtuális környezetre
+- [ ] Python értelmező beállítva a virtuális környezethez
 - [ ] MCP szerverek megjelennek az AI Chat-ben
-- [ ] Tesztlekérdezések végrehajthatók az AI Chat-en keresztül
+- [ ] Tudsz teszt lekérdezéseket futtatni az AI Chat-en keresztül
 
-## 🛠️ Gyakori Problémák Hibakeresése
+## 🛠️ Gyakori problémák elhárítása
 
-### Docker Problémák
+### Docker problémák
 
 **Probléma**: A Docker konténerek nem indulnak el
 ```bash
-# Check Docker service status
+# Ellenőrizze a Docker szolgáltatás állapotát
 docker info
 
-# Check available resources
+# Ellenőrizze a rendelkezésre álló erőforrásokat
 docker system df
 
-# Clean up if needed
+# Szükség esetén takarítson
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Indítsa újra a Docker Desktopot (Windows/macOS)
+# Vagy indítsa újra a Docker szolgáltatást (Linux)
 sudo systemctl restart docker
 ```
 
 **Probléma**: PostgreSQL kapcsolat sikertelen
 ```bash
-# Check container logs
+# Ellenőrizze a tároló naplóit
 docker-compose logs postgres
 
-# Verify container is healthy
+# Ellenőrizze, hogy a tároló egészséges-e
 docker-compose ps
 
-# Test direct connection
+# Tesztelje a közvetlen kapcsolatot
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
 
-### Azure Telepítési Problémák
+### Azure telepítési problémák
 
 **Probléma**: Azure telepítés sikertelen
 ```bash
-# Check Azure CLI authentication
+# Ellenőrizze az Azure CLI hitelesítését
 az account show
 
-# Verify subscription permissions
+# Ellenőrizze az előfizetés jogosultságait
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Ellenőrizze az erőforrás-szolgáltató regisztrációját
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
 
-**Probléma**: AI szolgáltatás hitelesítése sikertelen
+**Probléma**: AI szolgáltatás hitelesítés sikertelen
 ```bash
-# Test service principal
+# Teszt szolgáltatás fő
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# AI szolgáltatás telepítésének ellenőrzése
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
 
-### Python Környezet Problémák
+### Python környezeti problémák
 
 **Probléma**: Csomag telepítés sikertelen
 ```bash
-# Upgrade pip and setuptools
+# Frissítsük a pip-et és a setuptools-t
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Töröljük a pip gyorsítótárát
 pip cache purge
 
-# Install packages one by one to identify issues
+# Csomagok egyenkénti telepítése a hibák azonosításához
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
 
-**Probléma**: VS Code nem találja a Python interpretert
+**Probléma**: VS Code nem találja a Python értelmezőt
 ```bash
-# Show Python interpreter paths
+# Python értelmező útvonalainak megjelenítése
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Először aktiváld a virtuális környezetet
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Ezután nyisd meg a VS Code-ot
 code .
 ```
 
-## 🎯 Főbb Tanulságok
+## 🎯 Főbb tanulságok
 
-A gyakorlat elvégzése után rendelkezned kell:
+A labor elvégzése után rendelkezel:
 
-✅ **Teljes Fejlesztői Környezet**: Minden eszköz telepítve és konfigurálva  
-✅ **Azure Erőforrások Telepítve**: AI szolgáltatások és támogató infrastruktúra  
-✅ **Docker Környezet Fut**: PostgreSQL és MCP szerver konténerek  
-✅ **VS Code Integráció**: MCP szerverek konfigurálva és elérhetők  
-✅ **Ellenőrzött Beállítás**: Minden komponens tesztelve és együtt működik  
-✅ **Hibakeresési Ismeretek**: Gyakori problémák és megoldások  
+✅ **Teljes fejlesztési környezettel**: Minden eszköz telepítve és konfigurálva  
+✅ **Azure erőforrások telepítve**: AI szolgáltatásokkal és támogató infrastruktúrával  
+✅ **Futó Docker környezettel**: PostgreSQL és MCP szerver konténerek  
+✅ **VS Code integrációval**: MCP szerverek konfigurálva és elérhetők  
+✅ **Ellenőrzött beállítással**: Az összetevők tesztelve, együtt működnek  
+✅ **Hibakeresési tudással**: Gyakori problémák és megoldásaik  
 
-## 🚀 Hogyan Tovább?
+## 🚀 Mi következik
 
-Ha a környezeted készen áll, folytasd a **[Lab 04: Adatbázis Tervezés és Sémák](../04-Database/README.md)** gyakorlatot, hogy:
+Miután a környezet készen áll, folytasd a **[Labor 04: Adatbázis tervezés és séma](../04-Database/README.md)** részt, hogy:
 
-- Részletesen megismerd a kiskereskedelmi adatbázis sémáját
-- Megértsd a több-bérlős adatmodellezést
-- Megtanuld a sor szintű biztonság megvalósítását
-- Dolgozz mintakiskereskedelmi adatokkal
+- Részletesen megismerd a kiskereskedelmi adatbázis sémát
+- Megértsd a többbérlős adatmodellezést
+- Tanuld meg a sor szintű biztonság bevezetését
+- Dolgozz minta kiskereskedelmi adatokkal
 
-## 📚 További Források
+## 📚 További források
 
-### Fejlesztői Eszközök
-- [Docker Dokumentáció](https://docs.docker.com/) - Teljes Docker referencia
-- [Azure CLI Referencia](https://docs.microsoft.com/cli/azure/) - Azure CLI parancsok
-- [VS Code Dokumentáció](https://code.visualstudio.com/docs) - Szerkesztő konfiguráció és bővítmények
+### Fejlesztői eszközök
+- [Docker dokumentáció](https://docs.docker.com/) - Teljes Docker referencia
+- [Azure CLI referencia](https://docs.microsoft.com/cli/azure/) - Azure CLI parancsok
+- [VS Code dokumentáció](https://code.visualstudio.com/docs) - Szerkesztő konfiguráció és bővítmények
 
-### Azure Szolgáltatások
-- [Azure AI Foundry Dokumentáció](https://docs.microsoft.com/azure/ai-foundry/) - AI szolgáltatás konfiguráció
-- [Azure OpenAI Szolgáltatás](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI modell telepítés
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Monitorozási beállítás
+### Azure szolgáltatások
+- [Microsoft Foundry dokumentáció](https://docs.microsoft.com/azure/ai-foundry/) - AI szolgáltatás konfiguráció
+- [Azure OpenAI szolgáltatás](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI modell telepítés
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Monitorozás beállítása
 
-### Python Fejlesztés
-- [Python Virtuális Környezetek](https://docs.python.org/3/tutorial/venv.html) - Környezetkezelés
-- [AsyncIO Dokumentáció](https://docs.python.org/3/library/asyncio.html) - Aszinkron programozási minták
-- [FastAPI Dokumentáció](https://fastapi.tiangolo.com/) - Webes keretrendszer minták
-
----
-
-**Következő**: Készen áll a környezet? Folytasd a [Lab 04: Adatbázis Tervezés és Sémák](../04-Database/README.md) gyakorlatot.
+### Python fejlesztés
+- [Python virtuális környezetek](https://docs.python.org/3/tutorial/venv.html) - Környezet kezelés
+- [AsyncIO dokumentáció](https://docs.python.org/3/library/asyncio.html) - Aszinkron programozási minták
+- [FastAPI dokumentáció](https://fastapi.tiangolo.com/) - Webkeretrendszer minták
 
 ---
 
-**Felelősség kizárása**:  
-Ez a dokumentum az [Co-op Translator](https://github.com/Azure/co-op-translator) AI fordítási szolgáltatás segítségével került lefordításra. Bár törekszünk a pontosságra, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az eredeti nyelvén tekintendő hiteles forrásnak. Kritikus információk esetén javasolt professzionális emberi fordítást igénybe venni. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely a fordítás használatából eredhet.
+**Következő**: Környezet készen? Folytasd a [Labor 04: Adatbázis tervezés és séma](../04-Database/README.md) lépésével
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

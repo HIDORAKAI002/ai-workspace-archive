@@ -1,57 +1,57 @@
-# دمج بروتوكول سياق النموذج (MCP) مع Azure AI Foundry
+# تكامل بروتوكول سياق النموذج (MCP) مع Microsoft Foundry
 
-يوضح هذا الدليل كيفية دمج خوادم بروتوكول سياق النموذج (MCP) مع وكلاء Azure AI Foundry، مما يتيح تنسيق أدوات قوي وقدرات ذكاء اصطناعي على مستوى المؤسسات.
+يوضح هذا الدليل كيفية دمج خوادم Model Context Protocol (MCP) مع وكلاء Microsoft Foundry، مما يتيح تنظيم الأدوات القوي وقدرات الذكاء الاصطناعي للمؤسسات.
 
 ## المقدمة
 
-بروتوكول سياق النموذج (MCP) هو معيار مفتوح يتيح لتطبيقات الذكاء الاصطناعي الاتصال بأمان بمصادر البيانات والأدوات الخارجية. عند دمجه مع Azure AI Foundry، يسمح MCP للوكلاء بالوصول إلى خدمات خارجية مختلفة وواجهات برمجة التطبيقات ومصادر البيانات والتفاعل معها بطريقة موحدة.
+Model Context Protocol (MCP) هو معيار مفتوح يتيح لتطبيقات الذكاء الاصطناعي الاتصال الآمن بمصادر البيانات والأدوات الخارجية. عند دمجه مع Microsoft Foundry، يتيح MCP للوكلاء الوصول إلى والتفاعل مع خدمات خارجية مختلفة وواجهات برمجة التطبيقات ومصادر البيانات بطريقة موحدة.
 
-يجمع هذا التكامل بين مرونة نظام أدوات MCP مع إطار عمل الوكلاء القوي في Azure AI Foundry، مما يوفر حلول ذكاء اصطناعي على مستوى المؤسسات مع إمكانيات تخصيص واسعة.
+يجمع هذا التكامل بين مرونة نظام أدوات MCP ونظام الوكلاء القوي في Microsoft Foundry، مما يوفر حلول ذكاء اصطناعي على مستوى المؤسسات مع إمكانيات تخصيص واسعة النطاق.
 
-**ملاحظة:** إذا كنت ترغب في استخدام MCP في خدمة وكلاء Azure AI Foundry، فإن المناطق المدعومة حالياً هي: westus، westus2، uaenorth، southindia و switzerlandnorth
+**ملاحظة:** إذا كنت تريد استخدام MCP في خدمة وكلاء Microsoft Foundry، فإن المناطق التالية فقط مدعومة حاليًا: westus، westus2، uaenorth، southindia و switzerlandnorth
 
 ## أهداف التعلم
 
-بنهاية هذا الدليل، ستكون قادراً على:
+بنهاية هذا الدليل، ستكون قادرًا على:
 
 - فهم بروتوكول سياق النموذج وفوائده
-- إعداد خوادم MCP لاستخدامها مع وكلاء Azure AI Foundry
+- إعداد خوادم MCP للاستخدام مع وكلاء Microsoft Foundry
 - إنشاء وتكوين وكلاء مع دمج أدوات MCP
 - تنفيذ أمثلة عملية باستخدام خوادم MCP حقيقية
-- التعامل مع استجابات الأدوات والاستشهادات في محادثات الوكلاء
+- التعامل مع ردود الأدوات والاستشهادات في محادثات الوكيل
 
 ## المتطلبات الأساسية
 
-قبل البدء، تأكد من توفر:
+قبل البدء، تأكد من أن لديك:
 
-- اشتراك Azure مع وصول إلى AI Foundry
+- اشتراك Azure مع وصول إلى Microsoft Foundry
 - Python 3.10+ أو .NET 8.0+
 - تثبيت وتكوين Azure CLI
 - الأذونات المناسبة لإنشاء موارد الذكاء الاصطناعي
 
 ## ما هو بروتوكول سياق النموذج (MCP)؟
 
-بروتوكول سياق النموذج هو طريقة موحدة لتطبيقات الذكاء الاصطناعي للاتصال بمصادر البيانات والأدوات الخارجية. تشمل الفوائد الرئيسية:
+بروتوكول سياق النموذج هو طريقة موحدة لتطبيقات الذكاء الاصطناعي للاتصال بمصادر بيانات وأدوات خارجية. تشمل الفوائد الرئيسية:
 
-- **تكامل موحد**: واجهة متسقة عبر أدوات وخدمات مختلفة
-- **الأمان**: آليات مصادقة وتفويض آمنة
+- **التكامل الموحد**: واجهة متسقة عبر أدوات وخدمات مختلفة
+- **الأمان**: آليات موثوقة للمصادقة والتفويض
 - **المرونة**: دعم لمصادر بيانات مختلفة، وواجهات برمجة التطبيقات، والأدوات المخصصة
 - **قابلية التوسع**: سهولة إضافة قدرات وتكاملات جديدة
 
-## إعداد MCP مع Azure AI Foundry
+## إعداد MCP مع Microsoft Foundry
 
 ### تكوين البيئة
 
-اختر بيئة التطوير المفضلة لديك:
+اختر بيئة التطوير التي تفضلها:
 
-- [تنفيذ Python](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [تنفيذ .NET](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [تنفيذ Python](#تنفيذ-python)
+- [تنفيذ .NET](#codeblock5)
 
 ---
 
 ## تنفيذ Python
 
-***ملاحظة*** يمكنك تشغيل هذا [الدفتر](mcp_support_python.ipynb)
+***ملاحظة*** يمكنك تشغيل هذا [دفتر الملاحظات](./mcp_support_python.ipynb)
 
 ### 1. تثبيت الحزم المطلوبة
 
@@ -93,7 +93,7 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # اختياري: تحديد الأدوات المسموح بها
 )
 ```
 
@@ -103,7 +103,7 @@ mcp_tool = McpTool(
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # إنشاء وكيل جديد بأدوات MCP
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # إنشاء خيط للتواصل
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # إنشاء رسالة إلى الخيط
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # معالجة الموافقات على الأدوات وتشغيل الوكيل
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # عرض المحادثة
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,7 +180,7 @@ with project_client:
 
 ## تنفيذ .NET
 
-***ملاحظة*** يمكنك تشغيل هذا [الدفتر](mcp_support_dotnet.ipynb)
+***ملاحظة*** يمكنك تشغيل هذا [دفتر الملاحظات](./mcp_support_dotnet.ipynb)
 
 ### 1. تثبيت الحزم المطلوبة
 
@@ -305,9 +305,9 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # معرّف لخادم MCP
+    server_url="https://api.example.com/mcp", # نقطة نهاية خادم MCP
+    allowed_tools=[],                       # اختياري: تحديد الأدوات المسموح بها
 )
 ```
 
@@ -322,7 +322,7 @@ MCPToolDefinition mcpTool = new(
 
 ## المصادقة والرؤوس
 
-كلا التنفيذين يدعمان رؤوس مخصصة للمصادقة:
+يدعم كلا التنفيذين رؤوسًا مخصصة للمصادقة:
 
 ### Python
 ```python
@@ -337,46 +337,50 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 
 ## استكشاف المشكلات الشائعة وإصلاحها
 
-### 1. مشاكل الاتصال
-- تحقق من إمكانية الوصول إلى عنوان URL لخادم MCP
-- راجع بيانات اعتماد المصادقة
+### 1. مشكلات الاتصال
+- تحقق من أن عنوان خادم MCP يمكن الوصول إليه
+- تحقق من بيانات اعتماد المصادقة
 - تأكد من اتصال الشبكة
 
 ### 2. فشل استدعاء الأداة
-- راجع وسيطات الأداة وتنسيقها
+- راجع وسيطات الأداة والتنسيق
 - تحقق من متطلبات الخادم الخاصة
 - نفذ معالجة أخطاء مناسبة
 
-### 3. مشاكل الأداء
-- حسّن تكرار استدعاء الأداة
-- نفذ التخزين المؤقت عند الحاجة
-- راقب أوقات استجابة الخادم
+### 3. مشكلات الأداء
+- تحسين تكرار استدعاء الأداة
+- تنفيذ التخزين المؤقت عند الحاجة
+- رصد أوقات استجابة الخادم
 
 ## الخطوات التالية
 
 لتعزيز تكامل MCP الخاص بك:
 
-1. **استكشاف خوادم MCP المخصصة**: أنشئ خوادم MCP خاصة بمصادر بياناتك
-2. **تنفيذ أمان متقدم**: أضف OAuth2 أو آليات مصادقة مخصصة
-3. **المراقبة والتحليلات**: نفذ تسجيل ومراقبة لاستخدام الأدوات
-4. **توسيع الحل الخاص بك**: فكر في موازنة التحميل وهندسة خوادم MCP الموزعة
+1. **استكشاف خوادم MCP مخصصة**: ابني خوادم MCP خاصة بمصادر بياناتك
+2. **تطبيق أمان متقدم**: أضف OAuth2 أو آليات مصادقة مخصصة
+3. **المراقبة والتحليلات**: نفذ تسجيل الملاحظات والمراقبة لاستخدام الأدوات
+4. **توسيع الحل الخاص بك**: فكر في موازنة الأحمال وهياكل خوادم MCP الموزعة
 
 ## موارد إضافية
 
-- [توثيق Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- [توثيق Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - [نماذج بروتوكول سياق النموذج](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [نظرة عامة على وكلاء Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [نظرة عامة على وكلاء Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [مواصفات MCP](https://spec.modelcontextprotocol.io/)
 
 ## الدعم
 
 للحصول على دعم إضافي وأسئلة:
-- راجع [توثيق Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- راجع [توثيق Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - تحقق من [موارد مجتمع MCP](https://modelcontextprotocol.io/)
 
-## ما التالي
+## ما هو التالي
 
 - [5.14 هندسة سياق MCP](../mcp-contextengineering/README.md)
 
-**إخلاء المسؤولية**:  
-تمت ترجمة هذا المستند باستخدام خدمة الترجمة الآلية [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى لتحقيق الدقة، يرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الموثوق به. للمعلومات الهامة، يُنصح بالاعتماد على الترجمة البشرية المهنية. نحن غير مسؤولين عن أي سوء فهم أو تفسير ناتج عن استخدام هذه الترجمة.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**تنويه**:
+تمت ترجمة هذا المستند باستخدام خدمة الترجمة بالذكاء الاصطناعي [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى للدقة، يرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الرسمي والمعتمد. للمعلومات الهامة، يُنصح بالاستعانة بترجمة بشرية محترفة. نحن غير مسؤولين عن أي سوء فهم أو تفسير ناتج عن استخدام هذه الترجمة.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

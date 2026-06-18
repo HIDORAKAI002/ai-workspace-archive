@@ -1,54 +1,54 @@
-# Ympäristön Määrittäminen
+# Ympäristön asennus
 
-## 🎯 Mitä Tämä Labra Sisältää
+## 🎯 Mitä tämä harjoitus kattaa
 
-Tämä käytännön labra opastaa sinut täydellisen kehitysympäristön luomisessa MCP-palvelimien rakentamiseen PostgreSQL-integraatiolla. Konfiguroit kaikki tarvittavat työkalut, otat Azure-resurssit käyttöön ja varmistat ympäristön toimivuuden ennen toteutuksen aloittamista.
+Tässä käytännön harjoituksessa käydään läpi täydellisen kehitysympäristön asentaminen MCP-palvelinten rakentamista varten PostgreSQL-integraatiolla. Määrität kaikki tarvittavat työkalut, otat käyttöön Azure-resursseja ja varmistat asennuksesi ennen jatkamista toteutukseen.
 
 ## Yleiskatsaus
 
-Oikein määritetty kehitysympäristö on ratkaisevan tärkeä MCP-palvelimen kehityksen onnistumiselle. Tämä labra tarjoaa vaiheittaiset ohjeet Dockerin, Azure-palveluiden ja kehitystyökalujen asentamiseen sekä varmistaa, että kaikki toimii yhdessä oikein.
+Asianmukainen kehitysympäristö on ratkaisevan tärkeä onnistuneelle MCP-palvelimen kehitykselle. Tässä harjoituksessa annetaan vaiheittaiset ohjeet Dockerin, Azure-palveluiden, kehitystyökalujen asentamiseen ja toimivuuden varmistamiseen.
 
-Labran lopussa sinulla on täysin toimiva kehitysympäristö Zava Retail MCP -palvelimen rakentamiseen.
+Harjoituksen lopussa sinulla on täysin toimiva kehitysympäristö Zava Retail MCP -palvelimen rakentamista varten.
 
 ## Oppimistavoitteet
 
-Labran lopussa osaat:
+Harjoituksen lopussa osaat:
 
-- **Asentaa ja konfiguroida** kaikki tarvittavat kehitystyökalut
-- **Ottaa käyttöön Azure-resurssit**, joita MCP-palvelin tarvitsee
-- **Määrittää Docker-kontit** PostgreSQL:lle ja MCP-palvelimelle
-- **Varmistaa** ympäristön toimivuuden testiyhteyksillä
-- **Ratkaista** yleisiä asennusongelmia ja konfigurointivirheitä
-- **Ymmärtää** kehitystyönkulun ja tiedostorakenteen
+- **Asentaa ja konfiguroida** kaikki vaaditut kehitystyökalut  
+- **Ottaa käyttöön Azure-resursseja** MCP-palvelinta varten  
+- **Perustaa Docker-kontit** PostgreSQL:lle ja MCP-palvelimelle  
+- **Varmistaa** ympäristön asetukset testiyhteyksillä  
+- **Ratkaista** yleisiä asennus- ja konfiguraatio-ongelmia  
+- **Ymmärtää** kehitysprosessin ja tiedostorakenteen  
 
-## 📋 Esitietojen Tarkistus
+## 📋 Esivalmistelutarkastus
 
 Ennen aloittamista varmista, että sinulla on:
 
-### Tarvittavat Tiedot
-- Perustaidot komentorivin käytössä (Windows Command Prompt/PowerShell)
-- Ympäristömuuttujien ymmärtäminen
-- Git-versionhallinnan perusteet
-- Dockerin peruskäsitteet (kontit, kuvat, volyymit)
+### Tarvittavat tiedot
+- Peruskäyttö komentorivillä (Windows Command Prompt/PowerShell)  
+- Ympäristömuuttujien ymmärrys  
+- Git-versionhallinnan tuntemus  
+- Perustiedot Dockerista (kontit, kuvat, volyymit)  
 
 ### Järjestelmävaatimukset
-- **Käyttöjärjestelmä**: Windows 10/11, macOS tai Linux
-- **RAM**: Vähintään 8GB (suositus 16GB)
-- **Tallennustila**: Vähintään 10GB vapaata tilaa
-- **Verkko**: Internet-yhteys latauksia ja Azure-käyttöönottoa varten
+- **Käyttöjärjestelmä**: Windows 10/11, macOS tai Linux  
+- **Muisti**: Vähintään 8 GB (suositus 16 GB)  
+- **Tallennustila**: Vähintään 10 GB vapaata tilaa  
+- **Verkko**: Internet-yhteys latauksia ja Azure-julkaisuja varten  
 
 ### Tilivaatimukset
-- **Azure-tilaus**: Ilmainen taso riittää
-- **GitHub-tili**: Pääsyä varten repositorioon
-- **Docker Hub -tili**: (Valinnainen) Mukautettujen kuvien julkaisuun
+- **Azure-tilaus**: Ilmainen taso riittää  
+- **GitHub-tili**: Repositorion käyttöä varten  
+- **Docker Hub -tili**: (valinnainen) Mukautettujen kuvien julkaisua varten  
 
-## 🛠️ Työkalujen Asennus
+## 🛠️ Työkalujen asennus
 
 ### 1. Asenna Docker Desktop
 
-Docker tarjoaa konttipohjaisen ympäristön kehitystyöhön.
+Docker tarjoaa konttien ympäristön kehitykseen.
 
-#### Windows Asennus
+#### Windows-asennus
 
 1. **Lataa Docker Desktop**:
    ```cmd
@@ -57,37 +57,37 @@ Docker tarjoaa konttipohjaisen ympäristön kehitystyöhön.
    winget install Docker.DockerDesktop
    ```
 
-2. **Asenna ja Konfiguroi**:
-   - Suorita asennusohjelma järjestelmänvalvojana
-   - Ota WSL 2 -integraatio käyttöön, kun sitä pyydetään
-   - Käynnistä tietokone uudelleen asennuksen jälkeen
+2. **Asenna ja konfiguroi**:
+   - Suorita asennusohjelma järjestelmänvalvojana  
+   - Salli WSL 2 -integrointi pyydettäessä  
+   - Käynnistä tietokone uudelleen asennuksen valmistuttua  
 
-3. **Varmista Asennus**:
+3. **Varmista asennus**:
    ```cmd
    docker --version
    docker-compose --version
    ```
 
-#### macOS Asennus
+#### macOS-asennus
 
-1. **Lataa ja Asenna**:
+1. **Lataa ja asenna**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Lataa osoitteesta https://desktop.docker.com/mac/stable/Docker.dmg
+   # Tai käytä Homebrew'ta
    brew install --cask docker
    ```
 
 2. **Käynnistä Docker Desktop**:
-   - Avaa Docker Desktop Sovellukset-kansiosta
-   - Suorita alkuasennuksen ohjattu toiminto
+   - Avaa Docker Desktop Sovelluksista  
+   - Suorita alkuasetusten ohjattu toiminto  
 
-3. **Varmista Asennus**:
+3. **Varmista asennus**:
    ```bash
    docker --version
    docker-compose --version
    ```
 
-#### Linux Asennus
+#### Linux-asennus
 
 1. **Asenna Docker Engine**:
    ```bash
@@ -96,7 +96,7 @@ Docker tarjoaa konttipohjaisen ympäristön kehitystyöhön.
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Kirjaudu ulos ja takaisin sisään, jotta ryhmämuutokset tulevat voimaan
    ```
 
 2. **Asenna Docker Compose**:
@@ -107,9 +107,9 @@ Docker tarjoaa konttipohjaisen ympäristön kehitystyöhön.
 
 ### 2. Asenna Azure CLI
 
-Azure CLI mahdollistaa Azure-resurssien käyttöönoton ja hallinnan.
+Azure CLI mahdollistaa Azure-resurssien hallinnan ja käyttöönoton.
 
-#### Windows Asennus
+#### Windows-asennus
 
 ```cmd
 # Using Windows Package Manager
@@ -118,17 +118,17 @@ winget install Microsoft.AzureCLI
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
 
-#### macOS Asennus
+#### macOS-asennus
 
 ```bash
-# Using Homebrew
+# Käyttämällä Homebrew'ta
 brew install azure-cli
 
-# Or using installer
+# Tai käyttämällä asennusohjelmaa
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
-#### Linux Asennus
+#### Linux-asennus
 
 ```bash
 # Ubuntu/Debian
@@ -139,16 +139,16 @@ sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
 
-#### Varmista ja Kirjaudu Sisään
+#### Varmista ja kirjaudu sisään
 
 ```bash
-# Check installation
+# Tarkista asennus
 az version
 
-# Login to Azure
+# Kirjaudu Azureen
 az login
 
-# Set default subscription (if you have multiple)
+# Aseta oletustilaus (jos sinulla on useita)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git on yleensä esiasennettu, mutta voit päivittää sen Homebrewin kautta
 brew install git
 ```
 
@@ -185,7 +185,7 @@ sudo dnf install git
 
 ### 4. Asenna VS Code
 
-Visual Studio Code tarjoaa integroidun kehitysympäristön MCP-tukeen.
+Visual Studio Code tarjoaa integroidun kehitysympäristön MCP-tuen kanssa.
 
 #### Asennus
 
@@ -200,30 +200,30 @@ brew install --cask visual-studio-code
 sudo snap install code --classic
 ```
 
-#### Tarvittavat Laajennukset
+#### Vaaditut laajennukset
 
 Asenna nämä VS Code -laajennukset:
 
 ```bash
-# Install via command line
+# Asenna komentorivin kautta
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
 
-Tai asenna VS Code -editorin kautta:
-1. Avaa VS Code
-2. Siirry Laajennuksiin (Ctrl+Shift+X)
-3. Asenna:
-   - **Python** (Microsoft)
-   - **Docker** (Microsoft)
-   - **Azure Account** (Microsoft)
-   - **JSON** (Microsoft)
+Tai asenna VS Code -sisäisesti:  
+1. Avaa VS Code  
+2. Mene Laajennuksiin (Ctrl+Shift+X)  
+3. Asenna:  
+   - **Python** (Microsoft)  
+   - **Docker** (Microsoft)  
+   - **Azure Account** (Microsoft)  
+   - **JSON** (Microsoft)  
 
 ### 5. Asenna Python
 
-Python 3.8+ vaaditaan MCP-palvelimen kehitykseen.
+Python 3.8+ vaaditaan MCP-palvelinten kehitykseen.
 
 #### Windows
 
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# Homebrewiä käyttäen
 brew install python@3.11
 ```
 
@@ -251,76 +251,76 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 sudo dnf install python3.11 python3.11-pip
 ```
 
-#### Varmista Asennus
+#### Varmista asennus
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Pitäisi näyttää Python 3.11.x
+pip --version      # Pitäisi näyttää pip-version
 ```
 
-## 🚀 Projektin Määrittäminen
+## 🚀 Projektin asennus
 
-### 1. Kloonaa Repositorio
+### 1. Kloonaa repositorio
 
 ```bash
-# Clone the main repository
+# Kloonaa päävarasto
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Siirry projektihakemistoon
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Varmista varastorakenne
 ls -la
 ```
 
-### 2. Luo Python Virtuaaliympäristö
+### 2. Luo Python-virtuaaliympäristö
 
 ```bash
-# Create virtual environment
+# Luo virtuaaliympäristö
 python -m venv mcp-env
 
-# Activate virtual environment
+# Aktivoi virtuaaliympäristö
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Päivitä pip
 python -m pip install --upgrade pip
 ```
 
-### 3. Asenna Python Riippuvuudet
+### 3. Asenna Python-riippuvuudet
 
 ```bash
-# Install development dependencies
+# Asenna kehitykseen liittyvät riippuvuudet
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Varmista tärkeät paketit
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
 
-## ☁️ Azure-resurssien Käyttöönotto
+## ☁️ Azuren resurssien käyttöönotto
 
-### 1. Resurssivaatimusten Ymmärtäminen
+### 1. Ymmärrä resurssivaatimukset
 
 MCP-palvelin tarvitsee seuraavat Azure-resurssit:
 
-| **Resurssi** | **Tarkoitus** | **Arvioitu Kustannus** |
-|--------------|-------------|-------------------|
-| **Azure AI Foundry** | AI-mallien isännöinti ja hallinta | $10-50/kuukausi |
-| **OpenAI Deployment** | Tekstien upotusmalli (text-embedding-3-small) | $5-20/kuukausi |
-| **Application Insights** | Seuranta ja telemetria | $5-15/kuukausi |
-| **Resource Group** | Resurssien organisointi | Ilmainen |
+| **Resurssi** | **Tarkoitus** | **Arvioitu hinta** |
+|--------------|---------------|--------------------|
+| **Microsoft Foundry** | AI-mallien ylläpito ja hallinta | 10-50 $/kk |
+| **OpenAI-julkaisu** | Tekstien upotusmalli (text-embedding-3-small) | 5-20 $/kk |
+| **Application Insights** | Seuranta ja telemetria | 5-15 $/kk |
+| **Resurssiryhmä** | Resurssien organisointi | Ilmainen |
 
-### 2. Ota Azure-resurssit Käyttöön
+### 2. Ota Azure-resurssit käyttöön
 
-#### Vaihtoehto A: Automaattinen Käyttöönotto (Suositeltu)
+#### Vaihtoehto A: Automaattinen käyttöönotto (suositeltu)
 
 ```bash
-# Navigate to infrastructure directory
+# Siirry infrastruktuurihakemistoon
 cd infra
 
 # Windows - PowerShell
@@ -330,28 +330,28 @@ cd infra
 ./deploy.sh
 ```
 
-Käyttöönotto-skripti:
-1. Luo ainutlaatuinen resurssiryhmä
-2. Ottaa käyttöön Azure AI Foundry -resurssit
-3. Ottaa käyttöön text-embedding-3-small -mallin
-4. Konfiguroi Application Insights
-5. Luo palveluperiaate autentikointia varten
-6. Generoi `.env`-tiedosto konfiguraatiolla
+Julkaisu skripti tekee seuraavaa:  
+1. Luo uniikin resurssiryhmän  
+2. Julkaisee Microsoft Foundry -resurssit  
+3. Julkaisee text-embedding-3-small -mallin  
+4. Konfiguroi Application Insightsin  
+5. Luopu palveluperustajan (service principal) todennusta varten  
+6. Luo `.env`-tiedoston konfiguraatiolla  
 
-#### Vaihtoehto B: Manuaalinen Käyttöönotto
+#### Vaihtoehto B: Manuaalinen käyttöönotto
 
-Jos haluat manuaalista hallintaa tai automaattinen skripti epäonnistuu:
+Jos haluat hallita manuaalisesti tai automaattinen skripti epäonnistuu:
 
 ```bash
-# Set variables
+# Aseta muuttujat
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Luo resurssiryhmä
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Ota päätason malli käyttöön
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,27 +359,27 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Varmista Azure Käyttöönotto
+### 3. Varmista Azuren käyttöönotto
 
 ```bash
-# Check resource group
+# Tarkista resurssiryhmä
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Listaa käyttöönotetut resurssit
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Testaa tekoälypalvelu
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
 
-### 4. Konfiguroi Ympäristömuuttujat
+### 4. Määritä ympäristömuuttujat
 
-Käyttöönoton jälkeen sinulla pitäisi olla `.env`-tiedosto. Varmista, että se sisältää:
+Projektin julkaisun jälkeen sinulla pitäisi olla `.env`-tiedosto. Varmista, että siinä on:
 
 ```bash
-# .env file contents
+# .env-tiedoston sisältö
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Tietokannan asetukset (kehitystä varten)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -396,11 +396,11 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
 
-## 🐳 Docker-ympäristön Määrittäminen
+## 🐳 Docker-ympäristön asennus
 
 ### 1. Ymmärrä Docker Compose
 
-Kehitysympäristömme käyttää Docker Composea:
+Kehitysympäristö toimii Docker Composella:
 
 ```yaml
 # docker-compose.yml overview
@@ -429,58 +429,58 @@ services:
       - .env
 ```
 
-### 2. Käynnistä Kehitysympäristö
+### 2. Käynnistä kehitysympäristö
 
 ```bash
-# Ensure you're in the project root directory
+# Varmista, että olet projektin juurihakemistossa
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Käynnistä palvelut
 docker-compose up -d
 
-# Check service status
+# Tarkista palvelun tila
 docker-compose ps
 
-# View logs
+# Katso lokit
 docker-compose logs -f
 ```
 
-### 3. Varmista Tietokannan Määrittäminen
+### 3. Varmista tietokannan asennus
 
 ```bash
-# Connect to PostgreSQL container
+# Yhdistä PostgreSQL-konttiin
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Tarkista tietokannan rakenne
 \dt retail.*
 
-# Verify sample data
+# Vahvista esimerkkitiedot
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Poistu PostgreSQL:stä
 \q
 ```
 
 ### 4. Testaa MCP-palvelin
 
 ```bash
-# Check MCP server health
+# Tarkista MCP-palvelimen tila
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Testaa perus MCP-päätepiste
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
 
-## 🔧 VS Code Konfigurointi
+## 🔧 VS Code -konfiguraatio
 
-### 1. Konfiguroi MCP-integraatio
+### 1. Määritä MCP-integraatio
 
-Luo VS Code MCP-konfiguraatio:
+Luo VS Code MCP -konfiguraatio:
 
 ```json
 // .vscode/mcp.json
@@ -506,7 +506,7 @@ Luo VS Code MCP-konfiguraatio:
 }
 ```
 
-### 2. Konfiguroi Python-ympäristö
+### 2. Määritä Python-ympäristö
 
 ```json
 // .vscode/settings.json
@@ -527,28 +527,28 @@ Luo VS Code MCP-konfiguraatio:
 
 ### 3. Testaa VS Code -integraatio
 
-1. **Avaa projekti VS Code:ssa**:
+1. **Avaa projekti VS Codessa**:
    ```bash
    code .
    ```
 
 2. **Avaa AI Chat**:
-   - Paina `Ctrl+Shift+P` (Windows/Linux) tai `Cmd+Shift+P` (macOS)
-   - Kirjoita "AI Chat" ja valitse "AI Chat: Open Chat"
+   - Paina `Ctrl+Shift+P` (Windows/Linux) tai `Cmd+Shift+P` (macOS)  
+   - Kirjoita "AI Chat" ja valitse "AI Chat: Open Chat"  
 
-3. **Testaa MCP-palvelinyhteys**:
-   - AI Chatissa kirjoita `#zava` ja valitse yksi konfiguroiduista palvelimista
-   - Kysy: "Mitkä taulut ovat saatavilla tietokannassa?"
-   - Sinun pitäisi saada vastaus, joka listaa vähittäiskaupan tietokantataulut
+3. **Testaa MCP-palvelimen yhteys**:  
+   - AI Chatissa kirjoita `#zava` ja valitse yksi konfiguroiduista palvelimista  
+   - Kysy: "Mitkä taulut ovat tietokannassa saatavilla?"  
+   - Saat vastauksen, joka listaa vähittäiskaupan tietokannan taulut  
 
-## ✅ Ympäristön Validointi
+## ✅ Ympäristön validointi
 
-### 1. Kattava Järjestelmän Tarkistus
+### 1. Kokonaisvaltainen järjestelmän tarkistus
 
-Suorita tämä validointiskripti varmistaaksesi ympäristön:
+Suorita tämä validointiskripti varmistaaksesi asennuksesi:
 
 ```bash
-# Create validation script
+# Luo validointiskripti
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Tarkista Pythonin versio
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Tarkista vaaditut paketit
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Tarkista Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Tarkista Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Tarkista ympäristömuuttujat
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Tarkista tietokantayhteys
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Testikysely
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Tarkista MCP-palvelin
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Tarkista Azure AI -palvelu
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Tämä epäonnistuu, jos tunnistetiedot ovat virheelliset
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Suorita validointi
 python validate_setup.py
 ```
 
-### 2. Manuaalinen Validointilista
+### 2. Manuaalinen tarkistuslista
 
-**✅ Perustyökalut**
-- [ ] Docker versio 20.10+ asennettu ja käynnissä
-- [ ] Azure CLI 2.40+ asennettu ja autentikoitu
-- [ ] Python 3.8+ pipin kanssa asennettu
-- [ ] Git 2.30+ asennettu
-- [ ] VS Code tarvittavilla laajennuksilla
+**✅ Perustyökalut**  
+- [ ] Docker versio 20.10+ asennettuna ja käynnissä  
+- [ ] Azure CLI 2.40+ asennettuna ja kirjautuneena sisään  
+- [ ] Python 3.8+ pipillä asennettuna  
+- [ ] Git 2.30+ asennettuna  
+- [ ] VS Code ja vaaditut laajennukset  
 
-**✅ Azure-resurssit**
-- [ ] Resurssiryhmä luotu onnistuneesti
-- [ ] AI Foundry -projekti otettu käyttöön
-- [ ] OpenAI text-embedding-3-small -malli otettu käyttöön
-- [ ] Application Insights konfiguroitu
-- [ ] Palveluperiaate luotu oikeilla käyttöoikeuksilla
+**✅ Azure-resurssit**  
+- [ ] Resurssiryhmä luotu onnistuneesti  
+- [ ] AI Foundry -projekti julkaistu  
+- [ ] OpenAI text-embedding-3-small -malli julkaistu  
+- [ ] Application Insights konfiguroitu  
+- [ ] Palveluperustaja luotu oikeilla käyttöoikeuksilla  
 
-**✅ Ympäristön Konfigurointi**
-- [ ] `.env`-tiedosto luotu kaikilla tarvittavilla muuttujilla
-- [ ] Azure-tunnukset toimivat (testaa `az account show`)
-- [ ] PostgreSQL-kontti käynnissä ja saavutettavissa
-- [ ] Esimerkkidata ladattu tietokantaan
+**✅ Ympäristökonfiguraatio**  
+- [ ] `.env`-tiedosto luotu kaikilla vaadituilla muuttujilla  
+- [ ] Azure-tunnukset toimivat (testaa `az account show`)  
+- [ ] PostgreSQL-kontti käynnissä ja saavutettavissa  
+- [ ] Esimerkkidata ladattu tietokantaan  
 
-**✅ VS Code -integraatio**
-- [ ] `.vscode/mcp.json` konfiguroitu
-- [ ] Python-tulkki asetettu virtuaaliympäristöön
-- [ ] MCP-palvelimet näkyvät AI Chatissa
-- [ ] Testikyselyt voidaan suorittaa AI Chatissa
+**✅ VS Code -integraatio**  
+- [ ] `.vscode/mcp.json` konfiguroitu  
+- [ ] Python-tulkki asetettu virtuaaliympäristöön  
+- [ ] MCP-palvelimet näkyvät AI Chatissa  
+- [ ] Voit suorittaa testikyselyitä AI Chatin kautta  
 
-## 🛠️ Yleisten Ongelmien Ratkaisu
+## 🛠️ Yleisiä ongelmia ja ratkaisuja
 
 ### Docker-ongelmat
 
-**Ongelma**: Docker-kontit eivät käynnisty
+**Ongelma**: Docker-kontit eivät käynnisty  
 ```bash
-# Check Docker service status
+# Tarkista Docker-palvelun tila
 docker info
 
-# Check available resources
+# Tarkista käytettävissä olevat resurssit
 docker system df
 
-# Clean up if needed
+# Siivoa tarvittaessa
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Käynnistä Docker Desktop uudelleen (Windows/macOS)
+# Tai käynnistä Docker-palvelu uudelleen (Linux)
 sudo systemctl restart docker
 ```
 
-**Ongelma**: PostgreSQL-yhteys epäonnistuu
+**Ongelma**: PostgreSQL-yhteys epäonnistuu  
 ```bash
-# Check container logs
+# Tarkista säiliön lokit
 docker-compose logs postgres
 
-# Verify container is healthy
+# Varmista, että säiliö on toimintakunnossa
 docker-compose ps
 
-# Test direct connection
+# Testaa suora yhteys
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
 
-### Azure Käyttöönotto-ongelmat
+### Azure-julkaisun ongelmat
 
-**Ongelma**: Azure-käyttöönotto epäonnistuu
+**Ongelma**: Azuren julkaisu epäonnistuu  
 ```bash
-# Check Azure CLI authentication
+# Tarkista Azure CLI -todentaminen
 az account show
 
-# Verify subscription permissions
+# Vahvista tilauksen oikeudet
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Tarkista resurssipalveluntarjoajan rekisteröinti
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
 
-**Ongelma**: AI-palvelun autentikointi epäonnistuu
+**Ongelma**: AI-palvelun todennus epäonnistuu  
 ```bash
-# Test service principal
+# Testaa palveluperiaate
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Vahvista tekoälypalvelun käyttöönotto
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
 
-### Python-ympäristöongelmat
+### Python-ympäristön ongelmat
 
-**Ongelma**: Pakettien asennus epäonnistuu
+**Ongelma**: Paketin asennus epäonnistuu  
 ```bash
-# Upgrade pip and setuptools
+# Päivitä pip ja setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Tyhjennä pip-välimuisti
 pip cache purge
 
-# Install packages one by one to identify issues
+# Asenna paketit yksitellen ongelmien tunnistamiseksi
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
 
-**Ongelma**: VS Code ei löydä Python-tulkkia
+**Ongelma**: VS Code ei löydä Python-tulkinta  
 ```bash
-# Show Python interpreter paths
+# Näytä Python-tulkinta polut
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Aktivoi virtuaaliympäristö ensin
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Avaa sitten VS Code
 code .
 ```
 
-## 🎯 Keskeiset Opit
+## 🎯 Tärkeimmät huomioitavat asiat
 
-Labran suorittamisen jälkeen sinulla pitäisi olla:
+Harjoituksen suorittamisen jälkeen sinulla pitäisi olla:
 
-✅ **Täydellinen Kehitysympäristö**: Kaikki työkalut asennettu ja konfiguroitu  
-✅ **Azure-resurssit Käytössä**: AI-palvelut ja tukirakenteet  
-✅ **Docker-ympäristö Käynnissä**: PostgreSQL- ja MCP-palvelinkontit  
-✅ **VS Code -integraatio**: MCP-palvelimet konfiguroitu ja saavutettavissa  
-✅ **Validointi Suoritettu**: Kaikki komponentit testattu ja toimivat yhdessä  
-✅ **Ongelmanratkaisutaidot**: Yleisimmät ongelmat ja ratkaisut  
+✅ **Täydellinen kehitysympäristö**: Kaikki työkalut asennettu ja konfiguroitu  
+✅ **Azure-resurssit julkaistu**: AI-palvelut ja tukiinfrastruktuuri  
+✅ **Docker-ympäristö käynnissä**: PostgreSQL ja MCP-palvelinkontit  
+✅ **VS Code -integraatio**: MCP-palvelimet konfiguroitu ja käytettävissä  
+✅ **Validointitulokset**: Kaikki osat testattu ja toimivat yhdessä  
+✅ **Vianmääritystieto**: Yleiset ongelmat ja ratkaisut  
 
-## 🚀 Mitä Seuraavaksi
+## 🚀 Mitä seuraavaksi
 
-Kun ympäristösi on valmis, jatka **[Labra 04: Tietokannan Suunnittelu ja Skeema](../04-Database/README.md)**:
+Kun ympäristö on valmis, jatka tehtävään **[Lab 04: Tietokannan suunnittelu ja skeema](../04-Database/README.md)**, jossa:
 
-- Tutustu vähittäiskaupan tietokantaskeemaan yksityiskohtaisesti
-- Ymmärrä monivuokraajamallin tietomallinnus
-- Opi rivitason turvallisuuden toteutuksesta
-- Työskentele esimerkkivähittäiskauppadatan kanssa
+- Tutustut vähittäiskaupan tietokantarkenteeseen yksityiskohtaisesti  
+- Ymmärrät monivuokraajaympäristön tietomallin  
+- Opit rivitason turvallisuuden toteutuksen  
+- Harjoittelet käytännön vähittäiskaupan datan kanssa  
 
-## 📚 Lisäresurssit
+## 📚 Lisäresursseja
 
 ### Kehitystyökalut
-- [Docker Dokumentaatio](https://docs.docker.com/) - Dockerin kattava viite
-- [Azure CLI Viite](https://docs.microsoft.com/cli/azure/) - Azure CLI -komennot
-- [VS Code Dokumentaatio](https://code.visualstudio.com/docs) - Editorin konfigurointi ja laajennukset
+- [Docker-dokumentaatio](https://docs.docker.com/) – Täydellinen Docker-opas  
+- [Azure CLI -viite](https://docs.microsoft.com/cli/azure/) – Azure CLI -komennot  
+- [VS Code -dokumentaatio](https://code.visualstudio.com/docs) – Editorin konfigurointi ja laajennukset  
 
 ### Azure-palvelut
-- [Azure AI Foundry Dokumentaatio](https://docs.microsoft.com/azure/ai-foundry/) - AI-palvelun konfigurointi
-- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI-mallin käyttöönotto
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Seurannan määrittäminen
+- [Microsoft Foundryn dokumentaatio](https://docs.microsoft.com/azure/ai-foundry/) – AI-palvelun konfigurointi  
+- [Azure OpenAI -palvelu](https://docs.microsoft.com/azure/cognitive-services/openai/) – AI-mallin julkaisu  
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) – Seurannan asetukset  
 
 ### Python-kehitys
-- [Python Virtuaaliympäristöt](https://docs.python.org/3/tutorial/venv.html) - Ympäristön hallinta
-- [AsyncIO Dokumentaatio](https://docs.python.org/3/library/asyncio.html) - Asynkronisen ohjelmoinnin mallit
-- [FastAPI Dokumentaatio](https://fastapi.tiangolo.com/) - Web-kehysmallit
+- [Pythonin virtuaaliympäristöt](https://docs.python.org/3/tutorial/venv.html) – Ympäristön hallinta  
+- [AsyncIO-dokumentaatio](https://docs.python.org/3/library/asyncio.html) – Asynkronisen ohjelmoinnin mallit  
+- [FastAPI-dokumentaatio](https://fastapi.tiangolo.com/) – Web-kehysmallit  
 
 ---
 
-**Seuraavaksi**: Ympäristö valmis? Jatka [Labra 04: Tietokannan Suunnittelu ja Skeema](../04-Database/README.md)
+**Seuraava**: Ympäristö valmiina? Jatka tehtävään [Lab 04: Tietokannan suunnittelu ja skeema](../04-Database/README.md)
 
 ---
 
-**Vastuuvapauslauseke**:  
-Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, huomioithan, että automaattiset käännökset voivat sisältää virheitä tai epätarkkuuksia. Alkuperäistä asiakirjaa sen alkuperäisellä kielellä tulisi pitää ensisijaisena lähteenä. Kriittisen tiedon osalta suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa väärinkäsityksistä tai virhetulkinnoista, jotka johtuvat tämän käännöksen käytöstä.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vastuuvapauslauseke**:
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

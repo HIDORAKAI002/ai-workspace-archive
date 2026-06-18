@@ -1,7 +1,7 @@
-# 🔧 Modul 3: Pokročilý vývoj MCP s AI Toolkit
+# 🔧 Modul 3: Pokročilý vývoj MCP s Microsoft Foundry Toolkit
 
 ![Duration](https://img.shields.io/badge/Duration-20_minutes-blue?style=flat-square)
-![AI Toolkit](https://img.shields.io/badge/AI_Toolkit-Required-orange?style=flat-square)
+![Microsoft Foundry Toolkit](https://img.shields.io/badge/Microsoft_Foundry_Toolkit-Required-orange?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10+-green?style=flat-square)
 ![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.9.3-purple?style=flat-square)
 ![Inspector](https://img.shields.io/badge/MCP_Inspector-0.14.0-blue?style=flat-square)
@@ -10,24 +10,24 @@
 
 Na konci tohto laboratória budete schopní:
 
-- ✅ Vytvárať vlastné MCP servery pomocou AI Toolkit
-- ✅ Konfigurovať a používať najnovšiu verziu MCP Python SDK (v1.9.3)
+- ✅ Vytvárať vlastné MCP servery pomocou Microsoft Foundry Toolkit
+- ✅ Konfigurovať a používať najnovší MCP Python SDK (v1.9.3)
 - ✅ Nastaviť a využiť MCP Inspector na ladenie
-- ✅ Ladiť MCP servery v prostredí Agent Builder aj Inspector
+- ✅ Ladiť MCP servery v prostrediach Agent Builder aj Inspector
 - ✅ Pochopiť pokročilé pracovné postupy vývoja MCP serverov
 
 ## 📋 Predpoklady
 
-- Dokončenie Lab 2 (Základy MCP)
-- VS Code s nainštalovaným rozšírením AI Toolkit
+- Dokončenie laboratória 2 (MCP základy)
+- VS Code s nainštalovaným rozšírením Microsoft Foundry Toolkit
 - Prostredie Python 3.10+
-- Node.js a npm pre nastavenie Inspector
+- Node.js a npm pre nastavenie Inspectora
 
 ## 🏗️ Čo si vytvoríte
 
 V tomto laboratóriu vytvoríte **Weather MCP Server**, ktorý demonštruje:
-- Implementáciu vlastného MCP servera
-- Integráciu s AI Toolkit Agent Builder
+- Vlastnú implementáciu MCP servera
+- Integráciu s Microsoft Foundry Toolkit Agent Builderom
 - Profesionálne pracovné postupy ladenia
 - Moderné vzory používania MCP SDK
 
@@ -36,34 +36,34 @@ V tomto laboratóriu vytvoríte **Weather MCP Server**, ktorý demonštruje:
 ## 🔧 Prehľad hlavných komponentov
 
 ### 🐍 MCP Python SDK
-Model Context Protocol Python SDK poskytuje základ pre tvorbu vlastných MCP serverov. Použijete verziu 1.9.3 s vylepšenými možnosťami ladenia.
+Model Context Protocol Python SDK poskytuje základ pre tvorbu vlastných MCP serverov. Použijete verziu 1.9.3 s rozšírenými možnosťami ladenia.
 
 ### 🔍 MCP Inspector
 Výkonný nástroj na ladenie, ktorý ponúka:
 - Monitorovanie servera v reálnom čase
 - Vizualizáciu vykonávania nástrojov
-- Kontrolu sieťových požiadaviek a odpovedí
+- Inšpekciu sieťových požiadaviek/odpovedí
 - Interaktívne testovacie prostredie
 
 ---
 
-## 📖 Krok za krokom: Implementácia
+## 📖 Krok za krokom implementácia
 
-### Krok 1: Vytvorte WeatherAgent v Agent Builder
+### Krok 1: Vytvorenie WeatherAgenta v Agent Builder
 
-1. **Spustite Agent Builder** vo VS Code cez rozšírenie AI Toolkit
-2. **Vytvorte nového agenta** s nasledujúcou konfiguráciou:
+1. **Spustite Agent Builder** vo VS Code cez rozšírenie Microsoft Foundry Toolkit
+2. **Vytvorte nového agenta** s touto konfiguráciou:
    - Názov agenta: `WeatherAgent`
 
 ![Agent Creation](../../../../translated_images/sk/Agent.c9c33f6a412b4cde.webp)
 
-### Krok 2: Inicializujte projekt MCP servera
+### Krok 2: Inicializácia projektu MCP servera
 
-1. **Prejdite do Tools** → **Add Tool** v Agent Builder
-2. **Vyberte "MCP Server"** z dostupných možností
+1. **Prejdite na Tools** → **Add Tool** v Agent Builder
+2. **Vyberte "MCP Server"** zo zoznamu dostupných možností
 3. **Zvoľte "Create A new MCP Server"**
 4. **Vyberte šablónu `python-weather`**
-5. **Pomenujte svoj server:** `weather_mcp`
+5. **Pomenujte server:** `weather_mcp`
 
 ![Python Template Selection](../../../../translated_images/sk/Pythontemplate.9d0a2913c6491500.webp)
 
@@ -86,31 +86,31 @@ Výkonný nástroj na ladenie, ktorý ponúka:
    └── README.md
    ```
 
-### Krok 4: Aktualizujte na najnovšie MCP SDK
+### Krok 4: Upgrade na najnovšie MCP SDK
 
-> **🔍 Prečo aktualizovať?** Chceme použiť najnovšiu verziu MCP SDK (v1.9.3) a službu Inspector (0.14.0) pre rozšírené funkcie a lepšie možnosti ladenia.
+> **🔍 Prečo upgrade?** Chceme použiť najnovšie MCP SDK (v1.9.3) a službu Inspector (0.14.0) pre lepšie funkcie a rozšírené možnosti ladenia.
 
 #### 4a. Aktualizujte Python závislosti
 
 **Upravte `pyproject.toml`:** aktualizujte [./code/weather_mcp/pyproject.toml](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/pyproject.toml)
 
-#### 4b. Aktualizujte konfiguráciu Inspector
+#### 4b. Aktualizujte konfiguráciu Inspectora
 
 **Upravte `inspector/package.json`:** aktualizujte [./code/weather_mcp/inspector/package.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package.json)
 
-#### 4c. Aktualizujte závislosti Inspector
+#### 4c. Aktualizujte závislosti Inspectora
 
 **Upravte `inspector/package-lock.json`:** aktualizujte [./code/weather_mcp/inspector/package-lock.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package-lock.json)
 
-> **📝 Poznámka:** Tento súbor obsahuje rozsiahle definície závislostí. Nižšie je základná štruktúra – kompletný obsah zabezpečuje správne vyriešenie závislostí.
+> **📝 Poznámka:** Tento súbor obsahuje rozsiahle definície závislostí. Nižšie je základná štruktúra – celý obsah zabezpečuje správne vyriešenie závislostí.
 
-> **⚡ Kompletný package-lock:** Celý package-lock.json obsahuje približne 3000 riadkov definícií závislostí. Vyššie je zobrazená kľúčová štruktúra – pre úplné vyriešenie závislostí použite poskytnutý súbor.
+> **⚡ Kompletný Package Lock:** Celý package-lock.json obsahuje približne 3000 riadkov definícií závislostí. Vyššie je zobrazená kľúčová štruktúra – pre úplné vyriešenie závislostí používajte dodaný súbor.
 
-### Krok 5: Nastavte ladenie vo VS Code
+### Krok 5: Konfigurácia ladenia vo VS Code
 
 *Poznámka: Skopírujte súbor na uvedenú cestu, aby ste nahradili príslušný lokálny súbor*
 
-#### 5a. Aktualizujte konfiguráciu spustenia
+#### 5a. Aktualizujte konfiguráciu spúšťania
 
 **Upravte `.vscode/launch.json`:**
 
@@ -291,6 +291,7 @@ Výkonný nástroj na ladenie, ktorý ponúka:
 }
 ```
 
+
 ---
 
 ## 🚀 Spustenie a testovanie MCP servera
@@ -304,18 +305,18 @@ Po vykonaní zmien v konfigurácii spustite nasledujúce príkazy:
 uv sync
 ```
 
-**Inštalácia závislostí Inspector:**
+**Inštalácia závislostí Inspectora:**
 ```bash
 cd inspector
 npm install
 ```
 
-### Krok 7: Ladenie v Agent Builder
+### Krok 7: Ladenie pomocou Agent Builder
 
 1. **Stlačte F5** alebo použite konfiguráciu **"Debug in Agent Builder"**
-2. **Vyberte zloženú konfiguráciu** v debug paneli
-3. **Počkajte na spustenie servera** a otvorenie Agent Builder
-4. **Otestujte svoj weather MCP server** pomocou prirodzených jazykových dotazov
+2. **Vyberte zloženú konfiguráciu** v paneli ladenia
+3. **Počkajte na spustenie servera** a otvorenie Agent Buildera
+4. **Otestujte váš weather MCP server** pomocou prirodzených jazykových dopytov
 
 Zadajte prompt ako tento
 
@@ -333,12 +334,12 @@ How's the weather like in Seattle
 
 ![Agent Builder Debug Result](../../../../translated_images/sk/Result.6ac570f7d2b1d538.webp)
 
-### Krok 8: Ladenie s MCP Inspector
+### Krok 8: Ladenie pomocou MCP Inspectora
 
 1. **Použite konfiguráciu "Debug in Inspector"** (Edge alebo Chrome)
-2. **Otvorte rozhranie Inspector** na adrese `http://localhost:6274`
+2. **Otvorte rozhranie Inspectora** na adrese `http://localhost:6274`
 3. **Preskúmajte interaktívne testovacie prostredie:**
-   - Prezrite si dostupné nástroje
+   - Prezrite dostupné nástroje
    - Otestujte vykonávanie nástrojov
    - Sledujte sieťové požiadavky
    - Ladiť odpovede servera
@@ -351,40 +352,44 @@ How's the weather like in Seattle
 
 Dokončením tohto laboratória ste:
 
-- [x] **Vytvorili vlastný MCP server** pomocou šablón AI Toolkit
-- [x] **Aktualizovali na najnovšie MCP SDK** (v1.9.3) pre rozšírenú funkcionalitu
-- [x] **Nakonfigurovali profesionálne pracovné postupy ladenia** pre Agent Builder aj Inspector
-- [x] **Nastavili MCP Inspector** pre interaktívne testovanie servera
-- [x] **Ovládli konfigurácie ladenia vo VS Code** pre vývoj MCP
+- [x] **Vytvorili vlastný MCP server** pomocou Microsoft Foundry Toolkit šablón
+- [x] **Upgradovali na najnovší MCP SDK** (v1.9.3) pre rozšírenú funkcionalitu
+- [x] **Nakonfigurovali profesionálne pracovné postupy ladenia** pre Agent Builder i Inspector
+- [x] **Nastavili MCP Inspector** na interaktívne testovanie servera
+- [x] **Osvojili si konfigurácie ladenia vo VS Code** pre vývoj MCP
 
 ## 🔧 Preskúmané pokročilé funkcie
 
 | Funkcia | Popis | Použitie |
-|---------|--------|----------|
-| **MCP Python SDK v1.9.3** | Najnovšia implementácia protokolu | Moderný vývoj servera |
+|---------|-------------|----------|
+| **MCP Python SDK v1.9.3** | Najnovšia implementácia protokolu | Moderný vývoj serverov |
 | **MCP Inspector 0.14.0** | Interaktívny nástroj na ladenie | Testovanie servera v reálnom čase |
-| **VS Code Debugging** | Integrované vývojové prostredie | Profesionálny pracovný postup ladenia |
-| **Integrácia Agent Builder** | Priame prepojenie s AI Toolkit | Komplexné testovanie agenta |
+| **Ladenie vo VS Code** | Integrované vývojové prostredie | Profesionálny pracovný postup ladenia |
+| **Integrácia s Agent Builder** | Priame prepojenie s Microsoft Foundry Toolkit | Testovanie agenta end-to-end |
 
 ## 📚 Dodatočné zdroje
 
-- [MCP Python SDK Dokumentácia](https://modelcontextprotocol.io/docs/sdk/python)
-- [Sprievodca rozšírením AI Toolkit](https://code.visualstudio.com/docs/ai/ai-toolkit)
+- [Dokumentácia MCP Python SDK](https://modelcontextprotocol.io/docs/sdk/python)
+- [Sprievodca rozšírením Microsoft Foundry Toolkit](https://code.visualstudio.com/docs/ai/ai-toolkit)
 - [Dokumentácia ladenia vo VS Code](https://code.visualstudio.com/docs/editor/debugging)
 - [Špecifikácia Model Context Protocol](https://modelcontextprotocol.io/docs/concepts/architecture)
 
 ---
 
-**🎉 Gratulujeme!** Úspešne ste dokončili Lab 3 a teraz viete vytvárať, ladiť a nasadzovať vlastné MCP servery pomocou profesionálnych pracovných postupov vývoja.
+**🎉 Gratulujeme!** Úspešne ste dokončili Laboratórium 3 a teraz môžete vytvárať, ladiť a nasadzovať vlastné MCP servery s použitím profesionálnych pracovných postupov vývoja.
 
 ### 🔜 Pokračujte do ďalšieho modulu
 
-Ste pripravení aplikovať svoje MCP zručnosti v reálnom vývojovom prostredí? Pokračujte do **[Modul 4: Praktický vývoj MCP - Vlastný GitHub Clone Server](../lab4/README.md)**, kde budete:
-- Stavať produkčne pripravený MCP server, ktorý automatizuje operácie s GitHub repozitármi
-- Implementovať funkciu klonovania GitHub repozitárov cez MCP
-- Integrovať vlastné MCP servery s VS Code a GitHub Copilot Agent Mode
-- Testovať a nasadzovať vlastné MCP servery v produkčnom prostredí
-- Naučiť sa praktickú automatizáciu pracovných postupov pre vývojárov
+Ste pripravení aplikovať svoje MCP zručnosti v reálnom vývojovom workflow? Pokračujte do **[Modul 4: Praktický vývoj MCP - vlastný server pre klonovanie GitHub](../lab4/README.md)**, kde budete:
+- Stavať produkčne pripravený MCP server, ktorý automatizuje operácie so skladiskami GitHub
+- Implementovať funkcionalitu klonovania GitHub repozitárov cez MCP
+- Integrovať vlastné MCP servery s VS Code a režimom agenta GitHub Copilot
+- Testovať a nasadzovať vlastné MCP servery v produkčných prostrediach
+- Učiť sa praktickú automatizáciu pracovných postupov pre vývojárov
 
-**Vyhlásenie o zodpovednosti**:  
-Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, prosím, majte na pamäti, že automatizované preklady môžu obsahovať chyby alebo nepresnosti. Originálny dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za akékoľvek nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

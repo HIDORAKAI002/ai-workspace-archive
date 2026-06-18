@@ -2,105 +2,109 @@
 
 ## Overview
 
-Real-time web search don turn important for today world wey dey run on information, where apps need quick access to fresh gist wey dey internet to fit give correct and timely answers. The Model Context Protocol (MCP) na big step forward to make these real-time search processes better, make search dey sharp, keep context intact, and improve how the system dey perform.
+Real-time web search don become important for today information-driven environment, wey applications need immediate access to up-to-date information spread internet make dem fit give relevant and timely responses. The Model Context Protocol (MCP) na big step forward to optimize dis kain real-time search process dem, e dey improve search efficiency, keep context correct, and boost overall system performance.
 
-This module go show how MCP dey change real-time web search by giving one standard way to manage context between AI models, search engines, and apps.
+Dis module go explore how MCP dey transform real-time web search by giving standardized way to manage context across AI models, search engines, and applications.
 
 ### Wetin You Go Learn
 
-For this guide wey full ground, you go sabi:
+For dis comprehensive guide, you go discover:
 
-- How MCP dey connect AI models and real-time web search well well
-- How to build search systems wey go work sharp and fit grow big with MCP
-- How to keep search context steady across plenty queries and interactions
-- Code examples for Python and JavaScript wey go show different search situations
-- How to balance relevance, freshness, and performance for MCP-powered search systems
+- How MCP dey create smooth bridge between AI models and real-time web search capabilities
+- Architectural patterns to put efficient and scalable search solutions with MCP
+- Techniques to keep search context for many queries and interactions
+- Practical code implementations for Python and JavaScript for different search scenarios
+- Methods to balance relevance, recency, and performance for MCP-powered search systems
 
 ## Introduction to Real-Time Web Search
 
-Real-time web search na tech wey dey allow systems dey query, process, and analyze web gist as e dey drop or update, so systems fit give fresh and correct gist with small delay. E no be like old search systems wey dey work on indexed data wey fit don old for hours or days. Real-time search dey work with live data from the web, dey give insight and gist wey dey reflect wetin dey happen now for online content.
+Real-time web search na technological way wey make enquiry, process, and analysis of web-based info dey happen continuously as e dey publish or update, so so that systems fit give fresh and relevant info with small delay. E no be like old search systems wey dey work on indexed data wey fit dey hours or days old, real-time search dey process live data from web, e dey deliver insights and info wey represent the current state of online content.
 
-### Main Ideas for Real-Time Web Search:
+### Core Concepts of Real-Time Web Search:
 
-- **Continuous Query Processing**: Search dey process queries with data wey dey update steady
-- **Recency Prioritization**: Systems dey focus on fresh gist
-- **Relevance Balancing**: E dey balance relevance and freshness
-- **Scalable Architecture**: Systems fit handle plenty query load and data size
-- **Contextual Understanding**: E dey keep user context steady across search rounds to give better results
-- **Dynamic Query Reformulation**: E dey change queries based on context and past results
-- **Multi-Source Integration**: E dey join results from different search providers and web sources
-- **Semantic Understanding**: E dey process queries and content based on meaning, no be just keywords
-- **Real-Time Ranking**: E dey adjust result ranking steady as new gist dey drop
+- **Continuous Query Processing**: Search queries dey process against data source wey dey update all time
+- **Recency Prioritization**: Systems dey designed to put fresh info first
+- **Relevance Balancing**: Make sure say relevance and recency balance well
+- **Scalable Architecture**: Systems fit handle different query loads and data volumes
+- **Contextual Understanding**: Keep user context across search sessions very important to get correct results
+- **Dynamic Query Reformulation**: Change queries based on context and previous results
+- **Multi-Source Integration**: Join results wey come from many search providers and web sources
+- **Semantic Understanding**: Process queries and content based on meaning, no be only keywords
+- **Real-Time Ranking**: Adjust result ranking all the time as new info show
 
 ### The Model Context Protocol and Real-Time Web Search
 
-The Model Context Protocol (MCP) dey solve some big wahala for real-time web search:
+The Model Context Protocol (MCP) dey solve many important problems for real-time web search environment:
 
-1. **Search Context Preservation**: MCP dey make sure context dey steady across different search parts, so AI models and processing nodes go get access to query history and user preferences.
-2. **Efficient Query Management**: MCP dey reduce the stress of repeating context for every search round.
-3. **Interoperability**: MCP dey create one common way for context sharing between different search tech and AI models, so systems go dey flexible and fit grow.
-4. **Search-Optimized Context**: MCP dey focus on the context wey go help search work better, make am fast and correct.
-5. **Adaptive Search Processing**: MCP dey help search systems adjust how dem dey process based on user needs and the kind gist wey dey ground.
+1. **Search Context Preservation**: MCP set standard for how to keep context across different search parts, make sure AI models and processing nodes fit access correct query history and user preferences.
 
-For modern apps like news aggregation and research assistants, MCP dey help web search tech work smarter, dey understand context, and dey give better results as users dey interact.
+2. **Efficient Query Management**: MCP provide methods to pass context structuredly, e dey reduce wahala of repeating context every search time.
+
+3. **Interoperability**: MCP create common language for context sharing between different search technologies and AI models, e make architecture flexible and extensible.
+
+4. **Search-Optimized Context**: MCP implementation fit prioritize which context parts important for good search, to optimize both performance and accuracy.
+
+5. **Adaptive Search Processing**: With correct context management through MCP, search system fit change how e process based on user needs wey dey change and info landscape.
+
+For modern apps, from news aggregation to research assistants, putting MCP with web search technology allow search wey sabi well, get mind for context and fit give more relevant results as user dey interact more.
 
 ## Learning Objectives
 
-By the time you finish this lesson, you go fit:
+By finish dis lesson, you go fit:
 
-- Sabi the basics of real-time web search and the wahala wey dey for modern apps
-- Explain how Model Context Protocol (MCP) dey make real-time web search better
-- Use MCP to build search solutions with popular frameworks and APIs
-- Design and deploy search systems wey go work fast and fit grow big with MCP
-- Use MCP ideas for different things like semantic search, research assistance, and AI browsing
-- Check new trends and future ideas for MCP-based search tech
-- Build search systems wey dey learn from user interactions
-- Add web search to AI assistants with MCP protocols
-- Create search pipelines wey dey refine results step by step based on context
-- Make search work sharp while keeping context steady
+- Understand basics of real-time web search and wetin challenge e get for modern apps
+- Explain how Model Context Protocol (MCP) dey improve real-time web search abilities
+- Implement MCP-based search solutions with popular frameworks and APIs
+- Design and deploy scalable, high-performance search architecture with MCP
+- Apply MCP ideas to different use cases, like semantic search, research help, and AI-enhanced browsing
+- Review new trends and future plans for MCP-based search technology
+- Build search systems wey know context well and dey learn from user interaction
+- Join web search abilities into AI assistants using MCP standard protocol
+- Create multi-step search pipelines wey dey improve results based on context
+- Optimize search performance while make sure context dey complete
 
 ### Definition and Significance
 
-Real-time web search na way to dey query, collect, and deliver web gist with small delay. E no be like old search engines wey dey crawl and index web gist once in a while. Real-time search dey bring gist as e dey drop, so people fit get fresh content quick.
+Real-time web search na continuous process to query, collect, and give web info with small delay. E no be like traditional search engines wey dey crawl and index web sometimes, real-time search aim to bring info as e dey happen, so person fit get quick access to the newest content.
 
-Main things for real-time web search include:
+Key things about real-time web search include:
 
-- **Freshness**: E dey focus on new gist and updates
-- **Continuous Processing**: E dey monitor steady for new gist
-- **Query Adaptation**: E dey refine search queries based on context and feedback
-- **Immediate Delivery**: E dey give search results quick quick
-- **Context Retention**: E dey build on past queries to make results better
+- **Freshness**: Put recent content and update first
+- **Continuous Processing**: Always dey watch for new info
+- **Query Adaptation**: Change search queries based on context and feedback
+- **Immediate Delivery**: Give search results with little delay
+- **Context Retention**: Build on previous searches to make results better
 
-### Wahala for Old Web Search
+### Challenges in Traditional Web Search
 
-Old web search get some problems when e come to real-time search:
+Traditional web search get some problems when dem try use am for real-time matters:
 
-1. **Context Fragmentation**: E dey hard to keep search context steady across plenty queries
-2. **Information Freshness**: E dey hard to get and focus on the latest gist
-3. **Integration Complexity**: E dey hard to make search systems and apps work together
-4. **Latency Issues**: E dey hard to balance full search with quick response time
-5. **Relevance Tuning**: E dey hard to make search correct and relevant while focusing on freshness
+1. **Context Fragmentation**: Hard to keep search context for many queries
+2. **Information Freshness**: Tough to get and put recent info first
+3. **Integration Complexity**: Problems joining search systems and apps
+4. **Latency Issues**: Balance big search result and quick response
+5. **Relevance Tuning**: Make sure accuracy and relevance while putting recency first
 
 ## Understanding Model Context Protocol (MCP) for Search
 
-### Wetin Be MCP for Search Context?
+### Wetin MCP Mean for Search Context?
 
-The Model Context Protocol (MCP) na standard way wey dey help AI models and apps work together well. For real-time web search, MCP dey give framework for:
+The Model Context Protocol (MCP) na standardized communication protocol wey help make interaction between AI models and applications easy. For real-time web search, MCP provide framework wey:
 
-- Keeping search context steady across query rounds
-- Standardizing search query and result formats
-- Making search parameters and results transmission sharp
-- Making model-to-search engine communication better
+- Keep search context from first to last query
+- Standardize search query and result formats
+- Optimize how search parameters and results dey passed
+- Improve communication between model and search engine
 
-### Main Parts and Architecture
+### Core Components and Architecture
 
-MCP architecture for real-time web search get some important parts:
+MCP architecture for real-time web search get these main parts:
 
-1. **Query Context Handlers**: Dem dey manage and keep search context steady across plenty queries
-2. **Search Processors**: Dem dey process search requests with context-aware methods
-3. **Protocol Adapters**: Dem dey change between different search APIs while keeping context
-4. **Context Store**: Dem dey store and bring back search history and preferences well
-5. **Search Connectors**: Dem dey connect to different search engines and web APIs
+1. **Query Context Handlers**: Manage and keep search context for many queries
+2. **Search Processors**: Process incoming search requests with context-aware methods
+3. **Protocol Adapters**: Change one search API to another and still keep context
+4. **Context Store**: Efficiently keep and find search history and preferences
+5. **Search Connectors**: Connect to different search engines and web APIs
 
 ```mermaid
 graph TD
@@ -169,39 +173,39 @@ graph TD
     class RA,Alerts,KB,API apps
 ```
 
-### How MCP Dey Make Real-Time Web Search Better
+### How MCP Improves Real-Time Web Search
 
-MCP dey solve old web search wahala by:
+MCP dey solve traditional web search problems by:
 
-- **Contextual Continuity**: E dey keep relationship between queries steady for the whole search session
-- **Optimized Transmission**: E dey reduce repeating search parameters with smart context management
-- **Standardized Interfaces**: E dey give consistent APIs for search parts
-- **Reduced Latency**: E dey make processing fast with good context handling
-- **Enhanced Relevance**: E dey make search results better by keeping user intent steady across queries
+- **Contextual Continuity**: Keep link between queries for whole search session
+- **Optimized Transmission**: Reduce repeating search parameters with smart context management
+- **Standardized Interfaces**: Provide consistent APIs for search parts
+- **Reduced Latency**: Minimize processing delay with good context handling
+- **Enhanced Relevance**: Improve search relevance by keeping user intent for many queries
 
 ## Integration and Implementation
 
-Real-time web search systems need good design and implementation to keep performance and context steady. The Model Context Protocol dey give one standard way to join AI models and search tech, so systems go fit work smarter and understand context well.
+Real-time web search systems need careful design and implementation to keep both performance and correct context. Model Context Protocol na standardized way to fit join AI models and search tech, e allow search pipelines wey get more skill and sabi context.
 
-### Overview of MCP Integration for Search Systems
+### Overview of MCP Integration in Search Architectures
 
-To use MCP for real-time web search, you need to think about:
+To implement MCP for real-time web search, you need consider these:
 
-1. **Search Context Serialization**: MCP dey give sharp way to encode context info inside search requests, so context go follow query through the processing pipeline. E dey use standard serialization formats wey fit search metadata well.
+1. **Search Context Serialization**: MCP get efficient ways to encode context info inside search requests, so essential context go follow query through processing pipeline. E get standardized formats wey optimize for search metadata.
 
-2. **Stateful Search Processing**: MCP dey make stateful processing smarter by keeping context representation steady across search rounds. E dey help multi-stage search pipelines where context dey improve results.
+2. **Stateful Search Processing**: MCP allow smarter stateful process by keeping consistent context through search rounds. Dis important for multi-step search pipelines where context improve results.
 
-3. **Query Expansion and Refinement**: MCP dey help search systems expand and refine queries based on context wey don gather, so results go dey better as search session dey go.
+3. **Query Expansion and Refinement**: MCP fit help expand and refine queries based on gathered context, make results dey more correct as session continue.
 
-4. **Result Caching and Prioritization**: MCP dey help manage result caching and prioritization by standardizing context handling, so components fit adjust based on search context wey dey change.
+4. **Result Caching and Prioritization**: By setting standard for context handling, MCP fit help manage result caching and priorities, make components fit change based on changing search context.
 
-5. **Search Federation and Aggregation**: MCP dey make search federation across different backends better by giving structured ways to represent search context, so results from different sources go make sense together.
+5. **Search Federation and Aggregation**: MCP fit help better federation of search across many backends by giving structured search context, e enable better aggregation of results from different sources.
 
-Using MCP for different search tech dey create one unified way to manage context, reduce the need for custom integration code, and make systems fit keep meaningful context as search queries dey change.
+Putting MCP for different search tech create one unified approach to manage context, e reduce need for special integration code and improve system ability to keep correct context as search queries change.
 
-### MCP for Different Web Search Implementations
+### MCP in Various Web Search Implementations
 
-These examples dey follow MCP specification wey dey use JSON-RPC protocol with different transport methods. The code go show how you fit create custom search integrations while keeping MCP protocol steady.
+These examples follow current MCP specification wey focus on JSON-RPC protocol with different transport methods. The code dey show how you fit do custom search integration but still fit work well with MCP protocol.
 
 
 <details>
@@ -547,7 +551,7 @@ const transport = new StreamableHTTPServerTransport();
 await searchServer.connect(transport);
 console.log('Search server running at http://localhost:8000/mcp');
 
-// In a separate process or after server is started
+// For separate process or afta server don start
 // connectToSearchServer().catch(console.error);
 ```
 </details> 
@@ -557,61 +561,65 @@ console.log('Search server running at http://localhost:8000/mcp');
 
 ## Code Examples Disclaimer
 
-> **Important Note**: The code examples below dey show how MCP dey work with web search functionality. Even though dem dey follow the official MCP SDK patterns, dem don simplify am for learning purposes.
+> **Important Note**: The code examples below dey show how to join Model Context Protocol (MCP) with web search features. Even though dem follow patterns and structures of official MCP SDKs, dem don simplify am for educational reasons.
 > 
-> These examples dey show:
+> These examples show:
 > 
-> 1. **Python Implementation**: One FastMCP server wey dey provide web search tool and dey connect to external search API. E dey show how to manage lifespan, handle context, and use tools well based on the [official MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk). The server dey use Streamable HTTP transport wey don replace the old SSE transport for production.
+> 1. **Python Implementation**: FastMCP server implementation wey provide web search tool and connect to outside search API. This example show how to properly manage lifespan, context, and tool based on official MCP Python SDK [official MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk). The server uses Streamable HTTP transport wey dem recommend pass old SSE transport for production deployment.
 > 
-> 2. **JavaScript Implementation**: One TypeScript/JavaScript implementation wey dey use FastMCP pattern from the [official MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) to create search server with correct tool definitions and client connections. E dey follow the latest way for session management and context preservation.
+> 2. **JavaScript Implementation**: TypeScript/JavaScript way wey use FastMCP pattern from official MCP TypeScript SDK [official MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) to build search server with proper tool definition and client link. E follow latest recommended ways for session and context.
 > 
-> These examples go need extra error handling, authentication, and specific API integration code for production. The search API endpoints wey dey show (`https://api.search-service.example/search`) na placeholders, you go need replace am with real search service endpoints.
+> These examples still go need more error handling, authentication, and API integration code for full production. The search API endpoint wey dey show (`https://api.search-service.example/search`) na just placeholder, you go need put real search service URL.
 > 
-> For full implementation details and the latest ways, check the [official MCP specification](https://spec.modelcontextprotocol.io/) and SDK documentation.
+> For full implementation details and latest methods, please check [official MCP specification](https://spec.modelcontextprotocol.io/) and SDK docs.
 
 ## Core Concepts
 
 ### The Model Context Protocol (MCP) Framework
 
-MCP dey give one standard way for AI models, apps, and services to share context. For real-time web search, this framework dey help create smooth, multi-turn search experience. Main parts include:
+For ground level, Model Context Protocol na standardized way for AI models, applications, and services to share context. For real-time web search, this framework very important to make search experience wey smooth and go many rounds. Key parts include:
 
-1. **Client-Server Architecture**: MCP dey separate search clients (requesters) and search servers (providers), so deployment go dey flexible.
-2. **JSON-RPC Communication**: MCP dey use JSON-RPC for message exchange, e dey work well with web tech and easy to use for different platforms.
-3. **Context Management**: MCP dey define structured ways to keep, update, and use search context across interactions.
-4. **Tool Definitions**: Search features dey show as standard tools with clear parameters and return values.
-5. **Streaming Support**: MCP dey support streaming results, wey dey important for real-time search where results fit dey drop small small.
+1. **Client-Server Architecture**: MCP make clear separation between search clients (requesters) and search servers (providers), e allow flexible deployment ways.
+
+2. **JSON-RPC Communication**: Protocol use JSON-RPC to exchange messages, make e compatible with web tech and easy for different platforms.
+
+3. **Context Management**: MCP get structured way to maintain, update, and use search context through many interactions.
+
+4. **Tool Definitions**: Search abilities expose as standard tools with clear parameters and return types.
+
+5. **Streaming Support**: Protocol support streaming results, important for real-time search wey results fit dey come one by one.
 
 ### Web Search Integration Patterns
 
-When MCP dey join web search, some patterns dey show:
+For join MCP with web search, some patterns dey:
 
 #### 1. Direct Search Provider Integration
 
 ```mermaid
 graph LR
-    Client[MCP Client] --> |MCP Request| Server[MCP Server]
-    Server --> |API Call| SearchAPI[Search API]
-    SearchAPI --> |Results| Server
-    Server --> |MCP Response| Client
+    Client[MCP Klient] --> |MCP Rikwes| Server[MCP Sava]
+    Server --> |API Kol| SearchAPI[Search API]
+    SearchAPI --> |Rizalts| Server
+    Server --> |MCP Ripons| Client
 ```
 
-For this pattern, MCP server dey connect direct to one or more search APIs, dey change MCP requests to API-specific calls and format results as MCP responses.
+For dis pattern, MCP server directly connect to one or many search APIs, dem translate MCP request enter API-specific call and format the results as MCP response.
 
 #### 2. Federated Search with Context Preservation
 
 ```mermaid
 graph LR
-    Client[MCP Client] --> |MCP Request| Federation[MCP Federation Layer]
-    Federation --> |MCP Request 1| Search1[Search Provider 1]
-    Federation --> |MCP Request 2| Search2[Search Provider 2]
-    Federation --> |MCP Request 3| Search3[Search Provider 3]
+    Client[MCP Klient] --> |MCP Request| Federation[MCP Fedarashun Ley]
+    Federation --> |MCP Request 1| Search1[Sach Provayda 1]
+    Federation --> |MCP Request 2| Search2[Sach Provayda 2]
+    Federation --> |MCP Request 3| Search3[Sach Provayda 3]
     Search1 --> |MCP Response 1| Federation
     Search2 --> |MCP Response 2| Federation
     Search3 --> |MCP Response 3| Federation
     Federation --> |Aggregated MCP Response| Client
 ```
 
-This pattern dey share search queries across different MCP-compatible search providers, each one fit dey specialize for different content or search features, while keeping one steady context.
+Dis pattern divide search queries to many MCP-compatible search providers, wey fit specialize for different content or search type, but still keep unified context.
 
 #### 3. Context-Enhanced Search Chain
 
@@ -627,94 +635,94 @@ graph LR
     Server --> |Final Results + Updated Context| Client
 ```
 
-For this pattern, search process dey divide into different stages, with context dey improve for each step, so results go dey better.
+For dis pattern, search process split into many steps, context dey add for each step, result dey become more correct every time.
 
 ### Search Context Components
 
-For MCP-based web search, context fit include:
+For MCP-based web search, context usually get:
 
-- **Query History**: Past search queries for the session
+- **Query History**: Previous search queries for session
 - **User Preferences**: Language, region, safe search settings
-- **Interaction History**: Results wey user click, time wey dem spend on results
-- **Search Parameters**: Filters, sort orders, and other search settings
-- **Domain Knowledge**: Subject-specific context wey relate to the search
+- **Interaction History**: Which results user click, time spend on results
+- **Search Parameters**: Filters, sort order, and other modifiers
+- **Domain Knowledge**: Subject-specific context relevant to search
 - **Temporal Context**: Time-based relevance factors
-- **Source Preferences**: Trusted or preferred information sources
+- **Source Preferences**: Trusted or preferred info sources
 
 ## Use Cases and Applications
 
 ### Research and Information Gathering
 
-MCP dey make research work better by:
+MCP dey improve research work by:
 
-- Keeping research context steady across search sessions
-- Allowing smarter and more relevant queries
-- Supporting search federation across different sources
-- Helping extract knowledge from search results
+- Keep research context across search sessions
+- Enable more advanced and context-relevant queries
+- Support multi-source search federation
+- Help knowledge extraction from search results
 
 ### Real-Time News and Trend Monitoring
 
-MCP-powered search dey help for news monitoring:
+MCP-powered search dey good for news monitoring:
 
 - Near-real-time discovery of new news stories
-- Filtering relevant gist based on context
-- Tracking topics and entities across different sources
+- Contextual filtering for relevant info
+- Topic and entity tracking across different sources
 - Personalized news alerts based on user context
 
 ### AI-Augmented Browsing and Research
 
-MCP dey open new ways for AI-augmented browsing:
+MCP open new ways for AI-augmented browsing:
 
-- Contextual search suggestions based on browser activity
-- Smooth connection of web search with LLM-powered assistants
-- Multi-turn search refinement with steady context
-- Better fact-checking and information verification
+- Contextual search suggestion based on current browser activity
+- Smooth join of web search with LLM-powered assistants
+- Multi-turn search refinement with kept context
+- Better fact-checking and verifying info
 
 ## Future Trends and Innovations
 
-### How MCP Go Evolve for Web Search
-As we dey look forward, we dey expect say MCP go change to fit handle:
+### Evolution of MCP in Web Search
 
-- **Multimodal Search**: Join text, image, audio, and video search wey go still keep context
-- **Decentralized Search**: Support distributed and federated search systems
-- **Search Privacy**: Context-aware search wey go protect privacy
-- **Query Understanding**: Deep semantic parsing of natural language search queries
+Looking forward, we dey expect MCP go develop more to handle:
+- **Multimodal Search**: Tok combine text, image, audio, and video search plus keep di context
+- **Decentralized Search**: Support di distributed and federated search system dem
+- **Search Privacy**: Context-aware privacy-protecting search way dem
+- **Query Understanding**: Deep semantic parsing of natural language search questions
 
-### Possible Technology Improvements
+### Potential Advancements in Technology
 
-New technology wey go shape MCP search future:
+New technologies wey go shape di future of MCP search:
 
-1. **Neural Search Architectures**: Embedding-based search systems wey dem optimize for MCP
-2. **Personalized Search Context**: Learn how each user dey search over time
-3. **Knowledge Graph Integration**: Contextual search wey dey use domain-specific knowledge graphs
-4. **Cross-Modal Context**: Keep context across different search types
+1. **Neural Search Architectures**: Embedding-based search system dem wey dem optimize for MCP
+2. **Personalized Search Context**: Learn individual user search behavior over time
+3. **Knowledge Graph Integration**: Context search wey improve with domain-specific knowledge graphs
+4. **Cross-Modal Context**: Keep context across different search method dem
 
-## Practical Exercises
+## Hands-On Exercises
 
-### Exercise 1: Set Up Basic MCP Search Pipeline
+### Exercise 1: Setting Up a Basic MCP Search Pipeline
 
-For this exercise, you go learn how to:
-- Arrange basic MCP search environment
-- Put context handlers for web search
-- Test and confirm say context dey stay same across search rounds
+For dis exercise, you go learn how to:
+- Configure basic MCP search environment
+- Implement context handlers for web search
+- Test and check say context dey preserved for search rounds
 
-### Exercise 2: Build Research Assistant with MCP Search
+### Exercise 2: Building a Research Assistant with MCP Search
 
-Make full application wey go:
-- Process natural language research questions
+Make complete app wey:
+- Fit process natural language research questions
 - Do context-aware web searches
-- Gather info from different sources
-- Show research findings wey dey organized
+- Join info from different sources
+- Show organized research findings well well
 
-### Exercise 3: Do Multi-Source Search Federation with MCP
+### Exercise 3: Implementing Multi-Source Search Federation with MCP
 
 Advanced exercise wey cover:
-- Context-aware query dispatching to different search engines
-- Rank and join results
-- Remove duplicate search results based on context
-- Manage metadata wey dey specific to source
+- Context-aware query dispatching go many search engines
+- Result ranking and joining together
+- Contextual deduplication of search results
+- Handle source-specific metadata
 
-## Extra Resources
+## Additional Resources
 
 - [Model Context Protocol Specification](https://spec.modelcontextprotocol.io/) - Official MCP specification and detailed protocol documentation
 - [Model Context Protocol Documentation](https://modelcontextprotocol.io/) - Detailed tutorials and implementation guides
@@ -728,40 +736,41 @@ Advanced exercise wey cover:
 - [Elasticsearch Documentation](https://www.elastic.co/guide/index.html) - Distributed search and analytics engine
 - [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - Build apps with LLMs
 
-## Wetin You Go Learn
+## Learning Outcomes
 
-After you finish this module, you go fit:
+If you complete dis module, you go fit:
 
-- Understand basics of real-time web search and the wahala wey dey inside
-- Explain how Model Context Protocol (MCP) dey make real-time web search better
-- Use MCP to build search solutions with popular frameworks and APIs
-- Design and deploy scalable, high-performance search systems with MCP
-- Use MCP ideas for different things like semantic search, research assistant, and AI-augmented browsing
-- Check new trends and future innovations for MCP-based search technology
+- Understand how real-time web search dey work with e wahala dem
+- Explain how Model Context Protocol (MCP) dey improve real-time web search power
+- Implement MCP-based search solution using popular frameworks and APIs
+- Design and deploy scalable, high-performance search architectures with MCP
+- Use MCP ideas for different use cases like semantic search, research help, and AI-enhanced browsing
+- Check new trends and future innovations wey go dey MCP-based search technology
 
-### Trust and Safety Things
 
-When you dey use MCP-based web search solutions, make sure say you follow these important rules from MCP specification:
+### Trust and Safety Considerations
 
-1. **User Consent and Control**: Users gatz agree and understand how data go dey used. This one dey very important for web search wey fit access external data.
+When you dey implement MCP-based web search solution, remember these important things dem from MCP specification:
 
-2. **Data Privacy**: Make sure say you handle search queries and results well, especially if e get sensitive info. Put access controls to protect user data.
+1. **User Consent and Control**: Users must clearly agree and understand all data access and actions. This one matter wella for web search wey fit access external data sources.
 
-3. **Tool Safety**: Make sure say search tools get proper authorization and validation, because dem fit be security risk if dem dey run any code anyhow. No trust tool description unless e come from trusted server.
+2. **Data Privacy**: Make sure say you handle search questions and results properly, especially if dem get sensitive info. Put good access controls to protect user data.
 
-4. **Clear Documentation**: Give clear explanation about wetin your MCP-based search fit do, wetin e no fit do, and security things wey dey involved. Follow MCP implementation guidelines.
+3. **Tool Safety**: Implement correct authorization and validation for search tools because dem fit cause security risk through random code running. Tool behaviour wey dem describe no suppose dey trusted unless e come from trusted server.
 
-5. **Strong Consent Flows**: Make sure say consent and authorization flows dey strong, and explain wetin each tool go do before user go allow am, especially tools wey dey interact with external web resources.
+4. **Clear Documentation**: Provide clear documents about wetin your MCP-based search fit do, the limits, and security matters following MCP specification implementation guideline.
 
-For full details about MCP security and trust things, check [official documentation](https://modelcontextprotocol.io/specification/2025-03-26#security-and-trust-%26-safety).
+5. **Robust Consent Flows**: Build strong consent and authorization flow wey explain wetin each tool dey do before you give am permission, especially tools wey dey interact with external web resources.
 
-## Wetin Go Happen Next
+For full details about MCP security and trust, check [official documentation](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
+
+## What's next 
 
 - [5.12 Entra ID Authentication for Model Context Protocol Servers](../mcp-security-entra/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dis dokyument don use AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator) do di translation. Even as we dey try make am accurate, abeg sabi say machine translation fit get mistake or no dey correct well. Di original dokyument wey dey for im native language na di main source wey you go fit trust. For important information, e better make professional human translation dey use. We no go fit take blame for any misunderstanding or wrong interpretation wey fit happen because you use dis translation.
+**Disclaimer**:
+Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you know say automated translation fit get errors or mistakes. Di original document for dia own language na im be di correct source. For important info, make person wey sabi human translation do am. We no go responsible for any misunderstanding or wrong understanding wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

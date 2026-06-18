@@ -1,84 +1,84 @@
 # Pengenalan kepada Integrasi Pangkalan Data MCP
 
-## 🎯 Apa yang Diliputi oleh Makmal Ini
+## 🎯 Apa Yang Diliputi Oleh Makmal Ini
 
-Makmal pengenalan ini memberikan gambaran menyeluruh tentang cara membina pelayan Model Context Protocol (MCP) dengan integrasi pangkalan data. Anda akan memahami kes perniagaan, seni bina teknikal, dan aplikasi dunia sebenar melalui kes penggunaan analitik Zava Retail di https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
+Makmal pengenalan ini menyediakan gambaran menyeluruh tentang membina pelayan Model Context Protocol (MCP) dengan integrasi pangkalan data. Anda akan memahami kes perniagaan, seni bina teknikal, dan aplikasi dunia nyata melalui kes penggunaan analitik Zava Retail di https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
 
 ## Gambaran Keseluruhan
 
-**Model Context Protocol (MCP)** membolehkan pembantu AI mengakses dan berinteraksi dengan sumber data luaran secara selamat dalam masa nyata. Apabila digabungkan dengan integrasi pangkalan data, MCP membuka potensi besar untuk aplikasi AI yang didorong oleh data.
+**Model Context Protocol (MCP)** membolehkan pembantu AI mengakses dan berinteraksi dengan sumber data luaran secara masa nyata dengan selamat. Apabila digabungkan dengan integrasi pangkalan data, MCP membuka keupayaan yang kuat untuk aplikasi AI berasaskan data.
 
-Laluan pembelajaran ini mengajar anda cara membina pelayan MCP yang sedia untuk pengeluaran, yang menghubungkan pembantu AI kepada data jualan runcit melalui PostgreSQL, dengan melaksanakan corak perusahaan seperti Keselamatan Tahap Baris (Row Level Security), carian semantik, dan akses data pelbagai penyewa.
+Jalur pembelajaran ini mengajar anda membina pelayan MCP sedia pengeluaran yang menyambungkan pembantu AI kepada data jualan runcit melalui PostgreSQL, melaksanakan corak perusahaan seperti Keselamatan Peringkat Baris, carian semantik, dan akses data berbilang penyewa.
 
 ## Objektif Pembelajaran
 
-Pada akhir makmal ini, anda akan dapat:
+Menjelang akhir makmal ini, anda akan dapat:
 
-- **Mendefinisikan** Model Context Protocol dan manfaat utamanya untuk integrasi pangkalan data
-- **Mengenal pasti** komponen utama seni bina pelayan MCP dengan pangkalan data
-- **Memahami** kes penggunaan Zava Retail dan keperluan perniagaannya
-- **Mengenali** corak perusahaan untuk akses pangkalan data yang selamat dan boleh diskalakan
-- **Menyenaraikan** alat dan teknologi yang digunakan sepanjang laluan pembelajaran ini
+- **Mentakrifkan** Model Context Protocol dan manfaat terasnya untuk integrasi pangkalan data  
+- **Mengenal pasti** komponen utama seni bina pelayan MCP dengan pangkalan data  
+- **Memahami** kes penggunaan Zava Retail dan keperluan perniagaannya  
+- **Mengenali** corak perusahaan untuk akses pangkalan data yang selamat dan boleh skala  
+- **Menyenaraikan** alat dan teknologi yang digunakan sepanjang jalur pembelajaran ini  
 
 ## 🧭 Cabaran: AI Bertemu Data Dunia Sebenar
 
-### Keterbatasan AI Tradisional
+### Kekangan AI Tradisional
 
-Pembantu AI moden sangat berkuasa tetapi menghadapi keterbatasan besar apabila bekerja dengan data perniagaan dunia sebenar:
+Pembantu AI moden sangat berkuasa tetapi menghadapi kekangan ketara apabila bekerja dengan data perniagaan dunia sebenar:
 
-| **Cabaran** | **Penerangan** | **Kesan Perniagaan** |
-|-------------|----------------|-----------------------|
-| **Pengetahuan Statik** | Model AI yang dilatih pada set data tetap tidak dapat mengakses data perniagaan semasa | Wawasan yang ketinggalan zaman, peluang terlepas |
-| **Silo Data** | Maklumat terkunci dalam pangkalan data, API, dan sistem yang tidak dapat dicapai oleh AI | Analisis tidak lengkap, aliran kerja terpecah |
-| **Kekangan Keselamatan** | Akses langsung ke pangkalan data menimbulkan kebimbangan keselamatan dan pematuhan | Penggunaan terhad, penyediaan data secara manual |
-| **Pertanyaan Kompleks** | Pengguna perniagaan memerlukan pengetahuan teknikal untuk mendapatkan wawasan data | Penggunaan berkurang, proses tidak efisien |
+| **Cabaran** | **Perihalan** | **Impak Perniagaan** |
+|-------------|---------------|---------------------|
+| **Pengetahuan Statik** | Model AI yang dilatih pada set data tetap tidak boleh mengakses data perniagaan terkini | Wawasan lapuk, peluang terlepas |
+| **Silo Data** | Maklumat terkunci dalam pangkalan data, API, dan sistem yang AI tidak boleh capaikan | Analisis tidak lengkap, aliran kerja terpecah-pecah |
+| **Sekatan Keselamatan** | Akses pangkalan data langsung menimbulkan kebimbangan keselamatan dan pematuhan | Penyebaran terhad, penyediaan data manual |
+| **Pertanyaan Kompleks** | Pengguna perniagaan perlu pengetahuan teknikal untuk mendapatkan wawasan data | Penggunaan berkurangan, proses tidak cekap |
 
 ### Penyelesaian MCP
 
 Model Context Protocol menangani cabaran ini dengan menyediakan:
 
-- **Akses Data Masa Nyata**: Pembantu AI membuat pertanyaan kepada pangkalan data dan API secara langsung
-- **Integrasi Selamat**: Akses terkawal dengan pengesahan dan kebenaran
-- **Antara Muka Bahasa Semula Jadi**: Pengguna perniagaan bertanya dalam bahasa biasa
-- **Protokol Standard**: Berfungsi merentasi platform dan alat AI yang berbeza
+- **Akses Data Masa Nyata**: Pembantu AI membuat pertanyaan ke pangkalan data dan API secara langsung  
+- **Integrasi Selamat**: Akses terkawal dengan pengesahan dan kebenaran  
+- **Antara Muka Bahasa Semula Jadi**: Pengguna perniagaan bertanya soalan dalam bahasa Inggeris biasa  
+- **Protokol Standard**: Berfungsi merentasi platform dan alat AI yang berbeza  
 
-## 🏪 Kenali Zava Retail: Kajian Kes Pembelajaran Kita https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
+## 🏪 Kenali Zava Retail: Kajian Kes Pembelajaran Kami https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
-Sepanjang laluan pembelajaran ini, kita akan membina pelayan MCP untuk **Zava Retail**, sebuah rangkaian runcit DIY fiksyen dengan pelbagai lokasi kedai. Senario realistik ini menunjukkan pelaksanaan MCP peringkat perusahaan.
+Sepanjang jalur pembelajaran ini, kita akan membina pelayan MCP untuk **Zava Retail**, sebuah rangkaian runcit DIY rekaan dengan beberapa lokasi kedai. Senario realistik ini menunjukkan pelaksanaan MCP tahap perusahaan.
 
 ### Konteks Perniagaan
 
 **Zava Retail** mengendalikan:
-- **8 kedai fizikal** di seluruh negeri Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
-- **1 kedai dalam talian** untuk jualan e-dagang
-- **Katalog produk yang pelbagai** termasuk alat, perkakasan, bekalan taman, dan bahan binaan
-- **Pengurusan pelbagai peringkat** dengan pengurus kedai, pengurus wilayah, dan eksekutif
+- **8 kedai fizikal** di seluruh negeri Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)  
+- **1 kedai dalam talian** untuk jualan e-dagang  
+- **Katalog produk pelbagai** termasuk alat, perkakasan, bekalan taman, dan bahan binaan  
+- **Pengurusan berbilang peringkat** dengan pengurus kedai, pengurus wilayah, dan eksekutif  
 
 ### Keperluan Perniagaan
 
 Pengurus kedai dan eksekutif memerlukan analitik berkuasa AI untuk:
 
-1. **Menganalisis prestasi jualan** di seluruh kedai dan tempoh masa
-2. **Menjejaki tahap inventori** dan mengenal pasti keperluan pengisian semula
-3. **Memahami tingkah laku pelanggan** dan corak pembelian
-4. **Menemui wawasan produk** melalui carian semantik
-5. **Menjana laporan** dengan pertanyaan bahasa semula jadi
-6. **Menjaga keselamatan data** dengan kawalan akses berdasarkan peranan
+1. **Menganalisis prestasi jualan** merentasi kedai dan tempoh masa  
+2. **Menjejaki tahap inventori** dan mengenal pasti keperluan pengisian semula  
+3. **Memahami tingkah laku pelanggan** dan corak pembelian  
+4. **Menemui wawasan produk** melalui carian semantik  
+5. **Menjana laporan** dengan pertanyaan bahasa semula jadi  
+6. **Mengekalkan keselamatan data** dengan kawalan akses berasaskan peranan  
 
 ### Keperluan Teknikal
 
 Pelayan MCP mesti menyediakan:
 
-- **Akses data pelbagai penyewa** di mana pengurus kedai hanya melihat data kedai mereka
-- **Pertanyaan fleksibel** yang menyokong operasi SQL yang kompleks
-- **Carian semantik** untuk penemuan dan cadangan produk
-- **Data masa nyata** yang mencerminkan keadaan perniagaan semasa
-- **Pengesahan selamat** dengan keselamatan tahap baris
-- **Seni bina yang boleh diskalakan** menyokong pengguna serentak yang banyak
+- **Akses data berbilang penyewa** di mana pengurus kedai hanya melihat data kedainya sahaja  
+- **Pertanyaan fleksibel** menyokong operasi SQL kompleks  
+- **Cari semantik** untuk penemuan produk dan cadangan  
+- **Data masa nyata** mencerminkan keadaan perniagaan semasa  
+- **Pengesahan selamat** dengan keselamatan peringkat baris  
+- **Seni bina boleh skala** menyokong pelbagai pengguna serentak  
 
-## 🏗️ Gambaran Keseluruhan Seni Bina Pelayan MCP
+## 🏗️ Gambaran Seni Bina Pelayan MCP
 
-Pelayan MCP kita melaksanakan seni bina berlapis yang dioptimumkan untuk integrasi pangkalan data:
+Pelayan MCP kami melaksanakan seni bina berlapis yang dioptimumkan untuk integrasi pangkalan data:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -118,121 +118,122 @@ Pelayan MCP kita melaksanakan seni bina berlapis yang dioptimumkan untuk integra
 └─────────────────────────────────────────────────────────────┘
 ```
 
+
 ### Komponen Utama
 
 #### **1. Lapisan Pelayan MCP**
-- **Kerangka FastMCP**: Pelaksanaan pelayan MCP moden menggunakan Python
-- **Pendaftaran Alat**: Definisi alat secara deklaratif dengan keselamatan jenis
-- **Konteks Permintaan**: Pengurusan identiti pengguna dan sesi
-- **Pengendalian Ralat**: Pengurusan ralat yang kukuh dan log
+- **Rangka Kerja FastMCP**: Pelaksanaan pelayan MCP Python moden  
+- **Pendaftaran Alat**: Definisi alat deklaratif dengan keselamatan jenis  
+- **Konteks Permintaan**: Identiti pengguna dan pengurusan sesi  
+- **Pengendalian Ralat**: Pengurusan ralat dan pencatatan yang kukuh  
 
 #### **2. Lapisan Integrasi Pangkalan Data**
-- **Pengumpulan Sambungan**: Pengurusan sambungan asyncpg yang efisien
-- **Penyedia Skema**: Penemuan skema jadual secara dinamik
-- **Pelaksana Pertanyaan**: Pelaksanaan SQL yang selamat dengan konteks RLS
-- **Pengurusan Transaksi**: Pematuhan ACID dan pengendalian rollback
+- **Kumpulan Sambungan**: Pengurusan sambungan asyncpg yang cekap  
+- **Penyedia Skema**: Penemuan skema jadual dinamik  
+- **Pelaksana Pertanyaan**: Pelaksanaan SQL selamat dengan konteks RLS  
+- **Pengurusan Transaksi**: Pematuhan ACID dan pengendalian rollback  
 
 #### **3. Lapisan Keselamatan**
-- **Keselamatan Tahap Baris**: PostgreSQL RLS untuk pengasingan data pelbagai penyewa
-- **Identiti Pengguna**: Pengesahan dan kebenaran pengurus kedai
-- **Kawalan Akses**: Kebenaran yang terperinci dan jejak audit
-- **Pengesahan Input**: Pencegahan suntikan SQL dan pengesahan pertanyaan
+- **Keselamatan Peringkat Baris**: PostgreSQL RLS untuk pengasingan data berbilang penyewa  
+- **Identiti Pengguna**: Pengesahan dan kebenaran pengurus kedai  
+- **Kawalan Akses**: Kebenaran terperinci dan jejak audit  
+- **Pengesahan Input**: Pencegahan suntikan SQL dan pengesahan pertanyaan  
 
 #### **4. Lapisan Peningkatan AI**
-- **Carian Semantik**: Penemuan produk menggunakan vektor embedding
-- **Integrasi Azure OpenAI**: Penjanaan embedding teks
-- **Algoritma Keserupaan**: Carian keserupaan cosine pgvector
-- **Pengoptimuman Carian**: Pengindeksan dan penalaan prestasi
+- **Cari Semantik**: Vektor embedding untuk penemuan produk  
+- **Integrasi Azure OpenAI**: Penjanaan embedding teks  
+- **Algoritma Kesamaan**: Carian kesamaan kosinus pgvector  
+- **Pengoptimuman Carian**: Pengindeksan dan penyelarasan prestasi  
 
-## 🔧 Teknologi yang Digunakan
+## 🔧 Teknologi Digunakan
 
 ### Teknologi Teras
 
 | **Komponen** | **Teknologi** | **Tujuan** |
 |--------------|---------------|------------|
-| **Kerangka MCP** | FastMCP (Python) | Pelaksanaan pelayan MCP moden |
-| **Pangkalan Data** | PostgreSQL 17 + pgvector | Data relasional dengan carian vektor |
+| **Rangka Kerja MCP** | FastMCP (Python) | Pelaksanaan pelayan MCP moden |
+| **Pangkalan Data** | PostgreSQL 17 + pgvector | Data berelasi dengan carian vektor |
 | **Perkhidmatan AI** | Azure OpenAI | Embedding teks dan model bahasa |
-| **Kontainerisasi** | Docker + Docker Compose | Persekitaran pembangunan |
-| **Platform Awan** | Microsoft Azure | Penggunaan pengeluaran |
-| **Integrasi IDE** | VS Code | AI Chat dan aliran kerja pembangunan |
+| **Kontena** | Docker + Docker Compose | Persekitaran pembangunan |
+| **Platform Awan** | Microsoft Azure | Penyebaran pengeluaran |
+| **Integrasi IDE** | VS Code | Chat AI dan aliran kerja pembangunan |
 
 ### Alat Pembangunan
 
 | **Alat** | **Tujuan** |
 |----------|------------|
-| **asyncpg** | Pemacu PostgreSQL berprestasi tinggi |
-| **Pydantic** | Pengesahan dan serialisasi data |
+| **asyncpg** | Pemandu PostgreSQL berprestasi tinggi |
+| **Pydantic** | Pengesahan dan penyerlahan data |
 | **Azure SDK** | Integrasi perkhidmatan awan |
-| **pytest** | Kerangka ujian |
-| **Docker** | Kontainerisasi dan penggunaan |
+| **pytest** | Rangka kerja ujian |
+| **Docker** | Kontena dan penyebaran |
 
-### Tumpukan Pengeluaran
+### Stak Produksi
 
 | **Perkhidmatan** | **Sumber Azure** | **Tujuan** |
 |------------------|------------------|------------|
 | **Pangkalan Data** | Azure Database for PostgreSQL | Perkhidmatan pangkalan data terurus |
-| **Kontainer** | Azure Container Apps | Hosting kontainer tanpa pelayan |
-| **Perkhidmatan AI** | Azure AI Foundry | Model dan titik akhir OpenAI |
-| **Pemantauan** | Application Insights | Pemerhatian dan diagnostik |
+| **Kontena** | Azure Container Apps | Hos kontena tanpa pelayan |
+| **Perkhidmatan AI** | Microsoft Foundry | Model dan titik akhir OpenAI |
+| **Pemantauan** | Application Insights | Kebolehlihatan dan diagnostik |
 | **Keselamatan** | Azure Key Vault | Pengurusan rahsia dan konfigurasi |
 
 ## 🎬 Senario Penggunaan Dunia Sebenar
 
-Mari kita terokai bagaimana pengguna berbeza berinteraksi dengan pelayan MCP kita:
+Mari kita teroka bagaimana pengguna berbeza berinteraksi dengan pelayan MCP kami:
 
-### Senario 1: Kajian Prestasi Pengurus Kedai
+### Senario 1: Semakan Prestasi Pengurus Kedai
 
 **Pengguna**: Sarah, Pengurus Kedai Seattle  
 **Matlamat**: Menganalisis prestasi jualan suku terakhir
 
-**Pertanyaan Bahasa Semula Jadi**:
-> "Tunjukkan kepada saya 10 produk teratas mengikut hasil untuk kedai saya pada Q4 2024"
+**Pertanyaan Bahasa Semula Jadi**:  
+> "Tunjukkan 10 produk teratas mengikut hasil bagi kedai saya di S4 2024"
 
-**Apa yang Berlaku**:
-1. VS Code AI Chat menghantar pertanyaan ke pelayan MCP
-2. Pelayan MCP mengenal pasti konteks kedai Sarah (Seattle)
-3. Polisi RLS menapis data hanya untuk kedai Seattle
-4. Pertanyaan SQL dijana dan dilaksanakan
-5. Hasil diformatkan dan dikembalikan ke AI Chat
-6. AI memberikan analisis dan wawasan
+**Apa Yang Berlaku**:  
+1. Chat AI VS Code menghantar pertanyaan ke pelayan MCP  
+2. Pelayan MCP mengenal pasti konteks kedai Sarah (Seattle)  
+3. Polisi RLS menapis data hanya untuk kedai Seattle  
+4. Pertanyaan SQL dijana dan dilaksanakan  
+5. Keputusan diformatkan dan dihantar kembali ke Chat AI  
+6. AI menyediakan analisis dan wawasan  
 
 ### Senario 2: Penemuan Produk dengan Carian Semantik
 
 **Pengguna**: Mike, Pengurus Inventori  
-**Matlamat**: Mencari produk yang serupa dengan permintaan pelanggan
+**Matlamat**: Mencari produk serupa dengan permintaan pelanggan
 
-**Pertanyaan Bahasa Semula Jadi**:
-> "Apakah produk yang kita jual yang serupa dengan 'penyambung elektrik kalis air untuk kegunaan luar'?"
+**Pertanyaan Bahasa Semula Jadi**:  
+> "Apakah produk yang kami jual yang serupa dengan 'penyambung elektrik kalis air untuk kegunaan luar'?"
 
-**Apa yang Berlaku**:
-1. Pertanyaan diproses oleh alat carian semantik
-2. Azure OpenAI menjana vektor embedding
-3. pgvector melaksanakan carian keserupaan
-4. Produk berkaitan disenaraikan mengikut relevansi
-5. Hasil termasuk butiran produk dan ketersediaan
-6. AI mencadangkan alternatif dan peluang bundling
+**Apa Yang Berlaku**:  
+1. Pertanyaan diproses oleh alat carian semantik  
+2. Azure OpenAI menjana vektor embedding  
+3. pgvector melakukan carian kesamaan  
+4. Produk berkaitan diperingkatkan mengikut relevansi  
+5. Keputusan termasuk butiran produk dan ketersediaan  
+6. AI mencadangkan alternatif dan peluang penyusunan set  
 
-### Senario 3: Analitik Merentas Kedai
+### Senario 3: Analitik Merentasi Kedai
 
 **Pengguna**: Jennifer, Pengurus Wilayah  
-**Matlamat**: Membandingkan prestasi di semua kedai
+**Matlamat**: Membandingkan prestasi merentasi semua kedai
 
-**Pertanyaan Bahasa Semula Jadi**:
+**Pertanyaan Bahasa Semula Jadi**:  
 > "Bandingkan jualan mengikut kategori untuk semua kedai dalam 6 bulan terakhir"
 
-**Apa yang Berlaku**:
-1. Konteks RLS ditetapkan untuk akses pengurus wilayah
-2. Pertanyaan kompleks merentas kedai dijana
-3. Data diagregatkan di seluruh lokasi kedai
-4. Hasil termasuk trend dan perbandingan
-5. AI mengenal pasti wawasan dan cadangan
+**Apa Yang Berlaku**:  
+1. Konteks RLS ditetapkan untuk akses pengurus wilayah  
+2. Pertanyaan mudah untuk beberapa kedai dijana  
+3. Data diagregat merentasi lokasi kedai  
+4. Keputusan termasuk tren dan perbandingan  
+5. AI mengenal pasti wawasan dan cadangan  
 
-## 🔒 Penyelaman Mendalam Keselamatan dan Pelbagai Penyewa
+## 🔒 Keselamatan dan Penyelaman Multi-Penyewa
 
-Pelaksanaan kita mengutamakan keselamatan peringkat perusahaan:
+Pelaksanaan kami mengutamakan keselamatan tahap perusahaan:
 
-### Keselamatan Tahap Baris (RLS)
+### Keselamatan Peringkat Baris (RLS)
 
 PostgreSQL RLS memastikan pengasingan data:
 
@@ -248,63 +249,66 @@ CREATE POLICY regional_manager_policy ON retail.orders
   USING (store_id = ANY(get_user_store_list()));
 ```
 
+
 ### Pengurusan Identiti Pengguna
 
-Setiap sambungan MCP termasuk:
-- **ID Pengurus Kedai**: Pengenal unik untuk konteks RLS
-- **Penugasan Peranan**: Kebenaran dan tahap akses
-- **Pengurusan Sesi**: Token pengesahan yang selamat
-- **Log Audit**: Sejarah akses lengkap
+Setiap sambungan MCP termasuk:  
+- **ID Pengurus Kedai**: Pengenal unik untuk konteks RLS  
+- **Penetapan Peranan**: Kebenaran dan tahap akses  
+- **Pengurusan Sesi**: Token pengesahan yang selamat  
+- **Pencatatan Audit**: Sejarah akses lengkap  
 
 ### Perlindungan Data
 
-Lapisan keselamatan berganda:
-- **Penyulitan Sambungan**: TLS untuk semua sambungan pangkalan data
-- **Pencegahan Suntikan SQL**: Pertanyaan yang diparameterkan sahaja
-- **Pengesahan Input**: Pengesahan permintaan yang menyeluruh
-- **Pengendalian Ralat**: Tiada data sensitif dalam mesej ralat
+Beberapa lapisan keselamatan:  
+- **Penyulitan Sambungan**: TLS untuk semua sambungan pangkalan data  
+- **Pencegahan Suntikan SQL**: Hanya pertanyaan berparameter  
+- **Pengesahan Input**: Pengesahan permintaan menyeluruh  
+- **Pengendalian Ralat**: Tiada data sensitif dalam mesej ralat  
 
-## 🎯 Poin Penting
+## 🎯 Pengajaran Utama
 
-Selepas melengkapkan pengenalan ini, anda seharusnya memahami:
+Selepas menyelesaikan pengenalan ini, anda harus memahami:
 
-✅ **Nilai MCP**: Bagaimana MCP menghubungkan pembantu AI dan data dunia sebenar  
+✅ **Nilai MCP**: Bagaimana MCP menghubungkan pembantu AI dan data dunia nyata  
 ✅ **Konteks Perniagaan**: Keperluan dan cabaran Zava Retail  
 ✅ **Gambaran Seni Bina**: Komponen utama dan interaksinya  
-✅ **Tumpukan Teknologi**: Alat dan kerangka kerja yang digunakan sepanjang  
-✅ **Model Keselamatan**: Akses data pelbagai penyewa dan perlindungan  
-✅ **Corak Penggunaan**: Senario pertanyaan dunia sebenar dan aliran kerja  
+✅ **Teknologi Digunakan**: Alat dan rangka kerja sepanjang jalur pembelajaran  
+✅ **Model Keselamatan**: Akses data berbilang penyewa dan perlindungan  
+✅ **Corak Penggunaan**: Senario pertanyaan dan aliran kerja dunia sebenar  
 
-## 🚀 Langkah Seterusnya
+## 🚀 Apa Seterusnya
 
-Sedia untuk mendalami lebih lanjut? Teruskan dengan:
+Sedia untuk mendalami lagi? Teruskan dengan:
 
-**[Makmal 01: Konsep Seni Bina Teras](../01-Architecture/README.md)**
+**[Lab 01: Konsep Seni Bina Teras](../01-Architecture/README.md)**
 
-Pelajari tentang corak seni bina pelayan MCP, prinsip reka bentuk pangkalan data, dan pelaksanaan teknikal terperinci yang menggerakkan penyelesaian analitik runcit kita.
+Pelajari tentang corak seni bina pelayan MCP, prinsip reka bentuk pangkalan data, dan pelaksanaan teknikal terperinci yang menggerakkan penyelesaian analitik runcit kami.
 
 ## 📚 Sumber Tambahan
 
 ### Dokumentasi MCP
-- [Spesifikasi MCP](https://modelcontextprotocol.io/docs/) - Dokumentasi rasmi protokol
-- [MCP untuk Pemula](https://aka.ms/mcp-for-beginners) - Panduan pembelajaran MCP yang komprehensif
-- [Dokumentasi FastMCP](https://github.com/modelcontextprotocol/python-sdk) - Dokumentasi SDK Python
+- [Spesifikasi MCP](https://modelcontextprotocol.io/docs/) - Dokumentasi protokol rasmi  
+- [MCP untuk Pemula](https://aka.ms/mcp-for-beginners) - Panduan pembelajaran MCP menyeluruh  
+- [Dokumentasi FastMCP](https://github.com/modelcontextprotocol/python-sdk) - Dokumentasi SDK Python  
 
 ### Integrasi Pangkalan Data
-- [Dokumentasi PostgreSQL](https://www.postgresql.org/docs/) - Rujukan lengkap PostgreSQL
-- [Panduan pgvector](https://github.com/pgvector/pgvector) - Dokumentasi sambungan vektor
-- [Keselamatan Tahap Baris](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - Panduan RLS PostgreSQL
+- [Dokumentasi PostgreSQL](https://www.postgresql.org/docs/) - Rujukan lengkap PostgreSQL  
+- [Panduan pgvector](https://github.com/pgvector/pgvector) - Dokumentasi sambungan vektor  
+- [Keselamatan Peringkat Baris](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - Panduan RLS PostgreSQL  
 
 ### Perkhidmatan Azure
-- [Dokumentasi Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Integrasi perkhidmatan AI
-- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Perkhidmatan pangkalan data terurus
-- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Kontainer tanpa pelayan
+- [Dokumentasi Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Integrasi perkhidmatan AI  
+- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Perkhidmatan pangkalan data terurus  
+- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Kontena tanpa pelayan  
 
 ---
 
-**Penafian**: Ini adalah latihan pembelajaran menggunakan data runcit fiksyen. Sentiasa ikuti dasar tadbir urus data dan keselamatan organisasi anda apabila melaksanakan penyelesaian serupa dalam persekitaran pengeluaran.
+**Penafian**: Ini adalah latihan pembelajaran menggunakan data runcit rekaan. Sentiasa ikuti dasar tadbir urus data dan keselamatan organisasi anda apabila melaksanakan penyelesaian serupa dalam persekitaran pengeluaran.
 
 ---
 
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk memastikan ketepatan, sila ambil perhatian bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang berwibawa. Untuk maklumat yang kritikal, terjemahan manusia profesional adalah disyorkan. Kami tidak bertanggungjawab atas sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat penting, terjemahan oleh manusia profesional adalah disyorkan. Kami tidak bertanggungjawab terhadap sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

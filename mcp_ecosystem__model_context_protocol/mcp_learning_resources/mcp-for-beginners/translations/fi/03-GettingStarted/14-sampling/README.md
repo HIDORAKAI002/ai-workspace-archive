@@ -1,24 +1,24 @@
-# Näyteotto - ominaisuuksien delegointi asiakkaalle
+# Näyteotanta – delegoi ominaisuudet asiakkaalle
 
-Joskus MCP-asiakkaan ja MCP-palvelimen täytyy tehdä yhteistyötä yhteisen tavoitteen saavuttamiseksi. Saatat törmätä tilanteeseen, jossa palvelin tarvitsee apua asiakkaalla sijaitsevalta LLM:ltä. Tällaisessa tilanteessa kannattaa käyttää näyteottoa.
+Joskus MCP Clientin ja MCP Serverin täytyy tehdä yhteistyötä yhteisen tavoitteen saavuttamiseksi. Saatat kohdata tilanteen, jossa Serveri tarvitsee apua asiakkaalla sijaitsevalta LLM:ltä. Tällaisessa tilanteessa näyteotanta on se, mitä sinun tulisi käyttää.
 
-Tutustutaanpa joihinkin käyttötapauksiin ja siihen, miten näyteottamiseen perustuva ratkaisu rakennetaan.
+Tutkitaanpa joitakin käyttötapauksia ja kuinka rakentaa ratkaisu, joka sisältää näyteotannan.
 
 ## Yleiskatsaus
 
-Tässä oppitunnissa keskitymme selittämään, milloin ja missä näyteottoa käytetään sekä miten se konfiguroidaan.
+Tässä oppitunnissa keskitymme selittämään, milloin ja missä näyteotantaa käytetään ja kuinka se konfiguroidaan.
 
 ## Oppimistavoitteet
 
 Tässä luvussa:
 
-- Selitämme, mitä näyteotto on ja milloin sitä käytetään.
-- Näytämme, miten näyteotto konfiguroidaan MCP:ssä.
-- Tarjoamme esimerkkejä näyteoton käytöstä.
+- Selitämme, mitä näyteotanta on ja milloin sitä käytetään.
+- Näytämme, kuinka näyteotanta konfiguroidaan MCP:ssa.
+- Annamme esimerkkejä näyteotannasta käytännössä.
 
-## Mitä näyteotto on ja miksi sitä käytetään?
+## Mikä on näyteotanta ja miksi sitä käyttää?
 
-Näyteotto on edistynyt ominaisuus, joka toimii seuraavasti:
+Näyteotanta on edistynyt ominaisuus, joka toimii seuraavasti:
 
 ```mermaid
 sequenceDiagram
@@ -28,17 +28,18 @@ sequenceDiagram
     participant MCP Server
 
     User->>MCP Client: Kirjoita blogikirjoitus
-    MCP Client->>MCP Server: Työkalupuhelu (blogikirjoituksen luonnos)
-    MCP Server->>MCP Client: Otantapyyntö (luo tiivistelmä)
+    MCP Client->>MCP Server: Työkalukutsu (blogikirjoituksen luonnos)
+    MCP Server->>MCP Client: Otospyyntö (luo tiivistelmä)
     MCP Client->>LLM: Luo blogikirjoituksen tiivistelmä
     LLM->>MCP Client: Tiivistelmän tulos
-    MCP Client->>MCP Server: Otantavastaus (tiivistelmä)
+    MCP Client->>MCP Server: Otosvastaus (tiivistelmä)
     MCP Server->>MCP Client: Valmis blogikirjoitus (luonnos + tiivistelmä)
     MCP Client->>User: Blogikirjoitus valmis
 ```
-### Näyteottopyyntö
 
-Ok, nyt meillä on laaja yleiskuva uskottavasta skenaariosta, keskustellaan siitä, millainen näyteottopyyntö palvelin lähettää takaisin asiakkaalle. Tässä on esimerkki pyynnöstä JSON-RPC-muodossa:
+### Näyteotantapyyntö
+
+Ok, nyt meillä on yleiskuva uskottavasta skenaariosta, puhutaan siitä näyteotantapyynnöstä, jonka serveri lähettää takaisin asiakkaalle. Tässä on esimerkki siitä, miltä tällainen pyyntö voi näyttää JSON-RPC-muodossa:
 
 ```json
 {
@@ -70,18 +71,17 @@ Ok, nyt meillä on laaja yleiskuva uskottavasta skenaariosta, keskustellaan siit
 }
 ```
 
+Tässä on muutama asia, joihin kannattaa kiinnittää huomiota:
 
-Tässä on muutama huomionarvoinen asia:
+- Kehote, content -> text, on meidän kehotteemme, joka on ohje LLM:lle tiivistämään blogikirjoituksen sisältö.
 
-- Kehote, content -> text -kohdassa, on kehotteemme, joka ohjeistaa LLM:ää tiivistämään blogikirjoituksen sisällön.
+- **modelPreferences**. Tämä osio on nimensä mukaan suositus, ehdotus siitä, mitä asetuksia LLM:lle kannattaa käyttää. Käyttäjä voi päättää, noudattaako näitä suosituksia vai muuttaako niitä. Tässä tapauksessa on suosituksia käytettävästä mallista sekä nopeuden ja älykkyyden priorisoinnista.
+- **systemPrompt** on tavallinen järjestelmäkehote, joka antaa LLM:lle persoonallisuuden ja sisältää ohjeistukset.
+- **maxTokens** on toinen ominaisuus, joka kertoo, kuinka monta tokenia tälle tehtävälle on suositeltavaa käyttää.
 
-- **modelPreferences**. Tässä osiossa on suositus eli ehdotus siitä, millaista konfiguraatiota LLM:n kanssa tulisi käyttää. Käyttäjä voi valita, noudattaako näitä suosituksia vai muuttaako niitä. Tässä tapauksessa suositellaan mallia, saatavuutta ja älykkyyden priorisointia.
-- **systemPrompt** on normaali järjestelmäkehotteesi, joka antaa LLM:lle persoonallisuuden ja sisältää ohjeistuksia.
-- **maxTokens** määrittää, kuinka monta tokenia suositellaan käytettäväksi tässä tehtävässä.
+### Näyteotantavastaus
 
-### Näyteottovastaus
-
-Tämä vastaus on se, minkä MCP-asiakas lopulta lähettää takaisin MCP-palvelimelle ja se on seurausta siitä, että asiakas kutsuu LLM:ää, odottaa vastausta ja rakentaa tämän viestin. Tässä esimerkki JSON-RPC-muodossa:
+Tämä vastaus on se, jonka MCP Client lopulta lähettää MCP Serverille, ja se on tulos asiakkaan soittaessa LLM:lle, odottaessa vastausta ja koostaen sitten tämän viestin. Tässä on esimerkki JSON-RPC-muodossa:
 
 ```json
 {
@@ -99,14 +99,13 @@ Tämä vastaus on se, minkä MCP-asiakas lopulta lähettää takaisin MCP-palvel
 }
 ```
 
+Huomaa, että vastaus on blogikirjoituksen abstrakti juuri kuten pyysimme. Huomaa myös, että käytetty `model` ei ole se, jota pyysimme, vaan "gpt-5" "claude-3-sonnetin" sijaan. Tämä havainnollistaa, että käyttäjä voi muuttaa mielipidettään käytettävästä mallista ja että näyteotantapyyntö on suositus.
 
-Huomaa, kuinka vastaus on blogikirjoituksen tiivistelmä juuri kuten pyysimme. Huomaa myös, että käytetty `model` ei ole se, mitä pyysimme, vaan "gpt-5" "claude-3-sonnetin" sijaan. Tämä havainnollistaa, että käyttäjä voi muuttaa mieltään ja että näyteottopyyntösi on suositus.
-
-Nyt kun ymmärrämme pääprosessin ja hyödyllisen tehtävän "blogikirjoituksen luonti + tiivistelmä", katsotaan, mitä meidän pitää tehdä, jotta tämä toimisi.
+Ok, nyt kun ymmärrämme päävirran ja hyödyllisen tehtävän käyttää sitä varten ”blogikirjoituksen luonnostelu + abstrakti”, katsotaan mitä tarvitsemme saadaksemme tämän toimimaan.
 
 ### Viestityypit
 
-Näyteottoviestit eivät rajoitu pelkkään tekstiin, vaan voit lähettää myös kuvia ja ääntä. Tässä kuinka JSON-RPC näyttää erilaiselta:
+Näyteotantaviestit eivät rajoitu vain tekstiin, vaan voit lähettää myös kuvia ja ääntä. Tässä on esimerkki siitä, kuinka JSON-RPC eroaa:
 
 **Teksti**
 
@@ -137,13 +136,13 @@ Näyteottoviestit eivät rajoitu pelkkään tekstiin, vaan voit lähettää myö
 }
 ```
 
-> HUOM: lisätietoja näyteotosta löytyy [virallisista ohjeista](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling)
+> HUOMAUTUS: saadaksesi yksityiskohtaisempaa tietoa näyteotannasta, tutustu [virallisiin dokumentteihin](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Näyteoton konfigurointi asiakkaassa
+## Kuinka konfiguroida näyteotanta asiakkaalle
 
-> Huom: jos rakennat vain palvelinta, sinun ei tarvitse tehdä tässä juuri mitään.
+> Huom: jos rakennat vain serverin, sinun ei tarvitse tehdä paljoa tässä.
 
-Asiakkaassa sinun tulee määritellä seuraava ominaisuus näin:
+Asiakkaassa sinun tulee määrittää seuraava ominaisuus näin:
 
 ```json
 {
@@ -153,19 +152,18 @@ Asiakkaassa sinun tulee määritellä seuraava ominaisuus näin:
 }
 ```
 
+Tämä otetaan käyttöön, kun valitsemasi asiakas alustaa yhteyden serveriin.
 
-Tämä otetaan käyttöön, kun valittu asiakas alustetaan palvelimen kanssa.
+## Esimerkki näyteotannasta käytännössä – Luo blogikirjoitus
 
-## Esimerkki näyteoton käytöstä – Luo blogikirjoitus
+Koodataan yhdessä näyteotantaserveri, meidän tulee tehdä seuraavaa:
 
-Tehdään yhdessä näyteottopalvelin, sinun pitää tehdä seuraavat asiat:
+1. Luo työkalu Serverille.
+2. Työkalun tulee luoda näyteotantapyyntö.
+3. Työkalun tulee odottaa asiakkaan vastausta näyteotantapyyntöön.
+4. Tämän jälkeen tuotetaan työkalun tulos.
 
-1. Luo työkalu palvelimelle.
-1. Työkalun tulee luoda näyteottopyyntö.
-1. Työkalun pitää odottaa, että asiakkaan näyteottopyyntöön vastataan.
-1. Sen jälkeen työkalun tulos tuotetaan.
-
-Katsotaan koodia vaihe vaiheelta:
+Katsotaan koodi vaihe vaiheelta:
 
 ### -1- Luo työkalu
 
@@ -178,7 +176,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Luo näyteottopyyntö
+### -2- Luo näyteotantapyyntö
 
 Laajenna työkalua seuraavalla koodilla:
 
@@ -222,7 +220,7 @@ return json.dumps({
 })
 ```
 
-### -4- Kokonaiskoodi
+### -4- Koko koodi
 
 **python**
 
@@ -284,7 +282,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # palauta koko blogikirjoitus
+    # palauttaa koko blogikirjoituksen
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -295,15 +293,15 @@ if __name__ == "__main__":
     # mcp.run()
     mcp.run(transport="streamable-http")
 
-# ajakaa sovellus komennolla: python server.py
+# käynnistä sovellus komennolla: python server.py
 ```
 
-### -5- Testaa Visual Studio Codessa
+### -5- Testaus Visual Studio Codessa
 
-Testataksesi tätä Visual Studio Codessa, tee seuraavasti:
+Testataksesi tätä Visual Studio Codessa, toimi seuraavasti:
 
-1. Käynnistä palvelin terminaalissa
-1. Lisää palvelin *mcp.json*:iin (ja varmista, että se on käynnissä), esimerkiksi näin:
+1. Käynnistä serveri terminaalissa.
+2. Lisää se *mcp.json* -tiedostoon (ja varmista, että se on käynnissä), esim. näin:
 
    ```json
    "servers": {
@@ -314,37 +312,37 @@ Testataksesi tätä Visual Studio Codessa, tee seuraavasti:
    }
    ```
 
-1. Kirjoita kehotteesi:
+3. Kirjoita kehote:
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Salli näyteoto. Kun testaat ensimmäistä kertaa, sinulle tulee lisävalinta, joka pitää hyväksyä, sitten näet normaalin valintaikkunan, jossa kysytään suorittamaan työkalu.
+4. Salli näyteotanta tapahtua. Ensimmäisellä testikerralla saat lisäikkunan, jonka hyväksyt, sitten näet normaalin ponnahdusikkunan, jossa sinua pyydetään suorittamaan työkalu.
 
-1. Tarkastele tuloksia. Näet tulokset kauniisti renderöityinä GitHub Copilot Chatissa, mutta voit myös tarkastella raakaa JSON-vastausta.
+5. Tarkastele tuloksia. Näet tulokset kauniisti renderöityinä GitHub Copilot Chatissa, mutta voit myös tarkastella raakaa JSON-vastausta.
 
-**Bonus**. Visual Studio Coden työkalut tukevat erinomaisesti näyteottoa. Voit konfiguroida näyteoton käyttöoikeuksia asennetulle palvelimellesi näin:
+**Bonus**. Visual Studio Coden työkalut tukevat erinomaisesti näyteotantaa. Voit konfiguroida näyteotannan käyttöoikeudet asentamallesi serverille seuraavasti:
 
 1. Mene laajennukset-osioon.
-1. Valitse rataskuvake asennetun palvelimen kohdalla "MCP SERVERS - INSTALLED" -osiossa.
-1. Valitse "Configure Model Access", täällä voit valita, mitä malleja GitHub Copilot saa käyttää näyteoton aikana. Voit myös nähdä kaikki viimeaikaiset näyteottopyynnöt valitsemalla "Show Sampling requests".
+2. Valitse rataskuvake asennetun serverisi kohdalta kohdassa "MCP SERVERS - INSTALLED".
+3. Valitse "Configure Model Access". Täällä voit valita, mitä malleja GitHub Copilot saa käyttää näyteotannan yhteydessä. Voit myös nähdä kaikki viimeaikaiset näyteotantapyynnöt valitsemalla "Show Sampling requests".
 
 ## Tehtävä
 
-Tässä tehtävässä rakennat hieman erilaisen näyteottointegraation, joka tukee tuotteen kuvauksen generointia. Tässä skenaario:
+Tässä tehtävässä rakennat hiukan erilaisen näyteotantaintegraation, joka tukee tuotteen kuvauksen generoimista. Tässä on skenaariosi:
 
-**Skenaario**: Verkkokaupan back office -työntekijä tarvitsee apua, sillä tuotekuvausten kirjoittaminen vie liikaa aikaa. Sinun tehtäväsi on rakentaa ratkaisu, jossa voit kutsua työkalua "create_product" argumenteilla "title" ja "keywords". Työkalun tulisi tuottaa valmis tuote mukaan lukien kenttä "description", jonka sisältö luodaan asiakkaan LLM:llä.
+**Skenaario**: Verkkokaupan back office -työntekijä tarvitsee apua, tuotteiden kuvauksien luominen vie liikaa aikaa. Sinun tehtäväsi on rakentaa ratkaisu, jossa voit kutsua työkalua "create_product" argumenteilla "title" ja "keywords", ja sen tulisi tuottaa valmis tuote, johon kuuluu "description"-kenttä, jonka täyttää asiakkaan LLM.
 
-VINKKI: käytä aiemmin oppimaasi rakentaaksesi tämä palvelin ja sen työkalu näyteottopyyntöä käyttäen.
+VINKKI: käytä aiemmin oppimaasi rakentaaksesi tämä serveri ja sen työkalu näyteotantapyynnöllä.
 
 ## Ratkaisu
 
-[Ratkaisu](./solution/README.md)
+[Solution](./solution/README.md)
 
 ## Tärkeimmät opit
 
-Näyteotto on tehokas ominaisuus, joka sallii palvelimen delegoida tehtäviä asiakkaalle, kun tarvitaan LLM:n apua.
+Näyteotanta on tehokas ominaisuus, joka sallii serverin delegoida tehtäviä asiakkaalle, kun se tarvitsee LLM:n apua.
 
 ## Mitä seuraavaksi
 
@@ -353,6 +351,6 @@ Näyteotto on tehokas ominaisuus, joka sallii palvelimen delegoida tehtäviä as
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Vastuuvapauslauseke**:  
-Tämä asiakirja on käännetty käyttäen tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, ole hyvä ja huomioi, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja omalla kielellään on se auktoriteettinen lähde. Tärkeässä tiedossa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa mistään väärinymmärryksistä tai virhetulkintojen seurauksista, jotka johtuvat tämän käännöksen käytöstä.
+**Vastuuvapauslauseke**:
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

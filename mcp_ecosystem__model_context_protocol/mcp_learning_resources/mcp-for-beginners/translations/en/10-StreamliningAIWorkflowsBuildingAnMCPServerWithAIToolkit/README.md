@@ -1,4 +1,4 @@
-# Streamlining AI Workflows: Building an MCP Server with AI Toolkit
+# Streamlining AI Workflows: Building an MCP Server with Microsoft Foundry Toolkit
 
 [![MCP Spec](https://img.shields.io/badge/MCP%20Spec-2025--11--25-blue.svg)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://python.org)
@@ -8,14 +8,14 @@
 
 ## 🎯  Overview
 
-[![Build AI Agents in VS Code: 4 Hands-On Labs with MCP and AI Toolkit](../../../translated_images/en/11.0f6db6a0fb606885.webp)](https://youtu.be/r34Csn3rkeQ)
+[![Build AI Agents in VS Code: 4 Hands-On Labs with MCP and Microsoft Foundry Toolkit](../../../translated_images/en/11.0f6db6a0fb606885.webp)](https://youtu.be/r34Csn3rkeQ)
 
 _(Click the image above to view video of this lesson)_
 
 Welcome to the **Model Context Protocol (MCP) Workshop**! This comprehensive hands-on workshop combines two cutting-edge technologies to revolutionize AI application development:
 
 - **🔗 Model Context Protocol (MCP)**: An open standard for seamless AI-tool integration
-- **🛠️ AI Toolkit for Visual Studio Code (AITK)**: Microsoft's powerful AI development extension
+- **🛠️ Microsoft Foundry Toolkit Extension for VS Code**: Microsoft's powerful AI development extension
 
 ### 🎓 What You'll Learn
 
@@ -37,7 +37,7 @@ MCP is the **"USB-C for AI"** - a universal standard that connects AI models to 
 **🎯 Why MCP Matters:**
 Just like USB-C eliminated cable chaos, MCP eliminates the complexity of AI integrations. One protocol, infinite possibilities.
 
-### 🤖 AI Toolkit for Visual Studio Code (AITK)
+### 🤖 Microsoft Foundry Toolkit Extension for VS Code
 
 Microsoft's flagship AI development extension that transforms VS Code into an AI powerhouse.
 
@@ -57,37 +57,37 @@ Microsoft's flagship AI development extension that transforms VS Code into an AI
 
 ## 📚 Learning Journey
 
-### [🚀 Module 1: AI Toolkit Fundamentals](./lab1/README.md)
+### [🚀 Module 1: Microsoft Foundry Toolkit Fundamentals](./lab1/README.md)
 
 **Duration**: 15 minutes
 
-- 🛠️ Install and configure AI Toolkit for VS Code
+- 🛠️ Install and configure Microsoft Foundry Toolkit for VS Code
 - 🗂️ Explore the Model Catalog (100+ models from GitHub, ONNX, OpenAI, Anthropic, Google)
 - 🎮 Master the Interactive Playground for real-time model testing
 - 🤖 Build your first AI agent with Agent Builder
 - 📊 Evaluate model performance with built-in metrics (F1, relevance, similarity, coherence)
 - ⚡ Learn batch processing and multi-modal support capabilities
 
-**🎯 Learning Outcome**: Create a functional AI agent with comprehensive understanding of AITK capabilities
+**🎯 Learning Outcome**: Create a functional AI agent with comprehensive understanding of Microsoft Foundry Toolkit capabilities
 
-### [🌐 Module 2: MCP with AI Toolkit Fundamentals](./lab2/README.md)
+### [🌐 Module 2: MCP with Microsoft Foundry Toolkit Fundamentals](./lab2/README.md)
 
 **Duration**: 20 minutes
 
 - 🧠 Master Model Context Protocol (MCP) architecture and concepts
 - 🌐 Explore Microsoft's MCP server ecosystem
 - 🤖 Build a browser automation agent using Playwright MCP server
-- 🔧 Integrate MCP servers with AI Toolkit Agent Builder
+- 🔧 Integrate MCP servers with Microsoft Foundry Toolkit Agent Builder
 - 📊 Configure and test MCP tools within your agents
 - 🚀 Export and deploy MCP-powered agents for production use
 
 **🎯 Learning Outcome**: Deploy an AI agent supercharged with external tools through MCP
 
-### [🔧 Module 3: Advanced MCP Development with AI Toolkit](./lab3/README.md)
+### [🔧 Module 3: Advanced MCP Development with Microsoft Foundry Toolkit](./lab3/README.md)
 
 **Duration**: 20 minutes
 
-- 💻 Create custom MCP servers using AI Toolkit
+- 💻 Create custom MCP servers using Microsoft Foundry Toolkit
 - 🐍 Configure and use the latest MCP Python SDK (v1.9.3)
 - 🔍 Set up and utilize MCP Inspector for debugging
 - 🛠️ Build a Weather MCP Server with professional debugging workflows
@@ -150,7 +150,7 @@ Create exceptional customer interactions:
 | Component | Requirement | Notes |
 |-----------|-------------|-------|
 | **Operating System** | Windows 10+, macOS 10.15+, Linux | Any modern OS |
-| **Visual Studio Code** | Latest stable version | Required for AITK |
+| **Visual Studio Code** | Latest stable version | Required for Microsoft Foundry Toolkit |
 | **Node.js** | v18.0+ and npm | For MCP server development |
 | **Python** | 3.10+ | Optional for Python MCP servers |
 | **Memory** | 8GB RAM minimum | 16GB recommended for local models |
@@ -159,7 +159,7 @@ Create exceptional customer interactions:
 
 #### Recommended VS Code Extensions
 
-- **AI Toolkit** (ms-windows-ai-studio.windows-ai-studio)
+- **Microsoft Foundry Toolkit** (ms-windows-ai-studio.windows-ai-studio)
 - **Python** (ms-python.python)
 - **Python Debugger** (ms-python.debugpy)
 - **GitHub Copilot** (GitHub.copilot) - Optional but helpful
@@ -179,14 +179,14 @@ By completing this workshop, you will achieve mastery in:
 #### 🎯 Core Competencies
 
 - [ ] **MCP Protocol Mastery**: Deep understanding of architecture and implementation patterns
-- [ ] **AITK Proficiency**: Expert-level usage of AI Toolkit for rapid development
+- [ ] **Microsoft Foundry Toolkit Proficiency**: Expert-level usage of Microsoft Foundry Toolkit for rapid development
 - [ ] **Custom Server Development**: Build, deploy, and maintain production MCP servers
 - [ ] **Tool Integration Excellence**: Seamlessly connect AI with existing development workflows
 - [ ] **Problem-Solving Application**: Apply learned skills to real business challenges
 
 #### 🔧 Technical Skills
 
-- [ ] Set up and configure AI Toolkit in VS Code
+- [ ] Set up and configure Microsoft Foundry Toolkit in VS Code
 - [ ] Design and implement custom MCP servers
 - [ ] Integrate GitHub Models with MCP architecture
 - [ ] Build automated testing workflows with Playwright
@@ -204,7 +204,7 @@ By completing this workshop, you will achieve mastery in:
 ## 📖 Additional Resources
 
 - [MCP Specification (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [AI Toolkit GitHub Repository](https://github.com/microsoft/vscode-ai-toolkit)
+- [Microsoft Foundry Toolkit GitHub Repository](https://github.com/microsoft/vscode-ai-toolkit)
 - [Sample MCP Servers Collection](https://github.com/modelcontextprotocol/servers)
 - [Best Practices Guide](https://modelcontextprotocol.io/docs/best-practices)
 - [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Security best practices
@@ -213,7 +213,7 @@ By completing this workshop, you will achieve mastery in:
 
 **🚀 Ready to revolutionize your AI development workflow?**
 
-Let's build the future of intelligent applications together with MCP and AI Toolkit!
+Let's build the future of intelligent applications together with MCP and Microsoft Foundry Toolkit!
 
 ## What's Next
 
@@ -223,5 +223,5 @@ Continue to: [Module 11: MCP Server Hands-On Labs](../11-MCPServerHandsOnLabs/RE
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

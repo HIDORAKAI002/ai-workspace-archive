@@ -1113,10 +1113,10 @@ Implement proper authorization checks:
 ```java
 @Override
 public ToolResponse execute(ToolRequest request) {
-    // Get user context from the request
+    // Get user context from request
     UserContext user = request.getContext().getUserContext();
     
-    // Check if the user has the required permissions
+    // Check if user has required permissions
     if (!authorizationService.hasPermission(user, "documents:read")) {
         throw new ToolExecutionException("User does not have permission to access documents");
     }
@@ -1127,7 +1127,7 @@ public ToolResponse execute(ToolRequest request) {
         throw new ToolExecutionException("Access denied to the requested document");
     }
     
-    // Proceed with executing the tool
+    // Proceed with tool execution
     // ...
 }
 ```
@@ -1261,17 +1261,17 @@ public void testSchemaValidation() {
     // Create tool instance
     SearchTool searchTool = new SearchTool();
     
-    // Get schema
+    // Obtain schema
     Object schema = searchTool.getSchema();
     
     // Convert schema to JSON for validation
     String schemaJson = objectMapper.writeValueAsString(schema);
     
-    // Validate schema is valid JSONSchema
+    // Validate that the schema is a valid JSONSchema
     JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
     JsonSchema jsonSchema = factory.getJsonSchema(schemaJson);
     
-    // Test valid parameters
+    // Test with valid parameters
     JsonNode validParams = objectMapper.createObjectNode()
         .put("query", "test query")
         .put("limit", 5);
@@ -1279,14 +1279,14 @@ public void testSchemaValidation() {
     ProcessingReport validReport = jsonSchema.validate(validParams);
     assertTrue(validReport.isSuccess());
     
-    // Test missing required parameter
+    // Test with missing required parameter
     JsonNode missingRequired = objectMapper.createObjectNode()
         .put("limit", 5);
         
     ProcessingReport missingReport = jsonSchema.validate(missingRequired);
     assertFalse(missingReport.isSuccess());
     
-    // Test invalid parameter type
+    // Test with invalid parameter type
     JsonNode invalidType = objectMapper.createObjectNode()
         .put("query", "test")
         .put("limit", "not-a-number");
@@ -2231,12 +2231,13 @@ export default function () {
 Automating your tests ensures consistent quality and faster feedback loops.
 
 ### CI/CD Integration
-1. **Run Unit Tests on Pull Requests**: Ensure code changes don't break existing functionality  
+
+1. **Run Unit Tests on Pull Requests**: Ensure code changes don't break existing functionality
 2. **Integration Tests in Staging**: Run integration tests in pre-production environments  
 3. **Performance Baselines**: Maintain performance benchmarks to catch regressions  
 4. **Security Scans**: Automate security testing as part of the pipeline  
 
-### Example CI Pipeline (GitHub Actions)  
+### Example CI Pipeline (GitHub Actions)
 
 ```yaml
 name: MCP Server Tests
@@ -2275,11 +2276,11 @@ jobs:
       run: dotnet run --project tests/PerformanceTests/PerformanceTests.csproj
 ```
   
-## Testing for Compliance with MCP Specification  
+## Testing for Compliance with MCP Specification
 
-Verify your server correctly implements the MCP specification.  
+Verify your server correctly implements the MCP specification.
 
-### Key Compliance Areas  
+### Key Compliance Areas
 
 1. **API Endpoints**: Test required endpoints (/resources, /tools, etc.)  
 2. **Request/Response Format**: Validate schema compliance  
@@ -2287,7 +2288,7 @@ Verify your server correctly implements the MCP specification.
 4. **Content Types**: Test handling of different content types  
 5. **Authentication Flow**: Verify spec-compliant auth mechanisms  
 
-### Compliance Test Suite  
+### Compliance Test Suite
 
 ```csharp
 [Fact]
@@ -2314,7 +2315,7 @@ public async Task Server_ResourceEndpoint_ReturnsCorrectSchema()
 }
 ```
   
-## Top 10 Tips for Effective MCP Server Testing  
+## Top 10 Tips for Effective MCP Server Testing
 
 1. **Test Tool Definitions Separately**: Verify schema definitions independently from tool logic  
 2. **Use Parameterized Tests**: Test tools with a variety of inputs, including edge cases  
@@ -2327,7 +2328,7 @@ public async Task Server_ResourceEndpoint_ReturnsCorrectSchema()
 9. **Automate Regression Tests**: Build a suite that runs on every code change  
 10. **Document Test Cases**: Maintain clear documentation of test scenarios  
 
-## Common Testing Pitfalls  
+## Common Testing Pitfalls
 
 - **Over-reliance on happy path testing**: Make sure to test error cases thoroughly  
 - **Ignoring performance testing**: Identify bottlenecks before they affect production  
@@ -2335,12 +2336,11 @@ public async Task Server_ResourceEndpoint_ReturnsCorrectSchema()
 - **Incomplete API coverage**: Ensure all endpoints and features are tested  
 - **Inconsistent test environments**: Use containers to ensure consistent test environments  
 
-## Conclusion  
+## Conclusion
 
 A comprehensive testing strategy is essential for developing reliable, high-quality MCP servers. By implementing the best practices and tips outlined in this guide, you can ensure your MCP implementations meet the highest standards of quality, reliability, and performance.  
 
-
-## Key Takeaways  
+## Key Takeaways
 
 1. **Tool Design**: Follow single responsibility principle, use dependency injection, and design for composability  
 2. **Schema Design**: Create clear, well-documented schemas with proper validation constraints  
@@ -2350,33 +2350,33 @@ A comprehensive testing strategy is essential for developing reliable, high-qual
 6. **Testing**: Create comprehensive unit, integration, and end-to-end tests  
 7. **Workflow Patterns**: Apply established patterns like chains, dispatchers, and parallel processing  
 
-## Exercise  
+## Exercise
 
-Design an MCP tool and workflow for a document processing system that:  
+Design an MCP tool and workflow for a document processing system that:
 
 1. Accepts documents in multiple formats (PDF, DOCX, TXT)  
 2. Extracts text and key information from the documents  
 3. Classifies documents by type and content  
 4. Generates a summary of each document  
 
-Implement the tool schemas, error handling, and a workflow pattern that best suits this scenario. Consider how you would test this implementation.  
+Implement the tool schemas, error handling, and a workflow pattern that best suits this scenario. Consider how you would test this implementation.
 
 ## Resources  
 
-1. Join the MCP community on the [Azure AI Foundry Discord Community](https://aka.ms/foundrydevs) to stay updated on the latest developments  
+1. Join the MCP community on the [Microsoft Foundry Discord Community](https://aka.ms/foundrydevs) to stay updated on the latest developments  
 2. Contribute to open-source [MCP projects](https://github.com/modelcontextprotocol)  
 3. Apply MCP principles in your own organization's AI initiatives  
 4. Explore specialized MCP implementations for your industry.  
 5. Consider taking advanced courses on specific MCP topics, such as multi-modal integration or enterprise application integration.  
 6. Experiment with building your own MCP tools and workflows using the principles learned through the [Hands on Lab](../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)  
 
-## What's Next  
+## What's Next
 
 Next: [Case Studies](../09-CaseStudy/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+**Disclaimer**:
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,57 +1,57 @@
-# אינטגרציה של פרוטוקול הקשר למודל (MCP) עם Azure AI Foundry
+# אינטגרציה של פרוטוקול הקשר למודל (MCP) עם Microsoft Foundry
 
-מדריך זה מציג כיצד לשלב שרתי Model Context Protocol (MCP) עם סוכני Azure AI Foundry, ומאפשר תזמור כלים חזק ויכולות AI ארגוניות.
+מדריך זה מדגים כיצד לאינטגרציה של שרתי Model Context Protocol (MCP) עם סוכני Microsoft Foundry, המאפשר אורכסטרציה מתקדמת של כלים ויכולות AI ארגוניות חזקות.
 
 ## מבוא
 
-Model Context Protocol (MCP) הוא תקן פתוח המאפשר לאפליקציות AI להתחבר בצורה מאובטחת למקורות נתונים וכלים חיצוניים. בשילוב עם Azure AI Foundry, MCP מאפשר לסוכנים לגשת ולפעול עם שירותים, APIs ומקורות נתונים חיצוניים שונים בצורה סטנדרטית.
+Model Context Protocol (MCP) הוא תקן פתוח המאפשר לאפליקציות AI להתחבר בצורה מאובטחת למקורות נתונים וכלים חיצוניים. בעת אינטגרציה עם Microsoft Foundry, MCP מאפשר לסוכנים לגשת לאינטראקציה עם שירותים חיצוניים שונים, ממשקי API ומקורות נתונים בצורה סטנדרטית.
 
-שילוב זה מחבר בין הגמישות של מערכת הכלים של MCP לבין מסגרת הסוכנים החזקה של Azure AI Foundry, ומספק פתרונות AI ברמת ארגון עם אפשרויות התאמה נרחבות.
+אינטגרציה זו משלבת את הגמישות של אקוסיסטם הכלים של MCP עם מסגרת הסוכנים החזקה של Microsoft Foundry, ומספקת פתרונות AI מדרגת ארגון עם יכולות התאמה אישית נרחבות.
 
-**[!NOTE]** אם ברצונך להשתמש ב-MCP בשירות סוכני Azure AI Foundry, כרגע נתמכים רק האזורים הבאים: westus, westus2, uaenorth, southindia ו-switzerlandnorth
+**הערה:** אם ברצונך להשתמש ב-MCP בשירות סוכן Microsoft Foundry, כרגע נתמכים רק האזורים הבאים: westus, westus2, uaenorth, southindia ו-switzerlandnorth
 
-## מטרות הלמידה
+## יעדי הלמידה
 
-בסיום מדריך זה תוכל:
+עם סיום מדריך זה, תוכל:
 
 - להבין את פרוטוקול הקשר למודל ואת יתרונותיו
-- להגדיר שרתי MCP לשימוש עם סוכני Azure AI Foundry
-- ליצור ולהגדיר סוכנים עם אינטגרציה של כלי MCP
-- ליישם דוגמאות מעשיות עם שרתי MCP אמיתיים
-- לטפל בתגובות כלים וציטוטים בשיחות עם הסוכן
+- להגדיר שרתי MCP לשימוש עם סוכני Microsoft Foundry
+- ליצור ולהגדיר סוכנים עם אינטגרציית כלי MCP
+- ליישם דוגמאות מעשיות באמצעות שרתי MCP אמיתיים
+- לטפל בתגובות כלים וציטוטים בשיחות סוכן
 
 ## דרישות מוקדמות
 
-לפני שמתחילים, ודא שיש לך:
+לפני שתתחיל, ודא שיש לך:
 
-- מנוי Azure עם גישה ל-AI Foundry
+- מנוי Azure עם גישה ל-Microsoft Foundry
 - Python 3.10+ או .NET 8.0+
 - Azure CLI מותקן ומוגדר
 - הרשאות מתאימות ליצירת משאבי AI
 
-## מהו Model Context Protocol (MCP)?
+## מהו פרוטוקול הקשר למודל (MCP)?
 
 Model Context Protocol הוא דרך סטנדרטית לאפליקציות AI להתחבר למקורות נתונים וכלים חיצוניים. היתרונות המרכזיים כוללים:
 
 - **אינטגרציה סטנדרטית**: ממשק עקבי בין כלים ושירותים שונים
 - **אבטחה**: מנגנוני אימות והרשאה מאובטחים
-- **גמישות**: תמיכה במקורות נתונים, APIs וכלים מותאמים שונים
-- **הרחבה**: קל להוסיף יכולות ואינטגרציות חדשות
+- **גמישות**: תמיכה במקורות נתונים שונים, ממשקי API וכלים מותאמים אישית
+- **הרחבה**: קלות הוספת יכולות ואינטגרציות חדשות
 
-## הגדרת MCP עם Azure AI Foundry
+## הגדרת MCP עם Microsoft Foundry
 
-### קונפיגורציית סביבה
+### הגדרת סביבה
 
 בחר את סביבת הפיתוח המועדפת עליך:
 
-- [מימוש ב-Python](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [מימוש ב-.NET](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [יישום ב-Python](#יישום-ב-python)
+- [יישום ב-.NET](#codeblock5)
 
 ---
 
-## מימוש ב-Python
+## יישום ב-Python
 
-***[!NOTE]*** ניתן להריץ את ה-[מחברת](mcp_support_python.ipynb) הזו
+***הערה*** ניתן להריץ את [פנקס הרשימות](./mcp_support_python.ipynb)
 
 ### 1. התקנת חבילות נדרשות
 
@@ -62,7 +62,7 @@ pip install azure-identity -U
 pip install mcp==1.11.0 -U
 ```
 
-### 2. ייבוא תלותים
+### 2. ייבוא תלויות
 
 ```python
 import os, time
@@ -71,14 +71,14 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.agents.models import McpTool, RequiredMcpToolCall, SubmitToolApprovalAction, ToolApproval
 ```
 
-### 3. קונפיגורציית הגדרות MCP
+### 3. קביעת הגדרות MCP
 
 ```python
 mcp_server_url = os.environ.get("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
 mcp_server_label = os.environ.get("MCP_SERVER_LABEL", "mslearn")
 ```
 
-### 4. אתחול לקוח הפרויקט
+### 4. התחלת לקוח פרויקט
 
 ```python
 project_client = AIProjectClient(
@@ -93,7 +93,7 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # אופציונלי: ציין את הכלים המותרים
 )
 ```
 
@@ -103,7 +103,7 @@ mcp_tool = McpTool(
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # צור סוכן חדש עם כלים של MCP
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # צור נושא לתקשורת
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # צור הודעה לנושא
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # נהל אישורי כלים והפעל את הסוכן
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # הצג שיחה
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -178,9 +178,9 @@ with project_client:
 
 ---
 
-## מימוש ב-.NET
+## יישום ב-.NET
 
-***[!NOTE]*** ניתן להריץ את ה-[מחברת](mcp_support_dotnet.ipynb) הזו
+***הערה*** ניתן להריץ את [פנקס הרשימות](./mcp_support_dotnet.ipynb)
 
 ### 1. התקנת חבילות נדרשות
 
@@ -189,14 +189,14 @@ with project_client:
 #r "nuget: Azure.Identity, 1.14.2"
 ```
 
-### 2. ייבוא תלותים
+### 2. ייבוא תלויות
 
 ```csharp
 using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 ```
 
-### 3. קונפיגורציית הגדרות
+### 3. קביעת הגדרות
 
 ```csharp
 var projectEndpoint = "https://your-project-endpoint.services.ai.azure.com/api/projects/your-project";
@@ -299,15 +299,15 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ## אפשרויות קונפיגורציית כלי MCP
 
-בעת הגדרת כלי MCP לסוכן שלך, ניתן לציין מספר פרמטרים חשובים:
+בעת קונפיגורציית כלי MCP עבור הסוכן שלך, תוכל לציין כמה פרמטרים חשובים:
 
 ### קונפיגורציית Python
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # מזהה עבור שרת MCP
+    server_url="https://api.example.com/mcp", # נקודת הקצה של שרת MCP
+    allowed_tools=[],                       # אופציונלי: ציין כלים מותרים
 )
 ```
 
@@ -322,7 +322,7 @@ MCPToolDefinition mcpTool = new(
 
 ## אימות וכותרות
 
-שני המימושים תומכים בכותרות מותאמות אישית לאימות:
+שתי היישומים תומכים בכותרות מותאמות אישית לאימות:
 
 ### Python
 ```python
@@ -339,44 +339,48 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 
 ### 1. בעיות חיבור
 - ודא שכתובת ה-URL של שרת MCP נגישה
-- בדוק את פרטי האימות
-- ודא חיבור רשת תקין
+- בדוק את אישורי האימות
+- וודא קישוריות רשת
 
-### 2. כישלונות קריאת כלים
-- בדוק את ארגומנטים הכלי והפורמט שלהם
+### 2. כישלונות קריאת הכלי
+- בדוק ארגומנטים וכללי עיצוב של הכלי
 - בדוק דרישות ספציפיות לשרת
-- יישם טיפול שגיאות מתאים
+- טפל בשגיאות כראוי
 
 ### 3. בעיות ביצועים
-- אופטימיזציה של תדירות קריאות הכלי
-- יישום מטמון במידת הצורך
-- ניטור זמני תגובה של השרת
+- אופטימיזציה של תדירות קריאת הכלים
+- יישום זיכרון מטמון במידת הצורך
+- נטר זמני תגובת שרת
 
-## צעדים הבאים
+## הצעדים הבאים
 
-להעמקת האינטגרציה עם MCP:
+להרחבת האינטגרציה עם MCP:
 
 1. **חקור שרתי MCP מותאמים אישית**: בנה שרתי MCP משלך למקורות נתונים פרטיים
-2. **יישם אבטחה מתקדמת**: הוסף OAuth2 או מנגנוני אימות מותאמים
-3. **ניטור וניתוח**: יישם רישום וניטור לשימוש בכלים
-4. **הרחבת הפתרון**: שקול איזון עומסים וארכיטקטורות שרתי MCP מבוזרות
+2. **יישם אבטחה מתקדמת**: הוסף מנגנוני OAuth2 או אימות מותאמים אישית
+3. **ניטור וניתוח**: יישם רישום ומעקב על שימוש בכלים
+4. **סקייל את הפתרון שלך**: שקול איזון עומסים וארכיטקטורות שרתים מפוזרים של MCP
 
 ## משאבים נוספים
 
-- [תיעוד Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
-- [דוגמאות Model Context Protocol](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [סקירת סוכני Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [תיעוד Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- [דוגמאות פרוטוקול הקשר למודל](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
+- [סקירת סוכני Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [מפרט MCP](https://spec.modelcontextprotocol.io/)
 
 ## תמיכה
 
 לתמיכה ושאלות נוספות:
-- עיין ב-[תיעוד Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- עיין ב-[תיעוד Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - בדוק את [משאבי קהילת MCP](https://modelcontextprotocol.io/)
 
 ## מה הלאה
 
 - [5.14 הנדסת הקשר MCP](../mcp-contextengineering/README.md)
 
-**כתב ויתור**:  
-מסמך זה תורגם באמצעות שירות תרגום מבוסס בינה מלאכותית [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון כי תרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. המסמך המקורי בשפת המקור שלו נחשב למקור הסמכותי. למידע קריטי מומלץ להשתמש בתרגום מקצועי על ידי מתרגם אנושי. אנו לא נושאים באחריות לכל אי-הבנה או פרשנות שגויה הנובעת משימוש בתרגום זה.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**כתב ויתור**:
+מסמך זה תורגם באמצעות שירות תרגום אוטומטי [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון שתרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. יש להחשיב את המסמך המקורי בשפתו הטבעית כמקור הסמכות. למידע קריטי מומלץ להשתמש בתרגום מקצועי על ידי מתרגם אדם. אנו לא אחראים לכל אי-הבנה או פירוש שגוי הנובע מהשימוש בתרגום זה.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

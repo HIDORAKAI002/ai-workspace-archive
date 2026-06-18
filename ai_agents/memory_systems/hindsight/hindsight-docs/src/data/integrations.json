@@ -514,11 +514,11 @@
       "id": "agrasandhany",
       "name": "agrasandhany",
       "description": "Turns your local notes into long-term memory any agent can recall over MCP — with automatic sync, folder-scoped recall, and living summaries.",
-      "type": "official",
-      "by": "hindsight",
+      "type": "community",
+      "by": "yugandhar-maram",
       "category": "tool",
       "link": "https://github.com/yugandhar-maram/agrasandhany",
-      "icon": "/img/icons/obsidian.svg"
+      "icon": "/img/icons/github.png"
     },
     {
       "id": "openhands",

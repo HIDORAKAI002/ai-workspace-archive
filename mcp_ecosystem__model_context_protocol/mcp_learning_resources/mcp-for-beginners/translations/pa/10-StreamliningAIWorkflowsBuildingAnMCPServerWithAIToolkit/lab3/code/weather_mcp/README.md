@@ -1,73 +1,73 @@
 # Weather MCP Server
 
-ਇਹ ਪਾਈਥਨ ਵਿੱਚ ਇੱਕ ਸੈਂਪਲ MCP ਸਰਵਰ ਹੈ ਜੋ ਮੌਸਮ ਨਾਲ ਸੰਬੰਧਿਤ ਟੂਲਾਂ ਨੂੰ ਮੌਕ ਜਵਾਬਾਂ ਨਾਲ ਲਾਗੂ ਕਰਦਾ ਹੈ। ਇਹ ਤੁਹਾਡੇ ਆਪਣੇ MCP ਸਰਵਰ ਲਈ ਇੱਕ ਧਾਂਚਾ ਵਜੋਂ ਵਰਤਿਆ ਜਾ ਸਕਦਾ ਹੈ। ਇਸ ਵਿੱਚ ਹੇਠ ਲਿਖੀਆਂ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਸ਼ਾਮਲ ਹਨ:
+ਇਹ ਇੱਕ ਨਮੂਨਾ MCP ਸਰਵਰ ਹੈ ਜੋ Python ਵਿੱਚ ਮੌਸਮ ਲਈ ਔਜ਼ਾਰਾਂ ਨਾਲ ਮੌਕ ਜਵਾਬਾਂ ਨਾਲ ਲਾਗੂ ਕੀਤਾ ਗਿਆ ਹੈ। ਇਸਨੂੰ ਤੁਹਾਡੇ ਆਪਣੇ MCP ਸਰਵਰ ਲਈ ਢਾਂਚਾ ਵਜੋਂ ਵਰਤਿਆ ਜਾ ਸਕਦਾ ਹੈ। ਇਸ ਵਿੱਚ ਹੇਠ ਲਿਖੀਆਂ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਸ਼ਾਮਲ ਹਨ:
 
-- **Weather Tool**: ਇੱਕ ਟੂਲ ਜੋ ਦਿੱਤੇ ਗਏ ਸਥਾਨ ਦੇ ਆਧਾਰ 'ਤੇ ਮੌਸਮ ਦੀ ਮੌਕ ਕੀਤੀ ਜਾਣਕਾਰੀ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ।
-- **Connect to Agent Builder**: ਇੱਕ ਵਿਸ਼ੇਸ਼ਤਾ ਜੋ ਤੁਹਾਨੂੰ MCP ਸਰਵਰ ਨੂੰ ਟੈਸਟਿੰਗ ਅਤੇ ਡੀਬੱਗਿੰਗ ਲਈ ਏਜੰਟ ਬਿਲਡਰ ਨਾਲ ਜੋੜਨ ਦੀ ਆਗਿਆ ਦਿੰਦੀ ਹੈ।
-- **Debug in [MCP Inspector](https://github.com/modelcontextprotocol/inspector)**: ਇੱਕ ਵਿਸ਼ੇਸ਼ਤਾ ਜੋ ਤੁਹਾਨੂੰ MCP Inspector ਦੀ ਵਰਤੋਂ ਕਰਕੇ MCP ਸਰਵਰ ਨੂੰ ਡੀਬੱਗ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦੀ ਹੈ।
+- **Weather Tool**: ਇੱਕ ਔਜ਼ਾਰ ਜੋ ਦਿੱਤੇ ਗਏ ਸਥਾਨ ਦੇ ਅਧਾਰ 'ਤੇ ਮੌਕ ਕੀਤੀ ਮੌਸਮ ਜਾਣਕਾਰੀ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ।
+- **Agent Builder ਨਾਲ ਜੁੜੋ**: ਇੱਕ ਵਿਸ਼ੇਸ਼ਤਾ ਜੋ ਤੁਹਾਨੂੰ MCP ਸਰਵਰ ਨੂੰ Agent Builder ਨਾਲ ਟੈਸਟਿੰਗ ਅਤੇ ਡੀਬੱਗਿੰਗ ਲਈ ਜੋੜਨ ਦੀ ਆਗਿਆ ਦਿੰਦੀ ਹੈ।
+- **[MCP Inspector](https://github.com/modelcontextprotocol/inspector) ਵਿਚ ਡੀਬੱਗ ਕਰੋ**: ਇੱਕ ਵਿਸ਼ੇਸ਼ਤਾ ਜੋ ਤੁਹਾਨੂੰ MCP ਸਰਵਰ ਨੂੰ MCP Inspector ਦੀ ਵਰਤੋਂ ਨਾਲ ਡੀਬੱਗ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦੀ ਹੈ।
 
 ## Weather MCP Server ਟੈਮਪਲੇਟ ਨਾਲ ਸ਼ੁਰੂਆਤ ਕਰੋ
 
-> **ਪੂਰਵ-ਸ਼ਰਤਾਂ**
+> **ਆਵਸ਼ਕ ਚੀਜ਼ਾਂ**
 >
-> ਆਪਣੇ ਸਥਾਨਕ ਵਿਕਾਸ ਮਸ਼ੀਨ ਵਿੱਚ MCP ਸਰਵਰ ਚਲਾਉਣ ਲਈ, ਤੁਹਾਨੂੰ ਲੋੜ ਹੋਏਗੀ:
+> MCP ਸਰਵਰ ਨੂੰ ਤੁਹਾਡੇ ਸਥਾਨਕ ਵਿਕਾਸ ਮਸ਼ੀਨ 'ਤੇ ਚਲਾਉਣ ਲਈ, ਤੁਹਾਨੂੰ ਲੋੜ ਹੋਵੇਗੀ:
 >
 > - [Python](https://www.python.org/)
-> - (*ਇੱਛਾ ਨੁਸਖਾ - ਜੇ ਤੁਸੀਂ uv ਨੂੰ ਪਸੰਦ ਕਰਦੇ ਹੋ*) [uv](https://github.com/astral-sh/uv)
-> - [Python Debugger Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy)
+> - (*ਵਿਕਲਪਿਕ - ਜੇ ਤੁਸੀਂ uv ਨੂੰ ਪਸੰਦ ਕਰਦੇ ਹੋ*) [uv](https://github.com/astral-sh/uv)
+> - [Python ਡੀਬੱਗਰ ਐਕਸਟੈਂਸ਼ਨ](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy)
 
-## ਵਾਤਾਵਰਣ ਤੈਅਰ ਕਰੋ
+## ਵਾਤਾਵਰਣ ਤਿਆਰ ਕਰੋ
 
-ਇਸ ਪਰੋਜੈਕਟ ਲਈ ਵਾਤਾਵਰਣ ਸੈਟਅਪ ਕਰਨ ਲਈ ਦੋ ਤਰੀਕੇ ਹਨ। ਤੁਸੀਂ ਆਪਣੀ ਪਸੰਦ ਦੇ ਅਨੁਸਾਰ ਕੋਈ ਵੀ ਇੱਕ ਚੁਣ ਸਕਦੇ ਹੋ।
+ਇਸ ਪਰਿਯੋਜਨਾ ਲਈ ਵਾਤਾਵਰਣ ਸੈੱਟ ਅੱਪ ਕਰਨ ਦੇ ਦੋ ਤਰੀਕੇ ਹਨ। ਤੁਸੀਂ ਆਪਣੀ ਪਸੰਦ ਅਨੁਸਾਰ ਕੋਈ ਵੀ ਇੱਕ ਚੁਣ ਸਕਦੇ ਹੋ।
 
-> ਨੋਟ: ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਬਣਾਉਣ ਤੋਂ ਬਾਅਦ ਇਹ ਯਕੀਨੀ ਬਣਾਉਣ ਲਈ VSCode ਜਾਂ ਟਰਮੀਨਲ ਨੂੰ ਰੀਲੋਡ ਕਰੋ ਕਿ ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਦਾ Python ਵਰਤਿਆ ਜਾ ਰਿਹਾ ਹੈ।
+> ਨੋਟ: ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਬਣਾਉਣ ਦੇ ਬਾਅਦ VSCode ਜਾਂ ਟਰਮੀਨਲ ਨੂੰ ਰੀਲੋਡ ਕਰੋ ਤਾਂ ਜੋ ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਦਾ python ਵਰਤਿਆ ਜਾਵੇ।
 
 | ਤਰੀਕਾ | ਕਦਮ |
 | -------- | ----- |
-| `uv` ਦੀ ਵਰਤੋਂ | 1. ਵਚਰੁਅਲ ਵਾਤਾਵਰਣ ਬਣਾਓ: `uv venv` <br>2. VSCode ਕਮਾਂਡ "***Python: Select Interpreter***" ਚਲਾਓ ਅਤੇ ਬਣਾਏ ਗਏ ਵਚਰੁਅਲ ਵਾਤਾਵਰਣ ਤੋਂ Python ਚੁਣੋ <br>3. ਡੀਪੈਂਡੇੰਸੀਜ਼ ਇੰਸਟਾਲ ਕਰੋ (ਵਿਕਾਸ ਦੀਆਂ ਡੀਵ ਡੀਪੈਂਡੇੰਸੀਜ਼ ਸਮੇਤ): `uv pip install -r pyproject.toml --extra dev` |
-| `pip` ਦੀ ਵਰਤੋਂ | 1. ਵਚਰੁਅਲ ਵਾਤਾਵਰਣ ਬਣਾਓ: `python -m venv .venv` <br>2. VSCode ਕਮਾਂਡ "***Python: Select Interpreter***" ਚਲਾਓ ਅਤੇ ਬਣਾਏ ਗਏ ਵਚਰੁਅਲ ਵਾਤਾਵਰਣ ਤੋਂ Python ਚੁਣੋ<br>3. ਡੀਪੈਂਡੇੰਸੀਜ਼ ਇੰਸਟਾਲ ਕਰੋ (ਵਿਕਾਸ ਦੀਆਂ ਡੀਵ ਡੀਪੈਂਡੇੰਸੀਜ਼ ਸਮੇਤ): `pip install -e .[dev]` |
+| `uv` ਵਰਤ ਕੇ | 1. ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਬਣਾਓ: `uv venv` <br>2. VSCode ਕਮਾਂਡ "***Python: Select Interpreter***" ਚਲਾਓ ਅਤੇ ਬਣੇ ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਤੋਂ python ਚੁਣੋ <br>3. ਨਿਰਭਰਤਾਵਾਂ (ਡੈਵ ਨਿਰਭਰਤਾਵਾਂ ਸਹਿਤ) ਇੰਸਟਾਲ ਕਰੋ: `uv pip install -r pyproject.toml --extra dev` |
+| `pip` ਵਰਤ ਕੇ | 1. ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਬਣਾਓ: `python -m venv .venv` <br>2. VSCode ਕਮਾਂਡ "***Python: Select Interpreter***" ਚਲਾਓ ਅਤੇ ਬਣੇ ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਤੋਂ python ਚੁਣੋ<br>3. ਨਿਰਭਰਤਾਵਾਂ (ਡੈਵ ਨਿਰਭਰਤਾਵਾਂ ਸਹਿਤ) ਇੰਸਟਾਲ ਕਰੋ: `pip install -e .[dev]` |
 
-ਵਾਤਾਵਰਣ ਸੈੱਟਅਪ ਕਰਨ ਤੋਂ ਬਾਅਦ, ਤੁਸੀਂ Agent Builder ਦੁਆਰਾ MCP ਕਲਾਇੰਟ ਵਜੋਂ ਆਪਣੇ ਸਥਾਨਕ ਵਿਕਾਸ ਮਸ਼ੀਨ ਵਿੱਚ ਸਰਵਰ ਚਲਾ ਸਕਦੇ ਹੋ ਅਤੇ ਸ਼ੁਰੂਆਤ ਕਰ ਸਕਦੇ ਹੋ:
-1. VS Code ਡੀਬੱਗ ਪੈਨਲ ਖੋਲ੍ਹੋ। `Debug in Agent Builder` ਚੁਣੋ ਜਾਂ MCP ਸਰਵਰ ਡੀਬੱਗ ਕਰਨ ਲਈ `F5` ਦੀ ਚਾਬੀ ਦਬਾਓ।
-2. AI Toolkit Agent Builder ਦੀ ਵਰਤੋਂ ਕਰਕੇ [ਇਸ ਪ੍ਰਾਂਪਟ](../../../../../../../../../../../open_prompt_builder) ਨਾਲ ਸਰਵਰ ਦੀ ਜਾਂਚ ਕਰੋ। ਸਰਵਰ ਆਪਣੇ ਆਪ Agent Builder ਨਾਲ ਜੁੜ ਜਾਵੇਗਾ।
-3. ਪ੍ਰਾਂਪਟ ਨਾਲ ਸਰਵਰ ਨੂੰ ਟੈਸਟ ਕਰਨ ਲਈ `Run` 'ਤੇ ਕਲਿੱਕ ਕਰੋ।
+ਵਾਤਾਵਰਣ ਸੈੱਟਅੱਪ ਕਰਨ ਤੋਂ ਬਾਅਦ, ਤੁਸੀਂ ਲੋ컬 ਵਿਕਾਸ ਮਸ਼ੀਨ 'ਤੇ Agent Builder ਦੇ ਰੂਪ ਵਿੱਚ MCP Client ਰਾਹੀਂ ਸਰਵਰ ਚਲਾ ਸਕਦੇ ਹੋ:
+1. VS Code ਡੀਬੱਗ ਪੈਨਲ ਖੋਲ੍ਹੋ। `Debug in Agent Builder` ਚੁਣੋ ਜਾਂ MCP ਸਰਵਰ ਦੀ ਡੀਬੱਗਿੰਗ ਸ਼ੁਰੂ ਕਰਨ ਲਈ `F5` ਦਬਾਓ।
+2. Microsoft Foundry Toolkit Agent Builder ਦੀ ਵਰਤੋਂ ਕਰਕੇ [ਇਸ ਪ੍ਰੰਪਟ](../../../../../../../../../../../open_prompt_builder) ਨਾਲ ਸਰਵਰ ਟੈਸਟ ਕਰੋ। ਸਰਵਰ ਆਪਣੇ ਆਪ Agent Builder ਨਾਲ ਜੁੜ ਜਾਵੇਗਾ।
+3. ਪ੍ਰੰਪਟ ਨਾਲ ਸਰਵਰ ਟੈਸਟ ਕਰਨ ਲਈ `Run` 'ਤੇ ਕਲਿੱਕ ਕਰੋ।
 
-**ਵਧਾਈਆਂ**! ਤੁਸੀਂ ਸਫਲਤਾਪੂਰਵਕ Agent Builder ਰਾਹੀਂ ਆਪਣੇ ਸਥਾਨਕ ਵਿਕਾਸ ਮਸ਼ੀਨ ਵਿੱਚ Weather MCP Server ਚਲਾ ਲਿਆ ਹੈ।
+**ਵਧਾਈਆਂ**! ਤੁਸੀਂ کامیابی ਨਾਲ Agent Builder ਰਾਹੀਂ MCP Client ਵਜੋਂ ਆਪਣੇ ਸਥਾਨਕ ਵਿਕਾਸ ਮਸ਼ੀਨ 'ਤੇ Weather MCP Server ਚਲਾ ਲਿਆ ਹੈ।
 ![DebugMCP](https://raw.githubusercontent.com/microsoft/windows-ai-studio-templates/refs/heads/dev/mcpServers/mcp_debug.gif)
 
-## ਟੈਮਪਲੇਟ ਵਿੱਚ ਕੀ ਸ਼ਾਮਲ ਹੈ
+## ਟੈਮਪਲੇਟ ਵਿੱਚ ਕੀ ਸ਼ਾਮਲ ਹੈ
 
-| ਫੋਲਡਰ / ਫਾਇਲ | ਸਮੱਗਰੀ                                  |
-| ------------ | ---------------------------------------- |
-| `.vscode`    | ਡੀਬੱਗਿੰਗ ਲਈ VSCode ਫਾਇਲਾਂ              |
-| `.aitk`      | AI Toolkit ਦੀਆਂ ਸੰਰਚਨਾਵਾਂ               |
-| `src`        | weather mcp ਸਰਵਰ ਲਈ ਸਰੋਤ ਕੋਡ          |
+| ਫੋਲਡਰ / ਫਾਇਲ| ਸਮੱਗਰੀ                                   |
+| ------------ | ------------------------------------------ |
+| `.vscode`    | ਡੀਬੱਗਿੰਗ ਲਈ VSCode ਫਾਇਲਾਂ                 |
+| `.aitk`      | Microsoft Foundry Toolkit ਲਈ ਸੰਰਚਨਾਵਾਂ        |
+| `src`        | weather mcp ਸਰਵਰ ਲਈ ਸੋਰਸ ਕੋਡ               |
 
-## Weather MCP Server ਨੂੰ ਕਿਵੇਂ ਡੀਬੱਗ ਕਰੀਏ
+## Weather MCP Server ਨੂੰ ਕਿਵੇਂ ਡੀਬੱਗ ਕਰਨਾ ਹੈ
 
 > ਨੋਟਸ:
-> - [MCP Inspector](https://github.com/modelcontextprotocol/inspector) MCP ਸਰਵਰਾਂ ਦੀ ਟੈਸਟਿੰਗ ਅਤੇ ਡੀਬੱਗਿੰਗ ਲਈ ਇੱਕ ਵਿਜ਼ੂਅਲ ਵਿਕਾਸਕਰਤਾ ਟੂਲ ਹੈ।
-> - ਸਾਰੇ ਡੀਬੱਗਿੰਗ ਮੋਡ ਬ੍ਰੇਕਪੌਇੰਟਸ ਨੂੰ ਸਹਿਯੋਗ ਦਿੰਦੇ ਹਨ, ਇਸ ਲਈ ਤੁਸੀਂ ਟੂਲ ਦੇ ਲਾਗੂ ਕਰਨ ਵਾਲੇ ਕੋਡ ਵਿੱਚ ਬ੍ਰੇਕਪੌਇੰਟਸ ਜੋੜ ਸਕਦੇ ਹੋ।
+> - [MCP Inspector](https://github.com/modelcontextprotocol/inspector) ਟੈਸਟਿੰਗ ਅਤੇ ਡੀਬੱਗਿੰਗ ਲਈ ਇੱਕ ਵਿਜ਼ੂਅਲ ਡਿਵੈਲਪਰ ਟੂਲ ਹੈ।
+> - ਸਾਰੇ ਡੀਬੱਗਿੰਗ ਮੋਡ ਬ੍ਰੇਕਪੌਇੰਟਾਂ ਨੂੰ ਸਮਰਥਨ ਕਰਦੇ ਹਨ, ਇਸ ਲਈ ਤੁਸੀਂ ਟੂਲ ਇੰਪਲੀਮੇਂਟੇਸ਼ਨ ਕੋਡ ਵਿੱਚ ਬ੍ਰੇਕਪੌਇੰਟ ਜੋੜ ਸਕਦੇ ਹੋ।
 
-| ਡੀਬੱਗ ਮੋਡ | ਵੇਰਵਾ | ਡੀਬੱਗ ਕਰਨ ਦੇ ਕਦਮ |
-| ---------- | ----------- | ---------------- |
-| Agent Builder | AI Toolkit ਰਾਹੀਂ Agent Builder ਵਿੱਚ MCP ਸਰਵਰ ਡੀਬੱਗ ਕਰੋ। | 1. VS Code ਡੀਬੱਗ ਪੈਨਲ ਖੋਲ੍ਹੋ। `Debug in Agent Builder` ਚੁਣੋ ਅਤੇ MCP ਸਰਵਰ ਡੀਬੱਗ ਕਰਨ ਲਈ `F5` ਦਬਾਓ।<br>2. AI Toolkit Agent Builder ਦੀ ਵਰਤੋਂ ਕਰਕੇ [ਇਸ ਪ੍ਰਾਂਪਟ](../../../../../../../../../../../open_prompt_builder) ਨਾਲ ਸਰਵਰ ਦੀ ਜਾਂਚ ਕਰੋ। ਸਰਵਰ ਆਪਣੇ ਆਪ Agent Builder ਨਾਲ ਜੁੜ ਜਾਵੇਗਾ।<br>3. ਪ੍ਰਾਂਪਟ ਨਾਲ ਸਰਵਰ ਨੂੰ ਟੈਸਟ ਕਰਨ ਲਈ `Run` 'ਤੇ ਕਲਿੱਕ ਕਰੋ। |
-| MCP Inspector | MCP Inspector ਦੀ ਵਰਤੋਂ ਕਰਕੇ MCP ਸਰਵਰ ਡੀਬੱਗ ਕਰੋ। | 1. [Node.js](https://nodejs.org/) ਇੰਸਟਾਲ ਕਰੋ<br> 2. Inspector ਸੈਟਅਪ ਕਰੋ: `cd inspector` && `npm install` <br> 3. VS Code ਡੀਬੱਗ ਪੈਨਲ ਖੋਲ੍ਹੋ। `Debug SSE in Inspector (Edge)` ਜਾਂ `Debug SSE in Inspector (Chrome)` ਚੁਣੋ। ਡੀਬੱਗਿੰਗ ਸ਼ੁਰੂ ਕਰਨ ਲਈ F5 ਦਬਾਓ।<br> 4. ਜਦੋਂ MCP Inspector ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ ਲਾਂਚ ਹੁੰਦਾ ਹੈ, ਤਦ `Connect` ਬਟਨ 'ਤੇ ਕਲਿੱਕ ਕਰਕੇ ਇਸ MCP ਸਰਵਰ ਨੂੰ ਜੋੜੋ।<br> 5. ਫਿਰ ਤੁਸੀਂ `List Tools` ਕਰ ਸਕਦੇ ਹੋ, ਕੋਈ ਟੂਲ ਚੁਣੋ, ਪੈਰਾਮੀਟਰ ਭਰੋ ਅਤੇ `Run Tool` ਕਰਕੇ ਸਰਵਰ ਕੋਡ ਨੂੰ ਡੀਬੱਗ ਕਰੋ।<br> |
+| ਡੀਬੱਗ ਮੋਡ | ਵਰਣਨ | ਡੀਬੱਗ ਕਰਨ ਲਈ ਕਦਮ |
+| ---------- | ----------- | --------------- |
+| Agent Builder | Microsoft Foundry Toolkit ਰਾਹੀਂ Agent Builder ਵਿੱਚ MCP ਸਰਵਰ ਨੂੰ ਡੀਬੱਗ ਕਰੋ। | 1. VS Code ਡੀਬੱਗ ਪੈਨਲ ਖੋਲ੍ਹੋ। `Debug in Agent Builder` ਚੁਣੋ ਅਤੇ MCP ਸਰਵਰ ਦੀ ਡੀਬੱਗਿੰਗ ਸ਼ੁਰੂ ਕਰਨ ਲਈ `F5` ਦਬਾਓ।<br>2. Microsoft Foundry Toolkit Agent Builder ਦੀ ਵਰਤੋਂ ਕਰਕੇ [ਇਸ ਪ੍ਰੰਪਟ](../../../../../../../../../../../open_prompt_builder) ਨਾਲ ਸਰਵਰ ਟੈਸਟ ਕਰੋ। ਸਰਵਰ ਆਪਣੇ ਆਪ Agent Builder ਨਾਲ ਜੁੜ ਜਾਵੇਗਾ।<br>3. ਪ੍ਰੰਪਟ ਨਾਲ ਸਰਵਰ ਟੈਸਟ ਕਰਨ ਲਈ `Run` 'ਤੇ ਕਲਿੱਕ ਕਰੋ। |
+| MCP Inspector | MCP Inspector ਦੀ ਵਰਤੋਂ ਕਰਕੇ MCP ਸਰਵਰ ਨੂੰ ਡੀਬੱਗ ਕਰੋ। | 1. [Node.js](https://nodejs.org/) ਇੰਸਟਾਲ ਕਰੋ<br> 2. Inspector ਸੈੱਟਅੱਪ ਕਰੋ: `cd inspector` && `npm install` <br> 3. VS Code ਡੀਬੱਗ ਪੈਨਲ ਖੋਲ੍ਹੋ। `Debug SSE in Inspector (Edge)` ਜਾਂ `Debug SSE in Inspector (Chrome)` ਚੁਣੋ। ਡੀਬੱਗਿੰਗ ਸ਼ੁਰੂ ਕਰਨ ਲਈ F5 ਦਬਾਓ।<br> 4. ਜਦੋਂ MCP Inspector ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ ਲਾਂਚ ਹੁੰਦਾ ਹੈ, `Connect` ਬਟਨ 'ਤੇ ਕਲਿੱਕ ਕਰੋ ਤਾਂ ਜੋ ਇਹ MCP ਸਰਵਰ ਜੁੜ ਜਾਵੇ।<br> 5. ਫਿਰ ਤੁਸੀਂ `List Tools` ਕਰ ਸਕਦੇ ਹੋ, ਇੱਕ ਟੂਲ ਚੁਣੋ, ਪੈਰਾਮੀਟਰ ਭਰੋ ਅਤੇ ਆਪਣਾ ਸਰਵਰ ਕੋਡ ਡੀਬੱਗ ਕਰਨ ਲਈ `Run Tool` ਦਬਾਓ।<br> |
 
-## ਡੀਬੱਗਿੰਗ ਪੋਰਟ ਅਤੇ ਕਸਟਮਾਈਜ਼ੇਸ਼ਨ
+## ਡੀਫੌਲਟ ਪੋਰਟ ਅਤੇ ਕਸਟਮਾਈਜ਼ੇਸ਼ਨ
 
-| ਡੀਬੱਗ ਮੋਡ | ਪੋਰਟ | ਖ਼ਾਸ ਯੋਗਤਾਵਾਂ | ਕਸਟਮਾਈਜ਼ੇਸ਼ਨ | ਨੋਟ |
-| ---------- | ----- | -------------- | ------------- | ----- |
-| Agent Builder | 3001 | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | ਉਪਰ ਦਿੱਤੇ ਪੋਰਟਾਂ ਨੂੰ ਬਦਲਣ ਲਈ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ਨੂੰ ਸੋਧੋ। | ਨ/ਐ |
-| MCP Inspector | 3001 (ਸਰਵਰ); 5173 ਅਤੇ 3000 (Inspector) | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | ਉਪਰ ਦਿੱਤੇ ਪੋਰਟਾਂ ਨੂੰ ਬਦਲਣ ਲਈ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ਨੂੰ ਸੋਧੋ।| ਨ/ਐ |
+| ਡੀਬੱਗ ਮੋਡ | ਪੋਰਟ | ਪਰਿਭਾਸ਼ਾਵਾਂ | ਕਸਟਮਾਈਜ਼ੇਸ਼ਨ | ਨੋਟ |
+| ---------- | ----- | ------------ | -------------- |-------------- |
+| Agent Builder | 3001 | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | ਉਪਰ ਦਿੱਤੇ ਪੋਰਟ ਬਦਲਣ ਲਈ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ਸੋਧੋ। | N/A |
+| MCP Inspector | 3001 (ਸਰਵਰ); 5173 ਅਤੇ 3000 (Inspector) | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | ਉਪਰ ਦਿੱਤੇ ਪੋਰਟ ਬਦਲਣ ਲਈ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ਸੋਧੋ।| N/A |
 
-## ਪ੍ਰਤੀਕਿਰਿਆ
+## ਫੀਡਬੈਕ
 
-ਜੇ ਤੁਹਾਡੇ ਕੋਲ ਇਸ ਟੈਮਪਲੇਟ ਲਈ ਕੋਈ ਪ੍ਰਤੀਕਿਰਿਆ ਜਾਂ ਸੁਝਾਵ ਹੈ, ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ [AI Toolkit GitHub ਰਿਪੋਜ਼ਟਰੀ](https://github.com/microsoft/vscode-ai-toolkit/issues) ਵਿੱਚ ਇੱਕ ਇਸ਼ੂ ਖੋਲ੍ਹੋ।
+ਜੇ ਤੁਹਾਡੇ ਕੋਲ ਇਸ ਟੈਮਪਲੇਟ ਲਈ ਕੋਈ ਫੀਡਬੈਕ ਜਾਂ ਸੁਝਾਅ ਹਨ, ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ [Microsoft Foundry Toolkit GitHub ਰਿਪੋਜ਼ਟਰੀ](https://github.com/microsoft/vscode-ai-toolkit/issues) 'ਤੇ ਇੱਕ ਇਸ਼ੂ ਖੋਲ੍ਹੋ।
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ਅਸਵੀਕਾਰੋक्ति**:
-ਇਹ ਦਸਤਾਵੇਜ਼ ਏਆਈ ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਨਾਲ ਅਨੁਵਾਦਿਤ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਅਤਾ ਲਈ ਪੂਰਾ ਯਤਨ ਕਰਦੇ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਝਟਪਟ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਹੀਅਤਾਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ, ਇਸ ਗੱਲ ਨੂੰ ਧਿਆਨ ਵਿੱਚ ਰੱਖੋ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਜਿਸਦੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਹੈ, ਉਸਨੂੰ ਪ੍ਰਮਾਣਿਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਜਰੂਰੀ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫਾਰਿਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੀ ਵਰਤੋਂ ਨਾਲ ਹੋਏ ਕਿਸੇ ਵੀ ਗਲਤ ਫਹਿਮੀ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆ ਲਈ ਜਵਾਬਦੇਹ ਨਹੀਂ ਹਾਂ।
+**ਅਸਵੀਕਾਰੋਪਣ**:
+ਇਸ ਦਸਤਾਵੇਜ਼ ਦਾ ਅਨੁਵਾਦ ਏਆਈ ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾਵਾਂ ਲਈ ਯਤਨਸ਼ੀਲ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮੱਤਿਆਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਅਧਿਕਾਰਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਜਰੂਰੀ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫ਼ਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੇ ਉਪਯੋਗ ਤੋਂ ਪੈਦਾ ਹੋਣ ਵਾਲੀਆਂ ਕਿਸੇ ਵੀ ਗਲਤਫਹਿਮੀਆਂ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆਵਾਂ ਲਈ ਜਵਾਬਦੇਹ ਨਹੀਂ ਹਾਂ।
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

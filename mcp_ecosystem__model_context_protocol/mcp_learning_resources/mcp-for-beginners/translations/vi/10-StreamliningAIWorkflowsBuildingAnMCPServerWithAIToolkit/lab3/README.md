@@ -1,34 +1,33 @@
-# 🔧 Module 3: Phát Triển MCP Nâng Cao với AI Toolkit
+# 🔧 Module 3: Phát Triển MCP Nâng Cao với Microsoft Foundry Toolkit
 
 ![Duration](https://img.shields.io/badge/Duration-20_minutes-blue?style=flat-square)
-![AI Toolkit](https://img.shields.io/badge/AI_Toolkit-Required-orange?style=flat-square)
+![Microsoft Foundry Toolkit](https://img.shields.io/badge/Microsoft_Foundry_Toolkit-Required-orange?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10+-green?style=flat-square)
 ![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.9.3-purple?style=flat-square)
 ![Inspector](https://img.shields.io/badge/MCP_Inspector-0.14.0-blue?style=flat-square)
 
 ## 🎯 Mục Tiêu Học Tập
 
-Kết thúc bài lab này, bạn sẽ có khả năng:
+Sau khi hoàn thành phòng thí nghiệm này, bạn sẽ có thể:
 
-- ✅ Tạo các server MCP tùy chỉnh bằng AI Toolkit
+- ✅ Tạo máy chủ MCP tùy chỉnh bằng Microsoft Foundry Toolkit
 - ✅ Cấu hình và sử dụng MCP Python SDK mới nhất (v1.9.3)
 - ✅ Thiết lập và sử dụng MCP Inspector để gỡ lỗi
-- ✅ Gỡ lỗi server MCP trong cả môi trường Agent Builder và Inspector
-- ✅ Hiểu quy trình phát triển server MCP nâng cao
+- ✅ Gỡ lỗi máy chủ MCP trong cả môi trường Agent Builder và Inspector
+- ✅ Hiểu các quy trình phát triển máy chủ MCP nâng cao
 
 ## 📋 Yêu Cầu Tiên Quyết
 
-- Hoàn thành Lab 2 (Kiến Thức Cơ Bản về MCP)
-- VS Code đã cài đặt extension AI Toolkit
-- Môi trường Python 3.10 trở lên
-- Node.js và npm để thiết lập Inspector
+- Hoàn thành Phòng thí nghiệm 2 (Kiến thức cơ bản về MCP)
+- VS Code đã cài tiện ích mở rộng Microsoft Foundry Toolkit
+- Môi trường Python 3.10+
+- Node.js và npm để cài đặt Inspector
 
-## 🏗️ Những Gì Bạn Sẽ Xây Dựng
+## 🏗️ Bạn Sẽ Xây Dựng Gì
 
-Trong bài lab này, bạn sẽ tạo một **Weather MCP Server** thể hiện:
-
-- Triển khai server MCP tùy chỉnh
-- Tích hợp với AI Toolkit Agent Builder
+Trong bài lab này, bạn sẽ tạo một **Weather MCP Server** minh họa:
+- Triển khai máy chủ MCP tùy chỉnh
+- Tích hợp với Microsoft Foundry Toolkit Agent Builder
 - Quy trình gỡ lỗi chuyên nghiệp
 - Mẫu sử dụng MCP SDK hiện đại
 
@@ -36,43 +35,42 @@ Trong bài lab này, bạn sẽ tạo một **Weather MCP Server** thể hiện:
 
 ## 🔧 Tổng Quan Các Thành Phần Chính
 
-### 🐍 MCP Python SDK  
-Model Context Protocol Python SDK cung cấp nền tảng để xây dựng các server MCP tùy chỉnh. Bạn sẽ sử dụng phiên bản 1.9.3 với khả năng gỡ lỗi nâng cao.
+### 🐍 MCP Python SDK
+Bộ SDK Protocol Ngữ cảnh Mô hình (Model Context Protocol) Python cung cấp nền tảng để xây dựng máy chủ MCP tùy chỉnh. Bạn sẽ sử dụng phiên bản 1.9.3 với khả năng gỡ lỗi nâng cao.
 
-### 🔍 MCP Inspector  
-Công cụ gỡ lỗi mạnh mẽ cung cấp:
-
-- Giám sát server theo thời gian thực
-- Hiển thị quá trình thực thi công cụ
+### 🔍 MCP Inspector
+Một công cụ gỡ lỗi mạnh mẽ cung cấp:
+- Giám sát máy chủ theo thời gian thực
+- Hiển thị việc thực thi công cụ
 - Kiểm tra các yêu cầu/phản hồi mạng
 - Môi trường thử nghiệm tương tác
 
 ---
 
-## 📖 Hướng Dẫn Thực Hiện Từng Bước
+## 📖 Triển Khai Từng Bước
 
 ### Bước 1: Tạo WeatherAgent trong Agent Builder
 
-1. **Khởi động Agent Builder** trong VS Code qua extension AI Toolkit  
-2. **Tạo một agent mới** với cấu hình sau:  
-   - Tên agent: `WeatherAgent`
+1. **Khởi chạy Agent Builder** trong VS Code qua tiện ích Microsoft Foundry Toolkit
+2. **Tạo một agent mới** với cấu hình sau:
+   - Tên Agent: `WeatherAgent`
 
 ![Agent Creation](../../../../translated_images/vi/Agent.c9c33f6a412b4cde.webp)
 
 ### Bước 2: Khởi Tạo Dự Án MCP Server
 
-1. **Đi tới Tools** → **Add Tool** trong Agent Builder  
-2. **Chọn "MCP Server"** trong các tùy chọn có sẵn  
-3. **Chọn "Create A new MCP Server"**  
-4. **Chọn mẫu `python-weather`**  
-5. **Đặt tên server:** `weather_mcp`
+1. **Đi tới Tools** → **Add Tool** trong Agent Builder
+2. **Chọn "MCP Server"** từ các tùy chọn có sẵn
+3. **Chọn "Create A new MCP Server"**
+4. **Chọn mẫu `python-weather`**
+5. **Đặt tên máy chủ:** `weather_mcp`
 
 ![Python Template Selection](../../../../translated_images/vi/Pythontemplate.9d0a2913c6491500.webp)
 
-### Bước 3: Mở và Xem Xét Dự Án
+### Bước 3: Mở và Kiểm Tra Dự Án
 
-1. **Mở dự án đã tạo** trong VS Code  
-2. **Xem cấu trúc dự án:**  
+1. **Mở dự án được tạo** trong VS Code
+2. **Xem xét cấu trúc dự án:**
    ```
    weather_mcp/
    ├── src/
@@ -90,11 +88,12 @@ Công cụ gỡ lỗi mạnh mẽ cung cấp:
 
 ### Bước 4: Nâng Cấp Lên MCP SDK Mới Nhất
 
-> **🔍 Tại sao cần nâng cấp?** Chúng ta muốn sử dụng MCP SDK mới nhất (v1.9.3) và dịch vụ Inspector (0.14.0) để có thêm tính năng và khả năng gỡ lỗi tốt hơn.
+> **🔍 Tại sao cần nâng cấp?** Chúng ta muốn sử dụng MCP SDK mới nhất (v1.9.3) và dịch vụ Inspector (0.14.0) để có các tính năng nâng cao và cải thiện khả năng gỡ lỗi.
 
 #### 4a. Cập nhật các phụ thuộc Python
 
 **Chỉnh sửa `pyproject.toml`:** cập nhật [./code/weather_mcp/pyproject.toml](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/pyproject.toml)
+
 
 #### 4b. Cập nhật cấu hình Inspector
 
@@ -104,13 +103,14 @@ Công cụ gỡ lỗi mạnh mẽ cung cấp:
 
 **Chỉnh sửa `inspector/package-lock.json`:** cập nhật [./code/weather_mcp/inspector/package-lock.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package-lock.json)
 
-> **📝 Lưu ý:** File này chứa định nghĩa phụ thuộc rất chi tiết. Dưới đây là cấu trúc chính - nội dung đầy đủ đảm bảo việc giải quyết phụ thuộc chính xác.
+> **📝 Lưu ý:** Tệp này chứa định nghĩa phụ thuộc chi tiết. Dưới đây là cấu trúc thiết yếu - nội dung đầy đủ đảm bảo giải quyết phụ thuộc chính xác.
 
-> **⚡ Toàn bộ package-lock:** File package-lock.json đầy đủ có khoảng 3000 dòng định nghĩa phụ thuộc. Phần trên chỉ thể hiện cấu trúc chính - hãy dùng file cung cấp để giải quyết phụ thuộc đầy đủ.
+
+> **⚡ Gói Khóa Đầy Đủ:** File package-lock.json đầy đủ có khoảng ~3000 dòng định nghĩa phụ thuộc. Phần trên trình bày cấu trúc chính - hãy dùng file đi kèm để đảm bảo giải quyết phụ thuộc đầy đủ.
 
 ### Bước 5: Cấu Hình Gỡ Lỗi VS Code
 
-*Lưu ý: Vui lòng sao chép file trong đường dẫn được chỉ định để thay thế file tương ứng trên máy*
+*Lưu ý: Vui lòng sao chép file trong đường dẫn được chỉ định để thay thế file cục bộ tương ứng*
 
 #### 5a. Cập nhật cấu hình khởi chạy
 
@@ -293,20 +293,21 @@ Công cụ gỡ lỗi mạnh mẽ cung cấp:
 }
 ```
 
+
 ---
 
-## 🚀 Chạy và Kiểm Tra MCP Server
+## 🚀 Chạy và Kiểm Tra Máy Chủ MCP Của Bạn
 
 ### Bước 6: Cài Đặt Phụ Thuộc
 
-Sau khi thay đổi cấu hình, chạy các lệnh sau:
+Sau khi thực hiện các thay đổi cấu hình, chạy các lệnh sau:
 
-**Cài đặt phụ thuộc Python:**  
+**Cài đặt phụ thuộc Python:**
 ```bash
 uv sync
 ```
 
-**Cài đặt phụ thuộc Inspector:**  
+**Cài đặt phụ thuộc Inspector:**
 ```bash
 cd inspector
 npm install
@@ -314,12 +315,12 @@ npm install
 
 ### Bước 7: Gỡ Lỗi với Agent Builder
 
-1. **Nhấn F5** hoặc chọn cấu hình **"Debug in Agent Builder"**  
-2. **Chọn cấu hình compound** trong bảng debug  
-3. **Chờ server khởi động** và Agent Builder mở ra  
-4. **Thử nghiệm server weather MCP** với các truy vấn ngôn ngữ tự nhiên
+1. **Nhấn F5** hoặc sử dụng cấu hình **"Debug in Agent Builder"**
+2. **Chọn cấu hình compound** trong bảng điều khiển gỡ lỗi
+3. **Chờ máy chủ khởi động** và Agent Builder mở ra
+4. **Kiểm tra máy chủ weather MCP** với các câu hỏi ngôn ngữ tự nhiên
 
-Nhập prompt như sau
+Nhập lời nhắc như sau
 
 SYSTEM_PROMPT
 
@@ -337,13 +338,13 @@ How's the weather like in Seattle
 
 ### Bước 8: Gỡ Lỗi với MCP Inspector
 
-1. **Sử dụng cấu hình "Debug in Inspector"** (trình duyệt Edge hoặc Chrome)  
-2. **Mở giao diện Inspector** tại `http://localhost:6274`  
-3. **Khám phá môi trường thử nghiệm tương tác:**  
-   - Xem các công cụ có sẵn  
-   - Thử thực thi công cụ  
-   - Giám sát các yêu cầu mạng  
-   - Gỡ lỗi phản hồi server
+1. **Sử dụng cấu hình "Debug in Inspector"** (Edge hoặc Chrome)
+2. **Mở giao diện Inspector** tại `http://localhost:6274`
+3. **Khám phá môi trường thử nghiệm tương tác:**
+   - Xem các công cụ có sẵn
+   - Thử nghiệm thực thi công cụ
+   - Giám sát các yêu cầu mạng
+   - Gỡ lỗi các phản hồi từ máy chủ
 
 ![MCP Inspector Interface](../../../../translated_images/vi/Inspector.5672415cd02fe873.webp)
 
@@ -351,43 +352,46 @@ How's the weather like in Seattle
 
 ## 🎯 Kết Quả Học Tập Chính
 
-Sau khi hoàn thành bài lab, bạn đã:
+Sau khi hoàn thành phòng thí nghiệm này, bạn đã:
 
-- [x] **Tạo server MCP tùy chỉnh** bằng mẫu AI Toolkit  
-- [x] **Nâng cấp lên MCP SDK mới nhất** (v1.9.3) để có tính năng nâng cao  
-- [x] **Cấu hình quy trình gỡ lỗi chuyên nghiệp** cho cả Agent Builder và Inspector  
-- [x] **Thiết lập MCP Inspector** để thử nghiệm server tương tác  
+- [x] **Tạo máy chủ MCP tùy chỉnh** bằng cách sử dụng mẫu Microsoft Foundry Toolkit
+- [x] **Nâng cấp lên MCP SDK mới nhất** (v1.9.3) để có tính năng cải tiến
+- [x] **Cấu hình quy trình gỡ lỗi chuyên nghiệp** cho cả Agent Builder và Inspector
+- [x] **Thiết lập MCP Inspector** để thử nghiệm máy chủ tương tác
 - [x] **Thành thạo cấu hình gỡ lỗi VS Code** cho phát triển MCP
 
-## 🔧 Các Tính Năng Nâng Cao Đã Khám Phá
+## 🔧 Tính Năng Nâng Cao Đã Khám Phá
 
 | Tính Năng | Mô Tả | Trường Hợp Sử Dụng |
-|-----------|--------|---------------------|
-| **MCP Python SDK v1.9.3** | Phiên bản giao thức mới nhất | Phát triển server hiện đại |
-| **MCP Inspector 0.14.0** | Công cụ gỡ lỗi tương tác | Thử nghiệm server theo thời gian thực |
-| **Gỡ lỗi VS Code** | Môi trường phát triển tích hợp | Quy trình gỡ lỗi chuyên nghiệp |
-| **Tích hợp Agent Builder** | Kết nối trực tiếp AI Toolkit | Thử nghiệm agent đầu-cuối |
+|---------|-------------|----------|
+| **MCP Python SDK v1.9.3** | Triển khai giao thức mới nhất | Phát triển máy chủ hiện đại |
+| **MCP Inspector 0.14.0** | Công cụ gỡ lỗi tương tác | Thử nghiệm máy chủ theo thời gian thực |
+| **Gỡ Lỗi VS Code** | Môi trường phát triển tích hợp | Quy trình gỡ lỗi chuyên nghiệp |
+| **Tích Hợp Agent Builder** | Kết nối trực tiếp với Microsoft Foundry Toolkit | Thử nghiệm agent đầu-cuối |
 
-## 📚 Tài Nguyên Tham Khảo Thêm
+## 📚 Tài Nguyên Bổ Sung
 
-- [MCP Python SDK Documentation](https://modelcontextprotocol.io/docs/sdk/python)  
-- [AI Toolkit Extension Guide](https://code.visualstudio.com/docs/ai/ai-toolkit)  
-- [VS Code Debugging Documentation](https://code.visualstudio.com/docs/editor/debugging)  
-- [Model Context Protocol Specification](https://modelcontextprotocol.io/docs/concepts/architecture)
+- [Tài liệu MCP Python SDK](https://modelcontextprotocol.io/docs/sdk/python)
+- [Hướng dẫn Tiện ích mở rộng Microsoft Foundry Toolkit](https://code.visualstudio.com/docs/ai/ai-toolkit)
+- [Tài liệu gỡ lỗi VS Code](https://code.visualstudio.com/docs/editor/debugging)
+- [Đặc tả Model Context Protocol](https://modelcontextprotocol.io/docs/concepts/architecture)
 
 ---
 
-**🎉 Chúc mừng!** Bạn đã hoàn thành thành công Lab 3 và giờ có thể tạo, gỡ lỗi và triển khai các server MCP tùy chỉnh theo quy trình phát triển chuyên nghiệp.
+**🎉 Chúc mừng!** Bạn đã hoàn thành thành công Lab 3 và có thể tạo, gỡ lỗi, triển khai máy chủ MCP tùy chỉnh sử dụng quy trình phát triển chuyên nghiệp.
 
-### 🔜 Tiếp Tục Sang Module Tiếp Theo
+### 🔜 Tiếp tục sang Module tiếp theo
 
-Sẵn sàng áp dụng kỹ năng MCP vào quy trình phát triển thực tế? Tiếp tục với **[Module 4: Phát Triển MCP Thực Tiễn - Server Clone GitHub Tùy Chỉnh](../lab4/README.md)**, nơi bạn sẽ:
+Sẵn sàng áp dụng kỹ năng MCP vào quy trình phát triển thực tế? Tiếp tục đến **[Module 4: Phát Triển MCP Thực Tiễn - Máy Chủ Nhân Bản GitHub Tùy Chỉnh](../lab4/README.md)** nơi bạn sẽ:
+- Xây dựng máy chủ MCP sẵn sàng cho sản xuất tự động hóa thao tác kho GitHub
+- Triển khai chức năng nhân bản kho GitHub qua MCP
+- Tích hợp máy chủ MCP tùy chỉnh với VS Code và Chế Độ Agent GitHub Copilot
+- Thử nghiệm và triển khai máy chủ MCP tùy chỉnh trong môi trường sản xuất
+- Học cách tự động hóa quy trình thực tế cho nhà phát triển
 
-- Xây dựng server MCP sẵn sàng sản xuất tự động hóa các thao tác kho GitHub  
-- Triển khai chức năng clone kho GitHub qua MCP  
-- Tích hợp server MCP tùy chỉnh với VS Code và GitHub Copilot Agent Mode  
-- Thử nghiệm và triển khai server MCP tùy chỉnh trong môi trường sản xuất  
-- Học cách tự động hóa quy trình làm việc thực tế cho nhà phát triển
+---
 
-**Tuyên bố từ chối trách nhiệm**:  
-Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng các bản dịch tự động có thể chứa lỗi hoặc không chính xác. Tài liệu gốc bằng ngôn ngữ gốc của nó nên được coi là nguồn chính xác và đáng tin cậy. Đối với các thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp do con người thực hiện. Chúng tôi không chịu trách nhiệm về bất kỳ sự hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Tuyên bố miễn trừ trách nhiệm**:
+Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc sai sót. Tài liệu gốc bằng ngôn ngữ gốc nên được coi là nguồn tin chính thức. Đối với thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm về bất kỳ hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

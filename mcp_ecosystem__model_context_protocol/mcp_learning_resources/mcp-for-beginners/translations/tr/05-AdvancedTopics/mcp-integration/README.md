@@ -1,27 +1,27 @@
 # Kurumsal Entegrasyon
 
-Kurumsal bağlamda MCP Sunucuları oluştururken, genellikle mevcut yapay zeka platformları ve hizmetleriyle entegrasyon sağlamanız gerekir. Bu bölüm, MCP'yi Azure OpenAI ve Microsoft AI Foundry gibi kurumsal sistemlerle entegre ederek gelişmiş yapay zeka yetenekleri ve araç orkestrasyonu sağlamayı ele alır.
+Kurumsal bağlamda MCP Sunucuları oluştururken, genellikle mevcut AI platformları ve hizmetleri ile entegrasyon yapmanız gerekir. Bu bölüm, gelişmiş AI yetenekleri ve araç orkestrasyonunu mümkün kılan Azure OpenAI ve Microsoft AI Foundry gibi kurumsal sistemlerle MCP'nin nasıl entegre edileceğini kapsar.
 
 ## Giriş
 
-Bu derste, Model Context Protocol (MCP)'yi Azure OpenAI ve Microsoft AI Foundry gibi kurumsal yapay zeka sistemleriyle nasıl entegre edeceğinizi öğreneceksiniz. Bu entegrasyonlar, güçlü yapay zeka modelleri ve araçlardan yararlanmanıza olanak tanırken MCP'nin esnekliğini ve genişletilebilirliğini korumanızı sağlar.
+Bu derste, Model Context Protocol (MCP)'yi Azure OpenAI ve Microsoft AI Foundry odaklı olarak kurumsal AI sistemleri ile nasıl entegre edeceğinizi öğreneceksiniz. Bu entegrasyonlar, güçlü AI modellerinden ve araçlardan yararlanmanızı sağlar ve MCP'nin esnekliği ile genişletilebilirliğini korur.
 
 ## Öğrenme Hedefleri
 
 Bu dersin sonunda şunları yapabileceksiniz:
 
-- MCP'yi Azure OpenAI ile entegre ederek yapay zeka yeteneklerinden yararlanmak.
+- MCP'yi Azure OpenAI ile entegre ederek AI yeteneklerinden faydalanmak.
 - MCP araç orkestrasyonunu Azure OpenAI ile uygulamak.
-- MCP'yi Microsoft AI Foundry ile birleştirerek gelişmiş yapay zeka ajan yetenekleri sağlamak.
-- Azure Machine Learning (ML)'i kullanarak ML iş akışlarını çalıştırmak ve modelleri MCP araçları olarak kaydetmek.
+- MCP'yi Microsoft AI Foundry ile birleştirerek gelişmiş AI ajan yetenekleri elde etmek.
+- Azure Machine Learning (ML)'i kullanarak ML boru hatlarını yürütmek ve modelleri MCP araçları olarak kaydetmek.
 
 ## Azure OpenAI Entegrasyonu
 
-Azure OpenAI, GPT-4 gibi güçlü yapay zeka modellerine erişim sağlar. MCP'yi Azure OpenAI ile entegre etmek, bu modellerden yararlanmanıza olanak tanırken MCP'nin araç orkestrasyonunun esnekliğini korur.
+Azure OpenAI, GPT-4 ve diğerleri gibi güçlü AI modellerine erişim sağlar. MCP'nin Azure OpenAI ile entegrasyonu, bu modelleri kullanmanızı sağlarken MCP'nin araç orkestrasyonunun esnekliğini korur.
 
 ### C# Uygulaması
 
-Bu kod örneğinde, Azure OpenAI SDK kullanarak MCP'yi Azure OpenAI ile nasıl entegre edeceğimizi gösteriyoruz.
+Bu kod parçasında, Azure OpenAI SDK'sı kullanarak MCP'yi Azure OpenAI ile nasıl entegre edeceğimizi gösteriyoruz.
 
 ```csharp
 // .NET Azure OpenAI Integration
@@ -88,21 +88,21 @@ namespace EnterpriseIntegration
 Yukarıdaki kodda şunları yaptık:
 
 - Azure OpenAI istemcisini uç nokta, dağıtım adı ve API anahtarı ile yapılandırdık.
-- Araç desteği ile tamamlama almak için `GetCompletionWithToolsAsync` adlı bir yöntem oluşturduk.
+- Araç desteğiyle tamamlamalar almak için `GetCompletionWithToolsAsync` adlı bir yöntem oluşturduk.
 - Yanıttaki araç çağrılarını ele aldık.
 
-Kendi MCP sunucu kurulumunuza göre araç işleme mantığını uygulamanız önerilir.
+Spesifik MCP sunucu kurulumunuza bağlı olarak gerçek araç işleme mantığını uygulamanız önerilir.
 
-## Microsoft AI Foundry Entegrasyonu
+## Microsoft Foundry Entegrasyonu
 
-Azure AI Foundry, yapay zeka ajanları oluşturmak ve dağıtmak için bir platform sağlar. MCP'yi AI Foundry ile entegre etmek, MCP'nin esnekliğini korurken bu platformun yeteneklerinden yararlanmanıza olanak tanır.
+Microsoft Foundry, AI ajanları oluşturmak ve dağıtmak için bir platform sağlar. MCP'nin Microsoft Foundry ile entegrasyonu, MCP'nin esnekliğini korurken Foundry'nin yeteneklerinden yararlanmanızı sağlar.
 
-Aşağıdaki kodda, MCP kullanarak istekleri işleyen ve araç çağrılarını ele alan bir Ajan entegrasyonu geliştiriyoruz.
+Aşağıdaki kodda, MCP kullanarak talepleri işleyen ve araç çağrılarını yöneten bir Ajan entegrasyonu geliştiriyoruz.
 
 ### Java Uygulaması
 
 ```java
-// Java AI Foundry Agent Integration
+// Java AI Foundry Ajan Entegrasyonu
 package com.example.mcp.enterprise;
 
 import com.microsoft.aifoundry.AgentClient;
@@ -125,26 +125,26 @@ public class AIFoundryMcpBridge {
     }
     
     public AgentResponse processAgentRequest(AgentRequest request) {
-        // Process the AI Foundry Agent request
+        // AI Foundry Ajan isteğini işle
         AgentResponse initialResponse = agentClient.processRequest(request);
         
-        // Check if the agent requested to use tools
+        // Ajanın araç kullanmayı isteyip istemediğini kontrol et
         if (initialResponse.getToolCalls() != null && !initialResponse.getToolCalls().isEmpty()) {
-            // For each tool call, route it to the appropriate MCP tool
+            // Her araç çağrısı için, uygun MCP aracına yönlendir
             for (AgentToolCall toolCall : initialResponse.getToolCalls()) {
                 String toolName = toolCall.getName();
                 Map<String, Object> parameters = toolCall.getArguments();
                 
-                // Execute the tool using MCP
+                // Aracı MCP kullanarak çalıştır
                 ToolResponse mcpResponse = mcpClient.executeTool(toolName, parameters);
                 
-                // Create tool response for AI Foundry
+                // AI Foundry için araç yanıtı oluştur
                 AgentToolResponse toolResponse = new AgentToolResponse(
                     toolCall.getId(),
                     mcpResponse.getResult()
                 );
                 
-                // Submit tool response back to the agent
+                // Araç yanıtını tekrar ajana gönder
                 initialResponse = agentClient.submitToolResponse(
                     request.getConversationId(), 
                     toolResponse
@@ -159,18 +159,18 @@ public class AIFoundryMcpBridge {
 
 Yukarıdaki kodda şunları yaptık:
 
-- Hem AI Foundry hem de MCP ile entegre olan bir `AIFoundryMcpBridge` sınıfı oluşturduk.
-- AI Foundry ajan isteğini işleyen bir `processAgentRequest` yöntemi uyguladık.
-- Araç çağrılarını MCP istemcisi aracılığıyla çalıştırarak ve sonuçları AI Foundry ajanına geri göndererek ele aldık.
+- Hem AI Foundry hem de MCP ile entegre olan `AIFoundryMcpBridge` adlı bir sınıf oluşturduk.
+- AI Foundry ajan talebini işleyen `processAgentRequest` adlı bir yöntem uyguladık.
+- Araç çağrılarını MCP istemcisi ile çalıştırıp sonuçları AI Foundry ajanına geri göndererek ele aldık.
 
-## MCP'yi Azure ML ile Entegre Etmek
+## MCP'nin Azure ML ile Entegrasyonu
 
-MCP'yi Azure Machine Learning (ML) ile entegre etmek, Azure'un güçlü ML yeteneklerinden yararlanmanıza olanak tanırken MCP'nin esnekliğini korur. Bu entegrasyon, ML iş akışlarını çalıştırmak, modelleri araç olarak kaydetmek ve hesaplama kaynaklarını yönetmek için kullanılabilir.
+MCP'nin Azure Machine Learning (ML) ile entegrasyonu, Azure'un güçlü ML yeteneklerinden yararlanmanızı sağlarken MCP'nin esnekliğini korur. Bu entegrasyon, ML boru hatlarını yürütmek, modelleri araç olarak kaydetmek ve hesaplama kaynaklarını yönetmek için kullanılabilir.
 
 ### Python Uygulaması
 
 ```python
-# Python Azure AI Integration
+# Python Azure AI Entegrasyonu
 from mcp_client import McpClient
 from azure.ai.ml import MLClient
 from azure.identity import DefaultAzureCredential
@@ -180,10 +180,10 @@ import asyncio
 
 class EnterpriseAiIntegration:
     def __init__(self, mcp_server_url, subscription_id, resource_group, workspace_name):
-        # Set up MCP client
+        # MCP istemcisini ayarla
         self.mcp_client = McpClient(server_url=mcp_server_url)
         
-        # Set up Azure ML client
+        # Azure ML istemcisini ayarla
         self.credential = DefaultAzureCredential()
         self.ml_client = MLClient(
             self.credential,
@@ -194,7 +194,7 @@ class EnterpriseAiIntegration:
     
     async def execute_ml_pipeline(self, pipeline_name, input_data):
         """Executes an ML pipeline in Azure ML"""
-        # First process the input data using MCP tools
+        # Öncelikle giriş verilerini MCP araçlarıyla işleyin
         processed_data = await self.mcp_client.execute_tool(
             "dataPreprocessor",
             {
@@ -203,7 +203,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Submit the pipeline to Azure ML
+        # Boru hattını Azure ML'ye gönder
         pipeline_job = self.ml_client.jobs.create_or_update(
             entity={
                 "name": pipeline_name,
@@ -215,7 +215,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Return job information
+        # İş bilgilerini döndür
         return {
             "job_id": pipeline_job.id,
             "status": pipeline_job.status,
@@ -224,22 +224,22 @@ class EnterpriseAiIntegration:
     
     async def register_ml_model_as_tool(self, model_name, model_version="latest"):
         """Registers an Azure ML model as an MCP tool"""
-        # Get model details
+        # Model detaylarını al
         if model_version == "latest":
             model = self.ml_client.models.get(name=model_name, label="latest")
         else:
             model = self.ml_client.models.get(name=model_name, version=model_version)
         
-        # Create deployment environment
+        # Dağıtım ortamı oluştur
         env = Environment(
             name="mcp-model-env",
             conda_file="./environments/inference-env.yml"
         )
         
-        # Set up compute
+        # Hesaplama kaynaklarını ayarla
         compute = self.ml_client.compute.get("mcp-inference")
         
-        # Deploy model as online endpoint
+        # Modeli çevrimiçi uç nokta olarak dağıt
         deployment = self.ml_client.online_deployments.create_or_update(
             endpoint_name=f"mcp-{model_name}",
             deployment={
@@ -255,22 +255,22 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Create MCP tool schema based on model schema
+        # Model şemasına dayalı MCP araç şeması oluştur
         tool_schema = {
             "type": "object",
             "properties": {},
             "required": []
         }
         
-        # Add input properties based on model schema
+        # Model şemasına dayalı giriş özellikleri ekle
         for input_name, input_spec in model.signature.inputs.items():
             tool_schema["properties"][input_name] = {
                 "type": self._map_ml_type_to_json_type(input_spec.type)
             }
             tool_schema["required"].append(input_name)
         
-        # Register as MCP tool
-        # In a real implementation, you would create a tool that calls the endpoint
+        # MCP aracı olarak kaydet
+        # Gerçek bir uygulamada, uç noktayı çağıran bir araç oluşturursunuz
         return {
             "model_name": model_name,
             "model_version": model.version,
@@ -293,15 +293,19 @@ class EnterpriseAiIntegration:
 
 Yukarıdaki kodda şunları yaptık:
 
-- MCP'yi Azure ML ile entegre eden bir `EnterpriseAiIntegration` sınıfı oluşturduk.
-- MCP araçlarını kullanarak giriş verilerini işleyen ve Azure ML'ye bir ML iş akışı gönderen bir `execute_ml_pipeline` yöntemi uyguladık.
-- Azure ML modelini MCP aracı olarak kaydeden, gerekli dağıtım ortamını ve hesaplama kaynaklarını oluşturan bir `register_ml_model_as_tool` yöntemi uyguladık.
-- Azure ML veri türlerini araç kaydı için JSON şema türlerine eşledik.
-- ML iş akışı çalıştırma ve model kaydı gibi uzun sürebilecek işlemleri ele almak için asenkron programlama kullandık.
+- MCP'yi Azure ML ile entegre eden `EnterpriseAiIntegration` adlı bir sınıf oluşturduk.
+- Girdi verisini MCP araçları kullanarak işleyen ve Azure ML'ye bir ML boru hattı gönderen `execute_ml_pipeline` adlı bir yöntem uyguladık.
+- Azure ML modelini MCP aracı olarak kaydeden; gerekli dağıtım ortamı ve hesaplama kaynaklarını oluşturan `register_ml_model_as_tool` adlı bir yöntem uyguladık.
+- Azure ML veri tiplerini, araç kaydı için JSON şema tiplerine eşledik.
+- ML boru hattı yürütme ve model kaydı gibi potansiyel olarak uzun süren işlemleri ele almak için asenkron programlamayı kullandık.
 
-## Sıradaki Adımlar
+## Sonraki Adımlar
 
-- [5.2 Çok Modluluk](../mcp-multi-modality/README.md)
+- [5.2 Çoklu modalite](../mcp-multi-modality/README.md)
 
-**Feragatname**:  
-Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba göstersek de, otomatik çevirilerin hata veya yanlışlıklar içerebileceğini lütfen unutmayın. Orijinal belgenin kendi dilindeki hali yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımından kaynaklanan yanlış anlamalar veya yanlış yorumlamalardan sorumlu değiliz.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

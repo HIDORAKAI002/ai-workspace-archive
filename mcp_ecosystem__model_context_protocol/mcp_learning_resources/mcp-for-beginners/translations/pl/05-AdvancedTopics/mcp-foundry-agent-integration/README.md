@@ -1,32 +1,32 @@
-# Integracja Model Context Protocol (MCP) z Azure AI Foundry
+# Integracja Model Context Protocol (MCP) z Microsoft Foundry
 
-Ten przewodnik pokazuje, jak zintegrować serwery Model Context Protocol (MCP) z agentami Azure AI Foundry, umożliwiając zaawansowaną orkiestrację narzędzi i możliwości AI na poziomie przedsiębiorstwa.
+Ten przewodnik pokazuje, jak zintegrować serwery Model Context Protocol (MCP) z agentami Microsoft Foundry, umożliwiając potężną orkiestrację narzędzi i funkcje AI na poziomie przedsiębiorstwa.
 
 ## Wprowadzenie
 
-Model Context Protocol (MCP) to otwarty standard, który pozwala aplikacjom AI na bezpieczne łączenie się z zewnętrznymi źródłami danych i narzędziami. Po integracji z Azure AI Foundry, MCP umożliwia agentom dostęp i interakcję z różnymi zewnętrznymi usługami, API i źródłami danych w ustandaryzowany sposób.
+Model Context Protocol (MCP) to otwarty standard, który umożliwia aplikacjom AI bezpieczne łączenie się z zewnętrznymi źródłami danych i narzędziami. Po integracji z Microsoft Foundry, MCP pozwala agentom na dostęp i interakcję z różnymi zewnętrznymi usługami, API i źródłami danych w ustandaryzowany sposób.
 
-Ta integracja łączy elastyczność ekosystemu narzędzi MCP z solidnym frameworkiem agentów Azure AI Foundry, oferując rozwiązania AI klasy korporacyjnej z szerokimi możliwościami dostosowania.
+Ta integracja łączy elastyczność ekosystemu narzędzi MCP z solidnym frameworkiem agentów Microsoft Foundry, oferując rozwiązania AI na poziomie przedsiębiorstwa z szerokimi możliwościami dostosowywania.
 
-**Note:** Jeśli chcesz używać MCP w Azure AI Foundry Agent Service, obecnie obsługiwane są tylko następujące regiony: westus, westus2, uaenorth, southindia oraz switzerlandnorth
+**Uwaga:** Jeśli chcesz używać MCP w usłudze Microsoft Foundry Agent Service, obecnie obsługiwane są tylko następujące regiony: westus, westus2, uaenorth, southindia oraz switzerlandnorth
 
 ## Cele nauki
 
-Po ukończeniu tego przewodnika będziesz potrafił:
+Po zakończeniu tego przewodnika będziesz potrafił:
 
 - Zrozumieć Model Context Protocol i jego zalety
-- Skonfigurować serwery MCP do współpracy z agentami Azure AI Foundry
+- Skonfigurować serwery MCP do użycia z agentami Microsoft Foundry
 - Tworzyć i konfigurować agentów z integracją narzędzi MCP
-- Wdrażać praktyczne przykłady z użyciem rzeczywistych serwerów MCP
+- Implementować praktyczne przykłady wykorzystujące rzeczywiste serwery MCP
 - Obsługiwać odpowiedzi narzędzi i cytowania w rozmowach agentów
 
 ## Wymagania wstępne
 
 Przed rozpoczęciem upewnij się, że posiadasz:
 
-- Subskrypcję Azure z dostępem do AI Foundry
+- Subskrypcję Azure z dostępem do Microsoft Foundry
 - Python 3.10+ lub .NET 8.0+
-- Zainstalowane i skonfigurowane Azure CLI
+- Zainstalowany i skonfigurowany Azure CLI
 - Odpowiednie uprawnienia do tworzenia zasobów AI
 
 ## Czym jest Model Context Protocol (MCP)?
@@ -34,24 +34,24 @@ Przed rozpoczęciem upewnij się, że posiadasz:
 Model Context Protocol to ustandaryzowany sposób, w jaki aplikacje AI łączą się z zewnętrznymi źródłami danych i narzędziami. Kluczowe zalety to:
 
 - **Ustandaryzowana integracja**: Spójny interfejs dla różnych narzędzi i usług
-- **Bezpieczeństwo**: Bezpieczne mechanizmy uwierzytelniania i autoryzacji
-- **Elastyczność**: Wsparcie dla różnych źródeł danych, API i narzędzi niestandardowych
+- **Bezpieczeństwo**: Zabezpieczone mechanizmy uwierzytelniania i autoryzacji
+- **Elastyczność**: Wsparcie dla różnych źródeł danych, API i niestandardowych narzędzi
 - **Rozszerzalność**: Łatwe dodawanie nowych funkcji i integracji
 
-## Konfiguracja MCP z Azure AI Foundry
+## Konfiguracja MCP z Microsoft Foundry
 
 ### Konfiguracja środowiska
 
 Wybierz preferowane środowisko programistyczne:
 
-- [Implementacja w Pythonie](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [Implementacja w .NET](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Implementacja w Python](#implementacja-w-python)
+- [Implementacja w .NET](#codeblock5)
 
 ---
 
-## Implementacja w Pythonie
+## Implementacja w Python
 
-***Note*** Możesz uruchomić ten [notebook](mcp_support_python.ipynb)
+***Uwaga*** Możesz uruchomić ten [notebook](./mcp_support_python.ipynb)
 
 ### 1. Instalacja wymaganych pakietów
 
@@ -93,17 +93,17 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # Opcjonalnie: określ dozwolone narzędzia
 )
 ```
 
-### 6. Kompletny przykład w Pythonie
+### 6. Kompletny przykład w Python
 
 ```python
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # Utwórz nowego agenta z narzędziami MCP
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # Utwórz wątek do komunikacji
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # Utwórz wiadomość do wątku
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # Obsłuż zatwierdzenia narzędzi i uruchom agenta
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # Wyświetl rozmowę
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,7 +180,7 @@ with project_client:
 
 ## Implementacja w .NET
 
-***Note*** Możesz uruchomić ten [notebook](mcp_support_dotnet.ipynb)
+***Uwaga*** Możesz uruchomić ten [notebook](./mcp_support_dotnet.ipynb)
 
 ### 1. Instalacja wymaganych pakietów
 
@@ -299,15 +299,15 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ## Opcje konfiguracji narzędzi MCP
 
-Podczas konfigurowania narzędzi MCP dla agenta możesz określić kilka ważnych parametrów:
+Podczas konfiguracji narzędzi MCP dla swojego agenta możesz określić kilka istotnych parametrów:
 
-### Konfiguracja w Pythonie
+### Konfiguracja w Python
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # Identyfikator serwera MCP
+    server_url="https://api.example.com/mcp", # Punkt końcowy serwera MCP
+    allowed_tools=[],                       # Opcjonalnie: określ dozwolone narzędzia
 )
 ```
 
@@ -338,45 +338,49 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 ## Rozwiązywanie typowych problemów
 
 ### 1. Problemy z połączeniem
-- Sprawdź, czy URL serwera MCP jest dostępny
+- Sprawdź, czy adres URL serwera MCP jest dostępny
 - Zweryfikuj dane uwierzytelniające
-- Upewnij się, że sieć działa poprawnie
+- Upewnij się o stabilności połączenia sieciowego
 
 ### 2. Błędy wywołań narzędzi
-- Sprawdź argumenty i formatowanie wywołań narzędzi
-- Zweryfikuj wymagania specyficzne dla serwera
+- Przejrzyj argumenty narzędzia i ich formatowanie
+- Sprawdź wymagania specyficzne dla serwera
 - Zaimplementuj odpowiednią obsługę błędów
 
 ### 3. Problemy z wydajnością
 - Optymalizuj częstotliwość wywołań narzędzi
-- Wprowadź cache tam, gdzie to możliwe
+- Wdroż cache tam, gdzie to stosowne
 - Monitoruj czasy odpowiedzi serwera
 
 ## Kolejne kroki
 
-Aby jeszcze bardziej rozwinąć integrację MCP:
+Aby jeszcze bardziej wzbogacić integrację MCP:
 
-1. **Poznaj niestandardowe serwery MCP**: Buduj własne serwery MCP dla własnych źródeł danych
+1. **Eksploruj niestandardowe serwery MCP**: Buduj własne serwery MCP dla źródeł danych własnościowych
 2. **Wdroż zaawansowane zabezpieczenia**: Dodaj OAuth2 lub niestandardowe mechanizmy uwierzytelniania
-3. **Monitorowanie i analityka**: Wprowadź logowanie i monitorowanie użycia narzędzi
-4. **Skaluj rozwiązanie**: Rozważ load balancing i rozproszone architektury serwerów MCP
+3. **Monitorowanie i analityka**: Implementuj logowanie i monitorowanie korzystania z narzędzi
+4. **Skaluj swoje rozwiązanie**: Rozważ równoważenie obciążenia i rozproszone architektury serwerów MCP
 
 ## Dodatkowe zasoby
 
-- [Dokumentacja Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- [Dokumentacja Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - [Przykłady Model Context Protocol](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Przegląd agentów Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Przegląd agentów Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [Specyfikacja MCP](https://spec.modelcontextprotocol.io/)
 
 ## Wsparcie
 
-W przypadku dodatkowego wsparcia i pytań:
-- Zapoznaj się z [dokumentacją Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+W celu uzyskania dodatkowego wsparcia i pytań:
+- Zapoznaj się z [dokumentacją Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - Sprawdź [zasoby społeczności MCP](https://modelcontextprotocol.io/)
 
 ## Co dalej
 
 - [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
 
-**Zastrzeżenie**:  
-Niniejszy dokument został przetłumaczony przy użyciu usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mimo że dążymy do dokładności, prosimy mieć na uwadze, że automatyczne tłumaczenia mogą zawierać błędy lub nieścisłości. Oryginalny dokument w języku źródłowym powinien być uznawany za źródło autorytatywne. W przypadku informacji o kluczowym znaczeniu zalecane jest skorzystanie z profesjonalnego tłumaczenia wykonanego przez człowieka. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z korzystania z tego tłumaczenia.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Zastrzeżenie**:
+Niniejszy dokument został przetłumaczony za pomocą usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Choć dążymy do dokładności, prosimy pamiętać, że automatyczne tłumaczenia mogą zawierać błędy lub niedokładności. Oryginalny dokument w jego języku źródłowym należy uznawać za autorytatywne źródło. W przypadku informacji krytycznych zalecane jest skorzystanie z profesjonalnego tłumaczenia wykonanego przez człowieka. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z użycia tego tłumaczenia.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

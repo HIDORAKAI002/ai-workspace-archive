@@ -1,59 +1,59 @@
-# Model Context Protocol (MCP) Ενσωμάτωση με Azure AI Foundry
+# Ολοκλήρωση Model Context Protocol (MCP) με το Microsoft Foundry
 
-Αυτός ο οδηγός δείχνει πώς να ενσωματώσετε τους διακομιστές Model Context Protocol (MCP) με τους agents του Azure AI Foundry, επιτρέποντας ισχυρή ορχήστρωση εργαλείων και δυνατότητες AI για επιχειρήσεις.
+Αυτός ο οδηγός δείχνει πώς να ενσωματώσετε διακομιστές Model Context Protocol (MCP) με πράκτορες Microsoft Foundry, επιτρέποντας ισχυρή ορχήστρωση εργαλείων και δυνατότητες επιχείρησης AI.
 
 ## Εισαγωγή
 
-Το Model Context Protocol (MCP) είναι ένα ανοιχτό πρότυπο που επιτρέπει στις εφαρμογές AI να συνδέονται με ασφάλεια σε εξωτερικές πηγές δεδομένων και εργαλεία. Όταν ενσωματώνεται με το Azure AI Foundry, το MCP επιτρέπει στους agents να έχουν πρόσβαση και να αλληλεπιδρούν με διάφορες εξωτερικές υπηρεσίες, APIs και πηγές δεδομένων με έναν τυποποιημένο τρόπο.
+Το Model Context Protocol (MCP) είναι ένα ανοιχτό πρότυπο που επιτρέπει στις εφαρμογές AI να συνδέονται με ασφάλεια σε εξωτερικές πηγές δεδομένων και εργαλεία. Όταν ενσωματώνεται με το Microsoft Foundry, το MCP επιτρέπει σε πράκτορες να έχουν πρόσβαση και να αλληλεπιδρούν με διάφορες εξωτερικές υπηρεσίες, API και πηγές δεδομένων με τυποποιημένο τρόπο.
 
-Αυτή η ενσωμάτωση συνδυάζει την ευελιξία του οικοσυστήματος εργαλείων του MCP με το ισχυρό πλαίσιο agents του Azure AI Foundry, προσφέροντας λύσεις AI επιπέδου επιχείρησης με εκτεταμένες δυνατότητες προσαρμογής.
+Αυτή η ολοκλήρωση συνδυάζει την ευελιξία του οικοσυστήματος εργαλείων MCP με το ανθεκτικό πλαίσιο πρακτόρων του Microsoft Foundry, παρέχοντας λύσεις AI επιπέδου επιχείρησης με εκτεταμένες δυνατότητες προσαρμογής.
 
-**Note:** Εάν θέλετε να χρησιμοποιήσετε MCP στην υπηρεσία Azure AI Foundry Agent, προς το παρόν υποστηρίζονται μόνο οι εξής περιοχές: westus, westus2, uaenorth, southindia και switzerlandnorth
+**Σημείωση:** Εάν θέλετε να χρησιμοποιήσετε MCP στην Υπηρεσία Πρακτόρων Microsoft Foundry, προς το παρόν υποστηρίζονται μόνο οι ακόλουθες περιοχές: westus, westus2, uaenorth, southindia και switzerlandnorth
 
-## Στόχοι Μάθησης
+## Στόχοι Εκμάθησης
 
 Στο τέλος αυτού του οδηγού, θα μπορείτε να:
 
 - Κατανοήσετε το Model Context Protocol και τα οφέλη του
-- Ρυθμίσετε διακομιστές MCP για χρήση με agents του Azure AI Foundry
-- Δημιουργήσετε και να διαμορφώσετε agents με ενσωμάτωση εργαλείων MCP
-- Υλοποιήσετε πρακτικά παραδείγματα χρησιμοποιώντας πραγματικούς διακομιστές MCP
-- Διαχειριστείτε τις απαντήσεις εργαλείων και τις παραπομπές στις συνομιλίες των agents
+- Ρυθμίσετε διακομιστές MCP για χρήση με πράκτορες Microsoft Foundry
+- Δημιουργήσετε και να διαμορφώσετε πράκτορες με ολοκλήρωση εργαλείων MCP
+- Εφαρμόσετε πρακτικά παραδείγματα χρησιμοποιώντας πραγματικούς διακομιστές MCP
+- Διαχειριστείτε απαντήσεις εργαλείων και αναφορές σε συνομιλίες πρακτόρων
 
 ## Προαπαιτούμενα
 
-Πριν ξεκινήσετε, βεβαιωθείτε ότι έχετε:
+Πριν ξεκινήσετε, βεβαιωθείτε ότι διαθέτετε:
 
-- Συνδρομή Azure με πρόσβαση στο AI Foundry
+- Συνδρομή Azure με πρόσβαση στο Microsoft Foundry
 - Python 3.10+ ή .NET 8.0+
 - Εγκατεστημένο και ρυθμισμένο το Azure CLI
 - Κατάλληλα δικαιώματα για δημιουργία πόρων AI
 
 ## Τι είναι το Model Context Protocol (MCP);
 
-Το Model Context Protocol είναι ένας τυποποιημένος τρόπος για τις εφαρμογές AI να συνδέονται με εξωτερικές πηγές δεδομένων και εργαλεία. Τα βασικά οφέλη περιλαμβάνουν:
+Το Model Context Protocol είναι ένας τυποποιημένος τρόπος για εφαρμογές AI να συνδέονται με εξωτερικές πηγές δεδομένων και εργαλεία. Τα βασικά οφέλη περιλαμβάνουν:
 
-- **Τυποποιημένη Ενσωμάτωση**: Ομοιόμορφη διεπαφή σε διάφορα εργαλεία και υπηρεσίες
-- **Ασφάλεια**: Ασφαλείς μηχανισμοί πιστοποίησης και εξουσιοδότησης
-- **Ευελιξία**: Υποστήριξη για διάφορες πηγές δεδομένων, APIs και προσαρμοσμένα εργαλεία
-- **Επεκτασιμότητα**: Εύκολη προσθήκη νέων δυνατοτήτων και ενσωματώσεων
+- **Τυποποιημένη Ολοκλήρωση**: Συνεπές περιβάλλον εργασίας σε διαφορετικά εργαλεία και υπηρεσίες
+- **Ασφάλεια**: Ασφαλείς μηχανισμοί αυθεντικοποίησης και εξουσιοδότησης
+- **Ευελιξία**: Υποστήριξη για διάφορες πηγές δεδομένων, API και προσαρμοσμένα εργαλεία
+- **Επεκτασιμότητα**: Εύκολη προσθήκη νέων δυνατοτήτων και ολοκληρώσεων
 
-## Ρύθμιση MCP με Azure AI Foundry
+## Ρύθμιση MCP με Microsoft Foundry
 
 ### Διαμόρφωση Περιβάλλοντος
 
 Επιλέξτε το προτιμώμενο περιβάλλον ανάπτυξης:
 
-- [Python Implementation](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [.NET Implementation](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Εφαρμογή Python](#εφαρμογή-python)
+- [Εφαρμογή .NET](#codeblock5)
 
 ---
 
-## Python Implementation
+## Εφαρμογή Python
 
-***Note*** Μπορείτε να εκτελέσετε αυτό το [notebook](mcp_support_python.ipynb)
+***Σημείωση*** Μπορείτε να εκτελέσετε αυτό το [notebook](./mcp_support_python.ipynb)
 
-### 1. Εγκατάσταση Απαραίτητων Πακέτων
+### 1. Εγκατάσταση Απαιτούμενων Πακέτων
 
 ```bash
 pip install azure-ai-projects -U
@@ -71,14 +71,14 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.agents.models import McpTool, RequiredMcpToolCall, SubmitToolApprovalAction, ToolApproval
 ```
 
-### 3. Ρύθμιση Παραμέτρων MCP
+### 3. Διαμόρφωση Ρυθμίσεων MCP
 
 ```python
 mcp_server_url = os.environ.get("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
 mcp_server_label = os.environ.get("MCP_SERVER_LABEL", "mslearn")
 ```
 
-### 4. Αρχικοποίηση Project Client
+### 4. Αρχικοποίηση Πελάτη Project
 
 ```python
 project_client = AIProjectClient(
@@ -93,17 +93,17 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # Προαιρετικό: καθορίστε τα επιτρεπόμενα εργαλεία
 )
 ```
 
-### 6. Πλήρες Παράδειγμα Python
+### 6. Ολοκληρωμένο Παράδειγμα Python
 
 ```python
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # Δημιουργήστε έναν νέο πράκτορα με εργαλεία MCP
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # Δημιουργήστε νήμα για επικοινωνία
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # Δημιουργήστε μήνυμα για το νήμα
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # Διαχειριστείτε τις εγκρίσεις εργαλείων και εκτελέστε τον πράκτορα
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # Εμφανίστε τη συνομιλία
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -178,11 +178,11 @@ with project_client:
 
 ---
 
-## .NET Implementation
+## Εφαρμογή .NET
 
-***Note*** Μπορείτε να εκτελέσετε αυτό το [notebook](mcp_support_dotnet.ipynb)
+***Σημείωση*** Μπορείτε να εκτελέσετε αυτό το [notebook](./mcp_support_dotnet.ipynb)
 
-### 1. Εγκατάσταση Απαραίτητων Πακέτων
+### 1. Εγκατάσταση Απαιτούμενων Πακέτων
 
 ```csharp
 #r "nuget: Azure.AI.Agents.Persistent, 1.1.0-beta.4"
@@ -196,7 +196,7 @@ using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 ```
 
-### 3. Ρύθμιση Παραμέτρων
+### 3. Διαμόρφωση Ρυθμίσεων
 
 ```csharp
 var projectEndpoint = "https://your-project-endpoint.services.ai.azure.com/api/projects/your-project";
@@ -212,7 +212,7 @@ PersistentAgentsClient agentClient = new(projectEndpoint, new DefaultAzureCreden
 MCPToolDefinition mcpTool = new(mcpServerLabel, mcpServerUrl);
 ```
 
-### 5. Δημιουργία Agent με Εργαλεία MCP
+### 5. Δημιουργία Πράκτορα με Εργαλεία MCP
 
 ```csharp
 PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
@@ -223,7 +223,7 @@ PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
    );
 ```
 
-### 6. Πλήρες Παράδειγμα .NET
+### 6. Ολοκληρωμένο Παράδειγμα .NET
 
 ```csharp
 // Create thread and message
@@ -297,21 +297,21 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ---
 
-## Επιλογές Διαμόρφωσης Εργαλείων MCP
+## Επιλογές Διαμόρφωσης Εργαλείου MCP
 
-Κατά τη διαμόρφωση εργαλείων MCP για τον agent σας, μπορείτε να ορίσετε αρκετές σημαντικές παραμέτρους:
+Κατά τη διαμόρφωση εργαλείων MCP για τον πράκτορά σας, μπορείτε να καθορίσετε αρκετές σημαντικές παραμέτρους:
 
-### Python Διαμόρφωση
+### Διαμόρφωση Python
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # Αναγνωριστικό για τον διακομιστή MCP
+    server_url="https://api.example.com/mcp", # Σημείο πρόσβασης διακομιστή MCP
+    allowed_tools=[],                       # Προαιρετικό: ορίστε τα επιτρεπτά εργαλεία
 )
 ```
 
-### .NET Διαμόρφωση
+### Διαμόρφωση .NET
 
 ```csharp
 MCPToolDefinition mcpTool = new(
@@ -320,9 +320,9 @@ MCPToolDefinition mcpTool = new(
 );
 ```
 
-## Πιστοποίηση και Headers
+## Αυθεντικοποίηση και Headers
 
-Και οι δύο υλοποιήσεις υποστηρίζουν προσαρμοσμένα headers για πιστοποίηση:
+Και οι δύο εφαρμογές υποστηρίζουν προσαρμοσμένα headers για αυθεντικοποίηση:
 
 ### Python
 ```python
@@ -338,14 +338,14 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 ## Αντιμετώπιση Συνηθισμένων Προβλημάτων
 
 ### 1. Προβλήματα Σύνδεσης
-- Επαληθεύστε ότι το URL του MCP server είναι προσβάσιμο
-- Ελέγξτε τα διαπιστευτήρια πιστοποίησης
+- Επιβεβαιώστε ότι το URL του διακομιστή MCP είναι προσβάσιμο
+- Ελέγξτε τα διαπιστευτήρια αυθεντικοποίησης
 - Βεβαιωθείτε για τη δικτυακή συνδεσιμότητα
 
 ### 2. Αποτυχίες Κλήσεων Εργαλείων
-- Ελέγξτε τα ορίσματα και τη μορφοποίηση των κλήσεων εργαλείων
-- Εξετάστε τις απαιτήσεις του συγκεκριμένου διακομιστή
-- Υλοποιήστε σωστή διαχείριση σφαλμάτων
+- Επανεξετάστε τα ορίσματα και τη μορφοποίηση των εργαλείων
+- Ελέγξτε τις απαιτήσεις συγκεκριμένες στον διακομιστή
+- Εφαρμόστε κατάλληλο χειρισμό σφαλμάτων
 
 ### 3. Προβλήματα Απόδοσης
 - Βελτιστοποιήστε τη συχνότητα κλήσεων εργαλείων
@@ -354,29 +354,33 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 
 ## Επόμενα Βήματα
 
-Για να βελτιώσετε περαιτέρω την ενσωμάτωση MCP:
+Για να ενισχύσετε περαιτέρω την ολοκλήρωση MCP:
 
-1. **Εξερευνήστε Προσαρμοσμένους MCP Servers**: Δημιουργήστε δικούς σας MCP servers για ιδιόκτητες πηγές δεδομένων
-2. **Υλοποιήστε Προηγμένη Ασφάλεια**: Προσθέστε OAuth2 ή προσαρμοσμένους μηχανισμούς πιστοποίησης
-3. **Παρακολούθηση και Αναλύσεις**: Υλοποιήστε logging και monitoring για τη χρήση εργαλείων
-4. **Κλιμάκωση της Λύσης σας**: Σκεφτείτε ισορροπία φορτίου και κατανεμημένες αρχιτεκτονικές MCP servers
+1. **Εξερευνήστε Προσαρμοσμένους Διακομιστές MCP**: Δημιουργήστε δικούς σας διακομιστές MCP για ιδιωτικές πηγές δεδομένων
+2. **Εφαρμόστε Προηγμένη Ασφάλεια**: Προσθέστε OAuth2 ή προσαρμοσμένους μηχανισμούς αυθεντικοποίησης
+3. **Παρακολούθηση και Αναλύσεις**: Εφαρμόστε καταγραφή και παρακολούθηση για τη χρήση εργαλείων
+4. **Κλιμάκωση της Λύσης Σας**: Εξετάστε ισορροπία φορτίου και κατανεμημένη αρχιτεκτονική διακομιστή MCP
 
 ## Πρόσθετοι Πόροι
 
-- [Azure AI Foundry Documentation](https://learn.microsoft.com/azure/ai-foundry/)
-- [Model Context Protocol Samples](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Azure AI Foundry Agents Overview](https://learn.microsoft.com/azure/ai-foundry/agents/)
-- [MCP Specification](https://spec.modelcontextprotocol.io/)
+- [Τεκμηρίωση Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- [Παραδείγματα Model Context Protocol](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
+- [Επισκόπηση Πρακτόρων Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Προδιαγραφές MCP](https://spec.modelcontextprotocol.io/)
 
 ## Υποστήριξη
 
 Για επιπλέον υποστήριξη και ερωτήσεις:
-- Ανατρέξτε στην [τεκμηρίωση Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
-- Εξετάστε τους [πόρους της κοινότητας MCP](https://modelcontextprotocol.io/)
+- Ανατρέξτε στην [τεκμηρίωση Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- Ελέγξτε τους [πόρους κοινότητας MCP](https://modelcontextprotocol.io/)
 
-## Τι ακολουθεί
+## Τι ακολουθεί 
 
 - [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
 
-**Αποποίηση ευθυνών**:  
-Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία αυτόματης μετάφρασης AI [Co-op Translator](https://github.com/Azure/co-op-translator). Παρόλο που επιδιώκουμε την ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτόματες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη γλώσσα του θεωρείται η επίσημη πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Αποποίηση ευθυνών**:
+Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Ενώ επιδιώκουμε την ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

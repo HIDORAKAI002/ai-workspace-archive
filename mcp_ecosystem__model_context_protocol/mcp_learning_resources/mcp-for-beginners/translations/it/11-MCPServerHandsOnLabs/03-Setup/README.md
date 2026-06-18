@@ -1,52 +1,52 @@
-# Configurazione dell'Ambiente
+# Impostazione dell'Ambiente
 
 ## 🎯 Cosa Copre Questo Laboratorio
 
-Questo laboratorio pratico ti guida nella configurazione di un ambiente di sviluppo completo per la creazione di server MCP con integrazione PostgreSQL. Configurerai tutti gli strumenti necessari, distribuirai risorse Azure e validerai la configurazione prima di procedere con l'implementazione.
+Questo laboratorio pratico ti guida attraverso l'impostazione di un ambiente di sviluppo completo per la costruzione di server MCP con integrazione PostgreSQL. Configurerai tutti gli strumenti necessari, distribuirai le risorse Azure e verificherai la configurazione prima di procedere con l'implementazione.
 
 ## Panoramica
 
-Un ambiente di sviluppo adeguato è fondamentale per lo sviluppo di server MCP. Questo laboratorio fornisce istruzioni passo-passo per configurare Docker, i servizi Azure, gli strumenti di sviluppo e per verificare che tutto funzioni correttamente insieme.
+Un ambiente di sviluppo adeguato è fondamentale per il successo nello sviluppo di server MCP. Questo laboratorio fornisce istruzioni passo-passo per configurare Docker, i servizi Azure, gli strumenti di sviluppo e per verificare che tutto funzioni correttamente insieme.
 
-Alla fine di questo laboratorio, avrai un ambiente di sviluppo completamente funzionante pronto per costruire il server MCP di Zava Retail.
+Al termine di questo laboratorio, avrai un ambiente di sviluppo completamente funzionante pronto per costruire il server Zava Retail MCP.
 
 ## Obiettivi di Apprendimento
 
-Alla fine di questo laboratorio, sarai in grado di:
+Al termine di questo laboratorio, sarai in grado di:
 
-- **Installare e configurare** tutti gli strumenti di sviluppo necessari
+- **Installare e configurare** tutti gli strumenti di sviluppo richiesti
 - **Distribuire risorse Azure** necessarie per il server MCP
-- **Configurare container Docker** per PostgreSQL e il server MCP
-- **Validare** la configurazione dell'ambiente con connessioni di test
-- **Risolvere problemi comuni** di configurazione e setup
+- **Configurare contenitori Docker** per PostgreSQL e il server MCP
+- **Verificare** la configurazione dell’ambiente con connessioni di test
+- **Risoluzione dei problemi** comuni di configurazione e installazione
 - **Comprendere** il flusso di lavoro di sviluppo e la struttura dei file
 
-## 📋 Verifica dei Prerequisiti
+## 📋 Controllo dei Prerequisiti
 
 Prima di iniziare, assicurati di avere:
 
-### Conoscenze Necessarie
-- Uso base della riga di comando (Prompt dei Comandi di Windows/PowerShell)
+### Conoscenze Richieste
+- Uso base della riga di comando (Prompt comandi Windows/PowerShell)
 - Comprensione delle variabili d'ambiente
-- Familiarità con il controllo di versione Git
-- Concetti base di Docker (container, immagini, volumi)
+- Familiarità con il controllo versione Git
+- Concetti base di Docker (contenitori, immagini, volumi)
 
 ### Requisiti di Sistema
 - **Sistema Operativo**: Windows 10/11, macOS o Linux
-- **RAM**: Minimo 8GB (16GB consigliati)
-- **Spazio di Archiviazione**: Almeno 10GB di spazio libero
-- **Rete**: Connessione Internet per download e distribuzione su Azure
+- **RAM**: Minimo 8GB (consigliati 16GB)
+- **Spazio di Archiviazione**: Almeno 10GB liberi
+- **Rete**: Connessione Internet per download e distribuzione Azure
 
 ### Requisiti Account
-- **Abbonamento Azure**: Il livello gratuito è sufficiente
-- **Account GitHub**: Per accedere al repository
-- **Account Docker Hub**: (Opzionale) Per pubblicare immagini personalizzate
+- **Sottoscrizione Azure**: Tier gratuito sufficiente
+- **Account GitHub**: Per l’accesso al repository
+- **Account Docker Hub**: (Opzionale) per pubblicazione immagini personalizzate
 
-## 🛠️ Installazione degli Strumenti
+## 🛠️ Installazione Strumenti
 
 ### 1. Installare Docker Desktop
 
-Docker fornisce l'ambiente containerizzato per la nostra configurazione di sviluppo.
+Docker fornisce l’ambiente containerizzato per la nostra configurazione di sviluppo.
 
 #### Installazione su Windows
 
@@ -58,11 +58,11 @@ Docker fornisce l'ambiente containerizzato per la nostra configurazione di svilu
    ```
 
 2. **Installa e Configura**:
-   - Esegui l'installer come Amministratore
-   - Abilita l'integrazione con WSL 2 quando richiesto
-   - Riavvia il computer al termine dell'installazione
+   - Esegui l’installer come Amministratore
+   - Abilita l’integrazione WSL 2 quando richiesto
+   - Riavvia il computer al termine dell’installazione
 
-3. **Verifica l'Installazione**:
+3. **Verifica Installazione**:
    ```cmd
    docker --version
    docker-compose --version
@@ -72,16 +72,16 @@ Docker fornisce l'ambiente containerizzato per la nostra configurazione di svilu
 
 1. **Scarica e Installa**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Scarica da https://desktop.docker.com/mac/stable/Docker.dmg
+   # Oppure usa Homebrew
    brew install --cask docker
    ```
 
 2. **Avvia Docker Desktop**:
-   - Avvia Docker Desktop da Applicazioni
-   - Completa la configurazione iniziale
+   - Avvia Docker Desktop dalle Applicazioni
+   - Completa la procedura guidata di configurazione iniziale
 
-3. **Verifica l'Installazione**:
+3. **Verifica Installazione**:
    ```bash
    docker --version
    docker-compose --version
@@ -96,7 +96,7 @@ Docker fornisce l'ambiente containerizzato per la nostra configurazione di svilu
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Disconnettersi e riconnettersi affinché le modifiche al gruppo abbiano effetto
    ```
 
 2. **Installa Docker Compose**:
@@ -107,7 +107,7 @@ Docker fornisce l'ambiente containerizzato per la nostra configurazione di svilu
 
 ### 2. Installare Azure CLI
 
-Azure CLI consente la distribuzione e la gestione delle risorse Azure.
+L’Azure CLI consente la distribuzione e gestione delle risorse Azure.
 
 #### Installazione su Windows
 
@@ -121,10 +121,10 @@ winget install Microsoft.AzureCLI
 #### Installazione su macOS
 
 ```bash
-# Using Homebrew
+# Usare Homebrew
 brew install azure-cli
 
-# Or using installer
+# Oppure usare l'installer
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
@@ -142,20 +142,20 @@ sudo dnf install azure-cli
 #### Verifica e Autenticazione
 
 ```bash
-# Check installation
+# Verifica installazione
 az version
 
-# Login to Azure
+# Accedi ad Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Imposta la sottoscrizione predefinita (se ne hai più di una)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
 ### 3. Installare Git
 
-Git è necessario per clonare il repository e per il controllo di versione.
+Git è necessario per clonare il repository e gestire la versione.
 
 #### Windows
 
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git è solitamente preinstallato, ma puoi aggiornare tramite Homebrew
 brew install git
 ```
 
@@ -185,7 +185,7 @@ sudo dnf install git
 
 ### 4. Installare VS Code
 
-Visual Studio Code fornisce l'ambiente di sviluppo integrato con supporto MCP.
+Visual Studio Code fornisce l’ambiente di sviluppo integrato con supporto MCP.
 
 #### Installazione
 
@@ -200,12 +200,12 @@ brew install --cask visual-studio-code
 sudo snap install code --classic
 ```
 
-#### Estensioni Necessarie
+#### Estensioni Richieste
 
-Installa queste estensioni per VS Code:
+Installa queste estensioni di VS Code:
 
 ```bash
-# Install via command line
+# Installa tramite riga di comando
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# Usare Homebrew
 brew install python@3.11
 ```
 
@@ -251,11 +251,11 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 sudo dnf install python3.11 python3.11-pip
 ```
 
-#### Verifica dell'Installazione
+#### Verifica Installazione
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Dovrebbe mostrare Python 3.11.x
+pip --version      # Dovrebbe mostrare la versione di pip
 ```
 
 ## 🚀 Configurazione del Progetto
@@ -263,46 +263,46 @@ pip --version      # Should show pip version
 ### 1. Clonare il Repository
 
 ```bash
-# Clone the main repository
+# Clona il repository principale
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Naviga nella directory del progetto
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Verifica la struttura del repository
 ls -la
 ```
 
-### 2. Creare un Ambiente Virtuale Python
+### 2. Creare Ambiente Virtuale Python
 
 ```bash
-# Create virtual environment
+# Crea ambiente virtuale
 python -m venv mcp-env
 
-# Activate virtual environment
+# Attiva ambiente virtuale
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Aggiorna pip
 python -m pip install --upgrade pip
 ```
 
-### 3. Installare le Dipendenze Python
+### 3. Installare Dipendenze Python
 
 ```bash
-# Install development dependencies
+# Installa le dipendenze di sviluppo
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Verifica i pacchetti chiave
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
 
-## ☁️ Distribuzione delle Risorse Azure
+## ☁️ Distribuzione Risorse Azure
 
 ### 1. Comprendere i Requisiti delle Risorse
 
@@ -310,17 +310,17 @@ Il nostro server MCP richiede queste risorse Azure:
 
 | **Risorsa** | **Scopo** | **Costo Stimato** |
 |-------------|-----------|-------------------|
-| **Azure AI Foundry** | Hosting e gestione dei modelli AI | $10-50/mese |
-| **Distribuzione OpenAI** | Modello di embedding testuale (text-embedding-3-small) | $5-20/mese |
+| **Microsoft Foundry** | Hosting e gestione modelli AI | $10-50/mese |
+| **Distribuzione OpenAI** | Modello di embedding testo (text-embedding-3-small) | $5-20/mese |
 | **Application Insights** | Monitoraggio e telemetria | $5-15/mese |
-| **Resource Group** | Organizzazione delle risorse | Gratuito |
+| **Resource Group** | Organizzazione risorse | Gratuito |
 
-### 2. Distribuire le Risorse Azure
+### 2. Distribuire Risorse Azure
 
 #### Opzione A: Distribuzione Automatica (Consigliata)
 
 ```bash
-# Navigate to infrastructure directory
+# Naviga nella directory infrastruttura
 cd infra
 
 # Windows - PowerShell
@@ -331,27 +331,27 @@ cd infra
 ```
 
 Lo script di distribuzione:
-1. Crea un gruppo di risorse unico
-2. Distribuisce le risorse Azure AI Foundry
+1. Crea un resource group unico
+2. Distribuisce risorse Microsoft Foundry
 3. Distribuisce il modello text-embedding-3-small
 4. Configura Application Insights
-5. Crea un service principal per l'autenticazione
-6. Genera un file `.env` con la configurazione
+5. Crea un service principal per l’autenticazione
+6. Genera il file `.env` con la configurazione
 
 #### Opzione B: Distribuzione Manuale
 
 Se preferisci il controllo manuale o lo script automatico fallisce:
 
 ```bash
-# Set variables
+# Imposta variabili
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Crea gruppo di risorse
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Distribuisci modello principale
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,27 +359,27 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Verifica della Distribuzione Azure
+### 3. Verificare la Distribuzione Azure
 
 ```bash
-# Check resource group
+# Controlla il gruppo di risorse
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Elenca le risorse distribuite
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Testa il servizio AI
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
 
-### 4. Configurare le Variabili d'Ambiente
+### 4. Configurare Variabili d’Ambiente
 
 Dopo la distribuzione, dovresti avere un file `.env`. Verifica che contenga:
 
 ```bash
-# .env file contents
+# Contenuto del file .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Configurazione del database (per lo sviluppo)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -396,7 +396,7 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
 
-## 🐳 Configurazione dell'Ambiente Docker
+## 🐳 Configurazione Ambiente Docker
 
 ### 1. Comprendere la Composizione Docker
 
@@ -429,58 +429,58 @@ services:
       - .env
 ```
 
-### 2. Avviare l'Ambiente di Sviluppo
+### 2. Avviare Ambiente di Sviluppo
 
 ```bash
-# Ensure you're in the project root directory
+# Assicurati di essere nella directory principale del progetto
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Avvia i servizi
 docker-compose up -d
 
-# Check service status
+# Controlla lo stato del servizio
 docker-compose ps
 
-# View logs
+# Visualizza i log
 docker-compose logs -f
 ```
 
-### 3. Verificare la Configurazione del Database
+### 3. Verificare Configurazione Database
 
 ```bash
-# Connect to PostgreSQL container
+# Connetti al contenitore PostgreSQL
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Controlla la struttura del database
 \dt retail.*
 
-# Verify sample data
+# Verifica i dati di esempio
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Esci da PostgreSQL
 \q
 ```
 
-### 4. Testare il Server MCP
+### 4. Testare Server MCP
 
 ```bash
-# Check MCP server health
+# Verifica la salute del server MCP
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Testare l'endpoint base MCP
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
 
-## 🔧 Configurazione di VS Code
+## 🔧 Configurazione VS Code
 
-### 1. Configurare l'Integrazione MCP
+### 1. Configurare Integrazione MCP
 
-Crea la configurazione MCP per VS Code:
+Crea configurazione MCP per VS Code:
 
 ```json
 // .vscode/mcp.json
@@ -506,7 +506,7 @@ Crea la configurazione MCP per VS Code:
 }
 ```
 
-### 2. Configurare l'Ambiente Python
+### 2. Configurare Ambiente Python
 
 ```json
 // .vscode/settings.json
@@ -525,7 +525,7 @@ Crea la configurazione MCP per VS Code:
 }
 ```
 
-### 3. Testare l'Integrazione con VS Code
+### 3. Testare Integrazione VS Code
 
 1. **Apri il progetto in VS Code**:
    ```bash
@@ -536,19 +536,19 @@ Crea la configurazione MCP per VS Code:
    - Premi `Ctrl+Shift+P` (Windows/Linux) o `Cmd+Shift+P` (macOS)
    - Digita "AI Chat" e seleziona "AI Chat: Open Chat"
 
-3. **Testa la Connessione al Server MCP**:
+3. **Testa Connessione Server MCP**:
    - In AI Chat, digita `#zava` e seleziona uno dei server configurati
    - Chiedi: "Quali tabelle sono disponibili nel database?"
-   - Dovresti ricevere una risposta con l'elenco delle tabelle del database retail
+   - Dovresti ricevere una risposta con l’elenco delle tabelle retail del database
 
-## ✅ Validazione dell'Ambiente
+## ✅ Validazione dell’Ambiente
 
 ### 1. Controllo Completo del Sistema
 
 Esegui questo script di validazione per verificare la configurazione:
 
 ```bash
-# Create validation script
+# Crea script di validazione
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Controlla la versione di Python
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Controlla i pacchetti richiesti
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Controlla Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Controlla Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Controlla le variabili d'ambiente
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Controlla la connessione al database
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Test della query
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Controlla il server MCP
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Controlla il servizio Azure AI
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Fallirà se le credenziali non sono valide
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Esegui la validazione
 python validate_setup.py
 ```
 
 ### 2. Checklist di Validazione Manuale
 
 **✅ Strumenti Base**
-- [ ] Docker versione 20.10+ installato e in esecuzione
-- [ ] Azure CLI 2.40+ installato e autenticato
+- [ ] Docker versione 20.10+ installato e attivo
+- [ ] Azure CLI 2.40+ installata e autenticata
 - [ ] Python 3.8+ con pip installato
 - [ ] Git 2.30+ installato
 - [ ] VS Code con estensioni richieste
 
 **✅ Risorse Azure**
-- [ ] Gruppo di risorse creato con successo
+- [ ] Resource group creato con successo
 - [ ] Progetto AI Foundry distribuito
 - [ ] Modello OpenAI text-embedding-3-small distribuito
 - [ ] Application Insights configurato
-- [ ] Service principal creato con permessi adeguati
+- [ ] Service principal creato con permessi corretti
 
-**✅ Configurazione dell'Ambiente**
-- [ ] File `.env` creato con tutte le variabili richieste
+**✅ Configurazione Ambiente**
+- [ ] File `.env` creato con tutte le variabili necessarie
 - [ ] Credenziali Azure funzionanti (test con `az account show`)
-- [ ] Container PostgreSQL in esecuzione e accessibile
+- [ ] Contenitore PostgreSQL attivo e accessibile
 - [ ] Dati di esempio caricati nel database
 
-**✅ Integrazione con VS Code**
-- [ ] File `.vscode/mcp.json` configurato
-- [ ] Interprete Python impostato sull'ambiente virtuale
-- [ ] Server MCP visibili in AI Chat
-- [ ] Query di test eseguibili tramite AI Chat
+**✅ Integrazione VS Code**
+- [ ] `.vscode/mcp.json` configurato
+- [ ] Interprete Python impostato sull’ambiente virtuale
+- [ ] Server MCP appaiono in AI Chat
+- [ ] Possibilità di eseguire query di test tramite AI Chat
 
-## 🛠️ Risoluzione dei Problemi Comuni
+## 🛠️ Risoluzione Problemi Comuni
 
-### Problemi con Docker
+### Problemi Docker
 
-**Problema**: I container Docker non si avviano
+**Problema**: I contenitori Docker non si avviano
 ```bash
-# Check Docker service status
+# Controlla lo stato del servizio Docker
 docker info
 
-# Check available resources
+# Controlla le risorse disponibili
 docker system df
 
-# Clean up if needed
+# Esegui la pulizia se necessario
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Riavvia Docker Desktop (Windows/macOS)
+# Oppure riavvia il servizio Docker (Linux)
 sudo systemctl restart docker
 ```
 
-**Problema**: La connessione a PostgreSQL fallisce
+**Problema**: Connessione a PostgreSQL fallita
 ```bash
-# Check container logs
+# Controlla i log del contenitore
 docker-compose logs postgres
 
-# Verify container is healthy
+# Verifica che il contenitore sia sano
 docker-compose ps
 
-# Test direct connection
+# Testa la connessione diretta
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
 
-### Problemi con la Distribuzione Azure
+### Problemi Distribuzione Azure
 
-**Problema**: La distribuzione Azure fallisce
+**Problema**: Distribuzione Azure fallisce
 ```bash
-# Check Azure CLI authentication
+# Verifica l'autenticazione di Azure CLI
 az account show
 
-# Verify subscription permissions
+# Verifica i permessi dell'abbonamento
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Controlla la registrazione del provider di risorse
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
 
-**Problema**: L'autenticazione al servizio AI fallisce
+**Problema**: Autenticazione servizio AI fallita
 ```bash
-# Test service principal
+# Testa il principale del servizio
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Verifica il deployment del servizio AI
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
 
-### Problemi con l'Ambiente Python
+### Problemi Ambiente Python
 
-**Problema**: L'installazione dei pacchetti fallisce
+**Problema**: Installazione pacchetti fallita
 ```bash
-# Upgrade pip and setuptools
+# Aggiorna pip e setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Pulisci la cache di pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# Installa i pacchetti uno per uno per identificare i problemi
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
 
-**Problema**: VS Code non trova l'interprete Python
+**Problema**: VS Code non trova interprete Python
 ```bash
-# Show Python interpreter paths
+# Mostra i percorsi dell'interprete Python
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Attiva prima l'ambiente virtuale
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Quindi apri VS Code
 code .
 ```
 
 ## 🎯 Punti Chiave
 
-Dopo aver completato questo laboratorio, dovresti avere:
+Dopo aver completato questo laboratorio dovresti avere:
 
-✅ **Ambiente di Sviluppo Completo**: Tutti gli strumenti installati e configurati  
-✅ **Risorse Azure Distribuite**: Servizi AI e infrastruttura di supporto  
-✅ **Ambiente Docker Funzionante**: Container PostgreSQL e server MCP  
-✅ **Integrazione con VS Code**: Server MCP configurati e accessibili  
-✅ **Setup Validato**: Tutti i componenti testati e funzionanti insieme  
-✅ **Conoscenze di Risoluzione Problemi**: Problemi comuni e soluzioni  
+✅ **Ambiente di Sviluppo Completo**: tutti gli strumenti installati e configurati  
+✅ **Risorse Azure Distribuite**: servizi AI e infrastruttura di supporto  
+✅ **Ambiente Docker Attivo**: contenitori PostgreSQL e server MCP  
+✅ **Integrazione VS Code**: server MCP configurati e accessibili  
+✅ **Configurazione Verificata**: tutti componenti testati e funzionanti insieme  
+✅ **Conoscenze di Risoluzione Problemi**: problemi comuni e soluzioni  
 
-## 🚀 Prossimi Passi
+## 🚀 Cosa Fare Dopo
 
-Con l'ambiente pronto, continua con **[Lab 04: Progettazione e Schema del Database](../04-Database/README.md)** per:
+Con l’ambiente pronto, prosegui con **[Lab 04: Progettazione Database e Schema](../04-Database/README.md)** per:
 
 - Esplorare in dettaglio lo schema del database retail
-- Comprendere la modellazione dei dati multi-tenant
-- Imparare l'implementazione della Sicurezza a Livello di Riga
-- Lavorare con dati di esempio del retail
+- Comprendere la modellazione dati multi-tenant
+- Imparare l’implementazione della sicurezza a livello di riga
+- Lavorare con dati retail di esempio
 
 ## 📚 Risorse Aggiuntive
 
 ### Strumenti di Sviluppo
-- [Documentazione Docker](https://docs.docker.com/) - Riferimento completo su Docker
+- [Documentazione Docker](https://docs.docker.com/) - Riferimento completo Docker
 - [Riferimento Azure CLI](https://docs.microsoft.com/cli/azure/) - Comandi Azure CLI
-- [Documentazione VS Code](https://code.visualstudio.com/docs) - Configurazione dell'editor e estensioni
+- [Documentazione VS Code](https://code.visualstudio.com/docs) - Configurazioni ed estensioni editor
 
 ### Servizi Azure
-- [Documentazione Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Configurazione dei servizi AI
-- [Servizio Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Distribuzione dei modelli AI
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Configurazione del monitoraggio
+- [Documentazione Microsoft Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Configurazione servizi AI
+- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - Distribuzione modelli AI
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Configurazione monitoraggio
 
 ### Sviluppo Python
-- [Ambienti Virtuali Python](https://docs.python.org/3/tutorial/venv.html) - Gestione degli ambienti
+- [Ambienti Virtuali Python](https://docs.python.org/3/tutorial/venv.html) - Gestione ambienti
 - [Documentazione AsyncIO](https://docs.python.org/3/library/asyncio.html) - Pattern di programmazione asincrona
-- [Documentazione FastAPI](https://fastapi.tiangolo.com/) - Pattern del framework web
+- [Documentazione FastAPI](https://fastapi.tiangolo.com/) - Pattern framework web
 
 ---
 
-**Prossimo**: Ambiente pronto? Continua con [Lab 04: Progettazione e Schema del Database](../04-Database/README.md)
+**Successivo**: Ambiente pronto? Prosegui con [Lab 04: Progettazione Database e Schema](../04-Database/README.md)
 
 ---
 
-**Clausola di esclusione della responsabilità**:  
-Questo documento è stato tradotto utilizzando il servizio di traduzione automatica [Co-op Translator](https://github.com/Azure/co-op-translator). Sebbene ci impegniamo per garantire l'accuratezza, si prega di notare che le traduzioni automatiche possono contenere errori o imprecisioni. Il documento originale nella sua lingua nativa dovrebbe essere considerato la fonte autorevole. Per informazioni critiche, si raccomanda una traduzione professionale effettuata da un esperto umano. Non siamo responsabili per eventuali incomprensioni o interpretazioni errate derivanti dall'uso di questa traduzione.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Questo documento è stato tradotto utilizzando il servizio di traduzione AI [Co-op Translator](https://github.com/Azure/co-op-translator). Sebbene ci impegniamo per garantire la precisione, si prega di notare che le traduzioni automatizzate possono contenere errori o imprecisioni. Il documento originale nella sua lingua nativa deve essere considerato la fonte autorevole. Per informazioni critiche, si raccomanda una traduzione professionale effettuata da un essere umano. Non siamo responsabili per eventuali malintesi o interpretazioni errate derivanti dall’uso di questa traduzione.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,4 +1,4 @@
-# 🌐 Module 2: MCP with AI Toolkit Fundamentals
+# 🌐 Module 2: MCP gamit ang Microsoft Foundry Toolkit Fundamentals
 
 [![Duration](https://img.shields.io/badge/Duration-20%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Intermediate-yellow.svg)]()
@@ -7,20 +7,20 @@
 ## 📋 Mga Layunin sa Pagkatuto
 
 Sa pagtatapos ng module na ito, magagawa mong:
-- ✅ Maunawaan ang arkitektura at benepisyo ng Model Context Protocol (MCP)
-- ✅ Tuklasin ang ecosystem ng MCP server ng Microsoft
-- ✅ Isama ang mga MCP server gamit ang AI Toolkit Agent Builder
-- ✅ Gumawa ng gumaganang browser automation agent gamit ang Playwright MCP
-- ✅ I-configure at subukan ang mga MCP tool sa loob ng iyong mga agent
-- ✅ I-export at i-deploy ang mga MCP-powered agent para sa production use
+- ✅ Maunawaan ang Model Context Protocol (MCP) arkitektura at mga benepisyo
+- ✅ Tuklasin ang Microsoft MCP server ecosystem
+- ✅ Isama ang MCP servers gamit ang Microsoft Foundry Toolkit Agent Builder
+- ✅ Gumawa ng functional browser automation agent gamit ang Playwright MCP
+- ✅ I-configure at subukan ang mga MCP tools sa loob ng iyong mga agent
+- ✅ I-export at i-deploy ang mga MCP-powered agents para sa paggamit sa produksyon
 
-## 🎯 Pagtutuloy mula sa Module 1
+## 🎯 Pagpapatuloy mula sa Module 1
 
-Sa Module 1, natutunan natin ang mga pangunahing kaalaman sa AI Toolkit at nakagawa ng unang Python Agent. Ngayon, **palalakasin** natin ang iyong mga agent sa pamamagitan ng pagkonekta sa mga panlabas na tool at serbisyo gamit ang makabagong **Model Context Protocol (MCP)**.
+Sa Module 1, na-master natin ang mga pangunahing kaalaman ng Microsoft Foundry Toolkit at gumawa ng unang Python Agent. Ngayo'y **papalalakasin** natin ang iyong mga agent sa pamamagitan ng pag-connect sa mga external na tools at serbisyo gamit ang rebolusyonaryong **Model Context Protocol (MCP)**.
 
-Isipin ito bilang pag-upgrade mula sa simpleng calculator patungo sa isang buong computer — magkakaroon ang iyong AI agents ng kakayahang:
-- 🌐 Mag-browse at makipag-ugnayan sa mga website
-- 📁 Mag-access at mag-manipula ng mga file
+Isipin ito bilang pag-upgrade mula sa isang simpleng calculator patungo sa isang buong computer – magkakaroon ang iyong mga AI agent ng kakayahang:
+- 🌐 Mag-browse at makipag-interact sa mga website
+- 📁 Mag-access at manipulahin ang mga file
 - 🔧 Makipag-integrate sa mga enterprise system
 - 📊 Magproseso ng real-time na data mula sa mga API
 
@@ -28,77 +28,78 @@ Isipin ito bilang pag-upgrade mula sa simpleng calculator patungo sa isang buong
 
 ### 🔍 Ano ang MCP?
 
-Ang Model Context Protocol (MCP) ay ang **"USB-C para sa mga AI application"** — isang makabagong open standard na nag-uugnay sa mga Large Language Models (LLMs) sa mga panlabas na tool, pinagkukunan ng data, at serbisyo. Tulad ng USB-C na nag-alis ng kalituhan sa mga kable sa pamamagitan ng isang unibersal na konektor, nilulutas ng MCP ang komplikasyon sa AI integration gamit ang isang standardized na protocol.
+Ang Model Context Protocol (MCP) ay ang **"USB-C para sa mga AI application"** - isang rebolusyonaryong bukas na standard na nag-uugnay sa Large Language Models (LLMs) sa mga external na tool, pinanggagalingan ng datos, at mga serbisyo. Kagaya ng USB-C na nagtanggal ng kalituhan sa mga cable sa pamamagitan ng iisang unibersal na konektor, ang MCP ay nag-aalis ng kumplikadong AI integration gamit ang isang standardized na protocol.
 
 ### 🎯 Ang Problema na Nilulutas ng MCP
 
 **Bago ang MCP:**
 - 🔧 Custom integrations para sa bawat tool
-- 🔄 Vendor lock-in gamit ang proprietary na solusyon  
-- 🔒 Mga kahinaan sa seguridad mula sa mga ad-hoc na koneksyon
+- 🔄 Vendor lock-in gamit ang proprietary solutions  
+- 🔒 Security vulnerabilities mula sa mga ad-hoc na koneksyon
 - ⏱️ Buwan ng development para sa mga simpleng integration
 
 **Sa MCP:**
 - ⚡ Plug-and-play na integrasyon ng mga tool
-- 🔄 Vendor-agnostic na arkitektura
-- 🛡️ Built-in na mga best practice sa seguridad
+- 🔄 Architecture na vendor-agnostic
+- 🛡️ Built-in na pinakamahuhusay na security practices
 - 🚀 Ilang minuto lang para magdagdag ng bagong kakayahan
 
-### 🏗️ Malalim na Pagsusuri sa Arkitektura ng MCP
+### 🏗️ Malalim na Pagtingin sa Arkitektura ng MCP
 
-Ang MCP ay sumusunod sa **client-server architecture** na lumilikha ng isang secure at scalable na ecosystem:
+Sinasalamin ng MCP ang **client-server architecture** na lumilikha ng isang ligtas at scalable na ecosystem:
 
 ```mermaid
 graph TB
-    A[AI Application/Agent] --> B[MCP Client]
-    B --> C[MCP Server 1: Files]
-    B --> D[MCP Server 2: Web APIs]
+    A[AI Aplikasyon/Ahente] --> B[MCP Kliyente]
+    B --> C[MCP Server 1: Mga File]
+    B --> D[MCP Server 2: Mga Web API]
     B --> E[MCP Server 3: Database]
-    B --> F[MCP Server N: Custom Tools]
+    B --> F[MCP Server N: Mga Pasadyang Kagamitan]
     
-    C --> G[Local File System]
-    D --> H[External APIs]
-    E --> I[Database Systems]
-    F --> J[Enterprise Systems]
+    C --> G[Lokál na Sistema ng File]
+    D --> H[Panlabas na Mga API]
+    E --> I[Mga Sistema ng Database]
+    F --> J[Mga Sistema ng Enterprise]
 ```
 
-**🔧 Pangunahing Bahagi:**
+**🔧 Pangunahing Mga Komponent:**
 
-| Bahagi | Papel | Mga Halimbawa |
-|--------|-------|---------------|
-| **MCP Hosts** | Mga aplikasyon na gumagamit ng MCP services | Claude Desktop, VS Code, AI Toolkit |
-| **MCP Clients** | Protocol handlers (1:1 sa mga server) | Built-in sa host applications |
-| **MCP Servers** | Nagbibigay ng kakayahan gamit ang standard protocol | Playwright, Files, Azure, GitHub |
-| **Transport Layer** | Mga paraan ng komunikasyon | stdio, HTTP, WebSockets |
+| Component | Papel | Mga Halimbawa |
+|-----------|------|--------------|
+| **MCP Hosts** | Mga aplikasyon na kumokonsumo ng MCP services | Claude Desktop, VS Code, Microsoft Foundry Toolkit |
+| **MCP Clients** | Protocol handlers (1:1 sa mga server) | Built-in sa mga host na aplikasyon |
+| **MCP Servers** | Nagpapakita ng kakayahan gamit ang standard protocol | Playwright, Files, Azure, GitHub |
+| **Transport Layer** | Mga pamamaraan ng komunikasyon | stdio, HTTP, WebSockets |
 
-## 🏢 Ecosystem ng MCP Server ng Microsoft
 
-Pinangungunahan ng Microsoft ang MCP ecosystem gamit ang komprehensibong suite ng mga enterprise-grade server na tumutugon sa mga totoong pangangailangan ng negosyo.
+## 🏢 Ecosystem ng Microsoft MCP Servers
+
+Pinangunahan ng Microsoft ang MCP ecosystem gamit ang komprehensibong suite ng enterprise-grade servers na tumutugon sa tunay na pangangailangan sa negosyo.
 
 ### 🌟 Tampok na Microsoft MCP Servers
 
 #### 1. ☁️ Azure MCP Server
-**🔗 Repository**: [azure/azure-mcp](https://github.com/azure/azure-mcp)  
+**🔗 Repository**: [azure/azure-mcp](https://github.com/azure/azure-mcp)
 **🎯 Layunin**: Komprehensibong pamamahala ng Azure resources na may AI integration
 
-**✨ Pangunahing Tampok:**
+**✨ Pangunahing Mga Tampok:**
 - Declarative infrastructure provisioning
-- Real-time na pagmamanman ng resources
-- Mga rekomendasyon para sa cost optimization
-- Pagsusuri ng pagsunod sa seguridad
+- Real-time na pagmamanman ng mga resources
+- Mga rekomendasyon para sa optimization ng gastos
+- Pag-check ng security compliance
 
 **🚀 Mga Gamit:**
-- Infrastructure-as-Code na may AI assistance
+- Infrastructure-as-Code gamit ang AI assistance
 - Automated resource scaling
 - Cloud cost optimization
-- Automation ng DevOps workflow
+- DevOps workflow automation
 
 #### 2. 📊 Microsoft Dataverse MCP
-**📚 Dokumentasyon**: [Microsoft Dataverse Integration](https://go.microsoft.com/fwlink/?linkid=2320176)  
+**📚 Dokumentasyon**: [Microsoft Dataverse Integration](https://go.microsoft.com/fwlink/?linkid=2320176)
 **🎯 Layunin**: Natural language interface para sa business data
 
-**✨ Pangunahing Tampok:**
-- Natural language na mga query sa database
+**✨ Pangunahing Mga Tampok:**
+- Natural language database queries
 - Pag-unawa sa business context
 - Custom prompt templates
 - Enterprise data governance
@@ -107,68 +108,68 @@ Pinangungunahan ng Microsoft ang MCP ecosystem gamit ang komprehensibong suite n
 - Business intelligence reporting
 - Pagsusuri ng customer data
 - Insights sa sales pipeline
-- Mga query para sa compliance data
+- Compliance data queries
 
 #### 3. 🌐 Playwright MCP Server
-**🔗 Repository**: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)  
-**🎯 Layunin**: Browser automation at web interaction capabilities
+**🔗 Repository**: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)
+**🎯 Layunin**: Browser automation at kakayahan sa web interaction
 
-**✨ Pangunahing Tampok:**
+**✨ Pangunahing Mga Tampok:**
 - Cross-browser automation (Chrome, Firefox, Safari)
-- Intelligent na pagtukoy ng mga elemento
-- Pagkuha ng screenshot at PDF generation
-- Pagmamanman ng network traffic
+- Intelligent element detection
+- Screenshot at PDF generation
+- Network traffic monitoring
 
 **🚀 Mga Gamit:**
 - Automated testing workflows
 - Web scraping at data extraction
 - UI/UX monitoring
-- Automation ng competitive analysis
+- Competitive analysis automation
 
 #### 4. 📁 Files MCP Server
-**🔗 Repository**: [microsoft/files-mcp-server](https://github.com/microsoft/files-mcp-server)  
+**🔗 Repository**: [microsoft/files-mcp-server](https://github.com/microsoft/files-mcp-server)
 **🎯 Layunin**: Intelligent na operasyon sa file system
 
-**✨ Pangunahing Tampok:**
+**✨ Pangunahing Mga Tampok:**
 - Declarative file management
 - Content synchronization
 - Version control integration
 - Metadata extraction
 
 **🚀 Mga Gamit:**
-- Pamamahala ng dokumentasyon
+- Pamamahala sa dokumentasyon
 - Organisasyon ng code repository
-- Content publishing workflows
-- Pag-handle ng data pipeline files
+- Mga workflow para sa content publishing
+- Pag-handle ng file sa data pipeline
 
 #### 5. 📝 MarkItDown MCP Server
-**🔗 Repository**: [microsoft/markitdown](https://github.com/microsoft/markitdown)  
-**🎯 Layunin**: Advanced na pagproseso at manipulasyon ng Markdown
+**🔗 Repository**: [microsoft/markitdown](https://github.com/microsoft/markitdown)
+**🎯 Layunin**: Advanced Markdown processing at manipulasyon
 
-**✨ Pangunahing Tampok:**
-- Rich Markdown parsing
+**✨ Pangunahing Mga Tampok:**
+- Masusing Markdown parsing
 - Format conversion (MD ↔ HTML ↔ PDF)
-- Pagsusuri ng istruktura ng nilalaman
+- Content structure analysis
 - Template processing
 
 **🚀 Mga Gamit:**
-- Technical documentation workflows
+- Mga workflow para sa technical documentation
 - Content management systems
-- Report generation
+- Pagbuo ng ulat
 - Automation ng knowledge base
 
 #### 6. 📈 Clarity MCP Server
-**📦 Package**: [@microsoft/clarity-mcp-server](https://www.npmjs.com/package/@microsoft/clarity-mcp-server)  
-**🎯 Layunin**: Web analytics at insights sa user behavior
+**📦 Package**: [@microsoft/clarity-mcp-server](https://www.npmjs.com/package/@microsoft/clarity-mcp-server)
+**🎯 Layunin**: Web analytics at mga insight sa user behavior
 
-**✨ Pangunahing Tampok:**
+**✨ Pangunahing Mga Tampok:**
 - Heatmap data analysis
 - User session recordings
 - Performance metrics
 - Conversion funnel analysis
 
 **🚀 Mga Gamit:**
-- Website optimization
+- Optimization ng website
 - Pananaliksik sa user experience
 - A/B testing analysis
 - Business intelligence dashboards
@@ -178,56 +179,58 @@ Pinangungunahan ng Microsoft ang MCP ecosystem gamit ang komprehensibong suite n
 Bukod sa mga server ng Microsoft, kabilang sa MCP ecosystem ang:
 - **🐙 GitHub MCP**: Pamamahala ng repository at pagsusuri ng code
 - **🗄️ Database MCPs**: Integrasyon sa PostgreSQL, MySQL, MongoDB
-- **☁️ Cloud Provider MCPs**: Mga tool mula sa AWS, GCP, Digital Ocean
-- **📧 Communication MCPs**: Integrasyon sa Slack, Teams, Email
+- **☁️ Cloud Provider MCPs**: Mga tools para sa AWS, GCP, Digital Ocean
+- **📧 Communication MCPs**: Mga integrasyon para sa Slack, Teams, Email
 
 ## 🛠️ Hands-On Lab: Paggawa ng Browser Automation Agent
 
-**🎯 Layunin ng Proyekto**: Gumawa ng intelligent browser automation agent gamit ang Playwright MCP server na kayang mag-navigate sa mga website, kumuha ng impormasyon, at magsagawa ng komplikadong web interactions.
+**🎯 Layunin ng Proyekto**: Gumawa ng intelligent browser automation agent gamit ang Playwright MCP server na kayang mag-navigate sa mga website, kumuha ng impormasyon, at magsagawa ng kumplikadong web interaction.
 
 ### 🚀 Phase 1: Pagsisimula ng Agent
 
-#### Hakbang 1: I-initialize ang Iyong Agent
-1. **Buksan ang AI Toolkit Agent Builder**
+#### Hakbang 1: I-Initialize ang Iyong Agent
+1. **Buksan ang Microsoft Foundry Toolkit Agent Builder**
 2. **Gumawa ng Bagong Agent** gamit ang sumusunod na configuration:
    - **Pangalan**: `BrowserAgent`
-   - **Model**: Piliin ang GPT-4o
+   - **Model**: Piliin ang GPT-4o 
 
 ![BrowserAgent](../../../../translated_images/tl/BrowserAgent.09c1adde5e136573.webp)
+
 
 ### 🔧 Phase 2: MCP Integration Workflow
 
 #### Hakbang 3: Magdagdag ng MCP Server Integration
 1. **Pumunta sa Tools Section** sa Agent Builder
 2. **I-click ang "Add Tool"** para buksan ang integration menu
-3. **Piliin ang "MCP Server"** mula sa mga available na opsyon
+3. **Piliin ang "MCP Server"** mula sa mga opsyon
 
 ![AddMCP](../../../../translated_images/tl/AddMCP.afe3308ac20aa944.webp)
 
-**🔍 Pag-unawa sa Mga Uri ng Tool:**
-- **Built-in Tools**: Pre-configured na mga function ng AI Toolkit
-- **MCP Servers**: Mga panlabas na serbisyo na naka-integrate
-- **Custom APIs**: Sariling mga service endpoint
+**🔍 Pag-unawa sa Uri ng Tool:**
+- **Built-in Tools**: Pre-configured na mga function ng Microsoft Foundry Toolkit
+- **MCP Servers**: Mga integrasyon ng external na serbisyo
+- **Custom APIs**: Sariling mga service endpoints
 - **Function Calling**: Direktang pag-access sa mga function ng model
 
-#### Hakbang 4: Pagpili ng MCP Server
-1. **Piliin ang opsyon na "MCP Server"** para magpatuloy  
+#### Hakbang 4: MCP Server Selection
+1. **Piliin ang "MCP Server"** upang magpatuloy
 ![AddMCPServer](../../../../translated_images/tl/AddMCPServer.69b911ccef872cbd.webp)
 
-2. **I-browse ang MCP Catalog** para tuklasin ang mga available na integrasyon  
+2. **I-browse ang MCP Catalog** upang tuklasin ang mga available na integrasyon
 ![MCPCatalog](../../../../translated_images/tl/MCPCatalog.a817d05314569900.webp)
+
 
 ### 🎮 Phase 3: Pag-configure ng Playwright MCP
 
 #### Hakbang 5: Piliin at I-configure ang Playwright
-1. **I-click ang "Use Featured MCP Servers"** para ma-access ang mga verified na server ng Microsoft
-2. **Piliin ang "Playwright"** mula sa listahan ng mga tampok
-3. **Tanggapin ang Default MCP ID** o i-customize para sa iyong environment
+1. **I-click ang "Use Featured MCP Servers"** para ma-access ang mga na-verify na server ng Microsoft
+2. **Piliin ang "Playwright"** mula sa listahan ng mga featured server
+3. **Tanggapin ang Default MCP ID** o i-customize para sa iyong kapaligiran
 
 ![MCPID](../../../../translated_images/tl/MCPID.67d446052979e819.webp)
 
 #### Hakbang 6: I-enable ang Mga Kakayahan ng Playwright
-**🔑 Mahalagang Hakbang**: Piliin ang **LAHAT** ng mga available na Playwright methods para sa pinakamalawak na functionality
+**🔑 Mahalagang Hakbang**: Piliin ang **LAHAT** ng mga available na Playwright method para sa pinakamataas na functionality
 
 ![Tools](../../../../translated_images/tl/Tools.3ea23c447b4d9fec.webp)
 
@@ -241,21 +244,21 @@ Bukod sa mga server ng Microsoft, kabilang sa MCP ecosystem ang:
 
 #### Hakbang 7: Suriin ang Tagumpay ng Integrasyon
 **✅ Mga Palatandaan ng Tagumpay:**
-- Lahat ng tool ay lumalabas sa interface ng Agent Builder
-- Walang error messages sa integration panel
-- Status ng Playwright server ay "Connected"
+- Lahat ng tools ay lumalabas sa interface ng Agent Builder
+- Walang error message sa integration panel
+- Ang status ng Playwright server ay nagpapakita ng "Connected"
 
 ![AgentTools](../../../../translated_images/tl/AgentTools.053cfb96a17e0219.webp)
 
-**🔧 Pagsasaayos ng Karaniwang Problema:**
+**🔧 Pagsasaayos ng Karaniwang Mga Isyu:**
 - **Connection Failed**: Suriin ang internet connection at firewall settings
-- **Missing Tools**: Siguraduhing napili lahat ng kakayahan sa setup
-- **Permission Errors**: Tiyaking may tamang system permissions ang VS Code
+- **Missing Tools**: Siguraduhing lahat ng kakayahan ay napili sa setup
+- **Permission Errors**: Tiyakin na may sapat na system permissions ang VS Code
 
 ### 🎯 Phase 4: Advanced Prompt Engineering
 
-#### Hakbang 8: Gumawa ng Matalinong System Prompts
-Lumikha ng mga sopistikadong prompt na ginagamit ang buong kakayahan ng Playwright:
+#### Hakbang 8: Disenyuhin ang Intelligent System Prompts
+Gumawa ng sopistikadong mga prompt na nagpapakita ng buong kakayahan ng Playwright:
 
 ```markdown
 # Web Automation Expert System Prompt
@@ -318,53 +321,57 @@ Include screenshots at key steps and provide actionable insights.
 #### Hakbang 10: Patakbuhin ang Iyong Unang Automation
 1. **I-click ang "Run"** para simulan ang automation sequence
 2. **Subaybayan ang Real-time Execution**:
-   - Awtomatikong magbubukas ang Chrome browser
+   - Awtomatikong ilulunsad ang Chrome browser
    - Magna-navigate ang agent sa target na website
-   - Kinukuha ang mga screenshot sa bawat mahalagang hakbang
-   - Real-time na dumadaloy ang mga resulta ng pagsusuri
+   - Magku-kuha ng screenshot sa bawat pangunahing hakbang
+   - Ang mga resulta ng pagsusuri ay mababasa nang real-time
 
 ![Browser](../../../../translated_images/tl/Browser.ec011d0bd64d0d11.webp)
 
-#### Hakbang 11: Suriin ang Mga Resulta at Insight
-Balikan ang komprehensibong pagsusuri sa interface ng Agent Builder:
+#### Hakbang 11: Suriin ang mga Resulta at Insight
+Suriin ang komprehensibong pagsusuri sa interface ng Agent Builder:
 
 ![Result](../../../../translated_images/tl/Result.8638f2b6703e9ea6.webp)
 
-### 🌟 Phase 6: Advanced na Kakayahan at Deployment
+### 🌟 Phase 6: Mga Advanced na Kakayahan at Deployment
 
-#### Hakbang 12: I-export at I-deploy sa Production
+#### Hakbang 12: I-export at I-deploy sa Produksyon
 Sinusuportahan ng Agent Builder ang iba't ibang deployment options:
 
 ![Code](../../../../translated_images/tl/Code.d9eeeead0b96db0c.webp)
 
-## 🎓 Buod ng Module 2 at Mga Susunod na Hakbang
+## 🎓 Buod ng Module 2 & Mga Susunod na Hakbang
 
-### 🏆 Nakamit: MCP Integration Master
+### 🏆 Natapos na: Mastery ng MCP Integration
 
-**✅ Mga Natutunang Kasanayan:**
-- [ ] Pag-unawa sa arkitektura at benepisyo ng MCP
-- [ ] Pag-navigate sa MCP server ecosystem ng Microsoft
-- [ ] Pagsasama ng Playwright MCP gamit ang AI Toolkit
+**✅ Mga Natamong Kasanayan:**
+- [ ] Pag-unawa sa MCP arkitektura at mga benepisyo
+- [ ] Pag-navigate sa Microsoft MCP server ecosystem
+- [ ] Pagsasama ng Playwright MCP sa Microsoft Foundry Toolkit
 - [ ] Paggawa ng sopistikadong browser automation agents
 - [ ] Advanced prompt engineering para sa web automation
 
-### 📚 Karagdagang Mga Mapagkukunan
+### 📚 Karagdagang Mga Sanggunian
 
-- **🔗 MCP Specification**: [Official Protocol Documentation](https://modelcontextprotocol.io/)
-- **🛠️ Playwright API**: [Complete Method Reference](https://playwright.dev/docs/api/class-playwright)
+- **🔗 MCP Specification**: [Opisyal na Dokumentasyon ng Protocol](https://modelcontextprotocol.io/)
+- **🛠️ Playwright API**: [Kumpletong Sanggunian ng Method](https://playwright.dev/docs/api/class-playwright)
 - **🏢 Microsoft MCP Servers**: [Enterprise Integration Guide](https://github.com/microsoft/mcp-servers)
-- **🌍 Community Examples**: [MCP Server Gallery](https://github.com/modelcontextprotocol/servers)
+- **🌍 Mga Halimbawa ng Community**: [MCP Server Gallery](https://github.com/modelcontextprotocol/servers)
 
-**🎉 Congratulations!** Matagumpay mong na-master ang MCP integration at handa ka nang gumawa ng production-ready AI agents na may kakayahang gumamit ng mga panlabas na tool!
+**🎉 Binabati kita!** Matagumpay mong na-master ang MCP integration at ngayon ay maaari ka nang gumawa ng production-ready AI agents na may kakayahan sa mga external tool!
 
 ### 🔜 Magpatuloy sa Susunod na Module
 
-Handa ka na bang i-level up ang iyong MCP skills? Magpatuloy sa **[Module 3: Advanced MCP Development with AI Toolkit](../lab3/README.md)** kung saan matututuhan mo kung paano:
+Handa ka na bang paunlarin pa ang iyong MCP skills? Pumunta sa **[Module 3: Advanced MCP Development with Microsoft Foundry Toolkit](../lab3/README.md)** kung saan matututuhan mo kung paano:
 - Gumawa ng sarili mong custom MCP servers
 - I-configure at gamitin ang pinakabagong MCP Python SDK
 - I-setup ang MCP Inspector para sa debugging
 - Masterin ang advanced MCP server development workflows
 - Gumawa ng Weather MCP Server mula sa simula
 
-**Paalala**:  
-Ang dokumentong ito ay isinalin gamit ang AI translation service na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagamat nagsusumikap kami para sa katumpakan, pakatandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o di-tumpak na impormasyon. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang hindi pagkakaunawaan o maling interpretasyon na maaaring magmula sa paggamit ng pagsasaling ito.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Pagtatanggi**:
+Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't nagsusumikap kami para sa katumpakan, pakatandaan na ang awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang maling pagkakaintindi o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

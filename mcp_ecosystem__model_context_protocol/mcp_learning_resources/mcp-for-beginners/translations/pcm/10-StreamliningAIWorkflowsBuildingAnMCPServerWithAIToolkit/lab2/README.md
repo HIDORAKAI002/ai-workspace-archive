@@ -1,52 +1,52 @@
-# 🌐 Module 2: MCP wit AI Toolkit Fundamentals
+# 🌐 Module 2: MCP wit Microsoft Foundry Toolkit Fundamentals
 
 [![Duration](https://img.shields.io/badge/Duration-20%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Intermediate-yellow.svg)]()
 [![Prerequisites](https://img.shields.io/badge/Prerequisites-Module%201%20Complete-orange.svg)]()
 
-## 📋 Wetin You Go Learn
+## 📋 Learning Objectives
 
-By di end of dis module, you go sabi:
-- ✅ Understand Model Context Protocol (MCP) architecture and di benefits
-- ✅ Check Microsoft MCP server ecosystem
-- ✅ Connect MCP servers wit AI Toolkit Agent Builder
-- ✅ Build browser automation agent wey dey work well wit Playwright MCP
+By di end of dis module, you go fit:
+- ✅ Understand Model Context Protocol (MCP) architecture and benefits
+- ✅ Explore Microsoft's MCP server ecosystem
+- ✅ Integrate MCP servers wit Microsoft Foundry Toolkit Agent Builder
+- ✅ Build one correct browser automation agent using Playwright MCP
 - ✅ Configure and test MCP tools inside your agents
 - ✅ Export and deploy MCP-powered agents for production use
 
 ## 🎯 Building on Module 1
 
-For Module 1, we don learn AI Toolkit basics and create our first Python Agent. Now we go **supercharge** your agents by connecting dem to external tools and services wit di revolutionary **Model Context Protocol (MCP)**.
+Inside Module 1, we master Microsoft Foundry Toolkit basics and create our first Python Agent. Now we go **supercharge** your agents by joining dem to external tools and services through di revolutionary **Model Context Protocol (MCP)**.
 
-E be like upgrading from calculator to full computer - your AI agents go fit:
+Think am like dis: You dey upgrade from basic calculator go full computer - your AI agents go fit:
 - 🌐 Browse and interact wit websites
 - 📁 Access and manipulate files
-- 🔧 Connect wit enterprise systems
+- 🔧 Integrate wit enterprise systems
 - 📊 Process real-time data from APIs
 
 ## 🧠 Understanding Model Context Protocol (MCP)
 
-### 🔍 Wetin Be MCP?
+### 🔍 Wetin be MCP?
 
-Model Context Protocol (MCP) na di **"USB-C for AI applications"** - e be open standard wey dey connect Large Language Models (LLMs) to external tools, data sources, and services. Just like how USB-C clear cable wahala wit one universal connector, MCP dey clear AI integration wahala wit one standardized protocol.
+Model Context Protocol (MCP) na **"USB-C for AI applications"** - one revolutionary open standard wey dey connect Large Language Models (LLMs) to external tools, data sources, and services. Just like USB-C stop cable wahala by giving one universal connector, MCP stop AI integration gbege wit one standardized protocol.
 
-### 🎯 Di Problem Wey MCP Dey Solve
+### 🎯 Di Problem MCP Solve
 
 **Before MCP:**
-- 🔧 Custom integration for every tool
+- 🔧 Custom integrations for every tool
 - 🔄 Vendor lock-in wit proprietary solutions  
-- 🔒 Security wahala from ad-hoc connections
-- ⏱️ Months to develop basic integrations
+- 🔒 Security gbege from ad-hoc connections
+- ⏱️ Months development time for basic integrations
 
-**Wit MCP:**
+**With MCP:**
 - ⚡ Plug-and-play tool integration
 - 🔄 Vendor-agnostic architecture
-- 🛡️ Security best practices dey inside
-- 🚀 Minutes to add new capabilities
+- 🛡️ Built-in security beta practice dem
+- 🚀 Minutes to add new powers
 
 ### 🏗️ MCP Architecture Deep Dive
 
-MCP dey use **client-server architecture** wey dey create secure, scalable ecosystem:
+MCP follow **client-server architecture** wey create one secure, scalable ecosystem:
 
 ```mermaid
 graph TB
@@ -66,20 +66,21 @@ graph TB
 
 | Component | Role | Examples |
 |-----------|------|----------|
-| **MCP Hosts** | Applications wey dey use MCP services | Claude Desktop, VS Code, AI Toolkit |
-| **MCP Clients** | Protocol handlers (1:1 wit servers) | Built into host applications |
-| **MCP Servers** | Expose capabilities via standard protocol | Playwright, Files, Azure, GitHub |
+| **MCP Hosts** | Applications wey dey use MCP services | Claude Desktop, VS Code, Microsoft Foundry Toolkit |
+| **MCP Clients** | Protocol handlers (1:1 wit servers) | Built inside host applications |
+| **MCP Servers** | Show capabilities using standard protocol | Playwright, Files, Azure, GitHub |
 | **Transport Layer** | Communication methods | stdio, HTTP, WebSockets |
+
 
 ## 🏢 Microsoft's MCP Server Ecosystem
 
-Microsoft dey lead di MCP ecosystem wit enterprise-grade servers wey dey solve real business problems.
+Microsoft dey lead di MCP ecosystem wit full suite of enterprise-grade servers wey fit solve real-world business needs.
 
 ### 🌟 Featured Microsoft MCP Servers
 
 #### 1. ☁️ Azure MCP Server
 **🔗 Repository**: [azure/azure-mcp](https://github.com/azure/azure-mcp)
-**🎯 Purpose**: Manage Azure resources wit AI integration
+**🎯 Purpose**: Full Azure resource management wit AI integration
 
 **✨ Key Features:**
 - Declarative infrastructure provisioning
@@ -88,7 +89,7 @@ Microsoft dey lead di MCP ecosystem wit enterprise-grade servers wey dey solve r
 - Security compliance checking
 
 **🚀 Use Cases:**
-- Infrastructure-as-Code wit AI help
+- Infrastructure-as-Code wit AI support
 - Automated resource scaling
 - Cloud cost optimization
 - DevOps workflow automation
@@ -111,7 +112,7 @@ Microsoft dey lead di MCP ecosystem wit enterprise-grade servers wey dey solve r
 
 #### 3. 🌐 Playwright MCP Server
 **🔗 Repository**: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)
-**🎯 Purpose**: Browser automation and web interaction
+**🎯 Purpose**: Browser automation and web interaction powers
 
 **✨ Key Features:**
 - Cross-browser automation (Chrome, Firefox, Safari)
@@ -143,7 +144,7 @@ Microsoft dey lead di MCP ecosystem wit enterprise-grade servers wey dey solve r
 
 #### 5. 📝 MarkItDown MCP Server
 **🔗 Repository**: [microsoft/markitdown](https://github.com/microsoft/markitdown)
-**🎯 Purpose**: Advanced Markdown processing
+**🎯 Purpose**: Advanced Markdown processing and manipulation
 
 **✨ Key Features:**
 - Rich Markdown parsing
@@ -175,63 +176,65 @@ Microsoft dey lead di MCP ecosystem wit enterprise-grade servers wey dey solve r
 
 ### 🌍 Community Ecosystem
 
-Apart from Microsoft servers, MCP ecosystem get:
+Outside Microsoft's servers, the MCP ecosystem get:
 - **🐙 GitHub MCP**: Repository management and code analysis
 - **🗄️ Database MCPs**: PostgreSQL, MySQL, MongoDB integrations
 - **☁️ Cloud Provider MCPs**: AWS, GCP, Digital Ocean tools
 - **📧 Communication MCPs**: Slack, Teams, Email integrations
 
-## 🛠️ Hands-On Lab: Build Browser Automation Agent
+## 🛠️ Hands-On Lab: Building Browser Automation Agent
 
-**🎯 Project Goal**: Create browser automation agent wit Playwright MCP server wey go fit navigate websites, extract info, and perform web interactions.
+**🎯 Project Goal**: Build one smart browser automation agent using Playwright MCP server wey fit waka for websites, waka collect info, and perform complex web actions.
 
 ### 🚀 Phase 1: Agent Foundation Setup
 
 #### Step 1: Initialize Your Agent
-1. **Open AI Toolkit Agent Builder**
+1. **Open Microsoft Foundry Toolkit Agent Builder**
 2. **Create New Agent** wit dis configuration:
    - **Name**: `BrowserAgent`
    - **Model**: Choose GPT-4o 
 
 ![BrowserAgent](../../../../translated_images/pcm/BrowserAgent.09c1adde5e136573.webp)
 
+
 ### 🔧 Phase 2: MCP Integration Workflow
 
 #### Step 3: Add MCP Server Integration
 1. **Go Tools Section** for Agent Builder
 2. **Click "Add Tool"** to open integration menu
-3. **Select "MCP Server"** from di options
+3. **Select "MCP Server"** for the options
 
 ![AddMCP](../../../../translated_images/pcm/AddMCP.afe3308ac20aa944.webp)
 
-**🔍 Tool Types:**
-- **Built-in Tools**: Pre-configured AI Toolkit functions
+**🔍 Understanding Tool Types:**
+- **Built-in Tools**: Pre-configured Microsoft Foundry Toolkit functions
 - **MCP Servers**: External service integrations
 - **Custom APIs**: Your own service endpoints
 - **Function Calling**: Direct model function access
 
 #### Step 4: MCP Server Selection
-1. **Choose "MCP Server"** option
+1. **Choose "MCP Server"** option to move forward
 ![AddMCPServer](../../../../translated_images/pcm/AddMCPServer.69b911ccef872cbd.webp)
 
-2. **Browse MCP Catalog** to see available integrations
+2. **Browse MCP Catalog** to check available integrations
 ![MCPCatalog](../../../../translated_images/pcm/MCPCatalog.a817d05314569900.webp)
+
 
 ### 🎮 Phase 3: Playwright MCP Configuration
 
 #### Step 5: Select and Configure Playwright
-1. **Click "Use Featured MCP Servers"** to see Microsoft verified servers
+1. **Click "Use Featured MCP Servers"** to see Microsoft's verified servers
 2. **Select "Playwright"** from di list
-3. **Accept Default MCP ID** or customize am
+3. **Accept Default MCP ID** or change am for your environment
 
 ![MCPID](../../../../translated_images/pcm/MCPID.67d446052979e819.webp)
 
 #### Step 6: Enable Playwright Capabilities
-**🔑 Important Step**: Select **ALL** Playwright methods for full functionality
+**🔑 Important Step**: Select **ALL** Playwright methods available for max work
 
 ![Tools](../../../../translated_images/pcm/Tools.3ea23c447b4d9fec.webp)
 
-**🛠️ Playwright Tools:**
+**🛠️ Essential Playwright Tools:**
 - **Navigation**: `goto`, `goBack`, `goForward`, `reload`
 - **Interaction**: `click`, `fill`, `press`, `hover`, `drag`
 - **Extraction**: `textContent`, `innerHTML`, `getAttribute`
@@ -240,22 +243,22 @@ Apart from Microsoft servers, MCP ecosystem get:
 - **Network**: `setExtraHTTPHeaders`, `route`, `waitForResponse`
 
 #### Step 7: Verify Integration Success
-**✅ Success Signs:**
+**✅ Success Indicators:**
 - All tools dey show for Agent Builder interface
-- No error message for integration panel
-- Playwright server status dey show "Connected"
+- No error messages for integration panel
+- Playwright server status show "Connected"
 
 ![AgentTools](../../../../translated_images/pcm/AgentTools.053cfb96a17e0219.webp)
 
-**🔧 Common Issues Troubleshooting:**
-- **Connection Failed**: Check internet and firewall settings
-- **Missing Tools**: Make sure you select all capabilities
-- **Permission Errors**: Confirm say VS Code get system permissions
+**🔧 Troubleshooting Common Issues:**
+- **Connection Failed**: Check internet and firewall
+- **Missing Tools**: Make sure you select all powers during setup
+- **Permission Errors**: Check say VS Code get correct system permission
 
 ### 🎯 Phase 4: Advanced Prompt Engineering
 
 #### Step 8: Design Intelligent System Prompts
-Create prompts wey go use Playwright full capabilities:
+Make complex prompts wey take advantage of Playwright full powers:
 
 ```markdown
 # Web Automation Expert System Prompt
@@ -296,7 +299,7 @@ You are an advanced web automation specialist with deep expertise in browser aut
 ```
 
 #### Step 9: Create Dynamic User Prompts
-Design prompts wey show different capabilities:
+Make prompts wey show different powers:
 
 **🌐 Web Analysis Example:**
 ```markdown
@@ -315,25 +318,25 @@ Include screenshots at key steps and provide actionable insights.
 
 ### 🚀 Phase 5: Execution and Testing
 
-#### Step 10: Run Your First Automation
-1. **Click "Run"** to start automation
-2. **Monitor Execution**:
-   - Chrome browser go launch automatically
-   - Agent go navigate target website
-   - Screenshots go dey capture steps
-   - Analysis results go dey stream
+#### Step 10: Execute Your First Automation
+1. **Click "Run"** to start automation run
+2. **Monitor Real-time Execution**:
+   - Chrome browser go open automatically
+   - Agent go waka enter target website
+   - Screenshots dey capture each big step
+   - Analysis results dey flow for real-time
 
 ![Browser](../../../../translated_images/pcm/Browser.ec011d0bd64d0d11.webp)
 
-#### Step 11: Check Results and Insights
-Review analysis for Agent Builder interface:
+#### Step 11: Analyze Results and Insights
+Review detailed analysis for Agent Builder interface:
 
 ![Result](../../../../translated_images/pcm/Result.8638f2b6703e9ea6.webp)
 
 ### 🌟 Phase 6: Advanced Capabilities and Deployment
 
-#### Step 12: Export and Deploy
-Agent Builder dey support different deployment options:
+#### Step 12: Export and Production Deployment
+Agent Builder get plenty deployment options:
 
 ![Code](../../../../translated_images/pcm/Code.d9eeeead0b96db0c.webp)
 
@@ -341,34 +344,35 @@ Agent Builder dey support different deployment options:
 
 ### 🏆 Achievement Unlocked: MCP Integration Master
 
-**✅ Skills You Don Learn:**
+**✅ Skills Mastered:**
 - [ ] Understand MCP architecture and benefits
-- [ ] Navigate Microsoft's MCP server ecosystem
-- [ ] Connect Playwright MCP wit AI Toolkit
-- [ ] Build browser automation agents
+- [ ] Navigate Microsoft MCP server ecosystem
+- [ ] Integrate Playwright MCP wit Microsoft Foundry Toolkit
+- [ ] Build advanced browser automation agents
 - [ ] Advanced prompt engineering for web automation
 
-### 📚 Extra Resources
+### 📚 Additional Resources
 
 - **🔗 MCP Specification**: [Official Protocol Documentation](https://modelcontextprotocol.io/)
 - **🛠️ Playwright API**: [Complete Method Reference](https://playwright.dev/docs/api/class-playwright)
 - **🏢 Microsoft MCP Servers**: [Enterprise Integration Guide](https://github.com/microsoft/mcp-servers)
 - **🌍 Community Examples**: [MCP Server Gallery](https://github.com/modelcontextprotocol/servers)
 
-**🎉 Congrats!** You don master MCP integration and fit build production-ready AI agents wit external tool capabilities!
+**🎉 Congratulations!** You don sabi MCP integration well and fit build production-ready AI agents wit external tool powers!
+
 
 ### 🔜 Continue to Next Module
 
-Ready to level up your MCP skills? Move to **[Module 3: Advanced MCP Development wit AI Toolkit](../lab3/README.md)** wey go teach you:
-- How to create custom MCP servers
-- Configure and use MCP Python SDK
-- Set up MCP Inspector for debugging
+Ready to carry your MCP skills go next level? Move to **[Module 3: Advanced MCP Development with Microsoft Foundry Toolkit](../lab3/README.md)** wey you go learn how to:
+- Build your own custom MCP servers
+- Configure and use latest MCP Python SDK
+- Setup MCP Inspector for debugging
 - Master advanced MCP server development workflows
 - Build Weather MCP Server from scratch
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dis dokyument don use AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator) do di translation. Even as we dey try make am accurate, abeg sabi say automated translations fit get mistake or no dey correct well. Di original dokyument for im native language na di main source wey you go trust. For important mata, e better make professional human translation dey use. We no go fit take blame for any misunderstanding or wrong interpretation wey fit happen because you use dis translation.
+**Disclaimer**:
+Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you know say automated translation fit get errors or mistakes. Di original document for dia own language na im be di correct source. For important info, make person wey sabi human translation do am. We no go responsible for any misunderstanding or wrong understanding wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

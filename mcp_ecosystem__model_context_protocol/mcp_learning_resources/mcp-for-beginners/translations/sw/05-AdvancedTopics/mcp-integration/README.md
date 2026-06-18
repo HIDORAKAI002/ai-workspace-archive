@@ -1,23 +1,23 @@
-# Ujumuishaji wa Biashara
+# Muunganiko wa Biashara
 
-Unapojenga Seva za MCP katika muktadha wa biashara, mara nyingi unahitaji kuunganisha na majukwaa na huduma za AI zilizopo. Sehemu hii inashughulikia jinsi ya kuunganisha MCP na mifumo ya biashara kama Azure OpenAI na Microsoft AI Foundry, kuwezesha uwezo wa hali ya juu wa AI na uratibu wa zana.
+Unapo jenga seva za MCP katika muktadha wa biashara, mara nyingi unahitaji kuunganisha na majukwaa na huduma za AI zilizopo. Sehemu hii inaelezea jinsi ya kuunganisha MCP na mifumo ya biashara kama Azure OpenAI na Microsoft AI Foundry, kuwezesha uwezo wa hali ya juu wa AI na upangaji wa zana.
 
 ## Utangulizi
 
-Katika somo hili, utajifunza jinsi ya kuunganisha Model Context Protocol (MCP) na mifumo ya AI ya biashara, ukilenga Azure OpenAI na Microsoft AI Foundry. Ujumuishaji huu unakuruhusu kutumia mifano na zana zenye nguvu za AI huku ukidumisha kubadilika na upanuzi wa MCP.
+Katika somo hili, utajifunza jinsi ya kuunganisha Model Context Protocol (MCP) na mifumo ya AI ya biashara, ukizingatia Azure OpenAI na Microsoft AI Foundry. Muunganiko huu unakuwezesha kutumia mifano yenye nguvu ya AI na zana huku ukidumisha unyumbufu na uwezo wa kupanua wa MCP.
 
 ## Malengo ya Kujifunza
 
 Mwisho wa somo hili, utaweza:
 
-- Kuunganisha MCP na Azure OpenAI ili kutumia uwezo wake wa AI.
-- Kutekeleza uratibu wa zana za MCP na Azure OpenAI.
-- Kuchanganya MCP na Microsoft AI Foundry kwa uwezo wa hali ya juu wa mawakala wa AI.
-- Kutumia Azure Machine Learning (ML) kwa utekelezaji wa mabomba ya ML na kusajili mifano kama zana za MCP.
+- Kuunganisha MCP na Azure OpenAI kutumia uwezo wake wa AI.
+- Kutekeleza upangaji wa zana za MCP na Azure OpenAI.
+- Kuchanganya MCP na Microsoft AI Foundry kwa uwezo wa mawakala wa AI wa hali ya juu.
+- Kutumia Azure Machine Learning (ML) kwa ajili ya kutekeleza mizunguko ya ML na kusajili mifano kama zana za MCP.
 
-## Ujumuishaji wa Azure OpenAI
+## Muunganiko wa Azure OpenAI
 
-Azure OpenAI inatoa ufikiaji wa mifano yenye nguvu ya AI kama GPT-4 na mingine. Kuunganisha MCP na Azure OpenAI kunakuruhusu kutumia mifano hii huku ukidumisha kubadilika kwa uratibu wa zana za MCP.
+Azure OpenAI huwapa watumiaji vifaa vya AI vyenye nguvu kama GPT-4 na vinginevyo. Kuunganisha MCP na Azure OpenAI kunakuwezesha kutumia mifano hii huku ukidumisha unyumbufu wa upangaji wa zana za MCP.
 
 ### Utekelezaji wa C#
 
@@ -85,24 +85,24 @@ namespace EnterpriseIntegration
 }
 ```
 
-Katika msimbo uliotangulia tumefanya yafuatayo:
+Katika msimbo ulio hapo juu tume:
 
-- Tumesanidi mteja wa Azure OpenAI na endpoint, jina la deployment, na API key.
-- Tumeunda mbinu `GetCompletionWithToolsAsync` ili kupata majibu yenye msaada wa zana.
-- Tumeshughulikia miito ya zana katika majibu.
+- Kuandaa mteja wa Azure OpenAI na kiunganishi, jina la uenezaji na API key.
+- Kutengeneza njia `GetCompletionWithToolsAsync` kupata matokeo kwa msaada wa zana.
+- Kushughulikia simu za zana katika jibu.
 
-Unahimizwa kutekeleza mantiki halisi ya kushughulikia zana kulingana na usanidi maalum wa seva yako ya MCP.
+Unashauriwa kutekeleza mantiki halisi ya kushughulikia zana kulingana na usanidi wako maalum wa seva ya MCP.
 
-## Ujumuishaji wa Microsoft AI Foundry
+## Muunganiko wa Microsoft Foundry
 
-Azure AI Foundry inatoa jukwaa la kujenga na kupeleka mawakala wa AI. Kuunganisha MCP na AI Foundry kunakuruhusu kutumia uwezo wake huku ukidumisha kubadilika kwa MCP.
+Microsoft Foundry hutoa jukwaa la kuunda na kusambaza mawakala wa AI. Kuunganisha MCP na Microsoft Foundry kunakuwezesha kutumia uwezo wake huku ukidumisha unyumbufu wa MCP.
 
-Katika msimbo wa chini, tunatengeneza ujumuishaji wa Wakala unaoshughulikia maombi na kushughulikia miito ya zana kwa kutumia MCP.
+Katika msimbo uliopo hapa chini, tunaendeleza muunganiko wa Mwakala ambao hushughulikia maombi na simu za zana kwa kutumia MCP.
 
 ### Utekelezaji wa Java
 
 ```java
-// Java AI Foundry Agent Integration
+// Muunganisho wa Wakala wa Java AI Foundry
 package com.example.mcp.enterprise;
 
 import com.microsoft.aifoundry.AgentClient;
@@ -125,26 +125,26 @@ public class AIFoundryMcpBridge {
     }
     
     public AgentResponse processAgentRequest(AgentRequest request) {
-        // Process the AI Foundry Agent request
+        // Endesha ombi la Wakala wa AI Foundry
         AgentResponse initialResponse = agentClient.processRequest(request);
         
-        // Check if the agent requested to use tools
+        // Angalia kama wakala alitaka kutumia zana
         if (initialResponse.getToolCalls() != null && !initialResponse.getToolCalls().isEmpty()) {
-            // For each tool call, route it to the appropriate MCP tool
+            // Kwa kila simu ya zana, panga kwa zana sahihi ya MCP
             for (AgentToolCall toolCall : initialResponse.getToolCalls()) {
                 String toolName = toolCall.getName();
                 Map<String, Object> parameters = toolCall.getArguments();
                 
-                // Execute the tool using MCP
+                // Tekeleza zana kwa kutumia MCP
                 ToolResponse mcpResponse = mcpClient.executeTool(toolName, parameters);
                 
-                // Create tool response for AI Foundry
+                // Unda jibu la zana kwa AI Foundry
                 AgentToolResponse toolResponse = new AgentToolResponse(
                     toolCall.getId(),
                     mcpResponse.getResult()
                 );
                 
-                // Submit tool response back to the agent
+                // Tuma jibu la zana kurudi kwa wakala
                 initialResponse = agentClient.submitToolResponse(
                     request.getConversationId(), 
                     toolResponse
@@ -157,20 +157,20 @@ public class AIFoundryMcpBridge {
 }
 ```
 
-Katika msimbo uliotangulia, tumefanya yafuatayo:
+Katika msimbo ulio hapo juu, tume:
 
-- Tumeunda darasa `AIFoundryMcpBridge` linalounganisha AI Foundry na MCP.
-- Tumetekeleza mbinu `processAgentRequest` inayoshughulikia ombi la wakala wa AI Foundry.
-- Tumeshughulikia miito ya zana kwa kuitekeleza kupitia mteja wa MCP na kuwasilisha matokeo kwa wakala wa AI Foundry.
+- Kutengeneza darasa `AIFoundryMcpBridge` linalounganisha na AI Foundry pamoja na MCP.
+- Kutekeleza njia `processAgentRequest` inayoshughulikia ombi la wakala wa AI Foundry.
+- Kushughulikia simu za zana kwa kuzitekeleza kupitia mteja wa MCP na kurudisha matokeo kwa wakala wa AI Foundry.
 
 ## Kuunganisha MCP na Azure ML
 
-Kuunganisha MCP na Azure Machine Learning (ML) kunakuruhusu kutumia uwezo wa hali ya juu wa ML wa Azure huku ukidumisha kubadilika kwa MCP. Ujumuishaji huu unaweza kutumika kutekeleza mabomba ya ML, kusajili mifano kama zana, na kusimamia rasilimali za kompyuta.
+Kuunganisha MCP na Azure Machine Learning (ML) kunakuwezesha kutumia uwezo mzito wa ML wa Azure huku ukidumisha unyumbufu wa MCP. Muunganiko huu unaweza kutumika kutekeleza mizunguko ya ML, kusajili mifano kama zana, na kusimamia rasilimali za kompyuta.
 
 ### Utekelezaji wa Python
 
 ```python
-# Python Azure AI Integration
+# Muunganiko wa Python Azure AI
 from mcp_client import McpClient
 from azure.ai.ml import MLClient
 from azure.identity import DefaultAzureCredential
@@ -180,10 +180,10 @@ import asyncio
 
 class EnterpriseAiIntegration:
     def __init__(self, mcp_server_url, subscription_id, resource_group, workspace_name):
-        # Set up MCP client
+        # Weka mteja wa MCP
         self.mcp_client = McpClient(server_url=mcp_server_url)
         
-        # Set up Azure ML client
+        # Weka mteja wa Azure ML
         self.credential = DefaultAzureCredential()
         self.ml_client = MLClient(
             self.credential,
@@ -194,7 +194,7 @@ class EnterpriseAiIntegration:
     
     async def execute_ml_pipeline(self, pipeline_name, input_data):
         """Executes an ML pipeline in Azure ML"""
-        # First process the input data using MCP tools
+        # Kwanza chakata data ya ingizo kwa kutumia zana za MCP
         processed_data = await self.mcp_client.execute_tool(
             "dataPreprocessor",
             {
@@ -203,7 +203,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Submit the pipeline to Azure ML
+        # Wasilisha mchakato wa pipeline kwenye Azure ML
         pipeline_job = self.ml_client.jobs.create_or_update(
             entity={
                 "name": pipeline_name,
@@ -215,7 +215,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Return job information
+        # Rejea taarifa za kazi
         return {
             "job_id": pipeline_job.id,
             "status": pipeline_job.status,
@@ -224,22 +224,22 @@ class EnterpriseAiIntegration:
     
     async def register_ml_model_as_tool(self, model_name, model_version="latest"):
         """Registers an Azure ML model as an MCP tool"""
-        # Get model details
+        # Pata maelezo ya mfano
         if model_version == "latest":
             model = self.ml_client.models.get(name=model_name, label="latest")
         else:
             model = self.ml_client.models.get(name=model_name, version=model_version)
         
-        # Create deployment environment
+        # Unda mazingira ya usambazaji
         env = Environment(
             name="mcp-model-env",
             conda_file="./environments/inference-env.yml"
         )
         
-        # Set up compute
+        # Weka hesabu
         compute = self.ml_client.compute.get("mcp-inference")
         
-        # Deploy model as online endpoint
+        # Sambaza mfano kama hatua ya mtandao
         deployment = self.ml_client.online_deployments.create_or_update(
             endpoint_name=f"mcp-{model_name}",
             deployment={
@@ -255,22 +255,22 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Create MCP tool schema based on model schema
+        # Unda mpangilio wa zana ya MCP kulingana na mpangilio wa mfano
         tool_schema = {
             "type": "object",
             "properties": {},
             "required": []
         }
         
-        # Add input properties based on model schema
+        # Ongeza mali za ingizo kulingana na mpangilio wa mfano
         for input_name, input_spec in model.signature.inputs.items():
             tool_schema["properties"][input_name] = {
                 "type": self._map_ml_type_to_json_type(input_spec.type)
             }
             tool_schema["required"].append(input_name)
         
-        # Register as MCP tool
-        # In a real implementation, you would create a tool that calls the endpoint
+        # Sajili kama zana ya MCP
+        # Katika utekelezaji halisi, ungefanya zana inayopiga simu kwa hatua hiyo
         return {
             "model_name": model_name,
             "model_version": model.version,
@@ -291,17 +291,21 @@ class EnterpriseAiIntegration:
         return mapping.get(ml_type, "string")
 ```
 
-Katika msimbo uliotangulia, tumefanya yafuatayo:
+Katika msimbo ulio hapo juu, tume:
 
-- Tumeunda darasa `EnterpriseAiIntegration` linalounganisha MCP na Azure ML.
-- Tumetekeleza mbinu `execute_ml_pipeline` inayoshughulikia data ya pembejeo kwa kutumia zana za MCP na kuwasilisha bomba la ML kwa Azure ML.
-- Tumetekeleza mbinu `register_ml_model_as_tool` inayosajili mfano wa Azure ML kama zana ya MCP, ikijumuisha kuunda mazingira ya deployment yanayohitajika na rasilimali za kompyuta.
-- Tumefanya ramani ya aina za data za Azure ML kwa aina za JSON schema kwa usajili wa zana.
-- Tumetumia programu ya asynchronous kushughulikia shughuli zinazoweza kuchukua muda mrefu kama utekelezaji wa mabomba ya ML na usajili wa mifano.
+- Kutengeneza darasa `EnterpriseAiIntegration` linalounganisha MCP na Azure ML.
+- Kutekeleza njia `execute_ml_pipeline` inayoshughulikia data ya kuingiza kwa kutumia zana za MCP na kuwasilisha mzunguko wa ML kwa Azure ML.
+- Kutekeleza njia `register_ml_model_as_tool` inayosajili mfano wa Azure ML kama zana ya MCP, ikiwa ni pamoja na kuunda mazingira ya uenezaji yanayohitajika na rasilimali za kompyuta.
+- Kurejelea aina za data za Azure ML kwa aina za schema za JSON kwa ajili ya usajili wa zana.
+- Kutumia programu ya asynchronous kushughulikia shughuli zinazoweza kuchukua muda mrefu kama utekelezaji wa mizunguko ya ML na usajili wa mifano.
 
-## Nini cha Kufanya Baadaye
+## Nini kinachofuata
 
 - [5.2 Multi modality](../mcp-multi-modality/README.md)
 
-**Kanusho**:  
-Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kwa usahihi, tafadhali fahamu kuwa tafsiri za kiotomatiki zinaweza kuwa na makosa au kutokuwa sahihi. Hati ya asili katika lugha yake ya awali inapaswa kuzingatiwa kama chanzo cha mamlaka. Kwa taarifa muhimu, inashauriwa kutumia huduma ya tafsiri ya binadamu ya kitaalamu. Hatutawajibika kwa maelewano mabaya au tafsiri zisizo sahihi zinazotokana na matumizi ya tafsiri hii.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

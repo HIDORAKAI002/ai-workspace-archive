@@ -1,51 +1,51 @@
-# Model Context Protocol (MCP) Integration wit Azure AI Foundry
+# Model Context Protocol (MCP) Integration wit Microsoft Foundry
 
-Dis guide go show you how you fit connect Model Context Protocol (MCP) servers wit Azure AI Foundry agents, so you fit use beta tools and enterprise AI features.
+Dis guide go show how you fit join Model Context Protocol (MCP) servers wit Microsoft Foundry agents, wey go enable powerful tool waka-togeda and enterprise AI fiture.
 
 ## Introduction
 
-Model Context Protocol (MCP) na open standard wey make AI apps fit connect to external data sources and tools in a secure way. If you join MCP wit Azure AI Foundry, e go allow agents access and interact wit different external services, APIs, and data sources in a standard way.
+Model Context Protocol (MCP) na open standard wey make AI apps fit connect wella wit outside data sources and tools. Wen you join am wit Microsoft Foundry, MCP go allow agents to sabi reach and use different outside services, APIs, and data sources for one standard way.
 
-Dis integration dey combine MCP tool flexibility wit Azure AI Foundry strong agent framework, wey dey give enterprise-level AI solutions wey you fit customize well well.
+Dis integration mix the flexibility of MCP tool system wit the strong agent structure of Microsoft Foundry, wey fit give big-big enterprise AI solution with plenty customization power.
 
-**Note:** If you wan use MCP for Azure AI Foundry Agent Service, na only dis regions dey supported for now: westus, westus2, uaenorth, southindia and switzerlandnorth.
+**Note:** If you want use MCP for Microsoft Foundry Agent Service, as e be now na only dis regions dem di support: westus, westus2, uaenorth, southindia and switzerlandnorth
 
 ## Learning Objectives
 
-By the time you finish dis guide, you go sabi:
+By di time you finish dis guide, you go fit:
 
-- Wetin Model Context Protocol be and why e beta
-- How to set up MCP servers to work wit Azure AI Foundry agents
-- How to create and configure agents wey go use MCP tools
-- How to do practical examples wit real MCP servers
-- How to handle tool responses and citations for agent conversations
+- Understand Model Context Protocol and wetin e make sense
+- Set up MCP servers to work wit Microsoft Foundry agents
+- Create and arrange agents wit MCP tool join
+- Use real MCP servers make example
+- Manage tool answers and citations for agent talks
 
 ## Prerequisites
 
 Before you start, make sure say you get:
 
-- Azure subscription wey get AI Foundry access
+- Azure subscription wey get access for Microsoft Foundry
 - Python 3.10+ or .NET 8.0+
-- Azure CLI wey you don install and configure
-- Permissions to create AI resources
+- Azure CLI wey you don install and set
+- Correct permission to create AI stuff
 
 ## Wetin be Model Context Protocol (MCP)?
 
-Model Context Protocol na standard way wey AI apps dey use connect to external data sources and tools. E get plenty benefits like:
+Model Context Protocol na one standard way wey AI apps take connect outside data sources and tools. Wetin e good for na:
 
-- **Standardized Integration**: E dey give consistent interface for different tools and services
-- **Security**: E get secure authentication and authorization
-- **Flexibility**: E dey support different data sources, APIs, and custom tools
-- **Extensibility**: E easy to add new features and integrations
+- **Standardized Integration**: One type kind interface for different tools and services
+- **Security**: Strong authentication and authorization
+- **Flexibility**: Fit handle many different data sources, APIs, and special tools
+- **Extensibility**: Easy to add new power or join new things
 
-## How to Set Up MCP wit Azure AI Foundry
+## How to Set Up MCP wit Microsoft Foundry
 
 ### Environment Configuration
 
-Choose the development environment wey you like:
+Choose your development environment wey you like:
 
-- [Python Implementation](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [.NET Implementation](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Python Implementation](#python-implementation)
+- [.NET Implementation](#codeblock5)
 
 ---
 
@@ -93,7 +93,7 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # Optional: tok am which tools you fit use
 )
 ```
 
@@ -103,7 +103,7 @@ mcp_tool = McpTool(
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # Make new agent with MCP tools
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # Make thread for talk
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # Make message go thread
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # Manage tool permission dem and run agent
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # Show conversation
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -212,7 +212,7 @@ PersistentAgentsClient agentClient = new(projectEndpoint, new DefaultAzureCreden
 MCPToolDefinition mcpTool = new(mcpServerLabel, mcpServerUrl);
 ```
 
-### 5. Create Agent wit MCP Tools
+### 5. Create Agent with MCP Tools
 
 ```csharp
 PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
@@ -299,13 +299,13 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ## MCP Tool Configuration Options
 
-When you dey configure MCP tools for your agent, you fit set some important parameters:
+When you dey arrange MCP tools for your agent, you fit put some important settings:
 
 ### Python Configuration
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
+    server_label="unique_server_name",      # Identifier for di MCP server
     server_url="https://api.example.com/mcp", # MCP server endpoint
     allowed_tools=[],                       # Optional: specify allowed tools
 )
@@ -322,7 +322,7 @@ MCPToolDefinition mcpTool = new(
 
 ## Authentication and Headers
 
-Both implementations dey support custom headers for authentication:
+Both ways support custom headers for authentication:
 
 ### Python
 ```python
@@ -338,49 +338,49 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 ## Troubleshooting Common Issues
 
 ### 1. Connection Issues
-- Make sure say MCP server URL dey accessible
-- Check authentication credentials
-- Confirm say network dey work well
+- Make sure MCP server URL dey work
+- Check authentication credentials well
+- Make sure network no get wahala
 
 ### 2. Tool Call Failures
-- Check tool arguments and formatting
-- Confirm server-specific requirements
-- Add proper error handling
+- Check tool argument dem and how you format am
+- Make sure you follow server own rules
+- Use correct way to handle errors
 
 ### 3. Performance Issues
-- Reduce how often you dey call tools
-- Use caching if e dey necessary
-- Monitor server response times
+- Make tool call no too frequent
+- Use caching if e fit help
+- Check how fast server dey respond
 
 ## Next Steps
 
-To make your MCP integration better:
+To make your MCP integration beta:
 
-1. **Explore Custom MCP Servers**: Build your own MCP servers for your private data sources
-2. **Implement Advanced Security**: Add OAuth2 or custom authentication
-3. **Monitor and Analytics**: Add logging and monitoring for tool usage
-4. **Scale Your Solution**: Use load balancing and distributed MCP server setups
+1. **Explore Custom MCP Servers**: Build your own MCP servers for your own data
+2. **Implement Advanced Security**: Add OAuth2 or your own authentication style
+3. **Monitor and Analytics**: Setup logging and monitoring for tool use
+4. **Scale Your Solution**: Think about load balancing and spread MCP server architectures
 
 ## Additional Resources
 
-- [Azure AI Foundry Documentation](https://learn.microsoft.com/azure/ai-foundry/)
+- [Microsoft Foundry Documentation](https://learn.microsoft.com/azure/ai-foundry/)
 - [Model Context Protocol Samples](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Azure AI Foundry Agents Overview](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Microsoft Foundry Agents Overview](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [MCP Specification](https://spec.modelcontextprotocol.io/)
 
 ## Support
 
-If you need more help or get questions:
-- Check the [Azure AI Foundry documentation](https://learn.microsoft.com/azure/ai-foundry/)
-- Look the [MCP community resources](https://modelcontextprotocol.io/)
+If you want more support and get questions:
+- Check di [Microsoft Foundry documentation](https://learn.microsoft.com/azure/ai-foundry/)
+- Look di [MCP community resources](https://modelcontextprotocol.io/)
 
-## Wetin Next 
+## Wetin dey next 
 
 - [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dis dokyument don use AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator) do di translation. Even as we dey try make am accurate, abeg make you sabi say translation wey machine do fit get mistake or no dey correct well. Di original dokyument for di language wey dem write am first na di one wey you go take as di correct source. For important information, e better make professional human translator check am. We no go fit take blame for any misunderstanding or wrong interpretation wey fit happen because you use dis translation.
+**Disclaimer**:
+Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you know say automated translation fit get errors or mistakes. Di original document for dia own language na im be di correct source. For important info, make person wey sabi human translation do am. We no go responsible for any misunderstanding or wrong understanding wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

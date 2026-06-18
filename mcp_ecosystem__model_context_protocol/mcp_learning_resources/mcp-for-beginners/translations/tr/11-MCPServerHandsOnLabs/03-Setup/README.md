@@ -1,116 +1,113 @@
 # Ortam Kurulumu
 
-## 🎯 Bu Laboratuvar Neleri Kapsıyor?
+## 🎯 Bu Laboratuvarda Neler Öğrenilecek
 
-Bu uygulamalı laboratuvar, PostgreSQL entegrasyonu ile MCP sunucuları geliştirmek için eksiksiz bir geliştirme ortamı kurmanıza rehberlik eder. Gerekli tüm araçları yapılandıracak, Azure kaynaklarını dağıtacak ve uygulamaya geçmeden önce kurulumunuzu doğrulayacaksınız.
+Bu uygulamalı laboratuvar, PostgreSQL entegrasyonlu MCP sunucuları oluşturmak için tam bir geliştirme ortamı kurmanızı sağlar. Gerekli tüm araçları yapılandıracak, Azure kaynaklarını dağıtacak ve uygulamaya geçmeden önce kurulumunuzu doğrulayacaksınız.
 
 ## Genel Bakış
 
-Başarılı MCP sunucu geliştirme için uygun bir geliştirme ortamı çok önemlidir. Bu laboratuvar, Docker, Azure hizmetleri, geliştirme araçları kurulumunu ve bunların birlikte doğru şekilde çalıştığını doğrulamak için adım adım talimatlar sağlar.
+Başarılı MCP sunucu geliştirme için uygun bir geliştirme ortamı çok önemlidir. Bu laboratuvar, Docker, Azure servisleri, geliştirme araçları kurulumunu ve her şeyin doğru şekilde çalıştığını doğrulama adımlarını sağlar.
 
-Bu laboratuvarın sonunda, Zava Retail MCP sunucusunu geliştirmek için tamamen işlevsel bir geliştirme ortamına sahip olacaksınız.
+Laboratuvar sonunda, Zava Retail MCP sunucusunu geliştirmek için tam işlevsel bir geliştirme ortamına sahip olacaksınız.
 
 ## Öğrenme Hedefleri
 
-Bu laboratuvarın sonunda şunları yapabileceksiniz:
+Laboratuvar bitiminde şunları yapabileceksiniz:
 
-- **Gerekli geliştirme araçlarını** yükleyip yapılandırmak  
-- MCP sunucusu için gerekli **Azure kaynaklarını dağıtmak**  
-- PostgreSQL ve MCP sunucusu için **Docker konteynerlerini kurmak**  
-- Ortam kurulumunuzu **test bağlantılarıyla doğrulamak**  
-- Yaygın kurulum sorunlarını ve yapılandırma problemlerini **çözmek**  
-- Geliştirme iş akışını ve dosya yapısını **anlamak**  
+- **Gerekli tüm geliştirme araçlarını** kurmak ve yapılandırmak
+- **MCP sunucusu için Azure kaynaklarını** dağıtmak
+- **PostgreSQL ve MCP sunucusu için Docker konteynerlerini** kurmak
+- Ortam kurulumunu test bağlantılarıyla **doğrulamak**
+- Yaygın kurulum sorunlarını ve yapılandırma problemlerini **giderme**
+- Geliştirme iş akışını ve dosya yapısını **anlamak**
 
-## 📋 Ön Koşul Kontrolü
+## 📋 Ön Koşullar Kontrolü
 
-Başlamadan önce şunlara sahip olduğunuzdan emin olun:
+Başlamadan önce aşağıdakilere sahip olduğunuzdan emin olun:
 
-### Gerekli Bilgi
-- Temel komut satırı kullanımı (Windows Komut İstemi/PowerShell)  
-- Ortam değişkenlerini anlama  
-- Git sürüm kontrolüne aşinalık  
-- Temel Docker kavramları (konteynerler, imajlar, hacimler)  
+### Gerekli Bilgiler
+- Temel komut satırı kullanımı (Windows Komut İstemi/PowerShell)
+- Ortam değişkenleri anlayışı
+- Git versiyon kontrolü bilgisi
+- Temel Docker kavramları (konteynerler, imajlar, hacimler)
 
 ### Sistem Gereksinimleri
-- **İşletim Sistemi**: Windows 10/11, macOS veya Linux  
-- **RAM**: Minimum 8GB (16GB önerilir)  
-- **Depolama**: En az 10GB boş alan  
-- **Ağ**: İndirme ve Azure dağıtımı için internet bağlantısı  
+- **İşletim Sistemi**: Windows 10/11, macOS veya Linux
+- **RAM**: En az 8GB (16GB önerilir)
+- **Depolama**: En az 10GB boş alan
+- **Ağ**: İndirmeler ve Azure dağıtımı için internet bağlantısı
 
 ### Hesap Gereksinimleri
-- **Azure Aboneliği**: Ücretsiz katman yeterlidir  
-- **GitHub Hesabı**: Depoya erişim için  
-- **Docker Hub Hesabı**: (Opsiyonel) Özel imaj yayınlama için  
+- **Azure Aboneliği**: Ücretsiz katman yeterli
+- **GitHub Hesabı**: Depoya erişim için
+- **Docker Hub Hesabı**: (Opsiyonel) Özel imaj yayını için
 
 ## 🛠️ Araç Kurulumu
 
 ### 1. Docker Desktop Kurulumu
 
-Docker, geliştirme kurulumumuz için konteynerize edilmiş ortam sağlar.
+Docker, geliştirme ortamımız için konteyner tabanlı ortam sağlar.
 
 #### Windows Kurulumu
 
-1. **Docker Desktop'u İndirin**:  
+1. **Docker Desktop İndir**:
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
-  
-2. **Kurulum ve Yapılandırma**:  
-   - Yükleyiciyi Yönetici olarak çalıştırın  
-   - İstendiğinde WSL 2 entegrasyonunu etkinleştirin  
-   - Kurulum tamamlandığında bilgisayarınızı yeniden başlatın  
 
-3. **Kurulumu Doğrulayın**:  
+2. **Kur ve Yapılandır**:
+   - Kurulumu Yönetici olarak çalıştır
+   - İstendiğinde WSL 2 entegrasyonunu etkinleştir
+   - Kurulum tamamlanınca bilgisayarı yeniden başlat
+
+3. **Kurulumu Doğrula**:
    ```cmd
    docker --version
    docker-compose --version
    ```
-  
 
 #### macOS Kurulumu
 
-1. **İndirin ve Kurun**:  
+1. **İndir ve Kur**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # https://desktop.docker.com/mac/stable/Docker.dmg adresinden indir
+   # Ya da Homebrew kullan
    brew install --cask docker
    ```
-  
-2. **Docker Desktop'u Başlatın**:  
-   - Uygulamalar'dan Docker Desktop'u başlatın  
-   - İlk kurulum sihirbazını tamamlayın  
 
-3. **Kurulumu Doğrulayın**:  
+2. **Docker Desktop Başlat**:
+   - Uygulamalardan Docker Desktop’ı aç
+   - İlk kurulum sihirbazını tamamla
+
+3. **Kurulumu Doğrula**:
    ```bash
    docker --version
    docker-compose --version
    ```
-  
 
 #### Linux Kurulumu
 
-1. **Docker Engine'i Kurun**:  
+1. **Docker Engine Kur**:
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Grup değişikliklerinin geçerli olması için çıkış yapıp tekrar giriş yapın
    ```
-  
-2. **Docker Compose'u Kurun**:  
+
+2. **Docker Compose Kur**:
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
-  
 
 ### 2. Azure CLI Kurulumu
 
-Azure CLI, Azure kaynaklarının dağıtımı ve yönetimini sağlar.
+Azure CLI, Azure kaynaklarının dağıtımını ve yönetimini sağlar.
 
 #### Windows Kurulumu
 
@@ -120,18 +117,16 @@ winget install Microsoft.AzureCLI
 
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
-  
 
 #### macOS Kurulumu
 
 ```bash
-# Using Homebrew
+# Homebrew Kullanarak
 brew install azure-cli
 
-# Or using installer
+# Ya da kurulum programını kullanarak
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
-  
 
 #### Linux Kurulumu
 
@@ -143,26 +138,24 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
-  
 
-#### Doğrulama ve Kimlik Doğrulama
+#### Doğrulama ve Oturum Açma
 
 ```bash
-# Check installation
+# Kurulumu kontrol et
 az version
 
-# Login to Azure
+# Azure'a giriş yap
 az login
 
-# Set default subscription (if you have multiple)
+# Varsayılan aboneliği ayarla (birden fazla varsa)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
-  
 
 ### 3. Git Kurulumu
 
-Git, depoyu klonlamak ve sürüm kontrolü için gereklidir.
+Depoyu klonlamak ve versiyon kontrolü için Git gereklidir.
 
 #### Windows
 
@@ -172,15 +165,13 @@ winget install Git.Git
 
 # Or download from: https://git-scm.com/download/win
 ```
-  
 
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git genellikle önceden yüklenmiştir, ancak Homebrew ile güncelleyebilirsiniz
 brew install git
 ```
-  
 
 #### Linux
 
@@ -191,11 +182,10 @@ sudo apt update && sudo apt install git
 # RHEL/CentOS
 sudo dnf install git
 ```
-  
 
 ### 4. VS Code Kurulumu
 
-Visual Studio Code, MCP desteği ile entegre geliştirme ortamı sağlar.
+Visual Studio Code, MCP desteğiyle entegre geliştirme ortamı sağlar.
 
 #### Kurulum
 
@@ -209,28 +199,27 @@ brew install --cask visual-studio-code
 # Linux (Ubuntu/Debian)
 sudo snap install code --classic
 ```
-  
 
 #### Gerekli Uzantılar
 
-Bu VS Code uzantılarını yükleyin:
+Aşağıdaki VS Code uzantılarını kurun:
 
 ```bash
-# Install via command line
+# Komut satırı üzerinden yükleyin
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
-  
-VS Code üzerinden yüklemek için:  
-1. VS Code'u açın  
-2. Uzantılar bölümüne gidin (Ctrl+Shift+X)  
-3. Şunları yükleyin:  
-   - **Python** (Microsoft)  
-   - **Docker** (Microsoft)  
-   - **Azure Account** (Microsoft)  
-   - **JSON** (Microsoft)  
+
+Ya da VS Code üzerinden:
+1. VS Code’u açın
+2. Uzantılar (Ctrl+Shift+X) bölümüne gidin
+3. Şunları yükleyin:
+   - **Python** (Microsoft)
+   - **Docker** (Microsoft)
+   - **Azure Account** (Microsoft)
+   - **JSON** (Microsoft)
 
 ### 5. Python Kurulumu
 
@@ -244,15 +233,13 @@ winget install Python.Python.3.11
 
 # Or download from: https://www.python.org/downloads/
 ```
-  
 
 #### macOS
 
 ```bash
-# Using Homebrew
+# Homebrew Kullanımı
 brew install python@3.11
 ```
-  
 
 #### Linux
 
@@ -263,82 +250,77 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 # RHEL/CentOS
 sudo dnf install python3.11 python3.11-pip
 ```
-  
 
-#### Kurulumu Doğrulayın
+#### Kurulumu Doğrula
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Python 3.11.x göstermeli
+pip --version      # pip sürümünü göstermeli
 ```
-  
 
 ## 🚀 Proje Kurulumu
 
-### 1. Depoyu Klonlayın
+### 1. Depoyu Klonla
 
 ```bash
-# Clone the main repository
+# Ana depoyu klonlayın
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Proje dizinine gidin
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Depo yapısını doğrulayın
 ls -la
 ```
-  
 
-### 2. Python Sanal Ortamı Oluşturun
+### 2. Python Sanal Ortam Oluştur
 
 ```bash
-# Create virtual environment
+# Sanal ortam oluştur
 python -m venv mcp-env
 
-# Activate virtual environment
+# Sanal ortamı etkinleştir
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# pip'i güncelleştir
 python -m pip install --upgrade pip
 ```
-  
 
-### 3. Python Bağımlılıklarını Yükleyin
+### 3. Python Bağımlılıklarını Yükle
 
 ```bash
-# Install development dependencies
+# Geliştirme bağımlılıklarını yükleyin
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Ana paketleri doğrulayın
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
-  
 
 ## ☁️ Azure Kaynak Dağıtımı
 
 ### 1. Kaynak Gereksinimlerini Anlama
 
-MCP sunucumuz şu Azure kaynaklarını gerektirir:
+MCP sunucumuz için gerekli Azure kaynakları:
 
-| **Kaynak**              | **Amacı**                          | **Tahmini Maliyet**       |  
-|--------------------------|-------------------------------------|---------------------------|  
-| **Azure AI Foundry**     | AI modeli barındırma ve yönetimi    | $10-50/ay                |  
-| **OpenAI Dağıtımı**      | Metin gömme modeli (text-embedding-3-small) | $5-20/ay |  
-| **Application Insights** | İzleme ve telemetri                | $5-15/ay                 |  
-| **Resource Group**       | Kaynak organizasyonu               | Ücretsiz                 |  
+| **Kaynak** | **Amaç** | **Tahmini Maliyet** |
+|------------|----------|---------------------|
+| **Microsoft Foundry** | AI model barındırma ve yönetim | $10-50/ay |
+| **OpenAI Dağıtımı** | Metin gömme modeli (text-embedding-3-small) | $5-20/ay |
+| **Application Insights** | İzleme ve telemetri | $5-15/ay |
+| **Kaynak Grubu** | Kaynak organizasyonu | Ücretsiz |
 
-### 2. Azure Kaynaklarını Dağıtın
+### 2. Azure Kaynaklarını Dağıt
 
-#### Seçenek A: Otomatik Dağıtım (Önerilir)
+#### A Seçeneği: Otomatik Dağıtım (Önerilir)
 
 ```bash
-# Navigate to infrastructure directory
+# Altyapı dizinine gidin
 cd infra
 
 # Windows - PowerShell
@@ -347,59 +329,57 @@ cd infra
 # macOS/Linux - Bash
 ./deploy.sh
 ```
-  
-Dağıtım betiği şunları yapacaktır:  
-1. Benzersiz bir kaynak grubu oluşturur  
-2. Azure AI Foundry kaynaklarını dağıtır  
-3. Text-embedding-3-small modelini dağıtır  
-4. Application Insights'ı yapılandırır  
-5. Kimlik doğrulama için bir hizmet ilkesi oluşturur  
-6. Yapılandırma ile `.env` dosyası oluşturur  
 
-#### Seçenek B: Manuel Dağıtım
+Dağıtım scripti:
+1. Benzersiz bir kaynak grubu oluşturur
+2. Microsoft Foundry kaynaklarını dağıtır
+3. text-embedding-3-small modelini dağıtır
+4. Application Insights yapılandırır
+5. Kimlik doğrulama için servis ilkesi oluşturur
+6. Yapılandırmayla `.env` dosyasını oluşturur
 
-Otomatik betik başarısız olursa veya manuel kontrol tercih ederseniz:  
+#### B Seçeneği: Manuel Dağıtım
+
+Manuel kontrol tercih ederseniz veya otomatik script başarısız olursa:
 
 ```bash
-# Set variables
+# Değişkenleri ayarla
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Kaynak grubunu oluştur
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Ana şablonu dağıt
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
   --parameters location=$LOCATION \
   --parameters resourcePrefix="zava-mcp"
 ```
-  
 
-### 3. Azure Dağıtımını Doğrulayın
+### 3. Azure Dağıtımını Doğrula
 
 ```bash
-# Check resource group
+# Kaynak grubunu kontrol et
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Dağıtılan kaynakları listele
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# AI servisini test et
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
-  
 
-### 4. Ortam Değişkenlerini Yapılandırın
+### 4. Ortam Değişkenlerini Yapılandır
 
-Dağıtımdan sonra bir `.env` dosyasına sahip olmalısınız. Şunları içerdiğinden emin olun:  
+Dağıtımdan sonra `.env` dosyanız olmalı. İçerdiğinden emin olun:
 
 ```bash
-# .env file contents
+# .env dosyası içeriği
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -408,20 +388,19 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Veritabanı yapılandırması (geliştirme için)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
-  
 
 ## 🐳 Docker Ortam Kurulumu
 
-### 1. Docker Kompozisyonunu Anlama
+### 1. Docker Kompozisyonunu Anla
 
-Geliştirme ortamımız Docker Compose kullanır:  
+Geliştirme ortamımız Docker Compose kullanır:
 
 ```yaml
 # docker-compose.yml overview
@@ -449,63 +428,59 @@ services:
     env_file:
       - .env
 ```
-  
 
-### 2. Geliştirme Ortamını Başlatın
+### 2. Geliştirme Ortamını Başlat
 
 ```bash
-# Ensure you're in the project root directory
+# Proje kök dizininde olduğunuzdan emin olun
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Servisleri başlat
 docker-compose up -d
 
-# Check service status
+# Servis durumunu kontrol et
 docker-compose ps
 
-# View logs
+# Günlükleri görüntüle
 docker-compose logs -f
 ```
-  
 
-### 3. Veritabanı Kurulumunu Doğrulayın
+### 3. Veritabanı Kurulumunu Doğrula
 
 ```bash
-# Connect to PostgreSQL container
+# PostgreSQL konteynerine bağlan
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Veritabanı yapısını kontrol et
 \dt retail.*
 
-# Verify sample data
+# Örnek verileri doğrula
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# PostgreSQL'den çık
 \q
 ```
-  
 
-### 4. MCP Sunucusunu Test Edin
+### 4. MCP Sunucusunu Test Et
 
 ```bash
-# Check MCP server health
+# MCP sunucu sağlığını kontrol et
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Temel MCP uç noktasını test et
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
-  
 
 ## 🔧 VS Code Yapılandırması
 
-### 1. MCP Entegrasyonunu Yapılandırın
+### 1. MCP Entegrasyonunu Yapılandır
 
-VS Code MCP yapılandırması oluşturun:  
+VS Code MCP yapılandırmasını oluştur:
 
 ```json
 // .vscode/mcp.json
@@ -530,9 +505,8 @@ VS Code MCP yapılandırması oluşturun:
     "inputs": []
 }
 ```
-  
 
-### 2. Python Ortamını Yapılandırın
+### 2. Python Ortamını Ayarla
 
 ```json
 // .vscode/settings.json
@@ -550,32 +524,31 @@ VS Code MCP yapılandırması oluşturun:
     }
 }
 ```
-  
 
-### 3. VS Code Entegrasyonunu Test Edin
+### 3. VS Code Entegrasyonunu Test Et
 
-1. **Projeyi VS Code'da açın**:  
+1. **Projeyi VS Code’da aç**:
    ```bash
    code .
    ```
-  
-2. **AI Sohbetini Açın**:  
-   - `Ctrl+Shift+P` (Windows/Linux) veya `Cmd+Shift+P` (macOS) tuşlarına basın  
-   - "AI Chat" yazın ve "AI Chat: Open Chat" seçeneğini seçin  
 
-3. **MCP Sunucu Bağlantısını Test Edin**:  
-   - AI Sohbetinde `#zava` yazın ve yapılandırılmış sunuculardan birini seçin  
-   - Şunu sorun: "Veritabanında hangi tablolar mevcut?"  
-   - Perakende veritabanı tablolarını listeleyen bir yanıt almalısınız  
+2. **AI Chat’i aç**:
+   - `Ctrl+Shift+P` (Windows/Linux) veya `Cmd+Shift+P` (macOS) tuşlarına basın
+   - "AI Chat" yazın ve "AI Chat: Open Chat" seçeneğini seçin
+
+3. **MCP Sunucu Bağlantısını Test Et**:
+   - AI Chat’te `#zava` yazın ve yapılandırılmış sunuculardan birini seçin
+   - Sorun: "Veritabanında hangi tablolar mevcut?"
+   - Perakende veritabanı tablolarını listeleyen yanıt almanız gerekir
 
 ## ✅ Ortam Doğrulama
 
 ### 1. Kapsamlı Sistem Kontrolü
 
-Kurulumunuzu doğrulamak için bu doğrulama betiğini çalıştırın:  
+Kurulumunuzu doğrulamak için bu doğrulama scriptini çalıştırın:
 
 ```bash
-# Create validation script
+# Doğrulama betiği oluştur
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -594,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Python sürümünü kontrol et
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -602,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Gerekli paketleri kontrol et
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -611,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Docker'ı kontrol et
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -621,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Azure CLI'yı kontrol et
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -631,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Ortam değişkenlerini kontrol et
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -648,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Veritabanı bağlantısını kontrol et
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -658,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Sorguyu test et
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -672,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # MCP sunucusunu kontrol et
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -685,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Azure AI servisini kontrol et
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -693,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Kimlik bilgileri geçersizse bu başarısız olur
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -743,173 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Doğrulamayı çalıştır
 python validate_setup.py
 ```
-  
 
 ### 2. Manuel Doğrulama Kontrol Listesi
 
-**✅ Temel Araçlar**  
-- [ ] Docker 20.10+ sürümü yüklü ve çalışıyor  
-- [ ] Azure CLI 2.40+ yüklü ve kimlik doğrulandı  
-- [ ] Python 3.8+ ve pip yüklü  
-- [ ] Git 2.30+ yüklü  
-- [ ] Gerekli uzantılarla VS Code yüklü  
+**✅ Temel Araçlar**
+- [ ] Docker sürüm 20.10+ kurulu ve çalışır durumda
+- [ ] Azure CLI 2.40+ kurulu ve oturum açılmış
+- [ ] Python 3.8+ ve pip kurulu
+- [ ] Git 2.30+ kurulu
+- [ ] VS Code gerekli uzantılarla kurulu
 
-**✅ Azure Kaynakları**  
-- [ ] Kaynak grubu başarıyla oluşturuldu  
-- [ ] AI Foundry projesi dağıtıldı  
-- [ ] OpenAI text-embedding-3-small modeli dağıtıldı  
-- [ ] Application Insights yapılandırıldı  
-- [ ] Uygun izinlere sahip hizmet ilkesi oluşturuldu  
+**✅ Azure Kaynakları**
+- [ ] Kaynak grubu başarıyla oluşturuldu
+- [ ] AI Foundry projesi dağıtıldı
+- [ ] OpenAI text-embedding-3-small modeli dağıtıldı
+- [ ] Application Insights yapılandırıldı
+- [ ] Servis ilkesi uygun izinlerle oluşturuldu
 
-**✅ Ortam Yapılandırması**  
-- [ ] `.env` dosyası gerekli tüm değişkenlerle oluşturuldu  
-- [ ] Azure kimlik bilgileri çalışıyor (`az account show` ile test edin)  
-- [ ] PostgreSQL konteyneri çalışıyor ve erişilebilir  
-- [ ] Veritabanına örnek veri yüklendi  
+**✅ Ortam Yapılandırması**
+- [ ] `.env` dosyası tüm gerekli değişkenlerle oluşturuldu
+- [ ] Azure kimlik bilgileri çalışıyor (az account show ile test edin)
+- [ ] PostgreSQL konteyneri çalışıyor ve erişilebilir
+- [ ] Örnek veri veritabanına yüklendi
 
-**✅ VS Code Entegrasyonu**  
-- [ ] `.vscode/mcp.json` yapılandırıldı  
-- [ ] Python yorumlayıcı sanal ortama ayarlandı  
-- [ ] MCP sunucuları AI Sohbetinde görünüyor  
-- [ ] AI Sohbet üzerinden test sorguları çalıştırılabiliyor  
+**✅ VS Code Entegrasyonu**
+- [ ] `.vscode/mcp.json` yapılandırıldı
+- [ ] Python yorumlayıcısı sanal ortama ayarlandı
+- [ ] MCP sunucuları AI Chat’te görünüyor
+- [ ] AI Chat üzerinden test sorguları çalıştırılabiliyor
 
-## 🛠️ Yaygın Sorunları Giderme
+## 🛠️ Yaygın Sorun Giderme
 
 ### Docker Sorunları
 
-**Sorun**: Docker konteynerleri başlamıyor  
+**Problem**: Docker konteynerleri başlamıyor
 ```bash
-# Check Docker service status
+# Docker servis durumunu kontrol et
 docker info
 
-# Check available resources
+# Kullanılabilir kaynakları kontrol et
 docker system df
 
-# Clean up if needed
+# Gerekirse temizle
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Docker Desktop'u yeniden başlat (Windows/macOS)
+# Veya Docker servisini yeniden başlat (Linux)
 sudo systemctl restart docker
 ```
-  
-**Sorun**: PostgreSQL bağlantısı başarısız  
+
+**Problem**: PostgreSQL bağlantısı başarısız
 ```bash
-# Check container logs
+# Konteyner günlüklerini kontrol et
 docker-compose logs postgres
 
-# Verify container is healthy
+# Konteynerin sağlıklı olduğunu doğrula
 docker-compose ps
 
-# Test direct connection
+# Doğrudan bağlantıyı test et
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
-  
 
 ### Azure Dağıtım Sorunları
 
-**Sorun**: Azure dağıtımı başarısız  
+**Problem**: Azure dağıtımı başarısız oluyor
 ```bash
-# Check Azure CLI authentication
+# Azure CLI kimlik doğrulamasını kontrol et
 az account show
 
-# Verify subscription permissions
+# Abonelik izinlerini doğrula
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Kaynak sağlayıcı kaydını kontrol et
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-  
-**Sorun**: AI hizmeti kimlik doğrulaması başarısız  
+
+**Problem**: AI servis kimlik doğrulaması başarısız
 ```bash
-# Test service principal
+# Hizmet ilkesini test et
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Yapay Zeka hizmet dağıtımını doğrula
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
-  
 
-### Python Ortam Sorunları
+### Python Ortamı Sorunları
 
-**Sorun**: Paket yükleme başarısız  
+**Problem**: Paket kurulumu başarısız
 ```bash
-# Upgrade pip and setuptools
+# pip ve setuptools'i yükselt
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# pip önbelleğini temizle
 pip cache purge
 
-# Install packages one by one to identify issues
+# Sorunları belirlemek için paketleri tek tek yükle
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-  
-**Sorun**: VS Code Python yorumlayıcısını bulamıyor  
+
+**Problem**: VS Code Python yorumlayıcısını bulamıyor
 ```bash
-# Show Python interpreter paths
+# Python yorumlayıcı yollarını göster
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Önce sanal ortamı etkinleştir
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Sonra VS Code'u aç
 code .
 ```
-  
 
-## 🎯 Önemli Çıkarımlar
+## 🎯 Önemli Noktalar
 
-Bu laboratuvarı tamamladıktan sonra şunlara sahip olmalısınız:
+Bu laboratuvarı tamamladıktan sonra:
 
-✅ **Tam Geliştirme Ortamı**: Tüm araçlar yüklendi ve yapılandırıldı  
-✅ **Azure Kaynakları Dağıtıldı**: AI hizmetleri ve destek altyapısı  
+✅ **Tam Geliştirme Ortamı**: Tüm araçlar kuruldu ve yapılandırıldı  
+✅ **Azure Kaynakları Dağıtıldı**: AI servisleri ve altyapı hazır  
 ✅ **Docker Ortamı Çalışıyor**: PostgreSQL ve MCP sunucu konteynerleri  
 ✅ **VS Code Entegrasyonu**: MCP sunucuları yapılandırıldı ve erişilebilir  
 ✅ **Doğrulanmış Kurulum**: Tüm bileşenler test edildi ve birlikte çalışıyor  
-✅ **Sorun Giderme Bilgisi**: Yaygın sorunlar ve çözümleri  
+✅ **Sorun Giderme Bilgisi**: Yaygın problemler ve çözümler  
 
-## 🚀 Sıradaki Adımlar
+## 🚀 Sonraki Adımlar
 
-Ortamınız hazır olduğunda, **[Lab 04: Veritabanı Tasarımı ve Şeması](../04-Database/README.md)** ile devam edin:
+Ortamınız hazır, devam edin ve **[Laboratuvar 04: Veritabanı Tasarımı ve Şema](../04-Database/README.md)** bölümüne gidin:
 
-- Perakende veritabanı şemasını ayrıntılı olarak keşfedin  
-- Çok kiracılı veri modellemeyi anlayın  
-- Satır Düzeyi Güvenlik uygulamasını öğrenin  
-- Örnek perakende verileriyle çalışın  
+- Perakende veritabanı şemasını ayrıntılı inceleyin
+- Çok kiracılı veri modellemeyi anlayın
+- Satır Seviyesi Güvenlik uygulamasını öğrenin
+- Örnek perakende verisi ile çalışın
 
 ## 📚 Ek Kaynaklar
 
 ### Geliştirme Araçları
-- [Docker Belgeleri](https://docs.docker.com/) - Docker hakkında tam referans  
-- [Azure CLI Referansı](https://docs.microsoft.com/cli/azure/) - Azure CLI komutları  
-- [VS Code Belgeleri](https://code.visualstudio.com/docs) - Editör yapılandırması ve uzantılar  
+- [Docker Dokümantasyonu](https://docs.docker.com/) - Docker referansı
+- [Azure CLI Referansı](https://docs.microsoft.com/cli/azure/) - Azure CLI komutları
+- [VS Code Dokümantasyonu](https://code.visualstudio.com/docs) - Editör yapılandırma ve uzantılar
 
-### Azure Hizmetleri
-- [Azure AI Foundry Belgeleri](https://docs.microsoft.com/azure/ai-foundry/) - AI hizmeti yapılandırması  
-- [Azure OpenAI Hizmeti](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI modeli dağıtımı  
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - İzleme kurulumu  
+### Azure Servisleri
+- [Microsoft Foundry Dokümantasyonu](https://docs.microsoft.com/azure/ai-foundry/) - AI servis yapılandırması
+- [Azure OpenAI Servisi](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI model dağıtımı
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - İzleme kurulumu
 
 ### Python Geliştirme
-- [Python Sanal Ortamlar](https://docs.python.org/3/tutorial/venv.html) - Ortam yönetimi  
-- [AsyncIO Belgeleri](https://docs.python.org/3/library/asyncio.html) - Asenkron programlama desenleri  
-- [FastAPI Belgeleri](https://fastapi.tiangolo.com/) - Web çerçevesi desenleri  
+- [Python Sanal Ortamlar](https://docs.python.org/3/tutorial/venv.html) - Ortam yönetimi
+- [AsyncIO Dokümantasyonu](https://docs.python.org/3/library/asyncio.html) - Asenkron programlama desenleri
+- [FastAPI Dokümantasyonu](https://fastapi.tiangolo.com/) - Web framework desenleri
 
 ---
 
-**Sonraki**: Ortam hazır mı? **[Lab 04: Veritabanı Tasarımı ve Şeması](../04-Database/README.md)** ile devam edin.
+**Sonraki**: Ortam hazır mı? Devam edin: [Laboratuvar 04: Veritabanı Tasarımı ve Şema](../04-Database/README.md)
 
 ---
 
-**Feragatname**:  
-Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba göstersek de, otomatik çevirilerin hata veya yanlışlıklar içerebileceğini lütfen unutmayın. Belgenin orijinal dili, yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımından kaynaklanan yanlış anlamalar veya yanlış yorumlamalar için sorumluluk kabul etmiyoruz.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

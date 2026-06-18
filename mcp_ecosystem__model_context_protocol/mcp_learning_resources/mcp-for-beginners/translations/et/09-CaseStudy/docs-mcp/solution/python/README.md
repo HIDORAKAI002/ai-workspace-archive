@@ -1,14 +1,14 @@
-# Õppeplaani generaator Chainlitiga ja Microsoft Learn Docs MCP-ga
+# Õppimisplaani generaator koos Chainlit & Microsoft Learn Docs MCP-ga
 
 ## Eeltingimused
 
 - Python 3.8 või uuem
-- pip (Python pakettide haldur)
+- pip (Python pakihaldur)
 - Internetiühendus, et ühendada Microsoft Learn Docs MCP serveriga
 
-## Paigaldamine
+## Paigaldus
 
-1. Klooni see repositoorium või laadi alla projekti failid.
+1. Klooni see hoidla või laadi projektifailid alla.
 2. Paigalda vajalikud sõltuvused:
 
    ```bash
@@ -18,28 +18,28 @@
 ## Kasutamine
 
 ### Stsenaarium 1: Lihtne päring Docs MCP-le
-Käsurea klient, mis ühendub Docs MCP serveriga, saadab päringu ja kuvab tulemuse.
+Käsurea klient, mis ühendub Docs MCP serveriga, saadab päringu ja prindib tulemuse.
 
 1. Käivita skript:
    ```bash
    python scenario1.py
    ```
-2. Sisesta oma dokumentatsiooni küsimus käsurea viipas.
+2. Sisesta oma dokumentatsiooni küsimus käsureale.
 
-### Stsenaarium 2: Õppeplaani generaator (Chainlit veebirakendus)
-Veebipõhine liides (kasutades Chainlitit), mis võimaldab kasutajatel luua isikupärastatud, nädalate kaupa jaotatud õppeplaani mis tahes tehnilise teema jaoks.
+### Stsenaarium 2: Õppimisplaani generaator (Chainlit veebirakendus)
+Veebipõhine liides (kasutades Chainlit), mis võimaldab kasutajatel genereerida isikupärastatud, nädal-nädala haaval õppimisplaani mis tahes tehnilisele teemal.
 
 1. Käivita Chainlit rakendus:
    ```bash
    chainlit run scenario2.py
    ```
-2. Ava terminalis antud kohalik URL (nt http://localhost:8000) oma brauseris.
+2. Ava brauseris terminalis pakutud kohalik URL (nt http://localhost:8000).
 3. Vestlusaknas sisesta oma õppe teema ja nädalate arv, mille jooksul soovid õppida (nt "AI-900 sertifikaat, 8 nädalat").
-4. Rakendus vastab nädalate kaupa jaotatud õppeplaaniga, mis sisaldab linke asjakohasele Microsoft Learn dokumentatsioonile.
+4. Rakendus vastab nädal-nädala haaval õppimisplaaniga, hõlmates linke asjakohasele Microsoft Learn dokumentatsioonile.
 
-**Vajalikud keskkonnamuutujad:**
+**Nõutavad keskkonnamuutujad:**
 
-Et kasutada stsenaariumi 2 (Chainlit veebirakendus Azure OpenAI-ga), tuleb `.env` failis `python` kataloogis määrata järgmised keskkonnamuutujad:
+Stsenaariumi 2 (Chainlit veebirakendus Azure OpenAI-ga) kasutamiseks tuleb määrata järgmised keskkonnamuutujad `.env` failis `python` kataloogis:
 
 ```
 AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=
@@ -48,48 +48,48 @@ AZURE_OPENAI_ENDPOINT=
 AZURE_OPENAI_API_VERSION=
 ```
 
-Täida need väärtused oma Azure OpenAI ressursi andmetega enne rakenduse käivitamist.
+Täida need väärtused oma Azure OpenAI ressursside andmetega enne rakenduse käivitamist.
 
 > [!TIP]
-> Oma mudelite juurutamine on lihtne, kasutades [Azure AI Foundry](https://ai.azure.com/).
+> Oma mudelite kiireks kasutuselevõtuks võid kasutada [Microsoft Foundry](https://ai.azure.com/).
 
-### Stsenaarium 3: Dokumentatsioon otse VS Code'is MCP serveriga
+### Stsenaarium 3: Dokumentatsioon otse VS Code MCP serveriga
 
-Selle asemel, et vahetada brauseri vahelehti dokumentatsiooni otsimiseks, saad tuua Microsoft Learn Docs otse VS Code'i. See võimaldab:
-- Otsida ja lugeda dokumentatsiooni otse VS Code'is, ilma et peaksid oma koodikeskkonnast lahkuma.
-- Viidata dokumentatsioonile ja lisada linke otse oma README-sse või kursuse failidesse.
-- Kasutada GitHub Copilotit ja MCP-d koos, et luua sujuv, AI-põhine dokumentatsiooni töövoog.
+Selle asemel, et otsida dokumentatsiooni brauseri vahelehtedelt, saad tuua Microsoft Learn Docs otse oma VS Code’i MCP serveri kaudu. See võimaldab sul:
+- Otsida ja lugeda dokumente VS Code’is lahkumata oma koodikeskkonnast.
+- Viidata dokumentatsioonile ja lisada linke otse oma README või kursuse failidesse.
+- Kasutada GitHub Copiloti ja MCP-d koos sujuvaks, AI-põhiseks dokumentatsiooni töövooguks.
 
 **Näited kasutusjuhtudest:**
-- Lisa kiiresti viitelinke README-sse, kui kirjutad kursust või projekti dokumentatsiooni.
-- Kasuta Copilotit koodi genereerimiseks ja MCP-d, et koheselt leida ja viidata asjakohasele dokumentatsioonile.
-- Püsi keskendunud oma redaktoris ja suurenda produktiivsust.
+- Lisa kursuse või projekti dokumentatsiooni kirjutamisel kiirelt viitelinke README faili.
+- Kasuta Copiloti koodi genereerimiseks ja MCP-d asjakohaste dokumentide kiireks leidmiseks ja tsitaatimiseks.
+- Säilita fookus redaktoris ja suurenda tootlikkust.
 
 > [!IMPORTANT]
-> Veendu, et sul oleks kehtiv [`mcp.json`](../../../../../../09-CaseStudy/docs-mcp/solution/scenario3/mcp.json) konfiguratsioon oma tööruumis (asukoht on `.vscode/mcp.json`).
+> Veendu, et sul on töökeskkonnas kehtiv [`mcp.json`](../../../../../../09-CaseStudy/docs-mcp/solution/scenario3/mcp.json) konfiguratsioon (asukoht on `.vscode/mcp.json`).
 
-## Miks kasutada Chainlitit stsenaariumis 2?
+## Miks Chainlit stsenaariumi 2 jaoks?
 
-Chainlit on kaasaegne avatud lähtekoodiga raamistik vestluspõhiste veebirakenduste loomiseks. See muudab lihtsaks vestlusliideste loomise, mis ühenduvad taustateenustega, nagu Microsoft Learn Docs MCP server. See projekt kasutab Chainlitit, et pakkuda lihtsat ja interaktiivset viisi isikupärastatud õppeplaanide reaalajas genereerimiseks. Chainlitit kasutades saad kiiresti luua ja juurutada vestluspõhiseid tööriistu, mis suurendavad produktiivsust ja õppimist.
+Chainlit on kaasaegne avatud lähtekoodiga raamistik vestlusveebirakenduste loomiseks. See teeb lihtsaks vestluspõhiste kasutajaliideste loomise, mis ühenduvad taustateenustega nagu Microsoft Learn Docs MCP server. See projekt kasutab Chainlit’i, et pakkuda lihtsat ja interaktiivset viisi isikupärastatud õppimisplaanide reaalajas genereerimiseks. Chainlit’i abil saad kiiresti ehitada ja juurutada vestlusvahendeid, mis parandavad tootlikkust ja õppimist.
 
-## Mida see rakendus teeb
+## Mida see teeb
 
-See rakendus võimaldab kasutajatel luua isikupärastatud õppeplaani, sisestades lihtsalt teema ja kestuse. Rakendus analüüsib sinu sisestust, pärib Microsoft Learn Docs MCP serverist asjakohast sisu ja korraldab tulemused struktureeritud, nädalate kaupa jaotatud plaaniks. Iga nädala soovitused kuvatakse vestluses, muutes nende järgimise ja edusammude jälgimise lihtsaks. Integreerimine tagab, et saad alati kõige värskema ja asjakohasema õppematerjali.
+See rakendus võimaldab kasutajatel luua isikupärastatud õppimisplaani, sisestades lihtsalt teema ja kestuse. Rakendus töötleb sinu sisendi, küsib Microsoft Learn Docs MCP serverilt asjakohast sisu ja korraldab tulemused struktuurses nädal-nädala haaval plaanis. Iga nädala soovitused kuvatakse vestluses, nii on lihtne jälgida ja edeneda. Integratsioon tagab, et saad alati uusimad ja asjakohasemad õppematerjalid.
 
-## Näidispäringud
+## Näited päringutest
 
 Proovi neid päringuid vestlusaknas, et näha, kuidas rakendus vastab:
 
 - `AI-900 sertifikaat, 8 nädalat`
 - `Õpi Azure Functions, 4 nädalat`
 - `Azure DevOps, 6 nädalat`
-- `Andmeinseneeria Azure'is, 10 nädalat`
+- `Andmetöötlus Azure’is, 10 nädalat`
 - `Microsofti turvalisuse alused, 5 nädalat`
 - `Power Platform, 7 nädalat`
 - `Azure AI teenused, 12 nädalat`
 - `Pilvearhitektuur, 9 nädalat`
 
-Need näited näitavad rakenduse paindlikkust erinevate õppeeesmärkide ja ajaraamide jaoks.
+Need näited demonstreerivad rakenduse paindlikkust erinevate õppimiseesmärkide ja -ajavahemike jaoks.
 
 ## Viited
 
@@ -98,5 +98,7 @@ Need näited näitavad rakenduse paindlikkust erinevate õppeeesmärkide ja ajar
 
 ---
 
-**Lahtiütlus**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame tagada täpsust, palume arvestada, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Algne dokument selle algses keeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitame kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgenduste eest.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

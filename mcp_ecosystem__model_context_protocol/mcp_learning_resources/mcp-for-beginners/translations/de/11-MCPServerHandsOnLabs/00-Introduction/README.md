@@ -2,83 +2,83 @@
 
 ## 🎯 Was dieses Lab abdeckt
 
-Dieses Einführungslabor bietet einen umfassenden Überblick über den Aufbau von Model Context Protocol (MCP)-Servern mit Datenbankintegration. Sie werden den Geschäftszweck, die technische Architektur und reale Anwendungen anhand des Zava Retail Analytics Use Case unter https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail verstehen.
+Dieses Einführungs-Lab bietet einen umfassenden Überblick über den Aufbau von Model Context Protocol (MCP)-Servern mit Datenbankintegration. Sie werden den geschäftlichen Fall, die technische Architektur und reale Anwendungen durch den Zava Retail Analytics-Anwendungsfall unter https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail verstehen.
 
 ## Überblick
 
-**Model Context Protocol (MCP)** ermöglicht es KI-Assistenten, sicher und in Echtzeit auf externe Datenquellen zuzugreifen und mit ihnen zu interagieren. In Kombination mit Datenbankintegration eröffnet MCP leistungsstarke Möglichkeiten für datengesteuerte KI-Anwendungen.
+**Model Context Protocol (MCP)** ermöglicht KI-Assistenten den sicheren Zugriff auf und die Interaktion mit externen Datenquellen in Echtzeit. In Kombination mit Datenbankintegration eröffnet MCP leistungsstarke Möglichkeiten für datengetriebene KI-Anwendungen.
 
-Dieser Lernpfad vermittelt Ihnen, wie Sie produktionsreife MCP-Server erstellen, die KI-Assistenten mit Einzelhandelsverkaufsdaten über PostgreSQL verbinden und dabei Unternehmensmuster wie Row Level Security, semantische Suche und Multi-Tenant-Datenzugriff implementieren.
+Dieser Lernpfad zeigt Ihnen, wie Sie produktionsreife MCP-Server erstellen, die KI-Assistenten mit Einzelhandelsverkaufsdaten über PostgreSQL verbinden und Unternehmensmuster wie Row Level Security, semantische Suche und Multi-Tenant-Datenzugriff implementieren.
 
 ## Lernziele
 
 Am Ende dieses Labs werden Sie in der Lage sein:
 
-- **MCP zu definieren** und die Hauptvorteile der Datenbankintegration zu benennen
-- **Die Schlüsselkomponenten** einer MCP-Serverarchitektur mit Datenbanken zu identifizieren
-- **Den Zava Retail Use Case** und dessen geschäftliche Anforderungen zu verstehen
-- **Unternehmensmuster** für sicheren und skalierbaren Datenbankzugriff zu erkennen
-- **Die verwendeten Tools und Technologien** dieses Lernpfads aufzulisten
+- **Model Context Protocol** und seine Kernvorteile für die Datenbankintegration zu definieren
+- **Schlüsselkomponenten** einer MCP-Serverarchitektur mit Datenbanken zu identifizieren
+- **Den Zava Retail-Anwendungsfall** und seine geschäftlichen Anforderungen zu verstehen
+- **Unternehmensmuster** für sicheren, skalierbaren Datenbankzugriff zu erkennen
+- **Die im Lernpfad verwendeten Werkzeuge und Technologien** aufzulisten
 
-## 🧭 Die Herausforderung: KI trifft auf reale Daten
+## 🧭 Die Herausforderung: KI trifft reale Daten
 
-### Einschränkungen traditioneller KI
+### Traditionelle KI-Beschränkungen
 
-Moderne KI-Assistenten sind äußerst leistungsfähig, stoßen jedoch auf erhebliche Einschränkungen, wenn sie mit realen Geschäftsdaten arbeiten:
+Moderne KI-Assistenten sind äußerst leistungsfähig, stoßen jedoch bei der Arbeit mit realen Geschäftsdaten auf erhebliche Beschränkungen:
 
-| **Herausforderung** | **Beschreibung** | **Geschäftliche Auswirkungen** |
-|---------------------|------------------|--------------------------------|
-| **Statisches Wissen** | KI-Modelle, die auf festen Datensätzen trainiert sind, können nicht auf aktuelle Geschäftsdaten zugreifen | Veraltete Einblicke, verpasste Chancen |
-| **Datensilos** | Informationen sind in Datenbanken, APIs und Systemen eingeschlossen, auf die KI nicht zugreifen kann | Unvollständige Analysen, fragmentierte Workflows |
-| **Sicherheitsbeschränkungen** | Direkter Datenbankzugriff birgt Sicherheits- und Compliance-Risiken | Eingeschränkte Nutzung, manuelle Datenaufbereitung |
-| **Komplexe Abfragen** | Geschäftsanwender benötigen technisches Wissen, um Datenanalysen durchzuführen | Geringere Akzeptanz, ineffiziente Prozesse |
+| **Herausforderung** | **Beschreibung** | **Geschäftliche Auswirkung** |
+|---------------------|------------------|------------------------------|
+| **Statisches Wissen** | Auf festen Datensätzen trainierte KI-Modelle können nicht auf aktuelle Geschäftsdaten zugreifen | Veraltete Erkenntnisse, verpasste Chancen |
+| **Datensilos** | Informationen, die in Datenbanken, APIs und Systemen eingeschlossen sind, auf die KI keinen Zugriff hat | Unvollständige Analysen, fragmentierte Arbeitsabläufe |
+| **Sicherheitsbeschränkungen** | Direkter Datenbankzugriff wirft Sicherheits- und Compliance-Bedenken auf | Eingeschränkte Bereitstellung, manuelle Datenvorbereitung |
+| **Komplexe Abfragen** | Geschäftsanwender benötigen technisches Wissen zur Gewinnung von Datenanalysen | Geringere Akzeptanz, ineffiziente Prozesse |
 
 ### Die MCP-Lösung
 
-Model Context Protocol löst diese Herausforderungen durch:
+Model Context Protocol begegnet diesen Herausforderungen durch:
 
-- **Echtzeit-Datenzugriff**: KI-Assistenten können Live-Datenbanken und APIs abfragen
+- **Echtzeit-Datenzugriff**: KI-Assistenten fragen Live-Datenbanken und APIs ab
 - **Sichere Integration**: Kontrollierter Zugriff mit Authentifizierung und Berechtigungen
-- **Natürliche Sprachschnittstelle**: Geschäftsanwender stellen Fragen in einfacher Sprache
-- **Standardisiertes Protokoll**: Funktioniert plattformübergreifend mit verschiedenen KI-Tools
+- **Natürliche Sprachschnittstelle**: Geschäftsanwender stellen Fragen in klarem Englisch
+- **Standardisiertes Protokoll**: Funktioniert über verschiedene KI-Plattformen und -Tools hinweg
 
-## 🏪 Lernen Sie Zava Retail kennen: Unser Fallbeispiel https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
+## 🏪 Lernen Sie Zava Retail kennen: Unsere praxisnahe Fallstudie https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
-Im Verlauf dieses Lernpfads erstellen wir einen MCP-Server für **Zava Retail**, eine fiktive DIY-Einzelhandelskette mit mehreren Filialen. Dieses realistische Szenario zeigt die Implementierung von MCP auf Unternehmensebene.
+Im Verlauf dieses Lernpfads bauen wir einen MCP-Server für **Zava Retail**, eine fiktive Baumarktkette mit mehreren Filialen. Dieses realistische Szenario demonstriert eine MCP-Implementierung auf Unternehmensniveau.
 
-### Geschäftskontext
+### Geschäftlicher Kontext
 
 **Zava Retail** betreibt:
-- **8 physische Filialen** in Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
+- **8 Filialen** in Washington State (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
 - **1 Online-Shop** für E-Commerce-Verkäufe
-- **Ein vielfältiges Produktangebot**, darunter Werkzeuge, Baumaterialien, Gartenzubehör und mehr
-- **Mehrstufiges Management** mit Filialleitern, Regionalleitern und Führungskräften
+- **Vielfältiges Produktsortiment** inkl. Werkzeuge, Eisenwaren, Gartenzubehör und Baumaterialien
+- **Mehrstufiges Management** mit Filialleitern, Regionalmanagern und Führungskräften
 
 ### Geschäftliche Anforderungen
 
 Filialleiter und Führungskräfte benötigen KI-gestützte Analysen, um:
 
 1. **Verkaufsleistungen** über Filialen und Zeiträume hinweg zu analysieren
-2. **Bestandsniveaus** zu überwachen und Nachbestellungsbedarf zu erkennen
+2. **Bestandsstände** zu überwachen und Nachbestellungen zu identifizieren
 3. **Kundenverhalten** und Kaufmuster zu verstehen
-4. **Produktinformationen** durch semantische Suche zu entdecken
-5. **Berichte zu erstellen** mit Abfragen in natürlicher Sprache
-6. **Datensicherheit** durch rollenbasierte Zugriffskontrolle zu gewährleisten
+4. **Produkterkenntnisse** durch semantische Suche zu gewinnen
+5. **Berichte** mit natürlicher Sprache zu erstellen
+6. **Datensicherheit** mit rollenbasiertem Zugriff zu gewährleisten
 
 ### Technische Anforderungen
 
-Der MCP-Server muss bereitstellen:
+Der MCP-Server muss bieten:
 
-- **Multi-Tenant-Datenzugriff**, bei dem Filialleiter nur die Daten ihrer eigenen Filiale sehen
-- **Flexible Abfragen**, die komplexe SQL-Operationen unterstützen
-- **Semantische Suche** für Produktempfehlungen und -entdeckungen
-- **Echtzeitdaten**, die den aktuellen Geschäftsstand widerspiegeln
-- **Sichere Authentifizierung** mit Row Level Security
+- **Multi-Tenant-Datenzugriff**, sodass Filialleiter nur ihre Filialdaten sehen
+- **Flexible Abfragen** mit Unterstützung komplexer SQL-Operationen
+- **Semantische Suche** für Produktentdeckung und Empfehlungen
+- **Echtzeitdaten**, die den aktuellen Geschäftszustand widerspiegeln
+- **Sichere Authentifizierung** mit Row-Level Security
 - **Skalierbare Architektur**, die mehrere gleichzeitige Benutzer unterstützt
 
-## 🏗️ Überblick über die MCP-Serverarchitektur
+## 🏗️ Überblick über die MCP-Server-Architektur
 
-Unser MCP-Server implementiert eine geschichtete Architektur, die für die Datenbankintegration optimiert ist:
+Unser MCP-Server implementiert eine mehrschichtige Architektur, die für Datenbankintegration optimiert ist:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -118,31 +118,31 @@ Unser MCP-Server implementiert eine geschichtete Architektur, die für die Daten
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Schlüsselkomponenten
+### Hauptkomponenten
 
 #### **1. MCP-Server-Schicht**
-- **FastMCP Framework**: Moderne Python-Implementierung eines MCP-Servers
-- **Tool-Registrierung**: Deklarative Tool-Definitionen mit Typensicherheit
-- **Anfragekontext**: Benutzeridentität und Sitzungsverwaltung
-- **Fehlerbehandlung**: Robustes Fehlermanagement und Logging
+- **FastMCP Framework**: Moderne Python-MCP-Server-Implementierung
+- **Tool-Registrierung**: Deklarative Tool-Definitionen mit Typsicherheit
+- **Request-Kontext**: Benutzeridentität und Sitzungsverwaltung
+- **Fehlerbehandlung**: Robuste Fehlerverwaltung und Logging
 
-#### **2. Datenbankintegrationsschicht**
+#### **2. Datenbank-Integrationsschicht**
 - **Connection Pooling**: Effizientes asyncpg-Verbindungsmanagement
 - **Schema Provider**: Dynamische Tabellenschema-Erkennung
-- **Query Executor**: Sichere SQL-Ausführung mit RLS-Kontext
+- **Abfrage-Executor**: Sichere SQL-Ausführung im RLS-Kontext
 - **Transaktionsmanagement**: ACID-Konformität und Rollback-Verwaltung
 
 #### **3. Sicherheitsschicht**
-- **Row Level Security**: PostgreSQL RLS für Multi-Tenant-Datenisolierung
-- **Benutzeridentität**: Authentifizierung und Autorisierung für Filialleiter
-- **Zugriffskontrolle**: Fein abgestufte Berechtigungen und Audit-Trails
-- **Eingabevalidierung**: Schutz vor SQL-Injection und Abfragevalidierung
+- **Row Level Security**: PostgreSQL-RLS für Multi-Tenant-Datenisolation
+- **Benutzeridentität**: Authentifizierung und Autorisierung des Filialleiters
+- **Zugriffskontrolle**: Feinkörnige Berechtigungen und Audit-Trails
+- **Eingabevalidierung**: Schutz gegen SQL-Injection und Abfragevalidierung
 
 #### **4. KI-Erweiterungsschicht**
-- **Semantische Suche**: Vektorbasierte Einbettungen für Produktsuche
-- **Azure OpenAI-Integration**: Text-Einbettungsgenerierung
+- **Semantische Suche**: Vektorielle Einbettungen für Produktsuche
+- **Azure OpenAI Integration**: Text-Einbettungserzeugung
 - **Ähnlichkeitsalgorithmen**: pgvector-Kosinus-Ähnlichkeitssuche
-- **Suchoptimierung**: Indexierung und Performance-Tuning
+- **Suchoptimierung**: Indizierung und Performance-Tuning
 
 ## 🔧 Technologiestack
 
@@ -150,20 +150,20 @@ Unser MCP-Server implementiert eine geschichtete Architektur, die für die Daten
 
 | **Komponente** | **Technologie** | **Zweck** |
 |----------------|-----------------|-----------|
-| **MCP-Framework** | FastMCP (Python) | Moderne MCP-Server-Implementierung |
+| **MCP Framework** | FastMCP (Python) | Moderne MCP-Server-Implementierung |
 | **Datenbank** | PostgreSQL 17 + pgvector | Relationale Daten mit Vektorsuche |
 | **KI-Dienste** | Azure OpenAI | Text-Einbettungen und Sprachmodelle |
 | **Containerisierung** | Docker + Docker Compose | Entwicklungsumgebung |
-| **Cloud-Plattform** | Microsoft Azure | Produktionsbereitstellung |
-| **IDE-Integration** | VS Code | KI-Chat und Entwicklungsworkflow |
+| **Cloudplattform** | Microsoft Azure | Produktionsdeployment |
+| **IDE-Integration** | VS Code | AI-Chat und Entwicklungsworkflow |
 
 ### Entwicklungstools
 
 | **Tool** | **Zweck** |
 |----------|-----------|
 | **asyncpg** | Hochleistungs-PostgreSQL-Treiber |
-| **Pydantic** | Datenvalidierung und -serialisierung |
-| **Azure SDK** | Cloud-Service-Integration |
+| **Pydantic** | Datenvalidierung und Serialisierung |
+| **Azure SDK** | Integration von Cloud-Diensten |
 | **pytest** | Testframework |
 | **Docker** | Containerisierung und Bereitstellung |
 
@@ -172,69 +172,69 @@ Unser MCP-Server implementiert eine geschichtete Architektur, die für die Daten
 | **Dienst** | **Azure-Ressource** | **Zweck** |
 |------------|---------------------|-----------|
 | **Datenbank** | Azure Database for PostgreSQL | Verwalteter Datenbankdienst |
-| **Container** | Azure Container Apps | Serverloses Container-Hosting |
-| **KI-Dienste** | Azure AI Foundry | OpenAI-Modelle und Endpunkte |
-| **Überwachung** | Application Insights | Beobachtbarkeit und Diagnostik |
-| **Sicherheit** | Azure Key Vault | Geheimnisse und Konfigurationsmanagement |
+| **Container** | Azure Container Apps | Serverlose Container-Hosting |
+| **KI-Dienste** | Microsoft Foundry | OpenAI-Modelle und Endpunkte |
+| **Monitoring** | Application Insights | Überwachung und Diagnostik |
+| **Sicherheit** | Azure Key Vault | Geheimnisse und Konfigurationsverwaltung |
 
-## 🎬 Szenarien aus der Praxis
+## 🎬 Praxisnahe Anwendungsfälle
 
-Lassen Sie uns untersuchen, wie verschiedene Benutzer mit unserem MCP-Server interagieren:
+Sehen wir uns an, wie verschiedene Benutzer mit unserem MCP-Server interagieren:
 
-### Szenario 1: Leistungsüberprüfung des Filialleiters
+### Szenario 1: Leistungsbewertung des Filialleiters
 
-**Benutzer**: Sarah, Filialleiterin in Seattle  
-**Ziel**: Analyse der Verkaufsleistung des letzten Quartals
+**Benutzer**: Sarah, Filialleiterin Seattle  
+**Ziel**: Analyse der Verkaufsleistung im letzten Quartal
 
-**Abfrage in natürlicher Sprache**:
+**Natürlichsprachliche Abfrage**:  
 > "Zeige mir die Top 10 Produkte nach Umsatz für meine Filiale im Q4 2024"
 
-**Was passiert**:
-1. VS Code AI Chat sendet die Abfrage an den MCP-Server
-2. Der MCP-Server identifiziert Sarahs Filialkontext (Seattle)
-3. RLS-Richtlinien filtern die Daten nur für die Filiale in Seattle
-4. SQL-Abfrage wird generiert und ausgeführt
-5. Ergebnisse werden formatiert und an den AI Chat zurückgegeben
-6. Die KI liefert Analysen und Einblicke
+**Ablauf**:  
+1. VS Code AI Chat sendet Anfrage an MCP-Server  
+2. MCP-Server erkennt Sarahs Filialkontext (Seattle)  
+3. RLS-Richtlinien filtern Daten auf Seattle-Filiale  
+4. SQL-Abfrage wird generiert und ausgeführt  
+5. Ergebnisse werden formatiert und an AI Chat zurückgegeben  
+6. KI liefert Analyse und Erkenntnisse
 
 ### Szenario 2: Produktsuche mit semantischer Suche
 
 **Benutzer**: Mike, Bestandsmanager  
 **Ziel**: Produkte finden, die einer Kundenanfrage ähneln
 
-**Abfrage in natürlicher Sprache**:
-> "Welche Produkte verkaufen wir, die ähnlich wie 'wasserdichte elektrische Steckverbinder für den Außeneinsatz' sind?"
+**Natürlichsprachliche Abfrage**:  
+> "Welche Produkte verkaufen wir, die ähnlich sind wie 'wasserdichte Elektroanschlüsse für den Außenbereich'?"
 
-**Was passiert**:
-1. Abfrage wird vom semantischen Suchtool verarbeitet
-2. Azure OpenAI generiert einen Einbettungsvektor
-3. pgvector führt eine Ähnlichkeitssuche durch
-4. Verwandte Produkte werden nach Relevanz sortiert
-5. Ergebnisse enthalten Produktdetails und Verfügbarkeit
-6. Die KI schlägt Alternativen und Bündelungsmöglichkeiten vor
+**Ablauf**:  
+1. Abfrage wird vom semantischen Such-Tool verarbeitet  
+2. Azure OpenAI erzeugt Einbettungsvektor  
+3. pgvector führt Ähnlichkeitssuche durch  
+4. Verwandte Produkte werden nach Relevanz bewertet  
+5. Ergebnisse enthalten Produktdetails und Verfügbarkeit  
+6. KI schlägt Alternativen und Bündelungsoptionen vor
 
-### Szenario 3: Filialübergreifende Analysen
+### Szenario 3: Analyse über mehrere Filialen
 
-**Benutzer**: Jennifer, Regionalleiterin  
+**Benutzer**: Jennifer, Regionalmanagerin  
 **Ziel**: Vergleich der Leistung aller Filialen
 
-**Abfrage in natürlicher Sprache**:
-> "Vergleiche die Umsätze nach Kategorie für alle Filialen in den letzten 6 Monaten"
+**Natürlichsprachliche Abfrage**:  
+> "Vergleiche Verkäufe nach Kategorie für alle Filialen in den letzten 6 Monaten"
 
-**Was passiert**:
-1. RLS-Kontext wird für den Zugriff der Regionalleiterin gesetzt
-2. Komplexe Multi-Filialen-Abfrage wird generiert
-3. Daten werden über alle Filialstandorte hinweg aggregiert
-4. Ergebnisse enthalten Trends und Vergleiche
-5. Die KI identifiziert Einblicke und Empfehlungen
+**Ablauf**:  
+1. RLS-Kontext wird für Regionalmanagerzugriff gesetzt  
+2. Komplexe Multi-Filialen-Abfrage wird generiert  
+3. Daten werden über Filialstandorte aggregiert  
+4. Ergebnisse zeigen Trends und Vergleiche  
+5. KI identifiziert Erkenntnisse und Empfehlungen
 
 ## 🔒 Sicherheit und Multi-Tenancy im Detail
 
-Unsere Implementierung priorisiert Sicherheit auf Unternehmensebene:
+Unsere Implementierung priorisiert Sicherheit auf Unternehmensniveau:
 
 ### Row Level Security (RLS)
 
-PostgreSQL RLS gewährleistet Datenisolierung:
+PostgreSQL RLS sorgt für Datenisolation:
 
 ```sql
 -- Store managers see only their store's data
@@ -248,63 +248,65 @@ CREATE POLICY regional_manager_policy ON retail.orders
   USING (store_id = ANY(get_user_store_list()));
 ```
 
-### Benutzeridentitätsmanagement
+### Benutzeridentitätsverwaltung
 
-Jede MCP-Verbindung umfasst:
-- **Filialleiter-ID**: Eindeutiger Identifikator für den RLS-Kontext
-- **Rollenvergabe**: Berechtigungen und Zugriffsebenen
-- **Sitzungsmanagement**: Sichere Authentifizierungstoken
+Jede MCP-Verbindung umfasst:  
+- **Filialleiter-ID**: Eindeutiger Bezeichner für RLS-Kontext  
+- **Rollen-Zuweisung**: Berechtigungen und Zugriffslevels  
+- **Sitzungsverwaltung**: Sichere Authentifizierungstokens  
 - **Audit-Logging**: Vollständige Zugriffshistorie
 
 ### Datenschutz
 
-Mehrere Sicherheitsebenen:
-- **Verbindungverschlüsselung**: TLS für alle Datenbankverbindungen
-- **Schutz vor SQL-Injection**: Nur parametrisierte Abfragen
-- **Eingabevalidierung**: Umfassende Anfragenvalidierung
+Mehrere Sicherheitsebenen:  
+- **Verbindungverschlüsselung**: TLS für alle Datenbankverbindungen  
+- **SQL-Injection-Prävention**: Nur parametrisierte Abfragen  
+- **Eingabevalidierung**: Umfassende Validierung der Anfragen  
 - **Fehlerbehandlung**: Keine sensiblen Daten in Fehlermeldungen
 
 ## 🎯 Wichtige Erkenntnisse
 
-Nach Abschluss dieser Einführung sollten Sie verstehen:
+Nach Abschluss dieser Einführung sollten Sie folgendes verstanden haben:
 
-✅ **MCP-Wertversprechen**: Wie MCP KI-Assistenten mit realen Daten verbindet  
-✅ **Geschäftskontext**: Anforderungen und Herausforderungen von Zava Retail  
-✅ **Architekturüberblick**: Schlüsselkomponenten und deren Interaktionen  
-✅ **Technologiestack**: Verwendete Tools und Frameworks  
-✅ **Sicherheitsmodell**: Multi-Tenant-Datenzugriff und Schutz  
-✅ **Nutzungsszenarien**: Reale Abfrageszenarien und Workflows  
+✅ **MCP-Wertangebot**: Wie MCP KI-Assistenten mit realen Daten verbindet  
+✅ **Geschäftlicher Kontext**: Anforderungen und Herausforderungen von Zava Retail  
+✅ **Architekturüberblick**: Schlüsselkomponenten und deren Wechselwirkungen  
+✅ **Technologiestack**: Verwendete Werkzeuge und Frameworks  
+✅ **Sicherheitsmodell**: Multi-Tenant-Datenzugriff und -schutz  
+✅ **Nutzungsmuster**: Praxisnahe Abfrageszenarien und Workflows  
 
-## 🚀 Was kommt als Nächstes?
+## 🚀 Was kommt als Nächstes
 
 Bereit für den nächsten Schritt? Fahren Sie fort mit:
 
-**[Lab 01: Kernkonzepte der Architektur](../01-Architecture/README.md)**
+**[Lab 01: Kernarchitekturkonzepte](../01-Architecture/README.md)**
 
-Erfahren Sie mehr über MCP-Serverarchitektur-Muster, Datenbankdesignprinzipien und die detaillierte technische Implementierung, die unsere Einzelhandelsanalyse-Lösung antreibt.
+Erfahren Sie mehr über MCP-Server-Architekturmuster, Datenbankdesignprinzipien und die detaillierte technische Umsetzung, die unsere Retail-Analyse-Lösung antreibt.
 
 ## 📚 Zusätzliche Ressourcen
 
 ### MCP-Dokumentation
-- [MCP-Spezifikation](https://modelcontextprotocol.io/docs/) - Offizielle Protokolldokumentation
-- [MCP für Einsteiger](https://aka.ms/mcp-for-beginners) - Umfassender MCP-Lernleitfaden
-- [FastMCP-Dokumentation](https://github.com/modelcontextprotocol/python-sdk) - Python-SDK-Dokumentation
+- [MCP Spezifikation](https://modelcontextprotocol.io/docs/) - Offizielle Protokolldokumentation  
+- [MCP für Einsteiger](https://aka.ms/mcp-for-beginners) - Umfassender MCP-Lernleitfaden  
+- [FastMCP Dokumentation](https://github.com/modelcontextprotocol/python-sdk) - Python SDK-Dokumentation  
 
 ### Datenbankintegration
-- [PostgreSQL-Dokumentation](https://www.postgresql.org/docs/) - Vollständige PostgreSQL-Referenz
-- [pgvector-Leitfaden](https://github.com/pgvector/pgvector) - Dokumentation zur Vektorerweiterung
-- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS-Leitfaden
+- [PostgreSQL Dokumentation](https://www.postgresql.org/docs/) - Vollständige PostgreSQL-Referenz  
+- [pgvector Anleitung](https://github.com/pgvector/pgvector) - Dokumentation der Vektor-Erweiterung  
+- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS-Anleitung  
 
 ### Azure-Dienste
-- [Azure OpenAI-Dokumentation](https://docs.microsoft.com/azure/cognitive-services/openai/) - KI-Dienstintegration
-- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Verwalteter Datenbankdienst
-- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Serverlose Container
+- [Azure OpenAI Dokumentation](https://docs.microsoft.com/azure/cognitive-services/openai/) - KI-Dienste-Integration  
+- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Verwalteter Datenbankdienst  
+- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Serverlose Container  
 
 ---
 
-**Haftungsausschluss**: Dies ist eine Lernübung mit fiktiven Einzelhandelsdaten. Befolgen Sie stets die Datenverwaltungs- und Sicherheitsrichtlinien Ihrer Organisation, wenn Sie ähnliche Lösungen in Produktionsumgebungen implementieren.
+**Haftungsausschluss**: Dies ist eine Lernübung mit fiktiven Einzelhandelsdaten. Beachten Sie stets die Datenverwaltungs- und Sicherheitsrichtlinien Ihrer Organisation, wenn Sie ähnliche Lösungen in Produktionsumgebungen implementieren.
 
 ---
 
-**Haftungsausschluss**:  
-Dieses Dokument wurde mit dem KI-Übersetzungsdienst [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir uns um Genauigkeit bemühen, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner ursprünglichen Sprache sollte als maßgebliche Quelle betrachtet werden. Für kritische Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die sich aus der Nutzung dieser Übersetzung ergeben.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Haftungsausschluss**:
+Dieses Dokument wurde mit dem KI-Übersetzungsdienst [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir uns um Genauigkeit bemühen, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner Ursprungssprache gilt als maßgebliche Quelle. Bei kritischen Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die aus der Verwendung dieser Übersetzung entstehen.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

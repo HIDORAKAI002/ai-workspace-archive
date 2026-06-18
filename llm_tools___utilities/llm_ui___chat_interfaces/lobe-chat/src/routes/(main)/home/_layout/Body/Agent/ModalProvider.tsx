@@ -99,6 +99,14 @@ const CreateModalRenderer = memo<CreateModalRendererProps>(({ open, type, groupI
     }
   }, [type, storeCreateAgent, navigate, refreshAgentList, sendAsGroup, groupId]);
 
+  const handleOpenSkills = useCallback(
+    (identifier: string) => {
+      onClose();
+      navigate(`/settings/skill?tab=skill&skill=${encodeURIComponent(identifier)}`);
+    },
+    [navigate, onClose],
+  );
+
   return (
     <CreateAgentModal
       agentId={inboxAgentId}
@@ -106,6 +114,7 @@ const CreateModalRenderer = memo<CreateModalRendererProps>(({ open, type, groupI
       type={type}
       onClose={onClose}
       onCreateBlank={handleCreateBlank}
+      onOpenSkills={handleOpenSkills}
       onSubmit={handleSubmit}
     />
   );

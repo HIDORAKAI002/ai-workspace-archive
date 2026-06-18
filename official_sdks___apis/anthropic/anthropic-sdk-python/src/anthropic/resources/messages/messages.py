@@ -32,7 +32,10 @@ from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._constants import DEFAULT_TIMEOUT, MODEL_NONSTREAMING_TOKENS
 from ..._streaming import Stream, AsyncStream
-from ..._base_client import make_request_options
+from ..._base_client import (
+    merge_headers,
+    make_request_options,
+)
 from ..._utils._utils import is_dict
 from ...lib.streaming import MessageStreamManager, AsyncMessageStreamManager
 from ...types.message import Message
@@ -42,6 +45,12 @@ from ...lib._parse._response import ResponseFormatT, parse_response
 from ...types.metadata_param import MetadataParam
 from ...types.parsed_message import ParsedMessage
 from ...lib._parse._transform import transform_schema
+from ...lib._stainless_helpers import (
+    HELPER_METHOD_STREAM as _HELPER_METHOD_STREAM,
+    STAINLESS_HELPER_METHOD_HEADER as _STAINLESS_HELPER_METHOD_HEADER,
+    STAINLESS_STREAM_HELPER_HEADER as _STAINLESS_STREAM_HELPER_HEADER,
+    helper_header as _helper_header,
+)
 from ...types.text_block_param import TextBlockParam
 from ...types.tool_union_param import ToolUnionParam
 from ...types.tool_choice_param import ToolChoiceParam
@@ -1085,8 +1094,8 @@ class Messages(SyncAPIResource):
             )
 
         extra_headers = {
-            "X-Stainless-Helper-Method": "stream",
-            "X-Stainless-Stream-Helper": "messages",
+            _STAINLESS_HELPER_METHOD_HEADER: _HELPER_METHOD_STREAM,
+            _STAINLESS_STREAM_HELPER_HEADER: "messages",
             **(extra_headers or {}),
         }
 
@@ -1201,10 +1210,10 @@ class Messages(SyncAPIResource):
                 stacklevel=3,
             )
 
-        extra_headers = {
-            "X-Stainless-Helper": "messages.parse",
-            **(extra_headers or {}),
-        }
+        extra_headers = merge_headers(
+            _helper_header("messages.parse"),
+            extra_headers or {},
+        )
 
         transformed_output_format: Optional[JSONOutputFormatParam] | NotGiven = NOT_GIVEN
 
@@ -2539,8 +2548,8 @@ class AsyncMessages(AsyncAPIResource):
             )
 
         extra_headers = {
-            "X-Stainless-Helper-Method": "stream",
-            "X-Stainless-Stream-Helper": "messages",
+            _STAINLESS_HELPER_METHOD_HEADER: _HELPER_METHOD_STREAM,
+            _STAINLESS_STREAM_HELPER_HEADER: "messages",
             **(extra_headers or {}),
         }
 
@@ -2654,10 +2663,10 @@ class AsyncMessages(AsyncAPIResource):
                 stacklevel=3,
             )
 
-        extra_headers = {
-            "X-Stainless-Helper": "messages.parse",
-            **(extra_headers or {}),
-        }
+        extra_headers = merge_headers(
+            _helper_header("messages.parse"),
+            extra_headers or {},
+        )
 
         transformed_output_format: Optional[JSONOutputFormatParam] | NotGiven = NOT_GIVEN
 

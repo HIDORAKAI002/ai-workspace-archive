@@ -1,84 +1,84 @@
-# Introduction à l'intégration de bases de données avec MCP
+# Introduction à l'Intégration de Base de Données MCP
 
-## 🎯 Ce que couvre ce laboratoire
+## 🎯 Ce que ce Lab Couvre
 
-Ce laboratoire d'introduction offre une vue d'ensemble complète sur la création de serveurs Model Context Protocol (MCP) avec intégration de bases de données. Vous comprendrez le cas d'usage métier, l'architecture technique et les applications concrètes à travers l'exemple analytique de Zava Retail disponible sur https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
+Ce laboratoire d’introduction offre un aperçu complet de la construction de serveurs Model Context Protocol (MCP) avec intégration de base de données. Vous comprendrez le cas d’usage métier, l’architecture technique et des applications réelles à travers le cas d’usage analytique Zava Retail disponible sur https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
 
-## Vue d'ensemble
+## Aperçu
 
-Le **Model Context Protocol (MCP)** permet aux assistants IA d'accéder de manière sécurisée et d'interagir avec des sources de données externes en temps réel. Lorsqu'il est combiné à une intégration de bases de données, MCP débloque des capacités puissantes pour des applications IA basées sur les données.
+**Model Context Protocol (MCP)** permet aux assistants IA d’accéder de manière sécurisée et d’interagir en temps réel avec des sources de données externes. Combiné à l’intégration de bases de données, MCP ouvre des capacités puissantes pour les applications IA basées sur les données.
 
-Ce parcours d'apprentissage vous enseigne à construire des serveurs MCP prêts pour la production, connectant des assistants IA aux données de ventes au détail via PostgreSQL, tout en mettant en œuvre des modèles d'entreprise tels que la sécurité au niveau des lignes (Row Level Security), la recherche sémantique et l'accès multi-locataires aux données.
+Ce parcours d’apprentissage vous enseigne à construire des serveurs MCP prêts pour la production qui connectent des assistants IA aux données de ventes retail via PostgreSQL, en mettant en œuvre des modèles d’entreprise tels que la Sécurité au Niveau des Lignes (Row Level Security), la recherche sémantique, et l’accès multi-locataire aux données.
 
-## Objectifs d'apprentissage
+## Objectifs d’Apprentissage
 
 À la fin de ce laboratoire, vous serez capable de :
 
-- **Définir** le Model Context Protocol et ses principaux avantages pour l'intégration de bases de données
-- **Identifier** les composants clés d'une architecture de serveur MCP avec bases de données
-- **Comprendre** le cas d'usage de Zava Retail et ses exigences métier
-- **Reconnaître** les modèles d'entreprise pour un accès sécurisé et évolutif aux bases de données
-- **Lister** les outils et technologies utilisés tout au long de ce parcours d'apprentissage
+- **Définir** le Model Context Protocol et ses avantages clés pour l’intégration de bases de données
+- **Identifier** les composants clés d’une architecture de serveur MCP avec bases de données
+- **Comprendre** le cas d’usage Zava Retail et ses exigences métier
+- **Reconnaître** les modèles d’entreprise pour un accès base de données sécurisé et évolutif
+- **Lister** les outils et technologies utilisés tout au long de ce parcours
 
-## 🧭 Le défi : l'IA face aux données du monde réel
+## 🧭 Le Défi : L'IA rencontre les Données du Monde Réel
 
-### Limites traditionnelles de l'IA
+### Limites de l’IA Traditionnelle
 
-Les assistants IA modernes sont extrêmement puissants, mais ils rencontrent des limites importantes lorsqu'ils travaillent avec des données métier réelles :
+Les assistants IA modernes sont extrêmement puissants mais rencontrent des limitations majeures lorsqu’ils travaillent avec des données métier réelles :
 
-| **Défi**            | **Description**                                      | **Impact métier**                     |
-|----------------------|------------------------------------------------------|---------------------------------------|
-| **Connaissances statiques** | Les modèles IA entraînés sur des ensembles de données fixes ne peuvent pas accéder aux données métier actuelles | Informations obsolètes, opportunités manquées |
-| **Silos de données** | Informations enfermées dans des bases de données, API et systèmes inaccessibles à l'IA | Analyses incomplètes, workflows fragmentés |
-| **Contraintes de sécurité** | L'accès direct aux bases de données soulève des préoccupations de sécurité et de conformité | Déploiement limité, préparation manuelle des données |
-| **Requêtes complexes** | Les utilisateurs métier ont besoin de connaissances techniques pour extraire des informations | Adoption réduite, processus inefficaces |
+| **Défi** | **Description** | **Impact Métier** |
+|----------|-----------------|-------------------|
+| **Connaissances Statique** | Les modèles IA entraînés sur des jeux de données fixes ne peuvent pas accéder aux données métier actuelles | Informations obsolètes, opportunités manquées |
+| **Silos de Données** | Informations enfermées dans bases, API, et systèmes inaccessibles à l’IA | Analyse incomplète, workflows fragmentés |
+| **Contraintes de Sécurité** | Accès direct aux bases pose des risques de sécurité et conformité | Déploiement restreint, préparation manuelle des données |
+| **Requêtes Complexes** | Les utilisateurs métier doivent posséder des connaissances techniques pour extraire des informations | Adoption limitée, processus inefficaces |
 
-### La solution MCP
+### La Solution MCP
 
-Le Model Context Protocol répond à ces défis en offrant :
+Le Model Context Protocol répond à ces défis en fournissant :
 
-- **Accès en temps réel aux données** : Les assistants IA interrogent des bases de données et API en direct
-- **Intégration sécurisée** : Accès contrôlé avec authentification et permissions
-- **Interface en langage naturel** : Les utilisateurs posent des questions en anglais simple
-- **Protocole standardisé** : Fonctionne avec différentes plateformes et outils IA
+- **Accès Données en Temps Réel** : Les assistants IA interrogent bases et APIs vivantes
+- **Intégration Sécurisée** : Accès contrôlé avec authentification et permissions
+- **Interface en Langage Naturel** : Les utilisateurs métier posent leurs questions en langage clair
+- **Protocole Standardisé** : Fonctionne avec différentes plateformes et outils IA
 
-## 🏪 Découvrez Zava Retail : notre étude de cas https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
+## 🏪 Découvrez Zava Retail : Notre Cas d’Usage d’Apprentissage https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
-Tout au long de ce parcours d'apprentissage, nous construirons un serveur MCP pour **Zava Retail**, une chaîne fictive de magasins de bricolage avec plusieurs emplacements. Ce scénario réaliste illustre une mise en œuvre MCP de niveau entreprise.
+Tout au long de ce parcours, nous construirons un serveur MCP pour **Zava Retail**, une chaîne fictive de magasins de bricolage avec plusieurs sites. Ce scénario réaliste illustre une mise en œuvre MCP de niveau entreprise.
 
-### Contexte métier
+### Contexte Métier
 
-**Zava Retail** exploite :
-- **8 magasins physiques** dans l'État de Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
-- **1 magasin en ligne** pour les ventes e-commerce
-- **Un catalogue de produits diversifié** comprenant outils, matériel, fournitures de jardin et matériaux de construction
-- **Une gestion à plusieurs niveaux** avec des responsables de magasin, des responsables régionaux et des cadres
+**Zava Retail** exploite :  
+- **8 magasins physiques** dans l’État de Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)  
+- **1 boutique en ligne** pour les ventes e-commerce  
+- **Catalogue produit diversifié** incluant outils, quincaillerie, fournitures de jardin, matériaux de construction  
+- **Gestion multi-niveaux** avec responsables magasins, responsables régionaux et cadres  
 
-### Exigences métier
+### Exigences Métier
 
-Les responsables de magasin et les cadres ont besoin d'analyses IA pour :
+Les gestionnaires de magasins et cadres ont besoin d’analyses alimentées par IA pour :
 
-1. **Analyser les performances de vente** entre magasins et périodes
-2. **Suivre les niveaux de stock** et identifier les besoins de réapprovisionnement
-3. **Comprendre le comportement des clients** et les tendances d'achat
-4. **Découvrir des informations sur les produits** via la recherche sémantique
-5. **Générer des rapports** avec des requêtes en langage naturel
-6. **Maintenir la sécurité des données** grâce au contrôle d'accès basé sur les rôles
+1. **Analyser les performances commerciales** par magasin et période  
+2. **Suivre les niveaux de stock** et identifier les besoins de réapprovisionnement  
+3. **Comprendre le comportement client** et les habitudes d’achat  
+4. **Découvrir des insights produits** via recherche sémantique  
+5. **Générer des rapports** avec des requêtes en langage naturel  
+6. **Maintenir la sécurité des données** grâce à un contrôle d’accès basé sur les rôles  
 
-### Exigences techniques
+### Exigences Techniques
 
 Le serveur MCP doit fournir :
 
-- **Accès multi-locataires aux données**, où les responsables de magasin ne voient que les données de leur magasin
-- **Requêtes flexibles** prenant en charge des opérations SQL complexes
-- **Recherche sémantique** pour la découverte et les recommandations de produits
-- **Données en temps réel** reflétant l'état actuel de l'entreprise
-- **Authentification sécurisée** avec sécurité au niveau des lignes
-- **Architecture évolutive** prenant en charge plusieurs utilisateurs simultanés
+- **Accès multi-locataire aux données** où les gestionnaires n’accèdent qu’aux données de leur magasin  
+- **Requêtage flexible** supportant des opérations SQL complexes  
+- **Recherche sémantique** pour la découverte et recommandation produits  
+- **Données en temps réel** reflétant l’état actuel du business  
+- **Authentification sécurisée** avec sécurité au niveau des lignes  
+- **Architecture évolutive** supportant plusieurs utilisateurs simultanés  
 
-## 🏗️ Vue d'ensemble de l'architecture du serveur MCP
+## 🏗️ Aperçu de l’Architecture du Serveur MCP
 
-Notre serveur MCP met en œuvre une architecture en couches optimisée pour l'intégration de bases de données :
+Notre serveur MCP met en œuvre une architecture en couches optimisée pour l’intégration base de données :
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -118,123 +118,124 @@ Notre serveur MCP met en œuvre une architecture en couches optimisée pour l'in
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Composants clés
 
-#### **1. Couche serveur MCP**
-- **Framework FastMCP** : Implémentation moderne de serveur MCP en Python
-- **Enregistrement des outils** : Définitions d'outils déclaratives avec typage sécurisé
-- **Contexte des requêtes** : Gestion de l'identité utilisateur et des sessions
-- **Gestion des erreurs** : Gestion robuste des erreurs et journalisation
+### Composants Clés
 
-#### **2. Couche d'intégration de bases de données**
-- **Pooling de connexions** : Gestion efficace des connexions asyncpg
-- **Fournisseur de schéma** : Découverte dynamique des schémas de tables
-- **Exécuteur de requêtes** : Exécution SQL sécurisée avec contexte RLS
-- **Gestion des transactions** : Conformité ACID et gestion des rollbacks
+#### **1. Couche Serveur MCP**
+- **FastMCP Framework** : Implémentation moderne Python du serveur MCP  
+- **Enregistrement d’Outils** : Définitions déclaratives d’outils avec sécurité de type  
+- **Contexte de Requête** : Gestion d’identité utilisateur et session  
+- **Gestion d’Erreurs** : Gestion robuste d’erreurs et journalisation  
 
-#### **3. Couche de sécurité**
-- **Sécurité au niveau des lignes** : RLS PostgreSQL pour l'isolation des données multi-locataires
-- **Identité utilisateur** : Authentification et autorisation des responsables de magasin
-- **Contrôle d'accès** : Permissions granulaires et pistes d'audit
-- **Validation des entrées** : Prévention des injections SQL et validation des requêtes
+#### **2. Couche Intégration Base de Données**
+- **Pool de Connexions** : Gestion efficace des connexions asyncpg  
+- **Fournisseur de Schéma** : Découverte dynamique des schémas de tables  
+- **Exécuteur de Requêtes** : Exécution SQL sécurisée avec contexte RLS  
+- **Gestion des Transactions** : Conformité ACID et gestion des rollback  
 
-#### **4. Couche d'amélioration IA**
-- **Recherche sémantique** : Embeddings vectoriels pour la découverte de produits
-- **Intégration Azure OpenAI** : Génération d'embeddings textuels
-- **Algorithmes de similarité** : Recherche de similarité cosine avec pgvector
-- **Optimisation de la recherche** : Indexation et optimisation des performances
+#### **3. Couche Sécurité**
+- **Sécurité au Niveau des Lignes (RLS)** : Isolation multi-locataire avec PostgreSQL RLS  
+- **Identité Utilisateur** : Authentification et autorisation des gestionnaires  
+- **Contrôle d’Accès** : Permissions fines et pistes d’audit  
+- **Validation d’Entrée** : Prévention des injections SQL et validation des requêtes  
 
-## 🔧 Pile technologique
+#### **4. Couche Amélioration IA**
+- **Recherche Sémantique** : Embeddings vectoriels pour découverte produit  
+- **Intégration Azure OpenAI** : Génération d’embedings textes  
+- **Algorithmes de Similarité** : Recherche par similarité cosinus pgvector  
+- **Optimisation de Recherche** : Indexation et tuning performance  
 
-### Technologies principales
+## 🔧 Stack Technologique
 
-| **Composant**        | **Technologie**          | **Objectif**                     |
-|-----------------------|--------------------------|-----------------------------------|
-| **Framework MCP**     | FastMCP (Python)        | Implémentation moderne de serveur MCP |
-| **Base de données**   | PostgreSQL 17 + pgvector | Données relationnelles avec recherche vectorielle |
-| **Services IA**       | Azure OpenAI            | Embeddings textuels et modèles de langage |
-| **Conteneurisation**  | Docker + Docker Compose | Environnement de développement   |
-| **Plateforme cloud**  | Microsoft Azure         | Déploiement en production        |
-| **Intégration IDE**   | VS Code                 | Chat IA et workflow de développement |
+### Technologies de Base
 
-### Outils de développement
+| **Composant** | **Technologie** | **Objectif** |
+|---------------|-----------------|--------------|
+| **Framework MCP** | FastMCP (Python) | Implémentation serveur MCP moderne |
+| **Base de Données** | PostgreSQL 17 + pgvector | Données relationnelles avec recherche vectorielle |
+| **Services IA** | Azure OpenAI | Embeddings textuels et modèles linguistiques |
+| **Conteneurisation** | Docker + Docker Compose | Environnement de développement |
+| **Plateforme Cloud** | Microsoft Azure | Déploiement en production |
+| **Intégration IDE** | VS Code | Chat IA et workflow de développement |
 
-| **Outil**             | **Objectif**            |
-|-----------------------|--------------------------|
-| **asyncpg**           | Pilote PostgreSQL haute performance |
-| **Pydantic**          | Validation et sérialisation des données |
-| **Azure SDK**         | Intégration des services cloud |
-| **pytest**            | Framework de tests      |
-| **Docker**            | Conteneurisation et déploiement |
+### Outils de Développement
 
-### Pile de production
+| **Outil** | **Objectif** |
+|-----------|--------------|
+| **asyncpg** | Driver PostgreSQL haute performance |
+| **Pydantic** | Validation et sérialisation des données |
+| **Azure SDK** | Intégration services cloud |
+| **pytest** | Framework de test |
+| **Docker** | Conteneurisation et déploiement |
 
-| **Service**           | **Ressource Azure**     | **Objectif**                     |
-|-----------------------|--------------------------|-----------------------------------|
-| **Base de données**   | Azure Database for PostgreSQL | Service de base de données managé |
-| **Conteneur**         | Azure Container Apps    | Hébergement de conteneurs serverless |
-| **Services IA**       | Azure AI Foundry        | Modèles OpenAI et points de terminaison |
-| **Surveillance**      | Application Insights    | Observabilité et diagnostics     |
-| **Sécurité**          | Azure Key Vault         | Gestion des secrets et configurations |
+### Stack de Production
 
-## 🎬 Scénarios d'utilisation concrets
+| **Service** | **Ressource Azure** | **Objectif** |
+|-------------|---------------------|--------------|
+| **Base de Données** | Azure Database for PostgreSQL | Service base de données managé |
+| **Conteneur** | Azure Container Apps | Hébergement conteneur serverless |
+| **Services IA** | Microsoft Foundry | Modèles et endpoints OpenAI |
+| **Monitoring** | Application Insights | Observabilité et diagnostics |
+| **Sécurité** | Azure Key Vault | Gestion des secrets et configuration |
+
+## 🎬 Scénarios d’Utilisation Réels
 
 Explorons comment différents utilisateurs interagissent avec notre serveur MCP :
 
-### Scénario 1 : Revue des performances par un responsable de magasin
+### Scénario 1 : Revue de Performance pour Gestionnaire de Magasin
 
 **Utilisateur** : Sarah, responsable du magasin de Seattle  
-**Objectif** : Analyser les performances de vente du dernier trimestre
+**Objectif** : Analyser les performances des ventes du dernier trimestre
 
-**Requête en langage naturel** :  
-> "Montre-moi les 10 produits les plus rentables pour mon magasin au T4 2024"
+**Requête en Langage Naturel** :  
+> « Montre-moi les 10 produits principaux par chiffre d’affaires pour mon magasin au T4 2024 »
 
-**Ce qui se passe** :
-1. Le chat IA de VS Code envoie la requête au serveur MCP
-2. Le serveur MCP identifie le contexte du magasin de Sarah (Seattle)
-3. Les politiques RLS filtrent les données pour le magasin de Seattle uniquement
-4. Une requête SQL est générée et exécutée
-5. Les résultats sont formatés et renvoyés au chat IA
-6. L'IA fournit une analyse et des insights
+**Ce qui se Passe** :  
+1. VS Code AI Chat envoie la requête au serveur MCP  
+2. Le serveur MCP identifie le contexte de magasin de Sarah (Seattle)  
+3. Les politiques RLS filtrent les données pour le magasin Seattle uniquement  
+4. Requête SQL générée et exécutée  
+5. Résultats formatés et renvoyés à AI Chat  
+6. L’IA fournit une analyse et des insights  
 
-### Scénario 2 : Découverte de produits avec recherche sémantique
+### Scénario 2 : Découverte de Produits avec Recherche Sémantique
 
-**Utilisateur** : Mike, responsable des stocks  
+**Utilisateur** : Mike, gestionnaire des stocks  
 **Objectif** : Trouver des produits similaires à une demande client
 
-**Requête en langage naturel** :  
-> "Quels produits vendons-nous qui ressemblent à 'connecteurs électriques étanches pour usage extérieur' ?"
+**Requête en Langage Naturel** :  
+> « Quels produits vendons-nous qui sont similaires aux ‘connecteurs électriques étanches pour usage extérieur’ ? »
 
-**Ce qui se passe** :
-1. La requête est traitée par l'outil de recherche sémantique
-2. Azure OpenAI génère un vecteur d'embedding
-3. pgvector effectue une recherche de similarité
-4. Les produits associés sont classés par pertinence
-5. Les résultats incluent les détails des produits et leur disponibilité
-6. L'IA suggère des alternatives et des opportunités de regroupement
+**Ce qui se Passe** :  
+1. Requête traitée par l’outil de recherche sémantique  
+2. Azure OpenAI génère un vecteur embedding  
+3. pgvector exécute une recherche par similarité  
+4. Produits apparentés classés par pertinence  
+5. Résultats incluent détails et disponibilité produits  
+6. L’IA suggère alternatives et opportunités de regroupement  
 
-### Scénario 3 : Analyse inter-magasins
+### Scénario 3 : Analyses Multi-Magasins
 
-**Utilisateur** : Jennifer, responsable régionale  
-**Objectif** : Comparer les performances entre tous les magasins
+**Utilisateur** : Jennifer, directrice régionale  
+**Objectif** : Comparer les performances sur tous les magasins
 
-**Requête en langage naturel** :  
-> "Compare les ventes par catégorie pour tous les magasins au cours des 6 derniers mois"
+**Requête en Langage Naturel** :  
+> « Compare les ventes par catégorie pour tous les magasins au cours des 6 derniers mois »
 
-**Ce qui se passe** :
-1. Le contexte RLS est défini pour l'accès du responsable régional
-2. Une requête complexe multi-magasins est générée
-3. Les données sont agrégées entre les emplacements des magasins
-4. Les résultats incluent des tendances et des comparaisons
-5. L'IA identifie des insights et des recommandations
+**Ce qui se Passe** :  
+1. Contexte RLS défini pour accès directrice régionale  
+2. Requête complexe multi-magasins générée  
+3. Données agrégées sur tous les sites  
+4. Résultats incluent tendances et comparaisons  
+5. L’IA identifie insights et recommandations  
 
-## 🔒 Analyse approfondie de la sécurité et de la multi-location
+## 🔒 Sécurité et Multi-Tenancy Approfondissement
 
-Notre implémentation met l'accent sur une sécurité de niveau entreprise :
+Notre implémentation met la sécurité de niveau entreprise en priorité :
 
-### Sécurité au niveau des lignes (RLS)
+### Sécurité au Niveau des Lignes (RLS)
 
-La RLS PostgreSQL garantit l'isolation des données :
+PostgreSQL RLS garantit l’isolation des données :
 
 ```sql
 -- Store managers see only their store's data
@@ -248,63 +249,66 @@ CREATE POLICY regional_manager_policy ON retail.orders
   USING (store_id = ANY(get_user_store_list()));
 ```
 
-### Gestion de l'identité utilisateur
 
-Chaque connexion MCP inclut :
-- **ID du responsable de magasin** : Identifiant unique pour le contexte RLS
-- **Attribution de rôles** : Permissions et niveaux d'accès
-- **Gestion des sessions** : Jetons d'authentification sécurisés
-- **Journalisation des audits** : Historique complet des accès
+### Gestion de l’Identité Utilisateur
 
-### Protection des données
+Chaque connexion MCP inclut :  
+- **ID du gestionnaire de magasin** : Identifiant unique pour contexte RLS  
+- **Attribution de rôle** : Permissions et niveaux d’accès  
+- **Gestion de session** : Tokens d’authentification sécurisés  
+- **Journalisation d’audit** : Historique complet des accès  
 
-Plusieurs couches de sécurité :
-- **Chiffrement des connexions** : TLS pour toutes les connexions à la base de données
-- **Prévention des injections SQL** : Requêtes paramétrées uniquement
-- **Validation des entrées** : Validation complète des requêtes
-- **Gestion des erreurs** : Aucune donnée sensible dans les messages d'erreur
+### Protection des Données
 
-## 🎯 Points clés à retenir
+Multiples couches de sécurité :  
+- **Chiffrement des connexions** : TLS pour toutes les connexions base  
+- **Prévention injection SQL** : Requêtes paramétrées uniquement  
+- **Validation d’entrée** : Validation complète des requêtes  
+- **Gestion d’erreurs** : Aucune donnée sensible dans les messages d’erreur  
 
-Après avoir terminé cette introduction, vous devriez comprendre :
+## 🎯 Points Clés à Retenir
 
-✅ **Proposition de valeur de MCP** : Comment MCP relie les assistants IA et les données du monde réel  
-✅ **Contexte métier** : Les exigences et défis de Zava Retail  
-✅ **Vue d'ensemble de l'architecture** : Composants clés et leurs interactions  
-✅ **Pile technologique** : Outils et frameworks utilisés tout au long  
-✅ **Modèle de sécurité** : Accès multi-locataires et protection des données  
-✅ **Modèles d'utilisation** : Scénarios de requêtes réels et workflows  
+Après cette introduction, vous devriez comprendre :
 
-## 🚀 Et après ?
+✅ **Proposition de valeur MCP** : Comment MCP connecte assistants IA et données réelles  
+✅ **Contexte Métier** : Exigences et défis de Zava Retail  
+✅ **Aperçu de l’Architecture** : Composants clés et interactions  
+✅ **Stack Technologique** : Outils et frameworks utilisés  
+✅ **Modèle de Sécurité** : Accès multi-locataire et protection des données  
+✅ **Modèles d’Utilisation** : Scénarios réels de requêtes et workflows  
 
-Prêt à aller plus loin ? Continuez avec :
+## 🚀 Et Après ?
 
-**[Lab 01 : Concepts fondamentaux de l'architecture](../01-Architecture/README.md)**
+Prêt pour aller plus loin ? Continuez avec :
 
-Apprenez les modèles d'architecture des serveurs MCP, les principes de conception des bases de données et la mise en œuvre technique détaillée qui alimente notre solution analytique pour le commerce de détail.
+**[Lab 01 : Concepts d’Architecture de Base](../01-Architecture/README.md)**
 
-## 📚 Ressources supplémentaires
+Découvrez les modèles d’architecture serveur MCP, les principes de conception de bases de données, et la mise en œuvre technique détaillée qui alimente notre solution d’analyses retail.
+
+## 📚 Ressources Complémentaires
 
 ### Documentation MCP
-- [Spécification MCP](https://modelcontextprotocol.io/docs/) - Documentation officielle du protocole
-- [MCP pour débutants](https://aka.ms/mcp-for-beginners) - Guide complet d'apprentissage MCP
-- [Documentation FastMCP](https://github.com/modelcontextprotocol/python-sdk) - Documentation du SDK Python
+- [Spécification MCP](https://modelcontextprotocol.io/docs/) - Documentation officielle du protocole  
+- [MCP pour Débutants](https://aka.ms/mcp-for-beginners) - Guide complet d’apprentissage MCP  
+- [Documentation FastMCP](https://github.com/modelcontextprotocol/python-sdk) - Documentation SDK Python  
 
-### Intégration de bases de données
-- [Documentation PostgreSQL](https://www.postgresql.org/docs/) - Référence complète de PostgreSQL
-- [Guide pgvector](https://github.com/pgvector/pgvector) - Documentation de l'extension vectorielle
-- [Sécurité au niveau des lignes](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - Guide RLS PostgreSQL
+### Intégration Base de Données
+- [Documentation PostgreSQL](https://www.postgresql.org/docs/) - Référence complète PostgreSQL  
+- [Guide pgvector](https://github.com/pgvector/pgvector) - Documentation extension vectorielle  
+- [Sécurité au Niveau des Lignes](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - Guide PostgreSQL RLS  
 
 ### Services Azure
-- [Documentation Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Intégration des services IA
-- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Service de base de données managé
-- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Conteneurs serverless
+- [Documentation Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Intégration service IA  
+- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Service base de données managé  
+- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Conteneurs serverless  
 
 ---
 
-**Avertissement** : Ceci est un exercice d'apprentissage utilisant des données fictives de commerce de détail. Suivez toujours les politiques de gouvernance et de sécurité des données de votre organisation lors de la mise en œuvre de solutions similaires en environnement de production.
+**Avertissement** : Ceci est un exercice d’apprentissage utilisant des données retail fictives. Suivez toujours les politiques internes de gouvernance et sécurité des données lors de l’implémentation de solutions similaires en production.
 
 ---
 
-**Avertissement** :  
-Ce document a été traduit à l'aide du service de traduction automatique [Co-op Translator](https://github.com/Azure/co-op-translator). Bien que nous nous efforcions d'assurer l'exactitude, veuillez noter que les traductions automatisées peuvent contenir des erreurs ou des inexactitudes. Le document original dans sa langue d'origine doit être considéré comme la source faisant autorité. Pour des informations critiques, il est recommandé de recourir à une traduction professionnelle réalisée par un humain. Nous déclinons toute responsabilité en cas de malentendus ou d'interprétations erronées résultant de l'utilisation de cette traduction.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Avertissement** :
+Ce document a été traduit à l'aide du service de traduction automatique [Co-op Translator](https://github.com/Azure/co-op-translator). Bien que nous nous efforçions d'assurer l'exactitude, veuillez noter que les traductions automatisées peuvent contenir des erreurs ou des inexactitudes. Le document original dans sa langue native doit être considéré comme la source faisant autorité. Pour les informations critiques, il est recommandé de recourir à une traduction professionnelle réalisée par un humain. Nous ne saurions être tenus responsables des malentendus ou erreurs d'interprétation découlant de l'utilisation de cette traduction.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,24 +1,24 @@
-# Sampling - mendelegasikan ciri-ciri kepada Klien
+# Sampling - menyerahkan ciri kepada Klien
 
-Kadang-kadang, anda memerlukan Klien MCP dan Server MCP untuk bekerjasama mencapai matlamat bersama. Anda mungkin mempunyai kes di mana Server memerlukan bantuan LLM yang berada pada klien. Untuk situasi ini, sampling adalah apa yang anda perlu gunakan.
+Kadang-kadang, anda memerlukan Klien MCP dan Pelayan MCP untuk bekerjasama mencapai matlamat bersama. Anda mungkin mempunyai kes di mana Pelayan memerlukan bantuan LLM yang berada pada klien. Untuk situasi ini, sampling adalah apa yang anda harus gunakan.
 
-Mari kita teroka beberapa kes penggunaan dan cara membina penyelesaian yang melibatkan sampling.
+Mari kita terokai beberapa kes penggunaan dan cara membina penyelesaian yang melibatkan sampling.
 
 ## Gambaran Keseluruhan
 
-Dalam pelajaran ini, kita fokus menerangkan bila dan di mana menggunakan Sampling dan bagaimana mengkonfigurasikannya.
+Dalam pelajaran ini, kami memfokuskan pada penjelasan bila dan di mana untuk menggunakan Sampling dan bagaimana untuk mengkonfigurasinya.
 
 ## Objektif Pembelajaran
 
-Dalam bab ini, kita akan:
+Dalam bab ini, kami akan:
 
-- Terangkan apakah itu Sampling dan bila menggunakannya.
-- Tunjukkan cara mengkonfigurasi Sampling dalam MCP.
-- Berikan contoh Sampling dalam tindakan.
+- Menjelaskan apa itu Sampling dan bila menggunakannya.
+- Menunjukkan bagaimana untuk mengkonfigurasi Sampling dalam MCP.
+- Memberikan contoh Sampling dalam tindakan.
 
-## Apakah Sampling dan mengapa menggunakannya?
+## Apa itu Sampling dan kenapa menggunakannya?
 
-Sampling adalah ciri canggih yang berfungsi dengan cara berikut:
+Sampling adalah ciri lanjutan yang berfungsi dengan cara berikut:
 
 ```mermaid
 sequenceDiagram
@@ -27,18 +27,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Menulis pos blog
-    MCP Client->>MCP Server: Panggilan alat (draf pos blog)
+    User->>MCP Client: Tulis catatan blog
+    MCP Client->>MCP Server: Panggilan alat (draf catatan blog)
     MCP Server->>MCP Client: Permintaan pensampelan (buat ringkasan)
-    MCP Client->>LLM: Hasilkan ringkasan pos blog
-    LLM->>MCP Client: Keputusan ringkasan
+    MCP Client->>LLM: Jana ringkasan catatan blog
+    LLM->>MCP Client: Hasil ringkasan
     MCP Client->>MCP Server: Respons pensampelan (ringkasan)
-    MCP Server->>MCP Client: Lengkapkan pos blog (draf + ringkasan)
-    MCP Client->>User: Pos blog sedia
+    MCP Server->>MCP Client: Lengkapkan catatan blog (draf + ringkasan)
+    MCP Client->>User: Catatan blog siap
 ```
+
 ### Permintaan Sampling
 
-Ok, sekarang kita ada gambaran luas sebuah senario yang boleh dipercayai, mari bercakap tentang permintaan sampling yang server hantar balik kepada klien. Ini adalah contoh permintaan tersebut dalam format JSON-RPC:
+Ok, sekarang kita ada pandangan menyeluruh tentang satu senario yang boleh dipercayai, mari bincang permintaan sampling yang dihantar oleh pelayan kembali kepada klien. Berikut adalah bagaimana permintaan seperti ini boleh kelihatan dalam format JSON-RPC:
 
 ```json
 {
@@ -70,17 +71,17 @@ Ok, sekarang kita ada gambaran luas sebuah senario yang boleh dipercayai, mari b
 }
 ```
 
-Ada beberapa perkara di sini yang patut diberi perhatian:
+Terdapat beberapa perkara di sini yang patut kita tegaskan:
 
-- Prompt, di bawah content -> text, adalah arahan untuk LLM meringkaskan kandungan pos blog.
+- Prompt, di bawah content -> text, adalah arahan kita untuk LLM meringkaskan kandungan pos blog.
 
-- **modelPreferences**. Bahagian ini adalah sekadar itu, satu keutamaan, saranan konfigurasi yang digunakan dengan LLM. Pengguna boleh memilih sama ada untuk menerima saranan ini atau mengubahnya. Dalam kes ini ada saranan model yang digunakan serta keutamaan kelajuan dan kepintaran.
-- **systemPrompt**, ini adalah prompt sistem biasa yang memberikan personaliti kepada LLM dan mengandungi arahan panduan.
-- **maxTokens**, ini adalah satu lagi sifat yang digunakan untuk menyatakan berapa banyak token yang disarankan digunakan untuk tugasan ini.
+- **modelPreferences**. Bahagian ini adalah hanya itu, satu keutamaan, satu cadangan konfigurasi yang harus digunakan dengan LLM. Pengguna boleh memilih sama ada untuk mengikuti cadangan ini atau mengubahnya. Dalam kes ini terdapat cadangan model untuk digunakan serta keutamaan kelajuan dan kebijaksanaan.
+- **systemPrompt**, ini adalah prompt sistem biasa yang memberi personaliti kepada LLM anda dan mengandungi arahan panduan.
+- **maxTokens**, ini adalah satu lagi sifat yang digunakan untuk menyatakan berapa banyak token yang disyorkan untuk tugasan ini.
 
 ### Respons Sampling
 
-Respons ini adalah apa yang Klien MCP akhirnya hantar balik kepada Server MCP dan merupakan hasil dari klien memanggil LLM, menunggu respons tersebut dan kemudian membina mesej ini. Ini adalah contoh dalam JSON-RPC:
+Respons ini adalah apa yang akhirnya dihantar oleh Klien MCP kembali kepada Pelayan MCP dan merupakan hasil dari klien yang memanggil LLM, menunggu respons itu dan kemudian membina mesej ini. Berikut adalah bagaimana ia boleh kelihatan dalam JSON-RPC:
 
 ```json
 {
@@ -98,13 +99,13 @@ Respons ini adalah apa yang Klien MCP akhirnya hantar balik kepada Server MCP da
 }
 ```
 
-Perhatikan bagaimana respons itu adalah abstrak pos blog seperti yang kita minta. Juga perhatikan model yang digunakan bukan yang kita minta tetapi "gpt-5" berbanding "claude-3-sonnet". Ini untuk menggambarkan bahawa pengguna boleh berubah fikiran tentang apa yang hendak digunakan dan permintaan sampling anda hanyalah satu saranan.
+Perhatikan bagaimana respons adalah ringkasan pos blog seperti yang kami minta. Juga perhatikan bagaimana `model` yang digunakan bukan apa yang kami minta tetapi "gpt-5" dan bukan "claude-3-sonnet". Ini untuk menggambarkan bahawa pengguna boleh berubah fikiran mengenai apa yang hendak digunakan dan bahawa permintaan sampling anda adalah satu cadangan.
 
-Ok, sekarang yang kita fahami aliran utama, dan tugasan berguna untuknya "penciptaan pos blog + abstrak", mari kita lihat apa yang perlu dibuat supaya ianya berfungsi.
+Ok, sekarang kita faham aliran utama, dan tugasan berguna untuk digunakan seperti "penciptaan pos blog + abstrak", mari lihat apa yang perlu dilakukan untuk menjayakannya.
 
 ### Jenis mesej
 
-Mesej sampling tidak terhad kepada teks sahaja tetapi anda juga boleh hantar imej dan audio. Ini adalah bagaimana JSON-RPC kelihatan berbeza:
+Mesej sampling tidak terhad kepada teks sahaja tetapi anda juga boleh menghantar imej dan audio. Berikut adalah bagaimana JSON-RPC kelihatan berbeza:
 
 **Teks**
 
@@ -135,13 +136,13 @@ Mesej sampling tidak terhad kepada teks sahaja tetapi anda juga boleh hantar ime
 }
 ```
 
-> NOTE: untuk info lebih terperinci mengenai Sampling, rujuk [dokumentasi rasmi](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling)
+> NOTE: untuk maklumat lebih terperinci tentang Sampling, semak [dokumen rasmi](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
 ## Cara Mengkonfigurasi Sampling dalam Klien
 
-> Nota: jika anda hanya membina server, anda tidak perlu buat banyak di sini.
+> Nota: jika anda hanya membina pelayan, anda tidak perlu buat banyak di sini.
 
-Dalam klien, anda perlu tentukan ciri berikut seperti ini:
+Dalam klien, anda perlu menentukan ciri berikut seperti ini:
 
 ```json
 {
@@ -151,18 +152,18 @@ Dalam klien, anda perlu tentukan ciri berikut seperti ini:
 }
 ```
 
-Ini kemudiannya akan diambil semasa klien yang dipilih anda inisialisasikan bersama server.
+Ini akan diambil kira apabila klien pilihan anda dimulakan dengan pelayan.
 
 ## Contoh Sampling dalam Tindakan - Buat Pos Blog
 
-Mari kita kodkan server sampling bersama-sama, kita perlu buat yang berikut:
+Mari kita kodkan pelayan sampling bersama, kita perlu lakukan perkara berikut:
 
-1. Cipta alat pada Server.
-1. Alat tersebut harus buat permintaan sampling
-1. Alat mesti tunggu permintaan sampling dari klien dijawab.
-1. Kemudian hasil alat itu perlu dihasilkan.
+1. Cipta alat pada Pelayan.
+2. Alat itu harus mencipta permintaan sampling
+3. Alat harus menunggu permintaan sampling klien dijawab.
+4. Kemudian hasil alat itu harus dihasilkan.
 
-Mari lihat kod langkah demi langkah:
+Mari kita lihat kod ini langkah demi langkah:
 
 ### -1- Cipta alat
 
@@ -175,7 +176,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Buat permintaan sampling
+### -2- Cipta permintaan sampling
 
 Lanjutkan alat anda dengan kod berikut:
 
@@ -203,7 +204,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Tunggu respons dan pulangkan respons
+### -3- Tunggu respons dan kembalikan respons
 
 **python**
 
@@ -281,7 +282,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # pulangkan pos blog lengkap
+    # kembalikan pos blog lengkap
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -292,15 +293,15 @@ if __name__ == "__main__":
     # mcp.run()
     mcp.run(transport="streamable-http")
 
-# jalankan app dengan: python server.py
+# jalankan aplikasi dengan: python server.py
 ```
 
-### -5- Uji dalam Visual Studio Code
+### -5- Uji dengan Visual Studio Code
 
-Untuk menguji ini dalam Visual Studio Code, lakukan yang berikut:
+Untuk menguji ini dalam Visual Studio Code, lakukan perkara berikut:
 
-1. Mulakan server dalam terminal
-1. Tambahkan ke *mcp.json* (dan pastikan ia bermula) contohnya seperti ini:
+1. Mulakan pelayan dalam terminal
+2. Tambah ke *mcp.json* (dan pastikan ia dimulakan) contohnya seperti ini:
 
    ```json
    "servers": {
@@ -311,45 +312,45 @@ Untuk menguji ini dalam Visual Studio Code, lakukan yang berikut:
    }
    ```
 
-1. Taipkan prompt:
+3. Taipkan prompt:
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Benarkan sampling berlaku. Kali pertama anda uji ini, anda akan dihadapkan dengan dialog tambahan yang perlu anda terima, kemudian anda akan melihat dialog biasa yang meminta anda menjalankan alat
+4. Benarkan sampling berlaku. Kali pertama anda menguji ini anda akan dipaparkan dialog tambahan yang anda perlu terima, kemudian anda akan melihat dialog biasa untuk meminta anda menjalankan alat
 
-1. Periksa hasil. Anda akan lihat hasil dipaparkan dengan kemas dalam GitHub Copilot Chat tetapi anda juga boleh periksa respons JSON mentah.
+5. Periksa hasil. Anda akan melihat hasilnya dipaparkan dengan baik dalam GitHub Copilot Chat tetapi anda juga boleh memeriksa respons JSON mentah.
 
-**Bonus**. Peralatan Visual Studio Code sangat baik menyokong sampling. Anda boleh konfigurasikan akses Sampling pada server yang dipasang dengan menavigasi seperti ini:
+**Bonus**. Alat Visual Studio Code mempunyai sokongan hebat untuk sampling. Anda boleh mengkonfigurasi akses Sampling pada pelayan yang dipasang dengan menavigasi seperti ini:
 
 1. Navigasi ke seksyen sambungan.
-1. Pilih ikon gear untuk server yang dipasang dalam seksyen "MCP SERVERS - INSTALLED".
-1 Pilih "Configure Model Access", di sini anda boleh pilih Model yang dibenarkan GitHub Copilot guna semasa melakukan sampling. Anda juga boleh lihat semua permintaan sampling yang berlaku baru-baru ini dengan memilih "Show Sampling requests".
+2. Pilih ikon gear untuk pelayan yang dipasang dalam seksyen "MCP SERVERS - INSTALLED".
+3. Pilih "Configure Model Access", di sini anda boleh memilih Model mana GitHub Copilot dibenarkan gunakan semasa melakukan sampling. Anda juga boleh melihat semua permintaan sampling yang berlaku baru-baru ini dengan memilih "Show Sampling requests".
 
 ## Tugasan
 
-Dalam tugasan ini, anda akan bina Sampling yang sedikit berbeza iaitu integrasi sampling yang menyokong menghasilkan deskripsi produk. Ini adalah senario anda:
+Dalam tugasan ini, anda akan membina Sampling yang sedikit berbeza iaitu integrasi sampling yang menyokong penjanaan penerangan produk. Berikut adalah senario anda:
 
-**Senario**: Pekerja pejabat belakang di e-dagang memerlukan bantuan, ia mengambil masa terlalu lama untuk menghasilkan deskripsi produk. Oleh itu, anda perlu bina penyelesaian di mana anda boleh panggil alat "create_product" dengan "title" dan "keywords" sebagai argumen dan ia harus hasilkan produk lengkap termasuk medan "description" yang harus diisi oleh LLM klien.
+**Senario**: Pekerja pejabat belakang di e-dagang memerlukan bantuan, ia mengambil masa terlalu lama untuk menghasilkan penerangan produk. Oleh itu, anda perlu membina penyelesaian di mana anda boleh memanggil alat "create_product" dengan "title" dan "keywords" sebagai argumen dan ia harus menghasilkan produk lengkap termasuk medan "description" yang perlu diisi oleh LLM klien.
 
-TIP: gunakan apa yang anda pelajari sebelum ini untuk membina server dan alatnya menggunakan permintaan sampling.
+TIP: gunakan apa yang anda pelajari sebelum ini untuk membina pelayan ini dan alatnya menggunakan permintaan sampling.
 
 ## Penyelesaian
 
-[Solution](./solution/README.md)
+[Penyelesaian](./solution/README.md)
 
-## Perkara Penting
+## Kunci Pengajaran
 
-Sampling adalah ciri berkuasa yang membenarkan server mendelegasikan tugasan kepada klien apabila memerlukan bantuan LLM.
+Sampling adalah ciri yang kuat yang membenarkan pelayan mendelegasikan tugasan kepada klien apabila ia memerlukan bantuan LLM.
 
-## Apa Seterusnya
+## Apa Yang Seterusnya
 
 - [Bab 4 - Pelaksanaan praktikal](../../04-PracticalImplementation/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat kritikal, terjemahan profesional oleh manusia adalah disyorkan. Kami tidak bertanggungjawab atas sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat penting, terjemahan oleh manusia profesional adalah disyorkan. Kami tidak bertanggungjawab terhadap sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

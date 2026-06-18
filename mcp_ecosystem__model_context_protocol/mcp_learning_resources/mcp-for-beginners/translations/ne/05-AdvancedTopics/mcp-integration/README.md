@@ -1,27 +1,27 @@
-# इन्टरप्राइज इन्टिग्रेशन
+# उद्यम एकीकरण
 
-इन्टरप्राइज सन्दर्भमा MCP सर्भरहरू निर्माण गर्दा, प्रायः तपाईंले विद्यमान AI प्लेटफर्महरू र सेवाहरूसँग इन्टिग्रेट गर्नुपर्ने हुन्छ। यो खण्डले Azure OpenAI र Microsoft AI Foundry जस्ता इन्टरप्राइज प्रणालीहरूसँग MCP कसरी इन्टिग्रेट गर्ने भन्ने कुरा समेट्छ, जसले उन्नत AI क्षमताहरू र उपकरणहरूको समन्वयलाई सक्षम बनाउँछ।
+जब तपाईँ उद्यम सन्दर्भमा MCP सर्भरहरू निर्माण गर्नुहुन्छ, तपाइँलाई प्रायः विद्यमान AI प्लेटफर्म र सेवाहरू सँग एकीकृत गर्न आवश्यक पर्छ। यो खण्डले Azure OpenAI र Microsoft AI Foundry जस्ता उद्यम प्रणालीहरूसँग MCP कसरी एकीकृत गर्ने कुरा समेट्छ, जसले उन्नत AI क्षमता र उपकरण संयोजनलाई सक्षम बनाउँछ।
 
 ## परिचय
 
-यस पाठमा, तपाईंले Model Context Protocol (MCP) लाई इन्टरप्राइज AI प्रणालीहरूसँग, विशेष गरी Azure OpenAI र Microsoft AI Foundry सँग कसरी इन्टिग्रेट गर्ने भन्ने कुरा सिक्नुहुनेछ। यी इन्टिग्रेशनहरूले तपाईंलाई शक्तिशाली AI मोडेलहरू र उपकरणहरूको फाइदा लिन अनुमति दिन्छ, जबकि MCP को लचिलोपन र विस्तारयोग्यता कायम राख्छ।
+यस पाठमा, तपाइँले Model Context Protocol (MCP) लाई उद्यम AI प्रणालीहरूसँग कसरी एकीकृत गर्ने सिक्नुहुनेछ, विशेष रूपमा Azure OpenAI र Microsoft AI Foundry मा केन्द्रित। यी एकीकरणहरूले तपाईँलाई शक्तिशाली AI मोडेल र उपकरणहरू उपयोग गर्न अनुमति दिन्छ, जबकि MCP को लचिलोपन र विस्तारयोग्यतालाई कायम राख्छ।
 
 ## सिकाइका उद्देश्यहरू
 
-यस पाठको अन्त्यसम्म, तपाईंले निम्न कार्यहरू गर्न सक्षम हुनुहुनेछ:
+यस पाठको अन्त्यसम्म, तपाइँ सक्षम हुनुहुनेछ:
 
-- Azure OpenAI सँग MCP इन्टिग्रेट गरेर यसको AI क्षमताहरू प्रयोग गर्नुहोस्।
-- Azure OpenAI सँग MCP उपकरण समन्वय कार्यान्वयन गर्नुहोस्।
-- Microsoft AI Foundry सँग MCP संयोजन गरेर उन्नत AI एजेन्ट क्षमताहरू प्रयोग गर्नुहोस्।
-- Azure Machine Learning (ML) लाई प्रयोग गरेर ML पाइपलाइनहरू कार्यान्वयन गर्नुहोस् र मोडेलहरू MCP उपकरणको रूपमा दर्ता गर्नुहोस्।
+- MCP लाई Azure OpenAI सँग एकीकृत गर्न र यसको AI क्षमताहरू प्रयोग गर्न।
+- Azure OpenAI सँग MCP उपकरण संयोजन कार्यान्वयन गर्न।
+- Microsoft AI Foundry सँग MCP संयोजन गरेर उन्नत AI एजेन्ट क्षमताहरू पाउन।
+- Azure Machine Learning (ML) लाई प्रयोग गरेर ML पाइपलाइनहरू सञ्चालन गर्न र मोडेलहरू MCP उपकरणको रूपमा दर्ता गर्न।
 
-## Azure OpenAI इन्टिग्रेशन
+## Azure OpenAI एकीकरण
 
-Azure OpenAI ले GPT-4 जस्ता शक्तिशाली AI मोडेलहरूमा पहुँच प्रदान गर्दछ। MCP लाई Azure OpenAI सँग इन्टिग्रेट गर्दा, तपाईंले यी मोडेलहरूको फाइदा लिन सक्नुहुन्छ, जबकि MCP को उपकरण समन्वयको लचिलोपन कायम राख्न सक्नुहुन्छ।
+Azure OpenAI ले GPT-4 जस्ता शक्तिशाली AI मोडेलहरूमा पहुँच प्रदान गर्दछ। MCP लाई Azure OpenAI सँग एकीकृत गर्दा तपाइँ यी मोडेलहरू उपयोग गर्न सक्नुहुन्छ, साथै MCP को उपकरण संयोजनको लचिलोपन कायम राख्न सक्नुहुन्छ।
 
 ### C# कार्यान्वयन
 
-तलको कोड स्निपेटमा, हामी Azure OpenAI SDK प्रयोग गरेर MCP लाई Azure OpenAI सँग कसरी इन्टिग्रेट गर्ने देखाउँछौं।
+यस कोड स्निपेटमा, हामीले Azure OpenAI SDK प्रयोग गरेर MCP लाई Azure OpenAI सँग कसरी एकीकृत गर्ने देखाएका छौं।
 
 ```csharp
 // .NET Azure OpenAI Integration
@@ -85,24 +85,24 @@ namespace EnterpriseIntegration
 }
 ```
 
-माथिको कोडमा हामीले:
+पूर्वको कोडमा हामीले:
 
-- Azure OpenAI क्लाइन्टलाई एन्डपोइन्ट, डिप्लोयमेन्ट नाम, र API कुञ्जीको साथ कन्फिगर गरेका छौं।
-- `GetCompletionWithToolsAsync` नामक मेथड सिर्जना गरेका छौं, जसले उपकरणहरूको समर्थनसहित कम्प्लिसन प्राप्त गर्दछ।
-- प्रतिक्रिया भित्र उपकरण कलहरू ह्यान्डल गरेका छौं।
+- Azure OpenAI क्लाइन्टलाई एन्डपोइन्ट, डिप्लोयमेन्ट नाम र API कुञ्जीसहित कन्फिगर गरेका छौं।
+- उपकरण समर्थनसहित कम्प्लीसनहरू प्राप्त गर्न `GetCompletionWithToolsAsync` मेथड सिर्जना गरेका छौं।
+- प्रतिक्रिया भित्र उपकरण कलहरू सम्हालेका छौं।
 
-तपाईंलाई आफ्नो विशेष MCP सर्भर सेटअपको आधारमा वास्तविक उपकरण ह्यान्डलिङ तर्क कार्यान्वयन गर्न प्रोत्साहित गरिन्छ।
+आफ्नो विशेष MCP सर्भर सेटअप अनुसार वास्तविक उपकरण सञ्चालन तर्क कार्यान्वयन गर्न उत्साहित हुनुहोस्।
 
-## Microsoft AI Foundry इन्टिग्रेशन
+## Microsoft Foundry एकीकरण
 
-Azure AI Foundry ले AI एजेन्टहरू निर्माण र डिप्लोय गर्नका लागि प्लेटफर्म प्रदान गर्दछ। MCP लाई AI Foundry सँग इन्टिग्रेट गर्दा, तपाईंले यसको क्षमताहरूको फाइदा लिन सक्नुहुन्छ, जबकि MCP को लचिलोपन कायम राख्न सक्नुहुन्छ।
+Microsoft Foundry ले AI एजेन्टहरू निर्माण र परिनियोजन गर्ने प्लेटफर्म प्रदान गर्दछ। MCP लाई Microsoft Foundry सँग एकीकृत गर्दा यसको क्षमता उपयोग गर्न सकिन्छ, साथै MCP को लचिलोपन कायम रहन्छ।
 
-तलको कोडमा, हामीले एउटा एजेन्ट इन्टिग्रेशन विकास गरेका छौं, जसले अनुरोधहरू प्रक्रिया गर्छ र MCP प्रयोग गरेर उपकरण कलहरू ह्यान्डल गर्छ।
+तलको कोडमा, हामीले MCP प्रयोग गरेर अनुरोधहरू प्रशोधन गर्ने र उपकरण कलहरू सम्हाल्ने एजेन्ट एकीकरण विकास गरेका छौं।
 
 ### Java कार्यान्वयन
 
 ```java
-// Java AI Foundry Agent Integration
+// Java AI Foundry एजेन्ट एकीकरण
 package com.example.mcp.enterprise;
 
 import com.microsoft.aifoundry.AgentClient;
@@ -125,26 +125,26 @@ public class AIFoundryMcpBridge {
     }
     
     public AgentResponse processAgentRequest(AgentRequest request) {
-        // Process the AI Foundry Agent request
+        // AI Foundry एजेन्ट अनुरोध प्रक्रिया गर्नुहोस्
         AgentResponse initialResponse = agentClient.processRequest(request);
         
-        // Check if the agent requested to use tools
+        // एजेन्टले उपकरणहरू प्रयोग गर्ने अनुरोध गरेको छ कि छैन जाँच्नुहोस्
         if (initialResponse.getToolCalls() != null && !initialResponse.getToolCalls().isEmpty()) {
-            // For each tool call, route it to the appropriate MCP tool
+            // प्रत्येक उपकरण कलका लागि, यसलाई उपयुक्त MCP उपकरणमा मार्गनिर्देशन गर्नुहोस्
             for (AgentToolCall toolCall : initialResponse.getToolCalls()) {
                 String toolName = toolCall.getName();
                 Map<String, Object> parameters = toolCall.getArguments();
                 
-                // Execute the tool using MCP
+                // MCP प्रयोग गरेर उपकरण सञ्चालन गर्नुहोस्
                 ToolResponse mcpResponse = mcpClient.executeTool(toolName, parameters);
                 
-                // Create tool response for AI Foundry
+                // AI Foundry को लागि उपकरण प्रतिक्रिया सिर्जना गर्नुहोस्
                 AgentToolResponse toolResponse = new AgentToolResponse(
                     toolCall.getId(),
                     mcpResponse.getResult()
                 );
                 
-                // Submit tool response back to the agent
+                // उपकरण प्रतिक्रियालाई एजेन्टमा फिर्ता पेश गर्नुहोस्
                 initialResponse = agentClient.submitToolResponse(
                     request.getConversationId(), 
                     toolResponse
@@ -157,20 +157,20 @@ public class AIFoundryMcpBridge {
 }
 ```
 
-माथिको कोडमा, हामीले:
+पूर्वको कोडमा, हामीले:
 
-- `AIFoundryMcpBridge` नामक कक्षा सिर्जना गरेका छौं, जसले AI Foundry र MCP दुवैसँग इन्टिग्रेट गर्छ।
-- `processAgentRequest` नामक मेथड कार्यान्वयन गरेका छौं, जसले AI Foundry एजेन्ट अनुरोध प्रक्रिया गर्छ।
-- उपकरण कलहरू MCP क्लाइन्टमार्फत कार्यान्वयन गरेर र परिणामहरू AI Foundry एजेन्टमा फिर्ता पठाएर ह्यान्डल गरेका छौं।
+- `AIFoundryMcpBridge` क्लास सिर्जना गरेका छौं जसले AI Foundry र MCP सँग एकीकृत हुन्छ।
+- `processAgentRequest` मेथड कार्यान्वयन गरेका छौं जसले AI Foundry एजेन्ट अनुरोध प्रशोधन गर्दछ।
+- उपकरण कलहरू MCP क्लाइन्टमार्फत कार्यान्वयन गरेर नतिजा AI Foundry एजेन्टमा फर्काउने व्यवस्था गरेका छौं।
 
-## Azure ML सँग MCP इन्टिग्रेशन
+## MCP लाई Azure ML सँग एकीकृत गर्नु
 
-Azure Machine Learning (ML) सँग MCP इन्टिग्रेट गर्दा, तपाईंले Azure को शक्तिशाली ML क्षमताहरूको फाइदा लिन सक्नुहुन्छ, जबकि MCP को लचिलोपन कायम राख्न सक्नुहुन्छ। यो इन्टिग्रेशन ML पाइपलाइनहरू कार्यान्वयन गर्न, मोडेलहरू उपकरणको रूपमा दर्ता गर्न, र कम्प्युट स्रोतहरू व्यवस्थापन गर्न प्रयोग गर्न सकिन्छ।
+MCP लाई Azure Machine Learning (ML) सँग एकीकृत गर्दा तपाइँ Azure को शक्तिशाली ML क्षमता उपयोग गर्न सक्नुहुन्छ, साथै MCP को लचिलोपन कायम राख्न सक्नुहुन्छ। यो एकीकरण ML पाइपलाइनहरू सञ्चालन, मोडेलहरू उपकरणको रूपमा दर्ता गर्ने, र कम्प्युट कर्तव्यहरू व्यवस्थापन गर्न प्रयोग गर्न सकिन्छ।
 
 ### Python कार्यान्वयन
 
 ```python
-# Python Azure AI Integration
+# Python Azure AI एकीकरण
 from mcp_client import McpClient
 from azure.ai.ml import MLClient
 from azure.identity import DefaultAzureCredential
@@ -180,10 +180,10 @@ import asyncio
 
 class EnterpriseAiIntegration:
     def __init__(self, mcp_server_url, subscription_id, resource_group, workspace_name):
-        # Set up MCP client
+        # MCP ग्राहक सेट अप गर्नुहोस्
         self.mcp_client = McpClient(server_url=mcp_server_url)
         
-        # Set up Azure ML client
+        # Azure ML ग्राहक सेट अप गर्नुहोस्
         self.credential = DefaultAzureCredential()
         self.ml_client = MLClient(
             self.credential,
@@ -194,7 +194,7 @@ class EnterpriseAiIntegration:
     
     async def execute_ml_pipeline(self, pipeline_name, input_data):
         """Executes an ML pipeline in Azure ML"""
-        # First process the input data using MCP tools
+        # पहिलो पटक इनपुट डाटा MCP उपकरणहरू प्रयोग गरेर प्रक्रिया गर्नुहोस्
         processed_data = await self.mcp_client.execute_tool(
             "dataPreprocessor",
             {
@@ -203,7 +203,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Submit the pipeline to Azure ML
+        # पाइपलाइन Azure ML मा पेश गर्नुहोस्
         pipeline_job = self.ml_client.jobs.create_or_update(
             entity={
                 "name": pipeline_name,
@@ -215,7 +215,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Return job information
+        # कामको जानकारी फिर्ता गर्नुहोस्
         return {
             "job_id": pipeline_job.id,
             "status": pipeline_job.status,
@@ -224,22 +224,22 @@ class EnterpriseAiIntegration:
     
     async def register_ml_model_as_tool(self, model_name, model_version="latest"):
         """Registers an Azure ML model as an MCP tool"""
-        # Get model details
+        # मोडेल विवरण प्राप्त गर्नुहोस्
         if model_version == "latest":
             model = self.ml_client.models.get(name=model_name, label="latest")
         else:
             model = self.ml_client.models.get(name=model_name, version=model_version)
         
-        # Create deployment environment
+        # वितरण वातावरण सिर्जना गर्नुहोस्
         env = Environment(
             name="mcp-model-env",
             conda_file="./environments/inference-env.yml"
         )
         
-        # Set up compute
+        # कम्प्युट सेट अप गर्नुहोस्
         compute = self.ml_client.compute.get("mcp-inference")
         
-        # Deploy model as online endpoint
+        # मोडेललाई अनलाइन अन्तर्बिन्दुको रूपमा तैनाथ गर्नुहोस्
         deployment = self.ml_client.online_deployments.create_or_update(
             endpoint_name=f"mcp-{model_name}",
             deployment={
@@ -255,22 +255,22 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Create MCP tool schema based on model schema
+        # मोडेल स्किमाको आधारमा MCP उपकरण स्किमा सिर्जना गर्नुहोस्
         tool_schema = {
             "type": "object",
             "properties": {},
             "required": []
         }
         
-        # Add input properties based on model schema
+        # मोडेल स्किमाको आधारमा इनपुट गुणहरू थप गर्नुहोस्
         for input_name, input_spec in model.signature.inputs.items():
             tool_schema["properties"][input_name] = {
                 "type": self._map_ml_type_to_json_type(input_spec.type)
             }
             tool_schema["required"].append(input_name)
         
-        # Register as MCP tool
-        # In a real implementation, you would create a tool that calls the endpoint
+        # MCP उपकरणको रूपमा दर्ता गर्नुहोस्
+        # वास्तविक कार्यान्वयनमा, तपाईंले त्यस्तो उपकरण सिर्जना गर्नुहुनेछ जुन अन्तर्बिन्दुलाई कल गर्दछ
         return {
             "model_name": model_name,
             "model_version": model.version,
@@ -291,17 +291,21 @@ class EnterpriseAiIntegration:
         return mapping.get(ml_type, "string")
 ```
 
-माथिको कोडमा, हामीले:
+पूर्वको कोडमा, हामीले:
 
-- `EnterpriseAiIntegration` नामक कक्षा सिर्जना गरेका छौं, जसले MCP लाई Azure ML सँग इन्टिग्रेट गर्छ।
-- `execute_ml_pipeline` नामक मेथड कार्यान्वयन गरेका छौं, जसले MCP उपकरणहरू प्रयोग गरेर इनपुट डाटा प्रक्रिया गर्छ र Azure ML मा ML पाइपलाइन सबमिट गर्छ।
-- `register_ml_model_as_tool` नामक मेथड कार्यान्वयन गरेका छौं, जसले Azure ML मोडेललाई MCP उपकरणको रूपमा दर्ता गर्छ, जसमा आवश्यक डिप्लोयमेन्ट वातावरण र कम्प्युट स्रोतहरू सिर्जना गर्ने समावेश छ।
-- उपकरण दर्ताका लागि Azure ML डाटा प्रकारहरूलाई JSON स्किमामा म्याप गरेका छौं।
-- ML पाइपलाइन कार्यान्वयन र मोडेल दर्ता जस्ता सम्भावित लामो समय लाग्ने अपरेसनहरू ह्यान्डल गर्न असिन्क्रोनस प्रोग्रामिङ प्रयोग गरेका छौं।
+- `EnterpriseAiIntegration` क्लास सिर्जना गरेका छौं जसले MCP लाई Azure ML सँग एकीकृत गर्दछ।
+- `execute_ml_pipeline` मेथड कार्यान्वयन गरेका छौं जसले इनपुट डाटा MCP उपकरणहरू प्रयोग गरेर प्रशोधन गर्छ र Azure ML मा ML पाइपलाइन सबमिट गर्छ।
+- `register_ml_model_as_tool` मेथड कार्यान्वयन गरेका छौं जसले Azure ML मोडेललाई MCP उपकरणको रूपमा दर्ता गर्छ, आवश्यक डिप्लोयमेन्ट वातावरण र कम्प्युट स्रोतहरू सिर्जना गरेर।
+- उपकरण दर्ताका लागि Azure ML डेटा प्रकारहरूलाई JSON स्किमा प्रकारहरूसँग मिलाएका छौं।
+- ML पाइपलाइन सञ्चालन र मोडेल दर्ता जस्ता लामो समय चल्ने कार्यहरूलाई असिन्क्रोनस प्रोग्रामिङ प्रयोग गरेर सम्हालेका छौं।
 
-## अब के गर्ने
+## अर्को के छ
 
-- [5.2 मल्टि मोडालिटी](../mcp-multi-modality/README.md)
+- [5.2 बहु माध्यमिकता](../mcp-multi-modality/README.md)
 
-**अस्वीकरण**:  
-यो दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरेर अनुवाद गरिएको छ। हामी शुद्धताको लागि प्रयास गर्छौं, तर कृपया ध्यान दिनुहोस् कि स्वचालित अनुवादमा त्रुटिहरू वा अशुद्धताहरू हुन सक्छ। यसको मूल भाषा मा रहेको मूल दस्तावेज़लाई आधिकारिक स्रोत मानिनुपर्छ। महत्वपूर्ण जानकारीको लागि, व्यावसायिक मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट उत्पन्न हुने कुनै पनि गलतफहमी वा गलत व्याख्याको लागि हामी जिम्मेवार हुने छैनौं।
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**अस्वीकरण**:
+यो दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरेर अनुवाद गरिएको हो। हामी सही हुन प्रयास गर्छौं, तर कृपया जानकार हुनुस् कि स्वचालित अनुवादमा त्रुटिहरू वा अशुद्धताहरू हुन सक्छन्। मूल दस्तावेज़ यसको मूल भाषामा आधिकारिक स्रोत मानिनुपर्छ। महत्वपूर्ण जानकारीका लागि व्यावसायिक मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट उत्पन्न कुनै पनि गलत बुझाइ वा त्रुटिको लागि हामी जिम्मेवार छैनौं।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,73 +1,73 @@
-# Weather MCP சேவை
+# Weather MCP Server
 
-இது வாதாடல் பதில்களுடன் வானிலை கருவிகளை செயல்படுத்தும் Python இல் உருவாக்கப்பட்ட மாதிரி MCP சேவை. உங்கள் சொந்த MCP சேவைக்கான அடித்தளமாக இது பயன்படுத்தப்படலாம். இது பின்வரும் செயல்பாடுகளை உள்ளடக்கியது:
+Python இல் உருவாக்கப்பட்ட இது வானிலை கருவிகள் மற்றும் மாக்கு பதில்களுடன் செயல்படும் ஒரு மாதிரி MCP Server ஆகும். இது உங்கள் சொந்த MCP Server க்கான ஒரு அடித்தளமாக பயன்படுத்தக்கூடியது. இதன் உள்ளடக்கங்கள் பின்வருமாறு:
 
-- **வானிலை கருவி**: வழங்கப்பட்ட இடத்தின் அடிப்படையில் வாதாடல் வானிலை தகவல்களை வழங்கும் கருவி.
-- **ஏஜென்ட் கட்டுமானத்துடன் இணைப்பு**: டெஸ்டிங் மற்றும் பிழைத்திருத்தத்திற்கு MCP சேவையை ஏஜென்ட் கட்டுமானத்துடன் இணைக்கும் செயல்பாடு.
-- **[MCP ஆய்வாளர்](https://github.com/modelcontextprotocol/inspector) மூலம் பிழைத்திருத்தம்**: MCP சேவையை MCP ஆய்வாளர் பயன்படுத்தி பிழைத்திருத்தம் செய்யும் செயல்பாடு.
+- **Weather Tool**: கொடுக்கப்பட்ட இடத்தின் அடிப்படையில் மாக்கு வானிலை தகவலை வழங்கும் கருவி.
+- **Agent Builder உடன் இணைக்கவும்**: MCP சர்வரை Agent Builder உடன் இணைத்து சோதனை மற்றும் பிழைத்திருத்தத்திற்கான வசதி.
+- **[MCP Inspector](https://github.com/modelcontextprotocol/inspector) மூலம் பிழைத்திருத்தம்**: MCP Inspector ஐ பயன்படுத்தி MCP Server ஐ பிழைத்திருத்தும் வசதி.
 
-## Weather MCP சேவை மாதிரியுடன் துவங்குதல்
+## Weather MCP Server வார்ப்புருவுடன் ஆரம்பிக்கவும்
 
-> **முன்னுரிமைகள்**
+> **முன்பாக தேவைப்படும் பொருட்கள்**
 >
-> உங்கள் உள்ளூர்திரைப்பட இயந்திரத்தில் MCP சேவையை இயக்கு, கீழ்கண்டவை தேவைப்படும்:
+> உங்கள் உள்ளூர்முறை டெவ் கணினியில் MCP Server இயக்கு, உங்களுக்கு தேவையானவை:
 >
 > - [Python](https://www.python.org/)
-> - (*விருப்பமானது - uv ஐ விரும்பினால்*) [uv](https://github.com/astral-sh/uv)
-> - [Python பிழைத்திருத்தி நீட்டிப்பு](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy)
+> - (*விருப்பம் - uv பயன்படுத்த விரும்பினால்*) [uv](https://github.com/astral-sh/uv)
+> - [Python Debugger Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy)
 
-## சூழலைத் தயார் செய்வது
+## சூழலை தயார் செய்வது
 
-இந்த திட்டத்துக்கான சூழலை அமைக்க இரண்டு முயற்சிகள் உள்ளன. உங்கள் விருப்பத்தின் அடிப்படையில் எந்தவொன்றையும் தேர்வு செய்யலாம்.
+இந்த திட்டத்திற்கான சூழலை அமைக்க இரண்டு முறைகள் உள்ளன. உங்கள் விருப்பத்தின் படி எதையாவது தேர்வு செய்யலாம்.
 
-> குறிப்பு: மெய்நிகர் சூழல் python பயன்படுத்தப்படுவதை உறுதிப்படுத்த VSCode அல்லது டெர்மினலை மீண்டும் தொடங்கவும்.
+> குறிப்பு: வைர்ச்சுவல் சூழலை உருவாக்கிய பின்னர் VSCode அல்லது டெர்மினலை மீண்டும் தொடக்கி, வைர்ச்சுவல் சூழலின் பைதான் பயன்படுத்தப்படுவதை உறுதிப்படுத்தவும்.
 
-| முயற்சி | படிகள் |
+| முறை | படிகள் |
 | -------- | ----- |
-| `uv` ஐ பயன்படுத்துதல் | 1. மெய்நிகர் சூழலை உருவாக்கவும்: `uv venv` <br>2. VSCode கட்டளை "***Python: Select Interpreter***" ஓட்டி உருவான மெய்நிகர் சூழல் python ஐத் தேர்ந்தெடுக்கவும்<br>3. தேவைகள் (dev தேவைகள் உட்பட) நிறுவவும்: `uv pip install -r pyproject.toml --extra dev` |
-| `pip` ஐ பயன்படுத்துதல் | 1. மெய்நிகர் சூழலை உருவாக்கவும்: `python -m venv .venv` <br>2. VSCode கட்டளை "***Python: Select Interpreter***" ஓட்டி உருவான மெய்நிகர் சூழல் python ஐத் தேர்ந்தெடுக்கவும்<br>3. தேவைகள் (dev தேவைகள் உட்பட) நிறுவவும்: `pip install -e .[dev]` |
+| `uv` பயன்படுத்தி | 1. வைர்ச்சுவல் சூழல் உருவாக்கவும்: `uv venv` <br>2. VSCode இல் "***Python: Select Interpreter***" கமாண்ட் ஓட்டவும், உருவாக்கிய வைர்ச்சுவல் சூழலின் பைதானை தேர்ந்தெடுக்கவும் <br>3. சார்புகள் மற்றும் டெவ் சார்புகள் நிறுவ: `uv pip install -r pyproject.toml --extra dev` |
+| `pip` பயன்படுத்தி | 1. வைர்ச்சுவல் சூழல் உருவாக்கவும்: `python -m venv .venv` <br>2. VSCode இல் "***Python: Select Interpreter***" கமாண்ட் ஓட்டவும், உருவாக்கிய வைர்ச்சுவல் சூழலின் பைதானை தேர்ந்தெடுக்கவும்<br>3. சார்புகள் மற்றும் டெவ் சார்புகள் நிறுவ: `pip install -e .[dev]` | 
 
-சூழலை அமைத்துக்கொண்ட பிறகு, நீங்கள் MCP Client ஆக உள்ளூர் இயந்திரத்தில் Agent Builder மூலம் சேவையை இயக்கலாம்:
-1. VS Code பிழைத்திருத்த கோப்புறையை திறக்கவும். `Debug in Agent Builder` ஐ தேர்ந்தெடுத்து MCP சேவையை பிழைத்திருத்த F5 ஐ அழுத்தவும்.
-2. AI Toolkit Agent Builder மூலம் [இந்த கேள்வியுடன்](../../../../../../../../../../../open_prompt_builder) சேவையை சோதிக்கவும். சேவை தானாகவே Agent Builder உடன் இணைக்கப்படும்.
-3. கேள்வியுடன் சேவையை சோதிக்க `Run` ஐ கிளிக் செய்யவும்.
+சூழலை அமைத்த பிறகு, MCP Client ஆக Agent Builder வழியாக உங்கள் உள்ளூர் டெவ் கணினியில் சர்வரை ஓட்டலாம்:
+1. VS Code பிழைத்திருத்த குழுவை திறக்கவும். `Debug in Agent Builder` ஐ தேர்வு செய்து அல்லது `F5` நொடுத்து MCP சர்வரை பிழைத்திருத்தத் தொடங்கவும்.
+2. Microsoft Foundry Toolkit Agent Builder ஐ பயன்படுத்தி சர்வரை [இந்த பதிவாக்கப் பயன்படுத்தி](../../../../../../../../../../../open_prompt_builder) சோதனை செய்யவும். சர்வர் தானாகவே Agent Builder உடன் இணைக்கப்படும்.
+3. `Run` க்ளிக் செய்து பதிவாக்கத்துடன் சர்வரை சோதிக்கவும்.
 
-**வாழ்த்துக்கள்**! நீங்கள் வெற்றிகரமாக உங்கள் உள்ளூர்_dev கணினியில் Agent Builder மூலம் MCP Client ஆக Weather MCP சேவையை இயக்கியுள்ளீர்கள்.
+**வாழ்த்துக்கள்**! நீங்கள் வெற்றிகரமாக Weather MCP Server ஐ உங்கள் உள்ளூர் டெவ் கணினியில் Agent Builder வழியாக MCP Client ஆக இயக்கியுள்ளீர்கள்.
 ![DebugMCP](https://raw.githubusercontent.com/microsoft/windows-ai-studio-templates/refs/heads/dev/mcpServers/mcp_debug.gif)
 
-## மாதிரியில் உள்ளவை
+## வார்ப்புருவில் உள்ளவை
 
-| கோப்பகம் / கோப்பு | உள்ளடக்கம்                                  |
-| ------------ | ----------------------------------------- |
-| `.vscode`    | பிழைத்திருத்தத்திற்கான VSCode கோப்புகள்    |
-| `.aitk`      | AI கருவிக்கான கட்டமைப்புகள்               |
-| `src`        | வானிலை mcp சேவைக்கு மூலக் குறியீடு         |
+| கோப்புறை / கோப்பு| உள்ளடக்கங்கள்                                 |
+| ------------ | -------------------------------------------- |
+| `.vscode`    | பிழைத்திருத்தத்திற்கான VSCode கோப்புகள்       |
+| `.aitk`      | Microsoft Foundry Toolkit க்கான கட்டமைப்புகள் |
+| `src`        | weather mcp server க்கான மூலக் குறியீடு        |
 
-## Weather MCP சேவையை பிழைத்திருத்துவது எப்படி
+## Weather MCP Server ஐ எப்படி பிழைத்திருத்துவது
 
-> குறிப்புகள்:
-> - [MCP ஆய்வாளர்](https://github.com/modelcontextprotocol/inspector) என்பது MCP சேவைகளை சோதனை மற்றும் பிழைத்திருத்துவதற்கான பார்வை வளர்த்தல் கருவியாகும்.
-> - அனைத்து பிழைத்திருத்த முறைகளும் இடைமுகங்களை ஆதரிக்கின்றன, ஆகவே கருவி செயல்பாணிக் குறியீட்டுக்கு இடைமுகங்களை சேர்க்கலாம்.
+> குறிப்பு:
+> - [MCP Inspector](https://github.com/modelcontextprotocol/inspector) என்பது MCP சர்வர்களை சோதனையிட மற்றும் பிழைத்திருத்த காட்சிப்படுத்தும் டெவலப்பர் கருவி.
+> - அனைத்து பிழைத்திருத்த முறைகளும் பிரேக்க்பாயிண்-ஐ ஆதரிக்கின்றன, எனவே கருவி அமலாக்க குறியீட்டில் பிரேக்க்பாயிண்களை சேர்க்கலாம்.
 
 | பிழைத்திருத்த முறை | விளக்கம் | பிழைத்திருத்த படிகள் |
 | ---------- | ----------- | --------------- |
-| Agent Builder | AI கருவியலுடன் Agent Builder இல் MCP சேவையை பிழைத்திருத்துக. | 1. VS Code பிழைத்திருத்த கோப்புறையை திறக்கவும். `Debug in Agent Builder` தேர்ந்து F5 அழுத்தி MCP சேவையை பிழைத்திருத்த தொடங்கவும்.<br>2. AI கருவி Agent Builder பயன்படுத்தி [இந்த கேள்வியுடன்](../../../../../../../../../../../open_prompt_builder) சேவையை சோதிக்கவும். சேவை தானாக Agent Builder உடன் இணைக்கப்படும்.<br>3. கேள்வியுடன் சேவையை சோதிக்க `Run` ஐ கிளிக் செய்யவும். |
-| MCP ஆய்வாளர் | MCP ஆய்வாளர் பயன்படுத்தி MCP சேவையை பிழைத்திருத்துக. | 1. [Node.js](https://nodejs.org/) நிறுவவும்<br>2. ஆய்வாளரை அமைக்கவும்: `cd inspector` && `npm install` <br> 3. VS Code பிழைத்திருத்த கோப்புறையை திறக்கவும். `Debug SSE in Inspector (Edge)` அல்லது `Debug SSE in Inspector (Chrome)` தேர்வு செய்து F5 அழுத்தி பிழைத்திருத்த தொடங்கவும்.<br>4. MCP ஆய்வாளர் உலாவியில் திறக்கும்போது, இந்த MCP சேவையை இணைக்க `Connect` பொத்தானை கிளிக் செய்யவும்.<br>5. பின்னர் நீங்கள் `List Tools` செய்ய, கருவியை தேர்வு செய்து, அளவுருக்கள் வழங்கி, `Run Tool` மூலம் உங்கள் சேவை குறியீட்டை பிழைத்திருத்தம் செய்யலாம்.<br> |
+| Agent Builder | Microsoft Foundry Toolkit மூலம் Agent Builder இல் MCP சர்வரை பிழைத்திருத்து. | 1. VS Code பிழைத்திருத்த குழுவை திறக்கவும். `Debug in Agent Builder` ஐ தேர்ந்தெடுத்து `F5` அழுத்தி MCP சர்வரை பிழைத்திருத்தத் தொடங்கவும்.<br>2. Microsoft Foundry Toolkit Agent Builder ஐ பயன்படுத்தி சர்வரை [இந்த பதிவாக்கத்துடன்](../../../../../../../../../../../open_prompt_builder) சோதிக்கவும். சர்வர் தானாகவே Agent Builder உடன் இணைக்கப்படும்.<br>3. பதிவாக்கத்துடன் சர்வரை சோதிக்க `Run` ஐ கிளிக் செய்யவும். |
+| MCP Inspector | MCP Inspector ஐ பயன்படுத்தி MCP சர்வரை பிழைத்திருத்து. | 1. [Node.js](https://nodejs.org/) ஐ நிறுவவும்<br> 2. Inspector ஐ அமைக்க: `cd inspector` && `npm install` <br> 3. VS Code பிழைத்திருத்த குழுவை திறக்கவும். `Debug SSE in Inspector (Edge)` அல்லது `Debug SSE in Inspector (Chrome)` ஐ தேர்ந்தெடுத்து F5 அழுத்தவும்.<br> 4. MCP Inspector உலாவியில் துவங்கும் போது, `Connect` பொத்தானை கிளிக் செய்து இந்த MCP சர்வருடன் இணைக்கவும்.<br> 5. பின்னர் நீங்கள் `List Tools` செய்து கருவியை தேர்ந்தெடுத்து உள்ளீடு அளித்து, `Run Tool` மூலம் உங்கள் சர்வர் குறியீட்டை பிழைத்திருத்தலாம்.<br> |
 
-## இயல்புநிலை துவாரங்கள் மற்றும் சிதைவுகள்
+## இயல்புநிலைய போர்டுகள் மற்றும் தானியங்கி மாற்றங்கள்
 
-| பிழைத்திருத்த முறை | துவாரங்கள் | விளக்கங்கள் | சிதைவுகள் | குறிப்பு |
+| பிழைத்திருத்த முறை | போர்டுகள் | வரையறைகள் | மாற்றங்கள் | குறிப்பு |
 | ---------- | ----- | ------------ | -------------- |-------------- |
-| Agent Builder | 3001 | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | மேலே உள்ள துவாரங்களைக் மாற்ற [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ஐ திருத்தவும். | பொருளில்லை |
-| MCP ஆய்வாளர் | 3001 (சேவை); 5173 மற்றும் 3000 (ஆய்வாளர்) | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | மேலே உள்ள துவாரங்களைக் மாற்ற [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ஐ திருத்தவும்.| பொருளில்லை |
+| Agent Builder | 3001 | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | மேலுள்ள போர்டுகளை மாற்ற [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) கோப்புகளை திருத்தவும். | பொருந்தாது |
+| MCP Inspector | 3001 (Server); 5173 மற்றும் 3000 (Inspector) | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | மேலுள்ள போர்டுகளை மாற்ற [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) கோப்புகளை திருத்தவும்.| பொருந்தாது |
 
-## கருத்து
+## கருத்துக்கள்
 
-இந்த மாதிரிக்கான ஏதேனும் கருத்துகள் அல்லது பரிந்துரைகள் இருந்தால், [AI கருவி GitHub சேமிப்பகத்தில்](https://github.com/microsoft/vscode-ai-toolkit/issues) ஒரு பிரச்சனையைத் திறக்கவும்.
+இந்த வார்ப்புருவுக்கு உங்கள் கருத்துக்கள் அல்லது பரிந்துரைகள் இருந்தால், தயவுசெய்து [Microsoft Foundry Toolkit GitHub கிடைப்பகத்தில்](https://github.com/microsoft/vscode-ai-toolkit/issues) ஒரு பிரச்சினையை திறக்கவும்.
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**இலக்கணம்**:  
-இந்த ஆவணம் [Co-op Translator](https://github.com/Azure/co-op-translator) என்ற செயற்கை நுண்ணறிவு மொழிபெயர்ப்பு சேவையை பயன்படுத்தி மொழிபெயர்க்கப்பட்டுள்ளது. நாங்கள் துல்லியத்தைக் கவனித்துப் பணியாற்றினாலும், தானாக உருவாகும் மொழிபெயர்ப்புகளில் பிழைகள் அல்லது தவறுகள் இருக்க வாய்ப்பு உள்ளது என்பதை தயவுசெய்து அறிந்து கொள்ளவும். அதன் சொந்த மொழியில் இருக்கும் அசல் ஆவணம் அதிகாரபூர்வமான ஆதாரமாக கருதப்பட வேண்டும். முக்கியமான தகவல்களுக்கு, தொழில்முறை மனித மொழி பெயர்ப்பு பரிந்துரைக்கப்படுகிறது. இந்த மொழிபெயர்ப்பின் பயன்பாட்டில் ஏற்படக்கூடிய எந்த தவறான புரிதல்களுக்கும் அல்லது தவறான விளக்கங்களுக்கும் நாங்கள் பொறுப்பேற்போமில்லை.
+**மறுப்பு**:
+இந்த ஆவணம் AI மொழிபெயர்ப்பு சேவை [Co-op Translator](https://github.com/Azure/co-op-translator) பயன்படுத்தி மொழிபெயர்க்கப்பட்டுள்ளது. நாங்கள் துல்லியத்திற்காக முயற்சி செய்துள்ளோம், ஆனால் தானாக செய்யப்படும் மொழிபெயர்ப்புகளில் பிழைகள் அல்லது தவறுகள் இருக்கலாம் என்பதை கவனத்தில் கொள்ளவும். அசல் ஆவணம் அதன் தாய்மொழியில் அதிகாரப்பூர்வ ஆதாரமாக கருதப்பட வேண்டும். முக்கியமான தகவல்களுக்கு, தொழில்நுட்பமான மனித மொழிபெயர்ப்பு பரிந்துரைக்கப்படுகிறது. இந்த மொழிபெயர்ப்பைப் பயன்படுத்துவதால் ஏற்படும் எந்த தவறான புரிதல்கள் அல்லது தவறான விளக்கத்திற்கும் நாங்கள் பொறுப்பில்வில்லை.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

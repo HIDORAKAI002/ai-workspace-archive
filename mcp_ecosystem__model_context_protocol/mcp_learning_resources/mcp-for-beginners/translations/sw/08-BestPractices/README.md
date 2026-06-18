@@ -1,89 +1,89 @@
-# MCP Maendeleo Mazoea Bora
+# Mazoea Bora ya Maendeleo ya MCP
 
-[![MCP Development Best Practices](../../../translated_images/sw/09.d0f6d86c9d72134c.webp)](https://youtu.be/W56H9W7x-ao)
+[![Mazoea Bora ya Maendeleo ya MCP](../../../translated_images/sw/09.d0f6d86c9d72134c.webp)](https://youtu.be/W56H9W7x-ao)
 
-_(Bonyeza picha hapo juu kutazama video ya somo hili)_
+_(Bonyeza picha hapo juu kuona video ya somo hili)_
 
 ## Muhtasari
 
-Somo hili linazingatia mbinu za hali ya juu za maendeleo, upimaji, na ueneaji wa seva na vipengele vya MCP katika mazingira ya uzalishaji. Kadiri mifumo ya MCP inavyoongezeka kwa ugumu na umuhimu, kufuata mifumo iliyowekwa kunahakikisha kuaminika, urahisi wa matengenezo, na mwingiliano. Somo hili linakusanya hekima ya vitendo iliyopatikana kutoka kwa utekelezaji halisi wa MCP ili kukuongoza katika kuunda seva imara, yenye ufanisi kwa rasilimali, viamsha, na zana bora.
+Somo hili linazingatia mazoea bora ya juu kwa ajili ya kuendeleza, kujaribu, na kuweka kwenye uzalishaji seva na vipengele vya MCP. Kadiri mifumo ya MCP inavyozidi kuwa ngumu na muhimu, kufuata mifumo iliyowekwa kunahakikisha kuaminika, kudumishwa, na uwezo wa kushirikiana. Somo hili linakusanya hekima halisi iliyopatikana kutoka kwa utekelezaji wa MCP katika dunia halisi kukuongoza katika kuunda seva imara, zinazofanya kazi kwa ufanisi zikiwa na rasilimali madhubuti, maelekezo, na zana.
 
 ## Malengo ya Kujifunza
 
 Mwisho wa somo hili, utaweza:
 
-- Kutumia mbinu bora za tasnia katika usanifu wa seva na vipengele vya MCP
-- Kuunda mikakati kamili ya upimaji kwa seva za MCP
-- Kubuni mifumo bora, inayorudiwa ya mtiririko wa kazi kwa programu tata za MCP
-- Kutekeleza usimamizi sahihi wa makosa, kurekodi kumbukumbu, na ufuatiliaji katika seva za MCP
-- Kuboresha utekelezaji wa MCP kwa ufanisi, usalama, na urahisi wa matengenezo
+- Tumia mazoea bora ya tasnia katika muundo wa seva na vipengele vya MCP
+- Unda mikakati kamili ya upimaji kwa seva za MCP
+- Buni mifumo ya kazi yenye ufanisi, inayoweza kutumika tena kwa programu tata za MCP
+- Tekeleza usimamizi mzuri wa makosa, uandishi wa kumbukumbu, na ufuatiliaji katika seva za MCP
+- Boresha utekelezaji wa MCP kwa utendaji, usalama, na urejeshaji
 
-## Kanuni za Msingi za MCP
+## Misingi ya MCP
 
-Kabla ya kuingia katika mbinu maalum za utekelezaji, ni muhimu kuelewa kanuni msingi zinazowaongoza maendeleo ya MCP yenye ufanisi:
+Kabla ya kuingia kwenye mazoea maalum ya utekelezaji, ni muhimu kuelewa misingi inayosuahia maendeleo ya MCP yenye ufanisi:
 
-1. **Mawasiliano Yaliyopangwa Sanifu**: MCP hutumia JSON-RPC 2.0 kama msingi wake, ikitoa muundo thabiti kwa maombi, majibu, na usimamizi wa makosa katika utekelezaji wote.
+1. **Mawasiliano Iliyo Sanifu**: MCP hutumia JSON-RPC 2.0 kama msingi wake, ikitoa muundo unaoendana kwa maombi, majibu, na usimamizi wa makosa katika utekelezaji wote.
 
-2. **Ubunifu Unaomzingatia Mtumiaji**: Kila wakati weka mbele idhini, udhibiti, na uwazi wa mtumiaji katika utekelezaji wako wa MCP.
+2. **Muundo Unaomjali Mtumiaji**: Daima itajiwekea awali ridhaa ya mtumiaji, udhibiti, na uwazi katika utekelezaji wako wa MCP.
 
-3. **Usalama Kwanza**: Tekeleza hatua imara za usalama ikiwa ni pamoja na utambulisho, idhini, uthibitishaji, na kipimo cha kiwango cha maombi.
+3. **Usalama Kwanza**: Tekeleza usalama imara ikiwa ni pamoja na uthibitishaji, ruhusa, uthibitishaji, na ukomo wa kiwango.
 
-4. **Mimambo ya Kihusianisho**: Buni seva zako za MCP kwa njia ya moduli, ambapo kila zana na rasilimali inakuwa na kusudi wazi na lengo.
+4. **Majaribio ya Moduli**: Unda seva za MCP kwa njia ya moduli, ambapo kila zana na rasilimali ina kusudi wazi na lengo mahususi.
 
-5. **Mawasiliano ya Kidumu**: Tumia uwezo wa MCP kudumisha hali kati ya maombi mengi kwa mazungumzo yaliyo na muktadha zaidi.
+5. **Unganisho Lenye Hali**: Tumia uwezo wa MCP kudumisha hali kati ya maombi mbalimbali kwa mwingiliano wenye muktadha na wenye kuzingatia muendelezo.
 
-## Mazoea Bora Rasmi ya MCP
+## Mazoea Rasmi Bora ya MCP
 
-Mazoea bora yafuatayo yanatokana na nyaraka rasmi za Itifaki ya Muktadha wa Mfano:
+Mazoea yafuatayo bora yanatokana na nyaraka rasmi za Itifaki ya Muktadha wa Mfano (MCP):
 
 ### Mazoea Bora ya Usalama
 
-1. **Idhini na Udhibiti wa Mtumiaji**: Ikiwa daima inahitaji idhini wazi ya mtumiaji kabla ya kupata data au kufanya shughuli. Toa udhibiti wazi juu ya data inayoshirikiwa na vitendo vinavyoruhusiwa.
+1. **Ridhaa na Udhibiti wa Mtumiaji**: Daima hitaji ridhaa wazi ya mtumiaji kabla ya kufikia data au kufanya shughuli. Toa udhibiti wazi juu ya data gani inashirikiwa na ni vitendo gani vinavyoruhusiwa.
 
-2. **Faragha ya Data**: Weka wazi data ya mtumiaji tu kwa idhini ya wazi na uilinde kwa udhibiti wa upatikanaji unaofaa. Linda dhidi ya usambazaji wa data usioidhinishwa.
+2. **Faragha ya Data**: Onyesha data ya mtumiaji tu kwa ridhaa wazi na isihifadhi data bila ruhusa inavyotakiwa. Linda dhidi ya uhamishaji wa data isiyoidhinishwa.
 
-3. **Usalama wa Zana**: Takikisha idhini wazi ya mtumiaji kabla ya kuitisha zana yoyote. Hakikisha watumiaji wanaelewa kazi za kila zana na zingatia mipaka imara ya usalama.
+3. **Usalama wa Zana**: Hitaji ridhaa wazi ya mtumiaji kabla ya kuita zana yoyote. Hakikisha watumiaji kuelewa kazi za kila zana na funga mipaka thabiti ya usalama.
 
-4. **Udhibiti wa Ruhusa za Zana**: Sanidi ni zana gani modeli inaruhusiwa kutumia wakati wa kikao, kuhakikisha zana zilizoidhinishwa tu ndizo zinapatikana.
+4. **Udhibiti wa Ruhusa za Zana**: Sanidi ni zana gani mfano unaruhusiwa kutumia wakati wa kikao, kuhakikisha zana zilizoidhinishwa tu ndizo zinazopatikana.
 
-5. **Utambulisho**: Hitaji utambulisho unaofaa kabla ya kutoa ruhusa ya kutumia zana, rasilimali, au shughuli nyeti kwa kutumia funguo za API, tokeni za OAuth, au njia nyingine salama za uthibitishaji.
+5. **Uthibitishaji**: Hitaji uthibitishaji sahihi kabla ya kutoa ruhusa kwa zana, rasilimali, au shughuli nyeti kwa kutumia funguo za API, tokeni za OAuth, au mbinu nyingine za usalama.
 
-6. **Uhakiki wa Vigezo**: Fanya uhakikisho wa vigezo vya kila uitikaji wa zana ili kuzuia pembejeo zisizotakikana au hatari kufikia utekelezaji wa zana.
+6. **Uthibitishaji wa Vigezo**: Tekeleza uthibitishaji kwa maombi yote ya zana ili kuzuia pembejeo zisizo sahihi au zenye madhara kufika kwa utekelezaji wa zana.
 
-7. **Kipimo cha Kiwango cha Maombi**: Tekeleza kipimo cha kiwango cha maombi ili kuzuia matumizi mabaya na kuhakikisha matumizi ya haki ya rasilimali za seva.
+7. **Ukomo wa Kiwango**: Tekeleza ukomo wa kiwango kwa kuzuia matumizi mabaya na kuhakikisha usawa katika matumizi ya rasilimali za seva.
 
 ### Mazoea Bora ya Utekelezaji
 
-1. **Mjadala wa Uwezo**: Wakati wa usanidi wa muunganisho, badilishana taarifa kuhusu vipengele vinavyotegemewa, matoleo ya itifaki, zana, na rasilimali zilizopo.
+1. **Mazungumzo ya Uwezo**: Wakati wa kuweka muunganiko, kubadilishana taarifa kuhusu vipengele vinavyotegemea, matoleo ya itifaki, zana zinazopatikana, na rasilimali.
 
-2. **Ubunifu wa Zana**: Unda zana zenye lengo wazi zinazozingatia kazi moja vizuri, badala ya zana kubwa zinazoshughulikia masuala mengi.
+2. **Muundo wa Zana**: Unda zana zilizo na lengo moja, zinazofanya jambo moja vizuri, badala ya zana kubwa zinazo-dhibiti matatizo mengi.
 
-3. **Usimamizi wa Makosa**: Tekeleza ujumbe wa makosa na nambari zilizopangwa ili kusaidia kutambua matatizo, kushughulikia kushindwa kwa upole, na kutoa maoni yanayoweza kuchukuliwa hatua.
+3. **Usimamizi wa Makosa**: Tekeleza ujumbe na nambari za makosa yaliyosanifishwa kusaidia kusuluhisha matatizo, kushughulikia makosa kwa utulivu, na kutoa mrejesho unaofaa.
 
-4. **Kurekodi Kumbukumbu**: Sanidi kumbukumbu zilizoandaliwa kwa ukaguzi, utatuzi wa matatizo, na ufuatiliaji wa mwingiliano wa itifaki.
+4. **Uandishi wa Kumbukumbu**: Sanidi kumbukumbu zilizopangwa kwa ajili ya ukaguzi, urekebishaji makosa, na ufuatiliaji wa mwingiliano wa itifaki.
 
-5. **Ufuatiliaji wa Maendeleo**: Kwa shughuli zenye mzunguko mrefu, toa taarifa za maendeleo ili kuwezesha matumizi ya kiolesura vinavyojibu haraka.
+5. **Ufuatiliaji wa Maendeleo**: Kwa shughuli zinazoendelea kwa muda mrefu, ripoti taarifa za maendeleo kuwezesha interface za mtumiaji zenye mwitikio.
 
-6. **Kuahirisha Maombi**: Ruhusu wateja kuahirisha maombi yaliyomo safarini ambayo hayahitajiki tena au yanachukua muda mrefu sana.
+6. **Katiza Maombi**: Ruhusu wateja kukatiza maombi yanayoendelea ambayo hayahitajiki tena au yanachukua muda mrefu kupita kiasi.
 
 ## Marejeleo Zaidi
 
-Kwa habari za kisasa zaidi kuhusu mazoea bora ya MCP, rejelea:
+Kwa taarifa za kisasa kuhusu mazoea bora ya MCP, rejelea:
 
-- [MCP Documentation](https://modelcontextprotocol.io/)
-- [MCP Specification (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [GitHub Repository](https://github.com/modelcontextprotocol)
-- [Security Best Practices](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Hatari za usalama na vile vya kuzizuia
-- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Mafunzo ya usalama ya vitendo
+- [Nyaraka za MCP](https://modelcontextprotocol.io/)
+- [Mwelekeo wa MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Hifadhi ya GitHub](https://github.com/modelcontextprotocol)
+- [Mazoea Bora ya Usalama](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices)
+- [Orodha Mkuu ya MCP ya OWASP 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Hatari za usalama na njia za kuzizuia
+- [Warsha ya Usalama ya MCP (Sherpa)](https://azure-samples.github.io/sherpa/) - Mafunzo ya usalama kwa vitendo
 
-## Mifano ya Utekelezaji wa Vitendo
+## Mifano ya Utekelezaji wa Kivitendo
 
-### Mazoea Bora ya Ubunifu wa Zana
+### Mazoea Bora ya Muundo wa Zana
 
-#### 1. Kanuni ya Majukumu Mmoja
+#### 1. Kanuni ya Wajibu Mmoja
 
-Kila zana ya MCP inapaswa kuwa na kusudi wazi na lengo. Badala ya kuunda zana kubwa zinazojaribu kushughulikia masuala mengi, tengeneza zana maalum zinazobobea katika kazi maalum.
+Kila zana ya MCP inapaswa kuwa na lengo wazi na maalum. Badala ya kuunda zana kubwa zinazojaribu kushughulikia matatizo mengi, andaa zana maalum zinazofanya kazi fulani kwa ufanisi.
 
 ```csharp
 // A focused tool that does one thing well
@@ -143,12 +143,12 @@ public class WeatherForecastTool : ITool
 }
 ```
 
-#### 2. Usimamizi Wakaidi wa Makosa
+#### 2. Usimamizi Sanifu wa Makosa
 
-Tekeleza usimamizi imara wa makosa ukitumia ujumbe wa makosa wenye taarifa na mbinu zinazofaa za kupona.
+Tekeleza usimamizi imara wa makosa kwa ujumbe wa makosa yanayoeleweka na mbinu sahihi za kupona.
 
 ```python
-# Mfano wa Python wenye uchunguzi wa makosa kwa kina
+# Mfano wa Python ukiwa na usimamizi wa makosa kamili
 class DataQueryTool:
     def get_name(self):
         return "dataQuery"
@@ -169,8 +169,8 @@ class DataQueryTool:
                 raise ToolSecurityError("Query contains potentially unsafe SQL")
             
             try:
-                # Operesheni ya database na muda wa kusubiri
-                async with timeout(10):  # Muda wa kusubiri wa sekunde 10
+                # Operesheni ya hifadhidata yenye muda wa kusitisha
+                async with timeout(10):  # Muda wa kusitisha wa sekunde 10
                     result = await self._database.execute_query(query)
                     
                 return ToolResponse(
@@ -183,33 +183,33 @@ class DataQueryTool:
                 self._log_error("Database connection error", e)
                 raise ToolExecutionError(f"Database connection error: {str(e)}")
             except DatabaseQueryError as e:
-                # Makosa ya maswali yana uwezekano wa kuwa makosa ya mteja
+                # Makosa ya maombi kawaida ni makosa ya mteja
                 self._log_error("Database query error", e)
                 raise ToolExecutionError(f"Invalid query: {str(e)}")
                 
         except ToolError:
-            # Ruhusu makosa maalum ya zana kupitishwa
+            # Acha makosa maalum ya zana yapite
             raise
         except Exception as e:
-            # Kamili kwa makosa yasiyotarajiwa
+            # Kushika makosa yote yasiyotarajiwa
             self._log_error("Unexpected error in DataQueryTool", e)
             raise ToolExecutionError(f"An unexpected error occurred: {str(e)}")
     
     def _contains_unsafe_sql(self, query):
-        # Utekelezaji wa ugundaji wa sindano ya SQL
+        # Utekelezaji wa ugunduzi wa sindano ya SQL
         pass
         
     def _log_error(self, message, error):
-        # Utekelezaji wa kurekodi makosa
+        # Utekelezaji wa kuandika makosa kwenye kumbukumbu
         pass
 ```
 
-#### 3. Uhakiki wa Vigezo
+#### 3. Uthibitishaji wa Vigezo
 
-Daima hakiki vigezo vyote kwa kina ili kuzuia pembejeo zisizotakikana au hatari.
+Daima thibitisha vigezo kwa kina kuzuia pembejeo zisizo sawa au zenye madhara.
 
 ```javascript
-// Mfano wa JavaScript/TypeScript pamoja na uhakiki wa kina wa vigezo
+// Mfano wa JavaScript/TypeScript na uhakiki wa kina wa vigezo
 class FileOperationTool {
   getName() {
     return "fileOperation";
@@ -244,7 +244,7 @@ class FileOperationTool {
   }
   
   async execute(parameters) {
-    // 1. Thibitisha uwepo wa kigezo
+    // 1. Hakikisha uwepo wa kigezo
     if (!parameters.operation) {
       throw new ToolError("Missing required parameter: operation");
     }
@@ -253,7 +253,7 @@ class FileOperationTool {
       throw new ToolError("Missing required parameter: path");
     }
     
-    // 2. Thibitisha aina za vigezo
+    // 2. Hakikisha aina za vigezo
     if (typeof parameters.operation !== "string") {
       throw new ToolError("Parameter 'operation' must be a string");
     }
@@ -262,13 +262,13 @@ class FileOperationTool {
       throw new ToolError("Parameter 'path' must be a string");
     }
     
-    // 3. Thibitisha thamani za vigezo
+    // 3. Hakikisha thamani za vigezo
     const validOperations = ["read", "write", "delete"];
     if (!validOperations.includes(parameters.operation)) {
       throw new ToolError(`Invalid operation. Must be one of: ${validOperations.join(", ")}`);
     }
     
-    // 4. Thibitisha uwepo wa maudhui kwa operesheni ya kuandika
+    // 4. Hakikisha uwepo wa maudhui kwa shughuli ya kuandika
     if (parameters.operation === "write" && !parameters.content) {
       throw new ToolError("Content parameter is required for write operation");
     }
@@ -278,7 +278,7 @@ class FileOperationTool {
       throw new ToolError("Access denied: path is outside of allowed directories");
     }
     
-    // Utekelezaji unaotegemea vigezo vilivyothibitishwa
+    // Utekelezaji based on vigezo vilivyo hakikiwa
     // ...
   }
   
@@ -291,7 +291,7 @@ class FileOperationTool {
 
 ### Mifano ya Utekelezaji wa Usalama
 
-#### 1. Utambulisho na Idhini
+#### 1. Uthibitishaji na Ruhusa
 
 ```java
 // Mfano wa Java na uthibitishaji na idhini
@@ -300,7 +300,7 @@ public class SecureDataAccessTool implements Tool {
     private final AuthorizationService authzService;
     private final DataService dataService;
     
-    // Injection ya utegemezi
+    // Sindano ya utegemezi
     public SecureDataAccessTool(
             AuthenticationService authService,
             AuthorizationService authzService,
@@ -317,7 +317,7 @@ public class SecureDataAccessTool implements Tool {
     
     @Override
     public ToolResponse execute(ToolRequest request) {
-        // 1. Toa muktadha wa uthibitishaji
+        // 1. Tenga muktadha wa uthibitishaji
         String authToken = request.getContext().getAuthToken();
         
         // 2. Thibitisha mtumiaji
@@ -328,7 +328,7 @@ public class SecureDataAccessTool implements Tool {
             return ToolResponse.error("Authentication failed: " + e.getMessage());
         }
         
-        // 3. Angalia idhini kwa ajili ya operesheni maalum
+        // 3. Kagua idhini kwa ajili ya operesheni maalum
         String dataId = request.getParameters().get("dataId").getAsString();
         String operation = request.getParameters().get("operation").getAsString();
         
@@ -357,7 +357,7 @@ public class SecureDataAccessTool implements Tool {
 }
 ```
 
-#### 2. Kipimo cha Kiwango cha Maombi
+#### 2. Ukomo wa Kiwango
 
 ```csharp
 // C# rate limiting implementation
@@ -435,23 +435,23 @@ public class RateLimitingMiddleware
 
 ## Mazoea Bora ya Upimaji
 
-### 1. Upimaji wa Zana za MCP kwa Kiwango Kidogo
+### 1. Upimaji wa Zana za MCP kwa Kabla
 
-Daima jaribu zana zako peke yake ukitumia maigizo ya utegemezi wa nje:
+Daima jaribu zana zako kivyake, ukitumia vitu bandia badala ya utegemezi wa nje:
 
 ```typescript
-// Mfano wa TypeScript wa jaribio la kitengo cha zana
+// Mfano wa mtihani wa kitengo cha zana katika TypeScript
 describe('WeatherForecastTool', () => {
   let tool: WeatherForecastTool;
   let mockWeatherService: jest.Mocked<IWeatherService>;
   
   beforeEach(() => {
-    // Unda huduma ya hali ya hewa ya uigaji
+    // Unda huduma ya hali ya hewa ya kuigiza
     mockWeatherService = {
       getForecasts: jest.fn()
     } as any;
     
-    // Unda zana na utegemezi wa uigaji
+    // Unda zana na utegemezi wa kuigiza
     tool = new WeatherForecastTool(mockWeatherService);
   });
   
@@ -493,15 +493,15 @@ describe('WeatherForecastTool', () => {
 });
 ```
 
-### 2. Upimaji wa Uunganishaji
+### 2. Upimaji wa Muunganisho
 
-Jaribu mtiririko kamili kutoka maombi ya mteja hadi majibu ya seva:
+Jaribu mtiririko kamili kutoka ombi la mteja hadi majibu ya seva:
 
 ```python
-# Mfano wa jaribio la muunganisho wa Python
+# Mfano wa jaribio la muunganiko wa Python
 @pytest.mark.asyncio
 async def test_mcp_server_integration():
-    # Anzisha seva ya jaribio
+    # Anzisha seva ya majaribio
     server = McpServer()
     server.register_tool(WeatherForecastTool(MockWeatherService()))
     await server.start(port=5000)
@@ -526,15 +526,15 @@ async def test_mcp_server_integration():
         assert len(json.loads(response.content[0].text)["forecasts"]) == 3
         
     finally:
-        # Safisha mazingira
+        # Safisha baada ya matumizi
         await server.stop()
 ```
 
 ## Uboreshaji wa Utendaji
 
-### 1. Mikakati ya Kuhifadhi Nakala
+### 1. Mikakati ya Kuhifadhi Data kwa Ajili ya Kutumia Mara Mengine
 
-Tekeleza uhifadhi mzuri ili kupunguza ucheleweshaji na matumizi ya rasilimali:
+Tekeleza kuhifadhi data ipasavyo kupunguza ucheleweshaji na matumizi ya rasilimali:
 
 ```csharp
 // C# example with caching
@@ -603,9 +603,9 @@ public class CachedWeatherTool : ITool
 }
 ```
 
-#### 2. Uingizaji wa Utegemezi na Uwezekano wa Kupimika
+#### 2. Jamaa Zaidi na Uchanganuzi wa Majaribio
 
-Buni zana kupokea utegemezi wake kupitia uingizaji wa konstrukta, zikifanya ziweze kupimika na kubadilishwa:
+Buni zana zipokee utegemezi wao kupitia uingizaji wa muundaji, kufanya ziweze kupimika na kubadilika:
 
 ```java
 // Mfano wa Java na sindano ya utegemezi
@@ -614,7 +614,7 @@ public class CurrencyConversionTool implements Tool {
     private final CacheService cacheService;
     private final Logger logger;
     
-    // Vitegemezi vilivyowekwa kupitia kimojawapo
+    // Utegemezi umetolewa kupitia kiunda
     public CurrencyConversionTool(
             ExchangeRateService exchangeService,
             CacheService cacheService,
@@ -629,9 +629,9 @@ public class CurrencyConversionTool implements Tool {
 }
 ```
 
-#### 3. Zana Zinazoweza Kuunganishwa
+#### 3. Zana Zinazoweza Kuchanganywa
 
-Buni zana ambazo zinaweza kuunganishwa pamoja kuunda mitiririko ya kazi tata zaidi:
+Buni zana zinazoweza kuunganishwa pamoja kuunda mtiririko wa kazi tata zaidi:
 
 ```python
 # Mfano wa Python unaoonyesha zana zinazoweza kuunganishwa
@@ -659,16 +659,16 @@ class DataVisualizationTool(Tool):
         # Utekelezaji...
         pass
 
-# Zana hizi zinaweza kutumika kwa kujitegemea au kama sehemu ya mchakato wa kazi
+# Zana hizi zinaweza kutumika kwa kujitegemea au kama sehemu ya mtiririko wa kazi
 ```
 
-### Mazoea Bora ya Ubunifu wa Mpangilio wa Data (Schema)
+### Mazoea Bora ya Muundo wa Skimu
 
-Mpangilio ni mkataba kati ya modeli na zana yako. Mipangilio iliyobuniwa vizuri hutoa urahisi zaidi wa matumizi ya zana.
+Skimu ni mkataba kati ya mfano na zana yako. Skimu zilizobuniwa vizuri huleta matumizi bora ya zana.
 
-#### 1. Maelezo Wazi ya Vigezo
+#### 1. Maelezo Yenye Uwajibikaji kwa Vigezo
 
-Daima jumuisha taarifa za maelezo kwa kila kigezo:
+Daima jumuisha maelezo yasiyo na shaka kwa kila kigezo:
 
 ```csharp
 public object GetSchema()
@@ -705,9 +705,9 @@ public object GetSchema()
 }
 ```
 
-#### 2. Vizuizi vya Uhakiki
+#### 2. Vizingiti vya Uthibitishaji
 
-Jumuisha vizuizi vya uhakiki ili kuzuia pembejeo zisizofaa:
+Jumuisha vizuizi vya uthibitishaji kuzuia pembejeo zisizo halali:
 
 ```java
 Map<String, Object> getSchema() {
@@ -716,7 +716,7 @@ Map<String, Object> getSchema() {
     
     Map<String, Object> properties = new HashMap<>();
     
-    // Mali ya barua pepe yenye uthibitisho wa muundo
+    // Mali ya barua pepe yenye uthibitishaji wa muundo
     Map<String, Object> email = new HashMap<>();
     email.put("type", "string");
     email.put("format", "email");
@@ -729,7 +729,7 @@ Map<String, Object> getSchema() {
     age.put("maximum", 120);
     age.put("description", "User age in years");
     
-    // Mali ya orodha iliyoorodheshwa
+    // Mali iliyoorodheshwa
     Map<String, Object> subscription = new HashMap<>();
     subscription.put("type", "string");
     subscription.put("enum", Arrays.asList("free", "basic", "premium"));
@@ -747,17 +747,17 @@ Map<String, Object> getSchema() {
 }
 ```
 
-#### 3. Muundo Thabiti wa Majibu
+#### 3. Muundo Mwendavyo wa Majibu
 
-Dumisha muundo thabiti wa majibu yako ili kurahisisha modeli kutafsiri matokeo:
+Dumisha muundo thabiti wa majibu kuhakikisha ni rahisi kwa mifano kufasiri matokeo:
 
 ```python
 async def execute_async(self, request):
     try:
-        # Shughulikia ombi
+        # Endesha ombi
         results = await self._search_database(request.parameters["query"])
         
-        # Daima rudisha muundo thabiti
+        # Daima rudisha muundo unaoendelea kuwa thabiti
         return ToolResponse(
             result={
                 "matches": [self._format_item(item) for item in results],
@@ -790,11 +790,11 @@ def _format_item(self, item):
 
 ### Usimamizi wa Makosa
 
-Usimamizi imara wa makosa ni muhimu kwa zana za MCP kudumisha kuaminika.
+Usimamizi mzuri wa makosa ni muhimu kwa uhakika wa zana za MCP.
 
-#### 1. Usimamizi wa Makosa kwa Upole
+#### 1. Usimamizi wa Makosa kwa Hadhira
 
-Shughulikia makosa ngazi zinazofaa na toa ujumbe wenye taarifa:
+Shughulikia makosa kwa viwango vinavyofaa na toa ujumbe wa maelezo:
 
 ```csharp
 public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
@@ -836,9 +836,9 @@ public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
 }
 ```
 
-#### 2. Majibu ya Makosa Yaliyoundwa kwa Muundo
+#### 2. Majibu ya Makosa Yaliyopangwa
 
-Rudisha taarifa za makosa zilizo na muundo pale inapowezekana:
+Rudisha taarifa zilizopangwa za makosa inapowezekana:
 
 ```java
 @Override
@@ -862,15 +862,15 @@ public ToolResponse execute(ToolRequest request) {
                 .build();
         }
         
-        // Rudi kosa lingine kama ToolExecutionException
+        // Rudisha upya exceptions nyingine kama ToolExecutionException
         throw new ToolExecutionException("Tool execution failed: " + ex.getMessage(), ex);
     }
 }
 ```
 
-#### 3. Mchakato wa Jaribu Tena
+#### 3. Mantiki ya Jaribu Tena
 
-Tekeleza mchakato unaofaa wa jaribu tena kwa kushindwa za muda mfupi:
+Tekeleza mantiki sahihi ya jaribu tena kwa makosa ya muda mfupi:
 
 ```python
 async def execute_async(self, request):
@@ -887,20 +887,20 @@ async def execute_async(self, request):
             if retry_count >= max_retries:
                 raise ToolExecutionException(f"Operation failed after {max_retries} attempts: {str(e)}")
                 
-            # Kurudi nyuma kwa mwelekeo wa eksponential
+            # Kuchelewesha kwa nguvu mbili
             delay = base_delay * (2 ** (retry_count - 1))
             logging.warning(f"Transient error, retrying in {delay}s: {str(e)}")
             await asyncio.sleep(delay)
         except Exception as e:
-            # Hitilafu isiyo ya muda, usijaribu tena
+            # Hitilafu isiyo ya muda mfupi, usijaribu tena
             raise ToolExecutionException(f"Operation failed: {str(e)}")
 ```
 
 ### Uboreshaji wa Utendaji
 
-#### 1. Kuhifadhi Nakala
+#### 1. Kuhifadhi Data
 
-Tekeleza uhifadhi kwa ajili ya operesheni ghali:
+Tekeleza kuhifadhi data kwa shughuli ghali:
 
 ```csharp
 public class CachedDataTool : IMcpTool
@@ -946,9 +946,9 @@ public class CachedDataTool : IMcpTool
 }
 ```
 
-#### 2. Usindikaji Usio na Mfuatano
+#### 2. Usindikaji wa Kiasi Sami
 
-Tumia mifumo ya programu isiyo na mfuatano kwa operesheni za I/O:
+Tumia mifumo ya programu za asidi kama vile asincronous kwa shughuli za I/O:
 
 ```java
 public class AsyncDocumentProcessingTool implements Tool {
@@ -962,20 +962,20 @@ public class AsyncDocumentProcessingTool implements Tool {
         // Kwa shughuli zinazochukua muda mrefu, rudisha kitambulisho cha usindikaji mara moja
         String processId = UUID.randomUUID().toString();
         
-        // Anzisha usindikaji usioambatishwa
+        // Anza usindikaji usio wa mara moja
         CompletableFuture.runAsync(() -> {
             try {
-                // Fanya shughuli inayochukua muda mrefu
+                // Fanya operesheni inayochukua muda mrefu
                 documentService.processDocument(documentId);
                 
-                // Sasisha hali (kawaida itahifadhiwa katika hifadhidata)
+                // Sasisha hali (kwa kawaida ingewekwa kwenye hifadhidata)
                 processStatusRepository.updateStatus(processId, "completed");
             } catch (Exception ex) {
                 processStatusRepository.updateStatus(processId, "failed", ex.getMessage());
             }
         }, executorService);
         
-        // Rejesha jibu la papo hapo lenye kitambulisho cha mchakato
+        // Rudisha jibu la papo hapo pamoja na kitambulisho cha mchakato
         Map<String, Object> result = new HashMap<>();
         result.put("processId", processId);
         result.put("status", "processing");
@@ -984,7 +984,7 @@ public class AsyncDocumentProcessingTool implements Tool {
         return new ToolResponse.Builder().setResult(result).build();
     }
     
-    // Zana ya ukaguzi wa hali mwenzake
+    // Chombo cha kuangalia hali ya mwenzake
     public class ProcessStatusTool implements Tool {
         @Override
         public ToolResponse execute(ToolRequest request) {
@@ -997,9 +997,9 @@ public class AsyncDocumentProcessingTool implements Tool {
 }
 ```
 
-#### 3. Kuzuia Kupitia Rasilimali
+#### 3. Udhibiti wa Rasilimali
 
-Tekeleza kuzuia kwa kutumia rasilimali ili kuzuia mzigo kupita kiasi:
+Tekeleza udhibiti wa rasilimali ili kuzuia mzigo kupita kiasi:
 
 ```python
 class ThrottledApiTool(Tool):
@@ -1010,19 +1010,19 @@ class ThrottledApiTool(Tool):
         )
     
     async def execute_async(self, request):
-        # Angalia ikiwa tunaweza kuendelea au tunahitaji kusubiri
+        # Angalia ikiwa tunaweza kuendelea au tunahitaji kungoja
         delay = self.rate_limiter.get_delay_time()
         
         if delay > 0:
-            if delay > 2.0:  # Ikiwa kusubiri ni kwa muda mrefu sana
+            if delay > 2.0:  # Kama kungoja ni kwa muda mrefu sana
                 raise ToolExecutionException(
                     f"Rate limit exceeded. Please try again in {delay:.1f} seconds."
                 )
             else:
-                # Subiri kwa muda unaofaa wa kuchelewa
+                # Subiri kwa muda unaofaa wa ucheleweshaji
                 await asyncio.sleep(delay)
         
-        # Tumia tokeni moja na endelea na ombi
+        # Tumia tiketi moja na endelea na ombi
         self.rate_limiter.consume()
         
         # Piga API
@@ -1043,7 +1043,7 @@ class TokenBucketRateLimiter:
             if self.tokens >= 1:
                 return 0
             
-            # Hesabu muda mpaka tokeni inayofuata itapatikana
+            # Hesabu muda hadi tiketi inayofuata ipatikane
             return (1 - self.tokens) / self.tokens_per_second
     
     async def consume(self):
@@ -1055,7 +1055,7 @@ class TokenBucketRateLimiter:
         now = time.time()
         elapsed = now - self.last_refill
         
-        # Ongeza tokeni mpya kulingana na muda uliopita
+        # Ongeza tiketi mpya kulingana na muda uliopita
         new_tokens = elapsed * self.tokens_per_second
         self.tokens = min(self.bucket_size, self.tokens + new_tokens)
         self.last_refill = now
@@ -1063,9 +1063,9 @@ class TokenBucketRateLimiter:
 
 ### Mazoea Bora ya Usalama
 
-#### 1. Uhakiki wa Ingizo
+#### 1. Uthibitishaji wa Pembejeo
 
-Daima hakiki vigezo vya ingizo kwa kina:
+Daima thibitisha kwa kina vigezo vya pembejeo:
 
 ```csharp
 public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
@@ -1106,9 +1106,9 @@ public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
 }
 ```
 
-#### 2. Ukaguzi wa Idhini
+#### 2. Ukaguzi wa Ruhusa
 
-Tekeleza ukaguzi sahihi wa idhini:
+Tekeleza ukaguzi mzuri wa ruhusa:
 
 ```java
 @Override
@@ -1116,12 +1116,12 @@ public ToolResponse execute(ToolRequest request) {
     // Pata muktadha wa mtumiaji kutoka kwa ombi
     UserContext user = request.getContext().getUserContext();
     
-    // Angalia kama mtumiaji ana ruhusa zinazohitajika
+    // Angalia kama mtumiaji ana ruhusa zilizohitajika
     if (!authorizationService.hasPermission(user, "documents:read")) {
         throw new ToolExecutionException("User does not have permission to access documents");
     }
     
-    // Kwa rasilimali maalum, angalia ufikiaji wa rasilimali hiyo
+    // Kwa rasilimali maalum, angalia upatikanaji wa rasilimali hiyo
     String documentId = request.getParameters().get("documentId").asText();
     if (!documentService.canUserAccess(user.getId(), documentId)) {
         throw new ToolExecutionException("Access denied to the requested document");
@@ -1134,7 +1134,7 @@ public ToolResponse execute(ToolRequest request) {
 
 #### 3. Usimamizi wa Data Nyeti
 
-Shughulikia data nyeti kwa tahadhari:
+Shughulikia data nyeti kwa uangalifu:
 
 ```python
 class SecureDataTool(Tool):
@@ -1152,17 +1152,17 @@ class SecureDataTool(Tool):
         user_id = request.parameters["userId"]
         include_sensitive = request.parameters.get("includeSensitiveData", False)
         
-        # Pata data ya mtumiaji
+        # Pata data za mtumiaji
         user_data = await self.user_service.get_user_data(user_id)
         
-        # Chuja sehemu nyeti isipokuwa ziombwe wazi NA ruhusiwa
+        # Chuja maeneo nyeti isipokuwa ikiwa umeomba waziwazi NA umethibitishwa
         if not include_sensitive or not self._is_authorized_for_sensitive_data(request):
             user_data = self._redact_sensitive_fields(user_data)
         
         return ToolResponse(result=user_data)
     
     def _is_authorized_for_sensitive_data(self, request):
-        # Angalia kiwango cha idhini katika muktadha wa ombi
+        # Kagua kiwango cha idhini katika muktadha wa ombi
         auth_level = request.context.get("authorizationLevel")
         return auth_level == "admin"
     
@@ -1170,7 +1170,7 @@ class SecureDataTool(Tool):
         # Tengeneza nakala ili kuepuka kubadilisha asili
         redacted = user_data.copy()
         
-        # Ficha sehemu maalum nyeti
+        # Ficha maeneo maalum nyeti
         sensitive_fields = ["ssn", "creditCardNumber", "password"]
         for field in sensitive_fields:
             if field in redacted:
@@ -1185,13 +1185,13 @@ class SecureDataTool(Tool):
 
 ## Mazoea Bora ya Upimaji kwa Zana za MCP
 
-Upimaji kamili huhakikisha zana za MCP zinafanya kazi kwa usahihi, kushughulikia matukio ya pembezoni, na kuunganishwa vyema na mfumo mzima.
+Upimaji kamili unahakikisha zana za MCP zinafanya kazi vizuri, kushughulikia hali maalum, na kuunganishwa vyema na mfumo mzima.
 
-### Upimaji wa Kiwango Kidogo
+### Upimaji wa Kabla
 
 #### 1. Jaribu Kila Zana Peke Yake
 
-Unda majaribio maalum kwa kazi ya kila zana:
+Unda majaribio mahususi kwa kazi za kila zana:
 
 ```csharp
 [Fact]
@@ -1251,23 +1251,23 @@ public async Task WeatherTool_InvalidLocation_ThrowsToolExecutionException()
 }
 ```
 
-#### 2. Upimaji wa Uhakiki wa Mpangilio
+#### 2. Upimaji wa Uthibitishaji wa Skimu
 
-Jaribu kwamba mipangilio ni halali na inatekeleza vizuizi ipasavyo:
+Jaribu skimu zisiwe na hitilafu na zinazingatia vizingiti ipasavyo:
 
 ```java
 @Test
 public void testSchemaValidation() {
-    // Tengeneza mfano wa chombo
+    // Unda mfano wa chombo
     SearchTool searchTool = new SearchTool();
     
-    // Pata skimu
+    // Pata mchakato
     Object schema = searchTool.getSchema();
     
-    // Badilisha skimu kuwa JSON kwa ajili ya uthibitishaji
+    // Badilisha mchakato kuwa JSON kwa ajili ya uthibitishaji
     String schemaJson = objectMapper.writeValueAsString(schema);
     
-    // Thibitisha skimu ni JSONSchema halali
+    // Thibitisha mchakato ni JSONSchema halali
     JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
     JsonSchema jsonSchema = factory.getJsonSchema(schemaJson);
     
@@ -1279,14 +1279,14 @@ public void testSchemaValidation() {
     ProcessingReport validReport = jsonSchema.validate(validParams);
     assertTrue(validReport.isSuccess());
     
-    // Jaribu kigezo kilichokosekana kinachohitajika
+    // Jaribu kigezo kinachokosekana kinachohitajika
     JsonNode missingRequired = objectMapper.createObjectNode()
         .put("limit", 5);
         
     ProcessingReport missingReport = jsonSchema.validate(missingRequired);
     assertFalse(missingReport.isSuccess());
     
-    // Jaribu aina ya kigezo isiyo halali
+    // Jaribu aina ya kigezo isiyo sahihi
     JsonNode invalidType = objectMapper.createObjectNode()
         .put("query", "test")
         .put("limit", "not-a-number");
@@ -1298,19 +1298,19 @@ public void testSchemaValidation() {
 
 #### 3. Majaribio ya Usimamizi wa Makosa
 
-Tengeneza majaribio maalum ya hali za makosa:
+Unda majaribio maalum kwa hali za makosa:
 
 ```python
 @pytest.mark.asyncio
 async def test_api_tool_handles_timeout():
     # Panga
-    tool = ApiTool(timeout=0.1)  # Muda mfupi sana wa kusubiri
+    tool = ApiTool(timeout=0.1)  # Muda mfupi sana wa kuisha
     
-    # Fanya mfano wa ombi litakaloisha muda
+    # Fanya maombi ya uigaji ambayo yatamalizika kwa muda
     with aioresponses() as mocked:
         mocked.get(
             "https://api.example.com/data",
-            callback=lambda *args, **kwargs: asyncio.sleep(0.5)  # Ndefu zaidi ya muda wa kusubiri
+            callback=lambda *args, **kwargs: asyncio.sleep(0.5)  # Ndefu kuliko muda wa kuisha
         )
         
         request = ToolRequest(
@@ -1318,11 +1318,11 @@ async def test_api_tool_handles_timeout():
             parameters={"url": "https://api.example.com/data"}
         )
         
-        # Tenda & Thibitisha
+        # Fanya & Thibitisha
         with pytest.raises(ToolExecutionException) as exc_info:
             await tool.execute_async(request)
         
-        # Hakiki ujumbe wa makosa
+        # Hakiki ujumbe wa ubaguzi
         assert "timed out" in str(exc_info.value).lower()
 
 @pytest.mark.asyncio
@@ -1330,7 +1330,7 @@ async def test_api_tool_handles_rate_limiting():
     # Panga
     tool = ApiTool()
     
-    # Fanya mfano wa jibu lililozuiliwa kwa kiwango cha kiwango
+    # Fanya uigaji wa jibu lililokomeshwa kwa kiwango
     with aioresponses() as mocked:
         mocked.get(
             "https://api.example.com/data",
@@ -1344,21 +1344,21 @@ async def test_api_tool_handles_rate_limiting():
             parameters={"url": "https://api.example.com/data"}
         )
         
-        # Tenda & Thibitisha
+        # Fanya & Thibitisha
         with pytest.raises(ToolExecutionException) as exc_info:
             await tool.execute_async(request)
         
-        # Hakiki makosa yanayoonyesha taarifa za kiwango cha kiwango
+        # Hakiki ubaguzi una taarifa za kiwango cha kikomo
         error_msg = str(exc_info.value).lower()
         assert "rate limit" in error_msg
         assert "try again" in error_msg
 ```
 
-### Upimaji wa Uunganishaji
+### Upimaji wa Muunganisho
 
-#### 1. Upimaji wa Mnyororo wa Zana
+#### 1. Jaribio la Uhusiano wa Zana
 
-Jaribu zana zikifanya kazi pamoja katika mchanganyiko unaotarajiwa:
+Jaribu zana zinapofanya kazi pamoja kwa mchanganyiko unaotarajiwa:
 
 ```csharp
 [Fact]
@@ -1397,9 +1397,9 @@ public async Task DataProcessingWorkflow_CompletesSuccessfully()
 }
 ```
 
-#### 2. Upimaji wa Seva za MCP
+#### 2. Jaribio la Seva ya MCP
 
-Jaribu seva ya MCP kwa usajili na utekelezaji kamili wa zana:
+Jaribu seva ya MCP kwa usajili kamili wa zana na utekelezaji:
 
 ```java
 @SpringBootTest
@@ -1425,7 +1425,7 @@ public class McpServerIntegrationTest {
     
     @Test
     public void testToolExecution() throws Exception {
-        // Tengeneza ombi la chombo
+        // Unda ombi la zana
         Map<String, Object> request = new HashMap<>();
         request.put("toolName", "calculator");
         
@@ -1435,7 +1435,7 @@ public class McpServerIntegrationTest {
         parameters.put("b", 7);
         request.put("parameters", parameters);
         
-        // Tuma ombi na hakiki jibu
+        // Tuma ombi na hakiki majibu
         mockMvc.perform(post("/mcp/execute")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
@@ -1445,17 +1445,17 @@ public class McpServerIntegrationTest {
     
     @Test
     public void testToolValidation() throws Exception {
-        // Tengeneza ombi batili la chombo
+        // Unda ombi batili la zana
         Map<String, Object> request = new HashMap<>();
         request.put("toolName", "calculator");
         
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("operation", "divide");
         parameters.put("a", 10);
-        // Kipengele kinachokosekana "b"
+        // Kigezo "b" kinakosekana
         request.put("parameters", parameters);
         
-        // Tuma ombi na hakiki jibu la kosa
+        // Tuma ombi na hakiki majibu ya kosa
         mockMvc.perform(post("/mcp/execute")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
@@ -1465,17 +1465,17 @@ public class McpServerIntegrationTest {
 }
 ```
 
-#### 3. Upimaji wa Mwisho-mwisho
+#### 3. Upimaji Kamili wa Mfumo
 
-Jaribu mitiririko kamili kutoka kiamsha cha modeli hadi utekelezaji wa zana:
+Jaribu mtiririko kamili kutoka maelekezo ya mfano hadi utekelezaji wa zana:
 
 ```python
 @pytest.mark.asyncio
 async def test_model_interaction_with_tool():
-    # Panga - Tengeneza mteja wa MCP na mfano wa kuigiza
+    # Panga - Weka mteja wa MCP na mfano bandia
     mcp_client = McpClient(server_url="http://localhost:5000")
     
-    # Jibu la mfano wa kuigiza
+    # Majibu ya mfano bandia
     mock_model = MockLanguageModel([
         MockResponse(
             "What's the weather in Seattle?",
@@ -1490,7 +1490,7 @@ async def test_model_interaction_with_tool():
         )
     ])
     
-    # Jibu la chombo cha hali ya hewa cha kuigiza
+    # Jibu la zana ya hali ya hewa bandia
     with aioresponses() as mocked:
         mocked.post(
             "http://localhost:5000/mcp/execute",
@@ -1506,7 +1506,7 @@ async def test_model_interaction_with_tool():
             }
         )
         
-        # Fanya
+        # Tenda
         response = await mcp_client.send_prompt(
             "What's the weather in Seattle?",
             model=mock_model,
@@ -1524,9 +1524,9 @@ async def test_model_interaction_with_tool():
 
 ### Upimaji wa Utendaji
 
-#### 1. Upimaji wa Mzigo
+#### 1. Jaribio la Mzigo
 
-Jaribu ni maombi mangapi sawa seva yako ya MCP inaweza kushughulikia:
+Jaribu seva ya MCP kuweza kushughulikia maombi mengi kwa wakati mmoja:
 
 ```csharp
 [Fact]
@@ -1559,9 +1559,9 @@ public async Task McpServer_HandlesHighConcurrency()
 }
 ```
 
-#### 2. Upimaji wa Msongo wa Mawazo
+#### 2. Jaribio la Msongo
 
-Jaribu mfumo chini ya mzigo wa hali ya juu sana:
+Jaribu mfumo chini ya mzigo mkali:
 
 ```java
 @Test
@@ -1570,13 +1570,13 @@ public void testServerUnderStress() {
     int rampUpTimeSeconds = 60;
     int testDurationSeconds = 300;
     
-    // Tengeneza JMeter kwa jaribio la msongo
+    // Sanidi JMeter kwa majaribio ya mzigo
     StandardJMeterEngine jmeter = new StandardJMeterEngine();
     
-    // Sanidi mpango wa jaribio la JMeter
+    // Tengeneza mpango wa mtihani wa JMeter
     HashTree testPlanTree = new HashTree();
     
-    // Unda mpango wa jaribio, kikundi cha nyuzi, sampuli, n.k.
+    // Unda mpango wa mtihani, kundi la threads, sampuli, n.k.
     TestPlan testPlan = new TestPlan("MCP Server Stress Test");
     testPlanTree.add(testPlan);
     
@@ -1588,7 +1588,7 @@ public void testServerUnderStress() {
     
     testPlanTree.add(threadGroup);
     
-    // Ongeza sampuli ya HTTP kwa ajili ya utekelezaji wa zana
+    // Ongeza sampuli ya HTTP kwa utekelezaji wa zana
     HTTPSampler toolExecutionSampler = new HTTPSampler();
     toolExecutionSampler.setDomain("localhost");
     toolExecutionSampler.setPort(5000);
@@ -1603,20 +1603,20 @@ public void testServerUnderStress() {
     SummaryReport summaryReport = new SummaryReport();
     threadGroup.add(summaryReport);
     
-    // Endesha jaribio
+    // Endesha mtihani
     jmeter.configure(testPlanTree);
     jmeter.run();
     
-    // Hakiki matokeo
+    // Thibitisha matokeo
     assertEquals(0, summaryReport.getErrorCount());
-    assertTrue(summaryReport.getAverage() < 200); // Wakati wa majibu wastani < 200ms
+    assertTrue(summaryReport.getAverage() < 200); // Wakati wa jibu wastani < 200ms
     assertTrue(summaryReport.getPercentile(90.0) < 500); // Asilimia ya 90 < 500ms
 }
 ```
 
-#### 3. Ufuatiliaji na Uchanganuzi wa Utendaji
+#### 3. Ufuatiliaji na Uchanganuzi
 
-Weka ufuatiliaji kwa ajili ya uchambuzi wa utendaji wa muda mrefu:
+Sanidi ufuatiliaji wa utendaji kwa muda mrefu:
 
 ```python
 # Sanidi ufuatiliaji kwa seva ya MCP
@@ -1647,7 +1647,7 @@ def configure_monitoring(server):
         )
     }
     
-    # Ongeza tabaka kati kwa upimaji na kurekodi vipimo
+    # Ongeza middleware kwa ajili ya kupima wakati na kurekodi vipimo
     server.add_middleware(PrometheusMiddleware(prometheus_metrics))
     
     # Fungua sehemu ya vipimo
@@ -1658,16 +1658,16 @@ def configure_monitoring(server):
     return server
 ```
 
-## Mifumo ya Ubunifu wa Mtiririko wa Kazi wa MCP
+## Mifumo ya Muundo wa Kazi za MCP
 
-Mitiririko ya kazi ya MCP imetengenezwa vizuri huongeza ufanisi, kuaminika, na urahisi wa matengenezo. Hapa kuna mifumo muhimu ya kufuata:
+Mtiririko wa kazi za MCP ulioandaliwa vizuri huongeza ufanisi, kuaminika, na urejeshaji. Hapa kuna mifumo kuu ya kufuata:
 
 ### 1. Mfumo wa Mnyororo wa Zana
 
-Unganisha zana nyingi mfululizo ambapo pato la kila zana linakuwa pembejeo kwa inayofuata:
+Unganisha zana nyingi kwa mfuatano ambapo pato la zana moja linakuwa pembejeo kwa inayofuata:
 
 ```python
-# Utekelezaji wa Mnyororo wa Zana za Python
+# Utekelezaji wa Mnyororo wa Vifaa wa Python
 class ChainWorkflow:
     def __init__(self, tools_chain):
         self.tools_chain = tools_chain  # Orodha ya majina ya zana za kutekeleza kwa mfululizo
@@ -1677,10 +1677,10 @@ class ChainWorkflow:
         all_results = {"input": initial_input}
         
         for tool_name in self.tools_chain:
-            # Tekeleza kila zana katika mnyororo, ukipitisha matokeo ya awali
+            # Tekeleza kila zana kwenye mnyororo, ukipitisha matokeo ya awali
             response = await mcp_client.execute_tool(tool_name, current_result)
             
-            # Hifadhi matokeo na utumie kama pembejeo kwa zana inayofuata
+            # Hifadhi matokeo na utumie kama ingizo kwa zana inayofuata
             all_results[tool_name] = response.result
             current_result = response.result
         
@@ -1703,7 +1703,7 @@ result = await data_processing_chain.execute(
 )
 ```
 
-### 2. Mfumo wa Mtoaji Amri
+### 2. Mfumo wa Mtumaji
 
 Tumia zana kuu inayosambaza kwenda kwa zana maalum kulingana na pembejeo:
 
@@ -1787,7 +1787,7 @@ public class ContentDispatcherTool : IMcpTool
 
 ### 3. Mfumo wa Usindikaji Sambamba
 
-Tekeleza zana nyingi kwa wakati mmoja kwa ufanisi:
+Fanya zana nyingi kwa wakati mmoja kwa ufanisi:
 
 ```java
 public class ParallelDataProcessingWorkflow {
@@ -1798,11 +1798,11 @@ public class ParallelDataProcessingWorkflow {
     }
     
     public WorkflowResult execute(String datasetId) {
-        // Hatua 1: Pata metadata ya dataseti (kwa mstari)
+        // Hatua ya 1: Pata metadata ya seti ya data (synchronous)
         ToolResponse metadataResponse = mcpClient.executeTool("datasetMetadata", 
             Map.of("datasetId", datasetId));
         
-        // Hatua 2: Anzisha uchambuzi mwingi kwa wakati mmoja
+        // Hatua ya 2: Anzisha uchambuzi nyingi kwa wakati mmoja
         CompletableFuture<ToolResponse> statisticalAnalysis = CompletableFuture.supplyAsync(() ->
             mcpClient.executeTool("statisticalAnalysis", Map.of(
                 "datasetId", datasetId,
@@ -1824,25 +1824,25 @@ public class ParallelDataProcessingWorkflow {
             ))
         );
         
-        // Subiri kazi zote zinazofanywa kwa pamoja kukamilika
+        // Subiri kazi zote za wakati mmoja kumalizika
         CompletableFuture<Void> allAnalyses = CompletableFuture.allOf(
             statisticalAnalysis, correlationAnalysis, outlierDetection
         );
         
         allAnalyses.join();  // Subiri kumalizika
         
-        // Hatua 3: Changanya matokeo
+        // Hatua ya 3: Changanya matokeo
         Map<String, Object> combinedResults = new HashMap<>();
         combinedResults.put("metadata", metadataResponse.getResult());
         combinedResults.put("statistics", statisticalAnalysis.join().getResult());
         combinedResults.put("correlations", correlationAnalysis.join().getResult());
         combinedResults.put("outliers", outlierDetection.join().getResult());
         
-        // Hatua 4: Tengeneza ripoti ya muhtasari
+        // Hatua ya 4: Tengeneza ripoti ya muhtasari
         ToolResponse summaryResponse = mcpClient.executeTool("reportGenerator", 
             Map.of("analysisResults", combinedResults));
         
-        // Rudisha matokeo ya mchakato kamili
+        // Rudisha matokeo kamili ya mchakato
         WorkflowResult result = new WorkflowResult();
         result.setDatasetId(datasetId);
         result.setAnalysisResults(combinedResults);
@@ -1855,7 +1855,7 @@ public class ParallelDataProcessingWorkflow {
 
 ### 4. Mfumo wa Kupona Makosa
 
-Tekeleza mbinu za kupunguzia kwa upole kushindwa kwa zana:
+Tekeleza mbinu za kutafuta marudio yanayotuliza kwa kushindwa kwa zana:
 
 ```python
 class ResilientWorkflow:
@@ -1872,12 +1872,12 @@ class ResilientWorkflow:
                 "tool": primary_tool
             }
         except ToolExecutionException as e:
-            # Rekodi kushindwa
+            # Andika kushindwa kwa majaribio
             logging.warning(f"Primary tool '{primary_tool}' failed: {str(e)}")
             
-            # Rudia tena kwa chombo cha sekondari
+            # Rudi kwa chombo cha sekondari
             try:
-                # Inaweza kuhitaji kubadilisha vigezo kwa chombo cha akiba
+                # Huenda ukahitaji kubadilisha vigezo kwa chombo cha rudi
                 fallback_params = self._adapt_parameters(parameters, primary_tool, fallback_tool)
                 
                 response = await self.client.execute_tool(fallback_tool, fallback_params)
@@ -1888,7 +1888,7 @@ class ResilientWorkflow:
                     "primaryError": str(e)
                 }
             except ToolExecutionException as fallback_error:
-                # Vyombo vyote vilianguka
+                # Vyombo vyote viwili vimeshindwa
                 logging.error(f"Both primary and fallback tools failed. Fallback error: {str(fallback_error)}")
                 raise WorkflowExecutionException(
                     f"Workflow failed: primary error: {str(e)}; fallback error: {str(fallback_error)}"
@@ -1900,18 +1900,18 @@ class ResilientWorkflow:
         # Kwa mfano huu, tutarudisha tu vigezo vya awali
         return params
 
-# Matumizi ya mfano
+# Mfano wa matumizi
 async def get_weather(workflow, location):
     return await workflow.execute_with_fallback(
-        "premiumWeatherService",  # API ya hali ya hewa ya msingi (ililipwa)
-        "basicWeatherService",    # API ya hali ya hewa ya akiba (bure)
+        "premiumWeatherService",  # API ya hali ya hewa ya msingi (iliyolipwa)
+        "basicWeatherService",    # API ya hali ya hewa ya rudi (bure)
         {"location": location}
     )
 ```
 
-### 5. Mfumo wa Muundo wa Mtiririko wa Kazi
+### 5. Mfumo wa Uundaji wa Mtiririko wa Kazi
 
-Jenga mitiririko tata kwa kuunganisha mitiririko rahisi:
+Jenga mitiririko ya kazi tata kwa kuunganisha mitiririko rahisi:
 
 ```csharp
 public class CompositeWorkflow : IWorkflow
@@ -1958,37 +1958,37 @@ var result = await documentWorkflow.ExecuteAsync(new WorkflowContext {
 });
 ```
 
-# Upimaji wa Seva za MCP: Mazoea Bora na Vidokezo Vya Juu
+# Upimaji wa Seva za MCP: Mazoea Bora na Vidokezo Muhimu
 
 ## Muhtasari
 
-Upimaji ni kipengele muhimu katika kuendeleza seva za MCP zenye kuaminika na ubora wa hali ya juu. Mwongozo huu unatoa mazoea bora na vidokezo vya upimaji seva zako za MCP katika mzunguko wote wa maendeleo, kutoka majaribio ya msingi hadi majaribio ya uunganishaji na uthibitishaji wa mwisho-mwisho.
+Upimaji ni kipengele muhimu cha kuendeleza seva za MCP zenye kuaminika na ubora wa juu. Mwongozo huu unatoa mazoea bora na vidokezo vya upimaji seva zako za MCP katika mzunguko mzima wa maendeleo, kutoka majaribio ya kablia hadi majaribio ya muunganisho na uhakiki wa mwisho hadi mwisho.
 
-## Kwa Nini Upimaji ni Muhimu kwa Seva za MCP
+## Kwanini Upimaji ni Muhimu kwa Seva za MCP
 
-Seva za MCP hutumikia kama programu za kati muhimu kati ya modeli za AI na programu za wateja. Upimaji kamili huhakikisha:
+Seva za MCP ni kati muhimu kati ya mifano ya AI na programu za wateja. Upimaji wa kina huhakikisha:
 
 - Kuaminika katika mazingira ya uzalishaji
-- Kushughulikia kwa usahihi maombi na majibu
-- Utekelezaji sahihi wa vipimo vya MCP
-- Ustahimilivu dhidi ya kushindwa na matukio ya pembezoni
-- Utendaji thabiti chini ya mizunguko mbalimbali ya mzigo
+- Ushughulikiaji sahihi wa maombi na majibu
+- Utekelezaji sahihi wa sifa za MCP
+- Ustahimilivu dhidi ya matatizo na hali za msimamo
+- Utendaji thabiti chini ya mizigo tofauti
 
-## Upimaji wa Kiwango Kidogo kwa Seva za MCP
+## Upimaji wa Kabla kwa Seva za MCP
 
-### Upimaji wa Kiwango Kidogo (Msingi)
+### Upimaji wa Kabla (Msingi)
 
-Majaribio ya kiwango kidogo yanathibitisha vipengele binafsi vya seva yako ya MCP kwa kujitenga.
+Majaribio ya kablia yanathibitisha vipengele binafsi vya seva ya MCP kivyake.
 
-#### Kitu cha Kupima
+#### Kinachopimwa
 
-1. **Watendaji wa Rasilimali**: Jaribu mantiki ya kila mtendaji wa rasilimali kwa kujitegemea
-2. **Utekelezaji wa Zana**: Hakiki tabia ya zana kwa pembejeo mbalimbali
-3. **Mitindo ya Kiamsha**: Hakikisha mitindo ya viamsha inatolewa vizuri
-4. **Uhakiki wa Mpangilio**: Jaribu mantiki ya uhakiki wa vigezo
+1. **Washughulikiaji wa Rasilimali**: Jaribu mantiki ya kila mtoaji wa rasilimali peke yake
+2. **Utekelezaji wa Zana**: Hakiki tabia za zana kwa pembejeo mbalimbali
+3. **Mifano ya Maelekezo**: Hakikisha templates za maelekezo zinaonyeshwa kwa usahihi
+4. **Uthibitishaji wa Skimu**: Pima mantiki ya uthibitishaji wa vigezo
 5. **Usimamizi wa Makosa**: Hakiki majibu ya makosa kwa pembejeo batili
 
-#### Mazoea Bora kwa Upimaji wa Kiwango Kidogo
+#### Mazoea Bora ya Upimaji wa Kabla
 
 ```csharp
 // Example unit test for a calculator tool in C#
@@ -2014,7 +2014,7 @@ public async Task CalculatorTool_Add_ReturnsCorrectSum()
 ```
 
 ```python
-# Mfano wa jaribio la kitengo kwa chombo cha kalkuleta katika Python
+# Mfano wa mtihani wa kitengo kwa chombo cha kihesabu katika Python
 def test_calculator_tool_add():
     # Panga
     calculator = CalculatorTool()
@@ -2032,19 +2032,19 @@ def test_calculator_tool_add():
     assert result["value"] == 12
 ```
 
-### Upimaji wa Uunganishaji (Kiungo cha Kati)
+### Upimaji wa Muunganisho (Kiwazo)
 
-Majaribio ya uunganishaji yanathibitisha mwingiliano kati ya vipengele vya seva yako ya MCP.
+Majaribio ya muunganisho yanathibitisha mwingiliano kati ya vipengele vya seva ya MCP.
 
-#### Kitu cha Kupima
+#### Kinachopimwa
 
-1. **Kuanza Seva**: Jaribu huduma ya seva na usanidi tofauti
-2. **Usajili wa Njia**: Hakiki kwamba vituo vyote vinaandikishwa ipasavyo
-3. **Usindikaji wa Maombi**: Jaribu mzunguko kamili wa maombi-majibu
-4. **Uenezaji wa Makosa**: Hakikisha makosa yanashughulikiwa ipasavyo kati ya vipengele
-5. **Utambulisho na Idhini**: Jaribu mifumo ya usalama
+1. **Uanzishaji wa Seva**: Jaribu kuanzisha seva kwa usanidi tofauti
+2. **Usajili wa Njia**: Hakiki kuwa sehemu zote za kuingia zina usajili sahihi
+3. **Usindikaji wa Maombi**: Jaribu mzunguko kamili wa ombi na jibu
+4. **Uenezaji wa Makosa**: Hakikisha makosa yanashughulikiwa vyema kati ya vipengele
+5. **Uthibitishaji na Ruhusa**: Jaribu mifumo ya usalama
 
-#### Mazoea Bora kwa Upimaji wa Uunganishaji
+#### Mazoea Bora ya Upimaji wa Muunganisho
 
 ```csharp
 // Example integration test for MCP server in C#
@@ -2080,22 +2080,22 @@ public async Task Server_ProcessToolRequest_ReturnsValidResponse()
 }
 ```
 
-### Upimaji wa Mwisho-mwisho (Ngazi ya Juu)
+### Upimaji wa Mwisho hadi Mwisho (Juu)
 
-Majaribio ya mwisho-mwisho yanathibitisha tabia kamili ya mfumo kutoka kwa mteja hadi seva.
+Majaribio ya mwisho hadi mwisho yanathibitisha utendaji wa mfumo mzima kutoka kwa mteja hadi seva.
 
-#### Kitu cha Kupima
+#### Kinachopimwa
 
-1. **Mawasiliano ya Mteja-Seva**: Jaribu mizunguko kamili ya maombi-majibu
-2. **SDK za Mteja Halisi**: Jaribu kwa utekelezaji halisi wa wateja
-3. **Utendaji Chini ya Mzigo**: Hakiki tabia kwa maombi mengi sambamba
-4. **Kupona Makosa**: Jaribu kupona kwa mfumo kutoka kwa kushindwa
-5. **Shughuli Zenye Mzunguko Mrefu**: Hakiki usimamizi wa mtiririko na shughuli ndefu
+1. **Mawasiliano Mteja-Seva**: Jaribu mizunguko kamili ya maombi na majibu
+2. **SDK za Mteja Halisi**: Jaribu na utekelezaji wa wateja halisi
+3. **Utendaji chini ya Mzigo**: Hakiki utendaji na maombi mengi kwa wakati mmoja
+4. **Kupona makosa**: Jaribu kufufua mfumo kutoka kwa makosa
+5. **Shughuli za Muda Mrefu**: Hakiki usimamizi wa mtiririko na shughuli ndefu
 
-#### Mazoea Bora kwa Upimaji wa Mwisho-mwisho
+#### Mazoea Bora ya Upimaji wa Mwisho hadi Mwisho
 
 ```typescript
-// Mfano wa jaribio la E2E na mteja katika TypeScript
+// Mfano wa mtihani wa E2E na mteja katika TypeScript
 describe('MCP Server E2E Tests', () => {
   let client: McpClient;
   
@@ -2110,7 +2110,7 @@ describe('MCP Server E2E Tests', () => {
   });
   
   test('Client can invoke calculator tool and get correct result', async () => {
-    // Tenda
+    // Fanya
     const response = await client.invokeToolAsync('calculator', {
       operation: 'divide',
       a: 20,
@@ -2124,18 +2124,18 @@ describe('MCP Server E2E Tests', () => {
 });
 ```
 
-## Mikakati ya Kuiga Kupima MCP
+## Mikakati ya Kufanyia Kazi Katika Upimaji wa MCP
 
-Kuiga ni muhimu ili kutenganisha vipengele wakati wa upimaji.
+Mikakati ni muhimu kwa kugawanya vipengele wakati wa upimaji.
 
-### Vipengele vya Kuiga
+### Vipengele vya Kufanya Kazi
 
-1. **Mifano ya AI ya Nje**: Kuiga majibu ya modeli kwa upimaji wa utabiri
-2. **Huduma za Nje**: Kuiga utegemezi wa API (hifadhidata, huduma za tatu)
-3. **Huduma za Utambulisho**: Kuiga watoaji wa utambulisho
-4. **Watoa Rasilimali**: Kuiga watendaji wa rasilimali ghali
+1. **Mifano ya AI ya Nje**: Tumia mambo bandia kwa majibu ya mfano kupata upimaji utabiri
+2. **Huduma za Nje**: Tumia mambo bandia kwa utegemezi wa API (mifumo ya data, huduma za wateja wengine)
+3. **Huduma za Uthibitishaji**: Tumia mambo bandia kwa watoa huduma wa utambulisho
+4. **Watoa Rasilimali**: Tumia mambo bandia kwa wasimamizi wa rasilimali ghali
 
-### Mfano: Kuiga Jibu la Modeli ya AI
+### Mfano: Kwenye kutumia Mambo Bandia kwa Jibu la Mfano wa AI
 
 ```csharp
 // C# example with Moq
@@ -2162,39 +2162,39 @@ def test_with_mock_model(mock_model):
         "finish_reason": "completed"
     }
     
-    # Tumia mock katika jaribio
+    # Tumia mock katika mtihani
     server = McpServer(model_client=mock_model)
-    # Endelea na jaribio
+    # Endelea na mtihani
 ```
 
 ## Upimaji wa Utendaji
 
-Upimaji wa utendaji ni muhimu kwa seva za MCP za uzalishaji.
+Upimaji wa utendaji ni muhimu kwa seva za MCP zinazotumika uzalishaji.
 
-### Kitu cha Kupima
+### Kinachopimwa
 
-1. **Ucheleweshaji**: Muda wa majibu kwa maombi
-2. **Uwezo wa Kushughulikia Maombi**: Idadi ya maombi yanayoshughulikiwa kwa sekunde
-3. **Matumizi ya Rasilimali**: Matumizi ya CPU, kumbukumbu, mtandao
-4. **Usimamizi wa Mizunguko Sambamba**: Tabia chini ya maombi ya sambamba
-5. **Sifa za Kupanua**: Utendaji unavyobadilika kwa kuongezeka kwa mzigo
+1. **Ucheleweshaji**: Muda wa jibu kwa maombi
+2. **Kiwango cha Matumizi**: Maombi yanayoshughulikiwa kwa sekunde
+3. **Matumizi ya Rasilimali**: CPU, kumbukumbu, na matumizi ya mtandao
+4. **Udhibiti wa Mzunguko**: Tabia chini ya maombi sambamba
+5. **Tabia za Kupanua**: Utendaji unapoongezeka kwa mzigo
 
 ### Zana za Upimaji wa Utendaji
 
-- **k6**: Zana ya upimaji mzigo ya chanzo huria
-- **JMeter**: Upimaji wa utendaji kamili
-- **Locust**: Upimaji mzigo unaotumia Python
-- **Azure Load Testing**: Upimaji wa utendaji wa wingu
+- **k6**: Zana ya upimaji wa mzigo iliyo wazi chanzo
+- **JMeter**: Upimaji wa kina wa utendaji
+- **Locust**: Upimaji wa mzigo kwa msingi wa Python
+- **Azure Load Testing**: Upimaji wa utendaji mtandaoni
 
 ### Mfano: Jaribio la Mzigo wa Msingi kwa k6
 
 ```javascript
-// skripti ya k6 kwa upimaji mzigo wa seva ya MCP
+// script ya k6 kwa majaribio ya mzigo wa seva ya MCP
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 export const options = {
-  vus: 10,  // watumiaji wa mtandao 10
+  vus: 10,  // watumiaji 10 wa mtandaoni
   duration: '30s',
 };
 
@@ -2226,17 +2226,18 @@ export default function () {
 }
 ```
 
-## Uendeshaji wa Jaribio kwa Seva za MCP
+## Automation ya Upimaji kwa Seva za MCP
 
-Kuendesha majaribio yako kwa njia ya kiotomatiki huhakikisha ubora thabiti na mizunguko ya majibu ya haraka.
+Kuendeshwa moja kwa moja kwa majaribio hutoa ubora thabiti na mzunguko wa mrejesho wa haraka.
 
-### Uunganisho wa CI/CD
-1. **Endesha Vipimo vya Unit kwenye Maombi ya Kuvuta**: Hakikisha mabadiliko ya msimbo hayatavunja utendakazi uliopo  
-2. **Vipimo vya Muunganisho katika Mazingira ya Kujaribu**: Endesha vipimo vya muunganisho katika mazingira ya kabla ya uzalishaji  
-3. **Misingi ya Utendaji**: Dumisha viwango vya utendaji ili kugundua nyuma  
-4. **Skani za Usalama**: Tengeneza mtihani wa usalama kama sehemu ya mchakato  
+### Muungano na CI/CD
 
-### Mfano wa Mchakato wa CI (GitHub Actions)
+1. **Endesha Majaribio ya Kabla kwenye Ombaji za Mvuto**: Hakikisha mabadiliko ya msimbo hayavunjii utendaji waliopo
+2. **Majaribio ya Muungano katika Mazingira ya Staging**: Endesha majaribio ya muungano katika mazingira ya kabla ya uzalishaji  
+3. **Viwango vya Utendaji**: Dumisha viwango vya utendaji ili kugundua usahihishaji nyuma  
+4. **Skanningi za Usalama**: Andaa upimaji wa usalama kama sehemu ya mchakato  
+
+### Mfano wa Mstari wa CI (GitHub Actions)
 
 ```yaml
 name: MCP Server Tests
@@ -2275,19 +2276,19 @@ jobs:
       run: dotnet run --project tests/PerformanceTests/PerformanceTests.csproj
 ```
   
-## Kupima Uzingatiaji wa Maelezo ya MCP  
+## Kupima Uzingatiaji na Maelekezo ya MCP  
 
-Thibitisha server yako inatekeleza maelezo ya MCP kwa usahihi.  
+Thibitisha kuwa seva yako inatekeleza maelekezo ya MCP kikamilifu.  
 
-### Sehemu Muhimu za Uzingatiaji  
+### Maeneo Muhimu ya Uzingatiaji  
 
-1. **Vituo vya API**: Jaribu vituo vinavyohitajika (/resources, /tools, n.k.)  
-2. **Muundo wa Maombi/Jawabu**: Thibitisha ufuataji wa skema  
-3. **Nambari za Makosa**: Hakikisha nambari sahihi za hali kwa matukio mbalimbali  
-4. **Aina za Yaliyomo**: Jaribu kushughulikia aina tofauti za yaliyomo  
-5. **Mtiririko wa Uthibitishaji**: Thibitisha michakato ya uthibitishaji inayolingana na maelezo  
+1. **Vituo vya API**: Pima vituo vinavyohitajika (/resources, /tools, nk.)  
+2. **Muundo wa Ombi/Jibu**: Hakiki uzingatiaji wa skima  
+3. **Msimbo wa Makosa**: Hakiki msimbo sahihi wa hali kwa hali mbalimbali  
+4. **Aina za Maudhui**: Pima uendeshaji wa aina tofauti za maudhui  
+5. **Mtiririko wa Uthibitishaji**: Hakiki njia za uthibitishaji zinazoendana na maelekezo  
 
-### Mkusanyiko wa Vipimo vya Uzingatiaji  
+### Mkusanyiko wa Majaribio ya Uzingatiaji  
 
 ```csharp
 [Fact]
@@ -2314,68 +2315,68 @@ public async Task Server_ResourceEndpoint_ReturnsCorrectSchema()
 }
 ```
   
-## Vidokezo 10 Vikuu vya Vipimo Bora vya Server ya MCP  
+## Vidokezo 10 vya Juu kwa Kupima Seva za MCP kwa Ufanisi  
 
-1. **Jaribu Maelezo ya Zana Kando**: Thibitisha maelezo ya skema peke yake mbali na mantiki ya zana  
-2. **Tumia Vipimo Vilivyopangwa**: Jaribu zana kwa aina mbalimbali za ingizo, ikijumuisha hali za kipekee  
-3. **Angalia Majibu ya Makosa**: Hakikisha usimamizi sahihi wa makosa kwa hali zote za makosa zinazowezekana  
-4. **Jaribu Mantiki ya Idhini**: Hakikisha udhibiti sahihi wa upatikanaji kwa majukumu tofauti ya watumiaji  
-5. **Fuatilia Ueneaji wa Vipimo**: Lenga kufikia ueneaji mkubwa wa msimbo wa njia muhimu  
-6. **Jaribu Majibu ya Mtiririko**: Hakikisha kushughulikia kwa usahihi yaliyomo yanayorushwa mtiririko  
-7. **Sanifu Matatizo ya Mtandao**: Jaribu tabia chini ya hali mbaya za mtandao  
-8. **Jaribu Vizingiti vya Rasilimali**: Thibitisha tabia wakati mipaka au viwango vya kasi vinafikiwa  
-9. **Jalibisha Vipimo vya Kuangusha Mabadiliko**: Tengeneza mkusanyiko unaoendeshwa kila unapobadilisha msimbo  
-10. **Andika Hali za Vipimo**: Dumisha nyaraka wazi za matukio ya vipimo  
+1. **Pima Maelezo ya Zana Kivyake**: Hakiki maelezo ya skima tofauti na mantiki ya zana  
+2. **Tumia Majaribio Yanayoonyeshwa na Vigezo**: Jaribu zana kwa aina mbalimbali za ingizo, pamoja na hali za kipekee  
+3. **Kagua Majibu ya Makosa**: Hakiki uendeshaji sahihi wa makosa kwa hali zote za makosa zinazowezekana  
+4. **Pima Mantiki ya Uidhinishaji**: Hakikisha udhibiti wa ufikiaji sahihi kwa majukumu tofauti ya watumiaji  
+5. **Fuata Ufunikaji wa Majaribio**: Lengo kufikia ufunikaji mkubwa wa msimbo wa njia muhimu  
+6. **Pima Majibu ya Mtiririko**: Hakiki uendeshaji sahihi wa maudhui yanayotiririka  
+7. **Fanya Mulinganisho wa Matatizo ya Mtandao**: Jaribu tabia chini ya hali mbaya za mtandao  
+8. **Pima Mipaka ya Rasilimali**: Hakiki tabia wakati wa kufikia viwango au vikwazo vya kasi  
+9. **Andaa Majaribio ya Usahihishaji**: Tengeneza mkusanyiko unaotekelezwa kila mara msimbo unapo badilika  
+10. **Andika Hali za Majaribio**: Dumisha nyaraka wazi za matukio ya majaribio  
 
-## Mambo ya Kuepuka katika Vipimo  
+## Makosa ya Kawaida Katika Majaribio  
 
-- **Kutegemea Kupita Kiasi Vipimo vya Njia Rahisi**: Hakikisha kupima hali za makosa kwa kina  
-- **Kusahau Upimaji wa Utendaji**: Tambua vizuizi kabla havijaathiri uzalishaji  
-- **Kupima Pekee Kwa Kutengwa**: Changanya vipimo vya unit, muunganisho, na mwisho-mwisho  
-- **Ueneaji Usio Kamili wa API**: Hakikisha vituo vyote na vipengele vinapimwa  
-- **Mazingaombwe ya Mazingira ya Vipimo Yasiyo Linganifu**: Tumia kontena ili kuhakikisha mazingira ya vipimo yanalingana  
+- **Kutegemea sana majaribio ya njia nzuri tu**: Hakikisha kupima kwa kina hali za makosa  
+- **Kupuuza majaribio ya utendaji**: Tambua vikwazo kabla havijaathiri uzalishaji  
+- **Kupima peke yake bila ushirikiano**: Changanya majaribio ya kitengo, muungano, na mwisho-mwisho  
+- **Ufunikaji wa API usio kamilifu**: Hakikisha vituo vyote na vipengele vimejaribiwa  
+- **Mazingira ya majaribio yasiyo thabiti**: Tumia kontena kuhakikisha mazingira thabiti ya majaribio  
 
 ## Hitimisho  
 
-Mikakati kamili ya kupima ni muhimu kwa kuendeleza server za MCP zenye kuaminika na ubora wa juu. Kwa kutekeleza mbinu bora na vidokezo vilivyoainishwa katika mwongozo huu, unaweza kuhakikisha utekelezaji wako wa MCP unakutana na viwango vikubwa vya ubora, kuaminika, na utendaji.  
+Mikakati kamili ya majaribio ni muhimu kwa kuendeleza seva za MCP zenye kuaminika na ubora wa hali ya juu. Kwa kutekeleza mbinu bora na vidokezo vilivyotajwa katika mwongozo huu, unaweza kuhakikisha utekelezaji wako wa MCP unakidhi viwango vya juu zaidi vya ubora, kuaminika, na utendaji.  
 
-## Mikakati Muhimu  
+## Muhimu Kumbukumbu  
 
-1. **Ubunifu wa Zana**: Fuata kanuni ya jukumu moja, tumia sindano ya utegemezi, na ngaiza ubunifu wa muungano  
-2. **Ubunifu wa Skema**: Tengeneza skema zilizo wazi na zilizotangazwa vyema na vizuizi vya uthibitishaji sahihi  
-3. **Usimamizi wa Makosa**: Tekeleza usimamizi mzuri wa makosa, majibu ya makosa yaliyopangwa, na mantiki ya jaribio tena  
-4. **Utendaji**: Tumia uhifadhi wa muda, usindikaji usio sambamba, na kuzuia matumizi ya rasilimali  
-5. **Usalama**: Tekeleza uthibitishaji mzuri wa ingizo, ukaguzi wa idhini, na usimamizi wa data nyeti  
-6. **Vipimo**: Tengeneza vipimo kamilifu vya unit, muunganisho, na mwisho-mwisho  
-7. **Mifumo ya Mtiririko wa Kazi**: Tumia mifumo iliyojulikana kama mnyororo, wasambazaji, na usindikaji sambamba  
+1. **Muundo wa Zana**: Fuata kanuni ya jukumu moja, tumia sindano la utegemezi, na unda kwa kuzingatia muundo wa kuunganishwa  
+2. **Muundo wa Skima**: Tengeneza skima zilizo wazi, zenye nyaraka nzuri na vizingiti sahihi vya uthibitishaji  
+3. **Uendeshaji wa Makosa**: Tekeleza utawala mzuri wa makosa, majibu ya makosa yaliyopangwa, na mantiki ya kujaribu tena  
+4. **Utendaji**: Tumia kuhifadhi taarifa, usindikaji usio sambamba, na kupiga marufuku rasilimali  
+5. **Usalama**: Tekeleza uthibitishaji wa kina wa ingizo, ukaguzi wa idhini, na usimamizi wa data nyeti  
+6. **Majaribio**: Tengeneza majaribio kamili ya kitengo, muungano, na mwisho-mwisho  
+7. **Mifumo ya Mtiririko wa Kazi**: Tumia mifumo iliyothibitishwa kama minyororo, wasambazaji, na usindikaji sambamba  
 
-## Zoego  
+## Zoefu  
 
-Sanifu zana ya MCP na mtiririko wa kazi kwa mfumo wa usindikaji wa nyaraka unaofanya:  
+Tengeneza zana na mtiririko wa kazi wa MCP kwa mfumo wa usindikaji wa hati ambao:  
 
-1. Kupokea nyaraka katika fomati mbalimbali (PDF, DOCX, TXT)  
-2. Kuchuja maandishi na taarifa muhimu kutoka kwenye nyaraka  
-3. Kugawanya nyaraka kwa aina na yaliyomo  
-4. Kutengeneza muhtasari wa kila nyaraka  
+1. Unakubali hati katika fomati mbalimbali (PDF, DOCX, TXT)  
+2. Huondoa maandishi na taarifa muhimu kutoka hati  
+3. Huainisha hati kwa aina na maudhui  
+4. Hutengeneza muhtasari wa kila hati  
 
-Tekeleza skema za zana, usimamizi wa makosa, na mtiririko wa kazi unaofaa zaidi kwa hali hii. Fikiria jinsi utakavyopima utekelezaji huu.  
+Tekeleza skima za zana, uendeshaji wa makosa, na mtindo wa mtiririko wa kazi unaofaa zaidi kwa tukio hili. Fikiria jinsi ungetaka kupima utekelezaji huu.  
 
-## Vyanzo  
+## Rasilimali  
 
-1. Jiunge na jamii ya MCP kwenye [Azure AI Foundry Discord Community](https://aka.ms/foundrydevs) ili uwe na taarifa mpya za maendeleo  
-2. Changia kwenye miradi ya chanzo wazi ya [MCP projects](https://github.com/modelcontextprotocol)  
+1. Jiunge na jamii ya MCP kwenye [Microsoft Foundry Discord Community](https://aka.ms/foundrydevs) ili kufuatilia maendeleo ya hivi punde  
+2. Changia kwenye miradi ya chanzo huria ya [MCP](https://github.com/modelcontextprotocol)  
 3. Tumia kanuni za MCP katika miradi ya AI ya shirika lako  
-4. Chunguza utekelezaji wa MCP maalum kwa sekta yako.  
-5. Fikiria kuhudhuria kozi za juu juu ya mada maalum za MCP, kama vile muunganisho wa njia nyingi au muunganisho wa programu za biashara.  
-6. Jaribu kujijengea zana na mitiririko yako ya MCP kwa kutumia kanuni ulizojifunza kupitia [Hands on Lab](../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)  
+4. Chunguza utekelezaji maalum wa MCP kwa sekta yako  
+5. Fikiria kuchukua kozi za kitaalamu juu ya mada maalum za MCP, kama uunganishaji wa njia nyingi au uunganishaji wa programu za biashara  
+6. Jaribu kujenga zana na mtiririko wako wa MCP ukitumia kanuni ulizojifunza kupitia [Hands on Lab](../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)  
 
 ## Kinachofuata  
 
-Kinachofuata: [Case Studies](../09-CaseStudy/README.md)
+Ifuatayo: [Case Studies](../09-CaseStudy/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Kipinga Hukumu**:
-Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kwa usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upotovu wa maana. Hati asili katika lugha yake ya asili inapaswa kuzingatiwa kama chanzo cha mamlaka. Kwa habari muhimu, tafsiri ya mtaalamu wa binadamu inapendekezwa. Hatuwajibiki kwa kutoelewana au tafsiri isiyo sahihi inayotokana na matumizi ya tafsiri hii.
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

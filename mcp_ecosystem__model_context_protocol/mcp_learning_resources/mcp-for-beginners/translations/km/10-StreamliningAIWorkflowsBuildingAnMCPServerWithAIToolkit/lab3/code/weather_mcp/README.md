@@ -1,73 +1,73 @@
 # Weather MCP Server
 
-នេះ​គឺ​ជា​ម៉ាស៊ីន​ម៉ាស៊ីន MCP ក្នុង​ភាសា Python ដែល​អនុវត្ត​ឧបករណ៍​អាកាសធាតុ​ជាមួយ​នឹង​ចម្លើយ​គំនូរ។ វាអាច​ត្រូវបាន​ប្រើ​ជាគំរូ​សម្រាប់​ម៉ាស៊ីន MCP ផ្ទាល់ខ្លួន​របស់​អ្នក។ វារួមបញ្ចូល​មុខងារ​ដូចខាងក្រោម៖
+នេះគឺជាសេវាផ្នែកមួយ MCP Server នៅក្នុង Python ដែលអនុវត្តឧបករណ៍អាកាសធាតុជាមួយនឹងចម្លើយប្លែកៗ។ វាអាចត្រូវបានប្រើជាចម្លើយសម្រាប់ MCP Server របស់អ្នកផ្ទាល់។ វារួមបញ្ចូលលក្ខណៈខាងក្រោម៖
 
-- **ឧបករណ៍អាកាសធាតុ**៖ ឧបករណ៍​ដែល​ផ្តល់​ព័ត៌មាន​អាកាសធាតុ​គំនូរ​ផ្អែក​លើទីតាំង​ដែលផ្ដល់។
-- **ភ្ជាប់ទៅ​កាន់ Agent Builder**៖ មុខងារ​ដែល​អនុញ្ញាត​ឲ្យ​អ្នក​ភ្ជាប់ម៉ាស៊ីន MCP ទៅ​កាន់ Agent Builder សម្រាប់​ការ​តេស្ត និង​ចាប់ត្រួតពិនិត្យ​កំហុស។
-- **ចាប់ត្រួតពិនិត្យ​ក្នុង [MCP Inspector](https://github.com/modelcontextprotocol/inspector)**៖ មុខងារ​ដែល​អនុញ្ញាត​ឲ្យ​អ្នក​ចាប់ត្រួត​ពិនិត្យម៉ាស៊ីន MCP ដោយ​ប្រើ MCP Inspector។
+- **ឧបករណ៍អាកាសធាតុ**៖ ឧបករណ៍ដែលផ្តល់ព័ត៌មានអាកាសធាតុប្លែកៗដោយផ្អែកលើទីតាំងដែលបានផ្ដល់។
+- **ភ្ជាប់ទៅកាន់ Agent Builder**៖ លក្ខណៈមួយដែលអនុញ្ញាតឱ្យអ្នកភ្ជាប់ MCP server ទៅកាន់ Agent Builder សម្រាប់ការធ្វើតេស្ត និងបំបាត់កំហុស។
+- **បំបាត់កំហុសនៅ [MCP Inspector](https://github.com/modelcontextprotocol/inspector)**៖ លក្ខណៈមួយដែលអនុញ្ញាតឱ្យអ្នកបំបាត់កំហុស MCP Server ដោយប្រើ MCP Inspector។
 
-## ចាប់ផ្តើម​ជាមួយគំរូ Weather MCP Server
+## ចាប់ផ្ដើមជាមួយទម្រង់ Weather MCP Server
 
-> **លក្ខខណ្ឌ​មុន**
->
-> ដើម្បី​បញ្ចូលម៉ាស៊ីន MCP នៅ​លើ​ក្រុមហ៊ុន​អភិវឌ្ឍន៍​ធ្វើការ​របស់​អ្នក អ្នក​ត្រូវការប្រើប្រាស់៖
->
+> **ដំណើរការមុន**
+> 
+> ដើម្បីដំណើរការ MCP Server នៅលើម៉ាស៊ីនអភិវឌ្ឍន៍ក្នុងស្រុករបស់អ្នក អ្នកនឹងត្រូវការ៖
+> 
 > - [Python](https://www.python.org/)
-> - (*ជាជម្រើស - ប្រសិនបើអ្នក​ចូលចិត្ត uv*) [uv](https://github.com/astral-sh/uv)
-> - [Python Debugger Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy)
+> - (*ជម្រើស - ប្រសិនបើអ្នកចូលចិត្ត uv*) [uv](https://github.com/astral-sh/uv)
+> - [ការរីកចម្រើន Python Debugger Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy)
 
-## រៀបចំ​បរិយាកាស
+## រៀបចំបរិយាកាស
 
-មាន​វិធី​ពីរ​ក្នុង​ការរៀបចំ​បរិយាកាស​សម្រាប់គម្រោង​នេះ។ អ្នកអាចជ្រើសរើសមួយណាមួយផ្អែក​លើចំណង់ចំណូលចិត្ត​របស់អ្នក។
+មានពីរទ្រឹស្តីក្នុងការរៀបចំបរិយាកាសសម្រាប់គម្រោងនេះ។ អ្នកអាចជ្រើសរើសត្រឹមត្រូវតាមចំណង់ចំណូលចិត្តរបស់អ្នក។
 
-> សម្គាល់៖ បើកបង្ហាញឡើងវិញ VSCode ឬ terminal ដើម្បី​ធ្វើ​ឱ្យ​បរិយាកាស python វែរឆវីតចំពោះ virtual env ត្រូវបាន​ប្រើ​បន្ទាប់​ពីបាន​បង្កើត​បរិយាកាស virtual env។
+> សម្គាល់៖ ឡូដ VSCode ឬ terminal ថ្មីដើម្បីប្រាកដថា python នៅក្នុងបរិយាកាស virtual ត្រូវបានប្រើបន្ទាប់ពីបង្កើតបរិយាកាស virtual។
 
-| វិធីសាស្ត្រ | ជំហាន |
-| -------- | ----- |
-| ប្រើ `uv` | 1. បង្កើត​បរិយាកាស virtual env: `uv venv` <br>2. ប្រតិបត្តិការបញ្ជា VSCode "***Python: Select Interpreter***" ហើយជ្រើសរើស python ពីបរិយាកាស virtual env ដែលបានបង្កើត <br>3. ដំឡើង dependency (រួមបញ្ចូល dev dependencies): `uv pip install -r pyproject.toml --extra dev` |
-| ប្រើ `pip` | 1. បង្កើត​បរិយាកាស virtual env: `python -m venv .venv` <br>2. ប្រតិបត្តិការបញ្ជា VSCode "***Python: Select Interpreter***" ហើយជ្រើសរើស python ពីបរិយាកាស virtual env ដែលបានបង្កើត<br>3. ដំឡើង dependency (រួមបញ្ចូល dev dependencies): `pip install -e .[dev]` | 
+| ទ្រឹស្តី | ជំហាន |
+| -------- | ------ |
+| ប្រើ `uv` | 1. បង្កើតបរិយាកាស virtual៖ `uv venv` <br>2. បើក VSCode Command "***Python: Select Interpreter***" ហើយជ្រើស python ពីបរិយាកាស virtual ដែលបានបង្កើត<br>3. ដំឡើងបណ្ដុំឧបករណ៍ (រួមមាន dev dependencies): `uv pip install -r pyproject.toml --extra dev` |
+| ប្រើ `pip` | 1. បង្កើតបរិយាកាស virtual៖ `python -m venv .venv` <br>2. បើក VSCode Command "***Python: Select Interpreter***" ហើយជ្រើស python ពីបរិយាកាស virtual ដែលបានបង្កើត<br>3. ដំឡើងបណ្ដុំឧបករណ៍ (រួមមាន dev dependencies): `pip install -e .[dev]` |
 
-បន្ទាប់ពីរៀបចំ​បរិយាកាសរួច អ្នកអាចបើកប្រតិបត្តិម៉ាស៊ីន​នៅក្នុង​ក្រុមហ៊ុន​អភិវឌ្ឍន៍​ផ្ទាល់​របស់​អ្នកដោយ​ប្រើ Agent Builder ជា MCP Client ដើម្បី​ចាប់ផ្តើម៖
-1. បើក​ផ្ទាំង Debug នៅក្នុង VS Code។ ជ្រើសរើស `Debug in Agent Builder` ឬចុច `F5` ដើម្បី​ចាប់ផ្តើម debugging ម៉ាស៊ីន MCP។
-2. ប្រើ AI Toolkit Agent Builder ដាក់​តេស្ត​ម៉ាស៊ីន​ជាមួយ [prompt នេះ](../../../../../../../../../../../open_prompt_builder)។ ម៉ាស៊ីន​នឹង​ត្រូវភ្ជាប់ស្វ័យប្រវត្តិក្នុង Agent Builder។
-3. ចុច `Run` ដើម្បី​តេស្ត​ម៉ាស៊ីន​ជាមួយ prompt នេះ។
+បន្ទាប់ពីរៀបចំព្រឹត្តិការណ៍ស្នូលរួច អ្នកអាចដំណើរការ ម៉ាស៊ីនបម្រើ នៅលើម៉ាស៊ីនអភិវឌ្ឍន៍ក្នុងស្រុក តាមរយៈ Agent Builder ជា MCP Client ដើម្បីចាប់ផ្ដើម៖
+1. បើកផ្ទាំង Debug VS Code។ ជ្រើស `Debug in Agent Builder` ឬចុច `F5` ដើម្បីចាប់ផ្តើមបំបាត់កំហុសម៉ាស៊ីនបម្រើ។
+2. ប្រើ Microsoft Foundry Toolkit Agent Builder ដើម្បីសាកល្បងម៉ាស៊ីនបម្រើជាមួយ [คำสั่งនេះ](../../../../../../../../../../../open_prompt_builder)។ ម៉ាស៊ីនបម្រើនឹងភ្ជាប់ដោយស្វ័យប្រវត្តិទៅ Agent Builder។
+3. ចុច `Run` ដើម្បីសាកល្បងម៉ាស៊ីនបម្រុងជាមួយคำสั่ง។
 
-**សូម​អបអរសាទរ**! អ្នកបាន​រត់ម៉ាស៊ីន Weather MCP Server បាន​​ជោគជ័យ​នៅ​លើ​ក្រុមហ៊ុន​អភិវឌ្ឍយោងរបស់​អ្នក​ដោយ​ប្រើ Agent Builder ជា MCP Client។
+**អបអរសាទរ**! អ្នកបានដំណើរការ MCP Server អាកាសធាតុដោយជោគជ័យនៅលើម៉ាស៊ីនអភិវឌ្ឍន៍ក្នុងស្រុករបស់អ្នក តាម Agent Builder ជា MCP Client។
 ![DebugMCP](https://raw.githubusercontent.com/microsoft/windows-ai-studio-templates/refs/heads/dev/mcpServers/mcp_debug.gif)
 
-## មានអ្វីក្នុងគំរូនេះ
+## មានអ្វីក្នុងទម្រង់នេះ
 
-| កំណត់ត្រា / ឯកសារ | មាតិកា                                     |
+| ថត / ឯកសារ | មាតិកា                                     |
 | ------------ | -------------------------------------------- |
-| `.vscode`    | ឯកសារ VSCode សម្រាប់ debugging            |
-| `.aitk`      | ការកំណត់សម្រាប់ AI Toolkit                 |
-| `src`        | កូដប្រភពសម្រាប់ម៉ាស៊ីន weather mcp server  |
+| `.vscode`    | ឯកសារ VSCode សម្រាប់បំបាត់កំហុស                  |
+| `.aitk`      | ការកំណត់សម្រាប់ Microsoft Foundry Toolkit                |
+| `src`        | កូដប្រភពសម្រាប់ម៉ាស៊ីនបម្រើ mcp អាកាសធាតុ           |
 
-## របៀប debugging Weather MCP Server
+## របៀបបំបាត់កំហុស Weather MCP Server
 
 > សម្គាល់៖
-> - [MCP Inspector](https://github.com/modelcontextprotocol/inspector) គឺ​ជា​ឧបករណ៍​អភិវឌ្ឍន៍​មើល​ឃើញ​សម្រាប់​ការ​តេស្ត និង debugging ម៉ាស៊ីន MCP។
-> - របៀប debugging ទាំងអស់គាំទ្រ breakpoints ដូច្នេះ​អ្នកអាច​បន្ថែម breakpoints ទៅកូដអនុវត្តន៍ឧបករណ៍។
+> - [MCP Inspector](https://github.com/modelcontextprotocol/inspector) គឺជាឧបករណ៍អភិវឌ្ឍន៍ទស្សនៈ សម្រាប់សាកល្បង និងបំបាត់កំហុស MCP servers។
+> - របៀបបំបាត់កំហុសទាំងអស់គាំទ្រចំណុចបំបែក ដូច្នេះ អ្នកអាចបន្ថែមចំណុចបំបែកទៅកូដអនុវត្តឧបករណ៍។
 
-| ប្រភេទ Debug | ការពិពណ៌នា | ជំហាន​សម្រាប់ debugging |
+| របៀបបំបាត់កំហុស | សេចក្តីរៀបរាប់ | ជំហានក្នុងការបំបាត់កំហុស |
 | ---------- | ----------- | --------------- |
-| Agent Builder | Debug ម៉ាស៊ីន MCP នៅក្នុង Agent Builder តាមរយៈ AI Toolkit។ | 1. បើក​ផ្ទាំង Debug នៅ VS Code។ ជ្រើសរើស `Debug in Agent Builder` ហើយចុច `F5` ដើម្បី​ចាប់ផ្តើម debugging ម៉ាស៊ីន MCP។<br>2. ប្រើ AI Toolkit Agent Builder ដើម្បី​តេស្ត​ម៉ាស៊ីន ជាមួយ [prompt នេះ](../../../../../../../../../../../open_prompt_builder)។ ម៉ាស៊ីន​នឹង​ត្រូវ​ភ្ជាប់​ខ្លួន​ស្វ័យប្រវត្តិក្នុង Agent Builder។<br>3. ចុច `Run` ដើម្បី​ធ្វើតេស្តម៉ាស៊ីនជាមួយ prompt ។ |
-| MCP Inspector | Debug ម៉ាស៊ីន MCP ដោយ​ប្រើ MCP Inspector។ | 1. ដំឡើង [Node.js](https://nodejs.org/)<br> 2. រៀបចំ Inspector៖ `cd inspector` && `npm install` <br> 3. បើក​ផ្ទាំង Debug នៅ VS Code។ ជ្រើសរើស `Debug SSE in Inspector (Edge)` ឬ `Debug SSE in Inspector (Chrome)`។ ចុច F5 ដើម្បី​ចាប់ផ្តើម debugging។<br> 4. ពេល MCP Inspector បើក​ក្នុង​ក្រុមហ៊ុន​កញ្ចក់, ចុច​ប៊ូតុង `Connect` ដើម្បីភ្ជាប់​ម៉ាស៊ីន MCP នេះ។<br> 5. បន្ទាប់មក​អ្នក​អាច `List Tools`, ជ្រើសរើសឧបករណ៍មួយ, បញ្ចូលប៉ារ៉ាម៉ែត្រ, ហើយ `Run Tool` ដើម្បី debug កូដម៉ាស៊ីនអ្នក។<br> |
+| Agent Builder | បំបាត់កំហុស MCP Server ក្នុង Agent Builder តាម Microsoft Foundry Toolkit។ | 1. បើកផ្ទាំង Debug VS Code។ ជ្រើស `Debug in Agent Builder` ហើយចុច `F5` ដើម្បីចាប់ផ្តើមបំបាត់កំហុស MCP Server។<br>2. ប្រើ Microsoft Foundry Toolkit Agent Builder ដើម្បីសាកល្បងម៉ាស៊ីនបម្រើជាមួយ [คำสั่งនេះ](../../../../../../../../../../../open_prompt_builder)។ ម៉ាស៊ីនបម្រើនឹងភ្ជាប់ដោយស្វ័យប្រវត្តិទៅ Agent Builder។<br>3. ចុច `Run` ដើម្បីសាកល្បងម៉ាស៊ីនបម្រើជាមួយคำสั่ง។ |
+| MCP Inspector | បំបាត់កំហុស MCP Server ដោយប្រើ MCP Inspector។ | 1. ដំឡើង [Node.js](https://nodejs.org/)<br>2. រៀបចំ Inspector៖ `cd inspector` && `npm install` <br> 3. បើកផ្ទាំង Debug VS Code។ ជ្រើស `Debug SSE in Inspector (Edge)` ឬ `Debug SSE in Inspector (Chrome)`។ ចុច F5 ដើម្បីចាប់ផ្តើមបំបាត់កំហុស។<br>4. ពេល MCP Inspector បើកនៅក្នុងកម្មវិធីរុករក ចុចប៊ូតុង `Connect` ដើម្បីភ្ជាប់ MCP Server នេះ។<br>5. បន្ទាប់មក អ្នកអាច `List Tools` ជ្រើសឧបករណ៍ បញ្ចូលប៉ារាម៉ែត្រ ហើយ `Run Tool` ដើម្បីបំបាត់កំហុសកូដម៉ាស៊ីនបម្រើរបស់អ្នក។<br> |
 
-## ព្រួញបញ្ចូល និង ការកែសម្រួល
+## កំព្យួរដើម និង ការប្តូរតាមចិត្ត
 
-| ប្រភេទ Debug | ស្វែពព៌ត | កំណត់អត្ថន័យ | ការកែប្រែ | សម្គាល់ |
+| របៀបបំបាត់កំហុស | កំព្យួរ | ការពណ៌នា | ការប្តូរតាមចិត្ត | សម្គាល់ |
 | ---------- | ----- | ------------ | -------------- |-------------- |
-| Agent Builder | 3001 | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | កែប្រែ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ដើម្បីប្ដូរស្វែពព៌តខាងលើ។ | គ្មាន |
-| MCP Inspector | 3001 (ម៉ាស៊ីន); 5173 និង 3000 (Inspector) | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | កែប្រែ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ដើម្បីប្ដូរស្វែពព៌តខាងលើ។ | គ្មាន |
+| Agent Builder | 3001 | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | កែប្រែ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ដើម្បីប្ដូរកំព្យួរខាងលើ។ | មិនមាន |
+| MCP Inspector | 3001 (ម៉ាស៊ីនបម្រើ); 5173 និង 3000 (Inspector) | [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json) | កែប្រែ [launch.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/launch.json), [tasks.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.vscode/tasks.json), [\_\_init\_\_.py](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/src/__init__.py), [mcp.json](../../../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/.aitk/mcp.json) ដើម្បីប្ដូរកំព្យួរខាងលើ។ | មិនមាន |
 
 ## មតិយោបល់
 
-បើអ្នកមានមតិយោបល់ ឬاقتراحសម្រាប់គំរូ​នេះ សូមបើកប្រធានបទ (issue) នៅលើ [AI Toolkit GitHub repository](https://github.com/microsoft/vscode-ai-toolkit/issues)
+បើអ្នកមានមតិបន្ថែម ឬដាក់ស្នើសម្រាប់ទម្រង់នេះ សូមបើកប្រធានបទនៅលើ [Microsoft Foundry Toolkit GitHub repository](https://github.com/microsoft/vscode-ai-toolkit/issues)។
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ការបដិសេធ**៖  
-ឯកសារនេះត្រូវបានបកប្រែដោយប្រើសេវាកម្មបកប្រែ AI [Co-op Translator](https://github.com/Azure/co-op-translator) ។ ខណៈពេលដែលយើងខិតខំប្រឹងប្រែងរកភាពត្រឹមត្រូវ សូមយល់ឲ្យបានថាការបកប្រែដោយស្វ័យប្រវត្តិនោះអាចមានកំហុស ឬការមិនត្រឹមត្រូវ។ ឯកសារដើមក្នុងភាសាដើមគួរត្រូវបានទទួលស្គាល់ថាជាអ្នកផ្តល់ព័ត៌មានដល់អ្នកយ៉ាងពិតប្រាកដ។ សម្រាប់ព័ត៌មានសំខាន់ៗ សូមណែនាំឲ្យមានការបកប្រែដោយមនុស្សវិជ្ជាជីវៈ។ យើងមិនទទួលខុសត្រូវចំពោះការយល់ច្រឡំ ឬការបកប្រែខុសដែលកើតឡើងពីការប្រើការបកប្រែនេះឡើយ។
+**ការបដិសេធ**:
+ឯកសារនេះត្រូវបានបម្លែងភាសា ដោយប្រើសេវាបម្លែងភាសា AI [Co-op Translator](https://github.com/Azure/co-op-translator)។ ទោះយើងខ្ញុំមានក្តីប្រាថ្នាឱ្យបានច្បាស់លាស់ តែសូមយល់ដឹងថាការបម្លែងដោយស្វ័យប្រវត្តិក៏អាចមានកំហុសឬភាពមិនត្រឹមត្រូវ។ ឯកសារដើមជាភាសាទីតាំងគួរត្រូវបានគេប្រើជាប្រភពច្បាស់លាស់។ សម្រាប់ព័ត៌មានសំខាន់ៗ សូមណែនាំឱ្យប្រើប្រាស់ការប្រែដោយមនុស្សជំនាញ។ យើងខ្ញុំមិនទទួលខុសត្រូវចំពោះការយល់ច្រឡំ ឬការបកស្រាយខុសបន្ទាប់ពីការប្រើប្រាស់ការបម្លែងនេះនោះទេ។
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

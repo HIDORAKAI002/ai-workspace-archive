@@ -1,7 +1,7 @@
-# 🔧 Moduli 3: Maendeleo ya MCP ya Juu kwa AI Toolkit
+# 🔧 Moduli 3: Maendeleo ya Juu ya MCP kwa Microsoft Foundry Toolkit
 
-![Duration](https://img.shields.io/badge/Duration-20_minutes-blue?style=flat-square)
-![AI Toolkit](https://img.shields.io/badge/AI_Toolkit-Required-orange?style=flat-square)
+![Muda](https://img.shields.io/badge/Duration-20_minutes-blue?style=flat-square)
+![Microsoft Foundry Toolkit](https://img.shields.io/badge/Microsoft_Foundry_Toolkit-Required-orange?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10+-green?style=flat-square)
 ![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.9.3-purple?style=flat-square)
 ![Inspector](https://img.shields.io/badge/MCP_Inspector-0.14.0-blue?style=flat-square)
@@ -10,40 +10,40 @@
 
 Mwisho wa maabara hii, utaweza:
 
-- ✅ Kuunda seva za MCP za kawaida kwa kutumia AI Toolkit
-- ✅ Kusanidi na kutumia toleo la hivi karibuni la MCP Python SDK (v1.9.3)
-- ✅ Kuweka na kutumia MCP Inspector kwa ajili ya utatuzi wa makosa
-- ✅ Kutatua matatizo ya seva za MCP katika mazingira ya Agent Builder na Inspector
-- ✅ Kuelewa taratibu za maendeleo ya seva za MCP za hali ya juu
+- ✅ Kuunda seva maalum za MCP kwa kutumia Microsoft Foundry Toolkit
+- ✅ Kusanidi na kutumia MCP Python SDK ya kisasa (toleo 1.9.3)
+- ✅ Kuweka na kutumia MCP Inspector kwa ajili ya utambuzi wa hitilafu
+- ✅ Kutambua hitilafu za seva za MCP katika mazingira ya Agent Builder na Inspector
+- ✅ Kuelewa michakato ya maendeleo ya juu ya seva ya MCP
 
-## 📋 Mahitaji ya Awali
+## 📋 Masharti ya Awali
 
-- Kumaliza Maabara 2 (Misingi ya MCP)
-- VS Code na ugani wa AI Toolkit umewekwa
+- Kumaliza Maabara 2 (Msingi wa MCP)
+- VS Code yenye ugani wa Microsoft Foundry Toolkit umewekwa
 - Mazingira ya Python 3.10+
 - Node.js na npm kwa ajili ya usanidi wa Inspector
 
-## 🏗️ Kile Ukitakachojenga
+## 🏗️ Kile Utaambatana Nacho
 
 Katika maabara hii, utaunda **Seva ya MCP ya Hali ya Hewa** inayonyesha:
-- Utekelezaji wa seva ya MCP ya kawaida
-- Muunganisho na AI Toolkit Agent Builder
-- Taratibu za kitaalamu za utatuzi wa makosa
-- Matumizi ya kisasa ya MCP SDK
+- Utekelezaji maalum wa seva ya MCP
+- Uunganisho na Agent Builder wa Microsoft Foundry Toolkit
+- Michakato ya kitaalamu ya utambuzi wa hitilafu
+- Mbinu za kisasa za matumizi ya MCP SDK
 
 ---
 
 ## 🔧 Muhtasari wa Vipengele Muhimu
 
 ### 🐍 MCP Python SDK
-MCP Python SDK ni msingi wa kujenga seva za MCP za kawaida. Utatumia toleo 1.9.3 lenye uwezo wa kuboresha utatuzi wa makosa.
+Model Context Protocol Python SDK hutoa msingi wa kujenga seva maalum za MCP. Utatumia toleo 1.9.3 lenye uwezo ulioimarishwa wa utambuzi wa hitilafu.
 
 ### 🔍 MCP Inspector
-Chombo chenye nguvu cha utatuzi wa makosa kinachotoa:
+Chombo kikubwa cha utambuzi wa hitilafu kinachotoa:
 - Ufuatiliaji wa seva kwa wakati halisi
 - Uonyesho wa utekelezaji wa zana
-- Ukaguzi wa maombi/jawabu ya mtandao
-- Mazingira ya majaribio ya mwingiliano
+- Ukaguzi wa maombi/jibu ya mtandao
+- Mazingira ya majaribio ya ushirikiano
 
 ---
 
@@ -51,21 +51,21 @@ Chombo chenye nguvu cha utatuzi wa makosa kinachotoa:
 
 ### Hatua 1: Unda WeatherAgent katika Agent Builder
 
-1. **Anzisha Agent Builder** katika VS Code kupitia ugani wa AI Toolkit
-2. **Unda wakala mpya** kwa usanidi ufuatao:
-   - Jina la Wakala: `WeatherAgent`
+1. **anzisha Agent Builder** katika VS Code kupitia ugani wa Microsoft Foundry Toolkit
+2. **unda wakala mpya** kwa usanidi ufuatao:
+   - Jina la wakala: `WeatherAgent`
 
-![Agent Creation](../../../../translated_images/sw/Agent.c9c33f6a412b4cde.webp)
+![Kuunda Wakala](../../../../translated_images/sw/Agent.c9c33f6a412b4cde.webp)
 
 ### Hatua 2: Anzisha Mradi wa Seva ya MCP
 
-1. **Nenda kwenye Tools** → **Add Tool** katika Agent Builder
-2. **Chagua "MCP Server"** kutoka kwa chaguzi zilizopo
+1. **Nenda Tools** → **Add Tool** katika Agent Builder
+2. **Chagua "MCP Server"** kutoka kwa chaguzi zinazopatikana
 3. **Chagua "Create A new MCP Server"**
 4. **Chagua kiolezo cha `python-weather`**
-5. **Pata jina seva yako:** `weather_mcp`
+5. **Jina seva yako:** `weather_mcp`
 
-![Python Template Selection](../../../../translated_images/sw/Pythontemplate.9d0a2913c6491500.webp)
+![Kuchagua Kiolezo cha Python](../../../../translated_images/sw/Pythontemplate.9d0a2913c6491500.webp)
 
 ### Hatua 3: Fungua na Kagua Mradi
 
@@ -86,31 +86,33 @@ Chombo chenye nguvu cha utatuzi wa makosa kinachotoa:
    └── README.md
    ```
 
-### Hatua 4: Sasisha MCP SDK kwa Toleo la Hivi Karibuni
+### Hatua 4: Sasisha kwa MCP SDK ya Hivi Karibuni
 
-> **🔍 Kwa Nini Kusasisha?** Tunataka kutumia toleo la hivi karibuni la MCP SDK (v1.9.3) na huduma ya Inspector (0.14.0) kwa vipengele vilivyoboreshwa na uwezo bora wa utatuzi wa makosa.
+> **🔍 Kwa Nini Kusasisha?** Tunataka kutumia MCP SDK ya hivi karibuni (toleo 1.9.3) na huduma ya Inspector (0.14.0) kwa vipengele vilivyoimarishwa na uwezo bora wa utambuzi wa hitilafu.
 
-#### 4a. Sasisha Mategemeo ya Python
+#### 4a. Sasisha Vitegemezi vya Python
 
 **Hariri `pyproject.toml`:** sasisha [./code/weather_mcp/pyproject.toml](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/pyproject.toml)
 
-#### 4b. Sasisha Usanidi wa Inspector
+
+#### 4b. Sasisha Mpangilio wa Inspector
 
 **Hariri `inspector/package.json`:** sasisha [./code/weather_mcp/inspector/package.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package.json)
 
-#### 4c. Sasisha Mategemeo ya Inspector
+#### 4c. Sasisha Vitegemezi vya Inspector
 
 **Hariri `inspector/package-lock.json`:** sasisha [./code/weather_mcp/inspector/package-lock.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package-lock.json)
 
-> **📝 Kumbuka:** Faili hili lina maelezo mengi ya utegemezi. Hapa chini ni muundo muhimu - maudhui kamili yanahakikisha utatuzi sahihi wa utegemezi.
+> **📝 Kumbuka:** Hili faili lina maelezo ya kina ya utegemezi. Hapa chini ni muundo muhimu - yaliyomo kamili huhakikisha utatuzi sahihi wa utegemezi.
 
-> **⚡ Kifungo Kamili cha Pakiti:** Faili kamili ya package-lock.json ina mistari takriban 3000 ya maelezo ya utegemezi. Hapo juu inaonyesha muundo muhimu - tumia faili iliyotolewa kwa utatuzi kamili wa utegemezi.
 
-### Hatua 5: Sanidi Utatuzi wa VS Code
+> **⚡ Kifungo Kamili cha Pakiti:** Faili kamili ya package-lock.json ina mistari ~3000 ya maelezo ya utegemezi. Hapo juu inaonyesha muundo mkuu - tumia faili iliyotolewa kwa utatuzi kamili.
 
-*Kumbuka: Tafadhali nakili faili katika njia iliyotajwa ili kubadilisha faili ya ndani inayolingana*
+### Hatua 5: Sanidi Utambuzi wa VS Code
 
-#### 5a. Sasisha Usanidi wa Anzisha
+*Kumbuka: Tafadhali nakili faili katika njia iliyoainishwa ili kubadilisha faili zinazolingana za eneo lako*
+
+#### 5a. Sasisha Mpangilio wa Kuzindua
 
 **Hariri `.vscode/launch.json`:**
 
@@ -291,33 +293,34 @@ Chombo chenye nguvu cha utatuzi wa makosa kinachotoa:
 }
 ```
 
+
 ---
 
 ## 🚀 Kuendesha na Kupima Seva Yako ya MCP
 
-### Hatua 6: Sakinisha Mategemeo
+### Hatua 6: Sakinisha Vitegemezi
 
-Baada ya kufanya mabadiliko ya usanidi, endesha amri zifuatazo:
+Baada ya kufanya mabadiliko ya usanidi, tumia amri zifuatazo:
 
-**Sakinisha mategemeo ya Python:**
+**Sakinisha utegemezi wa Python:**
 ```bash
 uv sync
 ```
 
-**Sakinisha mategemeo ya Inspector:**
+**Sakinisha utegemezi wa Inspector:**
 ```bash
 cd inspector
 npm install
 ```
 
-### Hatua 7: Tatua Makosa kwa Agent Builder
+### Hatua 7: Kutambuzi na Agent Builder
 
 1. **Bonyeza F5** au tumia usanidi wa **"Debug in Agent Builder"**
-2. **Chagua usanidi wa mchanganyiko** kutoka kwenye paneli ya utatuzi
-3. **Subiri seva ianze** na Agent Builder ifunguke
-4. **Jaribu seva yako ya weather MCP** kwa maswali ya lugha ya asili
+2. **Chagua usanidi changamano** kutoka kwenye paneli ya utambuzi
+3. **Subiri seva kuanza** na Agent Builder kufunguliwa
+4. **Jaribu seva yako ya hali ya hewa ya MCP** kwa maswali ya lugha ya asili
 
-Ingiza maelekezo kama haya
+Weka mfumo kama huu
 
 SYSTEM_PROMPT
 
@@ -331,19 +334,19 @@ USER_PROMPT
 How's the weather like in Seattle
 ```
 
-![Agent Builder Debug Result](../../../../translated_images/sw/Result.6ac570f7d2b1d538.webp)
+![Matokeo ya Utambuzi wa Agent Builder](../../../../translated_images/sw/Result.6ac570f7d2b1d538.webp)
 
-### Hatua 8: Tatua Makosa kwa MCP Inspector
+### Hatua 8: Kutambuzi na MCP Inspector
 
 1. **Tumia usanidi wa "Debug in Inspector"** (Edge au Chrome)
 2. **Fungua kiolesura cha Inspector** kwa `http://localhost:6274`
-3. **Chunguza mazingira ya majaribio ya mwingiliano:**
-   - Tazama zana zilizopo
+3. **Chunguza mazingira ya majaribio ya ushirikiano:**
+   - Angalia zana zinazopatikana
    - Jaribu utekelezaji wa zana
-   - Fuatilia maombi ya mtandao
-   - Tatua matatizo ya majibu ya seva
+   - Fuata maombi ya mtandao
+   - Tambua hitilafu za majibu ya seva
 
-![MCP Inspector Interface](../../../../translated_images/sw/Inspector.5672415cd02fe873.webp)
+![Kiolesura cha MCP Inspector](../../../../translated_images/sw/Inspector.5672415cd02fe873.webp)
 
 ---
 
@@ -351,40 +354,44 @@ How's the weather like in Seattle
 
 Kwa kumaliza maabara hii, umefanya:
 
-- [x] **Kuunda seva ya MCP ya kawaida** kwa kutumia violezo vya AI Toolkit
-- [x] **Kusasaisha hadi toleo la hivi karibuni la MCP SDK** (v1.9.3) kwa utendaji ulioboreshwa
-- [x] **Kusanidi taratibu za kitaalamu za utatuzi wa makosa** kwa Agent Builder na Inspector
-- [x] **Kuweka MCP Inspector** kwa ajili ya majaribio ya seva ya mwingiliano
-- [x] **Kuwa mtaalamu wa usanidi wa utatuzi wa VS Code** kwa maendeleo ya MCP
+- [x] **Kuunda seva maalum ya MCP** kwa kutumia violezo vya Microsoft Foundry Toolkit
+- [x] **Kusasaisha hadi MCP SDK ya hivi karibuni** (toleo 1.9.3) kwa utendaji ulioimarishwa
+- [x] **Kusanya michakato ya kitaalamu ya utambuzi wa hitilafu** kwa Agent Builder na Inspector
+- [x] **Kuweka MCP Inspector** kwa jaribio la huduma ya seva
+- [x] **Kuwa mtaalamu wa usanidi wa utambuzi wa VS Code** kwa maendeleo ya MCP
 
-## 🔧 Vipengele vya Juu Vilivyogunduliwa
+## 🔧 Vipengele vya Juu Vilivyoshughulikiwa
 
 | Kipengele | Maelezo | Matumizi |
 |---------|-------------|----------|
-| **MCP Python SDK v1.9.3** | Utekelezaji wa itifaki ya hivi karibuni | Maendeleo ya seva za kisasa |
-| **MCP Inspector 0.14.0** | Chombo cha utatuzi wa makosa cha mwingiliano | Majaribio ya seva kwa wakati halisi |
-| **Utatuzi wa VS Code** | Mazingira ya maendeleo yaliyojumuishwa | Taratibu za kitaalamu za utatuzi |
-| **Muunganisho wa Agent Builder** | Muunganisho wa moja kwa moja na AI Toolkit | Majaribio ya wakala kutoka mwanzo hadi mwisho |
+| **MCP Python SDK v1.9.3** | Utekelezaji wa itifaki ya hivi karibuni | Maendeleo ya seva ya kisasa |
+| **MCP Inspector 0.14.0** | Chombo cha utambuzi wa ushirikiano | Majaribio ya seva kwa wakati halisi |
+| **Utambuzi wa VS Code** | Mazingira ya maendeleo yaliyoshirikishwa | Kazi za utambuzi wa kitaalamu |
+| **Uunganisho wa Agent Builder** | Muunganisho wa moja kwa moja wa Microsoft Foundry Toolkit | Majaribio ya wakala toka mwanzo hadi mwisho |
 
-## 📚 Rasilimali Zaidi
+## 📚 Rasilimali Zingine
 
-- [MCP Python SDK Documentation](https://modelcontextprotocol.io/docs/sdk/python)
-- [AI Toolkit Extension Guide](https://code.visualstudio.com/docs/ai/ai-toolkit)
-- [VS Code Debugging Documentation](https://code.visualstudio.com/docs/editor/debugging)
-- [Model Context Protocol Specification](https://modelcontextprotocol.io/docs/concepts/architecture)
+- [Nyaraka za MCP Python SDK](https://modelcontextprotocol.io/docs/sdk/python)
+- [Mwongozo wa Ugani wa Microsoft Foundry Toolkit](https://code.visualstudio.com/docs/ai/ai-toolkit)
+- [Nyaraka za Utambuzi wa VS Code](https://code.visualstudio.com/docs/editor/debugging)
+- [Ufafanuzi wa Model Context Protocol](https://modelcontextprotocol.io/docs/concepts/architecture)
 
 ---
 
-**🎉 Hongera!** Umefanikiwa kumaliza Maabara 3 na sasa unaweza kuunda, kutatua matatizo, na kupeleka seva za MCP za kawaida kwa kutumia taratibu za maendeleo za kitaalamu.
+**🎉 Hongera!** Umefanikiwa kumaliza Maabara 3 na sasa unaweza kuunda, kutambua, na kupeleka seva maalum za MCP kwa kutumia michakato ya maendeleo ya kitaalamu.
 
-### 🔜 Endelea na Moduli Ifuatayo
+### 🔜 Endelea kwa Moduli Ifuatayo
 
-Uko tayari kutumia ujuzi wako wa MCP katika mtiririko halisi wa maendeleo? Endelea na **[Moduli 4: Maendeleo ya Vitendo ya MCP - Seva ya Kurejesha GitHub ya Kawaida](../lab4/README.md)** ambapo utajifunza:
-- Kujenga seva ya MCP inayotumika kiutendaji inayojumuisha shughuli za hifadhidata za GitHub
-- Kutekeleza utendaji wa kunakili hifadhidata za GitHub kupitia MCP
-- Kuunganisha seva za MCP za kawaida na VS Code na GitHub Copilot Agent Mode
-- Kupima na kupeleka seva za MCP za kawaida katika mazingira ya uzalishaji
-- Kujifunza uendeshaji wa kiotomatiki wa taratibu kwa waendelezaji
+Uko tayari kutumia ujuzi wako wa MCP katika mtiririko halisi wa maendeleo? Endelea kwa **[Moduli 4: Maendeleo ya Kivitendo ya MCP - Seva Maalum ya Kubadili GitHub](../lab4/README.md)** ambapo ut:
+- Kujenga seva ya MCP tayari kwa uzalishaji inayofanikisha otomatiki shughuli za hifadhidata ya GitHub
+- Kutekeleza utendaji wa kunakili hifadhidata ya GitHub kupitia MCP
+- Kuunganishwa kwa seva maalum za MCP na VS Code na GitHub Copilot Agent Mode
+- Kupima na kupeleka seva maalum za MCP katika mazingira ya uzalishaji
+- Kujifunza ut automatisering wa mtiririko wa kazi wa vitendo kwa watengenezaji programu
 
-**Kiarifu cha Kutotegemea**:  
-Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kwa usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake ya asili inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatubebei dhamana kwa kutoelewana au tafsiri potofu zinazotokana na matumizi ya tafsiri hii.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

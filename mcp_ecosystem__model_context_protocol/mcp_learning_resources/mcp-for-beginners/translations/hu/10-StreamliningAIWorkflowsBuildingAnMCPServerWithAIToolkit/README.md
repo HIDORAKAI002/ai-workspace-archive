@@ -1,4 +1,4 @@
-# AI Munkafolyamatok Egyszerűsítése: MCP Szerver Építése az AI Toolkit segítségével
+# AI Munkafolyamatok Egyszerűsítése: MCP Szerver Építése a Microsoft Foundry Toolkit-kel
 
 [![MCP Spec](https://img.shields.io/badge/MCP%20Spec-2025--11--25-blue.svg)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://python.org)
@@ -8,220 +8,220 @@
 
 ## 🎯 Áttekintés
 
-[![Build AI Agents in VS Code: 4 Hands-On Labs with MCP and AI Toolkit](../../../translated_images/hu/11.0f6db6a0fb606885.webp)](https://youtu.be/r34Csn3rkeQ)
+[![Build AI Agents in VS Code: 4 Hands-On Labs with MCP and Microsoft Foundry Toolkit](../../../translated_images/hu/11.0f6db6a0fb606885.webp)](https://youtu.be/r34Csn3rkeQ)
 
-_(Kattints a fenti képre, hogy megnézd az óra videóját)_
+_(Kattintson a fenti képre, hogy megnézze az óra videóját)_
 
-Üdvözlünk a **Model Context Protocol (MCP) Műhelyben**! Ez az átfogó, gyakorlati műhely két élvonalbeli technológiát kombinál az AI alkalmazásfejlesztés forradalmasításához:
+Üdvözöljük a **Model Context Protocol (MCP) Workshopon**! Ez az átfogó gyakorlati műhely két élvonalbeli technológiát ötvöz, hogy forradalmasítsa az AI alkalmazásfejlesztést:
 
-- **🔗 Model Context Protocol (MCP)**: Nyílt szabvány a zökkenőmentes AI-eszköz integrációhoz
-- **🛠️ AI Toolkit a Visual Studio Code-hoz (AITK)**: A Microsoft erőteljes AI fejlesztőbővítménye
+- **🔗 Model Context Protocol (MCP)**: Egy nyílt szabvány a zökkenőmentes AI-eszköz integrációhoz
+- **🛠️ Microsoft Foundry Toolkit kiterjesztés VS Code-hoz**: A Microsoft hatékony AI fejlesztői kiterjesztése
 
-### 🎓 Amit megtanulsz
+### 🎓 Amit megtanul
 
-A műhely végére elsajátítod az intelligens alkalmazások építésének tudományát, amelyek áthidalják az AI modelleket a valós eszközökkel és szolgáltatásokkal. Az automatizált teszteléstől az egyedi API integrációkig gyakorlati készségeket kapsz komplex üzleti kihívások megoldásához.
+A workshop végére elsajátítja az intelligens alkalmazások építésének művészetét, amelyek összekapcsolják az AI modelleket a valós eszközökkel és szolgáltatásokkal. Az automatikus teszteléstől a személyre szabott API integrációkig praktikus képességeket szerez a bonyolult üzleti kihívások megoldására.
 
-## 🏗️ Technológiai Halmaz
+## 🏗️ Technológiai háttér
 
 ### 🔌 Model Context Protocol (MCP)
 
-Az MCP a **„USB-C az AI számára”** – egy univerzális szabvány, amely összeköti az AI modelleket külső eszközökkel és adatforrásokkal.
+Az MCP a **"USB-C az AI számára"** – egy univerzális szabvány, amely összekapcsolja az AI modelleket külső eszközökkel és adatforrásokkal.
 
-**✨ Fő jellemzők:**
+**✨ Főbb jellemzők:**
 
-- 🔄 **Szabványosított Integráció**: Univerzális interfész AI-eszköz csatlakozáshoz
-- 🏛️ **Rugalmas Architektúra**: Helyi és távoli szerverek stdio/SSE átvitellel
-- 🧰 **Gazdag Ökoszisztéma**: Eszközök, előhívások és erőforrások egy protokollban
-- 🔒 **Vállalati Szintű**: Beépített biztonság és megbízhatóság
+- 🔄 **Szabványosított integráció**: Univerzális interfész AI-eszköz kapcsolatokhoz
+- 🏛️ **Rugalmas architektúra**: Helyi és távoli szerverek stdio/SSE szállításon keresztül
+- 🧰 **Gazdag ökoszisztéma**: Eszközök, felhívások és erőforrások egy protokollban
+- 🔒 **Vállalati szintű**: Beépített biztonság és megbízhatóság
 
 **🎯 Miért fontos az MCP:**
-Ahogyan az USB-C megszüntette a káoszt a kábeleknél, az MCP eltünteti az AI integrációk bonyolultságát. Egy protokoll, végtelen lehetőségek.
+Ahogy az USB-C eltüntette a kábelrengeteget, úgy az MCP is megszünteti az AI integrációk bonyolultságát. Egy protokoll, végtelen lehetőségek.
 
-### 🤖 AI Toolkit a Visual Studio Code-hoz (AITK)
+### 🤖 Microsoft Foundry Toolkit kiterjesztés VS Code-hoz
 
-A Microsoft zászlóshajó AI fejlesztőbővítménye, amely VS Code-ot AI erőművé alakítja.
+A Microsoft zászlóshajó AI fejlesztői kiterjesztése, amely a VS Code-ot AI erőművé alakítja.
 
 **🚀 Fő képességek:**
 
-- 📦 **Modellkatalógus**: Hozzáférés Azure AI, GitHub, Hugging Face, Ollama modellekhez
-- ⚡ **Helyi Inferencia**: ONNX-optimalizált CPU/GPU/NPU futtatás
-- 🏗️ **Agent Builder**: Vizual AI ügynök fejlesztés MCP integrációval
-- 🎭 **Multi-Modalitás**: Szöveg, látvány és strukturált kimenet támogatás
+- 📦 **Model Katalógus**: Hozzáférés modellekhez Azure AI, GitHub, Hugging Face, Ollama oldaláról
+- ⚡ **Helyi következtetés**: ONNX-optimalizált CPU/GPU/NPU futtatás
+- 🏗️ **Ügynöképítő**: Vizuális AI ügynök fejlesztés MCP integrációval
+- 🎭 **Multi-modális**: Szöveges, látvány- és strukturált output támogatás
 
-**💡 Fejlesztési Előnyök:**
+**💡 Fejlesztési előnyök:**
 
-- Zero-config modell telepítés
-- Vizual prompt tervezés
-- Valós idejű tesztelési játszótér
+- Zero-konfigurációs modell telepítés
+- Vizuális felhívás tervező
+- Valós idejű tesztelő játszótér
 - Zökkenőmentes MCP szerver integráció
 
-## 📚 Tanulási Út
+## 📚 Tanulási út
 
-### [🚀 1. Modul: AI Toolkit Alapok](./lab1/README.md)
+### [🚀 1. modul: Microsoft Foundry Toolkit alapjai](./lab1/README.md)
 
 **Időtartam**: 15 perc
 
-- 🛠️ Telepítsd és konfiguráld az AI Toolkit-et VS Code-hoz
-- 🗂️ Fedezd fel a Modellkatalógust (100+ modell GitHubról, ONNX-ről, OpenAI-ról, Anthropicról, Google-ről)
-- 🎮 Sajátítsd el az Interaktív Játszóteret valós idejű modell teszteléshez
-- 🤖 Építsd meg első AI ügynöködet az Agent Builderrel
-- 📊 Értékeld a modell teljesítményt beépített metrikákkal (F1, relevancia, hasonlóság, koherencia)
-- ⚡ Tanuld meg a kötegelt feldolgozás és multi-modális támogatás képességeit
+- 🛠️ Telepítse és konfigurálja a Microsoft Foundry Toolkitet VS Code-hoz
+- 🗂️ Fedezze fel a Model Katalógust (100+ modell GitHub, ONNX, OpenAI, Anthropic, Google oldalról)
+- 🎮 Sajátítsa el az Interaktív Játszóteret valós idejű modellteszteléshez
+- 🤖 Építse meg első AI ügynökét az Agent Builder-rel
+- 📊 Értékelje a modell teljesítményt beépített mérőszámokkal (F1, relevancia, hasonlóság, koherencia)
+- ⚡ Tanulja meg a kötegelt feldolgozást és a multi-modális támogatást
 
-**🎯 Tanulási eredmény**: Készíts egy működőképes AI ügynököt az AITK képességeinek átfogó ismeretével
+**🎯 Tanulási eredmény**: Funkcionális AI ügynök létrehozása a Microsoft Foundry Toolkit képességeinek átfogó ismeretével
 
-### [🌐 2. Modul: MCP az AI Toolkittel Alapok](./lab2/README.md)
-
-**Időtartam**: 20 perc
-
-- 🧠 Sajátítsd el a Model Context Protocol (MCP) architektúrát és koncepciókat
-- 🌐 Ismerd meg a Microsoft MCP szerver ökoszisztémáját
-- 🤖 Építs egy böngésző automatizációs ügynököt Playwright MCP szerverrel
-- 🔧 Integráld az MCP szervereket az AI Toolkit Agent Builderrel
-- 📊 Konfiguráld és teszteld az MCP eszközöket az ügynökeidben
-- 🚀 Exportáld és telepítsd az MCP által hajtott ügynököket éles használatra
-
-**🎯 Tanulási eredmény**: Telepíts MCP-vel felturbózott AI ügynököt külső eszközökkel
-
-### [🔧 3. Modul: Haladó MCP Fejlesztés AI Toolkittel](./lab3/README.md)
+### [🌐 2. modul: MCP a Microsoft Foundry Toolkit-kel](./lab2/README.md)
 
 **Időtartam**: 20 perc
 
-- 💻 Hozz létre egyedi MCP szervereket az AI Toolkittel
-- 🐍 Konfiguráld és használd a legújabb MCP Python SDK-t (v1.9.3)
-- 🔍 Állítsd be és használd az MCP Inspectort hibakereséshez
-- 🛠️ Építs időjárás MCP szervert profi hibakeresési munkafolyamatokkal
-- 🧪 Hibakeresd az MCP szervereket Agent Builder és Inspector környezetben
+- 🧠 Sajátítsa el a Model Context Protocol (MCP) architektúráját és fogalmait
+- 🌐 Fedezze fel a Microsoft MCP szerver ökoszisztémáját
+- 🤖 Építsen böngésző automatizációs ügynököt a Playwright MCP szerverrel
+- 🔧 Integrálja az MCP szervereket a Microsoft Foundry Toolkit Agent Builder-rel
+- 📊 Konfigurálja és tesztelje az MCP eszközöket az ügynökeiben
+- 🚀 Exportálja és telepítse az MCP-vel támogatott ügynököket éles használatra
 
-**🎯 Tanulási eredmény**: Fejlessz és hibakeress egyedi MCP szervereket modern eszközökkel
+**🎯 Tanulási eredmény**: AI ügynök telepítése külső eszközökkel felturbózva MCP-n keresztül
 
-### [🐙 4. Modul: Gyakorlati MCP Fejlesztés – Egyedi GitHub Klón Szerver](./lab4/README.md)
+### [🔧 3. modul: Haladó MCP fejlesztés Microsoft Foundry Toolkit-kel](./lab3/README.md)
+
+**Időtartam**: 20 perc
+
+- 💻 Egyedi MCP szerverek létrehozása a Microsoft Foundry Toolkit használatával
+- 🐍 Legújabb MCP Python SDK (v1.9.3) telepítése és használata
+- 🔍 MCP Inspector beállítása és használata hibakereséshez
+- 🛠️ Időjárás MCP Szerver építése professzionális hibakeresési munkafolyamatokkal
+- 🧪 MCP szerverek hibakeresése az Agent Builder és az Inspector környezetekben
+
+**🎯 Tanulási eredmény**: Egyedi MCP szerverek fejlesztése és hibakeresése modern eszközökkel
+
+### [🐙 4. modul: Gyakorlati MCP fejlesztés – Egyedi GitHub Clone szerver](./lab4/README.md)
 
 **Időtartam**: 30 perc
 
-- 🏗️ Építs valódi GitHub Klón MCP szervert fejlesztési munkafolyamatokhoz
-- 🔄 Valósíts meg intelligens tárhely klónozást érvényesítéssel és hibakezeléssel
-- 📁 Hozz létre intelligens könyvtárkezelést és VS Code-integrációt
-- 🤖 Használd a GitHub Copilot Agent módot egyedi MCP eszközökkel
-- 🛡️ Alkalmazz éles használatra kész megbízhatóságot és platformközi kompatibilitást
+- 🏗️ Valós GitHub Clone MCP Szerver építése fejlesztési munkafolyamatokhoz
+- 🔄 Okos tároló klónozás megvalósítása validációval és hibakezeléssel
+- 📁 Intelligens könyvtárkezelés és VS Code integráció létrehozása
+- 🤖 GitHub Copilot Ügynök mód használata egyedi MCP eszközökkel
+- 🛡️ Éles használatra készen megbízhatóság és többplatformos kompatibilitás alkalmazása
 
-**🎯 Tanulási eredmény**: Telepíts éles MCP szervert, amely egyszerűsíti a valós fejlesztési munkafolyamatokat
+**🎯 Tanulási eredmény**: Éles használatra kész MCP szerver telepítése, amely hatékonyabbá teszi a valós fejlesztési munkafolyamatokat
 
-## 💡 Valós Alkalmazások & Hatás
+## 💡 Valós Alkalmazások és Hatás
 
-### 🏢 Vállalati Használati Esetek
+### 🏢 Vállalati Felhasználási Esetek
 
-#### 🔄 DevOps Automatizálás
+#### 🔄 DevOps Automatizáció
 
-Alakítsd át fejlesztési munkafolyamatodat intelligens automatizációval:
+Fejlessze fejlesztési munkafolyamatait intelligens automatizációval:
 
-- **Okos tárhelykezelés**: AI-alapú kódáttekintés és egyesítési döntések
+- **Okos Tárolókezelés**: AI-alapú kódáttekintés és egyesítési döntések
 - **Intelligens CI/CD**: Automatizált pipeline optimalizáció kódváltozások alapján
-- **Hibakezelés**: Automatikus bug osztályozás és kiosztás
+- **Hibák kezelése**: Automatikus hibafelosztás és hozzárendelés
 
 #### 🧪 Minőségbiztosítás Forradalma
 
-Emeld a tesztelést AI-alapú automatizációval:
+Emelje magasabb szintre a tesztelést AI által vezérelt automatizációval:
 
-- **Intelligens tesztgenerálás**: Teljes tesztcsomagok automatikus létrehozása
-- **Vizuális regressziós tesztelés**: AI-vezérelt UI változásérzékelés
-- **Teljesítmény monitorozás**: Proaktív problémaazonosítás és megoldás
+- **Intelligens Tesztgenerálás**: Átfogó tesztcsomagok automatikus létrehozása
+- **Vizuális Regressziós Tesztelés**: AI-alapú UI változás detektálás
+- **Teljesítmény Monitorozás**: Proaktív hibafelismerés és megoldás
 
-#### 📊 Adatfolyam Intelligencia
+#### 📊 Adatfeldolgozó Pipeline Intelligencia
 
-Építs okosabb adatfeldolgozó munkafolyamatokat:
+Építsen okosabb adatfeldolgozó munkafolyamatokat:
 
-- **Adaptív ETL folyamatok**: Önműködő adattranszformációk
-- **Anomália érzékelés**: Valós idejű adatminőség figyelés
-- **Intelligens irányítás**: Okos adatáramlás kezelés
+- **Adaptív ETL folyamatok**: Önoptimalizáló adat-transzformációk
+- **Anomália detektálás**: Valós idejű adatminőség ellenőrzés
+- **Intelligens útválasztás**: Okos adatfolyam-kezelés
 
-#### 🎧 Ügyfélélmény Javítása
+#### 🎧 Ügyfélélmény Fejlesztése
 
-Teremts kivételes ügyfélkapcsolatokat:
+Teremtsen kivételes ügyfélinterakciókat:
 
-- **Kontekstusérzékeny támogatás**: AI ügynökök ügyfél előzményekkel
-- **Proaktív probléma megoldás**: Előrejelző ügyfélszolgálat
-- **Többcsatornás integráció**: Egységes AI élmény platformokon át
+- **Kontextus-érzékeny támogatás**: AI ügynökök ügyféltörténet hozzáféréssel
+- **Proaktív probléma-megoldás**: Prediktív ügyfélszolgálat
+- **Többcsatornás integráció**: Egységes AI élmény platformokon átívelően
 
 ## 🛠️ Előfeltételek & Beállítás
 
 ### 💻 Rendszerkövetelmények
 
-| Komponens | Követelmény | Megjegyzés |
+| Összetevő | Követelmény | Megjegyzés |
 |-----------|-------------|------------|
-| **Operációs Rendszer** | Windows 10+, macOS 10.15+, Linux | Bármely modern OS |
-| **Visual Studio Code** | Legfrissebb stabil verzió | Szükséges az AITK-hoz |
+| **Operációs Rendszer** | Windows 10+, macOS 10.15+, Linux | Bármely modern rendszer |
+| **Visual Studio Code** | Legfrissebb stabil verzió | Szükséges a Microsoft Foundry Toolkithez |
 | **Node.js** | v18.0+ és npm | MCP szerver fejlesztéshez |
 | **Python** | 3.10+ | Opcionális Python MCP szerverekhez |
-| **Memória** | Min. 8GB RAM | Ajánlott 16GB helyi modellekhez |
+| **Memória** | Minimum 8GB RAM | 16GB ajánlott helyi modellekhez |
 
-### 🔧 Fejlesztői Környezet
+### 🔧 Fejlesztői környezet
 
-#### Ajánlott VS Code Bővítmények
+#### Ajánlott VS Code kiterjesztések
 
-- **AI Toolkit** (ms-windows-ai-studio.windows-ai-studio)
+- **Microsoft Foundry Toolkit** (ms-windows-ai-studio.windows-ai-studio)
 - **Python** (ms-python.python)
-- **Python Hibakereső** (ms-python.debugpy)
-- **GitHub Copilot** (GitHub.copilot) – Opcionális, de hasznos
+- **Python Debugger** (ms-python.debugpy)
+- **GitHub Copilot** (GitHub.copilot) - Opcionális, de hasznos
 
-#### Opcionális Eszközök
+#### Opcionális eszközök
 
 - **uv**: Modern Python csomagkezelő
-- **MCP Inspector**: Vizual hibakereső eszköz MCP szerverekhez
+- **MCP Inspector**: Visual debug eszköz MCP szerverekhez
 - **Playwright**: Web automatizációs példákhoz
 
-## 🎖️ Tanulási Eredmények & Tanúsítási Út
+## 🎖️ Tanulási eredmények & Minősítési út
 
-### 🏆 Készségek Mesterlistája
+### 🏆 Készségfejlesztési ellenőrzőlista
 
-A műhely végére mesterfokú tudásra teszel szert:
+A workshop elvégzése után mesterfokon fogja kezelni:
 
-#### 🎯 Fő Kompetenciák
+#### 🎯 Alapvető kompetenciák
 
-- [ ] **MCP Protokoll Mester**: Mély architektúra és megvalósítási minták ismerete
-- [ ] **AITK Jártasság**: AI Toolkit szakértői használata gyors fejlesztéshez
-- [ ] **Egyedi Szerver Fejlesztés**: MCP szerverek építése, üzemeltetése éles környezetben
-- [ ] **Eszköz Integráció Kiválóság**: Zökkenőmentes AI integráció meglévő fejlesztési munkafolyamatokkal
-- [ ] **Problémamegoldás Alkalmazása**: Tanult képességek használata valós üzleti kihívások megoldására
+- [ ] **MCP Protokoll ismerete**: Mély architektúra- és implementációs minták ismerete
+- [ ] **Microsoft Foundry Toolkit jártasság**: Szakértői szintű használat gyors fejlesztéshez
+- [ ] **Egyedi szerver fejlesztés**: Éles MCP szerverek építése, telepítése és karbantartása
+- [ ] **Eszköz integráció kiválóság**: AI zökkenőmentes kapcsolása meglévő fejlesztési munkafolyamatokkal
+- [ ] **Problémamegoldó alkalmazás**: Tanult készségek alkalmazása valós üzleti kihívásokra
 
-#### 🔧 Technikai Készségek
+#### 🔧 Műszaki képességek
 
-- [ ] AI Toolkit beállítása és konfigurálása VS Code-ban
+- [ ] Microsoft Foundry Toolkit beállítása és konfigurálása VS Code-ban
 - [ ] Egyedi MCP szerverek tervezése és megvalósítása
-- [ ] GitHub Modellek integrálása MCP architektúrába
-- [ ] Automatizált tesztelési munkafolyamatok készítése Playwrighttal
-- [ ] AI ügynökök üzembe helyezése éles használatra
+- [ ] GitHub modellek integrálása MCP architektúrával
+- [ ] Automatizált tesztelési munkafolyamatok építése Playwright-tal
+- [ ] AI ügynökök telepítése éles használatra
 - [ ] MCP szerver teljesítményének hibakeresése és optimalizálása
 
-#### 🚀 Haladó Képességek
+#### 🚀 Haladó képességek
 
-- [ ] Nagyvállalati AI integrációk architektúrájának tervezése
-- [ ] Biztonsági legjobb gyakorlatok alkalmazása AI alkalmazásokban
+- [ ] Vállalati méretű AI integrációk architektúrájának tervezése
+- [ ] Biztonsági legjobb gyakorlatok megvalósítása AI alkalmazásokhoz
 - [ ] Skálázható MCP szerver architektúrák tervezése
-- [ ] Egyedi eszközláncok létrehozása specifikus területekre
+- [ ] Egyedi eszköz láncok létrehozása speciális területekre
 - [ ] Mások mentorálása AI-natív fejlesztésben
 
-## 📖 További Források
+## 📖 További források
 
 - [MCP Specifikáció (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [AI Toolkit GitHub Tároló](https://github.com/microsoft/vscode-ai-toolkit)
-- [MCP Szerverek Gyűjteménye](https://github.com/modelcontextprotocol/servers)
+- [Microsoft Foundry Toolkit GitHub tár](https://github.com/microsoft/vscode-ai-toolkit)
+- [MCP Szerverek Mintagyűjteménye](https://github.com/modelcontextprotocol/servers)
 - [Legjobb Gyakorlatok Útmutató](https://modelcontextprotocol.io/docs/best-practices)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) – Biztonsági legjobb gyakorlatok
+- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Biztonsági legjobb gyakorlatok
 
 ---
 
-**🚀 Készen állsz forradalmasítani AI fejlesztési munkafolyamatodat?**
+**🚀 Készen áll az AI fejlesztési munkafolyamat forradalmasítására?**
 
-Építsük együtt az intelligens alkalmazások jövőjét az MCP-vel és az AI Toolkittel!
+Építsük együtt az intelligens alkalmazások jövőjét az MCP és a Microsoft Foundry Toolkit segítségével!
 
 ## Mi következik
 
-Folytasd: [11. Modul: MCP Szerver Gyakorlati Műhelyek](../11-MCPServerHandsOnLabs/README.md)
+Folytassa: [11. modul: MCP Szerver Gyakorlati Laborok](../11-MCPServerHandsOnLabs/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Jogi nyilatkozat**:  
-Ez a dokumentum az AI fordító szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár a pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások tartalmazhatnak hibákat vagy pontatlanságokat. Az eredeti dokumentum anyanyelvi változata tekintendő hiteles forrásnak. Kritikus információk esetén profi, emberi fordítás igénylése javasolt. Nem vállalunk felelősséget az ebből a fordításból eredő félreértésekért vagy félreértelmezésekért.
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

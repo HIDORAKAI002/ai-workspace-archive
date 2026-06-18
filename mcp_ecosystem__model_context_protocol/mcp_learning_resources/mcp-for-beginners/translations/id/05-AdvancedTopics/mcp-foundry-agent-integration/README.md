@@ -1,59 +1,59 @@
-# Model Context Protocol (MCP) Integrasi dengan Azure AI Foundry
+# Integrasi Model Context Protocol (MCP) dengan Microsoft Foundry
 
-Panduan ini menunjukkan cara mengintegrasikan server Model Context Protocol (MCP) dengan agen Azure AI Foundry, memungkinkan orkestrasi alat yang kuat dan kemampuan AI tingkat perusahaan.
+Panduan ini menunjukkan cara mengintegrasikan server Model Context Protocol (MCP) dengan agen Microsoft Foundry, memungkinkan orkestrasi alat yang kuat dan kemampuan AI perusahaan.
 
 ## Pendahuluan
 
-Model Context Protocol (MCP) adalah standar terbuka yang memungkinkan aplikasi AI untuk terhubung secara aman ke sumber data dan alat eksternal. Saat diintegrasikan dengan Azure AI Foundry, MCP memungkinkan agen mengakses dan berinteraksi dengan berbagai layanan eksternal, API, dan sumber data secara terstandarisasi.
+Model Context Protocol (MCP) adalah standar terbuka yang memungkinkan aplikasi AI terhubung dengan aman ke sumber data dan alat eksternal. Ketika diintegrasikan dengan Microsoft Foundry, MCP memungkinkan agen untuk mengakses dan berinteraksi dengan berbagai layanan eksternal, API, dan sumber data secara standar.
 
-Integrasi ini menggabungkan fleksibilitas ekosistem alat MCP dengan kerangka kerja agen Azure AI Foundry yang tangguh, memberikan solusi AI kelas perusahaan dengan kemampuan kustomisasi yang luas.
+Integrasi ini menggabungkan fleksibilitas ekosistem alat MCP dengan kerangka kerja agen Microsoft Foundry yang tangguh, menyediakan solusi AI kelas perusahaan dengan kemampuan kustomisasi yang luas.
 
-**Note:** Jika Anda ingin menggunakan MCP di Azure AI Foundry Agent Service, saat ini hanya wilayah berikut yang didukung: westus, westus2, uaenorth, southindia, dan switzerlandnorth
+**Catatan:** Jika Anda ingin menggunakan MCP di Microsoft Foundry Agent Service, saat ini hanya wilayah berikut yang didukung: westus, westus2, uaenorth, southindia dan switzerlandnorth
 
 ## Tujuan Pembelajaran
 
-Setelah menyelesaikan panduan ini, Anda akan dapat:
+Pada akhir panduan ini, Anda akan dapat:
 
 - Memahami Model Context Protocol dan manfaatnya
-- Menyiapkan server MCP untuk digunakan dengan agen Azure AI Foundry
+- Menyiapkan server MCP untuk digunakan dengan agen Microsoft Foundry
 - Membuat dan mengonfigurasi agen dengan integrasi alat MCP
 - Menerapkan contoh praktis menggunakan server MCP nyata
-- Menangani respons alat dan sitasi dalam percakapan agen
+- Menangani respons alat dan kutipan dalam percakapan agen
 
 ## Prasyarat
 
 Sebelum memulai, pastikan Anda memiliki:
 
-- Langganan Azure dengan akses AI Foundry
+- Langganan Azure dengan akses Microsoft Foundry
 - Python 3.10+ atau .NET 8.0+
 - Azure CLI terpasang dan dikonfigurasi
 - Izin yang sesuai untuk membuat sumber daya AI
 
 ## Apa itu Model Context Protocol (MCP)?
 
-Model Context Protocol adalah cara terstandarisasi bagi aplikasi AI untuk terhubung ke sumber data dan alat eksternal. Manfaat utamanya meliputi:
+Model Context Protocol adalah cara standar bagi aplikasi AI untuk terhubung ke sumber data dan alat eksternal. Manfaat utamanya meliputi:
 
-- **Integrasi Terstandarisasi**: Antarmuka konsisten di berbagai alat dan layanan
+- **Integrasi Standar**: Antarmuka konsisten di berbagai alat dan layanan
 - **Keamanan**: Mekanisme autentikasi dan otorisasi yang aman
-- **Fleksibilitas**: Mendukung berbagai sumber data, API, dan alat kustom
-- **Ekstensibilitas**: Mudah menambahkan kemampuan dan integrasi baru
+- **Fleksibilitas**: Mendukung berbagai sumber data, API, dan alat khusus
+- **Ekstensibilitas**: Mudah menambahkan kapabilitas dan integrasi baru
 
-## Menyiapkan MCP dengan Azure AI Foundry
+## Menyiapkan MCP dengan Microsoft Foundry
 
 ### Konfigurasi Lingkungan
 
-Pilih lingkungan pengembangan yang Anda sukai:
+Pilih lingkungan pengembangan yang Anda inginkan:
 
-- [Implementasi Python](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [Implementasi .NET](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Implementasi Python](#implementasi-python)
+- [Implementasi .NET](#codeblock5)
 
 ---
 
 ## Implementasi Python
 
-***Note*** Anda dapat menjalankan [notebook](mcp_support_python.ipynb) ini
+***Catatan*** Anda dapat menjalankan [notebook](./mcp_support_python.ipynb) ini
 
-### 1. Instal Paket yang Dibutuhkan
+### 1. Pasang Paket yang Dibutuhkan
 
 ```bash
 pip install azure-ai-projects -U
@@ -71,14 +71,14 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.agents.models import McpTool, RequiredMcpToolCall, SubmitToolApprovalAction, ToolApproval
 ```
 
-### 3. Konfigurasikan Pengaturan MCP
+### 3. Konfigurasi Pengaturan MCP
 
 ```python
 mcp_server_url = os.environ.get("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
 mcp_server_label = os.environ.get("MCP_SERVER_LABEL", "mslearn")
 ```
 
-### 4. Inisialisasi Project Client
+### 4. Inisialisasi Klien Proyek
 
 ```python
 project_client = AIProjectClient(
@@ -93,7 +93,7 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # Opsional: tentukan alat yang diizinkan
 )
 ```
 
@@ -103,7 +103,7 @@ mcp_tool = McpTool(
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # Buat agen baru dengan alat MCP
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # Buat thread untuk komunikasi
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # Buat pesan ke thread
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # Tangani persetujuan alat dan jalankan agen
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # Tampilkan percakapan
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,9 +180,9 @@ with project_client:
 
 ## Implementasi .NET
 
-***Note*** Anda dapat menjalankan [notebook](mcp_support_dotnet.ipynb) ini
+***Catatan*** Anda dapat menjalankan [notebook](./mcp_support_dotnet.ipynb) ini
 
-### 1. Instal Paket yang Dibutuhkan
+### 1. Pasang Paket yang Dibutuhkan
 
 ```csharp
 #r "nuget: Azure.AI.Agents.Persistent, 1.1.0-beta.4"
@@ -196,7 +196,7 @@ using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 ```
 
-### 3. Konfigurasikan Pengaturan
+### 3. Konfigurasi Pengaturan
 
 ```csharp
 var projectEndpoint = "https://your-project-endpoint.services.ai.azure.com/api/projects/your-project";
@@ -305,9 +305,9 @@ Saat mengonfigurasi alat MCP untuk agen Anda, Anda dapat menentukan beberapa par
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # Pengidentifikasi untuk server MCP
+    server_url="https://api.example.com/mcp", # Titik akhir server MCP
+    allowed_tools=[],                       # Opsional: tentukan alat yang diizinkan
 )
 ```
 
@@ -322,14 +322,14 @@ MCPToolDefinition mcpTool = new(
 
 ## Autentikasi dan Header
 
-Kedua implementasi mendukung header kustom untuk autentikasi:
+Kedua implementasi mendukung header khusus untuk autentikasi:
 
-### Python  
+### Python
 ```python
 mcp_tool.update_headers("SuperSecret", "123456")
 ```
 
-### .NET  
+### .NET
 ```csharp
 MCPToolResource mcpToolResource = new(mcpServerLabel);
 mcpToolResource.UpdateHeader("SuperSecret", "123456");
@@ -342,41 +342,45 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 - Periksa kredensial autentikasi
 - Pastikan konektivitas jaringan
 
-### 2. Kegagalan Pemanggilan Alat
+### 2. Kegagalan Panggilan Alat
 - Tinjau argumen dan format alat
 - Periksa persyaratan khusus server
 - Terapkan penanganan kesalahan yang tepat
 
-### 3. Masalah Performa
-- Optimalkan frekuensi pemanggilan alat
-- Terapkan caching jika diperlukan
-- Pantau waktu respons server
+### 3. Masalah Kinerja
+- Optimalkan frekuensi panggilan alat
+- Terapkan caching jika perlu
+- Monitor waktu respons server
 
 ## Langkah Selanjutnya
 
 Untuk meningkatkan integrasi MCP Anda:
 
-1. **Jelajahi Server MCP Kustom**: Bangun server MCP Anda sendiri untuk sumber data proprietary  
-2. **Terapkan Keamanan Lanjutan**: Tambahkan OAuth2 atau mekanisme autentikasi kustom  
-3. **Pantau dan Analisis**: Terapkan logging dan monitoring penggunaan alat  
+1. **Jelajahi Server MCP Kustom**: Bangun server MCP Anda sendiri untuk sumber data proprietary
+2. **Terapkan Keamanan Lanjutan**: Tambahkan OAuth2 atau mekanisme autentikasi kustom
+3. **Monitor dan Analitik**: Terapkan logging dan monitoring penggunaan alat
 4. **Skalakan Solusi Anda**: Pertimbangkan load balancing dan arsitektur server MCP terdistribusi
 
 ## Sumber Daya Tambahan
 
-- [Dokumentasi Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- [Dokumentasi Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - [Contoh Model Context Protocol](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Ikhtisar Agen Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Ikhtisar Agen Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [Spesifikasi MCP](https://spec.modelcontextprotocol.io/)
 
 ## Dukungan
 
-Untuk dukungan dan pertanyaan tambahan:  
-- Tinjau [dokumentasi Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)  
+Untuk dukungan tambahan dan pertanyaan:
+- Tinjau [dokumentasi Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - Periksa [sumber daya komunitas MCP](https://modelcontextprotocol.io/)
 
-## Apa Selanjutnya
+## Selanjutnya
 
-- [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
+- [5.14 Rekayasa Konteks MCP](../mcp-contextengineering/README.md)
 
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk mencapai akurasi, harap diperhatikan bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sahih. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang keliru yang timbul dari penggunaan terjemahan ini.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk mencapai akurasi, harap diketahui bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sah. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang keliru yang timbul dari penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

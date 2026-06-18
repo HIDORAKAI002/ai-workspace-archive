@@ -1,82 +1,82 @@
-# Introductie tot MCP Database-integratie
+# Introductie tot MCP Database Integratie
 
 ## 🎯 Wat Deze Lab Behandelt
 
-Deze introductielab biedt een uitgebreide uitleg over het bouwen van Model Context Protocol (MCP)-servers met database-integratie. Je krijgt inzicht in de zakelijke case, technische architectuur en praktische toepassingen via de Zava Retail analytics use case op https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
+Deze introductielab biedt een uitgebreid overzicht van het bouwen van Model Context Protocol (MCP) servers met database-integratie. Je krijgt inzicht in de business case, technische architectuur en toepassingen uit de praktijk via de Zava Retail analytics use case op https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
 
 ## Overzicht
 
-**Model Context Protocol (MCP)** stelt AI-assistenten in staat om veilig toegang te krijgen tot en te communiceren met externe databronnen in real-time. In combinatie met database-integratie ontgrendelt MCP krachtige mogelijkheden voor datagedreven AI-toepassingen.
+**Model Context Protocol (MCP)** stelt AI-assistenten in staat om op een veilige manier realtime toegang te krijgen tot en te communiceren met externe databronnen. In combinatie met database-integratie ontsluit MCP krachtige mogelijkheden voor datagedreven AI-toepassingen.
 
-Dit leerpad leert je productieklare MCP-servers te bouwen die AI-assistenten verbinden met retailverkoopdata via PostgreSQL, waarbij ondernemingspatronen zoals Row Level Security, semantisch zoeken en multi-tenant data toegang worden geïmplementeerd.
+Dit leerpad leert je productieklare MCP-servers te bouwen die AI-assistenten verbinden met retail verkoopdata via PostgreSQL, waarbij enterprise-patronen zoals Row Level Security, semantisch zoeken en multi-tenant data toegang worden toegepast.
 
 ## Leerdoelen
 
 Aan het einde van deze lab kun je:
 
-- **Definiëren** wat Model Context Protocol is en de belangrijkste voordelen voor database-integratie
-- **Identificeren** van de belangrijkste componenten van een MCP-serverarchitectuur met databases
+- **Definiëren** wat Model Context Protocol is en de kernvoordelen voor database-integratie
+- **Identificeren** van sleutelcomponenten van een MCP serverarchitectuur met databases
 - **Begrijpen** van de Zava Retail use case en de zakelijke vereisten
-- **Herkennen** van ondernemingspatronen voor veilige, schaalbare database-toegang
-- **Opsommen** van de tools en technologieën die in dit leerpad worden gebruikt
+- **Herkennen** van enterprise-patronen voor veilige, schaalbare database toegang
+- **Opsommen** welke tools en technologieën in dit leerpad worden gebruikt
 
-## 🧭 De Uitdaging: AI Ontmoet Real-World Data
+## 🧭 De Uitdaging: AI Ontmoet Data uit de Praktijk
 
 ### Traditionele AI Beperkingen
 
-Moderne AI-assistenten zijn enorm krachtig, maar hebben aanzienlijke beperkingen bij het werken met real-world bedrijfsdata:
+Moderne AI-assistenten zijn zeer krachtig maar stuiten op aanzienlijke beperkingen bij het werken met zakelijke data uit de praktijk:
 
 | **Uitdaging** | **Beschrijving** | **Zakelijke Impact** |
-|---------------|------------------|----------------------|
-| **Statische Kennis** | AI-modellen getraind op vaste datasets hebben geen toegang tot actuele bedrijfsdata | Verouderde inzichten, gemiste kansen |
-| **Data Silos** | Informatie opgesloten in databases, API's en systemen die AI niet kan bereiken | Onvolledige analyses, gefragmenteerde workflows |
-| **Beveiligingsbeperkingen** | Directe database-toegang brengt beveiligings- en compliance-risico's met zich mee | Beperkte implementatie, handmatige datavoorbereiding |
-| **Complexe Queries** | Bedrijfsgebruikers hebben technische kennis nodig om data-inzichten te verkrijgen | Verminderde adoptie, inefficiënte processen |
+|---------------|-----------------|---------------------|
+| **Statische Kennis** | AI-modellen getraind op vaste datasets hebben geen toegang tot actuele zakelijke data | Verouderde inzichten, gemiste kansen |
+| **Data Silos** | Informatie opgesloten in databases, API’s en systemen die AI niet kan bereiken | Onvolledige analyses, gefragmenteerde workflows |
+| **Beveiligingsbeperkingen** | Directe database toegang roept beveiligings- en compliancevragen op | Beperkte implementatie, handmatige datapreparatie |
+| **Complexe Queries** | Zakelijke gebruikers hebben technische kennis nodig om data-inzichten te extraheren | Verminderde adoptie, inefficiënte processen |
 
 ### De MCP Oplossing
 
 Model Context Protocol pakt deze uitdagingen aan door:
 
-- **Real-time Data Toegang**: AI-assistenten kunnen live databases en API's raadplegen
+- **Realtime Data Toegang**: AI-assistenten stellen live queries aan databases en API's
 - **Veilige Integratie**: Gecontroleerde toegang met authenticatie en permissies
-- **Natuurlijke Taalinterface**: Bedrijfsgebruikers stellen vragen in gewone taal
-- **Gestandaardiseerd Protocol**: Werkt met verschillende AI-platforms en tools
+- **Natuurlijke Taal Interface**: Zakelijke gebruikers stellen vragen in gewone taal
+- **Gestandaardiseerd Protocol**: Werkt over verschillende AI-platformen en tools heen
 
-## 🏪 Maak Kennis met Zava Retail: Onze Leer Case Study https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
+## 🏪 Maak Kennis met Zava Retail: Onze Leercase https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
-Door dit leerpad heen bouwen we een MCP-server voor **Zava Retail**, een fictieve doe-het-zelf retailketen met meerdere winkelvestigingen. Dit realistische scenario demonstreert een implementatie van MCP op ondernemingsniveau.
+Gedurende dit leerpad bouwen we een MCP-server voor **Zava Retail**, een fictieve doe-het-zelf retailketen met meerdere winkelvestigingen. Dit realistische scenario toont een enterprise-grade MCP-implementatie.
 
 ### Zakelijke Context
 
 **Zava Retail** exploiteert:
-- **8 fysieke winkels** in de staat Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
+- **8 fysieke winkels** verspreid over de staat Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
 - **1 online winkel** voor e-commerce verkoop
-- **Divers productassortiment** inclusief gereedschap, hardware, tuinartikelen en bouwmaterialen
-- **Meerdere managementniveaus** met winkelmanagers, regionale managers en leidinggevenden
+- **Divers productassortiment** inclusief gereedschap, hardware, tuinbenodigdheden en bouwmaterialen
+- **Meerlagig management** met winkelmanagers, regiomanagers en executives
 
 ### Zakelijke Vereisten
 
-Winkelmanagers en leidinggevenden hebben AI-gestuurde analytics nodig om:
+Winkelmanagers en executives hebben AI-gedreven analyses nodig om:
 
 1. **Verkoopprestaties te analyseren** over winkels en tijdsperioden
-2. **Voorraadniveaus te volgen** en aanvulbehoeften te identificeren
-3. **Klanten gedrag te begrijpen** en aankooppatronen te analyseren
-4. **Productinzichten te ontdekken** via semantisch zoeken
-5. **Rapporten te genereren** met natuurlijke taalqueries
-6. **Data beveiliging te handhaven** met rolgebaseerde toegangscontrole
+2. **Voorraadniveaus bij te houden** en aanvulbehoeften te herkennen
+3. **Klanten gedrag te begrijpen** en aankooppatronen te ontdekken
+4. **Productinzichten te genereren** via semantisch zoeken
+5. **Rapporten te maken** met natuurlijke taal queries
+6. **Databeveiliging te waarborgen** met rolgebaseerde toegangscontrole
 
 ### Technische Vereisten
 
 De MCP-server moet bieden:
 
 - **Multi-tenant data toegang** waarbij winkelmanagers alleen hun eigen winkeldata zien
-- **Flexibele querying** die complexe SQL-operaties ondersteunt
+- **Flexibele query-mogelijkheden** die complexe SQL-operaties ondersteunen
 - **Semantisch zoeken** voor productontdekking en aanbevelingen
-- **Real-time data** die de actuele bedrijfsstatus weerspiegelt
+- **Realtime data** die de actuele bedrijfsstatus reflecteert
 - **Veilige authenticatie** met row-level security
 - **Schaalbare architectuur** die meerdere gelijktijdige gebruikers ondersteunt
 
-## 🏗️ MCP Server Architectuur Overzicht
+## 🏗️ Overzicht MCP Server Architectuur
 
 Onze MCP-server implementeert een gelaagde architectuur geoptimaliseerd voor database-integratie:
 
@@ -127,34 +127,34 @@ Onze MCP-server implementeert een gelaagde architectuur geoptimaliseerd voor dat
 - **Foutafhandeling**: Robuust foutbeheer en logging
 
 #### **2. Database Integratie Laag**
-- **Connection Pooling**: Efficiënt asyncpg-verbindingbeheer
-- **Schema Provider**: Dynamische tabelschema-ontdekking
+- **Connection Pooling**: Efficiënt asyncpg verbindingenbeheer
+- **Schema Provider**: Dynamische ontdekking van tabelschema’s
 - **Query Executor**: Veilige SQL-uitvoering met RLS-context
-- **Transactiebeheer**: ACID-compliance en rollback-afhandeling
+- **Transactiebeheer**: ACID-compliance en rollback afhandeling
 
 #### **3. Beveiligingslaag**
-- **Row Level Security**: PostgreSQL RLS voor multi-tenant data-isolatie
+- **Row Level Security**: PostgreSQL RLS voor multi-tenant data isolatie
 - **Gebruikersidentiteit**: Authenticatie en autorisatie van winkelmanagers
-- **Toegangscontrole**: Fijngranulaire permissies en audit trails
-- **Input Validatie**: Preventie van SQL-injecties en queryvalidatie
+- **Toegangscontrole**: Fijnmazige permissies en audit trails
+- **Inputvalidatie**: SQL injectie preventie en query validatie
 
-#### **4. AI Verbeteringslaag**
+#### **4. AI Versterkingslaag**
 - **Semantisch Zoeken**: Vector embeddings voor productontdekking
-- **Azure OpenAI Integratie**: Tekstembedding generatie
-- **Similariteitsalgoritmen**: pgvector cosine similarity search
-- **Zoekoptimalisatie**: Indexering en prestatieverbetering
+- **Azure OpenAI Integratie**: Tekst embedding generatie
+- **Gelijkenisalgoritmes**: pgvector cosine similarity search
+- **Zoekoptimalisatie**: Indexering en performance tuning
 
 ## 🔧 Technologie Stack
 
-### Kerntechnologieën
+### Kern Technologieën
 
 | **Component** | **Technologie** | **Doel** |
 |---------------|-----------------|----------|
-| **MCP Framework** | FastMCP (Python) | Moderne MCP-serverimplementatie |
-| **Database** | PostgreSQL 17 + pgvector | Relationele data met vectorzoekfunctie |
-| **AI Services** | Azure OpenAI | Tekstembeddings en taalmodellen |
+| **MCP Framework** | FastMCP (Python) | Moderne MCP serverimplementatie |
+| **Database** | PostgreSQL 17 + pgvector | Relationele data met vector search |
+| **AI Diensten** | Azure OpenAI | Tekst embeddings en taalmodellen |
 | **Containerisatie** | Docker + Docker Compose | Ontwikkelomgeving |
-| **Cloud Platform** | Microsoft Azure | Productie-implementatie |
+| **Cloud Platform** | Microsoft Azure | Productiedepoyment |
 | **IDE Integratie** | VS Code | AI Chat en ontwikkelworkflow |
 
 ### Ontwikkeltools
@@ -165,72 +165,72 @@ Onze MCP-server implementeert een gelaagde architectuur geoptimaliseerd voor dat
 | **Pydantic** | Data validatie en serialisatie |
 | **Azure SDK** | Cloud service integratie |
 | **pytest** | Testframework |
-| **Docker** | Containerisatie en implementatie |
+| **Docker** | Containerisatie en deployment |
 
 ### Productiestack
 
 | **Service** | **Azure Resource** | **Doel** |
 |-------------|--------------------|----------|
 | **Database** | Azure Database for PostgreSQL | Beheerde databaseservice |
-| **Container** | Azure Container Apps | Serverloze containerhosting |
-| **AI Services** | Azure AI Foundry | OpenAI-modellen en endpoints |
-| **Monitoring** | Application Insights | Observatie en diagnostiek |
-| **Beveiliging** | Azure Key Vault | Geheimen en configuratiebeheer |
+| **Container** | Azure Container Apps | Serverless containerhosting |
+| **AI Diensten** | Microsoft Foundry | OpenAI modellen en endpoints |
+| **Monitoring** | Application Insights | Observability en diagnostiek |
+| **Beveiliging** | Azure Key Vault | Secrets en configuratiemanagement |
 
-## 🎬 Praktische Gebruiksscenario's
+## 🎬 Toepassingsscenario's uit de Praktijk
 
-Laten we verkennen hoe verschillende gebruikers onze MCP-server gebruiken:
+Laten we verkennen hoe verschillende gebruikers met onze MCP-server interacteren:
 
 ### Scenario 1: Prestatiebeoordeling Winkelmanager
 
-**Gebruiker**: Sarah, Winkelmanager Seattle  
-**Doel**: Analyseer de verkoopprestaties van het afgelopen kwartaal
+**Gebruiker**: Sarah, winkelmanager Seattle  
+**Doel**: Analyse van verkoopprestaties vorig kwartaal
 
-**Natuurlijke Taalquery**:
-> "Laat me de top 10 producten zien op basis van omzet voor mijn winkel in Q4 2024"
+**Natuurlijke Taal Query**:
+> "Toon de top 10 producten op basis van omzet voor mijn winkel in Q4 2024"
 
 **Wat Gebeurt Er**:
-1. VS Code AI Chat stuurt de query naar de MCP-server
-2. MCP-server identificeert Sarah's winkelcontext (Seattle)
-3. RLS-beleid filtert data naar alleen de Seattle-winkel
+1. VS Code AI Chat stuurt query naar MCP server
+2. MCP server identificeert Sarah's winkelcontext (Seattle)
+3. RLS-beleid filtert data naar alleen Seattle winkel
 4. SQL-query wordt gegenereerd en uitgevoerd
-5. Resultaten worden geformatteerd en teruggestuurd naar AI Chat
-6. AI biedt analyse en inzichten
+5. Resultaten worden geformatteerd en teruggegeven aan AI Chat
+6. AI levert analyse en inzichten
 
 ### Scenario 2: Productontdekking met Semantisch Zoeken
 
-**Gebruiker**: Mike, Voorraadmanager  
-**Doel**: Vind producten die vergelijkbaar zijn met een klantverzoek
+**Gebruiker**: Mike, Inventory Manager  
+**Doel**: Producten vinden die lijken op een klantvraag
 
-**Natuurlijke Taalquery**:
-> "Welke producten verkopen we die vergelijkbaar zijn met 'waterdichte elektrische connectoren voor buitengebruik'?"
+**Natuurlijke Taal Query**:
+> "Welke producten verkopen we die lijken op ‘waterdichte elektrische connectoren voor buitengebruik’?"
 
 **Wat Gebeurt Er**:
-1. Query wordt verwerkt door semantische zoektool
+1. Query verwerkt door semantische zoektool
 2. Azure OpenAI genereert embedding vector
-3. pgvector voert similariteitszoekfunctie uit
-4. Gerelateerde producten worden gerangschikt op relevantie
+3. pgvector voert gelijkeniszoek uit
+4. Gerelateerde producten gerangschikt op relevantie
 5. Resultaten bevatten productdetails en beschikbaarheid
-6. AI suggereert alternatieven en bundelmogelijkheden
+6. AI stelt alternatieven en bundelkansen voor
 
-### Scenario 3: Cross-Winkel Analytics
+### Scenario 3: Cross-Store Analytics
 
-**Gebruiker**: Jennifer, Regionaal Manager  
-**Doel**: Vergelijk prestaties tussen alle winkels
+**Gebruiker**: Jennifer, regiomanager  
+**Doel**: Prestaties vergelijken over alle winkels
 
-**Natuurlijke Taalquery**:
+**Natuurlijke Taal Query**:
 > "Vergelijk verkoop per categorie voor alle winkels in de afgelopen 6 maanden"
 
 **Wat Gebeurt Er**:
-1. RLS-context ingesteld voor toegang van regionaal manager
-2. Complexe multi-winkel query gegenereerd
-3. Data geaggregeerd over winkelvestigingen
-4. Resultaten bevatten trends en vergelijkingen
+1. RLS-context ingesteld voor toegang via regiomanager
+2. Complexe multi-store query gegenereerd
+3. Data geaggregeerd over winkel locaties
+4. Resultaten tonen trends en vergelijkingen
 5. AI identificeert inzichten en aanbevelingen
 
-## 🔒 Beveiliging en Multi-Tenant Diepgaande Analyse
+## 🔒 Beveiliging en Multi-Tenancy Verdieping
 
-Onze implementatie geeft prioriteit aan beveiliging op ondernemingsniveau:
+Onze implementatie stelt enterprise-grade beveiliging voorop:
 
 ### Row Level Security (RLS)
 
@@ -251,7 +251,7 @@ CREATE POLICY regional_manager_policy ON retail.orders
 ### Gebruikersidentiteitsbeheer
 
 Elke MCP-verbinding bevat:
-- **Winkelmanager ID**: Unieke identificator voor RLS-context
+- **Winkelmanager ID**: Unieke identifier voor RLS-context
 - **Roltoewijzing**: Permissies en toegangslevels
 - **Sessiebeheer**: Veilige authenticatietokens
 - **Audit Logging**: Volledige toegangsgeschiedenis
@@ -259,52 +259,54 @@ Elke MCP-verbinding bevat:
 ### Databescherming
 
 Meerdere beveiligingslagen:
-- **Verbinding Encryptie**: TLS voor alle databaseverbindingen
-- **SQL Injectie Preventie**: Alleen geparameteriseerde queries
-- **Input Validatie**: Uitgebreide verzoekvalidatie
+- **Verbindingsversleuteling**: TLS voor alle databaseverbindingen
+- **SQL Injectie Preventie**: Alleen geparametriseerde queries
+- **Inputvalidatie**: Uitgebreide verzoekvalidatie
 - **Foutafhandeling**: Geen gevoelige data in foutmeldingen
 
-## 🎯 Belangrijke Inzichten
+## 🎯 Belangrijkste Leerpunten
 
-Na het voltooien van deze introductie begrijp je:
+Na deze introductie begrijp je:
 
-✅ **MCP Waardepropositie**: Hoe MCP AI-assistenten en real-world data verbindt  
-✅ **Zakelijke Context**: Zava Retail's vereisten en uitdagingen  
-✅ **Architectuur Overzicht**: Belangrijke componenten en hun interacties  
-✅ **Technologie Stack**: Tools en frameworks die worden gebruikt  
+✅ **MCP Waardepropositie**: Hoe MCP AI-assistenten en praktijkdata verbindt  
+✅ **Zakelijke Context**: Vereisten en uitdagingen van Zava Retail  
+✅ **Architectuuroverzicht**: Sleutelcomponenten en hun interacties  
+✅ **Technologiestack**: Gebruikte tools en frameworks  
 ✅ **Beveiligingsmodel**: Multi-tenant data toegang en bescherming  
-✅ **Gebruikspatronen**: Praktische queryscenario's en workflows  
+✅ **Gebruikspatronen**: Reële queryscenario’s en workflows  
 
 ## 🚀 Wat Nu?
 
 Klaar om dieper te duiken? Ga verder met:
 
-**[Lab 01: Kernarchitectuurconcepten](../01-Architecture/README.md)**
+**[Lab 01: Core Architecture Concepts](../01-Architecture/README.md)**
 
-Leer over MCP-serverarchitectuurpatronen, databaseontwerpprincipes en de gedetailleerde technische implementatie die onze retail analytics-oplossing aandrijft.
+Leer over MCP serverarchitectuurpatronen, database-ontwerpprincipes en de gedetailleerde technische implementatie die onze retail analytics oplossing aandrijft.
 
 ## 📚 Aanvullende Bronnen
 
 ### MCP Documentatie
 - [MCP Specificatie](https://modelcontextprotocol.io/docs/) - Officiële protocoldocumentatie
-- [MCP voor Beginners](https://aka.ms/mcp-for-beginners) - Uitgebreide MCP-leidraad
+- [MCP voor Beginners](https://aka.ms/mcp-for-beginners) - Uitgebreide MCP leerhandleiding
 - [FastMCP Documentatie](https://github.com/modelcontextprotocol/python-sdk) - Python SDK documentatie
 
 ### Database Integratie
 - [PostgreSQL Documentatie](https://www.postgresql.org/docs/) - Complete PostgreSQL referentie
-- [pgvector Handleiding](https://github.com/pgvector/pgvector) - Vector extensie documentatie
+- [pgvector Gids](https://github.com/pgvector/pgvector) - Vector extensiedocumentatie
 - [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS gids
 
-### Azure Services
+### Azure Diensten
 - [Azure OpenAI Documentatie](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI service integratie
 - [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Beheerde databaseservice
-- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Serverloze containers
+- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Serverless containers
 
 ---
 
-**Disclaimer**: Dit is een leerexercise met fictieve retaildata. Volg altijd de data governance- en beveiligingsbeleid van jouw organisatie bij het implementeren van soortgelijke oplossingen in productieomgevingen.
+**Disclaimer**: Dit is een leeractie met fictieve retaildata. Volg altijd het databeheer en beveiligingsbeleid van jouw organisatie bij het implementeren van soortgelijke oplossingen in productieomgevingen.
 
 ---
 
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsservice [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u zich ervan bewust te zijn dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor cruciale informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,4 +1,4 @@
-# 🚀 Módulo 1: Fundamentos do AI Toolkit
+# 🚀 Módulo 1: Fundamentos do Microsoft Foundry Toolkit
 
 [![Duration](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
@@ -6,104 +6,104 @@
 
 ## 📋 Objetivos de Aprendizagem
 
-No final deste módulo, serás capaz de:
-- ✅ Instalar e configurar o AI Toolkit para Visual Studio Code
-- ✅ Navegar pelo Catálogo de Modelos e compreender as diferentes fontes de modelos
-- ✅ Usar o Playground para testar e experimentar modelos
+No final deste módulo, será capaz de:
+- ✅ Instalar e configurar a Extensão Microsoft Foundry Toolkit para VS Code
+- ✅ Navegar no Catálogo de Modelos e compreender diferentes fontes de modelos
+- ✅ Utilizar o Playground para testar e experimentar modelos
 - ✅ Criar agentes de IA personalizados usando o Agent Builder
 - ✅ Comparar o desempenho dos modelos entre diferentes fornecedores
-- ✅ Aplicar as melhores práticas em engenharia de prompts
+- ✅ Aplicar as melhores práticas para engenharia de prompts
 
-## 🧠 Introdução ao AI Toolkit (AITK)
+## 🧠 Introdução ao Microsoft Foundry Toolkit
 
-O **AI Toolkit para Visual Studio Code** é a extensão principal da Microsoft que transforma o VS Code num ambiente completo de desenvolvimento de IA. Faz a ponte entre a investigação em IA e o desenvolvimento prático, tornando a IA generativa acessível a programadores de todos os níveis.
+A **Extensão Microsoft Foundry Toolkit para VS Code** é a extensão principal da Microsoft que transforma o VS Code num ambiente abrangente de desenvolvimento de IA. Liga a investigação em IA ao desenvolvimento prático de aplicações, tornando a IA generativa acessível a desenvolvedores de todos os níveis de habilidade.
 
-### 🌟 Capacidades Principais
+### 🌟 Capacidades Chave
 
 | Funcionalidade | Descrição | Caso de Uso |
-|----------------|-----------|-------------|
+|---------|-------------|----------|
 | **🗂️ Catálogo de Modelos** | Acesso a mais de 100 modelos do GitHub, ONNX, OpenAI, Anthropic, Google | Descoberta e seleção de modelos |
-| **🔌 Suporte BYOM** | Integração dos teus próprios modelos (locais/remotos) | Implementação personalizada de modelos |
-| **🎮 Playground Interativo** | Testes em tempo real com interface de chat | Prototipagem rápida e testes |
-| **📎 Suporte Multi-Modal** | Suporte a texto, imagens e anexos | Aplicações de IA complexas |
-| **⚡ Processamento em Lote** | Execução simultânea de múltiplos prompts | Fluxos de trabalho eficientes |
-| **📊 Avaliação de Modelos** | Métricas integradas (F1, relevância, similaridade, coerência) | Avaliação de desempenho |
+| **🔌 Suporte BYOM** | Integra os seus próprios modelos (locais/remotos) | Implementação de modelos personalizados |
+| **🎮 Playground Interativo** | Teste de modelos em tempo real com interface de chat | Protótipo e testes rápidos |
+| **📎 Suporte Multi-Modal** | Processamento de texto, imagens e anexos | Aplicações complexas de IA |
+| **⚡ Processamento em Lote** | Executa múltiplos prompts simultaneamente | Fluxos de trabalho de teste eficientes |
+| **📊 Avaliação de Modelos** | Métricas incorporadas (F1, relevância, similaridade, coerência) | Avaliação de desempenho |
 
-### 🎯 Porquê o AI Toolkit é Importante
+### 🎯 Porquê o Microsoft Foundry Toolkit é Importante
 
 - **🚀 Desenvolvimento Acelerado**: Da ideia ao protótipo em minutos
-- **🔄 Fluxo de Trabalho Unificado**: Uma interface para múltiplos fornecedores de IA
-- **🧪 Experimentação Fácil**: Compara modelos sem configurações complexas
-- **📈 Pronto para Produção**: Transição fluida do protótipo para o deployment
+- **🔄 Workflow Unificado**: Uma só interface para múltiplos fornecedores de IA
+- **🧪 Experimentação Fácil**: Compare modelos sem configurações complexas
+- **📈 Pronto para Produção**: Transição sem falhas do protótipo para o ambiente produtivo
 
 ## 🛠️ Pré-requisitos & Configuração
 
-### 📦 Instalar a Extensão AI Toolkit
+### 📦 Instalar a Extensão Microsoft Foundry Toolkit
 
-**Passo 1: Aceder ao Marketplace de Extensões**
-1. Abre o Visual Studio Code
-2. Navega para a vista de Extensões (`Ctrl+Shift+X` ou `Cmd+Shift+X`)
-3. Pesquisa por "AI Toolkit"
+**Passo 1: Aceda ao Marketplace de Extensões**
+1. Abra o Visual Studio Code
+2. Navegue para a vista de Extensões (`Ctrl+Shift+X` ou `Cmd+Shift+X`)
+3. Procure por "Microsoft Foundry Toolkit"
 
-**Passo 2: Escolher a Versão**
-- **🟢 Release**: Recomendado para uso em produção
+**Passo 2: Escolha a Sua Versão**
+- **🟢 Versão Estável**: Recomendada para uso em produção
 - **🔶 Pré-lançamento**: Acesso antecipado a funcionalidades inovadoras
 
 **Passo 3: Instalar e Ativar**
 
-![AI Toolkit Extension](../../../../translated_images/pt-PT/aitkext.d28945a03eed003c.webp)
+![Microsoft Foundry Toolkit Extension](../../../../translated_images/pt-PT/aitkext.d28945a03eed003c.webp)
 
-### ✅ Lista de Verificação para Verificação
-- [ ] Ícone do AI Toolkit aparece na barra lateral do VS Code
+### ✅ Lista de Verificação de Verificação
+- [ ] Ícone do Microsoft Foundry Toolkit aparece na barra lateral do VS Code
 - [ ] Extensão está ativada e em funcionamento
-- [ ] Sem erros de instalação no painel de output
+- [ ] Nenhum erro de instalação no painel de saída
 
 ## 🧪 Exercício Prático 1: Explorar Modelos do GitHub
 
-**🎯 Objetivo**: Dominar o Catálogo de Modelos e testar o teu primeiro modelo de IA
+**🎯 Objetivo**: Dominar o Catálogo de Modelos e testar o seu primeiro modelo de IA
 
-### 📊 Passo 1: Navegar pelo Catálogo de Modelos
+### 📊 Passo 1: Navegar no Catálogo de Modelos
 
-O Catálogo de Modelos é a tua porta de entrada para o ecossistema de IA. Agrega modelos de vários fornecedores, facilitando a descoberta e comparação.
+O Catálogo de Modelos é a sua porta de entrada para o ecossistema de IA. Agrega modelos de múltiplos fornecedores, facilitando a descoberta e comparação de opções.
 
 **🔍 Guia de Navegação:**
 
-Clica em **MODELS - Catalog** na barra lateral do AI Toolkit
+Clique em **MODELOS - Catálogo** na barra lateral do Microsoft Foundry Toolkit
 
 ![Model Catalog](../../../../translated_images/pt-PT/aimodel.263ed2be013d8fb0.webp)
 
-**💡 Dica Profissional**: Procura modelos com capacidades específicas que se adequem ao teu caso de uso (ex.: geração de código, escrita criativa, análise).
+**💡 Dica Profissional**: Procure modelos com capacidades específicas que correspondam ao seu caso de uso (por exemplo, geração de código, escrita criativa, análise).
 
-**⚠️ Nota**: Os modelos alojados no GitHub (ou seja, GitHub Models) são gratuitos, mas sujeitos a limites de taxa em pedidos e tokens. Para aceder a modelos externos (hospedados via Azure AI ou outros endpoints), precisarás de fornecer a chave API ou autenticação adequada.
+**⚠️ Nota**: Os modelos hospedados no GitHub (isto é, Modelos GitHub) são gratuitos para uso mas estão sujeitos a limites de taxa em pedidos e tokens. Se quiser aceder a modelos fora do GitHub (ou seja, modelos externos hospedados via Azure AI ou outros endpoints), terá de fornecer a chave API ou autenticação apropriada.
 
-### 🚀 Passo 2: Adicionar e Configurar o Teu Primeiro Modelo
+### 🚀 Passo 2: Adicionar e Configurar o Seu Primeiro Modelo
 
-**Estratégia de Seleção de Modelo:**
+**Estratégia de Seleção de Modelos:**
 - **GPT-4.1**: Ideal para raciocínio complexo e análise
 - **Phi-4-mini**: Leve, respostas rápidas para tarefas simples
 
 **🔧 Processo de Configuração:**
-1. Seleciona **OpenAI GPT-4.1** no catálogo
-2. Clica em **Add to My Models** - isto regista o modelo para uso
-3. Escolhe **Try in Playground** para abrir o ambiente de testes
-4. Aguarda pela inicialização do modelo (a primeira vez pode demorar um pouco)
+1. Selecione **OpenAI GPT-4.1** no catálogo
+2. Clique em **Adicionar aos Meus Modelos** - isto regista o modelo para uso
+3. Escolha **Testar no Playground** para lançar o ambiente de testes
+4. Aguarde a inicialização do modelo (a configuração inicial pode demorar um pouco)
 
 ![Playground Setup](../../../../translated_images/pt-PT/playground.dd6f5141344878ca.webp)
 
-**⚙️ Compreender os Parâmetros do Modelo:**
+**⚙️ Entender os Parâmetros do Modelo:**
 - **Temperature**: Controla a criatividade (0 = determinístico, 1 = criativo)
 - **Max Tokens**: Comprimento máximo da resposta
-- **Top-p**: Amostragem núcleo para diversidade da resposta
+- **Top-p**: Amostragem de núcleo para diversidade de resposta
 
 ### 🎯 Passo 3: Dominar a Interface do Playground
 
-O Playground é o teu laboratório de experimentação em IA. Eis como tirar o máximo partido:
+O Playground é o seu laboratório de experimentação de IA. Eis como maximizar o seu potencial:
 
-**🎨 Melhores Práticas em Engenharia de Prompts:**
+**🎨 Melhores Práticas para Engenharia de Prompts:**
 1. **Seja Específico**: Instruções claras e detalhadas produzem melhores resultados
-2. **Fornece Contexto**: Inclui informação relevante de fundo
-3. **Usa Exemplos**: Mostra ao modelo o que pretendes com exemplos
-4. **Itera**: Refina os prompts com base nos resultados iniciais
+2. **Forneça Contexto**: Inclua informações relevantes de fundo
+3. **Use Exemplos**: Mostre ao modelo o que pretende com exemplos
+4. **Itere**: Refine os prompts com base nos resultados iniciais
 
 **🧪 Cenários de Teste:**
 ```markdown
@@ -119,46 +119,46 @@ O Playground é o teu laboratório de experimentação em IA. Eis como tirar o m
 
 ![Testing Results](../../../../translated_images/pt-PT/result.1dfcf211fb359cf6.webp)
 
-### 🏆 Exercício Desafio: Comparação de Desempenho de Modelos
+### 🏆 Desafio: Comparação de Desempenho de Modelos
 
-**🎯 Objetivo**: Comparar diferentes modelos usando prompts idênticos para perceber as suas forças
+**🎯 Objetivo**: Comparar diferentes modelos usando prompts idênticos para entender suas forças
 
 **📋 Instruções:**
-1. Adiciona **Phi-4-mini** ao teu espaço de trabalho
-2. Usa o mesmo prompt para GPT-4.1 e Phi-4-mini
+1. Adicione **Phi-4-mini** ao seu espaço de trabalho
+2. Use o mesmo prompt para GPT-4.1 e Phi-4-mini
 
 ![set](../../../../translated_images/pt-PT/set.88132df189ecde2c.webp)
 
-3. Compara qualidade, velocidade e precisão das respostas
-4. Documenta as tuas conclusões na secção de resultados
+3. Compare a qualidade da resposta, rapidez e precisão
+4. Documente as suas conclusões na secção de resultados
 
 ![Model Comparison](../../../../translated_images/pt-PT/compare.97746cd0f9074955.webp)
 
-**💡 Insights Importantes a Descobrir:**
+**💡 Insights Chave a Descobrir:**
 - Quando usar LLM vs SLM
 - Compromissos entre custo e desempenho
 - Capacidades especializadas de diferentes modelos
 
-## 🤖 Exercício Prático 2: Construir Agentes Personalizados com Agent Builder
+## 🤖 Exercício Prático 2: Criar Agentes Personalizados com Agent Builder
 
-**🎯 Objetivo**: Criar agentes de IA especializados para tarefas e fluxos de trabalho específicos
+**🎯 Objetivo**: Criar agentes de IA especializados adaptados a tarefas e fluxos de trabalho específicos
 
 ### 🏗️ Passo 1: Compreender o Agent Builder
 
-O Agent Builder é onde o AI Toolkit realmente se destaca. Permite criar assistentes de IA feitos à medida que combinam o poder dos grandes modelos de linguagem com instruções personalizadas, parâmetros específicos e conhecimento especializado.
+O Agent Builder é onde o Microsoft Foundry Toolkit realmente se destaca. Permite criar assistentes de IA construídos para objetivos específicos que combinam o poder de grandes modelos linguísticos com instruções personalizadas, parâmetros específicos e conhecimento especializado.
 
 **🧠 Componentes da Arquitetura do Agente:**
 - **Modelo Base**: O LLM fundamental (GPT-4, Groks, Phi, etc.)
-- **System Prompt**: Define a personalidade e comportamento do agente
+- **Prompt do Sistema**: Define a personalidade e comportamento do agente
 - **Parâmetros**: Configurações ajustadas para desempenho ideal
-- **Integração de Ferramentas**: Ligação a APIs externas e serviços MCP
-- **Memória**: Contexto da conversa e persistência da sessão
+- **Integração de Ferramentas**: Ligações a APIs externas e serviços MCP
+- **Memória**: Contexto da conversa e persistência de sessão
 
 ![Agent Builder Interface](../../../../translated_images/pt-PT/agentbuilder.25895b2d2f8c02e7.webp)
 
-### ⚙️ Passo 2: Mergulho na Configuração do Agente
+### ⚙️ Passo 2: Imersão na Configuração do Agente
 
-**🎨 Criar System Prompts Eficazes:**
+**🎨 Criar Prompts de Sistema Eficazes:**
 ```markdown
 # Template Structure:
 ## Role Definition
@@ -178,25 +178,25 @@ You are a [specific role] with expertise in [domain].
 Provide 2-3 examples of ideal interactions
 ```
 
-*Claro que também podes usar Generate System Prompt para que a IA te ajude a gerar e otimizar prompts*
+*Claro que também pode usar Gerar Prompt do Sistema para usar IA a ajudar a gerar e otimizar prompts*
 
 **🔧 Otimização de Parâmetros:**
 | Parâmetro | Intervalo Recomendado | Caso de Uso |
-|-----------|----------------------|-------------|
+|-----------|------------------|----------|
 | **Temperature** | 0.1-0.3 | Respostas técnicas/factuais |
-| **Temperature** | 0.7-0.9 | Tarefas criativas/de brainstorming |
+| **Temperature** | 0.7-0.9 | Tarefas criativas/brainstorming |
 | **Max Tokens** | 500-1000 | Respostas concisas |
 | **Max Tokens** | 2000-4000 | Explicações detalhadas |
 
-### 🐍 Passo 3: Exercício Prático - Agente de Programação em Python
+### 🐍 Passo 3: Exercício Prático - Agente de Programação Python
 
-**🎯 Missão**: Criar um assistente especializado em programação Python
+**🎯 Missão**: Criar um assistente especializado em codificação Python
 
 **📋 Passos de Configuração:**
 
-1. **Seleção do Modelo**: Escolhe **Claude 3.5 Sonnet** (excelente para código)
+1. **Seleção do Modelo**: Escolha **Claude 3.5 Sonnet** (excelente para código)
 
-2. **Design do System Prompt**:
+2. **Desenho do Prompt do Sistema**:
 ```markdown
 # Python Programming Expert Agent
 
@@ -230,13 +230,13 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 
 ![Python Agent Configuration](../../../../translated_images/pt-PT/pythonagent.5e51b406401c165f.webp)
 
-### 🧪 Passo 4: Testar o Teu Agente Python
+### 🧪 Passo 4: Testar o Seu Agente Python
 
 **Cenários de Teste:**
-1. **Função Básica**: "Cria uma função para encontrar números primos"
-2. **Algoritmo Complexo**: "Implementa uma árvore de pesquisa binária com métodos de inserção, remoção e pesquisa"
-3. **Problema Real**: "Constrói um web scraper que lide com limitação de taxa e tentativas de repetição"
-4. **Depuração**: "Corrige este código [cola código com erros]"
+1. **Função Básica**: "Crie uma função para encontrar números primos"
+2. **Algoritmo Complexo**: "Implemente uma árvore de pesquisa binária com métodos inserir, apagar e pesquisar"
+3. **Problema do Mundo Real**: "Construa um web scraper que gerencie limites de taxa e tentativas de repetição"
+4. **Depuração**: "Corrija este código [colar código com erros]"
 
 **🏆 Critérios de Sucesso:**
 - ✅ Código executa sem erros
@@ -247,29 +247,33 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 
 ## 🎓 Conclusão do Módulo 1 & Próximos Passos
 
-### 📊 Verificação de Conhecimentos
+### 📊 Verificação de Conhecimento
 
-Testa a tua compreensão:
-- [ ] Consegues explicar a diferença entre os modelos do catálogo?
-- [ ] Criaste e testaste com sucesso um agente personalizado?
-- [ ] Entendes como otimizar parâmetros para diferentes casos de uso?
-- [ ] Sabes desenhar system prompts eficazes?
+Teste o seu entendimento:
+- [ ] Consegue explicar a diferença entre modelos no catálogo?
+- [ ] Criou e testou com sucesso um agente personalizado?
+- [ ] Compreende como otimizar parâmetros para diferentes casos de uso?
+- [ ] Sabe como desenhar prompts de sistema eficazes?
 
 ### 📚 Recursos Adicionais
 
-- **Documentação do AI Toolkit**: [Documentação Oficial Microsoft](https://github.com/microsoft/vscode-ai-toolkit)
+- **Documentação do Microsoft Foundry Toolkit**: [Documentação Oficial Microsoft](https://github.com/microsoft/vscode-ai-toolkit)
 - **Guia de Engenharia de Prompts**: [Melhores Práticas](https://platform.openai.com/docs/guides/prompt-engineering)
-- **Modelos no AI Toolkit**: [Modelos em Desenvolvimento](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Modelos no Microsoft Foundry Toolkit**: [Modelos em Desenvolvimento](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Parabéns!** Dominaste os fundamentos do AI Toolkit e estás pronto para criar aplicações de IA mais avançadas!
+**🎉 Parabéns!** Dominou os fundamentos do Microsoft Foundry Toolkit e está pronto para construir aplicações de IA mais avançadas!
 
-### 🔜 Continua para o Próximo Módulo
+### 🔜 Continue para o Próximo Módulo
 
-Preparado para capacidades mais avançadas? Continua para **[Módulo 2: Fundamentos MCP com AI Toolkit](../lab2/README.md)** onde vais aprender a:
-- Ligar os teus agentes a ferramentas externas usando o Model Context Protocol (MCP)
+Pronto para capacidades mais avançadas? Continue para **[Módulo 2: Fundamentos MCP com Microsoft Foundry Toolkit](../lab2/README.md)** onde irá aprender a:
+- Ligar os seus agentes a ferramentas externas usando o Model Context Protocol (MCP)
 - Construir agentes de automação de browser com Playwright
-- Integrar servidores MCP com os teus agentes AI Toolkit
-- Potenciar os teus agentes com dados e capacidades externas
+- Integrar servidores MCP com os seus agentes Microsoft Foundry Toolkit
+- Potenciar os seus agentes com dados e capacidades externas
 
-**Aviso Legal**:  
-Este documento foi traduzido utilizando o serviço de tradução automática [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos para garantir a precisão, por favor tenha em conta que traduções automáticas podem conter erros ou imprecisões. O documento original na sua língua nativa deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações incorretas decorrentes da utilização desta tradução.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Aviso Legal**:
+Este documento foi traduzido utilizando o serviço de tradução automática [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos pela precisão, esteja ciente de que traduções automáticas podem conter erros ou imprecisões. O documento original na sua língua nativa deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações incorretas resultantes da utilização desta tradução.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

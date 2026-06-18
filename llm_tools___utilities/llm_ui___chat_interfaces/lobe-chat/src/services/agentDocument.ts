@@ -66,6 +66,10 @@ class AgentDocumentService {
     return lambdaClient.agentDocument.listDocuments.query(params);
   };
 
+  getOrCreateChatTopic = async (params: { agentId: string; documentId: string }) => {
+    return lambdaClient.agentDocument.getOrCreateChatTopic.mutate(params);
+  };
+
   associateDocument = async (params: { agentId: string; documentId: string }) => {
     const result = await lambdaClient.agentDocument.associateDocument.mutate(params);
     await invalidateDocumentMutation({

@@ -6,76 +6,76 @@ _(Klik gambar di atas untuk menonton video pelajaran ini)_
 
 ## Gambaran Keseluruhan
 
-Pelajaran ini memfokuskan pada amalan terbaik lanjutan untuk membangunkan, menguji, dan mengendalikan pelayan dan ciri MCP dalam persekitaran pengeluaran. Apabila ekosistem MCP menjadi semakin kompleks dan penting, mengikuti corak yang telah ditetapkan memastikan kebolehpercayaan, kebolehselenggaraan, dan interoperabiliti. Pelajaran ini mengumpulkan kebijaksanaan praktikal yang diperoleh daripada pelaksanaan MCP dunia sebenar untuk membimbing anda dalam mencipta pelayan yang kukuh, cekap dengan sumber, arahan, dan alat yang berkesan.
+Pelajaran ini menumpukan pada amalan terbaik lanjutan untuk membangunkan, menguji, dan menjalankan server dan ciri MCP dalam persekitaran pengeluaran. Apabila ekosistem MCP menjadi semakin kompleks dan penting, mengikuti corak yang telah ditetapkan memastikan kebolehpercayaan, penyelenggaraan, dan antaraoperabiliti. Pelajaran ini mengumpulkan kebijaksanaan praktikal yang diperoleh daripada pelaksanaan MCP dunia sebenar untuk membimbing anda dalam mencipta server yang kukuh, cekap dengan sumber, arahan, dan alat yang berkesan.
 
 ## Objektif Pembelajaran
 
 Menjelang akhir pelajaran ini, anda akan dapat:
 
-- Menerapkan amalan terbaik industri dalam reka bentuk pelayan dan ciri MCP
-- Mewujudkan strategi ujian yang komprehensif untuk pelayan MCP
-- Merancang corak aliran kerja yang cekap dan boleh digunakan semula untuk aplikasi MCP yang kompleks
-- Melaksanakan pengendalian ralat, pencatatan dan pemerhatian yang betul dalam pelayan MCP
-- Mengoptimumkan pelaksanaan MCP untuk prestasi, keselamatan dan kebolehselenggaraan
+- Menerapkan amalan terbaik industri dalam reka bentuk server dan ciri MCP
+- Membuat strategi ujian komprehensif untuk server MCP
+- Mereka corak aliran kerja yang cekap dan boleh digunakan semula untuk aplikasi MCP yang kompleks
+- Melaksanakan pengendalian ralat, pencatatan, dan pemerhatian yang betul dalam server MCP
+- Mengoptimumkan pelaksanaan MCP untuk prestasi, keselamatan, dan kebolehselenggaraan
 
 ## Prinsip Teras MCP
 
-Sebelum menyelami amalan pelaksanaan khusus, adalah penting untuk memahami prinsip teras yang membimbing pembangunan MCP yang berkesan:
+Sebelum menyelami amalan pelaksanaan khusus, penting untuk memahami prinsip teras yang membimbing pembangunan MCP yang berkesan:
 
-1. **Komunikasi Standard**: MCP menggunakan JSON-RPC 2.0 sebagai asasnya, menyediakan format yang konsisten untuk permintaan, maklum balas, dan pengendalian ralat dalam semua pelaksanaan.
+1. **Komunikasi Standard**: MCP menggunakan JSON-RPC 2.0 sebagai asasnya, menyediakan format konsisten untuk permintaan, respons, dan pengendalian ralat di semua pelaksanaan.
 
-2. **Reka Bentuk Berpusatkan Pengguna**: Sentiasa utamakan persetujuan, kawalan, dan ketelusan pengguna dalam pelaksanaan MCP anda.
+2. **Reka Bentuk Berorientasikan Pengguna**: Sentiasa utamakan persetujuan, kawalan, dan ketelusan pengguna dalam pelaksanaan MCP anda.
 
-3. **Keselamatan Diutamakan**: Laksanakan langkah keselamatan yang kukuh termasuk pengesahan, kebenaran, pengesahan dan had kadar.
+3. **Keselamatan Diutamakan**: Laksanakan langkah keselamatan yang kukuh termasuk pengesahan, kebenaran, pengesahan, dan had kadar.
 
-4. **Senibina Modular**: Reka pelayan MCP anda dengan pendekatan modular, di mana setiap alat dan sumber mempunyai tujuan yang jelas dan fokus.
+4. **Seni Bina Modular**: Reka server MCP anda dengan pendekatan modular, di mana setiap alat dan sumber mempunyai tujuan yang jelas dan fokus.
 
-5. **Sambungan Berstatus**: Manfaatkan kemampuan MCP untuk mengekalkan status merentasi pelbagai permintaan bagi interaksi yang lebih koheren dan sedar konteks.
+5. **Sambungan Berstatus**: Manfaatkan kebolehan MCP untuk mengekalkan keadaan merentasi pelbagai permintaan bagi interaksi yang lebih koheren dan berkesedaran konteks.
 
 ## Amalan Terbaik Rasmi MCP
 
-Amalan terbaik berikut berasal dari dokumentasi Model Context Protocol rasmi:
+Amalan terbaik berikut diperoleh daripada dokumentasi Model Context Protocol rasmi:
 
 ### Amalan Terbaik Keselamatan
 
-1. **Persetujuan dan Kawalan Pengguna**: Sentiasa minta persetujuan jelas pengguna sebelum mengakses data atau menjalankan operasi. Berikan kawalan yang jelas ke atas data yang dikongsi dan tindakan yang dibenarkan.
+1. **Persetujuan dan Kawalan Pengguna**: Sentiasa minta persetujuan pengguna yang jelas sebelum mengakses data atau menjalankan operasi. Berikan kawalan yang jelas terhadap data yang dikongsi dan tindakan yang dibenarkan.
 
-2. **Privasi Data**: Dedahkan data pengguna hanya dengan persetujuan jelas dan lindungi ia dengan kawalan akses yang sesuai. Lindungi daripada penghantaran data tanpa kebenaran.
+2. **Privasi Data**: Dedahkan data pengguna hanya dengan persetujuan eksplisit dan lindungi dengan kawalan akses yang sesuai. Lindungi daripada penghantaran data tanpa kebenaran.
 
-3. **Keselamatan Alat**: Minta persetujuan jelas pengguna sebelum menggunakan sebarang alat. Pastikan pengguna memahami fungsi setiap alat dan kuatkuasakan sempadan keselamatan yang kukuh.
+3. **Keselamatan Alat**: Dapatkan persetujuan pengguna secara eksplisit sebelum menggunakan mana-mana alat. Pastikan pengguna memahami fungsi setiap alat dan laksanakan sempadan keselamatan yang kukuh.
 
-4. **Kawalan Kebenaran Alat**: Konfigurasi alat yang dibenarkan digunakan oleh model semasa sesi, memastikan hanya alat yang diberi kuasa jelas boleh diakses.
+4. **Kawalan Kebenaran Alat**: Konfigurasikan alat yang boleh digunakan oleh model semasa sesi, memastikan hanya alat yang dibenarkan secara eksplisit boleh diakses.
 
-5. **Pengesahan**: Perlukan pengesahan yang betul sebelum memberikan akses kepada alat, sumber, atau operasi sensitif menggunakan kunci API, token OAuth, atau kaedah pengesahan selamat lain.
+5. **Pengesahan**: Memerlukan pengesahan yang betul sebelum memberikan akses kepada alat, sumber, atau operasi sensitif menggunakan kunci API, token OAuth, atau kaedah pengesahan selamat lain.
 
-6. **Pengesahan Parameter**: Kuatkuasakan pengesahan untuk semua penggunaan alat bagi mengelakkan input yang rosak atau berniat jahat mencapai pelaksanaan alat.
+6. **Pengesahan Parameter**: Menguatkuasakan pengesahan untuk semua panggilan alat bagi mengelakkan input yang rosak atau berniat jahat sampai ke pelaksanaan alat.
 
-7. **Had Kadar**: Laksanakan had kadar untuk mengelakkan penyalahgunaan dan memastikan penggunaan sumber pelayan yang adil.
+7. **Had Kadar**: Melaksanakan had kadar untuk mengelakkan penyalahgunaan dan memastikan penggunaan sumber server yang adil.
 
 ### Amalan Terbaik Pelaksanaan
 
-1. **Perundingan Kebolehan**: Semasa penyediaan sambungan, bertukar maklumat mengenai ciri yang disokong, versi protokol, alat yang tersedia, dan sumber.
+1. **Negoisiasi Keupayaan**: Semasa penyediaan sambungan, bertukar maklumat mengenai ciri disokong, versi protokol, alat yang tersedia, dan sumber.
 
-2. **Reka Bentuk Alat**: Cipta alat yang fokus melakukan satu perkara dengan baik, bukannya alat monolitik yang mengendalikan pelbagai hal.
+2. **Reka Bentuk Alat**: Cipta alat yang fokus melakukan satu perkara dengan baik, bukan alat monolitik yang mengendalikan pelbagai isu.
 
-3. **Pengendalian Ralat**: Laksanakan mesej ralat dan kod standard untuk membantu mendiagnosa isu, mengendalikan kegagalan dengan baik, dan memberi maklum balas yang boleh diambil tindakan.
+3. **Pengendalian Ralat**: Laksanakan mesej dan kod ralat standard untuk membantu mendiagnosis isu, mengendalikan kegagalan dengan baik, dan memberikan maklum balas yang boleh diambil tindakan.
 
-4. **Pencatatan**: Konfigurasi log berstruktur untuk audit, penyahpepijatan, dan pemantauan interaksi protokol.
+4. **Pencatatan**: Konfigurasikan log berstruktur untuk pengauditan, penjejakan ralat, dan pemantauan interaksi protokol.
 
-5. **Penjejakan Kemajuan**: Untuk operasi yang berjalan lama, laporkan kemas kini kemajuan untuk membolehkan antara muka pengguna yang responsif.
+5. **Penjejakan Kemajuan**: Untuk operasi yang panjang, laporkan kemajuan bagi membolehkan antara muka pengguna yang responsif.
 
-6. **Pembatalan Permintaan**: Benarkan klien membatalkan permintaan yang sedang diproses yang tidak lagi diperlukan atau mengambil masa terlalu lama.
+6. **Pembatalan Permintaan**: Benarkan klien membatalkan permintaan sedang dijalankan yang tidak lagi diperlukan atau mengambil masa terlalu lama.
 
 ## Rujukan Tambahan
 
-Untuk maklumat terkini mengenai amalan terbaik MCP, rujuk:
+Untuk maklumat terkini tentang amalan terbaik MCP, rujuk:
 
 - [Dokumentasi MCP](https://modelcontextprotocol.io/)
 - [Spesifikasi MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [Repositori GitHub](https://github.com/modelcontextprotocol)
 - [Amalan Terbaik Keselamatan](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Risiko keselamatan dan mitigasi
-- [Bengkel Sidang Kemuncak Keselamatan MCP (Sherpa)](https://azure-samples.github.io/sherpa/) - Latihan keselamatan secara langsung
+- [OWASP MCP 10 Teratas](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Risiko keselamatan dan mitigasi
+- [Bengkel Sidang Kemuncak Keselamatan MCP (Sherpa)](https://azure-samples.github.io/sherpa/) - Latihan keselamatan secara amali
 
 ## Contoh Pelaksanaan Praktikal
 
@@ -83,7 +83,7 @@ Untuk maklumat terkini mengenai amalan terbaik MCP, rujuk:
 
 #### 1. Prinsip Tanggungjawab Tunggal
 
-Setiap alat MCP harus mempunyai tujuan yang jelas dan fokus. Daripada mencipta alat monolitik yang cuba mengendalikan pelbagai hal, bina alat khusus yang cemerlang dalam tugas tertentu.
+Setiap alat MCP harus mempunyai tujuan yang jelas dan fokus. Daripada mencipta alat monolitik yang cuba menangani pelbagai isu, bangunkan alat yang khusus yang cemerlang dalam tugasan tertentu.
 
 ```csharp
 // A focused tool that does one thing well
@@ -145,7 +145,7 @@ public class WeatherForecastTool : ITool
 
 #### 2. Pengendalian Ralat Konsisten
 
-Laksanakan pengendalian ralat yang kukuh dengan mesej ralat yang bermaklumat dan mekanisme pemulihan yang sesuai.
+Laksanakan pengendalian ralat yang kukuh dengan mesej ralat yang informatif dan mekanisme pemulihan yang sesuai.
 
 ```python
 # Contoh Python dengan pengendalian ralat yang menyeluruh
@@ -179,16 +179,16 @@ class DataQueryTool:
             except asyncio.TimeoutError:
                 raise ToolExecutionError("Database query timed out after 10 seconds")
             except DatabaseConnectionError as e:
-                # Ralat sambungan mungkin bersifat sembuh sendiri
+                # Ralat sambungan mungkin sementara
                 self._log_error("Database connection error", e)
                 raise ToolExecutionError(f"Database connection error: {str(e)}")
             except DatabaseQueryError as e:
-                # Ralat pertanyaan mungkin ralat klien
+                # Ralat pertanyaan kemungkinan ralat klien
                 self._log_error("Database query error", e)
                 raise ToolExecutionError(f"Invalid query: {str(e)}")
                 
         except ToolError:
-            # Benarkan ralat khusus alatan untuk melepasi
+            # Biarkan ralat khusus alat melalui
             raise
         except Exception as e:
             # Tangkap semua untuk ralat yang tidak dijangka
@@ -200,7 +200,7 @@ class DataQueryTool:
         pass
         
     def _log_error(self, message, error):
-        # Pelaksanaan pencatatan ralat
+        # Pelaksanaan log ralat
         pass
 ```
 
@@ -300,7 +300,7 @@ public class SecureDataAccessTool implements Tool {
     private final AuthorizationService authzService;
     private final DataService dataService;
     
-    // Suntikan pergantungan
+    // Suntikan kebergantungan
     public SecureDataAccessTool(
             AuthenticationService authService,
             AuthorizationService authzService,
@@ -328,7 +328,7 @@ public class SecureDataAccessTool implements Tool {
             return ToolResponse.error("Authentication failed: " + e.getMessage());
         }
         
-        // 3. Periksa kebenaran untuk operasi tertentu
+        // 3. Semak kebenaran untuk operasi tertentu
         String dataId = request.getParameters().get("dataId").getAsString();
         String operation = request.getParameters().get("operation").getAsString();
         
@@ -437,21 +437,21 @@ public class RateLimitingMiddleware
 
 ### 1. Ujian Unit Alat MCP
 
-Sentiasa uji alat anda secara terasing dengan meniru pergantungan luaran:
+Sentiasa uji alat anda secara berasingan, iaitu dengan meniru pergantungan luaran:
 
 ```typescript
-// Contoh ujian unit alat dalam TypeScript
+// Contoh ujian unit alat TypeScript
 describe('WeatherForecastTool', () => {
   let tool: WeatherForecastTool;
   let mockWeatherService: jest.Mocked<IWeatherService>;
   
   beforeEach(() => {
-    // Cipta perkhidmatan cuaca palsu
+    // Buat perkhidmatan cuaca palsu
     mockWeatherService = {
       getForecasts: jest.fn()
     } as any;
     
-    // Cipta alat dengan pergantungan palsu
+    // Buat alat dengan kebergantungan palsu
     tool = new WeatherForecastTool(mockWeatherService);
   });
   
@@ -495,7 +495,7 @@ describe('WeatherForecastTool', () => {
 
 ### 2. Ujian Integrasi
 
-Uji aliran lengkap dari permintaan klien hingga maklum balas pelayan:
+Uji aliran lengkap dari permintaan klien hingga respons server:
 
 ```python
 # Contoh ujian integrasi Python
@@ -507,7 +507,7 @@ async def test_mcp_server_integration():
     await server.start(port=5000)
     
     try:
-        # Cipta klien
+        # Buat klien
         client = McpClient("http://localhost:5000")
         
         # Uji penemuan alat
@@ -520,7 +520,7 @@ async def test_mcp_server_integration():
             "days": 3
         })
         
-        # Sahkan respons
+        # Sahkan tindak balas
         assert response.status_code == 200
         assert "Seattle" in response.content[0].text
         assert len(json.loads(response.content[0].text)["forecasts"]) == 3
@@ -532,9 +532,9 @@ async def test_mcp_server_integration():
 
 ## Pengoptimuman Prestasi
 
-### 1. Strategi Penyimpanan Cache
+### 1. Strategi Penimbalan
 
-Laksanakan penyimpanan cache yang sesuai untuk mengurangkan kelewatan dan penggunaan sumber:
+Laksanakan penimbalan yang sesuai untuk mengurangkan kelewatan dan penggunaan sumber:
 
 ```csharp
 // C# example with caching
@@ -603,18 +603,18 @@ public class CachedWeatherTool : ITool
 }
 ```
 
-#### 2. Suntikan Pergantungan dan Kebolehtest
+#### 2. Suntikan Pergantungan dan Kebolehtestanan
 
-Reka alat untuk menerima pergantungan mereka melalui suntikan konstruktor, menjadikannya boleh diuji dan dikonfigurasi:
+Reka alat untuk menerima pergantungannya melalui suntikan pembina, menjadikannya boleh diuji dan boleh dikonfigurasi:
 
 ```java
-// Contoh Java dengan suntikan pergantungan
+// Contoh Java dengan suntikan kebergantungan
 public class CurrencyConversionTool implements Tool {
     private final ExchangeRateService exchangeService;
     private final CacheService cacheService;
     private final Logger logger;
     
-    // Pergantungan disuntik melalui pembina
+    // Kebergantungan disuntik melalui konstruktor
     public CurrencyConversionTool(
             ExchangeRateService exchangeService,
             CacheService cacheService,
@@ -629,12 +629,12 @@ public class CurrencyConversionTool implements Tool {
 }
 ```
 
-#### 3. Alat Boleh Gabung
+#### 3. Alat Boleh Disusun
 
-Reka alat yang boleh digabungkan bersama untuk mencipta aliran kerja lebih kompleks:
+Reka alat yang boleh disusun bersama untuk mencipta aliran kerja yang lebih kompleks:
 
 ```python
-# Contoh Python yang menunjukkan alat boleh susun
+# Contoh Python menunjukkan alat yang boleh digabungkan
 class DataFetchTool(Tool):
     def get_name(self):
         return "dataFetch"
@@ -645,7 +645,7 @@ class DataAnalysisTool(Tool):
     def get_name(self):
         return "dataAnalysis"
     
-    # Alat ini boleh menggunakan keputusan daripada alat dataFetch
+    # Alat ini boleh menggunakan hasil daripada alat dataFetch
     async def execute_async(self, request):
         # Pelaksanaan...
         pass
@@ -654,21 +654,21 @@ class DataVisualizationTool(Tool):
     def get_name(self):
         return "dataVisualize"
     
-    # Alat ini boleh menggunakan keputusan daripada alat dataAnalysis
+    # Alat ini boleh menggunakan hasil daripada alat dataAnalysis
     async def execute_async(self, request):
         # Pelaksanaan...
         pass
 
-# Alat-alat ini boleh digunakan secara bebas atau sebagai sebahagian daripada aliran kerja
+# Alat-alat ini boleh digunakan secara berdikari atau sebagai sebahagian daripada aliran kerja
 ```
 
 ### Amalan Terbaik Reka Bentuk Skema
 
 Skema adalah kontrak antara model dan alat anda. Skema yang direka dengan baik membawa kepada kebolehgunaan alat yang lebih baik.
 
-#### 1. Huraian Parameter yang Jelas
+#### 1. Penerangan Parameter yang Jelas
 
-Sentiasa sertakan maklumat huraian untuk setiap parameter:
+Sentiasa sertakan maklumat deskriptif untuk setiap parameter:
 
 ```csharp
 public object GetSchema()
@@ -705,9 +705,9 @@ public object GetSchema()
 }
 ```
 
-#### 2. Kekangan Pengesahan
+#### 2. Had Pengesahan
 
-Sertakan kekangan pengesahan untuk mengelakkan input yang tidak sah:
+Sertakan had pengesahan untuk mengelakkan input yang tidak sah:
 
 ```java
 Map<String, Object> getSchema() {
@@ -716,20 +716,20 @@ Map<String, Object> getSchema() {
     
     Map<String, Object> properties = new HashMap<>();
     
-    // Properti emel dengan pengesahan format
+    // Harta e-mel dengan pengesahan format
     Map<String, Object> email = new HashMap<>();
     email.put("type", "string");
     email.put("format", "email");
     email.put("description", "User email address");
     
-    // Properti umur dengan kekangan berangka
+    // Harta umur dengan kekangan berangka
     Map<String, Object> age = new HashMap<>();
     age.put("type", "integer");
     age.put("minimum", 13);
     age.put("maximum", 120);
     age.put("description", "User age in years");
     
-    // Properti yang disenaraikan
+    // Harta berangka yang disenaraikan
     Map<String, Object> subscription = new HashMap<>();
     subscription.put("type", "string");
     subscription.put("enum", Arrays.asList("free", "basic", "premium"));
@@ -747,9 +747,9 @@ Map<String, Object> getSchema() {
 }
 ```
 
-#### 3. Struktur Pulangan Konsisten
+#### 3. Struktur Pulangan yang Konsisten
 
-Kekalkan konsistensi dalam struktur maklum balas anda supaya model lebih mudah mentafsir keputusan:
+Kekalkan konsistensi dalam struktur respons anda supaya model lebih mudah mentafsir keputusan:
 
 ```python
 async def execute_async(self, request):
@@ -757,7 +757,7 @@ async def execute_async(self, request):
         # Proses permintaan
         results = await self._search_database(request.parameters["query"])
         
-        # Sentiasa pulangkan struktur yang konsisten
+        # Sentiasa kembalikan struktur yang konsisten
         return ToolResponse(
             result={
                 "matches": [self._format_item(item) for item in results],
@@ -790,11 +790,11 @@ def _format_item(self, item):
 
 ### Pengendalian Ralat
 
-Pengendalian ralat yang kukuh amat penting untuk alat MCP mengekalkan kebolehpercayaan.
+Pengendalian ralat yang kukuh penting untuk alat MCP mengekalkan kebolehpercayaan.
 
-#### 1. Pengendalian Ralat Dengan Bijaksana
+#### 1. Pengendalian Ralat dengan Baik
 
-Urus ralat pada tahap yang sesuai dan beri mesej yang bermaklumat:
+Urus ralat pada tahap yang sesuai dan berikan mesej yang informatif:
 
 ```csharp
 public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
@@ -836,9 +836,9 @@ public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
 }
 ```
 
-#### 2. Maklum Balas Ralat Berstruktur
+#### 2. Respons Ralat Berstruktur
 
-Pulangkan maklumat ralat berstruktur apabila boleh:
+Pulangkan maklumat ralat yang berstruktur apabila boleh:
 
 ```java
 @Override
@@ -862,7 +862,7 @@ public ToolResponse execute(ToolRequest request) {
                 .build();
         }
         
-        // Buang semula pengecualian lain sebagai ToolExecutionException
+        // Lempar semula pengecualian lain sebagai ToolExecutionException
         throw new ToolExecutionException("Tool execution failed: " + ex.getMessage(), ex);
     }
 }
@@ -892,15 +892,15 @@ async def execute_async(self, request):
             logging.warning(f"Transient error, retrying in {delay}s: {str(e)}")
             await asyncio.sleep(delay)
         except Exception as e:
-            # Ralat bukan sementara, jangan cuba lagi
+            # Ralat bukan sementara, jangan cuba semula
             raise ToolExecutionException(f"Operation failed: {str(e)}")
 ```
 
 ### Pengoptimuman Prestasi
 
-#### 1. Penyimpanan Cache
+#### 1. Penimbalan
 
-Laksanakan penyimpanan cache untuk operasi yang mahal:
+Laksanakan penimbalan untuk operasi yang mahal:
 
 ```csharp
 public class CachedDataTool : IMcpTool
@@ -946,9 +946,9 @@ public class CachedDataTool : IMcpTool
 }
 ```
 
-#### 2. Pemprosesan Tak Sejajar
+#### 2. Pemprosesan Asinkron
 
-Gunakan corak pengaturcaraan tak sejajar untuk operasi terikat I/O:
+Gunakan corak pengaturcaraan asinkron untuk operasi yang bergantung pada I/O:
 
 ```java
 public class AsyncDocumentProcessingTool implements Tool {
@@ -959,13 +959,13 @@ public class AsyncDocumentProcessingTool implements Tool {
     public ToolResponse execute(ToolRequest request) {
         String documentId = request.getParameters().get("documentId").asText();
         
-        // Untuk operasi yang berjalan lama, pulangkan ID pemprosesan dengan segera
+        // Untuk operasi jangka panjang, kembalikan ID pemprosesan dengan segera
         String processId = UUID.randomUUID().toString();
         
         // Mulakan pemprosesan async
         CompletableFuture.runAsync(() -> {
             try {
-                // Laksanakan operasi yang berjalan lama
+                // Laksanakan operasi jangka panjang
                 documentService.processDocument(documentId);
                 
                 // Kemas kini status (biasanya akan disimpan dalam pangkalan data)
@@ -984,7 +984,7 @@ public class AsyncDocumentProcessingTool implements Tool {
         return new ToolResponse.Builder().setResult(result).build();
     }
     
-    // Alat semakan status pendamping
+    // Alat semakan status teman
     public class ProcessStatusTool implements Tool {
         @Override
         public ToolResponse execute(ToolRequest request) {
@@ -997,20 +997,20 @@ public class AsyncDocumentProcessingTool implements Tool {
 }
 ```
 
-#### 3. Pengawalan Sumber
+#### 3. Penghadangan Sumber
 
-Laksanakan pengawalan sumber untuk mengelakkan beban berlebihan:
+Laksanakan penghadangan sumber untuk mengelakkan beban berlebihan:
 
 ```python
 class ThrottledApiTool(Tool):
     def __init__(self):
         self.rate_limiter = TokenBucketRateLimiter(
             tokens_per_second=5,  # Benarkan 5 permintaan setiap saat
-            bucket_size=10        # Benarkan letusan sehingga 10 permintaan
+            bucket_size=10        # Benarkan letupan sehingga 10 permintaan
         )
     
     async def execute_async(self, request):
-        # Semak jika kita boleh meneruskan atau perlu menunggu
+        # Periksa sama ada kita boleh teruskan atau perlu tunggu
         delay = self.rate_limiter.get_delay_time()
         
         if delay > 0:
@@ -1022,7 +1022,7 @@ class ThrottledApiTool(Tool):
                 # Tunggu masa kelewatan yang sesuai
                 await asyncio.sleep(delay)
         
-        # Gunakan satu token dan teruskan dengan permintaan
+        # Gunakan token dan teruskan dengan permintaan
         self.rate_limiter.consume()
         
         # Panggil API
@@ -1055,7 +1055,7 @@ class TokenBucketRateLimiter:
         now = time.time()
         elapsed = now - self.last_refill
         
-        # Tambah token baru berdasarkan masa yang telah berlalu
+        # Tambah token baru berdasarkan masa berlalu
         new_tokens = elapsed * self.tokens_per_second
         self.tokens = min(self.bucket_size, self.tokens + new_tokens)
         self.last_refill = now
@@ -1108,12 +1108,12 @@ public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
 
 #### 2. Semakan Kebenaran
 
-Laksanakan semakan kebenaran yang betul:
+Laksanakan pemeriksaan kebenaran yang betul:
 
 ```java
 @Override
 public ToolResponse execute(ToolRequest request) {
-    // Dapatkan konteks pengguna dari permintaan
+    // Dapatkan konteks pengguna daripada permintaan
     UserContext user = request.getContext().getUserContext();
     
     // Semak jika pengguna mempunyai kebenaran yang diperlukan
@@ -1155,14 +1155,14 @@ class SecureDataTool(Tool):
         # Dapatkan data pengguna
         user_data = await self.user_service.get_user_data(user_id)
         
-        # Tapis medan sensitif kecuali diminta secara jelas DAN diberi kuasa
+        # Tapis medan sensitif kecuali diminta secara eksplisit DAN diberi kuasa
         if not include_sensitive or not self._is_authorized_for_sensitive_data(request):
             user_data = self._redact_sensitive_fields(user_data)
         
         return ToolResponse(result=user_data)
     
     def _is_authorized_for_sensitive_data(self, request):
-        # Semak tahap kuasa dalam konteks permintaan
+        # Semak tahap kebenaran dalam konteks permintaan
         auth_level = request.context.get("authorizationLevel")
         return auth_level == "admin"
     
@@ -1185,13 +1185,13 @@ class SecureDataTool(Tool):
 
 ## Amalan Terbaik Ujian untuk Alat MCP
 
-Ujian yang komprehensif memastikan alat MCP berfungsi dengan betul, mengendalikan kes sempadan, dan berintegrasi dengan baik dengan sistem lain.
+Ujian komprehensif memastikan alat MCP berfungsi dengan betul, mengendalikan kes tepi, dan berintegrasi dengan betul dengan sistem keseluruhan.
 
 ### Ujian Unit
 
 #### 1. Uji Setiap Alat Secara Terasing
 
-Cipta ujian fokus untuk fungsi setiap alat:
+Buat ujian fokus untuk fungsi setiap alat:
 
 ```csharp
 [Fact]
@@ -1253,12 +1253,12 @@ public async Task WeatherTool_InvalidLocation_ThrowsToolExecutionException()
 
 #### 2. Ujian Pengesahan Skema
 
-Uji bahawa skema adalah sah dan menguatkuasakan kekangan dengan betul:
+Uji bahawa skema adalah sah dan menguatkuasakan had dengan betul:
 
 ```java
 @Test
 public void testSchemaValidation() {
-    // Buat contoh alat
+    // Cipta instans alat
     SearchTool searchTool = new SearchTool();
     
     // Dapatkan skema
@@ -1298,7 +1298,7 @@ public void testSchemaValidation() {
 
 #### 3. Ujian Pengendalian Ralat
 
-Cipta ujian khusus untuk keadaan ralat:
+Buat ujian khusus untuk keadaan ralat:
 
 ```python
 @pytest.mark.asyncio
@@ -1318,7 +1318,7 @@ async def test_api_tool_handles_timeout():
             parameters={"url": "https://api.example.com/data"}
         )
         
-        # Tindakan & Penegasan
+        # Bertindak & Pastikan
         with pytest.raises(ToolExecutionException) as exc_info:
             await tool.execute_async(request)
         
@@ -1344,7 +1344,7 @@ async def test_api_tool_handles_rate_limiting():
             parameters={"url": "https://api.example.com/data"}
         )
         
-        # Tindakan & Penegasan
+        # Bertindak & Pastikan
         with pytest.raises(ToolExecutionException) as exc_info:
             await tool.execute_async(request)
         
@@ -1356,9 +1356,9 @@ async def test_api_tool_handles_rate_limiting():
 
 ### Ujian Integrasi
 
-#### 1. Ujian Rantaian Alat
+#### 1. Ujian Rangkaian Alat
 
-Uji alat bekerja bersama dalam gabungan yang dijangka:
+Uji alat yang bekerja bersama dalam gabungan yang dijangka:
 
 ```csharp
 [Fact]
@@ -1397,9 +1397,9 @@ public async Task DataProcessingWorkflow_CompletesSuccessfully()
 }
 ```
 
-#### 2. Ujian Pelayan MCP
+#### 2. Ujian Server MCP
 
-Uji pelayan MCP dengan pendaftaran dan pelaksanaan alat penuh:
+Uji server MCP dengan pendaftaran alat penuh dan pelaksanaan:
 
 ```java
 @SpringBootTest
@@ -1435,7 +1435,7 @@ public class McpServerIntegrationTest {
         parameters.put("b", 7);
         request.put("parameters", parameters);
         
-        // Hantar permintaan dan sahkan tindak balas
+        // Hantar permintaan dan sahkan respons
         mockMvc.perform(post("/mcp/execute")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
@@ -1445,7 +1445,7 @@ public class McpServerIntegrationTest {
     
     @Test
     public void testToolValidation() throws Exception {
-        // Buat permintaan alat tidak sah
+        // Buat permintaan alat yang tidak sah
         Map<String, Object> request = new HashMap<>();
         request.put("toolName", "calculator");
         
@@ -1455,7 +1455,7 @@ public class McpServerIntegrationTest {
         // Parameter "b" hilang
         request.put("parameters", parameters);
         
-        // Hantar permintaan dan sahkan tindak balas ralat
+        // Hantar permintaan dan sahkan respons ralat
         mockMvc.perform(post("/mcp/execute")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
@@ -1465,9 +1465,9 @@ public class McpServerIntegrationTest {
 }
 ```
 
-#### 3. Ujian Dari Hujung Ke Hujung
+#### 3. Ujian Dari Hujung ke Hujung
 
-Uji aliran kerja lengkap dari arahan model ke pelaksanaan alat:
+Uji aliran kerja lengkap dari arahan model kepada pelaksanaan alat:
 
 ```python
 @pytest.mark.asyncio
@@ -1475,7 +1475,7 @@ async def test_model_interaction_with_tool():
     # Susun - Sediakan klien MCP dan model tiruan
     mcp_client = McpClient(server_url="http://localhost:5000")
     
-    # Balasan model tiruan
+    # Respons model tiruan
     mock_model = MockLanguageModel([
         MockResponse(
             "What's the weather in Seattle?",
@@ -1490,7 +1490,7 @@ async def test_model_interaction_with_tool():
         )
     ])
     
-    # Balasan alat cuaca tiruan
+    # Respons alat cuaca tiruan
     with aioresponses() as mocked:
         mocked.post(
             "http://localhost:5000/mcp/execute",
@@ -1526,7 +1526,7 @@ async def test_model_interaction_with_tool():
 
 #### 1. Ujian Beban
 
-Uji berapa banyak permintaan serentak yang boleh diurus oleh pelayan MCP anda:
+Uji berapa banyak permintaan serentak yang server MCP anda boleh kendalikan:
 
 ```csharp
 [Fact]
@@ -1561,7 +1561,7 @@ public async Task McpServer_HandlesHighConcurrency()
 
 #### 2. Ujian Tekanan
 
-Uji sistem di bawah beban ekstrem:
+Uji sistem di bawah beban terlampau:
 
 ```java
 @Test
@@ -1576,7 +1576,7 @@ public void testServerUnderStress() {
     // Konfigurasikan pelan ujian JMeter
     HashTree testPlanTree = new HashTree();
     
-    // Cipta pelan ujian, kumpulan benang, sampler, dll.
+    // Buat pelan ujian, kumpulan benang, sampler, dan lain-lain
     TestPlan testPlan = new TestPlan("MCP Server Stress Test");
     testPlanTree.add(testPlan);
     
@@ -1610,16 +1610,16 @@ public void testServerUnderStress() {
     // Sahkan keputusan
     assertEquals(0, summaryReport.getErrorCount());
     assertTrue(summaryReport.getAverage() < 200); // Masa tindak balas purata < 200ms
-    assertTrue(summaryReport.getPercentile(90.0) < 500); // Peratus ke-90 < 500ms
+    assertTrue(summaryReport.getPercentile(90.0) < 500); // Peratusan ke-90 < 500ms
 }
 ```
 
-#### 3. Pemantauan dan Perprofilan
+#### 3. Pemantauan dan Profiling
 
 Sediakan pemantauan untuk analisis prestasi jangka panjang:
 
 ```python
-# Konfigurasikan pemantauan untuk pelayan MCP
+# Konfigurasi pemantauan untuk server MCP
 def configure_monitoring(server):
     # Sediakan metrik Prometheus
     prometheus_metrics = {
@@ -1647,7 +1647,7 @@ def configure_monitoring(server):
         )
     }
     
-    # Tambah middleware untuk penentuan masa dan rakaman metrik
+    # Tambah middleware untuk pengukuran masa dan rakaman metrik
     server.add_middleware(PrometheusMiddleware(prometheus_metrics))
     
     # Dedahkan titik akhir metrik
@@ -1660,14 +1660,14 @@ def configure_monitoring(server):
 
 ## Corak Reka Bentuk Aliran Kerja MCP
 
-Aliran kerja MCP yang direka dengan baik meningkatkan kecekapan, kebolehpercayaan, dan kebolehselenggaraan. Berikut adalah corak utama yang perlu diikuti:
+Aliran kerja MCP yang direka dengan baik meningkatkan kecekapan, kebolehpercayaan, dan kebolehselenggaraan. Berikut adalah corak utama untuk diikuti:
 
 ### 1. Corak Rantaian Alat
 
-Sambungkan pelbagai alat dalam satu urutan di mana output setiap alat menjadi input untuk yang berikutnya:
+Sambungkan pelbagai alat dalam urutan di mana output satu alat menjadi input untuk seterusnya:
 
 ```python
-# Pelaksanaan Rantaian Alat Python
+# Implementasi Rangkaian Alat Python
 class ChainWorkflow:
     def __init__(self, tools_chain):
         self.tools_chain = tools_chain  # Senarai nama alat untuk dilaksanakan secara berurutan
@@ -1677,7 +1677,7 @@ class ChainWorkflow:
         all_results = {"input": initial_input}
         
         for tool_name in self.tools_chain:
-            # Laksanakan setiap alat dalam rantaian, menghantar hasil sebelumnya
+            # Laksanakan setiap alat dalam rangkaian, menghantar hasil sebelumnya
             response = await mcp_client.execute_tool(tool_name, current_result)
             
             # Simpan hasil dan gunakan sebagai input untuk alat seterusnya
@@ -1705,7 +1705,7 @@ result = await data_processing_chain.execute(
 
 ### 2. Corak Penghantar
 
-Gunakan alat pusat yang menghantar kepada alat khusus berdasarkan input:
+Gunakan alat pusat yang menghantar ke alat khusus berdasarkan input:
 
 ```csharp
 public class ContentDispatcherTool : IMcpTool
@@ -1787,7 +1787,7 @@ public class ContentDispatcherTool : IMcpTool
 
 ### 3. Corak Pemprosesan Selari
 
-Jalankan beberapa alat serentak untuk kecekapan:
+Laksanakan pelbagai alat serentak bagi kecekapan:
 
 ```java
 public class ParallelDataProcessingWorkflow {
@@ -1798,7 +1798,7 @@ public class ParallelDataProcessingWorkflow {
     }
     
     public WorkflowResult execute(String datasetId) {
-        // Langkah 1: Ambil metadata set data (selari)
+        // Langkah 1: Dapatkan metadata set data (segerak)
         ToolResponse metadataResponse = mcpClient.executeTool("datasetMetadata", 
             Map.of("datasetId", datasetId));
         
@@ -1824,7 +1824,7 @@ public class ParallelDataProcessingWorkflow {
             ))
         );
         
-        // Tunggu semua tugasan selari selesai
+        // Tunggu semua tugas selari selesai
         CompletableFuture<Void> allAnalyses = CompletableFuture.allOf(
             statisticalAnalysis, correlationAnalysis, outlierDetection
         );
@@ -1842,7 +1842,7 @@ public class ParallelDataProcessingWorkflow {
         ToolResponse summaryResponse = mcpClient.executeTool("reportGenerator", 
             Map.of("analysisResults", combinedResults));
         
-        // Kembalikan hasil aliran kerja lengkap
+        // Pulangkan hasil aliran kerja lengkap
         WorkflowResult result = new WorkflowResult();
         result.setDatasetId(datasetId);
         result.setAnalysisResults(combinedResults);
@@ -1855,7 +1855,7 @@ public class ParallelDataProcessingWorkflow {
 
 ### 4. Corak Pemulihan Ralat
 
-Laksanakan fallback yang bijaksana untuk kegagalan alat:
+Laksanakan fallback yang baik untuk kegagalan alat:
 
 ```python
 class ResilientWorkflow:
@@ -1864,7 +1864,7 @@ class ResilientWorkflow:
     
     async def execute_with_fallback(self, primary_tool, fallback_tool, parameters):
         try:
-            # Cuba alat utama terlebih dahulu
+            # Cuba alat utama dahulu
             response = await self.client.execute_tool(primary_tool, parameters)
             return {
                 "result": response.result,
@@ -1896,8 +1896,8 @@ class ResilientWorkflow:
     
     def _adapt_parameters(self, params, from_tool, to_tool):
         """Adapt parameters between different tools if needed"""
-        # Pelaksanaan ini bergantung pada alat tertentu
-        # Untuk contoh ini, kami hanya akan mengembalikan parameter asal
+        # Pelaksanaan ini bergantung kepada alat-alat tertentu
+        # Untuk contoh ini, kami akan pulangkan parameter asal sahaja
         return params
 
 # Contoh penggunaan
@@ -1909,9 +1909,9 @@ async def get_weather(workflow, location):
     )
 ```
 
-### 5. Corak Komposisi Aliran Kerja
+### 5. Corak Penyusunan Aliran Kerja
 
-Bina aliran kerja kompleks dengan menggabungkan yang lebih mudah:
+Bina aliran kerja kompleks dengan menyusun aliran yang lebih mudah:
 
 ```csharp
 public class CompositeWorkflow : IWorkflow
@@ -1958,35 +1958,35 @@ var result = await documentWorkflow.ExecuteAsync(new WorkflowContext {
 });
 ```
 
-# Ujian Pelayan MCP: Amalan Terbaik dan Petua Teratas
+# Menguji Server MCP: Amalan Terbaik dan Tip Teratas
 
 ## Gambaran Keseluruhan
 
-Ujian adalah aspek kritikal dalam membangunkan pelayan MCP yang boleh dipercayai dan berkualiti tinggi. Panduan ini menyediakan amalan terbaik dan petua menyeluruh untuk menguji pelayan MCP anda sepanjang kitar hayat pembangunan, dari ujian unit hingga ujian integrasi dan pengesahan hujung ke hujung.
+Ujian adalah aspek kritikal dalam pembangunan server MCP yang boleh dipercayai dan berkualiti tinggi. Panduan ini menyediakan amalan terbaik dan tip komprehensif untuk menguji server MCP anda sepanjang kitaran hidup pembangunan, dari ujian unit hingga ujian integrasi dan pengesahan dari hujung ke hujung.
 
-## Mengapa Ujian Penting untuk Pelayan MCP
+## Kenapa Ujian Penting untuk Server MCP
 
-Pelayan MCP berfungsi sebagai middleware penting antara model AI dan aplikasi klien. Ujian menyeluruh memastikan:
+Server MCP berfungsi sebagai middleware penting antara model AI dan aplikasi klien. Ujian menyeluruh memastikan:
 
 - Kebolehpercayaan dalam persekitaran pengeluaran
-- Pengendalian permintaan dan maklum balas yang tepat
+- Pengendalian permintaan dan respons yang tepat
 - Pelaksanaan spesifikasi MCP yang betul
-- Ketahanan terhadap kegagalan dan kes sempadan
-- Prestasi yang konsisten di bawah pelbagai beban
+- Ketahanan terhadap kegagalan dan kes tepi
+- Prestasi konsisten di bawah berbagai beban
 
-## Ujian Unit untuk Pelayan MCP
+## Ujian Unit untuk Server MCP
 
 ### Ujian Unit (Asas)
 
-Ujian unit mengesahkan komponen individu pelayan MCP anda secara terasing.
+Ujian unit mengesahkan komponen individu server MCP anda secara terasing.
 
 #### Apa yang Perlu Diuji
 
-1. **Pengendali Sumber**: Uji logik setiap pengendali sumber secara berasingan
-2. **Pelaksanaan Alat**: Sahkan tingkah laku alat dengan pelbagai input
+1. **Pengendali Sumber**: Uji logik setiap pengendali sumber secara bebas
+2. **Pelaksanaan Alat**: Sahkan kelakuan alat dengan pelbagai input
 3. **Templat Arahan**: Pastikan templat arahan dipaparkan dengan betul
 4. **Pengesahan Skema**: Uji logik pengesahan parameter
-5. **Pengendalian Ralat**: Sahkan maklum balas ralat bagi input yang tidak sah
+5. **Pengendalian Ralat**: Sahkan respons ralat untuk input tidak sah
 
 #### Amalan Terbaik untuk Ujian Unit
 
@@ -2024,7 +2024,7 @@ def test_calculator_tool_add():
         "b": 7
     }
     
-    # Lakukan
+    # Bertindak
     response = calculator.execute(parameters)
     result = json.loads(response.content[0].text)
     
@@ -2032,16 +2032,16 @@ def test_calculator_tool_add():
     assert result["value"] == 12
 ```
 
-### Ujian Integrasi (Lapisan Tengah)
+### Ujian Integrasi (Lapisan Pertengahan)
 
-Ujian integrasi mengesahkan interaksi antara komponen pelayan MCP anda.
+Ujian integrasi mengesahkan interaksi antara komponen server MCP anda.
 
 #### Apa yang Perlu Diuji
 
-1. **Inisialisasi Pelayan**: Uji permulaan pelayan dengan pelbagai konfigurasi
-2. **Pendaftaran Laluan**: Sahkan semua titik hujung didaftarkan dengan betul
-3. **Pemprosesan Permintaan**: Uji kitaran lengkap permintaan-maklum balas
-4. **Penyaluran Ralat**: Pastikan ralat diurus dengan baik merentasi komponen
+1. **Inisialisasi Server**: Uji permulaan server dengan pelbagai konfigurasi
+2. **Pendaftaran Laluan**: Pastikan semua titik hujung didaftarkan dengan betul
+3. **Pemprosesan Permintaan**: Uji kitaran penuh permintaan-respons
+4. **Penyaluran Ralat**: Pastikan ralat dikendalikan dengan betul merentasi komponen
 5. **Pengesahan & Kebenaran**: Uji mekanisme keselamatan
 
 #### Amalan Terbaik untuk Ujian Integrasi
@@ -2080,17 +2080,17 @@ public async Task Server_ProcessToolRequest_ReturnsValidResponse()
 }
 ```
 
-### Ujian Dari Hujung Ke Hujung (Lapisan Atas)
+### Ujian Dari Hujung ke Hujung (Lapisan Atas)
 
-Ujian dari hujung ke hujung mengesahkan tingkah laku sistem lengkap dari klien ke pelayan.
+Ujian dari hujung ke hujung mengesahkan kelakuan sistem lengkap dari klien ke server.
 
 #### Apa yang Perlu Diuji
 
-1. **Komunikasi Klien-Pelayan**: Uji kitaran lengkap permintaan-maklum balas
+1. **Komunikasi Klien-Server**: Uji kitaran permintaan-respons lengkap
 2. **SDK Klien Sebenar**: Uji dengan pelaksanaan klien sebenar
-3. **Prestasi Di Bawah Beban**: Sahkan tingkah laku dengan banyak permintaan serentak
-4. **Pemulihan Ralat**: Uji pemulihan sistem daripada kegagalan
-5. **Operasi Berlaku Lama**: Sahkan pengendalian aliran dan operasi panjang
+3. **Prestasi Di Bawah Beban**: Sahkan kelakuan dengan pelbagai permintaan serentak
+4. **Pemulihan Ralat**: Uji pemulihan sistem dari kegagalan
+5. **Operasi Berjalan Lama**: Sahkan pengendalian aliran dan operasi panjang
 
 #### Amalan Terbaik untuk Ujian E2E
 
@@ -2117,7 +2117,7 @@ describe('MCP Server E2E Tests', () => {
       b: 4
     });
     
-    // Sahkan
+    // Tegaskan
     expect(response.statusCode).toBe(200);
     expect(response.content[0].text).toContain('5');
   });
@@ -2126,16 +2126,16 @@ describe('MCP Server E2E Tests', () => {
 
 ## Strategi Peniruan untuk Ujian MCP
 
-Peniruan penting untuk mengasingkan komponen semasa ujian.
+Peniruan adalah penting untuk mengasingkan komponen semasa ujian.
 
-### Komponen yang Perlu Ditiru
+### Komponen untuk Ditiru
 
-1. **Model AI Luaran**: Tirukan maklum balas model untuk ujian yang boleh diramal
-2. **Perkhidmatan Luaran**: Tirukan pergantungan API (pangkalan data, perkhidmatan pihak ketiga)
-3. **Perkhidmatan Pengesahan**: Tirukan penyedia identiti
-4. **Pembekal Sumber**: Tirukan pengendali sumber yang mahal
+1. **Model AI Luar**: Tiru respons model untuk ujian yang boleh diramal
+2. **Perkhidmatan Luar**: Tiru pergantungan API (pangkalan data, perkhidmatan pihak ketiga)
+3. **Perkhidmatan Pengesahan**: Tiru penyedia identiti
+4. **Penyedia Sumber**: Tiru pengendali sumber mahal
 
-### Contoh: Meniru Maklum Balas Model AI
+### Contoh: Meniru Respons Model AI
 
 ```csharp
 // C# example with Moq
@@ -2169,15 +2169,15 @@ def test_with_mock_model(mock_model):
 
 ## Ujian Prestasi
 
-Ujian prestasi penting untuk pelayan MCP pengeluaran.
+Ujian prestasi adalah penting untuk server MCP pengeluaran.
 
-### Apa yang Perlu Diukur
+### Apa Yang Perlu Diukur
 
-1. **Kelewatan**: Masa maklum balas untuk permintaan
-2. **Tangkapan**: Permintaan yang diurus per saat
+1. **Lewat Balik Masa (Latency)**: Masa respons untuk permintaan
+2. **Hasil Tangkapan (Throughput)**: Permintaan yang dikendalikan per saat
 3. **Penggunaan Sumber**: CPU, memori, penggunaan rangkaian
-4. **Pengendalian Serentak**: Tingkah laku di bawah permintaan selari
-5. **Ciri Skala**: Prestasi apabila beban bertambah
+4. **Pengendalian Serentak**: Kelakuan di bawah permintaan selari
+5. **Sifat-Sifat Skala**: Prestasi apabila beban meningkat
 
 ### Alat untuk Ujian Prestasi
 
@@ -2226,17 +2226,18 @@ export default function () {
 }
 ```
 
-## Automasi Ujian untuk Pelayan MCP
+## Automasi Ujian untuk Server MCP
 
-Mengautomatikkan ujian anda memastikan kualiti konsisten dan pusingan maklum balas yang lebih pantas.
+Automasi ujian anda memastikan kualiti konsisten dan kitar maklum balas lebih cepat.
 
 ### Integrasi CI/CD
-1. **Jalankan Ujian Unit pada Permintaan Tarik (Pull Requests)**: Pastikan perubahan kod tidak merosakkan fungsi sedia ada  
-2. **Ujian Integrasi di Persekitaran Staging**: Jalankan ujian integrasi dalam persekitaran pra-produksi  
-3. **Asas Prestasi**: Kekalkan penanda aras prestasi untuk mengesan regresi  
-4. **Imbasan Keselamatan**: Automatikkan ujian keselamatan sebagai sebahagian daripada saluran paip  
 
-### Contoh Saluran CI (GitHub Actions)
+1. **Jalankan Ujian Unit pada Permintaan Tarik**: Pastikan perubahan kod tidak merosakkan fungsi sedia ada
+2. **Ujian Integrasi dalam Peringkat Staging**: Jalankan ujian integrasi dalam persekitaran pra-produksi  
+3. **Asas Prestasi**: Kekalkan penanda aras prestasi untuk mengesan regresi  
+4. **Imbasan Keselamatan**: Automatikkan ujian keselamatan sebagai sebahagian daripada pipeline  
+
+### Contoh Pipeline CI (GitHub Actions)  
 
 ```yaml
 name: MCP Server Tests
@@ -2275,19 +2276,19 @@ jobs:
       run: dotnet run --project tests/PerformanceTests/PerformanceTests.csproj
 ```
   
-## Ujian untuk Pematuhan dengan Spesifikasi MCP
+## Ujian untuk Pematuhan dengan Spesifikasi MCP  
 
-Sahkan pelayan anda melaksanakan spesifikasi MCP dengan betul.
+Sahkan server anda melaksanakan spesifikasi MCP dengan betul.  
 
-### Kawasan Utama Pematuhan
+### Kawasan Utama Pematuhan  
 
-1. **Titik Akhir API**: Uji titik akhir yang diperlukan (/resources, /tools, dll.)  
+1. **API Endpoints**: Uji endpoints yang diperlukan (/resources, /tools, dll.)  
 2. **Format Permintaan/Respons**: Sahkan pematuhan skema  
-3. **Kod Ralat**: Sahkan kod status yang betul untuk pelbagai senario  
-4. **Jenis Kandungan**: Uji pengendalian jenis kandungan yang berbeza  
-5. **Aliran Pengesahan**: Sahkan mekanisme pengesahan yang mematuhi spesifikasi  
+3. **Kod Ralat**: Sahkan kod status betul untuk pelbagai senario  
+4. **Jenis Kandungan**: Uji pengendalian pelbagai jenis kandungan  
+5. **Aliran Pengesahan**: Sahkan mekanisme pengesahan mematuhi spesifikasi  
 
-### Satu Set Ujian Pematuhan
+### Suite Ujian Pematuhan  
 
 ```csharp
 [Fact]
@@ -2314,68 +2315,69 @@ public async Task Server_ResourceEndpoint_ReturnsCorrectSchema()
 }
 ```
   
-## 10 Petua Teratas untuk Ujian Pelayan MCP yang Berkesan
+## 10 Petua Teratas untuk Ujian Server MCP yang Berkesan  
 
-1. **Uji Definisi Alat Secara Berasingan**: Sahkan definisi skema secara berasingan daripada logik alat  
-2. **Gunakan Ujian Parameter**: Uji alat dengan pelbagai input, termasuk kes tepi  
-3. **Periksa Respons Ralat**: Sahkan pengendalian ralat yang betul untuk semua keadaan ralat yang mungkin  
-4. **Uji Logik Kebenaran**: Pastikan kawalan akses yang betul untuk pelbagai peranan pengguna  
-5. **Pantau Liputan Ujian**: Sasarkan liputan yang tinggi untuk kod laluan kritikal  
-6. **Uji Respons Aliran**: Sahkan pengendalian kandungan aliran yang betul  
+1. **Uji Definisi Alat Secara Berasingan**: Sahkan definisi skema secara bebas daripada logik alat  
+2. **Gunakan Ujian Parameterisasi**: Uji alat dengan pelbagai input, termasuk kes ekstrem  
+3. **Semak Respons Ralat**: Sahkan pengendalian ralat yang betul untuk semua kemungkinan keadaan ralat  
+4. **Uji Logik Kebenaran**: Pastikan kawalan akses betul untuk pelbagai peranan pengguna  
+5. **Pantau Liputan Ujian**: Sasarkan liputan tinggi bagi kod laluan kritikal  
+6. **Uji Respons Penstriman**: Sahkan pengendalian betul kandungan penstriman  
 7. **Simulasikan Isu Rangkaian**: Uji tingkah laku di bawah keadaan rangkaian yang lemah  
 8. **Uji Had Sumber**: Sahkan tingkah laku apabila mencapai kuota atau had kadar  
-9. **Automatikkan Ujian Regresi**: Bangunkan set yang dijalankan setiap kali ada perubahan kod  
-10. **Dokumentasikan Kes Ujian**: Kekalkan dokumentasi jelas tentang senario ujian  
+9. **Automatikkan Ujian Regresi**: Bina suite yang dijalankan pada setiap perubahan kod  
+10. **Dokumentasikan Kes Ujian**: Kekalkan dokumentasi jelas bagi senario ujian  
 
-## Perangkap Ujian Umum
+## Perangkap Ujian Biasa  
 
-- **Terlalu bergantung pada ujian laluan bahagia**: Pastikan menguji kes-kes ralat dengan teliti  
+- **Terlalu bergantung pada ujian laluan kejayaan**: Pastikan untuk menguji kes ralat dengan teliti  
 - **Mengabaikan ujian prestasi**: Kenal pasti halangan sebelum ia menjejaskan produksi  
-- **Ujian secara terasing sahaja**: Gabungkan ujian unit, integrasi, dan hujung ke hujung (E2E)  
-- **Liputan API yang tidak lengkap**: Pastikan semua titik akhir dan ciri diuji  
-- **Persekitaran ujian yang tidak konsisten**: Gunakan kontena untuk memastikan persekitaran ujian yang konsisten  
+- **Ujian secara bersendirian sahaja**: Gabungkan ujian unit, integrasi, dan E2E  
+- **Liputan API tidak lengkap**: Pastikan semua endpoints dan ciri diuji  
+- **Persekitaran ujian tidak konsisten**: Gunakan kontena untuk memastikan persekitaran ujian konsisten  
 
-## Kesimpulan
+## Kesimpulan  
 
-Strategi ujian yang menyeluruh adalah penting untuk membangunkan pelayan MCP yang boleh dipercayai dan berkualiti tinggi. Dengan melaksanakan amalan terbaik dan petua yang diterangkan dalam panduan ini, anda boleh memastikan pelaksanaan MCP anda memenuhi piawaian tertinggi dari segi kualiti, kebolehpercayaan, dan prestasi.
+Strategi ujian yang menyeluruh adalah penting untuk membangunkan server MCP yang boleh dipercayai dan berkualiti tinggi. Dengan melaksanakan amalan terbaik dan petua yang diterangkan dalam panduan ini, anda boleh memastikan pelaksanaan MCP anda memenuhi piawaian tertinggi dari segi kualiti, kebolehpercayaan, dan prestasi.  
 
-## Intipati Utama
 
-1. **Reka Bentuk Alat**: Ikuti prinsip tanggungjawab tunggal, gunakan suntikan kebergantungan, dan reka untuk kesesuaian  
-2. **Reka Bentuk Skema**: Cipta skema yang jelas dan didokumentasi dengan had pengesahan yang betul  
+## Intipati Utama  
+
+1. **Reka Bentuk Alat**: Ikuti prinsip tanggungjawab tunggal, gunakan suntikan kebergantungan, dan reka bentuk untuk kebolehsusunan  
+2. **Reka Bentuk Skema**: Cipta skema yang jelas dan didokumen dengan baik serta kekangan pengesahan yang betul  
 3. **Pengendalian Ralat**: Laksanakan pengendalian ralat yang lancar, respons ralat berstruktur, dan logik cuba semula  
-4. **Prestasi**: Gunakan caching, pemprosesan tak segerak, dan pengehad sumber  
-5. **Keselamatan**: Gunakan pengesahan input yang teliti, semakan kebenaran, dan pengendalian data sensitif  
+4. **Prestasi**: Gunakan caching, pemprosesan tak segerak, dan pengawalan sumber  
+5. **Keselamatan**: Terapkan pengesahan input menyeluruh, semakan kebenaran, dan pengendalian data sensitif  
 6. **Ujian**: Cipta ujian unit, integrasi, dan hujung-ke-hujung yang komprehensif  
-7. **Corak Aliran Kerja**: Gunakan corak yang mantap seperti rantai, penghantar, dan pemprosesan selari  
+7. **Corak Aliran Kerja**: Terapkan corak yang telah ditetapkan seperti rantai, penghantar, dan pemprosesan selari  
 
-## Latihan
+## Latihan  
 
-Reka bentuk alat MCP dan aliran kerja untuk sistem pemprosesan dokumen yang:
+Reka sebuah alat MCP dan aliran kerja untuk sistem pemprosesan dokumen yang:  
 
 1. Menerima dokumen dalam pelbagai format (PDF, DOCX, TXT)  
-2. Mengekstrak teks dan maklumat utama daripada dokumen  
+2. Mengekstrak teks dan maklumat penting dari dokumen  
 3. Mengklasifikasikan dokumen mengikut jenis dan kandungan  
-4. Menghasilkan ringkasan bagi setiap dokumen  
+4. Menjana ringkasan setiap dokumen  
 
-Laksanakan skema alat, pengendalian ralat, dan corak aliran kerja yang paling sesuai untuk senario ini. Pertimbangkan bagaimana anda akan menguji pelaksanaan ini.
+Laksanakan skema alat, pengendalian ralat, dan corak aliran kerja yang paling sesuai untuk senario ini. Fikirkan bagaimana anda akan menguji pelaksanaan ini.  
 
-## Sumber
+## Sumber  
 
-1. Sertai komuniti MCP di [Azure AI Foundry Discord Community](https://aka.ms/foundrydevs) untuk sentiasa mendapat maklumat terkini  
-2. Menyumbang kepada projek open-source [MCP](https://github.com/modelcontextprotocol)  
+1. Sertai komuniti MCP di [Microsoft Foundry Discord Community](https://aka.ms/foundrydevs) untuk mengikuti perkembangan terkini  
+2. Menyumbang kepada projek [MCP sumber terbuka](https://github.com/modelcontextprotocol)  
 3. Terapkan prinsip MCP dalam inisiatif AI organisasi anda sendiri  
-4. Terokai pelaksanaan MCP khusus untuk industri anda  
-5. Pertimbangkan mengambil kursus lanjutan dalam topik MCP tertentu, seperti integrasi multi-modal atau integrasi aplikasi perusahaan  
-6. Cuba bina alat dan aliran kerja MCP anda sendiri menggunakan prinsip yang dipelajari melalui [Hands on Lab](../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)  
+4. Terokai pelaksanaan MCP khusus untuk industri anda.  
+5. Pertimbangkan mengambil kursus lanjutan mengenai topik MCP tertentu, seperti integrasi multimodal atau integrasi aplikasi perusahaan.  
+6. Eksperimen membina alat dan aliran kerja MCP anda sendiri menggunakan prinsip yang dipelajari melalui [Hands on Lab](../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)  
 
-## Apa Seterusnya
+## Apa Seterusnya  
 
 Seterusnya: [Kajian Kes](../09-CaseStudy/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sah. Untuk maklumat penting, terjemahan profesional oleh manusia adalah disyorkan. Kami tidak bertanggungjawab atas sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat penting, terjemahan oleh manusia profesional adalah disyorkan. Kami tidak bertanggungjawab terhadap sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

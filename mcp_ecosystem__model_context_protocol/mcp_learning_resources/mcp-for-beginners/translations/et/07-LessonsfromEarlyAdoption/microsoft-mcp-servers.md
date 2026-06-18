@@ -1,92 +1,92 @@
-# 🚀 10 Microsoft MCP serverit, mis muudavad arendajate produktiivsust
+# 🚀 10 Microsofti MCP-serverit, mis muudavad arendajate tootlikkust
 
-## 🎯 Mida õpid sellest juhendist
+## 🎯 Mida sa selles juhendis õpid
 
-See praktiline juhend tutvustab kümmet Microsoft MCP serverit, mis aktiivselt muudavad arendajate tööd AI-assistentidega. Selle asemel, et lihtsalt selgitada, mida MCP serverid *võivad* teha, näitame servereid, mis juba igapäevases arendustöös Microsoftis ja mujal reaalselt mõju avaldavad.
+See praktiline juhend tutvustab kümmet Microsofti MCP-serverit, mis muudavad aktiivselt seda, kuidas arendajad koos tehisintellekti assistentidega töötavad. Selle asemel, et lihtsalt seletada, mida MCP-serverid *võivad* teha, näitame servereid, mis juba tegelikult muudavad igapäevaseid arendustöid Microsoftis ja mujal.
 
-Iga server selles juhendis on valitud reaalse kasutuse ja arendajate tagasiside põhjal. Sa saad teada mitte ainult, mida iga server teeb, vaid ka miks see oluline on ja kuidas sellest oma projektides maksimumi võtta. Olgu sa MCP-ga täiesti algaja või otsid võimalusi oma olemasoleva seadistuse laiendamiseks, need serverid esindavad Microsofti ökosüsteemi kõige praktilisemaid ja mõjusamaid tööriistu.
+Iga selles juhendis olev server on valitud päriselu kasutusjuhtude ja arendajate tagasiside põhjal. Sa avastad mitte ainult seda, mida iga server teeb, vaid miks see on oluline ja kuidas sellest oma projektides maksimaalselt kasu saada. Kas sa oled MCP-ga täiesti uus või soovid oma olemasolevat seadistust laiendada — need serverid esindavad mõned kõige praktilisemad ja mõjusamad tööriistad Microsofti ökosüsteemis.
 
-> **💡 Kiire alustamise näpunäide**
+> **💡 Kiiralgusnipp**
 > 
-> Uus MCP-s? Pole probleemi! See juhend on loodud algajasõbralikuks. Selgitame kontseptsioone järk-järgult ja vajadusel saad alati tagasi pöörduda meie [MCP sissejuhatuse](../00-Introduction/README.md) ja [Põhikontseptsioonide](../01-CoreConcepts/README.md) moodulite juurde, et saada sügavam taust.
+> Uus MCP-s? Ära muretse! See juhend on loodud algajasõbralikuks. Selgitame kontseptsioone jooksvalt ja saad alati tagasi pöörduda meie [Sissejuhatuse MCP-sse](../00-Introduction/README.md) ja [Põhikontseptsioonide](../01-CoreConcepts/README.md) moodulite juurde sügavama tausta jaoks.
 
 ## Ülevaade
 
-See põhjalik juhend uurib kümmet Microsoft MCP serverit, mis revolutsioneerivad arendajate suhtlust AI-assistentide ja väliste tööriistadega. Alates Azure'i ressursside haldamisest kuni dokumentide töötlemiseni näitavad need serverid Model Context Protocoli võimsust sujuvate ja produktiivsete arendustöövoogude loomisel.
+See ulatuslik juhend uurib kümmet Microsofti MCP-serverit, mis revolutsioneerivad seda, kuidas arendajad suhtlevad tehisintellekti assistentide ja väliste tööriistadega. Alates Azure ressursihaldusest kuni dokumentide töötlemiseni demonstreerivad need serverid Model Context Protokolli jõudu sujuvate ja tootlike arendustöövoogude loomisel.
 
 ## Õpieesmärgid
 
-Selle juhendi lõpuks:
-- Mõistad, kuidas MCP serverid suurendavad arendajate produktiivsust
-- Õpid tundma Microsofti kõige mõjusamaid MCP serveri rakendusi
-- Avastad praktilisi kasutusviise iga serveri jaoks
-- Tead, kuidas neid servereid seadistada ja konfigureerida VS Code'is ja Visual Studios
-- Uurid MCP ökosüsteemi laiemat pilti ja tulevikusuundi
+Selle juhendi lõpus oskad sa:
+- Mõista, kuidas MCP-serverid parandavad arendajate tootlikkust
+- Tutvuda Microsofti mõjukamate MCP-serverite rakendustega
+- Avastada iga serveri praktilisi kasutusjuhtumeid
+- Teada, kuidas neid servereid VS Code’is ja Visual Studios seadistada ja konfigureerida
+- Uurida laiemat MCP-ökosüsteemi ja tuleviku suundi
 
-## 🔧 MCP serverite mõistmine: algaja juhend
+## 🔧 MCP-serverite mõistmine: algaja juhend
 
-### Mis on MCP serverid?
+### Mis on MCP-serverid?
 
-Kui oled Model Context Protocoli (MCP) algaja, võid küsida: "Mis täpselt on MCP server ja miks peaks see mind huvitama?" Alustame lihtsa analoogiaga.
+Kui oled Model Context Protokolli (MCP) suhtes algaja, võid mõelda: "Mis täpselt on MCP-server ja miks see mind peaks huvitama?" Alustame lihtsast võrdlusest.
 
-Mõtle MCP serveritele kui spetsialiseeritud assistentidele, mis aitavad sinu AI-koodikaaslasel (näiteks GitHub Copilot) ühenduda väliste tööriistade ja teenustega. Nii nagu kasutad oma telefonis erinevaid rakendusi erinevate ülesannete jaoks – üks ilma jaoks, teine navigeerimiseks, kolmas panganduseks – annavad MCP serverid sinu AI-assistendile võime suhelda erinevate arendustööriistade ja teenustega.
+Mõtle MCP-serveritele kui spetsialiseerunud assistentidele, kes aitavad su tehisintellekti koodiabilistel (näiteks GitHub Copilotil) ühenduda väliste tööriistade ja teenustega. Nagu sa kasutad telefoni erinevaid äppe eri ülesannete jaoks — üks ilmaennustuseks, teine navigeerimiseks, kolmas panganduseks — annavad MCP-serverid su AI abiliseks võime suhelda erinevate arendustööriistade ja teenustega.
 
-### Probleem, mida MCP serverid lahendavad
+### Probleem, mida MCP-serverid lahendavad
 
-Enne MCP serverite kasutuselevõttu, kui tahtsid:
-- Kontrollida oma Azure'i ressursse
+Enne MCP-serverite tulekut, kui sa tahtsid:
+- Kontrollida oma Azure ressursse
 - Luua GitHubi probleemi
-- Pärida oma andmebaasi
-- Otsida dokumentatsioonist
+- Teha andmebaasipäringut
+- Otsida dokumentatsiooni läbi
 
-Pidid koodi kirjutamise katkestama, avama brauseri, navigeerima vastavale veebisaidile ja need ülesanded käsitsi täitma. See pidev konteksti vahetamine katkestab sinu töövoo ja vähendab produktiivsust.
+pidid sa koodimise katkestama, brauseri avama, sobivale veebilehele minema ja manualselt neid tegevusi tegema. See pidev konteksti vahetamine rikub su töövoo ja vähendab tootlikkust.
 
-### Kuidas MCP serverid muudavad sinu arenduskogemust
+### Kuidas MCP-serverid muudavad sinu arenduskogemust
 
-MCP serveritega saad jääda oma arenduskeskkonda (VS Code, Visual Studio jne) ja lihtsalt paluda oma AI-assistendil need ülesanded täita. Näiteks:
+MCP-serveritega saad jääda oma arenduskeskkonda (VS Code, Visual Studio jms) ja paluda lihtsalt AI assistendil need ülesanded ära teha. Näiteks:
 
-**Traditsiooniline töövoog:**
-1. Katkesta koodi kirjutamine
+**Selle traditsioonilise töövoo asemel:**
+1. Lõpeta koodimine
 2. Ava brauser
-3. Navigeeri Azure'i portaali
-4. Otsi salvestuskonto üksikasju
-5. Naase VS Code'i
-6. Jätka koodi kirjutamist
+3. Mine Azure portaalile
+4. Otsi üles salvestuskonto andmed
+5. Tule tagasi VS Code’i
+6. Jätka koodimist
 
-**Uus töövoog MCP serveritega:**
-1. Küsi AI-lt: "Mis on minu Azure'i salvestuskontode staatus?"
-2. Jätka koodi kirjutamist saadud teabe põhjal
+**Sa saad nüüd teha nii:**
+1. Küsi AI-ilt: "Mis seis on minu Azure salvestuskontodega?"
+2. Jätka koodimist info põhjal
 
 ### Peamised eelised algajatele
 
 #### 1. 🔄 **Jää oma töövoogu**
-- Ei mingit vahetamist mitme rakenduse vahel
-- Keskendu koodile, mida kirjutad
+- Pole enam vaja liikuda mitmete rakenduste vahel
+- Keskendu kirjutatavale koodile
 - Vähenda vaimset koormust erinevate tööriistade haldamisel
 
-#### 2. 🤖 **Kasuta loomulikku keelt keeruliste käskude asemel**
-- SQL-i süntaksi meeldejätmise asemel kirjelda, millist andmeid vajad
-- Azure CLI käskude meeldejätmise asemel selgita, mida tahad saavutada
-- Lase AI-l tegeleda tehniliste detailidega, samal ajal kui sina keskendud loogikale
+#### 2. 🤖 **Kasuta loomulikku keelt keerukate käskude asemel**
+- Märksüntaksi õppimise asemel kirjelda, milliseid andmeid sul vaja on
+- Azure CLI käskude meelespidamise asemel selgita, mida soovid saavutada
+- Lase AI-l tehnilised detailid ära lahendada, samal ajal kui sina keskendud loogikale
 
-#### 3. 🔗 **Ühenda mitu tööriista**
-- Loo võimsad töövood, kombineerides erinevaid teenuseid
-- Näide: "Hangi kõik hiljutised GitHubi probleemid ja loo vastavad Azure DevOpsi tööüksused"
-- Automatiseeri ilma keerulisi skripte kirjutamata
+#### 3. 🔗 **Ühenda erinevad tööriistad omavahel**
+- Loo võimsaid töövooge, kombineerides erinevaid teenuseid
+- Näide: "Hangi kõik hiljutised GitHubi probleemid ja loo neile vastavad Azure DevOpsi tööüksused"
+- Ehita automatiseerimisi ilma keerulisi skripte kirjutamata
 
-#### 4. 🌐 **Ligipääs kasvavale ökosüsteemile**
-- Kasuta servereid, mille on loonud Microsoft, GitHub ja teised ettevõtted
-- Kombineeri erinevate tarnijate tööriistu sujuvalt
-- Liitu standardiseeritud ökosüsteemiga, mis töötab erinevate AI-assistentidega
+#### 4. 🌐 **Juurdepääs kasvavale ökosüsteemile**
+- Kasuta Microsofti, GitHubi ja teiste ettevõtete poolt loodud servereid
+- Sega ja sobita erinevate pakkujate tööriistu sujuvalt
+- Liitu standardiseeritud ökosüsteemiga, mis töötab mitme erineva AI assistendiga
 
-#### 5. 🛠️ **Õpi praktilise kogemuse kaudu**
-- Alusta eelkonfigureeritud serveritega, et mõista kontseptsioone
-- Loo järk-järgult oma servereid, kui muutud mugavamaks
-- Kasuta olemasolevaid SDK-sid ja dokumentatsiooni, et suunata oma õppimist
+#### 5. 🛠️ **Õpi praktiliselt tegutsedes**
+- Alusta valmis serveritega, et mõista kontseptsioone
+- Ehita oma servereid järk-järgult, kui tunned end mugavamalt
+- Kasuta SDK-sid ja dokumentatsiooni oma õppejuhiseks
 
-### Reaalne näide algajatele
+### Reaalne näide algajale
 
-Oletame, et oled veebiarenduses uus ja töötad oma esimese projekti kallal. Siin on, kuidas MCP serverid aitavad:
+Oletame, et oled uus veebi arenduses ja teed oma esimest projekti. Siin on, kuidas MCP-serverid võivad aidata:
 
 **Traditsiooniline lähenemine:**
 ```
@@ -99,7 +99,7 @@ Oletame, et oled veebiarenduses uus ja töötad oma esimese projekti kallal. Sii
 7. Try to remember what you were doing
 ```
 
-**MCP serveritega:**
+**MCP-serveritega:**
 ```
 1. Code a feature
 2. Ask AI: "Create a GitHub issue for testing this login feature"
@@ -108,324 +108,324 @@ Oletame, et oled veebiarenduses uus ja töötad oma esimese projekti kallal. Sii
 5. Continue coding with all the information you need
 ```
 
-
 ### Ettevõtte standardi eelis
 
-MCP muutub tööstusharu standardiks, mis tähendab:
-- **Järjepidevus**: Sarnane kogemus erinevate tööriistade ja ettevõtete vahel
-- **Ühilduvus**: Erinevate tarnijate serverid töötavad koos
-- **Tulevikukindlus**: Oskused ja seadistused kanduvad üle erinevate AI-assistentide vahel
-- **Kogukond**: Suur ökosüsteem jagatud teadmiste ja ressurssidega
+MCP on muutumas tööstusharu laiapõhjaliseks standardiks, mis tähendas:
+- **Järjepidevus**: Sarnane kasutajakogemus erinevates tööriistades ja ettevõtetes
+- **Ühilduvus**: Erinevate pakkujate serverid töötavad koos
+- **Tulevikukindlus**: Oskused ja seadistused kantakse üle eri AI assistentide vahel
+- **Kogukond**: Suur teadmiste ja ressursside jagamise ökosüsteem
 
-### Alustamine: Mida õpid
+### Alustamine: mida sa õpid
 
-Selles juhendis uurime 10 Microsoft MCP serverit, mis on eriti kasulikud arendajatele igal tasemel. Iga server on loodud:
-- Lahendama levinud arendusprobleeme
+Selles juhendis vaatleme 10 Microsofti MCP-serverit, mis on eriti kasulikud igal tasemel arendajatele. Iga server on loodud:
+- Lahendama sagedasi arendaja probleeme
 - Vähendama korduvaid ülesandeid
 - Parandama koodi kvaliteeti
-- Suurendama õppimisvõimalusi
+- Parendama õppimisvõimalusi
 
-> **💡 Õppimisnõuanne**
+> **💡 Õpinipp**
 > 
-> Kui oled MCP-ga täiesti algaja, alusta meie [MCP sissejuhatuse](../00-Introduction/README.md) ja [Põhikontseptsioonide](../01-CoreConcepts/README.md) moodulitega. Seejärel naase siia, et näha neid kontseptsioone tegevuses Microsofti tööriistadega.
+> Kui oled MCP-ga täiesti uus, alusta meie [Sissejuhatusest MCP-sse](../00-Introduction/README.md) ja [Põhikontseptsioonidest](../01-CoreConcepts/README.md). Seejärel tule tagasi siia, et näha neid kontseptsioone reaalses kasutuses Microsofti tööriistadega.
 >
-> MCP olulisuse kohta lisakonteksti saamiseks vaata Maria Naggaga postitust: [Ühenda üks kord, integreeri kõikjal MCP-ga](https://devblogs.microsoft.com/blog/connect-once-integrate-anywhere-with-mcps).
+> Lisateksti MCP tähtsuse kohta leiad Maria Naggaga postitusest: [Ühenda kord, integreeri kõikjal MCP-ga](https://devblogs.microsoft.com/blog/connect-once-integrate-anywhere-with-mcps).
 
-## MCP seadistamine VS Code'is ja Visual Studios 🚀
+## MCP-ga alustamine VS Code’is ja Visual Studios 🚀
 
-Nende MCP serverite seadistamine on lihtne, kui kasutad Visual Studio Code'i või Visual Studio 2022 koos GitHub Copilotiga.
+Nende MCP-serverite seadistamine on lihtne, kui kasutad Visual Studio Code’i või Visual Studio 2022 koos GitHub Copilotiga.
 
-### VS Code'i seadistamine
+### VS Code seadistus
 
-Siin on põhiprotsess VS Code'i jaoks:
+Siin on põhietapid VS Code’i jaoks:
 
-1. **Luba Agent Mode**: VS Code'is lülitu Copilot Chat aknas Agent Mode'ile
-2. **Konfigureeri MCP serverid**: Lisa serveri konfiguratsioonid oma VS Code'i settings.json faili
-3. **Käivita serverid**: Klõpsa "Start" nuppu iga serveri jaoks, mida soovid kasutada
-4. **Vali tööriistad**: Vali, millised MCP serverid lubada oma praeguses sessioonis
+1. **Lülita sisse agentrežiim**: VS Code’is vaheta Copilot Chat aknas agentrežiimile
+2. **Konfigureeri MCP-serverid**: Lisa serveri konfiguratsioonid VS Code’i settings.json faili
+3. **Käivita serverid**: Vajuta igale soovitud serverile „Start“
+4. **Vali tööriistad**: Määra, milliseid MCP-servereid praeguses sessioonis lubada
 
-Üksikasjalike seadistusjuhiste jaoks vaata [VS Code MCP dokumentatsiooni](https://code.visualstudio.com/docs/copilot/copilot-mcp).
+Detailse seadistuse juhised leiad [VS Code MCP dokumentatsioonist](https://code.visualstudio.com/docs/copilot/copilot-mcp).
 
-> **💡 Pro näpunäide: Halda MCP servereid nagu proff!**
+> **💡 Professionaalnipp: halda MCP-servereid nagu proff!**
 > 
-> VS Code'i laienduste vaates on nüüd [kasulik uus kasutajaliides MCP serverite haldamiseks](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_use-mcp-tools-in-agent-mode)! Sul on kiire juurdepääs serverite käivitamiseks, peatamiseks ja haldamiseks selge ja lihtsa liidese kaudu. Proovi järele!
+> VS Code Extensions vaates on nüüd olemas [kasulik uus kasutajaliides MCP-serverite haldamiseks](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_use-mcp-tools-in-agent-mode)! Sul on kiire ligipääs serverite käivitamiseks, peatamiseks ja haldamiseks lihtsa ning selge liidese kaudu. Proovi järgi!
 
-### Visual Studio 2022 seadistamine
+### Visual Studio 2022 seadistus
 
-Visual Studio 2022 jaoks (versioon 17.14 või uuem):
+Visual Studio 2022 (versioon 17.14 või uuem) puhul:
 
-1. **Luba Agent Mode**: Klõpsa GitHub Copilot Chat aknas "Ask" rippmenüüd ja vali "Agent"
-2. **Loo konfiguratsioonifail**: Loo `.mcp.json` fail oma lahenduse kataloogi (soovitatav asukoht: `<SOLUTIONDIR>\.mcp.json`)
-3. **Konfigureeri serverid**: Lisa oma MCP serveri konfiguratsioonid, kasutades standardset MCP formaati
-4. **Tööriistade kinnitamine**: Kui küsitakse, kinnita tööriistad, mida soovid kasutada, sobivate õigustega
+1. **Lülita sisse agentrežiim**: GitHub Copiloti Chat aknas klõpsa "Ask" rippmenüüs „Agent“ valikut
+2. **Loo konfiguratsioonifail**: Loo lahenduse kataloogi `.mcp.json` fail (soovitatav asukoht: `<SOLUTIONDIR>\.mcp.json`)
+3. **Sea serverid üles**: Lisa oma MCP-serverite konfiguratsioonid standardse MCP formaadis
+4. **Hea tööriistadele**: Kui küsitakse, kinnita või luba vajalikud tööriistad sobivate õigustega
 
-Üksikasjalike Visual Studio seadistusjuhiste jaoks vaata [Visual Studio MCP dokumentatsiooni](https://learn.microsoft.com/visualstudio/ide/mcp-servers).
+Detailse Visual Studio seadistuse juhised on [Visual Studio MCP dokumentatsioonis](https://learn.microsoft.com/visualstudio/ide/mcp-servers).
 
-Igal MCP serveril on oma konfiguratsiooninõuded (ühendusstringid, autentimine jne), kuid seadistusmuster on mõlemas IDE-s järjepidev.
+Iga MCP-server nõuab oma konfiguratsiooniparameetreid (ühendusestruktuurid, autentimine jms), kuid seadistusprotsess on mõlemas IDEs ühtne.
 
-## Õppetunnid Microsoft MCP serveritest 🛠️
+## Õppetunnid Microsofti MCP-serveritelt 🛠️
 
-### 1. 📚 Microsoft Learn Docs MCP server
+### 1. 📚 Microsoft Learn Docs MCP-server
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Microsoft_Docs_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=microsoft.docs.mcp&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Flearn.microsoft.com%2Fapi%2Fmcp%22%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Microsoft_Docs_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=microsoft.docs.mcp&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Flearn.microsoft.com%2Fapi%2Fmcp%22%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/mcp)
 
-**Mida see teeb**: Microsoft Learn Docs MCP server on pilvepõhine teenus, mis pakub AI-assistentidele reaalajas juurdepääsu ametlikule Microsofti dokumentatsioonile Model Context Protocoli kaudu. See ühendub `https://learn.microsoft.com/api/mcp` ja võimaldab semantilist otsingut Microsoft Learn, Azure'i dokumentatsiooni, Microsoft 365 dokumentatsiooni ja teiste ametlike Microsofti allikate vahel.
+**Mida see teeb**: Microsoft Learn Docs MCP-server on pilves majutatud teenus, mis annab tehisintellekti assistentidele reaalajas ligipääsu ametlikule Microsofti dokumentatsioonile Model Context Protokolli kaudu. See ühendub aadressiga `https://learn.microsoft.com/api/mcp` ja võimaldab semantilist otsingut üle Microsoft Learni, Azure’i dokumentatsiooni, Microsoft 365 dokumentatsiooni ja teiste ametlike Microsofti allikate.
 
-**Miks see on kasulik**: Kuigi see võib tunduda "lihtsalt dokumentatsioonina", on see server tegelikult ülioluline iga arendaja jaoks, kes kasutab Microsofti tehnoloogiaid. Üks suurimaid kaebusi .NET arendajatelt AI-koodikaaslaste kohta on see, et need ei ole kursis uusimate .NET ja C# versioonidega. Microsoft Learn Docs MCP server lahendab selle, pakkudes reaalajas juurdepääsu kõige värskematele dokumentatsioonidele, API viidetele ja parimatele praktikatele. Olgu tegemist uusimate Azure SDK-dega, C# 13 funktsioonide uurimisega või tipptasemel .NET Aspire mustrite rakendamisega – see server tagab, et sinu AI-assistentil on juurdepääs autoriteetsele ja ajakohasele teabele, mida on vaja täpse ja kaasaegse koodi genereerimiseks.
+**Miks see on kasulik**: Kuigi see võib tunduda kui „lihtsalt dokumentatsioon,“ on see server tegelikult iga Microsofti tehnoloogiat kasutava arendaja jaoks ülioluline. Üks suurimaid kaebusi .NET arendajate seas AI koodiassistente kasutades on see, et nad ei ole kursis uusimate .NET ja C# väljalasetega. Microsoft Learn Docs MCP-server lahendab selle, pakkudes reaalajas ligipääsu kõige uuemale dokumentatsioonile, API viidetele ja parimatele praktikatele. Kas sa töötad uusimate Azure SDK-dega, uurid värskeid C# 13 funktsioone või rakendad tipptasemel .NET Aspire mustreid, see server tagab, et su AI assistendil on ligipääs autoriteetsele ja ajakohasele infole, mis võimaldab genereerida täpset ja moodsat koodi.
 
-**Reaalne kasutus**: "Millised on az cli käsud Azure'i konteinerirakenduse loomiseks vastavalt ametlikule Microsoft Learn dokumentatsioonile?" või "Kuidas konfigureerida Entity Frameworki sõltuvussüstega ASP.NET Core'is?" Või näiteks "Vaata üle see kood, et veenduda, et see vastab Microsoft Learn dokumentatsiooni jõudlussoovitustele." Server pakub põhjalikku katvust Microsoft Learn, Azure'i dokumentatsiooni ja Microsoft 365 dokumentatsiooni vahel, kasutades täiustatud semantilist otsingut, et leida kõige kontekstuaalselt asjakohasem teave. See tagastab kuni 10 kvaliteetset sisutükki koos artiklite pealkirjade ja URL-idega, alati juurdepääsuga kõige värskematele Microsofti dokumentatsioonidele nende avaldamise ajal.
+**Tegelik kasutus**: "Millised on az cli käsud Azure konteinerapliku loomiseks vastavalt ametlikule Microsoft Learn dokumentatsioonile?" või "Kuidas konfigureerida Entity Framework’i sõltuvussüsti ASP.NET Core’is?" Või näiteks "Kontrolli seda koodi, kas see vastab Microsoft Learn dokumentatsiooni jõudlussoovitustele." Server pakub kõikehõlmavat katvust Microsoft Learni, Azure’i ja Microsoft 365 dokumentatsiooni seas, kasutades kõrgklassi semantilist otsingut kõige kontekstuaalselt sobivama info leidmiseks. See tagastab kuni 10 kvaliteetset sisutükki artiklite pealkirjade ja URL-idega, alati pääsedes ligi kõige värskemale Microsofti dokumentatsioonile, niipea kui see avaldatakse.
 
-**Esiletõstetud näide**: Server pakub `microsoft_docs_search` tööriista, mis teostab semantilist otsingut Microsofti ametliku tehnilise dokumentatsiooni vastu. Kui see on konfigureeritud, saad esitada küsimusi nagu "Kuidas rakendada JWT autentimist ASP.NET Core'is?" ja saada üksikasjalikke, ametlikke vastuseid koos allikaviidetega. Otsingu kvaliteet on erakordne, kuna see mõistab konteksti – Azure'i kontekstis "konteinerite" kohta küsimine tagastab Azure Container Instances dokumentatsiooni, samas kui sama termin .NET kontekstis tagastab asjakohase C# kogude teabe.
+**Näidiskasutus**: Server eksponeerib tööriista `microsoft_docs_search`, mis teostab semantilist otsingut Microsofti ametliku tehnilise dokumentatsiooni vastu. Kui see on seadistatud, saad küsida näiteks: "Kuidas rakendada JWT autentimist ASP.NET Core’is?" ja saada üksikasjalikud ametlikud vastused koos allikate linkidega. Otsingu kvaliteet on erakordne, sest see mõistab konteksti – kui küsida „konteinerite“ kohta Azure’i kontekstis, tagastab see Azure Container Instances dokumentatsiooni, aga samas termin .NET kontekstis toob tagasi vastava C# kollektsiooniteabe.
 
-See on eriti kasulik kiiresti muutuvate või hiljuti uuendatud teekide ja kasutusjuhtude puhul. Näiteks mõnes hiljutises koodiprojektis tahtsin kasutada uusimate .NET Aspire ja Microsoft.Extensions.AI versioonide funktsioone. Microsoft Learn Docs MCP serveri kaasamisega sain kasutada mitte ainult API dokumente, vaid ka just avaldatud juhendeid ja juhiseid.
+See on eriti kasulik kiiresti muutuva või hiljuti uuendatud teekide ja kasutusjuhtude puhul. Näiteks mõnes hiljutises kodeerimisprojektis tahtsin kasutada uusimate .NET Aspire ja Microsoft.Extensions.AI versioonide funktsioone. Microsoft Learn Docs MCP-serveri kaasamisega sain kasutada mitte ainult API dokumente, vaid ka värskelt avaldatud juhiseid ja näiteid.
 
-> **💡 Pro näpunäide**
+> **💡 Professionaalnipp**
 > 
-> Isegi tööriistasõbralikud mudelid vajavad julgustust MCP tööriistade kasutamiseks! Kaalu süsteemiprompti või [copilot-instructions.md](https://docs.github.com/copilot/how-tos/custom-instructions/adding-repository-custom-instructions-for-github-copilot) lisamist, näiteks: "Sul on juurdepääs `microsoft.docs.mcp` – kasuta seda tööriista Microsofti uusima ametliku dokumentatsiooni otsimiseks, kui käsitled küsimusi Microsofti tehnoloogiate kohta nagu C#, Azure, ASP.NET Core või Entity Framework."
+> Ka tööriistasõbralikud mudelid vajavad julgustust MCP tööriistu kasutada! Mõtle lisada süsteemi prompt või [copilot-instructions.md](https://docs.github.com/copilot/how-tos/custom-instructions/adding-repository-custom-instructions-for-github-copilot) stiilis juhendit: "Sul on ligipääs tööriistale `microsoft.docs.mcp` – kasuta seda tööriista, et otsida Microsofti uusimat ametlikku dokumentatsiooni seoses küsimustega Microsofti tehnoloogiate kohta nagu C#, Azure, ASP.NET Core või Entity Framework."
 >
-> Selle suurepärase näite nägemiseks vaata [C# .NET Janitor chat mode](https://github.com/awesome-copilot/chatmodes/blob/main/csharp-dotnet-janitor.chatmode.md) Awesome GitHub Copilot repository'st. See režiim kasutab spetsiaalselt Microsoft Learn Docs MCP serverit, et aidata puhastada ja moderniseerida C# koodi, kasutades uusimaid mustreid ja parimaid praktikaid.
-
-### 2. ☁️ Azure MCP server
+> Hea näide sellest on [C# .NET Janitori vestlusrežiim](https://github.com/awesome-copilot/chatmodes/blob/main/csharp-dotnet-janitor.chatmode.md) Awesome GitHub Copiloti repos. See režiim kasutab spetsiaalselt Microsoft Learn Docs MCP-serverit, et aidata koristada ja kaasaegsetada C# koodi, kasutades uusimaid mustreid ja parimaid praktikaid.
+### 2. ☁️ Azure MCP-server
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Azure_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Azure%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fazure-mcp%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Azure_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fazure-mcp%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Azure/azure-mcp)
 
-**Mida see teeb**: Azure MCP Server on terviklik komplekt enam kui 15 spetsialiseeritud Azure'i teenuse ühendajast, mis toovad kogu Azure'i ökosüsteemi teie AI töövoogu. See pole lihtsalt üks server – see on võimas kogum, mis hõlmab ressursside haldust, andmebaasiühendusi (PostgreSQL, SQL Server), Azure Monitori logianalüüsi KQL-iga, Cosmos DB integratsiooni ja palju muud.
+**Mida see teeb**: Azure MCP Server on ulatuslik 15+ spetsialiseeritud Azure teenuse kontrollerite komplekt, mis toob kogu Azure ökosüsteemi sinu tehisintellekti töövoogu. See ei ole lihtsalt üks server – see on võimas kogu, mis hõlmab ressursihaldust, andmebaaside ühenduvust (PostgreSQL, SQL Server), Azure Monitori logianalüüsi KQL-iga, Cosmos DB integratsiooni ja palju muud.
 
-**Miks see on kasulik**: Lisaks Azure'i ressursside haldamisele parandab see server oluliselt koodi kvaliteeti Azure SDK-dega töötamisel. Kui kasutate Azure MCP-d Agent-režiimis, ei aita see teil lihtsalt koodi kirjutada – see aitab teil kirjutada *paremat* Azure'i koodi, mis järgib praeguseid autentimismustreid, vigade käsitlemise parimaid tavasid ja kasutab uusimaid SDK funktsioone. Selle asemel, et saada üldist koodi, mis võib töötada, saate koodi, mis järgib Azure'i soovitatud mustreid tootmiskoormuste jaoks.
+**Miks see on kasulik**: Lisaks Azure ressursside haldamisele parandab see server oluliselt koodi kvaliteeti, kui töötad Azure SDK-dega. Kui kasutad Azure MCP-d Agent režiimis, ei aita see sul mitte ainult koodi kirjutada – see aitab sul kirjutada *paremat* Azure koodi, mis järgib praeguseid autentimismustreid, veahaldusparimaid tavasid ja kasutab uusimaid SDK funktsioone. Selle asemel, et saada üldist koodi, mis võib töötada, saad koodi, mis järgib Azure soovitatud mustreid tootlustöökoormuste jaoks.
 
-**Peamised moodulid**:
-- **🗄️ Andmebaasiühendajad**: Loomulik keelepõhine juurdepääs Azure Database for PostgreSQL-le ja SQL Serverile
-- **📊 Azure Monitor**: KQL-põhine logianalüüs ja operatiivsed ülevaated
-- **🌐 Ressursside haldus**: Täielik Azure'i ressursside elutsükli haldus
-- **🔐 Autentimine**: DefaultAzureCredential ja hallatud identiteedi mustrid
-- **📦 Salvestusteenused**: Blob Storage, Queue Storage ja Table Storage operatsioonid
+**Põhimoodulid sisaldavad**:
+- **🗄️ Andmebaasi kontrollerid**: Otsene loomuliku keele juurdepääs Azure Database for PostgreSQL ja SQL Serveri jaoks
+- **📊 Azure Monitor**: KQL-põhine logianalüüs ja operatsiooniline ülevaade
+- **🌐 Ressursside haldus**: Täielik Azure ressursside elutsükli haldus
+- **🔐 Autentimine**: DefaultAzureCredential ja haldaja identiteedi mustrid
+- **📦 Salvestusteenused**: Blob Storage, Queue Storage ja Table Storage toimingud
 - **🚀 Konteineriteenused**: Azure Container Apps, Container Instances ja AKS haldus
-- **Ja palju teisi spetsialiseeritud ühendajaid**
+- **Ja palju rohkem spetsialiseeritud kontrollerid**
 
-**Reaalne kasutus**: "Loetle minu Azure'i salvestuskontod", "Päring minu Log Analytics tööruumist viimase tunni vigade kohta" või "Aita mul luua Azure'i rakendus Node.js-is koos korrektse autentimisega"
+**Reaalne kasutus**: "Nimeta minu Azure salvestuskontod", "Päringi Log Analytics tööruumi viimase tunni vigade kohta", või "Aita mul ehitada Azure rakendus Node.js-ga õige autentimisega"
 
-**Täielik demo stsenaarium**: Siin on täielik juhend, mis näitab Azure MCP ja GitHub Copilot for Azure laienduse kombinatsiooni võimsust VS Code'is. Kui mõlemad on installitud, saate esitada järgmise päringu:
+**Täielik demo stsenaarium**: Siin on täielik läbikäik, mis näitab Azure MCP ja GitHub Copilot for Azure laienduse kombinatsiooni võimsust VS Code'is. Kui sul mõlemad on installitud ja sa esitad:
 
-> "Loo Python skript, mis laadib faili üles Azure Blob Storage'i, kasutades DefaultAzureCredential autentimist. Skript peaks ühenduma minu Azure'i salvestuskontoga nimega 'mycompanystorage', laadima üles konteinerisse nimega 'documents', looma testfaili praeguse ajatempli alusel üleslaadimiseks, käsitlema vigu elegantselt ja pakkuma informatiivset väljundit, järgima Azure'i parimaid tavasid autentimise ja vigade käsitlemise osas, sisaldama kommentaare, mis selgitavad, kuidas DefaultAzureCredential autentimine töötab, ning olema hästi struktureeritud koos korrektsete funktsioonide ja dokumentatsiooniga."
+> "Loo Pythoni skript, mis laadib faili üles Azure Blob Storage'i, kasutades DefaultAzureCredential autentimist. Skript peaks ühenduma minu Azure salvestuskontoga nimega 'mycompanystorage', laadima üles konteinerisse nimega 'documents', looma testi faili praeguse ajatempli ja laadima selle üles, käsitlema vigu mõistlikult ning pakkuma informatiivset väljundit, järgima Azure parimaid tavasid autentimiseks ja veahalduseks, sisaldama kommentaare, mis selgitavad DefaultAzureCredential autentimise tööpõhimõtet, ning olema hästi struktureeritud, korralike funktsioonide ja dokumentatsiooniga."
 
-Azure MCP Server genereerib täieliku, tootmisvalmis Python skripti, mis:
-- Kasutab uusimat Azure Blob Storage SDK-d koos korrektsete asünkroonsete mustritega
-- Rakendab DefaultAzureCredential koos põhjaliku varuahela selgitusega
-- Sisaldab tugevat vigade käsitlemist koos konkreetsete Azure'i eranditüüpidega
-- Järgib Azure SDK parimaid tavasid ressursside halduse ja ühenduse käsitlemise osas
-- Pakub üksikasjalikku logimist ja informatiivset konsooliväljundit
-- Loob korrektselt struktureeritud skripti koos funktsioonide, dokumentatsiooni ja tüüpide vihjetega
+Azure MCP Server genereerib täieliku, tootmiseks valmis Pythoni skripti, mis:
+- Kasutab uusimat Azure Blob Storage SDK-d õige asünkroonse mustriga
+- Rakendab DefaultAzureCredential koos põhjaliku varuplaani selgitusega
+- Sisaldab tugevat vigade haldust spetsiifiliste Azure erinditüüpidega
+- Järgib Azure SDK parimaid tavasid ressursside ja ühenduste haldamisel
+- Pakub detailset logimist ja informatiivset konsooliväljundit
+- Loob korrektselt struktureeritud skripti koos funktsioonide, dokumentatsiooni ja tüübi vihjetega
 
-Mis teeb selle erakordseks, on see, et ilma Azure MCP-ta võite saada üldise Blob Storage koodi, mis töötab, kuid ei järgi praeguseid Azure'i mustreid. Azure MCP-ga saate koodi, mis kasutab uusimaid autentimismeetodeid, käsitleb Azure'i spetsiifilisi veastsenaarioid ja järgib Microsofti soovitatud tavasid tootmisrakenduste jaoks.
+See teeb selle silmapaistvaks – ilma Azure MCP-ta võid saada üldist blob storage koodi, mis töötab, kuid ei järgi praeguseid Azure mustreid. Azure MCP-ga saad koodi, mis kasutab uusimaid autentimismeetodeid, lahendab Azure spetsiifilisi veastseene ja järgib Microsofti soovitatud parimaid tavasid tootmisrakenduste jaoks.
 
-**Esiletõstetud näide**: Olen sageli hädas `az` ja `azd` CLI käskude konkreetse süntaksi meeldejätmisega juhuslikuks kasutamiseks. Minu jaoks on see alati kaheastmeline protsess: kõigepealt otsin süntaksi üles, siis käivitan käsu. Sageli lähen lihtsalt portaali ja klõpsan seal, et töö tehtud saada, sest ei taha tunnistada, et ei mäleta CLI süntaksit. Võimalus lihtsalt kirjeldada, mida ma tahan, on hämmastav, ja veel parem, et saan seda teha ilma oma IDE-st lahkumata!
+**Näidetena**: Mul on olnud raskusi `az` ja `azd` CLI-de spetsiifiliste käskude meelespidamisega ad-hoc kasutamiseks. Minu jaoks on see alati kaheastmeline protsess: esmalt vaadata süntaks üles, siis käsklus käivitada. Sageli astun lihtsalt portaali ja klõpsan ringi, et tööd teha, sest ei taha tunnistada, et ei mäleta CLI süntaksit. Võime lihtsalt kirjeldada, mida tahan, on suurepärane ning veel parem on seda teha ilma IDE-st lahkumata!
 
-Azure MCP repositooriumis on suurepärane nimekiri kasutusjuhtudest, mis aitavad teil alustada: [Azure MCP repository](https://github.com/Azure/azure-mcp?tab=readme-ov-file#-what-can-you-do-with-the-azure-mcp-server). Täielike seadistusjuhendite ja täiustatud konfiguratsioonivalikute jaoks vaadake [ametlikku Azure MCP dokumentatsiooni](https://learn.microsoft.com/azure/developer/azure-mcp-server/).
+Hea nimekiri kasutusjuhtudest on olemas [Azure MCP hoidlas](https://github.com/Azure/azure-mcp?tab=readme-ov-file#-what-can-you-do-with-the-azure-mcp-server), et alustada. Täielike seadistusjuhiste ja arenenud konfiguratsioonivõimaluste jaoks vaata [ametlikku Azure MCP dokumentatsiooni](https://learn.microsoft.com/azure/developer/azure-mcp-server/).
 
 ### 3. 🐙 GitHub MCP Server
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=github&config=%7B%22type%22%3A%20%22http%22%2C%22url%22%3A%20%22https%3A%2F%2Fapi.githubcopilot.com%2Fmcp%2F%22%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=github&config=%7B%22type%22%3A%20%22http%22%2C%22url%22%3A%20%22https%3A%2F%2Fapi.githubcopilot.com%2Fmcp%2F%22%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/github/github-mcp-server)
 
-**Mida see teeb**: Ametlik GitHub MCP Server pakub sujuvat integreerimist GitHubi ökosüsteemiga, pakkudes nii hostitud kaugjuurdepääsu kui ka kohaliku Dockeri juurutamise võimalusi. See ei puuduta ainult põhilisi repositooriumi operatsioone – see on terviklik tööriistakomplekt, mis hõlmab GitHub Actions haldust, pull request töövooge, probleemide jälgimist, turvaskaneerimist, teavitusi ja täiustatud automatiseerimisvõimalusi.
+**Mida see teeb**: Ametlik GitHub MCP Server pakub sujuvat integratsiooni GitHubi kogu ökosüsteemiga, pakkudes nii hostitud kaugjuurdepääsu kui ka lokaalse Dockeri juurutamise võimalusi. See ei ole pelgalt põhiliste hoidlaoperatsioonide jaoks – see on ulatuslik tööriistakomplekt, mis hõlmab GitHub Actions haldust, pull request töövooge, probleemide jälgimist, turvakontrolle, teavitusi ja arenenud automatiseerimise võimalusi.
 
-**Miks see on kasulik**: See server muudab teie suhtlemist GitHubiga, tuues kogu platvormi kogemuse otse teie arenduskeskkonda. Selle asemel, et pidevalt vahetada VS Code'i ja GitHub.com-i vahel projektijuhtimise, koodiarvustuste ja CI/CD jälgimise jaoks, saate kõike hallata loomulike keelepõhiste käskudega, jäädes samal ajal keskendunuks oma koodile.
+**Miks see on kasulik**: See server muudab GitHubiga suhtlemise viisi, tuues kogu platvormi kogemuse otse sinu arenduskeskkonda. Selle asemel, et pidevalt vahetada VS Code ja GitHub.com vahel projektihalduse, koodiläbivaatuse ja CI/CD jälgimise vahel, saad kõike teha loomuliku keele käskudega, olles samal ajal keskendunud oma koodile.
 
-> **ℹ️ Märkus: Erinevad 'Agentide' tüübid**
+> **ℹ️ Märkus: Erinevad 'Agent' tüübid**
 > 
-> Ärge ajage segamini GitHub MCP Serverit GitHubi Coding Agentiga (AI agent, kellele saab määrata ülesandeid automaatseks koodi loomiseks). GitHub MCP Server töötab VS Code'i Agent-režiimis, et pakkuda GitHub API integratsiooni, samas kui GitHubi Coding Agent on eraldi funktsioon, mis loob pull requeste, kui talle määratakse GitHubi probleeme.
+> Ära sega seda GitHub MCP Serverit GitHubi Coding Agentiga (tehisintellekti agent, kellele saab määrata probleemide automatiseeritud kooditöid). GitHub MCP Server töötab VS Code Agent režiimis, pakkudes GitHub API integratsiooni, samas kui GitHub Coding Agent on eraldi funktsioon, mis loob pull requeste, kui talle on määratud GitHubi probleemid.
 
-**Peamised võimalused**:
-- **⚙️ GitHub Actions**: Täielik CI/CD torujuhtme haldus, töövoo jälgimine ja artefaktide käsitlemine
-- **🔀 Pull Requestid**: Loo, vaata üle, ühenda ja halda PR-e koos põhjaliku oleku jälgimisega
-- **🐛 Probleemid**: Täielik probleemide elutsükli haldus, kommenteerimine, sildistamine ja määramine
-- **🔒 Turvalisus**: Koodiskaneerimise hoiatused, salajaste andmete tuvastamine ja Dependabot integratsioon
-- **🔔 Teavitused**: Nutikas teavituste haldus ja repositooriumi tellimuste kontroll
-- **📁 Repositooriumi haldus**: Failioperatsioonid, harude haldus ja repositooriumi administratsioon
+**Põhivõimed sisaldavad**:
+- **⚙️ GitHub Actions**: Täielik CI/CD torujuhtme haldus, töövoogude jälgimine ja artefaktide haldus
+- **🔀 Pull Requests**: PR-ide loomine, ülevaade, ühildamine ja haldus koos põhjaliku oleku jälgimisega
+- **🐛 Probleemid**: Probleemide täisväärtuslik elutsükli haldus, kommenteerimine, sildistamine ja määramine
+- **🔒 Turvalisus**: Koodi skannimise hoiatused, salajaste andmete avastamine ja Dependaboti integratsioon
+- **🔔 Teavitused**: Nutikas teavituste haldus ja hoidla tellimuste kontroll
+- **📁 Hoiu haldus**: Failitoimingud, harude haldus ja hoidlaadministreerimine
 - **👥 Koostöö**: Kasutajate ja organisatsioonide otsing, meeskonna haldus ja juurdepääsu kontroll
 
-**Reaalne kasutus**: "Loo pull request minu feature harust", "Näita mulle kõiki ebaõnnestunud CI jooksusid sel nädalal", "Loetle avatud turvahoiatused minu repositooriumides" või "Leia kõik probleemid, mis on määratud mulle minu organisatsioonides"
+**Reaalne kasutus**: "Loo pull request minu funktsiooniharust", "Näita mulle kõiki ebaõnnestunud CI töid sel nädalal", "Nimeta minu hoidlate avatud turvahoiatused" või "Leia kõik mulle määratud probleemid minu organisatsioonidest"
 
-**Täielik demo stsenaarium**: Siin on võimas töövoog, mis demonstreerib GitHub MCP Serveri võimalusi:
+**Täielik demo stsenaarium**: Siin on võimas töövoog, mis demonstreerib GitHub MCP Serveri võimeid:
 
-> "Pean valmistuma meie sprindi ülevaateks. Näita mulle kõiki pull requeste, mille olen sel nädalal loonud, kontrolli meie CI/CD torujuhtmete olekut, loo kokkuvõte turvahoiatustest, mida peame lahendama, ja aita mul koostada väljalaskemärkmeid, mis põhinevad 'feature' sildiga ühendatud PR-idel."
+> "Pean valmistuma sprintide ülevaateks. Näita mulle kõiki minu sel nädalal loodud pull requeste, kontrolli meie CI/CD torujuhtmete olekut, koosta kokkuvõte kõigist turvahoiatustest, millega peame tegelema, ja aita mul koostada väljaandelõikud põhinedes ühendatud PR-idel, millel on 'feature' silt."
 
 GitHub MCP Server:
-- Pärib teie hiljutised pull requestid koos üksikasjaliku olekuteabega
-- Analüüsib töövoo jooksusid ja toob esile kõik ebaõnnestumised või jõudlusprobleemid
-- Koostab turvaskaneerimise tulemused ja prioriseerib kriitilised hoiatused
-- Genereerib põhjalikud väljalaskemärkmed, ekstraheerides teavet ühendatud PR-idest
-- Pakub tegevuskõlblikke järgmisi samme sprindi planeerimiseks ja väljalaske ettevalmistamiseks
+- Pärib sinu hiljutised pull requestid detailse staatusega
+- Analüüsib töövoo jooksusid ja toob esile kõik vead või jõudlusprobleemid
+- Koondab turvakontrolli tulemused ja seab prioriteediks kriitilised hoiatused
+- Genereerib põhjalikud väljaandetekstid ühendatud PR-idest teabe eraldamise kaudu
+- Pakub tegevussoovitusi sprintide planeerimiseks ja väljaande ettevalmistamiseks
 
-**Esiletõstetud näide**: Mulle meeldib seda kasutada koodiarvustuse töövoogude jaoks. Selle asemel, et hüpata VS Code'i, GitHubi teavituste ja pull request lehtede vahel, saan öelda "Näita mulle kõiki PR-e, mis ootavad minu arvustust" ja siis "Lisa kommentaar PR #123-le, küsides autentimismeetodi vigade käsitlemise kohta." Server haldab GitHub API kõnesid, säilitab arutelu konteksti ja aitab mul isegi koostada konstruktiivsemaid arvustuse kommentaare.
+**Näidetena**: Mulle meeldib seda kasutada koodiläbivaatuste töövoogudes. Selle asemel, et hüpata VS Code'i, GitHubi teadete ja pull requesti lehtede vahel, saan öelda "Näita mulle kõiki PR-e, mis ootavad minu ülevaadet" ja siis "Lisa kommentaar PR #123-le, küsides autentimismeetodi veahaldusest." Server haldab GitHub API päringud, säilitab arutelu konteksti ja aitab mul isegi koostada konstruktiivsemaid ülevaatuse kommentaare.
 
-**Autentimisvõimalused**: Server toetab nii OAuthi (sujuv VS Code'is) kui ka isiklikke juurdepääsutokenit, koos konfigureeritavate tööriistakomplektidega, mis võimaldavad ainult vajalikke GitHubi funktsioone. Seda saab käivitada kaugteenusena kiireks seadistamiseks või kohapeal Dockeriga täieliku kontrolli jaoks.
+**Autentimise võimalused**: Server toetab nii OAuth-i (sujuvalt VS Code'is) kui ka isiklikke juurdepääsutokenit, konfiguratsiooni tööriistakomplekte on võimalik lubada ainult vajaliku GitHubi funktsionaalsuse jaoks. Saad seda kasutada kaughostitud teenusena kiireks seadistuseks või lokaalselt Dockeriga täies kontrollis.
 
-> **💡 Pro nõuanne**
+> **💡 Pro näpunäide**
 > 
-> Lubage ainult vajalikke tööriistakomplekte, konfigureerides `--toolsets` parameetrit oma MCP serveri seadetes, et vähendada konteksti suurust ja parandada AI tööriistade valikut. Näiteks lisage `"--toolsets", "repos,issues,pull_requests,actions"` oma MCP konfiguratsiooni argumentidesse põhiarenduse töövoogude jaoks või kasutage `"--toolsets", "notifications, security"`, kui soovite peamiselt GitHubi jälgimisvõimalusi.
+> Luba ainult vajalikud tööriistakomplektid, konfigureerides `--toolsets` parameetrit oma MCP serveri seadetes, et vähendada konteksti suurust ja parandada tehisintellekti tööriistade valikut. Näiteks lisa `"--toolsets", "repos,issues,pull_requests,actions"` oma MCP konfiguratsiooni argumentidesse põhiarendustöövoogude jaoks või kasuta `"--toolsets", "notifications, security"`, kui peamiselt soovid GitHubi jälgimise võimalusi.
 ### 4. 🔄 Azure DevOps MCP Server
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Azure_DevOps_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Azure%20DevOps%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-azure-devops%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Azure_DevOps_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20DevOps%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-azure-devops%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/azure-devops-mcp)
 
-**Mida see teeb**: Ühendub Azure DevOps teenustega, pakkudes terviklikku projektijuhtimist, tööülesannete jälgimist, ehitustorude haldust ja repositooriumi operatsioone.
+**Mida see teeb**: Ühendub Azure DevOps teenustega ulatuslikuks projektihalduseks, tööülesannete jälgimiseks, build torujuhtme halduseks ja hoidlate operatsioonideks.
 
-**Miks see on kasulik**: Meeskondadele, kes kasutavad Azure DevOpsi oma peamise DevOps platvormina, kõrvaldab see MCP server pideva vahetamise arenduskeskkonna ja Azure DevOps veebiliidese vahel. Saate hallata tööülesandeid, kontrollida ehituste olekuid, pärida repositooriume ja käsitleda projektijuhtimise ülesandeid otse oma AI assistendi kaudu.
+**Miks see on kasulik**: Meeskondadele, kes kasutavad Azure DevOpsi oma peamise DevOps platvormina, kõrvaldab see MCP server pideva vahelehtede vahel vahetamise arenduskeskkonna ja Azure DevOps veebiliidese vahel. Saad hallata tööülesandeid, kontrollida build-olekuid, pärida hoidlaid ja teostada projektihaldusega seotud ülesandeid otse oma AI abilise kaudu.
 
-**Reaalne kasutus**: "Näita mulle kõiki aktiivseid tööülesandeid praeguses sprindis WebApp projekti jaoks", "Loo veaaruanne sisselogimisprobleemi kohta, mille just avastasin" või "Kontrolli meie ehitustorude olekut ja näita mulle hiljutisi ebaõnnestumisi"
+**Reaalne kasutus**: "Näita mulle kõiki aktiivseid tööülesandeid jooksval sprintidel WebApp projekti jaoks", "Loo bugiraport äsja avastatud sisselogimisprobleemi kohta" või "Kontrolli meie build torujuhtmete olekut ja näita mulle viimaseid ebaõnnestumisi"
 
-**Esiletõstetud näide**: Saate hõlpsalt kontrollida oma meeskonna praeguse sprindi olekut lihtsa päringuga nagu "Näita mulle kõiki aktiivseid tööülesandeid praeguses sprindis WebApp projekti jaoks" või "Loo veaaruanne sisselogimisprobleemi kohta, mille just avastasin" ilma arenduskeskkonnast lahkumata.
+**Näidetena**: Võid lihtsalt kontrollida oma meeskonna jooksva sprinti staatust lihtsa päringuga nagu "Näita mulle kõiki aktiivseid tööülesandeid jooksval sprintidel WebApp projekti jaoks" või "Loo bugiraport äsja avastatud sisselogimisprobleemi kohta" ilma oma arenduskeskkonnast lahkumata.
 
 ### 5. 📝 MarkItDown MCP Server
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_MarkItDown_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=MarkItDown%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-markitdown%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_MarkItDown_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=MarkItDown%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-markitdown%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/markitdown)
 
-**Mida see teeb**: MarkItDown on põhjalik dokumendikonversiooni server, mis teisendab erinevaid failivorminguid kvaliteetseks Markdowniks, optimeeritud LLM-i tarbimiseks ja tekstianalüüsi töövoogudeks.
+**Mida see teeb**: MarkItDown on võimas dokumendikonversiooniserver, mis teisendab erinevaid failiformaate kõrgekvaliteediliseks Markdown-iks, optimeeritud LLM-i tarbeks ja tekstianalüüsi töövoogude jaoks.
 
-**Miks see on kasulik**: Hädavajalik kaasaegsete dokumenteerimistöövoogude jaoks! MarkItDown suudab töödelda muljetavaldavat valikut failivorminguid, säilitades samal ajal olulise dokumendi struktuuri, nagu pealkirjad, loendid, tabelid ja lingid. Erinevalt lihtsatest teksti väljavõtmise tööriistadest keskendub see semantilise tähenduse ja vormingu säilitamisele, mis on väärtuslik nii AI töötlemiseks kui ka inimloetavuseks.
+**Miks see on kasulik**: Hädavajalik kaasaegsetele dokumentatsiooni töövoogudele! MarkItDown toetab muljetavaldavat valikut failiformaate, säilitades samal ajal olulist dokumendi struktuuri nagu pealkirjad, nimekirjad, tabelid ja lingid. Erinevalt lihtsatest tekstiekstraktsiooni tööriistadest keskendub see semantilise tähenduse ja vormingu säilitamisele, mis on väärtuslik nii tehisintellekti töötlemiseks kui ka inimeste loetavuseks.
 
-**Toetatud failivormingud**:
-- **Office dokumendid**: PDF, PowerPoint (PPTX), Word (DOCX), Excel (XLSX/XLS)
-- **Meediafailid**: Pildid (EXIF metaandmetega ja OCR-iga), heli (EXIF metaandmetega ja kõne transkriptsiooniga)
-- **Veebisisu**: HTML, RSS vood, YouTube'i URL-id, Wikipedia lehed
-- **Andmevormingud**: CSV, JSON, XML, ZIP-failid (töötleb sisu rekursiivselt)
-- **Avaldamisvormingud**: EPub, Jupyteri märkmikud (.ipynb)
+**Toetatavad failivormingud**:
+- **Office'i dokumendid**: PDF, PowerPoint (PPTX), Word (DOCX), Excel (XLSX/XLS)
+- **Meediafailid**: Pildid (koos EXIF-metaandmete ja OCR-iga), Audio (koos EXIF-metaandmete ja kõnetuvastusega)
+- **Veebisisu**: HTML, RSS-vood, YouTube'i URL-id, Vikipeedia lehed
+- **Andmevormingud**: CSV, JSON, XML, ZIP-failid (sisu töödeldakse rekursiivselt)
+- **Väljaandmise vormingud**: EPub, Jupyter märkmikud (.ipynb)
 - **E-post**: Outlooki sõnumid (.msg)
-- **Täpsemad**: Azure Document Intelligence integratsioon täiustatud PDF-töötluseks
+- **Täpsemad**: Azure Document Intelligence integreerimine parandatud PDF-töötluseks
 
-**Täpsemad võimalused**: MarkItDown toetab LLM-i juhitud pildikirjeldusi (kui on olemas OpenAI klient), Azure Document Intelligence'i täiustatud PDF-töötluseks, kõne transkriptsiooni helisisu jaoks ja pistikprogrammide süsteemi täiendavate failivormingute lisamiseks.
+**Täiustatud võimekused**: MarkItDown toetab LLM-põhiseid pildi kirjeldusi (kui kasutada OpenAI klienti), Azure Document Intelligence’i täiustatud PDF-töötlust, heli transkriptsiooni kõnesisu jaoks ning pluginasüsteemi täiendavate failiformaatide lisamiseks.
 
-**Reaalsed kasutusjuhtumid**: "Teisenda see PowerPointi esitlus Markdowniks meie dokumenteerimissaidi jaoks", "Ekstrakti tekst sellest PDF-ist koos korrektse pealkirja struktuuriga" või "Muuda see Exceli tabel loetavaks tabelivorminguks"
+**Reaalne kasutus**: „Teisenda see PowerPointi esitlus Markdown-iks meie dokumentatsioonisaidi jaoks“, „Eemalda tekst sellest PDF-ist koos korrektsel pealkirjastruktuuriga“ või „Muuda see Exceli tabel loetavaks tabeliks.“
 
-**Esiletõstetud näide**: Tsitaat [MarkItDown dokumentatsioonist](https://github.com/microsoft/markitdown#why-markdown):
+**Näide**: Tsiteerides [MarkItDown dokumentatsiooni](https://github.com/microsoft/markitdown#why-markdown):
 
-> Markdown on väga lähedane lihttekstile, minimaalse märgistuse või vorminguga, kuid siiski võimaldab esitada olulist dokumendi struktuuri. Peamised LLM-id, nagu OpenAI GPT-4o, "räägivad" Markdowni loomulikult ja sageli lisavad Markdowni oma vastustesse ilma eraldi juhisteta. See viitab sellele, et neid on treenitud tohutul hulgal Markdown-vormingus tekstiga ja nad mõistavad seda hästi. Täiendava eelisena on Markdowni konventsioonid ka väga tõhusad tokenite osas.
+> Markdown on väga sarnane tavatekstile, minimaalsete märgistuste või vormindusega, kuid võimaldab siiski olulist dokumendi struktuuri esindada. Levinud LLM-id, nagu OpenAI GPT-4o, „räägivad“ loomulikult Markdown-keelt ja kasutavad seda sageli ka oma vastustes ilma käsuta. See viitab sellele, et neid on treenitud väga suurel hulgal Markdown-formaadis tekstidel ja nad mõistavad seda hästi. Lisaks on Markdown-i konventsioonid väga tokenite tõhusad.
 
-MarkItDown on väga hea dokumendi struktuuri säilitamisel, mis on oluline AI töövoogude jaoks. Näiteks PowerPointi esitlust konverteerides säilitab see slaidide korralduse koos õigete pealkirjadega, ekstraktib tabelid Markdowni tabelitena, lisab piltidele alternatiivteksti ja töötleb isegi esineja märkmeid. Diagrammid teisendatakse loetavateks andmetabeliteks ja tulemuseks olev Markdown säilitab algse esitluse loogilise voolu. See teeb selle ideaalseks esitluse sisu AI-süsteemidesse sisestamiseks või olemasolevatest slaididest dokumentatsiooni loomiseks.
+MarkItDown säilitab dokumendi struktuuri väga hästi, mis on AI töövoogude jaoks oluline. Näiteks PowerPointi esitluse teisendamisel säilitab see slaidide korralduse õigete pealkirjadega, ekstraheerib tabelid Markdown-tabelitena, lisab piltidele alternatiivteksti ning töötleb ka kõnelejate märkmeid. Graafikud teisendatakse loetavateks andmetabeliteks ja tulemuseks olev Markdown hoiab originaalesitluse loogilist voogu. See teeb sellest ideaalse tööriista esitlussisu AI süsteemides kasutamiseks või olemasolevatest slaididest dokumentatsiooni loomiseks.
 
 ### 6. 🗃️ SQL Server MCP Server
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_SQL_Database-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Azure%20SQL%20Database&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fmcp%40latest%22%2C%22server%22%2C%22start%22%2C%22--namespace%22%2C%22sql%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_SQL_Database-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20SQL%20Database&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40azure%2Fmcp%40latest%22%2C%22server%22%2C%22start%22%2C%22--namespace%22%2C%22sql%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Azure/azure-mcp)
 
-**Mida see teeb**: Pakub vestluslikku juurdepääsu SQL Serveri andmebaasidele (kohapeal, Azure SQL või Fabric)
+**Mida see teeb**: Pakub vestlussõbralikku juurdepääsu SQL Serveri andmebaasidele (kohapeal, Azure SQL või Fabric)
 
-**Miks see on kasulik**: Sarnane PostgreSQL serverile, kuid Microsoft SQL ökosüsteemi jaoks. Ühenda lihtsa ühenduse stringiga ja alusta päringute tegemist loomulikus keeles – enam pole vaja konteksti vahetada!
+**Miks see on kasulik**: Sarnane PostgreSQL serverile, kuid Microsoft SQL ökosüsteemi jaoks. Ühenda lihtsa ühendusstringiga ja alusta päringute tegemist loomulikus keeles – konteksti vahetamisele on lõpp!
 
-**Reaalsed kasutusjuhtumid**: "Leia kõik tellimused, mida pole viimase 30 päeva jooksul täidetud" tõlgitakse sobivateks SQL-päringuteks ja tagastatakse vormindatud tulemused.
+**Reaalne kasutus**: „Leia kõik tellimused, mida viimase 30 päeva jooksul pole täidetud“ tõlgitakse sobivateks SQL-päringuteks ja tagastatakse vormindatud tulemused
 
-**Esiletõstetud näide**: Kui oled oma andmebaasiühenduse seadistanud, saad kohe alustada vestlust oma andmetega. Blogipostitus näitab seda lihtsa küsimusega: "millise andmebaasiga oled ühendatud?" MCP server vastab, kutsudes esile sobiva andmebaasi tööriista, ühendades sinu SQL Serveri instantsiga ja tagastades üksikasjad sinu praeguse andmebaasiühenduse kohta – kõik ilma ühegi SQL-reani. Server toetab ulatuslikke andmebaasioperatsioone alates skeemihaldusest kuni andmete manipuleerimiseni, kõik läbi loomuliku keele käskude. Täielikud seadistusjuhised ja konfiguratsiooninäited VS Code'i ja Claude Desktopiga leiad siit: [Introducing MSSQL MCP Server (Preview)](https://devblogs.microsoft.com/azure-sql/introducing-mssql-mcp-server/).
+**Näide**: Kui oled oma andmebaasi ühenduse seadistanud, võid kohe alustada andmetega vestlemist. Blogipostitus demonstreerib seda lihtsa küsimusega: „millise andmebaasiga oled ühendatud?“ MCP-server vastab, käivitades sobiva andmebaasitööriista, ühendades su SQL Serveri instantsiga ja tagastades info sinu praeguse andmebaasi ühenduse kohta – ilma et oleks vaja SQL-ridu kirjutada. Server toetab põhjalikku andmebaasi haldust alates skeemi juhtimisest kuni andmete manipuleerimiseni, kõik loomuliku keele käskudega. Täielike seadistusjuhiste ja konfiguratsiooninäidete jaoks VS Code’i ja Claude Desktopiga vt: [Introducing MSSQL MCP Server (Preview)](https://devblogs.microsoft.com/azure-sql/introducing-mssql-mcp-server/).
 
 ### 7. 🎭 Playwright MCP Server
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Playwright_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Playwright%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-playwright%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Playwright_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Playwright%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-playwright%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/playwright-mcp)
 
-**Mida see teeb**: Võimaldab AI agentidel veebilehtedega suhelda testimiseks ja automatiseerimiseks.
+**Mida see teeb**: Võimaldab AI agentidel suhelda veebilehtedega testimiseks ja automatiseerimiseks
 
-> **ℹ️ GitHub Copiloti jõustamine**
+> **ℹ️ Toidab GitHub Copiloti**
 > 
-> Playwright MCP Server toetab GitHub Copiloti Coding Agent'i, andes sellele veebibrauseri võimekuse! [Loe selle funktsiooni kohta rohkem](https://github.blog/changelog/2025-07-02-copilot-coding-agent-now-has-its-own-web-browser/).
+> Playwright MCP Server annab GitHub Copiloti kodeerimisagendile veebisirvimise võimekuse! [Loe selle funktsiooni kohta rohkem](https://github.blog/changelog/2025-07-02-copilot-coding-agent-now-has-its-own-web-browser/).
 
-**Miks see on kasulik**: Ideaalne automatiseeritud testimiseks, mida juhivad loomuliku keele kirjeldused. AI saab navigeerida veebisaitidel, täita vorme ja ekstraktida andmeid struktureeritud juurdepääsetavuse hetkepiltide kaudu – see on uskumatult võimas!
+**Miks see on kasulik**: Täiustatud automatiseeritud testimiseks, mida juhib loomuliku keele kirjeldused. AI saab navigeerida veebilehtedel, täita vorme ja ekstraheerida andmeid struktureeritud ligipääsetavuse hetkepiltide kaudu – see on erakordselt võimas!
 
-**Reaalsed kasutusjuhtumid**: "Testi sisselogimisvoogu ja kontrolli, kas armatuurlaud laaditakse õigesti" või "Loo test, mis otsib tooteid ja valideerib tulemuste lehe" – kõik ilma rakenduse lähtekoodi vajamata.
+**Reaalne kasutus**: „Testi sisselogimise funktsiooni ja kontrolli, kas armatuurlaud laeb korrektselt“ või „Loo test, mis otsib tooteid ja kontrollib tulemuste lehte“ – kõik ilma rakenduse lähtekoodi vajamata
 
-**Esiletõstetud näide**: Minu kolleeg Debbie O'Brien on viimasel ajal teinud hämmastavat tööd Playwright MCP Serveriga! Näiteks näitas ta hiljuti, kuidas saab luua täielikke Playwright teste isegi ilma rakenduse lähtekoodile juurdepääsuta. Tema stsenaariumis palus ta Copilotil luua testi filmide otsingu rakenduse jaoks: navigeeri saidile, otsi "Garfield" ja kontrolli, kas film ilmub tulemustes. MCP käivitas brauseri sessiooni, uuris lehe struktuuri DOM-i hetkepiltide abil, leidis õiged selektorid ja genereeris täielikult töötava TypeScripti testi, mis läbis esimese jooksu.
+**Näide**: Minu meeskonnakaaslane Debbie O’Brien on hiljuti Playwright MCP Serveriga suurepäraselt töötanud! Näiteks demonstreeris ta hiljuti, kuidas täiesti toimivad Playwrighti testid saab genereerida isegi rakenduse lähtekoodi kättesaamatuses. Tema stsenaariumis palus ta Copilotil luua test filmiotsingu rakendusele: mine saidile, otsi „Garfieldit“ ja kontrolli, et film ilmub tulemustes. MCP avas brauserisessiooni, uuris DOM-hetkepilte, leidis õiged selektorid ja genereeris täieliku toimiva TypeScripti testi, mis läbis testi esimese korraga.
 
-Mis teeb selle tõeliselt võimsaks, on see, et see ühendab loomuliku keele juhised ja täidetava testkoodi. Traditsioonilised lähenemised nõuavad kas käsitsi testide kirjutamist või juurdepääsu koodibaasile konteksti jaoks. Kuid Playwright MCP abil saab testida väliseid saite, kliendirakendusi või töötada musta kasti testimise stsenaariumides, kus koodile juurdepääs pole saadaval.
+Selle võimsuse teeb võimalikuks see, et sõnumeid loomulikus keeles saab otse täitmiskõlblikuks testikoodiks muuta. Traditsioonilised meetodid vajavad kas käsitsi testikirjutamist või koodi ligipääsu konteksti tõttu. Playwright MCP võimaldab aga testida välist saidi, klientrakendust või töötada musta kasti testimisskeemidel, kus lähtekoodi ligipääs puudub.
 
 ### 8. 💻 Dev Box MCP Server
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Dev_Box_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=Dev%20Box%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-devbox%40latest%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Dev_Box_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Dev%20Box%20MCP&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40microsoft%2Fmcp-devbox%40latest%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/microsoft/mcp)
 
-**Mida see teeb**: Halda Microsoft Dev Box keskkondi loomuliku keele abil.
+**Mida see teeb**: Halda Microsoft Dev Box keskkondi loomulikus keeles
 
-**Miks see on kasulik**: Lihtsustab arenduskeskkondade haldamist tohutult! Loo, konfigureeri ja halda arenduskeskkondi ilma konkreetseid käske meelde jätmata.
+**Miks see on kasulik**: Lihtsustab arenduskeskkondade haldust märgatavalt! Loo, konfigureeri ja halda keskkondi ilma konkreetsete käskude meeldejätmiseta.
 
-**Reaalsed kasutusjuhtumid**: "Seadista uus Dev Box koos uusima .NET SDK-ga ja konfigureeri see meie projekti jaoks", "Kontrolli kõigi minu arenduskeskkondade olekut" või "Loo standardiseeritud demo keskkond meie meeskonna esitluste jaoks".
+**Reaalne kasutus**: „Loo uus Dev Box uusima .NET SDK-ga ja seadista see meie projekti jaoks“, „Kontrolli kõigi minu arenduskeskkondade olekut“ või „Loo meeskonna esitluste jaoks standardiseeritud demo keskkond“
 
-**Esiletõstetud näide**: Olen suur Dev Boxi isikliku arenduse jaoks kasutamise fänn. Minu "ahhaa-moment" oli siin, kui James Montemagno selgitas, kui suurepärane Dev Box on konverentside demode jaoks, kuna sellel on ülikiire Etherneti ühendus, olenemata konverentsi / hotelli / lennuki wifi kvaliteedist, mida ma hetkel kasutan. Tegelikult tegin hiljuti konverentsi demo harjutusi, kui minu sülearvuti oli ühendatud telefoni hotspotiga, samal ajal kui sõitsin bussiga Brügge'ist Antwerpenisse! Kuid minu järgmine samm siin on süveneda rohkem meeskonna mitme arenduskeskkonna ja standardiseeritud demo keskkondade haldamisse. Ja teine suur kasutusjuhtum, mida olen klientidelt ja kolleegidelt kuulnud, on Dev Boxi kasutamine eelkonfigureeritud arenduskeskkondade jaoks. Mõlemal juhul võimaldab MCP Dev Boxide konfigureerimist ja haldamist loomuliku keele interaktsiooni kaudu, jäädes samal ajal sinu arenduskeskkonda.
+**Näide**: Olen suur fänn Dev Box kasutamisest isiklikuks arenduseks. Minu „ahatundmine“ oli siis, kui James Montemagno selgitas, kui suurepärane on Dev Box konverentsi demode jaoks, sest sellel on ülikiire Etherneti ühendus sõltumata konverentsi, hotelli või lennuki wifi-st. Tegelikult harjutasin hiljuti konverentsi demo tegemist, kui minu sülearvuti oli ühendatud telefoni hotspotiga bussis Bruggest Antwerpenisse sõites! Minu järgmine samm on hakata uurima, kuidas mitut arenduskeskkonda ja standardseid demo keskkondi meeskonnaga hallata. Üks suur kasutusjuhtum, mida olen kuulnud klientidelt ja kolleegidelt, on Dev Box kasutamine eelkonfigureeritud arenduskeskkondade jaoks. Mõlemas olukorras võimaldab MCP Dev Boxide seadistamist ja haldamist loomulikus keeles, olles samal ajal arenduskeskkonnas sees.
 
-### 9. 🤖 Azure AI Foundry MCP Server
-[![Installige VS Code'is](https://img.shields.io/badge/VS_Code-Install_Azure_AI_Foundry_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D) [![Installige VS Code Insiders'is](https://img.shields.io/badge/VS_Code_Insiders-Install_Azure_AI_Foundry_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/azure-ai-foundry/mcp-foundry)
+### 9. 🤖 Microsoft Foundry MCP Server
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Microsoft_Foundry_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Microsoft_Foundry_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/azure-ai-foundry/mcp-foundry)
 
-**Mida see teeb**: Azure AI Foundry MCP Server pakub arendajatele põhjalikku juurdepääsu Azure'i AI ökosüsteemile, sealhulgas mudelikataloogidele, juurutamise haldusele, teadmiste indekseerimisele Azure AI Search abil ja hindamisvahenditele. See eksperimentaalne server ühendab AI arenduse ja Azure'i võimsa AI infrastruktuuri, muutes AI rakenduste loomise, juurutamise ja hindamise lihtsamaks.
+**Mida see teeb**: Microsoft Foundry MCP Server pakub arendajatele ulatuslikku ligipääsu Azure'i tehisintellekti ökosüsteemile, sealhulgas mudelite kataloogid, juurutuse haldus, teadmiste indekseerimine Azure AI Searchi abil ja hindamistööriistad. See eksperimentaalne server seob tehisintellekti arenduse ja Azure'i võimsa AI infrastruktuuri, hõlbustades AI rakenduste loomist, juurutamist ja hindamist.
 
-**Miks see on kasulik**: See server muudab Azure'i AI teenustega töötamise viisi, tuues ettevõtte tasemel AI võimalused otse teie arenduskeskkonda. Selle asemel, et vahetada Azure'i portaali, dokumentatsiooni ja IDE vahel, saate avastada mudeleid, juurutada teenuseid, hallata teadmistebaase ja hinnata AI jõudlust loomuliku keele käskude abil. See on eriti kasulik arendajatele, kes loovad RAG (Retrieval-Augmented Generation) rakendusi, haldavad mitme mudeli juurutusi või rakendavad põhjalikke AI hindamispipeline'e.
+**Miks see on kasulik**: See server muudab oluliselt teie tööd Azure'i AI teenustega, tuues ettevõtte tasemel AI funktsioonid otse teie arendustöövoogu. Azure'i portaali, dokumentatsiooni ja IDE vahel vahetamise asemel saate avastada mudeleid, juurutada teenuseid, hallata teadmistebaase ja hinnata tehisintellekti jõudlust loomuliku keele käsutega. See on eriti võimas arendajatele, kes loovad RAG (Retrieval-Augmented Generation) rakendusi, haldavad mitme mudeliga juurutusi või rakendavad põhjalikke AI hindamisprotsesse.
 
 **Peamised arendaja võimalused**:
-- **🔍 Mudelite avastamine ja juurutamine**: Uurige Azure AI Foundry mudelikataloogi, hankige üksikasjalikku mudeliteavet koos koodinäidetega ja juurutage mudeleid Azure AI teenustesse
-- **📚 Teadmiste haldamine**: Looge ja hallake Azure AI Search indekseid, lisage dokumente, konfigureerige indekseerijaid ja ehitage keerukaid RAG süsteeme
-- **⚡ AI agentide integreerimine**: Ühendage Azure AI agentidega, pärige olemasolevaid agente ja hinnake agentide jõudlust tootmistsenaariumides
-- **📊 Hindamisraamistik**: Käivitage põhjalikke teksti ja agentide hindamisi, looge markdown-aruandeid ja rakendage kvaliteedikontrolli AI rakenduste jaoks
-- **🚀 Prototüüpimise tööriistad**: Hankige seadistusjuhised GitHub-põhise prototüüpimise jaoks ja juurdepääs Azure AI Foundry laboritele tipptasemel uurimismudelite jaoks
+- **🔍 Mudeli avastamine ja juurutamine**: Avastage Microsoft Foundry mudelikataloogi, hankige üksikasjalikku mudeliteavet koos koodinäidistega ja juurutage mudeleid Azure AI teenustesse
+- **📚 Teadmiste haldus**: Looge ja haldage Azure AI Search indekseid, lisage dokumente, konfigureerige indekseerijad ja ehitage keerukaid RAG süsteeme
+- **⚡ AI agendi integreerimine**: Ühendage Azure AI Agentidega, pärige olemasolevaid agente ja hinnake agendi jõudlust tootmiskeskkonnas
+- **📊 Hindamisraamistik**: Käivitage põhjalikke teksti- ja agendi hindamisi, genereerige markdown aruandeid ja rakendage kvaliteedi tagamist AI rakendustele
+- **🚀 Prototüüpimise tööriistad**: Saage seadistamisjuhised GitHub-põhiseks prototüüpimiseks ja pääsete ligi Microsoft Foundry Labsile, mis pakub tipptasemel uurimusmudeleid
 
-**Reaalne arendaja kasutus**: "Juuruta Phi-4 mudel Azure AI teenustesse minu rakenduse jaoks", "Loo uus otsinguindeks minu dokumentatsiooni RAG süsteemi jaoks", "Hinda minu agendi vastuseid kvaliteedimõõdikute alusel" või "Leia parim põhjendusmudel minu keerukate analüüsitööde jaoks"
+**Tegeliku elu arendaja kasutus**: "Juuruta Phi-4 mudel oma rakenduse jaoks Azure AI teenustesse", "Loo uus otsinguindeks oma dokumentatsiooni RAG süsteemi jaoks", "Hinda mu agendi vastuseid kvaliteedimõõdikute põhjal" või "Leia parim järeldusmudel minu keerukate analüüsitööde jaoks".
 
-**Täielik demo stsenaarium**: Siin on võimas AI arenduse töövoog:
+**Täielik demo stsenaarium**: Siin on võimas AI arendustöövoog:
 
-> "Ma ehitan klienditoe agenti. Aita mul leida kataloogist hea põhjendusmudel, juuruta see Azure AI teenustesse, loo teadmistebaas meie dokumentatsioonist, seadista hindamisraamistik vastuste kvaliteedi testimiseks ja aita mul prototüüpida integreerimist GitHubi tokeniga testimiseks."
+> "Ma arendan klienditoe agenti. Aita mul leida kataloogist hea järeldusmudel, juuruta see Azure AI teenustesse, loo meie dokumentatsioonist teadmistebaas, seadista hindamisraamistik vastuste kvaliteedi testimiseks ja aita seejärel prototüüpida integratsioon koos GitHubi tokeniga testimiseks."
 
-Azure AI Foundry MCP Server:
-- Pärib mudelikataloogi, et soovitada optimaalseid põhjendusmudeleid vastavalt teie nõuetele
-- Pakub juurutamiskäske ja kvooditeavet teie eelistatud Azure'i piirkonna jaoks
-- Seadistab Azure AI Search indekseid teie dokumentatsiooni jaoks sobiva skeemiga
-- Konfigureerib hindamispipeline'id kvaliteedimõõdikute ja turvakontrollidega
-- Genereerib prototüüpimiskoodi GitHubi autentimisega koheseks testimiseks
-- Pakub põhjalikke seadistusjuhendeid, mis on kohandatud teie konkreetsele tehnoloogiapaketile
+Microsoft Foundry MCP Server:
+- Pärib mudelikataloogi ja soovitab teie nõuete põhjal optimaalseid järeldusmudeleid
+- Pakub juurutamiskäske ja kvota teavet teie eelistatud Azure'i regiooni kohta
+- Seadistab Azure AI Search indeksid õige skeemiga teie dokumentatsiooni jaoks
+- Konfigureerib hindamisliinid koos kvaliteedimõõdikutega ja turvakontrollidega
+- Genereerib prototüüpimiseks koodi GitHubi autentimisega koheseks testimiseks
+- Pakub teie tehnoloogiapinu jaoks kohandatud põhjalikke seadistusjuhendeid
 
-**Esiletõstetud näide**: Arendajana olen ma vaeva näinud, et hoida end kursis erinevate LLM mudelitega, mis on saadaval. Ma tean mõnda peamist, kuid tunnen, et jään ilma mõnest tootlikkuse ja efektiivsuse eelisest. Tokenid ja kvoodid on stressirohked ja keerulised hallata – ma ei tea kunagi, kas valin õige mudeli õige ülesande jaoks või kulutan oma eelarvet ebaefektiivselt. Kuulsin sellest MCP serverist James Montemagno käest, kui otsisin meeskonnakaaslaste soovitusi MCP serveri jaoks, ja olen põnevil, et saan seda kasutada! Mudelite avastamise võimalused tunduvad eriti muljetavaldavad kellegi jaoks nagu mina, kes tahab uurida tavapärasest kaugemale ja leida mudeleid, mis on optimeeritud konkreetsete ülesannete jaoks. Hindamisraamistik peaks aitama mul kinnitada, et saan tegelikult paremaid tulemusi, mitte lihtsalt proovin midagi uut proovimise pärast.
+**Esiletõstetud näide**: Arendajana olen pidanud vaeva nägema, et jälgida erinevaid saadaolevaid LLM mudeleid. Tunnen mõnda peamist, kuid tunnen, et jään ilma tootlikkuse ja efektiivsuse võitudest. Tokenid ja kvotad on pingelised ja keerulised hallata – ma ei tea kunagi, kas valin õige mudeli õige ülesande jaoks või kulutan oma eelarvet ebaefektiivselt. Kuulsin sellest MCP Serverist James Montemagnolt, kui küsisin meeskonnakaaslaste seas nende soovitusi MCP Serveri kohta selle postituse jaoks, ja olen põnevil seda kasutusele võtta! Mudelite avastamise võimalused tunduvad eriti muljetavaldavad inimesele nagu mina, kes soovib tavapäraste kahtlusaluste kõrval uusi mudeleid avastada ja ülesanneteks optimeeritud mudeleid leida. Hindamisraamistik peaks aitama mul kinnitada, et saan tegelikult paremaid tulemusi, mitte lihtsalt proovin midagi uut omaette ilma põhjuseta.
 
 > **ℹ️ Eksperimentaalne staatus**
 > 
-> See MCP server on eksperimentaalne ja aktiivses arenduses. Funktsioonid ja API-d võivad muutuda. Ideaalne Azure AI võimaluste uurimiseks ja prototüüpide loomiseks, kuid kontrollige stabiilsusnõudeid tootmiskasutuseks.
-### 10. 🏢 Microsoft 365 Agents Toolkit MCP Server
+> See MCP server on eksperimentaalne ja aktiivses arendamises. Funktsioonid ja API-d võivad muutuda. Sobib suurepäraselt Azure AI võimaluste uurimiseks ja prototüüpide loomiseks, kuid tootmiskasutuseks tuleb stabiilsusnõudeid kinnitada.
+### 10. 🏢 Microsoft 365 Agentide Tööriistakasti MCP Server
 
-[![Installige VS Code'is](https://img.shields.io/badge/VS_Code-Install_M365_Agents_Toolkit-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=M365AgentsToolkit%20Server&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22@microsoft%2Fm365agentstoolkit-mcp%40latest%22%2C%22server%22%2C%22start%22%5D%7D) [![Installige VS Code Insiders'is](https://img.shields.io/badge/VS_Code_Insiders-Install_M365_Agents_Toolkit-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=M365AgentsToolkit%20Server&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22@microsoft%2Fm365agentstoolkit-mcp%40latest%22%2C%22server%22%2C%22start%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/OfficeDev/microsoft-365-agents-toolkit)
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_M365_Agents_Toolkit-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=M365AgentsToolkit%20Server&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22@microsoft%2Fm365agentstoolkit-mcp%40latest%22%2C%22server%22%2C%22start%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_M365_Agents_Toolkit-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=M365AgentsToolkit%20Server&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22@microsoft%2Fm365agentstoolkit-mcp%40latest%22%2C%22server%22%2C%22start%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/OfficeDev/microsoft-365-agents-toolkit)
 
-**Mida see teeb**: Pakub arendajatele olulisi tööriistu AI agentide ja rakenduste loomiseks, mis integreeruvad Microsoft 365 ja Microsoft 365 Copilotiga, sealhulgas skeemi valideerimine, näidiskoodi leidmine ja tõrkeotsingu abi.
+**Mida see teeb**: Pakub arendajatele olulisi tööriistu AI agentide ja rakenduste loomiseks, mis integreeruvad Microsoft 365 ja Microsoft 365 Copilotiga, sh skeemi valideerimine, näidiskoodi hankimine ning tõrkeotsingu abi.
 
-**Miks see on kasulik**: Microsoft 365 ja Copiloti jaoks arendamine hõlmab keerukaid manifestiskeeme ja spetsiifilisi arendusmustreid. See MCP server toob olulised arendusressursid otse teie kodeerimiskeskkonda, aidates valideerida skeeme, leida näidiskoodi ja lahendada levinud probleeme ilma dokumentatsiooni pidevalt viitamata.
+**Miks see on kasulik**: Microsoft 365 ja Copiloti jaoks arendamine hõlmab keerukaid manifestiskeeme ja spetsiifilisi arendusmustreid. See MCP server toob olulised arendusressursid otse teie kodeerimiskeskkonda, aidates skeeme valideerida, leida näidiskoodi ja lahendada tavapäraseid probleeme, ilma pideva dokumentatsiooni lugemiseta.
 
-**Reaalne kasutus**: "Valideeri minu deklaratiivne agendi manifest ja paranda skeemivead", "Näita mulle näidiskoodi Microsoft Graph API plugin'i rakendamiseks" või "Aita mul lahendada Teamsi rakenduse autentimisprobleeme"
+**Tegeliku elu kasutus**: "Valideeri mu deklaratiivse agendi manifest ja paranda skeemi vead", "Näita mulle Microsoft Graph API plugin'i rakendamise näidiskoodi" või "Aita mul tõrkeotsida Teamsi rakenduse autentimise probleeme".
 
-**Esiletõstetud näide**: Pöördusin oma sõbra John Milleri poole pärast vestlust temaga Buildi üritusel M365 agentide teemal, ja ta soovitas seda MCP-d. See võiks olla suurepärane algajatele M365 agentide arendajatele, kuna see pakub malle, näidiskoodi ja alustamiseks vajalikke tööriistu ilma dokumentatsioonis uppumata. Skeemi valideerimise funktsioonid tunduvad eriti kasulikud, et vältida manifestistruktuuri vigu, mis võivad põhjustada tundidepikkust silumist.
+**Esiletõstetud näide**: Võtsin ühendust sõbra John Milleriga pärast vestlust tema juures Buildil M365 Agentide teemal ja ta soovitas seda MCP-d. See võib olla suurepärane M365 Agentide uutele arendajatele, sest pakub malle, näidiskoodi ja raamistikke, millele tuginedes saab alustada, ilma, et jääks dokumendimerkidesse kinni. Skeemi valideerimise funktsioonid tunduvad eriti kasulikud, et vältida manifesti struktuuri vigu, mis võivad põhjustada tunde veaparandust.
 
-> **💡 Pro nõuanne**
+> **💡 Kasulikkuse näpunäide**
 > 
-> Kasutage seda serverit koos Microsoft Learn Docs MCP serveriga, et saada terviklikku M365 arendustuge – üks pakub ametlikku dokumentatsiooni, samas kui teine pakub praktilisi arendustööriistu ja tõrkeotsingu abi.
+> Kasutage seda serverit koos Microsoft Learn Docs MCP Serveriga terviklikuks M365 arenduse toeks – üks pakub ametlikku dokumentatsiooni, teine praktilisi arendustööriistu ja tõrkeotsingu abi.
 
 
-## Mis edasi? 🔮
+## Mis järgmiseks? 🔮
 
 ## 📋 Kokkuvõte
 
-Model Context Protocol (MCP) muudab arendajate suhtlemist AI assistentide ja väliste tööriistadega. Need 10 Microsofti MCP serverit näitavad standardiseeritud AI integratsiooni jõudu, võimaldades sujuvaid töövooge, mis hoiavad arendajaid nende töövoos, pakkudes samal ajal võimsaid väliseid võimalusi.
+Mudeli konteksti protokoll (MCP) muudab seda, kuidas arendajad suhtlevad tehisintellekti assistentide ja väliste tööriistadega. Need 10 Microsofti MCP serverit demonstreerivad standardiseeritud AI integratsiooni võimsust, võimaldades sujuvaid töövooge, mis hoiavad arendajad oma vooluolekus, pakkudes samal ajal võimsaid väliseid võimalusi.
 
-Alates Azure'i ökosüsteemi põhjalikust integreerimisest kuni spetsialiseeritud tööriistadeni nagu Playwright brauseri automatiseerimiseks ja MarkItDown dokumentide töötlemiseks, need serverid näitavad, kuidas MCP võib suurendada tootlikkust mitmekesistes arendusstsenaariumides. Standardiseeritud protokoll tagab, et need tööriistad töötavad koos sujuvalt, luues ühtse arenduskogemuse.
+Alates põhjalikust Azure'i ökosüsteemi integratsioonist kuni spetsiaalsete tööriistadeni nagu Playwright brauseriautomatiseerimiseks ja MarkItDown dokumentide töötlemiseks näitavad need serverid, kuidas MCP võib tõsta tootlikkust erinevates arendusstsenaariumides. Standardiseeritud protokoll tagab tööriistade sujuva koostöö, luues tervikliku arenduskogemuse.
 
-Kuna MCP ökosüsteem areneb edasi, on kogukonnaga kaasas käimine, uute serverite uurimine ja kohandatud lahenduste loomine võtmetähtsusega, et maksimeerida arenduse tootlikkust. MCP avatud standardi olemus tähendab, et saate kombineerida tööriistu erinevatelt tarnijatelt, et luua täiuslik töövoog vastavalt oma konkreetsetele vajadustele.
+Kuna MCP ökosüsteem areneb edasi, on oluline olla kogukonnaga aktiivselt seotud, uurida uusi servereid ja luua kohandatud lahendusi, et maksimeerida oma arendustootlikkust. MCP avatud standard tähendab, et saate kombineerida erinevate müüjate tööriistu, et luua täiuslik töövoog oma konkreetsetele vajadustele.
 
-## 🔗 Lisamaterjalid
+## 🔗 Täiendavad ressursid
 
-- [Ametlik Microsoft MCP repo](https://github.com/microsoft/mcp)
+- [Ametlik Microsoft MCP hoidla](https://github.com/microsoft/mcp)
 - [MCP kogukond ja dokumentatsioon](https://modelcontextprotocol.io/introduction)
 - [VS Code MCP dokumentatsioon](https://code.visualstudio.com/docs/copilot/copilot-mcp)
 - [Visual Studio MCP dokumentatsioon](https://learn.microsoft.com/visualstudio/ide/mcp-servers)
 - [Azure MCP dokumentatsioon](https://learn.microsoft.com/azure/developer/azure-mcp-server/)
-- [Let's Learn – MCP üritused](https://techcommunity.microsoft.com/blog/azuredevcommunityblog/lets-learn---mcp-events-a-beginners-guide-to-the-model-context-protocol/4429023)
+- [Let's Learn – MCP sündmused](https://techcommunity.microsoft.com/blog/azuredevcommunityblog/lets-learn---mcp-events-a-beginners-guide-to-the-model-context-protocol/4429023)
 - [Awesome GitHub Copilot kohandused](https://github.com/awesome-copilot)
 - [C# MCP SDK](https://developer.microsoft.com/blog/microsoft-partners-with-anthropic-to-create-official-c-sdk-for-model-context-protocol)
-- [MCP Dev Days Live 29./30. juuli või vaata nõudmisel](https://aka.ms/mcpdevdays)
+- [MCP Dev Days otseülekanne 29./30. juulil või järelvaatamine](https://aka.ms/mcpdevdays)
 
 ## 🎯 Harjutused
 
-1. **Paigaldamine ja konfigureerimine**: Seadistage üks MCP server oma VS Code keskkonnas ja testige põhifunktsionaalsust.
-2. **Töövoo integreerimine**: Kujundage arendustöövoog, mis kombineerib vähemalt kolm erinevat MCP serverit.
-3. **Kohandatud serveri planeerimine**: Määrake ülesanne oma igapäevases arendusrutiinis, mis võiks kasu saada kohandatud MCP serverist, ja looge selle spetsifikatsioon.
-4. **Jõudluse analüüs**: Võrrelge MCP serverite kasutamise efektiivsust traditsiooniliste lähenemisviisidega tavapäraste arendustööde jaoks.
-5. **Turvalisuse hindamine**: Hinnake MCP serverite kasutamise turvalisuse mõju oma arenduskeskkonnas ja tehke ettepanekuid parimate tavade kohta.
+1. **Paigalda ja seadista**: Sea üks MCP serveritest üles oma VS Code keskkonnas ja testi põhilist funktsionaalsust.
+2. **Töövoo integratsioon**: Kujunda arendustöövoog, mis ühendab vähemalt kolme erinevat MCP serverit.
+3. **Kohandatud serveri planeerimine**: Tuvasta oma igapäevases arendusrutiinis ülesanne, mis võiks kasu saada kohandatud MCP serverist ja loo selle jaoks spetsifikatsioon.
+4. **Tulemuste analüüs**: Võrdle MCP serverite kasutamise efektiivsust tavapäraste arendusmeetoditega.
+5. **Turvalisuse hindamine**: Hinda MCP serverite kasutamise turvariske oma arenduskeskkonnas ja tee ettepanekud parimateks praktikateks.
 
 
-Next:[Parimad tavad](../08-BestPractices/README.md)
+Next:[Best Practices](../08-BestPractices/README.md)
 
 ---
 
-**Lahtiütlus**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame tagada täpsust, palume arvestada, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Algne dokument selle algses keeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitame kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgenduste eest.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
