@@ -3484,12 +3484,15 @@ in the current project and returns matching ID + metadata.
 This tool supports two complementary search types:
 
 1) textual
-- Searches item metadata fields by matching patterns against id, name, displayName, and description.
-- For tables, also searches column names and column descriptions.
+- Searches items by name, server-side (fast, independent of project size).
+- Tokenized full-text name matching, case- and diacritics-insensitive. Pass the plain name; do NOT build
+  regex (rejected). It is NOT typo-corrected — misspellings may not match.
+- Prefers the current branch context; when nothing is found there, automatically widens the search to all
+  branches of the project — such hits carry `branch_id`/`branch_name` so you can tell where they live.
 
 2) config-based
 - Searches item configurations (JSON objects) by matching patterns against the configuration values ​​converted
-to a string, optionally narrowed by JSON path `scopes`.
+  to a string, optionally narrowed by JSON path `scopes`.
 - Returns also `match_scopes` with JSON paths and matched patterns per scope.
 
 THIS IS THE PRIMARY DISCOVERY TOOL. Always use it BEFORE any get_* tool when you need to find items
@@ -3512,26 +3515,33 @@ data-apps, flows, or transformations
 
 HOW IT WORKS:
 - Supports two types:
-  - search_type="textual": matches against id, name, displayName, and description, for tables also column names
-  and column descriptions
+  - search_type="textual": tokenized full-text name search, server-side. Names only — descriptions, column
+    names, IDs and configuration contents are NOT searched (use config-based search for configuration contents,
+    or get_tables for columns). Matching is case- and diacritics-insensitive but NOT typo-corrected.
   - search_type="config-based": matches inside configuration JSON objects, optionally narrowed by JSON path `scopes`
 - case-insensitive search
-- mode for pattern search: `literal` (default) or `regex`
+- mode for pattern search: applies to config-based only — `literal` (default) or `regex`. Textual search ignores
+  `mode` (always full-text) and rejects `regex`.
 - Multiple patterns work as OR condition - matches items containing ANY of the patterns
-- Each result includes the item's ID, name, creation date, and relevant metadata
+- Each result includes the item's ID, name, creation date, and relevant metadata; the response also carries
+  `total` and `by_type` counts and the `branch_scope` the hits come from
+- textual search prefers the current branch; on zero hits it automatically retries across all branches of the
+  project and marks the response with branch_scope="all-branches"
 - scopes (config-based) narrow matching to specific JSONPath areas within configurations; matching is performed
-against the stringified JSON node content in those areas.
+  against the stringified JSON node content in those areas.
 - config-based always returns all matched paths per item in `match_scopes` (including matched patterns)
 
 IMPORTANT:
 - Always use this tool when the user mentions a name but you don't have the exact ID
 - The search returns IDs that you can use with other tools (e.g., get_tables, get_configs, get_flows)
-- Results are ordered by update time. The most recently updated items are returned first.
-- Fill `item_types` to make the search more efficient when you know the item type; scanning buckets and tables can
-be expensive
+- Results are ordered by the `updated` field, most recent first. `updated` is the item's last update time
+  when available, or its creation time otherwise (textual/global-search hits expose only the creation time).
+- Textual search matches names only, with tokenized full-text matching (case/diacritics-insensitive; not
+  typo-corrected; no regex). It may not return every item the legacy enumeration did. To find items by
+  description or by table column, use get_tables; to find items by configuration content, use config-based search.
 - For exact ID lookups, use specific tools like get_tables, get_configs, get_flows instead
 - Use specific `scopes` only when you know the config structure (schema or real example); otherwise run config-based
-search without scopes.
+  search without scopes.
 - Use find_component_id and get_configs tools to find configurations related to a specific component
 - If results are too numerous or empty, ask the user to refine their query rather than enumerating all items.
 
@@ -3539,23 +3549,19 @@ USAGE EXAMPLES:
 1) textual search examples:
 - user_input: "Find all tables with 'customer' in the name"
     → patterns=["customer"], item_types=["table"]
-    → Returns all tables whose id, name, displayName, or description contains "customer"
-
-- user_input: "Find tables with 'email' column"
-    → patterns=["email"], item_types=["table"]
-    → Returns all tables that have a column named "email" or with "email" in column description
+    → Returns all tables whose name matches "customer"
 
 - user_input: "Search for the sales transformation"
     → patterns=["sales"], item_types=["transformation"]
-    → Returns transformations with "sales" in any searchable field
+    → Returns transformations with "sales" in the name
 
 - user_input: "Find items named 'daily report' or 'weekly summary'"
-    → patterns=["daily.*report", "weekly.*summary"], item_types=[], mode="regex"
+    → patterns=["daily report", "weekly summary"], item_types=[]
     → Returns all items matching any of these patterns
 
 - user_input: "Show me all configurations related to Google Analytics"
-    → patterns=["google.*analytics"], item_types=["configuration"], mode="regex"
-    → Returns configurations with matching patterns
+    → patterns=["google analytics"], item_types=["configuration"]
+    → Returns configurations with matching names
 
 2) config-based search examples:
 - user_input: "Find transformations/configs/components referencing table in.c-prod.customers"
@@ -3603,7 +3609,7 @@ scopes=["storage"]
   "additionalProperties": false,
   "properties": {
     "patterns": {
-      "description": "One or more search patterns to match against item ID, name, display name, description, or configuration JSON objects. Case-insensitive by default. Examples: [\"customer\"], [\"sales\", \"revenue\"], [\"my_bucket\"]. Do not use empty strings or empty lists.",
+      "description": "One or more search patterns. For textual search they match item names (server-side, tokenized full-text); for config-based search they match the configuration JSON content. Case-insensitive by default. Examples: [\"customer\"], [\"sales\", \"revenue\"], [\"my_bucket\"]. Do not use empty strings or empty lists.",
       "items": {
         "type": "string"
       },
@@ -3650,7 +3656,7 @@ scopes=["storage"]
     },
     "mode": {
       "default": "literal",
-      "description": "How to interpret patterns: \"regex\" for regular expressions or \"literal\" for exact text (default: \"literal\").",
+      "description": "How to interpret patterns. Applies to config-based search only: \"regex\" for regular expressions or \"literal\" for exact text (default: \"literal\"). Ignored by textual search, which is always a tokenized full-text name query (not typo-corrected) and rejects \"regex\".",
       "enum": [
         "regex",
         "literal"

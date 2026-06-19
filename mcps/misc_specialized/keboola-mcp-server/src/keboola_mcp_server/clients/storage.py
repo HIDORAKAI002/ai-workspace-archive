@@ -62,6 +62,22 @@ class GlobalSearchResponse(BaseModel):
         project_name: str = Field(description='The name of the project the item belongs to.', alias='projectName')
         created: datetime = Field(description='The date and time the item was created in ISO format.')
 
+        @property
+        def branch_id(self) -> str | None:
+            """The id of the branch the item belongs to, extracted from the full path."""
+            branch = self.full_path.get('branch')
+            if isinstance(branch, dict) and branch.get('id') is not None:
+                return str(branch['id'])
+            return None
+
+        @property
+        def branch_name(self) -> str | None:
+            """The name of the branch the item belongs to, extracted from the full path."""
+            branch = self.full_path.get('branch')
+            if isinstance(branch, dict) and branch.get('name'):
+                return str(branch['name'])
+            return None
+
     all: int = Field(description='Total number of found results.')
     items: list[Item] = Field(description='List of search results of the GlobalSearchType.')
     by_type: dict[str, int] = Field(
@@ -617,23 +633,23 @@ class AsyncStorageClient(KeboolaServiceClient):
         metadata_keys: list[str] | None = None,
     ) -> list[JsonDict]:
         """
-        Searches component configurations by metadata keys.
+        Searches component configurations by component and metadata keys.
+        All filters are applied server-side by the SAPI search endpoint.
 
         :param component_id: Optional component ID to filter results.
         :param metadata_keys: List of metadata keys to filter by — returns only configurations
             that have at least one of the specified metadata keys set.
         :return: List of matching configurations as dictionaries.
         """
-        if not metadata_keys:
+        if not (component_id or metadata_keys):
             return []
         endpoint = f'branch/{self._branch_id}/search/component-configurations'
         params: dict[str, Any] = {}
-        for i, key in enumerate(metadata_keys):
-            params[f'metadataKeys[{i}]'] = key
-        results = cast(list[JsonDict], await self.get(endpoint=endpoint, params=params))
         if component_id:
-            results = [r for r in results if r.get('componentId') == component_id]
-        return results
+            params['componentId'] = component_id
+        for i, key in enumerate(metadata_keys or []):
+            params[f'metadataKeys[{i}]'] = key
+        return cast(list[JsonDict], await self.get(endpoint=endpoint, params=params))
 
     async def configuration_metadata_get(self, component_id: str, configuration_id: str) -> list[JsonDict]:
         """
@@ -845,16 +861,19 @@ class AsyncStorageClient(KeboolaServiceClient):
         limit: int = 100,
         offset: int = 0,
         types: Sequence[ItemType] = tuple(),
+        branch_scope: Literal['current', 'all'] = 'current',
     ) -> GlobalSearchResponse:
         """
-        Searches for items in the storage. It allows you to search for entities by name across all projects within an
-        organization, even those you do not have direct access to. The search is conducted only through entity names to
-        ensure confidentiality. We restrict the search to the project and branch production type of the user.
+        Searches for items in the storage by name. The search is conducted only through entity names to ensure
+        confidentiality. The request is always scoped to the current project via `projectIds[]`.
 
         :param query: The query to search for.
         :param limit: The maximum number of items to return.
         :param offset: The offset to start from, pagination parameter.
         :param types: The types of items to search for.
+        :param branch_scope: 'current' restricts the search to the branch this client operates on
+            (production branches on the default branch, the specific dev branch otherwise);
+            'all' searches the whole project across all branches.
         """
         params: dict[str, Any] = {
             'query': query,
@@ -863,11 +882,12 @@ class AsyncStorageClient(KeboolaServiceClient):
             'limit': limit,
             'offset': offset,
         }
-        if self._branch_id == 'default':
-            params['branchTypes[]'] = 'production'
-        else:
-            params['branchTypes[]'] = 'development'
-            params['branchIds[]'] = self._branch_id
+        if branch_scope == 'current':
+            if self._branch_id == 'default':
+                params['branchTypes[]'] = 'production'
+            else:
+                params['branchTypes[]'] = 'development'
+                params['branchIds[]'] = self._branch_id
         params = {k: v for k, v in params.items() if v}
         raw_resp = await self.get(endpoint='global-search', params=params)
         return GlobalSearchResponse.model_validate(raw_resp)
