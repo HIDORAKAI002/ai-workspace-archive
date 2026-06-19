@@ -1,6 +1,8 @@
 export default {
   'ModelSwitch.title': 'Model',
   'active': 'Active',
+  'audioPlayer.pause': 'Pause audio',
+  'audioPlayer.play': 'Play audio',
   'agentBuilder.installPlugin.authRequired': 'Cloud MCP requires sign-in to continue',
   'agentBuilder.installPlugin.cancel': 'Cancel',
   'agentBuilder.installPlugin.clickApproveToConnect':
@@ -184,8 +186,14 @@ export default {
   'heteroAgent.cloudRepo.notSet': 'No repo selected',
   'heteroAgent.cloudRepo.noRepos': 'No repositories configured. Add them in agent settings.',
   'heteroAgent.cloudRepo.multiSelected': '{{count}} repos selected',
+  'heteroAgent.executionTarget.auto': 'Auto',
+  'heteroAgent.executionTarget.autoDesc':
+    'Use an online device automatically, picking one when several are available',
   'heteroAgent.executionTarget.infoTooltip':
     'Pick a device and the agent uses it as its runtime environment — reading and writing files and operating the computer. Cloud sandbox is provided by LobeHub Marketplace.',
+  'heteroAgent.executionTarget.gateway': 'Gateway',
+  'heteroAgent.executionTarget.gatewayDesc':
+    'Run through the device gateway so other clients can follow progress',
   'heteroAgent.executionTarget.loading': 'Loading devices…',
   'heteroAgent.executionTarget.local': 'This device',
   'heteroAgent.executionTarget.localDesc': 'Run as a local process on this desktop app',
@@ -332,18 +340,18 @@ export default {
   'createModal.placeholder': 'Describe what this Agent should do...',
   'createModal.skillSuggestion.actions.createAnyway': 'Create Agent Anyway',
   'createModal.skillSuggestion.actions.createAnywayHint': 'Skill not a fit?',
-  'createModal.skillSuggestion.actions.install': 'Add Skill',
-  'createModal.skillSuggestion.actions.installing': 'Adding…',
+  'createModal.skillSuggestion.actions.install': 'Install Skill',
+  'createModal.skillSuggestion.actions.installing': 'Installing…',
   'createModal.skillSuggestion.actions.openSkills': 'View in Skills',
-  'createModal.skillSuggestion.actions.tryInLobeAI': 'Use in LobeAI',
+  'createModal.skillSuggestion.actions.tryInLobeAI': 'Use in {{name}}',
   'createModal.skillSuggestion.description':
     'This looks like a reusable workflow. Install the Skill once, then use it across Agents.',
   'createModal.skillSuggestion.installed.description':
-    'You can use this Skill in LobeAI or add it to any Agent.',
-  'createModal.skillSuggestion.installed.ready': 'Ready in LobeAI',
-  'createModal.skillSuggestion.installed.title': 'Skill added',
+    'You can use this Skill in {{name}}, or enable it for any Agent.',
+  'createModal.skillSuggestion.installed.ready': 'Ready in {{name}}',
+  'createModal.skillSuggestion.installed.title': 'Skill installed',
   'createModal.skillSuggestion.installError':
-    "Skill wasn't added. Retry, or create an Agent anyway.",
+    "Skill wasn't installed. Retry, or create an Agent anyway.",
   'createModal.skillSuggestion.title': 'A Skill may fit better',
   'createModal.title': 'What should this Agent do?',
   'claudeCodeInstallGuide.actions.openDocs': 'Open Install Guide',
@@ -552,7 +560,7 @@ export default {
   'search.searchModel.desc':
     'The current model does not support function calls, so it needs to be paired with a model that does support function calls for online searching.',
   'search.searchModel.title': 'Search helper model',
-  'search.title': 'Web search',
+  'search.title': 'Web Search',
   'searchAgentPlaceholder': 'Search agents...',
   'searchAgents': 'Search agents...',
   'selectedAgents': 'Selected agents',

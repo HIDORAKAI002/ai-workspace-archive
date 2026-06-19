@@ -26,7 +26,7 @@ const editor = new MastraEditor({
   ...(hasComposio
     ? {
         toolProviders: {
-          composio: new ComposioToolProvider({ apiKey: getEnv('COMPOSIO_API_KEY')! }),
+          composio: new ComposioToolProvider({ apiKey: getEnv('COMPOSIO_API_KEY')!, allowedToolkits: ['gmail'] }),
         },
       }
     : {}),
@@ -53,7 +53,9 @@ const editor = new MastraEditor({
       agent: {
         workspace: { type: 'id', workspaceId: workspace.id },
         memory: {
-          observationalMemory: true,
+          observationalMemory: {
+            model: 'openai/gpt-5.4-mini',
+          },
           options: {
             lastMessages: 10,
           },
