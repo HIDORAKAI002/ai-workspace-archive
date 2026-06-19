@@ -72,7 +72,8 @@
     <title>Claude Code v2.1.178</title>
     <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.178"/>
     <updated>2026-06-15T21:35:48Z</updated>
-    <content type="html">&lt;p&gt;• Added Tool(param:value) syntax for permission rules to match a tool's input parameters (with * wildcard), e.g. Agent(model:opus) to block Opus subagents&lt;/p&gt;
+    <content type="html">&lt;p&gt;• Agent teams: removed the TeamCreate and TeamDelete tools. With CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 set, every session now has one implicit team — spawn teammates directly with the Agent tool's name parameter, no setup step needed. The team_name parameter on the Agent tool is still accepted but ignored.&lt;/p&gt;
+&lt;p&gt;• Added Tool(param:value) syntax for permission rules to match a tool's input parameters (with * wildcard), e.g. Agent(model:opus) to block Opus subagents&lt;/p&gt;
 &lt;p&gt;• Skills in nested .claude/skills directories now load when working on files there; on a name clash, the nested skill appears as &amp;lt;dir&amp;gt;:&amp;lt;name&amp;gt; so both stay available&lt;/p&gt;
 &lt;p&gt;• Nested .claude/ directories: the agent, workflow, and output-style closest to the working directory now wins when names collide; project-scope workflow saves now target the closest existing .claude/workflows/&lt;/p&gt;
 &lt;p&gt;• Improved auto mode: subagent spawns are now evaluated by the classifier before launch, closing a gap where a subagent could request a blocked action without review&lt;/p&gt;
