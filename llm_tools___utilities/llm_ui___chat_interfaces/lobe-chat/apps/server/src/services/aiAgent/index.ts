@@ -278,6 +278,22 @@ interface InternalExecAgentParams extends ExecAgentParams {
 }
 
 /**
+ * Result of {@link AiAgentService.resolveWorkspaceInit}: the cacheable scan
+ * (`workspace`) plus the per-run resolved bound directory (`boundCwd`).
+ *
+ * `boundCwd` is deliberately kept OUT of {@link WorkspaceInitResult}: that type
+ * is persisted into `devices.workingDirs[].workspace` and read by the web UI,
+ * and its scanned root is always the enclosing `WorkingDirEntry.path` — not a
+ * field on the scan. Surfacing it here lets the caller fill the system prompt's
+ * `{{workingDirectory}}` (and the tool cwd/scope downstream) without re-loading
+ * the device + topic the scan already read.
+ */
+interface ResolvedWorkspaceInit {
+  boundCwd?: string;
+  workspace: WorkspaceInitResult;
+}
+
+/**
  * AI Agent Service
  *
  * Encapsulates agent execution logic that can be triggered via:
@@ -370,18 +386,22 @@ export class AiAgentService {
     activeDeviceId: string | undefined;
     agencyConfig?: LobeAgentAgencyConfig;
     topicId: string;
-  }): Promise<WorkspaceInitResult> {
+  }): Promise<ResolvedWorkspaceInit> {
     const empty: WorkspaceInitResult = { instructions: [], skills: [] };
     const { activeDeviceId, agencyConfig, topicId } = params;
-    if (!activeDeviceId) return empty;
+    if (!activeDeviceId) return { workspace: empty };
 
     try {
       const deviceModel = new DeviceModel(this.db, this.userId);
       const device = await deviceModel.findByDeviceId(activeDeviceId);
-      if (!device) return empty;
+      if (!device) return { workspace: empty };
 
       // The bound project root we scan — resolved via the shared precedence
-      // helper so it cannot drift from hetero dispatch / topic backfill.
+      // helper so it cannot drift from hetero dispatch / topic backfill. Read
+      // from the persisted `device.defaultCwd` (not a live device query, which
+      // only reports the daemon's process.cwd = `/`); also returned to the
+      // caller so the system prompt's {{workingDirectory}} reflects the same
+      // bound directory the workspace scan used.
       const topic = await this.topicModel.findById(topicId);
       const boundCwd = resolveDeviceWorkingDirectory({
         deviceDefaultCwd: device.defaultCwd,
@@ -389,14 +409,14 @@ export class AiAgentService {
         topicWorkingDirectory: topic?.metadata?.workingDirectory,
         workingDirByDevice: agencyConfig?.workingDirByDevice,
       });
-      if (!boundCwd) return empty;
+      if (!boundCwd) return { workspace: empty };
 
       const workingDirs = device.workingDirs ?? [];
       const cached = workingDirs.find((dir) => dir.path === boundCwd);
 
       if (isWorkspaceCacheFresh(cached, Date.now()) && cached?.workspace) {
         log('execAgent: reusing cached workspace init for %s', boundCwd);
-        return cached.workspace;
+        return { boundCwd, workspace: cached.workspace };
       }
 
       const scanned = await deviceGateway.initWorkspace({
@@ -409,9 +429,9 @@ export class AiAgentService {
         // cache rather than dropping the project's skills + instructions.
         if (cached?.workspace) {
           log('execAgent: workspace init scan failed, using stale cache for %s', boundCwd);
-          return cached.workspace;
+          return { boundCwd, workspace: cached.workspace };
         }
-        return empty;
+        return { boundCwd, workspace: empty };
       }
 
       // Persist the fresh scan back onto `workingDirs` (update in place or prepend
@@ -420,10 +440,10 @@ export class AiAgentService {
       await deviceModel.update(activeDeviceId, { workingDirs: updated });
       log('execAgent: scanned and cached workspace init for %s', boundCwd);
 
-      return scanned;
+      return { boundCwd, workspace: scanned };
     } catch (error) {
       log('execAgent: resolveWorkspaceInit failed: %O', error);
-      return empty;
+      return { workspace: empty };
     }
   }
 
@@ -1450,9 +1470,10 @@ export class AiAgentService {
         const heteroPlan = resolveExecutionPlan({
           agencyConfig: agentConfig.agencyConfig,
           canUseDevice,
-          isDesktop: false,
           isHetero: true,
+          clientExecutionAvailable: false,
           requestedDeviceId,
+          trigger: requestTriggerMetadata?.trigger,
         });
 
         if (heteroPlan.kind !== 'sandbox') {
@@ -1913,9 +1934,9 @@ export class AiAgentService {
       // engine's enabledToolIds exclusion — resolving the plan here closes
       // that bypass at the source.
       //
-      // `isDesktop` uses `gatewayConfigured` as a proxy: a device-gateway
-      // deployment serves desktop-class users, so the unset-target default
-      // resolves to `local` there and `none` otherwise.
+      // `clientExecutionAvailable` is `gatewayConfigured` here: a server with a
+      // device gateway can tunnel a `local` target to the user's device, so the
+      // unset-target default resolves to `local` there and `none` otherwise.
       //
       // Chat mode is orthogonal to `executionTarget` (the UI toggle only writes
       // `enableAgentMode`), so a default/stored `local` target would otherwise
@@ -1927,9 +1948,10 @@ export class AiAgentService {
         agencyConfig: agentConfig.agencyConfig,
         canUseDevice,
         chatConfig: agentConfig.chatConfig ?? undefined,
-        isDesktop: gatewayConfigured,
+        clientExecutionAvailable: gatewayConfigured,
         onlineDeviceIds: onlineDevices.map((device) => device.deviceId),
         requestedDeviceId,
+        trigger: requestTriggerMetadata?.trigger,
       });
       // Device tools (local-system / remote-device proxy) only exist in a
       // device-capable session — `none` and `sandbox` sessions must never see
@@ -2233,7 +2255,11 @@ export class AiAgentService {
           platform: device?.platform ?? 'unknown',
           userDataPath: systemInfo.userDataPath,
           videosPath: systemInfo.videosPath,
-          workingDirectory: systemInfo.workingDirectory,
+          // `workingDirectory` is intentionally NOT taken from the live device
+          // query — it only reports the daemon's process.cwd() (= `/` for a
+          // Finder/Dock-launched app). The bound directory is resolved from the
+          // persisted device row in resolveWorkspaceInit and written onto
+          // deviceSystemInfo.workingDirectory at the call site below.
         };
       } catch (error) {
         log('execAgent: failed to fetch device system info: %O', error);
@@ -2655,7 +2681,17 @@ export class AiAgentService {
         topicId,
       });
 
-      const projectMetas = workspaceInit.skills.map((s) => ({
+      // Feed the bound directory (resolved from the persisted device row) into
+      // the local-system tool's {{workingDirectory}} placeholder — the channel
+      // the model uses to know where it is and reach for absolute paths — and,
+      // downstream, the runCommand cwd / search scope (RuntimeExecutors reads
+      // state.metadata.deviceSystemInfo.workingDirectory). Resume-safe via the
+      // existing deviceSystemInfo plumbing (computeDeviceContext).
+      if (workspaceInit.boundCwd) {
+        deviceSystemInfo.workingDirectory = workspaceInit.boundCwd;
+      }
+
+      const projectMetas = workspaceInit.workspace.skills.map((s) => ({
         description: s.description ?? '',
         identifier: `project:${s.name}`,
         location: s.path,
@@ -2675,8 +2711,8 @@ export class AiAgentService {
       // trailing blocks on the system role — after the agent's persona and any
       // page/task/additional instructions. `agentConfig` is read by
       // `createOperation` below, so appending here still reaches the LLM.
-      if (workspaceInit.instructions.length) {
-        const block = workspaceInit.instructions
+      if (workspaceInit.workspace.instructions.length) {
+        const block = workspaceInit.workspace.instructions
           .map(
             ({ content, source }) =>
               `<project_instructions source="${source}">\n${content}\n</project_instructions>`,
@@ -2687,8 +2723,8 @@ export class AiAgentService {
           : block;
         log(
           'execAgent: injected %d project instruction file(s): %s',
-          workspaceInit.instructions.length,
-          workspaceInit.instructions.map((i) => i.source).join(', '),
+          workspaceInit.workspace.instructions.length,
+          workspaceInit.workspace.instructions.map((i) => i.source).join(', '),
         );
       }
 

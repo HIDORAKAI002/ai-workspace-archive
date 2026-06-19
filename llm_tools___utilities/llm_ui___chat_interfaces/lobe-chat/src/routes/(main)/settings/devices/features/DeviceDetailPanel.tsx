@@ -10,7 +10,9 @@ import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import DirIcon from '@/features/ChatInput/ControlBar/DirIcon';
+import { openAddWorkingDirModal } from '@/features/WorkingDirectory';
 import { lambdaQuery } from '@/libs/trpc/client';
+import { deviceService } from '@/services/device';
 import { electronSystemService } from '@/services/electron/system';
 import { nextWorkingDirs } from '@/store/device';
 
@@ -59,7 +61,7 @@ interface DeviceDetailPanelProps {
 }
 
 const DeviceDetailPanel = memo<DeviceDetailPanelProps>(({ device, isCurrent, onClose }) => {
-  const { t } = useTranslation('setting');
+  const { t } = useTranslation(['setting', 'device']);
   const utils = lambdaQuery.useUtils();
 
   const [name, setName] = useState(device.friendlyName ?? '');
@@ -113,19 +115,37 @@ const DeviceDetailPanel = memo<DeviceDetailPanelProps>(({ device, isCurrent, onC
     }
   };
 
-  const handleAddRecent = async () => {
-    const result = await electronSystemService.selectFolder({
-      title: t('devices.detail.addDir'),
+  const addRecent = (entry: { path: string; repoType?: 'git' | 'github' }) => {
+    update.mutate({
+      deviceId: device.deviceId,
+      workingDirs: nextWorkingDirs(entry, device.workingDirs),
     });
-    if (result?.path) {
-      update.mutate({
-        deviceId: device.deviceId,
-        workingDirs: nextWorkingDirs(
-          { path: result.path, repoType: result.repoType },
-          device.workingDirs,
-        ),
+  };
+
+  const handleAddRecent = async () => {
+    // This machine: browse natively. A remote / non-current device isn't
+    // browsable from here, so fall back to manual absolute-path entry (the same
+    // modal the chat control bar uses), statting the path on the target device.
+    if (canBrowse) {
+      const result = await electronSystemService.selectFolder({
+        title: t('devices.detail.addDir'),
       });
+      if (result?.path) addRecent({ path: result.path, repoType: result.repoType });
+      return;
     }
+
+    openAddWorkingDirModal({
+      onSubmit: async (path) => {
+        const result = await deviceService.statPath(device.deviceId, path);
+        if (result) {
+          if (!result.exists) return t('device:workingDirectory.pathNotExist');
+          if (!result.isDirectory) return t('device:workingDirectory.pathNotDirectory');
+        }
+        addRecent({ path, repoType: result?.repoType });
+        return undefined;
+      },
+      placeholder: device.defaultCwd || undefined,
+    });
   };
 
   const handleRemoveRecent = (path: string) => {
@@ -220,7 +240,15 @@ const DeviceDetailPanel = memo<DeviceDetailPanelProps>(({ device, isCurrent, onC
 
       {/* ─── Recent directories ─── */}
       <Flexbox gap={6}>
-        <span className={styles.label}>{t('devices.detail.recentDirs')}</span>
+        <Flexbox horizontal align={'center'} distribution={'space-between'}>
+          <span className={styles.label}>{t('devices.detail.recentDirs')}</span>
+          <ActionIcon
+            icon={FolderPlusIcon}
+            size={'small'}
+            title={t('devices.detail.addDir')}
+            onClick={handleAddRecent}
+          />
+        </Flexbox>
         {device.workingDirs.length === 0 ? (
           <Text style={{ fontSize: 12 }} type={'secondary'}>
             {t('devices.detail.noRecent')}
@@ -244,16 +272,6 @@ const DeviceDetailPanel = memo<DeviceDetailPanelProps>(({ device, isCurrent, onC
             )}
             onChange={handleReorderRecent}
           />
-        )}
-        {canBrowse && (
-          <Button
-            block
-            icon={<Icon icon={FolderPlusIcon} />}
-            variant={'filled'}
-            onClick={handleAddRecent}
-          >
-            {t('devices.detail.addDir')}
-          </Button>
         )}
       </Flexbox>
     </Flexbox>

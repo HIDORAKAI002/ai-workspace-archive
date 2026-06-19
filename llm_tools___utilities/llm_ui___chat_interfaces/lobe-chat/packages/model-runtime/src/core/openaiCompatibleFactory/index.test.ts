@@ -24,6 +24,9 @@ const invalidErrorType = 'InvalidProviderAPIKey';
 
 // Mock the console.error to avoid polluting test output
 vi.spyOn(console, 'error').mockImplementation(() => {});
+vi.mock('@lobechat/business-model-bank/model-config', () => ({
+  loadModels: vi.fn().mockResolvedValue([]),
+}));
 
 let instance: LobeOpenAICompatibleRuntime;
 
@@ -53,6 +56,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks();
+  vi.useRealTimers();
 });
 
 describe('LobeOpenAICompatibleFactory', () => {
@@ -424,7 +428,7 @@ describe('LobeOpenAICompatibleFactory', () => {
           'data: "Hello"\n\n',
           'id: a\n',
           'event: usage\n',
-          'data: {"inputTextTokens":5,"outputTextTokens":5,"totalInputTokens":5,"totalOutputTokens":5,"totalTokens":10,"cost":0.000005}\n\n',
+          'data: {"inputTextTokens":5,"outputTextTokens":5,"totalInputTokens":5,"totalOutputTokens":5,"totalTokens":10}\n\n',
           'id: output_speed\n',
           'event: speed\n',
           expect.stringMatching(/^data: \{.*"tps":.*,"ttft":.*\}\n\n$/), // tps ttft should be calculated with elapsed time
@@ -1104,7 +1108,7 @@ describe('LobeOpenAICompatibleFactory', () => {
         }
       });
 
-      it('should detect QuotaLimitReached from error message text', async () => {
+      it('should detect RateLimitExceeded from error message text', async () => {
         const apiError = new OpenAI.APIError(
           429,
           {
@@ -1134,7 +1138,7 @@ describe('LobeOpenAICompatibleFactory', () => {
               },
               status: 429,
             },
-            errorType: AgentRuntimeErrorType.QuotaLimitReached,
+            errorType: AgentRuntimeErrorType.RateLimitExceeded,
             message: expect.any(String),
             provider,
           });
@@ -1450,6 +1454,47 @@ describe('LobeOpenAICompatibleFactory', () => {
             strictToolPairing: true,
           }),
         );
+      });
+
+      it('should keep OpenRouter OpenAI slugs on chat completions for provider payload normalization', async () => {
+        const LobeMockOpenRouter = createOpenAICompatibleRuntime({
+          baseURL: 'https://openrouter.ai/api/v1',
+          chatCompletion: {
+            handlePayload: (payload) => {
+              const { reasoning: _reasoning, thinking, ...rest } = payload;
+
+              return {
+                ...rest,
+                ...(thinking?.type === 'disabled' && { reasoning: { enabled: false } }),
+                stream: payload.stream ?? true,
+              } as any;
+            },
+          },
+          provider: ModelProvider.OpenRouter,
+        });
+
+        const inst = new LobeMockOpenRouter({ apiKey: 'test' });
+        const chatSpy = vi
+          .spyOn(inst['client'].chat.completions, 'create')
+          .mockResolvedValue(new ReadableStream() as any);
+        const responsesSpy = vi.spyOn(inst['client'].responses, 'create');
+
+        await inst.chat({
+          messages: [{ content: 'hi', role: 'user' }],
+          model: 'openai/gpt-5.2',
+          thinking: { type: 'disabled' },
+        });
+
+        expect(responsesSpy).not.toHaveBeenCalled();
+        expect(chatSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            model: 'openai/gpt-5.2',
+            reasoning: { enabled: false },
+            stream: true,
+          }),
+          expect.anything(),
+        );
+        expect(chatSpy.mock.calls[0][0]).not.toHaveProperty('thinking');
       });
 
       it(

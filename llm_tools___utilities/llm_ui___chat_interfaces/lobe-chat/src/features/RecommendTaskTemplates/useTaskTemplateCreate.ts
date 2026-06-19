@@ -11,7 +11,11 @@ import { useAgentStore } from '@/store/agent';
 import { builtinAgentSelectors } from '@/store/agent/selectors';
 import { useTaskStore } from '@/store/task';
 
-import { SkillConnectionPopupBlockedError, useSkillConnection } from './useSkillConnection';
+import {
+  ConnectorConnectionMarketAuthRequiredError,
+  ConnectorConnectionPopupBlockedError,
+  useConnectorConnection,
+} from './useConnectorConnection';
 
 interface UseTaskTemplateCreateOptions {
   description: string;
@@ -29,6 +33,16 @@ export interface UseTaskTemplateCreateResult {
   pendingCreate: boolean;
   primaryButtonLabel: string;
 }
+
+type ConnectErrorMessageKey = 'action.connect.error' | 'action.connect.popupBlocked';
+
+export const resolveTaskTemplateConnectErrorMessageKey = (
+  error: unknown,
+): ConnectErrorMessageKey | undefined => {
+  if (error instanceof ConnectorConnectionMarketAuthRequiredError) return undefined;
+  if (error instanceof ConnectorConnectionPopupBlockedError) return 'action.connect.popupBlocked';
+  return 'action.connect.error';
+};
 
 export const useTaskTemplateCreate = ({
   description,
@@ -48,7 +62,7 @@ export const useTaskTemplateCreate = ({
     () => template.connectors.filter((connector) => connector.required),
     [template.connectors],
   );
-  const requiredConnection = useSkillConnection(requiredConnectors);
+  const requiredConnection = useConnectorConnection(requiredConnectors);
 
   const handleCreate = useCallback(async () => {
     if (!canCreateTask) return;
@@ -97,17 +111,15 @@ export const useTaskTemplateCreate = ({
 
   const handleConnectError = useCallback(
     (error: unknown) => {
-      message.error(
-        error instanceof SkillConnectionPopupBlockedError
-          ? t('action.connect.popupBlocked')
-          : t('action.connect.error'),
-      );
+      const messageKey = resolveTaskTemplateConnectErrorMessageKey(error);
+      if (!messageKey) return;
+      message.error(t(messageKey));
     },
     [message, t],
   );
 
   // Drive the "click Add task -> chain OAuth popups -> create task" flow via a
-  // pending flag instead of awaiting connect(): useSkillConnection returns as
+  // pending flag instead of awaiting connect(): useConnectorConnection returns as
   // soon as the popup opens, with real status arriving through store polling.
   const [pendingCreate, setPendingCreate] = useState(false);
   const requiredConnectionRef = useRef(requiredConnection);
