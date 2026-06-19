@@ -53,6 +53,7 @@ export type TEndpointOption = Pick<
   | 'additionalModelRequestFields'
   // Anthropic-specific
   | 'promptCache'
+  | 'promptCacheTtl'
   | 'thinking'
   | 'thinkingBudget'
   | 'thinkingLevel'
@@ -127,6 +128,8 @@ export type TPayload = Partial<TMessage> &
      * before the LLM turn runs.
      */
     manualSkills?: string[];
+    /** Browser IANA timezone (e.g. `America/New_York`) used to resolve local-time prompt variables server-side. */
+    timezone?: string;
   };
 
 export type TEditedContent =
