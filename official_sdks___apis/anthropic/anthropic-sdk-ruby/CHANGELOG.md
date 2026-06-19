@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.49.0 (2026-06-18)
+
+Full Changelog: [v1.48.2...v1.49.0](https://github.com/anthropics/anthropic-sdk-ruby/compare/v1.48.2...v1.49.0)
+
+### Features
+
+* **api:** add support for new code_execution_20260120 tool ([9e4d388](https://github.com/anthropics/anthropic-sdk-ruby/commit/9e4d388649bb020e66ebac13ae4ad90450a3f293))
+* **client:** add HTTP middleware ([#30](https://github.com/anthropics/anthropic-sdk-ruby/issues/30)) ([e6c7245](https://github.com/anthropics/anthropic-sdk-ruby/commit/e6c7245b1539a08d7ec5ad103f0ee291c2bbcb52))
+
+
+### Bug Fixes
+
+* **bedrock:** decode AWS event-stream framing on streaming responses ([2f8d31c](https://github.com/anthropics/anthropic-sdk-ruby/commit/2f8d31cff8ea7119b6271e926c83733bf8297106))
+
 ## 1.48.2 (2026-06-15)
 
 Full Changelog: [v1.48.1...v1.48.2](https://github.com/anthropics/anthropic-sdk-ruby/compare/v1.48.1...v1.48.2)

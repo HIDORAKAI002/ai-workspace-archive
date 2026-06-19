@@ -98,9 +98,7 @@ function readLatestContextTokens(transcriptPath, options = {}) {
     return null;
   }
 
-  const tailBytes = Number.isInteger(options.tailBytes) && options.tailBytes > 0
-    ? options.tailBytes
-    : DEFAULT_TRANSCRIPT_TAIL_BYTES;
+  const tailBytes = Number.isInteger(options.tailBytes) && options.tailBytes > 0 ? options.tailBytes : DEFAULT_TRANSCRIPT_TAIL_BYTES;
 
   const tail = readFileTail(transcriptPath, tailBytes);
   if (!tail) {
@@ -124,9 +122,7 @@ function readLatestContextTokens(transcriptPath, options = {}) {
 
     const tokens = extractUsageTokens(record);
     if (tokens > 0) {
-      const model = record.message && typeof record.message.model === 'string'
-        ? record.message.model
-        : '';
+      const model = record.message && typeof record.message.model === 'string' ? record.message.model : '';
       return { tokens, model };
     }
   }
@@ -141,6 +137,15 @@ function readLatestContextTokens(transcriptPath, options = {}) {
  * suffix); otherwise the standard 200k window.
  */
 function resolveContextWindowTokens(tokens, model) {
+  // Explicit window override wins: 400k models (e.g. Opus 4.x) match neither the
+  // 200k default nor the 1M marker and would otherwise report ~double usage (#2290).
+  // Honor ECC's own knob and Claude Code's native CLAUDE_CODE_AUTO_COMPACT_WINDOW.
+  const env = (typeof process !== 'undefined' && process.env) || {};
+  const envWindow = Number.parseInt(env.ECC_CONTEXT_WINDOW_TOKENS || env.CLAUDE_CODE_AUTO_COMPACT_WINDOW || '', 10);
+  if (Number.isInteger(envWindow) && envWindow > 0) {
+    return envWindow;
+  }
+
   if (typeof model === 'string' && model.includes(LARGE_WINDOW_MODEL_MARKER)) {
     return LARGE_CONTEXT_WINDOW_TOKENS;
   }
@@ -169,9 +174,7 @@ function resolveContextThreshold(env, windowTokens) {
     }
   }
 
-  return windowTokens >= LARGE_CONTEXT_WINDOW_TOKENS
-    ? DEFAULT_CONTEXT_THRESHOLD_LARGE
-    : DEFAULT_CONTEXT_THRESHOLD_STANDARD;
+  return windowTokens >= LARGE_CONTEXT_WINDOW_TOKENS ? DEFAULT_CONTEXT_THRESHOLD_LARGE : DEFAULT_CONTEXT_THRESHOLD_STANDARD;
 }
 
 /**
@@ -181,9 +184,7 @@ function resolveContextThreshold(env, windowTokens) {
 function resolveContextInterval(env) {
   const raw = env && env.COMPACT_CONTEXT_INTERVAL;
   const parsed = Number.parseInt(raw, 10);
-  return Number.isInteger(parsed) && parsed > 0 && parsed <= MAX_TOKEN_SETTING
-    ? parsed
-    : DEFAULT_CONTEXT_INTERVAL_TOKENS;
+  return Number.isInteger(parsed) && parsed > 0 && parsed <= MAX_TOKEN_SETTING ? parsed : DEFAULT_CONTEXT_INTERVAL_TOKENS;
 }
 
 /**
@@ -205,9 +206,7 @@ function computeContextBucket(tokens, threshold, interval) {
  * Human-readable label for a context window size (e.g. "200k", "1M").
  */
 function formatWindowLabel(windowTokens) {
-  return windowTokens >= LARGE_CONTEXT_WINDOW_TOKENS
-    ? '1M'
-    : `${Math.round(windowTokens / 1000)}k`;
+  return windowTokens >= LARGE_CONTEXT_WINDOW_TOKENS ? '1M' : `${Math.round(windowTokens / 1000)}k`;
 }
 
 module.exports = {
