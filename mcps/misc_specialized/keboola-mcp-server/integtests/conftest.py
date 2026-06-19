@@ -12,6 +12,7 @@ from typing import Any, Generator
 
 import pytest
 import pytest_asyncio
+import requests
 from dotenv import load_dotenv
 from fastmcp import Client, Context, FastMCP
 from kbcstorage.client import Client as SyncStorageClient
@@ -166,7 +167,7 @@ def mcp_config(storage_api_token: str, storage_api_url: str) -> Config:
 
 
 @pytest.fixture(scope='session')
-def workspace_schema(storage_api_token: str, storage_api_url: str) -> Generator[str, Any, None]:
+def workspace_schema(_clean_project: None, storage_api_token: str, storage_api_url: str) -> Generator[str, Any, None]:
     """
     Create one read-only workspace for the whole test session and yield its schema.
 
@@ -307,39 +308,116 @@ def _sync_storage_client(storage_api_token: str, storage_api_url: str) -> SyncSt
     return client
 
 
+# Buckets the integration fixtures/tests create are all stage-prefixed "c-test*". A real
+# (non-dedicated) project's buckets won't match, so this doubles as a safety guard against a
+# misconfigured INTEGTEST_STORAGE_TOKENS pointing at a project whose data must not be wiped.
+_TEST_BUCKET_ID_PREFIXES = ('in.c-test', 'out.c-test', 'sys.c-test')
+
+# Workspaces not created by the tests that must never be deleted (matched on the creator token).
+_STATIC_WORKSPACE_CREATORS = frozenset({'Background Indexing Token'})
+
+
+def _guard_dedicated_test_project(storage_client: SyncStorageClient, project_id: str) -> None:
+    """Refuse to reset the project unless it looks like a dedicated integtest project.
+
+    The integ fixtures/tests only ever create stage-prefixed ``*.c-test*`` buckets, so a project
+    holding any other bucket is almost certainly not a dedicated test project. Failing here (instead
+    of deleting) protects against a misconfigured ``INTEGTEST_STORAGE_TOKENS`` that points at a
+    project whose data must not be wiped.
+    """
+    foreign = [b['id'] for b in storage_client.buckets.list() if not b['id'].startswith(_TEST_BUCKET_ID_PREFIXES)]
+    if foreign:
+        pytest.fail(
+            f'Refusing to reset project {project_id}: found non-test buckets {foreign}. '
+            f'INTEGTEST_STORAGE_TOKENS may be pointing at a non-dedicated project.'
+        )
+
+
+def _purge_project(storage_client: SyncStorageClient, storage_api_url: str, project_id: str) -> None:
+    """Reset a dedicated integtest project to a clean state.
+
+    Integration tests run against a shared pool of projects acquired per run. A prior session that
+    was cancelled (a new push/rebase cancels the in-flight CI run) or timed out before its teardown
+    leaves buckets, configurations, workspaces and branch metadata behind. The next run that locks
+    the project would then fail an empty-project assertion *before* its own teardown runs, so the
+    project stays dirty and wedges every subsequent run. Purging here lets the shared pool self-heal.
+    """
+    _guard_dedicated_test_project(storage_client, project_id)
+
+    buckets = storage_client.buckets.list()
+    workspaces = [
+        w
+        for w in storage_client.workspaces.list()
+        if w.get('creatorToken', {}).get('description') not in _STATIC_WORKSPACE_CREATORS
+    ]
+    components = storage_client.components.list(include=['configuration'])
+    branch_meta = [
+        m for m in storage_client.branches.metadata('default') if m.get('key') == WorkspaceManager.MCP_META_KEY
+    ]
+
+    if buckets or workspaces or any(c.get('configurations') for c in components) or branch_meta:
+        LOG.warning(
+            f'Project {project_id} was not clean: {len(buckets)} bucket(s), {len(workspaces)} workspace(s), '
+            f'{sum(len(c.get("configurations", [])) for c in components)} config(s), '
+            f'{len(branch_meta)} workspace-metadata entr(ies) — likely an interrupted prior run. Purging.'
+        )
+
+    for bucket in buckets:
+        storage_client.buckets.delete(bucket['id'], force=True)
+
+    for workspace in workspaces:
+        storage_client.workspaces.delete(workspace['id'])
+
+    for component in components:
+        component_id = component['id']
+        for config in component.get('configurations', []):
+            # Double delete because the first delete only moves the configuration to the trash.
+            storage_client.configurations.delete(component_id, config['id'])
+            storage_client.configurations.delete(component_id, config['id'])
+
+    # kbcstorage exposes no branch-metadata delete; the MCP WorkspaceManager stamps MCP_META_KEY on
+    # the default branch when it creates a workspace, so remove leftovers with a raw request.
+    for meta in branch_meta:
+        resp = requests.delete(
+            f'{storage_api_url.rstrip("/")}/v2/storage/branch/default/metadata/{meta["id"]}',
+            headers={'X-StorageApi-Token': storage_client.token},
+        )
+        resp.raise_for_status()
+
+
 @pytest.fixture(scope='session')
-def keboola_project(env_init: bool, storage_api_token: str, storage_api_url: str) -> Generator[ProjectDef, Any, None]:
+def _clean_project(storage_api_token: str, storage_api_url: str) -> None:
+    """Reset the acquired pool project before any other fixture creates resources, so an interrupted
+    prior run can't wedge the shared pool. Other session fixtures depend on this to order it first.
+
+    Side-effect only (no return value), so the leading underscore is kept per pytest-style PT005.
+    """
+    storage_client = _sync_storage_client(storage_api_token, storage_api_url)
+    project_id: str = storage_client.tokens.verify()['owner']['id']
+    _purge_project(storage_client, storage_api_url, project_id)
+
+
+@pytest.fixture(scope='session')
+def keboola_project(
+    _clean_project: None, env_init: bool, storage_api_token: str, storage_api_url: str
+) -> Generator[ProjectDef, Any, None]:
     """
     Sets up a Keboola project with items needed for integration tests,
     such as buckets, tables and configurations.
-    After the tests, the project is cleaned up.
+    The project is reset to a clean state first (see _clean_project) and cleaned up after the tests.
     """
     # Cannot use keboola_client fixture because it is function-scoped
     storage_client = _sync_storage_client(storage_api_token, storage_api_url)
     token_info = storage_client.tokens.verify()
     project_id: str = token_info['owner']['id']
 
-    current_buckets = storage_client.buckets.list()
-    if current_buckets:
-        pytest.fail(f'Expecting empty Keboola project {project_id}, but found {len(current_buckets)} buckets')
-
     buckets = _create_buckets(storage_client)
-
-    current_tables = storage_client.tables.list()
-    if current_tables:
-        pytest.fail(f'Expecting empty Keboola project {project_id}, but found {len(current_tables)} tables')
-
     tables = _create_tables(storage_client)
-
-    current_configs = storage_client.configurations.list(component_id='ex-generic-v2')
-    if current_configs:
-        pytest.fail(f'Expecting empty Keboola project {project_id}, but found {len(current_configs)} configs')
-
     configs = _create_configs(storage_client)
 
-    if 'global-search' in token_info['owner'].get('fetaures', []):
+    if 'global-search' in token_info['owner'].get('features', []):
         # Give the global search time to catch up on the changes done in the testing project.
-        # See https://help.keboola.com/management/global-search/#limitations for moe info.
+        # See https://help.keboola.com/management/global-search/#limitations for more info.
         time.sleep(10)
 
     LOG.info(f'Test setup for project {project_id} complete')
