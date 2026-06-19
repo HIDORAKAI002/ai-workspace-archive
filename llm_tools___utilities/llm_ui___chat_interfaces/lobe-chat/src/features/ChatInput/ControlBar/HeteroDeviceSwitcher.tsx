@@ -17,6 +17,7 @@ import {
   MonitorDownIcon,
   MonitorIcon,
   MonitorOffIcon,
+  SparklesIcon,
 } from 'lucide-react';
 import { memo, type ReactNode, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -311,9 +312,9 @@ const HeteroDeviceSwitcher = memo<HeteroDeviceSwitcherProps>(({ agentId }) => {
     staleTime: 30_000,
   });
 
-  // The current machine's own gateway deviceId (desktop only), used only to
-  // badge the matching device row. The dedicated local "This device" option
-  // remains visible in desktop mode.
+  // The current machine's own gateway deviceId (desktop only), used to badge the
+  // matching device row with a "This device" tag and show the local-process
+  // description instead of the generic online/offline status.
   useElectronStore((s) => s.useFetchGatewayDeviceInfo)();
   const gatewayDeviceInfo = useElectronStore((s) => s.gatewayDeviceInfo);
   const currentDeviceId = isDesktop ? gatewayDeviceInfo?.deviceId : undefined;
@@ -321,7 +322,10 @@ const HeteroDeviceSwitcher = memo<HeteroDeviceSwitcherProps>(({ agentId }) => {
   // Effective target: shared with server dispatch. In particular, a hetero
   // desktop "local" selection that carries this desktop's boundDeviceId becomes
   // a device target when the same agent is opened from web.
-  const executionTarget = resolveExecutionTarget(agencyConfig, { isDesktop, isHetero });
+  const executionTarget = resolveExecutionTarget(agencyConfig, {
+    isHetero,
+    clientExecutionAvailable: isDesktop,
+  });
 
   const handleSelect = useCallback(
     async (target: DeviceExecutionTarget, deviceId?: string) => {
@@ -358,7 +362,9 @@ const HeteroDeviceSwitcher = memo<HeteroDeviceSwitcherProps>(({ agentId }) => {
 
   const boundDevice =
     executionTarget === 'device' ? devices?.find((d) => d.deviceId === boundDeviceId) : undefined;
-  const hasNoDevices = !devices || devices.length === 0;
+  const currentDevice = devices?.find((d) => d.deviceId === currentDeviceId);
+  const deviceRows = devices ?? [];
+  const hasNoDevices = deviceRows.length === 0;
   // On web with no device, the prominent download card below replaces the small
   // header link — avoid showing the same CTA twice.
   const showWebDownloadCard = !isDesktop && hasNoDevices && !isLoading;
@@ -369,8 +375,15 @@ const HeteroDeviceSwitcher = memo<HeteroDeviceSwitcherProps>(({ agentId }) => {
   if (executionTarget === 'none') {
     chipIcon = <Icon icon={MonitorOffIcon} size={14} />;
     chipLabel = t('heteroAgent.executionTarget.none');
+  } else if (executionTarget === 'auto') {
+    chipIcon = <Icon icon={SparklesIcon} size={14} />;
+    chipLabel = t('heteroAgent.executionTarget.auto');
   } else if (executionTarget === 'local') {
-    chipIcon = <Icon icon={LaptopIcon} size={14} />;
+    chipIcon = currentDevice ? (
+      getDeviceIcon(currentDevice.platform)
+    ) : (
+      <Icon icon={LaptopIcon} size={14} />
+    );
     chipLabel = t('heteroAgent.executionTarget.local');
   } else if (executionTarget === 'device') {
     chipIcon = getDeviceIcon(boundDevice?.platform);
@@ -385,6 +398,17 @@ const HeteroDeviceSwitcher = memo<HeteroDeviceSwitcherProps>(({ agentId }) => {
     return executionTarget === target;
   };
 
+  const renderDeviceStatus = (d: NonNullable<typeof devices>[number]) => (
+    <>
+      <span className={d.online ? styles.dotOnline : styles.dotOffline} />
+      <span>
+        {d.online
+          ? t('heteroAgent.executionTarget.online')
+          : t('heteroAgent.executionTarget.offline')}
+      </span>
+    </>
+  );
+
   const renderDeviceRow = (d: NonNullable<typeof devices>[number]) => (
     <OptionRow
       active={isActive('device', d.deviceId)}
@@ -392,16 +416,11 @@ const HeteroDeviceSwitcher = memo<HeteroDeviceSwitcherProps>(({ agentId }) => {
       icon={getDeviceIcon(d.platform)}
       key={d.deviceId}
       label={d.friendlyName || d.hostname || d.deviceId}
-      tag={d.deviceId === currentDeviceId ? t('heteroAgent.executionTarget.local') : undefined}
+      tag={d.deviceId === currentDeviceId ? t('heteroAgent.executionTarget.gateway') : undefined}
       desc={
-        <>
-          <span className={d.online ? styles.dotOnline : styles.dotOffline} />
-          <span>
-            {d.online
-              ? t('heteroAgent.executionTarget.online')
-              : t('heteroAgent.executionTarget.offline')}
-          </span>
-        </>
+        d.deviceId === currentDeviceId
+          ? t('heteroAgent.executionTarget.gatewayDesc')
+          : renderDeviceStatus(d)
       }
       onClick={() => void handleSelect('device', d.deviceId)}
     />
@@ -439,12 +458,32 @@ const HeteroDeviceSwitcher = memo<HeteroDeviceSwitcherProps>(({ agentId }) => {
           onClick={() => void handleSelect('none')}
         />
       )}
+      {isHetero ? null : (
+        <OptionRow
+          active={isActive('auto')}
+          desc={t('heteroAgent.executionTarget.autoDesc')}
+          icon={<Icon icon={SparklesIcon} size={14} />}
+          label={t('heteroAgent.executionTarget.auto')}
+          onClick={() => void handleSelect('auto')}
+        />
+      )}
       {isDesktop ? (
         <OptionRow
           active={isActive('local')}
           desc={t('heteroAgent.executionTarget.localDesc')}
-          icon={<Icon icon={LaptopIcon} size={14} />}
-          label={t('heteroAgent.executionTarget.local')}
+          tag={t('heteroAgent.executionTarget.local')}
+          icon={
+            currentDevice ? (
+              getDeviceIcon(currentDevice.platform)
+            ) : (
+              <Icon icon={LaptopIcon} size={14} />
+            )
+          }
+          label={
+            currentDevice?.friendlyName ||
+            currentDevice?.hostname ||
+            t('heteroAgent.executionTarget.local')
+          }
           onClick={() => void handleSelect('local')}
         />
       ) : null}
@@ -455,7 +494,7 @@ const HeteroDeviceSwitcher = memo<HeteroDeviceSwitcherProps>(({ agentId }) => {
         label={t('heteroAgent.executionTarget.sandbox')}
         onClick={() => void handleSelect('sandbox')}
       />
-      {(devices ?? []).map((d) => renderDeviceRow(d))}
+      {deviceRows.map((d) => renderDeviceRow(d))}
       {hasNoDevices && isLoading ? (
         <div className={styles.empty}>{t('heteroAgent.executionTarget.loading')}</div>
       ) : null}
