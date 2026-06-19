@@ -1,6 +1,8 @@
-use super::whoami::whoami_and_authorize;
+use super::mock_currents::mock_currents_records;
+use super::{caller_token, whoami::whoami_and_authorize};
 use crate::{
     auth::AuthzAction, config::FoundationConfig, errors::ServerError, server::FoundationApiServer,
+    wiki::WikiClientError,
 };
 use axum::{extract::State, http::HeaderMap, Json};
 use chroma_error::{ChromaError, ErrorCodes};
@@ -8,7 +10,8 @@ use chroma_sysdb::SysDb;
 use chroma_types::{
     Collection, CollectionUuid, CreateDatabaseError, DatabaseName, EmbeddingFunctionConfiguration,
     EmbeddingFunctionNewConfiguration, IndexConfig, KnnIndex, Metadata, MetadataValue, Schema,
-    SparseIndexAlgorithm, SparseVectorIndexConfig, CHROMA_GROUP_CHUNK_SIBLINGS_KEY, DOCUMENT_KEY,
+    SparseIndexAlgorithm, SparseVectorIndexConfig, UpdateMetadata, CHROMA_GROUP_CHUNK_SIBLINGS_KEY,
+    DOCUMENT_KEY,
 };
 use frontend_core::{
     attached_function_ops,
@@ -29,6 +32,7 @@ pub struct FoundationInitResponse {
     pub database_id: String,
     pub wiki_collection_id: String,
     pub wiki_revisions_collection_id: String,
+    pub currents_collection_id: String,
     pub file_uploads_collection_id: String,
     pub agent_sessions_collection_id: String,
     /// Source collection name -> id for each ensured source collection
@@ -86,6 +90,29 @@ pub async fn foundation_init(
         CollectionEmbeddingFunctions::default(),
     )
     .await?;
+    // Currents records carry their payload in metadata and are only ever
+    // fetched by metadata (never vector-searched), so the collection has no
+    // embedding function. Pin the dense index to a single dimension to match
+    // the constant placeholder vector the seed writes (see
+    // `ensure_currents_collection`).
+    let currents = ensure_collection(
+        &mut sysdb,
+        tenant.clone(),
+        db_name.clone(),
+        &foundation_cfg.currents_collection,
+        None,
+        Some(1),
+        CollectionEmbeddingFunctions::default(),
+    )
+    .await?;
+
+    maybe_seed_currents_collection(
+        &server,
+        &headers,
+        &tenant,
+        &foundation_cfg.currents_collection,
+    )
+    .await?;
 
     // Attach revision_history to the wiki collection so every mutation is
     // archived into wiki_revisions automatically on compaction.
@@ -114,13 +141,17 @@ pub async fn foundation_init(
     )
     .await?;
 
+    // The agent_sessions collection is wired into the sources->wiki function
+    // below, so it carries the chunk-sibling grouping flag like the other
+    // source collections (keeps a job's chunk records in one partition and
+    // surfaces the trailing end-of-job marker after every sibling chunk).
     let agent_sessions_name = format!("{}_{}", foundation_cfg.agent_sessions_collection, user_id);
     let agent_sessions = ensure_collection(
         &mut sysdb,
         tenant.clone(),
         db_name.clone(),
         &agent_sessions_name,
-        None,
+        Some(group_chunk_siblings_metadata()),
         Some(1024),
         CollectionEmbeddingFunctions {
             dense: Some(qwen_embedding_function()),
@@ -172,6 +203,18 @@ pub async fn foundation_init(
             )
             .await?;
         }
+
+        // Wire the per-user coding-agent traces collection into the same
+        // sources->wiki function so synced agent sessions flow into the
+        // shared wiki output alongside slack/notion.
+        attached_function_ops::add_attached_function_input(
+            &mut sysdb,
+            foundation_attached_function_name(),
+            *base_source_id,
+            agent_sessions.collection_id,
+            db_name.clone(),
+        )
+        .await?;
     }
 
     Ok(Json(FoundationInitResponse {
@@ -181,6 +224,7 @@ pub async fn foundation_init(
         database_id: database_id.to_string(),
         wiki_collection_id: wiki.collection_id.to_string(),
         wiki_revisions_collection_id: wiki_revisions.collection_id.to_string(),
+        currents_collection_id: currents.collection_id.to_string(),
         file_uploads_collection_id: file_uploads.collection_id.to_string(),
         agent_sessions_collection_id: agent_sessions.collection_id.to_string(),
         source_collection_ids,
@@ -291,12 +335,97 @@ async fn ensure_revision_history_function(
 enum FoundationInitError {
     #[error("Configured foundation database name is shorter than the 3-character minimum")]
     DatabaseNameTooShort,
+    #[error("foundation wiki record I/O is unavailable")]
+    WikiRouteUnavailable,
+    #[error("missing or invalid x-chroma-token header")]
+    MissingToken,
+    #[error(transparent)]
+    WikiClient(#[from] WikiClientError),
+    #[error("chroma record I/O failed: {0}")]
+    RecordIo(chroma::client::ChromaHttpClientError),
 }
 
 impl ChromaError for FoundationInitError {
     fn code(&self) -> ErrorCodes {
-        ErrorCodes::InvalidArgument
+        match self {
+            FoundationInitError::DatabaseNameTooShort | FoundationInitError::MissingToken => {
+                ErrorCodes::InvalidArgument
+            }
+            FoundationInitError::WikiRouteUnavailable
+            | FoundationInitError::WikiClient(_)
+            | FoundationInitError::RecordIo(_) => ErrorCodes::Internal,
+        }
     }
+}
+
+async fn ensure_currents_collection(
+    server: &FoundationApiServer,
+    headers: &HeaderMap,
+    tenant: &str,
+    collection_name: &str,
+) -> Result<(), ServerError> {
+    let wiki_client = server
+        .wiki_client
+        .as_ref()
+        .ok_or(FoundationInitError::WikiRouteUnavailable)?;
+    let token = caller_token(headers).ok_or(FoundationInitError::MissingToken)?;
+    let collection = wiki_client
+        .get_collection_by_name(tenant, token, collection_name)
+        .await?;
+    let records = mock_currents_records();
+
+    let ids: Vec<String> = records.iter().map(|record| record.id.clone()).collect();
+    // The currents collection has no embedding function, so passing `None`
+    // embeddings would make the client try (and fail) to embed the document
+    // text with `MissingEmbeddingFunction`. These records are never
+    // vector-searched, so write a constant 1-dim placeholder vector instead.
+    let embeddings: Vec<Vec<f32>> = vec![vec![1.0]; ids.len()];
+    let documents: Vec<Option<String>> = records
+        .iter()
+        .map(|record| Some(record.document.clone()))
+        .collect();
+    let metadatas: Vec<Option<UpdateMetadata>> = records
+        .into_iter()
+        .map(|record| {
+            Some(
+                record
+                    .metadata
+                    .into_iter()
+                    .map(|(key, value)| (key, value.into()))
+                    .collect(),
+            )
+        })
+        .collect();
+    collection
+        .upsert(ids, embeddings, Some(documents), None, Some(metadatas))
+        .await
+        .map_err(FoundationInitError::RecordIo)?;
+    Ok(())
+}
+
+async fn maybe_seed_currents_collection(
+    server: &FoundationApiServer,
+    headers: &HeaderMap,
+    tenant: &str,
+    collection_name: &str,
+) -> Result<(), ServerError> {
+    if server.wiki_client.is_none() {
+        tracing::info!(
+            collection_name = collection_name,
+            "skipping currents mock seed because foundation wiki record I/O is unavailable"
+        );
+        return Ok(());
+    }
+
+    if caller_token(headers).is_none() {
+        tracing::info!(
+            collection_name = collection_name,
+            "skipping currents mock seed because request carried no x-chroma-token"
+        );
+        return Ok(());
+    }
+
+    ensure_currents_collection(server, headers, tenant, collection_name).await
 }
 
 async fn ensure_database(
