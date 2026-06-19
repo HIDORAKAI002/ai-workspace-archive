@@ -537,8 +537,9 @@
           <tr><th>Command</th><th>What it does</th></tr>
         </thead>
         <tbody>
+          <tr><td><code>make</code> / <code>make help</code></td><td>List every target with a one-line description (this is the default goal).</td></tr>
           <tr><td><code>make setup</code></td><td>Install all dependencies (npm + uv). Auto-skipped when lock files haven't changed.</td></tr>
-          <tr><td><code>make dev</code></td><td>Start backend + Electron with full hot reload.</td></tr>
+          <tr><td><code>make dev</code></td><td>Start backend + Electron with full hot reload (local module source).</td></tr>
           <tr><td><code>make dev-web</code></td><td>Start backend + Vite web dev server.</td></tr>
           <tr><td><code>make build</code></td><td>Production build of the frontend (renderer + main process).</td></tr>
           <tr><td><code>make dist-mac</code></td><td>Build and package a macOS <code>.dmg</code>.</td></tr>
@@ -547,8 +548,25 @@
           <tr><td><code>make docker-up</code></td><td>Start the Docker stack (<code>docker compose up</code>).</td></tr>
           <tr><td><code>make docker-down</code></td><td>Stop and remove containers.</td></tr>
           <tr><td><code>make flush</code></td><td>Wipe all local installs + app data for a fresh start (see below).</td></tr>
+          <tr><td colspan="2"><em>Module-branch workflow (see below)</em></td></tr>
+          <tr><td><code>make refs</code></td><td>Print which module branches the next run will use.</td></tr>
+          <tr><td><code>make use</code></td><td>Check out your <code>dev.env</code> refs across all submodules.</td></tr>
+          <tr><td><code>make server</code></td><td>(Re)install the Electron desktop server from your branch.</td></tr>
+          <tr><td><code>make app</code></td><td>Run the desktop app against your branch (auto-update off).</td></tr>
+          <tr><td><code>make baseline</code></td><td>Reset every submodule to the superproject's pinned commits.</td></tr>
+          <tr><td><code>make pin</code></td><td>Record the submodules' current commits as the superproject pins (one deliberate commit).</td></tr>
         </tbody>
       </table>
+
+      <h2>Working on module branches</h2>
+      <p>This repo is a superproject that <strong>pins</strong> each module (<code>frontend</code>, <code>backend/core_api</code>, <code>backend/core_agent</code>, <code>backend/data-vault</code>) to a commit. To let a team work on module branches without polluting <code>git status</code> or fighting over pins:</p>
+      <p><strong>1. Pick your branches</strong> in a gitignored <code>dev.env</code> (copy the template):</p>
+      <pre><code>cp dev.env.example dev.env      # then set REF=feat/my-thing (or per-module API_REF=…)</code></pre>
+      <p><strong>2. <code>make</code> follows it</strong> &mdash; one knob, both run paths. <code>make use</code> checks out those refs; <code>make dev</code>/<code>dev-web</code> run the local module source on them, and <code>make server</code> + <code>make app</code> run the desktop app against the matching branch server.</p>
+      <p>Every submodule is configured with <code>ignore = all</code>, so your branch work never shows up as a superproject change &mdash; the parent <code>git status</code> stays clean. Pins move <strong>only</strong> via <code>make pin</code> (a deliberate, reviewable commit), and <code>make baseline</code> snaps submodules back to the pinned commits when you're not developing a module.</p>
+      <div class="note">
+        <strong>One DB, one ref.</strong> <code>make dev</code> (local source) and the desktop app (<code>make app</code>) share <code>~/.cowork/cowork.db</code>, so keep both on the same branch &mdash; a migration applied by one must exist in the other, or the app fails to start with <code>Can't locate revision …</code>. <code>make flush</code> resets if they drift.
+      </div>
 
       <h2>Reset to a clean slate</h2>
       <p><code>make flush</code> returns the machine to a pre-install state. It uninstalls the local runtime &mdash; the <code>cowork-server</code> uv tool <em>and</em> the <code>backend/core_api/.venv</code> + <code>backend/core_agent/.venv</code> &mdash; and deletes all app state: <code>~/.anton</code> (provider keys / <code>.env</code>) and <code>~/.cowork</code> (database, hermes, projects).</p>
