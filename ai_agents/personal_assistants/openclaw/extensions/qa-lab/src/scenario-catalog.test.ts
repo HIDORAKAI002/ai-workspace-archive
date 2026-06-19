@@ -25,6 +25,8 @@ function listScenarioMarkdownPaths(dir = "qa/scenarios"): string[] {
 }
 
 describe("qa scenario catalog", () => {
+  const dottedCoverageIdPattern = /^[a-z0-9][a-z0-9-]*(?:\.[a-z0-9][a-z0-9-]*)+$/;
+
   it("keeps repo-backed scenarios YAML-only", () => {
     expect(listScenarioMarkdownPaths()).toStrictEqual([]);
   });
@@ -74,6 +76,17 @@ describe("qa scenario catalog", () => {
         .filter((scenario) => !(scenario.coverage?.primary.length ?? 0))
         .map((scenario) => scenario.id),
     ).toStrictEqual([]);
+    expect(
+      pack.scenarios.every(
+        (scenario) =>
+          (scenario.coverage?.primary ?? []).every((coverageId) =>
+            dottedCoverageIdPattern.test(coverageId),
+          ) &&
+          (scenario.coverage?.secondary ?? []).every((coverageId) =>
+            dottedCoverageIdPattern.test(coverageId),
+          ),
+      ),
+    ).toBe(true);
     expect(readQaScenarioById("memory-recall").coverage?.primary).toContain("memory.recall");
   });
 
@@ -136,8 +149,10 @@ describe("qa scenario catalog", () => {
 
   it("loads scenario-declared gateway runtime options from YAML", () => {
     const scenario = readQaScenarioById("control-ui-qa-channel-image-roundtrip");
+    const otelStdout = readQaScenarioById("otel-stdout-log-smoke");
 
     expect(scenario.gatewayRuntime?.forwardHostHome).toBe(true);
+    expect(otelStdout.gatewayRuntime?.preserveDebugArtifacts).toBe(true);
   });
 
   it("loads native test execution scenarios from YAML", () => {
