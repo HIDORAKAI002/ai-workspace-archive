@@ -10,12 +10,7 @@ import { indexGetRecent5 } from "../db/rpc";
 import { parseMarkdown } from "../lib/html-to-markdown";
 import { htmlTransform } from "../scraper/scrapeURL/lib/removeUnwantedElements";
 import type { ScrapeOptions } from "../controllers/v2/types";
-import { generateHighlightsBatch } from "./highlight-model";
-import { selectHighlightIndices } from "./highlight-budget";
-import {
-  parseMarkdownToSentences,
-  assembleAnswer,
-} from "../lib/highlight-spans";
+import { generateHighlights } from "./highlight-model";
 import { config } from "../config";
 
 // How far back into the index we're willing to reach for highlight source text.
@@ -127,12 +122,10 @@ async function getIndexedMarkdownForURL(
 /**
  * For each search result: look up the URL in our index (last 30 days), and if
  * present, replace the provider snippet with query-relevant highlights generated
- * from the indexed content. Index lookups run in parallel; each hit's markdown
- * is split into the same candidate spans the highlight model was trained on
- * (parseMarkdownToSentences), every hit is scored in a single batch call, and
- * the selected span indices are reassembled with assembleAnswer (structure-aware
- * — rebuilds tables/code). Mutates `response` in place. Results not in the index
- * keep their original snippet.
+ * from the indexed content. Index lookups run in parallel; each hit's full
+ * markdown is sent to the highlight model service, which returns the selected
+ * highlights reassembled into a single markdown document. Mutates `response` in
+ * place. Results not in the index keep their original snippet.
  */
 export async function applySearchHighlights(
   response: SearchV2Response,
@@ -168,39 +161,31 @@ export async function applySearchHighlights(
     return { attempted, indexHits: 0, replaced: 0 };
   }
 
-  // Look up indexed markdown for every URL in parallel, then split each hit into
-  // candidate spans. Keep the parsed sentences around so we can reassemble the
-  // model's selected indices back into structured markdown.
+  // Look up indexed markdown for every URL in parallel, keeping the markdown for
+  // each hit so we can send it to the highlight model service.
   const markdowns = await Promise.all(
     targets.map(t => getIndexedMarkdownForURL(t.url, logger)),
   );
   const hits: {
     apply: (h: string) => void;
-    sentences: ReturnType<typeof parseMarkdownToSentences>;
+    markdown: string;
   }[] = [];
   markdowns.forEach((markdown, i) => {
     if (!markdown) return;
-    const sentences = parseMarkdownToSentences(markdown);
-    if (sentences.length === 0) return;
-    hits.push({ apply: targets[i].apply, sentences });
+    hits.push({ apply: targets[i].apply, markdown });
   });
   const indexHits = hits.length;
 
-  // Score every hit in one batch call (candidate spans as explicit `lines`),
-  // then for each page: budget the scored spans (neighbor + group policy) and
-  // reassemble the chosen indices into a snippet.
+  // Send each hit's full markdown to the highlight model service in parallel and
+  // use the reassembled markdown it returns as the snippet.
   let replaced = 0;
   if (indexHits > 0) {
-    const perPageSpans = await generateHighlightsBatch(
-      hits.map(h => ({ query, lines: h.sentences.map(s => s.text) })),
-      { logger },
+    const results = await Promise.all(
+      hits.map(h => generateHighlights(query, h.markdown, { logger })),
     );
-    perPageSpans.forEach((spans, i) => {
-      if (!spans || spans.length === 0) return;
-      const lineLengths = hits[i].sentences.map(s => s.text.length);
-      const indices = selectHighlightIndices(lineLengths, spans);
-      if (indices.length === 0) return;
-      const snippet = assembleAnswer(hits[i].sentences, indices);
+    results.forEach((result, i) => {
+      if (!result) return;
+      const snippet = result.markdown;
       if (snippet.trim() !== "") {
         hits[i].apply(snippet);
         replaced++;
