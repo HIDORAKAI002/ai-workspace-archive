@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.733.1](https://github.com/windmill-labs/windmill/compare/v1.733.0...v1.733.1) (2026-06-19)
+
+
+### Bug Fixes
+
+* **backend:** validate ansible vault_id entries before config generation ([#9681](https://github.com/windmill-labs/windmill/issues/9681)) ([c1f31c0](https://github.com/windmill-labs/windmill/commit/c1f31c0e4777bf0cfed0dd7f03249e9a61cd8cb9))
+* **frontend:** group live pipeline runs in the activity panel ([#9684](https://github.com/windmill-labs/windmill/issues/9684)) ([1be4df9](https://github.com/windmill-labs/windmill/commit/1be4df9acb935250d4cc12e83cf67e366d870d5a))
+* require super admin for object storage config test endpoint ([#9683](https://github.com/windmill-labs/windmill/issues/9683)) ([fb44fe7](https://github.com/windmill-labs/windmill/commit/fb44fe7af2b8ebe8ef64ffb0e5acce8580bf4200))
+* validate websocket trigger urls and gate trigger test route ([#9682](https://github.com/windmill-labs/windmill/issues/9682)) ([c39ee07](https://github.com/windmill-labs/windmill/commit/c39ee07c0bcd2249dd19ffa5cd988125eefc6c9f))
+
+## [1.733.0](https://github.com/windmill-labs/windmill/compare/v1.732.0...v1.733.0) (2026-06-19)
+
+
+### Features
+
+* **ai-chat:** cap read_app_file + search_app grep tool to bound context in large raw apps ([#9653](https://github.com/windmill-labs/windmill/issues/9653)) ([4296a6a](https://github.com/windmill-labs/windmill/commit/4296a6ae1f73564de4df54fe1df0a03c1df05dfd))
+* **python, windows:** enable S3 to cache wheels ([#5199](https://github.com/windmill-labs/windmill/issues/5199)) ([ab3bc97](https://github.com/windmill-labs/windmill/commit/ab3bc97cd92b6480327029bcf018280442462af7))
+
+
+### Bug Fixes
+
+* allow users to always discard their own drafts without write permission ([#9659](https://github.com/windmill-labs/windmill/issues/9659)) ([6833a55](https://github.com/windmill-labs/windmill/commit/6833a554aeddb3e63173d3c3140b490c0bf2822b))
+* **backend:** clean up unique_ext_jwt_token on workspace deletion ([#9676](https://github.com/windmill-labs/windmill/issues/9676)) ([9add719](https://github.com/windmill-labs/windmill/commit/9add719d936cdcfb2c4062629e3e1f792694dafe))
+* **backend:** strip NUL bytes from draft values on write ([#9673](https://github.com/windmill-labs/windmill/issues/9673)) ([924f9c7](https://github.com/windmill-labs/windmill/commit/924f9c7e8d8863d9af40aee246a519b4be0e1ea2))
+* **python:** split PIP_TRUSTED_HOST by whitespace to support multiple hosts ([#9675](https://github.com/windmill-labs/windmill/issues/9675)) ([cafb473](https://github.com/windmill-labs/windmill/commit/cafb473494d9cff3a8b2aeaf9f18b015f966e7b3))
+
 ## [1.732.0](https://github.com/windmill-labs/windmill/compare/v1.731.0...v1.732.0) (2026-06-19)
 
 
