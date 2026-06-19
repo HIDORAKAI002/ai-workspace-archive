@@ -49,7 +49,7 @@
     },
     {
       "command": "cost-report",
-      "description": "Generate a local Claude Code cost report from a cost-tracker SQLite database.",
+      "description": "Generate a local Claude Code cost report from the ECC cost-tracker metrics log.",
       "type": "testing",
       "primaryAgents": [],
       "allAgents": [],

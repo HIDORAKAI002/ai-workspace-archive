@@ -25,11 +25,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const {
-  extractCommandSubstitutions,
-  extractSubshellGroups,
-  extractBraceGroups
-} = require('../lib/shell-substitution');
+const { extractCommandSubstitutions, extractSubshellGroups, extractBraceGroups } = require('../lib/shell-substitution');
 
 // Session state — scoped per session to avoid cross-session races.
 const STATE_DIR = process.env.GATEGUARD_STATE_DIR || path.join(process.env.HOME || process.env.USERPROFILE || '/tmp', '.gateguard');
@@ -88,10 +84,10 @@ function getExtraDestructiveRegex() {
     extraDestructiveCacheRegex = null;
     if (!extraDestructiveWarnLogged) {
       try {
-        process.stderr.write(
-          `[gateguard-fact-force] ignoring invalid GATEGUARD_BASH_EXTRA_DESTRUCTIVE regex: ${err.message}\n`
-        );
-      } catch (_) { /* stderr write failure is non-fatal */ }
+        process.stderr.write(`[gateguard-fact-force] ignoring invalid GATEGUARD_BASH_EXTRA_DESTRUCTIVE regex: ${err.message}\n`);
+      } catch (_) {
+        /* stderr write failure is non-fatal */
+      }
       extraDestructiveWarnLogged = true;
     }
   }
@@ -112,9 +108,7 @@ function isRoutineBashGateDisabled() {
  * @returns {string}
  */
 function stripQuotedStrings(input) {
-  return input
-    .replace(/'(?:[^'\\]|\\.)*'/g, "''")
-    .replace(/"(?:[^"\\]|\\.)*"/g, '""');
+  return input.replace(/'(?:[^'\\]|\\.)*'/g, "''").replace(/"(?:[^"\\]|\\.)*"/g, '""');
 }
 
 /**
@@ -167,7 +161,6 @@ function splitCommandSegments(input) {
 function tokenize(segment) {
   return segment.split(/\s+/).filter(Boolean);
 }
-
 
 /**
  * Tokenize a short allowlisted shell command while preserving quoted
@@ -227,6 +220,106 @@ function tokenizeAllowlistedShellWords(input) {
   return tokens;
 }
 
+const SHELL_SEGMENT_SEPARATORS = new Set([';', '|', '&', '\n', '\r']);
+
+/**
+ * Quote-aware split of a command line into segments, with quotes removed from
+ * the resulting words. Splits only on UNQUOTED `;`, `|`, `&`, and newlines so:
+ *  - a quoted command word (`'rm'`, `"rm"`) normalizes to `rm` (the shell
+ *    treats quotes around a command name as transparent), and
+ *  - a newline behaves as a command separator (the shell runs each line),
+ * neither of which `stripQuotedStrings` + naive splitting handles — both were
+ * destructive-classifier bypasses (GHSA-4v57-ph3x-gf55).
+ *
+ * @param {string} input
+ * @returns {string[][]} array of dequoted token arrays, one per segment
+ */
+function quoteAwareSegments(input) {
+  const segments = [];
+  let words = [];
+  let current = '';
+  let hasWord = false;
+  let quote = null;
+  let escaped = false;
+
+  const flushWord = () => {
+    if (hasWord) words.push(current);
+    current = '';
+    hasWord = false;
+  };
+  const flushSegment = () => {
+    flushWord();
+    if (words.length) segments.push(words);
+    words = [];
+  };
+
+  for (const ch of String(input || '')) {
+    if (escaped) {
+      current += ch;
+      hasWord = true;
+      escaped = false;
+      continue;
+    }
+    if (ch === '\\') {
+      escaped = true;
+      hasWord = true;
+      continue;
+    }
+    if (quote) {
+      if (ch === quote) quote = null;
+      else current += ch;
+      hasWord = true;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      hasWord = true; // entering a quote starts a word, even if its content is empty
+      continue;
+    }
+    if (SHELL_SEGMENT_SEPARATORS.has(ch)) {
+      flushSegment();
+      continue;
+    }
+    if (/\s/.test(ch)) {
+      flushWord();
+      continue;
+    }
+    current += ch;
+    hasWord = true;
+  }
+  flushSegment();
+  return segments;
+}
+
+const SHELL_WRAPPERS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh']);
+
+/**
+ * Quote-aware destructive check: catches quoted command words, newline
+ * separators, quoted `find -exec`, and `sh -c`/`bash -c` wrappers that evade
+ * the quote-stripping path (GHSA-4v57-ph3x-gf55).
+ *
+ * @param {string} raw
+ * @param {number} [depth] recursion guard for shell -c wrappers
+ * @returns {boolean}
+ */
+function isDestructiveQuoteAware(raw, depth = 0) {
+  if (depth > 4) return false;
+  for (const tokens of quoteAwareSegments(raw)) {
+    if (tokens.length === 0) continue;
+    if (isDestructiveRm(tokens)) return true;
+    if (isDestructiveGit(tokens)) return true;
+    if (isDestructiveFindExec(tokens.join(' '))) return true;
+    const base = commandBasename(tokens[0]);
+    if (SHELL_WRAPPERS.has(base)) {
+      const ci = tokens.indexOf('-c');
+      if (ci !== -1 && tokens[ci + 1] && isDestructiveQuoteAware(tokens[ci + 1], depth + 1)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Strip a leading path and trailing `.exe` from a command token so
  * `/usr/bin/git`, `git.exe`, and `GIT` all normalize to `git`.
@@ -236,7 +329,10 @@ function tokenizeAllowlistedShellWords(input) {
  */
 function commandBasename(token) {
   if (!token) return '';
-  return token.replace(/^.*[\\/]/, '').replace(/\.exe$/i, '').toLowerCase();
+  return token
+    .replace(/^.*[\\/]/, '')
+    .replace(/\.exe$/i, '')
+    .toLowerCase();
 }
 
 /**
@@ -545,10 +641,23 @@ function isDestructiveBash(command) {
   const extra = getExtraDestructiveRegex();
   if (extra && extra.test(flattened)) return true;
 
-  // Check for destructive find -exec patterns
-  if (isDestructiveFindExec(raw)) return true;
+  // Check for destructive find -exec patterns on raw body segments (before quote-stripping)
+  // so that quoted exec binaries and compound-command prefixes are both handled correctly.
+  // splitCommandSegments strips quotes before splitting, so passing its output to
+  // isDestructiveFindExec would turn `find . -exec 'rm' {} \;` into `find . -exec  {} \;`
+  // — the binary name disappears and the check returns false.  Using raw body text avoids
+  // that false-negative while also catching `&&`, `;`, `|`, and `||` compound forms.
+  const bodies = collectExecutableBodies(raw);
+  for (const body of bodies) {
+    for (const rawSeg of body
+      .split(/[;|&]+/)
+      .map(s => s.trim())
+      .filter(Boolean)) {
+      if (isDestructiveFindExec(rawSeg)) return true;
+    }
+  }
 
-  const segments = collectExecutableBodies(raw).flatMap(splitCommandSegments);
+  const segments = bodies.flatMap(splitCommandSegments);
   for (const segment of segments) {
     const stripped = stripQuotedStrings(segment);
     if (DESTRUCTIVE_SQL_DD.test(stripped)) return true;
@@ -557,13 +666,20 @@ function isDestructiveBash(command) {
     if (isDestructiveRm(tokens)) return true;
     if (isDestructiveGit(tokens)) return true;
   }
+
+  // Quote-aware pass: closes the quoted-command-word, newline-separator,
+  // quoted-find-exec, and sh/bash -c bypasses (GHSA-4v57-ph3x-gf55).
+  if (isDestructiveQuoteAware(raw)) return true;
+
   return false;
 }
 
 // --- State management (per-session, atomic writes, bounded) ---
 
 function normalizeEnvValue(value) {
-  return String(value || '').trim().toLowerCase();
+  return String(value || '')
+    .trim()
+    .toLowerCase();
 }
 
 function isGateGuardDisabled() {
@@ -876,8 +992,7 @@ function isReadOnlyGitIntrospection(command) {
     if (args.length === 2) {
       const [first, second] = args;
       // ref + flag
-      if (!first.startsWith('--') && /^[a-zA-Z0-9._:/ -]+$/.test(first) &&
-          (second === '--stat' || second === '--name-only')) {
+      if (!first.startsWith('--') && /^[a-zA-Z0-9._:/ -]+$/.test(first) && (second === '--stat' || second === '--name-only')) {
         return true;
       }
       return false;
@@ -922,7 +1037,7 @@ function writeGateMsg(filePath) {
     `Before creating ${safe}, present these facts:`,
     '',
     '1. Name the file(s) and line(s) that will call this new file',
-    '2. Confirm no existing file serves the same purpose (use Glob)',
+    '2. Confirm no existing file serves the same purpose (search the tree — Glob/Grep, or find/grep via Bash)',
     '3. If this file reads/writes data files, show field names, structure, and date format (use redacted or synthetic values, not raw production data)',
     "4. Quote the user's current instruction verbatim",
     '',
@@ -973,11 +1088,7 @@ function routineBashMsg() {
 
 function withRecoveryHint(message, hookIds = [EDIT_WRITE_HOOK_ID]) {
   const disableTargets = hookIds.map(hookId => `\`${hookId}\``).join(' or ');
-  return [
-    message,
-    '',
-    `Recovery: if GateGuard is blocking setup or repair work, run this session with \`ECC_GATEGUARD=off\` or add ${disableTargets} to \`ECC_DISABLED_HOOKS\`.`
-  ].join('\n');
+  return [message, '', `Recovery: if GateGuard is blocking setup or repair work, run this session with \`ECC_GATEGUARD=off\` or add ${disableTargets} to \`ECC_DISABLED_HOOKS\`.`].join('\n');
 }
 
 function isSubagentInvocation(data) {
@@ -985,12 +1096,7 @@ function isSubagentInvocation(data) {
     return false;
   }
 
-  const candidates = [
-    data.agent_id,
-    data.agentId,
-    data.parent_tool_use_id,
-    data.parentToolUseId
-  ];
+  const candidates = [data.agent_id, data.agentId, data.parent_tool_use_id, data.parentToolUseId];
 
   return candidates.some(candidate => typeof candidate === 'string' && candidate.trim());
 }

@@ -104,9 +104,11 @@ function detectFormatter(cwd: string, ext: string): Formatter | null {
 }
 
 function buildFormatterCommand(formatter: Formatter, filePath: string, cwd?: string): string {
-  // Normalize path for cross-platform compatibility
-  const normalizedPath = path.normalize(filePath)
-  
+  // Normalize to forward slashes so the emitted command is identical on every
+  // platform. `path.normalize` yields backslashes on Windows, which broke the
+  // command string (and Windows CI); all formatter CLIs accept `/` on Windows.
+  const normalizedPath = path.normalize(filePath).split(path.sep).join("/")
+
   // Build command based on formatter and platform
   const commands: Record<Formatter, string> = {
     biome: `npx @biomejs/biome format --write ${normalizedPath}`,
