@@ -39,6 +39,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   ) => {
     const { $e, $state, $api, $ncSocket } = useNuxtApp()
 
+    const { internalGet } = useInternalBatch()
+
     const { t } = useI18n()
 
     const isPublic = inject(IsPublicInj, ref(false))
@@ -53,7 +55,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const isSaving = ref(false)
 
-    const changedColumns = ref<Set<string>>(new Set<string>())
+    const changedColumns = shallowRef<Set<string>>(new Set<string>())
 
     const localOnlyChanges = ref<Record<string, any>>({})
 
@@ -75,6 +77,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         ? _row.value
         : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
     )
+
+    // Ensure `.row` is always a plain object — a caller passing a non-object
+    // (or a non-object surviving from a prior load) would make cell edits throw
+    // `can't assign to property ... not an object` (#9365).
+    if (!row.value.row || typeof row.value.row !== 'object' || Array.isArray(row.value.row)) {
+      row.value.row = {}
+    }
 
     if (row.value?.rowMeta?.fromExpandedForm) {
       row.value.rowMeta.fromExpandedForm = true
@@ -239,7 +248,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           isAuditLoading.value = true
         }
 
-        const response = await $api.internal.getOperation(
+        const response = await internalGet(
           base.value.fk_workspace_id ?? NO_SCOPE,
           (meta.value.base_id as string) ?? (base.value.id as string),
           {
@@ -289,7 +298,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
               plan: details.higherPlan,
               period: formatDurationFromDays(+(details.limit ?? 14)),
             }),
-            limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+            limitOrFeature: PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION,
+            triggerSource: 'record-audit',
           })
         } else {
           message.error(errorInfo.message)
@@ -336,6 +346,39 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       return $state.user?.value?.email === email
     }
 
+    // Replay queued relation (LTAR) edits for an existing record on save, using the nested
+    // link/unlink API — the deferred counterpart of useLTARStore's immediate calls (#14013/#14058).
+    // Drained one-by-one so a mid-way failure leaves the rest queued (and the record dirty) for
+    // retry, while already-applied ops are not re-sent.
+    const applyPendingLtarOps = async () => {
+      const queue = rowStore.pendingLtarOps
+      while (queue.value.length) {
+        const op = queue.value[0]
+        if (op.op === 'link') {
+          await $api.dbTableRow.nestedAdd(
+            NOCO,
+            op.baseId,
+            op.tableId,
+            encodeURIComponent(op.rowId),
+            op.type,
+            op.columnId,
+            encodeURIComponent(op.relatedRowId),
+          )
+        } else {
+          await $api.dbTableRow.nestedRemove(
+            NOCO,
+            op.baseId,
+            op.tableId,
+            encodeURIComponent(op.rowId),
+            op.type,
+            op.columnId,
+            encodeURIComponent(op.relatedRowId),
+          )
+        }
+        queue.value.shift()
+      }
+    }
+
     const save = async (
       ltarState: Record<string, any> = {},
       // TODO: Hack. Remove this when kanban injection store issue is resolved
@@ -375,6 +418,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           rowMeta: {
             ...row.value.rowMeta,
             new: false,
+            // Links were persisted via the create payload — clear the buffer so the
+            // record is no longer flagged as having unsaved relational changes (#14013).
+            ltarState: {},
           },
           oldRow: { ...data },
         })
@@ -384,24 +430,35 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           return obj
         }, {} as Record<string, any>)
 
-        if (Object.keys(updateOrInsertObj).length) {
+        // Relational fields queue their changes (#14013/#14058) and are persisted here on
+        // save, not on each link/unlink. A record can be "modified" via links alone.
+        const hasLtarChanges = rowStore.hasLtarChanges.value
+
+        if (Object.keys(updateOrInsertObj).length || hasLtarChanges) {
           const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
           if (!id) {
             return message.info(t('msg.info.updateNotAllowedWithoutPK'))
           }
 
-          const updatedData = await $api.dbTableRow.update(
-            NOCO,
-            meta.value.base_id ?? (base.value.id as string),
-            meta.value.id,
-            encodeURIComponent(id),
-            updateOrInsertObj,
-          )
+          if (Object.keys(updateOrInsertObj).length) {
+            const updatedData = await $api.dbTableRow.update(
+              NOCO,
+              meta.value.base_id ?? (base.value.id as string),
+              meta.value.id,
+              encodeURIComponent(id),
+              updateOrInsertObj,
+            )
 
-          // If the updated row is now hidden by RLS policy, mark it
-          if (updatedData?.__nc_rls_hidden) {
-            row.value.row.__nc_rls_hidden = true
+            // If the updated row is now hidden by RLS policy, mark it
+            if (updatedData?.__nc_rls_hidden) {
+              row.value.row.__nc_rls_hidden = true
+            }
+          }
+
+          // Persist queued link/unlink changes after the row update.
+          if (hasLtarChanges) {
+            await applyPendingLtarOps()
           }
 
           if (commentsDrawer.value) {
@@ -466,6 +523,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         } else {
           message.error(`${await extractSdkResponseErrorMsg(err)}`)
         }
+      }
+
+      // Guard against a non-object response body (e.g. an empty 200/204 yields
+      // "" from the HTTP client). Assigning it to `row.value.row` would later
+      // make cell edits throw `can't assign to property ... not an object` (#9365).
+      if (!record || typeof record !== 'object' || Array.isArray(record)) {
+        record = {}
       }
 
       try {
@@ -876,6 +940,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       isSaving,
       formatSaveError,
       changedColumns,
+      hasLtarChanges: rowStore.hasLtarChanges,
+      pendingLtarOps: rowStore.pendingLtarOps,
       localOnlyChanges,
       loadRow,
       primaryKey,

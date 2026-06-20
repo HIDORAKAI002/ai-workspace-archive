@@ -72,7 +72,7 @@ const validators = {
       required: true,
       validator: (_: any, formula: any) => {
         return (async () => {
-          if (!formula?.trim()) throw new Error('Required')
+          if (!formula?.trim()) throw new Error(t('general.required'))
           try {
             await validateFormulaAndExtractTreeWithType({
               column: column.value as UnifiedMetaType.IColumn,

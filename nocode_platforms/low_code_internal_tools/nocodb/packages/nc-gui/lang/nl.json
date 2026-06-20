@@ -1229,8 +1229,8 @@
     "sqlMigrations": "SQL-Migraties",
     "dbCredentials": "Database-inloggegevens",
     "advancedParameters": "SSL & Geavanceerde Parameters",
-    "headCreateProject": "Project maken | Nocodb",
-    "headLogin": "Log in | Nocodb",
+    "headCreateProject": "Project maken | NocoDB",
+    "headLogin": "Log in | NocoDB",
     "resetPassword": "Stel je wachtwoord opnieuw in",
     "teamAndSettings": "Team & Instellingen",
     "apiDocs": "API-documenten",
@@ -3856,7 +3856,7 @@
       },
       "sponsor": {
         "header": "Je kunt ons helpen!",
-        "message": "Wij zijn een klein team dat fulltime werkt om de open-source van NocoDB te maken. Wij geloven dat een tool zoals NocoDB vrijelijk beschikbaar zou zijn op elke probleemoplosser op internet."
+        "message": "Wij zijn een klein team dat fulltime werkt om de fair-code van NocoDB te maken. Wij geloven dat een tool zoals NocoDB vrijelijk beschikbaar zou zijn op elke probleemoplosser op internet."
       },
       "loginMsg": "Log in bij NocoDB",
       "passwordRecovery": {

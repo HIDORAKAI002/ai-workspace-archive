@@ -990,6 +990,16 @@
                       "type": "boolean",
                       "description": "Status of invite only signup",
                       "example": true
+                    },
+                    "restrict_workspace_creation": {
+                      "type": "boolean",
+                      "description": "Restrict workspace creation to super admin only",
+                      "example": false
+                    },
+                    "allow_email_signin_with_sso": {
+                      "type": "boolean",
+                      "description": "Show the email/password sign-in form alongside SSO (self-hosted only)",
+                      "example": false
                     }
                   }
                 },
@@ -1066,6 +1076,16 @@
                     "type": "boolean",
                     "description": "Status of invite only signup",
                     "example": true
+                  },
+                  "restrict_workspace_creation": {
+                    "type": "boolean",
+                    "description": "Restrict workspace creation to super admin only",
+                    "example": false
+                  },
+                  "allow_email_signin_with_sso": {
+                    "type": "boolean",
+                    "description": "Show the email/password sign-in form alongside SSO (self-hosted only)",
+                    "example": false
                   }
                 }
               },
@@ -23385,7 +23405,7 @@
             }
           },
           "email": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Email to sned after form is submitted"
           },
           "fk_model_id": {
@@ -23504,7 +23524,7 @@
             "description": "Banner Image URL"
           },
           "email": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Email to sned after form is submitted"
           },
           "heading": {
@@ -27997,6 +28017,11 @@
           "fk_level_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to List View Level"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether this sort is enabled. Disabled sorts are skipped during evaluation.",
+            "nullable": true
           }
         },
         "x-stoplight": {
@@ -28114,6 +28139,16 @@
           "fk_level_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to List View Level"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether this sort is enabled. Disabled sorts are skipped during evaluation.",
+            "nullable": true
+          },
+          "order": {
+            "type": "number",
+            "description": "The order in which the sort is applied relative to other sorts on the view.",
+            "nullable": true
           }
         },
         "x-stoplight": {

@@ -1,8 +1,10 @@
 // Test Install Sh Docker tests cover test install sh docker script behavior.
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { runInNewContext } from "node:vm";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { createTempDirTracker } from "../helpers/temp-dir.js";
 
 const SCRIPT_PATH = "scripts/test-install-sh-docker.sh";
 const INSTALL_E2E_DOCKER_PATH = "scripts/test-install-sh-e2e-docker.sh";
@@ -17,6 +19,11 @@ const BUN_GLOBAL_ASSERTIONS_PATH = "scripts/e2e/lib/bun-global-install/assertion
 const INSTALL_SMOKE_WORKFLOW_PATH = ".github/workflows/install-smoke.yml";
 const RELEASE_CHECKS_WORKFLOW_PATH = ".github/workflows/openclaw-release-checks.yml";
 const LIVE_E2E_WORKFLOW_PATH = ".github/workflows/openclaw-live-and-e2e-checks-reusable.yml";
+const tempDirs = createTempDirTracker();
+
+afterEach(() => {
+  tempDirs.cleanup();
+});
 
 class ScriptExit extends Error {
   constructor(readonly status: number) {
@@ -756,6 +763,54 @@ describe("bun global install smoke", () => {
       expect(result.stderr, filename).toContain("npm pack reported unsafe tarball filename");
     }
   });
+
+  it.runIf(process.platform !== "win32" && existsSync("/usr/bin/time"))(
+    "preserves Bun global timeout kill grace after the leader exits",
+    () => {
+      const tempDir = tempDirs.make("openclaw-bun-global-timeout-grace-");
+      const readyPath = path.join(tempDir, "ready");
+      const drainedPath = path.join(tempDir, "drained");
+      const childScript = [
+        "const fs = require('node:fs');",
+        "process.on('SIGTERM', () => {",
+        "  setTimeout(() => {",
+        "    fs.writeFileSync(process.argv[2], 'drained');",
+        "    process.exit(0);",
+        "  }, 50);",
+        "});",
+        "fs.writeFileSync(process.argv[1], 'ready');",
+        "setInterval(() => {}, 1000);",
+      ].join("\n");
+
+      const result = spawnSync(
+        process.execPath,
+        [
+          BUN_GLOBAL_ASSERTIONS_PATH,
+          "run-with-timeout",
+          "500",
+          "/usr/bin/time",
+          process.execPath,
+          "-e",
+          childScript,
+          readyPath,
+          drainedPath,
+        ],
+        {
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            OPENCLAW_BUN_GLOBAL_SMOKE_TIMEOUT_KILL_GRACE_MS: "1000",
+          },
+          timeout: 5_000,
+        },
+      );
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("command timed out after 500ms: /usr/bin/time");
+      expect(readFileSync(readyPath, "utf8")).toBe("ready");
+      expect(readFileSync(drainedPath, "utf8")).toBe("drained");
+    },
+  );
 
   it("gates workflow Bun install smoke to scheduled and release-check runs", () => {
     const workflow = readFileSync(INSTALL_SMOKE_WORKFLOW_PATH, "utf8");

@@ -8739,6 +8739,16 @@
             }
           }
         },
+        "AutoNumber": {
+          "title": "AutoNumber",
+          "properties": {
+            "type": {
+              "enum": [
+                "AutoNumber"
+              ]
+            }
+          }
+        },
         "QrCode": {
           "title": "QrCode",
           "properties": {
@@ -9404,6 +9414,11 @@
               "desc"
             ],
             "description": "Sorting direction, either 'asc' (ascending) or 'desc' (descending)."
+          },
+          "enabled": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Whether this sort is enabled. Disabled sorts are skipped during evaluation."
           }
         },
         "required": [
@@ -9965,7 +9980,8 @@
                 "map",
                 "form",
                 "timeline",
-                "gantt"
+                "gantt",
+                "list"
               ],
               "description": "Type of the view."
             },
@@ -10353,10 +10369,75 @@
       },
       "ViewOptionsMap": {
         "type": "object",
+        "additionalProperties": false,
         "properties": {
-          "fk_geo_data_col_id": {
+          "geo_data_field_id": {
             "type": "string",
-            "description": "Foreign Key to GeoData Column to be used for the map view."
+            "description": "Field ID of the GeoData column plotted on the map."
+          }
+        }
+      },
+      "ViewOptionsList": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "List view configuration. Records are organised into a hierarchy of levels; each level is a table linked to its parent through a link field.",
+        "properties": {
+          "levels": {
+            "type": "array",
+            "description": "Ordered levels of the list. Level 1 is the root table; deeper levels connect to their parent via link_field_id.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "level": {
+                  "type": "number",
+                  "description": "1-based depth of this level (1 = root)."
+                },
+                "table_id": {
+                  "type": "string",
+                  "description": "Table shown at this level."
+                },
+                "link_field_id": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Link field connecting this level to its parent. Omitted/null for the root level."
+                },
+                "filters": {
+                  "$ref": "#/components/schemas/FilterCreate",
+                  "description": "Filters applied at this level."
+                },
+                "sorts": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SortCreate"
+                  },
+                  "description": "Sorts applied at this level."
+                },
+                "fields": {
+                  "$ref": "#/components/schemas/ViewFields",
+                  "description": "Field visibility/order at this level. Listed fields are shown in order; unlisted fields are hidden (same semantics as top-level fields)."
+                }
+              },
+              "required": [
+                "level",
+                "table_id"
+              ]
+            }
+          },
+          "show_empty_parents": {
+            "type": "boolean",
+            "description": "Show parent rows that have no child records."
+          },
+          "row_height": {
+            "type": "string",
+            "enum": [
+              "short",
+              "medium",
+              "tall",
+              "extra"
+            ],
+            "description": "Height of the rows in the list view.",
+            "default": "short"
           }
         }
       },
@@ -10693,6 +10774,21 @@
                       "$ref": "#/components/schemas/ViewFields"
                     }
                   }
+                },
+                {
+                  "type": "object",
+                  "title": "list",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "list"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsList"
+                    }
+                  }
                 }
               ],
               "discriminator": {
@@ -10906,6 +11002,15 @@
                     },
                     "fields": {
                       "$ref": "#/components/schemas/ViewFields"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "list",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsList"
                     }
                   }
                 }
@@ -11199,6 +11304,21 @@
                     "description": "Row colour configuration for the the view."
                   }
                 }
+              },
+              {
+                "type": "object",
+                "title": "list",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "list"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsList"
+                  }
+                }
               }
             ],
             "errorMessage": {
@@ -11259,7 +11379,8 @@
               "LastModifiedBy",
               "LinkToAnotherRecord",
               "User",
-              "JSON"
+              "JSON",
+              "AutoNumber"
             ],
             "description": "Field data type."
           },
@@ -11337,7 +11458,8 @@
                   "CreatedBy",
                   "LastModifiedBy",
                   "User",
-                  "JSON"
+                  "JSON",
+                  "AutoNumber"
                 ],
                 "description": "Field data type."
               }

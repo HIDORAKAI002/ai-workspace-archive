@@ -19,6 +19,7 @@ import type {
 import type { Filter } from '~/models';
 import { getFilteredAgents } from '~/utils/ssrf';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { getWebhookMaxBodySize } from '~/utils/nc-config/constants';
 import { NcError } from '~/helpers/ncError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
@@ -177,6 +178,13 @@ export class WebhookInvoker {
         ? getFilteredAgents({ url, source: OperationSource.HOOKS })
         : {}),
       timeout: 30 * 1000,
+      // Bound the request/response body so axios can't buffer an unbounded
+      // native Buffer (default maxContentLength is -1 = unlimited). A webhook
+      // flood at full worker concurrency previously OOM-killed the worker.
+      // Overflow surfaces as a friendly error via the maxContentLength /
+      // maxBodyLength handlers in invoke().
+      maxContentLength: getWebhookMaxBodySize(),
+      maxBodyLength: getWebhookMaxBodySize(),
     };
 
     return reqPayload;

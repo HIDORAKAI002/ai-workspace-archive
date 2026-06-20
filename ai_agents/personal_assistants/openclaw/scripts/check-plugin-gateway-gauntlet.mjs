@@ -483,6 +483,7 @@ export function runMeasuredCommandLive(params) {
     let timedOut = false;
     let settled = false;
     let forceKillTimeout = null;
+    let forceKillAt = 0;
     const maxBufferBytes = params.maxBufferBytes ?? COMMAND_OUTPUT_MAX_BUFFER_BYTES;
     const maxRelayBytes = params.consoleOutputMaxBytes ?? maxBufferBytes;
     const timeoutKillGraceMs = params.timeoutKillGraceMs ?? 5_000;
@@ -505,6 +506,29 @@ export function runMeasuredCommandLive(params) {
         } catch {}
       }
       child.kill(signal);
+    };
+    const processGroupAlive = () => {
+      if (!useProcessGroup || !child.pid) {
+        return false;
+      }
+      try {
+        process.kill(-child.pid, 0);
+        return true;
+      } catch (error) {
+        return Boolean(error && error.code === "EPERM");
+      }
+    };
+    const waitForProcessGroupExit = async (timeoutMs) => {
+      const deadlineAt = Date.now() + timeoutMs;
+      while (Date.now() < deadlineAt) {
+        if (!processGroupAlive()) {
+          return true;
+        }
+        await new Promise((resolvePoll) => {
+          setTimeout(resolvePoll, 25);
+        });
+      }
+      return !processGroupAlive();
     };
     const parentSignalHandlers = new Map();
     const removeParentSignalHandlers = () => {
@@ -613,6 +637,7 @@ export function runMeasuredCommandLive(params) {
               message: `Command timed out after ${params.timeoutMs}ms`,
             };
             killMeasuredProcess();
+            forceKillAt = Date.now() + timeoutKillGraceMs;
             forceKillTimeout = setTimeout(() => {
               killMeasuredProcess("SIGKILL");
             }, timeoutKillGraceMs);
@@ -627,9 +652,6 @@ export function runMeasuredCommandLive(params) {
       settled = true;
       if (timeout) {
         clearTimeout(timeout);
-      }
-      if (timedOut) {
-        killMeasuredProcess("SIGKILL");
       }
       if (forceKillTimeout) {
         clearTimeout(forceKillTimeout);
@@ -673,6 +695,17 @@ export function runMeasuredCommandLive(params) {
         ...parseTimedMetrics(finalStderr, wallMs, mode),
       });
     };
+    const finishAfterTimeoutTeardown = async (status, signal) => {
+      const remainingGraceMs = Math.max(0, forceKillAt - Date.now());
+      if (remainingGraceMs > 0) {
+        await waitForProcessGroupExit(remainingGraceMs);
+      }
+      if (processGroupAlive()) {
+        killMeasuredProcess("SIGKILL");
+        await waitForProcessGroupExit(100);
+      }
+      finish(status, signal);
+    };
     child.on("error", (error) => {
       spawnError = {
         code: typeof error.code === "string" ? error.code : null,
@@ -680,7 +713,13 @@ export function runMeasuredCommandLive(params) {
       };
       finish(null, null);
     });
-    child.on("close", (status, signal) => finish(status, signal));
+    child.on("close", (status, signal) => {
+      if (timedOut) {
+        void finishAfterTimeoutTeardown(status, signal);
+        return;
+      }
+      finish(status, signal);
+    });
   });
 }
 

@@ -1229,7 +1229,7 @@
     "sqlMigrations": "SQL-migreringar",
     "dbCredentials": "Databasuppgifter",
     "advancedParameters": "SSL och avancerade parametrar",
-    "headCreateProject": "Skapa projekt | Nocodb",
+    "headCreateProject": "Skapa projekt | NocoDB",
     "headLogin": "Logga in | NocoDB",
     "resetPassword": "Återställ ditt lösenord",
     "teamAndSettings": "Team och inställningar",
@@ -3845,7 +3845,7 @@
       "staticRoleInfo": "Systemdefinierade roller kan inte redigeras",
       "exportZip": "Exportera projekt Meta till ZIP-fil och nedladdning.",
       "importZip": "Importera projekt Meta Zip-fil och starta om.",
-      "importText": "Importera NOCODB-projektet genom att ladda upp metadata zip-filen",
+      "importText": "Importera NocoDB-projektet genom att ladda upp metadata zip-filen",
       "metaNoChange": "Ingen ändring identifierad",
       "sqlMigration": "Schema migreringar kommer att skapas automatiskt. Skapa ett bord och uppdatera den här sidan.",
       "dbConnectionStatus": "Miljö Validerad",
@@ -3856,7 +3856,7 @@
       },
       "sponsor": {
         "header": "Du kan hjälpa oss!",
-        "message": "Vi är ett litet lag som arbetar heltid för att göra NOCODB Open-Source. Vi tror att ett verktyg som NOCODB ska vara tillgängligt fritt till alla problemlösare på Internet."
+        "message": "Vi är ett litet lag som arbetar heltid för att göra NocoDB fair-code. Vi tror att ett verktyg som NocoDB ska vara tillgängligt fritt till alla problemlösare på Internet."
       },
       "loginMsg": "Logga in på NocoDB",
       "passwordRecovery": {

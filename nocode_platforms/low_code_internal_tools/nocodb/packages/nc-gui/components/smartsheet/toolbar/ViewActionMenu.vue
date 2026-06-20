@@ -93,7 +93,7 @@ const importAlias = {
     icon: iconMap.ncFileTypeCsvSmall,
   },
   excel: {
-    title: 'Excel',
+    title: t('labels.excel'),
     icon: iconMap.ncFileTypeExcel,
   },
 }
@@ -822,10 +822,15 @@ defineOptions({
       </template>
 
       <BookmarksMenuAction
-        v-if="isEeUI && !isPublicView"
+        v-if="isEeUI && !isPublicView && view && table && base"
         target-type="view"
         :target-id="view.id!"
-        :meta="{ view_type: view.type, workspace_id: base.fk_workspace_id, base_id: table.base_id, table_id: table.id }"
+        :meta="{
+          view_type: view.type,
+          workspace_id: base.fk_workspace_id,
+          base_id: table.base_id ?? base.id,
+          table_id: table.id,
+        }"
         @close="emits('closeModal')"
       />
 

@@ -17,6 +17,11 @@ import {
   binaryExpressionBuilder,
   callExpressionBuilder,
 } from './parsed-tree-builder';
+import {
+  formulaOutputsRawJson,
+  getFormulaOutputMaxLength,
+  wrapFormulaWithMaxLength,
+} from './formula-query-builder.helpers';
 import type { ClientType, LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
@@ -471,7 +476,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     }
   };
   const builder = (await fn(tree)).builder;
-  return { builder };
+  return { builder, parsedTree: tree };
 }
 
 export default async function formulaQueryBuilderv2({
@@ -564,6 +569,30 @@ export default async function formulaQueryBuilderv2({
         `The generated query for ${columnInfo.title} exceeds the maximum allowed length. Try simplifying the formula by reducing the number of referenced fields, lookup chains, or nested formula references.`,
       );
     }
+
+    // Cap the rendered length of string-typed formula output at the database
+    // level. Formula functions can produce arbitrarily large strings at
+    // execution time (the query text itself stays short), which can crash the
+    // Node process with ERR_STRING_TOO_LONG when the driver materializes the
+    // value. Wrapping the final expression in a SUBSTR enforces an upper limit
+    // per cell across all database platforms. Applied only at the outermost
+    // formula (nested formula references go through `_formulaQueryBuilder`
+    // directly), and only for string output to avoid altering numeric/date
+    // typing. JSON-producing formulas (e.g. JSON_EXTRACT) are skipped — they
+    // come back as jsonb whose representation a text cast would corrupt, and
+    // they can't grow unbounded since they only read already-stored JSON.
+    if (
+      qb?.parsedTree?.dataType === FormulaDataTypes.STRING &&
+      qb.builder &&
+      !formulaOutputsRawJson(qb.parsedTree)
+    ) {
+      qb.builder = wrapFormulaWithMaxLength({
+        knex,
+        builder: qb.builder,
+        maxLength: getFormulaOutputMaxLength(),
+      });
+    }
+
     if (!validateFormula) return qb;
 
     // Short-circuit if a previous dry-run already failed for this base model,
@@ -608,11 +637,21 @@ export default async function formulaQueryBuilderv2({
     // Check if this is a transient error (connection/timeout issue)
     const isTransient = isTransientError(e);
 
+    // The dry-run short-circuit above re-throws a sentinel error only because an
+    // earlier transient failure set `formulaDryRunFailed` (the flag's sole write
+    // site is guarded by `isTransient`), and no real validation runs once it's
+    // set. That sentinel is not a real formula error, so it must never be
+    // persisted as the column's `error` — doing so poisons every later read with
+    // ERR_FORMULA and never self-heals.
+    const skipMarkingColumn =
+      isTransient || !!baseModelSqlv2.formulaDryRunFailed;
+
     // Mark formula error if formula validation is invoked
     // or if a circular reference error occurs and a column is provided
-    // BUT skip marking for transient errors
+    // BUT skip marking for transient errors (and the transient-induced
+    // dry-run short-circuit, see skipMarkingColumn above)
     if (
-      !isTransient &&
+      !skipMarkingColumn &&
       (validateFormula ||
         (column?.id &&
           e instanceof NcBaseErrorv2 &&

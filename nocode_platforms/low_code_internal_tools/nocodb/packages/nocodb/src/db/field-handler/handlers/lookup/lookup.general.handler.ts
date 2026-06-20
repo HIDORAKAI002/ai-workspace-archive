@@ -11,9 +11,9 @@ import type {
   SortOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
-import type { Filter } from '~/models';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
+import { Filter } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import {
   getAlias,
@@ -93,6 +93,58 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         clause: (_qb) => {},
         rootApply: undefined,
       };
+    }
+
+    // Collection semantics for allof/nallof:
+    // A lookup exposes a set of values from all related rows. allof [A,B] means
+    // the combined set must contain A AND B — not that a single row has both.
+    // Split into individual anyof/nanyof sub-filters and combine accordingly.
+    if (filter.comparison_op === 'allof' || filter.comparison_op === 'nallof') {
+      const values = String(filter.value ?? '')
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean);
+
+      if (values.length > 0) {
+        const subOp = filter.comparison_op === 'allof' ? 'anyof' : 'nanyof';
+        const subResults = await Promise.all(
+          values.map((val) =>
+            this.filter(
+              knex,
+              new Filter({ ...filter, value: val, comparison_op: subOp }),
+              column,
+              options,
+            ),
+          ),
+        );
+
+        return {
+          rootApply: (qb) => {
+            for (const r of subResults) r?.rootApply?.(qb);
+          },
+          clause:
+            filter.comparison_op === 'allof'
+              ? (qbP) => {
+                  // AND: every value must appear in the collection
+                  for (const r of subResults) r?.clause?.(qbP);
+                }
+              : (qbP) => {
+                  // OR of negations: not all values appear in the collection
+                  if (subResults.length === 1) {
+                    subResults[0]?.clause?.(qbP);
+                  } else {
+                    qbP.where((innerQb) => {
+                      subResults[0]?.clause?.(innerQb);
+                      for (let i = 1; i < subResults.length; i++) {
+                        innerQb.orWhere((orQb) => {
+                          subResults[i]?.clause?.(orQb);
+                        });
+                      }
+                    });
+                  }
+                },
+        };
+      }
     }
 
     const relationColumnOptions =

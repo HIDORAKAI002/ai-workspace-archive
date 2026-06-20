@@ -73,9 +73,10 @@ const syncedGroupByEntries = computed<Group[]>(() => {
   return tempGroupBy
 })
 
-// Group-by enable/disable toggle is grid-only for now (other view types
-// persist via their own *ColumnUpdate ops which don't accept the field yet).
-const isGridView = computed(() => view.value?.type === ViewTypes.GRID)
+// Views that persist the per-group enable/disable toggle (`group_by_enabled`).
+// Grid and Gantt accept the field on their *ColumnUpdate ops + view-column
+// schema; Timeline/List don't yet, so their toggle stays hidden.
+const supportsGroupByEnabledToggle = computed(() => [ViewTypes.GRID, ViewTypes.GANTT].includes(view.value?.type as ViewTypes))
 
 // All group-by column IDs for badge count and column filtering
 const groupedByColumnIds = computed(() => {
@@ -162,17 +163,17 @@ const saveGroupBy = async () => {
           (!col.group_by ||
             col.group_by_order !== gby.order ||
             col.group_by_sort !== gby.sort ||
-            // group_by_enabled is grid-only (Timeline/Gantt column-update
-            // schemas reject the field), so don't let an enabled-state
-            // mismatch trigger a save on non-grid views.
-            (isGridView.value && colEnabled !== (gby.enabled !== false)))
+            // group_by_enabled is only accepted by Grid/Gantt column-update
+            // schemas (Timeline/List reject the field), so don't let an
+            // enabled-state mismatch trigger a save on unsupported views.
+            (supportsGroupByEnabledToggle.value && colEnabled !== (gby.enabled !== false)))
         ) {
           await updateGridViewColumn(gby.fk_column_id, {
             group_by: true,
             group_by_order: gby.order,
             group_by_sort: gby.sort,
-            // Only persist enabled-state on grid views — see comment above.
-            ...(isGridView.value ? { group_by_enabled: gby.enabled } : {}),
+            // Only persist enabled-state on views that support it — see comment above.
+            ...(supportsGroupByEnabledToggle.value ? { group_by_enabled: gby.enabled } : {}),
           })
         }
       }
@@ -234,7 +235,7 @@ const addFieldToGroupBy = (column: ColumnType) => {
 // Toggle a group-by on/off without removing it.
 const onToggleGroupByEnabled = (group: Group) => {
   if (blockToggleGroupBy.value) {
-    showUpgradeToUseToggleGroupBy()
+    showUpgradeToUseToggleGroupBy({ triggerSource: 'toolbar-toggle-groupby' })
     return
   }
 
@@ -440,10 +441,12 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                 <div
                   :key="group.fk_column_id"
                   class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center gap-2"
-                  :class="{ 'nc-group-by-disabled-row': appInfo.ee && isGridView && group.enabled === false }"
+                  :class="{
+                    'nc-group-by-disabled-row': appInfo.ee && supportsGroupByEnabledToggle && group.enabled === false,
+                  }"
                 >
                   <NcCheckbox
-                    v-if="appInfo.ee && isGridView"
+                    v-if="appInfo.ee && supportsGroupByEnabledToggle"
                     :checked="group.enabled !== false"
                     size="default"
                     :disabled="isLocked"
@@ -517,7 +520,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                     >
                       <component :is="iconMap.drag" />
                     </NcButton>
-                    <NcTooltip placement="top" title="Remove" class="flex-none">
+                    <NcTooltip placement="top" :title="$t('general.remove')" class="flex-none">
                       <NcButton
                         v-e="['c:group-by:remove']"
                         class="nc-group-by-item-remove-btn !border-l-transparent !rounded-l-none"

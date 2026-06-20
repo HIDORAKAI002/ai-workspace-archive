@@ -345,6 +345,11 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         httpStatus = 409;
         break;
 
+      case 'EACCES': // SSRF protection blocked connection
+        message = 'Connection to internal hosts is not allowed';
+        httpStatus = 403;
+        break;
+
       case '53300': // too_many_connections
         message = 'Too many database connections.';
         httpStatus = 503;

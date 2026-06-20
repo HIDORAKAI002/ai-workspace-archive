@@ -24,6 +24,8 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
+const { productName } = useBranding()
+
 const { $e, $api } = useNuxtApp()
 
 const {
@@ -114,11 +116,15 @@ const projectPageTab = computed({
     return _projectPageTab.value
   },
   set(value) {
-    if (value === 'permissions' && showEEFeatures.value && showUpgradeToUseTableAndFieldPermissions()) {
+    if (
+      value === 'permissions' &&
+      showEEFeatures.value &&
+      showUpgradeToUseTableAndFieldPermissions({ triggerSource: 'project-table-field-permissions' })
+    ) {
       return
     }
 
-    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync()) {
+    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync({ triggerSource: 'project-sync' })) {
       return
     }
 
@@ -268,7 +274,7 @@ watch(
   () => {
     if (activeTable.value?.title) return
 
-    useTitle(`${currentBase.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)
+    useTitle(`${currentBase.value?.title ?? activeWorkspace.value?.title ?? productName.value ?? 'NocoDB'}`)
   },
   {
     immediate: true,

@@ -92,6 +92,7 @@ const generate = async () => {
           currentRow.value.row[col.title!] = resRow[col.title!]
         }
       }
+      triggerRef(changedColumns)
     }
   }
 

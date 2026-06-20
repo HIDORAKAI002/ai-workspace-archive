@@ -61,6 +61,8 @@ export function useViewData(
 
   const { $api } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const {
     sorts,
     nestedFilters,
@@ -160,7 +162,7 @@ export function useViewData(
     if (!ids?.length || ids?.some((id) => !id)) return
 
     try {
-      aggCommentCount.value = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      aggCommentCount.value = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
         operation: 'commentCount',
         fk_model_id: metaId.value as string,
         ids,
@@ -371,7 +373,7 @@ export function useViewData(
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
-      const { columns, ...view } = await $api.internal.getOperation(base.value!.fk_workspace_id!, base.value!.id!, {
+      const { columns, ...view } = await internalGet(base.value!.fk_workspace_id!, base.value!.id!, {
         operation: 'formViewGet',
         formViewId: viewMeta.value.id,
       })

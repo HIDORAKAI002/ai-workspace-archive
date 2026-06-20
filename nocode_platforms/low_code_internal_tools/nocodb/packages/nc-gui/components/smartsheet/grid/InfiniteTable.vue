@@ -3213,7 +3213,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
           >
             <div class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
-              New Record
+              {{ $t('activity.newRecord') }}
             </div>
           </NcButton>
           <NcButton

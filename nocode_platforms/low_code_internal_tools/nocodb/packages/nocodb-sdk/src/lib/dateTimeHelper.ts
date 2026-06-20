@@ -184,7 +184,10 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
   const isUtcOrGmt = timezone && /^(utc|gmt)$/i.test(timezone);
 
   return {
-    dayjsTz(value?: string | number | null | dayjs.Dayjs, format?: string) {
+    dayjsTz(
+      value?: string | number | null | Date | dayjs.Dayjs,
+      format?: string
+    ) {
       if (!isEeUI) {
         return dayjs(value, format);
       }
@@ -195,16 +198,14 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
         } else {
           return dayjs();
         }
-      } else if (typeof value === 'object' && value.isValid()) {
+      } else if (dayjs.isDayjs(value) && value.isValid()) {
         return value;
       }
 
       if (timezone) {
         if (isUtcOrGmt) {
           const strValue =
-            typeof value === 'object' &&
-            typeof value.isValid === 'function' &&
-            value.isValid()
+            dayjs.isDayjs(value) && value.isValid()
               ? value.toISOString()
               : value;
           return format

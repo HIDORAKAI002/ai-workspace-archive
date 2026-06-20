@@ -62,6 +62,8 @@ export const useExtensions = createSharedComposable(() => {
 
   const { $api, $e } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const { user } = useGlobal()
 
   const { isUIAllowed } = useRoles()
@@ -152,7 +154,7 @@ export const useExtensions = createSharedComposable(() => {
 
   const addExtension = async (extension: any) => {
     if (blockExtensions.value) {
-      showUpgradeToUseExtensions()
+      showUpgradeToUseExtensions({ triggerSource: 'extensions' })
       return
     }
 
@@ -341,7 +343,7 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     try {
-      const { list } = await $api.internal.getOperation(base.value!.fk_workspace_id!, baseId, {
+      const { list } = await internalGet(base.value!.fk_workspace_id!, baseId, {
         operation: 'extensionList',
       })
 

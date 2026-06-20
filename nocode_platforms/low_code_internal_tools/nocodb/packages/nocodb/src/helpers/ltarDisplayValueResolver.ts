@@ -1,7 +1,7 @@
 import { isLinksOrLTAR, NcApiVersion, RelationTypes } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
-import { Column, Filter, Model, Source } from '~/models';
+import { Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
@@ -51,8 +51,9 @@ export async function getLtarDisplayValueContext(
     );
   }
 
-  const colOptions =
-    await column.getColOptions<LinkToAnotherRecordColumn>(context);
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+    context,
+  );
 
   const { refContext } = await colOptions.getParentChildContext(context);
   const relatedModel = await colOptions.getRelatedTable(refContext);

@@ -1229,7 +1229,7 @@
     "sqlMigrations": "Migrations SQL",
     "dbCredentials": "Identifiants de la base de données",
     "advancedParameters": "SSL et paramètres avancés",
-    "headCreateProject": "Créer un projet | Nocodb",
+    "headCreateProject": "Créer un projet | NocoDB",
     "headLogin": "Connexion | NocoDB",
     "resetPassword": "Réinitialiser le mot de passe",
     "teamAndSettings": "Équipe et paramètres",
@@ -3856,7 +3856,7 @@
       },
       "sponsor": {
         "header": "Vous pouvez nous aider !",
-        "message": "Nous sommes une petite équipe travaillant à plein temps pour rendre NocoDB open-Source. Nous croyons qu'un outil comme NocoDB devrait être disponible librement à chaque solutionneur de problème sur Internet."
+        "message": "Nous sommes une petite équipe travaillant à plein temps pour rendre NocoDB fair-code. Nous croyons qu'un outil comme NocoDB devrait être disponible librement à chaque solutionneur de problème sur Internet."
       },
       "loginMsg": "Se connecter à NocoDB",
       "passwordRecovery": {

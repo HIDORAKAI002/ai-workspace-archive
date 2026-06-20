@@ -306,7 +306,10 @@ export interface ServeStoredAttachmentOptions {
 }
 
 // Shared between authed AttachmentProxy and anonymous PublicDocs share.
-// External storage → 302 to signed URL; local → stream directly.
+// External storage (S3/GCS/…) → 302 to signed URL; local path → stream directly.
+// A local path means the file was stored on disk (attachment.path field in DB),
+// so it must be served locally even when an external storage adapter is active —
+// the file was never uploaded to S3.
 export async function serveStoredAttachment(
   res: Response,
   fileUrl: string,
@@ -315,20 +318,13 @@ export async function serveStoredAttachment(
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
   const isExternalStorage =
     typeof (storageAdapter as any).getSignedUrl === 'function';
+  const isUrl = /^https?:\/\//i.test(fileUrl);
 
-  if (isExternalStorage) {
-    const isUrl = /^https?:\/\//i.test(fileUrl);
-
-    let pathOrUrl = fileUrl;
-    if (!isUrl) {
-      const stripped = fileUrl.replace(/^download\//, '');
-      pathOrUrl = sanitizeAttachmentStoragePath(
-        path.join('nc', 'uploads', stripped),
-      );
-    }
-
+  if (isExternalStorage && isUrl) {
+    // File is stored on external storage (identified by a full HTTP URL in the
+    // attachment record) — redirect the client to a short-lived signed URL.
     const signedUrl = await PresignedUrl.getSignedUrl({
-      pathOrUrl,
+      pathOrUrl: fileUrl,
       preview: true,
       ...(opts.signedUrlTtlSeconds !== undefined && {
         expireSeconds: opts.signedUrlTtlSeconds,
@@ -339,6 +335,9 @@ export async function serveStoredAttachment(
     return res.redirect(302, signedUrl);
   }
 
+  // Local file (path-based, not a URL) — stream directly from disk.
+  // This also handles attachments uploaded before a migration to external
+  // storage: they still have a `path` field and live on the local filesystem.
   const stripped = fileUrl.replace(/^download\//, '');
 
   try {

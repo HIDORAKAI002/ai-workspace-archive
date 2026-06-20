@@ -65,10 +65,14 @@ const hasEditPermission = computed(() => {
 })
 
 const localCellValue = computed<any[]>(() => {
+  // A to-many LTAR cell value can be a count (number) rather than the records
+  // array — e.g. in grid/list responses. Always return an array so consumers
+  // like `cells` (which calls `.reduce`) can't hit "reduce is not a function".
   if (cellValue?.value) {
-    return cellValue?.value ?? []
+    return ncIsArray(cellValue.value) ? cellValue.value : []
   } else if (isNew.value) {
-    return state?.value?.[column?.value.title as string] ?? []
+    const stateValue = state?.value?.[column?.value.title as string]
+    return ncIsArray(stateValue) ? stateValue : []
   }
   return []
 })

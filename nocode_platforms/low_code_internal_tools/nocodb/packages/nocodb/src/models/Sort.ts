@@ -21,6 +21,7 @@ export default class Sort {
   fk_column_id?: string;
   fk_level_id?: string;
   direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
+  enabled?: boolean;
   order?: number;
   fk_workspace_id?: string;
   base_id?: string;
@@ -75,6 +76,7 @@ export default class Sort {
       'fk_column_id',
       'fk_level_id',
       'direction',
+      'enabled',
       'base_id',
       'source_id',
     ]);
@@ -228,22 +230,23 @@ export default class Sort {
     body,
     ncMeta = Noco.ncMeta,
   ) {
+    const updateObj = extractProps(body, [
+      'fk_column_id',
+      'direction',
+      'enabled',
+      'order',
+    ]);
+
     // set meta
     const res = await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.SORT,
-      {
-        fk_column_id: body.fk_column_id,
-        direction: body.direction,
-      },
+      updateObj,
       sortId,
     );
 
-    await NocoCache.update(context, `${CacheScope.SORT}:${sortId}`, {
-      fk_column_id: body.fk_column_id,
-      direction: body.direction,
-    });
+    await NocoCache.update(context, `${CacheScope.SORT}:${sortId}`, updateObj);
 
     // on update, delete any optimised single query cache
     {

@@ -3856,7 +3856,7 @@
       },
       "sponsor": {
         "header": "Du kan hjelpe oss!",
-        "message": "Vi er et lite lag som jobber heltid for å gjøre Nocodb åpen kildekode. Vi tror et verktøy som Nocodb bør være tilgjengelig fritt til alle problemløser på internett."
+        "message": "Vi er et lite lag som jobber heltid for å gjøre NocoDB åpen kildekode. Vi tror et verktøy som NocoDB bør være tilgjengelig fritt til alle problemløser på internett."
       },
       "loginMsg": "Logg inn i NocoDB",
       "passwordRecovery": {

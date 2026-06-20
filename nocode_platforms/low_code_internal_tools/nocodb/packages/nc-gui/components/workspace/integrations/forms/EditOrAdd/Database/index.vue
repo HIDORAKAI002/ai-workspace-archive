@@ -92,6 +92,8 @@ const isEnabledSaveChangesBtn = ref(false)
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { blockMssql, showUpgradeToUseMssql } = useEeConfig()
+
 const easterEgg = ref(false)
 
 const easterEggCount = ref(0)
@@ -188,6 +190,13 @@ const validators = computed(() => {
 const { validate, validateInfos } = useForm(formState, validators)
 
 const onClientChange = () => {
+  // MSSQL is sold as a paid add-on (FEATURE_MSSQL). The backend enforces it on
+  // source create; surface the upgrade prompt here so a blocked user isn't left
+  // to hit a 402 after filling the form. Edit mode is exempt — never nag an
+  // already-connected MSSQL source.
+  if (!isEditMode.value && formState.value.dataSource.client === ClientType.MSSQL && blockMssql.value) {
+    showUpgradeToUseMssql({ triggerSource: 'integrations-mssql' })
+  }
   formState.value.dataSource = { ..._getDefaultConnectionConfig(formState.value.dataSource.client) }
 }
 
@@ -663,7 +672,7 @@ watch(
               class="flex flex-col gap-8"
             >
               <div class="nc-form-section">
-                <div class="nc-form-section-title">General</div>
+                <div class="nc-form-section-title">{{ $t('general.general') }}</div>
                 <div class="nc-form-section-body">
                   <a-row :gutter="24">
                     <a-col :span="12">
@@ -725,7 +734,7 @@ watch(
                           >
                             {{ $t('general.cancel') }}</NcButton
                           >
-                          <NcButton size="small" @click="handleImportURL"> Import</NcButton>
+                          <NcButton size="small" @click="handleImportURL"> {{ $t('general.import') }}</NcButton>
                         </div>
                       </div>
                     </template>
@@ -828,7 +837,7 @@ watch(
                     <a-row :gutter="24">
                       <a-col :span="12">
                         <!-- Schema -->
-                        <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                        <a-form-item :label="$t('labels.schema')" v-bind="validateInfos['dataSource.connection.schema']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as SnowflakeConnection).schema"
                             class="nc-extdb-host-database"
@@ -841,7 +850,7 @@ watch(
                   <template v-else-if="formState.dataSource.client === ClientType.DATABRICKS">
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Token" v-bind="validateInfos['dataSource.connection.token']">
+                        <a-form-item :label="$t('labels.token')" v-bind="validateInfos['dataSource.connection.token']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).token"
                             class="nc-extdb-host-token"
@@ -867,7 +876,7 @@ watch(
                         </a-form-item>
                       </a-col>
                       <a-col :span="12">
-                        <a-form-item label="Database" v-bind="validateInfos['dataSource.connection.database']">
+                        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).database"
                             :placeholder="`${$t('labels.database')} ${$t('general.name').toLowerCase()}`"
@@ -878,7 +887,7 @@ watch(
                     </a-row>
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                        <a-form-item :label="$t('labels.schema')" v-bind="validateInfos['dataSource.connection.schema']">
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).schema"
                             class="nc-extdb-host-schema"
@@ -976,10 +985,12 @@ watch(
                           <div class="flex flex-col gap-3">
                             <div v-for="(item, index) of formState.extraParameters" :key="index">
                               <a-row :gutter="24">
-                                <a-col :span="12"><a-input v-model:value="item.key" placeholder="Key" /> </a-col>
+                                <a-col :span="12"
+                                  ><a-input v-model:value="item.key" :placeholder="$t('placeholder.key')" />
+                                </a-col>
                                 <a-col :span="12">
                                   <div class="flex gap-2">
-                                    <a-input v-model:value="item.value" placeholder="Value" />
+                                    <a-input v-model:value="item.value" :placeholder="$t('placeholder.value')" />
 
                                     <NcButton type="text" size="small" @click="removeParam(index)">
                                       <GeneralIcon icon="delete" class="flex-none text-gray-500" />
@@ -1202,7 +1213,7 @@ watch(
                     </template>
 
                     <div class="flex flex-col gap-2">
-                      <div>Edit Connection JSON</div>
+                      <div>{{ $t('activity.editConnJson') }}</div>
                       <div class="border-1 border-nc-border-gray-medium !rounded-lg shadow-sm overflow-hidden">
                         <Suspense>
                           <template #default>

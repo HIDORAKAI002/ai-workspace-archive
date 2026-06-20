@@ -295,24 +295,25 @@ export class UserGeneralHandler extends GenericFieldHandler {
     });
     const users = baseUsers.filter((user) => {
       const filterVal = val.toLowerCase();
+      const displayValue = (
+        user.display_name ||
+        user.email ||
+        ''
+      ).toLowerCase();
 
       if (filterVal.startsWith('%') && filterVal.endsWith('%')) {
-        return (user.display_name || user.email)
-          .toLowerCase()
-          .includes(filterVal.substring(1, filterVal.length - 1));
+        return displayValue.includes(
+          filterVal.substring(1, filterVal.length - 1),
+        );
       } else if (filterVal.startsWith('%')) {
-        return (user.display_name || user.email)
-          .toLowerCase()
-          .endsWith(filterVal.substring(1));
+        return displayValue.endsWith(filterVal.substring(1));
       } else if (filterVal.endsWith('%')) {
-        return (user.display_name || user.email)
-          .toLowerCase()
-          .startsWith(filterVal.substring(0, filterVal.length - 1));
+        return displayValue.startsWith(
+          filterVal.substring(0, filterVal.length - 1),
+        );
       }
 
-      return (user.display_name || user.email)
-        .toLowerCase()
-        .includes(filterVal.toLowerCase());
+      return displayValue.includes(filterVal.toLowerCase());
     });
 
     const finalStatement = await this.buildDisplayNameExpression(

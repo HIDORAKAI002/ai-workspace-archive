@@ -1,5 +1,5 @@
 import RowColorCondition from 'src/models/RowColorCondition';
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   comparisonOpList,
@@ -28,7 +28,6 @@ export class FiltersService {
   protected readonly logger = new Logger(FiltersService.name);
   constructor(
     protected readonly appHooksService: AppHooksService,
-    @Inject(forwardRef(() => MetaDependencyEventHandler))
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {}
 
@@ -103,7 +102,7 @@ export class FiltersService {
     const filter = await Filter.get(context, param.filterId);
 
     if (!filter) {
-      NcError.badRequest('Filter not found');
+      NcError.get(context).filterNotFound(param.filterId);
     }
 
     const parentData = await filter.extractRelatedParentMetas(context);
@@ -270,6 +269,10 @@ export class FiltersService {
 
     const filter = await Filter.get(context, param.filterId, ncMeta);
 
+    if (!filter) {
+      NcError.get(context).filterNotFound(param.filterId);
+    }
+
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
       const view = await View.get(context, filter.fk_view_id, false, ncMeta);
@@ -301,9 +304,6 @@ export class FiltersService {
       ).forUpdate();
     }
 
-    if (!filter) {
-      NcError.badRequest('Filter not found');
-    }
     // todo: type correction
     const res = await Filter.update(
       context,

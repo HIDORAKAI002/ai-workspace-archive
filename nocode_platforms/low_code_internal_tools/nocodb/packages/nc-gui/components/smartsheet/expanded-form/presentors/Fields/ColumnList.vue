@@ -151,7 +151,7 @@ const showCol = (col: ColumnType) => {
   const baseVisible = props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
   if (!baseVisible) return false
   if (!fieldMatchesSearch(col, props.searchQuery ?? '', _row.value?.row)) return false
-  if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title])) return false
+  if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title], col)) return false
   return true
 }
 
@@ -159,8 +159,15 @@ const revertLocalOnlyChanges = (col: string) => {
   if (localOnlyChanges.value[col]) {
     _row.value.row[col] = localOnlyChanges.value[col]
     changedColumns.value.delete(col)
+    triggerRef(changedColumns)
     delete localOnlyChanges.value[col]
   }
+}
+
+function onCellValueChange(colTitle: string | undefined) {
+  if (!colTitle) return
+  changedColumns.value.add(colTitle)
+  triggerRef(changedColumns)
 }
 </script>
 
@@ -289,7 +296,7 @@ const revertLocalOnlyChanges = (col: string) => {
                     : readOnly || !isAllowed || showReadonlyColumnTooltip(col) || isSyncedColumn(col)
                 "
                 :is-allowed="isAllowed"
-                @update:model-value="changedColumns.add(col.title)"
+                @update:model-value="() => onCellValueChange(col.title)"
               />
             </SmartsheetDivDataCell>
           </template>

@@ -2834,9 +2834,14 @@ class PGClient extends KnexClient {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop tn *************** */
+      // IF EXISTS keeps the drop idempotent — a table already gone (out-of-band
+      // drop or a prior partial cleanup) must not abort, otherwise trash-cleanup
+      // retries loop forever on the missing table.
       await this.sqlClient.raw(
         this.sqlClient.schema
-          .dropTable(args.schema ? `${args.schema}.${args.tn}` : args.tn)
+          .dropTableIfExists(
+            args.schema ? `${args.schema}.${args.tn}` : args.tn,
+          )
           .toQuery(),
       );
 
@@ -3110,8 +3115,12 @@ class PGClient extends KnexClient {
     const shouldSanitize = true;
     const tableName = n.tn;
     let query = existingQuery ? ',' : '';
+    // IF EXISTS makes the drop idempotent — a column already removed out-of-band
+    // (manual ALTER, prior partial cleanup, or never physically created) must
+    // not abort the statement. Mirrors the `drop constraint IF EXISTS` above and
+    // unblocks trash-cleanup retries that loop forever on a missing column.
     query += this.genQuery(
-      `ALTER TABLE ?? DROP COLUMN ??`,
+      `ALTER TABLE ?? DROP COLUMN IF EXISTS ??`,
       [tableName, n.cn],
       shouldSanitize,
     );

@@ -35,9 +35,10 @@ const { isUIAllowed } = useRoles()
 const meta = inject(MetaInj, ref())
 
 const maxVisibleDays = computed(() => {
-  // Weekend-hiding is only honoured for the calendar month layout — multi-week
-  // ranges always render the full 7-day grid so weeks line up with the anchor.
-  return viewMetaProperties.value?.hide_weekend && !isMultiWeekRange.value ? 5 : 7
+  // Hide weekends → 5 columns; honoured for the month layout AND the multi-week
+  // (2/6-week) ranges. Each row is still a full week, so the Mon-Fri columns line
+  // up across rows.
+  return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
 const days = computed(() => {
@@ -59,6 +60,54 @@ const days = computed(() => {
 const calendarGridContainer = ref()
 
 const { width: gridContainerWidth, height: gridContainerHeight } = useElementSize(calendarGridContainer)
+
+// --- Collapsed-weekend column model -----------------------------------------
+// When collapse_weekend is on (and weekends aren't hidden), Sat & Sun render in
+// narrower columns. All event positioning here is px-based, so instead of a
+// uniform per-column width we expose a per-column width/offset model. When not
+// collapsed these helpers return the original uniform values, so the show /
+// hide-weekend layouts are unchanged.
+const WEEKEND_COLLAPSE_RATIO = 0.5
+
+const isWeekendCollapsed = computed(() => !!viewMetaProperties.value?.collapse_weekend && maxVisibleDays.value === 7)
+
+// Column weights in render order (Mon-first or Sun-first). Weekend columns shrink
+// to WEEKEND_COLLAPSE_RATIO only while collapsed; otherwise every column is equal.
+const columnWeights = computed<number[]>(() => {
+  const weekendCols = isMondayFirst.value ? [5, 6] : [0, 6]
+  return Array.from({ length: 7 }, (_, i) => (isWeekendCollapsed.value && weekendCols.includes(i) ? WEEKEND_COLLAPSE_RATIO : 1))
+})
+
+const totalColumnWeight = computed(() => columnWeights.value.reduce((sum, w) => sum + w, 0))
+
+const columnWidth = (index: number) => {
+  if (!isWeekendCollapsed.value) return gridContainerWidth.value / maxVisibleDays.value
+  return (gridContainerWidth.value * columnWeights.value[index]) / totalColumnWeight.value
+}
+
+const columnOffset = (index: number) => {
+  if (!isWeekendCollapsed.value) return index * (gridContainerWidth.value / maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < index; i++) offset += columnWidth(i)
+  return offset
+}
+
+// Map a horizontal pixel position (within the grid) to a column index (0-6).
+const columnFromX = (x: number) => {
+  if (!isWeekendCollapsed.value) return Math.floor((x / gridContainerWidth.value) * maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < 7; i++) {
+    offset += columnWidth(i)
+    if (x < offset) return i
+  }
+  return 6
+}
+
+// grid-template-columns string for the collapsed layout (header + week rows);
+// undefined when not collapsed so the grid-cols-* utility class takes over.
+const gridTemplateColumns = computed(() =>
+  isWeekendCollapsed.value ? columnWeights.value.map((w) => `${w}fr`).join(' ') : undefined,
+)
 
 const dragElement = ref<HTMLElement | null>(null)
 
@@ -153,7 +202,6 @@ const recordsToDisplay = computed<{
 }>(() => {
   if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
 
-  const perWidth = gridContainerWidth.value / maxVisibleDays.value
   const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
   const perRecordHeight = 28
 
@@ -264,8 +312,8 @@ const recordsToDisplay = computed<{
         const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
 
         const style: Partial<CSSStyleDeclaration> = {
-          left: `${dayIndex * perWidth}px`,
-          width: `${perWidth}px`,
+          left: `${columnOffset(dayIndex)}px`,
+          width: `${columnWidth(dayIndex)}px`,
           top: isRecordDraggingOrResizeState
             ? `${weekIndex * perHeight}px`
             : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
@@ -374,8 +422,8 @@ const recordsToDisplay = computed<{
           const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
 
           const style: Partial<CSSStyleDeclaration> = {
-            left: `${startDayIndex * perWidth - 0.5}px`,
-            width: `${(endDayIndex - startDayIndex + 1) * perWidth}px`,
+            left: `${columnOffset(startDayIndex) - 0.5}px`,
+            width: `${columnOffset(endDayIndex) + columnWidth(endDayIndex) - columnOffset(startDayIndex)}px`,
             top: isRecordDraggingOrResizeState
               ? `${weekIndex * perHeight + perRecordHeight}px`
               : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
@@ -460,7 +508,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   if (!fromCol) return { newRow: null, updateProperty: [] }
 
   const week = Math.floor(percentY * calendarData.value.weeks.length)
-  const day = Math.floor(percentX * maxVisibleDays.value)
+  const day = columnFromX(percentX * gridContainerWidth.value)
 
   let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day]?.date : null
 
@@ -560,7 +608,7 @@ const onResize = (event: MouseEvent) => {
   const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
 
   const week = Math.floor(percentY * calendarData.value.weeks.length)
-  const day = Math.floor(percentX * maxVisibleDays.value)
+  const day = columnFromX(percentX * gridContainerWidth.value)
 
   let updateProperty: string[] = []
   let newRow: Row
@@ -770,7 +818,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
   if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
-  const fromCol = calendarRange.value[0].fk_from_col
+  const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
     row: {
@@ -804,6 +852,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
         'grid-cols-7': maxVisibleDays === 7,
         'grid-cols-5': maxVisibleDays === 5,
       }"
+      :style="gridTemplateColumns ? { gridTemplateColumns } : undefined"
     >
       <div
         v-for="(day, index) in days"
@@ -829,6 +878,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
         v-for="week in calendarData.weeks"
         :key="week.weekIndex"
         :class="calendarData.gridClass"
+        :style="gridTemplateColumns ? { gridTemplateColumns } : undefined"
         data-testid="nc-calendar-month-week"
       >
         <template v-for="(day, i) in week.days">

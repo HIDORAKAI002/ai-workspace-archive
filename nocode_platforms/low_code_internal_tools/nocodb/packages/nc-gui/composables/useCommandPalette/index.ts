@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { homeCommands } from './commands'
+import { getHomeCommands } from './commands'
 
 interface CmdAction {
   id: string
@@ -64,7 +64,7 @@ export const useCommandPalette = createSharedComposable(() => {
   )
 
   const commands = ref({
-    homeCommands,
+    homeCommands: getHomeCommands(),
     baseCommands: [],
   } as Record<string, CmdAction[]>)
 

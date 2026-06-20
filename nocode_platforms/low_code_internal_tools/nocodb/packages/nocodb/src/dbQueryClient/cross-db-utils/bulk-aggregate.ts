@@ -69,12 +69,10 @@ export const bulkAggregate =
     // a 400 instead of being silently dropped (which would run the aggregation
     // unfiltered). Keyed by the bucket's unique alias for reuse in the loop.
     const parsedFilterArrJsonByAlias = new Map(
-      (bulkFilterList ?? []).map(
-        (f): [string, Filter[] | undefined] => [
-          f.alias,
-          parseBulkFilterArrJson(context, f.filterArrJson, f.alias),
-        ],
-      ),
+      (bulkFilterList ?? []).map((f): [string, Filter[] | undefined] => [
+        f.alias,
+        parseBulkFilterArrJson(context, f.filterArrJson, f.alias),
+      ]),
     );
 
     try {

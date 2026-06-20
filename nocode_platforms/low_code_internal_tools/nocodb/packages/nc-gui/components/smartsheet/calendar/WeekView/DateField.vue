@@ -76,6 +76,46 @@ const weekDates = computed(() => {
   return datesArray
 })
 
+// --- Collapsed-weekend column model -----------------------------------------
+// When collapse_weekend is on (week mode → 7 columns), Sat & Sun render in
+// narrower columns. Record positioning is px-based, so expose per-column
+// width/offset helpers; when not collapsed they return the uniform values, so
+// show / hide are unchanged.
+const WEEKEND_COLLAPSE_RATIO = 0.5
+
+const isWeekendCollapsed = computed(() => !!viewMetaProperties.value?.collapse_weekend && maxVisibleDays.value === 7)
+
+const columnWeights = computed<number[]>(() =>
+  weekDates.value.map((d) => (isWeekendCollapsed.value && (d.day() === 0 || d.day() === 6) ? WEEKEND_COLLAPSE_RATIO : 1)),
+)
+
+const totalColumnWeight = computed(() => columnWeights.value.reduce((sum, w) => sum + w, 0))
+
+const columnWidthPx = (index: number) => {
+  if (!isWeekendCollapsed.value) return containerWidth.value / maxVisibleDays.value
+  return (containerWidth.value * columnWeights.value[index]) / totalColumnWeight.value
+}
+
+const columnOffsetPx = (index: number) => {
+  if (!isWeekendCollapsed.value) return index * (containerWidth.value / maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < index; i++) offset += columnWidthPx(i)
+  return offset
+}
+
+const columnFromX = (x: number) => {
+  if (!isWeekendCollapsed.value) return Math.floor((x / containerWidth.value) * maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < weekDates.value.length; i++) {
+    offset += columnWidthPx(i)
+    if (x < offset) return i
+  }
+  return weekDates.value.length - 1
+}
+
+// Flex column width (%) for the day headers and day columns.
+const columnWidthPct = (index: number) => `${(columnWeights.value[index] / totalColumnWeight.value) * 100}%`
+
 // This function is used to find the first suitable row for a record
 // It takes the recordsInDay object, the start day index and the span of the record in days
 // It returns the first suitable row for the entire span of the record
@@ -117,7 +157,6 @@ const calendarData = computed(() => {
 
   const recordsInDay = Array.from({ length: maxVisibleDays.value }, () => ({})) as Record<number, Record<number, boolean>>
   const recordsInRange = [] as Row[]
-  const perDayWidth = containerWidth.value / maxVisibleDays.value
 
   calendarRange.value.forEach(({ fk_from_col, fk_to_col }) => {
     if (!fk_from_col) return
@@ -174,8 +213,13 @@ const calendarData = computed(() => {
           id,
           spanningDays: Math.abs(ogStartDate.diff(endDate, 'day')) - Math.abs(startDate.diff(endDate, 'day')),
           style: {
-            width: `calc(max(${spanDays * perDayWidth + 0.5}px, ${perDayWidth + 0.5}px))`,
-            left: `${startDaysDiff * perDayWidth - 1}px`,
+            width: `calc(max(${
+              columnOffsetPx(startDaysDiff + spanDays - 1) +
+              columnWidthPx(startDaysDiff + spanDays - 1) -
+              columnOffsetPx(startDaysDiff) +
+              0.5
+            }px, ${columnWidthPx(startDaysDiff) + 0.5}px))`,
+            left: `${columnOffsetPx(startDaysDiff) - 1}px`,
             top: `${suitableRow * 28 + Math.max(suitableRow + 1, 1) * 8}px`,
           },
         },
@@ -243,7 +287,7 @@ const onResize = (event: MouseEvent) => {
   const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
   const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
 
-  const day = Math.floor(percentX * maxVisibleDays.value)
+  const day = columnFromX(percentX * containerWidth.value)
 
   let updateProperty: string[] = []
   let updateRecord: Row
@@ -340,7 +384,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   // the record's leading span so a multi-day record's start lands correctly.
   // Using the cursor's own column — rather than subtracting the whole-grid
   // fraction — keeps the last column reachable for any column count (3-day / week).
-  const cursorDay = Math.max(0, Math.min(maxVisibleDays.value - 1, Math.floor(percentX * maxVisibleDays.value)))
+  const cursorDay = Math.max(0, Math.min(maxVisibleDays.value - 1, columnFromX(percentX * containerWidth.value)))
   const day = cursorDay - dragRecord.value.rowMeta.spanningDays
 
   // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
@@ -531,8 +575,10 @@ const selectDate = (day: dayjs.Dayjs) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value || !isSyncedTable.value) return
-  const fromCol = calendarRange.value[0].fk_from_col
+  // Records can't be added to synced (read-only) tables — return if synced.
+  // (This guard was inverted; the sibling MonthView/DateTimeView use the same check.)
+  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
+  const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
     row: {
@@ -551,11 +597,9 @@ const addRecord = (date: dayjs.Dayjs) => {
         :key="weekIndex"
         :class="{
           'selected-date-header': dayjs(date).isSame(selectedDate, 'day'),
-          'w-1/3': maxVisibleDays === 3,
-          'w-1/5': maxVisibleDays === 5,
-          'w-1/7': maxVisibleDays === 7,
         }"
-        class="cursor-pointer text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted w-full py-1 border-nc-border-gray-medium border-l-nc-border-gray-extralight border-t-nc-border-gray-extralight last:border-r-0 border-b-1 border-r-1 bg-nc-bg-gray-extralight"
+        :style="{ width: columnWidthPct(weekIndex) }"
+        class="cursor-pointer text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted py-1 border-nc-border-gray-medium border-l-nc-border-gray-extralight border-t-nc-border-gray-extralight last:border-r-0 border-b-1 border-r-1 bg-nc-bg-gray-extralight"
         @click="selectDate(date)"
         @dblclick="addRecord(date)"
       >
@@ -569,10 +613,8 @@ const addRecord = (date: dayjs.Dayjs) => {
         :class="{
           'selected-date': dayjs(date).isSame(selectedDate, 'day'),
           '!bg-nc-bg-gray-extralight': date.get('day') === 0 || date.get('day') === 6,
-          'w-1/3': maxVisibleDays === 3,
-          'w-1/5': maxVisibleDays === 5,
-          'w-1/7': maxVisibleDays === 7,
         }"
+        :style="{ width: columnWidthPct(dateIndex) }"
         class="flex cursor-pointer flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center"
         data-testid="nc-calendar-week-day"
         @click="selectDate(date)"

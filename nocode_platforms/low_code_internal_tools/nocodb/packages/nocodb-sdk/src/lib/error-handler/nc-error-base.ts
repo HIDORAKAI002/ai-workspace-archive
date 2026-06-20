@@ -190,6 +190,13 @@ export class NcErrorBase {
     });
   }
 
+  filterNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_FILTER_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   hookNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_HOOK_NOT_FOUND, {
       params: id,
@@ -447,6 +454,13 @@ export class NcErrorBase {
 
   integrationNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_INTEGRATION_NOT_FOUND, {
+      params: id,
+      ...(args || {}),
+    });
+  }
+
+  syncConfigNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SYNC_CONFIG_NOT_FOUND, {
       params: id,
       ...(args || {}),
     });

@@ -50,6 +50,13 @@ export const SYNC_SYSTEM_COLUMN_TITLES: string[] = [
   'SyncProvider',
 ];
 
+export interface SyncMappingType {
+  id: string;
+  fk_sync_config_id: string;
+  fk_model_id: string;
+  target_table: string | null;
+}
+
 export interface SyncConfig {
   id: string;
   title: string;
@@ -70,6 +77,8 @@ export interface SyncConfig {
 
   on_delete_action: OnDeleteAction;
 
+  deleted?: boolean;
+
   fk_workspace_id: string;
   base_id: string;
 
@@ -79,6 +88,10 @@ export interface SyncConfig {
   updated_by: string;
 
   children?: SyncConfig[];
+
+  /** Table mappings of the (root) sync config — populated by `listSync`. */
+  mappings?: SyncMappingType[];
+
   /**
    * JSON meta information for the sync config
    */

@@ -1,6 +1,7 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { FormDefinition, IntegrationType, PaginatedType } from 'nocodb-sdk'
 import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
 import type { IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
 
@@ -60,7 +61,7 @@ function getStaticInitializor(type: IntegrationsSubType) {
       return {
         ...genericValues,
         type: integrationType.SQLServer,
-        title: 'SQL Server',
+        title: getI18n().global.t('objects.syncData.mssql'),
         logo: h(GeneralBaseLogo, {
           'source-type': 'mssql',
           'class': 'logo',

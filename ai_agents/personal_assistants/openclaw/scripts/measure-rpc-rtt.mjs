@@ -327,6 +327,14 @@ function signalGatewayProcessForParentExit(child, signal, killProcess) {
   }
 }
 
+function gatewayProcessAliveForParentExit(child, killProcess) {
+  try {
+    return isGatewayProcessAlive(child, killProcess);
+  } catch {
+    return true;
+  }
+}
+
 /**
  * Installs parent-process cleanup handlers for a spawned gateway.
  */
@@ -335,16 +343,38 @@ export function installGatewayParentCleanup(
   { killProcess = defaultKillProcess, processLike = process } = {},
 ) {
   const signalHandlers = new Map();
-  const cleanup = (signal) => {
+  let forceKillTimer;
+  let parentSignalPending = false;
+  const forceCleanup = (signal) => {
     signalGatewayProcessForParentExit(child, signal, killProcess);
     if (process.platform !== "win32") {
       signalGatewayProcessForParentExit(child, "SIGKILL", killProcess);
     }
   };
+  const cleanupAndReraise = (signal) => {
+    parentSignalPending = true;
+    signalGatewayProcessForParentExit(child, signal, killProcess);
+    const finish = () => {
+      forceKillTimer = undefined;
+      signalGatewayProcessForParentExit(child, "SIGKILL", killProcess);
+      processLike.kill?.(processLike.pid, signal);
+    };
+    // Signal handlers can give the detached gateway group one normal teardown
+    // grace window before re-raising; process exit cleanup cannot wait.
+    if (process.platform === "win32" || !gatewayProcessAliveForParentExit(child, killProcess)) {
+      processLike.kill?.(processLike.pid, signal);
+      return;
+    }
+    forceKillTimer = setTimeout(finish, GATEWAY_FORCE_KILL_GRACE_MS);
+  };
   const exitHandler = () => {
-    cleanup("SIGTERM");
+    forceCleanup("SIGTERM");
   };
   const removeHandlers = () => {
+    if (!parentSignalPending && forceKillTimer) {
+      clearTimeout(forceKillTimer);
+      forceKillTimer = undefined;
+    }
     processLike.off?.("exit", exitHandler);
     for (const [signal, handler] of signalHandlers) {
       processLike.off?.(signal, handler);
@@ -354,9 +384,8 @@ export function installGatewayParentCleanup(
   processLike.once("exit", exitHandler);
   for (const signal of PARENT_TERMINATION_SIGNALS) {
     const handler = () => {
-      cleanup(signal);
       removeHandlers();
-      processLike.kill?.(processLike.pid, signal);
+      cleanupAndReraise(signal);
     };
     signalHandlers.set(signal, handler);
     processLike.once(signal, handler);
@@ -720,18 +749,19 @@ export function createGatewayClient({ WebSocket, openTimeoutMs = 8_000, url }) {
         reject(new Error(`timeout waiting for ${method}`));
       }, timeoutMs);
       pending.set(id, { resolve, reject, timeout });
-      ws.send(JSON.stringify({ type: "req", id, method, params }), (error) => {
+      const rejectSendFailure = (error) => {
         if (!error) {
           return;
         }
-        const waiter = pending.get(id);
-        if (!waiter) {
-          return;
-        }
         pending.delete(id);
-        clearTimeout(waiter.timeout);
-        waiter.reject(error instanceof Error ? error : new Error(String(error)));
-      });
+        clearTimeout(timeout);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      };
+      try {
+        ws.send(JSON.stringify({ type: "req", id, method, params }), rejectSendFailure);
+      } catch (error) {
+        rejectSendFailure(error);
+      }
     });
   const close = () => {
     rejectPending(new Error("gateway websocket client closed"));

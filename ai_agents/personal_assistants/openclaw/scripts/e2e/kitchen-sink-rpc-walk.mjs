@@ -325,6 +325,7 @@ export function runCommand(command, args, options = {}) {
     let stderr = { text: "", truncatedChars: 0 };
     let timedOut = false;
     let forceKillTimer;
+    let forceKillAt;
     let sampleTimer;
     let resourceSampleInFlight = null;
     let capturedResourceSampleCount = 0;
@@ -378,6 +379,7 @@ export function runCommand(command, args, options = {}) {
     const timer = setTimeout(() => {
       timedOut = true;
       signalProcessGroup(child, "SIGTERM");
+      forceKillAt = Date.now() + timeoutKillGraceMs;
       forceKillTimer = setTimeout(() => signalProcessGroup(child, "SIGKILL"), timeoutKillGraceMs);
       forceKillTimer.unref();
     }, timeoutMs);
@@ -390,6 +392,7 @@ export function runCommand(command, args, options = {}) {
     child.on("error", (error) => {
       clearTimeout(timer);
       clearTimeout(forceKillTimer);
+      forceKillAt = undefined;
       void stopResourceSampling().finally(() =>
         reject(toLintErrorObject(error, "Command failed before exit")),
       );
@@ -398,6 +401,7 @@ export function runCommand(command, args, options = {}) {
       clearTimeout(timer);
       const finish = () => {
         clearTimeout(forceKillTimer);
+        forceKillAt = undefined;
         void stopResourceSampling().then((resourceSampleFailure) => {
           if (!timedOut && status === 0) {
             if (resourceSampleFailure) {
@@ -439,7 +443,10 @@ export function runCommand(command, args, options = {}) {
       };
 
       if (timedOut) {
-        void finishTimedOutCommandProcessTree(child, timeoutKillGraceMs).then(finish, finish);
+        void finishTimedOutCommandProcessTree(child, {
+          forceKillAt,
+          timeoutKillGraceMs,
+        }).then(finish, finish);
         return;
       }
 
@@ -448,11 +455,18 @@ export function runCommand(command, args, options = {}) {
   });
 }
 
-async function finishTimedOutCommandProcessTree(child, timeoutKillGraceMs) {
+async function finishTimedOutCommandProcessTree(child, { forceKillAt, timeoutKillGraceMs }) {
   if (!commandProcessTreeIsAlive(child)) {
     return;
   }
-  signalProcessGroup(child, "SIGKILL");
+  const graceRemainingMs =
+    forceKillAt === undefined ? timeoutKillGraceMs : Math.max(0, forceKillAt - Date.now());
+  if (graceRemainingMs > 0) {
+    await waitForCommandProcessTreeExit(child, graceRemainingMs);
+  }
+  if (commandProcessTreeIsAlive(child)) {
+    signalProcessGroup(child, "SIGKILL");
+  }
   await waitForCommandProcessTreeExit(child, timeoutKillGraceMs);
 }
 
