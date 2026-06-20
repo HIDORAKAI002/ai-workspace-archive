@@ -85,6 +85,15 @@ export function shouldPrintHelp(argv) {
   return argv.some((arg) => arg === "--help" || arg === "-h");
 }
 
+export function validateCliArgs(argv) {
+  for (const arg of argv) {
+    if (arg === "--help" || arg === "-h") {
+      continue;
+    }
+    throw new Error(`Unknown argument: ${arg}`);
+  }
+}
+
 export function readPositiveInt(raw, fallback, label = "value") {
   const text = String(raw || "").trim();
   if (!text) {
@@ -554,7 +563,10 @@ export function parseGatewayCliRequestFailure(error) {
   } catch {
     return null;
   }
-  const requestError = payload?.ok === false ? payload.error : null;
+  return payload?.ok === false ? createGatewayClientRequestError(payload.error) : null;
+}
+
+export function createGatewayClientRequestError(requestError) {
   if (
     requestError?.type !== "gateway_request_error" ||
     !isNonEmptyString(requestError.code) ||
@@ -703,6 +715,10 @@ function hasOwnPayloadField(raw, field) {
 
 export function unwrapRpcPayload(raw) {
   if (raw?.ok === false) {
+    const requestError = createGatewayClientRequestError(raw.error);
+    if (requestError) {
+      throw requestError;
+    }
     throw new Error(`gateway RPC failed: ${boundedJsonPreview(raw.error ?? raw)}`);
   }
   if (
@@ -996,25 +1012,31 @@ export async function readBoundedResponseText(response, byteLimit, timeoutPromis
   }
   const chunks = [];
   let totalBytes = 0;
-  for (;;) {
-    const read = reader.read();
-    const { done, value } = await withOptionalTimeout(
-      read,
-      timeoutPromise?.catch((error) => {
-        cancelReaderSoon(reader);
-        throw error;
-      }),
-    );
-    if (done) {
-      break;
+  try {
+    for (;;) {
+      const read = reader.read();
+      const { done, value } = await withOptionalTimeout(
+        read,
+        timeoutPromise?.catch((error) => {
+          cancelReaderSoon(reader);
+          throw error;
+        }),
+      );
+      if (done) {
+        break;
+      }
+      const chunk = Buffer.from(value);
+      totalBytes += chunk.byteLength;
+      if (totalBytes > resolvedByteLimit) {
+        await reader.cancel().catch(() => undefined);
+        throw createFetchBodyTooLargeError(resolvedByteLimit);
+      }
+      chunks.push(chunk);
     }
-    const chunk = Buffer.from(value);
-    totalBytes += chunk.byteLength;
-    if (totalBytes > resolvedByteLimit) {
-      await reader.cancel().catch(() => undefined);
-      throw createFetchBodyTooLargeError(resolvedByteLimit);
-    }
-    chunks.push(chunk);
+  } finally {
+    try {
+      reader.releaseLock?.();
+    } catch {}
   }
   return Buffer.concat(chunks, totalBytes).toString("utf8");
 }
@@ -2591,9 +2613,16 @@ export async function main() {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  if (shouldPrintHelp(process.argv.slice(2))) {
+  const argv = process.argv.slice(2);
+  if (shouldPrintHelp(argv)) {
     process.stdout.write(usage());
   } else {
+    try {
+      validateCliArgs(argv);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
     await main();
   }
 }
