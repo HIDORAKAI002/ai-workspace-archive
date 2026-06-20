@@ -461,8 +461,7 @@ table ai_models {
   updated_at "timestamp with time zone" [not null, default: `now()`]
 
   indexes {
-    (id, provider_id, user_id) [name: 'ai_models_id_provider_id_user_id_unique', unique]
-    (id, provider_id, user_id, workspace_id) [name: 'ai_models_id_provider_id_user_id_workspace_id_unique', unique]
+    (id, provider_id, user_id) [pk]
     user_id [name: 'ai_models_user_id_idx']
     workspace_id [name: 'ai_models_workspace_id_idx']
   }
@@ -489,8 +488,7 @@ table ai_providers {
   updated_at "timestamp with time zone" [not null, default: `now()`]
 
   indexes {
-    (id, user_id) [name: 'ai_providers_id_user_id_unique', unique]
-    (id, user_id, workspace_id) [name: 'ai_providers_id_user_id_workspace_id_unique', unique]
+    (id, user_id) [pk]
     user_id [name: 'ai_providers_user_id_idx']
     workspace_id [name: 'ai_providers_workspace_id_idx']
   }
@@ -2451,7 +2449,8 @@ table user_memory_persona_documents {
 
 table verify_check_results {
   id uuid [pk, not null, default: `gen_random_uuid()`]
-  operation_id text [not null]
+  verify_run_id uuid
+  operation_id text
   user_id text [not null]
   workspace_id text
   check_item_id text [not null]
@@ -2476,9 +2475,10 @@ table verify_check_results {
   created_at "timestamp with time zone" [not null, default: `now()`]
 
   indexes {
+    verify_run_id [name: 'verify_check_results_verify_run_id_idx']
     operation_id [name: 'verify_check_results_operation_id_idx']
     user_id [name: 'verify_check_results_user_id_idx']
-    (operation_id, check_item_id) [name: 'verify_check_results_operation_id_check_item_id_unique', unique]
+    (verify_run_id, check_item_id) [name: 'verify_check_results_verify_run_id_check_item_id_unique', unique]
     verifier_type [name: 'verify_check_results_verifier_type_idx']
     verifier_operation_id [name: 'verify_check_results_verifier_operation_id_idx']
     verifier_tracing_id [name: 'verify_check_results_verifier_tracing_id_idx']
@@ -2512,6 +2512,54 @@ table verify_criteria {
   }
 }
 
+table verify_evidence {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  description text
+  check_result_id uuid [not null]
+  type text [not null]
+  content text
+  file_id text
+  captured_by text
+  captured_at "timestamp with time zone"
+  user_id text [not null]
+  workspace_id text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    check_result_id [name: 'verify_evidence_check_result_id_idx']
+    file_id [name: 'verify_evidence_file_id_idx']
+    user_id [name: 'verify_evidence_user_id_idx']
+    workspace_id [name: 'verify_evidence_workspace_id_idx']
+  }
+}
+
+table verify_reports {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  verify_run_id uuid
+  operation_id text
+  user_id text [not null]
+  workspace_id text
+  verdict text
+  overall_confidence "numeric(3, 2)"
+  total_checks integer
+  passed_checks integer
+  failed_checks integer
+  uncertain_checks integer
+  summary text
+  content text
+  reviewed_by_user boolean [default: false]
+  generated_by text [default: 'system']
+  generated_at "timestamp with time zone" [not null, default: `now()`]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    verify_run_id [name: 'verify_reports_verify_run_id_unique', unique]
+    operation_id [name: 'verify_reports_operation_id_idx']
+    user_id [name: 'verify_reports_user_id_idx']
+    workspace_id [name: 'verify_reports_workspace_id_idx']
+  }
+}
+
 table verify_rubric_criteria {
   rubric_id uuid [not null]
   criterion_id uuid [not null]
@@ -2542,6 +2590,29 @@ table verify_rubrics {
   indexes {
     user_id [name: 'verify_rubrics_user_id_idx']
     workspace_id [name: 'verify_rubrics_workspace_id_idx']
+  }
+}
+
+table verify_runs {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  user_id text [not null]
+  workspace_id text
+  operation_id text
+  source text [not null, default: 'agent']
+  title text
+  goal text
+  plan jsonb
+  plan_confirmed_at "timestamp with time zone"
+  status text
+  accessed_at "timestamp with time zone" [not null, default: `now()`]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    user_id [name: 'verify_runs_user_id_idx']
+    workspace_id [name: 'verify_runs_workspace_id_idx']
+    operation_id [name: 'verify_runs_operation_id_unique', unique]
+    source [name: 'verify_runs_source_idx']
   }
 }
 
