@@ -1229,8 +1229,8 @@
     "sqlMigrations": "Migrasi SQL.",
     "dbCredentials": "Kredensial basis data",
     "advancedParameters": "SSL & Parameter Lanjutan",
-    "headCreateProject": "Buat Proyek | Nocodb.",
-    "headLogin": "Masuk | Nocodb.",
+    "headCreateProject": "Buat Proyek | NocoDB.",
+    "headLogin": "Masuk | NocoDB.",
     "resetPassword": "Mereset password Anda",
     "teamAndSettings": "Tim & Pengaturan",
     "apiDocs": "Dokumen API",
@@ -3845,7 +3845,7 @@
       "staticRoleInfo": "Peran yang ditentukan sistem tidak dapat diedit",
       "exportZip": "Meta proyek ekspor ke file zip dan unduh.",
       "importZip": "Impor file meta zip file dan restart.",
-      "importText": "Impor proyek NOCODB dengan mengunggah file zip metadata",
+      "importText": "Impor proyek NocoDB dengan mengunggah file zip metadata",
       "metaNoChange": "Tidak ada perubahan yang diidentifikasi",
       "sqlMigration": "Migrasi skema akan dibuat secara otomatis. Buat tabel dan segarkan halaman ini.",
       "dbConnectionStatus": "Lingkungan divalidasi",
@@ -3856,7 +3856,7 @@
       },
       "sponsor": {
         "header": "Anda dapat membantu kami!",
-        "message": "Kami adalah tim kecil yang bekerja penuh waktu untuk membuat nocodb open-source. Kami percaya alat seperti NOCODB harus tersedia secara bebas ke setiap pemecah masalah di internet."
+        "message": "Kami adalah tim kecil yang bekerja penuh waktu untuk membuat nocodb fair-code. Kami percaya alat seperti NocoDB harus tersedia secara bebas ke setiap pemecah masalah di internet."
       },
       "loginMsg": "Masuk ke nocodb",
       "passwordRecovery": {

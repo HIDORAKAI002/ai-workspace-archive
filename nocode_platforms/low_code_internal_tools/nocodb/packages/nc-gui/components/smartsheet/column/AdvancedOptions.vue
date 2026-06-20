@@ -49,7 +49,7 @@ vModel.value.au = !!vModel.value.au */
 
         <a-form-item>
           <template #label>
-            <span title="Primary Key">PK</span>
+            <span :title="$t('labels.primaryKey')">PK</span>
           </template>
           <a-checkbox
             v-model:checked="vModel.pk"

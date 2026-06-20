@@ -121,6 +121,8 @@ const expandedFormStore = useProvideExpandedFormStore(meta as Ref<TableType>, ro
 const {
   commentsDrawer,
   changedColumns,
+  hasLtarChanges,
+  pendingLtarOps,
   displayValue,
   state: rowState,
   isNew,
@@ -138,6 +140,12 @@ const {
 } = expandedFormStore
 
 const { isSqlView } = useProvideSmartsheetStore(view as Ref<ViewType>, meta)
+
+// Buffered, not-yet-saved changes — scalar field edits OR deferred relational
+// (LTAR/Links) link/unlink. Drives the close / prev-next / row-switch discard
+// guards so deferred link changes aren't silently dropped (mirrors the modal
+// expanded form's `hasUnsavedChanges`).
+const hasUnsavedChanges = computed(() => changedColumns.value.size > 0 || hasLtarChanges.value)
 
 useProvideSmartsheetLtarHelpers(meta)
 
@@ -187,7 +195,7 @@ const isSaveDisabled = computed(() => {
   // a freshly duplicated row (`rowMeta.new` is set by MoreOptionsMenu's
   // duplicate handler — it replaces the row wholesale, so `changedColumns`
   // stays empty even though the form holds unsaved data).
-  return changedColumns.value.size === 0 && !isNew.value
+  return changedColumns.value.size === 0 && !isNew.value && !hasLtarChanges.value
 })
 
 const isInitialLoad = ref(true)
@@ -284,7 +292,7 @@ const runPending = () => {
 
 const onClose = () => {
   $e('c:row-expand-panel:close')
-  if (changedColumns.value.size > 0) {
+  if (hasUnsavedChanges.value) {
     pendingAction.value = null
     showDiscardModal.value = true
   } else {
@@ -294,7 +302,7 @@ const onClose = () => {
 
 const guardedNavigate = (direction: 'prev' | 'next') => {
   $e(`c:row-expand-panel:nav:${direction}`)
-  if (changedColumns.value.size > 0) {
+  if (hasUnsavedChanges.value) {
     pendingAction.value = direction === 'prev' ? navigatePrev : navigateNext
     showDiscardModal.value = true
     return
@@ -304,7 +312,7 @@ const guardedNavigate = (direction: 'prev' | 'next') => {
 }
 
 const guardedSwitch = (perform: () => void) => {
-  if (changedColumns.value.size > 0) {
+  if (hasUnsavedChanges.value) {
     pendingAction.value = perform
     showDiscardModal.value = true
     return
@@ -331,6 +339,13 @@ watch(showDiscardModal, (v) => {
 const discardAndNavigate = () => {
   $e('c:row-expand-panel:discard')
   clearColumns()
+  // Drop deferred link/unlink changes too, so a discarded edit doesn't leak into the
+  // next record or a re-open. New-row links live on rowMeta; existing-row edits in the
+  // pendingLtarOps queue (#14058).
+  if (_row.value?.rowMeta) {
+    _row.value.rowMeta.ltarState = {}
+  }
+  pendingLtarOps.value = []
   showDiscardModal.value = false
   runPending()
 }

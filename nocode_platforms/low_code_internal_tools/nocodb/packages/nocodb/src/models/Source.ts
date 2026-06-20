@@ -403,6 +403,15 @@ export default class Source implements SourceType {
       if (conn.options) coerceBool(conn.options, k);
     }
 
+    // tedious negotiates a 4 KB TDS packet by default, so large result sets
+    // fragment into many small packets. Request a bigger packet (SQL Server
+    // negotiates down if it can't honor it) so grid pages transfer in fewer
+    // round-trips. Only set a default — never override an explicit value.
+    conn.options = conn.options ?? {};
+    if (conn.options.packetSize == null && conn.packetSize == null) {
+      conn.options.packetSize = 16384;
+    }
+
     return config;
   }
 

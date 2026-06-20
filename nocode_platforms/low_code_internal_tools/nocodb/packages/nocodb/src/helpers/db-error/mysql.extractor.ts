@@ -172,6 +172,10 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
       case 'ER_TOO_MANY_ROWS':
         message = 'Query returned too many rows.';
         break;
+      case 'EACCES':
+        message = 'Connection to internal hosts is not allowed';
+        httpStatus = 403;
+        break;
       default:
         this.option.dbErrorLogger.error(
           `${error.code} is not handled on database mysql`,

@@ -4,6 +4,8 @@ import type { TableType } from 'nocodb-sdk'
 export const useMetas = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const { ncNavigateTo } = useGlobal()
 
   const { tables: _tables } = storeToRefs(useBase())
@@ -12,7 +14,7 @@ export const useMetas = createSharedComposable(() => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { baseTables } = storeToRefs(useTablesStore())
+  const { baseTables, activeTableId } = storeToRefs(useTablesStore())
 
   // keep a temporary state of deleted tables per base to avoid get api calls
   const deletedTableIdsByBase = new Map<string, Set<string>>()
@@ -153,9 +155,16 @@ export const useMetas = createSharedComposable(() => {
       const modelId =
         (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id || tableIdOrTitle
 
-      const model = await $api.internal.getOperation(activeWorkspaceId.value!, baseId, {
+      // Related-table metas (Links/Lookup fan-out — one tableGet per linked
+      // table on grid mount) coalesce into the batch envelope; the active
+      // table dispatches immediately so navigation latency is unchanged.
+      // `activeTableId` derives synchronously from the route param, so it is
+      // always current before a navigation-triggered fetch reaches here.
+      // tableGet stays OFF the SDK allowlist — this is a per-call opt-in.
+      const model = await internalGet(activeWorkspaceId.value!, baseId, {
         operation: 'tableGet',
         tableId: modelId,
+        _batch: modelId !== activeTableId.value,
       })
 
       // Ensure base_id is set on the model

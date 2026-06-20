@@ -767,7 +767,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
 });
 
 export const sortBuilder = builderGenerator<SortType>({
-  allowed: ['id', 'fk_column_id', 'direction'],
+  allowed: ['id', 'fk_column_id', 'direction', 'enabled'],
   mappings: {
     fk_column_id: 'field_id',
   },

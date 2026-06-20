@@ -217,7 +217,7 @@ const notificationTypes = computed(() => {
       ? [
           {
             type: 'Script',
-            label: 'Run Script',
+            label: t('labels.runScript'),
           },
         ]
       : []),
@@ -620,6 +620,15 @@ function onEventChange() {
   }
 }
 
+// The condition toggle (`hookRef.condition`) is driven purely by the user switch and the saved
+// hook state — it is NOT coupled to the filter editor's live `filters-length` emits. The editor
+// runs an async loadFilters() after mount that transiently reports 0 filters right after the user
+// enables the toggle / adds a filter; coupling `condition` to that count flipped the toggle back
+// off mid-interaction and tore down the filter UI — the root cause of flaky webhook.spec
+// "Conditional webhooks". Whether a hook is actually conditional is resolved from its filter set at
+// save time (see `effectiveCondition` in saveHooks), which also preserves the auto-clear when the
+// last filter is removed (webhook.spec deleteCondition).
+
 async function loadPluginList() {
   if (isEeUI) return
   try {
@@ -728,6 +737,18 @@ async function saveHooks() {
     bundledFilters = []
   }
 
+  // Resolve the persisted `condition` flag from the actual filter set rather than tracking it live
+  // off the editor (which raced with its async loadFilters and flipped the toggle off mid-edit —
+  // flaky webhook.spec "Conditional webhooks"). A hook triggers conditionally iff it actually has
+  // filters: when conditions aren't supported, or the toggle is on but no filters remain, persist
+  // condition=false (this is what webhook.spec deleteCondition relies on — removing the last filter
+  // makes the hook fire unconditionally again).
+  const effectiveCondition = !isConditionSupport.value
+    ? false
+    : bundledFilters !== undefined
+    ? bundledFilters.length > 0
+    : hookRef.condition
+
   const HOOK_API_FIELDS = [
     'title',
     'description',
@@ -762,6 +783,7 @@ async function saveHooks() {
         },
         {
           ...pickFields(hookRef, HOOK_API_FIELDS as unknown as readonly (keyof typeof hookRef)[]),
+          condition: effectiveCondition,
           title: hookRef.title?.trim(),
           operation: operations,
           notification: {
@@ -781,6 +803,7 @@ async function saveHooks() {
         },
         {
           ...pickFields(hookRef, HOOK_API_FIELDS as unknown as readonly (keyof typeof hookRef)[]),
+          condition: effectiveCondition,
           title: hookRef.title?.trim(),
           operation: operations,
           notification: {
@@ -812,7 +835,7 @@ async function saveHooks() {
 
     $e('a:webhook:add', {
       operation: hookRef.operation,
-      condition: hookRef.condition,
+      condition: effectiveCondition,
       notification: hookRef.notification.type,
     })
 
@@ -899,7 +922,7 @@ const supportedDocs: SupportedDocsType[] = [
     href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
   },
   {
-    title: 'Create webhook',
+    title: t('activity.createWebhook'),
     href: 'https://nocodb.com/docs/product-docs/automation/webhook',
   },
   {
@@ -998,8 +1021,16 @@ watch(
   () => props.hook,
   () => {
     if (props.hook) {
-      setHook(props.hook)
-      onEventChange()
+      // Only (re)initialise the editor when opening a *different* hook. Re-running setHook() for
+      // the same hook resets hookRef to the server state (condition=false, etc.) and clobbers the
+      // user's in-progress edits — this fires whenever the hooks list is replaced in the
+      // background (a realtime meta event or refetch hands a fresh object for the same id) and was
+      // a root cause of flaky webhook.spec failures where a just-enabled condition got reset
+      // mid-edit. The explicit "pull remote changes" path is handled by reloadFromRemote().
+      if (props.hook.id !== hookRef.id) {
+        setHook(props.hook)
+        onEventChange()
+      }
     } else {
       // Set the default hook title only when creating a new hook.
       hookRef.title = getDefaultHookName(hooks.value)
@@ -1466,7 +1497,6 @@ const webhookV2AndV3Diff = computed(() => {
                       :hook-id="hookRef.id"
                       :web-hook="true"
                       action-btn-type="secondary"
-                      @update:filters-length="hookRef.condition = $event > 0"
                     />
                   </div>
 

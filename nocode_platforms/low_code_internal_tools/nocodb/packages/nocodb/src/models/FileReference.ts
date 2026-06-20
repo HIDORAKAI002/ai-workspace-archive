@@ -169,9 +169,13 @@ export default class FileReference {
       return;
     }
 
-    const fileReferences = Array.isArray(fileReferenceId)
-      ? fileReferenceId
-      : [fileReferenceId];
+    const fileReferences = (
+      Array.isArray(fileReferenceId) ? fileReferenceId : [fileReferenceId]
+    ).filter((id): id is string => !!id);
+
+    if (fileReferences.length === 0) {
+      return;
+    }
 
     let fileReferencesSize = 0;
 
@@ -189,19 +193,12 @@ export default class FileReference {
     }
 
     if (fileReferences.length === 1) {
-      const fileReferenceObj = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILE_REFERENCES,
-        fileReferences[0],
-      );
-
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,
         MetaTable.FILE_REFERENCES,
         { deleted: true, soft_deleted: false },
-        fileReferenceObj.id,
+        fileReferences[0],
       );
     } else {
       await ncMeta.bulkMetaUpdate(
@@ -270,9 +267,13 @@ export default class FileReference {
       return;
     }
 
-    const fileReferences = Array.isArray(fileReferenceId)
-      ? fileReferenceId
-      : [fileReferenceId];
+    const fileReferences = (
+      Array.isArray(fileReferenceId) ? fileReferenceId : [fileReferenceId]
+    ).filter((id): id is string => !!id);
+
+    if (fileReferences.length === 0) {
+      return;
+    }
 
     let fileReferencesSize = 0;
 
@@ -316,9 +317,13 @@ export default class FileReference {
       return;
     }
 
-    const fileReferences = Array.isArray(fileReferenceId)
-      ? fileReferenceId
-      : [fileReferenceId];
+    const fileReferences = (
+      Array.isArray(fileReferenceId) ? fileReferenceId : [fileReferenceId]
+    ).filter((id): id is string => !!id);
+
+    if (fileReferences.length === 0) {
+      return;
+    }
 
     let fileReferencesSize = 0;
 

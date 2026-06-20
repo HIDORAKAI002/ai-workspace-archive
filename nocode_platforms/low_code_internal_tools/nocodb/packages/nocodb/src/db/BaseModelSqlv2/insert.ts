@@ -85,8 +85,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           // that strip (rare; left here defensively). Triggers always
           // require the OUTPUT-INTO pattern.
           const aiColName =
-            baseModel.model.columns?.find((c) => c.ai)?.column_name ??
-            null;
+            baseModel.model.columns?.find((c) => c.ai)?.column_name ?? null;
           const explicitIdentity = mssqlNeedsIdentityInsert(
             [insertObj],
             aiColName,
@@ -437,8 +436,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
         const mssqlAiColName =
           baseModel.isMssql && insertDatas.length
-            ? baseModel.model.columns?.find((c) => c.ai)?.column_name ??
-              null
+            ? baseModel.model.columns?.find((c) => c.ai)?.column_name ?? null
             : null;
         const mssqlExplicitIdentity = mssqlNeedsIdentityInsert(
           insertDatas,
@@ -574,7 +572,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           });
         } else {
           const insertResponseList = await baseModel.chunkList({
-            pks: responses.map((d) => baseModel.extractPksValues(d)),
+            // composite PKs require the `___`-joined string form (asString=true);
+            // the object form stringifies to "[object Object]" in chunkList's join
+            pks: responses.map((d) => baseModel.extractPksValues(d, true)),
           });
 
           // get ast
@@ -601,7 +601,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // Hand back inserted pks in insertion order. `responses` are pk-bearing
       // (PG returning / mysql-sqlite one-by-one) whenever `capturePks` is set.
       if (capturePks) {
-        onInsertedPks(responses.map((r) => baseModel.extractPksValues(r, true)));
+        onInsertedPks(
+          responses.map((r) => baseModel.extractPksValues(r, true)),
+        );
       }
 
       return responses;

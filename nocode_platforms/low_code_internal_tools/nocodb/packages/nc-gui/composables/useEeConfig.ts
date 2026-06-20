@@ -63,6 +63,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockToggleGroupBy = computed(() => true)
 
+  const blockToggleSort = computed(() => true)
+
   const blockPinnedFilter = computed(() => true)
 
   const blockCellColoring = computed(() => true)
@@ -193,6 +195,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseToggleFilter = (..._args: any[]) => {}
 
   const showUpgradeToUseToggleGroupBy = (..._args: any[]) => {}
+
+  const showUpgradeToUseToggleSort = (..._args: any[]) => {}
 
   const showUpgradeToUsePinnedFilter = (..._args: any[]) => {}
 
@@ -344,6 +348,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseScim = (..._args: any[]) => {}
 
+  const blockMssql = computed(() => true)
+
+  const showUpgradeToUseMssql = (..._args: any[]) => {}
+
   const blockWhiteLabel = computed(() => true)
 
   const showUpgradeToUseWhiteLabel = (..._args: any[]) => {}
@@ -429,6 +437,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseToggleFilter,
     blockToggleGroupBy,
     showUpgradeToUseToggleGroupBy,
+    blockToggleSort,
+    showUpgradeToUseToggleSort,
     blockPinnedFilter,
     showUpgradeToUsePinnedFilter,
     blockCellColoring,
@@ -540,6 +550,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseSSO,
     blockScim,
     showUpgradeToUseScim,
+    blockMssql,
+    showUpgradeToUseMssql,
     blockWhiteLabel,
     showUpgradeToUseWhiteLabel,
     showUpgradeToUseAudit,

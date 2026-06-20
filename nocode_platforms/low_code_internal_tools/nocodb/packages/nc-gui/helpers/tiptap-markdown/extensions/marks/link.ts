@@ -50,8 +50,11 @@ export const Link = TiptapLink.extend<LinkOptions>({
     }
 
     // We use this as a workaround to show a tooltip on the content
-    // We use the href to store the tooltip content
-    if (!attr.href?.includes('~~~###~~~')) {
+    // We use the href to store the tooltip content.
+    // `href` can be a non-string (e.g. a number) from imported/pasted doc JSON,
+    // and `.includes`/`.split` are string-only — guard the type to avoid
+    // "includes is not a function".
+    if (!ncIsString(attr.href) || !attr.href.includes('~~~###~~~')) {
       return ['a', attr, 0]
     }
 

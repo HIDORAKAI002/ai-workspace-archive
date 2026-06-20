@@ -23,21 +23,9 @@ const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
-const { loadCalendarData, loadSidebarData, fetchActiveDates, viewMetaProperties } = useCalendarViewStoreOrThrow()
+const { loadCalendarData, loadSidebarData, fetchActiveDates } = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
-
-const showWeekends = computed({
-  get: () => !viewMetaProperties.value?.hide_weekend,
-  set: (newValue) => {
-    updateViewMeta(activeView.value?.id as string, ViewTypes.CALENDAR, {
-      meta: {
-        ...(viewMetaProperties.value || {}),
-        hide_weekend: !newValue,
-      },
-    })
-  },
-})
 
 const dateFieldOptions = computed<SelectProps['options']>(() => {
   return (
@@ -357,20 +345,9 @@ const onValueChange = async () => {
 
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
           <GeneralIcon icon="warning" class="text-sm mt-0.5 text-nc-content-orange-medium" />
-          <span class="text-sm text-nc-content-gray-muted"> Date field is required! </span>
+          <span class="text-sm text-nc-content-gray-muted"> {{ $t('msg.dateFieldRequired') }} </span>
         </div>
 
-        <div>
-          <NcSwitch v-model:checked="showWeekends" :disabled="isLocked">
-            <span class="text-nc-content-gray font-semibold">
-              {{ $t('activity.showSaturdaysAndSundays') }}
-            </span>
-          </NcSwitch>
-        </div>
-
-        <!--
-        <div class="text-[13px] text-nc-content-gray-muted py-2">Records in this view will be based on the specified date field.</div>
--->
         <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
       </div>
     </template>

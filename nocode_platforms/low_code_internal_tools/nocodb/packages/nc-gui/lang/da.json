@@ -1229,8 +1229,8 @@
     "sqlMigrations": "SQL Migrations.",
     "dbCredentials": "Database legitimationsoplysninger.",
     "advancedParameters": "SSL & Avancerede parametre",
-    "headCreateProject": "Opret projekt | Nocodb.",
-    "headLogin": "Log ind | Nocodb.",
+    "headCreateProject": "Opret projekt | NocoDB.",
+    "headLogin": "Log ind | NocoDB.",
     "resetPassword": "Nulstil din adgangskode",
     "teamAndSettings": "Hold og indstillinger",
     "apiDocs": "API-dokumenter",
@@ -3845,7 +3845,7 @@
       "staticRoleInfo": "Systemdefinerede roller kan ikke redigeres",
       "exportZip": "Eksporter Project Meta til ZIP-fil og download.",
       "importZip": "Import Project Meta Zip-fil og genstart.",
-      "importText": "Import Nocodb-projekt ved at uploade Metadata Zip-filen",
+      "importText": "Import NocoDB-projekt ved at uploade Metadata Zip-filen",
       "metaNoChange": "Ingen ændring identificeret",
       "sqlMigration": "Schema Migrations vil blive oprettet automatisk. Opret et bord og opdater denne side.",
       "dbConnectionStatus": "Miljø valideret",
@@ -3856,9 +3856,9 @@
       },
       "sponsor": {
         "header": "Du kan hjælpe os!",
-        "message": "Vi er et lille team, der arbejder på fuld tid for at lave NOCODB OPEN-SOURCE. Vi mener, at et værktøj som Nocodb skal være tilgængeligt frit til alle problemløser på internettet."
+        "message": "Vi er et lille team, der arbejder på fuld tid for at lave NocoDB fair-code. Vi mener, at et værktøj som NocoDB skal være tilgængeligt frit til alle problemløser på internettet."
       },
-      "loginMsg": "Log ind på NOCODB",
+      "loginMsg": "Log ind på NocoDB",
       "passwordRecovery": {
         "message_1": "Angiv venligst den e-mail-adresse, du brugte, når du tilmeldte dig.",
         "message_2": "Vi sender dig en email med et link for at nulstille dit kodeord.",

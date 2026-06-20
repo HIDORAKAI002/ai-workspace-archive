@@ -528,9 +528,11 @@ const selectFilterField = (filter: Filter, index: number) => {
   // since the existing one may not be supported for the new field
   // e.g. `eq` operator is not supported in checkbox field
   // hence, get the first option of the supported operators of the new field
-  filter.comparison_op = comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format).find((compOp) =>
-    isComparisonOpAllowed(filter, compOp),
-  )?.value as FilterType['comparison_op']
+  filter.comparison_op = getDefaultComparisonOp(
+    comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format),
+    (compOp) => isComparisonOpAllowed(filter, compOp),
+    types.value[col.id] as UITypes,
+  ) as FilterType['comparison_op']
 
   if (isDateType(types.value[col.id] as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
@@ -799,7 +801,7 @@ const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
 
 const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
   if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
+    showUpgradeToUseToggleFilter({ triggerSource: 'toolbar-toggle-filter' })
     return
   }
   onEnabledChange(filter, index)
@@ -1721,7 +1723,9 @@ defineExpose({
                     :disabled="!canPinFilter(filter) || isLockedView"
                     class="nc-filter-item-pin-btn self-center"
                     @click.stop="
-                      blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, getFilterIndex(filter))
+                      blockPinnedFilter
+                        ? showUpgradeToUsePinnedFilter({ triggerSource: 'toolbar-pinned-filter' })
+                        : togglePinFilter(filter, getFilterIndex(filter))
                     "
                   >
                     <GeneralIcon

@@ -262,11 +262,16 @@ export default class NocoCache {
     value: string | number,
   ): Promise<boolean> {
     if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(true);
-    return !!this.client.setHashField(
+    // Await so write errors surface to callers instead of becoming a detached
+    // unhandled rejection. Return `true` on success — hset returns the count of
+    // *newly added* fields (0 on overwrite), so `!!(await …)` would wrongly
+    // report a successful overwrite as `false`.
+    await this.client.setHashField(
       `${this.prefix}:${cacheContext(context)}:${key}`,
       field,
       value,
     );
+    return true;
   }
 
   public static async incrHashField(

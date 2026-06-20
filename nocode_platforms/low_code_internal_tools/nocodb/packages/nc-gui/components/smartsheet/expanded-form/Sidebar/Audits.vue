@@ -12,12 +12,13 @@ const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
 function showAuditUpgradeModal() {
   handleUpgradePlan({
-    limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+    limitOrFeature: PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION,
+    triggerSource: 'record-audit',
   })
 }
 
 const auditRetentionLimit = computed(() => {
-  const retention = getPlanLimit(PlanLimitTypes.LIMIT_AUDIT_RETENTION)
+  const retention = getPlanLimit(PlanLimitTypes.LIMIT_RECORD_AUDIT_RETENTION)
 
   if (retention === 14) {
     return '2 weeks'

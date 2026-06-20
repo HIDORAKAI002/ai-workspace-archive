@@ -51,15 +51,26 @@ export const LTARColsUpdater = (param: {
 
           profiler.log(`${col.colOptions.type} list start`);
           if (isMMOrMMLike(col)) {
-            existingLinks = await trxBaseModel.mmList({
-              colId: col.id,
-              parentId: rowId,
-            });
+            existingLinks = await trxBaseModel.mmList(
+              {
+                colId: col.id,
+                parentId: rowId,
+              },
+              // diff only needs PKs — read pk + display value, skipping the
+              // related table's other (incl. virtual) columns. `selectAllRecords`
+              // removes the 25-row cap so every existing link is compared.
+              { pkAndPvOnly: true },
+              true,
+            );
           } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
-            existingLinks = await trxBaseModel.hmList({
-              colId: col.id,
-              id: rowId,
-            });
+            existingLinks = await trxBaseModel.hmList(
+              {
+                colId: col.id,
+                id: rowId,
+              },
+              { pkAndPvOnly: true },
+              true,
+            );
           } else {
             existingLinks = await trxBaseModel.btRead({
               colId: col.id,

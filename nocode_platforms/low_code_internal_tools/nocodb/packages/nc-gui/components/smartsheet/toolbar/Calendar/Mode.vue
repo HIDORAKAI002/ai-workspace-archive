@@ -1,13 +1,27 @@
 <script lang="ts" setup>
+import { ViewTypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   tab?: boolean
 }>()
 
-const { changeCalendarView, activeCalendarView } = useCalendarViewStoreOrThrow()
+const { changeCalendarView, activeCalendarView, viewMetaProperties } = useCalendarViewStoreOrThrow()
+
+const { updateViewMeta } = useViewsStore()
+
+const { $e } = useNuxtApp()
+
+const activeView = inject(ActiveViewInj, ref())
+
+const isLocked = inject(IsLockedInj, ref(false))
+
+const { t } = useI18n()
 
 const isTab = computed(() => props.tab)
 
-const highlightStyle = ref({ left: '0px' })
+const dropdownOpen = ref(false)
+
+const highlightStyle = ref<{ left: string; width?: string }>({ left: '0px' })
 
 const setActiveCalendarMode = (mode: 'day' | '3day' | 'week' | '2week' | 'month' | '6week' | 'year', event: MouseEvent) => {
   changeCalendarView(mode)
@@ -32,6 +46,43 @@ const modes: Array<'day' | '3day' | 'week' | '2week' | 'month' | '6week' | 'year
   '6week',
   'year',
 ]
+
+// Weekend display (Show / Collapse / Hide) lives in the mode dropdown and is only
+// meaningful for week-or-longer ranges. Persisted as two mutually-exclusive
+// booleans on the calendar view meta.
+type WeekendDisplay = 'show' | 'collapse' | 'hide'
+
+// Modes that show the weekend section (week-or-longer ranges). All three options
+// (Show / Collapse / Hide) are available in each.
+const weekendSupportedModes = ['week', '2week', 'month', '6week']
+
+const supportsWeekendOptions = computed(() => weekendSupportedModes.includes(activeCalendarView.value))
+
+const weekendDisplay = computed<WeekendDisplay>(() => {
+  if (viewMetaProperties.value?.hide_weekend) return 'hide'
+  if (viewMetaProperties.value?.collapse_weekend) return 'collapse'
+  return 'show'
+})
+
+const weekendOptions = computed<{ value: WeekendDisplay; label: string }[]>(() => [
+  { value: 'show', label: t('activity.showWeekends') },
+  { value: 'collapse', label: t('activity.collapseWeekends') },
+  { value: 'hide', label: t('activity.hideWeekends') },
+])
+
+const setWeekendDisplay = (value: WeekendDisplay) => {
+  if (isLocked.value) return
+
+  $e('c:calendar:weekend-display', { display: value })
+
+  updateViewMeta(activeView.value?.id as string, ViewTypes.CALENDAR, {
+    meta: {
+      ...(viewMetaProperties.value || {}),
+      hide_weekend: value === 'hide',
+      collapse_weekend: value === 'collapse',
+    },
+  })
+}
 
 const updateHighlightPosition = () => {
   nextTick(() => {
@@ -84,73 +135,65 @@ watch(activeCalendarView, () => {
     </div>
   </div>
 
-  <!--
-    `option-label-prop="label"` makes the SELECTED chip render just the plain
-    `label` string (not a clone of the full option template). Without it antd
-    duplicates the `justify-between` + check-icon row into the chip, leaving
-    the label visually off-centre and the wrong size.
-    `:value` + `@change` (not `v-model`) routes selection through
-    `changeCalendarView` so the view-meta default also gets persisted.
-  -->
-  <a-select
-    v-else
-    :value="activeCalendarView"
-    class="nc-select-shadow !w-24 !rounded-lg"
-    dropdown-class-name="!rounded-lg !min-w-28"
-    size="small"
-    option-label-prop="label"
-    data-testid="nc-calendar-view-mode"
-    @change="(value) => changeCalendarView(value as typeof modes[number])"
-    @click.stop
-  >
-    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-
-    <a-select-option v-for="option in modes" :key="option" :value="option" :label="$t(modeI18nKey(option))">
-      <div
-        class="w-full flex gap-2 items-center justify-between text-[13px]"
-        :data-testid="`nc-calendar-view-mode-option-${option}`"
-        :title="$t(modeI18nKey(option))"
-      >
-        <div class="flex items-center gap-1">
-          <NcTooltip class="flex-1 mt-0.5 truncate text-[13px]" show-on-truncate-only>
-            <template #title>
-              {{ $t(modeI18nKey(option)) }}
-            </template>
-            <template #default>{{ $t(modeI18nKey(option)) }}</template>
-          </NcTooltip>
-        </div>
-        <GeneralIcon
-          v-if="option === activeCalendarView"
-          id="nc-selected-item-icon"
-          icon="check"
-          class="flex-none text-primary w-4 h-4"
-        />
+  <NcDropdown v-else v-model:visible="dropdownOpen" :trigger="['click']" overlay-class-name="!rounded-lg">
+    <NcButton
+      class="nc-select-shadow !h-7 !rounded-lg !px-3"
+      data-testid="nc-calendar-view-mode"
+      size="small"
+      type="secondary"
+      @click.stop
+    >
+      <div class="flex items-center gap-2 text-[13px] font-medium text-nc-content-gray">
+        <span class="whitespace-nowrap">{{ $t(modeI18nKey(activeCalendarView)) }}</span>
+        <GeneralIcon icon="arrowDown" class="flex-none text-nc-content-gray-subtle h-4 w-4" />
       </div>
-    </a-select-option>
-  </a-select>
+    </NcButton>
+
+    <template #overlay>
+      <NcMenu class="!min-w-36" variant="small" data-testid="nc-calendar-view-mode-menu" @click="dropdownOpen = false">
+        <NcMenuItem
+          v-for="option in modes"
+          :key="option"
+          :data-testid="`nc-calendar-view-mode-option-${option}`"
+          inner-class="w-full"
+          @click="changeCalendarView(option)"
+        >
+          <div class="flex-1 text-[13px]">{{ $t(modeI18nKey(option)) }}</div>
+          <GeneralIcon
+            v-if="option === activeCalendarView"
+            id="nc-selected-item-icon"
+            icon="check"
+            class="flex-none text-nc-content-brand w-4 h-4"
+          />
+        </NcMenuItem>
+
+        <template v-if="supportsWeekendOptions">
+          <NcDivider />
+          <NcMenuItem
+            v-for="opt in weekendOptions"
+            :key="opt.value"
+            :data-testid="`nc-calendar-weekend-${opt.value}`"
+            inner-class="w-full"
+            @click="setWeekendDisplay(opt.value)"
+          >
+            <div class="flex-1 text-[13px]">{{ opt.label }}</div>
+            <GeneralIcon
+              v-if="weekendDisplay === opt.value"
+              id="nc-selected-item-icon"
+              icon="check"
+              class="flex-none text-nc-content-brand w-4 h-4"
+            />
+          </NcMenuItem>
+        </template>
+      </NcMenu>
+    </template>
+  </NcDropdown>
 </template>
 
 <style lang="scss" scoped>
 .nc-calendar-mode-menu {
   :deep(.nc-menu-item-inner) {
     @apply !text-[13px];
-  }
-}
-.nc-select.ant-select {
-  .ant-select-selector {
-    @apply !px-3;
-  }
-}
-
-:deep(.ant-select-selector) {
-  @apply !h-7;
-
-  // With option-label-prop="label" the chip renders just the plain label.
-  // antd's default line-height is shorter than our 28px chip, so the text
-  // hugs the top — match the line-height to the chip height to centre it.
-  .ant-select-selection-item {
-    @apply !text-[13px] !text-center !font-medium;
-    line-height: 28px !important;
   }
 }
 </style>

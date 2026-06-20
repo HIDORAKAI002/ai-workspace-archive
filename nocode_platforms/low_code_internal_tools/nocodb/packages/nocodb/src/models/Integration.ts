@@ -6,9 +6,9 @@ import {
   type SourceType,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { setExternalDbSsrfEnforcement } from '@noco-local-integrations/core';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import { setExternalDbSsrfEnforcement } from '@noco-local-integrations/core';
 import type {
   IntegrationEntry,
   IntegrationWrapper,

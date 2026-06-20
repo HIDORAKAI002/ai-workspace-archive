@@ -1229,8 +1229,8 @@
     "sqlMigrations": "SQL migracije",
     "dbCredentials": "Vjerodajnice baze podataka",
     "advancedParameters": "SSL i napredni parametri",
-    "headCreateProject": "Stvoriti projekt | Nocodb",
-    "headLogin": "Prijavite se | Nocodb",
+    "headCreateProject": "Stvoriti projekt | NocoDB",
+    "headLogin": "Prijavite se | NocoDB",
     "resetPassword": "Vraćanje izvorne lozinke",
     "teamAndSettings": "Tim i Postavke",
     "apiDocs": "API Dokumentacija",
@@ -3856,9 +3856,9 @@
       },
       "sponsor": {
         "header": "Možete nam pomoći!",
-        "message": "Mi smo mali tim radi puno radno vrijeme kako bismo napravili Nocodb Open-Source. Vjerujemo da bi alat kao što je Nocodb trebao biti slobodno dostupan na svaki rješivač problema na internetu."
+        "message": "Mi smo mali tim radi puno radno vrijeme kako bismo napravili NocoDB fair-code. Vjerujemo da bi alat kao što je NocoDB trebao biti slobodno dostupan na svaki rješivač problema na internetu."
       },
-      "loginMsg": "Prijavite se u Nocodb",
+      "loginMsg": "Prijavite se u NocoDB",
       "passwordRecovery": {
         "message_1": "Navedite adresu e-pošte koju ste koristili kada ste se prijavili.",
         "message_2": "Poslat ćemo vam poruku e-pošte s linkom za resetiranje zaporke.",

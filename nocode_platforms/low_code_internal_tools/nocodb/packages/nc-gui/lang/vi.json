@@ -1229,8 +1229,8 @@
     "sqlMigrations": "Di chuyển SQL.",
     "dbCredentials": "Thông tin cơ sở dữ liệu",
     "advancedParameters": "SSL & Tham số nâng cao",
-    "headCreateProject": "Tạo dự án |. NOCODB.",
-    "headLogin": "Đăng nhập |. NOCODB.",
+    "headCreateProject": "Tạo dự án |. NocoDB.",
+    "headLogin": "Đăng nhập |. NocoDB.",
     "resetPassword": "Đặt lại mật khẩu của bạn",
     "teamAndSettings": "Cài đặt nhóm",
     "apiDocs": "Văn bản API",
@@ -3845,7 +3845,7 @@
       "staticRoleInfo": "Vai trò xác định hệ thống không thể được chỉnh sửa",
       "exportZip": "Xuất meta dự án sang tệp zip và tải xuống.",
       "importZip": "Nhập tệp Meta Zip dự án và khởi động lại.",
-      "importText": "Nhập dự án NOCODB bằng cách tải lên tập tin zip siêu dữ liệu",
+      "importText": "Nhập dự án NocoDB bằng cách tải lên tập tin zip siêu dữ liệu",
       "metaNoChange": "Không có thay đổi được xác định",
       "sqlMigration": "Lược đồ di chuyển sẽ được tạo tự động. Tạo một bảng và làm mới trang này.",
       "dbConnectionStatus": "Môi trường xác nhận",
@@ -3856,9 +3856,9 @@
       },
       "sponsor": {
         "header": "Bạn có thể giúp chúng tôi!",
-        "message": "Chúng tôi là một đội nhỏ làm việc toàn thời gian để tạo nguồn mở NOCODB. Chúng tôi tin rằng một công cụ như NOCODB nên có sẵn một cách tự do cho mọi người giải quyết vấn đề trên internet."
+        "message": "Chúng tôi là một đội nhỏ làm việc toàn thời gian để tạo nguồn mở NocoDB. Chúng tôi tin rằng một công cụ như NocoDB nên có sẵn một cách tự do cho mọi người giải quyết vấn đề trên internet."
       },
-      "loginMsg": "Đăng nhập vào NOCODB",
+      "loginMsg": "Đăng nhập vào NocoDB",
       "passwordRecovery": {
         "message_1": "Vui lòng cung cấp địa chỉ email bạn đã sử dụng khi bạn đăng ký.",
         "message_2": "Chúng tôi sẽ gửi cho bạn một email với một liên kết để đặt lại mật khẩu của bạn.",

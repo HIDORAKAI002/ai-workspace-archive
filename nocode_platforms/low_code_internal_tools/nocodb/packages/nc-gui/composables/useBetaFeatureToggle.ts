@@ -1,3 +1,5 @@
+import { getI18n } from '~/plugins/a.i18n'
+
 const FEATURES = [
   {
     id: 'managed_apps',
@@ -40,7 +42,9 @@ const FEATURES = [
   },
   {
     id: 'integrations',
-    title: 'Integrations',
+    get title() {
+      return getI18n().global.t('general.integrations')
+    },
     description: 'Enable dynamic integrations.',
     enabled: true,
     version: 2,
@@ -95,6 +99,9 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEE: true,
+    // Licensed-only: hidden on self-hosted free (CE / unlicensed on-prem),
+    // available on licensed on-prem and cloud.
+    isLicensed: true,
   },
   {
     id: 'custom_link',
@@ -103,6 +110,9 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEE: true,
+    // Licensed-only: hidden on self-hosted free (CE / unlicensed on-prem),
+    // available on licensed on-prem and cloud.
+    isLicensed: true,
   },
   {
     id: 'view_actions',
@@ -124,7 +134,9 @@ const FEATURES = [
   },
   {
     id: 'templates',
-    title: 'Templates',
+    get title() {
+      return getI18n().global.t('general.templates')
+    },
     description: 'Enable templates feature to browse and use templates.',
     enabled: true,
     version: 3,
@@ -182,18 +194,6 @@ const FEATURES = [
     enabled: true,
     version: 2,
     isEngineering: false,
-  },
-  {
-    id: 'white_label',
-    title: 'White Label',
-    description: 'Customize favicon, logo and branding for self-hosted instances.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-    isOnPrem: true,
-    isCloud: false,
-    isAdvanced: true,
   },
   {
     id: 'mssql_source',
@@ -281,11 +281,18 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
   const isFeatureEnabled = (id: BetaFeatureId) => {
     // useEeConfig is called inside this function (not at the top level of the composable), to avoid a recursive call
-    const { showEEFeatures } = useEeConfig()
+    const { showEEFeatures, isEEFeatureBlocked } = useEeConfig()
 
     const feature = featureMap.value[id]
 
     if (feature && 'isEE' in feature && feature.isEE && !(isEeUI && showEEFeatures.value)) {
+      return false
+    }
+
+    // Licensed-only features are unavailable on self-hosted free (CE / unlicensed
+    // on-prem). `isEEFeatureBlocked` is true exactly there; false on licensed
+    // on-prem and cloud.
+    if (feature && 'isLicensed' in feature && feature.isLicensed && isEEFeatureBlocked.value) {
       return false
     }
 

@@ -520,7 +520,7 @@ const parseConditionV2 = async (
             case 'nallof':
             case 'nanyof': {
               const condition = (builder: Knex.QueryBuilder) => {
-                let items = val?.split(',') ?? [];
+                let items = (Array.isArray(val) ? val : val?.split(',')) ?? [];
                 if (
                   ['mysql2', 'mysql'].includes(knex.clientType()) &&
                   ['enum', 'set'].includes(column.dt?.toLowerCase())

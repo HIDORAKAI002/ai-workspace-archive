@@ -5,13 +5,11 @@ import {
   ModelTypes,
   PlanFeatureTypes,
   PlanTitles,
-  ProjectRoles,
   RelationTypes,
   SqliteUi,
   type TableType,
   UITypes,
   ViewTypes,
-  WorkspaceUserRoles,
   isSupportedDisplayValueColumn,
   isSystemColumn,
 } from 'nocodb-sdk'
@@ -52,8 +50,6 @@ const crossBase = ref(
   (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id &&
     (vModel.value?.colOptions as LinkToAnotherRecordType).fk_related_base_id !== vModel.value?.base_id,
 )
-
-const { basesList } = storeToRefs(useBases())
 
 const {
   setAdditionalValidations,
@@ -155,7 +151,7 @@ watch(useCustomDisplayField, (val) => {
 // Starter → Enterprise upgrade modal. CE: no-op (the section is hidden).
 const onToggleCustomDisplayField = (val: boolean) => {
   if (val && isEEFeatureBlocked.value) {
-    showUpgradeForEEFeature(t('upgrade.features.ltarCustomDisplayValue'))
+    showUpgradeForEEFeature(t('upgrade.features.ltarCustomDisplayValue'), undefined, 'field-ltar-custom-display')
     return
   }
   useCustomDisplayField.value = val
@@ -455,13 +451,19 @@ const handleUpdateRefTable = () => {
   })
 }
 
+// referenceTableChildId's setter ignores falsy values, so clear the underlying model fields directly
+const clearSelectedTable = () => {
+  vModel.value.childId = null
+  vModel.value.childTableTitle = undefined
+}
+
 const onBaseChange = async (baseId: string) => {
   // load tables for the selected base
   await tablesStore.loadProjectTables(baseId)
 
-  // reset current model id value
-  if (referenceTableChildId.value) {
-    referenceTableChildId.value = null
+  // keep the selected table only when linking within the current base, otherwise clear it
+  if (baseId !== meta.value?.base_id) {
+    clearSelectedTable()
   }
 }
 
@@ -514,28 +516,19 @@ const onFilterLabelClick = () => {
 }
 
 const onCrossBaseToggle = () => {
-  // reset current model id value if cross base disabled and selected table is not in current base
+  const currentBaseId = meta.value?.base_id
+
+  // base the selected table currently belongs to — capture before resetting referenceBaseId
+  const selectedBaseId = referenceBaseId.value ?? currentBaseId
+
   if (!crossBase.value) {
     referenceBaseId.value = null
-    if (refTables.value.every((t) => t.id !== referenceTableChildId)) {
-      referenceTableChildId.value = null
-    }
-  }
-}
-
-// check user have creator or above role to create cross base link to the base
-const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: string }) => {
-  if (base.project_role) {
-    if ([ProjectRoles.CREATOR, ProjectRoles.OWNER].includes(base.project_role)) {
-      return true
-    }
-  } else if (base.workspace_role) {
-    if ([WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(base.workspace_role)) {
-      return true
-    }
   }
 
-  return false
+  // keep the selected table only if it belongs to the current base, otherwise clear it
+  if (selectedBaseId !== currentBaseId) {
+    clearSelectedTable()
+  }
 }
 
 const toggleCrossBase = () => {
@@ -730,57 +723,13 @@ const handleScrollIntoView = () => {
           </a-tooltip>
         </div>
 
-        <a-form-item v-if="crossBase" class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childBaseId">
-          <a-select
-            v-model:value="referenceBaseId"
-            show-search
-            :disabled="isEdit"
-            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
-            placeholder="Select base"
-            dropdown-class-name="nc-dropdown-ltar-child-table"
-            @change="onBaseChange(referenceBaseId)"
-          >
-            <template #suffixIcon>
-              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-            </template>
-            <a-select-option
-              v-for="base of basesList"
-              :key="base.id"
-              :data-label="base.title"
-              :disabled="!canCreateCrossBaseLink(base)"
-              :value="base.id"
-            >
-              <a-tooltip>
-                <template v-if="!canCreateCrossBaseLink(base)" #title>
-                  You can only link to tables in bases where you have creator access or above.
-                </template>
-                <div class="flex w-full items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralProjectIcon
-                      :color="parseProp(base.meta).iconColor"
-                      :type="base.type"
-                      :managed-app="{
-                        managed_app_master: base.managed_app_master,
-                        managed_app_id: base.managed_app_id,
-                      }"
-                      class="nc-project-icon"
-                    />
-                  </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ base.title }}</template>
-                    <span>{{ base.title }}</span>
-                  </NcTooltip>
-
-                  <div class="flex gap-2 items-center">
-                    <div v-if="base?.id === meta?.base_id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                      {{ $t('labels.currentBase') }}
-                    </div>
-                  </div>
-                </div>
-              </a-tooltip>
-            </a-select-option>
-          </a-select>
-        </a-form-item>
+        <LazySmartsheetColumnLinkCrossBaseOptions
+          v-if="crossBase"
+          v-model:value="vModel"
+          :meta="meta"
+          :is-edit="isEdit"
+          @base-change="onBaseChange"
+        />
       </template>
       <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
         <NcTooltip :disabled="!isLinkedTablePrivate" placement="right">

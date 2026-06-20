@@ -13,6 +13,10 @@ export interface Job {
   data: any;
   repeat?: { cron: string };
   delay?: number;
+  // Handle of the pending setTimeout for a delayed job. Tracked on the job so
+  // reset() can cancel still-pending delayed jobs (otherwise the timer fires
+  // after test cleanup, running against a torn-down DB and leaking a queue slot).
+  timeoutRef?: ReturnType<typeof setTimeout>;
   remove?: () => Promise<void>;
   getState?: () => Promise<string>;
   moveToCompleted?: (returnValue?: string, ignoreLock?: boolean) => void;
@@ -31,6 +35,19 @@ export class QueueService {
     protected readonly jobsEventService: JobsEventService,
     @Inject(forwardRef(() => JobsMap)) protected readonly jobsMap: JobsMap,
   ) {
+    // Concurrency defaults to 2 (production fallback). Overridable via
+    // NC_FALLBACK_QUEUE_CONCURRENCY — set higher under test so a single
+    // process-global queue shared by every suite doesn't starve the jobs
+    // that flip state (e.g. table-sync status → active). Read here (runtime,
+    // post-dotenv) rather than at the static field initializer (module load,
+    // pre-dotenv) so the test env actually applies.
+    const concurrencyOverride = Number(
+      process.env.NC_FALLBACK_QUEUE_CONCURRENCY,
+    );
+    if (Number.isFinite(concurrencyOverride) && concurrencyOverride > 0) {
+      QueueService.queue.concurrency = concurrencyOverride;
+    }
+
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((j) => j.id === data.job.id);
       if (!job) return;
@@ -215,9 +232,11 @@ export class QueueService {
         this.queueMemory.push(job);
       }
       const jobTimeout = setTimeout(() => {
+        job.timeoutRef = undefined;
         this.queue.add(() => this.jobWrapper(job));
       }, opts.delay).unref();
 
+      job.timeoutRef = jobTimeout;
       Object.assign(job, helperFns(jobTimeout));
     } else {
       if (!existingJob) {
@@ -257,6 +276,15 @@ export class QueueService {
   // constructor and must survive across test runs.
   static reset() {
     QueueService.queue.clear();
+    // Cancel pending delayed-job timers before dropping the memory refs —
+    // otherwise their setTimeout fires after cleanup, executing a stale job
+    // (e.g. a debounced table-sync resync) against a torn-down base.
+    for (const job of QueueService.queueMemory) {
+      if (job.timeoutRef) {
+        clearTimeout(job.timeoutRef);
+        job.timeoutRef = undefined;
+      }
+    }
     QueueService.queueMemory.length = 0;
     QueueService.queueIdCounter = 1;
     QueueService.processed = 0;

@@ -46,6 +46,22 @@ const {
 
 const { isSyncedTable, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
+// 3-day mode anchors on a single day; the picker selects the first visible day
+// and the window spans that day + 2. Mirrors the calendar toolbar header so the
+// side-panel selector navigates the same canonical cursors.
+const threeDayDate = computed<dayjs.Dayjs>({
+  get: () => timezoneDayjs.timezonize(selectedDateRange.value.start),
+  set: (date: dayjs.Dayjs) => {
+    const start = date.startOf('day')
+    selectedDate.value = start
+    if (pageDate.value.month() !== start.month()) pageDate.value = start
+    selectedDateRange.value = {
+      start,
+      end: start.add(2, 'day').endOf('day'),
+    }
+  },
+})
+
 const sideBarListRef = ref<VNodeRef | null>(null)
 
 const pushToArray = (arr: Array<Row>, record: Row, range) => {
@@ -421,7 +437,7 @@ const selectOption = (option) => {
       '!min-w-[100svw]': props.visible && isMobileMode,
       'nc-calendar-side-menu-open': props.visible,
     }"
-    class="h-full relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
+    class="h-full flex flex-col relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
     <div class="flex min-w-[288px] flex-col">
@@ -436,7 +452,21 @@ const selectOption = (option) => {
         :hide-calendar="height < 700"
       />
       <NcDateWeekSelector
-        v-else-if="activeCalendarView === ('week' as const)"
+        v-else-if="activeCalendarView === ('3day' as const)"
+        v-model:active-dates="activeDates"
+        v-model:page-date="pageDate"
+        v-model:selected-date="threeDayDate"
+        :timezone="timezone"
+        size="medium"
+        header="v2"
+        :hide-calendar="height < 700"
+      />
+      <NcDateWeekSelector
+        v-else-if="
+          activeCalendarView === ('week' as const) ||
+          activeCalendarView === ('2week' as const) ||
+          activeCalendarView === ('6week' as const)
+        "
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-week="selectedDateRange"
@@ -471,7 +501,7 @@ const selectOption = (option) => {
         '!border-t-0 ': height < 700,
         'pt-6': height >= 700,
       }"
-      class="border-t-1 !pt-3 border-nc-border-gray-medium relative flex flex-col gap-y-3"
+      class="border-t-1 !pt-3 border-nc-border-gray-medium relative flex flex-1 min-h-0 flex-col gap-y-3"
     >
       <div class="flex px-4 h-8 items-center gap-3">
         <NcDropdown v-model:visible="isDropdownOpen">
@@ -585,25 +615,7 @@ const selectOption = (option) => {
       <div
         v-if="calendarRange?.length"
         :ref="sideBarListRef"
-        :class="{
-          '!h-[calc(100svh-22.15rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-24.9rem)]':
-            height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-          '!h-[calc(100svh-13.85rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-          '!h-[calc(100svh-16.61rem)]':
-            height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-          '!h-[calc(100svh-30.15rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          ' !h-[calc(100svh-32.9rem)]':
-            height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-          '!h-[calc(100svh-13.8rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-          '!h-[calc(100svh-16.6rem)]':
-            height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-        }"
-        class="nc-scrollbar-md px-4 pb-4 overflow-y-auto"
+        class="nc-scrollbar-md px-4 pb-4 overflow-y-auto flex-1 min-h-0"
         data-testid="nc-calendar-side-menu-list"
         @scroll="sideBarListScrollHandle"
       >

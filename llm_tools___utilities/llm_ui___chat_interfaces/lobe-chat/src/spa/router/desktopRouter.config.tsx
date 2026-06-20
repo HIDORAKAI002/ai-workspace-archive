@@ -105,6 +105,14 @@ export const sharedMainAreaChildren: RouteObject[] = [
           },
           {
             element: dynamicElement(
+              () => import('@/routes/(main)/agent/tasks'),
+              'Desktop > Chat > Tasks',
+            ),
+            handle: { meta: tasksRouteMeta },
+            path: 'tasks',
+          },
+          {
+            element: dynamicElement(
               () => import('@/routes/(main)/agent/task/[taskId]'),
               'Desktop > Chat > Task Detail',
             ),
@@ -858,6 +866,13 @@ export const desktopRoutes: RouteObject[] = [
                     ),
                     path: 'storage',
                   },
+                  {
+                    element: dynamicElement(
+                      () => import('@/routes/(main)/[workspaceSlug]/settings/devices'),
+                      'Desktop > Workspace > Settings > Devices',
+                    ),
+                    path: 'devices',
+                  },
                 ],
                 element: dynamicLayout(
                   () => import('@/routes/(main)/[workspaceSlug]/settings/_content-layout'),
@@ -945,6 +960,13 @@ export const desktopRoutes: RouteObject[] = [
     element: dynamicElement(() => import('@/routes/verify-im'), 'Desktop > VerifyIm'),
     errorElement: <ErrorBoundary />,
     path: '/verify-im',
+  },
+
+  // Standalone verification-report viewer (outside main layout)
+  {
+    element: dynamicElement(() => import('@/routes/verify/[runId]'), 'Desktop > VerifyReport'),
+    errorElement: <ErrorBoundary />,
+    path: '/verify/:runId',
   },
 
   // Devtools route (outside main layout, dev-only)

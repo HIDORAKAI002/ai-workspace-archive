@@ -24,11 +24,13 @@ import type {
 } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import type { ExecAndParseOptions } from 'src/db/BaseModelSqlv2';
 import type { DisplacedRecord } from '~/command-registry/types';
+import type PQueue from 'p-queue';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
   model: Model;
   tnPath: string | Knex.Raw<any>;
+  queryQueue: PQueue;
 
   readByPk(
     id: undefined | any,

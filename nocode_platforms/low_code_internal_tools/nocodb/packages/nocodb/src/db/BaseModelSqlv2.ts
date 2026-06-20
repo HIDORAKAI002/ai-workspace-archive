@@ -165,6 +165,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
+import { StageTimer } from '~/helpers/stageTimer';
 import { isTransientError } from '~/helpers/db-error/utils';
 import {
   captureForTrace,
@@ -287,6 +288,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   public get knex() {
     return this._dbDriver;
+  }
+
+  /**
+   * Shared serial query queue (see `_queryQueue`). Exposed so out-of-band
+   * relation resolvers can route their batched fetches through the same
+   * pool-safety mechanism nocoExecute uses.
+   */
+  public get queryQueue(): PQueue {
+    return this._queryQueue;
   }
 
   constructor({
@@ -1273,7 +1283,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       nested?: boolean;
       linksAsLtar?: boolean;
     },
-    args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+    args: {
+      limit?;
+      offset?;
+      fieldsSet?: Set<string>;
+      pkAndPvOnly?: boolean;
+    } = {},
     selectAllRecords = false,
   ) {
     return relationDataFetcher({ baseModel: this, logger }).mmList(
@@ -1311,7 +1326,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       nested?: boolean;
       linksAsLtar?: boolean;
     },
-    args: { limit?; offset?; fieldSet?: Set<string> } = {},
+    args: {
+      limit?;
+      offset?;
+      fieldSet?: Set<string>;
+      pkAndPvOnly?: boolean;
+    } = {},
     selectAllRecords = false,
   ) {
     return relationDataFetcher({ baseModel: this, logger }).hmList(
@@ -3592,7 +3612,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (toUpdate.length > 0) {
         for (const data of toUpdate) {
           if (!raw) await this.validate(data, columns);
-          const pkValues = this.extractPksValues(data);
+          const pkValues = this.extractPksValues(data, true);
           updatedPks.push(pkValues);
           const wherePk = await this._wherePk(pkValues, true);
           // mssql: drop PK keys from the SET — IDENTITY columns reject
@@ -3717,14 +3737,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const insertedDataList =
         insertedDatas.length > 0
           ? await this.chunkList({
-              pks: insertedDatas.map((d) => this.extractPksValues(d)),
+              pks: insertedDatas.map((d) => this.extractPksValues(d, true)),
             })
           : [];
 
       const updatedDataList =
         updatedDatas.length > 0
           ? await this.chunkList({
-              pks: updatedDatas.map((d) => this.extractPksValues(d)),
+              pks: updatedDatas.map((d) => this.extractPksValues(d, true)),
             })
           : [];
 
@@ -4466,6 +4486,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } = {},
   ) {
     const columns = await this.model.getColumns(this.context);
+
+    // Each record to delete must be an object carrying its primary key(s)
+    // (e.g. `{ Id: 123 }`). A bare primitive blows up in `mapAliasToColumn`'s
+    // `in` operator — reject it with a 400 rather than a 500 TypeError.
+    for (const d of ids ?? []) {
+      if (!d || typeof d !== 'object') {
+        NcError.get(this.context).invalidRequestBody(
+          'Each record to delete must be an object containing its primary key(s)',
+        );
+      }
+    }
 
     let transaction;
     try {
@@ -6915,6 +6946,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       options.skipJsonConversion = true;
     }
 
+    const _perf = StageTimer.start('execAndParse');
+
     if (typeof qb !== 'string') {
       this.knex.applyCte(qb);
     }
@@ -6924,8 +6957,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     const query = typeof qb === 'string' ? qb : qb.toQuery();
+    _perf?.mark('build');
 
     let data = await this.execAndGetRows(query);
+    _perf?.mark('dbQuery');
+    _perf?.set('rows', data?.length ?? 0);
+    _perf?.set('client', this.clientType);
 
     if (!this.model?.columns) {
       await this.model.getColumns(this.context);
@@ -6952,15 +6989,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
     }
 
+    _perf?.mark('lookupSetup');
+
     // update attachment fields
     if (!options.skipAttachmentConversion) {
       data = await this.convertAttachmentType(data, dependencyColumns);
     }
+    _perf?.mark('attachment');
 
     // update date time fields
     if (!options.skipDateConversion) {
       data = this.convertDateFormat(data, dependencyColumns);
     }
+    _perf?.mark('date');
 
     // update user fields
     if (!options.skipUserConversion) {
@@ -6971,10 +7012,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         { skipPublicRedaction: options?.skipPublicRedaction },
       );
     }
+    _perf?.mark('user');
 
     if (!options.skipJsonConversion) {
       data = await this.convertJsonTypes(data, dependencyColumns);
     }
+    _perf?.mark('json');
 
     if (options.bulkAggregate) {
       data = data.map(async (d) => {
@@ -7010,6 +7053,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           additionalColumns: dependencyColumns,
         },
       });
+      _perf?.mark('v3Transform');
     }
 
     if (!options.skipSubstitutingColumnIds) {
@@ -7019,6 +7063,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         aliasColumns,
       );
     }
+    _perf?.mark('substituteIds');
+    _perf?.end(this.logger);
 
     if (options.first) {
       return data?.[0];
@@ -9215,22 +9261,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       args: ast.dependencyFields,
     });
 
-    for (const item of list) {
-      const extractedId = this.extractPksValues(item);
-      // Route through broadcastDataEvent so this matches the regular update
-      // path: RLS-aware fan-out to access groups, plus emit to the standard
-      // room. broadcastEvent() only hits the standard room — RLS-subscribed
-      // sockets wouldn't see link updates and would render stale link cells
-      // until refresh.
-      NocoSocket.broadcastDataEvent(this.context, {
-        payload: {
-          action: 'update',
-          payload: item,
-          id: extractedId,
-        },
-        tableId: this.model.id,
-      });
-    }
+    NocoSocket.broadcastBulkDataEvent(this.context, {
+      tableId: this.model.id,
+      rows: list.map((item) => ({
+        id: this.extractPksValues(item),
+        action: 'update' as const,
+        payload: item,
+      })),
+    });
   }
 
   public async broadcastLinkUpdates(ids: Array<string>) {

@@ -15,6 +15,7 @@ export default class GanttViewColumn {
   group_by?: BoolType;
   group_by_order?: number;
   group_by_sort?: string;
+  group_by_enabled?: BoolType;
   aggregation?: string;
   meta?: MetaType;
 

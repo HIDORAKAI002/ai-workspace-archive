@@ -13,6 +13,7 @@ import {
   timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import { reconcilePendingLtarOp, resolveDeferredLtarCount, resolveDeferredSingleTargetValue } from '~/utils/ltarDeferredOps'
 
 interface DataApiResponse {
   list: Record<string, any>[]
@@ -30,6 +31,31 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // when initialized by link popup dialog, keep current row
     // to avoid being changed by sort or filter
     const currentRow = ref(row.value)
+
+    // Row store: provides addLTARRef/removeLTARRef (new-row local buffering) and the
+    // pendingLtarOps queue (existing-row deferred edits, #14013/#14058). Acquired early
+    // because syncPendingLinkRows + the deferred child-count both read the queue.
+    // Read-only consumers (e.g. Page Designer) may have no row store.
+    const smartsheetRowStore = useSmartsheetRowStore()
+    const addLTARRef = smartsheetRowStore?.addLTARRef
+    const removeLTARRef = smartsheetRowStore?.removeLTARRef
+    const pendingLtarOps = smartsheetRowStore?.pendingLtarOps
+    const rowStoreCurrentRow = smartsheetRowStore?.currentRow
+
+    // Related records queued as pending links for this column (existing-row deferral).
+    const queuedLinkRecords = () =>
+      (pendingLtarOps?.value ?? []).filter((o) => o.columnId === column.value.id && o.op === 'link').map((o) => o.record)
+
+    // Related records the user has queued for unlink (existing-row deferral). The server's
+    // excluded list omits these because they're still linked until save, so they would vanish
+    // from the link picker with no way to re-add — surface them so they stay re-linkable from
+    // "Link more records" (#14013). Pure computed over the reactive queue; unlink only applies
+    // to existing rows (new rows have no persisted links to remove).
+    const pendingUnlinkRows = computed<Record<string, any>[]>(() =>
+      isNewRow?.value
+        ? []
+        : (pendingLtarOps?.value ?? []).filter((o) => o.columnId === column.value.id && o.op === 'unlink').map((o) => o.record),
+    )
 
     const refreshCurrentRow = () => {
       currentRow.value = row.value
@@ -51,6 +77,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { isMobileMode } = useGlobal()
 
     const isForm = inject(IsFormInj, ref(false))
+
+    // True only when this store lives inside the Expand Record form subtree
+    // (component-tree scoped). Grid inline link cells get the default `false`.
+    const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
     const path = inject(GroupPathInj, ref([]))
 
@@ -120,6 +150,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const childrenListCount = ref(0)
 
+    // Buffered (deferred, not-yet-saved) links to surface in the child-list modal
+    // for an existing row edited in the expanded form. Kept as a dedicated ref
+    // synced explicitly via syncPendingLinkRows() — the buffers live on the
+    // row-store row as plain nested objects, which a computed on this store's
+    // (snapshot) currentRow would not track reactively.
+    const pendingLinkRows = ref<Record<string, any>[]>([])
+
+    // Refresh the dedicated pendingLinkRows ref from the deferred buffers.
+    // Existing rows read the pendingLtarOps queue (#14058); new rows still read the
+    // ltarState buffer. Normalises single-target (object) and multi-target (array) shapes.
+    const syncPendingLinkRows = () => {
+      if (isNewRow?.value) {
+        const buffered = currentRow.value?.rowMeta?.ltarState?.[column.value?.title as string]
+        pendingLinkRows.value = !buffered ? [] : Array.isArray(buffered) ? [...buffered] : [buffered]
+      } else {
+        pendingLinkRows.value = queuedLinkRecords()
+      }
+    }
+
     const { t } = useI18n()
 
     const isPublic: Ref<boolean> = inject(IsPublicInj, ref(false))
@@ -160,6 +209,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     })
 
     const rowId = computed(() => extractPkFromRow(currentRow.value?.row, meta.value?.columns))
+
+    // When true, link/unlink buffer the change locally and persist on save instead
+    // of hitting the API immediately. Holds for brand-new rows (no pk yet) and for
+    // existing rows edited inside the Expand Record form (#14013) — matching the
+    // buffered behavior of every other field type. Grid inline editing stays immediate.
+    const shouldDefer = computed(() => isNewRow?.value || !rowId.value || isExpandedFormOpen.value)
 
     const showExtraFields = computed(() => {
       return !isForm.value || !parseProp(column.value?.meta)?.[hideExtraFieldsMetaKey]
@@ -701,7 +756,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
 
         if (!childrenListPagination.query) {
-          childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
+          let total = childrenList.value?.pageInfo.totalRows ?? 0
+          // Account for queued (deferred, unsaved) link/unlink so the count doesn't revert
+          // to the persisted total when the modal is reopened (#14058).
+          if (shouldDefer.value && !isNewRow?.value && rowId.value && pendingLtarOps) {
+            total = resolveDeferredLtarCount(pendingLtarOps.value, column.value.id as string, total)
+          }
+          childrenListCount.value = total
         }
 
         // Seed the virtual-scroll chunk cache from this response. pagination.size is
@@ -725,6 +786,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } finally {
         isChildrenLoading.value = false
       }
+
+      // Seed the pending-links section when (re)opening the child list for an
+      // existing row in deferred mode, so already-buffered links show up.
+      if (shouldDefer.value && !isNewRow?.value && rowId.value) {
+        syncPendingLinkRows()
+      }
+
       return childrenList.value
     }
 
@@ -767,40 +835,169 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     }
 
-    // Row store is required only for the new-row branch of link/unlink (local-state mutation before save).
-    // Existing-row link/unlink hits the API directly and doesn't need it. Read-only consumers (e.g. Page
-    // Designer) can use this composable without providing a row store.
-    const smartsheetRowStore = useSmartsheetRowStore()
-    const addLTARRef = smartsheetRowStore?.addLTARRef
-    const removeLTARRef = smartsheetRowStore?.removeLTARRef
-    const rowStoreCurrentRow = smartsheetRowStore?.currentRow
+    // Queue a deferred link/unlink for an existing row (reconciled into pendingLtarOps).
+    // Defined here (not with the early acquisition) because it needs rowId/type/getRelatedTableRowId.
+    const enqueueLtarOp = (op: 'link' | 'unlink', relatedRow: Record<string, any>) => {
+      if (!pendingLtarOps) return
+      reconcilePendingLtarOp(pendingLtarOps.value, {
+        op,
+        columnId: column.value.id as string,
+        baseId: (meta.value?.base_id ?? base.value?.id) as string,
+        tableId: meta.value?.id as string,
+        rowId: rowId.value as string,
+        type: type.value as RelationTypes,
+        relatedRowId: `${getRelatedTableRowId(relatedRow)}`,
+        record: relatedRow,
+      })
+    }
+
+    // Re-derive the cell's optimistic value/count for an existing row purely from the
+    // persisted base (oldRow) + the queued ops, so display never drifts from the queue
+    // (e.g. unlink-then-relink restores the original count/value). New rows drive their
+    // display from ltarState directly, so they're skipped here. (#14058)
+    const refreshDeferredDisplay = () => {
+      if (!rowStoreCurrentRow || !pendingLtarOps || isNewRow?.value) return
+      const cur = rowStoreCurrentRow.value
+      const colTitle = column.value.title as string
+      const colId = column.value.id as string
+      const queue = pendingLtarOps.value
+      const base = cur.oldRow?.[colTitle]
+
+      // Single-target (BT/OO/MO): the cell holds one linked record (or null).
+      if (isSingleTargetRelation.value) {
+        cur.row[colTitle] = resolveDeferredSingleTargetValue(queue, colId, base ?? null)
+        return
+      }
+
+      // Multi-target: keep the child-list count badge in sync, and preserve the cell
+      // value's SHAPE — which is decided by the CELL RENDERER (uidt), not the link version.
+      // A `Links` cell renders a numeric rollup count; a `LinkToAnotherRecord` hm/mm cell
+      // renders an array of chips (ManyToMany/HasMany.vue call .reduce on it) even when the
+      // relation is version V2. Keying off `isLinkV2` (version) here wrote a bare count into a
+      // LinkToAnotherRecord cell, so `localCellValue` fell back to [] and the cell appeared to
+      // clear on every deferred edit until save (#14013).
+      const persistedCount = Array.isArray(base) ? base.length : +(base ?? 0) || 0
+      const count = resolveDeferredLtarCount(queue, colId, persistedCount)
+      childrenListCount.value = count
+
+      if (column.value.uidt === UITypes.Links) {
+        cur.row[colTitle] = count
+      } else {
+        const unlinkIds = new Set(queue.filter((o) => o.columnId === colId && o.op === 'unlink').map((o) => o.relatedRowId))
+        const linkRecords = queue.filter((o) => o.columnId === colId && o.op === 'link').map((o) => o.record)
+        const baseArr = Array.isArray(base) ? base : []
+        cur.row[colTitle] = [...baseArr.filter((r) => !unlinkIds.has(`${getRelatedTableRowId(r)}`)), ...linkRecords]
+      }
+    }
+
+    // Match buffered related rows by their primary key — the object shape from the
+    // linked list can differ from the one stored when linking, so deep-compare is unsafe.
+    const isSameRelatedRow = (a: Record<string, any>, b: Record<string, any>) =>
+      getRelatedTableRowId(a) === getRelatedTableRowId(b)
+
+    // Is the given related record buffered as a pending link? New rows read ltarState;
+    // existing rows read the pendingLtarOps queue (#14058).
+    const isPendingLink = (relatedRow: Record<string, any>) => {
+      if (isNewRow?.value) {
+        const buffered = currentRow.value?.rowMeta?.ltarState?.[column.value.title!]
+        if (!buffered) return false
+        return Array.isArray(buffered)
+          ? buffered.some((r: Record<string, any>) => isSameRelatedRow(r, relatedRow))
+          : isSameRelatedRow(buffered, relatedRow)
+      }
+      const relId = `${getRelatedTableRowId(relatedRow)}`
+      return (pendingLtarOps?.value ?? []).some(
+        (o) => o.columnId === column.value.id && o.op === 'link' && o.relatedRowId === relId,
+      )
+    }
+
+    // Is the given related record buffered as a pending unlink? Only existing rows have
+    // persisted links to remove; the unlink lives in the pendingLtarOps queue (#14058).
+    const isPendingUnlink = (relatedRow: Record<string, any>) => {
+      if (isNewRow?.value) return false
+      const relId = `${getRelatedTableRowId(relatedRow)}`
+      return (pendingLtarOps?.value ?? []).some(
+        (o) => o.columnId === column.value.id && o.op === 'unlink' && o.relatedRowId === relId,
+      )
+    }
+
+    // Drop a buffered (not-yet-saved) link by related-row identity — used by the
+    // pending-links section of the child list. Does NOT touch the index-keyed
+    // caches (childrenCachedLinkedState / isChildrenListLinked / excludedLinkedState)
+    // because a pending link has no persisted/excluded index. Mirrors link()'s
+    // asymmetric counting (link only increments for multi-target).
+    const removePendingLink = async (relatedRow: Record<string, any>) => {
+      if (!rowStoreCurrentRow) return
+      if (isNewRow?.value) {
+        // New row: links live in ltarState — drop the buffered link and update display.
+        if (!removeLTARRef) return
+        await removeLTARRef(relatedRow, column.value as ColumnType, { skipRowDisplay: true })
+        if (isSingleTargetRelation.value) {
+          rowStoreCurrentRow.value.row[column.value.title!] = null
+        } else {
+          childrenListCount.value = Math.max(0, childrenListCount.value - 1)
+          const colVal = rowStoreCurrentRow.value.row[column.value.title!]
+          if (Array.isArray(colVal)) {
+            const idx = colVal.findIndex((r: Record<string, any>) => getRelatedTableRowId(r) === getRelatedTableRowId(relatedRow))
+            const next = [...colVal]
+            if (idx !== -1) next.splice(idx, 1)
+            rowStoreCurrentRow.value.row[column.value.title!] = next
+          } else {
+            rowStoreCurrentRow.value.row[column.value.title!] = Math.max(0, (+colVal || 0) - 1)
+          }
+        }
+      } else {
+        // Existing row: enqueue an unlink — reconcile cancels the matching queued link, and
+        // refreshDeferredDisplay re-derives the count from persisted + queue (#14058).
+        enqueueLtarOp('unlink', relatedRow)
+        refreshDeferredDisplay()
+      }
+      syncPendingLinkRows()
+    }
 
     const unlink = async (
       row: Record<string, any>,
       { metaValue = meta.value }: { metaValue?: TableType } = {},
       index: number, // Index is For Loading and Linked State of Row
     ) => {
-      // For new rows, remove from local state
-      if (isNewRow?.value || !rowId.value) {
+      // Defer the unlink (persist on save) for new rows and for existing rows edited
+      // inside the expanded form (#14013) — see `shouldDefer`.
+      if (shouldDefer.value) {
         if (!removeLTARRef || !rowStoreCurrentRow) {
-          console.warn('[useLTARStore]: unlink() called for new row without a row-store provider — ignoring')
+          console.warn('[useLTARStore]: unlink() called without a row-store provider — ignoring')
           return
         }
-        removeLTARRef(row, column.value as ColumnType)
-        const targetRow = rowStoreCurrentRow.value
-        if (isSingleTargetRelation.value) {
-          targetRow.row[column.value.title!] = null
-        } else {
-          const arr = targetRow.row[column.value.title!]
-          if (Array.isArray(arr)) {
-            const idx = arr.indexOf(row)
-            if (idx !== -1) arr.splice(idx, 1)
+
+        if (isNewRow?.value || !rowId.value) {
+          // New row: links live entirely in local ltarState + row.row.
+          removeLTARRef(row, column.value as ColumnType)
+          const targetRow = rowStoreCurrentRow.value
+          if (isSingleTargetRelation.value) {
+            targetRow.row[column.value.title!] = null
+          } else {
+            const arr = targetRow.row[column.value.title!]
+            if (Array.isArray(arr)) {
+              const idx = arr.indexOf(row)
+              if (idx !== -1) arr.splice(idx, 1)
+            }
           }
+        } else {
+          // Existing row in the expanded form: queue the unlink (reconcile auto-cancels a
+          // matching pending link), then re-derive the cell value/count from persisted +
+          // queue so the cell refreshes immediately. The actual nestedRemove runs on save
+          // via applyPendingLtarOps (#14058).
+          enqueueLtarOp('unlink', row)
+          refreshDeferredDisplay()
+
+          // Keep the child-list pending-links section in sync with the queue.
+          syncPendingLinkRows()
         }
+
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
         excludedLinkedState.value.set(index, false)
         childrenCachedLinkedState.value.set(index, false)
+        $e('a:links:unlink')
         return
       }
       try {
@@ -860,27 +1057,54 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       { metaValue = meta.value }: { metaValue?: TableType } = {},
       index: number, // Index is For Loading and Linked State of Row
     ) => {
-      // For new rows, store the link in local state — it will be persisted on save via nested insert
-      if (isNewRow?.value || !rowId.value) {
+      // Defer the link (persist on save) for new rows and for existing rows edited inside
+      // the expanded form (#14013) — see `shouldDefer`.
+      if (shouldDefer.value) {
         if (!addLTARRef || !rowStoreCurrentRow) {
-          console.warn('[useLTARStore]: link() called for new row without a row-store provider — ignoring')
+          console.warn('[useLTARStore]: link() called without a row-store provider — ignoring')
           return
         }
-        addLTARRef(row, column.value as ColumnType)
-        // Update the row store's currentRow (not the LTAR store's snapshot) so components re-render
-        const targetRow = rowStoreCurrentRow.value
-        if (isSingleTargetRelation.value) {
-          targetRow.row[column.value.title!] = row
-        } else {
-          if (!Array.isArray(targetRow.row[column.value.title!])) {
-            targetRow.row[column.value.title!] = []
+
+        if (isNewRow?.value || !rowId.value) {
+          // New row: buffered links drive the cell display via row.row.
+          await addLTARRef(row, column.value as ColumnType)
+          const targetRow = rowStoreCurrentRow.value
+          if (isSingleTargetRelation.value) {
+            targetRow.row[column.value.title!] = row
+          } else {
+            if (!Array.isArray(targetRow.row[column.value.title!])) {
+              targetRow.row[column.value.title!] = []
+            }
+            targetRow.row[column.value.title!].push(row)
           }
-          targetRow.row[column.value.title!].push(row)
+        } else {
+          // Existing row in the expanded form: queue the link (reconcile auto-cancels a
+          // matching pending unlink), then re-derive the cell value/count from persisted +
+          // queue so the cell refreshes immediately. The actual nestedAdd runs on save via
+          // applyPendingLtarOps (#14058).
+          enqueueLtarOp('link', row)
+          refreshDeferredDisplay()
+
+          // Keep the child-list pending-links section in sync with the queue.
+          syncPendingLinkRows()
         }
+
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
         excludedLinkedState.value.set(index, true)
         childrenCachedLinkedState.value.set(index, true)
+
+        // Single-target: only the picked record stays linked in the excluded list.
+        if (isSingleTargetRelation.value) {
+          isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
+          isChildrenExcludedListLinked.value[index] = true
+          for (const [key] of excludedLinkedState.value) {
+            excludedLinkedState.value.set(key, false)
+          }
+          excludedLinkedState.value.set(index, true)
+        }
+
+        $e('a:links:link')
         return
       }
       try {
@@ -1163,6 +1387,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       childrenCachedLoadingState.value = new Map()
       childrenChunkStates.value = []
       childrenCachedTotalRows.value = 0
+      pendingLinkRows.value = []
     }
 
     const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
@@ -1269,6 +1494,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       fetchChildrenChunk,
       clearChildrenCache,
       resetChildrenCache,
+      // Deferred (unsaved) links surfaced in the child-list modal
+      shouldDefer,
+      isSingleTargetRelation,
+      pendingLinkRows,
+      pendingUnlinkRows,
+      removePendingLink,
+      isPendingLink,
+      isPendingUnlink,
     }
   },
   'ltar-store',

@@ -23,11 +23,19 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
     }
 
     // actions
-    const addLTARRef = async (row: Row, value: Record<string, any>, column: ColumnType) => {
+    // `skipRowDisplay` keeps `row.row` untouched — used for existing records edited in
+    // the expanded form, where the visible links come from the API-loaded children list,
+    // not `row.row`. New rows leave it false so the buffered links drive the cell display.
+    const addLTARRef = async (
+      row: Row,
+      value: Record<string, any>,
+      column: ColumnType,
+      { skipRowDisplay = false }: { skipRowDisplay?: boolean } = {},
+    ) => {
       // V2 MO/OO uses junction table but is single-record — treat as BT
       if (isBtLikeV2Junction(column) || isBt(column) || isOo(column)) {
         getRowLtarHelpers(row)[column.title!] = value
-        row.row[column.title!] = value
+        if (!skipRowDisplay) row.row[column.title!] = value
       } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
         if (!getRowLtarHelpers(row)[column.title!]) getRowLtarHelpers(row)[column.title!] = []
 
@@ -42,89 +50,25 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
           getRowLtarHelpers(row)[column.title!]!.push(value)
         }
         // Also update row.row so cellValue triggers re-render
-        row.row[column.title!] = [...(getRowLtarHelpers(row)[column.title!] || [])]
+        if (!skipRowDisplay) row.row[column.title!] = [...(getRowLtarHelpers(row)[column.title!] || [])]
       }
     }
 
     // actions
-    const removeLTARRef = async (row: Row, value: Record<string, any>, column: ColumnType) => {
+    const removeLTARRef = async (
+      row: Row,
+      value: Record<string, any>,
+      column: ColumnType,
+      { skipRowDisplay = false }: { skipRowDisplay?: boolean } = {},
+    ) => {
       // V2 MO/OO uses junction table but is single-record — treat as BT
       if (isBtLikeV2Junction(column) || isBt(column) || isOo(column)) {
         getRowLtarHelpers(row)[column.title!] = null
-        row.row[column.title!] = null
+        if (!skipRowDisplay) row.row[column.title!] = null
       } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
-        getRowLtarHelpers(row)[column.title!]?.splice(getRowLtarHelpers(row)[column.title!]?.indexOf(value), 1)
-        row.row[column.title!] = [...(getRowLtarHelpers(row)[column.title!] || [])]
-      }
-    }
-
-    const linkRecord = async (
-      rowId: string,
-      relatedRowId: string,
-      column: ColumnType,
-      type: RelationTypes,
-      { metaValue = meta.value }: { metaValue?: TableType } = {},
-    ) => {
-      try {
-        await $api.dbTableRow.nestedAdd(
-          NOCO,
-          metaValue?.base_id ?? (base.value.id as string),
-          metaValue?.id as string,
-          encodeURIComponent(rowId),
-          type,
-          column.id as string,
-          encodeURIComponent(relatedRowId),
-        )
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
-    }
-
-    /** sync LTAR relations kept in local state */
-    const syncLTARRefs = async (
-      row: Row,
-      rowData: Record<string, any>,
-      { metaValue = meta.value }: { metaValue?: TableType } = {},
-    ) => {
-      const id = extractPkFromRow(rowData, metaValue?.columns as ColumnType[])
-      for (const column of metaValue?.columns ?? []) {
-        if (!isLinksOrLTAR(column)) continue
-
-        const colOptions = column.colOptions as LinkToAnotherRecordType
-
-        const relatedBaseId = (colOptions as any)?.fk_related_base_id || metaValue?.base_id
-        const relatedTableMeta = getMetaByKey(relatedBaseId, colOptions?.fk_related_model_id as string)
-
-        if (isBtLikeV2Junction(column) || isBt(column) || isOo(column)) {
-          // V2 MO/OO and V1 BT/OO — single-record link
-          if (getRowLtarHelpers(row)?.[column.title!]) {
-            await linkRecord(
-              id,
-              extractPkFromRow(
-                getRowLtarHelpers(row)?.[column.title!] as Record<string, any>,
-                relatedTableMeta.columns as ColumnType[],
-              ),
-              column,
-              colOptions.type as RelationTypes,
-              { metaValue },
-            )
-          }
-        } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
-          const relatedRows = (getRowLtarHelpers(row)?.[column.title!] ?? []) as Record<string, any>[]
-
-          for (const relatedRow of relatedRows) {
-            await linkRecord(
-              id,
-              extractPkFromRow(relatedRow, relatedTableMeta.columns as ColumnType[]),
-              column,
-              colOptions.type as RelationTypes,
-              { metaValue },
-            )
-          }
-        }
-
-        // clear LTAR refs after sync
-        getRowLtarHelpers(row)[column.title!] = null
+        const idx = getRowLtarHelpers(row)[column.title!]?.findIndex((ln: Record<string, any>) => deepCompare(ln, value)) ?? -1
+        if (idx !== -1) getRowLtarHelpers(row)[column.title!]?.splice(idx, 1)
+        if (!skipRowDisplay) row.row[column.title!] = [...(getRowLtarHelpers(row)[column.title!] || [])]
       }
     }
 
@@ -232,7 +176,6 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
     return {
       addLTARRef,
       removeLTARRef,
-      syncLTARRefs,
       loadRow,
       clearLTARCell,
       cleaMMCell,

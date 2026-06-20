@@ -11,6 +11,7 @@ import {
   SyncTypeMeta,
   generateUniqueCopyName,
 } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
 
 /**
  * Titles of the system columns that table-sync (and legacy SaaS/Airtable sync)
@@ -37,7 +38,7 @@ const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
 
 const getDefaultSyncConfig = () => {
   return {
-    title: 'New Source',
+    title: getI18n().global.t('labels.newSource'),
     sync_type: SyncType.Incremental,
     sync_trigger: SyncTrigger.Manual,
     sync_category: SyncCategory.TICKETING,

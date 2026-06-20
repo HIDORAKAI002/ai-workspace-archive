@@ -36,6 +36,7 @@ export interface AppInfo {
   ncMaxAttachmentsAllowed: number
   ncMaxTextLength: number
   ncDataImportFileSize: number
+  ncGridMaxSelectionLimit: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string
@@ -44,6 +45,7 @@ export interface AppInfo {
   dashboardPath: string
   inviteOnlySignup: boolean
   restrictWorkspaceCreation: boolean
+  allowEmailSigninWithSso: boolean
   samlAuthEnabled: boolean
   samlProviderName: string | null
   giftUrl: string

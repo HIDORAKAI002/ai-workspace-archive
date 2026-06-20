@@ -3856,9 +3856,9 @@
       },
       "sponsor": {
         "header": "Voit auttaa meitä!",
-        "message": "Olemme pieni joukkue, joka työskentelee kokopäiväisesti NOCODB Open-lähteen tekemiseen. Uskomme, että työkalu kuten NOCODB: n pitäisi olla saatavilla vapaasti jokaiseen ongelmanratkaisuun internetissä."
+        "message": "Olemme pieni joukkue, joka työskentelee kokopäiväisesti NocoDB Open-lähteen tekemiseen. Uskomme, että työkalu kuten NocoDB: n pitäisi olla saatavilla vapaasti jokaiseen ongelmanratkaisuun internetissä."
       },
-      "loginMsg": "Kirjaudu sisään NOCODB",
+      "loginMsg": "Kirjaudu sisään NocoDB",
       "passwordRecovery": {
         "message_1": "Anna sähköpostiosoite, jota käytit, kun olet rekisteröitynyt.",
         "message_2": "Lähetämme sinulle sähköpostiviestin, jossa on linkki salasanan palauttamiseksi.",

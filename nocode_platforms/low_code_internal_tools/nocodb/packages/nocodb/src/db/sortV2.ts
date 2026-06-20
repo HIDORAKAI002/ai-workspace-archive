@@ -21,15 +21,27 @@ export default async function sortV2(
 
   // T-SQL refuses to ORDER BY columns of `text`, `ntext`, `image`, or `xml`
   // (LOB / deprecated types). They only back leaf string columns where
-  // `column_name` is always present, and a `CAST(... AS NVARCHAR(MAX))`
+  // `column_name` is always present, and a `CAST(... AS NVARCHAR(n))`
   // makes them sortable regardless of the column's uidt. Handle this at
   // the orchestrator level since it's keyed on `column.dt`, not
   // `column.uidt` — the per-type handlers can't see the underlying dt
   // without each repeating the same check.
   const mssqlUnsortableDt = new Set(['text', 'ntext', 'image', 'xml']);
 
+  // Cast to a *bounded* NVARCHAR, not NVARCHAR(MAX). A MAX/LOB sort key is
+  // still unsortable in-memory: SQL Server over-estimates its size, gets a
+  // capped memory grant and spills the sort to tempdb (seconds, not ms).
+  // 4000 NVARCHAR chars = 8000 bytes, the widest bound that fits a sort key.
+  // Trade-off: rows sharing a 4000-char prefix sort in an undefined order
+  // amongst themselves — acceptable for a sort key on these rare LOB types.
+  const MSSQL_SORT_KEY_WIDTH = 4000;
+
   for (const _sort of sortList) {
     const sort = _sort instanceof Sort ? _sort : new Sort(_sort);
+
+    // skip disabled sorts (enabled === false or enabled === 0)
+    if (sort.enabled === false || (sort.enabled as any) === 0) continue;
+
     const column = await getRefColumnIfAlias(
       context,
       await sort.getColumn(context),
@@ -51,7 +63,11 @@ export default async function sortV2(
       mssqlUnsortableDt.has((column.dt ?? '').toLowerCase())
     ) {
       qb.orderBy(
-        sanitize(knex.raw('CAST(?? AS NVARCHAR(MAX))', [column.column_name])),
+        sanitize(
+          knex.raw(`CAST(?? AS NVARCHAR(${MSSQL_SORT_KEY_WIDTH}))`, [
+            column.column_name,
+          ]),
+        ),
         direction,
         nulls,
       );

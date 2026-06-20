@@ -6,6 +6,7 @@ import {
   type RecordOperationStartParams,
 } from '@/database/models/agentOperation';
 import { MessageModel } from '@/database/models/message';
+import { VerifyRunModel } from '@/database/models/verifyRun';
 import { type LobeChatDatabase } from '@/database/type';
 import { formatErrorForState } from '@/server/modules/AgentRuntime/formatErrorForState';
 import { buildFinalSnapshotKey } from '@/server/modules/AgentTracing';
@@ -278,11 +279,10 @@ export class CompletionLifecycle {
     userId: string,
   ): Promise<void> {
     try {
-      const operationModel = new AgentOperationModel(this.serverDB, userId);
-      const state = await operationModel.getVerifyState(operationId);
-      if (!state?.verifyPlan?.length) return;
+      const run = await new VerifyRunModel(this.serverDB, userId).findByOperation(operationId);
+      if (!run?.plan?.length) return;
 
-      const op = await operationModel.findById(operationId);
+      const op = await new AgentOperationModel(this.serverDB, userId).findById(operationId);
       if (!op?.topicId) return;
 
       const messageModel = new MessageModel(this.serverDB, userId);
@@ -422,14 +422,24 @@ export class CompletionLifecycle {
       ? Date.now() - new Date(state.createdAt).getTime()
       : undefined;
 
+    // On the error path, normalize the runtime error once so the lifecycle
+    // event carries the stable taxonomy fields (errorType + attribution). Bot
+    // reply renderers switch on these to surface a perceivable cause (network /
+    // quota / provider outage …) instead of an opaque Operation ID. Mirrors the
+    // same normalization dispatchHooks runs before writing the error onto the
+    // assistant message row.
+    const formattedError = state?.error ? formatErrorForState(state.error) : undefined;
+
     return {
       event: {
         agentId: metadata?.agentId || '',
         attachments: attachments.length > 0 ? attachments : undefined,
         cost: state?.cost?.total,
         duration,
+        errorAttribution: formattedError?.attribution,
         errorDetail: state?.error,
         errorMessage: this.extractErrorMessage(state?.error) || String(state?.error || ''),
+        errorType: formattedError?.type === undefined ? undefined : String(formattedError.type),
         finalState: state,
         lastAssistantContent,
         llmCalls: state?.usage?.llm?.apiCalls,

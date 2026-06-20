@@ -1229,8 +1229,8 @@
     "sqlMigrations": "Migracje SQL",
     "dbCredentials": "Poświadczenia bazy danych",
     "advancedParameters": "Zaawansowane parametry",
-    "headCreateProject": "Utwórz projekt | Nocodb",
-    "headLogin": "Logowanie | Nocodb",
+    "headCreateProject": "Utwórz projekt | NocoDB",
+    "headLogin": "Logowanie | NocoDB",
     "resetPassword": "Resetuj hasło",
     "teamAndSettings": "Zespół i ustawienia",
     "apiDocs": "Dokumentacja API",
@@ -3845,7 +3845,7 @@
       "staticRoleInfo": "Zdefiniowane systemowe role nie można edytować",
       "exportZip": "Eksportuj projekt Meta do pliku zip i pobierz.",
       "importZip": "Importuj projekt Meta Zip i uruchom ponownie.",
-      "importText": "Importuj projekt NOCODB, przesyłając plik zip metadanych",
+      "importText": "Importuj projekt NocoDB, przesyłając plik zip metadanych",
       "metaNoChange": "Brak zidentyfikowanych zmian",
       "sqlMigration": "Migracje schematu zostaną utworzone automatycznie. Utwórz tabelę i odśwież tę stronę.",
       "dbConnectionStatus": "Zatwierdzone środowisko",
@@ -3856,9 +3856,9 @@
       },
       "sponsor": {
         "header": "Możesz nam pomóc!",
-        "message": "Jesteśmy maleńką drużyną pracującą w pełnym wymiarze godzin, aby stworzyć otwartoźródłowy NOCODB. Wierzymy, że narzędzie takie jak NOCODB powinno być swobodnie dostępne dla każdego rozwiązania problemu w Internecie."
+        "message": "Jesteśmy maleńką drużyną pracującą w pełnym wymiarze godzin, aby stworzyć otwartoźródłowy NocoDB. Wierzymy, że narzędzie takie jak NocoDB powinno być swobodnie dostępne dla każdego rozwiązania problemu w Internecie."
       },
-      "loginMsg": "Zaloguj się do NOCODB",
+      "loginMsg": "Zaloguj się do NocoDB",
       "passwordRecovery": {
         "message_1": "Podaj adres e-mail użyty podczas rejestracji.",
         "message_2": "Wyślemy Ci wiadomość e-mail z linkiem do zresetowania hasła.",
