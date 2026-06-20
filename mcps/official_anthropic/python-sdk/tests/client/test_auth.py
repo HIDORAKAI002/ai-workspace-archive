@@ -19,6 +19,7 @@ from mcp.client.auth.utils import (
     create_client_info_from_metadata_url,
     create_client_registration_request,
     create_oauth_metadata_request,
+    credentials_match_issuer,
     extract_field_from_www_auth,
     extract_resource_metadata_from_www_auth,
     extract_scope_from_www_auth,
@@ -26,6 +27,7 @@ from mcp.client.auth.utils import (
     handle_registration_response,
     is_valid_client_metadata_url,
     should_use_client_metadata_url,
+    union_scopes,
     validate_authorization_response_iss,
     validate_metadata_issuer,
 )
@@ -1387,10 +1389,9 @@ class TestAuthFlow:
         async def capture_redirect(url: str) -> None:
             nonlocal redirect_captured, captured_state
             redirect_captured = True
-            # Verify the new scope is included in authorization URL
-            assert "scope=admin%3Awrite+admin%3Adelete" in url or "scope=admin:write+admin:delete" in url.replace(
-                "%3A", ":"
-            ).replace("+", " ")
+            # SEP-2350: the authorization URL carries the union of the prior and challenged scopes
+            scope = parse_qs(urlparse(url).query)["scope"][0]
+            assert scope == "read write admin:write admin:delete"
             # Extract state from redirect URL
             parsed = urlparse(url)
             params = parse_qs(parsed.query)
@@ -1420,8 +1421,8 @@ class TestAuthFlow:
         # Trigger step-up - should get token exchange request
         token_exchange_request = await auth_flow.asend(response_403)
 
-        # Verify scope was updated
-        assert oauth_provider.context.client_metadata.scope == "admin:write admin:delete"
+        # Verify scope was updated to the union of prior and challenged scopes (SEP-2350)
+        assert oauth_provider.context.client_metadata.scope == "read write admin:write admin:delete"
         assert redirect_captured
 
         # Complete the flow with successful token response
@@ -1446,6 +1447,66 @@ class TestAuthFlow:
             pytest.fail("Should have stopped after successful response")  # pragma: no cover
         except StopAsyncIteration:
             pass  # Expected
+
+
+@pytest.mark.anyio
+async def test_403_step_up_preserves_scope_from_stored_token(
+    oauth_provider: OAuthClientProvider, mock_storage: MockTokenStorage
+):
+    """SEP-2350: a restart-loaded token's scope is folded into the step-up union.
+
+    On restart only the token is reloaded (not client_metadata.scope), so the stored token's
+    granted scope must seed the union, or the challenge would re-authorize for less.
+    """
+    client_info = OAuthClientInformationFull(
+        client_id="test_client_id",
+        client_secret="test_client_secret",
+        redirect_uris=[AnyUrl("http://localhost:3030/callback")],
+    )
+    # Simulate a restart: a token granted "read" is loaded, but client_metadata carries no scope.
+    oauth_provider.context.current_tokens = OAuthToken(access_token="t", scope="read")
+    oauth_provider.context.token_expiry_time = time.time() + 1800
+    oauth_provider.context.client_info = client_info
+    oauth_provider.context.client_metadata.scope = None
+    oauth_provider._initialized = True
+
+    captured_state: str | None = None
+    reauthorize_scope: str | None = None
+
+    async def capture_redirect(url: str) -> None:
+        nonlocal captured_state, reauthorize_scope
+        params = parse_qs(urlparse(url).query)
+        reauthorize_scope = params["scope"][0]
+        captured_state = params.get("state", [None])[0]
+
+    async def mock_callback() -> AuthorizationCodeResult:
+        return AuthorizationCodeResult(code="auth_code", state=captured_state)
+
+    oauth_provider.context.redirect_handler = capture_redirect
+    oauth_provider.context.callback_handler = mock_callback
+
+    auth_flow = oauth_provider.async_auth_flow(httpx.Request("GET", "https://api.example.com/mcp"))
+    request = await auth_flow.__anext__()
+    response_403 = httpx.Response(
+        403,
+        headers={"WWW-Authenticate": 'Bearer error="insufficient_scope", scope="write"'},
+        request=request,
+    )
+    token_exchange_request = await auth_flow.asend(response_403)
+
+    assert reauthorize_scope == "read write"
+
+    # Drive the flow to completion so the context lock is released cleanly
+    token_response = httpx.Response(
+        200,
+        json={"access_token": "new", "token_type": "Bearer", "expires_in": 3600, "scope": "read write"},
+        request=token_exchange_request,
+    )
+    final_request = await auth_flow.asend(token_response)
+    try:
+        await auth_flow.asend(httpx.Response(200, request=final_request))
+    except StopAsyncIteration:
+        pass
 
 
 @pytest.mark.parametrize(
@@ -2717,3 +2778,58 @@ def test_validate_metadata_issuer_accepts_match():
 def test_validate_metadata_issuer_rejects_mismatch():
     with pytest.raises(OAuthFlowError, match="metadata issuer mismatch"):
         validate_metadata_issuer(_issuer_metadata(issuer="https://attacker.example.com"), _ISSUER)
+
+
+@pytest.mark.parametrize(
+    ("previous", "new", "expected"),
+    [
+        pytest.param("mcp:basic", "mcp:write", "mcp:basic mcp:write", id="disjoint-union-order"),
+        pytest.param(
+            "mcp:basic offline_access", "mcp:write mcp:basic", "mcp:basic offline_access mcp:write", id="dedup"
+        ),
+        pytest.param(None, "mcp:write", "mcp:write", id="no-previous"),
+        pytest.param("mcp:basic", None, "mcp:basic", id="no-new"),
+        pytest.param(None, None, None, id="both-empty"),
+    ],
+)
+def test_union_scopes(previous: str | None, new: str | None, expected: str | None):
+    """SEP-2350: union merges previous and new scopes, dedups, and preserves order."""
+    assert union_scopes(previous, new) == expected
+
+
+def test_credentials_match_issuer_same_issuer():
+    info = OAuthClientInformationFull(client_id="c", redirect_uris=[AnyUrl("http://localhost/cb")], issuer="https://as")
+    assert credentials_match_issuer(info, "https://as", None) is True
+
+
+def test_credentials_match_issuer_different_issuer():
+    info = OAuthClientInformationFull(client_id="c", redirect_uris=[AnyUrl("http://localhost/cb")], issuer="https://as")
+    assert credentials_match_issuer(info, "https://other", None) is False
+
+
+def test_credentials_match_issuer_no_recorded_issuer_is_left_alone():
+    """Credentials with no bound issuer (pre-registered / legacy) carry no binding to enforce."""
+    info = OAuthClientInformationFull(client_id="c", redirect_uris=[AnyUrl("http://localhost/cb")])
+    assert credentials_match_issuer(info, "https://as", None) is True
+
+
+def test_credentials_match_issuer_cimd_is_portable():
+    """A client_id equal to the configured client_metadata_url (CIMD) is portable across servers."""
+    cimd_url = "https://client.example/metadata.json"
+    info = OAuthClientInformationFull(
+        client_id=cimd_url,
+        redirect_uris=[AnyUrl("http://localhost/cb")],
+        token_endpoint_auth_method="none",
+        issuer="https://as",
+    )
+    assert credentials_match_issuer(info, "https://other", cimd_url) is True
+
+
+def test_credentials_match_issuer_url_shaped_dcr_id_is_not_portable():
+    """A URL-shaped client_id from DCR (not the configured CIMD URL) stays bound to its issuer."""
+    info = OAuthClientInformationFull(
+        client_id="https://as.example.com/clients/123",
+        redirect_uris=[AnyUrl("http://localhost/cb")],
+        issuer="https://as.example.com",
+    )
+    assert credentials_match_issuer(info, "https://other", "https://client.example/metadata.json") is False

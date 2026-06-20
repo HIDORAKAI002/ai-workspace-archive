@@ -3265,6 +3265,15 @@ REQUIREMENTS: dict[str, Requirement] = {
         transports=("streamable-http",),
         note="OAuth is HTTP-only.",
     ),
+    "client-auth:403-scope-union": Requirement(
+        source=f"{SPEC_BASE_URL}/basic/authorization#step-up-authorization-flow",
+        behavior=(
+            "On a 403 insufficient_scope step-up, the re-authorization request carries the union of the "
+            "previously requested scopes and the newly challenged scopes (SEP-2350)."
+        ),
+        transports=("streamable-http",),
+        note="OAuth is HTTP-only.",
+    ),
     "client-auth:as-metadata-discovery:priority-order": Requirement(
         source=f"{SPEC_BASE_URL}/basic/authorization#authorization-server-metadata-discovery",
         behavior=(
@@ -3347,6 +3356,15 @@ REQUIREMENTS: dict[str, Requirement] = {
         behavior=(
             "The client performs dynamic client registration against the authorization server when no "
             "client_id is preconfigured."
+        ),
+        transports=("streamable-http",),
+        note="OAuth is HTTP-only.",
+    ),
+    "client-auth:as-binding": Requirement(
+        source=f"{SPEC_BASE_URL}/basic/authorization#authorization-server-binding",
+        behavior=(
+            "Stored client credentials are bound to the issuer that registered them; when the authorization "
+            "server changes, the client discards them and re-registers rather than reusing them (SEP-2352)."
         ),
         transports=("streamable-http",),
         note="OAuth is HTTP-only.",
