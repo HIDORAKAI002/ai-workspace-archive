@@ -96,6 +96,8 @@ export function useInfiniteData(args: {
 
   const { $api, $ncSocket } = useNuxtApp()
 
+  const { internalGet } = useInternalBatch()
+
   const { t } = useI18n()
 
   const router = useRouter()
@@ -123,6 +125,7 @@ export function useInfiniteData(args: {
     isExternalSource,
     isAlreadyShownUpgradeModal,
     validFiltersFromUrlParams,
+    rowMatchesSearchAndUrl,
     totalRowsWithSearchQuery,
     totalRowsWithoutSearchQuery,
     fetchTotalRowsWithSearchQuery,
@@ -135,6 +138,7 @@ export function useInfiniteData(args: {
         sorts: ref([]),
         isExternalSource: computed(() => false),
         isAlreadyShownUpgradeModal: ref(false),
+        rowMatchesSearchAndUrl: () => true,
         totalRowsWithSearchQuery: ref(0),
         totalRowsWithoutSearchQuery: ref(0),
         fetchTotalRowsWithSearchQuery: computed(() => false),
@@ -406,7 +410,7 @@ export function useInfiniteData(args: {
     if (allIds.length === 0) return
 
     try {
-      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      const aggCommentCount = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
         operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
         ids: allIds,
@@ -668,7 +672,7 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     try {
-      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      const aggCommentCount = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
         operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
         ids,
@@ -719,6 +723,7 @@ export function useInfiniteData(args: {
         upgradeModalTimer = setTimeout(() => {
           showUpgradeToSeeMoreRecordsModal({
             isExternalSource: isExternalSource.value,
+            triggerSource: 'grid-records',
           })
           clearTimeout(upgradeModalTimer)
         }, 1000)
@@ -1944,8 +1949,24 @@ export function useInfiniteData(args: {
     return null
   }
 
+  // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar search
+  // → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
+  const recordPassesViewFilter = (data: DataPayload) => {
+    if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewMeta.value?.id as string)) {
+      return false
+    }
+    return rowMatchesSearchAndUrl(data.payload)
+  }
+
   const handleDataEvent = (data: DataPayload) => {
     const { id, action, payload, before } = data
+
+    if (action === 'bulk') {
+      if (Array.isArray(data.rows)) {
+        for (const row of data.rows) handleDataEvent(row)
+      }
+      return
+    }
 
     if (action === 'add') {
       if (isGroupBy.value && groupBy.value.length) {
@@ -1976,18 +1997,7 @@ export function useInfiniteData(args: {
             return
           }
 
-          const isValidationFailed = !validateRowFilters(
-            [...allFilters.value, ...computedWhereFilter.value],
-            payload,
-            meta.value?.columns as ColumnType[],
-            getBaseType(viewMeta.value?.view?.source_id),
-            metas.value,
-            meta.value?.base_id,
-            {
-              currentUser: user.value,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          )
+          const isValidationFailed = !recordPassesViewFilter(data)
 
           if (isValidationFailed) {
             // Row exists server-side but is filtered out locally — still
@@ -2023,18 +2033,7 @@ export function useInfiniteData(args: {
       try {
         const dataCache = getDataCache()
 
-        const isValidationFailed = !validateRowFilters(
-          [...allFilters.value, ...computedWhereFilter.value],
-          payload,
-          meta.value?.columns as ColumnType[],
-          getBaseType(viewMeta.value?.view?.source_id),
-          metas.value,
-          meta.value?.base_id,
-          {
-            currentUser: user.value,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        )
+        const isValidationFailed = !recordPassesViewFilter(data)
 
         // find index to insert the new row
         if (before) {
@@ -2129,15 +2128,6 @@ export function useInfiniteData(args: {
         const found = findCachedRowByPk(dataCaches, id)
 
         if (!found) {
-          if (!isGroupBy.value) {
-            // Row not cached — optimistically treat as an add so it shows up.
-            // In group-by mode we'd need the group-column value to pick the right
-            // group cache; skip that case rather than mis-inserting into root.
-            handleDataEvent({
-              ...data,
-              action: 'add',
-            })
-          }
           return
         }
 
@@ -2160,18 +2150,7 @@ export function useInfiniteData(args: {
         Object.assign(cachedRow.row, payload)
         Object.assign(cachedRow.oldRow, payload)
 
-        const isValidationFailed = !validateRowFilters(
-          [...allFilters.value, ...computedWhereFilter.value],
-          payload,
-          meta.value?.columns as ColumnType[],
-          getBaseType(viewMeta.value?.view?.source_id),
-          metas.value,
-          meta.value?.base_id,
-          {
-            currentUser: user.value,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        )
+        const isValidationFailed = !recordPassesViewFilter(data)
 
         cachedRow.rowMeta.isValidationFailed = isValidationFailed
         cachedRow.rowMeta.changed = false

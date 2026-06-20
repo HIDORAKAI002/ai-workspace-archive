@@ -126,18 +126,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       : true,
   )
 
-  const isValidRedirectUrl = computed(() => {
-    const url = sharedFormView.value?.redirect_url
-    if (typeof url !== 'string' || !url.trim()) return false
-    const trimmed = url.trim()
-    // Allow scheme-less (relative) URLs; for schemed URLs, only http(s) is allowed.
-    // Blocks javascript:, data:, vbscript:, file:, etc. which would execute in the
-    // nocodb origin via `window.location.href = redirectUrl` on submit.
-    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
-      return /^https?:\/\//i.test(trimmed)
-    }
-    return true
-  })
+  // Guards the "redirect on submit" sink (`window.location.href = redirectUrl`).
+  // `isSafeRedirectUrl` rejects control-char scheme smuggling and
+  // allows only http(s)/relative targets — see utils/redirectUrl.ts.
+  const isValidRedirectUrl = computed(() => isSafeRedirectUrl(sharedFormView.value?.redirect_url))
 
   const backgroundAndTextColor = computed(() => {
     const result = {
@@ -493,6 +485,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (col.uidt === UITypes.Attachment) {
           if (col.title && data[col.title]) {
             attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
+
+            // The local files are uploaded separately as multipart parts above. The base64 `data`
+            // preview (and the `File` object) is only needed client-side to render the thumbnail and
+            // is never read by the server. Keeping it would serialize every image into the single
+            // JSON `data` field, which blows past the request field-size limit and fails the
+            // submission with "Field value too long" once a few images are attached. Strip it so only
+            // lightweight metadata (e.g. url-based attachments) remains in the JSON payload.
+            data[col.title] = data[col.title].map(({ file: _file, data: _data, ...rest }: Record<string, any>) => rest)
           }
         }
       }

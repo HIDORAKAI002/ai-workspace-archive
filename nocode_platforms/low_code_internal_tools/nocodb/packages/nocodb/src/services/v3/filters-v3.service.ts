@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import type {
+  FilterCreateUpdateV3Type,
   FilterCreateV3Type,
   FilterGroupV3Type,
   FilterReqType,
@@ -99,6 +100,7 @@ export class FiltersV3Service {
     viewId,
     viewWebhookManager,
     insertedFilters,
+    fkLevelId,
     ncMeta = Noco.ncMeta,
   }: {
     context: any;
@@ -107,13 +109,15 @@ export class FiltersV3Service {
       | { hookId: string }
       | { linkColumnId: string }
       | { rowColorConditionId: string };
-    groupOrFilter: FilterCreateV3Type;
+    groupOrFilter: FilterCreateV3Type | FilterCreateUpdateV3Type;
     parentId?: string | null;
     logicalOp?: 'AND' | 'OR' | null;
     isRoot?: boolean;
     viewId: string;
     viewWebhookManager?: ViewWebhookManager;
     insertedFilters?: Filter[];
+    /** List views only — scopes every inserted filter/group to a level. */
+    fkLevelId?: string;
     ncMeta?: MetaService;
   }): Promise<void> {
     validatePayload(
@@ -129,6 +133,11 @@ export class FiltersV3Service {
       context,
       ncMeta,
     );
+    // Scope every inserted node (group + leaf) to the list level. additionalProps
+    // is spread into all Filter.insert calls below, so this covers the whole tree.
+    if (fkLevelId) {
+      (additionalProps as any).fk_level_id = fkLevelId;
+    }
     let innerViewWebhookManager: ViewWebhookManager;
     if ((param as any).viewId && !viewWebhookManager) {
       const view = await View.get(
@@ -309,6 +318,7 @@ export class FiltersV3Service {
             viewId,
             viewWebhookManager,
             insertedFilters,
+            fkLevelId,
             ncMeta,
           });
         }
@@ -556,6 +566,21 @@ export class FiltersV3Service {
       );
     }
 
+    return addDummyRootAndNest(filterBuilder().build(filters) as Filter[]);
+  }
+
+  /**
+   * List view filters scoped to a single list level (`fk_level_id`). Reuses the
+   * same flat-list → nested-tree build as `filterList`, pre-filtered by level.
+   */
+  async filterListByLevel(
+    context: NcContext,
+    param: { viewId: string; levelId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const filters = (
+      await Filter.allViewFilterList(context, { viewId: param.viewId }, ncMeta)
+    ).filter((f) => (f as any).fk_level_id === param.levelId);
     return addDummyRootAndNest(filterBuilder().build(filters) as Filter[]);
   }
 

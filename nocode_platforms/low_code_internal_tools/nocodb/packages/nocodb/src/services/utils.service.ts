@@ -11,6 +11,7 @@ import { getFilteredAgents } from '~/utils/ssrf';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_DATA_IMPORT_FILE_SIZE,
+  NC_GRID_MAX_SELECTION_LIMIT,
   NC_MAX_ATTACHMENTS_ALLOWED,
   NC_MAX_TEXT_LENGTH,
 } from '~/constants';
@@ -483,6 +484,7 @@ export class UtilsService {
       ncMaxAttachmentsAllowed: NC_MAX_ATTACHMENTS_ALLOWED,
       ncMaxTextLength: NC_MAX_TEXT_LENGTH,
       ncDataImportFileSize: NC_DATA_IMPORT_FILE_SIZE,
+      ncGridMaxSelectionLimit: NC_GRID_MAX_SELECTION_LIMIT,
       isCloud: isCloud,
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
       baseHostName: process.env.NC_BASE_HOST_NAME,
@@ -494,6 +496,7 @@ export class UtilsService {
       dashboardPath: this.configService.get('dashboardPath', { infer: true }),
       inviteOnlySignup: settings.invite_only_signup,
       restrictWorkspaceCreation: settings.restrict_workspace_creation,
+      allowEmailSigninWithSso: settings.allow_email_signin_with_sso,
       samlProviderName,
       samlAuthEnabled,
       giftUrl,

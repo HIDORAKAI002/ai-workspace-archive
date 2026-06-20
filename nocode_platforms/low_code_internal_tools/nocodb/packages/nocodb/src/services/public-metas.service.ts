@@ -179,9 +179,23 @@ export class PublicMetasService {
     // copy with password stripped — don't mutate the loaded instance, so the
     // strip stays safe even if `View.getByUUID` ever gains caching. Mirrors
     // the EE dashboardMetaGet pattern.
-    return Object.assign(Object.create(Object.getPrototypeOf(view)), view, {
-      password: undefined,
-    });
+    const publicView = Object.assign(
+      Object.create(Object.getPrototypeOf(view)),
+      view,
+      {
+        password: undefined,
+      },
+    );
+
+    // Form views store an `email` recipient map (which base collaborators get
+    // submission emails) — builder-only config that must never reach the
+    // unauthenticated public form. Strip it from the copy (a fresh nested
+    // object, so the loaded/cached FormView instance is left untouched).
+    if (publicView.type === ViewTypes.FORM && publicView.view) {
+      publicView.view = { ...publicView.view, email: undefined };
+    }
+
+    return publicView;
   }
 
   protected async extractRelatedMetas(

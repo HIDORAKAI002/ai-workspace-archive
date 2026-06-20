@@ -70,6 +70,10 @@ const {
   fetchExcludedChunk,
   clearExcludedCache,
   resetExcludedCache,
+  shouldDefer,
+  isPendingLink,
+  isPendingUnlink,
+  pendingUnlinkRows,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -156,6 +160,19 @@ const unlinkRow = async (row: Record<string, any>, id: number) => {
   } else {
     await unlink(row, {}, id)
   }
+}
+
+// Records the user removed (deferred unlink, not yet saved). They're still linked server-side
+// so the excluded list omits them — surface them at the top of the picker so they stay
+// re-linkable. Multi-target only; single-target re-links by picking from the full list.
+const showPendingUnlinks = computed(
+  () => shouldDefer.value && !isNew.value && !isSingleTargetLink.value && pendingUnlinkRows.value.length > 0,
+)
+
+// Re-link a deferred-unlinked record: link() reconciles the queue (cancels the pending unlink),
+// which drops it from pendingUnlinkRows and restores it in the child list.
+const relinkRow = async (row: Record<string, any>) => {
+  await link(row, {}, -1)
 }
 
 /** reload list on modal open */
@@ -374,9 +391,15 @@ const visibleRows = computed(() => {
   return Array.from({ length: Math.max(0, end - start) }, (_, i) => {
     const idx = start + i
     const row = excludedCachedRows.value.get(idx)
-    const isLinked = excludedLinkedState.value.get(idx) ?? false
+    let isLinked = excludedLinkedState.value.get(idx) ?? false
     const isLoading = excludedLoadingState.value.get(idx) ?? false
     if (!row) return { _placeholder: true, _index: idx, _isLinked: false, _isLoading: false }
+    // Reflect buffered (deferred, unsaved) link/unlink so the picker's link
+    // markers don't revert to the persisted state when the modal is reopened.
+    if (shouldDefer.value && !isNew.value) {
+      if (isPendingLink(row)) isLinked = true
+      else if (isPendingUnlink(row)) isLinked = false
+    }
     return { ...row, _index: idx, _isLinked: isLinked, _isLoading: isLoading }
   })
 })
@@ -482,6 +505,31 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         />
       </div>
       <div ref="scrollContainerRef" class="flex-1 overflow-auto nc-scrollbar-thin" @scroll="onListScroll">
+        <!-- Removed (unsaved) records — shown at the top so they can be re-linked until save -->
+        <LazyVirtualCellComponentsListItem
+          v-for="(uItem, ui) in showPendingUnlinks ? pendingUnlinkRows : []"
+          :key="`pending-unlink-${ui}`"
+          :attachment="attachmentCol"
+          :display-value-column="relatedTableDisplayValueColumn"
+          :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
+          :fields="fields"
+          :is-linked="false"
+          :is-loading="false"
+          :related-table-display-value-prop="relatedTableDisplayValueProp"
+          :row="uItem"
+          data-testid="nc-excluded-list-item-pending-unlink"
+          @link-or-unlink="relinkRow(uItem)"
+          @expand="
+            () => {
+              if (!isLinkedTableAccessible) return
+              expandedFormRow = uItem
+              expandedFormDlg = true
+            }
+          "
+          @keydown.space.prevent.stop="() => relinkRow(uItem)"
+          @keydown.enter.prevent.stop="() => relinkRow(uItem)"
+        />
+
         <template v-if="excludedTotalRows > 0 || isChildrenExcludedLoading">
           <template v-if="isChildrenExcludedLoading && excludedCachedRows.size === 0">
             <div
@@ -554,7 +602,10 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
             <div :style="{ height: `${Math.max(0, excludedTotalRows - rowSlice.end) * ROW_HEIGHT}px` }" />
           </template>
         </template>
-        <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-nc-content-gray-muted">
+        <div
+          v-else-if="!showPendingUnlinks"
+          class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-nc-content-gray-muted"
+        >
           <InboxIcon class="w-16 h-16 mx-auto" />
 
           <p v-if="childrenExcludedListPagination.query" class="mb-0">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
@@ -649,7 +700,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               },
         }"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
-        :state="newRowState"
+        :state="isNewRecord ? newRowState : {}"
         :blueprint-mode="isBlueprintMode"
         :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         use-meta-fields

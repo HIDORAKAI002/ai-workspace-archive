@@ -1,4 +1,5 @@
 import type { Api } from 'nocodb-sdk'
+
 const DbNotFoundMsg = 'Database config not found'
 
 const TIMEOUT_RETRY_COUNT = 1

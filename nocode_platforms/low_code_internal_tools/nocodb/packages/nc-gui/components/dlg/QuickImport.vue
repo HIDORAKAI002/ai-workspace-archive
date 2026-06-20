@@ -557,7 +557,7 @@ watch(
           target="_blank"
           rel="noopener"
         >
-          Docs
+          {{ $t('title.docs') }}
         </a>
       </div>
 
@@ -780,7 +780,7 @@ watch(
               </template>
               <div class="relative mt-5">
                 <div class="flex items-end gap-2">
-                  <label class="text-nc-content-gray text-sm"> Enter Json </label>
+                  <label class="text-nc-content-gray text-sm"> {{ $t('labels.enterJson') }} </label>
                   <div class="flex-1" />
 
                   <template v-if="preImportLoading">
@@ -793,7 +793,9 @@ watch(
                     </NcTooltip>
                     <GeneralLoader class="flex text-nc-content-brand" size="medium" />
                   </template>
-                  <NcButton v-else type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
+                  <NcButton v-else type="text" size="xsmall" class="!px-2" @click="formatJson()">
+                    {{ $t('general.format') }}
+                  </NcButton>
                 </div>
 
                 <div

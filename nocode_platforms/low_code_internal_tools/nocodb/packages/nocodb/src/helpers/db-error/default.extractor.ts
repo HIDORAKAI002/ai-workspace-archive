@@ -12,6 +12,15 @@ export class DefaultDBErrorExtractor implements IClientDbErrorExtractor {
   extract(error: any): DBErrorExtractResult {
     if (!error.code) return;
 
+    if (error.code === 'EACCES') {
+      return {
+        error: NcErrorType.ERR_DATABASE_OP_FAILED,
+        message: 'Connection to internal hosts is not allowed',
+        code: 'EACCES',
+        httpStatus: 403,
+      };
+    }
+
     let message: string | undefined;
     const httpStatus = 422;
 

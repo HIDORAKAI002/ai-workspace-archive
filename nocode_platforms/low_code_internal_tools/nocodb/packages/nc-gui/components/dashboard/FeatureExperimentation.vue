@@ -13,7 +13,7 @@ const value = useVModel(props, 'value')
 
 const { appInfo, isMobileMode } = useGlobal()
 
-const { showEEFeatures } = useEeConfig()
+const { showEEFeatures, isEEFeatureBlocked } = useEeConfig()
 
 const selectedFeatures = ref<Record<string, boolean>>({})
 
@@ -30,6 +30,9 @@ const isEnabledForPlatform = (feature: BetaFeatureType) => {
 const isFeatureVisible = (feature: BetaFeatureType) => {
   return (
     (!feature?.isEE || (isEeUI && showEEFeatures.value)) &&
+    // Licensed-only features are hidden on self-hosted free (CE / unlicensed
+    // on-prem); shown on licensed on-prem and cloud.
+    (!feature?.isLicensed || !isEEFeatureBlocked.value) &&
     (!feature?.isEngineering || isEngineeringModeOn.value) &&
     (!feature?.isAdvanced || isAdvancedModeOn.value) &&
     isEnabledForPlatform(feature)

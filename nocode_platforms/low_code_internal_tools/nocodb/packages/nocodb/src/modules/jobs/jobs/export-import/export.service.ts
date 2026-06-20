@@ -27,6 +27,10 @@ import type RowColorCondition from '~/models/RowColorCondition';
 import type { GetRowColorConditionsResult } from '~/helpers/rowColorViewHelpers';
 import { NcError } from '~/helpers/catchError';
 import {
+  escapeFormulaeInRows,
+  escapeFormulaHeader,
+} from '~/helpers/csvFormulaEscape';
+import {
   getViewAndModelByAliasOrId,
   serializeCellValue,
 } from '~/helpers/dataHelpers';
@@ -35,6 +39,7 @@ import {
   generateBaseIdMap,
   getEntityIdentifier,
 } from '~/helpers/exportImportHelpers';
+import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import {
@@ -464,6 +469,7 @@ export class ExportService {
             const tempSr = {
               fk_column_id: idMap.get(sr.fk_column_id),
               direction: sr.direction,
+              enabled: sr.enabled,
             };
             export_sorts.push(tempSr);
           }
@@ -1515,6 +1521,7 @@ export class ExportService {
         limit,
         offset,
         fields,
+        nested: this.buildNestedLinkLimitQuery(model),
         filterArrJson: param?.filterArrJson,
         sortArrJson: param?.sortArrJson,
       },
@@ -1603,6 +1610,7 @@ export class ExportService {
         limit,
         offset,
         fields,
+        nested: this.buildNestedLinkLimitQuery(model),
         filterArrJson: param?.filterArrJson,
         sortArrJson: param?.sortArrJson,
       },
@@ -1673,6 +1681,47 @@ export class ExportService {
     );
   }
 
+  // Serialize export rows to CSV. For user-facing exports that emit the header row, the
+  // column titles are escaped too (CWE-1236) — the title is as user-controlled as the
+  // cells. PapaParse derives the header from the object keys, so escaping the keys would
+  // break value lookup; instead we pass the explicit { fields, data } form, decoupling the
+  // (escaped) header from positional values. Cell values are already escaped upstream via
+  // escapeFormulaeInRows. When not escaping the header, behaviour is byte-for-byte the
+  // original unparse(rows, { header, delimiter }).
+  private unparseExportRows(
+    rows: any[],
+    opts: { header: boolean; delimiter?: string; escapeHeader: boolean },
+  ): string {
+    if (opts.escapeHeader && opts.header) {
+      return unparse(
+        {
+          fields: escapeFormulaHeader(Object.keys(rows[0] ?? {})),
+          data: rows.map((row) => Object.values(row)),
+        },
+        { delimiter: opts.delimiter },
+      );
+    }
+    return unparse(rows, { header: opts.header, delimiter: opts.delimiter });
+  }
+
+  // Linked (LTAR/Links) cells must export every linked record, not just the
+  // default nested page of 25 records (issue #9347). Build a per-relation-column
+  // nested query that raises the limit to the system maximum; getListArgs clamps
+  // it to defaultLimitConfig.limitMax, matching the V3 API's nested-record
+  // ceiling. Applied to both the optimized (single-query) and nocoExecute read
+  // paths since both derive the nested LTAR limit from `query.nested[col].limit`.
+  private buildNestedLinkLimitQuery(
+    model: Model,
+  ): Record<string, { limit: number }> {
+    const nested: Record<string, { limit: number }> = {};
+    for (const column of model.columns) {
+      if (isLinksOrLTAR(column)) {
+        nested[column.title] = { limit: defaultLimitConfig.limitMax };
+      }
+    }
+    return nested;
+  }
+
   async recursiveRead(
     context: NcContext,
     formatter: (data: any) => { data: any } | Promise<{ data: any }>,
@@ -1700,6 +1749,7 @@ export class ExportService {
             limit,
             offset,
             fields,
+            nested: this.buildNestedLinkLimitQuery(model),
             filterArrJson: param?.filterArrJson,
             sortArrJson: param?.sortArrJson,
           },
@@ -1715,8 +1765,12 @@ export class ExportService {
               view,
               fieldsSet: new Set(fields),
             }).then((columns) => {
+              const titles = columns.map((col) => col.title);
               stream.push(
-                unparse([columns.map((col) => col.title)], { header: true }),
+                unparse(
+                  [dataExportMode ? escapeFormulaHeader(titles) : titles],
+                  { header: true },
+                ),
               );
               stream.push(null);
               resolve();
@@ -1731,7 +1785,16 @@ export class ExportService {
             const formatterPromise = formatter(result.list);
             if (formatterPromise instanceof Promise) {
               formatterPromise.then(({ data }) => {
-                stream.push(unparse(data, { header, delimiter }));
+                if (dataExportMode) {
+                  escapeFormulaeInRows(data, model.columns);
+                }
+                stream.push(
+                  this.unparseExportRows(data, {
+                    header,
+                    delimiter,
+                    escapeHeader: dataExportMode,
+                  }),
+                );
                 if (result.pageInfo.isLastPage) {
                   stream.push(null);
                   resolve();
@@ -1756,7 +1819,15 @@ export class ExportService {
                 }
               });
             } else {
-              stream.push(unparse(formatterPromise.data, { header }));
+              if (dataExportMode) {
+                escapeFormulaeInRows(formatterPromise.data, model.columns);
+              }
+              stream.push(
+                this.unparseExportRows(formatterPromise.data, {
+                  header,
+                  escapeHeader: dataExportMode,
+                }),
+              );
               if (result.pageInfo.isLastPage) {
                 stream.push(null);
                 resolve();

@@ -182,6 +182,20 @@ const hasDuplicateOptionTitles = (
   );
 };
 
+// Select option titles must be strings — the SQL-building below relies on
+// el.title.replace()/trimEnd()/includes(). Clients can send numeric labels as
+// JSON numbers (e.g. { title: 2024 }), which would throw ".replace is not a
+// function". Coerce non-string titles to strings up front so every downstream
+// title access is safe.
+const normalizeSelectOptionTitles = (options?: { title?: any }[]): void => {
+  if (!Array.isArray(options)) return;
+  for (const op of options) {
+    if (op && op.title != null && typeof op.title !== 'string') {
+      op.title = String(op.title);
+    }
+  }
+};
+
 // True when this column is a SingleSelect backed by a native PostgreSQL enum
 // type (introspected from an external source, with the type name remembered
 // in internal_meta.pg_enum_type_name). For these columns option add/rename
@@ -240,6 +254,96 @@ function resolveDisplayValueColumnOrThrow(
     );
   }
   return col.id;
+}
+
+// Changing an LTAR's custom display value column also changes the SQL
+// generated for every Lookup that surfaces that LTAR — including chains of
+// lookups — and those live on OTHER models, whose compiled single-query
+// caches would otherwise keep serving the old nested JSON shape. Walk the
+// dependents over COL_LOOKUP.fk_lookup_column_id, re-discovering cross-base
+// link contexts per BFS node (same as
+// ColumnDeleteTransitiveDependentsDependencyHandler), and clear each
+// affected model's cache.
+async function clearDependentLookupModelCaches(
+  context: NcContext,
+  ltarColumn: Column,
+  ncMeta = Noco.ncMeta,
+) {
+  // The compiled single-query cache is EE-only (clearSingleQueryCache no-ops
+  // in CE) — skip the dependency walk entirely there.
+  if (!Noco.isEE()) return;
+
+  const contexts: NcContext[] = [context];
+  const discoveredModels = new Set<string>();
+
+  // Bases reachable through cross-base links on a model can host lookups
+  // that target that model's columns. Called for the LTAR's own model and
+  // for every dependent lookup's model found by the BFS, so chains that
+  // cross a base boundary at hop ≥ 2 are still invalidated.
+  const addLinkedBaseContexts = async (modelId: string, ctx: NcContext) => {
+    const key = `${ctx.base_id}:${modelId}`;
+    if (discoveredModels.has(key)) return;
+    discoveredModels.add(key);
+    for (const col of await Column.list(
+      ctx,
+      { fk_model_id: modelId },
+      ncMeta,
+    )) {
+      if (!isLinksOrLTAR(col.uidt)) continue;
+      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
+        ctx,
+        ncMeta,
+      );
+      const relatedBaseId = colOptions?.fk_related_base_id;
+      if (relatedBaseId && !contexts.some((c) => c.base_id === relatedBaseId)) {
+        contexts.push({
+          ...ctx,
+          base_id: relatedBaseId,
+          workspace_id: col.fk_workspace_id || ctx.workspace_id,
+        });
+      }
+    }
+  };
+
+  await addLinkedBaseContexts(ltarColumn.fk_model_id, context);
+
+  const visited = new Set<string>();
+  const affectedModels = new Map<string, NcContext>();
+
+  let frontier = [ltarColumn.id];
+  while (frontier.length) {
+    const next: string[] = [];
+    for (const targetColId of frontier) {
+      // snapshot — addLinkedBaseContexts may grow `contexts` mid-iteration
+      for (const ctx of [...contexts]) {
+        const lookupRows = await ncMeta.metaList2(
+          ctx.workspace_id,
+          ctx.base_id,
+          MetaTable.COL_LOOKUP,
+          { condition: { fk_lookup_column_id: targetColId } },
+        );
+        for (const row of lookupRows) {
+          if (visited.has(row.fk_column_id)) continue;
+          visited.add(row.fk_column_id);
+          const lookupCol = await Column.get(
+            ctx,
+            { colId: row.fk_column_id },
+            ncMeta,
+          );
+          if (!lookupCol) continue;
+          affectedModels.set(lookupCol.fk_model_id, ctx);
+          next.push(lookupCol.id);
+          // the next hop's lookups may live in bases linked to THIS model
+          await addLinkedBaseContexts(lookupCol.fk_model_id, ctx);
+        }
+      }
+    }
+    frontier = next;
+  }
+
+  for (const [modelId, ctx] of affectedModels) {
+    await View.clearSingleQueryCache(ctx, modelId, null, ncMeta);
+  }
 }
 
 // todo: move
@@ -1378,7 +1482,7 @@ export class ColumnsService implements IColumnsService {
             });
           } catch (e) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
-            this.logger.error('Error updating column', e);
+            this.logger.error(`Failed to update column: ${e?.message ?? e}`, e?.stack);
             NcError.get(context).internalServerError('Failed to update column');
           }
 
@@ -1489,7 +1593,9 @@ export class ColumnsService implements IColumnsService {
             ...colBody,
           });
         } else {
-          if (colBody.title !== column.title) {
+          // partial updates (e.g. only fk_display_value_column_id) omit title —
+          // writing the undefined through would null the column alias
+          if (colBody.title && colBody.title !== column.title) {
             await Column.updateAlias(context, param.columnId, {
               title: colBody.title,
             });
@@ -1604,6 +1710,11 @@ export class ColumnsService implements IColumnsService {
                 column.fk_model_id,
                 null,
               );
+
+              // Lookups (possibly chained) that surface this LTAR embed the
+              // override in their own models' compiled queries — clear those
+              // caches too or they keep serving the old nested JSON shape.
+              await clearDependentLookupModelCaches(context, column);
             }
           }
           // handle reorder column
@@ -1843,6 +1954,8 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (colBody.colOptions?.options) {
+        normalizeSelectOptionTitles(colBody.colOptions.options);
+
         const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3', 'mssql'];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
           NcConnectionMgrv2.get(source),
@@ -3958,7 +4071,7 @@ export class ColumnsService implements IColumnsService {
           colBody.parsed_tree = null;
           if (!param.suppressFormulaError) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
-            this.logger.error('Error updating column', e);
+            this.logger.error(`Failed to update column: ${e?.message ?? e}`, e?.stack);
             NcError.get(context).internalServerError('Failed to update column');
           }
         }
@@ -4250,6 +4363,8 @@ export class ColumnsService implements IColumnsService {
                 options: [],
               };
             }
+
+            normalizeSelectOptionTitles(colBody.colOptions.options);
 
             const dbDriver = await NcConnectionMgrv2.get(source);
             const driverType = dbDriver.clientType();
@@ -4889,10 +5004,12 @@ export class ColumnsService implements IColumnsService {
             : null;
 
           // If child/parent columns or tables are missing (orphaned link),
-          // skip relation cleanup and just delete the column metadata
+          // we can't run the normal relation cleanup. Delete this column's
+          // metadata, and — for an MM link — complete the teardown of the
+          // junction-side residue that outlives the deleted related table.
           if (!childColumn || !childTable || !parentColumn || !parentTable) {
             this.logger.warn(
-              `Orphaned LTAR column ${param.columnId} — related column or table missing, deleting column metadata only`,
+              `Orphaned LTAR column ${param.columnId} — related column or table missing, completing orphaned-relation teardown`,
             );
             await Column.delete2(
               context,
@@ -4902,6 +5019,115 @@ export class ColumnsService implements IColumnsService {
               },
               ncMeta,
             );
+
+            // MM: the junction model is a SEPARATE entity that survives the
+            // related table's deletion — along with the reverse user link and
+            // the system hm links pointing at the junction. Deleting only this
+            // column would leave that residue (a live junction model + links
+            // dangling at a dropped junction table), which later resurfaces as
+            // orphaned-link crashes. Tear the whole junction down so nothing
+            // dangles. (Guard only fires for genuinely orphaned relations, so
+            // this never runs for a normal delete.)
+            if (relationColOpt.fk_mm_model_id) {
+              const junctionId = relationColOpt.fk_mm_model_id;
+
+              // Columns referencing the junction: user links (fk_mm_model_id)
+              // and system hm links (fk_related_model_id). Their owning columns
+              // must be removed explicitly — Model.delete only sweeps the
+              // col_relation rows, not the columns on the other tables.
+              const refRelations = [
+                ...(await ncMeta.metaList2(
+                  context.workspace_id,
+                  context.base_id,
+                  MetaTable.COL_RELATIONS,
+                  { condition: { fk_mm_model_id: junctionId } },
+                )),
+                ...(await ncMeta.metaList2(
+                  context.workspace_id,
+                  context.base_id,
+                  MetaTable.COL_RELATIONS,
+                  { condition: { fk_related_model_id: junctionId } },
+                )),
+              ];
+              for (const rel of refRelations) {
+                if (!rel.fk_column_id || rel.fk_column_id === param.columnId) {
+                  continue;
+                }
+                await Column.delete2(
+                  context,
+                  {
+                    id: rel.fk_column_id,
+                    // may be soft-deleted (cascaded reverse/system link)
+                    includeDeleted: true,
+                    ...generateColumnDeleteHandler(columnWebhookManager),
+                  },
+                  ncMeta,
+                );
+              }
+
+              // Drop the junction model. Its physical table drop is idempotent
+              // (DROP TABLE IF EXISTS) and best-effort — it is usually already
+              // gone by the time we get here.
+              const junction = await Model.get(
+                context,
+                junctionId,
+                true,
+                ncMeta,
+              );
+              if (junction) {
+                try {
+                  // getColumns must run first — tableDelete builds a rollback
+                  // (down) query from junction.columns; without it that builder
+                  // dereferences undefined. Matches the normal mm teardown.
+                  await junction.getColumns(context, ncMeta);
+                  (junction as any).tn = junction.table_name;
+                  junction.columns.forEach((c) => {
+                    (c as any).cn = c.column_name;
+                  });
+                  await sqlMgr.sqlOpPlus(source, 'tableDelete', junction);
+                } catch (e) {
+                  this.logger.warn(
+                    `Orphaned junction ${junctionId}: physical drop skipped (${e?.message})`,
+                  );
+                }
+                await junction.delete(context, ncMeta, true);
+              }
+            } else if (
+              relationColOpt.fk_child_column_id &&
+              relationColOpt.fk_parent_column_id
+            ) {
+              // Non-junction links (hm/bt/oo): the reverse link on the related
+              // table shares this relation's child + parent FK columns. Remove
+              // it so it isn't left dangling at the now-deleted related table.
+              // (The FK column is unique per relationship, so this matches only
+              // the paired reverse link.)
+              const reverseRels = await ncMeta.metaList2(
+                context.workspace_id,
+                context.base_id,
+                MetaTable.COL_RELATIONS,
+                {
+                  condition: {
+                    fk_child_column_id: relationColOpt.fk_child_column_id,
+                    fk_parent_column_id: relationColOpt.fk_parent_column_id,
+                  },
+                },
+              );
+              for (const rel of reverseRels) {
+                if (!rel.fk_column_id || rel.fk_column_id === param.columnId) {
+                  continue;
+                }
+                await Column.delete2(
+                  context,
+                  {
+                    id: rel.fk_column_id,
+                    // may be soft-deleted (cascaded reverse/system link)
+                    includeDeleted: true,
+                    ...generateColumnDeleteHandler(columnWebhookManager),
+                  },
+                  ncMeta,
+                );
+              }
+            }
             break;
           }
 
@@ -7238,10 +7464,33 @@ export class ColumnsService implements IColumnsService {
 
     if (colOptions.fk_mm_model_id === tableId) {
       table = await colOptions.getMMModel(mmContext);
+      // Column is already validated as Link/LTAR with loaded colOptions, so the
+      // referenced model should always exist. A null means orphaned link
+      // metadata (table deleted without cleaning up the link column) — an
+      // internal data-integrity violation. Throw 500 with enough context to
+      // trace the broken column rather than dereferencing null.
+      if (!table) {
+        NcError.get(context).internalServerError(
+          `Link column metadata references a missing many-to-many table: ` +
+            `mm_model_id=${colOptions.fk_mm_model_id}, ` +
+            `link_column_id=${columnId} (${column?.title}), ` +
+            `source_model_id=${column?.fk_model_id}, ` +
+            `relation=${colOptions.type}`,
+        );
+      }
       // load columns
       await table.getColumns(mmContext);
     } else if (colOptions.fk_related_model_id === tableId) {
       table = await colOptions.getRelatedTable(refContext);
+      if (!table) {
+        NcError.get(context).internalServerError(
+          `Link column metadata references a missing related table: ` +
+            `related_model_id=${colOptions.fk_related_model_id}, ` +
+            `link_column_id=${columnId} (${column?.title}), ` +
+            `source_model_id=${column?.fk_model_id}, ` +
+            `relation=${colOptions.type}`,
+        );
+      }
       // load columns
       await table.getColumns(refContext);
     } else {

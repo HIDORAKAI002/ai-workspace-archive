@@ -220,7 +220,12 @@ export const relationDataFetcher = (param: {
         nested?: boolean;
         linksAsLtar?: boolean;
       },
-      args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldsSet?: Set<string>;
+        pkAndPvOnly?: boolean;
+      } = {},
       selectAllRecords = false,
     ) {
       const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
@@ -296,7 +301,10 @@ export const relationDataFetcher = (param: {
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
-        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        pkAndPvOnly:
+          relColOptions.isCrossBaseLink() ||
+          hasLimitedAccess ||
+          !!args.pkAndPvOnly,
         fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
       });
@@ -547,7 +555,12 @@ export const relationDataFetcher = (param: {
         nested?: boolean;
         linksAsLtar?: boolean;
       },
-      args: { limit?; offset?; fieldSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldSet?: Set<string>;
+        pkAndPvOnly?: boolean;
+      } = {},
       selectAllRecords = false,
     ) {
       try {
@@ -619,7 +632,10 @@ export const relationDataFetcher = (param: {
         await childBaseModel.selectObject({
           qb,
           fieldsSet: args.fieldSet,
-          pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          pkAndPvOnly:
+            relationColOpts.isCrossBaseLink() ||
+            hasLimitedAccess ||
+            !!args.pkAndPvOnly,
           fk_display_value_column_id:
             relationColOpts.fk_display_value_column_id,
           linksAsLtar,

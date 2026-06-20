@@ -1,4 +1,13 @@
-import { ColumnHelper, type ColumnType, FormulaDataTypes, type TableType, UITypes, isNumericCol, isVirtualCol } from 'nocodb-sdk'
+import {
+  ColumnHelper,
+  type ColumnType,
+  FormulaDataTypes,
+  type TableType,
+  UITypes,
+  isNumericCol,
+  isVirtualCol,
+  ncIsNaN,
+} from 'nocodb-sdk'
 
 export interface FieldQueryType {
   field: string
@@ -120,6 +129,13 @@ export function useFieldQuery() {
 
       return `(${col.title},like,%${searchQuery}%)`
     }
+
+    const isNumericSearchTarget =
+      isNumericCol(col) ||
+      col.dt === 'bigint' ||
+      (col.uidt === UITypes.Formula && getFormulaColDataType(col) === FormulaDataTypes.NUMERIC)
+
+    if (isNumericSearchTarget && ncIsNaN(searchQuery)) return ''
 
     if (params.getWhereQueryAs === 'object') {
       return {

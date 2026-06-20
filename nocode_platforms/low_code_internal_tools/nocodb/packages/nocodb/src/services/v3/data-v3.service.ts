@@ -677,23 +677,6 @@ export class DataV3Service {
       return { records: [] };
     }
 
-    const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
-      return primaryKey.id in obj || primaryKey.title in obj;
-    };
-
-    // Extract inserted record IDs
-    const insertedIds = Array.isArray(result)
-      ? result
-          .map((record) => record[primaryKey.id] ?? record[primaryKey.title])
-          .filter((id) => id != null)
-      : hasPrimaryKey(result)
-      ? [result[primaryKey.id] ?? result[primaryKey.title]]
-      : [];
-
-    if (insertedIds.length === 0) {
-      return { records: [] };
-    }
-
     // Fetch full records using baseModel.chunkList() for better performance
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -702,32 +685,47 @@ export class DataV3Service {
       source,
     });
 
-    // Convert IDs to strings for chunkList
-    const idsAsStrings = insertedIds.map((id) => String(id));
+    // extractPksValues reads baseModel.model.primaryKeys, which is null until
+    // columns are loaded. The fresh model from getBaseModelSQL isn't hydrated in
+    // CE, so load columns before the first extractPksValues call below (the
+    // sibling nestedLink path does the same).
+    await baseModel.model.getColumns(baseModel.context);
+
+    // Extract inserted record PK values via extractPksValues (NOT the single
+    // primaryKey) so composite-PK tables get the full `___`-joined string. This
+    // keeps the chunkList lookup and the recordMap keys consistent — keying by
+    // only `id` would never match the composite map keys built below.
+    const insertedPks = (Array.isArray(result) ? result : [result])
+      .map((record) => baseModel.extractPksValues(record, true))
+      .filter((pk) => pk != null && pk !== 'N/A');
+
+    if (insertedPks.length === 0) {
+      return { records: [] };
+    }
 
     const linksAsLtar =
       param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
     // Fetch all records in bulk
     const fullRecords = await baseModel.chunkList({
-      pks: idsAsStrings,
+      pks: insertedPks.map((pk) => String(pk)),
       apiVersion: NcApiVersion.V3,
       args: {
         ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
       },
     });
 
-    // Create a map for quick lookup by ID
+    // Create a map for quick lookup by PK
     const recordMap = new Map();
     for (const record of fullRecords) {
       const recordId = baseModel.extractPksValues(record, true);
       recordMap.set(String(recordId), record);
     }
 
-    // Maintain the original order of insertedIds
+    // Maintain the original order of inserted records
     const orderedRecords = [];
-    for (const id of insertedIds) {
-      const record = recordMap.get(String(id));
+    for (const pk of insertedPks) {
+      const record = recordMap.get(String(pk));
       if (record) {
         orderedRecords.push(record);
       }

@@ -67,8 +67,6 @@ export function useMultiSelect(
 ) {
   const meta = ref(_meta)
 
-  const MAX_ROW_SELECTION = 100
-
   const CHUNK_SIZE = 50
 
   const { t } = useI18n()
@@ -86,6 +84,8 @@ export function useMultiSelect(
   const { api } = useApi()
 
   const { $api } = useNuxtApp()
+
+  const { internalGet } = useInternalBatch()
 
   const { fillRows } = useNocoAi()
 
@@ -143,11 +143,12 @@ export function useMultiSelect(
   )
 
   function limitSelection(anchor: Cell, end: Cell): Cell {
+    const maxRowSelection = appInfo.value.ncGridMaxSelectionLimit || 1000
     const limitedEnd = { ...end }
     const totalRows = Math.abs(end.row - anchor.row) + 1
-    if (totalRows > MAX_ROW_SELECTION) {
+    if (totalRows > maxRowSelection) {
       const direction = end.row > anchor.row ? 1 : -1
-      limitedEnd.row = anchor.row + (MAX_ROW_SELECTION - 1) * direction
+      limitedEnd.row = anchor.row + (maxRowSelection - 1) * direction
     }
     return limitedEnd
   }
@@ -1176,14 +1177,10 @@ export function useMultiSelect(
 
           if (newColsNeeded > 0) {
             const columnsHash = (
-              await $api.internal.getOperation(
-                (meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!,
-                meta.value!.base_id!,
-                {
-                  operation: 'columnsHash',
-                  tableId: meta.value?.id,
-                },
-              )
+              await internalGet((meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'columnsHash',
+                tableId: meta.value?.id,
+              })
             ).hash
             const columnsLength = meta.value?.columns?.length || 0
 

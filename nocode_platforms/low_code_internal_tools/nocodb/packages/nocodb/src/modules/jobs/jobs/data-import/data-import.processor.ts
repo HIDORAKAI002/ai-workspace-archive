@@ -4,10 +4,7 @@ import {
   isLinksOrLTAR,
   NcBaseErrorv2,
   NcErrorType,
-  serializeDecimalValue,
-  serializeDurationValue,
-  serializeIntValue,
-  UITypes,
+  serializeImportValue,
 } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type {
@@ -16,11 +13,11 @@ import type {
   FileImportSheet,
   FileImportType,
   NcRequest,
+  UITypes,
   UserType,
 } from 'nocodb-sdk';
 import type { DataImportJobData } from '~/interface/Jobs';
 import type { NcContext } from '~/interface/config';
-import { getCheckboxValue } from '~/modules/jobs/jobs/data-import/csv-type-detector';
 import { describeRowError } from '~/modules/jobs/jobs/data-import/error-formatter';
 import {
   deleteImportAttachment,
@@ -61,7 +58,8 @@ const LINK_CONCURRENCY = 25;
  */
 const LINK_FLUSH_THRESHOLD_DEFAULT = 50_000;
 const getLinkFlushThreshold = () =>
-  +process.env.NC_DATA_IMPORT_LINK_FLUSH_THRESHOLD || LINK_FLUSH_THRESHOLD_DEFAULT;
+  +process.env.NC_DATA_IMPORT_LINK_FLUSH_THRESHOLD ||
+  LINK_FLUSH_THRESHOLD_DEFAULT;
 /** Default delimiter for multiple display values in one LTAR cell. */
 const DEFAULT_LINK_DELIMITER = ',';
 
@@ -101,34 +99,15 @@ function splitDisplayValues(raw: any, delimiter: string): string[] {
     .filter((v) => v.length > 0);
 }
 
-/** Coerce a raw imported value into the type expected by the destination column. */
+/**
+ * Coerce a raw imported value into the type expected by the destination column.
+ *
+ * Delegates to the SDK's `serializeImportValue` — the single source of truth
+ * shared with the client-side CSV-upload extension so both import paths produce
+ * identical rows.
+ */
 function coerceValue(raw: any, mapping: ColumnMapEntry): any {
-  const value = raw === '' || raw === undefined || raw === null ? null : raw;
-
-  switch (mapping.uidt) {
-    case UITypes.Checkbox:
-      return getCheckboxValue(value);
-
-    case UITypes.SingleSelect:
-    case UITypes.MultiSelect:
-      return (value ?? '').toString().trim() || null;
-
-    case UITypes.Decimal:
-    case UITypes.Percent:
-      return serializeDecimalValue(value, undefined, { col: mapping.col });
-
-    case UITypes.Number:
-    case UITypes.Rating:
-      return serializeIntValue(value, { col: mapping.col });
-
-    case UITypes.Duration:
-      return value === null
-        ? null
-        : serializeDurationValue(value as string, mapping.col);
-
-    default:
-      return value;
-  }
+  return serializeImportValue(raw, mapping.col);
 }
 
 interface SheetResult {

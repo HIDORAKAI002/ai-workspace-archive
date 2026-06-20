@@ -256,6 +256,9 @@ const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { getColor } = useTheme()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
+
+const maxSelectionLimit = computed(() => appInfo.value.ncGridMaxSelectionLimit || 1000)
+
 const { selectedTemplate } = useRecordTemplate()
 const { base } = storeToRefs(useBase())
 const route = useRoute()
@@ -412,6 +415,7 @@ const {
   groupByColumns,
   fetchMissingGroupChunks,
   getDataCache,
+  maxSelectionLimit,
 })
 
 // File drop to create records
@@ -3597,7 +3601,7 @@ watch(
         <NcButton class="nc-grid-add-new-row" size="small" disabled type="secondary" :shadow="false">
           <div class="flex items-center gap-2">
             <GeneralIcon icon="plus" />
-            New Record
+            {{ $t('activity.newRecord') }}
           </div>
         </NcButton>
         <template #title>
@@ -3628,7 +3632,7 @@ watch(
               >
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="plus" />
-                  New Record
+                  {{ $t('activity.newRecord') }}
                 </div>
               </NcButton>
               <NcButton

@@ -115,6 +115,8 @@ export enum MetaTable {
   ORG_USERS = 'nc_org_users',
   PLANS = 'nc_plans',
   SUBSCRIPTIONS = 'nc_subscriptions',
+  ADDONS = 'nc_addons',
+  SUBSCRIPTION_ADDONS = 'nc_subscription_addons',
   AUTOMATIONS = 'nc_automations',
   AUTOMATION_EXECUTIONS = 'nc_automation_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
@@ -373,7 +375,9 @@ export const orderedMetaTables = [
   MetaTable.AUTOMATIONS,
 
   // Payment
+  MetaTable.SUBSCRIPTION_ADDONS,
   MetaTable.SUBSCRIPTIONS,
+  MetaTable.ADDONS,
   MetaTable.PLANS,
 
   // Installations / Sandboxes / Apps
@@ -492,7 +496,15 @@ export enum CacheScope {
   INSTANCE_META = 'instanceMeta',
   USER_BASE = 'userBase',
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
-  SINGLE_QUERY = 'singleQuery',
+  // Versioned suffix invalidates all previously cached single-query entries
+  // when the cache shape changes — bumping it forces a fresh cache key
+  // namespace so stale entries from older deployments are ignored automatically.
+  // _v3: v2 entries written without the parentKeys back-link may be orphaned
+  // (unreachable by clearSingleQueryCache); never read them again — they stop
+  // getting TTL-refreshed and expire on their own.
+  // _v4: lookup-of-LTAR payloads now include the custom display value column —
+  // queries compiled before that fix would keep serving pk+pv-only JSON.
+  SINGLE_QUERY = 'singleQuery_v4',
   JOBS = 'nc_jobs',
   JOBS_POLLING = 'nc_jobs_polling',
   PRESIGNED_URL = 'presignedUrl',
@@ -550,6 +562,8 @@ export enum CacheScope {
   MANAGED_APP_VERSION = 'managedAppVersion',
   MANAGED_APP_DEPLOYMENT_LOG = 'managedAppDeploymentLog',
   SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
+  ADDONS = 'addons',
+  SUBSCRIPTION_ADDONS = 'subscriptionAddons',
   AUTOMATION_SUBSCRIBER = 'automationSubscriber',
   SANDBOX = 'sandbox',
   SCIM_CONFIG = 'scimConfig',

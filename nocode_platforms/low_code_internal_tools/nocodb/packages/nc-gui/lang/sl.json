@@ -1230,7 +1230,7 @@
     "dbCredentials": "Poverilnice baze podatkov",
     "advancedParameters": "SSL in napredni parametri",
     "headCreateProject": "Ustvari projekt | NocoDB.",
-    "headLogin": "Prijava | Nocodb.",
+    "headLogin": "Prijava | NocoDB.",
     "resetPassword": "Ponastavi geslo",
     "teamAndSettings": "Ekipa in nastavitve",
     "apiDocs": "Dokumenti API",
@@ -3856,9 +3856,9 @@
       },
       "sponsor": {
         "header": "Lahko nam pomagate!",
-        "message": "Smo majhna ekipa, ki dela s polnim delovnim časom, da naredimo odprtokod NOCODB. Verjamemo, da bi moralo biti orodje, kot je NoCoDB, na voljo na vsakem reševanju problemov na internetu."
+        "message": "Smo majhna ekipa, ki dela s polnim delovnim časom, da naredimo odprtokod NocoDB. Verjamemo, da bi moralo biti orodje, kot je NoCoDB, na voljo na vsakem reševanju problemov na internetu."
       },
-      "loginMsg": "Prijavite se v Nocodb",
+      "loginMsg": "Prijavite se v NocoDB",
       "passwordRecovery": {
         "message_1": "Navedite e-poštni naslov, ki ste ga uporabili, ko ste se prijavili.",
         "message_2": "Poslali vam bomo e-pošto s povezavo za ponastavitev gesla.",

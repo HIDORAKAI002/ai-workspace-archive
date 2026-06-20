@@ -67,6 +67,48 @@ const maxVisibleDays = computed(() => {
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
+// --- Collapsed-weekend column model -----------------------------------------
+// When collapse_weekend is on (week mode → 7 columns), Sat & Sun render in
+// narrower columns. Day columns are positioned px-based, so expose per-column
+// width/offset helpers; when not collapsed they return the uniform values.
+const WEEKEND_COLLAPSE_RATIO = 0.5
+
+const isWeekendCollapsed = computed(() => !!viewMetaProperties.value?.collapse_weekend && maxVisibleDays.value === 7)
+
+const columnWeights = computed<number[]>(() => {
+  const start = timezoneDayjs.timezonize(selectedDateRange.value.start).startOf('day')
+  return Array.from({ length: maxVisibleDays.value }, (_, i) => {
+    const dow = start.add(i, 'day').day()
+    return isWeekendCollapsed.value && (dow === 0 || dow === 6) ? WEEKEND_COLLAPSE_RATIO : 1
+  })
+})
+
+const totalColumnWeight = computed(() => columnWeights.value.reduce((sum, w) => sum + w, 0))
+
+const columnWidthPx = (index: number) => {
+  if (!isWeekendCollapsed.value) return containerWidth.value / maxVisibleDays.value
+  return (containerWidth.value * columnWeights.value[index]) / totalColumnWeight.value
+}
+
+const columnOffsetPx = (index: number) => {
+  if (!isWeekendCollapsed.value) return index * (containerWidth.value / maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < index; i++) offset += columnWidthPx(i)
+  return offset
+}
+
+const columnFromX = (x: number) => {
+  if (!isWeekendCollapsed.value) return Math.floor((x / containerWidth.value) * maxVisibleDays.value)
+  let offset = 0
+  for (let i = 0; i < maxVisibleDays.value; i++) {
+    offset += columnWidthPx(i)
+    if (x < offset) return i
+  }
+  return maxVisibleDays.value - 1
+}
+
+const columnWidthPct = (index: number) => `${(columnWeights.value[index] / totalColumnWeight.value) * 100}%`
+
 const currTime = ref(timezoneDayjs.dayjsTz())
 
 const overlayStyle = computed(() => {
@@ -76,13 +118,14 @@ const overlayStyle = computed(() => {
       left: 0,
     }
 
-  const left = (containerWidth.value / maxVisibleDays.value) * getDayIndex(currTime.value)
+  const dayIndex = getDayIndex(currTime.value)
+  const left = columnOffsetPx(dayIndex)
   const minutes = currTime.value.hour() * 60 + currTime.value.minute()
 
   const top = (52 / 60) * minutes - 12
 
   return {
-    width: `${containerWidth.value / maxVisibleDays.value}px`,
+    width: `${columnWidthPx(dayIndex)}px`,
     top: `${top}px`,
     left: `${left}px`,
   }
@@ -304,7 +347,6 @@ const recordsAcrossAllRange = computed<{
       gridTimeMap: new Map(),
       spanningRecords: [],
     }
-  const perWidth = containerWidth.value / maxVisibleDays.value
   const perHeight = 52
 
   const scheduleStart = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
@@ -582,7 +624,8 @@ const recordsAcrossAllRange = computed<{
       let width = 0
       let left = 100
 
-      const majorLeft = dayIndex * perWidth
+      const dayWidth = columnWidthPx(dayIndex)
+      const majorLeft = columnOffsetPx(dayIndex)
 
       const isRecordDraggingOrResizeState =
         record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id
@@ -619,7 +662,7 @@ const recordsAcrossAllRange = computed<{
           }
         } else {
           // Calculate the available width for each day
-          const availableWidth = perWidth - 3 // Account for padding/margins
+          const availableWidth = dayWidth - 3 // Account for padding/margins
 
           // Calculate the width of each record based on the number of overlaps (up to 3)
           // Ensure minimum width of 72px
@@ -633,14 +676,14 @@ const recordsAcrossAllRange = computed<{
           left = majorLeft + 1.5 + (overlapIndex - 1) * (width + spacing)
 
           // Safety check to ensure the record stays within its day container
-          if (left + width > majorLeft + perWidth) {
+          if (left + width > majorLeft + dayWidth) {
             // Adjust the width if needed to fit within the container
-            width = Math.max(majorLeft + perWidth - left - 1.5, 72)
+            width = Math.max(majorLeft + dayWidth - left - 1.5, 72)
           }
         }
       } else {
         left = majorLeft + 1.5
-        width = perWidth - 3
+        width = dayWidth - 3
       }
 
       record.rowMeta.style = {
@@ -690,7 +733,7 @@ const onResize = (event: MouseEvent) => {
   const ogStartDate = timezoneDayjs.timezonize(resizeRecord.value.row[fromCol.title])
   const ogEndDate = timezoneDayjs.timezonize(resizeRecord.value.row[toCol.title])
 
-  const day = Math.floor(percentX * maxVisibleDays.value)
+  const day = columnFromX(percentX * containerWidth.value)
   const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
   const baseDate = timezoneDayjs.timezonize(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
@@ -784,7 +827,7 @@ const calculateNewRow = (
 
   if (!fromCol) return { newRow: null, updatedProperty: [] }
 
-  const day = Math.max(0, Math.min(maxVisibleDays.value - 1, Math.floor(percentX * maxVisibleDays.value)))
+  const day = Math.max(0, Math.min(maxVisibleDays.value - 1, columnFromX(percentX * containerWidth.value)))
   const hour = Math.max(0, Math.min(23, Math.floor(percentY * 24)))
 
   const minutes = Math.round(((percentY * 24 * 60) % 60) / 15) * 15
@@ -991,7 +1034,7 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
   if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
-  const fromCol = calendarRange.value[0].fk_from_col
+  const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
     row: {
@@ -1061,15 +1104,13 @@ watch(
     </div>
     <div class="flex sticky h-6 z-4 top-0 pl-16 bg-nc-bg-gray-extralight w-full">
       <div
-        v-for="date in datesHours"
+        v-for="(date, index) in datesHours"
         :key="date[0].toISOString()"
         :class="{
           'text-nc-content-brand': date[0].isSame(timezoneDayjs.dayjsTz(), 'date'),
-          'w-1/3': maxVisibleDays === 3,
-          'w-1/5': maxVisibleDays === 5,
-          'w-1/7': maxVisibleDays === 7,
         }"
-        class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted w-full py-1 border-nc-border-gray-medium last:border-r-0 border-b-1 border-l-1 border-r-0 bg-nc-bg-gray-extralight"
+        :style="{ width: columnWidthPct(index) }"
+        class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted py-1 border-nc-border-gray-medium last:border-r-0 border-b-1 border-l-1 border-r-0 bg-nc-bg-gray-extralight"
       >
         {{ timezoneDayjs.dayjsTz(date[0]).format('DD ddd') }}
       </div>
@@ -1112,11 +1153,7 @@ watch(
       <div
         v-for="(date, index) in datesHours"
         :key="index"
-        :class="{
-          'w-1/3': maxVisibleDays === 3,
-          'w-1/5': maxVisibleDays === 5,
-          'w-1/7': maxVisibleDays === 7,
-        }"
+        :style="{ width: columnWidthPct(index) }"
         class="h-full mt-5.95"
         data-testid="nc-calendar-week-day"
       >
@@ -1208,11 +1245,6 @@ watch(
                 (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
                   ? 1
                   : 0.3,
-            }"
-            :class="{
-              'w-1/3': maxVisibleDays === 3,
-              'w-1/5': maxVisibleDays === 5,
-              'w-1/7': maxVisibleDays === 7,
             }"
             class="absolute transition draggable-record group cursor-pointer pointer-events-auto"
             @mousedown.stop="dragStart($event, record)"

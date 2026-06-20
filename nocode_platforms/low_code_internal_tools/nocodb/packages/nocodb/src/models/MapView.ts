@@ -108,7 +108,7 @@ export default class MapView implements MapType {
       );
       await View.updateColumn(
         context,
-        body.fk_view_id,
+        mapId,
         mapViewMappedByColumn.id,
         {
           show: true,

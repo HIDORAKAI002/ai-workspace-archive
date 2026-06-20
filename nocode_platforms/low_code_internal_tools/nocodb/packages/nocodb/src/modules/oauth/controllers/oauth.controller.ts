@@ -19,6 +19,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-authorization.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
+import { toPublicOAuthClient } from '~/modules/oauth/helpers/sanitizeOAuthClient';
 
 const logger = new Logger('OAuthController');
 
@@ -38,7 +39,7 @@ export class OAuthController {
       NcError.notFound('Oauth Client');
     }
 
-    return client;
+    return toPublicOAuthClient(client);
   }
 
   @Get('/api/v2/oauth/authorize')

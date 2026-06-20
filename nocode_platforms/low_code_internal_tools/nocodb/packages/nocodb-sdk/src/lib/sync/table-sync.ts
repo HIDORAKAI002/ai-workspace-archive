@@ -78,6 +78,9 @@ export interface TableSyncType {
   last_error: string | null;
   last_synced_at: string | null;
 
+  /** Soft-delete flag. true = trashed (recoverable), null/false = active. */
+  deleted?: boolean;
+
   sync_job_id: string | null;
 
   created_at: string;

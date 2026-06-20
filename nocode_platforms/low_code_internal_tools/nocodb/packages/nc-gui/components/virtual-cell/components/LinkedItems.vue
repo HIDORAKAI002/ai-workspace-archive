@@ -90,11 +90,24 @@ const {
   fetchChildrenChunk,
   clearChildrenCache,
   resetChildrenCache,
+  shouldDefer,
+  isSingleTargetRelation,
+  pendingLinkRows,
+  removePendingLink,
+  isPendingUnlink,
 } = useLTARStoreOrThrow()
 
 const { withLoading } = useLoadingTrigger()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
+
+// Buffered (unsaved) links to show ABOVE the persisted virtual list. Only for an
+// existing row edited in the expanded form (deferred mode) and multi-target
+// relations — grid inline (shouldDefer=false) and new rows (rendered via the
+// normal list) are unaffected; single-target uses the row mirror + count.
+const showPendingLinks = computed(
+  () => shouldDefer.value && !isNew.value && !isSingleTargetRelation.value && pendingLinkRows.value.length > 0,
+)
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
@@ -341,21 +354,33 @@ const ROW_VIRTUAL_MARGIN = 5
 const rowSlice = reactive({ start: 0, end: 0 })
 
 const calculateSlices = () => {
-  const container = scrollContainerRef.value
-  if (!container || childrenCachedTotalRows.value === 0) return
+  if (childrenCachedTotalRows.value === 0) return
 
-  const scrollTop = container.scrollTop
+  const container = scrollContainerRef.value
+  const scrollTop = container?.scrollTop ?? 0
+  // Fall back to a sensible viewport height when the scroll container isn't measured yet
+  // (e.g. first open with buffered pending links, before the DOM flush binds the ref).
+  // Without this the persisted list would compute an empty slice and only render after a
+  // scroll / reopen, hiding already-linked records on first open. (#14058 review)
+  const clientHeight = container?.clientHeight || 12 * ROW_HEIGHT
   const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT))
-  const visibleCount = Math.ceil(container.clientHeight / ROW_HEIGHT)
+  const visibleCount = Math.max(1, Math.ceil(clientHeight / ROW_HEIGHT))
   const endIndex = Math.min(startIndex + visibleCount, childrenCachedTotalRows.value)
 
   rowSlice.start = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
   rowSlice.end = Math.min(childrenCachedTotalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
 }
 
-// Recalculate slices when totalRows changes (e.g., after first chunk load)
-watch(childrenCachedTotalRows, () => {
-  calculateSlices()
+// Recompute the virtual slice whenever the total OR the set of cached rows changes, AND once
+// immediately on mount. `immediate` matters because the list remounts on returning from the
+// link-records modal while the chunk cache is still populated — so there's no total/size change
+// to react to, and a change-only watch would leave rowSlice at {0,0} until the user scrolls,
+// hiding the already-linked persisted rows. `flush: 'post'` runs the callback after the DOM
+// updates so the scroll container is mounted and measured when calculateSlices reads it
+// (#14058 review).
+watch([childrenCachedTotalRows, () => childrenCachedRows.value.size], () => calculateSlices(), {
+  flush: 'post',
+  immediate: true,
 })
 
 const updateVisibleChunks = () => {
@@ -387,9 +412,12 @@ const visibleRows = computed(() => {
   return Array.from({ length: Math.max(0, end - start) }, (_, i) => {
     const idx = start + i
     const row = childrenCachedRows.value.get(idx)
-    const isLinked = childrenCachedLinkedState.value.get(idx) ?? true
+    let isLinked = childrenCachedLinkedState.value.get(idx) ?? true
     const isLoading = childrenCachedLoadingState.value.get(idx) ?? false
     if (!row) return { _placeholder: true, _index: idx, _isLinked: true, _isLoading: false }
+    // A persisted row buffered for unlink (deferred) must render as unlinked
+    // even after the cache reseeds on reopen / far-chunk load.
+    if (shouldDefer.value && !isNew.value && isPendingUnlink(row)) isLinked = false
     return { ...row, _index: idx, _isLinked: isLinked, _isLoading: isLoading }
   })
 })
@@ -472,7 +500,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         />
       </div>
       <div ref="scrollContainerRef" class="flex-1 overflow-auto nc-scrollbar-thin" @scroll="onListScroll">
-        <div v-if="isDataExist || isChildrenLoading || childrenCachedTotalRows > 0">
+        <div v-if="isDataExist || isChildrenLoading || childrenCachedTotalRows > 0 || showPendingLinks">
           <template v-if="isChildrenLoading && childrenCachedRows.size === 0">
             <div
               v-for="(_x, i) in Array.from({ length: skeletonCount })"
@@ -497,6 +525,25 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
             </div>
           </template>
           <template v-else>
+            <!-- Unsaved (buffered) links — shown above the persisted list until save -->
+            <LazyVirtualCellComponentsListItem
+              v-for="(pItem, pi) in showPendingLinks ? pendingLinkRows : []"
+              :key="`pending-${pi}`"
+              :attachment="attachmentCol"
+              :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
+              :fields="fields"
+              :display-value-column="relatedTableDisplayValueColumn"
+              :is-linked="true"
+              :is-loading="false"
+              :related-table-display-value-prop="relatedTableDisplayValueProp"
+              :row="pItem"
+              data-testid="nc-child-list-item-pending"
+              @link-or-unlink="removePendingLink(pItem)"
+              @expand="onClick(pItem)"
+              @keydown.space.prevent.stop="() => removePendingLink(pItem)"
+              @keydown.enter.prevent.stop="() => removePendingLink(pItem)"
+            />
+
             <!-- Top spacer for virtual scroll -->
             <div :style="{ height: `${rowSlice.start * ROW_HEIGHT}px` }" />
 
@@ -636,7 +683,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                 new: true,
               },
         }"
-        :state="newRowState"
+        :state="isNewRecord ? newRowState : {}"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
         skip-reload

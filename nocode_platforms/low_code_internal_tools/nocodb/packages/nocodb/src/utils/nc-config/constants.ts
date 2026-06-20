@@ -115,3 +115,21 @@ export const getThumbnailMaxSize = () => {
   }
   return DEFAULT_THUMBNAIL_MAX_SIZE;
 };
+
+// Cap on the request/response body size (bytes) for outgoing webhooks. Without
+// it, axios buffers the entire response into a native Buffer (default
+// maxContentLength is -1 = unlimited); a flood of webhook jobs each holding an
+// unbounded body OOM-killed the worker (std::bad_alloc). 10 MB is generous for
+// typical acknowledgement responses; operators can raise NC_WEBHOOK_MAX_BODY_SIZE.
+const DEFAULT_WEBHOOK_MAX_BODY_SIZE = 10 * 1024 * 1024;
+
+export const getWebhookMaxBodySize = () => {
+  const envValue = process.env.NC_WEBHOOK_MAX_BODY_SIZE;
+  if (envValue) {
+    const parsed = parseInt(envValue, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return DEFAULT_WEBHOOK_MAX_BODY_SIZE;
+};

@@ -8,6 +8,7 @@ import {
   UITypesName,
   type ViewType,
   isColumnInError,
+  isSupportedDisplayValueColumn,
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -28,7 +29,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const { t } = useI18n()
 
     const { api } = useApi()
-    const { $api } = useNuxtApp()
+
+    const { internalGet } = useInternalBatch()
 
     const { appInfo } = useGlobal()
 
@@ -352,12 +354,20 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         }
 
         if (groupby.column.uidt === UITypes.LinkToAnotherRecord) {
-          const relatedTableMeta = await getMeta(
-            base.value?.id as string,
-            (groupby.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-          )
+          const colOptions = groupby.column.colOptions as LinkToAnotherRecordType
+          const relatedTableMeta = await getMeta(base.value?.id as string, colOptions.fk_related_model_id as string)
           if (!relatedTableMeta) return
-          group.displayValueProp = (relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
+          // Honor the link's custom display value override — server-built group
+          // keys use it, and findGroupForRow derives row keys via this prop.
+          // Same supported-type guard as the backend's getDisplayValueOfRefTable
+          // so client and server fall back to PV in lockstep.
+          const displayValueCol = colOptions.fk_display_value_column_id
+            ? relatedTableMeta.columns?.find(
+                (c) => c.id === colOptions.fk_display_value_column_id && isSupportedDisplayValueColumn(c),
+              )
+            : undefined
+          group.displayValueProp =
+            (displayValueCol || relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
         }
 
         // if (!options?.triggerChildOnly) {
@@ -593,6 +603,16 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           return
         }
 
+        // Hard-reset the tree so it rebuilds from scratch for the new grouping.
+        // `processGroupData` reuses existing group objects by key via
+        // `Object.assign`, which does NOT overwrite their `children`/`nestedIn`
+        // sub-tree — so without this, removing or disabling a nesting level
+        // leaves stale child groups whose row queries still carry the old
+        // level's constraint (e.g. `(Title,..)~and(Label,..)`), and the groups
+        // render empty after the change. Clearing children forces a clean
+        // rebuild at the new depth.
+        rootGroup.value.children = []
+        rootGroup.value.rows = []
         rootGroup.value.paginationData = { page: 1, pageSize: groupByGroupLimit.value }
         rootGroup.value.column = {} as any
         refreshNested()
@@ -756,7 +776,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (!ids.length) return
 
       try {
-        const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        const aggCommentCount = await internalGet((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
           operation: 'commentCount',
           fk_model_id: meta.value!.id as string,
           ids,

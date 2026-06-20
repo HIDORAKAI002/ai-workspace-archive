@@ -3856,7 +3856,7 @@
       },
       "sponsor": {
         "header": "Můžete nám pomoci!",
-        "message": "Jsme malý tým, který na plný úvazek pracuje na tom, aby NocoDB byla open-source. Věříme, že nástroj jako NocoDB by měl být volně dostupný každému řešiteli problémů na internetu."
+        "message": "Jsme malý tým, který na plný úvazek pracuje na tom, aby NocoDB byla fair-code. Věříme, že nástroj jako NocoDB by měl být volně dostupný každému řešiteli problémů na internetu."
       },
       "loginMsg": "Přihlášení k NocoDB",
       "passwordRecovery": {

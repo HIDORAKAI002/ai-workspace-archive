@@ -3,6 +3,20 @@ import { NcErrorType } from 'nocodb-sdk'
 import type { UseGlobalReturn } from '../composables/useGlobal/types'
 import type { Actions } from '~/composables/useGlobal/types'
 
+/**
+ * Safely persist to localStorage. In some embedded webviews and privacy
+ * modes `localStorage` is `null` (or accessing it throws a SecurityError),
+ * so direct `localStorage.setItem(...)` crashes the auth middleware. The
+ * continueAfterSignIn hint is non-critical — silently skip when unavailable.
+ */
+function safeSetLocalStorage(key: string, value: string) {
+  try {
+    localStorage?.setItem(key, value)
+  } catch {
+    // storage disabled/unavailable — non-critical, ignore
+  }
+}
+
 /** Strip continueAfterSignIn param from a path to prevent recursive nesting */
 function stripContinueParam(fullPath: string) {
   const qIndex = fullPath.indexOf('?')
@@ -77,7 +91,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
           : undefined
       const query = continuePath ? { continueAfterSignIn: continuePath } : {}
       if (continuePath) {
-        localStorage.setItem('continueAfterSignIn', continuePath)
+        safeSetLocalStorage('continueAfterSignIn', continuePath)
       }
 
       return navigateTo({
@@ -91,6 +105,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       await state.refreshToken({})
     } catch (e) {
       console.info('Refresh token failed', (e as Error)?.message)
+      // Clear stale auth state so the next signin starts clean. Without
+      // this, an invalid token persists in storage and can short-circuit
+      // subsequent SSO round-trips into a redirect loop.
+      await state.signOut({ skipApiCall: true })
     }
 
     /** if user is still not signed in, redirect to signin page */
@@ -100,7 +118,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
           ? stripContinueParam(to.fullPath)
           : undefined
       if (signinContinuePath) {
-        localStorage.setItem('continueAfterSignIn', signinContinuePath)
+        safeSetLocalStorage('continueAfterSignIn', signinContinuePath)
       }
       return navigateTo({
         path: '/signin',
@@ -134,7 +152,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     if (to.params.baseId && from.params.baseId !== to.params.baseId) {
       await loadRoles()
 
-      if (state.user.value?.roles?.guest) {
+      // Require a fully-loaded user before enforcing the guest check.
+      // Post-SSO-callback navigation can run this guard before workspace
+      // context resolves; a half-populated user.roles can otherwise bounce
+      // the user to / and complete a redirect loop.
+      if (state.user.value?.id && state.user.value.roles?.guest) {
         message.error("You don't have enough permission to access the base.")
 
         return navigateTo('/')

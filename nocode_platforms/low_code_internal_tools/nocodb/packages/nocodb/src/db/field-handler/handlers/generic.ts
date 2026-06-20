@@ -1,4 +1,4 @@
-import { type NcContext, isNumericCol, UITypes } from 'nocodb-sdk';
+import { isNumericCol, type NcContext, UITypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -804,7 +804,7 @@ export class GenericFieldHandler
 
     // Condition for filter, without negation
     const condition = (builder: Knex.QueryBuilder) => {
-      const items = val?.split(',');
+      const items = Array.isArray(val) ? val : val?.split(',');
       for (let i = 0; i < items?.length; i++) {
         const bindings = [
           sourceField,

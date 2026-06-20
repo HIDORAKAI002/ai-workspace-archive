@@ -12,7 +12,6 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import type dayjs from 'dayjs'
-import { validateRowFilters } from '~/utils/dataUtils'
 
 const formatData = (
   list: Record<string, any>[],
@@ -49,7 +48,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const { isMobileMode, user } = useGlobal()
+    const { isMobileMode } = useGlobal()
 
     const { getValidSearchQueryForColumn } = useFieldQuery()
 
@@ -72,6 +71,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const viewMetaProperties = computed<{
       active_view: string
       hide_weekend: boolean
+      // When true, Sat & Sun stay visible but render in narrower columns so the
+      // weekdays get more space. Mutually exclusive with hide_weekend.
+      collapse_weekend: boolean
     }>(() => {
       let meta = calendarMetaData.value?.meta ?? {}
 
@@ -82,6 +84,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return meta as {
         active_view: string
         hide_weekend: boolean
+        collapse_weekend: boolean
       }
     })
 
@@ -94,45 +97,52 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         is_readonly: boolean
       }>
     >(() => {
-      return calendarMetaData.value?.calendar_range
-        ?.map(
-          (
-            range: CalendarRangeType & {
-              id?: string
+      return (
+        calendarMetaData.value?.calendar_range
+          ?.map(
+            (
+              range: CalendarRangeType & {
+                id?: string
+              },
+            ) => {
+              const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
+              const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
+
+              if (fromCol?.uidt === UITypes.Formula || toCol?.uidt === UITypes.Formula) {
+                // Check if fromCol Formula return type is Date
+                const isFromColDate =
+                  fromCol?.uidt === UITypes.Formula &&
+                  (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+                // Check if toCol Formula return type is Date
+
+                const isToColDate =
+                  toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+
+                if (!isFromColDate) {
+                  message.error(`Please update the Formula column ${fromCol?.title} to return a date`)
+                  return null
+                }
+
+                if (toCol && !isToColDate) {
+                  message.error(`Please update the Formula column ${toCol?.title} to return a date`)
+                  return null
+                }
+              }
+
+              return {
+                id: range?.id,
+                fk_from_col: fromCol,
+                fk_to_col: toCol,
+                is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
+              }
             },
-          ) => {
-            const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
-            const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
-
-            if (fromCol?.uidt === UITypes.Formula || toCol?.uidt === UITypes.Formula) {
-              // Check if fromCol Formula return type is Date
-              const isFromColDate =
-                fromCol?.uidt === UITypes.Formula && (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
-              // Check if toCol Formula return type is Date
-
-              const isToColDate =
-                toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
-
-              if (!isFromColDate) {
-                message.error(`Please update the Formula column ${fromCol?.title} to return a date`)
-                return null
-              }
-
-              if (toCol && !isToColDate) {
-                message.error(`Please update the Formula column ${toCol?.title} to return a date`)
-                return null
-              }
-            }
-
-            return {
-              id: range?.id,
-              fk_from_col: fromCol,
-              fk_to_col: toCol,
-              is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
-            }
-          },
-        )
-        .filter(Boolean) as any
+          )
+          // Drop ranges whose from-column couldn't be resolved (e.g. the date
+          // column was deleted, or meta isn't loaded yet). Keeping them would
+          // produce entries with `fk_from_col: undefined` despite the declared
+          // non-null type, crashing consumers that read `range.fk_from_col.title`.
+          .filter((range) => !!range?.fk_from_col) as any
+      )
     })
 
     const calDataType = computed(() => {
@@ -329,13 +339,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { base } = storeToRefs(baseStore)
 
-    const { getBaseType } = baseStore
-
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { sorts, nestedFilters, eventBus, isSyncedTable, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
-
-    const { metas } = useMetas()
+    const { sorts, nestedFilters, eventBus, isSyncedTable, rowMatchesSearchAndUrl } = useSmartsheetStoreOrThrow()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
@@ -1295,23 +1301,28 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const activeDataListener = ref<string | null>(null)
 
+    // Saved view filters → trust the server's matchedViewIds. Ad-hoc URL `where` + toolbar
+    // search → server can't know them, so AND them in client-side via rowMatchesSearchAndUrl.
+    const recordPassesViewFilter = (data: DataPayload) => {
+      if (Array.isArray(data.matchedViewIds) && !data.matchedViewIds.includes(viewMeta.value?.id as string)) {
+        return false
+      }
+      return rowMatchesSearchAndUrl(data.payload)
+    }
+
     const handleDataEvent = (data: DataPayload) => {
       const { id, action, payload } = data
 
+      if (action === 'bulk') {
+        if (Array.isArray(data.rows)) {
+          for (const row of data.rows) handleDataEvent(row)
+        }
+        return
+      }
+
       if (action === 'add') {
         try {
-          const isValidationFailed = !validateRowFilters(
-            [...allFilters.value, ...validFiltersFromUrlParams.value],
-            payload,
-            meta.value?.columns as ColumnType[],
-            getBaseType(viewMeta.value?.view?.source_id),
-            metas.value,
-            meta.value?.base_id,
-            {
-              currentUser: user.value,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          )
+          const isValidationFailed = !recordPassesViewFilter(data)
 
           if (isValidationFailed) {
             return
@@ -1381,18 +1392,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             return pk && `${pk}` === `${id}`
           })
 
-          const isValidationFailed = !validateRowFilters(
-            [...allFilters.value, ...validFiltersFromUrlParams.value],
-            payload,
-            meta.value?.columns as ColumnType[],
-            getBaseType(viewMeta.value?.view?.source_id),
-            metas.value,
-            meta.value?.base_id,
-            {
-              currentUser: user.value,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            },
-          )
+          const isValidationFailed = !recordPassesViewFilter(data)
 
           // If validation fails and row exists in either view, delete it
           if (isValidationFailed && (calendarRowIndex !== -1 || sidebarRowIndex !== -1)) {

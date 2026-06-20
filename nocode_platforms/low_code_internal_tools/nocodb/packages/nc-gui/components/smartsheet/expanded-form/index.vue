@@ -145,6 +145,8 @@ const expandedFormStore = useProvideExpandedFormStore(
 const {
   commentsDrawer,
   changedColumns,
+  hasLtarChanges,
+  pendingLtarOps,
   displayValue,
   state: rowState,
   isNew,
@@ -284,11 +286,13 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
   defaultValue: false,
 })
 
-// check if the row is new and has some changes on LTAR/Links
-// this is to enable save if there are changes on LTAR/Links
-const isLTARChanged = computed(() => {
-  return isNew.value && row.value?.rowMeta?.ltarState && Object.keys(row.value?.rowMeta?.ltarState).length > 0
-})
+// Enable save when there are buffered LTAR/Links changes — for both new rows
+// (links persisted on create) and existing rows edited in the form (#14013).
+const isLTARChanged = computed(() => hasLtarChanges.value)
+
+// Buffered, not-yet-saved changes — regular fields or relational (LTAR/Links) fields.
+// Drives the close/next/prev "unsaved changes" guards.
+const hasUnsavedChanges = computed(() => changedColumns.value.size > 0 || isLTARChanged.value)
 
 const isSaveRecordBtnDisabled = computed(() => {
   // In template mode, disable if duplicate name
@@ -303,7 +307,7 @@ const onClose = (force = false) => {
     isExpanded.value = false
   } else if (!isUIAllowed('dataEdit', baseRoles.value)) {
     isExpanded.value = false
-  } else if (changedColumns.value.size > 0) {
+  } else if (hasUnsavedChanges.value) {
     isCloseModalOpen.value = true
   } else {
     if (_row.value?.rowMeta?.new) emits('cancel')
@@ -421,6 +425,16 @@ const isPreventChangeModalOpen = ref(false)
 const isCloseModalOpen = ref(false)
 const interruptedDirectionToGo = ref<'next' | 'prev' | undefined>(undefined)
 
+// Drop buffered link/unlink changes so they don't leak to the next record or a re-open.
+const clearLtarBuffers = () => {
+  // New-row buffered links live on rowMeta; existing-row deferred edits live in the
+  // pendingLtarOps queue (#14058). Drop both so a discarded edit can't leak.
+  if (_row.value?.rowMeta) {
+    _row.value.rowMeta.ltarState = {}
+  }
+  pendingLtarOps.value = []
+}
+
 const discardPreventModal = () => {
   // when user click on next or previous button
   if (isPreventChangeModalOpen.value) {
@@ -436,10 +450,11 @@ const discardPreventModal = () => {
   }
   // clearing all new modifed change on close
   clearColumns()
+  clearLtarBuffers()
 }
 
 const onNext = async () => {
-  if (changedColumns.value.size > 0) {
+  if (hasUnsavedChanges.value) {
     isPreventChangeModalOpen.value = true
     interruptedDirectionToGo.value = 'next'
     return
@@ -448,7 +463,7 @@ const onNext = async () => {
 }
 
 const onPrev = async () => {
-  if (changedColumns.value.size > 0) {
+  if (hasUnsavedChanges.value) {
     isPreventChangeModalOpen.value = true
     interruptedDirectionToGo.value = 'prev'
     return
@@ -496,6 +511,7 @@ if (isKanban.value) {
         changedColumns.value.add(k)
       }
     }
+    triggerRef(changedColumns)
   }
 }
 provide(IsExpandedFormOpenInj, isExpanded)
@@ -672,6 +688,15 @@ watch(rowId, async (nRow) => {
 const preventModalStatus = computed({
   get: () => isCloseModalOpen.value || isPreventChangeModalOpen.value,
   set: (v) => {
+    // Dismiss (X / Escape / overlay) — cancel whichever action triggered the
+    // prompt and stay on the current dirty row. Reset both sources and the
+    // pending navigation direction so a later prompt doesn't reuse stale state.
+    if (!v) {
+      isCloseModalOpen.value = false
+      isPreventChangeModalOpen.value = false
+      interruptedDirectionToGo.value = undefined
+      return
+    }
     isCloseModalOpen.value = v
   },
 })
@@ -684,7 +709,7 @@ const onIsExpandedUpdate = (v: boolean) => {
 
   if (isDropdownOpen) return
 
-  if (changedColumns.value.size === 0 && !isUnsavedFormExist.value) {
+  if (changedColumns.value.size === 0 && !isUnsavedFormExist.value && !isLTARChanged.value) {
     isExpanded.value = v
     if (isKanban.value) {
       emits('cancel')
