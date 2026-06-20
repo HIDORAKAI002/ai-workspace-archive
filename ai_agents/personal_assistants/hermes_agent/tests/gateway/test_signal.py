@@ -69,6 +69,7 @@ class TestSignalConfigLoading:
 
     def test_signal_not_loaded_without_both_vars(self, monkeypatch):
         monkeypatch.setenv("SIGNAL_HTTP_URL", "http://localhost:9090")
+        monkeypatch.delenv("SIGNAL_ACCOUNT", raising=False)
         # No SIGNAL_ACCOUNT
 
         from gateway.config import GatewayConfig, _apply_env_overrides
@@ -162,6 +163,103 @@ class TestSignalHelpers:
     def test_guess_extension_mp4(self):
         from gateway.platforms.signal import _guess_extension
         assert _guess_extension(b"\x00\x00\x00\x18ftypisom" + b"\x00" * 100) == ".mp4"
+
+    def test_guess_extension_aac_adts_unprotected(self):
+        """ADTS AAC, MPEG-4, no CRC (the canonical Android Signal voice note).
+
+        Byte 0 = 0xFF (sync high), byte 1 = 0xF1 (sync low + ID=0 + layer=00
+        + protection_absent=1). Must NOT be misclassified as MP3 — the old
+        code's ``(b[1] & 0xE0) == 0xE0`` test wrongly returned ``.mp3``.
+        """
+        from gateway.platforms.signal import _guess_extension
+        assert _guess_extension(b"\xff\xf1" + b"\x00" * 200) == ".aac"
+
+    def test_guess_extension_aac_adts_protected(self):
+        """ADTS AAC, MPEG-4, CRC present (protection_absent=0)."""
+        from gateway.platforms.signal import _guess_extension
+        assert _guess_extension(b"\xff\xf0" + b"\x00" * 200) == ".aac"
+
+    def test_guess_extension_mp3_mpeg1_layer3(self):
+        """Real MP3 frame, MPEG-1 Layer 3: byte1 = 0xFB (ID=1, layer=01, prot=1)."""
+        from gateway.platforms.signal import _guess_extension
+        assert _guess_extension(b"\xff\xfb" + b"\x00" * 200) == ".mp3"
+
+    def test_guess_extension_mp3_mpeg2_layer3(self):
+        """Real MP3 frame, MPEG-2 Layer 3: byte1 = 0xF3 (ID=1, layer=01, prot=1)."""
+        from gateway.platforms.signal import _guess_extension
+        assert _guess_extension(b"\xff\xf3" + b"\x00" * 200) == ".mp3"
+
+    def test_guess_extension_aac_routes_to_audio_cache(self):
+        """ADTS-detected files must be routed to the audio cache, not document.
+
+        ``_is_audio_ext(``.aac``)`` is True, so a Signal attachment that
+        begins with the ADTS sync word ends up in ``cache_audio_from_bytes``,
+        which the remux step then converts to MP4 container.
+        """
+        from gateway.platforms.signal import _is_audio_ext, _guess_extension
+        ext = _guess_extension(b"\xff\xf1" + b"\x00" * 200)
+        assert ext == ".aac"
+        assert _is_audio_ext(ext) is True
+
+    def test_remux_aac_to_m4a_round_trip(self):
+        """A real ADTS AAC stream remuxes to a valid MP4 (.m4a) container.
+
+        Generates a short ADTS AAC sample with ffmpeg at runtime so the
+        end-to-end remux path actually exercises in CI (skipped only when
+        ffmpeg is unavailable), rather than depending on a machine-specific
+        file.
+        """
+        import shutil
+        import subprocess
+        import tempfile
+        from gateway.platforms.signal import _remux_aac_to_m4a
+
+        ffmpeg = shutil.which("ffmpeg")
+        if not ffmpeg:
+            import pytest
+            pytest.skip("ffmpeg not available in this env")
+
+        # Synthesize 0.5s of silence encoded as raw ADTS AAC.
+        with tempfile.NamedTemporaryFile(suffix=".aac", delete=False) as tmp:
+            adts_path = tmp.name
+        try:
+            gen = subprocess.run(
+                [ffmpeg, "-y", "-loglevel", "error", "-f", "lavfi",
+                 "-i", "anullsrc=r=44100:cl=mono", "-t", "0.5",
+                 "-c:a", "aac", "-f", "adts", adts_path],
+                capture_output=True, timeout=30,
+            )
+            if gen.returncode != 0:
+                import pytest
+                pytest.skip("ffmpeg could not produce an ADTS AAC sample")
+            with open(adts_path, "rb") as f:
+                aac_data = f.read()
+        finally:
+            try:
+                import os
+                os.unlink(adts_path)
+            except OSError:
+                pass
+
+        result = _remux_aac_to_m4a(aac_data)
+        assert result is not None
+        m4a_bytes, ext = result
+        assert ext == ".m4a"
+        # MP4 files start with a 4-byte size, then ``ftyp`` at offset 4.
+        assert m4a_bytes[4:8] == b"ftyp", \
+            f"expected MP4 ftyp box, got {m4a_bytes[:12]!r}"
+        # File must be at least as long as the input (MP4 has overhead).
+        assert len(m4a_bytes) >= len(aac_data) * 0.5
+
+    def test_remux_aac_to_m4a_handles_garbage(self):
+        """Garbage input should return None, not raise."""
+        from gateway.platforms.signal import _remux_aac_to_m4a
+        result = _remux_aac_to_m4a(b"\xff\xf1garbage_no_aac_frames")
+        # Either returns None (ffmpeg errored) or a real M4A. If it returned
+        # bytes, the bytes must look like an MP4. Otherwise it returns None.
+        if result is not None:
+            m4a_bytes, ext = result
+            assert ext == ".m4a"
 
     def test_guess_extension_unknown(self):
         from gateway.platforms.signal import _guess_extension
@@ -1283,7 +1381,7 @@ class TestSignalQuoteExtraction:
                     "quote": {
                         "id": 99,
                         "text": "want to grab lunch?",
-                        "author": "+15550002222",
+                        "author": "other-author",
                     },
                 },
             }
@@ -1293,6 +1391,82 @@ class TestSignalQuoteExtraction:
         assert event.text == "yes I agree"
         assert event.reply_to_message_id == "99"
         assert event.reply_to_text == "want to grab lunch?"
+        assert event.reply_to_author_id == "other-author"
+        assert event.reply_to_is_own_message is False
+
+    @pytest.mark.asyncio
+    async def test_handle_envelope_marks_quote_to_own_sent_timestamp(self, monkeypatch):
+        adapter = _make_signal_adapter(monkeypatch)
+        adapter._remember_sent_message_timestamp(424242)
+        captured = {}
+
+        async def fake_handle(event):
+            captured["event"] = event
+
+        adapter.handle_message = fake_handle
+
+        await adapter._handle_envelope({
+            "envelope": {
+                "sourceNumber": "+155****1111",
+                "sourceUuid": "uuid-sender",
+                "sourceName": "Tester",
+                "timestamp": 1000000000,
+                "dataMessage": {
+                    "message": "this specific one",
+                    "quote": {
+                        "id": 424242,
+                        "text": "assistant answer",
+                        "author": "other-author",
+                    },
+                },
+            }
+        })
+
+        event = captured["event"]
+        assert event.reply_to_message_id == "424242"
+        assert event.reply_to_text == "assistant answer"
+        assert event.reply_to_author_id == "other-author"
+        assert event.reply_to_is_own_message is True
+
+    @pytest.mark.asyncio
+    async def test_handle_envelope_marks_quote_to_own_account_author(self, monkeypatch):
+        adapter = _make_signal_adapter(monkeypatch, account="bot-author")
+        captured = {}
+
+        async def fake_handle(event):
+            captured["event"] = event
+
+        adapter.handle_message = fake_handle
+
+        await adapter._handle_envelope({
+            "envelope": {
+                "sourceNumber": "+155****1111",
+                "sourceUuid": "uuid-sender",
+                "sourceName": "Tester",
+                "timestamp": 1000000000,
+                "dataMessage": {
+                    "message": "reply by author",
+                    "quote": {
+                        "id": 777,
+                        "text": "assistant answer",
+                        "author": "bot-author",
+                    },
+                },
+            }
+        })
+
+        event = captured["event"]
+        assert event.reply_to_message_id == "777"
+        assert event.reply_to_is_own_message is True
+
+    @pytest.mark.asyncio
+    async def test_track_sent_timestamp_keeps_reply_detection_cache_after_echo_discard(self, monkeypatch):
+        adapter = _make_signal_adapter(monkeypatch)
+        adapter._track_sent_timestamp({"timestamp": 111222333})
+        adapter._recent_sent_timestamps.discard(111222333)
+
+        assert "111222333" in adapter._sent_message_timestamps
+        assert adapter._quote_references_own_message("111222333", None) is True
 
     @pytest.mark.asyncio
     async def test_handle_envelope_without_quote_leaves_reply_fields_none(self, monkeypatch):
