@@ -990,9 +990,14 @@ describe("resolve-openclaw-package-candidate", () => {
     await writeFile(path.join(dir, "openclaw-a.tgz"), "a");
     await writeFile(path.join(dir, "nested.tar.gz"), "b");
 
-    await expect(findSingleTarballForTest(dir)).rejects.toThrow(
-      "source=artifact requires exactly one .tgz",
-    );
+    const error = await findSingleTarballForTest(dir).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(Error);
+    const message = (error as Error).message;
+    expect(message).toContain("source=artifact requires exactly one .tgz");
+    expect(message).toContain("nested.tar.gz");
+    expect(message).toContain("openclaw-a.tgz");
+    expect(message).not.toContain(path.join(dir, "nested.tar.gz"));
+    expect(message).not.toContain(path.join(dir, "openclaw-a.tgz"));
   });
 
   it("reads the source SHA from packed npm build metadata", async () => {

@@ -421,8 +421,11 @@ async function findSingleTarball(dir) {
       if (entry.isFile() && /\.t(?:ar\.)?gz$/u.test(entry.name)) {
         tarballs.push(absolute);
         if (tarballs.length > 1) {
+          const relativeTarballs = tarballs
+            .map((tarball) => path.relative(root, tarball))
+            .toSorted((a, b) => a.localeCompare(b));
           throw new Error(
-            `source=artifact requires exactly one .tgz under ${dir}; found at least 2: ${tarballs.toSorted((a, b) => a.localeCompare(b)).join(", ")}`,
+            `source=artifact requires exactly one .tgz under ${dir}; found at least 2: ${relativeTarballs.join(", ")}`,
           );
         }
       }

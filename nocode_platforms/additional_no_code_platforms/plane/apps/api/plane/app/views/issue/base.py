@@ -771,10 +771,10 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
         total_issues = len(issues)
 
         # First, delete all related cycle issues
-        CycleIssue.objects.filter(issue_id__in=issue_ids).delete()
+        CycleIssue.objects.filter(issue__in=issues).delete()
 
         # Then, delete all related module issues
-        ModuleIssue.objects.filter(issue_id__in=issue_ids).delete()
+        ModuleIssue.objects.filter(issue__in=issues).delete()
 
         # Finally, delete the issues themselves
         issues.delete()

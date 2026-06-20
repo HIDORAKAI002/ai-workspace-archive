@@ -9,16 +9,16 @@ The receive-loop, initialize handling, and per-request task isolation that
 used to live here are now owned by `JSONRPCDispatcher` and `ServerRunner`.
 """
 
-from typing import Any, TypeVar, overload
+from typing import Any, TypeVar, cast, overload
 
 from pydantic import AnyUrl, BaseModel
+from typing_extensions import deprecated
 
 from mcp import types
 from mcp.server.connection import Connection
 from mcp.server.validation import validate_sampling_tools, validate_tool_use_result_messages
-from mcp.shared.dispatcher import CallOptions, ProgressFnT
-from mcp.shared.exceptions import NoBackChannelError, StatelessModeNotSupported
-from mcp.shared.jsonrpc_dispatcher import JSONRPCDispatcher
+from mcp.shared.dispatcher import CallOptions, Dispatcher, ProgressFnT
+from mcp.shared.exceptions import MCPDeprecationWarning, NoBackChannelError, StatelessModeNotSupported
 from mcp.shared.message import ServerMessageMetadata
 from mcp.types import methods as _methods
 
@@ -37,7 +37,7 @@ class ServerSession:
 
     def __init__(
         self,
-        dispatcher: JSONRPCDispatcher[Any],
+        dispatcher: Dispatcher[Any],
         connection: Connection,
         *,
         stateless: bool = False,
@@ -92,8 +92,19 @@ class ServerSession:
             # Fail fast instead of parking forever on a response that cannot
             # arrive; matches `Connection.send_raw_request`.
             raise NoBackChannelError(data["method"])
-        result = await self._dispatcher.send_raw_request(
-            data["method"], data.get("params"), opts or None, _related_request_id=related
+        # TODO: _related_request_id is not on the Dispatcher Protocol (and must not
+        # be — it's transport-specific). The fix is to give `ctx.session` a per-request
+        # Outbound (the DispatchContext, which threads its own request_id) alongside
+        # the connection-level one, with `related_request_id` as the selector; that
+        # belongs with the ServerSession/Context rework, not here.
+        result = cast(
+            "dict[str, Any]",
+            await self._dispatcher.send_raw_request(
+                data["method"],
+                data.get("params"),
+                opts or None,
+                _related_request_id=related,  # type: ignore[call-arg]
+            ),
         )
         # Literal fallback covers pre-handshake and stateless; matches runner.py.
         version = self.protocol_version or "2025-11-25"
@@ -110,12 +121,13 @@ class ServerSession:
     ) -> None:
         """Send a typed server-to-client notification."""
         data = notification.model_dump(by_alias=True, mode="json", exclude_none=True)
-        await self._dispatcher.notify(data["method"], data.get("params"), _related_request_id=related_request_id)
+        await self._dispatcher.notify(data["method"], data.get("params"), _related_request_id=related_request_id)  # type: ignore[call-arg]
 
     def check_client_capability(self, capability: types.ClientCapabilities) -> bool:
         """Check if the client supports a specific capability."""
         return self._connection.check_capability(capability)
 
+    @deprecated("The logging capability is deprecated as of 2026-07-28 (SEP-2577).", category=MCPDeprecationWarning)
     async def send_log_message(
         self,
         level: types.LoggingLevel,
@@ -144,6 +156,7 @@ class ServerSession:
         )
 
     @overload
+    @deprecated("The sampling capability is deprecated as of 2026-07-28 (SEP-2577).", category=MCPDeprecationWarning)
     async def create_message(
         self,
         messages: list[types.SamplingMessage],
@@ -163,6 +176,7 @@ class ServerSession:
         ...
 
     @overload
+    @deprecated("The sampling capability is deprecated as of 2026-07-28 (SEP-2577).", category=MCPDeprecationWarning)
     async def create_message(
         self,
         messages: list[types.SamplingMessage],
@@ -181,6 +195,7 @@ class ServerSession:
         """Overload: With tools, returns array-capable content."""
         ...
 
+    @deprecated("The sampling capability is deprecated as of 2026-07-28 (SEP-2577).", category=MCPDeprecationWarning)
     async def create_message(
         self,
         messages: list[types.SamplingMessage],
@@ -257,6 +272,7 @@ class ServerSession:
             metadata=metadata_obj,
         )
 
+    @deprecated("The roots capability is deprecated as of 2026-07-28 (SEP-2577).", category=MCPDeprecationWarning)
     async def list_roots(self) -> types.ListRootsResult:
         """Send a roots/list request."""
         if self._stateless:
