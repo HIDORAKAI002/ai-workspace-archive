@@ -849,6 +849,7 @@ export function installVitestNoOutputWatchdog(params) {
   let forceKillTimer = null;
   let heartbeatTimer = null;
   let silentForMs = 0;
+  let timedOut = false;
 
   const clearHeartbeatTimer = () => {
     if (heartbeatTimer !== null) {
@@ -900,6 +901,7 @@ export function installVitestNoOutputWatchdog(params) {
         return;
       }
       clearHeartbeatTimer();
+      timedOut = true;
       params.log?.(
         `[vitest] no output for ${timeoutMs}ms; terminating stalled Vitest process group${suffix}.`,
       );
@@ -920,6 +922,9 @@ export function installVitestNoOutputWatchdog(params) {
   };
 
   const handleActivity = () => {
+    if (timedOut) {
+      return;
+    }
     clearForceKillTimer();
     resetSilenceTimer();
   };

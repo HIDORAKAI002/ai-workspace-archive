@@ -599,6 +599,66 @@ setInterval(() => {}, 1000);
     },
   );
 
+  it.runIf(process.platform !== "win32")(
+    "lets timed-out measured command descendants drain during kill grace",
+    async () => {
+      const logDir = path.join(repoRoot, "logs");
+      const scriptPath = path.join(repoRoot, "leader-exits-drain.mjs");
+      const readyPath = path.join(repoRoot, "grandchild.ready");
+      const drainedPath = path.join(repoRoot, "grandchild.drained");
+      await fs.writeFile(
+        scriptPath,
+        `
+import { spawn } from "node:child_process";
+import fs from "node:fs";
+
+const grandchildScript = [
+  "const fs = require('node:fs');",
+  "process.on('SIGTERM', () => {",
+  "  setTimeout(() => {",
+  "    fs.writeFileSync(process.argv[3], 'drained');",
+  "    process.exit(0);",
+  "  }, 50);",
+  "});",
+  "fs.writeFileSync(process.argv[2], 'ready');",
+  "setInterval(() => {}, 1000);",
+].join("\\n");
+spawn(process.execPath, ["-e", grandchildScript, "child", process.argv[2], process.argv[3]], {
+  stdio: "ignore",
+});
+process.on("SIGTERM", () => process.exit(0));
+setInterval(() => {}, 1000);
+`,
+        "utf8",
+      );
+
+      const rowPromise = runMeasuredCommand({
+        cwd: repoRoot,
+        env: process.env,
+        logDir,
+        command: process.execPath,
+        args: [scriptPath, readyPath, drainedPath],
+        label: "timeout-leader-drain",
+        phase: "probe",
+        timeoutKillGraceMs: 1_000,
+        timeoutMs: 500,
+        timeMode: "none",
+      });
+
+      await waitFor(() =>
+        fs
+          .access(readyPath)
+          .then(() => true)
+          .catch(() => false),
+      );
+      const row = await rowPromise;
+
+      expect(row.timedOut).toBe(true);
+      expect(row.spawnError?.code).toBe("ETIMEDOUT");
+      await expect(fs.readFile(drainedPath, "utf8")).resolves.toBe("drained");
+    },
+  );
+
   it("captures output from live measured commands", async () => {
     const logDir = path.join(repoRoot, "logs");
     const row = await runMeasuredCommandLive({
