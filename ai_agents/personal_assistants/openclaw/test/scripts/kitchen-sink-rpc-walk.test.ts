@@ -55,6 +55,7 @@ import {
   tailFile,
   unwrapRpcPayload,
   usesBuiltOpenClawEntry,
+  validateCliArgs,
   waitForGatewayReady,
 } from "../../scripts/e2e/kitchen-sink-rpc-walk.mjs";
 import { cleanupTempDirs, makeTempDir } from "../helpers/temp-dir.js";
@@ -114,6 +115,23 @@ describe("kitchen-sink RPC isolated state", () => {
     expect(shouldPrintHelp(["--help"])).toBe(true);
     expect(shouldPrintHelp(["-h"])).toBe(true);
     expect(shouldPrintHelp([])).toBe(false);
+  });
+
+  it("rejects unknown CLI args before creating temp state", async () => {
+    expect(() => validateCliArgs(["--wat"])).toThrow("Unknown argument: --wat");
+
+    const error = await runCommand(process.execPath, [
+      "scripts/e2e/kitchen-sink-rpc-walk.mjs",
+      "--wat",
+    ]).then(
+      () => undefined,
+      (caught: unknown) => caught as Error & { stderr?: string; stdout?: string },
+    );
+
+    expect(error).toBeDefined();
+    expect(error?.stdout).toBe("");
+    expect(error?.stderr?.trim()).toBe("Unknown argument: --wat");
+    expect(error?.stderr).not.toContain("temp root preserved");
   });
 
   it("rejects loose numeric env values before they bypass runtime guardrails", () => {
@@ -842,6 +860,31 @@ describe("kitchen-sink RPC payload unwrapping", () => {
     });
   });
 
+  it("preserves gateway request error metadata from built RPC calls", () => {
+    const error = captureSyncError(() =>
+      unwrapRpcPayload({
+        ok: false,
+        error: {
+          type: "gateway_request_error",
+          code: "INVALID_REQUEST",
+          message: "unauthorized role: operator",
+          details: { method: "skills.bins" },
+          retryable: false,
+          retryAfterMs: 250,
+        },
+      }),
+    );
+
+    expect(error).toMatchObject({
+      name: "GatewayClientRequestError",
+      message: "unauthorized role: operator",
+      gatewayCode: "INVALID_REQUEST",
+      details: { method: "skills.bins" },
+      retryable: false,
+      retryAfterMs: 250,
+    });
+  });
+
   it("bounds failed RPC payload diagnostics", () => {
     const error = captureSyncError(() =>
       unwrapRpcPayload({
@@ -964,6 +1007,19 @@ describe("kitchen-sink RPC command catalog assertions", () => {
           gatewayCode: "INVALID_REQUEST",
         });
       }),
+    ).resolves.toBeUndefined();
+    await expect(
+      assertOperatorRpcDenied({ method: "skills.bins", params: {} }, async () =>
+        unwrapRpcPayload({
+          ok: false,
+          error: {
+            type: "gateway_request_error",
+            code: "INVALID_REQUEST",
+            message: "unauthorized role: operator",
+            retryable: false,
+          },
+        }),
+      ),
     ).resolves.toBeUndefined();
     await expect(
       assertOperatorRpcDenied({ method: "skills.bins", params: {} }, async () => {
@@ -1974,6 +2030,30 @@ describe("kitchen-sink RPC process sampling", () => {
     await expect(readBoundedResponseText(new Response('{"status":"live"}'), 1024)).resolves.toBe(
       '{"status":"live"}',
     );
+  });
+
+  it("releases HTTP probe response stream readers after bounded reads", async () => {
+    const releaseLock = vi.fn();
+    const response = {
+      headers: new Headers(),
+      body: {
+        getReader() {
+          return {
+            read: vi
+              .fn()
+              .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode("ok") })
+              .mockResolvedValueOnce({ done: true }),
+            releaseLock,
+          };
+        },
+      },
+      text: vi.fn(async () => "not read"),
+    };
+
+    await expect(readBoundedResponseText(response, 1024)).resolves.toBe("ok");
+
+    expect(releaseLock).toHaveBeenCalledOnce();
+    expect(response.text).not.toHaveBeenCalled();
   });
 
   it("cancels stalled HTTP probe response streams when the timeout wins", async () => {
