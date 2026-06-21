@@ -172,6 +172,7 @@
       "bigint-buffer",
       "bufferutil",
       "esbuild",
+      "foundationdb",
       "four-flap-bigint-buffer",
       "keccak",
       "koffi",
