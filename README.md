@@ -4,7 +4,7 @@
 
 **The most comprehensive self-hostable AI developer toolbox on GitHub.**
 
-*29,746 agent skills & files | 22 MCP servers | 3,348 IDE rules | 8 system prompt collections | 12 API providers | 15 no-code platforms | 1,400+ public APIs -- 48 curated local repos, all free*
+*29,746 agent skills & files | 23 MCP servers | 3,348 IDE rules | 8 system prompt collections | 12 API providers | 15 no-code platforms | 1,400+ public APIs -- 174 curated upstream repos, all free*
 
 > One repository. Everything an AI developer needs. Offline. No subscriptions. No gatekeeping.
 
@@ -19,12 +19,13 @@
 | # | Pillar | Scale | Path |
 |---|---|---|---|
 | 1 | [AI Skills and Prompt Library](#pillar-1--ai-skills-and-prompt-library) | 29,746 files from curated repos | `/ai_skills_library/` |
-| 2 | [MCP Server Repository](#pillar-2--mcp-server-repository) | 22 repos across 11 categories | `/mcps/` |
+| 2 | [MCP Server Repository](#pillar-2--mcp-server-repository) | 23 repos across 11 categories | `/mcps/` |
 | 3 | [IDE Context Rules](#pillar-3--ide-context-rules) | 3,348 AI rules for every stack | `/ide_rules/` |
 | 4 | [System Prompts and Frameworks](#pillar-4--system-prompts-and-frameworks) | 8 repos across 4 categories | `/system_prompts/` |
 | 5 | [AI API Providers Reference](#pillar-5--ai-api-providers-reference) | 12 providers, 50+ models | `/api_providers/` |
 | 6 | [No-Code and Visual Workflow Builders](#pillar-6--no-code-and-visual-workflow-builders) | 15 repos, 29 cloned directories | `/nocode_platforms/` |
 | 7 | [Public APIs Directory](#pillar-7--public-apis-directory) | 1,400+ APIs across 40+ categories | `/public_apis/` |
+| 8 | [AI Agents & Advanced Tooling](#pillar-8--ai-agents--advanced-tooling) | Autonomous agents, frameworks & scraping | `/ai_agents/` |
 | - | [Quick Start](#quick-start) | Copy-paste commands for each pillar | - |
 | - | [Auto-Sync System](#auto-sync-system) | VPS bot + GitHub Actions | - |
 | - | [Archive Stats](#archive-stats) | Full breakdown | - |
@@ -219,7 +220,7 @@ ai_skills_library/skills/
 
 ## Pillar 2 -- MCP Server Repository
 
-> **`/mcps/`** -- 22 fully cloned Model Context Protocol server repositories across 11 categories -- all installable, all production-ready, connecting directly to Claude Desktop, Cursor, Windsurf, or any MCP-compatible client
+> **`/mcps/`** -- 23 fully cloned Model Context Protocol server repositories across 11 categories -- all installable, all production-ready, connecting directly to Claude Desktop, Cursor, Windsurf, or any MCP-compatible client
 
 <details>
 <summary><b>Official Anthropic (11 repos)</b></summary>
@@ -1109,6 +1110,44 @@ Each provider has a dedicated markdown file in `/api_providers/`:
 
 ---
 
+## Pillar 8 -- AI Agents & Advanced Tooling
+
+> **`/ai_agents/` & related** -- Full implementations, reasoning frameworks, and tool configs for advanced autonomous agents, personal assistants, and AI infrastructure.
+
+<details>
+<summary><b>Personal Assistants</b></summary>
+
+| Folder | Repository | Description |
+|---|---|---|
+| `hermes_agent` | [nousresearch/hermes-agent](https://github.com/nousresearch/hermes-agent) | Agent that grows with you. **Added the full implementation under the personal assistants folder. It includes the reasoning framework and tool configs that make this level of autonomy possible.** |
+| `openclaw` | [openclaw/openclaw](https://github.com/openclaw/openclaw) | Open source AI personal assistant. |
+
+</details>
+
+<details>
+<summary><b>Web Scraping & Infrastructure</b></summary>
+
+| Folder | Repository | Description |
+|---|---|---|
+| `scrapegraph_ai` | [ScrapeGraphAI/Scrapegraph-ai](https://github.com/ScrapeGraphAI/Scrapegraph-ai) | Smart open-source scraper based on AI. Automates web scraping with LLMs. Supports multi-page and local LLM execution. |
+
+</details>
+
+<details>
+<summary><b>Agent Frameworks & Super Agents</b></summary>
+
+| Folder | Repository | Description |
+|---|---|---|
+| `deerflow` | [bytedance/deer-flow](https://github.com/bytedance/deer-flow) | ByteDance SuperAgent. #1 GitHub Trending Feb 2026. 45K+ stars. Replaces Perplexity/ChatGPT subs. |
+| `code-review-graph` | [tirth8205/code-review-graph](https://github.com/tirth8205/code-review-graph) | Persistent knowledge graph for Claude Code. 5-10x fewer tokens per review. |
+| `hindsight` | [vectorize-io/hindsight](https://github.com/vectorize-io/hindsight) | Memory systems for AI agents. |
+| `mastra` | [mastra-ai/mastra](https://github.com/mastra-ai/mastra) | AI Agent framework. |
+| `superpowers` | [obra/superpowers](https://github.com/obra/superpowers) | Lab environment for AI superpowers. |
+
+</details>
+
+---
+
 ## Quick Start
 
 <details>
@@ -1209,7 +1248,8 @@ Trigger manually: Actions tab -> Sync Upstream Repositories -> Run workflow
 | MCP -- Search | 2 | exa-mcp-server, tavily-mcp |
 | System Prompts | 5 | 111K-star leaks, awesome-chatgpt-prompts, promptfoo, guardrails |
 | No-Code | 14 | n8n, dify, flowise, langflow, appsmith, nocodb + more |
-| **Total** | **45+** | All auto-synced every 6 hours |
+| AI Agents & Tooling | 8 | hermes-agent, Scrapegraph-ai, deer-flow, code-review-graph |
+| **Total** | **55+** | All auto-synced every 6 hours |
 
 </details>
 
@@ -1226,7 +1266,8 @@ Trigger manually: Actions tab -> Sync Upstream Repositories -> Run workflow
 | API Providers | `/api_providers/` | **12 providers, 50+ models** | Full pricing + SDKs + code examples |
 | No-Code Platforms | `/nocode_platforms/` | **15 repositories** | 5 categories, 29 cloned directories |
 | Public APIs | `/public_apis/` | **1,400+ APIs** | 40+ categories, auto-synced daily |
-| Auto-Sync | `sync_manifest.json` | **45+ upstreams tracked** | Updated every 6h via VPS + GitHub Actions |
+| AI Agents & Tooling | `/ai_agents/` | **15+ repositories** | Personal assistants, scraping, frameworks |
+| Auto-Sync | `sync_manifest.json` | **55+ upstreams tracked** | Updated every 6h via VPS + GitHub Actions |
 | **TOTAL** | - | **13,700+ files** | **The most comprehensive AI workspace on GitHub** |
 
 ---
