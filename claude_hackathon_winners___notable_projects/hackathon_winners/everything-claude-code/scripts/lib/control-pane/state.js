@@ -633,6 +633,14 @@ async function buildControlPaneSnapshot(options = {}) {
     const entities = readEntities(db);
     const observations = readObservations(db);
     const relationCounts = readRelationCounts(db);
+    // Proximity (agent-space collision avoidance) is opt-in: it shells `git diff`
+    // per worktree, so we only compute it when explicitly requested to keep the
+    // default snapshot fast.
+    let proximity = null;
+    if (options.includeProximity) {
+      const { buildProximitySnapshot } = require('./proximity');
+      proximity = buildProximitySnapshot(sessions, { repoRoot, ...(options.proximityOptions || {}) });
+    }
     return {
       ...base,
       summary: summarizeSessions(sessions),
@@ -649,7 +657,8 @@ async function buildControlPaneSnapshot(options = {}) {
           limit
         })
       },
-      connectors: connectorStatus(config, db)
+      connectors: connectorStatus(config, db),
+      proximity
     };
   } finally {
     db.close();
