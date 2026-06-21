@@ -33,8 +33,16 @@ def build_docs():
             if file.lower() == "readme.md":
                 dest_path = os.path.join(DEST_DIR, rel_root)
                 os.makedirs(dest_path, exist_ok=True)
-                shutil.copy(os.path.join(root, file), os.path.join(dest_path, "index.md"))
-                count += 1
+                src_file = os.path.join(root, file)
+                dest_file = os.path.join(dest_path, "index.md")
+                try:
+                    with open(src_file, "rb") as f:
+                        text = f.read().decode("utf-8", errors="replace")
+                    with open(dest_file, "w", encoding="utf-8") as out:
+                        out.write(text)
+                    count += 1
+                except:
+                    pass
                 
     print(f"✅ Extracted {count} documentation pages!")
 
