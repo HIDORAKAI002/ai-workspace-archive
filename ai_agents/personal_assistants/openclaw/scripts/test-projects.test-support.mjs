@@ -1094,6 +1094,10 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
     ["test/scripts/managed-child-process.test.ts", "test/scripts/run-with-env.test.ts"],
   ],
   [
+    "scripts/lib/windows-taskkill.d.mts",
+    ["test/scripts/managed-child-process.test.ts", "test/scripts/run-with-env.test.ts"],
+  ],
+  [
     "scripts/lib/local-build-metadata.mjs",
     [
       "src/infra/build-stamp.test.ts",
@@ -1248,6 +1252,11 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
   ["scripts/run-oxlint-shards.mjs", ["test/scripts/run-oxlint.test.ts"]],
   ["scripts/run-with-env.mjs", ["test/scripts/run-with-env.test.ts"]],
   ["scripts/run-node.mjs", ["src/infra/run-node.test.ts"]],
+  [
+    "scripts/stage-bundled-plugin-runtime.mjs",
+    ["test/scripts/stage-bundled-plugin-runtime.test.ts"],
+  ],
+  ["scripts/watch-node.mjs", ["test/scripts/watch-node.test.ts"]],
   ["scripts/auth-monitor.sh", ["test/scripts/auth-monitor.test.ts"]],
   ["scripts/codespell-dictionary.txt", ["test/scripts/docs-spellcheck.test.ts"]],
   ["scripts/codespell-ignore.txt", ["test/scripts/docs-spellcheck.test.ts"]],
@@ -1434,6 +1443,8 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
       "src/gateway/config-reload.test.ts",
     ],
   ],
+  ["scripts/e2e/lib/env-limits.mjs", ["test/scripts/e2e-helper-env-limits.test.ts"]],
+  ["scripts/e2e/mock-openai-server.mjs", ["test/scripts/e2e-mock-config-limits.test.ts"]],
   [
     "scripts/e2e/gateway-network-docker.sh",
     [
@@ -1455,6 +1466,7 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
     ],
   ],
   ["scripts/e2e/npm-telegram-live-docker.sh", ["test/scripts/npm-telegram-live.test.ts"]],
+  ["scripts/e2e/npm-telegram-live-runner.ts", ["test/scripts/npm-telegram-live.test.ts"]],
   [
     "scripts/e2e/multi-node-update-docker.sh",
     ["test/scripts/docker-build-helper.test.ts", "test/scripts/docker-e2e-plan.test.ts"],
@@ -1522,10 +1534,33 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
     ["test/scripts/test-install-sh-docker.test.ts"],
   ],
   [
+    "scripts/e2e/lib/auth-profile-store-assertions.mjs",
+    [
+      "test/scripts/release-scenarios-assertions.test.ts",
+      "test/scripts/npm-onboard-channel-agent-assertions.test.ts",
+    ],
+  ],
+  [
     "scripts/e2e/lib/codex-npm-plugin-live/assertions.mjs",
     ["test/scripts/docker-build-helper.test.ts"],
   ],
+  ["scripts/e2e/lib/codex-install-utils.mjs", ["test/scripts/codex-install-assertions.test.ts"]],
+  [
+    "scripts/e2e/lib/codex-on-demand/assertions.mjs",
+    ["test/scripts/codex-install-assertions.test.ts"],
+  ],
+  [
+    "scripts/e2e/lib/clawhub-fixture-server.cjs",
+    [
+      "test/scripts/clawhub-fixture-server.test.ts",
+      "test/scripts/plugin-prerelease-test-plan.test.ts",
+    ],
+  ],
   ["scripts/e2e/lib/config-reload/assert-log.mjs", ["test/scripts/e2e-mock-config-limits.test.ts"]],
+  [
+    "scripts/e2e/lib/config-reload/mutate-metadata.mjs",
+    ["test/scripts/config-reload-mutate-metadata.test.ts"],
+  ],
   [
     "scripts/e2e/lib/docker-stats/assert-resource-ceiling.mjs",
     ["test/scripts/docker-stats-resource-ceiling.test.ts"],
@@ -1533,6 +1568,10 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
   [
     "scripts/e2e/lib/doctor-install-switch/scenario.sh",
     ["test/scripts/docker-build-helper.test.ts"],
+  ],
+  [
+    "scripts/e2e/lib/doctor-install-switch/write-wrapper.mjs",
+    ["test/scripts/doctor-install-switch-wrapper.test.ts"],
   ],
   [
     "scripts/e2e/lib/doctor-install-switch/shims/loginctl",
@@ -1544,7 +1583,23 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
   ],
   [
     "scripts/e2e/lib/fixture.mjs",
-    ["test/scripts/fixture-config.test.ts", "test/scripts/fixtures-workspace.test.ts"],
+    [
+      "test/scripts/fixture-config.test.ts",
+      "test/scripts/fixtures-workspace.test.ts",
+      "test/scripts/fixture-plugin-commands.test.ts",
+    ],
+  ],
+  ["scripts/e2e/lib/fixtures/config.mjs", ["test/scripts/fixture-config.test.ts"]],
+  ["scripts/e2e/lib/fixtures/common.mjs", ["test/scripts/fixture-common.test.ts"]],
+  ["scripts/e2e/lib/fixtures/mock-openai-config.mjs", ["test/scripts/mock-openai-config.test.ts"]],
+  ["scripts/e2e/lib/fixtures/plugins.mjs", ["test/scripts/fixture-plugin-commands.test.ts"]],
+  [
+    "scripts/e2e/lib/incremental-line-reader.mjs",
+    [
+      "test/scripts/incremental-line-reader.test.ts",
+      "test/scripts/config-reload-log-scanner.test.ts",
+      "test/scripts/codex-media-path-client.test.ts",
+    ],
   ],
   [
     "scripts/e2e/lib/kitchen-sink-plugin/sweep.sh",
@@ -1558,6 +1613,8 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
     "scripts/e2e/lib/onboard/scenario.sh",
     ["test/scripts/e2e-shell-tempfiles.test.ts", "test/scripts/openclaw-test-state.test.ts"],
   ],
+  ["scripts/e2e/lib/onboard/assert-config.mjs", ["test/scripts/onboard-config-fixtures.test.ts"]],
+  ["scripts/e2e/lib/onboard/write-config.mjs", ["test/scripts/onboard-config-fixtures.test.ts"]],
   ["scripts/e2e/lib/package-compat.mjs", ["test/scripts/docker-build-helper.test.ts"]],
   [
     "scripts/e2e/lib/plugin-update/corrupt-update-scenario.sh",
@@ -1565,6 +1622,10 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
   ],
   [
     "scripts/e2e/lib/plugin-update/probe.mjs",
+    ["test/scripts/plugin-update-unchanged-docker.test.ts"],
+  ],
+  [
+    "scripts/e2e/lib/plugin-update/registry-server.mjs",
     ["test/scripts/plugin-update-unchanged-docker.test.ts"],
   ],
   [
@@ -1737,6 +1798,7 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
     "scripts/e2e/lib/openwebui/http-probe.mjs",
     ["test/e2e/qa-lab/runtime/openwebui-probe.e2e.test.ts"],
   ],
+  ["scripts/e2e/lib/text-file-utils.mjs", ["test/scripts/e2e-text-file-utils.test.ts"]],
   [
     "scripts/e2e/openwebui-docker.sh",
     [
@@ -1790,6 +1852,36 @@ const TOOLING_SOURCE_TEST_TARGETS = new Map([
   ["extensions/canvas/scripts/bundle-a2ui.mjs", ["extensions/canvas/scripts/bundle-a2ui.test.ts"]],
   ["extensions/canvas/scripts/copy-a2ui.mjs", ["extensions/canvas/scripts/copy-a2ui.test.ts"]],
 ]);
+
+const TOOLING_DECLARATION_SOURCE_MIRRORS = [
+  ["scripts/build-stamp.d.mts", "scripts/build-stamp.mjs"],
+  ["scripts/ci-changed-scope.d.mts", "scripts/ci-changed-scope.mjs"],
+  ["scripts/copy-bundled-plugin-metadata.d.mts", "scripts/copy-bundled-plugin-metadata.mjs"],
+  ["scripts/docs-link-audit.d.mts", "scripts/docs-link-audit.mjs"],
+  [
+    "scripts/lib/bundled-plugin-build-entries.d.mts",
+    "scripts/lib/bundled-plugin-build-entries.mjs",
+  ],
+  ["scripts/lib/config-boundary-guard.d.mts", "scripts/lib/config-boundary-guard.mjs"],
+  ["scripts/lib/deprecated-config-api-guard.d.mts", "scripts/lib/deprecated-config-api-guard.mjs"],
+  ["scripts/lib/extension-source-classifier.d.mts", "scripts/lib/extension-source-classifier.mjs"],
+  ["scripts/lib/local-build-metadata-paths.d.mts", "scripts/lib/local-build-metadata-paths.mjs"],
+  ["scripts/lib/local-build-metadata.d.mts", "scripts/lib/local-build-metadata.mjs"],
+  ["scripts/lib/plugin-sdk-entries.d.mts", "scripts/lib/plugin-sdk-entries.mjs"],
+  ["scripts/lib/vitest-local-scheduling.d.mts", "scripts/lib/vitest-local-scheduling.mjs"],
+  ["scripts/run-node.d.mts", "scripts/run-node.mjs"],
+  ["scripts/stage-bundled-plugin-runtime.d.mts", "scripts/stage-bundled-plugin-runtime.mjs"],
+  ["scripts/watch-node.d.mts", "scripts/watch-node.mjs"],
+];
+
+for (const [declarationPath, implementationPath] of TOOLING_DECLARATION_SOURCE_MIRRORS) {
+  const targets = TOOLING_SOURCE_TEST_TARGETS.get(implementationPath);
+  if (targets === undefined) {
+    throw new Error(`Missing changed-test route for declaration mirror ${implementationPath}`);
+  }
+  TOOLING_SOURCE_TEST_TARGETS.set(declarationPath, targets);
+}
+
 const TOOLING_TEST_TARGETS = new Map([
   ["test/scripts/auth-monitor.test.ts", ["test/scripts/auth-monitor.test.ts"]],
   ["test/scripts/barnacle-auto-response.test.ts", ["test/scripts/barnacle-auto-response.test.ts"]],
@@ -3016,9 +3108,13 @@ function resolveK8sManifestTargets(changedPath) {
 function resolveParallelsToolingTestTargets(changedPath) {
   if (
     !/^scripts\/e2e\/parallels\/[^/]+\.ts$/u.test(changedPath) &&
-    !/^scripts\/e2e\/parallels-(?:linux|macos|npm-update|windows)-smoke\.sh$/u.test(changedPath)
+    !/^scripts\/e2e\/parallels-(?:linux|macos|npm-update|windows)-smoke\.sh$/u.test(changedPath) &&
+    !/^scripts\/e2e\/lib\/parallels-package\/build-info-commit\.mjs$/u.test(changedPath)
   ) {
     return null;
+  }
+  if (/^scripts\/e2e\/lib\/parallels-package\/build-info-commit\.mjs$/u.test(changedPath)) {
+    return ["test/scripts/parallels-lib-helpers.test.ts"];
   }
   const targets = ["test/scripts/parallels-smoke-model.test.ts"];
   if (
