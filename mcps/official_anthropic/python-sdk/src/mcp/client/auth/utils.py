@@ -131,6 +131,28 @@ def get_client_metadata_scopes(
     return selected_scope
 
 
+def union_scopes(previous_scope: str | None, new_scope: str | None) -> str | None:
+    """Merge two space-delimited scope strings, preserving order and dropping duplicates.
+
+    SEP-2350: on step-up re-authorization the client requests the union of previously requested
+    scopes and the newly challenged scopes, so escalating one operation does not drop the
+    permissions granted for another. Previously requested scopes come first; new scopes are
+    appended in order.
+    """
+    if not previous_scope:
+        return new_scope
+    if not new_scope:
+        return previous_scope
+
+    merged = previous_scope.split()
+    seen = set(merged)
+    for scope in new_scope.split():
+        if scope not in seen:
+            merged.append(scope)
+            seen.add(scope)
+    return " ".join(merged)
+
+
 def build_oauth_authorization_server_metadata_discovery_urls(auth_server_url: str | None, server_url: str) -> list[str]:
     """Generate an ordered list of URLs for authorization server metadata discovery.
 
@@ -301,6 +323,26 @@ def is_valid_client_metadata_url(url: str | None) -> bool:
         return parsed.scheme == "https" and parsed.path not in ("", "/")
     except Exception:
         return False
+
+
+def credentials_match_issuer(
+    client_info: OAuthClientInformationFull, issuer: str, client_metadata_url: str | None
+) -> bool:
+    """Whether stored client credentials may be reused against `issuer` (SEP-2352).
+
+    A URL-based client ID (CIMD) is portable across authorization servers — the same self-hosted
+    document is resolved by whichever server is in use — so it always matches; CIMD is identified
+    by the client ID being the configured `client_metadata_url`, not by URL shape (a registration
+    server may also issue URL-shaped IDs that are bound to it). Credentials with a recorded issuer
+    match only when it equals `issuer` (simple string comparison). Credentials with no recorded
+    issuer (pre-registered, or stored before issuer binding existed) carry no binding to enforce
+    and are left as-is.
+    """
+    if client_metadata_url is not None and client_info.client_id == client_metadata_url:
+        return True
+    if client_info.issuer is None:
+        return True
+    return client_info.issuer == issuer
 
 
 def should_use_client_metadata_url(
