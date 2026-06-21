@@ -25,6 +25,7 @@ import {
   VerifyExecutorService,
   VerifyFeedbackService,
   VerifyPlanGeneratorService,
+  VerifyReporterService,
 } from '@/server/services/verify';
 
 const verifierTypeSchema = z.enum(['program', 'agent', 'llm']);
@@ -100,6 +101,7 @@ const verifyProcedure = wsCompatProcedure.use(serverDatabase).use(async (opts) =
       operationModel: new AgentOperationModel(ctx.serverDB, ctx.userId, workspaceId),
       planGenerator: new VerifyPlanGeneratorService(ctx.serverDB, ctx.userId, workspaceId),
       reportModel: new VerifyReportModel(ctx.serverDB, ctx.userId, workspaceId),
+      reporterService: new VerifyReporterService(ctx.serverDB, ctx.userId, workspaceId),
       resultModel: new VerifyCheckResultModel(ctx.serverDB, ctx.userId, workspaceId),
       rubricModel: new VerifyRubricModel(ctx.serverDB, ctx.userId, workspaceId),
       runModel: new VerifyRunModel(ctx.serverDB, ctx.userId, workspaceId),
@@ -324,16 +326,30 @@ export const verifyRouter = router({
   createRun: verifyProcedure
     .input(
       z.object({
+        // The active scenario's context, rendered as the report's scope header.
+        context: z
+          .object({
+            branch: z.string().optional(),
+            commit: z.string().optional(),
+            entry: z.string().optional(),
+            focus: z.string().optional(),
+            surfaces: z.array(z.string()).optional(),
+            testedAt: z.string().optional(),
+          })
+          .optional(),
         goal: z.string().optional(),
         operationId: z.string().optional(),
+        scenario: z.enum(['coding']).optional(),
         source: runSourceSchema.optional(),
         title: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) =>
       ctx.runModel.create({
+        context: input.context,
         goal: input.goal,
         operationId: input.operationId,
+        scenario: input.scenario,
         source: input.source ?? 'agent-testing',
         title: input.title,
       }),
@@ -444,6 +460,30 @@ export const verifyRouter = router({
     const run = await resolveVerifyRun(ctx, input.verifyRunId);
     return ctx.reportModel.findByRun(run.id);
   }),
+
+  /**
+   * Server-side LLM report: generate the narrative from the session's results +
+   * evidence (verdict / stats computed deterministically). Distinct from
+   * `upsertReport`, which stores a report a standalone harness computed itself.
+   */
+  regenerateReport: verifyProcedure
+    .input(
+      z.object({
+        deliverable: z.string(),
+        goal: z.string(),
+        modelConfig: modelConfigSchema,
+        verifyRunId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const run = await resolveVerifyRun(ctx, input.verifyRunId);
+      return ctx.reporterService.generateReport({
+        deliverable: input.deliverable,
+        goal: input.goal,
+        modelConfig: input.modelConfig,
+        verifyRunId: run.id,
+      });
+    }),
 
   /**
    * One-shot payload for the standalone report viewer: the session, its report,
