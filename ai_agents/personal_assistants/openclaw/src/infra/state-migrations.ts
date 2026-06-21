@@ -152,6 +152,10 @@ export type LegacyStateDetection = {
     sourcePath: string;
     hasLegacy: boolean;
   };
+  configHealth: {
+    sourcePath: string;
+    hasLegacy: boolean;
+  };
   pluginBindingApprovals: {
     sourcePath: string;
     hasLegacy: boolean;
@@ -203,6 +207,7 @@ type LegacyVoiceWakeImportDatabase = Pick<
   "voicewake_routing_config" | "voicewake_routing_routes" | "voicewake_triggers"
 >;
 type LegacyUpdateCheckImportDatabase = Pick<OpenClawStateKyselyDatabase, "update_check_state">;
+type LegacyConfigHealthImportDatabase = Pick<OpenClawStateKyselyDatabase, "config_health_entries">;
 type LegacyPluginBindingApprovalsImportDatabase = Pick<
   OpenClawStateKyselyDatabase,
   "plugin_binding_approvals"
@@ -1977,6 +1982,193 @@ function migrateLegacyUpdateCheckState(params: {
     archiveLegacyImportSource({
       sourcePath: params.detected.sourcePath,
       label: "update-check state",
+      changes,
+      warnings,
+    });
+  }
+  return { changes, warnings };
+}
+
+type LegacyConfigHealthFile = {
+  entries?: unknown;
+};
+
+type LegacyConfigHealthEntry = {
+  configPath: string;
+  lastKnownGoodJson: string | null;
+  lastPromotedGoodJson: string | null;
+  lastObservedSuspiciousSignature: string | null;
+};
+
+function resolveLegacyConfigHealthPath(stateDir: string): string {
+  return path.join(stateDir, "logs", "config-health.json");
+}
+
+function normalizeLegacyConfigHealthEntry(
+  configPath: string,
+  input: unknown,
+): LegacyConfigHealthEntry | null {
+  if (!configPath.trim() || !input || typeof input !== "object" || Array.isArray(input)) {
+    return null;
+  }
+  const entry = input as {
+    lastKnownGood?: unknown;
+    lastPromotedGood?: unknown;
+    lastObservedSuspiciousSignature?: unknown;
+  };
+  const lastKnownGoodJson =
+    entry.lastKnownGood && typeof entry.lastKnownGood === "object"
+      ? JSON.stringify(entry.lastKnownGood)
+      : null;
+  const lastPromotedGoodJson =
+    entry.lastPromotedGood && typeof entry.lastPromotedGood === "object"
+      ? JSON.stringify(entry.lastPromotedGood)
+      : null;
+  const lastObservedSuspiciousSignature =
+    typeof entry.lastObservedSuspiciousSignature === "string"
+      ? entry.lastObservedSuspiciousSignature
+      : null;
+  if (!lastKnownGoodJson && !lastPromotedGoodJson && !lastObservedSuspiciousSignature) {
+    return null;
+  }
+  return {
+    configPath,
+    lastKnownGoodJson,
+    lastPromotedGoodJson,
+    lastObservedSuspiciousSignature,
+  };
+}
+
+function normalizeLegacyConfigHealthFile(input: unknown): LegacyConfigHealthEntry[] {
+  const file = input && typeof input === "object" ? (input as LegacyConfigHealthFile) : {};
+  const entries = file.entries;
+  if (!entries || typeof entries !== "object" || Array.isArray(entries)) {
+    return [];
+  }
+  return Object.entries(entries)
+    .flatMap(([configPath, entry]) => {
+      const normalized = normalizeLegacyConfigHealthEntry(configPath, entry);
+      return normalized ? [normalized] : [];
+    })
+    .toSorted((a, b) => a.configPath.localeCompare(b.configPath));
+}
+
+function configHealthRow(entry: LegacyConfigHealthEntry): {
+  config_path: string;
+  last_known_good_json: string | null;
+  last_promoted_good_json: string | null;
+  last_observed_suspicious_signature: string | null;
+  updated_at_ms: number;
+} {
+  return {
+    config_path: entry.configPath,
+    last_known_good_json: entry.lastKnownGoodJson,
+    last_promoted_good_json: entry.lastPromotedGoodJson,
+    last_observed_suspicious_signature: entry.lastObservedSuspiciousSignature,
+    updated_at_ms: Date.now(),
+  };
+}
+
+function configHealthComparable(entry: LegacyConfigHealthEntry): string {
+  const row = configHealthRow(entry);
+  return JSON.stringify({
+    config_path: row.config_path,
+    last_known_good_json: row.last_known_good_json,
+    last_promoted_good_json: row.last_promoted_good_json,
+    last_observed_suspicious_signature: row.last_observed_suspicious_signature,
+  });
+}
+
+function migrateLegacyConfigHealth(params: {
+  detected: LegacyStateDetection["configHealth"];
+  stateDir: string;
+}): { changes: string[]; warnings: string[] } {
+  const changes: string[] = [];
+  const warnings: string[] = [];
+  if (!fileExists(params.detected.sourcePath)) {
+    return { changes, warnings };
+  }
+  let entries: LegacyConfigHealthEntry[];
+  try {
+    entries = normalizeLegacyConfigHealthFile(readLegacyJsonObject(params.detected.sourcePath));
+  } catch (err) {
+    warnings.push(
+      `Failed reading legacy config health state ${params.detected.sourcePath}: ${String(err)}`,
+    );
+    return { changes, warnings };
+  }
+
+  let importedCount = 0;
+  let shouldArchive = entries.length === 0;
+  try {
+    runOpenClawStateWriteTransaction(
+      ({ db }) => {
+        const stateDb = getNodeSqliteKysely<LegacyConfigHealthImportDatabase>(db);
+        const existing = executeSqliteQuerySync(
+          db,
+          stateDb
+            .selectFrom("config_health_entries")
+            .select([
+              "config_path",
+              "last_known_good_json",
+              "last_promoted_good_json",
+              "last_observed_suspicious_signature",
+            ]),
+        ).rows;
+        const existingByPath = new Map(
+          existing.map(
+            (row) =>
+              [
+                row.config_path,
+                JSON.stringify({
+                  config_path: row.config_path,
+                  last_known_good_json: row.last_known_good_json,
+                  last_promoted_good_json: row.last_promoted_good_json,
+                  last_observed_suspicious_signature: row.last_observed_suspicious_signature,
+                }),
+              ] as const,
+          ),
+        );
+        const entriesToInsert: LegacyConfigHealthEntry[] = [];
+        let conflictCount = 0;
+        for (const entry of entries) {
+          const existingEntryJson = existingByPath.get(entry.configPath);
+          if (existingEntryJson === undefined) {
+            entriesToInsert.push(entry);
+          } else if (existingEntryJson !== configHealthComparable(entry)) {
+            conflictCount += 1;
+          }
+        }
+        if (entriesToInsert.length > 0) {
+          executeSqliteQuerySync(
+            db,
+            stateDb
+              .insertInto("config_health_entries")
+              .values(entriesToInsert.map(configHealthRow)),
+          );
+          importedCount = entriesToInsert.length;
+        }
+        shouldArchive = conflictCount === 0;
+        if (conflictCount > 0) {
+          warnings.push(
+            `Left legacy config health state in place because ${conflictCount} ${conflictCount === 1 ? "entry conflicts" : "entries conflict"} with shared SQLite state: ${params.detected.sourcePath}`,
+          );
+        }
+      },
+      { env: { ...process.env, OPENCLAW_STATE_DIR: params.stateDir } },
+    );
+  } catch (err) {
+    warnings.push(`Failed migrating legacy config health state: ${String(err)}`);
+  }
+  if (importedCount > 0) {
+    changes.push(
+      `Migrated ${importedCount} config health ${importedCount === 1 ? "entry" : "entries"} → shared SQLite state`,
+    );
+  }
+  if (shouldArchive) {
+    archiveLegacyImportSource({
+      sourcePath: params.detected.sourcePath,
+      label: "config health state",
       changes,
       warnings,
     });
@@ -3834,6 +4026,10 @@ export async function detectLegacyStateMigrations(params: {
     sourcePath: resolveLegacyUpdateCheckPath(stateDir),
   };
   const hasUpdateCheck = fileExists(updateCheck.sourcePath);
+  const configHealth = {
+    sourcePath: resolveLegacyConfigHealthPath(stateDir),
+  };
+  const hasConfigHealth = fileExists(configHealth.sourcePath);
   const pluginBindingApprovals = {
     sourcePath: resolveLegacyPluginBindingApprovalsPath(env, homedir),
   };
@@ -3909,6 +4105,9 @@ export async function detectLegacyStateMigrations(params: {
   if (hasUpdateCheck) {
     preview.push("- Update-check state: legacy JSON file → shared SQLite state");
   }
+  if (hasConfigHealth) {
+    preview.push("- Config health state: legacy JSON file → shared SQLite state");
+  }
   if (hasPluginBindingApprovals) {
     preview.push("- Plugin binding approvals: legacy JSON file → shared SQLite state");
   }
@@ -3981,6 +4180,10 @@ export async function detectLegacyStateMigrations(params: {
     updateCheck: {
       ...updateCheck,
       hasLegacy: hasUpdateCheck,
+    },
+    configHealth: {
+      ...configHealth,
+      hasLegacy: hasConfigHealth,
     },
     pluginBindingApprovals: {
       ...pluginBindingApprovals,
@@ -4516,6 +4719,10 @@ export async function runLegacyStateMigrations(params: {
     detected: detected.updateCheck,
     stateDir: detected.stateDir,
   });
+  const configHealth = migrateLegacyConfigHealth({
+    detected: detected.configHealth,
+    stateDir: detected.stateDir,
+  });
   const pluginBindingApprovals = migrateLegacyPluginBindingApprovals({
     detected: detected.pluginBindingApprovals,
     stateDir: detected.stateDir,
@@ -4556,6 +4763,7 @@ export async function runLegacyStateMigrations(params: {
       ...deliveryQueues.changes,
       ...voiceWake.changes,
       ...updateCheck.changes,
+      ...configHealth.changes,
       ...pluginBindingApprovals.changes,
       ...currentConversationBindings.changes,
       ...execApprovals.changes,
@@ -4575,6 +4783,7 @@ export async function runLegacyStateMigrations(params: {
       ...deliveryQueues.warnings,
       ...voiceWake.warnings,
       ...updateCheck.warnings,
+      ...configHealth.warnings,
       ...pluginBindingApprovals.warnings,
       ...currentConversationBindings.warnings,
       ...execApprovals.warnings,
@@ -4906,6 +5115,10 @@ export async function autoMigrateLegacyState(params: {
       detected: detected.updateCheck,
       stateDir: detected.stateDir,
     });
+    const configHealth = migrateLegacyConfigHealth({
+      detected: detected.configHealth,
+      stateDir: detected.stateDir,
+    });
     const pluginBindingApprovals = migrateLegacyPluginBindingApprovals({
       detected: detected.pluginBindingApprovals,
       stateDir: detected.stateDir,
@@ -4934,6 +5147,7 @@ export async function autoMigrateLegacyState(params: {
       ...deliveryQueues.changes,
       ...voiceWake.changes,
       ...updateCheck.changes,
+      ...configHealth.changes,
       ...pluginBindingApprovals.changes,
       ...currentConversationBindings.changes,
       ...execApprovals.changes,
@@ -4952,6 +5166,7 @@ export async function autoMigrateLegacyState(params: {
       ...deliveryQueues.warnings,
       ...voiceWake.warnings,
       ...updateCheck.warnings,
+      ...configHealth.warnings,
       ...pluginBindingApprovals.warnings,
       ...currentConversationBindings.warnings,
       ...execApprovals.warnings,
@@ -4972,6 +5187,7 @@ export async function autoMigrateLegacyState(params: {
         deliveryQueues.changes.length > 0 ||
         voiceWake.changes.length > 0 ||
         updateCheck.changes.length > 0 ||
+        configHealth.changes.length > 0 ||
         pluginBindingApprovals.changes.length > 0 ||
         currentConversationBindings.changes.length > 0 ||
         execApprovals.changes.length > 0 ||
@@ -4995,6 +5211,7 @@ export async function autoMigrateLegacyState(params: {
     !detected.deliveryQueues.hasLegacy &&
     !detected.voiceWake.hasLegacy &&
     !detected.updateCheck.hasLegacy &&
+    !detected.configHealth.hasLegacy &&
     !detected.pluginBindingApprovals.hasLegacy &&
     !detected.currentConversationBindings.hasLegacy &&
     !detected.execApprovals.hasLegacy
@@ -5049,6 +5266,10 @@ export async function autoMigrateLegacyState(params: {
     detected: detected.updateCheck,
     stateDir: detected.stateDir,
   });
+  const configHealth = migrateLegacyConfigHealth({
+    detected: detected.configHealth,
+    stateDir: detected.stateDir,
+  });
   const pluginBindingApprovals = migrateLegacyPluginBindingApprovals({
     detected: detected.pluginBindingApprovals,
     stateDir: detected.stateDir,
@@ -5089,6 +5310,7 @@ export async function autoMigrateLegacyState(params: {
     ...deliveryQueues.changes,
     ...voiceWake.changes,
     ...updateCheck.changes,
+    ...configHealth.changes,
     ...pluginBindingApprovals.changes,
     ...currentConversationBindings.changes,
     ...execApprovals.changes,
@@ -5111,6 +5333,7 @@ export async function autoMigrateLegacyState(params: {
     ...deliveryQueues.warnings,
     ...voiceWake.warnings,
     ...updateCheck.warnings,
+    ...configHealth.warnings,
     ...pluginBindingApprovals.warnings,
     ...currentConversationBindings.warnings,
     ...execApprovals.warnings,
