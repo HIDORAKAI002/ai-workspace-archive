@@ -2118,8 +2118,9 @@ export const dispatchTelegramMessage = async ({
                       }
                       if (segment.lane === "answer" && info.kind === "tool") {
                         if (verboseProgressActive()) {
-                          // Durable lane owns tool payloads: send standalone instead
-                          // of diverting into the draft, which is discarded at final.
+                          if (streamMode === "progress") {
+                            await rotateAnswerLaneAfterToolProgress();
+                          }
                           if (
                             await sendPayload(
                               applyTextToPayload(effectivePayload, segment.update.text),
@@ -2130,10 +2131,6 @@ export const dispatchTelegramMessage = async ({
                           continue;
                         }
                         if (streamMode === "progress" && answerLane.stream) {
-                          // Progress-mode streams render tool status in the
-                          // live draft. Do not also emit text-only tool output
-                          // as answer text, or simple commands duplicate and
-                          // restart the progress draft.
                           continue;
                         }
                         await prepareAnswerLaneForToolProgress();
@@ -2274,6 +2271,9 @@ export const dispatchTelegramMessage = async ({
                         await flushBufferedFinalAnswer();
                       }
                       return;
+                    }
+                    if (streamMode === "progress" && info.kind === "tool") {
+                      await rotateAnswerLaneAfterToolProgress();
                     }
                     const delivered = await sendPayload(effectivePayload, {
                       durable: info.kind === "final",
