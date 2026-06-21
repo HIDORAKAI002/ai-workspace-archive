@@ -1,0 +1,28 @@
+name: Build Mega Website
+on:
+  schedule:
+    - cron: '0 0 * * *' # Midnight UTC
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Install MkDocs
+        run: pip install mkdocs-material
+      - name: Extract Documentation
+        env:
+          EXCLUDE_PILLARS: ${{ secrets.EXCLUDE_PILLARS }}
+        run: python scripts/build_mega_site.py
+      - name: Build and Deploy
+        run: mkdocs gh-deploy --force
