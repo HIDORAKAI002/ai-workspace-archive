@@ -1,11 +1,11 @@
 {
-  "mcp_repos": 22,
+  "mcp_repos": 23,
   "nocode_repos": 15,
   "system_prompt_repos": 8,
   "ai_skills_repos": 1,
   "public_apis_repos": 1,
-  "total_repos": 173,
-  "total_files": 5296,
+  "total_repos": 174,
+  "total_files": 9,
   "ai_skills_files": 0,
   "ide_rules_files": 0
 }
