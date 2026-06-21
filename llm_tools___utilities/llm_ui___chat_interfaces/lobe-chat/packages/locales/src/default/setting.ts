@@ -606,21 +606,13 @@ export default {
   'settingAgent.export.untitledFileName': 'agent-profile',
   'settingAgent.name.placeholder': 'Enter agent name',
   'settingAgent.name.title': 'Name',
-  'settingAgent.prompt.placeholder': 'Enter agent settings, press / to open the command menu',
-  'settingAgent.prompt.templatePlaceholder':
-    '#### Goal\n' +
-    'Describe the main purpose and objective of this agent.\n\n' +
-    '#### Skills\n' +
-    '- List the key capabilities\n' +
-    '- And specialized knowledge areas\n\n' +
-    '#### Workflow\n' +
-    '1. Step-by-step process\n' +
-    '2. How the agent should approach tasks\n' +
-    '3. Expected interactions with users\n\n' +
-    '#### Constraints\n' +
-    '- Important limitations to follow\n' +
-    '- Guidelines for behavior',
-  'settingAgent.prompt.title': 'Agent Profile',
+  'settingAgent.prompt.desc':
+    'Defines who this agent is, what it is responsible for, and how it works and responds. It serves as a core instruction in every conversation.',
+  'settingAgent.prompt.editorPlaceholder':
+    'Enter core instructions, press / to open the Slash Menu',
+  'settingAgent.prompt.placeholder': 'Enter agent instructions',
+  'settingAgent.prompt.title': 'Core Instructions',
+  'settingAgent.runtimeConfig.title': 'Model & Tools',
   'settingAgent.submit': 'Update Agent',
   'settingAgent.tag.desc': 'Agent tags will be displayed in the Agent Community',
   'settingAgent.tag.placeholder': 'Enter tag',
@@ -927,8 +919,15 @@ export default {
     'Select a voice for the current agent, different TTS services support different voices',
   'settingTTS.voice.preview': 'Voice Preview',
   'settingTTS.voice.title': 'Text-to-Speech Voice',
+  'skillGroup.builtinSkills': 'Built-in Skills',
+  'skillGroup.builtinTools': 'Built-in Tools',
+  'skillGroup.communityConnectors': 'OAuth Connectors',
+  'skillGroup.communitySkills': 'Community Skills',
+  'skillGroup.communityTools': 'Community Tools',
+  'skillGroup.customConnectors': 'Custom Connectors',
+  'skillGroup.customSkills': 'Custom Skills',
   'skillStore.button': 'Skill Store',
-  'skillStore.empty': 'Browse the Skill store. Install one to get started, add more later.',
+  'skillStore.empty': 'Browse the Skill Store. Install one to get started, add more later.',
   'skillStore.emptySearch': 'No matching Skills',
   'skillStore.networkError': 'Network error, please try again',
   'skillStore.search': 'Search skills by name or keyword, press Enter to search…',
@@ -958,6 +957,8 @@ When I am ___, I need ___
   'skillStore.wantMore.feedback.title':
     '[Skill Request] Summarize the skill you need in one sentence',
   'skillStore.wantMore.reachedEnd': "You've reached the end. Can't find what you need?",
+  'skillView.connectors': 'Connectors',
+  'skillView.skills': 'Skills',
   'startConversation': 'Start Conversation',
   'storage.actions.transfer.button': 'Move to...',
   'storage.actions.transfer.desc':
@@ -2128,7 +2129,7 @@ When I am ___, I need ___
   'workspaceSetting.tab.skill': 'Skills',
   'workspaceSetting.tab.usage': 'Usage',
   'tools.add': 'Add Skill',
-  'tools.addSkillOrConnector': 'Add Skills / Connector',
+  'tools.addSkillOrConnector': 'Add Skills / Connectors',
   'tools.builtins.groupName': 'Built-ins',
   'tools.builtins.install': 'Install',
   'tools.builtins.installed': 'Installed',

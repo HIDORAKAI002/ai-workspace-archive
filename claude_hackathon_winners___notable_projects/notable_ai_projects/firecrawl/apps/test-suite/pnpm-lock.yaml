@@ -8,7 +8,7 @@ overrides:
   fast-xml-builder: '>=1.1.6 <2.0.0'
   fast-xml-parser: ^5.7.0
   minimatch@<10.2.3: '>=10.2.3'
-  undici: ^7.24.1
+  undici@>=7.0.0 <7.28.0: 7.28.0
   picomatch@<4.0.4: '>=4.0.4'
   brace-expansion: '>=5.0.6'
   ws@>=7.0.0 <7.5.11: 7.5.11
@@ -26,16 +26,16 @@ importers:
   .:
     devDependencies:
       artillery:
-        specifier: ^2.0.32
-        version: 2.0.32(@types/node@25.5.0)
+        specifier: ^2.0.33
+        version: 2.0.33(@types/node@25.5.0)
 
 packages:
 
-  '@artilleryio/int-commons@2.23.0':
-    resolution: {integrity: sha512-sYezLOhOlvfK5zzRA+SjOw5LX2etK9NPcZ4TpIK1qxHw2EuBEvE8u1Q9yN9lpe68X7k6AqL3jpT4/zNxwT2j6A==}
+  '@artilleryio/int-commons@2.24.0':
+    resolution: {integrity: sha512-edCjaTcUQNWxGS7XD128zYV4wABnh4itGmK1bzRTUe78huYGN9d21/Sf/aHWgl/DbbufYvvvU1FX9PD1l0m7jg==}
 
-  '@artilleryio/int-core@2.27.0':
-    resolution: {integrity: sha512-tVITMUdlpMIlSA0+Qs5MCLcAOGl2AyimIiZ4AjlyJpqmIqPFBzRR+6xIcaqsG32vyI699r4taFwqe0ARFvOY1Q==}
+  '@artilleryio/int-core@2.28.0':
+    resolution: {integrity: sha512-l1T2LMc0+BpGRH1sSfwb+jfeJWyTq0xrtJggRm3M7pMNU8Il1xZZBxxM2j+o7i8tXQPHZ/uSxdMUGNRaS6ygPA==}
 
   '@artilleryio/sketches-js@2.1.1':
     resolution: {integrity: sha512-H3D50vDb37E3NGYXY0eUFAm5++moElaqoAu0MWYZhgzaA3IT2E67bRCL8U4LKHuVf/MgDZk14uawIjc4WVjOUQ==}
@@ -187,10 +187,6 @@ packages:
     resolution: {integrity: sha512-43ajd1NF0RMgX5k0hxCNUyEdrtFUsb2aHT2QvpktSC/2Eyb2Jr/JPVqdp0XIoaHWikZJq5tNWSLO6kB5q2eMCA==}
     engines: {node: '>=20.0.0'}
 
-  '@aws-sdk/types@3.973.6':
-    resolution: {integrity: sha512-Atfcy4E++beKtwJHiDln2Nby8W/mam64opFPTiHEqgsthqeydFS1pY+OUlN1ouNOmf8ArPU/6cDS65anOP3KQw==}
-    engines: {node: '>=20.0.0'}
-
   '@aws-sdk/util-locate-window@3.965.5':
     resolution: {integrity: sha512-WhlJNNINQB+9qtLtZJcpQdgZw3SCDCpXdUJP7cToGwHbCWCnRckGlc6Bx/OhWwIYFNAn+FIydY8SZ0QmVu3xTQ==}
     engines: {node: '>=20.0.0'}
@@ -293,6 +289,10 @@ packages:
   '@datadog/datadog-api-client@1.53.0':
     resolution: {integrity: sha512-QLqTtVETsa2GN/YabSnSNhCfJP/cMaQRr3mYML9L76mH6JoNWERUpXzIko6uVmvvYS+QYvbmj8gQSu/RGwZEVQ==}
     engines: {node: '>=12.0.0'}
+
+  '@faker-js/faker@10.4.0':
+    resolution: {integrity: sha512-sDBWI3yLy8EcDzgobvJTWq1MJYzAkQdpjXuPukga9wXonhpMRvd1Izuo2Qgwey2OiEoRIBr35RMU9HJRoOHzpw==}
+    engines: {node: ^20.19.0 || ^22.13.0 || ^23.5.0 || >=24.0.0, npm: '>=10'}
 
   '@grpc/grpc-js@1.14.4':
     resolution: {integrity: sha512-k9Dj3DV/itK9D06Y8f190Qgop7/Ui+D0njFV3LHMPwPT75DpXLQohE9Wmz0QElrJnzsjB7KPWiKJbOl7IPDArQ==}
@@ -461,9 +461,6 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
-  '@ngneat/falso@8.0.2':
-    resolution: {integrity: sha512-vhPtuoHoxE5JGWPSPBqEyTXcjI4MAn8GllR+Vs8FfpAQu2sQRd4PJc3e8kc9vdbdhYHx1C9HmbECgtGLK30z4w==}
-
   '@nodable/entities@2.1.0':
     resolution: {integrity: sha512-nyT7T3nbMyBI/lvr6L5TyWbFJAI9FTgVRakNoBqCD+PmID8DzFrrNdLLtHMwMszOtqZa8PAOV24ZqDnQrhQINA==}
 
@@ -605,12 +602,12 @@ packages:
     resolution: {integrity: sha512-cifvXDhcqMwwTlTK04GBNeIe7yyo28Mfby85QXFe1Yk8nmi36Ab/5UQwptOx84SsoGNRg+EVSjwzfSZMy6pmlw==}
     engines: {node: '>=14'}
 
-  '@playwright/browser-chromium@1.60.0':
-    resolution: {integrity: sha512-0ND2pbNWKJYwhlA1LNaDC3DP2x7eguQkQF7Ga7XAlJV0AFieqYNRw/E+gaY9BpSFr1TYwfwXQv1bHq5AK9nbvA==}
+  '@playwright/browser-chromium@1.61.0':
+    resolution: {integrity: sha512-bBGzN+jow5uQtYRDCnFv5cpyMjUYTF6WnsfRRrDXIwbaGDtdh0JdOPmlKdJH4OK7TbkrZ35cV7jhQ1zELoX5ew==}
     engines: {node: '>=18'}
 
-  '@playwright/test@1.60.0':
-    resolution: {integrity: sha512-O71yZIbAh/PxDMNGns37GHBIfrVkEVyn+AXyIa5dOTfb4/xNvRWV+Vv/NMbNCtODB/pO7vLlF2OTmMVLhmr7Ag==}
+  '@playwright/test@1.61.0':
+    resolution: {integrity: sha512-cKA5B6lpFEMyMGjxF54QihfYpB4FkEGH+qZhtArDEG+wezQAJY8Pq6C7T1SjWz+FFzt3TbyoXBQYk/0292TdJA==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -771,32 +768,32 @@ packages:
   arrivals@2.1.2:
     resolution: {integrity: sha512-g3+rxhxUen2H4+PPBOz6U6pkQ4esBuQPna1rPskgK1jamBdDZeoppyB2vPUM/l0ccunwRrq4r2rKgCvc2FnrFA==}
 
-  artillery-engine-playwright@1.29.0:
-    resolution: {integrity: sha512-z03gWZGgap8/ryp1ZX4V3KPHFv7RIjxuIu8i/SsvNdtNJ4E7HmSXf4EJkBGKrd1lRQfP+FJ3LhID7PsX03p8VA==}
+  artillery-engine-playwright@1.30.0:
+    resolution: {integrity: sha512-Anc9SJUL/969XTUjEGzYiTZMCg7C39VNpVNLCDgkvZ8DmGdDqcqgXl6yTymwzyJpJE7leo3x5t/r5ADUYLPdDw==}
 
-  artillery-plugin-apdex@1.23.0:
-    resolution: {integrity: sha512-wghoFU5+6f72GJB1REbwCpaX7xlXBx1ibg8zu80tvPZ6A1fEQynTZH2xKDKlDhfhxQmYuAh2Ft2vf1jljzeODw==}
+  artillery-plugin-apdex@1.24.0:
+    resolution: {integrity: sha512-66sHtp8mtvSBkWfDaehMkERAEMc1NaOI6/i5hJikFP5iSZk3UC3PWBEeeyl1NGd39J1YpuFEA1aEn8ua048BYw==}
 
-  artillery-plugin-ensure@1.26.0:
-    resolution: {integrity: sha512-uvWTYCUb+JqKW/suxbuihCRW4mXnbGCb+qPJHJo2QWhNEdc506otIFFMcRULRyud7nNbM25G7vOtKqW0Juvovg==}
+  artillery-plugin-ensure@1.27.0:
+    resolution: {integrity: sha512-2ePl9SY/O8rrViqY+KLwMjCn5zVmgmAUo+30ATuisBsJcxZ+Z2g+NaMVZ0AVB8CZNGrqaIxTShbH42i/EPgVKA==}
 
-  artillery-plugin-expect@2.26.0:
-    resolution: {integrity: sha512-c0Qsh70iNKJnFa97kxEVdrUzIdAJbAR2kg9nmzdhH3bndna2LivVDSSaOqKlYIrwuvM1qyXXpUi9mdFRy5WgKA==}
+  artillery-plugin-expect@2.27.0:
+    resolution: {integrity: sha512-ZdXoNRb5xvZCdZFQMzJsf8VY508WMUQ0ou3dkIqmQumAUD68lLNZMQM9j9yjaniG1ivSy4OCxWle52J5Et3WSA==}
 
-  artillery-plugin-fake-data@1.23.0:
-    resolution: {integrity: sha512-YnJX6AlNZ8/uUc0soXsBRc2qd8zVbYI3qrLDOLVokmbG8TwkVUN2bDn9BeIcjEdEsAvKU0am8OaZfXlb69KWWQ==}
+  artillery-plugin-fake-data@1.24.0:
+    resolution: {integrity: sha512-Ft7GWaFCxRKUzlR1wBpNo6mJgmTHTcN4F7HAye5vx+svJagsyD5UmlBHLYFatJ8DiFR75sJepQE/AMrhTpziHg==}
 
-  artillery-plugin-metrics-by-endpoint@1.26.0:
-    resolution: {integrity: sha512-FK3/zknlfWK2aKblA2uH2GXzYLz2CYc5cE5nAkxFN5k8LW9EcrYEwaCenXaGquQ4LfLOrhjcDpEjeWAdI06Klg==}
+  artillery-plugin-metrics-by-endpoint@1.27.0:
+    resolution: {integrity: sha512-XQwWgDHyC59dxcONDTjVu9Q8s1HfVnaMGOQb19ll9Hovag3zH0k7M9LYxY9ViPkeJeckGbWoS1BsU3kHifRrzw==}
 
-  artillery-plugin-publish-metrics@2.37.0:
-    resolution: {integrity: sha512-DFaewTAG1GfgGjW2tAl3aFi+PiWm4vIxVoWa5iY//c6+g9w+Pnc01CH0BfnEVB9gFXJPZaT+HJlJfDDf9MA2PA==}
+  artillery-plugin-publish-metrics@2.38.0:
+    resolution: {integrity: sha512-XatDrJU16dJpdOnCQQ/j446BRIVmepCh3bXvuiwWa7FsJ51eMippSFjBLDjZGPzTjVh/YKovdgd0hWWXVvVmnw==}
 
-  artillery-plugin-slack@1.21.0:
-    resolution: {integrity: sha512-+/LS8pKsgilOlUd+E8la0FiSsqmPvaIUwJa7RA/kUPHvTs8VNdHFuWHOnONSclExjvK4T610sm3GY/wbqXpJyg==}
+  artillery-plugin-slack@1.22.0:
+    resolution: {integrity: sha512-Z7quNzgDeLEmOViDdM6tYmlMbXXlrDznG2hoJyXI6sO+/TFF8Ojsld/u0jEWNPmg01EIsqFncuT+ApfcCXG/eA==}
 
-  artillery@2.0.32:
-    resolution: {integrity: sha512-W632foeIGbBOpDFG5EPkx8N1JWdKOL40yaACs8wLIW5mFByebttbhblALmARQbF6/GMDAKnKX7BewBjcd6TKuQ==}
+  artillery@2.0.33:
+    resolution: {integrity: sha512-7CiejAL4/stcm9o4GJ8yq1xAKNR39pgVmy2hvb+s9IBCMRzmSYSaRk1Lv/3nWxRtzan0C1LK62lM09MZDKJsfA==}
     engines: {node: '>= 22.13.0'}
     hasBin: true
 
@@ -1593,13 +1590,13 @@ packages:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
 
-  playwright-core@1.60.0:
-    resolution: {integrity: sha512-9bW6zvX/m0lEbgTKJ6YppOKx8H3VOPBMOCFh2irXFOT4BbHgrx5hPjwJYLT40Lu+4qtD36qKc/Hn56StUW57IA==}
+  playwright-core@1.61.0:
+    resolution: {integrity: sha512-caX7TrY3Ml6egyDX0WUcTHDxodl/b51y5wJOdCEA36QviK/s2g081hvmGs8eaE3DWb6NYZQ6BjO/QkNRPenoPA==}
     engines: {node: '>=18'}
     hasBin: true
 
-  playwright@1.60.0:
-    resolution: {integrity: sha512-hheHdokM8cdqCb0lcE3s+zT4t4W+vvjpGxsZlDnikarzx8tSzMebh3UiFtgqwFwnTnjYQcsyMF8ei2mCO/tpeA==}
+  playwright@1.61.0:
+    resolution: {integrity: sha512-Z+7BeeqQPRRzklHsVFP4KTGIyMxKUmfeRA4WisM6G3/XW6nwGeX6fX9qYaDa+CiUqpOkb2f6X3nar05R3kSuJQ==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -1650,9 +1647,6 @@ packages:
 
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
-
-  seedrandom@3.0.5:
-    resolution: {integrity: sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==}
 
   semver@7.7.4:
     resolution: {integrity: sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA==}
@@ -1778,8 +1772,8 @@ packages:
   undici-types@7.18.2:
     resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
-  undici@7.24.4:
-    resolution: {integrity: sha512-BM/JzwwaRXxrLdElV2Uo6cTLEjhSb3WXboncJamZ15NgUURmvlXvxa6xkwIOILIjPNo9i8ku136ZvWV0Uly8+w==}
+  undici@7.28.0:
+    resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
     engines: {node: '>=20.18.1'}
 
   unique-string@3.0.0:
@@ -1897,7 +1891,7 @@ packages:
 
 snapshots:
 
-  '@artilleryio/int-commons@2.23.0':
+  '@artilleryio/int-commons@2.24.0':
     dependencies:
       async: 2.6.4
       cheerio: 1.2.0
@@ -1910,9 +1904,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@artilleryio/int-core@2.27.0':
+  '@artilleryio/int-core@2.28.0':
     dependencies:
-      '@artilleryio/int-commons': 2.23.0
+      '@artilleryio/int-commons': 2.24.0
       '@artilleryio/sketches-js': 2.1.1
       agentkeepalive: 4.6.0
       arrivals: 2.1.2
@@ -1951,7 +1945,7 @@ snapshots:
   '@aws-crypto/crc32@5.2.0':
     dependencies:
       '@aws-crypto/util': 5.2.0
-      '@aws-sdk/types': 3.973.6
+      '@aws-sdk/types': 3.973.12
       tslib: 2.8.1
 
   '@aws-crypto/crc32c@5.2.0':
@@ -2344,11 +2338,6 @@ snapshots:
       '@smithy/types': 4.14.4
       tslib: 2.8.1
 
-  '@aws-sdk/types@3.973.6':
-    dependencies:
-      '@smithy/types': 4.14.4
-      tslib: 2.8.1
-
   '@aws-sdk/util-locate-window@3.965.5':
     dependencies:
       tslib: 2.8.1
@@ -2551,6 +2540,8 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+  '@faker-js/faker@10.4.0': {}
+
   '@grpc/grpc-js@1.14.4':
     dependencies:
       '@grpc/proto-loader': 0.8.0
@@ -2705,11 +2696,6 @@ snapshots:
       jsep: 1.4.0
 
   '@keyv/serialize@1.1.1': {}
-
-  '@ngneat/falso@8.0.2':
-    dependencies:
-      seedrandom: 3.0.5
-      uuid: 11.1.1
 
   '@nodable/entities@2.1.0': {}
 
@@ -2902,13 +2888,13 @@ snapshots:
 
   '@opentelemetry/semantic-conventions@1.40.0': {}
 
-  '@playwright/browser-chromium@1.60.0':
+  '@playwright/browser-chromium@1.61.0':
     dependencies:
-      playwright-core: 1.60.0
+      playwright-core: 1.61.0
 
-  '@playwright/test@1.60.0':
+  '@playwright/test@1.61.0':
     dependencies:
-      playwright: 1.60.0
+      playwright: 1.61.0
 
   '@protobufjs/aspromise@1.1.2': {}
 
@@ -3073,18 +3059,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  artillery-engine-playwright@1.29.0:
+  artillery-engine-playwright@1.30.0:
     dependencies:
-      '@playwright/browser-chromium': 1.60.0
-      '@playwright/test': 1.60.0
+      '@playwright/browser-chromium': 1.61.0
+      '@playwright/test': 1.61.0
       debug: 4.4.3(supports-color@8.1.1)
-      playwright: 1.60.0
+      playwright: 1.61.0
     transitivePeerDependencies:
       - supports-color
 
-  artillery-plugin-apdex@1.23.0: {}
+  artillery-plugin-apdex@1.24.0: {}
 
-  artillery-plugin-ensure@1.26.0:
+  artillery-plugin-ensure@1.27.0:
     dependencies:
       chalk: 2.4.2
       debug: 4.4.3(supports-color@8.1.1)
@@ -3092,7 +3078,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  artillery-plugin-expect@2.26.0:
+  artillery-plugin-expect@2.27.0:
     dependencies:
       chalk: 4.1.2
       debug: 4.4.3(supports-color@8.1.1)
@@ -3101,17 +3087,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  artillery-plugin-fake-data@1.23.0:
+  artillery-plugin-fake-data@1.24.0:
     dependencies:
-      '@ngneat/falso': 8.0.2
+      '@faker-js/faker': 10.4.0
 
-  artillery-plugin-metrics-by-endpoint@1.26.0:
+  artillery-plugin-metrics-by-endpoint@1.27.0:
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
-  artillery-plugin-publish-metrics@2.37.0:
+  artillery-plugin-publish-metrics@2.38.0:
     dependencies:
       '@aws-sdk/client-cloudwatch': 3.1068.0
       '@opentelemetry/api': 1.9.0
@@ -3142,17 +3128,17 @@ snapshots:
       - encoding
       - supports-color
 
-  artillery-plugin-slack@1.21.0:
+  artillery-plugin-slack@1.22.0:
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       got: 14.6.6
     transitivePeerDependencies:
       - supports-color
 
-  artillery@2.0.32(@types/node@25.5.0):
+  artillery@2.0.33(@types/node@25.5.0):
     dependencies:
-      '@artilleryio/int-commons': 2.23.0
-      '@artilleryio/int-core': 2.27.0
+      '@artilleryio/int-commons': 2.24.0
+      '@artilleryio/int-core': 2.28.0
       '@aws-sdk/client-cloudwatch': 3.1068.0
       '@aws-sdk/client-cloudwatch-logs': 3.1068.0
       '@aws-sdk/client-ec2': 3.1068.0
@@ -3173,14 +3159,14 @@ snapshots:
       '@oclif/plugin-not-found': 3.2.75(@types/node@25.5.0)
       '@smithy/core': 3.24.7
       '@upstash/redis': 1.37.0
-      artillery-engine-playwright: 1.29.0
-      artillery-plugin-apdex: 1.23.0
-      artillery-plugin-ensure: 1.26.0
-      artillery-plugin-expect: 2.26.0
-      artillery-plugin-fake-data: 1.23.0
-      artillery-plugin-metrics-by-endpoint: 1.26.0
-      artillery-plugin-publish-metrics: 2.37.0
-      artillery-plugin-slack: 1.21.0
+      artillery-engine-playwright: 1.30.0
+      artillery-plugin-apdex: 1.24.0
+      artillery-plugin-ensure: 1.27.0
+      artillery-plugin-expect: 2.27.0
+      artillery-plugin-fake-data: 1.24.0
+      artillery-plugin-metrics-by-endpoint: 1.27.0
+      artillery-plugin-publish-metrics: 2.38.0
+      artillery-plugin-slack: 1.22.0
       async: 2.6.4
       chalk: 2.4.2
       chokidar: 3.6.0
@@ -3312,7 +3298,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 7.24.4
+      undici: 7.28.0
       whatwg-mimetype: 4.0.0
 
   chokidar@3.6.0:
@@ -3999,11 +3985,11 @@ snapshots:
 
   picomatch@4.0.4: {}
 
-  playwright-core@1.60.0: {}
+  playwright-core@1.61.0: {}
 
-  playwright@1.60.0:
+  playwright@1.61.0:
     dependencies:
-      playwright-core: 1.60.0
+      playwright-core: 1.61.0
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -4058,8 +4044,6 @@ snapshots:
   safe-buffer@5.2.1: {}
 
   safer-buffer@2.1.2: {}
-
-  seedrandom@3.0.5: {}
 
   semver@7.7.4: {}
 
@@ -4176,7 +4160,7 @@ snapshots:
 
   undici-types@7.18.2: {}
 
-  undici@7.24.4: {}
+  undici@7.28.0: {}
 
   unique-string@3.0.0:
     dependencies:
