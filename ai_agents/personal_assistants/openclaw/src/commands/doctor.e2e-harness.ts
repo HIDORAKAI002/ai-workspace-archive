@@ -251,6 +251,10 @@ function createLegacyStateMigrationDetectionResult(params?: {
       sourcePath: "/tmp/state/update-check.json",
       hasLegacy: false,
     },
+    configHealth: {
+      sourcePath: "/tmp/state/logs/config-health.json",
+      hasLegacy: false,
+    },
     pluginBindingApprovals: {
       sourcePath: "/tmp/state/plugin-binding-approvals.json",
       hasLegacy: false,

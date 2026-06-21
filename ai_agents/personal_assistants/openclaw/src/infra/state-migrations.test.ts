@@ -97,6 +97,7 @@ vi.mock("../channels/plugins/bundled.js", () => {
 const tempDirs = createTrackedTempDirs();
 
 type UpdateCheckStateDatabase = Pick<OpenClawStateKyselyDatabase, "update_check_state">;
+type ConfigHealthDatabase = Pick<OpenClawStateKyselyDatabase, "config_health_entries">;
 type PluginBindingApprovalsDatabase = Pick<OpenClawStateKyselyDatabase, "plugin_binding_approvals">;
 type CurrentConversationBindingsDatabase = Pick<
   OpenClawStateKyselyDatabase,
@@ -139,6 +140,28 @@ function readUpdateCheckState(env: NodeJS.ProcessEnv):
       ])
       .where("state_key", "=", "default"),
   );
+}
+
+function readConfigHealthRows(env: NodeJS.ProcessEnv): Array<{
+  config_path: string;
+  last_known_good_json: string | null;
+  last_promoted_good_json: string | null;
+  last_observed_suspicious_signature: string | null;
+}> {
+  const { db } = openOpenClawStateDatabase({ env });
+  const stateDb = getNodeSqliteKysely<ConfigHealthDatabase>(db);
+  return executeSqliteQuerySync(
+    db,
+    stateDb
+      .selectFrom("config_health_entries")
+      .select([
+        "config_path",
+        "last_known_good_json",
+        "last_promoted_good_json",
+        "last_observed_suspicious_signature",
+      ])
+      .orderBy("config_path", "asc"),
+  ).rows;
 }
 
 function readCurrentConversationBindingRows(env: NodeJS.ProcessEnv): Array<{
@@ -681,6 +704,66 @@ describe("state migrations", () => {
     });
     await expectMissingPath(sourcePath);
     await expect(fs.readFile(`${sourcePath}.migrated`, "utf8")).resolves.toContain("2.0.0");
+  });
+
+  it("migrates legacy config health JSON into shared SQLite state", async () => {
+    const root = await createTempDir();
+    const stateDir = path.join(root, ".openclaw");
+    const env = createEnv(stateDir);
+    const cfg = createConfig();
+    const configPath = path.join(stateDir, "openclaw.json");
+    const logsDir = path.join(stateDir, "logs");
+    const sourcePath = path.join(logsDir, "config-health.json");
+    const fingerprint = {
+      hash: "abc123",
+      bytes: 42,
+      mtimeMs: 1,
+      ctimeMs: 2,
+      dev: "3",
+      ino: "4",
+      mode: 384,
+      nlink: 1,
+      uid: 501,
+      gid: 20,
+      hasMeta: true,
+      gatewayMode: "local",
+      observedAt: "2026-01-17T09:30:00.000Z",
+    };
+    await fs.mkdir(logsDir, { recursive: true });
+    await fs.writeFile(
+      sourcePath,
+      JSON.stringify({
+        entries: {
+          [configPath]: {
+            lastKnownGood: fingerprint,
+            lastPromotedGood: fingerprint,
+            lastObservedSuspiciousSignature: "abc123:size-drop",
+          },
+        },
+      }),
+      "utf8",
+    );
+
+    const detected = await detectLegacyStateMigrations({ cfg, env, homedir: () => root });
+    expect(detected.configHealth.hasLegacy).toBe(true);
+    expect(detected.preview).toContain(
+      "- Config health state: legacy JSON file → shared SQLite state",
+    );
+
+    const result = await runLegacyStateMigrations({ detected, config: cfg });
+
+    expect(result.warnings).toStrictEqual([]);
+    expect(result.changes).toContain("Migrated 1 config health entry → shared SQLite state");
+    expect(readConfigHealthRows(env)).toEqual([
+      {
+        config_path: configPath,
+        last_known_good_json: JSON.stringify(fingerprint),
+        last_promoted_good_json: JSON.stringify(fingerprint),
+        last_observed_suspicious_signature: "abc123:size-drop",
+      },
+    ]);
+    await expectMissingPath(sourcePath);
+    await expect(fs.readFile(`${sourcePath}.migrated`, "utf8")).resolves.toContain("abc123");
   });
 
   it("migrates legacy current-conversation bindings JSON into shared SQLite state", async () => {

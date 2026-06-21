@@ -377,6 +377,8 @@ describe("package-mac-app plist stamping", () => {
     expect(macosCi).toContain("test/scripts/package-mac-app.test.ts");
     expect(macosCi).toContain("test/scripts/package-mac-dist.test.ts");
     expect(macosCi).toContain("test/scripts/create-dmg.test.ts");
+    expect(macosCi).toContain("test/scripts/codesign-mac-app.test.ts");
+    expect(macosCi).toContain("test/scripts/notarize-mac-artifact.test.ts");
   });
 
   it("fails closed when required Swift resources are missing", () => {
