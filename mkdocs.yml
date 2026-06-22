@@ -5,6 +5,7 @@ theme:
     scheme: slate
     primary: deep purple
     accent: cyan
+plugins: []
 markdown_extensions:
   - toc:
       permalink: true
