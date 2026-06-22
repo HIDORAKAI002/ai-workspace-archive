@@ -5,6 +5,9 @@ theme:
     scheme: slate
     primary: deep purple
     accent: cyan
+  features:
+    - navigation.prune
+    - navigation.tabs
 plugins: []
 markdown_extensions:
   - toc:
