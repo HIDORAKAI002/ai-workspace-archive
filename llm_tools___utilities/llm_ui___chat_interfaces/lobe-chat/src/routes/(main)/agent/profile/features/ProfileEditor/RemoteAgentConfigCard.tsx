@@ -92,6 +92,13 @@ const RemoteAgentConfigCard = memo<RemoteAgentConfigCardProps>(
     const boundDeviceId = useAgentStore((s) =>
       agentId ? s.agentMap[agentId]?.agencyConfig?.boundDeviceId : undefined,
     );
+    // Workspace-scoped agents are reachable by every workspace member, but a
+    // personal device is only reachable by its owner. Hide personal devices
+    // from the picker so workspace agents can only bind workspace devices.
+    const agentWorkspaceId = useAgentStore((s) =>
+      agentId ? s.agentMap[agentId]?.workspaceId : undefined,
+    );
+    const isWorkspaceAgent = Boolean(agentWorkspaceId);
 
     const [changeDeviceOpen, setChangeDeviceOpen] = useState(false);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
@@ -200,7 +207,9 @@ const RemoteAgentConfigCard = memo<RemoteAgentConfigCardProps>(
       );
     };
 
-    const onlineDevices = (devices ?? []).filter((d) => d.online);
+    const onlineDevices = (devices ?? []).filter(
+      (d) => d.online && (!isWorkspaceAgent || d.scope === 'workspace'),
+    );
     const capabilityOk = capabilityResult?.available === true;
     const capabilityBad = capabilityResult?.available === false;
 
