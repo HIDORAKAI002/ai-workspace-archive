@@ -36,7 +36,7 @@ jobs:
           mv /tmp/docs docs
           mv /tmp/mkdocs.yml mkdocs.yml
       - name: Build site
-        run: mkdocs build
+        run: mkdocs build --verbose
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
