@@ -296,7 +296,12 @@ func (h *Handler) CreateUser(c *gin.Context) {
 
 // GetUser handle get user
 func (h *Handler) GetUser(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -317,7 +322,12 @@ func (h *Handler) GetUser(c *gin.Context) {
 
 // DeleteUser handle delete user
 func (h *Handler) DeleteUser(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -344,7 +354,12 @@ type ChangePasswordHTTPRequest struct {
 
 // ChangePassword handle change password
 func (h *Handler) ChangePassword(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -371,7 +386,12 @@ type UpdateActivateStatusHTTPRequest struct {
 
 // UpdateUserActivateStatus handle update user activate status
 func (h *Handler) UpdateUserActivateStatus(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -399,7 +419,12 @@ func (h *Handler) UpdateUserActivateStatus(c *gin.Context) {
 
 // GrantAdmin handle grant admin role
 func (h *Handler) GrantAdmin(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -422,7 +447,12 @@ func (h *Handler) GrantAdmin(c *gin.Context) {
 
 // RevokeAdmin handle revoke admin role
 func (h *Handler) RevokeAdmin(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -443,43 +473,14 @@ func (h *Handler) RevokeAdmin(c *gin.Context) {
 	successNoData(c, "Admin role revoked")
 }
 
-// GetUserDatasets handle get user datasets
-func (h *Handler) GetUserDatasets(c *gin.Context) {
-	username := c.Param("username")
-	if username == "" {
-		errorResponse(c, "Username is required", 400)
-		return
-	}
-
-	datasets, err := h.service.GetUserDatasets(username)
-	if err != nil {
-		errorResponse(c, err.Error(), 500)
-		return
-	}
-
-	success(c, datasets, "")
-}
-
-// GetUserAgents handle get user agents
-func (h *Handler) GetUserAgents(c *gin.Context) {
-	username := c.Param("username")
-	if username == "" {
-		errorResponse(c, "Username is required", 400)
-		return
-	}
-
-	agents, err := h.service.GetUserAgents(username)
-	if err != nil {
-		errorResponse(c, err.Error(), 500)
-		return
-	}
-
-	success(c, agents, "")
-}
-
 // ListUserAPITokens handle get user API keys
 func (h *Handler) ListUserAPITokens(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -496,7 +497,12 @@ func (h *Handler) ListUserAPITokens(c *gin.Context) {
 
 // GenerateUserAPIToken handle generate user API key
 func (h *Handler) GenerateUserAPIToken(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -513,7 +519,12 @@ func (h *Handler) GenerateUserAPIToken(c *gin.Context) {
 
 // DeleteUserAPIToken handle delete user API key
 func (h *Handler) DeleteUserAPIToken(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	key := c.Param("token")
 	if username == "" || key == "" {
 		errorResponse(c, "Username and key are required", 400)
@@ -603,6 +614,23 @@ func (h *Handler) ShutdownService(c *gin.Context) {
 	}
 
 	result, err := h.service.ShutdownService(serviceID)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, result, "")
+}
+
+// StartService handle start service
+func (h *Handler) StartService(c *gin.Context) {
+	serviceID := c.Param("service_id")
+	if serviceID == "" {
+		errorResponse(c, "Service ID is required", 400)
+		return
+	}
+
+	result, err := h.service.StartService(serviceID)
 	if err != nil {
 		errorResponse(c, err.Error(), 500)
 		return
@@ -737,13 +765,12 @@ func (h *Handler) ShowModel(c *gin.Context) {
 	})
 }
 
-// GetVariables handle get variables
-// Python logic: if request body is empty, list all variables; otherwise get single variable by var_name from body
-func (h *Handler) GetVariables(c *gin.Context) {
+// ListVariables handle list variables
+func (h *Handler) ListVariables(c *gin.Context) {
 	// Check if request has body content
 	if c.Request.ContentLength == 0 || c.Request.ContentLength == -1 {
 		// List all variables
-		variables, err := h.service.GetAllVariables()
+		variables, err := h.service.ListAllVariables()
 		if err != nil {
 			errorResponse(c, err.Error(), 500)
 			return
@@ -818,16 +845,10 @@ func (h *Handler) SetVariable(c *gin.Context) {
 	successNoData(c, "Set variable successfully")
 }
 
-// GetConfigs handle get configs
-// Python logic: return all service configurations
-func (h *Handler) GetConfigs(c *gin.Context) {
-	configs, err := h.service.GetAllConfigs()
+// ListConfigs handle list configs
+func (h *Handler) ListConfigs(c *gin.Context) {
+	configs, err := h.service.ListAllConfigs()
 	if err != nil {
-		// Check if it's an AdminException
-		if adminErr, ok := err.(*AdminException); ok {
-			errorResponse(c, adminErr.Message, 400)
-			return
-		}
 		errorResponse(c, err.Error(), 500)
 		return
 	}
@@ -835,16 +856,10 @@ func (h *Handler) GetConfigs(c *gin.Context) {
 	success(c, configs, "")
 }
 
-// GetEnvironments handle get environments
-// Python logic: return important environment variables
-func (h *Handler) GetEnvironments(c *gin.Context) {
-	environments, err := h.service.GetAllEnvironments()
+// ListEnvironments handle list environments
+func (h *Handler) ListEnvironments(c *gin.Context) {
+	environments, err := h.service.ListEnvironments()
 	if err != nil {
-		// Check if it's an AdminException
-		if adminErr, ok := err.(*AdminException); ok {
-			errorResponse(c, adminErr.Message, 400)
-			return
-		}
 		errorResponse(c, err.Error(), 500)
 		return
 	}
