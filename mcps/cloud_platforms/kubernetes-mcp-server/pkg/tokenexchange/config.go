@@ -67,6 +67,8 @@ type TargetTokenExchangeConfig struct {
 
 	// client is a http client configured to work with the IdP for this target
 	client *http.Client `toml:"-"`
+	// clientCAFile tracks which CAFile was used to build the cached client
+	clientCAFile string `toml:"-"`
 	// cachedAssertion stores the most recently generated JWT assertion
 	cachedAssertion string `toml:"-"`
 	// cachedAssertionExpiry is when the cached assertion expires
@@ -99,11 +101,19 @@ func (c *TargetTokenExchangeConfig) Validate() error {
 	return nil
 }
 
+// HTTPClient returns a memoized *http.Client configured to talk to the IdP.
+// The client is rebuilt (and the previous one's idle connections closed) when
+// CAFile changes, so a CA rotation takes effect on the next call. Concurrent
+// calls are safe, but CAFile itself must not be mutated concurrently with this
+// method: writes to CAFile are not guarded by clientMutex, so a caller that
+// reuses a TargetTokenExchangeConfig across CA changes must set CAFile and call
+// HTTPClient from the same goroutine (the provider builds a fresh config per
+// cache-key change, which satisfies this).
 func (c *TargetTokenExchangeConfig) HTTPClient() (*http.Client, error) {
 	c.clientMutex.Lock()
 	defer c.clientMutex.Unlock()
 
-	if c.client != nil {
+	if c.client != nil && c.clientCAFile == c.CAFile {
 		return c.client, nil
 	}
 
@@ -130,10 +140,27 @@ func (c *TargetTokenExchangeConfig) HTTPClient() (*http.Client, error) {
 
 	transport.TLSClientConfig = tlsConfig
 
+	if c.client != nil {
+		c.client.CloseIdleConnections()
+	}
 	c.client = &http.Client{
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
+	c.clientCAFile = c.CAFile
 
 	return c.client, nil
+}
+
+// CloseIdleConnections closes any idle keep-alive connections held by the
+// memoized HTTP client. It is a no-op if no client has been built yet. Callers
+// that discard a TargetTokenExchangeConfig (e.g. when a reload produces a fresh
+// config) should call this first so the old client's connections are released
+// promptly instead of lingering until garbage collection.
+func (c *TargetTokenExchangeConfig) CloseIdleConnections() {
+	c.clientMutex.Lock()
+	defer c.clientMutex.Unlock()
+	if c.client != nil {
+		c.client.CloseIdleConnections()
+	}
 }
