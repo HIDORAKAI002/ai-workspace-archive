@@ -29,6 +29,9 @@ jobs:
           mv mkdocs.yml /tmp/mkdocs.yml
           echo "Deleting the massive 11GB source code to free space..."
           rm -rf *
+          echo "Deleting hidden folders like .git to free up another 10GB..."
+          rm -rf .git
+          rm -rf .github
           echo "Restoring docs..."
           mv /tmp/docs docs
           mv /tmp/mkdocs.yml mkdocs.yml
