@@ -518,7 +518,10 @@ class RoutedScrapeQueue {
     logger: Logger = _logger,
   ): Promise<T> {
     if ((await getJobQueueBackend(id)) === "fdb") {
-      return optionalFdb(() => scrapeQueueFdb.waitForJob(id, timeout, logger));
+      // Waiting is intentionally long-lived; callers pass the real scrape
+      // timeout. optionalFdb is only for quick FDB reads/writes and applies a
+      // 500ms guard, which would incorrectly fail synchronous FDB-backed jobs.
+      return scrapeQueueFdb.waitForJob(id, timeout, logger);
     }
     return scrapeQueuePg.waitForJob(id, timeout, logger) as Promise<T>;
   }

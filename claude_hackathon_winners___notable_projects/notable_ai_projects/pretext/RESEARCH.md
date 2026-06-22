@@ -12,9 +12,9 @@ This log is historical. The current practical steering picture is:
 
 - Japanese has two real canaries (`羅生門`, `蜘蛛の糸`), both clean at anchor widths and both still exposing a small positive one-line field on broader Chrome sweeps.
 - Chinese has two long-form canaries (`祝福`, `故鄉`) showing the same broad Chrome-positive / Safari-clean split, with real font sensitivity between `Songti SC` and `PingFang SC`.
-- Myanmar still has two real canaries with residual Chrome/Safari disagreement around quote/follower-style classes, so it remains the main unresolved Southeast Asian frontier.
-- Urdu has a real Nastaliq/Naskh canary (`چغد`) with the same narrow-width negative field in Chrome and Safari, so it is clearly a shaping/context class rather than dirty data or a browser-only quirk. It remains parked rather than actively tuned.
-- Arabic coarse corpora are clean; the remaining work there is mostly a fine-width edge-fit class, not the old preprocessing/corpus-hygiene problems.
+- Myanmar still has two real canaries, now exact in Chrome with only a small positive one-line Safari field on this machine. The cross-machine movement keeps it useful as a shaping/context frontier rather than an active tuning target.
+- Urdu has a font-sensitive Nastaliq/Naskh canary (`چغد`). The former broad narrow-width negative field collapsed to four shared positive one-line misses on the current machine, which reinforces that this is a shaping/font-environment class rather than dirty data. It remains parked rather than actively tuned.
+- Arabic coarse corpora are nearly clean, with one shared positive step10 miss in `رسالة الغفران`; the remaining work there is mostly a fine-width edge-fit class, not the old preprocessing/corpus-hygiene problems.
 - Mixed app text is exact again in the maintained Chrome/Safari step10 sweeps and still matters as the product-shaped regression canary for URLs, emoji ZWJ runs, hard spaces, and soft hyphens.
 
 ## The problem: DOM measurement interleaving

@@ -79,7 +79,7 @@ describe("billTeam", () => {
         jobId: "job-1",
         apiKeyId: 123,
       },
-      requestScoped: true,
+      featureId: "SEARCH_CREDITS",
     });
   });
 
@@ -100,6 +100,7 @@ describe("billTeam", () => {
         jobId: "job-1",
         apiKeyId: 123,
       },
+      featureId: "SEARCH_CREDITS",
     });
   });
 

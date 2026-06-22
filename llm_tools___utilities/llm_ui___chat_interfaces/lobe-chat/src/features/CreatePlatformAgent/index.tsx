@@ -20,6 +20,7 @@ import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
+import { useActiveWorkspaceId } from '@/business/client/hooks/useActiveWorkspaceId';
 import { lambdaQuery } from '@/libs/trpc/client';
 import { deviceService } from '@/services/device';
 import { useAgentStore } from '@/store/agent';
@@ -109,6 +110,13 @@ const CreatePlatformAgentModal = memo<CreatePlatformAgentModalProps>(
     const navigate = useNavigate();
     const storeCreateAgent = useAgentStore((s) => s.createAgent);
     const refreshAgentList = useHomeStore((s) => s.refreshAgentList);
+
+    // Creating from a workspace context: the new agent inherits the active
+    // workspace's scope (server-side), so the device picker must restrict to
+    // workspace devices — a workspace agent bound to a personal device is
+    // unreachable to other members and the server rejects the write.
+    const activeWorkspaceId = useActiveWorkspaceId();
+    const restrictToWorkspaceDevices = Boolean(activeWorkspaceId);
 
     const [step, setStep] = useState(0);
     const [platform, setPlatform] = useState<RemoteHeterogeneousAgentType>('openclaw');
@@ -369,7 +377,9 @@ const CreatePlatformAgentModal = memo<CreatePlatformAgentModalProps>(
       }
 
       if (step === 1) {
-        const onlineDevices = (devices ?? []).filter((d) => d.online);
+        const onlineDevices = (devices ?? []).filter(
+          (d) => d.online && (!restrictToWorkspaceDevices || d.scope === 'workspace'),
+        );
         const isRefreshing = loadingDevices || fetchingDevices;
 
         const refreshButton = (

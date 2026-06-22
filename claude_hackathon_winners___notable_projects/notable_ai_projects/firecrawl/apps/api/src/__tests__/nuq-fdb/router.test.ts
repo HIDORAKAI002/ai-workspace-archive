@@ -1,5 +1,7 @@
 import { randomUUID } from "crypto";
+import { vi } from "vitest";
 import { config } from "../../config";
+import { redisEvictConnection } from "../../services/redis";
 import {
   fdbQueueEnabled,
   isFdbTeam,
@@ -108,6 +110,54 @@ describeIf("NuQ router (forced FDB mode)", () => {
     expect(job?.status).toBe("completed");
     const jobsRead = await scrapeQueue.getJobs([jobId]);
     expect(jobsRead.length).toBe(1);
+  });
+
+  test("optional FDB waitForJob uses caller timeout, not the quick optional-op timeout", async () => {
+    const forcedBackend = config.NUQ_BACKEND;
+    const redisGet = vi.spyOn(redisEvictConnection, "get");
+    const redisSet = vi.spyOn(redisEvictConnection, "set");
+    config.NUQ_BACKEND = "pg";
+    try {
+      const teamId = randomUUID();
+      const jobId = randomUUID();
+      redisGet.mockImplementation(async key =>
+        key === `nuq:job_backend:${jobId}` ? "fdb" : null,
+      );
+      redisSet.mockResolvedValue("OK" as any);
+
+      const { jobs, backloggedCount } = await fdbEnqueueScrapeJobs(
+        [
+          {
+            jobId,
+            data: {
+              mode: "single_urls",
+              url: "https://example.com",
+              team_id: teamId,
+            } as any,
+            priority: 0,
+            listenable: true,
+            backlogTimeoutMs: 60_000,
+          },
+        ],
+        teamId,
+      );
+      expect(jobs[0].backend).toBe("fdb");
+      expect(backloggedCount).toBe(0);
+
+      const wait = scrapeQueue.waitForJob(jobId, 15_000);
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const taken = await scrapeQueueFdb.getJobToProcess();
+      expect(taken?.id).toBe(jobId);
+      await scrapeQueueFdb.jobFinish(jobId, taken!.lock!, { ok: true });
+
+      await expect(wait).resolves.toBeDefined();
+    } finally {
+      config.NUQ_BACKEND = forcedBackend;
+      redisGet.mockRestore();
+      redisSet.mockRestore();
+    }
   });
 
   test("routed group lifecycle incl. crawl_finished consumption and cancel", async () => {

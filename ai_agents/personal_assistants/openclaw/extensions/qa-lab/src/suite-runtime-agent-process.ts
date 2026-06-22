@@ -324,7 +324,7 @@ async function startAgentRun(
       message: params.message,
       deliver: true,
       channel: delivery.channel,
-      to: target,
+      to: delivery.to ?? target,
       replyChannel: delivery.replyChannel,
       replyTo: delivery.replyTo,
       ...(params.threadId ? { threadId: params.threadId } : {}),
@@ -347,15 +347,16 @@ async function waitForAgentRun(
   runId: string,
   timeoutMs = 30_000,
 ) {
+  const waitTimeoutMs = resolveTimerTimeoutMs(timeoutMs, 30_000);
   try {
     return (await env.gateway.call(
       "agent.wait",
       {
         runId,
-        timeoutMs,
+        timeoutMs: waitTimeoutMs,
       },
       {
-        timeoutMs: resolveQaGatewayTimeoutWithGraceMs(timeoutMs),
+        timeoutMs: resolveQaGatewayTimeoutWithGraceMs(waitTimeoutMs),
       },
     )) as { status?: string; error?: string };
   } catch (error) {

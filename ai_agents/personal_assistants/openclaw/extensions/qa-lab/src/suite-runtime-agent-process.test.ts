@@ -595,6 +595,7 @@ describe("qa suite runtime agent process helpers", () => {
       transport: {
         buildAgentDelivery: vi.fn(() => ({
           channel: "qa-channel",
+          to: "transport-target",
           replyChannel: "reply-channel",
           replyTo: "reply-target",
         })),
@@ -616,11 +617,13 @@ describe("qa suite runtime agent process helpers", () => {
           replyChannel?: string;
           replyTo?: string;
           sessionKey?: string;
+          to?: string;
         }
       | undefined;
     expect(agentPayload?.sessionKey).toBe("session-1");
     expect(agentPayload?.message).toBe("hello");
     expect(agentPayload?.channel).toBe("qa-channel");
+    expect(agentPayload?.to).toBe("transport-target");
     expect(agentPayload?.replyChannel).toBe("reply-channel");
     expect(agentPayload?.replyTo).toBe("reply-target");
     expect(gatewayArgs?.[2]).toBeTypeOf("object");
@@ -698,7 +701,7 @@ describe("qa suite runtime agent process helpers", () => {
 
     expect(gatewayCall).toHaveBeenCalledWith(
       "agent.wait",
-      { runId: "run-oversized", timeoutMs: 9e15 },
+      { runId: "run-oversized", timeoutMs: MAX_TIMER_TIMEOUT_MS },
       { timeoutMs: MAX_TIMER_TIMEOUT_MS },
     );
   });
