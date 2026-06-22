@@ -1,5 +1,4 @@
 import { pipeline, Transform, type Readable } from "stream";
-import { createGzip } from "zlib";
 import { monitorEventLoopDelay } from "perf_hooks";
 import { Job } from "bullmq";
 import { prisma } from "@langfuse/shared/src/db";
@@ -19,6 +18,7 @@ import {
   getCurrentSpan,
   instrumentAsync,
   recordGauge,
+  recordHistogram,
   recordIncrement,
   BlobStorageIntegrationProcessingQueue,
   queryClickhouse,
@@ -29,10 +29,6 @@ import {
   createModelCache,
   blobStorageEndpointConnectionValidationOptions,
   validateBlobStorageEndpoint,
-  pollQueryStatus,
-  getQueryError,
-  getQueryResultRows,
-  sleep,
 } from "@langfuse/shared/src/server";
 import {
   registerInFlightBlobExport,
@@ -40,6 +36,7 @@ import {
   BLOB_TABLE_EXPORT_METRIC,
   type BlobTableExportOutcome,
 } from "./inFlightExports";
+import { TimedGzip, ZLIB_DEFAULT_LEVEL, type GzipStats } from "./gzipStream";
 import { WORKER_HOST_ID } from "../../utils/hostId";
 import {
   BlobStorageIntegrationType,
@@ -246,87 +243,16 @@ async function* countedStream<T>(
   }
 }
 
-// Raw passthrough skips per-row parsing, so a ClickHouse query that fails after
-// a 200 + partial body would otherwise be uploaded as a silently truncated
-// file. After the stream drains and the upload completes, confirm the query
-// finished cleanly via system.query_log. query_log flushes asynchronously
-// (~7.5s default), so poll with bounded backoff. A non-completed status throws,
-// which fails the job: lastSyncAt is not advanced and the deterministic
-// filename is overwritten on the next successful run. Returns result_rows.
-const PASSTHROUGH_QUERY_LOG_POLL_ATTEMPTS = 12;
-const PASSTHROUGH_QUERY_LOG_POLL_DELAY_MS = 2_500; // ~30s total budget
-// Lower bound passed to the system.query_log lookups so they can partition-prune
-// instead of scanning every retained partition. query_log is partitioned by
-// month (toYYYYMM(event_date)), so a generous buffer is effectively free — it
-// only ever widens the scan to the current and (near a month boundary) previous
-// partition. Sized to comfortably absorb worker/ClickHouse clock skew. Times are
-// UTC end-to-end (convertDateToClickhouseDateTime emits UTC; CH runs UTC), so no
-// timezone conversion is involved.
-const PASSTHROUGH_QUERY_LOG_SKEW_BUFFER_MS = 24 * 60 * 60 * 1000; // 24h
-
-const verifyRawPassthroughCompletion = async (
-  queryId: string,
-  table: string,
-  startedAt: Date,
-): Promise<number | undefined> => {
-  const tags = { feature: "blobstorage", table };
-  const since = new Date(
-    startedAt.getTime() - PASSTHROUGH_QUERY_LOG_SKEW_BUFFER_MS,
-  );
-  let status = await pollQueryStatus(queryId, tags, since);
-  for (
-    let attempt = 0;
-    attempt < PASSTHROUGH_QUERY_LOG_POLL_ATTEMPTS &&
-    status !== "completed" &&
-    status !== "failed";
-    attempt++
-  ) {
-    await sleep(PASSTHROUGH_QUERY_LOG_POLL_DELAY_MS);
-    status = await pollQueryStatus(queryId, tags, since);
-  }
-
-  if (status !== "completed") {
-    const chError =
-      status === "failed" ? await getQueryError(queryId, since) : undefined;
-    throw new Error(
-      `Raw passthrough export query did not complete cleanly ` +
-        `(query_id=${queryId} status=${status})` +
-        (chError ? `: ${chError}` : ""),
-    );
-  }
-
-  // The upload is already verified clean (QueryFinish) at this point, so a
-  // failed row-count read must not invalidate it — treat the count as unknown.
-  try {
-    return await getQueryResultRows(queryId, since);
-  } catch (rowsError) {
-    logger.warn(
-      `[BLOB INTEGRATION] Failed to read result_rows for verified passthrough query ${queryId}`,
-      rowsError,
-    );
-    return undefined;
-  }
-};
-
-// Best-effort removal of an already-committed passthrough object whose source
-// query did not verify as successful. A delete failure must not mask the
-// original verification error, so it is logged and swallowed.
-const deletePotentiallyCorruptExport = async (
-  storageService: StorageService,
-  filePath: string,
-): Promise<void> => {
-  try {
-    await storageService.deleteFiles([filePath]);
-    logger.warn(
-      `[BLOB INTEGRATION] Deleted unverified passthrough export object ${filePath}`,
-    );
-  } catch (deleteError) {
-    logger.error(
-      `[BLOB INTEGRATION] Failed to delete unverified passthrough export object ${filePath}`,
-      deleteError,
-    );
-  }
-};
+// Appends a newline to each raw JSONEachRow line and emits it as bytes, so the
+// passthrough path produces the same JSONL framing as the standard formatter
+// without re-serializing (the line is already JSON from ClickHouse).
+const createRawJsonlNewlineTransform = (): Transform =>
+  new Transform({
+    writableObjectMode: true,
+    transform(line: string, _encoding, callback) {
+      callback(null, Buffer.from(line + "\n"));
+    },
+  });
 
 const processBlobStorageExport = async (config: {
   projectId: string;
@@ -343,6 +269,9 @@ const processBlobStorageExport = async (config: {
   table: "traces" | "observations" | "scores" | "observations_v2"; // observations_v2 is the events table
   fileType: BlobStorageIntegrationFileType;
   compressed: boolean;
+  // zlib level for the gzip step; undefined => zlib default (6). Only relevant
+  // when `compressed` is true.
+  gzipLevel: number | undefined;
   convertV4LatencyToSeconds: boolean;
   exportFieldGroups?: ObservationFieldGroupFull[];
   rawPassthrough: boolean;
@@ -469,49 +398,59 @@ const processBlobStorageExport = async (config: {
 
         const serializedCounter = new ByteCounter();
         const compressedCounter = config.compressed ? new ByteCounter() : null;
+        // Paired with compressedCounter: both exist iff compression is on.
+        const gzipStats: GzipStats | null = compressedCounter
+          ? { level: config.gzipLevel ?? ZLIB_DEFAULT_LEVEL, activeMs: 0 }
+          : null;
 
-        // Row count source: the standard path tallies rows in JS (countedStream);
-        // the passthrough path reads result_rows from query_log after upload.
+        // Both paths tally rows in JS via countedStream (the passthrough yields
+        // raw row text rather than parsed objects, but still iterates).
         const sourceStats = { rows: 0, sourceWaitMs: 0 };
-        let passthroughRows: number | undefined;
-        let passthroughQueryId: string | undefined;
-        // Captured just before the query is issued, so the post-hoc query_log
-        // lookups can partition-prune on event_date instead of full scans.
-        let passthroughQueryStartedAt: Date | undefined;
 
         let fileStream: Readable;
 
         if (passthroughEligible) {
-          // Stream ClickHouse JSONEachRow bytes straight through: no row parse,
-          // no enrichment, no re-serialization. Shaping (latency→s, dropped
-          // price columns, field-group selection) is already baked into the SQL.
-          passthroughQueryStartedAt = new Date();
-          const { stream, queryId } =
+          // Stream ClickHouse JSONEachRow row text straight through: skip the
+          // per-row JSON.parse, enrichment, and re-serialize. Shaping (latency→s,
+          // dropped price columns, field-group selection) is baked into the SQL.
+          // The client's own mid-stream exception detection (CH ≥ 25.11) errors
+          // the stream on a failed query, which aborts the upload — no committed
+          // object and no out-of-band system.query_log check needed.
+          const rawRows =
             config.table === "observations"
-              ? await getObservationsForBlobStorageExportRaw(
+              ? getObservationsForBlobStorageExportRaw(
                   config.projectId,
                   config.minTimestamp,
                   config.maxTimestamp,
                   exportFieldGroups,
                 )
-              : await getEventsForBlobStorageExportRaw(
+              : getEventsForBlobStorageExportRaw(
                   config.projectId,
                   config.minTimestamp,
                   config.maxTimestamp,
                   exportFieldGroups,
                   config.convertV4LatencyToSeconds,
                 );
-          passthroughQueryId = queryId;
 
-          fileStream = compressedCounter
-            ? pipeline(
-                stream,
-                serializedCounter,
-                createGzip(),
-                compressedCounter,
-                pipelineCallback,
-              )
-            : pipeline(stream, serializedCounter, pipelineCallback);
+          const dataStream = countedStream(rawRows, sourceStats);
+          const jsonlNewline = createRawJsonlNewlineTransform();
+
+          fileStream =
+            compressedCounter && gzipStats
+              ? pipeline(
+                  dataStream,
+                  jsonlNewline,
+                  serializedCounter,
+                  new TimedGzip(config.gzipLevel, gzipStats),
+                  compressedCounter,
+                  pipelineCallback,
+                )
+              : pipeline(
+                  dataStream,
+                  jsonlNewline,
+                  serializedCounter,
+                  pipelineCallback,
+                );
         } else {
           let rawStream: AsyncGenerator<Record<string, unknown>>;
 
@@ -565,21 +504,22 @@ const processBlobStorageExport = async (config: {
           const dataStream = countedStream(rawStream, sourceStats);
           const formatTransform = streamTransformations[config.fileType]();
 
-          fileStream = compressedCounter
-            ? pipeline(
-                dataStream,
-                formatTransform,
-                serializedCounter,
-                createGzip(),
-                compressedCounter,
-                pipelineCallback,
-              )
-            : pipeline(
-                dataStream,
-                formatTransform,
-                serializedCounter,
-                pipelineCallback,
-              );
+          fileStream =
+            compressedCounter && gzipStats
+              ? pipeline(
+                  dataStream,
+                  formatTransform,
+                  serializedCounter,
+                  new TimedGzip(config.gzipLevel, gzipStats),
+                  compressedCounter,
+                  pipelineCallback,
+                )
+              : pipeline(
+                  dataStream,
+                  formatTransform,
+                  serializedCounter,
+                  pipelineCallback,
+                );
         }
 
         // Upload the file to cloud storage
@@ -605,57 +545,23 @@ const processBlobStorageExport = async (config: {
             projectId: config.projectId,
           });
 
-          // Passthrough skips parse-time exception detection, so confirm the
-          // ClickHouse query finished cleanly (and read its row count) before
-          // treating the uploaded object as valid. The object is already
-          // committed at this point, so if verification fails (query errored, or
-          // query_log is unreadable) delete it: the deterministic filename is
-          // only overwritten on retry in catch-up mode, not when caught up, so
-          // a corrupt object could otherwise linger as an orphan.
-          if (passthroughEligible && passthroughQueryId) {
-            try {
-              passthroughRows = await verifyRawPassthroughCompletion(
-                passthroughQueryId,
-                config.table,
-                passthroughQueryStartedAt ?? new Date(),
-              );
-            } catch (verifyError) {
-              await deletePotentiallyCorruptExport(storageService, filePath);
-              throw verifyError;
-            }
-          }
-
-          // On passthrough the count comes from query_log; "unknown" (count not
-          // yet flushed) is distinct from a genuinely empty export.
-          const rows = passthroughEligible
-            ? (passthroughRows ?? "unknown")
-            : sourceStats.rows;
-
           logger.info(
             `[BLOB INTEGRATION] Successfully exported ${config.table} for project ${config.projectId}: ` +
               `jobId=${config.bullmqJobId} attemptsMade=${config.bullmqAttemptsMade} host=${WORKER_HOST_ID} ` +
               `path=${passthroughEligible ? "passthrough" : "standard"} ` +
-              `rows=${rows} sourceWaitMs=${Math.round(sourceStats.sourceWaitMs)} ` +
-              `serializedBytes=${serializedCounter.bytes} uploadDurationMs=${Math.round(performance.now() - uploadStartMs)}`,
+              `rows=${sourceStats.rows} sourceWaitMs=${Math.round(sourceStats.sourceWaitMs)} ` +
+              `serializedBytes=${serializedCounter.bytes} uploadDurationMs=${Math.round(performance.now() - uploadStartMs)}` +
+              (gzipStats && compressedCounter
+                ? ` gzipLevel=${gzipStats.level} gzipActiveMs=${Math.round(gzipStats.activeMs)} ` +
+                  `compressedBytes=${compressedCounter.bytes}`
+                : ""),
           );
         } finally {
-          // Omit blob.rows on the passthrough path when the count is unknown
-          // (query_log not yet flushed, or verification failed) so observability
-          // can tell "unknown" apart from a genuinely empty export.
-          if (passthroughEligible) {
-            if (passthroughRows !== undefined) {
-              span.setAttribute("blob.rows", passthroughRows);
-            }
-          } else {
-            span.setAttribute("blob.rows", sourceStats.rows);
-          }
-          // sourceWaitMs is a per-row JS metric; not meaningful for passthrough.
-          if (!passthroughEligible) {
-            span.setAttribute(
-              "blob.sourceWaitMs",
-              Math.round(sourceStats.sourceWaitMs),
-            );
-          }
+          span.setAttribute("blob.rows", sourceStats.rows);
+          span.setAttribute(
+            "blob.sourceWaitMs",
+            Math.round(sourceStats.sourceWaitMs),
+          );
           span.setAttribute("blob.serializedBytes", serializedCounter.bytes);
           if (uploadStartMs !== undefined) {
             span.setAttribute(
@@ -665,6 +571,50 @@ const processBlobStorageExport = async (config: {
           }
           if (compressedCounter) {
             span.setAttribute("blob.compressedBytes", compressedCounter.bytes);
+          }
+          if (gzipStats && compressedCounter) {
+            // Gauge the cost of the gzip step so a level change (or moving
+            // compression off the worker) can be evaluated against real data.
+            const activeMs = Math.round(gzipStats.activeMs);
+            // Input/output ratio (>1 = shrank); guard div-by-zero on empty exports.
+            const ratio =
+              compressedCounter.bytes > 0
+                ? serializedCounter.bytes / compressedCounter.bytes
+                : 0;
+            // Compression throughput over uncompressed input bytes.
+            const throughputMbPerSec =
+              gzipStats.activeMs > 0
+                ? serializedCounter.bytes / (gzipStats.activeMs * 1000)
+                : 0;
+
+            span.setAttribute("blob.gzip.level", gzipStats.level);
+            span.setAttribute("blob.gzip.activeMs", activeMs);
+            span.setAttribute("blob.gzip.ratio", Number(ratio.toFixed(3)));
+            span.setAttribute(
+              "blob.gzip.throughputMbPerSec",
+              Number(throughputMbPerSec.toFixed(2)),
+            );
+
+            const metricTags = {
+              table: config.table,
+              path: passthroughEligible ? "passthrough" : "standard",
+              gzipLevel: gzipStats.level,
+            };
+            recordHistogram(
+              "langfuse.blob_export.gzip.active_ms",
+              activeMs,
+              metricTags,
+            );
+            recordHistogram(
+              "langfuse.blob_export.gzip.ratio",
+              ratio,
+              metricTags,
+            );
+            recordHistogram(
+              "langfuse.blob_export.gzip.throughput_mb_per_sec",
+              throughputMbPerSec,
+              metricTags,
+            );
           }
         }
       } catch (error) {
@@ -853,6 +803,7 @@ export const handleBlobStorageIntegrationProjectJob = async (
       type: blobStorageIntegration.type,
       fileType: blobStorageIntegration.fileType,
       compressed: blobStorageIntegration.compressed,
+      gzipLevel: exportTuning.gzipLevel,
       convertV4LatencyToSeconds,
       exportFieldGroups:
         blobStorageIntegration.exportFieldGroups as ObservationFieldGroupFull[],

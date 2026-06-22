@@ -37,10 +37,7 @@ func (h *Handler) ListRoles(c *gin.Context) {
 		roles = []map[string]interface{}{}
 	}
 
-	success(c, gin.H{
-		"roles": roles,
-		"total": len(roles),
-	}, "")
+	success(c, roles, "")
 }
 
 // CreateRoleHTTPRequest create role request
@@ -66,15 +63,15 @@ func (h *Handler) CreateRole(c *gin.Context) {
 	success(c, role, "")
 }
 
-// GetRole handle get role
-func (h *Handler) GetRole(c *gin.Context) {
+// ShowRole handle show role
+func (h *Handler) ShowRole(c *gin.Context) {
 	roleName := c.Param("role_name")
 	if roleName == "" {
 		errorResponse(c, "Role name is required", 400)
 		return
 	}
 
-	role, err := h.service.GetRole(roleName)
+	role, err := h.service.ShowRole(roleName)
 	if err != nil {
 		errorResponse(c, err.Error(), 500)
 		return
@@ -111,31 +108,32 @@ func (h *Handler) UpdateRole(c *gin.Context) {
 	success(c, role, "")
 }
 
-// DeleteRole handle delete role
-func (h *Handler) DeleteRole(c *gin.Context) {
+// DropRole handle drop role
+func (h *Handler) DropRole(c *gin.Context) {
 	roleName := c.Param("role_name")
 	if roleName == "" {
 		errorResponse(c, "Role name is required", 400)
 		return
 	}
 
-	if err := h.service.DeleteRole(roleName); err != nil {
-		errorResponse(c, err.Error(), 500)
+	role, err := h.service.DropRole(roleName)
+	if err != nil {
+		errorResponse(c, "Role not found", 404)
 		return
 	}
 
-	successNoData(c, "")
+	success(c, role, "")
 }
 
-// GetRolePermission handle get role permission
-func (h *Handler) GetRolePermission(c *gin.Context) {
+// ShowRolePermission handle get role permission
+func (h *Handler) ShowRolePermission(c *gin.Context) {
 	roleName := c.Param("role_name")
 	if roleName == "" {
 		errorResponse(c, "Role name is required", 400)
 		return
 	}
 
-	permissions, err := h.service.GetRolePermission(roleName)
+	permissions, err := h.service.ShowRolePermission(roleName)
 	if err != nil {
 		errorResponse(c, err.Error(), 500)
 		return
@@ -202,6 +200,134 @@ func (h *Handler) RevokeRolePermission(c *gin.Context) {
 	success(c, result, "")
 }
 
+// ListResources handle list role resources
+func (h *Handler) ListResources(c *gin.Context) {
+	resources, err := h.service.ListResources()
+	if err != nil {
+		if errors.Is(err, common.ErrUserNotFound) {
+			errorResponse(c, "Role not found", 404)
+			return
+		}
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, resources, "")
+}
+
+type ListModelsOrShowModelRequest struct {
+	ModelName string `json:"model_name"`
+}
+
+func (h *Handler) ListModelsOrShowModel(c *gin.Context) {
+	var req ListModelsOrShowModelRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "Invalid request body",
+		})
+		return
+	}
+
+	if req.ModelName == "" {
+		// List models
+		models, err := h.service.ListAllModels()
+		if err != nil {
+			errorResponse(c, err.Error(), 500)
+			return
+		}
+
+		success(c, models, "")
+	} else {
+		// Get model
+		model, err := h.service.GetModelByModelName(req.ModelName)
+		if err != nil {
+			errorResponse(c, err.Error(), 500)
+			return
+		}
+
+		success(c, model, "")
+	}
+}
+
+// GetSystemFingerprint handle get system fingerprint
+func (h *Handler) GetSystemFingerprint(c *gin.Context) {
+	fingerprint, err := h.service.GetSystemFingerprint()
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, fingerprint, "")
+}
+
+type SetSystemLicenseRequest struct {
+	License string `json:"license" binding:"required"`
+}
+
+// SetSystemLicense to set system license
+func (h *Handler) SetSystemLicense(c *gin.Context) {
+	var req SetSystemLicenseRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		println("JSON bind error: %v (type: %T)", err, err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    common.CodeBadRequest,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	err := h.service.SetSystemLicense(req.License)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+	success(c, nil, "System license set successfully")
+}
+
+// ShowSystemLicense to get system license
+func (h *Handler) ShowSystemLicense(c *gin.Context) {
+	check, ok := c.GetQuery("check")
+	if !ok {
+		check = "false"
+	}
+	checkFlag, err := strconv.ParseBool(check)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	systemLicense, err := h.service.ShowSystemLicense(checkFlag)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, systemLicense, "")
+}
+
+type SetSystemLicenseConfigRequest struct {
+	TimeRecordSaveInterval int64 `json:"value1" binding:"required"`
+	TimeRecordTaskDuration int64 `json:"value2" binding:"required"`
+}
+
+func (h *Handler) UpdateSystemLicenseConfig(c *gin.Context) {
+	var req SetSystemLicenseConfigRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		println("JSON bind error: %v (type: %T)", err, err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    common.CodeBadRequest,
+			"message": err.Error(),
+		})
+		return
+	}
+	result, err := h.service.UpdateSystemLicenseConfig(req.TimeRecordSaveInterval, req.TimeRecordTaskDuration)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+	success(c, result, "System license config updated successfully")
+}
+
 type ShowUserActivityRequest struct {
 	Days  int    `json:"days"`
 	Email string `json:"email"`
@@ -247,7 +373,12 @@ func (h *Handler) ShowUserDatasetSummary(c *gin.Context) {
 		return
 	}
 
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -268,7 +399,12 @@ func (h *Handler) ShowUserDatasetSummary(c *gin.Context) {
 
 // ShowUserSummary handle show user summary
 func (h *Handler) ShowUserSummary(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -289,7 +425,12 @@ func (h *Handler) ShowUserSummary(c *gin.Context) {
 
 // ShowUserStorage handle show user storage
 func (h *Handler) ShowUserStorage(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -310,7 +451,12 @@ func (h *Handler) ShowUserStorage(c *gin.Context) {
 
 // ShowUserQuota handle show user quota
 func (h *Handler) ShowUserQuota(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -331,7 +477,12 @@ func (h *Handler) ShowUserQuota(c *gin.Context) {
 
 // ShowUserIndex handle show user index
 func (h *Handler) ShowUserIndex(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -357,7 +508,12 @@ type UpdateUserRoleHTTPRequest struct {
 
 // UpdateUserRole handle update user role
 func (h *Handler) UpdateUserRole(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -380,7 +536,12 @@ func (h *Handler) UpdateUserRole(c *gin.Context) {
 
 // ShowUserPermission handle show user permission
 func (h *Handler) ShowUserPermission(c *gin.Context) {
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -393,6 +554,244 @@ func (h *Handler) ShowUserPermission(c *gin.Context) {
 	}
 
 	success(c, permissions, "")
+}
+
+// ListUserDatasets handle show user datasets
+func (h *Handler) ListUserDatasets(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if username == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	datasets, err := h.service.ListUserDatasets(username)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, datasets, "")
+}
+
+// ListUserAgents handle show user agents
+func (h *Handler) ListUserAgents(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if username == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	agents, err := h.service.ListUserAgents(username)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, agents, "")
+}
+
+// ListUserChats handle show user chats
+func (h *Handler) ListUserChats(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if username == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	chats, err := h.service.ListUserChats(username)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, chats, "")
+}
+
+// ListUserSearches handle show user searches
+func (h *Handler) ListUserSearches(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if username == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	searches, err := h.service.ListUserSearches(username)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, searches, "")
+}
+
+// ListUserModels handle show user models
+func (h *Handler) ListUserModels(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if username == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	models, err := h.service.ListUserModels(username)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, models, "")
+}
+
+// ListUserFiles handle show user files
+func (h *Handler) ListUserFiles(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if username == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	files, err := h.service.ListUserFiles(username)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, files, "")
+}
+
+// ListUserProviders handle show user providers
+func (h *Handler) ListUserProviders(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if username == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	providers, err := h.service.ListUserProviders(username)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, providers, "")
+}
+
+// ListUserProviderInstances handle show user provider instances
+func (h *Handler) ListUserProviderInstances(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	userName, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if userName == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	providerName := c.Param("provider_name")
+	if providerName == "" {
+		errorResponse(c, "Provider name is required", 400)
+		return
+	}
+
+	instances, err := h.service.ListUserProviderInstances(userName, providerName)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, instances, "")
+}
+
+// ListUserProviderInstanceModels handle show user provider instance models
+func (h *Handler) ListUserProviderInstanceModels(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	userName, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if userName == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	providerName := c.Param("provider_name")
+	if providerName == "" {
+		errorResponse(c, "Provider name is required", 400)
+		return
+	}
+
+	instanceName := c.Param("instance_name")
+	if instanceName == "" {
+		errorResponse(c, "Instance name is required", 400)
+		return
+	}
+
+	models, err := h.service.ListUserProviderInstanceModels(userName, providerName, instanceName)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, models, "")
+}
+
+// ListUserDefaultModels handle show user default models
+func (h *Handler) ListUserDefaultModels(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	userName, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if userName == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	models, err := h.service.ListUserDefaultModels(userName)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, models, "")
 }
 
 // ShowUsersSummary handle show users summary
@@ -814,7 +1213,12 @@ func (h *Handler) PurgeUserData(c *gin.Context) {
 		})
 		return
 	}
-	username := c.Param("username")
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
 	if username == "" {
 		errorResponse(c, "Username is required", 400)
 		return
@@ -863,4 +1267,67 @@ func (h *Handler) PurgeUsersData(c *gin.Context) {
 	}
 
 	success(c, result, "")
+}
+
+// GenerateUserAPIKey handle create tenant API key
+func (h *Handler) GenerateUserAPIKey(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+
+	apiKey, err := h.service.GenerateUserAPIKey(username)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, apiKey, "API key generated successfully")
+}
+
+// DeleteUserAPIKey handle delete user API key
+func (h *Handler) DeleteUserAPIKey(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	key := c.Param("key")
+	if username == "" || key == "" {
+		errorResponse(c, "Username and key are required", 400)
+		return
+	}
+
+	result, err := h.service.DeleteUserAPIKey(username, key)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, result, "API key deleted successfully")
+}
+
+// ListUserAPIKeys handle list user API keys
+func (h *Handler) ListUserAPIKeys(c *gin.Context) {
+	encodedUsername := c.Param("username")
+	username, err := common.DecodeEmail(encodedUsername)
+	if err != nil {
+		errorResponse(c, err.Error(), 400)
+		return
+	}
+	if username == "" {
+		errorResponse(c, "Username is required", 400)
+		return
+	}
+
+	result, err := h.service.ListUserAPIKeys(username)
+	if err != nil {
+		errorResponse(c, err.Error(), 500)
+		return
+	}
+
+	success(c, result, "API keys listed successfully")
 }
