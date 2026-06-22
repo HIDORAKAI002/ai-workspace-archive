@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-22 22:47 IST] Auto-Sync
+- **45 Repositories Updated:** MCP Python SDK, Keboola MCP, Kubernetes MCP Server, Langfuse, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, modelcontextprotocol/csharp-sdk, modelcontextprotocol/rust-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, arize-ai/phoenix, Arize-ai/openinference, firecrawl/firecrawl, danny-avila/LibreChat, anthropics/anthropic-sdk-go, google-gemini/gemini-cli, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-22 02:40 IST] Auto-Sync
 - **16 Repositories Updated:** punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, firecrawl/firecrawl, danny-avila/LibreChat, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent, MetaVision MCP
 

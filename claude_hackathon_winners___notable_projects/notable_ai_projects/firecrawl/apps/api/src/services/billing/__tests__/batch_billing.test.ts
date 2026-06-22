@@ -151,26 +151,20 @@ beforeEach(() => {
 });
 
 describe("processBillingBatch", () => {
-  it("tracks queued Autumn usage when the request path did not", async () => {
+  it("commits the ledger but never re-tracks usage to Autumn", async () => {
+    // Even when an op was not request-tracked, the batch must not track usage
+    // to Autumn — request-time tracking is the single source, so re-tracking
+    // here would double-count. The batch only commits the ledger.
     queue = [makeOp()];
 
     await processBillingBatch();
 
     expect(billTeam6).toHaveBeenCalled();
-    expect(trackCredits).toHaveBeenCalledWith({
-      teamId: "team-1",
-      value: 10,
-      properties: {
-        source: "processBillingBatch",
-        endpoint: "extract",
-        apiKeyId: 123,
-        subscriptionId: "sub-1",
-      },
-    });
+    expect(trackCredits).not.toHaveBeenCalled();
     expect(captureException).not.toHaveBeenCalled();
   });
 
-  it("skips Autumn tracking when the request path already tracked the op", async () => {
+  it("does not re-track even when the op was already tracked at request time", async () => {
     queue = [makeOp({ autumnTrackInRequest: true })];
 
     await processBillingBatch();
@@ -179,7 +173,7 @@ describe("processBillingBatch", () => {
     expect(trackCredits).not.toHaveBeenCalled();
   });
 
-  it("continues when billing returns success false", async () => {
+  it("refunds request-tracked credits when billing returns success false", async () => {
     queue = [makeOp({ autumnTrackInRequest: true })];
     billTeam6.mockRejectedValueOnce(new Error("db failed"));
 
@@ -194,11 +188,12 @@ describe("processBillingBatch", () => {
         apiKeyId: 123,
         subscriptionId: "sub-1",
       },
+      featureId: "CREDITS",
     });
     expect(captureException).toHaveBeenCalled();
   });
 
-  it("captures exceptions when billing throws", async () => {
+  it("captures exceptions and refunds when billing throws", async () => {
     queue = [makeOp({ autumnTrackInRequest: true })];
     billTeam6.mockRejectedValueOnce(new Error("rpc exploded"));
 
@@ -213,11 +208,12 @@ describe("processBillingBatch", () => {
         apiKeyId: 123,
         subscriptionId: "sub-1",
       },
+      featureId: "CREDITS",
     });
     expect(captureException).toHaveBeenCalled();
   });
 
-  it("continues processing later groups when Autumn refund fails", async () => {
+  it("continues processing later groups when an Autumn refund fails", async () => {
     queue = [
       makeOp({
         team_id: "team-1",
@@ -227,7 +223,7 @@ describe("processBillingBatch", () => {
       makeOp({
         team_id: "team-2",
         subscription_id: "sub-2",
-        autumnTrackInRequest: false,
+        autumnTrackInRequest: true,
       }),
     ];
     billTeam6
@@ -246,18 +242,11 @@ describe("processBillingBatch", () => {
         apiKeyId: 123,
         subscriptionId: "sub-1",
       },
+      featureId: "CREDITS",
     });
     expect(billTeam6).toHaveBeenCalledTimes(2);
-    expect(trackCredits).toHaveBeenCalledWith({
-      teamId: "team-2",
-      value: 10,
-      properties: {
-        source: "processBillingBatch",
-        endpoint: "extract",
-        apiKeyId: 123,
-        subscriptionId: "sub-2",
-      },
-    });
+    // The batch never tracks usage to Autumn, regardless of the request-time flag.
+    expect(trackCredits).not.toHaveBeenCalled();
     expect(captureException).toHaveBeenCalled();
   });
 });

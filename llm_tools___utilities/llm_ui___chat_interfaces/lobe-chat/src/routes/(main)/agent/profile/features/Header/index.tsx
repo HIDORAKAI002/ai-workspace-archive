@@ -160,7 +160,7 @@ const Header = memo(() => {
   }, [config.model, config.plugins, config.provider, editor, isHeterogeneous, meta, systemRole, t]);
 
   const importMenuItem = useBusinessAgentImportMenuItem(activeAgentId ?? undefined);
-  const transferMenuItems = useAgentTransferMenuItem(activeAgentId ?? undefined);
+  const transferMenuItems = useAgentTransferMenuItem(activeAgentId ?? undefined, meta);
 
   const menuItems = useMemo(() => {
     const businessTransferMenuItems = transferMenuItems ?? [];

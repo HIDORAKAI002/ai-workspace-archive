@@ -40,7 +40,7 @@ from nemoguardrails.guardrails._http import (
 from nemoguardrails.guardrails.base_engine import BaseEngine
 from nemoguardrails.guardrails.guardrails_types import LLMMessages, get_request_id, truncate
 from nemoguardrails.rails.llm.config import Model
-from nemoguardrails.types import ChatMessage, LLMResponse, LLMResponseChunk, UsageInfo
+from nemoguardrails.types import ChatMessage, LLMResponse, LLMResponseChunk, ToolCall, ToolCallFunction, UsageInfo
 
 log = logging.getLogger(__name__)
 
@@ -210,6 +210,90 @@ def _parse_chat_completion_chunk(chunk: dict) -> Optional[LLMResponseChunk]:
         request_id=chunk.get("id"),
         usage=_parse_usage(usage_dict) if usage_dict else None,
     )
+
+
+def _accumulate_tool_call_delta(tool_calls: dict[int, dict], raw_chunk: dict) -> None:
+    """Update the tool-call accumulator with any tool_call deltas from a raw SSE chunk.
+
+    OpenAI streams argument JSON as fragments across many chunks; NIM delivers
+    complete arguments in one delta. Both are handled uniformly: ``tool_calls``
+    is keyed by the OpenAI ``index`` field and mutated in place on every call.
+    Finalize with ``_finalize_tool_calls`` once ``finish_reason=="tool_calls"``.
+    """
+    choices = raw_chunk.get("choices") or []
+    if not choices:
+        return
+    delta = choices[0].get("delta") or {}
+    for tool_call_delta in delta.get("tool_calls") or []:
+        # ``index`` ties fragmented argument deltas back to their tool call (only
+        # the first delta per call carries id/name; later ones carry just args +
+        # the same index). It defaults to 0 for single-call streams that omit it;
+        # OpenAI/NIM always send it for parallel calls. The collision check below
+        # flags the rare case where a provider omits it for parallel calls.
+        index = tool_call_delta.get("index", 0)
+        function = tool_call_delta.get("function") or {}
+        if index not in tool_calls:
+            tool_calls[index] = {
+                "id": tool_call_delta.get("id") or "",
+                "name": function.get("name") or "",
+                "arguments_buffer": "",
+            }
+        else:
+            incoming_id = tool_call_delta.get("id")
+            if incoming_id:
+                existing_id = tool_calls[index]["id"]
+                if existing_id and incoming_id != existing_id:
+                    # A distinct tool call (different id) landed on an existing
+                    # accumulator slot — happens when a provider omits ``index`` for
+                    # parallel calls, collapsing them into one slot (id/name
+                    # overwritten, arguments concatenated into invalid JSON). Warn
+                    # rather than silently corrupt; strict per-provider validation
+                    # is the canonicalization layer's job.
+                    log.warning(
+                        "[%s] tool-call id %r collided with accumulator slot %d (existing id %r); "
+                        "provider likely omitted 'index' for parallel tool calls — result may be corrupted",
+                        get_request_id(),
+                        incoming_id,
+                        index,
+                        existing_id,
+                    )
+                tool_calls[index]["id"] = incoming_id
+            name = function.get("name")
+            if name:
+                tool_calls[index]["name"] = name
+        arguments_fragment = function.get("arguments") or ""
+        if arguments_fragment:
+            tool_calls[index]["arguments_buffer"] += arguments_fragment
+
+
+# TODO: duplicates _finalize_tool_calls in
+# nemoguardrails/llm/models/openai_chat.py . Needs consolidating.
+def _finalize_tool_calls(tool_calls: dict[int, dict]) -> list[ToolCall]:
+    """Assemble accumulated tool-call fragments into ToolCall objects.
+
+    Called once when the stream emits finish_reason='tool_calls'. Arguments
+    are parsed from the accumulated JSON buffer; malformed or empty buffers
+    degrade gracefully to an empty dict (matching openai_chat.py behaviour).
+    """
+    result = []
+    for index in sorted(tool_calls.keys()):
+        entry = tool_calls[index]
+        raw_arguments = entry.get("arguments_buffer", "")
+        try:
+            arguments = json.loads(raw_arguments) if raw_arguments else {}
+        except json.JSONDecodeError:
+            arguments = {}
+        result.append(
+            ToolCall(
+                id=entry.get("id", ""),
+                type="function",
+                function=ToolCallFunction(
+                    name=entry.get("name", ""),
+                    arguments=arguments,
+                ),
+            )
+        )
+    return result
 
 
 class ModelEngineError(Exception):
@@ -417,6 +501,15 @@ class ModelEngine(BaseEngine):
         content should gate on ``chunk.delta_content`` rather than
         assuming every yielded chunk carries one.
 
+        Tool calls (when the request declared ``tools``) are accumulated
+        from streamed ``delta.tool_calls`` fragments and surfaced as a
+        single ``LLMResponseChunk`` whose ``delta_tool_calls`` carries the
+        COMPLETE finalized list exactly once — on the first chunk with a
+        ``finish_reason`` (``"tool_calls"`` for a free choice, ``"stop"``
+        for a forced ``tool_choice``), or via a post-loop safety net if the
+        provider omits a parseable finish frame. No other chunk carries
+        ``delta_tool_calls``, so consumers may treat it as last-write-wins.
+
         Args:
             messages: List of message dicts in OpenAI format.
             **kwargs: Additional parameters for the request body (temperature, max_tokens, etc.)
@@ -453,6 +546,9 @@ class ModelEngine(BaseEngine):
                 # response.content uses readany() which returns arbitrary byte
                 # chunks — multiple SSE events in one TCP segment would be merged
                 # into one unparseable blob.  readline() splits on \n correctly.
+                tool_calls: dict[int, dict] = {}
+                tool_calls_emitted = False
+                last_chunk_id = None
                 while True:
                     raw_line = await response.content.readline()
                     if not raw_line:
@@ -461,6 +557,9 @@ class ModelEngine(BaseEngine):
                     line = raw_line.decode("utf-8").strip()
                     if not line:
                         continue
+
+                    log.debug("[%s] SSE line: %s", req_id, truncate(line))
+
                     if not line.startswith("data: "):
                         continue
 
@@ -474,9 +573,48 @@ class ModelEngine(BaseEngine):
                         log.warning("[%s] Unparseable SSE chunk: %s", req_id, payload[:200])
                         continue
 
+                    last_chunk_id = raw_chunk.get("id") or last_chunk_id
+                    _accumulate_tool_call_delta(tool_calls, raw_chunk)
+
                     parsed_chunk = _parse_chat_completion_chunk(raw_chunk)
+
+                    # Finalize accumulated tool calls onto the terminating chunk.
+                    # A streamed tool call ends with a finish_reason — "tool_calls"
+                    # when the model chose freely, but "stop" when tool_choice forced
+                    # a specific function. Gate on *any* finish_reason (with tool calls
+                    # accumulated), not the literal "tool_calls", or forced calls never
+                    # surface. finish_reason keeps that chunk alive in
+                    # _parse_chat_completion_chunk, so parsed_chunk is non-None here; if a
+                    # provider ever omits a parseable finish frame, the post-loop safety
+                    # net below surfaces the calls instead.
+                    choices = raw_chunk.get("choices") or []
+                    finish_reason = choices[0].get("finish_reason") if choices else None
+                    if tool_calls and not tool_calls_emitted and finish_reason and parsed_chunk is not None:
+                        if finish_reason not in ("tool_calls", "stop"):
+                            # Abnormal terminator (e.g. "length", "content_filter")
+                            # while a tool call is mid-assembly: surface what we have
+                            # but warn, because the JSON arguments are likely truncated
+                            # and will degrade to {} in _finalize_tool_calls.
+                            log.warning(
+                                "[%s] tool-call stream ended with finish_reason=%r; "
+                                "assembled tool-call arguments may be truncated or incomplete",
+                                req_id,
+                                finish_reason,
+                            )
+                        parsed_chunk.delta_tool_calls = _finalize_tool_calls(tool_calls)
+                        tool_calls_emitted = True
+
                     if parsed_chunk is not None:
                         yield parsed_chunk
+
+                # Safety net: a provider that ends the stream with [DONE]/EOF and no
+                # finish_reason chunk still gets its accumulated tool calls surfaced.
+                if tool_calls and not tool_calls_emitted:
+                    yield LLMResponseChunk(
+                        finish_reason="tool_calls",
+                        request_id=last_chunk_id,
+                        delta_tool_calls=_finalize_tool_calls(tool_calls),
+                    )
 
                 elapsed_ms = (time.monotonic() - t0) * 1000
                 log.debug("[%s] Stream completed time=%.1fms", req_id, elapsed_ms)
