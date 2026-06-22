@@ -165,3 +165,37 @@ class OpenAIModelsList(BaseModel):
     """Standard OpenAI models list response."""
 
     data: list[OpenAIModel] = Field(..., description="List of OpenAI model objects.")
+
+
+class GuardrailCheckDataInput(GuardrailsDataInput):
+    """Guardrails input options specific to the checks endpoint."""
+
+    config: Optional[Union[str, dict]] = Field(
+        default=None,
+        description="The id of the configuration or its dict representation to be used.",
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_config_exclusivity(cls, data: Any) -> Any:
+        if isinstance(data, dict) and data.get("config") is not None:
+            if data.get("config_id") is not None or data.get("config_ids") is not None:
+                raise ValueError("config is mutually exclusive with config_id and config_ids")
+        return data
+
+
+class GuardrailCheckRequest(OpenAIChatCompletionRequest):
+    """Request body for the /v1/checks endpoint."""
+
+    guardrails: GuardrailCheckDataInput = Field(
+        default_factory=GuardrailCheckDataInput,
+        description="Guardrails specific options for the request.",
+    )
+
+
+class GuardrailCheckResponse(BaseModel):
+    """Response from the /v1/checks endpoint."""
+
+    status: str = Field(..., description="Overall check result: passed, modified, or blocked.")
+    content: str = Field(..., description="Content after rails processing.")
+    rail: Optional[str] = Field(default=None, description="Name of the blocking rail, if any.")
