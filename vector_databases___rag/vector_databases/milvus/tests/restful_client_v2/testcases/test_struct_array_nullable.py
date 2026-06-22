@@ -1,5 +1,6 @@
 import pytest
 from base.testbase import TestBase
+from utils.constant import CaseLabel
 from utils.utils import gen_collection_name
 
 REST_VECTOR_DIM = 8
@@ -20,7 +21,7 @@ def assert_profile_equal(actual, expected):
     assert actual == expected
 
 
-@pytest.mark.L1
+@pytest.mark.tags(CaseLabel.L1)
 class TestRestfulStructArrayNullable(TestBase):
     dim = REST_VECTOR_DIM
 
@@ -208,7 +209,9 @@ class TestRestfulStructArrayNullable(TestBase):
             },
         )
         assert rsp["code"] != 0
-        assert "Invalid field type, type:ArrayOfStruct" in rsp["message"]
+        # The server rejects ArrayOfStruct via the regular field-add endpoint and
+        # directs the caller to the dedicated struct_fields/add endpoint.
+        assert "struct_fields/add" in rsp["message"]
 
         rsp = self.collection_client.collection_describe(name)
         assert rsp["code"] == 0
@@ -264,10 +267,6 @@ class TestRestfulStructArrayNullable(TestBase):
         assert rsp["code"] != 0
         assert "Struct" in rsp["message"]
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="REST v2 schema.structFields nullable=true is silently ignored instead of preserved in describe output",
-    )
     def test_rest_v2_nullable_struct_array_schema_propagation(self):
         """
         target: test REST v2 nullable propagation for Struct Array
