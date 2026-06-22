@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-08T10:02:22.063Z",
+  "generatedAt": "2026-06-22T23:03:39.235Z",
   "sources": {
     "accuracy": {
       "chrome": "accuracy/chrome.json",
@@ -277,11 +277,11 @@
         "mismatches": []
       },
       "chromeStep10": {
-        "exactCount": 42,
+        "exactCount": 43,
         "widthCount": 61
       },
       "safariStep10": {
-        "exactCount": 60,
+        "exactCount": 61,
         "widthCount": 61
       },
       "notes": "real Chinese canary; broad positive one-line field in Chrome, exact Safari anchors"
@@ -397,14 +397,14 @@
         "mismatches": []
       },
       "chromeStep10": {
-        "exactCount": 56,
+        "exactCount": 61,
         "widthCount": 61
       },
       "safariStep10": {
-        "exactCount": 59,
+        "exactCount": 58,
         "widthCount": 61
       },
-      "notes": "real residual Myanmar canary; quote/follower and phrase-break classes remain"
+      "notes": "real Myanmar canary; exact in Chrome with three positive one-line Safari misses on this machine"
     },
     {
       "id": "my-bad-deeds-return-to-you-teacher",
@@ -427,14 +427,14 @@
         "mismatches": []
       },
       "chromeStep10": {
-        "exactCount": 57,
+        "exactCount": 61,
         "widthCount": 61
       },
       "safariStep10": {
         "exactCount": 59,
         "widthCount": 61
       },
-      "notes": "healthier than the first Myanmar text, but still shows the same broad quote+follower class in Chrome"
+      "notes": "second Myanmar canary; exact in Chrome with two positive one-line Safari misses on this machine"
     },
     {
       "id": "ur-chughd",
@@ -442,37 +442,29 @@
       "language": "ur",
       "chromeAnchors": {
         "exactWidths": [
+          300,
           600,
           800
         ],
-        "mismatches": [
-          {
-            "width": 300,
-            "diffPx": -76
-          }
-        ]
+        "mismatches": []
       },
       "safariAnchors": {
         "exactWidths": [
+          300,
           600,
           800
         ],
-        "mismatches": [
-          {
-            "width": 300,
-            "diffPx": -76
-          }
-        ]
+        "mismatches": []
       },
       "chromeStep10": {
-        "exactCount": 31,
+        "exactCount": 57,
         "widthCount": 61
       },
       "safariStep10": {
-        "exactCount": 31,
+        "exactCount": 57,
         "widthCount": 61
       },
-      "notes": "real Nastaliq/Naskh canary; broad negative field at narrow widths and local shaping/context drift"
+      "notes": "font-sensitive Nastaliq/Naskh canary; anchors are exact with four shared positive one-line misses"
     },
     {
       "id": "hi-eidgah",
@@ -525,14 +517,14 @@
         "mismatches": []
       },
       "chromeStep10": {
-        "exactCount": 61,
+        "exactCount": 60,
         "widthCount": 61
       },
       "safariStep10": {
-        "exactCount": 61,
+        "exactCount": 60,
         "widthCount": 61
       },
-      "notes": "Arabic step10 sweep is clean; fine sweep still has a small positive one-line field"
+      "notes": "Arabic step10 sweep has one shared positive one-line miss; fine sweep still has a small positive field"
     },
     {
       "id": "ar-al-bukhala",

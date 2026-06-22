@@ -311,6 +311,14 @@ describe("qa scenario catalog", () => {
     expect(
       JSON.stringify(readQaScenarioById("gateway-restart-inflight-run").execution.flow),
     ).toContain("liveTurnTimeoutMs(env, 180000)");
+    const longContextFlow = JSON.stringify(
+      readQaScenarioById("long-context-progress-watchdog").execution.flow,
+    );
+    expect(longContextFlow).toContain("originalCodexPluginEnabled");
+    expect(longContextFlow).not.toContain(
+      "originalPluginAllow === undefined ? null : originalPluginAllow",
+    );
+    expect(longContextFlow).not.toContain("{ ...originalCodexPluginEntry, enabled:");
     expect(readQaScenarioExecutionConfig("long-context-progress-watchdog")).toMatchObject({
       requiredProviderMode: "live-frontier",
       harnessRuntime: "codex",

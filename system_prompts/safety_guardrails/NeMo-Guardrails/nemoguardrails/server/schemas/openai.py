@@ -82,10 +82,6 @@ class OpenAIChatCompletionRequest(BaseModel):
         default=None,
         description="Frequency penalty parameter.",
     )
-    function_call: Optional[dict] = Field(
-        default=None,
-        description="Function call parameter.",
-    )
     logit_bias: Optional[dict] = Field(
         default=None,
         description="Logit bias parameter.",
@@ -93,6 +89,18 @@ class OpenAIChatCompletionRequest(BaseModel):
     logprobs: Optional[bool] = Field(
         default=None,
         description="Log probabilities parameter.",
+    )
+    tools: Optional[list[dict]] = Field(
+        default=None,
+        description="Tools parameter.",
+    )
+    tool_choice: Optional[str | dict] = Field(
+        default=None,
+        description="Tool choice parameter.",
+    )
+    parallel_tool_calls: Optional[bool] = Field(
+        default=None,
+        description="Whether to allow parallel tool calls during tool use.",
     )
 
 

@@ -98,15 +98,15 @@ const LONG_FORM: CorpusDashboardMeta[] = [
   },
   {
     id: 'my-cunning-heron-teacher',
-    notes: 'real residual Myanmar canary; quote/follower and phrase-break classes remain',
+    notes: 'real Myanmar canary; exact in Chrome with three positive one-line Safari misses on this machine',
   },
   {
     id: 'my-bad-deeds-return-to-you-teacher',
-    notes: 'healthier than the first Myanmar text, but still shows the same broad quote+follower class in Chrome',
+    notes: 'second Myanmar canary; exact in Chrome with two positive one-line Safari misses on this machine',
   },
   {
     id: 'ur-chughd',
-    notes: 'real Nastaliq/Naskh canary; broad negative field at narrow widths and local shaping/context drift',
+    notes: 'font-sensitive Nastaliq/Naskh canary; anchors are exact with four shared positive one-line misses',
   },
   {
     id: 'hi-eidgah',
@@ -114,7 +114,7 @@ const LONG_FORM: CorpusDashboardMeta[] = [
   },
   {
     id: 'ar-risalat-al-ghufran-part-1',
-    notes: 'Arabic step10 sweep is clean; fine sweep still has a small positive one-line field',
+    notes: 'Arabic step10 sweep has one shared positive one-line miss; fine sweep still has a small positive field',
   },
   {
     id: 'ar-al-bukhala',
