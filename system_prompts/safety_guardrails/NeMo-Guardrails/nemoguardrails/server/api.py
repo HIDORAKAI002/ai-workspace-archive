@@ -28,8 +28,6 @@ from typing import Any, AsyncIterator, Callable, List, Optional, Union
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from openai.types.chat.chat_completion import Choice
-from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from pydantic import BaseModel, ValidationError
 from starlette.responses import RedirectResponse, StreamingResponse
 
@@ -45,11 +43,15 @@ from nemoguardrails.server.schemas.openai import (
     OpenAIModelsList,
 )
 from nemoguardrails.server.schemas.utils import (
+    bot_message_to_chat_completion,
     create_error_chat_completion,
     extract_bot_message_from_response,
     fetch_models,
     format_streaming_chunk_as_sse,
     generation_response_to_chat_completion,
+    normalize_tool_calls_openai,
+    resolve_tool_calls,
+    warn_if_thread_history_invalid_for_tool_use,
 )
 
 try:
@@ -536,6 +538,17 @@ async def chat_completion(body: GuardrailsChatCompletionRequest, request: Reques
             detail="thread_id message-history replay is not supported for Colang 2.0.",
         )
 
+    if (body.tools or body.tool_choice is not None or body.parallel_tool_calls is not None) and (
+        llm_rails.config.passthrough is not True or body.stream
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "The 'tools', 'tool_choice', and 'parallel_tool_calls' parameters are only "
+                "supported for non-streaming requests when the guardrails configuration has 'passthrough: true'."
+            ),
+        )
+
     try:
         messages = body.messages or []
         if body.guardrails.context:
@@ -559,6 +572,7 @@ async def chat_completion(body: GuardrailsChatCompletionRequest, request: Reques
             # the string `thread-` to all thread keys.
             datastore_key = "thread-" + body.guardrails.thread_id
             thread_messages = json.loads(await datastore.get(datastore_key) or "[]")
+            warn_if_thread_history_invalid_for_tool_use(thread_messages)
 
             # And prepend them.
             messages = thread_messages + messages
@@ -582,6 +596,12 @@ async def chat_completion(body: GuardrailsChatCompletionRequest, request: Reques
             generation_options.llm_params["presence_penalty"] = body.presence_penalty
         if body.frequency_penalty is not None:
             generation_options.llm_params["frequency_penalty"] = body.frequency_penalty
+        if body.tools is not None:
+            generation_options.llm_params["tools"] = body.tools
+        if body.tool_choice is not None:
+            generation_options.llm_params["tool_choice"] = body.tool_choice
+        if body.parallel_tool_calls is not None:
+            generation_options.llm_params["parallel_tool_calls"] = body.parallel_tool_calls
 
         if body.stream:
             # Use stream_async for streaming with output rails support
@@ -608,7 +628,15 @@ async def chat_completion(body: GuardrailsChatCompletionRequest, request: Reques
             # If we're using threads, we also need to update the data before returning
             # the message.
             if body.guardrails.thread_id and datastore is not None and datastore_key is not None:
-                await datastore.set(datastore_key, json.dumps(messages + [bot_message]))
+                # If using tool calls, we need to normalize them to OpenAI format before storing.
+                response_tool_calls = res.tool_calls if isinstance(res, GenerationResponse) else None
+                tool_calls_for_storage = resolve_tool_calls(bot_message, response_tool_calls)
+                if tool_calls_for_storage:
+                    normalized = [tc.model_dump() for tc in normalize_tool_calls_openai(tool_calls_for_storage)]
+                    storable_message = {**bot_message, "tool_calls": normalized}
+                else:
+                    storable_message = bot_message
+                await datastore.set(datastore_key, json.dumps(messages + [storable_message]))
 
             # Build the response with OpenAI-compatible format using utility function
             if isinstance(res, GenerationResponse):
@@ -618,23 +646,10 @@ async def chat_completion(body: GuardrailsChatCompletionRequest, request: Reques
                     config_id=config_ids[0] if config_ids else None,
                 )
             else:
-                # For dict responses, convert to basic chat completion
-                return GuardrailsChatCompletion(
-                    id=f"chatcmpl-{uuid.uuid4()}",
-                    object="chat.completion",
-                    created=int(time.time()),
+                return bot_message_to_chat_completion(
+                    bot_message=bot_message,
                     model=body.model,
-                    choices=[
-                        Choice(
-                            index=0,
-                            message=ChatCompletionMessage(
-                                role="assistant",
-                                content=bot_message.get("content", ""),
-                            ),
-                            finish_reason="stop",
-                            logprobs=None,
-                        )
-                    ],
+                    config_id=config_ids[0] if config_ids else None,
                 )
 
     except HTTPException:
