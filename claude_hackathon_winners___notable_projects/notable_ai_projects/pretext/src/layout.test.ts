@@ -1507,6 +1507,11 @@ describe('layout invariants', () => {
     const lines = layoutWithLines(prepared, 200, LINE_HEIGHT)
     expect(lines.lines.map(line => line.text)).toEqual(['', ''])
     expect(layout(prepared, 200, LINE_HEIGHT)).toEqual({ lineCount: 2, height: LINE_HEIGHT * 2 })
+
+    const mixed = prepareWithSegments('中文\n\n世界', FONT, { whiteSpace: 'pre-wrap' })
+    const mixedLines = layoutWithLines(mixed, 200, LINE_HEIGHT)
+    expect(mixedLines.lines.map(line => line.text)).toEqual(['中文', '', '世界'])
+    expect(collectStreamedLines(mixed, 200)).toEqual(mixedLines.lines)
   })
 
   test('pre-wrap mode does not invent an extra trailing empty line', () => {

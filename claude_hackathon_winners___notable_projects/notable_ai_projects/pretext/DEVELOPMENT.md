@@ -13,14 +13,14 @@ bun install
 - `bun run check` — typecheck, lint, and dead-code scan (`knip`)
 - `bun test` — small durable invariant suite
 
-### Packaging And Release Confidence
+### Packaging And Release
 
 - `bun run build:package` — emit `dist/` for the published ESM package
 - `bun run package-smoke-test` — pack the tarball and verify temporary JS + TS consumers
 - `bun run site:build` — build the static demo site into `site/`
 - `bun run generate:bidi-data` — refresh the checked-in simplified Unicode bidi ranges
 
-`prepack` also rebuilds `dist/` through plain `tsc`, so keep runtime `.js` specifiers honest in source imports.
+`prepack` also rebuilds `dist/` through plain `tsc`, so source imports need `.js` specifiers that remain valid in the emitted files.
 
 ### Browser Accuracy And Benchmarking
 
@@ -32,16 +32,15 @@ bun install
 - `bun run accuracy-snapshot:firefox`
 - `bun run benchmark-check` — Chrome benchmark snapshot; default is the median of 3 full page runs, use `--runs=1` for a quick local check
 - `bun run benchmark-check:safari`
-- `bun run pre-wrap-check` — compact batched browser oracle for `{ whiteSpace: 'pre-wrap' }`
-- `bun run keep-all-check` — compact batched browser oracle for `{ wordBreak: 'keep-all' }`, including mixed-script no-space canaries
-- `bun run symbol-check` — compact batched Chrome + Safari oracle for no-space symbol runs inside long words
-- `bun run letter-spacing-check` — compact batched browser oracle for `{ letterSpacing }`, using one posted-report probe per browser and covering narrow wraps, combining marks, bidi, CJK, emoji, digits, RTL punctuation, `pre-wrap`, and soft hyphens
-- `bun run letter-spacing-snapshot` — refresh `accuracy/letter-spacing.json` from the Chrome + Safari compact `{ letterSpacing }` oracle
-- `bun run probe-check` — smaller browser probe/diagnostic entrypoint
+- `bun run pre-wrap-check` — small batched browser check for `{ whiteSpace: 'pre-wrap' }`
+- `bun run keep-all-check` — small batched browser check for `{ wordBreak: 'keep-all' }`, including mixed-script text without spaces
+- `bun run symbol-check` — small batched Chrome + Safari check for symbol runs inside long words
+- `bun run letter-spacing-check` — small batched Chrome + Safari check for `{ letterSpacing }`
+- `bun run letter-spacing-snapshot` — refresh `accuracy/letter-spacing.json` from the Chrome + Safari `{ letterSpacing }` check
+- `bun run probe-check` — smaller browser diagnostic
 - `bun run probe-check:safari`
-  On a first-break mismatch, probe output now includes a small break trace.
-  `sN:gM` means segment/grapheme position, `unit` is that unit's width, `fit` is the cumulative fitted width from the current line start, and `[ours]` / `[browser]` mark the competing break boundaries.
-  For Safari URL/query misses or other extractor-sensitive cases, cross-check `--method=span` before changing the engine.
+
+When a probe finds a first-break mismatch, the report includes a short trace. `sN:gM` identifies a segment and grapheme; `[ours]` and `[browser]` identify the competing break positions. Safari `Range` extraction can be wrong around preserved whitespace and URL queries even when the rendered height is correct, so compare `--method=span` before changing the engine.
 
 ### Corpus Tooling
 
@@ -51,7 +50,7 @@ bun install
 - `bun run corpus-sweep:safari` — maintained Safari `step=10` corpus width sweep
 - `bun run corpus-font-matrix` — same corpus under alternate fonts
 - `bun run corpus-font-matrix:safari`
-- `bun run corpus-taxonomy` — classify a mismatch field into steering buckets
+- `bun run corpus-taxonomy` — group corpus mismatches by likely cause
 - `bun run corpus-status` — rebuild `corpora/dashboard.json`
 - `bun run corpus-status:refresh` — refresh Chrome and Safari `step=10` sweeps, then the corpus dashboard
 
@@ -61,62 +60,31 @@ bun install
 
 ## Useful Pages
 
-The ones worth keeping in your muscle memory:
+- `/demos/index` — index of the public demos
+- `/accuracy` — browser sweep and per-line diagnostics
+- `/benchmark` — performance comparisons
+- `/corpus` — long-form corpus diagnostics
 
-- `/demos/index`
-- `/demos/bubbles`
-- `/demos/dynamic-layout`
-- `/demos/editorial-engine`
-- `/demos/justification-comparison`
-- `/demos/markdown-chat`
-- `/demos/rich-note`
-- `/accuracy`
-- `/benchmark`
-- `/corpus`
+## Current Dashboards And Snapshots
 
-## Current Sources Of Truth
+Use these for the current checked-in results:
 
-Use these for the current checked-in picture:
-
-- [STATUS.md](STATUS.md) — short pointer doc for the main browser accuracy + benchmark snapshots
 - [status/dashboard.json](status/dashboard.json) — machine-readable main dashboard
 - [accuracy/chrome.json](accuracy/chrome.json), [accuracy/safari.json](accuracy/safari.json), [accuracy/firefox.json](accuracy/firefox.json) — raw browser accuracy rows
-- [accuracy/letter-spacing.json](accuracy/letter-spacing.json) — compact Chrome + Safari `{ letterSpacing }` oracle snapshot
+- [accuracy/letter-spacing.json](accuracy/letter-spacing.json) — results from the small Chrome + Safari `{ letterSpacing }` check
 - [benchmarks/chrome.json](benchmarks/chrome.json), [benchmarks/safari.json](benchmarks/safari.json) — raw benchmark snapshots
-- [corpora/STATUS.md](corpora/STATUS.md) — short pointer doc for long-form corpora
 - [corpora/dashboard.json](corpora/dashboard.json) — machine-readable corpus dashboard
 - [corpora/chrome-step10.json](corpora/chrome-step10.json), [corpora/safari-step10.json](corpora/safari-step10.json) — checked-in browser `step=10` corpus sweep snapshots
-- [RESEARCH.md](RESEARCH.md) — the exploration log and the durable conclusions behind the current model
+
+[PLATFORM_BUGS.md](PLATFORM_BUGS.md) lists current browser and OS issues and their workarounds. [RESEARCH.md](RESEARCH.md) keeps durable findings and rejected approaches; it is not a source for current counts or issue status.
 
 ## Deep Profiling
 
-For one-off performance and memory work, start in a real browser.
+For one-off performance and memory work, start with `bun start` and an isolated, foreground Chrome using a throwaway profile. Reproduce the issue on [pages/benchmark.ts](pages/benchmark.ts), or on a smaller dedicated page when the benchmark is too broad.
 
-Preferred loop:
+- Use the benchmark for throughput regressions.
+- Use a CPU profile or performance trace for hotspots.
+- Use heap sampling for allocation churn.
+- Diff forced-GC heap snapshots for retained memory.
 
-1. Start the normal page server with `bun start`.
-2. Launch an isolated Chrome with:
-   - `--remote-debugging-port=9222`
-   - a throwaway `--user-data-dir`
-   - background throttling disabled if the run is interactive
-3. Connect over Chrome DevTools or CDP.
-4. Use a tiny dedicated repro page before profiling the full benchmark page.
-5. Ask the questions in this order:
-   - Is this a benchmark regression?
-   - Where is the CPU time going?
-   - Is this allocation churn?
-   - Is anything still retained after GC?
-
-Use the right tool for each question:
-
-- Throughput / regression:
-  - [pages/benchmark.ts](pages/benchmark.ts)
-  - or a tiny dedicated stress page when the issue is narrower than the whole benchmark harness
-- CPU hotspots:
-  - Chrome CPU profiler or performance trace
-- Allocation churn:
-  - Chrome heap sampling during the workload
-- Retained memory:
-  - force GC, take a before heapsnapshot, run the workload, force GC again, take an after heapsnapshot, and diff what survives
-
-A pure Bun/Node microbenchmark is still useful for cheap hypothesis checks, but it is not the final answer when the question is browser behavior.
+Bun/Node microbenchmarks are useful for quick experiments, but browser behavior needs browser measurements.

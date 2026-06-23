@@ -13,7 +13,6 @@ export type EngineProfile = {
   carryCJKAfterClosingQuote: boolean
   breakKeepAllAfterPunctuation: boolean
   preferPrefixWidthsForBreakableRuns: boolean
-  preferEarlySoftHyphenBreak: boolean
 }
 
 export type BreakableFitMode = 'sum-graphemes' | 'segment-prefixes' | 'pair-context'
@@ -80,7 +79,6 @@ export function getEngineProfile(): EngineProfile {
       carryCJKAfterClosingQuote: false,
       breakKeepAllAfterPunctuation: true,
       preferPrefixWidthsForBreakableRuns: false,
-      preferEarlySoftHyphenBreak: false,
     }
     return cachedEngineProfile
   }
@@ -106,7 +104,6 @@ export function getEngineProfile(): EngineProfile {
     carryCJKAfterClosingQuote: isChromium,
     breakKeepAllAfterPunctuation: !isSafari,
     preferPrefixWidthsForBreakableRuns: isSafari,
-    preferEarlySoftHyphenBreak: isSafari,
   }
   return cachedEngineProfile
 }
