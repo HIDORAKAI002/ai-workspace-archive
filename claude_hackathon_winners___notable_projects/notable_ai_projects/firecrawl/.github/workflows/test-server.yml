@@ -48,6 +48,8 @@ jobs:
       HOST: 0.0.0.0
       TEST_SUITE_SELF_HOSTED: true
       TEST_SUITE_WEBSITE: http://127.0.0.1:4321
+      TEST_API_KEY: test
+      TEST_TEAM_ID: bypass
       OPENAI_API_KEY: ${{ matrix.ai == 'openai' && secrets.OPENAI_API_KEY || '' }}
       GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
       SEARXNG_ENDPOINT: ${{ matrix.search == 'searxng' && 'http://localhost:3434' || '' }}
@@ -63,6 +65,13 @@ jobs:
       USE_GO_MARKDOWN_PARSER: true
       ALLOW_LOCAL_WEBHOOKS: true
       FIRECRAWL_LOG_TO_FILE: true
+      # Exercise the parse upload-ref path in self-hosted CI. The snips run
+      # against a separately started API server, so these must be server envs,
+      # not test-process mutations.
+      ENV: test
+      PARSE_UPLOAD_STORAGE_DRIVER: local
+      PARSE_UPLOAD_REF_TEST_REQUIRED: true
+      IDMUX_URL: ${{ secrets.IDMUX_URL }}
     steps:
       - uses: actions/checkout@v5
 
@@ -222,6 +231,9 @@ jobs:
           pnpm preview --port 4321 --strictPort --host 127.0.0.1 > test-site.log 2>&1 &
           pnpx wait-on tcp:4321 -t 20s
         working-directory: apps/test-site
+
+      - name: Generate parse upload ref secret
+        run: echo "PARSE_UPLOAD_REF_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
       - name: Start playwright
         if: matrix.engine == 'playwright'

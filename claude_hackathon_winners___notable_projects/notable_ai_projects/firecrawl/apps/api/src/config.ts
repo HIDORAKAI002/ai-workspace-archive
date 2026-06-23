@@ -137,6 +137,10 @@ const configSchema = z.object({
   GCS_FIRE_ENGINE_BUCKET_NAME: z.string().optional(),
   GCS_INDEX_BUCKET_NAME: z.string().optional(),
   GCS_MEDIA_BUCKET_NAME: z.string().optional(),
+  GCS_PARSE_UPLOAD_BUCKET_NAME: z.string().optional(),
+  PARSE_UPLOAD_STORAGE_DRIVER: z.enum(["local", "gcs"]).optional(),
+  PARSE_UPLOAD_REF_SECRET: emptyStringAsUndefined(z.string().trim().min(1)),
+  PARSE_UPLOAD_PUBLIC_BASE_URL: z.string().url().optional(),
 
   // ClickHouse (Search Analytics)
   CLICKHOUSE_ANALYTICS_URL: z.string().optional(),

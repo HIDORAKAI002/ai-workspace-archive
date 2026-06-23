@@ -14,6 +14,12 @@ import {
   parseController,
   parseMultipartPayloadMiddleware,
 } from "../controllers/v2/parse";
+import {
+  parseLocalUploadController,
+  parseLocalUploadStorageGuard,
+  parseUploadRefPayloadMiddleware,
+  parseUploadUrlController,
+} from "../controllers/v2/parse-upload";
 import { batchScrapeController } from "../controllers/v2/batch-scrape";
 import { crawlController } from "../controllers/v2/crawl";
 import { crawlParamsPreviewController } from "../controllers/v2/crawl-params-preview";
@@ -80,9 +86,8 @@ import {
   updateMonitorController,
 } from "../controllers/v2/monitor";
 
-expressWs(express());
-
 export const v2Router = express.Router();
+expressWs(express()).applyTo(v2Router);
 
 const parseUpload = multer({
   storage: multer.memoryStorage(),
@@ -115,6 +120,29 @@ const parseUploadMiddleware: express.RequestHandler = (req, res, next) => {
   });
 };
 
+const parsePayloadMiddleware: express.RequestHandler = (req, res, next) => {
+  const contentType = req.headers["content-type"] || "";
+  if (
+    typeof contentType === "string" &&
+    contentType.includes("multipart/form-data")
+  ) {
+    return parseUploadMiddleware(req, res, err => {
+      if (err) return next(err);
+      return parseMultipartPayloadMiddleware(req, res, next);
+    });
+  }
+
+  if (req.body && typeof req.body === "object" && "uploadRef" in req.body) {
+    return parseUploadRefPayloadMiddleware(req as any, res, next);
+  }
+
+  return res.status(400).json({
+    success: false,
+    code: "BAD_REQUEST",
+    error:
+      "Missing file upload. Send multipart/form-data with a 'file' field, or JSON with an 'uploadRef'.",
+  });
+};
 // Add timing middleware to all v2 routes
 v2Router.use(requestTimingMiddleware("v2"));
 
@@ -260,12 +288,25 @@ v2Router.post(
 );
 
 v2Router.post(
+  "/parse/upload-url",
+  authMiddleware(RateLimiterMode.Scrape, { allowKeyless: true }),
+  countryCheck,
+  wrap(parseUploadUrlController),
+);
+
+v2Router.put(
+  "/parse/upload/:uploadId",
+  parseLocalUploadStorageGuard,
+  express.raw({ type: "*/*", limit: "50mb" }),
+  wrap(parseLocalUploadController),
+);
+
+v2Router.post(
   "/parse",
   authMiddleware(RateLimiterMode.Scrape, { allowKeyless: true }),
   countryCheck,
-  parseUploadMiddleware,
-  parseMultipartPayloadMiddleware,
   checkCreditsMiddleware(1),
+  parsePayloadMiddleware,
   wrap(parseController),
 );
 
@@ -362,7 +403,11 @@ v2Router.delete(
 v2Router.ws(
   "/crawl/:jobId",
   ((ws: any, req: express.Request, next: (err?: unknown) => void) => {
-    if (!isValidJobId(req.params.jobId)) {
+    const jobId = Array.isArray(req.params.jobId)
+      ? undefined
+      : req.params.jobId;
+
+    if (!isValidJobId(jobId)) {
       ws.close(1008, "Invalid job ID");
       return;
     }

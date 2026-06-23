@@ -1,5 +1,42 @@
 # Changelog
 
+## [1.737.0](https://github.com/windmill-labs/windmill/compare/v1.736.0...v1.737.0) (2026-06-23)
+
+
+### Features
+
+* **apps:** opt-in sandbox isolation for published & raw apps (alpha) ([#9420](https://github.com/windmill-labs/windmill/issues/9420)) ([2879cbb](https://github.com/windmill-labs/windmill/commit/2879cbb65a4122c86b4a472206d74d9009b07904))
+
+
+### Bug Fixes
+
+* allow SQL args in managed // materialize scripts ([#9733](https://github.com/windmill-labs/windmill/issues/9733)) ([fa35968](https://github.com/windmill-labs/windmill/commit/fa3596885bf2d7ee8859f295e820ee362c756911))
+* bound orphan-cleanup drain rate with capped multi-batch loop ([#9730](https://github.com/windmill-labs/windmill/issues/9730)) ([31d9215](https://github.com/windmill-labs/windmill/commit/31d9215e5a61f19662cc87be8147007e1d47ebb6))
+* **ext-jwt:** reject external JWT auth for non-existent workspaces ([#9723](https://github.com/windmill-labs/windmill/issues/9723)) ([c644311](https://github.com/windmill-labs/windmill/commit/c644311eca4bcaf4b68058cf1d5d79d4078aee1a))
+* optimize cleanup_job_perms_orphaned and job_result_stream cleanup queries ([#9727](https://github.com/windmill-labs/windmill/issues/9727)) ([6d94865](https://github.com/windmill-labs/windmill/commit/6d9486510933af9109f52011d93b13847dbdbb39))
+* prevent silent audit-partition outage via monitor watchdog + alert ([#9729](https://github.com/windmill-labs/windmill/issues/9729)) ([8dea383](https://github.com/windmill-labs/windmill/commit/8dea38383f884f59b2956c39f1424005a21265bd))
+
+
+### Performance Improvements
+
+* **monitor:** hash active-root exclusion in retention delete (WIN-2088) ([#9732](https://github.com/windmill-labs/windmill/issues/9732)) ([75bafab](https://github.com/windmill-labs/windmill/commit/75bafabeeec76cf6da33eef41f588e37071df011))
+
+## [1.736.0](https://github.com/windmill-labs/windmill/compare/v1.735.0...v1.736.0) (2026-06-23)
+
+
+### Features
+
+* **ai-chat:** workspace AI chat skills (SKILL.md upload + read_skill tool) ([#9648](https://github.com/windmill-labs/windmill/issues/9648)) ([6f4017d](https://github.com/windmill-labs/windmill/commit/6f4017d694494a158ebd0579c93336c378cba0fd))
+
+
+### Bug Fixes
+
+* **drafts:** stop mis-filing workspace-blind legacy drafts on migration ([#9725](https://github.com/windmill-labs/windmill/issues/9725)) ([3bf5b72](https://github.com/windmill-labs/windmill/commit/3bf5b72afab3241ea41a261a40c2434764bdaf72))
+* **frontend:** destroy old WebsocketProvider on workspace switch in MultiplayerMenu ([#9719](https://github.com/windmill-labs/windmill/issues/9719)) ([6e96f90](https://github.com/windmill-labs/windmill/commit/6e96f90065dfe2f6ccc5eb4f85f4facd3515c70c))
+* **frontend:** ensure type:object in test_run_flow tool schema for Anthropic ([#9721](https://github.com/windmill-labs/windmill/issues/9721)) ([d5cb944](https://github.com/windmill-labs/windmill/commit/d5cb944cf92f074b2ee42c876595eacdfa2f4d76))
+* **health:** detect read-only replica via pg_is_in_recovery() ([#9722](https://github.com/windmill-labs/windmill/issues/9722)) ([e16061d](https://github.com/windmill-labs/windmill/commit/e16061df06babeae935a9396de5bdcd46e8119a9))
+* re-enforce scoped API token boundaries across handlers ([#9712](https://github.com/windmill-labs/windmill/issues/9712)) ([e19594d](https://github.com/windmill-labs/windmill/commit/e19594df2ad015a0336ade95e04562f5562ec3f6))
+
 ## [1.735.0](https://github.com/windmill-labs/windmill/compare/v1.734.0...v1.735.0) (2026-06-22)
 
 
