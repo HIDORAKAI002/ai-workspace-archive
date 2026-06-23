@@ -3463,6 +3463,7 @@ class LlmProviders(str, Enum):
     TENSORMESH = "tensormesh"
     LIBERTAI = "libertai"
     PINSTRIPES = "pinstripes"
+    DARKBLOOM = "darkbloom"
     LITELLM_AGENT = "litellm_agent"
     CURSOR = "cursor"
     BEDROCK_MANTLE = "bedrock_mantle"
@@ -3520,6 +3521,7 @@ class SandboxProviders(str, Enum):
     """
 
     E2B = "e2b"
+    OPENSANDBOX = "opensandbox"
 
 
 class LiteLLMLoggingBaseClass:
