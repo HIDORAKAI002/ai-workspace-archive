@@ -78,15 +78,25 @@ export type IdmuxRequest = {
   teamId?: string;
 };
 
+function fallbackIdentity(): Identity {
+  if (!config.TEST_API_KEY || !config.TEST_TEAM_ID) {
+    throw new Error(
+      "TEST_API_KEY and TEST_TEAM_ID must be set to use self-hosted idmux fallback",
+    );
+  }
+
+  return {
+    apiKey: config.TEST_API_KEY,
+    teamId: config.TEST_TEAM_ID,
+  };
+}
+
 export async function idmux(req: IdmuxRequest): Promise<Identity> {
   if (!config.IDMUX_URL) {
     if (TEST_PRODUCTION) {
       console.warn("IDMUX_URL is not set, using test API key and team ID");
     }
-    return {
-      apiKey: config.TEST_API_KEY!,
-      teamId: config.TEST_TEAM_ID!,
-    };
+    return fallbackIdentity();
   }
 
   let runNumber = parseInt(config.GITHUB_RUN_NUMBER!);
@@ -94,18 +104,31 @@ export async function idmux(req: IdmuxRequest): Promise<Identity> {
     runNumber = 0;
   }
 
-  const res = await fetch(config.IDMUX_URL + "/", {
-    method: "POST",
-    body: JSON.stringify({
-      refName: config.GITHUB_REF_NAME!,
-      runNumber,
-      concurrency: req.concurrency ?? 100,
-      ...req,
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(config.IDMUX_URL + "/", {
+      method: "POST",
+      body: JSON.stringify({
+        refName: config.GITHUB_REF_NAME!,
+        runNumber,
+        concurrency: req.concurrency ?? 100,
+        ...req,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    if (config.TEST_SUITE_SELF_HOSTED) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `IDMUX_URL is unreachable in self-hosted snips, using test API key and team ID: ${reason}`,
+      );
+      return fallbackIdentity();
+    }
+
+    throw error;
+  }
 
   if (!res.ok) {
     console.error(await res.text());

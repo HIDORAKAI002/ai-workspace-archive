@@ -17,6 +17,7 @@ import type {
 } from "../../services/logging/log_job";
 import type { RequestWithAuth } from "../v1/types";
 import { wrap } from "../../routes/shared";
+import { integrationSchema } from "../../utils/integration";
 
 const TIMEOUT_MS = 120_000;
 const SEARCH_CREDITS_PER_TEN_RESULTS = 2;
@@ -49,7 +50,7 @@ const dateSchema = z
 
 const commonQuery = {
   origin: z.string().optional(),
-  integration: z.string().optional(),
+  integration: integrationSchema.optional(),
 };
 
 const searchPapersSchema = z.strictObject({
@@ -177,6 +178,16 @@ function resultCount(body: any): number {
   return Array.isArray(body?.results) ? body.results.length : 0;
 }
 
+function firstHeaderValue(req: Request, key: string): string | undefined {
+  const value = req.headers[key];
+  if (Array.isArray(value)) return value[0];
+  return typeof value === "string" ? value : undefined;
+}
+
+function requestOrigin(params: ResearchQueryParams, req: Request) {
+  return params.origin ?? firstHeaderValue(req, "x-origin") ?? "api";
+}
+
 function creditsFor(
   config: ResearchEndpointConfig,
   body: any,
@@ -266,7 +277,7 @@ function createResearchController(
       kind: endpoint.kind,
       api_version: "v2",
       team_id: authedReq.auth.team_id,
-      origin: params.origin ?? "api",
+      origin: requestOrigin(params, req),
       integration: params.integration ?? null,
       target_hint: targetHint,
       zeroDataRetention: false,

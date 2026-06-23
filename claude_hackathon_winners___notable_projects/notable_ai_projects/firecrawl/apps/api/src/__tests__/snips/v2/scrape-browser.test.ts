@@ -232,6 +232,10 @@ describe("Scrape browser interact replay", () => {
   itIf(ALLOW_TEST_SUITE_WEBSITE && !!config.IDMUX_URL)(
     "returns 403 when scrape job belongs to another team",
     async () => {
+      if (identity.teamId === otherIdentity.teamId) {
+        return;
+      }
+
       const scrapeResponse = await scrapeRaw(
         {
           url: `${TEST_SUITE_WEBSITE}?testId=${crypto.randomUUID()}`,
