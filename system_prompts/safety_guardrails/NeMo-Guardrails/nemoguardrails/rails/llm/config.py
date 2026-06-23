@@ -30,9 +30,8 @@ from pydantic import (
     Field,
     PrivateAttr,
     SecretStr,
+    field_validator,
     model_validator,
-    root_validator,
-    validator,
 )
 
 from nemoguardrails import utils
@@ -557,7 +556,8 @@ class TaskPrompt(BaseModel):
         ge=1,
     )
 
-    @root_validator(pre=True, allow_reuse=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_fields(cls, values):
         if not values.get("content") and not values.get("messages"):
             raise InvalidRailsConfigurationError("One of `content` or `messages` must be provided.")
@@ -645,7 +645,7 @@ class EmbeddingsCacheConfig(BaseModel):
     )
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
 
 class EmbeddingSearchProvider(BaseModel):
@@ -1687,16 +1687,13 @@ class RailsConfig(BaseModel):
         description="The list of bot messages that should be used for the rails.",
     )
 
-    # NOTE: the Any below is used to get rid of a warning with pydantic 1.10.x;
-    #   The correct typing should be List[Dict, Flow]. To be updated when
-    #   support for pydantic 1.10.x is dropped.
     flows: List[Union[Dict, Any]] = Field(
         default_factory=list,
         description="The list of flows that should be used for the rails.",
     )
 
     instructions: Optional[List[Instruction]] = Field(
-        default=[Instruction.parse_obj(obj) for obj in _default_config["instructions"]],
+        default=[Instruction.model_validate(obj) for obj in _default_config["instructions"]],
         description="List of instructions in natural language that the LLM should use.",
     )
 
@@ -1805,7 +1802,8 @@ class RailsConfig(BaseModel):
         description="Configuration for OTEL metrics emission (independent of tracing).",
     )
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_model_exists_for_input_rails(cls, values):
         """Make sure we have a model for each input rail where one is provided using $model=<model_type>"""
         rails = values.get("rails", {})
@@ -1831,7 +1829,8 @@ class RailsConfig(BaseModel):
                 )
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_model_exists_for_output_rails(cls, values):
         """Make sure we have a model for each output rail where one is provided using $model=<model_type>"""
         rails = values.get("rails", {})
@@ -1857,7 +1856,8 @@ class RailsConfig(BaseModel):
                 )
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_prompt_exist_for_self_check_rails(cls, values):
         rails = values.get("rails", {})
         prompts = values.get("prompts", []) or []
@@ -1914,7 +1914,8 @@ class RailsConfig(BaseModel):
 
         return values
 
-    @root_validator(pre=True, allow_reuse=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_output_parser_exists(cls, values):
         tasks_requiring_output_parser = [
             "self_check_input",
@@ -1937,7 +1938,8 @@ class RailsConfig(BaseModel):
                 )
         return values
 
-    @root_validator(pre=True, allow_reuse=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_jailbreak_detection_config(cls, values):
         """Validate jailbreak detection configuration against enabled flows."""
         rails = values.get("rails") or {}
@@ -1991,7 +1993,8 @@ class RailsConfig(BaseModel):
 
         return values
 
-    @root_validator(pre=True, allow_reuse=True)
+    @model_validator(mode="before")
+    @classmethod
     def fill_in_default_values_for_v2_x(cls, values):
         instructions = values.get("instructions", {})
         sample_conversation = values.get("sample_conversation")
@@ -2006,7 +2009,8 @@ class RailsConfig(BaseModel):
 
         return values
 
-    @validator("models")
+    @field_validator("models")
+    @classmethod
     def validate_models_api_key_env_var(cls, models):
         """Model API Key Env var must be set to make LLM calls"""
         api_keys = [m.api_key_env_var for m in models]
@@ -2123,7 +2127,7 @@ class RailsConfig(BaseModel):
                 if flow_data.get("elements") and not flow_data["elements"][0].get("_type"):
                     flow_data["elements"] = parse_flow_elements(flow_data["elements"])
 
-        return cls.parse_obj(obj)
+        return cls.model_validate(obj)
 
     def __add__(self, other):
         """Adds two RailsConfig objects."""
@@ -2183,11 +2187,11 @@ def _join_rails_configs(base_rails_config: RailsConfig, updated_rails_config: Ra
     if base_rails_config.actions_server_url != updated_rails_config.actions_server_url:
         raise ValueError("Both config files should have the same actions_server_url")
 
-    combined_rails_config_dict = _join_dict(base_rails_config.dict(), updated_rails_config.dict())
+    combined_rails_config_dict = _join_dict(base_rails_config.model_dump(), updated_rails_config.model_dump())
     # filter out empty strings to avoid leading/trailing commas
     config_paths = [
-        base_rails_config.dict()["config_path"] or "",
-        updated_rails_config.dict()["config_path"] or "",
+        base_rails_config.model_dump()["config_path"] or "",
+        updated_rails_config.model_dump()["config_path"] or "",
     ]
     combined_rails_config_dict["config_path"] = ",".join(filter(None, config_paths))
     combined_rails_config = RailsConfig(**combined_rails_config_dict)

@@ -49,7 +49,7 @@ const DOCUMENT_EXTENSIONS = new Set([
   ".xls",
 ]);
 
-function detectUploadedFileKind(
+export function detectUploadedFileKind(
   filename: string,
   contentType?: string | null,
 ): UploadedParseFileKind | null {
