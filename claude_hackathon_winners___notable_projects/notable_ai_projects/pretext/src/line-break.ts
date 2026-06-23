@@ -726,15 +726,6 @@ export function walkPreparedLinesRaw(
         const currentBreakPaintWidth =
           lineW + getLineEndPaintContribution(prepared, kind, i, leadingSpacing, w)
 
-        if (
-          pendingBreakKind === 'soft-hyphen' &&
-          engineProfile.preferEarlySoftHyphenBreak &&
-          pendingBreakFitWidth <= fitLimit
-        ) {
-          emitCurrentLine(pendingBreakSegmentIndex, 0, pendingBreakPaintWidth)
-          continue
-        }
-
         if (breakAfter && currentBreakFitWidth <= fitLimit) {
           appendWholeSegment(i, advance)
           emitCurrentLine(i + 1, 0, currentBreakPaintWidth)
@@ -985,14 +976,6 @@ function stepPreparedChunkLineGeometry(
         lineW + getBreakOpportunityFitContribution(prepared, kind, i, leadingSpacing)
       const currentBreakPaintWidth =
         lineW + getLineEndPaintContribution(prepared, kind, i, leadingSpacing, w)
-
-      if (
-        pendingBreakKind === 'soft-hyphen' &&
-        engineProfile.preferEarlySoftHyphenBreak &&
-        pendingBreakFitWidth <= fitLimit
-      ) {
-        return finishLine(pendingBreakSegmentIndex, 0, pendingBreakPaintWidth)
-      }
 
       const softBreakLine = maybeFinishAtSoftHyphen()
       if (softBreakLine !== null) return softBreakLine
