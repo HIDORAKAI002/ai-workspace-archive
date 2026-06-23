@@ -1,42 +1,31 @@
 # Research Log
 
-Everything we tried, measured, and learned while building this library.
+Durable findings and rejected approaches from building this library.
 
-For the current compact browser-accuracy / benchmark snapshot, see `STATUS.md`.
-For the current compact corpus / sweep snapshot, see `corpora/STATUS.md`.
-For the shared mismatch vocabulary, see `corpora/TAXONOMY.md`.
+For the current browser accuracy and benchmark results, see `status/dashboard.json`. For the current corpus results, see `corpora/dashboard.json`. `corpora/TAXONOMY.md` defines the mismatch categories. Current browser and OS bugs and workarounds live in `PLATFORM_BUGS.md`.
 
-## Current steering summary
-
-This log is historical. The current practical steering picture is:
-
-- Japanese has two real canaries (`羅生門`, `蜘蛛の糸`), both clean at anchor widths and both still exposing a small positive one-line field on broader Chrome sweeps.
-- Chinese has two long-form canaries (`祝福`, `故鄉`) showing the same broad Chrome-positive / Safari-clean split, with real font sensitivity between `Songti SC` and `PingFang SC`.
-- Myanmar still has two real canaries, now exact in Chrome with only a small positive one-line Safari field on this machine. The cross-machine movement keeps it useful as a shaping/context frontier rather than an active tuning target.
-- Urdu has a font-sensitive Nastaliq/Naskh canary (`چغد`). The former broad narrow-width negative field collapsed to four shared positive one-line misses on the current machine, which reinforces that this is a shaping/font-environment class rather than dirty data. It remains parked rather than actively tuned.
-- Arabic coarse corpora are nearly clean, with one shared positive step10 miss in `رسالة الغفران`; the remaining work there is mostly a fine-width edge-fit class, not the old preprocessing/corpus-hygiene problems.
-- Mixed app text is exact again in the maintained Chrome/Safari step10 sweeps and still matters as the product-shaped regression canary for URLs, emoji ZWJ runs, hard spaces, and soft hyphens.
-
-## The problem: DOM measurement interleaving
+## DOM Measurement Interleaving
 
 When UI components independently measure text heights with DOM reads like `getBoundingClientRect()`, each read can force synchronous layout. If those reads interleave with writes, the browser can end up relaying out the whole document repeatedly.
 
-The goal here was always the same:
+Pretext avoids that repeated layout work by following three rules:
+
 - do the expensive text work once in `prepare()`
 - keep `layout()` arithmetic-only
-- make resize-driven relayout cheap and coordination-free
+- let components recalculate their text layout without coordinating DOM measurements
 
-## Approach 1: Canvas measureText + word-width caching
+## Current Measurement Design
 
 Canvas `measureText()` avoids DOM layout. It goes straight to the browser's font engine.
 
-That led to the basic two-phase model:
+The library uses two phases:
+
 - `prepare(text, font)` — segment text, measure segments, cache widths
 - `layout(prepared, maxWidth, lineHeight)` — walk cached widths with pure arithmetic
 
-That architecture held up. The broad browser sweeps are now clean in Chrome, Safari, and Firefox, and the hot `layout()` path is still the core product win.
+Across broad browser sweeps, this design remained accurate while `layout()` stayed fast enough for resize-driven work.
 
-## Rejected: DOM-based or string-reconstruction measurement in the hot path
+## Measurement Approaches We Rejected
 
 Several alternatives were tried and rejected:
 
@@ -44,301 +33,126 @@ Several alternatives were tried and rejected:
 - moving measurement into hidden DOM elements during `prepare()`
 - using SVG `getComputedTextLength()`
 
-The pattern was consistent:
-- they either reintroduced DOM reads
-- or they were slower than the current two-phase model
-- or they looked cleaner locally but regressed the actual benchmark path
+Each approach either reintroduced DOM reads, ran more slowly than the current two-phase design, or made the benchmark path slower despite simplifying one part of the code.
 
-The important keep was architectural, not algorithmic:
-- `layout()` stayed arithmetic-only on cached widths
+`layout()` therefore remains arithmetic-only and uses cached widths.
 
-## Discovery: system-ui font resolution mismatch
+## `system-ui` Font Resolution
 
-Canvas and DOM resolve `system-ui` to different font variants on macOS at certain sizes:
+Canvas and DOM resolved `system-ui` to different font variants on macOS at certain sizes in the [recorded scan](research-data/system-ui-size-scan.json). Mismatches clustered at `10-12px`, `14px`, and `26px`; `13px`, `15-25px`, and `27-28px` were exact.
 
-Machine-readable scan:
-- [research-data/system-ui-size-scan.json](research-data/system-ui-size-scan.json)
+Lookup tables, naive scaling, and guessed font substitutions were not reliable. If `system-ui` support becomes important enough, the plausible option is a narrow DOM fallback during `prepare()` for the affected browser and font-size combinations. Current findings and workarounds live in [PLATFORM_BUGS.md](PLATFORM_BUGS.md).
 
-In the recorded scan, mismatches clustered at `10-12px`, `14px`, and `26px`.
-`13px`, `15-25px`, and `27-28px` were exact.
+## Summing Segment Widths
 
-macOS uses SF Pro Text at smaller sizes and SF Pro Display at larger sizes. Canvas and DOM switch between them at different thresholds.
+Summing measured segments is very accurate, but not exact. Small differences between adjacent glyphs can accumulate enough to change a line break.
 
-Practical conclusion:
-- use a named font if accuracy matters
-- keep `system-ui` documented as unsafe
-- if we ever support it properly, the believable path is a narrow prepare-time DOM fallback for detected bad tuples
+Two preprocessing changes improved the browser results:
 
-What did **not** look trustworthy enough:
-- lookup tables
-- naive scaling
-- guessed resolved-font substitution
-
-## Discovery: word-by-word sum accuracy
-
-Canvas is internally consistent enough that summing measured segments works very well, but not perfectly. Over a full paragraph, tiny adjacency differences can accumulate into a line-edge error.
-
-The keeps were small and semantic:
 - merge punctuation into the preceding word before measuring
 - let trailing collapsible spaces hang instead of forcing a break
 
-What did **not** survive:
+We rejected:
+
 - full-string verification in `layout()`
 - uniform rescaling
 - generic pair-level correction models
 
-The broad lesson was that local semantic preprocessing paid off more than clever runtime correction.
+Local preprocessing improved the results more than runtime correction models.
 
-## Discovery: text-shaper is a useful reference, not a runtime replacement
+## `text-shaper`
 
-`text-shaper` was useful reference material, especially for Unicode coverage and bidi ideas, but not a replacement for the current browser-facing model.
+`text-shaper` is useful reference material for Unicode coverage and bidi, but its segmentation and line breaking do not match Pretext's `Intl.Segmenter`, preprocessing, and canvas measurements.
 
-What was worth taking:
-- broader Unicode coverage, e.g. missing CJK extension blocks
+It helped identify missing Unicode ranges, including CJK extension blocks.
 
-What was not worth taking:
+We did not adopt:
+
 - its segmentation as a runtime replacement for `Intl.Segmenter`
-- its paragraph breaker as a substitute for browser-parity layout
+- its paragraph breaker as a replacement for browser-matched layout
 
-Bottom line:
-- good reference material
-- wrong runtime center of gravity for this repo
+## `pre-wrap`
 
-## Discovery: preserving ordinary spaces, hard breaks, and numeric tab stops is viable
+The current `{ whiteSpace: 'pre-wrap' }` mode deliberately supports:
 
-The smallest honest second whitespace mode turned out to be:
-- preserve ordinary spaces
-- preserve `\n` hard breaks
-- preserve tabs with default browser-style tab stops
-- leave the other wrapping defaults alone
+- ordinary spaces
+- `\n` hard breaks
+- tabs with default browser-style tab stops
+- the other default wrapping behavior unchanged
 
-That became:
-- `{ whiteSpace: 'pre-wrap' }`
+The mode also follows these browser behaviors:
 
-What mattered:
 - preserved spaces still hang at line end
 - consecutive hard breaks keep empty lines
 - a trailing final hard break does **not** invent an extra empty line
 - tabs advance to the next default browser tab stop from the current line start
 
-The mode now covers the textarea-like cases we cared about, and the broad browser sweeps plus the dedicated `pre-wrap` oracle are green.
+The mode covers the textarea-like cases we need. Keep its permanent browser check small. A broader brute-force check can justify that coverage once, but does not need to remain in the repository afterward.
 
-One important tooling lesson also came out of this:
-- keep a small permanent oracle suite
-- justify it once with a broader brute-force validation pass
-- do not keep the brute-force pass forever once it has done its job
+## Emoji Widths
 
-## Discovery: emoji canvas/DOM width discrepancy
+Bitmap emoji do not scale linearly with `font-size`, so comparing canvas emoji width with the font size was inaccurate. Pretext instead compares canvas and DOM emoji widths for the same font, then caches the correction outside `layout()`. Current browser findings live in [PLATFORM_BUGS.md](PLATFORM_BUGS.md).
 
-Chrome and Firefox on macOS can measure emoji wider in canvas than in DOM at small sizes. Safari does not share the same discrepancy.
-
-What held up:
-- detect the discrepancy by comparing canvas emoji width against actual DOM emoji width per font
-- cache that correction
-- keep it outside the hot layout path
-
-This is now one of the small browser-profile shims that is actually justified.
-
-## Retired HarfBuzz probe path
+## HarfBuzz
 
 We briefly kept a headless HarfBuzz backend in the repo for server-side measurement probes.
 
-What it taught us:
-- it was useful for research and algorithm probes
-- it was not close enough to our active browser-grounded path to justify keeping it in the main repo
-- isolated Arabic words in that probe path needed explicit LTR direction to avoid misleading widths
+It was useful for research and algorithm experiments, but its measurements did not match the browser canvas and DOM measurements closely enough to keep in the main repository. Isolated Arabic words also needed explicit LTR direction in that backend to avoid misleading widths.
 
-So if HarfBuzz comes up again later, treat it as explored territory:
-- useful as a research reference
-- not the runtime direction for Pretext
-- not a substitute for browser-oracle or browser-canvas validation
+If HarfBuzz is reconsidered, use it as a research reference, not as Pretext's runtime or as a replacement for browser canvas and DOM comparisons.
 
-## Final browser sweep closure
+## Arabic
 
-The last browser mismatches were not fixed by moving more work into `layout()`. That regressed the hot path and was reverted.
+Changes and practices worth keeping for Arabic:
 
-What actually held up:
-- better preprocessing in `prepare()`
-- better browser diagnostics pages and scripts
-- a tiny browser-specific line-fit tolerance
-
-What did **not** change:
-- `layout()` stayed arithmetic-only
-
-That remains the right center of gravity for the project.
-
-## Arabic frontier
-
-Arabic took several passes, but the pattern is clearer now.
-
-What survived:
-- merge no-space Arabic punctuation clusters during `prepare()`
-  - e.g. `فيقول:وعليك`, `همزةٌ،ما`
-- treat Arabic punctuation-plus-mark clusters like `،ٍ` as left-sticky too
+- merge Arabic punctuation clusters without spaces during `prepare()`, e.g. `فيقول:وعليك` and `همزةٌ،ما`
+- keep Arabic punctuation-plus-mark clusters such as `،ٍ` attached to the preceding Arabic text
 - split `" " + combining marks` into plain space plus marks attached to the following word
-- use normalized slices and the exact corpus font during probe work
-- trust the better RTL diagnostics path instead of reconstructing offsets from rendered line text
-- clean obvious corpus/source artifacts instead of inventing new engine rules for them
-- allow a tiny non-Safari line-fit tolerance bump for the remaining positive fine-width field
+- use normalized text slices and the exact corpus font during diagnosis
+- use the RTL diagnostics instead of reconstructing offsets from rendered line text
+- remove clear artifacts in the source text instead of adding engine rules for them
+- allow a very small non-Safari line-fit tolerance justified by the measured width differences
 
-What did **not** survive:
+We rejected:
+
 - pair correction models at segment boundaries
 - larger Arabic run-slice width models
-- broad phrase-level heuristics derived from one good-looking probe
+- broad phrase-level rules derived from one successful example
 
-Those failed for the same reason in different sizes:
-- pair corrections were too local to move the real misses
-- run-slice widths were much heavier and still did not move the hard widths enough
-- both made `prepare()` or `layout()` materially worse without buying a clean Arabic field
+Pair corrections were too local to change the actual mismatches. Run-slice widths required much more work and still did not fix the remaining mismatched lines. Both approaches made `prepare()` or `layout()` slower without improving the Arabic corpus enough.
 
-So the useful guardrail is:
-- if an Arabic idea starts by adding more shaping-aware width caches inside the current segment-sum architecture, be skeptical early
-- the Arabic keeps so far have been preprocessing, corpus cleanup, diagnostics, and tiny tolerance shims, not richer width-cache models
+Be skeptical early when an Arabic change starts by adding more shaping-aware width caches inside the current segment-sum design. The useful Arabic changes so far have been preprocessing, source cleanup, better diagnostics, and small tolerance adjustments.
 
-Current read:
-- Arabic coarse corpora are healthy
-- the remaining work is much narrower now
-- the unresolved class looks like a mix of fine-width edge-fit and shaping/context, not another obvious preprocessing hole
+## Long-Form Corpora
 
-## Long-form corpus canaries
+The short accuracy sweep became a regression check; long-form corpora exposed patterns that repeat across real application text. Current counts belong in [corpora/dashboard.json](corpora/dashboard.json), not here.
 
-Once the main browser sweep became a regression gate, the long-form corpora became the real steering canaries.
+### Mixed Application Text
 
-### Mixed app text
+Book corpora do not cover application patterns such as URLs, escaped quotes, numeric expressions like `२४×७`, time ranges like `7:00-9:00`, emoji ZWJ sequences, non-breaking spaces, word joiners, and manual soft hyphens. The mixed-app corpus collects those cases in one place.
 
-This is the most product-shaped canary.
+URL queries needed a deliberately narrow representation: one breakable unit from the URL start through `?`, followed by a second unit for the query string. Treating the entire URL as one unit or splitting every query character both produced worse application behavior.
 
-What it has been good for:
-- URL/query-string handling
-- escaped quote clusters
-- numeric expressions like `२४×७`
-- time ranges like `7:00-9:00`
-- emoji ZWJ runs
-- manual soft hyphens
+When a soft hyphen is selected, the line must stop at the soft-hyphen boundary and materialize a trailing `-`. Packing later graphemes onto the same line disagreed with the browser and made the rich APIs reconstruct a different break.
 
-Important keep:
-- model URL/query strings as narrow structured units, not one giant breakable blob
+### Thai And Khmer
 
-Current status:
-- exact in the maintained Chrome and Safari `step=10` sweeps
-- the former Chrome-only `710px` soft-hyphen miss went away after keeping chosen soft-hyphen breaks at the SHY boundary instead of packing post-SHY graphemes
+Thai exposed a contextual ASCII quote rule rather than a general segmentation problem. Khmer confirmed that explicit zero-width separators in clean source text were useful input and should survive normalization.
 
-### Thai
-
-Thai exposed a product-shaped ASCII quote issue more than a dictionary-segmentation failure.
-
-The keep:
-- contextual ASCII quote glue during preprocessing
-
-Result:
-- two Thai prose corpora are healthy at anchor widths
-- maintained step10 sweeps stayed clean enough that Thai now looks broader than one lucky story
-
-### Khmer
-
-Khmer broadened the Southeast Asian class without immediately demanding new engine work.
-
-The keep:
-- preserve explicit zero-width separators from the source text
-
-Result:
-- anchor widths and the maintained step10 sweep were clean enough to keep Khmer as a real canary
-
-### Lao (rejected)
-
-The Lao corpus attempt was a source problem, not an engine problem.
-
-The raw text was wrapped print/legal text, which made it a dirty `white-space: normal` canary. We rejected it instead of normalizing nonsense into the repo.
+A Lao legal-text sample was rejected because the source contained fixed print wrapping. Using that sample under `white-space: normal` would have measured source formatting rather than language behavior.
 
 ### Myanmar
 
-Myanmar is still the main unresolved Southeast Asian frontier.
+Myanmar punctuation `၊`, `။`, `၍`, `၌`, and `၏` needed to stay with preceding text. The possessive marker `၏` also needed to stay with the following word in text such as `ကျွန်ုပ်၏လက်မ`.
 
-What survived:
-- treat `၊` / `။` / `၍` / `၌` / `၏` as left-sticky during preprocessing
-- treat `၏` as medial glue in clusters like `ကျွန်ုပ်၏လက်မ`
+Broader grapheme breaking and closing-quote-plus-follower rules improved one browser while hurting another. Those results showed shaping and context sensitivity, but did not justify another global preprocessing rule.
 
-What did **not** survive:
-- broad Myanmar grapheme breaking in ordinary wrapping
-- quote-follower glue like closing-quote + `ဟု`
+### Japanese And Chinese
 
-Current read:
-- there are real recurring classes here
-- but the obvious tempting heuristics improved one browser and hurt another
-- that makes Myanmar a canary, not a license for more instinctive glue rules
+Japanese iteration marks such as `ゝ`, `ゞ`, `ヽ`, and `ヾ` must not begin a line, so preprocessing keeps them with the preceding kana.
 
-### Japanese
+The remaining Japanese and Chinese differences varied with browser, width, and font. That variation showed the limit of a width-independent grapheme-sum model in proportional CJK fonts. A one-line difference in one corpus is not enough reason to add another punctuation rule.
 
-Japanese gave us one real semantic keep:
-- kana iteration marks like `ゝ` / `ゞ` / `ヽ` / `ヾ` should be treated as CJK line-start-prohibited
+### Font Matrices
 
-What remains:
-- a small context-width class around punctuation/quote compression
-- good evidence for the exactness ceiling of a width-independent grapheme-sum model in proportional Japanese fonts
-
-So Japanese stays as a canary, not as a place to keep stacking narrow punctuation rules.
-
-### Chinese
-
-Chinese is now the clearest active CJK canary.
-
-What we learned:
-- Safari is clean on the maintained step10 sweep
-- Chrome keeps a broader narrow-width positive field
-- the field changes with font choice (`Songti SC` vs `PingFang SC`)
-
-What did **not** survive:
-- carrying closing punctuation forward
-- coalescing repeated punctuation runs like `——` or `……`
-
-Current read:
-- the remaining Chinese field is real
-- it is not another obvious punctuation bug
-- it is best treated as a canary for the model’s current exactness ceiling
-
-### Sampled cross-font corpus matrix
-
-The first cross-font pass was reassuring:
-- Korean, Thai, Khmer, Hindi, Arabic, and Hebrew all stayed exact across the sampled Chrome matrix on this machine
-
-That does **not** mean font fragility is gone. It just means the next likely surprises are:
-- new scripts
-- finer width sweeps
-- or product-shaped mixed text
-
-## Segment metrics cache
-
-The cache used to store just widths. It now stores richer per-segment metrics and computes the more expensive derived facts lazily.
-
-Current useful cached facts include:
-- width
-- `containsCJK`
-- lazily computed emoji count
-- lazily computed grapheme widths
-
-That improved repeated `prepare()` work without moving any live measurement back into `layout()`.
-
-## Soft hyphen support
-
-Soft hyphen became a real internal break kind instead of ordinary text.
-
-What that bought us:
-- unbroken lines keep it invisible
-- broken lines can expose a visible trailing `-`
-- rich APIs stay aligned with the actual break choice
-
-This was a genuine model improvement, not just a cosmetic API change.
-
-## What Sebastian already knew
-
-Sebastian’s original prototype already had the right overall instinct:
-- words/runs as the unit of caching
-- browser-grounded measurement
-- streamed greedy line breaking
-
-What changed here was mostly engineering discipline:
-- caching
-- a clean `prepare()` / `layout()` split
-- preprocessing
-- browser diagnostics
-- and a willingness to keep the hot path simple
+The first sampled font matrix showed that some differences move when the font changes while other scripts remain stable. Font matrices are therefore most useful after a specific corpus exposes a problem. Running every corpus under every installed font adds cost without identifying the responsible text pattern.

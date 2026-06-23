@@ -44,7 +44,6 @@ import {
   kinsokuStart,
   leftStickyPunctuation,
   setAnalysisLocale,
-  type AnalysisChunk,
   type SegmentBreakKind,
   type TextAnalysis,
   type WhiteSpaceMode,
@@ -59,6 +58,7 @@ import {
   getFontMeasurementState,
   getSegmentMetrics,
   textMayContainEmoji,
+  type SegmentMetrics,
 } from './measurement.js'
 import {
   countPreparedLines,
@@ -411,13 +411,14 @@ function measureAnalysis(
   const lineEndFitAdvances: number[] = []
   const lineEndPaintAdvances: number[] = []
   const kinds: SegmentBreakKind[] = []
-  let simpleLineWalkFastPath = analysis.chunks.length <= 1 && !hasLetterSpacing
+  let simpleLineWalkFastPath = !hasLetterSpacing
   const segStarts = includeSegments ? [] as number[] : null
   const breakableFitAdvances: (number[] | null)[] = []
   const breakablePreferredBreaks: (number[] | null)[] = []
   const spacingGraphemeCounts: number[] = []
   const segments = includeSegments ? [] as string[] : null
-  const preparedStartByAnalysisIndex = Array.from<number>({ length: analysis.len })
+  const chunks: PreparedLineChunk[] = []
+  let chunkStartSegmentIndex = 0
 
   function pushMeasuredSegment(
     text: string,
@@ -446,12 +447,12 @@ function measureAnalysis(
 
   function pushMeasuredTextSegment(
     text: string,
+    textMetrics: SegmentMetrics,
     kind: SegmentBreakKind,
     start: number,
     wordLike: boolean,
     allowOverflowBreaks: boolean,
   ): void {
-    const textMetrics = getSegmentMetrics(text, cache)
     const spacingGraphemeCount = hasLetterSpacing
       ? countRenderedSpacingGraphemes(text, kind)
       : 0
@@ -521,7 +522,6 @@ function measureAnalysis(
   }
 
   for (let mi = 0; mi < analysis.len; mi++) {
-    preparedStartByAnalysisIndex[mi] = widths.length
     const segText = analysis.texts[mi]!
     const segWordLike = analysis.isWordLike[mi]!
     const segKind = analysis.kinds[mi]!
@@ -543,7 +543,14 @@ function measureAnalysis(
     }
 
     if (segKind === 'hard-break') {
+      const endSegmentIndex = widths.length
       pushMeasuredSegment(segText, 0, 0, 0, segKind, segStart, null, null, 0)
+      chunks.push({
+        startSegmentIndex: chunkStartSegmentIndex,
+        endSegmentIndex,
+        consumedEndSegmentIndex: widths.length,
+      })
+      chunkStartSegmentIndex = widths.length
       continue
     }
 
@@ -572,21 +579,29 @@ function measureAnalysis(
 
       for (let i = 0; i < measuredUnits.length; i++) {
         const unit = measuredUnits[i]!
+        const unitMetrics = getSegmentMetrics(unit.text, cache)
         pushMeasuredTextSegment(
           unit.text,
+          unitMetrics,
           'text',
           segStart + unit.start,
           segWordLike,
-          wordBreak === 'keep-all' || !isCJK(unit.text),
+          wordBreak === 'keep-all' || !unitMetrics.containsCJK,
         )
       }
       continue
     }
 
-    pushMeasuredTextSegment(segText, segKind, segStart, segWordLike, true)
+    pushMeasuredTextSegment(segText, segMetrics, segKind, segStart, segWordLike, true)
   }
 
-  const chunks = mapAnalysisChunksToPreparedChunks(analysis.chunks, preparedStartByAnalysisIndex, widths.length)
+  if (chunkStartSegmentIndex < widths.length) {
+    chunks.push({
+      startSegmentIndex: chunkStartSegmentIndex,
+      endSegmentIndex: widths.length,
+      consumedEndSegmentIndex: widths.length,
+    })
+  }
   const segLevels = segStarts === null ? null : computeSegmentLevels(analysis.normalized, segStarts)
   if (segments !== null) {
     return {
@@ -621,36 +636,6 @@ function measureAnalysis(
     tabStopAdvance,
     chunks,
   } as unknown as InternalPreparedText
-}
-
-function mapAnalysisChunksToPreparedChunks(
-  chunks: AnalysisChunk[],
-  preparedStartByAnalysisIndex: number[],
-  preparedEndSegmentIndex: number,
-): PreparedLineChunk[] {
-  const preparedChunks: PreparedLineChunk[] = []
-  for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i]!
-    const startSegmentIndex =
-      chunk.startSegmentIndex < preparedStartByAnalysisIndex.length
-        ? preparedStartByAnalysisIndex[chunk.startSegmentIndex]!
-        : preparedEndSegmentIndex
-    const endSegmentIndex =
-      chunk.endSegmentIndex < preparedStartByAnalysisIndex.length
-        ? preparedStartByAnalysisIndex[chunk.endSegmentIndex]!
-        : preparedEndSegmentIndex
-    const consumedEndSegmentIndex =
-      chunk.consumedEndSegmentIndex < preparedStartByAnalysisIndex.length
-        ? preparedStartByAnalysisIndex[chunk.consumedEndSegmentIndex]!
-        : preparedEndSegmentIndex
-
-    preparedChunks.push({
-      startSegmentIndex,
-      endSegmentIndex,
-      consumedEndSegmentIndex,
-    })
-  }
-  return preparedChunks
 }
 
 function prepareInternal(
