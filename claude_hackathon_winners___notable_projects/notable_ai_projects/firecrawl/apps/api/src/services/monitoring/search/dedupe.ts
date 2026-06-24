@@ -1,0 +1,33 @@
+import { createHash } from "node:crypto";
+import { normalizeUrl } from "../../../lib/canonical-url";
+
+export function canonicalizeUrl(raw: string): string {
+  return normalizeUrl(String(raw || "")).toLowerCase();
+}
+
+export function computeGoalVersion(
+  goal: string | null,
+  subject: string | null,
+  queries: string[],
+): string {
+  return createHash("sha256")
+    .update([goal ?? "", subject ?? "", ...[...queries].sort()].join(" "))
+    .digest("hex")
+    .slice(0, 16);
+}
+
+export function stableSerpFingerprint(src: {
+  url?: string;
+  title?: string;
+  snippet?: string;
+  description?: string;
+}): string {
+  const text = [src.title, src.snippet ?? src.description]
+    .filter(Boolean)
+    .join("\n")
+    .trim();
+  return createHash("sha256")
+    .update(text || canonicalizeUrl(src.url ?? ""))
+    .digest("hex")
+    .slice(0, 24);
+}

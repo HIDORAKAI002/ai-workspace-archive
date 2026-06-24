@@ -338,6 +338,36 @@ type MonitorSchedule struct {
 	Timezone string `json:"timezone,omitempty"`
 }
 
+// MonitorSearchTarget is a search monitor target. It is one variant of the
+// monitor target union (alongside scrape and crawl targets) used in the
+// Targets field of monitor requests and the Monitor struct.
+type MonitorSearchTarget struct {
+	ID             string   `json:"id,omitempty"`
+	Type           string   `json:"type"`
+	Queries        []string `json:"queries"`
+	SearchWindow   string   `json:"searchWindow,omitempty"`
+	IncludeDomains []string `json:"includeDomains,omitempty"`
+	ExcludeDomains []string `json:"excludeDomains,omitempty"`
+	MaxResults     *int     `json:"maxResults,omitempty"`
+}
+
+// MonitorSearchTargetResult is the per-target result for a search target on a
+// monitor check. It is one variant of the monitor target-result union
+// (alongside scrape and crawl results) found in a check's TargetResults.
+type MonitorSearchTargetResult struct {
+	TargetID        string   `json:"targetId"`
+	Type            string   `json:"type"`
+	SearchCompleted *bool    `json:"searchCompleted,omitempty"`
+	ResultCount     *int     `json:"resultCount,omitempty"`
+	Matches         *int     `json:"matches,omitempty"`
+	Summary         string   `json:"summary,omitempty"`
+	JudgeDegraded   *bool    `json:"judgeDegraded,omitempty"`
+	DegradedReason  *string  `json:"degradedReason,omitempty"`
+	SearchCredits   *float64 `json:"searchCredits,omitempty"`
+	JudgeCredits    *float64 `json:"judgeCredits,omitempty"`
+	ResultsJudged   *int     `json:"resultsJudged,omitempty"`
+}
+
 // MonitorCreateRequest creates a scheduled monitor.
 //
 // Goal is an optional natural-language description of what the monitor is

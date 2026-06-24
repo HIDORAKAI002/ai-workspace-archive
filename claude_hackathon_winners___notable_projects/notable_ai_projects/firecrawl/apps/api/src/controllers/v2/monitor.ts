@@ -294,6 +294,24 @@ export async function updateMonitorController(
   }
 
   const input = updateMonitorSchema.parse(req.body);
+
+  const mergedTargets = input.targets ?? existing.targets;
+  const mergedGoal = input.goal !== undefined ? input.goal : existing.goal;
+  const mergedJudgeEnabled =
+    input.judgeEnabled !== undefined
+      ? input.judgeEnabled
+      : existing.judge_enabled;
+  if (
+    mergedTargets.some(t => t.type === "search") &&
+    mergedJudgeEnabled !== false &&
+    (typeof mergedGoal !== "string" || mergedGoal.trim().length === 0)
+  ) {
+    return res.status(400).json({
+      success: false,
+      error: "A search target requires a non-empty goal",
+    });
+  }
+
   const cron = input.schedule?.cron ?? existing.schedule_cron;
   const timezone = input.schedule?.timezone ?? existing.schedule_timezone;
   let schedule;
@@ -584,7 +602,11 @@ const emailActionBodySchema = z.object({
 type EmailActionResponse =
   | {
       success: true;
-      result: "confirmed" | "already_confirmed" | "unsubscribed" | "already_unsubscribed";
+      result:
+        | "confirmed"
+        | "already_confirmed"
+        | "unsubscribed"
+        | "already_unsubscribed";
       email: string;
       monitorName: string | null;
     }
@@ -592,7 +614,6 @@ type EmailActionResponse =
       success: false;
       error: "invalid_token" | "not_found" | "internal_error";
     };
-
 
 function parseTokenFromRequest(req: { body?: unknown }): string | null {
   const candidate =

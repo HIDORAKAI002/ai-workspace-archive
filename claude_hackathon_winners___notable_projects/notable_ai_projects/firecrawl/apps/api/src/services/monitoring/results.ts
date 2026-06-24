@@ -36,7 +36,7 @@ interface PageJudgment {
   }>;
 }
 
-async function sendMonitorPageWebhook(params: {
+export async function sendMonitorPageWebhook(params: {
   teamId: string;
   monitorId: string;
   checkId: string;
