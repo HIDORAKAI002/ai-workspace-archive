@@ -78,6 +78,38 @@ defmodule FirecrawlTest do
     end
   end
 
+  test "create_monitor accepts a search target" do
+    Application.put_env(:firecrawl, :api_key, "test-key")
+    on_exit(fn -> Application.delete_env(:firecrawl, :api_key) end)
+
+    result =
+      Firecrawl.create_monitor(
+        [
+          name: "search monitor",
+          schedule: [interval: "24h"],
+          goal: "Track new mentions",
+          judge_enabled: true,
+          targets: [
+            [
+              type: "search",
+              queries: ["firecrawl"],
+              search_window: "24h",
+              include_domains: ["example.com"],
+              exclude_domains: [],
+              max_results: 10
+            ]
+          ]
+        ],
+        base_url: "http://localhost:1",
+        retry: false
+      )
+
+    # Validation passes (it is not a ValidationError); the request itself fails
+    # because the base_url is unreachable.
+    assert {:error, error} = result
+    refute match?(%NimbleOptions.ValidationError{}, error)
+  end
+
   test "accepts atom values for enum params" do
     Application.put_env(:firecrawl, :api_key, "test-key")
     on_exit(fn -> Application.delete_env(:firecrawl, :api_key) end)

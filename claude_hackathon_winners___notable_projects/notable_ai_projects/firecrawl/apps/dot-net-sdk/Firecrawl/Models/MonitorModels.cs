@@ -78,6 +78,82 @@ public class UpdateMonitorRequest
     public bool? JudgeEnabled { get; set; }
 }
 
+/// <summary>
+/// Strongly-typed representation of a search target stored on a monitor
+/// (<c>type</c> = <c>"search"</c>), alongside the scrape and crawl targets.
+/// Monitor request/response models expose targets as untyped
+/// <see cref="Dictionary{TKey, TValue}"/> entries; use this type to build a
+/// search target and re-serialize it into that dictionary shape, or to
+/// re-deserialize a target entry when its <c>type</c> is <c>"search"</c>.
+/// </summary>
+public class MonitorSearchTarget
+{
+    [JsonPropertyName("id")]
+    public string? Id { get; set; }
+
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "search";
+
+    [JsonPropertyName("queries")]
+    public List<string> Queries { get; set; } = new();
+
+    /// <summary>One of <c>5m</c>, <c>15m</c>, <c>1h</c>, <c>6h</c>, <c>24h</c>, <c>7d</c>.</summary>
+    [JsonPropertyName("searchWindow")]
+    public string? SearchWindow { get; set; }
+
+    [JsonPropertyName("includeDomains")]
+    public List<string>? IncludeDomains { get; set; }
+
+    [JsonPropertyName("excludeDomains")]
+    public List<string>? ExcludeDomains { get; set; }
+
+    [JsonPropertyName("maxResults")]
+    public int? MaxResults { get; set; }
+}
+
+/// <summary>
+/// Strongly-typed per-target result for a search target (<c>type</c> =
+/// <c>"search"</c>) on a monitor check, alongside the scrape and crawl
+/// target results. Monitor checks expose <c>targetResults</c> as an
+/// untyped <see cref="object"/>; re-deserialize an entry into this type
+/// when its <c>type</c> is <c>"search"</c>.
+/// </summary>
+public class MonitorSearchTargetResult
+{
+    [JsonPropertyName("targetId")]
+    public string? TargetId { get; set; }
+
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "search";
+
+    [JsonPropertyName("searchCompleted")]
+    public bool? SearchCompleted { get; set; }
+
+    [JsonPropertyName("resultCount")]
+    public int? ResultCount { get; set; }
+
+    [JsonPropertyName("matches")]
+    public int? Matches { get; set; }
+
+    [JsonPropertyName("summary")]
+    public string? Summary { get; set; }
+
+    [JsonPropertyName("judgeDegraded")]
+    public bool? JudgeDegraded { get; set; }
+
+    [JsonPropertyName("degradedReason")]
+    public string? DegradedReason { get; set; }
+
+    [JsonPropertyName("searchCredits")]
+    public double? SearchCredits { get; set; }
+
+    [JsonPropertyName("judgeCredits")]
+    public double? JudgeCredits { get; set; }
+
+    [JsonPropertyName("resultsJudged")]
+    public int? ResultsJudged { get; set; }
+}
+
 public class MonitorSummary
 {
     [JsonPropertyName("totalPages")]

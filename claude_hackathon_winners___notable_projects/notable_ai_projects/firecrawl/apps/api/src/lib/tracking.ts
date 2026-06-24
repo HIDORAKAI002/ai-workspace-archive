@@ -116,6 +116,9 @@ function estimateMonitorTargetCredits(target: MonitorTarget): number {
   if (target.type === "scrape") {
     return target.urls.length;
   }
+  if (target.type === "search") {
+    return target.maxResults;
+  }
 
   return positiveIntegerOrNull(target.crawlOptions?.limit) ?? 10000;
 }
@@ -125,6 +128,18 @@ function monitorTargetSignature(target: MonitorTarget): string {
     return hashSignature({
       type: "scrape",
       urls: target.urls.map(normalizeTrackingUrl).sort(),
+    });
+  }
+  if (target.type === "search") {
+    return hashSignature({
+      type: "search",
+      queries: [...target.queries].sort(),
+      searchWindow: target.searchWindow,
+      alertMode: target.alertMode,
+      maxResults: target.maxResults,
+      depth: target.depth ?? null,
+      includeDomains: [...(target.includeDomains ?? [])].sort(),
+      excludeDomains: [...(target.excludeDomains ?? [])].sort(),
     });
   }
 

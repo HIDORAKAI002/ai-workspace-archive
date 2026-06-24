@@ -475,4 +475,59 @@ public class ModelsTests
         Assert.NotNull(response.InvalidURLs);
         Assert.Single(response.InvalidURLs);
     }
+
+    [Fact]
+    public void MonitorSearchTarget_SerializesCorrectly()
+    {
+        var target = new MonitorSearchTarget
+        {
+            Queries = new List<string> { "firecrawl pricing", "firecrawl changelog" },
+            SearchWindow = "24h",
+            IncludeDomains = new List<string> { "firecrawl.dev" },
+            ExcludeDomains = new List<string> { "example.com" },
+            MaxResults = 10
+        };
+
+        var json = JsonSerializer.Serialize(target, JsonOptions);
+        Assert.Contains("\"type\":\"search\"", json);
+        Assert.Contains("\"queries\"", json);
+        Assert.Contains("\"searchWindow\":\"24h\"", json);
+        Assert.Contains("\"includeDomains\"", json);
+        Assert.Contains("\"excludeDomains\"", json);
+        Assert.Contains("\"maxResults\":10", json);
+    }
+
+    [Fact]
+    public void MonitorSearchTargetResult_DeserializesCorrectly()
+    {
+        var json = """
+        {
+            "targetId": "tgt-1",
+            "type": "search",
+            "searchCompleted": true,
+            "resultCount": 5,
+            "matches": 2,
+            "summary": "Two new results matched.",
+            "judgeDegraded": false,
+            "degradedReason": null,
+            "searchCredits": 5,
+            "judgeCredits": 1,
+            "resultsJudged": 5
+        }
+        """;
+
+        var result = JsonSerializer.Deserialize<MonitorSearchTargetResult>(json, JsonOptions);
+        Assert.NotNull(result);
+        Assert.Equal("tgt-1", result.TargetId);
+        Assert.Equal("search", result.Type);
+        Assert.True(result.SearchCompleted);
+        Assert.Equal(5, result.ResultCount);
+        Assert.Equal(2, result.Matches);
+        Assert.Equal("Two new results matched.", result.Summary);
+        Assert.False(result.JudgeDegraded);
+        Assert.Null(result.DegradedReason);
+        Assert.Equal(5, result.SearchCredits);
+        Assert.Equal(1, result.JudgeCredits);
+        Assert.Equal(5, result.ResultsJudged);
+    }
 }

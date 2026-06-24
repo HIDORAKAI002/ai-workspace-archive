@@ -10,6 +10,10 @@ import {
   estimateRunsPerMonth,
   validateMonitorCron,
 } from "./cron";
+import {
+  searchCreditsForResultCount,
+  judgeCreditsForJudgedCount,
+} from "./search/billing";
 import type {
   CreateMonitorRequest,
   MonitorCheckPageInsert,
@@ -138,10 +142,38 @@ function estimateBaseCreditsPerPage(
   return credits;
 }
 
-function estimateTargetBaseCredits(target: MonitorTarget): number {
+function estimateSearchJudgedResults(
+  target: Extract<MonitorTarget, { type: "search" }>,
+): number {
+  return Math.max(1, target.maxResults);
+}
+
+function estimateSearchTargetCredits(
+  target: Extract<MonitorTarget, { type: "search" }>,
+  judgeEnabled: boolean,
+): number {
+  const rawResults =
+    Math.max(1, target.maxResults) * Math.max(1, target.queries.length);
+  const searchCallCredits = searchCreditsForResultCount(rawResults, false);
+  if (target.depth === "raw" || !judgeEnabled) {
+    return searchCallCredits;
+  }
+  return (
+    searchCallCredits +
+    judgeCreditsForJudgedCount(estimateSearchJudgedResults(target))
+  );
+}
+
+function estimateTargetBaseCredits(
+  target: MonitorTarget,
+  judgeEnabled: boolean = false,
+): number {
   const creditsPerPage = estimateBaseCreditsPerPage(target.scrapeOptions);
   if (target.type === "scrape") {
     return target.urls.length * creditsPerPage;
+  }
+  if (target.type === "search") {
+    return estimateSearchTargetCredits(target, judgeEnabled);
   }
 
   const limit =
@@ -154,6 +186,9 @@ function estimateTargetBaseCredits(target: MonitorTarget): number {
 function estimateTargetPageCount(target: MonitorTarget): number {
   if (target.type === "scrape") {
     return target.urls.length;
+  }
+  if (target.type === "search") {
+    return target.maxResults;
   }
 
   const limit =
@@ -168,13 +203,16 @@ export function estimateMonitorCreditsPerRun(
   judgeEnabled: boolean = false,
 ): number {
   const baseCredits = targets.reduce(
-    (sum, target) => sum + estimateTargetBaseCredits(target),
+    (sum, target) => sum + estimateTargetBaseCredits(target, judgeEnabled),
     0,
   );
+  // Per-page judge allowance is scrape/crawl only (search judging is folded in above).
   const judgeCredits = judgeEnabled
     ? targets.reduce(
         (sum, target) =>
-          sum + estimateTargetPageCount(target) * JUDGE_CREDITS_PER_PAGE,
+          target.type === "search"
+            ? sum
+            : sum + estimateTargetPageCount(target) * JUDGE_CREDITS_PER_PAGE,
         0,
       )
     : 0;
@@ -254,12 +292,21 @@ export function calculateMonitorCheckActualCreditsFromPages(
       return 0;
     }
 
-    // A persisted judgment means the judge ran for this page. Charge for that
-    // invocation whether the verdict was meaningful or not.
+    // Search is billed at the check level (see flatSearchTargetCredits).
+    const target = targetsById.get(page.target_id ?? "");
+    if (target?.type === "search") {
+      return 0;
+    }
     return JUDGE_CREDITS_PER_PAGE;
   }
 
   return pages.reduce((total, page) => {
+    // Search pages carry no per-page credit — billed at check level.
+    const target = targetsById.get(page.target_id ?? "");
+    if (target?.type === "search") {
+      return total;
+    }
+
     const metadata = page.metadata as MonitorCreditMetadata | null;
     const recordedCredits = metadata?.creditsUsed;
     let baseCredits = fallbackBaseCreditsForPage(page);
@@ -273,6 +320,29 @@ export function calculateMonitorCheckActualCreditsFromPages(
 
     const judgeCredits = judgeCreditsForPage(page);
     return total + baseCredits + judgeCredits;
+  }, 0);
+}
+
+// Sum the flat searchCredits + judgeCredits recorded on a check's target_results.
+export function flatSearchTargetCredits(targetResults: unknown): number {
+  if (!Array.isArray(targetResults)) return 0;
+  return targetResults.reduce((total: number, run: unknown) => {
+    if (!run || typeof run !== "object") return total;
+    const r = run as {
+      type?: unknown;
+      searchCredits?: unknown;
+      judgeCredits?: unknown;
+    };
+    if (r.type !== "search") return total;
+    const searchCredits =
+      typeof r.searchCredits === "number" && Number.isFinite(r.searchCredits)
+        ? r.searchCredits
+        : 0;
+    const judgeCredits =
+      typeof r.judgeCredits === "number" && Number.isFinite(r.judgeCredits)
+        ? r.judgeCredits
+        : 0;
+    return total + searchCredits + judgeCredits;
   }, 0);
 }
 
@@ -847,8 +917,9 @@ export async function countMonitorCheckPages(params: {
 export async function calculateMonitorCheckActualCredits(params: {
   checkId: string;
   targets: MonitorTarget[];
+  targetResults?: unknown;
 }): Promise<number> {
-  let total = 0;
+  let total = flatSearchTargetCredits(params.targetResults);
   let offset = 0;
 
   while (true) {

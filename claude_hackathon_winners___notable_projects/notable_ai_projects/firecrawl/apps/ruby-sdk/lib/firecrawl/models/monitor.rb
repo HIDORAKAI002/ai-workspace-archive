@@ -2,6 +2,81 @@
 
 module Firecrawl
   module Models
+    # A scrape, crawl, or search target stored on a monitor.
+    #
+    # Targets are forwarded to the API verbatim, so callers may also pass
+    # plain Hashes with camelCase keys. This class is a convenience for
+    # building well-formed target payloads (and is what {#to_h} emits).
+    #
+    # Search targets (+type: "search"+) use the +queries+, +search_window+,
+    # +include_domains+, +exclude_domains+, and +max_results+ fields.
+    class MonitorTarget
+      attr_reader :id, :type, :urls, :url, :scrape_options, :crawl_options,
+                  :queries, :search_window, :include_domains,
+                  :exclude_domains, :max_results
+
+      def initialize(data)
+        @id = data["id"]
+        @type = data["type"]
+        @urls = data["urls"]
+        @url = data["url"]
+        @scrape_options = data["scrapeOptions"]
+        @crawl_options = data["crawlOptions"]
+        # search target fields
+        @queries = data["queries"]
+        @search_window = data["searchWindow"]
+        @include_domains = data["includeDomains"]
+        @exclude_domains = data["excludeDomains"]
+        @max_results = data["maxResults"]
+      end
+
+      def to_h
+        {
+          "id" => @id,
+          "type" => @type,
+          "urls" => @urls,
+          "url" => @url,
+          "scrapeOptions" => @scrape_options,
+          "crawlOptions" => @crawl_options,
+          "queries" => @queries,
+          "searchWindow" => @search_window,
+          "includeDomains" => @include_domains,
+          "excludeDomains" => @exclude_domains,
+          "maxResults" => @max_results,
+        }.compact
+      end
+    end
+
+    # A per-target result on a monitor check.
+    #
+    # Search targets (+type: "search"+) populate the +search_completed+,
+    # +result_count+, +matches+, +summary+, +judge_degraded+,
+    # +degraded_reason+, +search_credits+, +judge_credits+, and
+    # +results_judged+ fields.
+    class MonitorTargetResult
+      attr_reader :target_id, :type, :expected_jobs, :crawl_id,
+                  :search_completed, :result_count, :matches, :summary,
+                  :judge_degraded, :degraded_reason, :search_credits,
+                  :judge_credits, :results_judged
+
+      def initialize(data)
+        @target_id = data["targetId"]
+        @type = data["type"]
+        @expected_jobs = data["expectedJobs"]
+        @crawl_id = data["crawlId"]
+        # search target result fields
+        @search_completed = data["searchCompleted"]
+        @result_count = data["resultCount"]
+        @matches = data["matches"]
+        @summary = data["summary"]
+        @judge_degraded = data["judgeDegraded"]
+        @degraded_reason = data["degradedReason"]
+        @search_credits = data["searchCredits"]
+        @judge_credits = data["judgeCredits"]
+        @results_judged = data["resultsJudged"]
+      end
+    end
+
     class Monitor
       attr_reader :id, :name, :status, :schedule, :next_run_at, :last_run_at,
                   :current_check_id, :targets, :webhook, :notification,

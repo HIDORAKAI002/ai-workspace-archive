@@ -7,7 +7,14 @@ namespace Firecrawl\Models;
 final class Monitor
 {
     /**
-     * @param list<array<string, mixed>> $targets
+     * @param list<array<string, mixed>> $targets Each target array has a
+     *     `type` of `scrape`, `crawl`, or `search`, plus an optional
+     *     `id`. `scrape`/`crawl` targets carry `urls`/`url` and
+     *     `scrapeOptions`/`crawlOptions`. `search` targets carry
+     *     `queries` (list<string>, required) and optional
+     *     `searchWindow` (one of `5m`, `15m`, `1h`, `6h`, `24h`, `7d`),
+     *     `includeDomains` (list<string>), `excludeDomains`
+     *     (list<string>), and `maxResults` (int). All keys are camelCase.
      * @param array<string, mixed>|null  $schedule
      * @param array<string, mixed>|null  $webhook
      * @param array<string, mixed>|null  $notification
