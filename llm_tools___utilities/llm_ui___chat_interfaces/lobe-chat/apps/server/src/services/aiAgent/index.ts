@@ -1160,6 +1160,14 @@ export class AiAgentService {
       const fallbackTitleSource = markdownToTxt(prompt);
       const newTopic = await this.topicModel.create({
         agentId: resolvedAgentId,
+        // Persist the group association when running inside a group conversation.
+        // Without it the topic is created group-less and only shows under the
+        // member agent's topic list — never in the group sidebar (which queries
+        // `topics.groupId`), so the conversation silently "disappears" from the
+        // group. execGroupAgent normally pre-creates the topic, but any path
+        // that reaches execAgent without a topicId (e.g. the async/queue run)
+        // must carry the groupId through too. (LOBE-10604 / LOBE-10627)
+        groupId: appContext?.groupId,
         metadata,
         title:
           title !== undefined
@@ -1169,9 +1177,10 @@ export class AiAgentService {
       });
       topicId = newTopic.id;
       log(
-        'execAgent: created new topic %s with trigger %s, cronJobId %s',
+        'execAgent: created new topic %s with trigger %s, groupId %s, cronJobId %s',
         topicId,
         trigger || 'default',
+        appContext?.groupId || 'none',
         cronJobId || 'none',
       );
     } else {
@@ -1249,6 +1258,10 @@ export class AiAgentService {
           agentId: persistAgentId,
           content: prompt,
           files: runAttachments.fileIds,
+          // Group reads filter on messages.groupId (MessageModel.query group
+          // branch), so a group turn must stamp groupId or the message never
+          // shows when the topic is reopened. (LOBE-10604 / LOBE-10627)
+          groupId: appContext?.groupId ?? undefined,
           metadata: requestTriggerMetadata,
           role: 'user',
           threadId: appContext?.threadId ?? undefined,
@@ -1267,6 +1280,9 @@ export class AiAgentService {
     const assistantMessageRecord = await this.messageModel.create({
       agentId: persistAgentId,
       content: LOADING_FLAT,
+      // Stamp groupId so the assistant turn is visible in the group read path
+      // (MessageModel.query filters group chats by messages.groupId).
+      groupId: appContext?.groupId ?? undefined,
       model: isHeteroAgent ? undefined : model,
       parentId: parentMessageId ?? userMessageRecord?.id,
       provider: isHeteroAgent ? heteroType : provider,
