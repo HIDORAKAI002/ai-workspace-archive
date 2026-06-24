@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-24 20:14 IST] Auto-Sync
+- **32 Repositories Updated:** Public APIs Directory, Keboola MCP, Langfuse, n8n, Dify, Activepieces, Windmill, Budibase, Plane, modelcontextprotocol/java-sdk, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, openlit/openlit, open-telemetry/opentelemetry-python, firecrawl/firecrawl, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-24 13:39 IST] Auto-Sync
 - **34 Repositories Updated:** Public APIs Directory, Exa MCP Server, Awesome ChatGPT Prompts, n8n, Dify, Langflow, NocoDB, modelcontextprotocol/csharp-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, arize-ai/phoenix, Jenqyang/Awesome-AI-Agents, danny-avila/LibreChat, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent
 

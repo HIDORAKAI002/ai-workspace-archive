@@ -28,6 +28,7 @@ import {
   autumnService,
   CREDITS_FEATURE_ID,
 } from "../services/autumn/autumn.service";
+import { getTeamBalance } from "../services/autumn/usage";
 
 export function checkCreditsMiddleware(
   _minimum?: number,
@@ -70,16 +71,33 @@ export function checkCreditsMiddleware(
             });
           }
 
-          // Enforce 50-credit cap for unverified agent keys
+          // Enforce 50-credit cap for unverified agent keys. Autumn is the
+          // source of truth for credit usage now (not ACUC.adjusted_credits_used):
+          // getTeamBalance().usage is the team's credits used this period. If
+          // Autumn is unavailable we fail open (skip the cap), matching the
+          // Autumn-outage behavior of the main credit check below.
           const UNVERIFIED_CREDIT_LIMIT = 50;
-          if (req.acuc.adjusted_credits_used >= UNVERIFIED_CREDIT_LIMIT) {
+          let unverifiedCreditsUsed: number | null = null;
+          try {
+            const balance = await getTeamBalance(req.auth.team_id);
+            unverifiedCreditsUsed = balance?.usage ?? 0;
+          } catch (balanceError) {
+            logger.warn(
+              "Failed to fetch Autumn balance for unverified agent-key cap; failing open",
+              { error: balanceError, teamId: req.auth.team_id },
+            );
+          }
+          if (
+            unverifiedCreditsUsed !== null &&
+            unverifiedCreditsUsed >= UNVERIFIED_CREDIT_LIMIT
+          ) {
             return res.status(402).json({
               success: false,
               error: "unverified_credit_limit_reached",
               message:
                 "This agent key has used its 50 unverified credits. Ask the account holder to confirm the key to unlock full access.",
               credit_limit: UNVERIFIED_CREDIT_LIMIT,
-              credits_used: req.acuc.adjusted_credits_used,
+              credits_used: unverifiedCreditsUsed,
               sponsor_status: "pending",
               login_url: "https://firecrawl.dev/signin",
               upgrade_url: "https://firecrawl.dev/pricing",

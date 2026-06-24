@@ -290,6 +290,11 @@ export interface OpenAICompatibleFactoryOptions<T extends Record<string, any> = 
     | {
         transformModel?: (model: OpenAI.Model) => ChatModelCard;
       };
+  /**
+   * Additional provider-specific model patterns that support `prompt_cache_key`.
+   * OpenAI models are handled by the factory default; other providers must opt in.
+   */
+  promptCacheKeyModels?: Array<string | RegExp>;
   provider: string;
   responses?: {
     handlePayload?: (
@@ -310,6 +315,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
   models,
   customClient,
   responses,
+  promptCacheKeyModels,
   createImage: customCreateImage,
   createVideo: customCreateVideo,
   handleCreateVideoWebhook: customHandleCreateVideoWebhook,
@@ -478,8 +484,19 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
     private resolvePromptCacheKey(model?: string, user?: string) {
       if (!user) return;
 
-      // Keep the default key at {userId}:{model}; {agentId} can be added later if a narrower cache bucket is needed.
+      // Keep the default key at {userId}:{model}; {agentId/topicId} can be added later if a narrower cache bucket is needed.
       if (model?.startsWith('gpt-') || /^o\d/.test(model || '') || model === 'chat-latest') {
+        return `lobe:${user}:${model}`;
+      }
+
+      const matchesProviderPromptCacheModel = promptCacheKeyModels?.some((item) => {
+        if (!model) return false;
+        if (typeof item === 'string') return model.includes(item);
+
+        item.lastIndex = 0;
+        return item.test(model);
+      });
+      if (matchesProviderPromptCacheModel) {
         return `lobe:${user}:${model}`;
       }
     }

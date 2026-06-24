@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-import {
-  billTeam,
-  checkTeamCredits,
-} from "../../services/billing/credit_billing";
+import { billTeam } from "../../services/billing/credit_billing";
+import { autumnService } from "../../services/autumn/autumn.service";
 import { authenticateUser } from "../auth";
 import { RateLimiterMode, ScrapeJobSingleUrls } from "../../types";
 import { logSearch, logRequest } from "../../services/logging/log_job";
@@ -237,9 +235,13 @@ export async function searchController(req: Request, res: Response) {
     const searchOptions = req.body.searchOptions ?? { limit: 5 };
 
     try {
-      const { success: creditsCheckSuccess, message: creditsCheckMessage } =
-        await checkTeamCredits(chunk, team_id, 1);
-      if (!creditsCheckSuccess) {
+      const autumnResult = await autumnService.checkCredits({
+        teamId: team_id,
+        value: 1,
+        properties: { source: "v0/search" },
+      });
+      // null = Autumn unavailable / self-hosted -> fail open, matching v1/v2.
+      if (autumnResult !== null && !autumnResult.allowed) {
         return res.status(402).json({ error: "Insufficient credits" });
       }
     } catch (error) {
