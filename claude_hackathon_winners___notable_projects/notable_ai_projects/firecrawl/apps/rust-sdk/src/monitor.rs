@@ -48,6 +48,59 @@ pub struct UpdateMonitorRequest {
     pub judge_enabled: Option<bool>,
 }
 
+/// Search window for a [`MonitorSearchTarget`]: how far back the search
+/// should look for results on each run.
+#[derive(Deserialize, Serialize, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MonitorSearchWindow {
+    #[serde(rename = "5m")]
+    FiveMinutes,
+    #[serde(rename = "15m")]
+    FifteenMinutes,
+    #[serde(rename = "1h")]
+    OneHour,
+    #[serde(rename = "6h")]
+    SixHours,
+    #[serde(rename = "24h")]
+    TwentyFourHours,
+    #[serde(rename = "7d")]
+    SevenDays,
+}
+
+/// A search monitor target. Serialize this and place it (as JSON) into the
+/// `targets` of a [`CreateMonitorRequest`] or [`UpdateMonitorRequest`].
+///
+/// The `type` discriminator is always `"search"`.
+#[serde_with::skip_serializing_none]
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase", tag = "type", rename = "search")]
+pub struct MonitorSearchTarget {
+    pub id: Option<String>,
+    pub queries: Vec<String>,
+    pub search_window: Option<MonitorSearchWindow>,
+    pub include_domains: Option<Vec<String>>,
+    pub exclude_domains: Option<Vec<String>>,
+    pub max_results: Option<u32>,
+}
+
+/// Per-target result for a search target on a [`MonitorCheck`]. Decode the
+/// entries of [`MonitorCheck::target_results`] into this when the target's
+/// `type` is `"search"`.
+#[serde_with::skip_serializing_none]
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase", tag = "type", rename = "search")]
+pub struct MonitorSearchTargetResult {
+    pub target_id: String,
+    pub search_completed: Option<bool>,
+    pub result_count: Option<u32>,
+    pub matches: Option<u32>,
+    pub summary: Option<String>,
+    pub judge_degraded: Option<bool>,
+    pub degraded_reason: Option<String>,
+    pub search_credits: Option<f64>,
+    pub judge_credits: Option<f64>,
+    pub results_judged: Option<u32>,
+}
+
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MonitorSummary {
@@ -429,5 +482,86 @@ impl Client {
         let response: DataResponse<MonitorCheckDetail> =
             self.handle_response(response, "get monitor check").await?;
         Ok(response.data)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn search_target_serializes_to_camel_case_wire_format() {
+        let target = MonitorSearchTarget {
+            id: Some("t1".to_string()),
+            queries: vec![
+                "firecrawl funding".to_string(),
+                "firecrawl news".to_string(),
+            ],
+            search_window: Some(MonitorSearchWindow::TwentyFourHours),
+            include_domains: Some(vec!["techcrunch.com".to_string()]),
+            exclude_domains: None,
+            max_results: Some(10),
+        };
+
+        let json = serde_json::to_value(&target).unwrap();
+        assert_eq!(json["type"], "search");
+        assert_eq!(json["id"], "t1");
+        assert_eq!(json["queries"][0], "firecrawl funding");
+        assert_eq!(json["searchWindow"], "24h");
+        assert_eq!(json["includeDomains"][0], "techcrunch.com");
+        assert_eq!(json["maxResults"], 10);
+        // skip_serializing_none drops absent fields.
+        assert!(json.get("excludeDomains").is_none());
+    }
+
+    #[test]
+    fn search_target_round_trips() {
+        let raw = serde_json::json!({
+            "type": "search",
+            "queries": ["rust release"],
+            "searchWindow": "7d",
+            "maxResults": 5
+        });
+        let target: MonitorSearchTarget = serde_json::from_value(raw).unwrap();
+        assert_eq!(target.queries, vec!["rust release".to_string()]);
+        assert_eq!(target.search_window, Some(MonitorSearchWindow::SevenDays));
+        assert_eq!(target.max_results, Some(5));
+        assert!(target.id.is_none());
+    }
+
+    #[test]
+    fn search_target_result_deserializes_from_wire_format() {
+        let raw = serde_json::json!({
+            "targetId": "t1",
+            "type": "search",
+            "searchCompleted": true,
+            "resultCount": 12,
+            "matches": 3,
+            "summary": "Found new funding coverage",
+            "judgeDegraded": false,
+            "degradedReason": null,
+            "searchCredits": 2.5,
+            "judgeCredits": 1.0,
+            "resultsJudged": 12
+        });
+        let result: MonitorSearchTargetResult = serde_json::from_value(raw).unwrap();
+        assert_eq!(result.target_id, "t1");
+        assert_eq!(result.search_completed, Some(true));
+        assert_eq!(result.result_count, Some(12));
+        assert_eq!(result.matches, Some(3));
+        assert_eq!(
+            result.summary.as_deref(),
+            Some("Found new funding coverage")
+        );
+        assert_eq!(result.judge_degraded, Some(false));
+        assert_eq!(result.degraded_reason, None);
+        assert_eq!(result.search_credits, Some(2.5));
+        assert_eq!(result.judge_credits, Some(1.0));
+        assert_eq!(result.results_judged, Some(12));
+
+        let json = serde_json::to_value(&result).unwrap();
+        assert_eq!(json["type"], "search");
+        assert_eq!(json["targetId"], "t1");
+        assert_eq!(json["searchCredits"], 2.5);
     }
 }

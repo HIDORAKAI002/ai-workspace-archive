@@ -29,6 +29,16 @@ const crawlTarget: MonitorTarget = {
   scrapeOptions: {},
 };
 
+const searchTarget: MonitorTarget = {
+  id: "target-search",
+  type: "search",
+  queries: ["firecrawl launch"],
+  searchWindow: "24h",
+  alertMode: "first_match",
+  depth: "deep",
+  maxResults: 10,
+};
+
 describe("monitor target interest tracking", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -87,6 +97,32 @@ describe("monitor target interest tracking", () => {
     expect(rows[1].target_signature).toEqual(expect.any(String));
     expect(String(rows[1].target_signature)).toHaveLength(64);
     expect(rows[1].target_signature).not.toBe(rows[0].target_signature);
+  });
+
+  it("search target signatures distinguish maxResults and depth", () => {
+    const signatureFor = (target: MonitorTarget) =>
+      buildMonitorTargetInterestRows({
+        eventType: "configured",
+        teamId: "team-1",
+        monitorId: "monitor-1",
+        monitorStatus: "active",
+        scheduleCron: "0 * * * *",
+        scheduleTimezone: "UTC",
+        intervalMs: 60 * 60 * 1000,
+        targets: [target],
+        zeroDataRetention: false,
+      })[0].target_signature;
+
+    const base = signatureFor(searchTarget);
+    expect(signatureFor({ ...searchTarget })).toBe(base);
+    expect(signatureFor({ ...searchTarget, maxResults: 25 })).not.toBe(base);
+    expect(signatureFor({ ...searchTarget, depth: "standard" })).not.toBe(base);
+    expect(
+      signatureFor({ ...searchTarget, includeDomains: ["firecrawl.dev"] }),
+    ).not.toBe(base);
+    expect(
+      signatureFor({ ...searchTarget, excludeDomains: ["spam.example"] }),
+    ).not.toBe(base);
   });
 
   it("sends rows to the monitor target ClickHouse table", async () => {

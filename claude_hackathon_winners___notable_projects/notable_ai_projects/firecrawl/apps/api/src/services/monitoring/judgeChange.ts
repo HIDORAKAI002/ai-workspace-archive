@@ -1,6 +1,10 @@
 import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
 import type { Logger } from "winston";
+import {
+  googleModel,
+  googleProviderOptions,
+  type LlmUsageLabels,
+} from "./search/tuning";
 
 const SYSTEM_PROMPT = `You judge whether a webpage diff matters for the user's monitoring goal.
 
@@ -77,6 +81,9 @@ interface JudgeChangeArgs {
   markdownDiff?: {
     diffText?: string;
   };
+  // Vertex billing labels so this LLM call is traceable at the billing level by
+  // function, team, monitor, and monitor check (mirrors the search service).
+  labels?: LlmUsageLabels;
 }
 
 function isMeaningfulChangeEvent(
@@ -114,10 +121,11 @@ const JUDGE_MODEL_NAME = "gemini-3-flash-preview";
 const JUDGE_ATTEMPT_TIMEOUT_MS = 30_000;
 const JUDGE_MAX_ATTEMPTS = 3;
 const JUDGE_BACKOFF_MS = [300, 800];
-const judgeModel = google(JUDGE_MODEL_NAME);
+const judgeModel = googleModel(JUDGE_MODEL_NAME);
 
 async function callGemini(args: {
   userBlock: string;
+  labels?: LlmUsageLabels;
 }): Promise<{ text: string }> {
   let lastError: unknown;
   for (let attempt = 1; attempt <= JUDGE_MAX_ATTEMPTS; attempt++) {
@@ -133,6 +141,7 @@ async function callGemini(args: {
         prompt: args.userBlock,
         temperature: 0,
         abortSignal: controller.signal,
+        ...googleProviderOptions("judgeChange", args.labels),
       });
       return { text: result.text?.trim() ?? "" };
     } catch (error) {
@@ -151,7 +160,8 @@ async function callGemini(args: {
 export async function judgeChange(
   args: JudgeChangeArgs,
 ): Promise<JudgmentResult> {
-  const { logger, goal, extractionPrompt, jsonDiff, markdownDiff } = args;
+  const { logger, goal, extractionPrompt, jsonDiff, markdownDiff, labels } =
+    args;
 
   const parts: string[] = [`MONITOR GOAL:\n${goal.trim()}`];
   if (extractionPrompt?.trim()) {
@@ -180,7 +190,7 @@ export async function judgeChange(
   const userBlock = parts.join("\n\n");
 
   try {
-    const { text } = await callGemini({ userBlock });
+    const { text } = await callGemini({ userBlock, labels });
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) {
       logger.warn("Judge returned unparseable response", {

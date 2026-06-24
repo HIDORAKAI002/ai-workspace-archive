@@ -939,4 +939,97 @@ class ClientTest < Minitest::Test
     doc = @client.parse(file, Firecrawl::Models::ParseOptions.new(formats: ["markdown"]))
     assert_equal "# Parsed", doc.markdown
   end
+
+  # ================================================================
+  # MONITOR - SEARCH TARGET
+  # ================================================================
+
+  def test_create_monitor_forwards_search_target
+    captured = nil
+    stub_request(:post, "#{BASE_URL}/v2/monitor")
+      .with { |req| captured = JSON.parse(req.body); true }
+      .to_return(
+        status: 200,
+        body: JSON.generate(success: true, data: { id: "mon_1", judgeEnabled: true, goal: "g" }),
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    search_target = {
+      "type" => "search",
+      "queries" => ["firecrawl launch"],
+      "searchWindow" => "24h",
+      "includeDomains" => ["firecrawl.dev"],
+      "excludeDomains" => ["spam.com"],
+      "maxResults" => 20,
+    }
+
+    monitor = @client.create_monitor(
+      name: "Search monitor",
+      schedule: { "text" => "every 30 minutes" },
+      targets: [search_target],
+      goal: "g",
+      judge_enabled: true
+    )
+
+    assert_equal search_target, captured["targets"][0]
+    assert_equal "search", captured["targets"][0]["type"]
+    assert_equal "24h", captured["targets"][0]["searchWindow"]
+    assert_equal "g", monitor.goal
+    assert_equal true, monitor.judge_enabled
+  end
+
+  def test_monitor_search_target_model_to_h
+    target = Firecrawl::Models::MonitorTarget.new(
+      "type" => "search",
+      "queries" => ["a", "b"],
+      "searchWindow" => "1h",
+      "includeDomains" => ["x.com"],
+      "excludeDomains" => ["y.com"],
+      "maxResults" => 5
+    )
+
+    assert_equal "search", target.type
+    assert_equal ["a", "b"], target.queries
+    assert_equal "1h", target.search_window
+    assert_equal 5, target.max_results
+    assert_equal(
+      {
+        "type" => "search",
+        "queries" => ["a", "b"],
+        "searchWindow" => "1h",
+        "includeDomains" => ["x.com"],
+        "excludeDomains" => ["y.com"],
+        "maxResults" => 5,
+      },
+      target.to_h
+    )
+  end
+
+  def test_monitor_search_target_result_model
+    result = Firecrawl::Models::MonitorTargetResult.new(
+      "targetId" => "tgt_1",
+      "type" => "search",
+      "searchCompleted" => true,
+      "resultCount" => 10,
+      "matches" => 3,
+      "summary" => "found stuff",
+      "judgeDegraded" => false,
+      "degradedReason" => nil,
+      "searchCredits" => 1.5,
+      "judgeCredits" => 0.5,
+      "resultsJudged" => 8
+    )
+
+    assert_equal "tgt_1", result.target_id
+    assert_equal "search", result.type
+    assert_equal true, result.search_completed
+    assert_equal 10, result.result_count
+    assert_equal 3, result.matches
+    assert_equal "found stuff", result.summary
+    assert_equal false, result.judge_degraded
+    assert_nil result.degraded_reason
+    assert_in_delta 1.5, result.search_credits
+    assert_in_delta 0.5, result.judge_credits
+    assert_equal 8, result.results_judged
+  end
 end

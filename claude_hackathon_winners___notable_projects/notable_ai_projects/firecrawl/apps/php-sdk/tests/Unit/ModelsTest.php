@@ -13,6 +13,8 @@ use Firecrawl\Models\HighlightsFormat;
 use Firecrawl\Models\QueryFormat;
 use Firecrawl\Models\QuestionFormat;
 use Firecrawl\Models\ScrapeOptions;
+use Firecrawl\Models\Monitor;
+use Firecrawl\Models\MonitorCheck;
 
 it('hydrates CreditUsage from nested data key', function (): void {
     $response = [
@@ -366,3 +368,72 @@ it('serializes question and highlights formats in ScrapeOptions', function (): v
 it('rejects invalid query format mode', function (): void {
     QueryFormat::with('What is Firecrawl?', 'quoted');
 })->throws(InvalidArgumentException::class, "query mode must be 'freeform' or 'directQuote'");
+
+it('hydrates a search target and goal/judgeEnabled in Monitor', function (): void {
+    $monitor = Monitor::fromArray([
+        'id' => 'mon-1',
+        'name' => 'AI news',
+        'status' => 'active',
+        'goal' => 'Track new AI launches',
+        'judgeEnabled' => true,
+        'targets' => [
+            [
+                'id' => 'tgt-1',
+                'type' => 'search',
+                'queries' => ['firecrawl release', 'firecrawl changelog'],
+                'searchWindow' => '24h',
+                'includeDomains' => ['firecrawl.dev'],
+                'excludeDomains' => ['spam.example'],
+                'maxResults' => 10,
+            ],
+        ],
+    ]);
+
+    expect($monitor->getGoal())->toBe('Track new AI launches');
+    expect($monitor->getJudgeEnabled())->toBeTrue();
+    expect($monitor->getTargets())->toHaveCount(1);
+
+    $target = $monitor->getTargets()[0];
+    expect($target['type'])->toBe('search');
+    expect($target['queries'])->toBe(['firecrawl release', 'firecrawl changelog']);
+    expect($target['searchWindow'])->toBe('24h');
+    expect($target['includeDomains'])->toBe(['firecrawl.dev']);
+    expect($target['excludeDomains'])->toBe(['spam.example']);
+    expect($target['maxResults'])->toBe(10);
+});
+
+it('passes through a search target result on MonitorCheck', function (): void {
+    $check = MonitorCheck::fromArray([
+        'id' => 'chk-1',
+        'monitorId' => 'mon-1',
+        'status' => 'completed',
+        'targetResults' => [
+            [
+                'targetId' => 'tgt-1',
+                'type' => 'search',
+                'searchCompleted' => true,
+                'resultCount' => 7,
+                'matches' => 2,
+                'summary' => 'Two new launches detected.',
+                'judgeDegraded' => false,
+                'degradedReason' => null,
+                'searchCredits' => 7,
+                'judgeCredits' => 2,
+                'resultsJudged' => 7,
+            ],
+        ],
+    ]);
+
+    $results = $check->getTargetResults();
+    expect($results)->toBeArray();
+    expect($results[0]['type'])->toBe('search');
+    expect($results[0]['searchCompleted'])->toBeTrue();
+    expect($results[0]['resultCount'])->toBe(7);
+    expect($results[0]['matches'])->toBe(2);
+    expect($results[0]['summary'])->toBe('Two new launches detected.');
+    expect($results[0]['judgeDegraded'])->toBeFalse();
+    expect($results[0]['degradedReason'])->toBeNull();
+    expect($results[0]['searchCredits'])->toBe(7);
+    expect($results[0]['judgeCredits'])->toBe(2);
+    expect($results[0]['resultsJudged'])->toBe(7);
+});

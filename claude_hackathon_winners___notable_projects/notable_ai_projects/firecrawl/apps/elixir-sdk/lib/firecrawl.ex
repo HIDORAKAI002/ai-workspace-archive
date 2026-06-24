@@ -1465,6 +1465,22 @@ defmodule Firecrawl do
   Create a scheduled monitor.
 
   `POST /monitor`
+
+  ## Targets
+
+  `targets` is a list of maps/keyword lists. Each target is sent as-is (keys are
+  camelCased), so the supported target shapes are:
+
+    * Scrape: `[type: "scrape", url: "https://example.com", ...]`
+    * Crawl: `[type: "crawl", url: "https://example.com", ...]`
+    * Search:
+      `[type: "search", queries: ["term"], search_window: "24h",
+        include_domains: ["example.com"], exclude_domains: [],
+        max_results: 10]`
+      (`search_window` is one of `"5m"`, `"15m"`, `"1h"`, `"6h"`, `"24h"`,
+      `"7d"`; only `queries` is required.)
+
+  Optionally pass `goal` and `judge_enabled: true` to enable AI judging.
   """
   @spec create_monitor(keyword(), keyword()) :: response()
   def create_monitor(params \\ [], opts \\ []) do
