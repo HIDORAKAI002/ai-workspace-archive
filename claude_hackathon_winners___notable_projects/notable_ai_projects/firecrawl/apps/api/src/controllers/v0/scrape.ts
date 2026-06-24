@@ -1,6 +1,6 @@
 import { ExtractorOptions, PageOptions } from "./../../lib/entities";
 import { Request, Response } from "express";
-import { checkTeamCredits } from "../../services/billing/credit_billing";
+import { autumnService } from "../../services/autumn/autumn.service";
 import { authenticateUser } from "../auth";
 import { RateLimiterMode, AuthResponse } from "../../types";
 import { TeamFlags, toLegacyDocument, url as urlSchema } from "../v1/types";
@@ -254,11 +254,15 @@ export async function scrapeController(req: Request, res: Response) {
       timeout = req.body.timeout ?? 90000;
     }
 
-    // checkCredits
+    // checkCredits — Autumn is the source of truth for credits.
     try {
-      const { success: creditsCheckSuccess, message: creditsCheckMessage } =
-        await checkTeamCredits(chunk, team_id, 1);
-      if (!creditsCheckSuccess) {
+      const autumnResult = await autumnService.checkCredits({
+        teamId: team_id,
+        value: 1,
+        properties: { source: "v0/scrape" },
+      });
+      // null = Autumn unavailable / self-hosted -> fail open, matching v1/v2.
+      if (autumnResult !== null && !autumnResult.allowed) {
         earlyReturn = true;
         return res.status(402).json({
           error:

@@ -19,11 +19,14 @@ from django.utils import timezone
 # Third party imports
 from zxcvbn import zxcvbn
 
+from plane.bgtasks.user_activation_email_task import user_activation_email
+
 # Module imports
 from plane.db.models import FileAsset, Profile, User, WorkspaceMemberInvite
 from plane.license.utils.instance_value import get_configuration_value
 from plane.settings.storage import S3Storage
 from plane.utils.exception_logger import log_exception
+from plane.utils.host import base_host
 from plane.utils.ip_address import get_client_ip
 
 from .error import AUTHENTICATION_ERROR_CODES, AuthenticationException
@@ -236,7 +239,18 @@ class Adapter:
         user.last_login_ip = get_client_ip(request=self.request)
         user.last_login_uagent = self.request.META.get("HTTP_USER_AGENT")
         user.token_updated_at = timezone.now()
+        # Activate provisioned accounts that have never been deactivated.
+        # Explicitly-deactivated accounts are rejected earlier in
+        # complete_login_or_signup() before this method is ever reached.
+        # Save first so activation is persisted before the email side-effect fires.
+        was_inactive = not user.is_active
+        user.is_active = True
         user.save()
+        if was_inactive:
+            try:
+                user_activation_email.delay(base_host(request=self.request), user.id)
+            except Exception as e:
+                log_exception(e)
         return user
 
     def delete_old_avatar(self, user):
@@ -302,17 +316,22 @@ class Adapter:
         # Check if the user is present
         user = User.objects.filter(email=email).first()
 
-        # Reject deactivated accounts before any session or save logic.
-        # Without this check, save_user_data() would reactivate the account (GHSA-rmmf-rj2q-3rrg).
-        if user and not user.is_active:
+        # Reject explicitly-deactivated accounts (GHSA-rmmf-rj2q-3rrg).
+        # The deactivation endpoint always sets last_logout_time, so using it
+        # as the discriminator is more reliable than last_login_time: a
+        # provisioned account that was never deactivated has last_logout_time=None
+        # and is allowed through for its first login; an account deactivated via
+        # the API has last_logout_time set and is blocked regardless of whether
+        # it had previously logged in.
+        if user and not user.is_active and user.last_logout_time is not None:
             raise AuthenticationException(
                 error_code=AUTHENTICATION_ERROR_CODES["USER_ACCOUNT_DEACTIVATED"],
                 error_message="USER_ACCOUNT_DEACTIVATED",
                 payload={"email": email},
             )
 
-        # Check if sign up case or login
-        is_signup = bool(user)
+        # True = new user (signup), False = returning user (login)
+        is_signup = not bool(user)
         # If user is not present, create a new user
         if not user:
             # New user

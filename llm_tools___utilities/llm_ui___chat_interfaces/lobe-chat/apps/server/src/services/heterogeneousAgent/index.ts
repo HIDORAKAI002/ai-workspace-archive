@@ -1,7 +1,9 @@
 import type { AgentStreamEvent } from '@lobechat/agent-gateway-client';
+import type { ISnapshotStore } from '@lobechat/agent-tracing';
 import type { LobeChatDatabase } from '@lobechat/database';
 import debug from 'debug';
 
+import { AgentOperationModel } from '@/database/models/agentOperation';
 import { MessageModel } from '@/database/models/message';
 import { ThreadModel } from '@/database/models/thread';
 import { TopicModel } from '@/database/models/topic';
@@ -9,11 +11,13 @@ import { createStreamEventManager } from '@/server/modules/AgentRuntime/factory'
 import { type IStreamEventManager } from '@/server/modules/AgentRuntime/types';
 import { dispatchTerminalHooks } from '@/server/services/agentRuntime/hooks';
 import type { SerializedHook } from '@/server/services/agentRuntime/hooks/types';
+import { createDefaultSnapshotStore } from '@/server/services/agentRuntime/snapshotStore';
 
 import {
   HeterogeneousPersistenceHandler,
   StaleHeteroOperationError,
 } from './HeterogeneousPersistenceHandler';
+import { HeteroTraceRecorder } from './HeteroTraceRecorder';
 
 const log = debug('lobe-server:hetero-agent-service');
 
@@ -49,6 +53,8 @@ export interface HeterogeneousFinishParams {
 export interface HeterogeneousAgentServiceOptions {
   /** Inject a pre-built persistence handler (used by tests). */
   persistenceHandler?: HeterogeneousPersistenceHandler;
+  /** Inject a snapshot store (used by tests); defaults to the env-resolved store. */
+  snapshotStore?: ISnapshotStore | null;
   /** Inject a pre-built manager (used by tests). */
   streamEventManager?: IStreamEventManager;
   /** Inject a pre-built TopicModel (used by tests for the resume helper). */
@@ -74,9 +80,11 @@ export interface HeterogeneousAgentServiceOptions {
 export class HeterogeneousAgentService {
   private readonly db: LobeChatDatabase;
   private readonly messageModel: MessageModel;
+  private readonly operationModel: AgentOperationModel;
   private readonly persistenceHandler: HeterogeneousPersistenceHandler;
   private readonly streamEventManager: IStreamEventManager;
   private readonly topicModel: TopicModel;
+  private readonly traceRecorder: HeteroTraceRecorder;
   private readonly userId: string;
 
   constructor(
@@ -88,8 +96,12 @@ export class HeterogeneousAgentService {
     this.userId = userId;
     const workspaceId = options.workspaceId;
     this.messageModel = new MessageModel(db, userId, workspaceId);
+    this.operationModel = new AgentOperationModel(db, userId, workspaceId);
     this.streamEventManager = options.streamEventManager ?? createStreamEventManager();
     this.topicModel = options.topicModel ?? new TopicModel(db, userId, workspaceId);
+    this.traceRecorder = new HeteroTraceRecorder(
+      options.snapshotStore !== undefined ? options.snapshotStore : createDefaultSnapshotStore(),
+    );
     this.persistenceHandler =
       options.persistenceHandler ??
       new HeterogeneousPersistenceHandler({
@@ -144,6 +156,14 @@ export class HeterogeneousAgentService {
         type: event.type,
       });
     }
+
+    // Accumulate the execution-trace snapshot LAST. The recorder has no
+    // per-event idempotency, so it must run only after every step that can throw
+    // and trigger a BatchIngester retry of this same batch — otherwise a publish
+    // failure above would re-fold these events and double-count the snapshot.
+    // It's the final statement and best-effort (never throws), so it folds each
+    // batch exactly once (on the attempt that gets this far).
+    await this.traceRecorder.appendBatch(operationId, events);
   }
 
   async heteroFinish(params: HeterogeneousFinishParams): Promise<void> {
@@ -229,6 +249,39 @@ export class HeterogeneousAgentService {
       } catch (err) {
         log('heteroFinish: failed to read final assistant message (non-fatal): %O', err);
       }
+    }
+
+    // Finalize the trace snapshot + write the operation's terminal state. Runs
+    // on the real terminal only (cancelled returned above), so a run gets one
+    // snapshot + one completion. Aggregates come from the accumulated steps;
+    // missing fields stay null (schema treats null as "not measured"). This
+    // makes the hetero run a verify/tracing peer of the built-in agent.
+    // `result` is narrowed to 'success' | 'error' here — 'cancelled' returned above.
+    const completionReason = result === 'success' ? ('done' as const) : ('error' as const);
+    try {
+      const totals = await this.traceRecorder.finalize(operationId, {
+        agentId,
+        completionReason,
+        error,
+        topicId,
+        userId: this.userId,
+      });
+      await this.operationModel.recordCompletion(operationId, {
+        completedAt: new Date(),
+        completionReason,
+        error: error ?? null,
+        llmCalls: totals?.llmCalls ?? null,
+        status: completionReason,
+        stepCount: totals?.stepCount ?? null,
+        toolCalls: totals?.toolCalls ?? null,
+        totalCost: totals?.totalCost ?? null,
+        totalInputTokens: totals?.totalInputTokens ?? null,
+        totalOutputTokens: totals?.totalOutputTokens ?? null,
+        totalTokens: totals?.totalTokens ?? null,
+        traceS3Key: totals?.traceS3Key ?? null,
+      });
+    } catch (err) {
+      log('heteroFinish: recordCompletion/finalize failed (non-fatal): %O', err);
     }
 
     await dispatchTerminalHooks({
