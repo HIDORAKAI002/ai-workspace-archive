@@ -18,7 +18,7 @@ Use this reference when a claim is ambiguous, severity is disputed, or a PR is t
 
 ## Decision model
 
-Treat validity, severity, and merge-worthiness as separate results.
+Treat validity, severity, and merge-worthiness as separate results. Also distinguish a `Preliminary assessment`, which may still require approved runtime evidence, from a final `Maintainer decision`. Do not label a provisional positive result as a verdict or final decision.
 
 | Dimension | Questions | Strong evidence |
 |---|---|---|
@@ -176,10 +176,32 @@ Adapt the wording to the actual evidence. Do not use these templates as generic 
 
 ## Compact report variants
 
+Use `Maintainer decision` for a concluded review. Use `Preliminary assessment` when a desk review is tentatively positive but a decision-relevant runtime concern remains. `Verdict` is intentionally avoided in the report headings because it does not communicate whether the result is provisional or final.
+
+### Runtime approval gate
+
+```markdown
+## Preliminary assessment
+<Tentative issue or PR assessment based on desk review only.>
+
+## Static evidence
+- <decisive code-path or test-inspection evidence>
+- <what remains uncertain at runtime>
+
+## Proposed runtime probe
+- Concern: <the uncertainty that could change the decision>
+- Probe: <smallest exact execution path>
+- Control: <base, release, or known-good comparison when relevant>
+- Scope: <local-only or any live-service, cost, mutation, or cleanup implications>
+
+## Approval request
+<Ask whether to run this exact probe. Do not present a final positive recommendation yet.>
+```
+
 ### Issue
 
 ```markdown
-## Verdict
+## Maintainer decision
 <Real/partial/unproven/contradicted, severity, and disposition.>
 
 ## Evidence
@@ -196,10 +218,10 @@ Adapt the wording to the actual evidence. Do not use these templates as generic 
 ### Pull request
 
 ```markdown
-## Verdict
+## Maintainer decision
 <Need, practical impact, and merge-worthiness.>
-- Code verdict: <code disposition>
-- Repository readiness: <integration status; include only for a merge-worthy verdict when material>
+- Code recommendation: <code disposition>
+- Repository readiness: <integration status; include only for a merge-worthy recommendation when material>
 
 ## Evidence
 - <runtime or code-path result>
@@ -228,7 +250,7 @@ Adapt the wording to the actual evidence. Do not use these templates as generic 
 ### Competing pull requests
 
 ```markdown
-## Verdict
+## Maintainer decision
 <Issue validity, practical severity, and preferred implementation path.>
 
 ## Open PR comparison
