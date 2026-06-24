@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { uniqueStrings } from "@openclaw/normalization-core/string-normalization";
 import {
   acquireSessionWriteLock,
   resolveSessionWriteLockOptions,
@@ -142,6 +143,8 @@ export type LogicalSessionAccessScope = {
   sessionKey: string;
 };
 
+type SessionEntryListScope = Partial<Omit<SessionAccessScope, "sessionKey">>;
+
 export type ResolvedSessionEntryAccessTarget = {
   /** Agent owner inferred from the canonical session key. */
   agentId: string;
@@ -157,6 +160,35 @@ export type ResolvedSessionEntryAccessTarget = {
 
 type ResolvedSessionEntryStoreTarget = ResolvedSessionEntryAccessTarget & {
   storePath: string;
+};
+
+export type SessionEntryCandidateAccessScope = {
+  /** Agent owner whose session store is searched. */
+  agentId: string;
+  /** Ordered session keys to test inside the resolved store. */
+  candidateKeys: readonly string[];
+  /** Runtime config whose session store rule selects the backend target. */
+  cfg: OpenClawConfig;
+  /** Environment override used when resolving agent-scoped store paths in tests/tools. */
+  env?: NodeJS.ProcessEnv;
+  /** Optional synthesized entry returned only when no candidate exists. */
+  fallback?: {
+    entry: SessionEntry;
+    sessionKey: string;
+  };
+};
+
+export type ResolvedSessionEntryCandidateTarget = {
+  /** Agent owner whose session store produced this result. */
+  agentId: string;
+  /** Candidate key that selected the result, or the fallback key. */
+  candidateKey: string;
+  /** Session metadata cloned from storage or from the synthesized fallback. */
+  entry: SessionEntry;
+  /** False only for synthesized fallback entries that have not been written. */
+  persisted: boolean;
+  /** Persisted key selected by the backend, or the fallback key. */
+  sessionKey: string;
 };
 
 export type ResolvedSessionEntryUpdateContext = Omit<ResolvedSessionEntryAccessTarget, "entry"> & {
@@ -747,6 +779,44 @@ export function resolveSessionEntryAccessTarget(
   };
 }
 
+/** Resolves ordered candidate keys inside one agent-owned session store. */
+export function resolveSessionEntryCandidateTarget(
+  scope: SessionEntryCandidateAccessScope,
+): ResolvedSessionEntryCandidateTarget | null {
+  const storePath = resolveStorePath(scope.cfg.session?.store, {
+    agentId: scope.agentId,
+    env: scope.env,
+  });
+  const store = loadSessionStore(storePath);
+  for (const candidateKey of uniqueStrings(scope.candidateKeys.map((key) => key.trim()))) {
+    if (!candidateKey) {
+      continue;
+    }
+    const resolved = resolveSessionStoreEntry({ store, sessionKey: candidateKey });
+    if (!resolved.existing) {
+      continue;
+    }
+    return {
+      agentId: scope.agentId,
+      candidateKey,
+      entry: structuredClone(resolved.existing),
+      persisted: true,
+      sessionKey: resolved.normalizedKey,
+    };
+  }
+  const fallbackKey = scope.fallback?.sessionKey.trim();
+  if (!fallbackKey || !scope.fallback) {
+    return null;
+  }
+  return {
+    agentId: scope.agentId,
+    candidateKey: fallbackKey,
+    entry: structuredClone(scope.fallback.entry),
+    persisted: false,
+    sessionKey: fallbackKey,
+  };
+}
+
 function resolveSessionEntryStoreTarget(
   scope: LogicalSessionAccessScope,
 ): ResolvedSessionEntryStoreTarget {
@@ -849,9 +919,7 @@ export function loadSessionEntry(scope: SessionAccessScope): SessionEntry | unde
 }
 
 /** Lists entries from the resolved store, preserving the persisted key for each row. */
-export function listSessionEntries(
-  scope: Partial<Omit<SessionAccessScope, "sessionKey">> = {},
-): SessionEntrySummary[] {
+export function listSessionEntries(scope: SessionEntryListScope = {}): SessionEntrySummary[] {
   if (scope.clone === false) {
     return Object.entries(
       loadSessionStore(resolveAccessStorePath({ ...scope, sessionKey: "" }), {
