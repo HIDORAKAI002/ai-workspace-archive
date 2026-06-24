@@ -1,4 +1,55 @@
-import { diffMonitorJson } from "./diff";
+import { existsSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createMarkdownChangeDiff } from "../../lib/change-tracking-diff";
+import { diffMonitorJson, diffMonitorMarkdown } from "./diff";
+
+describe("markdown change tracking diff", () => {
+  it("treats command substitution syntax as text", () => {
+    const marker = join(
+      tmpdir(),
+      `firecrawl-change-diff-${process.pid}-${Date.now()}`,
+    );
+    const current = `visible text $(touch ${marker}) and \`touch ${marker}.bt\``;
+
+    try {
+      const result = createMarkdownChangeDiff("visible text", current);
+
+      expect(result).toBeDefined();
+      expect(result?.text).toContain("$(touch");
+      expect(result?.text).toContain("`touch");
+      expect(result?.json.files).toBeInstanceOf(Array);
+      expect(existsSync(marker)).toBe(false);
+      expect(existsSync(`${marker}.bt`)).toBe(false);
+    } finally {
+      rmSync(marker, { force: true });
+      rmSync(`${marker}.bt`, { force: true });
+    }
+  });
+
+  it("uses the shell-free diff path for monitor markdown diffs", () => {
+    const marker = join(
+      tmpdir(),
+      `firecrawl-monitor-diff-${process.pid}-${Date.now()}`,
+    );
+
+    try {
+      const result = diffMonitorMarkdown(
+        "baseline",
+        `changed $(touch ${marker})`,
+      );
+
+      if (result.status !== "changed") {
+        throw new Error("Expected monitor markdown diff to change");
+      }
+      expect(result.text).toContain("$(touch");
+      expect(result.json.files).toBeInstanceOf(Array);
+      expect(existsSync(marker)).toBe(false);
+    } finally {
+      rmSync(marker, { force: true });
+    }
+  });
+});
 
 describe("diffMonitorJson", () => {
   it("returns `same` when every value matches", () => {
@@ -11,9 +62,10 @@ describe("diffMonitorJson", () => {
   });
 
   it("returns `same` regardless of object key order", () => {
-    expect(
-      diffMonitorJson({ a: 1, b: 2 }, { b: 2, a: 1 }),
-    ).toEqual({ kind: "json", status: "same" });
+    expect(diffMonitorJson({ a: 1, b: 2 }, { b: 2, a: 1 })).toEqual({
+      kind: "json",
+      status: "same",
+    });
   });
 
   it("reports a single change for a top-level primitive that differs", () => {

@@ -23,7 +23,7 @@ import {
   generateCompletions_F0,
   generateSchemaFromPrompt_F0,
 } from "./llmExtract-f0";
-import { dereferenceSchema_F0 } from "./helpers/dereference-schema-f0";
+import { dereferenceSchema } from "../helpers/dereference-schema";
 import { analyzeSchemaAndPrompt_F0 } from "./completions/analyzeSchemaAndPrompt-f0";
 import { checkShouldExtract_F0 } from "./completions/checkShouldExtract-f0";
 import { batchExtractPromise_F0 } from "./completions/batchExtract-f0";
@@ -250,7 +250,7 @@ export async function performExtraction_F0(
   }
 
   if (reqSchema) {
-    reqSchema = await dereferenceSchema_F0(reqSchema);
+    reqSchema = await dereferenceSchema(reqSchema);
   }
 
   logger.debug("Transformed schema.", {

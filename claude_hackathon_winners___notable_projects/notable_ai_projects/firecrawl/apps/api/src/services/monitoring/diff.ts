@@ -1,5 +1,4 @@
-import gitDiff from "git-diff";
-import parseDiff from "parse-diff";
+import { createMarkdownChangeDiff } from "../../lib/change-tracking-diff";
 
 type MonitorMarkdownDiffResult =
   | {
@@ -60,60 +59,13 @@ export function diffMonitorMarkdown(
     return { kind: "markdown", status: "same" };
   }
 
-  const text = gitDiff(previousMarkdown, currentMarkdown, {
-    color: false,
-    wordDiff: false,
-  });
-  const structured = parseDiff(text);
+  const diff = createMarkdownChangeDiff(previousMarkdown, currentMarkdown);
 
   return {
     kind: "markdown",
     status: "changed",
-    text,
-    json: {
-      files: structured.map(file => ({
-        from: file.from || null,
-        to: file.to || null,
-        chunks: file.chunks.map(chunk => ({
-          content: chunk.content,
-          changes: chunk.changes.map(change => {
-            const base = {
-              type: change.type,
-              content: change.content,
-            };
-
-            if (
-              change.type === "normal" &&
-              "ln1" in change &&
-              "ln2" in change
-            ) {
-              return {
-                ...base,
-                normal: true,
-                ln1: change.ln1,
-                ln2: change.ln2,
-              };
-            }
-            if (change.type === "add" && "ln" in change) {
-              return {
-                ...base,
-                add: true,
-                ln: change.ln,
-              };
-            }
-            if (change.type === "del" && "ln" in change) {
-              return {
-                ...base,
-                del: true,
-                ln: change.ln,
-              };
-            }
-
-            return base;
-          }),
-        })),
-      })),
-    },
+    text: diff?.text ?? "",
+    json: diff?.json ?? { files: [] },
   };
 }
 
