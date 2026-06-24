@@ -24,25 +24,22 @@ const openai = new OpenAI({
 });
 
 async function main() {
-  console.log('Non-streaming:');
-  const result = await openai.chat.completions.create({
+  const instructions = 'You are a personal math tutor. Explain each step clearly.';
+  const response = await openai.responses.create({
     model: deployment,
-    messages: [{ role: 'user', content: 'Say hello!' }],
+    instructions,
+    input: 'I need to solve the equation `3x + 11 = 14`. Can you help me?',
   });
-  console.log(result.choices[0]!.message?.content);
+  console.log(response.output_text);
 
-  console.log();
-  console.log('Streaming:');
-  const stream = await openai.chat.completions.create({
+  // Instructions are not inherited through `previous_response_id`.
+  const followUp = await openai.responses.create({
     model: deployment,
-    messages: [{ role: 'user', content: 'Say hello!' }],
-    stream: true,
+    instructions,
+    previous_response_id: response.id,
+    input: 'Now verify the result by substituting it back into the equation.',
   });
-
-  for await (const part of stream) {
-    process.stdout.write(part.choices[0]?.delta?.content ?? '');
-  }
-  process.stdout.write('\n');
+  console.log(followUp.output_text);
 }
 
 main().catch((err) => {
