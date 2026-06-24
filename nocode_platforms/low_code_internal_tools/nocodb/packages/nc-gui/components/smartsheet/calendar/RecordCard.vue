@@ -10,6 +10,13 @@ interface Props {
   size?: 'small' | 'medium' | 'large' | 'auto'
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
   dragging?: boolean
+  // When true the card fills its container height and stacks visible fields over
+  // multiple lines (week view) instead of clamping to a single truncated line.
+  multiline?: boolean
+  // Multiline cards hide fields behind "+N more"; when the parent signals there
+  // are hidden fields, show the tooltip on hover (column layout never trips the
+  // truncate detector, so there's nothing else to gate on).
+  hasHiddenFields?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,6 +26,8 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'small',
   position: 'rounded',
   dragging: false,
+  multiline: false,
+  hasHiddenFields: false,
 })
 
 const emit = defineEmits(['resizeStart'])
@@ -33,9 +42,12 @@ const rowColorInfo = computed(() => {
     :class="{
       'h-7': size === 'small',
       'h-full': size === 'auto',
-      'rounded-l-[4px] !border-r-0 ml-1': position === 'leftRounded',
-      'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded',
-      'rounded-[4px] ml-0.8 mr-1': position === 'rounded',
+      'rounded-l-[4px] !border-r-0 ml-1': position === 'leftRounded' && !multiline,
+      'rounded-l-lg !border-r-0 ml-1': position === 'leftRounded' && multiline,
+      'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded' && !multiline,
+      'rounded-r-lg !border-l-0 mr-1': position === 'rightRounded' && multiline,
+      'rounded-[4px] ml-0.8 mr-1': position === 'rounded' && !multiline,
+      'rounded-lg ml-0.8 mr-1': position === 'rounded' && multiline,
       'rounded-none !border-x-0': position === 'none',
       'bg-nc-maroon-50': props.color === 'maroon',
       'bg-nc-blue-50': props.color === 'blue',
@@ -45,6 +57,8 @@ const rowColorInfo = computed(() => {
       'bg-nc-purple-50': props.color === 'purple',
       'bg-nc-bg-default border-nc-border-gray-dark': color === 'gray',
       '!bg-nc-bg-gray-light': hover || dragging,
+      'items-start': multiline,
+      'items-center': !multiline,
     }"
     :style="{
       boxShadow:
@@ -54,7 +68,7 @@ const rowColorInfo = computed(() => {
 
       ...rowColorInfo.rowBgColor,
     }"
-    class="relative transition-all border-1 flex-none flex items-center gap-2 group overflow-hidden"
+    class="relative transition-all border-1 flex-none flex gap-2 group overflow-hidden"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -66,8 +80,15 @@ const rowColorInfo = computed(() => {
         'bg-nc-pink-500': props.color === 'pink',
         'bg-nc-purple-500': props.color === 'purple',
         'bg-nc-gray-900': color === 'gray',
+        // Multiline: full-height colored left edge pulled flush to the card
+        // border (-my-px/-ml-px); the card's overflow-hidden + radius clips its
+        // corners to follow the rounding. No explicit rounding here, so the
+        // strip stays a consistent width on short and tall cards alike.
+        'self-stretch -my-px -ml-px': multiline,
+        // Single-line: original short centered bar.
+        'min-h-6.5': !multiline,
       }"
-      class="w-1 min-h-6.5"
+      class="w-1"
       :style="rowColorInfo.rowLeftBorderColor"
     ></div>
 
@@ -77,27 +98,48 @@ const rowColorInfo = computed(() => {
       @mousedown.stop="emit('resizeStart', 'left', $event, record)"
     ></div>
 
-    <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
+    <div class="overflow-hidden gap-2 flex w-full" :class="multiline ? 'items-start py-1' : 'items-center justify-center'">
       <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
       <slot name="time" />
       <div
-        :class="{
-          'pr-8.5': position === 'leftRounded',
-        }"
-        class="flex mb-0.5 overflow-x-hidden w-full truncate flex-col gap-1"
+        :class="[{ 'pr-8.5': position === 'leftRounded' }, multiline ? 'overflow-hidden' : 'mb-0.5 overflow-x-hidden truncate']"
+        class="flex w-full flex-col gap-1"
       >
+        <!-- Multiline (all-day week): stacked fields; tooltip reveals the full
+             labeled record, only when a field line is actually clipped. The
+             inner .nc-calendar-card-fields div is kept so its scoped no-bullet
+             styling applies (the body must render exactly as before). -->
         <NcTooltip
+          v-if="multiline"
+          wrap-child="div"
+          :disabled="selected || dragging || !hasHiddenFields"
+          overlay-class-name="nc-record-fields-tooltip"
+          class="w-full overflow-hidden"
+        >
+          <template #title>
+            <slot name="tooltip">
+              <slot />
+            </slot>
+          </template>
+          <div class="nc-calendar-card-fields flex flex-col gap-0.5 w-full overflow-hidden">
+            <slot />
+          </div>
+        </NcTooltip>
+        <!-- Single-line: prod behaviour — tooltip only when the text is clipped. -->
+        <NcTooltip
+          v-else
           :disabled="selected || dragging"
-          :class="{
-            ' text-ellipsis': ['leftRounded', 'rightRounded', 'rounded'].includes(position),
-          }"
-          class="break-word whitespace-nowrap overflow-hidden pr-1"
+          overlay-class-name="nc-record-fields-tooltip"
           show-on-truncate-only
           wrap-child="span"
+          class="break-word whitespace-nowrap overflow-hidden pr-1"
+          :class="{ 'text-ellipsis': ['leftRounded', 'rightRounded', 'rounded'].includes(position) }"
         >
           <slot class="text-sm text-nowrap text-nc-content-gray leading-7" />
           <template #title>
-            <slot />
+            <slot name="tooltip">
+              <slot />
+            </slot>
           </template>
         </NcTooltip>
       </div>
@@ -122,5 +164,22 @@ const rowColorInfo = computed(() => {
   .bold {
     @apply !text-nc-content-gray font-bold;
   }
+}
+
+// In multiline mode each visible field is its own clean truncated line.
+// Drop the inline "•" separators (meant for the single-line layout), give the
+// lead field gentle emphasis and mute the rest — reads as a record card, not a
+// run-on of values.
+.nc-calendar-card-fields :deep(.plain-cell) {
+  @apply truncate w-full leading-5 text-bodySm text-nc-content-gray-subtle;
+
+  &::before {
+    content: '' !important;
+    padding: 0 !important;
+  }
+}
+
+.nc-calendar-card-fields :deep(.plain-cell:first-child) {
+  @apply text-nc-content-gray font-semibold;
 }
 </style>

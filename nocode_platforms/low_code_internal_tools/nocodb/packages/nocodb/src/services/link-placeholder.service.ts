@@ -629,7 +629,21 @@ export class LinkPlaceholderService {
     const relatedTableId = colOpt.fk_related_model_id;
     if (!relatedTableId) return null;
 
-    const relatedTable = await Model.get(ctx, relatedTableId, true, ncMeta);
+    // For a cross-base link the related table lives in `fk_related_base_id`,
+    // NOT the deleted column's base. Resolving it with the caller's `ctx`
+    // returns null (wrong base scope), so the reverse column is never found
+    // and is left orphaned. Resolve it in the related base.
+    const relatedCtx: NcContext =
+      colOpt.fk_related_base_id && colOpt.fk_related_base_id !== ctx.base_id
+        ? { ...ctx, base_id: colOpt.fk_related_base_id }
+        : ctx;
+
+    const relatedTable = await Model.get(
+      relatedCtx,
+      relatedTableId,
+      true,
+      ncMeta,
+    );
     if (!relatedTable) return null;
 
     const relatedCols = await relatedTable.getColumns(

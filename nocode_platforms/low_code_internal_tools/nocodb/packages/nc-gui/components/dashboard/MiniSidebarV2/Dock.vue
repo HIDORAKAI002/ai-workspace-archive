@@ -324,7 +324,7 @@ const handleOpenBookmarkPanel = () => {
         :alt="productName"
         class="!h-7 !w-7 nc-logo-icon object-contain"
       />
-      <GeneralIcon v-else icon="nocodb1" class="!h-7 !w-7 nc-logo-icon" />
+      <GeneralNocodbLogo v-else class="!h-7 !w-7 nc-logo-icon" />
       <div class="nc-back-icon">
         <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
       </div>

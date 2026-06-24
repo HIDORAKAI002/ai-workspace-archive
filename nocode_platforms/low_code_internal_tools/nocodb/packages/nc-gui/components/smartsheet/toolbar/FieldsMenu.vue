@@ -13,7 +13,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
 const { isMobileMode, getResponsiveValue } = useGlobal()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -62,6 +62,10 @@ const isFieldsMenuReadOnly = computed(() => {
 
 const isAddingColumnAllowed = computed(
   () => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value && !isMobileMode.value,
+)
+
+const addFieldReason = computed(() =>
+  !readOnly.value && !isSqlView.value && !isMobileMode.value ? sandboxRestrictionReason('fieldAdd') : null,
 )
 
 const viewStore = useViewsStore()
@@ -1020,9 +1024,9 @@ const onAddColumnDropdownVisibilityChange = () => {
             <span> {{ $t('title.systemFields') }} </span>
           </NcButton>
           <NcDropdown
-            v-if="isAddingColumnAllowed"
+            v-if="isAddingColumnAllowed || !!addFieldReason"
             v-model:visible="addColumnDropdown"
-            :trigger="['click']"
+            :trigger="addFieldReason ? [] : ['click']"
             overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none !rounded-2xl"
             placement="right"
             :align="{
@@ -1030,10 +1034,19 @@ const onAddColumnDropdownVisibilityChange = () => {
             }"
             @visible-change="onAddColumnDropdownVisibilityChange"
           >
-            <NcButton text-color="primary" class="nc-fields-add-new-field !font-normal !px-2" size="xs" type="text">
-              <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
-              <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
-            </NcButton>
+            <NcTooltip :disabled="!addFieldReason">
+              <template #title>{{ addFieldReason ? $t(addFieldReason) : '' }}</template>
+              <NcButton
+                text-color="primary"
+                class="nc-fields-add-new-field !font-normal !px-2"
+                size="xs"
+                type="text"
+                :disabled="!!addFieldReason"
+              >
+                <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
+                <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
+              </NcButton>
+            </NcTooltip>
             <template #overlay>
               <div class="nc-edit-or-add-provider-wrapper">
                 <LazySmartsheetColumnEditOrAddProvider

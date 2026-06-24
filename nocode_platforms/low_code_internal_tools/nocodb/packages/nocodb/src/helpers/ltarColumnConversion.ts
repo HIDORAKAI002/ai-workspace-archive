@@ -8,6 +8,7 @@ import type {
   ReusableParams,
 } from '~/services/columns.service.type';
 import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import { Column, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { _wherePk } from '~/helpers/dbHelpers';
@@ -116,6 +117,55 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     } catch (e) {
       svc.logger.warn(
         `column conversion notification failed for ${param.columnId}: ${
+          (e as Error).message
+        }`,
+      );
+    }
+  };
+
+  /**
+   * A text↔link conversion also creates (text→link) or removes (link→text) the
+   * auto-managed back-link column on the *related* table. `broadcastColumnConversion`
+   * only notifies the source table, so without this a client viewing the related
+   * table wouldn't see that back-link appear/disappear until a manual refresh.
+   * Mirrors the related-table broadcasts in ColumnsService.columnAdd / columnDelete.
+   * Best-effort — the conversion is already committed.
+   */
+  const broadcastRelatedTableBackLink = async (
+    context: NcContext,
+    param: {
+      relationColOpt: LinkToAnotherRecordColumn;
+      sourceTableId: string;
+      action: 'column_add' | 'column_delete';
+    },
+  ) => {
+    try {
+      const { refContext } = param.relationColOpt.getRelContext(context);
+      const refTable = await param.relationColOpt.getRelatedTable(context);
+      // Skip self-relations — the source-table broadcast already covers them.
+      if (!refTable || refTable.id === param.sourceTableId) return;
+      await refTable.getColumns(refContext);
+
+      // The relation can make the loaded column graph circular — build a
+      // serialization-safe clone for the wire payload.
+      const seen = new WeakSet();
+      const safeTable = JSON.parse(
+        JSON.stringify(refTable, (_k, v) => {
+          if (v && typeof v === 'object') {
+            if (seen.has(v)) return undefined;
+            seen.add(v);
+          }
+          return v;
+        }),
+      );
+
+      NocoSocket.broadcastEvent(refContext, {
+        event: EventType.META_EVENT,
+        payload: { action: param.action, payload: { table: safeTable } },
+      });
+    } catch (e) {
+      svc.logger.warn(
+        `related-table back-link ${param.action} notification failed: ${
           (e as Error).message
         }`,
       );
@@ -402,6 +452,18 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     svc.logger.log(
       `Converted "${originalTitle}" to link: ${linkStats.linksCreated} links created, ${linkStats.valuesUnmatched} unmatched.`,
     );
+
+    // Notify clients viewing the related table about its new back-link column.
+    const ltarColOpt = await ltarColumn.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+    if (ltarColOpt) {
+      await broadcastRelatedTableBackLink(context, {
+        relationColOpt: ltarColOpt,
+        sourceTableId: table.id,
+        action: 'column_add',
+      });
+    }
 
     return ltarColumn.id;
   };
@@ -786,6 +848,12 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
       });
     }
 
+    // Capture the relation BEFORE the delete clears its cache — needed to
+    // notify the related table that its back-link column is being removed.
+    const linkColOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
     // Drop the link column (skipTrash so undo can recreate it with the same
     // id), then rename the text column to the original title. Skip the link
     // placeholder — the conversion intentionally drops the relationship, and a
@@ -807,6 +875,16 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
       column: { title: originalTitle },
       isSimpleUpdate: true,
     });
+
+    // skipLinkPlaceholder bypasses columnDelete's own related-table broadcast,
+    // so notify clients viewing the related table that the back-link is gone.
+    if (linkColOpt) {
+      await broadcastRelatedTableBackLink(context, {
+        relationColOpt: linkColOpt,
+        sourceTableId: table.id,
+        action: 'column_delete',
+      });
+    }
 
     svc.logger.log(
       `Converted link "${originalTitle}" to text: ${rows.length} rows populated.`,

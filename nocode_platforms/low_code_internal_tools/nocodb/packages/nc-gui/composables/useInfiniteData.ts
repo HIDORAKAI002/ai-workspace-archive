@@ -154,7 +154,7 @@ export function useInfiniteData(args: {
       }
     : useViewGroupByOrThrow()
 
-  const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal, blockButtonVisibility } = useEeConfig()
 
   const { getEvaluatedRowMetaRowColorInfo } = disableSmartsheet
     ? {
@@ -164,6 +164,9 @@ export function useInfiniteData(args: {
 
   /** Identifies button columns with visibility filters and evaluates them per-row during data fetch */
   const buttonFilterColumns = computed(() => {
+    // Conditional button visibility is a paid feature (FEATURE_BUTTON_VISIBILITY) — unavailable in
+    // CE/OSS and on plans without it. When blocked, ignore any persisted filters so buttons always render.
+    if (blockButtonVisibility.value) return []
     if (!meta.value?.columns) return []
     return meta.value.columns.filter((col) => col.uidt === UITypes.Button && (col.colOptions as any)?.filters?.length)
   })

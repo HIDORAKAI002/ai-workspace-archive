@@ -136,6 +136,7 @@ onMounted(() => {
     :is-show-number="!isLinkRecordDropdown"
     :percentage="vModelNumber"
     :precision="percentMeta.precision"
+    :shape="percentMeta.shape"
   >
     <template v-if="showInput" #default>
       <!-- eslint-disable vue/use-v-on-exact -->

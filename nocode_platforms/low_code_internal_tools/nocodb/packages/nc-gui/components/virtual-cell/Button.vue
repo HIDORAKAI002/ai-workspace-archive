@@ -116,7 +116,13 @@ const { getBaseType } = baseStore
 const { metas } = useMetas()
 const { user } = useGlobal()
 
+const { blockButtonVisibility } = useEeConfig()
+
 const isFilterConditionMet = computed(() => {
+  // Conditional button visibility is a paid feature (FEATURE_BUTTON_VISIBILITY) — unavailable in
+  // CE/OSS and on plans without it. When blocked, ignore any persisted filters so the button always renders.
+  if (blockButtonVisibility.value) return true
+
   const filters = column.value.colOptions?.filters as FilterType[] | undefined
   if (!filters || !filters.length) return true
 

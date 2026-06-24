@@ -66,22 +66,18 @@ export class FiltersService {
     return Filter.rootFilterListByHook(context, { hookId: param.hookId });
   }
 
-  @TraceCommand(OperationName.buttonFilterCreate)
   async buttonFilterCreate(
-    context: NcContext,
-    param: {
+    _context: NcContext,
+    _param: {
       filter: FilterReqType;
       buttonColId: any;
       user: UserType;
       req: NcRequest;
     },
-  ) {
-    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
-
-    return await Filter.insert(context, {
-      ...param.filter,
-      fk_button_col_id: param.buttonColId,
-    });
+  ): Promise<any> {
+    // placeholder method — button visibility conditions are an EE-only feature
+    // (Business+ / licensed). EE overrides this with the real implementation.
+    return null;
   }
 
   async buttonFilterList(context: NcContext, param: { buttonColId: string }) {

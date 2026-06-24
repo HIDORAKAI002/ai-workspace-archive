@@ -42,7 +42,23 @@ const {
   isCalendarDataLoading, // Boolean ref to check if Calendar Data is Loading
   fetchActiveDates, // Function to fetch Active Dates
   showSideMenu, // Boolean Ref to show Side Menu
+  recordHeightMode, // 'compact' (default) | 'expanded'
 } = useCalendarViewStoreOrThrow()
+
+// In Expanded mode the week/multi-week and month grids grow beyond the viewport to show
+// every record, so the calendar body becomes the vertical scroll container.
+const isHeightExpanded = computed(
+  () => recordHeightMode.value === 'expanded' && ['week', '3day', '2week', 'month', '6week'].includes(activeCalendarView.value),
+)
+
+// Viewport-bounded height of the calendar body. Stays the visible height even when the
+// grid grows and scrolls, so Month/multi-week can use it as the compact (minimum) row
+// height in Expanded mode. Provided to the view components.
+const calendarBody = ref<HTMLElement>()
+
+const { height: calendarBodyHeight } = useElementSize(calendarBody)
+
+provide('calendarBodyHeight', calendarBodyHeight)
 
 const router = useRouter()
 
@@ -162,7 +178,11 @@ watch(
   </template>
   <template v-else>
     <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
-      <div class="flex flex-col w-full">
+      <div
+        ref="calendarBody"
+        class="flex flex-col w-full min-h-0"
+        :class="{ 'overflow-y-auto nc-scrollbar-md': isHeightExpanded }"
+      >
         <template v-if="calendarRange?.length">
           <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
           <template v-if="!isCalendarDataLoading">

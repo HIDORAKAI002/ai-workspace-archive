@@ -1224,6 +1224,9 @@ const expandRecord = (record: Row) => {
                       :underline="getFieldStyle(field).underline"
                     />
                   </template>
+                  <template #tooltip>
+                    <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
+                  </template>
                   <template #time>
                     <div class="text-xs font-medium text-nc-content-gray-disabled">
                       {{ timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
