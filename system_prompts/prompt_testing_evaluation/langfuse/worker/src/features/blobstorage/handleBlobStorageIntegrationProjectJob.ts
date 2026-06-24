@@ -56,6 +56,43 @@ import { randomUUID } from "crypto";
 import { SpanKind } from "@opentelemetry/api";
 import { env, v4AllowPreviewOptIn } from "../../env";
 
+export const BlobExportFormat = {
+  JSON_RAW: "json-raw",
+  JSON_GZIP: "json-gzip",
+  CSV_RAW: "csv-raw",
+  CSV_GZIP: "csv-gzip",
+  JSONL_RAW: "jsonl-raw",
+  JSONL_GZIP: "jsonl-gzip",
+} as const;
+export type BlobExportFormat =
+  (typeof BlobExportFormat)[keyof typeof BlobExportFormat];
+
+const FORMAT_LOOKUP: Record<
+  BlobStorageIntegrationFileType,
+  { raw: BlobExportFormat; gzip: BlobExportFormat }
+> = {
+  [BlobStorageIntegrationFileType.JSON]: {
+    raw: BlobExportFormat.JSON_RAW,
+    gzip: BlobExportFormat.JSON_GZIP,
+  },
+  [BlobStorageIntegrationFileType.CSV]: {
+    raw: BlobExportFormat.CSV_RAW,
+    gzip: BlobExportFormat.CSV_GZIP,
+  },
+  [BlobStorageIntegrationFileType.JSONL]: {
+    raw: BlobExportFormat.JSONL_RAW,
+    gzip: BlobExportFormat.JSONL_GZIP,
+  },
+};
+
+function resolveBlobExportFormat(
+  fileType: BlobStorageIntegrationFileType,
+  compressed: boolean,
+): BlobExportFormat {
+  const entry = FORMAT_LOOKUP[fileType];
+  return compressed ? entry.gzip : entry.raw;
+}
+
 export const BLOB_STORAGE_LAG_BUFFER_MS = 20 * 60 * 1000; // 20-minute lag buffer
 
 export async function* enrichObservationStream(
@@ -64,7 +101,7 @@ export async function* enrichObservationStream(
   modelIdField: string,
   convertLatencyToSeconds: boolean,
   fieldGroups?: ObservationFieldGroupFull[],
-  skipEnrichment: boolean = false,
+  skipEnrichment = false,
 ): AsyncGenerator<Record<string, unknown>> {
   const { getModel } = createModelCache(projectId);
 
@@ -626,11 +663,19 @@ const processBlobStorageExport = async (config: {
             projectId: config.projectId,
           });
 
+          const exportFormat = resolveBlobExportFormat(
+            config.fileType,
+            config.compressed,
+          );
           const byteTags = {
             table: config.table,
             projectId: config.projectId,
             path: passthroughEligible ? "passthrough" : "standard",
-            compressed: compressedCounter ? "true" : "false",
+            source: exportFormat,
+            // Integration type (S3 / S3_COMPATIBLE / AZURE_BLOB_STORAGE) as the
+            // destination, so export volume can be split by data-transfer cost
+            // in the Datadog dashboard (native AWS S3 vs. external egress).
+            destination_type: config.type,
           };
           recordIncrement(
             "langfuse.blob_export.serialized_bytes",
@@ -714,10 +759,14 @@ const processBlobStorageExport = async (config: {
                 : Math.max(0, totalUploadMs - finalChReadMs - finalEnrichMs);
               span.setAttribute("blob.gzipCpuMs", finalGzipCpuMs);
               span.setAttribute("blob.uploadWaitMs", finalUploadWaitMs);
+              const finalExportFormat = resolveBlobExportFormat(
+                config.fileType,
+                config.compressed,
+              );
               const stageTags = {
                 table: config.table,
                 path: passthroughEligible ? "passthrough" : "standard",
-                compressed: config.compressed ? "true" : "false",
+                source: finalExportFormat,
               };
               recordHistogram(
                 "langfuse.blob_export.ch_read_ms",
@@ -878,8 +927,17 @@ export const handleBlobStorageIntegrationProjectJob = async (
     logger.info(
       `[BLOB INTEGRATION] Blob storage integration is disabled for project ${projectId}`,
     );
+    await prisma.blobStorageIntegration.update({
+      where: { projectId },
+      data: { runStartedAt: null },
+    });
     return;
   }
+
+  await prisma.blobStorageIntegration.update({
+    where: { projectId },
+    data: { runStartedAt: new Date() },
+  });
 
   // Sync between lastSyncAt and now - 30 minutes
   // Cap the export to one frequency period to enable chunked historic exports
@@ -920,6 +978,15 @@ export const handleBlobStorageIntegrationProjectJob = async (
     logger.info(
       `[BLOB INTEGRATION] Skipping export for project ${projectId}: time window is empty (min: ${minTimestamp.toISOString()}, max: ${maxTimestamp.toISOString()})`,
     );
+    await prisma.blobStorageIntegration.update({
+      where: { projectId },
+      data: {
+        runStartedAt: null,
+        nextSyncAt: new Date(now.getTime() + frequencyIntervalMs),
+        lastError: null,
+        lastErrorAt: null,
+      },
+    });
     return;
   }
 
@@ -1095,6 +1162,7 @@ export const handleBlobStorageIntegrationProjectJob = async (
         nextSyncAt,
         lastError: null,
         lastErrorAt: null,
+        runStartedAt: null,
       },
     });
 
@@ -1131,6 +1199,7 @@ export const handleBlobStorageIntegrationProjectJob = async (
         data: {
           lastError: errorMessage,
           lastErrorAt: new Date(),
+          runStartedAt: null,
         },
       });
     } catch (persistError) {
