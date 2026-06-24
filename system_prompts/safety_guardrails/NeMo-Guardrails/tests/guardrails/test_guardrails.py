@@ -24,7 +24,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from nemoguardrails import Guardrails
-from nemoguardrails.guardrails.iorails import IORails
+from nemoguardrails.guardrails.iorails import IORails, _duplicate_flows_reason, _unsupported_flows_reason
 from nemoguardrails.logging.explain import ExplainInfo
 from nemoguardrails.rails.llm.config import RailsConfig
 from nemoguardrails.rails.llm.llmrails import LLMRails
@@ -352,6 +352,84 @@ class TestIORailsUnsupportedReason:
         """``can_handle`` is a thin wrapper that returns True iff reason is None."""
         assert IORails.can_handle(_content_safety_rails_config, llm=None) is True
         assert IORails.unsupported_reason(_content_safety_rails_config, llm=None) is None
+
+
+class TestUnsupportedFlowsReason:
+    """Unit tests for the ``_unsupported_flows_reason`` helper that backs the four
+    flow-direction checks in ``IORails.unsupported_reason``."""
+
+    SUPPORTED = frozenset({"content safety check input", "jailbreak detection model"})
+
+    def test_all_supported_returns_none(self):
+        flows = ["content safety check input", "jailbreak detection model"]
+        assert _unsupported_flows_reason(flows, self.SUPPORTED, "input") is None
+
+    def test_empty_flows_returns_none(self):
+        assert _unsupported_flows_reason([], self.SUPPORTED, "input") is None
+
+    def test_single_unsupported_flow_is_named(self):
+        reason = _unsupported_flows_reason(["self check input"], self.SUPPORTED, "input")
+        assert reason == "config has unsupported input flows: ['self check input']"
+
+    def test_label_appears_in_message(self):
+        reason = _unsupported_flows_reason(["bogus"], self.SUPPORTED, "tool output")
+        assert reason == "config has unsupported tool output flows: ['bogus']"
+
+    def test_offenders_reported_sorted_and_deduplicated(self):
+        flows = ["zeta", "alpha", "zeta"]
+        reason = _unsupported_flows_reason(flows, self.SUPPORTED, "output")
+        assert reason == "config has unsupported output flows: ['alpha', 'zeta']"
+
+    def test_only_unsupported_flows_are_reported(self):
+        flows = ["content safety check input", "self check input"]
+        reason = _unsupported_flows_reason(flows, self.SUPPORTED, "input")
+        assert reason == "config has unsupported input flows: ['self check input']"
+
+    def test_model_suffix_is_normalized_before_membership_check(self):
+        # The `$model=` suffix is stripped, so the supported bare name matches.
+        flows = ["content safety check input $model=content_safety"]
+        assert _unsupported_flows_reason(flows, self.SUPPORTED, "input") is None
+
+    def test_call_args_are_normalized_before_membership_check(self):
+        flows = ["content safety check input(foo)"]
+        assert _unsupported_flows_reason(flows, self.SUPPORTED, "input") is None
+
+    def test_flow_normalizing_to_empty_is_ignored(self):
+        # A flow that is only a `$model=` suffix has no recognizable name; it must not
+        # be reported as unsupported (mirrors the `if name` guard in the helper).
+        assert _unsupported_flows_reason(["$model=x"], self.SUPPORTED, "input") is None
+
+    def test_empty_supported_set_rejects_every_named_flow(self):
+        reason = _unsupported_flows_reason(["anything"], frozenset(), "tool input")
+        assert reason == "config has unsupported tool input flows: ['anything']"
+
+
+class TestDuplicateFlowsReason:
+    """Unit tests for the ``_duplicate_flows_reason`` helper that backs the tool-flow
+    duplicate pre-check in ``IORails.unsupported_reason``."""
+
+    def test_no_duplicates_returns_none(self):
+        assert _duplicate_flows_reason(["tool call validation"], "tool output") is None
+
+    def test_empty_flows_returns_none(self):
+        assert _duplicate_flows_reason([], "tool output") is None
+
+    def test_exact_duplicate_is_caught(self):
+        reason = _duplicate_flows_reason(["tool call validation", "tool call validation"], "tool output")
+        assert reason is not None
+        assert "duplicate tool output flows" in reason
+
+    def test_normalized_duplicate_is_caught(self):
+        # Entries differing only by a `$model=` suffix normalize to the same name.
+        reason = _duplicate_flows_reason(["tool call validation", "tool call validation $model=x"], "tool output")
+        assert reason is not None
+        assert "duplicate" in reason
+
+    def test_flow_normalizing_to_empty_is_skipped(self):
+        # A flow that normalizes to an empty name has no comparable identity, so it is
+        # neither flagged as a duplicate nor matched against other empty-normalizing flows.
+        assert _duplicate_flows_reason(["$model=x", "tool call validation"], "tool output") is None
+        assert _duplicate_flows_reason(["$model=x", "$model=y"], "tool output") is None
 
 
 class TestRequireIORails:

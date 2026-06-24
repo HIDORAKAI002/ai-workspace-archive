@@ -6,6 +6,13 @@ assignment, pull requests, refactors, changelogs, validation, commits, and DCO.
 
 When working inside `nemoguardrails/`, also follow `nemoguardrails/AGENTS.md` for
 runtime, public-API, and provider-integration rules.
+When working inside `docs/`, also follow `docs/AGENTS.md` for documentation
+authoring and AI-agent documentation rules.
+
+## Agent Skills
+
+Optional agent skills live under `.agents/skills/` for clients that support
+skill discovery.
 
 ## Quick Rules
 

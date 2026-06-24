@@ -128,6 +128,16 @@ def _serialize_tool_calls(tool_calls: list[ToolCall]) -> list[dict]:
     ]
 
 
+def _frame_for_stream(payload: str, include_metadata: Optional[bool]) -> Union[str, dict]:
+    """Frame a directly-yielded payload to match the surrounding stream's chunk shape.
+
+    Returns a ``{"text": payload}`` dict under ``include_metadata``, the raw string
+    otherwise — the same wrapping the StreamingHandler applies to ``push_chunk``'d
+    strings, so terminal and block chunks that bypass the handler stay shape-consistent.
+    """
+    return {"text": payload} if include_metadata else payload
+
+
 def _terminal_tool_call_chunk(
     tool_calls: list[ToolCall], include_metadata: Optional[bool]
 ) -> tuple[str, Union[str, dict]]:
@@ -140,8 +150,7 @@ def _terminal_tool_call_chunk(
     the surrounding stream.
     """
     payload = json.dumps({"tool_calls": _serialize_tool_calls(tool_calls)})
-    framed: Union[str, dict] = {"text": payload} if include_metadata else payload
-    return payload, framed
+    return payload, _frame_for_stream(payload, include_metadata)
 
 
 def _build_assistant_message(content: str, tool_calls: Optional[list[ToolCall]]) -> LLMMessage:
@@ -160,16 +169,71 @@ def _build_assistant_message(content: str, tool_calls: Optional[list[ToolCall]])
     }
 
 
+def _coerce_generation_options(options: Optional[Union[dict, GenerationOptions]]) -> Optional[GenerationOptions]:
+    """Normalize the request ``options`` argument into a ``GenerationOptions`` or None."""
+    if isinstance(options, GenerationOptions):
+        return options
+    if isinstance(options, dict):
+        return GenerationOptions(**options)
+    return None
+
+
+def _unsupported_flows_reason(flows: list[str], supported: frozenset[str], label: str) -> Optional[str]:
+    """Return a fallback reason when any flow in *flows* is outside *supported*, else None.
+
+    Each flow id is normalized (call args / ``$model=`` suffix stripped) before the
+    membership check, so ``"content safety check input $model=x"`` matches the bare
+    flow name. A flow whose name normalizes to empty carries no recognizable rail name
+    and is ignored. *label* names the rail family in the message (e.g. ``"input"``,
+    ``"tool output"``); offending names are reported sorted and de-duplicated.
+    """
+    unsupported = set()
+    for flow in flows:
+        name = _get_flow_name(flow)
+        if name and name not in supported:
+            unsupported.add(name)
+    if not unsupported:
+        return None
+    return f"config has unsupported {label} flows: {sorted(unsupported)}"
+
+
+def _duplicate_flows_reason(flows: list[str], label: str) -> Optional[str]:
+    """Return a fallback reason when *flows* contains a duplicate flow, else None.
+
+    A duplicate tool flow raises ``RuntimeError`` in RailsManager at construction, so
+    surfacing it here lets the config route to LLMRails cleanly instead of failing init.
+    Flow ids are normalized (call args / ``$model=`` suffix stripped) before comparison
+    -- matching :func:`_unsupported_flows_reason` -- so two entries that differ only by a
+    suffix the tool rails ignore are still caught as duplicates rather than running twice.
+    A flow whose name normalizes to empty carries no recognizable rail name and is skipped.
+    """
+    seen = set()
+    for flow in flows:
+        name = _get_flow_name(flow)
+        if not name:
+            continue
+        if name in seen:
+            return f"config has duplicate {label} flows: {flows}"
+        seen.add(name)
+    return None
+
+
 class IORails(BaseGuardrails):
     """Workflow engine for accelerated Input/Output rails inference."""
 
     # Rail sections and flows that this engine can handle. Configs using anything
     # outside these sets fall back to LLMRails.
-    SUPPORTED_RAILS = frozenset({"input", "output", "config"})
+    SUPPORTED_RAILS = frozenset({"input", "output", "config", "tool_input", "tool_output"})
     SUPPORTED_INPUT_FLOWS = frozenset(
         {"content safety check input", "topic safety check input", "jailbreak detection model"}
     )
     SUPPORTED_OUTPUT_FLOWS = frozenset({"content safety check output"})
+    # Tool-rail flows are direction-specific: tool_output may only carry the
+    # tool-call validator and tool_input only the tool-result validator. The
+    # supported sets double as the direction check so a misdirected flow falls
+    # back to LLMRails rather than raising in RailsManager at construction.
+    SUPPORTED_TOOL_OUTPUT_FLOWS = frozenset({"tool call validation"})
+    SUPPORTED_TOOL_INPUT_FLOWS = frozenset({"tool result validation"})
 
     @classmethod
     def unsupported_reason(cls, config: RailsConfig, llm: Optional[LLMModel] = None) -> Optional[str]:
@@ -181,21 +245,31 @@ class IORails(BaseGuardrails):
         if unsupported_rails:
             return f"config has rails outside the IORails-supported set: {unsupported_rails}"
 
-        unsupported_input = set()
-        for flow in config.rails.input.flows:
-            name = _get_flow_name(flow)
-            if name and name not in cls.SUPPORTED_INPUT_FLOWS:
-                unsupported_input.add(name)
-        if unsupported_input:
-            return f"config has unsupported input flows: {sorted(unsupported_input)}"
+        # Each rail family accepts only its own direction-specific flows, so an unknown
+        # or misdirected flow routes the config to LLMRails. The supported sets double
+        # as the direction check (tool_output allows only the call validator, etc.).
+        flow_checks = (
+            ("input", config.rails.input.flows, cls.SUPPORTED_INPUT_FLOWS),
+            ("output", config.rails.output.flows, cls.SUPPORTED_OUTPUT_FLOWS),
+            ("tool output", config.rails.tool_output.flows, cls.SUPPORTED_TOOL_OUTPUT_FLOWS),
+            ("tool input", config.rails.tool_input.flows, cls.SUPPORTED_TOOL_INPUT_FLOWS),
+        )
+        for label, flows, supported in flow_checks:
+            reason = _unsupported_flows_reason(flows, supported, label)
+            if reason is not None:
+                return reason
 
-        unsupported_output = set()
-        for flow in config.rails.output.flows:
-            name = _get_flow_name(flow)
-            if name and name not in cls.SUPPORTED_OUTPUT_FLOWS:
-                unsupported_output.add(name)
-        if unsupported_output:
-            return f"config has unsupported output flows: {sorted(unsupported_output)}"
+        # A duplicate tool flow raises RuntimeError in RailsManager at construction;
+        # surface it here as a fallback reason so the config routes to LLMRails
+        # cleanly instead of failing IORails init (matching how unsupported flows
+        # are handled).
+        for label, tool_flows in (
+            ("tool output", config.rails.tool_output.flows),
+            ("tool input", config.rails.tool_input.flows),
+        ):
+            reason = _duplicate_flows_reason(tool_flows, label)
+            if reason is not None:
+                return reason
 
         return None
 
@@ -226,6 +300,14 @@ class IORails(BaseGuardrails):
             metrics_enabled=self._metrics_enabled,
             content_capture_enabled=self._content_capture_enabled,
         )
+        # Tool rails are CPU-bound, run sequentially since we're not waiting on IO to complete
+        if config.rails.tool_output.parallel or config.rails.tool_input.parallel:
+            warnings.warn(
+                "rails.tool_output.parallel / rails.tool_input.parallel are not honored by IORails; "
+                "tool rails run sequentially.",
+                stacklevel=2,
+            )
+
         self.rails_manager = RailsManager(
             engine_registry=self.engine_registry,
             task_manager=LLMTaskManager(config),
@@ -233,6 +315,8 @@ class IORails(BaseGuardrails):
             output_flows=config.rails.output.flows,
             input_parallel=config.rails.input.parallel or False,
             output_parallel=config.rails.output.parallel or False,
+            tool_call_flows=config.rails.tool_output.flows,
+            tool_result_flows=config.rails.tool_input.flows,
             tracer=self._tracer,
             content_capture_enabled=self._content_capture_enabled,
         )
@@ -407,25 +491,57 @@ class IORails(BaseGuardrails):
             log.info("[%s] generate_async completed time=%.1fms", req_id, elapsed_ms)
             return result
 
+    @staticmethod
+    def _guardrails_violation_payload(message: str, param: str) -> str:
+        """Build the JSON error payload emitted when a streaming rail blocks the request.
+
+        Shared by every streaming block path so they all surface the same
+        ``guardrails_violation`` / ``content_blocked`` shape; ``param`` distinguishes which
+        rail family blocked (``input_rails`` / ``tool_input_rails`` / ``tool_output_rails`` /
+        ``output_rails``).
+        """
+        return json.dumps(
+            {
+                "error": {
+                    "message": message,
+                    "type": "guardrails_violation",
+                    "param": param,
+                    "code": "content_blocked",
+                }
+            }
+        )
+
     async def _do_generate(
         self, messages: LLMMessages, req_id: str, request_span: Optional["Span"] = None, **kwargs
     ) -> LLMMessage:
-        """Core pipeline: input rails -> LLM call -> output rails."""
+        """Core pipeline: tool-result rails -> input rails -> LLM call -> tool-call + output rails."""
         log.info("[%s] generate_async called", req_id)
         log.debug("[%s] generate_async messages=%s", req_id, truncate(messages))
 
-        llm_kwargs = {}
-        options = kwargs.get("options")
-        if options and isinstance(options, dict):
-            options = GenerationOptions(**options)
-        if isinstance(options, GenerationOptions) and options.llm_params:
-            # Pass llm_params (including tool definitions) unchanged
-            llm_kwargs = options.llm_params
+        options = _coerce_generation_options(kwargs.get("options"))
+        # Pass llm_params (including tool definitions) unchanged to the LLM call.
+        llm_kwargs = options.llm_params if (options and options.llm_params) else {}
+        input_enabled = options.rails.input if options else True
+        output_enabled = options.rails.output if options else True
+        tool_input_enabled = options.rails.tool_input if options else True
+        tool_output_enabled = options.rails.tool_output if options else True
+
+        # Agent/client executes tool-calls and sends results to Main LLM with prior conversation history.
+        # Symmetric with INPUT rails
+        log.info("[%s] Running tool result rails", req_id)
+        tool_result = await self.rails_manager.are_tool_results_safe(messages, enabled=tool_input_enabled)
+        if not tool_result.is_safe:
+            log.info("[%s] Tool result blocked: %s", req_id, tool_result.reason)
+            if self._metrics_enabled:
+                record_request_blocked(RailDirection.INPUT)
+            return {"role": "assistant", "content": REFUSAL_MESSAGE}
 
         if self._speculative_generation:
-            response = await self._do_generate_speculative(messages, req_id, llm_kwargs, request_span)
+            response = await self._do_generate_speculative(
+                messages, req_id, llm_kwargs, request_span, input_enabled=input_enabled
+            )
         else:
-            response = await self._do_generate_sequential(messages, req_id, llm_kwargs)
+            response = await self._do_generate_sequential(messages, req_id, llm_kwargs, input_enabled=input_enabled)
 
         if response is None:
             return {"role": "assistant", "content": REFUSAL_MESSAGE}
@@ -439,6 +555,18 @@ class IORails(BaseGuardrails):
         reasoning_content = response.reasoning or _extract_and_remove_think_tags(response)
         response_text = response.content
 
+        # Main LLM returns function calls to make based on available tools and conversation
+        # Symmetric with OUTPUT rails
+        if response.tool_calls:
+            tool_call = await self.rails_manager.are_tool_calls_safe(
+                response.tool_calls, llm_kwargs, enabled=tool_output_enabled
+            )
+            if not tool_call.is_safe:
+                log.info("[%s] Tool call blocked: %s", req_id, tool_call.reason)
+                if self._metrics_enabled:
+                    record_request_blocked(RailDirection.OUTPUT)
+                return {"role": "assistant", "content": REFUSAL_MESSAGE}
+
         # Output rails check the final answer, not reasoning traces.
         # Reasoning is re-attached as <think> tags only below so reasoning intentionally bypasses output
         # rails, matching LLMRails.
@@ -447,7 +575,7 @@ class IORails(BaseGuardrails):
         is_tool_call_only = bool(response.tool_calls) and not response_text
         if not is_tool_call_only:
             log.info("[%s] Running output rails", req_id)
-            output_result = await self.rails_manager.is_output_safe(messages, response_text)
+            output_result = await self.rails_manager.is_output_safe(messages, response_text, enabled=output_enabled)
             if not output_result.is_safe:
                 log.info("[%s] Output blocked: %s", req_id, output_result.reason)
                 if self._metrics_enabled:
@@ -462,11 +590,11 @@ class IORails(BaseGuardrails):
         return _build_assistant_message(response_text, response.tool_calls)
 
     async def _do_generate_sequential(
-        self, messages: LLMMessages, req_id: str, llm_kwargs: dict
+        self, messages: LLMMessages, req_id: str, llm_kwargs: dict, *, input_enabled: Union[bool, list[str]] = True
     ) -> Optional[LLMResponse]:
         """Sequential path: input rails block before LLM generation starts."""
         log.info("[%s] Running input rails", req_id)
-        input_result = await self.rails_manager.is_input_safe(messages)
+        input_result = await self.rails_manager.is_input_safe(messages, enabled=input_enabled)
         if not input_result.is_safe:
             log.info("[%s] Input blocked: %s", req_id, input_result.reason)
             if self._metrics_enabled:
@@ -477,12 +605,18 @@ class IORails(BaseGuardrails):
         return await self.engine_registry.model_call("main", messages, **llm_kwargs)
 
     async def _do_generate_speculative(
-        self, messages: LLMMessages, req_id: str, llm_kwargs: dict, request_span: Optional["Span"] = None
+        self,
+        messages: LLMMessages,
+        req_id: str,
+        llm_kwargs: dict,
+        request_span: Optional["Span"] = None,
+        *,
+        input_enabled: Union[bool, list[str]] = True,
     ) -> Optional[LLMResponse]:
         """Speculative path: input rails and LLM generation race concurrently."""
         log.info("[%s] Speculative generation: launching input rails + LLM concurrently", req_id)
 
-        rails_task = asyncio.create_task(self.rails_manager.is_input_safe(messages))
+        rails_task = asyncio.create_task(self.rails_manager.is_input_safe(messages, enabled=input_enabled))
         gen_task = asyncio.create_task(self.engine_registry.model_call("main", messages, **llm_kwargs))
 
         try:
@@ -628,13 +762,15 @@ class IORails(BaseGuardrails):
                 "disable output rails streaming."
             )
 
-        # Extract llm_params from GenerationOptions if provided
-        llm_kwargs: dict = {}
-        if options and isinstance(options, dict):
-            options = GenerationOptions(**options)
-        if isinstance(options, GenerationOptions) and options.llm_params:
-            # Pass llm_params (including tool definitions) unchanged
-            llm_kwargs = options.llm_params
+        # Normalize options once; the inner tasks below read both llm_params
+        # (passed unchanged to the LLM call, including tool definitions) and the
+        # per-request tool-rail toggles off the coerced GenerationOptions.
+        options = _coerce_generation_options(options)
+        llm_kwargs: dict = options.llm_params if (options and options.llm_params) else {}
+        input_enabled = options.rails.input if options else True
+        output_enabled = options.rails.output if options else True
+        tool_input_enabled = options.rails.tool_input if options else True
+        tool_output_enabled = options.rails.tool_output if options else True
 
         streaming_handler = StreamingHandler(include_metadata=include_metadata)
         # Tool calls assembled by the stream: _generation_task rebinds this (via
@@ -658,14 +794,35 @@ class IORails(BaseGuardrails):
             req_id = get_request_id()
             t0 = time.monotonic()
             try:
+                # Step 0: Tool-result rails. Client/agent harness executes tool calls and sends
+                # results of execution to Main LLM along with prior conversation history
+                # Symmetric with INPUT rails for dialog use-case
+                log.info("[%s] Running tool result rails", req_id)
+                tool_result = await self.rails_manager.are_tool_results_safe(messages, enabled=tool_input_enabled)
+                if not tool_result.is_safe:
+                    log.info("[%s] Tool result blocked: %s", req_id, tool_result.reason)
+                    if self._metrics_enabled:
+                        record_request_blocked(RailDirection.INPUT)
+                    await streaming_handler.push_chunk(
+                        self._guardrails_violation_payload(
+                            f"Blocked by tool input rails: {tool_result.reason}", "tool_input_rails"
+                        )
+                    )
+                    await streaming_handler.push_chunk(END_OF_STREAM)  # type: ignore[arg-type]
+                    return
+
                 # Step 1: Input rails (non-streaming)
                 log.info("[%s] Running input rails", req_id)
-                input_result = await self.rails_manager.is_input_safe(messages)
+                input_result = await self.rails_manager.is_input_safe(messages, enabled=input_enabled)
                 if not input_result.is_safe:
                     log.info("[%s] Input blocked: %s", req_id, input_result.reason)
                     if self._metrics_enabled:
                         record_request_blocked(RailDirection.INPUT)
-                    await streaming_handler.push_chunk(REFUSAL_MESSAGE)
+                    await streaming_handler.push_chunk(
+                        self._guardrails_violation_payload(
+                            f"Blocked by input rails: {input_result.reason}", "input_rails"
+                        )
+                    )
                     await streaming_handler.push_chunk(END_OF_STREAM)  # type: ignore[arg-type]
                     return
 
@@ -790,6 +947,8 @@ class IORails(BaseGuardrails):
                                         base_iterator = self._run_output_rails_in_streaming(
                                             streaming_handler=streaming_handler,
                                             messages=messages,
+                                            enabled=output_enabled,
+                                            include_metadata=include_metadata,
                                         )
                                     else:
                                         base_iterator = streaming_handler
@@ -816,12 +975,32 @@ class IORails(BaseGuardrails):
                                     # suppress after an error/guardrails block so the caller
                                     # never receives a tool call following a failure.
                                     if accumulated_tool_calls and not error_emitted:
-                                        payload, framed = _terminal_tool_call_chunk(
-                                            accumulated_tool_calls, include_metadata
+                                        # ToolCallRail checks tool calls from the main LLM (OUTPUT)
+                                        tool_call = await self.rails_manager.are_tool_calls_safe(
+                                            accumulated_tool_calls, llm_kwargs, enabled=tool_output_enabled
                                         )
-                                        if self._content_capture_enabled:
-                                            delivered.append(payload)
-                                        yield framed
+                                        if not tool_call.is_safe:
+                                            log.info(
+                                                "[%s] Streamed tool call blocked: %s",
+                                                req_id,
+                                                tool_call.reason,
+                                            )
+                                            if self._metrics_enabled:
+                                                record_request_blocked(RailDirection.OUTPUT)
+                                            violation = self._guardrails_violation_payload(
+                                                f"Blocked by tool output rails: {tool_call.reason}",
+                                                "tool_output_rails",
+                                            )
+                                            if self._content_capture_enabled:
+                                                delivered.append(violation)
+                                            yield _frame_for_stream(violation, include_metadata)
+                                        else:
+                                            payload, framed = _terminal_tool_call_chunk(
+                                                accumulated_tool_calls, include_metadata
+                                            )
+                                            if self._content_capture_enabled:
+                                                delivered.append(payload)
+                                            yield framed
                                 finally:
                                     if not task.done():
                                         task.cancel()
@@ -852,6 +1031,9 @@ class IORails(BaseGuardrails):
         self,
         streaming_handler: AsyncIterator[Union[str, dict]],
         messages: LLMMessages,
+        *,
+        enabled: Union[bool, list[str]] = True,
+        include_metadata: Optional[bool] = False,
     ) -> AsyncGenerator[Union[str, dict], None]:
         """Buffer streamed chunks and run output rails on each batch.
 
@@ -897,20 +1079,15 @@ class IORails(BaseGuardrails):
                 continue
 
             log.info("[%s] Running output rails", req_id)
-            output_result = await self.rails_manager.is_output_safe(messages, bot_response_chunk)
+            output_result = await self.rails_manager.is_output_safe(messages, bot_response_chunk, enabled=enabled)
             if not output_result.is_safe:
                 log.info("[%s] Output blocked: %s", req_id, output_result.reason)
                 if self._metrics_enabled:
                     record_request_blocked(RailDirection.OUTPUT)
-                error_data = {
-                    "error": {
-                        "message": f"Blocked by output rails: {output_result.reason}",
-                        "type": "guardrails_violation",
-                        "param": "output_rails",
-                        "code": "content_blocked",
-                    }
-                }
-                yield json.dumps(error_data)
+                violation = self._guardrails_violation_payload(
+                    f"Blocked by output rails: {output_result.reason}", "output_rails"
+                )
+                yield _frame_for_stream(violation, include_metadata)
                 return
 
             if not stream_first:

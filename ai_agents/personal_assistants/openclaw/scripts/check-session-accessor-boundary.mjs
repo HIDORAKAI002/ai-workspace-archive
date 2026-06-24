@@ -61,6 +61,7 @@ const sessionStoreRuntimeFileBackedCompatNames = new Set([
   "saveSessionStore",
   "updateSessionStore",
 ]);
+const embeddedAgentSessionFileRuntimeNames = new Set(["resolveSessionFilePath"]);
 
 export const allowedSessionStoreRuntimeFileBackedCompatExports = new Set([
   "loadSessionStore",
@@ -117,6 +118,7 @@ export const migratedSessionAccessorFiles = new Set([
   "src/gateway/session-reset-service.ts",
   "src/infra/outbound/message-action-tts.ts",
   "src/agents/tools/embedded-gateway-stub.ts",
+  "src/agents/tools/session-status-tool.ts",
   "src/agents/tools/sessions-list-tool.ts",
   "src/plugins/host-hook-state.ts",
   "src/status/status-message.ts",
@@ -124,10 +126,28 @@ export const migratedSessionAccessorFiles = new Set([
 ]);
 
 export const migratedBundledPluginSessionAccessorFiles = new Set([
+  "extensions/codex/src/conversation-binding.ts",
+  "extensions/discord/src/monitor/native-command-model-picker-ui.ts",
   "extensions/discord/src/monitor/native-command-model-picker-apply.ts",
   "extensions/discord/src/monitor/thread-session-close.ts",
+  "extensions/feishu/src/reasoning-preview.ts",
+  "extensions/memory-core/src/dreaming-phases.ts",
   "extensions/memory-core/src/dreaming-narrative.ts",
+  "extensions/mattermost/src/mattermost/model-picker.ts",
+  "extensions/matrix/src/matrix/monitor/handler.ts",
+  "extensions/matrix/src/session-route.ts",
+  "extensions/slack/src/monitor/slash.ts",
+  "extensions/telegram/src/bot-core.ts",
   "extensions/telegram/src/bot-handlers.runtime.ts",
+  "extensions/telegram/src/bot.ts",
+  "extensions/telegram/src/bot-message-dispatch.ts",
+  "extensions/telegram/src/bot-native-commands.ts",
+  "extensions/voice-call/src/response-generator.ts",
+  "extensions/whatsapp/src/auto-reply/monitor/group-activation.ts",
+]);
+
+export const migratedEmbeddedAgentSessionTargetFiles = new Set([
+  "extensions/voice-call/src/response-generator.ts",
 ]);
 
 export const migratedSessionAccessorWriteFiles = new Set([
@@ -142,6 +162,7 @@ export const migratedSessionAccessorWriteFiles = new Set([
   "src/auto-reply/reply/abort.ts",
   "src/agents/subagent-control.ts",
   "src/agents/subagent-registry-helpers.ts",
+  "src/agents/tools/session-status-tool.ts",
   "src/auto-reply/reply/abort-cutoff.runtime.ts",
   "src/auto-reply/reply/agent-runner-cli-dispatch.ts",
   "src/auto-reply/reply/agent-runner-execution.ts",
@@ -234,6 +255,13 @@ function propertyAccessName(expression) {
   }
   if (ts.isElementAccessExpression(unwrapped) && ts.isStringLiteral(unwrapped.argumentExpression)) {
     return unwrapped.argumentExpression.text;
+  }
+  return null;
+}
+
+function propertyNameText(name) {
+  if (ts.isIdentifier(name) || ts.isStringLiteralLike(name) || ts.isNumericLiteral(name)) {
+    return name.text;
   }
   return null;
 }
@@ -400,6 +428,51 @@ export function findSessionAccessorBoundaryViolations(content, fileName = "sourc
   return findNamedSessionStoreViolations(content, fileName, legacyNames, legacyKind);
 }
 
+export function findEmbeddedAgentSessionTargetViolations(content, fileName = "source.ts") {
+  const sourceFile = ts.createSourceFile(fileName, content, ts.ScriptTarget.Latest, true);
+  const violations = findNamedBoundaryViolations(
+    content,
+    fileName,
+    embeddedAgentSessionFileRuntimeNames,
+    "legacy embedded-agent session file resolver",
+  );
+
+  const recordDeprecatedSessionFile = (name) => {
+    violations.push({
+      line: toLine(sourceFile, name),
+      reason:
+        'passes deprecated embedded-agent runtime identity field "sessionFile"; use sessionTarget',
+    });
+  };
+
+  const visitRunOptions = (options) => {
+    for (const property of options.properties) {
+      if (ts.isPropertyAssignment(property) && propertyNameText(property.name) === "sessionFile") {
+        recordDeprecatedSessionFile(property.name);
+      } else if (
+        ts.isShorthandPropertyAssignment(property) &&
+        property.name.text === "sessionFile"
+      ) {
+        recordDeprecatedSessionFile(property.name);
+      }
+    }
+  };
+
+  const visit = (node) => {
+    if (ts.isCallExpression(node) && propertyAccessName(node.expression) === "runEmbeddedAgent") {
+      const options = unwrapExpression(node.arguments[0]);
+      if (options && ts.isObjectLiteralExpression(options)) {
+        visitRunOptions(options);
+      }
+      return;
+    }
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+  return violations;
+}
+
 export function findSessionAccessorWriteBoundaryViolations(content, fileName = "source.ts") {
   return findNamedSessionStoreViolations(content, fileName, legacyWriterNames, "writer");
 }
@@ -551,6 +624,7 @@ export async function main() {
     "extensions/discord/src/monitor",
     "extensions/memory-core/src",
     "extensions/telegram/src",
+    "extensions/voice-call/src",
     "src/acp",
     "src/agents",
     "src/auto-reply",
@@ -642,6 +716,15 @@ export async function main() {
       ),
     findViolations: findMemoryHostSessionCorpusBoundaryViolations,
   });
+  const embeddedAgentSessionTargetViolations = await collectFileViolations({
+    repoRoot,
+    sourceRoots: resolveSourceRoots(repoRoot, ["extensions/voice-call/src"]),
+    skipFile: (filePath) =>
+      !migratedEmbeddedAgentSessionTargetFiles.has(
+        normalizeRelativePath(path.relative(repoRoot, filePath)),
+      ),
+    findViolations: findEmbeddedAgentSessionTargetViolations,
+  });
   const sessionStoreRuntimePath = path.join(repoRoot, "src/plugin-sdk/session-store-runtime.ts");
   const sessionStoreRuntimeCompatViolations =
     findSessionStoreRuntimeFileBackedCompatExportViolations(
@@ -658,6 +741,7 @@ export async function main() {
     ...manualCompactTrimViolations,
     ...lifecycleCleanupViolations,
     ...memoryHostSessionCorpusViolations,
+    ...embeddedAgentSessionTargetViolations,
     ...sessionStoreRuntimeCompatViolations,
   ];
 

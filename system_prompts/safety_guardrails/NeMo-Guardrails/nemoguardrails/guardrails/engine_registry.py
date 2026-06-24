@@ -36,6 +36,7 @@ from nemoguardrails.guardrails.telemetry import (
     set_llm_request_attributes,
     set_llm_response_attributes,
 )
+from nemoguardrails.guardrails.tool_schema import ToolExchange, ToolResult, Toolset
 from nemoguardrails.rails.llm.config import Model, RailsConfigData
 from nemoguardrails.tracing.constants import (
     llm_operation_duration,
@@ -369,6 +370,48 @@ class EngineRegistry:
         # or provider error — those raise out of the ``with`` blocks above).
         if self._metrics_enabled:
             record_token_usage(engine.model_name, provider_name, operation_name, captured_usage)
+
+    def parse_tools(self, model_type: str, llm_params: Optional[dict]) -> Toolset:
+        """Parse the tool block in ``llm_params`` for the named model engine.
+
+        Delegates to the engine's ``parse_tools`` so the provider-specific shape
+        (keyed on the engine) is normalized into a ``Toolset`` for the tool rails.
+
+        Raises:
+            KeyError: If no engine is registered with the given name.
+            TypeError: If the named engine is not a ModelEngine.
+        """
+        engine = self._get_engine(model_type, ModelEngine)
+        return engine.parse_tools({**engine.body_param_defaults, **(llm_params or {})})
+
+    def extract_tool_results(self, model_type: str, messages: list[dict]) -> list[ToolResult]:
+        """Extract incoming tool results from ``messages`` for the named model engine.
+
+        Delegates to the engine's ``extract_tool_results`` so the provider's
+        tool-result messages are normalized into the ``ToolResult`` list the
+        ToolResultRail consumes.
+
+        Raises:
+            KeyError: If no engine is registered with the given name.
+            TypeError: If the named engine is not a ModelEngine.
+        """
+        engine = self._get_engine(model_type, ModelEngine)
+        return engine.extract_tool_results(messages)
+
+    def extract_tool_exchanges(self, model_type: str, messages: list[dict]) -> list[ToolExchange]:
+        """Group ``messages`` into per-turn ``(tool_calls, tool_results)`` exchanges.
+
+        Delegates to the engine's ``extract_tool_exchanges`` so each tool result is
+        validated against its own turn's calls. This keeps ``call_id`` linkage
+        turn-local, which ``RailsManager.are_tool_results_safe`` relies on so that ids
+        reused across turns (spec-allowed) are not flagged as ambiguous duplicates.
+
+        Raises:
+            KeyError: If no engine is registered with the given name.
+            TypeError: If the named engine is not a ModelEngine.
+        """
+        engine = self._get_engine(model_type, ModelEngine)
+        return engine.extract_tool_exchanges(messages)
 
     async def api_call(self, api_name: str, message: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Route an API request to the named API engine.

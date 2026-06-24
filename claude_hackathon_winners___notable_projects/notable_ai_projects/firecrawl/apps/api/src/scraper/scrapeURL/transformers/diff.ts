@@ -1,11 +1,10 @@
 import { diffGetLastScrape } from "../../../db/rpc";
 import { Document } from "../../../controllers/v1/types";
 import { Meta } from "../index";
-import gitDiff from "git-diff";
-import parseDiff from "parse-diff";
 import { generateCompletions } from "./llmExtract";
 import { hasFormatOfType } from "../../../lib/format-utils";
 import { getJobFromGCS } from "../../../lib/gcs-jobs";
+import { createMarkdownChangeDiff } from "../../../lib/change-tracking-diff";
 
 async function extractDataWithSchema(
   content: string,
@@ -161,58 +160,15 @@ export async function deriveDiff(
         changeTrackingFormat?.modes?.includes("git-diff") &&
         changeStatus === "changed"
       ) {
-        const diffText = gitDiff(previousMarkdown, currentMarkdown, {
-          color: false,
-          wordDiff: false,
-        });
-        // meta.logger.debug("Diff text", { diffText });
-        if (diffText) {
-          const diffStructured = parseDiff(diffText);
-          // meta.logger.debug("Diff structured", { diffStructured });
+        const diff = createMarkdownChangeDiff(
+          previousMarkdown,
+          currentMarkdown,
+        );
+        // meta.logger.debug("Diff text", { diffText: diff?.text });
+        if (diff) {
           document.changeTracking.diff = {
-            text: diffText,
-            json: {
-              files: diffStructured.map(file => ({
-                from: file.from || null,
-                to: file.to || null,
-                chunks: file.chunks.map(chunk => ({
-                  content: chunk.content,
-                  changes: chunk.changes.map(change => {
-                    const baseChange = {
-                      type: change.type,
-                      content: change.content,
-                    };
-
-                    if (
-                      change.type === "normal" &&
-                      "ln1" in change &&
-                      "ln2" in change
-                    ) {
-                      return {
-                        ...baseChange,
-                        normal: true,
-                        ln1: change.ln1,
-                        ln2: change.ln2,
-                      };
-                    } else if (change.type === "add" && "ln" in change) {
-                      return {
-                        ...baseChange,
-                        add: true,
-                        ln: change.ln,
-                      };
-                    } else if (change.type === "del" && "ln" in change) {
-                      return {
-                        ...baseChange,
-                        del: true,
-                        ln: change.ln,
-                      };
-                    }
-
-                    return baseChange;
-                  }),
-                })),
-              })),
-            },
+            text: diff.text,
+            json: diff.json,
           };
         }
       }
