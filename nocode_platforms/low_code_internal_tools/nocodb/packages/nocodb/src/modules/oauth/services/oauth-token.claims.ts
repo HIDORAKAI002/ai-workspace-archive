@@ -1,7 +1,8 @@
 export interface OAuthAccessTokenUser {
   id: string;
   email: string;
-  roles: unknown;
+  // Optional to match the User model (`roles?: string`); the claim copies it through as-is.
+  roles?: unknown;
   token_version?: string | number | null;
 }
 

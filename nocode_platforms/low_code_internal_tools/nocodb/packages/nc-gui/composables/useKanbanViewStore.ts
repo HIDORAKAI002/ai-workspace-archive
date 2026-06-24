@@ -62,7 +62,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { setMeta, metas } = useMetas()
 
+    const { blockButtonVisibility } = useEeConfig()
+
     const buttonFilterColumns = computed(() => {
+      // Conditional button visibility is a paid feature (FEATURE_BUTTON_VISIBILITY) — unavailable in
+      // CE/OSS and on plans without it. When blocked, ignore any persisted filters so buttons always render.
+      if (blockButtonVisibility.value) return []
       if (!meta.value?.columns) return []
       return (meta.value as TableType).columns!.filter(
         (col) => col.uidt === UITypes.Button && (col.colOptions as any)?.filters?.length,

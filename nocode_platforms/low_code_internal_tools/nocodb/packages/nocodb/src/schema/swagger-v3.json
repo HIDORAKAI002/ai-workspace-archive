@@ -11775,6 +11775,11 @@
           "show_as_progress": {
             "type": "boolean",
             "description": "Display as a progress bar."
+          },
+          "shape": {
+            "type": "string",
+            "enum": ["bar", "circle"],
+            "description": "Progress bar shape. Only applies when `show_as_progress` is enabled.\n- `bar` (default)\n- `circle`"
           }
         },
         "additionalProperties": false
@@ -11796,7 +11801,7 @@
         "properties": {
           "date_format": {
             "type": "string",
-            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`"
+            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`\n- `dddd YYYY-MM-DD`\n- `ddd YYYY-MM-DD`\n- `dddd DD/MM/YYYY`\n- `ddd DD/MM/YYYY`\n- `dddd MM/DD/YYYY`\n- `ddd MM/DD/YYYY`"
           },
           "time_format": {
             "type": "string",
@@ -11827,7 +11832,7 @@
         "properties": {
           "date_format": {
             "type": "string",
-            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`"
+            "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`\n- `dddd YYYY-MM-DD`\n- `ddd YYYY-MM-DD`\n- `dddd DD/MM/YYYY`\n- `ddd DD/MM/YYYY`\n- `dddd MM/DD/YYYY`\n- `ddd MM/DD/YYYY`"
           }
         },
         "additionalProperties": false

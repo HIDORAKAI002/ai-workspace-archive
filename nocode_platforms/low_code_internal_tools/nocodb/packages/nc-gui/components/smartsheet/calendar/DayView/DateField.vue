@@ -245,6 +245,9 @@ const newRecord = () => {
                   :underline="getFieldStyle(field).underline"
                 />
               </template>
+              <template #tooltip>
+                <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
+              </template>
             </LazySmartsheetCalendarRecordCard>
           </LazySmartsheetRow>
         </div>

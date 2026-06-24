@@ -211,7 +211,18 @@ export const Link = TiptapLink.extend<LinkOptions>({
   addStorage() {
     return {
       markdown: {
-        serialize: defaultMarkdownSerializer.marks.link,
+        // Reuse prosemirror's default link serialiser, but force the markdown
+        // `[text](url)` form for every link — including plain URLs where the text
+        // equals the href. By default the serialiser emits the autolink `<url>` form
+        // (via isPlainURL); the backend comment sanitiser then runs DOMPurify over the
+        // markdown and strips `<url>` as an unknown HTML tag, wiping the link (and the
+        // whole comment when it's the only content). Overriding `open` to '[' leaves
+        // `inAutolink` unset, so the default `close` falls through to its bracketed
+        // `](url)` branch. See nocodb#14083.
+        serialize: {
+          ...defaultMarkdownSerializer.marks.link,
+          open: '[',
+        },
         parse: {
           // handled by markdown-it
         },

@@ -547,6 +547,9 @@ defineExpose({
                     :underline="!!fieldStyles[field.id]?.underline"
                   />
                 </template>
+                <template #tooltip>
+                  <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
+                </template>
               </LazySmartsheetCalendarRecordCard>
             </LazySmartsheetRow>
           </div>

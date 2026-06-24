@@ -333,7 +333,12 @@ watch(
 
       if (!relatedBaseId) return
 
-      getMeta(relatedBaseId, tableId).catch(() => {
+      // Force-refresh for cross-base links: the related table lives in another
+      // base whose realtime meta events this client never receives (the META
+      // socket channel + handler are scoped to the active base), so a cached
+      // meta can be stale — e.g. a peer added a field in the other base. A
+      // same-base related table stays fresh via realtime, so don't force there.
+      getMeta(relatedBaseId, tableId, crossBase.value).catch(() => {
         // ignore
       })
       viewsStore
@@ -513,6 +518,21 @@ const onFilterLabelClick = () => {
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
 
   limitRecToCond.value = !limitRecToCond.value
+
+  // On enabling the filter picker, re-fetch the related table's meta for
+  // cross-base links so fields a peer added since this panel opened show up in
+  // the field list. Cross-base meta isn't kept live — this client never
+  // receives the other base's realtime events; same-base stays fresh via realtime.
+  if (limitRecToCond.value && crossBase.value) {
+    const tableId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+    const relatedBaseId = (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+
+    if (tableId && relatedBaseId) {
+      getMeta(relatedBaseId, tableId, true).catch(() => {
+        // ignore
+      })
+    }
+  }
 }
 
 const onCrossBaseToggle = () => {

@@ -100,15 +100,35 @@ function sanitizeSortValue(
  * Restricts the caller-supplied `where`/`sort` on a nested-link list to the
  * columns the link actually exposes.
  *
- * Cross-base and visibility-limited related tables expose only their primary key,
- * primary value and (optional) custom display-value column over a link — the nested
- * fetchers restrict the SELECT to those via `pkAndPvOnly`. The caller-supplied
+ * When the caller lacks visibility access to the related table, the nested fetch is
+ * restricted to the link's primary key, primary value and (optional) custom
+ * display-value column via `pkAndPvOnly`/`extractOnlyPrimaries`. The caller-supplied
  * `where`/`sort`, however, are otherwise compiled against the related table's full
  * column set, turning any hidden column into a one-bit oracle
  * (`where=(Secret,like,X%)` → the related row matches or it doesn't; `sort` reorders
  * by the hidden value). Stripping references to non-exposed columns keeps the
  * predicate confined to what the link already shows, mirroring the public
  * shared-view sanitizer.
+ *
+ * The restriction must match the fetch's actual SELECT exposure so the predicate and
+ * the SELECT never disagree about what's visible — which differs by path:
+ *  - when the caller threads in `hasLimitedAccess` (the EE optimized list path, which
+ *    SELECTs the full column set whenever the user has visibility access —
+ *    `extractOnlyPrimaries: hasLimitedAccess`): the gate is exactly that same value,
+ *    so a cross-base link whose related table the user CAN see exposes everything and
+ *    its `where`/`sort` apply unchanged (restricting it would silently drop legitimate
+ *    filters on shown columns, e.g. searching the picker by a displayed non-pv field).
+ *    The caller computes that access in the related table's own context, so cross-base
+ *    roles are evaluated correctly and the predicate and SELECT resolve visibility from
+ *    a single source.
+ *  - default (CE fetcher, public shared view, legacy routes) SELECTs pk/pv-only for
+ *    ANY cross-base link OR any visibility-limited table, independent of the caller's
+ *    incidental access (`pkAndPvOnly: isCrossBaseLink() || hasLimitedAccess`, and the
+ *    public path forces `extractOnlyPrimaries: true`). There the gate stays the
+ *    conservative `isCrossBaseLink() || !access`, which also keeps the anonymous
+ *    public path (no user) restricted. Relaxing it here would reopen the oracle on
+ *    MySQL/disabled-optimization (unoptimized fetcher) and on public shared views,
+ *    where the SELECT genuinely hides the columns.
  *
  * Must be invoked at every nested-link entry point that forwards request query to a
  * fetcher — because the EE optimized path builds its own query from `param.query`
@@ -129,22 +149,48 @@ export async function restrictNestedLinkQuery(
   colOptions: LinkToAnotherRecordColumn,
   relatedModel: Model,
   query: Record<string, any>,
+  options?: {
+    /**
+     * Precomputed "user lacks visibility access to the related table" decision,
+     * threaded from the caller's SELECT exposure (the EE optimized list path's
+     * `extractOnlyPrimaries: hasLimitedAccess`). When provided, the where/sort is
+     * restricted iff this is true — resolving access once, from the same source as
+     * the SELECT, so the predicate and the SELECT can't disagree. Omitted everywhere
+     * else, where the conservative cross-base gate is computed here (see fn docs).
+     */
+    hasLimitedAccess?: boolean;
+  },
 ): Promise<void> {
   if (!query) return;
 
+  // Nothing to sanitize — skip the access check and column lookup entirely.
+  if (!query.where && !query.sort) return;
+
+  // The related table may live in another base — resolve its own context for the
+  // column lookup below.
+  const { refContext } = colOptions.getRelContext(context);
+
+  // Gate the restriction to the fetch's actual SELECT exposure (see fn docs):
+  //  - when the caller threads in `hasLimitedAccess` (the EE optimized SELECT's own
+  //    access decision): restrict iff the user lacks access — the same value the
+  //    SELECT uses, so the two can't disagree;
+  //  - default: restrict for any cross-base link or visibility-limited table —
+  //    conservative, and keeps the anonymous public path (no user) restricted.
   const restricted =
-    colOptions.isCrossBaseLink() ||
-    !(await hasTableVisibilityAccess(context, relatedModel.id, context.user));
+    options?.hasLimitedAccess !== undefined
+      ? options.hasLimitedAccess
+      : colOptions.isCrossBaseLink() ||
+        !(await hasTableVisibilityAccess(
+          context,
+          relatedModel.id,
+          context.user,
+        ));
 
   if (!restricted) return;
 
-  // Nothing to sanitize — skip the (cross-base) column lookup entirely.
-  if (!query.where && !query.sort) return;
-
-  // The related table may live in another base — resolve its columns in its own
-  // context and into a local list (don't mutate the shared model's column cache,
-  // which the downstream fetcher/count rely on).
-  const { refContext } = colOptions.getRelContext(context);
+  // Resolve the related table's columns in its own context and into a local list
+  // (don't mutate the shared model's column cache, which the downstream
+  // fetcher/count rely on).
   const columns = await Column.list(refContext, {
     fk_model_id: relatedModel.id,
   });
@@ -194,6 +240,7 @@ export async function restrictNestedLinkQueryForColumn(
   context: NcContext,
   column: Column,
   query: Record<string, any>,
+  options?: { hasLimitedAccess?: boolean },
 ): Promise<void> {
   if (!query || !column || !isLinksOrLTAR(column)) return;
 
@@ -203,5 +250,11 @@ export async function restrictNestedLinkQueryForColumn(
   if (!colOptions) return;
 
   const relatedModel = await colOptions.getRelatedTable(context);
-  await restrictNestedLinkQuery(context, colOptions, relatedModel, query);
+  await restrictNestedLinkQuery(
+    context,
+    colOptions,
+    relatedModel,
+    query,
+    options,
+  );
 }

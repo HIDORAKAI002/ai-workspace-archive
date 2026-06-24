@@ -36,7 +36,7 @@ const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow(
 
 const { fieldsToGroupBy, groupByLimit, groupBy } = useViewGroupByOrThrow()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
 
 const { appInfo } = useGlobal()
 
@@ -52,6 +52,8 @@ const columnCount = computed(() => props.columns.length)
 
 // pv (display value) column cannot be hidden or deleted.
 const nonPvColumns = computed(() => props.columns.filter((col) => !col.pv))
+
+const fieldDeleteReason = computed(() => sandboxRestrictionReason('fieldDelete'))
 
 const closeAndClear = () => {
   isOpen.value = false
@@ -279,9 +281,16 @@ const onPermissionsSaved = () => {
       </NcMenuItem>
     </NcTooltip>
 
-    <NcTooltip v-if="isUIAllowed('fieldDelete')" :disabled="nonPvColumns.length === columnCount" placement="right">
-      <template #title>{{ t('tooltip.displayValueFieldExcluded') }}</template>
-      <NcMenuItem danger data-testid="nc-multi-field-delete" @click="onDelete">
+    <NcTooltip
+      v-if="isUIAllowed('fieldDelete') || !!fieldDeleteReason"
+      :disabled="!fieldDeleteReason && nonPvColumns.length === columnCount"
+      placement="right"
+    >
+      <template #title>
+        <template v-if="fieldDeleteReason">{{ t(fieldDeleteReason) }}</template>
+        <template v-else>{{ t('tooltip.displayValueFieldExcluded') }}</template>
+      </template>
+      <NcMenuItem danger :disabled="!!fieldDeleteReason" data-testid="nc-multi-field-delete" @click="onDelete">
         <div class="nc-multi-column-delete nc-header-menu-item">
           <component :is="iconMap.delete" class="opacity-80" />
           {{ t('labels.deleteNFields', { count: nonPvColumns.length }) }}

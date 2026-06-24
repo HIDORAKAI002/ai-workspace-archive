@@ -171,6 +171,8 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
 
       <SmartsheetToolbarCalendarMode v-if="isCalendar" :tab="false" />
 
+      <SmartsheetToolbarCalendarRecordHeight v-if="isCalendar && !isMobileMode" />
+
       <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed" />
 
       <template v-if="isCalendar && !isMobileMode">

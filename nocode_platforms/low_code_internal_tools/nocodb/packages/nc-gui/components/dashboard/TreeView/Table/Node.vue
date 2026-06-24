@@ -20,7 +20,7 @@ const { openTable: _openTable } = useTableNew({
 
 const route = useRoute()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
@@ -402,31 +402,62 @@ async function onRename() {
   onCancel()
 }
 
+const restrictionReasons = computed(() => {
+  return {
+    tableRename: sandboxRestrictionReason('tableRename', { roles: baseRole?.value, source: source.value }),
+    tableDescriptionEdit: sandboxRestrictionReason('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }),
+    tableDuplicate:
+      source.value?.is_meta || source.value?.is_local
+        ? sandboxRestrictionReason('tableDuplicate', { source: source.value })
+        : null,
+    tablePermission:
+      isEeUI && table.value?.type === 'table' && showEEFeatures.value
+        ? sandboxRestrictionReason('tablePermission', { roles: baseRole?.value, source: source.value })
+        : null,
+    tableRowLevelSecurity:
+      isEeUI && table.value?.type === 'table' && showEEFeatures.value
+        ? sandboxRestrictionReason('rlsManage', { roles: baseRole?.value, source: source.value })
+        : null,
+    tableDelete: sandboxRestrictionReason('tableDelete', { roles: baseRole?.value, source: source.value }),
+  }
+})
+
+const tableIconEditReason = computed(() =>
+  sandboxRestrictionReason('tableIconEdit', { roles: baseRole?.value, source: source.value }),
+)
+
 const enabledOptions = computed(() => {
   return {
-    tableRename: isUIAllowed('tableRename', { roles: baseRole?.value, source: source.value }),
-    tableDescriptionEdit: isUIAllowed('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }),
+    tableRename:
+      isUIAllowed('tableRename', { roles: baseRole?.value, source: source.value }) || !!restrictionReasons.value.tableRename,
+    tableDescriptionEdit:
+      isUIAllowed('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }) ||
+      !!restrictionReasons.value.tableDescriptionEdit,
     tableDuplicate:
-      isUIAllowed('tableDuplicate', {
+      (isUIAllowed('tableDuplicate', {
         source: source.value,
       }) &&
-      (source.value?.is_meta || source.value?.is_local),
+        (source.value?.is_meta || source.value?.is_local)) ||
+      !!restrictionReasons.value.tableDuplicate,
     tablePermission:
-      isEeUI &&
-      table.value?.type === 'table' &&
-      isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }) &&
-      showEEFeatures.value,
+      (isEeUI &&
+        table.value?.type === 'table' &&
+        isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }) &&
+        showEEFeatures.value) ||
+      !!restrictionReasons.value.tablePermission,
     tableRowLevelSecurity:
-      isEeUI &&
-      table.value?.type === 'table' &&
-      isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }) &&
-      showEEFeatures.value,
+      (isEeUI &&
+        table.value?.type === 'table' &&
+        isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }) &&
+        showEEFeatures.value) ||
+      !!restrictionReasons.value.tableRowLevelSecurity,
     tableDateDependency:
       isEeUI &&
       table.value?.type === 'table' &&
       isUIAllowed('dateDependencyManage', { roles: baseRole?.value, source: source.value }) &&
       showEEFeatures.value,
-    tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
+    tableDelete:
+      isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }) || !!restrictionReasons.value.tableDelete,
   }
 })
 
@@ -618,113 +649,141 @@ const isMmTable = computed(() => !!table.value?.mm)
                     "
                   >
                     <NcDivider v-if="enabledOptions.tableRename || enabledOptions.tableDuplicate" />
-                    <NcMenuItem
+                    <NcTooltip
                       v-if="enabledOptions.tableRename"
-                      :data-testid="`sidebar-table-rename-${table.title}`"
-                      class="nc-table-rename"
-                      @click="onRenameMenuClick(table)"
+                      :title="restrictionReasons.tableRename ? $t(restrictionReasons.tableRename) : ''"
+                      :disabled="!restrictionReasons.tableRename"
                     >
-                      <div v-e="['c:table:rename']" class="flex gap-2 items-center">
-                        <GeneralIcon icon="rename" class="opacity-80" />
-                        {{ $t('general.rename') }} {{ $t('objects.table').toLowerCase() }}
-                      </div>
-                    </NcMenuItem>
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-rename-${table.title}`"
+                        class="nc-table-rename"
+                        :disabled="!!restrictionReasons.tableRename"
+                        @click="onRenameMenuClick(table)"
+                      >
+                        <div v-e="['c:table:rename']" class="flex gap-2 items-center">
+                          <GeneralIcon icon="rename" class="opacity-80" />
+                          {{ $t('general.rename') }} {{ $t('objects.table').toLowerCase() }}
+                        </div>
+                      </NcMenuItem>
+                    </NcTooltip>
 
-                    <NcMenuItemChangeIcon
-                      v-e="['c:table:change-icon']"
-                      :disabled="!!(!canUserEditEmote || isMobileMode)"
-                      :data-testid="`sidebar-table-change-icon-${table.title}`"
-                      @change-icon="onChangeIcon"
-                    />
+                    <NcTooltip :title="tableIconEditReason ? $t(tableIconEditReason) : ''" :disabled="!tableIconEditReason">
+                      <NcMenuItemChangeIcon
+                        v-e="['c:table:change-icon']"
+                        :disabled="!!(!canUserEditEmote || isMobileMode || tableIconEditReason)"
+                        :data-testid="`sidebar-table-change-icon-${table.title}`"
+                        @change-icon="onChangeIcon"
+                      />
+                    </NcTooltip>
 
-                    <NcMenuItem
+                    <NcTooltip
                       v-if="enabledOptions.tableDuplicate"
-                      :data-testid="`sidebar-table-duplicate-${table.title}`"
-                      @click="duplicateTable(table)"
+                      :title="restrictionReasons.tableDuplicate ? $t(restrictionReasons.tableDuplicate) : ''"
+                      :disabled="!restrictionReasons.tableDuplicate"
                     >
-                      <div v-e="['c:table:duplicate']" class="flex-1 flex gap-2 items-center">
-                        <GeneralIcon icon="duplicate" class="opacity-80" />
-                        {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
-                      </div>
-                    </NcMenuItem>
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-duplicate-${table.title}`"
+                        :disabled="!!restrictionReasons.tableDuplicate"
+                        @click="duplicateTable(table)"
+                      >
+                        <div v-e="['c:table:duplicate']" class="flex-1 flex gap-2 items-center">
+                          <GeneralIcon icon="duplicate" class="opacity-80" />
+                          {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
+                        </div>
+                      </NcMenuItem>
+                    </NcTooltip>
                     <NcDivider />
 
-                    <NcMenuItem
+                    <NcTooltip
                       v-if="enabledOptions.tableDescriptionEdit"
-                      :data-testid="`sidebar-table-description-${table.title}`"
-                      class="nc-table-description"
-                      @click="openTableDescriptionDialog(table)"
+                      :title="restrictionReasons.tableDescriptionEdit ? $t(restrictionReasons.tableDescriptionEdit) : ''"
+                      :disabled="!restrictionReasons.tableDescriptionEdit"
                     >
-                      <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
-                        <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
-                        {{ $t('labels.editTableDescription') }}
-                      </div>
-                    </NcMenuItem>
-                    <PaymentUpgradeBadgeProvider
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-description-${table.title}`"
+                        class="nc-table-description"
+                        :disabled="!!restrictionReasons.tableDescriptionEdit"
+                        @click="openTableDescriptionDialog(table)"
+                      >
+                        <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
+                          <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
+                          {{ $t('labels.editTableDescription') }}
+                        </div>
+                      </NcMenuItem>
+                    </NcTooltip>
+                    <NcTooltip
                       v-if="enabledOptions.tablePermission"
-                      :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                      :title="restrictionReasons.tablePermission ? $t(restrictionReasons.tablePermission) : ''"
+                      :disabled="!restrictionReasons.tablePermission"
                     >
-                      <template #default="{ click }">
-                        <NcMenuItem
-                          :data-testid="`sidebar-table-permissions-${table.title}`"
-                          class="nc-table-permissions"
-                          @click="
-                            click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
-                              onPermissions(table)
-                            })
-                          "
-                        >
-                          <div v-e="['c:table:permissions']" class="flex gap-2 items-center w-full">
-                            <GeneralIcon icon="ncLock" class="opacity-80" />
-                            <div class="flex-1">
-                              {{ $t('title.editTablePermissions') }}
+                      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
+                        <template #default="{ click }">
+                          <NcMenuItem
+                            :data-testid="`sidebar-table-permissions-${table.title}`"
+                            class="nc-table-permissions"
+                            :disabled="!!restrictionReasons.tablePermission"
+                            @click="
+                              click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
+                                onPermissions(table)
+                              })
+                            "
+                          >
+                            <div v-e="['c:table:permissions']" class="flex gap-2 items-center w-full">
+                              <GeneralIcon icon="ncLock" class="opacity-80" />
+                              <div class="flex-1">
+                                {{ $t('title.editTablePermissions') }}
+                              </div>
+
+                              <LazyPaymentUpgradeBadge
+                                :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                                :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
+                                :content="
+                                  $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+                                    plan: PlanTitles.PLUS,
+                                  })
+                                "
+                                :on-click-callback="() => (isOptionsOpen = false)"
+                                show-as-lock
+                              />
                             </div>
-
-                            <LazyPaymentUpgradeBadge
-                              :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
-                              :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
-                              :content="
-                                $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
-                                  plan: PlanTitles.PLUS,
-                                })
-                              "
-                              :on-click-callback="() => (isOptionsOpen = false)"
-                              show-as-lock
-                            />
-                          </div>
-                        </NcMenuItem>
-                      </template>
-                    </PaymentUpgradeBadgeProvider>
-                    <PaymentUpgradeBadgeProvider
+                          </NcMenuItem>
+                        </template>
+                      </PaymentUpgradeBadgeProvider>
+                    </NcTooltip>
+                    <NcTooltip
                       v-if="enabledOptions.tableRowLevelSecurity"
-                      :feature="PlanFeatureTypes.FEATURE_RLS"
+                      :title="restrictionReasons.tableRowLevelSecurity ? $t(restrictionReasons.tableRowLevelSecurity) : ''"
+                      :disabled="!restrictionReasons.tableRowLevelSecurity"
                     >
-                      <template #default="{ click }">
-                        <NcMenuItem
-                          :data-testid="`sidebar-table-rls-${table.title}`"
-                          class="nc-table-rls"
-                          @click="click(PlanFeatureTypes.FEATURE_RLS, onRowLevelSecurity)"
-                        >
-                          <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
-                            <GeneralIcon icon="ncShield" class="opacity-80" />
-                            <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
+                      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_RLS">
+                        <template #default="{ click }">
+                          <NcMenuItem
+                            :data-testid="`sidebar-table-rls-${table.title}`"
+                            class="nc-table-rls"
+                            :disabled="!!restrictionReasons.tableRowLevelSecurity"
+                            @click="click(PlanFeatureTypes.FEATURE_RLS, onRowLevelSecurity)"
+                          >
+                            <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
+                              <GeneralIcon icon="ncShield" class="opacity-80" />
+                              <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
 
-                            <LazyPaymentUpgradeBadge
-                              :feature="PlanFeatureTypes.FEATURE_RLS"
-                              remove-click
-                              show-as-lock
-                              :title="$t('upgrade.upgradeToUseRls')"
-                              :content="
-                                $t('upgrade.upgradeToUseRlsSubtitle', {
-                                  plan: PlanTitles.ENTERPRISE,
-                                })
-                              "
-                              :on-click-callback="() => (isOptionsOpen = false)"
-                            />
-                          </div>
-                        </NcMenuItem>
-                      </template>
-                    </PaymentUpgradeBadgeProvider>
+                              <LazyPaymentUpgradeBadge
+                                :feature="PlanFeatureTypes.FEATURE_RLS"
+                                remove-click
+                                show-as-lock
+                                :title="$t('upgrade.upgradeToUseRls')"
+                                :content="
+                                  $t('upgrade.upgradeToUseRlsSubtitle', {
+                                    plan: PlanTitles.ENTERPRISE,
+                                  })
+                                "
+                                :on-click-callback="() => (isOptionsOpen = false)"
+                              />
+                            </div>
+                          </NcMenuItem>
+                        </template>
+                      </PaymentUpgradeBadgeProvider>
+                    </NcTooltip>
                     <PaymentUpgradeBadgeProvider
                       v-if="enabledOptions.tableDateDependency"
                       :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
@@ -768,12 +827,20 @@ const isMmTable = computed(() => !!table.value?.mm)
                   />
                   <template v-if="enabledOptions.tableDelete && !table.synced">
                     <NcDivider />
-                    <NcTooltip :disabled="!isMmTable" :title="$t('tooltip.deleteNotSupportedOnJunctionTable')" placement="right">
+                    <NcTooltip
+                      :disabled="!restrictionReasons.tableDelete && !isMmTable"
+                      :title="
+                        restrictionReasons.tableDelete
+                          ? $t(restrictionReasons.tableDelete)
+                          : $t('tooltip.deleteNotSupportedOnJunctionTable')
+                      "
+                      placement="right"
+                    >
                       <NcMenuItem
                         :data-testid="`sidebar-table-delete-${table.title}`"
                         class="nc-table-delete"
                         danger
-                        :disabled="isMmTable"
+                        :disabled="!!restrictionReasons.tableDelete || isMmTable"
                         @click="deleteTable"
                       >
                         <div v-e="['c:table:delete']" class="flex gap-2 items-center">

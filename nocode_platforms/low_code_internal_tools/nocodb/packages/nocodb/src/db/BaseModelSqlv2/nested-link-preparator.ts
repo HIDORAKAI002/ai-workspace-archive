@@ -35,6 +35,37 @@ export interface NestedLinkLastModifiedEntry {
 }
 
 export class NestedLinkPreparator {
+  /**
+   * Run a capture/lookup SELECT used during nested-link preparation in an
+   * external-DB-safe way.
+   *
+   * These reads used to await a bare knex builder on `baseModel.dbDriver`.
+   * On EE Cloud an external source exposes a *pool-less* mux driver, so a
+   * bare builder await throws `Error: Unable to acquire a connection`, which
+   * surfaces to the user as "Add row failed". When a live transaction is
+   * supplied (local pooled path) we read inside it so just-inserted /
+   * uncommitted rows stay visible; otherwise we route the query through
+   * `execAndParse`, which forwards the SQL to the mux for external sources
+   * and uses the connection pool for local ones. The mutating closures in
+   * this file stay as `.toQuery()` strings — those already run external-safe
+   * via `runOps` → `runExternal`; only the awaited reads were unsafe.
+   */
+  private async captureRead(
+    ownerBaseModel: IBaseModelSqlV2,
+    trx: Knex | Knex.Transaction | undefined,
+    build: (driver: Knex) => Knex.QueryBuilder,
+    options: { first?: boolean } = {},
+  ): Promise<any> {
+    if (trx) {
+      const qb = build(trx);
+      return options.first ? await qb.first() : await qb;
+    }
+    return ownerBaseModel.execAndParse(build(ownerBaseModel.dbDriver), null, {
+      raw: true,
+      first: options.first ?? false,
+    });
+  }
+
   async prepareNestedLinkQb(
     baseModel: IBaseModelSqlV2,
     {
@@ -181,18 +212,20 @@ export class NestedLinkPreparator {
                 // childCol.column_name === refRowId (i.e. whoever
                 // currently links to refRowId).
                 preInsertOps.push(async (trx) => {
-                  const driver = trx ?? baseModel.dbDriver;
                   // SELECT all pk columns + the FK to be nulled. Composite pks need
                   // every pk col so `extractPksValue` can build the joined-string form.
-                  const partner = await driver(
-                    childBaseModel.getTnPath(childModel.table_name),
-                  )
-                    .select(
-                      ...childModel.primaryKeys.map((c) => c.column_name),
-                      childCol.column_name,
-                    )
-                    .where(childCol.column_name, refRowId)
-                    .first();
+                  const partner = await this.captureRead(
+                    childBaseModel,
+                    trx,
+                    (d) =>
+                      d(childBaseModel.getTnPath(childModel.table_name))
+                        .select(
+                          ...childModel.primaryKeys.map((c) => c.column_name),
+                          childCol.column_name,
+                        )
+                        .where(childCol.column_name, refRowId),
+                    { first: true },
+                  );
                   if (partner) {
                     displacedRecords.push({
                       kind: 'column',
@@ -253,19 +286,21 @@ export class NestedLinkPreparator {
                   | Extract<DisplacedRecord, { kind: 'column' }>
                   | undefined;
                 preInsertOps.push(async (trx) => {
-                  const driver = trx ?? baseModel.dbDriver;
-                  const child = await driver(
-                    childBaseModel.getTnPath(childModel.table_name),
-                  )
-                    .select(
-                      ...childModel.primaryKeys.map((c) => c.column_name),
-                      childCol.column_name,
-                    )
-                    .where(
-                      childModel.primaryKey.column_name,
-                      linkRecIdForCapture,
-                    )
-                    .first();
+                  const child = await this.captureRead(
+                    childBaseModel,
+                    trx,
+                    (d) =>
+                      d(childBaseModel.getTnPath(childModel.table_name))
+                        .select(
+                          ...childModel.primaryKeys.map((c) => c.column_name),
+                          childCol.column_name,
+                        )
+                        .where(
+                          childModel.primaryKey.column_name,
+                          linkRecIdForCapture,
+                        ),
+                    { first: true },
+                  );
                   if (child) {
                     pendingEntry = {
                       kind: 'column',
@@ -290,12 +325,15 @@ export class NestedLinkPreparator {
                   const driver = trx ?? baseModel.dbDriver;
                   let refId = rowId;
                   if (parentModel.primaryKey.id !== parentCol.id) {
-                    refId = await driver(
-                      baseModel.getTnPath(parentModel.table_name),
-                    )
-                      .select(parentCol.column_name)
-                      .where(parentModel.primaryKey.column_name, rowId)
-                      .first();
+                    refId = await this.captureRead(
+                      baseModel,
+                      trx,
+                      (d) =>
+                        d(baseModel.getTnPath(parentModel.table_name))
+                          .select(parentCol.column_name)
+                          .where(parentModel.primaryKey.column_name, rowId),
+                      { first: true },
+                    );
                   }
 
                   if (pendingEntry && rowId != null) {
@@ -373,18 +411,20 @@ export class NestedLinkPreparator {
               >[] = [];
               if (childPksForCapture.length) {
                 preInsertOps.push(async (trx) => {
-                  const driver = trx ?? baseModel.dbDriver;
-                  const rows = await driver(
-                    childBaseModel.getTnPath(childModel.table_name),
-                  )
-                    .select(
-                      ...childModel.primaryKeys.map((c) => c.column_name),
-                      childCol.column_name,
-                    )
-                    .whereIn(
-                      childModel.primaryKey.column_name,
-                      childPksForCapture,
-                    );
+                  const rows = await this.captureRead(
+                    childBaseModel,
+                    trx,
+                    (d) =>
+                      d(childBaseModel.getTnPath(childModel.table_name))
+                        .select(
+                          ...childModel.primaryKeys.map((c) => c.column_name),
+                          childCol.column_name,
+                        )
+                        .whereIn(
+                          childModel.primaryKey.column_name,
+                          childPksForCapture,
+                        ),
+                  );
                   for (const row of rows) {
                     const entry: Extract<DisplacedRecord, { kind: 'column' }> =
                       {
@@ -412,12 +452,15 @@ export class NestedLinkPreparator {
                 const driver = trx ?? baseModel.dbDriver;
                 let refId = rowId;
                 if (parentModel.primaryKey.id !== parentCol.id) {
-                  refId = await driver(
-                    baseModel.getTnPath(parentModel.table_name),
-                  )
-                    .select(parentCol.column_name)
-                    .where(parentModel.primaryKey.column_name, rowId)
-                    .first();
+                  refId = await this.captureRead(
+                    baseModel,
+                    trx,
+                    (d) =>
+                      d(baseModel.getTnPath(parentModel.table_name))
+                        .select(parentCol.column_name)
+                        .where(parentModel.primaryKey.column_name, rowId),
+                    { first: true },
+                  );
                 }
                 if (rowId != null) {
                   for (const e of pendingEntries) {
@@ -494,7 +537,6 @@ export class NestedLinkPreparator {
             // only ONE parent, so the existing junction rows for these
             // targets are wiped before the new ones are inserted).
             preInsertOps.push(async (trx) => {
-              const driver = trx ?? baseModel.dbDriver;
               const targetIds = nestedData
                 .map((nd) =>
                   extractIdPropIfObjectOrReturn(
@@ -504,11 +546,11 @@ export class NestedLinkPreparator {
                 )
                 .filter(Boolean);
               if (!targetIds.length) return '';
-              const rows = await driver(
-                omMmBaseModel.getTnPath(omMmModel.table_name),
-              )
-                .select(omParentMMCol.column_name, omChildMMCol.column_name)
-                .whereIn(omParentMMCol.column_name, targetIds);
+              const rows = await this.captureRead(omMmBaseModel, trx, (d) =>
+                d(omMmBaseModel.getTnPath(omMmModel.table_name))
+                  .select(omParentMMCol.column_name, omChildMMCol.column_name)
+                  .whereIn(omParentMMCol.column_name, targetIds),
+              );
               for (const row of rows) {
                 displacedRecords.push({
                   kind: 'junction',
@@ -617,17 +659,16 @@ export class NestedLinkPreparator {
               // Capture: junction row(s) about to be deleted to enforce
               // OO cardinality on the target side.
               preInsertOps.push(async (trx) => {
-                const driver = trx ?? baseModel.dbDriver;
                 const targetId = extractIdPropIfObjectOrReturn(
                   _nestedData,
                   moParentModel.primaryKey.title,
                 );
                 if (targetId == null) return '';
-                const rows = await driver(
-                  moMmBaseModel.getTnPath(moMmModel.table_name),
-                )
-                  .select(moParentMMCol.column_name, moChildMMCol.column_name)
-                  .where(moParentMMCol.column_name, targetId);
+                const rows = await this.captureRead(moMmBaseModel, trx, (d) =>
+                  d(moMmBaseModel.getTnPath(moMmModel.table_name))
+                    .select(moParentMMCol.column_name, moChildMMCol.column_name)
+                    .where(moParentMMCol.column_name, targetId),
+                );
                 for (const row of rows) {
                   displacedRecords.push({
                     kind: 'junction',

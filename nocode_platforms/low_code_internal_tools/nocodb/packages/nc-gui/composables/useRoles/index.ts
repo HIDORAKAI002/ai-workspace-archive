@@ -203,7 +203,10 @@ export const useRolesShared = createSharedComposable(() => {
 
   const isBaseRolesLoaded = computed(() => !!user.value?.base_roles || !!user.value?.workspace_roles)
 
-  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed, isBaseRolesLoaded }
+  // CE has no sandbox concept — always returns null so CE behavior is identical to before.
+  const sandboxRestrictionReason = (..._args: any[]): string | null => null
+
+  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed, isBaseRolesLoaded, sandboxRestrictionReason }
 })
 
 type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>
@@ -229,6 +232,7 @@ export const useRoles = () => {
     isUIAllowed: (...args: IsUIAllowedParams) => {
       return useRolesRes.isUIAllowed(args[0], { source: currentSource, ...(args[1] || {}) })
     },
+    sandboxRestrictionReason: (..._args: any[]): string | null => null,
     isDataReadOnly,
     isMetaReadOnly,
   }

@@ -21,6 +21,7 @@ import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_m
 import { SoftDeleteColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_010_soft_delete_column';
 import { NormalizeSoftDeleteSqliteMigration } from '~/modules/jobs/migration-jobs/nc_job_011_normalize_soft_delete_sqlite';
 import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_012_record_trash_backfill';
+import { CleanupOrphanCrossBaseLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_013_cleanup_orphan_cross_base_links';
 import { isEE } from '~/utils';
 
 @Injectable()
@@ -86,6 +87,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.RecordTrashBackfill,
       service: this.recordTrashBackfillMigration,
     },
+    {
+      version: '13',
+      job: MigrationJobTypes.CleanupOrphanCrossBaseLinks,
+      service: this.cleanupOrphanCrossBaseLinksMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -105,6 +111,7 @@ export class InitMigrationJobs {
     private readonly softDeleteColumnMigration: SoftDeleteColumnMigration,
     private readonly normalizeSoftDeleteSqliteMigration: NormalizeSoftDeleteSqliteMigration,
     private readonly recordTrashBackfillMigration: RecordTrashBackfillMigration,
+    private readonly cleanupOrphanCrossBaseLinksMigration: CleanupOrphanCrossBaseLinksMigration,
   ) {}
 
   log = (...msgs: string[]) => {

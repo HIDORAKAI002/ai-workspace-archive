@@ -135,9 +135,19 @@ export default async function genRollupSelectv2(param: {
     // cast below, which would otherwise only fire for direct `bit` columns.
     let selectValueIsBoolean = false;
     if (rollupColumn.uidt === UITypes.Formula) {
+      // `rollupColumn` lives in the related table — for a cross-base rollup its
+      // column options (the formula AST) are stored under the related base, so
+      // they must be read with `refContext`, not the current base's `context`.
+      // Reading with the wrong context returns null and crashes on
+      // `formulOption.formula` below. Matches the rollup-of-rollup branch, which
+      // already resolves its colOptions via `refContext`.
       const formulOption = await rollupColumn.getColOptions<
         FormulaColumn | ButtonColumn
-      >(context);
+      >(refContext);
+
+      if (!formulOption) {
+        NcError.get(context).fieldNotFound(columnOptions.fk_rollup_column_id);
+      }
 
       const formulaQb = await formulaQueryBuilderv2({
         baseModel: RelationManager.isRelationReversed(

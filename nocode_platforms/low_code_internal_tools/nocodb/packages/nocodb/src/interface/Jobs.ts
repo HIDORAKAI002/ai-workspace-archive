@@ -29,6 +29,7 @@ export enum MigrationJobTypes {
   SoftDeleteColumnMigration = 'soft-delete-column-migration',
   NormalizeSoftDeleteSqliteMigration = 'normalize-soft-delete-sqlite-migration',
   RecordTrashBackfill = 'record-trash-backfill',
+  CleanupOrphanCrossBaseLinks = 'cleanup-orphan-cross-base-links',
 }
 
 export enum JobTypes {
@@ -79,6 +80,7 @@ export enum JobTypes {
   BaseTrashCleanUp = 'base-trash-clean-up',
   DataImport = 'data-import',
   SandboxMerge = 'sandbox-merge',
+  SandboxDelete = 'sandbox-delete',
   ManagedAppUpdate = 'managed-app-update',
   MailDispatch = 'mail-dispatch',
   MailOutboxRecovery = 'mail-outbox-recovery',
@@ -262,6 +264,14 @@ export interface SandboxMergeJobData extends JobData {
   sandboxId: string;
   req: NcRequest;
   selectedChangelogIds?: string[];
+}
+
+export interface SandboxDeleteJobData extends JobData {
+  context: NcContext;
+  sandboxId: string;
+  sandboxBaseId: string;
+  productionBaseId: string;
+  req: NcRequest;
 }
 
 export interface ManagedAppUpdateJobData extends JobData {

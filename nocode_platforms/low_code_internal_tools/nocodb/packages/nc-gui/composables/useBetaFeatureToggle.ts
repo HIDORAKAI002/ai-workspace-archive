@@ -191,8 +191,8 @@ const FEATURES = [
     id: 'expanded_record_panel',
     title: 'Expanded record side panel',
     description: 'Open expanded records in a resizable side panel beside the grid instead of a centered modal.',
-    enabled: true,
-    version: 2,
+    enabled: false,
+    version: 3,
     isEngineering: false,
   },
   {

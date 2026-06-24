@@ -58,7 +58,7 @@ const { loadProjectTables, openTableCreateDialog: _openTableCreateDialog } = use
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -375,6 +375,10 @@ const projectDelete = () => {
 
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
+}
+
+function tableActionReason(perm: string) {
+  return sandboxRestrictionReason(perm, { source: getSource(contextMenuTarget.value?.source_id) })
 }
 
 const labelEl = ref()
@@ -720,43 +724,63 @@ defineExpose({
           <template
             v-if="
               isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) }) ||
-              isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })
+              isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) }) ||
+              !!tableActionReason('tableRename') ||
+              !!tableActionReason('tableDelete')
             "
           >
             <NcDivider />
-            <NcMenuItem
-              v-if="isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) })"
-              @click="tableRenameId = `${contextMenuTarget.value?.id}:${contextMenuTarget.value?.source_id}`"
-            >
-              <div v-e="['c:table:rename']" class="nc-base-option-item flex gap-2 items-center">
-                <GeneralIcon icon="rename" />
-                {{ $t('general.rename') }} {{ $t('objects.table') }}
-              </div>
-            </NcMenuItem>
-
-            <NcMenuItem
+            <NcTooltip
               v-if="
-                isUIAllowed('tableDuplicate', { source: getSource(contextMenuTarget.value?.source_id) }) &&
+                isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) }) ||
+                !!tableActionReason('tableRename')
+              "
+              :title="tableActionReason('tableRename') ? $t(tableActionReason('tableRename')!) : ''"
+              :disabled="!tableActionReason('tableRename')"
+            >
+              <NcMenuItem
+                :disabled="!!tableActionReason('tableRename')"
+                @click="tableRenameId = `${contextMenuTarget.value?.id}:${contextMenuTarget.value?.source_id}`"
+              >
+                <div v-e="['c:table:rename']" class="nc-base-option-item flex gap-2 items-center">
+                  <GeneralIcon icon="rename" />
+                  {{ $t('general.rename') }} {{ $t('objects.table') }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
+
+            <NcTooltip
+              v-if="
+                (isUIAllowed('tableDuplicate', { source: getSource(contextMenuTarget.value?.source_id) }) ||
+                  !!tableActionReason('tableDuplicate')) &&
                 (contextMenuBase?.is_meta || contextMenuBase?.is_local)
               "
-              @click="duplicateTable(contextMenuTarget.value)"
+              :title="tableActionReason('tableDuplicate') ? $t(tableActionReason('tableDuplicate')!) : ''"
+              :disabled="!tableActionReason('tableDuplicate')"
             >
-              <div v-e="['c:table:duplicate']" class="nc-base-option-item flex gap-2 items-center">
-                <GeneralIcon icon="duplicate" />
-                {{ $t('general.duplicate') }} {{ $t('objects.table') }}
-              </div>
-            </NcMenuItem>
+              <NcMenuItem :disabled="!!tableActionReason('tableDuplicate')" @click="duplicateTable(contextMenuTarget.value)">
+                <div v-e="['c:table:duplicate']" class="nc-base-option-item flex gap-2 items-center">
+                  <GeneralIcon icon="duplicate" />
+                  {{ $t('general.duplicate') }} {{ $t('objects.table') }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
             <NcDivider />
-            <NcMenuItem
-              v-if="isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })"
-              danger
-              @click="tableDelete"
+            <NcTooltip
+              v-if="
+                isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) }) ||
+                !!tableActionReason('tableDelete')
+              "
+              :title="tableActionReason('tableDelete') ? $t(tableActionReason('tableDelete')!) : ''"
+              :disabled="!tableActionReason('tableDelete')"
             >
-              <div class="nc-base-option-item flex gap-2 items-center">
-                <GeneralIcon icon="delete" />
-                {{ $t('general.delete') }} {{ $t('objects.table') }}
-              </div>
-            </NcMenuItem>
+              <NcMenuItem danger :disabled="!!tableActionReason('tableDelete')" @click="tableDelete">
+                <div class="nc-base-option-item flex gap-2 items-center">
+                  <GeneralIcon icon="delete" />
+                  {{ $t('general.delete') }} {{ $t('objects.table') }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
           </template>
         </template>
       </NcMenu>
