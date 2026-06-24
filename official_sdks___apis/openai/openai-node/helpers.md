@@ -45,6 +45,31 @@ if (message?.parsed) {
 }
 ```
 
+### Supported Zod features
+
+The Zod helpers convert your schema to JSON Schema and adapt it to the strict subset
+supported by [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs#supported-schemas).
+The root schema must be a `z.object()`. Common property schemas such as `z.string()`,
+`z.number()`, `z.boolean()`, `z.array()`, `z.enum()`, `z.literal()`, `z.union()`, and
+nullable fields are supported when they can be represented by that subset. A
+`z.union()` can be nested inside an object, but a root `z.union()` or
+`z.discriminatedUnion()` is not supported because it produces a root-level `anyOf`.
+
+Some Zod behavior cannot be represented in the schema sent to the API:
+
+- All object properties must be required and will be present in the model's answer.
+  To emulate an optional value, make the field nullable instead of using plain
+  `.optional()`; the model will return either a value or `null` for that field.
+- Only constraints represented in the generated JSON Schema can guide the model.
+  Custom refinements and transforms still run when the SDK parses the response, but
+  some schemas that cannot be converted, including bare transforms in Zod v4, cause
+  the helper to throw before a request is made.
+- TypeScript comments are not available at runtime and are not sent to the API. Use
+  `.describe()` for field descriptions or the helper's `description` option for a
+  top-level response format or function description.
+- Zod v4 copies `.meta()` values into the generated JSON Schema. Only attach metadata
+  that is accepted by Structured Outputs and that you intend to send to the API.
+
 ## Auto-parsing function tool calls
 
 The `.parse()` method will also automatically parse `function` tool calls if:
@@ -133,10 +158,11 @@ OpenAI supports streaming responses when interacting with the [Chat](#chat-strea
 
 ## Assistant Streaming API
 
-OpenAI supports streaming responses from Assistants. The SDK provides convenience wrappers around the API
-so you can subscribe to the types of events you are interested in as well as receive accumulated responses.
+> **Deprecated:** The Assistants API is deprecated and will shut down on August 26, 2026. For new
+> integrations, use the Responses API. See the [Assistants migration guide](https://developers.openai.com/api/docs/assistants/migration).
 
-More information can be found in the documentation: [Assistant Streaming](https://platform.openai.com/docs/assistants/overview?lang=node.js)
+For existing Assistants integrations, the SDK provides convenience wrappers around the streaming API so you
+can subscribe to the types of events you are interested in as well as receive accumulated responses.
 
 #### An example of creating a run and subscribing to some events
 
@@ -194,10 +220,21 @@ The assistant API provides events you can subscribe to for the following events.
 .on('event', (event: AssistantStreamEvent) => ...)
 ```
 
-This allows you to subscribe to all the possible raw events sent by the OpenAI streaming API.
+This allows you to subscribe to raw Assistants lifecycle events sent by the OpenAI streaming API.
 In many cases it will be more convenient to subscribe to a more specific set of events for your use case.
 
 More information on the types of events can be found here: [Events](https://platform.openai.com/docs/api-reference/assistants-streaming/events)
+
+Raw API event names, such as `thread.run.completed`, are exposed through the `event` listener. The
+SDK-specific convenience listeners below use names such as `messageDone`, `runStepDone`, and `end`.
+
+```ts
+run.on('event', (event) => {
+  if (event.event === 'thread.run.completed') {
+    console.log('run completed', event.data);
+  }
+});
+```
 
 ```ts
 .on('runStepCreated', (runStep: RunStep) => ...)
@@ -248,10 +285,13 @@ These events allow you to subscribe to events for the creation, delta and comple
 More information on tools can be found here [Tools](https://platform.openai.com/docs/assistants/tools)
 
 ```ts
+.on('error', (error: OpenAIError) => ...)
 .on('end', () => ...)
 ```
 
-The last event send when a stream ends.
+The `error` event is emitted when the stream encounters an API or SDK error. The `end` event is the last SDK
+event emitted when the stream finishes, including after an error or abort. The raw `[DONE]` marker is consumed
+by the SDK rather than emitted through the `event` listener.
 
 ### Assistant Methods
 
@@ -393,7 +433,7 @@ adjusting `maxChatCompletions` in the request options object. Note that `max_tok
 chat completion request, not for the entire call run.
 
 See an example of automated function calls in action in
-[`examples/function-call-helpers.ts`](examples/function-call-helpers.ts).
+[`examples/tool-call-helpers.ts`](examples/tool-call-helpers.ts).
 
 Note, `runFunctions` was also previously available, but has been deprecated in favor of `runTools`.
 
@@ -728,7 +768,7 @@ async function getWeather(args: z.infer<typeof GetWeatherParameters>) {
 main();
 ```
 
-See a more fully-fledged example in [`examples/function-call-helpers-zod.ts`](examples/function-call-helpers-zod.ts).
+See a more fully-fledged example in [`examples/tool-call-helpers-zod.ts`](examples/tool-call-helpers-zod.ts).
 
 #### Integrate with Next.JS
 
