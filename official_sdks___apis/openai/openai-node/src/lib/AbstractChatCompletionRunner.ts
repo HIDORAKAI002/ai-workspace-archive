@@ -131,7 +131,7 @@ export class AbstractChatCompletionRunner<
   }
 
   /**
-   * @returns a promise that resolves with the the final assistant ChatCompletionMessage response,
+   * @returns a promise that resolves with the final assistant ChatCompletionMessage response,
    * or rejects if an error occurred or the stream ended prematurely without producing a ChatCompletionMessage.
    */
   async finalMessage(): Promise<ChatCompletionMessage> {
@@ -248,11 +248,7 @@ export class AbstractChatCompletionRunner<
     params: ChatCompletionCreateParams,
     options?: RequestOptions,
   ): Promise<ParsedChatCompletion<ParsedT>> {
-    const signal = options?.signal;
-    if (signal) {
-      if (signal.aborted) this.controller.abort();
-      signal.addEventListener('abort', () => this.controller.abort());
-    }
+    this._listenForAbort(options?.signal);
     this.#validateParams(params);
 
     const chatCompletion = await client.chat.completions.create(

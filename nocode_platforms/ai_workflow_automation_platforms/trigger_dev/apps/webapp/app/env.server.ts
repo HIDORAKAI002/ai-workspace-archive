@@ -97,6 +97,24 @@ const EnvironmentSchema = z
     DATABASE_CONNECTION_LIMIT: z.coerce.number().int().default(10),
     DATABASE_POOL_TIMEOUT: z.coerce.number().int().default(60),
     DATABASE_CONNECTION_TIMEOUT: z.coerce.number().int().default(20),
+    // Dashboard-agent conversation store. Cloud points this at the dedicated
+    // PlanetScale database; when unset it falls back to DATABASE_URL (OSS), where
+    // the tables live in the isolated `trigger_dashboard_agent` schema.
+    DASHBOARD_AGENT_DATABASE_URL: z.string().optional(),
+    // The secret key (tr_*) for the runtime environment the dashboard-agent task
+    // is deployed to. The chat session is created in that environment via the
+    // standard chat.agent SDK flow. When unset, the live agent is disabled — the
+    // conversation store / History still work, no chat can start.
+    DASHBOARD_AGENT_SECRET_KEY: z.string().optional(),
+    // Global default for the `hasDashboardAgentAccess` flag. "0" (off) ships the
+    // agent dark; flip to "1" to enable it for everyone at GA. Per-org overrides
+    // (org featureFlags) and admins/impersonators win regardless.
+    DASHBOARD_AGENT_ENABLED: z.string().default("0"),
+    // Anthropic key for the dashboard agent's Head Start route only (the warm
+    // first-turn step-1 LLM call runs in this process). The agent run itself
+    // uses its own key on the Trigger side. When unset, Head Start is disabled
+    // and the first turn falls back to the normal cold-start path.
+    ANTHROPIC_API_KEY: z.string().optional(),
     DIRECT_URL: z
       .string()
       .refine(
@@ -809,7 +827,14 @@ const EnvironmentSchema = z
     RUN_ENGINE_RETRY_WARM_START_THRESHOLD_MS: z.coerce.number().int().default(30_000),
     RUN_ENGINE_PROCESS_WORKER_QUEUE_DEBOUNCE_MS: z.coerce.number().int().default(200),
     RUN_ENGINE_DEQUEUE_BLOCKING_TIMEOUT_SECONDS: z.coerce.number().int().default(10),
+    RUN_ENGINE_DEQUEUE_DISABLED_WORKER_QUEUES: z.string().optional(),
     RUN_ENGINE_MASTER_QUEUE_CONSUMERS_INTERVAL_MS: z.coerce.number().int().default(1000),
+    // Off by default. Enable on a single service (e.g. the engine worker) so only one
+    // instance reports worker queue length, rather than every replica.
+    RUN_ENGINE_WORKER_QUEUE_OBSERVER_ENABLED: z.string().default("0"),
+    RUN_ENGINE_WORKER_QUEUE_OBSERVER_INTERVAL_MS: z.coerce.number().int().default(30_000),
+    // Comma-separated cloud providers to exclude from worker queue length observation.
+    RUN_ENGINE_WORKER_QUEUE_OBSERVER_EXCLUDED_CLOUD_PROVIDERS: z.string().default("digitalocean"),
     RUN_ENGINE_MASTER_QUEUE_COOLOFF_PERIOD_MS: z.coerce.number().int().default(10_000),
     RUN_ENGINE_MASTER_QUEUE_COOLOFF_COUNT_THRESHOLD: z.coerce.number().int().default(10),
     RUN_ENGINE_MASTER_QUEUE_CONSUMER_DEQUEUE_COUNT: z.coerce.number().int().default(10),

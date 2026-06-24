@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.190
+
+- Bug fixes and reliability improvements
+
 ## 2.1.187
 
 - Added `sandbox.credentials` setting to block sandboxed commands from reading credential files and secret environment variables
