@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -121,6 +122,30 @@ func TestBoundedNumPredict(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := boundedNumPredict(tt.numPredict, tt.numCtx); got != tt.want {
 				t.Fatalf("boundedNumPredict(%d, %d) = %d, want %d", tt.numPredict, tt.numCtx, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestContextShiftPromptLimit(t *testing.T) {
+	tests := []struct {
+		name    string
+		numCtx  int
+		numKeep int
+		want    int
+	}{
+		{name: "small context reserves half after keep", numCtx: 8, numKeep: 3, want: 6},
+		{name: "issue 16618 context preserves generation headroom", numCtx: 4096, numKeep: 4, want: 2050},
+		{name: "issue 16618 with implicit BOS keep", numCtx: 4096, numKeep: 5, want: 2051},
+		{name: "keep is clamped below context", numCtx: 8, numKeep: 99, want: 7},
+		{name: "negative keep is treated as zero", numCtx: 8, numKeep: -1, want: 4},
+		{name: "invalid context has no prompt budget", numCtx: 1, numKeep: 0, want: 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := contextShiftPromptLimit(tt.numCtx, tt.numKeep); got != tt.want {
+				t.Fatalf("contextShiftPromptLimit(%d, %d) = %d, want %d", tt.numCtx, tt.numKeep, got, tt.want)
 			}
 		})
 	}
@@ -653,7 +678,7 @@ func TestLlamaServerCompletionContextShiftTruncatesPromptOverContext(t *testing.
 				return
 			}
 			w.Header().Set("Content-Type", "text/event-stream")
-			fmt.Fprintln(w, `data: {"content":"ok","stop":true,"timings":{"prompt_n":7,"prompt_ms":1,"predicted_n":1,"predicted_ms":1}}`)
+			fmt.Fprintln(w, `data: {"content":"ok","stop":true,"timings":{"prompt_n":6,"prompt_ms":1,"predicted_n":1,"predicted_ms":1}}`)
 		default:
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
@@ -697,7 +722,7 @@ func TestLlamaServerCompletionContextShiftTruncatesPromptOverContext(t *testing.
 	if !ok {
 		t.Fatalf("completion prompt = %T, want token array", capturedReq.Prompt)
 	}
-	want := []int{0, 1, 2, 6, 7, 8, 9}
+	want := []int{0, 1, 2, 7, 8, 9}
 	if len(got) != len(want) {
 		t.Fatalf("token prompt len = %d, want %d: %#v", len(got), len(want), got)
 	}
@@ -709,6 +734,99 @@ func TestLlamaServerCompletionContextShiftTruncatesPromptOverContext(t *testing.
 	}
 	if capturedReq.NKeep != opts.NumKeep {
 		t.Fatalf("n_keep = %d, want %d", capturedReq.NKeep, opts.NumKeep)
+	}
+}
+
+func TestLlamaServerCompletionContextShiftAvoidsOneTokenHeadroomRegression(t *testing.T) {
+	var capturedReq llamaServerCompletionRequest
+	var tokenizeReq struct {
+		Content      string `json:"content"`
+		AddSpecial   bool   `json:"add_special"`
+		ParseSpecial *bool  `json:"parse_special"`
+	}
+	tokens := make([]int, 5000)
+	for i := range tokens {
+		tokens[i] = i
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/health":
+			fmt.Fprint(w, `{"status":"ok"}`)
+		case "/tokenize":
+			if err := json.NewDecoder(r.Body).Decode(&tokenizeReq); err != nil {
+				t.Errorf("invalid tokenize request body: %v", err)
+				return
+			}
+			if err := json.NewEncoder(w).Encode(map[string][]int{"tokens": tokens}); err != nil {
+				t.Errorf("failed to encode tokenize response: %v", err)
+			}
+		case "/completion":
+			if err := json.NewDecoder(r.Body).Decode(&capturedReq); err != nil {
+				t.Errorf("invalid completion request body: %v", err)
+				return
+			}
+			w.Header().Set("Content-Type", "text/event-stream")
+			fmt.Fprintln(w, `data: {"content":"ok","stop":true,"timings":{"prompt_n":2051,"prompt_ms":1,"predicted_n":32,"predicted_ms":1}}`)
+		default:
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer srv.Close()
+
+	parts := strings.Split(srv.URL, ":")
+	var portInt int
+	fmt.Sscanf(parts[len(parts)-1], "%d", &portInt)
+
+	runner := &llamaServerRunner{
+		port:    portInt,
+		cmd:     fakeRunningCmd(),
+		sem:     semaphore.NewWeighted(1),
+		options: api.Options{Runner: api.Runner{NumCtx: 4096}},
+		ggml: loadTestGGML(t, ggml.KV{
+			"general.architecture":         "gemma3",
+			"tokenizer.ggml.add_bos_token": true,
+		}),
+		launch: llamaServerLaunchConfig{
+			config: LlamaServerConfig{ContextShift: true},
+		},
+	}
+
+	opts := api.DefaultOptions()
+	opts.NumKeep = 4
+	err := runner.Completion(t.Context(), CompletionRequest{
+		Prompt:   strings.Repeat("long prompt ", 500),
+		Options:  &opts,
+		Truncate: true,
+	}, func(cr CompletionResponse) {})
+	if err != nil {
+		t.Fatalf("Completion error: %v", err)
+	}
+
+	got, ok := capturedReq.Prompt.([]any)
+	if !ok {
+		t.Fatalf("completion prompt = %T, want token array", capturedReq.Prompt)
+	}
+
+	if len(got) != 2051 {
+		t.Fatalf("token prompt len = %d, want 2051", len(got))
+	}
+	if len(got) == 4095 {
+		t.Fatal("token prompt preserved old one-token headroom behavior")
+	}
+
+	effectiveKeep := opts.NumKeep + 1
+	for i := range effectiveKeep {
+		gotToken, ok := got[i].(float64)
+		if !ok || int(gotToken) != i {
+			t.Fatalf("token prompt[%d] = %#v, want %d", i, got[i], i)
+		}
+	}
+
+	const wantSuffixStart = 2954
+	gotToken, ok := got[effectiveKeep].(float64)
+	if !ok || int(gotToken) != wantSuffixStart {
+		t.Fatalf("first shifted token = %#v, want %d", got[effectiveKeep], wantSuffixStart)
 	}
 }
 
@@ -1961,13 +2079,14 @@ func TestAppendMMProjArgs(t *testing.T) {
 	cpuOpts.NumGPU = 0
 
 	tests := []struct {
-		name        string
-		projectors  []string
-		opts        api.Options
-		gpus        []ml.DeviceInfo
-		modelLayers uint64
-		retry       bool
-		want        []string
+		name         string
+		projectors   []string
+		opts         api.Options
+		gpus         []ml.DeviceInfo
+		mmprojMemory uint64
+		modelLayers  uint64
+		retry        bool
+		want         []string
 	}{
 		{
 			name: "no projector leaves args unchanged",
@@ -1975,69 +2094,86 @@ func TestAppendMMProjArgs(t *testing.T) {
 			want: []string{"base"},
 		},
 		{
-			name:        "large discrete gpu keeps projector offload",
-			projectors:  []string{"model.gguf"},
-			opts:        defaultOpts,
-			gpus:        []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
-			modelLayers: 81,
-			want:        []string{"base", "--mmproj", "model.gguf"},
+			name:         "large discrete gpu keeps projector offload",
+			projectors:   []string{"model.gguf"},
+			opts:         defaultOpts,
+			gpus:         []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
+			mmprojMemory: 933 << 20,
+			modelLayers:  81,
+			want:         []string{"base", "--mmproj", "model.gguf"},
 		},
 		{
-			name:        "small discrete gpu disables projector offload",
-			projectors:  []string{"model.gguf"},
-			opts:        defaultOpts,
-			gpus:        []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, TotalMemory: 8 << 30}},
-			modelLayers: 81,
-			want:        []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
+			name:         "small discrete gpu keeps projector offload when projector fits",
+			projectors:   []string{"model.gguf"},
+			opts:         defaultOpts,
+			gpus:         []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "ROCm"}, FreeMemory: 7900 << 20, TotalMemory: 8 << 30}},
+			mmprojMemory: 933 << 20,
+			modelLayers:  81,
+			want:         []string{"base", "--mmproj", "model.gguf"},
 		},
 		{
-			name:        "integrated rocm gpu disables projector offload",
-			projectors:  []string{"model.gguf"},
-			opts:        defaultOpts,
-			gpus:        []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "ROCm"}, Integrated: true, FreeMemory: 32 << 30}},
-			modelLayers: 81,
-			want:        []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
+			name:         "tight discrete gpu disables projector offload",
+			projectors:   []string{"model.gguf"},
+			opts:         defaultOpts,
+			gpus:         []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 1500 << 20, TotalMemory: 8 << 30}},
+			mmprojMemory: 933 << 20,
+			modelLayers:  81,
+			want:         []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
 		},
 		{
-			name:        "integrated metal gpu keeps projector offload",
-			projectors:  []string{"model.gguf"},
-			opts:        defaultOpts,
-			gpus:        []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "Metal"}, Integrated: true, FreeMemory: 32 << 30}},
-			modelLayers: 81,
-			want:        []string{"base", "--mmproj", "model.gguf"},
+			name:         "integrated rocm gpu disables projector offload",
+			projectors:   []string{"model.gguf"},
+			opts:         defaultOpts,
+			gpus:         []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "ROCm"}, Integrated: true, FreeMemory: 32 << 30}},
+			mmprojMemory: 933 << 20,
+			modelLayers:  81,
+			want:         []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
 		},
 		{
-			name:        "cpu only request disables projector offload",
-			projectors:  []string{"model.gguf"},
-			opts:        cpuOpts,
-			gpus:        []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
-			modelLayers: 81,
-			want:        []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
+			name:         "integrated metal gpu keeps projector offload",
+			projectors:   []string{"model.gguf"},
+			opts:         defaultOpts,
+			gpus:         []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "Metal"}, Integrated: true, FreeMemory: 32 << 30}},
+			mmprojMemory: 933 << 20,
+			modelLayers:  81,
+			want:         []string{"base", "--mmproj", "model.gguf"},
 		},
 		{
-			name:        "partial text offload disables projector offload",
-			projectors:  []string{"model.gguf"},
-			opts:        partialOpts,
-			gpus:        []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
-			modelLayers: 81,
-			want:        []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
+			name:         "cpu only request disables projector offload",
+			projectors:   []string{"model.gguf"},
+			opts:         cpuOpts,
+			gpus:         []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
+			mmprojMemory: 933 << 20,
+			modelLayers:  81,
+			want:         []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
 		},
 		{
-			name:        "explicit full text offload keeps projector offload",
-			projectors:  []string{"model.gguf"},
-			opts:        fullOpts,
-			gpus:        []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
-			modelLayers: 81,
-			want:        []string{"base", "--mmproj", "model.gguf"},
+			name:         "partial text offload disables projector offload",
+			projectors:   []string{"model.gguf"},
+			opts:         partialOpts,
+			gpus:         []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
+			mmprojMemory: 933 << 20,
+			modelLayers:  81,
+			want:         []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
 		},
 		{
-			name:        "startup oom retry disables projector offload",
-			projectors:  []string{"model.gguf"},
-			opts:        defaultOpts,
-			gpus:        []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
-			modelLayers: 81,
-			retry:       true,
-			want:        []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
+			name:         "explicit full text offload keeps projector offload",
+			projectors:   []string{"model.gguf"},
+			opts:         fullOpts,
+			gpus:         []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
+			mmprojMemory: 933 << 20,
+			modelLayers:  81,
+			want:         []string{"base", "--mmproj", "model.gguf"},
+		},
+		{
+			name:         "startup oom retry disables projector offload",
+			projectors:   []string{"model.gguf"},
+			opts:         defaultOpts,
+			gpus:         []ml.DeviceInfo{{DeviceID: ml.DeviceID{Library: "CUDA"}, FreeMemory: 24 << 30}},
+			mmprojMemory: 933 << 20,
+			modelLayers:  81,
+			retry:        true,
+			want:         []string{"base", "--mmproj", "model.gguf", "--no-mmproj-offload"},
 		},
 	}
 
@@ -2046,6 +2182,7 @@ func TestAppendMMProjArgs(t *testing.T) {
 			got := appendMMProjArgs([]string{"base"}, llamaServerLaunchConfig{
 				modelPath:            "model.gguf",
 				projectors:           tt.projectors,
+				mmprojMemory:         tt.mmprojMemory,
 				opts:                 tt.opts,
 				gpus:                 tt.gpus,
 				modelLayers:          tt.modelLayers,
@@ -2055,6 +2192,45 @@ func TestAppendMMProjArgs(t *testing.T) {
 				t.Fatalf("appendMMProjArgs = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestMMProjMemoryRequirement(t *testing.T) {
+	if got, err := mmprojMemoryRequirement("model.gguf", nil, nil); err != nil || got != 0 {
+		t.Fatalf("no projector memory = %d, %v; want 0, nil", got, err)
+	}
+
+	modelPath, model := writeTestGGML(t, ggml.KV{"general.architecture": "gemma3"}, []*ggml.Tensor{
+		testGGMLTensor("blk.0.attn_q.weight", ggml.TensorTypeF32, []uint64{4}),
+		testGGMLTensor("v.patch_embd.weight", ggml.TensorTypeF16, []uint64{16}),
+		testGGMLTensor("mm.0.weight", ggml.TensorTypeF32, []uint64{8}),
+		testGGMLTensor("a.encoder.weight", ggml.TensorTypeF32, []uint64{2}),
+	})
+
+	wantInline := uint64(16*2 + 8*4 + 2*4)
+	if got, err := mmprojMemoryRequirement(modelPath, model, []string{modelPath}); err != nil || got != wantInline {
+		t.Fatalf("inline mmproj memory = %d, %v; want %d, nil", got, err, wantInline)
+	}
+
+	projectorPath, _ := writeTestGGML(t, ggml.KV{"general.architecture": "clip"}, []*ggml.Tensor{
+		testGGMLTensor("vision.weight", ggml.TensorTypeF16, []uint64{32}),
+		testGGMLTensor("audio.weight", ggml.TensorTypeF32, []uint64{4}),
+	})
+	wantProjector := uint64(32*2 + 4*4)
+	if got, err := mmprojMemoryRequirement(modelPath, model, []string{projectorPath}); err != nil || got != wantProjector {
+		t.Fatalf("projector file memory = %d, %v; want %d, nil", got, err, wantProjector)
+	}
+
+	if _, err := mmprojMemoryRequirement(modelPath, nil, []string{modelPath}); err == nil {
+		t.Fatal("inline mmproj with nil model error = nil, want error")
+	}
+	if _, err := mmprojMemoryRequirement(modelPath, model, []string{filepath.Join(t.TempDir(), "missing.gguf")}); err == nil {
+		t.Fatal("missing projector error = nil, want error")
+	}
+
+	emptyProjectorPath, _ := writeTestGGML(t, ggml.KV{"general.architecture": "clip"}, nil)
+	if _, err := mmprojMemoryRequirement(modelPath, model, []string{emptyProjectorPath}); err == nil {
+		t.Fatal("empty projector error = nil, want error")
 	}
 }
 
@@ -3145,11 +3321,18 @@ func TestFindLlamaServer(t *testing.T) {
 func loadTestGGML(t *testing.T, kv ggml.KV) *ggml.GGML {
 	t.Helper()
 
+	_, model := writeTestGGML(t, kv, nil)
+	return model
+}
+
+func writeTestGGML(t *testing.T, kv ggml.KV, tensors []*ggml.Tensor) (string, *ggml.GGML) {
+	t.Helper()
+
 	f, err := os.CreateTemp(t.TempDir(), "*.gguf")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := ggml.WriteGGUF(f, kv, nil); err != nil {
+	if err := ggml.WriteGGUF(f, kv, tensors); err != nil {
 		t.Fatal(err)
 	}
 	if err := f.Close(); err != nil {
@@ -3160,7 +3343,17 @@ func loadTestGGML(t *testing.T, kv ggml.KV) *ggml.GGML {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return model
+	return f.Name(), model
+}
+
+func testGGMLTensor(name string, kind ggml.TensorType, shape []uint64) *ggml.Tensor {
+	tensor := &ggml.Tensor{
+		Name:  name,
+		Kind:  uint32(kind),
+		Shape: shape,
+	}
+	tensor.WriterTo = bytes.NewReader(make([]byte, tensor.Size()))
+	return tensor
 }
 
 // fakeRunningCmd returns an exec.Cmd that looks like it's still running
