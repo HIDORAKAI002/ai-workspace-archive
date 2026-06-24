@@ -394,9 +394,10 @@ const updateVisibleRows = async (fromCalculateSlice = false) => {
   )
 }
 
-const { isUIAllowed, isDataReadOnly } = useRoles()
+const { isUIAllowed, isDataReadOnly, sandboxRestrictionReason } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+const addColumnReason = computed(() => (!readOnly.value && !isSqlView.value ? sandboxRestrictionReason('fieldAdd') : null))
 
 const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
   fields,
@@ -2365,46 +2366,52 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   class="nc-grid-column-header"
                 ></th>
                 <th
-                  v-if="isAddingColumnAllowed"
+                  v-if="isAddingColumnAllowed || !!addColumnReason"
                   v-e="['c:column:add']"
                   class="cursor-pointer !border-0 relative !xs:hidden"
                   :style="{
                     borderWidth: '0px !important',
                   }"
-                  @click.stop="addColumnDropdown = true"
+                  @click.stop="!addColumnReason && (addColumnDropdown = true)"
                 >
                   <div
                     class="absolute top-0 left-0 h-8 border-b-1 border-r-1 border-nc-border-gray-medium nc-grid-add-edit-column group"
                   >
-                    <a-dropdown
-                      v-model:visible="addColumnDropdown"
-                      :trigger="['click']"
-                      overlay-class-name="nc-dropdown-add-column rounded-2xl"
-                      @visible-change="onVisibilityChange"
-                    >
-                      <div class="h-full w-[60px] flex items-center justify-center">
-                        <component
-                          :is="iconMap.plus"
-                          class="text-base nc-column-add text-nc-content-gray-muted !group-hover:text-nc-content-gray-extreme"
-                        />
-                      </div>
-                      <template #overlay>
-                        <div class="nc-edit-or-add-provider-wrapper">
-                          <LazySmartsheetColumnEditOrAddProvider
-                            v-if="addColumnDropdown"
-                            ref="editOrAddProviderRef"
-                            :preload="preloadColumn"
-                            :column-position="columnOrder"
-                            :class="{ hidden: isJsonExpand }"
-                            @submit="closeAddColumnDropdownMenu(true)"
-                            @cancel="closeAddColumnDropdownMenu()"
-                            @click.stop
-                            @keydown.stop
-                            @mounted="preloadColumn = undefined"
+                    <NcTooltip :disabled="!addColumnReason">
+                      <template #title>{{ addColumnReason ? $t(addColumnReason) : '' }}</template>
+                      <a-dropdown
+                        v-model:visible="addColumnDropdown"
+                        :trigger="addColumnReason ? [] : ['click']"
+                        overlay-class-name="nc-dropdown-add-column rounded-2xl"
+                        @visible-change="onVisibilityChange"
+                      >
+                        <div
+                          class="h-full w-[60px] flex items-center justify-center"
+                          :class="{ 'opacity-50 cursor-not-allowed': !!addColumnReason }"
+                        >
+                          <component
+                            :is="iconMap.plus"
+                            class="text-base nc-column-add text-nc-content-gray-muted !group-hover:text-nc-content-gray-extreme"
                           />
                         </div>
-                      </template>
-                    </a-dropdown>
+                        <template #overlay>
+                          <div class="nc-edit-or-add-provider-wrapper">
+                            <LazySmartsheetColumnEditOrAddProvider
+                              v-if="addColumnDropdown"
+                              ref="editOrAddProviderRef"
+                              :preload="preloadColumn"
+                              :column-position="columnOrder"
+                              :class="{ hidden: isJsonExpand }"
+                              @submit="closeAddColumnDropdownMenu(true)"
+                              @cancel="closeAddColumnDropdownMenu()"
+                              @click.stop
+                              @keydown.stop
+                              @mounted="preloadColumn = undefined"
+                            />
+                          </div>
+                        </template>
+                      </a-dropdown>
+                    </NcTooltip>
                   </div>
                 </th>
                 <th
@@ -2416,8 +2423,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   <div
                     class="absolute top-0 w-45"
                     :class="{
-                      'left-[60px]': isAddingColumnAllowed,
-                      'left-0': !isAddingColumnAllowed,
+                      'left-[60px]': isAddingColumnAllowed || !!addColumnReason,
+                      'left-0': !isAddingColumnAllowed && !addColumnReason,
                     }"
                   >
                     &nbsp;

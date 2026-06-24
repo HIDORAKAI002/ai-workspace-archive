@@ -21,12 +21,22 @@ export const dateMonthFormats = ['YYYY-MM', 'YYYY MM'];
 export const timeFormats = ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS'];
 
 export const dateFormats = [
+  // Weekday-prefixed variants are display-only: the weekday name is rendered by
+  // dayjs at display time, while values still sort/group on the underlying date.
+  // Each pair (full `dddd` + short `ddd`) is placed next to its base format.
+  // See issue #9154.
   'YYYY-MM-DD',
+  'dddd YYYY-MM-DD',
+  'ddd YYYY-MM-DD',
   'YYYY/MM/DD',
   'DD-MM-YYYY',
   'MM-DD-YYYY',
   'DD/MM/YYYY',
+  'dddd DD/MM/YYYY',
+  'ddd DD/MM/YYYY',
   'MM/DD/YYYY',
+  'dddd MM/DD/YYYY',
+  'ddd MM/DD/YYYY',
   'DD MM YYYY',
   'MM DD YYYY',
   'YYYY MM DD',

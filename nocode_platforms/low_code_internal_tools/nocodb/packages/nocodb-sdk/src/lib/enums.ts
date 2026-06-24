@@ -346,6 +346,7 @@ export enum AppEvents {
   SANDBOX_DELETE = 'sandbox.delete',
   SANDBOX_DISCARD = 'sandbox.discard',
   SANDBOX_MERGE = 'sandbox.merge',
+  SANDBOX_MERGE_FAILED = 'sandbox.merge_failed',
 
   RECORD_TEMPLATE_CREATE = 'record.template.create',
   RECORD_TEMPLATE_UPDATE = 'record.template.update',

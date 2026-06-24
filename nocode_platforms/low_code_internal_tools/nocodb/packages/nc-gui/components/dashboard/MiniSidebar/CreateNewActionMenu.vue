@@ -3,7 +3,7 @@ import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, viewTypeAlias 
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, orgRoles, workspaceRoles } = useRoles()
+const { isUIAllowed, orgRoles, workspaceRoles, sandboxRestrictionReason } = useRoles()
 
 const { openedProject } = storeToRefs(useBases())
 
@@ -137,6 +137,19 @@ const hasTableCreateAccess = computed(() => {
   })
 })
 
+const tableCreateReason = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  return sandboxRestrictionReason('tableCreate', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+    // ProjectInj is not provided in the MiniSidebar tree, so the useRoles
+    // wrapper's injected-base fallback is empty here — pass base explicitly or
+    // the reason is always null (the gate would be inert on a sandbox-master).
+    base: base.value,
+  })
+})
+
 const hasViewCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
@@ -159,6 +172,36 @@ const hasDashboardCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
   return isUIAllowed('dashboardCreate')
+})
+
+const dashboardCreateReason = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  return sandboxRestrictionReason('dashboardCreate', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+    base: base.value,
+  })
+})
+
+const workflowCreateReason = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  return sandboxRestrictionReason('workflowCreateOrEdit', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+    base: base.value,
+  })
+})
+
+const scriptCreateReason = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return null
+
+  return sandboxRestrictionReason('scriptCreateOrEdit', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+    base: base.value,
+  })
 })
 
 const hasDocumentCreateAccess = computed(() => {
@@ -202,6 +245,8 @@ const hasDocumentCreateAccess = computed(() => {
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.workflow').toLowerCase() })
                   : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateWorkflow')
+                  : workflowCreateReason
+                  ? $t(workflowCreateReason)
                   : !hasWorkflowCreateAccess
                   ? $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
                   : ''
@@ -228,6 +273,8 @@ const hasDocumentCreateAccess = computed(() => {
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.script').toLowerCase() })
                   : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateScript')
+                  : scriptCreateReason
+                  ? $t(scriptCreateReason)
                   : !hasScriptCreateAccess
                   ? $t('tooltip.youDontHaveAccessToCreateNewScript')
                   : ''
@@ -398,6 +445,8 @@ const hasDocumentCreateAccess = computed(() => {
                   ? $t('tooltip.switchToDataTab', { type: $t('general.dashboard').toLowerCase() })
                   : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateDashboard')
+                  : dashboardCreateReason
+                  ? $t(dashboardCreateReason)
                   : !hasDashboardCreateAccess
                   ? $t('tooltip.youDontHaveAccessToCreateNewDashboard')
                   : ''
@@ -456,16 +505,18 @@ const hasDocumentCreateAccess = computed(() => {
                 ? $t('tooltip.switchToDataTab', { type: $t('objects.table').toLowerCase() })
                 : !isBaseHomePage
                 ? $t('tooltip.navigateToBaseToCreateTable')
+                : tableCreateReason
+                ? $t(tableCreateReason)
                 : !hasTableCreateAccess
                 ? $t('tooltip.youDontHaveAccessToCreateNewTable')
                 : ''
             "
-            :disabled="isDataTab && isBaseHomePage && hasTableCreateAccess"
+            :disabled="isDataTab && isBaseHomePage && hasTableCreateAccess && !tableCreateReason"
             placement="right"
           >
             <NcMenuItem
               data-testid="mini-sidebar-table-create"
-              :disabled="!isDataTab || !isBaseHomePage || !hasTableCreateAccess"
+              :disabled="!isDataTab || !isBaseHomePage || !hasTableCreateAccess || !!tableCreateReason"
               @click="openTableCreateDialog"
             >
               <GeneralIcon icon="table" />

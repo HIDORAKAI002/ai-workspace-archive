@@ -22,6 +22,7 @@ const {
   isSyncedFromColumn,
   weeksInRange,
   isMultiWeekRange,
+  recordHeightMode,
 } = useCalendarViewStoreOrThrow()
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
@@ -33,6 +34,10 @@ const isMondayFirst = ref(true)
 const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
+
+// Viewport-bounded calendar body height (provided by calendar/index.vue). Used as the
+// compact (minimum) week-row height in Expanded mode.
+const calendarBodyHeight = inject<Ref<number>>('calendarBodyHeight', ref(0))
 
 const maxVisibleDays = computed(() => {
   // Hide weekends → 5 columns; honoured for the month layout AND the multi-week
@@ -196,9 +201,17 @@ const calendarData = computed(() => {
   }
 })
 
+// --- Compact / Expanded record height ---------------------------------------
+// Compact (default): the grid fits the viewport and surplus records collapse into a
+// "+N more" popover per day. Expanded: lanes are uncapped and the grid grows so every
+// record is visible, scrolling the page instead.
+const isExpanded = computed(() => recordHeightMode.value === 'expanded')
+
 const recordsToDisplay = computed<{
   records: Row[]
-  count: { [p: string]: { overflow: boolean; count: number; overflowCount: number; overflowRecords: Array<Row> } }
+  count: {
+    [p: string]: { overflow: boolean; count: number; overflowCount: number; overflowRecords: Array<Row>; lanes?: boolean[] }
+  }
 }>(() => {
   if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
 
@@ -206,7 +219,9 @@ const recordsToDisplay = computed<{
   const perRecordHeight = 28
 
   const spaceBetweenRecords = 27
-  const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 8))
+  // Expanded: never cap lanes — every record gets a lane (no "+N more"), and the grid
+  // grows to fit (see expandedGridHeightPx). Compact: derive the cap from the row height.
+  const maxLanes = isExpanded.value ? Infinity : Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 8))
 
   // Track records and lanes for each day
   const recordsInDay: {
@@ -337,6 +352,10 @@ const recordsToDisplay = computed<{
             position: 'rounded',
             range,
             id,
+            // Week index + within-row offset, so Expanded can re-derive `top` from the
+            // variable per-week row heights (see positionedRecords).
+            weekRowIndex: weekIndex,
+            withinRowTop: isRecordDraggingOrResizeState ? 0 : spaceBetweenRecords + lane * (perRecordHeight + 4),
           },
         })
       } else if (startCol && endCol) {
@@ -468,6 +487,8 @@ const recordsToDisplay = computed<{
               maxSpanning: endDayIndex - startDayIndex + 1,
               id,
               recordIndex,
+              weekRowIndex: weekIndex,
+              withinRowTop: isRecordDraggingOrResizeState ? perRecordHeight : spaceBetweenRecords + lane * (perRecordHeight + 4),
             },
           })
           recordIndex++
@@ -482,6 +503,99 @@ const recordsToDisplay = computed<{
     count: recordsInDay,
   }
 })
+
+// --- Expanded per-week row heights ------------------------------------------
+// Each week row grows to fit its OWN busiest day (lanes), with a floor of the compact
+// row height, so empty weeks stay compact and busy weeks expand — matching Airtable.
+const PER_RECORD_HEIGHT = 28
+
+const RECORD_GAP = 8 // matches the compact maxLanes spacing (perRecordHeight + 8)
+
+const ROW_TOP_PADDING = 27 // spaceBetweenRecords — date number + top gap
+
+const ROW_BOTTOM_PADDING = 8
+
+const WEEKDAY_HEADER_PX = 26 // the weekday header grid above the week rows (~1.59rem)
+
+// Compact row height = the viewport-fit height a row gets in Compact mode. Used as the
+// minimum row height in Expanded so sparse weeks don't collapse.
+const compactRowHeight = computed(() => {
+  const weeks = calendarData.value?.weeks.length || 1
+  const available = Math.max(0, calendarBodyHeight.value - WEEKDAY_HEADER_PX)
+  return available > 0 ? available / weeks : 120
+})
+
+// Max lanes used in each week (its busiest day). Looked up via the same date key the
+// template uses for the overflow popover, so it stays consistent.
+const perWeekLanes = computed(() => {
+  const count = recordsToDisplay.value.count
+  return (calendarData.value?.weeks ?? []).map((week) => {
+    let max = 0
+    for (const day of week.days) {
+      const lanes = count[day.date.format('YYYY-MM-DD')]?.lanes?.length ?? 0
+      if (lanes > max) max = lanes
+    }
+    return max
+  })
+})
+
+const perWeekHeights = computed(() =>
+  perWeekLanes.value.map((lanes) =>
+    Math.max(compactRowHeight.value, ROW_TOP_PADDING + lanes * (PER_RECORD_HEIGHT + RECORD_GAP) + ROW_BOTTOM_PADDING),
+  ),
+)
+
+// Cumulative top offset of each week row (relative to the grid top).
+const weekRowTops = computed(() => {
+  const tops: number[] = []
+  let acc = 0
+  for (const h of perWeekHeights.value) {
+    tops.push(acc)
+    acc += h
+  }
+  return tops
+})
+
+// Grid container style. Compact keeps the original viewport-fit height. Expanded sets
+// explicit per-week row tracks (variable heights) and grows the grid to their sum.
+const gridContainerStyle = computed(() => {
+  if (!isExpanded.value) return { height: 'calc(100% - 1.59rem)' }
+  return {
+    minHeight: 'calc(100% - 1.59rem)',
+    gridTemplateRows: perWeekHeights.value.map((h) => `${h}px`).join(' '),
+  }
+})
+
+// Records with their `top` re-derived from the variable per-week row heights. In Compact
+// the records already carry the correct uniform `top`, so they pass through unchanged.
+const positionedRecords = computed<Row[]>(() => {
+  const recs = recordsToDisplay.value.records
+  if (!isExpanded.value) return recs
+  return recs.map((r) => {
+    const wi = (r.rowMeta as { weekRowIndex?: number }).weekRowIndex ?? 0
+    const within = (r.rowMeta as { withinRowTop?: number }).withinRowTop ?? 0
+    return {
+      ...r,
+      rowMeta: {
+        ...r.rowMeta,
+        style: { ...r.rowMeta.style, top: `${(weekRowTops.value[wi] ?? 0) + within}px` },
+      },
+    }
+  })
+})
+
+// Map a vertical pixel offset (within the grid) to a week index — honours the variable
+// per-week row heights in Expanded; falls back to uniform division in Compact.
+const weekFromY = (y: number) => {
+  const weeks = calendarData.value?.weeks.length || 1
+  if (!isExpanded.value) {
+    return Math.max(0, Math.min(weeks - 1, Math.floor((y / (gridContainerHeight.value || 1)) * weeks)))
+  }
+  for (let i = 0; i < perWeekHeights.value.length; i++) {
+    if (y < weekRowTops.value[i] + perWeekHeights.value[i]) return i
+  }
+  return weeks - 1
+}
 
 const dragOffset = ref<{
   x: number | null
@@ -500,14 +614,13 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   const relativeY = event.clientY - top
 
   const percentX = Math.max(0, Math.min(1, relativeX / width))
-  const percentY = Math.max(0, Math.min(1, relativeY / height))
 
   const fromCol = dragRecord.value?.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value?.rowMeta.range?.fk_to_col
 
   if (!fromCol) return { newRow: null, updateProperty: [] }
 
-  const week = Math.floor(percentY * calendarData.value.weeks.length)
+  const week = weekFromY(Math.max(0, Math.min(height, relativeY)))
   const day = columnFromX(percentX * gridContainerWidth.value)
 
   let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day]?.date : null
@@ -598,7 +711,7 @@ const onResize = (event: MouseEvent) => {
 
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
-  const percentY = (event.clientY - top - window.scrollY) / height
+  const relativeY = event.clientY - top - window.scrollY
   const percentX = (event.clientX - left - window.scrollX) / width
 
   const ogEndDate = resizeRecord.value.row[resizeRecord.value.rowMeta!.range!.fk_to_col!.title!]
@@ -607,7 +720,7 @@ const onResize = (event: MouseEvent) => {
   const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
   const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
 
-  const week = Math.floor(percentY * calendarData.value.weeks.length)
+  const week = weekFromY(Math.max(0, Math.min(height, relativeY)))
   const day = columnFromX(percentX * gridContainerWidth.value)
 
   let updateProperty: string[] = []
@@ -845,7 +958,12 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
 </script>
 
 <template>
-  <div v-if="calendarRange" class="h-full prevent-select relative" data-testid="nc-calendar-month-view">
+  <div
+    v-if="calendarRange"
+    class="prevent-select relative"
+    :class="isExpanded ? 'min-h-full' : 'h-full'"
+    data-testid="nc-calendar-month-view"
+  >
     <div
       class="grid"
       :class="{
@@ -865,13 +983,13 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
     <div
       ref="calendarGridContainer"
       :class="{
-        'grid-rows-2': calendarData.weeks.length === 2,
-        'grid-rows-5': calendarData.weeks.length === 5,
-        'grid-rows-6': calendarData.weeks.length === 6,
-        'grid-rows-7': calendarData.weeks.length === 7,
+        'grid-rows-2': !isExpanded && calendarData.weeks.length === 2,
+        'grid-rows-5': !isExpanded && calendarData.weeks.length === 5,
+        'grid-rows-6': !isExpanded && calendarData.weeks.length === 6,
+        'grid-rows-7': !isExpanded && calendarData.weeks.length === 7,
       }"
       class="grid"
-      style="height: calc(100% - 1.59rem)"
+      :style="gridContainerStyle"
       @drop="dropEvent"
     >
       <div
@@ -1024,7 +1142,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
       </div>
     </div>
     <div class="absolute inset-0 z-2 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
-      <template v-for="record in recordsToDisplay.records">
+      <template v-for="record in positionedRecords">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
           :key="record.rowMeta.id"
@@ -1075,6 +1193,9 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                   :italic="fieldStyles[field.id].italic"
                   :underline="fieldStyles[field.id].underline"
                 />
+              </template>
+              <template #tooltip>
+                <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
               </template>
             </LazySmartsheetCalendarRecordCard>
           </LazySmartsheetRow>

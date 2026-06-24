@@ -74,6 +74,7 @@ import * as nc_202606121400_detach_suspended_sync_mappings from './v0/nc_2026061
 import * as nc_202606161200_add_enabled_to_sort from './v0/nc_202606161200_add_enabled_to_sort';
 import * as nc_202606180000_form_view_email_text from './v0/nc_202606180000_form_view_email_text';
 import * as nc_202606181200_add_group_by_enabled_to_gantt from './v0/nc_202606181200_add_group_by_enabled_to_gantt';
+import * as nc_202606191200_sandbox_production_readiness from './v0/nc_202606191200_sandbox_production_readiness';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -159,6 +160,7 @@ export default class XcMigrationSourcev0 {
       'nc_202606161200_add_enabled_to_sort',
       'nc_202606180000_form_view_email_text',
       'nc_202606181200_add_group_by_enabled_to_gantt',
+      'nc_202606191200_sandbox_production_readiness',
     ]);
   }
 
@@ -320,6 +322,8 @@ export default class XcMigrationSourcev0 {
         return nc_202606180000_form_view_email_text;
       case 'nc_202606181200_add_group_by_enabled_to_gantt':
         return nc_202606181200_add_group_by_enabled_to_gantt;
+      case 'nc_202606191200_sandbox_production_readiness':
+        return nc_202606191200_sandbox_production_readiness;
     }
   }
 }

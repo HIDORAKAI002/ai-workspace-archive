@@ -121,6 +121,8 @@ const nested = computed(() => nestedLevel.value > 0)
 
 const { t } = useI18n()
 
+const { getFilterOpLabel } = useFilterOperationLabel()
+
 const { appInfo, isMobileMode } = useGlobal()
 
 const logicalOps = [
@@ -1446,7 +1448,7 @@ defineExpose({
                   >
                     <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
                       <div class="flex items-center w-full justify-between w-full gap-2">
-                        <div class="truncate flex-1">{{ compOp.text }}</div>
+                        <div class="truncate flex-1">{{ getFilterOpLabel(compOp.i18nKey, compOp.text) }}</div>
                         <component
                           :is="iconMap.check"
                           v-if="filter.comparison_op === compOp.value"
@@ -1490,8 +1492,8 @@ defineExpose({
                     <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
                       <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
                         <NcTooltip show-on-truncate-only class="truncate flex-1">
-                          <template #title>{{ compSubOp.text }}</template>
-                          {{ compSubOp.text }}
+                          <template #title>{{ getFilterOpLabel(compSubOp.i18nKey, compSubOp.text) }}</template>
+                          {{ getFilterOpLabel(compSubOp.i18nKey, compSubOp.text) }}
                         </NcTooltip>
                         <component
                           :is="iconMap.check"

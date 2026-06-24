@@ -18,3 +18,15 @@ export async function assertNotLockedViewOnSandboxProduction(
   _viewId: string,
   _message?: string,
 ): Promise<void> {}
+
+export async function clearSandboxCreatingState(
+  _context: NcContext,
+  _baseId: string,
+): Promise<void> {}
+
+export async function isSandboxTeardownInProgress(
+  _context: NcContext,
+  _baseId: string,
+): Promise<boolean> {
+  return false;
+}

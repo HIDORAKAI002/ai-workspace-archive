@@ -25,7 +25,9 @@ const { isDataSourceLimitReached, bases } = storeToRefs(basesStore)
 
 const base = computed(() => bases.value.get(props.baseId) ?? {})
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, sandboxRestrictionReason } = useRoles()
+
+const sourceCreateReason = computed(() => (!isDataSourceLimitReached.value ? sandboxRestrictionReason('sourceCreate') : null))
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
@@ -322,23 +324,30 @@ const handleClickRow = (source: SourceType, tab?: string) => {
         </template>
       </a-input>
 
-      <NcButton
-        v-if="!isDataSourceLimitReached && isUIAllowed('sourceCreate')"
-        size="large"
-        class="z-10 !px-2"
-        type="primary"
-        @click="
-          () => {
-            if (showExternalSourcePlanLimitExceededModal()) return
-            vState = DataSourcesSubTab.New
-          }
-        "
+      <NcTooltip
+        v-if="(!isDataSourceLimitReached && isUIAllowed('sourceCreate')) || !!sourceCreateReason"
+        :title="sourceCreateReason ? $t(sourceCreateReason) : ''"
+        :disabled="!sourceCreateReason"
       >
-        <div class="flex flex-row items-center w-full gap-x-1">
-          <component :is="iconMap.plus" />
-          <div class="flex">{{ $t('activity.newSource') }}</div>
-        </div>
-      </NcButton>
+        <NcButton
+          size="large"
+          class="z-10 !px-2"
+          type="primary"
+          :disabled="!!sourceCreateReason"
+          @click="
+            () => {
+              if (sourceCreateReason) return
+              if (showExternalSourcePlanLimitExceededModal()) return
+              vState = DataSourcesSubTab.New
+            }
+          "
+        >
+          <div class="flex flex-row items-center w-full gap-x-1">
+            <component :is="iconMap.plus" />
+            <div class="flex">{{ $t('activity.newSource') }}</div>
+          </div>
+        </NcButton>
+      </NcTooltip>
     </div>
     <div
       data-testid="nc-settings-datasources"

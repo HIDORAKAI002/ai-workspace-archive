@@ -74,6 +74,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       // When true, Sat & Sun stay visible but render in narrower columns so the
       // weekdays get more space. Mutually exclusive with hide_weekend.
       collapse_weekend: boolean
+      // Record-height mode for the week/multi-week and month grids.
+      // 'compact' (default/absent) → grid fits the viewport, records scroll inside.
+      // 'expanded' → cells grow to fit every record and the page scrolls.
+      record_height_mode: 'compact' | 'expanded'
     }>(() => {
       let meta = calendarMetaData.value?.meta ?? {}
 
@@ -85,8 +89,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         active_view: string
         hide_weekend: boolean
         collapse_weekend: boolean
+        record_height_mode: 'compact' | 'expanded'
       }
     })
+
+    // Resolved record-height mode — defaults to 'compact' so existing views are unchanged.
+    const recordHeightMode = computed<'compact' | 'expanded'>(() =>
+      viewMetaProperties.value?.record_height_mode === 'expanded' ? 'expanded' : 'compact',
+    )
 
     // The range of columns that are used for the calendar view
     const calendarRange = computed<
@@ -1581,6 +1591,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedDateRange,
       paginateCalendarView,
       viewMetaProperties,
+      recordHeightMode,
       updateFormat,
       timezoneDayjs,
       timezone,

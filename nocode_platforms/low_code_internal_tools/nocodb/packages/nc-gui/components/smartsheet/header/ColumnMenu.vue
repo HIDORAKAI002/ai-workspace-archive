@@ -69,7 +69,7 @@ const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow(
 
 const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByOrThrow()
 
-const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
+const { isUIAllowed, isMetaReadOnly, isDataReadOnly, sandboxRestrictionReason } = useRoles()
 
 const { showEEFeatures } = useEeConfig()
 
@@ -509,6 +509,10 @@ const isColumnEditAllowed = computed(() => {
   return true
 })
 
+const fieldAlterReason = computed(() => (!isSqlView.value ? sandboxRestrictionReason('fieldAlter') : null))
+
+const fieldDeleteReason = computed(() => (!column.value?.pv ? sandboxRestrictionReason('fieldDelete') : null))
+
 // check if the column is associated as foreign key in any of the link column
 const linksAssociated = computed(() => {
   return meta.value?.columns?.filter(
@@ -578,20 +582,24 @@ const onDeleteColumn = () => {
 
     <NcDivider />
     <GeneralSourceRestrictionTooltip
-      v-if="isUIAllowed('fieldAlter')"
+      v-if="isUIAllowed('fieldAlter') || !!fieldAlterReason"
       message="Field properties cannot be edited."
-      :enabled="!isColumnEditAllowed"
+      :enabled="!!fieldAlterReason || !isColumnEditAllowed"
       :is-sql-view="isSqlView"
     >
-      <template v-if="isSyncedReadonlyField" #title>
-        <div class="max-w-50">
-          {{ $t('tooltip.schemaChangeDisabledFormSyncedTableField') }}
-        </div>
+      <template v-if="fieldAlterReason || isSyncedReadonlyField" #title>
+        <template v-if="fieldAlterReason">{{ $t(fieldAlterReason) }}</template>
+        <template v-else>
+          <div class="max-w-50">
+            {{ $t('tooltip.schemaChangeDisabledFormSyncedTableField') }}
+          </div>
+        </template>
       </template>
 
       <NcMenuItem
         v-if="!isMobileMode"
         :disabled="
+          !!fieldAlterReason ||
           column?.pk ||
           (isSystemColumn(column) && !isCreatedOrLastModifiedTimeCol(column)) ||
           !isColumnEditAllowed ||
@@ -675,25 +683,36 @@ const onDeleteColumn = () => {
         </div>
       </NcMenuItem>
     </NcTooltip>
-    <NcMenuItem
-      v-if="!isMobileMode && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
-      title="Add field description"
-      @click="onEditPress($event, true)"
+    <NcTooltip
+      v-if="
+        !isMobileMode && (isUIAllowed('fieldAlter') || !!fieldAlterReason) && !isSqlView && column.uidt !== UITypes.ForeignKey
+      "
+      :disabled="!fieldAlterReason"
     >
-      <div class="nc-column-edit-description nc-header-menu-item">
-        <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
-        {{ $t('labels.editFieldDescription') }}
-      </div>
-    </NcMenuItem>
+      <template #title>{{ fieldAlterReason ? $t(fieldAlterReason) : '' }}</template>
+      <NcMenuItem :disabled="!!fieldAlterReason" title="Add field description" @click="onEditPress($event, true)">
+        <div class="nc-column-edit-description nc-header-menu-item">
+          <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
+          {{ $t('labels.editFieldDescription') }}
+        </div>
+      </NcMenuItem>
+    </NcTooltip>
 
     <NcTooltip
-      v-if="isEeUI && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey && showEEFeatures"
-      :disabled="showEditRestrictedColumnTooltip(column) && !isSyncedReadonlyField"
+      v-if="
+        isEeUI &&
+        (isUIAllowed('fieldAlter') || !!fieldAlterReason) &&
+        !isSqlView &&
+        column.uidt !== UITypes.ForeignKey &&
+        showEEFeatures
+      "
+      :disabled="!fieldAlterReason && showEditRestrictedColumnTooltip(column) && !isSyncedReadonlyField"
       placement="right"
       :arrow="false"
     >
       <template #title>
-        <template v-if="isSyncedReadonlyField">
+        <template v-if="fieldAlterReason">{{ $t(fieldAlterReason) }}</template>
+        <template v-else-if="isSyncedReadonlyField">
           {{ $t('tooltip.fieldPermissionsNotAvailableForSyncedColumns') }}
         </template>
         <template v-else>
@@ -704,7 +723,7 @@ const onDeleteColumn = () => {
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!showEditRestrictedColumnTooltip(column) || isSyncedReadonlyField || isUUID(column)"
+            :disabled="!!fieldAlterReason || !showEditRestrictedColumnTooltip(column) || isSyncedReadonlyField || isUUID(column)"
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()
@@ -909,18 +928,21 @@ const onDeleteColumn = () => {
     </template>
     <NcDivider v-if="!column?.pv" />
     <GeneralSourceRestrictionTooltip
-      v-if="!column?.pv && isUIAllowed('fieldDelete')"
+      v-if="!column?.pv && (isUIAllowed('fieldDelete') || !!fieldDeleteReason)"
       message="Field cannot be deleted."
-      :enabled="!isColumnUpdateAllowed"
+      :enabled="!!fieldDeleteReason || !isColumnUpdateAllowed"
       :is-sql-view="isSqlView"
     >
-      <template v-if="isSyncedReadonlyField" #title>
-        <div class="max-w-50">
-          {{ $t('tooltip.deleteFieldIsRestrictedForSyncedTableField') }}
-        </div>
+      <template v-if="fieldDeleteReason || isSyncedReadonlyField" #title>
+        <template v-if="fieldDeleteReason">{{ $t(fieldDeleteReason) }}</template>
+        <template v-else>
+          <div class="max-w-50">
+            {{ $t('tooltip.deleteFieldIsRestrictedForSyncedTableField') }}
+          </div>
+        </template>
       </template>
       <NcMenuItem
-        :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"
+        :disabled="!!fieldDeleteReason || !isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"
         :title="linksAssociated ? 'Field is associated with a link column' : undefined"
         danger
         @click="handleDelete"

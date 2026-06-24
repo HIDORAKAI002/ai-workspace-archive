@@ -273,6 +273,13 @@ export default class LinkToAnotherRecordColumn {
       refContext = {
         ...context,
         base_id: this.fk_related_base_id,
+        // `permissions` is base-scoped (the request base's, preloaded by
+        // middleware). Drop it so visibility checks against the related table
+        // resolve the related base's own permissions instead of silently
+        // inheriting the request base's — otherwise a cross-base
+        // TABLE_VISIBILITY restriction is read against the wrong base, finds no
+        // matching rule, and defaults to accessible (leaking the related table).
+        permissions: undefined,
       };
     }
 
@@ -281,6 +288,8 @@ export default class LinkToAnotherRecordColumn {
       mmContext = {
         ...context,
         base_id: this.fk_mm_base_id,
+        // base-scoped — see the refContext note above
+        permissions: undefined,
       };
     }
 
