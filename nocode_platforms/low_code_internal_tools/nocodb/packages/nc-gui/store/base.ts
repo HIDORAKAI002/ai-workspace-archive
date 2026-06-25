@@ -122,6 +122,10 @@ export const useBase = defineStore('baseStore', () => {
     return getBaseType(sourceId) === ClientType.MSSQL
   }
 
+  function isOracle(sourceId?: string) {
+    return getBaseType(sourceId) === ClientType.ORACLE
+  }
+
   function isSnowflake(sourceId?: string) {
     return getBaseType(sourceId) === 'snowflake'
   }
@@ -333,6 +337,7 @@ export const useBase = defineStore('baseStore', () => {
     isMysql,
     isPg,
     isMssql,
+    isOracle,
     isSqlite,
     isSnowflake,
     isDatabricks,

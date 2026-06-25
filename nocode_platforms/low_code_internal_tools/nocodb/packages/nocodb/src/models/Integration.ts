@@ -128,6 +128,7 @@ export default class Integration implements IntegrationType {
           workspace_id: insertObj.fk_workspace_id,
         },
         insertObj.type,
+        undefined,
         ncMeta,
       );
 
@@ -249,6 +250,7 @@ export default class Integration implements IntegrationType {
         workspace_id: context.workspace_id,
       },
       integration.type,
+      undefined,
       ncMeta,
     );
 
@@ -563,6 +565,10 @@ export default class Integration implements IntegrationType {
   static async getCategoryDefault(
     context: Omit<NcContext, 'base_id'>,
     type: string,
+    // Accepted for signature parity with the EE override, which uses
+    // `preferGlobal` to prefer a global integration. CE has no global
+    // integrations, so the option is ignored here.
+    _opts: { preferGlobal?: boolean } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
     const integrationData = await ncMeta.metaGet2(

@@ -10,12 +10,7 @@ onto a connection negotiated at the current protocol version fails here.
 import httpx
 import pytest
 from inline_snapshot import snapshot
-
-from mcp.client.client import Client
-from mcp.client.streamable_http import streamable_http_client
-from mcp.server import Server, ServerRequestContext
-from mcp.shared.message import SessionMessage
-from mcp.types import (
+from mcp_types import (
     CallToolRequestParams,
     CallToolResult,
     ListToolsResult,
@@ -23,6 +18,11 @@ from mcp.types import (
     TextContent,
     Tool,
 )
+
+from mcp.client.client import Client
+from mcp.client.streamable_http import streamable_http_client
+from mcp.server import Server, ServerRequestContext
+from mcp.shared.message import SessionMessage
 from tests.interaction._connect import BASE_URL, mounted_app
 from tests.interaction._helpers import RecordingTransport
 from tests.interaction._modern_vocab import RecordedExchange, assert_no_modern_vocabulary
@@ -66,7 +66,7 @@ async def test_legacy_streamable_http_exchange_carries_no_modern_protocol_vocabu
 
     async with mounted_app(_server(), on_request=on_request, on_response=on_response) as (http, _):
         recording = RecordingTransport(streamable_http_client(f"{BASE_URL}/mcp", http_client=http))
-        async with Client(recording) as client:
+        async with Client(recording, mode="legacy") as client:
             result = await client.call_tool("echo", {"text": "legacy"})
 
     assert result == snapshot(CallToolResult(content=[TextContent(text="legacy")]))

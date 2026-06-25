@@ -58,6 +58,23 @@ export interface DBQueryClient {
     knex: XKnex;
   }): Knex.Raw;
 
+  /**
+   * Table-position alias fragment for FROM/JOIN targets. Dialect-owned
+   * because the SQL differs: Oracle rejects `AS` before table aliases
+   * (ORA-00907), every other dialect accepts it.
+   */
+  tableAlias(knex: XKnex, table: string | Knex.Raw, alias: string): Knex.Raw;
+
+  /**
+   * Bulk-update rows by primary key in a single round trip.
+   */
+  batchUpdate(payload: {
+    knex: XKnex;
+    tnPath: string | Knex.Raw;
+    rows: Record<string, any>[];
+    pkColumnName: string;
+  }): Knex.QueryBuilder | Knex.Raw | null;
+
   concat(fields: string[]);
   simpleCast(field: string, asType: string);
 

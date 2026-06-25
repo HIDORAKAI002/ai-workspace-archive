@@ -73,6 +73,15 @@ const sqlNullIfBlank = ({
     );
   }
 
+  if (baseModel.isOracle) {
+    // Oracle stores '' as NULL, so the blank → NULL normalization is a no-op.
+    // It also rejects `NULLIF(col, '')` on non-string columns — the '' literal
+    // is typed CHAR, which is incompatible with e.g. a NUMBER column
+    // (ORA-00932). Select the raw column verbatim instead; this mirrors the
+    // SingleSelect group-by branch in BaseModelSqlv2.ts.
+    return baseModel.dbDriver.raw(`??`, [columnName]);
+  }
+
   return baseModel.dbDriver.raw(`NULLIF(??, '')`, [columnName]);
 };
 
@@ -621,6 +630,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
       // T-SQL forbids wrapping a CTE in a derived table — skip the outer
       // `__nc_group_alias` wrap.
+      return await baseModel.execAndParse(outerQb);
+    }
+
+    if (baseModel.isOracle) {
+      // Oracle rejects the `) __nc_group_alias` derived-table wrap below — an
+      // unquoted identifier can't start with `_` (ORA-00911). knex's oracledb
+      // dialect already wraps the paginated query in its own ROWNUM subquery,
+      // and Oracle 23c accepts GROUP BY on a select alias inside the CTE, so
+      // execute outerQb directly like the mssql path.
       return await baseModel.execAndParse(outerQb);
     }
 

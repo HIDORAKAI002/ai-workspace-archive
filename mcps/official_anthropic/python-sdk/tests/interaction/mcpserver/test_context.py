@@ -2,13 +2,7 @@
 
 import pytest
 from inline_snapshot import snapshot
-from pydantic import BaseModel
-
-from mcp import MCPError
-from mcp.client import ClientRequestContext
-from mcp.server.elicitation import AcceptedElicitation
-from mcp.server.mcpserver import Context, MCPServer
-from mcp.types import (
+from mcp_types import (
     METHOD_NOT_FOUND,
     CallToolResult,
     ElicitRequestFormParams,
@@ -20,6 +14,12 @@ from mcp.types import (
     LoggingMessageNotificationParams,
     TextContent,
 )
+from pydantic import BaseModel
+
+from mcp import MCPError
+from mcp.client import ClientRequestContext
+from mcp.server.elicitation import AcceptedElicitation
+from mcp.server.mcpserver import Context, MCPServer
 from tests.interaction._connect import Connect
 from tests.interaction._helpers import IncomingMessage
 from tests.interaction._requirements import requirement
@@ -52,7 +52,7 @@ async def test_context_logging_helpers_send_log_notifications(connect: Connect) 
 
     async with connect(mcp, logging_callback=collect) as client:
         result = await client.call_tool("narrate", {})
-        advertised_logging = client.initialize_result.capabilities.logging
+        advertised_logging = client.server_capabilities.logging
 
     assert result == snapshot(CallToolResult(content=[TextContent(text="done")], structured_content={"result": "done"}))
     assert received == snapshot(

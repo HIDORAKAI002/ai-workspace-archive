@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { PlanFeatureTypes, PlanTitles, UITypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, UITypes, getLookupResultType, getUITypesForLookupResultType } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -33,9 +33,11 @@ const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
 
-const { getMeta, getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey, metasWithIdAsKey } = useMetas()
 
 const filterRef = ref()
+
+const activeTabKey = ref<'configuration' | 'formatting'>('configuration')
 
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
@@ -49,6 +51,14 @@ setAvoidShowingToastMsgForValidations({
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
 if (!vModel.value.fk_lookup_column_id) vModel.value.fk_lookup_column_id = null
+
+// initialise formatting meta (display_type / display_column_meta), preserving any
+// existing meta keys (enableConditions, useRecursiveEvaluation, saved formatting)
+vModel.value.meta = {
+  display_type: null,
+  display_column_meta: { meta: {}, custom: {} },
+  ...(vModel.value.meta || {}),
+}
 
 const refTables = computed(() => {
   if (!tables.value || !tables.value.length || !meta.value || !meta.value.columns) {
@@ -74,6 +84,41 @@ const refTables = computed(() => {
 const selectedTable = computed(() => {
   return refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
 })
+
+// Synthetic lookup column built from the live form selections — used to resolve the
+// looked-up result type (following nested-lookup chains and unwrapping Formula/Rollup).
+const lookupColForResolution = computed(
+  () =>
+    ({
+      ...vModel.value,
+      uidt: UITypes.Lookup,
+      colOptions: {
+        fk_relation_column_id: vModel.value.fk_relation_column_id,
+        fk_lookup_column_id: vModel.value.fk_lookup_column_id,
+      },
+    } as ColumnType),
+)
+
+const lookupResultType = computed(() => {
+  if (!vModel.value.fk_relation_column_id || !vModel.value.fk_lookup_column_id) return null
+  if (!meta.value?.columns) return null
+
+  return getLookupResultType({
+    col: lookupColForResolution.value,
+    meta: meta.value,
+    metas: metasWithIdAsKey.value,
+  })
+})
+
+const displayTypeOptions = computed(() =>
+  getUITypesForLookupResultType(lookupResultType.value).map((uidt) => ({
+    value: uidt,
+    label: t(`datatype.${uidt}`),
+    icon: h(resolveComponent('SmartsheetHeaderIcon'), { column: { uidt } }),
+  })),
+)
+
+const isFormattable = computed(() => displayTypeOptions.value.length > 0)
 
 // Check if recursive evaluation should be available (EE + PostgreSQL + self-referencing HM/BT relation)
 const canUseRecursiveEvaluation = computed(() => {
@@ -217,6 +262,26 @@ watch(
   },
 )
 
+// Reset the format options object whenever the display type is cleared (mirrors Formula).
+watch(
+  () => vModel.value.meta?.display_type,
+  (value, oldValue) => {
+    if (oldValue === undefined && !value) {
+      vModel.value.meta.display_column_meta = { meta: {}, custom: {} }
+    }
+  },
+  { immediate: true },
+)
+
+// Drop a stale display type when the resolved result type no longer supports it
+// (e.g. the looked-up field was changed from a number to a text column).
+watch(lookupResultType, () => {
+  const allowed = getUITypesForLookupResultType(lookupResultType.value)
+  if (vModel.value.meta?.display_type && !allowed.includes(vModel.value.meta.display_type)) {
+    vModel.value.meta.display_type = null
+  }
+})
+
 const onFilterLabelClick = () => {
   if (!selectedTable.value) return
 
@@ -233,153 +298,226 @@ const handleScrollIntoView = () => {
 </script>
 
 <template>
-  <div v-if="refTables.length" class="w-full flex flex-col gap-4">
-    <div class="w-full flex flex-row space-x-2">
-      <a-form-item
-        class="flex w-1/2 !max-w-[calc(50%_-_4px)]"
-        :label="`${$t('general.link')} ${$t('objects.field')}`"
-        v-bind="validateInfos.fk_relation_column_id"
-      >
-        <a-select
-          v-model:value="vModel.fk_relation_column_id"
-          placeholder="-select-"
-          dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table"
-          @change="onRelationColChange"
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-          </template>
-          <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
-            <div class="flex gap-2 w-full justify-between truncate items-center">
-              <div class="min-w-1/2 flex items-center gap-2">
-                <SmartsheetHeaderIcon :column="table.column" class="!mx-0" color="text-nc-content-gray-subtle2" />
+  <div v-if="refTables.length" class="w-full">
+    <NcTabs v-model:active-key="activeTabKey" class="nc-lookup-options-tabs">
+      <a-tab-pane key="configuration">
+        <template #tab>
+          <div class="tab" data-testid="nc-lookup-tab-configuration">{{ $t('labels.configuration') }}</div>
+        </template>
+        <div class="w-full flex flex-col gap-4 pt-3">
+          <div class="w-full flex flex-row space-x-2">
+            <a-form-item
+              class="flex w-1/2 !max-w-[calc(50%_-_4px)]"
+              :label="`${$t('general.link')} ${$t('objects.field')}`"
+              v-bind="validateInfos.fk_relation_column_id"
+            >
+              <a-select
+                v-model:value="vModel.fk_relation_column_id"
+                placeholder="-select-"
+                dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table"
+                @change="onRelationColChange"
+              >
+                <template #suffixIcon>
+                  <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                </template>
+                <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
+                  <div class="flex gap-2 w-full justify-between truncate items-center">
+                    <div class="min-w-1/2 flex items-center gap-2">
+                      <SmartsheetHeaderIcon :column="table.column" class="!mx-0" color="text-nc-content-gray-subtle2" />
 
-                <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
-                  <template #title>{{ table.column.title }}</template>
-                  {{ table.column.title }}
-                </NcTooltip>
-              </div>
-              <div class="inline-flex items-center truncate gap-2">
-                <div class="text-[0.65rem] leading-4 flex-1 truncate text-nc-content-gray-subtle2 nc-relation-details">
-                  <NcTooltip class="truncate" show-on-truncate-only>
-                    <template #title>{{ table.title || table.table_name }}</template>
-                    {{ table.title || table.table_name }}
+                      <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
+                        <template #title>{{ table.column.title }}</template>
+                        {{ table.column.title }}
+                      </NcTooltip>
+                    </div>
+                    <div class="inline-flex items-center truncate gap-2">
+                      <div class="text-[0.65rem] leading-4 flex-1 truncate text-nc-content-gray-subtle2 nc-relation-details">
+                        <NcTooltip class="truncate" show-on-truncate-only>
+                          <template #title>{{ table.title || table.table_name }}</template>
+                          {{ table.title || table.table_name }}
+                        </NcTooltip>
+                      </div>
+                      <component
+                        :is="iconMap.check"
+                        v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
+                        id="nc-selected-item-icon"
+                        class="text-nc-content-brand w-4 h-4"
+                      />
+                    </div>
+                  </div>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+
+            <a-form-item
+              class="flex w-1/2"
+              :label="`${$t('datatype.Lookup')} ${$t('objects.field')}`"
+              v-bind="vModel.fk_relation_column_id ? validateInfos.fk_lookup_column_id : undefined"
+            >
+              <a-select
+                v-model:value="vModel.fk_lookup_column_id"
+                name="fk_lookup_column_id"
+                placeholder="-select-"
+                :disabled="!vModel.fk_relation_column_id"
+                show-search
+                :filter-option="antSelectFilterOption"
+                dropdown-class-name="nc-dropdown-relation-column !rounded-md"
+                @change="onDataTypeChange"
+              >
+                <template #suffixIcon>
+                  <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                </template>
+                <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
+                  <div class="w-full flex gap-2 truncate items-center justify-between">
+                    <div class="inline-flex items-center gap-2 flex-1 truncate">
+                      <SmartsheetHeaderIcon :column="column" class="!mx-0" />
+
+                      <div class="truncate flex-1">{{ column.title }}</div>
+                    </div>
+
+                    <component
+                      :is="iconMap.check"
+                      v-if="vModel.fk_lookup_column_id === column.id"
+                      id="nc-selected-item-icon"
+                      class="text-nc-content-brand w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </div>
+          <div v-if="canUseRecursiveEvaluation" class="w-full flex flex-row space-x-2">
+            <a-form-item class="w-full">
+              <div class="flex items-center gap-2">
+                <NcSwitch v-model:checked="useRecursiveEvaluation">
+                  <NcTooltip>
+                    <template #title>
+                      {{ $t('msg.evaluateRecursivelyTooltip') }}
+                    </template>
+                    {{ $t('msg.evaluateRecursively') }}
+                    <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-gray-disabled" />
                   </NcTooltip>
-                </div>
-                <component
-                  :is="iconMap.check"
-                  v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
-                  id="nc-selected-item-icon"
-                  class="text-nc-content-brand w-4 h-4"
+                </NcSwitch>
+              </div>
+            </a-form-item>
+          </div>
+          <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
+            <div class="flex flex-col gap-2">
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER">
+                <template #default="{ click }">
+                  <div class="flex gap-1 items-center whitespace-nowrap">
+                    <NcSwitch
+                      :checked="limitRecToCond"
+                      :disabled="!selectedTable"
+                      size="small"
+                      data-testid="nc-lookup-limit-record-filters"
+                      @change="
+                        (value) => {
+                          if (value && click(PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER)) return
+                          onFilterLabelClick()
+                        }
+                      "
+                    >
+                      {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
+                    </NcSwitch>
+
+                    <LazyPaymentUpgradeBadge
+                      v-if="!limitRecToCond"
+                      :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER"
+                      :content="
+                        $t('upgrade.upgradeToIncludeLinkedRecordsThatMeetSpecificConditions', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
+                      class="ml-1"
+                    />
+                  </div>
+                </template>
+              </PaymentUpgradeBadgeProvider>
+
+              <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
+                <LazySmartsheetToolbarColumnFilter
+                  ref="filterRef"
+                  class="!pl-10 !p-0 max-w-620px"
+                  :auto-save="false"
+                  :show-loading="false"
+                  link
+                  :show-dynamic-condition="false"
+                  :root-meta="meta"
+                  :link-col-id="vModel.id"
+                  @add-filter="handleScrollIntoView"
+                  @add-filter-group="handleScrollIntoView"
                 />
               </div>
             </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-
-      <a-form-item
-        class="flex w-1/2"
-        :label="`${$t('datatype.Lookup')} ${$t('objects.field')}`"
-        v-bind="vModel.fk_relation_column_id ? validateInfos.fk_lookup_column_id : undefined"
-      >
-        <a-select
-          v-model:value="vModel.fk_lookup_column_id"
-          name="fk_lookup_column_id"
-          placeholder="-select-"
-          :disabled="!vModel.fk_relation_column_id"
-          show-search
-          :filter-option="antSelectFilterOption"
-          dropdown-class-name="nc-dropdown-relation-column !rounded-md"
-          @change="onDataTypeChange"
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-          </template>
-          <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
-            <div class="w-full flex gap-2 truncate items-center justify-between">
-              <div class="inline-flex items-center gap-2 flex-1 truncate">
-                <SmartsheetHeaderIcon :column="column" class="!mx-0" />
-
-                <div class="truncate flex-1">{{ column.title }}</div>
-              </div>
-
-              <component
-                :is="iconMap.check"
-                v-if="vModel.fk_lookup_column_id === column.id"
-                id="nc-selected-item-icon"
-                class="text-nc-content-brand w-4 h-4"
-              />
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-    </div>
-    <div v-if="canUseRecursiveEvaluation" class="w-full flex flex-row space-x-2">
-      <a-form-item class="w-full">
-        <div class="flex items-center gap-2">
-          <NcSwitch v-model:checked="useRecursiveEvaluation">
-            <NcTooltip>
-              <template #title>
-                {{ $t('msg.evaluateRecursivelyTooltip') }}
-              </template>
-              {{ $t('msg.evaluateRecursively') }}
-              <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-gray-disabled" />
-            </NcTooltip>
-          </NcSwitch>
+          </div>
         </div>
-      </a-form-item>
-    </div>
-    <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
-      <div class="flex flex-col gap-2">
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER">
-          <template #default="{ click }">
-            <div class="flex gap-1 items-center whitespace-nowrap">
-              <NcSwitch
-                :checked="limitRecToCond"
-                :disabled="!selectedTable"
-                size="small"
-                data-testid="nc-lookup-limit-record-filters"
-                @change="
-                  (value) => {
-                    if (value && click(PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER)) return
-                    onFilterLabelClick()
-                  }
-                "
+      </a-tab-pane>
+
+      <a-tab-pane key="formatting" :disabled="!vModel.fk_lookup_column_id">
+        <template #tab>
+          <div class="tab" data-testid="nc-lookup-tab-formatting">{{ $t('labels.formatting') }}</div>
+        </template>
+        <div class="w-full flex flex-col gap-4 pt-3">
+          <template v-if="isFormattable">
+            <a-form-item class="!mb-0" :label="$t('general.format')">
+              <NcSelect
+                v-model:value="vModel.meta.display_type"
+                v-e="['c:lookup:format-type:select']"
+                class="w-full nc-select-shadow"
+                :placeholder="$t('labels.selectAFormatType')"
+                allow-clear
+                data-testid="nc-lookup-format-type"
               >
-                {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
-              </NcSwitch>
+                <a-select-option v-for="option in displayTypeOptions" :key="option.value" :value="option.value">
+                  <div class="flex w-full items-center gap-2 justify-between">
+                    <div class="w-full flex items-center gap-2">
+                      <component :is="option.icon" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
+                      {{ option.label }}
+                    </div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="option.value === vModel.meta?.display_type"
+                      id="nc-selected-item-icon"
+                      class="text-nc-content-brand w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
 
-              <LazyPaymentUpgradeBadge
-                v-if="!limitRecToCond"
-                :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER"
-                :content="
-                  $t('upgrade.upgradeToIncludeLinkedRecordsThatMeetSpecificConditions', {
-                    plan: getPlanTitle(PlanTitles.PLUS),
-                  })
-                "
-                class="ml-1"
-              />
-            </div>
+            <SmartsheetColumnCurrencyOptions
+              v-if="vModel.meta.display_type === UITypes.Currency"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDecimalOptions
+              v-else-if="vModel.meta.display_type === UITypes.Decimal"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnPercentOptions
+              v-else-if="vModel.meta.display_type === UITypes.Percent"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDateOptions
+              v-else-if="vModel.meta.display_type === UITypes.Date"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDateTimeOptions
+              v-else-if="vModel.meta.display_type === UITypes.DateTime"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnTimeOptions
+              v-else-if="vModel.meta.display_type === UITypes.Time"
+              :value="vModel.meta.display_column_meta"
+            />
           </template>
-        </PaymentUpgradeBadgeProvider>
 
-        <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
-          <LazySmartsheetToolbarColumnFilter
-            ref="filterRef"
-            class="!pl-10 !p-0 max-w-620px"
-            :auto-save="false"
-            :show-loading="false"
-            link
-            :show-dynamic-condition="false"
-            :root-meta="meta"
-            :link-col-id="vModel.id"
-            @add-filter="handleScrollIntoView"
-            @add-filter-group="handleScrollIntoView"
-          />
+          <div v-else class="text-nc-content-gray-subtle2 text-bodySm max-w-[440px]" data-testid="nc-lookup-not-formattable">
+            {{ $t('msg.info.lookupResultTypeNotFormattable') }}
+          </div>
         </div>
-      </div>
-    </div>
+      </a-tab-pane>
+    </NcTabs>
   </div>
   <div v-else>
     <a-alert type="warning" show-icon>
@@ -403,5 +541,23 @@ const handleScrollIntoView = () => {
 
 :deep(.nc-filter-grid) {
   @apply !pr-0;
+}
+
+.nc-lookup-options-tabs {
+  :deep(.ant-tabs-nav) {
+    @apply !mb-0 !pl-0;
+  }
+
+  :deep(.ant-tabs-nav-wrap) {
+    @apply !pl-0;
+  }
+
+  :deep(.ant-tabs-tab) {
+    @apply !pt-1 !pb-0;
+  }
+
+  :deep(.ant-tabs-tab-btn) {
+    @apply !mb-1;
+  }
 }
 </style>

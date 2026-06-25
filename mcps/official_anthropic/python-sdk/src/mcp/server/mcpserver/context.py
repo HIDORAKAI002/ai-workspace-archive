@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Generic
 
+from mcp_types import LoggingLevel
 from pydantic import AnyUrl, BaseModel
 from typing_extensions import deprecated
 
@@ -16,7 +17,6 @@ from mcp.server.elicitation import (
 )
 from mcp.server.lowlevel.helper_types import ReadResourceContents
 from mcp.shared.exceptions import MCPDeprecationWarning
-from mcp.types import LoggingLevel
 
 if TYPE_CHECKING:
     from mcp.server.mcpserver.server import MCPServer
@@ -94,18 +94,7 @@ class Context(BaseModel, Generic[LifespanContextT, RequestT]):
             total: Optional total value (e.g., 100)
             message: Optional message (e.g., "Starting render...")
         """
-        progress_token = self.request_context.meta.get("progress_token") if self.request_context.meta else None
-
-        if progress_token is None:
-            return
-
-        await self.request_context.session.send_progress_notification(
-            progress_token=progress_token,
-            progress=progress,
-            total=total,
-            message=message,
-            related_request_id=self.request_id,
-        )
+        await self.request_context.session.report_progress(progress, total, message)
 
     async def read_resource(self, uri: str | AnyUrl) -> Iterable[ReadResourceContents]:
         """Read a resource by URI.

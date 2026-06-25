@@ -6,9 +6,11 @@ interface Props {
   selected?: boolean
   hover?: boolean
   dragging?: boolean
-  // When true, stack visible fields over multiple lines filling the card height
-  // (DateTime week view) instead of clamping to a single truncated line.
-  multiline?: boolean
+  // Max number of title lines that fit in this card (derived from card height by
+  // the time-grid week/day views). >= 2 switches the body to multi-line wrap:
+  // the title wraps and is clamped to this many lines with a trailing ellipsis.
+  // 1 (or unset) keeps the single-line + tooltip layout for short cards.
+  clampLines?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,10 +19,30 @@ const props = withDefaults(defineProps<Props>(), {
   hover: false,
   color: 'gray',
   dragging: false,
-  multiline: false,
+  clampLines: 1,
 })
 
 const emit = defineEmits(['resizeStart'])
+
+// Wrap (multi-line) only when the card is tall enough for 2+ lines.
+const isMultiline = computed(() => (props.clampLines ?? 1) >= 2)
+
+// Multi-line clamp applied INLINE: the build's PostCSS strips `display:
+// -webkit-box` / `-webkit-box-orient` from scoped CSS, so inline is the only
+// reliable way to get a wrapped title that ends in an ellipsis at the last
+// fitting line. Must sit on a natural-height element (not a flex-1 sizer) — a
+// stretched box defeats the clamp and the ellipsis never shows.
+const clampStyle = computed(() =>
+  isMultiline.value
+    ? {
+        'display': '-webkit-box',
+        'WebkitBoxOrient': 'vertical',
+        'WebkitLineClamp': `${props.clampLines}`,
+        'overflow': 'hidden',
+        'overflow-wrap': 'anywhere',
+      }
+    : undefined,
+)
 
 const rowColorInfo = computed(() => {
   return extractRowBackgroundColorStyle(props.record as Row)
@@ -71,16 +93,18 @@ const rowColorInfo = computed(() => {
 
     <div
       class="flex pt-1 w-full flex-col gap-1 overflow-hidden h-full"
-      :class="{ 'overflow-x-hidden whitespace-nowrap text-ellipsis truncate': !multiline }"
+      :class="{ 'overflow-x-hidden whitespace-nowrap text-ellipsis truncate': !isMultiline }"
     >
       <NcTooltip
         wrap-child="div"
         :disabled="selected || dragging"
         overlay-class-name="nc-record-fields-tooltip"
         show-on-truncate-only
+        :line-clamp="isMultiline ? clampLines : undefined"
+        :style="clampStyle"
         :class="
-          multiline
-            ? 'nc-calendar-vcard-fields flex flex-col gap-0.5 w-full overflow-hidden flex-1 min-h-0'
+          isMultiline
+            ? 'nc-calendar-vcard-wrap w-full overflow-hidden'
             : 'nc-calendar-vcard-inline truncate w-full overflow-hidden'
         "
       >
@@ -92,7 +116,7 @@ const rowColorInfo = computed(() => {
         <slot />
       </NcTooltip>
 
-      <div class="flex-shrink-0">
+      <div class="flex-shrink-0 mt-auto">
         <slot name="time" />
       </div>
     </div>
@@ -116,21 +140,15 @@ const rowColorInfo = computed(() => {
   }
 }
 
-// In multiline mode each visible field is its own clean truncated line:
-// drop the inline "•" separators, emphasise the lead field, mute the rest.
-.nc-calendar-vcard-fields :deep(.plain-cell) {
-  // shrink-0: keep each field at its natural line height so a short (duration-
-  // sized) card clips cleanly to the first field(s) instead of squashing every
-  // field to an invisible sliver.
-  @apply truncate w-full leading-5 text-bodySm text-nc-content-gray-subtle flex-shrink-0;
-
-  &::before {
-    content: '' !important;
-    padding: 0 !important;
-  }
+// Wrap mode (tall DateTime cards, week/day time-grid): the actual clamp
+// (display: -webkit-box + -webkit-line-clamp) is applied inline via clampStyle —
+// the build strips those props from scoped CSS. Here we only pin the line height
+// (so the per-card line count lines up) and emphasise the lead/title field.
+.nc-calendar-vcard-wrap {
+  line-height: 18px;
 }
 
-.nc-calendar-vcard-fields :deep(.plain-cell:first-child) {
+.nc-calendar-vcard-wrap :deep(.plain-cell:first-child) {
   @apply text-nc-content-gray font-semibold;
 }
 </style>

@@ -1041,6 +1041,7 @@ export default {
   'translate.clear': 'Clear Translation',
   'tts.action': 'Text-to-Speech',
   'tts.clear': 'Clear Speech',
+  'turnProcess.done': 'Processed',
   'untitledAgent': 'Untitled Agent',
   'untitledGroup': 'Untitled Group',
   'updateAgent': 'Update Agent Information',
@@ -1311,6 +1312,8 @@ export default {
   'verifyConfig.disabled': 'Acceptance disabled',
   'verifyConfig.done': 'Done',
   'verifyConfig.edit': 'Edit',
+  'verifyConfig.empty.materializeHint':
+    'This requirement is already in effect. You can break it down further into a structured, item-by-item checklist.',
   'verifyConfig.empty.title': 'Delivery Acceptance',
   'verifyConfig.empty.subtitle':
     'Describe how you want to accept the result in one sentence, and AI will turn it into an editable checklist.',

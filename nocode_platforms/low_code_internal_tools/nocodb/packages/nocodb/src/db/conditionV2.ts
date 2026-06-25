@@ -72,7 +72,36 @@ function formulaToTextCast(knex: any, expr: any) {
     // documented replacement.
     return knex.raw('CAST((?) AS NVARCHAR(MAX))', [expr]);
   }
+  if (client === 'oracledb') {
+    // Oracle has no TEXT type (ORA-00902).
+    return knex.raw('CAST((?) AS VARCHAR2(4000))', [expr]);
+  }
   return knex.raw('CAST((?) AS TEXT)', [expr]);
+}
+
+// Oracle: a STRING formula's compiled output is a CLOB — wrapFormulaWithMaxLength
+// wraps every string formula in `SUBSTR(TO_CLOB(...), 1, n)`. A CLOB can't be an
+// equality / ordering comparison key (ORA-22848: "cannot use CLOB type as
+// comparison key"), so `<formula> = 'x'` fails. Narrow it to a VARCHAR2 for the
+// comparison with DBMS_LOB.SUBSTR — the same proven CLOB→VARCHAR2 idiom used by
+// oracleWidgetCategoryExpr (4000 = the SQL VARCHAR2 limit, far beyond any label).
+// LIKE already accepts a CLOB operand, so only equality / ordering ops need this.
+// Caller gates this to Oracle (`clientType() === 'oracledb'`); only the
+// is-this-a-CLOB check (STRING formula) lives here, so a non-formula operand
+// (e.g. a numeric Rollup) is returned untouched.
+function oracleNarrowFormulaClobForCompare(
+  knex: any,
+  column: any,
+  expr: any,
+): any {
+  if (
+    column?.uidt === UITypes.Formula &&
+    (column?.colOptions as any)?.parsed_tree?.dataType ===
+      FormulaDataTypes.STRING
+  ) {
+    return knex.raw('DBMS_LOB.SUBSTR((?), 4000, 1)', [expr]);
+  }
+  return expr;
 }
 
 function getLogicalOpMethod(filter: Filter) {
@@ -86,6 +115,16 @@ function getLogicalOpMethod(filter: Filter) {
     default:
       return 'where';
   }
+}
+
+// A filter is disabled when the toggle-filter feature is enabled and its
+// `enabled` flag is explicitly off. `enabled` may be a boolean or a 0/1 int
+// depending on the DB driver, so both forms are treated as disabled.
+function isFilterDisabled(
+  filter: Filter | FilterType,
+  supportToggle: boolean,
+): boolean {
+  return supportToggle && (filter.enabled === false || filter.enabled === 0);
 }
 
 const parseConditionV2 = async (
@@ -107,10 +146,12 @@ const parseConditionV2 = async (
   }
   const supportToggle = await Filter.supportToggle(baseModelSqlv2.context);
   if (Array.isArray(_filter)) {
-    // Filter out disabled filters before processing
-    const enabledFilters = supportToggle
-      ? _filter.filter((f) => f.enabled !== false && f.enabled !== 0)
-      : _filter;
+    // Drop null/undefined entries (e.g. a malformed `filterArr` such as
+    // `[null]` spread in from a count/list query) and any disabled filters
+    // before processing.
+    const enabledFilters = _filter.filter(
+      (f) => f && !isFilterDisabled(f, supportToggle),
+    );
 
     const qbs = await Promise.all(
       enabledFilters.map((child) =>
@@ -128,20 +169,22 @@ const parseConditionV2 = async (
     return {
       rootApply: (qbP) => {
         for (const qb1 of qbs) {
-          qb1.rootApply?.(qbP);
+          qb1?.rootApply?.(qbP);
         }
       },
       clause: (qbP) => {
         qbP.where((qb) => {
           for (const [i, qb1] of Object.entries(qbs)) {
-            qb[getLogicalOpMethod(enabledFilters[i])](qb1.clause);
+            if (qb1) {
+              qb[getLogicalOpMethod(enabledFilters[i])](qb1.clause);
+            }
           }
         });
       },
     };
   } else if (filter.is_group) {
     // Skip disabled filter groups entirely (cascade disable)
-    if (supportToggle && (filter.enabled === false || filter.enabled === 0)) {
+    if (isFilterDisabled(filter, supportToggle)) {
       return { clause: () => {}, rootApply: () => {} };
     }
 
@@ -180,7 +223,7 @@ const parseConditionV2 = async (
     if (!filter.fk_column_id) return;
 
     // Skip disabled leaf filters
-    if (supportToggle && (filter.enabled === false || filter.enabled === 0)) {
+    if (isFilterDisabled(filter, supportToggle)) {
       return { clause: () => {}, rootApply: () => {} };
     }
 
@@ -420,6 +463,13 @@ const parseConditionV2 = async (
                   // mysql is case-insensitive for strings, turn to case-sensitive
                   qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
                 }
+              } else if (knex.clientType() === 'oracledb') {
+                // Oracle: `val` holds a STRING formula's CLOB expression — narrow
+                // it so `'x' = <formula>` isn't a CLOB equality key (ORA-22848).
+                qb = qb.where(
+                  field,
+                  oracleNarrowFormulaClobForCompare(knex, column, val),
+                );
               } else {
                 qb = qb.where(field, val);
               }
@@ -443,8 +493,15 @@ const parseConditionV2 = async (
                   });
                 }
               } else {
+                // Oracle: narrow a STRING formula's CLOB so `<> 'x'` isn't a
+                // CLOB comparison key (ORA-22848). IS NULL still accepts a CLOB,
+                // so only the whereNot operand changes.
+                const cmpVal =
+                  knex.clientType() === 'oracledb'
+                    ? oracleNarrowFormulaClobForCompare(knex, column, val)
+                    : val;
                 qb = qb.where((nestedQb) => {
-                  nestedQb.whereNot(field, val);
+                  nestedQb.whereNot(field, cmpVal);
                   if (column.uidt !== UITypes.Links)
                     nestedQb.orWhereNull(customWhereClause ? _val : _field);
                 });
@@ -468,6 +525,10 @@ const parseConditionV2 = async (
                 }
                 if (knex.clientType() === 'pg') {
                   qb = qb.where(knex.raw('??::text ilike ?', [field, val]));
+                } else if (knex.clientType() === 'oracledb') {
+                  qb = qb.where(
+                    knex.raw('UPPER(??) like UPPER(?)', [field, val]),
+                  );
                 } else {
                   qb = qb.where(field, 'like', val);
                 }
@@ -491,6 +552,11 @@ const parseConditionV2 = async (
                   if (knex.clientType() === 'pg') {
                     nestedQb.where(
                       knex.raw('??::text not ilike ?', [field, val]),
+                    );
+                  } else if (knex.clientType() === 'oracledb') {
+                    // Case-insensitive to match pg/MySQL — see `like` above.
+                    nestedQb.whereNot(
+                      knex.raw('UPPER(??) like UPPER(?)', [field, val]),
                     );
                   } else {
                     nestedQb.whereNot(field, 'like', val);
@@ -631,6 +697,17 @@ const parseConditionV2 = async (
               qb = qb.where(field, val);
               break;
             case 'notempty':
+              // Oracle stores '' as NULL, so no row can hold the empty string —
+              // excluding '' excludes nothing and every row qualifies. The
+              // generic `<> '' OR IS NULL` shape would instead match only NULL
+              // rows (`field <> NULL` is never true), so it silently drops all
+              // non-null values. Mirror GenericFieldHandler.filterNotempty's
+              // Oracle branch and match every row. (`1 = 1`, not `TRUE` —
+              // Oracle has no boolean literal before 23ai.)
+              if (knex.clientType() === 'oracledb') {
+                qb = qb.whereRaw('1 = 1');
+                break;
+              }
               if (column.uidt === UITypes.Formula) {
                 [field, val] = [val, field];
               }
@@ -647,11 +724,17 @@ const parseConditionV2 = async (
               // FieldHandler — only Formula-with-CWC and string-like
               // columns (SingleLineText, LongText, Email, PhoneNumber,
               // URL, Colour) reach here.
+              // Oracle stores '' as NULL, so the IS [NOT] NULL check alone is
+              // complete there — the empty-string arm is never true for
+              // `blank`, evaluates UNKNOWN for `notblank` (`NOT (x = NULL)`)
+              // which would filter out every row, and throws ORA-00932 on
+              // CLOB (LongText) columns.
               if (column.uidt === UITypes.Formula) {
                 qb = qb.whereNull(customWhereClause || field);
                 if (
                   (column?.colOptions as any).parsed_tree?.dataType ===
-                  FormulaDataTypes.STRING
+                    FormulaDataTypes.STRING &&
+                  knex.clientType() !== 'oracledb'
                 ) {
                   // The formula's compiled SQL may return non-text types — e.g.
                   // JSON_EXTRACT yields jsonb on PG and JSON on MySQL. A direct
@@ -673,7 +756,8 @@ const parseConditionV2 = async (
                     UITypes.LastModifiedTime,
                     UITypes.DateTime,
                     UITypes.Time,
-                  ].includes(column.uidt)
+                  ].includes(column.uidt) &&
+                  knex.clientType() !== 'oracledb'
                 ) {
                   qb = qb.orWhere(field, '');
                 }
@@ -681,11 +765,13 @@ const parseConditionV2 = async (
               break;
             case 'notblank':
               // Attachment / JSON / Date-family route to FieldHandler.
+              // Oracle: see the `blank` note — IS NOT NULL alone is complete.
               if (column.uidt === UITypes.Formula) {
                 qb = qb.whereNotNull(customWhereClause || field);
                 if (
                   (column?.colOptions as any).parsed_tree?.dataType ===
-                  FormulaDataTypes.STRING
+                    FormulaDataTypes.STRING &&
+                  knex.clientType() !== 'oracledb'
                 ) {
                   // See `blank` branch above for the rationale.
                   qb = qb.whereNot(
@@ -703,7 +789,8 @@ const parseConditionV2 = async (
                     UITypes.CreatedTime,
                     UITypes.LastModifiedTime,
                     UITypes.Time,
-                  ].includes(column.uidt)
+                  ].includes(column.uidt) &&
+                  knex.clientType() !== 'oracledb'
                 ) {
                   qb = qb.whereNot(field, '');
                 }
@@ -720,10 +807,21 @@ const parseConditionV2 = async (
               });
               break;
             case 'btw':
-              qb = qb.whereBetween(field, val.split(','));
+              // `val` is normally a "lower,upper" CSV string, but a non-string
+              // value (array/number) can reach here via filterArrJson or the
+              // numeric coercion above — guard like the anyof/allof branch so
+              // `.split` never throws at query-compile time. An array is passed
+              // straight through (whereBetween already wants [lower, upper]).
+              qb = qb.whereBetween(
+                field,
+                Array.isArray(val) ? val : `${val ?? ''}`.split(','),
+              );
               break;
             case 'nbtw':
-              qb = qb.whereNotBetween(field, val.split(','));
+              qb = qb.whereNotBetween(
+                field,
+                Array.isArray(val) ? val : `${val ?? ''}`.split(','),
+              );
               break;
             // `isWithin` is date-only (pastWeek/Month/Year/NumberOfDays and
             // nextWeek/Month/Year/NumberOfDays). DateTime/Date/CreatedTime/

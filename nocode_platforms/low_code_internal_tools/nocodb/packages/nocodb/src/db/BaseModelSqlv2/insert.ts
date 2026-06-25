@@ -1,4 +1,8 @@
-import { dataWrapper, populatePk } from 'src/helpers/dbHelpers';
+import {
+  coerceOracleReturnedPk,
+  dataWrapper,
+  populatePk,
+} from 'src/helpers/dbHelpers';
 import {
   isAttachment,
   isLinksOrLTAR,
@@ -66,6 +70,21 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       let response;
       // const driver = trx ? trx : baseModel.dbDriver;
 
+      // Oracle has no `DEFAULT VALUES` / column-less `VALUES (default)`: an empty
+      // insert object compiles to `insert into "t" () values (default)` and fails
+      // with ORA-00947 (not enough values). Pin the PK to DEFAULT so it becomes a
+      // valid `insert into "t" ("PK") values (DEFAULT)` — other columns take their
+      // own defaults, and an identity/sequence-trigger PK is generated as usual.
+      if (
+        baseModel.isOracle &&
+        insertObj &&
+        Object.keys(insertObj).length === 0 &&
+        baseModel.model.primaryKey
+      ) {
+        insertObj[baseModel.model.primaryKey.column_name] =
+          baseModel.dbDriver.raw('DEFAULT');
+      }
+
       const query = baseModel.dbDriver(baseModel.tnPath).insert(insertObj);
       // pg + mssql both support inline RETURNING/OUTPUT. knex's mssql
       // dialect translates `.returning('col as alias')` to
@@ -74,6 +93,10 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // Without this, mssql falls into the generic else-branch (shaped
       // for mysql's `insertId`) and `extractCompositePK` returns '' →
       // ERR_INVALID_PK_VALUE.
+      // NOT oracle: its RETURNING…INTO clause needs driver out-binds, which
+      // the stringified execAndParse pipeline can't carry — `toQuery()`
+      // serializes the out-bind as a literal and execution fails with
+      // NJS-098. Oracle takes the MAX() fallback below instead.
       if ((baseModel.isPg || baseModel.isMssql) && baseModel.model.primaryKey) {
         query.returning(
           `${baseModel.model.primaryKey.column_name} as ${baseModel.model.primaryKey.id}`,
@@ -158,7 +181,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                 { raw: true, first: true },
               )
             )?.__nc_ai_id;
-          } else if (baseModel.isSnowflake || baseModel.isDatabricks) {
+          } else if (
+            baseModel.isSnowflake ||
+            baseModel.isDatabricks ||
+            baseModel.isOracle
+          ) {
             id = (
               await baseModel.execAndParse(
                 baseModel.dbDriver(baseModel.tnPath).max(ai.column_name, {
@@ -503,6 +530,23 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             });
             await trx.raw(sql);
           }
+        } else if (
+          (!raw || capturePks) &&
+          baseModel.isOracle &&
+          baseModel.model.primaryKeys?.length
+        ) {
+          // Oracle RETURNING rejects aliases (ORA-00925) — return the bare
+          // pk columns and remap to the title-keyed shape downstream expects.
+          const pkCols = baseModel.model.primaryKeys;
+          const rows = await trx
+            .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
+            .returning(pkCols.map((c) => c.column_name));
+          responses = (rows ?? []).map((r) =>
+            pkCols.reduce((acc, c) => {
+              acc[c.title] = coerceOracleReturnedPk(r[c.column_name], c);
+              return acc;
+            }, {}),
+          );
         } else {
           responses =
             (!raw || capturePks) && baseModel.isPg

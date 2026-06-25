@@ -21,10 +21,10 @@ from typing import Any, Protocol, TypedDict, TypeVar, runtime_checkable
 
 import anyio
 import anyio.abc
+from mcp_types import RequestId
 
 from mcp.shared.message import MessageMetadata
 from mcp.shared.transport_context import TransportContext
-from mcp.types import RequestId
 
 __all__ = [
     "CallOptions",
@@ -85,6 +85,9 @@ class CallOptions(TypedDict, total=False):
     resumption is removed in the next protocol revision.
     """
 
+    headers: dict[str, str]
+    """Transport-layer hint: HTTP transports merge these onto the outgoing request; non-HTTP transports ignore."""
+
 
 @runtime_checkable
 class Outbound(Protocol):
@@ -111,7 +114,7 @@ class Outbound(Protocol):
         """
         ...
 
-    async def notify(self, method: str, params: Mapping[str, Any] | None) -> None:
+    async def notify(self, method: str, params: Mapping[str, Any] | None, opts: CallOptions | None = None) -> None:
         """Send a fire-and-forget notification."""
         ...
 

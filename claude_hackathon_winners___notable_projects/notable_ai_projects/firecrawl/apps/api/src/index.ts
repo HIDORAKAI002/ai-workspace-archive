@@ -77,7 +77,6 @@ if (config.EXPRESS_TRUST_PROXY) {
 }
 
 const serverAdapter = new ExpressAdapter();
-serverAdapter.setBasePath(`/admin/${config.BULL_AUTH_KEY}/queues`);
 
 const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
   queues: [
@@ -89,7 +88,12 @@ const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
   serverAdapter: serverAdapter,
 });
 
-app.use(`/admin/${config.BULL_AUTH_KEY}/queues`, serverAdapter.getRouter());
+if (config.BULL_AUTH_KEY) {
+  serverAdapter.setBasePath(`/admin/${config.BULL_AUTH_KEY}/queues`);
+  app.use(`/admin/${config.BULL_AUTH_KEY}/queues`, serverAdapter.getRouter());
+} else {
+  logger.warn("BULL_AUTH_KEY is not set; admin routes are disabled.");
+}
 
 app.get("/", (_, res) => {
   res.json({

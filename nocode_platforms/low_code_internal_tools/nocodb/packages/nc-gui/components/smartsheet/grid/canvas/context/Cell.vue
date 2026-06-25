@@ -89,6 +89,7 @@ const isDeleteAllRecordsModalOpen = ref(false)
 // Composables
 const { isDataReadOnly, isUIAllowed } = useRoles()
 const { aiIntegrations } = useNocoAi()
+const { isAiRecordContextEnabled, setAiRecordContext } = useAiRecordContext()
 const { appInfo, isMobileMode } = useGlobal()
 const { paste } = usePaste()
 const { meta } = useSmartsheetStoreOrThrow()
@@ -218,6 +219,28 @@ const commentRow = (rowId: number, path: Array<number>) => {
   } catch (e: any) {
     message.error(e.message)
   }
+}
+
+// EE-only: put the right-clicked record into the AI chat context (mirrors the
+// Alt+A keyboard handler). No-op in CE — `setAiRecordContext` is gated there.
+function askAiAboutRecord() {
+  if (contextMenuRow.value === null || !contextMenuPath.value || !meta.value?.id) return
+
+  const row = getDataCache(contextMenuPath.value).cachedRows.value.get(contextMenuRow.value)
+  const cols = meta.value?.columns ?? []
+  if (!row) return
+
+  const recordId = extractPkFromRow(row.row, cols)
+  if (!recordId) return
+
+  const pvCol = cols.find((c) => c.pv)
+  const title = pvCol ? row.row[pvCol.title] : ''
+
+  setAiRecordContext({
+    tableId: meta.value.id,
+    recordId: String(recordId),
+    title: title != null ? String(title) : '',
+  })
 }
 
 const execBulkAction = async (path: Array<number>) => {
@@ -700,6 +723,30 @@ const execBulkAction = async (path: Array<number>) => {
         <div class="flex gap-2 items-center">
           <GeneralIcon icon="mail" class="h-4 w-4" />
           {{ $t('activity.sendRecord') }}
+        </div>
+      </NcMenuItem>
+    </template>
+
+    <template
+      v-if="
+        isAiRecordContextEnabled &&
+        contextMenuRowId &&
+        contextMenuPath !== null &&
+        contextMenuRow !== null &&
+        selection.isSingleCell() &&
+        !isPublic
+      "
+    >
+      <NcDivider />
+      <NcMenuItem
+        key="ask-ai-about-record"
+        class="nc-base-menu-item"
+        data-testid="nc-grid-context-ask-ai"
+        @click="askAiAboutRecord"
+      >
+        <div v-e="['c:row:ask-ai']" class="flex gap-2 items-center">
+          <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-brand" />
+          {{ $t('labels.askAiAboutRecord') }}
         </div>
       </NcMenuItem>
     </template>

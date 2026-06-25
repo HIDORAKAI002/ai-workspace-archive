@@ -20,13 +20,7 @@ from pathlib import Path
 import anyio
 import pytest
 from inline_snapshot import snapshot
-
-from mcp.client import stdio
-from mcp.client.client import Client
-from mcp.client.stdio import StdioServerParameters, stdio_client
-from mcp.server.stdio import stdio_server
-from mcp.shared.message import SessionMessage
-from mcp.types import (
+from mcp_types import (
     CallToolResult,
     JSONRPCNotification,
     JSONRPCRequest,
@@ -34,7 +28,13 @@ from mcp.types import (
     LoggingMessageNotificationParams,
     TextContent,
 )
-from mcp.types.jsonrpc import jsonrpc_message_adapter
+from mcp_types.jsonrpc import jsonrpc_message_adapter
+
+from mcp.client import stdio
+from mcp.client.client import Client
+from mcp.client.stdio import StdioServerParameters, stdio_client
+from mcp.server.stdio import stdio_server
+from mcp.shared.message import SessionMessage
 from tests.interaction._connect import initialize_body
 from tests.interaction._requirements import requirement
 from tests.interaction.transports import _stdio_server
@@ -89,8 +89,8 @@ async def test_tool_call_and_notification_round_trip_over_a_stdio_subprocess(
 
         # Must exceed session time plus the patched PROCESS_TERMINATION_TIMEOUT (20s).
         with anyio.fail_after(30):
-            async with Client(transport, logging_callback=collect) as client:
-                assert client.initialize_result.server_info.name == "stdio-echo"
+            async with Client(transport, mode="legacy", logging_callback=collect) as client:
+                assert client.server_info.name == "stdio-echo"
                 result = await client.call_tool("echo", {"text": "across\nprocesses"})
 
         errlog.seek(0)

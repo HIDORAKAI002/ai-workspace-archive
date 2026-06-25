@@ -966,6 +966,7 @@ function setFormData() {
     ...formViewData.value,
     submit_another_form: !!(formViewData.value?.submit_another_form ?? 0),
     show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
+    save_draft_to_browser: !!(formViewData.value?.save_draft_to_browser ?? 1),
     meta: {
       hide_branding: false,
       background_color: '#F9F9FA',
@@ -2600,6 +2601,28 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 size="small"
                                 class="nc-form-checkbox-show-blank-form"
                                 data-testid="nc-form-checkbox-show-blank-form"
+                                :disabled="isLocked || !isEditable"
+                                @change="updateView"
+                              />
+                            </div>
+
+                            <div class="flex items-center justify-between gap-3">
+                              <!-- Save draft in browser -->
+                              <div class="flex items-center">
+                                {{ $t('msg.info.saveDraftToBrowser') }}
+                                <NcTooltip>
+                                  <template #title>
+                                    {{ $t('tooltip.saveDraftToBrowser') }}
+                                  </template>
+                                  <GeneralIcon icon="info" class="text-nc-content-gray-disabled ml-1" />
+                                </NcTooltip>
+                              </div>
+                              <a-switch
+                                v-model:checked="formViewData.save_draft_to_browser"
+                                v-e="[`a:form-view:save-draft-to-browser`]"
+                                size="small"
+                                class="nc-form-checkbox-save-draft-to-browser"
+                                data-testid="nc-form-checkbox-save-draft-to-browser"
                                 :disabled="isLocked || !isEditable"
                                 @change="updateView"
                               />

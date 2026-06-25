@@ -4,6 +4,7 @@ import LogosPostgresql from '~icons/nc-icons/postgresql'
 import VscodeIconsFileTypeSqlite from '~icons/vscode-icons/file-type-sqlite'
 import LogosSnowflakeIcon from '~icons/logos/snowflake-icon'
 import NcMssqlServer from '~icons/nc-icons/mssql-server'
+import NcOracle from '~icons/nc-icons/oracle'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 
 const { sourceType } = defineProps<{ sourceType?: string; color?: string }>()
@@ -20,6 +21,8 @@ const baseIcon = computed(() => {
       return LogosSnowflakeIcon
     case ClientType.MSSQL:
       return NcMssqlServer
+    case ClientType.ORACLE:
+      return NcOracle
     default:
       return MdiDatabaseOutline
   }

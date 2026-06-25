@@ -2,10 +2,10 @@ import re
 from urllib.parse import urljoin, urlparse
 
 from httpx import Request, Response
+from mcp_types import LATEST_PROTOCOL_VERSION
 from pydantic import AnyUrl, ValidationError
 
 from mcp.client.auth import OAuthFlowError, OAuthRegistrationError, OAuthTokenError
-from mcp.client.streamable_http import MCP_PROTOCOL_VERSION
 from mcp.shared.auth import (
     OAuthClientInformationFull,
     OAuthClientMetadata,
@@ -13,7 +13,7 @@ from mcp.shared.auth import (
     OAuthToken,
     ProtectedResourceMetadata,
 )
-from mcp.types import LATEST_PROTOCOL_VERSION
+from mcp.shared.inbound import MCP_PROTOCOL_VERSION_HEADER
 
 
 def extract_field_from_www_auth(response: Response, field_name: str) -> str | None:
@@ -273,7 +273,7 @@ def validate_metadata_issuer(oauth_metadata: OAuthMetadata, expected_issuer: str
 
 
 def create_oauth_metadata_request(url: str) -> Request:
-    return Request("GET", url, headers={MCP_PROTOCOL_VERSION: LATEST_PROTOCOL_VERSION})
+    return Request("GET", url, headers={MCP_PROTOCOL_VERSION_HEADER: LATEST_PROTOCOL_VERSION})
 
 
 def create_client_registration_request(

@@ -16,6 +16,7 @@
     "express": "^5.2.1",
     "ipaddr.js": "^2.3.0",
     "playwright": "^1.58.1",
+    "proxy-chain": "^2.7.1",
     "user-agents": "^1.1.669"
   },
   "devDependencies": {

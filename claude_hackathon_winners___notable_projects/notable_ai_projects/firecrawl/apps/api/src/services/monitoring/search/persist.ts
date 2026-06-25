@@ -1,6 +1,5 @@
 import { canonicalizeUrl } from "./dedupe";
-import type { KnownPage } from "./run";
-import type { KnownEvent } from "./llm";
+import type { KnownPage, KnownEvent } from "./run";
 
 export function searchStatusToPageStatus(
   status: string,

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import mcp_types as types
 import pytest
 from logfire.testing import CaptureLogfire
 
-from mcp import types
 from mcp.client.client import Client
 from mcp.server.mcpserver import MCPServer
 
@@ -19,7 +19,7 @@ async def test_client_and_server_spans(capfire: CaptureLogfire):
         """Greet someone."""
         return f"Hello, {name}!"
 
-    async with Client(server) as client:
+    async with Client(server, mode="legacy") as client:
         result = await client.call_tool("greet", {"name": "World"})
 
     assert isinstance(result.content[0], types.TextContent)

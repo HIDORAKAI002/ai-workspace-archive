@@ -205,6 +205,15 @@ const FEATURES = [
     version: 1,
     isEngineering: true,
   },
+  {
+    id: 'oracle_source',
+    title: 'Oracle data source',
+    description: 'Allow connecting Oracle Database as an external data source (experimental).',
+    enabled: ncIsPlaywright(),
+    version: 1,
+    isEngineering: true,
+    isAdvanced: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

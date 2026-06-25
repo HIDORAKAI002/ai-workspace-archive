@@ -2,6 +2,7 @@ import {
   NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
+  getEffectiveLookupColumn,
   getMetaWithCompositeKey,
   isBtLikeV2Junction,
   isLinksOrLTAR,
@@ -75,6 +76,12 @@ export const LookupCellRenderer: CellRenderer = {
     const lookupColumn = (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_lookup_column_id)
 
     if (!lookupColumn || lookupColumn?.uidt === UITypes.Button) return
+
+    // Apply the lookup column's own formatting override (meta.display_type +
+    // meta.display_column_meta) on top of the resolved child column. For number/date
+    // result types this swaps in the chosen display type + format meta; otherwise the
+    // child column is returned unchanged so its native formatting is inherited.
+    const effectiveLookupColumn = getEffectiveLookupColumn(parseProp(column.meta), lookupColumn)
 
     y =
       y +
@@ -212,7 +219,7 @@ export const LookupCellRenderer: CellRenderer = {
 
     const renderProps: CellRendererOptions = {
       ...props,
-      column: lookupColumn,
+      column: effectiveLookupColumn,
       relatedColObj: undefined,
       relatedTableMeta: lkRelatedTableMeta,
       isUnderLookup: true,
@@ -232,7 +239,17 @@ export const LookupCellRenderer: CellRenderer = {
       textColor: getColor(themeV4Colors.gray['700']),
     }
 
+    // getEffectiveDisplayColumn returns a new object only when an override is active.
+    const hasDisplayOverride = effectiveLookupColumn !== lookupColumn
+
     const lookupRenderer = (options: CellRendererOptions) => {
+      // With a formatting override the result is always a scalar number/date type
+      // (even for computed Formula/Rollup children), so render it as a plain value
+      // using the effective column carried in options.column.
+      if (hasDisplayOverride) {
+        return PlainCellRenderer.render(ctx, options)
+      }
+
       return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
         ? renderCell(ctx, lookupColumn, options)
         : PlainCellRenderer.render(ctx, options)

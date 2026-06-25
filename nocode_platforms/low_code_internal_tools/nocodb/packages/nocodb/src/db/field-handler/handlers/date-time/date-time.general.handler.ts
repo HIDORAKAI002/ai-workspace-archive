@@ -316,10 +316,28 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       options.customWhereClause ??
       (alias ? `${alias}.${column.column_name}` : column.column_name);
 
-    // `in` uses raw values (e.g. BelongsTo DataLoader batch) — skip date parsing
+    // `in` with an array value is an internal raw-value batch (e.g. the
+    // BelongsTo DataLoader keyed on raw values) — pass it through untouched.
+    // A string value is a user filter of comma-separated datetimes: normalize
+    // each entry to the offset-less UTC wall-clock form used by eq/between
+    // (`dateValueFormat`) before building the IN list. Without this the raw
+    // values keep their `+00:00` offset token, which dialects that pin a
+    // session datetime format — Oracle's NLS formats — reject outright
+    // (ORA-01830 / ORA-01861), turning the read into a 400. Non-date entries
+    // are left as-is so the clause still works for malformed input.
     if (filter.comparison_op === 'in') {
+      let inValue: string | string[] = filter.value;
+      if (typeof inValue === 'string') {
+        inValue = inValue.split(',').map((raw) => {
+          const trimmed = raw.trim();
+          const parsed = dayjs.utc(trimmed);
+          return parsed.isValid()
+            ? parsed.format(this.dateValueFormat)
+            : trimmed;
+        });
+      }
       return await this.handleFilter(
-        { val: filter.value, sourceField: field },
+        { val: inValue, sourceField: field },
         { knex, filter, column },
         options,
       );

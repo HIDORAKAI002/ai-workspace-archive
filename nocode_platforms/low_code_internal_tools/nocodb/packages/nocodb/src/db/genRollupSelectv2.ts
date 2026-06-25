@@ -8,6 +8,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { CircularRefContext } from 'nocodb-sdk';
+import type { ClientType } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type {
@@ -25,6 +26,7 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
+import { DBQueryClient } from '~/dbQueryClient';
 
 export default async function genRollupSelectv2(param: {
   baseModelSqlv2: IBaseModelSqlV2;
@@ -99,6 +101,8 @@ export default async function genRollupSelectv2(param: {
   const parentModel = await parentCol?.getModel(parentContext);
   const refTableAlias =
     `__nc_rollup_` + Math.random().toString(36).substring(2, 8);
+
+  const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
   profiler.log('get base model');
 
   const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
@@ -134,6 +138,12 @@ export default async function genRollupSelectv2(param: {
     // subquery (virtual column, so `dt` is null). Drives the MSSQL bit→FLOAT
     // cast below, which would otherwise only fire for direct `bit` columns.
     let selectValueIsBoolean = false;
+    // Tracks whether the resolved value is a string-typed Formula. On Oracle a
+    // string Formula lowers to a CLOB (CONCAT wraps args in TO_CLOB to dodge the
+    // VARCHAR2 4000-byte concat cap), and CLOB is rejected by COUNT / COUNT
+    // DISTINCT / MIN / MAX (ORA-22849). Drives the CLOB→VARCHAR2 normalization
+    // below.
+    let selectValueIsString = false;
     if (rollupColumn.uidt === UITypes.Formula) {
       // `rollupColumn` lives in the related table — for a cross-base rollup its
       // column options (the formula AST) are stored under the related base, so
@@ -188,6 +198,8 @@ export default async function genRollupSelectv2(param: {
       // `bit`-typed expression on MSSQL — flag it so the bit→FLOAT cast fires.
       selectValueIsBoolean =
         formulOption.getParsedTree()?.dataType === FormulaDataTypes.BOOLEAN;
+      selectValueIsString =
+        formulOption.getParsedTree()?.dataType === FormulaDataTypes.STRING;
     } else if ([UITypes.Rollup].includes(rollupColumn.uidt)) {
       const knex = refBaseModel.dbDriver;
 
@@ -293,16 +305,45 @@ export default async function genRollupSelectv2(param: {
       return;
     }
 
+    // Oracle: a string Formula lowers to a CLOB, which COUNT / COUNT DISTINCT /
+    // MIN / MAX all reject (ORA-22849 — "Type CLOB is not supported for this
+    // function or operator"). Normalize it to a comparable VARCHAR2 via
+    // DBMS_LOB.SUBSTR(TO_CLOB(x), 4000, 1): TO_CLOB is an identity no-op on an
+    // already-CLOB / VARCHAR2 operand, and SUBSTR yields VARCHAR2(4000). The
+    // sum/avg family is numeric (never CLOB) so it is intentionally excluded.
+    if (
+      baseModelSqlv2.isOracle &&
+      selectValueIsString &&
+      ['count', 'countDistinct', 'min', 'max'].includes(
+        columnOptions.rollup_function as string,
+      )
+    ) {
+      selectColumnName = knex.raw('DBMS_LOB.SUBSTR(TO_CLOB(??), 4000, 1)', [
+        selectColumnName,
+      ]);
+    }
+
     if (
       ['sum', 'sumDistinct', 'avgDistinct', 'avg'].includes(
         columnOptions.rollup_function,
       )
     ) {
-      qb.select(
-        knex.raw(`COALESCE((??), 0)`, [
-          knex[columnOptions.rollup_function as string]?.(selectColumnName),
-        ]),
-      );
+      if (baseModelSqlv2.isOracle) {
+        const fn = columnOptions.rollup_function as string;
+        const distinct = ['sumDistinct', 'avgDistinct'].includes(fn);
+        const baseFn = fn.replace('Distinct', '');
+        qb.select(
+          knex.raw(`COALESCE(${baseFn}(${distinct ? 'distinct ' : ''}??), 0)`, [
+            selectColumnName,
+          ]),
+        );
+      } else {
+        qb.select(
+          knex.raw(`COALESCE((??), 0)`, [
+            knex[columnOptions.rollup_function as string]?.(selectColumnName),
+          ]),
+        );
+      }
     } else {
       qb[columnOptions.rollup_function as string]?.(selectColumnName);
     }
@@ -336,10 +377,11 @@ export default async function genRollupSelectv2(param: {
     case RelationTypes.HAS_MANY: {
       profiler.log('Relation: ' + relationColumnOption.type);
       const queryBuilder: any = knex(
-        knex.raw(`?? as ??`, [
+        dbQueryClient.tableAlias(
+          knex,
           childBaseModel.getTnPath(childModel),
           refTableAlias,
-        ]),
+        ),
       ).where(
         knex.ref(
           `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
@@ -380,10 +422,11 @@ export default async function genRollupSelectv2(param: {
     case RelationTypes.ONE_TO_ONE: {
       profiler.log('Relation: ' + relationColumnOption.type);
       const qb = knex(
-        knex.raw(`?? as ??`, [
+        dbQueryClient.tableAlias(
+          knex,
           childBaseModel.getTnPath(childModel?.table_name),
           refTableAlias,
-        ]),
+        ),
       ).where(
         knex.ref(
           `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
@@ -437,10 +480,11 @@ export default async function genRollupSelectv2(param: {
       }
 
       const qb = knex(
-        knex.raw(`?? as ??`, [
+        dbQueryClient.tableAlias(
+          knex,
           parentBaseModel.getTnPath(parentModel?.table_name),
           refTableAlias,
-        ]),
+        ),
       )
         .innerJoin(
           assocBaseModel.getTnPath(mmModel.table_name) as any,

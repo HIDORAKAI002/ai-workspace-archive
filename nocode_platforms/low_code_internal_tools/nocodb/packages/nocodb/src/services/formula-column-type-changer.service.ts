@@ -26,6 +26,7 @@ import { Audit, Column } from '~/models';
 import { ColumnsService } from '~/services/columns.service';
 import { MssqlDataMigration } from '~/services/formula-column-type-changer/mssql-data-migration';
 import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
+import { OracleDataMigration } from '~/services/formula-column-type-changer/oracle-data-migration';
 import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
 import { SqliteDataMigration } from '~/services/formula-column-type-changer/sqlite-data-migration';
 
@@ -42,6 +43,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
     const mysqlDriver = new MysqlDataMigration();
     const sqliteDriver = new SqliteDataMigration();
     const mssqlDriver = new MssqlDataMigration();
+    const oracleDriver = new OracleDataMigration();
     this.dataMigrationDriver['postgre'] = pgDriver;
     this.dataMigrationDriver[pgDriver.dbDriverName] = pgDriver;
     this.dataMigrationDriver['mariadb'] = mysqlDriver;
@@ -50,6 +52,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
     this.dataMigrationDriver[sqliteDriver.dbDriverName] = sqliteDriver;
     this.dataMigrationDriver['sqlite3'] = sqliteDriver;
     this.dataMigrationDriver[mssqlDriver.dbDriverName] = mssqlDriver;
+    this.dataMigrationDriver[oracleDriver.dbDriverName] = oracleDriver;
   }
 
   dataMigrationDriver: {

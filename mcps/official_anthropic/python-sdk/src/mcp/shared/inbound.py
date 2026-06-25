@@ -8,19 +8,20 @@ rejection's ``code`` through :data:`ERROR_CODE_HTTP_STATUS` to pick the HTTP
 status.
 """
 
+import base64
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Final
 
-from mcp.shared.version import MODERN_PROTOCOL_VERSIONS
-from mcp.types import (
+from mcp_types import (
     CLIENT_CAPABILITIES_META_KEY,
     CLIENT_INFO_META_KEY,
     PROTOCOL_VERSION_META_KEY,
     UnsupportedProtocolVersionErrorData,
 )
-from mcp.types.jsonrpc import (
+from mcp_types.jsonrpc import (
     HEADER_MISMATCH,
     INVALID_PARAMS,
     INVALID_REQUEST,
@@ -29,17 +30,38 @@ from mcp.types.jsonrpc import (
     PARSE_ERROR,
     UNSUPPORTED_PROTOCOL_VERSION,
 )
+from mcp_types.version import MODERN_PROTOCOL_VERSIONS
 
 __all__ = [
     "ERROR_CODE_HTTP_STATUS",
     "InboundLadderRejection",
     "InboundModernRoute",
+    "MCP_METHOD_HEADER",
+    "MCP_NAME_HEADER",
     "MCP_PROTOCOL_VERSION_HEADER",
     "classify_inbound_request",
+    "encode_header_value",
 ]
 
 MCP_PROTOCOL_VERSION_HEADER: Final = "mcp-protocol-version"
 """Canonical lowercase name of the HTTP header carrying the MCP protocol version."""
+
+MCP_METHOD_HEADER: Final = "mcp-method"
+"""Canonical lowercase name of the HTTP header carrying the JSON-RPC method."""
+
+MCP_NAME_HEADER: Final = "mcp-name"
+"""Canonical lowercase name of the HTTP header carrying the resource name (tool/prompt/resource URI)."""
+
+_B64_SENTINEL = re.compile(r"^=\?base64\?.*\?=$")
+# RFC 7230 token chars minus DEL; visible ASCII 0x20-0x7E is the practical bound for a header value.
+_HEADER_SAFE = re.compile(r"^[\x20-\x7E]*$")
+
+
+def encode_header_value(value: str) -> str:
+    if _HEADER_SAFE.fullmatch(value) and value == value.strip() and not _B64_SENTINEL.fullmatch(value):
+        return value
+    return f"=?base64?{base64.b64encode(value.encode('utf-8')).decode('ascii')}?="
+
 
 # INTERNAL_ERROR is deliberately unmapped (→ HTTP 200): the spec assigns no status to
 # -32603, and whether handler-origin errors get 5xx is an open S4 question — see TODO(L66).
@@ -97,14 +119,14 @@ def classify_inbound_request(
 
     1. ``params._meta`` is a mapping carrying every reserved envelope key
        (protocol version, client info, client capabilities) → else
-       :data:`~mcp.types.jsonrpc.INVALID_PARAMS`.
+       :data:`~mcp_types.jsonrpc.INVALID_PARAMS`.
     2. When ``headers`` is given, its ``MCP-Protocol-Version`` entry equals
        the envelope's protocol version → else
-       :data:`~mcp.types.jsonrpc.HEADER_MISMATCH`. Runs before the
+       :data:`~mcp_types.jsonrpc.HEADER_MISMATCH`. Runs before the
        supported-version rung so a client that disagrees with itself is told
        so, rather than told the body's version is unsupported.
     3. The envelope's protocol version is in ``supported_modern_versions`` →
-       else :data:`~mcp.types.jsonrpc.UNSUPPORTED_PROTOCOL_VERSION` with
+       else :data:`~mcp_types.jsonrpc.UNSUPPORTED_PROTOCOL_VERSION` with
        ``data = {"supported": [...], "requested": <value>}``.
 
     Method existence is *not* a rung: kernel dispatch owns that decision so

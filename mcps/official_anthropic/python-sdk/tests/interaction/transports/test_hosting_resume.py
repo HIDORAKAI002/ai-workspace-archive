@@ -16,13 +16,7 @@ import httpx
 import pytest
 from httpx_sse import EventSource, ServerSentEvent
 from inline_snapshot import snapshot
-
-from mcp.client.session import ClientSession
-from mcp.client.streamable_http import streamable_http_client
-from mcp.server.mcpserver import Context, MCPServer
-from mcp.shared.message import ClientMessageMetadata
-from mcp.types import (
-    LATEST_PROTOCOL_VERSION,
+from mcp_types import (
     CallToolRequest,
     CallToolRequestParams,
     CallToolResult,
@@ -33,6 +27,12 @@ from mcp.types import (
     TextContent,
     jsonrpc_message_adapter,
 )
+from mcp_types.version import LATEST_HANDSHAKE_VERSION
+
+from mcp.client.session import ClientSession
+from mcp.client.streamable_http import streamable_http_client
+from mcp.server.mcpserver import Context, MCPServer
+from mcp.shared.message import ClientMessageMetadata
 from tests.interaction._connect import (
     BASE_URL,
     base_headers,
@@ -431,7 +431,7 @@ async def test_a_captured_resumption_token_replays_missed_messages_on_a_new_conn
                 # The session id is only observable via the manager (the client transport does not expose it).
                 (session_id,) = manager._server_instances
                 http.headers["mcp-session-id"] = session_id
-                http.headers["mcp-protocol-version"] = LATEST_PROTOCOL_VERSION
+                http.headers["mcp-protocol-version"] = LATEST_HANDSHAKE_VERSION
                 tg.cancel_scope.cancel()
 
         with anyio.fail_after(5):  # pragma: no branch

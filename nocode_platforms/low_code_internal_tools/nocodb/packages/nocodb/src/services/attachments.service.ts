@@ -236,6 +236,14 @@ export class AttachmentsService {
     req: NcRequest;
     path?: string;
     scope?: PublicAttachmentScope;
+    /**
+     * Skip the HEAD pre-check (content-type/length + redirect resolution). Use for
+     * pre-signed URLs that authorize GET only — e.g. E2B sandbox downloads, where a
+     * HEAD returns 401. Mimetype is then inferred from the file extension and the
+     * size cap is still enforced by the storage adapter's streamed GET
+     * (axios `maxContentLength`). Pass `size`/`mimetype` on each url when known.
+     */
+    skipHead?: boolean;
   }) {
     // Validate scope if exist
     if (
@@ -299,26 +307,31 @@ export class AttachmentsService {
           let base64Buffer: Buffer;
 
           if (!url.startsWith('data:')) {
-            response = await axios.head(url, {
-              maxRedirects: 5,
-              ...getFilteredAgents({
-                url,
-                source: OperationSource.ATTACHMENTS,
-              }),
-            });
-            mimeType = response.headers['content-type']?.split(';')[0];
-            size = response.headers['content-length'];
+            if (!param.skipHead) {
+              response = await axios.head(url, {
+                maxRedirects: 5,
+                ...getFilteredAgents({
+                  url,
+                  source: OperationSource.ATTACHMENTS,
+                }),
+              });
+              mimeType = response.headers['content-type']?.split(';')[0];
+              size = response.headers['content-length'];
 
-            if (size && +size > NC_ATTACHMENT_FIELD_SIZE) {
-              NcError.get().invalidRequestBody(
-                `File is too large. Maximum allowed size is ${(
-                  NC_ATTACHMENT_FIELD_SIZE /
-                  (1024 * 1024)
-                ).toFixed(2)} MB`,
-              );
+              if (size && +size > NC_ATTACHMENT_FIELD_SIZE) {
+                NcError.get().invalidRequestBody(
+                  `File is too large. Maximum allowed size is ${(
+                    NC_ATTACHMENT_FIELD_SIZE /
+                    (1024 * 1024)
+                  ).toFixed(2)} MB`,
+                );
+              }
+
+              finalUrl = response.request.res.responseUrl;
+            } else {
+              // No HEAD probe — take the caller-supplied size (if any);
+              size = urlMeta.size ? String(urlMeta.size) : undefined;
             }
-
-            finalUrl = response.request.res.responseUrl;
           } else {
             if (!url.startsWith('data')) {
               NcError.badRequest('Invalid data URL format');
@@ -363,7 +376,9 @@ export class AttachmentsService {
               )}${path.extname(fileNameWithExt)}`;
 
           if (!mimeType) {
-            mimeType = mime.getType(path.extname(fileNameWithExt).slice(1));
+            mimeType =
+              mime.getType(path.extname(fileNameWithExt).slice(1)) ||
+              'application/octet-stream';
           }
 
           let attachmentUrl, file;

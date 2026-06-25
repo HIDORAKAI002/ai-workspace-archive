@@ -22,12 +22,9 @@ export function stableSerpFingerprint(src: {
   snippet?: string;
   description?: string;
 }): string {
-  const text = [src.title, src.snippet ?? src.description]
-    .filter(Boolean)
-    .join("\n")
-    .trim();
+  // Key on canonical URL only: snippets/titles drift between searches, so hashing them would re-flag, re-judge and re-bill the same URL.
   return createHash("sha256")
-    .update(text || canonicalizeUrl(src.url ?? ""))
+    .update(canonicalizeUrl(src.url ?? ""))
     .digest("hex")
     .slice(0, 24);
 }

@@ -108,8 +108,7 @@ function estimateBaseCreditsPerPage(
     credits += SCRAPE_OPTION_CREDIT_BONUS;
   }
 
-  // Deterministic JSON generates a reusable extractor and costs more than plain
-  // JSON; both override the base scrape credit (mirrors estimateActualCredits).
+  // Deterministic JSON costs more than plain JSON; both override the base scrape credit.
   if (usesDeterministicJson) {
     credits = DETERMINISTIC_JSON_SCRAPE_CREDITS_PER_PAGE;
   } else if (usesJsonCredits) {
@@ -206,7 +205,7 @@ export function estimateMonitorCreditsPerRun(
     (sum, target) => sum + estimateTargetBaseCredits(target, judgeEnabled),
     0,
   );
-  // Per-page judge allowance is scrape/crawl only (search judging is folded in above).
+  // Per-page judge allowance is scrape/crawl only; search judging is folded in above.
   const judgeCredits = judgeEnabled
     ? targets.reduce(
         (sum, target) =>
@@ -253,9 +252,8 @@ export function calculateMonitorCheckActualCreditsFromPages(
       baseCreditsByTarget.get(page.target_id ?? "") ??
       BASE_SCRAPE_CREDITS_PER_PAGE;
 
-    // Monitor-specific fallback only: new rows should prefer metadata.creditsUsed
-    // when the scrape path provides it. If it is missing, use retained monitor
-    // metadata to avoid obvious undercounts for PDFs and special postprocessors.
+    // Fallback when metadata.creditsUsed is missing: use retained metadata to avoid
+    // undercounting PDFs and special postprocessors.
     if (
       target &&
       shouldParsePDF(target.scrapeOptions?.parsers as any) &&
@@ -301,7 +299,7 @@ export function calculateMonitorCheckActualCreditsFromPages(
   }
 
   return pages.reduce((total, page) => {
-    // Search pages carry no per-page credit — billed at check level.
+    // Search pages carry no per-page credit; billed at check level.
     const target = targetsById.get(page.target_id ?? "");
     if (target?.type === "search") {
       return total;
@@ -323,7 +321,6 @@ export function calculateMonitorCheckActualCreditsFromPages(
   }, 0);
 }
 
-// Sum the flat searchCredits + judgeCredits recorded on a check's target_results.
 export function flatSearchTargetCredits(targetResults: unknown): number {
   if (!Array.isArray(targetResults)) return 0;
   return targetResults.reduce((total: number, run: unknown) => {
@@ -390,8 +387,7 @@ export async function createMonitor(params: {
   const estimatedCreditsPerMonth =
     estimatedCreditsPerRun * estimateRunsPerMonth(params.intervalMs);
 
-  // Omit goal/judge_enabled keys when undefined so a pre-migration DB
-  // doesn't reject the insert. Migration lives in a separate repo.
+  // Omit goal/judge_enabled when undefined so a pre-migration DB doesn't reject the insert.
   const insert: typeof schema.monitors.$inferInsert = {
     id: uuidv7(),
     team_id: params.teamId,
@@ -502,8 +498,14 @@ export async function updateMonitor(params: {
   if (params.input.status !== undefined) patch.status = params.input.status;
   if (params.input.webhook !== undefined)
     patch.webhook = params.input.webhook ?? null;
-  if (params.input.notification !== undefined) {
-    patch.notification = params.input.notification ?? null;
+  // Only write when the caller sent config; treat empty {} (legacy default) as
+  // "leave unchanged" rather than clobbering stored email settings.
+  if (
+    params.input.notification !== undefined &&
+    params.input.notification !== null &&
+    Object.keys(params.input.notification).length > 0
+  ) {
+    patch.notification = params.input.notification;
   }
   if (params.input.retentionDays !== undefined) {
     patch.retention_days = params.input.retentionDays;
@@ -523,10 +525,8 @@ export async function updateMonitor(params: {
     patch.next_run_at = params.nextRunAt?.toISOString() ?? null;
   }
 
-  // Re-estimate whenever any cost input changed. Merge the patch with the
-  // current monitor row so a goal/judge-only update still recalculates
-  // against the existing targets + schedule, and a targets-only update
-  // preserves an already-enabled judge.
+  // Re-estimate whenever any cost input changed, merging the patch with the current
+  // row so partial updates recalculate against existing targets/schedule/judge.
   const costInputsChanged =
     params.input.targets !== undefined ||
     params.input.judgeEnabled !== undefined ||
@@ -855,6 +855,27 @@ export async function insertMonitorCheckPages(
         })),
       ),
     "Failed to insert monitor check pages",
+  );
+}
+
+// Makes the inline search write idempotent: a redelivered check clears its prior
+// (check, target) rows before re-inserting, so crash-and-redeliver can't duplicate
+// pages. Partition-safe (no unique constraint needed).
+export async function deleteMonitorCheckPages(params: {
+  checkId: string;
+  targetId: string;
+}): Promise<void> {
+  await run(
+    () =>
+      db
+        .delete(schema.monitor_check_pages)
+        .where(
+          and(
+            eq(schema.monitor_check_pages.check_id, params.checkId),
+            eq(schema.monitor_check_pages.target_id, params.targetId),
+          ),
+        ),
+    "Failed to delete monitor check pages",
   );
 }
 

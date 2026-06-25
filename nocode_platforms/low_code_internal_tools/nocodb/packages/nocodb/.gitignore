@@ -46,6 +46,9 @@ test_sakila_?.db
 # local/CI-generated MSSQL data-DB config for the pg-meta+mssql-data PW lane
 mssql-data-db.json
 
+# local/CI-generated Oracle data-DB config for the pg-meta+oracle-data PW lane
+oracle-data-db.json
+
 # ignoring to avoid commiting those files
 # nc-gui dir is copied for building local docker.
 /docker/main.js
@@ -56,3 +59,6 @@ mssql-data-db.json
 
 # ignore root .env
 /.env
+
+# AI SDK DevTools local capture (NC_AI_DEVTOOLS=true) — never commit
+.devtools/

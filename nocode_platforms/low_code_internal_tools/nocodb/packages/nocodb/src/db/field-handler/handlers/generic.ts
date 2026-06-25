@@ -36,6 +36,14 @@ const isEmptyStringIncompatible = (uidt: UITypes): boolean =>
     UITypes.Checkbox,
   ].includes(uidt);
 
+// Oracle has no empty-string value — '' IS NULL there — so `= ''` / `!= ''`
+// terms degenerate into NULL comparisons (never true) and would flip the
+// meaning of blank/notblank-style clauses. Treat '' the way the
+// native-pg-enum branches below already do: reduce empty-string checks to
+// IS NULL / IS NOT NULL.
+const emptyStringIsNull = (knex: CustomKnex): boolean =>
+  knex?.clientType?.() === 'oracledb';
+
 export class GenericFieldHandler
   implements FieldHandlerInterface, FilterOperationHandlers
 {
@@ -275,14 +283,16 @@ export class GenericFieldHandler
     const { knex, column } = rootArgs;
     // Native PG enum cells can't be '' — `IS NOT NULL` already covers
     // "any non-empty value"; the explicit `!= ''` check would error.
+    // Oracle can't store '' either ('' IS NULL) — same reduction.
     const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
+    const emptyAsNull = isNativePgEnum || emptyStringIsNull(knex);
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         if (!ncIsStringHasValue(val)) {
           qb.where((nestedQb) => {
-            if (isNativePgEnum) {
+            if (emptyAsNull) {
               nestedQb.whereNotNull(sourceField as any);
             } else {
               nestedQb
@@ -337,9 +347,17 @@ export class GenericFieldHandler
       clause: (qb: Knex.QueryBuilder) => {
         if (!ncIsStringHasValue(val)) {
           qb.where((subQb) => {
-            if (!isNativePgEnum) subQb.where(sourceField as any, '');
+            if (!isNativePgEnum && !emptyStringIsNull(knex))
+              subQb.where(sourceField as any, '');
             subQb.whereNull(sourceField as any);
           });
+        } else if (knex.clientType() === 'oracledb') {
+          // Oracle's LIKE is case-sensitive; pg (via `like`→`ilike`) and
+          // MySQL (default CI collation) match case-insensitively. UPPER both
+          // sides so Oracle text LIKE filters behave the same cross-dialect.
+          qb.where(
+            knex.raw('UPPER(??) like UPPER(?)', [sourceField, `%${val}%`]),
+          );
         } else {
           qb.where(knex.raw('?? like ?', [sourceField, `%${val}%`]));
         }
@@ -367,12 +385,15 @@ export class GenericFieldHandler
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
+        const emptyAsNull = isNativePgEnum || emptyStringIsNull(knex);
         if (!ncIsStringHasValue(val)) {
           // val is empty -> all values including NULL but empty strings.
-          // Native PG enums can't hold '', so every row qualifies — emit an
-          // explicit no-op to keep the subquery group syntactically valid.
-          if (isNativePgEnum) {
-            qb.whereRaw('TRUE');
+          // Native PG enums and Oracle columns can't hold '', so every row
+          // qualifies — emit an explicit no-op to keep the subquery group
+          // syntactically valid. (`1 = 1`, not `TRUE` — Oracle has no
+          // boolean literal before 23ai.)
+          if (emptyAsNull) {
+            qb.whereRaw('1 = 1');
           } else {
             qb.whereNot(sourceField as any, '');
             qb.orWhereNull(sourceField as any);
@@ -380,10 +401,18 @@ export class GenericFieldHandler
         } else {
           val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
 
-          qb.whereNot(knex.raw(`?? like ?`, [sourceField, val]));
+          // Oracle LIKE is case-sensitive — UPPER both sides to match the
+          // case-insensitive behavior of pg (`ilike`) / MySQL. See filterLike.
+          if (knex.clientType() === 'oracledb') {
+            qb.whereNot(
+              knex.raw(`UPPER(??) like UPPER(?)`, [sourceField, val]),
+            );
+          } else {
+            qb.whereNot(knex.raw(`?? like ?`, [sourceField, val]));
+          }
           if (val !== '%%') {
             // if value is not empty, empty or null should be included
-            if (!isNativePgEnum) qb.orWhere(sourceField as any, '');
+            if (!emptyAsNull) qb.orWhere(sourceField as any, '');
             qb.orWhereNull(sourceField as any);
           } else {
             // if value is empty, then only null is included
@@ -419,7 +448,11 @@ export class GenericFieldHandler
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
           nestedQb.whereNull(sourceField as any);
-          if (!isNativePgEnum && !skipEmptyStringCompare) {
+          if (
+            !isNativePgEnum &&
+            !skipEmptyStringCompare &&
+            !emptyStringIsNull(knex)
+          ) {
             nestedQb.orWhere(knex.raw("?? = ''", [sourceField]));
           }
         });
@@ -517,7 +550,7 @@ export class GenericFieldHandler
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
-    _rootArgs: {
+    rootArgs: {
       knex: CustomKnex;
       filter: Filter;
       column: Column;
@@ -525,9 +558,18 @@ export class GenericFieldHandler
     _options: FilterOptions,
   ) {
     const { sourceField } = args;
+    const { knex } = rootArgs;
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
+        // Oracle: no row can hold '' ('' IS NULL), so excluding the empty
+        // string excludes nothing — every row matches. The generic
+        // `<> '' OR IS NULL` shape would instead match only NULL rows
+        // (`col <> NULL` is never true).
+        if (emptyStringIsNull(knex)) {
+          qb.whereRaw('1 = 1');
+          return;
+        }
         qb.where((nestedQb) => {
           nestedQb.whereNot(sourceField as any, '');
           nestedQb.orWhereNull(sourceField as any);
@@ -562,7 +604,11 @@ export class GenericFieldHandler
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
           nestedQb.whereNotNull(sourceField as any);
-          if (!isNativePgEnum && !skipEmptyStringCompare) {
+          if (
+            !isNativePgEnum &&
+            !skipEmptyStringCompare &&
+            !emptyStringIsNull(knex)
+          ) {
             nestedQb.andWhere(knex.raw("?? != ''", [sourceField]));
           }
         });
@@ -802,6 +848,13 @@ export class GenericFieldHandler
     const { val, sourceField } = args;
     const { filter, knex } = rootArgs;
 
+    // Oracle's CONCAT() is two-arg only (ORA-00909) — use the `||` operator
+    // there; every other dialect keeps the n-ary CONCAT().
+    const concatSql =
+      knex.clientType() === 'oracledb'
+        ? "((',' || ?? || ',') like ? OR (',' || ?? || ',') like ?)"
+        : "(CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?)";
+
     // Condition for filter, without negation
     const condition = (builder: Knex.QueryBuilder) => {
       const items = Array.isArray(val) ? val : val?.split(',');
@@ -812,8 +865,7 @@ export class GenericFieldHandler
           sourceField,
           `%, ${items[i]},%`,
         ];
-        const sql =
-          "(CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?)";
+        const sql = concatSql;
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

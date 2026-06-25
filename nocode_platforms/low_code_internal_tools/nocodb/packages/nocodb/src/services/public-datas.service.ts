@@ -28,6 +28,7 @@ import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
 import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
+import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { replaceDynamicFieldWithValue } from '~/helpers/dbHelpers';
 import { Filter } from '~/models';
@@ -611,9 +612,7 @@ export class PublicDatasService {
     const visibleInfo = await this.getVisibleColumnInfo(context, view, model);
 
     const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
-    try {
-      countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
-    } catch (e) {}
+    countArgs.filterArr = parseFilterArrJson(context, countArgs.filterArrJson);
 
     this.sanitizeListArgsForPublicView(context, countArgs, visibleInfo);
 

@@ -150,6 +150,13 @@ export const allIntegrations: IntegrationItemType[] = [
     type: IntegrationCategoryType.DATABASE,
     isAvailable: true,
   },
+  {
+    title: 'objects.syncData.oracle',
+    sub_type: ClientType.ORACLE,
+    icon: iconMap.oracle,
+    type: IntegrationCategoryType.DATABASE,
+    isAvailable: true,
+  },
   // Temp removed
   // {
   //   title: 'objects.syncData.snowflake',

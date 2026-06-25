@@ -413,7 +413,20 @@ export interface ChatMessageJobData extends JobData {
 export interface ChatApprovalJobData extends JobData {
   sessionId: string;
   messageId: string;
-  decisions: Record<string, 'approved' | 'denied'>;
+  /**
+   * How the user resolved each paused tool call. A bare 'approved'/'denied' for
+   * simple approval gates; the object form carries structured `input` merged into
+   * the tool's args on resume (input tools like import_file). Generic so every
+   * approval/input feature reuses one resume path.
+   */
+  decisions: Record<
+    string,
+    | 'approved'
+    | 'denied'
+    | { decision: 'approved' | 'denied'; input?: Record<string, any> }
+  >;
+  /** User's current UI navigation context (active table/view/dashboard/document). */
+  uiContext?: ChatUIContext;
 }
 
 export interface MailDispatchJobData extends JobData {

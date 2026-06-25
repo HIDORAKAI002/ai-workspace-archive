@@ -12,12 +12,7 @@ model. Gating (and `NoBackChannelError`) is the wrapped `Outbound`'s job.
 from collections.abc import Mapping
 from typing import Any, cast, overload
 
-from pydantic import BaseModel
-from typing_extensions import deprecated
-
-from mcp.shared.dispatcher import CallOptions, Outbound
-from mcp.shared.exceptions import MCPDeprecationWarning
-from mcp.types import (
+from mcp_types import (
     CreateMessageRequestParams,
     CreateMessageResult,
     CreateMessageResultWithTools,
@@ -34,6 +29,11 @@ from mcp.types import (
     Tool,
     ToolChoice,
 )
+from pydantic import BaseModel
+from typing_extensions import deprecated
+
+from mcp.shared.dispatcher import CallOptions, Outbound
+from mcp.shared.exceptions import MCPDeprecationWarning
 
 __all__ = ["ClientPeer", "Meta"]
 
@@ -81,8 +81,8 @@ class ClientPeer:
     ) -> dict[str, Any]:
         return await self._outbound.send_raw_request(method, params, opts)
 
-    async def notify(self, method: str, params: Mapping[str, Any] | None) -> None:
-        await self._outbound.notify(method, params)
+    async def notify(self, method: str, params: Mapping[str, Any] | None, opts: CallOptions | None = None) -> None:
+        await self._outbound.notify(method, params, opts)
 
     @overload
     @deprecated("The sampling capability is deprecated as of 2026-07-28 (SEP-2577).", category=MCPDeprecationWarning)

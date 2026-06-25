@@ -14358,6 +14358,7 @@
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
+            "save_draft_to_browser": 1,
             "show_blank_form": 0,
             "subheading": "My Form Subheading",
             "submit_another_form": 0,
@@ -14434,6 +14435,10 @@
             "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
           },
+          "save_draft_to_browser": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Auto-save in-progress form data to the visitor's browser localStorage. Restored on return; cleared on submit."
+          },
           "show_blank_form": {
             "$ref": "#/components/schemas/Bool",
             "description": "Show `Blank Form` after 5 seconds"
@@ -14477,6 +14482,7 @@
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
+            "save_draft_to_browser": 1,
             "show_blank_form": 0,
             "subheading": "My Form Subheading",
             "submit_another_form": 0,
@@ -14529,6 +14535,10 @@
           "redirect_url": {
             "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
+          },
+          "save_draft_to_browser": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Auto-save in-progress form data to the visitor's browser localStorage. Restored on return; cleared on submit."
           },
           "show_blank_form": {
             "$ref": "#/components/schemas/Bool",

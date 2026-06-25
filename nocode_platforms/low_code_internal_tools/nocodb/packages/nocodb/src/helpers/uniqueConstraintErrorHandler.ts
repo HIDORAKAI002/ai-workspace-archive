@@ -40,6 +40,16 @@ function extractColumnNameFromError(
     return columnName.replace(/^["']|["']$/g, '');
   }
 
+  // Oracle (23ai+):
+  // "ORA-00001: unique constraint (S.NAME) violated on table S.T columns (COL[, COL2])"
+  // Older Oracle versions omit the table/columns suffix — no column to extract.
+  const oracleColumnsMatch = errorMessage.match(
+    /violated on table \S+ columns \(([^)]+)\)/i,
+  );
+  if (oracleColumnsMatch) {
+    return oracleColumnsMatch[1].split(',')[0].trim();
+  }
+
   // Try to extract from constraint name pattern: "table_column_name_key" or "table_column_name_unique"
   const pgConstraintMatch = errorMessage.match(
     /constraint ["']?([^"']+)["']?/i,
@@ -450,11 +460,24 @@ export async function handleUniqueConstraintError({
     (clientType === 'mssql' || clientType === 'mssql2') &&
     (mssqlErrorNumber === 2601 || mssqlErrorNumber === 2627);
 
+  // Oracle unique constraint violations surface as ORA-00001. node-oracledb
+  // 6+ sets `code: 'ORA-00001'`; older driver shapes only set `errorNum: 1`.
+  const oracleErrorNum =
+    error?.errorNum ??
+    error?.original?.errorNum ??
+    error?.nativeError?.errorNum;
+  const isOracleUniqueViolation =
+    (clientType === 'oracledb' || clientType === 'oracle') &&
+    (errorCode === 'ORA-00001' ||
+      oracleErrorNum === 1 ||
+      /ORA-00001/i.test(errorMessage));
+
   const isUniqueViolation =
     errorCode === '23505' || // PostgreSQL
     errorCode === 'ER_DUP_ENTRY' || // MySQL
     (errorCode === 'SQLITE_CONSTRAINT' && /UNIQUE/i.test(errorMessage)) || // SQLite
     isMssqlUniqueViolation || // SQL Server (2601 / 2627)
+    isOracleUniqueViolation || // Oracle (ORA-00001)
     isExtractedDbError || // Error already processed by extractor
     (hasUniqueConstraintMessage &&
       (clientType === 'pg' || clientType === 'postgres')); // Fallback for PostgreSQL
@@ -787,6 +810,17 @@ export async function handleUniqueConstraintError({
     );
     if (mysqlValueMatch) {
       value = mysqlValueMatch[1];
+    }
+  }
+
+  // Oracle (23ai+): detail line
+  // "ORA-03301: (ORA-00001 details) row with column values (COL:'value') already exists"
+  if (!value) {
+    const oracleValueMatch = errorMessage.match(
+      /row with column values \([^:()]+:'([^']*)'/i,
+    );
+    if (oracleValueMatch) {
+      value = oracleValueMatch[1];
     }
   }
 

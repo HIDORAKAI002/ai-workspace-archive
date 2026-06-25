@@ -43,6 +43,8 @@ from dataclasses import dataclass
 from importlib.metadata import version as importlib_version
 from typing import Any, Generic
 
+import mcp_types as types
+from mcp_types.version import MODERN_PROTOCOL_VERSIONS
 from pydantic import BaseModel
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
@@ -50,7 +52,6 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.routing import Mount, Route
 from typing_extensions import TypeVar
 
-from mcp import types
 from mcp.server.auth.middleware.auth_context import AuthContextMiddleware
 from mcp.server.auth.middleware.bearer_auth import BearerAuthBackend, RequireAuthMiddleware
 from mcp.server.auth.provider import OAuthAuthorizationServerProvider, TokenVerifier
@@ -64,7 +65,6 @@ from mcp.server.streamable_http_manager import StreamableHTTPASGIApp, Streamable
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.shared._stream_protocols import ReadStream, WriteStream
 from mcp.shared.message import SessionMessage
-from mcp.shared.version import MODERN_PROTOCOL_VERSIONS
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +148,7 @@ class Server(Generic[LifespanResultT]):
         | None = None,
         on_call_tool: Callable[
             [ServerRequestContext[LifespanResultT], types.CallToolRequestParams],
-            Awaitable[types.CallToolResult],
+            Awaitable[types.CallToolResult | types.InputRequiredResult],
         ]
         | None = None,
         on_list_resources: Callable[
@@ -163,7 +163,7 @@ class Server(Generic[LifespanResultT]):
         | None = None,
         on_read_resource: Callable[
             [ServerRequestContext[LifespanResultT], types.ReadResourceRequestParams],
-            Awaitable[types.ReadResourceResult],
+            Awaitable[types.ReadResourceResult | types.InputRequiredResult],
         ]
         | None = None,
         on_subscribe_resource: Callable[
@@ -176,6 +176,11 @@ class Server(Generic[LifespanResultT]):
             Awaitable[types.EmptyResult],
         ]
         | None = None,
+        on_subscriptions_listen: Callable[
+            [ServerRequestContext[LifespanResultT], types.SubscriptionsListenRequestParams],
+            Awaitable[types.EmptyResult],
+        ]
+        | None = None,
         on_list_prompts: Callable[
             [ServerRequestContext[LifespanResultT], types.PaginatedRequestParams | None],
             Awaitable[types.ListPromptsResult],
@@ -183,7 +188,7 @@ class Server(Generic[LifespanResultT]):
         | None = None,
         on_get_prompt: Callable[
             [ServerRequestContext[LifespanResultT], types.GetPromptRequestParams],
-            Awaitable[types.GetPromptResult],
+            Awaitable[types.GetPromptResult | types.InputRequiredResult],
         ]
         | None = None,
         on_completion: Callable[
@@ -242,6 +247,7 @@ class Server(Generic[LifespanResultT]):
             ("resources/read", types.ReadResourceRequestParams, on_read_resource),
             ("resources/subscribe", types.SubscribeRequestParams, on_subscribe_resource),
             ("resources/unsubscribe", types.UnsubscribeRequestParams, on_unsubscribe_resource),
+            ("subscriptions/listen", types.SubscriptionsListenRequestParams, on_subscriptions_listen),
             ("tools/list", types.PaginatedRequestParams, on_list_tools),
             ("tools/call", types.CallToolRequestParams, on_call_tool),
             ("logging/setLevel", types.SetLevelRequestParams, on_set_logging_level),

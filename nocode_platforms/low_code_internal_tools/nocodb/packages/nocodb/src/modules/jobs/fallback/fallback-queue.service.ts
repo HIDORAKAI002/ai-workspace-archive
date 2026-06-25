@@ -13,6 +13,7 @@ export interface Job {
   data: any;
   repeat?: { cron: string };
   delay?: number;
+  timestamp?: number;
   // Handle of the pending setTimeout for a delayed job. Tracked on the job so
   // reset() can cancel still-pending delayed jobs (otherwise the timer fires
   // after test cleanup, running against a torn-down DB and leaking a queue slot).
@@ -183,6 +184,7 @@ export class QueueService {
         name,
         status: JobStatus.WAITING,
         data,
+        timestamp: Date.now(),
         repeat: opts?.repeat,
         delay: opts?.delay,
         ...helperFns(),

@@ -10,13 +10,7 @@ through the suite's streaming ASGI bridge — no sockets, threads, or subprocess
 import anyio
 import pytest
 from inline_snapshot import snapshot
-from pydantic import BaseModel
-
-from mcp.client import ClientRequestContext
-from mcp.server.elicitation import AcceptedElicitation
-from mcp.server.mcpserver import Context, MCPServer
-from mcp.shared.exceptions import MCPError
-from mcp.types import (
+from mcp_types import (
     INVALID_REQUEST,
     CallToolResult,
     ElicitRequestParams,
@@ -27,6 +21,12 @@ from mcp.types import (
     ResourceUpdatedNotificationParams,
     TextContent,
 )
+from pydantic import BaseModel
+
+from mcp.client import ClientRequestContext
+from mcp.server.elicitation import AcceptedElicitation
+from mcp.server.mcpserver import Context, MCPServer
+from mcp.shared.exceptions import MCPError
 from tests.interaction._connect import connect_over_streamable_http
 from tests.interaction._helpers import IncomingMessage
 from tests.interaction._requirements import requirement
@@ -69,7 +69,7 @@ def _smoke_server() -> MCPServer:
 async def test_tool_call_over_streamable_http_with_json_responses() -> None:
     """The round trip works when the server answers with a single JSON body instead of an SSE stream."""
     async with connect_over_streamable_http(_smoke_server(), json_response=True) as client:
-        assert client.initialize_result.server_info.name == "smoke"
+        assert client.server_info.name == "smoke"
         result = await client.call_tool("echo", {"text": "as json"})
 
     assert result == snapshot(

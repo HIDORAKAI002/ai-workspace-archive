@@ -136,15 +136,26 @@ export class DataImportProcessor {
   ) {}
 
   async job(job: Job<DataImportJobData>) {
-    const hrTime = initTime();
-    const data = job.data;
-    const { attachment, importType, sheets, options, user } = data;
-
     const log = (msg: string, verbose = false) => {
       this.jobsLogService.sendLog(job, { message: msg });
       if (verbose) this.logger.debug(msg);
       else this.logger.log(msg);
     };
+    return this.run(job.data, log);
+  }
+
+  /**
+   * Core import — runnable without a queue. The Bull `job()` wraps this with a
+   * job-bound logger; the AI chat import tool calls it directly for a SYNCHRONOUS
+   * import, so it can return real row counts to the user instead of "started".
+   */
+  async run(
+    data: Omit<DataImportJobData, 'jobName'>,
+    log: (msg: string, verbose?: boolean) => void = () => undefined,
+    opts: { cleanupAttachment?: boolean } = {},
+  ) {
+    const hrTime = initTime();
+    const { attachment, importType, sheets, options, user } = data;
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
     const req: NcRequest = {
@@ -285,10 +296,12 @@ export class DataImportProcessor {
       if (e?.stack) err.stack = e.stack;
       throw err;
     } finally {
-      try {
-        await deleteImportAttachment(attachment);
-      } catch (e) {
-        this.logger.warn(`Failed to cleanup temp file: ${e.message}`);
+      if (opts.cleanupAttachment !== false) {
+        try {
+          await deleteImportAttachment(attachment);
+        } catch (e) {
+          this.logger.warn(`Failed to cleanup temp file: ${e.message}`);
+        }
       }
     }
   }

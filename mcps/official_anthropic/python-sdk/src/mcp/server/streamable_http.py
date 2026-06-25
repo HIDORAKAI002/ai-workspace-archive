@@ -19,18 +19,7 @@ from typing import Any, Final
 import anyio
 import pydantic_core
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
-from pydantic import ValidationError
-from sse_starlette import EventSourceResponse
-from starlette.requests import Request
-from starlette.responses import Response
-from starlette.types import Receive, Scope, Send
-
-from mcp.server.transport_security import TransportSecurityMiddleware, TransportSecuritySettings
-from mcp.shared._context_streams import ContextReceiveStream, ContextSendStream, create_context_streams
-from mcp.shared._stream_protocols import ReadStream, WriteStream
-from mcp.shared.message import ServerMessageMetadata, SessionMessage
-from mcp.shared.version import is_version_at_least
-from mcp.types import (
+from mcp_types import (
     DEFAULT_NEGOTIATED_VERSION,
     INTERNAL_ERROR,
     INVALID_PARAMS,
@@ -44,13 +33,24 @@ from mcp.types import (
     RequestId,
     jsonrpc_message_adapter,
 )
+from mcp_types.version import is_version_at_least
+from pydantic import ValidationError
+from sse_starlette import EventSourceResponse
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.types import Receive, Scope, Send
+
+from mcp.server.transport_security import TransportSecurityMiddleware, TransportSecuritySettings
+from mcp.shared._context_streams import ContextReceiveStream, ContextSendStream, create_context_streams
+from mcp.shared._stream_protocols import ReadStream, WriteStream
+from mcp.shared.inbound import MCP_PROTOCOL_VERSION_HEADER
+from mcp.shared.message import ServerMessageMetadata, SessionMessage
 
 logger = logging.getLogger(__name__)
 
 
 # Header names
 MCP_SESSION_ID_HEADER = "mcp-session-id"
-MCP_PROTOCOL_VERSION_HEADER = "mcp-protocol-version"
 LAST_EVENT_ID_HEADER = "last-event-id"
 
 # Content types
@@ -818,7 +818,7 @@ class StreamableHTTPServerTransport:
 
     async def _validate_request_headers(self, request: Request, send: Send) -> bool:
         # Protocol-version validation lives in the manager's era-routing: only
-        # values in `SUPPORTED_PROTOCOL_VERSIONS` (or no header at all) reach
+        # values in `HANDSHAKE_PROTOCOL_VERSIONS` (or no header at all) reach
         # this transport, so the legacy version-gate is gone.
         return await self._validate_session(request, send)
 

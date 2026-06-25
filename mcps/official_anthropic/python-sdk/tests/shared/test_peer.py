@@ -10,12 +10,7 @@ from typing import Any
 
 import anyio
 import pytest
-
-from mcp.shared.dispatcher import DispatchContext
-from mcp.shared.exceptions import MCPDeprecationWarning
-from mcp.shared.peer import ClientPeer, dump_params
-from mcp.shared.transport_context import TransportContext
-from mcp.types import (
+from mcp_types import (
     CreateMessageResult,
     CreateMessageResultWithTools,
     ElicitResult,
@@ -24,6 +19,11 @@ from mcp.types import (
     TextContent,
     Tool,
 )
+
+from mcp.shared.dispatcher import DispatchContext
+from mcp.shared.exceptions import MCPDeprecationWarning
+from mcp.shared.peer import ClientPeer, dump_params
+from mcp.shared.transport_context import TransportContext
 
 from .conftest import direct_pair
 from .test_dispatcher import running_pair
@@ -185,7 +185,7 @@ async def test_peer_notify_forwards_to_wrapped_outbound():
         ) -> dict[str, Any]:
             raise NotImplementedError
 
-        async def notify(self, method: str, params: Mapping[str, Any] | None) -> None:
+        async def notify(self, method: str, params: Mapping[str, Any] | None, opts: Any = None) -> None:
             sent.append((method, params))
 
     await ClientPeer(_Out()).notify("n", {"x": 1})

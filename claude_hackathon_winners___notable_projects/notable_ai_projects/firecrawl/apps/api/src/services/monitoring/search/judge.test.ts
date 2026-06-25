@@ -42,18 +42,23 @@ describe("dedupe", () => {
       canonicalizeUrl("https://example.com/path"),
     );
   });
-  it("same title+snippet → same fingerprint (URL-independent)", () => {
+  it("same URL → same fingerprint even when title/snippet drift (URL-keyed)", () => {
     const a = stableSerpFingerprint({
       url: "https://a.com",
       title: "T",
       snippet: "S",
     });
     const b = stableSerpFingerprint({
-      url: "https://b.com",
-      title: "T",
-      snippet: "S",
+      url: "https://www.A.com/",
+      title: "different title",
+      snippet: "reworded snippet",
     });
     expect(a).toBe(b);
+  });
+  it("different URL → different fingerprint", () => {
+    const a = stableSerpFingerprint({ url: "https://a.com", title: "T" });
+    const b = stableSerpFingerprint({ url: "https://b.com", title: "T" });
+    expect(a).not.toBe(b);
   });
 });
 
