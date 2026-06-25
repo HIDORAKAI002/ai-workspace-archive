@@ -1,25 +1,25 @@
-# उत्कृष्ट अभ्यास र अनुकूलन
+# उत्कृष्ट अभ्यासहरू र अनुकूलन
 
-## 🎯 यो प्रयोगशालाले के समेट्छ
+## 🎯 यस प्रयोगशालाले के कभर गर्छ
 
-यो अन्तिम प्रयोगशालाले बलियो, स्केलेबल, र सुरक्षित MCP सर्भरहरू निर्माण गर्नका लागि उत्कृष्ट अभ्यासहरू, अनुकूलन प्रविधिहरू, र उत्पादन दिशानिर्देशहरू समेट्छ। तपाईं वास्तविक अनुभव र उद्योग मापदण्डहरूबाट सिक्नुहुनेछ ताकि तपाईंको कार्यान्वयन उत्पादनको लागि तयार होस्।
+यो क्यापस्टोन प्रयोगशालाले मजबुत, विस्तारयोग्य, र सुरक्षित MCP सर्भरहरू डेटाबेस एकीकरणसहित निर्माण गर्ने उत्कृष्ट अभ्यासहरू, अनुकूलन प्रविधिहरू, र उत्पादन दिशानिर्देशहरूलाई समेट्छ। तपाईंले वास्तविक जीवनको अनुभव र उद्योग मानकहरूबाट सिक्नुहुनेछ जसले तपाईंको कार्यान्वयन उत्पादन-तयार हुन सुनिश्चित गर्दछ।
 
 ## अवलोकन
 
-सफल MCP सर्भर निर्माण गर्नु केवल कोड काम गर्ने बनाउनु भन्दा धेरै हो। यो प्रयोगशालाले प्रमाणको अवधारणाबाट उत्पादनको लागि तयार प्रणालीहरूमा रूपान्तरण गर्न आवश्यक अभ्यासहरू समेट्छ, जसले स्केल गर्न सक्छ, विश्वसनीय रूपमा प्रदर्शन गर्न सक्छ, र सुरक्षा मापदण्डहरू कायम राख्न सक्छ।
+सफल MCP सर्भर बनाउनु भनेको केवल कोड चलाउनु मात्र होइन। यस प्रयोगशालाले प्रमाण-को-धारणा कार्यान्वयनहरूलाई उत्पादन-तयार प्रणालीहरूबाट अलग गर्ने आवश्यक अभ्यासहरू समेट्छ जसले विस्तार, भरपर्दो प्रदर्शन, र सुरक्षा मापदण्डहरू कायम राख्न सक्छ।
 
-यी उत्कृष्ट अभ्यासहरू वास्तविक-world परिनियोजन, समुदाय प्रतिक्रिया, र उद्यम कार्यान्वयनबाट सिकाइएका पाठहरूबाट प्राप्त भएका छन्।
+यी उत्कृष्ट अभ्यासहरू वास्तविक जीवनका परिनियोजनहरू, समुदायको प्रतिक्रिया, र उद्यम कार्यान्वयनहरूबाट सिकिएका पाठहरूमध्ये निकालेको हो।
 
-## सिक्ने उद्देश्यहरू
+## सिकाइ लक्ष्यहरू
 
-यो प्रयोगशाला समाप्त गर्दा, तपाईं सक्षम हुनुहुनेछ:
+यस प्रयोगशाला सम्पन्न गरेपछि, तपाईं सक्षम हुनुहुनेछ:
 
-- **लागू गर्नुहोस्** MCP सर्भर र डेटाबेसहरूको लागि प्रदर्शन अनुकूलन प्रविधिहरू  
-- **कार्यान्वयन गर्नुहोस्** व्यापक सुरक्षा कडा बनाउने उपायहरू  
-- **डिजाइन गर्नुहोस्** उत्पादन वातावरणहरूको लागि स्केलेबल आर्किटेक्चर ढाँचाहरू  
-- **स्थापना गर्नुहोस्** निगरानी, मर्मत, र सञ्चालन प्रक्रियाहरू  
-- **अनुकूलन गर्नुहोस्** लागत प्रदर्शन र विश्वसनीयता कायम राख्दै  
-- **योगदान गर्नुहोस्** MCP समुदाय र पारिस्थितिकी तन्त्रमा  
+- **लागू गर्न** MCP सर्भरहरू र डेटाबेसहरूको प्रदर्शन अनुकूलन प्रविधिहरू
+- **कार्यान्वयन गर्न** व्यापक सुरक्षा कडाइ उपायहरू
+- **डिजाइन गर्न** उत्पादन वातावरणका लागि विस्तारयोग्य वास्तुकला ढाँचाहरू
+- **स्थापना गर्न** अनुगमन, मर्मतसम्भार, र सञ्चालन प्रक्रियाहरू
+- **अनुकूलन गर्न** लागतहरू प्रदर्शन र विश्वासयोग्यतालाई कायम राख्दै
+- **योगदान गर्न** MCP समुदाय र वातावरणमा
 
 ## 🚀 प्रदर्शन अनुकूलन
 
@@ -28,30 +28,30 @@
 #### कनेक्शन पूल अनुकूलन
 
 ```python
-# Optimized connection pool configuration
+# अनुकूलित कनेक्शन पूल कन्फिगरेसन
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # आकार कन्फिगरेसन
+    "min_size": max(2, cpu_count()),           # कम्तिमा २, CPU सँग स्केल गर्नुहोस्
+    "max_size": min(20, cpu_count() * 4),     # उपयुक्त अधिकतममा सीमित गर्नुहोस्
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # समय निर्धारण कन्फिगरेसन
+    "max_inactive_connection_lifetime": 300,   # ५ मिनेट
+    "command_timeout": 30,                     # ३० सेकेन्ड
+    "max_queries": 50000,                      # कनेक्शन्स घुमाउनुहोस्
     
-    # PostgreSQL settings
+    # पोस्टग्रेस्क्यूएल सेटिङहरू
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # स्थिरताका लागि अक्षम गर्नुहोस्
+        "work_mem": "8MB",                     # क्वेरीहरूको लागि अनुकूलित गर्नुहोस्
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # मात्र परिमार्जनहरू लग गर्नुहोस्
+        "log_min_duration_statement": "1s",   # ढिलो हुने क्वेरीहरू लग गर्नुहोस्
     }
 }
 ```
-  
-#### क्वेरी अनुकूलन ढाँचाहरू
+
+#### सोधपत्र अनुकूलन ढाँचाहरू
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # सेकेन्डहरूको
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # पहिले क्यास जाँच गर्नुहोस्
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # अनुगमन सहित कार्यान्वयन गर्नुहोस्
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # सोधपुछ कार्यान्वयनलाई अनुकूलित गर्नुहोस्
+                await conn.execute("SET enable_seqscan = off")  # सूचकांकहरूलाई प्राथमिकता दिनुहोस्
+                await conn.execute("SET work_mem = '16MB'")     # यस सोधपुछको लागि बढी मेमोरी
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # सुस्त सोधपुछहरूलाई लग गर्नुहोस्
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # सफल परिणामहरू क्यास गर्नुहोस्
+                if cache_key and len(result) < 1000:  # ठूलो परिणामहरू क्यास नगर्नुहोस्
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# सूचकांक सिफारिसहरू
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # मुख्य व्यवसाय सूचकांकहरू
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # विश्लेषणात्मक सूचकांकहरू
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # भेक्टर खोज अनुकूलन
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
-### एप्लिकेशन प्रदर्शन
+### अनुप्रयोग प्रदर्शन
 
-#### Async प्रोग्रामिङ उत्कृष्ट अभ्यासहरू
+#### एसिंक्रोनस प्रोग्रामिङ उत्कृष्ट अभ्यासहरू
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # प्रणालीलाई अत्यधिक भार नपरोस् भनेर ब्याचमा प्रक्रिया गर्नुहोस्
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # स्रोत समाप्ति रोक्न ब्याचहरू बीच सानो ढिलाइ
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# सर्किट ब्रेकर कार्यान्वयन
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # बन्द, खुला, आधा खुला
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # सफलतामा रिसेट गर्नुहोस्
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,9 +214,8 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
-### क्यासिङ रणनीतिहरू
+### क्याचिङ रणनीतिहरू
 
 ```python
 import redis
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # स्तर १: मेमोरी क्यास
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # स्तर २: रेडिस क्यास
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # मेमोरी क्यासमा प्रवर्द्धन गर्नुहोस्
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # LRU निकासन लागू गर्नुहोस्
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# क्यास कुञ्जी उत्पन्न गर्नुहोस्
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,11 +303,10 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
-## 🔒 सुरक्षा कडा बनाउने
+## 🔒 सुरक्षा कडाइ
 
-### प्रमाणीकरण र अधिकार
+### प्रमाणीकरण र अनुमति
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # प्रमाणीकरण निकाल्नुहोस् र प्रमाणित गर्नुहोस्
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # टोकन प्रमाणीकरण गर्नुहोस्
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # दर सीमितता जाँच गर्नुहोस्
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # RLS सन्दर्भ प्रमाणीकरण गर्नुहोस्
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # सार्वजनिक कुञ्जी Key Vault वा क्यासबाट प्राप्त गर्नुहोस्
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # टोकन डिकोड र प्रमाणित गर्नुहोस्
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # सुपर प्रशासकहरूले कुनै पनि सन्दर्भ पहुँच गर्न सक्छन्
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # स्टोर म्यानेजरहरू केवल आफ्नो स्टोरमा पहुँच गर्न सक्छन्
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # क्षेत्रीय म्यानेजरहरूले धेरै स्टोरहरूमा पहुँच गर्न सक्छन्
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# इनपुट प्रमाणीकरण र सफाइ
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # प्रतिबन्धित ढाँचाहरू
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # केवल SELECT स्टेटमेन्टहरू अनुमति दिनुहोस्
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,19 +439,18 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # केवल अल्फानुमेरिक, अन्डरस्कोर, र डट अनुमति दिनुहोस्
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # अनुमति प्राप्त तालिकाहरूको विरुद्ध प्रमाणीकरण गर्नुहोस्
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
-### डेटा सुरक्षा
+### डाटा सुरक्षण
 
 ```python
 from cryptography.fernet import Fernet
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # उत्पादनमा, Azure Key Vault बाट प्राप्त गर्नुहोस्
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # विकासको लागि विकल्प (उत्पादनको लागि होइन!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # पुनरावृत्तिहरू
         ).hex()
         
         return password_hash, salt
@@ -527,11 +523,10 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
 ## 📊 उत्पादन परिनियोजन दिशानिर्देशहरू
 
-### कोडको रूपमा पूर्वाधार
+### इन्फ्रास्ट्रक्चर एज कोड
 
 ```yaml
 # azure-pipelines.yml
@@ -611,7 +606,6 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
 ### कन्टेनर अनुकूलन
 
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
 ### वातावरण कन्फिगरेसन
 
 ```python
-# Production configuration management
+# उत्पादन कन्फिगरेसन व्यवस्थापन
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -716,29 +709,28 @@ class ProductionConfig:
                 logging.StreamHandler(sys.stdout),
                 logging.handlers.RotatingFileHandler(
                     '/var/log/mcp-server.log',
-                    maxBytes=50*1024*1024,  # 50MB
+                    maxBytes=50*1024*1024,  # ५०एमबी
                     backupCount=5
                 )
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # तेस्रो-पक्ष लगरहरूलाई WARNING मा सेट गर्नुहोस्
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # डिबग मोड अक्षम गर्नुहोस्
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # सुरक्षित हेडरहरू सेट गर्नुहोस्
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
 ## 💰 लागत अनुकूलन
 
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # कम लोड
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # मध्यम लोड
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # उच्च लोड
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # महँगो अपरेसनहरू क्याच गर्नुहोस्
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# अटो-स्केलिङ कन्फिगरेसन
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPU-आधारित स्केलिङ
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # मेमोरी-आधारित स्केलिङ
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # अनुरोध पंक्ति स्केलिङ
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,9 +810,8 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 मर्मत र सञ्चालन
+## 🔧 मर्मतसम्भार र सञ्चालन
 
 ### स्वास्थ्य निगरानी
 
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # डेटाबेस स्वास्थ्य
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # बाह्य सेवाहरूको स्वास्थ्य
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # प्रणाली स्रोतहरू
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # अनुप्रयोग मेट्रिक्स
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # समग्र स्थिति निर्धारण
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # चेतावनी ट्रिगर गर्नुहोस्
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # आधारभूत जडान
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # ढिला हुने प्रश्नहरू जाँच्नुहोस्
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # जडान गणना जाँच्नुहोस्
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# स्वचालित ब्याकअप र पुनर्प्राप्ति
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # अजुरे ब्लब स्टोरेजमा अपलोड गर्नुहोस्
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # दैनिक पूर्ण ब्याकअप २ बजे UTC मा
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # प्रति घण्टा वृद्धिशील ब्याकअपहरू
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
-## 🌍 समुदाय योगदान
+## 🌍 समुदाय योगदानहरू
 
-### ओपन सोर्स उत्कृष्ट अभ्यासहरू
+### खुला स्रोत उत्कृष्ट अभ्यासहरू
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,7 +984,6 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
 ### समुदाय संलग्नता
 
@@ -1036,80 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # वास्तविक जाँचहरू लागू गर्ने थिए
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 मुख्य निष्कर्षहरू
+## 🎯 मुख्य आधारहरू
 
-यो व्यापक सिकाइ मार्ग पूरा गरेपछि, तपाईंले निम्न विषयहरूमा विशेषज्ञता हासिल गर्नुभएको हुनेछ:
+यस व्यापक सिकाइ मार्ग पूरा गरेपछि, तपाईंले मास्टर गर्नुपर्ने विषयहरू:
 
-✅ **प्रदर्शन अनुकूलन**: डेटाबेस ट्युनिङ, async ढाँचाहरू, र क्यासिङ रणनीतिहरू  
-✅ **सुरक्षा कडा बनाउने**: प्रमाणीकरण, अधिकार, र डेटा सुरक्षा  
-✅ **उत्पादन परिनियोजन**: कोडको रूपमा पूर्वाधार र कन्टेनर अनुकूलन  
-✅ **लागत व्यवस्थापन**: स्रोत अनुकूलन र बुद्धिमानी स्केलिङ  
-✅ **सञ्चालन उत्कृष्टता**: निगरानी, मर्मत, र स्वचालन  
-✅ **समुदाय संलग्नता**: MCP पारिस्थितिकी तन्त्रमा योगदान  
+✅ **प्रदर्शन अनुकूलन**: डेटाबेस ट्यूनिङ, एसिंक्रोनस ढाँचाहरू, र क्याचिङ रणनीतिहरू  
+✅ **सुरक्षा कडाइ**: प्रमाणीकरण, अनुमति, र डाटा सुरक्षण  
+✅ **उत्पादन परिनियोजन**: इन्फ्रास्ट्रक्चर एज कोड र कन्टेनर अनुकूलन  
+✅ **लागत व्यवस्थापन**: स्रोत अनुकूलन र बुद्धिमानी विस्तार  
+✅ **सञ्चालनात्मक उत्कृष्टता**: अनुगमन, मर्मतसम्भार, र स्वचालन  
+✅ **समुदाय संलग्नता**: MCP वातावरणमा योगदान  
 
-## 🏆 प्रमाणपत्र र आगामी कदमहरू
+## 🏆 प्रमाणपत्र र अर्को कदमहरू
 
-### व्यावहारिक मूल्यांकन
+### व्यावहारिक मूल्याङ्कन
 
-तपाईंको विशेषज्ञता प्रदर्शन गर्न यो अन्तिम परियोजना पूरा गर्नुहोस्:
+तपाईंको निपुणता देखाउन यस अन्तिम परियोजना पूरा गर्नुहोस्:
 
-**उत्पादनको लागि तयार MCP सर्भर निर्माण गर्नुहोस्** जसमा समावेश छ:  
-- [ ] RLS सहित बहु-भाडावाल खुद्रा विश्लेषण  
-- [ ] Azure OpenAI सहित अर्थपूर्ण खोज  
-- [ ] व्यापक सुरक्षा कार्यान्वयन  
-- [ ] Azure मा उत्पादन परिनियोजन  
-- [ ] निगरानी र चेतावनी सेटअप  
-- [ ] दस्तावेजीकरण र परीक्षण  
+**उत्पादन-तयार MCP सर्भर बनाउनुहोस्** जसले समावेश गर्दछ:
+- [ ] RLS सहित बहु-भाडामा रिटेल एनालिटिक्स
+- [ ] Azure OpenAI सहित सेम्यान्टिक खोज
+- [ ] व्यापक सुरक्षा कार्यान्वयन
+- [ ] Azure मा उत्पादन परिनियोजन
+- [ ] अनुगमन र सचेतना सेटअप
+- [ ] कागजात र परीक्षण
 
 ### उन्नत सिकाइ मार्गहरू
 
 तपाईंको MCP यात्रा जारी राख्नुहोस्:
 
-- **MCP आर्किटेक्चर ढाँचाहरू**: उन्नत सर्भर आर्किटेक्चर  
-- **बहु-मोडेल एकीकरण**: विभिन्न AI मोडेलहरू संयोजन गर्ने  
-- **उद्यम स्केल**: ठूलो स्केल MCP परिनियोजन  
-- **कस्टम उपकरण विकास**: विशेष MCP उपकरणहरू निर्माण गर्ने  
-- **MCP पारिस्थितिकी तन्त्र**: व्यापक समुदायमा योगदान गर्ने  
+- **MCP वास्तुकला ढाँचाहरू**: उन्नत सर्भर वास्तुकलाहरू
+- **बहु-मोडेल एकीकरण**: विभिन्न AI मोडलहरूको संयोजन
+- **उद्यम स्तर**: ठूलो-स्तर MCP परिनियोजनहरू
+- **कस्टम उपकरण विकास**: विशेष MCP उपकरणहरू निर्माण
+- **MCP वातावरण**: व्यापक समुदायमा योगदान
 
 ### समुदाय मान्यता
 
-तपाईंको उपलब्धि साझा गर्नुहोस्:  
-- **GitHub पोर्टफोलियो**: तपाईंको कार्यान्वयन प्रदर्शन गर्नुहोस्  
-- **समुदाय योगदान**: सुधारहरू वा उदाहरणहरू पेश गर्नुहोस्  
-- **बोल्ने अवसरहरू**: भेटघाट वा सम्मेलनहरूमा प्रस्तुति दिनुहोस्  
-- **मेन्टोरिङ**: अन्य विकासकर्ताहरूलाई MCP सिक्न मद्दत गर्नुहोस्  
+आफ्नो सफलताको सेयर गर्नुहोस्:
+- **GitHub पोर्टफोलियो**: तपाईंको कार्यान्वयन प्रदर्शन
+- **समुदाय योगदानहरू**: सुधार वा उदाहरणहरू पेश गर्ने
+- **भाषण अवसरहरू**: मिटअप वा सम्मेलनहरूमा प्रस्तुति दिने
+- **परामर्श**: अरू विकासकर्तालाई MCP सिक्न सहयोग गर्ने
 
 ## 📚 अतिरिक्त स्रोतहरू
 
-### उन्नत विषयहरू  
-- [PostgreSQL प्रदर्शन ट्युनिङ](https://www.postgresql.org/docs/current/performance-tips.html) - डेटाबेस अनुकूलन  
-- [Azure कन्टेनर एप्स उत्कृष्ट अभ्यासहरू](https://docs.microsoft.com/azure/container-apps/overview) - उत्पादन परिनियोजन  
-- [Python Async उत्कृष्ट अभ्यासहरू](https://docs.python.org/3/library/asyncio-dev.html) - Async प्रोग्रामिङ  
+### उन्नत विषयवस्तुहरू
+- [PostgreSQL प्रदर्शन ट्यूनिङ](https://www.postgresql.org/docs/current/performance-tips.html) - डेटाबेस अनुकूलन
+- [Azure Container Apps उत्कृष्ट अभ्यासहरू](https://docs.microsoft.com/azure/container-apps/overview) - उत्पादन परिनियोजन
+- [Python Async उत्कृष्ट अभ्यासहरू](https://docs.python.org/3/library/asyncio-dev.html) - एसिंक्रोनस प्रोग्रामिङ
 
-### सुरक्षा स्रोतहरू  
-- [OWASP शीर्ष १०](https://owasp.org/www-project-top-ten/) - सुरक्षा कमजोरीहरू  
-- [Azure सुरक्षा उत्कृष्ट अभ्यासहरू](https://docs.microsoft.com/azure/security/) - क्लाउड सुरक्षा  
-- [Python सुरक्षा दिशानिर्देशहरू](https://python.org/dev/security/) - सुरक्षित कोडिङ  
+### सुरक्षा स्रोतहरू
+- [OWASP शीर्ष 10](https://owasp.org/www-project-top-ten/) - सुरक्षा कमजोरीहरू
+- [Azure सुरक्षा उत्कृष्ट अभ्यासहरू](https://docs.microsoft.com/azure/security/) - क्लाउड सुरक्षा
+- [Python सुरक्षा दिशानिर्देशहरू](https://python.org/dev/security/) - सुरक्षित कोडिङ
 
-### समुदाय  
-- [MCP समुदाय Discord](https://discord.com/invite/ByRwuEEgH4) - प्रत्यक्ष छलफलहरू  
-- [GitHub छलफलहरू](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - प्रश्नोत्तर र साझेदारी  
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - प्राविधिक प्रश्नहरू  
-
----
-
-**🎉 बधाई छ!** तपाईंले व्यापक MCP डेटाबेस एकीकरण सिकाइ मार्ग पूरा गर्नुभएको छ। अब तपाईंसँग उत्पादनको लागि तयार MCP सर्भरहरू निर्माण गर्ने ज्ञान र सीप छ, जसले AI सहायकहरूलाई वास्तविक-world डेटा प्रणालीहरूसँग जोड्छ।
-
-**योगदान गर्न तयार हुनुहुन्छ?** हाम्रो समुदायमा सामेल हुनुहोस् र तपाईंको अनुभवहरू साझा गरेर, कोड सुधारहरू योगदान गरेर, वा अतिरिक्त सिकाइ स्रोतहरू सिर्जना गरेर अन्यलाई MCP सिक्न मद्दत गर्नुहोस्।
+### समुदाय
+- [MCP समुदाय Discord](https://discord.com/invite/ByRwuEEgH4) - प्रत्यक्ष छलफलहरू
+- [GitHub छलफलहरू](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - प्रश्नोत्तर र सेयरिङ
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - प्राविधिक प्रश्नहरू
 
 ---
 
-**अस्वीकरण**:  
-यो दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरेर अनुवाद गरिएको छ। हामी यथार्थताको लागि प्रयास गर्छौं, तर कृपया ध्यान दिनुहोस् कि स्वचालित अनुवादमा त्रुटिहरू वा अशुद्धताहरू हुन सक्छ। मूल दस्तावेज़ यसको मातृभाषामा आधिकारिक स्रोत मानिनुपर्छ। महत्वपूर्ण जानकारीको लागि, व्यावसायिक मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट उत्पन्न हुने कुनै पनि गलतफहमी वा गलत व्याख्याको लागि हामी जिम्मेवार हुने छैनौं।
+**🎉 बधाई छ!** तपाईंले व्यापक MCP डेटाबेस एकीकरण सिकाइ मार्ग पूरा गर्नुभयो। अब तपाईंसँग उत्पादन-तयार MCP सर्भरहरू निर्माण गर्ने ज्ञान र कौशल छ जुन AI सहायकहरूलाई वास्तविक विश्वका डाटा प्रणालीहरूसँग जोड्छ।
+
+**योगदान गर्न तयार?** हाम्रो समुदायमा सामेल हुनुहोस् र आफ्नो अनुभवहरू साझा गरेर, कोड सुधारमा योगदान गरेर, वा थप सिकाइ स्रोतहरू सिर्जना गरेर अरूलाई MCP सिक्न सहयोग गर्नुहोस्।
+
+**अर्को**: [Tooling](../../12-tooling/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**अस्वीकरण**:
+यो दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरेर अनुवाद गरिएको हो। हामी सही हुन प्रयास गर्छौं, तर कृपया जानकार हुनुस् कि स्वचालित अनुवादमा त्रुटिहरू वा अशुद्धताहरू हुन सक्छन्। मूल दस्तावेज़ यसको मूल भाषामा आधिकारिक स्रोत मानिनुपर्छ। महत्वपूर्ण जानकारीका लागि व्यावसायिक मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट उत्पन्न कुनै पनि गलत बुझाइ वा त्रुटिको लागि हामी जिम्मेवार छैनौं।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

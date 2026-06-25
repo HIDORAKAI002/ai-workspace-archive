@@ -1,52 +1,52 @@
 # Melhores Práticas e Otimização
 
-## 🎯 O que este laboratório aborda
+## 🎯 O Que Este Laboratório Abrange
 
-Este laboratório final consolida as melhores práticas, técnicas de otimização e diretrizes de produção para construir servidores MCP robustos, escaláveis e seguros com integração de base de dados. Vais aprender com experiências reais e padrões da indústria para garantir que a tua implementação esteja pronta para produção.
+Este laboratório final consolida melhores práticas, técnicas de otimização e diretrizes de produção para construir servidores MCP robustos, escaláveis e seguros com integração a bases de dados. Irá aprender a partir de experiências reais e padrões da indústria para garantir que a sua implementação esteja pronta para produção.
 
 ## Visão Geral
 
-Construir um servidor MCP bem-sucedido vai além de apenas fazer o código funcionar. Este laboratório aborda as práticas essenciais que diferenciam implementações de prova de conceito de sistemas prontos para produção que podem escalar, funcionar de forma confiável e manter padrões de segurança.
+Construir um servidor MCP bem-sucedido é mais do que apenas fazer o código funcionar. Este laboratório aborda as práticas essenciais que diferenciam implementações de prova de conceito de sistemas prontos para produção que podem escalar, apresentar desempenho fiável e manter padrões de segurança.
 
-Estas melhores práticas são derivadas de implementações reais, feedback da comunidade e lições aprendidas em implementações empresariais.
+Estas melhores práticas são derivadas de implantações no mundo real, feedback da comunidade e lições aprendidas em implementações empresariais.
 
 ## Objetivos de Aprendizagem
 
-Ao final deste laboratório, serás capaz de:
+No final deste laboratório, será capaz de:
 
-- **Aplicar** técnicas de otimização de desempenho para servidores MCP e bases de dados
-- **Implementar** medidas abrangentes de reforço de segurança
-- **Projetar** padrões de arquitetura escaláveis para ambientes de produção
-- **Estabelecer** procedimentos de monitorização, manutenção e operação
-- **Otimizar** custos enquanto manténs desempenho e confiabilidade
-- **Contribuir** para a comunidade e o ecossistema MCP
+- **Aplicar** técnicas de otimização de desempenho para servidores MCP e bases de dados  
+- **Implementar** medidas abrangentes de reforço de segurança  
+- **Projetar** padrões de arquitetura escaláveis para ambientes de produção  
+- **Estabelecer** procedimentos de monitorização, manutenção e operação  
+- **Otimizar** custos mantendo desempenho e fiabilidade  
+- **Contribuir** para a comunidade e ecossistema MCP  
 
 ## 🚀 Otimização de Desempenho
 
 ### Desempenho da Base de Dados
 
-#### Otimização de Pool de Conexões
+#### Otimização do Pool de Conexões
 
 ```python
-# Optimized connection pool configuration
+# Configuração otimizada da pool de ligações
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Configuração do tamanho
+    "min_size": max(2, cpu_count()),           # Pelo menos 2, escala com o CPU
+    "max_size": min(20, cpu_count() * 4),     # Limite num máximo razoável
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Configuração do tempo
+    "max_inactive_connection_lifetime": 300,   # 5 minutos
+    "command_timeout": 30,                     # 30 segundos
+    "max_queries": 50000,                      # Rodar ligações
     
-    # PostgreSQL settings
+    # Configurações do PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Desativar para consistência
+        "work_mem": "8MB",                     # Otimizar para consultas
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Registar apenas modificações
+        "log_min_duration_statement": "1s",   # Registar consultas lentas
     }
 }
 ```
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # segundos
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Verificar cache primeiro
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Executar com monitorização
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Otimizar execução da consulta
+                await conn.execute("SET enable_seqscan = off")  # Preferir índices
+                await conn.execute("SET work_mem = '16MB'")     # Mais memória para esta consulta
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Registar consultas lentas
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Guardar resultados bem-sucedidos no cache
+                if cache_key and len(result) < 1000:  # Não guardar no cache resultados grandes
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,18 +110,18 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Recomendações de índices
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Índices do negócio principal
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Índices de analítica
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Otimização da pesquisa vetorial
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Processar em lotes para evitar sobrecarregar o sistema
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Pequeno atraso entre lotes para prevenir esgotamento de recursos
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Implementação de disjuntor
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # FECHADO, ABERTO, SEMI_ABERTO
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Reiniciar em caso de sucesso
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Nível 1: Cache de memória
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Nível 2: Cache Redis
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Promover para cache de memória
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Implementar remoção LRU
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Geração de chave de cache
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Extrair e validar autenticação
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Validar token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Verificar limitação de taxa
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Validar contexto RLS
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Obter chave pública do Key Vault ou cache
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Decodificar e validar token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Super administradores podem aceder a qualquer contexto
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Gestores de loja só podem aceder à sua própria loja
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Gestores regionais podem aceder a várias lojas
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Validação e sanitização de entrada
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Padrões proibidos
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Permitir apenas instruções SELECT
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Permitir apenas alfanuméricos, sublinhado e ponto
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Validar contra tabelas permitidas
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Em produção, obter do Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Alternativa para desenvolvimento (não para produção!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # iterações
         ).hex()
         
         return password_hash, salt
@@ -524,7 +524,7 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Diretrizes de Implantação em Produção
+## 📊 Diretrizes para Implantação em Produção
 
 ### Infraestrutura como Código
 
@@ -663,10 +663,10 @@ EXPOSE 8000
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
 
-### Configuração de Ambiente
+### Configuração do Ambiente
 
 ```python
-# Production configuration management
+# Gestão de configuração em produção
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,17 +715,17 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Definir registos de terceiros para WARNING
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Desativar modo de depuração
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Definir cabeçalhos seguros
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Carga baixa
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Carga média
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Carga alta
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Operações custosas em cache
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Configuração de auto-escalonamento
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Escalonamento baseado na CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Escalonamento baseado na memória
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Escalonamento da fila de pedidos
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Estado da base de dados
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Estado dos serviços externos
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Recursos do sistema
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Métricas da aplicação
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Determinar estado geral
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Disparar alertas
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Conectividade básica
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Verificar consultas lentas
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Verificar contagem de ligações
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Backup e recuperação automatizados
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Carregar para Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,12 +932,12 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Backup completo diário às 2h UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Backups incrementais horários
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
@@ -945,7 +945,7 @@ class BackupManager:
 
 ## 🌍 Contribuições para a Comunidade
 
-### Melhores Práticas de Código Aberto
+### Melhores Práticas em Código Aberto
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### Envolvimento com a Comunidade
+### Envolvimento na Comunidade
 
 ```python
 class CommunityContributor:
@@ -1025,7 +1025,7 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Iriam implementar verificações reais
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
@@ -1033,71 +1033,75 @@ class CommunityContributor:
 
 ## 🎯 Principais Conclusões
 
-Após completar este percurso de aprendizagem abrangente, deverás ter dominado:
+Após completar este percurso de aprendizagem abrangente, deve ter dominado:
 
-✅ **Otimização de Desempenho**: Ajuste de bases de dados, padrões assíncronos e estratégias de cache  
+✅ **Otimização de Desempenho**: Ajustes de base de dados, padrões async e estratégias de cache  
 ✅ **Reforço de Segurança**: Autenticação, autorização e proteção de dados  
 ✅ **Implantação em Produção**: Infraestrutura como código e otimização de contêineres  
 ✅ **Gestão de Custos**: Otimização de recursos e escalonamento inteligente  
 ✅ **Excelência Operacional**: Monitorização, manutenção e automação  
-✅ **Envolvimento com a Comunidade**: Contribuir para o ecossistema MCP  
+✅ **Envolvimento na Comunidade**: Contribuição para o ecossistema MCP  
 
 ## 🏆 Certificação e Próximos Passos
 
 ### Avaliação Prática
 
-Conclui este projeto final para demonstrar a tua maestria:
+Complete este projeto final para demonstrar a sua mestria:
 
-**Constrói um Servidor MCP Pronto para Produção** que inclua:
-- [ ] Análise de retalho multi-inquilino com RLS
-- [ ] Pesquisa semântica com Azure OpenAI
-- [ ] Implementação abrangente de segurança
-- [ ] Implantação em produção no Azure
-- [ ] Configuração de monitorização e alertas
-- [ ] Documentação e testes
+**Construa um Servidor MCP Pronto para Produção** que inclua:
+- [ ] Análise de retalho multi-inquilino com RLS  
+- [ ] Pesquisa semântica com Azure OpenAI  
+- [ ] Implementação completa de segurança  
+- [ ] Implantação em produção na Azure  
+- [ ] Configuração de monitorização e alertas  
+- [ ] Documentação e testes  
 
-### Percursos de Aprendizagem Avançados
+### Percursos Avançados de Aprendizagem
 
-Continua a tua jornada MCP com:
+Continue a sua jornada MCP com:
 
-- **Padrões de Arquitetura MCP**: Arquiteturas avançadas de servidores
-- **Integração Multi-Modelo**: Combinação de diferentes modelos de IA
-- **Escala Empresarial**: Implementações MCP em larga escala
-- **Desenvolvimento de Ferramentas Personalizadas**: Construção de ferramentas MCP especializadas
-- **Ecossistema MCP**: Contribuir para a comunidade mais ampla
+- **Padrões de Arquitetura MCP**: Arquiteturas de servidor avançadas  
+- **Integração Multi-Modelo**: Combinação de diferentes modelos de IA  
+- **Escala Empresarial**: Implantações MCP em larga escala  
+- **Desenvolvimento de Ferramentas Personalizadas**: Construção de ferramentas especializadas MCP  
+- **Ecossistema MCP**: Contribuição para a comunidade mais ampla  
 
 ### Reconhecimento na Comunidade
 
-Partilha a tua conquista:
-- **Portfólio no GitHub**: Mostra a tua implementação
-- **Contribuições para a Comunidade**: Submete melhorias ou exemplos
-- **Oportunidades de Apresentação**: Apresenta-te em encontros ou conferências
-- **Mentoria**: Ajuda outros programadores a aprender MCP
+Partilhe o seu sucesso:
+- **Portefólio no GitHub**: Demonstre a sua implementação  
+- **Contribuições para a Comunidade**: Submeta melhorias ou exemplos  
+- **Oportunidades de Apresentação**: Participe em meetups ou conferências  
+- **Mentoria**: Ajude outros desenvolvedores a aprender MCP  
 
 ## 📚 Recursos Adicionais
 
 ### Tópicos Avançados
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Otimização de bases de dados
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Implantação em produção
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Programação assíncrona
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Otimização de bases de dados  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Implantação em produção  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Programação assíncrona  
 
 ### Recursos de Segurança
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Vulnerabilidades de segurança
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Segurança na nuvem
-- [Python Security Guidelines](https://python.org/dev/security/) - Codificação segura
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Vulnerabilidades de segurança  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Segurança na cloud  
+- [Python Security Guidelines](https://python.org/dev/security/) - Codificação segura  
 
 ### Comunidade
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Discussões ao vivo
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Perguntas e partilhas
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Questões técnicas
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Discussões em direto  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A e partilha  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Questões técnicas  
 
 ---
 
-**🎉 Parabéns!** Completaste o percurso de aprendizagem abrangente de Integração de Base de Dados MCP. Agora tens o conhecimento e as competências para construir servidores MCP prontos para produção que conectam assistentes de IA com sistemas de dados reais.
+**🎉 Parabéns!** Concluiu o percurso de aprendizagem abrangente de Integração de Bases de Dados MCP. Agora dispõe do conhecimento e das competências para construir servidores MCP prontos para produção que ligam assistentes de IA a sistemas de dados do mundo real.
 
-**Pronto para contribuir?** Junta-te à nossa comunidade e ajuda outros a aprender MCP, partilhando as tuas experiências, contribuindo com melhorias de código ou criando recursos adicionais de aprendizagem.
+**Pronto para contribuir?** Junte-se à nossa comunidade e ajude outros a aprender MCP partilhando as suas experiências, contribuindo com melhorias de código ou criando recursos de aprendizagem adicionais.
+
+**A seguir**: [Ferramentas](../../12-tooling/README.md)
 
 ---
 
-**Aviso**:  
-Este documento foi traduzido utilizando o serviço de tradução por IA [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos para garantir a precisão, é importante notar que traduções automáticas podem conter erros ou imprecisões. O documento original na sua língua nativa deve ser considerado a fonte autoritária. Para informações críticas, recomenda-se uma tradução profissional realizada por humanos. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações incorretas decorrentes da utilização desta tradução.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Aviso Legal**:
+Este documento foi traduzido utilizando o serviço de tradução automática [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos pela precisão, esteja ciente de que traduções automáticas podem conter erros ou imprecisões. O documento original na sua língua nativa deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações incorretas resultantes da utilização desta tradução.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

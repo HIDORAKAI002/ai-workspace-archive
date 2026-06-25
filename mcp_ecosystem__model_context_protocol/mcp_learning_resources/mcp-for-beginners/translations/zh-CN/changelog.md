@@ -1,80 +1,87 @@
-# 更新日志：MCP 初学者课程
+# 变更日志：MCP 入门课程
 
-本文档记录了面向初学者的模型上下文协议（MCP）课程所有重要变更。变更按时间倒序记录（最新变更优先）。
+本文档记录了针对 Model Context Protocol (MCP) 入门课程的所有重大变更。变更按时间倒序记录（最新变更优先）。
+
+## 2026年6月24日
+
+### 新课程：在 Copilot 应用中使用 MCP
+
+- [工具章节](./12-tooling/README.md) 新增了工具章节。
+- [Copilot 应用中的 MCP](./12-tooling/01-copilot-app/README.md)
 
 ## 2026年6月16日
 
 ### MCP 规范对齐与示例验证
 
-根据当前的 **MCP 规范 2025-11-25** 及最新官方 SDK 验证了课程，并且修正了所有过时的规范引用，确认核心示例依旧能构建和运行。
+根据当前的 **MCP Specification 2025-11-25** 以及最新官方 SDK 验证了课程内容，修正了剩余的过时规范引用，并确认核心示例仍能成功构建和运行。
 
-#### 规范版本修正（2025-06-18 / 2025-03-26 → 2025-11-25）
+#### 规范版本校正（2025-06-18 / 2025-03-26 → 2025-11-25）
 
-更新了仍声明旧规范版本为<em>当前/最新</em>标准的英文内容，并将链接指向权威的 `modelcontextprotocol.io` 规范路径：
-- **05-AdvancedTopics/mcp-security/README.md**：更新了“当前标准”横幅、介绍、核心安全原则标题、强制要求标题、Microsoft Entra ID 部分、参考资料链接和结尾安全通知（8处引用）为 2025-11-25
-- **05-AdvancedTopics/mcp-transport/README.md**：更新了附加资源的规范链接和“当前标准”横幅为 2025-11-25
-- **05-AdvancedTopics/mcp-realtimesearch/README.md**：用当前的 2025-11-25 安全最佳实践页面替换了过时的 `2025-03-26` 安全和信任链接
-- **03-GettingStarted/14-sampling/README.md**：更新了官方采样文档链接至 2025-11-25
-- **03-GettingStarted/05-stdio-server/README.md**：更新了现在时的“当前 MCP 规范”引用和附加资源的规范链接至 2025-11-25（保留了历史 SSE 弃用注释以保持准确性）
+更新了仍然声称旧版规范为<em>当前/最新</em>标准的英文内容，并将链接重新指向规范的权威 `modelcontextprotocol.io` 路径：
+- **05-AdvancedTopics/mcp-security/README.md**：更新了“当前标准”横幅、简介、核心安全原则标题、强制要求标题、Microsoft Entra ID 部分、参考资料及资源链接，以及关闭的安全通知（8个引用）至 2025-11-25
+- **05-AdvancedTopics/mcp-transport/README.md**：更新了附加资源规范链接和“当前标准”横幅为 2025-11-25
+- **05-AdvancedTopics/mcp-realtimesearch/README.md**：将过时的 `2025-03-26` 安全与信任链接替换为当前的 2025-11-25 安全最佳实践页面
+- **03-GettingStarted/14-sampling/README.md**：更新了官方采样文档链接为 2025-11-25
+- **03-GettingStarted/05-stdio-server/README.md**：更新现在时态中“当前 MCP 规范”的引用和附加资源规范链接为 2025-11-25（历史 SSE 弃用注释保持不变以确保准确）
 
-#### 当前 SDK 示例验证
+#### 针对当前 SDK 的示例验证
 
-- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**：用 `npm install` 解决了 `@modelcontextprotocol/sdk@1.29.0`；`tsc --noEmit` 无类型错误 — 现有的 `McpServer`/`StdioServerTransport` API 仍然有效
-- **Python (03-GettingStarted/01-first-server/solution/python)**：在隔离 `.venv` 内使用 `mcp[cli]` (1.27.2) 验证；`py_compile` 通过，`FastMCP.list_tools()` 正确返回了 `add` 和 `subtract` 工具
-- 确认所有示例中 `@modelcontextprotocol/sdk` 的版本范围（`>=1.26.0` / `^1.26.0` / `^1.27.0`）均能干净解析到当前的 `1.29.0`，无重大 API 变更
+- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**：`npm install` 解析为 `@modelcontextprotocol/sdk@1.29.0`；`tsc --noEmit` 编译无类型错误 — 现有 `McpServer`/`StdioServerTransport` API 依然有效
+- **Python (03-GettingStarted/01-first-server/solution/python)**：在隔离的 `.venv` 中使用 `mcp[cli]`（1.27.2）验证；`py_compile` 通过，`FastMCP.list_tools()` 正确返回 `add` 和 `subtract` 工具
+- 确认所有示例中 `@modelcontextprotocol/sdk` 版本范围（`>=1.26.0` / `^1.26.0` / `^1.27.0`）均可干净解析为当前 `1.29.0`，无破坏性 API 变更
 
-#### 依赖版本对齐（补齐版本差距）
+#### 依赖项版本对齐（补齐版本差距）
 
-将过时的 SDK 版本固定提升，使每个示例均跟踪当前 MCP 发行版，符合全库惯例：
-- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**：将 `@modelcontextprotocol/sdk` 从 `^1.8.0` 提升到 `>=1.26.0`，并将过时的“更新于 MCP 2025-06-18”包描述改为“与 MCP 规范 2025-11-25 对齐”
-- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** 和 **lab4/code/github_mcp_server/pyproject.toml**：将精确固定的 `mcp==1.23.0` 提升到 `mcp>=1.26.0`；重新生成了两个 `uv.lock` 文件 (`uv lock`)，使锁文件解析为当前 `mcp 1.27.2`，与清单保持同步
+将过时的 SDK 版本固定点升级，使每个示例都跟踪当前 MCP 发行版本，符合仓库范围的规范：
+- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**：将 `@modelcontextprotocol/sdk` 版本从 `^1.8.0` 升级到 `>=1.26.0`，并更新了过时的 `"updated for MCP 2025-06-18"` 包描述为 `"aligned with MCP Specification 2025-11-25"`
+- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** 和 **lab4/code/github_mcp_server/pyproject.toml**：将精确版本 `mcp==1.23.0` 升级为 `mcp>=1.26.0`；重新生成了两个 `uv.lock` 文件（`uv lock`），以确保锁文件解析至当前的 `mcp 1.27.2` 并与清单保持同步
 
-#### 课程内容差距分析 — 最新规范功能覆盖
+#### 课程差距分析 — 最新规范特性覆盖
 
-确认课程已涵盖 MCP 2025-11-25 中新增及扩展的所有原语，无内容缺口：
-- <strong>采样</strong>：课程 03-GettingStarted/14-sampling 及 05-AdvancedTopics/mcp-sampling
-- **引导（含 URL 模式）**：文档在 01-CoreConcepts 和 05-AdvancedTopics/mcp-protocol-features
-- <strong>根上下文</strong>：文档在 00-Introduction、01-CoreConcepts 和 05-AdvancedTopics/mcp-root-contexts
-- **任务（实验性、长时间运行操作）**：文档在 01-CoreConcepts 和 05-AdvancedTopics/mcp-protocol-features
-- <strong>工具注释</strong>（`readOnlyHint` / `destructiveHint`）：文档在 01-CoreConcepts 和 05-AdvancedTopics/mcp-protocol-features
+确认课程已覆盖 MCP 2025-11-25 中引入或扩展的所有原语，无内容缺口：
+- <strong>采样</strong>：课程 03-GettingStarted/14-sampling 以及 05-AdvancedTopics/mcp-sampling
+- **引出（包括 URL 模式）**：记录于 01-CoreConcepts 和 05-AdvancedTopics/mcp-protocol-features
+- <strong>根上下文</strong>：记录于 00-Introduction、01-CoreConcepts 和 05-AdvancedTopics/mcp-root-contexts
+- **任务（实验性质长时间运行操作）**：记录于 01-CoreConcepts 和 05-AdvancedTopics/mcp-protocol-features
+- <strong>工具注解</strong>（`readOnlyHint` / `destructiveHint`）：记录于 01-CoreConcepts 和 05-AdvancedTopics/mcp-protocol-features
 
 ### 安全强化与依赖漏洞修复
 
-对每个依赖清单和示例源代码进行了全面安全扫描，修复了所有报告的 npm 漏洞和一处代码级问题。修复后，`npm audit` 在所有审计目录中报告 **0 个漏洞**。
+对每个依赖配置和示例源代码执行全面的安全检查，修复了所有报告的 npm 安全咨询和一个代码级别的发现。修复后，`npm audit` 在所有审计目录中报告 **0 漏洞**。
 
-#### npm 依赖漏洞（传递）— 已修复
+#### npm 依赖安全漏洞（传递依赖）— 已修复
 
-审核了全部 15 个提交的 `package-lock.json` 文件。漏洞仅限于 MCP Inspector 开发工具、OpenAI 客户端和 MCP SDK 引入的传递依赖；现均在不破坏示例的前提下修复：
-- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** 与 **lab3/code/weather_mcp/inspector**：升级了 `@modelcontextprotocol/inspector` (`0.16.6` / `0.14.1` → `0.22.0`)，清除绑定的 `ajv`、`brace-expansion`、`diff`、`path-to-regexp` 和 `ws` 漏洞。新增 npm `overrides` 条目强制打补丁的 `shell-quote@1.8.4` 消除 `concurrently` 带来的严重漏洞；重新生成了两个锁文件（现 0 漏洞）
-- **03-GettingStarted/samples/typescript**：通过 `npm audit fix` 更新了传递依赖 `qs`（中等）到打补丁版本
-- **03-GettingStarted/samples/javascript**：通过 `npm audit fix` 更新了传递依赖 `hono`（中等）到打补丁版本
-- **03-GettingStarted/03-llm-client/solution/typescript**：通过 `npm audit fix` 更新了传递依赖 `form-data`（高危）到打补丁版本
-- **03-GettingStarted/11-simple-auth/solution/typescript**：生成了缺失的 `package-lock.json`，使项目可复现并可审计（0 漏洞）
+审计了所有 15 个提交的 `package-lock.json` 文件。漏洞仅限于由 MCP Inspector 开发工具、OpenAI 客户端和 MCP SDK 引入的传递依赖；现在均已修复且未破坏示例：
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** 和 **lab3/code/weather_mcp/inspector**：升级 `@modelcontextprotocol/inspector`（从 `0.16.6` / `0.14.1` 到 `0.22.0`），清除了打包的 `ajv`、`brace-expansion`、`diff`、`path-to-regexp` 和 `ws` 的安全咨询。添加了 npm `overrides` 条目，强制使用修补的 `shell-quote@1.8.4`，消除 `concurrently` 存在的剩余严重警告；重新生成锁文件（现无漏洞）
+- **03-GettingStarted/samples/typescript**：`npm audit fix` 更新了传递依赖 `qs`（中危）至修补版本
+- **03-GettingStarted/samples/javascript**：`npm audit fix` 更新了传递依赖 `hono`（中危）至修补版本
+- **03-GettingStarted/03-llm-client/solution/typescript**：`npm audit fix` 更新了传递依赖 `form-data`（高危）至修补版本
+- **03-GettingStarted/11-simple-auth/solution/typescript**：生成了缺失的 `package-lock.json`，使项目可复现和可审计（0 漏洞）
 
-#### 代码级安全修复（OWASP A03：注入）
+#### 代码级安全修复（OWASP A03: 注入）
 
-- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**：移除了 `open_in_vscode` 工具中的 `shell=True`。之前的 `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` 允许文件夹路径中的 shell 元字符被 `cmd.exe` 解释（命令注入向量）。现直接调用解析后的 `Code.exe` 并传递文件夹参数，无 shell，功能等效且安全
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**：移除了 `open_in_vscode` 工具中 `shell=True`。之前的 `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` 允许文件夹路径中的 shell 元字符被 `cmd.exe` 解读（命令注入向量）。现直接以无 shell 方式启动解析后的 `Code.exe`，传入文件夹作为参数，功能等效且安全
 
-#### Python 依赖审计
+#### Python 依赖审核
 
-- 使用 `pip-audit` 审计了所有 Python 依赖集。`05-AdvancedTopics` 和 `03-GettingStarted/samples/python` 报告 <strong>无已知漏洞</strong>（其 `mcp` / `httpx` / `pydantic` / `python-dotenv` 范围解析为当前打补丁版本）
-- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**：`pip-audit` 发现传递依赖 **`werkzeug` 3.1.1** 存在三个 `safe_join` Windows 设备名 DoS 漏洞 — `CVE-2025-66221`、`CVE-2026-21860` 和 `CVE-2026-27199`（均已在 3.1.6 修复）。添加了显式安全版本约束 `werkzeug>=3.1.6` 以解析为打补丁版本；验证该约束与 `chainlit` / `mcp` / `semantic-kernel` 堆栈兼容
+- 使用 `pip-audit` 审计所有 Python 依赖集。`05-AdvancedTopics` 和 `03-GettingStarted/samples/python` 均报告 <strong>无已知漏洞</strong>（它们的 `mcp` / `httpx` / `pydantic` / `python-dotenv` 版本范围解析为当前修补版本）
+- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**：`pip-audit` 发现传递依赖 **`werkzeug` 3.1.1** 存在三个 `safe_join` Windows 设备名拒绝服务漏洞 — `CVE-2025-66221`、`CVE-2026-21860` 和 `CVE-2026-27199`（全部在 3.1.6 中修复）。添加了明确的安全版本固定 `werkzeug>=3.1.6`，确保解析为修补版；已验证该约束可与 `chainlit` / `mcp` / `semantic-kernel` 堆栈正常兼容
 
-### 产品名称重塑
+### 产品命名重塑
 
-将所有课程内容更新为微软产品的新品牌：
+更新所有课程内容以反映微软的产品重新命名：
 
 #### Azure AI Foundry → Microsoft Foundry
 - **SUPPORT.md**：更新 Discord 社区链接
 - **AGENTS.md**：更新 Discord 服务器引用
 - **README.md**：更新技术生态引用
 - **study_guide.md**：更新案例研究引用
-- **05-AdvancedTopics/README.md**：更新第 5.13 章标题和描述
+- **05-AdvancedTopics/README.md**：更新模块 5.13 标题和描述
 - **05-AdvancedTopics/mcp-integration/README.md**：更新章节标题和描述
-- **05-AdvancedTopics/mcp-foundry-agent-integration/README.md**：完整模块标题和内容更新
+- **05-AdvancedTopics/mcp-foundry-agent-integration/README.md**：完整模块标题与内容更新
 - **05-AdvancedTopics/mcp-security-entra/README.md**：更新交叉引用链接
 - **07-LessonsfromEarlyAdoption/README.md**：更新案例研究引用
-- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**：更新第 9 节标题、标识和功能
+- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**：更新第9节标题、徽章和功能
 - **08-BestPractices/README.md**：更新 Discord 社区链接
 - **09-CaseStudy/docs-mcp/solution/scenario3/README.md**：更新 Discord 频道引用
 - **09-CaseStudy/docs-mcp/solution/python/README.md**：更新模型部署引用
@@ -82,10 +89,10 @@
 - **11-MCPServerHandsOnLabs/03-Setup/README.md**：更新资源引用
 
 #### AI Toolkit / AITK → Microsoft Foundry Toolkit Extension for VS Code
-- **README.md**：更新主课程引用
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**：更新模块标题、概述及所有模块标题
+- **README.md**：更新主要课程引用
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**：更新模块标题、概述和所有模块标题
 - **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/README.md**：更新标题、学习目标、设置说明和资源
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**：更新标题、学习目标、MCP 主机表和交叉引用
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**：更新标题、学习目标、MCP 主机表格和交叉引用
 - **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/README.md**：更新标题、徽章、先决条件和资源
 - **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/README.md**：更新代理构建器引用和反馈链接
 - **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab4/README.md**：更新先决条件和扩展引用
@@ -94,587 +101,589 @@
 
 ## 2026年4月11日
 
-### 新课程、文档修复与依赖更新
+### 新课程、文档修正和依赖更新
 
 #### 新增课程内容
 
-**模块 05 - 高级主题**  
-- **第 5.17 课：使用 MCP 的对抗式多代理推理** (`05-AdvancedTopics/mcp-adversarial-agents/README.md`)：新增全面教程，涵盖多代理系统的对抗辩论模式  
-  - Mermaid 架构图：两个代理 → 共享的 MCP 服务器 → 辩论记录 → 裁判 → 裁决  
-  - 共享 MCP 工具服务器（`web_search` + `run_python`）以 Python 和 TypeScript 实现  
-  - 对立系统提示（正方 / 反方 / 裁判），含明确定义的工具使用要求  
-  - 用 Python、TypeScript 和 C# 实现的辩论协调器，管理轮次和论点路由  
-  - 负责工具调用的 MCP `ClientSession` 用于辩论协调器  
-  - 用例表（幻觉检测、威胁建模、API 设计评审、事实核查、技术选择）  
-  - 安全注意事项：沙箱执行、工具调用验证、速率限制、审计日志  
-  - 含三个实用场景的结构化练习（代码审查、架构决策、内容监管）
+**模块 05 - 高级主题**
+- **课程 5.17：使用 MCP 进行对抗性多智能体推理**（`05-AdvancedTopics/mcp-adversarial-agents/README.md`）：新全面指南，涵盖多智能体系统的对抗辩论模式
+  - Mermaid 架构图：两个智能体 → 共享 MCP 服务器 → 辩论记录 → 裁判 → 判决
+  - 共享 MCP 工具服务器（`web_search` + `run_python`），使用 Python 和 TypeScript 实现
+  - 对立系统提示（支持 / 反对 / 裁判），带明确的工具使用要求
+  - Python、TypeScript 和 C# 中的辩论协调者，管理回合与论据路由
+  - MCP `ClientSession` 用于协调实际工具调用
+  - 用例表（幻觉检测、威胁建模、API 设计审查、事实验证、技术选择）
+  - 安全考虑：沙箱执行、工具调用验证、速率限制、审计日志
+  - 结构化练习，包含三种实用场景（代码审查、架构决策、内容审核）
 
 #### 文档修复
 
-**模块 03 - 入门**  
-- **05-stdio-server/README.md**：修正了不完整的 TypeScript stdio 服务器示例 — 补充了缺失的传输实例化(`new StdioServerTransport()`)和 `server.connect(transport)` 调用，与同节 Python 和 .NET 示例对应  
-- **14-sampling/README.md**：修复拼写错误 — 将 `"Sampling is an davanced features"` 改为 `"Sampling is an advanced feature"`
+**模块 03 - 入门指南**
+- **05-stdio-server/README.md**：修正不完整的 TypeScript stdio 服务器示例 — 添加缺失的 transport 实例化（`new StdioServerTransport()`）和 `server.connect(transport)` 调用，以匹配同节中的 Python 和 .NET 示例
+- **14-sampling/README.md**：修正拼写错误 — 将 `"Sampling is an davanced features"` 更正为 `"Sampling is an advanced feature"`
 
 #### 课程更新
 
-**主 README.md**  
-- 在课程表中添加了 5.17 课（使用 MCP 的对抗式多代理推理）并附直链
+**主 README.md**
+- 在课程表中新增条目 5.17（使用 MCP 进行对抗性多智能体推理），并附上新课程的直接链接
 
-**05-AdvancedTopics/README.md**  
-- 添加了第 5.17 课行至课程列表
+**05-AdvancedTopics/README.md**
+- 在课程表中新增课程 5.17 行
 
-**study_guide.md**  
-- 将对抗式多代理推理主题纳入心智图及高级主题描述中
+**study_guide.md**
+- 将对抗性多智能体推理主题添加到思维导图和高级主题的文字描述中
 
 #### 代码和安全修复
 
-**模块 05 - 对抗代理 (`mcp-adversarial-agents`)**  
-- **安全修复 — 命令注入**：用 `execFile` + `promisify` 替换了 TypeScript `run_python` 工具中的 `execSync` Shell 插值，消除了命令注入风险（LLM 控制的代码作为字面 argv 元素传入，无 shell 参与）
-- **MCP 工具循环连接**：更新 Python 辩论协调器以使用 `AsyncAnthropic` 客户端（替换阻塞同步的 `Anthropic`），直接传递实时的 `ClientSession` 给每个代理回合，每回合通过 `session.list_tools()` 获取工具定义，循环通过 `session.call_tool()` 调度 `tool_use` 块，直到模型发出最终文本响应
+**模块 05 - 对抗智能体（`mcp-adversarial-agents`）**
+- **安全修复 — 命令注入**：在 TypeScript 的 `run_python` 工具中将 `execSync` 的 shell 插值替换为 `execFile` + `promisify`，消除了命令注入风险（LLM 控制的代码现在作为字面参数元素传递，无需 shell 参与）
+- **MCP 工具循环连接**：更新了 Python 辩论协调器，使用 `AsyncAnthropic` 客户端（替代阻塞的同步 `Anthropic`），直接向每个代理轮次传递活动 `ClientSession`，每轮通过 `session.list_tools()` 获取工具定义，并在循环中通过 `session.call_tool()` 调度 `tool_use` 块，直到模型发出最终文本响应
 
 #### 依赖更新
 
-- 多个包（03-GettingStarted、04-PracticalImplementation、10-StreamliningAIWorkflows）中将 `hono` 升级至 4.12.12
-- TypeScript 包中将 `@hono/node-server` 从 1.19.11 升级至 1.19.13
-- Python 包（10-StreamliningAIWorkflows 实验室 3 和 4）中将 `cryptography` 从 46.0.5 升级至 46.0.7
-- 10-StreamliningAIWorkflows inspector 中将 `lodash` 从 4.17.23 升级至 4.18.1
+- 将多个包中的 `hono` 升级至 4.12.12（03-GettingStarted、04-PracticalImplementation、10-StreamliningAIWorkflows）
+- 将 TypeScript 包中的 `@hono/node-server` 从 1.19.11 升级至 1.19.13
+- 将 Python 包中的 `cryptography` 从 46.0.5 升级至 46.0.7（10-StreamliningAIWorkflows 的实验 3 和 4）
+- 将 10-StreamliningAIWorkflows 检查器中的 `lodash` 从 4.17.23 升级至 4.18.1
 
 #### 翻译
 
-- 同步了 48+ 种语言的翻译与最新源代码变更（i18n 更新）
+- 同步了 48 种以上语言的翻译，包含最新源变更（i18n 更新）
 
 ---
 
-## 2026年2月5日
+## 2026 年 2 月 5 日
 
-### 全库范围的校验和导航改进
+### 仓库范围内的验证和导航改进
 
 #### 新增课程内容
 
 **模块 03 - 入门**
-- **12-mcp-hosts/README.md**：新增 MCP 主机设置综合指南
-  - Claude 桌面版、VS Code、Cursor、Cline、Windsurf 配置示例
-  - 所有主要主机的 JSON 配置模板
+- **12-mcp-hosts/README.md**：新增关于 MCP 主机设置的全面指南
+  - Claude Desktop、VS Code、Cursor、Cline、Windsurf 配置示例
+  - 所有主流主机的 JSON 配置模板
   - 传输类型对比表（stdio、SSE/HTTP、WebSocket）
   - 常见连接问题排查
   - 主机配置的安全最佳实践
 
 - **13-mcp-inspector/README.md**：新增 MCP Inspector 调试指南
-  - 安装方式（npx、npm 全局安装、源码安装）
+  - 安装方法（npx、npm 全局安装、从源码）
   - 通过 stdio 和 HTTP/SSE 连接服务器
   - 测试工具、资源和提示流程
-  - VS Code 与 MCP Inspector 集成
+  - 与 VS Code 集成 MCP Inspector
   - 常见调试场景及解决方案
 
-**模块 04 - 实践应用**
+**模块 04 - 实践实现**
 - **pagination/README.md**：新增分页实现指南
-  - Python、TypeScript、Java 中的基于 Cursor 的分页模式
+  - Python、TypeScript、Java 的基于游标的分页模式
   - 客户端分页处理
-  - Cursor 设计策略（不透明与结构化）
+  - 游标设计策略（不透明与结构化）
   - 性能优化建议
 
 **模块 05 - 高级主题**
-- **mcp-protocol-features/README.md**：新增协议功能深入解析
+- **mcp-protocol-features/README.md**：新增协议功能深度解析
   - 进度通知实现
   - 请求取消模式
   - 带 URI 模式的资源模板
   - 服务器生命周期管理
   - 日志级别控制
-  - 使用 JSON-RPC 代码的错误处理模式
+  - 带 JSON-RPC 代码的错误处理模式
 
-#### 导航修复（更新 24+ 文件）
+#### 导航修正（24+ 文件更新）
 
-**主模块 README 文件**
- 现链接到第一个课程及下一个模块
+**主模块 README**
+ 现链接至首节课和下一个模块
 
 **02-Security 子文件**
-- 所有 5 个补充安全文档现均包含“下一步”导航：
+- 5 篇安全补充文档均新增“接下来做什么”导航：
 
 **09-CaseStudy 文件**
-- 所有案例研究文件现均支持顺序导航：
+- 所有案例研究文件均新增顺序导航：
 
-**10-StreamliningAI 实验室**
-在模块 10 概览及模块 11 添加“下一步”部分
+**10-StreamliningAI 实验**
+在模块 10 概览和模块 11 添加了“接下来做什么”部分
 
-#### 代码及内容修复
+#### 代码和内容修复
 
 **SDK 和依赖更新**
-修复空白的 openai 版本为 `^4.95.0`  
-将 SDK 从 `^1.8.0` 更新至 `>=1.26.0`  
-将 mcp 版本依赖锁定为 `>=1.26.0`
+修正了空 openai 版本为 `^4.95.0`
+将 SDK 从 `^1.8.0` 升级至 `>=1.26.0`
+将 mcp 版本限定升级至 `>=1.26.0`
 
 <strong>代码修复</strong>
-修正无效模型名称 `gpt-4o-mini` 为 `gpt-4.1-mini`
+修正无效模型名 `gpt-4o-mini` 为 `gpt-4.1-mini`
 
 <strong>内容修复</strong>
-修正破损链接 `READMEmd` → `README.md`，修正课程标题 `Module 1-3` → `Module 0-3`，修正大小写敏感路径  
-删除损坏重复的案例研究 5 内容
+修复断链 `READMEmd` → `README.md`，修正课程标题 `Module 1-3` → `Module 0-3`，修复大小写敏感路径
+移除受损的重复案例研究 5 内容
 
-<strong>初学者指南改进</strong>
-为初学者新增适当介绍、学习目标和前置条件
+<strong>初学者引导改进</strong>
+为初学者增加了合适的介绍、学习目标和先决条件
 
 #### 课程更新
 
 **主 README.md**
-- 向课程表新增条目 3.12（MCP 主机）、3.13（MCP Inspector）、4.1（分页）、5.16（协议功能）
+- 在课程表中新增条目 3.12（MCP Hosts）、3.13（MCP Inspector）、4.1（分页）、5.16（协议功能）
 
-**模块 README 文件**
-新增 12 和 13 课  
-新增分页实践指南部分链接  
-新增课程 5.15（自定义传输）及 5.16（协议功能）
+**模块 README**
+新增第 12 和 13 课列表
+添加分页的实践指南部分
+新增 5.15（自定义传输）和 5.16（协议功能）课
 
 **study_guide.md**
 - 更新思维导图，包含所有新主题：MCP 主机设置、MCP Inspector、分页策略、协议功能深度解析
 
-## 2026年1月28日
+## 2026 年 1 月 28 日
 
-### MCP 规范 2025-11-25 合规性审查
+### MCP 规范 2025-11-25 合规审查
 
-#### 核心概念增强（01-CoreConcepts/）
-- **新增客户端原语 “Roots”**：新增全面文档，支持服务器理解文件系统边界和访问权限
-- <strong>工具注解</strong>：新增工具行为注解文档（`readOnlyHint`，`destructiveHint`），优化工具执行决策
-- <strong>采样中的工具调用</strong>：更新采样文档，支持 `tools` 和 `toolChoice` 参数，允许模型驱动采样请求中工具调用
-- **URL 模式引导**：新增 URL 基础引导文档，支持服务器发起外部网页交互
-- **任务（实验性）**：新增任务特性文档，支持持久执行包装及延迟结果检索
-- <strong>图标支持</strong>：指出工具、资源、资源模板和提示均可包含图标作为附加元数据
+#### 核心概念增强 (01-CoreConcepts/)
+- **新增客户端原语 - Roots**：新增详尽文档，介绍 Roots 客户端原语，帮助服务器理解文件系统边界与访问权限
+- <strong>工具注释</strong>：新增工具行为注释文档（`readOnlyHint`、`destructiveHint`），用于优化工具执行决策
+- <strong>采样中的工具调用</strong>：更新采样文档，新增 `tools` 和 `toolChoice` 参数，支持模型驱动的采样请求中的工具调用
+- **URL 模式外发**：新增基于 URL 的外部调用文档，用于服务器启动的外部网页交互
+- **任务（实验性）**：新增实验性任务功能部分，介绍持久执行包装器和延迟结果检索
+- <strong>图标支持</strong>：指出工具、资源、资源模板和提示可以包含图标作为附加元数据
 
 #### 文档更新
-- **README.md**：新增 MCP 规范 2025-11-25 版本引用及基于日期的版本说明
-- **study_guide.md**：更新课程地图，包含任务和工具注释在核心概念部分；更新时间戳
+- **README.md**：新增 MCP 规范 2025-11-25 版本参考及基于日期的版本控制说明
+- **study_guide.md**：更新课程地图，包含核心概念部分的任务和工具注释；更新文档时间戳
 
 #### 规范合规验证
-- <strong>协议版本</strong>：确认所有文档引用当前 MCP 规范 2025-11-25
-- <strong>架构一致性</strong>：确认文档准确描述两层架构（数据层 + 传输层）
-- <strong>原语文档</strong>：验证服务器原语（资源、提示、工具）及客户端原语（采样、引导、日志、Roots）
-- <strong>传输机制</strong>：确认 STDIO 和可流式 HTTP 传输文档准确
-- <strong>安全指南</strong>：确认符合当前 MCP 安全最佳实践文档
+- <strong>协议版本</strong>：确认所有文档均引用当前 MCP 规范 2025-11-25
+- <strong>架构一致性</strong>：确认两层架构（数据层 + 传输层）文档准确
+- <strong>原语文档</strong>：验证服务器原语（资源、提示、工具）和客户端原语（采样、外发、日志、Roots）
+- <strong>传输机制</strong>：验证 STDIO 和可流式 HTTP 传输文档的准确性
+- <strong>安全指导</strong>：确认与最新 MCP 安全最佳实践文档一致
 
-#### MCP 2025-11-25 关键特性说明
+#### MCP 2025-11-25 关键特性文档
 - **OpenID Connect 发现**：通过 OIDC 实现认证服务器发现
-- **OAuth 客户端 ID 元数据文档**：推荐客户端注册机制
-- **JSON Schema 2020-12**：MCP 架构定义默认方言
-- **SDK 分层体系**：正式需求 SDK 特性支持和维护
-- <strong>治理结构</strong>：MCP 治理中的工作组与兴趣组形式化
+- **OAuth 客户端 ID 元数据文档**：推荐的客户端注册机制
+- **JSON Schema 2020-12**：MCP 架构定义的默认方言
+- **SDK 分层系统**：SDK 功能支持与维护的正式要求
+- <strong>治理结构</strong>：MCP 治理中的工作组和兴趣组规范化
 
-### 安全文档重大更新（02-Security/）
+### 安全文档重大更新 (02-Security/)
 
 #### MCP 安全峰会研讨会（Sherpa）集成
-- <strong>新增实操培训资源</strong>：全线安全文档整合 [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)
-- <strong>远征路线覆盖</strong>：记录从基地营到峰会的完整路径
+- <strong>新增实操培训资源</strong>：在所有安全文档中全面集成 [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)
+- <strong>远征路线覆盖</strong>：详细记录从基地营到峰会的营地逐步进展
 - **OWASP 对齐**：所有安全指导均映射到 OWASP MCP Azure 安全指南风险
 
 #### OWASP MCP Top 10 集成
-- <strong>新增部分</strong>：主安全 README 中新增 OWASP MCP Top 10 风险表及 Azure 缓解措施
-- <strong>风险驱动文档</strong>：在 mcp-security-controls-2025.md 增加 OWASP MCP 风险（MCP01-MCP08）关联
-- <strong>参考架构</strong>：链接到 OWASP MCP Azure 安全指南参考架构及实现范式
+- <strong>新增章节</strong>：在主安全 README 中添加 OWASP MCP Top 10 安全风险表及 Azure 缓解措施
+- <strong>风险驱动文档</strong>：更新 mcp-security-controls-2025.md，按安全领域引用 OWASP MCP 风险
+- <strong>参考架构</strong>：链接至 OWASP MCP Azure 安全指南参考架构和实施模式
 
 #### 更新的安全文件
-- **README.md**：新增 Sherpa 研讨会概述、远征路线表、OWASP MCP Top 10 风险总结与实操培训部分
-- **mcp-security-controls-2025.md**：更新标题至 2026年2月，添加 OWASP 风险引用，修正规范版本不一致
-- **mcp-security-best-practices-2025.md**：新增 Sherpa 与 OWASP 资源部分，更新时间戳
-- **mcp-best-practices.md**：新增实操培训部分含 Sherpa 与 OWASP 链接
-- **azure-content-safety-implementation.md**：新增 OWASP MCP06 参考、Sherpa 3号营对齐及额外资源部分
+- **README.md**：新增 Sherpa 研讨会概览、远征路线表、OWASP MCP Top 10 风险摘要及实操培训部分
+- **mcp-security-controls-2025.md**：更新文件头至 2026 年 2 月，添加 OWASP 风险引用（MCP01-MCP08），修正规范版本不一致问题
+- **mcp-security-best-practices-2025.md**：新增 Sherpa 和 OWASP 资源章节，更新时间戳
+- **mcp-best-practices.md**：新增实操培训章节，含 Sherpa 和 OWASP 链接
+- **azure-content-safety-implementation.md**：新增 OWASP MCP06 引用，Sherpa 第三营对齐及额外资源章节
 
 #### 新增资源链接
 - [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)
 - [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
-- 单独 OWASP MCP 风险页面（MCP01-MCP10）
+- 各个 OWASP MCP 风险页面（MCP01-MCP10）
 
-### 全课程 MCP 规范 2025-11-25 对齐
+### 课程全局 MCP 规范 2025-11-25 对齐
 
 #### 模块 03 - 入门
-- **SDK 文档**：加入 Go SDK 至官方列表；所有 SDK 引用均更新对应 MCP 规范 2025-11-25
-- <strong>传输说明</strong>：更新 STDIO 和 HTTP 流传输描述，明确规范引用
+- **SDK 文档**：将 Go SDK 加入官方 SDK 列表；更新所有 SDK 引用以符合 MCP 规范 2025-11-25
+- <strong>传输说明</strong>：在 STDIO 和 HTTP 流式传输描述中添加明确定规参照
 
 #### 模块 04 - 实践实现
-- **SDK 更新**：加入 Go SDK，SDK 列表更新规范版本引用
-- <strong>授权规范</strong>：更新 MCP 授权规范链接至当前 2025-11-25 版本
+- **SDK 更新**：新增 Go SDK；更新 SDK 列表与规范版本引用
+- <strong>授权规范</strong>：将 MCP 授权规范链接更新为当前 2025-11-25 版本
 
 #### 模块 05 - 高级主题
-- <strong>新增特性</strong>：新增 MCP 规范 2025-11-25 特性说明（任务、工具注解、URL 模式引导、Roots）
-- <strong>安全资源</strong>：新增 OWASP MCP Top 10 和 Sherpa 研讨会链接
+- <strong>新增特性</strong>：添加关于 MCP 规范 2025-11-25 新特性（任务、工具注释、URL 模式外发、Roots）的说明
+- <strong>安全资源</strong>：新增 OWASP MCP Top 10 和 Sherpa 研讨会链接至附加参考
 
 #### 模块 06 - 社区贡献
-- **SDK 列表**：新增 Swift 和 Rust SDK；更新规范链接至 2025-11-25
-- <strong>规范引用</strong>：更新 MCP 规范链接至官方规范 URL
+- **SDK 列表**：新增 Swift 和 Rust SDK；更新规范链接到 2025-11-25
+- <strong>规范引用</strong>：更新 MCP 规范链接为直接规范 URL
 
 #### 模块 07 - 早期采用经验
-- <strong>资源更新</strong>：新增 MCP 规范 2025-11-25 链接及 OWASP MCP Top 10 至附加资源
+- <strong>资源更新</strong>：新增 MCP 规范 2025-11-25 链接和 OWASP MCP Top 10 至附加资源
 
 #### 模块 08 - 最佳实践
-- <strong>规范版本</strong>：更新 MCP 规范引用至 2025-11-25
-- <strong>安全资源</strong>：新增 OWASP MCP Top 10 和 Sherpa 研讨会链接
+- <strong>规范版本</strong>：更新 MCP 规范参考为 2025-11-25
+- <strong>安全资源</strong>：新增 OWASP MCP Top 10 和 Sherpa 研讨会链接至附加参考
 
-#### 模块 10 - 优化 AI 工作流
+#### 模块 10 - 简化 AI 工作流
 - <strong>徽章更新</strong>：将 MCP 版本徽章从 SDK 版本（1.9.3）更改为规范版本（2025-11-25）
 - <strong>资源链接</strong>：更新 MCP 规范链接；新增 OWASP MCP Top 10
 
 #### 模块 11 - MCP 服务器实操实验
-- <strong>规范引用</strong>：更新 MCP 规范链接至 2025-11-25 版本
-- <strong>安全资源</strong>：新增 OWASP MCP Top 10 至官方资源
+- <strong>规范引用</strong>：更新 MCP 规范链接为 2025-11-25 版本
+- <strong>安全资源</strong>：新增 OWASP MCP Top 10 到官方资源
 
-## 2025年12月18日
+## 2025 年 12 月 18 日
 
 ### 安全文档更新 - MCP 规范 2025-11-25
 
-#### MCP 安全最佳实践（02-Security/mcp-best-practices.md）- 规范版本更新
-- <strong>协议版本升级</strong>：更新引用为最新 MCP 规范 2025-11-25（2025年11月25日发布）
-  - 所有规范版本引用从 2025-06-18 更新至 2025-11-25
-  - 文档日期从 2025年8月18日更新至 2025年12月18日
-  - 确认所有规范 URL 指向当前文档
-- <strong>内容验证</strong>：全面验证安全最佳实践和最新标准一致性
-  - <strong>微软安全解决方案</strong>：核实 Prompt Shields（前称“越狱风险检测”）、Azure 内容安全、Microsoft Entra ID 和 Azure Key Vault 的术语及链接
+#### MCP 安全最佳实践 (02-Security/mcp-best-practices.md) - 规范版本更新
+- <strong>协议版本更新</strong>：更新为最新 MCP 规范 2025-11-25（2025 年 11 月 25 日发布）
+  - 将所有规范版本引用从 2025-06-18 更新为 2025-11-25
+  - 将文档日期引用从 2025 年 8 月 18 日更新为 2025 年 12 月 18 日
+  - 验证所有规范 URL 指向最新文档
+- <strong>内容验证</strong>：全面验证安全最佳实践符合最新标准
+  - <strong>微软安全解决方案</strong>：验证 Prompt Shields（原“越狱风险检测”）、Azure 内容安全、Microsoft Entra ID 和 Azure Key Vault 的当前术语和链接
   - **OAuth 2.1 安全**：确认与最新 OAuth 安全最佳实践一致
-  - **OWASP 标准**：验证与 LLMs 相关的 OWASP Top 10 引用仍然有效
-  - **Azure 服务**：校验所有微软 Azure 文档链接及最佳实践
-- <strong>标准对齐</strong>：所有引用的安全标准均确认最新
+  - **OWASP 标准**：验证 LLM 相关 OWASP Top 10 参考仍然有效
+  - **Azure 服务**：验证所有 Microsoft Azure 文档链接和最佳实践
+- <strong>标准对齐</strong>：所有引用的安全标准均为最新
   - NIST AI 风险管理框架
   - ISO 27001:2022
   - OAuth 2.1 安全最佳实践
   - Azure 安全与合规框架
-- <strong>实施资源</strong>：验证所有实施指南链接和资源的有效性
+- <strong>实施资源</strong>：验证所有实施指南链接和资源
   - Azure API 管理认证模式
   - Microsoft Entra ID 集成指南
   - Azure Key Vault 密钥管理
-  - DevSecOps 管道及监控解决方案
+  - DevSecOps 管道与监控方案
 
 ### 文档质量保证
-- <strong>规范合规</strong>：确保所有必须的 MCP 安全要求（MUST/MUST NOT）符合最新规范
-- <strong>资源更新</strong>：核实所有外部链接至微软文档、安全标准和实施指南有效
-- <strong>最佳实践涵盖</strong>：确认覆盖所有认证、授权、AI 特有威胁、供应链安全及企业模式
+- <strong>规范合规性</strong>：确保所有强制性 MCP 安全要求（必须/禁止）符合最新规范
+- <strong>资源时效性</strong>：核实所有微软文档、安全标准及实施指南的外部链接有效
+- <strong>最佳实践覆盖</strong>：确认全面覆盖认证、授权、AI 特定威胁、供应链安全和企业模式
 
-## 2025年10月6日
+## 2025 年 10 月 6 日
 
-### 入门部分扩展 – 高级服务器使用与简单认证
+### 入门章节扩展 – 高级服务器使用与简单认证
 
-#### 高级服务器使用（03-GettingStarted/10-advanced）
-- <strong>新增章节</strong>：引入全面的高级 MCP 服务器使用指南，涵盖常规及底层服务器架构
-  - <strong>常规与底层服务器比较</strong>：提供 Python 和 TypeScript 的详细比较及代码示例
-  - <strong>基于处理器的设计</strong>：解释基于处理器的工具/资源/提示管理，以实现可扩展且灵活的服务器实现
-  - <strong>实用模式</strong>：介绍低层服务器模式在高级特性和架构中的实际应用场景
+#### 高级服务器使用 (03-GettingStarted/10-advanced)
+- <strong>新增章节</strong>：引入有关高级 MCP 服务器使用的全面指南，涵盖常规和低级服务器架构。
+  - <strong>常规服务器与低级服务器</strong>：详细比较及 Python 和 TypeScript 代码示例，涵盖两种方法。
+  - <strong>基于处理器的设计</strong>：阐述基于处理器的工具/资源/提示管理，用于可扩展且灵活的服务器实现。
+  - <strong>实用模式</strong>：低级服务器模式在高级功能和架构中的实际应用场景。
+
 #### 简单认证 (03-GettingStarted/11-simple-auth)
-- <strong>新增章节</strong>：分步骤指导在 MCP 服务器中实现简单认证。
-  - <strong>认证概念</strong>：清晰解释认证与授权的区别，以及凭证处理。
-  - <strong>基础认证实现</strong>：基于中间件的认证模式，分别在 Python (Starlette) 和 TypeScript (Express) 中提供代码示例。
-  - <strong>进阶安全指引</strong>：指导从简单认证开始，逐步进阶到 OAuth 2.1 和 RBAC，并提供高级安全模块参考。
+- <strong>新增章节</strong>：MCP 服务器中实现简单认证的逐步指南。
+  - <strong>认证概念</strong>：清晰解释认证与授权，以及凭证处理。
+  - <strong>基础认证实现</strong>：基于中间件的 Python（Starlette）和 TypeScript（Express）认证模式，附代码示例。
+  - <strong>向高级安全进阶</strong>：指导从简单认证起步，逐步提升至 OAuth 2.1 和 RBAC，附高级安全模块参考。
 
-这些新增内容为构建更健壮、安全和灵活的 MCP 服务器实现提供实用的动手指导，桥接基础概念与高级生产模式。
+这些新增内容为构建更健壮、安全且灵活的 MCP 服务器实现提供实用的操作指导，搭建基础概念与高级生产模式的桥梁。
 
 ## 2025年9月29日
 
-### MCP 服务器数据库集成实验室 - 全面动手学习路径
+### MCP 服务器数据库集成实验室 - 综合实战学习路径
 
 #### 11-MCPServerHandsOnLabs - 全新完整数据库集成课程
-- **完整13个实验路径**：新增通过 PostgreSQL 数据库集成构建生产级 MCP 服务器的全面动手课程
-  - <strong>真实案例实现</strong>：Zava 零售分析用例展示企业级模式
+- **完整13个实验路径**：新增构建生产级 MCP 服务器与 PostgreSQL 数据库集成的综合实战课程
+  - <strong>真实案例实践</strong>：Zava 零售分析用例，展示企业级模式
   - <strong>结构化学习进阶</strong>：
-    - **实验00-03：基础篇** - 介绍、核心架构、安全与多租户、环境搭建
-    - **实验04-06：构建 MCP 服务器** - 数据库设计与模式、MCP 服务器实现、工具开发
-    - **实验07-09：高级功能** - 语义搜索集成、测试与调试、VS Code 集成
-    - **实验10-12：生产与最佳实践** - 部署策略、监控与可观测性、最佳实践与优化
-  - <strong>企业级技术栈</strong>：FastMCP 框架、带 pgvector 的 PostgreSQL、Azure OpenAI 嵌入、Azure 容器应用、应用程序洞察
-  - <strong>高级功能</strong>：行级安全 (RLS)、语义搜索、多租户数据访问、向量嵌入、实时监控
+    - **实验00-03：基础** — 介绍、核心架构、安全与多租户、环境搭建
+    - **实验04-06：构建 MCP 服务器** — 数据库设计与模式、MCP 服务器实现、工具开发  
+    - **实验07-09：高级功能** — 语义搜索集成、测试与调试、VS Code 集成
+    - **实验10-12：生产及最佳实践** — 部署策略、监控与可观测性、最佳实践与优化
+  - <strong>企业级技术</strong>：FastMCP 框架，集成 pgvector 的 PostgreSQL，Azure OpenAI 嵌入向量，Azure Container Apps，应用洞察
+  - <strong>高级功能</strong>：行级安全（RLS）、语义搜索、多租户数据访问、向量嵌入、实时监控
 
-#### 术语标准化 - 模块到实验转换
-- <strong>全面文档更新</strong>：系统性更新所有 11-MCPServerHandsOnLabs 的 README 文件，将“模块”术语改为“实验”
-  - <strong>章节标题</strong>：将“本模块涵盖”更新为“本实验涵盖”覆盖全部13个实验
-  - <strong>内容描述</strong>：将“本模块提供...”改为“本实验提供...”遍及所有文档
-  - <strong>学习目标</strong>：将“本模块结束时...”改为“本实验结束时...”
-  - <strong>导航链接</strong>：所有“模块 XX:”引用统一改为“实验 XX:”的交叉引用和导航
+#### 术语标准化 - 模块改为实验
+- <strong>文档全面更新</strong>：系统性更新 11-MCPServerHandsOnLabs 下所有 README 文件，统一使用“实验”术语替换“模块”
+  - <strong>章节标题</strong>：将“本模块涵盖内容”改为“本实验涵盖内容”，适用于全部13个实验
+  - <strong>内容描述</strong>：将“本模块提供...”改为“本实验提供...”
+  - <strong>学习目标</strong>：将“完成本模块后...”改为“完成本实验后...”
+  - <strong>导航链接</strong>：所有“模块 XX:”跨引用及导航均改写为“实验 XX:”
   - <strong>完成追踪</strong>：将“完成本模块后...”改为“完成本实验后...”
-  - <strong>保持技术引用</strong>：配置文件中保留 Python 模块引用（如 `"module": "mcp_server.main"`）
+  - <strong>技术引用保留</strong>：保留配置文件中的 Python 模块引用（如 `"module": "mcp_server.main"`）
 
 #### 学习指南增强 (study_guide.md)
-- <strong>可视课程图</strong>：新增“11. 数据库集成实验”章节，全面展示实验结构
-- <strong>仓库结构</strong>：主章节由10更新为11，详细描述 11-MCPServerHandsOnLabs
-- <strong>学习路径指导</strong>：增强导航说明涵盖章节00-11
+- <strong>可视化课程地图</strong>：新增“11. 数据库集成实验室”部分，提供详细实验结构图
+- <strong>仓库结构</strong>：将主结构由十部分更新为十一部分，详细描述 11-MCPServerHandsOnLabs
+- <strong>学习路径指引</strong>：完善导航说明，包含 00-11 部分
 - <strong>技术覆盖</strong>：新增 FastMCP、PostgreSQL、Azure 服务集成细节
-- <strong>学习成果</strong>：强调生产就绪服务器开发、数据库集成模式及企业安全
+- <strong>学习成果</strong>：突出生产级服务器开发、数据库集成模式和企业安全
 
-#### 主 README 结构优化
-- <strong>基于实验的术语</strong>：更新 11-MCPServerHandsOnLabs 主 README.md，统一使用“实验”结构
-- <strong>学习路径组织</strong>：清晰展示基础概念到高级实现再到生产部署的进阶
-- <strong>真实案例聚焦</strong>：突出实战操作，应用企业级模式和技术
+#### 主 README 结构增强
+- <strong>基于实验术语</strong>：更新 11-MCPServerHandsOnLabs 下主 README.md，始终采用“实验”结构
+- <strong>学习路线组织</strong>：从基础概念到高级实现再到生产部署的清晰进阶
+- <strong>现实案例聚焦</strong>：强调实践操作与企业级模式和技术
 
-### 文档质量及一致性改进
-- <strong>强调动手学习</strong>：贯穿文档强化基于实验的实践方法
-- <strong>聚焦企业模式</strong>：突出生产环境实现和企业安全考量
-- <strong>技术集成</strong>：涵盖现代 Azure 服务及 AI 集成模式
-- <strong>学习进阶</strong>：构建从基础概念到生产部署的清晰路线
+### 文档质量与一致性改进
+- <strong>实操学习强化</strong>：全篇文档突出实验式、实操导向学习方法
+- <strong>企业模式聚焦</strong>：强调生产级实现与企业安全考量
+- <strong>技术集成</strong>：全面覆盖现代 Azure 服务与 AI 集成模式
+- <strong>学习进阶</strong>：从基础到生产部署的清晰、有结构的路径
 
 ## 2025年9月26日
 
-### 案例研究增强 - GitHub MCP Registry 集成
+### 案例研究增强 - GitHub MCP 注册表集成
 
 #### 案例研究 (09-CaseStudy/) - 生态系统发展聚焦
-- **README.md**：大幅扩展，新增全面 GitHub MCP Registry 案例研究
-  - **GitHub MCP Registry 案例研究**：详尽分析 2025年9月 GitHub MCP Registry 发布
-    - <strong>问题分析</strong>：深入拆解分散的 MCP 服务器发现与部署难题
-    - <strong>解决方案架构</strong>：GitHub 集中式登记中心及一键 VS Code 安装
-    - <strong>业务影响</strong>：显著提升开发者入门及生产效率
-    - <strong>战略价值</strong>：聚焦模块化代理部署及跨工具互操作
+- **README.md**：大幅扩展，新增详尽 GitHub MCP 注册表案例研究
+  - **GitHub MCP 注册表案例研究**：2025年9月 GitHub MCP 注册表发布深度案例分析
+    - <strong>问题分析</strong>：分散化 MCP 服务器发现与部署难题详述
+    - <strong>解决架构</strong>：GitHub 中央注册表及一键 VS Code 安装方案
+    - <strong>业务影响</strong>：开发者入门与生产效率显著提升
+    - <strong>战略价值</strong>：聚焦模块化代理部署及跨工具互操作性
     - <strong>生态发展</strong>：定位为代理系统集成的基础平台
-  - <strong>优化案例结构</strong>：统一格式，详细描述7个案例研究
-    - Azure AI 旅行代理：多代理编排强调
+  - <strong>案例研究结构增强</strong>：七个案例统一格式与内容详尽描述
+    - Azure AI 旅游代理：多代理编排重点
     - Azure DevOps 集成：工作流自动化聚焦
     - 实时文档检索：Python 控制台客户端实现
-    - 交互式学习计划生成器：Chainlit 对话式 Web 应用
+    - 交互式学习计划生成器：Chainlit 对话式网页应用
     - 编辑器内文档：VS Code 与 GitHub Copilot 集成
     - Azure API 管理：企业级 API 集成模式
-    - GitHub MCP Registry：生态系统开发与社区平台
-  - <strong>综合结论</strong>：重写总结，涵盖七个案例，贯穿多维 MCP 实现
+    - GitHub MCP 注册表：生态系统开发与社区平台
+  - <strong>综合总结</strong>：重写结论，覆盖七个案例跨越多 MCP 实现维度
     - 企业集成、多代理编排、开发者生产力
-    - 生态系统开发、教育应用分类
-    - 深化架构模式、实现策略与最佳实践洞察
-    - 强调 MCP 作为成熟生产协议
+    - 生态发展、教育应用分类
+    - 增强架构模式、实现策略及最佳实践见解
+    - 突出 MCP 作为成熟生产协议
 
 #### 学习指南更新 (study_guide.md)
-- <strong>可视课程地图</strong>：更新心智图，包含 GitHub MCP Registry 的案例研究
-- <strong>案例描述强化</strong>：从概述升级为七个详尽案例研究
-- <strong>仓库结构调整</strong>：更新第10章节反映案例全面覆盖及具体实现细节
-- <strong>变更日志更新</strong>：新增 2025年9月26日变动，记录 GitHub MCP Registry 及案例研究强化
-- <strong>日期更新</strong>：页脚更新时间同步至最新修订（2025年9月26日）
+- <strong>课程地图更新</strong>：将 GitHub MCP 注册表纳入案例研究部分思维导图
+- <strong>案例描述增强</strong>：由泛泛描述改为七个具体案例的详细拆解
+- <strong>仓库结构</strong>：第10部分更新为全面案例研究覆盖及具体实现细节
+- <strong>变更日志集成</strong>：新增2025年9月26日条目，记录 GitHub MCP 注册表及案例研究增强
+- <strong>日期更新</strong>：页脚时间戳更新至最新修订（2025年9月26日）
 
-### 文档质量提升
-- <strong>一致性增强</strong>：统一7个案例研究格式与结构
-- <strong>全面覆盖</strong>：案例涵盖企业、开发者效率及生态系统发展场景
-- <strong>战略定位</strong>：强化 MCP 作为代理系统部署基础平台
-- <strong>资源整合</strong>：补充 GitHub MCP Registry 相关链接
+### 文档质量改进
+- <strong>一致性提升</strong>：七个案例统一格式与结构标准化
+- <strong>全面覆盖</strong>：案例范畴涵盖企业、开发者效率与生态系统发展
+- <strong>战略定位</strong>：强化 MCP 作为代理系统部署基础平台的定位
+- <strong>资源集成</strong>：附加资源更新，包含 GitHub MCP 注册表链接
 
 ## 2025年9月15日
 
 ### 高级主题扩展 - 自定义传输与上下文工程
 
 #### MCP 自定义传输 (05-AdvancedTopics/mcp-transport/) - 新增高级实现指南
-- **README.md**：完整自定义 MCP 传输机制实现指南
-  - **Azure 事件网格传输**：全面无服务器事件驱动传输实现
-    - C#、TypeScript 与 Python 示例及 Azure Functions 集成
-    - 可扩展 MCP 解决方案事件驱动架构模式
-    - Webhook 接收及推送式消息处理
-  - **Azure 事件中心传输**：高吞吐流式传输实现
-    - 低延迟场景实时流式能力
+- **README.md**：详尽自定义 MCP 传输机制实现指导
+  - **Azure 事件网格传输**：无服务器事件驱动传输完整实现
+    - C#、TypeScript 和 Python 示例，集成 Azure Functions
+    - 可扩展 MCP 解决方案的事件驱动架构模式
+    - Webhook 接收器与推送式消息处理
+  - **Azure 事件中心传输**：高吞吐量流传输实现
+    - 支持低延迟场景的实时流处理能力
     - 分区策略与检查点管理
     - 消息批处理与性能优化
-  - <strong>企业集成模式</strong>：生产就绪架构示例
-    - 跨多个 Azure Functions 分布式 MCP 处理
-    - 多种传输类型混合架构
+  - <strong>企业集成模式</strong>：生产级架构示例
+    - 多 Azure Functions 分布式 MCP 处理
+    - 混合传输架构，结合多种传输类型
     - 消息持久性、可靠性与错误处理策略
-  - <strong>安全与监控</strong>：Azure Key Vault 集成与可观测模式
+  - <strong>安全与监控</strong>：Azure Key Vault 集成与可观测性模式
     - 托管身份验证与最小权限访问
-    - 应用程序洞察遥测和性能监控
-    - 熔断器与容错模式
+    - 应用洞察遥测与性能监控
+    - 断路器与容错设计模式
   - <strong>测试框架</strong>：自定义传输的全面测试策略
-    - 单元测试中的模拟与测试替身
+    - 利用测试替身和模拟框架进行单元测试
     - Azure 测试容器集成测试
-    - 性能与负载测试考量
+    - 性能及负载测试考量
 
 #### 上下文工程 (05-AdvancedTopics/mcp-contextengineering/) - 新兴 AI 领域
-- **README.md**：全面探讨上下文工程作为新兴学科
-  - <strong>核心原则</strong>：完整上下文共享、行为决策感知及上下文窗口管理
-  - **MCP 协议契合**：MCP 设计如何应对上下文工程挑战
-    - 上下文窗口限制及渐进加载策略
-    - 相关性判定与动态上下文检索
-    - 多模态上下文处理及安全考量
+- **README.md**：上下文工程作为新兴学科的全面探讨
+  - <strong>核心原则</strong>：完整上下文共享、动作决策意识与上下文窗口管理
+  - **MCP 协议对齐**：MCP 设计如何应对上下文工程挑战
+    - 上下文窗口限制与渐进加载策略
+    - 相关性判断与动态上下文获取
+    - 多模态上下文处理与安全考量
   - <strong>实现方法</strong>：单线程与多代理架构对比
-    - 上下文分块与优先级策略
-    - 渐进加载与压缩技术
+    - 上下文分块与优先级技术
+    - 渐进式上下文加载与压缩策略
     - 分层上下文方法与检索优化
-  - <strong>度量框架</strong>：上下文有效性新兴指标
-    - 输入效率、性能、质量与用户体验考量
-    - 上下文优化的实验方法
+  - <strong>度量框架</strong>：上下文有效性评估的新兴指标体系
+    - 输入效率、性能、质量与用户体验
+    - 实验性上下文优化方法
     - 失败分析与改进方法论
 
 #### 课程导航更新 (README.md)
-- <strong>模块结构增强</strong>：更新课程表包含新高级主题
-  - 新增上下文工程 (5.14) 与自定义传输 (5.15)
-  - 模块格式与导航链接统一
-  - 描述更新反映当前内容范围
+- <strong>模块结构增强</strong>：更新课程表，加入新高级主题
+  - 新增上下文工程（5.14）与自定义传输（5.15）
+  - 全模块格式及导航链接统一
+  - 更新描述反映当前内容范围
 
-### 目录结构优化
-- <strong>命名标准化</strong>：将“mcp transport”重命名为“mcp-transport”，统一高级主题文件夹命名规范
-- <strong>内容组织</strong>：全部 05-AdvancedTopics 文件夹遵循一致命名模式（mcp-[topic]）
+### 目录结构改进
+- <strong>命名标准化</strong>：将“mcp transport”重命名为“mcp-transport”，与其他高级主题文件夹一致
+- <strong>内容组织</strong>：所有 05-AdvancedTopics 文件夹遵循 mcp-[主题] 命名模式
 
 ### 文档质量提升
-- **MCP 规范对齐**：所有新内容均依 MCP 规范 2025-06-18
-- <strong>多语言示例</strong>：C#、TypeScript 与 Python 综合代码示例
-- <strong>企业聚焦</strong>：贯穿生产级模式与 Azure 云集成
-- <strong>可视化文档</strong>：架构及流程 Mermaid 图示
+- **MCP 规范对齐**：所有新内容均参考 MCP 规范 2025-06-18
+- <strong>多语言示例</strong>：提供 C#、TypeScript 和 Python 代码示例
+- <strong>企业聚焦</strong>：贯穿生产级模式和 Azure 云集成
+- <strong>视觉文档</strong>：架构及流程采用 Mermaid 图示
 
 ## 2025年8月18日
 
 ### 文档全面更新 - MCP 2025-06-18 标准
 
 #### MCP 安全最佳实践 (02-Security/) - 全面现代化
-- **MCP-SECURITY-BEST-PRACTICES-2025.md**：完全重写，对齐 MCP 规范 2025-06-18
-  - <strong>强制性要求</strong>：新增官方规范中明确的 MUST / MUST NOT 条款，配以可视指示
-  - **12大核心安全实践**：由15条清单重构为综合安全领域
+- **MCP-SECURITY-BEST-PRACTICES-2025.md**：完全重写，符合 MCP 规范 2025-06-18
+  - <strong>强制性要求</strong>：新增官方规范中明确的 MUST/MUST NOT 要求，附清晰视觉标识
+  - **12大核心安全实践**：由原15项列表重构为全面安全域
     - 令牌安全与认证，集成外部身份提供者
-    - 会话管理与传输安全，含密码学要求
-    - AI 特有威胁防护，集成 Microsoft Prompt Shields
-    - 访问控制与权限，遵循最小权限原则
-    - 内容安全与监控，集成 Azure 内容安全
+    - 会话管理与传输安全，含加密要求
+    - AI 特定威胁防护，集成 Microsoft Prompt Shields
+    - 访问控制与权限，践行最小权限原则
+    - 内容安全与监测，集成 Azure 内容安全
     - 供应链安全，全面组件验证
-    - OAuth 安全及混淆代理防范，包含 PKCE 实现
+    - OAuth 安全与防混淆代理，实施 PKCE
     - 事件响应与恢复，自动化能力
-    - 合规与治理，符合监管要求
+    - 合规与治理，符合法规要求
     - 高级安全控制，零信任架构
-    - Microsoft 安全生态集成，全面解决方案
+    - Microsoft 安全生态集成，全面方案覆盖
     - 持续安全演进，适应性实践
-  - **Microsoft 安全解决方案**：增强对 Prompt Shields、Azure 内容安全、Entra ID 与 GitHub 高级安全的集成指导
-  - <strong>实施资源</strong>：按官方 MCP 文档、Microsoft 安全方案、安全标准及实施指南分类的资源链接
+  - **Microsoft 安全解决方案**：增强 Prompt Shields、Azure 内容安全、Entra ID 与 GitHub Advanced Security 集成指南
+  - <strong>实施资源</strong>：按官方 MCP 文档、微软安全方案、安全标准和实现指南分类的全面资源链接
 
 #### 高级安全控制 (02-Security/) - 企业级实现
-- **MCP-SECURITY-CONTROLS-2025.md**：全面革新，打造企业级安全框架
-  - **9大安全领域**：由基础控制扩展为详尽企业框架
-    - 高级认证与授权，含 Microsoft Entra ID 集成
-    - 令牌安全与防止透传控制，综合验证
-    - 会话安全控制，防止会话劫持
-    - AI 特有安全，防范提示注入与工具中毒
-    - 混淆代理攻击防护，OAuth 代理安全
-    - 工具执行安全，沙箱隔离
-    - 供应链安全控制，依赖验证
-    - 监控与检测控制，SIEM 集成
-    - 事件响应与恢复，自动化支持
-  - <strong>实施示例</strong>：新增详尽 YAML 配置及代码示例
-  - **Microsoft 解决方案集成**：涵盖 Azure 安全服务、GitHub 高级安全及企业身份管理
+- **MCP-SECURITY-CONTROLS-2025.md**：全面改版，企业级安全框架
+  - **9大安全域**：由基础控件扩展为详尽企业框架
+    - 高级认证与授权，集成 Microsoft Entra ID
+    - 令牌安全与反直通控件，全面验证
+    - 会话安全控件，防止劫持
+    - AI 特定安全控件，防提示注入与工具中毒
+    - 混淆代理攻击防范，OAuth 代理安全
+    - 工具执行安全，沙箱与隔离
+    - 供应链安全控件，依赖性验证
+    - 监控与检测控件，SIEM 集成
+    - 事件响应与恢复，自动化能力
+  - <strong>实现示例</strong>：新增详细 YAML 配置块与代码示例
+  - <strong>微软解决方案集成</strong>：涵盖 Azure 安全服务、GitHub Advanced Security 与企业身份管理
 
-#### 高级主题安全 (05-AdvancedTopics/mcp-security/) - 生产就绪实现
-- **README.md**：全面重写，面向企业级安全实现
-  - <strong>规范对齐</strong>：更新至 MCP 规范 2025-06-18，含强制安全要求
-  - <strong>增强认证</strong>：集成 Microsoft Entra ID，含 .NET 和 Java Spring Security 详示例
-  - **AI 安全集成**：Microsoft Prompt Shields 与 Azure 内容安全，含详尽 Python 示例
-  - <strong>高级威胁缓解</strong>：全面示例涵盖
-    - 混淆代理攻击防护，使用 PKCE 与用户同意验证
-    - 令牌透传防护，含受众验证及安全令牌管理
-    - 会话劫持防护，密码学绑定与行为分析
-  - <strong>企业安全集成</strong>：Azure 应用程序洞察监控、威胁检测管道与供应链安全
-  - <strong>实施清单</strong>：明确强制与推荐安全控制及 Microsoft 安全集成优势
+#### 高级主题安全 (05-AdvancedTopics/mcp-security/) - 生产级实现
+- **README.md**：企业安全实现完全重写
+  - <strong>规范对齐</strong>：更新至 MCP 规范 2025-06-18，包含强制安全要求
+  - <strong>增强认证</strong>：集成 Microsoft Entra ID，配有 .NET 和 Java Spring Security 详尽示例
+  - **AI 安全集成**：Microsoft Prompt Shields 和 Azure 内容安全，附详细 Python 示例
+  - <strong>高级威胁缓解</strong>：提供
+    - 混淆代理攻击防护示例，含 PKCE 和用户同意验证
+    - 令牌直通防护，含受众验证和安全令牌管理示例
+- 使用加密绑定和行为分析防止会话劫持
+- <strong>企业安全集成</strong>：Azure Application Insights 监控、威胁检测管道和供应链安全
+- <strong>实施清单</strong>：明确区分强制性与推荐安全控制及微软安全生态系统的优势
 
 ### 文档质量与标准对齐
-- <strong>规范参考</strong>：更新所有参考至当前MCP规范2025-06-18  
-- <strong>微软安全生态系统</strong>：增强所有安全文档中的集成指导  
-- <strong>实用实现</strong>：添加包含企业模式的.NET、Java和Python详细代码示例  
-- <strong>资源组织</strong>：全面分类官方文档、安全标准和实现指南  
-- <strong>视觉指示器</strong>：明确标注强制要求与推荐实践  
+- <strong>规范引用</strong>：更新所有引用为当前 MCP 规范 2025-06-18
+- <strong>微软安全生态系统</strong>：增强所有安全文档中的集成指导
+- <strong>实践实现</strong>：新增 .NET、Java 和 Python 的详细代码示例及企业模式
+- <strong>资源组织</strong>：全面分类官方文档、安全标准和实施指南
+- <strong>视觉指示</strong>：清晰标注强制性要求与推荐实践
 
-#### 核心概念 (01-CoreConcepts/) - 完全现代化  
-- <strong>协议版本更新</strong>：更新至参考当前MCP规范2025-06-18，采用基于日期的版本格式（YYYY-MM-DD）  
-- <strong>架构优化</strong>：增强主机、客户端和服务器描述以反映当前MCP架构模式  
-  - 主机现被明确定义为协调多个MCP客户端连接的AI应用  
-  - 客户端描述为维护一对一服务器关系的协议连接器  
-  - 服务器增补了本地与远程部署场景  
-- <strong>基础原语重构</strong>：服务器和客户端原语全面重塑  
-  - 服务器原语：资源（数据源）、提示（模板）、工具（可执行函数），附详细说明和示例  
-  - 客户端原语：采样（LLM完成）、引出（用户输入）、日志（调试/监控）  
-  - 更新为当前发现（`*/list`）、检索（`*/get`）和执行（`*/call`）方法模式  
-- <strong>协议架构</strong>：引入两层架构模型  
-  - 数据层：基于JSON-RPC 2.0，包含生命周期管理与原语  
-  - 传输层：本地STDIO及支持SSE的可流HTTP远程传输机制  
-- <strong>安全框架</strong>：全面安全原则，包括明确用户同意、数据隐私保护、工具执行安全和传输层安全  
-- <strong>通信模式</strong>：更新协议消息以展示初始化、发现、执行和通知流程  
-- <strong>代码示例</strong>：刷新多语言示例（.NET、Java、Python、JavaScript）以反映当前MCP SDK模式  
 
-#### 安全 (02-Security/) - 全面安全重构  
-- <strong>标准对齐</strong>：与MCP规范2025-06-18安全要求完全一致  
-- <strong>认证演进</strong>：记录从自定义OAuth服务器到外部身份提供者委托（Microsoft Entra ID）的演变  
-- **AI特定威胁分析**：增强现代AI攻击向量覆盖  
-  - 详述提示注入攻击场景及真实例子  
-  - 工具投毒机制与“割韭菜”攻击模式  
-  - 上下文窗口投毒与模型混淆攻击  
-- **微软AI安全解决方案**：全面覆盖微软安全生态系统  
-  - 具备高级检测、聚焦和分隔符技术的AI提示屏障  
-  - Azure内容安全集成模式  
-  - GitHub高级安全用于供应链保护  
-- <strong>高级威胁缓解</strong>：详细安全控制  
-  - 会话劫持，包含MCP特定攻击场景和加密会话ID要求  
-  - MCP代理混淆代理问题及明确同意要求  
-  - 令牌透传漏洞及强制验证控制  
-- <strong>供应链安全</strong>：扩展AI供应链覆盖，包括基础模型、嵌入服务、上下文提供者和第三方API  
-- <strong>基础安全</strong>：加强与企业安全模式集成，包括零信任架构和微软安全生态  
-- <strong>资源组织</strong>：按类型分类全面资源链接（官方文档、标准、研究、微软解决方案、实施指南）  
+#### 核心概念 (01-CoreConcepts/) - 完整现代化
+- <strong>协议版本更新</strong>：更新为引用当前 MCP 规范 2025-06-18，采用基于日期的版本（YYYY-MM-DD 格式）
+- <strong>架构优化</strong>：增强 Hosts、Clients 和 Servers 的描述以反映当前 MCP 架构模式
+  - Hosts 现明确定义为协调多个 MCP 客户端连接的 AI 应用
+  - Clients 描述为维护一对一服务器关系的协议连接器
+  - Servers 加强了本地与远程部署场景说明
+- <strong>原语重构</strong>：服务器和客户端原语全面重写
+  - 服务器原语：资源（数据源）、提示（模板）、工具（可执行函数）及详细说明与示例
+  - 客户端原语：采样（LLM 完成）、引导（用户输入）、日志（调试/监控）
+  - 更新为当前发现（`*/list`）、检索（`*/get`）和执行（`*/call`）方法模式
+- <strong>协议架构</strong>：引入双层架构模型
+  - 数据层：基于 JSON-RPC 2.0，带生命周期管理和原语
+  - 传输层：STDIO（本地）和支持 SSE 流式 HTTP（远程）传输机制
+- <strong>安全框架</strong>：全面安全原则涵盖显式用户同意、数据隐私保护、工具执行安全及传输层安全
+- <strong>通信模式</strong>：更新协议消息以展示初始化、发现、执行与通知流程
+- <strong>代码示例</strong>：多语言示例（.NET、Java、Python、JavaScript）刷新，反映当前 MCP SDK 模式
 
-### 文档质量改进  
-- <strong>结构化学习目标</strong>：增强学习目标，具备具体可行动果  
-- <strong>交叉引用</strong>：添加相关安全与核心概念主题间链接  
-- <strong>当前信息</strong>：更新所有日期引用及规范链接至当前标准  
-- <strong>实现指导</strong>：在两个部分均添加具体可操作的实现指南  
+#### 安全 (02-Security/) - 全面安全大修  
+- <strong>标准对齐</strong>：全面符合 MCP 规范 2025-06-18 安全需求
+- <strong>认证演进</strong>：记录从自定义 OAuth 服务器到外部身份提供商委托（Microsoft Entra ID）的演变
+- **AI 特定威胁分析**：增强现代 AI 攻击向量覆盖
+  - 详述提示注入攻击场景及真实案例
+  - 工具中毒机制及“拽地毯”攻击模式
+  - 上下文窗口中毒和模型混淆攻击
+- **微软 AI 安全解决方案**：全面覆盖微软安全生态系统
+  - AI 提示屏障，含高级检测、聚焦与分隔符技术
+  - Azure 内容安全集成模式
+  - GitHub 高级安全保障供应链保护
+- <strong>高级威胁缓解</strong>：详细安全控制措施
+  - 会话劫持，含 MCP 特定攻击场景与加密会话 ID 要求
+  - MCP 代理场景下的混淆代表问题及显式同意要求
+  - 令牌透传漏洞及强制验证控制
+- <strong>供应链安全</strong>：扩展 AI 供应链覆盖基础模型、嵌入服务、上下文提供者及第三方 API
+- <strong>基础安全</strong>：强化与企业安全模式集成，涵盖零信任架构和微软安全生态体系
+- <strong>资源组织</strong>：按类型分类综合资源链接（官方文档、标准、研究、微软解决方案、实施指南）
+
+### 文档质量改进
+- <strong>结构化学习目标</strong>：增强具体且可执行的学习成果
+- <strong>交叉引用</strong>：新增相关安全与核心概念主题间链接
+- <strong>信息更新</strong>：更新所有日期引用及规范链接至最新标准
+- <strong>实施指导</strong>：在两部分均增添具体且可执行的实施建议
 
 ## 2025年7月16日
 
-### README及导航改进  
-- 完全重新设计README.md中的课程导航  
-- 用更易访问的表格格式替换了`<details>`标签  
-- 在新建的“alternative_layouts”文件夹中创建备选布局选项  
-- 添加卡片式、选项卡式及手风琴式导航示例  
-- 更新仓库结构章节以涵盖最新所有文件  
-- 增强“如何使用本课程”部分，给出明确建议  
-- 更新MCP规范链接指向正确URL  
-- 在课程结构中添加上下文工程章节（5.14）  
+### README 及导航改进
+- 完全重新设计 README.md 中的课程导航
+- 用更易访问的表格格式替代 `<details>` 标签
+- 在新建的 "alternative_layouts" 文件夹中创建替代布局选项
+- 添加基于卡片、标签式和手风琴式导航示例
+- 更新仓库结构部分以包括所有最新文件
+- 增强“如何使用本课程”部分，提供明确建议
+- 更新 MCP 规范链接指向正确 URL
+- 增加上下文工程部分（5.14）到课程结构
 
-### 学习指南更新  
-- 完全修订学习指南以对应当前仓库结构  
-- 新增MCP客户端和工具及受欢迎的MCP服务器章节  
-- 更新视觉课程地图，准确反映所有主题  
-- 增强高级主题描述，覆盖所有专业领域  
-- 更新案例研究部分，反映实际示例  
-- 添加本详尽变更日志  
+### 学习指南更新
+- 完全修订学习指南与当前仓库结构对齐
+- 新增 MCP 客户端与工具、流行 MCP 服务器章节
+- 更新视觉课程地图，准确反映所有主题
+- 加强高级主题描述，涵盖所有专业领域
+- 更新案例研究部分，反映实际示例
+- 添加此全面更新日志
 
-### 社区贡献 (06-CommunityContributions/)  
-- 添加有关图像生成MCP服务器的详细信息  
-- 新增在VSCode中使用Claude的综合章节  
-- 新增Cline终端客户端安装和使用说明  
-- 更新MCP客户端章节，涵盖所有流行客户端选项  
-- 增强贡献示例，包含更准确代码样例  
+### 社区贡献 (06-CommunityContributions/)
+- 新增关于 MCP 服务器的图像生成详细信息
+- 新增在 VSCode 中使用 Claude 的综合章节
+- 新增 Cline 终端客户端设置与使用说明
+- 更新 MCP 客户端章节，包含所有流行客户端选项
+- 用更准确的代码示例丰富贡献示例
 
-### 高级主题 (05-AdvancedTopics/)  
-- 统一命名所有专业主题文件夹  
-- 添加上下文工程材料与示例  
-- 添加Foundry代理集成文档  
-- 增强Entra ID安全集成文档  
+### 高级主题 (05-AdvancedTopics/)
+- 统一所有专业主题文件夹命名并组织
+- 新增上下文工程材料和示例
+- 新增 Foundry 代理集成文档
+- 增强 Entra ID 安全集成文档
 
 ## 2025年6月11日
 
-### 初始创建  
-- 发布MCP初学者课程首个版本  
-- 创建全部10个主要章节的基本结构  
-- 实现视觉课程地图便于导航  
-- 添加多语言示例项目  
+### 初始创建
+- 发布 MCP 入门课程第一个版本
+- 创建全部 10 个主章节的基本结构
+- 实现导航用视觉课程地图
+- 添加多种编程语言的初始示例项目
 
-### 入门 (03-GettingStarted/)  
-- 创建首批服务器实现示例  
-- 增加客户端开发指南  
-- 包含LLM客户端集成说明  
-- 添加VS Code集成文档  
-- 实现服务器发送事件（SSE）示例  
+### 入门 (03-GettingStarted/)
+- 创建首批服务器实现示例
+- 添加客户端开发指导
+- 包含 LLM 客户端集成说明
+- 增加 VS Code 集成文档
+- 实现服务器推送事件（SSE）服务器示例
 
-### 核心概念 (01-CoreConcepts/)  
-- 添加客户端-服务器架构详细说明  
-- 创建关键协议组件文档  
-- 记录MCP中的消息传递模式  
+### 核心概念 (01-CoreConcepts/)
+- 添加客户端-服务器架构的详细讲解
+- 创建关键协议组件文档
+- 记录 MCP 中的消息模式
 
 ## 2025年5月23日
 
-### 仓库结构  
-- 初始化仓库基本文件夹结构  
-- 为各主要章节创建README文件  
-- 建立翻译架构  
-- 添加图像资源和图示  
+### 仓库结构
+- 初始化仓库基本文件夹结构
+- 为每个主要章节创建 README 文件
+- 设置翻译基础设施
+- 添加图像资源和图示
 
-### 文档  
-- 创建初始README.md，包含课程概览  
-- 增添CODE_OF_CONDUCT.md和SECURITY.md  
-- 设置SUPPORT.md，提供求助指导  
-- 创建初步学习指南结构  
+### 文档
+- 创建初始 README.md，含课程概述
+- 添加行为准则 CODE_OF_CONDUCT.md 和安全指南 SECURITY.md
+- 设置帮助支持文档 SUPPORT.md
+- 创建初步的学习指南结构
 
 ## 2025年4月15日
 
-### 规划与框架  
-- 初步规划MCP初学者课程  
-- 确定学习目标和目标受众  
-- 概括10章节课程结构  
-- 开发示例与案例研究的概念框架  
-- 创建关键概念的初步原型示例  
+### 规划与框架
+- MCP 入门课程初步规划
+- 定义学习目标和目标受众
+- 概述课程的十个章节结构
+- 开发示例和案例研究的概念框架
+- 创建关键概念的初步原型示例
 
 ---
 

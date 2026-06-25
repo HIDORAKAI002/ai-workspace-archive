@@ -121,11 +121,14 @@ mindmap
       (Production Deployment)
       (13-Lab Structure)
       (Hands-on Learning)
+    12. Tooling
+      ::icon(fa fa-wrench)
+      (MCP in Copilot app)
 ```
 
 ## Repository Structure
 
-The repository is organized into eleven main sections, each focusing on different aspects of MCP:
+The repository is organized into twelve main sections, each focusing on different aspects of MCP:
 
 1. **Introduction (00-Introduction/)**
    - Overview of the Model Context Protocol
@@ -253,6 +256,9 @@ The repository is organized into eleven main sections, each focusing on differen
       - **Labs 10-12: Production & Best Practices** - Deployment, Monitoring, Optimization
     - **Technologies Covered**: FastMCP framework, PostgreSQL, Azure OpenAI, Azure Container Apps, Application Insights
     - **Learning Outcomes**: Production-ready MCP servers, database integration patterns, AI-powered analytics, enterprise security
+
+13. **Tooling (12-tooling/)**
+    - Learn how to use MCP in Copilot app and other tools
 
 ## Additional Resources
 

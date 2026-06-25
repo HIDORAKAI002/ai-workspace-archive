@@ -1,10 +1,10 @@
-# Model Context Protocol (MCP) 初學者學習指南
+# Model Context Protocol (MCP) 入門指南 - 學習指南
 
-本學習指南概述了「Model Context Protocol (MCP) 初學者」課程的倉庫結構和內容。請利用本指南有效瀏覽倉庫並充分利用可用資源。
+本學習指南提供「Model Context Protocol (MCP) 入門」課程的倉庫結構和內容概覽。請使用本指南有效地瀏覽倉庫並充分利用可用資源。
 
 ## 倉庫概覽
 
-Model Context Protocol (MCP) 是一個 AI 模型與客戶端應用程序之間互動的標準化架構。最初由 Anthropic 創建，現由更廣泛的 MCP 社區通過官方 GitHub 組織維護。本倉庫提供全面課程，並附有 C#、Java、JavaScript、Python 和 TypeScript 的實作範例，專為 AI 開發者、系統架構師及軟件工程師設計。
+Model Context Protocol (MCP) 是 AI 模型與客戶端應用程式間互動的標準化框架。最初由 Anthropic 創建，現由更廣泛的 MCP 社群透過官方 GitHub 組織維護。本倉庫提供包括 C#、Java、JavaScript、Python 和 TypeScript 的實作範例課程，適合 AI 開發者、系統架構師和軟件工程師。
 
 ## 視覺課程地圖
 
@@ -13,39 +13,39 @@ mindmap
   root((MCP for Beginners))
     00. 介紹
       ::icon(fa fa-book)
-      (協議概述)
-      (標準化好處)
-      (真實世界應用案例)
+      (協定概覽)
+      (標準化優勢)
+      (實際應用案例)
       (AI 整合基礎)
     01. 核心概念
       ::icon(fa fa-puzzle-piece)
       (客戶端-伺服器架構)
-      (協議組件)
+      (協定元件)
       (訊息模式)
       (傳輸機制)
       (任務 - 實驗性)
-      (工具註釋)
+      (工具註解)
     02. 安全性
       ::icon(fa fa-shield)
-      (AI 專用威脅)
+      (AI 特定威脅)
       (2025 年最佳實踐)
       (Azure 內容安全)
-      (認證與授權)
+      (身份驗證與授權)
       (Microsoft 提示防護)
-      (OWASP MCP 前 10 名)
+      (OWASP MCP 十大風險)
       (Sherpa 安全工作坊)
     03. 入門指南
       ::icon(fa fa-rocket)
       (第一個伺服器實作)
       (客戶端開發)
       (LLM 客戶端整合)
-      (VS Code 擴充套件)
+      (VS Code 擴充功能)
       (SSE 伺服器設定)
       (HTTP 串流)
       (AI 工具包整合)
-      (測試架構)
+      (測試框架)
       (進階伺服器使用)
-      (簡單認證)
+      (簡易身份驗證)
       (部署策略)
       (MCP 主機設定)
       (MCP 檢查工具)
@@ -55,7 +55,7 @@ mindmap
       (測試與除錯)
       (提示範本)
       (範例專案)
-      (生產環境模式)
+      (生產模式)
       (分頁策略)
     05. 進階主題
       ::icon(fa fa-graduation-cap)
@@ -64,24 +64,24 @@ mindmap
       (多模態 AI 工作流程)
       (OAuth2 認證)
       (即時搜尋)
-      (串流協議)
+      (串流協定)
       (根上下文)
       (路由策略)
-      (抽樣技術)
-      (擴展解決方案)
+      (取樣技術)
+      (擴充方案)
       (安全強化)
       (Entra ID 整合)
       (Web 搜尋 MCP)
-      (協議功能深度探討)
+      (協定功能深入)
       (對抗性多代理推理)
       
     06. 社群
       ::icon(fa fa-users)
-      (程式碼貢獻)
+      (代碼貢獻)
       (文件)
       (MCP 客戶端生態系)
       (MCP 伺服器註冊表)
-      (圖像生成工具)
+      (影像產生工具)
       (GitHub 協作)
     07. 早期採用
       ::icon(fa fa-lightbulb)
@@ -93,8 +93,8 @@ mindmap
     08. 最佳實踐
       ::icon(fa fa-check)
       (效能優化)
-      (容錯)
-      (系統韌性)
+      (容錯能力)
+      (系統彈性)
       (監控與可觀察性)
     09. 案例研究
       ::icon(fa fa-file-text)
@@ -104,108 +104,111 @@ mindmap
       (文件 MCP)
       (GitHub MCP 註冊表)
       (VS Code 整合)
-      (真實世界實作)
+      (實際應用)
     10. 實作工作坊
       ::icon(fa fa-laptop)
       (MCP 伺服器基礎)
       (進階開發)
       (AI 工具包整合)
       (生產部署)
-      (4 實驗室架構)
+      (4 個實驗室結構)
     11. 資料庫整合實驗室
       ::icon(fa fa-database)
       (PostgreSQL 整合)
       (零售分析案例)
-      (行級安全性)
-      (語義搜尋)
+      (列級安全)
+      (語意搜尋)
       (生產部署)
-      (13 實驗室架構)
-      (動手學習)
+      (13 個實驗室結構)
+      (實作學習)
+    12. 工具
+      ::icon(fa fa-wrench)
+      (Copilot 應用中的 MCP)
 ```
 
 ## 倉庫結構
 
-倉庫組織為十一個主要部分，分別聚焦 MCP 的不同面向：
+本倉庫分為十二個主要部分，分別聚焦於 MCP 的不同面向：
 
-1. **簡介 (00-Introduction/)**
-   - Model Context Protocol 概覽
-   - AI 流程標準化的重要性
-   - 實務使用案例與效益
+1. **介紹 (00-Introduction/)**
+   - Model Context Protocol 概述
+   - AI 流程中標準化的重要性
+   - 實際應用案例與優勢
 
 2. **核心概念 (01-CoreConcepts/)**
    - 客戶端-伺服器架構
-   - 協議核心組件
-   - MCP 的訊息模式
+   - 協議主要組件
+   - MCP 中的訊息模式
 
 3. **安全性 (02-Security/)**
    - MCP 系統中的安全威脅
-   - 安全實作最佳實務
+   - 實作安全的最佳實踐
    - 認證與授權策略
-   - <strong>完整安全文件</strong>：
-     - MCP 2025 年安全最佳實務
+   - <strong>全面安全文件</strong>：
+     - MCP 2025 年安全最佳實踐
      - Azure 內容安全實作指南
-     - MCP 安全控管與技術
-     - MCP 快速安全最佳實務參考
-   - <strong>重要安全議題</strong>：
+     - MCP 安全控制與技術
+     - MCP 最佳實踐速查表
+   - <strong>關鍵安全議題</strong>：
      - 提示注入與工具中毒攻擊
-     - 會話劫持及混淆代理問題
-     - Token 直通漏洞
+     - 會話劫持與代理困惑問題
+     - 令牌透傳漏洞
      - 過度權限與存取控制
-     - AI 元件供應鏈安全
-     - Microsoft 提示保護整合
+     - AI 組件的供應鏈安全
+     - Microsoft Prompt Shields 整合
 
-4. **入門指南 (03-GettingStarted/)**
-   - 環境設置與配置
-   - 建立基本 MCP 伺服器與客戶端
+4. **快速入門 (03-GettingStarted/)**
+   - 環境設定與配置
+   - 創建基本 MCP 伺服器與客戶端
    - 與現有應用整合
-   - 包含章節：
-     - 第一個伺服器實作
+   - 包含以下主題：
+     - 首個伺服器實作
      - 客戶端開發
      - LLM 客戶端整合
      - VS Code 整合
-     - Server-Sent Events (SSE) 伺服器
-     - 進階伺服器使用
+     - 服務器推送事件 (SSE) 伺服器
+     - 進階伺服器用法
      - HTTP 串流
-     - AI 工具包整合
+     - AI 工具箱整合
      - 測試策略
      - 部署指南
 
 5. **實務實作 (04-PracticalImplementation/)**
-   - 各語言 SDK 使用
-   - 除錯、測試與驗證技巧
-   - 製作可重用提示模板與工作流程
-   - 實作範例專案
+   - 跨多語言 SDK 使用
+   - 除錯、測試與驗證技術
+   - 製作可重用的提示範本與工作流
+   - 範例實作專案
 
 6. **進階主題 (05-AdvancedTopics/)**
    - 上下文工程技術
    - Foundry 代理整合
-   - 多模態 AI 工作流程
+   - 多模態 AI 工作流
    - OAuth2 認證示範
-   - 實時搜尋功能
-   - 實時串流
-   - Root contexts 實作
+   - 即時搜尋功能
+   - 即時串流
+   - Root Contexts 實作
    - 路由策略
-   - 取樣技術
-   - 擴充方案
-   - 安全性考量
+   - 抽樣技術
+   - 擴展方法
+   - 安全考量
    - Entra ID 安全整合
    - 網頁搜尋整合
-   - 對抗式多代理推理（辯論模式）
+   - 對抗性多代理推理（辯論模式）
 
-7. **社區貢獻 (06-CommunityContributions/)**
+7. **社群貢獻 (06-CommunityContributions/)**
    - 如何貢獻程式碼與文件
-   - 透過 GitHub 協作
-   - 社區驅動改進與回饋
-   - 使用各種 MCP 客戶端（Claude Desktop、Cline、VSCode）
-   - 使用流行 MCP 伺服器包括圖像生成
+   - 透過 GitHub 合作
+   - 社群驅動的改進與反饋
+   - 使用多種 MCP 客戶端（Claude Desktop、Cline、VSCode）
+   - 使用熱門 MCP 伺服器及圖像生成功能
 
 8. **早期採用經驗 (07-LessonsfromEarlyAdoption/)**
-   - 實務部署與成功案例
-   - 建置與部署 MCP 解決方案
-   - 趨勢與未來規劃
-   - **Microsoft MCP 伺服器指南**：詳細介紹十個生產就緒的 Microsoft MCP 伺服器，包括：
+   - 實務案例與成功故事
+   - 建構與部署 MCP 解決方案
+   - 趨勢與未來路線圖
+   - **微軟 MCP 伺服器指南**：全面介紹 10 個生產就緒的微軟 MCP 伺服器，包括：
      - Microsoft Learn Docs MCP 伺服器
-     - Azure MCP 伺服器（15+ 專用連接器）
+     - Azure MCP 伺服器（超過 15 種專用連接器）
      - GitHub MCP 伺服器
      - Azure DevOps MCP 伺服器
      - MarkItDown MCP 伺服器
@@ -216,50 +219,53 @@ mindmap
      - Microsoft 365 Agents Toolkit MCP 伺服器
 
 9. **最佳實務 (08-BestPractices/)**
-   - 性能調校與優化
+   - 效能調校與優化
    - 設計容錯 MCP 系統
    - 測試與韌性策略
 
 10. **案例研究 (09-CaseStudy/)**
-    - <strong>七個完整案例研究</strong> 展示 MCP 在不同場景的多樣性：
-    - **Azure AI 旅遊代理**：Azure OpenAI 與 AI 搜尋的多代理協同
-    - **Azure DevOps 整合**：使用 YouTube 資料更新自動化工作流程
-    - <strong>即時文件檢索</strong>：Python 控制台客戶端與串流 HTTP
-    - <strong>互動式學習計劃生成器</strong>：Chainlit 網頁應用與對話式 AI
-    - <strong>編輯器內文件</strong>：VS Code 與 GitHub Copilot 工作流程整合
-    - **Azure API 管理**：企業 API 整合與 MCP 伺服器建立
-    - **GitHub MCP 登錄**：生態系開發與智慧代理平台
-    - 跨企業整合、開發者生產力與生態系發展的實作範例
+    - <strong>七個完整案例研究</strong>示範 MCP 在多樣場景的靈活性：
+    - **Azure AI 旅遊代理**：多代理協作使用 Azure OpenAI 與 AI 搜尋
+    - **Azure DevOps 整合**：利用 YouTube 資料更新自動化工作流
+    - <strong>即時文件擷取</strong>：Python 控制台客戶端搭配串流 HTTP
+    - <strong>互動學習計劃生成器</strong>：Chainlit 網頁應用與會話式 AI
+    - <strong>編輯器內文件</strong>：VS Code 整合 GitHub Copilot 工作流
+    - **Azure API 管理**：企業 API 整合與 MCP 伺服器建置
+    - **GitHub MCP 註冊表**：生態系統開發與代理整合平台
+    - 覆蓋企業整合、開發者效率與生態系統開發的實作範例
 
-11. **實務工作坊 (10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/)**
-    - 將 MCP 與 AI 工具包結合的完整實務工作坊
-    - 建構智慧應用，橋接 AI 模型與真實工具
-    - 覆蓋基礎、客製伺服器開發與生產部署策略的實務模組
+11. **實作工作坊 (10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/)**
+    - 結合 MCP 與 AI 工具包的實作工作坊
+    - 構建結合 AI 模型與實際工具的智慧應用
+    - 實務模塊涵蓋基礎、客製伺服器開發及生產部署策略
     - <strong>實驗室結構</strong>：
       - Lab 1：MCP 伺服器基礎
       - Lab 2：進階 MCP 伺服器開發
       - Lab 3：AI 工具包整合
-      - Lab 4：生產部署與擴充
-    - 以實驗室為主的逐步教學
+      - Lab 4：生產部署與擴展
+    - 實驗室學習方式，逐步指導
 
 12. **MCP 伺服器資料庫整合實驗室 (11-MCPServerHandsOnLabs/)**
-    - **涵蓋 13 個實驗室的完整學習路徑**，用以建置生產就緒的 MCP 伺服器並整合 PostgreSQL
-    - <strong>真實零售分析實作</strong>：採用 Zava Retail 範例
-    - <strong>企業級模式</strong>：包含行級安全 (RLS)、語意搜尋與多租戶資料存取
+    - **全面 13 個實驗室學習路徑**，建構生產級 MCP 伺服器並整合 PostgreSQL
+    - <strong>實務零售分析應用</strong>：使用 Zava Retail 案例
+    - <strong>企業級模式</strong>：行級安全（RLS）、語義搜尋及多租戶資料存取
     - <strong>完整實驗室結構</strong>：
-      - **Labs 00-03：基礎** - 簡介、架構、安全、環境設置
-      - **Labs 04-06：建置 MCP 伺服器** - 資料庫設計、MCP 伺服器實作、工具開發
-      - **Labs 07-09：進階特性** - 語意搜尋、測試與除錯、VS Code 整合
-      - **Labs 10-12：生產及最佳實務** - 部署、監控、優化
+      - **Lab 00-03：基礎** - 介紹、架構、安全、環境設定
+      - **Lab 04-06：建構 MCP 伺服器** - 資料庫設計、MCP 伺服器實作、工具開發
+      - **Lab 07-09：進階功能** - 語義搜尋、測試與除錯、VS Code 整合
+      - **Lab 10-12：生產與最佳實務** - 部署、監控、優化
     - <strong>涵蓋技術</strong>：FastMCP 框架、PostgreSQL、Azure OpenAI、Azure Container Apps、Application Insights
-    - <strong>學習成果</strong>：生產就緒 MCP 伺服器、資料庫整合模式、AI 驅動分析、企業安全
+    - <strong>學習成果</strong>：生產可用 MCP 伺服器、資料庫整合模式、AI 驅動分析、企業安全
+
+13. **工具 (12-tooling/)**
+    - 學習如何在 Copilot 應用和其他工具中使用 MCP
 
 ## 附加資源
 
-倉庫包含輔助資源：
+本倉庫包含支援資源：
 
-- **Images 資料夾**：包含整個課程使用的圖表與示意圖
-- <strong>翻譯</strong>：多語言支援與自動化文件翻譯
+- <strong>圖片資料夾</strong>：課程中使用的圖表與示意圖
+- <strong>翻譯</strong>：文件的多語言與自動翻譯支持
 - **官方 MCP 資源**：
   - [MCP 文件](https://modelcontextprotocol.io/)
   - [MCP 規範](https://spec.modelcontextprotocol.io/)
@@ -267,26 +273,26 @@ mindmap
 
 ## 如何使用本倉庫
 
-1. <strong>依序學習</strong>：依照章節順序（00 到 11）進行系統化學習。
-2. <strong>專注語言</strong>：若偏好特定程式語言，探索相應的 samples 目錄中的實作。
-3. <strong>實務入門</strong>：從「入門指南」開始，設置環境並建立第一個 MCP 伺服器與客戶端。
-4. <strong>進階探索</strong>：掌握基礎後，深入進階主題擴展知識。
-5. <strong>社群參與</strong>：透過 GitHub 討論及 Discord 頻道加入 MCP 社群，與專家及開發者交流。
+1. <strong>依序學習</strong>：按照章節順序（00 至 11）進行結構化學習。
+2. <strong>語言專攻</strong>：如對特定編程語言感興趣，探索對應語言的範例資料夾。
+3. <strong>實務起步</strong>：先從「快速入門」開始，建立環境並製作第一個 MCP 伺服器與客戶端。
+4. <strong>進階探索</strong>：熟悉基礎後，深入研究進階主題擴展知識。
+5. <strong>社群互動</strong>：加入 MCP GitHub 討論及 Discord 頻道，與專家及開發者交流。
 
 ## MCP 客戶端與工具
 
-課程涵蓋各種 MCP 客戶端與工具：
+課程囊括多種 MCP 客戶端與工具：
 
 1. <strong>官方客戶端</strong>：
    - Visual Studio Code
-   - MCP Visual Studio Code 插件
+   - MCP Visual Studio Code 擴充套件
    - Claude Desktop
-   - Claude VSCode 插件
+   - Claude VSCode 外掛
    - Claude API
 
 2. <strong>社群客戶端</strong>：
-   - Cline（終端機）
-   - Cursor（程式編輯器）
+   - Cline（終端機版）
+   - Cursor（程式碼編輯器）
    - ChatMCP
    - Windsurf
 
@@ -298,11 +304,11 @@ mindmap
 
 ## 熱門 MCP 伺服器
 
-倉庫介紹多種 MCP 伺服器，包括：
+本倉庫介紹多款 MCP 伺服器，包括：
 
-1. **官方 Microsoft MCP 伺服器**：
+1. **微軟官方 MCP 伺服器**：
    - Microsoft Learn Docs MCP 伺服器
-   - Azure MCP 伺服器（15+ 專用連接器）
+   - Azure MCP 伺服器（超過 15 種專用連接器）
    - GitHub MCP 伺服器
    - Azure DevOps MCP 伺服器
    - MarkItDown MCP 伺服器
@@ -313,10 +319,10 @@ mindmap
    - Microsoft 365 Agents Toolkit MCP 伺服器
 
 2. <strong>官方參考伺服器</strong>：
-   - 檔案系統
+   - 文件系統
    - Fetch
-   - Memory
-   - Sequential Thinking
+   - 記憶體
+   - 順序思考
 
 3. <strong>圖像生成</strong>：
    - Azure OpenAI DALL-E 3
@@ -326,20 +332,20 @@ mindmap
 4. <strong>開發工具</strong>：
    - Git MCP
    - 終端機控制
-   - 程式助手
+   - 程式碼助理
 
 5. <strong>專用伺服器</strong>：
    - Salesforce
    - Microsoft Teams
    - Jira 與 Confluence
 
-## 貢獻方式
+## 貢獻
 
-本倉庫歡迎社群貢獻。請參閱社群貢獻章節，了解如何有效參與 MCP 生態系統。
+本倉庫歡迎社群貢獻。請參見社群貢獻章節，了解如何有效地參與 MCP 生態系統。
 
 ----
 
-*本學習指南最後更新於 2026 年 2 月 5 日，反映 MCP 規範 2025-11-25 的最新版本，並提供該日期時倉庫的概覽。倉庫內容可能於該日期後更新。*
+*本學習指南最後更新於 2026 年 2 月 5 日，反映最新 MCP 規範 2025-11-25，並提供當時倉庫內容概覽。倉庫內容可能於該日期後更新。*
 
 ---
 

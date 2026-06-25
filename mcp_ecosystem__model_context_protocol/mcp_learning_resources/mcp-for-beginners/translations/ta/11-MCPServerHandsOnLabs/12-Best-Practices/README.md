@@ -1,57 +1,57 @@
-# சிறந்த நடைமுறைகள் மற்றும் மேம்பாடு
+# சிறந்த நடைமுறை மற்றும் பரிமாற்றம்
 
-## 🎯 இந்த ஆய்வகத்தில் என்ன கற்றுக்கொள்வீர்கள்
+## 🎯 இந்த பயிற்சி முகாம் என்ன கவர்கிறது
 
-இந்த முக்கிய ஆய்வகத்தில், தரமான, விரிவாக்கக்கூடிய மற்றும் பாதுகாப்பான MCP சர்வர்களை தரவுத்தொகுப்பு ஒருங்கிணைப்புடன் உருவாக்குவதற்கான சிறந்த நடைமுறைகள், மேம்பாட்டு உத்திகள் மற்றும் உற்பத்தி வழிகாட்டுதல்கள் ஒருங்கிணைக்கப்படுகின்றன. உற்பத்தி தரமான செயல்பாட்டை உறுதிப்படுத்த, நீங்கள் உண்மையான உலக அனுபவம் மற்றும் தொழில்துறை தரநிலைகளிலிருந்து கற்றுக்கொள்வீர்கள்.
+இந்த முடிவு பயிற்சி முகாம் மிகச் சிறந்த நடைமுறை, செயல்திறன் மேம்பாட்டு தொழில்நுட்பங்கள் மற்றும் தரவுத்தள ஒருங்கிணைப்புடன் உறுதியான, அளவிடக்கூடிய மற்றும் பாதுகாப்பான MCP சர்வர்களை கட்டுவதற்கான உற்பத்தியியல் வழிகாட்டுதல்கள் ஆகியவற்றை ஒருங்கிணைக்கிறது. உங்கள் நடைமுறையைக் உற்பத்திக்கு தயாராக வைத்திருக்க, நீங்கள் உண்மையான அனுபவத்திலும் தொழில்துறை நிலைகளிலும் கற்றுக்கொள்வீர்கள்.
 
 ## கண்ணோட்டம்
 
-ஒரு MCP சர்வரை வெற்றிகரமாக உருவாக்குவது, கோடுகளை செயல்படுத்துவதில் மட்டுப்படுத்தப்படுவதில்லை. இந்த ஆய்வகத்தில், சான்று-ஆஃப்-கான்செப்ட் செயல்பாடுகளை உற்பத்தி தரமான, விரிவாக்கக்கூடிய, நம்பகமான மற்றும் பாதுகாப்பு தரநிலைகளை பராமரிக்கும் அமைப்புகளாக மாற்றுவதற்கான முக்கிய நடைமுறைகள் உள்ளடக்கப்பட்டுள்ளன.
+வெற்றிகரமான MCP சர்வரை கட்டுவது என்பது கோடுகளை இயங்கச் செய்வதைவிட மேலும் அதிகமானது. இந்த பயிற்சி முகாம், உண்மையிலும் அளவிடக்கூடிய முறையில் செயல்படக்கூடிய, நம்பகத்தன்மையுடனும் பாதுகாப்பு தரநிலைகளை பராமரிக்கும் உற்பத்தி-தயார் அமைப்புகளுக்கு முந்திய டிக்கட்டுகளை பொருத்தும் அவசியமான நடைமுறைகளைக் கொண்டுள்ளது.
 
-இந்த சிறந்த நடைமுறைகள் உண்மையான உலகப் பயன்பாடுகள், சமூக கருத்துகள் மற்றும் நிறுவன செயல்பாடுகளில் இருந்து கற்றுக்கொண்ட பாடங்களின் அடிப்படையில் உருவாக்கப்பட்டவை.
+இந்த சிறந்த நடைமுறைகள் என்பது உண்மையான உலகு பயன்பாடுகள், சமூக கருத்து மற்றும் நிறுவன நடைமுறைகளிலிருந்து கற்றுக்கொள்ளப்பட்ட பாடங்களில் இருந்து பெறப்பட்டவை.
 
-## கற்றல் நோக்கங்கள்
+## கற்றல் இலக்குகள்
 
-இந்த ஆய்வகத்தின் முடிவில், நீங்கள்:
+இந்த பயிற்சி முகாம் முடியும் போது, நீங்கள்:
 
-- **செயல்படுத்த** MCP சர்வர்கள் மற்றும் தரவுத்தொகுப்புகளுக்கான செயல்திறன் மேம்பாட்டு உத்திகள்  
-- **செயல்படுத்த** முழுமையான பாதுகாப்பு கடினமாக்கல் நடவடிக்கைகள்  
-- **வடிவமைக்க** உற்பத்தி சூழலுக்கான விரிவாக்கக்கூடிய கட்டமைப்பு முறை  
-- **நிறுவ** கண்காணிப்பு, பராமரிப்பு மற்றும் செயல்பாட்டு நடைமுறைகள்  
-- **மேம்படுத்த** செலவுகளை, செயல்திறன் மற்றும் நம்பகத்தன்மையை பராமரிக்கும்போது  
-- **பங்களிக்க** MCP சமூகத்திற்கும் சூழலுக்கும்  
+- **பயன்படுத்த** MCP சர்வர்கள் மற்றும் தரவுத்தளங்களுக்கான செயல்திறன் மேம்பாட்டு தொழில்நுட்பங்கள்  
+- **உழைத்திருத்த** விரிவான பாதுகாப்பு கடுமைப்படுத்தல் முன்னெடுப்புகள்  
+- **வடிவு** உற்பத்தி சூழல்களுக்கான அளவிடக்கூடிய கட்டமைப்பு மாதிரிகள்  
+- **நிறைவேற்ற** கண்காணிப்பு, பராமரிப்பு மற்றும் செயல்பாட்டு நடைமுறைகள்  
+- **பரிசுத்தம்** செலவுகளை செயல்திறன் மற்றும் நம்பகத்தன்மையை பராமரித்து மேம்படுத்த  
+- **யோடுகொடு** MCP சமூகத்திற்கும் சூழல்கூட்டிக்குமான பங்களிப்பு  
+  
+## 🚀 செயல்திறன் மேம்படுத்தல்
 
-## 🚀 செயல்திறன் மேம்பாடு
+### தரவுத்தள செயல்திறன்
 
-### தரவுத்தொகுப்பு செயல்திறன்
-
-#### இணைப்பு குளம் மேம்பாடு
+#### இணைப்பு குளிர்ச்சி மேம்பாடு
 
 ```python
-# Optimized connection pool configuration
+# மேம்படுத்திய இணைப்பு குளம் அமைப்பு
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # அளவு அமைப்பு
+    "min_size": max(2, cpu_count()),           # குறைந்தது 2, CPU மீது அளவுகோல்
+    "max_size": min(20, cpu_count() * 4),     # அவசியமான அதிகபட்சத்தில் சிறப்பு
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # நேர அமைப்பு
+    "max_inactive_connection_lifetime": 300,   # 5 நிமிடங்கள்
+    "command_timeout": 30,                     # 30 வினாடிகள்
+    "max_queries": 50000,                      # இணைப்புகளை சுழற்றவும்
     
-    # PostgreSQL settings
+    # PostgreSQL அமைப்புகள்
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # ஒத்திசைவுக்கு நிறுத்தவும்
+        "work_mem": "8MB",                     # கேள்விகளுக்கு மேம்படுத்தவும்
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # மாற்றங்களை மட்டும் பதிவு செய்யவும்
+        "log_min_duration_statement": "1s",   # மெதுவான கேள்விகளை பதிவு செய்யவும்
     }
 }
 ```
-  
-#### கேள்வி மேம்பாட்டு முறை
+
+#### வினவல் மேம்பாட்டு மாதிரிகள்
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # வினாடிகள்
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # முதலில் கேஷை சரிபார்க்கவும்
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # கண்காணிப்புடன் செயல்படுத்தவும்
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # விசாரணை செயல்பாட்டை மேம்படுத்தவும்
+                await conn.execute("SET enable_seqscan = off")  # குறியீடுகளை முன்னுரிமை கொடுங்கள்
+                await conn.execute("SET work_mem = '16MB'")     # இந்தக் கேள்விக்காக அதிக நினைவகம்
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # மெதுவான கேள்விகளை பதிவு செய்யவும்
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # வெற்றிகரமான முடிவுகளை கேஷ் செய்யவும்
+                if cache_key and len(result) < 1000:  # பெரிய முடிவுகளை கேஷ் செய்யாதீர்கள்
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# குறியீட்டு பரிந்துரைகள்
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # முக்கிய வியாபார குறியீடுகள்
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # பகுப்பாய்வு குறியீடுகள்
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # வெக்டர் தேடல் மேம்பாடு
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
-### பயன்பாட்டு செயல்திறன்
+### செயலி செயல்திறன்
 
-#### அசிங்க செயல்பாட்டு சிறந்த நடைமுறைகள்
+#### அசிங்கிரோனஸ் நிரலாக்க சிறந்த நடைமுறைகள்
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # அமைப்பை மிகுதியாகச் செய்யாத வகையில் தொகுதிகளில் செயலாக்கவும்
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # வள நாசத்தைத் தடுக்கும் வகையில் தொகுதிகளுக்கு இடையில் சிறிய இடைவெளை
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# மின்கரட்டு தடுப்பான் செயல்படுத்தல்
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # மூடப்பட்டது, திறந்தது, பாதி_திறந்தது
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # வெற்றியடைந்ததும் மீட்டமைக்கவும்
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,9 +214,8 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
-### கேஷிங் உத்திகள்
+### கேச்சிங் திட்டங்கள்
 
 ```python
 import redis
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # நிலை 1: நினைவக தளிர்ச்சி
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # நிலை 2: ரெடிஸ் தளிர்ச்சி
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # நினைவக தளிர்ச்சிக்கு முன்னேற்றவும்
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # LRU அகற்றலை அமல்படுத்து
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# தளிர்ச்சி விசை உருவாக்கல்
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,11 +303,10 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
-## 🔒 பாதுகாப்பு கடினமாக்கல்
+## 🔒 பாதுகாப்பு கடுமைப்படுத்தல்
 
-### அங்கீகாரம் மற்றும் அனுமதி
+### அங்கீகாரம் மற்றும் அங்கீகாரம் வழங்கல்
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # சான்றிதழை எடுக்கவும் மற்றும் சரிபார்க்கவும்
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # டோக்கனை சரிபார்க்கவும்
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # வீத வரம்பை சரிபார்க்கவும்
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # RLS பொருளாதாரத்தை சரிபார்க்கவும்
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # ஐதங்கள் குவையிலிருந்து அல்லது மெமரியில் இருந்து பொதுக்கீதையைப் பெறுக
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # டோக்கனை பாகுபடுத்தி சரிபார்க்கவும்
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # சூப்பர் நிர்வாகிகள் எந்தவொரு பொருளாதாரத்திற்கும் அணுகலாம்
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # கடை மேலாளர்கள் தங்களுடைய கடைக்கே மட்டும் அணுகலாம்
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # பிராந்திய மேலாளர்கள் பல கடைகளுக்கு அணுகலாம்
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# உள்ளீட்டு சரிபார்ப்பு மற்றும் அலுவலகம் செய்யுதல்
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # தடை செய்யப்பட்ட வடிவங்கள்
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # SELECT அறிக்கைகளையே அனுமதி கொள்ளவும்
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,19 +439,18 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # எழுத்து எண்கள், கீழ்க்கோடு மற்றும் புள்ளியை மட்டும் அனுமதி செய்யவும்
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # அனுமதிக்கப்பட்ட அட்டவணைகளுக்கு எதிராக சரிபார்க்கவும்
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
-### தரவுப் பாதுகாப்பு
+### தரவு பாதுகாப்பு
 
 ```python
 from cryptography.fernet import Fernet
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # தயாரிப்பில், Azure முக்கியக் கேள்வகத்தில் இருந்து பெறுக
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # வளர்ச்சிக்கான மாற்று வழி (தயாரிப்பிற்கல்ல!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # முறைமைகள்
         ).hex()
         
         return password_hash, salt
@@ -527,11 +523,10 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
-## 📊 உற்பத்தி வெளியீட்டு வழிகாட்டுதல்கள்
+## 📊 உற்பத்தி பரப்பல் வழிகாட்டுதல்கள்
 
-### குறியீடாக கட்டமைப்பு
+### இணைப்புடன் கட்டமைப்பு (Infrastructure as Code)
 
 ```yaml
 # azure-pipelines.yml
@@ -611,9 +606,8 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
-### கண்டெய்னர் மேம்பாடு
+### கட்ட容器 செயல்திறன் மேம்பாடு
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
-### சூழல் அமைப்பு
+### சூழல் கட்டமைப்பு
 
 ```python
-# Production configuration management
+# தயாரிப்பு அமைப்பு மேலாண்மை
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,27 +715,26 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # மூன்றாம் தரப்பு பதிவாளர்களை எச்சரிக்கை நிலைக்கு அமைக்கவும்
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # டீபக் மோட்டை முடக்கு
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # பாதுகாப்பான தலைப்புகளை அமைக்கவும்
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
 ## 💰 செலவு மேம்பாடு
 
-### வள மேலாண்மை
+### வளங்கள் மேலாண்மை
 
 ```python
 class CostOptimizer:
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # குறைந்த பாரம்
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # நடுத்தர பாரம்
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # அதிக பாரம்
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # கேப் விலை உயர் செயலாக்கங்கள்
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# தானியங்கி விருத்தி அமைப்பு
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPU அடிப்படையிலான விருத்தி
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # நினைவக அடிப்படையிலான விருத்தி
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # கோரிக்கை வரிசை விருத்தி
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,11 +810,10 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 பராமரிப்பு மற்றும் செயல்பாடுகள்
+## 🔧 பராமரிப்பு மற்றும் இயக்கம்
 
-### ஆரோக்கிய கண்காணிப்பு
+### ஆரோக்கியம் கண்காணிப்பு
 
 ```python
 class OperationalHealth:
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # தரவுத்தள சுகாதாரம்
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # வெளியூரி சேவைகள் சுகாதாரம்
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # அமைப்பு வளங்கள்
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # செயலியை அளவுகோல்கள்
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # ஒட்டுமொத்த நிலையை தீர்மானிக்கவும்
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # எர்ட்கள் சுட்டிக்காட்டவும்
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # அடிப்படை இணைப்பு
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # மெதுவாக இயங்கும் கேள்விகளை சரிபார்க்கவும்
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # இணைப்பு எண்ணிக்கையை சரிபார்க்கவும்
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# தான்மையான காப்புப்பிரதி மற்றும் மீட்பு
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # அசுரு பிளாப் சேமிப்பிடம் பதிவேற்றவும்
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,17 +932,16 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # தினசரி முழு காப்புப்பிரதி 2 மணி காலை யூடிசி
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # மணிக்கு முறையாக கூட்டு காப்புப்பிரதிகள்
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
 ## 🌍 சமூக பங்களிப்புகள்
 
@@ -994,7 +984,6 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
 ### சமூக ஈடுபாடு
 
@@ -1036,80 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # உண்மையான பரிசோதனைகளை அமல்படுத்துவார்
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 முக்கிய எடுத்துக்காட்டுகள்
+## 🎯 முக்கிய சிறப்பம்சங்கள்
 
-இந்த விரிவான கற்றல் பாதையை முடித்த பிறகு, நீங்கள் கற்றுக்கொண்டிருப்பீர்கள்:
+இந்த விரிவான கற்றல் பாதையை முடித்த பிறகு, நீங்கள் கற்றுகொண்டிருப்பீர்கள்:
 
-✅ **செயல்திறன் மேம்பாடு**: தரவுத்தொகுப்பு சீரமைப்பு, அசிங்க முறை மற்றும் கேஷிங் உத்திகள்  
-✅ **பாதுகாப்பு கடினமாக்கல்**: அங்கீகாரம், அனுமதி மற்றும் தரவுப் பாதுகாப்பு  
-✅ **உற்பத்தி வெளியீடு**: குறியீடாக கட்டமைப்பு மற்றும் கண்டெய்னர் மேம்பாடு  
-✅ **செலவுக் கட்டுப்பாடு**: வள மேம்பாடு மற்றும் புத்திசாலி விரிவாக்கம்  
-✅ **செயல்பாட்டு சிறப்புமிக்க தன்மை**: கண்காணிப்பு, பராமரிப்பு மற்றும் தானியங்குதல்  
+✅ **செயல்திறன் மேம்பாடு**: தரவுத்தள முனையமைப்பு, அசிங்க்ரோன் மாதிரிகள் மற்றும் கேச்சிங் திட்டங்கள்  
+✅ **பாதுகாப்பு கடுமைப்படுத்தல்**: அங்கீகாரம், அங்கீகாரம் வழங்கல் மற்றும் தரவு பாதுகாப்பு  
+✅ **உற்பத்தி பரப்பல்**: இணைப்புடன் கட்டமைப்பு மற்றும் கட்ட容器 செயல்திறன் மேம்பாடு  
+✅ **செலவு மேலாண்மை**: வள மேம்பாடு மற்றும் புத்திசாலி அளவிடல்  
+✅ **செயல்பாட்டு சிறப்பமைவு**: கண்காணிப்பு, பராமரிப்பு மற்றும் தானாக செயலாக்கம்  
 ✅ **சமூக ஈடுபாடு**: MCP சூழலுக்கு பங்களிப்பு  
 
 ## 🏆 சான்றிதழ் மற்றும் அடுத்த படிகள்
 
 ### நடைமுறை மதிப்பீடு
 
-உங்கள் திறமையை நிரூபிக்க இந்த இறுதி திட்டத்தை முடிக்கவும்:
+உங்கள் திறமையை காட்ட இந்த இறுதி திட்டத்தை முடிக்கவும்:
 
-**உற்பத்தி தரமான MCP சர்வரை உருவாக்கவும்**, இதில் அடங்கும்:  
-- [ ] RLS உடன் பன்முக வணிக பகுப்பாய்வு  
-- [ ] Azure OpenAI உடன் அர்த்தமுள்ள தேடல்  
-- [ ] முழுமையான பாதுகாப்பு செயல்பாடு  
-- [ ] Azure-ல் உற்பத்தி வெளியீடு  
-- [ ] கண்காணிப்பு மற்றும் எச்சரிக்கை அமைப்பு  
-- [ ] ஆவணங்கள் மற்றும் சோதனை  
+**உற்பத்தி-தயார் MCP சர்வர் கட்டவும்** இது கீழ்க்காணும் அம்சங்களை கொண்டுள்ளது:  
+- [ ] RLS உடன் பல-வாடிக்கையாளர் சில்லறை பகுப்பு  
+- [ ] Azure OpenAI உடன் கருத்துப்படுத்தல் தேடல்  
+- [ ] விரிவான பாதுகாப்பு நடைமுறைகள்  
+- [ ] Azure உற்பத்தி பரப்பல்  
+- [ ] கண்காணிப்பு மற்றும் உத்தரவாத அமைப்பு  
+- [ ] ஆவணப்படுத்தல் மற்றும் சோதனை
 
 ### மேம்பட்ட கற்றல் பாதைகள்
 
-உங்கள் MCP பயணத்தை தொடரவும்:
+உங்கள் MCP பயணத்தை தொடருங்கள்:
 
-- **MCP கட்டமைப்பு முறைகள்**: மேம்பட்ட சர்வர் கட்டமைப்புகள்  
-- **பன்மாதிரி ஒருங்கிணைப்பு**: பல AI மாதிரிகளை இணைத்தல்  
-- **நிறுவன அளவு**: பெரிய MCP வெளியீடுகள்  
-- **தனிப்பயன் கருவி மேம்பாடு**: சிறப்பு MCP கருவிகளை உருவாக்குதல்  
-- **MCP சூழல்**: பரந்த சமூகத்திற்கும் பங்களிப்பு  
+- **MCP கட்டமைப்பு மாதிரிகள்**: மேம்பட்ட சர்வர் கட்டமைப்புகள்  
+- **பல மாதிரி ஒருங்கிணைப்பு**: பல்வேறு AI மாதிரிகளை ஒருங்கிணைத்தல்  
+- **நிறுவன அளவு**: பெரிய அளவிலான MCP பயன்பாடுகள்  
+- **தனிப்பயன் கருவி மேம்பாடு**: சிறப்பு MCP கருவிகள் கட்டமைத்தல்  
+- **MCP சூழல்**: பரந்த சமூகத்திற்கான பங்களிப்பு
 
 ### சமூக அங்கீகாரம்
 
 உங்கள் சாதனையை பகிரவும்:  
-- **GitHub போர்ட்ஃபோலியோ**: உங்கள் செயல்பாட்டை காட்டு  
+- **GitHub போர்ட்ஃபோலியோ**: உங்கள் நடைமுறையை வெளிப்படுத்தவும்  
 - **சமூக பங்களிப்புகள்**: மேம்பாடுகள் அல்லது எடுத்துக்காட்டுகளை சமர்ப்பிக்கவும்  
-- **பேச்சு வாய்ப்புகள்**: சந்திப்புகள் அல்லது மாநாடுகளில் வழங்கவும்  
-- **மார்க்கெட்டிங்**: பிற டெவலப்பர்களுக்கு MCP கற்றுக்கொடுக்க உதவவும்  
+- **மொழியமைப்பு வாய்ப்புகள்**: சந்திப்புகள் அல்லது மாநாடுகளில் வழங்கவும்  
+- **அறிவுரை வழங்குதல்**: பிற டெவலப்பர்களுக்கு MCP கற்றுக்கொடுக்கும் உதவி  
 
-## 📚 கூடுதல் வளங்கள்
+## 📚 கூடுதல் ஆதாரங்கள்
 
-### மேம்பட்ட தலைப்புகள்  
-- [PostgreSQL செயல்திறன் சீரமைப்பு](https://www.postgresql.org/docs/current/performance-tips.html) - தரவுத்தொகுப்பு மேம்பாடு  
-- [Azure Container Apps சிறந்த நடைமுறைகள்](https://docs.microsoft.com/azure/container-apps/overview) - உற்பத்தி வெளியீடு  
-- [Python Async சிறந்த நடைமுறைகள்](https://docs.python.org/3/library/asyncio-dev.html) - அசிங்க செயல்பாடு  
+### மேம்பட்ட தலைப்புகள்
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - தரவுத்தள மேம்பாடு  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - உற்பத்தி பரப்புதல்  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - அசிங்கிரோனஸ் நிரலாக்கம்  
 
-### பாதுகாப்பு வளங்கள்  
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - பாதுகாப்பு பாதிப்புகள்  
-- [Azure பாதுகாப்பு சிறந்த நடைமுறைகள்](https://docs.microsoft.com/azure/security/) - மேக பாதுகாப்பு  
-- [Python பாதுகாப்பு வழிகாட்டுதல்கள்](https://python.org/dev/security/) - பாதுகாப்பான குறியீடு  
+### பாதுகாப்பு ஆதாரங்கள்
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - பாதுகாப்பு பலவீனங்கள்  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - மேघக் பாதுகாப்பு  
+- [Python Security Guidelines](https://python.org/dev/security/) - பாதுகாப்பான நிரலாக்கம்  
 
-### சமூக  
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - நேரடி விவாதங்கள்  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - கேள்விகள் மற்றும் பகிர்வு  
+### சமூக
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - நேரடி கலந்துரையாடல்கள்  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - கேள்வி & பதில் மற்றும் பகிர்வு  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - தொழில்நுட்ப கேள்விகள்  
 
 ---
 
-**🎉 வாழ்த்துக்கள்!** நீங்கள் விரிவான MCP தரவுத்தொகுப்பு ஒருங்கிணைப்பு கற்றல் பாதையை முடித்துவிட்டீர்கள். உண்மையான தரவுத்தொகுப்பு அமைப்புகளுடன் AI உதவிகளை இணைக்கும் உற்பத்தி தரமான MCP சர்வர்களை உருவாக்குவதற்கான அறிவும் திறனும் உங்களிடம் உள்ளது.
+**🎉 வாழ்த்துக்கள்!** நீங்கள் விரிவான MCP தரவுத்தள ஒருங்கிணைப்பு கற்றல் பாதையை முடித்துவிட்டீர்கள். இப்போது நீங்கள் உண்மையான உலக தரவுத் திட்டங்களுடன் AI உதவியாளர்களை இணைக்கும் உற்பத்தி-தயார் MCP சர்வர்களை கட்டுவதற்கான அறிவு மற்றும் திறமைகள் பெற்றுள்ளீர்கள்.
 
-**பங்களிக்க தயாரா?** உங்கள் அனுபவங்களைப் பகிர்ந்து, குறியீடு மேம்பாடுகளைச் சேர்த்து அல்லது கூடுதல் கற்றல் வளங்களை உருவாக்குவதன் மூலம் MCP கற்றுக்கொள்வதற்கு பிறருக்கு உதவ, எங்கள் சமூகத்தில் சேரவும்.
+**பங்களிக்க தயாரா?** எமது சமூகத்துடன் சேர்ந்து மற்றவர்களுக்கும் MCP கற்றுக்கொள்ள உதவுங்கள், உங்கள் அனுபவங்களை பகிர்ந்து, குறியீடு மேம்பாடுகள் செய்யவும் அல்லது கூடுதல் கற்றல் ஆதாரங்கள் உருவாக்கவும்.
+
+**அடுத்து**: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**குறிப்பு**:  
-இந்த ஆவணம் [Co-op Translator](https://github.com/Azure/co-op-translator) என்ற AI மொழிபெயர்ப்பு சேவையைப் பயன்படுத்தி மொழிபெயர்க்கப்பட்டுள்ளது. நாங்கள் துல்லியத்திற்காக முயற்சிக்கின்றோம், ஆனால் தானியக்க மொழிபெயர்ப்புகளில் பிழைகள் அல்லது தவறான தகவல்கள் இருக்கக்கூடும் என்பதை தயவுசெய்து கவனத்தில் கொள்ளுங்கள். அதன் தாய்மொழியில் உள்ள மூல ஆவணம் அதிகாரப்பூர்வ ஆதாரமாக கருதப்பட வேண்டும். முக்கியமான தகவல்களுக்கு, தொழில்முறை மனித மொழிபெயர்ப்பு பரிந்துரைக்கப்படுகிறது. இந்த மொழிபெயர்ப்பைப் பயன்படுத்துவதால் ஏற்படும் எந்தவொரு தவறான புரிதல்கள் அல்லது தவறான விளக்கங்களுக்கு நாங்கள் பொறுப்பல்ல.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**மறுப்பு**:
+இந்த ஆவணம் AI மொழிபெயர்ப்பு சேவை [Co-op Translator](https://github.com/Azure/co-op-translator) பயன்படுத்தி மொழிபெயர்க்கப்பட்டுள்ளது. நாங்கள் துல்லியத்திற்காக முயற்சி செய்துள்ளோம், ஆனால் தானாக செய்யப்படும் மொழிபெயர்ப்புகளில் பிழைகள் அல்லது தவறுகள் இருக்கலாம் என்பதை கவனத்தில் கொள்ளவும். அசல் ஆவணம் அதன் தாய்மொழியில் அதிகாரப்பூர்வ ஆதாரமாக கருதப்பட வேண்டும். முக்கியமான தகவல்களுக்கு, தொழில்நுட்பமான மனித மொழிபெயர்ப்பு பரிந்துரைக்கப்படுகிறது. இந்த மொழிபெயர்ப்பைப் பயன்படுத்துவதால் ஏற்படும் எந்த தவறான புரிதல்கள் அல்லது தவறான விளக்கத்திற்கும் நாங்கள் பொறுப்பில்வில்லை.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

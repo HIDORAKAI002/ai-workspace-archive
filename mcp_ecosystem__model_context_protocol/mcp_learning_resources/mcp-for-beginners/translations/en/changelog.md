@@ -2,6 +2,13 @@
 
 This document serves as a record of all significant changes made to the Model Context Protocol (MCP) for Beginners curriculum. Changes are documented in reverse chronological order (newest changes first).
 
+## June 24th, 2026
+
+### New Lesson: Using MCP in Copilot app
+
+- [Tooling section](./12-tooling/README.md) Added tooling section.
+- [MCP in Copilot app](./12-tooling/01-copilot-app/README.md)
+
 ## June 16, 2026
 
 ### MCP Specification Alignment & Sample Validation
@@ -353,6 +360,7 @@ Added lessons 5.15 (Custom Transport) and 5.16 (Protocol Features)
   - **Regular vs. Low-Level Server**: Detailed comparison and code examples in Python and TypeScript for both approaches.
   - **Handler-Based Design**: Explanation of handler-based tool/resource/prompt management for scalable, flexible server implementations.
   - **Practical Patterns**: Real-world scenarios where low-level server patterns are beneficial for advanced features and architecture.
+
 #### Simple Authentication (03-GettingStarted/11-simple-auth)
 - **New Chapter Added**: Step-by-step guide to implementing simple authentication in MCP servers.
   - **Auth Concepts**: Clear explanation of authentication vs. authorization, and credential handling.
@@ -547,9 +555,9 @@ These additions provide practical, hands-on guidance for building more robust, s
   - **Advanced Threat Mitigation**: Comprehensive implementation examples for
     - Confused Deputy Attack Prevention with PKCE and user consent validation
     - Token Passthrough Prevention with audience validation and secure token management
-    - Session Hijacking Prevention with cryptographic binding and behavioral analysis
-  - **Enterprise Security Integration**: Azure Application Insights monitoring, threat detection pipelines, and supply chain security
-  - **Implementation Checklist**: Clear mandatory vs. recommended security controls with Microsoft security ecosystem benefits
+- Session Hijacking Prevention with cryptographic binding and behavioral analysis
+- **Enterprise Security Integration**: Azure Application Insights monitoring, threat detection pipelines, and supply chain security
+- **Implementation Checklist**: Clear mandatory vs. recommended security controls with Microsoft security ecosystem benefits
 
 ### Documentation Quality & Standards Alignment
 - **Specification References**: Updated all references to current MCP Specification 2025-06-18

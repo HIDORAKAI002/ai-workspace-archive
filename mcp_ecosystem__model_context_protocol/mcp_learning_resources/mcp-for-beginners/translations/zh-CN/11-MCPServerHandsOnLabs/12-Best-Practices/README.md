@@ -1,25 +1,25 @@
 # 最佳实践与优化
 
-## 🎯 本实验内容
+## 🎯 本实验涵盖内容
 
-本综合实验汇总了构建稳健、可扩展且安全的集成数据库的MCP服务器的最佳实践、优化技术和生产指南。您将从实际经验和行业标准中学习，确保您的实现达到生产级别的要求。
+本结业实验汇总了构建稳健、可扩展且安全的 MCP 服务器（含数据库集成）的最佳实践、优化技术和生产指导原则。您将学习到真实世界经验和行业标准，确保您的实现具备生产环境准备能力。
 
 ## 概述
 
-构建一个成功的MCP服务器不仅仅是让代码运行起来。本实验涵盖了将概念验证实现与生产级系统区分开来的关键实践，这些系统需要具备可扩展性、可靠性和安全性。
+构建成功的 MCP 服务器不仅仅是让代码运行。此实验涵盖了区别于概念验证实现与具备可扩展性、可靠性能和安全标准的生产级系统的关键实践。
 
-这些最佳实践来源于实际部署、社区反馈以及企业实施中的经验教训。
+这些最佳实践源自真实部署、社区反馈和企业实施经验教训。
 
 ## 学习目标
 
 完成本实验后，您将能够：
 
-- **应用** MCP服务器和数据库的性能优化技术  
-- **实施** 全面的安全加固措施  
-- **设计** 适用于生产环境的可扩展架构模式  
-- **建立** 监控、维护和运营程序  
-- **优化** 成本，同时保持性能和可靠性  
-- **贡献** MCP社区和生态系统  
+- <strong>应用</strong> MCP 服务器及数据库的性能优化技术
+- <strong>实施</strong> 全面的安全加固措施
+- <strong>设计</strong> 适用于生产环境的可扩展架构模式
+- <strong>建立</strong> 监控、维护和运维流程
+- <strong>优化</strong> 成本同时保持性能和可靠性
+- <strong>为</strong> MCP 社区和生态贡献力量
 
 ## 🚀 性能优化
 
@@ -28,29 +28,29 @@
 #### 连接池优化
 
 ```python
-# Optimized connection pool configuration
+# 优化的连接池配置
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # 大小配置
+    "min_size": max(2, cpu_count()),           # 至少为2，随CPU扩展
+    "max_size": min(20, cpu_count() * 4),     # 限制在合理的最大值
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # 时间配置
+    "max_inactive_connection_lifetime": 300,   # 5分钟
+    "command_timeout": 30,                     # 30秒
+    "max_queries": 50000,                      # 连接轮换
     
-    # PostgreSQL settings
+    # PostgreSQL设置
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # 为一致性禁用
+        "work_mem": "8MB",                     # 为查询优化
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # 仅记录修改操作
+        "log_min_duration_statement": "1s",   # 记录慢查询
     }
 }
 ```
-  
+
 #### 查询优化模式
 
 ```python
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # 秒
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # 先检查缓存
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # 带监控执行
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # 优化查询执行
+                await conn.execute("SET enable_seqscan = off")  # 优先使用索引
+                await conn.execute("SET work_mem = '16MB'")     # 为此查询分配更多内存
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # 记录慢查询
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # 缓存成功结果
+                if cache_key and len(result) < 1000:  # 不缓存大结果
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,22 +110,21 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# 索引推荐
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # 核心业务索引
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # 分析索引
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # 向量搜索优化
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
 ### 应用性能
 
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # 批量处理以避免系统过载
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # 批次之间的小延迟以防止资源耗尽
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# 断路器实现
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # 关闭，开启，半开启
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # 成功时重置
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +214,6 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
 ### 缓存策略
 
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # 一级：内存缓存
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # 二级：Redis缓存
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # 升级到内存缓存
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # 实现LRU淘汰
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# 缓存键生成
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,11 +303,10 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
 ## 🔒 安全加固
 
-### 身份验证与授权
+### 认证与授权
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # 提取并验证身份认证
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # 验证令牌
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # 检查速率限制
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # 验证RLS上下文
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # 从密钥库或缓存获取公钥
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # 解码并验证令牌
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # 超级管理员可以访问任何上下文
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # 店铺经理只能访问自己的店铺
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # 区域经理可以访问多个店铺
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# 输入验证和净化
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # 禁止的模式
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # 只允许SELECT语句
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,17 +439,16 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # 只允许字母数字、下划线和点
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # 验证允许的表
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
 ### 数据保护
 
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # 在生产环境中，从 Azure Key Vault 获取
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # 开发时的回退（不适用于生产！）
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # 迭代次数
         ).hex()
         
         return password_hash, salt
@@ -527,7 +523,6 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
 ## 📊 生产部署指南
 
@@ -611,7 +606,6 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
 ### 容器优化
 
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
 ### 环境配置
 
 ```python
-# Production configuration management
+# 生产环境配置管理
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,23 +715,22 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # 将第三方日志记录器设为警告级别
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # 禁用调试模式
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # 设置安全头信息
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
 ## 💰 成本优化
 
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # 低负载
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # 中等负载
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # 高负载
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # 缓存高开销操作
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# 自动扩展配置
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # 基于CPU的扩展
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # 基于内存的扩展
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # 请求队列扩展
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,9 +810,8 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 维护与运营
+## 🔧 维护与运维
 
 ### 健康监控
 
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # 数据库健康状况
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # 外部服务健康状况
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # 系统资源
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # 应用程序指标
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # 确定整体状态
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # 触发警报
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # 基本连接性
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # 检查慢查询
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # 检查连接数
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# 自动备份和恢复
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # 上传到Azure Blob存储
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,17 +932,16 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # 每天UTC时间凌晨2点进行全量备份
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # 每小时增量备份
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
 ## 🌍 社区贡献
 
@@ -994,7 +984,6 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
 ### 社区参与
 
@@ -1036,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # 将实现实际检查
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
 ## 🎯 关键要点
 
-完成本综合学习路径后，您应该掌握以下内容：
+完成此综合学习路径后，您应已掌握：
 
-✅ **性能优化**：数据库调优、异步模式和缓存策略  
-✅ **安全加固**：身份验证、授权和数据保护  
-✅ **生产部署**：基础设施即代码和容器优化  
-✅ **成本管理**：资源优化和智能扩展  
-✅ **运营卓越**：监控、维护和自动化  
-✅ **社区参与**：为MCP生态系统做出贡献  
+✅ <strong>性能优化</strong>：数据库调优、异步模式和缓存策略  
+✅ <strong>安全加固</strong>：认证、授权和数据保护  
+✅ <strong>生产部署</strong>：基础设施即代码与容器优化  
+✅ <strong>成本管理</strong>：资源优化和智能扩展  
+✅ <strong>卓越运维</strong>：监控、维护和自动化  
+✅ <strong>社区参与</strong>：为 MCP 生态做贡献  
 
-## 🏆 认证与下一步
+## 🏆 认证与后续步骤
 
 ### 实践评估
 
-完成此最终项目以展示您的掌握程度：
+完成此最终项目以展示您的掌握：
 
-**构建一个生产级MCP服务器**，包括：  
-- [ ] 支持多租户的零售分析（RLS）  
-- [ ] 使用Azure OpenAI实现语义搜索  
-- [ ] 全面的安全实现  
-- [ ] 在Azure上进行生产部署  
-- [ ] 设置监控和警报  
-- [ ] 提供文档和测试  
+**构建一套生产准备的 MCP 服务器**，包括：
+- [ ] 带有 RLS 的多租户零售分析
+- [ ] 使用 Azure OpenAI 的语义搜索
+- [ ] 全面安全实现
+- [ ] Azure 上的生产部署
+- [ ] 监控与报警设置
+- [ ] 文档编写与测试
 
 ### 高级学习路径
 
-继续您的MCP学习之旅：  
-- **MCP架构模式**：高级服务器架构  
-- **多模型集成**：结合不同的AI模型  
-- **企业级扩展**：大规模MCP部署  
-- **定制工具开发**：构建专用MCP工具  
-- **MCP生态系统**：为更广泛的社区做贡献  
+继续您的 MCP 之旅：
+
+- **MCP 架构模式**：高级服务器架构
+- <strong>多模型集成</strong>：结合不同 AI 模型
+- <strong>企业规模</strong>：大规模 MCP 部署
+- <strong>自定义工具开发</strong>：构建专用 MCP 工具
+- **MCP 生态系统**：为更广泛社区做贡献
 
 ### 社区认可
 
-分享您的成就：  
-- **GitHub作品集**：展示您的实现  
-- **社区贡献**：提交改进或示例  
-- **演讲机会**：在聚会或会议上展示  
-- **指导他人**：帮助其他开发者学习MCP  
+分享您的成就：
+- **GitHub 作品集**：展示您的实现
+- <strong>社区贡献</strong>：提交改进或示例
+- <strong>演讲机会</strong>：在聚会或会议中发表
+- <strong>导师指导</strong>：帮助其他开发者学习 MCP
 
-## 📚 附加资源
+## 📚 额外资源
 
 ### 高级主题
-- [PostgreSQL性能调优](https://www.postgresql.org/docs/current/performance-tips.html) - 数据库优化  
-- [Azure容器应用最佳实践](https://docs.microsoft.com/azure/container-apps/overview) - 生产部署  
-- [Python异步最佳实践](https://docs.python.org/3/library/asyncio-dev.html) - 异步编程  
+- [PostgreSQL 性能调优](https://www.postgresql.org/docs/current/performance-tips.html) - 数据库优化
+- [Azure 容器应用最佳实践](https://docs.microsoft.com/azure/container-apps/overview) - 生产部署
+- [Python 异步最佳实践](https://docs.python.org/3/library/asyncio-dev.html) - 异步编程
 
 ### 安全资源
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - 安全漏洞  
-- [Azure安全最佳实践](https://docs.microsoft.com/azure/security/) - 云安全  
-- [Python安全指南](https://python.org/dev/security/) - 安全编码  
+- [OWASP 十大](https://owasp.org/www-project-top-ten/) - 安全漏洞
+- [Azure 安全最佳实践](https://docs.microsoft.com/azure/security/) - 云安全
+- [Python 安全指南](https://python.org/dev/security/) - 安全编码
 
 ### 社区
-- [MCP社区Discord](https://discord.com/invite/ByRwuEEgH4) - 实时讨论  
-- [GitHub讨论](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - 问答与分享  
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - 技术问题  
+- [MCP 社区 Discord](https://discord.com/invite/ByRwuEEgH4) - 实时讨论
+- [GitHub 讨论区](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - 问答和分享
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - 技术问题
 
 ---
 
-**🎉 恭喜！** 您已完成综合的MCP数据库集成学习路径。您现在具备了构建生产级MCP服务器的知识和技能，这些服务器能够将AI助手与现实世界的数据系统连接起来。
+**🎉 恭喜！** 您已完成全面的 MCP 数据库集成学习路径。您现在具备构建连接 AI 助手与现实数据系统的生产级 MCP 服务器的知识和技能。
 
-**准备好贡献了吗？** 加入我们的社区，通过分享您的经验、贡献代码改进或创建额外的学习资源，帮助其他人学习MCP。
+**准备贡献了吗？** 加入我们的社区，通过分享经验、贡献代码改进或创建额外学习资源，帮助他人学习 MCP。
+
+<strong>下一步</strong>: [工具](../../12-tooling/README.md)
 
 ---
 
-**免责声明**：  
-本文档使用AI翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 进行翻译。尽管我们努力确保翻译的准确性，但请注意，自动翻译可能包含错误或不准确之处。原始语言的文档应被视为权威来源。对于关键信息，建议使用专业人工翻译。我们对因使用此翻译而产生的任何误解或误读不承担责任。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免责声明**：
+本文件由 AI 翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻译完成。尽管我们力求准确，但请注意，自动翻译可能包含错误或不准确之处。原始语言版文件应视为权威来源。对于重要信息，建议使用专业人工翻译。我们对因使用本翻译而产生的任何误解或误释不承担责任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

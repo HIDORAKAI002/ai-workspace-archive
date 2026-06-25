@@ -1,94 +1,101 @@
-# Muutosloki: MCP aloittelijoille -oppimateriaali
+# Muutokset: MCP for Beginners -oppimateriaali
 
-Tämä asiakirja toimii tallenteena kaikista merkittävistä muutoksista, jotka on tehty Model Context Protocol (MCP) aloittelijoille -oppimateriaaliin. Muutokset on dokumentoitu käänteisessä kronologisessa järjestyksessä (uusimmat muutokset ensin).
+Tämä asiakirja toimii tallenteena kaikista merkittävistä muutoksista Model Context Protocol (MCP) for Beginners -oppimateriaaliin. Muutokset on kirjattu käänteisessä kronologisessa järjestyksessä (uusimmat muutokset ensin).
+
+## 24. kesäkuuta 2026
+
+### Uusi oppitunti: MCP:n käyttö Copilot-sovelluksessa
+
+- [Työkalut-osio](./12-tooling/README.md) Lisätty työkalut-osio.
+- [MCP Copilot-sovelluksessa](./12-tooling/01-copilot-app/README.md)
 
 ## 16. kesäkuuta 2026
 
-### MCP-spesifikaation yhdenmukaistus ja esimerkkien validointi
+### MCP-määrityksen yhdenmukaistus ja esimerkkien validointi
 
-Varmistettiin oppimateriaalin vastaavuus nykyisen **MCP Specification 2025-11-25** -version ja uusimpien virallisten SDK:iden kanssa, korjattiin jäljellä olevat vanhentuneet spesifikaatio-viittaukset ja varmistettiin, että ydinesimerkit edelleen kääntyvät ja toimivat.
+Varmistettiin oppimateriaali nykyisellä **MCP Specification 2025-11-25** -määrityksellä sekä uusimmilla virallisilla SDK:illa, korjattiin vanhentuneet määritystilviitteet ja vahvistettiin ydinesimerkkien edelleen toimivuus ja käännös.
 
-#### Spesifikaatioversion korjaukset (2025-06-18 / 2025-03-26 → 2025-11-25)
+#### Määritysversion korjaukset (2025-06-18 / 2025-03-26 → 2025-11-25)
 
-Päivitettiin englanninkielistä sisältöä, jossa edelleen väitettiin vanhemman spesifikaation olevan *nykyinen/viimeisin* standardi, ja ohjattiin linkit kanonisiin `modelcontextprotocol.io` -spesifikaatiopolkuun:
-- **05-AdvancedTopics/mcp-security/README.md**: Päivitettiin "Nykyinen standardi" -banneri, johdanto, ydinturvaperiaatteiden otsikko, pakollisten vaatimusten otsikko, Microsoft Entra ID -osio, Viittaukset & Resurssit -linkit ja loppute turvailmoitus (8 viittausta) versioon 2025-11-25
-- **05-AdvancedTopics/mcp-transport/README.md**: Päivitettiin Lisäresurssien spesifikaatiolinkki ja "Nykyinen standardi" -banneri versioon 2025-11-25
-- **05-AdvancedTopics/mcp-realtimesearch/README.md**: Korvattiin vanhentunut `2025-03-26` security-and-trust -linkki nykyisellä 2025-11-25 turvakäytännöt -sivulla
-- **03-GettingStarted/14-sampling/README.md**: Päivitettiin viralliset näytteenottodokumentaation linkit versioon 2025-11-25
-- **03-GettingStarted/05-stdio-server/README.md**: Päivitettiin nykyhetkinen "nykyinen MCP spesifikaatio" -viite ja Lisäresurssien spesifikaatiolinkki versioon 2025-11-25 (historian SSE-poistomerkinnät jätettiin tarkkuuden vuoksi ennalleen)
+Päivitettiin englanninkielistä sisältöä, jossa vanhempaa määritysversion versiota oli virheellisesti pidetty *voimassaolevana/viimeisimpänä* standardina ja suunnattiin linkit kanonisiin `modelcontextprotocol.io` -määrityspolkuihin:
+- **05-AdvancedTopics/mcp-security/README.md**: Päivitettiin "Current Standard" -banneri, johdanto, ydinturvakäytännöt-otsikko, pakollisten vaatimusten otsikko, Microsoft Entra ID -osio, Viitteet & Resurssit -linkit ja päätösilmoitus (8 viitettä) versioon 2025-11-25
+- **05-AdvancedTopics/mcp-transport/README.md**: Päivitettiin Lisäresurssit -määritysversion linkki ja "Current Standard" -banneri versioon 2025-11-25
+- **05-AdvancedTopics/mcp-realtimesearch/README.md**: Korvattiin vanhentunut `2025-03-26` security-and-trust -linkki nykyisellä 2025-11-25 tietoturvaparhaiden käytäntöjen sivulla
+- **03-GettingStarted/14-sampling/README.md**: Päivitettiin virallisen otanta-dokumentaation linkki versioon 2025-11-25
+- **03-GettingStarted/05-stdio-server/README.md**: Päivitettiin nykyhetkisen MCP-määrityksen viittaus nykyhetkeen ja Lisäresurssit -määritysversion linkki versioon 2025-11-25 (historialliset SSE-poistomerkinnät jätettiin ennalleen tarkkuuden vuoksi)
 
 #### Esimerkkien validointi nykyisillä SDK:illa
 
-- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**: `npm install` ratkaisi `@modelcontextprotocol/sdk@1.29.0`; `tsc --noEmit` läpäisi ilman tyyppivirheitä — olemassa olevat `McpServer`/`StdioServerTransport` API:t ovat edelleen voimassa
-- **Python (03-GettingStarted/01-first-server/solution/python)**: Validointi eristetyssä `.venv`:ssä `mcp[cli]` (1.27.2) kanssa; `py_compile` onnistui ja `FastMCP.list_tools()` palautti oikein `add` ja `subtract` työkalut
-- Varmistettiin, että kaikki esimerkkien `@modelcontextprotocol/sdk` versioalueet (`>=1.26.0` / `^1.26.0` / `^1.27.0`) ratkeavat siististi nykyiseen `1.29.0` versioon ilman API-murtavia muutoksia
+- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**: `npm install` ratkaisi `@modelcontextprotocol/sdk@1.29.0`; `tsc --noEmit` hyväksyttiin ilman tyyppivirheitä — olemassa olevat `McpServer`/`StdioServerTransport` API:t ovat edelleen käyttökelpoisia
+- **Python (03-GettingStarted/01-first-server/solution/python)**: Testattiin eristetyssä `.venv`-ympäristössä `mcp[cli]` (1.27.2); `py_compile` onnistui ja `FastMCP.list_tools()` palautti oikein `add`- ja `subtract`-työkalut
+- Vahvistettiin, että kaikki versioalueet `@modelcontextprotocol/sdk` (`>=1.26.0` / `^1.26.0` / `^1.27.0`) ratkaistaan siististi nykyiseen versioon `1.29.0` ilman rikkovia API-muutoksia
 
-#### Riippuvuuksien versiotarkennus (suljetaan versiovälit)
+#### Riippuvuuksiin liittyvien määritteiden yhdenmukaistus (versiokuilujen sulkeminen)
 
-Päivitettiin vanhentuneita SDK-pinnit vastaamaan aina nykyistä MCP-julkaisua, vastaamaan koko repoksi hyväksyttyä käytäntöä:
-- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**: Korotettiin `@modelcontextprotocol/sdk` versiosta `^1.8.0` → `>=1.26.0` ja päivitettiin vanhentunut `"updated for MCP 2025-06-18"` paketin kuvaus muotoon `"aligned with MCP Specification 2025-11-25"`
-- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** ja **lab4/code/github_mcp_server/pyproject.toml**: Korotettiin tarkka pinni `mcp==1.23.0` → `mcp>=1.26.0`; generoitiin molempien `uv.lock` -tiedostot uudelleen (`uv lock`), jolloin lukitustiedostot ratkeavat nykyiseen `mcp 1.27.2` ja pysyvät synkronissa manifestien kanssa
+Päivitettiin vanhentuneita SDK-riippuvuuksia siten, että jokainen esimerkki seuraa nykyistä MCP-julkaisua, vastaamaan koko repositorion käytäntöä:
+- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**: Korotettiin `@modelcontextprotocol/sdk` versiosta `^1.8.0` → `>=1.26.0` ja päivitettiin vanhentunut `"updated for MCP 2025-06-18"` pakkauskuvaus muotoon `"aligned with MCP Specification 2025-11-25"`
+- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** ja **lab4/code/github_mcp_server/pyproject.toml**: Vaihdettiin täsmäversio `mcp==1.23.0` → `mcp>=1.26.0`; generoitiin molemmat `uv.lock` -tiedostot uudelleen (`uv lock`), jolloin lukitustiedostot osoittavat nykyiseen versioon `mcp 1.27.2` ja pysyvät synkronissa määritteiden kanssa
 
-#### Oppimateriaalin aukkoanalyysi — uusimman spesifikaation ominaisuuksien kattavuus
+#### Oppimateriaalin aukkoanalyysi — Uusimman määrityksen ominaisuuksien kattavuus
 
-Varmistettiin, että oppimateriaali kattaa jo kaikki MCP 2025-11-25 -spesifikaation uudet ja laajennetut primitiivit, joten sisällön aukkoja ei ole:
-- **Näytteenotto**: Oppitunti 03-GettingStarted/14-sampling sekä 05-AdvancedTopics/mcp-sampling
-- **Elicitaatio (ml. URL-tila)**: Dokumentoitu kohdissa 01-CoreConcepts ja 05-AdvancedTopics/mcp-protocol-features
-- **Juuret**: Dokumentoitu kohdissa 00-Introduction, 01-CoreConcepts ja 05-AdvancedTopics/mcp-root-contexts
-- **Tehtävät (kokeelliset, pitkään toimivat operaatiot)**: Dokumentoitu kohdissa 01-CoreConcepts ja 05-AdvancedTopics/mcp-protocol-features
-- **Työkalujen annotaatiot** (`readOnlyHint` / `destructiveHint`): Dokumentoitu kohdissa 01-CoreConcepts ja 05-AdvancedTopics/mcp-protocol-features
+Varmistettiin, että oppimateriaali kattaa jo kaikki MCP 2025-11-25:ssa esitellyt tai laajennetut perusominaisuudet, joten sisältöaukkoja ei ole:
+- **Otanta (Sampling)**: Oppitunti 03-GettingStarted/14-sampling sekä 05-AdvancedTopics/mcp-sampling
+- **Elicitation (mukaan lukien URL-tila)**: Dokumentoitu 01-CoreConcepts ja 05-AdvancedTopics/mcp-protocol-features
+- **Roots (juuret)**: Dokumentoitu 00-Introduction, 01-CoreConcepts sekä 05-AdvancedTopics/mcp-root-contexts
+- **Tehtävät (experimentaaliset, pitkään käynnissä olevat operaatiot)**: Dokumentoitu 01-CoreConcepts ja 05-AdvancedTopics/mcp-protocol-features
+- **Työkalujen annotaatiot** (`readOnlyHint` / `destructiveHint`): Dokumentoitu 01-CoreConcepts ja 05-AdvancedTopics/mcp-protocol-features
 
-### Turvallisuuden vahvistaminen ja riippuvuuksien haavoittuvuuksien korjaus
+### Turvallisuusparannukset ja riippuvuuksien haavoittuvuuksien korjaukset
 
-Suoritettiin täydellinen turvallisuusarviointi jokaisen riippuvuusmanifestin ja esimerkkilähdekoodin yli, minkä jälkeen korjattiin kaikki ilmoitetut npm-turva-aukot ja yksi kooditason löydös. Korjausten jälkeen `npm audit` raportoi **0 haavoittuvuutta** kaikissa tarkastetuissa hakemistoissa.
+Suoritettiin kattava turvallisuustarkastus kaikille riippuvuustiedostoille ja esimerkkikoodille, korjattiin kaikki raportoidut npm-varoitukset ja yksi kooditasoinen havainto. Korjauksien jälkeen `npm audit` ilmoittaa **0 haavoittuvuutta** kaikissa tarkastetuissa hakemistoissa.
 
-#### npm-riippuvuuksien haavoittuvuudet (transitiiviset) — Korjattu
+#### npm-riippuvuuksien haavoittuvuudet (epäsuorat) — Korjattu
 
-Auditoitiin kaikki 15 sitoutettua `package-lock.json` -tiedostoa. Haavoittuvuudet rajoittuivat MCP Inspector -kehitystyökalun, OpenAI-asiakkaan ja MCP SDK:n kautta vedettyihin siirtymäriippuvuuksiin; kaikki on nyt ratkaistu rikkomatta esimerkkejä:
-- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** ja **lab3/code/weather_mcp/inspector**: Korotettiin `@modelcontextprotocol/inspector` versiosta (`0.16.6` / `0.14.1` → `0.22.0`), mikä poisti mukana tulleiden `ajv`, `brace-expansion`, `diff`, `path-to-regexp` ja `ws` -varoitukset. Lisättiin npm `overrides` -merkintä, joka pakottaa korjatun `shell-quote@1.8.4` käytön poistamaan `concurrently`-kirjaston kriittisen varoituksen; generoitiin molemmat lukitustiedostot uudelleen (nyt 0 haavoittuvuutta)
-- **03-GettingStarted/samples/typescript**: `npm audit fix` päivitti siirtymäriippuvuuden `qs` (keskitaso) korjattuun julkaisuun
-- **03-GettingStarted/samples/javascript**: `npm audit fix` päivitti siirtymäriippuvuuden `hono` (keskitaso) korjattuun julkaisuun
-- **03-GettingStarted/03-llm-client/solution/typescript**: `npm audit fix` päivitti siirtymäriippuvuuden `form-data` (korkea) korjattuun julkaisuun
-- **03-GettingStarted/11-simple-auth/solution/typescript**: Luotiin puuttuva `package-lock.json` -tiedosto, jotta projekti on toistettavissa ja auditoitavissa (0 haavoittuvuutta)
+Tarkastettiin kaikki 15 tallennettua `package-lock.json` -tiedostoa. Haavoittuvuudet liittyivät epäsuoriin riippuvuuksiin, joita MCP Inspector -kehitystyökalu, OpenAI client ja MCP SDK käyttävät; kaikki on nyt ratkaistu rikkoutumatta esimerkkien toimivuutta:
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** ja **lab3/code/weather_mcp/inspector**: Korotettiin `@modelcontextprotocol/inspector` versiosta (`0.16.6` / `0.14.1` → `0.22.0`), joka poisti bundlatut ajurit `ajv`, `brace-expansion`, `diff`, `path-to-regexp` ja `ws` varoitukset. Lisättiin npm:n `overrides`, joka pakottaa korjatun `shell-quote@1.8.4` -version poistamaan jäljellä olevan kriittisen varoituksen, jonka `concurrently` kantoi; uudelleengeneroitiin molemmat lukitustiedostot (nyt 0 haavoittuvuutta)
+- **03-GettingStarted/samples/typescript**: `npm audit fix` päivitti epäsuoran `qs`- (kohtalainen) riippuvuuden korjatuksi versioksi
+- **03-GettingStarted/samples/javascript**: `npm audit fix` päivitti epäsuoran `hono`- (kohtalainen) riippuvuuden korjatuksi versioksi
+- **03-GettingStarted/03-llm-client/solution/typescript**: `npm audit fix` päivitti epäsuoran `form-data`- (korkea) riippuvuuden korjatuksi versioksi
+- **03-GettingStarted/11-simple-auth/solution/typescript**: Luotiin puuttuva `package-lock.json` -tiedosto, jotta projekti on toistettavissa ja tarkastettavissa (0 haavoittuvuutta)
 
-#### Kooditason turvallisuuskorjaus (OWASP A03: Injection)
+#### Kooditasoinen turvallisuuskorjaus (OWASP A03: Injection)
 
-- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**: Poistettiin `shell=True` `open_in_vscode` työkalusta. Aiempi `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` sallii komentosarjan metamerkkien tulkinnan `cmd.exe`:ssa (komentoinjektion riski). Nyt käynnistetään suoraan ratkaistu `Code.exe` kansiopolun kanssa argumenttina — ilman shellia — mikä on toiminnallisesti vastaavaa ja turvallista
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**: Poistettiin `shell=True` `open_in_vscode` -työkalusta. Aiempi `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` salli shellin metamerkkien tulkitsemisen kansiopolussa `cmd.exe`:n kautta (komentoinjektion vektori). Tämä suorittaa nyt suoraan ratkaistun `Code.exe`:n kansiopolun kanssa argumenttina — ilman shelliä — mikä on toiminnallisesti vastaava ja turvallinen
 
 #### Python-riippuvuuksien auditointi
 
-- Auditoitiin jokainen Python-ehdotustiedosto `pip-audit`-työkalulla. `05-AdvancedTopics` ja `03-GettingStarted/samples/python` raportoivat **ei tiedossa olevia haavoittuvuuksia** (niiden `mcp` / `httpx` / `pydantic` / `python-dotenv` versiot ratkeavat nykyisiin korjattuihin julkaisuihin)
-- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**: `pip-audit` havaitsi siirtymäriippuvuus **`werkzeug` 3.1.1**:ssä kolme Windows-laitenimeen liittyvää safe_join -palvelunestohyökkäysvaroitusta — `CVE-2025-66221`, `CVE-2026-21860` ja `CVE-2026-27199` (kaikki korjattu versiossa 3.1.6). Lisättiin eksplisiittinen turvallisuusrajoite `werkzeug>=3.1.6` niin että korjattu julkaisu ratkeaa; vahvistettiin rajoitteen ratkeaminen oikein `chainlit` / `mcp` / `semantic-kernel` pinoissa
+- Tarkastettiin kaikki Python-vaatimukset `pip-audit` -työkalulla. `05-AdvancedTopics` ja `03-GettingStarted/samples/python` ilmoittivat **ei tunnettuja haavoittuvuuksia** (heidän `mcp` / `httpx` / `pydantic` / `python-dotenv` riippuvuudet johtavat nykyisiin korjattuihin versioihin)
+- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**: `pip-audit` havaitsi epäsuoran riippuvuuden **`werkzeug` 3.1.1** kolmella `safe_join` Windowsin laitenimen palvelunestohyökkäysvaroituksella — `CVE-2025-66221`, `CVE-2026-21860` ja `CVE-2026-27199` (kaikki korjattu versiossa 3.1.6). Lisättiin selkeä turvallisuusrajoitus `werkzeug>=3.1.6`, jotta korjattu julkaisu valitaan; varmistettiin, että riippuvuus ratkeaa siististi `chainlit` / `mcp` / `semantic-kernel` pinon kanssa
 
-### Tuotteen nimen uudelleenbrändäys
+### Tuotenimen uudelleenbrändäys
 
-Päivitettiin kaikki oppimateriaalin sisällöt vastaamaan Microsoftin tuotemerkin uudelleenbrändäystä:
+Päivitettiin kaikki oppimateriaalin sisällöt heijastamaan Microsoftin tuotemerkkiuudistusta:
 
 #### Azure AI Foundry → Microsoft Foundry
 - **SUPPORT.md**: Päivitettiin Discord-yhteisölinkki
-- **AGENTS.md**: Päivitettiin Discord-palvelimen viittaus
-- **README.md**: Päivitettiin teknologiaympäristön viittauksia
-- **study_guide.md**: Päivitettiin case study -viittauksia
-- **05-AdvancedTopics/README.md**: Päivitettiin moduulin 5.13 otsikko ja kuvaus
-- **05-AdvancedTopics/mcp-integration/README.md**: Päivitettiin osion otsikko ja kuvaus
-- **05-AdvancedTopics/mcp-foundry-agent-integration/README.md**: Kokonaan päivitetty moduulin otsikko ja sisältö
-- **05-AdvancedTopics/mcp-security-entra/README.md**: Päivitettiin ristiviittauslinkki
-- **07-LessonsfromEarlyAdoption/README.md**: Päivitettiin case study -viittauksia
-- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**: Päivitettiin kohdan 9 otsikko, merkit ja kyvyt
+- **AGENTS.md**: Päivitettiin Discord-palvelinviittaus
+- **README.md**: Päivitettiin teknologiaympäristön viittaukset
+- **study_guide.md**: Päivitettiin tapaustutkimusviittaukset
+- **05-AdvancedTopics/README.md**: Päivitettiin Moduuli 5.13 otsikko ja kuvaus
+- **05-AdvancedTopics/mcp-integration/README.md**: Päivitettiin osiootsikko ja kuvaus
+- **05-AdvancedTopics/mcp-foundry-agent-integration/README.md**: Päivitettiin koko moduulin otsikko ja sisältö
+- **05-AdvancedTopics/mcp-security-entra/README.md**: Päivitettiin poikkiviittauslinkki
+- **07-LessonsfromEarlyAdoption/README.md**: Päivitettiin tapaustutkimusviittaukset
+- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**: Päivitettiin kohdassa 9 otsikko, merkit ja ominaisuudet
 - **08-BestPractices/README.md**: Päivitettiin Discord-yhteisölinkki
-- **09-CaseStudy/docs-mcp/solution/scenario3/README.md**: Päivitettiin Discord-kanavan viittaus
+- **09-CaseStudy/docs-mcp/solution/scenario3/README.md**: Päivitettiin Discord-kanavaviittaus
 - **09-CaseStudy/docs-mcp/solution/python/README.md**: Päivitettiin mallin käyttöönoton viittaus
-- **11-MCPServerHandsOnLabs/00-Introduction/README.md**: Päivitettiin AI-palvelutaulukko
-- **11-MCPServerHandsOnLabs/03-Setup/README.md**: Päivitettiin resurssiviittauksia
+- **11-MCPServerHandsOnLabs/00-Introduction/README.md**: Päivitettiin AI-palveluiden taulukko
+- **11-MCPServerHandsOnLabs/03-Setup/README.md**: Päivitettiin resurssiviittaukset
 
 #### AI Toolkit / AITK → Microsoft Foundry Toolkit Extension for VS Code
-- **README.md**: Päivitettiin pääoppimateriaalin viittauksia
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**: Päivitettiin moduulin otsikko, yleiskatsaus ja kaikki moduulin otsikot
+- **README.md**: Päivitettiin pääoppimateriaalin viittaukset
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**: Päivitettiin moduulin nimi, yleiskatsaus ja kaikki moduulin otsikot
 - **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/README.md**: Päivitettiin otsikko, oppimistavoitteet, asennusohjeet ja resurssit
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**: Päivitettiin otsikko, oppimistavoitteet, MCP-hostitaulukko ja ristiviittaukset
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/README.md**: Päivitettiin otsikko, merkit, edellytykset ja resurssit
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/README.md**: Päivitettiin Agent Builder -viittauksia ja palautelinkkiä
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab4/README.md**: Päivitettiin edellytyksiä ja laajennusviittauksia
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**: Päivitettiin otsikko, oppimistavoitteet, MCP-palvelinlista ja poikkiviittaukset
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/README.md**: Päivitettiin otsikko, merkit, esivaatimukset ja resurssit
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/README.md**: Päivitettiin Agent Builderin viittauksia ja palautelinkkiä
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab4/README.md**: Päivitettiin esivaatimuksia ja laajennusviittauksia
 
 ---
 
@@ -96,586 +103,587 @@ Päivitettiin kaikki oppimateriaalin sisällöt vastaamaan Microsoftin tuotemerk
 
 ### Uusi oppitunti, dokumentaation korjaukset ja riippuvuuspäivitykset
 
-#### Uusi oppimateriaalin sisältö lisätty
+#### Uutta oppimateriaalisisältöä lisätty
 
-**Moduuli 05 – Kehittyneet aiheet**
-- **Oppitunti 5.17: Vastakkainen moniagenttinen päättely MCP:llä** (`05-AdvancedTopics/mcp-adversarial-agents/README.md`): Uusi kattava opas, joka käsittelee vastakkaisen väittelyn mallia moniagenttijärjestelmissä
-  - Mermaid-arkkitehtuurikaavio: kaksi agenttia → yhteinen MCP-palvelin → väittelyteksti → tuomari → päätös
-  - Jaettu MCP-työkalupalvelin (`web_search` + `run_python`) toteutettuna Pythonilla ja TypeScriptillä
-  - Vastakkaiset systeemikehotteet (PUOLLA / VASTAAN / Tuomari) eksplisiittisillä työkalujen käyttötarpeilla
-  - Väittelyjen orkestroija Pythonilla, TypeScriptillä ja C#:lla, halliten kierroksia ja ohjaten argumentteja
-  - MCP `ClientSession` -liitäntä orkestroijalle oikeiden työkalukutsujen tekemiseksi
-  - Käyttötapataulukko (hallusinaatioiden tunnistus, uhkamallinnus, API-suunnittelun arviointi, faktatarkastus, teknologian valinta)
-  - Turvallisuuskysymykset: suojattu suoritus, työkalukutsujen validointi, nopeusrajoitus, auditointilokitus
-  - Rakenteellinen harjoitus kolmen käytännön skenaarion (koodikatselmointi, arkkitehtuuripäätös, sisällön valvonta) kanssa
+**Moduuli 05 - Edistyneet aiheet**
+- **Oppitunti 5.17: Vastakkainen moniagenttinen päättely MCP:llä** (`05-AdvancedTopics/mcp-adversarial-agents/README.md`): Uusi kattava opas vastakkaisen väittelyn mallista moniagenttijärjestelmissä
+  - Mermaid-arkkitehtuurikaavio: kaksi agenttia → jaettu MCP-palvelin → väittelyn tallenne → tuomari → tuomio
+  - Jaettu MCP-työkalupalvelin (`web_search` + `run_python`) toteutettu Pythonilla ja TypeScriptillä
+  - Vastakkaiset järjestelmäkehotukset (PUOLESTA / VASTAAN / Tuomari) eksplisiittisillä työkalun käyttövaatimuksilla
+  - Väittelyn orkestroija Pythonilla, TypeScriptillä ja C#:lla, joka hallitsee kierrokset ja reitittää argumentit
+  - MCP `ClientSession`-kaapelointi orkestroijalle todellisiin työkalukutsuihin
+  - Käyttötapataulukko (harhojen havaitseminen, uhkamallinnus, API-suunnittelun tarkistus, tosiasiatarkistus, teknologian valinta)
+  - Turvallisuusnäkökohdat: hiekkalaatikkoajo, työkalukutsujen hyväksymisen validointi, nopeusrajoitus, audit-lokit
+  - Rakenteellinen harjoitus kolmella käytännön skenaariolla (koodikatselmointi, arkkitehtuuripäätös, sisällönvalvonta)
 
 #### Dokumentaation korjaukset
 
-**Moduuli 03 – Aloittaminen**
-- **05-stdio-server/README.md**: Korjattu keskeneräinen TypeScript stdio -palvelin-esimerkki — lisätty puuttuva transport-instansointi (`new StdioServerTransport()`) ja `server.connect(transport)` -kutsu vastaamaan Python- ja .NET-esimerkkejä samassa osiossa
-- **14-sampling/README.md**: Korjattu kirjoitusvirhe — korjattu `"Sampling is an davanced features"` → `"Sampling is an advanced feature"`
+**Moduuli 03 - Aloittaminen**
+- **05-stdio-server/README.md**: Korjattiin keskeneräinen TypeScriptin stdio-palvelin-esimerkki — lisättiin puuttuvat kuljetinluonti (`new StdioServerTransport()`) ja `server.connect(transport)` -kutsu vastaamaan Python- ja .NET-esimerkkejä samassa osiossa
+- **14-sampling/README.md**: Korjattiin kirjoitusvirhe — korjattu `"Sampling is an davanced features"` → `"Sampling is an advanced feature"`
 
 #### Oppimateriaalin päivitykset
 
 **Pää-README.md**
-- Lisätty oppitunti 5.17 (Vastakkainen moniagenttinen päättely MCP:llä) oppimäärätaulukkoon, suoralla linkillä uuteen oppituntiin
+- Lisättiin oppimateriaalutaulukkoon kohta 5.17 (Vastakkainen moniagenttinen päättely MCP:llä) suoraan linkillä uuteen oppituntiin
 
 **05-AdvancedTopics/README.md**
-- Lisätty Oppitunti 5.17 rivi oppituntitaulukkoon
+- Lisättiin oppitunti 5.17 oppituntien taulukkoon
 
 **study_guide.md**
-- Lisätty Vastakkainen moniagenttinen päättely -aihe miellekarttaan ja kehittyneiden aiheiden tekstikuvaustekstiin
+- Lisättiin Vastakkainen moniagenttinen päättely -aihe miellekarttaan ja edistyneiden aiheiden kuvaustekstiin
 
 #### Koodin ja turvallisuuden korjaukset
 
-**Moduuli 05 – Vastakkaiset agentit (`mcp-adversarial-agents`)**
-- **Turvallisuuskorjaus — komentoinjektio**: Korvattu TypeScriptin `run_python` työkalun `execSync` kuorivälikkeet `execFile` + `promisify` -tyylillä, poistamalla komentoinjektion mahdollisuus (LLM-ohjattu koodi välitetään nyt kirjaimellisena argv-elementtinä ilman kuorta)
-- **MCP-työkalusilmukan kytkentä**: Päivitetty Pythonin debatointiorkestraattori käyttämään `AsyncAnthropic`-asiakasta (korvaten estävän synkronisen `Anthropic`), välittämään elävä `ClientSession` suoraan jokaiselle agentin kierrokselle, hakemaan työkalumääritelmät `session.list_tools()`-kutsulla jokaisella kierroksella ja suorittamaan `tool_use`-lohkoja `session.call_tool()`-kutsun avulla silmukassa, kunnes malli antaa lopullisen tekstivasteen
+**Moduuli 05 - Vastakkaiset agentit (`mcp-adversarial-agents`)**
+- **Turvapäivitys — komentoinjektion korjaus**: Korvattiin TypeScript-työkalussa `run_python` `execSync`-kuoren interpolointi `execFile` + `promisify` -käytöllä, mikä poistaa komentoinjektion riskin (LLM-ohjattu koodi välitetään nyt kirjaimellisena argv-elementtinä ilman kuoren väliintuloa)
+- **MCP-työkalusilmukan kytkentä**: Päivitettiin Python-väittelyä orkestroiva komponentti käyttämään `AsyncAnthropic`-asiakasta (korvaten synkronisen esto-ominaisuuden `Anthropic`), välittämään live-`ClientSession` jokaiselle agenttikierrokselle, hakemaan työkalumääritelmät `session.list_tools()`-kutsulla jokaisella kierroksella, ja lähettämään `tool_use`-lohkoja `session.call_tool()`-kutsulla silmukassa, kunnes malli antaa lopullisen tekstivasteen
 
 #### Riippuvuuspäivitykset
 
-- Korotettu `hono` versioon 4.12.12 useissa paketeissa (03-GettingStarted, 04-PracticalImplementation, 10-StreamliningAIWorkflows)
-- Korotettu `@hono/node-server` versiosta 1.19.11 versioon 1.19.13 TypeScript-paketeissa
-- Korotettu `cryptography` versiosta 46.0.5 versioon 46.0.7 Python-paketeissa (10-StreamliningAIWorkflows laboratoriot 3 ja 4)
-- Korotettu `lodash` versiosta 4.17.23 versioon 4.18.1 10-StreamliningAIWorkflows inspectorissa
+- Päivitetty `hono` versioon 4.12.12 useissa paketeissa (03-GettingStarted, 04-PracticalImplementation, 10-StreamliningAIWorkflows)
+- Päivitetty `@hono/node-server` versiosta 1.19.11 versioon 1.19.13 TypeScript-paketeissa
+- Päivitetty `cryptography` versiosta 46.0.5 versioon 46.0.7 Python-paketeissa (10-StreamliningAIWorkflows laboratoriot 3 ja 4)
+- Päivitetty `lodash` versiosta 4.17.23 versioon 4.18.1 10-StreamliningAIWorkflows inspectorissa
 
-#### Käännökset
+#### Käännöksiä
 
-- Synkronoitu käännökset 48+ kielille uusimpien lähdemuutosten mukaisesti (i18n-päivitys)
+- Synkronoitu yli 48 kielen käännökset uusimpien lähdemuutosten mukaisesti (i18n-päivitys)
 
 ---
 
-## 5.helmikuuta 2026
+## 5. helmikuuta 2026
 
 ### Koko repositorion validointi- ja navigointiparannukset
 
 #### Uutta opetussisältöä lisätty
 
 **Moduuli 03 - Aloittaminen**
-- **12-mcp-hosts/README.md**: Uusi kattava ohje MCP-hostien pystyttämiseen
-  - Claude Desktop, VS Code, Cursor, Cline, Windsurf -konfiguraatioesimerkkejä
-  - JSON-konfiguraatiomallipohjat kaikille pääasiakkaille
-  - Lähetysprotokollien vertailutaulukko (stdio, SSE/HTTP, WebSocket)
-  - Yleisimpiä yhteysongelmia ja niiden vianmääritys
-  - Turvallisuuden parhaat käytännöt hostin konfigurointiin
+- **12-mcp-hosts/README.md**: Uusi kattava opas MCP-isäntien pystytykseen
+  - Claude Desktop, VS Code, Cursor, Cline, Windsurf -konfiguraatioesimerkit
+  - JSON-konfiguraatiomallit kaikille tärkeimmille isännille
+  - Kuljetustyyppien vertailutaulukko (stdio, SSE/HTTP, WebSocket)
+  - Yleisten yhteysongelmien vianmääritys
+  - Turvallisuuskäytännöt isäntien konfigurointiin
 
 - **13-mcp-inspector/README.md**: Uusi vianetsintäopas MCP Inspectorille
-  - Asennustavat (npx, npm globaali, lähdekoodi)
-  - Yhteydet palvelimiin stdio- ja HTTP/SSE-yhteyksillä
-  - Työkalujen, resurssien ja kehotteiden testausprosessit
-  - VS Code -integraatio MCP Inspectorin kanssa
-  - Yleisiä vianetsintätilanteita ratkaisuineen
+  - Asennustavat (npx, npm global, lähdekoodista)
+  - Yhteyden muodostus palvelimiin stdio- ja HTTP/SSE-yhteyksillä
+  - Työkalujen, resurssien ja kehoteprosessien testaaminen
+  - VS Code -integraatio MCP Inspectoriin
+  - Yleisiä vianetsintätapauksia ratkaisujen kanssa
 
 **Moduuli 04 - Käytännön toteutus**
-- **pagination/README.md**: Uusi sivutustoiminnon toteutusopas
-  - Pythonin, TypeScriptin ja Javan kursori-pohjaiset sivutuskuviot
-  - Asiakaspuolen sivutuksen käsittely
-  - Kursori-suunnittelustrategiat (läpinäkymätön vs. rakenteellinen)
+- **pagination/README.md**: Uusi ohje sivutuksen toteuttamiseen
+  - Kursoripohjaiset sivutusmallit Pythonissa, TypeScriptissä, Javassa
+  - Asiakaspuolen sivutuksen hallinta
+  - Kursorin suunnittelustrategiat (läpinäkymätön vs. rakenteinen)
   - Suorituskyvyn optimointisuositukset
 
 **Moduuli 05 - Edistyneet aiheet**
-- **mcp-protocol-features/README.md**: Uusi syväluotaus protokollan ominaisuuksiin
+- **mcp-protocol-features/README.md**: Uusi protokollan ominaisuuksien syväluotaus
   - Edistymisilmoitusten toteutus
-  - Pyyntöjen peruutuskuviot
-  - Resurssimallit URI-kuvioineen
+  - Pyyntöjen peruutusmallit
+  - Resurssipohjat URI-kuvioilla
   - Palvelimen elinkaaren hallinta
-  - Lokitustason ohjaus
-  - Virheenkäsittelykuviot JSON-RPC-koodeilla
+  - Lokitustason säätö
+  - Virheenkäsittelymallit JSON-RPC-koodeilla
 
-#### Navigointikorjauksia (päivitetty 24+ tiedostoa)
+#### Navigointikorjaukset (yli 24 tiedostoa päivitetty)
 
 **Päämoduulin README:t**
- Nyt sisältää linkit sekä ensimmäiseen oppituntiin ETTÄ seuraavaan moduuliin
+ Linkittävät nyt sekä ensimmäiselle oppitunnille ETTÄ seuraavalle moduulille
 
-**02-Security-alatiedostot**
-- Kaikissa viidessä lisäturvallisuusasiakirjassa on nyt "Mitä seuraavaksi" -navigointi:
+**02-Security-alitiedostot**
+- Kaikissa 5 lisätyssä turvallisuusasiakirjassa on nyt "Mikä seuraavaksi" -navigointi:
 
 **09-CaseStudy-tiedostot**
-- Kaikissa case study -tiedostoissa on nyt peräkkäinen navigointi:
+- Kaikissa tapaustutkimustiedostoissa on nyt peräkkäinen navigointi:
 
 **10-StreamliningAI-laboratoriot**
-Lisätty "Mitä seuraavaksi" -osio moduulin 10 yleiskatsaukseen ja moduuliin 11
+Lisätty Mikä seuraavaksi -osio moduulin 10 yleiskatsaukseen ja moduuliin 11
 
 #### Koodin ja sisällön korjaukset
 
 **SDK- ja riippuvuuspäivitykset**
-Korjattu tyhjä openai-versio osoittamaan `^4.95.0`
+Korjattu tyhjä openai-versio `^4.95.0` versioon
 Päivitetty SDK versiosta `^1.8.0` versioon `>=1.26.0`
-Päivitetty mcp-version pins `>=1.26.0`
+Päivitetty mcp-versiokiinnikkeet versioon `>=1.26.0`
 
 **Koodikorjaukset**
 Korjattu virheellinen malli `gpt-4o-mini` muotoon `gpt-4.1-mini`
 
-**Sisältökorjaukset**
-Korjattu rikkinäinen linkki `READMEmd` → `README.md`, korjattu opetussuunnitelman otsikko `Module 1-3` → `Module 0-3`, korjattu kirjainkoolla erotteleva polku
-Poistettu vioittunut kopio Case Study 5 -sisällöstä
+**Sisällön korjaukset**
+Korjattu rikkinäinen linkki `READMEmd` → `README.md`, korjattu opetussuunnitelman otsikko `Module 1-3` → `Module 0-3`, korjattu kirjainkoolla eroteltu polku
+Poistettu vioittunut kopio tapaustutkimuksesta 5
 
-**Aloittelijoiden opastusparannukset**
-Lisätty asianmukainen esittely, oppimistavoitteet ja edellytykset aloittelijoille
+**Aloittelijan opastusparannukset**
+Lisätty asianmukainen johdanto, oppimistavoitteet ja ennakkovaatimukset aloittelijoille
 
 #### Opetussuunnitelman päivitykset
 
 **Pää-README.md**
-- Lisätty opetustaulukkoon kohdat 3.12 (MCP Hosts), 3.13 (MCP Inspector), 4.1 (Sivutus), 5.16 (Protokollan ominaisuudet)
+- Lisätty merkinnät 3.12 (MCP Hosts), 3.13 (MCP Inspector), 4.1 (Pagination), 5.16 (Protocol Features) opetussuunnitelman taulukkoon
 
 **Moduulien README:t**
 Lisätty oppitunnit 12 ja 13 oppituntilistaan
-Lisätty Käytännön oppaat -osio sivutuksen linkillä
-Lisätty oppitunnit 5.15 (Mukautettu siirto) ja 5.16 (Protokollan ominaisuudet)
+Lisätty Käytännön oppaat -osio sivutuslinkillä
+Lisätty oppitunnit 5.15 (Custom Transport) ja 5.16 (Protocol Features)
 
 **study_guide.md**
-- Päivitetty miellekartta sisältämään kaikki uudet aiheet: MCP Hosts -asennus, MCP Inspector, Sivutusstrategiat, Protokollan ominaisuudet -syväluotaus
+- Päivitetty miellekartta kaikilla uusilla aiheilla: MCP Hosts Setup, MCP Inspector, Pagination Strategies, Protocol Features Deep Dive
 
 ## 28. tammikuuta 2026
 
-### MCP:n spesifikaation 2025-11-25 vaatimustenmukaisuuden tarkastus
+### MCP-määrityksen 2025-11-25 noudattavuuden tarkastus
 
-#### Keskeisten käsitteiden parannukset (01-CoreConcepts/)
-- **Uusi asiakasprimitiivi - Roots**: Lisätty kattava dokumentaatio Roots-asiakasprimiitivistä, jonka avulla palvelimet ymmärtävät tiedostojärjestelmän rajat ja käyttöoikeudet
-- **Työkalujen annotaatiot**: Lisätty dokumentaatio työkalujen käyttäytymiseen liittyvistä annotaatioista (`readOnlyHint`, `destructiveHint`) paremman työkalun suorituspäätöksen tueksi
-- **Työkalujen kutsuminen näytteistämisessä**: Päivitetty Näytteistämis-dokumentaatiota sisältämään `tools` ja `toolChoice` -parametrit mallin ohjaamaan työkalukutsuun näytteistämispyyntöjen aikana
-- **URL-tilan aktivointi**: Lisätty dokumentaatio serverin käynnistämälle ulkoiselle web-interaktiolle URL-pohjaisesti
-- **Tehtävät (kokeellinen)**: Lisätty uusi osio, joka dokumentoi kokeellisen Tehtävät-ominaisuuden kestävien suoritusrimojen ja tulosten viivehakuun liittyen
-- **Ikonituki**: Merkitty, että työkalut, resurssit, resurssimallit ja kehotteet voivat sisältää nyt ikoneja lisämateriaalina
+#### Ydinkäsitteiden parannukset (01-CoreConcepts/)
+- **Uusi asiakkaan primitiivi - Roots**: Lisätty kattava dokumentaatio Roots-asiakasprimitiivistä, joka mahdollistaa palvelimille tiedostojärjestelmän rajojen ja käyttöoikeuksien ymmärtämisen
+- **Työkalujen annotaatiot**: Lisätty dokumentaatio työkalujen käyttäytymisen annotaatioista (`readOnlyHint`, `destructiveHint`) parempiin työkalun suorituspäätöksiin
+- **Työkalujen kutsuminen otannassa**: Päivitetty Otanta-dokumentaatiota sisältämään `tools` ja `toolChoice`-parametrit mallipohjaiseen työkalun kutsumiseen otantapyyntöjen aikana
+- **URL-tilan kutsuminen**: Lisätty dokumentaatio URL-pohjaisesta ulkoisten web-interaktioiden käynnistämisestä palvelimen toimesta
+- **Tehtävät (kokeellinen)**: Lisätty uusi osio, joka dokumentoi kokeellisen Tasks-ominaisuuden kestävien suorituskelmuun ja tuloksen viivästettyyn hakuun
+- **Kuvakkeiden tuki**: Merkattu, että työkalut, resurssit, resurssipohjat ja kehotteet voivat nyt sisältää kuvakkeita lisätietona
 
-#### Dokumentaatiopäivitykset
-- **README.md**: Lisätty MCP Specification 2025-11-25 versio-osoitus ja päivämääräpohjainen versiointi selitys
-- **study_guide.md**: Päivitetty opetussuunnitelmakartta sisältämään Tehtävät ja Työkalujen annotaatiot Core Concepts -osiossa; päivitetty dokumentin aikaleima
+#### Dokumentaation päivitykset
+- **README.md**: Lisätty MCP-määrityksen 2025-11-25 versioviite ja päivämääräperusteinen versiointi selitys
+- **study_guide.md**: Päivitetty opetussuunnitelmakarttaa sisältämään Tehtävät ja Työkalujen annotaatiot ydinajatusosiossa; päivitetty dokumentin aikaleima
 
-#### Spesifikaation vaatimustenmukaisuuden tarkastus
-- **Protokollaversio**: Vahvistettu, että kaikki dokumentaatioviitteet koskevat nykyistä MCP Specification 2025-11-25 versiota
-- **Arkkitehtuurin yhdenmukaisuus**: Varmistettu kaksikerroksisen arkkitehtuurin (Data Layer + Transport Layer) dokumentaation täsmällisyys
-- **Primitiivien dokumentaatio**: Tarkastettu palvelinprimitiivit (Resurssit, Kehotteet, Työkalut) ja asiakasprimitiivit (Näytteistäminen, Aktivointi, Lokitus, Roots)
-- **Siirtomekanismit**: Vahvistettu STDIO:n ja Streamable HTTP:n siirtodokumentaation oikeellisuus
-- **Turvallisuusohjeistus**: Varmistettu yhdenmukaisuus MCP:n nykyisten turvallisuuden parhaiden käytäntöjen dokumentaation kanssa
+#### Määrityksen noudattavuuden tarkistus
+- **Protokollaversion tarkistus**: Varmistettu, että kaikki dokumentaatiot viittaavat nykyiseen MCP-määritykseen 2025-11-25
+- **Arkkitehtuurin yhteensopivuus**: Varmistettu kaksi-kerroksisen arkkitehtuurin (Data Layer + Transport Layer) dokumentoinnin oikeellisuus
+- **Primitiivien dokumentaatio**: Tarkistettu palvelinprimitiivit (Resources, Prompts, Tools) ja asiakasprimitiivit (Sampling, Elicitation, Logging, Roots)
+- **Kuljetusmekanismit**: Tarkistettu STDIO- ja Streamable HTTP -kuljetuksen dokumentaation oikeellisuus
+- **Turvaohjeistus**: Varmentuettu nykyisten MCP-turvakäytäntöjen mukaista dokumentaatiota
 
-#### MCP 2025-11-25 keskeiset ominaisuudet dokumentoitu
-- **OpenID Connect -löytäminen**: Tunnistautumispalvelimen löytäminen OIDC:n kautta
-- **OAuth-asiakas-ID:n metadokumentit**: Suositeltu asiakasrekisteröintimekanismi
-- **JSON Schema 2020-12**: MCP-skeemamääritelmien oletuskieli
-- **SDK-tasojärjestelmä**: Viralliset vaatimukset SDK:n ominaisuustuen ja ylläpidon osalta
-- **Hallinnointirakenne**: MCP:n hallintomallin virallistaminen työryhmiksi ja intressiryhmiksi
+#### Tärkeitä MCP 2025-11-25 ominaisuuksia dokumentoitu
+- **OpenID Connect Discovery**: Tunnistettu autentikointipalvelimen löytäminen OIDC:n kautta
+- **OAuth-asiakkaan tunnisten metadata-dokumentit**: Suositeltu asiakasrekisteröintimekanismi
+- **JSON Schema 2020-12**: MCP-skeemojen oletusdialekti
+- **SDK-tasojärjestelmä**: Muodollistettu vaatimus SDK-ominaisuustuen ja ylläpidon tasoille
+- **Governance-rakenne**: Virallistettu MCP:n työ- ja intressiryhmät hallinnossa
 
-### Turvallisuusdokumentaation merkittävä päivitys (02-Security/)
+### Turvadokumentaation suuri päivitys (02-Security/)
 
 #### MCP Security Summit Workshop (Sherpa) -integraatio
-- **Uusi käytännön koulutusmateriaali**: Lisätty kattava integraatio [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)-materiaalin kanssa koko turvallisuusdokumentaatioon
-- **Retkireitin kattavuus**: Dokumentoitu täydellinen leiriltä leirille eteneminen Base Campista Summitiin
-- **OWASP-yhdenmukaisuus**: Kaikki turvallisuusohjeistukset kartoittuvat OWASP MCP Azure Security Guide -riskien kanssa
+- **Uusi käytännön koulutusmateriaali**: Lisätty kokonaisvaltainen integraatio [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) -koulutukseen kaikkien turvadokumenttien yhteyteen
+- **Retkireitin kattavuus**: Dokumentoitu täydellinen leiristä toiseen eteneminen Base Campista Summitille
+- **OWASP-yhteensopivuus**: Kaikki turvaohjeistukset vastaavat OWASP MCP Azure Security Guide -riskiluokitusta
 
 #### OWASP MCP Top 10 -integraatio
-- **Uusi osio**: Lisätty OWASP MCP Top 10 -turvallisuusriskejä sisältävä taulukko Azure-mitigaatioineen pääsecurity-README:hin
-- **Riskipohjainen dokumentaatio**: Päivitetty mcp-security-controls-2025.md sisältämään OWASP MCP riskiviitteet jokaisesta turvallisuusalueesta
-- **Viitearkkitehtuuri**: Linkitetty OWASP MCP Azure Security Guide -viitearkkitehtuuriin ja toteutuskuvioihin
+- **Uusi osio**: Lisätty OWASP MCP Top 10 -turvariskitaulukko ja Azure-suojaustoimenpiteet pääturvadokumenttiin
+- **Riskipohjainen dokumentaatio**: Päivitetty mcp-security-controls-2025.md sisällyttämään OWASP MCP -riskiviittaukset kutakin turva-aluetta varten
+- **Viitearkkitehtuuri**: Linkitetty OWASP MCP Azure Security Guide -viitearkkitehtuuriin ja toteutusmalleihin
 
-#### Päivitetyt turvallisuustiedostot
-- **README.md**: Lisätty Sherpa Workshop -yleiskatsaus, retkireittitaulukko, OWASP MCP Top 10 -riskikooste ja käytännön harjoitusosio
-- **mcp-security-controls-2025.md**: Päivitetty otsikko helmikuulle 2026, lisätty OWASP-riskiviitteet (MCP01-MCP08), korjattu spesifikaatioversion epäjohdonmukaisuus
-- **mcp-security-best-practices-2025.md**: Lisätty Sherpa- ja OWASP-resurssiosio, päivitetty aikaleima
-- **mcp-best-practices.md**: Lisätty käytännön harjoitusosio Sherpa- ja OWASP-linkeillä
-- **azure-content-safety-implementation.md**: Lisätty OWASP MCP06-viite, Sherpa Camp 3 -yhtenäistäminen ja lisäresurssiosio
+#### Päivitetyt turvatiedostot
+- **README.md**: Lisätty Sherpa-työpajan yleiskatsaus, retkireittitaulukko, OWASP MCP Top 10 -riskien yhteenveto ja käytännön koulutusosio
+- **mcp-security-controls-2025.md**: Päivitetty helmikuuhun 2026, lisätty OWASP-riskiviittaukset (MCP01-MCP08), korjattu määrityksen version epäjohdonmukaisuus
+- **mcp-security-best-practices-2025.md**: Lisätty Sherpa- ja OWASP-resurssi-osio, päivitetty aikaleima
+- **mcp-best-practices.md**: Lisätty käytännön koulutusosio Sherpa- ja OWASP-linkkeineen
+- **azure-content-safety-implementation.md**: Lisätty OWASP MCP06 -viittaus, Sherpa Leiri 3 -yhteensopivuus, ja lisäresurssiosio
 
-#### Uusia resurssilinkkejä lisätty
+#### Uudet resurssilinkit
 - [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)
 - [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
-- Yksittäiset OWASP MCP riski-sivut (MCP01-MCP10)
+- Yksittäiset OWASP MCP riskisivut (MCP01-MCP10)
 
-### Opetussuunnitelman laajamittainen MCP Specification 2025-11-25 -kohdistus
+### Kokonaistoiminto opetussuunnitelmassa MCP-määrityksen 2025-11-25 mukaisesti
 
 #### Moduuli 03 - Aloittaminen
-- **SDK-dokumentaatio**: Lisätty Go SDK viralliseen SDK-listaan; päivitetty kaikki SDK-viitteet vastaamaan MCP Specification 2025-11-25 versiota
-- **Siirtojen tarkennus**: Päivitetty STDIO- ja HTTP Streaming -siirtoja koskevat kuvaukset eksplisiittisillä spesifikaatioviitteillä
+- **SDK-dokumentaatio**: Lisätty Go SDK viralliseen SDK-listaan; päivitetty kaikki SDK-viittaukset vastaamaan MCP Specification 2025-11-25 -määritelmää
+- **Kuljetuksen selvennys**: Päivitetty STDIO- ja HTTP Stream -kuljetuksen kuvaukset sisältämään selkeät määritysviitteet
 
 #### Moduuli 04 - Käytännön toteutus
-- **SDK-päivitykset**: Lisätty Go SDK; päivitetty SDK-lista versio-osoituksella
-- **Valtuutusspesifikaatio**: Päivitetty MCP Authorization -spesifikaatiolinkki nykyiseen 2025-11-25 versioon
+- **SDK-päivitykset**: Lisätty Go SDK; päivitetty SDK-lista määrityksen version viiteellä
+- **Valtuutusmäärittely**: Päivitetty MCP Authorization -määrityksen linkki nykyiseen 2025-11-25 versioon
 
 #### Moduuli 05 - Edistyneet aiheet
-- **Uudet ominaisuudet**: Lisätty huomautus MCP Specification 2025-11-25 uusista ominaisuuksista (Tehtävät, Työkalujen annotaatiot, URL-tilan aktivointi, Roots)
-- **Turvallisuusresurssit**: Lisätty OWASP MCP Top 10 ja Sherpa workshop -linkit lisäresurssiosioon
+- **Uudet ominaisuudet**: Lisätty huomautus uusista MCP-määrityksen 2025-11-25 ominaisuuksista (Tehtävät, Työkalujen annotaatiot, URL-tilan kutsuminen, Roots)
+- **Turvaresurssit**: Lisätty OWASP MCP Top 10 ja Sherpa-työpaja lisäresurssien linkkeihin
 
 #### Moduuli 06 - Yhteisön panokset
-- **SDK-lista**: Lisätty Swift ja Rust SDK:t; päivitetty spesifikaatiolinkki 2025-11-25 versioon
-- **Spesifikaatioviite**: Päivitetty MCP Specification linkki suoraan spesifikaatiotiedostoon
+- **SDK-lista**: Lisätty Swift ja Rust SDK:t; päivitetty määrityslinkki 2025-11-25 versioon
+- **Määrityksen linkki**: Päivitetty MCP Specification -linkki suoraan määrityksen URL-osoitteeseen
 
-#### Moduuli 07 - Varhaiskäytön opit
-- **Resurssipäivitykset**: Lisätty MCP Specification 2025-11-25 -linkki ja OWASP MCP Top 10 lisäresursseihin
+#### Moduuli 07 - Varhaisen omaksumisen opit
+- **Resurssipäivitykset**: Lisätty MCP Specification 2025-11-25 ja OWASP MCP Top 10 lisäresursseihin
 
-#### Moduuli 08 - Parhaat käytännöt
-- **Spesifikaatioversio**: Päivitetty MCP Specification -viite versioon 2025-11-25
-- **Turvallisuusresurssit**: Lisätty OWASP MCP Top 10 ja Sherpa workshop lisäresursseihin
+#### Moduuli 08 - Hyvät käytännöt
+- **Määritysversio**: Päivitetty MCP Specification -viittaus 2025-11-25 versioon
+- **Turvaresurssit**: Lisätty OWASP MCP Top 10 ja Sherpa-työpaja lisäresurssilinkkeihin
 
-#### Moduuli 10 - AI-prosessien tehostaminen
-- **Merkintäpäivitys**: Vaihdettu MCP-version badge SDK-version (1.9.3) sijaan spesifikaatioversioon (2025-11-25)
+#### Moduuli 10 - AI-työnkulkujen virtaviivaistaminen
+- **Merkinnän päivitys**: Vaihdettu MCP-version merkki SDK-versiosta (1.9.3) määritysversioon (2025-11-25)
 - **Resurssilinkit**: Päivitetty MCP Specification -linkki; lisätty OWASP MCP Top 10
 
-#### Moduuli 11 - MCP Server Hands-On -laboratoriot
-- **Spesifikaatioviite**: Päivitetty MCP Specification linkki versioon 2025-11-25
-- **Turvallisuusresurssit**: Lisätty OWASP MCP Top 10 virallisiin resursseihin
+#### Moduuli 11 - MCP-palvelimen käytännön laboratoriot
+- **Määrityksen viite**: Päivitetty MCP Specification -linkki 2025-11-25 versioon
+- **Turvaresurssit**: Lisätty OWASP MCP Top 10 virallisiin resursseihin
 
 ## 18. joulukuuta 2025
 
-### Turvallisuusdokumentaation päivitys - MCP Specification 2025-11-25
+### Turvadokumentaation päivitys - MCP Specification 2025-11-25
 
-#### MCP Security Best Practices (02-Security/mcp-best-practices.md) - Spesifikaatioversion päivitys
+#### MCP Security Best Practices (02-Security/mcp-best-practices.md) - Määritysversiopäivitys
 - **Protokollaversion päivitys**: Päivitetty viittaamaan uusimpaan MCP Specification 2025-11-25 (julkaistu 25. marraskuuta 2025)
-  - Päivitetty kaikki spesifikaation versio-osoitukset versiosta 2025-06-18 versioon 2025-11-25
-  - Päivitetty asiakirjan päivämääräosoitukset 18.8.2025 → 18.12.2025
-  - Varmistettu kaikkien spesifikaatiourlien osoite nykyiseen dokumentaatioon
-- **Sisällön validointi**: Laaja turvallisuuden parhaiden käytäntöjen tarkistus uusimpia standardeja vastaan
-  - **Microsoftin turvallisuusratkaisut**: Varmistettu nykyiset termit ja linkit Prompt Shieldseille (entinen "Jailbreak risk detection"), Azure Content Safetylle, Microsoft Entra ID:lle ja Azure Key Vaultille
-  - **OAuth 2.1 -turvallisuus**: Vahvistettu yhteensopivuus uusimpien OAuth-turvakäytäntöjen kanssa
-  - **OWASP-standardit**: Tarkastettu OWASP Top 10 LLM:ille pysyvän ajantasaisena
-  - **Azure-palvelut**: Tarkistettu kaikki Microsoft Azuren dokumentaatio-, ohje- ja parhaiden käytäntöjen linkit
-- **Standardien yhdenmukaisuus**: Kaikki viitellut turvallisuusstandardit ovat ajan tasalla
+  - Päivitetty kaikki määritysversioviittaukset 2025-06-18 → 2025-11-25
+  - Päivitetty dokumentin päivämääräviitteet 18. elokuuta 2025 → 18. joulukuuta 2025
+  - Varmistettu, että kaikki määritys-URL-osoitteet osoittavat nykyiseen dokumentaatioon
+- **Sisällön validointi**: Kattava varmennus turvaparhaiden käytäntöjen ajantasaisuudesta
+  - **Microsoft Security Solutions**: Tarkistettu nykyiset termit ja linkit Prompt Shieldsille (aiemmin "Jailbreak risk detection"), Azure Content Safetylle, Microsoft Entra ID:lle ja Azure Key Vaultille
+  - **OAuth 2.1 -turvallisuus**: Varmistettu yhdenmukaisuus uusimpiin OAuth-turvakäytäntöihin
+  - **OWASP-standardit**: Tarkistettu että OWASP Top 10 -viitteet LLM:ille ovat edelleen ajantasaiset
+  - **Azure-palvelut**: Tarkistettu kaikki Microsoft Azure -dokumentaatioiden ja parhaiden käytäntöjen linkit ja sisältö
+- **Standardien noudattavuus**: Kaikki viitatut turvastandardit ovat ajan tasalla
   - NIST AI Risk Management Framework
   - ISO 27001:2022
-  - OAuth 2.1 -turvallisuuden parhaat käytännöt
-  - Azure-turva- ja vaatimustenmukaisuuden viitekehykset
-- **Toteutusresurssit**: Tarkastettu kaikki toteutusopaslinkit ja resurssit
-  - Azure API Management -todennuskuviot
+  - OAuth 2.1 Security Best Practices
+  - Azure turvallisuus- ja vaatimustenmukaisuuskehykset
+- **Toteutusresurssit**: Tarkistettu kaikki toteutusopaslinkit ja materiaalit
+  - Azure API Managementin todennusmallit
   - Microsoft Entra ID -integraatio-oppaat
-  - Azure Key Vaultin salaisuudenhallinta
-  - DevSecOps-putket ja valvontaratkaisut
+  - Azure Key Vaultin salaisuuksien hallinta
+  - DevSecOps-pipelinejen ja valvonnan ratkaisut
 
 ### Dokumentaation laadunvarmistus
-- **Spesifikaation noudattaminen**: Varmistettu kaikkien pakollisten MCP-turvavaatimusten (MUST/MUST NOT) vastaavuus uusimpaan spesifikaatioon
-- **Resurssien ajantasaisuus**: Tarkistettu kaikki ulkopuoliset linkit Microsoftin dokumentaatioihin, turvallisuusstandardeihin ja toteutusoppaisiin
-- **Parhaiden käytäntöjen kattavuus**: Vahvistettu kattava näkökulma todennukseen, valtuutukseen, tekoälyn erityisuhkiin, toimitusketjun turvaan ja yrityskuvioihin
+- **Määrityksen noudattavuus**: Varmistettu, että kaikki pakolliset MCP-turvavaatimukset (MUST/MUST NOT) vastaavat uusinta määritystä
+- **Resurssien ajantasaisuus**: Tarkistettu kaikki ulkoiset linkit Microsoftin dokumentaatioon, turvastandardeihin ja toteutusoppaisiin
+- **Parhaiden käytäntöjen kattavuus**: Varmistettu kattava käsittely autentikaatiosta, valtuutuksesta, tekoälykohtaisista uhkista, toimitusketjun turvallisuudesta ja yritysmallien hyödyntämisestä
 
 ## 6. lokakuuta 2025
 
-### Aloitusosion laajennus – Edistynyt palvelimen käyttö & yksinkertainen todennus
+### Aloittelijan osion laajennus – Edistynyt palvelimen käyttö ja yksinkertainen autentikointi
 
 #### Edistynyt palvelimen käyttö (03-GettingStarted/10-advanced)
-- **Uusi luku lisätty**: Esitelty kattava opas edistyneestä MCP-palvelimen käytöstä, joka kattaa sekä tavallisen että matalan tason palvelinarkkitehtuurit.
-  - **Tavallinen vs. matalan tason palvelin**: Yksityiskohtainen vertailu ja koodiesimerkit Pythonilla ja TypeScriptilä molemmille lähestymistavoille.
-  - **Handler-pohjainen suunnittelu**: Selitys handler-pohjaisesta työkalujen/resurssien/kehotteiden hallinnasta skaalautuvien ja joustavien palvelintoteutusten tarpeisiin.
-  - **Käytännön kuviot**: Todelliset tilanteet, joissa matalan tason palvelinmallit ovat hyödyllisiä edistyneissä ominaisuuksissa ja arkkitehtuurissa.
-#### Yksinkertainen autentikointi (03-GettingStarted/11-simple-auth)
-- **Uusi luku lisätty**: Vaiheittainen opas yksinkertaisen autentikoinnin toteuttamiseen MCP-palvelimissa.
-  - **Autentikointikäsitteet**: Selkeä selitys autentikoinnin ja valtuutuksen eroista sekä tunnistetietojen käsittelystä.
-  - **Perusautentikoinnin toteutus**: Middleware-pohjaiset autentikointimallit Pythonissa (Starlette) ja TypeScriptissä (Express) koodiesimerkkien kera.
-  - **Eteneminen kehittyneempään turvallisuuteen**: Ohjeet yksinkertaisesta autentikoinnista aloittamiseen ja etenemiseen OAuth 2.1- ja RBAC-malleihin, sekä viittaukset edistyneisiin turvallisuusmoduuleihin.
+- **Uusi luku lisätty**: Lisätty kattava opas edistyneestä MCP-palvelimen käytöstä, joka kattaa sekä tavallisen että matalamman tason palvelinarkkitehtuurit.
+  - **Tavallinen vs. matalan tason palvelin**: Yksityiskohtainen vertailu ja koodiesimerkkejä Pythonilla ja TypeScriptilä molemmille lähestymistavoille.
+  - **Handler-pohjainen suunnittelu**: Selitys handler-pohjaisesta työkalujen/resurssien/kehotteiden hallinnasta skaalautuvissa, joustavissa palvelinratkaisuissa.
+  - **Käytännön mallit**: Todellisia käyttötapauksia, joissa matalan tason palvelinmallit ovat hyödyllisiä edistyneisiin ominaisuuksiin ja arkkitehtuuriin.
 
-Nämä lisäykset tarjoavat käytännönläheistä, käsillä tehtävää opastusta vahvempien, turvallisempien ja joustavampien MCP-palvelintoteutusten rakentamiseen, yhdistäen peruskäsitteet kehittyneisiin tuotantomalleihin.
+#### Yksinkertainen todennus (03-GettingStarted/11-simple-auth)
+- **Uusi luku lisätty**: Askelsarjan ohje yksinkertaisen todennuksen toteuttamiseen MCP-palvelimissa.
+  - **Todennuksen käsitteet**: Selkeä selitys todennuksen ja valtuutuksen eroista sekä tunnistetietojen käsittelystä.
+  - **Perustason todennuksen toteutus**: Middleware-pohjaiset todennuskäytännöt Pythonilla (Starlette) ja TypeScriptillä (Express), koodiesimerkeillä.
+  - **Edistyneempään tietoturvaan eteneminen**: Opastus yksinkertaisesta todennuksesta OAuth 2.1:een ja RBAC:iin, viitteillä edistyneisiin tietoturvakennoihin.
+
+Nämä lisäykset tarjoavat käytännönläheistä ohjausta vankempien, turvallisempien ja joustavampien MCP-palvelintoteutusten rakentamiseen, yhdistäen perustavaa laatua olevat käsitteet edistyneisiin tuotantokäytäntöihin.
 
 ## 29. syyskuuta 2025
 
-### MCP-palvelimen tietokantaintegraation laboratoriot – Kattava käytännön oppimispolku
+### MCP-palvelimen tietokannaintegraatiolaboratoriot – Kattava käytännön oppimispolku
 
-#### 11-MCPServerHandsOnLabs – Uusi täydellinen tietokantaintegraatiokurssi
-- **Täysi 13-laboratoriopolku**: Lisätty kattava käytännön opetusohjelma tuotantovalmiiden MCP-palvelimien rakentamiseen PostgreSQL-tietokantaintegraatiolla
-  - **Todellisen maailman toteutus**: Zava Retail -analytiikkatapaus, joka esittelee yritysluokan malleja
-  - **Rakenteellinen oppiminen**:
-    - **Labit 00–03: Perusteet** – Johdanto, ydinkirjasto, turvallisuus ja monivuokraaja, ympäristön asennus
-    - **Labit 04–06: MCP-palvelimen rakentaminen** – Tietokantasuunnittelu ja skeema, MCP-palvelimen toteutus, työkalujen kehitys 
-    - **Labit 07–09: Kehittyneet ominaisuudet** – Semanttisen haun integraatio, testaus ja virheenkorjaus, VS Code -integraatio
-    - **Labit 10–12: Tuotanto ja parhaat käytännöt** – Julkaisustrategiat, valvonta ja havaittavuus, parhaat käytännöt ja optimointi
+#### 11-MCPServerHandsOnLabs – Uusi täydellinen tietokannan integrointikoulutus
+- **Täydellinen 13-laboratoriokurssi**: Lisätty kattava käytännön kurssi tuotantovalmiiden MCP-palvelimien rakentamiseen PostgreSQL-tietokantaintegraatiolla
+  - **Todellinen käyttötapaus**: Zava Retail -analytiikan käyttötapaus, jossa esitellään yritystason malleja
+  - **Rakenneoppimisen eteneminen**:
+    - **Laboratoriot 00–03: Perusteet** – Johdanto, ydinararkkitehtuuri, tietoturva ja monivuokraus sekä ympäristön asennus
+    - **Laboratoriot 04–06: MCP-palvelimen rakentaminen** – Tietokannan suunnittelu ja skeema, MCP-palvelintoteutus, työkalujen kehitys
+    - **Laboratoriot 07–09: Edistyneet ominaisuudet** – Semanttisen haun integrointi, testaus ja virheenkorjaus, VS Coden integrointi
+    - **Laboratoriot 10–12: Tuotanto ja parhaat käytännöt** – Julkaisustrategiat, valvonta ja havaittavuus, parhaat käytännöt ja optimointi
   - **Yritysteknologiat**: FastMCP-kehys, PostgreSQL pgvectorillä, Azure OpenAI -upotukset, Azure Container Apps, Application Insights
-  - **Kehittyneet ominaisuudet**: Rivitason turvallisuus (RLS), semanttinen haku, monivuokraajamuotoinen datan käyttöoikeus, vektorikohdistukset, reaaliaikainen valvonta
+  - **Edistyneet ominaisuudet**: Rivitason turvallisuus (RLS), semanttinen haku, monivuokrajuurisyys, vektorituetut upotukset, reaaliaikainen valvonta
 
-#### Termistöstandardisointi – moduulista labiksi muutos
-- **Kattava dokumentaatiopäivitys**: Kaikki 11-MCPServerHandsOnLabs -hakemiston README:t päivitetty käyttämään "Lab"-termiä moduulin sijaan
-  - **Otsikot**: "What This Module Covers" päivitetty muotoon "What This Lab Covers" kaikissa 13 labissa
-  - **Sisällön kuvaus**: "This module provides..." muutettu muotoon "This lab provides..." dokumentaatiossa
-  - **Oppimistavoitteet**: "By the end of this module..." päivitetty muotoon "By the end of this lab..."
-  - **Navigointilinkit**: Kaikki "Module XX:"-viittaukset muunnettu "Lab XX:" -muotoon linkeissä ja viittauksissa
-  - **Suorituksen seuranta**: "After completing this module..." päivitetty muotoon "After completing this lab..."
-  - **Tekniset viitteet säilytetty**: Python-moduuliviitteet konfigurointitiedostoissa (esim. `"module": "mcp_server.main"`) säilytetty ennallaan
+#### Terminologian yhdenmukaistaminen – moduulista laboratorioksi
+- **Kattava dokumentaatiopäivitys**: Kaikkien 11-MCPServerHandsOnLabs -kansion README-tiedostojen järjestelmällinen päivitys "Lab"-terminologian käyttöön "Module"-termin sijaan
+  - **Osioiden otsikot**: Muutettu "What This Module Covers" muotoon "What This Lab Covers" kaikissa 13 laboratoriossa
+  - **Sisällön kuvaus**: Korvattu "This module provides..." muotoon "This lab provides..." koko dokumentaatiossa
+  - **Oppimistavoitteet**: Päivitetty "By the end of this module..." muotoon "By the end of this lab..."
+  - **Navigointilinkit**: Muunnettu kaikki "Module XX:"-viittaukset muotoon "Lab XX:" ristiviittausten ja navigoinnin yhteydessä
+  - **Suorituksen seuranta**: Päivitetty "After completing this module..." muotoon "After completing this lab..."
+  - **Tekniset viittaukset säilytetty**: Python-moduuliviittaukset säilytetty konfiguraatiotiedostoissa (esim. `"module": "mcp_server.main"`)
 
-#### Opasoppaiden parannus (study_guide.md)
-- **Visuaalinen opetussuunnitelmakartta**: Lisätty uusi "11. Database Integration Labs" -osio, jossa koko labirakenne havainnollistettuna
-- **Repositorion rakenne**: Päivitetty kymmenestä yhdentoista pääosioon sisältäen tarkan 11-MCPServerHandsOnLabs-kuvauksen
-- **Oppimispolun ohjeistus**: Paranneltu navigointiohjeita kattamaan osiot 00–11
-- **Teknologian kattavuus**: Lisätty FastMCP, PostgreSQL ja Azure-palveluiden integraatiotiedot
-- **Oppimistulokset**: Korostettu tuotantovalmiin palvelimen kehitystä, tietokantaintegraation malleja ja yritystason turvallisuutta
+#### Opasoppaan parannus (study_guide.md)
+- **Visuaalinen opetussuunnitelmakartta**: Lisätty uusi "11. Database Integration Labs" -osio, joka esittää kattavasti laboratoriorakenteen
+- **Repositorion rakenne**: Päivitetty kymmenestä yksikköosasta yhdentoista pääosaan, sisältää yksityiskohtaisen 11-MCPServerHandsOnLabs -kuvauksen
+- **Oppimispolkuneuvonta**: Parannettu navigointiohjeet kattamaan osiot 00–11
+- **Teknologiakattavuus**: Lisätty FastMCP, PostgreSQL ja Azure-palvelujen integrointitiedot
+- **Oppimistulokset**: Korostettu tuotantovalmiiden palvelinten kehitystä, tietokantaintegraatiomalleja ja yritystason tietoturvaa
 
 #### Pää-README-rakenteen parannus
-- **Labipohjainen terminologia**: Päivitetty 11-MCPServerHandsOnLabsin pää-README.md käyttämään johdonmukaisesti "Lab"-rakennetta
-- **Oppimispolun organisointi**: Selkeä eteneminen peruskäsitteistä edistyneeseen toteutukseen ja tuotantoon vievään vaiheeseen
-- **Todellisen maailman painotus**: Käytännönläheinen, laboratoriopohjainen oppiminen yritysluokkaisten mallien ja teknologioiden kera
+- **Lab-pohjainen terminologia**: Päivitetty 11-MCPServerHandsOnLabs -kansion pää-README.md käyttämään yhdenmukaista "Lab"-rakennetta
+- **Oppimispolun järjestys**: Selkeä eteneminen perustakäsitteistä edistyneisiin toteutuksiin ja tuotantojulkaisuun
+- **Käytännön painotus**: Korostettu käytännönläheistä oppimista yritystason mallien ja teknologioiden kanssa
 
 ### Dokumentaation laadun ja yhdenmukaisuuden parannukset
-- **Käytännönläheinen oppiminen**: Vahvistettu käytännön laboratoriopohjaista lähestymistapaa dokumentaatiossa
-- **Yritysmallien korostus**: Esitelty tuotantovalmiita toteutuksia ja yritysturvallisuuskysymyksiä
-- **Teknologiaintegraatio**: Kattava modernien Azure-palveluiden ja tekoälyintegraation kuvaus
-- **Oppimisen eteneminen**: Selkeä, strukturoitu polku perustason käsitteistä tuotantojulkaisuun
+- **Käytännön oppimisen painotus**: Vahvistettu käytännön laboratoriopohjaista lähestymistapaa koko dokumentaatiossa
+- **Yritysratkaisuissa käytetyt mallit**: Korostettu tuotantovalmiita toteutuksia ja yritystason tietoturvakysymyksiä
+- **Teknologian integrointi**: Kattava kuvaus moderneista Azure-palveluista ja tekoälyintegraatiomalleista
+- **Oppimisen eteneminen**: Selkeä, jäsennelty polku peruskäsitteistä tuotantoon
 
 ## 26. syyskuuta 2025
 
-### Tapaustutkimusten päivitys – GitHub MCP Registry -integraatio
+### Tapaustutkimusten laajennus – GitHub MCP Registry -integraatio
 
-#### Tapaustutkimukset (09-CaseStudy/) – Ekosysteemin kehitykselle painotusta
+#### Tapaustutkimukset (09-CaseStudy/) – Ekosysteemin kehityksen painopiste
 - **README.md**: Merkittävä laajennus kattavalla GitHub MCP Registry -tapaustutkimuksella
-  - **GitHub MCP Registry -tapaustutkimus**: Uusi kattava tutkimus GitHubin MCP Registryn julkaisusta syyskuussa 2025
-    - **Ongelman analyysi**: Yksityiskohtainen tarkastelu hajanaisesta MCP-palvelinten löytämisestä ja käyttöönotosta
-    - **Ratkaisun arkkitehtuuri**: GitHubin keskitetty rekisterimalli ja yhden klikkauksen VS Code -asennus
-    - **Liiketoimintavaikutus**: Mitattavat parannukset kehittäjien perehdytyksessä ja tuottavuudessa
-    - **Strateginen arvo**: Moduulien agenttien käyttöönotto ja työkalujen yhteentoimivuus
-    - **Ekosysteemikehitys**: Sijoittuminen perustaksi agenttipohjaiselle integraatiolle
-  - **Parannettu tapaustutkimusrakenne**: Kaikki seitsemän tapaustutkimusta päivitetty johdonmukaisella muotoilulla ja yksityiskohtaisilla kuvauksilla
-    - Azure AI Travel Agents: Moni-agenttien orkestrointi
-    - Azure DevOps Integration: Työnkulun automaatio
-    - Reaaliaikainen dokumentaation haku: Python-konsoliasiakas
-    - Interaktiivinen opintosuunnitelman generaattori: Chainlit-keskustelusovellus
-    - In-editor-dokumentaatio: VS Code ja GitHub Copilot -integraatio
-    - Azure API Management: Yritystason API-integraatiomallit
+  - **GitHub MCP Registry -tapaustutkimus**: Uusi kattava tapaustutkimus GitHubin MCP Registry -lanseerauksesta syyskuussa 2025
+    - **Ongelman analyysi**: Yksityiskohtainen analyysi hajanaisesta MCP-palvelintunnistuksesta ja käyttöönoton haasteista
+    - **Ratkaisuarkkitehtuuri**: GitHubin keskitetty rekisteröintimalli yhden klikkauksen VS Code -asennuksella
+    - **Liiketoiminnan vaikutus**: Mitattavissa olevat parannukset kehittäjien perehdytyksessä ja tuottavuudessa
+    - **Strateginen arvo**: Painotus modulaarisessa agenttien käyttöönotossa ja ristyökalujen yhteensopivuudessa
+    - **Ekosysteemin kehitys**: Asemoitu perustavaksi alustaksi agenttipohjaisille integraatioille
+  - **Parannettu tapaustutkimusten rakenne**: Päivitetty kaikki seitsemän tapaustutkimusta yhdenmukaisella muotoilulla ja kattavilla kuvauksilla
+    - Azure AI -matkailuagentit: Moniagenttien orkestroinnin painotus
+    - Azure DevOps -integraatio: Työnkulkujen automaation keskittyminen
+    - Reaaliaikainen dokumentaation hakeminen: Python-konsoliasiakkaan toteutus
+    - Interaktiivinen opintosuunnitelman generaattori: Chainlit-keskusteluverkkosovellus
+    - Muokkaimen sisäinen dokumentaatio: VS Code ja GitHub Copilot -integraatio
+    - Azure API Management: Yritys-API-integraatiomallit
     - GitHub MCP Registry: Ekosysteemin kehitys ja yhteisöalusta
-  - **Kattava yhteenveto**: Kirjoitettu uudelleen yhteenvetosivu, korostaen seitsemää tapaustutkimusta MCP-toteutuksen eri ulottuvuuksilta
-    - Yritysintegrointi, moni-agenttien orkestrointi, kehittäjien tuottavuus
-    - Ekosysteemin kehitys, koulutussovellukset
-    - Syvällisiä näkemyksiä arkkitehtuurimalleista, toteutusstrategioista ja parhaista käytännöistä
-    - MCP-protokollan kypsänä, tuotantovalmiina ratkaisuna
+  - **Kattava loppuyhteenveto**: Uudelleenkirjoitettu loppuosio, joka korostaa seitsemää tapaustutkimusta eri MCP-toteutuksen osa-alueilla
+    - Yritysintegraatio, moniagenttien orkestrointi, kehittäjätuottavuus
+    - Ekosysteemin kehitys, koulutussovellukset -luokittelut
+    - Parannetut näkemykset arkkitehtuurimalleista, toteutusstrategioista ja parhaista käytännöistä
+    - Korostus MCP:n kypsyydestä tuotantovalmiina protokollana
 
-#### Opasoppaiden päivitykset (study_guide.md)
-- **Visuaalinen opetussuunnitelmakartta**: Päivitetty miellekartta sisältämään GitHub MCP Registry tapaustutkimusosioon
-- **Tapaustutkimusten kuvaus**: Paranneltu geneerisistä kuvauksista yksityiskohtaisiin seitsemän tapaustutkimuksen erittelyihin
-- **Repositorion rakenne**: Päivitetty osio 10 vastaamaan kattavaa tapaustutkimusten sisältöä ja erityisiä toteutusyksityiskohtia
-- **Muutospäiväkirja**: Lisätty 26. syyskuuta 2025 merkintä dokumentoimaan GitHub MCP Registryn lisäys ja tapaustutkimusten parannukset
-- **Päivämääräpäivitykset**: Alatunnisteen aikaleima päivitetty viimeisimpään versioon (26. syyskuuta 2025)
+#### Opasoppaan päivitykset (study_guide.md)
+- **Visuaalinen opetussuunnitelmakartta**: Päivitetty miellekartta sisältämään GitHub MCP Registry tapaustutkimusten osiossa
+- **Tapaustutkimusten kuvaus**: Parannettu geneerisistä kuvauksista seitsemän kattavan tapaustutkimuksen yksityiskohtaiseen erittelyyn
+- **Repositorion rakenne**: Päivitetty osio 10 kattamaan kattavat tapaustutkimukset yksityiskohtaisilla toteutustiedoilla
+- **Muutoslokin integrointi**: Lisätty 26. syyskuuta 2025 -merkintä dokumentoimaan GitHub MCP Registryn lisääminen ja tapaustutkimusten parannukset
+- **Päivämääräpäivitykset**: Päivitetty alatunnisteen aikaleima vastaamaan uusinta versiota (26. syyskuuta 2025)
 
 ### Dokumentaation laadun parannukset
-- **Yhdenmukaisuuden parantaminen**: Tapaustutkimusten muotoilu ja rakenne vakioitu kaikissa seitsemässä esimerkissä
-- **Kattava sisältö**: Tapaustutkimukset kattavat nyt yritystoiminnan, kehittäjien tuottavuuden ja ekosysteemin kehityksen skenaariot
-- **Strateginen asema**: Korostettu MCP:n asemaa perustavana alustana agenttipohjaisten järjestelmien käyttöönotossa
-- **Resurssien integrointi**: Päivitetyt lisäresurssit sisältävät linkin GitHub MCP Registryyn
+- **Yhdenmukaisuuden vahvistaminen**: Standarditoitu tapaustutkimusten muotoilu ja rakenne kaikissa seitsemässä esimerkissä
+- **Kattava laajuus**: Tapaustutkimukset kattavat nyt yritys-, kehittäjä- ja ekosysteemikehityksen skenaariot
+- **Strateginen asemoituminen**: Parempi painotus MCP:hen perustavana agenttipohjaisten järjestelmien alustana
+- **Resurssien integrointi**: Päivitetyt lisäresurssit sisältävät GitHub MCP Registry -linkin
 
 ## 15. syyskuuta 2025
 
-### Edistyneet aiheet laajennus – Räätälöidyt kuljetusprotokollat & kontekstisuunnittelu
+### Edistyneet aiheet – Räätälöidyt siirrot ja kontekstisuunnittelu
 
-#### MCP räätälöidyt kuljetukset (05-AdvancedTopics/mcp-transport/) – Uusi kehittynyt toteutusopas
-- **README.md**: Täydellinen toteutusopas räätälöityihin MCP-kuljetusmekanismeihin
-  - **Azure Event Grid -kuljetus**: Kattava palvelimettoman tapahtumapohjaisen kuljetuksen toteutus
-    - C#, TypeScript ja Python-esimerkit Azure Functions -integraatiolla
-    - Tapahtumapohjaiset arkkitehtuurimallit skaalautuviin MCP-ratkaisuihin
-    - Webhook-vastaanottajat ja push-viestien käsittely
-  - **Azure Event Hubs -kuljetus**: Suurinopeuksinen suoratoistokuljetuksen toteutus
-    - Reaaliaikaiset suoratoistomahdollisuudet alhaisen latenssin tilanteisiin
-    - Jakopolitiikat ja tilan hallinta
-    - Viestien ryhmittely ja suorituskyvyn optimointi
-  - **Yritysintegraatiomallit**: Tuotantovalmiita arkkitehtuuriesimerkkejä
-    - Jakautunut MCP-käsittely useiden Azure Functions -instanssien kesken
-    - Hybridikuljetusarkkitehtuurit yhdistäen useita kuljetustyyppejä
-    - Viestien pysyvyys, luotettavuus ja virheenkäsittelystrategiat
-  - **Turvallisuus ja valvonta**: Azure Key Vault -integraatio ja havaittavuusmallit
-    - Hallitut identiteetit ja vähimmän oikeuden käyttöoikeudet
-    - Application Insights -telemetria ja suorituskyvyn monitorointi
-    - Piirikytkimet ja vikansietomallit
-  - **Testauskehykset**: Kattavat testausstrategiat räätälöidyille kuljetuksille
-    - Yksikkötestaus testidubletteineen ja mockaustyökaluineen
+#### MCP räätälöidyt siirrot (05-AdvancedTopics/mcp-transport/) – Uusi edistyneen toteutuksen opas
+- **README.md**: Täydellinen opas räätälöityjen MCP-siirtomekanismien toteutukseen
+  - **Azure Event Grid -siirto**: Kattava palvelimettoman tapahtumapohjaisen siirron toteutus
+    - C#, TypeScript ja Python-esimerkkejä Azure Functions -integraatiolla
+    - Tapahtumaohjatun arkkitehtuurin mallit skaalautuviin MCP-ratkaisuihin
+    - Webhookin vastaanottajat ja push-pohjainen viestinkäsittely
+  - **Azure Event Hubs -siirto**: Suurikapasiteettinen suoratoistosiirron toteutus
+    - Reaaliaikaiset suoratoistomahdollisuudet alhaisen viiveen skenaarioihin
+    - Osiointi- ja checkpoint-hallintastrategiat
+    - Viestipakkaus ja suorituskyvyn optimointi
+  - **Yritysintegraatiomallit**: Tuotantovalmiit arkkitehtuuriesimerkit
+    - Hajautettu MCP-käsittely useiden Azure Functionien välillä
+    - Hybridisiirtoarkkitehtuurit, joissa on useita siirtotyyppejä
+    - Viestien kestävyyden, luotettavuuden ja virheenkäsittelyn strategiat
+  - **Tietoturva ja valvonta**: Azure Key Vault -integraatio ja havaittavuusmallit
+    - Hallinnoitu identiteetti -todennus ja vähimmän etuoikeuden käyttö
+    - Application Insights -telemetria ja suorituskyvyn valvonta
+    - Kytkinpiirit ja vikansietomallit
+  - **Testauskehykset**: Kattavat testausstrategiat räätälöidyille siirroille
+    - Yksikkötestaus testidubbleilla ja mokkauskehyksillä
     - Integraatiotestaus Azure Test Containers -ympäristössä
-    - Suorituskyky- ja kuormitustestausnäkökohdat
+    - Suorituskyky- ja kuormitustestaus
 
-#### Kontekstisuunnittelu (05-AdvancedTopics/mcp-contextengineering/) – Nouseva tekoälyala
-- **README.md**: Kattava selvitys kontekstisuunnittelusta nousevana tutkimuskenttänä
-  - **Keskeiset periaatteet**: Täydellinen kontekstin jakaminen, toimintapäätöksen tietoisuus ja kontekstin ikkunanhallinta
-  - **MCP-protokollan yhteensopivuus**: Kuinka MCP-design vastaa kontekstisuunnittelun haasteisiin
-    - Kontekstin ikkunan rajoitukset ja progressiivisen latauksen strategiat
-    - Relevanssin määrittäminen ja dynaaminen kontekstin haku
-    - Monimodaalinen kontekstin käsittely ja turvallisuuskysymykset
-  - **Toteutusmenetelmät**: Yksi- vs. moniagenttinen arkkitehtuuri
-    - Kontekstipalasten jakaminen ja priorisointi
-    - Progressiivinen kontekstin lataus ja pakkausstrategiat
-    - Kerrostetut kontekstimenetelmät ja hakujen optimointi
-  - **Mittauskehys**: Nousevia mittareita kontekstin toimivuuden arviointiin
-    - Syötteen tehokkuus, suorituskyky, laatu ja käyttökokemus
-    - Kokeelliset menetelmät kontekstin optimointiin
-    - Virheanalyysi ja parannusmenetelmät
+#### Kontekstisuunnittelu (05-AdvancedTopics/mcp-contextengineering/) – Uusi nouseva tekoälyala
+- **README.md**: Kattava tutkimus kontekstisuunnittelusta nousevana alana
+  - **Keskeiset periaatteet**: Täydellinen kontekstijako, toiminnan päätöksenteko ja kontekstin ikkunanhallinta
+  - **MCP-protokollan yhdenmukaisuus**: Miten MCP-suunnittelu käsittelee kontekstisuunnittelun haasteita
+    - Kontekstin ikkunarajoitukset ja progressiivisen latauksen strategiat
+    - Merkityksen määritys ja dynaaminen kontekstinhakutekniikka
+    - Monimuotoisen kontekstin käsittely ja turvallisuusnäkökulmat
+  - **Toteutuslähestymistavat**: Yksisäikeinen vs. moniagenttinen arkkitehtuuri
+    - Kontekstin paloittelu ja priorisointitekniikat
+    - Progressiivinen kontekstin lataus ja pakkausmenetelmät
+    - Kerrostetut konstekstitavat ja hakukäytännön optimointi
+  - **Mittauskehys**: Nousevat mittarit kontekstin toimivuuden arviointiin
+    - Syötteen tehokkuus, suorituskyky, laatu ja käyttäjäkokemus
+    - Kokeelliset lähestymistavat kontekstin optimointiin
+    - Virheanalyysit ja parantamismetodit
 
 #### Opetussuunnitelman navigointipäivitykset (README.md)
-- **Laajennettu moduurirakenne**: Päivitetty opetussuunnitelman taulukko sisältämään uudet edistyneet aiheet
-  - Lisätty Kontekstisuunnittelu (5.14) ja Räätälöity kuljetus (5.15)
-  - Johdonmukainen muotoilu ja navigointilinkit kaikissa moduuleissa
-  - Päivitetyt kuvaukset vastaamaan nykyistä sisältöaluetta
+- **Parannettu moduulirakenne**: Päivitetty opetussuunnitelman taulukko sisältämään uudet edistyneet aiheet
+  - Lisätty Kontekstisuunnittelu (5.14) ja Räätälöity siirto (5.15) -kohdat
+  - Yhdenmukainen muotoilu ja navigointilinkit kaikissa moduuleissa
+  - Päivitetyt kuvaukset nykyisen sisältölaajuuden mukaisiksi
 
 ### Hakemistorakenteen parannukset
-- **Nimistön yhdenmukaistus**: "mcp transport" nimetty uudelleen muotoon "mcp-transport" yhdenmukaisuuden vuoksi muiden kehittyneiden aiheiden kansioiden kanssa
-- **Sisällön organisointi**: Kaikki 05-AdvancedTopics -kansiot noudattavat johdonmukaista nimeämiskäytäntöä (mcp-[aihe])
+- **Nimien yhdenmukaistaminen**: "mcp transport" muutettu muotoon "mcp-transport" yhdenmukaisuuden vuoksi muiden edistyneiden aiheiden kansioiden kanssa
+- **Sisällön järjestely**: Kaikki 05-AdvancedTopics -kansiot noudattavat nyt yhdenmukaista nimikäytäntöä (mcp-[aihe])
 
 ### Dokumentaation laadun parannukset
-- **MCP-spesifikaation mukaistaminen**: Kaikki uusi sisältö viittaa MCP Specification 2025-06-18 -versioon
-- **Monikieliset esimerkit**: Kattavat koodiesimerkit C#:ssa, TypeScriptissä ja Pythonissa
-- **Yrityslähtöisyys**: Tuotantovalmiit mallit ja Azure-pilvi-integraatio läpi dokumentaation
-- **Visuaalinen dokumentaatio**: Mermaid-kaaviot arkkitehtuurin ja työnkulun havainnollistamiseen
+- **MCP-määritysten yhdenmukaisuus**: Kaikki uusi sisältö viittaa MCP Specification 2025-06-18 -versioon
+- **Monikieliset esimerkit**: Kattavat koodiesimerkit C#:llä, TypeScriptilä ja Pythonilla
+- **Yrityspainotus**: Tuotantovalmiit mallit ja Azure-pilvijärjestelmien integrointi kauttaaltaan
+- **Visuaalinen dokumentaatio**: Mermaid-kaaviot arkkitehtuurin ja toimintavirtojen havainnollistamiseksi
 
 ## 18. elokuuta 2025
 
 ### Dokumentaation kattava päivitys – MCP 2025-06-18 -standardit
 
-#### MCP-turvallisuuden parhaat käytännöt (02-Security/) – Täydellinen modernisointi
-- **MCP-SECURITY-BEST-PRACTICES-2025.md**: Kokonaan uudelleenkirjoitettu MCP Specification 2025-06-18:n mukaisesti
-  - **Pakolliset vaatimukset**: Virallisen spesifikaation selkeät PAKOTA/PÄÄTÄÄ EI-säännöt visuaalisin indikaattorein
-  - **12 ydinturvallisuuskäytäntöä**: Rakenteellinen uudistus 15-kohdan listasta kattavaan toimialuerakenteeseen
-    - Tokenin turvallisuus ja autentikointi ulkoisen identiteetintarjoajan integroinnilla
-    - Istunnon hallinta ja kuljetuksen turvallisuus kryptografisine vaatimuksineen
-    - Tekoälyyn liittyvät uhkasuojaukset Microsoft Prompt Shieldsin kanssa
-    - Käyttöoikeuksien hallinta ja vähimmän oikeuden periaate
-    - Sisällön turvallisuus ja valvonta Azure Content Safetyn kanssa
-    - Toimitusketjun turvallisuus kattavalla komponenttien varmistuksella
-    - OAuth-turvallisuus ja Confused Deputy -hyökkäysten esto PKCE:tä hyödyntäen
-    - Incident Response & Recovery automaatiokyvyillä
-    - Säädösvaatimustenmukaisuus ja hallintomallit
-    - Edistyneet turvallisuusohjaimet nollaluottamuksen arkkitehtuurilla
-    - Microsoftin turvallisuusympäristön integrointi kattavasti
-    - Jatkuva turvallisuuden kehitys adaptiivisin käytännöin
-  - **Microsoftin turvallisuusratkaisut**: Parannettu integraatio-ohjeistus Prompt Shieldsille, Azure Content Safetylle, Entra ID:lle ja GitHub Advanced Securitylle
-  - **Toteutusresurssit**: Rikkaita linkkiluokkia virallisesta MCP-dokumentaatiosta, Microsoftin turvaratkaisuista, turvastandardeista ja toteutusoppaista
+#### MCP-tietoturvan parhaat käytännöt (02-Security/) – Täydellinen modernisointi
+- **MCP-SECURITY-BEST-PRACTICES-2025.md**: Täydellinen uudelleenkirjoitus MCP Specification 2025-06-18 mukaisesti
+  - **Pakolliset vaatimukset**: Lisätty selkeät PAKOLLISET / EI SAA -vaatimukset virallisesta määritelmästä näkyvin merkinnöin
+  - **12 ydinturvakäytäntöä**: Rakenteen muutos 15 kohdan listasta kattaviin turva-alueisiin
+    - Tunnistetietoturva ja todennus ulkoisen identiteetin tarjoajan integroinnilla
+    - Istunnon hallinta ja siirtoturva salausvaatimuksin
+    - Tekoälyyn liittyvät uhkaympäristöt Microsoft Prompt Shields -integraation avulla
+    - Käyttöoikeuksien hallinta vähimmän etuoikeuden periaatteella
+    - Sisällön turvallisuus ja valvonta Azure Content Safetyn avulla
+    - Toimitusketjun turvallisuus komponenttivarmennuksin
+    - OAuth-turva ja "Confused Deputy" -hyökkäysten esto PKCE-menetelmällä
+    - Tapahtumien hallinta ja palautuminen automaattisilla ominaisuuksilla
+    - Säännösten noudattaminen ja hallintakehykset
+    - Edistyneet turvallisuussäännöt ja zero trust -arkkitehtuuri
+    - Microsoftin tietoturvaekosysteemin integrointi (Prompt Shields, Azure Content Safety, Entra ID, GitHub Advanced Security)
+    - Jatkuva tietoturvan kehitys adaptiivisilla käytännöillä
+  - **Microsoftin tietoturvaratkaisut**: Parannettua ohjeistusta Prompt Shieldsin, Azure Content Safetyn, Entra ID:n ja GitHub Advanced Securityn integrointiin
+  - **Toteutusresurssit**: Luokiteltu linkkikokoelma virallisesta MCP-dokumentaatiosta, Microsoftin tietoturvaratkaisuista, turvastandardeista ja oppaista
 
-#### Edistyneet turvallisuusohjaimet (02-Security/) – Yritys-tasoinen toteutus
-- **MCP-SECURITY-CONTROLS-2025.md**: Kokonaan uudistettu yritysluokan turvallisuuskehys
-  - **9 laajaa turvallisuusaluetta**: Laajennus peruskontrolleista yksityiskohtaisiin yritysratkaisuihin
-    - Edistynyt autentikointi ja valtuutus Microsoft Entra ID -integroinnilla
-    - Tokenin turvallisuus ja läpivientisuoja (anti-passthrough) kattavin validointeihin
-    - Istuntojen turvallisuussäännöt sieppauksen estolla
-    - Tekoälyyn liittyvät turvakontrollit kehotteiden injektiota ja työkalumyrkytysestoa vastaan
-    - Confused Deputy -hyökkäysesuoja OAuth-välityspalvelulla
-    - Työkalujen suoritusturvallisuus hiekkalaatikoinnilla ja eristyksellä
-    - Toimitusketjun turvakontrollit riippuvuuksien varmistuksella
-    - Valvontakontrollit SIEM-integraatiolla
-    - Incident Response & Recovery automatisoiduilla kyvyillä
-  - **Toteutusesimerkit**: Yksityiskohtaiset YAML-konfiguraatiolohkot ja koodiesimerkit
-  - **Microsoft-turvaratkaisujen integraatio**: Kattava kuvauksen Azure-turvapalveluista, GitHub Advanced Securitystä ja yritysidentiteetin hallinnasta
+#### Edistyneet tietoturvakontrollit (02-Security/) – Yritystason toteutus
+- **MCP-SECURITY-CONTROLS-2025.md**: Täydellinen uudistaminen kattavalla yritystason tietoturvakehyksellä
+  - **9 kattavaa turva-aluetta**: Laajennettu perusohjaimista yksityiskohtaiseen yrityskehykseen
+    - Edistynyt todennus ja valtuutus Microsoft Entra ID -integraatiolla
+    - Tunnistetietoturva ja anti-passthrough-kontrollit kattavilla validoinneilla
+    - Istuntoturvakontrollit kaappausten estoon
+    - Tekoälyyn kohdistuvat turvakontrollit, esim. kehotteiden injektoinnin ja työkalumyrkytyksen esto
+    - "Confused Deputy" -hyökkäyksen estäminen OAuth-välitysturvalla
+    - Työkalujen suorittamisen turvaaminen hiekkalaatikoilla ja eristämisellä
+    - Toimitusketjun turvakontrollit riippuvuuksien tarkistuksin
+    - Valvonta- ja havaitsemiskontrollit SIEM-integraatiolla
+    - Tapahtumien hallinta ja palautuminen automatisoiduilla ominaisuuksilla
+  - **Toteutusesimerkit**: Lisätty yksityiskohtaiset YAML-konfiguraatio- ja koodiesimerkit
+  - **Microsoft-ratkaisujen integraatio**: Kattava kattaus Azure-tietoturvapalveluista, GitHub Advanced Securitystä ja yritystason identiteetin hallinnasta
 
-#### Edistyneet aiheet turvallisuus (05-AdvancedTopics/mcp-security/) – Tuotantovalmiit toteutukset
-- **README.md**: Täysin uudelleenkirjoitettu yritysturvallisuuden toteutusopas
-  - **Ajantasainen spesifikaation mukaisuus**: Päivitetty MCP Specification 2025-06-18 mukaiseksi pakollisine turvallisuusvaatimuksineen
-  - **Parannettu autentikointi**: Microsoft Entra ID -integraatio yksityiskohtaisilla .NET- ja Java Spring Security -esimerkeillä
-  - **AI-turvallisuusintegraatio**: Microsoft Prompt Shields ja Azure Content Safety toteutukset yksityiskohtaisilla Python-esimerkeillä
-  - **Edistyneet uhkien torjuntamenetelmät**: Kokonaisvaltaiset toteutusesimerkit
-    - Confused Deputy -hyökkäyksen esto PKCE:llä ja käyttäjähyväksynnän vahvistuksella
-    - Tokenien läpipääsyn estäminen kohdeyleisön validoinnilla ja turvallisella tokenien hallinnalla
-    - Istuntojen sieppauksen estäminen kryptografisella sitomisella ja käyttäytymisanalyysilla
-  - **Yritysturvallisuuden integraatio**: Azure Application Insights -valvonta, uhkien havaitsemisen pipelinet ja toimitusketjun turvallisuus
-  - **Toteutuschecklist**: Selkeä pakolliset vs. suositellut turvallisuussäädöt Microsoftin turvallisuusympäristön hyödyillä
+#### Edistyneiden aiheiden tietoturva (05-AdvancedTopics/mcp-security/) – Tuotantovalmiit toteutukset
+- **README.md**: Täydellinen uudelleenkirjoitus yritystason tietoturvatoteutukselle
+  - **Nykyisen spesifikaation mukaisuus**: Päivitetty MCP Specification 2025-06-18 mukaisesti pakollisine tietoturvavaatimuksineen
+  - **Parannettu todennus**: Microsoft Entra ID -integraatio kattavilla .NET- ja Java Spring Security -esimerkeillä
+  - **AI-tietoturvaintegraatio**: Microsoft Prompt Shieldsin ja Azure Content Safetyn käyttöönotto yksityiskohtaisilla Python-esimerkeillä
+  - **Edistyneet uhkien torjunta**: Kattavat toteutusesimerkit
+    - "Confused Deputy" -hyökkäyksen estoon PKCE:llä ja käyttäjän suostumuksen validoinnilla
+    - Tunnistetietojen läpiviennin esto kohderyhmävalidoinnilla ja turvallisella tunnistetietojen hallinnalla
+    - Istunnon kaappauksen estäminen kryptografisella sitomisella ja käyttäytymisanalyysillä
+  - **Yritysturvallisuuden integrointi**: Azure Application Insights -valvonta, uhkien tunnistusputket ja toimitusketjun suojaus
+  - **Toteutuslista**: Selkeä pakollisten ja suositeltujen suojausohjausten erottelu Microsoftin turvallisuus-ekosysteemin hyödyillä
 
-### Dokumentaation laadun ja standardienmukaisuuden parannukset
-- **Määrittelyviitteet**: Päivitetty kaikki viittaukset nykyiseen MCP-määrittelyyn 2025-06-18
-- **Microsoftin turvallisuus-ekosysteemi**: Parannettu integraatio-ohjeita kaikessa turvallisuusdokumentaatiossa
-- **Käytännön toteutus**: Lisätty yksityiskohtaisia koodiesimerkkejä .NET:ssä, Javassa ja Pythonissa yrityskuvioilla
-- **Resurssien järjestely**: Laaja virallisen dokumentaation, turvallisuusstandardien ja toteutusoppaitten luokittelu
-- **Visuaaliset indikaattorit**: Selkeä merkintä pakollisista vaatimuksista vs. suositelluista käytännöistä
+### Dokumentaation laatu ja standardien noudattaminen
+- **Määrittelyviitteet**: Kaikkien viitteiden päivittäminen nykyiseen MCP-määrittelyyn 2025-06-18
+- **Microsoftin turvallisuus-ekosysteemi**: Parannettu integrointi kaikissa turvaohjeissa
+- **Käytännön toteutus**: Yksityiskohtaiset koodiesimerkit .NET:ssä, Javassa ja Pythonissa yrityskuvioilla
+- **Resurssien organisointi**: Laaja virallisen dokumentaation, turvallisuusstandardien ja toteutusoppaiden luokitus
+- **Visuaaliset ilmaisimet**: Selkeä merkintä pakollisille vaatimuksille vs. suositelluille käytännöille
 
 
-#### Ydinkäsitteet (01-CoreConcepts/) - Täydellinen modernisointi
-- **Protokollaversion päivitys**: Päivitetty viittamaan nykyiseen MCP-määrittelyyn 2025-06-18 päivämääräpohjaisella versionumeroilla (VVVV-KK-PP-muoto)
-- **Arkkitehtuurin hienosäätö**: Parannettu kuvausta Hosts-, Clients- ja Servers-komponenteista vastaamaan nykyisiä MCP-arkkitehtuurimalleja
-  - Hosts on nyt selkeästi määritelty AI-sovelluksina, jotka koordinoivat useita MCP-asiakasliitäntöjä
-  - Clients kuvattu protokollaliittiminä, jotka ylläpitävät yksi-yhteen-palvelinsuhteita
-  - Servers on parannettu sisältämään paikallisen vs. etäkäyttöönoton skenaariot
-- **Primitiivien uudelleenjärjestely**: Täydellinen uudistus palvelimen ja asiakkaan primitiiveihin
-  - Palvelimen primitiivit: Resurssit (tietolähteet), Kehotteet (pohjat), Työkalut (suoritettavat funktiot) yksityiskohtaisine selityksineen ja esimerkkeineen
-  - Asiakkaan primitiivit: Näytteistys (LLM:n suoritus), Elicitation (käyttäjän syöte), Lokitus (virheenjäljitys/valvonta)
-  - Päivitetty nykyisillä löydön (`*/list`), haun (`*/get`) ja suoritusmenetelmäkuvioilla (`*/call`)
+#### Ydinkäsitteet (01-CoreConcepts/) - Täydellinen uudistus
+- **Protokollaversion päivitys**: Viittaus päivitetty nykyiseen MCP-määrittelyyn 2025-06-18 päivämääräpohjaisella versioinnilla (VVVV-KK-PP-muoto)
+- **Arkkitehtuurin tarkennus**: Parannetut kuvaukset Hosteista, Klienteistä ja Palvelimista nykyisen MCP-arkkitehtuurin mukaisesti
+  - Hostit määritelty selkeästi AI-sovelluksiksi, jotka koordinoivat useita MCP-asiakasliitäntöjä
+  - Klientit kuvattu protokollayhteyksinä, jotka ylläpitävät yksi-yhteen palvelinsuhteita
+  - Palvelimet parannettu paikallisen ja etäkäyttöön perustuvilla käyttöskenaarioilla
+- **Perusrakenteiden uudelleenjärjestely**: Palvelin- ja asiakasperusrakenteiden täydellinen uudistus
+  - Palvelinperusrakenteet: Resurssit (tietolähteet), Kehotteet (mallit), Työkalut (ajettavat funktiot) yksityiskohtaisilla selityksillä ja esimerkeillä
+  - Asiakasperusrakenteet: Näytteistys (LLM-täydentymät), Elicitaatio (käyttäjäsyöte), Kirjaaminen (debug/valvonta)
+  - Päivitetty nykyisillä löydä (`*/list`), haetun (`*/get`) ja suorituksen (`*/call`) metodimallinnuksilla
 - **Protokollan arkkitehtuuri**: Esitelty kaksikerroksinen arkkitehtuurimalli
-  - Datalayer: JSON-RPC 2.0 -perusta elinkaaren hallinnalla ja primitiiveillä
-  - Kuljetuskerros: STDIO (paikallinen) ja Streamable HTTP SSE:n kanssa (etäkuljetusmekanismit)
-- **Turvarunko**: Kattavat turvallisuusperiaatteet, mukaan lukien eksplisiittinen käyttäjän suostumus, tietosuojan suojaus, työkalujen suorituksen turvallisuus ja kuljetuskerroksen turvallisuus
-- **Viestintäkuviot**: Päivitetyt protokollaviestit, jotka kuvastavat aloitus-, löydön, suorituksen ja ilmoitusten kulkuja
-- **Koodiesimerkit**: Päivitetyt monikieliset esimerkit (.NET, Java, Python, JavaScript) vastaamaan nykyisiä MCP SDK -kuvioita
+  - Datakerros: JSON-RPC 2.0 -perusta elinkaaren hallinnalla ja perusrakenteilla
+  - Siirtokerros: STDIO (paikallinen) ja streamattava HTTP SSE:n kanssa (etäyhteydet)
+- **Turvarunko**: Kattavat turvallisuusperiaatteet käyttäjän nimenomaisesta suostumuksesta, tietosuojasta, työkalujen suoritusvarmuudesta ja siirtokerroksen suojauksesta
+- **Viestintämallit**: Protokollaviestien päivitys näyttämään alustamis-, löytö-, suoritus- ja ilmoitusvirrat
+- **Koodiesimerkit**: Päivitetyt monikieliset esimerkit (.NET, Java, Python, JavaScript) nykyisten MCP SDK -mallien mukaan
 
 #### Turvallisuus (02-Security/) - Kattava turvallisuuden uudistus  
-- **Standardien mukautuminen**: Täysi yhteensopivuus MCP-määrittelyn 2025-06-18 turvallisuusvaatimusten kanssa
-- **Todentamisen kehitys**: Dokumentoitu kehitys mukautetuista OAuth-palvelimista ulkoiseen identiteetin tarjoajan delegointiin (Microsoft Entra ID)
-- **AI-spesifiset uhka-analyysit**: Parannettu kattavuus nykyaikaisista AI-hyökkäysvektoreista
-  - Yksityiskohtaiset kehotteen injektointihyökkäystilanteet todellisilla esimerkeillä
-  - Työkalujen myrkytysmekanismit ja "rug pull" -hyökkäyskuviot
-  - Kontekstin ikkunan myrkytys ja mallin sekaannushyökkäykset
-- **Microsoftin AI-turvaratkaisut**: Kattava kuvaus Microsoftin turvallisuus-ekosysteemistä
-  - AI-kehote-suojat kehittyneellä tunnistuksella, valaisutekniikoilla ja erottelumenetelmillä
-  - Azure Content Safety -integraatiomallit
-  - GitHub Advanced Security toimitusketjun suojaamiseen
-- **Kehittynyt uhkien torjunta**: Yksityiskohtaiset turvallisuusohjaimet
-  - Istunnon kaappaaminen MCP-spesifisillä hyökkäysskenaarioilla ja kryptografisilla istunnon tunnistevaatimuksilla
-  - Sekavien edustajien ongelmat MCP-välityskuvioissa eksplisiittisillä suostumusvaatimuksilla
-  - Tokenin läpipääsyturvallisuus ja pakolliset validointiohjaimet
-- **Toimitusketjun turvallisuus**: Laajennettu AI-toimitusketjun kattavuus mukaan lukien perustamismallit, upotetut palvelut, kontekstin tarjoajat ja kolmannen osapuolen API:t
-- **Perusturvallisuus**: Parannettu integraatio yritysturvallisuuskuvioihin mukaan lukien Zero Trust -arkkitehtuuri ja Microsoftin turvallisuus-ekosysteemi
-- **Resurssien järjestely**: Luokittelu laajoista resurssilinkeistä tyypin mukaan (Viralliset dokumentit, Standardit, Tutkimus, Microsoft-ratkaisut, Toteutusoppaat)
+- **Standardien noudattaminen**: Täysi yhdenmukaistaminen MCP-määrittelyn 2025-06-18 turvallisuusvaatimuksien kanssa
+- **Todentamisen kehitys**: Dokumentoitu kehitys räätälöidyistä OAuth-palvelimista ulkoisen identiteetin tarjoajan delegointiin (Microsoft Entra ID)
+- **AI-spesifiset uhat**: Parannettu kattavuus nykyaikaisista AI-hyökkäysvektoreista
+  - Yksityiskohtaiset kehotteiden injektointihyökkäystilanteet todellisilla esimerkeillä
+  - Työkalujen myrkytysmenetelmät ja "rug pull" -hyökkäysmallit
+  - Kontekstin ikkuna- ja mallin sekoittamishyökkäykset
+- **Microsoftin AI-turvaratkaisut**: Kattava Microsoft-turvaekosysteemin esittely
+  - AI-kehotesuojat kehittyneine tunnistus-, korostus- ja erottelutekniikoineen
+  - Azure Content Safety -integrointimallit
+  - GitHub Advanced Security toimitusketjun suojaukseen
+- **Edistynyt uhkien lieventäminen**: Yksityiskohtaiset turvatoimet
+  - Istunnon kaappaus MCP-spesifisillä hyökkäysesimerkeillä ja kryptografisilla istunnon tunnistevaatimuksilla
+  - Sekoittuneen edustajan ongelmat MCP-välityspalvelimissa nimenomaisilla suostumusvaatimuksilla
+  - Tokenin läpivientihaavoittuvuudet pakollisilla validointiohjaimilla
+- **Toimitusketjun suojaus**: Laajennettu AI-toimitusketjun kattavuus mukaan lukien perusmallit, upotuspalvelut, kontekstin tarjoajat ja kolmannen osapuolen API:t
+- **Perusturva**: Parannettu integrointi yritysturvallisuuskuvioihin, kuten zero trust -arkkitehtuuriin ja Microsoftin turvallisuus-ekosysteemiin
+- **Resurssien organisointi**: Laaja resurssilinkkien luokittelu tyypeittäin (Viralliset dokumentit, standardit, tutkimukset, Microsoft-ratkaisut, toteutusoppaat)
 
 ### Dokumentaation laadun parannukset
-- **Rakenteelliset oppimistavoitteet**: Parannettu oppimistavoitteita erityisillä, toteuttamiskelpoisilla tuloksilla
-- **Ristiviittaukset**: Lisätty linkkejä turvallisuus- ja ydinkäsitteisiin liittyvien aiheiden välillä
-- **Ajantasainen tieto**: Päivitetty kaikki päivämääräviitteet ja määrittelylinkit nykyisiin standardeihin
-- **Toteutusohjeet**: Lisätty erityisiä ja toteuttamiskelpoisia toteutusohjeita molempiin osioihin
+- **Rakenteelliset oppimistavoitteet**: Paransi oppimistavoitteita konkreettisilla, toimenpiteitä ohjaavilla tuloksilla
+- **Ristiinviittaukset**: Lisäsi linkkejä liittyvien turvallisuus- ja ydinkonseptiaiheiden välillä
+- **Ajantasainen tieto**: Päivitetyt kaikki päivämääräviittaukset ja määrittelylinkit nykyisiin standardeihin
+- **Toteutusohjeet**: Lisäsi yksityiskohtaisia ja konkreettisia toteutusohjeita molempiin osioihin
 
 ## 16. heinäkuuta 2025
 
 ### README ja navigoinnin parannukset
-- Täysin uudistettu oppimateriaalin navigointi README.md -tiedostossa
-- Vaihdettu `<details>`-tagit paremmin saavutettavaan taulukkomuotoon
-- Luotu vaihtoehtoisia asetteluversioita uuteen "alternative_layouts" -kansioon
-- Lisätty korttipohjaisia, välilehtityylisiä ja harmonikkatyylisiä navigointiesimerkkejä
-- Päivitetty repositorion rakenneosio kattamaan kaikki uusimmat tiedostot
-- Parannettu "Kuinka käyttää tätä oppimateriaalia" -osio selkeillä suosituksilla
-- Päivitetty MCP-määrittelylinkit osoittamaan oikeisiin URL-osoitteisiin
-- Lisätty konteksti-insinöörityksen osio (5.14) oppimateriaalin rakenteeseen
+- Koko opetussuunnitelman navigointi uudistettu README.md:ssä
+- Vaihtoi `<details>`-tagit saavutettavampaan taulukkomuotoon
+- Luo vaihtoehtoisia asetteluvaihtoehtoja uuteen "alternative_layouts" -kansioon
+- Lisäsi korttipohjaisia, välilehtityylisiä ja harmoonikkamaisia navigointiesimerkkejä
+- Päivitti repositorion rakennetta kattamaan kaikki uusimmat tiedostot
+- Puhdisti "Kuinka käyttää tätä opetussuunnitelmaa" -osion selkeillä suosituksilla
+- Päivitti MCP-määrittelylinkit osoittamaan oikeisiin URL-osoitteisiin
+- Lisäsi kontekstisuunnittelun osion (5.14) opetussuunnitelman rakenteeseen
 
-### Opasopintojen päivitykset
-- Täysin uudistettu opasopintoja vastaamaan nykyistä repositorion rakennetta
-- Lisätty uudet osiot MCP-asiakkaista ja -työkaluista sekä suosituista MCP-palvelimista
-- Päivitetty visuaalinen oppimateriaalikartta kaikilta osin tarkaksi
-- Parannettu erikoisaiheiden kuvauksia kattamaan kaikki erikoisalat
-- Päivitetty tapaustutkimukset vastaamaan todellisia esimerkkejä
-- Lisätty tämä kattava muutosloki
+### Opasoppaan päivitykset
+- Täysin uudistettu opasopas nykyisen repositoriorakenteen mukaiseen muotoon
+- Lisäsi uudet osiot MCP-klientit ja työkalut sekä suosituimmat MCP-palvelimet
+- Päivitti visuaalisen opetussuunnitelmakartan kattamaan kaikki aiheet tarkasti
+- Paransi edistyneiden aiheiden kuvauksia kaikkia erikoistuneita osa-alueita varten
+- Päivitti tapaustutkimusten osion kuvaamaan todellisia esimerkkejä
+- Sisällytti tämän kattavan muutospäiväkirjan
 
 ### Yhteisön kontribuutiot (06-CommunityContributions/)
-- Lisätty yksityiskohtaiset tiedot MCP-palvelimista kuvantuotantoon
-- Lisätty kattava osio Clauden käytöstä VSCode:ssa
-- Lisätty Cline-päätteenasettelu ja käyttöohjeet
-- Päivitetty MCP-asiakaskohtaiset osiot sisältämään kaikki suosituimmat asiakasvaihtoehdot
-- Parannettu kontribuutioesimerkkejä tarkemmilla koodinäytteillä
+- Lisäsi yksityiskohtaista tietoa MCP-kuvageneraatiopalvelimista
+- Lisäsi kattavan osuuden Clauden käytöstä VSCodessa
+- Lisäsi Cline-terminaaliklientin asennus- ja käyttöohjeet
+- Päivitti MCP-klienttiosion kattamaan kaikki suosituimmat klienttivaihtoehdot
+- Paransi kontribuuttoriesimerkkejä tarkemmilla koodinäytteillä
 
 ### Edistyneet aiheet (05-AdvancedTopics/)
-- Järjestetty kaikki erikoisaiheiset kansiot johdonmukaisilla nimeämiskäytännöillä
-- Lisätty konteksti-insinööri-materiaaleja ja esimerkkejä
-- Lisätty Foundry-agentin integraatiodokumentaatio
-- Parannettu Entra ID:n turvallisuusintegraatiodokumentaatiota
+- Järjestänyt kaikki erikoistuneet aihealuekansiot yhtenäisesti nimettyinä
+- Lisäsi kontekstisuunnittelun materiaaleja ja esimerkkejä
+- Lisäsi Foundry-agentin integraatiodokumentaation
+- Paransi Entra ID:n turvallisuusintegraatiodokumentaatiota
 
 ## 11. kesäkuuta 2025
 
 ### Alkuperäinen luonti
-- Julkaistu MCP for Beginners -oppimateriaalin ensimmäinen versio
-- Luotu perusrakenne kaikille 10 pääosiolle
-- Toteutettu visuaalinen oppimateriaalikartta navigointia varten
-- Lisätty alkuprojektiesimerkkejä useilla ohjelmointikielillä
+- Julkaistiin ensin versio MCP for Beginners -opetussuunnitelmasta
+- Luotiin perusrakenne kaikille 10 päätason osiolle
+- Toteutettiin visuaalinen opetussuunnitelmakartta navigointia varten
+- Lisättiin alkuperäisiä esimerkkiprojekteja monilla ohjelmointikielillä
 
 ### Aloittaminen (03-GettingStarted/)
-- Luotu ensimmäiset palvelimen toteutusesimerkit
-- Lisätty asiakasohjeet kehittämiseen
-- Sisällytetty LLM-asiakkaan integraatio-ohjeet
-- Lisätty VS Code -integraatiodokumentaatio
-- Toteutettu Server-Sent Events (SSE) -palvelinesimerkit
+- Luotiin ensimmäiset palvelintoteutusesimerkit
+- Lisättiin klienttikehityksen ohjeistus
+- Sisällytettiin LLM-klienttien integraatio-ohjeita
+- Lisättiin VS Coden integraatiodokumentaatio
+- Toteutettiin Server-Sent Events (SSE) -palvelinesimerkit
 
 ### Ydinkäsitteet (01-CoreConcepts/)
-- Lisätty yksityiskohtainen kuvaus asiakas-palvelin-arkkitehtuurista
-- Luotu dokumentaatio tärkeimmistä protokollakomponenteista
-- Dokumentoitu viestintäkuviot MCP:ssä
+- Lisättiin yksityiskohtainen selitys asiakas-palvelin -arkkitehtuurista
+- Luotiin dokumentaatio tärkeistä protokollakomponenteista
+- Dokumentoitiin MCP:n viestintämallit
 
 ## 23. toukokuuta 2025
 
 ### Repositorion rakenne
-- Initoitu repositorio perustiedostorakenteella
+- Alustettu repositorio perustason kansiorakenteella
 - Luotu README-tiedostot jokaiselle pääosalle
-- Pystyytetty kääntämisinfrastruktuuri
-- Lisätty kuvat ja kaaviot
+- Määritetty käännösinfrastruktuuri
+- Lisätty kuvavarannot ja kaaviot
 
 ### Dokumentaatio
-- Luotu alkuperäinen README.md oppimateriaalin yleiskatsauksella
+- Luotu alkuperäinen README.md opetussuunnitelman yleiskatsauksella
 - Lisätty CODE_OF_CONDUCT.md ja SECURITY.md
-- Pystyytetty SUPPORT.md ohjeilla avun saamiseksi
-- Luotu alustava opasoppimateriaalin rakenne
+- Luotu SUPPORT.md ohjein avun saamiseksi
+- Luotu alustava opasoppaan rakenne
 
 ## 15. huhtikuuta 2025
 
 ### Suunnittelu ja kehys
-- MCP for Beginners -oppimateriaalin alkuperäinen suunnittelu
+- MCP for Beginners -opetussuunnitelman alkuperäinen suunnittelu
 - Määritelty oppimistavoitteet ja kohdeyleisö
-- Luotu oppimateriaalin 10-osioinen rakenne
-- Kehitetty konseptuaalinen kehys esimerkeille ja tapaustutkimuksille
-- Luotu alkuperäiset esimerkkiprojektit keskeisistä käsitteistä
+- Luotu opetussuunnitelman 10-osainen rakenne
+- Kehitetty käsitekehys esimerkeille ja tapaustutkimuksille
+- Luotu alkuprotoesimerkit keskeisistä konsepteista
 
 ---
 

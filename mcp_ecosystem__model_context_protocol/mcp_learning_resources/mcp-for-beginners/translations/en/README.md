@@ -208,6 +208,8 @@ Module 11 deserves special mention - it's a complete 13-lab hands-on learning pa
 | 11.11 | Deployment Strategies | Docker deployment, Azure Container Apps, and scaling considerations | [Lab 10](./11-MCPServerHandsOnLabs/10-Deployment/README.md) |
 | 11.12 | Monitoring | Application Insights, logging, performance monitoring | [Lab 11](./11-MCPServerHandsOnLabs/11-Monitoring/README.md) |
 | 11.13 | Best Practices | Performance optimization, security hardening, and production tips | [Lab 12](./11-MCPServerHandsOnLabs/12-Best-Practices/README.md) |
+| **Module 12: MCP Tooling** | | | |
+| 12.1 | Tooling | MCP usage in Copilot App | [ Guide ](./12-tooling/README.md) |
 
 ### 💻 Sample Code Projects
 

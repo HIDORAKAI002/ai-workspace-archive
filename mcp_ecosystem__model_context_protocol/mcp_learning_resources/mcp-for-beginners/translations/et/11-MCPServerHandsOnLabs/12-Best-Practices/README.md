@@ -1,57 +1,57 @@
-# Parimad Tavad ja Optimeerimine
+# Parimad tavad ja optimeerimine
 
 ## 🎯 Mida see labor hõlmab
 
-See lõpp-labor koondab parimad tavad, optimeerimistehnikad ja tootmisjuhised, et luua tugevaid, skaleeritavaid ja turvalisi MCP servereid koos andmebaasi integreerimisega. Õpid reaalse kogemuse ja tööstusstandardite põhjal, et tagada sinu lahenduse tootmisvalmidus.
+See lõputöö labor koondab parimaid tavasid, optimeerimistehnikaid ja tootmistingimusi tugevate, skaleeritavate ja turvaliste MCP-serverite loomisel andmebaasi integratsiooniga. Õpid reaalse maailma kogemustest ja tööstusharu standarditest, et tagada sinu rakenduse tootmiseks valmis olek.
 
 ## Ülevaade
 
-Eduka MCP serveri loomine ei tähenda ainult töötava koodi kirjutamist. See labor hõlmab olulisi praktikaid, mis eristavad kontseptsioonitõestusi tootmisvalmis süsteemidest, mis suudavad skaleeruda, töötada usaldusväärselt ja säilitada turvastandardeid.
+Edukalt MCP-serveri ehitamine tähendab rohkemat kui lihtsalt koodi töötamisele saamine. See labor käsitleb olulisi tavasid, mis eristavad prototüüpi tootmiseks valmis süsteemidest, mis suudavad skaleeruda, toimida usaldusväärselt ning säilitada turvastandardid.
 
-Need parimad tavad on tuletatud reaalsest kasutusest, kogukonna tagasisidest ja ettevõtete rakenduste õppetundidest.
+Need parimad tavad on pärit reaalsest kasutuselevõtust, kogukonna tagasisidest ja ettevõtete rakendustest saadud õppetundidest.
 
 ## Õpieesmärgid
 
-Labori lõpuks oskad:
+Selle labori lõpuks suudad:
 
-- **Rakendada** MCP serverite ja andmebaaside jõudluse optimeerimise tehnikaid
-- **Ellu viia** põhjalikke turvameetmeid
-- **Kavandada** skaleeritavaid arhitektuurimustreid tootmiskeskkondade jaoks
-- **Kehtestada** jälgimis-, hooldus- ja operatsiooniprotseduure
-- **Optimeerida** kulusid, säilitades samal ajal jõudluse ja usaldusväärsuse
-- **Panustada** MCP kogukonda ja ökosüsteemi
+- **Rakendada** MCP-serverite ja andmebaaside jõudluse optimeerimise tehnikaid
+- **Täitma** põhjalikke turvalisuse tugevdamise meetmeid
+- **Disainima** skaleeritavaid arhitektuurimustreid tootmiskeskkondadele
+- **Välja töötama** monitooringu, hoolduse ja operatiivsed protseduurid
+- **Optimeerima** kulusid hoides toimivust ja usaldusväärsust
+- **Panustama** MCP kogukonda ja ökosüsteemi
 
-## 🚀 Jõudluse Optimeerimine
+## 🚀 Jõudluse optimeerimine
 
-### Andmebaasi Jõudlus
+### Andmebaasi jõudlus
 
-#### Ühenduste haldamise optimeerimine
+#### Ühenduste paagi optimeerimine
 
 ```python
-# Optimized connection pool configuration
+# Optimeeritud ühenduse puhvri konfiguratsioon
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Suuruse konfiguratsioon
+    "min_size": max(2, cpu_count()),           # Vähemalt 2, skaleeri protsessoriga
+    "max_size": min(20, cpu_count() * 4),     # Piira mõistliku maksimumiga
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Ajastuse konfiguratsioon
+    "max_inactive_connection_lifetime": 300,   # 5 minutit
+    "command_timeout": 30,                     # 30 sekundit
+    "max_queries": 50000,                      # Vaheta ühendusi
     
-    # PostgreSQL settings
+    # PostgreSQL seaded
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Keela järjepidevuse huvides
+        "work_mem": "8MB",                     # Optimeeri päringute jaoks
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Logi ainult muudatusi
+        "log_min_duration_statement": "1s",   # Logi aeglasi päringuid
     }
 }
 ```
 
-#### Päringute optimeerimise mustrid
+#### Päringu optimeerimise mustrid
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # sekundid
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Kontrolli esmalt vahemälu
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Käivita jälgimisega
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Optimeeri päringu täitmist
+                await conn.execute("SET enable_seqscan = off")  # Eelista indekseid
+                await conn.execute("SET work_mem = '16MB'")     # Rohkem mälu sellele päringule
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Logi aeglased päringud
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Vahemälu edukad tulemused
+                if cache_key and len(result) < 1000:  # Ära vahemälu suuri tulemusi
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,23 +110,23 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Indeksite soovitused
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Põhitegevuse indeksid
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Analüütika indeksid
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Vektoriotsingu optimeerimine
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
 
-### Rakenduse Jõudlus
+### Rakenduse jõudlus
 
 #### Asünkroonse programmeerimise parimad tavad
 
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Töötle partii kaupa, et vältida süsteemi ülekoormamist
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Väike viivitus partii vahel, et vältida ressursside ammendumist
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Lüliti kaitsme rakendamine
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # SULETUD, AVATUD, POOLELI AVATUD
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Lähtesta edukuse korral
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +215,7 @@ class CircuitBreaker:
             raise
 ```
 
-### Vahemälu strateegiad
+### Vahemällu salvestamise strateegiad
 
 ```python
 import redis
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Tase 1: Mälu vahemälu
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Tase 2: Redis vahemälu
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Edenda mälu vahemällu
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Rakenda LRU väljaheitmine
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Vahemälu võtme genereerimine
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,7 +304,7 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 Turvameetmed
+## 🔒 Turvalisuse tugevdamine
 
 ### Autentimine ja autoriseerimine
 
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Eemalda ja valideeri autentimine
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Kontrolli tokeni kehtivust
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Kontrolli piiramistempo
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Valideeri RLS kontekst
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Hangi avalik võti Key Vaultist või vahemälust
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Dekodeeri ja valideeri token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Superadministraatorid pääsevad juurde igale kontekstile
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Poepidajad pääsevad juurde ainult oma poe andmetele
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Regionaaljuhid pääsevad juurde mitmele poele
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Sisendi valideerimine ja puhastamine
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Keelatud mustrid
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Lubada ainult SELECT laused
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Lubada ainult tähestikunumerilised, alakriips ja punktid
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Kontrollida lubatud tabelite vastu
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Tootmises pärib Azure Key Vaultist
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Tagasiühendus arenduseks (mitte tootmisse!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # iteratsioonid
         ).hex()
         
         return password_hash, salt
@@ -524,7 +524,7 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Tootmise Juurutamise Juhised
+## 📊 Tootmisesse juurutamise juhised
 
 ### Infrastruktuur kui kood
 
@@ -666,7 +666,7 @@ CMD ["python", "-m", "mcp_server.sales_analysis"]
 ### Keskkonna konfiguratsioon
 
 ```python
-# Production configuration management
+# Tootmise konfiguratsiooni haldamine
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,24 +715,24 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Määra kolmandate osapoolte logijad hoiatusetasemele
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Keela silumisrežiim
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Määra turvalised päised
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
 
-## 💰 Kulude Optimeerimine
+## 💰 Kulude optimeerimine
 
 ### Ressursside haldamine
 
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Madal koormus
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Keskmine koormus
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Kõrge koormus
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Vahemälu kallid toimingud
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Automaatse skaleerimise konfiguratsioon
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPU-põhine skaleerimine
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Mälu-põhine skaleerimine
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Päringujärjekorra skaleerimine
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -811,7 +811,7 @@ class AutoScaler:
         return "no_action"
 ```
 
-## 🔧 Hooldus ja Operatsioonid
+## 🔧 Hooldus ja operatsioonid
 
 ### Tervise jälgimine
 
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Andmebaasi tervis
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Väliste teenuste tervis
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Süsteemi ressursid
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Rakenduse mõõdikud
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Kindlusta üldine staatus
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Käivita hoiatused
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Põhiline ühenduvus
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Kontrolli aeglaseid päringuid
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Kontrolli ühenduste arvu
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Automaatne varundamine ja taastamine
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Laadi üles Azure Blob Storage'i
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,18 +932,18 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Igapäevane täielik varukoopia kell 2 hommikul UTC ajas
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Tunni andmed inkrementaalsed varukoopiad
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
 
-## 🌍 Kogukonna Panused
+## 🌍 Kogukonna panused
 
 ### Avatud lähtekoodi parimad tavad
 
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Tegelikud kontrollid rakendataks
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 Olulised Õppetunnid
+## 🎯 Peamised võtmed
 
-Pärast selle põhjaliku õppeprogrammi läbimist peaksid olema omandanud:
+Pärast selle põhjaliku õpitee läbimist peaksid valdama:
 
-✅ **Jõudluse Optimeerimine**: Andmebaasi häälestamine, asünkroonsed mustrid ja vahemälu strateegiad  
-✅ **Turvameetmed**: Autentimine, autoriseerimine ja andmekaitse  
-✅ **Tootmise Juurutamine**: Infrastruktuur kui kood ja konteinerite optimeerimine  
-✅ **Kulude Haldamine**: Ressursside optimeerimine ja nutikas skaleerimine  
-✅ **Operatsioonide Täiuslikkus**: Jälgimine, hooldus ja automatiseerimine  
-✅ **Kogukonna Kaasamine**: Panustamine MCP ökosüsteemi  
+✅ **Jõudluse optimeerimine**: Andmebaasi häälestus, asünkroonsed mustrid ja vahemällu salvestamise strateegiad  
+✅ **Turvalisuse tugevdamine**: Autentimine, autoriseerimine ja andmekaitse  
+✅ **Tootmisse juurutamine**: Infrastruktur kui kood ja konteinerite optimeerimine  
+✅ **Kulude haldamine**: Ressursside optimeerimine ja intelligentne skaleerimine  
+✅ **Operatiivne tipptase**: Jälgimine, hooldus ja automatiseerimine  
+✅ **Kogukonna kaasamine**: Panustamine MCP ökosüsteemi  
 
-## 🏆 Sertifitseerimine ja Järgmised Sammud
+## 🏆 Sertifitseerimine ja järgmised sammud
 
-### Praktiline Hindamine
+### Praktiline hindamine
 
-Lõpeta see projekt, et näidata oma oskusi:
+Valmis selle lõppprojekti abil oma oskuste demonstreerimiseks:
 
-**Loo tootmisvalmis MCP server**, mis sisaldab:
-- [ ] Mitme rentniku jaemüügi analüütikat koos RLS-iga
-- [ ] Semantilist otsingut Azure OpenAI abil
+**Ehitada tootmiseks valmis MCP server**, mis sisaldab:
+- [ ] Mitme kasutajaga jaemüügi analüütikat RLS-iga
+- [ ] Semantilist otsingut Azure OpenAI-ga
 - [ ] Põhjalikku turvameetmete rakendamist
-- [ ] Tootmise juurutamist Azure'is
-- [ ] Jälgimise ja häirete seadistamist
+- [ ] Tootmisse juurutamist Azure'is
+- [ ] Jälgimis- ja teavitussüsteemi seadistust
 - [ ] Dokumentatsiooni ja testimist
 
-### Täiustatud Õppeprogrammid
+### Täiustatud õpiteed
 
-Jätka oma MCP teekonda:
+Jätka oma MCP-teekonda järgmistega:
 
-- **MCP Arhitektuurimustrid**: Täiustatud serveriarhitektuurid
-- **Mitme mudeli integreerimine**: Erinevate AI mudelite kombineerimine
-- **Ettevõtte ulatus**: Suuremahulised MCP juurutused
-- **Kohandatud tööriistade arendamine**: Spetsialiseeritud MCP tööriistade loomine
-- **MCP Ökosüsteem**: Panustamine laiemasse kogukonda
+- **MCP arhitektuurimustrid**: Täiustatud serveri arhitektuurid
+- **Mitmemudeline integratsioon**: Erinevate tehisintellekti mudelite kombineerimine
+- **Ettevõtte mõõtmed**: Suured MCP juurutused
+- **Kohandatud tööriistade arendamine**: Spetsiaalsete MCP tööriistade loomine
+- **MCP ökosüsteem**: Panustamine laiemasse kogukonda
 
-### Kogukonna Tunnustus
+### Kogukonna tunnustamine
 
-Jaga oma saavutusi:
-- **GitHub Portfoolio**: Näita oma rakendust
-- **Kogukonna Panused**: Esita parendusi või näiteid
-- **Esinemisvõimalused**: Esine kohtumistel või konverentsidel
-- **Mentorlus**: Aita teistel arendajatel MCP-d õppida
+Jaga oma saavutust:
+- **GitHubi portfell**: Oma lahenduse tutvustamine
+- **Kogukonna panused**: Paranduste või näidete esitlemine
+- **Esinemisvõimalused**: Ettekanded kohtumistel või konverentsidel
+- **Mentorlus**: Aita teisi MCP õppima
 
-## 📚 Täiendavad Ressursid
+## 📚 Täiendavad ressursid
 
-### Täiustatud Teemad
-- [PostgreSQL Jõudluse Häälestamine](https://www.postgresql.org/docs/current/performance-tips.html) - Andmebaasi optimeerimine
-- [Azure Konteinerirakenduste Parimad Tavad](https://docs.microsoft.com/azure/container-apps/overview) - Tootmise juurutamine
-- [Python Asünkroonse Programmeerimise Parimad Tavad](https://docs.python.org/3/library/asyncio-dev.html) - Asünkroonne programmeerimine
+### Täiustatud teemad
+- [PostgreSQL jõudluse häälestamine](https://www.postgresql.org/docs/current/performance-tips.html) - Andmebaasi optimeerimine
+- [Azure Container Apps parimad tavad](https://docs.microsoft.com/azure/container-apps/overview) - Tootmisse juurutamine
+- [Python Async parimad tavad](https://docs.python.org/3/library/asyncio-dev.html) - Asünkroonne programmeerimine
 
-### Turvalisuse Ressursid
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Turvahaavatavused
-- [Azure Turvalisuse Parimad Tavad](https://docs.microsoft.com/azure/security/) - Pilveturvalisus
-- [Python Turvalisuse Juhised](https://python.org/dev/security/) - Turvaline kodeerimine
+### Turvaressursid
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Turvaaukude nimekiri
+- [Azure turbe parimad tavad](https://docs.microsoft.com/azure/security/) - Pilve turvalisus
+- [Python turbesuunised](https://python.org/dev/security/) - Turvaline koodikirjutamine
 
 ### Kogukond
-- [MCP Kogukonna Discord](https://discord.com/invite/ByRwuEEgH4) - Reaalajas arutelud
-- [GitHub Arutelud](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Küsimused ja vastused ning jagamine
+- [MCP kogukonna Discord](https://discord.com/invite/ByRwuEEgH4) - Otsevestlused
+- [GitHubi arutelud](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Küsimused ja jagamine
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Tehnilised küsimused
 
 ---
 
-**🎉 Palju õnne!** Oled lõpetanud põhjaliku MCP andmebaasi integreerimise õppeprogrammi. Sul on nüüd teadmised ja oskused, et luua tootmisvalmis MCP servereid, mis ühendavad AI assistendid reaalmaailma andmesüsteemidega.
+**🎉 Palju õnne!** Sa oled lõpetanud põhjaliku MCP andmebaasi integratsiooni õpitee. Sul on nüüd teadmised ja oskused ehitamaks tootmiseks valmis MCP servereid, mis ühendavad tehisintellekti assistendid reaalse maailma andmesüsteemidega.
 
-**Valmis panustama?** Liitu meie kogukonnaga ja aita teistel MCP-d õppida, jagades oma kogemusi, panustades koodi parendustesse või luues täiendavaid õpperessursse.
+**Valmis panustama?** Liitu meie kogukonnaga ja aita teisi MCP-d õppida, jagades oma kogemusi, panustades koodi täiustustesse või luues täiendavaid õpperessursse.
+
+**Järgmine**: [Tööriistad](../../12-tooling/README.md)
 
 ---
 
-**Lahtiütlus**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame tagada täpsust, palume arvestada, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Algne dokument selle algses keeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitame kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgenduste eest.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

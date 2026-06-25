@@ -1,57 +1,57 @@
-# Legjobb gyakorlatok és optimalizálás
+# Legjobb gyakorlatok és optimalizáció
 
-## 🎯 Mit tartalmaz ez a labor?
+## 🎯 Amit ez a labor lefed
 
-Ez a zárólabor összefoglalja a legjobb gyakorlatokat, optimalizálási technikákat és gyártási irányelveket, amelyek segítségével robusztus, skálázható és biztonságos MCP szervereket építhetünk adatbázis-integrációval. Valós tapasztalatokból és iparági szabványokból tanulhat, hogy biztosítsa az implementáció gyártásra kész állapotát.
+Ez a zárólaboratórium összefoglalja a legjobb gyakorlatokat, optimalizációs technikákat és a gyártási irányelveket az erős, méretezhető és biztonságos MCP szerverek adatbázis-integrációval történő létrehozásához. Valós tapasztalatokból és iparági szabványokból tanulhatsz, hogy biztosítsd, hogy a megvalósításod készen álljon a gyártásra.
 
 ## Áttekintés
 
-Egy sikeres MCP szerver építése több, mint pusztán működő kód létrehozása. Ez a labor azokat az alapvető gyakorlatokat tárgyalja, amelyek megkülönböztetik a koncepció bizonyítására szolgáló implementációkat a gyártásra kész rendszerektől, amelyek skálázhatók, megbízhatóan teljesítenek és megfelelnek a biztonsági szabványoknak.
+Egy sikeres MCP szerver építése több, mint csak a kód működésre bírása. Ez a labor a lényeges gyakorlatokat fedi le, amelyek elválasztják a koncepciójavaslatokat a gyártásra kész rendszerektől, amelyek képesek méretezni, megbízhatóan teljesíteni és fenntartani a biztonsági szabványokat.
 
-Ezek a legjobb gyakorlatok valós telepítésekből, közösségi visszajelzésekből és vállalati implementációkból származó tanulságok alapján kerültek összeállításra.
+Ezek a legjobb gyakorlatok valós telepítésekből, közösségi visszajelzésekből és vállalati megvalósításokból leszedett tanulságokból származnak.
 
 ## Tanulási célok
 
-A labor végére képes lesz:
+A labor végére képes leszel:
 
-- **Alkalmazni** teljesítményoptimalizálási technikákat MCP szerverekhez és adatbázisokhoz  
-- **Megvalósítani** átfogó biztonsági megerősítési intézkedéseket  
-- **Tervezni** skálázható architektúra mintákat gyártási környezetekhez  
-- **Létrehozni** monitorozási, karbantartási és üzemeltetési eljárásokat  
-- **Optimalizálni** költségeket a teljesítmény és megbízhatóság fenntartása mellett  
-- **Hozzájárulni** az MCP közösséghez és ökoszisztémához  
+- **Alkalmazni** teljesítmény-optimalizációs technikákat MCP szerverekhez és adatbázisokhoz
+- **Megvalósítani** átfogó biztonsági megerősítési intézkedéseket
+- **Tervezni** méretezhető architektúra mintákat gyártási környezetekhez
+- **Létrehozni** monitorozási, karbantartási és működési eljárásokat
+- **Optimalizálni** a költségeket miközben fenntartod a teljesítményt és megbízhatóságot
+- **Hozzájárulni** az MCP közösséghez és ökoszisztémához
 
-## 🚀 Teljesítményoptimalizálás
+## 🚀 Teljesítményoptimalizáció
 
 ### Adatbázis teljesítmény
 
-#### Kapcsolatpool optimalizálás
+#### Kapcsolatpool optimalizáció
 
 ```python
-# Optimized connection pool configuration
+# Optimalizált kapcsolat pool konfiguráció
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Méret konfiguráció
+    "min_size": max(2, cpu_count()),           # Legalább 2, a CPU szerint skálázódik
+    "max_size": min(20, cpu_count() * 4),     # Ésszerű maximumon korlátozva
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Időzítés konfiguráció
+    "max_inactive_connection_lifetime": 300,   # 5 perc
+    "command_timeout": 30,                     # 30 másodperc
+    "max_queries": 50000,                      # Kapcsolatok forgatása
     
-    # PostgreSQL settings
+    # PostgreSQL beállítások
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Kikapcsolva az állandóság érdekében
+        "work_mem": "8MB",                     # Lekérdezésekhez optimalizálva
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Csak módosítások naplózása
+        "log_min_duration_statement": "1s",   # Lassú lekérdezések naplózása
     }
 }
 ```
-  
-#### Lekérdezési optimalizálási minták
+
+#### Lekérdezés-optimalizációs minták
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # másodpercek
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Először a gyorsítótárat ellenőrizze
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Végrehajtás felügyelettel
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Lekérdezés végrehajtásának optimalizálása
+                await conn.execute("SET enable_seqscan = off")  # Indexek előnyben részesítése
+                await conn.execute("SET work_mem = '16MB'")     # Több memória ehhez a lekérdezéshez
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Lassú lekérdezések naplózása
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Sikeres eredmények gyorsítótárazása
+                if cache_key and len(result) < 1000:  # Ne gyorsítótárazzon nagy eredményeket
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Index javaslatok
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Alapvető üzleti indexek
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Analitikai indexek
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Vektoros keresés optimalizálása
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
-### Alkalmazás teljesítmény
+### Alkalmazás teljesítménye
 
-#### Aszinkron programozási legjobb gyakorlatok
+#### Aszinkron programozás legjobb gyakorlatai
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Feldolgozás csomagonként a rendszer túlterhelésének elkerülése érdekében
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Kis késleltetés a csomagok között az erőforrások kimerülésének megelőzésére
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Áramkörmegszakító megvalósítása
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # ZÁRVA, NYITVA, FÉL_NYITVA
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Siker esetén visszaállítás
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +214,6 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
 ### Gyorsítótárazási stratégiák
 
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # 1. szint: Memória gyorsítótár
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # 2. szint: Redis gyorsítótár
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Előléptetés memória gyorsítótárba
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # LRU eltávolítás megvalósítása
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Gyorsítótár kulcs generálás
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,11 +303,10 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
 ## 🔒 Biztonsági megerősítés
 
-### Hitelesítés és jogosultságkezelés
+### Hitelesítés és engedélyezés
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Hitelesítés kinyerése és érvényesítése
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Token érvényesítése
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Korlátozás ellenőrzése
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # RLS kontextus érvényesítése
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Nyilvános kulcs lekérése a Key Vaultból vagy a gyorsítótárból
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Token dekódolása és érvényesítése
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # A szuperadminisztrátorok bármilyen kontextushoz hozzáférhetnek
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Az áruházvezetők csak a saját áruházukhoz férhetnek hozzá
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # A területi vezetők több áruházhoz férhetnek hozzá
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Bemeneti érvényesítés és tisztítás
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Tiltott minták
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Csak SELECT utasítások engedélyezése
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,17 +439,16 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Csak alfanumerikus karakterek, alulvonás és pont engedélyezése
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Érvényesítés az engedélyezett táblák ellen
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
 ### Adatvédelem
 
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Éles környezetben az Azure Key Vaultból szerezze be
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Fejlesztéshez tartalék megoldás (nem éles környezethez!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # iterációk
         ).hex()
         
         return password_hash, salt
@@ -527,7 +523,6 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
 ## 📊 Gyártási telepítési irányelvek
 
@@ -611,9 +606,8 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
-### Konténer optimalizálás
+### Konténer-optimalizáció
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
-### Környezet konfiguráció
+### Környezeti konfiguráció
 
 ```python
-# Production configuration management
+# Termelési konfiguráció kezelése
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,27 +715,26 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Állítsa a harmadik fél naplózóit FIGYELMEZTETÉS-re
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Tiltsa le a hibakereső módot
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Állítsa be a biztonságos fejlécet
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
-## 💰 Költségoptimalizálás
+## 💰 Költségoptimalizáció
 
-### Erőforrás-kezelés
+### Erőforrás-menedzsment
 
 ```python
 class CostOptimizer:
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Alacsony terhelés
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Közepes terhelés
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Magas terhelés
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Műveletek gyorsítótárazása
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Automatikus méretezés beállítása
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPU alapú méretezés
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Memória alapú méretezés
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Kérés sor méretezése
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,11 +810,10 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 Karbantartás és üzemeltetés
+## 🔧 Karbantartás és működés
 
-### Egészségügyi monitorozás
+### Állapotmonitorozás
 
 ```python
 class OperationalHealth:
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Adatbázis állapota
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Külső szolgáltatások állapota
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Rendszer erőforrásai
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Alkalmazás mutatók
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Teljes állapot meghatározása
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Figyelmeztetések aktiválása
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Alapvető kapcsolódás
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Lassú lekérdezések ellenőrzése
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Kapcsolat számlálás ellenőrzése
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Automatikus biztonsági mentés és helyreállítás
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Feltöltés Azure Blob Storage-ba
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Napi teljes mentés 2 órakor UTC idő szerint
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Óránkénti inkrementális mentések
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
 ## 🌍 Közösségi hozzájárulások
 
-### Nyílt forráskódú legjobb gyakorlatok
+### Nyílt forráskód legjobb gyakorlatok
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,9 +984,8 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
-### Közösségi elköteleződés
+### Közösségi részvétel
 
 ```python
 class CommunityContributor:
@@ -1036,80 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Valódi ellenőrzéseket hajtana végre
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 Főbb tanulságok
+## 🎯 Fő tanulságok
 
-A tanulási útvonal befejezése után elsajátította:
+A teljes tanulási útvonal elvégzése után elsajátítottad:
 
-✅ **Teljesítményoptimalizálás**: Adatbázis hangolás, aszinkron minták és gyorsítótárazási stratégiák  
-✅ **Biztonsági megerősítés**: Hitelesítés, jogosultságkezelés és adatvédelem  
-✅ **Gyártási telepítés**: Infrastruktúra kódként és konténer optimalizálás  
-✅ **Költségkezelés**: Erőforrás optimalizálás és intelligens skálázás  
-✅ **Üzemeltetési kiválóság**: Monitorozás, karbantartás és automatizálás  
-✅ **Közösségi elköteleződés**: Hozzájárulás az MCP ökoszisztémához  
+✅ **Teljesítményoptimalizáció**: Adatbázis hangolás, aszinkron minták és gyorsítótárazási stratégiák  
+✅ **Biztonsági megerősítés**: Hitelesítés, engedélyezés és adatvédelem  
+✅ **Gyártási telepítés**: Infrastruktúra kódként és konténer-optimalizáció  
+✅ **Költségmenedzsment**: Erőforrás optimalizáció és intelligens méretezés  
+✅ **Működési kiválóság**: Monitorozás, karbantartás és automatizáció  
+✅ **Közösségi részvétel**: Hozzájárulás az MCP ökoszisztémához  
 
-## 🏆 Tanúsítvány és következő lépések
+## 🏆 Tanúsítás és további lépések
 
 ### Gyakorlati értékelés
 
-Fejezze be ezt a végső projektet, hogy bemutassa tudását:
+Fejezd be ezt a záró projektet a tudásod bemutatásához:
 
-**Építsen egy gyártásra kész MCP szervert**, amely tartalmazza:  
-- [ ] Több bérlős kiskereskedelmi elemzést RLS-sel  
-- [ ] Szemantikus keresést Azure OpenAI-val  
-- [ ] Átfogó biztonsági implementációt  
-- [ ] Gyártási telepítést Azure-on  
-- [ ] Monitorozási és riasztási beállításokat  
-- [ ] Dokumentációt és tesztelést  
+**Építs egy gyártásra kész MCP szervert**, amely tartalmazza:
+- [ ] Több bérlős kiskereskedelmi elemzést RLS-sel
+- [ ] Szemantikus keresést Azure OpenAI-al
+- [ ] Átfogó biztonsági megvalósítást
+- [ ] Gyártási telepítést Azure-on
+- [ ] Monitorozás és riasztás beállítást
+- [ ] Dokumentációt és tesztelést
 
-### Haladó tanulási útvonalak
+### Haladó tanulási utak
 
-Folytassa MCP tanulmányait:
+Folytasd az MCP utadat a következőkkel:
 
 - **MCP architektúra minták**: Haladó szerver architektúrák  
-- **Többmodell integráció**: Különböző AI modellek kombinálása  
-- **Vállalati skála**: Nagy léptékű MCP telepítések  
+- **Többmodell integráció**: Különböző AI modellek egyesítése  
+- **Vállalati méretezés**: Nagy léptékű MCP telepítések  
 - **Egyedi eszközfejlesztés**: Speciális MCP eszközök építése  
 - **MCP ökoszisztéma**: Hozzájárulás a szélesebb közösséghez  
 
 ### Közösségi elismerés
 
-Ossza meg eredményeit:  
-- **GitHub portfólió**: Mutassa be implementációját  
-- **Közösségi hozzájárulások**: Küldjön fejlesztéseket vagy példákat  
-- **Előadási lehetőségek**: Tartson előadást találkozókon vagy konferenciákon  
-- **Mentorálás**: Segítsen más fejlesztőknek MCP-t tanulni  
+Oszd meg az eredményedet:
+- **GitHub portfólió**: Mutasd be a megvalósításodat  
+- **Közösségi hozzájárulások**: Küldj be fejlesztéseket vagy példákat  
+- **Előadási lehetőségek**: Beszélj meetupokon vagy konferenciákon  
+- **Mentorálás**: Segíts más fejlesztőknek MCP-t tanulni  
 
 ## 📚 További források
 
-### Haladó témák  
-- [PostgreSQL teljesítményhangolás](https://www.postgresql.org/docs/current/performance-tips.html) - Adatbázis optimalizálás  
-- [Azure Container Apps legjobb gyakorlatok](https://docs.microsoft.com/azure/container-apps/overview) - Gyártási telepítés  
-- [Python aszinkron legjobb gyakorlatok](https://docs.python.org/3/library/asyncio-dev.html) - Aszinkron programozás  
+### Haladó témák
+- [PostgreSQL teljesítményhangolás](https://www.postgresql.org/docs/current/performance-tips.html) - Adatbázis optimalizáció  
+- [Azure Container Apps legjobb gyakorlatai](https://docs.microsoft.com/azure/container-apps/overview) - Gyártási telepítés  
+- [Python Async legjobb gyakorlatok](https://docs.python.org/3/library/asyncio-dev.html) - Aszinkron programozás  
 
-### Biztonsági források  
+### Biztonsági források
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Biztonsági sebezhetőségek  
 - [Azure biztonsági legjobb gyakorlatok](https://docs.microsoft.com/azure/security/) - Felhőbiztonság  
 - [Python biztonsági irányelvek](https://python.org/dev/security/) - Biztonságos kódolás  
 
-### Közösség  
+### Közösség
 - [MCP közösségi Discord](https://discord.com/invite/ByRwuEEgH4) - Élő beszélgetések  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Kérdések és megosztás  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Kérdések-válaszok és megosztás  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Technikai kérdések  
 
 ---
 
-**🎉 Gratulálunk!** Teljesítette az átfogó MCP adatbázis-integrációs tanulási útvonalat. Most már rendelkezik azzal a tudással és készségekkel, amelyekkel gyártásra kész MCP szervereket építhet, amelyek összekapcsolják az AI asszisztenseket a valós adatbázis-rendszerekkel.
+**🎉 Gratulálunk!** Teljesítetted az átfogó MCP adatbázis-integrációs tanulási útvonalat. Most már megvan a tudásod és képességed, hogy gyártásra kész MCP szervereket építs, melyek összekötik az AI asszisztenseket a valódi adat rendszerekkel.
 
-**Készen áll a hozzájárulásra?** Csatlakozzon közösségünkhöz, és segítse másokat MCP tanulásában tapasztalatainak megosztásával, kódfejlesztések hozzájárulásával vagy további tanulási források létrehozásával.
+**Készen állsz hozzájárulni?** Csatlakozz a közösségünkhöz, és segíts másoknak MCP-t tanulni tapasztalataid megosztásával, kódfejlesztésekben való részvétellel vagy további tanulási anyagok készítésével.
+
+**Következő**: [Eszközök](../../12-tooling/README.md)
 
 ---
 
-**Felelősség kizárása**:  
-Ez a dokumentum az [Co-op Translator](https://github.com/Azure/co-op-translator) AI fordítási szolgáltatás segítségével lett lefordítva. Bár törekszünk a pontosságra, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az eredeti nyelvén tekintendő hiteles forrásnak. Kritikus információk esetén javasolt professzionális emberi fordítást igénybe venni. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely a fordítás használatából eredhet.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

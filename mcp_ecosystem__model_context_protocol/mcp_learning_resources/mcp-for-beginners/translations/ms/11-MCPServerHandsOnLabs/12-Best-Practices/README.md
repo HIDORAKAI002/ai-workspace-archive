@@ -1,25 +1,25 @@
 # Amalan Terbaik dan Pengoptimuman
 
-## 🎯 Apa Yang Diliputi Dalam Makmal Ini
+## 🎯 Apa Yang Diliputi Oleh Makmal Ini
 
-Makmal capstone ini menggabungkan amalan terbaik, teknik pengoptimuman, dan garis panduan pengeluaran untuk membina pelayan MCP yang kukuh, boleh skala, dan selamat dengan integrasi pangkalan data. Anda akan belajar daripada pengalaman dunia sebenar dan piawaian industri untuk memastikan pelaksanaan anda sedia untuk pengeluaran.
+Makmal capstone ini mengukuhkan amalan terbaik, teknik pengoptimuman, dan panduan pengeluaran untuk membina pelayan MCP yang kukuh, boleh diskalakan, dan selamat dengan integrasi pangkalan data. Anda akan belajar daripada pengalaman dunia sebenar dan piawaian industri untuk memastikan pelaksanaan anda sedia untuk pengeluaran.
 
 ## Gambaran Keseluruhan
 
-Membina pelayan MCP yang berjaya bukan sekadar memastikan kod berfungsi. Makmal ini merangkumi amalan penting yang membezakan pelaksanaan bukti konsep daripada sistem sedia pengeluaran yang boleh skala, berprestasi dengan boleh dipercayai, dan mengekalkan piawaian keselamatan.
+Membina pelayan MCP yang berjaya adalah lebih daripada sekadar menjadikan kod berfungsi. Makmal ini merangkumi amalan penting yang membezakan pelaksanaan bukti-konsep daripada sistem sedia untuk pengeluaran yang boleh diskalakan, berprestasi boleh dipercayai, dan mengekalkan piawaian keselamatan.
 
-Amalan terbaik ini diperoleh daripada pelaksanaan dunia sebenar, maklum balas komuniti, dan pengajaran daripada pelaksanaan perusahaan.
+Amalan terbaik ini diperoleh daripada penyebaran dunia sebenar, maklum balas komuniti, dan pengajaran dari pelaksanaan perusahaan.
 
 ## Objektif Pembelajaran
 
 Menjelang akhir makmal ini, anda akan dapat:
 
-- **Mengaplikasikan** teknik pengoptimuman prestasi untuk pelayan MCP dan pangkalan data
-- **Melaksanakan** langkah pengukuhan keselamatan yang menyeluruh
-- **Mereka bentuk** corak seni bina yang boleh skala untuk persekitaran pengeluaran
-- **Menetapkan** prosedur pemantauan, penyelenggaraan, dan operasi
-- **Mengoptimumkan** kos sambil mengekalkan prestasi dan kebolehpercayaan
-- **Menyumbang** kepada komuniti dan ekosistem MCP
+- **Menerapkan** teknik pengoptimuman prestasi untuk pelayan MCP dan pangkalan data  
+- **Melaksanakan** langkah-langkah pengukuhan keselamatan yang menyeluruh  
+- **Reka bentuk** corak seni bina yang boleh diskalakan untuk persekitaran pengeluaran  
+- **Menubuhkan** pemantauan, penyelenggaraan, dan prosedur operasi  
+- **Mengoptimumkan** kos sambil mengekalkan prestasi dan kebolehpercayaan  
+- **Menyumbang** kepada komuniti dan ekosistem MCP  
 
 ## 🚀 Pengoptimuman Prestasi
 
@@ -28,25 +28,25 @@ Menjelang akhir makmal ini, anda akan dapat:
 #### Pengoptimuman Kolam Sambungan
 
 ```python
-# Optimized connection pool configuration
+# Konfigurasi kolam sambungan yang dioptimumkan
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Konfigurasi saiz
+    "min_size": max(2, cpu_count()),           # Sekurang-kurangnya 2, sesuaikan dengan CPU
+    "max_size": min(20, cpu_count() * 4),     # Hadkan pada maksimum yang munasabah
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Konfigurasi masa
+    "max_inactive_connection_lifetime": 300,   # 5 minit
+    "command_timeout": 30,                     # 30 saat
+    "max_queries": 50000,                      # Putar sambungan
     
-    # PostgreSQL settings
+    # Tetapan PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Lumpuhkan untuk konsistensi
+        "work_mem": "8MB",                     # Optimumkan untuk pertanyaan
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Logkan hanya pengubahsuaian
+        "log_min_duration_statement": "1s",   # Logkan pertanyaan lambat
     }
 }
 ```
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # saat
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Semak cache terlebih dahulu
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Laksanakan dengan pemantauan
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Optimumkan pelaksanaan pertanyaan
+                await conn.execute("SET enable_seqscan = off")  # Utamakan indeks
+                await conn.execute("SET work_mem = '16MB'")     # Lebih banyak memori untuk pertanyaan ini
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Log pertanyaan lambat
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Cache keputusan berjaya
+                if cache_key and len(result) < 1000:  # Jangan cache keputusan besar
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,25 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Cadangan indeks
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Indeks perniagaan teras
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Indeks analitik
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Pengoptimuman carian vektor
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
 
 ### Prestasi Aplikasi
 
-#### Amalan Terbaik Pengaturcaraan Asinkron
+#### Amalan Terbaik Pengaturcaraan Async
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Proses secara kelompok untuk mengelakkan sistem daripada terbeban
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Jeda kecil antara kelompok untuk mengelakkan kehabisan sumber
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Pelaksanaan pemutus litar
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # TERTUTUP, TERBUKA, SEPARUH_TERTUTUP
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Tetapkan semula selepas berjaya
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Tahap 1: Cache memori
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Tahap 2: Cache Redis
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Tingkatkan ke cache memori
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Laksanakan pengusiran LRU
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Penjanaan kunci cache
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Ekstrak dan sahkan pengesahan
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Sahkan token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Semak had kadar
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Sahkan konteks RLS
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Dapatkan kunci awam dari Key Vault atau cache
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Dekod dan sahkan token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Pentadbir super boleh mengakses sebarang konteks
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Pengurus kedai hanya boleh mengakses kedai mereka sendiri
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Pengurus wilayah boleh mengakses pelbagai kedai
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Pengesahan dan pemurnian input
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Corak yang dilarang
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Hanya benarkan pernyataan SELECT
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Hanya benarkan aksara alfanumerik, garis bawah, dan titik
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Sahkan terhadap jadual yang dibenarkan
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Dalam produksi, dapatkan dari Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Sandaran untuk pembangunan (bukan untuk produksi!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # ulangan
         ).hex()
         
         return password_hash, salt
@@ -524,7 +524,7 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Garis Panduan Pengeluaran
+## 📊 Panduan Penyebaran Pengeluaran
 
 ### Infrastruktur sebagai Kod
 
@@ -666,7 +666,7 @@ CMD ["python", "-m", "mcp_server.sales_analysis"]
 ### Konfigurasi Persekitaran
 
 ```python
-# Production configuration management
+# Pengurusan konfigurasi pengeluaran
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,17 +715,17 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Tetapkan pencatat pihak ketiga kepada WARNING
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Nyahaktifkan mod debug
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Tetapkan pengepala selamat
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Beban rendah
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Beban sederhana
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Beban tinggi
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Operasi mahal cache
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Konfigurasi penskalaan automatik
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Penskalaan berasaskan CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Penskalaan berasaskan memori
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Penskalaan barisan permintaan
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Kesihatan pangkalan data
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Kesihatan perkhidmatan luaran
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Sumber sistem
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Metrik aplikasi
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Tentukan status keseluruhan
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Picu amaran
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Kesalinghubungan asas
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Semak pertanyaan perlahan
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Semak bilangan sambungan
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Sandaran dan pemulihan automatik
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Muat naik ke Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,12 +932,12 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Sandaran penuh harian pada 2 pagi UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Sandaran inkremental setiap jam
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
@@ -1025,19 +1025,19 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Akan melaksanakan pemeriksaan sebenar
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 Perkara Penting
+## 🎯 Intipati Utama
 
-Selepas melengkapkan laluan pembelajaran yang komprehensif ini, anda seharusnya telah menguasai:
+Setelah menyelesaikan laluan pembelajaran menyeluruh ini, anda seharusnya menguasai:
 
-✅ **Pengoptimuman Prestasi**: Penalaan pangkalan data, corak asinkron, dan strategi caching  
+✅ **Pengoptimuman Prestasi**: Penalaan pangkalan data, corak async, dan strategi caching  
 ✅ **Pengukuhan Keselamatan**: Pengesahan, kebenaran, dan perlindungan data  
-✅ **Pengeluaran**: Infrastruktur sebagai kod dan pengoptimuman kontena  
+✅ **Penyebaran Pengeluaran**: Infrastruktur sebagai kod dan pengoptimuman kontena  
 ✅ **Pengurusan Kos**: Pengoptimuman sumber dan penskalaan pintar  
 ✅ **Kecemerlangan Operasi**: Pemantauan, penyelenggaraan, dan automasi  
 ✅ **Penglibatan Komuniti**: Menyumbang kepada ekosistem MCP  
@@ -1046,58 +1046,62 @@ Selepas melengkapkan laluan pembelajaran yang komprehensif ini, anda seharusnya 
 
 ### Penilaian Praktikal
 
-Lengkapkan projek akhir ini untuk menunjukkan kemahiran anda:
+Lengkapkan projek akhir ini untuk menunjukkan penguasaan anda:
 
-**Bina Pelayan MCP Sedia Pengeluaran** yang merangkumi:
-- [ ] Analitik runcit multi-penyewa dengan RLS
-- [ ] Carian semantik dengan Azure OpenAI
-- [ ] Pelaksanaan keselamatan yang menyeluruh
-- [ ] Pengeluaran di Azure
-- [ ] Persediaan pemantauan dan amaran
-- [ ] Dokumentasi dan ujian
+**Bina Pelayan MCP Sedia Pengeluaran** yang merangkumi:  
+- [ ] Analitik runcit pelbagai penyewa dengan RLS  
+- [ ] Carian semantik dengan Azure OpenAI  
+- [ ] Pelaksanaan keselamatan menyeluruh  
+- [ ] Penyebaran pengeluaran di Azure  
+- [ ] Penyediaan pemantauan dan amaran  
+- [ ] Dokumentasi dan ujian  
 
 ### Laluan Pembelajaran Lanjutan
 
 Teruskan perjalanan MCP anda dengan:
 
-- **Corak Seni Bina MCP**: Seni bina pelayan lanjutan
-- **Integrasi Multi-Model**: Menggabungkan model AI yang berbeza
-- **Skala Perusahaan**: Pelaksanaan MCP berskala besar
-- **Pembangunan Alat Tersuai**: Membina alat MCP khusus
-- **Ekosistem MCP**: Menyumbang kepada komuniti yang lebih luas
+- **Corak Seni Bina MCP**: Seni bina pelayan lanjutan  
+- **Integrasi Multi-Model**: Menggabungkan model AI yang berbeza  
+- **Skala Perusahaan**: Penyebaran MCP berskala besar  
+- **Pembangunan Alat Khusus**: Membina alat MCP khusus  
+- **Ekosistem MCP**: Menyumbang kepada komuniti yang lebih luas  
 
 ### Pengiktirafan Komuniti
 
-Kongsi pencapaian anda:
-- **Portfolio GitHub**: Pamerkan pelaksanaan anda
-- **Sumbangan Komuniti**: Hantar penambahbaikan atau contoh
-- **Peluang Berbicara**: Bentangkan di pertemuan atau persidangan
-- **Mentor**: Bantu pembangun lain belajar MCP
+Kongsi pencapaian anda:  
+- **Portfolio GitHub**: Pamerkan pelaksanaan anda  
+- **Sumbangan Komuniti**: Hantar penambahbaikan atau contoh  
+- **Peluang Bercakap**: Membentang di pertemuan atau persidangan  
+- **Mentoring**: Membantu pembangun lain belajar MCP  
 
 ## 📚 Sumber Tambahan
 
 ### Topik Lanjutan
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Pengoptimuman pangkalan data
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Pengeluaran
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Pengaturcaraan asinkron
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Pengoptimuman pangkalan data  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Penyebaran pengeluaran  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Pengaturcaraan async  
 
 ### Sumber Keselamatan
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Kerentanan keselamatan
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Keselamatan awan
-- [Python Security Guidelines](https://python.org/dev/security/) - Pengkodan selamat
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Kelemahan keselamatan  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Keselamatan awan  
+- [Python Security Guidelines](https://python.org/dev/security/) - Pengekodan selamat  
 
 ### Komuniti
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Perbincangan langsung
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Soal jawab dan perkongsian
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Soalan teknikal
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Perbincangan langsung  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Soalan & jawapan dan perkongsian  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Soalan teknikal  
 
 ---
 
-**🎉 Tahniah!** Anda telah melengkapkan laluan pembelajaran Integrasi Pangkalan Data MCP yang komprehensif. Anda kini mempunyai pengetahuan dan kemahiran untuk membina pelayan MCP sedia pengeluaran yang menghubungkan pembantu AI dengan sistem data dunia sebenar.
+**🎉 Tahniah!** Anda telah menyelesaikan laluan pembelajaran integrasi Pangkalan Data MCP yang komprehensif. Kini anda mempunyai pengetahuan dan kemahiran untuk membina pelayan MCP yang sedia pengeluaran yang menghubungkan pembantu AI dengan sistem data dunia sebenar.
 
 **Sedia untuk menyumbang?** Sertai komuniti kami dan bantu orang lain belajar MCP dengan berkongsi pengalaman anda, menyumbang penambahbaikan kod, atau mencipta sumber pembelajaran tambahan.
 
+**Seterusnya**: [Tooling](../../12-tooling/README.md)
+
 ---
 
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk memastikan ketepatan, sila ambil perhatian bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang berwibawa. Untuk maklumat yang kritikal, terjemahan manusia profesional adalah disyorkan. Kami tidak bertanggungjawab atas sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat penting, terjemahan oleh manusia profesional adalah disyorkan. Kami tidak bertanggungjawab terhadap sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

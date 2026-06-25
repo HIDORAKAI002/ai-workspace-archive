@@ -1,57 +1,57 @@
 # Најбоље праксе и оптимизација
 
-## 🎯 Шта овај лаб покрива
+## 🎯 Шта овај лабораторијски рад обухвата
 
-Овај завршни лаб обједињује најбоље праксе, технике оптимизације и смернице за производњу у циљу изградње робусних, скалабилних и безбедних MCP сервера са интеграцијом базе података. Учићете из стварног искуства и индустријских стандарда како бисте осигурали да ваша имплементација буде спремна за производњу.
+Овај завршни лабораторијски рад консолидује најбоље праксе, технике оптимизације и смернице за производњу за изградњу робусних, скалабилних и безбедних MCP сервера са интеграцијом базе података. Учите из стварног искуства и индустријских стандарда како бисте осигурали да ваша имплементација буде спремна за продукцију.
 
 ## Преглед
 
-Изградња успешног MCP сервера подразумева више од само функционалног кода. Овај лаб покрива суштинске праксе које разликују имплементације концепта од система спремних за производњу који могу да се скалирају, раде поуздано и одржавају безбедносне стандарде.
+Изградња успешног MCP сервера је више од само тога да код ради. Овај лабораторијски рад покрива суштинске праксе које разликују имплементације као доказ концепта од система спремних за продукцију који могу да се скалирају, поуздано раде и одржавају безбедносне стандарде.
 
-Ове најбоље праксе су изведене из стварних имплементација, повратних информација заједнице и лекција научених из корпоративних решења.
+Ове најбоље праксе су изведене из стварних имплементација, повратних информација заједнице и искустава из предузетничких имплементација.
 
 ## Циљеви учења
 
-На крају овог лаба, бићете у могућности да:
+До краја овог лабораторијског рада, моћи ћете да:
 
-- **Примените** технике оптимизације перформанси за MCP сервере и базе података
-- **Имплементирате** свеобухватне мере за јачање безбедности
-- **Дизајнирате** скалабилне архитектонске шаблоне за производна окружења
-- **Успоставите** процедуре за праћење, одржавање и рад
-- **Оптимизујете** трошкове уз одржавање перформанси и поузданости
-- **Доприносите** MCP заједници и екосистему
+- **Примените** технике оптимизације перформанси за MCP сервере и базе података  
+- **Имплементирате** свеобухватне мере ојачавања безбедности  
+- **Дизајнирате** скалабилне архитектонске шаблоне за продукциона окружења  
+- **Успоставите** процедуре за праћење, одржавање и оперативне послове  
+- **Оптимизујете** трошкове док одржавате перформансе и поузданост  
+- **Доприносите** MCP заједници и екосистему  
 
 ## 🚀 Оптимизација перформанси
 
 ### Перформансе базе података
 
-#### Оптимизација пула конекција
+#### Оптимизација везе пула
 
 ```python
-# Optimized connection pool configuration
+# Оптимизована конфигурација базена веза
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Конфигурација величине
+    "min_size": max(2, cpu_count()),           # Најмање 2, прилагоди се броју CPU језгара
+    "max_size": min(20, cpu_count() * 4),     # Ограничити на разумну максималну вредност
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Конфигурација тајминга
+    "max_inactive_connection_lifetime": 300,   # 5 минута
+    "command_timeout": 30,                     # 30 секунди
+    "max_queries": 50000,                      # Ротирати везе
     
-    # PostgreSQL settings
+    # Подешавања PostgreSQL-а
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Онемогућити ради конзистентности
+        "work_mem": "8MB",                     # Оптимизовати за упите
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Записивати само измене
+        "log_min_duration_statement": "1s",   # Записивати споре упите
     }
 }
 ```
 
-#### Шаблони оптимизације упита
+#### Обрасци оптимизације упита
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # секунде
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Прво провери кеш
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Изврши са праћењем
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Оптимизуј извршење упита
+                await conn.execute("SET enable_seqscan = off")  # Дај предност индексима
+                await conn.execute("SET work_mem = '16MB'")     # Више меморије за овај упит
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Запиши споре упите
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Кеширај успешне резултате
+                if cache_key and len(result) < 1000:  # Не кеширај велике резултате
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,25 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Препоруке за индексе
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Основни пословни индекси
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Аналитички индекси
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Оптимизација претраге вектора
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
 
 ### Перформансе апликације
 
-#### Најбоље праксе за асинхроно програмирање
+#### Најбоље праксе асинхроног програмирања
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Обрађивати у серијама како се систем не би препуњавао
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Мали закашњење између серија да се избегне исцрпљивање ресурса
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Имплементација прекидача кола
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # ЗАТВОРЕНО, ОТВОРЕНО, ПОЛУ-ОТВОРЕНО
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Ресетовати при успеху
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Ниво 1: Меморијски кеш
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Ниво 2: Редис кеш
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Промовиши у меморијски кеш
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Имплементирај LRU елиминацију
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Генерисање кључа кеша
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,7 +304,7 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 Јачање безбедности
+## 🔒 Ојачавање безбедности
 
 ### Аутентификација и ауторизација
 
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Извучи и верификуј аутентификацију
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Верификуј токен
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Провери ограничење учесталости
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Верифицирај RLS контекст
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Преузми јавни кључ из Key Vault-а или кеша
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Декодирај и верификуј токен
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Супер админи имају приступ сваком контексту
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Менаџери продавница могу приступити само својој продавници
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Регионални менаџери могу приступити више продавница
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Валидација уноса и санација
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Забрањени обрасци
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Дозволи само SELECT упите
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Дозволи само алфанумеричке знакове, подвлачник и тачку
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Верифицирај дозвољене табеле
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # У продукцији, преузми са Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Резервна опција за развој (не за продукцију!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # итерације
         ).hex()
         
         return password_hash, salt
@@ -524,7 +524,7 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Смернице за производну имплементацију
+## 📊 Смернице за производно имплементирање
 
 ### Инфраструктура као код
 
@@ -666,7 +666,7 @@ CMD ["python", "-m", "mcp_server.sales_analysis"]
 ### Конфигурација окружења
 
 ```python
-# Production configuration management
+# Управљање производном конфигурацијом
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,17 +715,17 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Поставите логере трећих страна на WARNING
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Онемогућити режим за отклањање грешака
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Поставите безбедне заглавља
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Ниско оптерећење
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Средње оптерећење
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Високо оптерећење
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Кеширај скупе операције
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Конфигурација аутоматског скалирања
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Скалирање засновано на ЦПУ-у
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Скалирање засновано на меморији
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Скалирање реда захтева
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -811,9 +811,9 @@ class AutoScaler:
         return "no_action"
 ```
 
-## 🔧 Одржавање и рад
+## 🔧 Одржавање и операције
 
-### Праћење здравља система
+### Праћење здравља
 
 ```python
 class OperationalHealth:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Здравље базе података
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Здравље спољних сервиса
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Системски ресурси
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Метричке апликације
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Одредити укупни статус
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Покренути упозорења
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Основна повезаност
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Провера спорих упита
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Проверити број веза
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Аутоматизовани бекуп и опоравак
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Учитавање на Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,20 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Свакодневни пун бекуп у 2 ујутру по UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Сатни инкрементални бекупи
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
 
-## 🌍 Доприноси заједници
+## 🌍 Заједнички доприноси
 
-### Најбоље праксе за отворени код
+### Најбоље праксе отвореног кода
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### Ангажовање заједнице
+### Учествовање у заједници
 
 ```python
 class CommunityContributor:
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Би спровео стварне провере
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 Кључни закључци
+## 🎯 Кључне поуке
 
-Након завршетка овог свеобухватног пута учења, требало би да сте савладали:
+Након завршетка овог свеобухватног пута учења, требало би да савладате:
 
-✅ **Оптимизацију перформанси**: Подешавање базе података, асинхрони шаблони и стратегије кеширања  
-✅ **Јачање безбедности**: Аутентификација, ауторизација и заштита података  
-✅ **Имплементацију у производњи**: Инфраструктура као код и оптимизација контејнера  
-✅ **Управљање трошковима**: Оптимизација ресурса и интелигентно скалирање  
-✅ **Оперативну изврсност**: Праћење, одржавање и аутоматизација  
-✅ **Ангажовање заједнице**: Допринос MCP екосистему  
+✅ **Оптимизацију перформанси**: подешавање база података, асинхрони образци и стратегије кеширања  
+✅ **Ојачавање безбедности**: аутентификација, ауторизација и заштита података  
+✅ **Производно имплементирање**: инфраструктура као код и оптимизација контејнера  
+✅ **Управљање трошковима**: оптимизација ресурса и интелигентно скалирање  
+✅ **Оперативна изузетност**: праћење, одржавање и аутоматизација  
+✅ **Учествовање у заједници**: допринос MCP екосистему  
 
 ## 🏆 Сертификација и наредни кораци
 
 ### Практична процена
 
-Завршите овај финални пројекат како бисте показали своје знање:
+Завршите овај завршни пројекат да бисте показали своје умеће:
 
-**Изградите MCP сервер спреман за производњу** који укључује:
-- [ ] Аналитику малопродаје за више корисника са RLS
-- [ ] Семантичко претраживање уз Azure OpenAI
-- [ ] Свеобухватну имплементацију безбедности
-- [ ] Имплементацију у производњи на Azure
-- [ ] Подешавање праћења и упозорења
-- [ ] Документацију и тестирање
+**Изградите MCP сервер спреман за продукцију** који укључује:  
+- [ ] Аналитику за више закупаца уз RLS  
+- [ ] Семантичку претрагу са Azure OpenAI  
+- [ ] Комплетну имплементацију безбедности  
+- [ ] Имплементацију у продукцији на Azure  
+- [ ] Подешавање надгледања и алармирања  
+- [ ] Документацију и тестирање  
 
 ### Напредни путеви учења
 
-Наставите MCP пут са:
+Наставите своје MCP путовање са:
 
-- **MCP архитектонски шаблони**: Напредне архитектуре сервера
-- **Интеграција више модела**: Комбинација различитих AI модела
-- **Корпоративна скала**: Велике MCP имплементације
-- **Развој прилагођених алата**: Изградња специјализованих MCP алата
-- **MCP екосистем**: Допринос широј заједници
+- **Архитектонски шаблони MCP-а**: Напредне серверске архитектуре  
+- **Интеграција више модела**: Комбинација различитих AI модела  
+- **Масовне MCP имплементације**: Велику продукциону примену  
+- **Развој прилагођених алата**: Изградња специјализованих MCP алата  
+- **MCP екосистем**: Доприноси већој заједници  
 
-### Признање заједнице
+### Признaње у заједници
 
-Поделите своје постигнуће:
-- **GitHub портфолио**: Прикажите своју имплементацију
-- **Доприноси заједници**: Поднесите побољшања или примере
-- **Могућности за говор**: Презентујте на окупљањима или конференцијама
-- **Менторство**: Помозите другим програмерима да науче MCP
+Поделите свој успех:  
+- **GitHub портфолио**: Прикажи своју имплементацију  
+- **Доприноси заједници**: Предај побољшања или примере  
+- **Могућности говора**: Представљај на састанцима или конференцијама  
+- **Менторство**: Помози другим програмерима да науче MCP  
 
 ## 📚 Додатни ресурси
 
 ### Напредне теме
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Оптимизација базе података
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Имплементација у производњи
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Асинхроно програмирање
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Оптимизација база података  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Производно имплементирање  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Асинхроно програмирање  
 
 ### Ресурси за безбедност
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Ризици у безбедности
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Безбедност у облаку
-- [Python Security Guidelines](https://python.org/dev/security/) - Сигурно програмирање
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Безбедносне рањивости  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Безбедност облака  
+- [Python Security Guidelines](https://python.org/dev/security/) - Безбедно кодирање  
 
 ### Заједница
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Дискусије уживо
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Питања и дељење
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Техничка питања
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Лајв дискусије  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Питања и одговори и дељење  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Техничка питања  
 
 ---
 
-**🎉 Честитамо!** Завршили сте свеобухватни MCP пут учења интеграције базе података. Сада имате знање и вештине за изградњу MCP сервера спремних за производњу који повезују AI асистенте са системима стварних података.
+**🎉 Честитамо!** Завршили сте свеобухватан пут учења интеграције MCP базе података. Сада имате знање и вештине за изградњу продукционих MCP сервера који повезују AI асистенте са системима стварних података.
 
-**Спремни да допринесете?** Придружите се нашој заједници и помозите другима да науче MCP тако што ћете поделити своја искуства, допринети побољшањима кода или креирати додатне ресурсе за учење.
+**Спремни за допринос?** Придружите се нашој заједници и помогните другима да уче MCP делећи своја искуства, доприносећи побољшањима кода или креирајући додатне ресурсе за учење.
+
+**Следеће**: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Одрицање од одговорности**:  
-Овај документ је преведен коришћењем услуге за превођење помоћу вештачке интелигенције [Co-op Translator](https://github.com/Azure/co-op-translator). Иако се трудимо да обезбедимо тачност, молимо вас да имате у виду да аутоматски преводи могу садржати грешке или нетачности. Оригинални документ на његовом изворном језику треба сматрати меродавним извором. За критичне информације препоручује се професионални превод од стране људског преводиоца. Не преузимамо одговорност за било каква погрешна тумачења или неспоразуме који могу настати услед коришћења овог превода.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Изјава о одрицању одговорности**:
+Овај документ је преведен коришћењем услуге за аутоматски превод [Co-op Translator](https://github.com/Azure/co-op-translator). Иако тежимо тачности, имајте у виду да аутоматски преводи могу садржати грешке или нетачности. Оригинални документ на његовом изворном језику треба сматрати ауторитативним извором. За критичне информације препоручује се професионални људски превод. Нисмо одговорни за било каква неспоразума или погрешна тумачења која произилазе из коришћења овог превода.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

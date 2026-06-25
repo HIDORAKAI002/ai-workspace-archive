@@ -239,10 +239,28 @@
     "source_file": "images/03-GettingStarted/chat-mode-agent.png",
     "language_code": "es"
   },
+  "cog.a524c8846b1eaf3a.webp": {
+    "original_hash": "34e42f704bbb40007298194dd603f4f3",
+    "translation_date": "2026-06-24T22:32:13+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/cog.png",
+    "language_code": "es"
+  },
   "compare.97746cd0f9074955.webp": {
     "original_hash": "b944da5262f9dc6c41aa64b646d2dad4",
     "translation_date": "2026-01-15T10:47:05+00:00",
     "source_file": "images/10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/compare.png",
+    "language_code": "es"
+  },
+  "config-http.b30537274d2c549a.webp": {
+    "original_hash": "3445346bdc39b7b9f4ff54e40212ac20",
+    "translation_date": "2026-06-24T22:31:31+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/config-http.png",
+    "language_code": "es"
+  },
+  "config-stdio.7f605ca4d41a23a1.webp": {
+    "original_hash": "a79a42dccd83805f190a6215744dd649",
+    "translation_date": "2026-06-24T22:32:10+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/config-stdio.png",
     "language_code": "es"
   },
   "connect.141db0b2bd05f096.webp": {
@@ -257,10 +275,40 @@
     "source_file": "03-GettingStarted/01-first-server/assets/connected.png",
     "language_code": "es"
   },
+  "custom-install-values.f39398b2de8b981e.webp": {
+    "original_hash": "fd02c52b605e7e4b1669cdf0ccc6af06",
+    "translation_date": "2026-06-24T22:32:26+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/custom-install-values.png",
+    "language_code": "es"
+  },
+  "custom-install.2a44076cc18f1f4e.webp": {
+    "original_hash": "cd3ad3800f124ba2abe12b5ec6280d03",
+    "translation_date": "2026-06-24T22:31:40+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/custom-install.png",
+    "language_code": "es"
+  },
+  "demo-custom-server.01e9c145372df687.webp": {
+    "original_hash": "fed43f5e6583115747aad1c1475d5690",
+    "translation_date": "2026-06-24T22:32:05+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/demo-custom-server.png",
+    "language_code": "es"
+  },
+  "demo.7924f7f30109eab9.webp": {
+    "original_hash": "959db60fc809d2d60f0f8f926243db44",
+    "translation_date": "2026-06-24T22:32:20+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/demo.png",
+    "language_code": "es"
+  },
   "dotnet-aspire-dashboard.0a7095710e9301e9.webp": {
     "original_hash": "8c9f6f357f36cc9d7e4e7bcc8be5b3ce",
     "translation_date": "2026-01-15T10:59:02+00:00",
     "source_file": "04-PracticalImplementation/samples/csharp/images/dotnet-aspire-dashboard.png",
+    "language_code": "es"
+  },
+  "edit-docs-server.dc8cf9efa2685331.webp": {
+    "original_hash": "fade23229b07eb197c39fa13f72c53e5",
+    "translation_date": "2026-06-24T22:31:56+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/edit-docs-server.png",
     "language_code": "es"
   },
   "faq-input.3e276f1c3d7e061e.webp": {
@@ -273,6 +321,18 @@
     "original_hash": "9b4842d2cd57200476db4c72a218c45c",
     "translation_date": "2026-03-03T19:58:53+00:00",
     "source_file": "03-GettingStarted/15-mcp-apps/assets/faq.png",
+    "language_code": "es"
+  },
+  "install-docs-server.03af2d457c3b8bf4.webp": {
+    "original_hash": "76252f9bcd61a4ae7ddddee74435c957",
+    "translation_date": "2026-06-24T22:31:35+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/install-docs-server.png",
+    "language_code": "es"
+  },
+  "install.51b2d7538537a5d2.webp": {
+    "original_hash": "c55a98425fd65457f667c628fede0fbe",
+    "translation_date": "2026-06-24T22:31:50+00:00",
+    "source_file": "12-tooling/01-copilot-app/assets/install.png",
     "language_code": "es"
   },
   "logo.ec93918ec338dadd.webp": {
