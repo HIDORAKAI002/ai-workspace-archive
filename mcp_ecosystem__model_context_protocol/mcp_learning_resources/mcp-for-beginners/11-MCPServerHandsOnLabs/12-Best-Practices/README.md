@@ -1096,3 +1096,5 @@ Share your achievement:
 **🎉 Congratulations!** You've completed the comprehensive MCP Database Integration learning path. You now have the knowledge and skills to build production-ready MCP servers that bridge AI assistants with real-world data systems.
 
 **Ready to contribute?** Join our community and help others learn MCP by sharing your experiences, contributing code improvements, or creating additional learning resources.
+
+**Next**: [Tooling](../../12-tooling/README.md)

@@ -92,7 +92,11 @@ cp dev.env.example dev.env
 | `make use` | check out those refs across all submodules |
 | `make dev` / `make dev-web` | run the **local submodule source** (`--reload`) — follows the checked-out branch |
 | `make server` | (re)install the **Electron desktop server** from `API_REF`/`AGENT_REF` |
+| `make server-local` | install Electron desktop server **from local uncommitted source** (no push needed) |
 | `make app` | run the Electron desktop app (auto-update disabled so it can't revert your branch) |
+| `make app-local` | run the Electron desktop app **against local uncommitted source** (runs `server-local` first) |
+| `make pack-local` | build macOS `.app` from local uncommitted source, iCloud-safe (no DMG, `/tmp` build) |
+| `make watch` | live reload — Electron app + Python `--reload` (alias for `make dev`) |
 | `make baseline` | snap every submodule back to the superproject's pinned commits |
 | `make pin` | record the submodules' current commits as the superproject pins (a deliberate commit) |
 
@@ -103,6 +107,15 @@ cp dev.env.example dev.env
 > same `dev.env`. Keep both on the same ref — they share `~/.cowork/cowork.db`, so a
 > migration applied by one must exist in the other (else the app crashes on startup
 > with `Can't locate revision …`). `make flush` resets when they drift.
+
+> **Developing with uncommitted changes in the Electron app**: `make dev`/`dev-web`
+> already pick up uncommitted source changes on-the-fly. For the Electron desktop path,
+> `make app-local` installs cowork-server directly from `backend/core_api/` (no commit
+> needed) and then launches the app. `COWORK_SERVER_DISABLE_AUTOUPDATE=1` is set
+> automatically so the installer won't re-download from git. To also develop `core_agent`
+> without committing: update `[tool.uv.sources] anton-agent` in
+> `backend/core_api/pyproject.toml` to `{ path = "../../core_agent" }`, then re-run
+> `make app-local`. (Restore the git source before pushing.)
 
 **4. Bumping pins is deliberate.** Because submodules are ignored, the *only* way a
 pin changes is `make pin` (after a submodule PR merges and you push the submodule).
