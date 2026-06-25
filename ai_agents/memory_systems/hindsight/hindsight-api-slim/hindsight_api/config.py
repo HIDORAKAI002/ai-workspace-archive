@@ -606,6 +606,7 @@ ENV_LLM_TRACE_MAX_CHARS = "HINDSIGHT_API_LLM_TRACE_MAX_CHARS"
 
 # Background maintenance settings
 ENV_CONSOLIDATION_RECONCILE_INTERVAL_SECONDS = "HINDSIGHT_API_CONSOLIDATION_RECONCILE_INTERVAL_SECONDS"
+ENV_MENTAL_MODEL_REFRESH_TICK_SECONDS = "HINDSIGHT_API_MENTAL_MODEL_REFRESH_TICK_SECONDS"
 
 # Disposition settings
 ENV_DISPOSITION_SKEPTICISM = "HINDSIGHT_API_DISPOSITION_SKEPTICISM"
@@ -1038,6 +1039,11 @@ DEFAULT_LLM_TRACE_MAX_CHARS = 50000  # Truncate stored input/output beyond this 
 # 0 disables the reconcile sweep.
 DEFAULT_CONSOLIDATION_RECONCILE_INTERVAL_SECONDS = 300
 
+# How often the maintenance loop checks for cron-scheduled mental models that are
+# due for a refresh. This is the *check* cadence; the actual schedule is the
+# per-model cron expression in the mental model's trigger. 0 disables the sweep.
+DEFAULT_MENTAL_MODEL_REFRESH_TICK_SECONDS = 60
+
 # Default MCP tool descriptions (can be customized via env vars)
 DEFAULT_MCP_RETAIN_DESCRIPTION = """Store important information to long-term memory.
 
@@ -1320,6 +1326,10 @@ class LLMMemberConfig:
     default_headers: dict | None
     bedrock_service_tier: str | None
     gemini_service_tier: str | None
+    vertexai_project_id: str | None = None
+    vertexai_region: str | None = None
+    vertexai_service_account_key: str | None = None
+    litellmrouter_config: dict | None = None
 
 
 # Valid multi-LLM strategy modes.
@@ -1413,6 +1423,10 @@ def _parse_llm_members(prefix: str) -> list[LLMMemberConfig]:
                 gemini_service_tier=(
                     parse_gemini_service_tier(gemini_service_tier) if provider.lower() == "gemini" else None
                 ),
+                vertexai_project_id=os.getenv(base + "VERTEXAI_PROJECT_ID") or None,
+                vertexai_region=os.getenv(base + "VERTEXAI_REGION") or None,
+                vertexai_service_account_key=os.getenv(base + "VERTEXAI_SERVICE_ACCOUNT_KEY") or None,
+                litellmrouter_config=_parse_llm_router_config(base + "LITELLMROUTER_CONFIG"),
             )
         )
         index += 1
@@ -1849,6 +1863,9 @@ class HindsightConfig:
     # Interval for the periodic sweep that re-schedules consolidation for banks with
     # eligible-but-unscheduled facts. 0 = disabled.
     consolidation_reconcile_interval_seconds: int
+    # How often the maintenance loop checks for cron-scheduled mental models due for
+    # refresh (the per-model schedule lives in the mental model trigger). 0 = disabled.
+    mental_model_refresh_tick_seconds: int
 
     # Webhook configuration (static - server-level only, not per-bank)
     webhook_url: str | None  # Global webhook URL (None = disabled)
@@ -2894,6 +2911,12 @@ class HindsightConfig:
                 os.getenv(
                     ENV_CONSOLIDATION_RECONCILE_INTERVAL_SECONDS,
                     str(DEFAULT_CONSOLIDATION_RECONCILE_INTERVAL_SECONDS),
+                )
+            ),
+            mental_model_refresh_tick_seconds=int(
+                os.getenv(
+                    ENV_MENTAL_MODEL_REFRESH_TICK_SECONDS,
+                    str(DEFAULT_MENTAL_MODEL_REFRESH_TICK_SECONDS),
                 )
             ),
             # Webhook configuration (static, server-level only)

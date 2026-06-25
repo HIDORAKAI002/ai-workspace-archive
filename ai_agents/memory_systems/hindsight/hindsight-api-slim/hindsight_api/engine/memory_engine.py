@@ -389,9 +389,15 @@ RetainOutboxCallbackFactory = Callable[[list[RetainContentDict]], RetainOutboxCa
 def _member_to_llm(member: "LLMMemberConfig", config: HindsightConfig) -> LLMConfig:
     """Build an LLMProvider from one indexed multi-LLM member.
 
-    Member fields are self-contained; reasoning_effort falls back to the global
-    setting and default_headers falls back inside ``LLMProvider`` when unset.
+    ``LLMProvider`` uses its arguments verbatim (it no longer reads global config),
+    so resolve each fallback here: a member's explicit value wins, otherwise inherit
+    the global LLM default. Fields that aren't per-member configurable
+    (``gemini_safety_settings``, ``prompt_cache_enabled``) take the global default.
+    ``gemini_safety_settings`` is bank-configurable so it comes from the raw config
+    (the proxy blocks it); the per-bank value is applied per-call downstream.
     """
+    from ..config import _get_raw_config
+
     return LLMConfig(
         provider=member.provider,
         api_key=member.api_key or "",
@@ -399,9 +405,15 @@ def _member_to_llm(member: "LLMMemberConfig", config: HindsightConfig) -> LLMCon
         model=member.model,
         reasoning_effort=member.reasoning_effort or config.llm_reasoning_effort,
         extra_body=member.extra_body,
-        default_headers=member.default_headers,
+        default_headers=member.default_headers or config.llm_default_headers,
         bedrock_service_tier=member.bedrock_service_tier,
-        gemini_service_tier=member.gemini_service_tier,
+        gemini_service_tier=member.gemini_service_tier or config.llm_gemini_service_tier,
+        gemini_safety_settings=_get_raw_config().llm_gemini_safety_settings,
+        prompt_cache_enabled=config.llm_prompt_cache_enabled,
+        vertexai_project_id=member.vertexai_project_id or config.llm_vertexai_project_id,
+        vertexai_region=member.vertexai_region or config.llm_vertexai_region,
+        vertexai_service_account_key=member.vertexai_service_account_key or config.llm_vertexai_service_account_key,
+        litellmrouter_config=member.litellmrouter_config or config.llm_litellmrouter_config,
     )
 
 
@@ -915,9 +927,15 @@ class MemoryEngine(MemoryEngineInterface):
                           HINDSIGHT_API_LAZY_RERANKER env var or False.
         """
         # Load config from environment for any missing parameters
-        from ..config import get_config
+        from ..config import _get_raw_config, get_config
 
         config = get_config()
+        # Gemini safety settings are bank-configurable, so the StaticConfigProxy from
+        # get_config() blocks reading them. The server-level default legitimately seeds
+        # each provider at construction (per-bank values are applied per-call via
+        # ConfiguredLLMProvider), so read it from the raw config. The other LLM fields
+        # below are static and safe to read off the proxy.
+        _llm_gemini_safety_settings = _get_raw_config().llm_gemini_safety_settings
 
         # Apply optimization flags from config if not explicitly provided
         self._skip_llm_verification = (
@@ -1015,6 +1033,11 @@ class MemoryEngine(MemoryEngineInterface):
             litellmrouter_config=config.llm_litellmrouter_config,
             bedrock_service_tier=config.llm_bedrock_service_tier,
             gemini_service_tier=config.llm_gemini_service_tier,
+            gemini_safety_settings=_llm_gemini_safety_settings,
+            prompt_cache_enabled=config.llm_prompt_cache_enabled,
+            vertexai_project_id=config.llm_vertexai_project_id,
+            vertexai_region=config.llm_vertexai_region,
+            vertexai_service_account_key=config.llm_vertexai_service_account_key,
         )
         self._llm_config = _build_llm(_default_base_llm, config, "")
 
@@ -1051,6 +1074,11 @@ class MemoryEngine(MemoryEngineInterface):
             litellmrouter_config=config.retain_llm_litellmrouter_config or config.llm_litellmrouter_config,
             bedrock_service_tier=config.llm_bedrock_service_tier,
             gemini_service_tier=config.llm_gemini_service_tier,
+            gemini_safety_settings=_llm_gemini_safety_settings,
+            prompt_cache_enabled=config.llm_prompt_cache_enabled,
+            vertexai_project_id=config.llm_vertexai_project_id,
+            vertexai_region=config.llm_vertexai_region,
+            vertexai_service_account_key=config.llm_vertexai_service_account_key,
         )
         self._retain_llm_config = _build_llm(_retain_base_llm, config, "retain_")
 
@@ -1081,6 +1109,11 @@ class MemoryEngine(MemoryEngineInterface):
             litellmrouter_config=config.reflect_llm_litellmrouter_config or config.llm_litellmrouter_config,
             bedrock_service_tier=config.llm_bedrock_service_tier,
             gemini_service_tier=config.llm_gemini_service_tier,
+            gemini_safety_settings=_llm_gemini_safety_settings,
+            prompt_cache_enabled=config.llm_prompt_cache_enabled,
+            vertexai_project_id=config.llm_vertexai_project_id,
+            vertexai_region=config.llm_vertexai_region,
+            vertexai_service_account_key=config.llm_vertexai_service_account_key,
         )
         self._reflect_llm_config = _build_llm(_reflect_base_llm, config, "reflect_")
 
@@ -1111,6 +1144,11 @@ class MemoryEngine(MemoryEngineInterface):
             litellmrouter_config=config.consolidation_llm_litellmrouter_config or config.llm_litellmrouter_config,
             bedrock_service_tier=config.llm_bedrock_service_tier,
             gemini_service_tier=config.llm_gemini_service_tier,
+            gemini_safety_settings=_llm_gemini_safety_settings,
+            prompt_cache_enabled=config.llm_prompt_cache_enabled,
+            vertexai_project_id=config.llm_vertexai_project_id,
+            vertexai_region=config.llm_vertexai_region,
+            vertexai_service_account_key=config.llm_vertexai_service_account_key,
         )
         self._consolidation_llm_config = _build_llm(_consolidation_base_llm, config, "consolidation_")
 
@@ -7106,10 +7144,11 @@ class MemoryEngine(MemoryEngineInterface):
             setattr(resolved_config, key, value)
 
         backend = await self._get_backend()
-        # Narrator primes the "Narrator:" line in the prompt — resolve it the same way retain does.
+        # Narrator primes the "Narrator:" line in the prompt. Dry-run must not
+        # create a bank just to resolve that optional display name.
         if agent_name is None:
-            profile = await bank_utils.get_bank_profile(backend, bank_id)
-            profile_name = profile["name"] if profile else bank_id
+            profile = await bank_utils.get_bank_profile_if_exists(backend, bank_id)
+            profile_name = profile["name"] if profile is not None else bank_id
             agent_name = None if profile_name == bank_id else profile_name
 
         retain_llm = self._retain_llm_config.with_config(resolved_config, bank_id=bank_id, operation="retain")
