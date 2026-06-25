@@ -1,7 +1,9 @@
 import { CostTracking } from "../../../lib/cost-tracking";
 import { recordLlmCall } from "./cost";
-
-const JUDGE_CREDITS_PER_RESULT = 5;
+import {
+  SEARCH_JUDGE_CREDITS_PER_RESULT,
+  judgeCreditsForJudgedCount,
+} from "./billing";
 
 describe("search-monitor LLM cost recording (observability only)", () => {
   it("records token usage into the shared CostTracking with no dollar cost", () => {
@@ -15,7 +17,10 @@ describe("search-monitor LLM cost recording (observability only)", () => {
     const json = ct.toJSON();
     // Tokens recorded for observability; cost stays 0 (flat per-result billing).
     expect(json.totalCost).toBe(0);
-    expect(json.calls[0].tokens).toEqual({ input: 1_000_000, output: 1_000_000 });
+    expect(json.calls[0].tokens).toEqual({
+      input: 1_000_000,
+      output: 1_000_000,
+    });
   });
 
   it("normalizes promptTokens/completionTokens (older SDK usage shape)", () => {
@@ -26,28 +31,33 @@ describe("search-monitor LLM cost recording (observability only)", () => {
       usage: { promptTokens: 1_000_000, completionTokens: 0 },
       stage: "summarizeRun",
     });
-    expect(ct.toJSON().calls[0].tokens).toEqual({ input: 1_000_000, output: 0 });
+    expect(ct.toJSON().calls[0].tokens).toEqual({
+      input: 1_000_000,
+      output: 0,
+    });
   });
 });
 
 describe("search-monitor FLAT judge billing rate", () => {
-  it("is a deterministic 5 credits per judged result", () => {
-    expect(JUDGE_CREDITS_PER_RESULT).toBe(5);
+  it("is a deterministic 1 credit per judged result", () => {
+    expect(SEARCH_JUDGE_CREDITS_PER_RESULT).toBe(1);
   });
 
-  it("computes judge credits as 5 * resultsJudged", () => {
-    const judgeCreditsFor = (resultsJudged: number) =>
-      resultsJudged * JUDGE_CREDITS_PER_RESULT;
-    expect(judgeCreditsFor(0)).toBe(0); // raw / judge-off
-    expect(judgeCreditsFor(3)).toBe(15); // deep, 3 results judged
-    expect(judgeCreditsFor(10)).toBe(50);
+  it("computes judge credits as 1 * resultsJudged", () => {
+    expect(judgeCreditsForJudgedCount(0)).toBe(0);
+    expect(judgeCreditsForJudgedCount(3)).toBe(3);
+    expect(judgeCreditsForJudgedCount(10)).toBe(10);
   });
 });
 
-// Billed count == pages with judgedThisRun=true (not every page, not every page
-// with a concept — reused/skipped pages keep a stale concept but aren't judged).
+// Billed count == pages with judgedThisRun=true: reused/skipped pages keep a
+// stale concept but aren't judged, so concept count overcounts.
 describe("canonical judged-result count (billing == persisted signal)", () => {
-  type Page = { searchStatus: string; judgedThisRun?: boolean; concept?: string };
+  type Page = {
+    searchStatus: string;
+    judgedThisRun?: boolean;
+    concept?: string;
+  };
   const billedJudgedCount = (pages: Page[]) =>
     pages.filter(p => p.judgedThisRun === true).length;
 
@@ -55,13 +65,17 @@ describe("canonical judged-result count (billing == persisted signal)", () => {
     // 1 judged this run; 2 reused (stale concept, not judged); 1 skipped.
     const pages: Page[] = [
       { searchStatus: "alert", judgedThisRun: true, concept: "fresh-verdict" },
-      { searchStatus: "already_seen", judgedThisRun: false, concept: "stale-1" },
+      {
+        searchStatus: "already_seen",
+        judgedThisRun: false,
+        concept: "stale-1",
+      },
       { searchStatus: "watching", judgedThisRun: false, concept: "stale-2" },
-      { searchStatus: "skipped" }, // no verdict, no judgedThisRun
+      { searchStatus: "skipped" },
     ];
-    expect(pages.filter(p => p.concept).length).toBe(3); // the misleading count
-    expect(billedJudgedCount(pages)).toBe(1); // the canonical, billed count
-    expect(billedJudgedCount(pages) * JUDGE_CREDITS_PER_RESULT).toBe(5);
+    expect(pages.filter(p => p.concept).length).toBe(3); // misleading count
+    expect(billedJudgedCount(pages)).toBe(1); // canonical billed count
+    expect(judgeCreditsForJudgedCount(billedJudgedCount(pages))).toBe(1);
   });
 
   it("counts judged results across every billed outcome (alert/watch/ignore/already_seen)", () => {
@@ -72,6 +86,6 @@ describe("canonical judged-result count (billing == persisted signal)", () => {
       { searchStatus: "already_seen", judgedThisRun: true },
       { searchStatus: "skipped" }, // verdict failed -> not billed
     ];
-    expect(billedJudgedCount(pages)).toBe(4); // -> 5*4 = 20 judge credits
+    expect(billedJudgedCount(pages)).toBe(4); // -> 4 judge credits
   });
 });

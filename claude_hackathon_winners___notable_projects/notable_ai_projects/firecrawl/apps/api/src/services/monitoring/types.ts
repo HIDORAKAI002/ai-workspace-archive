@@ -48,8 +48,8 @@ const monitorDomainSchema = z
     "Domain must be a valid hostname without protocol or path",
   );
 
-// depth/alertMode/recheckAfter are internal-only; scrapeOptions is unused for
-// search. Strip them before validation so older clients sending them don't 400.
+// Strip internal-only depth/alertMode/recheckAfter (and search-unused scrapeOptions)
+// before validation so older clients sending them don't 400.
 const searchTargetSchema = z.preprocess(
   value => {
     if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -69,7 +69,9 @@ const searchTargetSchema = z.preprocess(
     type: z.literal("search"),
     queries: z.array(z.string().min(1).max(256)).min(1).max(12),
     searchWindow: z
-      .enum(["5m", "15m", "1h", "6h", "24h", "7d"])
+      .enum(["5m", "15m", "1h", "6h", "24h", "7d"], {
+        error: "searchWindow must be one of: 5m, 15m, 1h, 6h, 24h, 7d",
+      })
       .optional()
       .default("24h"),
     includeDomains: z.array(monitorDomainSchema).max(50).optional(),
@@ -127,16 +129,18 @@ const monitorScheduleSchema = z
     timezone: schedule.timezone,
   }));
 
-const monitorNotificationSchema = z
-  .strictObject({
-    email: z
-      .strictObject({
-        enabled: z.boolean().optional().default(false),
-        recipients: z.array(z.email()).max(25).optional().default([]),
-        includeDiffs: z.boolean().optional().default(false),
-      })
-      .optional(),
-  })
+const monitorNotificationInner = z.strictObject({
+  email: z
+    .strictObject({
+      enabled: z.boolean().optional().default(false),
+      recipients: z.array(z.email()).max(25).optional().default([]),
+      includeDiffs: z.boolean().optional().default(false),
+    })
+    .optional(),
+});
+// Create defaults a missing notification to {}; the UPDATE schema deliberately does
+// not (a default there would materialize {} on a PATCH and wipe the stored email config).
+const monitorNotificationSchema = monitorNotificationInner
   .optional()
   .default({});
 
@@ -191,9 +195,8 @@ export const createMonitorSchema = createMonitorBaseSchema
   .superRefine(requireGoalForSearchTargets)
   .transform(applyJudgeEnabledDefault);
 
-// Patches are partial and may rely on the already-stored goal, so only reject
-// when the patch includes search targets AND explicitly clears the goal. The
-// controller re-validates the merged monitor.
+// Patches may rely on the already-stored goal, so only reject when the patch has
+// search targets AND explicitly clears the goal; the controller re-validates the merge.
 function rejectGoalClearedWithSearchTargets(
   input: { targets?: unknown; goal?: unknown; judgeEnabled?: unknown },
   ctx: z.RefinementCtx,
@@ -221,6 +224,11 @@ export const updateMonitorSchema = createMonitorBaseSchema
   .partial()
   .extend({
     status: z.enum(["active", "paused"]).optional(),
+    // No default => omitted means "leave unchanged"; a default would materialize {} on
+    // a PATCH and wipe the stored email config.
+    notification: monitorNotificationInner.optional(),
+    // Drop the create-path .default(30): otherwise an omitting PATCH resets configured retention.
+    retentionDays: z.number().int().positive().max(365).optional(),
   })
   .superRefine(rejectGoalClearedWithSearchTargets)
   .refine(x => Object.keys(x).length > 0, "Update body cannot be empty");
@@ -252,16 +260,15 @@ export const monitorCheckDetailQuerySchema = z.object({
   status: z.enum(["same", "new", "changed", "removed", "error"]).optional(),
 });
 
-// Stripped from API input (see searchTargetSchema), but stored targets may
-// still carry them; surface as optional internal-only fields so runner/store
-// can read stored values without type errors.
+// Stripped from API input but stored targets may carry them; surface as optional
+// internal-only fields so runner/store can read stored values without type errors.
 export type MonitorTarget = z.infer<typeof monitorTargetSchema> & {
   id: string;
 } & {
   depth?: "raw" | "standard" | "deep";
   alertMode?: "first_match" | "every_new_result" | "material_dev";
   recheckAfter?: "1h" | "6h" | "24h" | "7d";
-  // Present on scrape/crawl, absent on search; optional so union reads compile.
+  // Absent on search; optional so union reads compile.
   scrapeOptions?: z.infer<typeof scrapeOptionsSchema>;
 };
 export type CreateMonitorRequest = z.infer<typeof createMonitorSchema>;
