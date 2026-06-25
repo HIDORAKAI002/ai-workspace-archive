@@ -1,52 +1,52 @@
 # Najbolje prakse i optimizacija
 
-## 🎯 Što ovaj laboratorij pokriva
+## 🎯 Što ovaj laboratorij obuhvaća
 
-Ovaj završni laboratorij objedinjuje najbolje prakse, tehnike optimizacije i smjernice za produkciju u izgradnji robusnih, skalabilnih i sigurnih MCP servera s integracijom baze podataka. Naučit ćete iz stvarnog iskustva i industrijskih standarda kako biste osigurali da vaša implementacija bude spremna za produkciju.
+Ovaj završni laboratorij konsolidira najbolje prakse, tehnike optimizacije i smjernice za produkciju za izgradnju robusnih, skalabilnih i sigurnih MCP servera s integracijom baza podataka. Naučit ćete iz stvarnog iskustva i industrijskih standarda kako biste osigurali da je vaša implementacija spremna za produkciju.
 
 ## Pregled
 
-Izgradnja uspješnog MCP servera nije samo stvar funkcionalnog koda. Ovaj laboratorij pokriva ključne prakse koje razlikuju implementacije koncepta od sustava spremnih za produkciju koji mogu skalirati, pouzdano raditi i održavati sigurnosne standarde.
+Izgradnja uspješnog MCP servera nije samo pitanje da kod radi. Ovaj laboratorij pokriva ključne prakse koje odvajaju proof-of-concept implementacije od sustava spremnih za produkciju koji mogu skalirati, pouzdano raditi i održavati sigurnosne standarde.
 
-Ove najbolje prakse proizlaze iz stvarnih implementacija, povratnih informacija zajednice i lekcija naučenih iz korporativnih implementacija.
+Ove najbolje prakse izvedene su iz stvarnih implementacija, povratnih informacija zajednice i iskustava stečenih u enterprise implementacijama.
 
 ## Ciljevi učenja
 
 Na kraju ovog laboratorija moći ćete:
 
-- **Primijeniti** tehnike optimizacije performansi za MCP servere i baze podataka
-- **Implementirati** sveobuhvatne mjere za jačanje sigurnosti
-- **Dizajnirati** skalabilne arhitekturne obrasce za produkcijska okruženja
-- **Uspostaviti** postupke za praćenje, održavanje i operacije
-- **Optimizirati** troškove uz održavanje performansi i pouzdanosti
-- **Doprinositi** MCP zajednici i ekosustavu
+- **Primijeniti** tehnike optimizacije performansi za MCP servere i baze podataka  
+- **Implementirati** opsežne mjere ojačavanja sigurnosti  
+- **Dizajnirati** skalabilne arhitekturne obrasce za produkcijska okruženja  
+- **Uspostaviti** postupke nadzora, održavanja i operacija  
+- **Optimizirati** troškove uz održavanje performansi i pouzdanosti  
+- **Doprinositi** MCP zajednici i ekosustavu  
 
 ## 🚀 Optimizacija performansi
 
 ### Performanse baze podataka
 
-#### Optimizacija poola konekcija
+#### Optimizacija konekcijskog poola
 
 ```python
-# Optimized connection pool configuration
+# Optimizirana konfiguracija veze poola
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Konfiguracija veličine
+    "min_size": max(2, cpu_count()),           # Najmanje 2, skaliranje s CPU-om
+    "max_size": min(20, cpu_count() * 4),     # Ograniči na razumno maksimalno
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Konfiguracija vremena
+    "max_inactive_connection_lifetime": 300,   # 5 minuta
+    "command_timeout": 30,                     # 30 sekundi
+    "max_queries": 50000,                      # Rotiraj veze
     
-    # PostgreSQL settings
+    # PostgreSQL postavke
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Onemogući za dosljednost
+        "work_mem": "8MB",                     # Optimiziraj za upite
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Zabilježi samo izmjene
+        "log_min_duration_statement": "1s",   # Zabilježi spore upite
     }
 }
 ```
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # sekunde
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Provjerite predmemoriju prvo
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Izvrši s nadzorom
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Optimiziraj izvršenje upita
+                await conn.execute("SET enable_seqscan = off")  # Preferiraj indekse
+                await conn.execute("SET work_mem = '16MB'")     # Više memorije za ovaj upit
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Zabilježi spore upite
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Predmemoriraj uspješne rezultate
+                if cache_key and len(result) < 1000:  # Ne predmemoriraj velike rezultate
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,18 +110,18 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Preporuke za indekse
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Indeksi osnovnog poslovanja
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Indeksi za analitiku
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Optimizacija pretraživanja vektora
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Obrada u serijama kako bi se izbjeglo preopterećenje sustava
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Mala pauza između serija kako bi se spriječilo iscrpljivanje resursa
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Implementacija prekidača strujnog kola
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # ZATVORENO, OTVORENO, POLU_OTVORENO
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Resetiranje nakon uspjeha
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Razina 1: Memorijska predmemorija
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Razina 2: Redis predmemorija
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Promoviraj u memorijsku predmemoriju
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Implementiraj LRU uklanjanje
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Generiranje ključa predmemorije
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,7 +304,7 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 Jačanje sigurnosti
+## 🔒 Ojačavanje sigurnosti
 
 ### Autentifikacija i autorizacija
 
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Izvuci i provjeri autentifikaciju
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Provjeri token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Provjeri ograničenje brzine
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Provjeri RLS kontekst
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Dohvati javni ključ iz Key Vaulta ili predmemorije
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Dekodiraj i provjeri token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Super administratori mogu pristupiti bilo kojem kontekstu
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Voditelji trgovina mogu pristupiti samo svojoj trgovini
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Regionalni menadžeri mogu pristupiti više trgovina
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Provjera i sanitizacija unosa
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Zabranjeni obrasci
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Dozvoli samo SELECT naredbe
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Dozvoli samo alfanumeričke znakove, donju crtu i točku
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Provjeri protiv dopuštenih tablica
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # U produkciji, dohvatiti iz Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Rezervno rješenje za razvoj (nije za produkciju!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # iteracije
         ).hex()
         
         return password_hash, salt
@@ -666,7 +666,7 @@ CMD ["python", "-m", "mcp_server.sales_analysis"]
 ### Konfiguracija okruženja
 
 ```python
-# Production configuration management
+# Upravljanje konfiguracijom za produkciju
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,17 +715,17 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Postavite zapisivače trećih strana na UPOZORENJE
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Onemogući debug način
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Postavite sigurne zaglavlja
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Nisko opterećenje
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Srednje opterećenje
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Visoko opterećenje
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Operacije koje su skupe za cache
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Konfiguracija automatskog skaliranja
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Skaliranje temeljeno na CPU-u
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Skaliranje temeljeno na memoriji
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Skaliranje reda zahtjeva
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Zdravlje baze podataka
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Zdravlje vanjskih usluga
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Sistemski resursi
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Metrički podaci aplikacije
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Odredi ukupni status
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Pokreni upozorenja
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Osnovna povezanost
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Provjeri spore upite
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Provjeri broj veza
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Automatska izrada sigurnosnih kopija i oporavak
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Učitaj na Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,12 +932,12 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Dnevna potpuna sigurnosna kopija u 2 sata ujutro UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Satne inkrementalne sigurnosne kopije
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
@@ -945,7 +945,7 @@ class BackupManager:
 
 ## 🌍 Doprinos zajednici
 
-### Najbolje prakse za otvoreni kod
+### Najbolje prakse otvorenog koda
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### Angažman zajednice
+### Angažman u zajednici
 
 ```python
 class CommunityContributor:
@@ -1025,7 +1025,7 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Implementirao bi stvarne provjere
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
@@ -1033,71 +1033,75 @@ class CommunityContributor:
 
 ## 🎯 Ključni zaključci
 
-Nakon završetka ovog sveobuhvatnog programa učenja, trebali biste savladati:
+Nakon završetka ovog opsežnog puta učenja, trebali biste svladati:
 
-✅ **Optimizaciju performansi**: Podešavanje baze podataka, asinkroni obrasci i strategije keširanja  
-✅ **Jačanje sigurnosti**: Autentifikacija, autorizacija i zaštita podataka  
+✅ **Optimizaciju performansi**: Podešavanje baze podataka, asinkrone obrasce i strategije keširanja  
+✅ **Ojačavanje sigurnosti**: Autentifikaciju, autorizaciju i zaštitu podataka  
 ✅ **Produkcijsko postavljanje**: Infrastruktura kao kod i optimizacija kontejnera  
 ✅ **Upravljanje troškovima**: Optimizacija resursa i inteligentno skaliranje  
-✅ **Operativnu izvrsnost**: Praćenje, održavanje i automatizacija  
-✅ **Angažman zajednice**: Doprinos MCP ekosustavu  
+✅ **Operativnu izvrsnost**: Nadzor, održavanje i automatizaciju  
+✅ **Angažman u zajednici**: Doprinos MCP ekosustavu  
 
 ## 🏆 Certifikacija i sljedeći koraci
 
 ### Praktična procjena
 
-Dovršite ovaj završni projekt kako biste pokazali svoje znanje:
+Dovršite ovaj završni projekt kako biste pokazali svoje vještine:
 
-**Izgradite MCP server spreman za produkciju** koji uključuje:
-- [ ] Višekorisničku analitiku maloprodaje s RLS
-- [ ] Semantičko pretraživanje s Azure OpenAI
-- [ ] Sveobuhvatnu sigurnosnu implementaciju
-- [ ] Produkcijsko postavljanje na Azure
-- [ ] Postavljanje praćenja i upozorenja
-- [ ] Dokumentaciju i testiranje
+**Izgradite MCP Server Spreman za Produkciju** koji uključuje:  
+- [ ] Višestruke najamnike za analitiku maloprodaje s RLS  
+- [ ] Semantičku pretragu s Azure OpenAI  
+- [ ] Sveobuhvatnu implementaciju sigurnosti  
+- [ ] Produkcijsko postavljanje na Azure  
+- [ ] Postavljanje nadzora i upozorenja  
+- [ ] Dokumentaciju i testiranje  
 
-### Napredni programi učenja
+### Napredni putevi učenja
 
-Nastavite svoj MCP put s:
+Nastavite svoje MCP putovanje s:
 
-- **Arhitekturni obrasci MCP-a**: Napredne arhitekture servera
-- **Integracija više modela**: Kombiniranje različitih AI modela
-- **Korporativna skala**: MCP implementacije velikih razmjera
-- **Razvoj prilagođenih alata**: Izrada specijaliziranih MCP alata
-- **MCP ekosustav**: Doprinos širem MCP ekosustavu
+- **MCP Arhitektonski obrasci**: Napredne server arhitekture  
+- **Integracija višestrukih modela**: Kombiniranje različitih AI modela  
+- **Enterprise razmjeri**: Velike MCP implementacije  
+- **Razvoj prilagođenih alata**: Izgradnja specijaliziranih MCP alata  
+- **MCP ekosustav**: Doprinos široj zajednici  
 
-### Priznanje zajednice
+### Prepoznavanje u zajednici
 
-Podijelite svoje postignuće:
-- **GitHub portfolio**: Prikažite svoju implementaciju
-- **Doprinosi zajednici**: Pošaljite poboljšanja ili primjere
-- **Prilike za govore**: Predstavite se na meetupima ili konferencijama
-- **Mentorstvo**: Pomozite drugim programerima da nauče MCP
+Podijelite svoje postignuće:  
+- **GitHub portfolio**: Prikažite svoju implementaciju  
+- **Zajednički doprinosi**: Predajte poboljšanja ili primjere  
+- **Mogućnosti govorništva**: Izlaganje na meetupima ili konferencijama  
+- **Mentorstvo**: Pomozite drugim programerima da nauče MCP  
 
 ## 📚 Dodatni resursi
 
 ### Napredne teme
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Optimizacija baze podataka
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Produkcijsko postavljanje
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Asinkrono programiranje
+- [PostgreSQL performance tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Optimizacija baze podataka  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Produkcijsko postavljanje  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Asinkrono programiranje  
 
 ### Sigurnosni resursi
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Sigurnosni rizici
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Sigurnost u oblaku
-- [Python Security Guidelines](https://python.org/dev/security/) - Sigurno programiranje
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Sigurnosne ranjivosti  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Sigurnost u oblaku  
+- [Python Security Guidelines](https://python.org/dev/security/) - Sigurno kodiranje  
 
 ### Zajednica
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Razgovori uživo
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Pitanja i dijeljenje
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Tehnička pitanja
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Diskusije uživo  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Pitanja i odgovori, dijeljenje  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Tehnička pitanja  
 
 ---
 
-**🎉 Čestitamo!** Završili ste sveobuhvatan program učenja o integraciji MCP baze podataka. Sada imate znanje i vještine za izgradnju MCP servera spremnih za produkciju koji povezuju AI asistente s sustavima stvarnih podataka.
+**🎉 Čestitamo!** Završili ste obuhvatni put učenja integracije MCP baze podataka. Sada imate znanje i vještine za izgradnju produkcijski spremnih MCP servera koji povezuju AI asistente sa stvarnim sustavima podataka.
 
-**Spremni za doprinos?** Pridružite se našoj zajednici i pomozite drugima da nauče MCP dijeleći svoja iskustva, doprinoseći poboljšanjima koda ili stvarajući dodatne resurse za učenje.
+**Spremni za doprinos?** Pridružite se našoj zajednici i pomognite drugima učiti MCP dijeljenjem iskustava, doprinosom kodom ili stvaranjem dodatnih obrazovnih materijala.
+
+**Sljedeće**: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Odricanje od odgovornosti**:  
-Ovaj dokument je preveden pomoću AI usluge za prevođenje [Co-op Translator](https://github.com/Azure/co-op-translator). Iako nastojimo osigurati točnost, imajte na umu da automatski prijevodi mogu sadržavati pogreške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati mjerodavnim izvorom. Za ključne informacije preporučuje se profesionalni prijevod od strane stručnjaka. Ne preuzimamo odgovornost za bilo kakve nesporazume ili pogrešne interpretacije proizašle iz korištenja ovog prijevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Napomena**:
+Ovaj dokument je preveden korištenjem AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati greške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za važne informacije preporuča se profesionalni ljudski prijevod. Nismo odgovorni za bilo kakva nesporazumevanja ili pogrešne interpretacije koje proizlaze iz korištenja ovog prijevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

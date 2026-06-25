@@ -1,25 +1,25 @@
 # En İyi Uygulamalar ve Optimizasyon
 
-## 🎯 Bu Laboratuvar Neleri Kapsıyor?
+## 🎯 Bu Laboratuvarda Neler Kapsanır
 
-Bu kapsamlı laboratuvar, sağlam, ölçeklenebilir ve güvenli MCP sunucuları oluşturmak için en iyi uygulamaları, optimizasyon tekniklerini ve üretim yönergelerini bir araya getiriyor. Gerçek dünya deneyimlerinden ve sektör standartlarından öğrenerek uygulamanızın üretime hazır olmasını sağlayacaksınız.
+Bu mezuniyet laboratuvarı, sağlam, ölçeklenebilir ve güvenli MCP sunucuları oluşturmak için en iyi uygulamaları, optimizasyon tekniklerini ve üretim kılavuzlarını veritabanı entegrasyonu ile pekiştirir. Gerçek dünyadan deneyim ve sektör standartlarından öğrenerek uygulamanızın üretime hazır olmasını sağlayacaksınız.
 
 ## Genel Bakış
 
-Başarılı bir MCP sunucusu oluşturmak, sadece kodun çalışmasını sağlamaktan daha fazlasını gerektirir. Bu laboratuvar, kavram kanıtı uygulamalarını, ölçeklenebilir, güvenilir performans sergileyen ve güvenlik standartlarını koruyan üretime hazır sistemlerden ayıran temel uygulamaları kapsar.
+Başarılı bir MCP sunucusu oluşturmak sadece kodun çalışmasını sağlamak değildir. Bu laboratuvar, kavram kanıtı uygulamalarını ölçeklenebilir, güvenilir performans sunan ve güvenlik standartlarını koruyan üretime hazır sistemlerden ayıran temel uygulamaları kapsar.
 
-Bu en iyi uygulamalar, gerçek dünya dağıtımları, topluluk geri bildirimleri ve kurumsal uygulamalardan çıkarılan derslerden alınmıştır.
+Bu en iyi uygulamalar, gerçek dünya dağıtımları, topluluk geri bildirimleri ve kurumsal uygulamalardan alınan derslerden türetilmiştir.
 
 ## Öğrenme Hedefleri
 
 Bu laboratuvarın sonunda şunları yapabileceksiniz:
 
-- MCP sunucuları ve veritabanları için performans optimizasyon tekniklerini **uygulamak**
-- Kapsamlı güvenlik güçlendirme önlemlerini **uygulamak**
-- Üretim ortamları için ölçeklenebilir mimari desenler **tasarlamak**
-- İzleme, bakım ve operasyonel prosedürler **oluşturmak**
-- Performans ve güvenilirliği korurken maliyetleri **optimize etmek**
-- MCP topluluğuna ve ekosistemine **katkıda bulunmak**
+- **Uygulamak**, MCP sunucuları ve veritabanları için performans optimizasyon teknikleri  
+- **Uygulamak**, kapsamlı güvenlik sertleştirme önlemleri  
+- **Tasarımını yapmak**, üretim ortamları için ölçeklenebilir mimari desenler  
+- **Kurmak**, izleme, bakım ve operasyon prosedürleri  
+- **Optimizasyon yapmak**, performans ve güvenilirliği korurken maliyetlerde  
+- **Katkıda bulunmak**, MCP topluluğuna ve ekosistemine  
 
 ## 🚀 Performans Optimizasyonu
 
@@ -28,30 +28,30 @@ Bu laboratuvarın sonunda şunları yapabileceksiniz:
 #### Bağlantı Havuzu Optimizasyonu
 
 ```python
-# Optimized connection pool configuration
+# Optimize edilmiş bağlantı havuzu yapılandırması
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Boyut yapılandırması
+    "min_size": max(2, cpu_count()),           # En az 2, CPU ile ölçeklenir
+    "max_size": min(20, cpu_count() * 4),     # Makul maksimumda sınırla
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Zamanlama yapılandırması
+    "max_inactive_connection_lifetime": 300,   # 5 dakika
+    "command_timeout": 30,                     # 30 saniye
+    "max_queries": 50000,                      # Bağlantıları döndür
     
-    # PostgreSQL settings
+    # PostgreSQL ayarları
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Tutarlılık için devre dışı bırak
+        "work_mem": "8MB",                     # Sorgular için optimize et
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Yalnızca değişiklikleri günlüğe kaydet
+        "log_min_duration_statement": "1s",   # Yavaş sorguları günlüğe kaydet
     }
 }
 ```
 
-#### Sorgu Optimizasyon Desenleri
+#### Sorgu Optimizasyonu Desenleri
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # saniyeler
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Önce önbelleği kontrol et
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # İzleme ile çalıştır
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Sorgu yürütmesini optimize et
+                await conn.execute("SET enable_seqscan = off")  # İndeksleri tercih et
+                await conn.execute("SET work_mem = '16MB'")     # Bu sorgu için daha fazla bellek
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Yavaş sorguları kaydet
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Başarılı sonuçları önbellekle
+                if cache_key and len(result) < 1000:  # Büyük sonuçları önbellekleme
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,18 +110,18 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# İndeks önerileri
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Temel iş indeksleri
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Analitik indeksleri
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Vektör arama optimizasyonu
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Sistemi aşırı yüklememek için işlemleri partiler halinde yapın
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Kaynak tükenmesini önlemek için partiler arasında küçük gecikme
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Devre kesici uygulaması
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # KAPALI, AÇIK, YARI_AÇIK
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Başarı durumunda sıfırla
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Seviye 1: Bellek önbelleği
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Seviye 2: Redis önbelleği
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Bellek önbelleğine terfi ettir
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # LRU çıkarımı uygula
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Önbellek anahtarı oluşturma
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,7 +304,7 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 Güvenlik Güçlendirme
+## 🔒 Güvenlik Sertleştirme
 
 ### Kimlik Doğrulama ve Yetkilendirme
 
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Kimlik doğrulamayı çıkar ve doğrula
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Tokenı doğrula
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Hız sınırlamayı kontrol et
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # RLS bağlamını doğrula
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Anahtar Kasasından veya önbellekten genel anahtarı al
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Tokenı çöz ve doğrula
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Süper yöneticiler herhangi bir bağlama erişebilir
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Mağaza yöneticileri yalnızca kendi mağazalarına erişebilir
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Bölgesel yöneticiler birden fazla mağazaya erişebilir
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Girdi doğrulama ve temizleme
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Yasaklanmış desenler
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Yalnızca SELECT ifadelerine izin ver
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Yalnızca alfasayısal, alt çizgi ve nokta izin ver
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # İzin verilen tablolara karşı doğrula
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Üretimde, Azure Key Vault'tan alın
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Geliştirme için yedek (üretim için değil!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # yinelemeler
         ).hex()
         
         return password_hash, salt
@@ -524,9 +524,9 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Üretim Dağıtım Yönergeleri
+## 📊 Üretim Dağıtım Kılavuzları
 
-### Kod Olarak Altyapı
+### Altyapı olarak Kod (Infrastructure as Code)
 
 ```yaml
 # azure-pipelines.yml
@@ -663,10 +663,10 @@ EXPOSE 8000
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
 
-### Ortam Yapılandırması
+### Ortam Konfigürasyonu
 
 ```python
-# Production configuration management
+# Üretim yapılandırma yönetimi
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,17 +715,17 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Üçüncü taraf günlükleyicileri UYARI seviyesine ayarla
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Hata ayıklama modunu devre dışı bırak
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Güvenli başlıkları ayarla
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Düşük yük
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Orta yük
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Yüksek yük
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Önbellek maliyetli işlemler
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Otomatik ölçeklendirme yapılandırması
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPU tabanlı ölçeklendirme
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Bellek tabanlı ölçeklendirme
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # İstek kuyruğu ölçeklendirmesi
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Veritabanı sağlığı
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Dış hizmetlerin sağlığı
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Sistem kaynakları
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Uygulama metrikleri
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Genel durumu belirle
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Uyarıları tetikle
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Temel bağlantı
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Yavaş sorguları kontrol et
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Bağlantı sayısını kontrol et
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Otomatik yedekleme ve kurtarma
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Azure Blob Depolama'ya yükle
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,12 +932,12 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Her gün UTC saat 2'de tam yedekleme
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Saatlik artımlı yedeklemeler
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### Topluluk Etkileşimi
+### Topluluk Katılımı
 
 ```python
 class CommunityContributor:
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Gerçek kontrolleri uygulardı
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 Temel Çıkarımlar
+## 🎯 Önemli Çıkarımlar
 
 Bu kapsamlı öğrenme yolunu tamamladıktan sonra şunları öğrenmiş olmalısınız:
 
-✅ **Performans Optimizasyonu**: Veritabanı ayarları, asenkron desenler ve önbellekleme stratejileri  
-✅ **Güvenlik Güçlendirme**: Kimlik doğrulama, yetkilendirme ve veri koruma  
+✅ **Performans Optimizasyonu**: Veritabanı ayarlaması, asenkron desenler ve önbellekleme stratejileri  
+✅ **Güvenlik Sertleştirme**: Kimlik doğrulama, yetkilendirme ve veri koruma  
 ✅ **Üretim Dağıtımı**: Kod olarak altyapı ve konteyner optimizasyonu  
 ✅ **Maliyet Yönetimi**: Kaynak optimizasyonu ve akıllı ölçeklendirme  
 ✅ **Operasyonel Mükemmellik**: İzleme, bakım ve otomasyon  
-✅ **Topluluk Katılımı**: MCP ekosistemine katkıda bulunma  
+✅ **Topluluk Katılımı**: MCP ekosistemine katkı  
 
 ## 🏆 Sertifikasyon ve Sonraki Adımlar
 
 ### Pratik Değerlendirme
 
-Uzmanlığınızı göstermek için bu son projeyi tamamlayın:
+Ustalığınızı gösteren son projeyi tamamlayın:
 
-**Üretime Hazır MCP Sunucusu Oluşturun** ve şunları içersin:
-- [ ] RLS ile çok kiracılı perakende analitiği
-- [ ] Azure OpenAI ile anlamsal arama
-- [ ] Kapsamlı güvenlik uygulaması
-- [ ] Azure üzerinde üretim dağıtımı
-- [ ] İzleme ve uyarı kurulumları
-- [ ] Dokümantasyon ve test
+**Üretime Hazır Bir MCP Sunucusu Oluşturun** içinde şunlar yer alacak:  
+- [ ] Çok kiracılı perakende analizleri ile RLS  
+- [ ] Azure OpenAI ile anlamsal arama  
+- [ ] Kapsamlı güvenlik uygulaması  
+- [ ] Azure üzerinde üretim dağıtımı  
+- [ ] İzleme ve uyarı kurulumu  
+- [ ] Dokümantasyon ve test  
 
-### İleri Öğrenme Yolları
+### İleri Düzey Öğrenme Yolları
 
-MCP yolculuğunuza devam edin:
+MCP yolculuğunuza şu yollarla devam edin:
 
-- **MCP Mimari Desenleri**: İleri düzey sunucu mimarileri
-- **Çoklu Model Entegrasyonu**: Farklı AI modellerini birleştirme
-- **Kurumsal Ölçek**: Büyük ölçekli MCP dağıtımları
-- **Özel Araç Geliştirme**: Özel MCP araçları oluşturma
-- **MCP Ekosistemi**: Daha geniş topluluğa katkıda bulunma
+- **MCP Mimari Desenleri**: İleri sunucu mimarileri  
+- **Çoklu Model Entegrasyonu**: Farklı yapay zeka modellerinin birleştirilmesi  
+- **Kurumsal Ölçek**: Büyük ölçekli MCP dağıtımları  
+- **Özel Araç Geliştirme**: Uzman MCP araçları oluşturma  
+- **MCP Ekosistemi**: Daha geniş topluluğa katkı  
 
 ### Topluluk Tanınırlığı
 
-Başarınızı paylaşın:
-- **GitHub Portföyü**: Uygulamanızı sergileyin
-- **Topluluk Katkıları**: İyileştirmeler veya örnekler gönderin
-- **Konuşma Fırsatları**: Meetup veya konferanslarda sunum yapın
-- **Mentorluk**: Diğer geliştiricilere MCP öğrenmelerinde yardımcı olun
+Başarınızı paylaşın:  
+- **GitHub Portföyü**: Uygulamanızı sergileyin  
+- **Topluluk Katkıları**: İyileştirmeler veya örnekler gönderin  
+- **Konuşma Fırsatları**: Buluşmalar veya konferanslarda sunum yapın  
+- **Mentorluk**: Diğer geliştiricilere MCP öğreniminde yardımcı olun  
 
 ## 📚 Ek Kaynaklar
 
 ### İleri Konular
-- [PostgreSQL Performans Ayarları](https://www.postgresql.org/docs/current/performance-tips.html) - Veritabanı optimizasyonu
-- [Azure Konteyner Uygulamaları En İyi Uygulamaları](https://docs.microsoft.com/azure/container-apps/overview) - Üretim dağıtımı
-- [Python Asenkron En İyi Uygulamaları](https://docs.python.org/3/library/asyncio-dev.html) - Asenkron programlama
+- [PostgreSQL Performans Ayarlaması](https://www.postgresql.org/docs/current/performance-tips.html) - Veritabanı optimizasyonu  
+- [Azure Container Apps En İyi Uygulamaları](https://docs.microsoft.com/azure/container-apps/overview) - Üretim dağıtımı  
+- [Python Async En İyi Uygulamaları](https://docs.python.org/3/library/asyncio-dev.html) - Asenkron programlama  
 
 ### Güvenlik Kaynakları
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Güvenlik açıkları
-- [Azure Güvenlik En İyi Uygulamaları](https://docs.microsoft.com/azure/security/) - Bulut güvenliği
-- [Python Güvenlik Yönergeleri](https://python.org/dev/security/) - Güvenli kodlama
+- [OWASP İlk 10](https://owasp.org/www-project-top-ten/) - Güvenlik açıkları  
+- [Azure Güvenlik En İyi Uygulamaları](https://docs.microsoft.com/azure/security/) - Bulut güvenliği  
+- [Python Güvenlik Kılavuzları](https://python.org/dev/security/) - Güvenli kodlama  
 
 ### Topluluk
-- [MCP Topluluk Discord](https://discord.com/invite/ByRwuEEgH4) - Canlı tartışmalar
-- [GitHub Tartışmaları](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Soru-Cevap ve paylaşım
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Teknik sorular
+- [MCP Topluluğu Discord](https://discord.com/invite/ByRwuEEgH4) - Canlı tartışmalar  
+- [GitHub Tartışmaları](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Soru-cevap ve paylaşım  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Teknik sorular  
 
 ---
 
-**🎉 Tebrikler!** MCP Veritabanı Entegrasyonu öğrenme yolunu başarıyla tamamladınız. Artık AI asistanlarını gerçek dünya veri sistemleriyle birleştiren üretime hazır MCP sunucuları oluşturmak için gerekli bilgi ve becerilere sahipsiniz.
+**🎉 Tebrikler!** Kapsamlı MCP Veritabanı Entegrasyonu öğrenme yolunu tamamladınız. Artık AI asistanlarını gerçek dünya veri sistemleriyle buluşturan üretime hazır MCP sunucuları oluşturma bilgi ve becerisine sahipsiniz.
 
-**Katkıda bulunmaya hazır mısınız?** Deneyimlerinizi paylaşarak, kod iyileştirmeleri yaparak veya ek öğrenme kaynakları oluşturarak MCP topluluğuna katılın ve diğerlerinin MCP öğrenmesine yardımcı olun.
+**Katkıda bulunmaya hazır mısınız?** Topluluğumuza katılın ve deneyimlerinizi paylaşarak, kod iyileştirmeleri sunarak veya ek öğrenme kaynakları oluşturarak başkalarının MCP öğrenmesine yardımcı olun.
+
+**Sonraki:** [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Feragatname**:  
-Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluğu sağlamak için çaba göstersek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayın. Belgenin orijinal dili, yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımından kaynaklanan yanlış anlamalar veya yanlış yorumlamalar için sorumluluk kabul edilmemektedir.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

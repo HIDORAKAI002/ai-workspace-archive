@@ -1,57 +1,57 @@
-# แนวทางปฏิบัติที่ดีที่สุดและการปรับปรุงประสิทธิภาพ
+# แนวทางปฏิบัติที่ดีที่สุดและการเพิ่มประสิทธิภาพ
 
-## 🎯 สิ่งที่คุณจะได้เรียนรู้ในห้องปฏิบัติการนี้
+## 🎯 หัวข้อที่ครอบคลุมในแลปนี้
 
-ห้องปฏิบัติการขั้นสูงนี้รวบรวมแนวทางปฏิบัติที่ดีที่สุด เทคนิคการปรับปรุงประสิทธิภาพ และแนวทางการผลิตสำหรับการสร้างเซิร์ฟเวอร์ MCP ที่มีความแข็งแกร่ง ขยายขนาดได้ และปลอดภัย พร้อมการผสานรวมฐานข้อมูล คุณจะได้เรียนรู้จากประสบการณ์จริงและมาตรฐานอุตสาหกรรมเพื่อให้มั่นใจว่าการพัฒนาของคุณพร้อมสำหรับการใช้งานจริง
+แลปสุดท้ายนี้รวบรวมแนวทางปฏิบัติที่ดีที่สุด เทคนิคการเพิ่มประสิทธิภาพ และแนวทางการผลิตสำหรับการสร้างเซิร์ฟเวอร์ MCP ที่มีความทนทาน ขยายตัวได้ และปลอดภัยพร้อมการรวมฐานข้อมูล คุณจะได้เรียนรู้จากประสบการณ์จริงและมาตรฐานในอุตสาหกรรมเพื่อให้การใช้งานของคุณพร้อมสำหรับการใช้งานจริง
 
 ## ภาพรวม
 
-การสร้างเซิร์ฟเวอร์ MCP ที่ประสบความสำเร็จไม่ได้หมายถึงแค่การทำให้โค้ดทำงานได้ ห้องปฏิบัติการนี้ครอบคลุมแนวทางสำคัญที่แยกการพัฒนาระดับต้นแบบออกจากระบบที่พร้อมใช้งานจริง ซึ่งสามารถขยายขนาดได้ ทำงานได้อย่างน่าเชื่อถือ และรักษามาตรฐานความปลอดภัย
+การสร้างเซิร์ฟเวอร์ MCP ที่ประสบความสำเร็จไม่ได้เป็นเพียงแค่การทำให้โค้ดทำงานได้เท่านั้น แลปนี้ครอบคลุมแนวทางปฏิบัติที่สำคัญซึ่งแยกระหว่างการทดลองแนวคิดกับระบบที่พร้อมใช้จริงซึ่งสามารถขยายตัว ทำงานได้อย่างน่าเชื่อถือ และรักษามาตรฐานความปลอดภัย
 
-แนวทางปฏิบัติที่ดีที่สุดเหล่านี้มาจากการใช้งานจริง ข้อเสนอแนะจากชุมชน และบทเรียนที่ได้เรียนรู้จากการใช้งานในองค์กร
+แนวทางปฏิบัติเหล่านี้ได้มาจากการใช้งานจริง ความคิดเห็นของชุมชน และบทเรียนที่ได้จากการนำไปใช้ในองค์กร
 
 ## วัตถุประสงค์การเรียนรู้
 
-เมื่อจบห้องปฏิบัติการนี้ คุณจะสามารถ:
+เมื่อจบแลปนี้ คุณจะสามารถ:
 
-- **นำไปใช้** เทคนิคการปรับปรุงประสิทธิภาพสำหรับเซิร์ฟเวอร์ MCP และฐานข้อมูล  
-- **ดำเนินการ** มาตรการเสริมความปลอดภัยอย่างครอบคลุม  
-- **ออกแบบ** รูปแบบสถาปัตยกรรมที่สามารถขยายขนาดได้สำหรับสภาพแวดล้อมการผลิต  
-- **จัดตั้ง** ขั้นตอนการตรวจสอบ การบำรุงรักษา และการดำเนินงาน  
-- **ปรับปรุง** ค่าใช้จ่ายโดยยังคงรักษาประสิทธิภาพและความน่าเชื่อถือ  
+- **ประยุกต์ใช้** เทคนิคการเพิ่มประสิทธิภาพเซิร์ฟเวอร์ MCP และฐานข้อมูล  
+- **ดำเนินการ** มาตรการเสริมความแข็งแกร่งด้านความปลอดภัยอย่างครบถ้วน  
+- **ออกแบบ** รูปแบบสถาปัตยกรรมที่สามารถขยายตัวได้สำหรับสภาพแวดล้อมการผลิต  
+- **จัดตั้ง** การตรวจสอบ การบำรุงรักษา และขั้นตอนการดำเนินงาน  
+- **ปรับค่าใช้จ่าย** ให้เหมาะสมควบคู่ไปกับการรักษาประสิทธิภาพและความน่าเชื่อถือ  
 - **มีส่วนร่วม** กับชุมชนและระบบนิเวศ MCP  
 
-## 🚀 การปรับปรุงประสิทธิภาพ
+## 🚀 การเพิ่มประสิทธิภาพ
 
-### ประสิทธิภาพของฐานข้อมูล
+### ประสิทธิภาพฐานข้อมูล
 
-#### การปรับแต่ง Connection Pool
+#### การเพิ่มประสิทธิภาพการเชื่อมต่อแบบพูล
 
 ```python
-# Optimized connection pool configuration
+# การกำหนดค่าพูลการเชื่อมต่อที่ปรับให้เหมาะสม
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # การกำหนดขนาด
+    "min_size": max(2, cpu_count()),           # อย่างน้อย 2 ขยายตามจำนวน CPU
+    "max_size": min(20, cpu_count() * 4),     # จำกัดที่ขนาดสูงสุดที่เหมาะสม
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # การกำหนดเวลา
+    "max_inactive_connection_lifetime": 300,   # 5 นาที
+    "command_timeout": 30,                     # 30 วินาที
+    "max_queries": 50000,                      # หมุนเวียนการเชื่อมต่อ
     
-    # PostgreSQL settings
+    # การตั้งค่า PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # ปิดใช้งานเพื่อความสม่ำเสมอ
+        "work_mem": "8MB",                     # ปรับให้เหมาะสมสำหรับการสืบค้น
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # บันทึกเฉพาะการเปลี่ยนแปลง
+        "log_min_duration_statement": "1s",   # บันทึกการสืบค้นที่ช้า
     }
 }
 ```
-  
-#### รูปแบบการปรับปรุง Query
+
+#### รูปแบบการปรับปรุงคำสั่งค้นหา
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # วินาที
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # ตรวจสอบแคชก่อน
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # ดำเนินการพร้อมการตรวจสอบ
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # ปรับปรุงการดำเนินการคำสั่งค้นหา
+                await conn.execute("SET enable_seqscan = off")  # ให้ความสำคัญกับดัชนี
+                await conn.execute("SET work_mem = '16MB'")     # เพิ่มหน่วยความจำสำหรับคำสั่งค้นหานี้
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # บันทึกคำสั่งค้นหาช้า
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # แคชผลลัพธ์ที่สำเร็จ
+                if cache_key and len(result) < 1000:  # ไม่แคชผลลัพธ์ขนาดใหญ่
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# คำแนะนำดัชนี
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # ดัชนีธุรกิจหลัก
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # ดัชนีวิเคราะห์
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # การปรับปรุงการค้นหาเวกเตอร์
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
-### ประสิทธิภาพของแอปพลิเคชัน
+### ประสิทธิภาพแอปพลิเคชัน
 
-#### แนวทางปฏิบัติที่ดีที่สุดสำหรับการเขียนโปรแกรมแบบ Async
+#### แนวทางปฏิบัติที่ดีที่สุดสำหรับการเขียนโปรแกรมแบบอะซิงโครนัส
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # ประมวลผลเป็นชุดเพื่อหลีกเลี่ยงการทำให้ระบบทำงานหนักเกินไป
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # หน่วงเวลาสั้น ๆ ระหว่างชุดเพื่อป้องกันการใช้ทรัพยากรมากเกินไป
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# การใช้งาน circuit breaker
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # ปิด, เปิด, กึ่งเปิด
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # รีเซ็ตเมื่อสำเร็จ
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +214,6 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
 ### กลยุทธ์การแคช
 
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # ระดับ 1: แคชหน่วยความจำ
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # ระดับ 2: แคช Redis
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # เลื่อนขึ้นไปที่แคชหน่วยความจำ
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # ใช้งานการกำจัด LRU
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# การสร้างคีย์แคช
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,9 +303,8 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
-## 🔒 การเสริมความปลอดภัย
+## 🔒 การเสริมความแข็งแกร่งด้านความปลอดภัย
 
 ### การตรวจสอบสิทธิ์และการอนุญาต
 
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # ดึงและตรวจสอบการยืนยันตัวตน
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # ตรวจสอบความถูกต้องของโทเค็น
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # ตรวจสอบการจำกัดอัตราการเข้าถึง
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # ตรวจสอบบริบท RLS
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # ดึงคีย์สาธารณะจาก Key Vault หรือแคช
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # ถอดรหัสและตรวจสอบความถูกต้องของโทเค็น
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # ผู้ดูแลระบบระดับสูงสามารถเข้าถึงบริบทใดก็ได้
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # ผู้จัดการร้านค้าจะเข้าถึงได้เฉพาะร้านของตนเท่านั้น
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # ผู้จัดการภูมิภาคสามารถเข้าถึงร้านค้าหลายแห่งได้
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# ตรวจสอบและทำความสะอาดข้อมูลนำเข้า
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # รูปแบบที่ไม่อนุญาต
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # อนุญาตเฉพาะคำสั่ง SELECT
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,17 +439,16 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # อนุญาตเฉพาะตัวอักษรและตัวเลข ขีดล่าง และจุด
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # ตรวจสอบกับตารางที่อนุญาตแล้ว
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
 ### การปกป้องข้อมูล
 
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # ในการใช้งานจริง ให้ดึงจาก Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # สำรองสำหรับการพัฒนา (ไม่ใช่สำหรับการใช้งานจริง!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # การวนซ้ำ
         ).hex()
         
         return password_hash, salt
@@ -527,11 +523,10 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
-## 📊 แนวทางการปรับใช้ในสภาพแวดล้อมการผลิต
+## 📊 แนวทางการนำไปใช้งานจริง
 
-### Infrastructure as Code
+### โครงสร้างพื้นฐานในรูปแบบโค้ด
 
 ```yaml
 # azure-pipelines.yml
@@ -611,9 +606,8 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
-### การปรับแต่งคอนเทนเนอร์
+### การเพิ่มประสิทธิภาพคอนเทนเนอร์
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
-### การตั้งค่าคอนฟิกสภาพแวดล้อม
+### การตั้งค่าสภาพแวดล้อม
 
 ```python
-# Production configuration management
+# การจัดการการกำหนดค่าระบบผลิต
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,25 +715,24 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # ตั้งค่าบันทึกของบุคคลที่สามเป็น WARNING
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # ปิดโหมดดีบัก
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # ตั้งค่าหัวข้อที่ปลอดภัย
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
-## 💰 การปรับปรุงค่าใช้จ่าย
+## 💰 การเพิ่มประสิทธิภาพต้นทุน
 
 ### การจัดการทรัพยากร
 
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # โหลดต่ำ
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # โหลดปานกลาง
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # โหลดสูง
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # แคชการดำเนินการที่มีค่าใช้จ่ายสูง
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# การกำหนดค่าอัตโนมัติสำหรับการปรับขนาด
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # การปรับขนาดโดยใช้ CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # การปรับขนาดโดยใช้หน่วยความจำ
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # การปรับขนาดคิวคำขอ
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,11 +810,10 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 การบำรุงรักษาและการดำเนินงาน
+## 🔧 การบำรุงรักษาและการดำเนินการ
 
-### การตรวจสอบสุขภาพระบบ
+### การตรวจสอบสุขภาพ
 
 ```python
 class OperationalHealth:
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # สถานะสุขภาพฐานข้อมูล
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # สุขภาพของบริการภายนอก
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # ทรัพยากรของระบบ
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # เมตริกของแอปพลิเคชัน
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # กำหนดสถานะโดยรวม
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # เรียกใช้งานแจ้งเตือน
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # การเชื่อมต่อขั้นพื้นฐาน
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # ตรวจสอบการสืบค้นที่ช้า
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # ตรวจสอบจำนวนการเชื่อมต่อ
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# การสำรองข้อมูลและกู้คืนโดยอัตโนมัติ
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # อัปโหลดไปยัง Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # สำรองข้อมูลเต็มรูปแบบรายวันเวลา 2 นาฬิกา UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # สำรองข้อมูลเพิ่มแบบชั่วโมงต่อชั่วโมง
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
-## 🌍 การมีส่วนร่วมในชุมชน
+## 🌍 การมีส่วนร่วมของชุมชน
 
-### แนวทางปฏิบัติที่ดีที่สุดสำหรับโอเพ่นซอร์ส
+### แนวทางปฏิบัติที่ดีที่สุดในโอเพนซอร์ส
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,7 +984,6 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
 ### การมีส่วนร่วมในชุมชน
 
@@ -1036,80 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # จะดำเนินการตรวจสอบจริง
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 สิ่งสำคัญที่ควรจดจำ
+## 🎯 ประเด็นสำคัญสรุป
 
-หลังจากจบเส้นทางการเรียนรู้อย่างครอบคลุมนี้ คุณควรมีความเชี่ยวชาญใน:
+หลังจากเสร็จสิ้นเส้นทางการเรียนรู้ที่ครอบคลุมนี้ คุณควรจะชำนาญในเรื่อง:
 
-✅ **การปรับปรุงประสิทธิภาพ**: การปรับแต่งฐานข้อมูล รูปแบบ Async และกลยุทธ์การแคช  
+✅ **การเพิ่มประสิทธิภาพ**: การปรับแต่งฐานข้อมูล รูปแบบอะซิงโครนัส และกลยุทธ์การแคช  
 ✅ **การเสริมความปลอดภัย**: การตรวจสอบสิทธิ์ การอนุญาต และการปกป้องข้อมูล  
-✅ **การปรับใช้ในสภาพแวดล้อมการผลิต**: Infrastructure as Code และการปรับแต่งคอนเทนเนอร์  
-✅ **การจัดการค่าใช้จ่าย**: การปรับทรัพยากรและการขยายขนาดอย่างชาญฉลาด  
-✅ **ความเป็นเลิศในการดำเนินงาน**: การตรวจสอบ การบำรุงรักษา และการทำงานอัตโนมัติ  
-✅ **การมีส่วนร่วมในชุมชน**: การมีส่วนร่วมในระบบนิเวศ MCP  
+✅ **การนำไปใช้งานจริง**: โครงสร้างพื้นฐานในรูปแบบโค้ดและการเพิ่มประสิทธิภาพคอนเทนเนอร์  
+✅ **การจัดการต้นทุน**: การเพิ่มประสิทธิภาพทรัพยากรและการปรับขนาดอย่างชาญฉลาด  
+✅ **ความเป็นเลิศในการดำเนินงาน**: การตรวจสอบ การบำรุงรักษา และระบบอัตโนมัติ  
+✅ **การมีส่วนร่วมของชุมชน**: การมีส่วนร่วมกับระบบนิเวศ MCP  
 
-## 🏆 การรับรองและขั้นตอนต่อไป
+## 🏆 การรับรองและขั้นตอนถัดไป
 
-### การประเมินเชิงปฏิบัติ
+### การประเมินภาคปฏิบัติ
 
 ทำโปรเจกต์สุดท้ายนี้เพื่อแสดงความเชี่ยวชาญของคุณ:
 
-**สร้างเซิร์ฟเวอร์ MCP ที่พร้อมใช้งานจริง** ซึ่งรวมถึง:  
-- [ ] การวิเคราะห์การค้าปลีกแบบหลายผู้เช่าด้วย RLS  
-- [ ] การค้นหาเชิงความหมายด้วย Azure OpenAI  
-- [ ] การดำเนินการด้านความปลอดภัยอย่างครอบคลุม  
-- [ ] การปรับใช้ในสภาพแวดล้อมการผลิตบน Azure  
-- [ ] การตั้งค่าการตรวจสอบและการแจ้งเตือน  
+**สร้างเซิร์ฟเวอร์ MCP ที่พร้อมใช้งานจริง** ที่รวมถึง:
+- [ ] การวิเคราะห์แบบผู้เช่าแบบหลายรายพร้อม RLS  
+- [ ] การค้นหาความหมายด้วย Azure OpenAI  
+- [ ] การดำเนินการด้านความปลอดภัยครบถ้วน  
+- [ ] การนำไปใช้งานจริงบน Azure  
+- [ ] การตั้งค่าการตรวจสอบและแจ้งเตือน  
 - [ ] การจัดทำเอกสารและการทดสอบ  
 
-### เส้นทางการเรียนรู้ขั้นสูง
+### เส้นทางการเรียนรู้ระดับสูง
 
-ดำเนินการต่อในเส้นทาง MCP ของคุณด้วย:
+เดินหน้าต่อในการเรียนรู้ MCP ของคุณด้วย:
 
 - **รูปแบบสถาปัตยกรรม MCP**: สถาปัตยกรรมเซิร์ฟเวอร์ขั้นสูง  
-- **การผสานรวมหลายโมเดล**: การรวมโมเดล AI ต่าง ๆ  
-- **การขยายขนาดในองค์กร**: การปรับใช้ MCP ในขนาดใหญ่  
-- **การพัฒนาเครื่องมือเฉพาะทาง**: การสร้างเครื่องมือ MCP เฉพาะ  
-- **ระบบนิเวศ MCP**: การมีส่วนร่วมในชุมชนที่กว้างขึ้น  
+- **การผสมผสานโมเดลหลายแบบ**: การรวมโมเดล AI ต่าง ๆ  
+- **ระดับองค์กร**: การปรับใช้ MCP ขนาดใหญ่  
+- **การพัฒนาเครื่องมือเฉพาะ**: การสร้างเครื่องมือ MCP พิเศษ  
+- **ระบบนิเวศ MCP**: การมีส่วนร่วมกับชุมชนที่กว้างขึ้น  
 
 ### การยอมรับจากชุมชน
 
-แบ่งปันความสำเร็จของคุณ:  
-- **GitHub Portfolio**: แสดงการพัฒนาของคุณ  
-- **การมีส่วนร่วมในชุมชน**: ส่งการปรับปรุงหรือตัวอย่าง  
-- **โอกาสในการพูด**: นำเสนอในงานพบปะหรือการประชุม  
-- **การให้คำปรึกษา**: ช่วยนักพัฒนาคนอื่นเรียนรู้ MCP  
+แบ่งปันความสำเร็จของคุณ:
+- **พอร์ตโฟลิโอ GitHub**: แสดงการใช้งานของคุณ  
+- **การมีส่วนร่วมในชุมชน**: ส่งการปรับปรุงหรือแบบอย่าง  
+- **โอกาสพูดคุย**: นำเสนอในการพบปะหรือประชุม  
+- **การให้คำปรึกษา**: ช่วยเหลือนักพัฒนารายอื่นเรียนรู้ MCP  
 
 ## 📚 แหล่งข้อมูลเพิ่มเติม
 
-### หัวข้อขั้นสูง  
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - การปรับปรุงฐานข้อมูล  
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - การปรับใช้ในสภาพแวดล้อมการผลิต  
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - การเขียนโปรแกรมแบบ Async  
+### หัวข้อขั้นสูง
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - การเพิ่มประสิทธิภาพฐานข้อมูล  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - การนำไปใช้งานจริง  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - การเขียนโปรแกรมแบบอะซิงโครนัส  
 
-### แหล่งข้อมูลด้านความปลอดภัย  
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - ช่องโหว่ด้านความปลอดภัย  
+### แหล่งข้อมูลด้านความปลอดภัย
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - ช่องโหว่ความปลอดภัย  
 - [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - ความปลอดภัยบนคลาวด์  
 - [Python Security Guidelines](https://python.org/dev/security/) - การเขียนโค้ดอย่างปลอดภัย  
 
-### ชุมชน  
+### ชุมชน
 - [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - การพูดคุยสด  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A และการแบ่งปัน  
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - คำถามทางเทคนิค  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - ถามตอบและการแลกเปลี่ยน  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - คำถามด้านเทคนิค  
 
 ---
 
-**🎉 ขอแสดงความยินดี!** คุณได้จบเส้นทางการเรียนรู้ MCP Database Integration อย่างครอบคลุมแล้ว คุณมีความรู้และทักษะในการสร้างเซิร์ฟเวอร์ MCP ที่พร้อมใช้งานจริง ซึ่งเชื่อมโยงผู้ช่วย AI กับระบบข้อมูลในโลกจริง
+**🎉 ขอแสดงความยินดี!** คุณได้เสร็จสิ้นเส้นทางการเรียนรู้งานรวมฐานข้อมูล MCP อย่างครบถ้วน คุณมีทั้งความรู้และทักษะในการสร้างเซิร์ฟเวอร์ MCP ที่พร้อมใช้งานจริงซึ่งเชื่อมต่อผู้ช่วย AI กับระบบข้อมูลในโลกจริง
 
-**พร้อมที่จะมีส่วนร่วม?** เข้าร่วมชุมชนของเราและช่วยให้ผู้อื่นเรียนรู้ MCP โดยแบ่งปันประสบการณ์ของคุณ มีส่วนร่วมในการปรับปรุงโค้ด หรือสร้างแหล่งข้อมูลการเรียนรู้เพิ่มเติม
+**พร้อมที่จะมีส่วนร่วมหรือยัง?** เข้าร่วมชุมชนของเราและช่วยผู้อื่นเรียนรู้ MCP โดยแบ่งปันประสบการณ์ของคุณ มีส่วนร่วมในการปรับปรุงโค้ด หรือสร้างแหล่งข้อมูลการเรียนรู้อื่น ๆ
+
+**ต่อไป**: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**ข้อจำกัดความรับผิดชอบ**:  
-เอกสารนี้ได้รับการแปลโดยใช้บริการแปลภาษา AI [Co-op Translator](https://github.com/Azure/co-op-translator) แม้ว่าเราจะพยายามให้การแปลมีความถูกต้อง แต่โปรดทราบว่าการแปลอัตโนมัติอาจมีข้อผิดพลาดหรือความไม่ถูกต้อง เอกสารต้นฉบับในภาษาดั้งเดิมควรถือเป็นแหล่งข้อมูลที่เชื่อถือได้ สำหรับข้อมูลที่สำคัญ ขอแนะนำให้ใช้บริการแปลภาษามนุษย์ที่มีความเชี่ยวชาญ เราไม่รับผิดชอบต่อความเข้าใจผิดหรือการตีความผิดที่เกิดจากการใช้การแปลนี้
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ปฏิเสธความรับผิดชอบ**:
+เอกสารนี้ได้รับการแปลโดยใช้บริการแปลภาษา AI [Co-op Translator](https://github.com/Azure/co-op-translator) ขณะที่เราพยายามให้ความถูกต้อง โปรดทราบว่าการแปลโดยอัตโนมัติอาจมีข้อผิดพลาดหรือความไม่ถูกต้อง เอกสารต้นฉบับในภาษาต้นทางควรถูกพิจารณาเป็นแหล่งข้อมูลที่เชื่อถือได้ สำหรับข้อมูลที่สำคัญ แนะนำให้ใช้การแปลโดยมนุษย์มืออาชีพ เราไม่รับผิดชอบต่อความเข้าใจผิดหรือการตีความที่ผิดพลาดที่เกิดขึ้นจากการใช้การแปลนี้
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

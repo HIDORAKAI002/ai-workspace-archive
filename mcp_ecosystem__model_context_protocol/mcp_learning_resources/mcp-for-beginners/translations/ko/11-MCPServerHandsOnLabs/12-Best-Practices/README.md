@@ -1,57 +1,57 @@
-# 모범 사례 및 최적화
+# Best Practices and Optimization
 
-## 🎯 이 실습에서 다루는 내용
+## 🎯 What This Lab Covers
 
-이 종합 실습은 데이터베이스 통합을 통해 강력하고 확장 가능하며 안전한 MCP 서버를 구축하기 위한 모범 사례, 최적화 기술 및 프로덕션 가이드라인을 통합합니다. 실무 경험과 업계 표준을 통해 구현이 프로덕션 준비 상태가 되도록 학습합니다.
+이 캡스톤 랩은 견고하고 확장 가능하며 안전한 MCP 서버를 데이터베이스 통합과 함께 구축하기 위한 모범 사례, 최적화 기법 및 프로덕션 가이드라인을 통합합니다. 실무 경험과 업계 표준에서 배우며 구현이 프로덕션 준비가 되도록 합니다.
 
-## 개요
+## Overview
 
-성공적인 MCP 서버를 구축하는 것은 단순히 코드가 작동하도록 만드는 것 이상입니다. 이 실습에서는 개념 증명 구현과 확장 가능하고 신뢰할 수 있으며 보안 표준을 유지하는 프로덕션 준비 시스템을 구분하는 필수적인 관행을 다룹니다.
+성공적인 MCP 서버를 구축하는 것은 단지 코드가 작동하는 것 이상입니다. 이 랩에서는 개념 증명 구현과 확장 가능하고 신뢰성 있게 동작하며 보안 표준을 유지할 수 있는 프로덕션 준비 시스템을 구분하는 필수 관행을 다룹니다.
 
-이러한 모범 사례는 실무 배포, 커뮤니티 피드백, 기업 구현에서 얻은 교훈을 바탕으로 합니다.
+이러한 모범 사례는 실무 배포, 커뮤니티 피드백 및 기업 구현에서 얻은 교훈에서 도출되었습니다.
 
-## 학습 목표
+## Learning Objectives
 
-이 실습을 완료하면 다음을 수행할 수 있습니다:
+이 랩이 끝날 때까지 다음을 할 수 있게 됩니다:
 
-- **적용**: MCP 서버와 데이터베이스의 성능 최적화 기술  
-- **구현**: 포괄적인 보안 강화 조치  
-- **설계**: 프로덕션 환경을 위한 확장 가능한 아키텍처 패턴  
-- **수립**: 모니터링, 유지보수 및 운영 절차  
-- **최적화**: 성능과 신뢰성을 유지하면서 비용 절감  
-- **기여**: MCP 커뮤니티와 생태계에 공헌  
+- **MCP 서버 및 데이터베이스의** 성능 최적화 기법을 <strong>적용</strong>  
+- <strong>종합적인 보안 강화 조치</strong>를 <strong>구현</strong>  
+- 프로덕션 환경을 위한 <strong>확장 가능한 아키텍처 패턴</strong>을 <strong>설계</strong>  
+- 모니터링, 유지보수 및 운영 절차를 <strong>수립</strong>  
+- 성능과 신뢰성을 유지하면서 비용을 <strong>최적화</strong>  
+- MCP 커뮤니티 및 생태계에 <strong>기여</strong>  
 
-## 🚀 성능 최적화
+## 🚀 Performance Optimization
 
-### 데이터베이스 성능
+### Database Performance
 
-#### 연결 풀 최적화
+#### Connection Pool Optimization
 
 ```python
-# Optimized connection pool configuration
+# 최적화된 연결 풀 구성
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # 크기 구성
+    "min_size": max(2, cpu_count()),           # 최소 2, CPU에 따라 확장
+    "max_size": min(20, cpu_count() * 4),     # 합리적인 최대값으로 제한
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # 타이밍 구성
+    "max_inactive_connection_lifetime": 300,   # 5분
+    "command_timeout": 30,                     # 30초
+    "max_queries": 50000,                      # 연결 순환
     
-    # PostgreSQL settings
+    # PostgreSQL 설정
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # 일관성을 위해 비활성화
+        "work_mem": "8MB",                     # 쿼리 최적화
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # 수정 내용만 로그 기록
+        "log_min_duration_statement": "1s",   # 느린 쿼리 로그 기록
     }
 }
 ```
-  
-#### 쿼리 최적화 패턴
+
+#### Query Optimization Patterns
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # 초
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # 먼저 캐시 확인
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # 모니터링과 함께 실행
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # 쿼리 실행 최적화
+                await conn.execute("SET enable_seqscan = off")  # 인덱스를 우선적으로 사용
+                await conn.execute("SET work_mem = '16MB'")     # 이 쿼리를 위한 더 많은 메모리
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # 느린 쿼리 기록
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # 성공한 결과 캐시
+                if cache_key and len(result) < 1000:  # 큰 결과는 캐시하지 않음
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# 인덱스 추천
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # 핵심 비즈니스 인덱스
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # 분석 인덱스
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # 벡터 검색 최적화
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
-### 애플리케이션 성능
+### Application Performance
 
-#### 비동기 프로그래밍 모범 사례
+#### Async Programming Best Practices
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # 시스템 과부하를 방지하기 위해 배치로 처리
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # 자원 고갈 방지를 위한 배치 간 짧은 지연
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# 회로 차단기 구현
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # 닫힘(CLOSED), 열림(OPEN), 반열림(HALF_OPEN)
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # 성공 시 리셋
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,9 +214,8 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
-### 캐싱 전략
+### Caching Strategies
 
 ```python
 import redis
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # 레벨 1: 메모리 캐시
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # 레벨 2: 레디스 캐시
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # 메모리 캐시로 승격
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # LRU 제거 구현
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# 캐시 키 생성
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,11 +303,10 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
-## 🔒 보안 강화
+## 🔒 Security Hardening
 
-### 인증 및 권한 부여
+### Authentication and Authorization
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # 인증을 추출하고 검증합니다
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # 토큰을 검증합니다
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # 속도 제한을 확인합니다
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # RLS 컨텍스트를 검증합니다
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Key Vault나 캐시에서 공개 키를 가져옵니다
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # 토큰을 디코딩하고 검증합니다
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # 슈퍼 관리자는 모든 컨텍스트에 접근할 수 있습니다
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # 매장 관리자는 자신이 속한 매장에만 접근할 수 있습니다
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # 지역 관리자는 여러 매장에 접근할 수 있습니다
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# 입력 값 검증 및 정화
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # 금지된 패턴
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # SELECT 문만 허용합니다
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,19 +439,18 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # 영숫자, 밑줄, 점만 허용합니다
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # 허용된 테이블과 대조하여 검증합니다
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
-### 데이터 보호
+### Data Protection
 
 ```python
 from cryptography.fernet import Fernet
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # 프로덕션에서는 Azure Key Vault에서 가져옵니다
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # 개발용 대체 수단 (프로덕션용 아님!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # 반복 횟수
         ).hex()
         
         return password_hash, salt
@@ -527,11 +523,10 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
-## 📊 프로덕션 배포 가이드라인
+## 📊 Production Deployment Guidelines
 
-### 코드로서의 인프라
+### Infrastructure as Code
 
 ```yaml
 # azure-pipelines.yml
@@ -611,9 +606,8 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
-### 컨테이너 최적화
+### Container Optimization
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
-### 환경 구성
+### Environment Configuration
 
 ```python
-# Production configuration management
+# 운영 환경 구성 관리
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,27 +715,26 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # 서드파티 로거를 WARNING으로 설정
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # 디버그 모드 비활성화
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # 보안 헤더 설정
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
-## 💰 비용 최적화
+## 💰 Cost Optimization
 
-### 리소스 관리
+### Resource Management
 
 ```python
 class CostOptimizer:
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # 낮은 부하
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # 중간 부하
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # 높은 부하
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # 캐시 비용이 많이 드는 작업
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# 자동 스케일링 구성
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPU 기반 스케일링
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # 메모리 기반 스케일링
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # 요청 대기열 스케일링
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,11 +810,10 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 유지보수 및 운영
+## 🔧 Maintenance and Operations
 
-### 상태 모니터링
+### Health Monitoring
 
 ```python
 class OperationalHealth:
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # 데이터베이스 상태
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # 외부 서비스 상태
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # 시스템 자원
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # 응용 프로그램 지표
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # 전체 상태 결정
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # 경고 트리거
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # 기본 연결성
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # 느린 쿼리 확인
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # 연결 수 확인
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# 자동 백업 및 복구
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Azure Blob Storage에 업로드
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # UTC 기준 매일 오전 2시 전체 백업
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # 시간별 증분 백업
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
-## 🌍 커뮤니티 기여
+## 🌍 Community Contributions
 
-### 오픈 소스 모범 사례
+### Open Source Best Practices
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,9 +984,8 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
-### 커뮤니티 참여
+### Community Engagement
 
 ```python
 class CommunityContributor:
@@ -1036,80 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # 실제 검사 구현 예정입니다
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 주요 요점
+## 🎯 Key Takeaways
 
-이 종합 학습 경로를 완료한 후, 다음을 숙달하게 됩니다:
+이 종합 학습 경로를 완료한 후, 다음 내용을 숙달했을 것입니다:
 
-✅ **성능 최적화**: 데이터베이스 튜닝, 비동기 패턴 및 캐싱 전략  
+✅ **성능 최적화**: 데이터베이스 튜닝, 비동기 패턴, 캐싱 전략  
 ✅ **보안 강화**: 인증, 권한 부여 및 데이터 보호  
-✅ **프로덕션 배포**: 코드로서의 인프라 및 컨테이너 최적화  
-✅ **비용 관리**: 리소스 최적화 및 지능형 확장  
+✅ **프로덕션 배포**: 인프라 코드화 및 컨테이너 최적화  
+✅ **비용 관리**: 자원 최적화 및 지능형 스케일링  
 ✅ **운영 우수성**: 모니터링, 유지보수 및 자동화  
 ✅ **커뮤니티 참여**: MCP 생태계에 기여  
 
-## 🏆 인증 및 다음 단계
+## 🏆 Certification and Next Steps
 
-### 실습 평가
+### Practical Assessment
 
-다음 프로젝트를 완료하여 숙련도를 입증하세요:
+최종 프로젝트를 완성하여 숙련도를 입증하세요:
 
-**프로덕션 준비 MCP 서버 구축** 포함:  
+**프로덕션 준비 MCP 서버 구축** 내용은 다음을 포함합니다:  
 - [ ] RLS를 활용한 멀티 테넌트 소매 분석  
-- [ ] Azure OpenAI를 활용한 시맨틱 검색  
-- [ ] 포괄적인 보안 구현  
-- [ ] Azure에서의 프로덕션 배포  
+- [ ] Azure OpenAI 기반 의미 검색  
+- [ ] 종합적인 보안 구현  
+- [ ] Azure 프로덕션 배포  
 - [ ] 모니터링 및 경고 설정  
 - [ ] 문서화 및 테스트  
 
-### 고급 학습 경로
+### Advanced Learning Paths
 
 MCP 여정을 계속하세요:
 
 - **MCP 아키텍처 패턴**: 고급 서버 아키텍처  
 - **멀티 모델 통합**: 다양한 AI 모델 결합  
-- **기업 규모**: 대규모 MCP 배포  
-- **맞춤형 도구 개발**: 전문 MCP 도구 구축  
-- **MCP 생태계**: 광범위한 커뮤니티에 기여  
+- **엔터프라이즈 규모**: 대규모 MCP 배포  
+- **맞춤형 툴 개발**: 특화된 MCP 도구 구축  
+- **MCP 생태계**: 광범위한 커뮤니티 기여  
 
-### 커뮤니티 인정
+### Community Recognition
 
 성과를 공유하세요:  
-- **GitHub 포트폴리오**: 구현 사례를 공개  
-- **커뮤니티 기여**: 개선 사항 또는 예제 제출  
-- **발표 기회**: 밋업 또는 컨퍼런스에서 발표  
-- **멘토링**: 다른 개발자가 MCP를 배우도록 지원  
+- **GitHub 포트폴리오**: 구현 내용 전시  
+- **커뮤니티 기여**: 개선사항 또는 예제 제출  
+- **발표 기회**: 밋업 또는 컨퍼런스 발표  
+- <strong>멘토링</strong>: 다른 개발자의 MCP 학습 지원  
 
-## 📚 추가 자료
+## 📚 Additional Resources
 
-### 고급 주제  
-- [PostgreSQL 성능 튜닝](https://www.postgresql.org/docs/current/performance-tips.html) - 데이터베이스 최적화  
-- [Azure 컨테이너 앱 모범 사례](https://docs.microsoft.com/azure/container-apps/overview) - 프로덕션 배포  
-- [Python 비동기 모범 사례](https://docs.python.org/3/library/asyncio-dev.html) - 비동기 프로그래밍  
+### Advanced Topics
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - 데이터베이스 최적화  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - 프로덕션 배포  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - 비동기 프로그래밍  
 
-### 보안 자료  
+### Security Resources
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/) - 보안 취약점  
-- [Azure 보안 모범 사례](https://docs.microsoft.com/azure/security/) - 클라우드 보안  
-- [Python 보안 가이드라인](https://python.org/dev/security/) - 안전한 코딩  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - 클라우드 보안  
+- [Python Security Guidelines](https://python.org/dev/security/) - 안전한 코딩  
 
-### 커뮤니티  
-- [MCP 커뮤니티 Discord](https://discord.com/invite/ByRwuEEgH4) - 실시간 토론  
+### Community
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - 라이브 토론  
 - [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A 및 공유  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - 기술 질문  
 
 ---
 
-**🎉 축하합니다!** MCP 데이터베이스 통합 학습 경로를 완성했습니다. 이제 AI 어시스턴트와 실제 데이터 시스템을 연결하는 프로덕션 준비 MCP 서버를 구축할 수 있는 지식과 기술을 갖추게 되었습니다.
+**🎉 축하합니다!** 종합 MCP 데이터베이스 통합 학습 경로를 완료하셨습니다. 이제 AI 어시스턴트와 실세계 데이터 시스템을 연결하는 프로덕션 준비된 MCP 서버를 구축할 지식과 기술을 갖추셨습니다.
 
-**기여할 준비가 되셨나요?** 커뮤니티에 참여하여 경험을 공유하거나 코드 개선에 기여하거나 추가 학습 자료를 만들어 다른 사람들이 MCP를 배우도록 도와주세요.
+**기여할 준비가 되셨나요?** 커뮤니티에 참여해 경험을 공유하고, 코드 개선에 기여하거나 추가 학습 자료를 만들어 다른 이들이 MCP를 배우도록 도우세요.
+
+<strong>다음</strong>: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**면책 조항**:  
-이 문서는 AI 번역 서비스 [Co-op Translator](https://github.com/Azure/co-op-translator)를 사용하여 번역되었습니다. 정확성을 위해 최선을 다하고 있으나, 자동 번역에는 오류나 부정확성이 포함될 수 있습니다. 원본 문서의 원어 버전이 권위 있는 출처로 간주되어야 합니다. 중요한 정보의 경우, 전문적인 인간 번역을 권장합니다. 이 번역 사용으로 인해 발생하는 오해나 잘못된 해석에 대해 당사는 책임을 지지 않습니다.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**면책 조항**:
+이 문서는 AI 번역 서비스 [Co-op Translator](https://github.com/Azure/co-op-translator)를 사용하여 번역되었습니다. 정확성을 기하기 위해 노력하고 있으나, 자동 번역은 오류나 부정확한 부분이 있을 수 있음을 유의하시기 바랍니다. 원본 문서의 원어본이 권위 있는 자료로 간주되어야 합니다. 중요한 정보의 경우, 전문가의 인간 번역을 권장합니다. 이 번역 사용으로 인해 발생하는 오해나 잘못된 해석에 대해 당사는 책임을 지지 않습니다.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

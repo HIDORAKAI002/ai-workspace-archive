@@ -1,57 +1,57 @@
-# ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು ಮತ್ತು ಆಪ್ಟಿಮೈಜೆಷನ್
+# ಅತ್ಯುತ್ತಮ ಅನುಶೀಲನೆಗಳು ಮತ್ತು ಆಪ್ಟಿಮೈಸೇಷನ್
 
-## 🎯 ಈ ಪ್ರಯೋಗಶಾಲೆ ಏನು ಒಳಗೊಂಡಿದೆ
+## 🎯 ಈ ಲ್ಯಾಬ್ ಏನು ಒಳಗೊಂಡಿದೆ
 
-ಈ ಕ್ಯಾಪ್‌ಸ್ಟೋನ್ ಪ್ರಯೋಗಶಾಲೆ ಬಲವಾದ, ವಿಸ್ತರಿಸಬಹುದಾದ ಮತ್ತು ಸುರಕ್ಷಿತ MCP ಸರ್ವರ್‌ಗಳನ್ನು ಡೇಟಾಬೇಸ್ ಏಕೀಕರಣದೊಂದಿಗೆ ನಿರ್ಮಿಸಲು ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು, ಆಪ್ಟಿಮೈಜೆಷನ್ ತಂತ್ರಗಳು ಮತ್ತು ಉತ್ಪಾದನಾ ಮಾರ್ಗಸೂಚಿಗಳನ್ನು ಸಂಯೋಜಿಸುತ್ತದೆ. ನಿಮ್ಮ ಅನುಷ್ಠಾನವು ಉತ್ಪಾದನೆಗೆ ಸಿದ್ಧವಾಗಿರುವುದನ್ನು ಖಚಿತಪಡಿಸಲು ನೀವು ನೈಜ-ಜಗತ್ತಿನ ಅನುಭವ ಮತ್ತು ಕೈಗಾರಿಕಾ ಮಾನದಂಡಗಳಿಂದ ಕಲಿಯುತ್ತೀರಿ.
+ಈ ಕ್ಯಾಪ್‌ಸ್ಟೋನ್ ಲ್ಯಾಬ್ ಯಶಸ್ವಿ, ಪ್ರಮಾಣಿತ ಮತ್ತು ಸುರಕ್ಷಿತ MCP ಸರ್ವರ್‌ಗಳನ್ನು ಡೇಟಾಬೇಸ್ ಇಂಟಿಗ್ರೇಶನ್ ಸಹಿತ ನಿರ್ಮಿಸುವ ಅತ್ಯುತ್ತಮ ಅನುಶೀಲನೆಗಳು, ಆಪ್ಟಿಮೈಸೇಷನ್ ತಂತ್ರಗಳು ಮತ್ತು ಉತ್ಪಾದನಾ ಮಾರ್ಗಸೂಚಿಗಳನ್ನು ಏಕೀಕೃತಗೊಳಿಸುತ್ತದೆ. ನೀವು ನೈಜ ಜಗತ್ತಿನ ಅನುಭವ ಮತ್ತು ಕೈಗಾರಿಕಾ ಮಾನದಂಡಗಳಿಂದ ಕಲಿಯುತ್ತೀರಿ ನಿಮ್ಮ ಅನುಷ್ಠಾನ ಉತ್ಪಾದನಾ-ತಯಾರಿರಲು.
 
 ## ಅವಲೋಕನ
 
-ಯಶಸ್ವಿ MCP ಸರ್ವರ್ ನಿರ್ಮಿಸುವುದು ಕೇವಲ ಕೋಡ್ ಕಾರ್ಯನಿರ್ವಹಿಸುವುದಕ್ಕಿಂತ ಹೆಚ್ಚು. ಈ ಪ್ರಯೋಗಶಾಲೆ ಸಿದ್ಧಾಂತ-ಪ್ರಮಾಣ ಅನುಷ್ಠಾನಗಳನ್ನು ಉತ್ಪಾದನೆಗೆ ಸಿದ್ಧ ವ್ಯವಸ್ಥೆಗಳಿಂದ ವಿಭಜಿಸುವ ಅಗತ್ಯ ಅಭ್ಯಾಸಗಳನ್ನು ಒಳಗೊಂಡಿದೆ, ಅವು ವಿಸ್ತರಿಸಬಹುದಾಗಿದ್ದು, ವಿಶ್ವಾಸಾರ್ಹವಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತವೆ ಮತ್ತು ಭದ್ರತಾ ಮಾನದಂಡಗಳನ್ನು ಕಾಪಾಡುತ್ತವೆ.
+ಯಶಸ್ವಿ MCP ಸರ್ವರ್ ನಿರ್ಮಿಸುವುದು ಕೇವಲ ಕೋಡ್ ಕಾರ್ಯನಿರ್ವಹಿಸುವುದಕ್ಕಿಂತ ಹೆಚ್ಚು. ಈ ಲ್ಯಾಬ್ ಅವಶ್ಯಕ ಅನುಶೀಲನೆಗಳನ್ನು ಒಳಗೊಂಡಿದೆ, ಅವು ಪ್ರೂಫ್-ಆಫ್-ಕಾನ್ಸೆಪ್ಟ್ ಅನುಷ್ಠಾನಗಳನ್ನು ಉತ್ಪಾದನಾ-ತಯಾರಿರುವ ವ್ಯವಸ್ಥೆಗಳಿಂದ ಬೇರ್ಪಡಿಸುತ್ತವೆ, ಇವು ಪ್ರಮಾಣ ಮತ್ತು ಭರವಸೆ ನೀಡುತ್ತವೆ, ಮತ್ತು ಸುರಕ್ಷತಾ ಮಾನದಂಡಗಳನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುತ್ತವೆ.
 
-ಈ ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು ನೈಜ-ಜಗತ್ತಿನ ನಿಯೋಜನೆಗಳಿಂದ, ಸಮುದಾಯ ಪ್ರತಿಕ್ರಿಯೆಯಿಂದ ಮತ್ತು ಎಂಟರ್‌ಪ್ರೈಸ್ ಅನುಷ್ಠಾನಗಳಿಂದ ಕಲಿತ ಪಾಠಗಳಿಂದ ಪಡೆದಿವೆ.
+ಈ ಅತ್ಯುತ್ತಮ ಅನುಶೀಲನೆಗಳು ನೈಜ ಜಗತ್ತಿನ ನಿಯೋಜನೆಗಳಿಂದ, ಸಮುದಾಯ ಪ್ರತಿಕ್ರಿಯೆಯಿಂದ ಮತ್ತು ಎಂಟರ್ಪ್ರೈಸ್ ಅನುಷ್ಠಾನಗಳಿಂದ ಪಡೆದ ಪಾಠಗಳಿಂದ ಪಡೆದಿವೆ.
 
-## ಕಲಿಕೆಯ ಉದ್ದೇಶಗಳು
+## ಕಲಿಕೆ ಗುರಿಗಳು
 
-ಈ ಪ್ರಯೋಗಶಾಲೆಯ ಅಂತ್ಯಕ್ಕೆ, ನೀವು ಸಾಧ್ಯವಾಗುತ್ತದೆ:
+ಈ ಲ್ಯಾಬ್ ಮುಗಿಸುವ ಮುನ್ನ, ನೀವು ಮಾಡಬಲ್ಲಿರಿ:
 
-- **ಅನ್ವಯಿಸು** MCP ಸರ್ವರ್‌ಗಳು ಮತ್ತು ಡೇಟಾಬೇಸ್‌ಗಳ ಕಾರ್ಯಕ್ಷಮತೆ ಆಪ್ಟಿಮೈಜೆಷನ್ ತಂತ್ರಗಳನ್ನು  
-- **ಅನುಷ್ಠಾನಗೊಳಿಸು** ಸಮಗ್ರ ಭದ್ರತಾ ಕಠಿಣೀಕರಣ ಕ್ರಮಗಳನ್ನು  
-- **ರಚಿಸು** ಉತ್ಪಾದನಾ ಪರಿಸರಗಳಿಗೆ ವಿಸ್ತರಿಸಬಹುದಾದ ವಾಸ್ತುಶಿಲ್ಪ ಮಾದರಿಗಳನ್ನು  
-- **ಸ್ಥಾಪಿಸು** ಮೇಲ್ವಿಚಾರಣೆ, ನಿರ್ವಹಣೆ ಮತ್ತು ಕಾರ್ಯಾಚರಣೆ ಪ್ರಕ್ರಿಯೆಗಳನ್ನು  
-- **ಆಪ್ಟಿಮೈಸ್** ವೆಚ್ಚಗಳನ್ನು ಕಾರ್ಯಕ್ಷಮತೆ ಮತ್ತು ವಿಶ್ವಾಸಾರ್ಹತೆಯನ್ನು ಕಾಪಾಡುತ್ತಾ  
-- **ಹಂಚಿಕೊಳ್ಳು** MCP ಸಮುದಾಯ ಮತ್ತು ಪರಿಸರ ವ್ಯವಸ್ಥೆಗೆ
+- **ಅನುಷ್ಟಾನ** MCP ಸರ್ವರ್‌ಗಳು ಮತ್ತು ಡೇಟಾಬೇಸ್‌ಗಳ ಕಾರ್ಯಕ್ಷಮತೆ ಆಪ್ಟಿಮೈಸೇಷನ್ ತಂತ್ರಗಳನ್ನು  
+- **ನಿರ್ವಹಣೆ** ಸಮಗ್ರ ಸುರಕ್ಷತಾ ಹಾರ್ಡನಿಂಗ್ ಉಪಾಯಗಳನ್ನು  
+- **ರಚನೆ** ಉತ್ಪಾದನಾ ಪರಿಸರಗಳಿಗೆ ಪ್ರಮಾಣಿತ ಆರ್ಕಿಟೆಕ್ಚರ್ ಮಾದರಿಗಳನ್ನು  
+- **ಸ್ಥಾಪನೆ** ಮೇಲ್ವಿಚಾರಣೆ, ನಿರ್ವಹಣೆ ಮತ್ತು ಕಾರ್ಯಾಚರಣಾ ಕ್ರಮಗಳನ್ನು  
+- **ಅಪ್ಟಿಮೈಸೇಶನ್** ವೆಚ್ಚಗಳನ್ನು ಕಾರ್ಯಕ್ಷಮತೆ ಮತ್ತು ಭರವಸೆಯನ್ನು ಕಾಯ್ದುಕೊಳ್ಳುತ್ತಾ  
+- **ಒಳಗೆಟು** MCP ಸಮುದಾಯ ಮತ್ತು ಪರಿಸರಕ್ಕೆ
 
-## 🚀 ಕಾರ್ಯಕ್ಷಮತೆ ಆಪ್ಟಿಮೈಜೆಷನ್
+## 🚀 ಕಾರ್ಯಕ್ಷಮತೆ ಆಪ್ಟಿಮೈಸೇಷನ್
 
 ### ಡೇಟಾಬೇಸ್ ಕಾರ್ಯಕ್ಷಮತೆ
 
-#### ಸಂಪರ್ಕ ಪೂಲ್ ಆಪ್ಟಿಮೈಜೆಷನ್
+#### ಸಂಪರ್ಕ ಪೂಲ್ ಆಪ್ಟಿಮೈಸೇಷನ್
 
 ```python
-# ಸುಧಾರಿತ ಸಂಪರ್ಕ ಪೂಲ್ ಸಂರಚನೆ
+# ಸುಧಾರಿತ ಸಂಪರ್ಕ पूಲ್ ಸಂರಚನೆ
 POOL_CONFIG = {
     # ಗಾತ್ರ ಸಂರಚನೆ
-    "min_size": max(2, cpu_count()),           # ಕನಿಷ್ಠ 2, CPU ಅನುಸಾರ ಪ್ರಮಾಣ ಹೆಚ್ಚಿಸಿ
-    "max_size": min(20, cpu_count() * 4),     # ಯುಕ್ತಿಯುತ ಗರಿಷ್ಠ ಮಿತಿ
+    "min_size": max(2, cpu_count()),           # ಕನಿಷ್ಠ 2, CPUನೊಂದಿಗೆ ಪ್ರಮಾಣ ಪರಿಮಾಣ ಮಾಡು
+    "max_size": min(20, cpu_count() * 4),     # ಯುಕ್ತಿಗೆ ಹೊಂದಿಕೊಳ್ಳುವ ಗರಿಷ್ಟ ಮಿತಿ ಹಾಕಿ
     
     # ಸಮಯ ಸಂರಚನೆ
-    "max_inactive_connection_lifetime": 300,   # 5 ನಿಮಿಷಗಳು
-    "command_timeout": 30,                     # 30 ಸೆಕೆಂಡುಗಳು
+    "max_inactive_connection_lifetime": 300,   # 5 ನಿಮಿಷ
+    "command_timeout": 30,                     # 30 ಸೆಕೆಂಡ್
     "max_queries": 50000,                      # ಸಂಪರ್ಕಗಳನ್ನು ತಿರುಗಿಸಿ
     
-    # PostgreSQL ಸೆಟ್ಟಿಂಗ್‌ಗಳು
+    # PostgreSQL ಸಂಯೋಜನೆಗಳು
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # ಸಮ್ಮಿಲನಕ್ಕಾಗಿ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ
-        "work_mem": "8MB",                     # ಪ್ರಶ್ನೆಗಳಿಗೆ ಅನುಕೂಲಕರವಾಗಿ ಸುಧಾರಿಸಿ
+        "jit": "off",                          # ಸತತತೆಗೆ ನಿರ್ಬಂಧಿಸು
+        "work_mem": "8MB",                     # ಪ್ರಶ್ನೆಗಳಿಗೆ ಆಯಾ ಸುಧಾರಣೆ ಮಾಡು
         "shared_preload_libraries": "pg_stat_statements",
         "log_statement": "mod",                # ಬದಲಾವಣೆಗಳನ್ನು ಮಾತ್ರ ಲಾಗ್ ಮಾಡಿ
-        "log_min_duration_statement": "1s",   # ನಿಧಾನವಾದ ಪ್ರಶ್ನೆಗಳನ್ನು ಲಾಗ್ ಮಾಡಿ
+        "log_min_duration_statement": "1s",   # ಮಂದವಾದ ಪ್ರಶ್ನೆಗಳನ್ನು ಲಾಗ್ ಮಾಡಿ
     }
 }
 ```
 
-#### ಪ್ರಶ್ನೆ ಆಪ್ಟಿಮೈಜೆಷನ್ ಮಾದರಿಗಳು
+#### ಪ್ರಶ್ನೆಯ ಆಪ್ಟಿಮೈಸೇಷನ್ ಮಾದರಿಗಳು
 
 ```python
 class QueryOptimizer:
@@ -76,12 +76,12 @@ class QueryOptimizer:
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # ಮೇಲ್ವಿಚಾರಣೆಯೊಂದಿಗೆ ಕಾರ್ಯಗತಗೊಳಿಸಿ
+        # ಮಾನಿಟರಿಂಗ್ ಸಾಥಿ ನಿರ್ವಹಿಸಿ
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # ಪ್ರಶ್ನೆ ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆಯನ್ನು ಸುಧಾರಿಸಿ
+                # ಕೋಡುವ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ಸುಧಾರಿಸಿ
                 await conn.execute("SET enable_seqscan = off")  # ಸೂಚ್ಯಂಕಗಳನ್ನು ಆದ್ಯತೆ ನೀಡಿ
                 await conn.execute("SET work_mem = '16MB'")     # ಈ ಪ್ರಶ್ನೆಗೆ ಹೆಚ್ಚು ಮೆಮೊರಿ
                 
@@ -128,7 +128,7 @@ RECOMMENDED_INDEXES = [
 
 ### ಅಪ್ಲಿಕೇಶನ್ ಕಾರ್ಯಕ್ಷಮತೆ
 
-#### ಅಸಿಂಕ್ ಪ್ರೋಗ್ರಾಮಿಂಗ್ ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು
+#### ಅಸಿಂಕ್ ಪ್ರೋಗ್ರಾಮಿಂಗ್ ಅತ್ಯುತ್ತಮ ಅನುಶೀಲನೆಗಳು
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # ವ್ಯವಸ್ಥೆಯನ್ನು ಅತಿಭಾರವಾಗದಂತೆ ಬ್ಯಾಚ್‌ಗಳಲ್ಲಿ ಪ್ರಕ್ರಿಯೆ ಮಾಡಿ
+        # ವ್ಯವಸ್ಥೆಯನ್ನು ಭಾರವಾಗಿಸುವುದನ್ನು ತಪ್ಪಿಸಲು ಬ್ಯಾಚುಗಳಲ್ಲಿ ಪ್ರಕ್ರಿಯೆ ಮಾಡಿ
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # ಸಂಪನ್ಮೂಲ ದುರुपಯೋಗವನ್ನು ತಡೆಯಲು ಬ್ಯಾಚ್‌ಗಳ ನಡುವೆ ಸಣ್ಣ ವಿಳಂಬ
+            # ಸಂಪನ್ಮೂಲ ವ್ಯಯವನ್ನು ತಡೆಹಿಡಿಯಲು ಬ್ಯಾಚುಗಳ ನಡುವೆ ಸಣ್ಣ ತಾಳ್ಮೆ
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # ಮುಚ್ಚಲಾಗಿದೆ, ತೆರೆಯಲಾಗಿದೆ, ಅರ್ಧ ತೆರೆಯಲಾಗಿದೆ
+        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # ಯಶಸ್ಸಿನ ಮೇಲೆ ಮರುಹೊಂದಿಸಿ
+            # ಯಶಸ್ಸಿನ ಮೇಲೆ ಮರುನಿರ್ಮাণ
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # ಮಟ್ಟ 1: ಮೆಮೊರಿ ಕ್ಯಾಶೆ
+        # ಮಟ್ಟ 1: ಮೆಮೊರಿ ಕ್ಯಾಶ್
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # ಮಟ್ಟ 2: ರೆಡಿಸ್ ಕ್ಯಾಶೆ
+        # ಮಟ್ಟ 2: ರೆಡಿಸ್ ಕ್ಯಾಶ್
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # ಮೆಮೊರಿ ಕ್ಯಾಶೆಗೆ ಉತ್ತೇಜನ ನೀಡಿ
+                    # ಮೆಮೊರಿ ಕ್ಯಾಶ್‌ಗೆ ಪ್ರೋತ್ಸಾಹ ನೀಡಿ
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # LRU ತೆರವುಗೊಳಿಸುವಿಕೆ ಅನುಷ್ಠಾನಗೊಳಿಸಿ
+        # LRU ತ್ಯಜಿಸುವಿಕೆ ಅನುಷ್ಠಾನಗೊಳಿಸಿ
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# ಕ್ಯಾಶೆ ಕೀ ಜನರೇಶನ್
+# ಕ್ಯಾಶ್ ಕೀ ನಿರ್ಮಾಣ
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,9 +304,9 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 ಭದ್ರತಾ ಕಠಿಣೀಕರಣ
+## 🔒 ಸುರಕ್ಷತಾ ಹಾರ್ದನಿಂಗ್
 
-### ಪ್ರಾಮಾಣೀಕರಣ ಮತ್ತು ಪ್ರಾಧಿಕಾರ
+### ಪ್ರತ್ಯಯೀಕರಣ ಮತ್ತು ಅನುಮೋದನೆ
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # ಪ್ರಾಮಾಣೀಕರಣವನ್ನು ಹೊರತೆಗೆಯಿರಿ ಮತ್ತು ಪರಿಶೀಲಿಸಿ
+        # ಪ್ರಾಮಾಣೀಕರಣವನ್ನು ಹೊರತೆಗೆಯಿರಿ ಮತ್ತು ಪ್ರಾಮಾಣೀಕರಿಸಿ
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # ಟೋಕನ್ ಪರಿಶೀಲಿಸಿ
+        # ಟೋಕನ್ ಅನ್ನು ಪ್ರಾಮಾಣೀಕರಿಸಿ
         user_context = await self._validate_token(auth_token)
         
         # ದರ ಮಿತಿ ಪರಿಶೀಲಿಸಿ
         await self._check_rate_limit(user_context["user_id"])
         
-        # RLS ಸಂದರ್ಭವನ್ನು ಪರಿಶೀಲಿಸಿ
+        # RLS ಪರಿಪೆಕಶವನ್ನು ಪ್ರಾಮಾಣೀಕರಿಸಿ
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # ಕೀ ವಾಲ್ಟ್ ಅಥವಾ ಕ್ಯಾಶೆ ನಿಂದ ಸಾರ್ವಜನಿಕ ಕೀ ಪಡೆಯಿರಿ
+            # ಕೀ ವಾಲ್ಟ್ ಅಥವಾ ಕ್ಯಾಶ್ ನಿಂದ ಸಾರ್ವಜನಿಕ ಕೀ ಪಡೆಯಿರಿ
             public_key = await self._get_public_key()
             
-            # ಟೋಕನ್ ಡಿಕೋಡ್ ಮಾಡಿ ಮತ್ತು ಪರಿಶೀಲಿಸಿ
+            # ಟೋಕನ್ ಅನ್ನು ಡಿಕೋಡ್ ಮಾಡಿ ಮತ್ತು ಪ್ರಾಮಾಣೀಕರಿಸಿ
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # ಸೂಪರ್ ಆಡ್ಮಿನ್‌ಗಳು ಯಾವುದೇ ಸಂದರ್ಭವನ್ನು ಪ್ರವೇಶಿಸಬಹುದು
+        # ಸೂಪರ್ ಆಡಮಿನ್‌ಗಳು ಯಾವುದೇ ಪರಿಪೆಕಶಕ್ಕೆ ಪ್ರವೇಶಿಸಬಹುದು
         if "super_admin" in user_context["roles"]:
             return True
         
-        # ಸ್ಟೋರ್ ಮ್ಯಾನೇಜರ್‌ಗಳು ತಮ್ಮದೇ ಸ್ಟೋರ್ ಅನ್ನು ಮಾತ್ರ ಪ್ರವೇಶಿಸಬಹುದು
+        # ಸ್ಟೋರ್ ಮ್ಯಾನೇಜರ್‌ಗಳು ತಮ್ಮ ಸ್ವಂತ ಸ್ಟೋರ್‌ಗೆ ಮಾತ್ರ ಪ್ರವೇಶಿಸಬಹುದು
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # ಪ್ರಾದೇಶಿಕ ಮ್ಯಾನೇಜರ್‌ಗಳು ಹಲವಾರು ಸ್ಟೋರ್‌ಗಳನ್ನು ಪ್ರವೇಶಿಸಬಹುದು
+        # ಪ್ರಾದೇಶಿಕ ಮ್ಯಾನೇಜರ್‌ಗಳು ಹಲವಾರು ಸ್ಟೋರ್‌ಗಳಿಗೆ ಪ್ರವೇಶಿಸಬಹುದು
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# ಇನ್‌ಪುಟ್ ಪರಿಶೀಲನೆ ಮತ್ತು ಶುದ್ಧೀಕರಣ
+# ಇನ್‌ಪುಟ್ ಮಾನ್ಯತೆ ಮತ್ತು ಶುದ್ಧೀಕರಣ
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # SELECT ಹೇಳಿಕೆಗಳನ್ನು ಮಾತ್ರ ಅನುಮತಿಸಿ
+        # SELECT ಪ್ರಕಟಣೆಗಳನ್ನು ಮಾತ್ರ ಅನುಮತಿಸಿ
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # ಅಕ್ಷರಸಂಖ್ಯಾ, ಅಂಡರ್‌ಸ್ಕೋರ್ ಮತ್ತು ಡಾಟ್ ಅನ್ನು ಮಾತ್ರ ಅನುಮತಿಸಿ
+        # ಅಕ್ಷರಸಂಖ್ಯಾ ಅಕ್ಷರಗಳು, ಅಂಡರ್ಸ್ಕೋರ್ ಮತ್ತು ಡಾಟ್ ಮಾತ್ರ ಅನುಮತಿಸಿ
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # ಅನುಮತಿಸಲಾದ ಟೇಬಲ್‌ಗಳ ವಿರುದ್ಧ ಪರಿಶೀಲಿಸಿ
+        # ಅನುಮತಿತ ಟೇಬಲ್ಸ್ ವಿರುದ್ಧ ಮಾನ್ಯತೆ ಮಾಡಿ
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # ಉತ್ಪಾದನೆಯಲ್ಲಿ, ಅಜೂರ್ ಕೀ ವಾಲ್ಟ್‌ನಿಂದ ಪಡೆಯಿರಿ
+        # ಉತ್ಪಾದನೆಯಲ್ಲಿ, ಅಜ್ಯೂರ್ ಕೀ ವಾಲ್ಟ್‍ನಿಂದ ಪಡೆಯಿರಿ
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # ಅಭಿವೃದ್ಧಿಗಾಗಿ ಬ್ಯಾಕಪ್ (ಉತ್ಪಾದನೆಗಾಗಿ ಅಲ್ಲ!)
+        # ಅಭಿವೃದ್ಧಿಗಾಗಿFallback (ಉತ್ಪಾದನೆಗಾಗಿ ಅಲ್ಲ!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -526,7 +526,7 @@ class DataProtection:
 
 ## 📊 ಉತ್ಪಾದನಾ ನಿಯೋಜನೆ ಮಾರ್ಗಸೂಚಿಗಳು
 
-### ಇನ್‌ಫ್ರಾಸ್ಟ್ರಕ್ಚರ್ ಅಸ್ ಕೋಡ್
+### ಇನ್‌ಫ್ರಾಸ್ಟ್ರಕ್ಚರ್ ಎಸ್ ಕೋಡ್
 
 ```yaml
 # azure-pipelines.yml
@@ -607,7 +607,7 @@ stages:
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
 
-### ಕಂಟೇನರ್ ಆಪ್ಟಿಮೈಜೆಷನ್
+### ಕಂಟೇನರ್ ಆಪ್ಟಿಮೈಸೇಷನ್
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -715,14 +715,14 @@ class ProductionConfig:
             ]
         )
         
-        # ಮೂರನೇ ಪಕ್ಷದ ಲಾಗರ್‌ಗಳನ್ನು ಎಚ್ಚರಿಕೆಗೆ ಸೆಟ್ ಮಾಡಿ
+        # ಮೂರನೇ ಪಕ್ಷದ ಲಾಗರ್‌ಗಳನ್ನು ಎಚ್ಚರಿಕೆಕ್ಕೆ ಸೆಟ್ ಮಾಡಿ
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # ಡಿಬಗ್ ಮೋಡ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ
+        # ಡಿಬಗ್ ಮೋಡ್ ಅಸಕ್ರಿಯಗೊಳಿಸಿ
         os.environ['DEBUG'] = 'False'
         
         # ಸುರಕ್ಷಿತ ಹೆಡರ್‌ಗಳನ್ನು ಸೆಟ್ ಮಾಡಿ
@@ -732,7 +732,7 @@ class ProductionConfig:
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
 
-## 💰 ವೆಚ್ಚ ಆಪ್ಟಿಮೈಜೆಷನ್
+## 💰 ವೆಚ್ಚ ಆಪ್ಟಿಮೈಸೇಷನ್
 
 ### ಸಂಪನ್ಮೂಲ ನಿರ್ವಹಣೆ
 
@@ -753,7 +753,7 @@ class CostOptimizer:
             target_pool_size = max(2, int(current_load * 10))
         elif current_load < 0.7:  # ಮಧ್ಯಮ ಲೋಡ್
             target_pool_size = max(5, int(current_load * 15))
-        else:  # ಹೆಚ್ಚಿನ ಲೋಡ್
+        else:  # ಹೆಚ್ಚು ಲೋಡ್
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # ಕ್ಯಾಶೆ ದುಬಾರಿ ಕಾರ್ಯಗಳು
+        # ಕ್ಯಾಶೆ ವೆಚ್ಚವಾದ ಕ್ರಮಗಳು
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# ಸ್ವಯಂ-ಸ್ಕೇಲಿಂಗ್ ಸಂರಚನೆ
+# ಸ್ವಯಂ-ಮಾಪನ ಸಂರಚನೆ
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # ಸಿಪಿಯು ಆಧಾರಿತ ಸ್ಕೇಲಿಂಗ್
+        # CPU ಆಧಾರಿತ ಮಾಪನ
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # ಮೆಮೊರಿ ಆಧಾರಿತ ಸ್ಕೇಲಿಂಗ್
+        # ಮೆಮೊರಿ ಆಧಾರಿತ ಮಾಪನ
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # ವಿನಂತಿ ಸಾಲು ಸ್ಕೇಲಿಂಗ್
+        # ವಿನಂತಿ ಸಾಲಿನ ಮಾಪನ
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -811,7 +811,7 @@ class AutoScaler:
         return "no_action"
 ```
 
-## 🔧 ನಿರ್ವಹಣೆ ಮತ್ತು ಕಾರ್ಯಾಚರಣೆ
+## 🔧 ನಿರ್ವಹಣೆ ಮತ್ತು ಕಾರ್ಯಾಚರಣೆಗಳು
 
 ### ಆರೋಗ್ಯ ಮೇಲ್ವಿಚಾರಣೆ
 
@@ -840,15 +840,15 @@ class OperationalHealth:
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # ವ್ಯವಸ್ಥೆಯ ಸಂಪನ್ಮೂಲಗಳು
+        # ಸಿಸ್ಟಮ್ ಸಂಪನ್ಮೂಲಗಳು
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # ಅಪ್ಲಿಕೇಶನ್ ಮೆಟ್ರಿಕ್ಸ್
+        # ಅಪ್ಲಿಕೇಶನ್ ಮ್ಯಾಟ್ರಿಕ್ಸ್
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # ಒಟ್ಟು ಸ್ಥಿತಿಯನ್ನು ನಿರ್ಧರಿಸಿ
+        # ಒಟ್ಟಾರೆ ಸ್ಥಿತಿಯನ್ನು ನಿರ್ಧರಿಸಿ
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # ಎಚ್ಚರಿಕೆಗಳನ್ನು ಪ್ರೇರೇಪಿಸಿ
+            # ಅಲೆಯರ್ಟ್‌ಗಳನ್ನು ಪ್ರೇರೇಪಿಸಿ
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,7 +874,7 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # ಮೂಲ ಸಂಪರ್ಕತೆ
+                # ಮೂಲ ಸಂಪರ್ಕ
                 await conn.fetchval("SELECT 1")
                 
                 # ನಿಧಾನವಾದ ಪ್ರಶ್ನೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# ಸ್ವಯಂಚಾಲಿತ ಬ್ಯಾಕಪ್ ಮತ್ತು ಪುನರುದ್ಧಾರ
+# ಸ್ವಯಂಚಾಲಿತ ಬ್ಯಾಕ್ಅಪ್ ಮತ್ತು ಪುನರುદ્ધಾರ
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -932,12 +932,12 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # ಪ್ರತಿದಿನ 2 AM ಯುಟಿಸಿ ನಲ್ಲಿ ಸಂಪೂರ್ಣ ಬ್ಯಾಕಪ್
+        # ಪ್ರತಿದಿನ ರಾತ್ರಿ 2 ಗಂಟೆಗೆ ಪೂರ್ಣ ಬ್ಯಾಕ್ಅಪ್ (ಯುಟಿಸಿ)
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # ಪ್ರತಿ ಗಂಟೆಗೆ ಹೆಚ್ಚುವರಿ ಬ್ಯಾಕಪ್
+        # ಪ್ರತಿ ಗಂಟೆಗೆ ಇನ್‌ಕ್ರಿಮೆಂಟಲ್ ಬ್ಯಾಕ್ಅಪ್‌ಗಳು
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
@@ -945,7 +945,7 @@ class BackupManager:
 
 ## 🌍 ಸಮುದಾಯ ಕೊಡುಗೆಗಳು
 
-### ಓಪನ್ ಸೋರ್ಸ್ ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು
+### ಓಪನ್ ಸೋರ್ಸ್ನ ಅತ್ಯುತ್ತಮ ಅನುಶೀಲನೆಗಳು
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### ಸಮುದಾಯ ತೊಡಗಿಸಿಕೊಳ್ಳುವಿಕೆ
+### ಸಮುದಾಯ ತೊಡಗಿಸಿಕೊಂಡುಕೆಳೆಯುವಿಕೆ
 
 ```python
 class CommunityContributor:
@@ -1031,75 +1031,77 @@ class CommunityContributor:
         }
 ```
 
-## 🎯 ಪ್ರಮುಖ ಪಾಠಗಳು
+## 🎯 ಪ್ರಮುಖ ಅಂಶಗಳು
 
-ಈ ಸಮಗ್ರ ಕಲಿಕೆಯ ಮಾರ್ಗವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ ನಂತರ, ನೀವು ಪರಿಣತಿ ಹೊಂದಿರಬೇಕು:
+ಈ ಸಮಗ್ರ ಕಲಿಕೆ ಪಥವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ ನಂತರ, ನೀವು MASTER ಆಗಿರುತ್ತೀರಿ:
 
-✅ **ಕಾರ್ಯಕ್ಷಮತೆ ಆಪ್ಟಿಮೈಜೆಷನ್**: ಡೇಟಾಬೇಸ್ ಟ್ಯೂನಿಂಗ್, ಅಸಿಂಕ್ ಮಾದರಿಗಳು ಮತ್ತು ಕ್ಯಾಶಿಂಗ್ ತಂತ್ರಗಳು  
-✅ **ಭದ್ರತಾ ಕಠಿಣೀಕರಣ**: ಪ್ರಾಮಾಣೀಕರಣ, ಪ್ರಾಧಿಕಾರ ಮತ್ತು ಡೇಟಾ ರಕ್ಷಣೆ  
-✅ **ಉತ್ಪಾದನಾ ನಿಯೋಜನೆ**: ಇನ್‌ಫ್ರಾಸ್ಟ್ರಕ್ಚರ್ ಅಸ್ ಕೋಡ್ ಮತ್ತು ಕಂಟೇನರ್ ಆಪ್ಟಿಮೈಜೆಷನ್  
-✅ **ವೆಚ್ಚ ನಿರ್ವಹಣೆ**: ಸಂಪನ್ಮೂಲ ಆಪ್ಟಿಮೈಜೆಷನ್ ಮತ್ತು ಬುದ್ಧಿವಂತಿಕೆಯ ವಿಸ್ತರಣೆ  
-✅ **ಕಾರ್ಯಾಚರಣೆ ಶ್ರೇಷ್ಠತೆ**: ಮೇಲ್ವಿಚಾರಣೆ, ನಿರ್ವಹಣೆ ಮತ್ತು ಸ್ವಯಂಚಾಲನೆ  
-✅ **ಸಮುದಾಯ ತೊಡಗಿಸಿಕೊಳ್ಳುವಿಕೆ**: MCP ಪರಿಸರ ವ್ಯವಸ್ಥೆಗೆ ಕೊಡುಗೆ ನೀಡುವುದು  
+✅ **ಕಾರ್ಯಕ್ಷಮತೆ ಆಪ್ಟಿಮೈಸೇಷನ್**: ಡೇಟಾಬೇಸ್ ಟ್ಯೂನಿಂಗ್, ಅಸಿಂಕ್ ಮಾದರಿಗಳು, ಮತ್ತು ಕ್ಯಾಶಿಂಗ್ ತಂತ್ರಗಳು  
+✅ **ಸುರಕ್ಷತಾ ಹಾರ್ದನಿಂಗ್**: ಪ್ರತ್ಯಯೀಕರಣ, ಅನುಮೋದನೆ, ಮತ್ತು ಡೇಟಾ ರಕ್ಷಣೆ  
+✅ **ಉತ್ಪಾದನಾ ನಿಯೋಜನೆ**: ಇನ್‌ಫ್ರಾಸ್ಟ್ರಕ್ಚರ್ ಎಸ್ ಕೋಡ್ ಮತ್ತು ಕಂಟೇನರ್ ಆಪ್ಟಿಮೈಸೇಷನ್  
+✅ **ವೆಚ್ಚ ನಿರ್ವಹಣೆ**: ಸಂಪನ್ಮೂಲ ಆಪ್ಟಿಮೈಸೇಶನ್ ಮತ್ತು ಬುದ್ಧಿವಂತ ಪ್ರಮಾಣೀಕರಣ  
+✅ **ಕಾರ್ಯಾಚರಣಾ ಶ್ರೇಷ್ಠತೆ**: ಮೇಲ್ವಿಚಾರಣೆ, ನಿರ್ವಹಣೆ, ಮತ್ತು ಸ್ವಯಂಯಂತ್ರಣ  
+✅ **ಸಮುದಾಯ ತೊಡಗುಕು**: MCP ಪರಿಸರಕ್ಕೆ ಕೊಡುಗೆ ನೀಡುವುದು  
 
 ## 🏆 ಪ್ರಮಾಣಪತ್ರ ಮತ್ತು ಮುಂದಿನ ಹಂತಗಳು
 
 ### ಪ್ರಾಯೋಗಿಕ ಮೌಲ್ಯಮಾಪನ
 
-ನಿಮ್ಮ ಪರಿಣತಿಯನ್ನು ಪ್ರದರ್ಶಿಸಲು ಈ ಅಂತಿಮ ಯೋಜನೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ:
+ನಿಮ್ಮ ಕೌಶಲ್ಯವನ್ನು ಪ್ರದರ್ಶಿಸಲು ಈ ಕೊನೆಯ ಪ್ರಾಜೆಕ್ಟ್ ಅನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ:
 
-**ಉತ್ಪಾದನೆಗೆ ಸಿದ್ಧ MCP ಸರ್ವರ್ ನಿರ್ಮಿಸಿ** ಇದರಲ್ಲಿ ಸೇರಿವೆ:  
-- [ ] RLS ಜೊತೆಗೆ ಬಹು-ಭಾಡಿಗೆ ರಿಟೇಲ್ ವಿಶ್ಲೇಷಣೆ  
-- [ ] ಅಜೂರ್ ಓಪನ್‌ಎಐ ಜೊತೆಗೆ ಅರ್ಥಪೂರ್ಣ ಹುಡುಕಾಟ  
-- [ ] ಸಮಗ್ರ ಭದ್ರತಾ ಅನುಷ್ಠಾನ  
-- [ ] ಅಜೂರ್‌ನಲ್ಲಿ ಉತ್ಪಾದನಾ ನಿಯೋಜನೆ  
-- [ ] ಮೇಲ್ವಿಚಾರಣೆ ಮತ್ತು ಎಚ್ಚರಿಕೆ ವ್ಯವಸ್ಥೆ  
-- [ ] ಡಾಕ್ಯುಮೆಂಟೇಶನ್ ಮತ್ತು ಪರೀಕ್ಷೆ
+**ಉತ್ಪಾದನಾ-ತಯಾರ MCP ಸರ್ವರ್ ಅನ್ನು ನಿರ್ಮಿಸಿ** ಇದರಲ್ಲಿ ಸೇರಿದೆ:  
+- [ ] RLS ಸಹಿತ ಬಹು-ಭಾಡೆ ಅಂಗಡಿ ವಿಶ್ಲೇಷಣೆ  
+- [ ] ಅಜ್ಯುರ್ ಓಪನ್‌ಎಐ ಅವರಿಂದ ಅರ್ಥಪೂರ್ಣ ಹುಡುಕು  
+- [ ] ಸಮಗ್ರ ಸುರಕ್ಷತಾ ಅನುಷ್ಠಾನ  
+- [ ] ಅಜ್ಯುರ್‌ನಲ್ಲಿ ಉತ್ಪಾದನಾ ನಿಯೋಜನೆ  
+- [ ] ಮೇಲ್ವಿಚಾರಣೆ ಮತ್ತು ಅಲರ್ಟ್ ವ್ಯವಸ್ಥೆ  
+- [ ] ಡಾಕ್ಯುಮೆಂಟೇಶನ್ ಮತ್ತು ಪರೀಕ್ಷಣೆ
 
-### ಉನ್ನತ ಕಲಿಕೆಯ ಮಾರ್ಗಗಳು
+### ಉನ್ನತ ಕಲಿಕಾ ಪಥಗಳು
 
 ನಿಮ್ಮ MCP ಪ್ರಯಾಣವನ್ನು ಮುಂದುವರಿಸಿ:
 
-- **MCP ವಾಸ್ತುಶಿಲ್ಪ ಮಾದರಿಗಳು**: ಉನ್ನತ ಮಟ್ಟದ ಸರ್ವರ್ ವಾಸ್ತುಶಿಲ್ಪಗಳು  
-- **ಬಹು-ಮಾದರಿ ಏಕೀಕರಣ**: ವಿಭಿನ್ನ AI ಮಾದರಿಗಳನ್ನು ಸಂಯೋಜಿಸುವುದು  
-- **ಎಂಟರ್‌ಪ್ರೈಸ್ ವಿಸ್ತರಣೆ**: ದೊಡ್ಡ ಮಟ್ಟದ MCP ನಿಯೋಜನೆಗಳು  
-- **ಕಸ್ಟಮ್ ಟೂಲ್ ಅಭಿವೃದ್ಧಿ**: ವಿಶೇಷ MCP ಉಪಕರಣಗಳನ್ನು ನಿರ್ಮಿಸುವುದು  
-- **MCP ಪರಿಸರ ವ್ಯವಸ್ಥೆ**: ವ್ಯಾಪಕ ಸಮುದಾಯಕ್ಕೆ ಕೊಡುಗೆ ನೀಡುವುದು
+- **MCP ಸ್ಥಾಪನಾ ಮಾದರಿಗಳು**: ಉನ್ನತ ಮಟ್ಟದ ಸರ್ವರ್ معمepಟಾರುಗಳು  
+- **ಬಹು ಮಾದರಿ ಏಕೀಕರಣ**: ವಿಭಿನ್ನ AI ಮಾದರಿಗಳ ಸಂಯೋಜನೆ  
+- **ಎಂಟರ್ಪ್ರೈಸ್ ಪ್ರಮಾಣ**: ವ್ಯಾಪಕ MCP ನಿಯೋಜನೆಗಳು  
+- **ಕಸ್ಟಮ್ ಉಪಕರಣ ಅಭಿವೃದ್ಧಿ**: ವಿಶೇಷ MCP ಉಪಕರಣಗಳ ನಿರ್ಮಾಣ  
+- **MCP ಪರಿಸರ**: ವ್ಯಾಪಕ ಸಮುದಾಯಕ್ಕೆ ಕೊಡುಗೆ ನೀಡುವುದು
 
-### ಸಮುದಾಯ ಮಾನ್ಯತೆ
+### ಸಮುದಾಯ ಸಮ್ಮಾನ
 
 ನಿಮ್ಮ ಸಾಧನೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ:  
-- **GitHub ಪೋರ್ಟ್‌ಫೋಲಿಯೊ**: ನಿಮ್ಮ ಅನುಷ್ಠಾನವನ್ನು ಪ್ರದರ್ಶಿಸಿ  
+- **ಗಿಟ್ಹಬ್ ಪೋರ್ಟ್ಫೋಲಿಯೋ**: ನಿಮ್ಮ ಅನುಷ್ಠಾನವನ್ನು ಪ್ರದರ್ಶಿಸಿ  
 - **ಸಮುದಾಯ ಕೊಡುಗೆಗಳು**: ಸುಧಾರಣೆಗಳು ಅಥವಾ ಉದಾಹರಣೆಗಳನ್ನು ಸಲ್ಲಿಸಿ  
-- **ಮಾತನಾಡುವ ಅವಕಾಶಗಳು**: ಮೀಟಪ್‌ಗಳು ಅಥವಾ ಸಮ್ಮೇಳನಗಳಲ್ಲಿ ಪ್ರಸ್ತುತಪಡಿಸಿ  
-- **ಮೆಂಟರಿಂಗ್**: ಇತರ ಡೆವಲಪರ್‌ಗಳಿಗೆ MCP ಕಲಿಸಲು ಸಹಾಯ ಮಾಡಿ
+- **ಮಾಹಿತಿ ನೀಡುವ ಅವಕಾಶಗಳು**: ಸಭೆಗಳು ಅಥವಾ ಸಮ್ಮೇಳನಗಳಲ್ಲಿ ಪ್ರಸ್ತುತಪಡಿಸಿ  
+- **ಮೆಂಟೋರಿಂಗ್**: ಇತರ ಡೆವಲಪರ್‌ಗಳಿಗೆ MCP ಕಲಿಯಲು ಸಹಾಯ ಮಾಡಿ
 
 ## 📚 ಹೆಚ್ಚುವರಿ ಸಂಪನ್ಮೂಲಗಳು
 
-### ಉನ್ನತ ವಿಷಯಗಳು
-- [PostgreSQL ಕಾರ್ಯಕ್ಷಮತೆ ಟ್ಯೂನಿಂಗ್](https://www.postgresql.org/docs/current/performance-tips.html) - ಡೇಟಾಬೇಸ್ ಆಪ್ಟಿಮೈಜೆಷನ್  
-- [ಅಜೂರ್ ಕಂಟೇನರ್ ಅಪ್ಸ್ ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು](https://docs.microsoft.com/azure/container-apps/overview) - ಉತ್ಪಾದನಾ ನಿಯೋಜನೆ  
-- [Python ಅಸಿಂಕ್ ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು](https://docs.python.org/3/library/asyncio-dev.html) - ಅಸಿಂಕ್ ಪ್ರೋಗ್ರಾಮಿಂಗ್
+### ಉನ್ನತ ವಿಷಯಗಳು  
+- [PostgreSQL ಕಾರ್ಯಕ್ಷಮತೆ ಟ್ಯೂನಿಂಗ್](https://www.postgresql.org/docs/current/performance-tips.html) - ಡೇಟಾಬೇಸ್ ಆಪ್ಟಿಮೈಸೇಷನ್  
+- [ಅಜ್ಯುರ್ ಕಂಟೇನರ್ ಅಪ್ಸ್ ಅತ್ಯುತ್ತಮ ಅನುಶೀಲನೆಗಳು](https://docs.microsoft.com/azure/container-apps/overview) - ಉತ್ಪಾದನಾ ನಿಯೋಜನೆ  
+- [Python ಅಸಿಂಕ್ ಅತ್ಯುತ್ತಮ ಅನುಶೀಲನೆಗಳು](https://docs.python.org/3/library/asyncio-dev.html) - ಅಸಿಂಕ್ ಪ್ರೋಗ್ರಾಮಿಂಗ್
 
-### ಭದ್ರತಾ ಸಂಪನ್ಮೂಲಗಳು
-- [OWASP ಟಾಪ್ 10](https://owasp.org/www-project-top-ten/) - ಭದ್ರತಾ ದುರ್ಬಲತೆಗಳು  
-- [ಅಜೂರ್ ಭದ್ರತಾ ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು](https://docs.microsoft.com/azure/security/) - ಕ್ಲೌಡ್ ಭದ್ರತೆ  
-- [Python ಭದ್ರತಾ ಮಾರ್ಗಸೂಚಿಗಳು](https://python.org/dev/security/) - ಸುರಕ್ಷಿತ ಕೋಡಿಂಗ್
+### ಸುರಕ್ಷತಾ ಸಂಪನ್ಮೂಲಗಳು  
+- [OWASP ಟಾಪ್ 10](https://owasp.org/www-project-top-ten/) - ಸುರಕ್ಷತಾ ದುರ್ಬಲತೆಗಳು  
+- [ಅಜ್ಯುರ್ ಸುರಕ್ಷತಾ ಅತ್ಯುತ್ತಮ ಅನುಶೀಲನೆಗಳು](https://docs.microsoft.com/azure/security/) - ಕ್ಲೌಡ್ ಸುರಕ್ಷತೆ  
+- [Python ಸುರಕ್ಷತಾ ಮಾರ್ಗಸೂಚಿಗಳು](https://python.org/dev/security/) - ಸುರಕ್ಷಿತ ಕೋಡಿಂಗ್
 
-### ಸಮುದಾಯ
-- [MCP ಸಮುದಾಯ ಡಿಸ್ಕಾರ್ಡ್](https://discord.com/invite/ByRwuEEgH4) - ನೇರ ಚರ್ಚೆಗಳು  
+### ಸಮುದಾಯ  
+- [MCP ಸಮುದಾಯ ಡಿಸ್ಕೋರ್ಡ್](https://discord.com/invite/ByRwuEEgH4) - ನೇರ ಚರ್ಚೆಗಳು  
 - [GitHub ಚರ್ಚೆಗಳು](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - ಪ್ರಶ್ನೋತ್ತರ ಮತ್ತು ಹಂಚಿಕೆ  
-- [ಸ್ಟಾಕ್ ಓವರ್‌ಫ್ಲೋ](https://stackoverflow.com/questions/tagged/model-context-protocol) - ತಾಂತ್ರಿಕ ಪ್ರಶ್ನೆಗಳು
+- [ಸ್ಟ್ಯಾಕ್ ಓವರ್‌ಫ್ಲೋ](https://stackoverflow.com/questions/tagged/model-context-protocol) - ತಾಂತ್ರಿಕ ಪ್ರಶ್ನೆಗಳು
 
 ---
 
-**🎉 ಅಭಿನಂದನೆಗಳು!** ನೀವು ಸಮಗ್ರ MCP ಡೇಟಾಬೇಸ್ ಏಕೀಕರಣ ಕಲಿಕೆಯ ಮಾರ್ಗವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ್ದೀರಿ. ನೀವು ಈಗ AI ಸಹಾಯಕರನ್ನು ನೈಜ-ಜಗತ್ತಿನ ಡೇಟಾ ವ್ಯವಸ್ಥೆಗಳೊಂದಿಗೆ ಸೇರುವ ಉತ್ಪಾದನೆಗೆ ಸಿದ್ಧ MCP ಸರ್ವರ್‌ಗಳನ್ನು ನಿರ್ಮಿಸಲು ಜ್ಞಾನ ಮತ್ತು ಕೌಶಲ್ಯಗಳನ್ನು ಹೊಂದಿದ್ದೀರಿ.
+**🎉 ಅಭಿನಂದನೆಗಳು!** ನೀವು MCP ಡೇಟಾಬೇಸ್ ಇಂಟಿಗ್ರೇಶನ್ ಸಮಗ್ರ ಕಲಿಕಾ ಪಥವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ್ದೀರಿ. ಈಗ ನಿಮ್ಮ ಬಳಿ ಜ್ಞಾನ ಮತ್ತು ಕೌಶಲ್ಯಗಳಿದ್ದು, ನೈಜ ಜಗತ್ತಿನ ಡೇಟಾ ವ್ಯವಸ್ಥೆಗಳೊಂದಿಗೆ AI ಸಹಾಯಕರನ್ನು সংಯೋಜಿಸುವ ಉತ್ಪಾದನಾ-ತಯಾರ MCP ಸರ್ವರ್‌ಗಳನ್ನು ನಿರ್ಮಿಸಲು ಸಿದ್ಧರಾಗಿದ್ದೀರಿ.
 
-**ಕೊಡುಗೆ ನೀಡಲು ಸಿದ್ಧರಾ?** ನಮ್ಮ ಸಮುದಾಯದಲ್ಲಿ ಸೇರಿ ನಿಮ್ಮ ಅನುಭವಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ, ಕೋಡ್ ಸುಧಾರಣೆಗಳನ್ನು ಕೊಡುಗೆ ನೀಡಿ ಅಥವಾ ಹೆಚ್ಚುವರಿ ಕಲಿಕೆಯ ಸಂಪನ್ಮೂಲಗಳನ್ನು ರಚಿಸಿ MCP ಕಲಿಕೆಯನ್ನು ಸಹಾಯ ಮಾಡಿ.
+**ಕೊಡುಗೆ ನೀಡಲು ಸಿದ್ಧರಿದ್ದೀರಾ?** ನಮ್ಮ ಸಮುದಾಯಕ್ಕೆ ಸೇರಿ, ನಿಮ್ಮ ಅನುಭವಗಳನ್ನು ಹಂಚಿ, ಕೋಡ್ ಸುಧಾರಣೆಗಳಿಗೆ ಕೊಡುಗೆ ನೀಡಿ ಅಥವಾ ಹೆಚ್ಚಿನ ಕಲಿಕಾ ಸಂಪನ್ಮೂಲಗಳನ್ನು ರಚಿಸಿ ಇತರರಿಗೆ MCP ಕಲಿಯಲು ಸಹಾಯ ಮಾಡಿ.
+
+**ಮುಂದೆ**: [ಟೂಲಿಂಗ್](../../12-tooling/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ಅಸ್ವೀಕಾರ**:  
-ಈ ದಸ್ತಾವೇಜು AI ಅನುವಾದ ಸೇವೆ [Co-op Translator](https://github.com/Azure/co-op-translator) ಬಳಸಿ ಅನುವಾದಿಸಲಾಗಿದೆ. ನಾವು ನಿಖರತೆಯಿಗಾಗಿ ಪ್ರಯತ್ನಿಸುತ್ತಿದ್ದರೂ, ಸ್ವಯಂಚಾಲಿತ ಅನುವಾದಗಳಲ್ಲಿ ತಪ್ಪುಗಳು ಅಥವಾ ಅಸತ್ಯತೆಗಳು ಇರಬಹುದು ಎಂದು ದಯವಿಟ್ಟು ಗಮನಿಸಿ. ಮೂಲ ಭಾಷೆಯಲ್ಲಿರುವ ಮೂಲ ದಸ್ತಾವೇಜನ್ನು ಅಧಿಕೃತ ಮೂಲವೆಂದು ಪರಿಗಣಿಸಬೇಕು. ಪ್ರಮುಖ ಮಾಹಿತಿಗಾಗಿ, ವೃತ್ತಿಪರ ಮಾನವ ಅನುವಾದವನ್ನು ಶಿಫಾರಸು ಮಾಡಲಾಗುತ್ತದೆ. ಈ ಅನುವಾದ ಬಳಕೆಯಿಂದ ಉಂಟಾಗುವ ಯಾವುದೇ ತಪ್ಪು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವಿಕೆ ಅಥವಾ ತಪ್ಪು ವಿವರಣೆಗಳಿಗೆ ನಾವು ಹೊಣೆಗಾರರಾಗುವುದಿಲ್ಲ.
+**ಅಸ್ವೀಕಾರ**:
+ಈ ದಸ್ತಾವೇಜು AI ಅನುವಾದ ಸೇವೆ [Co-op Translator](https://github.com/Azure/co-op-translator) ಬಳಸಿ ಅನುವಾದಿಸಲಾಗಿದೆ. ನಾವು ನಿಖರತೆಯನ್ನು ಸಾಧಿಸಲು ಪ್ರಯತ್ನಿಸುತ್ತಿದ್ದರೂ, ದಯವಿಟ್ಟು ಗಮನಿಸಿ, ಸ್ವಯಂಚಾಲಿತ ಅನುವಾದಗಳಲ್ಲಿ ದೋಷಗಳು ಅಥವಾ ಅಸಡ್ಡೆಗಳು ಇರಬಹುದು. ಮೂಲ ಭಾಷೆಯಲ್ಲಿರುವ ಮೂಲ ದಸ್ತಾವೇಜು ಪ್ರಾಮಾಣಿಕ ಮೂಲವೆಂದು ಪರಿಗಣಿಸಬೇಕು. ಪ್ರಮುಖ ಮಾಹಿತಿಗಾಗಿ, ವೃತ್ತಿಪರ ಮಾನವ ಅನುವಾದವನ್ನು ಶಿಫಾರಸು ಮಾಡಲಾಗುತ್ತದೆ. ಈ ಅನುವಾದವನ್ನು ಬಳಸುವ ಮೂಲಕ ಉಂಟಾಗುವ ಯಾವುದೇ ತಪ್ಪು ಅರ್ಥಗಳ ಅಥವಾ ತಪ್ಪು ವ್ಯಾಖ್ಯಾನಗಳ ಬಗ್ಗೆ ನಾವು ಹೊಣೆಗಾರರಲ್ಲ.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

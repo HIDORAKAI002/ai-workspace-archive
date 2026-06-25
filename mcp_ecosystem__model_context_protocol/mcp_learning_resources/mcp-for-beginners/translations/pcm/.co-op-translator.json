@@ -822,8 +822,8 @@
     "language_code": "pcm"
   },
   "11-MCPServerHandsOnLabs/12-Best-Practices/README.md": {
-    "original_hash": "cf8b2ca0cea03c09428ae042938995c1",
-    "translation_date": "2025-11-18T19:58:17+00:00",
+    "original_hash": "a07570c61ac6c76c0ebf06f638856158",
+    "translation_date": "2026-06-25T00:05:34+00:00",
     "source_file": "11-MCPServerHandsOnLabs/12-Best-Practices/README.md",
     "language_code": "pcm"
   },
@@ -831,6 +831,18 @@
     "original_hash": "8347ef1970813e6c9581733a1f825bd3",
     "translation_date": "2026-02-09T00:46:03+00:00",
     "source_file": "11-MCPServerHandsOnLabs/README.md",
+    "language_code": "pcm"
+  },
+  "12-tooling/01-copilot-app/README.md": {
+    "original_hash": "c4ef331209eb90450423e7997a229c37",
+    "translation_date": "2026-06-25T00:06:48+00:00",
+    "source_file": "12-tooling/01-copilot-app/README.md",
+    "language_code": "pcm"
+  },
+  "12-tooling/README.md": {
+    "original_hash": "5c2482cafe5558a25f03bb860cdd6bb4",
+    "translation_date": "2026-06-25T00:05:53+00:00",
+    "source_file": "12-tooling/README.md",
     "language_code": "pcm"
   },
   "AGENTS.md": {
@@ -846,8 +858,8 @@
     "language_code": "pcm"
   },
   "README.md": {
-    "original_hash": "4c46c5992d1bdcd4c434a4afceeb57f3",
-    "translation_date": "2026-06-16T22:25:42+00:00",
+    "original_hash": "cd2e44a0f3306fc3b7625ce89d6c99bb",
+    "translation_date": "2026-06-25T00:02:37+00:00",
     "source_file": "README.md",
     "language_code": "pcm"
   },
@@ -864,14 +876,14 @@
     "language_code": "pcm"
   },
   "changelog.md": {
-    "original_hash": "8dc16135635970ac92a01139e39798e6",
-    "translation_date": "2026-06-16T22:28:53+00:00",
+    "original_hash": "b9407ed4e52f36c623c69d5547498abd",
+    "translation_date": "2026-06-25T00:04:30+00:00",
     "source_file": "changelog.md",
     "language_code": "pcm"
   },
   "study_guide.md": {
-    "original_hash": "96f919c7812633050d597ec8c5903c8b",
-    "translation_date": "2026-06-16T22:29:49+00:00",
+    "original_hash": "b3ba42e9b4c53f808820579d1729cfcb",
+    "translation_date": "2026-06-25T00:05:01+00:00",
     "source_file": "study_guide.md",
     "language_code": "pcm"
   }

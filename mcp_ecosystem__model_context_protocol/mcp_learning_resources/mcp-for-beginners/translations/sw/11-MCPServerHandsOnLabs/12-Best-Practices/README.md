@@ -1,56 +1,56 @@
-# Mbinu Bora na Uboreshaji
+# Mazoea Bora na Uboreshaji
 
-## 🎯 Nini Maabara Hii Inashughulikia
+## 🎯 Kile Maabara Hii Inajumuisha
 
-Maabara hii ya mwisho inajumuisha mbinu bora, mbinu za uboreshaji, na miongozo ya uzalishaji kwa ajili ya kujenga seva za MCP zenye nguvu, zinazoweza kupanuka, na salama pamoja na ujumuishaji wa hifadhidata. Utajifunza kutoka kwa uzoefu wa ulimwengu halisi na viwango vya sekta ili kuhakikisha utekelezaji wako uko tayari kwa uzalishaji.
+Maabara hii ya capstone inakusanya mazaliwa bora, mbinu za uboreshaji, na miongozo ya uzalishaji kwa ajili ya kujenga seva thabiti za MCP zinazoweza kupanuka na zilizo salama kwa ushirikiano wa hifadhidata. Utajifunza kutoka kwa uzoefu wa dunia halisi na viwango vya tasnia ili kuhakikisha utekelezaji wako uko tayari kwa uzalishaji.
 
 ## Muhtasari
 
-Kujenga seva ya MCP yenye mafanikio ni zaidi ya kuhakikisha tu kwamba msimbo unafanya kazi. Maabara hii inashughulikia mbinu muhimu zinazotofautisha utekelezaji wa uthibitisho wa dhana kutoka kwa mifumo iliyokamilika kwa uzalishaji ambayo inaweza kupanuka, kufanya kazi kwa uaminifu, na kudumisha viwango vya usalama.
+Kujenga seva yenye mafanikio ya MCP ni zaidi ya kupata msimbo ufanye kazi tu. Maabara hii inashughulikia mazoea muhimu yanayotofautisha utekelezaji wa uthibitisho wa dhana na mifumo iliyotayarishwa kwa uzalishaji ambayo inaweza kupanuka, kufanya kazi kwa uaminifu, na kudumisha viwango vya usalama.
 
-Mbinu hizi bora zinatokana na utekelezaji wa ulimwengu halisi, maoni ya jamii, na masomo yaliyopatikana kutoka kwa utekelezaji wa biashara.
+Mazoea haya bora yanatokana na utekelezaji halisi, maoni ya jamii, na masomo yaliyopatikana kutoka kwa utekelezaji wa makampuni.
 
 ## Malengo ya Kujifunza
 
 Mwisho wa maabara hii, utaweza:
 
-- **Kutumia** mbinu za uboreshaji wa utendaji kwa seva za MCP na hifadhidata  
-- **Kutekeleza** hatua za kina za kuimarisha usalama  
-- **Kubuni** mifumo ya usanifu inayoweza kupanuka kwa mazingira ya uzalishaji  
-- **Kuweka** taratibu za ufuatiliaji, matengenezo, na operesheni  
-- **Kuboreshaji** gharama huku ukidumisha utendaji na uaminifu  
-- **Kuchangia** kwa jamii na mfumo wa MCP  
+- **Tumia** mbinu za uboreshaji wa utendaji kwa seva za MCP na hifadhidata  
+- **Tekeleza** hatua za kina za kuimarisha usalama  
+- **Buni** mifumo inayoweza kupanuka kwa mazingira ya uzalishaji  
+- **Shirikisha** taratibu za ufuatiliaji, matengenezo, na uendeshaji  
+- **Boresha** gharama huku ukidumisha utendaji na uaminifu  
+- **Changia** kwa jamii na mfumo wa MCP  
 
 ## 🚀 Uboreshaji wa Utendaji
 
 ### Utendaji wa Hifadhidata
 
-#### Uboreshaji wa Pool ya Muunganisho
+#### Uboreshaji wa Kundi la Muunganisho
 
 ```python
-# Optimized connection pool configuration
+# Usaidizi wa usanifu wa kikundi cha muunganisho ulioboreshwa
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Usanifu wa ukubwa
+    "min_size": max(2, cpu_count()),           # Angalau 2, pandisha kulingana na CPU
+    "max_size": min(20, cpu_count() * 4),     # Weka kifungo kwa kiwango cha juu kinachokubalika
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Usanifu wa wakati
+    "max_inactive_connection_lifetime": 300,   # Dakika 5
+    "command_timeout": 30,                     # Sekunde 30
+    "max_queries": 50000,                      # Zungusha miunganisho
     
-    # PostgreSQL settings
+    # Mipangilio ya PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Zima kwa ajili ya uthabiti
+        "work_mem": "8MB",                     # Boreshaji kwa ajili ya maswali
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Andika marekebisho pekee
+        "log_min_duration_statement": "1s",   # Andika maswali yanayochelewa
     }
 }
 ```
-  
+
 #### Mifumo ya Uboreshaji wa Maswali
 
 ```python
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # sekunde
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Angalia kwa cache kwanza
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Endesha kwa ufuatiliaji
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Boresha utekelezaji wa hivi
+                await conn.execute("SET enable_seqscan = off")  # Tumia vipaumbele vya viashiria
+                await conn.execute("SET work_mem = '16MB'")     # Kumbukumbu zaidi kwa hivi
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Weka kumbukumbu za hivi polepole
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Hifadhi matokeo yenye mafanikio kwenye cache
+                if cache_key and len(result) < 1000:  # Usihifadhi matokeo makubwa kwenye cache
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Mapendekezo ya viashiria
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Viashiria vya biashara kuu
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Viashiria vya uchambuzi
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Uboreshaji wa utafutaji wa vector
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
 ### Utendaji wa Programu
 
-#### Mbinu Bora za Programu ya Async
+#### Mazoea Bora ya Uandishi wa Async
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Fanya kazi kwa kundi ili kuepuka kuipindukia mfumo
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Chelezo kidogo kati ya makundi ili kuzuia matumizi kupita kiasi ya rasilimali
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Utekelezaji wa kifunguo cha mzunguko
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # IMEFUNGWA, IMEFUNGULIWA, NUSU_IMEFUNGULIWA
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Weka upya kwa mafanikio
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,9 +214,8 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
-### Mikakati ya Kuhifadhi Cache
+### Mikakati ya Kufanya Kumbukumbu
 
 ```python
 import redis
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Kiwango cha 1: Kache ya kumbukumbu
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Kiwango cha 2: Kache ya Redis
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Kukuza hadi kache ya kumbukumbu
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Tekeleza utoaji wa LRU
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Uundaji wa funguo za kache
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,11 +303,10 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
 ## 🔒 Kuimarisha Usalama
 
-### Uthibitishaji na Uidhinishaji
+### Uthibitishaji na Ruhusa
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Chota na hakiki uthibitisho
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Hakiki tokeni
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Angalia ukomo wa kiwango
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Hakiki muktadha wa RLS
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Pata ufunguo wa umma kutoka Key Vault au cache
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Tafsiri na hakiki tokeni
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Wasimamizi wakuu wanaweza kufikia muktadha wowote
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Wasimamizi wa maduka wanaweza kufikia duka lao pekee
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Wasimamizi wa kanda wanaweza kufikia maduka mengi
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Hakiki na usafishaji wa ingizo
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Mifumo iliyoruhusiwa
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Ruhusu tu taarifa za SELECT
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,17 +439,16 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Ruhusu herufi na nambari, alama ya mstari chini, na nukta pekee
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Hakiki dhidi ya meza zilizoruhusiwa
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
 ### Ulinzi wa Data
 
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Katika uzalishaji, pata kutoka Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Mbali ya chaguo kwa maendeleo (si kwa uzalishaji!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # marudio
         ).hex()
         
         return password_hash, salt
@@ -527,7 +523,6 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
 ## 📊 Miongozo ya Utekelezaji wa Uzalishaji
 
@@ -611,7 +606,6 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
 ### Uboreshaji wa Kontena
 
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
 ### Usanidi wa Mazingira
 
 ```python
-# Production configuration management
+# Usimamizi wa usanidi wa uzalishaji
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,23 +715,22 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Weka wakaguzi wa pande za tatu kwa ONYO
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Zima hali ya urekebishaji
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Weka vichwa salama
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
 ## 💰 Uboreshaji wa Gharama
 
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Mzigo mdogo
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Mzigo wa wastani
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Mzigo mkubwa
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Operesheni za ghali za cache
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Mipangilio ya upanuzi wa kibinafsi
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Upanuzi unaotegemea CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Upanuzi unaotegemea kumbukumbu
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Upanuzi wa foleni ya maombi
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,9 +810,8 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 Matengenezo na Operesheni
+## 🔧 Matengenezo na Uendeshaji
 
 ### Ufuatiliaji wa Afya
 
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Afya ya hifadhidata
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Afya ya huduma za nje
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Rasilimali za mfumo
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Vipimo vya programu
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Kubainisha hali jumla
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Kusababisha tahadhari
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Muunganisho wa msingi
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Kagua maswali yanayochelewa
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Kagua idadi ya muunganisho
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Nakala rudufu na urejeshaji otomatiki
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Pakia kwa Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Nakala rudufu kamili kila siku saa 8 usiku saa za UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Nakala rudufu za kuongeza kila saa
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
 ## 🌍 Michango ya Jamii
 
-### Mbinu Bora za Chanzo Huria
+### Mazoea Bora ya Chanzo Huria
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,9 +984,8 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
-### Ushirikiano wa Jamii
+### Ushiriki wa Jamii
 
 ```python
 class CommunityContributor:
@@ -1036,80 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Ningetekeleza ukaguzi halisi
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 Mambo Muhimu ya Kujifunza
+## 🎯 Muhimu wa Kujifunza
 
-Baada ya kukamilisha njia hii ya kujifunza kwa kina, unapaswa kuwa umebobea:
+Baada ya kukamilisha njia hii ya kina ya kujifunza, unapaswa kuwa umemaster:
 
-✅ **Uboreshaji wa Utendaji**: Urekebishaji wa hifadhidata, mifumo ya async, na mikakati ya kuhifadhi cache  
-✅ **Kuimarisha Usalama**: Uthibitishaji, uidhinishaji, na ulinzi wa data  
+✅ **Uboreshaji wa Utendaji**: Kurekebisha hifadhidata, mifumo ya async, na mikakati ya caching  
+✅ **Kuimarisha Usalama**: Uthibitishaji, ruhusa, na ulinzi wa data  
 ✅ **Utekelezaji wa Uzalishaji**: Miundombinu kama msimbo na uboreshaji wa kontena  
-✅ **Usimamizi wa Gharama**: Uboreshaji wa rasilimali na upanuzi wa akili  
-✅ **Ubora wa Operesheni**: Ufuatiliaji, matengenezo, na otomatiki  
+✅ **Usimamizi wa Gharama**: Uboreshaji wa rasilimali na kupanua kwa busara  
+✅ **Ubora wa Uendeshaji**: Ufuatiliaji, matengenezo, na uendeshaji wa moja kwa moja  
 ✅ **Ushirikiano wa Jamii**: Kuchangia kwa mfumo wa MCP  
 
-## 🏆 Vyeti na Hatua Zifuatazo
+## 🏆 Cheti na Hatua Zifuatazo
 
-### Tathmini ya Kivitendo
+### Tathmini ya Vitendo
 
-Kamilisha mradi huu wa mwisho ili kuonyesha umahiri wako:
+Kamilisha mradi huu wa mwisho kuonyesha umahiri wako:
 
-**Jenga Seva ya MCP Iliyokamilika kwa Uzalishaji** inayojumuisha:  
-- [ ] Uchambuzi wa rejareja wa wateja wengi na RLS  
-- [ ] Utafutaji wa semantiki na Azure OpenAI  
-- [ ] Utekelezaji wa usalama wa kina  
+**Jenga Seva ya MCP Iliyoko Tayari kwa Uzalishaji** ambayo ni pamoja na:  
+- [ ] Uchambuzi wa rejareja kwa wamiliki wengi na RLS  
+- [ ] Utafutaji wa maana kwa Azure OpenAI  
+- [ ] Utekelezaji wa usalama kamili  
 - [ ] Utekelezaji wa uzalishaji kwenye Azure  
-- [ ] Usanidi wa ufuatiliaji na tahadhari  
-- [ ] Nyaraka na upimaji  
+- [ ] Usanidi wa ufuatiliaji na arifa  
+- [ ] Nyaraka na majaribio  
 
-### Njia za Kujifunza za Juu
+### Njia za Kujifunza Zaidi
 
-Endelea na safari yako ya MCP kwa:
+Endelea safari yako ya MCP na:  
 
-- **Mifumo ya Usanifu wa MCP**: Miundombinu ya seva ya hali ya juu  
-- **Ujumuishaji wa Miundo Mingi**: Kuchanganya mifano tofauti ya AI  
-- **Upanuzi wa Biashara**: Utekelezaji wa MCP kwa kiwango kikubwa  
-- **Maendeleo ya Zana Maalum**: Kujenga zana maalum za MCP  
+- **Mifumo ya Miundo ya MCP**: Miundo ya seva ya hali ya juu  
+- **Ushirikiano wa Modeli Mbili**: Kuchanganya modeli tofauti za AI  
+- **Kiwango cha Kampuni**: Utekelezaji mkubwa wa MCP  
+- **Uundaji wa Zana Binafsi**: Kujenga zana maalum za MCP  
 - **Mfumo wa MCP**: Kuchangia kwa jamii pana  
 
-### Kutambuliwa na Jamii
+### Kutambuliwa kwa Jamii
 
 Shiriki mafanikio yako:  
-- **Portfolio ya GitHub**: Onyesha utekelezaji wako  
-- **Michango ya Jamii**: Wasilisha maboresho au mifano  
-- **Fursa za Kuzungumza**: Wasilisha kwenye mikutano au kongamano  
-- **Kufundisha**: Saidia watengenezaji wengine kujifunza MCP  
+- **Wasifu wa GitHub**: Onyesha utekelezaji wako  
+- **Michango ya Jamii**: Tuma maboresho au mifano  
+- **Fursa za Kuwasilisha**: Toa mada kwenye mikutano au warsha  
+- **Ushauri**: Saidia waendelezaji wengine kujifunza MCP  
 
-## 📚 Rasilimali za Ziada
+## 📚 Rasilimali Zaidi
 
-### Mada za Juu  
+### Mada Zinazoendelea  
 - [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Uboreshaji wa hifadhidata  
 - [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Utekelezaji wa uzalishaji  
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Programu ya async  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Uandishi wa programu za async  
 
 ### Rasilimali za Usalama  
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Udhaifu wa usalama  
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Udhuru wa usalama  
 - [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Usalama wa wingu  
-- [Python Security Guidelines](https://python.org/dev/security/) - Uandishi wa msimbo salama  
+- [Python Security Guidelines](https://python.org/dev/security/) - Kuandika msimbo salama  
 
 ### Jamii  
 - [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Majadiliano ya moja kwa moja  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Maswali na majibu  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Maswali na mashiriki  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Maswali ya kiufundi  
 
 ---
 
-**🎉 Hongera!** Umekamilisha njia ya kujifunza ya ujumuishaji wa hifadhidata ya MCP kwa kina. Sasa una maarifa na ujuzi wa kujenga seva za MCP zilizokamilika kwa uzalishaji zinazounganisha wasaidizi wa AI na mifumo ya data ya ulimwengu halisi.
+**🎉 Hongera!** Umehitimisha njia kamili ya kujifunza MCP Database Integration. Sasa una ujuzi na uwezo wa kujenga seva za MCP tayari kwa uzalishaji zinazounganisha wasaidizi wa AI na mifumo halisi ya data.
 
-**Uko tayari kuchangia?** Jiunge na jamii yetu na saidia wengine kujifunza MCP kwa kushiriki uzoefu wako, kuchangia maboresho ya msimbo, au kuunda rasilimali za ziada za kujifunza.
+**Tayari kuchangia?** Jiunge na jamii yetu na saidia wengine kujifunza MCP kwa kushiriki uzoefu wako, kuchangia maboresho ya msimbo, au kuunda rasilimali zaidi za kujifunza.
+
+**Ifuatayo**: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Kanusho**:  
-Hati hii imetafsiriwa kwa kutumia huduma ya kutafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kuhakikisha usahihi, tafadhali fahamu kuwa tafsiri za kiotomatiki zinaweza kuwa na makosa au kutokuwa sahihi. Hati ya asili katika lugha yake ya awali inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu ya binadamu inapendekezwa. Hatutawajibika kwa kutoelewana au tafsiri zisizo sahihi zinazotokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

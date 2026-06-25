@@ -1,52 +1,52 @@
 # सर्वोत्तम पद्धती आणि ऑप्टिमायझेशन
 
-## 🎯 या प्रयोगशाळेत काय समाविष्ट आहे
+## 🎯 या लॅबमध्ये काय समाविष्ट आहे
 
-ही अंतिम प्रयोगशाळा मजबूत, स्केलेबल आणि सुरक्षित MCP सर्व्हर तयार करण्यासाठी डेटाबेस एकत्रीकरणासह सर्वोत्तम पद्धती, ऑप्टिमायझेशन तंत्र आणि उत्पादन मार्गदर्शक तत्त्वे एकत्र करते. तुम्ही उत्पादनासाठी तयार अंमलबजावणी सुनिश्चित करण्यासाठी वास्तविक जगातील अनुभव आणि उद्योग मानकांमधून शिकाल.
+हा कॅपस्टोन लॅब मजबूत, मापनक्षम आणि सुरक्षित MCP सर्व्हर्स तयार करण्यासाठी सर्वोत्तम पद्धती, ऑप्टिमायझेशन तंत्र आणि उत्पादन मार्गदर्शक तत्त्वे एकत्र करत आहे, ज्यासाठी डेटाबेस इंटिग्रेशनसह. तुम्हाला वास्तविक जगातील अनुभव आणि उद्योग मानके शिकता येतील जेणेकरून तुमच्या अंमलबजावणीसाठी उत्पादनासाठी तयार असल्याचे सुनिश्चित होते.
 
 ## आढावा
 
-यशस्वी MCP सर्व्हर तयार करणे म्हणजे केवळ कोड कार्यरत करणे नाही. ही प्रयोगशाळा आवश्यक पद्धतींचा समावेश करते ज्यामुळे प्रूफ-ऑफ-कॉन्सेप्ट अंमलबजावणी उत्पादनासाठी तयार प्रणालींमध्ये बदलतात ज्या स्केल करू शकतात, विश्वासार्हपणे कार्य करू शकतात आणि सुरक्षा मानकांचे पालन करू शकतात.
+यशस्वी MCP सर्व्हर तयार करणे फक्त कोड चालतो यावर आधारित नाही. ही लॅब अशा महत्त्वाच्या पद्धतींचा समावेश करते जे सिद्धांताच्या अंमलबजावणीला उत्पादनासाठी तयार प्रणालींपासून वेगळे करतात ज्या मापनक्षम, विश्वासार्ह कामगिरी करणाऱ्या आणि सुरक्षा मानके राखणाऱ्या असतात.
 
-या सर्वोत्तम पद्धती वास्तविक जगातील उपयोजन, समुदाय अभिप्राय आणि एंटरप्राइझ अंमलबजावणीमधून शिकलेल्या धड्यांवर आधारित आहेत.
+ही सर्वोत्तम पद्धती वास्तविक जगातील तैनातींवर, समुदायाच्या अभिप्रायावर आणि एंटरप्राइझ अंमलबजावण्यांमधून मिळालेल्या धड्यांवर आधारलेली आहेत.
 
 ## शिकण्याची उद्दिष्टे
 
-या प्रयोगशाळेच्या शेवटी, तुम्ही सक्षम असाल:
+या लॅबच्या शेवटी, तुम्ही सक्षम असाल:
 
-- **अंमलात आणा** MCP सर्व्हर आणि डेटाबेससाठी कार्यक्षमता ऑप्टिमायझेशन तंत्र
-- **अंमलात आणा** व्यापक सुरक्षा कडक उपाय
-- **डिझाइन करा** उत्पादन वातावरणासाठी स्केलेबल आर्किटेक्चर नमुने
-- **स्थापित करा** मॉनिटरिंग, देखभाल आणि ऑपरेशनल प्रक्रिया
-- **ऑप्टिमाइझ करा** कार्यक्षमता आणि विश्वासार्हता राखून खर्च
-- **योगदान द्या** MCP समुदाय आणि परिसंस्थेत
+- **लागू करा** MCP सर्व्हर आणि डेटाबेससाठी कामगिरी सुधारणा तंत्रे  
+- **अंमलबजावणी करा** संपूर्ण सुरक्षा हार्डनिंग उपाय  
+- **डिझाईन करा** उत्पादन पर्यावरणांसाठी मापनक्षम आर्किटेक्चर नमुने  
+- **प्रस्थापित करा** निरीक्षण, देखभाल आणि ऑपरेशनल प्रक्रिया  
+- **ऑप्टिमायझ करा** कामगिरी आणि विश्वासार्हता राखून खर्च  
+- **योगदान द्या** MCP समुदाय आणि परिसंस्थेला
 
-## 🚀 कार्यक्षमता ऑप्टिमायझेशन
+## 🚀 कामगिरी सुधारणा
 
-### डेटाबेस कार्यक्षमता
+### डेटाबेस कामगिरी
 
 #### कनेक्शन पूल ऑप्टिमायझेशन
 
 ```python
-# Optimized connection pool configuration
+# अनुकूलित कनेक्शन पूल संरचना
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # आकार संरचना
+    "min_size": max(2, cpu_count()),           # किमान २, CPU नुसार प्रमाण वाढवा
+    "max_size": min(20, cpu_count() * 4),     # योग्य जास्तीत जास्त मर्यादा ठेवा
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # वेळ संरचना
+    "max_inactive_connection_lifetime": 300,   # ५ मिनिटे
+    "command_timeout": 30,                     # ३० सेकंद
+    "max_queries": 50000,                      # कनेक्शन्स फिरवा
     
-    # PostgreSQL settings
+    # PostgreSQL सेटिंग्ज
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # सुसंगततेसाठी अक्षम करा
+        "work_mem": "8MB",                     # चौकश्या साठी अनुकूल करा
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # फक्त सुधारणा लॉग करा
+        "log_min_duration_statement": "1s",   # मंद चौकश्या लॉग करा
     }
 }
 ```
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # सेकंद
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # प्रथम कॅश तपासा
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # निरीक्षणासह अंमलात आणा
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # क्वेरी अंमलबजावणी सुधारित करा
+                await conn.execute("SET enable_seqscan = off")  # निर्देशांक प्राधान्य द्या
+                await conn.execute("SET work_mem = '16MB'")     # या क्वेरीसाठी अधिक मेमरी
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # धीम्या क्वेरीची नोंद करा
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # यशस्वी निकाल कॅश करा
+                if cache_key and len(result) < 1000:  # मोठे निकाल कॅश करू नका
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,25 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# निर्देशांक शिफारसी
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # मुख्य व्यवसाय निर्देशांक
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # विश्लेषण निर्देशांक
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # व्हेक्टर शोध सुधारणा
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
 
-### अनुप्रयोग कार्यक्षमता
+### अनुप्रयोग कामगिरी
 
-#### असिंक्रोन प्रोग्रामिंग सर्वोत्तम पद्धती
+#### असिंक्रोनस प्रोग्रामिंग सर्वोत्तम पद्धती
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # प्रणालीवर ताण येऊ नये म्हणून बॅचमध्ये प्रक्रिया करा
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # संसाधने संपुष्टात येऊ नयेत म्हणून बॅच दरम्यान थोडा विलंब करा
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# सर्किट ब्रेकरची अंमलबजावणी
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # बंद, उघडा, अर्धे उघडे
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # यशस्वी झाल्यावर रीसेट करा
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +215,7 @@ class CircuitBreaker:
             raise
 ```
 
-### कॅशिंग रणनीती
+### कॅशिंग धोरणे
 
 ```python
 import redis
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # स्तर 1: मेमरी कॅश
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # स्तर 2: रेडिस कॅश
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # मेमरी कॅशमध्ये प्रोमोट करा
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # LRU निकास लागू करा
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# कॅश की निर्माण करा
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,7 +304,7 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 सुरक्षा कडक करणे
+## 🔒 सुरक्षा हार्डनिंग
 
 ### प्रमाणीकरण आणि अधिकृतता
 
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # प्रमाणीकरण काढा आणि सत्यापित करा
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # टोकनची पडताळणी करा
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # दर मर्यादा तपासा
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # RLS संदर्भाचे सत्यापन करा
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # की वॉल्ट किंवा कॅशेमधून सार्वजनिक की मिळवा
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # टोकन डिकोड करा आणि सत्यापित करा
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # सुपर अॅडमिन्सना कोणत्याही संदर्भात प्रवेश असतो
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # स्टोअर मॅनेजर फक्त त्यांच्या स्वतःच्या स्टोअरमध्ये प्रवेश करू शकतात
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # क्षेत्रीय मॅनेजरांना अनेक स्टोअरमध्ये प्रवेश मिळू शकतो
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# इनपुटचे सत्यापन आणि स्वच्छता
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # बंदी घातलेले नमुने
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # फक्त SELECT स्टेटमेंट्सना परवानगी द्या
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # फक्त अल्फान्यूमेरिक, अंडरस्कोर आणि डॉटला परवानगी द्या
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # परवानगी असलेल्या टेबल्सविरुद्ध सत्यापित करा
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # उत्पादनात, Azure Key Vault मधून मिळवा
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # विकासासाठी पर्याय (उत्पादनासाठी नाही!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # पुनरावृत्ती
         ).hex()
         
         return password_hash, salt
@@ -524,9 +524,9 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 उत्पादन उपयोजन मार्गदर्शक तत्त्वे
+## 📊 उत्पादन तैनाती मार्गदर्शक तत्त्वे
 
-### कोड म्हणून पायाभूत सुविधा
+### इन्फ्रास्ट्रक्चर एज कोड
 
 ```yaml
 # azure-pipelines.yml
@@ -666,7 +666,7 @@ CMD ["python", "-m", "mcp_server.sales_analysis"]
 ### पर्यावरण कॉन्फिगरेशन
 
 ```python
-# Production configuration management
+# उत्पादन कॉन्फिगरेशन व्यवस्थापन
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -709,23 +709,23 @@ class ProductionConfig:
                 logging.StreamHandler(sys.stdout),
                 logging.handlers.RotatingFileHandler(
                     '/var/log/mcp-server.log',
-                    maxBytes=50*1024*1024,  # 50MB
+                    maxBytes=50*1024*1024,  # ५०MB
                     backupCount=5
                 )
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # तृतीय-पक्ष लॉगरना WARNING वर सेट करा
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # डीबग मोड अक्षम करा
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # सुरक्षित हेडर्स सेट करा
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # कमी लोड
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # मध्यम लोड
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # जास्त लोड
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # कॅश महागड्या ऑपरेशन्स
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# ऑटो-स्केलिंग संरचना
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPU-आधारित स्केलिंग
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # मेमरी-आधारित स्केलिंग
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # विनंती कतार स्केलिंग
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -813,7 +813,7 @@ class AutoScaler:
 
 ## 🔧 देखभाल आणि ऑपरेशन्स
 
-### आरोग्य मॉनिटरिंग
+### आरोग्य निरीक्षण
 
 ```python
 class OperationalHealth:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # डेटाबेस आरोग्य
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # बाह्य सेवा आरोग्य
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # प्रणाली संसाधने
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # अॅप्लिकेशन मेट्रिक्स
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # एकूण स्थिती ठरवा
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # अलर्ट सक्रिय करा
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # मूलभूत कनेक्टिव्हिटी
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # हळू विनंत्या तपासा
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # कनेक्शन संख्या तपासा
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# स्वयंचलित बॅकअप आणि पुनर्प्राप्ती
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Azure Blob स्टोरेज मध्ये अपलोड करा
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,12 +932,12 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # दररोज 2 AM UTC वाजता पूर्ण बॅकअप
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # तासागणिक वाढत्या बॅकअप्स
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
@@ -945,7 +945,7 @@ class BackupManager:
 
 ## 🌍 समुदाय योगदान
 
-### ओपन सोर्स सर्वोत्तम पद्धती
+### मुक्त स्रोत सर्वोत्तम पद्धती
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # प्रत्यक्ष तपासणी लागू करेल
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 मुख्य मुद्दे
+## 🎯 मुख्य घेतलेले मुद्दे
 
-या व्यापक शिक्षण मार्ग पूर्ण केल्यानंतर, तुम्ही खालील गोष्टींमध्ये प्रवीण असाल:
+या सर्वसमावेशक शिकण्याच्या मार्गक्रमणानंतर, तुम्ही पारंगत असाल:
 
-✅ **कार्यक्षमता ऑप्टिमायझेशन**: डेटाबेस ट्यूनिंग, असिंक्रोन नमुने आणि कॅशिंग रणनीती  
-✅ **सुरक्षा कडक करणे**: प्रमाणीकरण, अधिकृतता आणि डेटा संरक्षण  
-✅ **उत्पादन उपयोजन**: कोड म्हणून पायाभूत सुविधा आणि कंटेनर ऑप्टिमायझेशन  
-✅ **खर्च व्यवस्थापन**: संसाधन ऑप्टिमायझेशन आणि बुद्धिमान स्केलिंग  
-✅ **ऑपरेशनल उत्कृष्टता**: मॉनिटरिंग, देखभाल आणि ऑटोमेशन  
-✅ **समुदाय सहभाग**: MCP परिसंस्थेत योगदान देणे  
+✅ **कामगिरी सुधारणा**: डेटाबेस ट्युनिंग, असिंक्रोनस पॅटर्न आणि कॅशिंग धोरणे  
+✅ **सुरक्षा हार्डनिंग**: प्रमाणीकरण, अधिकृतता आणि डेटा संरक्षण  
+✅ **उत्पादन तैनाती**: इन्फ्रास्ट्रक्चर एज कोड आणि कंटेनर ऑप्टिमायझेशन  
+✅ **खर्च व्यवस्थापन**: संसाधन ऑप्टिमायझेशन आणि बुद्धिमान मापन  
+✅ **ऑपरेशनल उत्कर्ष**: निरीक्षण, देखभाल आणि स्वयंचलन  
+✅ **समुदाय सहभाग**: MCP परिसंस्थेला योगदान देणे  
 
-## 🏆 प्रमाणपत्र आणि पुढील पावले
+## 🏆 प्रमाणपत्र आणि पुढील टप्पे
 
-### व्यावहारिक मूल्यांकन
+### व्यावहारिक मूल्यमापन
 
-तुमची प्रवीणता सिद्ध करण्यासाठी हा अंतिम प्रकल्प पूर्ण करा:
+तुमची पारंगतता दाखवण्यासाठी हा अंतिम प्रकल्प पूर्ण करा:
 
-**उत्पादनासाठी तयार MCP सर्व्हर तयार करा** ज्यामध्ये समाविष्ट आहे:
-- [ ] RLS सह मल्टी-टेनंट रिटेल अॅनालिटिक्स
-- [ ] Azure OpenAI सह सेमॅंटिक शोध
-- [ ] व्यापक सुरक्षा अंमलबजावणी
-- [ ] Azure वर उत्पादन उपयोजन
-- [ ] मॉनिटरिंग आणि अलर्टिंग सेटअप
+**उत्पादनासाठी तयार MCP सर्व्हर तयार करा** ज्यात समाविष्ट आहे:  
+- [ ] RLS सह मल्टि-टेनेट रिटेल अ‍ॅनालिटिक्स  
+- [ ] Azure OpenAI सह अर्थपूर्ण शोध  
+- [ ] संपूर्ण सुरक्षा अंमलबजावणी  
+- [ ] Azure वर उत्पादन तैनाती  
+- [ ] निरीक्षण आणि चेतावणी सेटअप  
 - [ ] दस्तऐवजीकरण आणि चाचणी
 
-### प्रगत शिक्षण मार्ग
+### प्रगत शिकण्याचे मार्ग
 
-तुमचा MCP प्रवास सुरू ठेवा:
+आपला MCP प्रवास पुढे चालू ठेवा:
 
-- **MCP आर्किटेक्चर नमुने**: प्रगत सर्व्हर आर्किटेक्चर
-- **मल्टी-मॉडेल एकत्रीकरण**: वेगवेगळ्या AI मॉडेल्सचे संयोजन
-- **एंटरप्राइझ स्केल**: मोठ्या प्रमाणावर MCP उपयोजन
-- **कस्टम टूल डेव्हलपमेंट**: विशेष MCP टूल्स तयार करणे
-- **MCP परिसंस्था**: व्यापक समुदायात योगदान देणे
+- **MCP आर्किटेक्चर पॅटर्न्स**: प्रगत सर्व्हर आर्किटेक्चर  
+- **मल्टि-मॉडेल इंटिग्रेशन**: विविध AI मॉडेल्सचे समावेशन  
+- **एंटरप्राइझ स्केल**: मोठ्या प्रमाणावर MCP तैनाती  
+- **कस्टम टूल विकास**: खास MCP साधने तयार करणे  
+- **MCP परिसंस्था**: व्यापक समुदायाला योगदान
 
 ### समुदाय मान्यता
 
-तुमची उपलब्धी शेअर करा:
-- **GitHub पोर्टफोलिओ**: तुमची अंमलबजावणी प्रदर्शित करा
-- **समुदाय योगदान**: सुधारणा किंवा उदाहरणे सादर करा
-- **बोलण्याच्या संधी**: मीटअप किंवा परिषदांमध्ये सादरीकरण करा
-- **मेंटॉरिंग**: इतर विकसकांना MCP शिकण्यास मदत करा
+तुमचा यशस्वीपणा शेअर करा:  
+- **GitHub पोर्टफोलिओ**: तुमच्या अंमलबजावणीचे प्रदर्शन करा  
+- **समुदाय योगदान**: सुधारणा किंवा उदाहरणे सादर करा  
+- **उपस्थिती संधी**: मिटिंग्ज किंवा परिषदांत सादरीकरण करा  
+- **मार्गदर्शन**: इतर विकसकांना MCP शिकवण्यास मदत करा
 
 ## 📚 अतिरिक्त संसाधने
 
-### प्रगत विषय
-- [PostgreSQL कार्यक्षमता ट्यूनिंग](https://www.postgresql.org/docs/current/performance-tips.html) - डेटाबेस ऑप्टिमायझेशन
-- [Azure कंटेनर अॅप्स सर्वोत्तम पद्धती](https://docs.microsoft.com/azure/container-apps/overview) - उत्पादन उपयोजन
-- [Python Async सर्वोत्तम पद्धती](https://docs.python.org/3/library/asyncio-dev.html) - असिंक्रोन प्रोग्रामिंग
+### प्रगत विषय  
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - डेटाबेस ऑप्टिमायझेशन  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - उत्पादन तैनाती  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - असिंक्रोनस प्रोग्रामिंग
 
-### सुरक्षा संसाधने
-- [OWASP टॉप 10](https://owasp.org/www-project-top-ten/) - सुरक्षा असुरक्षितता
-- [Azure सुरक्षा सर्वोत्तम पद्धती](https://docs.microsoft.com/azure/security/) - क्लाउड सुरक्षा
-- [Python सुरक्षा मार्गदर्शक तत्त्वे](https://python.org/dev/security/) - सुरक्षित कोडिंग
+### सुरक्षा संसाधने  
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - सुरक्षा धोके  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - क्लाउड सुरक्षा  
+- [Python Security Guidelines](https://python.org/dev/security/) - सुरक्षित कोडिंग
 
-### समुदाय
-- [MCP समुदाय Discord](https://discord.com/invite/ByRwuEEgH4) - थेट चर्चा
-- [GitHub चर्चा](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - प्रश्नोत्तर आणि शेअरिंग
+### समुदाय  
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - थेट चर्चासत्र  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - प्रश्नोत्तरे आणि सामायिकरण  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - तांत्रिक प्रश्न
 
 ---
 
-**🎉 अभिनंदन!** तुम्ही व्यापक MCP डेटाबेस एकत्रीकरण शिक्षण मार्ग पूर्ण केला आहे. तुम्हाला उत्पादनासाठी तयार MCP सर्व्हर तयार करण्यासाठी आवश्यक ज्ञान आणि कौशल्ये मिळाली आहेत जे AI सहाय्यकांना वास्तविक जगातील डेटा प्रणालींशी जोडतात.
+**🎉 अभिनंदन!** तुम्ही व्यापक MCP डेटाबेस इंटिग्रेशन शिकण्याचा मार्गक्रमण पूर्ण केला आहे. तुम्हाला आता उत्पादनासाठी तयार MCP सर्व्हर तयार करण्याचे ज्ञान आणि कौशल्ये आहेत जे AI सहाय्यकांना वास्तविक जगातील डेटा प्रणालींबरोबर जोडतात.
 
-**योगदान देण्यासाठी तयार आहात?** आमच्या समुदायात सामील व्हा आणि तुमचे अनुभव शेअर करून, कोड सुधारणा योगदान देऊन किंवा अतिरिक्त शिक्षण संसाधने तयार करून इतरांना MCP शिकण्यास मदत करा.
+**योगदान देण्यास तयार आहात का?** आमच्या समुदायात सामील व्हा आणि तुमचा अनुभव, कोड सुधारणा किंवा अतिरिक्त शिकण्याच्या संसाधनांसह इतरांना MCP शिकण्यात मदत करा.
+
+**पुढे:** [Tooling](../../12-tooling/README.md)
 
 ---
 
-**अस्वीकरण**:  
-हा दस्तऐवज AI भाषांतर सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) चा वापर करून भाषांतरित करण्यात आला आहे. आम्ही अचूकतेसाठी प्रयत्नशील असलो तरी कृपया लक्षात ठेवा की स्वयंचलित भाषांतरांमध्ये त्रुटी किंवा अचूकतेचा अभाव असू शकतो. मूळ भाषेतील दस्तऐवज हा अधिकृत स्रोत मानला जावा. महत्त्वाच्या माहितीसाठी व्यावसायिक मानवी भाषांतराची शिफारस केली जाते. या भाषांतराचा वापर करून उद्भवलेल्या कोणत्याही गैरसमज किंवा चुकीच्या अर्थासाठी आम्ही जबाबदार राहणार नाही.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**अस्वीकरण**:
+हा दस्तऐवज AI भाषांतर सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) चा वापर करून अनुवादित केला आहे. जरी आम्ही अचूकतेसाठी प्रयत्न करतो, तरी कृपया लक्षात घ्या की स्वयंचलित भाषांतरांमध्ये त्रुटी किंवा अचूकतेची कमतरता असू शकते. मूळ दस्तऐवज त्याच्या मूळ भाषेत अधिकृत स्रोत मानला पाहिजे. महत्त्वाची माहिती असल्यास, व्यावसायिक मानवी भाषांतराची शिफारस केली जाते. या भाषांतराच्या वापरामुळे उद्भवणाऱ्या कोणत्याही गैरसमज किंवा चुकीच्या अर्थलावणीसाठी आम्ही जबाबदार नाही.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

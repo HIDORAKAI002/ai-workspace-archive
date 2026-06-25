@@ -1,56 +1,56 @@
 # ベストプラクティスと最適化
 
-## 🎯 このラボで学べること
+## 🎯 このラボで扱う内容
 
-この総合ラボでは、堅牢でスケーラブル、かつ安全なMCPサーバーをデータベース統合とともに構築するためのベストプラクティス、最適化技術、そして本番環境向けのガイドラインを学びます。実際の経験や業界標準に基づき、実装が本番環境に適したものとなるようにします。
+このキャップストーンラボでは、堅牢でスケーラブルかつ安全なMCPサーバーをデータベース統合と共に構築するためのベストプラクティス、最適化技術、および本番運用ガイドラインをまとめます。実際の経験と業界標準から学び、実装を本番対応可能なレベルに仕上げます。
 
 ## 概要
 
-成功するMCPサーバーを構築するには、単にコードを動かすだけでは不十分です。このラボでは、概念実証の実装と、本番環境で使用可能なシステムを区別するための重要なプラクティスを取り上げます。これにより、スケール可能で信頼性が高く、セキュリティ基準を維持できるシステムを構築できます。
+成功するMCPサーバーの構築は、単にコードが動作するだけではありません。このラボでは、概念実証の実装と、本番環境で信頼性を保ちつつスケールし、セキュリティ基準を維持できるシステムとの差別化を図るための必須実践事項を扱います。
 
-これらのベストプラクティスは、実際の導入事例、コミュニティからのフィードバック、そして企業での実装から得られた教訓に基づいています。
+これらのベストプラクティスは、実際の展開事例、コミュニティのフィードバック、および企業実装で得られた教訓に基づいています。
 
 ## 学習目標
 
-このラボを終える頃には、以下ができるようになります：
+このラボを終了すると、次のことができるようになります。
 
-- **適用** MCPサーバーとデータベースのパフォーマンス最適化技術  
-- **実装** 包括的なセキュリティ強化対策  
-- **設計** 本番環境向けのスケーラブルなアーキテクチャパターン  
-- **確立** 監視、保守、運用手順  
-- **最適化** パフォーマンスと信頼性を維持しながらコストを削減  
-- **貢献** MCPコミュニティとエコシステムへの参加  
+- **MCPサーバーとデータベースのパフォーマンス最適化技術を適用する**  
+- <strong>包括的なセキュリティ強化策を実装する</strong>  
+- <strong>本番環境向けのスケーラブルなアーキテクチャパターンを設計する</strong>  
+- **監視、保守、運用手順を確立する**  
+- <strong>パフォーマンスと信頼性を維持しつつコストを最適化する</strong>  
+- **MCPコミュニティとエコシステムに貢献する**  
 
 ## 🚀 パフォーマンス最適化
 
-### データベースのパフォーマンス
+### データベースパフォーマンス
 
-#### 接続プールの最適化
+#### コネクションプールの最適化
 
 ```python
-# Optimized connection pool configuration
+# 最適化されたコネクションプールの設定
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # サイズ設定
+    "min_size": max(2, cpu_count()),           # 最低2、CPUに応じてスケール
+    "max_size": min(20, cpu_count() * 4),     # 妥当な最大値で制限
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # タイミング設定
+    "max_inactive_connection_lifetime": 300,   # 5分
+    "command_timeout": 30,                     # 30秒
+    "max_queries": 50000,                      # コネクションのローテーション
     
-    # PostgreSQL settings
+    # PostgreSQLの設定
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # 一貫性のため無効化
+        "work_mem": "8MB",                     # クエリの最適化
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # 変更のみログ記録
+        "log_min_duration_statement": "1s",   # 遅延クエリをログ記録
     }
 }
 ```
-
+  
 #### クエリ最適化パターン
 
 ```python
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # 秒
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # まずキャッシュを確認する
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # 監視しながら実行する
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # クエリ実行を最適化する
+                await conn.execute("SET enable_seqscan = off")  # インデックスを優先する
+                await conn.execute("SET work_mem = '16MB'")     # このクエリにより多くのメモリを割り当てる
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # 遅いクエリをログに記録する
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # 成功した結果をキャッシュする
+                if cache_key and len(result) < 1000:  # 大きな結果はキャッシュしない
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,22 +110,22 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# インデックスの推奨事項
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # コアビジネスのインデックス
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # 分析用インデックス
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # ベクトル検索の最適化
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-
+  
 ### アプリケーションのパフォーマンス
 
 #### 非同期プログラミングのベストプラクティス
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # システムに負荷をかけすぎないようバッチ処理を行う
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # リソース枯渇を防ぐためバッチ間に小さな遅延を入れる
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# サーキットブレーカーの実装
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # CLOSED、OPEN、HALF_OPEN
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # 成功時にリセットする
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -214,7 +214,7 @@ class CircuitBreaker:
             
             raise
 ```
-
+  
 ### キャッシュ戦略
 
 ```python
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # レベル1：メモリキャッシュ
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # レベル2：Redisキャッシュ
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # メモリキャッシュへ昇格
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # LRU（最少最近使用）削除を実装
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# キャッシュキーの生成
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -303,7 +303,7 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-
+  
 ## 🔒 セキュリティ強化
 
 ### 認証と認可
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # 認証を抽出して検証する
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # トークンを検証する
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # レート制限を確認する
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # RLSコンテキストを検証する
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # キーボルトまたはキャッシュから公開鍵を取得する
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # トークンをデコードして検証する
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # スーパ管理者は任意のコンテキストにアクセス可能
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # ストアマネージャーは自分の店舗のみアクセス可能
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # 地域マネージャーは複数の店舗にアクセス可能
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# 入力の検証とサニタイズ
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # 禁止パターン
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # SELECT文のみ許可する
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,17 +439,17 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # 英数字、アンダースコア、ドットのみ許可する
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # 許可されたテーブルに対して検証する
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-
+  
 ### データ保護
 
 ```python
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # 本番環境では Azure Key Vault から取得します
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # 開発用のフォールバック（本番環境では使用しないでください！）
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # 繰り返し回数
         ).hex()
         
         return password_hash, salt
@@ -523,8 +523,8 @@ class DataProtection:
         
         return masked_data
 ```
-
-## 📊 本番環境向けのデプロイメントガイドライン
+  
+## 📊 本番展開ガイドライン
 
 ### インフラストラクチャをコード化する
 
@@ -606,7 +606,7 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-
+  
 ### コンテナの最適化
 
 ```dockerfile
@@ -662,11 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-
+  
 ### 環境設定
 
 ```python
-# Production configuration management
+# 本番環境の構成管理
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,23 +715,23 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # サードパーティのロガーをWARNINGに設定
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # デバッグモードを無効化
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # セキュアヘッダーを設定
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-
+  
 ## 💰 コスト最適化
 
 ### リソース管理
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # 低負荷
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # 中負荷
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # 高負荷
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # キャッシュ高コスト操作
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# 自動スケーリング設定
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPUベースのスケーリング
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # メモリベースのスケーリング
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # リクエストキュースケーリング
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -810,7 +810,7 @@ class AutoScaler:
         
         return "no_action"
 ```
-
+  
 ## 🔧 保守と運用
 
 ### ヘルスモニタリング
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # データベースの状態
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # 外部サービスの状態
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # システムリソース
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # アプリケーションのメトリクス
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # 全体の状態を判定
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # アラートをトリガー
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # 基本的な接続性
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # 遅いクエリをチェック
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # 接続数をチェック
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# 自動バックアップとリカバリー
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Azure Blob Storageへのアップロード
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,18 +932,18 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # UTCの午前2時に毎日フルバックアップ
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # 毎時インクリメンタルバックアップ
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-
-## 🌍 コミュニティへの貢献
+  
+## 🌍 コミュニティ貢献
 
 ### オープンソースのベストプラクティス
 
@@ -984,8 +984,8 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-
-### コミュニティエンゲージメント
+  
+### コミュニティの参加
 
 ```python
 class CommunityContributor:
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # 実際のチェックを実装する予定です
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
+  
+## 🎯 重要な要点
 
-## 🎯 重要なポイント
+この包括的な学習パスを修了すると、以下を習得しています。
 
-この包括的な学習パスを完了すると、以下を習得しているはずです：
-
-✅ **パフォーマンス最適化**：データベースのチューニング、非同期パターン、キャッシュ戦略  
-✅ **セキュリティ強化**：認証、認可、データ保護  
-✅ **本番環境デプロイメント**：インフラストラクチャのコード化とコンテナの最適化  
-✅ **コスト管理**：リソースの最適化とインテリジェントなスケーリング  
-✅ **運用の卓越性**：監視、保守、自動化  
-✅ **コミュニティエンゲージメント**：MCPエコシステムへの貢献  
+✅ <strong>パフォーマンス最適化</strong>：データベースのチューニング、非同期パターン、キャッシュ戦略  
+✅ <strong>セキュリティ強化</strong>：認証、認可、データ保護  
+✅ <strong>本番展開</strong>：インフラストラクチャのコード化とコンテナ最適化  
+✅ <strong>コスト管理</strong>：リソース最適化とインテリジェントスケーリング  
+✅ <strong>運用の卓越性</strong>：監視、保守、自動化  
+✅ <strong>コミュニティ参加</strong>：MCPエコシステムへの貢献  
 
 ## 🏆 認定と次のステップ
 
-### 実践的な評価
+### 実践評価
 
-この最終プロジェクトを完了して、習得したスキルを証明してください：
+この最終プロジェクトを完成させて習熟度を証明します：
 
-**本番環境対応のMCPサーバーを構築する** 以下を含む：
-- [ ] RLSを使用したマルチテナントの小売分析
-- [ ] Azure OpenAIを活用したセマンティック検索
-- [ ] 包括的なセキュリティ実装
-- [ ] Azureでの本番環境デプロイメント
-- [ ] 監視とアラート設定
-- [ ] ドキュメントとテスト
+**本番対応可能なMCPサーバーを構築**  
+- [ ] RLS対応のマルチテナント小売分析  
+- [ ] Azure OpenAIによるセマンティック検索  
+- [ ] 包括的なセキュリティ実装  
+- [ ] Azure上での本番展開  
+- [ ] 監視とアラート設定  
+- [ ] ドキュメント作成とテスト  
 
-### 高度な学習パス
+### さらなる学習パス
 
-MCPの旅を続けるために：
+MCPのさらなる旅を続けましょう：
 
 - **MCPアーキテクチャパターン**：高度なサーバーアーキテクチャ  
-- **マルチモデル統合**：異なるAIモデルの組み合わせ  
-- **エンタープライズ規模**：大規模なMCP導入  
-- **カスタムツール開発**：専門的なMCPツールの構築  
+- <strong>マルチモデル統合</strong>：異なるAIモデルの組み合わせ  
+- <strong>エンタープライズスケール</strong>：大規模MCP展開  
+- <strong>カスタムツール開発</strong>：専門的なMCPツールの構築  
 - **MCPエコシステム**：広範なコミュニティへの貢献  
 
-### コミュニティでの認知
+### コミュニティ認知
 
-達成を共有しましょう：
+成果を共有しましょう：  
 - **GitHubポートフォリオ**：実装を公開  
-- **コミュニティへの貢献**：改善案や例を提出  
-- **講演の機会**：ミートアップやカンファレンスで発表  
-- **メンター活動**：他の開発者がMCPを学ぶのを支援  
+- <strong>コミュニティ貢献</strong>：改善提案やサンプル提出  
+- <strong>発表の機会</strong>：ミートアップやカンファレンスでの発表  
+- <strong>メンタリング</strong>：他の開発者のMCP学習支援  
 
 ## 📚 追加リソース
 
 ### 高度なトピック
-- [PostgreSQLパフォーマンスチューニング](https://www.postgresql.org/docs/current/performance-tips.html) - データベース最適化  
-- [Azure Container Appsのベストプラクティス](https://docs.microsoft.com/azure/container-apps/overview) - 本番環境デプロイメント  
-- [Python非同期のベストプラクティス](https://docs.python.org/3/library/asyncio-dev.html) - 非同期プログラミング  
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - データベース最適化  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - 本番展開  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - 非同期プログラミング  
 
 ### セキュリティリソース
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/) - セキュリティ脆弱性  
-- [Azureセキュリティのベストプラクティス](https://docs.microsoft.com/azure/security/) - クラウドセキュリティ  
-- [Pythonセキュリティガイドライン](https://python.org/dev/security/) - 安全なコーディング  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - クラウドセキュリティ  
+- [Python Security Guidelines](https://python.org/dev/security/) - セキュアコーディング  
 
 ### コミュニティ
-- [MCPコミュニティDiscord](https://discord.com/invite/ByRwuEEgH4) - ライブディスカッション  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&Aと共有  
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - 技術的な質問  
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - ライブディスカッション  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&Aおよび情報共有  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - 技術質問  
 
 ---
 
-**🎉 おめでとうございます！** MCPデータベース統合学習パスを完了しました。本番環境対応のMCPサーバーを構築し、AIアシスタントと実世界のデータシステムを結びつける知識とスキルを習得しました。
+**🎉 おめでとうございます！** 包括的なMCPデータベース統合学習パスを修了しました。これで、AIアシスタントと実世界のデータシステムをつなぐ本番環境対応のMCPサーバーを構築する知識とスキルを習得しています。
 
-**貢献する準備はできましたか？** コミュニティに参加し、経験を共有したり、コード改善に貢献したり、追加の学習リソースを作成して他の人がMCPを学ぶのを助けましょう。
+**貢献する準備はできていますか？** コミュニティに参加し、経験を共有したり、コード改善に貢献したり、追加の学習リソースを作成したりして、他の人のMCP学習を支援しましょう。
+
+<strong>次へ</strong>: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**免責事項**:  
-この文書は、AI翻訳サービス[Co-op Translator](https://github.com/Azure/co-op-translator)を使用して翻訳されています。正確性を追求しておりますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知ください。元の言語で記載された文書が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。この翻訳の使用に起因する誤解や誤認について、当方は一切の責任を負いません。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責事項**：
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

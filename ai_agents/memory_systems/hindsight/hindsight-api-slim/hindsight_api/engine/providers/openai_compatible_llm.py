@@ -850,6 +850,18 @@ class OpenAICompatibleLLM(LLMInterface):
                 cached_tokens = 0
                 if usage and getattr(usage, "prompt_tokens_details", None):
                     cached_tokens = getattr(usage.prompt_tokens_details, "cached_tokens", 0) or 0
+                thoughts_tokens = 0
+                if usage and getattr(usage, "completion_tokens_details", None):
+                    thoughts_tokens = getattr(usage.completion_tokens_details, "reasoning_tokens", 0) or 0
+                # OpenAI-compatible providers fold reasoning tokens into
+                # ``completion_tokens`` (and thus ``total_tokens``), but the
+                # TokenUsage contract — and the Gemini provider — treat
+                # ``output_tokens``/``total_tokens`` as visible-only, surfacing
+                # reasoning separately in ``thoughts_tokens``. Subtract so the
+                # two fields don't double-count reasoning (cost over-attribution).
+                if thoughts_tokens:
+                    output_tokens = max(0, output_tokens - thoughts_tokens)
+                    total_tokens = max(0, total_tokens - thoughts_tokens)
 
                 # Record LLM metrics
                 metrics = get_metrics_collector()
@@ -898,6 +910,7 @@ class OpenAICompatibleLLM(LLMInterface):
                         output_tokens=output_tokens,
                         total_tokens=total_tokens,
                         cached_tokens=cached_tokens,
+                        thoughts_tokens=thoughts_tokens,
                     )
                     return result, token_usage
                 return result
@@ -1148,6 +1161,17 @@ class OpenAICompatibleLLM(LLMInterface):
                 usage = response.usage
                 input_tokens = usage.prompt_tokens or 0 if usage else 0
                 output_tokens = usage.completion_tokens or 0 if usage else 0
+                cached_tokens = 0
+                if usage and getattr(usage, "prompt_tokens_details", None):
+                    cached_tokens = getattr(usage.prompt_tokens_details, "cached_tokens", 0) or 0
+                thoughts_tokens = 0
+                if usage and getattr(usage, "completion_tokens_details", None):
+                    thoughts_tokens = getattr(usage.completion_tokens_details, "reasoning_tokens", 0) or 0
+                # See ``call()``: OpenAI-compatible ``completion_tokens`` includes
+                # reasoning, so make ``output_tokens`` visible-only to avoid
+                # double-counting it against ``thoughts_tokens``.
+                if thoughts_tokens:
+                    output_tokens = max(0, output_tokens - thoughts_tokens)
 
                 metrics = get_metrics_collector()
                 metrics.record_llm_call(
@@ -1190,6 +1214,8 @@ class OpenAICompatibleLLM(LLMInterface):
                     finish_reason=finish_reason,
                     input_tokens=input_tokens,
                     output_tokens=output_tokens,
+                    cached_tokens=cached_tokens,
+                    thoughts_tokens=thoughts_tokens,
                 )
 
             except APIConnectionError as e:

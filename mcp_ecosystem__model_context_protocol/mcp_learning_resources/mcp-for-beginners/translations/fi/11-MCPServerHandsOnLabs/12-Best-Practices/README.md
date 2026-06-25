@@ -1,25 +1,25 @@
 # Parhaat käytännöt ja optimointi
 
-## 🎯 Mitä tämä labra kattaa
+## 🎯 Mitä tämä harjoitustyö käsittelee
 
-Tämä huipentumalabra yhdistää parhaat käytännöt, optimointitekniikat ja tuotantokäytännöt, jotka auttavat rakentamaan vankkoja, skaalautuvia ja turvallisia MCP-palvelimia tietokantaintegraatiolla. Opit tosielämän kokemuksista ja alan standardeista varmistaaksesi, että toteutuksesi on valmis tuotantokäyttöön.
+Tämä opinnäytetyön kaltainen harjoitustyö kokoaa parhaat käytännöt, optimointitekniikat ja tuotanto-ohjeet vankkojen, skaalautuvien ja turvallisten MCP-palvelimien rakentamiseksi tietokantaintegraatiolla. Opit käytännön kokemuksesta ja alan standardeista varmistaaksesi, että toteutuksesi on tuotantovalmiina.
 
 ## Yleiskatsaus
 
-Menestyksekkään MCP-palvelimen rakentaminen on muutakin kuin vain toimivan koodin kirjoittamista. Tämä labra kattaa olennaiset käytännöt, jotka erottavat konseptitason toteutukset tuotantovalmiista järjestelmistä, jotka skaalautuvat, toimivat luotettavasti ja täyttävät turvallisuusstandardit.
+Onnistuneen MCP-palvelimen rakentaminen on muutakin kuin koodin toimimista. Tämä harjoitustyö käsittelee olennaisia käytäntöjä, jotka erottavat konseptin todellisista tuotantojärjestelmistä, jotka voivat skaalautua, toimia luotettavasti ja ylläpitää turvallisuusstandardeja.
 
-Nämä parhaat käytännöt perustuvat tosielämän käyttöönottoihin, yhteisön palautteeseen ja yritystason toteutuksista opittuihin kokemuksiin.
+Nämä parhaat käytännöt perustuvat oikeiden käyttöönottojen kokemuksiin, yhteisön palautteeseen ja yritysten toteutuksista opittuihin opetuksiin.
 
 ## Oppimistavoitteet
 
-Labran lopussa osaat:
+Tämän harjoitustyön jälkeen osaat:
 
-- **Soveltaa** suorituskyvyn optimointitekniikoita MCP-palvelimille ja tietokannoille
-- **Toteuttaa** kattavia turvallisuustoimenpiteitä
-- **Suunnitella** skaalautuvia arkkitehtuurimalleja tuotantoympäristöihin
-- **Luoda** seurantaan, ylläpitoon ja operointiin liittyviä käytäntöjä
-- **Optimoida** kustannuksia säilyttäen suorituskyvyn ja luotettavuuden
-- **Osallistua** MCP-yhteisöön ja ekosysteemiin
+- **Soveltaa** suorituskyvyn optimointitekniikoita MCP-palvelimille ja tietokannoille  
+- **Toteuttaa** kattavia turvallisuuden koventamistoimia  
+- **Suunnitella** skaalautuvia arkkitehtuurimalleja tuotantoympäristöihin  
+- **Perustaa** valvonta-, ylläpito- ja operatiiviset käytännöt  
+- **Optimoida** kustannuksia säilyttäen suorituskyky ja luotettavuus  
+- **Edistää** MCP-yhteisöä ja ekosysteemiä  
 
 ## 🚀 Suorituskyvyn optimointi
 
@@ -28,30 +28,30 @@ Labran lopussa osaat:
 #### Yhteyspoolin optimointi
 
 ```python
-# Optimized connection pool configuration
+# Optimoitu yhteyspoolin kokoonpano
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Koon määritys
+    "min_size": max(2, cpu_count()),           # Vähintään 2, skaalaa CPU:n mukaan
+    "max_size": min(20, cpu_count() * 4),     # Rajaa järkevään maksimimäärään
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Aikataulun määritys
+    "max_inactive_connection_lifetime": 300,   # 5 minuuttia
+    "command_timeout": 30,                     # 30 sekuntia
+    "max_queries": 50000,                      # Kierrä yhteyksiä
     
-    # PostgreSQL settings
+    # PostgreSQL-asetukset
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Poista käytöstä yhtenäisyyden vuoksi
+        "work_mem": "8MB",                     # Optimoi kyselyille
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Kirjaa vain muokkaukset
+        "log_min_duration_statement": "1s",   # Kirjaa hitaat kyselyt
     }
 }
 ```
-
-#### Kyselyiden optimointimallit
+  
+#### Kyselyjen optimointimallit
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # sekuntia
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Tarkista ensin välimuisti
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Suorita seurannalla
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Optimoi kyselyn suoritus
+                await conn.execute("SET enable_seqscan = off")  # Suosi hakemistoja
+                await conn.execute("SET work_mem = '16MB'")     # Lisää muistia tälle kyselylle
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Kirjaa hitaat kyselyt
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Välimuisti onnistuneista tuloksista
+                if cache_key and len(result) < 1000:  # Älä välimuistita suuria tuloksia
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,22 +110,22 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Hakemistosuositukset
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Ydintoiminnan hakemistot
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Analytiikan hakemistot
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Vektorihakujen optimointi
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-
+  
 ### Sovelluksen suorituskyky
 
 #### Asynkronisen ohjelmoinnin parhaat käytännöt
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Käsittele erissä järjestelmän ylikuormituksen välttämiseksi
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Pieni viive erien välillä resurssien ehtymisen estämiseksi
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Piirikytkimen toteutus
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # SULJETTU, AVATTU, PUOLITTAIN_AVATTU
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Nollaa onnistumisen jälkeen
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -214,7 +214,7 @@ class CircuitBreaker:
             
             raise
 ```
-
+  
 ### Välimuististrategiat
 
 ```python
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Taso 1: Muistivälimuisti
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Taso 2: Redis-välimuisti
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Edistä muistivälimuistiin
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Toteuta LRU-poisto
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Välimuistin avaimen generointi
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -303,10 +303,10 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
+  
+## 🔒 Turvallisuuden koventaminen
 
-## 🔒 Turvallisuuden vahvistaminen
-
-### Autentikointi ja valtuutus
+### Todentaminen ja valtuutus
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Poimi ja validoi todennus
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Validoi token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Tarkista rajapyyntörajoitus
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Validoi RLS-konteksti
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Hae julkinen avain Key Vaultista tai välimuistista
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Dekoodaa ja validoi token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Ylivalvojat voivat käyttää mitä tahansa kontekstia
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Myymäläpäälliköt voivat käyttää vain omaa myymäläänsä
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Aluepäälliköt voivat käyttää useita myymälöitä
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Syötteen validointi ja puhdistus
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Kielletyt mallit
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Salli vain SELECT-lauseet
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,18 +439,18 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Salli vain aakkosnumeeriset merkit, alaviiva ja piste
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Validoi sallituille tauluille
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-
-### Tiedonsuojaus
+  
+### Datan suojaus
 
 ```python
 from cryptography.fernet import Fernet
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Tuotannossa haetaan Azure Key Vaultista
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Varaja kehittymistä varten (ei tuotantoon!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # toistot
         ).hex()
         
         return password_hash, salt
@@ -523,8 +523,8 @@ class DataProtection:
         
         return masked_data
 ```
-
-## 📊 Tuotantokäyttöön liittyvät ohjeet
+  
+## 📊 Tuotantoon käyttöönoton ohjeet
 
 ### Infrastruktuuri koodina
 
@@ -606,7 +606,7 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-
+  
 ### Konttien optimointi
 
 ```dockerfile
@@ -662,11 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-
-### Ympäristön konfigurointi
+  
+### Ympäristöasetukset
 
 ```python
-# Production configuration management
+# Tuotannon konfiguraation hallinta
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -709,29 +709,29 @@ class ProductionConfig:
                 logging.StreamHandler(sys.stdout),
                 logging.handlers.RotatingFileHandler(
                     '/var/log/mcp-server.log',
-                    maxBytes=50*1024*1024,  # 50MB
+                    maxBytes=50*1024*1024,  # 50Mt
                     backupCount=5
                 )
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Aseta kolmannen osapuolen lokittimet varoitustasolle
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Poista debug-tila käytöstä
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Aseta turvalliset otsikot
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-
+  
 ## 💰 Kustannusten optimointi
 
 ### Resurssien hallinta
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Matala kuormitus
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Keskitasoinen kuormitus
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Korkea kuormitus
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Välimuisti kallis operaatioille
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Automaattisen skaalaamisen määritys
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Prosessoripohjainen skaalaus
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Muistipohjainen skaalaus
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Pyyntöjonon skaalaus
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -810,10 +810,10 @@ class AutoScaler:
         
         return "no_action"
 ```
-
+  
 ## 🔧 Ylläpito ja operointi
 
-### Terveydentilan seuranta
+### Terveydentilan valvonta
 
 ```python
 class OperationalHealth:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Tietokannan kunto
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Ulkoisten palveluiden kunto
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Järjestelmän resurssit
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Sovelluksen mittarit
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Määritä kokonaisstatus
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Laukaise hälytykset
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Perusyhteys
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Tarkista hitaat kyselyt
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Tarkista yhteyksien määrä
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Automaattinen varmuuskopiointi ja palautus
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Lataa Azure Blob Storageen
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,18 +932,18 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Päivittäinen täydellinen varmuuskopio klo 2 UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Tuntikohtaiset inkrementaalivarmenteet
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-
-## 🌍 Yhteisön panos
+  
+## 🌍 Yhteisön panokset
 
 ### Avoimen lähdekoodin parhaat käytännöt
 
@@ -984,7 +984,7 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-
+  
 ### Yhteisön osallistuminen
 
 ```python
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Toteuttaisi varsinaiset tarkistukset
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-
+  
 ## 🎯 Keskeiset opit
 
-Tämän kattavan oppimispolun suorittamisen jälkeen hallitset:
+Tämän laaja-alaisen oppimispolun jälkeen sinun pitäisi hallita:
 
-✅ **Suorituskyvyn optimointi**: Tietokannan viritys, asynkroniset mallit ja välimuististrategiat  
-✅ **Turvallisuuden vahvistaminen**: Autentikointi, valtuutus ja tiedonsuojaus  
-✅ **Tuotantokäyttö**: Infrastruktuuri koodina ja konttien optimointi  
-✅ **Kustannusten hallinta**: Resurssien optimointi ja älykäs skaalautuminen  
-✅ **Operatiivinen huippuosaaminen**: Seuranta, ylläpito ja automaatio  
-✅ **Yhteisön osallistuminen**: Panos MCP-ekosysteemiin  
+✅ **Suorituskyvyn optimointi**: Tietokannan viritys, asynkroniset mallit ja välimuistit  
+✅ **Turvallisuuden koventaminen**: Todentaminen, valtuutus ja datan suojaus  
+✅ **Tuotantokäyttöönotto**: Infrastruktuuri koodina ja konttien optimointi  
+✅ **Kustannusten hallinta**: Resurssien optimointi ja älykäs skaalaus  
+✅ **Operatiivinen erinomaisuus**: Valvonta, ylläpito ja automaatio  
+✅ **Yhteisön osallistuminen**: MCP-ekosysteemiin osallistuminen  
 
 ## 🏆 Sertifiointi ja seuraavat askeleet
 
 ### Käytännön arviointi
 
-Suorita tämä lopputyö osoittaaksesi osaamisesi:
+Suorita tämä loppuprojekti osoittaaksesi osaamisesi:
 
-**Rakenna tuotantovalmis MCP-palvelin**, joka sisältää:
-- [ ] Monivuokraajan vähittäisanalytiikka RLS:llä
-- [ ] Semanttinen haku Azure OpenAI:lla
-- [ ] Kattava turvallisuuden toteutus
-- [ ] Tuotantokäyttö Azure-alustalla
-- [ ] Seuranta- ja hälytysjärjestelmän asennus
-- [ ] Dokumentointi ja testaus
+**Rakenna tuotantovalmiiksi MCP-palvelimeksi**, joka sisältää:  
+- [ ] Monivuokraajainen vähittäiskaupan analytiikka RLS:llä  
+- [ ] Semanttinen haku Azure OpenAI:lla  
+- [ ] Kattava turvallisuuden toteutus  
+- [ ] Tuotantokäyttöönotto Azuren päällä  
+- [ ] Valvonta- ja hälytysjärjestelmän asennus  
+- [ ] Dokumentointi ja testaus  
 
 ### Edistyneet oppimispolut
 
-Jatka MCP-matkaasi seuraavilla aiheilla:
+Jatka MCP-matkaasi seuraavilla:  
 
-- **MCP-arkkitehtuurimallit**: Edistyneet palvelinarkkitehtuurit
-- **Monimallien integraatio**: Erilaisten AI-mallien yhdistäminen
-- **Yritystason skaalautuvuus**: Suurten MCP-järjestelmien käyttöönotto
-- **Mukautettujen työkalujen kehitys**: Erikoistuneiden MCP-työkalujen rakentaminen
-- **MCP-ekosysteemi**: Panos laajempaan yhteisöön
+- **MCP-arkkitehtuurimallit**: Edistyneet palvelinarkkitehtuurit  
+- **Monimallien integraatio**: Eri tekoälymallien yhdistäminen  
+- **Yritystason skaalaus**: Suuret MCP-käyttöönotot  
+- **Mukautetun työkalun kehitys**: Erikoistuneiden MCP-työkalujen rakentaminen  
+- **MCP-ekosysteemi**: Osallistuminen laajempaan yhteisöön  
 
 ### Yhteisön tunnustus
 
-Jaa saavutuksesi:
-- **GitHub-portfolio**: Näytä toteutuksesi
-- **Yhteisön panos**: Lähetä parannuksia tai esimerkkejä
-- **Puhumismahdollisuudet**: Esitä tapaamisissa tai konferensseissa
-- **Mentorointi**: Auta muita kehittäjiä oppimaan MCP:tä
+Jaa saavutuksesi:  
+- **GitHub-portfolio**: Näytä toteutuksesi  
+- **Yhteisön panokset**: Lähetä parannuksia tai esimerkkejä  
+- **Puhujamahdollisuudet**: Esittele tapaamisissa tai konferensseissa  
+- **Mentorointi**: Auta muita oppimaan MCP:tä  
 
 ## 📚 Lisäresurssit
 
-### Edistyneet aiheet
-- [PostgreSQL-suorituskyvyn viritys](https://www.postgresql.org/docs/current/performance-tips.html) - Tietokannan optimointi
-- [Azure Container Apps -parhaat käytännöt](https://docs.microsoft.com/azure/container-apps/overview) - Tuotantokäyttö
-- [Python Async -parhaat käytännöt](https://docs.python.org/3/library/asyncio-dev.html) - Asynkroninen ohjelmointi
+### Edistyneet aiheet  
+- [PostgreSQL-suorituskyvyn viritys](https://www.postgresql.org/docs/current/performance-tips.html) - Tietokannan optimointi  
+- [Azure Container Apps parhaat käytännöt](https://docs.microsoft.com/azure/container-apps/overview) - Tuotantokäyttöönotto  
+- [Pythonin asynkroniset parhaat käytännöt](https://docs.python.org/3/library/asyncio-dev.html) - Asynkroninen ohjelmointi  
 
-### Turvallisuusresurssit
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Turvallisuushaavoittuvuudet
-- [Azure Security -parhaat käytännöt](https://docs.microsoft.com/azure/security/) - Pilviturvallisuus
-- [Python Security Guidelines](https://python.org/dev/security/) - Turvallinen koodaus
+### Turvallisuusresurssit  
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Turvallisuushaavoittuvuudet  
+- [Azure-turvallisuuden parhaat käytännöt](https://docs.microsoft.com/azure/security/) - Pilviturvallisuus  
+- [Pythonin turvallisuusohjeet](https://python.org/dev/security/) - Turvallinen koodaus  
 
-### Yhteisö
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Keskustelut livenä
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Kysymyksiä ja vastauksia
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Teknisiä kysymyksiä
-
----
-
-**🎉 Onnittelut!** Olet suorittanut kattavan MCP-tietokantaintegraation oppimispolun. Sinulla on nyt tiedot ja taidot rakentaa tuotantovalmiita MCP-palvelimia, jotka yhdistävät AI-avustajat tosielämän tietojärjestelmiin.
-
-**Valmis osallistumaan?** Liity yhteisöömme ja auta muita oppimaan MCP:tä jakamalla kokemuksiasi, parantamalla koodia tai luomalla lisää oppimisresursseja.
+### Yhteisö  
+- [MCP-yhteisön Discord](https://discord.com/invite/ByRwuEEgH4) - Live-keskustelut  
+- [GitHub-keskustelut](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Kysymykset ja jakaminen  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Teknisiä kysymyksiä  
 
 ---
 
-**Vastuuvapauslauseke**:  
-Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, huomioithan, että automaattiset käännökset voivat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäisellä kielellä tulisi pitää ensisijaisena lähteenä. Kriittisen tiedon osalta suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa väärinkäsityksistä tai virhetulkinnoista, jotka johtuvat tämän käännöksen käytöstä.
+**🎉 Onneksi olkoon!** Olet suorittanut kattavan MCP-tietokantaintegraatio-opintopolun. Sinulla on nyt tiedot ja taidot rakentaa tuotantovalmiita MCP-palvelimia, jotka yhdistävät tekoälyavustajat todellisiin tietojärjestelmiin.
+
+**Valmis osallistumaan?** Liity yhteisöömme ja auta muita oppimaan MCP:tä jakamalla kokemuksiasi, lähettämällä koodiparannuksia tai luomalla lisäoppimateriaaleja.
+
+**Seuraavaksi**: [Työkalut](../../12-tooling/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vastuuvapauslauseke**:
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

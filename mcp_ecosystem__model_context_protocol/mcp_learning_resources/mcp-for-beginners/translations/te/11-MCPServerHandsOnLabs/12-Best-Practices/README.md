@@ -1,57 +1,57 @@
-# ఉత్తమ ఆచారాలు మరియు ఆప్టిమైజేషన్
+# ఉత్తమ పద్ధతులు మరియు మెరుగుదల
 
-## 🎯 ఈ ప్రయోగశాల ఏమి కవర్ చేస్తుంది
+## 🎯 ఈ ల్యాబ్ కవర్ చేసే అంశాలు
 
-ఈ క్యాప్స్టోన్ ప్రయోగశాల బలమైన, స్కేలబుల్ మరియు సురక్షిత MCP సర్వర్లను డేటాబేస్ ఇంటిగ్రేషన్‌తో నిర్మించడానికి ఉత్తమ ఆచారాలు, ఆప్టిమైజేషన్ సాంకేతికతలు మరియు ఉత్పత్తి మార్గదర్శకాలను సమీకరిస్తుంది. మీరు మీ అమలును ఉత్పత్తి-సిద్ధంగా ఉండేలా చేయడానికి వాస్తవ ప్రపంచ అనుభవం మరియు పరిశ్రమ ప్రమాణాల నుండి నేర్చుకుంటారు.
+ఈ కెప్టోన్ ల్యాబ్ బలమైన, స్కేలబుల్, మరియు సురక్షిత MCP సర్వర్లను డేటాబేస్ ఇంటిగ్రేషన్‌తో నిర్మించడానికి ఉత్తమ పద్ధతులు, మెరుగుదల సాంకేతికతలు, మరియు ఉత్పత్తి మార్గదర్శకాలు ను సంగ్రహిస్తుంది. మీరు వాస్తవ ప్రపంచ అనుభవం మరియు పరిశ్రమ ప్రమాణాల నుండి నేర్చుకుంటారు, మీ అమలు ఉత్పత్తికి సిద్ధంగా ఉండేందుకు.
 
 ## అవలోకనం
 
-విజయవంతమైన MCP సర్వర్‌ను నిర్మించడం కేవలం కోడ్ పనిచేయడం మాత్రమే కాదు. ఈ ప్రయోగశాల ప్రూఫ్-ఆఫ్-కాన్సెప్ట్ అమలులను ఉత్పత్తి-సిద్ధమైన వ్యవస్థల నుండి వేరుచేసే అవసరమైన ఆచారాలను కవర్ చేస్తుంది, అవి స్కేల్ చేయగలవు, విశ్వసనీయంగా పనితీరు చూపగలవు మరియు భద్రతా ప్రమాణాలను నిర్వహించగలవు.
+విజయవంతమైన MCP సర్వర్ నిర్మించడం కేవలం కోడ్ పనిచేయించడమే కాదు. ఈ ల్యాబ్ ప్రూఫ్-ఆఫ్-కాన్సెప్ట్ అమలుల నుండి ఉత్పత్తి-సిద్ధమైన సిస్టమ్‌లను వేరుచేసే అవసరమైన పద్ధతులను కవర్ చేస్తుంది, ఇవి స్కేల్ చేయగలవు, విశ్వసనీయంగా పనిచేయగలవు, మరియు భద్రతా ప్రమాణాలు నిర్వహించగలవు.
 
-ఈ ఉత్తమ ఆచారాలు వాస్తవ ప్రపంచ అమలులు, కమ్యూనిటీ అభిప్రాయాలు మరియు ఎంటర్ప్రైజ్ అమలుల నుండి నేర్చుకున్న పాఠాల నుండి తీసుకున్నవి.
+ఈ ఉత్తమ పద్ధతులు వాస్తవ ప్రపంచ అనుసంధానాల నుండి, కమ్యూనిటీ స్పందనల నుండి మరియు సంస్థల అమలుల నుండి నేర్చుకున్న పాఠాల నుండి సేకరించబడ్డాయి.
 
 ## నేర్చుకునే లక్ష్యాలు
 
-ఈ ప్రయోగశాల ముగిసిన తర్వాత, మీరు చేయగలుగుతారు:
+ఈ ల్యాబ్ ముగింపు సమయంలో, మీరు చేయగలుగుతారు:
 
-- **అమలు చేయండి** MCP సర్వర్లు మరియు డేటాబేస్‌ల కోసం పనితీరు ఆప్టిమైజేషన్ సాంకేతికతలు  
-- **అమలు చేయండి** సమగ్ర భద్రతా హార్డెనింగ్ చర్యలు  
-- **డిజైన్ చేయండి** ఉత్పత్తి వాతావరణాల కోసం స్కేలబుల్ ఆర్కిటెక్చర్ నమూనాలు  
-- **స్థాపించండి** మానిటరింగ్, నిర్వహణ మరియు ఆపరేషనల్ ప్రక్రియలు  
-- **ఆప్టిమైజ్ చేయండి** పనితీరు మరియు విశ్వసనీయతను నిలుపుకుంటూ ఖర్చులను  
-- **కాంట్రిబ్యూట్ చేయండి** MCP కమ్యూనిటీ మరియు ఎకోసిస్టమ్‌కు  
+- **వివిధ MCP సర్వర్ల మరియు డేటాబేసుల పనితీరు మెరుగుదల సాంకేతికతలను** అన్వయించండి  
+- **సమగ్ర భద్రతా హార్డెనింగ్ చర్యలు** అమలు చేయండి  
+- **ఉత్పత్తి వాతావరణాల కోసం స్కేలబుల్ ఆర్కిటెక్చర్ నమూనాలను** రూపకల్పన చేయండి  
+- **మానిటరింగ్, నిర్వహణ, మరియు ఆపరేషన్ పద్ధతులను** స్థాపించండి  
+- **పనితీరు మరియు విశ్వసనీయతను కాపాడుతూ ఖర్చులను** మెరుగుపర్చండి  
+- **MCP కమ్యూనిటీ మరియు ఎకోసిస్టమ్‌కి** సహకరించండి  
 
-## 🚀 పనితీరు ఆప్టిమైజేషన్
+## 🚀 పనితీరు మెరుగుదల
 
 ### డేటాబేస్ పనితీరు
 
-#### కనెక్షన్ పూల్ ఆప్టిమైజేషన్
+#### కనెక్షన్ పూల్ మెరుగుదల
 
 ```python
-# ఆప్టిమైజ్ చేసిన కనెక్షన్ పూల్ కాన్ఫిగరేషన్
+# అధికారం గల కనెక్షన్ పూల్ కాన్ఫిగరేషన్
 POOL_CONFIG = {
     # పరిమాణం కాన్ఫిగరేషన్
-    "min_size": max(2, cpu_count()),           # కనీసం 2, CPU తో స్కేలు చేయండి
-    "max_size": min(20, cpu_count() * 4),     # సరైన గరిష్టానికి పరిమితం చేయండి
+    "min_size": max(2, cpu_count()),           # కనీసం 2, CPU కి అనుగుణంగా పెరుగుతుంది
+    "max_size": min(20, cpu_count() * 4),     # సౌకర్యకరమైన గరిష్టంలో ఆపండి
     
-    # టైమింగ్ కాన్ఫిగరేషన్
+    # సమయ నిబంధన
     "max_inactive_connection_lifetime": 300,   # 5 నిమిషాలు
     "command_timeout": 30,                     # 30 సెకన్లు
-    "max_queries": 50000,                      # కనెక్షన్లను రోటేట్ చేయండి
+    "max_queries": 50000,                      # కనెక్షన్లను తిరగబెట్టండి
     
-    # పోస్ట్‌గ్రెఎస్‌క్యూఎల్ సెట్టింగ్స్
+    # పోస్ట్‌గ్రెఎస్‌క్యూఎల్ సెట్టింగ్లు
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # సారూప్యత కోసం డిసేబుల్ చేయండి
-        "work_mem": "8MB",                     # క్వెరీల కోసం ఆప్టిమైజ్ చేయండి
+        "jit": "off",                          # సారూప్యత్వానికి అంకితం చేయండి
+        "work_mem": "8MB",                     # ప్రశ్నల కోసం ఆప్టిమైజ్ చేయండి
         "shared_preload_libraries": "pg_stat_statements",
         "log_statement": "mod",                # మార్పులను మాత్రమే లాగ్ చేయండి
-        "log_min_duration_statement": "1s",   # మెల్లగా నడిచే క్వెరీలను లాగ్ చేయండి
+        "log_min_duration_statement": "1s",   # నెమ్మదిగా స్పందించే ప్రశ్నలను లాగ్ చేయండి
     }
 }
 ```
 
-#### క్వెరీ ఆప్టిమైజేషన్ నమూనాలు
+#### క్వెరీ మెరుగుదల నమూనాలు
 
 ```python
 class QueryOptimizer:
@@ -81,15 +81,15 @@ class QueryOptimizer:
         
         try:
             async with db_provider.get_connection() as conn:
-                # క్వెరీ అమలును ఆప్టిమైజ్ చేయండి
+                # ప్రశ్న అమలును ఆప్టిమైజ్ చేయండి
                 await conn.execute("SET enable_seqscan = off")  # సూచికలను ప్రాధాన్యం ఇవ్వండి
-                await conn.execute("SET work_mem = '16MB'")     # ఈ క్వెరీకి మరింత మెమరీ
+                await conn.execute("SET work_mem = '16MB'")     # ఈ ప్రశ్నకు మరింత మెమొరీ
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # మెల్లగా నడిచే క్వెరీలను లాగ్ చేయండి
+                # మెల్లగా నడిచే ప్రశ్నలను లాగ్ చేయండి
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -110,9 +110,9 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# సూచిక సిఫార్సులు
+# సూచిక సూచనలు
 RECOMMENDED_INDEXES = [
-    # కోర్ బిజినెస్ సూచికలు
+    # కోర్ వ్యాపార సూచికలు
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
@@ -128,7 +128,7 @@ RECOMMENDED_INDEXES = [
 
 ### అప్లికేషన్ పనితీరు
 
-#### అసింక్ ప్రోగ్రామింగ్ ఉత్తమ ఆచారాలు
+#### అసిన్ ప్రోగ్రామింగ్ ఉత్తమ పద్ధతులు
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # వ్యవస్థను అధికంగా ఒత్తిడి చేయకుండా బ్యాచ్‌లలో ప్రాసెస్ చేయండి
+        # వ్యవస్థపై భారం ఎక్కువవకుండా బ్యాచ్‌లు ప్రక్రియ చేయాలి
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # వనరుల వినియోగం తగ్గించడానికి బ్యాచ్‌ల మధ్య చిన్న ఆలస్యం
+            # గల వాటి మధ్య విడమరచి వనరుల దోపిడీ నివారించాలి
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# సర్క్యూట్ బ్రేకర్ అమలు
+# సర్క్యూట్ బ్రokera అమలులో వుంచండి
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # మూసివేయబడింది, తెరవబడింది, అర్ధంగా తెరవబడింది
+        self.state = "CLOSED"  # మూసివేయబడింది, తెరవబడింది, అర్ధ తెరవబడింది
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # విజయంపై రీసెట్ చేయండి
+            # విజయవంతంగా పునరావృతం చేయండి
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # స్థాయి 1: మెమరీ క్యాష్
+        # స్థాయి 1: మెమొరీ కాషే
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # స్థాయి 2: రెడిస్ క్యాష్
+        # స్థాయి 2: రెడిస్ కాషే
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # మెమరీ క్యాష్‌కు ప్రమోట్ చేయండి
+                    # మెమొరీ కాషేగా ప్రమోట్ చేయండి
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# క్యాష్ కీ ఉత్పత్తి
+# కాషే కీ జనరేషన్
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -306,7 +306,7 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
 
 ## 🔒 భద్రతా హార్డెనింగ్
 
-### ప్రామాణీకరణ మరియు అనుమతులు
+### గుర్తింపు మరియు అనుమతినిచ్చుట
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # ప్రామాణీకరణను తీసుకోండి మరియు ధృవీకరించండి
+        # ప్రమాణీకరణను ఆప్టిక్కించండి మరియు పిల్లంచండి
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # టోకెన్‌ను ధృవీకరించండి
+        # టోకెన్‌ను పిల్లంచండి
         user_context = await self._validate_token(auth_token)
         
         # రేట్ పరిమితిని తనిఖీ చేయండి
         await self._check_rate_limit(user_context["user_id"])
         
-        # RLS సందర్భాన్ని ధృవీకరించండి
+        # RLS సందర్భాన్ని పిల్లంచండి
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # కీ వాల్ట్ లేదా క్యాషే నుండి పబ్లిక్ కీ పొందండి
+            # కీ వాల్‍ट్తో లేదా క్యాచేతో పబ్లిక్ కీని పొందండి
             public_key = await self._get_public_key()
             
-            # టోకెన్‌ను డీకోడ్ చేసి ధృవీకరించండి
+            # టోకెన్‌ను డీకోడ్ చేసి పిల్లంచండి
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # సూపర్ అడ్మిన్లు ఏదైనా సందర్భాన్ని యాక్సెస్ చేయవచ్చు
+        # సూపర్ అడ్మిన్లు ఏ సందర్భాన్నైనా యాక్సెస్ చేయగలరు
         if "super_admin" in user_context["roles"]:
             return True
         
-        # స్టోర్ మేనేజర్లు తమ స్వంత స్టోర్‌ను మాత్రమే యాక్సెస్ చేయగలరు
+        # స్టోర్ మేనేజర్లు తమ స్వంత స్టోర్‌నే యాక్సెస్ చేయగలరు
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # ప్రాంతీయ మేనేజర్లు అనేక స్టోర్లను యాక్సెస్ చేయగలరు
+        # ప్రాంతీయ మేనేజర్లు متعدد స్టోర్లను యాక్సెస్ చేయగలరు
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# ఇన్‌పుట్ ధృవీకరణ మరియు శుభ్రపరిచే ప్రక్రియ
+# ఇన్‌పుట్ వాలిడేషన్ మరియు శుభ్రపరిచే పనిచేయడం
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # నిషేధిత నమూనాలు
+        # నిషిద్ధ నమూనాలు
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # SELECT స్టేట్మెంట్లను మాత్రమే అనుమతించండి
+        # SELECT స్టేట్మెంట్లు మాత్రమే అనుమతించండి
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # అక్షరసంఖ్య, అండర్‌స్కోర్, మరియు డాట్ మాత్రమే అనుమతించండి
+        # అక్షరసంఖ్యాత్మక, అండర్‌ స్కోర్ మరియు డాట్ మాత్రమే అనుమతించండి
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # అనుమతించబడిన పట్టికలతో ధృవీకరించండి
+        # అనుమతించిన పట్టికలతో పోల్చి పిల్లంచండి
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # ఉత్పత్తిలో, Azure కీ వాల్ట్ నుండి పొందండి
+        # ప్రొడక్షన్‌లో, Azure కీ వాల్ట్‌ నుండి పొందండి
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # అభివృద్ధికి ప్రత్యామ్నాయం (ఉత్పత్తికి కాదు!)
+        # డెవలప్‌మెంట్ కోసం ఫాల్బ్యాక్ (ప్రొడక్షన్ కోసం కాదు!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -524,9 +524,9 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 ఉత్పత్తి అమలు మార్గదర్శకాలు
+## 📊 ఉత్పత్తి వర్తింపు మార్గదర్శకాలు
 
-### ఇన్‌ఫ్రాస్ట్రక్చర్ యాజమాన్యం కోడ్ రూపంలో
+### ఇన్ఫ్రాస్ట్రక్చర్ ఆజ్ కోడ్
 
 ```yaml
 # azure-pipelines.yml
@@ -607,7 +607,7 @@ stages:
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
 
-### కంటైనర్ ఆప్టిమైజేషన్
+### కంటెయినర్ మెరుగుదల
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -666,7 +666,7 @@ CMD ["python", "-m", "mcp_server.sales_analysis"]
 ### వాతావరణ కాన్ఫిగరేషన్
 
 ```python
-# ఉత్పత్తి కాన్ఫిగరేషన్ నిర్వహణ
+# ఉత్పత్తి అమరిక నిర్వహణ
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,26 +715,26 @@ class ProductionConfig:
             ]
         )
         
-        # మూడవ పక్ష లాగర్లను హెచ్చరికకు సెట్ చేయండి
+        # మూడవ పార్టీ లాగర్లను WARNING కు సెట్ చేయండి
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # డీబగ్ మోడ్‌ను నిలిపివేయండి
+        # డిబగ్గింగ్ మోడ్ ని నిలిపివేయండి
         os.environ['DEBUG'] = 'False'
         
-        # సురక్షిత హెడ్డర్లను సెట్ చేయండి
+        # భద్రతా హెడ్డర్లను సెట్ చేయండి
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
 
-## 💰 ఖర్చు ఆప్టిమైజేషన్
+## 💰 ఖర్చు మెరుగుదల
 
-### వనరుల నిర్వహణ
+### వనరు నిర్వహణ
 
 ```python
 class CostOptimizer:
@@ -753,7 +753,7 @@ class CostOptimizer:
             target_pool_size = max(2, int(current_load * 10))
         elif current_load < 0.7:  # మధ్యస్థ లోడ్
             target_pool_size = max(5, int(current_load * 15))
-        else:  # అధిక లోడ్
+        else:  # ఎక్కువ లోడ్
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # క్యాష్ ఖరీదైన ఆపరేషన్లు
+        # క్యాష్ ఖర్చుతో కూడిన ఆపరేషన్లు
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -798,11 +798,11 @@ class AutoScaler:
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # మెమరీ ఆధారిత స్కేలింగ్
+        # మెమొరీ ఆధారిత స్కేలింగ్
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # అభ్యర్థన క్యూయి స్కేలింగ్
+        # రిక్వెస్ట్ క్యూ స్కేలింగ్
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -811,9 +811,9 @@ class AutoScaler:
         return "no_action"
 ```
 
-## 🔧 నిర్వహణ మరియు ఆపరేషన్లు
+## 🔧 నిర్వహణ మరియు ఆపరేషన్స్
 
-### ఆరోగ్య మానిటరింగ్
+### హెల్త్ మానిటరింగ్
 
 ```python
 class OperationalHealth:
@@ -836,7 +836,7 @@ class OperationalHealth:
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # బాహ్య సేవల ఆరోగ్యం
+        # బయటి సేవల ఆరోగ్యం
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
@@ -844,11 +844,11 @@ class OperationalHealth:
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # అప్లికేషన్ మెట్రిక్స్
+        # అప్లికేషన్ మీట్రిక్స్
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # మొత్తం స్థితిని నిర్ణయించండి
+        # మొత్తం స్థితిని నిర్ణయించుకోండి
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # అలర్ట్‌లను ప్రారంభించండి
+            # హెచ్చరికలను ప్రారంభించండి
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -877,7 +877,7 @@ class OperationalHealth:
                 # ప్రాథమిక కనెక్టివిటీ
                 await conn.fetchval("SELECT 1")
                 
-                # మెల్లగా నడిచే ప్రశ్నలను తనిఖీ చేయండి
+                # మందగించే ప్రశ్నలను తనిఖీ చేయండి
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # కనెక్షన్ సంఖ్యను తనిఖీ చేయండి
+                # కనెక్షన్ గణనను తనిఖీ చేయండి
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# ఆటోమేటెడ్ బ్యాకప్ మరియు రికవరీ
+# స్వయంచాలక బ్యాకప్ మరియు పునరుద్ధరణ
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Azure Blob స్టోరేజ్‌కు అప్లోడ్ చేయండి
+        # ఆజ్యూర్ బ్లాబ్ స్టోరేజ్‌కు అప్‌లోడ్ చేయండి
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,20 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # ప్రతిరోజూ 2 AM UTC వద్ద పూర్తి బ్యాకప్
+        # ప్రతి రోజు ఉదయం 2 AM UTC వద్ద పూర్తి బ్యాకప్
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # గంటల వారీగా ఇన్క్రిమెంటల్ బ్యాకప్‌లు
+        # ప్రతి שעה పెరుగుతున్న బ్యాకప్లు
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
 
-## 🌍 కమ్యూనిటీ కాంట్రిబ్యూషన్స్
+## 🌍 కమ్యూనిటీ సహకారాలు
 
-### ఓపెన్ సోర్స్ ఉత్తమ ఆచారాలు
+### ఓపెన్ సోర్స్ ఉత్తమ పద్ధతులు
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### కమ్యూనిటీ పాల్గొనడం
+### కమ్యూనిటీ ఎంగేజ్‌మెంట్
 
 ```python
 class CommunityContributor:
@@ -1025,81 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # వాస్తవ తనిఖీలు అమలు చేస్తాను
+            "follows_conventions": True,  # నిజమైన తనిఖీలు అమలు చేస్తుంది
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 ముఖ్యమైన పాఠాలు
+## 🎯 ముఖ్యమైన నీడలు
 
-ఈ సమగ్ర నేర్చుకునే మార్గాన్ని పూర్తి చేసిన తర్వాత, మీరు నైపుణ్యాలు సంపాదించాలి:
+ఈ సమగ్ర నేర్చుకునే మార్గాన్ని పూర్తి చేసిన తర్వాత, మీరు మాస్టర్ అయి ఉండాలి:
 
-✅ **పనితీరు ఆప్టిమైజేషన్**: డేటాబేస్ ట్యూనింగ్, అసింక్ నమూనాలు, మరియు క్యాచింగ్ వ్యూహాలు  
-✅ **భద్రతా హార్డెనింగ్**: ప్రామాణీకరణ, అనుమతులు, మరియు డేటా రక్షణ  
-✅ **ఉత్పత్తి అమలు**: ఇన్‌ఫ్రాస్ట్రక్చర్ యాజమాన్యం కోడ్ రూపంలో మరియు కంటైనర్ ఆప్టిమైజేషన్  
-✅ **ఖర్చు నిర్వహణ**: వనరుల ఆప్టిమైజేషన్ మరియు తెలివైన స్కేలింగ్  
-✅ **ఆపరేషనల్ ఎక్సలెన్స్**: మానిటరింగ్, నిర్వహణ, మరియు ఆటోమేషన్  
-✅ **కమ్యూనిటీ పాల్గొనడం**: MCP ఎకోసిస్టమ్‌కు కాంట్రిబ్యూట్ చేయడం  
+✅ **పనితీరు మెరుగుదల**: డేటాబేస్ ట్యూనింగ్, అసిన్ నమూనాలు, మరియు క్యాచింగ్ వ్యూహాలు  
+✅ **భద్రతా హార్డెనింగ్**: గుర్తింపు, అనుమతినిచ్చుట, మరియు డేటా రక్షణ  
+✅ **ఉత్పత్తి వర్తింపు**: ఇన్ఫ్రాస్ట్రక్చర్ ఆజ్ కోడ్ మరియు కంటెయినర్ మెరుగుదల  
+✅ **ఖర్చు నిర్వహణ**: వనరు మెరుగుదల మరియు తెలివైన స్కేలింగ్  
+✅ **ఆపరేషన్ ఎక్సలెన్స్**: మానిటరింగ్, నిర్వహణ, మరియు ఆటోమేషన్  
+✅ **కమ్యూనిటీ పాల్గొనటం**: MCP ఎకోసిస్టమ్‌కు సహకారం  
 
 ## 🏆 సర్టిఫికేషన్ మరియు తదుపరి దశలు
 
 ### ప్రాక్టికల్ అసెస్‌మెంట్
 
-మీ నైపుణ్యాన్ని ప్రదర్శించడానికి ఈ తుది ప్రాజెక్టును పూర్తి చేయండి:
+మీ మాస్టరీని చూపించేందుకు ఈ తుదిశాఖ ప్రాజెక్ట్ పూర్తి చేయండి:
 
-**ఉత్పత్తి-సిద్ధ MCP సర్వర్ నిర్మించండి** ఇది కలిగి ఉంటుంది:  
-- [ ] RLS తో మల్టీ-టెనెంట్ రిటైల్ అనలిటిక్స్  
-- [ ] Azure OpenAI తో సేమాంటిక్ సెర్చ్  
-- [ ] సమగ్ర భద్రతా అమలు  
-- [ ] Azure పై ఉత్పత్తి అమలు  
+**ఉత్పత్తి-సిద్ధ MCP సర్వర్ నిర్మించండి** ఇది కలిగి ఉంటాయి:  
+- [ ] RLSతో బహుళ-అధికారిక రీటైల్ విశ్లేషణ  
+- [ ] Azure OpenAI తో సేమాంటిక్ శోధన  
+- [ ] సమగ్ర భద్రత అమలు  
+- [ ] Azureపై ఉత్పత్తి వర్తింపు  
 - [ ] మానిటరింగ్ మరియు అలర్టింగ్ సెటప్  
 - [ ] డాక్యుమెంటేషన్ మరియు టెస్టింగ్  
 
-### అభివృద్ధి చెందిన నేర్చుకునే మార్గాలు
+### అభివృద్ధి నేర్చుకునే మార్గాలు
 
 మీ MCP ప్రయాణాన్ని కొనసాగించండి:
 
-- **MCP ఆర్కిటెక్చర్ నమూనాలు**: అభివృద్ధి చెందిన సర్వర్ ఆర్కిటెక్చర్లు  
-- **మల్టీ-మోడల్ ఇంటిగ్రేషన్**: వివిధ AI మోడల్స్ కలపడం  
-- **ఎంటర్ప్రైజ్ స్కేల్**: పెద్ద స్థాయి MCP అమలులు  
-- **కస్టమ్ టూల్ డెవలప్‌మెంట్**: ప్రత్యేక MCP టూల్స్ నిర్మాణం  
-- **MCP ఎకోసిస్టమ్**: విస్తృత కమ్యూనిటీకి కాంట్రిబ్యూట్ చేయడం  
+- **MCP ఆర్కిటెక్చర్ నమూనాలు**: అగ్రగణ్య సర్వర్ ఆర్కిటెక్చర్లు  
+- **బహుళ-మోడల్ ఇంటిగ్రేషన్**: వేర్వేరు AI మోడళ్లను కలగలుపు  
+- **ఎంటర్‌ప్రైజ్ స్కేల్**: భారీ MCP వర్తింపులు  
+- **ఇతర టూల్ అభివృద్ధి**: ప్రత్యేక MCP టూల్‌ల నిర్మాణం  
+- **MCP ఎకోసిస్టమ్**: విస్తృత కమ్యూనిటీకి సహకారం  
 
 ### కమ్యూనిటీ గుర్తింపు
 
-మీ సాధనను పంచుకోండి:  
+మీ సాధన పంచుకోండి:  
 - **GitHub పోర్ట్‌ఫోలియో**: మీ అమలును ప్రదర్శించండి  
-- **కమ్యూనిటీ కాంట్రిబ్యూషన్స్**: మెరుగుదలలు లేదా ఉదాహరణలు సమర్పించండి  
-- **స్పీకింగ్ అవకాశాలు**: మీటప్స్ లేదా కాన్ఫరెన్సుల్లో ప్రదర్శించండి  
-- **మెంటరింగ్**: ఇతర డెవలపర్లకు MCP నేర్పించడంలో సహాయం చేయండి  
+- **కమ్యూనిటీ సహకారాలు**: మెరుగుదలలు లేదా ఉదాహరణలను సమర్పించండి  
+- **వక్తృత్వ అవకాశాలు**: మీటప్స్ లేదా కాన్ఫరెన్స్‌ల లో ప్రస్తావించండి  
+- **మెంటోరింగ్**: ఇతర డెవలపర్లకు MCP నేర్చుకోవడంలో సహాయం చేయండి  
 
 ## 📚 అదనపు వనరులు
 
-### అభివృద్ధి చెందిన విషయాలు  
-- [PostgreSQL పనితీరు ట్యూనింగ్](https://www.postgresql.org/docs/current/performance-tips.html) - డేటాబేస్ ఆప్టిమైజేషన్  
-- [Azure కంటైనర్ యాప్స్ ఉత్తమ ఆచారాలు](https://docs.microsoft.com/azure/container-apps/overview) - ఉత్పత్తి అమలు  
-- [Python అసింక్ ఉత్తమ ఆచారాలు](https://docs.python.org/3/library/asyncio-dev.html) - అసింక్ ప్రోగ్రామింగ్  
+### అభివృద్ధి అంశాలు  
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - డేటాబేస్ మెరుగుదల  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - ఉత్పత్తి వర్తింపు  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - అసిన్ ప్రోగ్రామింగ్  
 
-### భద్రతా వనరులు  
-- [OWASP టాప్ 10](https://owasp.org/www-project-top-ten/) - భద్రతా లోపాలు  
-- [Azure భద్రత ఉత్తమ ఆచారాలు](https://docs.microsoft.com/azure/security/) - క్లౌడ్ భద్రత  
-- [Python భద్రత మార్గదర్శకాలు](https://python.org/dev/security/) - సురక్షిత కోడింగ్  
+### భద్రత వనరులు  
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - భద్రతా లోపాలు  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - క్లౌడ్ భద్రత  
+- [Python Security Guidelines](https://python.org/dev/security/) - సురక్షిత కోడింగ్  
 
 ### కమ్యూనిటీ  
-- [MCP కమ్యూనిటీ Discord](https://discord.com/invite/ByRwuEEgH4) - ప్రత్యక్ష చర్చలు  
-- [GitHub చర్చలు](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - ప్రశ్నలు మరియు పంచుకోవడం  
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - ప్రత్యక్ష చర్చలు  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - ప్రశ్నలు మరియు పంచికలు  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - సాంకేతిక ప్రశ్నలు  
 
 ---
 
-**🎉 అభినందనలు!** మీరు సమగ్ర MCP డేటాబేస్ ఇంటిగ్రేషన్ నేర్చుకునే మార్గాన్ని పూర్తి చేసారు. మీరు ఇప్పుడు AI అసిస్టెంట్లను వాస్తవ ప్రపంచ డేటా వ్యవస్థలతో కలిపే ఉత్పత్తి-సిద్ధ MCP సర్వర్లను నిర్మించడానికి జ్ఞానం మరియు నైపుణ్యాలు కలిగి ఉన్నారు.
+**🎉 అభినందనలు!** మీరు సమగ్ర MCP డేటాబేస్ ఇంటిగ్రేషన్ నేర్చుకునే మార్గాన్ని పూర్తి చేసుకున్నారు. మీరు ఇప్పుడు AI అసిస్టెంట్లు వాస్తవ ప్రపంచ డేటా వ్యవస్థలతో అనుబంధించే ఉత్పత్తి-సిద్ధ MCP సర్వర్‌లు నిర్మించడానికి ప్రతిభ మరియు నైపుణ్యాలు పొందారు.
 
-**కాంట్రిబ్యూట్ చేయడానికి సిద్ధంగా ఉన్నారా?** మా కమ్యూనిటీకి చేరండి మరియు మీ అనుభవాలను పంచుకోవడం, కోడ్ మెరుగుదలలకు కాంట్రిబ్యూట్ చేయడం లేదా అదనపు నేర్చుకునే వనరులు సృష్టించడం ద్వారా ఇతరులకు MCP నేర్పడంలో సహాయం చేయండి.
+**సహకరించడానికి సిద్ధంగా ఉన్నారా?** మా కమ్యూనిటీలో చేరి మీ అనుభవాలను పంచుకుని, కోడ్ మెరుగుదలలై, లేదా అదనపు నేర్చుకునే వనరులు సృష్టించి ఇతరులు MCP నేర్చుకోవడంలో సహాయపడండి.
+
+**తదుపరి**: [Tooling](../../12-tooling/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**అస్పష్టత**:  
-ఈ డాక్యుమెంట్‌ను AI అనువాద సేవ [Co-op Translator](https://github.com/Azure/co-op-translator) ఉపయోగించి అనువదించబడింది. మేము ఖచ్చితత్వానికి ప్రయత్నించినప్పటికీ, ఆటోమేటెడ్ అనువాదాల్లో పొరపాట్లు లేదా తప్పులు ఉండవచ్చు. మూల డాక్యుమెంట్ దాని స్వదేశీ భాషలో అధికారిక మూలంగా పరిగణించాలి. ముఖ్యమైన సమాచారానికి, ప్రొఫెషనల్ మానవ అనువాదం సిఫార్సు చేయబడుతుంది. ఈ అనువాదం వాడకం వల్ల కలిగే ఏవైనా అపార్థాలు లేదా తప్పుదారితీసే అర్థాలు కోసం మేము బాధ్యత వహించము.
+**అస్వీకరణ**:
+ఈ పత్రం AI అనువాద సేవ [Co-op Translator](https://github.com/Azure/co-op-translator) ఉపయోగించి అనువదించబడింది. మేము ఖచ్చితత్వానికి ప్రయత్నిస్తున్నప్పటికీ, ఆటోమేటెడ్ అనువాదాలు తప్పులు లేదా అసమగ్రతలను కలిగి ఉండవచ్చు. దాని స్వదేశ భాషలో ఉన్న అసలు పత్రాన్ని అధికారం కలిగిన మూలంగా పరిగణించాలి. కీలకమైన సమాచారం కోసం, ప్రొఫెషనల్ మానవ అనువాదాన్ని సిఫారసు చేస్తాము. ఈ అనువాదం ఉపయోగం వల్ల కలిగే ఏవైనా అపార్థాలు లేదా తప్పుదారులు కోసం మేము బాధ్యత వహించము.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
