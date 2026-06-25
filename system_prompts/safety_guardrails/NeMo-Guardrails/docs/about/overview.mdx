@@ -1,33 +1,54 @@
 ---
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
-title: "Overview of the NeMo Guardrails Library"
+title: "Overview"
 sidebar-title: "Overview"
 description: "Add programmable guardrails to LLM applications with this open-source Python library."
-keywords: ["nemo guardrails", "llm safety", "content moderation", "guardrails python"]
+keywords:
+    ["nemo guardrails", "llm safety", "content moderation", "guardrails python"]
 content:
-  type: "concept"
+    type: "concept"
 ---
-The NVIDIA NeMo Guardrails library ([PyPI](https://pypi.org/project/nemoguardrails/) | [GitHub](https://github.com/NVIDIA-NeMo/Guardrails)) is an open-source Python package for adding programmable guardrails to LLM-based applications. Guardrails make your LLM-based application safer and more secure by blocking inappropriate, off-topic or malicious user inputs or LLM responses.
 
-## NeMo Guardrails Library within the NVIDIA NeMo Software Stack
+The NVIDIA NeMo Guardrails library ([PyPI](https://pypi.org/project/nemoguardrails/) | [GitHub](https://github.com/NVIDIA-NeMo/Guardrails)) is an open-source Python package for adding programmable guardrails to LLM-based applications. Use it to block, alter, or validate unsafe, off-topic, malicious, or policy-violating user inputs and model responses.
 
-[NVIDIA NeMo](https://www.nvidia.com/en-us/ai-data-science/products/nemo/) is a suite of microservices, tools, and libraries for building, deploying, and scaling LLM-based applications.
+The library provides configuration files, Colang flows, built-in guardrails, custom actions, and integration APIs so you can add safety and control logic without rewriting your application or model backend.
 
-NeMo Guardrails is part of the NVIDIA NeMo software stack. It takes part in adding programmable guardrails to LLM-based applications. The NeMo Guardrails library provides tools to build guardrails and integrate them into your LLM-based applications at development time. The NeMo Guardrails microservice as part of the [NeMo microservices platform](https://docs.nvidia.com/nemo/microservices/latest/about/index.html) is a production-ready container image built on top of this library, designed for Kubernetes deployment with Helm charts.
+## How It Fits in the NVIDIA NeMo Software Stack
 
-|                  | NeMo Guardrails Library          | NeMo Guardrails Microservice     |
-|------------------|----------------------------------|----------------------------------|
-| Distribution     | PyPI (`pip install`)             | Container image (backed by this library) |
-| Deployment       | Self-managed Python environment  | Kubernetes with Helm             |
-| Scaling          | Application-level                | Managed by orchestrator          |
-| Configuration    | YAML + Colang                    | Same YAML + Colang format        |
+[NVIDIA NeMo](https://www.nvidia.com/en-us/ai-data-science/products/nemo/) is a suite of microservices, tools, and libraries for building, deploying, and scaling LLM-based applications. The NVIDIA NeMo Guardrails library provides the developer-facing Python package for building and testing guardrails, while the NVIDIA NeMo Guardrails microservice provides a production-ready container image built on top of the same guardrails configuration model.
+
+|               | Library                         | Microservice                           |
+| ------------- | ------------------------------- | -------------------------------------- |
+| Distribution  | PyPI package                    | Container image backed by this library |
+| Deployment    | Self-managed Python environment | Kubernetes with Helm                   |
+| Scaling       | Application-level               | Managed by the orchestrator            |
+| Configuration | YAML and Colang                 | Same YAML and Colang format            |
 
 Configurations are portable between the library and microservice, so you can develop locally with the library and deploy to production with the microservice.
 
+## Core Building Blocks
+
+The NVIDIA NeMo Guardrails library is organized around the following building blocks:
+
+- **Rails**: Input, retrieval, dialog, execution, and output rails run at different stages of an LLM interaction.
+- **Configuration**: YAML files define models, prompts, rails, tracing, and other runtime settings.
+- **Colang flows**: Colang defines conversational flows, guardrail logic, and event-driven behavior.
+- **Custom actions**: Python functions, tools, or external APIs extend guardrails with application-specific checks.
+- **Runtime interfaces**: The Python SDK and guardrails server let applications send messages through a guardrailed interface.
+
+## Benefits
+
+The NVIDIA NeMo Guardrails library helps teams add policy enforcement and safety checks around LLM applications while keeping the application architecture flexible.
+
+- Add guardrails before and after LLM calls without changing the application LLM.
+- Reuse the same YAML and Colang configuration across local development and microservice deployment.
+- Combine built-in guardrails, NVIDIA safety models, community models, third-party APIs, and custom Python actions.
+- Inspect and control user inputs, retrieved content, tool calls, and model outputs in one guardrails workflow.
+
 ## Use Cases
 
-The following are the top use cases of the NeMo Guardrails library that you can apply to protect your LLM applications.
+Teams use the NVIDIA NeMo Guardrails library in the following scenarios.
 
 <Accordion title="🛡️ Add Content Safety">
 
@@ -88,6 +109,7 @@ The NeMo Guardrails library supports PII detection through multiple integrations
 PII detection can be configured to either detect and block content containing PII or to mask PII entities before processing.
 
 For more information, refer to the [Presidio Integration](/configure-guardrails/guardrail-catalog/third-party/presidio) and [PII Detection](/configure-guardrails/guardrail-catalog/pii-detection#presidio-based-sensitive-data-detection) in the Guardrail Catalog.
+
 </Accordion>
 
 <Accordion title="🤖 Add Agentic Security">
@@ -108,6 +130,7 @@ Key security considerations for agent systems:
 4. Monitor agent behavior for unexpected actions.
 
 For more information, refer to the [Tools Integration Guide](/integration-with-third-party-libraries/tools-integration), [Security Guidelines](/resources/guidelines), and [LangGraph Integration](/integration-with-third-party-libraries/langchain/langgraph-integration).
+
 </Accordion>
 
 <Accordion title="🔧 Build Your Own or Use Third-party Guardrail Solutions">
@@ -162,8 +185,21 @@ You can integrate the NeMo Guardrails library into your application using the to
 
 </Accordion>
 
----
+## Integration Paths
 
-## Next Steps
+You can integrate the NVIDIA NeMo Guardrails library directly into a Python application or run a FastAPI service and call endpoints over HTTP/REST.
 
-To get started with NeMo Guardrails, begin by [installing the library](/get-started/installation-guide) and try out one of the [tutorials](/get-started/tutorials).
+| Path                   | Best For                                                                               | Entry Point                                                                             |
+| ---------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Python SDK             | Applications that can call the library directly from Python.                           | [Using Python APIs](/run-guardrailed-inference/using-python-apis/overview)              |
+| Guardrails server      | Applications that need an HTTP endpoint compatible with OpenAI-style chat completions. | [Using the Guardrails Server](/run-guardrailed-inference/using-fastapi-server/overview) |
+| Framework integrations | Applications that already use frameworks such as LangChain or LangGraph.               | [LangChain Integrations](/integration-with-third-party-libraries/langchain)             |
+
+## Learn More
+
+Continue exploring the NVIDIA NeMo Guardrails library through these resources:
+
+- [How It Works](/about-nemo-guardrails-library/how-it-works) for the request flow and runtime layers.
+- [Guardrail Types](/about-nemo-guardrails-library/rail-types) for the stages where rails run.
+- [About Configuring Guardrails](/configure-guardrails/configure-rails) for YAML files, Colang flows, custom actions, and related settings.
+- [Get Started](/get-started/installation-guide) to install the library and run the first examples.
