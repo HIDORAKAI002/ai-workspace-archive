@@ -2,6 +2,13 @@
 
 This document serves as a record of all significant changes made to the Model Context Protocol (MCP) for Beginners curriculum. Changes are documented in reverse chronological order (newest changes first).
 
+## June 24th, 2026
+
+### New Lesson: Using MCP in Copilot app
+
+- [Tooling section](./12-tooling/README.md) Added tooling section.
+- [MCP in Copilot app](./12-tooling/01-copilot-app/README.md)
+
 ## June 16, 2026
 
 ### MCP Specification Alignment & Sample Validation
