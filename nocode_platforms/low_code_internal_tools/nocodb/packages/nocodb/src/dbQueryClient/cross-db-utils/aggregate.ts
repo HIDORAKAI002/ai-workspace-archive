@@ -125,12 +125,28 @@ export const aggregate =
 
       qb.select(...selectors);
 
-      return await baseModel.execAndParse(qb, null, {
+      const aggregated = await baseModel.execAndParse(qb, null, {
         first: true,
+        bulkAggregate: true,
         skipDateConversion: true,
         skipAttachmentConversion: true,
         skipUserConversion: true,
       });
+
+      if (!aggregated || typeof aggregated !== 'object') {
+        return {};
+      }
+
+      const idToTitle = new Map(
+        aggregateColumns.map(({ col }) => [col.id, col.title]),
+      );
+
+      const result: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(aggregated)) {
+        result[idToTitle.get(key) ?? key] = value;
+      }
+
+      return result;
     } catch (e) {
       logger?.error?.((e as Error).message, (e as Error).stack);
       throw e;

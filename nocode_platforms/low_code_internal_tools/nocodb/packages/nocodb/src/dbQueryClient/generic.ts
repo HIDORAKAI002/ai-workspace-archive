@@ -1,4 +1,12 @@
-import { arrFlatMap, ClientType } from 'nocodb-sdk';
+import {
+  arrFlatMap,
+  ClientType,
+  ncIsArray,
+  ncIsBoolean,
+  ncIsNull,
+  ncIsObject,
+  ncIsUndefined,
+} from 'nocodb-sdk';
 import type {
   AggregateCtx,
   AggregationGeneratorParams,
@@ -63,6 +71,95 @@ export abstract class GenericDBQueryClient implements DBQueryClient {
     asKnexFrom?: boolean;
   }) {
     return param.knex.from(this.temporaryTableRaw(param));
+  }
+
+  tableAlias(knex: XKnex, table: string | Knex.Raw, alias: string): Knex.Raw {
+    return knex.raw(`?? as ??`, [table, alias]);
+  }
+
+  /**
+   * Bulk update by primary key via per-column CASE statements — one
+   * statement for the whole batch (pg / mysql / sqlite / mssql):
+   *
+   *   UPDATE table SET
+   *     col1 = CASE id WHEN 1 THEN 'val1' WHEN 2 THEN 'val2' ELSE col1 END,
+   *     col2 = CASE id WHEN 1 THEN 'val3' WHEN 2 THEN 'val4' ELSE col2 END
+   *   WHERE id IN (1, 2)
+   *
+   * Oracle overrides this — its CASE types from the first THEN clause and
+   * rejects the differently-typed ELSE column reference (ORA-00932).
+   */
+  batchUpdate({
+    knex,
+    tnPath,
+    rows,
+    pkColumnName,
+  }: {
+    knex: XKnex;
+    tnPath: string | Knex.Raw;
+    rows: Record<string, any>[];
+    pkColumnName: string;
+  }): Knex.QueryBuilder | Knex.Raw | null {
+    if (!rows.length) return null;
+
+    // Rows missing the primary key can't be targeted by the CASE/WHEN — and
+    // on MSSQL knex's binding-validation pass rejects the resulting
+    // `undefined` outright ("Undefined binding(s) detected for keys [1] when
+    // compiling RAW query: CASE [id] WHEN ? THEN ?"). Drop them up front so
+    // every row we go on to bind has both a pk and at least one
+    // non-undefined column.
+    const rowsWithPk = rows.filter((row) => !ncIsUndefined(row[pkColumnName]));
+    if (!rowsWithPk.length) return null;
+
+    const pks = [...new Set(rowsWithPk.map((row) => row[pkColumnName]))];
+
+    // Get all columns except primary key that need to be updated
+    const allColumns = new Set<string>();
+    rowsWithPk.forEach((row) => {
+      Object.keys(row).forEach((col) => {
+        if (col !== pkColumnName) allColumns.add(col);
+      });
+    });
+
+    // return null if no fields updated
+    if (allColumns.size === 0) {
+      return null;
+    }
+
+    const columns = Array.from(allColumns);
+
+    // Build update object with CASE statements for each column
+    const updateObj: Record<string, Knex.Raw> = {};
+
+    columns.forEach((column) => {
+      const filteredRows = rowsWithPk.filter(
+        (row) => !ncIsUndefined(row[column]),
+      );
+      if (!filteredRows.length) return;
+      updateObj[column] = knex.raw(
+        `CASE ?? ${filteredRows
+          .map(() => 'WHEN ? THEN ?')
+          .join(' ')} ELSE ?? END`,
+        [
+          pkColumnName,
+          ...filteredRows.flatMap((row) => [
+            row[pkColumnName],
+
+            ncIsNull(row[column]) ||
+            ncIsObject(row[column]) ||
+            ncIsArray(row[column]) ||
+            ncIsBoolean(row[column])
+              ? row[column]
+              : `${row[column]}`,
+          ]),
+          column,
+        ],
+      );
+    });
+
+    // Build and return the query
+    if (Object.keys(updateObj).length === 0) return null;
+    return knex(tnPath).update(updateObj).whereIn(pkColumnName, pks);
   }
 
   abstract concat(fields: string[]): string;

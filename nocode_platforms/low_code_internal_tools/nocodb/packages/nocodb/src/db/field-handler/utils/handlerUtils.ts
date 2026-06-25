@@ -12,6 +12,7 @@ import type {
   FilterOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from 'knex';
+import type { ClientType } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
@@ -20,6 +21,7 @@ import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
+import { DBQueryClient } from '~/dbQueryClient';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
@@ -58,6 +60,10 @@ export async function nestedConditionJoin({
   parseConditionV2: ConditionParser;
 }): Promise<FilterOperationResult> {
   const context = baseModelSqlv2.context;
+
+  const dbQueryClient = DBQueryClient.get(
+    baseModelSqlv2.dbDriver.clientType() as ClientType,
+  );
 
   const clauses: ((qb: Knex.QueryBuilder) => void)[] = [];
   const rootAppliances: ((qb: Knex.QueryBuilder) => void)[] = [];
@@ -137,10 +143,11 @@ export async function nestedConditionJoin({
               );
               clauses.push((qb) => {
                 qb.join(
-                  knex.raw(`?? as ??`, [
+                  dbQueryClient.tableAlias(
+                    knex,
                     childBaseModel.getTnPath(childModel.table_name),
                     relAlias,
-                  ]),
+                  ),
                   `${alias}.${parentColumn.column_name}`,
                   `${relAlias}.${childColumn.column_name}`,
                 );
@@ -168,7 +175,7 @@ export async function nestedConditionJoin({
               );
               clauses.push((qb) => {
                 qb.join(
-                  knex.raw(`?? as ??`, [relAlias, relAlias]),
+                  dbQueryClient.tableAlias(knex, relAlias, relAlias),
                   `${alias}.${parentColumn.column_name}`,
                   `${relAlias}.root_id`,
                 );
@@ -180,10 +187,11 @@ export async function nestedConditionJoin({
               );
               clauses.push((qb) => {
                 qb.join(
-                  knex.raw(`?? as ??`, [
+                  dbQueryClient.tableAlias(
+                    knex,
                     parentBaseModel.getTnPath(parentModel.table_name),
                     relAlias,
-                  ]),
+                  ),
                   `${alias}.${childColumn.column_name}`,
                   `${relAlias}.${parentColumn.column_name}`,
                 );
@@ -217,17 +225,19 @@ export async function nestedConditionJoin({
             );
             clauses.push((qb) => {
               qb.join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   mmBaseModel.getTnPath(mmModel.table_name),
                   assocAlias,
-                ]),
+                ),
                 `${assocAlias}.${mmChildColumn.column_name}`,
                 `${alias}.${childColumn.column_name}`,
               ).join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   parentBaseModel.getTnPath(parentModel.table_name),
                   relAlias,
-                ]),
+                ),
                 `${relAlias}.${parentColumn.column_name}`,
                 `${assocAlias}.${mmParentColumn.column_name}`,
               );

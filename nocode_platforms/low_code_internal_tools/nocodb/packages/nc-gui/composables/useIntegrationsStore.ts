@@ -11,13 +11,15 @@ enum IntegrationsPageMode {
   EDIT,
 }
 
-const integrationType: Record<'PostgreSQL' | 'MySQL' | 'SQLITE' | 'SQLServer' | 'OpenAI', ClientType | SyncDataType> = {
-  PostgreSQL: ClientType.PG,
-  MySQL: ClientType.MYSQL,
-  SQLITE: ClientType.SQLITE,
-  SQLServer: ClientType.MSSQL,
-  OpenAI: SyncDataType.OPENAI,
-}
+const integrationType: Record<'PostgreSQL' | 'MySQL' | 'SQLITE' | 'SQLServer' | 'Oracle' | 'OpenAI', ClientType | SyncDataType> =
+  {
+    PostgreSQL: ClientType.PG,
+    MySQL: ClientType.MYSQL,
+    SQLITE: ClientType.SQLITE,
+    SQLServer: ClientType.MSSQL,
+    Oracle: ClientType.ORACLE,
+    OpenAI: SyncDataType.OPENAI,
+  }
 
 type IntegrationsSubType = (typeof integrationType)[keyof typeof integrationType]
 
@@ -64,6 +66,16 @@ function getStaticInitializor(type: IntegrationsSubType) {
         title: getI18n().global.t('objects.syncData.mssql'),
         logo: h(GeneralBaseLogo, {
           'source-type': 'mssql',
+          'class': 'logo',
+        }),
+      }
+    case integrationType.Oracle:
+      return {
+        ...genericValues,
+        type: integrationType.Oracle,
+        title: 'Oracle',
+        logo: h(GeneralBaseLogo, {
+          'source-type': 'oracledb',
           'class': 'logo',
         }),
       }

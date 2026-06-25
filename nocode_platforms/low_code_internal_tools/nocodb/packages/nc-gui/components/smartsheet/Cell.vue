@@ -235,8 +235,11 @@ const cellType = computed(() => {
   if (isMultiSelect(column.value)) return 'multiSelect'
   if (isDate(column.value, abstractType.value)) return 'datePicker'
   if (isYear(column.value, abstractType.value)) return 'yearPicker'
-  if (isDateTime(column.value, abstractType.value)) return 'dateTimePicker'
+  // Check Time before DateTime: a lookup formatting override sets uidt=Time but
+  // keeps the source's `datetime` abstract type, so isDateTime would otherwise win
+  // and render a datetime picker instead of a time one. uidt is authoritative.
   if (isTime(column.value, abstractType.value)) return 'timePicker'
+  if (isDateTime(column.value, abstractType.value)) return 'dateTimePicker'
   if (isRating(column.value)) return 'rating'
   if (isDuration(column.value)) return 'duration'
   if (isEmail(column.value)) return 'email'

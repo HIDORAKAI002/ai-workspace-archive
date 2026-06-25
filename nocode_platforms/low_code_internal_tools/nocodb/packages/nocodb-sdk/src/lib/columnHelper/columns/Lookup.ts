@@ -6,6 +6,8 @@ import { ncIsArray } from '~/lib/is';
 import { ColumnHelper } from '../column-helper';
 import { ComputedTypePasteError } from '~/lib/error';
 import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
+import { getEffectiveLookupColumn } from '../utils/get-lookup-result-type';
+import { parseProp } from '~/lib/helperFunctions';
 import rfdc from 'rfdc';
 
 const clone = rfdc();
@@ -121,6 +123,13 @@ export class LookupHelper extends AbstractColumnHelper {
     }
 
     childColumn = clone(childColumn);
+
+    // Apply the lookup column's own formatting override (meta.display_type +
+    // meta.display_column_meta) when set AND still valid for the child's current
+    // result type; otherwise the resolved child column is returned unchanged so its
+    // native formatting is inherited (guards against a stale override after the
+    // looked-up field's type changes).
+    childColumn = getEffectiveLookupColumn(parseProp(col?.meta), childColumn);
 
     // A linked-record value arrives as a record object keyed by the related
     // table's column titles/ids — extract the display column's field before

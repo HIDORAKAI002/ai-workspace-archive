@@ -171,6 +171,13 @@ export class MetaDiffsService {
       return [];
     }
 
+    // meta-diff introspects columns once per table (N+1). On Oracle each call is
+    // a slow data-dictionary round-trip; hint the client to batch them into a
+    // single schema-wide fetch (no-op for clients that don't implement it).
+    if ('bulkColumnList' in sqlClient) {
+      sqlClient.bulkColumnList = true;
+    }
+
     const changes: Array<MetaDiff> = [];
     const virtualRelationColumns: Column<LinkToAnotherRecordColumn>[] = [];
 

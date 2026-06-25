@@ -1,6 +1,6 @@
 import { FormulaDataTypes } from 'nocodb-sdk';
-import { NC_MAX_TEXT_LENGTH } from '~/constants';
 import type CustomKnex from '~/db/CustomKnex';
+import { NC_MAX_TEXT_LENGTH } from '~/constants';
 
 export interface IGetAggregateFn {
   (fnName: string): (args: { qb; knex?: CustomKnex; cn }) => any;
@@ -104,6 +104,16 @@ export const wrapFormulaWithMaxLength = ({
       return knex.raw(`SUBSTRING(CAST(? AS NVARCHAR(MAX)), 1, ${len})`, [
         builder,
       ]);
+    case 'oracledb':
+      // Oracle reads `CAST(x AS CHAR)` (the mysql default below) as CHAR(1),
+      // truncating every value to one character, and `CAST(<clob> AS CHAR)`
+      // raises ORA-25137. SUBSTR over TO_CLOB(x) keeps the result a CLOB (TO_CLOB
+      // is identity on CLOB/VARCHAR2/NUMBER), so it can carry the full
+      // NC_MAX_TEXT_LENGTH (100k) — a plain SQL VARCHAR2 caps at 4000/32767 and
+      // would truncate. A CLOB can't be used in GROUP BY / DISTINCT (ORA-22849),
+      // but no caller groups by the raw formula output: the widget category
+      // path narrows it to a VARCHAR2 separately (oracleWidgetCategoryExpr).
+      return knex.raw(`SUBSTR(TO_CLOB(?), 1, ${len})`, [builder]);
     case 'sqlite3':
       return knex.raw(`SUBSTR(CAST(? AS TEXT), 1, ${len})`, [builder]);
     case 'snowflake':
@@ -124,7 +134,7 @@ export const wrapFormulaWithMaxLength = ({
 // plain column identifier; a raw subquery is left as-is (aggregating over a
 // subquery is a separate, cross-dialect limitation that a cast can't fix).
 const mssqlNumericCn = (qb: any, cn: any) =>
-  typeof cn === 'string' && qb?.client?.config?.client === 'mssql'
+  typeof cn === 'string' && qb?.client?.driverName === 'mssql'
     ? qb.client.raw('CAST(?? AS FLOAT)', [cn])
     : cn;
 

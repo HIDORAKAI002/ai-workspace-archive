@@ -148,6 +148,8 @@ const getIntegrationsByCategory = (category: IntegrationCategoryType, query: str
 
     if (i.sub_type === ClientType.MSSQL && !isFeatureEnabled(FEATURE_FLAG.MSSQL_SOURCE)) return false
 
+    if (i.sub_type === ClientType.ORACLE && !isFeatureEnabled(FEATURE_FLAG.ORACLE_SOURCE)) return false
+
     return (
       isOssOnlyAllowed &&
       filterIntegration(i) &&

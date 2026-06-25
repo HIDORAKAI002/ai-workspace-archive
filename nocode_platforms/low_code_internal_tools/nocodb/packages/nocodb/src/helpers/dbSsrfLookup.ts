@@ -189,7 +189,8 @@ function ssrfStreamFactoryFor(client: unknown): unknown {
     case 'mysql2':
       return mysql2StreamFactory();
     default:
-      // sqlite (no network); mssql / snowflake / databricks (different drivers).
+      // sqlite (no network); mssql / oracledb / snowflake / databricks
+      // (different drivers).
       return undefined;
   }
 }

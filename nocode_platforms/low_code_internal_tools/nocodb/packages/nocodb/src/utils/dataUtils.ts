@@ -1,6 +1,5 @@
-import { isLinksOrLTAR, ncIsUndefined } from 'nocodb-sdk';
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
-import type { Knex } from 'knex';
 import { MAX_CONCURRENT_TRANSFORMS } from '~/constants';
 
 export function getAliasGenerator(prefix = '__nc_') {
@@ -139,83 +138,6 @@ export const partialExtract = (obj: any, path: (string[] | string)[]) => {
 
   return result;
 };
-
-/**
- * Generates a batch update query using case statements
- * @param kn knex instance
- * @param tn table name or raw query for table
- * @param data array of objects to update (must include primary key)
- * @param pk primary key column name
- * @returns knex query object
- *
- * Generates queries in the format (supported by PostgreSQL, MySQL and SQLite):
- * UPDATE table SET
- *   col1 = CASE id WHEN 1 THEN 'val1' WHEN 2 THEN 'val2' ELSE col1 END,
- *   col2 = CASE id WHEN 1 THEN 'val3' WHEN 2 THEN 'val4' ELSE col2 END
- * WHERE id IN (1,2)
- */
-export function batchUpdate(
-  kn: Knex,
-  tn: string | Knex.Raw<any>,
-  data: Record<string, any>[],
-  pk: string,
-) {
-  if (!data.length) return null;
-
-  // Rows missing the primary key can't be targeted by the CASE/WHEN — and on
-  // MSSQL knex's binding-validation pass rejects the resulting `undefined`
-  // outright ("Undefined binding(s) detected for keys [1] when compiling RAW
-  // query: CASE [id] WHEN ? THEN ?"). Drop them up front so every row we go
-  // on to bind has both a pk and at least one non-undefined column.
-  const rowsWithPk = data.filter((row) => !ncIsUndefined(row[pk]));
-  if (!rowsWithPk.length) return null;
-
-  const pks = [...new Set(rowsWithPk.map((row) => row[pk]))];
-
-  // Get all columns except primary key that need to be updated
-  const allColumns = new Set<string>();
-  rowsWithPk.forEach((row) => {
-    Object.keys(row).forEach((col) => {
-      if (col !== pk) allColumns.add(col);
-    });
-  });
-
-  // return null if no fields updated
-  if (allColumns.size === 0) {
-    return null;
-  }
-
-  const columns = Array.from(allColumns);
-
-  // Build update object with CASE statements for each column
-  const updateObj: Record<string, Knex.Raw> = {};
-
-  columns.forEach((column) => {
-    const filteredData = rowsWithPk.filter(
-      (row) => !ncIsUndefined(row[column]),
-    );
-    if (!filteredData.length) return;
-    updateObj[column] = kn.raw(
-      `CASE ?? ${filteredData
-        .map(() => 'WHEN ? THEN ?')
-        .join(' ')} ELSE ?? END`,
-      [
-        pk,
-        ...filteredData.flatMap((row) => [
-          row[pk],
-          typeof row[column] === 'object' || typeof row[column] === 'boolean'
-            ? row[column]
-            : `${row[column]}`,
-        ]),
-        column,
-      ],
-    );
-  });
-
-  // Build and return the query
-  if (Object.keys(updateObj).length === 0) return null;
-  return kn(tn).update(updateObj).whereIn(pk, pks);
-}
 
 // Reusable params interface for caching expensive operations
 export interface ReusableParams {

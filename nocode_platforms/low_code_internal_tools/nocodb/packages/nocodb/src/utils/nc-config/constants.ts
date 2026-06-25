@@ -4,6 +4,7 @@ export const driverClientMapping = {
   postgres: 'pg',
   postgresql: 'pg',
   sqlite: 'sqlite3',
+  oracle: 'oracledb',
 };
 
 export const defaultClientPortMapping = {
@@ -12,6 +13,7 @@ export const defaultClientPortMapping = {
   postgres: 5432,
   pg: 5432,
   mssql: 1433,
+  oracledb: 1521,
 };
 
 export const defaultConnectionConfig: any = {
@@ -80,6 +82,7 @@ export enum DriverClient {
   PG = 'pg',
   SQLITE = 'sqlite3',
   MSSQL = 'mssql',
+  ORACLE = 'oracledb',
   SNOWFLAKE = 'snowflake',
   DATABRICKS = 'databricks',
 }

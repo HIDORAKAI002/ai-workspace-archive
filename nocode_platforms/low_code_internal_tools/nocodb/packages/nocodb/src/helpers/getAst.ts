@@ -654,15 +654,23 @@ const extractLookupDependencies = async (
   if (!relationColumnOpts) return;
   const { refContext } = relationColumnOpts.getRelContext(context);
   await extractRelationDependencies(context, relationColumn, dependencyFields);
+
+  // Reuse the nested bucket for the relation column if one already exists. It
+  // may have been seeded from the request query (e.g. the export's
+  // `buildNestedLinkLimitQuery` puts a `{ limit }` object under every link
+  // column's title) and therefore lack `nested`/`fieldsSet`. Normalize both —
+  // `extractDependencies` writes straight to `fieldsSet.add(...)` and, unlike
+  // `getAst`, never defaults it, so a missing set would crash.
+  dependencyFields.nested[relationColumn.title] =
+    dependencyFields.nested[relationColumn.title] || {};
+  const nestedDependencyFields = dependencyFields.nested[relationColumn.title];
+  nestedDependencyFields.nested = nestedDependencyFields.nested || {};
+  nestedDependencyFields.fieldsSet = nestedDependencyFields.fieldsSet || new Set();
+
   await extractDependencies(
     refContext,
     await lookupColumnOpts.getLookupColumn(refContext),
-    (dependencyFields.nested[relationColumn.title] = dependencyFields.nested[
-      relationColumn.title
-    ] || {
-      nested: {},
-      fieldsSet: new Set(),
-    }),
+    nestedDependencyFields,
     _visited,
   );
 };

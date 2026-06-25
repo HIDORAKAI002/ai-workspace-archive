@@ -18,6 +18,10 @@ const {
   validate,
   fieldMappings,
   meta,
+  draftWasRestored,
+  draftRestoredAt,
+  discardDraft,
+  dismissDraftBanner,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -109,6 +113,14 @@ const { message: templatedMessage } = useTemplatedMessage(
       v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
       :banner-image-url="sharedFormView.banner_image_url"
       class="flex-none"
+    />
+
+    <SmartsheetFormDraftRestoredBanner
+      v-if="sharedFormView && !submitted && !notFound && draftWasRestored"
+      :restored-at="draftRestoredAt"
+      class="w-full mt-6 -mb-3"
+      @discard="discardDraft"
+      @close="dismissDraftBanner"
     />
 
     <div

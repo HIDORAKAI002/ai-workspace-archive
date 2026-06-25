@@ -40,6 +40,7 @@ export interface ChatSessionMetaType {
     completed: string[];
     remaining: string[];
   }>;
+  sandboxId?: string;
 }
 
 export interface ChatSessionType {
@@ -115,11 +116,13 @@ export interface ChatMessageType {
   content?: string | null;
   parts?: ChatContentBlock[];
   files?: ChatAttachmentType[];
+  created_files?: ChatAttachmentType[];
   model?: string;
   input_tokens?: number;
   output_tokens?: number;
   bt_span_id?: string | null;
   created_at?: string;
+  uiContextRecord?: { tableId: string; recordId: string; recordTitle?: string };
 }
 
 export const NC_NEW_SESSION = 'NC_SESSION';
@@ -130,6 +133,8 @@ export interface ChatUIContext {
   viewId?: string;
   dashboardId?: string;
   documentId?: string;
+  recordId?: string;
+  recordTitle?: string;
 }
 
 export interface ChatSendMessageType {

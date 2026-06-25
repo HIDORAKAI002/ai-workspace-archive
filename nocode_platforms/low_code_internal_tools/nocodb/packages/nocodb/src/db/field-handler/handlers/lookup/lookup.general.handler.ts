@@ -1,7 +1,7 @@
 import { isMMOrMMLike, parseProp, RelationTypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type { Logger } from '@nestjs/common';
-import type { NcContext } from 'nocodb-sdk';
+import type { ClientType, NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type {
@@ -24,6 +24,7 @@ import { Model } from '~/models';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
+import { DBQueryClient } from '~/dbQueryClient';
 
 export class LookupGeneralHandler extends ComputedFieldHandler {
   /**
@@ -74,6 +75,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
     } = options;
 
     const context = baseModelSqlv2.context;
+    const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
     let rootApply = undefined;
 
     const colOptions = await column.getColOptions<LookupColumn>(context);
@@ -204,7 +206,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
             lookupColumn: column,
             tableAlias: alias,
           });
-          qb = knex(knex.raw(`?? as ??`, [alias, alias])).where(
+          qb = knex(dbQueryClient.tableAlias(knex, alias, alias)).where(
             `${alias}.root_id`,
             '<>',
             knex.raw('??.??', [alias, 'id']),
@@ -213,10 +215,11 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.distinct().select(`${alias}.root_id`);
         } else {
           qb = knex(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               childBaseModel.getTnPath(childModel.table_name),
               alias,
-            ]),
+            ),
           );
 
           qb.select(`${alias}.${childColumn.column_name}`);
@@ -282,7 +285,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
             lookupColumn: column,
             tableAlias: alias,
           });
-          qb = knex(knex.raw(`?? as ??`, [alias, alias])).where(
+          qb = knex(dbQueryClient.tableAlias(knex, alias, alias)).where(
             `${alias}.root_id`,
             '<>',
             knex.raw('??.??', [alias, 'id']),
@@ -291,10 +294,11 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb.distinct().select(`${alias}.root_id`);
         } else {
           qb = knex(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               parentBaseModel.getTnPath(parentModel.table_name),
               alias,
-            ]),
+            ),
           );
           qb.select(`${alias}.${parentColumn.column_name}`);
           qb.whereNotNull(`${alias}.${parentColumn.column_name}`);
@@ -366,18 +370,20 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         const childAlias = `__nc${aliasCount.count++}`;
 
         qb = knex(
-          knex.raw(`?? as ??`, [
+          dbQueryClient.tableAlias(
+            knex,
             mmBaseModel.getTnPath(mmModel.table_name),
             alias,
-          ]),
+          ),
         )
           .select(`${alias}.${mmChildColumn.column_name}`)
           .whereNotNull(`${alias}.${mmChildColumn.column_name}`)
           .join(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               parentBaseModel.getTnPath(parentModel.table_name),
               childAlias,
-            ]),
+            ),
             `${alias}.${mmParentColumn.column_name}`,
             `${childAlias}.${parentColumn.column_name}`,
           );

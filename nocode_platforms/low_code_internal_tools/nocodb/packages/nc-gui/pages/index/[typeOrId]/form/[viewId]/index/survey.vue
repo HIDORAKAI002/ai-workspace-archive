@@ -33,6 +33,10 @@ const {
   fieldMappings,
   backgroundAndTextColor,
   meta,
+  draftWasRestored,
+  draftRestoredAt,
+  discardDraft,
+  dismissDraftBanner,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -382,6 +386,13 @@ const { message: templatedMessage } = useTemplatedMessage(
           </h1>
         </div>
         <template v-if="isStarted && !submitted">
+          <SmartsheetFormDraftRestoredBanner
+            v-if="draftWasRestored"
+            :restored-at="draftRestoredAt"
+            class="mb-4"
+            @discard="discardDraft"
+            @close="dismissDraftBanner"
+          />
           <Transition :name="`slide-${transitionName}`" :duration="transitionDuration" mode="out-in">
             <a-form :model="formState">
               <div

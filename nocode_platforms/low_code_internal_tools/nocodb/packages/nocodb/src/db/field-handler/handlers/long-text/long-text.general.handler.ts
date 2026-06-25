@@ -51,6 +51,11 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
       // unquoted, untyped extraction the other dialects produce.
       return knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
     }
+    if (client === 'oracledb') {
+      // Oracle JSON_VALUE (12.2+) extracts scalar text from the CLOB-stored
+      // JSON payload — same shape as the mssql extraction.
+      return knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
+    }
     return baseField;
   }
 

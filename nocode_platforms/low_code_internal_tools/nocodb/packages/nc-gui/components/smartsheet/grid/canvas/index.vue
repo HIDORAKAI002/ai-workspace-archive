@@ -170,6 +170,8 @@ const { withLoading } = useLoadingTrigger()
 
 const { showRecordPlanLimitExceededModal, navigateToPricing } = useEeConfig()
 
+const { isAiRecordContextEnabled, isAiChatPanelOpen, setAiRecordContext } = useAiRecordContext()
+
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
 const actualTotalRows = toRef(props, 'actualTotalRows')
@@ -417,6 +419,32 @@ const {
   getDataCache,
   maxSelectionLimit,
 })
+
+watch(
+  () => [activeCell.value?.row, activeCell.value?.path?.join('_'), isAiChatPanelOpen.value],
+  () => {
+    if (!isAiRecordContextEnabled.value || !isAiChatPanelOpen.value) return
+
+    const rowIndex = activeCell.value?.row
+    if (rowIndex == null || rowIndex === -1 || !meta.value?.id) return
+
+    const path = activeCell.value?.path ?? []
+    const row = getDataCache(path).cachedRows.value.get(rowIndex)
+    if (!row) return
+
+    const cols = meta.value?.columns ?? []
+    const recordId = extractPkFromRow(row.row, cols)
+    if (!recordId) return
+
+    const pvCol = cols.find((c) => c.pv)
+    const title = pvCol ? row.row[pvCol.title] : ''
+
+    setAiRecordContext(
+      { tableId: meta.value.id, recordId: String(recordId), title: title != null ? String(title) : '' },
+      { openPanel: false },
+    )
+  },
+)
 
 // File drop to create records
 const showFileDropZone = ref(false)

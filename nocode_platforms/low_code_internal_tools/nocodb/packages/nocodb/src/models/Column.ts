@@ -1863,6 +1863,9 @@ export default class Column<T = any> implements ColumnType {
       // cap. Without this branch the validator passes 129–255 char names
       // that knex then fails to CREATE/ALTER.
       fieldLengthLimit = 128;
+    } else if (sqlClientType === 'oracledb') {
+      // Oracle 12.2+ identifiers cap at 128 bytes.
+      fieldLengthLimit = 128;
     }
     return fieldLengthLimit;
   }

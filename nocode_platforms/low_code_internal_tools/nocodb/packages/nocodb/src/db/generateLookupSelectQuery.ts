@@ -7,6 +7,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
+import type { ClientType } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { QueryWithCte } from '~/helpers/dbHelpers';
 import type { NcContext } from '~/interface/config';
@@ -26,6 +27,7 @@ import { NcError } from '~/helpers/catchError';
 import { getAliasedSoftDeleteFilter, getAs } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 import { getAliasGenerator } from '~/utils';
+import { DBQueryClient } from '~/dbQueryClient';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
@@ -76,6 +78,8 @@ export default async function generateLookupSelectQuery({
   isAggregation?: boolean;
 }): Promise<QueryWithCte> {
   const knex = baseModelSqlv2.dbDriver;
+
+  const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
 
   const context = baseModelSqlv2.context;
 
@@ -158,10 +162,11 @@ export default async function generateLookupSelectQuery({
         });
 
         selectQb = knex(
-          knex.raw(`?? as ??`, [
+          dbQueryClient.tableAlias(
+            knex,
             parentBaseModel.getTnPath(parentModel.table_name),
             alias,
-          ]),
+          ),
         ).where(
           `${alias}.${parentColumn.column_name}`,
           knex.raw(`??`, [
@@ -199,10 +204,11 @@ export default async function generateLookupSelectQuery({
         });
 
         selectQb = knex(
-          knex.raw(`?? as ??`, [
+          dbQueryClient.tableAlias(
+            knex,
             childBaseModel.getTnPath(childModel.table_name),
             alias,
-          ]),
+          ),
         ).where(
           `${alias}.${childColumn.column_name}`,
           knex.raw(`??`, [
@@ -243,10 +249,11 @@ export default async function generateLookupSelectQuery({
         });
 
         selectQb = knex(
-          knex.raw(`?? as ??`, [
+          dbQueryClient.tableAlias(
+            knex,
             parentBaseModel.getTnPath(parentModel.table_name),
             alias,
-          ]),
+          ),
         );
 
         const mmTableAlias = getAlias();
@@ -387,10 +394,11 @@ export default async function generateLookupSelectQuery({
           });
 
           selectQb.join(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               parentBaseModel.getTnPath(parentModel.table_name),
               nestedAlias,
-            ]),
+            ),
             `${nestedAlias}.${parentColumn.column_name}`,
             `${prevAlias}.${childColumn.column_name}`,
           );
@@ -417,10 +425,11 @@ export default async function generateLookupSelectQuery({
           });
 
           selectQb.join(
-            knex.raw(`?? as ??`, [
+            dbQueryClient.tableAlias(
+              knex,
               childBaseModel.getTnPath(childModel.table_name),
               nestedAlias,
-            ]),
+            ),
             `${nestedAlias}.${childColumn.column_name}`,
             `${prevAlias}.${parentColumn.column_name}`,
           );
@@ -474,10 +483,11 @@ export default async function generateLookupSelectQuery({
               knex.ref(`${prevAlias}.${childColumn.column_name}`) as any,
             )
             .innerJoin(
-              knex.raw('?? as ??', [
+              dbQueryClient.tableAlias(
+                knex,
                 parentBaseModel.getTnPath(parentModel.table_name),
                 nestedAlias,
-              ]),
+              ),
               knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`) as any,
               '=',
               knex.ref(`${nestedAlias}.${parentColumn.column_name}`) as any,
@@ -703,6 +713,32 @@ export default async function generateLookupSelectQuery({
               knex.raw(
                 `JSON_QUERY('[' + COALESCE(STRING_AGG('"' + STRING_ESCAPE(RTRIM(CAST(?? AS NVARCHAR(MAX))), 'json') + '"', ','), '') + ']')`,
                 [lookupColumn.id],
+              ),
+            )
+            .from(selectQb.as(subQueryAlias)),
+          applyCte,
+        };
+      } else if (baseModelSqlv2.isOracle) {
+        // Match the JSON-array-string shape of pg's `json_agg(col)::text` /
+        // mysql's `JSON_ARRAYAGG(col)`. `NULL ON NULL` keeps null elements
+        // for pg parity (Oracle defaults to ABSENT ON NULL). RETURNING
+        // VARCHAR2(4000) keeps the result usable as a sort/group key — CLOB
+        // output can't be a comparison key (ORA-22848); an oversized
+        // aggregate surfaces Oracle's own ORA-40478 rather than silently
+        // truncating. CLOB-backed lookup values (LongText) are pre-shortened
+        // via DBMS_LOB.SUBSTR — JSON_ARRAYAGG rejects LOB inputs when
+        // returning VARCHAR2.
+        const aggInput =
+          (lookupColumn.dt ?? '').toLowerCase() === 'clob' ||
+          (lookupColumn.dt ?? '').toLowerCase() === 'nclob'
+            ? knex.raw('DBMS_LOB.SUBSTR(??, 2000, 1)', [lookupColumn.id])
+            : knex.raw('??', [lookupColumn.id]);
+        return {
+          builder: knex
+            .select(
+              knex.raw(
+                'JSON_ARRAYAGG(? NULL ON NULL RETURNING VARCHAR2(4000))',
+                [aggInput],
               ),
             )
             .from(selectQb.as(subQueryAlias)),

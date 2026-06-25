@@ -176,12 +176,54 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   `${sanitize(alias || baseModel.tnPath)}.${columnName}`,
                 ]);
               break;
+            } else if (baseModel.isOracle) {
+              // Oracle DATE/TIMESTAMP carry no zone info — NocoDB writes
+              // them as UTC wall time (`now()` emits an offset-less UTC
+              // string), so emit the stored value as text with an explicit
+              // +00:00 like the pg/mysql shapes. TZ-aware variants
+              // (TIMESTAMP WITH [LOCAL] TIME ZONE) are normalized to UTC
+              // first.
+              //
+              // The +00:00 suffix is embedded in the TO_CHAR format as a
+              // quoted literal — appending it with `||` would turn NULL
+              // cells into the literal string '+00:00' (Oracle `||` treats
+              // NULL as '' instead of propagating it the way CONCAT /
+              // pg / mssql shapes do).
+              const isTzAware = (column.dt ?? '')
+                .toUpperCase()
+                .includes('TIME ZONE');
+              res[sanitize(getAs(column) || columnName)] =
+                baseModel.dbDriver.raw(
+                  isTzAware
+                    ? `TO_CHAR(?? AT TIME ZONE '+00:00', 'YYYY-MM-DD HH24:MI:SS"+00:00"')`
+                    : `TO_CHAR(??, 'YYYY-MM-DD HH24:MI:SS"+00:00"')`,
+                  [`${sanitize(alias || baseModel.tnPath)}.${columnName}`],
+                );
+              break;
             }
             res[sanitize(getAs(column) || columnName)] = sanitize(
               `${alias || baseModel.tnPath}.${columnName}`,
             );
           }
           break;
+        case UITypes.Time: {
+          if (baseModel.isOracle) {
+            const columnName = await getColumnName(
+              baseModel.context,
+              column,
+              _columns || (await baseModel.model.getColumns(baseModel.context)),
+            );
+            res[sanitize(getAs(column) || columnName)] = baseModel.dbDriver.raw(
+              `TO_CHAR(??, 'HH24:MI:SS')`,
+              [`${sanitize(alias || baseModel.tnPath)}.${columnName}`],
+            );
+          } else {
+            res[sanitize(getAs(column) || column.column_name)] = sanitize(
+              `${alias || baseModel.tnPath}.${column.column_name}`,
+            );
+          }
+          break;
+        }
         case UITypes.LinkToAnotherRecord:
           break;
         case UITypes.Lookup: {
@@ -361,7 +403,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 validateFormula,
                 aliasToColumnBuilder,
               );
-              switch (baseModel.dbDriver.client.config.client) {
+              switch (baseModel.dbDriver.clientType()) {
                 case 'mysql2':
                   qb.select(
                     baseModel.dbDriver.raw(
@@ -418,6 +460,19 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                     ),
                   );
                   break;
+                case 'oracledb':
+                  qb.select(
+                    baseModel.dbDriver.raw(
+                      `JSON_OBJECT('type' VALUE ?, 'label' VALUE ?, 'url' VALUE ??) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        getAs(column),
+                      ],
+                    ),
+                  );
+                  break;
                 default:
                   qb.select(
                     baseModel.dbDriver.raw(`'ERR' as ??`, [getAs(column)]),
@@ -432,7 +487,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 colOption.type === ButtonActionsType.Webhook
                   ? 'fk_webhook_id'
                   : 'fk_script_id';
-              switch (baseModel.dbDriver.client.config.client) {
+              switch (baseModel.dbDriver.clientType()) {
                 case 'mysql2':
                   qb.select(
                     baseModel.dbDriver.raw(
@@ -476,6 +531,19 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   qb.select(
                     baseModel.dbDriver.raw(
                       `JSON_QUERY(( SELECT ? AS [type], ? AS [label], ? AS [${key}] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES )) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        colOption[key],
+                        getAs(column),
+                      ],
+                    ),
+                  );
+                  break;
+                case 'oracledb':
+                  qb.select(
+                    baseModel.dbDriver.raw(
+                      `JSON_OBJECT('type' VALUE ?, 'label' VALUE ?, '${key}' VALUE ?) as ??`,
                       [
                         colOption.type,
                         `${colOption.label}`,
@@ -552,6 +620,13 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             res[sanitize(getAs(column) || column.column_name)] = sanitize(
               `${alias || baseModel.tnPath}.${column.column_name}`,
             );
+          } else if (baseModel.isOracle) {
+            // Oracle treats '' as NULL — empty strings can't be stored, so
+            // NULLIF(col, '') degenerates to NULLIF(col, NULL). Select the
+            // column directly.
+            res[sanitize(getAs(column) || column.column_name)] = sanitize(
+              `${alias || baseModel.tnPath}.${column.column_name}`,
+            );
           } else if (
             baseModel.isMssql &&
             ['text', 'ntext'].includes((column.dt ?? '').toLowerCase())
@@ -602,6 +677,14 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               // varchar(max)/nvarchar(max) and returns a truncated (n)varchar.
               res[sanitize(getAs(column) || column.column_name)] =
                 baseModel.dbDriver.raw(`SUBSTRING(??, 1, ?)`, [
+                  colPath,
+                  NC_MAX_TEXT_LENGTH,
+                ]);
+            } else if (baseModel.isOracle) {
+              // Oracle has no LEFT() (ORA-00904); SUBSTR handles VARCHAR2
+              // and CLOB alike.
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`SUBSTR(??, 1, ?)`, [
                   colPath,
                   NC_MAX_TEXT_LENGTH,
                 ]);
@@ -683,6 +766,57 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             // RTRIM at SELECT time so the cell value matches what users
             // see in SSMS by default. No-op for varchar/nvarchar.
             if (mssqlDt === 'char' || mssqlDt === 'nchar') {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`RTRIM(??.??)`, [
+                  tnPart,
+                  column.column_name,
+                ]);
+              break;
+            }
+          }
+
+          if (baseModel.isOracle) {
+            const oracleDt = (column.dt ?? '').toUpperCase();
+            const tnPart = alias || baseModel.tnPath;
+            // node-oracledb returns RAW as a Node Buffer, which serializes
+            // as `{type:"Buffer",data:[…]}` in the JSON response. RAWTOHEX
+            // emits the canonical hex string instead. (LONG RAW can't be
+            // passed to SQL functions — left as-is.)
+            if (oracleDt === 'RAW') {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`RAWTOHEX(??.??)`, [
+                  tnPart,
+                  column.column_name,
+                ]);
+              break;
+            }
+            // BLOB / NCLOB aren't in `fetchAsString` (knex's oracledb
+            // dialect only allows clob there), so node-oracledb returns
+            // them as Lob stream objects that break JSON serialization.
+            // Emit a bounded, display-oriented snippet instead: hex for
+            // BLOB (mssql binary parity), text for NCLOB. (LONG RAW can't
+            // be passed to SQL functions — left as-is.)
+            if (oracleDt === 'BLOB') {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(
+                  `RAWTOHEX(DBMS_LOB.SUBSTR(??.??, 2000, 1))`,
+                  [tnPart, column.column_name],
+                );
+              break;
+            }
+            if (oracleDt === 'NCLOB') {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`DBMS_LOB.SUBSTR(??.??, 2000, 1)`, [
+                  tnPart,
+                  column.column_name,
+                ]);
+              break;
+            }
+            // CHAR(n)/NCHAR(n) are blank-padded to the declared length —
+            // RTRIM at SELECT time so cell values match user expectation,
+            // same as the mssql char/nchar handling above. No-op for
+            // VARCHAR2/NVARCHAR2.
+            if (oracleDt === 'CHAR' || oracleDt === 'NCHAR') {
               res[sanitize(getAs(column) || column.column_name)] =
                 baseModel.dbDriver.raw(`RTRIM(??.??)`, [
                   tnPart,
