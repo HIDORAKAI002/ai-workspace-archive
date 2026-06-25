@@ -1,11 +1,11 @@
 /**
- * Curated public API exports for @modelcontextprotocol/core.
+ * Curated public API exports for @modelcontextprotocol/core-internal.
  *
  * This module defines the stable, public-facing API surface. Client and server
  * packages re-export from here so that end users only see supported symbols.
  *
  * Internal utilities (Protocol class, stdio parsing, schema helpers, etc.)
- * remain available via the internal barrel (@modelcontextprotocol/core) for
+ * remain available via the internal barrel (@modelcontextprotocol/core-internal) for
  * use by client/server packages.
  */
 
@@ -19,6 +19,7 @@ export { SdkError, SdkErrorCode, SdkHttpError } from '../../errors/sdkErrors';
 // Auth TypeScript types (NOT Zod schemas like OAuthMetadataSchema)
 export type {
     AuthorizationServerMetadata,
+    IdJagTokenExchangeResponse,
     OAuthClientInformation,
     OAuthClientInformationFull,
     OAuthClientInformationMixed,

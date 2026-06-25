@@ -1,5 +1,5 @@
 // Internal barrel — re-exports everything for use within the SDK packages.
-// The public API is defined in @modelcontextprotocol/core/public (see exports/public/index.ts).
+// The public API is defined in @modelcontextprotocol/core-internal/public (see exports/public/index.ts).
 export * from './constants';
 export * from './enums';
 export * from './errors';
