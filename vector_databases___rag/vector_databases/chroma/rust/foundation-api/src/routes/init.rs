@@ -1,17 +1,17 @@
-use super::mock_currents::mock_currents_records;
-use super::{caller_token, whoami::whoami_and_authorize};
+use super::init_schema::{
+    foundation_collection_schema, qwen_embedding_function, splade_embedding_function,
+    CollectionEmbeddingFunctions,
+};
+use super::whoami::whoami_and_authorize;
 use crate::{
     auth::AuthzAction, config::FoundationConfig, errors::ServerError, server::FoundationApiServer,
-    wiki::WikiClientError,
 };
 use axum::{extract::State, http::HeaderMap, Json};
 use chroma_error::{ChromaError, ErrorCodes};
 use chroma_sysdb::SysDb;
 use chroma_types::{
-    Collection, CollectionUuid, CreateDatabaseError, DatabaseName, EmbeddingFunctionConfiguration,
-    EmbeddingFunctionNewConfiguration, IndexConfig, KnnIndex, Metadata, MetadataValue, Schema,
-    SparseIndexAlgorithm, SparseVectorIndexConfig, UpdateMetadata, CHROMA_GROUP_CHUNK_SIBLINGS_KEY,
-    DOCUMENT_KEY,
+    Collection, CollectionUuid, CreateDatabaseError, DatabaseName, KnnIndex, Metadata,
+    MetadataValue, Schema, CHROMA_GROUP_CHUNK_SIBLINGS_KEY,
 };
 use frontend_core::{
     attached_function_ops,
@@ -19,6 +19,7 @@ use frontend_core::{
         plan_create_collection, supported_segment_types, ExecutorKind, TenantFeatureFlags,
     },
     foundation::source_kind_for_collection_name,
+    retry::retry_transient,
 };
 use serde::Serialize;
 use std::collections::HashMap;
@@ -45,6 +46,7 @@ pub struct FoundationInitResponse {
 /// wiki_revisions collections (names overridable via
 /// `CHROMA_FOUNDATION__*` env vars) exist in the tenant resolved from the
 /// auth context. Safe to call repeatedly.
+#[tracing::instrument(name = "foundation_init", skip_all, err(Display))]
 pub async fn foundation_init(
     headers: HeaderMap,
     State(server): State<FoundationApiServer>,
@@ -53,6 +55,12 @@ pub async fn foundation_init(
         whoami_and_authorize(&*server.auth, &headers, AuthzAction::InitFoundation).await?;
     let tenant = identity.tenant;
     let user_id = identity.user_id;
+    tracing::info!(
+        tenant = %tenant,
+        user_id = %user_id,
+        database = %server.config.foundation.database_name,
+        "foundation init starting"
+    );
 
     let _guard =
         server.scorecard_request(&["op:foundation_init", &format!("tenant:{}", tenant)])?;
@@ -92,31 +100,22 @@ pub async fn foundation_init(
     .await?;
     // Currents records carry their payload in metadata and are only ever
     // fetched by metadata (never vector-searched), so the collection has no
-    // embedding function. Pin the dense index to a single dimension to match
-    // the constant placeholder vector the seed writes (see
-    // `ensure_currents_collection`).
-    let currents = ensure_collection(
-        &mut sysdb,
-        tenant.clone(),
-        db_name.clone(),
-        &foundation_cfg.currents_collection,
-        None,
-        Some(1),
-        CollectionEmbeddingFunctions::default(),
-    )
-    .await?;
-
-    maybe_seed_currents_collection(
-        &server,
-        &headers,
-        &tenant,
-        &foundation_cfg.currents_collection,
-    )
-    .await?;
+    // embedding function. Pin the dense index to a single dimension for the
+    // derived records written by the currents function.
+    let currents =
+        ensure_currents_collection(&mut sysdb, tenant.clone(), db_name.clone(), foundation_cfg)
+            .await?;
 
     // Attach revision_history to the wiki collection so every mutation is
     // archived into wiki_revisions automatically on compaction.
     ensure_revision_history_function(
+        &mut sysdb,
+        tenant.clone(),
+        wiki.collection_id,
+        foundation_cfg,
+    )
+    .await?;
+    ensure_currents_function(
         &mut sysdb,
         tenant.clone(),
         wiki.collection_id,
@@ -175,7 +174,7 @@ pub async fn foundation_init(
             db_name.clone(),
             source_name,
             Some(group_chunk_siblings_metadata()),
-            Some(1024),
+            source_dimension(source_name),
             CollectionEmbeddingFunctions::default(),
         )
         .await?;
@@ -217,6 +216,12 @@ pub async fn foundation_init(
         .await?;
     }
 
+    tracing::info!(
+        tenant = %tenant,
+        num_source_collections = source_collection_ids.len(),
+        "foundation init complete"
+    );
+
     Ok(Json(FoundationInitResponse {
         tenant,
         user_id,
@@ -229,6 +234,20 @@ pub async fn foundation_init(
         agent_sessions_collection_id: agent_sessions.collection_id.to_string(),
         source_collection_ids,
     }))
+}
+
+/// Dense-index dimensionality to pin a source collection to.
+///
+/// Most sources (slack, notion) carry 1024-dim vectors supplied by the
+/// writer. The Google Drive source instead carries no vectors of its own —
+/// the caller upserts records without embeddings — so it is pinned to a
+/// single dimension (with no embedding function, like currents /
+/// wiki_revisions) to keep the dense index trivially small.
+fn source_dimension(source_name: &str) -> Option<i32> {
+    match source_kind_for_collection_name(source_name) {
+        Ok("google_drive") => Some(1),
+        _ => Some(1024),
+    }
 }
 
 /// Collection metadata that opts a source collection into chunk-sibling
@@ -331,116 +350,116 @@ async fn ensure_revision_history_function(
     Ok(())
 }
 
+/// Attach the configured wiki->currents function to the wiki collection so
+/// currents are refreshed whenever the wiki advances.
+async fn ensure_currents_function(
+    sysdb: &mut SysDb,
+    tenant: String,
+    wiki_collection_id: CollectionUuid,
+    cfg: &FoundationConfig,
+) -> Result<(), ServerError> {
+    let endpoint_url = cfg
+        .function_endpoint_url
+        .as_ref()
+        .ok_or(MissingFunctionEndpointUrl)?;
+    let params = serde_json::json!({
+        "endpoint_url": endpoint_url,
+        "database_name": cfg.database_name,
+    });
+    let output_schema = Schema::new_record_only();
+    attached_function_ops::create_attached_function(
+        sysdb,
+        foundation_currents_attached_function_name(),
+        cfg.currents_function_name.clone(),
+        wiki_collection_id,
+        cfg.currents_collection.clone(),
+        params,
+        tenant,
+        cfg.database_name.clone(),
+        cfg.min_records_for_invocation,
+        output_schema,
+    )
+    .await?;
+    Ok(())
+}
+
+fn foundation_currents_attached_function_name() -> String {
+    "wiki_currents".to_string()
+}
+
 #[derive(Debug, thiserror::Error)]
 enum FoundationInitError {
     #[error("Configured foundation database name is shorter than the 3-character minimum")]
     DatabaseNameTooShort,
-    #[error("foundation wiki record I/O is unavailable")]
-    WikiRouteUnavailable,
-    #[error("missing or invalid x-chroma-token header")]
-    MissingToken,
-    #[error(transparent)]
-    WikiClient(#[from] WikiClientError),
-    #[error("chroma record I/O failed: {0}")]
-    RecordIo(chroma::client::ChromaHttpClientError),
 }
 
 impl ChromaError for FoundationInitError {
     fn code(&self) -> ErrorCodes {
         match self {
-            FoundationInitError::DatabaseNameTooShort | FoundationInitError::MissingToken => {
-                ErrorCodes::InvalidArgument
-            }
-            FoundationInitError::WikiRouteUnavailable
-            | FoundationInitError::WikiClient(_)
-            | FoundationInitError::RecordIo(_) => ErrorCodes::Internal,
+            FoundationInitError::DatabaseNameTooShort => ErrorCodes::InvalidArgument,
         }
     }
 }
 
 async fn ensure_currents_collection(
-    server: &FoundationApiServer,
-    headers: &HeaderMap,
-    tenant: &str,
-    collection_name: &str,
-) -> Result<(), ServerError> {
-    let wiki_client = server
-        .wiki_client
-        .as_ref()
-        .ok_or(FoundationInitError::WikiRouteUnavailable)?;
-    let token = caller_token(headers).ok_or(FoundationInitError::MissingToken)?;
-    let collection = wiki_client
-        .get_collection_by_name(tenant, token, collection_name)
-        .await?;
-    let records = mock_currents_records();
-
-    let ids: Vec<String> = records.iter().map(|record| record.id.clone()).collect();
-    // The currents collection has no embedding function, so passing `None`
-    // embeddings would make the client try (and fail) to embed the document
-    // text with `MissingEmbeddingFunction`. These records are never
-    // vector-searched, so write a constant 1-dim placeholder vector instead.
-    let embeddings: Vec<Vec<f32>> = vec![vec![1.0]; ids.len()];
-    let documents: Vec<Option<String>> = records
-        .iter()
-        .map(|record| Some(record.document.clone()))
-        .collect();
-    let metadatas: Vec<Option<UpdateMetadata>> = records
-        .into_iter()
-        .map(|record| {
-            Some(
-                record
-                    .metadata
-                    .into_iter()
-                    .map(|(key, value)| (key, value.into()))
-                    .collect(),
-            )
-        })
-        .collect();
-    collection
-        .upsert(ids, embeddings, Some(documents), None, Some(metadatas))
-        .await
-        .map_err(FoundationInitError::RecordIo)?;
-    Ok(())
+    sysdb: &mut SysDb,
+    tenant: String,
+    db_name: DatabaseName,
+    cfg: &FoundationConfig,
+) -> Result<Collection, ServerError> {
+    ensure_collection(
+        sysdb,
+        tenant,
+        db_name,
+        &cfg.currents_collection,
+        None,
+        Some(1),
+        CollectionEmbeddingFunctions::default(),
+    )
+    .await
 }
 
-async fn maybe_seed_currents_collection(
-    server: &FoundationApiServer,
-    headers: &HeaderMap,
-    tenant: &str,
-    collection_name: &str,
-) -> Result<(), ServerError> {
-    if server.wiki_client.is_none() {
-        tracing::info!(
-            collection_name = collection_name,
-            "skipping currents mock seed because foundation wiki record I/O is unavailable"
-        );
-        return Ok(());
-    }
-
-    if caller_token(headers).is_none() {
-        tracing::info!(
-            collection_name = collection_name,
-            "skipping currents mock seed because request carried no x-chroma-token"
-        );
-        return Ok(());
-    }
-
-    ensure_currents_collection(server, headers, tenant, collection_name).await
-}
-
+#[tracing::instrument(
+    name = "ensure_database",
+    skip_all,
+    fields(database = %database_name.as_ref(), tenant = %tenant),
+    err(Display)
+)]
 async fn ensure_database(
     sysdb: &mut SysDb,
     database_name: DatabaseName,
     tenant: String,
 ) -> Result<Uuid, ServerError> {
-    match sysdb
-        .create_database(Uuid::new_v4(), database_name.clone(), tenant.clone())
-        .await
+    // Generate the id once so retries don't churn through fresh UUIDs; the
+    // create is keyed on the (tenant, name) pair and is idempotent — an
+    // `AlreadyExists` from a previous/concurrent init is the success path.
+    let database_id = Uuid::new_v4();
+    let created = match retry_transient(|| {
+        let mut sysdb = sysdb.clone();
+        let database_name = database_name.clone();
+        let tenant = tenant.clone();
+        async move {
+            sysdb
+                .create_database(database_id, database_name, tenant)
+                .await
+        }
+    })
+    .await
     {
-        Ok(_) | Err(CreateDatabaseError::AlreadyExists(_)) => {}
+        Ok(_) => true,
+        Err(CreateDatabaseError::AlreadyExists(_)) => false,
         Err(e) => return Err(e.into()),
-    }
-    let db = sysdb.get_database(database_name, tenant).await?;
+    };
+
+    let db = retry_transient(|| {
+        let mut sysdb = sysdb.clone();
+        let database_name = database_name.clone();
+        let tenant = tenant.clone();
+        async move { sysdb.get_database(database_name, tenant).await }
+    })
+    .await?;
+
+    tracing::info!(database = %database_name.as_ref(), database_id = %db.id, created, "ensured foundation database");
     Ok(db.id)
 }
 
@@ -450,90 +469,17 @@ async fn ensure_database(
 /// trip, so we don't need the try-then-fallback dance we use for databases.
 const GET_OR_CREATE: bool = true;
 
-/// The Chroma Cloud Qwen3-Embedding-0.6B known embedding function,
-/// serialized exactly as the `chroma-cloud-qwen` embedding function expects
-/// (see `schemas/embedding_functions/chroma-cloud-qwen.json` and the
-/// Python/Rust implementations). This is the dense model Foundation uses by
-/// default; the wiki collection is 1024-dimensional to match it.
-fn qwen_embedding_function() -> EmbeddingFunctionConfiguration {
-    EmbeddingFunctionConfiguration::Known(EmbeddingFunctionNewConfiguration {
-        name: "chroma-cloud-qwen".to_string(),
-        config: serde_json::json!({
-            "api_key_env_var": "CHROMA_API_KEY",
-            "model": "Qwen/Qwen3-Embedding-0.6B",
-            // `generic_retrieval` is the general-knowledge task the
-            // chroma sync pipeline uses by default. It must be set (not null)
-            // for the instruction below to actually be applied at query time.
-            "task": "generic_retrieval",
-            "instructions": {
-                "generic_retrieval": {
-                    "documents": "",
-                    "query": "Retrieve semantically similar text",
-                }
-            },
-        }),
-    })
-}
-
-/// The Chroma Cloud SPLADE sparse embedding function
-fn splade_embedding_function() -> EmbeddingFunctionConfiguration {
-    EmbeddingFunctionConfiguration::Known(EmbeddingFunctionNewConfiguration {
-        name: "chroma-cloud-splade".to_string(),
-        config: serde_json::json!({
-            "model": "prithivida/Splade_PP_en_v1",
-            "api_key_env_var": "CHROMA_API_KEY",
-        }),
-    })
-}
-
-/// Dense + sparse embedding functions to register on a Foundation
-/// collection. A supplied function makes Chroma auto-embed that modality
-/// from the document server-side; `None` leaves the corresponding index
-/// EF-less (the writer supplies vectors).
-#[derive(Default)]
-struct CollectionEmbeddingFunctions {
-    dense: Option<EmbeddingFunctionConfiguration>,
-    sparse: Option<EmbeddingFunctionConfiguration>,
-}
-
-/// Build the [`Schema`] used for Foundation collections. Adds a
-/// `sparse_embedding` sparse vector index for SPLADE.
-///
-/// The dense function is set on the dense vector index (defaults +
-/// `#embedding`); the sparse function is set on the sparse index. Mirrors
-/// the hosted-chroma file-upload `build_collection_schema`.
-fn foundation_collection_schema(embedding_functions: CollectionEmbeddingFunctions) -> Schema {
-    let CollectionEmbeddingFunctions { dense, sparse } = embedding_functions;
-    // Both branches default the dense vector index to SPANN — what the
-    // distributed frontend uses by default — and the planner is also given
-    // `KnnIndex::Spann` in `ensure_collection`. When an embedding function
-    // is supplied, `default_with_embedding_function` is the schema-native
-    // way to set it on both the schema defaults and the `#embedding` key.
-    let base = match dense {
-        Some(dense) => Schema::default_with_embedding_function(dense),
-        None => Schema::new_default(KnnIndex::Spann),
-    };
-    // Auto-embed sparse vectors from the document only when a sparse EF is
-    // supplied; otherwise leave `source_key` unset alongside the EF.
-    let sparse_source_key = sparse.as_ref().map(|_| DOCUMENT_KEY.to_string());
-    base.create_index(
-        Some("sparse_embedding"),
-        IndexConfig::SparseVector(SparseVectorIndexConfig {
-            embedding_function: sparse,
-            source_key: sparse_source_key,
-            bm25: Some(false),
-            // TODO: Change this to MaxScore
-            algorithm: SparseIndexAlgorithm::Wand,
-        }),
-    )
-    .expect("static schema construction should never fail")
-}
-
 /// Plan a fresh distributed-mode collection with the shared
 /// `frontend_core::collection_ops` planner and hand it to sysdb. The
 /// planner reconciles the Foundation schema (sparse vector index for
 /// SPLADE) with the default config, picks the right segment types for
 /// distributed mode, and emits everything sysdb needs.
+#[tracing::instrument(
+    name = "ensure_collection",
+    skip_all,
+    fields(collection = %collection_name, database = %database_name.as_ref()),
+    err(Display)
+)]
 async fn ensure_collection(
     sysdb: &mut SysDb,
     tenant: String,
@@ -553,201 +499,57 @@ async fn ensure_collection(
         KnnIndex::Spann,
         TenantFeatureFlags::default(),
     )?;
-    let collection = sysdb
-        .create_collection(
-            tenant,
-            database_name,
-            plan.collection_id,
-            collection_name.to_string(),
-            plan.segments,
-            plan.configuration,
-            plan.schema,
-            metadata,
-            dimension,
-            GET_OR_CREATE,
-        )
-        .await?;
+    // `GET_OR_CREATE` makes this idempotent in a single round trip, so a
+    // transient sysdb failure is safe to retry. The plan (collection id +
+    // segments + config) is fixed up front and reused across attempts.
+    let collection_id = plan.collection_id;
+    let collection = retry_transient(|| {
+        let mut sysdb = sysdb.clone();
+        let tenant = tenant.clone();
+        let database_name = database_name.clone();
+        let collection_name = collection_name.to_string();
+        let segments = plan.segments.clone();
+        let configuration = plan.configuration.clone();
+        let schema = plan.schema.clone();
+        let metadata = metadata.clone();
+        async move {
+            sysdb
+                .create_collection(
+                    tenant,
+                    database_name,
+                    collection_id,
+                    collection_name,
+                    segments,
+                    configuration,
+                    schema,
+                    metadata,
+                    dimension,
+                    GET_OR_CREATE,
+                )
+                .await
+        }
+    })
+    .await?;
+
+    tracing::info!(
+        collection = %collection_name,
+        collection_id = %collection.collection_id,
+        "ensured foundation collection"
+    );
     Ok(collection)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chroma_types::SegmentType;
 
     #[test]
-    fn foundation_schema_has_sparse_vector_index() {
-        let schema = foundation_collection_schema(CollectionEmbeddingFunctions::default());
-        assert!(
-            schema.is_sparse_index_enabled(),
-            "schema must have a sparse vector index for SPLADE embeddings"
-        );
-    }
-
-    #[test]
-    fn foundation_schema_sparse_key_is_sparse_embedding() {
-        let schema = foundation_collection_schema(CollectionEmbeddingFunctions::default());
-        let sparse_vt = schema
-            .keys
-            .get("sparse_embedding")
-            .expect("schema must have a 'sparse_embedding' key override");
-        let idx = sparse_vt
-            .sparse_vector
-            .as_ref()
-            .and_then(|sv| sv.sparse_vector_index.as_ref())
-            .expect("'sparse_embedding' key must have a sparse_vector_index");
-        assert!(idx.enabled, "sparse_vector_index must be enabled");
-        assert_eq!(idx.config.bm25, Some(false));
-    }
-
-    #[test]
-    fn foundation_plan_produces_schema_and_segments() {
-        let schema = foundation_collection_schema(CollectionEmbeddingFunctions::default());
-        let plan = plan_create_collection(
-            None,
-            Some(schema),
-            ExecutorKind::Distributed,
-            &supported_segment_types(ExecutorKind::Distributed),
-            true,
-            KnnIndex::Spann,
-            TenantFeatureFlags::default(),
-        )
-        .expect("planning with foundation schema must succeed");
-
-        assert!(
-            plan.schema.is_some(),
-            "plan must carry a reconciled schema when enable_schema=true"
-        );
-        assert!(
-            !plan.segments.is_empty(),
-            "plan must produce at least one segment"
-        );
-        let reconciled = plan.schema.as_ref().unwrap();
-        assert!(
-            reconciled.is_sparse_index_enabled(),
-            "reconciled schema must preserve the sparse vector index"
-        );
-        assert!(
-            plan.segments
-                .iter()
-                .any(|s| s.r#type == SegmentType::Spann || s.r#type == SegmentType::QuantizedSpann),
-            "plan must include a SPANN vector segment, got: {:?}",
-            plan.segments.iter().map(|s| &s.r#type).collect::<Vec<_>>()
-        );
-    }
-
-    #[test]
-    fn qwen_embedding_function_matches_known_serialization() {
-        let EmbeddingFunctionConfiguration::Known(known) = qwen_embedding_function() else {
-            panic!("Qwen embedding function must be a known embedding function");
-        };
-        assert_eq!(known.name, "chroma-cloud-qwen");
-        assert_eq!(
-            known.config,
-            serde_json::json!({
-                "api_key_env_var": "CHROMA_API_KEY",
-                "model": "Qwen/Qwen3-Embedding-0.6B",
-                "task": "generic_retrieval",
-                "instructions": {
-                    "generic_retrieval": {
-                        "documents": "",
-                        "query": "Retrieve semantically similar text",
-                    }
-                },
-            })
-        );
-    }
-
-    #[test]
-    fn splade_embedding_function_matches_file_upload_serialization() {
-        let EmbeddingFunctionConfiguration::Known(known) = splade_embedding_function() else {
-            panic!("SPLADE embedding function must be a known embedding function");
-        };
-        assert_eq!(known.name, "chroma-cloud-splade");
-        assert_eq!(
-            known.config,
-            serde_json::json!({
-                "model": "prithivida/Splade_PP_en_v1",
-                "api_key_env_var": "CHROMA_API_KEY",
-            })
-        );
-    }
-
-    #[test]
-    fn auto_embed_schema_sets_splade_sparse_function() {
-        let schema = foundation_collection_schema(CollectionEmbeddingFunctions {
-            dense: Some(qwen_embedding_function()),
-            sparse: Some(splade_embedding_function()),
-        });
-        let sparse_idx = schema
-            .keys
-            .get("sparse_embedding")
-            .and_then(|vt| vt.sparse_vector.as_ref())
-            .and_then(|sv| sv.sparse_vector_index.as_ref())
-            .expect("auto-embed schema must have a sparse_embedding index");
-        assert_eq!(
-            sparse_idx.config.embedding_function,
-            Some(splade_embedding_function())
-        );
-        assert_eq!(sparse_idx.config.source_key, Some("#document".to_string()));
-    }
-
-    #[test]
-    fn no_dense_ef_leaves_sparse_function_unset() {
-        let schema = foundation_collection_schema(CollectionEmbeddingFunctions::default());
-        let sparse_idx = schema
-            .keys
-            .get("sparse_embedding")
-            .and_then(|vt| vt.sparse_vector.as_ref())
-            .and_then(|sv| sv.sparse_vector_index.as_ref())
-            .expect("schema must have a sparse_embedding index");
-        assert_eq!(sparse_idx.config.embedding_function, None);
-        assert_eq!(sparse_idx.config.source_key, None);
-    }
-
-    #[test]
-    fn foundation_schema_sets_dense_embedding_function() {
-        let ef = qwen_embedding_function();
-        let schema = foundation_collection_schema(CollectionEmbeddingFunctions {
-            dense: Some(ef.clone()),
-            sparse: Some(splade_embedding_function()),
-        });
-
-        let defaults_ef = schema
-            .defaults
-            .float_list
-            .as_ref()
-            .and_then(|fl| fl.vector_index.as_ref())
-            .expect("schema defaults must carry a dense vector index")
-            .config
-            .embedding_function
-            .clone();
-        assert_eq!(defaults_ef, Some(ef.clone()));
-
-        let embedding_ef = schema
-            .keys
-            .get("#embedding")
-            .and_then(|vt| vt.float_list.as_ref())
-            .and_then(|fl| fl.vector_index.as_ref())
-            .expect("#embedding key must carry a dense vector index")
-            .config
-            .embedding_function
-            .clone();
-        assert_eq!(embedding_ef, Some(ef));
-    }
-
-    #[test]
-    fn foundation_schema_without_embedding_function_leaves_it_unset() {
-        let schema = foundation_collection_schema(CollectionEmbeddingFunctions::default());
-        let defaults_ef = schema
-            .defaults
-            .float_list
-            .as_ref()
-            .and_then(|fl| fl.vector_index.as_ref())
-            .expect("schema defaults must carry a dense vector index")
-            .config
-            .embedding_function
-            .clone();
-        assert_eq!(defaults_ef, None);
+    fn gdrive_source_is_single_dimension_others_are_1024() {
+        assert_eq!(source_dimension("gdrive"), Some(1));
+        assert_eq!(source_dimension("gdrive_master"), Some(1));
+        assert_eq!(source_dimension("slack"), Some(1024));
+        assert_eq!(source_dimension("notion"), Some(1024));
+        // Unknown sources fall back to the default 1024 dims.
+        assert_eq!(source_dimension("unknown_source"), Some(1024));
     }
 }

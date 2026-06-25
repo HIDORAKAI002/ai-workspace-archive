@@ -42,6 +42,7 @@ import {
   countMonitorCheckPages,
   hashMonitorUrl,
   insertMonitorCheckPages,
+  deleteMonitorCheckPages,
   listActiveMonitorPages,
   listMonitorCheckPages,
   listRunningMonitorChecks,
@@ -63,6 +64,7 @@ import {
   MONITOR_CHECK_STALE_ERROR,
   isMonitorCheckStale,
   MONITOR_CHECK_STALE_TIMEOUT_MS,
+  monitorCheckStaleTimeoutMs,
 } from "./stale";
 import { trackMonitorCheckStartedInterest } from "./interest";
 import { runSearchTarget, type ScrapeSearchResult } from "./search/run";
@@ -118,8 +120,7 @@ type MonitorTargetRun =
   | {
       targetId: string;
       type: "search";
-      // Set true only after the inline search stamps its credits; the reconciler
-      // waits on this so it never finalizes with credits still at 0.
+      // Set only after the inline search stamps credits; reconciler waits on this so it never finalizes with credits at 0.
       searchCompleted?: boolean;
       resultCount?: number;
       matches?: number;
@@ -258,10 +259,9 @@ export function estimateActualCredits(doc: any, options?: any): number {
     return creditsUsed;
   }
   const formats = Array.isArray(options?.formats) ? options.formats : [];
-  // Only charge the JSON-extraction premium when extraction actually produced a
-  // document.json. When it failed, the page was still scraped, so fall back to
-  // the base scrape credit rather than billing for extraction that never ran.
-  // Deterministic JSON costs 7 (it generates a reusable extractor); plain JSON 5.
+  // Only charge the JSON-extraction premium when extraction produced a json; a
+  // failed extraction still scraped the page, so fall back to base credit.
+  // Deterministic JSON costs 7 (reusable extractor); plain JSON 5.
   const producedJson = doc?.json != null;
   if (!producedJson) return 1;
   if (includesFormat(formats, "deterministicJson")) return 7;
@@ -330,11 +330,9 @@ async function runSingleScrape(params: {
   };
 }
 
-// Deep-mode search-monitor page scrape. Routes through the same internal
-// scrape path as every other monitor scrape (processJobInternal, skipNuq,
-// bypassBilling) instead of calling scrapeURL directly, so it respects the
-// team's concurrency queue and is never billed per-page (search monitors bill
-// flat at the check level).
+// Deep-mode search-monitor page scrape, inline (skipNuq) so it bypasses scrape
+// concurrency; caller bounds fan-out via SEARCH_SCRAPE_CONCURRENCY. Never billed
+// per-page — search monitors bill flat at the check level.
 async function scrapeSearchMonitorPage(params: {
   teamId: string;
   checkId: string;
@@ -608,7 +606,7 @@ async function runCrawlTarget(params: {
       body.scrapeOptions.skipTlsVerification,
     );
   } catch {
-    // Crawls tolerate robots fetch failures in the public controller too.
+    // Non-fatal robots fetch failure, same as the public crawl controller.
   }
 
   sc.queueBackend = await resolveNewGroupBackend(sc.team_id);
@@ -831,9 +829,8 @@ async function sendNotifications(params: {
   }
 
   const nonSamePages = params.pages.filter(page => page.status !== "same");
-  // Pull the unified-diff text for up to 5 meaningful changed pages so the
-  // email leads with the actual diff. Cheap GCS reads, parallelised. Errors
-  // are swallowed per-page so a single GCS hiccup doesn't drop the alert.
+  // Pull diff text for up to 5 meaningful changed pages so the email leads with
+  // the diff. Errors swallowed per-page so one GCS hiccup doesn't drop the alert.
   const diffEligible = nonSamePages
     .filter(
       p => p.status === "changed" && (!p.judgment || p.judgment.meaningful),
@@ -999,7 +996,7 @@ async function enqueueMonitorCrawlTarget(params: {
       body.scrapeOptions.skipTlsVerification,
     );
   } catch {
-    // Non-fatal, same as the public crawl controller.
+    // Non-fatal robots fetch failure, same as the public crawl controller.
   }
 
   sc.queueBackend = await resolveNewGroupBackend(sc.team_id);
@@ -1039,7 +1036,7 @@ async function enqueueMonitorCrawlTarget(params: {
   return params.targetRun;
 }
 
-// Runs inline, then persists onto the same monitor_pages / monitor_check_pages
+// Runs inline, persisting onto the same monitor_pages / monitor_check_pages
 // tables the reconciler tallies.
 async function runMonitorSearchTarget(params: {
   monitor: MonitorRow;
@@ -1052,7 +1049,7 @@ async function runMonitorSearchTarget(params: {
   summary: string;
   judgeDegraded: boolean;
   degradedReason: string | null;
-  // Flat, deterministic credits, recorded onto target_results by the caller.
+  // Flat credits, recorded onto target_results by the caller.
   searchCredits: number;
   judgeCredits: number;
   resultsJudged: number;
@@ -1100,8 +1097,7 @@ async function runMonitorSearchTarget(params: {
       id: target.id,
       queries: target.queries,
       searchWindow: target.searchWindow,
-      // depth/alertMode aren't settable via the API, but stored targets may
-      // still carry them (back-compat), so pass them through.
+      // depth/alertMode aren't API-settable but stored targets may carry them (back-compat); pass through.
       alertMode: target.alertMode ?? "first_match",
       includeDomains: target.includeDomains,
       excludeDomains: target.excludeDomains,
@@ -1128,7 +1124,6 @@ async function runMonitorSearchTarget(params: {
     }),
   });
 
-  // Flat credits recorded onto target_results (summed there at finalization).
   const searchCredits = result.searchCredits;
   const judgeCredits = result.judgeCredits;
 
@@ -1164,6 +1159,8 @@ async function runMonitorSearchTarget(params: {
     });
   }
 
+  // Clear rows from a prior (crashed/redelivered) run so the insert is a replace, not a duplicate.
+  await deleteMonitorCheckPages({ checkId: check.id, targetId: target.id });
   await insertMonitorCheckPages(pages);
 
   for (const page of pages) {
@@ -1190,6 +1187,24 @@ async function runMonitorSearchTarget(params: {
     judgeCredits,
     resultsJudged: result.resultsJudged,
   };
+}
+
+// Find a completed search target run so a redelivered check can restore its
+// figures instead of re-running (and re-billing) it.
+export function findCompletedSearchTargetRun(
+  targetResults: unknown,
+  targetId: string,
+): Record<string, unknown> | null {
+  if (!Array.isArray(targetResults)) return null;
+  const match = targetResults.find(
+    tr =>
+      tr != null &&
+      typeof tr === "object" &&
+      (tr as { type?: unknown }).type === "search" &&
+      (tr as { targetId?: unknown }).targetId === targetId &&
+      (tr as { searchCompleted?: unknown }).searchCompleted === true,
+  );
+  return (match as Record<string, unknown>) ?? null;
 }
 
 export async function processMonitorCheckJob(
@@ -1284,6 +1299,17 @@ export async function processMonitorCheckJob(
       } else if (target.type === "crawl" && targetRun.type === "crawl") {
         await enqueueMonitorCrawlTarget({ monitor, check, target, targetRun });
       } else if (target.type === "search" && targetRun.type === "search") {
+        // Redelivery after inline work finished but before ack: restore persisted
+        // figures instead of re-running, which would re-bill and re-scrape.
+        const priorRun = findCompletedSearchTargetRun(
+          initialCheck.target_results,
+          target.id,
+        );
+        if (priorRun) {
+          Object.assign(targetRun, priorRun);
+          targetRun.searchCompleted = true;
+          continue;
+        }
         // Search runs synchronously; fold its outcome into target_results.
         const searchResult = await runMonitorSearchTarget({
           monitor,
@@ -1298,9 +1324,14 @@ export async function processMonitorCheckJob(
         targetRun.searchCredits = searchResult.searchCredits;
         targetRun.judgeCredits = searchResult.judgeCredits;
         targetRun.resultsJudged = searchResult.resultsJudged;
-        // Set LAST, after credits are stamped, so the reconciler never finalizes
-        // with credits still at 0.
+        // Set last, after credits are stamped, so the reconciler never finalizes with credits at 0.
         targetRun.searchCompleted = true;
+        // Persist now, not just at end-of-loop: the search work already happened,
+        // so a crash before the final flush would re-run and re-scrape everything;
+        // flushing searchCompleted lets findCompletedSearchTargetRun short-circuit.
+        await updateMonitorCheck(check.id, {
+          target_results: targetResults,
+        });
       }
     }
 
@@ -1485,7 +1516,8 @@ async function failStaleMonitorCheck(params: {
   monitor: MonitorRow;
   check: MonitorCheckRow;
 }): Promise<boolean> {
-  if (!isMonitorCheckStale(params.check)) return false;
+  if (!isMonitorCheckStale(params.check, new Date(), params.monitor.targets))
+    return false;
 
   const error = MONITOR_CHECK_STALE_ERROR;
   if (params.check.autumn_lock_id) {
@@ -1573,7 +1605,7 @@ async function failStaleMonitorCheck(params: {
     monitorId: params.monitor.id,
     checkId: params.check.id,
     startedAt: params.check.started_at,
-    timeoutMs: MONITOR_CHECK_STALE_TIMEOUT_MS,
+    timeoutMs: monitorCheckStaleTimeoutMs(params.check, params.monitor.targets),
   });
 
   return true;

@@ -1,8 +1,6 @@
-import { v7 as uuidv7 } from "uuid";
 import type { Logger } from "winston";
 import { search } from "../../../search/v2";
 import { buildSearchQuery } from "../../../lib/search-query-builder";
-import { CostTracking } from "../../../lib/cost-tracking";
 import { hashMonitorUrl } from "../store";
 import { canonicalizeUrl, stableSerpFingerprint } from "./dedupe";
 import {
@@ -12,33 +10,46 @@ import {
   windowToMs,
   type SearchVerdict,
 } from "./judge";
-import {
-  judgeMaterialDevelopment,
-  judgeSnippets,
-  resolveEvent,
-  reviewAlert,
-  routeSearchResults,
-  summarizeRun,
-  type KnownEvent,
-  type RouteDecision,
-  type SkepticVerdict,
-  type SnippetVerdict,
-} from "./llm";
-import {
-  compileGoalCriteria,
-  compileGoalCriteriaWithLlm,
-  type GoalCriteria,
-} from "./criteria";
-import {
-  verifyAlertCandidate,
-  type VerificationResult,
-  type VerifyEvidence,
-} from "./verify";
 import { hasLlmProvider } from "./tuning";
 import {
   searchCreditsForResultCount,
   judgeCreditsForJudgedCount,
 } from "./billing";
+
+// Shared dedup decision so the pre-scrape pass and per-result loop never disagree.
+function evaluateSerpCandidate(
+  c: { url: string; title: string; description: string },
+  knownPages: Map<string, KnownPage>,
+  goalVersion: string,
+  recheckMs: number | undefined,
+): {
+  canonical: string;
+  fingerprint: string;
+  knownCurrent: KnownPage | undefined;
+  isNewOrChanged: boolean;
+} {
+  const canonical = canonicalizeUrl(c.url);
+  const fingerprint = stableSerpFingerprint({
+    url: c.url,
+    title: c.title,
+    snippet: c.description,
+  });
+  const known = knownPages.get(canonical);
+  const knownCurrent =
+    known && known.goalVersion === goalVersion ? known : undefined;
+  const isLive =
+    knownCurrent?.lastStatus === "alert" ||
+    knownCurrent?.lastStatus === "watching";
+  const dueForRecheck = Boolean(
+    recheckMs &&
+      isLive &&
+      knownCurrent?.lastCheckedAt &&
+      Date.now() - Date.parse(knownCurrent.lastCheckedAt) > recheckMs,
+  );
+  const isNewOrChanged =
+    !knownCurrent || knownCurrent.fingerprint !== fingerprint || dueForRecheck;
+  return { canonical, fingerprint, knownCurrent, isNewOrChanged };
+}
 
 function windowToTbs(window: string): string {
   if (window === "5m" || window === "15m" || window === "1h") return "qdr:h";
@@ -46,13 +57,58 @@ function windowToTbs(window: string): string {
   return "qdr:w";
 }
 
-const SEARCH_RETRY_BACKOFF_MS = [400, 1200] as const;
+// Empty SERPs are usually genuine "no results", not transient — hedge with a couple
+// of quick retries, but don't burn long backoff on queries that simply have no matches.
+const SEARCH_EMPTY_RETRY_BACKOFF_MS = [500, 1000] as const;
+
+// Wall-clock budget per run; if the pre-scrape blows past it, remaining candidates
+// fall through as skipped/degraded. Kept under the 10-min stale timeout so a run
+// always returns before the reaper.
+const SEARCH_RUN_BUDGET_MS = 4 * 60 * 1000;
+
+// Deep-mode scrapes run inline (skipNuq), so NuQ concurrency doesn't bound them; cap
+// the fan-out ourselves so one maxResults=50 check can't starve the search consumer.
+const SEARCH_SCRAPE_CONCURRENCY = 6;
+
+// Never rejects: fn is expected to swallow its own errors into a shared cache.
+async function mapWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<void>,
+): Promise<void> {
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < items.length) {
+      const i = next++;
+      await fn(items[i]);
+    }
+  };
+  const pool = Array.from({ length: Math.min(limit, items.length) }, worker);
+  await Promise.all(pool);
+}
+
+// Resolves true if the deadline hits first, false if the work finishes. Never
+// rejects; the underlying work keeps running and populates its cache.
+async function raceDeadline(
+  work: Promise<unknown>,
+  budgetMs: number,
+): Promise<boolean> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = await Promise.race([
+    work.then(() => false),
+    new Promise<boolean>(resolve => {
+      timer = setTimeout(() => resolve(true), Math.max(0, budgetMs));
+    }),
+  ]);
+  if (timer) clearTimeout(timer);
+  return timedOut;
+}
 
 async function searchWithRetry(
   args: Parameters<typeof search>[0],
   logger: Logger,
 ): Promise<Awaited<ReturnType<typeof search>>> {
-  const maxAttempts = SEARCH_RETRY_BACKOFF_MS.length + 1;
+  const maxAttempts = SEARCH_EMPTY_RETRY_BACKOFF_MS.length + 1;
   let lastResponse: Awaited<ReturnType<typeof search>> = {};
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -64,7 +120,7 @@ async function searchWithRetry(
 
     const isLastAttempt = attempt === maxAttempts - 1;
     if (!isLastAttempt) {
-      const base = SEARCH_RETRY_BACKOFF_MS[attempt];
+      const base = SEARCH_EMPTY_RETRY_BACKOFF_MS[attempt];
       const jitter = Math.floor(Math.random() * 250);
       logger.info("search monitor query empty; retrying", {
         query: args.query,
@@ -122,9 +178,14 @@ export type KnownPage = {
   metadata?: Record<string, unknown>;
 };
 
-// Deep-mode page scrape. Injected by the caller so it can route through the
-// shared monitor scrape path (concurrency queue + bypassBilling), keeping this
-// module free of worker/queue dependencies. Resolves to null on scrape failure.
+export type KnownEvent = {
+  key: string;
+  label: string;
+  satisfiedAt?: string;
+  alertCount?: number;
+};
+
+// Injected by the caller so this module stays free of worker/queue dependencies.
 export type ScrapeSearchResult = {
   json: unknown;
   markdown: string;
@@ -157,6 +218,10 @@ type SearchTargetRunResult = {
   summary: string;
   judgeDegraded: boolean;
   degradedReason: string | null;
+  // partialScrapeLoss is a soft signal (distinct from judgeDegraded): some results
+  // judged, but most scrapes failed — usable but likely missed developments.
+  scrapeFailures: number;
+  partialScrapeLoss: boolean;
   sources: SearchSource[];
   searchCredits: number;
   judgeCredits: number;
@@ -195,19 +260,13 @@ export async function runSearchTarget(params: {
 }): Promise<SearchTargetRunResult> {
   const { target, knownPages, goalVersion, logger } = params;
   const judgeEnabled = params.monitor.judgeEnabled;
+  const runStart = Date.now();
 
   const goal = params.monitor.goal?.trim();
   if (judgeEnabled && !goal) {
     throw new Error("search monitor target requires a non-empty monitor goal");
   }
   const subject = params.monitor.subject ?? "";
-  const teamId = params.monitor.teamId;
-  // Vertex billing labels attached to every LLM call for usage tracing.
-  const labels = {
-    teamId,
-    monitorId: params.monitor.id,
-    monitorCheckId: params.monitorCheckId,
-  };
 
   const tbs = windowToTbs(target.searchWindow);
   const events: KnownEvent[] = [...params.knownEvents];
@@ -218,11 +277,9 @@ export async function runSearchTarget(params: {
   let pagesChecked = 0;
   let skipped = 0;
   let matches = 0;
-  const costTracking = new CostTracking();
   let searchResultsBilled = 0;
   let resultsJudged = 0;
   let judgeScrapeFailures = 0;
-  let snippetJudgeFailed = false;
 
   const seenThisRun = new Map<string, number>();
   const candidates: Array<{
@@ -272,154 +329,82 @@ export async function runSearchTarget(params: {
   }
   resultCount = candidates.length;
 
+  // An empty retrieval is indistinguishable from "nothing matched"; log to diagnose.
+  if (resultCount === 0) {
+    logger.warn(
+      "search monitor: all queries returned no results after retries",
+      {
+        queries: target.queries,
+        searchWindow: target.searchWindow,
+        includeDomains: target.includeDomains,
+      },
+    );
+  }
+
   const llmStagesAvailable = hasLlmProvider();
-  const depth: "raw" | "standard" | "deep" = !judgeEnabled
-    ? "raw"
-    : target.depth === "raw"
-      ? "raw"
-      : target.depth === "standard" && llmStagesAvailable
-        ? "standard"
-        : "deep";
+  // raw (no LLM) or deep (per-page scrape + verdict); the former "standard" path was removed.
+  const depth: "raw" | "deep" =
+    !judgeEnabled || target.depth === "raw" ? "raw" : "deep";
 
   const judgeGoal: string = goal ?? "";
 
-  let criteria: GoalCriteria = compileGoalCriteria({
-    goal: judgeGoal,
-    subject,
-    goalVersion,
-  });
-  if (llmStagesAvailable && depth !== "raw") {
-    try {
-      criteria = await compileGoalCriteriaWithLlm({
-        goal: judgeGoal,
-        subject,
-        queries: target.queries,
-        goalVersion,
-        costTracking,
-        labels,
-      });
-    } catch (error) {
+  const selected = candidates.slice(0, target.maxResults);
+
+  const recheckMs = target.recheckAfter ? windowToMs(target.recheckAfter) : 0;
+
+  // Pre-scrape deep-mode pages (bounded concurrency) into a cache so the loop isn't
+  // a serial scrape→judge chain. Only the I/O is parallel; dedup/event state stays
+  // in the single-threaded loop.
+  const deepDocs = new Map<
+    string,
+    { doc: ScrapeSearchResult | null; error?: unknown }
+  >();
+  // If the pre-scrape exceeds the run budget, uncached candidates are treated as
+  // scrape failures rather than inline-scraped, so the loop returns promptly.
+  let budgetExceeded = false;
+  if (depth === "deep" && llmStagesAvailable) {
+    const judgePrompt = buildJudgePrompt(
+      judgeGoal,
+      subject,
+      target.searchWindow,
+    );
+    const toScrape = selected.filter(
+      c =>
+        evaluateSerpCandidate(c, knownPages, goalVersion, recheckMs)
+          .isNewOrChanged,
+    );
+    const preScrape = mapWithConcurrency(
+      toScrape,
+      SEARCH_SCRAPE_CONCURRENCY,
+      async c => {
+        const canonical = canonicalizeUrl(c.url);
+        try {
+          deepDocs.set(canonical, {
+            doc: await params.scrapePage({ url: c.url, judgePrompt }),
+          });
+        } catch (error) {
+          deepDocs.set(canonical, { doc: null, error });
+        }
+      },
+    );
+    const remainingBudget = SEARCH_RUN_BUDGET_MS - (Date.now() - runStart);
+    budgetExceeded = await raceDeadline(preScrape, remainingBudget);
+    if (budgetExceeded) {
       logger.warn(
-        "search monitor criteria compile failed, keeping deterministic",
+        "search monitor run exceeded its time budget; finishing with partial scrapes",
         {
-          error,
+          monitorId: params.monitor.id,
+          targetId: target.id,
+          budgetMs: SEARCH_RUN_BUDGET_MS,
+          scraped: deepDocs.size,
         },
       );
     }
   }
 
-  let selected = candidates.slice(0, target.maxResults);
-  if (depth === "deep" && llmStagesAvailable && candidates.length > 0) {
-    if (candidates.length > 50) {
-      logger.info("search monitor router capped candidates at 50", {
-        total: candidates.length,
-      });
-    }
-    try {
-      const decisions = await routeSearchResults({
-        goal: judgeGoal,
-        subject,
-        searchWindow: target.searchWindow,
-        maxResults: target.maxResults,
-        costTracking,
-        labels,
-        candidates: candidates.map((c, i) => ({
-          id: `result_${i + 1}`,
-          query: c.query,
-          title: c.title,
-          url: c.url,
-          snippet: c.description,
-        })),
-      });
-      const byId = new Map<string, RouteDecision>(
-        decisions.map(d => [d.id, d]),
-      );
-      const routed = candidates
-        .map((c, i) => ({ c, routing: byId.get(`result_${i + 1}`) }))
-        .filter(r => r.routing?.decision === "scrape")
-        .sort((a, b) => (b.routing?.priority ?? 0) - (a.routing?.priority ?? 0))
-        .map(r => r.c);
-      selected = routed.slice(0, target.maxResults);
-    } catch (error) {
-      logger.warn("search monitor router failed open to top-K", { error });
-    }
-  }
-
-  const recheckMs = target.recheckAfter ? windowToMs(target.recheckAfter) : 0;
-  const pageNeedsJudgment = (c: {
-    url: string;
-    title: string;
-    description: string;
-  }) => {
-    const canonical = canonicalizeUrl(c.url);
-    const known = knownPages.get(canonical);
-    const knownCurrent =
-      known && known.goalVersion === goalVersion ? known : undefined;
-    if (!knownCurrent) return true;
-    const fingerprint = stableSerpFingerprint({
-      url: c.url,
-      title: c.title,
-      snippet: c.description,
-    });
-    if (knownCurrent.fingerprint !== fingerprint) return true;
-    const isLive =
-      knownCurrent.lastStatus === "alert" ||
-      knownCurrent.lastStatus === "watching";
-    return Boolean(
-      recheckMs &&
-        isLive &&
-        knownCurrent.lastCheckedAt &&
-        Date.now() - Date.parse(knownCurrent.lastCheckedAt) > recheckMs,
-    );
-  };
-
-  const snippetVerdicts = new Map<string, SearchVerdict>();
-  const snippetCandidates = selected.filter(pageNeedsJudgment);
-  if (depth === "standard" && snippetCandidates.length > 0) {
-    try {
-      const verdicts = await judgeSnippets({
-        goal: judgeGoal,
-        subject,
-        searchWindow: target.searchWindow,
-        costTracking,
-        labels,
-        candidates: snippetCandidates.map((c, i) => ({
-          id: `result_${i + 1}`,
-          query: c.query,
-          title: c.title,
-          url: c.url,
-          snippet: c.description,
-        })),
-      });
-      const byId = new Map<string, SnippetVerdict>(
-        verdicts.map(v => [v.id, v]),
-      );
-      snippetCandidates.forEach((c, i) => {
-        const v = byId.get(`result_${i + 1}`);
-        if (v) {
-          snippetVerdicts.set(canonicalizeUrl(c.url), {
-            relevant: v.relevant,
-            alertAction: v.alertAction,
-            concept: v.concept,
-            rationale: v.rationale,
-          });
-        }
-      });
-    } catch (error) {
-      snippetJudgeFailed = true;
-      logger.warn("search monitor snippet judge failed; results skipped", {
-        error,
-      });
-    }
-  }
-
   for (const c of selected) {
-    const canonical = canonicalizeUrl(c.url);
-    const fingerprint = stableSerpFingerprint({
-      url: c.url,
-      title: c.title,
-      snippet: c.description,
-    });
+    const { canonical, fingerprint, knownCurrent, isNewOrChanged } =
+      evaluateSerpCandidate(c, knownPages, goalVersion, recheckMs);
     const pushUnevaluatedPage = (error: string) => {
       skipped += 1;
       sources.push({ url: c.url, title: c.title, status: "skipped" });
@@ -438,22 +423,6 @@ export async function runSearchTarget(params: {
         },
       });
     };
-    const known = knownPages.get(canonical);
-    const knownCurrent =
-      known && known.goalVersion === goalVersion ? known : undefined;
-    const isLive =
-      knownCurrent?.lastStatus === "alert" ||
-      knownCurrent?.lastStatus === "watching";
-    const dueForRecheck = Boolean(
-      recheckMs &&
-        isLive &&
-        knownCurrent?.lastCheckedAt &&
-        Date.now() - Date.parse(knownCurrent.lastCheckedAt) > recheckMs,
-    );
-    const isNewOrChanged =
-      !knownCurrent ||
-      knownCurrent.fingerprint !== fingerprint ||
-      dueForRecheck;
 
     if (!isNewOrChanged) {
       const reusedStatus: SearchSource["status"] =
@@ -543,38 +512,46 @@ export async function runSearchTarget(params: {
           eventAlertCount,
           eventLastAlertAt: nowIso,
         },
-        // Raw mode does not run the judge, so it carries no judgment — these are
-        // surfaced as new results, not evaluated as "meaningful".
+        // Raw mode runs no judge: surfaced as new results, not evaluated as "meaningful".
       });
       continue;
     }
 
     let verdict: SearchVerdict | null = null;
-    let pageText = "";
     let realDate: string | null = null;
-    if (depth === "standard") {
-      verdict = snippetVerdicts.get(canonical) ?? null;
-      if (!verdict) {
-        if (snippetJudgeFailed) {
-          pushUnevaluatedPage("snippet judge failed");
-        } else {
-          skipped += 1;
-          sources.push({ url: c.url, title: c.title, status: "skipped" });
-        }
+    {
+      // Read from the pre-scrape cache; scrape inline only as a fallback.
+      let doc: ScrapeSearchResult | null;
+      const cached = deepDocs.get(canonical);
+      if (cached?.error !== undefined) {
+        logger.warn("search monitor scrape threw", {
+          url: c.url,
+          error: cached.error,
+        });
+        judgeScrapeFailures += 1;
+        pushUnevaluatedPage(
+          cached.error instanceof Error ? cached.error.message : "scrape threw",
+        );
         continue;
       }
-      pagesChecked += 1;
-    } else {
-      let doc: ScrapeSearchResult | null;
+      // Out of budget before caching this page: treat as a scrape failure rather
+      // than inline-scraping (which would re-incur the time we just budgeted out of).
+      if (!cached && budgetExceeded) {
+        judgeScrapeFailures += 1;
+        pushUnevaluatedPage("run budget exceeded before scrape");
+        continue;
+      }
       try {
-        doc = await params.scrapePage({
-          url: c.url,
-          judgePrompt: buildJudgePrompt(
-            judgeGoal,
-            subject,
-            target.searchWindow,
-          ),
-        });
+        doc = cached
+          ? cached.doc
+          : await params.scrapePage({
+              url: c.url,
+              judgePrompt: buildJudgePrompt(
+                judgeGoal,
+                subject,
+                target.searchWindow,
+              ),
+            });
       } catch (error) {
         logger.warn("search monitor scrape threw", { url: c.url, error });
         judgeScrapeFailures += 1;
@@ -598,66 +575,14 @@ export async function runSearchTarget(params: {
         pushUnevaluatedPage("verdict unparseable");
         continue;
       }
-      pageText = doc.markdown ?? "";
       realDate =
         doc.metadata?.publishedTime ?? doc.metadata?.modifiedTime ?? null;
     }
 
     resultsJudged += 1;
 
-    let decision = verdictToDecision(verdict);
+    const decision = verdictToDecision(verdict);
 
-    let verification: VerificationResult | null = null;
-    if (decision === "notify") {
-      const evidence: VerifyEvidence = {
-        url: c.url,
-        titleText: c.title,
-        claimText: verdict.rationale,
-        pageText,
-      };
-      const result = verifyAlertCandidate({
-        criteria,
-        concept: verdict.concept,
-        evidence,
-      });
-      verification = result;
-      if (!result.pass) {
-        decision = "watch";
-        logger.info("search monitor alert downgraded by verifier", {
-          url: c.url,
-          failures: result.failures,
-        });
-      }
-    }
-
-    if (decision === "notify" && llmStagesAvailable) {
-      try {
-        const skeptic: SkepticVerdict = await reviewAlert({
-          goal: judgeGoal,
-          subject,
-          criteria,
-          costTracking,
-          labels,
-          result: {
-            title: c.title,
-            url: c.url,
-            snippet: c.description,
-            concept: verdict.concept,
-            judgeAnswer: verdict.rationale,
-          },
-        });
-        if (skeptic.refuted) {
-          decision = "watch";
-          logger.info("search monitor alert refuted by skeptic", {
-            url: c.url,
-            failureMode: skeptic.failureMode,
-            reason: skeptic.reason,
-          });
-        }
-      } catch (error) {
-        logger.warn("search monitor skeptic failed open", { error });
-      }
-    }
     const baseMeta = {
       fingerprint,
       goalVersion,
@@ -667,7 +592,6 @@ export async function runSearchTarget(params: {
       rationale: verdict.rationale,
       matchedQueries: c.matchedQueries,
       judgedThisRun: true,
-      ...(verification && !verification.pass ? { verification } : {}),
     };
 
     if (decision === "ignore") {
@@ -703,60 +627,13 @@ export async function runSearchTarget(params: {
       continue;
     }
 
-    let resolution;
-    try {
-      resolution = await resolveEvent({
-        goal: judgeGoal,
-        subject,
-        costTracking,
-        labels,
-        result: {
-          title: c.title,
-          url: c.url,
-          evidence: verdict.rationale,
-        },
-        candidates: events,
-      });
-    } catch (error) {
-      logger.warn("search monitor event resolver failed open to new event", {
-        error,
-      });
-      resolution = {
-        matchedKey: null,
-        isNew: true,
-        label: verdict.concept,
-        reason: "resolver_failed",
-      };
-    }
-    const matched =
-      resolution.matchedKey &&
-      events.find(e => e.key === resolution.matchedKey);
-    const eventKey = matched ? matched.key : uuidv7();
-    const eventLabel = matched
-      ? matched.label
-      : resolution.label || verdict.concept;
+    // Deterministic event key: dedup by canonical URL (no LLM event resolver).
+    const eventKey = canonical;
+    const eventLabel = verdict.concept || canonical;
 
-    let alreadySatisfied = false;
-    if (satisfied.has(eventKey)) {
-      if (target.alertMode === "first_match") {
-        alreadySatisfied = true;
-      } else if (target.alertMode === "material_dev") {
-        try {
-          const dev = await judgeMaterialDevelopment({
-            goal: judgeGoal,
-            subject,
-            eventLabel,
-            costTracking,
-            labels,
-            result: { title: c.title, evidence: verdict.rationale },
-          });
-          alreadySatisfied = !dev.material;
-        } catch (error) {
-          logger.warn("search monitor material judge failed closed", { error });
-          alreadySatisfied = true;
-        }
-      }
-    }
+    // Re-alert on every new result only in every_new_result mode; otherwise dedup.
+    const alreadySatisfied =
+      satisfied.has(eventKey) && target.alertMode !== "every_new_result";
     const eventMeta = { ...baseMeta, eventKey, eventLabel };
 
     if (alreadySatisfied) {
@@ -826,41 +703,16 @@ export async function runSearchTarget(params: {
     s => s.status === "alert" || s.status === "already_seen",
   ).length;
 
-  let summary = "";
-  if (matches > 0 && depth === "raw") {
-    summary = `${matches} new search result${matches === 1 ? "" : "s"} matched the monitor queries.`;
-  } else if (matches > 0) {
-    try {
-      const out = await summarizeRun({
-        goal: judgeGoal,
-        subject,
-        costTracking,
-        labels,
-        evidence: sources
-          .filter(s => s.status === "alert")
-          .map(s => ({
-            title: s.title,
-            url: s.url,
-            rationale: s.rationale ?? "",
-          })),
-      });
-      summary = out.summary;
-    } catch (error) {
-      logger.warn("search monitor summarizer failed; using fallback summary", {
-        error,
-      });
-      summary = `${matches} new result${matches === 1 ? "" : "s"} matched the monitor goal.`;
-    }
-  }
+  let summary =
+    matches > 0
+      ? `${matches} match${matches === 1 ? "" : "es"} across ${resultCount} result${resultCount === 1 ? "" : "s"}.`
+      : "";
 
-  const deepJudgeFailed =
+  const judgeDegraded =
     depth === "deep" &&
     candidates.length > 0 &&
     resultsJudged === 0 &&
     judgeScrapeFailures > 0;
-  const standardJudgeFailed =
-    depth === "standard" && resultsJudged === 0 && snippetJudgeFailed;
-  const judgeDegraded = deepJudgeFailed || standardJudgeFailed;
   if (judgeDegraded) {
     logger.warn(
       "search monitor run is degraded: results were found but none could be judged; results may be incomplete (NOT a clean no-results)",
@@ -870,7 +722,6 @@ export async function runSearchTarget(params: {
         depth,
         candidates: candidates.length,
         scrapeFailures: judgeScrapeFailures,
-        snippetJudgeFailed,
         resultsJudged,
       },
     );
@@ -883,6 +734,24 @@ export async function runSearchTarget(params: {
   const degradedReason: string | null = judgeDegraded
     ? "results were found but none could be judged; results may be incomplete"
     : null;
+
+  // Soft signal (not judgeDegraded): verdicts produced but most scrapes failed, so
+  // it likely missed real developments. Surfaced for observability; doesn't fail the check.
+  const partialScrapeLoss =
+    resultsJudged > 0 &&
+    judgeScrapeFailures > 0 &&
+    judgeScrapeFailures / (resultsJudged + judgeScrapeFailures) >= 0.5;
+  if (partialScrapeLoss) {
+    logger.warn(
+      "search monitor run had heavy partial scrape loss: judged some results but most scrapes failed; coverage may be incomplete",
+      {
+        monitorId: params.monitor.id,
+        targetId: target.id,
+        resultsJudged,
+        scrapeFailures: judgeScrapeFailures,
+      },
+    );
+  }
 
   const isZDR = params.zeroDataRetention;
   const searchCredits = searchCreditsForResultCount(searchResultsBilled, isZDR);
@@ -899,6 +768,8 @@ export async function runSearchTarget(params: {
     summary,
     judgeDegraded,
     degradedReason,
+    scrapeFailures: judgeScrapeFailures,
+    partialScrapeLoss,
     sources,
     searchCredits,
     judgeCredits,

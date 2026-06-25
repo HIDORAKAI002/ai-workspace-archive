@@ -1,19 +1,18 @@
 import type { Logger } from "winston";
-import { type SearchVerdict, verdictJsonSchema, buildJudgePrompt } from "./judge";
-import type { EventResolution } from "./llm";
+import {
+  type SearchVerdict,
+  verdictJsonSchema,
+  buildJudgePrompt,
+} from "./judge";
 import { canonicalizeUrl, stableSerpFingerprint } from "./dedupe";
 import { scrapeRequestSchema } from "../../../controllers/v2/types";
 
 // vi.mock is hoisted above declarations, so the mocks its factories reference
 // are created in vi.hoisted() (also hoisted) to avoid any TDZ surprises.
-const { searchMock, scrapePageMock, resolveEventMock, summarizeRunMock, materialDevMock } =
-  vi.hoisted(() => ({
-    searchMock: vi.fn(),
-    scrapePageMock: vi.fn(),
-    resolveEventMock: vi.fn(),
-    summarizeRunMock: vi.fn(),
-    materialDevMock: vi.fn(),
-  }));
+const { searchMock, scrapePageMock } = vi.hoisted(() => ({
+  searchMock: vi.fn(),
+  scrapePageMock: vi.fn(),
+}));
 
 vi.mock("uuid", () => ({ v7: () => "00000000-0000-7000-8000-000000000000" }));
 vi.mock("../../../search/v2", () => ({
@@ -24,11 +23,8 @@ vi.mock("../../../search/v2", () => ({
     return Array.isArray(r) ? { web: r } : r;
   },
 }));
-vi.mock("./llm", () => ({
-  resolveEvent: (...a: unknown[]) => resolveEventMock(...a),
-  summarizeRun: (...a: unknown[]) => summarizeRunMock(...a),
-  judgeMaterialDevelopment: (...a: unknown[]) => materialDevMock(...a),
-}));
+// Deep mode (these tests) scrapes + parses a per-page JSON verdict and dedups by
+// canonical URL — the only LLM stage is the injected per-page scrape verdict.
 vi.mock("./tuning", () => ({
   hasLlmProvider: () => false,
   googleProviderOptions: () => ({}),
@@ -90,9 +86,7 @@ function run(
   over: {
     target?: Partial<typeof baseTarget> & { recheckAfter?: string };
     knownPages?: Map<string, KnownPage>;
-    knownEvents?: EventResolution[] extends never
-      ? never
-      : { key: string; label: string }[];
+    knownEvents?: { key: string; label: string }[];
     goalVersion?: string;
     alertMode?: "first_match" | "every_new_result" | "material_dev";
   } = {},
@@ -116,17 +110,6 @@ function run(
 
 beforeEach(() => {
   vi.clearAllMocks();
-  resolveEventMock.mockResolvedValue({
-    matchedKey: null,
-    isNew: true,
-    label: "OpenAI IPO",
-    reason: "",
-  });
-  summarizeRunMock.mockResolvedValue({
-    label: "meaningful",
-    summary: "OpenAI filed for IPO.",
-  });
-  materialDevMock.mockResolvedValue({ material: false, reason: "" });
 });
 
 describe("runSearchTarget orchestration", () => {
@@ -146,7 +129,7 @@ describe("runSearchTarget orchestration", () => {
     expect(out.sources[0].status).toBe("alert");
     expect(out.sources[0].eventKey).toBeTruthy();
     expect(out.pageUpserts[0].status).toBe("alert");
-    expect(out.summary).toBe("OpenAI filed for IPO.");
+    expect(out.summary).toBe("1 match across 1 result.");
     expect(scrapePageMock).toHaveBeenCalledTimes(1);
   });
 
@@ -284,50 +267,7 @@ describe("runSearchTarget orchestration", () => {
     expect(out.sources[0].status).toBe("alert");
   });
 
-  it("first_match: suppresses a second result resolving to the same event", async () => {
-    setSearchResults([
-      {
-        url: "https://sec.gov/openai",
-        title: "OpenAI S-1",
-        description: "filing",
-      },
-      {
-        url: "https://nytimes.com/openai-ipo",
-        title: "OpenAI to IPO",
-        description: "report",
-      },
-    ]);
-    setVerdictsByUrl({
-      "https://sec.gov/openai": verdict(),
-      "https://nytimes.com/openai-ipo": verdict({ concept: "openai-ipo" }),
-    });
-    resolveEventMock
-      .mockResolvedValueOnce({
-        matchedKey: null,
-        isNew: true,
-        label: "OpenAI IPO",
-        reason: "",
-      })
-      .mockResolvedValueOnce({
-        matchedKey: "00000000-0000-7000-8000-000000000000",
-        isNew: false,
-        label: "OpenAI IPO",
-        reason: "same",
-      });
-
-    const out = await run({ alertMode: "first_match" });
-
-    const statuses = out.sources.map(s => s.status);
-    expect(statuses).toContain("alert");
-    expect(statuses).toContain("already_seen");
-    expect(out.matches).toBe(1);
-    // the suppressed result was still deep-scraped and judged
-    const seen = out.pageUpserts.find(u => u.status === "already_seen")!;
-    expect(seen.scraped).toBe(true);
-    expect(seen.metadata.searchStatus).toBe("already_seen");
-  });
-
-  it("mints a stable opaque key for new events (not a label slug)", async () => {
+  it("first_match: suppresses a result whose URL is an already-satisfied event", async () => {
     setSearchResults([
       {
         url: "https://sec.gov/openai",
@@ -336,41 +276,57 @@ describe("runSearchTarget orchestration", () => {
       },
     ]);
     setVerdictsByUrl({ "https://sec.gov/openai": verdict() });
-    resolveEventMock.mockResolvedValue({
-      matchedKey: null,
-      isNew: true,
-      label: "OpenAI's IPO Filing!!!",
-      reason: "",
+    const canonical = canonicalizeUrl("https://sec.gov/openai");
+
+    const out = await run({
+      alertMode: "first_match",
+      knownEvents: [{ key: canonical, label: "OpenAI IPO" }],
+    });
+
+    expect(out.matches).toBe(0);
+    expect(out.sources[0].status).toBe("already_seen");
+    // the suppressed result was still deep-scraped and judged
+    const seen = out.pageUpserts.find(u => u.status === "already_seen")!;
+    expect(seen.scraped).toBe(true);
+    expect(seen.metadata.searchStatus).toBe("already_seen");
+  });
+
+  it("uses the canonical URL as the event key (label is the verdict concept)", async () => {
+    setSearchResults([
+      {
+        url: "https://sec.gov/openai",
+        title: "OpenAI S-1",
+        description: "filing",
+      },
+    ]);
+    setVerdictsByUrl({
+      "https://sec.gov/openai": verdict({ concept: "OpenAI IPO filing" }),
     });
     const out = await run();
     expect(out.sources[0].eventKey).toBe(
-      "00000000-0000-7000-8000-000000000000",
+      canonicalizeUrl("https://sec.gov/openai"),
     );
-    expect(out.pageUpserts[0].metadata.eventLabel).toBe(
-      "OpenAI's IPO Filing!!!",
-    );
+    expect(out.pageUpserts[0].metadata.eventLabel).toBe("OpenAI IPO filing");
   });
 
-  it("reuses a matched event's key even when the new label differs (no drift)", async () => {
+  it("every_new_result: re-alerts a URL that is already a known event", async () => {
     setSearchResults([
       {
-        url: "https://reuters.com/openai",
-        title: "Reuters: OpenAI IPO",
-        description: "report",
+        url: "https://sec.gov/openai",
+        title: "OpenAI S-1",
+        description: "filing",
       },
     ]);
-    setVerdictsByUrl({ "https://reuters.com/openai": verdict() });
-    resolveEventMock.mockResolvedValue({
-      matchedKey: "evt-stable-123",
-      isNew: false,
-      label: "A completely reworded label",
-      reason: "same event",
-    });
+    setVerdictsByUrl({ "https://sec.gov/openai": verdict() });
+    const canonical = canonicalizeUrl("https://sec.gov/openai");
+
     const out = await run({
-      knownEvents: [{ key: "evt-stable-123", label: "OpenAI IPO" }],
+      alertMode: "every_new_result",
+      knownEvents: [{ key: canonical, label: "OpenAI IPO" }],
     });
-    expect(out.sources[0].eventKey).toBe("evt-stable-123");
-    expect(out.pageUpserts[0].metadata.eventLabel).toBe("OpenAI IPO");
+
+    expect(out.matches).toBe(1);
+    expect(out.sources[0].status).toBe("alert");
   });
 
   it("keeps a judge-watched (e.g. old-news) verdict at watch (no notify)", async () => {
@@ -389,7 +345,6 @@ describe("runSearchTarget orchestration", () => {
 
     expect(out.sources[0].status).toBe("watching");
     expect(out.matches).toBe(0);
-    expect(resolveEventMock).not.toHaveBeenCalled();
   });
 
   it("marks a result skipped when the scrape fails", async () => {
@@ -449,43 +404,24 @@ describe("scrape payload validity (real validator, no mocks)", () => {
   });
 });
 
-describe("material_dev alert mode", () => {
-  const serp = [
-    {
-      url: "https://reuters.com/openai",
-      title: "OpenAI prices IPO",
-      description: "priced",
-    },
-  ];
+describe("material_dev alert mode (dedups a known URL like first_match)", () => {
+  const url = "https://reuters.com/openai";
+  const serp = [{ url, title: "OpenAI prices IPO", description: "priced" }];
   beforeEach(() => {
     setSearchResults(serp);
-    setVerdictsByUrl({ "https://reuters.com/openai": verdict() });
-    resolveEventMock.mockResolvedValue({
-      matchedKey: "evt-1",
-      isNew: false,
-      label: "OpenAI IPO",
-      reason: "same",
-    });
+    setVerdictsByUrl({ [url]: verdict() });
   });
 
-  it("re-alerts on a material development of a known event", async () => {
-    materialDevMock.mockResolvedValue({ material: true, reason: "now priced" });
-    const out = await run({
-      alertMode: "material_dev",
-      knownEvents: [{ key: "evt-1", label: "OpenAI IPO" }],
-    });
+  it("alerts on a URL not yet seen", async () => {
+    const out = await run({ alertMode: "material_dev" });
     expect(out.matches).toBe(1);
     expect(out.sources[0].status).toBe("alert");
   });
 
-  it("suppresses a non-material retelling of a known event", async () => {
-    materialDevMock.mockResolvedValue({
-      material: false,
-      reason: "just a retelling",
-    });
+  it("suppresses a URL that is already a known event", async () => {
     const out = await run({
       alertMode: "material_dev",
-      knownEvents: [{ key: "evt-1", label: "OpenAI IPO" }],
+      knownEvents: [{ key: canonicalizeUrl(url), label: "OpenAI IPO" }],
     });
     expect(out.matches).toBe(0);
     expect(out.sources[0].status).toBe("already_seen");

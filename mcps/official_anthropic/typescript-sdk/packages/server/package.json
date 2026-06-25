@@ -1,6 +1,6 @@
 {
     "name": "@modelcontextprotocol/server",
-    "version": "2.0.0-alpha.2",
+    "version": "2.0.0-alpha.3",
     "description": "Model Context Protocol implementation for TypeScript - Server package",
     "license": "MIT",
     "author": "Anthropic, PBC (https://anthropic.com)",
@@ -94,7 +94,7 @@
         "ajv": "catalog:runtimeShared",
         "ajv-formats": "catalog:runtimeShared",
         "@eslint/js": "catalog:devTools",
-        "@modelcontextprotocol/core": "workspace:^",
+        "@modelcontextprotocol/core-internal": "workspace:^",
         "@modelcontextprotocol/eslint-config": "workspace:^",
         "@modelcontextprotocol/test-helpers": "workspace:^",
         "@modelcontextprotocol/tsconfig": "workspace:^",
