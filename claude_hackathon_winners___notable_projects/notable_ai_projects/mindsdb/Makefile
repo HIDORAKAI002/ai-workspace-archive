@@ -31,7 +31,7 @@ export ANTON_REF := $(AGENT_REF)
 # Only inject a non-default anton override (uv rejects a redundant --with).
 _ANTON_WITH := $(if $(filter-out main,$(AGENT_REF)),--with "anton-agent @ git+https://github.com/mindsdb/anton.git@$(AGENT_REF)",)
 
-.PHONY: help setup dev dev-web build dist-mac dist-win docker-build docker-up docker-down flush use pin baseline server app refs
+.PHONY: help setup dev dev-web build dist-mac dist-win docker-build docker-up docker-down flush use pin baseline server server-local app app-local pack-local watch refs
 
 .DEFAULT_GOAL := help
 
@@ -149,5 +149,38 @@ server: ## (re)install the Electron desktop server from the configured API_REF/A
 		--force --reinstall --python '>=3.12,<3.14'
 	@echo "✓ desktop server installed from core_api@$(API_REF)."
 
+server-local: ## install Electron desktop server from LOCAL uncommitted source (no push needed)
+	UV_PYTHON_PREFERENCE=only-managed uv tool install \
+		"$(CURDIR)/$(API)" \
+		--force --reinstall --python '>=3.12,<3.14'
+	@echo "✓ desktop server installed from local source: $(CURDIR)/$(API)"
+	@echo "  anton resolved from core_api/pyproject.toml [tool.uv.sources]"
+	@echo "  To also use local core_agent, set:"
+	@echo "    [tool.uv.sources] anton-agent = { path = \"../../core_agent\" }"
+	@echo "  in backend/core_api/pyproject.toml, then re-run server-local."
+
 app: $(_NPM_STAMP)  ## run the Electron desktop app against the configured branch (no auto-update)
 	cd $(FRONTEND) && COWORK_SERVER_DISABLE_AUTOUPDATE=1 npm run dev
+
+app-local: $(_NPM_STAMP)  ## run the Electron desktop app using LOCAL source (implies server-local)
+	$(MAKE) server-local
+	cd $(FRONTEND) && COWORK_SERVER_DISABLE_AUTOUPDATE=1 \
+		COWORK_SERVER_PACKAGE="$(CURDIR)/$(API)" npm run dev
+
+pack-local: $(_NPM_STAMP)  ## build macOS .app from LOCAL uncommitted source, iCloud-safe (no DMG)
+	$(MAKE) server-local
+	cd $(FRONTEND) && PATH="/opt/homebrew/opt/node@20/bin:$$PATH" \
+		npm run build && \
+		npx electron-builder --mac --arm64 --dir \
+		--config.directories.output=/tmp/minds-build
+	rm -rf $(FRONTEND)/release/mac-arm64
+	cp -R /tmp/minds-build/mac-arm64 $(FRONTEND)/release/
+	@echo "✓ Built: $(FRONTEND)/release/mac-arm64/MindsHub Cowork.app"
+	@echo "  Launch: COWORK_SERVER_DISABLE_AUTOUPDATE=1 '$(CURDIR)/$(FRONTEND)/release/mac-arm64/MindsHub Cowork.app/Contents/MacOS/MindsHub Cowork' &"
+
+watch: $(_NPM_STAMP) $(_API_STAMP) $(_AGENT_STAMP)  ## live reload — Electron app + Python hot-reload (alias for dev)
+	@trap 'kill 0' SIGINT SIGTERM EXIT; \
+	uv run --directory $(API) uvicorn cowork.server:app --reload \
+		--reload-dir $(CURDIR)/$(API)/cowork \
+		--reload-dir $(CURDIR)/$(AGENT)/anton & \
+	npm --prefix $(FRONTEND) run dev
