@@ -588,7 +588,11 @@ knex.QueryBuilder.extend(
  * Append concat to knex query builder
  */
 knex.QueryBuilder.extend('concat', function (cn: any) {
-  switch (this?.client?.config?.client) {
+  const clientName =
+    typeof this?.client?.config?.client === 'string'
+      ? this.client.config.client
+      : this?.client?.driverName ?? this?.client?.dialect;
+  switch (clientName) {
     case 'pg':
       this.select(
         this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn]),
@@ -609,6 +613,16 @@ knex.QueryBuilder.extend('concat', function (cn: any) {
         this.client.raw(`STRING_AGG(RTRIM(CAST(?? AS NVARCHAR(MAX))), ',')`, [
           cn,
         ]),
+      );
+      break;
+    case 'oracledb':
+      // LISTAGG requires a WITHIN GROUP clause; ORDER BY NULL keeps the
+      // subquery's input order. TO_CHAR so non-text lookup values aggregate.
+      this.select(
+        this.client.raw(
+          `LISTAGG(TO_CHAR(??), ',') WITHIN GROUP (ORDER BY NULL)`,
+          [cn],
+        ),
       );
       break;
   }

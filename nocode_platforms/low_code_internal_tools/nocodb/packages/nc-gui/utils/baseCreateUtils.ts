@@ -85,6 +85,10 @@ export const clientTypes = [
     value: ClientType.MSSQL,
   },
   {
+    text: 'Oracle',
+    value: ClientType.ORACLE,
+  },
+  {
     text: 'Snowflake',
     value: ClientType.SNOWFLAKE,
   },
@@ -145,6 +149,13 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
       encrypt: false,
       trustServerCertificate: true,
     },
+  },
+  [ClientType.ORACLE]: {
+    host: defaultHost,
+    port: '1521',
+    user: 'system',
+    password: 'Password123!',
+    database: 'FREEPDB1',
   },
   [ClientType.SQLITE]: {
     client: ClientType.SQLITE,

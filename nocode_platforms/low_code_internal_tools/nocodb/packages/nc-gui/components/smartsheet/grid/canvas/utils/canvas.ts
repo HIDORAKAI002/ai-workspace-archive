@@ -1616,7 +1616,7 @@ export function renderIconButton(
 export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>) => {
   if (!column || !sqlUis) return
 
-  const cacheKey = `${column.source_id}-${column.dt}-${column.dtxp}`
+  const cacheKey = `${column.source_id}-${column.uidt}-${column.dt}-${column.dtxp}`
   const cachedValue = abstractTypeCache.get(cacheKey)
 
   if (cachedValue) {

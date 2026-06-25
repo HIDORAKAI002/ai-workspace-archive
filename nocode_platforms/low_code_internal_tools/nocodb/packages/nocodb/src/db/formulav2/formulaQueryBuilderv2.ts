@@ -229,6 +229,23 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   .wrap('(', ')'),
               };
             };
+          } else if (
+            knex.clientType() === 'oracledb' &&
+            (refCol.dt ?? '').toLowerCase().includes('time zone')
+          ) {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                // Oracle TIMESTAMP WITH [LOCAL] TIME ZONE: normalize to a plain
+                // UTC timestamp so date formulas (DATEADD, …) operate on the UTC
+                // instant — mirroring the read path and pg/mysql. Referencing the
+                // column raw makes the formula compute on the stored
+                // wall-clock+offset, so the result renders an offset off in the
+                // browser timezone.
+                builder: knex
+                  .raw(`SYS_EXTRACT_UTC(??)`, [refCol.column_name])
+                  .wrap('(', ')'),
+              };
+            };
           } else {
             aliasToColumn[col.id] = () =>
               Promise.resolve({ builder: refCol.column_name });
@@ -385,35 +402,25 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         prevBinaryOp,
       });
     } else if (pt.type === 'Literal') {
-      // MSSQL workaround: inline string literals directly instead of going
-      // through knex bindings. knex-mssql's positional-to-named substitution
-      // does a naive `sql.replace(/\?/g, '@pN')` that DOES NOT track
-      // string-literal context — so a `?` inside a user's literal (e.g. a
-      // URL like `https://x.com/?q=1`) gets corrupted to `@p0`.
-      //
-      // Inlining with the standard `N'...'` SQL Server literal isn't enough:
-      // the formula composer (parsed-tree-builder) further runs
-      // `.replace(/\?/g, '\\?')` on the composed expression to escape any
-      // surviving `?` placeholders, but knex then strips that backslash and
-      // hands a plain `?` to the dialect adapter — which mangles it again.
-      //
-      // The robust workaround: emit ZERO `?` characters in the resulting
-      // SQL by splitting on `?` and re-composing the literal via
-      // `CHAR(63)` (T-SQL for `?`). Empty fragments and trailing `?`s are
-      // handled naturally by `CONCAT`.
+      // MSSQL: inline string literals as `N'...'` rather than binding `?`.
+      //   1. Unicode — a bound string inlines as varchar via `.toQuery()`;
+      //      `N'...'` keeps it nvarchar.
+      //   2. The single-query (dbQueryClient) path composes this builder into a
+      //      larger query and resolves it with one final `.toQuery()`; a bound
+      //      `?` placeholder gets consumed/shifted by that outer compilation.
+      // Escape any `?` IN THE VALUE itself (e.g. `CONCAT(x, '?')`) to `\?` so
+      // the outer `.toQuery()` treats it as a literal, not a binding
+      // placeholder. Without this the stray `?` shifts every later binding —
+      // e.g. a pk value lands in the `TOP (…)` clause as `TOP ('1')`, which
+      // SQL Server rejects with error 1060. The final `.toQuery()` unescapes
+      // `\?` back to a literal `?`. (Lookup-of-formula re-escapes after its own
+      // `toQuery()`, so the net escaping stays single — see mssql.ts.)
       if (knex.clientType() === 'mssql' && typeof pt.value === 'string') {
-        const escapeSingles = (s: string) => s.replace(/'/g, "''");
-        const v = pt.value;
-        if (v.includes('?')) {
-          const parts = v.split('?');
-          const sqlArgs: string[] = [];
-          for (let i = 0; i < parts.length; i++) {
-            if (i > 0) sqlArgs.push('CHAR(63)');
-            sqlArgs.push(`N'${escapeSingles(parts[i])}'`);
-          }
-          return { builder: knex.raw(`CONCAT(${sqlArgs.join(', ')})`) };
-        }
-        return { builder: knex.raw(`N'${escapeSingles(v)}'`) };
+        return {
+          builder: knex.raw(
+            `N'${pt.value.replace(/'/g, "''").replace(/\?/g, '\\?')}'`,
+          ),
+        };
       }
       if (knex.clientType() === 'mssql' && typeof pt.value === 'boolean') {
         return { builder: knex.raw(pt.value ? '1' : '0') };

@@ -24,6 +24,7 @@ import {
 import { isString } from '@vue/shared'
 import { useTitle } from '@vueuse/core'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { useSharedFormDraft } from './useSharedFormDraft'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 
 dayjs.extend(utc)
@@ -159,6 +160,43 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
+  const sharedViewUuid = computed(() => sharedView.value?.uuid)
+
+  const isDraftSaveEnabled = computed(() => {
+    const v = sharedFormView.value?.save_draft_to_browser as unknown
+    return v !== 0 && v !== false
+  })
+
+  const validUserIds = computed(() => {
+    const baseId = meta.value?.base_id
+    if (!baseId) return new Set<string>()
+    const users = basesUser.value.get(baseId) ?? []
+    return new Set(users.map((u: any) => u?.id).filter((id: any) => typeof id === 'string')) as Set<string>
+  })
+
+  // Values that should be treated as "untouched" — column defaults + URL prefill.
+  // Anything in formState matching this is not persisted as a draft and won't trigger restore.
+  const draftBaselineState = computed(() => ({
+    ...preFilledDefaultValueformState.value,
+    ...(sharedViewMeta.value.preFillEnabled ? preFilledformState.value : {}),
+  }))
+
+  const {
+    wasRestored: draftWasRestored,
+    restoredAt: draftRestoredAt,
+    restore: restoreDraft,
+    discard: discardDraft,
+    dismissBanner: dismissDraftBanner,
+  } = useSharedFormDraft({
+    sharedViewUuid,
+    columns,
+    formState,
+    submitted,
+    isEnabled: isDraftSaveEnabled,
+    baselineState: draftBaselineState,
+    validUserIds,
+  })
+
   const localColumns = computed<(ColumnType & Record<string, any>)[]>(() => {
     return (columns.value || [])?.filter((c) => supportedFields(c))
   })
@@ -227,7 +265,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       loadAllviewFilters(Array.isArray(viewMeta?.filter?.children) ? viewMeta?.filter?.children : [])
 
       const _sharedViewMeta = (viewMeta as any).meta
-      sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
+      sharedViewMeta.value = (isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta) ?? {}
 
       await setMeta(viewMeta.model)
 
@@ -306,6 +344,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           }
         })
         .sort((a: ColumnType, b: ColumnType) => (a.order ?? Infinity) - (b.order ?? Infinity))
+
+      // Restore any saved draft BEFORE handlePreFillForm so URL prefill correctly overrides drafted values for prefilled fields.
+      restoreDraft()
 
       await handlePreFillForm()
 
@@ -971,6 +1012,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isFormNotStarted,
     formStartsAt,
     backgroundAndTextColor,
+    draftWasRestored,
+    draftRestoredAt,
+    discardDraft,
+    dismissDraftBanner,
+    isDraftSaveEnabled,
   }
 }, 'shared-form-view-store')
 

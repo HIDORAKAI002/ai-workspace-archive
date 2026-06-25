@@ -653,6 +653,9 @@ const selectOption = (option) => {
                 <template v-else>
                   <span class="text-nc-content-gray-muted"> - </span>
                 </template>
+                <template #tooltip>
+                  <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
+                </template>
               </LazySmartsheetCalendarSideRecordCard>
             </SmartsheetRow>
           </div>

@@ -1,5 +1,6 @@
 import {
   convertMS2Duration,
+  getEffectiveLookupColumn,
   isSupportedDisplayValueColumn,
   LongTextAiMetaProp,
   parseDecimalValue,
@@ -9,6 +10,7 @@ import {
   roundUpToPrecision,
   UITypes,
 } from 'nocodb-sdk';
+import type { ColumnType } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { NcContext } from '~/interface/config';
@@ -133,12 +135,23 @@ export async function serializeCellValue(
 
         const lookupColumn = await colOptions.getLookupColumn(refContext);
         if (!lookupColumn) return value?.toString?.() ?? '';
+
+        // Apply the lookup column's own formatting override (meta.display_type +
+        // meta.display_column_meta) so export/webhook payloads honour the configured
+        // number/date format — but only when the override is still valid for the
+        // child's current result type; falls back to the child column otherwise (no
+        // override set, or a stale override after the looked-up field changed type).
+        const effectiveColumn = getEffectiveLookupColumn(
+          parseProp(column.meta),
+          lookupColumn as unknown as ColumnType,
+        ) as unknown as Column;
+
         return (
           await Promise.all(
             [...(Array.isArray(value) ? value : [value])].map(async (v) =>
               serializeCellValue(refContext, {
                 value: v,
-                column: lookupColumn,
+                column: effectiveColumn,
                 siteUrl,
                 locale,
               }),

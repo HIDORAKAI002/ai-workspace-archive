@@ -71,7 +71,6 @@ import { PercentSqliteHandler } from '~/db/field-handler/handlers/percent/percen
 import { UserPgHandler } from '~/db/field-handler/handlers/user/user.pg.handler';
 import { UserSqliteHandler } from '~/db/field-handler/handlers/user/user.sqlite.handler';
 import { GenericPgFieldHandler } from '~/db/field-handler/handlers/generic.pg';
-import { GenericMysqlFieldHandler } from '~/db/field-handler/handlers/generic.mysql';
 import { GenericSqliteFieldHandler } from '~/db/field-handler/handlers/generic.sqlite';
 import { MultiSelectMysqlHandler } from '~/db/field-handler/handlers/multi-select/multi-select.mysql.handler';
 import {
@@ -94,6 +93,12 @@ import { TimeMysqlHandler } from '~/db/field-handler/handlers/time/time.mysql.ha
 import { TimeMssqlHandler } from '~/db/field-handler/handlers/time/time.mssql.handler';
 import { UuidPgHandler } from '~/db/field-handler/handlers/uuid/uuid.pg.handler';
 import { UuidMssqlHandler } from '~/db/field-handler/handlers/uuid/uuid.mssql.handler';
+import { CheckboxOracleHandler } from '~/db/field-handler/handlers/checkbox/checkbox.oracle.handler';
+import { DateTimeOracleHandler } from '~/db/field-handler/handlers/date-time/date-time.oracle.handler';
+import { TimeOracleHandler } from '~/db/field-handler/handlers/time/time.oracle.handler';
+import { LongTextOracleHandler } from '~/db/field-handler/handlers/long-text/long-text.oracle.handler';
+import { JsonOracleHandler } from '~/db/field-handler/handlers/json/json.oracle.handler';
+import { AttachmentOracleHandler } from '~/db/field-handler/handlers/attachment/attachment.oracle.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -124,14 +129,17 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.LongText]: {
     [CLIENT_DEFAULT]: LongTextGeneralHandler,
     [ClientType.MYSQL]: LongTextMysqlHandler,
+    [ClientType.ORACLE]: LongTextOracleHandler,
   },
   [UITypes.Attachment]: {
     [CLIENT_DEFAULT]: AttachmentGeneralHandler,
+    [ClientType.ORACLE]: AttachmentOracleHandler,
   },
   [UITypes.Checkbox]: {
     [CLIENT_DEFAULT]: CheckboxGeneralHandler,
     [ClientType.SQLITE]: CheckboxSqliteHandler,
     [ClientType.MSSQL]: CheckboxMssqlHandler,
+    [ClientType.ORACLE]: CheckboxOracleHandler,
   },
   [UITypes.MultiSelect]: {
     [CLIENT_DEFAULT]: MultiSelectGeneralHandler,
@@ -155,6 +163,7 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: TimeGeneralHandler,
     [ClientType.MYSQL]: TimeMysqlHandler,
     [ClientType.MSSQL]: TimeMssqlHandler,
+    [ClientType.ORACLE]: TimeOracleHandler,
   },
   [UITypes.PhoneNumber]: {
     [CLIENT_DEFAULT]: PhoneNumberGeneralHandler,
@@ -219,6 +228,7 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
     [ClientType.MSSQL]: DateTimeMssqlHandler,
+    [ClientType.ORACLE]: DateTimeOracleHandler,
   },
   [UITypes.CreatedTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
@@ -226,6 +236,7 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
     [ClientType.MSSQL]: DateTimeMssqlHandler,
+    [ClientType.ORACLE]: DateTimeOracleHandler,
   },
   [UITypes.LastModifiedTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
@@ -233,6 +244,7 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
     [ClientType.MSSQL]: DateTimeMssqlHandler,
+    [ClientType.ORACLE]: DateTimeOracleHandler,
   },
   [UITypes.AutoNumber]: {},
   [UITypes.Geometry]: {},
@@ -240,6 +252,7 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.PG]: JsonPgHandler,
     [ClientType.MYSQL]: JsonMySqlHandler,
     [ClientType.MSSQL]: JsonMssqlHandler,
+    [ClientType.ORACLE]: JsonOracleHandler,
     [CLIENT_DEFAULT]: JsonGeneralHandler,
   },
   [UITypes.SpecificDBType]: {},

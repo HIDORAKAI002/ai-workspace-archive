@@ -111,6 +111,8 @@ const integrationsMap = computed(() => {
           (isEEFeatureBlocked.value || !i.isOssOnly) &&
           // SQL Server is experimental — hidden unless the `mssql_source` flag is on
           (i.sub_type !== ClientType.MSSQL || isFeatureEnabled(FEATURE_FLAG.MSSQL_SOURCE)) &&
+          // Oracle is experimental — hidden unless the `oracle_source` flag is on
+          (i.sub_type !== ClientType.ORACLE || isFeatureEnabled(FEATURE_FLAG.ORACLE_SOURCE)) &&
           i.sub_type !== SyncDataType.NOCODB &&
           // AUTH category: only show integrations available for sync auth
           (cat.value !== IntegrationCategoryType.AUTH ||

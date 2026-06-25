@@ -1,6 +1,7 @@
 import { NotificationType, UserType } from '~/lib/Api';
 import { ChatEventAction } from '~/lib/chat';
 import type {
+  ChatAttachmentType,
   ChatContentBlock,
   ChatMessageType,
   ChatSessionType,
@@ -274,6 +275,8 @@ export interface ChatEventPayload extends BaseSocketPayload {
   messageId?: string;
   /** Final ordered content blocks — single source of truth for the persisted message. */
   parts?: ChatContentBlock[];
+  /** Files the assistant generated this turn (sandbox output → storage). */
+  createdFiles?: ChatAttachmentType[];
   /** Braintrust span ID — used for thumbs up/down feedback submission. */
   btSpanId?: string | null;
   /** Follow-up suggestions generated after the assistant response */

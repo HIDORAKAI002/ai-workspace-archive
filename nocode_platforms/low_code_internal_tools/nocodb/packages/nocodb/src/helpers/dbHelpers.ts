@@ -1,10 +1,12 @@
 import { customAlphabet } from 'nanoid';
+import oracledb from 'oracledb';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
+  isNumericCol,
   isOrderCol,
   isSystemColumn,
   isVirtualCol,
@@ -193,6 +195,45 @@ export function getCompositePkValue(
   return (
     primaryKeys[0] &&
     (row[primaryKeys[0][pkIdOrTitleKey]] ?? row[primaryKeys[0].column_name])
+  );
+}
+
+/**
+ * knex's oracledb dialect hardcodes the type of any value captured via a
+ * `RETURNING ... INTO` clause to `oracledb.STRING` (see the dialect's
+ * `prepBindings` — "Returning helper always use ROWID as string"). So a NUMBER
+ * pk captured from an INSERT comes back as e.g. `"401"` instead of `401`, while
+ * pg/mysql hand back native numbers. There is no driver/knex config knob for
+ * this (`fetchAsString`/`fetchTypeHandler` only affect SELECT fetches, not DML
+ * out-binds), so coerce numeric pk columns back to JS numbers at the capture
+ * site to keep the inserted-record shape consistent across dialects.
+ */
+export function coerceOracleReturnedPk(value: any, column: Column): any {
+  if (
+    typeof value === 'string' &&
+    value !== '' &&
+    isNumericCol(column) &&
+    !Number.isNaN(Number(value))
+  ) {
+    return Number(value);
+  }
+  return value;
+}
+
+/**
+ * Make a knex `toSQL().bindings` array safe to ship to the sql-executor for an
+ * Oracle `INSERT … RETURNING`. knex serializes the RETURNING out-bind as the
+ * placeholder object `{columnName}`; the executor runs the insert via
+ * `kn.raw(sql, bindings)`, which hands bindings to node-oracledb verbatim — and
+ * it rejects `{columnName}` (NJS-044). Swap each one for a real,
+ * JSON-serializable out-bind descriptor (`dir` alone captures the value as a
+ * string; {@link coerceOracleReturnedPk} normalizes numeric pks downstream).
+ */
+export function toOracleReturningBindings(bindings: readonly any[]): any[] {
+  return bindings.map((b) =>
+    b && typeof b === 'object' && !Array.isArray(b) && 'columnName' in b
+      ? { dir: oracledb.BIND_OUT }
+      : b,
   );
 }
 
@@ -896,15 +937,68 @@ export function generateRecursiveCTE(_params: {
 }
 
 /**
- * Anything that lets us detect the underlying knex dialect: a Knex /
- * Knex.QueryBuilder / Knex.Raw exposes `.client.config.client`, while
- * `BaseModelSqlv2`-like objects expose `.isMssql` directly (and the
- * driver via `.dbDriver`).
+ * Anything these helpers can detect the underlying knex dialect from:
+ *   - a `BaseModelSqlv2` ({@link IBaseModelSqlV2}) — answers via `.isMssql` /
+ *     `.isOracle`, or its `.dbDriver`;
+ *   - a raw knex object — instance ({@link CustomKnex}), query builder, or
+ *     transaction — read via `.client.config.client`.
  */
 export type DialectAware =
-  | { isMssql: boolean }
-  | { dbDriver: { client: { config: { client?: unknown } } } }
-  | { client: { config: { client?: unknown } } };
+  | IBaseModelSqlV2
+  | CustomKnex
+  | Knex.QueryBuilder
+  | Knex.Transaction;
+
+/**
+ * Detect whether a {@link DialectAware} resolves to mssql / oracle.
+ *
+ * `BaseModelSqlv2`-like objects answer directly via `.isMssql` / `.isOracle`.
+ * For a raw Knex / QueryBuilder we read `config.client` — but that is NOT
+ * always the dialect string: `CustomKnex` swaps it for a custom Client
+ * *class* (MssqlClient / OracledbClient / …) before `knex()` is called, and
+ * those classes pin `prototype.dialect`/`prototype.driverName` back to the
+ * dialect name. Mirror `clientType()`'s resolution (CustomKnex.ts) so
+ * detection survives the swap regardless of whether a model or a knex is
+ * passed — otherwise these helpers silently fall back to the PG/MySQL branch
+ * and emit `… = true` (→ "Invalid column name 'true'") on mssql/oracle.
+ */
+function detectBoolDialect(knexOrModel: DialectAware): {
+  isMssql: boolean;
+  isOracle: boolean;
+} {
+  const m = knexOrModel as Partial<{
+    isMssql: boolean;
+    isOracle: boolean;
+    dbDriver: { client?: any };
+    client: any;
+  }>;
+
+  if (typeof m.isMssql === 'boolean' || typeof m.isOracle === 'boolean') {
+    return { isMssql: !!m.isMssql, isOracle: !!m.isOracle };
+  }
+
+  // knex instance / QueryBuilder / transaction: resolve from the Client. A
+  // bare QueryBuilder's `client.config.client` doesn't always surface the
+  // dialect string, so fall back to the Client instance's own `driverName` /
+  // `dialect` (set on every knex Client, incl. the custom OracledbClient) —
+  // otherwise mssql/oracle silently get the JS boolean `true`/`false`, which
+  // they reject (`Invalid column name 'true'`).
+  const clientInstance = m.client ?? m.dbDriver?.client;
+  const rawClient = clientInstance?.config?.client;
+  const clientProto = (
+    rawClient as { prototype?: { dialect?: string; driverName?: string } }
+  )?.prototype;
+  const clientName =
+    (typeof rawClient === 'string'
+      ? rawClient
+      : clientProto?.dialect ?? clientProto?.driverName) ??
+    clientInstance?.driverName ??
+    clientInstance?.dialect;
+  return {
+    isMssql: clientName === 'mssql',
+    isOracle: clientName === 'oracledb',
+  };
+}
 
 /**
  * Returns the dialect-correct value for a `bit`/`boolean` column
@@ -918,22 +1012,17 @@ export type DialectAware =
  * PG `boolean` columns reject `boolean = integer` — pg needs the real
  * boolean literal. MySQL `tinyint(1)` and SQLite numeric-bool tolerate
  * both; we keep them on `true`/`false` for consistency.
+ *
+ * Oracle stores booleans as `NUMBER(1)` (no SQL BOOLEAN before 23ai) and
+ * node-oracledb can't bind a JS boolean against a NUMBER column — use 1/0
+ * like mssql.
  */
 export function deletedColValue(
   knexOrModel: DialectAware,
   isDeleted: boolean,
 ): boolean | number {
-  const m = knexOrModel as Partial<{
-    isMssql: boolean;
-    dbDriver: { client: { config: { client?: unknown } } };
-    client: { config: { client?: unknown } };
-  }>;
-  const isMssql =
-    typeof m.isMssql === 'boolean'
-      ? m.isMssql
-      : (m.client?.config?.client ?? m.dbDriver?.client?.config?.client) ===
-        'mssql';
-  return isMssql ? (isDeleted ? 1 : 0) : isDeleted;
+  const { isMssql, isOracle } = detectBoolDialect(knexOrModel);
+  return isMssql || isOracle ? (isDeleted ? 1 : 0) : isDeleted;
 }
 
 /**
@@ -944,6 +1033,8 @@ export function deletedColValue(
  * `getAliasedSoftDeleteFilter` for the rollup/formula failure mode).
  *
  *  - MSSQL: `bit` has no boolean literal — use `0` / `1`.
+ *  - Oracle: booleans live in `NUMBER(1)` and `TRUE`/`FALSE` literals only
+ *    exist from 23ai — use `0` / `1`.
  *  - PG / MySQL / SQLite: `false` / `true` works.
  *
  * Primary user is the soft-delete (`__nc_deleted`) family of queries, but
@@ -954,17 +1045,8 @@ export function boolSqlLiteral(
   knexOrModel: DialectAware,
   value: boolean,
 ): string {
-  const m = knexOrModel as Partial<{
-    isMssql: boolean;
-    dbDriver: { client: { config: { client?: unknown } } };
-    client: { config: { client?: unknown } };
-  }>;
-  const isMssql =
-    typeof m.isMssql === 'boolean'
-      ? m.isMssql
-      : (m.client?.config?.client ?? m.dbDriver?.client?.config?.client) ===
-        'mssql';
-  if (isMssql) return value ? '1' : '0';
+  const { isMssql, isOracle } = detectBoolDialect(knexOrModel);
+  if (isMssql || isOracle) return value ? '1' : '0';
   return value ? 'true' : 'false';
 }
 
@@ -1076,7 +1158,8 @@ export function getArrayAggExpression(
   columnName: string,
   alias: string,
 ): Knex.Raw {
-  const client = knexConnection.client.config.client;
+  const client =
+    knexConnection.clientType?.() ?? knexConnection.client.config.client;
 
   // Note: columnName and alias are controlled by our code, so it's safe to use directly
   const exprMap: Record<string, string> = {

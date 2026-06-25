@@ -7,6 +7,10 @@ export function buildBackupColumnTypeExpr(
 ): string {
   const dt = sourceColumn.dt || fallback;
 
+  if (dt === 'USER-DEFINED' || dt === 'ARRAY') {
+    return fallback;
+  }
+
   if (!/^[\w -]+(?:\(\d+(?:\s?,\s?\d+)?\))?$/.test(dt)) {
     throw new Error(`Invalid data type: ${dt}`);
   }

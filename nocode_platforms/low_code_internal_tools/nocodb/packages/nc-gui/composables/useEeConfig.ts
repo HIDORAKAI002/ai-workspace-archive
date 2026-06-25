@@ -352,6 +352,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseMssql = (..._args: any[]) => {}
 
+  const blockOracle = computed(() => true)
+
+  const showUpgradeToUseOracle = (..._args: any[]) => {}
+
   const blockWhiteLabel = computed(() => true)
 
   const showUpgradeToUseWhiteLabel = (..._args: any[]) => {}
@@ -552,6 +556,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScim,
     blockMssql,
     showUpgradeToUseMssql,
+    blockOracle,
+    showUpgradeToUseOracle,
     blockWhiteLabel,
     showUpgradeToUseWhiteLabel,
     showUpgradeToUseAudit,

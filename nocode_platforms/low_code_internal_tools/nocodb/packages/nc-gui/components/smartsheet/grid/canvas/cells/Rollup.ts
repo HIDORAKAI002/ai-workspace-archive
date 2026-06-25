@@ -4,6 +4,7 @@ import {
   NC_ERROR_SENTINEL,
   type RollupType,
   UITypes,
+  getEffectiveDisplayColumn,
   getMetaWithCompositeKey,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
@@ -57,13 +58,12 @@ export const RollupCellRenderer: CellRenderer = {
       if (colMeta?.display_type) {
         isFormulaWithDisplayType = true
         const displayColumnMeta = parseProp(colMeta.display_column_meta)
+        const effectiveCol = getEffectiveDisplayColumn(colMeta, childColumn)
 
         renderProps = {
           ...props,
           column: {
-            ...childColumn,
-            uidt: colMeta?.display_type,
-            ...displayColumnMeta,
+            ...effectiveCol,
             meta: {
               ...parseProp(displayColumnMeta?.meta),
               ...getRollupColumnMeta(column?.meta, colMeta?.display_type, colOptions?.rollup_function),

@@ -118,6 +118,23 @@ export const callExpressionBuilder = async ({
           model,
         });
         if (res) return res;
+      } else if (knex.clientType() === 'oracledb') {
+        // The generic assembler below emits a literal n-ary `CONCAT(a, b, …)`.
+        // Oracle 23ai accepts that syntax, but it returns VARCHAR2 (capped at
+        // 4000 / 32767 bytes), so a large concatenation raises ORA-01489
+        // ("result of string concatenation is too long") — whereas pg/mysql
+        // build an unlimited TEXT result. Route through the oracle function
+        // mapping instead, which chains the operands with `||` and wraps each
+        // in TO_CLOB() so the result is an (unlimited) CLOB.
+        const res = await mapFunctionName({
+          pt,
+          knex,
+          aliasToCol: aliasToColumn,
+          fn,
+          prevBinaryOp,
+          model,
+        });
+        if (res) return res;
       }
       break;
     case 'URL':
@@ -472,7 +489,9 @@ export const binaryExpressionBuilder = async ({
     // comparing a date with empty string would throw
     // `ERROR: zero-length delimited identifier` in Postgres
     if (
-      (knex.clientType() === 'pg' || knex.clientType() === 'mssql') &&
+      (knex.clientType() === 'pg' ||
+        knex.clientType() === 'mssql' ||
+        knex.clientType() === 'oracledb') &&
       columnIdToUidt[(pt.left as IdentifierNode).name] === UITypes.Date
     ) {
       // The correct way to compare with Date should be using
@@ -495,7 +514,9 @@ export const binaryExpressionBuilder = async ({
       }
     }
     if (
-      (knex.clientType() === 'pg' || knex.clientType() === 'mssql') &&
+      (knex.clientType() === 'pg' ||
+        knex.clientType() === 'mssql' ||
+        knex.clientType() === 'oracledb') &&
       columnIdToUidt[(pt.right as IdentifierNode).name] === UITypes.Date
     ) {
       // The correct way to compare with Date should be using
@@ -556,31 +577,46 @@ export const binaryExpressionBuilder = async ({
   } else if (
     knex.clientType() === 'sqlite3' ||
     knex.clientType() === 'pg' ||
-    knex.clientType() === 'mssql'
+    knex.clientType() === 'mssql' ||
+    knex.clientType() === 'oracledb'
   ) {
     // SQL Server has no `TEXT` cast (use NVARCHAR(MAX)) and no boolean literals
     // (use 1/0 instead of true/false). NULLIF divide-by-zero works as-is.
+    // Oracle stores '' as NULL, so `= ''` / `!= ''` reduce to `IS [NOT] NULL` —
+    // a `CAST(x …) != ''` arm would never be true there, and `CAST(x AS TEXT)`
+    // is invalid anyway (ORA-00902).
     const isMssql = knex.clientType() === 'mssql';
+    const isOracle = knex.clientType() === 'oracledb';
     const textType = isMssql ? 'NVARCHAR(MAX)' : 'TEXT';
     if (pt.operator === '=') {
       if (pt.left.type === 'Literal' && pt.left.value === '') {
-        sql = `${right} IS NULL OR CAST(${right} AS ${textType}) = ''`;
+        sql = isOracle
+          ? `${right} IS NULL`
+          : `${right} IS NULL OR CAST(${right} AS ${textType}) = ''`;
       } else if (pt.right.type === 'Literal' && pt.right.value === '') {
-        sql = `${left} IS NULL OR CAST(${left} AS ${textType}) = ''`;
+        sql = isOracle
+          ? `${left} IS NULL`
+          : `${left} IS NULL OR CAST(${left} AS ${textType}) = ''`;
       }
     } else if (pt.operator === '!=') {
       if (pt.left.type === 'Literal' && pt.left.value === '') {
-        sql = `${right} IS NOT NULL AND CAST(${right} AS ${textType}) != ''`;
+        sql = isOracle
+          ? `${right} IS NOT NULL`
+          : `${right} IS NOT NULL AND CAST(${right} AS ${textType}) != ''`;
       } else if (pt.right.type === 'Literal' && pt.right.value === '') {
-        sql = `${left} IS NOT NULL AND CAST(${left} AS ${textType}) != ''`;
+        sql = isOracle
+          ? `${left} IS NOT NULL`
+          : `${left} IS NOT NULL AND CAST(${left} AS ${textType}) != ''`;
       }
     }
 
     // T-SQL has no boolean type, so bare predicates are invalid in scalar
     // contexts. CASE-materialize all comparisons to 1/0 on mssql; pg/sqlite
     // only need `=`/`!=` wrapped to coerce them into a boolean-shaped value.
+    // Oracle predicates are equally invalid in scalar contexts — same CASE
+    // 1/0 shape as mssql.
     const isMssqlScalarComparison =
-      isMssql &&
+      (isMssql || isOracle) &&
       ['=', '!=', '<', '>', '<=', '>='].includes(pt.operator) &&
       prevBinaryOp !== 'AND' &&
       prevBinaryOp !== 'OR';
@@ -591,9 +627,10 @@ export const binaryExpressionBuilder = async ({
         prevBinaryOp !== 'AND' &&
         prevBinaryOp !== 'OR')
     ) {
-      sql = isMssql
-        ? `(CASE WHEN ${sql} THEN 1 ELSE 0 END )`
-        : `(CASE WHEN ${sql} THEN true ELSE false END )`;
+      sql =
+        isMssql || isOracle
+          ? `(CASE WHEN ${sql} THEN 1 ELSE 0 END )`
+          : `(CASE WHEN ${sql} THEN true ELSE false END )`;
     } else if (pt.operator === '/') {
       // handle divide by zero
       const right = await callExpressionBuilder({

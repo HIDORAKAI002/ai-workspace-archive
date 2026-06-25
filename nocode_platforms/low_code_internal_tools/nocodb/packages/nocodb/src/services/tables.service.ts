@@ -231,6 +231,9 @@ export class TablesService {
     } else if (sqlClientType === 'mssql') {
       // T-SQL identifiers map to sysname (nvarchar(128)).
       tableNameLengthLimit = 128;
+    } else if (sqlClientType === 'oracledb') {
+      // Oracle 12.2+ identifiers cap at 128 bytes.
+      tableNameLengthLimit = 128;
     }
 
     if (param.table.table_name.length > tableNameLengthLimit) {
@@ -998,6 +1001,9 @@ export class TablesService {
       tableNameLengthLimit = 63;
     } else if (sqlClientType === 'mssql') {
       // T-SQL identifiers map to sysname (nvarchar(128)).
+      tableNameLengthLimit = 128;
+    } else if (sqlClientType === 'oracledb') {
+      // Oracle 12.2+ identifiers cap at 128 bytes.
       tableNameLengthLimit = 128;
     }
 

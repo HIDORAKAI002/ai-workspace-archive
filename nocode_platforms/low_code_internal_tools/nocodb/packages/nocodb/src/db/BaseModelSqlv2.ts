@@ -33,6 +33,7 @@ import {
   LongTextAiMetaProp,
   NcApiVersion,
   NcErrorType,
+  ncIsBoolean,
   ncIsNull,
   ncIsNullOrUndefined,
   ncIsObject,
@@ -99,6 +100,7 @@ import {
 } from '~/db/BaseModelSqlv2/add-remove-links';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';
+import { DBQueryClient } from '~/dbQueryClient';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
@@ -108,6 +110,7 @@ import {
   _wherePk,
   applyPaginate,
   boolSqlLiteral,
+  coerceOracleReturnedPk,
   dataWrapper,
   deletedColValue,
   displayValueMapKey,
@@ -145,7 +148,6 @@ import {
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
-  batchUpdate,
   extractColsMetaForAudit,
   extractExcludedColumnNames,
   generateAuditV1Payload,
@@ -2106,6 +2108,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb.orderByRaw('RANDOM()');
     } else if (this.isMssql) {
       qb.orderByRaw('NEWID()');
+    } else if (this.isOracle) {
+      qb.orderByRaw('DBMS_RANDOM.VALUE');
     }
   }
 
@@ -2839,6 +2843,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       isPg: this.isPg,
       isMySQL: this.isMySQL,
       isMssql: this.isMssql,
+      isOracle: this.isOracle,
       // isSnowflake: this.isSnowflake,
     };
   }
@@ -2865,6 +2870,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   get isMssql() {
     return this.clientType === 'mssql';
+  }
+
+  get isOracle() {
+    return this.clientType === 'oracledb';
   }
 
   get clientType() {
@@ -2900,9 +2909,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // const driver = trx ? trx : await this.dbDriver.transaction();
     try {
       const source = await this.getSource();
-      await populatePk(this.context, this.model, data);
 
       const columns = await this.model.getColumns(this.context);
+
+      // Exclude auto-increment columns from the insert body so the DB assigns
+      // them.
+      const dbDataWrapper = dataWrapper(data);
+      for (const col of columns) {
+        if (col.ai) {
+          const keyName = dbDataWrapper.getColumnKeyName(col);
+          if (data[keyName]) {
+            delete data[keyName];
+          }
+        }
+      }
+
+      await populatePk(this.context, this.model, data);
 
       const insertObj = await this.model.mapAliasToColumn(
         this.context,
@@ -2957,6 +2979,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         undo: param?.undo,
       });
 
+      // Oracle pins a session NLS datetime format with no offset token, so a
+      // raw `…+00:00` value (carried by V1/V2 payloads) raises ORA-01830 on
+      // insert. prepareNocoData (called above) skips DateTime offset
+      // normalization for inserts, so do DateTime here — mirroring
+      // handleValidateBulkInsert. Time is offset-stripped via the field
+      // handler's parseUserInput inside prepareNocoData (Oracle + mssql, all
+      // insert/update paths), so it needs no inline handling here.
+      if (this.isOracle && this.context.api_version !== NcApiVersion.V3) {
+        for (const col of columns) {
+          const v = insertObj[col.column_name];
+          if (v === null || v === undefined) continue;
+          if (col.uidt === UITypes.DateTime && dayjs(v).isValid()) {
+            insertObj[col.column_name] = this.formatDate(v, col);
+          }
+        }
+      }
+
       // Cap in-flight preInsertOps so many nested LTAR capture SELECTs
       // don't saturate the knex pool. Mutating closures only build
       // .toQuery() strings (no connection), so the cap mainly limits
@@ -2980,6 +3019,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       let response;
+
+      // Oracle has no `DEFAULT VALUES` / column-less `VALUES (default)`: an empty
+      // insert object compiles to `insert into "t" () values (default)` and fails
+      // with ORA-00947. Pin the PK to DEFAULT so it becomes a valid
+      // `insert into "t" ("PK") values (DEFAULT)` — other columns take their own
+      // defaults; an identity/sequence-trigger PK is generated as usual.
+      if (
+        this.isOracle &&
+        insertObj &&
+        Object.keys(insertObj).length === 0 &&
+        this.model.primaryKey
+      ) {
+        insertObj[this.model.primaryKey.column_name] =
+          this.dbDriver.raw('DEFAULT');
+      }
+
       const query = this.dbDriver(this.tnPath).insert(insertObj);
 
       // pg + mssql both support inline RETURNING/OUTPUT — knex's mssql
@@ -3069,7 +3124,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 },
               )
             )?.__nc_ai_id;
-          } else if (this.isSnowflake || this.isDatabricks) {
+          } else if (this.isSnowflake || this.isDatabricks || this.isOracle) {
             rowId = (
               await this.execAndParse(
                 this.dbDriver(this.tnPath).max(ai.column_name, {
@@ -3704,6 +3759,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 responses.push(...rows);
               }
             }
+          } else if (
+            !raw &&
+            this.isOracle &&
+            toInsert.length &&
+            this.model.primaryKeys?.length
+          ) {
+            const pkCols = this.model.primaryKeys;
+            const rows = await trx
+              .batchInsert(this.tnPath, toInsert, chunkSize)
+              .returning(pkCols.map((c) => c.column_name));
+            responses = ((rows ?? []) as any[]).map((r) =>
+              pkCols.reduce((acc, c) => {
+                acc[c.title] = coerceOracleReturnedPk(r[c.column_name], c);
+                return acc;
+              }, {}),
+            );
           } else {
             responses =
               !raw && this.isPg
@@ -3954,7 +4025,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             val = JSON.stringify(val);
           }
           if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
-            val = this.formatDate(val);
+            val = this.formatDate(val, col);
           }
           if (col.uidt === UITypes.Duration) {
             if (col.meta?.duration !== undefined) {
@@ -3994,12 +4065,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   // Helper method to format date
-  private formatDate(val: string): Knex.Raw | string {
+  private formatDate(val: string, col?: Column): Knex.Raw | string {
     const { isMySQL, isSqlite, isPg, isMssql } = this.clientMeta;
     if (val.indexOf('-') < 0 && val.indexOf('+') < 0 && val.slice(-1) !== 'Z') {
       // if no timezone is given,
       // then append +00:00 to make it as UTC
       val += '+00:00';
+    }
+    if (this.isOracle) {
+      // Oracle parses string binds with the session NLS formats pinned at
+      // connection time ('YYYY-MM-DD HH24:MI:SS[.FF]'), which carry no offset
+      // token — the generic `+00:00` suffix raises ORA-01830/ORA-01861. Emit
+      // the UTC wall-clock offset-less. DATE has second precision (a fractional
+      // part raises ORA-01830); TIMESTAMP accepts `.SSS` via the FF token, so
+      // keep sub-second data there. Mirrors DateTimeOracleHandler.parseUserInput.
+      const dt = (col?.dt || '').toLowerCase();
+      return dayjs(val)
+        .utc()
+        .format(dt === 'date' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ss.SSS');
     }
     if (isMssql) {
       // T-SQL `datetime` / `datetime2` types reject the `+00:00` offset
@@ -4218,12 +4301,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           this.model.primaryKeys.length === 1 &&
           (this.isPg || this.isMySQL || this.isSqlite || this.isMssql)
         ) {
-          await batchUpdate(
-            transaction,
-            this.tnPath,
-            toBeUpdated.map((o) => o.d),
-            this.model.primaryKey.column_name,
-          );
+          await DBQueryClient.fromKnex(transaction).batchUpdate({
+            knex: transaction,
+            tnPath: this.tnPath,
+            rows: toBeUpdated.map((o) => o.d),
+            pkColumnName: this.model.primaryKey.column_name,
+          });
         } else {
           for (const o of toBeUpdated) {
             await transaction(this.tnPath).update(o.d).where(o.wherePk);
@@ -6713,9 +6796,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 query.where(column.column_name, r);
               }
 
-              return this.isSqlite ? this.dbDriver.select().from(query) : query;
+              return this.isSqlite || this.isOracle
+                ? this.dbDriver.select().from(query)
+                : query;
             }),
-            !this.isSqlite,
+            !(this.isSqlite || this.isOracle),
           )
           .as('__nc_grouped_list'),
       );
@@ -6787,6 +6872,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             column.column_name,
           ]),
         );
+      } else if (this.isOracle) {
+        // Oracle stores '' as NULL, so the COALESCE(NULLIF(col, '')) blank
+        // normalization is a no-op. Group by the raw column so it matches the
+        // `key` column selectObject projects verbatim — Oracle raises
+        // ORA-00979 ("must appear in the GROUP BY clause") when the selected
+        // column and the GROUP BY expression don't textually agree.
+        qb.groupBy(column.column_name);
       } else {
         qb.groupBy(
           this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
@@ -6899,6 +6991,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // and common table expressions, unless TOP, OFFSET or FOR XML is
       // also specified"). Tedious returns the row array directly from
       // `trx.raw`, so we can skip the wrap entirely.
+      return await trx.raw(query);
+    } else if (this.isOracle) {
+      // knex's oracledb dialect returns SELECT rows as a plain array from
+      // `trx.raw`, so the `__nc_alias` wrap is unnecessary — and Oracle
+      // rejects it outright (ORA-00911: unquoted identifiers can't start
+      // with an underscore).
       return await trx.raw(query);
     } else if (SELECT_REGEX.test(query)) {
       return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
@@ -7020,29 +7118,37 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     _perf?.mark('json');
 
     if (options.bulkAggregate) {
-      data = data.map(async (d) => {
-        for (const key in d) {
-          let data = d[key];
+      data = await Promise.all(
+        data.map(async (d) => {
+          for (const key in d) {
+            let value = d[key];
 
-          if (typeof data === 'string' && data.startsWith('{')) {
-            try {
-              data = JSON.parse(data);
-            } catch (e) {
-              // do nothing
+            if (typeof value === 'string' && value.startsWith('{')) {
+              try {
+                value = JSON.parse(value);
+              } catch (e) {
+                // not JSON — keep as-is
+              }
             }
-          }
 
-          d[key] =
-            (
-              await this.substituteColumnIdsWithColumnTitles(
-                [data],
-                dependencyColumns,
-                aliasColumns,
-              )
-            )[0] ?? {};
-        }
-        return d;
-      });
+            // Only nested object aggregate values carry column-id keys that
+            // need rewriting to titles; scalar results (count/sum/…) pass
+            // through untouched. Substitution rebuilds a non-object as a
+            // keyless `{}` (e.g. a number → `{}`), so guard on object-ness.
+            d[key] =
+              value && typeof value === 'object'
+                ? (
+                    await this.substituteColumnIdsWithColumnTitles(
+                      [value],
+                      dependencyColumns,
+                      aliasColumns,
+                    )
+                  )[0] ?? value
+                : value;
+          }
+          return d;
+        }),
+      );
     }
 
     if (options.apiVersion === NcApiVersion.V3) {
@@ -7213,6 +7319,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // Transform data in a single pass
     return data.map((item) => {
+      if (item === null || typeof item !== 'object') {
+        return item;
+      }
+
       const transformedItem = {};
 
       Object.entries(item).forEach(([key, value]) => {
@@ -8502,6 +8612,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s ON ${this.model.primaryKeys
         .map((_pk) => `t.?? = s.??`)
         .join(' AND ')}`,
+      oracledb: `MERGE INTO ?? t USING (SELECT ${this.model.primaryKeys
+        .map((_pk) => `??`)
+        .join(
+          ', ',
+        )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s ON (${this.model.primaryKeys
+        .map((_pk) => `t.?? = s.??`)
+        .join(' AND ')}) WHEN MATCHED THEN UPDATE SET t.?? = s.rn`,
     };
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -8511,7 +8628,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
-    const client = this.dbDriver.client.config.client;
+    const client = this.dbDriver.clientType();
     if (!sql[client]) {
       NcError.get(this.context).notImplemented(
         'Recalculate order not implemented for this database',
@@ -8536,6 +8653,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.tnPath,
         orderColumn.column_name,
         ...primaryKeys.flatMap((pk) => [pk, this.tnPath, pk]), // Flatten pk array for binding
+      ],
+      oracledb: [
+        this.tnPath, // MERGE INTO ?? t
+        ...primaryKeys, // SELECT (?? per pk)
+        orderColumn.column_name, // ORDER BY ?? (inside USING subquery)
+        this.tnPath, // FROM ?? (inside USING subquery)
+        ...primaryKeys.flatMap((pk) => [pk, pk]), // ON (t.?? = s.??) per pk
+        orderColumn.column_name, // SET t.?? = s.rn
       ],
       mssql: [
         orderColumn.column_name, // SET ??
@@ -8628,6 +8753,29 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         updatedColIds.push(column.id);
       }
 
+      // Oracle/mssql pin a session datetime format (NLS / CONVERT) that rejects
+      // the `+00:00` offset token carried by raw V1/V2 datetime payloads
+      // (ORA-01830 / mssql convert error). The insert path normalizes this via
+      // handleValidateBulkInsert's `formatDate`, but the update path (this
+      // function) otherwise forwards the offset verbatim. Format DateTime
+      // offset-less here for the non-V3 update path — V3 goes through
+      // parseUserInput below, and inserts (isInsertData) are already normalized
+      // upstream, so neither double-formats.
+      if (
+        !isInsertData &&
+        (this.isOracle || this.isMssql) &&
+        this.context.api_version !== NcApiVersion.V3 &&
+        column.uidt === UITypes.DateTime &&
+        !ncIsUndefined(data[column.column_name]) &&
+        !ncIsNull(data[column.column_name]) &&
+        dayjs(data[column.column_name]).isValid()
+      ) {
+        data[column.column_name] = this.formatDate(
+          data[column.column_name],
+          column,
+        );
+      }
+
       if (
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name]) &&
@@ -8641,7 +8789,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             UITypes.JSON,
             UITypes.Currency,
             UITypes.Checkbox,
-          ].includes(column.uidt as UITypes))
+          ].includes(column.uidt as UITypes) ||
+          // Oracle/mssql pin a session time format that rejects the `+00:00`
+          // offset carried by raw V1/V2 Time payloads (ORA-01830 / mssql
+          // convert error). Unlike DateTime (normalized via formatDate above),
+          // Time has no offset-stripping on this update path — route it through
+          // parseUserInput so the dialect's getTimeFormat() drops the offset.
+          ((this.isOracle || this.isMssql) && column.uidt === UITypes.Time))
       ) {
         data[column.column_name] = (
           await FieldHandler.fromBaseModel(this).parseUserInput({
@@ -9109,10 +9263,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public now() {
     // T-SQL `datetime`/`datetime2` reject the `+00:00` offset suffix that
     // dayjs's `Z` token produces; mysql also stores in local-zone wall
-    // clock so it drops the offset. Both dialects share the offset-less
-    // shape. pg/sqlite preserve the offset to disambiguate stored TZ.
+    // clock so it drops the offset. Oracle DATE/TIMESTAMP implicitly
+    // convert strings via the session NLS_DATE_FORMAT/NLS_TIMESTAMP_FORMAT
+    // (pinned to the offset-less shape at connection time) — so it shares
+    // the offset-less form too; selectObject re-attaches `+00:00` on read.
+    // pg/sqlite preserve the offset to disambiguate stored TZ.
     const fmt =
-      this.isMySQL || this.isMssql
+      this.isMySQL || this.isMssql || this.isOracle
         ? 'YYYY-MM-DD HH:mm:ss'
         : 'YYYY-MM-DD HH:mm:ssZ';
     return dayjs().utc().format(fmt);

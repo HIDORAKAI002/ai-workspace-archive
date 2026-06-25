@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { type ColumnType, type LinkToAnotherRecordType, type LookupType, isBtLikeV2Junction, isMMOrMMLike } from 'nocodb-sdk'
-import { FormulaDataTypes, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { FormulaDataTypes, RelationTypes, UITypes, getEffectiveLookupColumn, isVirtualCol } from 'nocodb-sdk'
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -95,6 +95,18 @@ const lookupColumn = computed(
       | ColumnType
       | undefined,
 )
+
+// Apply the lookup column's own formatting override (meta.display_type +
+// meta.display_column_meta) on top of the resolved child column. Returns the same
+// child column reference when no override is configured (inherit-by-default).
+const effectiveLookupColumn = computed(() =>
+  lookupColumn.value ? getEffectiveLookupColumn(column.value?.meta, lookupColumn.value) : lookupColumn.value,
+)
+
+// True when a number/date formatting override is active — the value then renders as
+// a plain scalar cell of the chosen display type, even for computed Formula/Rollup
+// children (so the override wins over their native formatting).
+const hasDisplayOverride = computed(() => !!lookupColumn.value && effectiveLookupColumn.value !== lookupColumn.value)
 
 // Resolve the leaf of a nested lookup chain (Lookup -> Lookup -> ... -> X).
 // When the chain ends in an Attachment, the value is already a flat array of
@@ -510,7 +522,10 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
             <LazySmartsheetCell :model-value="arrValue" :column="lookupLeafColumn" :edit-enabled="false" :read-only="true" />
           </div>
           <!-- Render virtual cell -->
-          <div v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn" class="flex h-full virtual-lookup-cells">
+          <div
+            v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn && !hasDisplayOverride"
+            class="flex h-full virtual-lookup-cells"
+          >
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
@@ -580,8 +595,17 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
                       'min-h-0 min-w-0': isAttachment(lookupColumn),
                     }"
                   >
+                    <LazySmartsheetCell
+                      v-if="hasDisplayOverride"
+                      :model-value="v"
+                      :column="effectiveLookupColumn"
+                      :edit-enabled="false"
+                      :virtual="true"
+                      :read-only="true"
+                      :class="smartsheetCellClass"
+                    />
                     <LazySmartsheetVirtualCell
-                      v-if="lookupColumn.uidt === UITypes.Rollup || isFormulaUrlLookup"
+                      v-else-if="lookupColumn.uidt === UITypes.Rollup || isFormulaUrlLookup"
                       :edit-enabled="false"
                       :read-only="true"
                       :model-value="v"
@@ -645,7 +669,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
           >
             <LazySmartsheetCell :model-value="arrValue" :column="lookupLeafColumn" :edit-enabled="false" :read-only="true" />
           </div>
-          <template v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn">
+          <template v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn && !hasDisplayOverride">
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
@@ -692,8 +716,17 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
                 }"
                 @click="handleCloseDropdown"
               >
+                <LazySmartsheetCell
+                  v-if="hasDisplayOverride"
+                  :model-value="v"
+                  :column="effectiveLookupColumn"
+                  :edit-enabled="false"
+                  :virtual="true"
+                  :read-only="true"
+                  :class="smartsheetCellClass"
+                />
                 <LazySmartsheetVirtualCell
-                  v-if="lookupColumn.uidt === UITypes.Rollup || isFormulaUrlLookup"
+                  v-else-if="lookupColumn.uidt === UITypes.Rollup || isFormulaUrlLookup"
                   :edit-enabled="false"
                   :read-only="true"
                   :model-value="v"

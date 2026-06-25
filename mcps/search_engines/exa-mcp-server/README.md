@@ -250,6 +250,17 @@ Exa's tools will appear in the chat. Ask your model to search the web, fetch a p
 </details>
 
 <details>
+<summary><b>Replit</b></summary>
+
+Go to [**Integrations**](https://replit.com/integrations) > **MCP Servers** > **Add MCP Server**, then enter:
+
+- **Name:** `Exa`
+- **URL:** `https://mcp.exa.ai/mcp`
+
+Or [click here to install automatically](https://replit.com/integrations?mcp=eyJkaXNwbGF5TmFtZSI6IkV4YSIsImJhc2VVcmwiOiJodHRwczovL21jcC5leGEuYWkvbWNwIn0=).
+</details>
+
+<details>
 <summary><b>Other Clients</b></summary>
 
 For clients that support remote MCP:

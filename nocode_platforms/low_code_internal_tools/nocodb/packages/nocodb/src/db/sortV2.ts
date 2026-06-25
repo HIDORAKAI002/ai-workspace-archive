@@ -36,6 +36,13 @@ export default async function sortV2(
   // amongst themselves — acceptable for a sort key on these rare LOB types.
   const MSSQL_SORT_KEY_WIDTH = 4000;
 
+  // Oracle refuses LOB columns as comparison keys (ORA-22848) — and
+  // LongText / JSON / Attachment all store as CLOB there. Sort on the first
+  // 2000 chars via DBMS_LOB.SUBSTR, which returns VARCHAR2 for CLOB and
+  // NVARCHAR2 for NCLOB (both sortable, and well under the 4000-byte
+  // VARCHAR2 cap for multi-byte content).
+  const oracleUnsortableDt = new Set(['clob', 'nclob']);
+
   for (const _sort of sortList) {
     const sort = _sort instanceof Sort ? _sort : new Sort(_sort);
 
@@ -70,6 +77,20 @@ export default async function sortV2(
         ),
         direction,
         nulls,
+      );
+      continue;
+    }
+
+    if (
+      baseModelSqlv2.isOracle &&
+      oracleUnsortableDt.has((column.dt ?? '').toLowerCase())
+    ) {
+      qb.orderByRaw(
+        sanitize(
+          knex.raw(`DBMS_LOB.SUBSTR(??, 2000, 1) ${direction} NULLS ${nulls}`, [
+            column.column_name,
+          ]),
+        ),
       );
       continue;
     }

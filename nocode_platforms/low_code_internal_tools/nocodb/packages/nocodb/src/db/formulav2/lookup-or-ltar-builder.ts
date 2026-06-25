@@ -27,6 +27,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getRefColumnIfAlias } from '~/helpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
+import { DBQueryClient } from '~/dbQueryClient';
 
 export const lookupOrLtarBuilder =
   (
@@ -49,6 +50,8 @@ export const lookupOrLtarBuilder =
       _formulaQueryBuilder,
       getAliasCount,
     } = params;
+
+    const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
 
     let selectQb;
     let isArray = false;
@@ -101,10 +104,11 @@ export const lookupOrLtarBuilder =
             });
 
             selectQb = knex(
-              knex.raw(`?? as ??`, [
+              dbQueryClient.tableAlias(
+                knex,
                 parentBaseModel.getTnPath(parentModel.table_name),
                 alias,
-              ]),
+              ),
             ).where(
               `${alias}.${parentColumn.column_name}`,
               knex.raw(`??`, [
@@ -143,10 +147,11 @@ export const lookupOrLtarBuilder =
             });
             isArray = relation.type !== RelationTypes.ONE_TO_ONE;
             selectQb = knex(
-              knex.raw(`?? as ??`, [
+              dbQueryClient.tableAlias(
+                knex,
                 childBaseModel.getTnPath(childModel.table_name),
                 alias,
-              ]),
+              ),
             ).where(
               `${alias}.${childColumn.column_name}`,
               knex.raw(`??`, [
@@ -195,16 +200,18 @@ export const lookupOrLtarBuilder =
 
             const assocAlias = `__nc${getAliasCount()}`;
             selectQb = knex(
-              knex.raw(`?? as ??`, [
+              dbQueryClient.tableAlias(
+                knex,
                 parentBaseModel.getTnPath(parentModel.table_name),
                 alias,
-              ]),
+              ),
             )
               .join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   mmBaseModel.getTnPath(mmModel.table_name),
                   assocAlias,
-                ]),
+                ),
                 `${assocAlias}.${mmParentColumn.column_name}`,
                 `${alias}.${parentColumn.column_name}`,
               )
@@ -298,10 +305,11 @@ export const lookupOrLtarBuilder =
           case RelationTypes.BELONGS_TO:
             {
               selectQb.join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   parentBaseModel.getTnPath(parentModel.table_name),
                   nestedAlias,
-                ]),
+                ),
                 `${prevAlias}.${childColumn.column_name}`,
                 `${nestedAlias}.${parentColumn.column_name}`,
               );
@@ -328,10 +336,11 @@ export const lookupOrLtarBuilder =
             {
               isArray = relation.type !== RelationTypes.ONE_TO_ONE;
               selectQb.join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   childBaseModel.getTnPath(childModel.table_name),
                   nestedAlias,
-                ]),
+                ),
                 `${prevAlias}.${parentColumn.column_name}`,
                 `${nestedAlias}.${childColumn.column_name}`,
               );
@@ -370,18 +379,20 @@ export const lookupOrLtarBuilder =
 
             selectQb
               .join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   mmBaseModel.getTnPath(mmModel.table_name),
                   assocAlias,
-                ]),
+                ),
                 `${assocAlias}.${mmChildColumn.column_name}`,
                 `${prevAlias}.${childColumn.column_name}`,
               )
               .join(
-                knex.raw(`?? as ??`, [
+                dbQueryClient.tableAlias(
+                  knex,
                   parentBaseModel.getTnPath(parentModel.table_name),
                   nestedAlias,
-                ]),
+                ),
                 `${nestedAlias}.${parentColumn.column_name}`,
                 `${assocAlias}.${mmParentColumn.column_name}`,
               );
@@ -508,10 +519,11 @@ export const lookupOrLtarBuilder =
               case RelationTypes.BELONGS_TO:
                 {
                   selectQb.join(
-                    knex.raw(`?? as ??`, [
+                    dbQueryClient.tableAlias(
+                      knex,
                       parentBaseModel.getTnPath(parentModel.table_name),
                       nestedAlias,
-                    ]),
+                    ),
                     `${alias}.${childColumn.column_name}`,
                     `${nestedAlias}.${parentColumn.column_name}`,
                   );
@@ -525,10 +537,11 @@ export const lookupOrLtarBuilder =
                 {
                   isArray = relation.type !== RelationTypes.ONE_TO_ONE;
                   selectQb.join(
-                    knex.raw(`?? as ??`, [
+                    dbQueryClient.tableAlias(
+                      knex,
                       childBaseModel.getTnPath(childModel.table_name),
                       nestedAlias,
-                    ]),
+                    ),
                     `${alias}.${parentColumn.column_name}`,
                     `${nestedAlias}.${childColumn.column_name}`,
                   );
@@ -558,18 +571,20 @@ export const lookupOrLtarBuilder =
 
                   selectQb
                     .join(
-                      knex.raw(`?? as ??`, [
+                      dbQueryClient.tableAlias(
+                        knex,
                         mmBaseModel.getTnPath(mmModel.table_name),
                         assocAlias,
-                      ]),
+                      ),
                       `${assocAlias}.${mmChildColumn.column_name}`,
                       `${alias}.${childColumn.column_name}`,
                     )
                     .join(
-                      knex.raw(`?? as ??`, [
+                      dbQueryClient.tableAlias(
+                        knex,
                         parentBaseModel.getTnPath(parentModel.table_name),
                         nestedAlias,
-                      ]),
+                      ),
                       `${nestedAlias}.${parentColumn.column_name}`,
                       `${assocAlias}.${mmParentColumn.column_name}`,
                     );

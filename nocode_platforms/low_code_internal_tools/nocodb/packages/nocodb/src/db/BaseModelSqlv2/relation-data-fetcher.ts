@@ -20,6 +20,12 @@ const GROUP_COL = '__nc_group_id';
 // branches. For those two dialects we instead wrap each branch in a derived
 // table (`SELECT * FROM (<branch>)`) and tell knex NOT to parenthesize the
 // union members. MSSQL additionally requires the derived table to be aliased.
+//
+// Oracle forbids branch-level ORDER BY too, but intentionally does NOT need
+// the wrap: knex's oracledb dialect compiles `.limit()/.offset()` into a
+// ROWNUM inline-view wrapper, so each compiled branch is already a plain
+// `SELECT * FROM (… ORDER BY …) WHERE ROWNUM <= n` with no top-level
+// ORDER BY/LIMIT — a valid parenthesized UNION ALL operand (live-verified).
 function needsUnionMemberWrap(model: IBaseModelSqlV2): boolean {
   return (model as any).isSqlite || (model as any).isMssql;
 }

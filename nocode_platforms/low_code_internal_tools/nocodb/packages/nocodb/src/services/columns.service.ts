@@ -1956,7 +1956,14 @@ export class ColumnsService implements IColumnsService {
       if (colBody.colOptions?.options) {
         normalizeSelectOptionTitles(colBody.colOptions.options);
 
-        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3', 'mssql'];
+        const supportedDrivers = [
+          'mysql',
+          'mysql2',
+          'pg',
+          'sqlite3',
+          'mssql',
+          'oracledb',
+        ];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
           NcConnectionMgrv2.get(source),
         );
@@ -2134,6 +2141,20 @@ export class ColumnsService implements IColumnsService {
                 column.column_name,
               ],
             );
+          } else if (driverType === 'oracledb') {
+            // Everything before the first comma. The LIKE guard skips
+            // comma-less values — INSTR returns 0 for them, making the
+            // SUBSTR length negative (NULL) and wiping the value.
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = SUBSTR(??, 1, INSTR(??, ',') - 1) WHERE ?? LIKE '%,%'`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
           }
         } else {
           // Text to SingleSelect/MultiSelect
@@ -2244,13 +2265,17 @@ export class ColumnsService implements IColumnsService {
           }
 
           // handle single quote for default value
-          if (driverType === 'pg' || driverType === 'sqlite3') {
+          if (
+            driverType === 'pg' ||
+            driverType === 'sqlite3' ||
+            driverType === 'oracledb'
+          ) {
             colBody.cdf = colBody.cdf.replace(/'/g, "'");
           } else {
             colBody.cdf = colBody.cdf.replace(/'/g, "''");
           }
 
-          if (driverType === 'pg') {
+          if (driverType === 'pg' || driverType === 'oracledb') {
             colBody.cdf = `'${colBody.cdf}'`;
           }
         }
@@ -2411,6 +2436,27 @@ export class ColumnsService implements IColumnsService {
                 column_name: column.column_name,
               },
             );
+          } else if (driverType === 'oracledb') {
+            // Collapse whitespace around the delimiter, then strip the
+            // bounding commas. An all-empty result ('') collapses to NULL —
+            // Oracle treats '' as NULL anyway.
+            await sqlClient.raw(
+              `
+              UPDATE :table_name:
+              SET :column_name: = TRIM(BOTH ',' FROM
+                REGEXP_REPLACE(
+                  :column_name:,
+                  '[[:space:]]*,[[:space:]]*',
+                  ','
+                )
+              )
+              WHERE :column_name: IS NOT NULL
+              `,
+              {
+                table_name: baseModel.getTnPath(table.table_name),
+                column_name: column.column_name,
+              },
+            );
           }
         }
 
@@ -2500,6 +2546,20 @@ export class ColumnsService implements IColumnsService {
                     option.title,
                     column.column_name,
                     option.title,
+                    column.column_name,
+                    option.title,
+                    column.column_name,
+                  ],
+                );
+              } else if (driverType === 'oracledb') {
+                // Comma-joined varchar2 — wrap in delimiters, splice the
+                // option out, strip the bounding commas. An all-removed
+                // result ('') collapses to NULL, Oracle's empty string.
+                await sqlClient.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(',' || ?? || ',', ',' || ? || ',', ',')) WHERE ?? IS NOT NULL`,
+                  [
+                    baseModel.getTnPath(table.table_name),
+                    column.column_name,
                     column.column_name,
                     option.title,
                     column.column_name,
@@ -2716,6 +2776,19 @@ export class ColumnsService implements IColumnsService {
                     column.column_name,
                   ],
                 );
+              } else if (driverType === 'oracledb') {
+                // Swap the option title inside the comma-joined varchar2.
+                await sqlClient.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ',')) WHERE ?? IS NOT NULL`,
+                  [
+                    baseModel.getTnPath(table.table_name),
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    newOp.title,
+                    column.column_name,
+                  ],
+                );
               }
             }
           }
@@ -2807,6 +2880,18 @@ export class ColumnsService implements IColumnsService {
                   column.column_name,
                   ch.temp_title,
                   newOp.title,
+                  column.column_name,
+                  ch.temp_title,
+                  newOp.title,
+                  column.column_name,
+                ],
+              );
+            } else if (driverType === 'oracledb') {
+              await sqlClient.raw(
+                `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ',')) WHERE ?? IS NOT NULL`,
+                [
+                  baseModel.getTnPath(table.table_name),
+                  column.column_name,
                   column.column_name,
                   ch.temp_title,
                   newOp.title,
@@ -3190,6 +3275,20 @@ export class ColumnsService implements IColumnsService {
                 column.column_name,
               ],
             );
+          } else if (driverType === 'oracledb') {
+            // Everything before the first comma. The LIKE guard skips
+            // comma-less values — INSTR returns 0 for them, making the
+            // SUBSTR length negative (NULL) and wiping the value.
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = SUBSTR(??, 1, INSTR(??, ',') - 1) WHERE ?? LIKE '%,%'`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
           }
         }
 
@@ -3278,6 +3377,8 @@ export class ColumnsService implements IColumnsService {
             // SQL Server 2008+ supports LTRIM(RTRIM(…)). Plain TRIM(…) is
             // 2017+ only, so the nested form keeps older engines happy too.
             trimColumn = `LTRIM(RTRIM(??))`;
+          } else if (driverType === 'oracledb') {
+            trimColumn = `TRIM(??)`;
           }
 
           setStatement = baseUsers
@@ -4413,13 +4514,17 @@ export class ColumnsService implements IColumnsService {
               }
 
               // handle single quote for default value
-              if (driverType === 'pg' || driverType === 'sqlite3') {
+              if (
+                driverType === 'pg' ||
+                driverType === 'sqlite3' ||
+                driverType === 'oracledb'
+              ) {
                 colBody.cdf = colBody.cdf.replace(/'/g, "'");
               } else {
                 colBody.cdf = colBody.cdf.replace(/'/g, "''");
               }
 
-              if (driverType === 'pg') {
+              if (driverType === 'pg' || driverType === 'oracledb') {
                 colBody.cdf = `'${colBody.cdf}'`;
               }
             }

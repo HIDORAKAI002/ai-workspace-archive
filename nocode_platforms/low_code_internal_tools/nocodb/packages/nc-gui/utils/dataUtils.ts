@@ -2,6 +2,8 @@ import {
   RelationTypes,
   UITypes,
   dateFormats,
+  getEffectiveDisplayColumn,
+  getEffectiveLookupColumn,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
   integerPreservingRollupFunctions,
@@ -579,11 +581,15 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   // the related meta isn't loaded (childColumn would then be undefined anyway).
   const childMeta = relatedTableMeta ?? meta
 
+  // Apply the lookup column's own formatting override (meta.display_type) on top of
+  // the resolved child column so number/date lookups honour the configured format.
+  const effectiveChildColumn = childColumn ? getEffectiveLookupColumn(col?.meta, childColumn) : childColumn
+
   if (Array.isArray(modelValue)) {
     return modelValue
       .map((v) => {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        return parsePlainCellValue(resolveRecordValue(v), { ...params, col: childColumn!, meta: childMeta })
+        return parsePlainCellValue(resolveRecordValue(v), { ...params, col: effectiveChildColumn!, meta: childMeta })
       })
       .join(', ')
   }
@@ -598,7 +604,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   }
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return parsePlainCellValue(resolveRecordValue(modelValue), { ...params, col: childColumn, meta: childMeta })
+  return parsePlainCellValue(resolveRecordValue(modelValue), { ...params, col: effectiveChildColumn, meta: childMeta })
 }
 
 export function getLookupColumnType(
@@ -669,11 +675,15 @@ export const parsePlainCellValue = (
   if (isYear(col, abstractType)) {
     return getYearValue(value)
   }
-  if (isDateTime(col, abstractType)) {
-    return getDateTimeValue(value, params)
-  }
+  // Check Time before DateTime: a lookup formatting override builds an effective
+  // column with uidt=Time but inherits the source's `datetime` abstract type, so
+  // isDateTime (which matches on abstractType) would otherwise win and render the
+  // full datetime instead of just the time. uidt is authoritative here.
   if (isTime(col, abstractType)) {
     return getTimeValue(value, col)
+  }
+  if (isDateTime(col, abstractType)) {
+    return getDateTimeValue(value, params)
   }
   if (isDuration(col)) {
     return getDurationValue(value, col)
@@ -734,12 +744,7 @@ export const parsePlainCellValue = (
 
   if (isFormula(col)) {
     if (col?.meta?.display_type) {
-      const childColumn = {
-        uidt: col?.meta?.display_type,
-        ...col?.meta?.display_column_meta,
-      }
-
-      return parsePlainCellValue(value, { ...params, col: childColumn })
+      return parsePlainCellValue(value, { ...params, col: getEffectiveDisplayColumn(col?.meta) })
     } else {
       const url = replaceUrlsWithLink(value, true)
 

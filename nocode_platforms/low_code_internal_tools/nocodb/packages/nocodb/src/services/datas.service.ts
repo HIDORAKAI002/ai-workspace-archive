@@ -9,6 +9,7 @@ import { NcContext } from '~/interface/config';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { restrictNestedLinkQueryForColumn } from '~/helpers/nestedLinkQueryHelpers';
+import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Base, Column, FormView, Model, Source, View } from '~/models';
@@ -131,9 +132,7 @@ export class DatasService {
     });
 
     const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
-    try {
-      countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
-    } catch (e) {}
+    countArgs.filterArr = parseFilterArrJson(context, countArgs.filterArrJson);
 
     const count: number = await baseModel.count(countArgs);
 
@@ -317,7 +316,7 @@ export class DatasService {
           );
         } catch (e) {
           if (e instanceof NcBaseError || e instanceof NcSDKErrorV2) throw e;
-          this.logger.error('Error fetching data', e);
+          this.logger.error(`Error fetching data: ${e?.message}`, e?.stack);
           NcError.get(context).internalServerError(
             'Please check server log for more details',
           );

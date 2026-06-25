@@ -111,14 +111,20 @@ const errorInfo = computed(() => {
       ></span>
       <slot name="image" />
       <div class="flex gap-1 py-1 flex-col">
-        <span
+        <NcTooltip
+          wrap-child="span"
+          :disabled="!$slots.tooltip"
+          overlay-class-name="nc-record-fields-tooltip"
           :class="{
             '!max-w-35': invalid,
           }"
           class="text-[13px] leading-4 max-w-56 font-medium truncate text-nc-content-gray"
         >
+          <template #title>
+            <slot name="tooltip" />
+          </template>
           <slot />
-        </span>
+        </NcTooltip>
         <NcTooltip v-if="invalid" placement="left" class="top-1 absolute right-1">
           <NcBadge color="red" :border="false" class="!h-5">
             <div class="flex items-center gap-1">

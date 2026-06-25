@@ -12,6 +12,7 @@ import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { MssqlColumnDataBackup } from '~/services/column-data-backup-handler/mssql-column-data-backup';
 import { MysqlColumnDataBackup } from '~/services/column-data-backup-handler/mysql-column-data-backup';
+import { OracleColumnDataBackup } from '~/services/column-data-backup-handler/oracle-column-data-backup';
 import { PgColumnDataBackup } from '~/services/column-data-backup-handler/pg-column-data-backup';
 import { SqliteColumnDataBackup } from '~/services/column-data-backup-handler/sqlite-column-data-backup';
 
@@ -29,6 +30,7 @@ export class ColumnDataBackupHandler implements IColumnDataBackupHandler {
     const mysql = new MysqlColumnDataBackup();
     const sqlite = new SqliteColumnDataBackup();
     const mssql = new MssqlColumnDataBackup();
+    const oracle = new OracleColumnDataBackup();
 
     this.drivers[pg.dbDriverName] = pg;
     this.drivers['postgre'] = pg;
@@ -42,6 +44,8 @@ export class ColumnDataBackupHandler implements IColumnDataBackupHandler {
     this.drivers['sqlite3'] = sqlite;
 
     this.drivers[mssql.dbDriverName] = mssql;
+
+    this.drivers[oracle.dbDriverName] = oracle;
   }
 
   /**

@@ -33,7 +33,6 @@ export enum PlanLimitTypes {
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
-  LIMIT_SANDBOX_PER_BASE = 'limit_sandbox',
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
@@ -122,6 +121,8 @@ export enum PlanFeatureTypes {
   FEATURE_API_COMMENT_V3 = 'feature_api_comment_v3',
   FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
   FEATURE_BASE_VARIABLES = 'feature_base_variables',
+  /** Sandbox (branch & merge for a base). Cloud: Scale+. On-prem: Enterprise add-on only. */
+  FEATURE_SANDBOX = 'feature_sandbox',
   /** On-prem: core EE capability flag — true for all paid plans, false for free */
   FEATURE_EE_CORE = 'feature_ee_core',
   FEATURE_TRASH_SETTINGS = 'feature_trash_settings',
@@ -130,6 +131,7 @@ export enum PlanFeatureTypes {
   FEATURE_FIELD_VISIBILITY = 'feature_field_visibility',
   FEATURE_BOOKMARKS = 'feature_bookmarks',
   FEATURE_MSSQL = 'feature_mssql',
+  FEATURE_ORACLE = 'feature_oracle',
   /** On-prem (white-label add-on, Scale+): instance-wide white-labeling (logo, product name, brand color, favicon) */
   FEATURE_WHITE_LABEL = 'feature_white_label',
 }
@@ -138,6 +140,8 @@ export enum PlanAddonTypes {
   ADDON_SCIM = 'addon_scim',
   ADDON_WHITE_LABEL = 'addon_white_label',
   ADDON_MSSQL = 'addon_mssql',
+  ADDON_SANDBOX = 'addon_sandbox',
+  ADDON_ORACLE = 'addon_oracle',
 }
 
 export enum PlanTitles {
@@ -366,7 +370,6 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
   [PlanLimitTypes.LIMIT_WORKSPACE]: 'to create more workspaces.',
-  [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
   [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]:
     'to add more document pages in a base.',
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]:
@@ -480,6 +483,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
   [PlanFeatureTypes.FEATURE_BASE_VARIABLES]: 'to use base variables.',
+  [PlanFeatureTypes.FEATURE_SANDBOX]: 'to use Sandboxes.',
   [PlanFeatureTypes.FEATURE_EE_CORE]: 'to access enterprise features.',
   [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]:
     'to configure per-table trash settings.',
@@ -491,6 +495,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to control field-level visibility.',
   [PlanFeatureTypes.FEATURE_BOOKMARKS]: 'to use bookmarks.',
   [PlanFeatureTypes.FEATURE_MSSQL]: 'to connect Microsoft SQL Server sources.',
+  [PlanFeatureTypes.FEATURE_ORACLE]: 'to connect Oracle Database sources.',
   [PlanFeatureTypes.FEATURE_WHITE_LABEL]:
     'to white-label this instance with your own logo, product name, and brand color.',
 };

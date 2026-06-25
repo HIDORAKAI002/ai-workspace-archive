@@ -53,6 +53,20 @@ const fieldStyles = computed(() => {
   }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
 
+// Number of title lines that fit in a time-grid card of this height. >= 2
+// switches the card body to multi-line wrap (the title wraps and is clamped with
+// a trailing ellipsis); 1 keeps the single-line + tooltip layout for short
+// cards. Card height (px) is precomputed into rowMeta.style.height during the
+// layout pass below — ~28px is reserved for the time row + padding, lines 18px.
+const CARD_WRAP_LINE_HEIGHT = 18
+const CARD_WRAP_RESERVED = 28
+
+function cardClampLines(record: Row): number {
+  const height = Number.parseFloat(`${record.rowMeta?.style?.height ?? ''}`)
+  if (Number.isNaN(height)) return 1
+  return Math.max(1, Math.floor((height - CARD_WRAP_RESERVED) / CARD_WRAP_LINE_HEIGHT))
+}
+
 const getDayIndex = (date: dayjs.Dayjs) => {
   // Column index relative to the first visible day. Equivalent to `date.day() - 1`
   // for the Monday-aligned week modes, but also correct for the day-anchored 3-day
@@ -1221,6 +1235,9 @@ watch(
                   <template v-else>
                     <span class="text-nc-content-gray-muted"> - </span>
                   </template>
+                  <template #tooltip>
+                    <SmartsheetRecordFieldsTooltip :record="record" :fields="fields" />
+                  </template>
                 </LazySmartsheetCalendarSideRecordCard>
               </div>
             </template>
@@ -1260,6 +1277,7 @@ watch(
                 :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
                 :record="record"
                 :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"
+                :clamp-lines="cardClampLines(record)"
                 @resize-start="onResizeStart"
               >
                 <template v-for="(field, id) in fields" :key="id">

@@ -4,9 +4,33 @@ import {
   wrapLanguageModel,
   defaultSettingsMiddleware,
 } from 'ai';
+import { devToolsMiddleware } from '@ai-sdk/devtools';
 import { IntegrationWrapper } from '../integration';
 import type { ModelMessage, ToolSet } from 'ai';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
+
+/**
+ * AI SDK DevTools — opt-in via NC_AI_DEVTOOLS=true. The watch:run* scripts in
+ * packages/nocodb default it to false; flip it to true locally when you need to
+ * inspect AI calls (never set in production). Applied centrally in
+ * getModel() so it captures EVERY AI call — chat agents and the schema / docs /
+ * completion / utils / data services all route through getModel(). Runs/steps/
+ * tool-calls are written to `.devtools/generations.json` (under the backend cwd);
+ * inspect with `npx @ai-sdk/devtools` → http://localhost:4983.
+ *
+ * Dormant in production: the middleware is built only when the env flag is set,
+ * and getModel() leaves the model untouched otherwise. @ai-sdk/devtools is a
+ * regular dependency (not dev-only) because this module is loaded at boot with a
+ * static import and prod prunes devDependencies.
+ */
+const devToolsMw =
+  process.env.NC_AI_DEVTOOLS === 'true' ? devToolsMiddleware() : null;
+if (devToolsMw) {
+  // eslint-disable-next-line no-console
+  console.log(
+    '[AI DevTools] enabled — run `npx @ai-sdk/devtools` → http://localhost:4983',
+  );
+}
 
 export type ModelCapability = 'text' | 'vision' | 'tools' | 'image-generation';
 
@@ -53,27 +77,123 @@ export type AiReasoningProviderOptions = Record<
 >;
 
 /**
- * Map the normalized effort onto the OpenAI Responses `reasoningEffort` value.
- * Shared by every OpenAI-family provider (OpenAI, OpenAI-compatible, NocoDB AI).
+ * The provider's OWN reasoning value for each normalized {@link AiReasoningEffort}.
+ * Reasoning knobs differ per provider AND per model (OpenAI: none/minimal/low/
+ * medium/high/xhigh — but 'none' is GPT-5.1-only, 'minimal' is gpt-5-only, o-series
+ * has neither; Groq: low/medium/high, 'none' model-dependent; …). So we don't
+ * guess — we look up the exact value. **Omit an effort key** when the model has no
+ * valid value for it → no reasoning options are emitted for that effort.
  */
-export function openAiReasoningEffort(
+export type ReasoningEffortMap = Partial<Record<AiReasoningEffort, string>>;
+
+/**
+ * Ordered (model-pattern → effort map) table for one provider. First match wins.
+ * A model that matches **no** entry has no reasoning support → emit nothing.
+ */
+export type ReasoningModelTable = Array<{
+  match: RegExp;
+  efforts: ReasoningEffortMap;
+}>;
+
+/**
+ * Resolve the provider's reasoning value for `(modelId, effort)` from a table, or
+ * `undefined` when the model isn't in the table or has no value mapped for that
+ * effort. The provider id prefix (gateway form `vendor/model`) is stripped first.
+ */
+export function resolveReasoningEffort(
+  table: ReasoningModelTable,
+  modelId: string | undefined,
   effort: AiReasoningEffort,
-): 'none' | 'low' | 'medium' | 'high' | 'xhigh' {
-  switch (effort) {
-    case 'off':
-      return 'none';
-    case 'minimal':
-      // 'minimal' is NOT supported across all GPT-5.x models — e.g. gpt-5.4 only
-      // accepts none/low/medium/high/xhigh and 400s on 'minimal'. Clamp to the
-      // universally-supported floor; still far cheaper than the default 'medium'.
-      return 'low';
-    case 'max':
-      return 'xhigh';
-    default:
-      // 'low' | 'medium' | 'high' pass through 1:1
-      return effort;
-  }
+): string | undefined {
+  const id = (modelId ?? '').split('/').pop() ?? '';
+  return table.find((e) => e.match.test(id))?.efforts[effort];
 }
+
+/**
+ * OpenAI Responses-API `reasoning.effort` values per model — verified against the
+ * per-model "supported values" from OpenAI's model pages. The valid set differs by
+ * model, so we look up the exact value (first match wins). A model that matches no
+ * entry, or whose matched entry has no value for the requested effort, gets NO
+ * reasoning options. Shared by every `openai`-namespace integration (OpenAI,
+ * OpenAI-compatible, NocoDB-managed).
+ *
+ * Confirmed sets (off/minimal map to each model's lowest supported value):
+ *   gpt-5.x "-pro"      : medium | high | xhigh           (no none/low)
+ *   gpt-5.x "-codex"    : low | medium | high | xhigh      (no none/minimal)
+ *   gpt-5.x "-instant"/"-thinking": no data → omitted (no reasoning)
+ *   gpt-5.1             : none | low | medium | high       (no minimal/xhigh)
+ *   gpt-5.2/5.3/5.4/5.5 (+ -mini/-nano): none | low | medium | high | xhigh (no minimal)
+ *   gpt-5 (Aug-2025)    : minimal | low | medium | high     (no none/xhigh)
+ *   gpt-5-mini/-nano, o-series, gpt-4o/4.1: no configurable effort → omitted
+ */
+export const OPENAI_REASONING_TABLE: ReasoningModelTable = [
+  {
+    // GPT-5.x Pro: medium | high | xhigh only.
+    match: /^gpt-5\.\d.*pro/,
+    efforts: {
+      off: 'medium',
+      minimal: 'medium',
+      low: 'medium',
+      medium: 'medium',
+      high: 'high',
+      max: 'xhigh',
+    },
+  },
+  {
+    // GPT-5.x Codex: low | medium | high | xhigh (no none/minimal).
+    match: /^gpt-5\.\d.*codex/,
+    efforts: {
+      off: 'low',
+      minimal: 'low',
+      low: 'low',
+      medium: 'medium',
+      high: 'high',
+      max: 'xhigh',
+    },
+  },
+  {
+    // GPT-5.x Instant / Thinking: no verified effort data → emit nothing.
+    match: /^gpt-5\.\d.*(?:instant|thinking)/,
+    efforts: {},
+  },
+  {
+    // GPT-5.1: none | low | medium | high (no minimal, no xhigh).
+    match: /^gpt-5\.1(?:[-.]|$)/,
+    efforts: {
+      off: 'none',
+      minimal: 'low',
+      low: 'low',
+      medium: 'medium',
+      high: 'high',
+      max: 'high',
+    },
+  },
+  {
+    // GPT-5.2 / 5.3 / 5.4 / 5.5 (incl. -mini / -nano): none|low|medium|high|xhigh, no minimal.
+    match: /^gpt-5\.\d/,
+    efforts: {
+      off: 'none',
+      minimal: 'low',
+      low: 'low',
+      medium: 'medium',
+      high: 'high',
+      max: 'xhigh',
+    },
+  },
+  {
+    // GPT-5 base snapshots only (gpt-5, gpt-5-YYYY-MM-DD): minimal|low|medium|high.
+    // Excludes gpt-5-mini / gpt-5-nano (no configurable effort) → they match nothing.
+    match: /^gpt-5(?:-\d{4}-\d{2}-\d{2})?$/,
+    efforts: {
+      off: 'minimal',
+      minimal: 'minimal',
+      low: 'low',
+      medium: 'medium',
+      high: 'high',
+      max: 'high',
+    },
+  },
+];
 
 export abstract class AiIntegration<
   T extends { models: string[] } = any,
@@ -152,6 +272,12 @@ export abstract class AiIntegration<
           }),
         });
       }
+    }
+
+    // DevTools capture (no-op unless NC_AI_DEVTOOLS=true) — applied last so it
+    // observes the fully-configured model used by every AI feature.
+    if (devToolsMw) {
+      model = wrapLanguageModel({ model, middleware: devToolsMw });
     }
 
     return model;

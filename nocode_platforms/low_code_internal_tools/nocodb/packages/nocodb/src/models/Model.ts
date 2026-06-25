@@ -899,7 +899,8 @@ export default class Model implements TableType {
           col.uidt === UITypes.DateTime &&
           dayjs(val).isValid()
         ) {
-          const { isMySQL, isSqlite, isPg, isMssql } = clientMeta as any;
+          const { isMySQL, isSqlite, isPg, isMssql, isOracle } =
+            clientMeta as any;
           if (
             val.indexOf('-') < 0 &&
             val.indexOf('+') < 0 &&
@@ -909,7 +910,24 @@ export default class Model implements TableType {
             // then append +00:00 to make it as UTC
             val += '+00:00';
           }
-          if (isMssql) {
+          if (isOracle) {
+            // Oracle parses string binds with the session NLS formats pinned at
+            // connection time ('YYYY-MM-DD HH24:MI:SS[.FF]'), which carry no
+            // offset token — the generic offset-bearing shape below
+            // ('…ssZ') raises ORA-01830/ORA-01861. Emit the UTC wall-clock
+            // offset-less. DATE has second precision (a fractional part raises
+            // ORA-01830); TIMESTAMP* accepts `.SSS` via the FF token, so keep
+            // sub-second data there. Mirrors BaseModelSqlv2.formatDate /
+            // DateTimeOracleHandler.parseUserInput.
+            const dt = (col.dt || '').toLowerCase();
+            val = dayjs(val)
+              .utc()
+              .format(
+                dt === 'date'
+                  ? 'YYYY-MM-DD HH:mm:ss'
+                  : 'YYYY-MM-DD HH:mm:ss.SSS',
+              );
+          } else if (isMssql) {
             // T-SQL `datetime`/`datetime2` reject the `+00:00` offset
             // suffix that the other dialects accept. NocoDB stores UTC
             // wall-clock without TZ on mssql — strip the offset after

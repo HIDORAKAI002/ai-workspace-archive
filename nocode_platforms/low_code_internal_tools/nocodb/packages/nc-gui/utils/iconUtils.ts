@@ -283,6 +283,7 @@ import NcPostgreSql from '~icons/nc-icons/postgresql'
 import NcSqlServer from '~icons/nc-icons/sql-server'
 import NcDataBricks from '~icons/nc-icons/data-bricks'
 import NcMssqlServer from '~icons/nc-icons/mssql-server'
+import NcOracle from '~icons/nc-icons/oracle'
 import NcGmail from '~icons/nc-icons/gmail'
 import NcTelegram from '~icons/nc-icons/telegram'
 import NcMicrosoftDynamics365 from '~icons/nc-icons/microsoft-dynamics-365'
@@ -1368,6 +1369,7 @@ export const iconMap = {
   'sqlServer': NcSqlServer,
   'dataBricks': NcDataBricks,
   'mssqlServer': NcMssqlServer,
+  'oracle': NcOracle,
   'gmail': NcGmail,
   'telegram': NcTelegram,
   'microsoftDynamics365': NcMicrosoftDynamics365,

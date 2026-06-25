@@ -315,7 +315,11 @@ export const getTestDatabaseName = (db: {
   client: ClientType;
   connection?: { database?: string };
 }) => {
-  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE)
+  if (
+    [ClientType.PG, ClientType.SNOWFLAKE, ClientType.ORACLE].includes(
+      db.client,
+    )
+  )
     return db.connection?.database;
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames];
 };
