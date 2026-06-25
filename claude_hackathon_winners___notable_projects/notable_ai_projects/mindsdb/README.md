@@ -70,11 +70,12 @@ make setup
 
 | Mode | Command |
 |---|---|
-| Desktop app (Electron) with hot reload | `make dev` |
+| Desktop app (Electron) with hot reload | `make dev` or `make watch` |
 | Web app in browser with hot reload | `make dev-web` |
 | Production build | `make build` |
 | Package for macOS | `make dist-mac` |
 | Package for Windows | `make dist-win` |
+| Build macOS `.app` from local uncommitted source | `make pack-local` |
 | Wipe all local installs + data (fresh start) | `make flush` |
 
 > **Reset to a clean slate:** `make flush` uninstalls the local runtime (the `cowork-server` uv tool and the `backend/*/.venv`s) **and** deletes app state in `~/.anton` (provider keys) and `~/.cowork` (database, hermes, projects). Use it to test the from-scratch install flow or recover from a broken install. ⚠️ This deletes your conversations and saved keys. It prompts for confirmation; pass `FORCE=1` to skip it. The next `make setup` or app launch reinstalls everything.
@@ -93,8 +94,11 @@ cp dev.env.example dev.env      # then set REF=feat/my-thing (or per-module API_
 | Command | What it does |
 |---|---|
 | `make use` | check out your `dev.env` refs across all submodules |
-| `make dev` / `make dev-web` | run the local module source on those branches (hot reload) |
-| `make server` + `make app` | run the desktop app against your branch's server |
+| `make dev` / `make watch` | run the Electron app with live reload against local source |
+| `make dev-web` | run the web SPA with live reload against local source |
+| `make server` + `make app` | (re)install the desktop server from the configured branch, then launch |
+| `make server-local` + `make app-local` | install the desktop server from **local uncommitted source**, then launch |
+| `make pack-local` | build the macOS `.app` from local uncommitted source (no push needed) |
 | `make refs` | show which refs the next run will use |
 | `make baseline` | reset submodules to the pinned commits |
 | `make pin` | record the current submodule commits as the superproject's pins (one deliberate commit) |
