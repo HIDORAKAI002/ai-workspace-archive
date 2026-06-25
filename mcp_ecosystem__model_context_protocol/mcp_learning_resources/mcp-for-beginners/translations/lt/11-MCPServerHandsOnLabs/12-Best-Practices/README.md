@@ -1,57 +1,57 @@
-# Geriausios praktikos ir optimizavimas
+# Geriausios Praktikos ir Optimizavimas
 
-## 🎯 Ką apima šis laboratorinis darbas
+## 🎯 Ko Šis Laboratorinis Darbas Apima
 
-Šis baigiamasis laboratorinis darbas apjungia geriausias praktikas, optimizavimo technikas ir gamybos rekomendacijas, skirtas kurti patikimus, mastelio keičiamus ir saugius MCP serverius su duomenų bazės integracija. Jūs mokysitės iš realaus pasaulio patirties ir pramonės standartų, kad užtikrintumėte, jog jūsų įgyvendinimas yra paruoštas gamybai.
+Šis užbaigiamasis laboratorinis darbas apjungia geriausias praktikas, optimizavimo metodus ir gamybos gaires, skirtas kurti patikimus, pritaikomus ir saugius MCP serverius su duomenų bazės integracija. Išmoksite iš realių pavyzdžių ir pramonės standartų, kad užtikrintumėte, jog jūsų įgyvendinimas yra paruoštas gamybai.
 
 ## Apžvalga
 
-Sėkmingo MCP serverio kūrimas yra daugiau nei tik veikiančio kodo sukūrimas. Šis laboratorinis darbas apima esmines praktikas, kurios skiria koncepcijos įrodymus nuo gamybai paruoštų sistemų, galinčių mastelio keisti, patikimai veikti ir išlaikyti saugumo standartus.
+Sėkmingo MCP serverio kūrimas yra daugiau nei tiesiog veikiantis kodas. Šis laboratorinis darbas apima esmines praktikas, kurios skiria koncepto įrodymų įgyvendinimus nuo gamybai paruoštų sistemų, galinčių keistis, patikimai veikti ir laikytis saugumo standartų.
 
-Šios geriausios praktikos yra pagrįstos realaus pasaulio diegimais, bendruomenės atsiliepimais ir pamokomis, išmoktomis iš įmonių įgyvendinimų.
+Šios geriausios praktikos yra pagrįstos realaus pasaulio diegimais, bendruomenės atsiliepimais ir patirčių, įgytų įmonių sprendimuose, pamokomis.
 
-## Mokymosi tikslai
+## Mokymosi Tikslai
 
-Baigę šį laboratorinį darbą, jūs galėsite:
+Baigę šį laboratorinį darbą galėsite:
 
-- **Taikyti** MCP serverių ir duomenų bazių našumo optimizavimo technikas
-- **Įgyvendinti** išsamias saugumo stiprinimo priemones
-- **Sukurti** mastelio keičiamas architektūros schemas gamybos aplinkoms
-- **Nustatyti** stebėjimo, priežiūros ir veiklos procedūras
-- **Optimizuoti** išlaidas, išlaikant našumą ir patikimumą
-- **Prisidėti** prie MCP bendruomenės ir ekosistemos
+- **Taikyti** našumo optimizavimo metodus MCP serveriams ir duomenų bazėms  
+- **Įgyvendinti** išsamias saugumo stiprinimo priemones  
+- **Kurti** plečiamas architektūros schemas gamybos aplinkoms  
+- **Nustatyti** stebėjimo, priežiūros ir veiklos procedūras  
+- **Optimizuoti** kaštus išlaikant našumą ir patikimumą  
+- **Prisidėti** prie MCP bendruomenės ir ekosistemos  
 
-## 🚀 Našumo optimizavimas
+## 🚀 Našumo Optimizavimas
 
-### Duomenų bazės našumas
+### Duomenų Bazės Našumas
 
-#### Jungčių baseino optimizavimas
+#### Prisijungimų Pool Optimizaicija
 
 ```python
-# Optimized connection pool configuration
+# Optimizuota prisijungimų pool konfigūracija
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Dydžio konfigūracija
+    "min_size": max(2, cpu_count()),           # Bent 2, keičiasi pagal CPU
+    "max_size": min(20, cpu_count() * 4),     # Riboti iki pagrįsto maksimumo
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Laiko konfigūracija
+    "max_inactive_connection_lifetime": 300,   # 5 minutės
+    "command_timeout": 30,                     # 30 sekundžių
+    "max_queries": 50000,                      # Keičiami ryšiai
     
-    # PostgreSQL settings
+    # PostgreSQL nustatymai
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Išjungti dėl nuoseklumo
+        "work_mem": "8MB",                     # Optimizuoti užklausoms
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Koregavimų žurnalas tik
+        "log_min_duration_statement": "1s",   # Lėtų užklausų žurnalas
     }
 }
 ```
 
-#### Užklausų optimizavimo modeliai
+#### Uždavinių Optimizavimo Modeliai
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # sekundės
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Pirmiausia patikrinkite talpyklą
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Vykdyti su stebėjimu
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Optimizuoti užklausos vykdymą
+                await conn.execute("SET enable_seqscan = off")  # Pirmenybė indeksams
+                await conn.execute("SET work_mem = '16MB'")     # Daugiau atminties šiai užklausai
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Registruoti lėtus užklausimus
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Talpykloje laikyti sėkmingus rezultatus
+                if cache_key and len(result) < 1000:  # Nėra talpyklos dideliems rezultatams
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,25 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Indeksų rekomendacijos
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Pagrindiniai verslo indeksai
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Analitikos indeksai
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Vektorinės paieškos optimizavimas
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
 
-### Programos našumas
+### Programos Našumas
 
-#### Geriausios asinchroninio programavimo praktikos
+#### Asinchroninio Programavimo Geriausios Praktikos
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Apdoroti partijomis, kad būtų išvengta sistemos perkrovos
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Nedidelė pauzė tarp partijų, siekiant išvengti resursų išeikvojimo
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Grandinės pertraukiklio įgyvendinimas
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # UŽDARYTA, ATVĖRTA, PUSIAU ATVĖRTA
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Atstatyti sėkmės atveju
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +215,7 @@ class CircuitBreaker:
             raise
 ```
 
-### Talpyklos strategijos
+### Kešavimo Strategijos
 
 ```python
 import redis
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # 1 lygis: Atminties talpykla
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # 2 lygis: Redis talpykla
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Perkelti į atminties talpyklą
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Įgyvendinti LRU išmetimą
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Talpyklos rakto generavimas
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,9 +304,9 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 Saugumo stiprinimas
+## 🔒 Saugumo Stiprinimas
 
-### Autentifikacija ir autorizacija
+### Autentifikacija ir Autorizacija
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Ištraukti ir patikrinti autentifikavimą
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Patikrinti tokeną
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Patikrinti dažnio ribojimą
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Patikrinti RLS kontekstą
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Gauti viešąjį raktą iš Key Vault arba talpyklos
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Dekoduoti ir patikrinti tokeną
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Super administratoriai gali pasiekti bet kokį kontekstą
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Parduotuvės vadovai gali pasiekti tik savo parduotuvę
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Regiono vadovai gali pasiekti kelias parduotuves
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Įvesties patikra ir sanitarizacija
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Draudžiami modeliai
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Leisti tik SELECT užklausas
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,18 +439,18 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Leisti tik raidinius-skaitmeninius simbolius, pabraukimą ir tašką
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Patikrinti pagal leidžiamas lenteles
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
 
-### Duomenų apsauga
+### Duomenų Apsauga
 
 ```python
 from cryptography.fernet import Fernet
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Gamyboje gauti iš Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Atsarginė galimybė kūrimui (ne gamybai!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # kartojimai
         ).hex()
         
         return password_hash, salt
@@ -524,9 +524,9 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Gamybos diegimo gairės
+## 📊 Gamybinis Diegimas
 
-### Infrastruktūra kaip kodas
+### Infrastruktūra kaip Kodas
 
 ```yaml
 # azure-pipelines.yml
@@ -607,7 +607,7 @@ stages:
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
 
-### Talpyklų optimizavimas
+### Konteinerių Optimizavimas
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -663,10 +663,10 @@ EXPOSE 8000
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
 
-### Aplinkos konfigūracija
+### Aplinkos Konfiguracija
 
 ```python
-# Production configuration management
+# Gamybos konfigūracijos valdymas
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,26 +715,26 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Nustatyti trečiųjų šalių žurnalus į ĮSPĖJIMĄ
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Išjungti derinimo režimą
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Nustatyti saugius antraštes
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
 
-## 💰 Išlaidų optimizavimas
+## 💰 Kaštų Optimizavimas
 
-### Išteklių valdymas
+### Išteklių Valdymas
 
 ```python
 class CostOptimizer:
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Maža apkrova
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Vidutinė apkrova
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Didelė apkrova
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Brangios operacijos talpykloje
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Automatinio mastelio keitimo konfigūracija
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Mastelio keitimas pagal CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Mastelio keitimas pagal atmintį
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Užklausų eilės mastelio keitimas
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -811,9 +811,9 @@ class AutoScaler:
         return "no_action"
 ```
 
-## 🔧 Priežiūra ir operacijos
+## 🔧 Priežiūra ir Operacijos
 
-### Sveikatos stebėjimas
+### Būklės Stebėjimas
 
 ```python
 class OperationalHealth:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Duomenų bazės būklė
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Išorinių paslaugų būklė
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Sistemos ištekliai
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Programėlės metrika
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Nustatyti bendrą būseną
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Sukelti perspėjimus
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Bazinis ryšys
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Patikrinti lėtus užklausas
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Patikrinti ryšių skaičių
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Automatizuota atsarginė kopija ir atkūrimas
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Įkelti į Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,20 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Kasdienė pilna atsarginė kopija 2 val. UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Kas valandą atliekama papildoma atsarginė kopija
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
 
-## 🌍 Bendruomenės indėlis
+## 🌍 Bendruomenės Indėlis
 
-### Geriausios atvirojo kodo praktikos
+### Atviro Kodo Geriausios Praktikos
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### Bendruomenės įsitraukimas
+### Bendruomenės Įsitraukimas
 
 ```python
 class CommunityContributor:
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Įgyvendintų tikrus patikrinimus
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 Pagrindinės išvados
+## 🎯 Pagrindinės Išvados
 
-Baigę šį išsamų mokymosi kelią, turėtumėte būti įvaldę:
+Baigę šį išsamų mokymosi kelią, turėsite įvaldę:
 
-✅ **Našumo optimizavimas**: Duomenų bazės derinimas, asinchroniniai modeliai ir talpyklos strategijos  
-✅ **Saugumo stiprinimas**: Autentifikacija, autorizacija ir duomenų apsauga  
-✅ **Gamybos diegimas**: Infrastruktūra kaip kodas ir talpyklų optimizavimas  
-✅ **Išlaidų valdymas**: Išteklių optimizavimas ir protingas mastelio keitimas  
-✅ **Veiklos tobulumas**: Stebėjimas, priežiūra ir automatizavimas  
-✅ **Bendruomenės įsitraukimas**: Prisidėjimas prie MCP ekosistemos  
+✅ **Našumo Optimizavimą**: duomenų bazės tuningas, asinchroniniai modeliai ir kešavimo strategijos  
+✅ **Saugumo Stiprinimą**: autentifikacija, autorizacija ir duomenų apsauga  
+✅ **Gamybinį Diegimą**: infrastruktūra kaip kodas ir konteinerių optimizavimas  
+✅ **Kaštų Valdymą**: išteklių optimizavimą ir protingą skalavimą  
+✅ **Veiklos Tobulumą**: stebėjimą, priežiūrą ir automatizavimą  
+✅ **Bendruomenės Įsitraukimą**: indėlio į MCP ekosistemą  
 
-## 🏆 Sertifikavimas ir tolesni žingsniai
+## 🏆 Sertifikacija ir Tolimesni Žingsniai
 
-### Praktinis vertinimas
+### Praktinė Vertinimas
 
-Užbaikite šį baigiamąjį projektą, kad pademonstruotumėte savo įgūdžius:
+Užbaikite šį galutinį projektą, kad parodytumėte savo įvaldytus gebėjimus:
 
-**Sukurkite gamybai paruoštą MCP serverį**, kuris apima:
-- [ ] Daugiafunkcinę mažmeninės prekybos analizę su RLS
-- [ ] Semantinę paiešką naudojant Azure OpenAI
-- [ ] Išsamų saugumo įgyvendinimą
-- [ ] Gamybos diegimą Azure platformoje
-- [ ] Stebėjimo ir įspėjimų nustatymą
-- [ ] Dokumentaciją ir testavimą
+**Sukurti gamybai paruoštą MCP serverį**, kuris apima:  
+- [ ] Daugiaklientinę mažmeninės prekybos analizę su RLS  
+- [ ] Semantinę paiešką su Azure OpenAI  
+- [ ] Išsamų saugumo įgyvendinimą  
+- [ ] Gamybinį diegimą Azure aplinkoje  
+- [ ] Stebėjimo ir įspėjimų nustatymą  
+- [ ] Dokumentaciją ir testavimą  
 
-### Pažangūs mokymosi keliai
+### Pažangūs Mokymosi Keliai
 
-Tęskite savo MCP kelionę su:
+Tęskite savo MCP kelionę su:  
 
-- **MCP architektūros modeliai**: Pažangios serverių architektūros
-- **Daugiamodelinė integracija**: Skirtingų AI modelių derinimas
-- **Įmonės mastas**: Didelio masto MCP diegimai
-- **Specializuotų įrankių kūrimas**: MCP įrankių kūrimas
-- **MCP ekosistema**: Prisidėjimas prie platesnės bendruomenės
+- **MCP architektūros modeliais**: pažangios serverių architektūros  
+- **Daugiamodelių integracija**: skirtingų AI modelių derinimas  
+- **Įmonių mastas**: didelio masto MCP diegimai  
+- **Specializuotų įrankių vystymas**: kūrimas specializuotiems MCP įrankiams  
+- **MCP ekosistema**: indėlis į platesnę bendruomenę  
 
-### Bendruomenės pripažinimas
+### Bendruomenės Pripažinimas
 
-Pasidalinkite savo pasiekimais:
-- **GitHub portfelis**: Pademonstruokite savo įgyvendinimą
-- **Bendruomenės indėlis**: Pateikite patobulinimus ar pavyzdžius
-- **Pranešimų galimybės**: Pristatykite susitikimuose ar konferencijose
-- **Mentorystė**: Padėkite kitiems kūrėjams mokytis MCP
+Dalinkitės savo pasiekimais:  
+- **GitHub portfelis**: pristatykite savo įgyvendinimus  
+- **Bendruomenės indėliai**: pateikite patobulinimus ar pavyzdžius  
+- **Pranešimai renginiuose**: pristatykite susitikimuose ar konferencijose  
+- **Mentorystė**: padėkite kitiems programuotojams mokytis MCP  
 
-## 📚 Papildomi ištekliai
+## 📚 Papildomi Ištekliai
 
-### Pažangios temos
-- [PostgreSQL našumo derinimas](https://www.postgresql.org/docs/current/performance-tips.html) - Duomenų bazės optimizavimas
-- [Azure Container Apps geriausios praktikos](https://docs.microsoft.com/azure/container-apps/overview) - Gamybos diegimas
-- [Python asinchroninio programavimo geriausios praktikos](https://docs.python.org/3/library/asyncio-dev.html) - Asinchroninis programavimas
+### Pažangios Temos
+- [PostgreSQL našumo optimizavimas](https://www.postgresql.org/docs/current/performance-tips.html) – duomenų bazės optimizavimas  
+- [Azure Container Apps geriausios praktikos](https://docs.microsoft.com/azure/container-apps/overview) – gamybinis diegimas  
+- [Python asinchroninio programavimo geriausios praktikos](https://docs.python.org/3/library/asyncio-dev.html) – asinchroninis programavimas  
 
-### Saugumo ištekliai
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Saugumo pažeidžiamumai
-- [Azure saugumo geriausios praktikos](https://docs.microsoft.com/azure/security/) - Debesų saugumas
-- [Python saugumo gairės](https://python.org/dev/security/) - Saugus kodavimas
+### Saugumo Ištekliai
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) – saugumo spragos  
+- [Azure saugumo geriausios praktikos](https://docs.microsoft.com/azure/security/) – debesų saugumas  
+- [Python saugumo gairės](https://python.org/dev/security/) – saugus kodavimas  
 
 ### Bendruomenė
-- [MCP bendruomenės Discord](https://discord.com/invite/ByRwuEEgH4) - Tiesioginės diskusijos
-- [GitHub diskusijos](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Klausimai ir dalijimasis
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Techniniai klausimai
+- [MCP bendruomenės Discord](https://discord.com/invite/ByRwuEEgH4) – gyvos diskusijos  
+- [GitHub diskusijos](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) – klausimai ir dalijimasis  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) – techniniai klausimai  
 
 ---
 
-**🎉 Sveikiname!** Jūs baigėte išsamų MCP duomenų bazės integracijos mokymosi kelią. Dabar turite žinių ir įgūdžių kurti gamybai paruoštus MCP serverius, kurie sujungia AI asistentus su realaus pasaulio duomenų sistemomis.
+**🎉 Sveikiname!** Baigėte išsamų MCP duomenų bazės integracijos mokymosi kelią. Dabar turite žinių ir įgūdžių kurti gamybai paruoštus MCP serverius, kurie sujungia AI asistentus su realaus pasaulio duomenų sistemomis.
 
-**Pasiruošę prisidėti?** Prisijunkite prie mūsų bendruomenės ir padėkite kitiems mokytis MCP, dalindamiesi savo patirtimi, prisidėdami prie kodo patobulinimų ar kurdami papildomus mokymosi išteklius.
+**Norite prisidėti?** Prisijunkite prie mūsų bendruomenės ir padėkite kitiems mokytis MCP dalindamiesi patirtimi, siūlydami kodo patobulinimus arba kurdami papildomus mokymosi išteklius.
+
+**Toliau**: [Įrankiai](../../12-tooling/README.md)
 
 ---
 
-**Atsakomybės atsisakymas**:  
-Šis dokumentas buvo išverstas naudojant AI vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Kritinei informacijai rekomenduojama naudoti profesionalų žmogaus vertimą. Mes neprisiimame atsakomybės už nesusipratimus ar klaidingus interpretavimus, atsiradusius dėl šio vertimo naudojimo.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

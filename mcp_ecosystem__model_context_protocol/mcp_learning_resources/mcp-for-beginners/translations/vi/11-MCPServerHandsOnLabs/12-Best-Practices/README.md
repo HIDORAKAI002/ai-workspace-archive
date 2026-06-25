@@ -1,57 +1,57 @@
-# Các Quy Tắc Tốt Nhất và Tối Ưu Hóa
+# Thực hành tốt nhất và Tối ưu hóa
 
-## 🎯 Nội Dung Của Phòng Thực Hành Này
+## 🎯 Những gì bài tập này bao phủ
 
-Phòng thực hành tổng hợp này tập trung vào các quy tắc tốt nhất, kỹ thuật tối ưu hóa, và hướng dẫn triển khai sản phẩm để xây dựng các máy chủ MCP mạnh mẽ, có khả năng mở rộng và bảo mật với tích hợp cơ sở dữ liệu. Bạn sẽ học từ kinh nghiệm thực tế và các tiêu chuẩn ngành để đảm bảo việc triển khai của bạn sẵn sàng cho môi trường sản xuất.
+Bài tập kết thúc này tập hợp các thực hành tốt nhất, kỹ thuật tối ưu hóa và hướng dẫn sản xuất để xây dựng các máy chủ MCP mạnh mẽ, có khả năng mở rộng và bảo mật cao với tích hợp cơ sở dữ liệu. Bạn sẽ học hỏi từ kinh nghiệm thực tế và tiêu chuẩn ngành để đảm bảo triển khai của bạn sẵn sàng cho môi trường sản xuất.
 
-## Tổng Quan
+## Tổng quan
 
-Xây dựng một máy chủ MCP thành công không chỉ đơn thuần là làm cho mã hoạt động. Phòng thực hành này bao gồm các quy tắc thiết yếu giúp phân biệt giữa các triển khai thử nghiệm và các hệ thống sẵn sàng sản xuất có khả năng mở rộng, hoạt động đáng tin cậy, và duy trì các tiêu chuẩn bảo mật.
+Xây dựng một máy chủ MCP thành công không chỉ là làm cho mã chạy được. Bài tập này bao gồm các thực hành thiết yếu phân biệt các triển khai minh chứng ý tưởng với các hệ thống sẵn sàng sản xuất có thể mở rộng, hoạt động ổn định, và duy trì các tiêu chuẩn bảo mật.
 
-Những quy tắc tốt nhất này được rút ra từ các triển khai thực tế, phản hồi từ cộng đồng, và bài học từ các ứng dụng doanh nghiệp.
+Các thực hành tốt nhất này được rút ra từ các triển khai thực tế, phản hồi cộng đồng, và bài học từ các dự án doanh nghiệp.
 
-## Mục Tiêu Học Tập
+## Mục tiêu học tập
 
-Sau khi hoàn thành phòng thực hành này, bạn sẽ có thể:
+Sau khi hoàn thành bài tập này, bạn sẽ có thể:
 
-- **Áp dụng** các kỹ thuật tối ưu hóa hiệu suất cho máy chủ MCP và cơ sở dữ liệu  
-- **Triển khai** các biện pháp tăng cường bảo mật toàn diện  
-- **Thiết kế** các mô hình kiến trúc có khả năng mở rộng cho môi trường sản xuất  
-- **Thiết lập** các quy trình giám sát, bảo trì, và vận hành  
-- **Tối ưu hóa** chi phí trong khi vẫn duy trì hiệu suất và độ tin cậy  
+- **Áp dụng** kỹ thuật tối ưu hóa hiệu năng cho máy chủ MCP và cơ sở dữ liệu  
+- **Triển khai** các biện pháp làm cứng bảo mật toàn diện  
+- **Thiết kế** các mẫu kiến trúc có thể mở rộng cho môi trường sản xuất  
+- **Thiết lập** quy trình giám sát, bảo trì và vận hành  
+- **Tối ưu hóa** chi phí trong khi duy trì hiệu suất và độ tin cậy  
 - **Đóng góp** cho cộng đồng và hệ sinh thái MCP  
 
-## 🚀 Tối Ưu Hóa Hiệu Suất
+## 🚀 Tối ưu hóa hiệu năng
 
-### Hiệu Suất Cơ Sở Dữ Liệu
+### Hiệu năng cơ sở dữ liệu
 
-#### Tối Ưu Hóa Kết Nối Pool
+#### Tối ưu hóa nhóm kết nối
 
 ```python
-# Optimized connection pool configuration
+# Cấu hình tối ưu hóa nhóm kết nối
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Cấu hình kích thước
+    "min_size": max(2, cpu_count()),           # Tối thiểu 2, điều chỉnh theo CPU
+    "max_size": min(20, cpu_count() * 4),     # Giới hạn ở mức tối đa hợp lý
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Cấu hình thời gian
+    "max_inactive_connection_lifetime": 300,   # 5 phút
+    "command_timeout": 30,                     # 30 giây
+    "max_queries": 50000,                      # Xoay vòng kết nối
     
-    # PostgreSQL settings
+    # Cài đặt PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Tắt để đảm bảo nhất quán
+        "work_mem": "8MB",                     # Tối ưu cho truy vấn
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Chỉ ghi nhật ký các sửa đổi
+        "log_min_duration_statement": "1s",   # Ghi nhật ký các truy vấn chậm
     }
 }
 ```
-  
-#### Mẫu Tối Ưu Hóa Truy Vấn
+
+#### Mẫu tối ưu hóa truy vấn
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # giây
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Kiểm tra bộ nhớ đệm trước
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Thực thi với giám sát
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Tối ưu hóa thực thi truy vấn
+                await conn.execute("SET enable_seqscan = off")  # Ưu tiên các chỉ mục
+                await conn.execute("SET work_mem = '16MB'")     # Thêm bộ nhớ cho truy vấn này
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Ghi lại các truy vấn chậm
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Bộ nhớ đệm kết quả thành công
+                if cache_key and len(result) < 1000:  # Không lưu bộ nhớ đệm kết quả lớn
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Khuyến nghị chỉ mục
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Chỉ mục kinh doanh cốt lõi
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Chỉ mục phân tích
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Tối ưu hóa tìm kiếm vector
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
-### Hiệu Suất Ứng Dụng
+### Hiệu năng ứng dụng
 
-#### Quy Tắc Tốt Nhất Về Lập Trình Bất Đồng Bộ
+#### Thực hành tốt nhất về lập trình bất đồng bộ
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Xử lý theo lô để tránh làm hệ thống quá tải
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Trì hoãn nhỏ giữa các lô để ngăn ngừa cạn kiệt tài nguyên
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Triển khai bộ ngắt mạch
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # ĐÓNG, MỞ, NỬA MỞ
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Đặt lại khi thành công
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,9 +214,8 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
-### Chiến Lược Bộ Nhớ Đệm
+### Chiến lược bộ nhớ đệm
 
 ```python
 import redis
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Cấp 1: Bộ nhớ đệm
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Cấp 2: Bộ nhớ đệm Redis
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Thăng cấp lên bộ nhớ đệm
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Thực hiện loại bỏ LRU
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Tạo khóa bộ nhớ đệm
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,11 +303,10 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
-## 🔒 Tăng Cường Bảo Mật
+## 🔒 Làm cứng bảo mật
 
-### Xác Thực và Phân Quyền
+### Xác thực và Ủy quyền
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Trích xuất và xác thực xác thực
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Xác thực token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Kiểm tra giới hạn tốc độ
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Xác thực ngữ cảnh RLS
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Lấy khóa công khai từ Key Vault hoặc bộ nhớ đệm
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Giải mã và xác thực token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Quản trị viên siêu cấp có thể truy cập bất kỳ ngữ cảnh nào
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Quản lý cửa hàng chỉ có thể truy cập cửa hàng của họ
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Quản lý khu vực có thể truy cập nhiều cửa hàng
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Xác thực và làm sạch dữ liệu nhập
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Các mẫu bị cấm
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Chỉ cho phép câu lệnh SELECT
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,19 +439,18 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Chỉ cho phép chữ số, chữ cái, gạch dưới và dấu chấm
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Xác thực đối với các bảng được phép
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
-### Bảo Vệ Dữ Liệu
+### Bảo vệ dữ liệu
 
 ```python
 from cryptography.fernet import Fernet
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Trong môi trường sản xuất, lấy từ Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Phương án dự phòng cho phát triển (không dùng trong sản xuất!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # số lần lặp lại
         ).hex()
         
         return password_hash, salt
@@ -527,11 +523,10 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
-## 📊 Hướng Dẫn Triển Khai Sản Xuất
+## 📊 Hướng dẫn triển khai sản xuất
 
-### Hạ Tầng dưới dạng Mã
+### Cơ sở hạ tầng dưới dạng mã
 
 ```yaml
 # azure-pipelines.yml
@@ -611,9 +606,8 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
-### Tối Ưu Hóa Container
+### Tối ưu hóa container
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
-### Cấu Hình Môi Trường
+### Cấu hình môi trường
 
 ```python
-# Production configuration management
+# Quản lý cấu hình sản xuất
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,27 +715,26 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Đặt bộ ghi log của bên thứ ba thành CẢNH BÁO
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Vô hiệu hóa chế độ gỡ lỗi
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Đặt tiêu đề bảo mật
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
-## 💰 Tối Ưu Hóa Chi Phí
+## 💰 Tối ưu hóa chi phí
 
-### Quản Lý Tài Nguyên
+### Quản lý tài nguyên
 
 ```python
 class CostOptimizer:
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Tải thấp
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Tải trung bình
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Tải cao
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Bộ nhớ đệm các thao tác tốn kém
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Cấu hình tự động mở rộng
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Mở rộng dựa trên CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Mở rộng dựa trên bộ nhớ
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Mở rộng hàng đợi yêu cầu
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,11 +810,10 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 Bảo Trì và Vận Hành
+## 🔧 Bảo trì và vận hành
 
-### Giám Sát Sức Khỏe
+### Giám sát sức khỏe hệ thống
 
 ```python
 class OperationalHealth:
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Tình trạng cơ sở dữ liệu
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Tình trạng dịch vụ bên ngoài
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Tài nguyên hệ thống
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Chỉ số ứng dụng
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Xác định trạng thái tổng thể
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Kích hoạt cảnh báo
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Kết nối cơ bản
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Kiểm tra các truy vấn chậm
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Kiểm tra số lượng kết nối
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Sao lưu và khôi phục tự động
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Tải lên Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Sao lưu toàn bộ hàng ngày lúc 2 giờ sáng UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Sao lưu tăng dần hàng giờ
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
-## 🌍 Đóng Góp Cộng Đồng
+## 🌍 Đóng góp cộng đồng
 
-### Quy Tắc Tốt Nhất Về Mã Nguồn Mở
+### Thực hành tốt nhất về mã nguồn mở
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,9 +984,8 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
-### Tương Tác Cộng Đồng
+### Tham gia cộng đồng
 
 ```python
 class CommunityContributor:
@@ -1036,80 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Sẽ thực hiện các kiểm tra thực tế
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 Những Điểm Chính
+## 🎯 Những điểm cần nhớ chính
 
-Sau khi hoàn thành lộ trình học tập toàn diện này, bạn sẽ nắm vững:
+Sau khi hoàn thành lộ trình học tập toàn diện này, bạn sẽ thành thạo:
 
-✅ **Tối Ưu Hóa Hiệu Suất**: Tinh chỉnh cơ sở dữ liệu, mẫu bất đồng bộ, và chiến lược bộ nhớ đệm  
-✅ **Tăng Cường Bảo Mật**: Xác thực, phân quyền, và bảo vệ dữ liệu  
-✅ **Triển Khai Sản Xuất**: Hạ tầng dưới dạng mã và tối ưu hóa container  
-✅ **Quản Lý Chi Phí**: Tối ưu hóa tài nguyên và mở rộng thông minh  
-✅ **Xuất Sắc Vận Hành**: Giám sát, bảo trì, và tự động hóa  
-✅ **Tương Tác Cộng Đồng**: Đóng góp cho hệ sinh thái MCP  
+✅ **Tối ưu hóa hiệu năng**: Tuning cơ sở dữ liệu, mẫu async, và chiến lược bộ nhớ đệm  
+✅ **Làm cứng bảo mật**: Xác thực, ủy quyền và bảo vệ dữ liệu  
+✅ **Triển khai sản xuất**: Cơ sở hạ tầng dưới dạng mã và tối ưu container  
+✅ **Quản lý chi phí**: Tối ưu tài nguyên và mở rộng thông minh  
+✅ **Vận hành xuất sắc**: Giám sát, bảo trì và tự động hóa  
+✅ **Tham gia cộng đồng**: Đóng góp cho hệ sinh thái MCP  
 
-## 🏆 Chứng Nhận và Bước Tiếp Theo
+## 🏆 Chứng chỉ và Các bước tiếp theo
 
-### Đánh Giá Thực Hành
+### Đánh giá thực hành
 
-Hoàn thành dự án cuối cùng này để chứng minh năng lực của bạn:
+Hoàn thành dự án cuối cùng này để chứng minh khả năng của bạn:
 
 **Xây dựng một máy chủ MCP sẵn sàng sản xuất** bao gồm:  
-- [ ] Phân tích bán lẻ đa người thuê với RLS  
+- [ ] Phân tích bán lẻ đa khách hàng với RLS  
 - [ ] Tìm kiếm ngữ nghĩa với Azure OpenAI  
 - [ ] Triển khai bảo mật toàn diện  
 - [ ] Triển khai sản xuất trên Azure  
 - [ ] Thiết lập giám sát và cảnh báo  
 - [ ] Tài liệu và kiểm thử  
 
-### Lộ Trình Học Tập Nâng Cao
+### Lộ trình học nâng cao
 
 Tiếp tục hành trình MCP của bạn với:
 
-- **Mô Hình Kiến Trúc MCP**: Kiến trúc máy chủ nâng cao  
-- **Tích Hợp Đa Mô Hình**: Kết hợp các mô hình AI khác nhau  
-- **Quy Mô Doanh Nghiệp**: Triển khai MCP quy mô lớn  
-- **Phát Triển Công Cụ Tùy Chỉnh**: Xây dựng các công cụ MCP chuyên biệt  
-- **Hệ Sinh Thái MCP**: Đóng góp cho cộng đồng rộng lớn hơn  
+- **Mẫu kiến trúc MCP**: Kiến trúc máy chủ nâng cao  
+- **Tích hợp đa mô hình**: Kết hợp các mô hình AI khác nhau  
+- **Quy mô doanh nghiệp**: Triển khai MCP quy mô lớn  
+- **Phát triển công cụ tùy chỉnh**: Xây dựng công cụ MCP chuyên biệt  
+- **Hệ sinh thái MCP**: Đóng góp cho cộng đồng rộng lớn hơn  
 
-### Công Nhận Cộng Đồng
+### Công nhận cộng đồng
 
 Chia sẻ thành tựu của bạn:  
-- **Danh Mục GitHub**: Trình bày triển khai của bạn  
-- **Đóng Góp Cộng Đồng**: Gửi các cải tiến hoặc ví dụ  
-- **Cơ Hội Diễn Thuyết**: Thuyết trình tại các buổi gặp mặt hoặc hội nghị  
-- **Hướng Dẫn**: Giúp các nhà phát triển khác học MCP  
+- **Hồ sơ GitHub**: Trưng bày triển khai của bạn  
+- **Đóng góp cộng đồng**: Gửi cải tiến hoặc ví dụ  
+- **Cơ hội nói chuyện**: Thuyết trình tại các buổi gặp mặt hoặc hội nghị  
+- **Hướng dẫn**: Giúp đỡ các nhà phát triển khác học MCP  
 
-## 📚 Tài Nguyên Bổ Sung
+## 📚 Tài nguyên bổ sung
 
-### Chủ Đề Nâng Cao  
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Tối ưu hóa cơ sở dữ liệu  
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Triển khai sản xuất  
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Lập trình bất đồng bộ  
+### Chủ đề nâng cao
+- [Điều chỉnh hiệu năng PostgreSQL](https://www.postgresql.org/docs/current/performance-tips.html) - Tối ưu cơ sở dữ liệu  
+- [Thực hành tốt nhất Azure Container Apps](https://docs.microsoft.com/azure/container-apps/overview) - Triển khai sản xuất  
+- [Thực hành tốt nhất Python Async](https://docs.python.org/3/library/asyncio-dev.html) - Lập trình bất đồng bộ  
 
-### Tài Nguyên Bảo Mật  
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Các lỗ hổng bảo mật  
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Bảo mật đám mây  
-- [Python Security Guidelines](https://python.org/dev/security/) - Lập trình an toàn  
+### Tài nguyên về bảo mật
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Lỗ hổng bảo mật phổ biến  
+- [Thực hành bảo mật Azure](https://docs.microsoft.com/azure/security/) - Bảo mật đám mây  
+- [Hướng dẫn bảo mật Python](https://python.org/dev/security/) - Lập trình an toàn  
 
-### Cộng Đồng  
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Thảo luận trực tiếp  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Hỏi đáp và chia sẻ  
+### Cộng đồng
+- [Cộng đồng MCP Discord](https://discord.com/invite/ByRwuEEgH4) - Thảo luận trực tiếp  
+- [Thảo luận GitHub](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Hỏi đáp và chia sẻ  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Câu hỏi kỹ thuật  
 
 ---
 
-**🎉 Chúc mừng!** Bạn đã hoàn thành lộ trình học tập toàn diện về Tích Hợp Cơ Sở Dữ Liệu MCP. Giờ đây, bạn đã có kiến thức và kỹ năng để xây dựng các máy chủ MCP sẵn sàng sản xuất, kết nối trợ lý AI với các hệ thống dữ liệu thực tế.
+**🎉 Chúc mừng!** Bạn đã hoàn thành lộ trình học tích hợp cơ sở dữ liệu MCP toàn diện. Bạn giờ đây có kiến thức và kỹ năng để xây dựng các máy chủ MCP sẵn sàng sản xuất kết nối trợ lý AI với các hệ thống dữ liệu thực tế.
 
-**Sẵn sàng đóng góp?** Tham gia cộng đồng của chúng tôi và giúp người khác học MCP bằng cách chia sẻ kinh nghiệm, đóng góp cải tiến mã, hoặc tạo thêm tài nguyên học tập.
+**Sẵn sàng đóng góp?** Tham gia cộng đồng của chúng tôi và giúp người khác học MCP bằng cách chia sẻ kinh nghiệm, đóng góp cải tiến mã, hoặc tạo tài nguyên học tập bổ sung.
+
+**Tiếp theo**: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Tuyên bố miễn trừ trách nhiệm**:  
-Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng các bản dịch tự động có thể chứa lỗi hoặc không chính xác. Tài liệu gốc bằng ngôn ngữ bản địa nên được coi là nguồn thông tin chính thức. Đối với các thông tin quan trọng, khuyến nghị sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm cho bất kỳ sự hiểu lầm hoặc diễn giải sai nào phát sinh từ việc sử dụng bản dịch này.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Tuyên bố miễn trừ trách nhiệm**:
+Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc sai sót. Tài liệu gốc bằng ngôn ngữ gốc nên được coi là nguồn tin chính thức. Đối với thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm về bất kỳ hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,57 +1,57 @@
 # שיטות עבודה מומלצות ואופטימיזציה
 
-## 🎯 מה מכסה המעבדה הזו
+## 🎯 מה המעבדה הזאת כוללת
 
-מעבדת הסיכום הזו מאחדת שיטות עבודה מומלצות, טכניקות אופטימיזציה והנחיות לייצור עבור בניית שרתי MCP חזקים, ניתנים להרחבה ובטוחים עם שילוב מסדי נתונים. תלמדו מניסיון מעשי וסטנדרטים בתעשייה כדי להבטיח שהיישום שלכם מוכן לייצור.
+מעבדה מסכמת זו מאגדת שיטות עבודה מומלצות, טכניקות אופטימיזציה והנחיות פרודקשן לבניית שרתי MCP עמידים, מדרגים ובטוחים עם אינטגרציה למסדי נתונים. תלמדו מניסיון בעולם האמיתי ומתקני התעשייה כדי להבטיח שהיישום שלכם מוכן לפרודקשן.
 
 ## סקירה כללית
 
-בניית שרת MCP מוצלח היא הרבה מעבר לגרום לקוד לעבוד. המעבדה הזו מכסה את השיטות החיוניות שמבדילות בין יישומי הוכחת רעיון לבין מערכות מוכנות לייצור שיכולות להתרחב, לפעול בצורה אמינה ולשמור על סטנדרטים של אבטחה.
+בניית שרת MCP מצליח היא הרבה מעבר להרצת הקוד. המעבדה הזאת מכסה את השיטות החיוניות שמבדילות בין יישומי הוכחת מושג לבין מערכות מוכנות לפרודקשן שיכולות להתרחב, לפעול באמינות, ולשמור על תקני אבטחה.
 
-שיטות העבודה המומלצות הללו נגזרות מפריסות בעולם האמיתי, משוב מהקהילה ולימודים מיישומים ארגוניים.
+שיטות עבודה מומלצות אלו נגזרות מהטמעות בעולם האמיתי, משוב הקהילה, ולמידה מהטמעות ארגוניות.
 
-## מטרות למידה
+## מטרות הלמידה
 
-בסיום המעבדה הזו, תוכלו:
+בסיום המעבדה תוכלו:
 
 - **ליישם** טכניקות אופטימיזציה לביצועים עבור שרתי MCP ומסדי נתונים  
-- **להטמיע** אמצעי חיזוק אבטחה מקיפים  
-- **לעצב** תבניות ארכיטקטורה ניתנות להרחבה לסביבות ייצור  
-- **להקים** נהלי ניטור, תחזוקה ותפעול  
-- **לאופטימיזציה** עלויות תוך שמירה על ביצועים ואמינות  
-- **לתרום** לקהילת MCP ולאקוסיסטם  
+- **להטמיע** אמצעי מחזק אבטחה מקיפים  
+- **לעצב** דפוסי ארכיטקטורה מדרגיים לסביבות פרודקשן  
+- **להקים** נוהלי ניטור, תחזוקה ותפעול  
+- **לאופטם** עלויות תוך שמירה על ביצועים ואמינות  
+- **לתרום** לקהילת ואקוסיסטם MCP  
 
 ## 🚀 אופטימיזציה לביצועים
 
-### ביצועי מסדי נתונים
+### ביצועי מסד נתונים
 
-#### אופטימיזציה של בריכת חיבורים
+#### אופטימיזציית מאגר חיבורים
 
 ```python
-# Optimized connection pool configuration
+# קונפיגורציה אופטימלית למאגר חיבורים
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # קונפיגורציית גודל
+    "min_size": max(2, cpu_count()),           # לפחות 2, מתאימים את המספר לפי המעבד
+    "max_size": min(20, cpu_count() * 4),     # גבול עליון סביר
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # קונפיגורציית זמנים
+    "max_inactive_connection_lifetime": 300,   # 5 דקות
+    "command_timeout": 30,                     # 30 שניות
+    "max_queries": 50000,                      # סובב חיבורים
     
-    # PostgreSQL settings
+    # הגדרות PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # השבת עבור עקביות
+        "work_mem": "8MB",                     # אופטימיזציה לשאילתות
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # רישום רק שינויים
+        "log_min_duration_statement": "1s",   # רישום שאילתות איטיות
     }
 }
 ```
-  
-#### תבניות אופטימיזציה של שאילתות
+
+#### דפוסי אופטימיזציה לשאילתות
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # שניות
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # בדוק מטמון קודם
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # ביצוע עם ניטור
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # אופטימיזציה של ביצוע שאילתה
+                await conn.execute("SET enable_seqscan = off")  # העדף אינדקסים
+                await conn.execute("SET work_mem = '16MB'")     # זיכרון נוסף לשאילתה זו
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # רישום שאילתות איטיות
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # מטמון תוצאות מוצלחות
+                if cache_key and len(result) < 1000:  # אל תמטמון תוצאות גדולות
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# המלצות לאינדקסים
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # אינדקסים עסקיים מרכזיים
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # אינדקסי אנליטיקה
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # אופטימיזציה של חיפוש וקטורי
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
-### ביצועי יישומים
+### ביצועי אפליקציה
 
-#### שיטות עבודה מומלצות לתכנות אסינכרוני
+#### שיטות עבודה טובות לתכנות אסינכרוני
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # עיבוד באצוות כדי למנוע עומס יתר על המערכת
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # השהייה קטנה בין האצוות כדי למנוע התשה של משאבים
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# יישום מפסק מעגל
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # סגור, פתוח, חצי פתוח
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # איפוס בהצלחה
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +214,6 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
 ### אסטרטגיות מטמון
 
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # רמה 1: מטמון בזיכרון
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # רמה 2: מטמון Redis
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # לקדם למטמון בזיכרון
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # ליישם סילוק LRU
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# יצירת מפתח מטמון
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,7 +303,6 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
 ## 🔒 חיזוק אבטחה
 
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # חילוץ ואימות אימות
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # אימות אסימון
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # בדיקת הגבלת קצב
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # אימות הקשר RLS
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # קבלת מפתח ציבורי מ-Key Vault או מהמטמון
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # פענוח ואימות אסימון
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # למנהלים העליונים יש גישה לכל הקשר
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # למנהלי חנויות יש גישה רק לחנות שלהם
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # למנהלים אזוריים יש גישה למספר חנויות
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# אימות קלט וניקוי
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # דפוסים אסורים
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # לאפשר רק הצהרות SELECT
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,17 +439,16 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # לאפשר רק תווים אלפאנומריים, קו תחתון ונקודה
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # אימות מול טבלאות מורשות
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
 ### הגנת נתונים
 
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # בייצור, לקבל מאוצר המפתחות של Azure
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # גיבוי לפיתוח (לא לייצור!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # איטרציות
         ).hex()
         
         return password_hash, salt
@@ -527,9 +523,8 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
-## 📊 הנחיות לפריסת ייצור
+## 📊 הנחיות לפריסת פרודקשן
 
 ### תשתית כקוד
 
@@ -611,9 +606,8 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
-### אופטימיזציה של קונטיינרים
+### אופטימיזציית מכולות
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
 ### תצורת סביבה
 
 ```python
-# Production configuration management
+# ניהול תצורת ייצור
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,25 +715,24 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # הגדרת לוגריים של צד שלישי לאזהרה
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # השבתת מצב דיבוג
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # הגדרת כותרות מאובטחות
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
-## 💰 אופטימיזציה של עלויות
+## 💰 אופטימיזציית עלויות
 
 ### ניהול משאבים
 
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # עומס נמוך
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # עומס בינוני
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # עומס גבוה
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # מטמון פעולות יקרות
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# תצורת סקיילינג אוטומטי
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # סקיילינג מבוסס CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # סקיילינג מבוסס זיכרון
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # סקיילינג תור בקשות
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,7 +810,6 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
 ## 🔧 תחזוקה ותפעול
 
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # בריאות בסיס הנתונים
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # בריאות שירותים חיצוניים
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # משאבי המערכת
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # מדדי יישום
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # קביעת המצב הכללי
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # הפעלת התראות
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # חיבור בסיסי
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # בדיקת שאילתות איטיות
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # בדיקת מספר החיבורים
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# גיבוי ושחזור אוטומטיים
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # העלאה ל-Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,19 +932,18 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # גיבוי מלא יומי בשעה 2 לפנות בוקר UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # גיבויים מצטברים כל שעה
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
-## 🌍 תרומות לקהילה
+## 🌍 תרומות קהילתיות
 
 ### שיטות עבודה מומלצות בקוד פתוח
 
@@ -994,7 +984,6 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
 ### מעורבות בקהילה
 
@@ -1036,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # יישום בדיקות אמיתיות
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 נקודות מפתח
+## 🎯 מסקנות מרכזיות
 
-לאחר השלמת מסלול הלמידה המקיף הזה, עליכם לשלוט ב:
+לאחר סיום מסלול הלמידה המקיף, תוכלו לשלוט ב:
 
-✅ **אופטימיזציה לביצועים**: כוונון מסדי נתונים, תבניות אסינכרוניות ואסטרטגיות מטמון  
-✅ **חיזוק אבטחה**: אימות, הרשאות והגנת נתונים  
-✅ **פריסת ייצור**: תשתית כקוד ואופטימיזציה של קונטיינרים  
-✅ **ניהול עלויות**: אופטימיזציה של משאבים והרחבה חכמה  
+✅ **אופטימיזציית ביצועים**: כוונון מסד נתונים, דפוסי אסינכרוניה, ואסטרטגיות מטמון  
+✅ **חיזוק אבטחה**: אימות, הרשאה, והגנת נתונים  
+✅ **פריסת פרודקשן**: תשתית כקוד ואופטימיזציית מכולות  
+✅ **ניהול עלויות**: אופטימיזציית משאבים והתרחבות חכמה  
 ✅ **מצוינות תפעולית**: ניטור, תחזוקה ואוטומציה  
-✅ **מעורבות קהילתית**: תרומה לאקוסיסטם MCP  
+✅ **מעורבות בקהילה**: תרומה לאקוסיסטם MCP  
 
-## 🏆 הסמכה והשלבים הבאים
+## 🏆 הסמכה וצעדים הבאים
 
 ### הערכה מעשית
 
-השלימו את הפרויקט הסופי הזה כדי להוכיח את שליטתכם:
+השלימו את הפרויקט הסופי להראות שליטתם:
 
-**בנו שרת MCP מוכן לייצור** שכולל:  
-- [ ] ניתוח קמעונאי רב-דיירים עם RLS  
+**בנו שרת MCP מוכן לפרודקשן** שכולל:  
+- [ ] אנליטיקה רב-דיירנית עם RLS  
 - [ ] חיפוש סמנטי עם Azure OpenAI  
-- [ ] יישום אבטחה מקיף  
-- [ ] פריסת ייצור ב-Azure  
-- [ ] הגדרת ניטור והתראות  
+- [ ] הטמעת אבטחה מקיפה  
+- [ ] פריסת פרודקשן על Azure  
+- [ ] הגדרת ניטור והתרעות  
 - [ ] תיעוד ובדיקות  
 
 ### מסלולי למידה מתקדמים
 
-המשיכו את מסע MCP שלכם עם:  
-- **תבניות ארכיטקטורה של MCP**: ארכיטקטורות שרת מתקדמות  
-- **שילוב רב-מודלים**: שילוב מודלים AI שונים  
-- **היקף ארגוני**: פריסות MCP בקנה מידה גדול  
-- **פיתוח כלים מותאמים אישית**: בניית כלים מיוחדים ל-MCP  
+המשיכו את מסע MCP שלכם עם:
+
+- **דפוסי ארכיטקטורת MCP**: ארכיטקטורות שרת מתקדמות  
+- **אינטגרציה רב-מודלית**: שילוב דגמי AI שונים  
+- **קנה מידה ארגוני**: הטמעות MCP בהיקף גדול  
+- **פיתוח כלים מותאמים**: בניית כלי MCP ממוקדים  
 - **אקוסיסטם MCP**: תרומה לקהילה הרחבה  
 
 ### הכרה בקהילה
 
 שתפו את ההישג שלכם:  
-- **פורטפוליו GitHub**: הציגו את היישום שלכם  
+- **פורטפוליו GitHub**: הצג יישומים שבניתם  
 - **תרומות לקהילה**: הגישו שיפורים או דוגמאות  
-- **הזדמנויות דיבור**: הציגו במפגשים או כנסים  
-- **חונכות**: עזרו למפתחים אחרים ללמוד MCP  
+- **הזדמנויות לדיבור**: הציגו במפגשים או כנסים  
+- **חונכות**: סייעו למפתחים ללמוד MCP  
 
 ## 📚 משאבים נוספים
 
-### נושאים מתקדמים  
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - אופטימיזציה של מסדי נתונים  
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - פריסת ייצור  
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - תכנות אסינכרוני  
+### נושאים מתקדמים
+- [כוונון ביצועי PostgreSQL](https://www.postgresql.org/docs/current/performance-tips.html) - אופטימיזציית מסדי נתונים  
+- [שיטות עבודה מומלצות ל-Azure Container Apps](https://docs.microsoft.com/azure/container-apps/overview) - פריסת פרודקשן  
+- [שיטות עבודה טובות לתכנות אסינכרוני בפייתון](https://docs.python.org/3/library/asyncio-dev.html) - תכנות אסינכרוני  
 
-### משאבי אבטחה  
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - פגיעויות אבטחה  
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - אבטחת ענן  
-- [Python Security Guidelines](https://python.org/dev/security/) - קידוד מאובטח  
+### משאבי אבטחה
+- [OWASP עשרת הסיכונים המובילים](https://owasp.org/www-project-top-ten/) - פרצות אבטחה  
+- [שיטות עבודה מומלצות לאבטחת Azure](https://docs.microsoft.com/azure/security/) - אבטחת ענן  
+- [קווי הנחיה לאבטחת פייתון](https://python.org/dev/security/) - קידוד בטוח  
 
-### קהילה  
+### קהילה
 - [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - דיונים חיים  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - שאלות ותשובות ושיתוף  
+- [דיונים ב-GitHub](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - שאלות ותשובות ושיתופים  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - שאלות טכניות  
 
 ---
 
-**🎉 מזל טוב!** השלמתם את מסלול הלמידה המקיף לשילוב מסדי נתונים ב-MCP. עכשיו יש לכם את הידע והכישורים לבנות שרתי MCP מוכנים לייצור שמחברים עוזרי AI עם מערכות נתונים בעולם האמיתי.
+**🎉 ברכות!** השלמתם את מסלול הלמידה המקיף לאינטגרציית מסדי נתונים ב-MCP. כעת יש לכם את הידע והכישורים לבנות שרתי MCP מוכנים לפרודקשן שמחברים עוזרי AI עם מערכות נתונים מעולם האמיתי.
 
-**מוכנים לתרום?** הצטרפו לקהילה שלנו ועזרו לאחרים ללמוד MCP על ידי שיתוף חוויותיכם, תרומת שיפורי קוד או יצירת משאבי למידה נוספים.
+**מוכנים לתרום?** הצטרפו לקהילה שלנו וסייעו לאחרים ללמוד MCP על ידי שיתוף הניסיון שלכם, תרומת שיפורי קוד, או יצירת משאבי למידה נוספים.
+
+**הבא**: [כלים](../../12-tooling/README.md)
 
 ---
 
-**כתב ויתור**:  
-מסמך זה תורגם באמצעות שירות תרגום מבוסס בינה מלאכותית [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון שתרגומים אוטומטיים עשויים להכיל שגיאות או אי דיוקים. המסמך המקורי בשפתו המקורית צריך להיחשב כמקור סמכותי. עבור מידע קריטי, מומלץ להשתמש בתרגום מקצועי על ידי אדם. איננו נושאים באחריות לאי הבנות או לפרשנויות שגויות הנובעות משימוש בתרגום זה.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**כתב ויתור**:
+מסמך זה תורגם באמצעות שירות תרגום אוטומטי [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון שתרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. יש להחשיב את המסמך המקורי בשפתו הטבעית כמקור הסמכות. למידע קריטי מומלץ להשתמש בתרגום מקצועי על ידי מתרגם אדם. אנו לא אחראים לכל אי-הבנה או פירוש שגוי הנובע מהשימוש בתרגום זה.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

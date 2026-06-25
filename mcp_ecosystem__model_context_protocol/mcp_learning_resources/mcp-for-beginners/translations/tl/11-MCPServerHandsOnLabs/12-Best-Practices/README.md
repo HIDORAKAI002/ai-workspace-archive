@@ -1,25 +1,25 @@
-# Mga Pinakamahusay na Praktika at Pag-optimize
+# Mga Pinakamahusay na Kasanayan at Pag-optimize
 
-## 🎯 Ano ang Saklaw ng Lab na Ito
+## 🎯 Mga Saklaw ng Lab na Ito
 
-Ang capstone lab na ito ay nagtatampok ng mga pinakamahusay na praktika, mga teknik sa pag-optimize, at mga alituntunin para sa produksyon sa pagbuo ng matibay, scalable, at secure na MCP servers na may integrasyon sa database. Matututo ka mula sa mga karanasan sa totoong mundo at mga pamantayan ng industriya upang matiyak na ang iyong implementasyon ay handa na para sa produksyon.
+Pinagsasama-sama ng capstone lab na ito ang mga pinakamahusay na kasanayan, mga teknik sa pag-optimize, at mga gabay sa produksyon para sa pagbuo ng matatag, nasusukat, at ligtas na mga MCP server na may integrasyon ng database. Matututo ka mula sa totoong karanasan at mga pamantayan sa industriya upang matiyak na handa sa produksyon ang iyong implementasyon.
 
 ## Pangkalahatang-ideya
 
-Ang pagbuo ng matagumpay na MCP server ay higit pa sa pagpapagana ng code. Saklaw ng lab na ito ang mahahalagang praktika na nagtatangi sa mga proof-of-concept na implementasyon mula sa mga sistemang handa na para sa produksyon na maaaring mag-scale, magbigay ng maaasahang performance, at mapanatili ang mga pamantayan sa seguridad.
+Ang pagbuo ng matagumpay na MCP server ay higit pa sa pagpapagana lang ng code. Tinatalakay ng lab na ito ang mga mahahalagang kasanayan na naghihiwalay sa mga proof-of-concept na implementasyon mula sa mga sistemang handa na sa produksyon na maaaring sukatin, magperform nang maaasahan, at mapanatili ang mga pamantayan sa seguridad.
 
-Ang mga pinakamahusay na praktika na ito ay nagmula sa mga deployment sa totoong mundo, feedback ng komunidad, at mga aral mula sa mga implementasyon sa enterprise.
+Ang mga pinakamahusay na kasanayan na ito ay nagmula sa mga tunay na deployment, feedback mula sa komunidad, at mga aral na natutunan mula sa mga implementasyon ng enterprise.
 
 ## Mga Layunin sa Pagkatuto
 
-Sa pagtatapos ng lab na ito, magagawa mo ang:
+Sa pagtatapos ng lab na ito, magagawa mong:
 
-- **Mag-apply** ng mga teknik sa pag-optimize ng performance para sa MCP servers at databases  
-- **Magpatupad** ng komprehensibong mga hakbang sa pagpapalakas ng seguridad  
-- **Magdisenyo** ng scalable na mga pattern ng arkitektura para sa mga production environment  
-- **Magtatag** ng mga pamamaraan sa monitoring, maintenance, at operasyon  
-- **Mag-optimize** ng mga gastos habang pinapanatili ang performance at pagiging maaasahan  
-- **Mag-ambag** sa komunidad at ecosystem ng MCP  
+- **I-apply** ang mga teknik sa pag-optimize ng performance para sa mga MCP server at databases  
+- **Ipatupad** ang komprehensibong mga hakbang sa pagpapalakas ng seguridad  
+- **Magdisenyo** ng mga scalable na pattern ng arkitektura para sa mga production environment  
+- **Magtaguyod** ng mga monitoring, maintenance, at operational na pamamaraan  
+- **I-optimize** ang mga gastos habang pinapanatili ang performance at pagiging maaasahan  
+- **Mag-ambag** sa MCP community at ecosystem  
 
 ## 🚀 Pag-optimize ng Performance
 
@@ -28,29 +28,29 @@ Sa pagtatapos ng lab na ito, magagawa mo ang:
 #### Pag-optimize ng Connection Pool
 
 ```python
-# Optimized connection pool configuration
+# Na-optimize na pagsasaayos ng connection pool
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Pagsasaayos ng laki
+    "min_size": max(2, cpu_count()),           # Hindi bababa sa 2, umaangkop sa CPU
+    "max_size": min(20, cpu_count() * 4),     # Limitahan sa makatwirang maximum
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Pagsasaayos ng oras
+    "max_inactive_connection_lifetime": 300,   # 5 minuto
+    "command_timeout": 30,                     # 30 segundo
+    "max_queries": 50000,                      # Iikot ang mga koneksyon
     
-    # PostgreSQL settings
+    # Mga setting ng PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # I-disable para sa pagkakapare-pareho
+        "work_mem": "8MB",                     # I-optimize para sa mga query
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # I-log lamang ang mga pagbabago
+        "log_min_duration_statement": "1s",   # I-log ang mga mabagal na query
     }
 }
 ```
-  
+
 #### Mga Pattern sa Pag-optimize ng Query
 
 ```python
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # segundo
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Suriin ang cache muna
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Isagawa na may pagmamanman
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # I-optimize ang pagpapatupad ng query
+                await conn.execute("SET enable_seqscan = off")  # Mas piliin ang mga index
+                await conn.execute("SET work_mem = '16MB'")     # Mas maraming memorya para sa query na ito
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Itala ang mga mabagal na query
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # I-cache ang mga matagumpay na resulta
+                if cache_key and len(result) < 1000:  # Huwag i-cache ang malalaking resulta
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Mga rekomendasyon sa index
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Mga pangunahing index ng negosyo
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Mga index ng analytics
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Pag-optimize ng paghahanap ng vector
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
-### Performance ng Application
+### Performance ng Aplikasyon
 
-#### Mga Pinakamahusay na Praktika sa Async Programming
+#### Mga Pinakamahusay na Kasanayan sa Async Programming
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Magproseso nang pa-batch upang maiwasan ang pag-overwhelm sa sistema
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Maliit na delay sa pagitan ng mga batch upang maiwasan ang pagubos ng mga resources
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Implementasyon ng circuit breaker
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # SARADO, BUKAS, HATING_BUKAS
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # I-reset sa tagumpay
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +214,6 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
 ### Mga Estratehiya sa Caching
 
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Antas 1: Memory cache
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Antas 2: Redis cache
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Itaguyod sa memory cache
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Ipatupad ang LRU eviction
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Pagbuo ng cache key
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,7 +303,6 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
 ## 🔒 Pagpapalakas ng Seguridad
 
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Kuhanin at i-validate ang authentication
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # I-validate ang token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Suriin ang rate limiting
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # I-validate ang RLS context
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Kuhanin ang public key mula sa Key Vault o cache
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # I-decode at i-validate ang token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Ang mga super admin ay maaaring mag-access ng anumang context
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Ang mga store manager ay maaari lamang mag-access ng kanilang sariling tindahan
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Ang mga regional manager ay maaaring mag-access ng maramihang tindahan
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Pag-validate at pagsasala ng input
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Mga ipinagbabawal na pattern
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Pahintulutan lamang ang mga SELECT statement
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,17 +439,16 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Pahintulutan lamang ang alphanumeric, underscore, at tuldok
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # I-validate laban sa mga pinapayagang table
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
 ### Proteksyon ng Data
 
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Sa produksyon, kunin mula sa Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Alternatibo para sa pag-unlad (hindi para sa produksyon!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # mga pag-ulit
         ).hex()
         
         return password_hash, salt
@@ -527,11 +523,10 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
-## 📊 Mga Alituntunin sa Deployment para sa Produksyon
+## 📊 Mga Gabay sa Production Deployment
 
-### Infrastructure as Code
+### Infrastructure bilang Code
 
 ```yaml
 # azure-pipelines.yml
@@ -611,7 +606,6 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
 ### Pag-optimize ng Container
 
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
-### Configuration ng Environment
+### Configuration ng Kapaligiran
 
 ```python
-# Production configuration management
+# Pamamahala ng produksyong pagsasaayos
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,23 +715,22 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Itakda ang mga third-party logger sa WARNING
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Patayin ang debug mode
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Itakda ang mga secure header
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
 ## 💰 Pag-optimize ng Gastos
 
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Mababang karga
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Katamtamang karga
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Mataas na karga
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # I-cache ang mga mamahaling operasyon
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Auto-scaling na pagsasaayos
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Pag-scale base sa CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Pag-scale base sa memorya
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Pag-scale ng pila ng kahilingan
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,11 +810,10 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 Maintenance at Operasyon
+## 🔧 Maintenance at Operations
 
-### Monitoring ng Kalusugan
+### Health Monitoring
 
 ```python
 class OperationalHealth:
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Kalusugan ng database
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Kalusugan ng mga panlabas na serbisyo
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Mga yaman ng sistema
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Mga sukatan ng aplikasyon
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Tukuyin ang pangkalahatang katayuan
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Pasimulan ang mga alerto
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Pangunahing konektividad
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Suriin ang mga mabagal na query
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Suriin ang bilang ng koneksyon
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Awtomatikong backup at pagbawi
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Mag-upload sa Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Pang-araw-araw na buong backup sa 2 AM UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Oras-oras na incremental na mga backup
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
-## 🌍 Mga Ambag sa Komunidad
+## 🌍 Mga Ambag ng Komunidad
 
-### Mga Pinakamahusay na Praktika sa Open Source
+### Pinakamahusay na Kasanayan sa Open Source
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,7 +984,6 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
 ### Pakikilahok sa Komunidad
 
@@ -1036,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Isasagawa ang tunay na mga pagsusuri
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 Mga Pangunahing Puntos
+## 🎯 Mga Pangunahing Punto
 
-Pagkatapos makumpleto ang komprehensibong learning path na ito, dapat ay na-master mo ang:
+Pagkatapos makumpleto ang komprehensibong landas na ito sa pagkatuto, dapat mo nang makamit:
 
-✅ **Pag-optimize ng Performance**: Pag-tune ng database, async patterns, at caching strategies  
+✅ **Pag-optimize ng Performance**: Pag-tune ng database, mga async pattern, at mga estratehiya sa caching   
 ✅ **Pagpapalakas ng Seguridad**: Authentication, authorization, at proteksyon ng data  
-✅ **Deployment para sa Produksyon**: Infrastructure as code at pag-optimize ng container  
-✅ **Pamamahala ng Gastos**: Pag-optimize ng resources at intelligent scaling  
-✅ **Kahusayan sa Operasyon**: Monitoring, maintenance, at automation  
-✅ **Pakikilahok sa Komunidad**: Pag-ambag sa ecosystem ng MCP  
+✅ **Production Deployment**: Infrastructure bilang code at pag-optimize ng container  
+✅ **Pamamahala ng Gastos**: Pag-optimize ng resources at intelihenteng scaling  
+✅ **Operational Excellence**: Monitoring, maintenance, at automation  
+✅ **Pakikilahok sa Komunidad**: Pag-ambag sa MCP ecosystem  
 
 ## 🏆 Sertipikasyon at Mga Susunod na Hakbang
 
-### Praktikal na Pagsusuri
+### Praktikal na Pagsusulit
 
-Kumpletuhin ang huling proyektong ito upang ipakita ang iyong mastery:
+Kumpletuhin ang huling proyektong ito upang ipakita ang iyong kadalubhasaan:
 
-**Bumuo ng Production-Ready MCP Server** na may kasamang:  
+**Bumuo ng Production-Ready MCP Server** na kinabibilangan ng:  
 - [ ] Multi-tenant retail analytics na may RLS  
 - [ ] Semantic search gamit ang Azure OpenAI  
 - [ ] Komprehensibong implementasyon ng seguridad  
-- [ ] Deployment para sa produksyon sa Azure  
-- [ ] Monitoring at alerting setup  
+- [ ] Production deployment sa Azure  
+- [ ] Setup ng monitoring at alerting  
 - [ ] Dokumentasyon at testing  
 
-### Mga Advanced na Learning Path
+### Mga Advanced na Landas sa Pagkatuto
 
-Ipagpatuloy ang iyong MCP journey sa:  
+Ipagpatuloy ang iyong MCP na paglalakbay sa pamamagitan ng:
+
 - **Mga Pattern ng Arkitektura ng MCP**: Mga advanced na arkitektura ng server  
 - **Multi-Model Integration**: Pagsasama ng iba't ibang AI models  
-- **Enterprise Scale**: Malakihang MCP deployments  
-- **Pagbuo ng Custom na Tool**: Paglikha ng mga espesyal na MCP tools  
-- **Ecosystem ng MCP**: Pag-ambag sa mas malawak na komunidad  
+- **Enterprise Scale**: Malawakang deployment ng MCP  
+- **Custom Tool Development**: Pagbuo ng espesyal na MCP tools  
+- **MCP Ecosystem**: Pag-ambag sa mas malawak na komunidad  
 
-### Pagkilala sa Komunidad
+### Pagkilala ng Komunidad
 
 Ibahagi ang iyong tagumpay:  
-- **GitHub Portfolio**: Ipakita ang iyong implementasyon  
+- **Github Portfolio**: Ipakita ang iyong implementasyon  
 - **Mga Ambag sa Komunidad**: Mag-submit ng mga pagpapabuti o halimbawa  
-- **Mga Pagkakataon sa Pagsasalita**: Mag-present sa mga meetups o conferences  
-- **Mentoring**: Tulungan ang ibang mga developer na matutunan ang MCP  
+- **Mga Oportunidad sa Pagsasalita**: Magpresenta sa mga meetups o kumperensya  
+- **Mentoring**: Tulungan ang ibang developer na matuto ng MCP  
 
-## 📚 Karagdagang Mga Resources
+## 📚 Karagdagang Mga Mapagkukunan
 
 ### Mga Advanced na Paksa  
 - [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Pag-optimize ng database  
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Deployment para sa produksyon  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Production deployment  
 - [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Async programming  
 
-### Mga Resources sa Seguridad  
+### Mga Mapagkukunan sa Seguridad  
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Mga kahinaan sa seguridad  
 - [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Seguridad sa cloud  
-- [Python Security Guidelines](https://python.org/dev/security/) - Secure coding  
+- [Python Security Guidelines](https://python.org/dev/security/) - Ligtas na pag-cocode  
 
 ### Komunidad  
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Mga live na talakayan  
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Live na talakayan  
 - [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A at pagbabahagi  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Mga teknikal na tanong  
 
 ---
 
-**🎉 Binabati kita!** Natapos mo na ang komprehensibong MCP Database Integration learning path. Taglay mo na ang kaalaman at kasanayan upang bumuo ng production-ready MCP servers na nag-uugnay sa AI assistants sa mga totoong data systems.
+**🎉 Maligayang pagbati!** Nakumpleto mo na ang komprehensibong landas ng pagkatuto para sa MCP Database Integration. Taglay mo na ngayon ang kaalaman at kasanayan upang bumuo ng mga production-ready MCP server na nag-uugnay sa mga AI assistant sa mga totoong data system.
 
-**Handa ka na bang mag-ambag?** Sumali sa aming komunidad at tulungan ang iba na matutunan ang MCP sa pamamagitan ng pagbabahagi ng iyong mga karanasan, pag-ambag ng mga pagpapabuti sa code, o paglikha ng karagdagang mga learning resources.
+**Handa ka na bang mag-ambag?** Sumali sa aming komunidad at tulungan ang iba na matuto ng MCP sa pamamagitan ng pagbabahagi ng iyong mga karanasan, pag-aambag ng mga pagpapabuti sa code, o paglikha ng karagdagang mga mapagkukunan sa pagkatuto.
+
+**Sunod**: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Paunawa**:  
-Ang dokumentong ito ay isinalin gamit ang AI translation service na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't sinisikap naming maging tumpak, pakitandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa kanyang katutubong wika ang dapat ituring na opisyal na sanggunian. Para sa mahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang hindi pagkakaunawaan o maling interpretasyon na dulot ng paggamit ng pagsasaling ito.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Pagtatanggi**:
+Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't nagsusumikap kami para sa katumpakan, pakatandaan na ang awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang maling pagkakaintindi o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

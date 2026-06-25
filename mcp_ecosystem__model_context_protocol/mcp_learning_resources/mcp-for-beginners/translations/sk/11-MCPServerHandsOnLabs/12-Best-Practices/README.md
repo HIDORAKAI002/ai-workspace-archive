@@ -1,52 +1,52 @@
-# Najlepšie praktiky a optimalizácia
+# Najlepšie postupy a optimalizácia
 
-## 🎯 Čo tento lab pokrýva
+## 🎯 Čo tento lab zahŕňa
 
-Tento záverečný lab spája najlepšie praktiky, techniky optimalizácie a pokyny pre produkčné prostredie na vytváranie robustných, škálovateľných a bezpečných MCP serverov s integráciou databáz. Naučíte sa z reálnych skúseností a priemyselných štandardov, aby ste zabezpečili, že vaša implementácia bude pripravená na produkčné nasadenie.
+Tento záverečný lab zhrňuje najlepšie postupy, techniky optimalizácie a výrobných usmernení pre budovanie robustných, škálovateľných a bezpečných MCP serverov s integráciou databázy. Naučíte sa z reálnej praxe a priemyselných štandardov, aby vaša implementácia bola pripravená na produkciu.
 
 ## Prehľad
 
-Vytvorenie úspešného MCP servera nie je len o tom, aby kód fungoval. Tento lab pokrýva základné praktiky, ktoré odlišujú implementácie konceptov od systémov pripravených na produkčné nasadenie, ktoré dokážu škálovať, spoľahlivo fungovať a dodržiavať bezpečnostné štandardy.
+Vybudovanie úspešného MCP servera nie je len o tom, aby kód fungoval. Tento lab pokrýva základné postupy, ktoré odlišujú implementácie dôkazu konceptu od výrobných systémov, ktoré vedia škálovať, spoľahlivo pracovať a zachovávať bezpečnostné štandardy.
 
-Tieto najlepšie praktiky sú odvodené z reálnych nasadení, spätnej väzby komunity a lekcií získaných z podnikových implementácií.
+Tieto najlepšie postupy sú odvodené z reálnych nasadení, spätnej väzby komunity a skúseností z podnikových implementácií.
 
 ## Ciele učenia
 
 Na konci tohto labu budete schopní:
 
-- **Aplikovať** techniky optimalizácie výkonu pre MCP servery a databázy
-- **Implementovať** komplexné opatrenia na zvýšenie bezpečnosti
-- **Navrhnúť** škálovateľné architektonické vzory pre produkčné prostredie
-- **Zaviesť** monitorovacie, údržbové a operačné postupy
+- **Použiť** techniky optimalizácie výkonu pre MCP servery a databázy
+- **Implementovať** komplexné bezpečnostné opatrenia
+- **Navrhnúť** škálovateľné architektonické vzory pre produkčné prostredia
+- **Zaviesť** monitorovanie, údržbu a prevádzkové postupy
 - **Optimalizovať** náklady pri zachovaní výkonu a spoľahlivosti
-- **Prispievať** do MCP komunity a ekosystému
+- **Prispieť** do komunity a ekosystému MCP
 
 ## 🚀 Optimalizácia výkonu
 
 ### Výkon databázy
 
-#### Optimalizácia pripojovacieho poolu
+#### Optimalizácia pripojovacích poolov
 
 ```python
-# Optimized connection pool configuration
+# Optimalizovaná konfigurácia poolu pripojení
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Konfigurácia veľkosti
+    "min_size": max(2, cpu_count()),           # Aspoň 2, prispôsobuje sa CPU
+    "max_size": min(20, cpu_count() * 4),     # Limit na rozumnú maximálnu hodnotu
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Konfigurácia časovania
+    "max_inactive_connection_lifetime": 300,   # 5 minút
+    "command_timeout": 30,                     # 30 sekúnd
+    "max_queries": 50000,                      # Rotovať pripojenia
     
-    # PostgreSQL settings
+    # Nastavenia PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Zakázať pre konzistenciu
+        "work_mem": "8MB",                     # Optimalizovať pre dotazy
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Logovať len zmeny
+        "log_min_duration_statement": "1s",   # Logovať pomalé dotazy
     }
 }
 ```
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # sekundy
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Najskôr skontrolujte vyrovnávaciu pamäť
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Vykonať s monitorovaním
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Optimalizovať vykonávanie dotazu
+                await conn.execute("SET enable_seqscan = off")  # Uprednostniť indexy
+                await conn.execute("SET work_mem = '16MB'")     # Viac pamäte pre tento dotaz
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Zaznamenávať pomalé dotazy
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Ukladať úspešné výsledky do vyrovnávacej pamäte
+                if cache_key and len(result) < 1000:  # Neukladať veľké výsledky do vyrovnávacej pamäte
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,25 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Odporúčania indexov
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Základné obchodné indexy
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Analytické indexy
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Optimalizácia vyhľadávania vektorov
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
 
 ### Výkon aplikácie
 
-#### Najlepšie praktiky pre asynchrónne programovanie
+#### Najlepšie praktiky asynchrónneho programovania
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Spracovanie po dávkach, aby sa predišlo preťaženiu systému
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Malé oneskorenie medzi dávkami, aby sa zabránilo vyčerpaniu zdrojov
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Implementácia ističa obvodu
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # ZATVORENÉ, OTVORENÉ, POL-OTVORENÉ
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Resetovať pri úspechu
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Úroveň 1: Pamäťová cache
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Úroveň 2: Redis cache
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Propagovať do pamäťovej cache
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Implementovať LRU vyraďovanie
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Generovanie cache kľúča
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,7 +304,7 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 Zvýšenie bezpečnosti
+## 🔒 Bezpečnostné spevnenie
 
 ### Autentifikácia a autorizácia
 
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Extrahovať a overiť autentifikáciu
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Overiť token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Skontrolovať obmedzenie rýchlosti
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Overiť kontext RLS
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Získať verejný kľúč z Key Vault alebo cache
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Dekódovať a overiť token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Super administrátori môžu pristupovať k akémukoľvek kontextu
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Manažéri obchodov môžu pristupovať iba k svojmu vlastnému obchodu
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Regionálni manažéri môžu pristupovať k viacerým obchodom
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Overenie a sanitizácia vstupu
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Zakázané vzory
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Povoliť iba SELECT príkazy
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Povoliť iba alfanumerické znaky, podčiarkovník a bodku
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Overiť voči povoleným tabuľkám
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # V produkcii získajte z Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Náhradné riešenie pre vývoj (nie pre produkciu!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # iterácie
         ).hex()
         
         return password_hash, salt
@@ -524,9 +524,9 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Pokyny pre produkčné nasadenie
+## 📊 Pokyny pre výrobnú prevádzku
 
-### Infrastruktúra ako kód
+### Infraštruktúra ako kód
 
 ```yaml
 # azure-pipelines.yml
@@ -666,7 +666,7 @@ CMD ["python", "-m", "mcp_server.sales_analysis"]
 ### Konfigurácia prostredia
 
 ```python
-# Production configuration management
+# Správa konfigurácie produkcie
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,17 +715,17 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Nastaviť logovacie nástroje tretích strán na UPOZORNENIE
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Vypnúť režim ladenia
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Nastaviť zabezpečené hlavičky
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
@@ -734,7 +734,7 @@ class ProductionConfig:
 
 ## 💰 Optimalizácia nákladov
 
-### Správa zdrojov
+### Riadenie zdrojov
 
 ```python
 class CostOptimizer:
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Nízke zaťaženie
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Stredné zaťaženie
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Vysoké zaťaženie
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Ukladať nákladné operácie do vyrovnávacej pamäte
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Konfigurácia autoškálovania
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Škálovanie na základe CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Škálovanie na základe pamäte
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Škálovanie frontu požiadaviek
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -811,7 +811,7 @@ class AutoScaler:
         return "no_action"
 ```
 
-## 🔧 Údržba a operácie
+## 🔧 Údržba a prevádzka
 
 ### Monitorovanie zdravia
 
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Stav databázy
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Stav externých služieb
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Systémové zdroje
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Metričky aplikácie
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Určiť celkový stav
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Spustiť upozornenia
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Základná konektivita
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Skontrolovať pomalé dotazy
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Skontrolovať počet pripojení
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Automatizované zálohovanie a obnova
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Nahrávanie do Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,20 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Denná úplná záloha o 2:00 UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Hodinové inkrementálne zálohy
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
 
-## 🌍 Príspevky do komunity
+## 🌍 Príspevky komunity
 
-### Najlepšie praktiky pre open source
+### Najlepšie postupy open source
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Skutočné kontroly by sa implementovali
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 Kľúčové poznatky
+## 🎯 Kľúčové zhrnutia
 
-Po absolvovaní tejto komplexnej vzdelávacej cesty by ste mali zvládnuť:
+Po dokončení tohto komplexného učebného plánu by ste mali zvládnuť:
 
-✅ **Optimalizáciu výkonu**: Ladenie databáz, asynchrónne vzory a stratégie cachovania  
-✅ **Zvýšenie bezpečnosti**: Autentifikácia, autorizácia a ochrana dát  
-✅ **Produkčné nasadenie**: Infrastruktúra ako kód a optimalizácia kontajnerov  
-✅ **Správa nákladov**: Optimalizácia zdrojov a inteligentné škálovanie  
-✅ **Operačnú dokonalosť**: Monitorovanie, údržba a automatizácia  
-✅ **Zapojenie komunity**: Príspevky do MCP ekosystému  
+✅ **Optimalizácia výkonu**: ladenie databázy, asynchrónne vzory a strategie cachovania  
+✅ **Bezpečnostné spevnenie**: autentifikácia, autorizácia a ochrana dát  
+✅ **Výrobná prevádzka**: infraštruktúra ako kód a optimalizácia kontajnerov  
+✅ **Riadenie nákladov**: optimalizácia zdrojov a inteligentné škálovanie  
+✅ **Prevádzková excelentnosť**: monitorovanie, údržba a automatizácia  
+✅ **Zapojenie komunity**: príspevky do ekosystému MCP  
 
 ## 🏆 Certifikácia a ďalšie kroky
 
 ### Praktické hodnotenie
 
-Dokončite tento záverečný projekt na preukázanie vašich schopností:
+Dokončite tento záverečný projekt, aby ste preukázali svoje majstrovstvo:
 
-**Vytvorte produkčne pripravený MCP server**, ktorý zahŕňa:
-- [ ] Multi-tenant analytiku pre maloobchod s RLS
-- [ ] Semantické vyhľadávanie s Azure OpenAI
-- [ ] Komplexnú implementáciu bezpečnosti
-- [ ] Produkčné nasadenie na Azure
-- [ ] Nastavenie monitorovania a upozornení
+**Vybudujte produkčne pripravený MCP server**, ktorý obsahuje:  
+- [ ] Analýzu maloobchodných dát s multi-tenant RLS  
+- [ ] Semantické vyhľadávanie s Azure OpenAI  
+- [ ] Komplexnú bezpečnostnú implementáciu  
+- [ ] Výrobnú prevádzku na Azure  
+- [ ] Nastavenie monitorovania a upozornení  
 - [ ] Dokumentáciu a testovanie
 
-### Pokročilé vzdelávacie cesty
+### Pokročilé učebné cesty
 
 Pokračujte vo svojej MCP ceste s:
 
-- **MCP architektonické vzory**: Pokročilé architektúry serverov
-- **Multi-modelová integrácia**: Kombinovanie rôznych AI modelov
-- **Podniková škála**: Veľké MCP nasadenia
-- **Vývoj vlastných nástrojov**: Vytváranie špecializovaných MCP nástrojov
-- **MCP ekosystém**: Príspevky do širšej komunity
+- **Architektonické vzory MCP**: Pokročilé serverové architektúry  
+- **Integrácia multimodelov**: Kombinovanie rôznych AI modelov  
+- **Podnikové škálovanie**: Veľkosériové nasadenie MCP  
+- **Vývoj vlastných nástrojov**: Budovanie špecializovaných nástrojov MCP  
+- **Ekosystém MCP**: Príspevky do širšej komunity
 
 ### Uznanie komunity
 
-Podeľte sa o svoje úspechy:
-- **GitHub portfólio**: Predstavte svoju implementáciu
-- **Príspevky do komunity**: Predložte vylepšenia alebo príklady
-- **Príležitosti na prezentáciu**: Prednášajte na stretnutiach alebo konferenciách
-- **Mentoring**: Pomáhajte ostatným vývojárom naučiť sa MCP
+Podeľte sa o svoj úspech:  
+- **GitHub portfólio**: Predveďte svoju implementáciu  
+- **Príspevky komunity**: Posielajte vylepšenia alebo príklady  
+- **Možnosti vystúpení**: Prednášajte na stretnutiach alebo konferenciách  
+- **Mentoring**: Pomáhajte iným vývojárom učiť sa MCP
 
-## 📚 Ďalšie zdroje
+## 📚 Dodatočné zdroje
 
 ### Pokročilé témy
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Optimalizácia databáz
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Produkčné nasadenie
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Asynchrónne programovanie
+- [Ladenie výkonu PostgreSQL](https://www.postgresql.org/docs/current/performance-tips.html) - Optimalizácia databázy  
+- [Najlepšie praktiky Azure Container Apps](https://docs.microsoft.com/azure/container-apps/overview) - Výrobná prevádzka  
+- [Najlepšie praktiky python.async](https://docs.python.org/3/library/asyncio-dev.html) - Asynchrónne programovanie
 
 ### Bezpečnostné zdroje
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Bezpečnostné zraniteľnosti
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Bezpečnosť v cloude
-- [Python Security Guidelines](https://python.org/dev/security/) - Bezpečné programovanie
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - bezpečnostné slabiny  
+- [Najlepšie praktiky zabezpečenia Azure](https://docs.microsoft.com/azure/security/) - zabezpečenie cloudu  
+- [Bezpečnostné usmernenia Python](https://python.org/dev/security/) - bezpečné kódovanie
 
 ### Komunita
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Diskusie naživo
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Otázky a zdieľanie
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Technické otázky
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - živé diskusie  
+- [GitHub diskusie](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - otázky a zdieľanie  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - technické otázky
 
 ---
 
-**🎉 Gratulujeme!** Dokončili ste komplexnú vzdelávaciu cestu MCP integrácie databáz. Teraz máte znalosti a schopnosti na vytváranie produkčne pripravených MCP serverov, ktoré spájajú AI asistentov s reálnymi dátovými systémami.
+**🎉 Gratulujeme!** Úspešne ste zvládli komplexný učebný plán pre integráciu MCP databázy. Teraz máte vedomosti a schopnosti budovať produkčne pripravené MCP servery, ktoré spájajú AI asistenta s reálnymi dátovými systémami.
 
-**Pripravení prispievať?** Pripojte sa k našej komunite a pomáhajte ostatným naučiť sa MCP zdieľaním svojich skúseností, prispievaním kódu alebo vytváraním ďalších vzdelávacích zdrojov.
+**Pripravení prispieť?** Pridajte sa do našej komunity a pomáhajte iným učiť sa MCP zdieľaním skúseností, vylepšovaním kódu alebo tvorbou ďalších učebných zdrojov.
+
+**Ďalšie:** [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Upozornenie**:  
-Tento dokument bol preložený pomocou služby AI prekladu [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, prosím, berte na vedomie, že automatizované preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho rodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nenesieme zodpovednosť za akékoľvek nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

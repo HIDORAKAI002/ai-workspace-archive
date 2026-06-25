@@ -1,57 +1,57 @@
-# മികച്ച പ്രാക്ടീസുകളും ഓപ്റ്റിമൈസേഷനും
+# മികച്ച പ്രവൃത്തികളും ഒപ്റ്റിമൈസേഷനും
 
-## 🎯 ഈ ലാബ് എന്താണ് ഉൾക്കൊള്ളുന്നത്
+## 🎯 ഈ ലാബ് ഉൾക്കൊള്ളുന്നത്
 
-ഈ ക്യാപ്സ്റ്റോൺ ലാബ് ശക്തമായ, സ്കെയിലബിൾ, സുരക്ഷിതമായ MCP സെർവറുകൾ ഡാറ്റാബേസ് ഇന്റഗ്രേഷനോടുകൂടി നിർമ്മിക്കുന്നതിനുള്ള മികച്ച പ്രാക്ടീസുകൾ, ഓപ്റ്റിമൈസേഷൻ സാങ്കേതികവിദ്യകൾ, പ്രൊഡക്ഷൻ മാർഗ്ഗനിർദ്ദേശങ്ങൾ എന്നിവ സംയോജിപ്പിക്കുന്നു. നിങ്ങളുടെ നടപ്പാക്കൽ പ്രൊഡക്ഷൻ-റെഡി ആകാൻ യാഥാർത്ഥ്യാനുഭവത്തിലും വ്യവസായ മാനദണ്ഡങ്ങളിലും നിന്നുള്ള അറിവുകൾ നിങ്ങൾക്ക് ലഭിക്കും.
+ഈ ക്യാപ്സ്ടോൺ ലാബ് സ്ഥിരതയുള്ള, സ്കേലബിൾ, സുരക്ഷിതമായ MCP സെർവറുകൾ ഡാറ്റാബേസ് സംയോജനം കൊണ്ട് നിർമ്മിക്കാനുള്ള മികച്ച പ്രവൃത്തികളും, ഒപ്റ്റിമൈസേഷൻ സാങ്കേതികവിദ്യകളും, ഉത്പാദന മാർഗ്ഗനിർദ്ദേശങ്ങളും സംയോജിപ്പിക്കുന്നു. നിങ്ങൾക്ക് യഥാർത്ഥ ലോക അനുഭവത്തിലും വ്യവസായ മാനദണ്ഡങ്ങളിലും നിന്നുള്ള പഠനം ലഭിക്കണം, നിങ്ങളുടെ અમലാക്കൽ ഉത്പാദനത്തിന് തയ്യാറായിരിക്കണം.
 
 ## അവലോകനം
 
-വിജയകരമായ MCP സെർവർ നിർമ്മിക്കുന്നത് കോഡ് പ്രവർത്തിപ്പിക്കുന്നതിൽ മാത്രം ഒതുങ്ങുന്ന കാര്യമല്ല. സ്കെയിൽ ചെയ്യാൻ കഴിയുന്ന, വിശ്വസനീയമായി പ്രവർത്തിക്കുന്ന, സുരക്ഷാ മാനദണ്ഡങ്ങൾ പാലിക്കുന്ന പ്രൊഡക്ഷൻ-റെഡി സിസ്റ്റങ്ങൾ നിർമ്മിക്കുന്നതിനുള്ള അടിസ്ഥാന പ്രാക്ടീസുകൾ ഈ ലാബ് ഉൾക്കൊള്ളുന്നു.
+ഒരു വിജയകരമായ MCP സെർവർ നിർമ്മിക്കുന്നത് കോഡ് ഉപയോഗിക്കാൻ മാത്രമല്ല. ഈ ലാബ് പ്രധാനമായ പ്രാക്ടീസുകൾ ഉൾക്കൊള്ളുന്നതാണ്, അവ പ്രൂഫ്-ഓഫ്-കോൺസെപ്റ്റ് രൂപകല്പനകളിൽ നിന്നുള്ളവ മുതൽ സ്കേൽ ചെയ്യാൻ കഴിയുന്ന, വിശ്വസനീയമായി പ്രവർത്തിക്കുന്ന, സുരക്ഷാ മാനദണ്ഡങ്ങൾ പാലിക്കുന്ന ഉത്പാദന-സജ്ജ സിസ്റ്റങ്ങൾ വരെ വേർതിരിക്കുന്നവയാണ്.
 
-ഈ മികച്ച പ്രാക്ടീസുകൾ യാഥാർത്ഥ്യപ്രയോഗങ്ങൾ, കമ്മ്യൂണിറ്റി പ്രതികരണങ്ങൾ, എന്റർപ്രൈസ് നടപ്പാക്കലുകളിൽ നിന്നുള്ള പാഠങ്ങൾ എന്നിവയിൽ നിന്നാണ് ലഭിച്ചത്.
+ഈ മികച്ച പ്രാക്ടീസുകൾ യഥാർത്ഥ ലോക വിനിയോഗങ്ങൾ, കമ്മ്യൂണിറ്റി പ്രതികരണങ്ങൾ, എൻട്രപ്രൈസ് അതിഥികൾ പഠിച്ച പാഠങ്ങൾ എന്നിവയിൽ നിന്ന് ലഭിച്ചവയാണ്.
 
 ## പഠന ലക്ഷ്യങ്ങൾ
 
-ഈ ലാബ് പൂർത്തിയാക്കിയാൽ, നിങ്ങൾക്ക് കഴിയും:
+ഈ ലാബിന്റെ അവസാനം, നിങ്ങൾക്ക് സാധിക്കും:
 
-- **പ്രയോഗിക്കുക** MCP സെർവറുകൾക്കും ഡാറ്റാബേസുകൾക്കും പ്രകടന ഓപ്റ്റിമൈസേഷൻ സാങ്കേതികവിദ്യകൾ  
-- **നടപ്പിലാക്കുക** സമഗ്രമായ സുരക്ഷാ ഹാർഡനിംഗ് നടപടികൾ  
-- **ഡിസൈൻ ചെയ്യുക** പ്രൊഡക്ഷൻ പരിസ്ഥിതികൾക്കായി സ്കെയിലബിൾ ആർക്കിടെക്ചർ പാറ്റേണുകൾ  
-- **സ്ഥാപിക്കുക** നിരീക്ഷണം, പരിപാലനം, പ്രവർത്തന നടപടിക്രമങ്ങൾ  
-- **ഓപ്റ്റിമൈസ് ചെയ്യുക** പ്രകടനവും വിശ്വസനീയതയും നിലനിർത്തിക്കൊണ്ട് ചെലവുകൾ  
-- **സംഭാവന നൽകുക** MCP കമ്മ്യൂണിറ്റിക്കും ഇക്കോസിസ്റ്റത്തിനും  
+- ** MCP സെർവറുകൾക്കും ഡാറ്റാബേസുകൾക്കും** പ്രകടന ഒപ്റ്റിമൈസേഷൻ സാങ്കേതിക വിദ്യകൾ പ്രയോഗിക്കുക  
+- **സുരക്ഷാ കടുപ്പം** പൂർണ്ണമായും നടപ്പിലാക്കുക  
+- **ഉത്പാദന പരിതസ്ഥിതികൾക്കായി** സ്കേലബിൾ ആർക്കിടെക്ചർ മാതൃകകൾ രൂപകൽപിക്കുക  
+- **മോണിറ്ററിംഗ്, പരിപാലനം, പ്രവർത്തന സാന്ദർഭങ്ങൾ സ്ഥാപിക്കുക**  
+- **പ്രകടനവും വിശ്വാസ്യതയും സംരക്ഷിച്ച് ചെലവ് ഒപ്റ്റിമൈസ് ചെയ്യുക**  
+- **MCP കമ്മ്യൂണിറ്റിക്കും പാരിസ്ഥിതിക്കും സംഭാവന ചെയ്യുക**  
 
-## 🚀 പ്രകടന ഓപ്റ്റിമൈസേഷൻ
+## 🚀 പ്രകടന ഒപ്റ്റിമൈസേഷൻ
 
 ### ഡാറ്റാബേസ് പ്രകടനം
 
-#### കണക്ഷൻ പൂൾ ഓപ്റ്റിമൈസേഷൻ
+#### കണക്ഷൻ പൂളിന്റെ ഒപ്റ്റിമൈസേഷൻ
 
 ```python
-# മെച്ചപ്പെടുത്തിയ കണക്ഷൻ പൂൾ കോൺഫിഗറേഷൻ
+# മെച്ചപ്പെടുത്തപ്പെട്ട കോൺനെക്ഷൻ പൂൾ കോൺഫിഗറേഷൻ
 POOL_CONFIG = {
-    # വലുപ്പം കോൺഫിഗറേഷൻ
-    "min_size": max(2, cpu_count()),           # കുറഞ്ഞത് 2, CPU അനുസരിച്ച് സ്കെയിൽ ചെയ്യുക
-    "max_size": min(20, cpu_count() * 4),     # യുക്തിസഹമായ പരമാവധി പരിധി
+    # വലയം കോൺഫിഗറേഷൻ
+    "min_size": max(2, cpu_count()),           # കുറഞ്ഞത് 2, CPU അനുസരിച്ച് വലിതം
+    "max_size": min(20, cpu_count() * 4),     # യുക്തിസഹമായ പരമാവധി ഒഴിവാക്കുക
     
-    # സമയക്രമ കോൺഫിഗറേഷൻ
+    # സമയബന്ധിത കോൺഫിഗറേഷൻ
     "max_inactive_connection_lifetime": 300,   # 5 മിനിറ്റ്
-    "command_timeout": 30,                     # 30 സെക്കൻഡ്
-    "max_queries": 50000,                      # കണക്ഷനുകൾ റോട്ടേറ്റ് ചെയ്യുക
+    "command_timeout": 30,                     # 30 സെക്കന്റ്
+    "max_queries": 50000,                      # കോൺനെക്ഷനുകൾ തിരിയിക്കുക
     
-    # പോസ്റ്റ്‌ഗ്രെഎസ്‌ക്യു‌എൽ ക്രമീകരണങ്ങൾ
+    # പോസ്റ്റ്‌ഗ്രെഎസ്‌ക്യുവൽ സെറ്റിംഗുകൾ
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # സുസ്ഥിരതയ്ക്കായി അപ്രാപ്തമാക്കുക
-        "work_mem": "8MB",                     # ക്വെറികൾക്ക് മെച്ചപ്പെടുത്തുക
+        "jit": "off",                          # ഏകോപിതത്വത്തിനായി നിരോധിക്കുക
+        "work_mem": "8MB",                     # ക്വെറിയുകൾക്കായി മെച്ചപ്പെടുത്തുക
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # മാറ്റങ്ങൾ മാത്രം ലോഗ് ചെയ്യുക
-        "log_min_duration_statement": "1s",   # മന്ദഗതിയിലുള്ള ക്വെറികൾ ലോഗ് ചെയ്യുക
+        "log_statement": "mod",                # മാത്രമേ മാറ്റങ്ങൾ ലോഗ് ചെയ്യൂ
+        "log_min_duration_statement": "1s",   # മന്ദഗതിയിലുള്ള ക്വെറിയുകൾ ലോഗ് ചെയ്യൂ
     }
 }
 ```
 
-#### ക്വറി ഓപ്റ്റിമൈസേഷൻ പാറ്റേണുകൾ
+#### ക്വറി ഒപ്റ്റിമൈസേഷൻ മാതൃകകൾ
 
 ```python
 class QueryOptimizer:
@@ -81,15 +81,15 @@ class QueryOptimizer:
         
         try:
             async with db_provider.get_connection() as conn:
-                # ക്വറി നിർവഹണം മെച്ചപ്പെടുത്തുക
-                await conn.execute("SET enable_seqscan = off")  # സൂചികകൾ മുൻഗണന നൽകുക
-                await conn.execute("SET work_mem = '16MB'")     # ഈ ക്വറിയ്ക്ക് കൂടുതൽ മെമ്മറി
+                # ചോദിച്ചലിന്റെ നടപ്പാക്കൽ മെച്ചപ്പെടുത്തുക
+                await conn.execute("SET enable_seqscan = off")  # സൂചികകൾ പ്രാധാന്യം നൽകുക
+                await conn.execute("SET work_mem = '16MB'")     # ഈ ചോദിച്ചലിന് കൂടുതൽ മെമ്മറി
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # മന്ദഗതിയിലുള്ള ക്വറികൾ ലോഗ് ചെയ്യുക
+                # മന്ദഗതിയിലുള്ള ചോദിച്ചലുകൾ ലോഗ് ചെയ്യുക
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -98,7 +98,7 @@ class QueryOptimizer:
                     })
                 
                 # വിജയകരമായ ഫലങ്ങൾ കാഷെ ചെയ്യുക
-                if cache_key and len(result) < 1000:  # വലിയ ഫലങ്ങൾ കാഷെ ചെയ്യരുത്
+                if cache_key and len(result) < 1000:  # വലിയ ഫലങ്ങൾ കാഷെ ചെയ്യാതെപോവാൻ
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,25 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# സൂചിക ശിപാർശകൾ
+# സൂചിക ശിപാർസുകൾ
 RECOMMENDED_INDEXES = [
-    # കോർ ബിസിനസ് സൂചികകൾ
+    # പ്രധാന ബിസിനസ് സൂചികകൾ
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # അനലിറ്റിക്സ് സൂചികകൾ
+    # വിശകലന സൂചികകൾ
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # വെക്ടർ തിരയൽ മെച്ചപ്പെടുത്തൽ
+    # വെക്ടർ സെർച്ച് മെച്ചപ്പെടുത്തൽ
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
 
 ### അപ്ലിക്കേഷൻ പ്രകടനം
 
-#### അസിങ്ക് പ്രോഗ്രാമിംഗ് മികച്ച പ്രാക്ടീസുകൾ
+#### അസിങ്ക് പ്രോഗ്രാമിങ്ങ് മികച്ച പ്രാക്ടീസുകൾ
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # സിസ്റ്റം ഭാരം കൂടാതിരിക്കാൻ ബാച്ചുകളായി പ്രോസസ് ചെയ്യുക
+        # സിസ്റ്റം ഭാരം കൂടാതെ തലമുറകളിൽ പ്രോസസ് ചെയ്യുക
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # റിസോഴ്‌സ് ക്ഷയം തടയാൻ ബാച്ചുകൾക്കിടയിൽ ചെറിയ വൈകിപ്പ്
+            # വിഭജിത ഇടവേള, ഉറവിടം തീരുന്നത് തടയാൻ
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# സർക്യൂട്ട് ബ്രേക്കർ നടപ്പാക്കൽ
+# സർക്ക്യൂട്ട് ബ്രേക്കർ നിർവഹിച്ചു
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # ക്ലോസ്, ഓപ്പൺ, ഹാഫ്_ഓപ്പൺ
+        self.state = "CLOSED"  # ക്ലോസ് ചെയ്തത്, തുറന്നത്, അർദ്ധ തുറന്നത്
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # വിജയത്തിൽ റീസെറ്റ് ചെയ്യുക
+            # വിജയം വരുമ്പോൾ പുനർസജ്ജമാക്കുക
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # ലെവൽ 1: മെമ്മറി കാഷെ
+        # ലെവൽ 1: മെമ്മറി കാഷ്
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # ലെവൽ 2: റെഡിസ് കാഷെ
+        # ലെവൽ 2: റെഡിസ് കാഷ്
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # മെമ്മറി കാഷിലേക്ക് പ്രോത്സാഹിപ്പിക്കുക
+                    # മെമ്മറി കാഷിലേക്കു പ്രോത്സാഹിപ്പിക്കുക
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # LRU എവിക്ഷൻ നടപ്പിലാക്കുക
+        # LRU വിലിക്കലൊടുക്കൽ നടപ്പാക്കുക
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# കാഷെ കീ ജനറേഷൻ
+# കാഷ് കി ജെനറേഷൻ
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,9 +304,9 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 സുരക്ഷാ ഹാർഡനിംഗ്
+## 🔒 സുരക്ഷാ കടുപ്പം
 
-### ഓതന്റിക്കേഷൻ ആൻഡ് ഓതറൈസേഷൻ
+### ഓതന്റിക്കേഷൻ‌വും ഓതറൈസേഷനും
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # പ്രാമാണീകരണം എടുക്കുകയും സാധുത പരിശോധിക്കുകയും ചെയ്യുക
+        # प्रमाणीकरण निकालेनु डॉलर्यान്ന സച്ചത്വം പരിശോദിക്കുക
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # ടോക്കൺ സാധുത പരിശോധിക്കുക
+        # ടോക്കൺ സ്ഥിരീകരിക്കുക
         user_context = await self._validate_token(auth_token)
         
-        # നിരക്ക് പരിധി പരിശോധിക്കുക
+        # നിരക്ക് പരിമിതി പരിശോധിക്കുക
         await self._check_rate_limit(user_context["user_id"])
         
-        # RLS സാന്ദർഭ്യം സാധുത പരിശോധിക്കുക
+        # RLS സാഹചര്യത്തിന്റെ സാധുത പരിശോധന
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # കീ വാൾട്ടിൽ നിന്നോ കാഷെയിൽ നിന്നോ പബ്ലിക് കീ നേടുക
+            # കീ വാൾട്ട് അല്ലെങ്കിൽ ക്യാഷിൽ നിന്ന് പബ്ലിക് കീ ലഭിക്കുക
             public_key = await self._get_public_key()
             
-            # ടോക്കൺ ഡികോഡ് ചെയ്ത് സാധുത പരിശോധിക്കുക
+            # ടോക്കൺ ഡീകോഡ് ചെയ്ത് സാധുദുനാക്കുക
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # സൂപ്പർ അഡ്മിനുകൾക്ക് ഏതെങ്കിലും സാന്ദർഭ്യത്തിൽ പ്രവേശനം ലഭിക്കും
+        # സൂപ്പർ അഡ്മിൻമാർ ഏതെങ്കിലും സാഹചര്യത്തിലേക്കും പ്രവേശിക്കാം
         if "super_admin" in user_context["roles"]:
             return True
         
-        # സ്റ്റോർ മാനേജർമാർക്ക് അവരുടെ സ്വന്തം സ്റ്റോറിൽ മാത്രമേ പ്രവേശനം ലഭിക്കൂ
+        # സ്റ്റോർ മാനേജർമാർക്ക് അവരുടെ സ്വന്തം സ്റ്റോറിലേക്കാണ് പ്രവേശനം
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # പ്രാദേശിക മാനേജർമാർക്ക് പല സ്റ്റോറുകളിലും പ്രവേശനം ലഭിക്കും
+        # റീജിയണൽ മാനേജർമാർക്ക് ഒരു കൂടുതൽ സ്റ്റോറുകൾ പ്രവേശനം ഉണ്ട്
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# ഇൻപുട്ട് സാധുതയും ശുദ്ധീകരണവും
+# ഇൻപുട്ട് സ്ഥിരീകരണവും ശുദ്ധീകരണവും
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # നിരോധിത മാതൃകകൾ
+        # നിരോധിച്ച പാറ്റേണുകൾ
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # SELECT പ്രസ്താവനകൾ മാത്രമേ അനുവദിക്കൂ
+        # SELECT വാക്കുകൾ മാത്രം അനുവദിക്കുക
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # അക്ഷരസംഖ്യ, അണ്ടർസ്കോർ, ഡോട്ട് മാത്രമേ അനുവദിക്കൂ
+        # അക്ഷരസംഖ്യാകയായ, അണ്ടർസ്കോർ, ഡോട്ട് മാത്രമേ അനുവദിക്കുകയുള്ളൂ
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # അനുവദിച്ച പട്ടികകളെതിരെ സാധുത പരിശോധിക്കുക
+        # അനുവദിച്ച പട്ടികകൾക്ക് എതിരെ സ്ഥിരീകരിക്കുക
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # പ്രൊഡക്ഷനിൽ, Azure കീ വോൾട്ടിൽ നിന്ന് നേടുക
+        # പ്രൊഡക്ഷനിൽ, ആസ്യൂർ കീ വോൾട്ടിൽ നിന്ന് ലഭിക്കുക
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # ഡെവലപ്പ്മെന്റിനുള്ള ഫാൾബാക്ക് (പ്രൊഡക്ഷനിനല്ല!)
+        # വികസനത്തിനായുള്ള ഫാൾബാക്ക് (പ്രൊഡക്ഷനായി അല്ല!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # ആവർത്തനങ്ങൾ
+            100000  # ഇറ്ററേഷനുകൾ
         ).hex()
         
         return password_hash, salt
@@ -524,7 +524,7 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 പ്രൊഡക്ഷൻ ഡിപ്ലോയ്മെന്റ് മാർഗ്ഗനിർദ്ദേശങ്ങൾ
+## 📊 ഉത്പാദന വിന്യാസ മാർഗ്ഗനിർദ്ദേശങ്ങൾ
 
 ### ഇൻഫ്രാസ്ട്രക്ചർ ആസ് കോഡ്
 
@@ -607,7 +607,7 @@ stages:
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
 
-### കണ്ടെയ്‌നർ ഓപ്റ്റിമൈസേഷൻ
+### കണ്ടെയ്നർ ഒപ്റ്റിമൈസേഷൻ
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -663,10 +663,10 @@ EXPOSE 8000
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
 
-### പരിസ്ഥിതി കോൺഫിഗറേഷൻ
+### പരിതസ്ഥിതി കോൺഫിഗറേഷൻ
 
 ```python
-# ഉത്പാദന കോൺഫിഗറേഷൻ മാനേജ്മെന്റ്
+# പ്രൊഡക്ഷൻ കോൺഫിഗറേഷൻ മാനേജ്മെന്റ്
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,26 +715,26 @@ class ProductionConfig:
             ]
         )
         
-        # മൂന്നാംകക്ഷി ലോഗറുകൾ WARNING ആയി സജ്ജമാക്കുക
+        # മൂന്നാംകക്ഷി ലോഗറുകൾ WARNING ആയി സെറ്റ് ചെയ്യുക
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # ഡീബഗ് മോഡ് അപ്രാപ്തമാക്കുക
+        # ഡീബഗ് മോഡ് നിർത്തുക
         os.environ['DEBUG'] = 'False'
         
-        # സുരക്ഷിത ഹെഡറുകൾ സജ്ജമാക്കുക
+        # സേഫ് ഹെഡറുകൾ സെറ്റ് ചെയ്യുക
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
 
-## 💰 ചെലവ് ഓപ്റ്റിമൈസേഷൻ
+## 💰 ചെലവ് ഒപ്റ്റിമൈസേഷൻ
 
-### റിസോഴ്‌സ് മാനേജ്മെന്റ്
+### റിസോഴ്‌സ് മാനേജ്മന്റ്
 
 ```python
 class CostOptimizer:
@@ -751,7 +751,7 @@ class CostOptimizer:
         
         if current_load < 0.3:  # കുറഞ്ഞ ലോഡ്
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # മധ്യസ്ഥ ലോഡ്
+        elif current_load < 0.7:  # മദ്ധ്യമില്ലാത്ത ലോഡ്
             target_pool_size = max(5, int(current_load * 15))
         else:  # ഉയർന്ന ലോഡ്
             target_pool_size = min(20, int(current_load * 25))
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # ക്യാഷ് ചെലവേറിയ പ്രവർത്തനങ്ങൾ
+        # കാഷെ ചെലവേറിയ പ്രവർത്തനങ്ങൾ
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# ഓട്ടോ-സ്കെയിലിംഗ് കോൺഫിഗറേഷൻ
+# ഓട്ടോ-സ്കെയ്ലിംഗ് കോൺഫിഗറേഷൻ
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU അടിസ്ഥാനമാക്കിയുള്ള സ്കെയിലിംഗ്
+        # CPU അടിസ്ഥാനത്തിലുള്ള സ്കെയ്ലിംഗ്
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # മെമ്മറി അടിസ്ഥാനമാക്കിയുള്ള സ്കെയിലിംഗ്
+        # മെമ്മറി അടിസ്ഥാനത്തിലുള്ള സ്കെയ്ലിംഗ്
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # അഭ്യർത്ഥന ക്യൂ സ്കെയിലിംഗ്
+        # അഭ്യർത്ഥന ക്യൂ സ്കെയ്ലിംഗ്
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -811,9 +811,9 @@ class AutoScaler:
         return "no_action"
 ```
 
-## 🔧 പരിപാലനവും പ്രവർത്തനവും
+## 🔧 പരിപാലനവും പ്രവർത്തനങ്ങളും
 
-### ഹെൽത്ത് നിരീക്ഷണം
+### ആരോഗ്യമാന നഗണനം
 
 ```python
 class OperationalHealth:
@@ -844,11 +844,11 @@ class OperationalHealth:
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # അപ്ലിക്കേഷൻ മെട്രിക്‌സ്
+        # ആപ്ലിക്കേഷൻ മാനദണ്ഡങ്ങൾ
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # മൊത്തം നില നിർണ്ണയിക്കുക
+        # മൊത്തത്തിലുള്ള നില നിർണ്ണയം
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # അലർട്ടുകൾ പ്രേരിപ്പിക്കുക
+            # എതിരെല്ലുകൾ പ്രേരിപ്പിക്കുക
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # അടിസ്ഥാന കണക്ടിവിറ്റി
+                # അടിസ്ഥാന ബന്ധം
                 await conn.fetchval("SELECT 1")
                 
-                # മന്ദഗതിയിലുള്ള ക്വെറികൾ പരിശോധിക്കുക
+                # മന്ദഗതിയിലുള്ള ക്വstickyറി പരിശോധിക്കുക
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # കണക്ഷൻ എണ്ണം പരിശോധിക്കുക
+                # ബന്ധപ്പെട്ട എണ്ണം പരിശോധിക്കുക
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# സ്വയം പ്രവർത്തിക്കുന്ന ബാക്കപ്പ് மற்றும் പുനരുദ്ധാരണം
+# സ്വയമേധയാ ബാക്കപ്പ് അതിന്റെ പുനർപ്രാപ്തി
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # അസ്യൂർ ബ്ലോബ് സ്റ്റോറേജിലേക്ക് അപ്‌ലോഡ് ചെയ്യുക
+        # അജ്യൂർ ബ്ലോബ് സ്ററടിേജ് ലേക്ക് അപ്‌ലോഡ് ചെയ്യുക
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,12 +932,12 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # 2 AM UTC-യിൽ ദൈനംദിന പൂർണ്ണ ബാക്കപ്പ്
+        # ദിവസേന 2 AM UTC-യിൽ പൂർണ്ണ ബാക്കപ്പ്
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # മണിക്കൂറിൽ ഒരു തവണ ഇൻക്രീമെന്റൽ ബാക്കപ്പുകൾ
+        # മണിക്കൂറിന്_INCREMENTAL ബാക്കപ്പുകൾ
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
@@ -945,7 +945,7 @@ class BackupManager:
 
 ## 🌍 കമ്മ്യൂണിറ്റി സംഭാവനകൾ
 
-### ഓപ്പൺ സോഴ്‌സ് മികച്ച പ്രാക്ടീസുകൾ
+### ഓപ്പൺ സോഴ്സ് മികച്ച പ്രാക്ടീസുകൾ
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### കമ്മ്യൂണിറ്റി ഏംഗേജ്‌മെന്റ്
+### കമ്മ്യൂണിറ്റി പങ്കാളിത്തം
 
 ```python
 class CommunityContributor:
@@ -1025,81 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # യഥാർത്ഥ പരിശോധനകൾ നടപ്പിലാക്കും
+            "follows_conventions": True,  # യഥാർത്ഥ പരിശോധനകൾ നടപ്പാക്കും
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 പ്രധാന പഠനങ്ങൾ
+## 🎯 പ്രധാന കണ്ടുസൂത്രങ്ങൾ
 
-ഈ സമഗ്ര പഠന പാത പൂർത്തിയാക്കിയ ശേഷം, നിങ്ങൾക്ക് കൈവരിക്കേണ്ടത്:
+ഈ സമഗ്ര പഠനപഥം പൂർത്തിയാക്കിയ ശേഷം, നിങ്ങൾ കൈവരിച്ചിരിക്കണം:
 
-✅ **പ്രകടന ഓപ്റ്റിമൈസേഷൻ**: ഡാറ്റാബേസ് ട്യൂണിംഗ്, അസിങ്ക് പാറ്റേണുകൾ, കാഷിംഗ് തന്ത്രങ്ങൾ  
-✅ **സുരക്ഷാ ഹാർഡനിംഗ്**: ഓതന്റിക്കേഷൻ, ഓതറൈസേഷൻ, ഡാറ്റ സംരക്ഷണം  
-✅ **പ്രൊഡക്ഷൻ ഡിപ്ലോയ്മെന്റ്**: ഇൻഫ്രാസ്ട്രക്ചർ ആസ് കോഡ്, കണ്ടെയ്‌നർ ഓപ്റ്റിമൈസേഷൻ  
-✅ **ചെലവ് മാനേജ്മെന്റ്**: റിസോഴ്‌സ് ഓപ്റ്റിമൈസേഷൻ, ബുദ്ധിമുട്ടുള്ള സ്കെയിലിംഗ്  
-✅ **പ്രവർത്തന മികവ്**: നിരീക്ഷണം, പരിപാലനം, ഓട്ടോമേഷൻ  
-✅ **കമ്മ്യൂണിറ്റി ഏംഗേജ്‌മെന്റ്**: MCP ഇക്കോസിസ്റ്റത്തിലേക്ക് സംഭാവന നൽകൽ  
+✅ **പ്രകടന ഒപ്റ്റിമൈസേഷൻ**: ഡാറ്റാബേസ് ട്യൂണിംഗ്, അസിങ്ക് മാതൃകകൾ, കാഷിംഗ് തന്ത്രങ്ങൾ  
+✅ **സുരക്ഷാ കടുപ്പം**: ഓതന്റിക്കേഷൻ, ഓതറൈസേഷൻ, ഡാറ്റ സംരക്ഷണം  
+✅ **ഉത്പാദന വിന്യാസം**: ഇൻഫ്രാസ്ട്രക്ചർ ആസ് കോഡ്, കണ്ടെയ്‌നർ ഒപ്റ്റിമൈസേഷൻ  
+✅ **ചെലവ് മാനേജ്മെന്റ്**: റിസോഴ്‌സ് ഒപ്റ്റിമൈസേഷൻ, ബുദ്ധിമുട്ടുള്ള സ്കെയ്ലിംഗ്  
+✅ **പ്രവർത്തന വെല്ലുവിളികൾ**: മോണിറ്ററിംഗ്, പരിപാലനം, ഓട്ടോമേഷൻ  
+✅ **കമ്മ്യൂണിറ്റി പങ്കാളിത്തം**: MCP പരിസ്ഥിതിക്ക് സംഭാവന ചെയ്യുക  
 
-## 🏆 സർട്ടിഫിക്കേഷൻയും അടുത്ത ഘട്ടങ്ങളും
+## 🏆 സർട്ടിഫിക്കേഷൻ‌യും അടുത്ത ഘട്ടങ്ങളും
 
-### പ്രായോഗിക മൂല്യനിർണ്ണയം
+### പ്രായോഗിക മൂല്യാമാനം
 
-നിങ്ങളുടെ പ്രാവീണ്യം തെളിയിക്കാൻ ഈ അന്തിമ പ്രോജക്ട് പൂർത്തിയാക്കുക:
+നിങ്ങളുടെ പ്രാവീണ്യം തെളിയിക്കാൻ ഈ അന്തിമ പദ്ധതി പൂർത്തിയാക്കുക:
 
-**പ്രൊഡക്ഷൻ-റെഡി MCP സെർവർ നിർമ്മിക്കുക** ഇതിൽ ഉൾപ്പെടുന്നു:  
-- [ ] RLS ഉപയോഗിച്ചുള്ള മൾട്ടി-ടെനന്റ് റീട്ടെയിൽ അനലിറ്റിക്സ്  
-- [ ] Azure OpenAI ഉപയോഗിച്ചുള്ള സെമാന്റിക് സെർച്ച്  
-- [ ] സമഗ്രമായ സുരക്ഷാ നടപ്പാക്കൽ  
-- [ ] Azure-യിൽ പ്രൊഡക്ഷൻ ഡിപ്ലോയ്മെന്റ്  
-- [ ] നിരീക്ഷണവും അലർട്ടിംഗും സജ്ജീകരിക്കൽ  
-- [ ] ഡോക്യുമെന്റേഷൻ, ടെസ്റ്റിംഗ്  
+**ഉത്പാദന-സജ്ജ MCP സർവർ നിർമ്മിക്കുക**, ഇതിൽ ഉൾപ്പെടുന്നു:  
+- [ ] RLS ഉള്ള മൾട്ടി-ടെനന്റ് റീട്ടെയിൽ അനലിറ്റിക്സ്  
+- [ ] Azure OpenAI യുമായി സെമാന്റിക് സെർച്ച്  
+- [ ] പൂർണ്ണമായ സുരക്ഷാ നടപ്പാക്കൽ  
+- [ ] ഉത്പാദന വിന്യാസം Azure ൽ  
+- [ ] മോണിറ്ററിംഗ് ആന്റ് അലേർട്ടിംഗ് സെറ്റ് അപ്  
+- [ ] ഡോക്യുമെൻടേഷൻ ആൻഡ് ടെസ്റ്റിംഗ്  
 
-### ആധുനിക പഠന പാതകൾ
+### പുരോഗമന പഠനപഥങ്ങൾ
 
-നിങ്ങളുടെ MCP യാത്ര തുടരുക:
+നിങ്ങളുടെ MCP യാത്ര തുടരൂ:
 
-- **MCP ആർക്കിടെക്ചർ പാറ്റേണുകൾ**: ആധുനിക സെർവർ ആർക്കിടെക്ചറുകൾ  
-- **മൾട്ടി-മോഡൽ ഇന്റഗ്രേഷൻ**: വ്യത്യസ്ത AI മോഡലുകൾ സംയോജിപ്പിക്കൽ  
-- **എന്റർപ്രൈസ് സ്കെയിൽ**: വലിയ തോതിലുള്ള MCP ഡിപ്ലോയ്മെന്റുകൾ  
-- **കസ്റ്റം ടൂൾ ഡെവലപ്പ്മെന്റ്**: പ്രത്യേക MCP ടൂളുകൾ നിർമ്മിക്കൽ  
-- **MCP ഇക്കോസിസ്റ്റം**: വ്യാപക കമ്മ്യൂണിറ്റിക്ക് സംഭാവന നൽകൽ  
+- **MCP ആർക്കിടെക്ചർ മാതൃകകൾ**: ഉന്നത സെർവർ ആർക്കിടെക്ചറുകൾ  
+- **മൾട്ടി-മോഡൽ സംയോജനം**: വ്യത്യസ്ത AI മോഡലുകൾ സംയോജിപ്പിക്കൽ  
+- **എൻട്രപ്രൈസ് സ്കെയിൽ**: വലിയ തോതിലുള്ള MCP വിന്യമാനം  
+- **കസ്റ്റം ടൂൾ ഡെവലപ്മെന്റ്**: പ്രത്യേക MCP ടൂളുകൾ നിർമ്മിക്കൽ  
+- **MCP പരിസ്ഥിതി**: വിപുലമായ കമ്മ്യൂണിറ്റിക്ക് സംഭാവന ചെയ്യുക  
 
 ### കമ്മ്യൂണിറ്റി അംഗീകാരം
 
-നിങ്ങളുടെ നേട്ടം പങ്കുവെക്കുക:  
-- **GitHub പോർട്ട്ഫോളിയോ**: നിങ്ങളുടെ നടപ്പാക്കൽ പ്രദർശിപ്പിക്കുക  
+നിങ്ങളുടെ നേട്ടം പങ്കിടുക:  
+- **GitHub പോർട്ട്ഫോളിയോ**: നിങ്ങളുടെ ഇമ്പ്ലിമെന്റേഷൻ പ്രദർശിപ്പിക്കുക  
 - **കമ്മ്യൂണിറ്റി സംഭാവനകൾ**: മെച്ചപ്പെടുത്തലുകൾ അല്ലെങ്കിൽ ഉദാഹരണങ്ങൾ സമർപ്പിക്കുക  
-- **പ്രസംഗ അവസരങ്ങൾ**: മീറ്റപ്പുകളിലും സമ്മേളനങ്ങളിലും അവതരിപ്പിക്കുക  
-- **മെന്ററിംഗ്**: മറ്റ് ഡെവലപ്പർമാർക്ക് MCP പഠിക്കാൻ സഹായിക്കുക  
+- **സംഭാഷണ അവസരങ്ങൾ**: മീറ്റപ്പുകളിലും കോൺഫറൻസുകളിലും അവതരണം  
+- **മേൻററിംഗ്**: മറ്റ് ഡെവലപ്പർമാർക്ക് MCP പഠനത്തിൽ സഹായിക്കുക  
 
-## 📚 അധിക സ്രോതസുകൾ
+## 📚 അധിക വിഭവങ്ങൾ
 
-### ആധുനിക വിഷയങ്ങൾ
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - ഡാറ്റാബേസ് ഓപ്റ്റിമൈസേഷൻ  
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - പ്രൊഡക്ഷൻ ഡിപ്ലോയ്മെന്റ്  
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - അസിങ്ക് പ്രോഗ്രാമിംഗ്  
+### ഡെവലപ്ഡ് വിഷയം  
+- [PostgreSQL പ്രവർത്തന ട്യൂണിംഗ്](https://www.postgresql.org/docs/current/performance-tips.html) - ഡാറ്റാബേസ് ഒപ്റ്റിമൈസേഷൻ  
+- [Azure Container Apps മികച്ച പ്രവൃത്തികൾ](https://docs.microsoft.com/azure/container-apps/overview) - ഉത്പാദന വിന്യാസം  
+- [Python Async മികച്ച പ്രാക്ടീസുകൾ](https://docs.python.org/3/library/asyncio-dev.html) - അസിങ്ക് പ്രോഗ്രാമിങ്  
 
-### സുരക്ഷാ സ്രോതസുകൾ
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - സുരക്ഷാ ദുർബലതകൾ  
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - ക്ലൗഡ് സുരക്ഷ  
-- [Python Security Guidelines](https://python.org/dev/security/) - സുരക്ഷിത കോഡിംഗ്  
+### സുരക്ഷാ വിഭവങ്ങൾ  
+- [OWASP ടോപ്പ് 10](https://owasp.org/www-project-top-ten/) - സുരക്ഷാ പൊട്ടുന്ന വീക്കം  
+- [Azure Security മികച്ച പ്രാക്ടീസുകൾ](https://docs.microsoft.com/azure/security/) - ക്ലൗഡ് സുരക്ഷ  
+- [Python സുരക്ഷാ മാർഗ്ഗനിർദ്ദേശങ്ങൾ](https://python.org/dev/security/) - സുരക്ഷിത കോഡിങ്  
 
-### കമ്മ്യൂണിറ്റി
+### കമ്മ്യൂണിറ്റി  
 - [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - ലൈവ് ചർച്ചകൾ  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - ചോദ്യോത്തരങ്ങളും പങ്കുവെക്കലും  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - ചോദ്യോത്തരങ്ങൾ, പങ്കുവെക്കൽ  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - സാങ്കേതിക ചോദ്യങ്ങൾ  
 
 ---
 
-**🎉 അഭിനന്ദനങ്ങൾ!** നിങ്ങൾ MCP ഡാറ്റാബേസ് ഇന്റഗ്രേഷൻ സമഗ്ര പഠന പാത പൂർത്തിയാക്കി. യാഥാർത്ഥ്യ ഡാറ്റാ സിസ്റ്റങ്ങളുമായി AI അസിസ്റ്റന്റുകളെ ബന്ധിപ്പിക്കുന്ന പ്രൊഡക്ഷൻ-റെഡി MCP സെർവർ നിർമ്മിക്കാൻ നിങ്ങൾക്ക് അറിവും കഴിവും ലഭിച്ചു.
+**🎉 അഭിനന്ദനങ്ങൾ!** നിങ്ങൾ സമഗ്രമായ MCP ഡാറ്റാബേസ് ഇന്റഗ്രേഷൻ പഠനപഥം പൂർത്തിയാക്കി. നിങ്ങൾക്ക് ലഭ്യമാണ് യാഥാർഥ്യത്തിലേക്കുള്ള AI അസിസ്റ്റന്റുകളെ യഥാർത്ഥ ഡാറ്റാ സിസ്റ്റങ്ങളുമായി ബന്ധിപ്പിക്കുന്ന ഉത്പാദന-സജ്ജ MCP സെർവറുകൾ നിർമ്മിക്കാൻ ആവശ്യമായ അറിവുകളും കഴിവുകളും.
 
-**സംഭാവന നൽകാൻ തയ്യാറാണോ?** ഞങ്ങളുടെ കമ്മ്യൂണിറ്റിയിൽ ചേരുക, നിങ്ങളുടെ അനുഭവങ്ങൾ പങ്കുവെച്ച്, കോഡ് മെച്ചപ്പെടുത്തലുകൾ സംഭാവന ചെയ്ത്, അധിക പഠന സ്രോതസുകൾ സൃഷ്ടിച്ച് MCP പഠനത്തിൽ മറ്റുള്ളവരെ സഹായിക്കുക.
+**സമ്മർപ്പിക്കാൻ തയാറാണ്?** നിങ്ങളുടെ അനുഭവങ്ങൾ പങ്കുവെച്ച്, കോഡ് മെച്ചപ്പെടുത്തലുകൾ നടത്തി, അഥവാ അധിക പഠന വിഭവങ്ങൾ രചിച്ച് MCP പഠനത്തിൽ മറ്റുള്ളവരെ സഹായിക്കാൻ നമ്മുടെ കമ്മ്യൂണിറ്റിയിൽ ചേരൂ.
+
+**അടുത്തത്**: [ടൂളിങ്ങ്](../../12-tooling/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**അസൂയാ**:  
-ഈ രേഖ AI വിവർത്തന സേവനം [Co-op Translator](https://github.com/Azure/co-op-translator) ഉപയോഗിച്ച് വിവർത്തനം ചെയ്തതാണ്. നാം കൃത്യതയ്ക്ക് ശ്രമിച്ചെങ്കിലും, സ്വയം പ്രവർത്തിക്കുന്ന വിവർത്തനങ്ങളിൽ പിശകുകൾ അല്ലെങ്കിൽ തെറ്റുകൾ ഉണ്ടാകാമെന്ന് ദയവായി ശ്രദ്ധിക്കുക. അതിന്റെ മാതൃഭാഷയിലുള്ള യഥാർത്ഥ രേഖ അധികാരപരമായ ഉറവിടമായി കണക്കാക്കണം. നിർണായക വിവരങ്ങൾക്ക്, പ്രൊഫഷണൽ മനുഷ്യ വിവർത്തനം ശുപാർശ ചെയ്യപ്പെടുന്നു. ഈ വിവർത്തനം ഉപയോഗിക്കുന്നതിൽ നിന്നുണ്ടാകുന്ന ഏതെങ്കിലും തെറ്റിദ്ധാരണകൾക്കോ തെറ്റായ വ്യാഖ്യാനങ്ങൾക്കോ ഞങ്ങൾ ഉത്തരവാദികളല്ല.
+**അറിയിപ്പ്**:
+ഈ രേഖ AI പരിഭാഷാ സേവനം [Co-op Translator](https://github.com/Azure/co-op-translator) ഉപയോഗിച്ച് പരിഭാഷപ്പെടുത്തിയതാണ്. ഞങ്ങൾ കൃത്യതയ്ക്കായി ശ്രമിക്കുന്നുവെങ്കിലും, ഓട്ടോമേറ്റഡ് പരിഭാഷകളിൽ പിഴവുകൾ അല്ലെങ്കിൽ തെറ്റായ വിവരങ്ങൾ ഉണ്ടാകാൻ സാധ്യതയുണ്ട്. അതിന്റെ സ്വാഭാവിക ഭാഷയിലുള്ള അസൽ രേഖയാണ് പ്രാമാണികമായ ഉറവിടമായി പരിഗണിക്കേണ്ടത്. നിർണായകമായ വിവരങ്ങൾക്ക്, പ്രൊഫഷണൽ മനുഷ്യ പരിഭാഷ ശുപാർശ ചെയ്യുന്നു. ഈ പരിഭാഷ ഉപയോഗിച്ച് ഉണ്ടാകുന്ന തെറ്റിദ്ധാരണകൾ അല്ലെങ്കിൽ തെറ്റായ വ്യാഖ്യാനങ്ങൾക്കായി ഞങ്ങൾ ഉത്തരവാദികളല്ല.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,56 +1,56 @@
 # 最佳實踐與優化
 
-## 🎯 本實驗室涵蓋內容
+## 🎯 本實驗涵蓋內容
 
-這個綜合實驗室整合了最佳實踐、優化技術以及生產環境指南，幫助您建立穩健、可擴展且安全的 MCP 伺服器，並與資料庫進行整合。您將從實際經驗和業界標準中學習，確保您的實作達到生產環境的要求。
+本頂石實驗整合了建構穩健、可擴展且安全的 MCP 伺服器與資料庫整合的最佳實踐、優化技術及生產指南。你將從實務經驗和業界標準中學習，確保你的實作達到可用於生產的標準。
 
 ## 概述
 
-建立成功的 MCP 伺服器不僅僅是讓程式碼能夠運行。本實驗室涵蓋了將概念驗證實作與生產環境系統區分開來的關鍵實踐，這些系統能夠擴展、可靠運行並維持安全標準。
+成功建置 MCP 伺服器不僅僅是讓程式碼運作而已。本實驗涵蓋區分概念驗證實作與可擴展、效能可靠並符合安全標準的生產系統的關鍵做法。
 
-這些最佳實踐源自於實際部署、社群回饋以及企業實作中的經驗教訓。
+這些最佳實踐來自實際部署、社群回饋及企業實作的經驗教訓。
 
 ## 學習目標
 
-完成本實驗室後，您將能夠：
+完成本實驗後，你將能夠：
 
-- **應用** MCP 伺服器和資料庫的性能優化技術  
-- **實施**全面的安全加固措施  
-- **設計**適用於生產環境的可擴展架構模式  
-- **建立**監控、維護和操作程序  
-- **優化**成本，同時保持性能和可靠性  
-- **貢獻**於 MCP 社群和生態系統  
+- <strong>應用</strong> MCP 伺服器與資料庫效能優化技術  
+- <strong>實作</strong> 全面性安全強化措施  
+- <strong>設計</strong> 適用於生產環境的可擴展架構模式  
+- <strong>建立</strong> 監控、維護與營運流程  
+- <strong>優化</strong> 成本同時維持效能與可靠性  
+- <strong>貢獻</strong> MCP 社群與生態系  
 
-## 🚀 性能優化
+## 🚀 效能優化
 
-### 資料庫性能
+### 資料庫效能
 
 #### 連線池優化
 
 ```python
-# Optimized connection pool configuration
+# 優化的連接池配置
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # 大小配置
+    "min_size": max(2, cpu_count()),           # 至少2個，根據CPU調整
+    "max_size": min(20, cpu_count() * 4),     # 限制在合理最大值
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # 定時配置
+    "max_inactive_connection_lifetime": 300,   # 5分鐘
+    "command_timeout": 30,                     # 30秒
+    "max_queries": 50000,                      # 旋轉連接
     
-    # PostgreSQL settings
+    # PostgreSQL 設定
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # 為一致性而禁用
+        "work_mem": "8MB",                     # 對查詢進行優化
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # 僅記錄修改
+        "log_min_duration_statement": "1s",   # 記錄慢查詢
     }
 }
 ```
-  
+
 #### 查詢優化模式
 
 ```python
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # 秒
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # 優先檢查快取
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # 執行並監控
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # 優化查詢執行
+                await conn.execute("SET enable_seqscan = off")  # 優先使用索引
+                await conn.execute("SET work_mem = '16MB'")     # 為此查詢分配更多記憶體
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # 紀錄慢查詢
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # 快取成功結果
+                if cache_key and len(result) < 1000:  # 不快取大型結果
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,24 +110,23 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# 索引建議
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # 核心業務索引
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # 分析索引
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # 向量搜尋優化
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
-### 應用性能
+### 應用程式效能
 
 #### 非同步程式設計最佳實踐
 
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # 以批次處理以避免系統過載
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # 批次之間短暫延遲以防止資源耗盡
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# 斷路器實作
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # 關閉、開啟、半開啟
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # 成功時重設
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +214,6 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
 ### 快取策略
 
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # 第 1 級：記憶體快取
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # 第 2 級：Redis 快取
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # 升級至記憶體快取
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # 實施 LRU 淘汰策略
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# 快取鍵生成
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,9 +303,8 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
-## 🔒 安全加固
+## 🔒 安全強化
 
 ### 身份驗證與授權
 
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # 擷取及驗證身份認證
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # 驗證令牌
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # 檢查速率限制
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # 驗證 RLS（列級安全）上下文
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # 從金鑰保管庫或快取獲取公鑰
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # 解碼及驗證令牌
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # 超級管理員可存取任何上下文
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # 商店管理員只能存取其自身商店
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # 區域管理員可存取多個商店
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# 輸入驗證及淨化
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # 禁止的模式
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # 只允許 SELECT 語句
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,17 +439,16 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # 只允許字母數字、底線及點號
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # 驗證允許使用的資料表
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
 ### 資料保護
 
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # 在生產環境中，從 Azure Key Vault 獲取
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # 開發環境的備用方案（非生產用途！）
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # 迭代次數
         ).hex()
         
         return password_hash, salt
@@ -527,11 +523,10 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
 ## 📊 生產部署指南
 
-### 基礎設施即程式碼
+### 基礎架構即程式碼
 
 ```yaml
 # azure-pipelines.yml
@@ -611,7 +606,6 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
 ### 容器優化
 
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
-### 環境配置
+### 環境設定
 
 ```python
-# Production configuration management
+# 生產配置管理
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,23 +715,22 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # 將第三方記錄器設定為警告級別
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # 停用除錯模式
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # 設定安全標頭
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
 ## 💰 成本優化
 
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # 低負載
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # 中等負載
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # 高負載
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # 快取高成本操作
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# 自動擴展配置
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # 基於 CPU 的擴展
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # 基於記憶體的擴展
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # 請求隊列擴展
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,9 +810,8 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
-## 🔧 維護與操作
+## 🔧 維護與營運
 
 ### 健康監控
 
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # 數據庫健康狀況
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # 外部服務健康狀況
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # 系統資源
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # 應用程式指標
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # 確定整體狀態
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # 觸發警報
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # 基本連接性
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # 檢查慢查詢
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # 檢查連接數量
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# 自動備份與恢復
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # 上傳至 Azure Blob 儲存體
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # 每日 UTC 2 時完整備份
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # 每小時增量備份
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
 ## 🌍 社群貢獻
 
-### 開源最佳實踐
+### 開放原始碼最佳實踐
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,7 +984,6 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
 ### 社群參與
 
@@ -1036,80 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # 會實施實際檢查
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 關鍵要點
+## 🎯 主要重點
 
-完成這條綜合學習路徑後，您應該已掌握：
+完成此綜合學習路徑後，你應該已掌握：
 
-✅ **性能優化**：資料庫調整、非同步模式和快取策略  
-✅ **安全加固**：身份驗證、授權和資料保護  
-✅ **生產部署**：基礎設施即程式碼和容器優化  
-✅ **成本管理**：資源優化和智能擴展  
-✅ **操作卓越**：監控、維護和自動化  
-✅ **社群參與**：為 MCP 生態系統做出貢獻  
+✅ <strong>效能優化</strong>：資料庫調校、非同步模式與快取策略  
+✅ <strong>安全強化</strong>：身份驗證、授權與資料保護  
+✅ <strong>生產部署</strong>：基礎架構即程式碼與容器優化  
+✅ <strong>成本管理</strong>：資源優化與智慧擴展  
+✅ <strong>營運卓越</strong>：監控、維護與自動化  
+✅ <strong>社群參與</strong>：貢獻 MCP 生態系  
 
 ## 🏆 認證與下一步
 
 ### 實作評估
 
-完成這個最終專案以展示您的掌握能力：
+完成此最終專案以展現你的掌握能力：
 
-**建立一個生產就緒的 MCP 伺服器**，包括：  
-- [ ] 支援多租戶的零售分析，並使用 RLS  
-- [ ] 使用 Azure OpenAI 進行語義搜索  
-- [ ] 全面的安全實施  
-- [ ] 在 Azure 上進行生產部署  
-- [ ] 設置監控和警報系統  
-- [ ] 文件撰寫與測試  
+**建置生產就緒的 MCP 伺服器**，內容包括：
+- [ ] 支援多租戶零售分析及 RLS  
+- [ ] 結合 Azure OpenAI 的語意搜尋  
+- [ ] 全面安全實作  
+- [ ] 部署至 Azure 生產環境  
+- [ ] 監控與警示設置  
+- [ ] 文件與測試  
 
 ### 進階學習路徑
 
-繼續您的 MCP 旅程：
+繼續你的 MCP 之旅：
 
 - **MCP 架構模式**：進階伺服器架構  
-- **多模型整合**：結合不同的 AI 模型  
-- **企業規模**：大規模 MCP 部署  
-- **自訂工具開發**：建立專業化的 MCP 工具  
-- **MCP 生態系統**：為更廣泛的社群做出貢獻  
+- <strong>多模型整合</strong>：結合不同 AI 模型  
+- <strong>企業規模</strong>：大規模 MCP 部署  
+- <strong>自訂工具開發</strong>：打造專用 MCP 工具  
+- **MCP 生態系**：貢獻更廣泛社群  
 
 ### 社群認可
 
-分享您的成就：  
-- **GitHub 作品集**：展示您的實作成果  
-- **社群貢獻**：提交改進或範例  
-- **演講機會**：在聚會或會議上進行展示  
-- **指導**：幫助其他開發者學習 MCP  
+分享你的成果：
+- **GitHub 作品集**：展示你的實作  
+- <strong>社群貢獻</strong>：提交改進或範例  
+- <strong>演講機會</strong>：於聚會或會議發表  
+- <strong>指導輔導</strong>：協助其他開發者學習 MCP  
 
-## 📚 其他資源
+## 📚 額外資源
 
-### 進階主題  
-- [PostgreSQL 性能調整](https://www.postgresql.org/docs/current/performance-tips.html) - 資料庫優化  
-- [Azure 容器應用最佳實踐](https://docs.microsoft.com/azure/container-apps/overview) - 生產部署  
+### 進階主題
+- [PostgreSQL 效能調校](https://www.postgresql.org/docs/current/performance-tips.html) - 資料庫優化  
+- [Azure Container Apps 最佳實踐](https://docs.microsoft.com/azure/container-apps/overview) - 生產部署  
 - [Python 非同步最佳實踐](https://docs.python.org/3/library/asyncio-dev.html) - 非同步程式設計  
 
-### 安全資源  
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - 安全漏洞  
+### 安全資源
+- [OWASP 前十名](https://owasp.org/www-project-top-ten/) - 安全漏洞  
 - [Azure 安全最佳實踐](https://docs.microsoft.com/azure/security/) - 雲端安全  
 - [Python 安全指南](https://python.org/dev/security/) - 安全編碼  
 
-### 社群  
-- [MCP 社群 Discord](https://discord.com/invite/ByRwuEEgH4) - 即時討論  
-- [GitHub 討論](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - 問答與分享  
+### 社群
+- [MCP 社群 Discord](https://discord.com/invite/ByRwuEEgH4) - 直播討論  
+- [GitHub 討論區](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - 問答與分享  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - 技術問題  
 
 ---
 
-**🎉 恭喜！** 您已完成 MCP 資料庫整合的綜合學習路徑。您現在擁有建立生產就緒 MCP 伺服器的知識和技能，能夠將 AI 助手與實際資料系統相結合。
+**🎉 恭喜！** 你已完成全面的 MCP 資料庫整合學習路徑。你現在擁有構建生產就緒 MCP 伺服器的知識與技能，能將 AI 助理與現實資料系統串接。
 
-**準備好貢獻了嗎？** 加入我們的社群，透過分享您的經驗、提交程式碼改進或創建額外的學習資源，幫助其他人學習 MCP。
+**準備貢獻了嗎？** 加入我們的社群，透過分享經驗、貢獻程式碼改進或創作更多學習資源，幫助他人學習 MCP。
+
+<strong>下一步</strong>：[工具](../../12-tooling/README.md)
 
 ---
 
-**免責聲明**：  
-本文件已使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們致力於提供準確的翻譯，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於關鍵資訊，建議使用專業人工翻譯。我們對因使用此翻譯而產生的任何誤解或錯誤解釋不承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責聲明**：
+本文件使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們力求準確，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議尋求專業人工翻譯。我們不對因使用本翻譯而引起的任何誤解或曲解承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

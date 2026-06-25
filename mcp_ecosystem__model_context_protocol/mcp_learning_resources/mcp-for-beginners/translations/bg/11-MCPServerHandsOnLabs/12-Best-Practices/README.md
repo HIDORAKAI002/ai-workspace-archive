@@ -1,56 +1,56 @@
 # Най-добри практики и оптимизация
 
-## 🎯 Какво обхваща този лабораторен курс
+## 🎯 Какво покрива този лабораторен курс
 
-Този финален лабораторен курс обединява най-добрите практики, техники за оптимизация и насоки за производство при изграждането на надеждни, мащабируеми и сигурни MCP сървъри с интеграция на база данни. Ще се учите от реалния опит и индустриалните стандарти, за да гарантирате, че вашата имплементация е готова за производство.
+Този заключителен лабораторен курс обединява най-добрите практики, техники за оптимизация и насоки за продуктивно изграждане на здрави, мащабируеми и сигурни MCP сървъри с интеграция на база данни. Ще се учите от реални практически опит и индустриални стандарти, за да гарантирате, че вашата реализация е готова за продукция.
 
-## Обзор
+## Преглед
 
-Изграждането на успешен MCP сървър е повече от просто да накарате кода да работи. Този курс обхваща основните практики, които отличават прототипните имплементации от готовите за производство системи, които могат да се мащабират, да работят надеждно и да поддържат стандартите за сигурност.
+Създаването на успешен MCP сървър е повече от просто работещ код. Този лабораторен курс покрива основните практики, които отличават прототипните реализации от продукционните системи, които могат да се мащабират, да работят надеждно и да поддържат високи стандарти за сигурност.
 
-Тези най-добри практики са извлечени от реални внедрения, обратна връзка от общността и уроци, научени от корпоративни имплементации.
+Тези най-добри практики са извлечени от реални внедрявания, обратна връзка от общността и уроци, научени от корпоративни реализации.
 
-## Цели на обучението
+## Учебни цели
 
-До края на този курс ще можете:
+В края на този курс ще можете да:
 
-- **Да приложите** техники за оптимизация на производителността за MCP сървъри и бази данни
-- **Да внедрите** цялостни мерки за засилване на сигурността
-- **Да проектирате** мащабируеми архитектурни модели за производствени среди
-- **Да установите** процедури за мониторинг, поддръжка и операции
-- **Да оптимизирате** разходите, като същевременно поддържате производителност и надеждност
-- **Да допринесете** за MCP общността и екосистемата
+- **Приложите** техники за оптимизация на производителността за MCP сървъри и бази данни  
+- **Изпълнявате** пълни мерки за затягане на сигурността  
+- **Проектирате** мащабируеми архитектурни модели за продукционни среди  
+- **Установите** процедури за мониторинг, поддръжка и експлоатация  
+- **Оптимизирате** разходи, запазвайки производителността и надеждността  
+- **Допринасяте** за MCP общността и екосистемата  
 
 ## 🚀 Оптимизация на производителността
 
-### Производителност на базата данни
+### Производителност на база данни
 
-#### Оптимизация на пулове за връзка
+#### Оптимизация на връзка
 
 ```python
-# Optimized connection pool configuration
+# Оптимизирана конфигурация на пула за връзки
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Конфигурация на размера
+    "min_size": max(2, cpu_count()),           # Най-малко 2, мащабиране с CPU
+    "max_size": min(20, cpu_count() * 4),     # Ограничение на разумен максимум
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Конфигурация на времето
+    "max_inactive_connection_lifetime": 300,   # 5 минути
+    "command_timeout": 30,                     # 30 секунди
+    "max_queries": 50000,                      # Ротация на връзките
     
-    # PostgreSQL settings
+    # Настройки за PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Деактивиране за консистентност
+        "work_mem": "8MB",                     # Оптимизация за заявки
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Логване само на модификации
+        "log_min_duration_statement": "1s",   # Логване на бавни заявки
     }
 }
 ```
-
+  
 #### Модели за оптимизация на заявки
 
 ```python
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # секунди
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Проверка на кеша първо
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Изпълнение с мониторинг
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Оптимизиране на изпълнението на заявката
+                await conn.execute("SET enable_seqscan = off")  # Предпочитат се индекси
+                await conn.execute("SET work_mem = '16MB'")     # Повече памет за тази заявка
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Запис на бавни заявки
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Кеширане на успешни резултати
+                if cache_key and len(result) < 1000:  # Не кеширайте големи резултати
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,23 +110,23 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Препоръки за индекси
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Основни бизнес индекси
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Индекси за анализи
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Оптимизация на векторно търсене
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-
-### Производителност на приложението
+  
+### Производителност на приложение
 
 #### Най-добри практики за асинхронно програмиране
 
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Обработвайте на партиди, за да избегнете претоварване на системата
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Малка пауза между партидите, за да се предотврати изчерпване на ресурсите
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Имплементация на прекъсвач на веригата
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # ЗАТВОРЕН, ОТВОРЕН, ПОЛУОТВОРЕН
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Ресет при успех
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -214,7 +214,7 @@ class CircuitBreaker:
             
             raise
 ```
-
+  
 ### Стратегии за кеширане
 
 ```python
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Ниво 1: Кеш в паметта
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Ниво 2: Redis кеш
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Промотиране към кеш в паметта
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Имплементиране на LRU изхвърляне
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Генериране на ключ за кеш
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -303,8 +303,8 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-
-## 🔒 Засилване на сигурността
+  
+## 🔒 Затягане на сигурността
 
 ### Автентикация и авторизация
 
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Извличане и валидиране на удостоверяване
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Валидация на токен
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Проверка на ограничението на скоростта
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Валидация на RLS контекст
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Вземане на публичен ключ от Key Vault или кеш
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Декодиране и валидация на токен
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Супер администраторите могат да имат достъп до всеки контекст
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Управителите на магазини могат да имат достъп само до своя собствен магазин
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Регионалните мениджъри могат да имат достъп до множество магазини
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Валидация и санитизация на входа
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Забранени модели
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Разрешени са само SELECT заявки
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,18 +439,18 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Разрешени са само букви и цифри, долна черта и точка
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Валидация по отношение на разрешените таблици
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-
-### Защита на данните
+  
+### Защита на данни
 
 ```python
 from cryptography.fernet import Fernet
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # В продукция, вземете от Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Алтернатива за разработка (не за продукция!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # итерации
         ).hex()
         
         return password_hash, salt
@@ -523,8 +523,8 @@ class DataProtection:
         
         return masked_data
 ```
-
-## 📊 Насоки за производствено внедряване
+  
+## 📊 Насоки за продукционно внедряване
 
 ### Инфраструктура като код
 
@@ -606,7 +606,7 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-
+  
 ### Оптимизация на контейнери
 
 ```dockerfile
@@ -662,11 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-
-### Конфигурация на средата
+  
+### Конфигурация на среди
 
 ```python
-# Production configuration management
+# Управление на конфигурацията за производство
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,23 +715,23 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Задайте предупреждение за логърите на трети страни
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Деактивирайте режим на отстраняване на грешки
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Задайте защитени заглавки
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-
+  
 ## 💰 Оптимизация на разходите
 
 ### Управление на ресурси
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Ниско натоварване
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Средно натоварване
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Високо натоварване
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Кеширане на скъпи операции
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Конфигурация за автоматично мащабиране
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Мащабиране базирано на процесора
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Мащабиране базирано на паметта
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Мащабиране на опашка от заявки
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -810,8 +810,8 @@ class AutoScaler:
         
         return "no_action"
 ```
-
-## 🔧 Поддръжка и операции
+  
+## 🔧 Поддръжка и експлоатация
 
 ### Мониторинг на здравето
 
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Здраве на базата данни
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Здраве на външни услуги
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Системни ресурси
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Метрики на приложението
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Определяне на общото състояние
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Стартиране на сигнали
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Основна свързаност
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Проверка на бавни заявки
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Проверка на броя връзки
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Автоматизирано архивиране и възстановяване
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Качване в Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,18 +932,18 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Ежедневно пълно архивиране в 2 часа UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Часови инкрементални архиви
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-
-## 🌍 Приноси към общността
+  
+## 🌍 Приноси в общността
 
 ### Най-добри практики за отворен код
 
@@ -984,8 +984,8 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-
-### Ангажираност с общността
+  
+### Включване в общността
 
 ```python
 class CommunityContributor:
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Би изпълнил реални проверки
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
+  
+## 🎯 Ключови изводи
 
-## 🎯 Основни изводи
+След завършване на този изчерпателен учебен път, трябва да сте овладели:
 
-След завършване на този обширен курс на обучение, трябва да сте усвоили:
-
-✅ **Оптимизация на производителността**: Настройка на бази данни, асинхронни модели и стратегии за кеширане  
-✅ **Засилване на сигурността**: Автентикация, авторизация и защита на данните  
-✅ **Производствено внедряване**: Инфраструктура като код и оптимизация на контейнери  
-✅ **Управление на разходите**: Оптимизация на ресурси и интелигентно мащабиране  
-✅ **Оперативно съвършенство**: Мониторинг, поддръжка и автоматизация  
-✅ **Ангажираност с общността**: Принос към MCP екосистемата  
+✅ **Оптимизация на производителността**: настройки на бази данни, асинхронни модели и стратегии за кеширане  
+✅ **Затягане на сигурността**: автентикация, авторизация и защита на данни  
+✅ **Продукционно внедряване**: инфраструктура като код и оптимизация на контейнери  
+✅ **Управление на разходите**: оптимизация на ресурси и интелигентно мащабиране  
+✅ **Оперативно съвършенство**: мониторинг, поддръжка и автоматизация  
+✅ **Включване в общността**: принос към MCP екосистемата  
 
 ## 🏆 Сертификация и следващи стъпки
 
 ### Практическа оценка
 
-Завършете този финален проект, за да демонстрирате своето майсторство:
+Завършете този краен проект, за да демонстрирате уменията си:
 
-**Изградете MCP сървър, готов за производство**, който включва:
-- [ ] Мултитенант анализ на продажби с RLS
+**Изградете продукционен MCP сървър**, който включва:
+- [ ] Мулти-клиентска аналитика с RLS
 - [ ] Семантично търсене с Azure OpenAI
-- [ ] Цялостна имплементация на сигурност
-- [ ] Производствено внедряване в Azure
-- [ ] Настройка на мониторинг и известия
-- [ ] Документация и тестване
+- [ ] Пълна реализация на сигурността
+- [ ] Продукционно внедряване в Azure
+- [ ] Настройка на мониторинг и аларми
+- [ ] Документация и тестове
 
-### Разширени пътеки за обучение
+### Разширени учебни пътища
 
-Продължете своето MCP пътешествие с:
+Продължете вашето MCP пътуване с:
 
-- **MCP архитектурни модели**: Разширени архитектури на сървъри
-- **Мултимоделна интеграция**: Комбиниране на различни AI модели
-- **Корпоративен мащаб**: Големи MCP внедрения
-- **Разработка на персонализирани инструменти**: Създаване на специализирани MCP инструменти
-- **MCP екосистема**: Принос към по-широката общност
+- **MCP архитектурни модели**: Разширени сървърни архитектури  
+- **Мултимоделна интеграция**: Комбиниране на различни AI модели  
+- **Корпоративен мащаб**: Големи MCP внедрявания  
+- **Разработка на специализирани инструменти**: Създаване на специални MCP инструменти  
+- **MCP екосистема**: Принос към по-широката общност  
 
-### Признание от общността
+### Признание в общността
 
-Споделете своето постижение:
-- **GitHub портфолио**: Покажете своята имплементация
-- **Приноси към общността**: Подайте подобрения или примери
-- **Възможности за говорене**: Представете на срещи или конференции
-- **Менторство**: Помогнете на други разработчици да научат MCP
+Споделете постижението си:
+- **GitHub портфолио**: Демонстрирайте своята реализация  
+- **Приноси към общността**: Подайте допълнения или примери  
+- **Възможности за говорене**: Представяйте на срещи или конференции  
+- **Менторство**: Помагайте на други разработчици да учат MCP  
 
 ## 📚 Допълнителни ресурси
 
 ### Разширени теми
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Оптимизация на бази данни
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Производствено внедряване
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Асинхронно програмиране
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Оптимизация на бази данни  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Продукционно внедряване  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Асинхронно програмиране  
 
 ### Ресурси за сигурност
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Уязвимости в сигурността
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Сигурност в облака
-- [Python Security Guidelines](https://python.org/dev/security/) - Сигурно програмиране
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Уязвимости в сигурността  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Облачна сигурност  
+- [Python Security Guidelines](https://python.org/dev/security/) - Сигурно кодиране  
 
 ### Общност
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Дискусии на живо
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Въпроси и споделяне
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Технически въпроси
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Дискусии на живо  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Въпроси и споделяне  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Технически въпроси  
 
 ---
 
-**🎉 Поздравления!** Завършихте обширния курс за интеграция на MCP бази данни. Вече имате знанията и уменията да изграждате MCP сървъри, готови за производство, които свързват AI асистенти с реални системи за данни.
+**🎉 Поздравления!** Завършихте изчерпателния учебен път за интеграция на MCP бази данни. Сега имате знанията и уменията да изграждате продукционни MCP сървъри, които свързват AI асистенти с реални данни.
 
-**Готови ли сте да допринесете?** Присъединете се към нашата общност и помогнете на другите да научат MCP, като споделите своя опит, допринесете с подобрения в кода или създадете допълнителни ресурси за обучение.
+**Готови ли сте да допринасяте?** Присъединете се към нашата общност и помогнете на други да учат MCP, споделяйки опита си, допринасяйки за кодови подобрения или създавайки допълнителни учебни ресурси.
+
+**Следващо**: [Инструменти](../../12-tooling/README.md)
 
 ---
 
-**Отказ от отговорност**:  
-Този документ е преведен с помощта на AI услуга за превод [Co-op Translator](https://github.com/Azure/co-op-translator). Въпреки че се стремим към точност, моля, имайте предвид, че автоматизираните преводи може да съдържат грешки или неточности. Оригиналният документ на неговия роден език трябва да се счита за авторитетен източник. За критична информация се препоръчва професионален човешки превод. Ние не носим отговорност за недоразумения или погрешни интерпретации, произтичащи от използването на този превод.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Отказ от отговорност**:
+Този документ е преведен с помощта на AI преводачески услуга [Co-op Translator](https://github.com/Azure/co-op-translator). Въпреки че се стремим към точност, моля имайте предвид, че автоматизираните преводи могат да съдържат грешки или неточности. Оригиналният документ на неговия роден език трябва да се счита за авторитетен източник. За критична информация се препоръчва професионален човешки превод. Ние не носим отговорност за каквито и да е недоразумения или неправилни тълкувания, произтичащи от използването на този превод.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

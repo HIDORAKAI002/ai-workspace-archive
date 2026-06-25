@@ -1,681 +1,689 @@
-# Zmeny: Kurikulum MCP pre Začiatočníkov
+# Changelog: MCP pre začiatočníkov kurikulum
 
-Tento dokument slúži ako záznam všetkých významných zmien v kurikule Model Context Protocol (MCP) pre Začiatočníkov. Zmeny sú zdokumentované v obrátenom chronologickom poradí (najnovšie zmeny prvé).
+Tento dokument slúži ako záznam všetkých významných zmien vykonaných v kurikulu Model Context Protocol (MCP) pre začiatočníkov. Zmeny sú zdokumentované v obrátenom chronologickom poradí (najnovšie zmeny sú prvé).
 
-## 16. jún 2026
+## 24. júna 2026
 
-### Zladenie špecifikácie MCP a validácia príkladov
+### Nová lekcia: Použitie MCP v aplikácii Copilot
 
-Overili sme kurikulum podľa súčasnej **MCP Specifikácie 2025-11-25** a najnovších oficiálnych SDK, následne sme upravili zostávajúce zastaralé referencie na špecifikáciu a potvrdili, že základné vzorové príklady sa stále dajú zostaviť a spustiť.
+- [Sekcia nástrojov](./12-tooling/README.md) Pridaná sekcia o nástrojoch.
+- [MCP v aplikácii Copilot](./12-tooling/01-copilot-app/README.md)
+
+## 16. júna 2026
+
+### Zladenie so špecifikáciou MCP a validácia príkladov
+
+Kurikulum bolo overené voči aktuálnej **MCP špecifikácii 2025-11-25** a najnovším oficiálnym SDK, potom boli opravené zostávajúce zastaralé odkazy na špecifikáciu a potvrdené, že základné príklady sa stále správne kompilujú a bežia.
 
 #### Opravy verzie špecifikácie (2025-06-18 / 2025-03-26 → 2025-11-25)
 
-Aktualizovali sme anglický obsah tam, kde ešte uvádzal staršiu revíziu špecifikácie ako *aktuálny/najnovší* štandard, a preadresovali odkazy na kanonické cesty špecifikácie na `modelcontextprotocol.io`:
-- **05-AdvancedTopics/mcp-security/README.md**: Aktualizovaný banner "Aktuálny štandard", úvod, nadpisy o základných bezpečnostných princípoch, povinných požiadavkách, sekcia Microsoft Entra ID, odkazy na Referencie & Zdroje a záverečné bezpečnostné oznámenie (8 referencií) na 2025-11-25
-- **05-AdvancedTopics/mcp-transport/README.md**: Aktualizovaný odkaz na doplnkové zdroje špecifikácie a banner "Aktuálny štandard" na 2025-11-25
-- **05-AdvancedTopics/mcp-realtimesearch/README.md**: Nahradil zastaraný odkaz `2025-03-26` na stránku o bezpečnosti a dôvere aktuálnou stránkou o najlepších bezpečnostných praktikách 2025-11-25
+Aktualizovaný anglický obsah, kde sa stále uvádzalo, že staršia revízia špecifikácie je *aktuálny/najnovší* štandard, a odkazy boli nasmerované na kanonické cesty špecifikácie na `modelcontextprotocol.io`:
+- **05-AdvancedTopics/mcp-security/README.md**: Aktualizovaný banner "Aktuálny štandard", úvod, hlavný nadpis zásad bezpečnosti, nadpis povinných požiadaviek, sekcia Microsoft Entra ID, odkazy na Referencie a zdroje a záverečné bezpečnostné upozornenie (8 referencií) na 2025-11-25
+- **05-AdvancedTopics/mcp-transport/README.md**: Aktualizovaný odkaz na špecifikáciu v sekcii ďalších zdrojov a banner "Aktuálny štandard" na 2025-11-25
+- **05-AdvancedTopics/mcp-realtimesearch/README.md**: Nahradený zastaralý odkaz `2025-03-26` o bezpečnosti a dôvere aktuálnou stránkou o najlepších bezpečnostných praktikách 2025-11-25
 - **03-GettingStarted/14-sampling/README.md**: Aktualizovaný odkaz na oficiálnu dokumentáciu vzorkovania na 2025-11-25
-- **03-GettingStarted/05-stdio-server/README.md**: Aktualizovaný odkaz na prítomný čas "aktualná špecifikácia MCP" a odkaz na doplnkové zdroje špecifikácie na 2025-11-25 (historické poznámky o zrušení SSE ponechané pre presnosť)
+- **03-GettingStarted/05-stdio-server/README.md**: Aktualizovaná referencia prítomného času "aktuálna MCP špecifikácia" a odkaz na špecifikáciu v sekcii ďalších zdrojov na 2025-11-25 (historické poznámky o ukončení SSE ponechané pre presnosť)
 
-#### Validácia príkladov podľa aktuálnych SDK
+#### Validácia príkladov voči aktuálnym SDK
 
-- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**: `npm install` resolvoval `@modelcontextprotocol/sdk@1.29.0`; `tsc --noEmit` prešiel bez chýb typu — existujúce API `McpServer`/`StdioServerTransport` zostávajú platné
-- **Python (03-GettingStarted/01-first-server/solution/python)**: Validované v izolovanom `.venv` s `mcp[cli]` (1.27.2); `py_compile` prešiel a `FastMCP.list_tools()` správne vrátil nástroje `add` a `subtract`
-- Potvrdili sme, že všetky rozsahy verzií `@modelcontextprotocol/sdk` použitých v príkladoch (`>=1.26.0` / `^1.26.0` / `^1.27.0`) sa čistým spôsobom resolvujú na aktuálnu verziu `1.29.0` bez zlomenia API
+- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**: `npm install` vyriešil `@modelcontextprotocol/sdk@1.29.0`; `tsc --noEmit` prešiel bez typových chýb — existujúce API `McpServer`/`StdioServerTransport` zostávajú platné
+- **Python (03-GettingStarted/01-first-server/solution/python)**: Overené v izolovanej `.venv` s `mcp[cli]` (1.27.2); `py_compile` prešiel a `FastMCP.list_tools()` správne vrátil nástroje `add` a `subtract`
+- Potvrdené, že všetky rozsahy verzií `@modelcontextprotocol/sdk` v príkladoch (`>=1.26.0` / `^1.26.0` / `^1.27.0`) sa čistým spôsobom vyriešia na aktuálnu `1.29.0` bez zlomových zmien API
 
-#### Vyrovnanie pripnutí závislostí (uzavretie verziových medzier)
+#### Zladenie verzií závislostí (zavretie verziových medzier)
 
-Zvýšili sme zastarané pripnutia SDK tak, aby každý príklad sledoval aktuálne vydanie MCP, podľa konvencie celého repozitára:
-- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**: Zvýšený `@modelcontextprotocol/sdk` z `^1.8.0` na `>=1.26.0` a aktualizovaný zastaraný popis balíka `"updated for MCP 2025-06-18"` na `"aligned with MCP Specification 2025-11-25"`
-- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** a **lab4/code/github_mcp_server/pyproject.toml**: Zvýšené presné pripnutie `mcp==1.23.0` na `mcp>=1.26.0`; znovu vygenerované obe `uv.lock` súbory (`uv lock`), aby lockfile-y resolvovali na aktuálnu `mcp 1.27.2` a zostali synchronizované s manifestami
+Aktualizované zastaralé SDK verzovania tak, aby každý príklad sledoval aktuálne vydanie MCP, v súlade so štandardom v celom repozitári:
+- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**: Zvýšený `@modelcontextprotocol/sdk` z `^1.8.0` → `>=1.26.0` a aktualizovaný popis balíka zo `"updated for MCP 2025-06-18"` na `"aligned with MCP Specification 2025-11-25"`
+- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** a **lab4/code/github_mcp_server/pyproject.toml**: Zvýšený presný pin `mcp==1.23.0` → `mcp>=1.26.0`; obidva súbory `uv.lock` boli znovu vytvorené (`uv lock`), aby sa závislosti vyriešili na aktuálnu verziu `mcp 1.27.2` a ostali synchronizované s manifestami
 
-#### Analýza medzier v kurikule — pokrytie najnovších funkcií špecifikácie
+#### Analýza medzier v kurikulu — Pokrytie najnovších funkcií špecifikácie
 
-Overili sme, že kurikulum už pokrýva všetky primitívne prvky zavedené alebo rozšírené v MCP 2025-11-25, takže žiadne obsahové medzery neostávajú:
-- **Sampling**: Lekcia 03-GettingStarted/14-sampling plus 05-AdvancedTopics/mcp-sampling
-- **Elicitácia (vrátane režimu URL)**: Zdokumentované v 01-CoreConcepts a 05-AdvancedTopics/mcp-protocol-features
-- **Roots**: Zdokumentované v 00-Introduction, 01-CoreConcepts a 05-AdvancedTopics/mcp-root-contexts
-- **Úlohy (experimentálne, dlhodobé operácie)**: Zdokumentované v 01-CoreConcepts a 05-AdvancedTopics/mcp-protocol-features
-- **Anotácie nástrojov** (`readOnlyHint` / `destructiveHint`): Zdokumentované v 01-CoreConcepts a 05-AdvancedTopics/mcp-protocol-features
+Overené, že kurikulum už pokrýva všetky primitíva zavedené alebo rozšírené v MCP 2025-11-25, takže nezostávajú žiadne obsahové medzery:
+- **Vzorkovanie**: Lekcie 03-GettingStarted/14-sampling plus 05-AdvancedTopics/mcp-sampling
+- **Získavanie (vrátane režimu URL)**: Dokumentované v 01-CoreConcepts a 05-AdvancedTopics/mcp-protocol-features
+- **Koreňové kontexty (Roots)**: Dokumentované v 00-Introduction, 01-CoreConcepts a 05-AdvancedTopics/mcp-root-contexts
+- **Úlohy (experimentálne, dlhodobé operácie)**: Dokumentované v 01-CoreConcepts a 05-AdvancedTopics/mcp-protocol-features
+- **Anotácie nástrojov** (`readOnlyHint` / `destructiveHint`): Dokumentované v 01-CoreConcepts a 05-AdvancedTopics/mcp-protocol-features
 
-### Zosilnenie bezpečnosti a oprava zraniteľností závislostí
+### Posilnenie bezpečnosti a oprava zraniteľností závislostí
 
-Prebehol úplný bezpečnostný audit všetkých manifestov závislostí a zdrojového kódu príkladov, následne sme vyriešili všetky hlásené npm upozornenia a jedno nájdené zranenie v kóde. Po oprave hlásenie `npm audit` uvádza **0 zraniteľností** vo všetkých auditovaných adresároch.
+Prebehol kompletný bezpečnostný audit všetkých manifestov závislostí a zdrojového kódu príkladov a všetky nahlásené npm varovania a jedna chyba na úrovni kódu boli odstránené. Po oprave hlásenie `npm audit` uvádza **0 zraniteľností** v každom auditovanom adresári.
 
-#### Zraniteľnosti závislostí npm (tranzitívne) — Opravené
+#### zraniteľnosti v npm závislostiach (prechodné) — Opravené
 
-Auditovali sme všetkých 15 zakomponovaných súborov `package-lock.json`. Zraniteľnosti boli obmedzené na tranzitívne závislosti ťahané dev nástrojom MCP Inspector, klientom OpenAI a MCP SDK; všetky boli vyriešené bez zlomenia príkladov:
-- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** a **lab3/code/weather_mcp/inspector**: Zvýšený `@modelcontextprotocol/inspector` (`0.16.6` / `0.14.1` → `0.22.0`), čo odstránilo upozornenia na zabalené `ajv`, `brace-expansion`, `diff`, `path-to-regexp` a `ws`. Pridaný záznam npm `overrides` nútiaci záplatovaný `shell-quote@1.8.4` na elimináciu zostávajúceho kritického upozornenia viazaného na `concurrently`; znovu vygenerované lockfile-y (teraz s 0 zraniteľnosťami)
-- **03-GettingStarted/samples/typescript**: `npm audit fix` aktualizoval tranzitívny balík `qs` (stredný stupeň) na záplatovanú verziu
-- **03-GettingStarted/samples/javascript**: `npm audit fix` aktualizoval tranzitívny balík `hono` (stredný stupeň) na záplatovanú verziu
-- **03-GettingStarted/03-llm-client/solution/typescript**: `npm audit fix` aktualizoval tranzitívny balík `form-data` (vysoký stupeň) na záplatovanú verziu
+Audítovaných všetkých 15 commitnutých súborov `package-lock.json`. Zraniteľnosti sa obmedzovali na prechodné závislosti, ktoré boli závislosťami MCP Inspector nástroja, klienta OpenAI a SDK MCP; všetky sú teraz vyriešené bez prerušenia príkladov:
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** a **lab3/code/weather_mcp/inspector**: Zvýšený `@modelcontextprotocol/inspector` (`0.16.6` / `0.14.1` → `0.22.0`), čo vyriešilo upozornenia týkajúce sa `ajv`, `brace-expansion`, `diff`, `path-to-regexp` a `ws`. Pridaný záznam npm `overrides` vynucujúci opravený `shell-quote@1.8.4`, čím sa odstránilo zostávajúce kritické upozornenie spôsobené `concurrently`; lockfile bol opätovne vygenerovaný (teraz 0 zraniteľností)
+- **03-GettingStarted/samples/typescript**: `npm audit fix` aktualizoval prechodnú závislosť `qs` (stredná závažnosť) na opravenú verziu
+- **03-GettingStarted/samples/javascript**: `npm audit fix` aktualizoval prechodnú závislosť `hono` (stredná závažnosť) na opravenú verziu
+- **03-GettingStarted/03-llm-client/solution/typescript**: `npm audit fix` aktualizoval prechodnú závislosť `form-data` (vysoká závažnosť) na opravenú verziu
 - **03-GettingStarted/11-simple-auth/solution/typescript**: Vygenerovaný chýbajúci `package-lock.json`, aby bol projekt reprodukovateľný a auditovateľný (0 zraniteľností)
 
-#### Bezpečnostná oprava na úrovni kódu (OWASP A03: Injection)
+#### Oprava bezpečnostnej chyby na úrovni kódu (OWASP A03: Injection)
 
-- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**: Odstránený parameter `shell=True` v nástroji `open_in_vscode`. Predchádzajúce spustenie pomocou `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` umožňovalo interpretáciu shellových metaznakov v ceste ku priečinku prostredníctvom `cmd.exe` (vektor príkazovej injekcie). Teraz sa priamo spúšťa vyriešený `Code.exe` s priečinkom ako argumentom — bez shellu — čo je funkčne ekvivalentné a bezpečné.
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**: Odstránený parameter `shell=True` z nástroja `open_in_vscode`. Pôvodný `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` umožňoval interpretovať znaky špeciálne pre shell v ceste k adresáru pomocou `cmd.exe` (vektor príkazovej injekcie). Teraz spúšťa priamo vyriešený `Code.exe` s adresárom ako argumentom — bez shellu — čo je funkčne ekvivalentné a bezpečné.
 
-#### Audit závislostí Pythonu
+#### Audit python závislostí
 
-- Audítovali sme všetky súbory požiadaviek Pythonu pomocou `pip-audit`. **05-AdvancedTopics** a **03-GettingStarted/samples/python** nehlásili žiadne známe zraniteľnosti (ich rozsahy `mcp` / `httpx` / `pydantic` / `python-dotenv` resolvujú na aktuálne záplatované vydania)
-- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**: `pip-audit` označil tranzitívnu závislosť **`werkzeug` 3.1.1** s tromi upozorneniami na DoS prostredníctvom `safe_join` na zariadeniach Windows — `CVE-2025-66221`, `CVE-2026-21860` a `CVE-2026-27199` (všetky opravené vo verzii 3.1.6). Pridané explicitné bezpečnostné pripnutie `werkzeug>=3.1.6`, aby sa resolvovalo záplatované vydanie; overené, že obmedzenie sa čistým spôsobom resolvuje so stackom `chainlit` / `mcp` / `semantic-kernel`
+- Overené všetky sady požiadaviek Pythonu pomocou `pip-audit`. `05-AdvancedTopics` a `03-GettingStarted/samples/python` nehlásili **žiadne známe zraniteľnosti** (ich rozsahy `mcp` / `httpx` / `pydantic` / `python-dotenv` sa vyriešia na aktuálne opravené verzie)
+- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**: `pip-audit` upozornil na prechodnú závislosť **`werkzeug` 3.1.1** s tromi upozorneniami týkajúcimi sa DoS cez Windows device-názvy funkcie `safe_join` — `CVE-2025-66221`, `CVE-2026-21860` a `CVE-2026-27199` (všetky opravené vo verzii 3.1.6). Pridaný explicitný bezpečnostný fix `werkzeug>=3.1.6`, aby sa vyriešila opravená verzia; overené, že obmedzenie sa vyrieši čisto s balíčkom `chainlit` / `mcp` / `semantic-kernel`
 
-### Prebranding produktov
+### Rebranding názvu produktu
 
-Aktualizovaný celý obsah kurikula na reflektovanie rebrandingu produktov Microsoftu:
+Aktualizovaný celý obsah kurikula, aby odrážal rebranding produktov Microsoftu:
 
 #### Azure AI Foundry → Microsoft Foundry
 - **SUPPORT.md**: Aktualizovaný odkaz na Discord komunitu
-- **AGENTS.md**: Aktualizovaná referencia na Discord server
+- **AGENTS.md**: Aktualizovaný odkaz na Discord server
 - **README.md**: Aktualizované odkazy na technologický ekosystém
 - **study_guide.md**: Aktualizované odkazy v prípadovej štúdii
 - **05-AdvancedTopics/README.md**: Aktualizovaný názov a popis modulu 5.13
-- **05-AdvancedTopics/mcp-integration/README.md**: Aktualizovaný nadpis sekcie a popis
+- **05-AdvancedTopics/mcp-integration/README.md**: Aktualizovaný záhlavie sekcie a popis
 - **05-AdvancedTopics/mcp-foundry-agent-integration/README.md**: Kompletná aktualizácia názvu modulu a obsahu
 - **05-AdvancedTopics/mcp-security-entra/README.md**: Aktualizovaný krížový odkaz
 - **07-LessonsfromEarlyAdoption/README.md**: Aktualizované odkazy v prípadovej štúdii
-- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**: Aktualizovaný nadpis Sekcie 9, odznaky a schopnosti
+- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**: Aktualizovaný nadpis sekcie 9, odznaky a schopnosti
 - **08-BestPractices/README.md**: Aktualizovaný odkaz na Discord komunitu
-- **09-CaseStudy/docs-mcp/solution/scenario3/README.md**: Aktualizovaná referencia na Discord kanál
-- **09-CaseStudy/docs-mcp/solution/python/README.md**: Aktualizovaná referencia nasadenia modelu
+- **09-CaseStudy/docs-mcp/solution/scenario3/README.md**: Aktualizovaný odkaz na Discord kanál
+- **09-CaseStudy/docs-mcp/solution/python/README.md**: Aktualizovaný odkaz na nasadenie modelu
 - **11-MCPServerHandsOnLabs/00-Introduction/README.md**: Aktualizovaná tabuľka AI služieb
 - **11-MCPServerHandsOnLabs/03-Setup/README.md**: Aktualizované odkazy na zdroje
 
-#### AI Toolkit / AITK → Microsoft Foundry Toolkit Extension for VS Code
-- **README.md**: Aktualizované hlavné odkazy v kurikule
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**: Aktualizovaný názov modulu, prehľad a všetky nadpisy modulov
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/README.md**: Aktualizovaný názov, vzdelávacie ciele, inštrukcie na nastavenie a zdroje
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**: Aktualizovaný názov, vzdelávacie ciele, tabuľka MCP hostiteľov a krížové odkazy
+#### AI Toolkit / AITK → Microsoft Foundry Toolkit Extension pre VS Code
+- **README.md**: Aktualizované hlavné odkazy v kurikulu
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**: Aktualizovaný názov modulu, úvod a všetky záhlavia modulov
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/README.md**: Aktualizovaný názov, ciele učenia, inštrukcie na nastavenie a zdroje
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**: Aktualizovaný názov, ciele učenia, tabuľka MCP hostiteľov a krížové odkazy
 - **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/README.md**: Aktualizovaný názov, odznaky, predpoklady a zdroje
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/README.md**: Aktualizované odkazy na Agent Builder a spätná väzba
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab4/README.md**: Aktualizované predpoklady a odkazy na rozšírenie
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/README.md**: Aktualizované odkazy na Agent Builder a spätnú väzbu
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab4/README.md**: Aktualizované požiadavky a odkazy na rozšírenia
 
 ---
 
-## 11. apríl 2026
+## 11. apríla 2026
 
 ### Nová lekcia, opravy dokumentácie a aktualizácie závislostí
 
 #### Pridaný nový obsah kurikula
 
 **Modul 05 - Pokročilé témy**
-- **Lekcia 5.17: Adversárne multiagentné uvažovanie s MCP** (`05-AdvancedTopics/mcp-adversarial-agents/README.md`): Nový rozsiahly sprievodca pokrývajúci vzor adversárnej debate pre multiagentné systémy
-  - Mermaid diagram architektúry: dvaja agenti → zdieľaný MCP server → zápisník debaty → sudca → verdikt
-  - Zdieľaný MCP server pre nástroje (`web_search` + `run_python`) implementovaný v Pythone a TypeScripte
-  - Protichodné systémové prompt-y (ZA / PROTI / Sudca) s explicitnými požiadavkami na použitie nástroja
-  - Orchestrátor debaty v Pythone, TypeScripte a C#, ktorý riadi kolá a trasuje argumenty
-  - Prepojenie MCP `ClientSession` pre orchestrátor na reálne volania nástrojov
-  - Používateľská tabuľka (detekcia halucinácií, hrozbové modelovanie, revízia návrhu API, overovanie faktov, výber technológií)
-  - Bezpečnostné úvahy: sandboxovanie vykonávania, validácia volania nástrojov, limitovanie rýchlosti, auditné protokolovanie
-  - Štruktúrované cvičenie s tromi praktickými scenármi (kontrola kódu, rozhodnutie o architektúre, obsahová moderácia)
+- **Lekcia 5.17: Adversariálne multi-agentné uvažovanie s MCP** (`05-AdvancedTopics/mcp-adversarial-agents/README.md`): Nový komplexný sprievodca pokrývajúci vzor adversariálneho debatujúceho pre multiagentné systémy
+  - Mermaid diagram architektúry: dvaja agenti → zdieľaný MCP server → prepis debaty → rozhodca → verdikt
+  - Zdieľaný MCP nástrojový server (`web_search` + `run_python`) implementovaný v Pythone a TypeScripte
+  - Protikladné systémové výzvy (ZA / PROTI / Rozhodca) s explicitnými požiadavkami na použitie nástrojov
+  - Orchestrátor debaty v Pythone, TypeScripte a C# riadiaci kolá a smerovanie argumentov
+  - Prepojenie MCP `ClientSession` na orchestrátor pre volania skutočných nástrojov
+  - Tabuľka prípadov použitia (detekcia halucinácií, modelovanie hrozieb, revízia dizajnu API, overovanie faktov, výber technológií)
+  - Bezpečnostné úvahy: sandboxované spustenie, validácia volaní nástrojov, limitovanie rýchlosti, audit logovanie
+  - Štruktúrované cvičenie s troma praktickými scénármi (kontrola kódu, rozhodnutia v architektúre, moderovanie obsahu)
 
 #### Opravy dokumentácie
 
 **Modul 03 - Začíname**
-- **05-stdio-server/README.md**: Opravený neúplný príklad TypeScript stdio servera — pridaná chýbajúca inštancia transportu (`new StdioServerTransport()`) a volanie `server.connect(transport)` tak, aby zodpovedalo príkladom v Pythone a .NET v rovnakej sekcii
-- **14-sampling/README.md**: Oprava preklepu — opravené `"Sampling is an davanced features"` → `"Sampling is an advanced feature"`
+- **05-stdio-server/README.md**: Opravený neúplný TypeScript stdio server príklad — pridaná chýbajúca inštancia transportu (`new StdioServerTransport()`) a volanie `server.connect(transport)`, aby korešpondoval s príkladmi v Pythone a .NET v tej istej sekcii
+- **14-sampling/README.md**: Opravená preklep — opravené `"Sampling is an davanced features"` → `"Sampling is an advanced feature"`
 
 #### Aktualizácie kurikula
 
 **Hlavný README.md**
-- Pridaný záznam 5.17 (Adversárne multiagentné uvažovanie s MCP) do tabuľky kurikula s priamym odkazom na novú lekciu
+- Pridaný záznam 5.17 (Adversariálne multi-agentné uvažovanie s MCP) do tabuľky kurikula s priamym odkazom na novú lekciu
 
 **05-AdvancedTopics/README.md**
 - Pridaný riadok lekcie 5.17 do tabuľky lekcií
 
 **study_guide.md**
-- Pridaná téma Adversárne multiagentné uvažovanie do myšlienkovej mapy a slovného popisu Pokročilých tém
+- Pridaná téma Adversariálne multi-agentné uvažovanie do myšlienkovej mapy a opis v texte o Pokročilých témach
 
 #### Opravy kódu a bezpečnosti
 
-**Modul 05 - Adversárni agenti (`mcp-adversarial-agents`)**
-- **Bezpečnostná oprava — príkazová injekcia**: Nahradené `execSync` shellové interpolácie volaním `execFile` + `promisify` v TypeScript nástroji `run_python`, čím sa odstránila plocha pre príkazovú injekciu (kód kontrolovaný LLM je teraz odovzdaný ako literálny prvok argv bez akéhokoľvek zapojenia shellu)
-- **Zapojenie slučky nástroja MCP**: Aktualizovaný orchestrátor debaty v Pythone používa klienta `AsyncAnthropic` (nahrádza blokujúci synchronný `Anthropic`), odovzdáva živú `ClientSession` priamo každému kroku agenta, získava definície nástrojov cez `session.list_tools()` v každom kroku a odosiela bloky `tool_use` cez `session.call_tool()` v slučke, až kým model nevygeneruje finálnu textovú odpoveď.
+**Modul 05 - Adversariálne agenti (`mcp-adversarial-agents`)**
+- **Oprava bezpečnosti — injekcia príkazov**: Nahradený shell interpolácia `execSync` s `execFile` + `promisify` v TypeScript nástroji `run_python`, čím sa odstránila plocha zraniteľnosti pre injekciu príkazov (kód riadený LLM je teraz odovzdaný ako doslovný prvok argv bez zapojenia shellu)
+- **Zapojenie slučky nástroja MCP**: Aktualizovaný Python orchestrátor debaty na použitie klienta `AsyncAnthropic` (nahrádzajúceho blokujúci synchronný `Anthropic`), priame odovzdanie živej `ClientSession` každej agentovej krôčiky, načítanie definícií nástrojov cez `session.list_tools()` pri každom kroku a odosielanie blokov `tool_use` cez `session.call_tool()` v slučke, kým model nevydá finálnu textovú odpoveď
 
 #### Aktualizácie závislostí
 
-- Zvýšená verzia `hono` na 4.12.12 v viacerých balíčkoch (03-GettingStarted, 04-PracticalImplementation, 10-StreamliningAIWorkflows)
-- Zvýšená verzia `@hono/node-server` z 1.19.11 na 1.19.13 v balíčkoch TypeScriptu
-- Zvýšená verzia `cryptography` z 46.0.5 na 46.0.7 v Pythone (10-StreamliningAIWorkflows laboratóriá 3 a 4)
+- Zvýšená verzia `hono` na 4.12.12 v rôznych balíčkoch (03-GettingStarted, 04-PracticalImplementation, 10-StreamliningAIWorkflows)
+- Zvýšená verzia `@hono/node-server` z 1.19.11 na 1.19.13 v balíčkoch TypeScript
+- Zvýšená verzia `cryptography` z 46.0.5 na 46.0.7 v Python balíčkoch (10-StreamliningAIWorkflows laboratóriá 3 a 4)
 - Zvýšená verzia `lodash` z 4.17.23 na 4.18.1 v inspektore 10-StreamliningAIWorkflows
 
 #### Preklady
 
-- Synchronizované preklady pre 48+ jazykov s najnovšími zmenami zdroja (aktualizácia i18n)
+- Synchronizované preklady pre viac ako 48 jazykov s najnovšími zmenami zdroja (aktualizácia i18n)
 
 ---
 
 ## 5. februára 2026
 
-### Zlepšenia všeobecnej validácie a navigácie v repozitári
+### Vylepšenia validácie a navigácie v celom repozitári
 
 #### Pridaný nový obsah kurikula
 
 **Modul 03 - Začíname**
-- **12-mcp-hosts/README.md**: Nový komplexný sprievodca nastavením MCP hostiteľov
-  - Príklady konfigurácie Claude Desktop, VS Code, Cursor, Cline, Windsurf
-  - Šablóny JSON konfigurácií pre všetky hlavné hostiteľské platformy
+- **12-mcp-hosts/README.md**: Nový komplexný sprievodca nastavením hostiteľov MCP
+  - Konfiguračné príklady pre Claude Desktop, VS Code, Cursor, Cline, Windsurf
+  - Šablóny konfigurácie JSON pre všetky hlavné hosty
   - Porovnávacia tabuľka typov transportu (stdio, SSE/HTTP, WebSocket)
   - Riešenie bežných problémov s pripojením
-  - Najlepšie bezpečnostné postupy pri konfigurácii hostiteľa
+  - Najlepšie bezpečnostné postupy pre konfiguráciu hostiteľa
 
-- **13-mcp-inspector/README.md**: Nový sprievodca ladením pre MCP Inspector
-  - Metódy inštalácie (npx, globálne npm, zo zdroja)
+- **13-mcp-inspector/README.md**: Nový sprievodca ladeniam MCP Inspektora
+  - Inštalačné metódy (npx, globálny npm, zo zdroja)
   - Pripojenie k serverom cez stdio a HTTP/SSE
-  - Testovanie nástrojov, zdrojov a tokov výziev
-  - Integrácia MCP Inspectora do VS Code
-  - Bežné ladenie a riešenia problémov
+  - Testovacie nástroje, zdroje a pracovné postupy výziev
+  - Integrácia s VS Code a MCP Inspectorom
+  - Bežné scenáre ladenia a ich riešenia
 
 **Modul 04 - Praktická implementácia**
 - **pagination/README.md**: Nový sprievodca implementáciou stránkovania
-  - Vzory stránkovania s kurzorom v Pythone, TypeScripte, Jave
+  - Vzory stránkovania založené na kurzore v Pythone, TypeScripte, Jave
   - Spracovanie stránkovania na strane klienta
-  - Návrhové stratégie kurzorov (nepriehľadné vs. štruktúrované)
+  - Návrhové stratégie kurzorov (nepriehľadný vs. štruktúrovaný)
   - Odporúčania na optimalizáciu výkonu
 
 **Modul 05 - Pokročilé témy**
-- **mcp-protocol-features/README.md**: Hĺbkový pohľad na nové funkcie protokolu
+- **mcp-protocol-features/README.md**: Hlbší pohľad na nové vlastnosti protokolu
   - Implementácia notifikácií o pokroku
-  - Vzory zrušenia požiadaviek
+  - Vzory rušenia požiadaviek
   - Šablóny zdrojov s URI vzormi
   - Správa životného cyklu servera
-  - Riadenie úrovne logovania
-  - Vzory spracovania chýb s kódmi JSON-RPC
+  - Ovládanie úrovne logovania
+  - Vzory spracovania chýb s JSON-RPC kódmi
 
-#### Opravy navigácie (aktualizovaných 24+ súborov)
+#### Opravy navigácie (aktualizovaných viac ako 24 súborov)
 
-**Hlavné README v moduloch**
- Teraz odkazujú na prvú lekciu A tiež na ďalší modul
+**Hlavné README modulov**
+ Teraz odkazujú na prvú lekciu aj na nasledujúci modul
 
-**Pod-súbory 02-Security**
-- Všetkých 5 doplnkových bezpečnostných dokumentov teraz obsahuje sekciu „Čo ďalej“ s navigáciou
+**Podadresáre 02-Security**
+- Všetkých 5 doplnkových bezpečnostných dokumentov má teraz navigáciu „Čo ďalej“:
 
 **Súbory 09-CaseStudy**
-- Všetky súbory prípadových štúdií teraz majú postupnú navigáciu
+- Všetky súbory prípadových štúdií majú teraz postupnú navigáciu:
 
-**Laboratóriá 10-StreamliningAI**
-Pridaná sekcia Čo ďalej do prehľadu modulu 10 a modulu 11
+**Laboratória 10-StreamliningAI**
+Pridaná sekcia Čo ďalej v prehľade modulu 10 a v module 11
 
 #### Opravy kódu a obsahu
 
-**Aktualizácie SDK a závislostí**
+**SDK a aktualizácie závislostí**
 Opravená prázdna verzia openai na `^4.95.0`
 Aktualizované SDK z `^1.8.0` na `>=1.26.0`
-Aktualizované verzie mcp na `>=1.26.0`
+Aktualizované pripnutia verzií mcp na `>=1.26.0`
 
 **Opravy kódu**
 Opravený neplatný model `gpt-4o-mini` na `gpt-4.1-mini`
 
 **Opravy obsahu**
-Opravený zlomený odkaz `READMEmd` → `README.md`, opravený názov sekcie kurikula `Module 1-3` → `Module 0-3`, opravená cesta rozlišujúca malé a veľké písmená
-Odstránený poškodený duplicitný obsah Prípadovej štúdie 5
+Opravený zlomený odkaz `READMEmd` → `README.md`, opravený hlavičkový názov kurikula `Module 1-3` → `Module 0-3`, opravená citlivosť na malé a veľké písmená v ceste
+Odstránený poškodený duplicitný obsah prípadovej štúdie 5
 
-**Zlepšenia v sprievode pre začiatočníkov**
-Pridaný správny úvod, učebné ciele a predpoklady pre začiatočníkov
+**Vylepšenia pre začiatočníkov**
+Pridaný správny úvod, cieľové učebné ciele a požiadavky pre začiatočníkov
 
 #### Aktualizácie kurikula
 
-**Hlavný README.md**
+**Hlavné README.md**
 - Pridané položky 3.12 (MCP Hosts), 3.13 (MCP Inspector), 4.1 (Stránkovanie), 5.16 (Funkcie protokolu) do tabuľky kurikula
 
-**Modulové README**
+**README modulov**
 Pridané lekcie 12 a 13 do zoznamu lekcií
-Pridaná sekcia Praktické príručky so stránkovaním
+Pridaná sekcia Praktické príručky s odkazom na stránkovanie
 Pridané lekcie 5.15 (Vlastný transport) a 5.16 (Funkcie protokolu)
 
 **study_guide.md**
-- Aktualizovaná myšlienková mapa so všetkými novými témami: Nastavenie MCP Hosts, MCP Inspector, stratégie stránkovania, hĺbkový prehľad funkcií protokolu
+- Aktualizovaná myšlienková mapa so všetkými novými témami: Nastavenie MCP hostiteľov, MCP Inspector, stratégie stránkovania, detailný pohľad na funkcie protokolu
 
 ## 28. januára 2026
 
 ### Preskúmanie súladu so špecifikáciou MCP 2025-11-25
 
-#### Vylepšenia základných konceptov (01-CoreConcepts/)
-- **Nový klientský primitív – Roots**: Pridaná komplexná dokumentácia klientského primitívu Roots umožňujúceho serverom chápať hranice súborového systému a prístupové oprávnenia
-- **Anotácie nástrojov**: Pridaná dokumentácia o behaviorálnych anotáciách nástrojov (`readOnlyHint`, `destructiveHint`) pre lepšie rozhodovanie o vykonaní nástrojov
-- **Volanie nástrojov pri vzorkovaní**: Aktualizovaná dokumentácia Sampling o parametre `tools` a `toolChoice` pre volanie nástrojov riadené modelom počas vzorkovania
-- **Elikácia režimu URL**: Pridaná dokumentácia o elikácii založenej na URL na externé webové interakcie iniciované serverom
-- **Úlohy (experimentálne)**: Pridaná nová sekcia dokumentujúca experimentálnu funkciu Úloh pre trvalé obaly vykonávania a odložené získavanie výsledkov
-- **Podpora ikoniek**: Uvedené, že nástroje, zdroje, šablóny zdrojov a výzvy môžu obsahovať ikonky ako doplnkové metadáta
+#### Vylepšenie základných konceptov (01-CoreConcepts/)
+- **Nová klientská primitiva – Roots**: Pridaná komplexná dokumentácia klientského primitiva Roots umožňujúca serverom chápať hranice súborového systému a prístupové práva
+- **Anotácie nástrojov**: Pridaná dokumentácia o behaviorálnych anotáciách nástrojov (`readOnlyHint`, `destructiveHint`) pre lepšie rozhodovanie pri vykonávaní nástrojov
+- **Volanie nástrojov pri sampling-u**: Aktualizovaná dokumentácia Sampling o parametre `tools` a `toolChoice` pre vyvolávanie nástrojov riadené modelom počas sampling požiadaviek
+- **URL mód vyvolávania**: Pridaná dokumentácia o vyvolávaní na základe URL pre webové interakcie iniciované serverom
+- **Úlohy (experimentálne)**: Pridaná nová sekcia dokumentujúca experimentálnu funkciu Úloh pre trvalé výkonné zásuvky a odložené získavanie výsledkov
+- **Podpora ikon**: Uvedené, že nástroje, zdroje, šablóny zdrojov a výzvy môžu teraz obsahovať ikony ako doplnkové metadata
 
 #### Aktualizácie dokumentácie
-- **README.md**: Pridaná referencia verzie MCP Specification 2025-11-25 a vysvetlenie verziovania podľa dátumu
-- **study_guide.md**: Aktualizovaná mapa kurikula o Úlohy a Anotácie nástrojov v časti základných konceptov; aktualizovaný časový údaj dokumentu
+- **README.md**: Pridaná referencia na verziu špecifikácie MCP 2025-11-25 a vysvetlenie číslovania verzií podľa dátumu
+- **study_guide.md**: Aktualizovaná mapa kurikula s pridaním Úloh a anotácií nástrojov v sekcii základných konceptov; aktualizovaná časová známka dokumentu
 
-#### Overenie súladu špecifikácie
-- **Verzia protokolu**: Overené, že všetky dokumenty odkazujú na aktuálnu MCP Specification 2025-11-25
-- **Zladenie architektúry**: Potvrdená presnosť dokumentácie o dvojvrstvovej architektúre (vrstva dát + vrstva transportu)
-- **Dokumentácia primitívov**: Validované klientské a serverové primitíva (Zdroje, Výzvy, Nástroje / Sampling, Elicitation, Logging, Roots)
-- **Mechanizmy transportu**: Overená správnosť dokumentácie STDIO a streamovateľného HTTP transportu
-- **Bezpečnostné odporúčania**: Potvrdenie zhody s aktuálnymi bezpečnostnými postupmi MCP
+#### Overenie súladu s špecifikáciou
+- **Verzia protokolu**: Overené, že všetka dokumentácia odkazuje na aktuálnu verziu MCP Specification 2025-11-25
+- **Zladenie architektúry**: Overená presnosť dokumentácie dvojvrstvovej architektúry (Dátová vrstva + Transportná vrstva)
+- **Dokumentácia primitív**: Overené serverové primitiva (Zdroje, Výzvy, Nástroje) a klientské primitiva (Sampling, Vyvolávanie, Logovanie, Roots)
+- **Mechanizmy transportu**: Overená presnosť dokumentácie STDIO a Streamable HTTP transportov
+- **Bezpečnostné usmernenia**: Potvrdené zladenie so súčasnými MCP bezpečnostnými najlepšími praktikami
 
 #### Kľúčové funkcie MCP 2025-11-25 zdokumentované
-- **Objavovanie OpenID Connect**: Discovery autentifikačných serverov cez OIDC
-- **Metadata dokumenty OAuth Client ID**: Odporúčané mechanizmy registrácie klientov
-- **JSON Schema 2020-12**: Predvolený dialekt definícií MCP schém
-- **Systém vrstiev SDK**: Formalizované požiadavky na podporu a údržbu SDK funkcií
-- **Štruktúra správy**: Formalizované pracovné a záujmové skupiny v správe MCP
+- **OpenID Connect Discovery**: Objavovanie autorizačného servera cez OIDC
+- **Metadata dokumenty OAuth Client ID**: Odporúčaný mechanizmus registrácie klienta
+- **JSON Schema 2020-12**: Predvolený dialekt pre definície MCP schém
+- **SDK tiering systém**: Formalizované požiadavky na podporu funkcií SDK a údržbu
+- **Štruktúra riadenia**: Formalizované pracovné a záujmové skupiny v správe MCP
 
 ### Hlavná aktualizácia bezpečnostnej dokumentácie (02-Security/)
 
 #### Integrácia MCP Security Summit Workshop (Sherpa)
-- **Nový praktický tréningový zdroj**: Pridaná komplexná integrácia s [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) vo všetkých bezpečnostných dokumentoch
-- **Pokrytie expedície od tábora k táboru**: Zdokumentovaný kompletný postup z Base Camp po Summit
-- **Zladenie s OWASP**: Všetky bezpečnostné odporúčania teraz mapované na OWASP MCP Azure Security Guide riziká
+- **Nový praktický tréningový zdroj**: Pridaná komplexná integrácia s [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) vo všetkej bezpečnostnej dokumentácii
+- **Pokrytie trasy expedície**: Zdokumentovaný kompletný postup z tábora do tábora od Základného tábora po Summit
+- **Zladenie s OWASP**: Všetky bezpečnostné usmernenia teraz mapované podľa OWASP MCP Azure Security Guide rizík
 
 #### Integrácia OWASP MCP Top 10
-- **Nová sekcia**: Pridaná tabuľka s 10 najväčšími bezpečnostnými rizikami OWASP MCP vrátane mitigácií pre Azure do hlavného bezpečnostného README
-- **Dokumentácia podľa rizika**: Aktualizovaný mcp-security-controls-2025.md so štandardizovanými odkazmi na riziká OWASP MCP pre každú bezpečnostnú doménu
-- **Referenčná architektúra**: Odkaz na OWASP MCP Azure Security Guide referenčnú architektúru a implementačné vzory
+- **Nová sekcia**: Pridaná tabuľka OWASP MCP Top 10 bezpečnostných rizík s Azure mitigáciami do hlavného bezpečnostného README
+- **Dokumentácia založená na rizikách**: Aktualizovaný súbor mcp-security-controls-2025.md s odkazmi na OWASP MCP riziká pre každú bezpečnostnú doménu
+- **Referenčná architektúra**: Prepojené s referenčnou architektúrou a vzormi implementácie OWASP MCP Azure Security Guide
 
 #### Aktualizované bezpečnostné súbory
-- **README.md**: Pridaný prehľad Sherpa workshopu, tabuľka trasy expedície, súhrn rizík OWASP MCP Top 10 a sekcia praktického tréningu
-- **mcp-security-controls-2025.md**: Aktualizovaný nadpis na február 2026, pridané odkazy na riziká OWASP MCP (MCP01-MCP08), opravený nesúlad verzie špecifikácie
-- **mcp-security-best-practices-2025.md**: Pridaná sekcia Sherpa a OWASP zdrojov, aktualizovaný časový údaj
+- **README.md**: Pridaný prehľad Sherpa Workshopu, tabuľka trasy expedície, súhrn rizík OWASP MCP Top 10 a sekcia praktického tréningu
+- **mcp-security-controls-2025.md**: Aktualizovaná hlavička na február 2026, pridané odkazy na OWASP riziká (MCP01-MCP08), opravené nezhody verzie špecifikácie
+- **mcp-security-best-practices-2025.md**: Pridaná sekcia zdrojov Sherpa a OWASP, aktualizovaná časová známka
 - **mcp-best-practices.md**: Pridaná sekcia praktického tréningu so Sherpa a OWASP odkazmi
-- **azure-content-safety-implementation.md**: Pridaná referencia OWASP MCP06, zarovnanie s táborom 3 Sherpa, a sekcia ďalších zdrojov
+- **azure-content-safety-implementation.md**: Pridaný odkaz na OWASP MCP06, zosúladenie s Sherpa Camp 3 a ďalšia sekcia zdrojov
 
-#### Nové odkazy na zdroje
+#### Pridané nové odkazy na zdroje
 - [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)
 - [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
-- Jednotlivé stránky OWASP MCP rizík (MCP01-MCP10)
+- Individuálne stránky rizík OWASP MCP (MCP01-MCP10)
 
-### Zladenie celého kurikula so špecifikáciou MCP 2025-11-25
+### Celokurikulárne zosúladenie so špecifikáciou MCP 2025-11-25
 
 #### Modul 03 - Začíname
-- **Dokumentácia SDK**: Pridané Go SDK do oficiálneho zoznamu SDK; aktualizované všetky odkazy na SDK podľa MCP Specification 2025-11-25
-- **Objasnenie transportu**: Aktualizované popisy STDIO a HTTP streaming transportu s explicitnými odkazmi na špecifikáciu
+- **Dokumentácia SDK**: Pridané Go SDK do oficiálneho zoznamu SDK; aktualizované všetky odkazy na SDK tak, aby sa zhodovali so špecifikáciou MCP 2025-11-25
+- **Vysvetlenie transportu**: Aktualizované popisy transportu STDIO a HTTP Streaming s explicitnými odkazmi na špecifikáciu
 
 #### Modul 04 - Praktická implementácia
-- **Aktualizácie SDK**: Pridané Go SDK; aktualizovaný zoznam SDK s odkazom na verziu špecifikácie
-- **Špecifikácia autorizácie**: Aktualizovaný odkaz na MCP Authorization špecifikáciu s verziou 2025-11-25
+- **Aktualizácie SDK**: Pridané Go SDK; aktualizovaný zoznam SDK s referenciou na verziu špecifikácie
+- **Špecifikácia autorizácie**: Aktualizovaný odkaz na MCP Authorization špecifikáciu na aktuálnu verziu 2025-11-25
 
 #### Modul 05 - Pokročilé témy
-- **Nové funkcie**: Pridaná poznámka o nových funkciách MCP Specification 2025-11-25 (Úlohy, Anotácie nástrojov, Režim URL elikácie, Roots)
-- **Bezpečnostné zdroje**: Pridané odkazy na OWASP MCP Top 10 a Sherpa workshop do doplnkových zdrojov
+- **Nové funkcie**: Pridaná poznámka o nových funkciách MCP Specification 2025-11-25 (Úlohy, Anotácie nástrojov, URL mód vyvolávania, Roots)
+- **Bezpečnostné zdroje**: Pridané odkazy OWASP MCP Top 10 a Sherpa workshop medzi doplnkové zdroje
 
 #### Modul 06 - Príspevky komunity
-- **Zoznam SDK**: Pridané Swift a Rust SDK; aktualizovaný odkaz na špecifikáciu 2025-11-25
-- **Referencia špecifikácie**: Aktualizovaný odkaz na priamu URL MCP Specification
+- **Zoznam SDK**: Pridané Swift a Rust SDK; aktualizovaný odkaz na špecifikáciu na 2025-11-25
+- **Referencia špecifikácie**: Aktualizovaný link na priamu špecifikáciu MCP
 
-#### Modul 07 - Lekcie z raného nasadenia
-- **Aktualizácia zdrojov**: Pridanie MCP Specification 2025-11-25 a OWASP MCP Top 10 do doplnkových zdrojov
+#### Modul 07 - Lekcie z predbežnej adopcie
+- **Aktualizácie zdrojov**: Pridaný odkaz na MCP Specification 2025-11-25 a OWASP MCP Top 10 medzi doplnkové zdroje
 
 #### Modul 08 - Najlepšie praktiky
-- **Verzia špecifikácie**: Aktualizovaná referencia MCP Specification na 2025-11-25
-- **Bezpečnostné zdroje**: Pridané OWASP MCP Top 10 a Sherpa workshop do doplnkových zdrojov
+- **Verzia špecifikácie**: Aktualizovaný odkaz na MCP Specification 2025-11-25
+- **Bezpečnostné zdroje**: Pridané OWASP MCP Top 10 a Sherpa workshop medzi doplnkové zdroje
 
 #### Modul 10 - Zefektívnenie AI pracovných tokov
-- **Aktualizácia odznaku**: Zmena verzie MCP badge z verzie SDK (1.9.3) na verziu špecifikácie (2025-11-25)
-- **Odkazy na zdroje**: Aktualizované odkazy na MCP Specification; pridané OWASP MCP Top 10
+- **Aktualizácia odznaku**: Zmena MCP verzie z verzie SDK (1.9.3) na verziu špecifikácie (2025-11-25)
+- **Odkazy na zdroje**: Aktualizovaný odkaz na MCP Specification; pridaný OWASP MCP Top 10
 
-#### Modul 11 - MCP Server Hands-On Labs
-- **Odkaz na špecifikáciu**: Aktualizovaný odkaz na MCP Specification verzie 2025-11-25
-- **Bezpečnostné zdroje**: Pridané OWASP MCP Top 10 do oficiálnych zdrojov
+#### Modul 11 - Praktické laboratóriá MCP servera
+- **Referencia špecifikácie**: Aktualizovaný odkaz na verziu špecifikácie MCP 2025-11-25
+- **Bezpečnostné zdroje**: Pridaný OWASP MCP Top 10 medzi oficiálne zdroje
 
 ## 18. decembra 2025
 
 ### Aktualizácia bezpečnostnej dokumentácie - MCP Specification 2025-11-25
 
-#### MCP Bezpečnostné najlepšie praktiky (02-Security/mcp-best-practices.md) - Aktualizácia verzie špecifikácie
-- **Aktualizácia verzie protokolu**: Aktualizované na najnovšiu verziu MCP Specification 2025-11-25 (vydaná 25. novembra 2025)
+#### Najlepšie bezpečnostné praktiky MCP (02-Security/mcp-best-practices.md) - aktualizácia verzie špecifikácie
+- **Aktualizácia verzie protokolu**: Aktualizované odkazy na najnovšiu MCP Specification 2025-11-25 (publikované 25. novembra 2025)
   - Aktualizované všetky odkazy na verziu špecifikácie z 2025-06-18 na 2025-11-25
-  - Aktualizované dátumy dokumentov z 18. augusta 2025 na 18. decembra 2025
-  - Overené, že všetky URL so špecifikáciou vedú na aktuálnu dokumentáciu
-- **Validácia obsahu**: Komplexná validácia najlepších bezpečnostných praktík podľa najnovších štandardov
-  - **Bezpečnostné riešenia Microsoftu**: Overená aktuálna terminológia a odkazy na Prompt Shields (predtým „detekcia jailbreak rizika“), Azure Content Safety, Microsoft Entra ID a Azure Key Vault
+  - Aktualizované dátumy v dokumente z 18. augusta 2025 na 18. decembra 2025
+  - Overené, že všetky URL špecifikácií smerujú na aktuálnu dokumentáciu
+- **Validácia obsahu**: Komplexné vyhodnotenie najlepších bezpečnostných praktík podľa najnovších štandardov
+  - **Microsoft bezpečnostné riešenia**: Overená aktuálna terminológia a odkazy na Prompt Shields (predtým „detekcia rizika jailbreaku“), Azure Content Safety, Microsoft Entra ID a Azure Key Vault
   - **OAuth 2.1 bezpečnosť**: Potvrdené zladenie s najnovšími bezpečnostnými praktikami OAuth
-  - **Štandardy OWASP**: Validované, že odkazy na OWASP Top 10 pre LLM zostávajú aktuálne
-  - **Azure služby**: Overené všetky odkazy na dokumentáciu Microsoft Azure a najlepšie praktiky
-- **Zladenie so štandardmi**: Všetky referencované bezpečnostné štandardy sú aktuálne
+  - **OWASP štandardy**: Overené aktuálne odkazy na OWASP Top 10 pre LLM
+  - **Azure služby**: Overené všetky odkazy na Microsoft Azure dokumentáciu a najlepšie postupy
+- **Zladenie so štandardmi**: Potvrdené, že všetky referencované bezpečnostné štandardy sú aktuálne
   - NIST AI Risk Management Framework
   - ISO 27001:2022
   - Najlepšie bezpečnostné praktiky OAuth 2.1
   - Azure bezpečnostné a súladové rámce
-- **Implementačné zdroje**: Overené všetky odkazy na sprievodcov implementáciou a zdroje
-  - OAuth vzory autentifikácie API Management
-  - Integrácia Microsoft Entra ID
+- **Implementačné zdroje**: Overené všetky odkazy na implementačné príručky a zdroje
+  - Autentifikačné vzory Azure API Management
+  - Príručky integrácie Microsoft Entra ID
   - Správa tajomstiev Azure Key Vault
   - DevSecOps pipeline a monitorovacie riešenia
 
-### Overovanie kvality dokumentácie
-- **Súlad so špecifikáciou**: Zabezpečené, že všetky povinné bezpečnostné požiadavky MCP (MUST/MUST NOT) sú v zhode s najnovšou špecifikáciou
-- **Aktualnosť zdrojov**: Overené, že všetky externé odkazy na Microsoft dokumentáciu, bezpečnostné štandardy a implementačné sprievodcovia sú platné
-- **Pokrytie najlepších praktík**: Potvrdené komplexné pokrytie autentifikácie, autorizácie, hrozieb špecifických pre AI, bezpečnosti dodávateľského reťazca a podnikových vzorov
+### Kontrola kvality dokumentácie
+- **Súlad so špecifikáciou**: Zabezpečené, že všetky povinné MCP bezpečnostné požiadavky (MUST/MUST NOT) sú v súlade s najnovšou špecifikáciou
+- **Aktualizovanosť zdrojov**: Overené všetky externé odkazy na Microsoft dokumentáciu, bezpečnostné štandardy a implementačné príručky
+- **Pokrytie najlepších praktík**: Potvrdené komplexné pokrytie autentifikácie, autorizácie, špecifických hrozieb AI, bezpečnosti dodávateľského reťazca a firemných vzorov
 
 ## 6. októbra 2025
 
 ### Rozšírenie sekcie Začíname – Pokročilé použitie servera a jednoduchá autentifikácia
 
 #### Pokročilé použitie servera (03-GettingStarted/10-advanced)
-- **Pridaná nová kapitola**: Predstavený komplexný sprievodca pokročilým používaním MCP servera, pokrývajúci bežné aj nízkoúrovňové architektúry servera.
+- **Pridaná nová kapitola**: Zavedený komplexný sprievodca pokročilým používaním servera MCP, pokrývajúci bežnú aj nízkoúrovňovú serverovú architektúru.
   - **Bežný vs. nízkoúrovňový server**: Podrobná komparácia a príklady kódu v Pythone a TypeScripte pre oba prístupy.
-  - **Návrh na báze handlerov**: Vysvetlenie správy nástrojov/zdrojov/výziev založené na handleroch pre škálovateľné a flexibilné implementácie servera.
-  - **Praktické vzory**: Reálne scenáre, kde sú nízkoúrovňové serverové vzory výhodné pre pokročilé funkcie a architektúru.
+  - **Dizajn založený na handleroch**: Vysvetlenie správy nástrojov/zdrojov/promptov založenej na handleroch pre škálovateľné, flexibilné implementácie serverov.
+  - **Praktické vzory**: Reálne scenáre, kde sú nízkoúrovňové vzory serverov prospešné pre pokročilé funkcie a architektúru.
+
 #### Jednoduchá autentifikácia (03-GettingStarted/11-simple-auth)
 - **Pridaná nová kapitola**: Krok za krokom sprievodca implementáciou jednoduchej autentifikácie v MCP serveroch.
-  - **Koncepty autentifikácie**: Jasné vysvetlenie rozdielu medzi autentifikáciou a autorizáciou, a správy poverení.
-  - **Základná implementácia autentifikácie**: Vzory autentifikácie založené na middleware v Pythone (Starlette) a TypeScripte (Express) s ukážkami kódu.
-  - **Postup k pokročilej bezpečnosti**: Návod, ako začať s jednoduchou autentifikáciou a pokračovať na OAuth 2.1 a RBAC s odkazmi na pokročilé bezpečnostné moduly.
+  - **Koncepty autentifikácie**: Jasné vysvetlenie rozdielu medzi autentifikáciou a autorizáciou a správy prihlasovacích údajov.
+  - **Implementácia základnej autentifikácie**: Middleware založené vzory autentifikácie v Pythone (Starlette) a TypeScripte (Express) s ukážkami kódu.
+  - **Pokrok k pokročilej bezpečnosti**: Návod, ako začať s jednoduchou autentifikáciou a postupovať k OAuth 2.1 a RBAC, s odkazmi na pokročilé bezpečnostné moduly.
 
-Tieto doplnky poskytujú praktické, prakticky orientované návody na tvorbu robustnejších, bezpečnejších a flexibilnejších implementácií MCP serverov, ktoré prepájajú základné koncepty s pokročilými produkčnými vzormi.
+Tieto doplnky poskytujú praktické, priame návody na vytváranie robustnejších, bezpečnejších a flexibilnejších MCP serverových implementácií, ktoré spájajú základné koncepty s pokročilými produkčnými vzormi.
 
-## 29. september 2025
+## 29. septembra 2025
 
-### Laboratóriá integrácie databázy MCP servera – komplexná praktická cesta učenia
+### Laboratóriá integrácie databázy MCP servera – komplexná praktická učebná cesta
 
-#### 11-MCPServerHandsOnLabs – Nový kompletný kurz integrácie databázy  
-- **Kompletná 13-laboratórna učebná cesta**: Pridaný komplexný praktický kurz na tvorbu produkčných MCP serverov s integráciou PostgreSQL databázy  
-  - **Reálne implementácie**: Prípad použitia Zava Retail analytics demonštrujúci podnikové vzory  
-  - **Štruktúrovaný postup učenia**:  
-    - **Laboratóriá 00–03: Základy** – Úvod, jadrová architektúra, bezpečnosť a multi-tenantnosť, nastavenie prostredia  
-    - **Laboratóriá 04–06: Tvorba MCP servera** – Návrh databázy a schémy, implementácia MCP servera, vývoj nástrojov  
-    - **Laboratóriá 07–09: Pokročilé funkcie** – Integrácia sémantického vyhľadávania, testovanie a ladenie, integrácia s VS Code  
-    - **Laboratóriá 10–12: Produkcia a osvedčené postupy** – Strategie nasadenia, monitorovanie a observabilita, osvedčené postupy a optimalizácie  
+#### 11-MCPServerHandsOnLabs – Nový kompletný učebný plán integrácie databázy  
+- **Kompletná 13-laboratórna učebná cesta**: Pridaný komplexný praktický kurz na tvorbu MCP serverov pripravených na produkciu s integráciou databázy PostgreSQL  
+  - **Reálna implementácia**: Prípad použitia Zava Retail analytics demonštrujúci podnikové vzory  
+  - **Štruktúrovaný učebný progres**:
+    - **Laboratóriá 00-03: Základy** – Úvod, jadrová architektúra, bezpečnosť a multi-tenancy, nastavenie prostredia
+    - **Laboratóriá 04-06: Výstavba MCP servera** – Návrh databázy a schéma, implementácia MCP servera, vývoj nástrojov  
+    - **Laboratóriá 07-09: Pokročilé funkcie** – Integrácia semantického vyhľadávania, testovanie a ladenie, integrácia VS Code
+    - **Laboratóriá 10-12: Produkcia a osvedčené postupy** – Strategie nasadenia, monitorovanie a observabilita, osvedčené postupy a optimalizácia
   - **Podnikové technológie**: Framework FastMCP, PostgreSQL s pgvector, Azure OpenAI embeddings, Azure Container Apps, Application Insights  
-  - **Pokročilé funkcie**: RLS (Row Level Security), sémantické vyhľadávanie, multi-tenantný prístup k dátam, vektorové reprezentácie, monitorovanie v reálnom čase  
+  - **Pokročilé funkcie**: Row Level Security (RLS), semantické vyhľadávanie, multi-tenant prístup k dátam, vektorové embeddingy, monitorovanie v reálnom čase
 
-#### Štandardizácia terminológie – konverzia modulu na laboratórium  
-- **Komplexná aktualizácia dokumentácie**: Systematická aktualizácia všetkých README súborov v 11-MCPServerHandsOnLabs na používanie terminológie „Laboratórium“ namiesto „Modul“  
-  - **Hlavičky sekcií**: Preformulované „Čo tento modul pokrýva“ na „Čo toto laboratórium pokrýva“ vo všetkých 13 laboratóriách  
-  - **Popis obsahu**: Nahradené „Tento modul poskytuje...“ za „Toto laboratórium poskytuje...“ v celej dokumentácii  
-  - **Ciele učenia**: Preformulované „Na konci tohto modulu...“ na „Na konci tohto laboratória...“  
-  - **Navigačné odkazy**: Všetky odkazy „Modul XX:“ prevedené na „Laboratórium XX:“ v krížových odkazoch a navigácii  
-  - **Sledovanie dokončenia**: Aktualizované „Po dokončení tohto modulu...“ na „Po dokončení tohto laboratória...“  
-  - **Zachované technické odkazy**: Zachované odkazy na Python moduly v konfiguračných súboroch (napr. `"module": "mcp_server.main"`)  
+#### Štandardizácia terminológie – prechod z modulu na laboratórium  
+- **Komplexná aktualizácia dokumentácie**: Systematicky aktualizované všetky README súbory v 11-MCPServerHandsOnLabs, aby používali terminológiu „Laboratórium“ namiesto „Modul“
+  - **Nadpisy sekcií**: Aktualizované „Čo tento modul obsahuje“ na „Čo toto laboratórium obsahuje“ vo všetkých 13 laboratóriách
+  - **Popisy obsahu**: Zmena frázy „Tento modul poskytuje…“ na „Toto laboratórium poskytuje…“ v celej dokumentácii
+  - **Vzdelávacie ciele**: Aktualizované „Na konci tohto modulu…“ na „Na konci tohto laboratória…“
+  - **Navigačné odkazy**: Prevedené všetky odkazy „Modul XX:“ na „Laboratórium XX:“ v krížových referenciách a navigácii
+  - **Sledovanie dokončenia**: Aktualizované „Po dokončení tohto modulu…“ na „Po dokončení tohto laboratória…“
+  - **Zachované technické odkazy**: Zachované odvolania na Python moduly v konfiguračných súboroch (napr. `"module": "mcp_server.main"`)
 
-#### Vylepšenie študijného sprievodcu (study_guide.md)  
-- **Vizualizácia učebného plánu**: Pridaná nová sekcia „11. Laboratóriá integrácie databázy“ s komplexnou štruktúrou laboratórií  
-- **Štruktúra repozitára**: Aktualizovaná z desiatich na jedenásť hlavných sekcií s detailným popisom 11-MCPServerHandsOnLabs  
-- **Pokyny pre učenie**: Vylepšená navigácia pokrývajúca sekcie 00–11  
-- **Technologické pokrytie**: Pridané detaily o FastMCP, PostgreSQL a integrácii Azure služieb  
-- **Výsledky učenia**: Zdôraznený vývoj produkčne pripraveného servera, vzory integrácie databázy a podniková bezpečnosť  
+#### Vylepšenie študijného sprievodcu (study_guide.md)
+- **Vizualizovaná mapa kurikula**: Pridaná nová sekcia „11. Laboratóriá integrácie databázy“ s kompletnou štruktúrou laboratórií
+- **Štruktúra repozitára**: Aktualizované z desiatich na jedenásť hlavných sekcií s podrobným popisom 11-MCPServerHandsOnLabs
+- **Pokyny k učebnej ceste**: Vylepšené navigačné inštrukcie pokrývajúce sekcie 00-11
+- **Pokrytie technológií**: Pridané detaily integrácie FastMCP, PostgreSQL a Azure služieb
+- **Výsledky učenia**: Zvýraznený vývoj serverov pripravených na produkciu, vzory integrácie databázy a podniková bezpečnosť
 
-#### Vylepšenie hlavnej README štruktúry  
-- **Terminológia založená na laboratóriách**: Aktualizovaný hlavný README.md v 11-MCPServerHandsOnLabs na konzistentné používanie štruktúry „Laboratórium“  
-- **Organizácia učebnej cesty**: Jasný postup od základných konceptov cez pokročilú implementáciu až po nasadenie do produkcie  
-- **Zameranie na prax**: Dôraz na praktické, laboratórne učenie s podnikové vzory a technológie  
+#### Vylepšenie štruktúry hlavného README
+- **Terminológia založená na laboratóriách**: Aktualizované hlavné README.md v 11-MCPServerHandsOnLabs na konzistentné používanie štruktúry „Laboratórium“
+- **Organizácia učebnej cesty**: Jasný postup od základných konceptov cez pokročilú implementáciu až po produkčné nasadenie
+- **Zameranie na reálny svet**: Dôraz na praktické, praktické učenie s podnikových vzorov a technológií
 
-### Vylepšenia kvality a konzistencie dokumentácie  
-- **Dôraz na praktické učenie**: Posilnený praktický, laboratórny prístup v celej dokumentácii  
-- **Zameranie na podnikové vzory**: Zvýraznené produkčné implementácie a podniková bezpečnosť  
-- **Integrácia technológií**: Komplexné pokrytie moderných služieb Azure a vzorov AI integrácie  
-- **Postup učenia**: Jasná, štruktúrovaná cesta od základov po produkčné nasadenie  
+### Vylepšenia kvality a konzistencie dokumentácie
+- **Dôraz na praktické učenie založené na laboratóriách**: Posilnený praktický prístup v celej dokumentácii
+- **Zameranie na podnikové vzory**: Zvýraznené produkčne pripravené implementácie a podniková bezpečnosť
+- **Integrácia technológií**: Komplexné pokrytie moderných Azure služieb a vzorov AI integrácie
+- **Postup učenia**: Jasná, štruktúrovaná cesta od základov k produkčnému nasadeniu
 
-## 26. september 2025
+## 26. septembra 2025
 
 ### Vylepšenie prípadových štúdií – Integrácia GitHub MCP Registry
 
-#### Prípadové štúdie (09-CaseStudy/) – Zameranie na rozvoj ekosystému  
-- **README.md**: Výrazné rozšírenie s rozsiahlym prípadovým štúdiom GitHub MCP Registry  
+#### Prípadové štúdie (09-CaseStudy/) – Zameranie na rozvoj ekosystému
+- **README.md**: Rozsiahle rozšírenie s komplexnou prípadovou štúdiou GitHub MCP Registry  
   - **Prípadová štúdia GitHub MCP Registry**: Nová komplexná štúdia skúmajúca spustenie GitHub MCP Registry v septembri 2025  
-    - **Analýza problémov**: Podrobná analýza fragmentovaného objavovania a nasadzovania MCP serverov  
-    - **Architektúra riešenia**: Centralizovaný prístup GitHubu so spustením inštalácie VS Code jedným kliknutím  
-    - **Obchodný dopad**: Merateľné zlepšenia onboardingu vývojárov a produktivity  
-    - **Strategická hodnota**: Zameranie na modulárne nasadenie agentov a interoperabilitu nástrojov  
-    - **Rozvoj ekosystému**: Pozicionovanie ako základná platforma pre agentnú integráciu  
-  - **Vylepšená štruktúra prípadových štúdií**: Aktualizovaných všetkých sedem prípadových štúdií so zjednoteným formátovaním a komplexnými opismi  
-    - Azure AI Travel Agents: Dôraz na viacagentovú orchestráciu  
-    - Azure DevOps Integration: Fokus na automatizáciu workflow  
-    - Real-Time Documentation Retrieval: Implementácia Python konzolového klienta  
-    - Interactive Study Plan Generator: Konverzačná webová aplikácia Chainlit  
-    - In-Editor Documentation: Integrácia VS Code a GitHub Copilot  
-    - Azure API Management: Vzory podnikovej API integrácie  
+    - **Analýza problému**: Podrobná analýza fragmentovaných výziev MCP server discovery a nasadenia  
+    - **Architektúra riešenia**: Centralizovaný prístup registru GitHub s jedným kliknutím inštalácie vo VS Code  
+    - **Obchodný dopad**: Merateľné zlepšenie onboardingu a produktivity vývojárov  
+    - **Strategická hodnota**: Zameranie na modulárne nasadenie agentov a interoperabilitu medzi nástrojmi  
+    - **Vývoj ekosystému**: Pozicionovanie ako základná platforma pre agentnú integráciu  
+  - **Vylepšená štruktúra prípadovej štúdie**: Aktualizované všetkých sedem prípadových štúdií s konzistentným formátovaním a komplexnými popismi  
+    - Azure AI Travel Agents: Zameranie na multi-agent orchestráciu  
+    - Integrácia Azure DevOps: Fokus na automatizáciu workflow  
+    - Získavanie dokumentácie v reálnom čase: Implementácia Python konzolového klienta  
+    - Generátor interaktívneho študijného plánu: Webová aplikácia Chainlit  
+    - Dokumentácia v editore: VS Code a GitHub Copilot integrácia  
+    - Správa API v Azure: Podnikové vzory integrácie API  
     - GitHub MCP Registry: Vývoj ekosystému a komunitná platforma  
-  - **Komplexný záver**: Prepracovaná záverečná časť so siedmimi štúdiami pokrývajúcimi rôzne MCP implementačné dimenzie  
-    - Podniková integrácia, viacagentová orchestrácia, produktivita vývojárov  
-    - Rozvoj ekosystému, kategorizácia vzdelávacích aplikácií  
-    - Prehľad architektonických vzorov, implementačných stratégií a osvedčených praktík  
-    - Dôraz na MCP ako zrelý, produkčne pripravený protokol  
+  - **Komplexný záver**: Prepracovaná záverečná sekcia zdôrazňujúca sedem prípadových štúdií pokrývajúcich viaceré MCP implementačné dimenzie  
+    - Podniková integrácia, orchestrácia multi-agentov, produktivita vývojárov  
+    - Vývoj ekosystému, kategorizácia vzdelávacích aplikácií  
+    - Rozšírené poznatky o architektonických vzoroch, implementačných stratégiách a osvedčených postupoch  
+    - Dôraz na MCP ako zrelý, produkčne pripravený protokol
 
-#### Aktualizácie študijného sprievodcu (study_guide.md)  
-- **Vizualizácia študijného plánu**: Aktualizovaná myšlienková mapa dopĺňajúca GitHub MCP Registry v sekcii Prípadové štúdie  
-- **Popisy prípadových štúdií**: Vylepšené z všeobecných na podrobné rozbory siedmich komplexných prípadových štúdií  
-- **Štruktúra repozitára**: Aktualizovaná sekcia 10, aby odrážala komplexné pokrytie prípadových štúdií s konkrétnymi implementačnými detailmi  
-- **Integrácia changelogu**: Pridaný záznam zo 26. septembra 2025 dokumentujúci pridanie GitHub MCP Registry a vylepšenia prípadových štúdií  
-- **Aktualizácia dátumu**: Aktualizovaný čas v päte na poslednú revíziu (26. september 2025)  
+#### Aktualizácie študijného sprievodcu (study_guide.md)
+- **Vizualizovaná mapa kurikula**: Aktualizovaná mentálna mapa zahŕňa GitHub MCP Registry v sekcii Prípadové štúdie  
+- **Popis prípadových štúdií**: Vylepšené z generických popisov na detailný rozpis siedmich komplexných prípadových štúdií  
+- **Štruktúra repozitára**: Aktualizovaná sekcia 10 odrážajúca komplexné pokrytie prípadových štúdií s konkrétnymi detailmi implementácie  
+- **Integrácia changelogu**: Pridaný zápis z 26. septembra 2025 dokumentujúci pridanie GitHub MCP Registry a vylepšenia prípadových štúdií  
+- **Aktualizácia dátumov**: Aktualizovaný časový údaj päty na najnovší dátum revízie (26. september 2025)
 
-### Vylepšenia kvality dokumentácie  
-- **Zvýšenie konzistencie**: Štandardizované formátovanie a štruktúra prípadových štúdií vo všetkých siedmich príkladoch  
-- **Komplexné pokrytie**: Prípadové štúdie pokrývajú podnikové, produktivitu vývojárov a rozvoj ekosystému  
-- **Strategické pozicionovanie**: Zvýraznený dôraz na MCP ako základnú platformu pre agentové systémy  
-- **Integrácia zdrojov**: Aktualizované doplnkové zdroje vrátane odkazu na GitHub MCP Registry  
+### Vylepšenia kvality dokumentácie
+- **Zvýšená konzistencia**: Štandardizované formátovanie a štruktúra prípadových štúdií vo všetkých siedmich príkladoch  
+- **Komplexné pokrytie**: Prípadové štúdie teraz pokrývajú podnikové, produktivitu vývojárov a scenáre rozvoja ekosystému  
+- **Strategické postavenie**: Zvýraznený dôraz na MCP ako základnú platformu pre agentový systém  
+- **Integrácia zdrojov**: Aktualizované doplnkové zdroje o odkaz na GitHub MCP Registry
 
-## 15. september 2025
+## 15. septembra 2025
 
-### Rozšírenie pokročilých tém – Vlastné transporty a inžinierstvo kontextu
+### Rozšírenie pokročilých tém – Vlastné transporty a kontextové inžinierstvo
 
-#### Vlastné MCP transporty (05-AdvancedTopics/mcp-transport/) – nový pokročilý implementačný sprievodca  
-- **README.md**: Kompletný sprievodca implementáciou vlastných MCP transportných mechanizmov  
-  - **Azure Event Grid Transport**: Komplexná implementácia serverless event-driven transportu  
+#### Vlastné transporty MCP (05-AdvancedTopics/mcp-transport/) – Nový pokročilý implementačný sprievodca  
+- **README.md**: Kompletný sprievodca implementáciou vlastných transportných mechanizmov MCP  
+  - **Transport Azure Event Grid**: Komplexná implementácia serverless event-driven transportu  
     - Príklady v C#, TypeScript a Pythone s integráciou Azure Functions  
-    - Vzory event-driven architektúry pre škálovateľné MCP riešenia  
-    - Príjemcovia webhookov a spracovanie push správ  
-  - **Azure Event Hubs Transport**: Implementácia vysoko priepustného streamingového transportu  
-    - Streaming v reálnom čase pre nízku latenciu  
-    - Strategické delenie na partitiony a správa checkpointov  
-    - Šaržovanie správ a optimalizácia výkonu  
+    - Vzory architektúry event-driven pre škálovateľné MCP riešenia  
+    - Príjemcovia webhookov a push-based spracovanie správ  
+  - **Transport Azure Event Hubs**: Implementácia vysokorýchlostného streamovania transportu  
+    - Možnosti streamovania v reálnom čase pre nízku latenciu  
+    - Stratégií delenia na partície a správa checkpointov  
+    - Batching správ a optimalizácia výkonu  
   - **Podnikové integračné vzory**: Produkčne pripravené architektonické príklady  
-    - Distribuované MCP spracovanie naprieč Azure Functions  
-    - Hybridné architektúry transportov kombinujúce rôzne typy  
-    - Trvanlivosť správ, spoľahlivosť a stratégie správy chýb  
+    - Distribuované spracovanie MCP cez viaceré Azure Functions  
+    - Hybridné transportné architektúry kombinujúce viaceré typy transportov  
+    - Stratégie trvácnosti správ, spoľahlivosti a správy chýb  
   - **Bezpečnosť a monitorovanie**: Integrácia Azure Key Vault a vzory observability  
-    - Autentifikácia pomocou managed identity a prístup na princípe najmenej privilégií  
-    - Telemetria Application Insights a monitoring výkonu  
-    - Circuit breakers a vzory odolnosti voči chybám  
-  - **Testovacie rámce**: Komplexné stratégie testovania vlastných transportov  
-    - Jednotkové testovanie s testovacími pomôckami a mocking frameworkami  
+    - Autentifikácia s managed identity a prístup s najmenšími právomocami  
+    - Telemetria Application Insights a monitorovanie výkonu  
+    - Circuit breakers a vzory odolnosti voči poruchám  
+  - **Testovacie frameworky**: Komplexné testovacie stratégie pre vlastné transporty  
+    - Unit testovanie s testovacími dvojníkmi a mockovacie frameworky  
     - Integračné testovanie s Azure Test Containers  
-    - Zohľadnenie výkonového a záťažového testovania  
+    - Úvahy o výkonnostnom a záťažovom testovaní
 
-#### Inžinierstvo kontextu (05-AdvancedTopics/mcp-contextengineering/) – vznikajúca disciplína AI  
-- **README.md**: Komplexný prieskum inžinierstva kontextu ako vznikajúcej oblasti  
-  - **Základné princípy**: Úplné zdieľanie kontextu, povedomie o rozhodovaní akcií a správa okien kontextu  
-  - **Zladenie s MCP protokolom**: Ako dizajn MCP rieši výzvy inžinierstva kontextu  
-    - Obmedzenia okien kontextu a postupné načítavanie  
+#### Kontextové inžinierstvo (05-AdvancedTopics/mcp-contextengineering/) – Vznikajúca disciplína AI  
+- **README.md**: Komplexný prieskum kontextového inžinierstva ako vznikajúceho odboru  
+  - **Jadrové princípy**: Kompletné zdieľanie kontextu, uvedomelosť o rozhodovaní akcií, správa kontextového okna  
+  - **Zladenie s protokolom MCP**: Ako dizajn MCP rieši problémy kontextového inžinierstva  
+    - Limity kontextových okien a progresívne načítavanie  
     - Určovanie relevantnosti a dynamické získavanie kontextu  
-    - Viacmodálny kontext a bezpečnostné aspekty  
-  - **Prístupy k implementácii**: Jednobodové vs. viacagentové architektúry  
-    - Techniky delenia kontextu na časti a priorizácia  
-    - Postupné načítavanie a kompresné stratégie  
-    - Viacvrstvové prístupy ku kontextu a optimalizácia načítania  
-  - **Metrický rámec**: Nové metriky na hodnotenie efektivity kontextu  
-    - Účinnosť vstupu, výkon, kvalita a užívateľský zážitok  
+    - Manažment multimodálneho kontextu a bezpečnostné požiadavky  
+  - **Prístupy k implementácii**: Jednovláknové vs. multi-agent architektúry  
+    - Chunkovanie kontextu a techniky prioritizácie  
+    - Progresívne načítavanie a kompresné stratégie  
+    - Viacvrstvové prístupy ku kontextu a optimalizácia získavania  
+  - **Merací rámec**: Vznikajúce metriky pre hodnotenie efektívnosti kontextu  
+    - Efektivita vstupu, výkon, kvalita a užívateľská skúsenosť  
     - Experimentálne prístupy k optimalizácii kontextu  
-    - Analýza zlyhaní a metódy zlepšenia  
+    - Analýza chýb a metodiky zlepšenia
 
 #### Aktualizácie navigácie kurikula (README.md)  
-- **Vylepšená štruktúra modulu**: Aktualizovaná tabuľka kurikula s pridaním pokročilých tém  
-  - Pridané položky Context Engineering (5.14) a Custom Transport (5.15)  
-  - Konzistentné formátovanie a navigačné odkazy naprieč všetkými modulmi  
-  - Aktualizované popisy odrážajúce súčasný rozsah obsahu  
+- **Vylepšená štruktúra modulu**: Aktualizovaná tabuľka kurikula o nové pokročilé témy  
+  - Pridané položky Kontextové inžinierstvo (5.14) a Vlastný transport (5.15)  
+  - Konzistentné formátovanie a navigačné odkazy vo všetkých moduloch  
+  - Aktualizované popisy pre reflektovanie aktuálneho obsahu
 
-### Vylepšenia adresárovej štruktúry  
-- **Štandardizácia názvov**: Premenovaný „mcp transport“ na „mcp-transport“ v súlade s ostatnými zložkami pokročilých tém  
-- **Organizácia obsahu**: Všetky adresáre 05-AdvancedTopics majú jednotný názvový vzor (mcp-[téma])  
+### Vylepšenia štruktúry adresárov  
+- **Štandardizácia názvov**: Premenovanie „mcp transport“ na „mcp-transport“ pre konzistentnosť s ostatnými zložkami pokročilých tém  
+- **Organizácia obsahu**: Všetky priečinky 05-AdvancedTopics teraz nasledujú konzistentný názvový vzor (mcp-[téma])
 
 ### Vylepšenia kvality dokumentácie  
-- **Zladenie s MCP špecifikáciou**: Všetky nové materiály odkazujú na aktuálnu MCP špecifikáciu 2025-06-18  
-- **Príklady v rôznych jazykoch**: Komplexné príklady kódu v C#, TypeScript a Pythone  
-- **Podnikové zameranie**: Produkčne pripravené vzory a integrácia s Azure cloudom  
-- **Vizualizácia dokumentácie**: Mermaid diagramy pre architektúru a vizualizáciu tokov  
+- **Zladenie s MCP špecifikáciou**: Všetok nový obsah odkazuje na aktuálnu MCP Špecifikáciu 2025-06-18  
+- **Príklady vo viacerých jazykoch**: Komplexné ukážky kódu v C#, TypeScript a Pythone  
+- **Zameranie na podnikanie**: Produkčne pripravené vzory a integrácia Azure cloudu po celej dokumentácii  
+- **Vizualizácie dokumentácie**: Mermaid diagramy pre architektúru a vizualizáciu tokov
 
-## 18. august 2025
+## 18. augusta 2025
 
 ### Komplexná aktualizácia dokumentácie – Štandardy MCP 2025-06-18
 
-#### Najlepšie praktiky bezpečnosti MCP (02-Security/) – úplná modernizácia  
-- **MCP-SECURITY-BEST-PRACTICES-2025.md**: Kompletné prepracovanie podľa MCP špecifikácie 2025-06-18  
-  - **Povinné požiadavky**: Pridané explicitné MUST/MUST NOT požiadavky podľa oficiálnej špecifikácie s jasnými vizuálnymi indikátormi  
-  - **12 základných bezpečnostných praktík**: Preformátované z 15-položkového zoznamu na komplexné bezpečnostné domény  
-    - Token Security a autentifikácia s integráciou externých identitných poskytovateľov  
-    - Správa session a zabezpečenie transportu s kryptografickými požiadavkami  
-    - Ochrana špecifická pre AI s integráciou Microsoft Prompt Shields  
-    - Kontrola prístupov a oprávnení podľa princípu najmenej privilégií  
+#### Najlepšie bezpečnostné praktiky MCP (02-Security/) – Kompletná modernizácia  
+- **MCP-SECURITY-BEST-PRACTICES-2025.md**: Kompletné prepisanie zosúladené s MCP Špecifikáciou 2025-06-18  
+  - **Povinné požiadavky**: Pridané explicitné požiadavky MUSÍ/MUSÍ NIE z oficiálnej špecifikácie s jasnými vizuálnymi indikátormi  
+  - **12 základných bezpečnostných praktík**: Preusporiadané z 15-položkového zoznamu na komplexné bezpečnostné domény  
+    - Bezpečnosť tokenov a autentifikácia s integráciou externého poskytovateľa identity  
+    - Správa relácií a bezpečnosť transportu s kryptografickými požiadavkami  
+    - Ochrana pred hrozbami špecifickými pre AI s integráciou Microsoft Prompt Shields  
+    - Kontrola prístupu a oprávnení s princípom najmenších právomocí  
     - Bezpečnosť obsahu a monitorovanie s integráciou Azure Content Safety  
     - Bezpečnosť dodávateľského reťazca s komplexnou verifikáciou komponentov  
-    - OAuth bezpečnosť a prevencia útokov Confused Deputy s implementáciou PKCE  
-    - Reakcia na incidenty a zotavenie s automatickými mechanizmami  
-    - Súlad s predpismi a správa podľa regulačných požiadaviek  
-    - Pokročilé bezpečnostné kontroly so zero trust architektúrou  
+    - Bezpečnosť OAuth a prevencia Confused Deputy útokov s implementáciou PKCE  
+    - Reakcia na incidenty a obnova s automatizovanými schopnosťami  
+    - Dodržiavanie predpisov a riadenie so zosúladením s reguláciami  
+    - Pokročilé bezpečnostné kontroly s architektúrou zero trust  
     - Integrácia Microsoft bezpečnostného ekosystému s komplexnými riešeniami  
     - Neustály vývoj bezpečnosti s adaptívnymi praktikami  
-  - **Microsoft bezpečnostné riešenia**: Vylepšené návody na integráciu Prompt Shields, Azure Content Safety, Entra ID a GitHub Advanced Security  
-  - **Implementačné zdroje**: Kategorizované rozsiahle odkazy na oficiálnu MCP dokumentáciu, Microsoft bezpečnostné riešenia, štandardy bezpečnosti a implementačné príručky  
+  - **Microsoft bezpečnostné riešenia**: Vylepšený návod na integráciu Prompt Shields, Azure Content Safety, Entra ID a GitHub Advanced Security  
+  - **Implementačné zdroje**: Kategorizované komplexné odkazy na zdroje podľa Oficiálnej MCP dokumentácie, Microsoft bezpečnostných riešení, bezpečnostných štandardov a implementačných príručiek
 
-#### Pokročilé bezpečnostné kontroly (02-Security/) – podnikovú implementáciu  
-- **MCP-SECURITY-CONTROLS-2025.md**: Kompletné prepracovanie s podnikovým bezpečnostným rámcom  
+#### Pokročilé bezpečnostné kontroly (02-Security/) – Podniková implementácia  
+- **MCP-SECURITY-CONTROLS-2025.md**: Kompletný prekop so zabezpečením podnikovej úrovne  
   - **9 komplexných bezpečnostných domén**: Rozšírené z základných kontrol na detailný podnikový rámec  
     - Pokročilá autentifikácia a autorizácia s integráciou Microsoft Entra ID  
-    - Token Security a kontroly proti passthrough s komplexnou validáciou  
-    - Kontroly bezpečnosti session s prevenciou hijackingu  
-    - Ochrana AI špecifických hrozieb s prevenciou prompt injection a tool poisoning  
-    - Prevencia útokov Confused Deputy s OAuth proxy bezpečnosťou  
-    - Bezpečnosť vykonávania nástrojov so sandboxingom a izoláciou  
-    - Bezpečnosť dodávateľského reťazca s verifikáciou závislostí  
-    - Monitorovanie a detekcia s integráciou SIEM  
-    - Reakcia na incidenty a zotavenie s automatickými mechanizmami  
-  - **Implementačné príklady**: Pridané detailné YAML konfiguračné bloky a príklady kódu  
-  - **Integrácia Microsoft riešení**: Kompletné pokrytie Azure bezpečnostných služieb, GitHub Advanced Security a podnikového manažmentu identity  
+    - Bezpečnosť tokenov a anti-passthrough kontroly s komplexnou validáciou  
+    - Kontroly bezpečnosti relácií s prevenciou prevzatia relácie  
+    - Bezpečnostné kontroly špecifické pre AI s prevenciou injekcie promptu a otravovania nástrojov  
+    - Prevencia Confused Deputy útokov s OAuth proxy bezpečnosťou  
+    - Bezpečnosť vykonávania nástrojov so sandboxovaním a izoláciou  
+    - Kontroly bezpečnosti dodávateľského reťazca s verifikáciou závislostí  
+    - Monitorovanie a detekčné kontroly s integráciou SIEM  
+    - Reakcia na incidenty a obnova s automatizovanými schopnosťami  
+  - **Implementačné príklady**: Pridané detailné YAML konfiguračné bloky a ukážky kódu  
+  - **Integrácia Microsoft riešení**: Komplexné pokrytie Azure bezpečnostných služieb, GitHub Advanced Security a podnikovej správy identity
 
-#### Bezpečnosť pokročilých tém (05-AdvancedTopics/mcp-security/) – produkčne pripravená implementácia  
-- **README.md**: Kompletné prepracovanie pre podnikové bezpečnostné implementácie  
-  - **Aktuálne zladenie so špecifikáciou**: Aktualizované podľa MCP špecifikácie 2025-06-18 so všetkými povinnými bezpečnostnými požiadavkami  
-  - **Vylepšená autentifikácia**: Integrácia Microsoft Entra ID s komplexnými príkladmi pre .NET a Java Spring Security  
+#### Bezpečnosť pokročilých tém (05-AdvancedTopics/mcp-security/) – Produkčne pripravená implementácia  
+- **README.md**: Kompletný prepis pre podnikové bezpečnostné implementácie  
+  - **Zladenie s aktuálnou špecifikáciou**: Aktualizované na MCP Špecifikáciu 2025-06-18 s povinnými bezpečnostnými požiadavkami  
+  - **Vylepšená autentifikácia**: Integrácia Microsoft Entra ID s komplexnými príkladmi .NET a Java Spring Security  
   - **Integrácia AI bezpečnosti**: Implementácia Microsoft Prompt Shields a Azure Content Safety s detailnými príkladmi v Pythone  
-  - **Pokročilé mitigácie hrozieb**: Kompletné príklady implementácie  
-    - Prevencia útokov Confused Deputy s PKCE a validáciou používateľského súhlasu  
-    - Prevencia token passthrough s validáciou cieľového publika a bezpečnou správou tokenov  
-    - Prevencia hijackingu session s kryptografickým viazaním a behaviorálnou analýzou  
-  - **Podniková bezpečnostná integrácia**: Monitorovanie Azure Application Insights, pipelines pre detekciu hrozieb a bezpečnosť dodávateľského reťazca  
-  - **Implementačný kontrolný zoznam**: Jasné rozlíšenie povinných a odporúčaných bezpečnostných kontrol s výhodami Microsoft bezpečnostného ekosystému  
+  - **Pokročilé mitigácie hrozieb**: Komplexné implementačné príklady pre  
+    - Prevenciu Confused Deputy útokov pomocou PKCE a validácie súhlasu používateľa  
+    - Prevenciu passthrough tokenov s validáciou audiencie a bezpečnou správou tokenov
+    - Prevencia unesenia relácie s kryptografickým väznením a behaviorálnou analýzou
+  - **Integrácia firemnej bezpečnosti**: Monitorovanie Azure Application Insights, pipeliny detekcie hrozieb a bezpečnosť dodávateľského reťazca
+  - **Implementačný kontrolný zoznam**: Jasné povinné vs. odporúčané bezpečnostné opatrenia s výhodami bezpečnostného ekosystému Microsoftu
 
-### Kvalita dokumentácie a zladenie so štandardmi
-- **Odkazy na špecifikácie**: Aktualizované všetky odkazy na aktuálnu MCP špecifikáciu 2025-06-18  
-- **Microsoft bezpečnostný ekosystém**: Vylepšené usmernenia o integrácii v celej bezpečnostnej dokumentácii  
-- **Praktická implementácia**: Pridané podrobné príklady kódu v .NET, Jave a Pythone s podnikateľskými vzormi  
-- **Organizácia zdrojov**: Komplexná kategorizácia oficiálnej dokumentácie, bezpečnostných štandardov a implementačných príručiek  
-- **Vizuálne indikátory**: Jasné označenie povinných požiadaviek vs. odporúčaných postupov  
+### Kvalita dokumentácie a súlad so štandardmi
+- **Odkazy na špecifikácie**: Aktualizované všetky odkazy na aktuálnu špecifikáciu MCP 2025-06-18
+- **Ekosystém bezpečnosti Microsoft**: Vylepšené pokyny o integrácii naprieč celou bezpečnostnou dokumentáciou
+- **Praktická implementácia**: Pridané podrobné príklady kódu v .NET, Jave a Pythone s podnikateľskými vzormi
+- **Organizácia zdrojov**: Komplexná kategorizácia oficiálnej dokumentácie, bezpečnostných štandardov a sprievodcov implementáciou
+- **Vizualizácia indikátorov**: Jasné označenie povinných požiadaviek vs. odporúčaných postupov
 
 
-#### Základné koncepty (01-CoreConcepts/) - Kompletná modernizácia  
-- **Aktualizácia verzie protokolu**: Aktualizované na odkazovanie na aktuálnu MCP špecifikáciu 2025-06-18 s verziou založenou na dátume (formát RRRR-MM-DD)  
-- **Zlepšenie architektúry**: Vylepšené popisy Hostiteľov, Klientov a Serverov reflektujúce aktuálne MCP architektonické vzory  
-  - Hostitelia teraz jasne definovaní ako AI aplikácie koordinujúce viaceré MCP klientské pripojenia  
-  - Klienti popísaní ako protokolové konektory udržiavajúce vzťahy jeden na jedného so servermi  
-  - Servery vylepšené s lokálnymi a vzdialenými scenármi nasadenia  
-- **Reorganizácia primitív**: Kompletná prepracovanie primitív servera a klienta  
-  - Serverové primitivá: Zdroje (dátové zdroje), Výzvy (šablóny), Nástroje (vykonávateľné funkcie) s podrobným vysvetlením a príkladmi  
-  - Klientské primitivá: Vzorkovanie (LLM dokončenia), Získavanie informácií (vstup používateľa), Logovanie (ladenie/monitorovanie)  
-  - Aktualizované s aktuálnymi vzormi metód pre zisťovanie (`*/list`), získavanie (`*/get`) a vykonávanie (`*/call`)  
-- **Architektúra protokolu**: Zavedený dvojvrstvový architektonický model  
-  - Dátová vrstva: Základ JSON-RPC 2.0 so správou životného cyklu a primitívami  
-  - Transportná vrstva: STDIO (lokálne) a Streamovateľný HTTP s SSE (vzdialené) transportné mechanizmy  
-- **Bezpečnostný rámec**: Komplexné bezpečnostné zásady vrátane explicitného súhlasu používateľa, ochrany súkromia dát, bezpečnosti vykonávania nástrojov a bezpečnosti transportnej vrstvy  
-- **Komunikačné vzory**: Aktualizované protokolové správy zobrazujúce inicializáciu, zisťovanie, vykonávanie a tok notifikácií  
-- **Príklady kódu**: Obnovené viacjazyčné príklady (.NET, Java, Python, JavaScript) reflektujúce aktuálne MCP SDK vzory  
+#### Základné koncepty (01-CoreConcepts/) – Kompletná modernizácia
+- **Aktualizácia verzie protokolu**: Aktualizované odkazy na aktuálnu špecifikáciu MCP 2025-06-18 s verziou založenou na dátume (formát RRRR-MM-DD)
+- **Zdokonalenie architektúry**: Vylepšené popisy Hostiteľov, Klientov a Serverov, aby odrážali aktuálne architektonické vzory MCP
+  - Hostitelia teraz jasne definovaní ako AI aplikácie koordinujúce viacero pripojení MCP klientov
+  - Klienti popísaní ako konektory protokolu udržiavajúce vzťahy jeden na jedného so serverom
+  - Servery doplnené o scenáre lokálneho a vzdialeného nasadenia
+- **Reštrukturalizácia primitív**: Kompletná revízia serverových a klientske primitív
+  - Serverové primitíva: Zdroje (dátové zdroje), Výzvy (šablóny), Nástroje (spustiteľné funkcie) s podrobným vysvetlením a príkladmi
+  - Klientské primitíva: Vzorkovanie (dokoncovanie LLM), Vyvolávanie (vstup používateľa), Logovanie (debugovanie/monitorovanie)
+  - Aktualizované so súčasnými vzormi objavovania (`*/list`), načítania (`*/get`) a vykonávania (`*/call`)
+- **Architektúra protokolu**: Zavedený dvojvrstvový model architektúry
+  - Dátová vrstva: Základ JSON-RPC 2.0 s riadením životného cyklu a primitívami
+  - Prenosová vrstva: STDIO (lokálne) a prenosné HTTP so SSE (vzdialené) prenosové mechanizmy
+- **Bezpečnostný rámec**: Komplexné bezpečnostné princípy vrátane explicitného súhlasu používateľa, ochrany súkromia dát, bezpečnosti vykonávania nástrojov a bezpečnosti prenosovej vrstvy
+- **Komunikačné vzory**: Aktualizované protokolové správy zobrazujúce inicializáciu, objavovanie, vykonávanie a tok oznámení
+- **Príklady kódu**: Obnovené príklady v mnohých jazykoch (.NET, Java, Python, JavaScript) tak, aby odrážali aktuálne vzory MCP SDK
 
-#### Bezpečnosť (02-Security/) - Komplexná bezpečnostná revízia  
-- **Zladenie so štandardmi**: Úplné zladenie s bezpečnostnými požiadavkami MCP špecifikácie 2025-06-18  
-- **Vývoj autentifikácie**: Zdokumentovaný vývoj od vlastných OAuth serverov po delegovanie na externého poskytovateľa identity (Microsoft Entra ID)  
-- **Analýza hrozieb špecifických pre AI**: Rozšírené pokrytie moderných útokov na AI  
-  - Podrobné scenáre útokov injektáže výziev s reálnymi príkladmi  
-  - Mechanizmy otravy nástrojov a vzory útokov "rug pull"  
-  - Otrava kontextového okna a útoky na zmätok modelu  
-- **Microsoft AI bezpečnostné riešenia**: Komplexné pokrytie Microsoft bezpečnostného ekosystému  
-  - AI Prompt Shields s pokročilou detekciou, zvýrazňovaním a technikami delimiterov  
-  - Vzory integrácie Azure Content Safety  
-  - GitHub Advanced Security na ochranu dodávateľského reťazca  
-- **Pokročilé zmierňovanie hrozieb**: Podrobné bezpečnostné kontroly pre  
-  - Únik relácie s MCP-špecifickými scénarmi útokov a kryptografickými požiadavkami na relácie  
-  - Problémy "zmätkom zastupiteľa" v MCP proxy scenároch s explicitnými požiadavkami na súhlas  
-  - Zraniteľnosti token passthrough s povinnými validačnými kontrolami  
-- **Bezpečnosť dodávateľského reťazca**: Rozšírené pokrytie AI dodávateľského reťazca vrátane zakladajúcich modelov, embeddings služieb, poskytovateľov kontextu a API tretích strán  
-- **Základná bezpečnosť**: Vylepšená integrácia s podnikateľskými bezpečnostnými vzormi vrátane architektúry zero trust a Microsoft bezpečnostného ekosystému  
-- **Organizácia zdrojov**: Kategorizované komplexné odkazy na zdroje podľa typu (Oficiálna dokumentácia, Štandardy, Výskum, Microsoft riešenia, Implementačné príručky)  
+#### Bezpečnosť (02-Security/) – Komplexná revízia bezpečnosti  
+- **Súlad so štandardmi**: Plný súlad s bezpečnostnými požiadavkami MCP špecifikácie 2025-06-18
+- **Vývoj autentifikácie**: Dokumentovaný vývoj od vlastných OAuth serverov po delegáciu externých poskytovateľov identity (Microsoft Entra ID)
+- **Analýza hrozieb špecifická pre AI**: Rozšírené pokrytie moderných útočných vektorov AI
+  - Podrobné scenáre útokov na injekciu výzvy s reálnymi príkladmi
+  - Mechanizmy otrávenia nástrojov a vzory útokov „rug pull“
+  - Otrava kontextového okna a útoky na zmätok modelu
+- **Microsoft riešenia bezpečnosti AI**: Komplexné pokrytie ekosystému bezpečnosti Microsoftu
+  - AI Prompt Shields s pokročilými technikami detekcie, zvýrazňovania a oddeľovania
+  - Vzory integrácie Azure Content Safety
+  - GitHub Advanced Security na ochranu dodávateľského reťazca
+- **Pokročilá mitigácia hrozieb**: Podrobné bezpečnostné opatrenia pre
+  - unesenie relácie s MCP-špecifickými scenármi útokov a kryptografickými požiadavkami na ID relácie
+  - problémy s „confused deputy“ v MCP proxy scenároch s explicitnými požiadavkami na súhlas
+  - zraniteľnosti pri preposielaní tokenov s povinnými validačnými kontrolami
+- **Bezpečnosť dodávateľského reťazca**: Rozšírené pokrytie AI dodávateľského reťazca vrátane základných modelov, služieb vkladania, poskytovateľov kontextu a API tretích strán
+- **Základná bezpečnosť**: Vylepšená integrácia s podnikateľskými bezpečnostnými vzormi vrátane architektúry zero trust a ekosystému bezpečnosti Microsoftu
+- **Organizácia zdrojov**: Kategorizované komplexné odkazy na zdroje podľa typu (Oficiálne dokumenty, Štandardy, Výskum, Microsoft riešenia, Sprievodcovia implementáciou)
 
-### Zlepšenia kvality dokumentácie  
-- **Štruktúrované vzdelávacie ciele**: Vylepšené vzdelávacie ciele so špecifickými, vykonateľnými výsledkami  
-- **Krížové odkazy**: Pridané odkazy medzi súvisiacimi témami bezpečnosti a základných konceptov  
-- **Aktuálne informácie**: Aktualizované všetky dátumy a odkazy na špecifikácie na aktuálne štandardy  
-- **Usmernenie k implementácii**: Pridané konkrétne, vykonateľné usmernenia k implementácii v oboch sekciách  
+### Vylepšenia kvality dokumentácie
+- **Štruktúrované vzdelávacie ciele**: Vylepšené vzdelávacie ciele so špecifickými, činnosťami riadenými výsledkami 
+- **Krížové odkazy**: Pridané odkazy medzi súvisiacimi témami bezpečnosti a základných konceptov
+- **Aktuálne informácie**: Aktualizované všetky dátumové odkazy a odkazy na špecifikácie podľa súčasných štandardov
+- **Pokyny k implementácii**: Pridané špecifické, činnosťami riadené pokyny k implementácii v oboch častiach
 
-## 16. júla 2025  
+## 16. júl 2025
 
-### Vylepšenia README a navigácie  
-- Úplne prepracovaná navigácia sylába v README.md  
-- Nahradené značky `<details>` prístupnejším formátom založeným na tabuľkách  
-- Vytvorené alternatívne rozloženia v novej zložke "alternative_layouts"  
-- Pridané príklady navigácie založenej na kartách, záložkách a akordeónoch  
-- Aktualizovaná sekcia štruktúry repozitára na zahrnutie všetkých najnovších súborov  
-- Vylepšená sekcia "Ako používať tento syláb" s jasnými odporúčaniami  
-- Aktualizované odkazy na MCP špecifikáciu tak, aby smerovali na správne URL  
-- Pridaná sekcia Kontextového inžinierstva (5.14) do štruktúry sylába  
+### README a vylepšenia navigácie
+- Kompletná redizajn navigácie kurikula v README.md
+- Nahradenie značiek `<details>` prístupnejším formátom založeným na tabuľke
+- Vytvorenie alternatívnych rozložení v novom priečinku "alternative_layouts"
+- Pridané príklady navigácie založenej na kartách, štýle záložiek a akordeóne
+- Aktualizovaná sekcia štruktúry repozitára o všetky najnovšie súbory
+- Vylepšená sekcia "Ako použiť toto kurikulum" s jasnými odporúčaniami
+- Aktualizované odkazy na špecifikáciu MCP na správne URL
+- Pridaná sekcia Context Engineering (5.14) do štruktúry kurikula
 
-### Aktualizácie študijného sprievodcu  
-- Kompletné prepracovanie študijného sprievodcu pre zladenie s aktuálnou štruktúrou repozitára  
-- Pridané nové sekcie pre MCP klientov a nástroje a populárne MCP servery  
-- Aktualizovaná vizuálna mapa sylába presne zobrazujúc všetky témy  
-- Vylepšené popisy pokročilých tém pokrývajúce všetky špecializované oblasti  
-- Aktualizovaná sekcia prípadových štúdií reflektujúca skutočné príklady  
-- Pridaný tento komplexný zoznam zmien  
+### Aktualizácie študijného sprievodcu
+- Kompletná revízia študijného sprievodcu na zosúladenie so súčasnou štruktúrou repozitára
+- Pridané nové sekcie pre MCP klientov a nástroje, a populárne MCP servery
+- Aktualizovaná vizuálna mapa kurikula presne zobrazujúca všetky témy
+- Vylepšené popisy pokročilých tém pokrývajúcich všetky špecializované oblasti
+- Aktualizovaná sekcia prípadových štúdií odrážajúca reálne príklady
+- Pridaný tento komplexný changelog
 
-### Príspevky komunity (06-CommunityContributions/)  
-- Pridané podrobné informácie o MCP serveroch na generovanie obrázkov  
-- Pridaná komplexná sekcia o používaní Claude vo VSCode  
-- Pridané inštrukcie k nastaveniu a používaniu terminálového klienta Cline  
-- Aktualizovaná sekcia MCP klientov na zahrnutie všetkých populárnych klientskych možností  
-- Vylepšené príklady príspevkov s presnejšími vzormi kódu  
+### Príspevky komunity (06-CommunityContributions/)
+- Pridané detailné informácie o MCP serveroch pre generovanie obrázkov
+- Pridaná komplexná sekcia o použití Claude vo VSCode
+- Pridané pokyny pre nastavenie a používanie terminálového klienta Cline
+- Aktualizovaná sekcia MCP klientov s všetkými populárnymi možnosťami klientov
+- Vylepšené príklady príspevkov s presnejšími vzorkami kódu
 
-### Pokročilé témy (05-AdvancedTopics/)  
-- Zorganizované všetky špecializované tématické zložky s konzistentným pomenovaním  
-- Pridané materiály a príklady kontextového inžinierstva  
-- Pridaná dokumentácia integrácie agenta Foundry  
-- Vylepšená dokumentácia integrácie bezpečnosti Entra ID  
+### Pokročilé témy (05-AdvancedTopics/)
+- Usporiadané všetky špecializované témy priečinkov s jednotným pomenovaním
+- Pridané materiály a príklady kontextového inžinierstva
+- Pridaná dokumentácia integrácie agenta Foundry
+- Vylepšená dokumentácia integrácie bezpečnosti Entra ID
 
-## 11. júna 2025  
+## 11. jún 2025
 
-### Počiatočné vytvorenie  
-- Uvedená prvá verzia sylába MCP pre začiatočníkov  
-- Vytvorená základná štruktúra pre všetkých 10 hlavných sekcií  
-- Implementovaná vizuálna mapa sylába pre navigáciu  
-- Pridané úvodné ukážkové projekty v niekoľkých programovacích jazykoch  
+### Počiatočné vytvorenie
+- Uvoľnená prvá verzia kurikula MCP pre začiatočníkov
+- Vytvorená základná štruktúra pre všetkých 10 hlavných sekcií
+- Implementovaná vizuálna mapa kurikula pre navigáciu
+- Pridané úvodné ukážkové projekty vo viacerých programovacích jazykoch
 
-### Začíname (03-GettingStarted/)  
-- Vytvorené prvé príklady implementácie servera  
-- Pridané usmernenia pre vývoj klientov  
-- Zahŕňajúce inštrukcie na integráciu LLM klienta  
-- Pridaná dokumentácia integrácie VS Code  
-- Implementované príklady serverov s Server-Sent Events (SSE)  
+### Začíname (03-GettingStarted/)
+- Vytvorené prvé príklady implementácie servera
+- Pridané pokyny pre vývoj klienta
+- Zahrnuté návodné pokyny pre integráciu LLM klienta
+- Pridaná dokumentácia integrácie pre VS Code
+- Implementované príklady serverov Server-Sent Events (SSE)
 
-### Základné koncepty (01-CoreConcepts/)  
-- Pridané podrobné vysvetlenie klient-server architektúry  
-- Vytvorená dokumentácia k hlavným protokolovým komponentom  
-- Zdokumentované vzory odosielania správ v MCP  
+### Základné koncepty (01-CoreConcepts/)
+- Pridané podrobné vysvetlenie architektúry klient-server
+- Vytvorená dokumentácia k hlavným komponentom protokolu
+- Zdokumentované vzory zasielania správ v MCP
 
-## 23. mája 2025  
+## 23. máj 2025
 
-### Štruktúra repozitára  
-- Inicializovaný repozitár so základnou štruktúrou zložiek  
-- Vytvorené README súbory pre každú hlavnú sekciu  
-- Nastavená infraštruktúra pre preklady  
-- Pridané obrazové zdroje a diagramy  
+### Štruktúra repozitára
+- Inicializovaný repozitár so základnou štruktúrou priečinkov
+- Vytvorené README súbory pre každú hlavnú sekciu
+- Nastavená infraštruktúra pre preklady
+- Pridané obrázkové zdroje a diagramy
 
-### Dokumentácia  
-- Vytvorený počiatočný README.md so súhrnom sylába  
-- Pridané súbory CODE_OF_CONDUCT.md a SECURITY.md  
-- Nastavený SUPPORT.md s usmerneniami pre získanie pomoci  
-- Vytvorená predbežná štruktúra študijného sprievodcu  
+### Dokumentácia
+- Vytvorený počiatočný README.md s prehľadom kurikula
+- Pridané súbory CODE_OF_CONDUCT.md a SECURITY.md
+- Nastavený SUPPORT.md s pokynmi na získanie pomoci
+- Vytvorená predbežná štruktúra študijného sprievodcu
 
-## 15. apríla 2025  
+## 15. apríl 2025
 
-### Plánovanie a rámec  
-- Počiatočné plánovanie sylába MCP pre začiatočníkov  
-- Definované vzdelávacie ciele a cieľové publikum  
-- Opísaná 10-sekčná štruktúra sylába  
-- Vyvinutý koncepčný rámec pre príklady a prípadové štúdie  
-- Vytvorené počiatočné prototypové príklady kľúčových konceptov
+### Plánovanie a rámec
+- Počiatočné plánovanie kurikula MCP pre začiatočníkov
+- Definované vzdelávacie ciele a cieľová skupina
+- Nástin 10-člennej štruktúry kurikula
+- Vyvinutý konceptuálny rámec pre príklady a prípadové štúdie
+- Vytvorené počiatočné prototypy príkladov kľúčových konceptov
 
 ---
 

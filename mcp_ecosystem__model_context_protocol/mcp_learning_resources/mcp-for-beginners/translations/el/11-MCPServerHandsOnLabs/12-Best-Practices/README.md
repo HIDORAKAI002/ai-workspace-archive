@@ -1,57 +1,57 @@
-# Βέλτιστες Πρακτικές και Βελτιστοποίηση
+# Καλύτερες Πρακτικές και Βελτιστοποίηση
 
 ## 🎯 Τι Καλύπτει Αυτό το Εργαστήριο
 
-Αυτό το εργαστήριο ενοποιεί βέλτιστες πρακτικές, τεχνικές βελτιστοποίησης και οδηγίες παραγωγής για τη δημιουργία ισχυρών, επεκτάσιμων και ασφαλών MCP servers με ενσωμάτωση βάσεων δεδομένων. Θα μάθετε από πραγματικές εμπειρίες και βιομηχανικά πρότυπα για να διασφαλίσετε ότι η υλοποίησή σας είναι έτοιμη για παραγωγή.
+Αυτό το τελικό εργαστήριο ενοποιεί τις καλύτερες πρακτικές, τις τεχνικές βελτιστοποίησης και τις οδηγίες παραγωγής για την κατασκευή στιβαρών, επεκτάσιμων και ασφαλών MCP διακομιστών με ενσωμάτωση βάσης δεδομένων. Θα μάθετε από την εμπειρία του πραγματικού κόσμου και τα βιομηχανικά πρότυπα για να διασφαλίσετε ότι η υλοποίησή σας είναι έτοιμη για παραγωγή.
 
 ## Επισκόπηση
 
-Η δημιουργία ενός επιτυχημένου MCP server δεν αφορά μόνο τη σωστή λειτουργία του κώδικα. Αυτό το εργαστήριο καλύπτει τις βασικές πρακτικές που διαχωρίζουν τις υλοποιήσεις proof-of-concept από τα συστήματα έτοιμα για παραγωγή, τα οποία μπορούν να επεκταθούν, να λειτουργούν αξιόπιστα και να διατηρούν πρότυπα ασφαλείας.
+Η κατασκευή ενός επιτυχημένου MCP διακομιστή είναι κάτι περισσότερο από το να λειτουργεί απλώς ο κώδικας. Αυτό το εργαστήριο καλύπτει τις ουσιώδεις πρακτικές που διαχωρίζουν τις υλοποιήσεις αποδεικτικών εννοιών από τα συστήματα έτοιμα για παραγωγή που μπορούν να επεκταθούν, να λειτουργήσουν αξιόπιστα και να τηρήσουν πρότυπα ασφαλείας.
 
-Αυτές οι βέλτιστες πρακτικές προέρχονται από πραγματικές υλοποιήσεις, σχόλια της κοινότητας και μαθήματα από επιχειρησιακές εφαρμογές.
+Αυτές οι καλύτερες πρακτικές προέρχονται από πραγματικές αναπτύξεις, ανατροφοδότηση της κοινότητας και μαθήματα που αποκομίστηκαν από επιχειρηματικές υλοποιήσεις.
 
-## Στόχοι Μάθησης
+## Μαθησιακοί Στόχοι
 
-Μέχρι το τέλος αυτού του εργαστηρίου, θα μπορείτε:
+Στο τέλος αυτού του εργαστηρίου, θα μπορείτε να:
 
-- **Να εφαρμόσετε** τεχνικές βελτιστοποίησης απόδοσης για MCP servers και βάσεις δεδομένων
-- **Να υλοποιήσετε** ολοκληρωμένα μέτρα ενίσχυσης της ασφάλειας
-- **Να σχεδιάσετε** επεκτάσιμα πρότυπα αρχιτεκτονικής για περιβάλλοντα παραγωγής
-- **Να καθιερώσετε** διαδικασίες παρακολούθησης, συντήρησης και λειτουργίας
-- **Να βελτιστοποιήσετε** το κόστος διατηρώντας την απόδοση και την αξιοπιστία
-- **Να συνεισφέρετε** στην κοινότητα και το οικοσύστημα MCP
+- **Εφαρμόζετε** τεχνικές βελτιστοποίησης απόδοσης για MCP διακομιστές και βάσεις δεδομένων  
+- **Υλοποιείτε** ολοκληρωμένα μέτρα θωράκισης ασφάλειας  
+- **Σχεδιάζετε** επεκτάσιμα αρχιτεκτονικά μοτίβα για παραγωγικά περιβάλλοντα  
+- **Καθιερώσετε** διαδικασίες παρακολούθησης, συντήρησης και λειτουργίας  
+- **Βελτιστοποιείτε** κόστη διατηρώντας την απόδοση και την αξιοπιστία  
+- **Συμβάλλετε** στην κοινότητα και το οικοσύστημα MCP  
 
 ## 🚀 Βελτιστοποίηση Απόδοσης
 
 ### Απόδοση Βάσης Δεδομένων
 
-#### Βελτιστοποίηση Πισίνας Συνδέσεων
+#### Βελτιστοποίηση Συνόλου Συνδέσεων
 
 ```python
-# Optimized connection pool configuration
+# Βελτιστοποιημένη διαμόρφωση δεξαμενής συνδέσεων
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Διαμόρφωση μεγέθους
+    "min_size": max(2, cpu_count()),           # Τουλάχιστον 2, κλιμακώστε με CPU
+    "max_size": min(20, cpu_count() * 4),     # Ανώτατο όριο σε λογικό μέγιστο
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Διαμόρφωση χρονισμού
+    "max_inactive_connection_lifetime": 300,   # 5 λεπτά
+    "command_timeout": 30,                     # 30 δευτερόλεπτα
+    "max_queries": 50000,                      # Περιστροφή συνδέσεων
     
-    # PostgreSQL settings
+    # Ρυθμίσεις PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Απενεργοποίηση για συνέπεια
+        "work_mem": "8MB",                     # Βελτιστοποίηση για ερωτήματα
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Καταγραφή μόνο τροποποιήσεων
+        "log_min_duration_statement": "1s",   # Καταγραφή αργών ερωτημάτων
     }
 }
 ```
 
-#### Πρότυπα Βελτιστοποίησης Ερωτημάτων
+#### Μοτίβα Βελτιστοποίησης Ερωτημάτων
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # δευτερόλεπτα
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Ελέγξτε πρώτα την προσωρινή μνήμη
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Εκτελέστε με παρακολούθηση
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Βελτιστοποιήστε την εκτέλεση ερωτημάτων
+                await conn.execute("SET enable_seqscan = off")  # Προτιμήστε ευρετήρια
+                await conn.execute("SET work_mem = '16MB'")     # Περισσότερη μνήμη για αυτό το ερώτημα
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Καταγράψτε αργά ερωτήματα
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Αποθηκεύστε επιτυχημένα αποτελέσματα στην προσωρινή μνήμη
+                if cache_key and len(result) < 1000:  # Μην αποθηκεύετε μεγάλα αποτελέσματα στην προσωρινή μνήμη
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,25 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Προτάσεις ευρετηρίων
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Κύρια επιχειρηματικά ευρετήρια
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Ευρετήρια αναλυτικών στοιχείων
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Βελτιστοποίηση αναζήτησης διανυσμάτων
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
 
 ### Απόδοση Εφαρμογής
 
-#### Βέλτιστες Πρακτικές Ασύγχρονου Προγραμματισμού
+#### Καλύτερες Πρακτικές Ασύγχρονης Προγραμματισμού
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Επεξεργασία σε παρτίδες για να αποφευχθεί η υπερφόρτωση του συστήματος
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Μικρή καθυστέρηση μεταξύ των παρτίδων για να αποφευχθεί η εξάντληση πόρων
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Υλοποίηση διακόπτη κυκλώματος
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # ΚΛΕΙΣΤΟ, ΑΝΟΙΚΤΟ, ΜΙΚΤΟ_ΑΝΟΙΚΤΟ
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Επαναφορά σε περίπτωση επιτυχίας
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +215,7 @@ class CircuitBreaker:
             raise
 ```
 
-### Στρατηγικές Caching
+### Στρατηγικές Κρυφής Μνήμης
 
 ```python
 import redis
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Επίπεδο 1: Κρυφή μνήμη στη μνήμη
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Επίπεδο 2: Κρυφή μνήμη Redis
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Προώθηση στην κρυφή μνήμη στη μνήμη
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Υλοποίηση εκδίωξης LRU
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Δημιουργία κλειδιού κρυφής μνήμης
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,9 +304,9 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 Ενίσχυση Ασφάλειας
+## 🔒 Θωράκιση Ασφάλειας
 
-### Αυθεντικοποίηση και Εξουσιοδότηση
+### Πιστοποίηση και Εξουσιοδότηση
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Εξαγωγή και επικύρωση ταυτοποίησης
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Επικύρωση token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Έλεγχος περιορισμού ρυθμού
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Επικύρωση συμφραζομένων RLS
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Λήψη δημόσιου κλειδιού από Key Vault ή cache
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Αποκωδικοποίηση και επικύρωση token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Οι υπερχρήστες μπορούν να έχουν πρόσβαση σε οποιοδήποτε πλαίσιο
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Οι διευθυντές καταστημάτων έχουν πρόσβαση μόνο στο δικό τους κατάστημα
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Οι περιφερειακοί διευθυντές μπορούν να έχουν πρόσβαση σε πολλά καταστήματα
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Επικύρωση και καθαρισμός εισόδου
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Απαγορευμένα πρότυπα
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Επιτρέπονται μόνο εντολές SELECT
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Επιτρέπονται μόνο αλφαριθμητικοί χαρακτήρες, κάτω παύλα και τελεία
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Επικύρωση σε επιτρεπτούς πίνακες
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # Σε παραγωγή, λήψη από το Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Εφεδρική λύση για ανάπτυξη (όχι για παραγωγή!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # επαναλήψεις
         ).hex()
         
         return password_hash, salt
@@ -524,7 +524,7 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Οδηγίες Ανάπτυξης Παραγωγής
+## 📊 Οδηγίες Παραγωγικής Ανάπτυξης
 
 ### Υποδομή ως Κώδικας
 
@@ -607,7 +607,7 @@ stages:
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
 
-### Βελτιστοποίηση Containers
+### Βελτιστοποίηση Κοντέινερ
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -663,10 +663,10 @@ EXPOSE 8000
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
 
-### Διαμόρφωση Περιβάλλοντος
+### Παραμετροποίηση Περιβάλλοντος
 
 ```python
-# Production configuration management
+# Διαχείριση διαμόρφωσης παραγωγής
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,17 +715,17 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Ορίστε τρίτους καταγραφείς σε WARNING
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Απενεργοποιήστε τη λειτουργία αποσφαλμάτωσης
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Ορίστε ασφαλή headers
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Χαμηλό φορτίο
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Μεσαίο φορτίο
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Υψηλό φορτίο
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Αποθήκευση δαπανηρών λειτουργιών στην cache
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Ρύθμιση αυτόματης κλιμάκωσης
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Κλιμάκωση βασισμένη στη CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Κλιμάκωση βασισμένη στη μνήμη
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Κλιμάκωση ουράς αιτήσεων
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Υγεία βάσης δεδομένων
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Υγεία εξωτερικών υπηρεσιών
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Πόροι συστήματος
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Μετρήσεις εφαρμογής
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Καθορισμός συνολικής κατάστασης
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Ενεργοποίηση ειδοποιήσεων
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Βασική συνδεσιμότητα
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Έλεγχος αργών ερωτημάτων
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Έλεγχος αριθμού συνδέσεων
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Αυτόματη δημιουργία αντιγράφων ασφαλείας και ανάκτηση
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Ανέβασμα στο Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,12 +932,12 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Ημερήσιο πλήρες αντίγραφο στις 2 π.μ. UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Ωριαία αυξανόμενα αντίγραφα ασφαλείας
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
@@ -945,7 +945,7 @@ class BackupManager:
 
 ## 🌍 Συνεισφορές Κοινότητας
 
-### Βέλτιστες Πρακτικές Ανοιχτού Κώδικα
+### Καλύτερες Πρακτικές Ανοιχτού Κώδικα
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### Εμπλοκή με την Κοινότητα
+### Εμπλοκή Κοινότητας
 
 ```python
 class CommunityContributor:
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Θα υλοποιούσα πραγματικούς ελέγχους
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 Βασικά Συμπεράσματα
+## 🎯 Κύρια Σημεία
 
-Μετά την ολοκλήρωση αυτής της ολοκληρωμένης μαθησιακής διαδρομής, θα πρέπει να έχετε κατακτήσει:
+Μετά την ολοκλήρωση αυτής της ολοκληρωμένης μαθησιακής διαδρομής, θα έχετε κατακτήσει:
 
-✅ **Βελτιστοποίηση Απόδοσης**: Ρύθμιση βάσεων δεδομένων, ασύγχρονα πρότυπα και στρατηγικές caching  
-✅ **Ενίσχυση Ασφάλειας**: Αυθεντικοποίηση, εξουσιοδότηση και προστασία δεδομένων  
-✅ **Ανάπτυξη Παραγωγής**: Υποδομή ως κώδικας και βελτιστοποίηση containers  
+✅ **Βελτιστοποίηση Απόδοσης**: Βελτιώσεις βάσης δεδομένων, ασύγχρονα μοτίβα και στρατηγικές κρυφής μνήμης  
+✅ **Θωράκιση Ασφάλειας**: Πιστοποίηση, εξουσιοδότηση και προστασία δεδομένων  
+✅ **Παραγωγική Ανάπτυξη**: Υποδομή ως κώδικας και βελτιστοποίηση κοντέινερ  
 ✅ **Διαχείριση Κόστους**: Βελτιστοποίηση πόρων και έξυπνη κλιμάκωση  
 ✅ **Λειτουργική Αριστεία**: Παρακολούθηση, συντήρηση και αυτοματοποίηση  
-✅ **Εμπλοκή με την Κοινότητα**: Συνεισφορά στο οικοσύστημα MCP  
+✅ **Εμπλοκή Κοινότητας**: Συμβολή στο οικοσύστημα MCP  
 
 ## 🏆 Πιστοποίηση και Επόμενα Βήματα
 
 ### Πρακτική Αξιολόγηση
 
-Ολοκληρώστε αυτό το τελικό έργο για να αποδείξετε την εξειδίκευσή σας:
+Ολοκληρώστε αυτό το τελικό έργο για να αποδείξετε την ικανότητά σας:
 
-**Δημιουργήστε έναν MCP Server Έτοιμο για Παραγωγή** που περιλαμβάνει:
-- [ ] Αναλυτικά στοιχεία λιανικής πολλαπλών ενοικιαστών με RLS
-- [ ] Σημασιολογική αναζήτηση με Azure OpenAI
-- [ ] Ολοκληρωμένη υλοποίηση ασφάλειας
-- [ ] Ανάπτυξη παραγωγής στο Azure
-- [ ] Ρύθμιση παρακολούθησης και ειδοποιήσεων
-- [ ] Τεκμηρίωση και δοκιμές
+**Κατασκευή Έτοιμου για Παραγωγή MCP Διακομιστή** που περιλαμβάνει:  
+- [ ] Πολυενοικιακή ανάλυση λιανικής με RLS  
+- [ ] Σημασιολογική αναζήτηση με Azure OpenAI  
+- [ ] Ολοκληρωμένη υλοποίηση ασφάλειας  
+- [ ] Παραγωγική ανάπτυξη στο Azure  
+- [ ] Ρύθμιση παρακολούθησης και ειδοποιήσεων  
+- [ ] Τεκμηρίωση και δοκιμές  
 
 ### Προχωρημένες Μαθησιακές Διαδρομές
 
-Συνεχίστε το ταξίδι σας στο MCP με:
+Συνεχίστε το ταξίδι MCP με:
 
-- **Πρότυπα Αρχιτεκτονικής MCP**: Προχωρημένες αρχιτεκτονικές servers
-- **Ενσωμάτωση Πολλαπλών Μοντέλων**: Συνδυασμός διαφορετικών μοντέλων AI
-- **Επιχειρησιακή Κλίμακα**: Υλοποιήσεις MCP μεγάλης κλίμακας
-- **Ανάπτυξη Εξατομικευμένων Εργαλείων**: Δημιουργία εξειδικευμένων εργαλείων MCP
-- **Οικοσύστημα MCP**: Συνεισφορά στη διευρυμένη κοινότητα
+- **Αρχιτεκτονικά Μοτίβα MCP**: Προχωρημένες αρχιτεκτονικές διακομιστών  
+- **Ενσωμάτωση Πολλαπλών Μοντέλων**: Συνδυασμός διαφορετικών μοντέλων AI  
+- **Επιχειρηματική Κλίμακα**: Μεγαλο-κλίμακες αναπτύξεις MCP  
+- **Ανάπτυξη Ειδικών Εργαλείων**: Κατασκευή εξειδικευμένων εργαλείων MCP  
+- **Οικοσύστημα MCP**: Συνεισφορές στην ευρύτερη κοινότητα  
 
-### Αναγνώριση από την Κοινότητα
+### Αναγνώριση στην Κοινότητα
 
-Μοιραστείτε το επίτευγμά σας:
-- **GitHub Portfolio**: Παρουσιάστε την υλοποίησή σας
-- **Συνεισφορές στην Κοινότητα**: Υποβάλετε βελτιώσεις ή παραδείγματα
-- **Ευκαιρίες Ομιλίας**: Παρουσιάστε σε συναντήσεις ή συνέδρια
-- **Καθοδήγηση**: Βοηθήστε άλλους προγραμματιστές να μάθουν MCP
+Κοινοποιήστε την επίτευξή σας:  
+- **Πορτφόλιο GitHub**: Προβολή της υλοποίησής σας  
+- **Συνεισφορές στην Κοινότητα**: Υποβολή βελτιώσεων ή παραδειγμάτων  
+- **Ευκαιρίες Ομιλίας**: Παρουσιάσεις σε συναντήσεις ή συνέδρια  
+- **Καθοδήγηση**: Βοήθεια σε άλλους προγραμματιστές να μάθουν MCP  
 
-## 📚 Πρόσθετοι Πόροι
+## 📚 Επιπλέον Πόροι
 
-### Προχωρημένα Θέματα
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Βελτιστοποίηση βάσεων δεδομένων
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Ανάπτυξη παραγωγής
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Ασύγχρονος προγραμματισμός
+### Προχωρημένα Θέματα  
+- [PostgreSQL Βελτιστοποίηση Απόδοσης](https://www.postgresql.org/docs/current/performance-tips.html) - Βελτιστοποίηση βάσης δεδομένων  
+- [Best Practices για Azure Container Apps](https://docs.microsoft.com/azure/container-apps/overview) - Παραγωγική ανάπτυξη  
+- [Καλύτερες Πρακτικές Python Async](https://docs.python.org/3/library/asyncio-dev.html) - Ασύγχρονος προγραμματισμός  
 
-### Πόροι Ασφάλειας
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Ευπάθειες ασφαλείας
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Ασφάλεια στο cloud
-- [Python Security Guidelines](https://python.org/dev/security/) - Ασφαλής προγραμματισμός
+### Πόροι Ασφάλειας  
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Ευπάθειες ασφάλειας  
+- [Καλύτερες Πρακτικές Ασφάλειας Azure](https://docs.microsoft.com/azure/security/) - Ασφάλεια cloud  
+- [Οδηγίες Ασφαλούς Κώδικα Python](https://python.org/dev/security/) - Ασφαλής κωδικοποίηση  
 
-### Κοινότητα
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Ζωντανές συζητήσεις
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Ερωτήσεις και ανταλλαγή απόψεων
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Τεχνικές ερωτήσεις
-
----
-
-**🎉 Συγχαρητήρια!** Ολοκληρώσατε την ολοκληρωμένη μαθησιακή διαδρομή MCP Database Integration. Τώρα έχετε τις γνώσεις και τις δεξιότητες για να δημιουργήσετε MCP servers έτοιμους για παραγωγή που γεφυρώνουν τους AI βοηθούς με πραγματικά συστήματα δεδομένων.
-
-**Έτοιμοι να συνεισφέρετε;** Ενταχθείτε στην κοινότητά μας και βοηθήστε άλλους να μάθουν MCP μοιράζοντας τις εμπειρίες σας, συνεισφέροντας βελτιώσεις κώδικα ή δημιουργώντας πρόσθετους μαθησιακούς πόρους.
+### Κοινότητα  
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Ζωντανές συζητήσεις  
+- [Συζητήσεις GitHub](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A και κοινή χρήση  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Τεχνικά ερωτήματα  
 
 ---
 
-**Αποποίηση ευθύνης**:  
-Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία αυτόματης μετάφρασης [Co-op Translator](https://github.com/Azure/co-op-translator). Παρόλο που καταβάλλουμε προσπάθειες για ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα θα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή εσφαλμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+**🎉 Συγχαρητήρια!** Ολοκληρώσατε την ολοκληρωμένη μαθησιακή διαδρομή Ενσωμάτωσης Βάσης Δεδομένων MCP. Τώρα διαθέτετε τις γνώσεις και τις δεξιότητες για να δημιουργήσετε MCP διακομιστές έτοιμους για παραγωγή που γεφυρώνουν βοηθούς AI με συστήματα πραγματικών δεδομένων.
+
+**Έτοιμοι να συμβάλετε;** Ενταχθείτε στην κοινότητά μας και βοηθήστε άλλους να μάθουν MCP μοιραζόμενοι τις εμπειρίες σας, συνεισφέροντας βελτιώσεις κώδικα ή δημιουργώντας επιπλέον μαθησιακούς πόρους.
+
+**Επόμενο**: [Εργαλεία](../../12-tooling/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Αποποίηση ευθυνών**:
+Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Ενώ επιδιώκουμε την ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

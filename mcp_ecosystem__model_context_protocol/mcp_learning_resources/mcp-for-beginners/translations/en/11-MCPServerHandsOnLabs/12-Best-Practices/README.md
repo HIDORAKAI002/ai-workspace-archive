@@ -2,24 +2,24 @@
 
 ## 🎯 What This Lab Covers
 
-This capstone lab brings together best practices, optimization techniques, and production guidelines for creating robust, scalable, and secure MCP servers with database integration. You'll gain insights from real-world scenarios and industry standards to ensure your implementation is ready for production.
+This capstone lab consolidates best practices, optimization techniques, and production guidelines for building robust, scalable, and secure MCP servers with database integration. You'll learn from real-world experience and industry standards to ensure your implementation is production-ready.
 
 ## Overview
 
-Building a successful MCP server involves more than just functional code. This lab focuses on the critical practices that elevate proof-of-concept implementations to production-ready systems capable of scaling, performing reliably, and adhering to security standards.
+Building a successful MCP server is more than just getting the code to work. This lab covers the essential practices that separate proof-of-concept implementations from production-ready systems that can scale, perform reliably, and maintain security standards.
 
-These best practices are based on real-world deployments, community feedback, and lessons learned from enterprise implementations.
+These best practices are derived from real-world deployments, community feedback, and lessons learned from enterprise implementations.
 
 ## Learning Objectives
 
 By the end of this lab, you will be able to:
 
-- **Apply** performance optimization techniques for MCP servers and databases  
-- **Implement** robust security hardening measures  
-- **Design** scalable architecture patterns for production environments  
-- **Establish** monitoring, maintenance, and operational procedures  
-- **Optimize** costs while maintaining performance and reliability  
-- **Contribute** to the MCP community and ecosystem  
+- **Apply** performance optimization techniques for MCP servers and databases
+- **Implement** comprehensive security hardening measures
+- **Design** scalable architecture patterns for production environments
+- **Establish** monitoring, maintenance, and operational procedures
+- **Optimize** costs while maintaining performance and reliability
+- **Contribute** to the MCP community and ecosystem
 
 ## 🚀 Performance Optimization
 
@@ -50,7 +50,7 @@ POOL_CONFIG = {
     }
 }
 ```
-  
+
 #### Query Optimization Patterns
 
 ```python
@@ -125,7 +125,6 @@ RECOMMENDED_INDEXES = [
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
 ### Application Performance
 
@@ -215,7 +214,6 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
 ### Caching Strategies
 
@@ -305,7 +303,6 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
 ## 🔒 Security Hardening
 
@@ -452,7 +449,6 @@ class InputValidator:
         
         return table_name
 ```
-  
 
 ### Data Protection
 
@@ -527,7 +523,6 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
 ## 📊 Production Deployment Guidelines
 
@@ -611,7 +606,6 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
 ### Container Optimization
 
@@ -668,7 +662,6 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
 ### Environment Configuration
 
@@ -738,7 +731,6 @@ class ProductionConfig:
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
 ## 💰 Cost Optimization
 
@@ -818,7 +810,6 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
 ## 🔧 Maintenance and Operations
 
@@ -951,7 +942,6 @@ class BackupManager:
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
 ## 🌍 Community Contributions
 
@@ -994,7 +984,6 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
 ### Community Engagement
 
@@ -1041,7 +1030,6 @@ class CommunityContributor:
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
 ## 🎯 Key Takeaways
 
@@ -1060,55 +1048,60 @@ After completing this comprehensive learning path, you should have mastered:
 
 Complete this final project to demonstrate your mastery:
 
-**Build a Production-Ready MCP Server** that includes:  
-- [ ] Multi-tenant retail analytics with RLS  
-- [ ] Semantic search with Azure OpenAI  
-- [ ] Comprehensive security implementation  
-- [ ] Production deployment on Azure  
-- [ ] Monitoring and alerting setup  
-- [ ] Documentation and testing  
+**Build a Production-Ready MCP Server** that includes:
+- [ ] Multi-tenant retail analytics with RLS
+- [ ] Semantic search with Azure OpenAI
+- [ ] Comprehensive security implementation
+- [ ] Production deployment on Azure
+- [ ] Monitoring and alerting setup
+- [ ] Documentation and testing
 
 ### Advanced Learning Paths
 
-Continue your MCP journey with:  
-- **MCP Architecture Patterns**: Advanced server architectures  
-- **Multi-Model Integration**: Combining different AI models  
-- **Enterprise Scale**: Large-scale MCP deployments  
-- **Custom Tool Development**: Building specialized MCP tools  
-- **MCP Ecosystem**: Contributing to the broader community  
+Continue your MCP journey with:
+
+- **MCP Architecture Patterns**: Advanced server architectures
+- **Multi-Model Integration**: Combining different AI models
+- **Enterprise Scale**: Large-scale MCP deployments
+- **Custom Tool Development**: Building specialized MCP tools
+- **MCP Ecosystem**: Contributing to the broader community
 
 ### Community Recognition
 
-Share your achievement:  
-- **GitHub Portfolio**: Showcase your implementation  
-- **Community Contributions**: Submit improvements or examples  
-- **Speaking Opportunities**: Present at meetups or conferences  
-- **Mentoring**: Help other developers learn MCP  
+Share your achievement:
+- **GitHub Portfolio**: Showcase your implementation
+- **Community Contributions**: Submit improvements or examples
+- **Speaking Opportunities**: Present at meetups or conferences
+- **Mentoring**: Help other developers learn MCP
 
 ## 📚 Additional Resources
 
-### Advanced Topics  
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Database optimization  
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Production deployment  
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Async programming  
+### Advanced Topics
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Database optimization
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Production deployment
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Async programming
 
-### Security Resources  
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Security vulnerabilities  
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Cloud security  
-- [Python Security Guidelines](https://python.org/dev/security/) - Secure coding  
+### Security Resources
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Security vulnerabilities
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Cloud security
+- [Python Security Guidelines](https://python.org/dev/security/) - Secure coding
 
-### Community  
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Live discussions  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A and sharing  
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Technical questions  
+### Community
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Live discussions
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A and sharing
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Technical questions
 
 ---
 
 **🎉 Congratulations!** You've completed the comprehensive MCP Database Integration learning path. You now have the knowledge and skills to build production-ready MCP servers that bridge AI assistants with real-world data systems.
 
-**Ready to contribute?** Join our community and help others learn MCP by sharing your experiences, contributing code improvements, or creating additional learning resources.  
+**Ready to contribute?** Join our community and help others learn MCP by sharing your experiences, contributing code improvements, or creating additional learning resources.
+
+**Next**: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Disclaimer**:  
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we aim for accuracy, please note that automated translations may contain errors or inaccuracies. The original document in its native language should be regarded as the authoritative source. For critical information, professional human translation is recommended. We are not responsible for any misunderstandings or misinterpretations resulting from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

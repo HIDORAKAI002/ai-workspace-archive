@@ -1,25 +1,25 @@
 # Beste praksis og optimalisering
 
-## 🎯 Hva denne laben dekker
+## 🎯 Hva dette laboratoriet dekker
 
-Denne avsluttende laben samler beste praksis, optimaliseringsteknikker og retningslinjer for produksjon for å bygge robuste, skalerbare og sikre MCP-servere med databaseintegrasjon. Du vil lære av erfaringer fra virkeligheten og bransjestandarder for å sikre at implementeringen din er klar for produksjon.
+Dette capstone-laboratoriet konsoliderer beste praksiser, optimaliseringsteknikker og produksjonsretningslinjer for å bygge robuste, skalerbare og sikre MCP-servere med databaseintegrasjon. Du vil lære fra reelle erfaringer og industristandarder for å sikre at implementeringen din er klar for produksjon.
 
 ## Oversikt
 
-Å bygge en vellykket MCP-server handler om mer enn bare å få koden til å fungere. Denne laben dekker de essensielle praksisene som skiller proof-of-concept-implementeringer fra produksjonsklare systemer som kan skalere, yte pålitelig og opprettholde sikkerhetsstandarder.
+Å bygge en vellykket MCP-server handler om mer enn bare å få koden til å fungere. Dette laboratoriet dekker de essensielle praksisene som skiller proof-of-concept-implementeringer fra produksjonsklare systemer som kan skaleres, levere pålitelig ytelse og opprettholde sikkerhetsstandarder.
 
-Disse beste praksisene er hentet fra virkelige implementeringer, tilbakemeldinger fra fellesskapet og erfaringer fra bedriftsimplementasjoner.
+Disse beste praksisene er hentet fra virkelige distribusjoner, tilbakemeldinger fra fellesskapet og erfaringer fra bedriftsimplementeringer.
 
 ## Læringsmål
 
-Ved slutten av denne laben vil du kunne:
+Innen slutten av dette laboratoriet vil du kunne:
 
-- **Bruke** ytelsesoptimaliseringsteknikker for MCP-servere og databaser
-- **Implementere** omfattende sikkerhetstiltak
-- **Designe** skalerbare arkitekturmønstre for produksjonsmiljøer
-- **Etablere** overvåknings-, vedlikeholds- og driftsprosedyrer
-- **Optimalisere** kostnader samtidig som ytelse og pålitelighet opprettholdes
-- **Bidra** til MCP-fellesskapet og økosystemet
+- **Anvende** ytelsesoptimaliseringsteknikker for MCP-servere og databaser  
+- **Implementere** omfattende sikkerhetstiltak  
+- **Designe** skalerbare arkitekturmønstre for produksjonsmiljøer  
+- **Etablere** overvåkings-, vedlikeholds- og driftsprosedyrer  
+- **Optimalisere** kostnader samtidig som ytelse og pålitelighet opprettholdes  
+- **Bidra** til MCP-fellesskapet og økosystemet  
 
 ## 🚀 Ytelsesoptimalisering
 
@@ -28,30 +28,30 @@ Ved slutten av denne laben vil du kunne:
 #### Optimalisering av tilkoblingspool
 
 ```python
-# Optimized connection pool configuration
+# Optimalisert tilkoblingspool-konfigurasjon
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Størrelseskonfigurasjon
+    "min_size": max(2, cpu_count()),           # Minst 2, skaler med CPU
+    "max_size": min(20, cpu_count() * 4),     # Sett en fornuftig maksimumsgrense
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Tidskonfigurasjon
+    "max_inactive_connection_lifetime": 300,   # 5 minutter
+    "command_timeout": 30,                     # 30 sekunder
+    "max_queries": 50000,                      # Roter tilkoblinger
     
-    # PostgreSQL settings
+    # PostgreSQL-innstillinger
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Deaktiver for konsistens
+        "work_mem": "8MB",                     # Optimaliser for spørringer
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Loggfør kun endringer
+        "log_min_duration_statement": "1s",   # Loggfør trege spørringer
     }
 }
 ```
 
-#### Mønstre for spørringsoptimalisering
+#### Optimaliseringsmønstre for spørringer
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # sekunder
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Sjekk cache først
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Utfør med overvåking
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Optimaliser spørringsutførelse
+                await conn.execute("SET enable_seqscan = off")  # Foretrekk indekser
+                await conn.execute("SET work_mem = '16MB'")     # Mer minne til denne spørringen
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Logg langsomme spørringer
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Cache vellykkede resultater
+                if cache_key and len(result) < 1000:  # Ikke cache store resultater
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,18 +110,18 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Anbefalinger for indekser
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Kjerneforretningsindekser
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Analyserindekser
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Optimalisering av vektorsøk
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Behandle i partier for å unngå å overbelaste systemet
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Liten forsinkelse mellom partiene for å forhindre ressursutarming
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Implementering av sikringsbryter
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # LUKKET, ÅPEN, HALVÅPEN
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Tilbakestill ved suksess
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +215,7 @@ class CircuitBreaker:
             raise
 ```
 
-### Cache-strategier
+### Caching-strategier
 
 ```python
 import redis
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Nivå 1: Minnebuffer
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Nivå 2: Redis-buffer
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Fremme til minnebuffer
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Implementer LRU-utkastning
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Generering av cache-nøkkel
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,9 +304,9 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 Sikkerhetstiltak
+## 🔒 Sikkerhetshardening
 
-### Autentisering og autorisering
+### Autentisering og autorisasjon
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Ekstraher og valider autentisering
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Valider token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Sjekk hastighetsbegrensning
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Valider RLS-kontekst
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Hent offentlig nøkkel fra Key Vault eller cache
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Dekod og valider token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Superadministratorer kan få tilgang til enhver kontekst
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Butikksjefer kan kun få tilgang til sin egen butikk
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Regionsjefer kan få tilgang til flere butikker
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Inputvalidering og sanitærisering
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Forbudte mønstre
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Tillat kun SELECT-setninger
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,11 +439,11 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Tillat kun alfanumeriske tegn, understrek og punktum
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Valider mot tillatte tabeller
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # I produksjon, hent fra Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Reservevalg for utvikling (ikke for produksjon!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # iterasjoner
         ).hex()
         
         return password_hash, salt
@@ -524,7 +524,7 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Retningslinjer for produksjonsimplementering
+## 📊 Retningslinjer for produksjonsdistribusjon
 
 ### Infrastruktur som kode
 
@@ -666,7 +666,7 @@ CMD ["python", "-m", "mcp_server.sales_analysis"]
 ### Miljøkonfigurasjon
 
 ```python
-# Production configuration management
+# Produksjons konfigurasjonsstyring
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,17 +715,17 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Sett tredjeparts loggere til WARNING
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Deaktiver debug-modus
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Sett sikre overskrifter
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
@@ -734,7 +734,7 @@ class ProductionConfig:
 
 ## 💰 Kostnadsoptimalisering
 
-### Ressursstyring
+### Ressursforvaltning
 
 ```python
 class CostOptimizer:
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Lav belastning
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Middels belastning
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Høy belastning
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Cache dyre operasjoner
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Automatisk skaleringskonfigurasjon
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # Skaler basert på CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Skaler basert på minne
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Skaler kø for forespørsler
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -813,7 +813,7 @@ class AutoScaler:
 
 ## 🔧 Vedlikehold og drift
 
-### Overvåking av systemhelse
+### Helsesjekk og overvåking
 
 ```python
 class OperationalHealth:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Databasehelse
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Helse for eksterne tjenester
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Systemressurser
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Applikasjonsmetrikk
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Bestem samlet status
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Utløse varsler
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Grunnleggende tilkobling
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Sjekk langsomme spørringer
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Sjekk antall tilkoblinger
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Automatisk sikkerhetskopiering og gjenoppretting
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Last opp til Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,20 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Daglig full sikkerhetskopi kl. 02:00 UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Timelige inkrementelle sikkerhetskopier
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
 
-## 🌍 Bidrag til fellesskapet
+## 🌍 Fellesskapsbidrag
 
-### Beste praksis for åpen kildekode
+### Beste praksis for open source
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### Engasjement i fellesskapet
+### Fellesskapsengasjement
 
 ```python
 class CommunityContributor:
@@ -1025,22 +1025,22 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Ville implementere faktiske sjekker
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 Viktige lærdommer
+## 🎯 Viktige punkter
 
-Etter å ha fullført denne omfattende læringsveien, bør du ha mestret:
+Etter fullført denne omfattende læringsstien, bør du mestre:
 
-✅ **Ytelsesoptimalisering**: Databasejustering, asynkrone mønstre og cache-strategier  
-✅ **Sikkerhetstiltak**: Autentisering, autorisering og databeskyttelse  
-✅ **Produksjonsimplementering**: Infrastruktur som kode og containeroptimalisering  
+✅ **Ytelsesoptimalisering**: Databasetuning, asynkrone mønstre og cache-strategier  
+✅ **Sikkerhetshardening**: Autentisering, autorisasjon og databeskyttelse  
+✅ **Produksjonsdistribusjon**: Infrastruktur som kode og containeroptimalisering  
 ✅ **Kostnadsstyring**: Ressursoptimalisering og intelligent skalering  
 ✅ **Driftsmessig dyktighet**: Overvåking, vedlikehold og automatisering  
-✅ **Engasjement i fellesskapet**: Bidrag til MCP-økosystemet  
+✅ **Fellesskapsengasjement**: Bidra til MCP-økosystemet  
 
 ## 🏆 Sertifisering og neste steg
 
@@ -1049,55 +1049,59 @@ Etter å ha fullført denne omfattende læringsveien, bør du ha mestret:
 Fullfør dette avsluttende prosjektet for å demonstrere din kompetanse:
 
 **Bygg en produksjonsklar MCP-server** som inkluderer:
-- [ ] Multi-tenant detaljhandelsanalyse med RLS
-- [ ] Semantisk søk med Azure OpenAI
-- [ ] Omfattende sikkerhetsimplementering
-- [ ] Produksjonsimplementering på Azure
-- [ ] Oppsett for overvåking og varsling
-- [ ] Dokumentasjon og testing
+- [ ] Multi-tenant detaljhandelsanalyse med RLS  
+- [ ] Semantisk søk med Azure OpenAI  
+- [ ] Omfattende sikkerhetsimplementering  
+- [ ] Produksjonsdistribusjon på Azure  
+- [ ] Overvåking og oppsett av varslinger  
+- [ ] Dokumentasjon og testing  
 
-### Avanserte læringsveier
+### Avanserte læringsstier
 
 Fortsett din MCP-reise med:
 
-- **MCP-arkitekturmønstre**: Avanserte serverarkitekturer
-- **Multi-modell integrasjon**: Kombinering av ulike AI-modeller
-- **Bedriftsnivå**: Storskala MCP-implementeringer
-- **Utvikling av spesialverktøy**: Bygging av spesialiserte MCP-verktøy
-- **MCP-økosystem**: Bidrag til det bredere fellesskapet
+- **MCP-arkitekturmønstre**: Avanserte serverarkitekturer  
+- **Multi-modellintegrasjon**: Kombinere forskjellige AI-modeller  
+- **Bedriftsskala**: Storskala MCP-distribusjoner  
+- **Utvikling av spesialverktøy**: Bygge spesialiserte MCP-verktøy  
+- **MCP-økosystemet**: Bidra til det bredere fellesskapet  
 
-### Anerkjennelse i fellesskapet
+### Fellesskapsanerkjennelse
 
-Del din prestasjon:
-- **GitHub-portefølje**: Vis frem din implementering
-- **Bidrag til fellesskapet**: Send inn forbedringer eller eksempler
-- **Taleropptredener**: Presenter på meetups eller konferanser
-- **Mentoring**: Hjelp andre utviklere med å lære MCP
+Del dine prestasjoner:  
+- **GitHub-portefølje**: Vis frem din implementering  
+- **Fellesskapsbidrag**: Send inn forbedringer eller eksempler  
+- **Talerroller**: Presenter på møter eller konferanser  
+- **Mentorvirksomhet**: Hjelp andre utviklere å lære MCP  
 
-## 📚 Ekstra ressurser
+## 📚 Ytterligere ressurser
 
 ### Avanserte emner
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Databaseoptimalisering
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Produksjonsimplementering
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Asynkron programmering
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Databaseoptimalisering  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Produksjonsdistribusjon  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Asynkron programmering  
 
 ### Sikkerhetsressurser
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Sikkerhetssårbarheter
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Skysikkerhet
-- [Python Security Guidelines](https://python.org/dev/security/) - Sikker koding
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Sikkerhetssårbarheter  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Sky-sikkerhet  
+- [Python Security Guidelines](https://python.org/dev/security/) - Sikker koding  
 
 ### Fellesskap
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Live diskusjoner
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Spørsmål og deling
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Tekniske spørsmål
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Live diskusjoner  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Spørsmål og deling  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Tekniske spørsmål  
 
 ---
 
-**🎉 Gratulerer!** Du har fullført den omfattende MCP Database Integration-læringsveien. Du har nå kunnskapen og ferdighetene til å bygge produksjonsklare MCP-servere som kobler AI-assistenter med datasystemer fra virkeligheten.
+**🎉 Gratulerer!** Du har fullført den omfattende læringsstien for MCP Database Integration. Du har nå kunnskapen og ferdighetene til å bygge produksjonsklare MCP-servere som forbinder AI-assistenter med virkelige datasystemer.
 
-**Klar til å bidra?** Bli med i fellesskapet vårt og hjelp andre med å lære MCP ved å dele dine erfaringer, bidra med kodeforbedringer eller lage flere læringsressurser.
+**Klar til å bidra?** Bli med i vårt fellesskap og hjelp andre å lære MCP ved å dele erfaringer, bidra med kodeforbedringer eller lage flere læringsressurser.
+
+**Neste:** [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Ansvarsfraskrivelse**:  
-Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi tilstreber nøyaktighet, vær oppmerksom på at automatiserte oversettelser kan inneholde feil eller unøyaktigheter. Det originale dokumentet på sitt opprinnelige språk bør anses som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Ansvarsfraskrivelse**:
+Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal betraktes som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,57 +1,57 @@
-# အကောင်းဆုံးအလုပ်လုပ်နည်းများနှင့် အကောင်းဆုံးစီမံခန့်ခွဲမှု
+# အကောင်းဆုံးလေ့ကျင့်မှုများနှင့် အမြှင့်တင်မှု
 
-## 🎯 ဒီလက်တွေ့ကျင့်ခန်းမှာ ဘာတွေပါဝင်သလဲ
+## 🎯 ဒီလက်စ်မှာ အပြည့်အစုံပါဝင်တဲ့အရာတွေ
 
-ဒီ capstone လက်တွေ့ကျင့်ခန်းမှာ MCP server တွေကို database integration နဲ့အတူ တည်ဆောက်ရာမှာ အကောင်းဆုံးအလုပ်လုပ်နည်းများ၊ အကောင်းဆုံးစီမံခန့်ခွဲမှုနည်းလမ်းများနှင့် ထုတ်လုပ်မှုအတွက် လမ်းညွှန်ချက်များကို စုစည်းထားပါတယ်။ သင်သည် production-ready ဖြစ်စေရန် သင်၏ implementation ကို အကောင်းဆုံးလုပ်ဆောင်နိုင်ရန် အတွေ့အကြုံနှင့် စက်မှုလုပ်ငန်းစံများမှ သင်ယူနိုင်ပါမည်။
+ဒီ capstone လက်စ်မှာ သောကောင်းသောလေ့ကျင့်မှုများ၊ အမြှင့်တင်နည်းပညာများ၊ နည်းပညာလုပ်ငန်းသုံးလမ်းညွှန်ချက်များကို ပေါင်းစပ်ထားပြီး သံသင့်ပြီး အဆင့်မြှင့်ထားသော MCP server များကို ဒေတာဘေ့စ်ပေါင်းစပ်မှုဖြင့် တည်ဆောက်ခြင်းကို လေ့လာပါမယ်။ သင်သည် ရှေ့ပြေးလောကအတွေ့အကြုံများနှင့် စက်မှုဝန်ဆောင်မှုစံချိန်များမှ သင်ကြားပြီး ထုတ်လုပ်မှုအဆင့်အတွက် သင့်လုပ်ဆောင်ချက်ကို အကောင်းဆုံးဖြစ်အောင်တည်ဆောက်နိုင်ပါလိမ့်မယ်။
 
-## အကျဉ်းချုပ်
+## အနှောင့်အယှက်
 
-MCP server တစ်ခုကို အောင်မြင်စွာ တည်ဆောက်ရန်မှာ ကုဒ်ကို အလုပ်လုပ်စေဖို့သာမက အခြားအရေးကြီးသောအချက်များလည်း ပါဝင်ပါတယ်။ ဒီလက်တွေ့ကျင့်ခန်းမှာ proof-of-concept implementation တွေကို production-ready စနစ်များအဖြစ် ပြောင်းလဲနိုင်ရန် အရေးကြီးသောအလုပ်လုပ်နည်းများကို လေ့လာပါမည်။ 
+အောင်မြင်သော MCP server တစ်ခု တည်ဆောက်ခြင်းသည် ကုဒ်အလုပ်လုပ်ခြင်းအထက်ပိုတစ်ချက်ရပ်မိသည်။ ဒီလက်စ်သည် အချက်အလက်အခြေခံစွမ်းဆောင်မှုတည်ဆောက်မှုများကို ထုတ်လုပ်မှုအဆင့်မြှင့်စနစ်များနှင့် ကောင်းမွန်စွာ လုပ်ဆောင်နိုင်ပြီး လုံခြုံရေးစံချိန်ရထားသော စနစ်များကို ဖြစ်စေသည့် အရေးကြီးလေ့ကျင့်မှုများကို ဖော်ပြပါသည်။
 
-ဒီအကောင်းဆုံးအလုပ်လုပ်နည်းများကို အမှန်တကယ် deployment တွေ၊ community feedback တွေ၊ နှင့် စီးပွားရေးလုပ်ငန်းများမှ သင်ခန်းစာများမှ ဆွဲယူထားပါသည်။
+အကောင်းဆုံးလေ့ကျင့်မှုများကို တကယ်အသုံးပြုထားတဲ့ deployment များ၊ အသိုင်းအဝိုင်းမှတုံ့ပြန်ချက်များနှင့် စီးပွားရေးလုပ်ငန်း အတွေ့အကြုံများမှ စုစည်းထားသည်။
 
-## သင်ယူရမည့်ရည်ရွယ်ချက်များ
+## သင်ယူရမည့်ရည်မှန်းချက်များ
 
-ဒီလက်တွေ့ကျင့်ခန်းပြီးဆုံးချိန်တွင် သင်သည် အောက်ပါအချက်များကို လုပ်ဆောင်နိုင်ပါမည်-
+ဒီလက်စ်ကုန်ဆုံးသည်နှင့်အမျှ သင်သည်:
 
-- **အသုံးချနိုင်ရန်** MCP server နှင့် database များအတွက် performance optimization နည်းလမ်းများ
-- **အကောင်အထည်ဖော်နိုင်ရန်** လုံခြုံရေးကို အပြည့်အဝ ခိုင်မာစေရန် နည်းလမ်းများ
-- **ဒီဇိုင်းဆွဲနိုင်ရန်** production environment များအတွက် scalable architecture patterns
-- **တည်ဆောက်နိုင်ရန်** monitoring, maintenance, နှင့် operational procedures
-- **ကုန်ကျစရိတ်ကို အကောင်းဆုံးစီမံနိုင်ရန်** performance နှင့် reliability ကို ထိန်းသိမ်းထားပြီး optimization လုပ်ခြင်း
-- **MCP community နှင့် ecosystem ကို အထောက်အကူပြုနိုင်ရန်** အကျိုးပြုလုပ်ဆောင်ခြင်း
+- **MCP server နှင့် ဒေတာဘေ့စ်များအတွက်** စွမ်းဆောင်ရည်မြှင့်တင်နည်းများကို **အသုံးချနိုင်**မည်
+- **လုံခြုံရေးအရ အားလုံးအပါအဝင် စနစ်များ** ကို **အကောင်အထည်ဖော်နိုင်**မည်
+- ထုတ်လုပ်မှုစနစ်များအတွက် **အဆင့်မြှင့်နိုင်သော သင်္ချာဆွဲပုံစံများ** ကို **ဒီဇိုင်းဆွဲနိုင်**မည်
+- စနစ်ကို ကြီးကြပ်ထိန်းသိမ်းမှုများ၊ ပြုပြင်ထိန်းသိမ်းမှုများနှင့် စီမံခန့်ခွဲမှု လုပ်ထုံးလုပ်နည်းများကို **တည်ထောင်နိုင်**မည်
+- စွမ်းဆောင်ရည်နှင့် ယုံကြည်စိတ်ချရမှုကို ထိန်းသိမ်း၍ အကုန်အကျခံသာမှုကို **အမြှင့်တင်နိုင်**မည်
+- MCP အသိုင်းအဝိုင်းနှင့် ပတ်ဝန်းကျင်တွင် **အတူတကွ ထောက်ပံ့ဆောင်ရွက်နိုင်**မည်
 
-## 🚀 Performance Optimization
+## 🚀 စွမ်းဆောင်ရည်မြှင့်တင်ခြင်း
 
-### Database Performance
+### ဒေတာဘေ့စ် စွမ်းဆောင်ရည်
 
-#### Connection Pool Optimization
+#### ချိတ်ဆက်မှု အစုစု တိုးတက်မှု
 
 ```python
-# Optimized connection pool configuration
+# တိုးတက်ပြီး ပြင်ဆင်ထားသော ချိတ်ဆက်မှုကူးစက် ထည့်သွင်းမှု
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # အရွယ်အစား ပြင်ဆင်မှု
+    "min_size": max(2, cpu_count()),           # အနည်းဆုံး ၂ ခုရှိရန်၊ CPU အရေအတွက်နှင့် အတိုင်းအတာပြုရန်
+    "max_size": min(20, cpu_count() * 4),     # အပြုသင့်အမြင့်ဆုံးတွင် ကန့်သတ်ရန်
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # အချိန်ညှိရန် ပြင်ဆင်မှု
+    "max_inactive_connection_lifetime": 300,   # ၅ မိနစ်
+    "command_timeout": 30,                     # ၃၀ စက္ကန့်
+    "max_queries": 50000,                      # ချိတ်ဆက်မှုများကို လှည့်ပတ်ရန်
     
-    # PostgreSQL settings
+    # PostgreSQL ဆက်တင်များ
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # တပြည့်တညောင်းဖြစ်စေရန် ပိတ်ထားရန်
+        "work_mem": "8MB",                     # မေးခွန်းများအတွက် အကောင်းဆုံးပြုလုပ်ရန်
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # ပြင်ဆင်မှုများသာ မှတ်တမ်းတင်ရန်
+        "log_min_duration_statement": "1s",   # နောက်ကျသော မေးခွန်းများကို မှတ်တမ်းတင်ရန်
     }
 }
 ```
 
-#### Query Optimization Patterns
+#### မေးခွန်းများ အမြှင့်တင်ခြင်းပုံစံများ
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # စက္ကန့်များ
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # ဒေတာသိုလှောင်မှုကို ပထမဆုံး စစ်ဆေးပါ
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # ကြည့်ရှုမှူးဖြင့် အကောင်အထည်ဖော်ပါ
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # အမိန့် Query အကောင်အထည်ဖော်မှုကို မြှင့်တင်ပါ
+                await conn.execute("SET enable_seqscan = off")  # မှတ်တမ်းများကို ဦးစားပေးပါ
+                await conn.execute("SET work_mem = '16MB'")     # ဤ Query အတွက် မှတ်ဉာဏ်ပိုပေးပါ
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # နှေးကွေးသည့် Query များကို မှတ်တမ်းတင်ပါ
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # အောင်မြင်သော ရလဒ်များကို ဒေတာသိုလှောင်ပါ
+                if cache_key and len(result) < 1000:  # ကြီးမားသော ရလဒ်များကို ဒေတာသိုလှောင်မထားပါနှင့်
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,25 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# မှတ်တမ်းအကြံပြုချက်များ
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # အဓိကလုပ်ငန်းမှတ်တမ်းများ
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # စာရင်းဇယားသုံးသပ်မှုမှတ်တမ်းများ
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # ဗက်တာရှာဖွေမှု မြှင့်တင်မှု
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
 
-### Application Performance
+### အပလီကေးရှင်း စွမ်းဆောင်ရည်
 
-#### Async Programming Best Practices
+#### အချိန်လွတ် Programming အကောင်းဆုံးလေ့ကျင့်မှုများ
 
 ```python
 import asyncio
@@ -157,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # စနစ်ကို အလွန်အကျွံ မပင်ပန်းစေမည့်အတွက် အစုလိုက် အလုပ်လုပ်ပါ
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # အရေအတွက်ကြီးမှုမှ ကာကွယ်ရန် အစုတိုင်းကြား စဉ်ခွဲခြားထားသော အချိန်နည်းနည်း
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -175,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# စက်ဝိုင်းရန်ပုံတင်ဆောင်ရွက်မှု
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -184,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # ပိတ်ထားခြင်း၊ ဖွင့်ထားခြင်း၊ အမှတ်အတိုင်
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -198,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # အောင်မြင်မှုအပေါ် ပြန်လည်စတင်ခြင်း
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,7 +215,7 @@ class CircuitBreaker:
             raise
 ```
 
-### Caching Strategies
+### Cache များ အသုံးပြုမှု မျိုးစုံ
 
 ```python
 import redis
@@ -233,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # အဆင့် ၁: မေမရီ ကက်ခ်
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # အဆင့် ၂: Redis ကက်ချ
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # မေမရီ ကက်ချသို့မြှင့်တင်ပါ
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -277,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # LRU ပယ်ဖျက်မှုကို အကောင်အထည်ဖော်ပါ
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -291,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# ကက်ချ key ထုတ်လုပ်ခြင်း
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -304,9 +304,9 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
 
-## 🔒 Security Hardening
+## 🔒 လုံခြုံရေး အားခွန်ခြင်း
 
-### Authentication and Authorization
+### အတည်ပြုရေးနှင့် ခွင့်ပြုရေး
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -333,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # အတည်ပြုချက်ကို ထုတ်ယူ၍ စစ်ဆေးပါ
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # တိုကင်ကို အတည်ပြုပါ
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # အမြန်နှုန်းကန့်သတ်ခြင်းကို စစ်ဆေးပါ
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # RLS စာရင်းအဖွဲ့အစည်းအရ အတည်ပြုပါ
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -363,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Key Vault သို့မဟုတ် cache မှ လူကြီးမင်းအတွက် သော့ချက်များကို ရယူပါ
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # တိုကင်ကို ဖြေရှင်းပြီး အတည်ပြုပါ
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -388,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # အထက်တန်း အရာရှိကြီးများသည် မည်သည့် စာရင်းအဖွဲ့အစည်းမဆို ဝင်ရောက်ခွင့်ရှိသည်
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # စတိုးဆိုင် မန်နေဂျာများသည် ကိုယ်ပိုင် စတိုးဆိုင်သာ ဝင်ရောက်နိုင်သည်
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # ဒေသဆိုင်ရာ မန်နေဂျာများသည် စတိုးဆိုင်များစွာကို ဝင်ရောက်နိုင်သည်
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# နောက်ခံအချက်အလက်နှင့် ဆပ်ကြောခြင်းကို စစ်ဆေးပါ
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -412,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # တားမြစ်ထားသည့် ပုံစံများ
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -429,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # SELECT စာကြောင်းများကိုသာ ခွင့်ပြုပါ
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -439,18 +439,18 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # အက္ခရာ၊ နံပါတ်၊ အောက်စီးတန်းနှင့် ဒေါ့(စတုရန်းလက္ခဏာ)ကိုသာ ခွင့်ပြုပါ
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # ခွင့်ပြုထားသော စာရင်းကို ပြန်လည်စစ်ဆေးပါ
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
 
-### Data Protection
+### ဒေတာ ကာကွယ်ခြင်း
 
 ```python
 from cryptography.fernet import Fernet
@@ -466,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # ထုတ်လုပ်ရာတွင် Azure Key Vault မှယူပါ
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # ဖွံ့ဖြိုးရေးအတွက် အစားထိုးနည်း (ထုတ်လုပ်မှုအတွက်မဟုတ်ပါ!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -497,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # အကြိမ်များ
         ).hex()
         
         return password_hash, salt
@@ -524,7 +524,7 @@ class DataProtection:
         return masked_data
 ```
 
-## 📊 Production Deployment Guidelines
+## 📊 ထုတ်လုပ်မှု Deployment လမ်းညွှန်ချက်များ
 
 ### Infrastructure as Code
 
@@ -607,7 +607,7 @@ stages:
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
 
-### Container Optimization
+### Container အမြှင့်တင်ခြင်း
 
 ```dockerfile
 # Multi-stage Dockerfile for production
@@ -663,10 +663,10 @@ EXPOSE 8000
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
 
-### Environment Configuration
+### ပတ်ဝန်းကျင် ကြီးကြပ်မှု
 
 ```python
-# Production configuration management
+# ထုတ်လုပ်မှု ဖွဲ့စည်းမှု ကိုင်တွယ်မှု
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -715,26 +715,26 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # တတိယပါတီ မှတ်တမ်းတင်သူများကို WARNING သတ်မှတ်ပါ
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # debug မုဒ် ပိတ်ပါ
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # လုံခြုံသော ခေါင်းစီးများ သတ်မှတ်ပါ
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
 
-## 💰 Cost Optimization
+## 💰 ကုန်ကျစရိတ် အမြှင့်တင်ခြင်း
 
-### Resource Management
+### အရင်းအမြစ် စီမံခန့်ခွဲမှု
 
 ```python
 class CostOptimizer:
@@ -749,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # အမိုးနည်းခြင်း
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # အမိုးလတ်ခြင်း
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # အမိုးမြင့်ခြင်း
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -763,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # စျေးကြီးသော လုပ်ဆောင်ချက်များကို သိမ်းဆည်းခြင်း
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -783,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# အလိုအလျောက်အရွယ်တပ်ဆင်မှု ပြင်ဆင်မှု
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -792,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPU အခြေခံ တိုးချဲ့ခြင်း
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # မွတ်စနစ် အခြေခံ တိုးချဲ့ခြင်း
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # တောင်းဆိုမှုလိုင်း တိုးချဲ့ခြင်း
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -811,9 +811,9 @@ class AutoScaler:
         return "no_action"
 ```
 
-## 🔧 Maintenance and Operations
+## 🔧 ပြုပြင်ထိန်းသိမ်းရေးနှင့် လုပ်ထုံးလုပ်နည်းများ
 
-### Health Monitoring
+### ကျန်းမာရေး ကြီးကြပ်မှု
 
 ```python
 class OperationalHealth:
@@ -832,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # ဒေတာဘေ့စ် ကျန်းမာရေး
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # အပြင်ဘက်ဝန်ဆောင်မှုများ ကျန်းမာရေး
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # စနစ်ရင်းမြစ်များ
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # လျှောက်လွှာ တိုင်းတာမှုများ
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # စုပေါင်း အခြေအနေ ကို သတ်မှတ်ရန်
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -858,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # အလေးပေး သတိပေးချက်များ ထုတ်လုပ်ရန်
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -874,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # အခြေခံ ဆက်သွယ်မှု
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # ဓာတ်မတက် အမည်များ စစ်ဆေးရန်
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -886,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # ဆက်သွယ်မှု အရေအတွက် စစ်ဆေးရန်
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -909,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# အလိုအလျောက် မိတ္တူယူခြင်း နှင့် ပြန်လည်ရယူခြင်း
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -924,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Azure Blob Storage သို့ ပြန်လည်တင်သည်
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -932,20 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # နေ့စဉ် နံနက် ၂ နာရီ UTC အချိန်တွင် ပြည့်စုံ မိတ္တူယူခြင်း
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # နာရီ မှ တိုးတက်လာသော မိတ္တူယူခြင်းများ
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
 
-## 🌍 Community Contributions
+## 🌍 အသိုင်းအဝိုင်း ပံ့ပိုးမှုများ
 
-### Open Source Best Practices
+### ဖွင့်လင်းအရင်းအမြစ် အကောင်းဆုံး လေ့ကျင့်မှုများ
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -985,7 +985,7 @@ class BackupManager:
 - Manual security testing for critical changes
 ```
 
-### Community Engagement
+### အသိုင်းအဝိုင်း မျှဝေမှု
 
 ```python
 class CommunityContributor:
@@ -1025,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # အမှန်တကယ် စစ်ဆေးမှုများကို ပြုလုပ်မည်
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
 
-## 🎯 Key Takeaways
+## 🎯 ပြီးသွားသော အဓိက အချက်များ
 
-ဒီလက်တွေ့ကျင့်ခန်းကို ပြီးဆုံးပြီးနောက် သင်သည် အောက်ပါအချက်များကို ကျွမ်းကျင်စွာ လုပ်ဆောင်နိုင်ပါမည်-
+ဒီကျယ်ပြန့်စုံလင်သော သင်ယူမှုလမ်းကြောင်းကို ပြီးဆုံးပြီးနောက် သင်သည် ကျွမ်းကျင်မှုရထားသည့် အချက်များမှာ -
 
-✅ **Performance Optimization**: Database tuning, async patterns, နှင့် caching strategies  
-✅ **Security Hardening**: Authentication, authorization, နှင့် data protection  
-✅ **Production Deployment**: Infrastructure as code နှင့် container optimization  
-✅ **Cost Management**: Resource optimization နှင့် intelligent scaling  
-✅ **Operational Excellence**: Monitoring, maintenance, နှင့် automation  
-✅ **Community Engagement**: MCP ecosystem ကို အထောက်အကူပြုခြင်း  
+✅ **စွမ်းဆောင်ရည်မြှင့်တင်ခြင်း** - ဒေတာဘေ့စ် တိုက်ဆိုင်မှု၊ အချိန်လွတ် ပုံစံများနှင့် Cache များ  
+✅ **လုံခြုံရေး အားခွန်ခြင်း** - အတည်ပြုရေး၊ ခွင့်ပြုရေးနှင့် ဒေတာ ကာကွယ်ခြင်း  
+✅ **ထုတ်လုပ်မှု Deployment** - Infrastructure as code နှင့် container အမြှင့်တင်ခြင်း  
+✅ **ကုန်ကျစရိတ် စီမံခန့်ခွဲမှု** - အရင်းအမြစ် ကို အကောင်းဆုံးအသုံးပြုခြင်းနှင့် ဉာဏ်ရည်ဖြင့် ထိန်းချုပ်ခြင်း  
+✅ **စီမံခန့်ခွဲမှု ကျွမ်းကျင်မှု** - ကြီးကြပ်မှု၊ ထိန်းသိမ်းမှုနှင့် အလိုအလျောက်လုပ်ဆောင်မှု  
+✅ **အသိုင်းအဝိုင်း စကားဝိုင်း** - MCP ပတ်ဝန်းကျင်အား ထောက်ပံ့ပေးခြင်း  
 
-## 🏆 Certification and Next Steps
+## 🏆 အသိအမှတ်ပြုမှုနှင့် နောက်တစ်ဆင့်
 
-### Practical Assessment
+### လက်တွေ့ သုံးသပ်မှု
 
-သင်၏ကျွမ်းကျင်မှုကို ပြသရန် ဒီ project ကို ပြီးမြောက်စေပါ-
+သင့်ကျွမ်းကျင်မှုကို ပြသရန် နောက်ဆုံးပရောဂျက်ကို ပြီးမြောက်ပါ။
 
-**Production-Ready MCP Server တစ်ခုကို တည်ဆောက်ပါ** အောက်ပါအချက်များပါဝင်ရမည်-
-- [ ] Multi-tenant retail analytics with RLS
-- [ ] Semantic search with Azure OpenAI
-- [ ] Comprehensive security implementation
-- [ ] Production deployment on Azure
-- [ ] Monitoring and alerting setup
-- [ ] Documentation and testing
+**ထုတ်လုပ်မှုအဆင့်သင့် MCP Server တည်ဆောက်ပါ** - အောက်ပါအရာများပါဝင်သည်:
+- [ ] RLSဖြင့် မျိုးစုံ စတိုးဆိုင်ရောင်းအားဆန်းစစ်ခြင်း
+- [ ] Azure OpenAI ဖြင့် Semantic ရှာဖွေရေး
+- [ ] လုံခြုံရေးစနစ် အပြည့်အစုံ တပ်ဆင်ခြင်း
+- [ ] Azure ပေါ်တွင် ထုတ်လုပ်မှု Deployment
+- [ ] ကြီးကြပ်မှုနှင့် သတိပေးချက်များ စနစ်တကျ စီစဉ်ခြင်း
+- [ ] စာတမ်းနှင့် စမ်းသပ်မှု
 
-### Advanced Learning Paths
+### အဆင့်မြှင့်သင်ယူမှုလမ်းကြောင်းများ
 
-MCP ခရီးကို ဆက်လက်လေ့လာရန်-
+MCP ခရီးကို ဆက်လက်ရန်
 
-- **MCP Architecture Patterns**: Server architecture များ၏ အဆင့်မြင့်နည်းလမ်းများ
-- **Multi-Model Integration**: AI model များကို ပေါင်းစပ်ခြင်း
-- **Enterprise Scale**: MCP ကို အကြီးစား deployment များအတွက် အသုံးပြုခြင်း
-- **Custom Tool Development**: MCP tools များကို အထူးပြုတီထွင်ခြင်း
-- **MCP Ecosystem**: Community အတွက် အကျိုးပြုလုပ်ဆောင်ခြင်း
+- **MCP ဆင်ခြင်မှု ပုံစံများ**: အဆင့်မြင့် server ဆင်ခြင်မှုများ  
+- **မျိုးစုံ Model ပေါင်းစည်းမှု**: မတူကွဲပြားသော AI Model များ ပေါင်းစည်းခြင်း  
+- **စီးပွားရေးအရွယ်အစား**: ကြီးမားသော MCP Deployment များ  
+- **စိတ်ကြိုက် ကိရိယာ ဖန်တီးမှု**: အထူး MCP ကိရိယာများ ဆောက်လုပ်ခြင်း  
+- **MCP ပတ်ဝန်းကျင်**: ပိုမိုကျယ်ပြန့်သော အသိုင်းအဝိုင်းအား ပံ့ပိုးပေးခြင်း  
 
-### Community Recognition
+### အသိုင်းအဝိုင်း ရရှိမှု
 
-သင်၏အောင်မြင်မှုကို မျှဝေပါ-
-- **GitHub Portfolio**: သင်၏ implementation ကို ပြသပါ
-- **Community Contributions**: Improvement များ သို့မဟုတ် နမူနာများကို တင်ပြပါ
-- **Speaking Opportunities**: Meetups သို့မဟုတ် conference များတွင် တင်ပြပါ
-- **Mentoring**: MCP ကို သင်ယူလိုသော developer များကို အကူအညီပေးပါ
+သင့်အောင်မြင်မှုကို မျှဝေပါ
+- **GitHub အမှတ်တံဆိပ်ပြကြည့်ခြင်း**: သင်၏ အကောင်အထည်ဖော်မှုကို ပြသခြင်း  
+- **အသိုင်းအဝိုင်း ပံ့ပိုးမှု**: တိုးတက်မှုများ သို့မဟုတ် ကိုယ်ပိုင် ဥပမာများ တင်ပြခြင်း  
+- **စကားပြော အခွင့်အလမ်းများ**: တွေ့ဆုံ၊ ဆွေးနွေးပွဲများတွင် တက်ရောက်ခြင်း  
+- **မန်တာလမ်းညွှန်ခြင်း**: အခြား developers များကို MCP သင်ကြားပေးခြင်း  
 
-## 📚 Additional Resources
+## 📚 ထပ်ဆောင်း အရင်းအမြစ်များ
 
-### Advanced Topics
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Database optimization
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Production deployment
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Async programming
+### အဆင့်မြင့် ခေါင်းစဉ်များ
+- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - ဒေတာဘေ့စ် အကောင်းဆုံးလုပ်ထုံးလုပ်နည်း  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - ထုတ်လုပ်မှု Deployment  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - အချိန်လွတ် programming
 
-### Security Resources
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Security vulnerabilities
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Cloud security
-- [Python Security Guidelines](https://python.org/dev/security/) - Secure coding
+### လုံခြုံရေး အရင်းအမြစ်များ
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - လုံခြုံရေး အားနည်းချက်များ  
+- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - တိုက်ဆိုင်မှု လုပ်ငန်းသုံး လုံခြုံရေး  
+- [Python Security Guidelines](https://python.org/dev/security/) - လုံခြုံသော ကုဒ်ရေးဆွဲခြင်း  
 
-### Community
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Live discussions
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A and sharing
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Technical questions
-
----
-
-**🎉 ဂုဏ်ယူပါတယ်!** MCP Database Integration learning path ကို သင်ပြီးမြောက်ခဲ့ပါပြီ။ သင်သည် AI assistant များနှင့် အမှန်တကယ် data systems များကို ချိတ်ဆက်ပေးနိုင်သော production-ready MCP server များကို တည်ဆောက်နိုင်ရန် အသိပညာနှင့် ကျွမ်းကျင်မှုကို ရရှိခဲ့ပါပြီ။
-
-**အထောက်အကူပြုရန် အသင့်ဖြစ်ပါပြီလား?** သင်၏အတွေ့အကြုံများကို မျှဝေခြင်း၊ code improvement များကို အထောက်အကူပြုခြင်း၊ သို့မဟုတ် အခြား learning resources များကို ဖန်တီးခြင်းအားဖြင့် community ကို အထောက်အကူပြုပါ။
+### အသိုင်းအဝိုင်း
+- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - တိုက်ရိုက် ဆွေးနွေးမှုများ  
+- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - မေးမြန်းမှုနှင့် မျှဝေမှု  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - နည်းပညာမေးခွန်းများ  
 
 ---
 
-**အကြောင်းကြားချက်**:  
-ဤစာရွက်စာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) ကို အသုံးပြု၍ ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှုအတွက် ကြိုးစားနေသော်လည်း အလိုအလျောက် ဘာသာပြန်ခြင်းတွင် အမှားများ သို့မဟုတ် မမှန်ကန်မှုများ ပါဝင်နိုင်သည်ကို သတိပြုပါ။ မူရင်းဘာသာစကားဖြင့် ရေးသားထားသော စာရွက်စာတမ်းကို အာဏာတရားရှိသော ရင်းမြစ်အဖြစ် သတ်မှတ်သင့်ပါသည်။ အရေးကြီးသော အချက်အလက်များအတွက် လူက ဘာသာပြန်ခြင်းကို အကြံပြုပါသည်။ ဤဘာသာပြန်ကို အသုံးပြုခြင်းမှ ဖြစ်ပေါ်လာသော အလွဲအမှားများ သို့မဟုတ် အနားယူမှုများအတွက် ကျွန်ုပ်တို့သည် တာဝန်မယူပါ။
+**🎉 ဂုဏ်ယူစရာပါ!** သင်သည် MCP Database Integration ကျယ်ပြန့်စွာ လေ့လာမှု လမ်းကြောင်းကို ပြီးမြောက်သွားပါပြီ။ သင်တွင် ထုတ်လုပ်မှုအဆင့်သင့် MCP server များကို AI အကူအညီများနှင့် အပြင်လောက သတင်းအချက်အလက်စနစ်များတစ်ဆက်တည်း ချိတ်ဆက်နိုင်ရာ ကျွမ်းကျင်မှုရှိပါပြီ။
+
+**အကူအညီပေးလိုပါသလား?** ကျွန်ုပ်တို့ အသိုင်းအဝိုင်း တွင် အတူပါဝင်ပြီး သင်၏ အတွေ့အကြုံများကို မျှဝေခြင်း၊ ကုဒ်တိုးတက်မှု ပံ့ပိုးခြင်း သို့မဟုတ် ထပ်မံ သင်ကြားမှု အရင်းအမြစ်များ ဖန်တီးခြင်းမှတစ်ဆင့် MCP သင်ကြားမှု၌ ကူညီပါ။
+
+**နောက်တစ်ဆင့်**: [Tooling](../../12-tooling/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ပြောကြားချက်**
+ဤစာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) အသုံးပြု၍ ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှန်ကန်မှုအတွက် ကြိုးပမ်းနေသော်လည်း၊ စက်ကိရိယာဘာသာပြန်ခြင်းများတွင် အမှားများ သို့မဟုတ် မှားယွင်းချက်များ ပါဝင်နိုင်ကြောင်း သတိပြုပါရန် လိုအပ်ပါသည်။ မူလစာတမ်းကို မူရင်းဘာသာဖြင့်သာ ယုံကြည်စိတ်ချရသော အချက်အလက်အဖြစ် သတ်မှတ်သင့်သည်။ အရေးကြီးသည့် သတင်းအချက်အလက်များအတွက် ပရော်ဖက်ရှင်နယ် လူသားဘာသာပြန်သူဝန်ဆောင်မှုကို အကြံပြုပါသည်။ ဤဘာသာပြန်ချက်ကို အသုံးပြုခြင်းမှ ဖြစ်ပေါ်လာသော နားလည်မှုကွာခြားမှုများ သို့မဟုတ် မမှန်ကန်သော အသုံးပြုမှုများအတွက် ကျွန်ုပ်တို့ တာဝန်မခံပါ။
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

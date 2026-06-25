@@ -1,57 +1,57 @@
 # بهترین شیوه‌ها و بهینه‌سازی
 
-## 🎯 این آزمایشگاه چه چیزی را پوشش می‌دهد؟
+## 🎯 این آزمایشگاه چه چیزی را پوشش می‌دهد
 
-این آزمایشگاه جامع بهترین شیوه‌ها، تکنیک‌های بهینه‌سازی و راهنمایی‌های تولید برای ساخت سرورهای MCP قوی، مقیاس‌پذیر و امن با ادغام پایگاه داده را گردآوری می‌کند. شما از تجربیات دنیای واقعی و استانداردهای صنعتی یاد خواهید گرفت تا اطمینان حاصل کنید که پیاده‌سازی شما برای تولید آماده است.
+این آزمایشگاه نهایی بهترین شیوه‌ها، تکنیک‌های بهینه‌سازی و دستورالعمل‌های تولید برای ساخت سرورهای MCP مقاوم، مقیاس‌پذیر و امن با یکپارچه‌سازی پایگاه داده را تجمیع می‌کند. شما از تجربیات واقعی و استانداردهای صنعتی می‌آموزید تا اطمینان حاصل کنید پیاده‌سازی شما آماده تولید است.
 
 ## مرور کلی
 
-ساخت یک سرور MCP موفق چیزی فراتر از اجرای کد است. این آزمایشگاه شیوه‌های ضروری را پوشش می‌دهد که پیاده‌سازی‌های نمونه اولیه را از سیستم‌های آماده تولید که می‌توانند مقیاس‌پذیر، قابل اعتماد و مطابق با استانداردهای امنیتی باشند، جدا می‌کند.
+ساخت یک سرور موفق MCP فقط به اجرای کد محدود نمی‌شود. این آزمایشگاه شیوه‌های ضروری را پوشش می‌دهد که پیاده‌سازی‌های اثبات مفهوم را از سیستم‌های آماده تولید که می‌توانند مقیاس‌پذیر باشند، عملکرد قابل‌اعتماد ارائه دهند و استانداردهای امنیتی را حفظ کنند، متمایز می‌کند.
 
-این بهترین شیوه‌ها از استقرارهای دنیای واقعی، بازخوردهای جامعه و درس‌هایی که از پیاده‌سازی‌های سازمانی آموخته شده‌اند، استخراج شده‌اند.
+این بهترین شیوه‌ها از استقرارهای واقعی، بازخورد جامعه و درس‌های آموخته شده از پیاده‌سازی‌های سازمانی گرفته شده‌اند.
 
 ## اهداف یادگیری
 
-در پایان این آزمایشگاه، شما قادر خواهید بود:
+تا پایان این آزمایشگاه، شما قادر خواهید بود:
 
-- **اعمال کنید** تکنیک‌های بهینه‌سازی عملکرد برای سرورهای MCP و پایگاه‌های داده  
-- **پیاده‌سازی کنید** اقدامات جامع برای تقویت امنیت  
-- **طراحی کنید** الگوهای معماری مقیاس‌پذیر برای محیط‌های تولید  
-- **ایجاد کنید** رویه‌های نظارت، نگهداری و عملیاتی  
-- **بهینه‌سازی کنید** هزینه‌ها در عین حفظ عملکرد و قابلیت اطمینان  
-- **مشارکت کنید** در جامعه و اکوسیستم MCP  
+- **به‌کارگیری** تکنیک‌های بهینه‌سازی عملکرد برای سرورها و پایگاه‌های داده MCP  
+- **پیاده‌سازی** اقدامات جامع برای تقویت امنیت  
+- **طراحی** الگوهای معماری مقیاس‌پذیر برای محیط‌های تولید  
+- **ایجاد** رویه‌های نظارت، نگهداری و عملیات  
+- **بهینه‌سازی** هزینه‌ها در حالی که عملکرد و قابلیت اطمینان حفظ می‌شود  
+- **مشارکت** در جامعه و اکوسیستم MCP
 
 ## 🚀 بهینه‌سازی عملکرد
 
 ### عملکرد پایگاه داده
 
-#### بهینه‌سازی اتصال به پایگاه داده
+#### بهینه‌سازی استخر اتصال
 
 ```python
-# Optimized connection pool configuration
+# پیکربندی بهینه‌سازی شده مجموعه اتصال
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # پیکربندی اندازه
+    "min_size": max(2, cpu_count()),           # حداقل ۲، متناسب با پردازنده
+    "max_size": min(20, cpu_count() * 4),     # محدود کردن به حداکثر معقول
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # پیکربندی زمان‌بندی
+    "max_inactive_connection_lifetime": 300,   # ۵ دقیقه
+    "command_timeout": 30,                     # ۳۰ ثانیه
+    "max_queries": 50000,                      # چرخش اتصالات
     
-    # PostgreSQL settings
+    # تنظیمات PostgreSQL
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # غیرفعال کردن برای سازگاری
+        "work_mem": "8MB",                     # بهینه‌سازی برای پرس‌وجوها
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # فقط تغییرات را ثبت کن
+        "log_min_duration_statement": "1s",   # ثبت پرس‌وجوهای کند
     }
 }
 ```
-  
-#### الگوهای بهینه‌سازی کوئری
+
+#### الگوهای بهینه‌سازی پرس‌وجو
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # ثانیه‌ها
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # ابتدا حافظه پنهان را بررسی کنید
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # اجرا با نظارت
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # بهینه‌سازی اجرای پرس‌وجو
+                await conn.execute("SET enable_seqscan = off")  # اولویت به ایندکس‌ها
+                await conn.execute("SET work_mem = '16MB'")     # حافظه بیشتر برای این پرس‌وجو
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # ثبت لاگ پرس‌وجوهای کند
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # ذخیره نتایج موفق در حافظه پنهان
+                if cache_key and len(result) < 1000:  # نتایج بزرگ را در حافظه پنهان ذخیره نکنید
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# توصیه‌های ایندکس
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # ایندکس‌های اصلی کسب‌وکار
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # ایندکس‌های تحلیلی
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # بهینه‌سازی جستجوی برداری
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
 ### عملکرد برنامه
 
-#### بهترین شیوه‌های برنامه‌نویسی غیرهمزمان
+#### بهترین شیوه‌های برنامه‌نویسی ناهمگام
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # پردازش به صورت دسته‌ای برای جلوگیری از بارگذاری زیاد سیستم
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # تأخیر کوتاه بین دسته‌ها برای جلوگیری از خالی شدن منابع
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# پیاده‌سازی مدار شکن
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # بسته، باز، نیمه‌باز
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # بازنشانی در صورت موفقیت
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,9 +214,8 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
-### استراتژی‌های کشینگ
+### استراتژی‌های کش کردن
 
 ```python
 import redis
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # سطح ۱: حافظه نهان رم
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # سطح ۲: حافظه نهان Redis
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # ارتقاء به حافظه نهان رم
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # پیاده‌سازی پاکسازی LRU
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# تولید کلید حافظه نهان
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,11 +303,10 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
 ## 🔒 تقویت امنیت
 
-### احراز هویت و مجوزدهی
+### احراز هویت و مجوزها
 
 ```python
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # استخراج و اعتبارسنجی احراز هویت
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # اعتبارسنجی توکن
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # بررسی محدودیت نرخ
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # اعتبارسنجی زمینه RLS
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # دریافت کلید عمومی از Key Vault یا حافظه پنهان
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # رمزگشایی و اعتبارسنجی توکن
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # مدیران ارشد می‌توانند به هر زمینه‌ای دسترسی داشته باشند
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # مدیران فروشگاه تنها به فروشگاه خود دسترسی دارند
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # مدیران منطقه‌ای می‌توانند به چندین فروشگاه دسترسی داشته باشند
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# اعتبارسنجی و پاکسازی ورودی
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # الگوهای ممنوع
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # فقط اجازه دستورات SELECT
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,17 +439,16 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # فقط اجازه حروف و اعداد، زیرخط و نقطه
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # اعتبارسنجی در برابر جداول مجاز
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
 ### حفاظت از داده‌ها
 
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # در محیط تولید، از Azure Key Vault دریافت شود
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # جایگزین برای توسعه (برای محیط تولید نیست!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # تکرارها
         ).hex()
         
         return password_hash, salt
@@ -527,11 +523,10 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
-## 📊 راهنمای استقرار تولید
+## 📊 دستورالعمل‌های استقرار در تولید
 
-### زیرساخت به‌عنوان کد
+### زیرساخت به عنوان کد
 
 ```yaml
 # azure-pipelines.yml
@@ -611,7 +606,6 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
 ### بهینه‌سازی کانتینر
 
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
 ### پیکربندی محیط
 
 ```python
-# Production configuration management
+# مدیریت پیکربندی تولید
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -716,29 +709,28 @@ class ProductionConfig:
                 logging.StreamHandler(sys.stdout),
                 logging.handlers.RotatingFileHandler(
                     '/var/log/mcp-server.log',
-                    maxBytes=50*1024*1024,  # 50MB
+                    maxBytes=50*1024*1024,  # ۵۰مگابایت
                     backupCount=5
                 )
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # تنظیم لاگرهای شخص ثالث روی هشدار
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # خاموش کردن حالت اشکال‌زدایی
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # تنظیم هدرهای امن
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
 ## 💰 بهینه‌سازی هزینه
 
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # بار کم
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # بار متوسط
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # بار بالا
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # عملیات پرهزینه کش
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# پیکربندی مقیاس‌بندی خودکار
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # مقیاس‌بندی مبتنی بر CPU
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # مقیاس‌بندی مبتنی بر حافظه
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # مقیاس‌بندی صف درخواست‌ها
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,7 +810,6 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
 ## 🔧 نگهداری و عملیات
 
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # سلامت پایگاه داده
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # سلامت سرویس‌های خارجی
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # منابع سیستم
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # معیارهای برنامه
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # تعیین وضعیت کلی
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # فعال‌سازی هشدارها
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # اتصال پایه
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # بررسی پرس‌وجوهای کند
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # بررسی تعداد اتصالات
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# پشتیبان‌گیری و بازیابی خودکار
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # بارگذاری در Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # پشتیبان‌گیری کامل روزانه در ساعت ۲ صبح به وقت هماهنگ جهانی
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # پشتیبان‌گیری افزایشی ساعتی
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
 ## 🌍 مشارکت‌های جامعه
 
-### بهترین شیوه‌های متن‌باز
+### بهترین شیوه‌های منبع‌باز
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,9 +984,8 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
-### تعامل با جامعه
+### مشارکت در جامعه
 
 ```python
 class CommunityContributor:
@@ -1036,80 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # بررسی‌های واقعی را پیاده‌سازی می‌کند
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
 ## 🎯 نکات کلیدی
 
-پس از تکمیل این مسیر یادگیری جامع، شما باید در موارد زیر مهارت پیدا کرده باشید:
+پس از تکمیل این مسیر یادگیری جامع، شما باید در موارد زیر تسلط یافته باشید:
 
-✅ **بهینه‌سازی عملکرد**: تنظیم پایگاه داده، الگوهای غیرهمزمان و استراتژی‌های کشینگ  
-✅ **تقویت امنیت**: احراز هویت، مجوزدهی و حفاظت از داده‌ها  
-✅ **استقرار تولید**: زیرساخت به‌عنوان کد و بهینه‌سازی کانتینر  
-✅ **مدیریت هزینه**: بهینه‌سازی منابع و مقیاس‌گذاری هوشمند  
+✅ **بهینه‌سازی عملکرد**: تنظیم پایگاه داده، الگوهای ناهمگام و استراتژی‌های کش  
+✅ **تقویت امنیت**: احراز هویت، مجوز و حفاظت از داده‌ها  
+✅ **استقرار در تولید**: زیرساخت به عنوان کد و بهینه‌سازی کانتینر  
+✅ **مدیریت هزینه**: بهینه‌سازی منابع و مقیاس‌بندی هوشمند  
 ✅ **برتری عملیاتی**: نظارت، نگهداری و خودکارسازی  
-✅ **تعامل با جامعه**: مشارکت در اکوسیستم MCP  
+✅ **مشارکت جامعه**: کمک به اکوسیستم MCP  
 
 ## 🏆 گواهینامه و مراحل بعدی
 
 ### ارزیابی عملی
 
-این پروژه نهایی را برای نشان دادن مهارت خود تکمیل کنید:
+این پروژه نهایی را تکمیل کنید تا تسلط خود را نشان دهید:
 
-**ساخت یک سرور MCP آماده تولید** که شامل موارد زیر باشد:  
-- [ ] تحلیل خرده‌فروشی چندمستاجری با RLS  
+**ساخت سرور MCP آماده تولید** که شامل:  
+- [ ] تحلیل متعدد مستاجر خرده‌فروشی با RLS  
 - [ ] جستجوی معنایی با Azure OpenAI  
 - [ ] پیاده‌سازی جامع امنیت  
-- [ ] استقرار تولید در Azure  
-- [ ] تنظیم نظارت و هشدار  
-- [ ] مستندسازی و تست  
+- [ ] استقرار در تولید روی Azure  
+- [ ] پیکربندی نظارت و اعلام هشدار  
+- [ ] مستندسازی و تست
 
-### مسیرهای یادگیری پیشرفته
+### مسیرهای پیشرفته یادگیری
 
 سفر MCP خود را با موارد زیر ادامه دهید:
 
 - **الگوهای معماری MCP**: معماری‌های پیشرفته سرور  
 - **ادغام چندمدلی**: ترکیب مدل‌های مختلف هوش مصنوعی  
-- **مقیاس سازمانی**: استقرارهای MCP در مقیاس بزرگ  
-- **توسعه ابزارهای سفارشی**: ساخت ابزارهای تخصصی MCP  
-- **اکوسیستم MCP**: مشارکت در جامعه گسترده‌تر  
+- **مقیاس سازمانی**: استقرارهای بزرگ‌مقیاس MCP  
+- **توسعه ابزار سفارشی**: ساخت ابزارهای تخصصی MCP  
+- **اکوسیستم MCP**: مشارکت در جامعه گسترده‌تر
 
 ### شناخت جامعه
 
-دستاورد خود را به اشتراک بگذارید:  
-- **پورتفولیوی GitHub**: پیاده‌سازی خود را به نمایش بگذارید  
-- **مشارکت‌های جامعه**: بهبودها یا مثال‌ها را ارسال کنید  
-- **فرصت‌های سخنرانی**: در نشست‌ها یا کنفرانس‌ها ارائه دهید  
-- **مربی‌گری**: به سایر توسعه‌دهندگان در یادگیری MCP کمک کنید  
+دستاوردهای خود را به اشتراک بگذارید:  
+- **پورتفولیوی GitHub**: نمایش پیاده‌سازی شما  
+- **مشارکت‌های جامعه**: ارسال بهبودها یا نمونه‌ها  
+- **فرصت‌های سخنرانی**: ارائه در نشست‌ها یا کنفرانس‌ها  
+- **منتورینگ**: کمک به توسعه‌دهندگان دیگر برای یادگیری MCP
 
 ## 📚 منابع اضافی
 
-### موضوعات پیشرفته
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - بهینه‌سازی پایگاه داده  
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - استقرار تولید  
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - برنامه‌نویسی غیرهمزمان  
+### موضوعات پیشرفته  
+- [تنظیم عملکرد PostgreSQL](https://www.postgresql.org/docs/current/performance-tips.html) - بهینه‌سازی پایگاه داده  
+- [بهترین شیوه‌های Azure Container Apps](https://docs.microsoft.com/azure/container-apps/overview) - استقرار در تولید  
+- [بهترین شیوه‌های برنامه‌نویسی ناهمگام پایتون](https://docs.python.org/3/library/asyncio-dev.html) - برنامه‌نویسی ناهمگام
 
-### منابع امنیتی
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - آسیب‌پذیری‌های امنیتی  
-- [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - امنیت ابری  
-- [Python Security Guidelines](https://python.org/dev/security/) - کدنویسی امن  
+### منابع امنیتی  
+- [ده آسیب‌پذیری برتر OWASP](https://owasp.org/www-project-top-ten/) - آسیب‌پذیری‌های امنیتی  
+- [بهترین شیوه‌های امنیت Azure](https://docs.microsoft.com/azure/security/) - امنیت ابری  
+- [راهنمای امنیت پایتون](https://python.org/dev/security/) - کدنویسی امن
 
-### جامعه
-- [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - بحث‌های زنده  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - پرسش و پاسخ و اشتراک‌گذاری  
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - سوالات فنی  
-
----
-
-**🎉 تبریک!** شما مسیر یادگیری جامع ادغام پایگاه داده MCP را به پایان رساندید. اکنون دانش و مهارت لازم برای ساخت سرورهای MCP آماده تولید که دستیارهای هوش مصنوعی را با سیستم‌های داده دنیای واقعی پیوند می‌دهند، دارید.
-
-**آماده مشارکت هستید؟** به جامعه ما بپیوندید و به دیگران در یادگیری MCP کمک کنید، تجربیات خود را به اشتراک بگذارید، بهبودهای کد را ارائه دهید یا منابع یادگیری اضافی ایجاد کنید.
+### جامعه  
+- [دیسکورد جامعه MCP](https://discord.com/invite/ByRwuEEgH4) - بحث‌های زنده  
+- [بحث‌های GitHub](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - سوال و جواب و اشتراک‌گذاری  
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - سوالات فنی
 
 ---
 
-**سلب مسئولیت**:  
-این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما تلاش می‌کنیم دقت را حفظ کنیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است شامل خطاها یا نادرستی‌ها باشند. سند اصلی به زبان اصلی آن باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حساس، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما مسئولیتی در قبال سوء تفاهم‌ها یا تفسیرهای نادرست ناشی از استفاده از این ترجمه نداریم.
+**🎉 تبریک می‌گوییم!** شما مسیر یادگیری جامع یکپارچه‌سازی پایگاه داده MCP را کامل کردید. اکنون دانش و مهارت‌های لازم برای ساخت سرورهای MCP آماده تولید که دستیاران هوش مصنوعی را به سیستم‌های داده واقعی متصل می‌کنند در اختیار دارید.
+
+**آماده مشارکت؟** به جامعه ما بپیوندید و با به اشتراک گذاشتن تجربیات، مشارکت در بهبود کد یا ایجاد منابع یادگیری بیشتر، به دیگران در یادگیری MCP کمک کنید.
+
+**بعدی**: [ابزارها](../../12-tooling/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**سلب مسئولیت**:
+این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما در تلاش برای دقت هستیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است شامل خطاها یا نادرستی‌هایی باشند. سند اصلی به زبان مادری خود باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما در قبال هرگونه سوء تفاهم یا برداشت نادرست ناشی از استفاده از این ترجمه مسئولیتی نداریم.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

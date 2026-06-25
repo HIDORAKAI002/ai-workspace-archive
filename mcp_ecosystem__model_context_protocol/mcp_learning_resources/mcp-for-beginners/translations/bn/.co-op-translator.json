@@ -822,8 +822,8 @@
     "language_code": "bn"
   },
   "11-MCPServerHandsOnLabs/12-Best-Practices/README.md": {
-    "original_hash": "cf8b2ca0cea03c09428ae042938995c1",
-    "translation_date": "2025-09-30T15:36:31+00:00",
+    "original_hash": "a07570c61ac6c76c0ebf06f638856158",
+    "translation_date": "2026-06-25T01:29:51+00:00",
     "source_file": "11-MCPServerHandsOnLabs/12-Best-Practices/README.md",
     "language_code": "bn"
   },
@@ -831,6 +831,18 @@
     "original_hash": "8347ef1970813e6c9581733a1f825bd3",
     "translation_date": "2026-02-08T12:59:10+00:00",
     "source_file": "11-MCPServerHandsOnLabs/README.md",
+    "language_code": "bn"
+  },
+  "12-tooling/01-copilot-app/README.md": {
+    "original_hash": "c4ef331209eb90450423e7997a229c37",
+    "translation_date": "2026-06-25T01:41:42+00:00",
+    "source_file": "12-tooling/01-copilot-app/README.md",
+    "language_code": "bn"
+  },
+  "12-tooling/README.md": {
+    "original_hash": "5c2482cafe5558a25f03bb860cdd6bb4",
+    "translation_date": "2026-06-25T01:41:11+00:00",
+    "source_file": "12-tooling/README.md",
     "language_code": "bn"
   },
   "AGENTS.md": {
@@ -846,8 +858,8 @@
     "language_code": "bn"
   },
   "README.md": {
-    "original_hash": "4c46c5992d1bdcd4c434a4afceeb57f3",
-    "translation_date": "2026-06-17T08:04:58+00:00",
+    "original_hash": "cd2e44a0f3306fc3b7625ce89d6c99bb",
+    "translation_date": "2026-06-25T01:25:32+00:00",
     "source_file": "README.md",
     "language_code": "bn"
   },
@@ -864,14 +876,14 @@
     "language_code": "bn"
   },
   "changelog.md": {
-    "original_hash": "8dc16135635970ac92a01139e39798e6",
-    "translation_date": "2026-06-17T08:09:52+00:00",
+    "original_hash": "b9407ed4e52f36c623c69d5547498abd",
+    "translation_date": "2026-06-25T01:28:22+00:00",
     "source_file": "changelog.md",
     "language_code": "bn"
   },
   "study_guide.md": {
-    "original_hash": "96f919c7812633050d597ec8c5903c8b",
-    "translation_date": "2026-06-17T08:11:07+00:00",
+    "original_hash": "b3ba42e9b4c53f808820579d1729cfcb",
+    "translation_date": "2026-06-25T01:29:09+00:00",
     "source_file": "study_guide.md",
     "language_code": "bn"
   }

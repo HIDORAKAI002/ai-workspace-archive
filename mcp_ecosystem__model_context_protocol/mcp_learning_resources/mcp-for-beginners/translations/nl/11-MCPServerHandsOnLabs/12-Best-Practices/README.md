@@ -1,57 +1,57 @@
-# Beste Praktijken en Optimalisatie
+# Best Practices en Optimalisatie
 
 ## 🎯 Wat Deze Lab Behandelt
 
-Deze capstone-lab bundelt beste praktijken, optimalisatietechnieken en richtlijnen voor productie om robuuste, schaalbare en veilige MCP-servers te bouwen met database-integratie. Je leert van praktijkervaring en industriestandaarden om ervoor te zorgen dat jouw implementatie klaar is voor productie.
+Deze capstone lab consolideert best practices, optimalisatietechnieken en productierichtlijnen voor het bouwen van robuuste, schaalbare en veilige MCP-servers met database-integratie. Je leert uit praktijkervaring en industriestandaarden om ervoor te zorgen dat je implementatie productie-klaar is.
 
 ## Overzicht
 
-Een succesvolle MCP-server bouwen gaat verder dan alleen werkende code. Deze lab behandelt de essentiële praktijken die proof-of-concept-implementaties onderscheiden van productieklare systemen die kunnen schalen, betrouwbaar presteren en voldoen aan beveiligingsnormen.
+Het bouwen van een succesvolle MCP-server is meer dan alleen de code laten werken. Deze lab behandelt de essentiële praktijken die proof-of-concept implementaties onderscheiden van productie-klaar systemen die kunnen schalen, betrouwbaar presteren en beveiligingsstandaarden handhaven.
 
-Deze beste praktijken zijn afgeleid van implementaties in de praktijk, feedback uit de gemeenschap en lessen uit bedrijfsimplementaties.
+Deze best practices zijn afgeleid van daadwerkelijke implementaties, community feedback en lessen geleerd uit enterprise implementaties.
 
 ## Leerdoelen
 
-Aan het einde van deze lab kun je:
+Aan het eind van deze lab kun je:
 
 - **Toepassen** van prestatie-optimalisatietechnieken voor MCP-servers en databases  
 - **Implementeren** van uitgebreide beveiligingsmaatregelen  
 - **Ontwerpen** van schaalbare architectuurpatronen voor productieomgevingen  
 - **Opzetten** van monitoring-, onderhouds- en operationele procedures  
-- **Optimaliseren** van kosten terwijl prestaties en betrouwbaarheid behouden blijven  
+- **Optimaliseren** van kosten terwijl prestaties en betrouwbaarheid worden gehandhaafd  
 - **Bijdragen** aan de MCP-gemeenschap en het ecosysteem  
 
-## 🚀 Prestatie-optimalisatie
+## 🚀 Prestatieoptimalisatie
 
 ### Databaseprestaties
 
-#### Optimalisatie van Connectiepool
+#### Verbindingpooloptimalisatie
 
 ```python
-# Optimized connection pool configuration
+# Geoptimaliseerde configuratie van de verbindingspool
 POOL_CONFIG = {
-    # Size configuration
-    "min_size": max(2, cpu_count()),           # At least 2, scale with CPU
-    "max_size": min(20, cpu_count() * 4),     # Cap at reasonable maximum
+    # Grootteconfiguratie
+    "min_size": max(2, cpu_count()),           # Minimaal 2, schaal met CPU
+    "max_size": min(20, cpu_count() * 4),     # Limiet op redelijke maximum
     
-    # Timing configuration
-    "max_inactive_connection_lifetime": 300,   # 5 minutes
-    "command_timeout": 30,                     # 30 seconds
-    "max_queries": 50000,                      # Rotate connections
+    # Tijdconfiguratie
+    "max_inactive_connection_lifetime": 300,   # 5 minuten
+    "command_timeout": 30,                     # 30 seconden
+    "max_queries": 50000,                      # Verbindingsrotatie
     
-    # PostgreSQL settings
+    # PostgreSQL-instellingen
     "server_settings": {
         "application_name": "mcp-server-prod",
-        "jit": "off",                          # Disable for consistency
-        "work_mem": "8MB",                     # Optimize for queries
+        "jit": "off",                          # Uitschakelen voor consistentie
+        "work_mem": "8MB",                     # Optimaliseren voor queries
         "shared_preload_libraries": "pg_stat_statements",
-        "log_statement": "mod",                # Log modifications only
-        "log_min_duration_statement": "1s",   # Log slow queries
+        "log_statement": "mod",                # Alleen wijzigingen loggen
+        "log_min_duration_statement": "1s",   # Trage queries loggen
     }
 }
 ```
-  
-#### Query-optimalisatiepatronen
+
+#### Queryoptimalisatiepatronen
 
 ```python
 class QueryOptimizer:
@@ -59,7 +59,7 @@ class QueryOptimizer:
     
     def __init__(self):
         self.query_cache = {}
-        self.slow_query_threshold = 1.0  # seconds
+        self.slow_query_threshold = 1.0  # seconden
         
     async def execute_optimized_query(
         self, 
@@ -70,26 +70,26 @@ class QueryOptimizer:
     ):
         """Execute query with optimization and caching."""
         
-        # Check cache first
+        # Controleer eerst de cache
         if cache_key and cache_key in self.query_cache:
             cache_entry = self.query_cache[cache_key]
             if time.time() - cache_entry['timestamp'] < cache_ttl:
                 return cache_entry['result']
         
-        # Execute with monitoring
+        # Uitvoeren met monitoring
         start_time = time.time()
         
         try:
             async with db_provider.get_connection() as conn:
-                # Optimize query execution
-                await conn.execute("SET enable_seqscan = off")  # Prefer indexes
-                await conn.execute("SET work_mem = '16MB'")     # More memory for this query
+                # Optimaliseer query-uitvoering
+                await conn.execute("SET enable_seqscan = off")  # Geef de voorkeur aan indexen
+                await conn.execute("SET work_mem = '16MB'")     # Meer geheugen voor deze query
                 
                 result = await conn.fetch(query, *params if params else ())
                 
                 duration = time.time() - start_time
                 
-                # Log slow queries
+                # Log trage queries
                 if duration > self.slow_query_threshold:
                     logger.warning(f"Slow query detected: {duration:.2f}s", extra={
                         "query": query[:200],
@@ -97,8 +97,8 @@ class QueryOptimizer:
                         "params_count": len(params) if params else 0
                     })
                 
-                # Cache successful results
-                if cache_key and len(result) < 1000:  # Don't cache large results
+                # Cache succesvolle resultaten
+                if cache_key and len(result) < 1000:  # Cache geen grote resultaten
                     self.query_cache[cache_key] = {
                         'result': result,
                         'timestamp': time.time()
@@ -110,26 +110,25 @@ class QueryOptimizer:
             logger.error(f"Query optimization failed: {e}")
             raise
 
-# Index recommendations
+# Indexaanbevelingen
 RECOMMENDED_INDEXES = [
-    # Core business indexes
+    # Kern zakelijke indexen
     "CREATE INDEX CONCURRENTLY idx_orders_store_date ON retail.orders (store_id, order_date DESC);",
     "CREATE INDEX CONCURRENTLY idx_order_items_product ON retail.order_items (product_id);",
     "CREATE INDEX CONCURRENTLY idx_customers_store_email ON retail.customers (store_id, email);",
     
-    # Analytics indexes
+    # Analyseindexen
     "CREATE INDEX CONCURRENTLY idx_orders_date_amount ON retail.orders (order_date, total_amount);",
     "CREATE INDEX CONCURRENTLY idx_products_category_price ON retail.products (category_id, unit_price);",
     
-    # Vector search optimization
+    # Optimalisatie van vectorzoekopdrachten
     "CREATE INDEX CONCURRENTLY idx_embeddings_vector ON retail.product_description_embeddings USING ivfflat (description_embedding vector_cosine_ops) WITH (lists = 100);",
 ]
 ```
-  
 
 ### Applicatieprestaties
 
-#### Beste Praktijken voor Asynchrone Programmeren
+#### Async Programmering Best Practices
 
 ```python
 import asyncio
@@ -158,14 +157,14 @@ class AsyncOptimizer:
                     return_exceptions=True
                 )
         
-        # Process in batches to avoid overwhelming the system
+        # Verwerk in batches om overbelasting van het systeem te voorkomen
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
             batch_results = await process_batch(batch)
             results.extend(batch_results)
             
-            # Small delay between batches to prevent resource exhaustion
+            # Kleine pauze tussen batches om uitputting van bronnen te voorkomen
             if i + batch_size < len(items):
                 await asyncio.sleep(0.1)
         
@@ -176,7 +175,7 @@ class AsyncOptimizer:
         """Execute operation with circuit breaker protection."""
         return await operation(*args, **kwargs)
 
-# Circuit breaker implementation
+# Implementatie van circuit breaker
 class CircuitBreaker:
     """Circuit breaker for external service calls."""
     
@@ -185,7 +184,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+        self.state = "CLOSED"  # GESLOTEN, GEOPEND, HALFGESLOTEN
     
     async def call(self, func, *args, **kwargs):
         """Execute function with circuit breaker protection."""
@@ -199,7 +198,7 @@ class CircuitBreaker:
         try:
             result = await func(*args, **kwargs)
             
-            # Reset on success
+            # Resetten bij succes
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -215,9 +214,8 @@ class CircuitBreaker:
             
             raise
 ```
-  
 
-### Cachingstrategieën
+### Cachestrategieën
 
 ```python
 import redis
@@ -235,18 +233,18 @@ class SmartCache:
     async def get(self, key: str) -> Optional[Any]:
         """Get from cache with fallback levels."""
         
-        # Level 1: Memory cache
+        # Niveau 1: Geheugen cache
         if key in self.memory_cache:
             return self.memory_cache[key]['value']
         
-        # Level 2: Redis cache
+        # Niveau 2: Redis cache
         if self.redis_client:
             try:
                 cached_data = self.redis_client.get(key)
                 if cached_data:
                     value = pickle.loads(cached_data)
                     
-                    # Promote to memory cache
+                    # Promoveer naar geheugen cache
                     self._set_memory_cache(key, value)
                     return value
             except Exception as e:
@@ -279,7 +277,7 @@ class SmartCache:
     def _set_memory_cache(self, key: str, value: Any, ttl: int = 300):
         """Set value in memory cache with LRU eviction."""
         
-        # Implement LRU eviction
+        # Implementeer LRU verwijdering
         if len(self.memory_cache) >= self.max_memory_items:
             oldest_key = min(
                 self.memory_cache.keys(),
@@ -293,7 +291,7 @@ class SmartCache:
             'ttl': ttl
         }
 
-# Cache key generation
+# Cache sleutel generatie
 def generate_cache_key(query: str, user_context: str, params: dict = None) -> str:
     """Generate consistent cache keys."""
     key_components = [
@@ -305,7 +303,6 @@ def generate_cache_key(query: str, user_context: str, params: dict = None) -> st
     key_string = "|".join(key_components)
     return hashlib.sha256(key_string.encode()).hexdigest()
 ```
-  
 
 ## 🔒 Beveiligingsversterking
 
@@ -336,18 +333,18 @@ class SecurityManager:
     async def validate_request(self, request_headers: Dict[str, str]) -> Dict[str, Any]:
         """Comprehensive request validation."""
         
-        # Extract and validate authentication
+        # Extract en valideer authenticatie
         auth_token = request_headers.get("authorization", "").replace("Bearer ", "")
         if not auth_token:
             raise AuthenticationError("Missing authentication token")
         
-        # Validate token
+        # Valideer token
         user_context = await self._validate_token(auth_token)
         
-        # Check rate limiting
+        # Controleer rate limiting
         await self._check_rate_limit(user_context["user_id"])
         
-        # Validate RLS context
+        # Valideer RLS-context
         rls_user_id = request_headers.get("x-rls-user-id")
         if not self._validate_rls_access(user_context, rls_user_id):
             raise AuthorizationError("Invalid RLS context for user")
@@ -366,10 +363,10 @@ class SecurityManager:
             raise AuthenticationError("Token has been revoked")
         
         try:
-            # Get public key from Key Vault or cache
+            # Haal openbare sleutel op uit Key Vault of cache
             public_key = await self._get_public_key()
             
-            # Decode and validate token
+            # Decodeer en valideer token
             payload = jwt.decode(
                 token, 
                 public_key, 
@@ -391,23 +388,23 @@ class SecurityManager:
     def _validate_rls_access(self, user_context: Dict, rls_user_id: str) -> bool:
         """Validate RLS context access."""
         
-        # Super admins can access any context
+        # Superadmins kunnen toegang krijgen tot elke context
         if "super_admin" in user_context["roles"]:
             return True
         
-        # Store managers can only access their own store
+        # Winkeliers kunnen alleen toegang krijgen tot hun eigen winkel
         if "store_manager" in user_context["roles"]:
             allowed_stores = user_context.get("allowed_stores", [])
             return rls_user_id in allowed_stores
         
-        # Regional managers can access multiple stores
+        # Regiomanagers kunnen toegang krijgen tot meerdere winkels
         if "regional_manager" in user_context["roles"]:
             allowed_regions = user_context.get("allowed_regions", [])
             return self._check_store_in_regions(rls_user_id, allowed_regions)
         
         return False
 
-# Input validation and sanitization
+# Invoervalidatie en -sanitatie
 class InputValidator:
     """SQL injection prevention and input validation."""
     
@@ -415,7 +412,7 @@ class InputValidator:
     def validate_sql_query(query: str) -> bool:
         """Validate SQL query for safety."""
         
-        # Forbidden patterns
+        # Verboden patronen
         forbidden_patterns = [
             r";\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\s+",
             r"--.*",
@@ -432,7 +429,7 @@ class InputValidator:
                 logger.warning(f"Blocked potentially dangerous query: {pattern}")
                 return False
         
-        # Only allow SELECT statements
+        # Sta alleen SELECT-instructies toe
         if not query_upper.strip().startswith("SELECT"):
             return False
         
@@ -442,17 +439,16 @@ class InputValidator:
     def sanitize_table_name(table_name: str) -> str:
         """Sanitize table name input."""
         
-        # Only allow alphanumeric, underscore, and dot
+        # Sta alleen alfanumerieke tekens, underscore en punt toe
         if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
             raise ValueError("Invalid table name format")
         
-        # Validate against allowed tables
+        # Valideer tegen toegestane tabellen
         if table_name not in VALID_TABLES:
             raise ValueError(f"Table {table_name} not allowed")
         
         return table_name
 ```
-  
 
 ### Gegevensbescherming
 
@@ -470,13 +466,13 @@ class DataProtection:
     def _get_encryption_key(self) -> bytes:
         """Get encryption key from secure storage."""
         
-        # In production, get from Azure Key Vault
+        # In productie, verkrijgen van Azure Key Vault
         key_vault_secret = os.getenv("ENCRYPTION_KEY_SECRET_NAME")
         if key_vault_secret and self.key_vault_client:
             secret = self.key_vault_client.get_secret(key_vault_secret)
             return secret.value.encode()
         
-        # Fallback for development (not for production!)
+        # Terugval voor ontwikkeling (niet voor productie!)
         dev_key = os.getenv("DEV_ENCRYPTION_KEY")
         if dev_key:
             return dev_key.encode()
@@ -501,7 +497,7 @@ class DataProtection:
             'sha256',
             password.encode(),
             salt.encode(),
-            100000  # iterations
+            100000  # iteraties
         ).hex()
         
         return password_hash, salt
@@ -527,11 +523,10 @@ class DataProtection:
         
         return masked_data
 ```
-  
 
-## 📊 Richtlijnen voor Productie-implementatie
+## 📊 Richtlijnen voor Productie-Deployment
 
-### Infrastructure as Code
+### Infrastructuur als Code
 
 ```yaml
 # azure-pipelines.yml
@@ -611,7 +606,6 @@ stages:
               resourceGroup: '$(resourceGroupName)'
               imageToDeploy: '$(containerRegistry)/$(imageRepository):$(Build.BuildId)'
 ```
-  
 
 ### Containeroptimalisatie
 
@@ -668,12 +662,11 @@ EXPOSE 8000
 # Start application
 CMD ["python", "-m", "mcp_server.sales_analysis"]
 ```
-  
 
 ### Omgevingsconfiguratie
 
 ```python
-# Production configuration management
+# Productie configuratiebeheer
 class ProductionConfig:
     """Production-specific configuration."""
     
@@ -722,23 +715,22 @@ class ProductionConfig:
             ]
         )
         
-        # Set third-party loggers to WARNING
+        # Stel derden loggers in op WARNING
         logging.getLogger('azure').setLevel(logging.WARNING)
         logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     def configure_security(self):
         """Configure production security settings."""
         
-        # Disable debug mode
+        # Schakel debugmodus uit
         os.environ['DEBUG'] = 'False'
         
-        # Set secure headers
+        # Stel veilige headers in
         os.environ['SECURE_SSL_REDIRECT'] = 'True'
         os.environ['SECURE_HSTS_SECONDS'] = '31536000'
         os.environ['SECURE_CONTENT_TYPE_NOSNIFF'] = 'True'
         os.environ['SECURE_BROWSER_XSS_FILTER'] = 'True'
 ```
-  
 
 ## 💰 Kostenoptimalisatie
 
@@ -757,11 +749,11 @@ class CostOptimizer:
         
         current_load = await self.metrics_collector.get_current_load()
         
-        if current_load < 0.3:  # Low load
+        if current_load < 0.3:  # Lage belasting
             target_pool_size = max(2, int(current_load * 10))
-        elif current_load < 0.7:  # Medium load
+        elif current_load < 0.7:  # Gemiddelde belasting
             target_pool_size = max(5, int(current_load * 15))
-        else:  # High load
+        else:  # Hoge belasting
             target_pool_size = min(20, int(current_load * 25))
         
         await db_provider.adjust_pool_size(target_pool_size)
@@ -771,7 +763,7 @@ class CostOptimizer:
     async def implement_smart_caching(self):
         """Implement intelligent caching to reduce compute costs."""
         
-        # Cache expensive operations
+        # Cache voor dure bewerkingen
         expensive_queries = await self.identify_expensive_queries()
         
         for query in expensive_queries:
@@ -791,7 +783,7 @@ class CostOptimizer:
             "storage": self.estimate_storage_costs()
         }
 
-# Auto-scaling configuration
+# Auto-schaalconfiguratie
 class AutoScaler:
     """Automatic scaling based on metrics."""
     
@@ -800,17 +792,17 @@ class AutoScaler:
         
         metrics = await self.collect_scaling_metrics()
         
-        # CPU-based scaling
+        # CPU-gebaseerde schaalvergroting
         if metrics['cpu_usage'] > 80:
             return "scale_up"
         elif metrics['cpu_usage'] < 20 and metrics['instance_count'] > 1:
             return "scale_down"
         
-        # Memory-based scaling
+        # Geheugen-gebaseerde schaalvergroting
         if metrics['memory_usage'] > 85:
             return "scale_up"
         
-        # Request queue scaling
+        # Schalen van aanvraagwachtrij
         if metrics['queue_length'] > 100:
             return "scale_up"
         elif metrics['queue_length'] < 10 and metrics['instance_count'] > 1:
@@ -818,7 +810,6 @@ class AutoScaler:
         
         return "no_action"
 ```
-  
 
 ## 🔧 Onderhoud en Operaties
 
@@ -841,23 +832,23 @@ class OperationalHealth:
             "components": {}
         }
         
-        # Database health
+        # Databasegezondheid
         db_health = await self.check_database_health()
         health_report["components"]["database"] = db_health
         
-        # External services health
+        # Gezondheid van externe services
         ai_health = await self.check_ai_service_health()
         health_report["components"]["ai_service"] = ai_health
         
-        # System resources
+        # Systeembronnen
         system_health = await self.check_system_resources()
         health_report["components"]["system"] = system_health
         
-        # Application metrics
+        # Applicatiestatistieken
         app_health = await self.check_application_health()
         health_report["components"]["application"] = app_health
         
-        # Determine overall status
+        # Bepaal algemene status
         failed_components = [
             name for name, status in health_report["components"].items()
             if status.get("status") != "healthy"
@@ -867,7 +858,7 @@ class OperationalHealth:
             health_report["overall_status"] = "unhealthy"
             health_report["failed_components"] = failed_components
             
-            # Trigger alerts
+            # Trigger waarschuwingen
             await self.alert_manager.send_alert(
                 severity="high",
                 message=f"Health check failed for: {failed_components}",
@@ -883,10 +874,10 @@ class OperationalHealth:
             start_time = time.time()
             
             async with db_provider.get_connection() as conn:
-                # Basic connectivity
+                # Basisconnectiviteit
                 await conn.fetchval("SELECT 1")
                 
-                # Check slow queries
+                # Controleer trage queries
                 slow_queries = await conn.fetch("""
                     SELECT query, mean_exec_time, calls 
                     FROM pg_stat_statements 
@@ -895,7 +886,7 @@ class OperationalHealth:
                     LIMIT 5
                 """)
                 
-                # Check connection count
+                # Controleer aantal verbindingen
                 connection_count = await conn.fetchval("""
                     SELECT count(*) FROM pg_stat_activity 
                     WHERE state = 'active'
@@ -918,7 +909,7 @@ class OperationalHealth:
                 "last_check": datetime.utcnow().isoformat()
             }
 
-# Automated backup and recovery
+# Geautomatiseerde back-up en herstel
 class BackupManager:
     """Database backup and recovery management."""
     
@@ -933,7 +924,7 @@ class BackupManager:
         elif backup_type == "incremental":
             await self.create_incremental_backup(backup_name)
         
-        # Upload to Azure Blob Storage
+        # Upload naar Azure Blob Storage
         await self.upload_backup_to_azure(backup_name)
         
         return backup_name
@@ -941,21 +932,20 @@ class BackupManager:
     async def schedule_automated_backups(self):
         """Schedule regular automated backups."""
         
-        # Daily full backup at 2 AM UTC
+        # Dagelijkse volledige back-up om 2 uur 's nachts UTC
         schedule.every().day.at("02:00").do(
             lambda: asyncio.create_task(self.create_backup("full"))
         )
         
-        # Hourly incremental backups
+        # Uurelijkse incrementele back-ups
         schedule.every().hour.do(
             lambda: asyncio.create_task(self.create_backup("incremental"))
         )
 ```
-  
 
-## 🌍 Gemeenschapsbijdragen
+## 🌍 Communitybijdragen
 
-### Beste Praktijken voor Open Source
+### Open Source Best Practices
 
 ```markdown
 # Contributing to MCP Database Integration
@@ -994,9 +984,8 @@ class BackupManager:
 - Dependency vulnerability scanning
 - Manual security testing for critical changes
 ```
-  
 
-### Betrokkenheid bij de Gemeenschap
+### Community Betrokkenheid
 
 ```python
 class CommunityContributor:
@@ -1036,79 +1025,83 @@ class CommunityContributor:
         return {
             "has_tests": "test" in pr_data.get("files_changed", []),
             "has_documentation": "README" in str(pr_data.get("files_changed", [])),
-            "follows_conventions": True,  # Would implement actual checks
+            "follows_conventions": True,  # Zou daadwerkelijke controles implementeren
             "security_reviewed": pr_data.get("security_review", False),
             "performance_tested": pr_data.get("benchmark_results", False)
         }
 ```
-  
 
-## 🎯 Belangrijke Leerpunten
+## 🎯 Belangrijkste Leerpunten
 
-Na het voltooien van dit uitgebreide leertraject, zou je de volgende vaardigheden moeten hebben:
+Na het voltooien van dit uitgebreide leerpad beheers je:
 
-✅ **Prestatie-optimalisatie**: Database-tuning, asynchrone patronen en cachingstrategieën  
+✅ **Prestatieoptimalisatie**: Database tuning, async patronen en cachestrategieën  
 ✅ **Beveiligingsversterking**: Authenticatie, autorisatie en gegevensbescherming  
-✅ **Productie-implementatie**: Infrastructure as code en containeroptimalisatie  
-✅ **Kostenbeheer**: Resource-optimalisatie en slim schalen  
+✅ **Productie-Deployment**: Infrastructuur als code en containeroptimalisatie  
+✅ **Kostenbeheer**: Resource-optimalisatie en intelligente schaalvergroting  
 ✅ **Operationele Uitmuntendheid**: Monitoring, onderhoud en automatisering  
-✅ **Gemeenschapsbetrokkenheid**: Bijdragen aan het MCP-ecosysteem  
+✅ **Community-betrokkenheid**: Bijdragen aan het MCP-ecosysteem  
 
 ## 🏆 Certificering en Volgende Stappen
 
 ### Praktische Beoordeling
 
-Voltooi dit eindproject om je beheersing te demonstreren:
+Voltooi dit eindproject om je beheersing aan te tonen:
 
-**Bouw een Productieklare MCP-server** die het volgende bevat:  
+**Bouw een Productieklaar MCP-Server** dat bevat:  
 - [ ] Multi-tenant retail analytics met RLS  
-- [ ] Semantisch zoeken met Azure OpenAI  
+- [ ] Semantische zoekfunctie met Azure OpenAI  
 - [ ] Uitgebreide beveiligingsimplementatie  
-- [ ] Productie-implementatie op Azure  
-- [ ] Monitoring en waarschuwingsinstellingen  
+- [ ] Productie-deployment op Azure  
+- [ ] Monitoring- en alarmeringssetup  
 - [ ] Documentatie en testen  
 
-### Geavanceerde Leertrajecten
+### Gevorderde Leertrajecten
 
-Zet je MCP-reis voort met:  
+Ga verder met je MCP-reis via:
+
 - **MCP Architectuurpatronen**: Geavanceerde serverarchitecturen  
-- **Multi-Model Integratie**: Verschillende AI-modellen combineren  
-- **Enterprise Schaal**: Grootschalige MCP-implementaties  
-- **Ontwikkeling van Aangepaste Tools**: Gespecialiseerde MCP-tools bouwen  
+- **Multi-Model Integratie**: Combineren van verschillende AI-modellen  
+- **Enterprise Scale**: Grootschalige MCP-implementaties  
+- **Aangepaste Toolontwikkeling**: Bouwen van gespecialiseerde MCP-tools  
 - **MCP Ecosysteem**: Bijdragen aan de bredere gemeenschap  
 
-### Erkenning door de Gemeenschap
+### Communityerkenning
 
 Deel je prestatie:  
-- **GitHub Portfolio**: Laat je implementatie zien  
-- **Gemeenschapsbijdragen**: Dien verbeteringen of voorbeelden in  
-- **Spreekkansen**: Presenteer op meetups of conferenties  
+- **GitHub Portfolio**: Toon je implementatie  
+- **Communitybijdragen**: Dien verbeteringen of voorbeelden in  
+- **Spreekgelegenheden**: Presenteer op meetups of conferenties  
 - **Mentorschap**: Help andere ontwikkelaars MCP te leren  
 
 ## 📚 Aanvullende Bronnen
 
-### Geavanceerde Onderwerpen  
-- [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Database-optimalisatie  
-- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Productie-implementatie  
-- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Asynchrone programmering  
+### Geavanceerde Onderwerpen
+- [PostgreSQL Prestatie Tuning](https://www.postgresql.org/docs/current/performance-tips.html) - Database-optimalisatie  
+- [Azure Container Apps Best Practices](https://docs.microsoft.com/azure/container-apps/overview) - Productie-deployment  
+- [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html) - Async programmering  
 
-### Beveiligingsbronnen  
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Beveiligingskwetsbaarheden  
+### Beveiligingsbronnen
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Beveiligingsrisico’s  
 - [Azure Security Best Practices](https://docs.microsoft.com/azure/security/) - Cloudbeveiliging  
 - [Python Security Guidelines](https://python.org/dev/security/) - Veilig coderen  
 
-### Gemeenschap  
+### Community
 - [MCP Community Discord](https://discord.com/invite/ByRwuEEgH4) - Live discussies  
-- [GitHub Discussions](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A en delen  
+- [GitHub Discussies](https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail/discussions) - Q&A en kennisdeling  
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/model-context-protocol) - Technische vragen  
 
 ---
 
-**🎉 Gefeliciteerd!** Je hebt het uitgebreide MCP Database Integration-leertraject voltooid. Je hebt nu de kennis en vaardigheden om productieklare MCP-servers te bouwen die AI-assistenten verbinden met echte datasystemen.
+**🎉 Gefeliciteerd!** Je hebt het uitgebreide leerpad MCP Database Integratie voltooid. Je hebt nu de kennis en vaardigheden om productieklaar MCP-servers te bouwen die AI-assistenten verbinden met real-world datasystemen.
 
-**Klaar om bij te dragen?** Word lid van onze gemeenschap en help anderen MCP te leren door je ervaringen te delen, codeverbeteringen bij te dragen of aanvullende leermiddelen te creëren.
+**Klaar om bij te dragen?** Word lid van onze community en help anderen MCP te leren door je ervaringen te delen, codeverbeteringen bij te dragen of aanvullende leermaterialen te creëren.
+
+**Volgende**: [Tooling](../../12-tooling/README.md)
 
 ---
 
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsservice [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u zich ervan bewust te zijn dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor cruciale informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
