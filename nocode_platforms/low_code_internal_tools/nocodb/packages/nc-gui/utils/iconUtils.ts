@@ -428,6 +428,8 @@ import NcBookIcon from '~icons/nc-icons-v2/book.svg'
 import NcUserMinusIcon from '~icons/nc-icons-v2/user-minus.svg'
 import NcBellIcon from '~icons/nc-icons-v2/bell.svg'
 import NcGitBranchIcon from '~icons/nc-icons-v2/git-branch.svg'
+import NcSandboxIcon from '~icons/nc-icons-v2/sandbox.svg'
+import NcSandboxPlusIcon from '~icons/nc-icons-v2/sandbox-plus.svg'
 import NcCodeIcon from '~icons/nc-icons-v2/code.svg'
 import NcCodeBlockIcon from '~icons/nc-icons-v2/code-block.svg'
 import NcCastIcon from '~icons/nc-icons-v2/cast.svg'
@@ -1517,6 +1519,8 @@ export const iconMap = {
   'ncUserMinus': NcUserMinusIcon,
   'ncBell': NcBellIcon,
   'ncGitBranch': NcGitBranchIcon,
+  'ncSandbox': NcSandboxIcon,
+  'ncSandboxPlus': NcSandboxPlusIcon,
   'ncCode': NcCodeIcon,
   'ncCodeBlock': NcCodeBlockIcon,
   'ncCast': NcCastIcon,
