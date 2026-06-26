@@ -21,7 +21,13 @@ You can select a preset through the normal model picker surfaces:
 /model review --provider moa
 ```
 
-The Dashboard, TUI, and Desktop model pickers also show a `Mixture of Agents` provider row. Its models are your configured preset names.
+MoA presets are selectable on **every Hermes surface**, because MoA is a normal provider in the model system:
+
+- **CLI / gateway / TUI `/model`** — `/model <preset> --provider moa`, or `/model --provider moa` for the default preset. A bare `/model <preset>` also works when the name exactly matches a configured preset.
+- **`hermes model`** and the **Dashboard model picker** — a `Mixture of Agents` provider row appears with your preset names as its models.
+- **Desktop GUI app** — the model dropdown shows an `MoA presets` section; selecting one (`MoA: <preset>`) switches the active model to that preset. The Desktop settings panel also creates and edits presets.
+
+Configured presets therefore show up wherever you would pick any other model.
 
 ## Slash command shortcut
 
@@ -105,6 +111,18 @@ hermes moa configure              # update the default preset
 hermes moa configure review       # create or update a named preset
 hermes moa delete review
 ```
+
+## Benchmarks
+
+On HermesBench, a two-model MoA preset — `claude-opus-4.8` aggregating over a `gpt-5.5` reference — outscores either model run on its own:
+
+| Model | HermesBench score |
+|---|---|
+| **Opus aggregator (opus-4.8 + gpt-5.5 reference) — MoA** | **0.8202** |
+| `anthropic/claude-opus-4.8` | 0.7607 |
+| `openai/gpt-5.5` | 0.7412 |
+
+The MoA configuration beats its strongest component (opus-4.8) by ~6 points, confirming that aggregating a second perspective lifts quality on hard tasks rather than just averaging the two.
 
 ## Notes
 

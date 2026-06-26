@@ -26,7 +26,7 @@ export interface NcButtonProps {
   fullWidth?: boolean
   iconOnly?: boolean
   iconPosition?: 'left' | 'right'
-  theme?: 'default' | 'ai'
+  theme?: 'default' | 'ai' | 'orange'
   textColor?: 'primary'
   bordered?: boolean
   shadow?: boolean
@@ -108,6 +108,7 @@ useEventListener(NcButton, 'mousedown', () => {
       'focused': isFocused && !props.hideFocus,
       'theme-default': theme === 'default',
       'theme-ai': theme === 'ai',
+      'theme-orange': theme === 'orange',
       'bordered': bordered,
       'nc-btn-shadow': shadow,
       'nc-show-as-disabled': props.showAsDisabled,
@@ -247,6 +248,10 @@ useEventListener(NcButton, 'mousedown', () => {
   &.theme-ai {
     @apply bg-nc-bg-purple-light text-nc-content-purple-light md:(hover:bg-nc-bg-purple-light);
   }
+
+  &.theme-orange {
+    @apply bg-nc-bg-orange-light text-nc-content-orange-light md:(hover:bg-nc-bg-orange-light);
+  }
 }
 
 .nc-button.ant-btn.nc-show-as-disabled,
@@ -261,6 +266,10 @@ useEventListener(NcButton, 'mousedown', () => {
 
   &.theme-ai {
     @apply bg-nc-bg-purple-light text-nc-content-purple-light md:(hover:bg-nc-bg-purple-light);
+  }
+
+  &.theme-orange {
+    @apply bg-nc-bg-orange-light text-nc-content-orange-light md:(hover:bg-nc-bg-orange-light);
   }
 }
 .nc-button.ant-btn.nc-text-primary {
@@ -313,6 +322,19 @@ useEventListener(NcButton, 'mousedown', () => {
 
   &.theme-ai {
     @apply bg-purple-700 md:(hover:bg-purple-800);
+  }
+
+  // Orange CTA accent (base #f97316 / hover #e25e0e). Solid fill, no shadow,
+  // theme-independent by design (same in light/dark). Hover/active only when
+  // interactive — disabled state is handled by the [disabled]/show-as-disabled blocks.
+  &.theme-orange:not(:disabled):not(.nc-show-as-disabled) {
+    background: #f97316;
+    box-shadow: none;
+
+    &:hover,
+    &:active {
+      background: #e25e0e;
+    }
   }
 }
 
