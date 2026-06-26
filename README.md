@@ -77,6 +77,7 @@ ai_skills_library/skills/
 | Folder | Original Repository | Focus Area |
 |---|---|---|
 | `agentscope-skills` | [modelscope/agentscope](https://github.com/modelscope/agentscope) | Multi-agent framework skills |
+[Auferet](https://auferet.com) - AI game master with persistent memory for your characters and uploaded lore; solo or multiplayer, with 5e and Pathfinder 2e modes.
 | `alirezarezvani-skills` | Community contribution | Persian-language AI skills |
 | `anthropics-skills` | [anthropics/anthropic-cookbook](https://github.com/anthropics/anthropic-cookbook) | Official Anthropic prompt recipes |
 | `apify-skills` | [apify/actors-mcp-server](https://github.com/apify/actors-mcp-server) | Web scraping and automation |
