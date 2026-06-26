@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-27 01:17 IST] Auto-Sync
+- **36 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, GitHub MCP Server, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Windmill, Budibase, NocoDB, Directus, modelcontextprotocol/java-sdk, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, run-llama/llama_index, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, Arize-ai/openinference, firecrawl/firecrawl, vercel/ai, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
+
 ## [2026-06-26 18:29 IST] Auto-Sync
 - **35 Repositories Updated:** MCP Python SDK, GitHub MCP Server, Langfuse, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, crewAIInc/crewAI, camel-ai/camel, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 

@@ -168,4 +168,5 @@ const _ = (window as any).ResizeObserver
   <LazyChatPanel />
   <LazyChatFab />
   <LazySandboxChangelogDrawer />
+  <LazySandboxTopRail />
 </template>

@@ -1,5 +1,29 @@
 # @arizeai/openinference-vercel
 
+## 3.0.0
+
+### Major Changes
+
+- 930e41a: Add support for stable Vercel AI SDK v7 telemetry through `@ai-sdk/otel`. This release updates the Vercel span processor to convert AI SDK v7 GenAI semantic convention spans into idiomatic OpenInference AGENT, CHAIN, LLM, TOOL, EMBEDDING, and RERANKER spans, including model/provider metadata, token counts, cache-token details, runtime context metadata, tool definitions, tool calls, tool results, and agent names.
+
+  This also updates the package to target the stable AI SDK v7 package set, require Node.js 22 or newer, publish ESM-only entrypoints, and require compatible OpenTelemetry GenAI semantic conventions. AI SDK v6 or CommonJS users should remain on the latest v2 release of `@arizeai/openinference-vercel`.
+
+## 2.8.1
+
+### Patch Changes
+
+- 707d78b: Fix `reparentOrphanedSpans` orphaning AI spans across async/durable boundaries (e.g. agent frameworks like eve that wrap AI SDK calls in a per-turn span). `isLikelyAISDKSpan` now also recognizes `ai.*` attribute keys (such as `ai.telemetry.functionId`), so a framework wrapper like `ai.eve.turn` (whose `operation.name` is not `ai.*` and which has no `gen_ai.*` attributes) is kept as the trace root instead of being dropped and orphaning its children. Re-rooting now only detaches a span when its parent is _inspectable_ and confirmed non-AI: across an async boundary the parent can arrive as a non-recording span (a bare `SpanContext` with no attributes), and treating "can't inspect" as "non-AI" previously re-rooted children off an exported AI parent, splitting one trace into multiple roots. The check remains stateless. Root-span renaming also preserves a wrapper's own `ai.*` span name (e.g. `ai.eve.turn`) when its `operation.name` is unrelated; native AI SDK and `gen_ai` spans keep their existing rename behavior.
+
+## 2.8.0
+
+### Minor Changes
+
+- 722bf42: Add an opt-in `reparentOrphanedSpans` option to `OpenInferenceSimpleSpanProcessor` and `OpenInferenceBatchSpanProcessor`. When a span filter drops non-OpenInference spans (e.g. `isOpenInferenceSpan`), the highest-level AI span (such as `ai.generateText`/`ai.streamText` parented under the HTTP/server span Next.js parents everything under) is otherwise left orphaned — pointing at a parent that was never exported, so backends may not be able to render the trace correctly. With this enabled, any AI span whose direct parent is a non-AI span is detached (re-rooted) so it becomes a trace root. The check is stateless (the parent is read from the start-time context). Handles multiple sibling AI spans per trace; AI spans nested under an AI parent are left intact.
+
+  If the re-rooted span is an `ai.*` framework wrapper that the package doesn't map to a span kind (e.g. a per-turn span an agent framework emits on top of the AI SDK), it would otherwise be kind-less and dropped by the filter; such a root is tagged `openinference.span.kind = AGENT` so it is kept. This is matched by shape (an unrecognized AI-like root), not by any specific span name.
+
+  Defaults to `false`, so existing behavior is unchanged. It is intended for use alongside a filter that drops non-AI parent spans. Packages that extend these processors inherit the option.
+
 ## 2.7.9
 
 ### Patch Changes

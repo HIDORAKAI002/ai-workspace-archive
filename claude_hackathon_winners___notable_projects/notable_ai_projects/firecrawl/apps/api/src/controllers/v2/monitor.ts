@@ -443,6 +443,12 @@ export async function runMonitorController(
   if (!monitor) {
     return res.status(404).json({ success: false, error: "Monitor not found" });
   }
+  if (monitor.status === "paused") {
+    return res.status(409).json({
+      success: false,
+      error: "Monitor is paused. Resume it before running a check.",
+    });
+  }
   if (monitor.current_check_id) {
     return res.status(409).json({
       success: false,

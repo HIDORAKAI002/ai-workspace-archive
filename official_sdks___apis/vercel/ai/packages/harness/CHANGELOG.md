@@ -1,5 +1,17 @@
 # @ai-sdk/harness
 
+## 1.0.4
+
+### Patch Changes
+
+- c493634: fix(harness): fix harness Zod usage to be v3/v4 compatible
+
+## 1.0.3
+
+### Patch Changes
+
+- 51d10a0: feat(harness): add `prepareSandboxForHarness` utility to prepare a caller-owned sandbox for one or more harnesses
+
 ## 1.0.2
 
 ### Patch Changes

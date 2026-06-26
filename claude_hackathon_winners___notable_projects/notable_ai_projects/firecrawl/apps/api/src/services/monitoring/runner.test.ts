@@ -7,6 +7,7 @@ import {
   findCompletedSearchTargetRun,
   isMonitorCheckStale,
   MONITOR_CHECK_STALE_TIMEOUT_MS,
+  withFinalizeTimeout,
 } from "./runner";
 
 describe("monitoring runner", () => {
@@ -177,5 +178,39 @@ describe("findCompletedSearchTargetRun (redelivery idempotency)", () => {
     expect(findCompletedSearchTargetRun([], "t1")).toBeNull();
     expect(findCompletedSearchTargetRun("nope", "t1")).toBeNull();
     expect(findCompletedSearchTargetRun([null, "x", 5], "t1")).toBeNull();
+  });
+});
+
+describe("withFinalizeTimeout", () => {
+  it("resolves with the work result and never aborts on success", async () => {
+    let observed: boolean | undefined;
+    const result = await withFinalizeTimeout(async signal => {
+      observed = signal.aborted;
+      return "ok";
+    }, "fast work");
+    expect(result).toBe("ok");
+    expect(observed).toBe(false);
+  });
+
+  it("aborts the signal so stalled work stops issuing writes after a timeout", async () => {
+    const writes: number[] = [];
+    const promise = withFinalizeTimeout(
+      async signal => {
+        // Simulate a finalize tail that gates each write on the signal: the first
+        // write lands, then the timeout fires and the rest must be skipped.
+        for (let i = 0; i < 5; i++) {
+          if (signal.aborted) return;
+          writes.push(i);
+          await new Promise(resolve => setTimeout(resolve, 20));
+        }
+      },
+      "stalled tail",
+      10,
+    );
+
+    await expect(promise).rejects.toThrow(/exceeded 10ms/);
+    // Let any orphaned iterations run; they must observe the abort and stop.
+    await new Promise(resolve => setTimeout(resolve, 60));
+    expect(writes).toEqual([0]);
   });
 });

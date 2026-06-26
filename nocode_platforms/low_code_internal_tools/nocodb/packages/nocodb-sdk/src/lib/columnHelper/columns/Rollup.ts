@@ -46,12 +46,15 @@ export class RollupHelper extends AbstractColumnHelper {
 
     const { col, meta, metas } = params;
 
-    const baseId = meta?.base_id;
     const colOptions = col.colOptions as RollupType;
     const relationColumnOptions = colOptions.fk_relation_column_id
       ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)
           ?.colOptions as LinkToAnotherRecordType)
       : null;
+    // For cross-base links the related table is keyed by its own base, so use
+    // fk_related_base_id when present; fall back to the rollup table's base_id
+    // for same-base links. Mirrors the Rollup cell renderer (Rollup.vue).
+    const baseId = relationColumnOptions?.fk_related_base_id || meta?.base_id;
     const relatedTableMeta =
       relationColumnOptions?.fk_related_model_id &&
       getMetaWithCompositeKey(
