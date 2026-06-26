@@ -10,7 +10,8 @@ Version 2 of the MCP Python SDK introduces several breaking changes to improve t
 
 ### `MCPServer.call_tool()` returns `CallToolResult`
 
-`MCPServer.call_tool()` now always returns a `CallToolResult`. It previously
+`MCPServer.call_tool()` now returns a `CallToolResult` (or an
+`InputRequiredResult` when a multi-round tool requests further input). It previously
 advertised `Sequence[ContentBlock] | dict[str, Any]` and leaked the internal
 conversion shapes (a bare content sequence or a `(content, structured_content)`
 tuple), forcing callers to re-assemble a `CallToolResult` themselves.
@@ -212,10 +213,11 @@ The WebSocket transport has been removed: `mcp.client.websocket.websocket_client
 ### `mcp.types` moved to the `mcp-types` package
 
 The protocol wire types now live in a standalone distribution, `mcp-types`, imported as
-`mcp_types`. It depends only on `pydantic`, so code that just needs to (de)serialize MCP
-traffic can install it without the full SDK. The `mcp` package depends on `mcp-types` and
+`mcp_types`. Its only runtime dependencies are `pydantic` and `typing-extensions`, so code
+that just needs to (de)serialize MCP traffic can install it without the full SDK. The `mcp` package depends on `mcp-types` and
 continues to re-export the type names at the top level, so `from mcp import Tool` is
-unchanged. Only the `mcp.types` submodule and `mcp.shared.version` were removed.
+unchanged. Only the `mcp.types` submodule and `mcp.shared.version` were removed. The
+package's API reference is at [`mcp_types`](api/mcp_types/index.md).
 
 **Why:** keeping the wire types in their own package lets tooling and lightweight clients
 depend on the protocol schema without pulling in `httpx`, `starlette`, `uvicorn`, and the
@@ -224,18 +226,18 @@ rest of the server/transport stack.
 **Before (v1):**
 
 ```python
-from mcp.types import Tool, CallToolResult
+from mcp.types import Tool, Resource
 from mcp.shared.version import LATEST_PROTOCOL_VERSION
 ```
 
 **After (v2):**
 
 ```python
-from mcp_types import Tool, CallToolResult
+from mcp_types import Tool, Resource
 from mcp_types.version import LATEST_PROTOCOL_VERSION
 
-# Top-level re-exports are unchanged:
-from mcp import Tool, CallToolResult
+# Names `mcp` already re-exported at the top level are unchanged:
+from mcp import Tool, Resource
 ```
 
 ### Removed type aliases and classes
@@ -813,7 +815,7 @@ async def my_tool(ctx: Context[MyLifespanState]) -> str: ...
 
 ### Version constants
 
-`SUPPORTED_PROTOCOL_VERSIONS` is deprecated — it's now the union of `HANDSHAKE_PROTOCOL_VERSIONS` (initialize-handshake versions) and `MODERN_PROTOCOL_VERSIONS` (per-request-envelope versions). If you were using it to mean "versions the initialize handshake accepts", switch to `HANDSHAKE_PROTOCOL_VERSIONS`. Named scalars derived from these tuples are now exported alongside them — `LATEST_HANDSHAKE_VERSION`, `LATEST_MODERN_VERSION`, `OLDEST_SUPPORTED_VERSION` — so prefer those over indexing the tuples directly.
+`SUPPORTED_PROTOCOL_VERSIONS` is deprecated — it's now the union of `HANDSHAKE_PROTOCOL_VERSIONS` (initialize-handshake versions) and `MODERN_PROTOCOL_VERSIONS` (per-request-envelope versions). If you were using it to mean "versions the initialize handshake accepts", switch to `HANDSHAKE_PROTOCOL_VERSIONS`. Named scalars derived from these tuples are now exported alongside them — `LATEST_HANDSHAKE_VERSION`, `LATEST_MODERN_VERSION`, `OLDEST_SUPPORTED_VERSION` — so prefer those over indexing the tuples directly. All of these live in `mcp_types.version` (previously `mcp.shared.version`): `from mcp_types.version import HANDSHAKE_PROTOCOL_VERSIONS`.
 
 ### `ProgressContext` and `progress()` context manager removed
 
@@ -1371,6 +1373,14 @@ the `/authorize` and token-exchange requests. RFC 6749 §3.1.2.3 requires author
 match redirect URIs by exact string comparison, so if you registered such a URI with a previous SDK
 release (with the trailing slash) and the registration is persisted in `TokenStorage`, re-register
 the client so the stored value matches what the SDK now transmits.
+
+`AuthSettings` now sets `url_preserve_empty_path=True` for the same reason: a path-less
+`issuer_url` (or `resource_server_url`) passed as a string keeps its empty path, so the authorization
+server advertises `issuer` as `https://as.example.com` rather than `https://as.example.com/` in its
+metadata. Previously the trailing slash was added before the model saw the value, leaving the served
+issuer inconsistent with what clients compare against under RFC 8414 / RFC 9207. Passing an
+already-built `AnyHttpUrl` object still normalizes at construction; pass a string to get the
+preserved form.
 
 ### Lowlevel `Server`: `subscribe` capability now correctly reported
 
