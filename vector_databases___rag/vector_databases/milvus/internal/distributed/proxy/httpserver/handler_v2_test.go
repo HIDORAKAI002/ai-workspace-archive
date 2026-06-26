@@ -1612,7 +1612,24 @@ func TestCreateCollection(t *testing.T) {
 
 	postTestCases := []requestBodyTestCase{}
 	mp := mocks.NewMockProxy(t)
-	mp.EXPECT().CreateCollection(mock.Anything, mock.Anything).Return(commonSuccessStatus, nil).Times(15)
+	mp.EXPECT().CreateCollection(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, req *milvuspb.CreateCollectionRequest) (*commonpb.Status, error) {
+		hasNegativeTTL := false
+		for _, prop := range req.GetProperties() {
+			if prop.GetKey() == common.CollectionTTLConfigKey && prop.GetValue() == "-100" {
+				hasNegativeTTL = true
+				break
+			}
+		}
+		if hasNegativeTTL {
+			for _, prop := range req.GetProperties() {
+				if prop.GetKey() == "ttl.seconds" && prop.GetValue() == "-100" {
+					return merr.Status(merr.WrapErrParameterInvalidMsg("unexpected ttl.seconds property forwarded")), nil
+				}
+			}
+			return merr.Status(merr.WrapErrParameterInvalidMsg("collection TTL is out of range, expect [-1, 3155760000], got -100")), nil
+		}
+		return commonSuccessStatus, nil
+	}).Times(17)
 	mp.EXPECT().CreateIndex(mock.Anything, mock.Anything).Return(commonSuccessStatus, nil).Times(8)
 	mp.EXPECT().LoadCollection(mock.Anything, mock.Anything).Return(commonSuccessStatus, nil).Times(7)
 	mp.EXPECT().CreateIndex(mock.Anything, mock.Anything).Return(commonErrorStatus, nil).Twice()
@@ -1646,6 +1663,34 @@ func TestCreateCollection(t *testing.T) {
 		requestBody: []byte(`{"collectionName": "` + DefaultCollectionName + `", "dimension": 2, "idType": "Varchar",` +
 			`"params": {"max_length": 256, "enableDynamicField": false, "shardsNum": 2, "consistencyLevel": "unknown", "ttlSeconds": 3600}}`),
 		errMsg:  "consistencyLevel can only be [Strong, Session, Bounded, Eventually, Customized], default: Bounded: invalid parameter[expected=Strong, Session, Bounded, Eventually, Customized][actual=unknown]",
+		errCode: 1100, // ErrParameterInvalid
+	})
+	postTestCases = append(postTestCases, requestBodyTestCase{
+		path: path,
+		requestBody: []byte(`{"collectionName": "` + DefaultCollectionName + `", "dimension": 2, "idType": "Varchar",` +
+			`"params": {"max_length": 256}, "properties": {"collection.ttl.seconds": -100}}`),
+		errMsg:  "collection TTL is out of range, expect [-1, 3155760000], got -100: invalid parameter",
+		errCode: 1100, // ErrParameterInvalid
+	})
+	postTestCases = append(postTestCases, requestBodyTestCase{
+		path: path,
+		requestBody: []byte(`{"collectionName": "` + DefaultCollectionName + `", "dimension": 2, "idType": "Varchar",` +
+			`"params": {"max_length": 256}, "properties": {"ttl.seconds": -100}}`),
+		errMsg:  "collection TTL is out of range, expect [-1, 3155760000], got -100: invalid parameter",
+		errCode: 1100, // ErrParameterInvalid
+	})
+	postTestCases = append(postTestCases, requestBodyTestCase{
+		path: path,
+		requestBody: []byte(`{"collectionName": "` + DefaultCollectionName + `", "dimension": 2, "idType": "Varchar",` +
+			`"params": {"max_length": 256, "ttlSeconds": 3600}, "properties": {"collection.ttl.seconds": 3600}}`),
+		errMsg:  "collection TTL is specified multiple times: invalid parameter",
+		errCode: 1100, // ErrParameterInvalid
+	})
+	postTestCases = append(postTestCases, requestBodyTestCase{
+		path: path,
+		requestBody: []byte(`{"collectionName": "` + DefaultCollectionName + `", "dimension": 2, "idType": "Varchar",` +
+			`"params": {"max_length": 256}, "properties": {"collection.ttl.seconds": 3600, "ttl.seconds": 3600}}`),
+		errMsg:  "collection TTL is specified multiple times: invalid parameter",
 		errCode: 1100, // ErrParameterInvalid
 	})
 	postTestCases = append(postTestCases, requestBodyTestCase{
@@ -4344,58 +4389,279 @@ func TestSearchByPK(t *testing.T) {
 
 func TestCommitImportJob(t *testing.T) {
 	paramtable.Init()
-	mp := mocks.NewMockProxy(t)
-	mp.EXPECT().CommitImport(mock.Anything, mock.Anything).Return(commonSuccessStatus, nil).Once()
-	testEngine := initHTTPServerV2(mp, false)
-	queryTestCases := []requestBodyTestCase{}
-	queryTestCases = append(queryTestCases, requestBodyTestCase{
-		path:        versionalV2(ImportJobCategory, CommitAction),
-		requestBody: []byte(`{"jobId": "123"}`),
+
+	t.Run("authorization disabled", func(t *testing.T) {
+		paramtable.Get().Save(proxy.Params.CommonCfg.AuthorizationEnabled.Key, "false")
+		defer paramtable.Get().Reset(proxy.Params.CommonCfg.AuthorizationEnabled.Key)
+
+		mp := mocks.NewMockProxy(t)
+		mp.EXPECT().CommitImport(mock.Anything, mock.Anything).Return(commonSuccessStatus, nil).Once()
+		testEngine := initHTTPServerV2(mp, false)
+		queryTestCases := []requestBodyTestCase{}
+		queryTestCases = append(queryTestCases, requestBodyTestCase{
+			path:        versionalV2(ImportJobCategory, CommitAction),
+			requestBody: []byte(`{"jobId": "123"}`),
+		})
+		queryTestCases = append(queryTestCases, requestBodyTestCase{
+			path:        versionalV2(ImportJobCategory, CommitAction),
+			requestBody: []byte(`{"jobId": "not-a-number"}`),
+			errCode:     1100, // ErrParameterInvalid
+		})
+		for _, testcase := range queryTestCases {
+			t.Run(testcase.path, func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodPost, testcase.path, bytes.NewReader(testcase.requestBody))
+				w := httptest.NewRecorder()
+				testEngine.ServeHTTP(w, req)
+				assert.Equal(t, http.StatusOK, w.Code)
+				returnBody := &ReturnErrMsg{}
+				err := json.Unmarshal(w.Body.Bytes(), returnBody)
+				assert.Nil(t, err)
+				assert.Equal(t, testcase.errCode, returnBody.Code)
+			})
+		}
 	})
-	queryTestCases = append(queryTestCases, requestBodyTestCase{
-		path:        versionalV2(ImportJobCategory, CommitAction),
-		requestBody: []byte(`{"jobId": "not-a-number"}`),
-		errCode:     1100, // ErrParameterInvalid
+
+	t.Run("authorization enabled denies user without import privilege", func(t *testing.T) {
+		paramtable.Get().Save(proxy.Params.CommonCfg.AuthorizationEnabled.Key, "true")
+		defer paramtable.Get().Reset(proxy.Params.CommonCfg.AuthorizationEnabled.Key)
+
+		mp := mocks.NewMockProxy(t)
+		mp.EXPECT().GetImportProgress(mock.Anything, mock.Anything).Return(&internalpb.GetImportProgressResponse{
+			Status:         &StatusSuccess,
+			CollectionName: DefaultCollectionName,
+		}, nil).Once()
+		testEngine := initHTTPServerV2(mp, true)
+		req := httptest.NewRequest(http.MethodPost, versionalV2(ImportJobCategory, CommitAction), bytes.NewReader([]byte(`{"jobId": "123"}`)))
+		req.SetBasicAuth("test", "test")
+		w := httptest.NewRecorder()
+
+		testEngine.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+		returnBody := &ReturnErrMsg{}
+		err := json.Unmarshal(w.Body.Bytes(), returnBody)
+		assert.Nil(t, err)
+		assert.Equal(t, int32(65535), returnBody.Code)
+		assert.Contains(t, returnBody.Message, "PrivilegeImport: permission deny to test")
+		mp.AssertNotCalled(t, "CommitImport", mock.Anything, mock.Anything)
 	})
-	for _, testcase := range queryTestCases {
-		t.Run(testcase.path, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPost, testcase.path, bytes.NewReader(testcase.requestBody))
+
+	t.Run("authorization enabled returns get progress error", func(t *testing.T) {
+		paramtable.Get().Save(proxy.Params.CommonCfg.AuthorizationEnabled.Key, "true")
+		defer paramtable.Get().Reset(proxy.Params.CommonCfg.AuthorizationEnabled.Key)
+
+		mp := mocks.NewMockProxy(t)
+		mp.EXPECT().GetImportProgress(mock.Anything, mock.Anything).Return(nil, merr.ErrImportFailed).Once()
+		testEngine := initHTTPServerV2(mp, true)
+		req := httptest.NewRequest(http.MethodPost, versionalV2(ImportJobCategory, CommitAction), bytes.NewReader([]byte(`{"jobId": "123"}`)))
+		req.SetBasicAuth(util.UserRoot, getDefaultRootPassword())
+		w := httptest.NewRecorder()
+
+		testEngine.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		returnBody := &ReturnErrMsg{}
+		err := json.Unmarshal(w.Body.Bytes(), returnBody)
+		assert.Nil(t, err)
+		assert.Equal(t, merr.Code(merr.ErrImportFailed), returnBody.Code)
+		mp.AssertNotCalled(t, "CommitImport", mock.Anything, mock.Anything)
+	})
+
+	t.Run("authorization enabled allows root", func(t *testing.T) {
+		paramtable.Get().Save(proxy.Params.CommonCfg.AuthorizationEnabled.Key, "true")
+		defer paramtable.Get().Reset(proxy.Params.CommonCfg.AuthorizationEnabled.Key)
+
+		mp := mocks.NewMockProxy(t)
+		mp.EXPECT().GetImportProgress(mock.Anything, mock.Anything).Return(&internalpb.GetImportProgressResponse{
+			Status:         &StatusSuccess,
+			CollectionName: DefaultCollectionName,
+		}, nil).Once()
+		mp.EXPECT().CommitImport(mock.Anything, mock.Anything).Return(commonSuccessStatus, nil).Once()
+		testEngine := initHTTPServerV2(mp, true)
+		req := httptest.NewRequest(http.MethodPost, versionalV2(ImportJobCategory, CommitAction), bytes.NewReader([]byte(`{"jobId": "123"}`)))
+		req.SetBasicAuth(util.UserRoot, getDefaultRootPassword())
+		w := httptest.NewRecorder()
+
+		testEngine.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		returnBody := &ReturnErrMsg{}
+		err := json.Unmarshal(w.Body.Bytes(), returnBody)
+		assert.Nil(t, err)
+		assert.Equal(t, int32(0), returnBody.Code)
+	})
+}
+
+func TestCreateImportJobAutoCommitOptionValidation(t *testing.T) {
+	paramtable.Init()
+
+	t.Run("accepts omitted true and false strings", func(t *testing.T) {
+		mp := mocks.NewMockProxy(t)
+		mp.EXPECT().ImportV2(mock.Anything, mock.MatchedBy(func(req *internalpb.ImportRequest) bool {
+			return len(req.GetOptions()) == 0
+		})).Return(&internalpb.ImportResponse{Status: commonSuccessStatus, JobID: "0"}, nil).Once()
+		mp.EXPECT().ImportV2(mock.Anything, mock.MatchedBy(func(req *internalpb.ImportRequest) bool {
+			return kvPairsToMap(req.GetOptions())["auto_commit"] == "true"
+		})).Return(&internalpb.ImportResponse{Status: commonSuccessStatus, JobID: "1"}, nil).Once()
+		mp.EXPECT().ImportV2(mock.Anything, mock.MatchedBy(func(req *internalpb.ImportRequest) bool {
+			return kvPairsToMap(req.GetOptions())["auto_commit"] == "false"
+		})).Return(&internalpb.ImportResponse{Status: commonSuccessStatus, JobID: "2"}, nil).Once()
+		mp.EXPECT().ImportV2(mock.Anything, mock.MatchedBy(func(req *internalpb.ImportRequest) bool {
+			return kvPairsToMap(req.GetOptions())["auto_commit"] == "False"
+		})).Return(&internalpb.ImportResponse{Status: commonSuccessStatus, JobID: "3"}, nil).Once()
+		mp.EXPECT().ImportV2(mock.Anything, mock.MatchedBy(func(req *internalpb.ImportRequest) bool {
+			return kvPairsToMap(req.GetOptions())["priority"] == ""
+		})).Return(&internalpb.ImportResponse{Status: commonSuccessStatus, JobID: "4"}, nil).Once()
+		testEngine := initHTTPServerV2(mp, false)
+
+		for _, body := range []string{
+			`{"collectionName": "book", "files": [["a.parquet"]]}`,
+			`{"collectionName": "book", "files": [["a.parquet"]], "options": {"auto_commit": "true"}}`,
+			`{"collectionName": "book", "files": [["a.parquet"]], "options": {"auto_commit": "false"}}`,
+			`{"collectionName": "book", "files": [["a.parquet"]], "options": {"auto_commit": "False"}}`,
+			`{"collectionName": "book", "files": [["a.parquet"]], "options": {"priority": null}}`,
+		} {
+			req := httptest.NewRequest(http.MethodPost, versionalV2(ImportJobCategory, CreateAction), bytes.NewReader([]byte(body)))
 			w := httptest.NewRecorder()
 			testEngine.ServeHTTP(w, req)
 			assert.Equal(t, http.StatusOK, w.Code)
+
 			returnBody := &ReturnErrMsg{}
 			err := json.Unmarshal(w.Body.Bytes(), returnBody)
 			assert.Nil(t, err)
-			assert.Equal(t, testcase.errCode, returnBody.Code)
+			assert.Equal(t, merr.Code(nil), returnBody.Code)
+		}
+	})
+
+	for _, testcase := range []requestBodyTestCase{
+		{
+			path:        versionalV2(ImportJobCategory, CreateAction),
+			requestBody: []byte(`{"collectionName": "book", "files": [["a.parquet"]], "options": {"auto_commit": null}}`),
+			errCode:     merr.Code(merr.ErrIncorrectParameterFormat),
+			errMsg:      "options.auto_commit must be one of \"true\" or \"false\"",
+		},
+		{
+			path:        versionalV2(ImportJobCategory, CreateAction),
+			requestBody: []byte(`{"collectionName": "book", "files": [["a.parquet"]], "options": {"auto_commit": ""}}`),
+			errCode:     merr.Code(merr.ErrIncorrectParameterFormat),
+			errMsg:      "options.auto_commit must be one of \"true\" or \"false\"",
+		},
+		{
+			path:        versionalV2(ImportJobCategory, CreateAction),
+			requestBody: []byte(`{"collectionName": "book", "files": [["a.parquet"]], "options": {"auto_commit": "yes"}}`),
+			errCode:     merr.Code(merr.ErrIncorrectParameterFormat),
+			errMsg:      "options.auto_commit must be one of \"true\" or \"false\"",
+		},
+	} {
+		t.Run(string(testcase.requestBody), func(t *testing.T) {
+			mp := mocks.NewMockProxy(t)
+			testEngine := initHTTPServerV2(mp, false)
+			sendReqAndVerify(t, testEngine, testcase.path, http.MethodPost, testcase)
 		})
 	}
 }
 
 func TestAbortImportJob(t *testing.T) {
 	paramtable.Init()
-	mp := mocks.NewMockProxy(t)
-	mp.EXPECT().AbortImport(mock.Anything, mock.Anything).Return(commonSuccessStatus, nil).Once()
-	testEngine := initHTTPServerV2(mp, false)
-	queryTestCases := []requestBodyTestCase{}
-	queryTestCases = append(queryTestCases, requestBodyTestCase{
-		path:        versionalV2(ImportJobCategory, AbortAction),
-		requestBody: []byte(`{"jobId": "123"}`),
-	})
-	queryTestCases = append(queryTestCases, requestBodyTestCase{
-		path:        versionalV2(ImportJobCategory, AbortAction),
-		requestBody: []byte(`{"jobId": "not-a-number"}`),
-		errCode:     1100, // ErrParameterInvalid
-	})
-	for _, testcase := range queryTestCases {
-		t.Run(testcase.path, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPost, testcase.path, bytes.NewReader(testcase.requestBody))
-			w := httptest.NewRecorder()
-			testEngine.ServeHTTP(w, req)
-			assert.Equal(t, http.StatusOK, w.Code)
-			returnBody := &ReturnErrMsg{}
-			err := json.Unmarshal(w.Body.Bytes(), returnBody)
-			assert.Nil(t, err)
-			assert.Equal(t, testcase.errCode, returnBody.Code)
+
+	t.Run("authorization disabled", func(t *testing.T) {
+		paramtable.Get().Save(proxy.Params.CommonCfg.AuthorizationEnabled.Key, "false")
+		defer paramtable.Get().Reset(proxy.Params.CommonCfg.AuthorizationEnabled.Key)
+
+		mp := mocks.NewMockProxy(t)
+		mp.EXPECT().AbortImport(mock.Anything, mock.Anything).Return(commonSuccessStatus, nil).Once()
+		testEngine := initHTTPServerV2(mp, false)
+		queryTestCases := []requestBodyTestCase{}
+		queryTestCases = append(queryTestCases, requestBodyTestCase{
+			path:        versionalV2(ImportJobCategory, AbortAction),
+			requestBody: []byte(`{"jobId": "123"}`),
 		})
-	}
+		queryTestCases = append(queryTestCases, requestBodyTestCase{
+			path:        versionalV2(ImportJobCategory, AbortAction),
+			requestBody: []byte(`{"jobId": "not-a-number"}`),
+			errCode:     1100, // ErrParameterInvalid
+		})
+		for _, testcase := range queryTestCases {
+			t.Run(testcase.path, func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodPost, testcase.path, bytes.NewReader(testcase.requestBody))
+				w := httptest.NewRecorder()
+				testEngine.ServeHTTP(w, req)
+				assert.Equal(t, http.StatusOK, w.Code)
+				returnBody := &ReturnErrMsg{}
+				err := json.Unmarshal(w.Body.Bytes(), returnBody)
+				assert.Nil(t, err)
+				assert.Equal(t, testcase.errCode, returnBody.Code)
+			})
+		}
+	})
+
+	t.Run("authorization enabled denies user without import privilege", func(t *testing.T) {
+		paramtable.Get().Save(proxy.Params.CommonCfg.AuthorizationEnabled.Key, "true")
+		defer paramtable.Get().Reset(proxy.Params.CommonCfg.AuthorizationEnabled.Key)
+
+		mp := mocks.NewMockProxy(t)
+		mp.EXPECT().GetImportProgress(mock.Anything, mock.Anything).Return(&internalpb.GetImportProgressResponse{
+			Status:         &StatusSuccess,
+			CollectionName: DefaultCollectionName,
+		}, nil).Once()
+		testEngine := initHTTPServerV2(mp, true)
+		req := httptest.NewRequest(http.MethodPost, versionalV2(ImportJobCategory, AbortAction), bytes.NewReader([]byte(`{"jobId": "123"}`)))
+		req.SetBasicAuth("test", "test")
+		w := httptest.NewRecorder()
+
+		testEngine.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+		returnBody := &ReturnErrMsg{}
+		err := json.Unmarshal(w.Body.Bytes(), returnBody)
+		assert.Nil(t, err)
+		assert.Equal(t, int32(65535), returnBody.Code)
+		assert.Contains(t, returnBody.Message, "PrivilegeImport: permission deny to test")
+		mp.AssertNotCalled(t, "AbortImport", mock.Anything, mock.Anything)
+	})
+
+	t.Run("authorization enabled returns get progress error", func(t *testing.T) {
+		paramtable.Get().Save(proxy.Params.CommonCfg.AuthorizationEnabled.Key, "true")
+		defer paramtable.Get().Reset(proxy.Params.CommonCfg.AuthorizationEnabled.Key)
+
+		mp := mocks.NewMockProxy(t)
+		mp.EXPECT().GetImportProgress(mock.Anything, mock.Anything).Return(nil, merr.ErrImportFailed).Once()
+		testEngine := initHTTPServerV2(mp, true)
+		req := httptest.NewRequest(http.MethodPost, versionalV2(ImportJobCategory, AbortAction), bytes.NewReader([]byte(`{"jobId": "123"}`)))
+		req.SetBasicAuth(util.UserRoot, getDefaultRootPassword())
+		w := httptest.NewRecorder()
+
+		testEngine.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		returnBody := &ReturnErrMsg{}
+		err := json.Unmarshal(w.Body.Bytes(), returnBody)
+		assert.Nil(t, err)
+		assert.Equal(t, merr.Code(merr.ErrImportFailed), returnBody.Code)
+		mp.AssertNotCalled(t, "AbortImport", mock.Anything, mock.Anything)
+	})
+
+	t.Run("authorization enabled allows root", func(t *testing.T) {
+		paramtable.Get().Save(proxy.Params.CommonCfg.AuthorizationEnabled.Key, "true")
+		defer paramtable.Get().Reset(proxy.Params.CommonCfg.AuthorizationEnabled.Key)
+
+		mp := mocks.NewMockProxy(t)
+		mp.EXPECT().GetImportProgress(mock.Anything, mock.Anything).Return(&internalpb.GetImportProgressResponse{
+			Status:         &StatusSuccess,
+			CollectionName: DefaultCollectionName,
+		}, nil).Once()
+		mp.EXPECT().AbortImport(mock.Anything, mock.Anything).Return(commonSuccessStatus, nil).Once()
+		testEngine := initHTTPServerV2(mp, true)
+		req := httptest.NewRequest(http.MethodPost, versionalV2(ImportJobCategory, AbortAction), bytes.NewReader([]byte(`{"jobId": "123"}`)))
+		req.SetBasicAuth(util.UserRoot, getDefaultRootPassword())
+		w := httptest.NewRecorder()
+
+		testEngine.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		returnBody := &ReturnErrMsg{}
+		err := json.Unmarshal(w.Body.Bytes(), returnBody)
+		assert.Nil(t, err)
+		assert.Equal(t, int32(0), returnBody.Code)
+	})
 }
