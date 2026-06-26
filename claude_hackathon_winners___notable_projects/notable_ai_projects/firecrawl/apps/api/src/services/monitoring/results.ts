@@ -2,9 +2,11 @@ import { NuQJob } from "../worker/nuq";
 import { ScrapeJobData } from "../../types";
 import { logger as _logger } from "../../lib/logger";
 import { createWebhookSender, WebhookEvent } from "../webhook";
+import { redisEvictConnection } from "../redis";
 import { computeAndPersistPageDiff } from "./diff-orchestrator";
 import { derivePageIsMeaningful } from "./page-events";
 import {
+  deleteMonitorCheckPages,
   getMonitorForUpdate,
   getMonitorPage,
   hashMonitorUrl,
@@ -13,6 +15,112 @@ import {
 } from "./store";
 
 const logger = _logger.child({ module: "monitoring-results" });
+
+// Per-(check, url) webhook claim. checkIds are unique per run, so this only needs
+// to outlive a job redelivery; we match runner.ts's notify-claim horizon.
+const MONITOR_PAGE_WEBHOOK_CLAIM_TTL_SECONDS = 7 * 24 * 60 * 60;
+
+// Mirror runner.ts's claimMonitorNotification: a redelivered scrape job must not
+// re-send the MONITOR_PAGE webhook. Returns true only for the first claimant; a
+// redis hiccup degrades to "don't send" rather than throwing out of the caller
+// (the page row is already persisted and stays pollable).
+function monitorPageNotifyKey(
+  checkId: string,
+  url: string,
+  kind: "page" | "error",
+): string {
+  return `monitor-page-notify:${checkId}:${hashMonitorUrl(url).toString(
+    "hex",
+  )}:${kind}`;
+}
+
+// Claims the right to send one MONITOR_PAGE webhook for a (check, url). The kind is
+// part of the key so a "page" (success/content) notification claims independently and
+// can't be suppressed by a prior "error" claim — otherwise a redelivery that flips
+// error->success would leave the consumer stuck on a stale error. The reverse is also
+// guarded: once a success was sent, an error is skipped so a redelivered failure can't
+// regress the consumer back to error. A redis hiccup degrades to "don't send" rather
+// than throwing out of the caller (the page row is already persisted and stays pollable).
+async function claimMonitorPageWebhook(
+  checkId: string,
+  url: string,
+  kind: "page" | "error",
+): Promise<boolean> {
+  try {
+    if (kind === "error") {
+      const pageSent = await redisEvictConnection.exists(
+        monitorPageNotifyKey(checkId, url, "page"),
+      );
+      if (pageSent) return false;
+    }
+    const result = await redisEvictConnection.set(
+      monitorPageNotifyKey(checkId, url, kind),
+      "1",
+      "EX",
+      MONITOR_PAGE_WEBHOOK_CLAIM_TTL_SECONDS,
+      "NX",
+    );
+    return result === "OK";
+  } catch (error) {
+    logger.warn("Failed to claim monitor page webhook", {
+      error,
+      checkId,
+      url,
+    });
+    return false;
+  }
+}
+
+// Idempotently record an error-status check page and (once) notify. Shared by the
+// scrape-failure path and the success path's diff/persist guard so a transient
+// failure still completes the reconciler's fan-in tally.
+async function persistMonitorCheckError(params: {
+  monitoring: NonNullable<ScrapeJobData["monitoring"]>;
+  teamId: string;
+  url: string;
+  scrapeId: string;
+  error: string;
+  statusCode?: number | null;
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  await deleteMonitorCheckPages({
+    checkId: params.monitoring.checkId,
+    targetId: params.monitoring.targetId,
+    url: params.url,
+  });
+  await insertMonitorCheckPages([
+    {
+      check_id: params.monitoring.checkId,
+      monitor_id: params.monitoring.monitorId,
+      team_id: params.teamId,
+      target_id: params.monitoring.targetId,
+      url: params.url,
+      status: "error",
+      current_scrape_id: params.scrapeId,
+      error: params.error,
+      status_code: params.statusCode ?? null,
+      metadata: params.metadata ?? null,
+    },
+  ]);
+
+  if (
+    await claimMonitorPageWebhook(
+      params.monitoring.checkId,
+      params.url,
+      "error",
+    )
+  ) {
+    await sendMonitorPageWebhook({
+      teamId: params.teamId,
+      monitorId: params.monitoring.monitorId,
+      checkId: params.monitoring.checkId,
+      url: params.url,
+      status: "error",
+      currentScrapeId: params.scrapeId,
+      error: params.error,
+    });
+  }
+}
 
 function getDocumentUrl(doc: any, fallback: string): string {
   return doc?.metadata?.sourceURL ?? doc?.metadata?.url ?? doc?.url ?? fallback;
@@ -130,6 +238,52 @@ export async function recordMonitorScrapeSuccess(
   const targetCtFormat = Array.isArray(targetFormats)
     ? (targetFormats as any[]).find((f: any) => f?.type === "changeTracking")
     : undefined;
+  let diff: Awaited<ReturnType<typeof computeAndPersistPageDiff>>;
+  try {
+    diff = await computeAndPersistPageDiff({
+      teamId: job.data.team_id,
+      monitorId: monitoring.monitorId,
+      checkId: monitoring.checkId,
+      url,
+      scrapeId: job.id,
+      doc,
+      previous: previous
+        ? {
+            last_scrape_id: previous.last_scrape_id,
+            is_removed: previous.is_removed,
+          }
+        : null,
+      formats: targetFormats,
+      goal:
+        monitorForRun?.judge_enabled && monitorForRun?.goal
+          ? monitorForRun.goal
+          : null,
+      extractionPrompt: targetCtFormat?.prompt ?? null,
+    });
+  } catch (error) {
+    // A transient diff/persist failure (e.g. GCS) must not strand the check:
+    // still record an error page so the reconciler's fan-in tally completes
+    // instead of hanging until the stale reaper.
+    logger.warn("Failed to compute monitor page diff; recording error page", {
+      monitorId: monitoring.monitorId,
+      checkId: monitoring.checkId,
+      targetId: monitoring.targetId,
+      scrapeId: job.id,
+      url,
+      error,
+    });
+    await persistMonitorCheckError({
+      monitoring,
+      teamId: job.data.team_id,
+      url,
+      scrapeId: job.id,
+      error: error instanceof Error ? error.message : String(error),
+      statusCode: getDocumentStatusCode(doc),
+      metadata: { creditsUsed: doc?.metadata?.creditsUsed ?? null },
+    });
+    return;
+  }
+
   const {
     status,
     diffGcsKey,
@@ -139,47 +293,17 @@ export async function recordMonitorScrapeSuccess(
     diffText,
     diffJson,
     error,
-  } = await computeAndPersistPageDiff({
-    teamId: job.data.team_id,
-    monitorId: monitoring.monitorId,
-    checkId: monitoring.checkId,
-    url,
-    scrapeId: job.id,
-    doc,
-    previous: previous
-      ? {
-          last_scrape_id: previous.last_scrape_id,
-          is_removed: previous.is_removed,
-        }
-      : null,
-    formats: targetFormats,
-    goal:
-      monitorForRun?.judge_enabled && monitorForRun?.goal
-        ? monitorForRun.goal
-        : null,
-    extractionPrompt: targetCtFormat?.prompt ?? null,
-  });
+  } = diff;
 
-  await upsertMonitorPage({
-    monitorId: monitoring.monitorId,
-    teamId: job.data.team_id,
+  // Tally first (the reconciler's fan-in gate), durable baseline last: a crash
+  // between the two completes the check rather than poisoning the cross-run dedup
+  // baseline against an unrecorded page. The delete makes redelivery a replace,
+  // not a duplicate.
+  await deleteMonitorCheckPages({
+    checkId: monitoring.checkId,
     targetId: monitoring.targetId,
     url,
-    source: monitoring.source,
-    checkId: monitoring.checkId,
-    scrapeId: job.id,
-    status,
-    metadata: {
-      title: doc?.metadata?.title ?? null,
-      statusCode: getDocumentStatusCode(doc),
-      contentType: doc?.metadata?.contentType ?? null,
-      numPages: doc?.metadata?.numPages ?? null,
-      proxyUsed: doc?.metadata?.proxyUsed ?? null,
-      postprocessorsUsed: doc?.metadata?.postprocessorsUsed ?? null,
-      creditsUsed: doc?.metadata?.creditsUsed ?? null,
-    },
   });
-
   await insertMonitorCheckPages([
     {
       check_id: monitoring.checkId,
@@ -208,6 +332,26 @@ export async function recordMonitorScrapeSuccess(
     },
   ]);
 
+  await upsertMonitorPage({
+    monitorId: monitoring.monitorId,
+    teamId: job.data.team_id,
+    targetId: monitoring.targetId,
+    url,
+    source: monitoring.source,
+    checkId: monitoring.checkId,
+    scrapeId: job.id,
+    status,
+    metadata: {
+      title: doc?.metadata?.title ?? null,
+      statusCode: getDocumentStatusCode(doc),
+      contentType: doc?.metadata?.contentType ?? null,
+      numPages: doc?.metadata?.numPages ?? null,
+      proxyUsed: doc?.metadata?.proxyUsed ?? null,
+      postprocessorsUsed: doc?.metadata?.postprocessorsUsed ?? null,
+      creditsUsed: doc?.metadata?.creditsUsed ?? null,
+    },
+  });
+
   logger.info("Recorded monitor scrape result", {
     monitorId: monitoring.monitorId,
     checkId: monitoring.checkId,
@@ -220,18 +364,20 @@ export async function recordMonitorScrapeSuccess(
     judgmentMeaningful: judgment?.meaningful,
   });
 
-  await sendMonitorPageWebhook({
-    teamId: job.data.team_id,
-    monitorId: monitoring.monitorId,
-    checkId: monitoring.checkId,
-    url,
-    status,
-    previousScrapeId: previous?.last_scrape_id ?? null,
-    currentScrapeId: job.id,
-    judgment: judgment ?? null,
-    diffText: diffText ?? null,
-    diffJson: diffJson ?? null,
-  });
+  if (await claimMonitorPageWebhook(monitoring.checkId, url, "page")) {
+    await sendMonitorPageWebhook({
+      teamId: job.data.team_id,
+      monitorId: monitoring.monitorId,
+      checkId: monitoring.checkId,
+      url,
+      status,
+      previousScrapeId: previous?.last_scrape_id ?? null,
+      currentScrapeId: job.id,
+      judgment: judgment ?? null,
+      diffText: diffText ?? null,
+      diffJson: diffJson ?? null,
+    });
+  }
 }
 
 export async function recordMonitorScrapeFailure(
@@ -242,22 +388,14 @@ export async function recordMonitorScrapeFailure(
   const monitoring = job.data.monitoring;
   if (!monitoring || job.data.mode !== "single_urls") return;
 
-  await insertMonitorCheckPages([
-    {
-      check_id: monitoring.checkId,
-      monitor_id: monitoring.monitorId,
-      team_id: job.data.team_id,
-      target_id: monitoring.targetId,
-      url: job.data.url,
-      url_hash: hashMonitorUrl(job.data.url),
-      status: "error",
-      current_scrape_id: job.id,
-      error: error instanceof Error ? error.message : String(error),
-      metadata: {
-        creditsUsed: creditsUsed ?? null,
-      },
-    },
-  ]);
+  await persistMonitorCheckError({
+    monitoring,
+    teamId: job.data.team_id,
+    url: job.data.url,
+    scrapeId: job.id,
+    error: error instanceof Error ? error.message : String(error),
+    metadata: { creditsUsed: creditsUsed ?? null },
+  });
 
   logger.info("Recorded monitor scrape failure", {
     monitorId: monitoring.monitorId,
@@ -265,16 +403,6 @@ export async function recordMonitorScrapeFailure(
     targetId: monitoring.targetId,
     scrapeId: job.id,
     url: job.data.url,
-    error: error instanceof Error ? error.message : String(error),
-  });
-
-  await sendMonitorPageWebhook({
-    teamId: job.data.team_id,
-    monitorId: monitoring.monitorId,
-    checkId: monitoring.checkId,
-    url: job.data.url,
-    status: "error",
-    currentScrapeId: job.id,
     error: error instanceof Error ? error.message : String(error),
   });
 }

@@ -35,8 +35,16 @@ let consumeChannelPromise: Promise<amqp.Channel> | null = null;
 
 // Registry of consumers so a reconnect can re-attach them; the worker never produces,
 // so without this it goes permanently deaf after any RabbitMQ blip until restart.
-const registeredConsumers: Array<{ queue: string; handler: ConsumerHandler }> =
-  [];
+const registeredConsumers: Array<{
+  queue: string;
+  handler: ConsumerHandler;
+  prefetch: number;
+}> = [];
+// Search checks run inline (search + judge + scrapes) for 15-50s each, so a single
+// prefetch serializes them and a burst piles up behind one check. Let a worker run a
+// few concurrently; each still fans out SEARCH_SCRAPE_CONCURRENCY scrapes, so keep it
+// modest. Default (page/site/batch) checks just enqueue async jobs, so 1 is fine.
+const SEARCH_CHECK_PREFETCH = 3;
 // Queues with a live consumer on the CURRENT consume channel; cleared on drop so a
 // reconnect re-subscribes exactly once per queue and can't pile up duplicates.
 const subscribedQueues = new Set<string>();
@@ -109,8 +117,8 @@ function scheduleReconnect(delayMs: number): void {
   setTimeout(async () => {
     try {
       const ch = await getConsumeChannel();
-      for (const { queue, handler } of registeredConsumers) {
-        await subscribe(ch, queue, handler);
+      for (const { queue, handler, prefetch } of registeredConsumers) {
+        await subscribe(ch, queue, handler, prefetch);
       }
       reconnectInFlight = false;
       logger.info("Monitor queue reconnected; consumers re-subscribed", {
@@ -258,23 +266,26 @@ export async function addMonitorCheckJob(
 async function consumeQueue(
   queue: string,
   handler: ConsumerHandler,
+  prefetch: number,
 ): Promise<void> {
   if (!registeredConsumers.some(c => c.queue === queue)) {
-    registeredConsumers.push({ queue, handler });
+    registeredConsumers.push({ queue, handler, prefetch });
   }
   const ch = await getConsumeChannel();
-  await subscribe(ch, queue, handler);
+  await subscribe(ch, queue, handler, prefetch);
 }
 
 async function subscribe(
   ch: amqp.Channel,
   queue: string,
   handler: ConsumerHandler,
+  prefetch: number,
 ): Promise<void> {
   // Don't add a duplicate consumer if a reconnect re-subscribes an already-subscribed queue.
   if (subscribedQueues.has(queue)) return;
-  // Per-consumer prefetch (amqplib default) so search and default consumers don't block each other.
-  await ch.prefetch(1);
+  // Per-consumer prefetch (global=false) so the search and default consumers each get
+  // their own in-flight budget and don't block each other.
+  await ch.prefetch(prefetch, false);
 
   await ch.consume(
     queue,
@@ -314,11 +325,15 @@ async function subscribe(
 export async function consumeMonitorCheckJobs(
   handler: (data: MonitorCheckJobData) => Promise<void>,
 ): Promise<void> {
-  await consumeQueue(MONITOR_CHECK_QUEUE, handler);
+  await consumeQueue(MONITOR_CHECK_QUEUE, handler, 1);
 }
 
 export async function consumeMonitorSearchCheckJobs(
   handler: (data: MonitorCheckJobData) => Promise<void>,
 ): Promise<void> {
-  await consumeQueue(MONITOR_SEARCH_CHECK_QUEUE, handler);
+  await consumeQueue(
+    MONITOR_SEARCH_CHECK_QUEUE,
+    handler,
+    SEARCH_CHECK_PREFETCH,
+  );
 }

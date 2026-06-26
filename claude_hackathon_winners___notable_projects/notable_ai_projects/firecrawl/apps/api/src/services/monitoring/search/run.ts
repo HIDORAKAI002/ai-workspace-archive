@@ -46,8 +46,15 @@ function evaluateSerpCandidate(
       knownCurrent?.lastCheckedAt &&
       Date.now() - Date.parse(knownCurrent.lastCheckedAt) > recheckMs,
   );
+  // A prior transient scrape failure (timeout / anti-bot / budget-exceeded) persists
+  // the URL as "skipped". Without this, reuse would re-emit "skipped" forever and the
+  // result is never re-scraped or re-judged — a real alert silently lost. Retry it.
+  const wasSkipped = knownCurrent?.lastStatus === "skipped";
   const isNewOrChanged =
-    !knownCurrent || knownCurrent.fingerprint !== fingerprint || dueForRecheck;
+    !knownCurrent ||
+    knownCurrent.fingerprint !== fingerprint ||
+    dueForRecheck ||
+    wasSkipped;
   return { canonical, fingerprint, knownCurrent, isNewOrChanged };
 }
 

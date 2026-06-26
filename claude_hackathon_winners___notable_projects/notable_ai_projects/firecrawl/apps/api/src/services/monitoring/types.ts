@@ -64,20 +64,30 @@ const searchTargetSchema = z.preprocess(
     }
     return value;
   },
-  z.strictObject({
-    id: z.string().uuid().optional(),
-    type: z.literal("search"),
-    queries: z.array(z.string().min(1).max(256)).min(1).max(12),
-    searchWindow: z
-      .enum(["5m", "15m", "1h", "6h", "24h", "7d"], {
-        error: "searchWindow must be one of: 5m, 15m, 1h, 6h, 24h, 7d",
-      })
-      .optional()
-      .default("24h"),
-    includeDomains: z.array(monitorDomainSchema).max(50).optional(),
-    excludeDomains: z.array(monitorDomainSchema).max(50).optional(),
-    maxResults: z.number().int().min(1).max(50).optional().default(10),
-  }),
+  z
+    .strictObject({
+      id: z.string().uuid().optional(),
+      type: z.literal("search"),
+      queries: z.array(z.string().min(1).max(256)).min(1).max(12),
+      searchWindow: z
+        .enum(["5m", "15m", "1h", "6h", "24h", "7d"], {
+          error: "searchWindow must be one of: 5m, 15m, 1h, 6h, 24h, 7d",
+        })
+        .optional()
+        .default("24h"),
+      includeDomains: z.array(monitorDomainSchema).max(50).optional(),
+      excludeDomains: z.array(monitorDomainSchema).max(50).optional(),
+      maxResults: z.number().int().min(1).max(50).optional().default(10),
+    })
+    .superRefine((target, ctx) => {
+      if (target.includeDomains?.length && target.excludeDomains?.length) {
+        ctx.addIssue({
+          code: "custom",
+          message: "includeDomains and excludeDomains are mutually exclusive",
+          path: ["excludeDomains"],
+        });
+      }
+    }),
 );
 
 const monitorTargetSchema = z.union([
@@ -229,6 +239,8 @@ export const updateMonitorSchema = createMonitorBaseSchema
     notification: monitorNotificationInner.optional(),
     // Drop the create-path .default(30): otherwise an omitting PATCH resets configured retention.
     retentionDays: z.number().int().positive().max(365).optional(),
+    // Drop the create-path .prefault("api") so an empty PATCH stays empty (the guard below fires).
+    origin: z.string().optional(),
   })
   .superRefine(rejectGoalClearedWithSearchTargets)
   .refine(x => Object.keys(x).length > 0, "Update body cannot be empty");

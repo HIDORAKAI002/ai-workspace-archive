@@ -54,15 +54,27 @@ describe("monitoring queue (RabbitMQ wrapper)", () => {
     channelMock.sendToQueue.mockReturnValue(true);
   });
 
-  it("subscribes a consumer with per-consumer prefetch(1) and manual ack", async () => {
+  it("subscribes the default consumer with per-consumer prefetch(1) and manual ack", async () => {
     const q = await freshQueueModule();
     await q.consumeMonitorCheckJobs(vi.fn());
 
-    expect(channelMock.prefetch).toHaveBeenCalledWith(1);
+    // Default (scrape/crawl/page/site/batch) checks just enqueue async jobs, so 1
+    // is fine; global=false keeps the limit per-consumer on the shared channel.
+    expect(channelMock.prefetch).toHaveBeenCalledWith(1, false);
     expect(channelMock.consume).toHaveBeenCalledTimes(1);
     const [queue, , opts] = channelMock.consume.mock.calls[0];
     expect(queue).toBe("monitor.checks");
     expect(opts).toEqual({ noAck: false });
+  });
+
+  it("subscribes the search consumer with a higher prefetch so inline checks run concurrently", async () => {
+    const q = await freshQueueModule();
+    await q.consumeMonitorSearchCheckJobs(vi.fn());
+
+    // Search checks run inline for 15-50s, so prefetch(1) would serialize a burst.
+    expect(channelMock.prefetch).toHaveBeenCalledWith(3, false);
+    const [queue] = channelMock.consume.mock.calls[0];
+    expect(queue).toBe("monitor.checks.search");
   });
 
   it("dedups a repeat subscribe to the same queue (no duplicate consumer)", async () => {

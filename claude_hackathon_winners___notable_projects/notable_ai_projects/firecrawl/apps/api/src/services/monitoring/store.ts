@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { v7 as uuidv7 } from "uuid";
-import { and, asc, count, desc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull, ne, sql } from "drizzle-orm";
 import { db, dbRr } from "../../db/connection";
 import * as schema from "../../db/schema";
 import { monitoringClaimDueMonitors } from "../../db/rpc";
@@ -840,6 +840,34 @@ export async function updateMonitorCheck(
   return data as MonitorCheckRow;
 }
 
+// Atomic variant of updateMonitorCheck that only writes while the check is still
+// running. A late finalize write that lost the race to the catch path (which marks
+// the check failed) becomes a no-op instead of stamping results/searchCompleted onto
+// an already-terminal check. Returns the row if it applied, else null.
+export async function updateMonitorCheckIfRunning(
+  checkId: string,
+  patch: Partial<MonitorCheckRow>,
+): Promise<MonitorCheckRow | null> {
+  const [data] = await run(
+    () =>
+      db
+        .update(schema.monitor_checks)
+        .set({
+          ...patch,
+          updated_at: new Date().toISOString(),
+        })
+        .where(
+          and(
+            eq(schema.monitor_checks.id, checkId),
+            eq(schema.monitor_checks.status, "running"),
+          ),
+        )
+        .returning(),
+    "Failed to update monitor check",
+  );
+  return (data as MonitorCheckRow) ?? null;
+}
+
 export async function insertMonitorCheckPages(
   pages: MonitorCheckPageInsert[],
 ): Promise<void> {
@@ -858,23 +886,27 @@ export async function insertMonitorCheckPages(
   );
 }
 
-// Makes the inline search write idempotent: a redelivered check clears its prior
-// (check, target) rows before re-inserting, so crash-and-redeliver can't duplicate
-// pages. Partition-safe (no unique constraint needed).
+// Makes an inline write idempotent: a redelivered check clears its prior rows
+// before re-inserting, so crash-and-redeliver can't duplicate pages. Pass `url`
+// to scope the clear to a single page so the per-URL scrape path replaces only
+// its own row without clobbering sibling pages of the same target. Partition-safe
+// (no unique constraint needed).
 export async function deleteMonitorCheckPages(params: {
   checkId: string;
   targetId: string;
+  url?: string;
 }): Promise<void> {
+  const conditions = [
+    eq(schema.monitor_check_pages.check_id, params.checkId),
+    eq(schema.monitor_check_pages.target_id, params.targetId),
+  ];
+  if (params.url !== undefined) {
+    conditions.push(
+      eq(schema.monitor_check_pages.url_hash, hashMonitorUrl(params.url)),
+    );
+  }
   await run(
-    () =>
-      db
-        .delete(schema.monitor_check_pages)
-        .where(
-          and(
-            eq(schema.monitor_check_pages.check_id, params.checkId),
-            eq(schema.monitor_check_pages.target_id, params.targetId),
-          ),
-        ),
+    () => db.delete(schema.monitor_check_pages).where(and(...conditions)),
     "Failed to delete monitor check pages",
   );
 }
@@ -1003,6 +1035,9 @@ export async function upsertMonitorPage(params: {
   scrapeId: string | null;
   status: "same" | "new" | "changed" | "removed" | "error";
   metadata?: unknown;
+  // When the caller's finalize times out it aborts this signal; we then skip the
+  // write so an orphaned baseline can't poison the next run's dedup state.
+  abortSignal?: AbortSignal;
 }): Promise<void> {
   const now = new Date().toISOString();
 
@@ -1011,6 +1046,8 @@ export async function upsertMonitorPage(params: {
     targetId: params.targetId,
     url: params.url,
   });
+
+  if (params.abortSignal?.aborted) return;
 
   if (!existing) {
     await run(
@@ -1064,6 +1101,108 @@ export async function upsertMonitorPage(params: {
         .set(patch)
         .where(eq(schema.monitor_pages.id, existing.id)),
     "Failed to update monitor page",
+  );
+}
+
+type BulkUpsertMonitorPageRow = {
+  url: string;
+  urlHash?: Buffer;
+  status: "same" | "new" | "changed" | "removed" | "error";
+  metadata?: unknown;
+  source: "explicit" | "discovered";
+  scrapeId: string | null;
+};
+
+// Bulk equivalent of upsertMonitorPage: collapses an N-page upsert from ~2N
+// sequential round-trips (replica read + primary write per page) into ONE atomic
+// INSERT ... ON CONFLICT DO UPDATE keyed by the (monitor_id, target_id, url_hash)
+// unique index. Per-row field rules mirror upsertMonitorPage exactly, expressed in
+// the conflict set via `excluded` + CASE so no read is needed and Drizzle handles
+// the enum/jsonb column types (no hand-written casts that can drift from the schema).
+export async function bulkUpsertMonitorPages(params: {
+  monitorId: string;
+  teamId: string;
+  targetId: string;
+  checkId: string;
+  rows: BulkUpsertMonitorPageRow[];
+  // When finalize times out the caller aborts this signal; we then skip the whole
+  // write so an aborted finalize leaves monitor_pages untouched (no partial baseline).
+  abortSignal?: AbortSignal;
+}): Promise<void> {
+  if (params.abortSignal?.aborted) return;
+
+  // Dedup by url_hash (last wins) so a repeated URL can't double-insert, and sort
+  // by url_hash for a deterministic row-lock order.
+  const byHash = new Map<
+    string,
+    BulkUpsertMonitorPageRow & { urlHash: Buffer }
+  >();
+  for (const row of params.rows) {
+    const urlHash = row.urlHash ?? hashMonitorUrl(row.url);
+    byHash.set(urlHash.toString("hex"), { ...row, urlHash });
+  }
+  if (byHash.size === 0) return;
+  const rows = [...byHash.values()].sort((a, b) =>
+    a.urlHash.toString("hex") < b.urlHash.toString("hex") ? -1 : 1,
+  );
+
+  const now = new Date().toISOString();
+
+  // Build every row as if newly inserted; ON CONFLICT applies the existing-row
+  // rules via `excluded` + CASE so the whole upsert is ONE atomic statement — no
+  // separate read, no separate update — and Drizzle maps the enum/jsonb types from
+  // the schema, so there are no hand-written casts that can drift from the columns.
+  const values = rows.map(row => {
+    const isRemoved = row.status === "removed";
+    const isChangedOrNew = row.status === "changed" || row.status === "new";
+    return {
+      monitor_id: params.monitorId,
+      team_id: params.teamId,
+      target_id: params.targetId,
+      url: row.url,
+      url_hash: row.urlHash,
+      source: row.source,
+      first_seen_check_id: params.checkId,
+      last_seen_check_id: isRemoved ? null : params.checkId,
+      last_changed_check_id: isChangedOrNew ? params.checkId : null,
+      last_scrape_id: row.scrapeId,
+      last_status: row.status,
+      is_removed: isRemoved,
+      removed_at: isRemoved ? now : null,
+      metadata: row.metadata ?? null,
+      created_at: now,
+      updated_at: now,
+    };
+  });
+
+  if (params.abortSignal?.aborted) return;
+
+  await run(
+    () =>
+      db
+        .insert(schema.monitor_pages)
+        .values(values)
+        .onConflictDoUpdate({
+          target: [
+            schema.monitor_pages.monitor_id,
+            schema.monitor_pages.target_id,
+            schema.monitor_pages.url_hash,
+          ],
+          set: {
+            last_status: sql`excluded.last_status`,
+            is_removed: sql`excluded.is_removed`,
+            removed_at: sql`excluded.removed_at`,
+            // Preserve prior metadata when the new row carries none.
+            metadata: sql`coalesce(excluded.metadata, ${schema.monitor_pages.metadata})`,
+            // last_seen / last_scrape advance only when not removed; else preserved.
+            last_seen_check_id: sql`case when excluded.is_removed then ${schema.monitor_pages.last_seen_check_id} else excluded.last_seen_check_id end`,
+            last_scrape_id: sql`case when excluded.is_removed then ${schema.monitor_pages.last_scrape_id} else excluded.last_scrape_id end`,
+            // last_changed advances only on new/changed; first_seen is never touched.
+            last_changed_check_id: sql`case when excluded.last_status in ('new','changed') then excluded.last_changed_check_id else ${schema.monitor_pages.last_changed_check_id} end`,
+            updated_at: sql`excluded.updated_at`,
+          },
+        }),
+    "Failed to bulk upsert monitor pages",
   );
 }
 
