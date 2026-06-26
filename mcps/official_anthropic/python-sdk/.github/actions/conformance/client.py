@@ -22,7 +22,7 @@ Scenarios:
     http-standard-headers                   - Connect, call a tool (Mcp-* headers checked)
     http-invalid-tool-headers               - List tools, call every surfaced tool (x-mcp-header filter)
     elicitation-sep1034-client-defaults     - Elicitation with default accept callback
-    sep-2322-client-request-state           - Drive the manual MRTR retry surface
+    sep-2322-client-request-state           - Drive the MRTR auto-loop (SEP-2322)
     auth/client-credentials-jwt             - Client credentials with private_key_jwt
     auth/client-credentials-basic           - Client credentials with client_secret_basic
     auth/*                                  - Authorization code flow (default for auth scenarios)
@@ -335,6 +335,34 @@ async def run_http_invalid_tool_headers(server_url: str) -> None:
                 logger.exception(f"call_tool({tool.name!r}) failed")
 
 
+@register("http-custom-headers")
+async def run_http_custom_headers(server_url: str) -> None:
+    """List tools, then replay the harness's `toolCalls` so x-mcp-header args mirror into headers (SEP-2243).
+
+    The scenario supplies the exact arguments to send (including the null/edge-case values that
+    exercise omission and Base64 encoding) via the context `toolCalls`; using them verbatim is
+    what drives every per-parameter check. `list_tools` first so the SDK caches each tool's
+    annotations; a tool the SDK dropped (invalid annotations) is skipped. Per-call failures are
+    logged and skipped rather than aborting the run.
+    """
+    tool_calls: list[dict[str, Any]] = []
+    if os.environ.get("MCP_CONFORMANCE_CONTEXT"):
+        tool_calls = get_conformance_context().get("toolCalls", [])
+    async with Client(server_url, mode=client_mode()) as client:
+        listed = await client.list_tools()
+        surfaced = {tool.name for tool in listed.tools}
+        logger.debug(f"Surfaced tools: {sorted(surfaced)}")
+        for call in tool_calls:
+            name = call["name"]
+            if name not in surfaced:
+                logger.debug(f"skipping {name!r}: not surfaced by list_tools")
+                continue
+            try:
+                await client.call_tool(name, call.get("arguments") or {})
+            except Exception:
+                logger.exception(f"call_tool({name!r}) failed")
+
+
 @register("elicitation-sep1034-client-defaults")
 async def run_elicitation_defaults(server_url: str) -> None:
     """Connect with elicitation callback that applies schema defaults."""
@@ -346,46 +374,28 @@ async def run_elicitation_defaults(server_url: str) -> None:
 
 @register("sep-2322-client-request-state")
 async def run_mrtr_client(server_url: str) -> None:
-    """Drive the manual MRTR retry surface against the SEP-2322 client mock.
+    """Drive the SEP-2322 client mock through `Client.call_tool`'s auto-loop.
 
-    The mock speaks the modern lifecycle (server/discover, no initialize) and
-    inspects the wire params of each tools/call round, so this exercises the
-    explicit allow_input_required=True path rather than an auto-loop: round 1
-    receives an InputRequiredResult, the fixture fulfils the elicitation
-    locally, then round 2 retries with input_responses + the echoed
-    request_state. Passing request_state straight off the typed result -- a
-    str when the server sent one, None when it didn't -- lets the
-    serializer's exclude_none drop the key in the no-state case without a
-    branch here. The unrelated call between rounds proves MRTR params don't
-    leak across tools, and the no-result-type call must parse as a complete
-    CallToolResult with no retry.
+    The mock inspects raw `tools/call` params, so registering an
+    `elicitation_callback` and letting the driver run is enough to satisfy
+    all five wire-shape checks: the driver echoes `request_state` byte-exact
+    and omits it when the server sent none, every retry mints a fresh
+    JSON-RPC id, the unrelated call between auto-loops carries no MRTR
+    params, and the no-`resultType` response parses as a terminal
+    `CallToolResult` so the driver never retries it.
     """
-    async with Client(server_url, mode=client_mode()) as client:
+
+    async def confirm(
+        context: ClientRequestContext, params: types.ElicitRequestParams
+    ) -> types.ElicitResult | types.ErrorData:
+        return types.ElicitResult(action="accept", content={"confirmed": True})
+
+    async with Client(server_url, mode=client_mode(), elicitation_callback=confirm) as client:
         await client.list_tools()
-        confirm = {"confirm": types.ElicitResult(action="accept", content={"confirmed": True})}
 
-        r1 = await client.call_tool("test_mrtr_echo_state", {}, allow_input_required=True)
-        assert isinstance(r1, types.InputRequiredResult)
-
+        await client.call_tool("test_mrtr_echo_state", {})
         await client.call_tool("test_mrtr_unrelated", {})
-
-        await client.call_tool(
-            "test_mrtr_echo_state",
-            {},
-            input_responses=confirm,
-            request_state=r1.request_state,
-            allow_input_required=True,
-        )
-
-        r2 = await client.call_tool("test_mrtr_no_state", {}, allow_input_required=True)
-        assert isinstance(r2, types.InputRequiredResult)
-        await client.call_tool(
-            "test_mrtr_no_state",
-            {},
-            input_responses=confirm,
-            request_state=r2.request_state,
-            allow_input_required=True,
-        )
+        await client.call_tool("test_mrtr_no_state", {})
 
         result = await client.call_tool("test_mrtr_no_result_type", {})
         assert isinstance(result, types.CallToolResult)
@@ -526,8 +536,6 @@ def main() -> None:
         elif scenario.startswith("auth/"):
             asyncio.run(run_auth_code_client(server_url))
         else:
-            # Unhandled scenarios:
-            #  - http-custom-headers (SEP-2243 / S8: Mcp-Param-* emission)
             print(f"Unknown scenario: {scenario}", file=sys.stderr)
             sys.exit(1)
     else:
