@@ -71,6 +71,16 @@
         "default": "./dist/agent/message-list/index.cjs"
       }
     },
+    "./agent-controller": {
+      "import": {
+        "types": "./dist/agent-controller/index.d.ts",
+        "default": "./dist/agent-controller/index.js"
+      },
+      "require": {
+        "types": "./dist/agent-controller/index.d.ts",
+        "default": "./dist/agent-controller/index.cjs"
+      }
+    },
     "./auth": {
       "import": {
         "types": "./dist/auth/index.d.ts",
@@ -679,6 +689,16 @@
       "require": {
         "types": "./dist/zod-to-json.d.ts",
         "default": "./dist/zod-to-json.cjs"
+      }
+    },
+    "./utils/collect-tool-mocks": {
+      "import": {
+        "types": "./dist/utils/collect-tool-mocks.d.ts",
+        "default": "./dist/utils/collect-tool-mocks.js"
+      },
+      "require": {
+        "types": "./dist/utils/collect-tool-mocks.d.ts",
+        "default": "./dist/utils/collect-tool-mocks.cjs"
       }
     },
     "./loop/server": {
