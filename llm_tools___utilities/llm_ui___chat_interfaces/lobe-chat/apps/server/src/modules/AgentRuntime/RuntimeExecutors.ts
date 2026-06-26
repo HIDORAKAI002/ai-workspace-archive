@@ -20,15 +20,18 @@ import {
   generateCredsList,
 } from '@lobechat/builtin-tool-creds';
 import { LocalSystemManifest } from '@lobechat/builtin-tool-local-system';
+import { builtinTools } from '@lobechat/builtin-tools';
 import { BRANDING_PROVIDER } from '@lobechat/business-const';
 import { COMPOSIO_APP_TYPES } from '@lobechat/const';
 import {
+  type AgentBuilderContext,
   type AgentContextDocument,
   type AgentGroupConfig,
   type BotPlatformContext,
   buildStepSkillDelta,
   buildStepToolDelta,
   type LobeToolManifest,
+  type OfficialToolItem,
   type OnboardingContext,
   type OperationToolSet,
   type ResolvedToolSet,
@@ -78,6 +81,7 @@ import debug from 'debug';
 import { type ExtendParamsType, ModelProvider } from 'model-bank';
 
 import { composioEnv } from '@/config/composio';
+import { AgentModel } from '@/database/models/agent';
 import { FileModel } from '@/database/models/file';
 import { type MessageModel, MessageModel as MessageModelClass } from '@/database/models/message';
 import { PluginModel } from '@/database/models/plugin';
@@ -1273,8 +1277,113 @@ export const createRuntimeExecutors = (
           }
         }
 
+        // Agent Builder (gateway / server mode): the `<current_agent_context>`
+        // that tells the builder LLM WHICH agent it is editing is built
+        // CLIENT-side in chat mode (services/chat/index.ts). In gateway mode that
+        // client code never runs, so without this the context is never injected
+        // and the builder answers with its OWN config instead of the edited
+        // agent's. `state.metadata.editingAgentId` is the agent being configured
+        // (the builder builtin is `state.metadata.agentId`).
+        let agentBuilderContext: AgentBuilderContext | undefined;
+        const editingAgentId = state.metadata?.editingAgentId;
+        if (editingAgentId && ctx.serverDB && ctx.userId) {
+          try {
+            const editingAgentModel = new AgentModel(ctx.serverDB, ctx.userId, ctx.workspaceId);
+            const editingConfig = (await editingAgentModel.getAgentConfigById(
+              editingAgentId,
+            )) as Record<string, any> | null;
+            if (editingConfig) {
+              // Build the `<available_official_tools>` list the same way the
+              // client does (services/chat/index.ts). Without it the builder
+              // prompt — which now relies on injected official tools instead of a
+              // search API — can't see installable builtin/Composio tools or their
+              // enabled/connected status, so the model may pick invalid ids or
+              // claim a supported tool is unavailable.
+              const enabledPlugins: string[] = Array.isArray(editingConfig.plugins)
+                ? (editingConfig.plugins as string[])
+                : [];
+              const composioIdentifiers = new Set(COMPOSIO_APP_TYPES.map((t) => t.identifier));
+              const officialTools: OfficialToolItem[] = [];
+
+              // Builtin tools — exclude hidden/infra tools (mirrors the client's
+              // `metaList`) and Composio entries (listed separately below).
+              for (const tool of builtinTools) {
+                if (tool.hidden) continue;
+                if (composioIdentifiers.has(tool.identifier)) continue;
+                officialTools.push({
+                  description: tool.manifest?.meta?.description,
+                  enabled: enabledPlugins.includes(tool.identifier),
+                  identifier: tool.identifier,
+                  installed: true,
+                  name: tool.manifest?.meta?.title || tool.identifier,
+                  type: 'builtin',
+                });
+              }
+
+              // Composio MCP servers — only when Composio is configured for this
+              // deployment. Connection status mirrors the existing
+              // {{COMPOSIO_SERVICES_LIST}} logic (ACTIVE composio plugin rows).
+              if (composioEnv.COMPOSIO_API_KEY) {
+                try {
+                  const pluginModel = new PluginModel(ctx.serverDB, ctx.userId, ctx.workspaceId);
+                  const allPlugins = await pluginModel.query();
+                  const connectedComposioIds = new Set(
+                    allPlugins
+                      .filter(
+                        (p) =>
+                          composioIdentifiers.has(p.identifier) &&
+                          (p.customParams as any)?.composio?.status === 'ACTIVE',
+                      )
+                      .map((p) => p.identifier),
+                  );
+                  for (const t of COMPOSIO_APP_TYPES) {
+                    officialTools.push({
+                      description: `LobeHub Mcp Server: ${t.label}`,
+                      enabled: enabledPlugins.includes(t.identifier),
+                      identifier: t.identifier,
+                      installed: connectedComposioIds.has(t.identifier),
+                      name: t.label,
+                      type: 'composio',
+                    });
+                  }
+                } catch (composioError) {
+                  log('Failed to load Composio status for agentBuilderContext: %O', composioError);
+                }
+              }
+
+              agentBuilderContext = {
+                config: {
+                  chatConfig: editingConfig.chatConfig ?? undefined,
+                  model: editingConfig.model ?? undefined,
+                  openingMessage: editingConfig.openingMessage ?? undefined,
+                  openingQuestions: editingConfig.openingQuestions ?? undefined,
+                  params: editingConfig.params ?? undefined,
+                  plugins: editingConfig.plugins ?? undefined,
+                  provider: editingConfig.provider ?? undefined,
+                  systemRole: editingConfig.systemRole ?? undefined,
+                },
+                meta: {
+                  avatar: editingConfig.avatar ?? undefined,
+                  backgroundColor: editingConfig.backgroundColor ?? undefined,
+                  description: editingConfig.description ?? undefined,
+                  tags: editingConfig.tags ?? undefined,
+                  title: editingConfig.title ?? undefined,
+                },
+                ...(officialTools.length > 0 && { officialTools }),
+              };
+            }
+          } catch (error) {
+            log(
+              'Failed to build agentBuilderContext for editing agent %s: %O',
+              editingAgentId,
+              error,
+            );
+          }
+        }
+
         const contextEngineInput = {
           agentDocuments,
+          ...(agentBuilderContext && { agentBuilderContext }),
           agentGroup: buildBotAgentGroupContext({
             agentConfig,
             agentId: state.metadata?.agentId,
