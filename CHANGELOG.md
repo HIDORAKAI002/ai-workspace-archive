@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-26 11:52 IST] Auto-Sync
+- **28 Repositories Updated:** Kubernetes MCP Server, Awesome ChatGPT Prompts, Dify, Langflow, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, Jenqyang/Awesome-AI-Agents, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, nousresearch/hermes-agent
+
 ## [2026-06-26 05:03 IST] Auto-Sync
 - **38 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Exa MCP Server, Promptfoo, n8n, Activepieces, Trigger.dev, Windmill, Directus, modelcontextprotocol/csharp-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, chroma-core/chroma, abi/screenshot-to-code, firecrawl/firecrawl, openai/openai-node, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
 
