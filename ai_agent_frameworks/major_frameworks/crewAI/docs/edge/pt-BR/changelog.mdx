@@ -4,6 +4,56 @@ description: "Atualizações de produto, melhorias e correções do CrewAI"
 icon: "clock"
 mode: "wide"
 ---
+<Update label="25 jun 2026">
+  ## v1.15.0
+
+  [Ver release no GitHub](https://github.com/crewAIInc/crewAI/releases/tag/1.15.0)
+
+  ## O que mudou
+
+  ### Recursos
+  - Rastrear o uso de turnos de fluxo conversacional na telemetria
+  - Suporte a fluxos conversacionais na TUI do CLI
+  - Adicionar carregamento de fluxo declarativo unificado
+  - Adicionar suporte a Flow CLI declarativo
+  - Adicionar expressão if opcional a cada etapa do each.do
+  - Adicionar ação de agente único às definições de Flow
+  - Adicionar ações de equipe à FlowDefinition
+  - Adicionar carregamento de definição de equipe inline
+  - Adicionar ação composta `each` à FlowDefinition
+  - Implementar suporte ao modo DMN na criação e execução de equipes
+
+  ### Correções de Bugs
+  - Corrigir a aplicação de permissões apenas para o proprietário em arquivos de credenciais
+  - Corrigir entradas de inicialização de estado de fluxo do esquema JSON
+  - Corrigir travessia de caminho de symlink na extração de arquivos de habilidade
+  - Agregar uso de token em todas as chamadas LLM
+  - Remover ferramenta Exa duplicada
+  - Resolver problemas de equipe JSON
+  - Corrigir o manuseio de equipe JSON e aprimorar a funcionalidade de redefinição de memória
+
+  ### Documentação
+  - Atualizar a documentação de instalação e início rápido para projetos de equipe com JSON primeiro
+  - Adicionar guia de integração do Datadog com painel de operações importável
+  - Adicionar página "Um Cartão por Passo" no Studio
+  - Adicionar instantâneas e changelogs para versões anteriores levando à v1.15.0
+
+  ### Desempenho
+  - Melhorar a experiência de inicialização do crewai run
+  - Manter o progresso do método de fluxo visível para equipes aninhadas
+
+  ### Refatoração
+  - Remover `StateProxy` do acesso ao estado do fluxo
+  - Consolidar `crewai run` e `crewai flow kickoff`
+  - Discriminar tipos de estado da FlowDefinition
+  - Conectar configuração e persistência da FlowDefinition ao tempo de execução
+
+  ## Contribuidores
+
+  @gabemilani, @github-code-quality[bot], @greysonlalonde, @iris-clawd, @jessemiller, @joaomdmoura, @lorenzejay, @lucasgomide, @theCyberTech, @vinibrsl
+
+</Update>
+
 <Update label="24 jun 2026">
   ## v1.14.8a5
 

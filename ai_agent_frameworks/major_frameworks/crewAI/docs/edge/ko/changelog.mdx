@@ -4,6 +4,56 @@ description: "CrewAI의 제품 업데이트, 개선 사항 및 버그 수정"
 icon: "clock"
 mode: "wide"
 ---
+<Update label="2026년 6월 25일">
+  ## v1.15.0
+
+  [GitHub 릴리스 보기](https://github.com/crewAIInc/crewAI/releases/tag/1.15.0)
+
+  ## 변경 사항
+
+  ### 기능
+  - 텔레메트리에서 대화 흐름 턴 사용 추적
+  - CLI TUI에서 대화 흐름 지원
+  - 통합 선언적 흐름 로딩 추가
+  - 선언적 흐름 CLI 지원 추가
+  - 각 단계에 선택적 if 표현식 추가
+  - 흐름 정의에 단일 에이전트 작업 추가
+  - FlowDefinition에 크루 작업 추가
+  - 인라인 크루 정의 로딩 추가
+  - FlowDefinition에 `each` 복합 작업 추가
+  - 크루 생성 및 실행에서 DMN 모드 지원 구현
+
+  ### 버그 수정
+  - 자격 증명 파일에 대한 소유자 전용 권한 집행 수정
+  - JSON 스키마 흐름 상태 시작 입력 수정
+  - 기술 아카이브 추출에서 심볼릭 링크 경로 탐색 수정
+  - 모든 LLM 호출에 대한 토큰 사용 집계
+  - 중복된 Exa 도구 제거
+  - JSON 크루 문제 해결
+  - JSON 크루 처리 수정 및 메모리 재설정 기능 향상
+
+  ### 문서
+  - JSON 우선 크루 프로젝트에 대한 설치 및 빠른 시작 문서 업데이트
+  - 가져올 수 있는 작업 대시보드와 함께 Datadog 통합 가이드 추가
+  - "단계당 한 카드" 스튜디오 페이지 추가
+  - v1.15.0으로 이어지는 이전 버전의 스냅샷 및 변경 로그 추가
+
+  ### 성능
+  - crewai 실행 시작 UX 개선
+  - 중첩된 크루에 대한 흐름 메서드 진행 상황 표시 유지
+
+  ### 리팩토링
+  - 흐름 상태 접근에서 `StateProxy` 제거
+  - `crewai run`과 `crewai flow kickoff` 통합
+  - FlowDefinition 상태 유형 구분
+  - FlowDefinition에서 런타임으로 구성 및 지속성 연결
+
+  ## 기여자
+
+  @gabemilani, @github-code-quality[bot], @greysonlalonde, @iris-clawd, @jessemiller, @joaomdmoura, @lorenzejay, @lucasgomide, @theCyberTech, @vinibrsl
+
+</Update>
+
 <Update label="2026년 6월 24일">
   ## v1.14.8a5
 
