@@ -87,12 +87,14 @@ import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
+import type { DataLayerScrapeMetadata } from "../../lib/data-layer";
 
 export type ScrapeUrlResponse =
   | {
       success: true;
       document: Document;
       unsupportedFeatures?: Set<FeatureFlag>;
+      dataLayer?: DataLayerScrapeMetadata;
     }
   | {
       success: false;
@@ -552,6 +554,8 @@ async function scrapeURLLoopIter(
         },
       );
       checkMarkdown = engineResult.html?.trim() ?? "";
+    } else if (engineResult.markdown?.trim()) {
+      checkMarkdown = engineResult.markdown.trim();
     } else {
       const requestId = meta.id || meta.internalOptions.crawlId;
       const zeroDataRetention = meta.internalOptions.zeroDataRetention;
@@ -978,6 +982,7 @@ async function scrapeURLLoop(meta: Meta): Promise<ScrapeUrlResponse> {
     let document: Document = {
       markdown: engineResult.markdown,
       rawHtml: engineResult.html,
+      json: engineResult.json,
       screenshot: engineResult.screenshot,
       actions: engineResult.actions,
       branding: engineResult.branding,
@@ -1038,6 +1043,7 @@ async function scrapeURLLoop(meta: Meta): Promise<ScrapeUrlResponse> {
       success: true,
       document,
       unsupportedFeatures: result.unsupportedFeatures,
+      dataLayer: engineResult.dataLayer,
     };
   });
 }

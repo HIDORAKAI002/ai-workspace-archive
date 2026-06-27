@@ -26,6 +26,7 @@ import {
   ProxySelectionError,
 } from "../../error";
 import * as Sentry from "@sentry/node";
+import { gunzipSync } from "node:zlib";
 import { specialtyScrapeCheck } from "../utils/specialtyHandler";
 import { fireEngineDelete } from "./delete";
 import { MockState } from "../../lib/mock";
@@ -42,6 +43,8 @@ import { createHash } from "node:crypto";
 
 /** Default wait (ms) before running the branding script when user did not set waitFor. Lets the page settle so DOM/images are ready and reduces JS errors. */
 const BRANDING_DEFAULT_WAIT_MS = 2000;
+
+const MAX_GUNZIPPED_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 // This function does not take `Meta` on purpose. It may not access any
 // meta values to construct the request -- that must be done by the
@@ -212,7 +215,21 @@ async function performFireEngineScrape<
     if (status.file) {
       const content = status.file.content;
       delete status.file;
-      status.content = Buffer.from(content, "base64").toString("utf8"); // TODO: handle other encodings via Content-Type tag
+      let buffer = Buffer.from(content, "base64");
+      // transparently decompress gzipped content
+      if (buffer.length >= 2 && buffer[0] === 0x1f && buffer[1] === 0x8b) {
+        try {
+          buffer = gunzipSync(buffer, {
+            maxOutputLength: MAX_GUNZIPPED_FILE_SIZE,
+          });
+        } catch (error) {
+          if (error instanceof RangeError) {
+            throw new UnsupportedFileError("File exceeds size limit");
+          }
+          throw new UnsupportedFileError("Failed to decompress gzip content");
+        }
+      }
+      status.content = buffer.toString("utf8"); // TODO: handle other encodings via Content-Type tag
     }
 
     fireEngineDelete(
@@ -362,6 +379,7 @@ export async function scrapeURLWithFireEngineChromeCDP(
       timeout: meta.abort.scrapeTimeout() ?? 300000,
       disableSmartWaitCache: meta.internalOptions.disableSmartWaitCache,
       mobileProxy: meta.featureFlags.has("stealthProxy"),
+      maxAge: meta.options.maxAge,
       saveScrapeResultToGCS:
         !meta.internalOptions.zeroDataRetention &&
         meta.internalOptions.saveScrapeResultToGCS,
@@ -437,18 +455,23 @@ export async function scrapeURLWithFireEngineChromeCDP(
     const audioCookies = (response.actionResults ?? [])
       .filter(x => x.type === "getCookies")
       .flatMap(x => x.result.cookies);
+    const contentType =
+      (Object.entries(response.responseHeaders ?? {}).find(
+        x => x[0].toLowerCase() === "content-type",
+      ) ?? [])[1] ?? undefined;
 
     return {
       url: response.url ?? meta.url,
 
       html: response.content,
+      markdown: contentType?.includes("text/markdown")
+        ? response.content
+        : undefined,
+      json: response.json,
       error: response.pageError,
       statusCode: response.pageStatusCode,
 
-      contentType:
-        (Object.entries(response.responseHeaders ?? {}).find(
-          x => x[0].toLowerCase() === "content-type",
-        ) ?? [])[1] ?? undefined,
+      contentType,
 
       screenshot,
       ...(actions.length > 0
@@ -499,6 +522,7 @@ export async function scrapeURLWithFireEngineTLSClient(
       mobileProxy: meta.featureFlags.has("stealthProxy"),
 
       timeout: meta.abort.scrapeTimeout() ?? 300000,
+      maxAge: meta.options.maxAge,
       saveScrapeResultToGCS:
         !meta.internalOptions.zeroDataRetention &&
         meta.internalOptions.saveScrapeResultToGCS,
@@ -522,18 +546,23 @@ export async function scrapeURLWithFireEngineTLSClient(
         sourceURL: meta.url,
       });
     }
+    const contentType =
+      (Object.entries(response.responseHeaders ?? {}).find(
+        x => x[0].toLowerCase() === "content-type",
+      ) ?? [])[1] ?? undefined;
 
     return {
       url: response.url ?? meta.url,
 
       html: response.content,
+      markdown: contentType?.includes("text/markdown")
+        ? response.content
+        : undefined,
+      json: response.json,
       error: response.pageError,
       statusCode: response.pageStatusCode,
 
-      contentType:
-        (Object.entries(response.responseHeaders ?? {}).find(
-          x => x[0].toLowerCase() === "content-type",
-        ) ?? [])[1] ?? undefined,
+      contentType,
 
       proxyUsed: response.usedMobileProxy ? "stealth" : "basic",
       timezone: response.timezone,

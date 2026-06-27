@@ -10,6 +10,10 @@ import { hasFormatOfType } from "./format-utils";
 import { TransportableError } from "./error";
 import { FeatureFlag } from "../scraper/scrapeURL/engines";
 import { isUrlBlocked } from "../scraper/WebScraper/utils/blocklist";
+import {
+  DataLayerScrapeMetadata,
+  getDataLayerSuccessCredits,
+} from "./data-layer";
 
 const creditsPerPDFPage = 1;
 const stealthProxyCostBonus = 4;
@@ -28,6 +32,7 @@ export async function calculateCreditsToBeBilled(
   flags: TeamFlags,
   error?: Error | null,
   unsupportedFeatures?: Set<FeatureFlag>,
+  dataLayer?: DataLayerScrapeMetadata,
 ) {
   const costTrackingJSON: ReturnType<typeof CostTracking.prototype.toJSON> =
     costTracking instanceof CostTracking ? costTracking.toJSON() : costTracking;
@@ -53,6 +58,14 @@ export async function calculateCreditsToBeBilled(
     }
 
     return creditsToBeBilled;
+  }
+
+  const dataLayerCredits = getDataLayerSuccessCredits({
+    dataLayer,
+    statusCode: document.metadata?.statusCode,
+  });
+  if (dataLayerCredits !== null) {
+    return dataLayerCredits;
   }
 
   let creditsToBeBilled = 1; // Assuming 1 credit per document

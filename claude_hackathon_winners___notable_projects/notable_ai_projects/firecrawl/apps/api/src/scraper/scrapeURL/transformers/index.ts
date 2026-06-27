@@ -118,10 +118,10 @@ async function deriveMarkdownFromHTML(
     return document;
   }
 
-  // Skip markdown derivation if a postprocessor already set it
-  if (document.metadata.postprocessorsUsed?.length && document.markdown) {
+  // Skip markdown derivation if the engine or a postprocessor already set it.
+  if (document.markdown !== undefined) {
     meta.logger.debug(
-      "Skipping markdown derivation - postprocessor already set markdown",
+      "Skipping markdown derivation - document already has markdown",
       { postprocessorsUsed: document.metadata.postprocessorsUsed },
     );
     return document;
@@ -316,6 +316,30 @@ async function deriveBrandingFromActions(
   document.branding = await brandingTransformer(meta, document, rawBranding);
 
   return document;
+}
+
+async function performLLMExtractUnlessNativeJson(
+  meta: Meta,
+  document: Document,
+): Promise<Document> {
+  if (
+    document.json !== undefined &&
+    hasFormatOfType(meta.options.formats, "json")
+  ) {
+    if (
+      meta.internalOptions.v1OriginalFormat === "extract" &&
+      document.extract === undefined
+    ) {
+      document.extract = document.json;
+    }
+
+    meta.logger.debug(
+      "Skipping LLM JSON extraction - document already has native JSON",
+    );
+    return document;
+  }
+
+  return performLLMExtract(meta, document);
 }
 
 function coerceFieldsToFormats(meta: Meta, document: Document): Document {
@@ -599,7 +623,7 @@ const transformerStack: Transformer[] = [
   fetchMenu,
   ...(useIndex ? [sendDocumentToIndex] : []),
   ...(useSearchIndex ? [sendDocumentToSearchIndex] : []), // Add to search index for real-time search
-  performLLMExtract,
+  performLLMExtractUnlessNativeJson,
   performDeterministicJson,
   performSummary,
   performQuery,

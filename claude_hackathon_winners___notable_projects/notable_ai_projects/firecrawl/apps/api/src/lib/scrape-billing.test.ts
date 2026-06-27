@@ -1,6 +1,33 @@
 import { calculateCreditsToBeBilled } from "./scrape-billing";
 
 describe("calculateCreditsToBeBilled", () => {
+  it("bills handled data layer successes at 15 credits", async () => {
+    const credits = await calculateCreditsToBeBilled(
+      {
+        formats: [{ type: "markdown" }],
+      } as any,
+      {
+        teamId: "team-id",
+      },
+      {
+        metadata: {
+          statusCode: 200,
+          url: "https://profiles.example/in/example-person",
+          proxyUsed: "basic",
+        },
+      } as any,
+      {
+        totalCost: 0,
+      } as any,
+      {} as any,
+      undefined,
+      undefined,
+      { handled: true },
+    );
+
+    expect(credits).toBe(15);
+  });
+
   it("bills X/Twitter scrapes at 30 credits", async () => {
     const credits = await calculateCreditsToBeBilled(
       {
