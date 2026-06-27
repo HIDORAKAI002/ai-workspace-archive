@@ -1319,6 +1319,7 @@ export type TeamFlags = {
   searchFeedbackOptOut?: boolean;
   researchBeta?: boolean;
   highlightsBeta?: boolean;
+  enrichBeta?: boolean;
   // routes the team's new queue work to the FoundationDB backend
   nuqFdb?: boolean;
 } | null;

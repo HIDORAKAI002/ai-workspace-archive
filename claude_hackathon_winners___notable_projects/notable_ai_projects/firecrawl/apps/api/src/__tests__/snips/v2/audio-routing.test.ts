@@ -5,7 +5,9 @@
  */
 
 describe("Audio format engine routing (buildFallbackList)", () => {
-  let buildFallbackList: typeof import("../../../scraper/scrapeURL/engines").buildFallbackList;
+  let buildFallbackList: typeof import("../../../scraper/scrapeURL/engines/index.js").buildFallbackList;
+  let clearDataLayerCapabilitiesForTest: typeof import("../../../lib/data-layer.js").clearDataLayerCapabilitiesForTest;
+  let setDataLayerCapabilitiesForTest: typeof import("../../../lib/data-layer.js").setDataLayerCapabilitiesForTest;
 
   const originalFireEngineUrl = process.env.FIRE_ENGINE_BETA_URL;
   const originalIndexUrl = process.env.INDEX_DATABASE_URL;
@@ -20,6 +22,14 @@ describe("Audio format engine routing (buildFallbackList)", () => {
     ({ buildFallbackList } = await import(
       "../../../scraper/scrapeURL/engines/index.js"
     ));
+    ({
+      clearDataLayerCapabilitiesForTest,
+      setDataLayerCapabilitiesForTest,
+    } = await import("../../../lib/data-layer.js"));
+  });
+
+  afterEach(() => {
+    clearDataLayerCapabilitiesForTest();
   });
 
   afterAll(() => {
@@ -108,5 +118,22 @@ describe("Audio format engine routing (buildFallbackList)", () => {
     const engines = fallback.map(f => f.engine);
 
     expect(engines).toContain("fire-engine;chrome-cdp");
+  });
+
+  it("does not route agent index-only requests through the data layer", async () => {
+    setDataLayerCapabilitiesForTest({
+      domains: ["profiles.example"],
+    });
+
+    const meta = buildStubMeta([]);
+    meta.url = "https://profiles.example/person/example-person";
+    meta.options.formats = [{ type: "markdown" }];
+    meta.internalOptions.agentIndexOnly = true;
+    meta.internalOptions.teamFlags = { enrichBeta: true };
+
+    const fallback = await buildFallbackList(meta);
+    const engines = fallback.map(f => f.engine);
+
+    expect(engines).toEqual(["index", "index;documents"]);
   });
 });

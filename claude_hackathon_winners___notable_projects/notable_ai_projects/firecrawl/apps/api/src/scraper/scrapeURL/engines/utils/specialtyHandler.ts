@@ -163,7 +163,6 @@ export async function specialtyScrapeCheck(
     "audio/",
     "application/zip",
     "application/x-tar",
-    "application/gzip",
     "application/x-rar",
     "application/x-7z",
     "application/wasm",

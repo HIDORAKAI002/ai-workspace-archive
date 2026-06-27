@@ -120,7 +120,7 @@ async function startServer(port = DEFAULT_PORT) {
     await initializeBlocklist();
     initializeEngineForcing();
   } catch (error) {
-    logger.error("Failed to initialize blocklist and engine forcing", {
+    logger.error("Failed to initialize API startup dependencies", {
       error,
     });
     throw error;
