@@ -371,7 +371,10 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
 
   const columnMeta = parseProp(col.meta)
   const dateFormat = columnMeta?.date_format ?? dateFormats[0]
-  const timeFormat = columnMeta?.time_format ?? timeFormats[0]
+  const baseTimeFormat = columnMeta?.time_format ?? timeFormats[0]
+  // Honour the field's 12h/24h Time format setting — without this the value
+  // always renders in 24h (HH:mm) regardless of the field config.
+  const timeFormat = columnMeta?.is12hrFormat ? `${baseTimeFormat.replace('HH', 'hh')} A` : baseTimeFormat
   const dateTimeFormat = `${dateFormat} ${timeFormat}`
   const timezone = isEeUI && columnMeta?.timezone ? getTimeZoneFromName(columnMeta?.timezone) : undefined
   const { timezonize } = withTimezone(timezone?.name)

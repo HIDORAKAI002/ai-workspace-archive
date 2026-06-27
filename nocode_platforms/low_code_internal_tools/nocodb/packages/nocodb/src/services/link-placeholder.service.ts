@@ -277,8 +277,22 @@ export class LinkPlaceholderService {
       return;
     }
 
+    // The related table and the junction can live in other bases (cross-base
+    // link). Resolve each in its own base — using ctx.base_id would query the
+    // wrong base and silently no-op (placeholder values never materialize).
+    // Same-base links leave fk_related_base_id/fk_mm_base_id null or equal, so
+    // these collapse to ctx.
+    const relatedCtx: NcContext =
+      colOpt.fk_related_base_id && colOpt.fk_related_base_id !== ctx.base_id
+        ? { ...ctx, base_id: colOpt.fk_related_base_id }
+        : ctx;
+    const mmCtx: NcContext =
+      colOpt.fk_mm_base_id && colOpt.fk_mm_base_id !== ctx.base_id
+        ? { ...ctx, base_id: colOpt.fk_mm_base_id }
+        : ctx;
+
     const relatedTable = await Model.get(
-      ctx,
+      relatedCtx,
       colOpt.fk_related_model_id,
       true,
       ncMeta,
@@ -409,23 +423,26 @@ export class LinkPlaceholderService {
 
     if (isMMLike && colOpt.fk_mm_model_id) {
       const junctionTable = await Model.get(
-        ctx,
+        mmCtx,
         colOpt.fk_mm_model_id,
         true,
         ncMeta,
       );
       if (!junctionTable) return;
 
+      // mm child/parent columns live on the junction (mmCtx); the link's child
+      // column is on the current model (ctx); the parent column is on the
+      // related model (relatedCtx).
       const [mmChildCol, mmParentCol, childCol, parentCol] = await Promise.all([
         ncMeta.metaGet2(
-          ctx.workspace_id,
-          ctx.base_id,
+          mmCtx.workspace_id,
+          mmCtx.base_id,
           MetaTable.COLUMNS,
           colOpt.fk_mm_child_column_id,
         ),
         ncMeta.metaGet2(
-          ctx.workspace_id,
-          ctx.base_id,
+          mmCtx.workspace_id,
+          mmCtx.base_id,
           MetaTable.COLUMNS,
           colOpt.fk_mm_parent_column_id,
         ),
@@ -436,8 +453,8 @@ export class LinkPlaceholderService {
           colOpt.fk_child_column_id,
         ),
         ncMeta.metaGet2(
-          ctx.workspace_id,
-          ctx.base_id,
+          relatedCtx.workspace_id,
+          relatedCtx.base_id,
           MetaTable.COLUMNS,
           colOpt.fk_parent_column_id,
         ),

@@ -924,6 +924,14 @@ export const relationDataFetcher = (param: {
         baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
+      // Resolve mm/related contexts so cross-base junction & related tables are
+      // schema-qualified against THEIR base, not the requesting base. Mirrors the
+      // singular mmListCount; without this, cross-base link counts qualify the
+      // junction/related tables with the wrong schema.
+      const { mmContext, refContext } = relColOptions.getRelContext(
+        baseModel.context,
+      );
+
       const mmTable = await relColOptions.getMMModel(baseModel.context);
 
       // if mm table is not present then return
@@ -931,32 +939,35 @@ export const relationDataFetcher = (param: {
         return parentIds.map(() => 0);
       }
 
-      const vtn = baseModel.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
+      const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+        model: mmTable,
+        dbDriver: baseModel.dbDriver,
+      });
+
+      const vtn = assocBaseModel.getTnPath(mmTable);
+      const vcn = (await relColOptions.getMMChildColumn(mmContext)).column_name;
+      const vrcn = (await relColOptions.getMMParentColumn(mmContext))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
-        .column_name;
-      const rcn = (await relColOptions.getParentColumn(baseModel.context))
-        .column_name;
+      const rcn = (await relColOptions.getParentColumn(refContext)).column_name;
       const cn = (await relColOptions.getChildColumn(baseModel.context))
         .column_name;
       const childTable = await (
-        await relColOptions.getParentColumn(baseModel.context)
-      ).getModel(baseModel.context);
+        await relColOptions.getParentColumn(refContext)
+      ).getModel(refContext);
       const parentTable = await (
         await relColOptions.getChildColumn(baseModel.context)
       ).getModel(baseModel.context);
       await parentTable.getColumns(baseModel.context);
 
-      const childTn = baseModel.getTnPath(childTable);
-      const parentTn = baseModel.getTnPath(parentTable);
-
-      const rtn = childTn;
-
-      const refBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+      const refBaseModel = await Model.getBaseModelSQL(refContext, {
         dbDriver: baseModel.dbDriver,
         model: childTable,
       });
+
+      const childTn = refBaseModel.getTnPath(childTable);
+      const parentTn = baseModel.getTnPath(parentTable);
+
+      const rtn = childTn;
 
       const qb = baseModel
         .dbDriver(rtn)

@@ -125,6 +125,10 @@ const columnWidthPct = (index: number) => `${(columnWeights.value[index] / total
 
 const currTime = ref(timezoneDayjs.dayjsTz())
 
+// The hour axis and current-time indicator follow the primary range field's
+// Time format setting (12h vs 24h) rather than being hard-wired to 12h.
+const is12hrAxis = computed(() => is12hrTimeColumn(calendarRange.value?.[0]?.fk_from_col))
+
 const overlayStyle = computed(() => {
   if (!containerWidth.value)
     return {
@@ -1111,7 +1115,7 @@ watch(
           class="text-nc-content-inverted-primary bg-nc-content-brand rounded-md leading-3.5 font-bold text-xs pointer-events-auto p-0.5 cursor-pointer"
           @click="addRecord(timezoneDayjs.dayjsTz())"
         >
-          {{ currTime.format('hh:mm A') }}
+          {{ currTime.format(is12hrAxis ? 'hh:mm A' : 'HH:mm') }}
         </span>
         <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-nc-border-brand"></div>
       </div>
@@ -1142,7 +1146,7 @@ watch(
         :key="index"
         class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-right pr-2 font-semibold text-xs text-nc-content-gray-muted py-1"
       >
-        {{ hour.format('hh a') }}
+        {{ hour.format(is12hrAxis ? 'hh a' : 'HH:00') }}
       </div>
     </div>
     <div
@@ -1213,10 +1217,8 @@ watch(
                   :key="record?.rowMeta?.id"
                   :draggable="false"
                   class="w-64"
-                  :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"
                   :invalid="false"
                   :row="record"
-                  :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
                   data-testid="nc-sidebar-record-card"
                   @click="expandRecord(record)"
                 >
@@ -1296,7 +1298,11 @@ watch(
                 </template>
                 <template #time>
                   <div class="text-xs font-medium text-nc-content-gray-disabled">
-                    {{ timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
+                    {{
+                      timezoneDayjs
+                        .timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!])
+                        .format(is12hrTimeColumn(record.rowMeta.range?.fk_from_col) ? 'h:mm a' : 'HH:mm')
+                    }}
                   </div>
                 </template>
               </LazySmartsheetCalendarVRecordCard>

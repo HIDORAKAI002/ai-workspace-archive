@@ -858,6 +858,7 @@ watch(
             v-model:source-id="sourceIdRef"
             :base-id="baseId"
             :show-source-selector="showSourceSelector"
+            :import-data-only="importDataOnly"
             force-layout="vertical"
           />
         </div>

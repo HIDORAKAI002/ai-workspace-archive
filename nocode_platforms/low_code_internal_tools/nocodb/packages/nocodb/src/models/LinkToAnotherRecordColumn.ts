@@ -144,7 +144,15 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
-    const { mmContext } = this.getRelContext(context);
+    // Resolve mmContext relative to THIS link's own base (like getRelatedTable /
+    // getMMChildColumn), not the caller's context. Otherwise a caller passing a
+    // different base (e.g. a cross-base lookup chain) plus a same-base junction
+    // (fk_mm_base_id null) would resolve the junction model in the wrong base
+    // and miss it.
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.mmModel = await Model.getByIdOrName(
       mmContext,
       {

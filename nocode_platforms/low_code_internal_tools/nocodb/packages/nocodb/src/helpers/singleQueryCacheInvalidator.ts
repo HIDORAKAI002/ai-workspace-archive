@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import type { LookupType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type Column from '~/models/Column';
@@ -5,6 +6,8 @@ import type { LinksColumn } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { invalidateSingleQueryCacheForModels } from '~/helpers/metaCacheInvalidator';
+
+const logger = new Logger('singleQueryCacheInvalidator');
 
 /**
  * Dedicated invalidator for the optimised single-query (read/list) cache.
@@ -95,6 +98,9 @@ export async function clearSingleQueryCacheForReferencingModels(
     [...referencingModelIds],
     ncMeta,
   );
+
+  // Cross-base: models in other bases that join this renamed table.
+  await clearCrossBaseReferringModels(context, modelId, new Set<string>(), ncMeta);
 }
 
 /**
@@ -158,6 +164,16 @@ export async function clearSingleQueryCacheForRenamedColumnReferences(
   await invalidateSingleQueryCacheForModels(
     context,
     [...referencingModelIds],
+    ncMeta,
+  );
+
+  // Cross-base: lookups/rollups in other bases that surface this renamed column
+  // through a cross-base link (seed with the column itself so direct look-ups of
+  // it match during the per-referring-base expansion).
+  await clearCrossBaseReferringModels(
+    context,
+    oldCol.fk_model_id,
+    new Set<string>([oldCol.id]),
     ncMeta,
   );
 }
@@ -345,6 +361,97 @@ async function loadBaseLookupsAndRollups(
     MetaTable.COL_ROLLUP,
   );
   return { lookups, rollups };
+}
+
+/**
+ * Cross-base companion to the base-scoped invalidators above. Those discover
+ * referrers only within `context.base_id`, so a rename in base B never reaches
+ * the single-query cache of a base A that embeds B's table through a cross-base
+ * link / lookup / rollup — base A's cache stays stale until some unrelated write
+ * in A (e.g. toggling a column's visibility) happens to clear it.
+ *
+ * Inbound cross-base relations span bases, so they are read workspace-wide via
+ * knex (mirrors `Base.cleanupCrossBaseLinksInto`). For each referring base we
+ * rebuild the transitive embedding-column closure IN THAT BASE and invalidate
+ * its models USING THAT BASE'S context — invalidating with the changed model's
+ * context would scope the cache keys to the wrong base and silently no-op.
+ *
+ * Best-effort: a failure here must never block the originating schema change.
+ */
+async function clearCrossBaseReferringModels(
+  context: NcContext,
+  changedModelId: string,
+  seedColumnIds: Set<string>,
+  ncMeta = Noco.ncMeta,
+): Promise<void> {
+  if (!Noco.isEE()) return;
+
+  let inbound: Array<Record<string, any>>;
+  try {
+    inbound = await ncMeta
+      .knex(MetaTable.COL_RELATIONS)
+      .where('fk_workspace_id', context.workspace_id)
+      .whereNot('base_id', context.base_id)
+      .where('fk_related_base_id', context.base_id)
+      .where('fk_related_model_id', changedModelId);
+  } catch {
+    // No cross-base links (or a transient read error) — nothing to do.
+    return;
+  }
+  if (!inbound?.length) return;
+
+  // Group the referring link columns by the base they live in.
+  const linkColsByBase = new Map<string, Set<string>>();
+  for (const rel of inbound) {
+    if (!rel.base_id || !rel.fk_column_id) continue;
+    if (!linkColsByBase.has(rel.base_id)) {
+      linkColsByBase.set(rel.base_id, new Set<string>());
+    }
+    linkColsByBase.get(rel.base_id).add(rel.fk_column_id);
+  }
+
+  for (const [refBaseId, linkColIds] of linkColsByBase) {
+    // Per-base best-effort: this runs AFTER the rename has committed and the
+    // caller (tableUpdate/columnUpdate) does not wrap it, so a transient failure
+    // on one referring base must not throw past the realtime broadcast + hooks
+    // and 500 a rename that already succeeded. Log and continue to the next base
+    // (a missed invalidation degrades to stale cache, not a failed rename).
+    try {
+      const refCtx: NcContext = { ...context, base_id: refBaseId };
+      // Seed: the cross-base link columns (their SQL joins the changed model)
+      // plus the changed column ids (so a Lookup reading one directly matches),
+      // then expand the lookup/rollup closure within the referring base.
+      const embeddingColumnIds = new Set<string>([
+        ...seedColumnIds,
+        ...linkColIds,
+      ]);
+      const { lookups, rollups } = await loadBaseLookupsAndRollups(
+        refCtx,
+        ncMeta,
+      );
+      expandEmbeddingColumns(embeddingColumnIds, lookups, rollups, linkColIds);
+
+      const referringModelIds = await resolveModelIdsFromColumnIds(
+        refCtx,
+        [...embeddingColumnIds],
+        ncMeta,
+      );
+      if (referringModelIds.size) {
+        await invalidateSingleQueryCacheForModels(
+          refCtx,
+          [...referringModelIds],
+          ncMeta,
+        );
+      }
+    } catch (e) {
+      logger.error(
+        `Cross-base single-query cache invalidation failed for referring base ${refBaseId}: ${
+          (e as Error)?.message
+        }`,
+        (e as Error)?.stack,
+      );
+    }
+  }
 }
 
 /**
