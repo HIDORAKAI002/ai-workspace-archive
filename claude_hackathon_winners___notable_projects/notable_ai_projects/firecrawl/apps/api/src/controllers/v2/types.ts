@@ -1548,6 +1548,7 @@ export type TeamFlags = {
   researchBeta?: boolean;
   highlightsBeta?: boolean;
   menuBeta?: boolean;
+  enrichBeta?: boolean;
 } | null;
 
 interface RequestWithMaybeACUC<

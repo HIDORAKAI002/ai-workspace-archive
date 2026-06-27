@@ -105,6 +105,7 @@ export async function sendDocumentToIndex(meta: Meta, document: Document) {
             meta.rewrittenUrl ??
             meta.url,
           html: document.rawHtml!,
+          json: document.json,
           statusCode: document.metadata.statusCode,
           error: document.metadata.error,
           screenshot: document.screenshot,
@@ -547,6 +548,7 @@ export async function scrapeURLWithIndex(
   return {
     url: doc.url,
     html: doc.html,
+    json: doc.json,
     statusCode: doc.statusCode,
     error: doc.error,
     screenshot: doc.screenshot,
