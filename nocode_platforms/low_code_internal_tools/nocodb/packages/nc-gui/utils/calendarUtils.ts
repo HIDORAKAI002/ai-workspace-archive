@@ -1,5 +1,5 @@
 import type dayjs from 'dayjs'
-import type { ColumnType } from 'nocodb-sdk'
+import { type ColumnType, parseProp } from 'nocodb-sdk'
 
 const isRowInDateRange = (
   rowData: Record<string, any>,
@@ -216,4 +216,12 @@ const isRowMatchingSidebarFilter = (
   }
 }
 
-export { isRowInDateRange, isRowInCurrentDateRange, isRowMatchingSidebarFilter }
+// Whether the given Date/Time column is configured to display in 12-hour format.
+// Calendar surfaces (the hour axis, the current-time indicator and per-record
+// times) read this so their labels follow the field's Time format setting
+// instead of being hard-wired to 12h.
+const is12hrTimeColumn = (col?: ColumnType | null): boolean => {
+  return !!parseProp(col?.meta)?.is12hrFormat
+}
+
+export { isRowInDateRange, isRowInCurrentDateRange, isRowMatchingSidebarFilter, is12hrTimeColumn }

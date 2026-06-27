@@ -1,67 +1,71 @@
 <a name="readme-top"></a>
 
-
-
 <div align="center">
-  <a href="https://pypi.org/project/MindsDB/" target="_blank">
-    <img src="https://badge.fury.io/py/MindsDB.svg" alt="MindsDB Release" />
-  </a>
-  <a href="https://www.python.org/downloads/" target="_blank">
-    <img src="https://img.shields.io/badge/python-3.10.x%7C%203.11.x%7C%203.12.x%7C%203.13.x-brightgreen.svg" alt="Python supported" />
-  </a>
-  <a href="https://hub.docker.com/r/mindsdb/mindsdb" target="_blank">
-  <img src="https://img.shields.io/docker/pulls/mindsdb/mindsdb.svg?logo=docker&label=Docker%20pulls&cacheSeconds=86400" alt="Docker pulls" />
-  </a>
-<br/>
-  <p align="center">
-	<a href="https://docs.mindshub.ai/">Documentation</a>
-    ·
-    <a href="https://docs.mindshub.ai/setup.html">Try it</a>
-    ·
-    <a href="https://mindsdb.com/contact?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">Contact us for a demo</a>
-    
-  </p>
+
+# MindsHub Cowork
+
+**The unified workspace where open-source agents get work done for you.**
+
+_Delegate anything. It comes back done._
+
+[![Release](https://img.shields.io/github/v/release/mindsdb/minds?logo=github&label=release)](https://github.com/mindsdb/minds/releases)
+[![Stars](https://img.shields.io/github/stars/mindsdb/minds?logo=github)](https://github.com/mindsdb/minds/stargazers)
+[![License: MIT](https://img.shields.io/github/license/mindsdb/minds)](#-license)
+[![Python 3.10–3.13](https://img.shields.io/badge/python-3.10%20–%203.13-brightgreen.svg)](https://www.python.org/downloads/)
+
+[Website](https://mindshub.ai/?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme) ·
+[Docs](https://docs.mindshub.ai/?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme) ·
+[Web app](https://console.mindshub.ai/?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme) ·
+[Pricing](https://mindshub.ai/pricing?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme) ·
+[Discord](https://mindshub.ai/discord)
+
 </div>
 
+<p align="center">
+  <img alt="MindsHub Cowork — the unified workspace" width="100%" src="https://github.com/user-attachments/assets/769e6463-0a9d-45ae-83d1-ef9e234775d3" />
+</p>
 
-<img width="1198" height="697" alt="image" src="https://github.com/user-attachments/assets/769e6463-0a9d-45ae-83d1-ef9e234775d3" />
+**MindsHub Cowork** is the unified workspace where you delegate entire tasks — research, analysis, reporting, scheduled operations — and collect finished, shareable results. Connect your data, route each step to the right model, run open-source agents, and turn their output into artifacts you can publish. It's open source and runs anywhere — your machine, your VPC, or the hosted app.
 
+This repository is the **platform superproject**: it pulls together the desktop/web app, the agent backend, and the data engine so you can build and run the whole stack from source.
 
-# MINDS-COWORK PLATFORM 
+## Get started
 
-Minds Platform is dedicated to building a general-purpose AI designed for knowledge workers — creators, strategists, and operators — and individuals seeking AI systems they can truly control to help them get work done, with full flexibility to extend and deploy anywhere (VPC, on-prem, or cloud).
+Pick whichever fits:
 
+- **Web — nothing to install.** Open **[console.mindshub.ai](https://console.mindshub.ai/?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme)** and sign in.
+- **macOS.** [Download the desktop app](https://downloads.mindsdb.com/mindshub-cowork/mac/mindshub-cowork-latest.pkg) (`.pkg`).
+- **Windows.** [Download the desktop app](https://downloads.mindsdb.com/mindshub-cowork/windows/mindshub-cowork-latest.exe) (`.exe`).
+- **Run it open source.** [Build from source](#build-from-source) — see below.
 
+Free to start. Pro adds all frontier models and private artifacts — see [pricing](https://mindshub.ai/pricing?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme).
 
-## USE CASES
+## What you can do
 
+For every knowledge worker — creators, strategists, and operators:
 
-**For every knowledge worker**
-- **Automate** any repetitive multi-step task that involves reading and writing (reports, monitoring, workflows)
-- **Build** internal AI tools/artifacts without engineering and deploy to your team (apps, decks, docs, analyses)
+- **Automate** repetitive, multi-step work that involves reading and writing: reports, monitoring, recurring workflows, and scheduled operations.
+- **Build** internal AI tools and artifacts — apps, dashboards, decks, docs, analyses — without engineering, and publish them to a live URL to share with your team.
 
----
+## What's inside
 
-## GET STARTED
+- **Connected data.** A secure vault links systems like BigQuery, Postgres, Gmail, Drive, HubSpot, Notion, and Linear. Credentials stay scoped per connection — agents never see raw keys.
+- **Model Router.** Switch between frontier models (Claude, GPT, Gemini) and open models (DeepSeek, Qwen, Kimi) without wiring up a key for each provider.
+- **Open agents.** Run interchangeable open-source harnesses — Anton (default) and Hermes — swappable from a dropdown.
+- **Artifacts.** Turn agent output into documents, dashboards, apps, and code, and publish to a live URL.
+- **Memory, skills & scheduling.** Cross-session memory, a reusable skill library, and tasks that run on a schedule.
 
-### Desktop App:
-Simplest way to use this is the latest build App, available on web or desktop:
+## Build from source
 
-- **web**: Click [here to register/login](https://mindshub.ai) the Minds-cowork app, packaged and ready for you in one click.
-
-- **macOS**: Click [here to download](https://downloads.mindsdb.com/anton/mac/anton-latest.pkg) the Minds-cowork for MacOS.
-
-- **Windows**: Click [here to download](https://downloads.mindsdb.com/anton/windows/anton-latest.exe) the Minds-cowork for Windows.
- 
-
-### Build from source:
 **1. Clone the repository**
+
 ```bash
-git clone --recurse-submodules https://github.com/mindsdb/minds-platform.git
-cd minds-platform
+git clone --recurse-submodules https://github.com/mindsdb/minds.git
+cd minds
 ```
 
 **2. Install dependencies**
+
 ```bash
 make setup
 ```
@@ -78,13 +82,14 @@ make setup
 | Build macOS `.app` from local uncommitted source | `make pack-local` |
 | Wipe all local installs + data (fresh start) | `make flush` |
 
-> **Reset to a clean slate:** `make flush` uninstalls the local runtime (the `cowork-server` uv tool and the `backend/*/.venv`s) **and** deletes app state in `~/.anton` (provider keys) and `~/.cowork` (database, hermes, projects). Use it to test the from-scratch install flow or recover from a broken install. ⚠️ This deletes your conversations and saved keys. It prompts for confirmation; pass `FORCE=1` to skip it. The next `make setup` or app launch reinstalls everything.
+> **Fresh start:** `make flush` removes the local runtime (the `cowork-server` uv tool and the `backend/*/.venv`s) and deletes app state in `~/.anton` (provider keys) and `~/.cowork` (database, hermes, projects). Use it to test the from-scratch install flow or recover from a broken install. It prompts for confirmation — pass `FORCE=1` to skip. The next `make setup` or app launch reinstalls everything. ⚠️ This deletes your conversations and saved keys.
 
 ### Working on feature branches (submodules)
 
 This repo is a superproject that pins each module (`frontend`, `backend/core_api`, `backend/core_agent`, `backend/data-vault`) to a commit. To work on module branches without polluting `git status` or fighting over pins:
 
 **1. Pick your branches** in a gitignored `dev.env` (copy the template):
+
 ```bash
 cp dev.env.example dev.env      # then set REF=feat/my-thing (or per-module API_REF=…)
 ```
@@ -105,79 +110,34 @@ cp dev.env.example dev.env      # then set REF=feat/my-thing (or per-module API_
 
 Submodules are configured with `ignore = all`, so your branch work never shows up as superproject changes — the parent `git status` stays clean. Pins move **only** via `make pin`. See [`CLAUDE.md`](CLAUDE.md) for the full workflow.
 
----
+## Deploy anywhere
 
-## DEPLOY ANYWHERE
+Cowork is built for flexible deployment — **cloud, VPC, on-prem, air-gapped, and hybrid** infrastructure — so you keep full control over your infrastructure, models, permissions, and data.
 
-Minds Platform is designed for flexible deployment across:
+## Help & support
 
-- Cloud
-- VPC
-- On-Prem
-- Air-Gapped Environments
-- Hybrid Infrastructure
+- **Ask a question** — join the [Discord community](https://mindshub.ai/discord).
+- **Report a bug** — open a [GitHub issue](https://github.com/mindsdb/minds/issues) with reproduction steps.
+- **Read the docs** — guides, setup, and the API at [docs.mindshub.ai](https://docs.mindshub.ai/?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme).
+- **Enterprise SLAs or custom deployments** — [contact the team](https://mindshub.ai/contact?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme).
 
-Maintain full control over your infrastructure, models, permissions, and data.
+## 🤝 Contribute
 
-## 🫴 Help and support
+Cowork is open source and contributions are welcome — code, integrations, docs, bug reports, and feature ideas. Read the [docs](https://docs.mindshub.ai/?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme) to get set up, browse [open issues](https://github.com/mindsdb/minds/issues), and say hi on [Discord](https://mindshub.ai/discord).
 
-Stuck on a query? Found a bug? We’re here to help.
-<table style="width:100%; border-collapse:collapse;">
-  <tr>
-    <td style="width:30%; border:1px solid #d0d7de; padding:12px; vertical-align:top;">
-      Ask a question
-    </td>
-    <td style="width:70%; border:1px solid #d0d7de; padding:12px; vertical-align:top;">
-      Join our <a href="https://mindsdb.com/joincommunity">Slack Community</a>.
-    </td>
-  </tr>
-  <tr>
-    <td style="width:30%; border:1px solid #d0d7de; padding:12px; vertical-align:top;">
-      Report a bug
-    </td>
-    <td style="width:70%; border:1px solid #d0d7de; padding:12px; vertical-align:top;">
-      Open a <a href="https://github.com/mindsdb/mindsdb/issues">GitHub Issue</a>. Please include reproduction steps!
-    </td>
-  </tr>
-  <tr>
-    <td style="width:30%; border:1px solid #d0d7de; padding:12px; vertical-align:top;">
-      Get commercial support
-    </td>
-    <td style="width:70%; border:1px solid #d0d7de; padding:12px; vertical-align:top;">
-      Contact the <a href="https://mindsdb.com/contact?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">MindsDB Team</a> for enterprise SLAs and custom solutions.
-    </td>
-  </tr>
-</table>
+## 🔒 Security
 
-**Security Note:** If you find a security vulnerability, please do not open a public issue. Refer to our <a href="https://github.com/mindsdb/mindsdb/security">security policy</a> for reporting instructions.
-
-## 🤝 Contribute to Minds Platform
-
-Minds Platform is open source and contributions are welcome! You can submit code changes through pull requests or by opening issues to report bugs, suggest new features, or enhancements.
-
-
-**How to contribute**
-
-- Read the <a href="https://docs.mindsdb.com/contribute/contribute?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">contribution guide</a> to get set up.
-- Browse <a href="https://github.com/mindsdb/mindsdb/issues">open issues</a>.
-- Join the #contributors channel in <a href="https://mindsdb.com/joincommunity">Slack</a>.
-- Explore <a href="https://mindsdb.com/community?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">community rewards and programs</a>.
-
-<div align="center">
-
-<strong>Our top 100 contributors</strong>
-
-<a href="https://github.com/mindsdb/mindsdb/graphs/contributors">
-<img src="https://contrib.rocks/image?repo=mindsdb/mindsdb&max=100&columns=10" />
-</a>
-	
-Made with [contrib.rocks](https://contrib.rocks)
-</div>
+Found a security vulnerability? Please **don't** open a public issue. Report it privately through our [security policy](https://github.com/mindsdb/minds/security).
 
 ## 📚 Resources
-- <a href="https://docs.mindsdb.com?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">Documentation</a>
-- <a href="https://mindsdb.com/blog?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">Blog</a>
-- <a href="https://mindsdb.com/events?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">Events</a>
-- <a href="https://mindsdb.com/joincommunity">Community Slack</a>
-- <a href="https://mindsdb.com/press-kit?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">Brand guidelines</a>
-- <a href="https://mindsdb.com/contact?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">Contact form</a>
+
+- [Documentation](https://docs.mindshub.ai/?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme)
+- [Blog](https://mindshub.ai/blog?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme)
+- [Brand guidelines & press kit](https://mindshub.ai/press-kit?utm_source=github&utm_medium=repo-readme&utm_campaign=minds-readme)
+- [Discord community](https://mindshub.ai/discord)
+
+## 📄 License
+
+This repository is released under the [MIT License](LICENSE). Bundled components are governed by their own licenses — see each submodule's repository for details.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
