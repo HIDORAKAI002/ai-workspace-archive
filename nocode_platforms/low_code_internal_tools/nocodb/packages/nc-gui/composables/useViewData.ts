@@ -427,13 +427,21 @@ export function useViewData(
       const {
         source_id: _sourceId,
         base_id: _baseId,
-        fk_view_id: _fkViewId,
+        fk_view_id: fkViewId,
         fk_workspace_id: _fkWs,
         created_at: _createdAt,
         updated_at: _updatedAt,
         ...body
       } = view as Record<string, any>
-      await updateViewMeta(viewMeta.value.id, ViewTypes.FORM, body)
+
+      // Persist against the form view this data actually belongs to (`fk_view_id`),
+      // not the currently-active view. The save is debounced, so it can fire after
+      // the user has switched to another form view of the same table but before that
+      // view's data has finished (re)loading — at that point `viewMeta` already points
+      // at the new view while `view` still holds the previous form's data. Keying off
+      // the data's own `fk_view_id` stops one form's heading/subheading from
+      // overwriting another's. See nocodb/nocodb#14153.
+      await updateViewMeta(fkViewId ?? viewMeta.value.id, ViewTypes.FORM, body)
     } catch (e: any) {
       return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }

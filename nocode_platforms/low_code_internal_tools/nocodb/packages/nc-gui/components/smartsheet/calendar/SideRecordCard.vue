@@ -32,14 +32,16 @@ const toDateRaw = computed(() => (toCol.value ? props.row?.row?.[toCol.value.tit
 const fromDate = computed(() => {
   if (!fromDateRaw.value || !fromCol.value) return null
 
-  const format = props.calDataType === 'Date' ? 'D MMM' : 'D MMM • h:mm A'
+  const timeFormat = is12hrTimeColumn(fromCol.value) ? 'h:mm A' : 'HH:mm'
+  const format = props.calDataType === 'Date' ? 'D MMM' : `D MMM • ${timeFormat}`
   return timezoneDayjs.timezonize(fromDateRaw.value).format(format)
 })
 
 const toDate = computed(() => {
   if (!toDateRaw.value || !toCol.value || !dayjs(toDateRaw.value)?.isValid()) return null
 
-  const format = props.calDataType === 'Date' ? 'DD MMM' : 'DD MMM • HH:mm A'
+  const timeFormat = is12hrTimeColumn(toCol.value) ? 'h:mm A' : 'HH:mm'
+  const format = props.calDataType === 'Date' ? 'DD MMM' : `DD MMM • ${timeFormat}`
   return timezoneDayjs.timezonize(toDateRaw.value).format(format)
 })
 

@@ -1111,10 +1111,8 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                     :key="idx"
                     :draggable="false"
                     class="w-64"
-                    :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"
                     :invalid="false"
                     :row="record"
-                    :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
                     data-testid="nc-sidebar-record-card"
                     @click="emit('expandRecord', record)"
                   >
@@ -1182,7 +1180,12 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
               <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>
                 <span class="text-xs font-medium text-nc-content-gray-disabled">
                   {{
-                    timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1)
+                    is12hrTimeColumn(record.rowMeta.range?.fk_from_col)
+                      ? timezoneDayjs
+                          .timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!])
+                          .format('h:mma')
+                          .slice(0, -1)
+                      : timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('HH:mm')
                   }}
                 </span>
               </template>

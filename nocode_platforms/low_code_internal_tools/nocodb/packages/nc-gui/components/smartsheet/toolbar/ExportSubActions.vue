@@ -54,6 +54,17 @@ const { sorts, nestedFilters, isLocked } = useSmartsheetStore() || {
   nestedFilters: ref([]),
   isLocked: ref(false),
 }
+
+// In a shared view the top-bar Download button lives outside the grid's smartsheet store tree
+// (it has its own provider via ExportWithProvider), so `nestedFilters`/`sorts` above stay empty.
+// The grid mirrors the viewer-applied filters/sorts to these global refs, so read from them for
+// public views to ensure the export honours the currently configured filters and sorts.
+const { activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
+
+const effectiveSorts = computed(() => (isPublicView.value ? activeSorts.value : sorts.value))
+
+const effectiveNestedFilters = computed(() => (isPublicView.value ? activeNestedFilters.value : nestedFilters.value))
+
 const { isUIAllowed } = useRoles()
 
 const exportFile = async (exportType: ExportTypes) => {
@@ -69,12 +80,12 @@ const exportFile = async (exportType: ExportTypes) => {
     const extraParams = {
       ...(!isUIAllowed('sortSync') || isLocked.value
         ? {
-            sortArrJson: stringifyFilterOrSortArr(sorts.value.filter((s: any) => !s.id)),
+            sortArrJson: stringifyFilterOrSortArr(effectiveSorts.value.filter((s: any) => !s.id)),
           }
         : {}),
       ...(!isUIAllowed('filterSync') || isLocked.value
         ? {
-            filterArrJson: stringifyFilterOrSortArr(nestedFilters.value.filter((f: any) => !f.id)),
+            filterArrJson: stringifyFilterOrSortArr(effectiveNestedFilters.value.filter((f: any) => !f.id)),
           }
         : {}),
     }

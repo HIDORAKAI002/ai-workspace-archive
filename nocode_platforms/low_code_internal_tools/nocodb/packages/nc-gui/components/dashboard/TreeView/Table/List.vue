@@ -21,7 +21,12 @@ const emits = defineEmits(['createTable'])
 const base = toRef(props, 'base')
 const sourceIndex = toRef(props, 'sourceIndex')
 
-const source = computed(() => base.value?.sources?.[sourceIndex.value])
+const source = computed(() => base.value?.sources?.[sourceIndex.value]!)
+
+// Rendered per-source — expose it to descendant menus (e.g. ViewActionMenu's data-readonly
+// upload check via useRoles). The sidebar sits outside Smartsheet.vue, which is where
+// ActiveSourceInj is otherwise provided.
+provide(ActiveSourceInj, source)
 
 const { isMobileMode } = useGlobal()
 
