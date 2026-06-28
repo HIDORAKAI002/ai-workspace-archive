@@ -18,6 +18,7 @@ use crate::{
     auth::AuthzAction,
     routes::{
         agent::{default_model, default_system_prompt, run_agent_to_final_text, AgentRequest},
+        links::page_link_instructions,
         read_page::{run_read_page, ReadPageRequest},
         search::{run_page_search, PageSearchResponseBody, SearchRequest},
         whoami::whoami_and_authorize,
@@ -101,7 +102,13 @@ impl FoundationMcpServer {
         description = "Ask a question and get a synthesized, cited answer grounded \
             in Foundation, the organization-wide wiki of the company's data. Use \
             this for questions that may be answered by internal company knowledge \
-            rather than general knowledge."
+            rather than general knowledge.",
+        annotations(
+            read_only_hint = true,
+            destructive_hint = false,
+            idempotent_hint = false,
+            open_world_hint = true
+        )
     )]
     async fn ask_foundation(
         &self,
@@ -116,10 +123,24 @@ impl FoundationMcpServer {
             Err(result) => return result,
         };
 
+        // When a valid ui origin is configured, instruct the agent how to build
+        // web page links so its cited pages become references the user can
+        // follow; otherwise fall back to the link-free default prompt.
+        let link_instructions = self
+            .server
+            .config
+            .foundation
+            .foundation_ui_origin
+            .as_deref()
+            .and_then(|origin| page_link_instructions(origin, &tenant));
+        let system = match link_instructions {
+            Some(instructions) => default_system_prompt() + &instructions,
+            None => default_system_prompt(),
+        };
         let request = AgentRequest {
             input: params.query,
             model: default_model(),
-            system: default_system_prompt(),
+            system,
         };
         if let Err(err) = request.validate() {
             return CallToolResult::error(vec![Content::text(err.to_string())]);
@@ -143,7 +164,13 @@ impl FoundationMcpServer {
             processes, architecture, conventions, team knowledge) that would not \
             be in the current codebase or public sources. Use `ask_foundation` \
             instead when you just want a synthesized answer rather than the \
-            source pages."
+            source pages.",
+        annotations(
+            read_only_hint = true,
+            destructive_hint = false,
+            idempotent_hint = true,
+            open_world_hint = false
+        )
     )]
     async fn search_pages(
         &self,
@@ -193,7 +220,13 @@ impl FoundationMcpServer {
         description = "Read a single Foundation wiki page in full by its slug \
             (as returned by `search_pages`), including its complete markdown \
             content, title, and categories. Use this to pull the source material \
-            behind a search hit so you can read and cite it directly."
+            behind a search hit so you can read and cite it directly.",
+        annotations(
+            read_only_hint = true,
+            destructive_hint = false,
+            idempotent_hint = true,
+            open_world_hint = false
+        )
     )]
     async fn read_page(
         &self,
