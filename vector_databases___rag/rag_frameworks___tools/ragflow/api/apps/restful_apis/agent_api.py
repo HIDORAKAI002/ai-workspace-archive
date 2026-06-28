@@ -575,7 +575,14 @@ async def _iter_session_completion_events(tenant_id, agent_id, req, return_trace
             yield ans
             continue
 
-        if event in ["message", "message_end"]:
+        if event in ["message", "message_end", "user_inputs", "workflow_finished"]:
+            if event in ["user_inputs", "workflow_finished"]:
+                logging.debug(
+                    "Forwarding session completion event: tenant_id=%s agent_id=%s event=%s",
+                    tenant_id,
+                    agent_id,
+                    event,
+                )
             yield ans
 
 
@@ -1064,6 +1071,14 @@ async def rerun_agent(tenant_id):
     if not doc:
         return get_data_error_result(message="Document not found.")
     doc = doc[0]
+    if not DocumentService.accessible(doc["id"], tenant_id):
+        logging.warning(
+            "rerun_agent denied: tenant_id=%s log_id=%s doc_id=%s",
+            tenant_id,
+            req["id"],
+            doc["id"],
+        )
+        return get_data_error_result(message="Document not found.")
     if 0 < doc["progress"] < 1:
         return get_data_error_result(message=f"`{doc['name']}` is processing...")
 
@@ -1564,7 +1579,10 @@ async def agent_chat_completion(tenant_id, agent_id=None):
                             "trace": [copy.deepcopy(data)],
                         }
                     )
-            final_ans = ans
+            if ans.get("event") == "message_end":
+                final_ans = ans
+            elif ans.get("event") == "user_inputs" and not final_ans:
+                final_ans = ans
         except Exception as exc:
             return get_result(data=f"**ERROR**: {str(exc)}")
 
