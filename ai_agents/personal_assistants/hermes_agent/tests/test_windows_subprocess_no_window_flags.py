@@ -261,3 +261,67 @@ def test_inline_skill_shell_hides_bash_window(monkeypatch):
     assert skill_preprocessing.run_inline_shell("echo ok", cwd=None, timeout=5) == "ok"
     assert captured[0][0] == ["bash", "-c", "echo ok"]
     assert captured[0][1]["creationflags"] == _CREATE_NO_WINDOW
+
+
+def test_tts_opus_conversion_hides_ffmpeg_window(monkeypatch, tmp_path):
+    from tools import tts_tool
+
+    captured = []
+
+    def fake_run(cmd, **kwargs):
+        captured.append((cmd, kwargs))
+        return _Completed(returncode=0)
+
+    monkeypatch.setattr(tts_tool, "_has_ffmpeg", lambda: True)
+    monkeypatch.setattr(tts_tool, "windows_hide_flags", lambda: _CREATE_NO_WINDOW)
+    monkeypatch.setattr(tts_tool.subprocess, "run", fake_run)
+
+    tts_tool._convert_to_opus(str(tmp_path / "v.mp3"))
+
+    assert captured[0][0][0] == "ffmpeg"
+    assert captured[0][1]["creationflags"] == _CREATE_NO_WINDOW
+
+
+def test_local_stt_audio_prep_hides_ffmpeg_window(monkeypatch, tmp_path):
+    from tools import transcription_tools
+
+    captured = []
+
+    def fake_run(cmd, **kwargs):
+        captured.append((cmd, kwargs))
+        return _Completed(returncode=0)
+
+    monkeypatch.setattr(transcription_tools, "_find_ffmpeg_binary", lambda: "ffmpeg")
+    monkeypatch.setattr(transcription_tools, "windows_hide_flags", lambda: _CREATE_NO_WINDOW)
+    monkeypatch.setattr(transcription_tools.subprocess, "run", fake_run)
+
+    transcription_tools._prepare_local_audio(str(tmp_path / "in.m4a"), str(tmp_path))
+
+    assert captured[0][0][0] == "ffmpeg"
+    assert captured[0][1]["creationflags"] == _CREATE_NO_WINDOW
+
+def test_tui_slash_worker_hides_python_window(monkeypatch):
+    from tui_gateway import server
+
+    captured = []
+
+    class _Proc:
+        stdin = SimpleNamespace()
+        stdout = []
+        stderr = []
+
+    def fake_popen(cmd, **kwargs):
+        captured.append((cmd, kwargs))
+        return _Proc()
+
+    monkeypatch.setattr(server.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(server.threading, "Thread", lambda *a, **k: SimpleNamespace(start=lambda: None))
+
+    import hermes_cli._subprocess_compat as subprocess_compat
+
+    monkeypatch.setattr(subprocess_compat, "windows_hide_flags", lambda: _CREATE_NO_WINDOW)
+
+    server._SlashWorker("session-key", "model-x")
+
+    assert captured[0][0][:3] == [server.sys.executable, "-m", "tui_gateway.slash_worker"]
+    assert captured[0][1]["creationflags"] == _CREATE_NO_WINDOW
