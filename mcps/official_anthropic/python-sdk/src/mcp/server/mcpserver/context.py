@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Generic
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, Any, Generic, cast
 
-from mcp_types import ClientCapabilities, InputResponseRequestParams, InputResponses, LoggingLevel
+from mcp_types import ClientCapabilities, InputRequiredResult, InputResponseRequestParams, InputResponses, LoggingLevel
 from pydantic import AnyUrl, BaseModel
 from typing_extensions import deprecated
 
@@ -89,6 +89,16 @@ class Context(BaseModel, Generic[LifespanContextT, RequestT]):
             raise ValueError("Context is not available outside of a request")
         return self._request_context
 
+    def _nested_invocation(self) -> Context[LifespanContextT, RequestT]:
+        """A Context for invoking another handler's function from inside this request.
+
+        Shares the request infrastructure (session, request metadata, lifespan) but
+        carries no `input_responses`/`request_state`: those are addressed to the wire
+        request's own target — their keys are ones that handler minted — so a nested
+        invocation always starts on round one.
+        """
+        return Context(request_context=self._request_context, mcp_server=self._mcp_server)
+
     async def report_progress(self, progress: float, total: float | None = None, message: str | None = None) -> None:
         """Report progress for the current operation.
 
@@ -102,6 +112,17 @@ class Context(BaseModel, Generic[LifespanContextT, RequestT]):
     async def read_resource(self, uri: str | AnyUrl) -> Iterable[ReadResourceContents]:
         """Read a resource by URI.
 
+        This is a content reader: an `InputRequiredResult` returned by a
+        resource template function (the 2026-07-28 multi-round-trip flow)
+        raises here, and the nested template never sees this request's
+        `input_responses`/`request_state` — those answer the outer handler's
+        own questions, so the template always behaves as round one. A handler
+        that wants to receive and forward an `InputRequiredResult` as its own
+        result calls `MCPServer.read_resource(uri, context)` instead — but
+        not from a tool whose dependencies elicit via `Resolve(...)`: the
+        resolver owns that tool's `request_state` channel, and a forwarded
+        result's state would clobber it.
+
         Args:
             uri: Resource URI to read
 
@@ -111,9 +132,16 @@ class Context(BaseModel, Generic[LifespanContextT, RequestT]):
         Raises:
             ResourceNotFoundError: If no resource or template matches the URI.
             ResourceError: If template creation or resource reading fails.
+            RuntimeError: If the resource returned an `InputRequiredResult`.
         """
         assert self._mcp_server is not None, "Context is not available outside of a request"
-        return await self._mcp_server.read_resource(uri, self)
+        result = await self._mcp_server.read_resource(uri, self._nested_invocation())
+        if isinstance(result, InputRequiredResult):
+            raise RuntimeError(
+                "Resource returned InputRequiredResult; ctx.read_resource() only returns "
+                "content — use MCPServer.read_resource(uri, context) to receive and forward it."
+            )
+        return result
 
     async def elicit(
         self,
@@ -218,9 +246,24 @@ class Context(BaseModel, Generic[LifespanContextT, RequestT]):
         return self.request_context.meta.get("client_id") if self.request_context.meta else None  # pragma: no cover
 
     @property
+    def headers(self) -> Mapping[str, str] | None:
+        """Request headers carried by this message, when the transport has them.
+
+        Populated by HTTP-based transports; `None` on stdio or when the
+        transport's request object carries no headers. Headers are
+        client-supplied input - never treat one as an identity assertion.
+        """
+        return cast("Mapping[str, str] | None", getattr(self.request_context.request, "headers", None))
+
+    @property
     def request_id(self) -> str:
         """Get the unique ID for this request."""
         return str(self.request_context.request_id)
+
+    @property
+    def protocol_version(self) -> str | None:
+        """The negotiated protocol version, or `None` outside of an active request."""
+        return self._request_context.protocol_version if self._request_context is not None else None
 
     @property
     def input_responses(self) -> InputResponses | None:

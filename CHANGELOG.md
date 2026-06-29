@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-29 22:18 IST] Auto-Sync
+- **37 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Kubernetes MCP Server, n8n, Dify, Langflow, Activepieces, Trigger.dev, Budibase, modelcontextprotocol/rust-sdk, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, milvus-io/milvus, infiniflow/ragflow, openlit/openlit, firecrawl/firecrawl, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, nousresearch/hermes-agent
+
 ## [2026-06-29 15:39 IST] Auto-Sync
 - **28 Repositories Updated:** Public APIs Directory, MCP Official Servers, Kubernetes MCP Server, Awesome ChatGPT Prompts, Promptfoo, n8n, Dify, Activepieces, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, chatdev, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, infiniflow/ragflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
 

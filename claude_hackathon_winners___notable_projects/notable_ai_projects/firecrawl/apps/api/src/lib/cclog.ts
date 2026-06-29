@@ -1,6 +1,4 @@
 import type IORedis from "ioredis";
-import { db } from "../db/connection";
-import * as schema from "../db/schema";
 import { logger as _logger } from "./logger";
 import {
   nuqFdbHealthCheck,
@@ -8,6 +6,7 @@ import {
   withFdbTimeout,
 } from "../services/worker/nuq-fdb";
 import { fdbQueueEnabled } from "../services/worker/nuq-router";
+import { chInsert } from "./clickhouse-client";
 
 const FDB_OPTIONAL_COUNT_TIMEOUT_MS = 500;
 const CONCURRENCY_LIMITER_KEY_PATTERN = "concurrency-limiter:*";
@@ -25,7 +24,8 @@ type CclogSample = {
 
 type CclogAggregateEntry = {
   team_id: string;
-  concurrency: number;
+  avg_concurrency: number;
+  max_concurrency: number;
   created_at: string;
 };
 
@@ -163,25 +163,40 @@ async function buildCclogAggregateEntries(
   }
 
   const created_at = floorToMinute(at).toISOString();
-  return Array.from(teamIds).map(team_id => {
+  const entries: CclogAggregateEntry[] = [];
+
+  for (const team_id of teamIds) {
     let total = 0;
+    let maxConcurrency = 0;
 
     for (const sample of samples) {
-      total += Number.parseInt(sample[team_id] ?? "0", 10);
+      const concurrency = Number.parseInt(sample[team_id] ?? "0", 10);
+      total += concurrency;
+      maxConcurrency = Math.max(maxConcurrency, concurrency);
     }
 
-    return {
+    const avgConcurrency = Math.round(total / CCLOG_AGGREGATE_INTERVAL_MINUTES);
+    if (avgConcurrency === 0 && maxConcurrency === 0) {
+      continue;
+    }
+
+    entries.push({
       team_id,
-      concurrency: Math.round(total / CCLOG_AGGREGATE_INTERVAL_MINUTES),
+      avg_concurrency: avgConcurrency,
+      max_concurrency: maxConcurrency,
       created_at,
-    };
-  });
+    });
+  }
+
+  return entries;
 }
 
-async function insertCclogAggregate(entries: CclogAggregateEntry[]) {
-  if (entries.length === 0) return;
+async function insertCclogAggregate(
+  entries: CclogAggregateEntry[],
+): Promise<boolean> {
+  if (entries.length === 0) return true;
 
-  await db.insert(schema.concurrency_log).values(entries);
+  return chInsert("concurrency_logs", entries, { throwOnError: true });
 }
 
 export async function runCclogTick(redis: IORedis, at = new Date()) {
@@ -210,12 +225,18 @@ export async function runCclogTick(redis: IORedis, at = new Date()) {
   let insertedRows = 0;
 
   try {
-    await insertCclogAggregate(entries);
-    insertedRows = entries.length;
-    logger.info("Inserted cclog aggregate", {
-      at: minute.toISOString(),
-      rows: insertedRows,
-    });
+    if (await insertCclogAggregate(entries)) {
+      insertedRows = entries.length;
+      logger.info("Inserted cclog aggregate", {
+        at: minute.toISOString(),
+        rows: insertedRows,
+      });
+    } else {
+      logger.warn("Skipped cclog aggregate insert", {
+        at: minute.toISOString(),
+        rows: entries.length,
+      });
+    }
   } catch (error) {
     logger.error("Error inserting cclog aggregate", { error });
   }

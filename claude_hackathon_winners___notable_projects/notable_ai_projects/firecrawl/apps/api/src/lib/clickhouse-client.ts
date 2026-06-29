@@ -16,8 +16,10 @@ const client = config.CLICKHOUSE_ANALYTICS_URL
 export async function chInsert(
   table: string,
   rows: Record<string, unknown>[],
-): Promise<void> {
-  if (!client || rows.length === 0) return;
+  opts?: { throwOnError?: boolean },
+): Promise<boolean> {
+  if (rows.length === 0) return true;
+  if (!client) return false;
 
   try {
     await client.insert({
@@ -25,11 +27,16 @@ export async function chInsert(
       values: rows,
       format: "JSONEachRow",
     });
+    return true;
   } catch (error: any) {
     logger.error("ClickHouse insert failed", {
       table,
       rowCount: rows.length,
       error: error?.message,
     });
+    if (opts?.throwOnError) {
+      throw error;
+    }
+    return false;
   }
 }

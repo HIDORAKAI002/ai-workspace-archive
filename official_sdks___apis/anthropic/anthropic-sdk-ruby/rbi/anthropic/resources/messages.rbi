@@ -15,7 +15,7 @@ module Anthropic
       # conversations.
       #
       # Learn more about the Messages API in our
-      # [user guide](https://docs.claude.com/en/docs/initial-setup)
+      # [user guide](https://platform.claude.com/docs/en/get-started)
       sig do
         params(
           max_tokens: Integer,
@@ -61,6 +61,8 @@ module Anthropic
                 Anthropic::WebSearchTool20260209::OrHash,
                 Anthropic::WebFetchTool20260209::OrHash,
                 Anthropic::WebFetchTool20260309::OrHash,
+                Anthropic::WebSearchTool20260318::OrHash,
+                Anthropic::WebFetchTool20260318::OrHash,
                 Anthropic::ToolSearchToolBm25_20251119::OrHash,
                 Anthropic::ToolSearchToolRegex20251119::OrHash
               )
@@ -79,11 +81,12 @@ module Anthropic
         # only specifies the absolute maximum number of tokens to generate.
         #
         # Set to `0` to populate the
-        # [prompt cache](https://docs.claude.com/en/docs/build-with-claude/prompt-caching#pre-warming-the-cache)
+        # [prompt cache](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#pre-warming-the-cache)
         # without generating a response.
         #
         # Different models have different maximum values for this parameter. See
-        # [models](https://docs.claude.com/en/docs/models-overview) for details.
+        # [models](https://platform.claude.com/docs/en/about-claude/models/overview) for
+        # details.
         max_tokens:,
         # Body param: Input messages.
         #
@@ -142,12 +145,13 @@ module Anthropic
         # { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
         # ```
         #
-        # See [input examples](https://docs.claude.com/en/api/messages-examples).
+        # See
+        # [input examples](https://platform.claude.com/docs/en/build-with-claude/working-with-messages).
         #
         # Note that if you want to include a
-        # [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
-        # top-level `system` parameter — there is no `"system"` role for input messages in
-        # the Messages API.
+        # [system prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
+        # you can use the top-level `system` parameter — there is no `"system"` role for
+        # input messages in the Messages API.
         #
         # There is a limit of 100,000 messages in a single request.
         messages:,
@@ -173,7 +177,8 @@ module Anthropic
         # standard capacity for this request.
         #
         # Anthropic offers different levels of service for your API requests. See
-        # [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
+        # [service-tiers](https://platform.claude.com/docs/en/api/service-tiers) for
+        # details.
         service_tier: nil,
         # Body param: Custom text sequences that will cause the model to stop generating.
         #
@@ -189,7 +194,7 @@ module Anthropic
         #
         # A system prompt is a way of providing context and instructions to Claude, such
         # as specifying a particular goal or role. See our
-        # [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
+        # [guide to system prompts](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role).
         system_: nil,
         # Body param: Amount of randomness injected into the response.
         #
@@ -207,7 +212,7 @@ module Anthropic
         # tokens and counts towards your `max_tokens` limit.
         #
         # See
-        # [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
+        # [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
         # for details.
         thinking: nil,
         # Body param: How the model should use the provided tools. The model can use a
@@ -222,9 +227,9 @@ module Anthropic
         #
         # There are two types of tools: **client tools** and **server tools**. The
         # behavior described below applies to client tools. For
-        # [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+        # [server tools](https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools),
         # see their individual documentation as each has its own behavior (e.g., the
-        # [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+        # [web search tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool)).
         #
         # Each tool definition includes:
         #
@@ -287,7 +292,9 @@ module Anthropic
         # functions, or more generally whenever you want the model to produce a particular
         # JSON structure of output.
         #
-        # See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
+        # See our
+        # [guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
+        # for more details.
         tools: nil,
         # Body param: Only sample from the top K options for each subsequent token.
         #
@@ -324,7 +331,7 @@ module Anthropic
       # conversations.
       #
       # Learn more about the Messages API in our
-      # [user guide](https://docs.claude.com/en/docs/initial-setup)
+      # [user guide](https://platform.claude.com/docs/en/get-started)
       sig do
         params(
           max_tokens: Integer,
@@ -661,6 +668,8 @@ module Anthropic
                 Anthropic::WebSearchTool20260209::OrHash,
                 Anthropic::WebFetchTool20260209::OrHash,
                 Anthropic::WebFetchTool20260309::OrHash,
+                Anthropic::WebSearchTool20260318::OrHash,
+                Anthropic::WebFetchTool20260318::OrHash,
                 Anthropic::ToolSearchToolBm25_20251119::OrHash,
                 Anthropic::ToolSearchToolRegex20251119::OrHash
               )
@@ -683,11 +692,12 @@ module Anthropic
         # only specifies the absolute maximum number of tokens to generate.
         #
         # Set to `0` to populate the
-        # [prompt cache](https://docs.claude.com/en/docs/build-with-claude/prompt-caching#pre-warming-the-cache)
+        # [prompt cache](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#pre-warming-the-cache)
         # without generating a response.
         #
         # Different models have different maximum values for this parameter. See
-        # [models](https://docs.claude.com/en/docs/models-overview) for details.
+        # [models](https://platform.claude.com/docs/en/about-claude/models/overview) for
+        # details.
         max_tokens:,
         # Body param: Input messages.
         #
@@ -746,12 +756,13 @@ module Anthropic
         # { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
         # ```
         #
-        # See [input examples](https://docs.claude.com/en/api/messages-examples).
+        # See
+        # [input examples](https://platform.claude.com/docs/en/build-with-claude/working-with-messages).
         #
         # Note that if you want to include a
-        # [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
-        # top-level `system` parameter — there is no `"system"` role for input messages in
-        # the Messages API.
+        # [system prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
+        # you can use the top-level `system` parameter — there is no `"system"` role for
+        # input messages in the Messages API.
         #
         # There is a limit of 100,000 messages in a single request.
         messages:,
@@ -777,7 +788,8 @@ module Anthropic
         # standard capacity for this request.
         #
         # Anthropic offers different levels of service for your API requests. See
-        # [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
+        # [service-tiers](https://platform.claude.com/docs/en/api/service-tiers) for
+        # details.
         service_tier: nil,
         # Body param: Custom text sequences that will cause the model to stop generating.
         #
@@ -793,7 +805,7 @@ module Anthropic
         #
         # A system prompt is a way of providing context and instructions to Claude, such
         # as specifying a particular goal or role. See our
-        # [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
+        # [guide to system prompts](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role).
         system_: nil,
         # Body param: Amount of randomness injected into the response.
         #
@@ -811,7 +823,7 @@ module Anthropic
         # tokens and counts towards your `max_tokens` limit.
         #
         # See
-        # [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
+        # [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
         # for details.
         thinking: nil,
         # Body param: How the model should use the provided tools. The model can use a
@@ -826,9 +838,9 @@ module Anthropic
         #
         # There are two types of tools: **client tools** and **server tools**. The
         # behavior described below applies to client tools. For
-        # [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+        # [server tools](https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools),
         # see their individual documentation as each has its own behavior (e.g., the
-        # [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+        # [web search tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool)).
         #
         # Each tool definition includes:
         #
@@ -891,7 +903,9 @@ module Anthropic
         # functions, or more generally whenever you want the model to produce a particular
         # JSON structure of output.
         #
-        # See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
+        # See our
+        # [guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
+        # for more details.
         tools: nil,
         # Body param: Only sample from the top K options for each subsequent token.
         #
@@ -925,7 +939,7 @@ module Anthropic
       # including tools, images, and documents, without creating it.
       #
       # Learn more about token counting in our
-      # [user guide](https://docs.claude.com/en/docs/build-with-claude/token-counting)
+      # [user guide](https://platform.claude.com/docs/en/build-with-claude/token-counting)
       sig do
         params(
           messages: T::Array[Anthropic::MessageParam::OrHash],
@@ -964,15 +978,18 @@ module Anthropic
                 Anthropic::WebSearchTool20260209::OrHash,
                 Anthropic::WebFetchTool20260209::OrHash,
                 Anthropic::WebFetchTool20260309::OrHash,
+                Anthropic::WebSearchTool20260318::OrHash,
+                Anthropic::WebFetchTool20260318::OrHash,
                 Anthropic::ToolSearchToolBm25_20251119::OrHash,
                 Anthropic::ToolSearchToolRegex20251119::OrHash
               )
             ],
+          user_profile_id: String,
           request_options: Anthropic::RequestOptions::OrHash
         ).returns(Anthropic::MessageTokensCount)
       end
       def count_tokens(
-        # Input messages.
+        # Body param: Input messages.
         #
         # Our models are trained to operate on alternating `user` and `assistant`
         # conversational turns. When creating a new `Message`, you specify the prior
@@ -1029,45 +1046,47 @@ module Anthropic
         # { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
         # ```
         #
-        # See [input examples](https://docs.claude.com/en/api/messages-examples).
+        # See
+        # [input examples](https://platform.claude.com/docs/en/build-with-claude/working-with-messages).
         #
         # Note that if you want to include a
-        # [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
-        # top-level `system` parameter — there is no `"system"` role for input messages in
-        # the Messages API.
+        # [system prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
+        # you can use the top-level `system` parameter — there is no `"system"` role for
+        # input messages in the Messages API.
         #
         # There is a limit of 100,000 messages in a single request.
         messages:,
-        # The model that will complete your prompt.
+        # Body param: The model that will complete your prompt.
         #
         # See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
         # details and options.
         model:,
-        # Top-level cache control automatically applies a cache_control marker to the last
-        # cacheable block in the request.
+        # Body param: Top-level cache control automatically applies a cache_control marker
+        # to the last cacheable block in the request.
         cache_control: nil,
-        # Configuration options for the model's output, such as the output format.
+        # Body param: Configuration options for the model's output, such as the output
+        # format.
         output_config: nil,
-        # System prompt.
+        # Body param: System prompt.
         #
         # A system prompt is a way of providing context and instructions to Claude, such
         # as specifying a particular goal or role. See our
-        # [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
+        # [guide to system prompts](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role).
         system_: nil,
-        # Configuration for enabling Claude's extended thinking.
+        # Body param: Configuration for enabling Claude's extended thinking.
         #
         # When enabled, responses include `thinking` content blocks showing Claude's
         # thinking process before the final answer. Requires a minimum budget of 1,024
         # tokens and counts towards your `max_tokens` limit.
         #
         # See
-        # [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
+        # [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
         # for details.
         thinking: nil,
-        # How the model should use the provided tools. The model can use a specific tool,
-        # any available tool, decide by itself, or not use tools at all.
+        # Body param: How the model should use the provided tools. The model can use a
+        # specific tool, any available tool, decide by itself, or not use tools at all.
         tool_choice: nil,
-        # Definitions of tools that the model may use.
+        # Body param: Definitions of tools that the model may use.
         #
         # If you include `tools` in your API request, the model may return `tool_use`
         # content blocks that represent the model's use of those tools. You can then run
@@ -1076,9 +1095,9 @@ module Anthropic
         #
         # There are two types of tools: **client tools** and **server tools**. The
         # behavior described below applies to client tools. For
-        # [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+        # [server tools](https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools),
         # see their individual documentation as each has its own behavior (e.g., the
-        # [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+        # [web search tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool)).
         #
         # Each tool definition includes:
         #
@@ -1141,8 +1160,14 @@ module Anthropic
         # functions, or more generally whenever you want the model to produce a particular
         # JSON structure of output.
         #
-        # See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
+        # See our
+        # [guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
+        # for more details.
         tools: nil,
+        # Header param: The user profile ID to attribute this request to. Use when acting
+        # on behalf of a party other than your organization. Requires the `user-profiles`
+        # beta header.
+        user_profile_id: nil,
         request_options: {}
       )
       end
