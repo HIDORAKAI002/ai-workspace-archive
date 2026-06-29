@@ -274,7 +274,7 @@ class MemoryFact(BaseModel):
     )
     scores: RecallScores | None = Field(
         None,
-        description="Recall scores from each pipeline stage (final/reranker/semantic/text). Not returned for source facts.",
+        description="Recall scores from each pipeline stage (final/reranker/semantic/keyword). Not returned for source facts.",
     )
 
 

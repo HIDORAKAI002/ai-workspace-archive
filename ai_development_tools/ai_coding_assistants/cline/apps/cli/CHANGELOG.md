@@ -1,5 +1,20 @@
 # Cline CLI Changelog
 
+## 3.0.33
+
+- Show a ClinePass subscription URL as a fallback during onboarding so you can still subscribe if the subscription screen can't open automatically
+- Hide the ClinePass promo for users who already have a ClinePass subscription
+- Use an adaptive plan accent color for ClinePass prompts so they fit the active theme
+
+## 3.0.32
+
+- Improved the ClinePass onboarding experience
+- Added an intermediate step before going to ClinePass model selection
+- Made the ClinePass subscription screen selectable
+- Promoted ClinePass in the startup notice
+- Used "ClinePass" as one word consistently and refined the provider UI copy
+- More accurate context compaction and clearer error messages (from SDK v0.0.54)
+
 ## 3.0.31
 
 - Show when request cost is covered by your Cline subscription

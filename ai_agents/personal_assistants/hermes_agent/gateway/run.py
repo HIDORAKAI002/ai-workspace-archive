@@ -9682,6 +9682,13 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             self._set_session_reasoning_override(session_key, None)
             if hasattr(self, "_pending_model_notes"):
                 self._pending_model_notes.pop(session_key, None)
+            # Evict the cached agent so the fresh session does not inherit the
+            # previous conversation's context_compressor._previous_summary —
+            # the cache is keyed on the stable session_key, so an auto-reset
+            # otherwise reuses the old agent and leaks prior history into new
+            # compaction summaries. Mirrors /reset and the compression-exhausted
+            # path (#9893). Covers daily/idle/suspended auto-reset.
+            self._evict_cached_agent(session_key)
             session_entry.was_auto_reset = False
         
         # Emit session:start for new or auto-reset sessions
@@ -17419,6 +17426,26 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
 
         _notify_task = asyncio.create_task(_notify_long_running())
 
+        def _stream_confirmed_final_delivery(
+            consumer,
+            final_text: str,
+            *,
+            previewed: bool = False,
+        ) -> bool:
+            """Return True only when the actual final reply reached the user."""
+            if consumer is None:
+                return False
+            if getattr(consumer, "final_response_sent", False):
+                return True
+            if previewed:
+                has_delivered_text = getattr(consumer, "has_delivered_text", None)
+                if callable(has_delivered_text):
+                    try:
+                        return bool(has_delivered_text(final_text))
+                    except Exception:
+                        return False
+            return False
+
         try:
             # Run in thread pool to not block.  Use an *inactivity*-based
             # timeout instead of a wall-clock limit: the agent can run for
@@ -17770,12 +17797,12 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                         except Exception as e:
                             logger.debug("Stream consumer wait before queued message failed: %s", e)
                     _previewed = bool(result.get("response_previewed"))
-                    _already_streamed = bool(
-                        (_sc and getattr(_sc, "final_response_sent", False))
-                        or _previewed
-                        or (_sc and getattr(_sc, "final_content_delivered", False))
-                    )
                     first_response = result.get("final_response", "")
+                    _already_streamed = _stream_confirmed_final_delivery(
+                        _sc,
+                        first_response,
+                        previewed=_previewed,
+                    )
                     if first_response and not _already_streamed:
                         try:
                             logger.info(
@@ -17946,11 +17973,10 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         if isinstance(response, dict) and not response.get("failed"):
             _final = response.get("final_response") or ""
             _is_empty_sentinel = not _final or _final == "(empty)"
-            _streamed = bool(
-                _sc and getattr(_sc, "final_response_sent", False)
-            )
             # response_previewed means the interim_assistant_callback already
-            # sent the final text via the adapter (non-streaming path).
+            # saw the final text, but only suppress the normal send if that
+            # exact final text was delivered. Unrelated commentary/progress
+            # must not be mistaken for the final response (#14238).
             _previewed = bool(response.get("response_previewed"))
             _content_delivered = bool(
                 _sc and getattr(_sc, "final_content_delivered", False)
@@ -17959,7 +17985,18 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             # after streaming finished — when the response was transformed, always
             # send the final version so the appended content reaches the client.
             _transformed = bool(response.get("response_transformed"))
-            if not _is_empty_sentinel and not _transformed and (_streamed or _previewed or _content_delivered):
+            # Only suppress the normal send when the actual final reply reached
+            # the user: the stream consumer streamed it (final_response_sent /
+            # final_content_delivered), or the interim preview delivered that
+            # *exact* final text. Unrelated commentary/progress shown during a
+            # compression/session split must not be mistaken for the final
+            # response (#14238).
+            _streamed = _stream_confirmed_final_delivery(
+                _sc,
+                _final,
+                previewed=_previewed,
+            )
+            if not _is_empty_sentinel and not _transformed and (_streamed or _content_delivered):
                 logger.info(
                     "Suppressing normal final send for session %s: final delivery already confirmed (streamed=%s previewed=%s content_delivered=%s).",
                     session_key or "?",
