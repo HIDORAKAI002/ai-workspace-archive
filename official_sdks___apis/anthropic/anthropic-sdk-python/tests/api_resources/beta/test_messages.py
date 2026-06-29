@@ -1195,6 +1195,7 @@ class TestAsyncMessages:
                 }
             ],
             betas=["string"],
+            user_profile_id="anthropic-user-profile-id",
         )
         assert_matches_type(BetaMessageTokensCount, message, path=["response"])
 
