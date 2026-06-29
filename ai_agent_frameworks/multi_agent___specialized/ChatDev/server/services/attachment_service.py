@@ -43,8 +43,24 @@ class AttachmentService:
         path = self.prepare_session_workspace(session_id)
         return AttachmentStore(path)
 
+    @staticmethod
+    def _safe_upload_filename(raw: Optional[str]) -> str:
+        """Reduce a client-supplied upload filename to a safe basename.
+
+        The multipart ``filename`` is attacker-controlled. Joining it onto the
+        temporary upload directory verbatim allows path traversal (e.g.
+        ``../../../etc/cron.d/x``): the write target escapes the temp dir and the
+        cleanup step then unlinks the same traversed path, yielding arbitrary
+        file write and delete. Normalise both POSIX and Windows separators and
+        keep only the final path component so the write stays confined.
+        """
+        candidate = os.path.basename((raw or "").replace("\\", "/")).strip()
+        if not candidate or candidate in {".", ".."}:
+            return "upload.bin"
+        return candidate
+
     async def save_upload_file(self, session_id: str, upload: UploadFile) -> AttachmentRecord:
-        filename = upload.filename or "upload.bin"
+        filename = self._safe_upload_filename(upload.filename)
         temp_dir = Path(tempfile.mkdtemp(prefix="mac_upload_"))
         temp_path = temp_dir / filename
         try:
