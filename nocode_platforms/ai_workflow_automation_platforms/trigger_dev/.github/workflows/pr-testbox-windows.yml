@@ -1,28 +1,27 @@
-name: "E2E"
+name: Blacksmith PR Testbox Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      testbox_id:
+        type: string
+        description: "Testbox session ID"
+        required: true
 
 permissions:
   contents: read
 
-on:
-  workflow_call:
-    inputs:
-      package:
-        description: The identifier of the job to run
-        default: webapp
-        required: false
-        type: string
-
 jobs:
-  cli-v3:
-    name: "🧪 CLI v3 tests (${{ matrix.os }} - ${{ matrix.package-manager }})"
-    if: inputs.package == 'cli-v3' || inputs.package == ''
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [blacksmith-4vcpu-ubuntu-2404, blacksmith-4vcpu-windows-2025]
-        package-manager: ["npm", "pnpm"]
+  pr-testbox-windows:
+    runs-on: blacksmith-4vcpu-windows-2025
+
     steps:
+      - name: Begin Testbox
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: useblacksmith/begin-testbox@233448af4bfdc6fca509a7f0974411ac6d8a8043 # v2
+        with:
+          testbox_id: ${{ inputs.testbox_id }}
+
       - name: ⬇️ Checkout repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -39,7 +38,7 @@ jobs:
         with:
           node-version: 20.20.2
 
-      - name: 📥 Download deps
+      - name: 📥 Download CLI deps
         run: pnpm install --frozen-lockfile --filter trigger.dev...
 
       - name: 📀 Generate Prisma Client
@@ -54,7 +53,6 @@ jobs:
       - name: Enable corepack
         run: corepack enable
 
-      - name: Run E2E Tests
-        shell: bash
-        run: |
-          LOG=debug PM=${{ matrix.package-manager }} pnpm --filter trigger.dev run test:e2e
+      - name: Run Testbox
+        uses: useblacksmith/run-testbox@5ca05834db1d3813554d1dd109e5f2087a8d7cbc # v2
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}

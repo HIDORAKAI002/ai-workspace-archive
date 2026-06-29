@@ -1,31 +1,29 @@
-name: "🧪 Unit Tests: Internal"
+name: Blacksmith PR Testbox
+
+on:
+  workflow_dispatch:
+    inputs:
+      testbox_id:
+        type: string
+        description: "Testbox session ID"
+        required: true
 
 permissions:
   contents: read
 
-on:
-  workflow_call:
-    secrets:
-      DOCKERHUB_USERNAME:
-        required: false
-      DOCKERHUB_TOKEN:
-        required: false
-
 jobs:
-  unitTests:
-    name: "🧪 Unit Tests: Internal"
+  pr-testbox:
     runs-on: blacksmith-8vcpu-ubuntu-2404
-    strategy:
-      # one flaky shard shouldn't cancel its siblings - lets us re-run only the failed shard
-      fail-fast: false
-      matrix:
-        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        shardTotal: [12]
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      SHARD_INDEX: ${{ matrix.shardIndex }}
-      SHARD_TOTAL: ${{ matrix.shardTotal }}
+
     steps:
+      - name: Begin Testbox
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: useblacksmith/begin-testbox@233448af4bfdc6fca509a7f0974411ac6d8a8043 # v2
+        with:
+          testbox_id: ${{ inputs.testbox_id }}
+
       - name: 🔧 Disable IPv6
         run: |
           sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
@@ -46,7 +44,7 @@ jobs:
               }
             ]
           }'
-          mkdir -p /etc/docker
+          sudo mkdir -p /etc/docker
           echo "$CONFIG" | sudo tee /etc/docker/daemon.json
 
       - name: 🔧 Restart docker daemon
@@ -55,7 +53,7 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: ⎔ Setup pnpm
@@ -63,19 +61,34 @@ jobs:
         with:
           version: 10.33.2
 
-      - name: ⎔ Setup node
+      - name: ⎔ Setup Node 22 for SDK compatibility checks
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22.12
+
+      - name: ⎔ Setup active Node 20
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 20.20.2
           cache: "pnpm"
 
-      # ..to avoid rate limits when pulling images
+      - name: 🥟 Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: latest
+
+      - name: 🦕 Setup Deno
+        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2.0.4
+        with:
+          deno-version: v2.x
+
       - name: 🐳 Login to DockerHub
         if: ${{ env.DOCKERHUB_USERNAME }}
         uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: 🐳 Skipping DockerHub login (no secrets available)
         if: ${{ !env.DOCKERHUB_USERNAME }}
         run: echo "DockerHub login skipped because secrets are not available."
@@ -83,7 +96,6 @@ jobs:
       - name: 🐳 Pre-pull testcontainer images
         if: ${{ env.DOCKERHUB_USERNAME }}
         run: |
-          # Retry each pull - DockerHub registry timeouts are a recurring transient CI flake.
           pull() {
             for attempt in 1 2 3; do
               docker pull "$1" && return 0
@@ -93,12 +105,15 @@ jobs:
             echo "::error::docker pull $1 failed after 3 attempts"
             return 1
           }
+
           echo "Pre-pulling Docker images with authenticated session..."
           pull postgres:14
           pull clickhouse/clickhouse-server:26.2.19.43-alpine@sha256:c6ad6a7eb2fb5999df3adfb8b69a0c7222c68fa9b8f6b04a088564ebbc959251
           pull redis:7.2
+          pull testcontainers/ryuk:0.11.0
           pull testcontainers/ryuk:0.14.0
           pull electricsql/electric:1.2.4
+          pull minio/minio:latest
           echo "Image pre-pull complete"
 
       - name: 📥 Download deps
@@ -107,54 +122,6 @@ jobs:
       - name: 📀 Generate Prisma Client
         run: pnpm run generate
 
-      - name: 🧪 Run Internal Unit Tests
-        run: pnpm run test:internal --reporter=default --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --passWithNoTests
-
-      - name: Gather all reports
-        if: ${{ !cancelled() }}
-        run: |
-          mkdir -p .vitest-reports
-          find . -type f -path '*/.vitest-reports/blob-*.json' \
-            -exec bash -c 'src="$1"; basename=$(basename "$src"); pkg=$(dirname "$src" | sed "s|^\./||;s|/\.vitest-reports$||;s|/|_|g"); cp "$src" ".vitest-reports/${pkg}-${basename}"' _ {} \;
-
-      - name: Upload blob reports to GitHub Actions Artifacts
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: internal-blob-report-${{ matrix.shardIndex }}
-          path: .vitest-reports/*
-          include-hidden-files: true
-          retention-days: 1
-
-  merge-reports:
-    name: "📊 Merge Reports"
-    if: ${{ !cancelled() }}
-    needs: [unitTests]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    steps:
-      - name: ⬇️ Checkout repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: ⎔ Setup pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
-        with:
-          version: 10.33.2
-
-      - name: ⎔ Setup node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: 20.20.2
-          # no cache enabled, we're not installing deps
-
-      - name: Download blob reports from GitHub Actions Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          path: .vitest-reports
-          pattern: internal-blob-report-*
-          merge-multiple: true
-
-      - name: Merge reports
-        run: pnpm dlx vitest@4.1.7 run --merge-reports --pass-with-no-tests
+      - name: Run Testbox
+        uses: useblacksmith/run-testbox@5ca05834db1d3813554d1dd109e5f2087a8d7cbc # v2
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
