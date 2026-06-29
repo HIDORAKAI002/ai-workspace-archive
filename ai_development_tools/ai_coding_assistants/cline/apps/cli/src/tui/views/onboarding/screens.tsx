@@ -1,6 +1,5 @@
 import "opentui-spinner/react";
 import type { ReactNode } from "react";
-import { getCliSubscriptionUrl } from "../../../utils/cline-pass-errors";
 import {
 	CODEX_CLI_INSTALL_URL,
 	type CodexCliStatus,
@@ -21,7 +20,12 @@ import {
 import { useTerminalBackground } from "../../hooks/use-terminal-background";
 import { getDefaultForeground, palette } from "../../palette";
 import { FIELD_ORDER } from "./fields";
-import { type MenuOption, THINKING_LEVELS } from "./model";
+import {
+	type ClinePassSubscriptionOption,
+	type ClinePassSubscriptionStatus,
+	type MenuOption,
+	THINKING_LEVELS,
+} from "./model";
 
 type MouseTrackerState = ReturnType<typeof useMouseTracker>;
 
@@ -469,37 +473,141 @@ export function OnboardingClineModelScreen(props: {
 	);
 }
 
-function ClinePassWarning() {
+export function OnboardingClinePassSubscriptionScreen(props: {
+	compact: boolean;
+	contentWidth: number;
+	currentPlanName: string;
+	error: string;
+	mouse: MouseTrackerState;
+	openStatus: string;
+	options: ClinePassSubscriptionOption[];
+	planFeatures: string[];
+	selected: number;
+	status: ClinePassSubscriptionStatus;
+}) {
 	const defaultFg = useDefaultFg();
-	const subscriptionUrl = getCliSubscriptionUrl();
+	const isLoading = props.status === "loading";
+	const isSubscribed = props.status === "subscribed";
+	const isError = props.status === "error";
 
 	return (
-		<box
-			flexDirection="column"
-			border
-			borderStyle="rounded"
-			borderColor="#333333"
-			paddingX={1}
-			paddingY={1}
+		<OnboardingFrame
+			compact={props.compact}
+			contentWidth={props.contentWidth}
+			mouse={props.mouse}
 		>
-			<text fg={defaultFg}>
-				<strong>Subscribe to ClinePass if you have not</strong>
+			<box
+				flexDirection="column"
+				border
+				borderStyle="rounded"
+				borderColor={isSubscribed ? palette.success : "yellow"}
+				paddingX={1}
+				paddingY={1}
+			>
+				<text fg={isSubscribed ? palette.success : "yellow"}>
+					{isSubscribed
+						? "ClinePass subscription active"
+						: "ClinePass subscription required"}
+				</text>
+
+				{isLoading ? (
+					<box flexDirection="row" gap={1}>
+						<spinner name="dots" color="gray" />
+						<text fg="gray">Checking your ClinePass subscription...</text>
+					</box>
+				) : isSubscribed ? (
+					<text fg={defaultFg} selectable>
+						Current plan: {props.currentPlanName || "ClinePass"}
+					</text>
+				) : isError ? (
+					<text
+						fg={defaultFg}
+						selectable
+						content="Could not verify your ClinePass subscription. Re-check before choosing a ClinePass model."
+					/>
+				) : (
+					<text
+						fg={defaultFg}
+						selectable
+						content="No access to ClinePass subscription models yet. Subscribe to ClinePass, the low cost open weights model coding plan."
+					/>
+				)}
+
+				{props.status === "error" &&
+					props.error &&
+					props.error !== "no plan found for user" && (
+						<text fg="red" selectable>
+							{props.error}
+						</text>
+					)}
+
+				{!isSubscribed && props.planFeatures.length > 0 && (
+					<box flexDirection="column" marginTop={1}>
+						<text fg={defaultFg}>ClinePass includes:</text>
+						{props.planFeatures.map((feature) => {
+							if (
+								feature === "Generous limits and reliable access" ||
+								feature === "Built for as many programmers as possible"
+							) {
+								return null;
+							}
+
+							return (
+								<text key={feature} fg={defaultFg} selectable>
+									<span fg="green">✓ </span>
+									<span>{feature}</span>
+								</text>
+							);
+						})}
+					</box>
+				)}
+
+				{!isSubscribed && (
+					<box flexDirection="column" marginTop={1}>
+						{props.options.map((option, i) => {
+							const isSel = i === props.selected;
+							return (
+								<box
+									key={option.value}
+									paddingX={1}
+									flexDirection="row"
+									gap={1}
+									backgroundColor={isSel ? palette.selection : undefined}
+									height={1}
+								>
+									<text
+										fg={isSel ? palette.textOnSelection : "gray"}
+										flexShrink={0}
+									>
+										{isSel ? "\u276f" : " "}
+									</text>
+									<text fg={isSel ? palette.textOnSelection : defaultFg}>
+										{option.label}
+									</text>
+									<text fg={isSel ? palette.textOnSelection : "gray"}>
+										{option.detail}
+									</text>
+								</box>
+							);
+						})}
+					</box>
+				)}
+
+				{props.openStatus && (
+					<text fg="gray" selectable>
+						{props.openStatus}
+					</text>
+				)}
+			</box>
+
+			<text fg="gray" paddingX={1}>
+				<em>↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
 			</text>
-			<text fg="gray">Visit this page before choosing a ClinePass model:</text>
-			<text fg={palette.act} selectable>
-				<a href={subscriptionUrl}>{subscriptionUrl}</a>
-			</text>
-			<text fg="gray">
-				<em>
-					You can CMD/Ctrl+Click the link to open or highlight to copy it.
-				</em>
-			</text>
-		</box>
+		</OnboardingFrame>
 	);
 }
 
 export function OnboardingModelPickerScreen(props: {
-	activeProviderId: string;
 	activeProviderName: string;
 	compact: boolean;
 	contentWidth: number;
@@ -515,8 +623,6 @@ export function OnboardingModelPickerScreen(props: {
 			contentWidth={props.contentWidth}
 			mouse={props.mouse}
 		>
-			{props.activeProviderId === "cline-pass" && <ClinePassWarning />}
-
 			<text fg={defaultFg} paddingX={1}>
 				<strong>Choose a model for {props.activeProviderName}</strong>
 			</text>
