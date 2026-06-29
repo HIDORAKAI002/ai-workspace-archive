@@ -5,6 +5,7 @@ import {
   buildJudgePrompt,
 } from "./judge";
 import { canonicalizeUrl, stableSerpFingerprint } from "./dedupe";
+import { hashMonitorUrl } from "../store";
 import { scrapeRequestSchema } from "../../../controllers/v2/types";
 
 // vi.mock is hoisted above declarations, so the mocks its factories reference
@@ -131,6 +132,22 @@ describe("runSearchTarget orchestration", () => {
     expect(out.pageUpserts[0].status).toBe("alert");
     expect(out.summary).toBe("1 match across 1 result.");
     expect(scrapePageMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves original URL case in the stored page (paths/query params are case-sensitive)", async () => {
+    const mixedUrl = "https://example.com/watch?v=DAlfGz8tPc4";
+    setSearchResults([
+      { url: mixedUrl, title: "OpenAI reel", description: "clip" },
+    ]);
+    setVerdictsByUrl({ [mixedUrl]: verdict() });
+
+    const out = await run();
+
+    expect(out.pageUpserts[0].url).toBe(mixedUrl);
+    expect(out.sources[0].url).toBe(mixedUrl);
+    expect(out.pageUpserts[0].urlHash).toEqual(
+      hashMonitorUrl(canonicalizeUrl(mixedUrl)),
+    );
   });
 
   it("skips scrape/judge for an already-seen unchanged page (same goalVersion)", async () => {

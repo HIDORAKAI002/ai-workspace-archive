@@ -416,7 +416,7 @@ export async function runSearchTarget(params: {
       skipped += 1;
       sources.push({ url: c.url, title: c.title, status: "skipped" });
       pageUpserts.push({
-        url: canonical,
+        url: c.url,
         urlHash: hashMonitorUrl(canonical),
         status: "skipped",
         scraped: false,
@@ -442,7 +442,7 @@ export async function runSearchTarget(params: {
             : "watching";
       sources.push({ url: c.url, title: c.title, status: reusedStatus });
       pageUpserts.push({
-        url: canonical,
+        url: c.url,
         urlHash: hashMonitorUrl(canonical),
         status: reusedStatus,
         metadata: {
@@ -466,7 +466,7 @@ export async function runSearchTarget(params: {
         goalVersion,
         searchStatus: alreadyAlerted ? "already_seen" : "alert",
         eventKey: rawKey,
-        eventLabel: c.title || canonical,
+        eventLabel: c.title || c.url,
         query: c.query,
         matchedQueries: c.matchedQueries,
       };
@@ -478,7 +478,7 @@ export async function runSearchTarget(params: {
           eventKey: rawKey,
         });
         pageUpserts.push({
-          url: canonical,
+          url: c.url,
           urlHash: hashMonitorUrl(canonical),
           status: "already_seen",
           scraped: false,
@@ -497,7 +497,7 @@ export async function runSearchTarget(params: {
       } else {
         events.unshift({
           key: rawKey,
-          label: c.title || canonical,
+          label: c.title || c.url,
           satisfiedAt: eventSatisfiedAt,
           alertCount: eventAlertCount,
         });
@@ -509,7 +509,7 @@ export async function runSearchTarget(params: {
         eventKey: rawKey,
       });
       pageUpserts.push({
-        url: canonical,
+        url: c.url,
         urlHash: hashMonitorUrl(canonical),
         status: "alert",
         scraped: false,
@@ -609,7 +609,7 @@ export async function runSearchTarget(params: {
         ...baseMeta,
       });
       pageUpserts.push({
-        url: canonical,
+        url: c.url,
         urlHash: hashMonitorUrl(canonical),
         status: "ignored",
         scraped: depth === "deep",
@@ -625,7 +625,7 @@ export async function runSearchTarget(params: {
         ...baseMeta,
       });
       pageUpserts.push({
-        url: canonical,
+        url: c.url,
         urlHash: hashMonitorUrl(canonical),
         status: "watching",
         scraped: depth === "deep",
@@ -636,7 +636,7 @@ export async function runSearchTarget(params: {
 
     // Deterministic event key: dedup by canonical URL (no LLM event resolver).
     const eventKey = canonical;
-    const eventLabel = verdict.concept || canonical;
+    const eventLabel = verdict.concept || c.url;
 
     // Re-alert on every new result only in every_new_result mode; otherwise dedup.
     const alreadySatisfied =
@@ -652,7 +652,7 @@ export async function runSearchTarget(params: {
         ...baseMeta,
       });
       pageUpserts.push({
-        url: canonical,
+        url: c.url,
         urlHash: hashMonitorUrl(canonical),
         status: "already_seen",
         scraped: depth === "deep",
@@ -686,7 +686,7 @@ export async function runSearchTarget(params: {
       ...baseMeta,
     });
     pageUpserts.push({
-      url: canonical,
+      url: c.url,
       urlHash: hashMonitorUrl(canonical),
       status: "alert",
       scraped: depth === "deep",
