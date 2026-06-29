@@ -32,6 +32,10 @@ vi.mock('@/services/topic', () => ({
 const mockUserDefaultConfig = vi.hoisted(() => ({
   disableGatewayMode: undefined as boolean | undefined,
 }));
+const mockToolInterventionConfig = vi.hoisted(() => ({
+  allowList: [] as string[],
+  approvalMode: 'manual' as 'allow-list' | 'auto-run' | 'manual',
+}));
 
 vi.mock('@/store/user', () => ({
   useUserStore: {
@@ -44,6 +48,10 @@ vi.mock('@/store/user/selectors', () => ({
     defaultAgentConfig: () => ({
       chatConfig: { disableGatewayMode: mockUserDefaultConfig.disableGatewayMode },
     }),
+  },
+  toolInterventionSelectors: {
+    allowList: () => mockToolInterventionConfig.allowList,
+    approvalMode: () => mockToolInterventionConfig.approvalMode,
   },
 }));
 
@@ -141,6 +149,8 @@ describe('GatewayActionImpl', () => {
   beforeEach(() => {
     mockAgentStore.state = { activeAgentId: undefined, agentMap: {} };
     mockUserDefaultConfig.disableGatewayMode = undefined;
+    mockToolInterventionConfig.approvalMode = 'manual';
+    mockToolInterventionConfig.allowList = [];
   });
 
   afterEach(() => {
@@ -636,6 +646,43 @@ describe('GatewayActionImpl', () => {
       );
     });
 
+    it('should forward current user intervention config to execAgentTask', async () => {
+      const { action } = createExecuteTestAction();
+      mockToolInterventionConfig.approvalMode = 'allow-list';
+      mockToolInterventionConfig.allowList = ['lobe-user-interaction/askUserQuestion'];
+
+      vi.mocked(aiAgentService.execAgentTask).mockResolvedValue({
+        agentId: 'agent-1',
+        assistantMessageId: 'ast-1',
+        autoStarted: true,
+        createdAt: new Date().toISOString(),
+        message: 'ok',
+        operationId: 'server-op-1',
+        status: 'created',
+        success: true,
+        timestamp: new Date().toISOString(),
+        token: 'test-token',
+        topicId: 'topic-1',
+        userMessageId: 'usr-1',
+      });
+
+      await action.executeGatewayAgent({
+        context: { agentId: 'agent-1', topicId: 'topic-1', threadId: null, scope: 'main' },
+        message: 'Hello',
+      });
+
+      expect(aiAgentService.execAgentTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prompt: 'Hello',
+          userInterventionConfig: {
+            allowList: ['lobe-user-interaction/askUserQuestion'],
+            approvalMode: 'allow-list',
+          },
+        }),
+        expect.anything(),
+      );
+    });
+
     it('should forward task manager default assignee and current task context', async () => {
       const { action } = createExecuteTestAction();
 
@@ -1109,7 +1156,9 @@ describe('GatewayActionImpl', () => {
         topicId: 'topic-1',
       });
 
-      vi.mocked(topicService.updateTopicMetadata).mockClear().mockResolvedValue(undefined as never);
+      vi.mocked(topicService.updateTopicMetadata)
+        .mockClear()
+        .mockResolvedValue(undefined as never);
       captured.onSessionComplete!({ authFailed: false, succeeded: false, terminalReceived: false });
 
       expect(completeOperation).toHaveBeenCalledWith('gw-op-reconnect');
@@ -1128,7 +1177,9 @@ describe('GatewayActionImpl', () => {
         topicId: 'topic-1',
       });
 
-      vi.mocked(topicService.updateTopicMetadata).mockClear().mockResolvedValue(undefined as never);
+      vi.mocked(topicService.updateTopicMetadata)
+        .mockClear()
+        .mockResolvedValue(undefined as never);
       captured.onSessionComplete!({ authFailed: false, succeeded: true, terminalReceived: true });
 
       // The run lifecycle owns completion when a terminal event arrives, so the
@@ -1152,7 +1203,9 @@ describe('GatewayActionImpl', () => {
         topicId: 'topic-1',
       });
 
-      vi.mocked(topicService.updateTopicMetadata).mockClear().mockResolvedValue(undefined as never);
+      vi.mocked(topicService.updateTopicMetadata)
+        .mockClear()
+        .mockResolvedValue(undefined as never);
       captured.onSessionComplete!({ authFailed: true, succeeded: false, terminalReceived: false });
 
       expect(completeOperation).toHaveBeenCalledWith('gw-op-reconnect');
