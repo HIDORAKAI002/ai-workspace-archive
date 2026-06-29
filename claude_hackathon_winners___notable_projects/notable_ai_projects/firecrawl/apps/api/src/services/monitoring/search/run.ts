@@ -259,6 +259,9 @@ export async function runSearchTarget(params: {
   target: SearchTargetInput;
   monitorCheckId: string;
   scrapePage: ScrapeSearchPage;
+  // Injected blocklist predicate (keeps this module free of worker/auth deps).
+  // Blocked URLs are dropped before scrape/judge/billing. Defaults to allow-all.
+  isBlocked?: (url: string) => boolean;
   goalVersion: string;
   knownPages: Map<string, KnownPage>;
   knownEvents: KnownEvent[];
@@ -266,6 +269,7 @@ export async function runSearchTarget(params: {
   logger: Logger;
 }): Promise<SearchTargetRunResult> {
   const { target, knownPages, goalVersion, logger } = params;
+  const isBlocked = params.isBlocked ?? (() => false);
   const judgeEnabled = params.monitor.judgeEnabled;
   const runStart = Date.now();
 
@@ -285,6 +289,7 @@ export async function runSearchTarget(params: {
   let skipped = 0;
   let matches = 0;
   let searchResultsBilled = 0;
+  let blocked = 0;
   let resultsJudged = 0;
   let judgeScrapeFailures = 0;
 
@@ -315,6 +320,10 @@ export async function runSearchTarget(params: {
     for (const r of results) {
       if (!r.url) continue;
       if (isExcludedDomain(r.url, target.excludeDomains)) continue;
+      if (isBlocked(r.url)) {
+        blocked += 1;
+        continue;
+      }
       const canonical = canonicalizeUrl(r.url);
       const existingIdx = seenThisRun.get(canonical);
       if (existingIdx !== undefined) {
@@ -335,6 +344,13 @@ export async function runSearchTarget(params: {
     }
   }
   resultCount = candidates.length;
+
+  if (blocked > 0) {
+    logger.info("search monitor: dropped blocklisted results before judging", {
+      blocked,
+      kept: resultCount,
+    });
+  }
 
   // An empty retrieval is indistinguishable from "nothing matched"; log to diagnose.
   if (resultCount === 0) {
