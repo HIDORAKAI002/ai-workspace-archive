@@ -17,10 +17,10 @@ export function MigrationNoticeContent(
 	const [status, setStatus] = useState<string | undefined>();
 
 	const openSubscriptionPage = useCallback(() => {
-		setStatus("Opening Cline Pass in your browser...");
+		setStatus("Opening ClinePass in your browser...");
 		void open(subscriptionUrl, { wait: false })
 			.then(() => {
-				setStatus("Opened Cline Pass in your browser.");
+				setStatus("Opened ClinePass in your browser.");
 			})
 			.catch(() => {
 				setStatus(
@@ -44,11 +44,11 @@ export function MigrationNoticeContent(
 			<text fg={palette.act}>{notice.title}</text>
 			<box flexDirection="column">
 				<text selectable>
-					Cline Pass is a $9.99/month subscription plan to get access to the
+					ClinePass is a $9.99/month subscription plan to get access to the
 					latest open-weight coding models with enough quota for day-to-day
 					work, at a much lower cost than paying API costs directly.
 				</text>
-				<text selectable>Try it now with a limited-time promo.</text>
+				<text selectable>Try it now with a limited-time promo for $1.99.</text>
 			</box>
 			<box flexDirection="row">
 				<text fg={palette.act} selectable>
@@ -57,7 +57,7 @@ export function MigrationNoticeContent(
 			</box>
 			<box flexDirection="row">
 				<box paddingX={1} backgroundColor={palette.act}>
-					<text fg={palette.textOnSelection}>Open Cline Pass</text>
+					<text fg={palette.textOnSelection}>Open ClinePass</text>
 				</box>
 			</box>
 			{status && <text fg={palette.muted}>{status}</text>}
