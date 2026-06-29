@@ -19,7 +19,7 @@ That's the whole protocol. Every leg is an ordinary request from the client to t
 
 ## The server side
 
-The high-level `@mcp.tool()` decorator has no sugar for this yet. Today you write it on the **low-level** `Server`, whose `on_call_tool` handler is allowed to return either result type:
+On `@mcp.tool()` you rarely build this by hand: declare a dependency that asks the user and the SDK returns the `InputRequiredResult` for you - that form is the **[Dependencies](../tutorial/dependencies.md)** tutorial. The two forms don't mix: a call has one `input_responses`/`request_state` channel, so a tool that uses `Resolve(...)` parameters cannot also return `InputRequiredResult` from its body. A declared `InputRequiredResult` return is rejected at registration (`InvalidSignature`), and an undeclared one fails the call at runtime. The manual form is the **low-level** `Server`, whose `on_call_tool` handler is allowed to return either result type:
 
 ```python title="server.py" hl_lines="44-47"
 --8<-- "docs_src/mrtr/tutorial001.py"
@@ -29,7 +29,20 @@ The high-level `@mcp.tool()` decorator has no sugar for this yet. Today you writ
 * On the first call `params.input_responses` is `None`, so the guard fires and the handler asks instead of answering.
 * On the retry, the `ElicitResult` the client sent is sitting under the **same key** (`"region"`) that the server used in `input_requests`.
 
-Everything else in that file (the explicit `input_schema`, the hand-built `CallToolResult`) is the ordinary low-level `Server`, covered in **The low-level Server**. This page only adds the second return type.
+Everything else in that file (the explicit `input_schema`, the hand-built `CallToolResult`) is the ordinary low-level `Server`, covered in **[The low-level Server](low-level-server.md)**. This page only adds the second return type.
+
+## Beyond tools
+
+`tools/call` is not special: at 2026-07-28 a server may answer `prompts/get` and `resources/read` the same way. On `MCPServer`, an `@mcp.prompt()` function — or an `@mcp.resource()` **template** function — returns the `InputRequiredResult` itself and reads the retry's answers off the context:
+
+```python title="server.py" hl_lines="21 23 25"
+--8<-- "docs_src/mrtr/tutorial004.py"
+```
+
+* The first round returns the `InputRequiredResult`. On the retry, `ctx.input_responses` holds the answers under the same keys and the function returns its ordinary result — prompt messages here, resource content for a template resource.
+* An `@mcp.tool()` function can return the result directly the same way, when the dependency form doesn't fit.
+* Static `@mcp.resource()` functions don't participate: they take no `Context`, so they could never read the retry. Only template resources can ask.
+* The era rules below apply unchanged: returning an `InputRequiredResult` on a pre-2026 session is the same `-32603` the warning describes.
 
 ## The client side
 
@@ -85,7 +98,7 @@ Drop to the underlying session, where `allow_input_required=True` hands you the 
     **URL-mode elicitation** rides this exact mechanism on a 2026 connection. The entry in
     `input_requests` is an `ElicitRequest` whose params are `ElicitRequestURLParams`; the user
     finishes the out-of-band flow and your client retries the call. Same loop, no new API. The
-    high-level server half is in **Elicitation**.
+    high-level server half is in **[Elicitation](../tutorial/elicitation.md)**.
 
 ## Recap
 
@@ -93,6 +106,7 @@ Drop to the underlying session, where `allow_input_required=True` hands you the 
 * `input_requests` is what it needs. `request_state` is an opaque resume token only the server reads.
 * `Client` runs the retry loop for you: register `elicitation_callback` / `sampling_callback` / `list_roots_callback` and `call_tool` returns a plain `CallToolResult`. `input_required_max_rounds` (default 10) bounds it.
 * To inspect or persist rounds, use `client.session.call_tool(..., allow_input_required=True)` and own the `while isinstance(result, InputRequiredResult)` loop yourself.
-* The server side is the **low-level** `Server` only; `@mcp.tool()` has no sugar for this yet.
+* On `@mcp.tool()`, a dependency that asks the user produces this result for you (**[Dependencies](../tutorial/dependencies.md)**); the **low-level** `Server` is the manual form.
+* Prompts and resources participate too: an `@mcp.prompt()` or template `@mcp.resource()` function returns the `InputRequiredResult` itself and reads `ctx.input_responses` on the retry.
 
-This is the mechanism that replaces server-initiated sampling and the rest of the push-style back-channel; see **Deprecated features**.
+This is the mechanism that replaces server-initiated sampling and the rest of the push-style back-channel; see **[Deprecated features](deprecated.md)**.

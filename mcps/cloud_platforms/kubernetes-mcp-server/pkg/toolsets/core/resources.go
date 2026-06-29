@@ -93,13 +93,13 @@ func initResources(o api.Openshift) []api.ServerTool {
 		}, Handler: resourcesGet},
 		{Tool: api.Tool{
 			Name:        "resources_create_or_update",
-			Description: "Create or update a Kubernetes resource in the current cluster by providing a YAML or JSON representation of the resource\n" + commonApiVersion,
+			Description: "Create or update a Kubernetes resource via Server-Side Apply. The manifest is the complete desired state: any field this tool previously set and the new manifest omits is removed. To edit an existing resource, fetch it with resources_get, modify it, then re-apply the full resource.\n" + commonApiVersion,
 			InputSchema: &jsonschema.Schema{
 				Type: "object",
 				Properties: map[string]*jsonschema.Schema{
 					"resource": {
 						Type:        "string",
-						Description: "A JSON or YAML containing a representation of the Kubernetes resource. Should include top-level fields such as apiVersion,kind,metadata, and spec",
+						Description: "Complete YAML or JSON representation of the Kubernetes resource (full desired state, not a partial patch). Include apiVersion, kind, metadata, and the full spec.",
 					},
 				},
 				Required: []string{"resource"},
@@ -225,7 +225,11 @@ func resourcesList(params api.ToolHandlerParams) (*api.ToolCallResult, error) {
 	if err != nil {
 		return api.NewToolCallResult("", fmt.Errorf("failed to list resources: %w", err)), nil
 	}
-	return api.NewToolCallResult(params.ListOutput.PrintObj(ret)), nil
+	printed, err := params.ListOutput.PrintObjStructured(ret)
+	if err != nil {
+		return api.NewToolCallResult("", fmt.Errorf("failed to format resources: %w", err)), nil
+	}
+	return api.NewToolCallResultFull(printed.Text, printed.Structured, nil), nil
 }
 
 func resourcesGet(params api.ToolHandlerParams) (*api.ToolCallResult, error) {
@@ -256,7 +260,11 @@ func resourcesGet(params api.ToolHandlerParams) (*api.ToolCallResult, error) {
 	if err != nil {
 		return api.NewToolCallResult("", fmt.Errorf("failed to get resource: %w", err)), nil
 	}
-	return api.NewToolCallResult(output.MarshalYaml(ret)), nil
+	printed, err := output.Yaml.PrintObjStructured(ret)
+	if err != nil {
+		return api.NewToolCallResult("", fmt.Errorf("failed to format resource: %w", err)), nil
+	}
+	return api.NewToolCallResultFull(printed.Text, printed.Structured, nil), nil
 }
 
 func resourcesCreateOrUpdate(params api.ToolHandlerParams) (*api.ToolCallResult, error) {

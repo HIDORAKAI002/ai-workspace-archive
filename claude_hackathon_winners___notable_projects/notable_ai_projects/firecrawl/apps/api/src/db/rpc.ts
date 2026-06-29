@@ -31,11 +31,10 @@ export type AuthCreditUsageChunkRow = Record<string, any> & {
 export async function authCreditUsageChunk(
   database: DB,
   input_key: string,
-  i_is_extract: boolean,
 ): Promise<AuthCreditUsageChunkRow[]> {
   const rows = await execRows<AuthCreditUsageChunkRow>(
     database,
-    sql`select * from auth_credit_usage_chunk_48(input_key => ${input_key}, i_is_extract => ${i_is_extract}, tally_untallied_credits => ${true})`,
+    sql`select * from auth_credit_usage_chunk_49(input_key => ${input_key})`,
   );
   // api_key_id is a bigint column, so the pg driver hands it back as a string.
   for (const row of rows) {
@@ -49,11 +48,10 @@ export async function authCreditUsageChunk(
 export function authCreditUsageChunkFromTeam(
   database: DB,
   input_team: string,
-  i_is_extract: boolean,
 ): Promise<AuthCreditUsageChunkRow[]> {
   return execRows(
     database,
-    sql`select * from auth_credit_usage_chunk_48_from_team(input_team => ${input_team}, i_is_extract => ${i_is_extract}, tally_untallied_credits => ${true})`,
+    sql`select * from auth_credit_usage_chunk_49_from_team(input_team => ${input_team})`,
   );
 }
 

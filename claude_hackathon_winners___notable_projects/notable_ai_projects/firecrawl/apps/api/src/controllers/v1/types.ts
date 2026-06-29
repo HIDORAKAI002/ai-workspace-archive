@@ -1073,6 +1073,7 @@ export type Document = {
     scrapeId?: string;
     error?: string;
     numPages?: number;
+    totalPages?: number;
     contentType?: string;
     timezone?: string;
     proxyUsed: "basic" | "stealth";

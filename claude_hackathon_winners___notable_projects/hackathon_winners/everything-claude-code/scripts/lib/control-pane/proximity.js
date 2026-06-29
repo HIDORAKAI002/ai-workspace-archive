@@ -179,11 +179,84 @@ function dispatchProximityTriggers(triggers, deps = {}) {
   return { dispatched, skipped };
 }
 
+/**
+ * Stateful dispatcher with per-trigger cooldown, so a collision that persists
+ * across many ticks fires once and then stays quiet until it clears or the
+ * cooldown lapses — agents get steered, not spammed. Inject `sendMessage`
+ * (e.g. createEccMessageSink) and optionally `now`/`cooldownMs` for tests.
+ */
+function createProximityDispatcher(deps = {}) {
+  const send = deps.sendMessage;
+  const cooldownMs = Number.isFinite(deps.cooldownMs) ? deps.cooldownMs : 5 * 60 * 1000;
+  const now = typeof deps.now === 'function' ? deps.now : () => Date.now();
+  const lastFired = new Map();
+  const keyOf = t => `${t.to}<-${t.from}:${t.type}`;
+
+  return {
+    dispatch(triggers) {
+      let dispatched = 0;
+      let suppressed = 0;
+      let skipped = 0;
+      for (const t of triggers || []) {
+        const key = keyOf(t);
+        const last = lastFired.get(key);
+        const ts = now();
+        if (last !== undefined && ts - last < cooldownMs) {
+          suppressed += 1;
+          continue;
+        }
+        if (typeof send !== 'function') {
+          skipped += 1;
+          continue;
+        }
+        try {
+          send({ fromSession: t.from, toSession: t.to, content: t.content, msgType: t.type });
+          lastFired.set(key, ts);
+          dispatched += 1;
+        } catch {
+          skipped += 1;
+        }
+      }
+      return { dispatched, suppressed, skipped };
+    },
+    reset() {
+      lastFired.clear();
+    }
+  };
+}
+
+/**
+ * One proximity tick: build the snapshot, then dispatch its triggers (steer the
+ * agents). `buildSnapshot()` returns a control-pane snapshot with a `proximity`
+ * field; `dispatcher` is a createProximityDispatcher. `dryRun` reports what
+ * would fire without sending. Both are injected so the CLI stays a thin wrapper
+ * and the logic is unit-testable.
+ */
+async function runProximityTick(deps = {}) {
+  const snapshot = await deps.buildSnapshot();
+  const prox = (snapshot && snapshot.proximity) || { advisories: [], triggers: [], counts: {} };
+  const triggers = prox.triggers || [];
+  let result;
+  if (deps.dryRun || !deps.dispatcher) {
+    result = { dispatched: 0, suppressed: 0, skipped: triggers.length, dryRun: Boolean(deps.dryRun) };
+  } else {
+    result = deps.dispatcher.dispatch(triggers);
+  }
+  return {
+    counts: prox.counts || {},
+    advisories: prox.advisories || [],
+    triggers,
+    result
+  };
+}
+
 module.exports = {
   buildProximitySnapshot,
   sessionsToAgents,
   defaultWorkingSetFor,
   defaultChangedFilesFor,
   parseDiffRanges,
-  dispatchProximityTriggers
+  dispatchProximityTriggers,
+  createProximityDispatcher,
+  runProximityTick
 };

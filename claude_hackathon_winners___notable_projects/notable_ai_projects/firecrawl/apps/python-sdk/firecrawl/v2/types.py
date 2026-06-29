@@ -123,6 +123,7 @@ class DocumentMetadata(BaseModel):
     status_code: Optional[int] = None
     scrape_id: Optional[str] = None
     num_pages: Optional[int] = None
+    total_pages: Optional[int] = None
     content_type: Optional[str] = None
     proxy_used: Optional[Literal["basic", "stealth"]] = None
     timezone: Optional[str] = None
@@ -211,6 +212,7 @@ class DocumentMetadata(BaseModel):
             if isinstance(v, list) and k in {
                 "status_code",
                 "num_pages",
+                "total_pages",
                 "credits_used",
             }:
                 first = v[0] if v else None
