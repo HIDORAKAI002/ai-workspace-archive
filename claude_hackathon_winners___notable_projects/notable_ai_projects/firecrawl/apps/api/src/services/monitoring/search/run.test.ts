@@ -90,6 +90,7 @@ function run(
     knownEvents?: { key: string; label: string }[];
     goalVersion?: string;
     alertMode?: "first_match" | "every_new_result" | "material_dev";
+    isBlocked?: (url: string) => boolean;
   } = {},
 ) {
   return runSearchTarget({
@@ -101,6 +102,7 @@ function run(
     },
     monitorCheckId: "check-1",
     scrapePage: (...a: unknown[]) => scrapePageMock(...a),
+    isBlocked: over.isBlocked,
     goalVersion: over.goalVersion ?? "gv1",
     knownPages: over.knownPages ?? new Map(),
     knownEvents: over.knownEvents ?? [],
@@ -537,5 +539,27 @@ describe("domain scoping", () => {
     expect(out.resultCount).toBe(1);
     expect(out.sources.map(s => s.url)).toEqual(["https://news.com/openai"]);
     expect(scrapePageMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocklisted URLs are dropped before scrape/judge/billing", async () => {
+    setSearchResults([
+      { url: "https://blocked.com/x", title: "blocked", description: "x" },
+      {
+        url: "https://news.com/openai",
+        title: "OpenAI files S-1",
+        description: "x",
+      },
+    ]);
+    setVerdictsByUrl({ "https://news.com/openai": verdict() });
+    const out = await run({
+      isBlocked: url => url.includes("blocked.com"),
+    });
+    expect(out.resultCount).toBe(1);
+    expect(out.sources.map(s => s.url)).toEqual(["https://news.com/openai"]);
+    expect(out.pageUpserts.map(p => p.url)).toEqual([
+      "https://news.com/openai",
+    ]);
+    expect(scrapePageMock).toHaveBeenCalledTimes(1);
+    expect(out.resultsJudged).toBe(1);
   });
 });

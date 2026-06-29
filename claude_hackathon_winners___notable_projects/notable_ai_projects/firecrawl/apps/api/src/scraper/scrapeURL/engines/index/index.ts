@@ -112,8 +112,9 @@ export async function sendDocumentToIndex(meta: Meta, document: Document) {
           pdfMetadata:
             document.metadata.numPages !== undefined
               ? {
-                  // reconstruct pdfMetadata from numPages and title
+                  // reconstruct pdfMetadata from numPages, totalPages and title
                   numPages: document.metadata.numPages,
+                  totalPages: document.metadata.totalPages ?? undefined,
                   title: document.metadata.title ?? undefined,
                 }
               : undefined,

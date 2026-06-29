@@ -68,6 +68,8 @@ import { trackMonitorCheckStartedInterest } from "./interest";
 import { runSearchTarget, type ScrapeSearchResult } from "./search/run";
 import { verdictJsonSchema } from "./search/judge";
 import { computeGoalVersion } from "./search/dedupe";
+import { isUrlBlocked } from "../../scraper/WebScraper/utils/blocklist";
+import { getACUCTeam } from "../../controllers/auth";
 import {
   reconstructKnownState,
   searchStatusToPageStatus,
@@ -715,6 +717,10 @@ async function runMonitorSearchTarget(params: {
     goalVersion,
   );
 
+  // Same blocklist gate prod scrapes use, applied per team (honors unblockedDomains).
+  const acuc = await getACUCTeam(monitor.team_id);
+  const teamFlags = acuc?.flags ?? null;
+
   const result = await runSearchTarget({
     monitor: {
       id: monitor.id,
@@ -743,6 +749,11 @@ async function runMonitorSearchTarget(params: {
         checkId: check.id,
         url,
         judgePrompt,
+      }),
+    isBlocked: url =>
+      isUrlBlocked(url, teamFlags, {
+        team_id: monitor.team_id,
+        origin: "monitor.search",
       }),
     goalVersion,
     knownPages,

@@ -5,7 +5,8 @@
 
 const assert = require('assert');
 
-const { buildProximitySnapshot, sessionsToAgents, parseDiffRanges, dispatchProximityTriggers } = require('../../scripts/lib/control-pane/proximity');
+const { buildProximitySnapshot, sessionsToAgents, parseDiffRanges, dispatchProximityTriggers, createProximityDispatcher, runProximityTick } = require('../../scripts/lib/control-pane/proximity');
+const { parseArgs: parseTickArgs } = require('../../scripts/proximity-tick');
 
 let passed = 0;
 let failed = 0;
@@ -144,6 +145,42 @@ test('dispatchProximityTriggers: no sink ⇒ nothing thrown, all skipped', () =>
   const r = dispatchProximityTriggers([{ to: 'a', from: 'b', type: 'x', content: 'c' }], {});
   assert.strictEqual(r.dispatched, 0);
   assert.strictEqual(r.skipped, 1);
+});
+
+test('runProximityTick: dispatches the snapshot triggers via the dispatcher', async () => {
+  const snapshot = {
+    proximity: {
+      counts: { agents: 2, advisories: 1, resolutions: 1 },
+      advisories: [{ a: 'lead', b: 'worker', level: 'resolution', risk: 0.9, steer: 'worker', hold: 'lead' }],
+      triggers: [
+        { to: 'worker', from: 'lead', type: 'proximity_steer', content: 'steer' },
+        { to: 'lead', from: 'worker', type: 'proximity_hold', content: 'hold' }
+      ]
+    }
+  };
+  const sent = [];
+  const dispatcher = createProximityDispatcher({ sendMessage: m => sent.push(m), now: () => 0 });
+  const tick = await runProximityTick({ buildSnapshot: async () => snapshot, dispatcher });
+  assert.strictEqual(tick.result.dispatched, 2);
+  assert.strictEqual(sent.length, 2);
+});
+
+test('runProximityTick: dry-run sends nothing', async () => {
+  const snapshot = { proximity: { counts: {}, advisories: [], triggers: [{ to: 'a', from: 'b', type: 'x', content: 'c' }] } };
+  const sent = [];
+  const dispatcher = createProximityDispatcher({ sendMessage: m => sent.push(m) });
+  const tick = await runProximityTick({ buildSnapshot: async () => snapshot, dispatcher, dryRun: true });
+  assert.strictEqual(tick.result.dispatched, 0);
+  assert.strictEqual(tick.result.dryRun, true);
+  assert.strictEqual(sent.length, 0);
+});
+
+test('proximity-tick parseArgs: parses flags', () => {
+  const a = parseTickArgs(['node', 'proximity-tick.js', '--watch', '30', '--dry-run', '--db', '/x']);
+  assert.strictEqual(a.watchSec, 30);
+  assert.strictEqual(a.dryRun, true);
+  assert.strictEqual(a.dbPath, '/x');
+  assert.throws(() => parseTickArgs(['node', 'p', '--watch', 'nope']), /positive seconds/);
 });
 
 console.log(`\nResults: Passed: ${passed}, Failed: ${failed}`);

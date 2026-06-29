@@ -281,7 +281,7 @@ export async function getACUC(
     while (retries < maxRetries) {
       const database = Math.random() > 2 / 3 ? dbRr : db;
       try {
-        data = await authCreditUsageChunk(database, api_key, isExtract);
+        data = await authCreditUsageChunk(database, api_key);
         break;
       } catch (error) {
         logger.warn(
@@ -401,7 +401,7 @@ export async function getACUCTeam(
     while (retries < maxRetries) {
       const database = Math.random() > 2 / 3 ? dbRr : db;
       try {
-        data = await authCreditUsageChunkFromTeam(database, team_id, isExtract);
+        data = await authCreditUsageChunkFromTeam(database, team_id);
         break;
       } catch (error) {
         logger.warn(
