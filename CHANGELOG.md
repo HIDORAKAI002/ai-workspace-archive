@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-30 18:31 IST] Auto-Sync
+- **32 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Exa MCP Server, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Flowise, Activepieces, Trigger.dev, Budibase, modelcontextprotocol/kotlin-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-30 11:40 IST] Auto-Sync
 - **31 Repositories Updated:** Kubernetes MCP Server, Awesome ChatGPT Prompts, Promptfoo, NVIDIA NeMo Guardrails, Langflow, Activepieces, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, VoltAgent, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, affaan-m/everything-claude-code, firecrawl/firecrawl, apache/airflow, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, nousresearch/hermes-agent
 
