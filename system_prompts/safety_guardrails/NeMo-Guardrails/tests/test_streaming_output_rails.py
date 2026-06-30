@@ -290,6 +290,98 @@ async def test_external_generator_with_output_rails_allowed():
 
 
 @pytest.mark.asyncio
+async def test_external_generator_output_rails_receive_user_content():
+    config = RailsConfig.from_content(
+        config={
+            "models": [],
+            "rails": {
+                "output": {
+                    "flows": ["self check output"],
+                    "streaming": {
+                        "enabled": True,
+                        "chunk_size": 4,
+                        "context_size": 2,
+                        "stream_first": False,
+                    },
+                }
+            },
+            "streaming": True,
+            "prompts": [{"task": "self_check_output", "content": "Check: {{ bot_response }}"}],
+        },
+        colang_content="""
+        define flow self check output
+          execute self_check_output
+        """,
+    )
+    rails = LLMRails(config)
+    observed_user_messages = []
+
+    @action(name="self_check_output")
+    async def self_check_output(**kwargs):
+        observed_user_messages.append(kwargs.get("context", {}).get("user_message"))
+        return True
+
+    rails.register_action(self_check_output, "self_check_output")
+
+    tokens = []
+    async for token in rails.stream_async(
+        generator=simple_token_generator(),
+        messages=[{"role": "user", "content": "Hello"}],
+    ):
+        tokens.append(token)
+
+    assert tokens == ["Hello", " ", "world", "!"]
+    assert observed_user_messages
+    assert set(observed_user_messages) == {"Hello"}
+
+
+@pytest.mark.asyncio
+async def test_external_generator_output_rails_use_empty_user_content_without_user_message():
+    config = RailsConfig.from_content(
+        config={
+            "models": [],
+            "rails": {
+                "output": {
+                    "flows": ["self check output"],
+                    "streaming": {
+                        "enabled": True,
+                        "chunk_size": 4,
+                        "context_size": 2,
+                        "stream_first": False,
+                    },
+                }
+            },
+            "streaming": True,
+            "prompts": [{"task": "self_check_output", "content": "Check: {{ bot_response }}"}],
+        },
+        colang_content="""
+        define flow self check output
+          execute self_check_output
+        """,
+    )
+    rails = LLMRails(config)
+    observed_user_messages = []
+
+    @action(name="self_check_output")
+    async def self_check_output(**kwargs):
+        observed_user_messages.append(kwargs.get("context", {}).get("user_message"))
+        return True
+
+    rails.register_action(self_check_output, "self_check_output")
+
+    tokens = []
+    async for token in rails.stream_async(
+        generator=simple_token_generator(),
+        messages=[{"role": "assistant", "content": "Earlier assistant message"}],
+    ):
+        tokens.append(token)
+
+    assert tokens == ["Hello", " ", "world", "!"]
+    assert observed_user_messages
+    assert set(observed_user_messages) == {""}
+
+
+@pytest.mark.asyncio
 async def test_external_generator_with_output_rails_blocked():
     """Test that external generator content can be blocked by output rails."""
     config = RailsConfig.from_content(
@@ -450,3 +542,119 @@ async def test_external_generator_single_chunk():
         tokens.append(token)
 
     assert "".join(tokens) == "This is a complete response in a single chunk."
+
+
+@pytest.mark.asyncio
+async def test_streaming_output_rails_no_stale_substituted_param():
+    """Output rails that take the bot message as a substituted kwarg
+    (text=$bot_message, as privateai / prompt_security / regex rails do) see
+    each streamed chunk's own text, not a stale value from an earlier chunk.
+    """
+    config = RailsConfig.from_content(
+        config={
+            "models": [],
+            "rails": {
+                "output": {
+                    "flows": ["capture output"],
+                    "streaming": {"enabled": True, "chunk_size": 4, "context_size": 2},
+                }
+            },
+            "streaming": False,
+        },
+        colang_content="""
+        define user express greeting
+          "hi"
+
+        define flow
+          user express greeting
+          bot tell joke
+
+        define subflow capture output
+          execute capture_output(text=$bot_message)
+        """,
+    )
+
+    seen = []
+
+    @action(name="capture_output", output_mapping=lambda result: not result)
+    async def capture_output(**params):
+        # the substituted `text` kwarg must match this chunk's bot_message
+        seen.append((params.get("text"), params["context"]["bot_message"]))
+        return True
+
+    chat = TestChat(
+        config,
+        llm_completions=[
+            '  express greeting\nbot express greeting\n  "hi"',
+            '  "one two three four five six"',
+        ],
+        streaming=True,
+    )
+    chat.app.register_action(capture_output, name="capture_output")
+
+    async for _ in chat.app.stream_async(messages=[{"role": "user", "content": "hi"}]):
+        pass
+
+    assert len(seen) >= 2  # response spans multiple chunks
+    assert all(text == bot_message for text, bot_message in seen)
+
+    await asyncio.gather(*asyncio.all_tasks() - {asyncio.current_task()})
+
+
+@pytest.mark.asyncio
+async def test_streaming_output_rails_substitutes_user_message_param():
+    """Output rails that take the user message as a substituted kwarg
+    (text=$user_message) receive the resolved user message on every streamed
+    chunk, not the literal "$user_message" placeholder.
+    """
+    config = RailsConfig.from_content(
+        config={
+            "models": [],
+            "rails": {
+                "output": {
+                    "flows": ["capture output"],
+                    "streaming": {"enabled": True, "chunk_size": 4, "context_size": 2},
+                }
+            },
+            "streaming": False,
+        },
+        colang_content="""
+        define user express greeting
+          "hi"
+
+        define flow
+          user express greeting
+          bot tell joke
+
+        define subflow capture output
+          execute capture_output(text=$user_message)
+        """,
+    )
+
+    seen = []
+
+    @action(name="capture_output", output_mapping=lambda result: not result)
+    async def capture_output(**params):
+        # the substituted `text` kwarg must be the resolved user message
+        seen.append((params.get("text"), params["context"]["user_message"]))
+        return True
+
+    chat = TestChat(
+        config,
+        llm_completions=[
+            '  express greeting\nbot express greeting\n  "hi"',
+            '  "one two three four five six"',
+        ],
+        streaming=True,
+    )
+    chat.app.register_action(capture_output, name="capture_output")
+
+    async for _ in chat.app.stream_async(messages=[{"role": "user", "content": "hi"}]):
+        pass
+
+    assert seen  # the output rail ran on at least one chunk
+    # $user_message was resolved, not passed through as the literal placeholder
+    assert all(text != "$user_message" for text, _ in seen)
+    assert all(text == user_message for text, user_message in seen)
+
+    await asyncio.gather(*asyncio.all_tasks() - {asyncio.current_task()})
