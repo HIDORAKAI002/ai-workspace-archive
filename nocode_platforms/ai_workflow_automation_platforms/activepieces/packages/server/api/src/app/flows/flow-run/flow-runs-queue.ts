@@ -1,5 +1,5 @@
-import { apId, isNil, spreadIfDefined } from '@activepieces/core-utils'
-import { FlowRun, FlowRunStatus, isFlowRunStateTerminal } from '@activepieces/shared'
+import { apId, isNil, sanitizeObjectForPostgresql, spreadIfDefined } from '@activepieces/core-utils'
+import { FlowRun, FlowRunStatus, isFlowRunStateTerminal, RunTimeline } from '@activepieces/shared'
 import { Queue, Worker } from 'bullmq'
 import { FastifyBaseLogger } from 'fastify'
 import { distributedLock, distributedStore, redisConnections } from '../../database/redis-connections'
@@ -12,6 +12,7 @@ import { QueueName, redisMetadataKey, RunsMetadataJobData, RunsMetadataQueueConf
 import { flowService } from '../flow/flow.service'
 import { flowRunRepo } from './flow-run-service'
 import { flowRunSideEffects } from './flow-run-side-effects'
+import { buildRunTimeline } from './run-timeline'
 import { resumeService } from './waitpoint/resume-service'
 import { waitpointService } from './waitpoint/waitpoint-service'
 import { WaitpointStatus } from './waitpoint/waitpoint-types'
@@ -43,19 +44,22 @@ export const runsMetadataQueue = (log: FastifyBaseLogger) => ({
                     fn: async () => {
                         try {
                             await runsMetadataQueue(log).get().removeDeduplicationKey(job.data.runId)
-                            const runMetadata = await distributedStore.hgetJson<RunsMetadataUpsertData>(key)
-                            if (isNil(runMetadata) || Object.keys(runMetadata).length === 0) {
+                            const rawRunMetadata = await distributedStore.hgetJson<RunsMetadataUpsertData>(key)
+                            if (isNil(rawRunMetadata) || Object.keys(rawRunMetadata).length === 0) {
                                 log.info({
                                     job: { id: job.id },
                                     flowRun: { id: job.data.runId },
                                 }, '[runsMetadataQueue#worker] Runs metadata not found, skipping job')
                                 return
                             }
+                            const runMetadata = sanitizeObjectForPostgresql(rawRunMetadata)
 
                             const existingFlowRun = await flowRunRepo().findOneBy({ id: job.data.runId })
                             let savedFlowRun: FlowRun
                             if (!isNil(existingFlowRun)) {
+                                const timeline = buildTimeline({ existingFlowRun, runMetadata })
                                 await flowRunRepo().update(job.data.runId, {
+                                    ...spreadIfDefined('timeline', timeline),
                                     ...spreadIfDefined('projectId', runMetadata.projectId),
                                     ...spreadIfDefined('flowId', runMetadata.flowId),
                                     ...spreadIfDefined('flowVersionId', runMetadata.flowVersionId),
@@ -172,6 +176,18 @@ export const runsMetadataQueue = (log: FastifyBaseLogger) => ({
 
 })
 
+function buildTimeline({ existingFlowRun, runMetadata }: BuildTimelineParams): RunTimeline | undefined {
+    return buildRunTimeline({
+        existingTimeline: existingFlowRun.timeline,
+        created: existingFlowRun.created,
+        startTime: runMetadata.startTime ?? existingFlowRun.startTime,
+        finishTime: runMetadata.finishTime ?? existingFlowRun.finishTime,
+        provisionMs: runMetadata.provisionMs,
+        bootMs: runMetadata.bootMs,
+        runMs: runMetadata.runMs,
+    })
+}
+
 async function markParentRunAsFailed({
     parentRunId,
     childRunId,
@@ -214,6 +230,11 @@ async function markParentRunAsFailed({
             resumePayload: result.waitpoint.resumePayload,
         })
     }
+}
+
+type BuildTimelineParams = {
+    existingFlowRun: FlowRun
+    runMetadata: RunsMetadataUpsertData
 }
 
 type MarkParentRunAsFailedParams = {
