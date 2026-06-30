@@ -55,7 +55,11 @@ public class SearchOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Country { get; set; }
 
+    /// <summary>
+    /// Enterprise search options. Use <c>["zdr"]</c> for end-to-end Zero Data
+    /// Retention or <c>["anon"]</c> for anonymized search. Must be enabled for your team.
+    /// </summary>
     [JsonPropertyName("enterprise")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public bool? Enterprise { get; set; }
+    public List<string>? Enterprise { get; set; }
 }

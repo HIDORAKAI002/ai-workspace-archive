@@ -1,7 +1,8 @@
 # gateway.yaml.example — Claude Gateway config template, GCP-shaped (walkthrough §6).
 #
-# Google Workspace IdP + Vertex upstream, following the walkthrough at
-# https://code.claude.com/docs/en/claude-apps-gateway-on-gcp. The active sections
+# Google Workspace IdP + Agent Platform (formerly Vertex AI) upstream, following
+# the walkthrough at https://code.claude.com/docs/en/claude-apps-gateway-on-gcp.
+# The active sections
 # below are a strict subset of the full configuration reference at
 # https://code.claude.com/docs/en/claude-apps-gateway; optional keys are included
 # commented-out.
@@ -88,11 +89,11 @@ session:
 store:
   postgres_url: ${GATEWAY_POSTGRES_URL}   # private-IP Cloud SQL; built with ?sslmode=require by setup.sh
 
-# ── Upstreams — Vertex AI ────────────────────────────────────────────────────
+# ── Upstreams — Agent Platform ───────────────────────────────────────────────
 upstreams:
   - provider: vertex
     region: us-east5              # a region where the Claude models you need are published in Model Garden
-    project_id: REPLACE_ME        # your GCP project ID for Vertex access
+    project_id: REPLACE_ME        # your GCP project ID for Agent Platform access
     auth: {}                      # ADC via Cloud Run SA / GKE Workload Identity (preferred — no static keys)
     # base_url: https://us-east5-aiplatform.p.googleapis.com   # Private Service Connect endpoint
   # Add more upstreams for failover (tried top→bottom on 5xx/timeout/501): a

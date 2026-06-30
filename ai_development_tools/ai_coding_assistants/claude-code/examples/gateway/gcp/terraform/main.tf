@@ -50,7 +50,7 @@ resource "google_service_account" "gateway" {
 # Run and GKE.
 resource "google_project_iam_member" "vertex" {
   project = var.project_id
-  role    = "roles/aiplatform.user" # Vertex inference
+  role    = "roles/aiplatform.user" # Agent Platform inference
   member  = "serviceAccount:${google_service_account.gateway.email}"
 }
 
@@ -310,7 +310,7 @@ resource "google_cloud_run_v2_service" "gateway" {
         network    = google_compute_network.vpc.id
         subnetwork = google_compute_subnetwork.subnet.id
       }
-      egress = "PRIVATE_RANGES_ONLY" # public egress (Vertex, accounts.google.com) bypasses the VPC -> no Cloud NAT needed
+      egress = "PRIVATE_RANGES_ONLY" # public egress (Agent Platform, accounts.google.com) bypasses the VPC -> no Cloud NAT needed
     }
 
     containers {

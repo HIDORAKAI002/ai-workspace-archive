@@ -31,10 +31,12 @@ import {
   labPreferSelectors,
   settingsSelectors,
   systemAgentSelectors,
+  userProfileSelectors,
 } from '@/store/user/selectors';
 
 import { useAgentId } from '../hooks/useAgentId';
 import { useChatInputDraft } from '../hooks/useChatInputDraft';
+import { useChatInputHistory } from '../hooks/useChatInputHistory';
 import { useChatInputStore, useStoreApi } from '../store';
 import {
   INSERT_ACTION_TAG_COMMAND,
@@ -71,6 +73,7 @@ const InputEditor = memo<{
     expand,
     slashPlacement,
     isInputCompletionEnabled,
+    isInputHistoryEnabled,
     isMentionEnabled,
     isSlashEnabled,
   ] = useChatInputStore((s) => [
@@ -81,6 +84,7 @@ const InputEditor = memo<{
     s.expand,
     s.slashPlacement ?? 'top',
     s.feature?.inputCompletion ?? true,
+    s.feature?.inputHistory ?? true,
     s.feature?.mention ?? true,
     s.feature?.slash ?? true,
   ]);
@@ -91,17 +95,30 @@ const InputEditor = memo<{
   const state = useEditorState(editor);
   const { allowed: canCreateContent } = usePermission('create_content');
   const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.AddUserMessage));
+  const userId = useUserStore(userProfileSelectors.userId);
   const { enableScope, disableScope } = useHotkeysContext();
+  const agentId = useAgentId();
+  const inputHistoryScope = useMemo(() => ({ agentId, userId }), [agentId, userId]);
 
   const { compositionProps, isComposingRef } = useIMECompositionEvent();
 
   const shouldSendOnEnter = useEnterToSend();
+  const getMarkdownContent = useCallback(
+    () => storeApi.getState().getMarkdownContent(),
+    [storeApi],
+  );
+  const inputHistory = useChatInputHistory({
+    editor,
+    enabled: isInputHistoryEnabled,
+    getMarkdownContent,
+    isComposingRef,
+    scope: inputHistoryScope,
+  });
 
   // --- Category-based mention system ---
   const categories = useMentionCategories();
 
   // Get agent's model info for vision support check and handle paste upload
-  const agentId = useAgentId();
   const model = useAgentStore((s) => agentByIdSelectors.getAgentModelById(agentId)(s));
   const provider = useAgentStore((s) => agentByIdSelectors.getAgentModelProviderById(agentId)(s));
   const heterogeneousType = useAgentStore(
@@ -475,10 +492,12 @@ const InputEditor = memo<{
       onInit={handleEditorInit}
       onBlur={() => {
         disableScope(HotkeyEnum.AddUserMessage);
+        inputHistory.handleEditorBlur();
         saveDraftDebounced.flush();
       }}
       onChange={() => {
         updateMarkdownContent();
+        inputHistory.handleEditorChange();
         saveDraftDebounced();
       }}
       onCompositionStart={({ event }) => {
@@ -506,6 +525,9 @@ const InputEditor = memo<{
       }}
       onFocus={() => {
         enableScope(HotkeyEnum.AddUserMessage);
+      }}
+      onKeyDown={({ event }) => {
+        if (inputHistory.handleKeyDown(event)) return true;
       }}
       onPressEnter={({ event: e }) => {
         if (e.shiftKey || isComposingRef.current) return;

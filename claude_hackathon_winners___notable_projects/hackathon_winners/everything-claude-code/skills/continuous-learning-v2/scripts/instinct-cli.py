@@ -430,12 +430,32 @@ def _update_registry(pid: str, pname: str, proot: str, premote: str) -> None:
                 registry = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             registry = {}
+        # A registry that is valid JSON but not a mapping (e.g. a list from a
+        # corrupt projects.json) must not crash the update before the per-entry
+        # guard below: fall back to an empty dict so the whole file is healed.
+        if not isinstance(registry, dict):
+            registry = {}
 
+        # Mirror the shell counterpart in detect-project.sh: the entry carries
+        # "id" and "created_at" alongside the other fields so a projects.json
+        # record has the same shape regardless of which path (Python CLI or
+        # shell hook) last wrote it. "created_at" is preserved from any
+        # existing entry; only "last_seen" advances on update.
+        now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        existing = registry.get(pid, {})
+        # A malformed registry (e.g. a non-dict value for this id) must not
+        # crash the update: fall back to an empty dict so the corrupt entry is
+        # healed by the rewrite, matching the old unconditional-overwrite
+        # behavior.
+        if not isinstance(existing, dict):
+            existing = {}
         registry[pid] = {
+            "id": pid,
             "name": pname,
             "root": proot,
             "remote": premote,
-            "last_seen": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "created_at": existing.get("created_at", now),
+            "last_seen": now,
         }
 
         tmp_file = REGISTRY_FILE.parent / f".{REGISTRY_FILE.name}.tmp.{os.getpid()}"

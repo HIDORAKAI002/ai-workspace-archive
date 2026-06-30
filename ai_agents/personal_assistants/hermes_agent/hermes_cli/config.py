@@ -999,6 +999,21 @@ DEFAULT_CONFIG = {
         #   "on"             — force the prompt posture everywhere.
         #   "off"            — disable entirely.
         "coding_context": "auto",
+        # Standing operator instructions for the coding posture. A string (or
+        # list of strings) appended to the coding brief as an extra stable
+        # system block — pin project-wide workflow rules here instead of editing
+        # the shipped brief, e.g. "For UI work, don't run tsc/lint until I
+        # approve. Clean the diff before you commit and push." Cache-safe:
+        # takes effect next session. Empty by default.
+        "coding_instructions": "",
+        # When verify-on-stop finds edited code without fresh verification
+        # evidence, append guidance for creative UI work (avoid broad
+        # tsc/lint/test before visual approval) and clean-diff expectations.
+        # Set false to keep the evidence nudge terse.
+        "verify_guidance": True,
+        # Upper bound on consecutive `pre_verify` "continue" nudges in a single
+        # turn, so a user/plugin hook can never trap the loop.
+        "max_verify_nudges": 3,
         # Verification closure: after the agent edits files in a code workspace,
         # do not accept a final answer until fresh verification evidence exists
         # or the agent explains why it cannot run checks. The loop is bounded
@@ -1725,6 +1740,11 @@ DEFAULT_CONFIG = {
         "tool_progress_command": False,  # Enable /verbose command in messaging gateway
         "tool_progress_overrides": {},  # DEPRECATED — use display.platforms instead
         "tool_preview_length": 0,  # Max chars for tool call previews (0 = no limit, show full paths/commands)
+        # Human-phrased tool status labels for built-in tools: "Searching the
+        # web for ...", "Reading <file>", "Browsing <url>" instead of the raw
+        # tool name. Applies to CLI spinner + gateway/desktop tool-progress.
+        # Custom/plugin/MCP tools always fall back to the raw preview.
+        "friendly_tool_labels": True,
         # How gateway tool-progress is grouped on platforms that support message
         # editing: "accumulate" (default) edits one bubble in place; "separate"
         # sends one message per tool (the pre-v0.9 behavior, noisier). Only

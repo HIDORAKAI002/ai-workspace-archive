@@ -19,6 +19,12 @@ IDLE_TIMEOUT_SECONDS="${ECC_OBSERVER_IDLE_TIMEOUT_SECONDS:-1800}"
 SESSION_LEASE_DIR="${PROJECT_DIR}/.observer-sessions"
 ACTIVITY_FILE="${PROJECT_DIR}/.observer-last-activity"
 
+# Resolve this script's own directory so sibling scripts (session-guardian.sh)
+# and relative helpers (../scripts/instinct-cli.py) resolve correctly whether
+# this file is executed or sourced. $0 is the *caller* when sourced, so prefer
+# ${BASH_SOURCE[0]}, which always points at this file (#2370).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 cleanup() {
   [ -n "$SLEEP_PID" ] && kill "$SLEEP_PID" 2>/dev/null
   if [ -f "$PID_FILE" ] && [ "$(cat "$PID_FILE" 2>/dev/null)" = "$$" ]; then
@@ -129,7 +135,7 @@ analyze_observations() {
   fi
 
   # session-guardian: gate observer cycle (active hours, cooldown, idle detection)
-  if ! bash "$(dirname "$0")/session-guardian.sh"; then
+  if ! bash "${SCRIPT_DIR}/session-guardian.sh"; then
     echo "[$(date)] Observer cycle skipped by session-guardian" >> "$LOG_FILE"
     return
   fi
@@ -235,11 +241,15 @@ PROMPT
   # on all platforms, not just when the observer happens to be launched from the project root.
   cd "$PROJECT_DIR" || { echo "[$(date)] Failed to cd to PROJECT_DIR ($PROJECT_DIR), skipping analysis" >> "$LOG_FILE"; rm -f "$analysis_file"; return; }
 
-  # Prevent observe.sh from recording this automated Haiku session as observations.
+  # Prevent observe.sh from recording this automated observer session as observations.
   # Pass prompt via -p flag instead of stdin redirect for Windows compatibility (#842).
   # prompt_content is already loaded in-memory so this no longer depends on the
   # mktemp absolute path continuing to resolve after cwd changes (#1296).
-  ECC_SKIP_OBSERVE=1 ECC_HOOK_PROFILE=minimal claude --model haiku --max-turns "$max_turns" --print \
+  # Model is configurable via ECC_OBSERVER_MODEL (defaults to haiku for cost efficiency);
+  # e.g. ECC_OBSERVER_MODEL=opus for higher-quality instinct extraction. Heavier models are
+  # slower — consider raising ECC_OBSERVER_TIMEOUT_SECONDS (default 120s) so the watchdog
+  # doesn't kill the analysis mid-run.
+  ECC_SKIP_OBSERVE=1 ECC_HOOK_PROFILE=minimal claude --model "${ECC_OBSERVER_MODEL:-haiku}" --max-turns "$max_turns" --print \
     --allowedTools "Read,Write" \
     -p "$prompt_content" >> "$LOG_FILE" 2>&1 &
   claude_pid=$!
@@ -259,9 +269,14 @@ PROMPT
   rm -f "$analysis_file"
 
   if [ "$exit_code" -ne 0 ]; then
-    echo "[$(date)] Claude analysis failed (exit $exit_code)" >> "$LOG_FILE"
+    echo "[$(date)] Claude analysis failed (exit $exit_code); retaining observations for retry" >> "$LOG_FILE"
+    return
   fi
 
+  # Archive observations only after a successful analysis. A transient
+  # failure (timeout, non-zero exit, rate limit) must not discard the batch
+  # before it has been turned into instincts, since the analyzer only ever
+  # reads the live observations file (#2370).
   if [ -f "$OBSERVATIONS_FILE" ]; then
     archive_dir="${PROJECT_DIR}/observations.archive"
     mkdir -p "$archive_dir"
@@ -298,11 +313,20 @@ on_usr1() {
 }
 trap on_usr1 USR1
 
+# When this file is sourced (e.g. by tests/hooks/observer-loop-archive.test.js)
+# rather than executed, stop here so callers can invoke individual functions
+# such as analyze_observations without starting the observer loop. The only
+# production caller (start-observer.sh) executes the script, so $0 equals
+# BASH_SOURCE[0] there and this guard is a no-op (#2370).
+if [ "${BASH_SOURCE[0]}" != "${0}" ]; then
+  return 0 2>/dev/null || true
+fi
+
 echo "$$" > "$PID_FILE"
 echo "[$(date)] Observer started for ${PROJECT_NAME} (PID: $$)" >> "$LOG_FILE"
 
-# Prune expired pending instincts before analysis
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Prune expired pending instincts before analysis (SCRIPT_DIR resolved at top
+# via ${BASH_SOURCE[0]} so it is correct under both execution and sourcing).
 "${CLV2_PYTHON_CMD:-python3}" "${SCRIPT_DIR}/../scripts/instinct-cli.py" prune --quiet >> "$LOG_FILE" 2>&1 || echo "[$(date)] Warning: instinct prune failed (non-fatal)" >> "$LOG_FILE"
 
 while true; do
