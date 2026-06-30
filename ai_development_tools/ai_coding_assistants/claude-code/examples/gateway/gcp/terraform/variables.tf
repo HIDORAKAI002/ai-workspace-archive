@@ -6,7 +6,7 @@ variable "project_id" {
 }
 
 variable "region" {
-  description = "Infra region for Artifact Registry, Cloud SQL, subnet, and Cloud Run. (Vertex region is set separately inside gateway.yaml.)"
+  description = "Infra region for Artifact Registry, Cloud SQL, subnet, and Cloud Run. (Agent Platform region is set separately inside gateway.yaml.)"
   type        = string
   default     = "us-east5"
 }

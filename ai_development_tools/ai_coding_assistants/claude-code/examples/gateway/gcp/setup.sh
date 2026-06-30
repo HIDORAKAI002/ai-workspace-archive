@@ -29,7 +29,7 @@ set -euo pipefail
 
 # ---- configuration (env-overridable) ----------------------------------------
 PROJECT_ID="${PROJECT_ID:-$(gcloud config get-value project 2>/dev/null)}"
-REGION="${REGION:-${CLOUDSDK_COMPUTE_REGION:-us-east5}}"   # guide §1 uses us-east5 (Vertex model region)
+REGION="${REGION:-${CLOUDSDK_COMPUTE_REGION:-us-east5}}"   # guide §1 uses us-east5 (Agent Platform model region)
 
 SA_NAME="${SA_NAME:-claude-gateway}"                       # §2 service account
 SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
@@ -157,7 +157,7 @@ fi
 # and GKE.
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${SA_EMAIL}" \
-  --role="roles/aiplatform.user" --condition=None >/dev/null    # Vertex inference (§2)
+  --role="roles/aiplatform.user" --condition=None >/dev/null    # Agent Platform inference (§2)
 
 # ---- 3 Build & push image to Artifact Registry ----------------------------
 log "Ensuring Artifact Registry repo and image (§3)"
@@ -390,7 +390,7 @@ fi
 # Direct VPC egress (--network/--subnet/--vpc-egress) puts the service on the
 # VPC so it reaches the Cloud SQL PRIVATE IP directly — matching the private-IP
 # connection string in the postgres-url secret. private-ranges-only keeps public
-# egress (Vertex, accounts.google.com) off the VPC, so no Cloud NAT is needed.
+# egress (Agent Platform, accounts.google.com) off the VPC, so no Cloud NAT is needed.
 # We deliberately do NOT use --add-cloudsql-instances (that's the Auth Proxy /
 # socket path, which would need a different connection string).
 #

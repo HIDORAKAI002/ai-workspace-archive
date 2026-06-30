@@ -1570,6 +1570,9 @@ class SearchRequest(BaseModel):
     ignore_invalid_urls: Optional[bool] = None
     timeout: Optional[int] = 300000
     scrape_options: Optional[ScrapeOptions] = None
+    # Enterprise search options. Use ["zdr"] for end-to-end Zero Data
+    # Retention or ["anon"] for anonymized search. Must be enabled for your team.
+    enterprise: Optional[List[str]] = None
     integration: Optional[str] = None
 
     @field_validator("sources")

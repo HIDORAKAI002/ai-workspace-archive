@@ -280,6 +280,7 @@ _SECRET_RE = re.compile(
 
 import signal
 def _ecc_bail(*_):
+    print("[observe] SIGALRM timeout: parse-error fallback observation dropped before write (#2300)", file=sys.stderr)
     sys.exit(0)
 try:
     signal.signal(signal.SIGALRM, _ecc_bail)
@@ -317,6 +318,7 @@ import json, sys, os, re
 import signal
 
 def _ecc_bail(*_):
+    print("[observe] SIGALRM timeout: in-flight observation dropped before write (#2300)", file=sys.stderr)
     sys.exit(0)
 try:
     signal.signal(signal.SIGALRM, _ecc_bail)
@@ -477,21 +479,82 @@ fi
 # which caused runaway parallel Claude analysis processes.
 SIGNAL_EVERY_N="${ECC_OBSERVER_SIGNAL_EVERY_N:-20}"
 SIGNAL_COUNTER_FILE="${PROJECT_DIR}/.observer-signal-counter"
+SIGNAL_COUNTER_LOCK="${SIGNAL_COUNTER_FILE}.lock"
 ACTIVITY_FILE="${PROJECT_DIR}/.observer-last-activity"
 
 touch "$ACTIVITY_FILE" 2>/dev/null || true
 
+# Serialize the throttle-counter read-modify-write. observe.sh runs on every
+# tool call (which can fire every second), so concurrent invocations previously
+# raced on this counter: both read the same value, both incremented, and one
+# write was lost, signaling the observer at unpredictable intervals (#2296).
+# Prefer flock (a kernel advisory lock the OS releases automatically if the hook
+# is killed); fall back to the atomic mkdir lock this script already uses for
+# the lazy-start path above. Both wrap the same read-modify-write below.
 should_signal=0
-if [ -f "$SIGNAL_COUNTER_FILE" ]; then
-  counter=$(cat "$SIGNAL_COUNTER_FILE" 2>/dev/null || echo 0)
-  counter=$((counter + 1))
-  if [ "$counter" -ge "$SIGNAL_EVERY_N" ]; then
-    should_signal=1
-    counter=0
+
+_ecc_bump_signal_counter() {
+  if [ -f "$SIGNAL_COUNTER_FILE" ]; then
+    counter=$(cat "$SIGNAL_COUNTER_FILE" 2>/dev/null || echo 0)
+    # Guard against a corrupt counter file: a non-integer value would abort the
+    # hook under `set -e` at the arithmetic below.
+    case "$counter" in
+      ''|*[!0-9]*) counter=0 ;;
+    esac
+    counter=$((counter + 1))
+    if [ "$counter" -ge "$SIGNAL_EVERY_N" ]; then
+      should_signal=1
+      counter=0
+    fi
+    echo "$counter" > "$SIGNAL_COUNTER_FILE"
+  else
+    echo "1" > "$SIGNAL_COUNTER_FILE"
   fi
-  echo "$counter" > "$SIGNAL_COUNTER_FILE"
+}
+
+if command -v flock >/dev/null 2>&1 && exec 8>"$SIGNAL_COUNTER_LOCK" 2>/dev/null; then
+  # flock is auto-released when fd 8 closes or the process dies, so there is no
+  # stale lock and no lost increment. Use a bounded -w wait so the hook never
+  # blocks indefinitely, and only bump the counter while the lock is held -- on
+  # a timeout we skip the tick rather than doing an unlocked read-modify-write.
+  if flock -w 2 8 2>/dev/null; then
+    _ecc_bump_signal_counter
+    flock -u 8 2>/dev/null || true
+  fi
+  exec 8>&- 2>/dev/null || true
 else
-  echo "1" > "$SIGNAL_COUNTER_FILE"
+  # No flock (e.g. macOS): atomic mkdir lock with a bounded spin so the hook
+  # never blocks indefinitely. A trap releases the lock on every exit path --
+  # including the async-timeout SIGTERM -- so a killed hook does not strand the
+  # directory. We deliberately do NOT hand-roll PID-based stale reclaim:
+  # re-verifying then removing another process's lock is racy and can delete a
+  # live re-acquirer's directory, reintroducing the very race this fixes.
+  _signal_lock_held=0
+  _signal_lock_spins=0
+  while [ "$_signal_lock_spins" -lt 100 ]; do
+    if mkdir "$SIGNAL_COUNTER_LOCK" 2>/dev/null; then
+      # EXIT cleans up on normal completion. INT/TERM must release AND exit:
+      # a signal trap that only released the lock would otherwise fall through
+      # and continue the read-modify-write without ownership.
+      trap 'rmdir "$SIGNAL_COUNTER_LOCK" 2>/dev/null || true' EXIT
+      trap 'rmdir "$SIGNAL_COUNTER_LOCK" 2>/dev/null || true; exit 130' INT
+      trap 'rmdir "$SIGNAL_COUNTER_LOCK" 2>/dev/null || true; exit 143' TERM
+      _signal_lock_held=1
+      break
+    fi
+    _signal_lock_spins=$((_signal_lock_spins + 1))
+    sleep 0.02
+  done
+  if [ "$_signal_lock_held" -eq 1 ]; then
+    # Bump only under the held lock -- never an unlocked read-modify-write.
+    _ecc_bump_signal_counter
+    rmdir "$SIGNAL_COUNTER_LOCK" 2>/dev/null || true
+    trap - EXIT INT TERM
+  fi
+  # If the lock could not be acquired within the spin budget we skip this tick
+  # rather than racing on an unlocked counter. Dropping one throttle tick under
+  # extreme contention only delays the next observer signal slightly; it never
+  # corrupts the counter or signals spuriously.
 fi
 
 # Signal observer if running and throttle allows (check both project-scoped and global observer, deduplicate)

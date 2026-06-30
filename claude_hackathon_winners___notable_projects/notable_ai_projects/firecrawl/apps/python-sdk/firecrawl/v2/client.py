@@ -392,6 +392,7 @@ class FirecrawlClient:
         timeout: Optional[int] = None,
         scrape_options: Optional[ScrapeOptions] = None,
         integration: Optional[str] = None,
+        enterprise: Optional[List[str]] = None,
     ) -> SearchData:
         """
         Search for documents.
@@ -403,6 +404,9 @@ class FirecrawlClient:
             location: Location string for search
             timeout: Request timeout in milliseconds (default: 300000)
             page_options: Options for scraping individual pages
+            enterprise: Enterprise search options. Use ["zdr"] for end-to-end
+                Zero Data Retention or ["anon"] for anonymized search. Must be
+                enabled for your team.
 
         Returns:
             SearchData containing the search results
@@ -420,6 +424,7 @@ class FirecrawlClient:
             timeout=timeout,
             scrape_options=scrape_options,
             integration=integration,
+            enterprise=enterprise,
         )
 
         return search_module.search(self.http_client, request)
