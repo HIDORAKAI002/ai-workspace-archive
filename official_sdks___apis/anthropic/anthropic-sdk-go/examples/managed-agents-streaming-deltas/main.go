@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/anthropics/anthropic-sdk-go"
@@ -12,20 +11,18 @@ func main() {
 	client := anthropic.NewClient()
 	ctx := context.TODO()
 
-	// Create an environment
 	environment, err := client.Beta.Environments.New(ctx, anthropic.BetaEnvironmentNewParams{
-		Name: "simple-example-environment",
+		Name: "streaming-deltas-example",
 	})
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Created environment:", environment.ID)
 
-	// Create an agent
 	agent, err := client.Beta.Agents.New(ctx, anthropic.BetaAgentNewParams{
-		Name: "simple-example-agent",
+		Name: "streaming-deltas-example",
 		Model: anthropic.BetaManagedAgentsModelConfigParams{
-			ID: anthropic.BetaManagedAgentsModelClaudeSonnet5,
+			ID: anthropic.BetaManagedAgentsModelClaudeSonnet4_6,
 		},
 	})
 	if err != nil {
@@ -33,7 +30,6 @@ func main() {
 	}
 	fmt.Println("Created agent:", agent.ID)
 
-	// Create a session
 	session, err := client.Beta.Sessions.New(ctx, anthropic.BetaSessionNewParams{
 		EnvironmentID: environment.ID,
 		Agent: anthropic.BetaSessionNewParamsAgentUnion{
@@ -48,7 +44,10 @@ func main() {
 	}
 	fmt.Println("Created session:", session.ID)
 
-	// Send a user message
+	stream := client.Beta.Sessions.Events.StreamEvents(ctx, session.ID, anthropic.BetaSessionEventStreamParams{
+		EventDeltas: []anthropic.BetaManagedAgentsDeltaType{anthropic.BetaManagedAgentsDeltaTypeAgentMessage},
+	})
+
 	_, err = client.Beta.Sessions.Events.Send(ctx, session.ID, anthropic.BetaSessionEventSendParams{
 		Events: []anthropic.BetaManagedAgentsEventParamsUnion{
 			{
@@ -57,7 +56,7 @@ func main() {
 					Content: []anthropic.BetaManagedAgentsUserMessageEventParamsContentUnion{
 						{
 							OfText: &anthropic.BetaManagedAgentsTextBlockParam{
-								Text: "Hello Claude!",
+								Text: "Write a short haiku about the ocean.",
 								Type: anthropic.BetaManagedAgentsTextBlockTypeText,
 							},
 						},
@@ -70,15 +69,28 @@ func main() {
 		panic(err)
 	}
 
-	// Stream events until the session goes idle
-	fmt.Println("Streaming events:")
-	stream := client.Beta.Sessions.Events.StreamEvents(ctx, session.ID, anthropic.BetaSessionEventStreamParams{})
+	var previews anthropic.BetaManagedAgentsEventAccumulator
+
+	fmt.Println("\nStreaming:")
 	for stream.Next() {
 		event := stream.Current()
-		data, _ := json.MarshalIndent(event, "", "  ")
-		fmt.Println(string(data))
-		if event.Type == "session.status_idle" {
-			break
+		previews.Accumulate(event)
+
+		switch event.Type {
+		case "event_delta":
+			fmt.Printf("\r%s", previews.AgentMessageText(event.EventID))
+
+		case "agent.message":
+			fmt.Println()
+			fmt.Println("[final]", previews.AgentMessageText(event.ID))
+
+		case "session.status_idle":
+			if event.StopReason.Type == "end_turn" {
+				return
+			}
+
+		case "session.error":
+			fmt.Println("[error]", event.Error.Type, event.Error.Message)
 		}
 	}
 	if stream.Err() != nil {
