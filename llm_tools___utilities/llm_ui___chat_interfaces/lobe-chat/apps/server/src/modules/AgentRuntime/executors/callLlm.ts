@@ -4,6 +4,7 @@ import {
   type CallLLMPayload,
   type GeneralAgentCallLLMResultPayload,
   type InstructionExecutor,
+  stripAssistantReasoningForReplay,
   UsageCounter,
 } from '@lobechat/agent-runtime';
 import {
@@ -38,7 +39,9 @@ import {
   consumeStreamUntilDone,
   isDeepSeekThinkingEligibleModel,
   isDeepSeekV4FamilyModel,
+  isEmptyModelCompletion,
   isKimiAlwaysPreserveThinkingModel,
+  ModelEmptyError,
   type ModelExtendParams,
 } from '@lobechat/model-runtime';
 import {
@@ -84,7 +87,6 @@ import {
   buildPostProcessUrl,
   buildToolDiscoveryConfig,
   getLLMRetryDelayMs,
-  isEmptyModelCompletion,
   isOperationInterrupted,
   log,
   resolveLLMMaxAttempts,
@@ -92,13 +94,11 @@ import {
   resolveRuntimeHistoryCount,
   shouldRetryLLM,
   sleep,
-  stripAssistantReasoningForReplay,
   timing,
 } from '../executorHelpers';
 import { formatErrorEventData } from '../formatErrorEventData';
 import { classifyLLMError } from '../llmErrorClassification';
 import { createConversationParentMissingError } from '../messagePersistErrors';
-import { ModelEmptyError } from '../ModelEmptyError';
 
 export const callLlm =
   (ctx: RuntimeExecutorContext): InstructionExecutor =>

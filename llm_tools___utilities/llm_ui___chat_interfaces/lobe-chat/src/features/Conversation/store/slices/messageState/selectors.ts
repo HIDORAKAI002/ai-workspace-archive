@@ -32,6 +32,23 @@ const messageEditingIds = (s: State) => s.messageEditingIds;
  */
 const messageLoadingIds = (s: State) => s.messageLoadingIds;
 
+// ===== Multi-select selectors =====
+
+/**
+ * Whether the conversation is in multi-select mode
+ */
+const isSelectionMode = (s: State) => s.selectionMode;
+
+/**
+ * Whether a given message is checked in multi-select mode
+ */
+const isMessageSelected = (id: string) => (s: State) => s.selectedMessageIds.includes(id);
+
+/**
+ * Number of checked messages
+ */
+const selectedMessageCount = (s: State) => s.selectedMessageIds.length;
+
 // ===== Operation-based selectors (read from external operationState) =====
 // Note: These selectors read from operationState which is passed externally from ChatStore.
 // This ensures proper React reactivity while keeping operations global.
@@ -182,11 +199,14 @@ export const messageStateSelectors = {
   isMessageLoading,
   isMessageProcessing,
   isMessageRegenerating,
+  isMessageSelected,
   isPluginApiInvoking,
+  isSelectionMode,
   isThreadMode,
   isToolApiNameShining,
   isToolCallStreaming,
   messageEditingIds,
   messageLoadingIds,
+  selectedMessageCount,
   sendMessageError,
 };

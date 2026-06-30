@@ -76,6 +76,7 @@ vi.mock('@lobechat/const', async (importOriginal) => {
 beforeEach(() => {
   vi.mocked(agentService.queryAgents).mockResolvedValue([]);
   useAgentStore.setState({
+    activeAgentId: undefined,
     agentMap: {},
     availableAgents: undefined,
   });
@@ -144,6 +145,73 @@ describe('contextEngineering', () => {
       content: expect.stringContaining('Project setup steps'),
       role: 'user',
     });
+  });
+
+  it('should suppress agent documents when runtime agent mode is disabled', async () => {
+    const output = await contextEngineering({
+      agentDocuments: [
+        {
+          content: 'Project setup steps',
+          filename: 'setup.md',
+          id: 'doc-1',
+          policyLoad: 'always',
+          title: 'Setup',
+        },
+      ],
+      agentId: 'agent-1',
+      enableAgentMode: false,
+      messages: [{ content: 'Summarize the setup', role: 'user' }] as UIChatMessage[],
+      model: 'gpt-4',
+      provider: 'openai',
+    });
+
+    // Example: image-only models force chat mode for this request, so agent
+    // documents must not leak into the prompt while the stored config stays true.
+    const documentsMessage = output.find(
+      (message) =>
+        message.role === 'user' &&
+        typeof message.content === 'string' &&
+        message.content.includes('Project setup steps'),
+    );
+
+    expect(documentsMessage).toBeUndefined();
+  });
+
+  it('should fall back to stored chat mode when runtime agent mode is omitted', async () => {
+    useAgentStore.setState({
+      activeAgentId: 'agent-1',
+      agentMap: {
+        'agent-1': {
+          chatConfig: { enableAgentMode: false },
+        },
+      },
+    });
+
+    const output = await contextEngineering({
+      agentDocuments: [
+        {
+          content: 'Project setup steps',
+          filename: 'setup.md',
+          id: 'doc-1',
+          policyLoad: 'always',
+          title: 'Setup',
+        },
+      ],
+      messages: [{ content: 'Summarize the setup', role: 'user' }] as UIChatMessage[],
+      model: 'gpt-4',
+      provider: 'openai',
+    });
+
+    // Example: preset-task calls do not pass runtime mode, but explicit stored
+    // Chat mode should still suppress agent-document context.
+    const documentsMessage = output.find(
+      (message) =>
+        message.role === 'user' &&
+        typeof message.content === 'string' &&
+        message.content.includes('Project setup steps'),
+    );
+
+    expect(documentsMessage).toBeUndefined();
   });
 
   it('should use cached available agents without querying during context engineering', async () => {
