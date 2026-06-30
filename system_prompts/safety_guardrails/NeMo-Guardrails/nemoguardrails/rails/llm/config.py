@@ -392,6 +392,40 @@ class GLiNERDetection(BaseModel):
     )
 
 
+class PolygrafDetectionOptions(BaseModel):
+    """Configuration options for Polygraf."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    entities: List[str] = Field(
+        default_factory=list,
+        description="The list of entities that should be detected.",
+    )
+
+
+class PolygrafDetection(BaseModel):
+    """Configuration for Polygraf PII detection."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    server_endpoint: str = Field(
+        default="http://localhost:8000/v1/pii/text-detect",
+        description="The endpoint for the Polygraf detection server.",
+    )
+    input: PolygrafDetectionOptions = Field(
+        default_factory=PolygrafDetectionOptions,
+        description="Configuration of the entities to be detected on the user input.",
+    )
+    output: PolygrafDetectionOptions = Field(
+        default_factory=PolygrafDetectionOptions,
+        description="Configuration of the entities to be detected on the bot output.",
+    )
+    retrieval: PolygrafDetectionOptions = Field(
+        default_factory=PolygrafDetectionOptions,
+        description="Configuration of the entities to be detected on retrieved relevant chunks.",
+    )
+
+
 class _HFClassifierBase(BaseModel):
     """Shared fields for all HuggingFace classifier engines."""
 
@@ -1306,6 +1340,11 @@ class RailsConfigData(BaseModel):
     gliner: Optional[GLiNERDetection] = Field(
         default_factory=GLiNERDetection,
         description="Configuration for GLiNER PII detection.",
+    )
+
+    polygraf: Optional[PolygrafDetection] = Field(
+        default_factory=PolygrafDetection,
+        description="Configuration for Polygraf PII detection.",
     )
 
     fiddler: Optional[FiddlerGuardrails] = Field(
