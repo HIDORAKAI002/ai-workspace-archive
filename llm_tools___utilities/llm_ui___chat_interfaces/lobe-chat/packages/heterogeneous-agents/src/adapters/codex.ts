@@ -18,6 +18,7 @@ const CODEX_FILE_CHANGE_API = 'file_change';
 const CODEX_MCP_TOOL_CALL_API = 'mcp_tool_call';
 const CODEX_TODO_LIST_API = 'todo_list';
 const CODEX_USAGE_SETTINGS_URL = 'https://chatgpt.com/codex/settings/usage';
+const CODEX_COMMAND_OUTPUT_MAX_LENGTH = 25_000;
 
 const CODEX_USER_RATE_LIMIT_PATTERNS = [
   /you'?ve hit your usage limit/i,
@@ -411,22 +412,57 @@ const isSuccessfulToolCompletion = (item: CodexToolItem): boolean => {
   return item.status !== 'cancelled' && item.status !== 'error' && item.status !== 'failed';
 };
 
+const truncateCodexCommandOutput = (content: string) => {
+  if (!content || content.length <= CODEX_COMMAND_OUTPUT_MAX_LENGTH) {
+    return {
+      output: content,
+      truncated: false,
+    };
+  }
+
+  let cutoff = CODEX_COMMAND_OUTPUT_MAX_LENGTH;
+  const lastCharCode = content.charCodeAt(cutoff - 1);
+  if (lastCharCode >= 0xd8_00 && lastCharCode <= 0xdb_ff) {
+    cutoff -= 1;
+  }
+
+  const omittedCharacters = content.length - cutoff;
+  const notice = `\n\n[Output truncated: ${omittedCharacters} characters omitted. Original length: ${content.length} characters]`;
+
+  return {
+    omittedCharacters,
+    originalLength: content.length,
+    output: content.slice(0, cutoff) + notice,
+    truncated: true,
+  };
+};
+
 const getToolResultData = (item: CodexToolItem): ToolResultData => {
   const isSuccess = isSuccessfulToolCompletion(item);
   const output = getToolContent(item, isSuccess);
 
   if (isCommandExecutionItem(item)) {
     const exitCode = item.exit_code ?? undefined;
+    const truncatedOutput = truncateCodexCommandOutput(output);
 
     return {
-      content: output,
+      content: truncatedOutput.output,
       isError: !isSuccess,
       pluginState: {
         ...(exitCode !== undefined ? { exitCode } : {}),
-        ...(isSuccess ? {} : { error: output || `Command failed (${exitCode ?? 'unknown'})` }),
+        ...(isSuccess
+          ? {}
+          : { error: truncatedOutput.output || `Command failed (${exitCode ?? 'unknown'})` }),
         isBackground: false,
-        output,
-        stdout: output,
+        ...(truncatedOutput.truncated
+          ? {
+              omittedOutputCharacters: truncatedOutput.omittedCharacters,
+              originalOutputLength: truncatedOutput.originalLength,
+              outputTruncated: true,
+            }
+          : {}),
+        output: truncatedOutput.output,
+        stdout: truncatedOutput.output,
         success: isSuccess,
       },
       toolCallId: item.id,

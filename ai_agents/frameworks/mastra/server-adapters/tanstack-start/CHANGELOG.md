@@ -1,5 +1,32 @@
 # @mastra/tanstack-start
 
+## 0.2.2-alpha.9
+
+### Patch Changes
+
+- Updated dependencies [[`e84e791`](https://github.com/mastra-ai/mastra/commit/e84e79174031d7bc8793ca6c805eb38b06e7cfb1)]:
+  - @mastra/core@1.48.0-alpha.9
+  - @mastra/server@1.48.0-alpha.9
+  - @mastra/hono@1.5.3-alpha.9
+
+## 0.2.2-alpha.8
+
+### Patch Changes
+
+- Updated dependencies [[`0ac14ce`](https://github.com/mastra-ai/mastra/commit/0ac14cea48e1b0a7857782153c78f7242fdf7e1a), [`c2f0b7f`](https://github.com/mastra-ai/mastra/commit/c2f0b7f1370f4428d165f51f0d1d9a48331cc257)]:
+  - @mastra/core@1.48.0-alpha.8
+  - @mastra/server@1.48.0-alpha.8
+  - @mastra/hono@1.5.3-alpha.8
+
+## 0.2.2-alpha.7
+
+### Patch Changes
+
+- Updated dependencies [[`8be63b0`](https://github.com/mastra-ai/mastra/commit/8be63b015fb8d72cea1220f05e7dc3bb997cc249), [`ee14cae`](https://github.com/mastra-ai/mastra/commit/ee14cae244805783bde518a6142de28b744b169c), [`345eecc`](https://github.com/mastra-ai/mastra/commit/345eecce6ba519b5d987f0e10b5de4c8e5734580), [`ee14cae`](https://github.com/mastra-ai/mastra/commit/ee14cae244805783bde518a6142de28b744b169c)]:
+  - @mastra/core@1.48.0-alpha.7
+  - @mastra/server@1.48.0-alpha.7
+  - @mastra/hono@1.5.3-alpha.7
+
 ## 0.2.2-alpha.6
 
 ### Patch Changes

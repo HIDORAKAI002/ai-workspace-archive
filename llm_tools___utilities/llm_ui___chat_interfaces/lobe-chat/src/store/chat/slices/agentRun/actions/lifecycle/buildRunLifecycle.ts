@@ -195,9 +195,10 @@ export const buildRunLifecycle = (
         }
         const firstUserText = messages.find((m) => m.role === 'user')?.content?.trim() ?? '';
         const title = markdownToTxt(firstUserText).slice(0, 80) || 'New Topic';
+        // `internal_updateTopic` already balances its own loading owner. For a
+        // new client-runtime topic like "阅读下面...", an extra `false` here would
+        // consume the runtime's loading owner and hide the sidebar spinner early.
         await get().internal_updateTopic(tid, { title });
-        // summaryTopicTitle would normally clear loading via onLoadingChange; do it manually.
-        get().internal_updateTopicLoading(tid, false);
         console.info('[dev] sliced topic title (NEXT_PUBLIC_DEV_DISABLE_AUTO_TOPIC=1):', title);
       };
 

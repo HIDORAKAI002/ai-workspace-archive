@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.55.0 (2026-06-30)
+
+Full Changelog: [v1.54.0...v1.55.0](https://github.com/anthropics/anthropic-sdk-go/compare/v1.54.0...v1.55.0)
+
+### Features
+
+* **api:** add support for Managed Agents event delta streaming, agent overrides, reverse pagination, vault credential injection scoping, and agent and deployment webhook events ([021ef45](https://github.com/anthropics/anthropic-sdk-go/commit/021ef45adcc13691ce8e8f234b9b5ae387a565ae))
+
+## 1.54.0 (2026-06-30)
+
+Full Changelog: [v1.53.0...v1.54.0](https://github.com/anthropics/anthropic-sdk-go/compare/v1.53.0...v1.54.0)
+
+### Features
+
+* **api:** add support for claude-sonnet-5 ([232cfe6](https://github.com/anthropics/anthropic-sdk-go/commit/232cfe6f8889dc30dd759a4027e95f5c9ece46d1))
+
+
+### Bug Fixes
+
+* **agenttoolset:** allow absolute paths that resolve inside workdir ([#93](https://github.com/anthropics/anthropic-sdk-go/issues/93)) ([3735258](https://github.com/anthropics/anthropic-sdk-go/commit/3735258e449804336781339ef25fa7008fc8717f))
+
 ## 1.53.0 (2026-06-29)
 
 Full Changelog: [v1.52.0...v1.53.0](https://github.com/anthropics/anthropic-sdk-go/compare/v1.52.0...v1.53.0)

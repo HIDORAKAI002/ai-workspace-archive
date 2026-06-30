@@ -483,6 +483,49 @@ describe('CodexAdapter', () => {
     });
   });
 
+  it('truncates oversized Codex command output before forwarding tool results', () => {
+    const adapter = new CodexAdapter();
+    const oversizedOutput = 'x'.repeat(25_010);
+
+    adapter.adapt({
+      item: {
+        command: '/bin/zsh -lc find .',
+        id: 'item_oversized',
+        status: 'in_progress',
+        type: 'command_execution',
+      },
+      type: 'item.started',
+    });
+
+    const completed = adapter.adapt({
+      item: {
+        aggregated_output: oversizedOutput,
+        command: '/bin/zsh -lc find .',
+        exit_code: 0,
+        id: 'item_oversized',
+        status: 'completed',
+        type: 'command_execution',
+      },
+      type: 'item.completed',
+    });
+
+    const result = completed[0];
+
+    expect(result.type).toBe('tool_result');
+    expect(result.data.content).toHaveLength(25_078);
+    expect(result.data.content).toContain(
+      '[Output truncated: 10 characters omitted. Original length: 25010 characters]',
+    );
+    expect(result.data.pluginState).toMatchObject({
+      omittedOutputCharacters: 10,
+      originalOutputLength: 25_010,
+      outputTruncated: true,
+      success: true,
+    });
+    expect(result.data.pluginState.output).toBe(result.data.content);
+    expect(result.data.pluginState.stdout).toBe(result.data.content);
+  });
+
   it('maps todo_list items into shared todo plugin state', () => {
     const adapter = new CodexAdapter();
 

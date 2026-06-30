@@ -1,6 +1,6 @@
 {
   "name": "mastracode",
-  "version": "0.27.0-alpha.6",
+  "version": "0.27.0-alpha.9",
   "description": "",
   "type": "module",
   "files": [
@@ -63,6 +63,16 @@
         "default": "./dist/headless.cjs"
       }
     },
+    "./plugin": {
+      "import": {
+        "types": "./dist/plugin.d.ts",
+        "default": "./dist/plugin.js"
+      },
+      "require": {
+        "types": "./dist/plugin.d.ts",
+        "default": "./dist/plugin.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -122,6 +132,7 @@
     "@octokit/auth-app": "^8.0.0",
     "@octokit/rest": "^22.0.1",
     "@tanstack/react-query": "^5.90.21",
+    "@tursodatabase/api": "2.0.4",
     "ai": "^6.0.176",
     "chalk": "^5.5.0",
     "cli-highlight": "^2.1.11",
