@@ -10,6 +10,10 @@ LOBE_DEFAULT_MODEL_LIST.forEach((model) => {
 
 // #region LobeHub online model descriptions
 const lobeHubOnlineModelLocales = {
+  'claude-sonnet-5.description':
+    "Claude Sonnet 5 is Anthropic's most agentic Sonnet model, built for sustained coding, tool use, and long-context workflows with Sonnet-tier speed and efficiency.",
+  'gemini-3.1-flash-lite-image.description':
+    "Gemini 3.1 Flash Lite Image (Nano Banana 2 Lite) is Google's fastest and most cost-efficient image generation model, built for high-volume generation and editing.",
   'grok-4.20-beta-0309-reasoning.description':
     'Intelligent, blazing-fast model that reasons before responding',
   'grok-4.20-beta-0309-non-reasoning.description': 'A non-reasoning variant for simple use cases',
@@ -20,7 +24,9 @@ const lobeHubOnlineModelLocales = {
   'kimi-k2-thinking-turbo.description':
     'High-speed version of kimi-k2-thinking, suitable for scenarios requiring both deep reasoning and extremely fast responses.',
   'lobehub-glm-5.2-fast.description':
-    "The industry's fastest GLM-5.2. Same capabilities as GLM-5.2 with significantly faster response and reasoning speed. Limited-time launch pricing — 25% off.",
+    'Fast variant of GLM-5.2 with substantially lower latency. Same capabilities as GLM-5.2 — costs more, but responds much faster.',
+  'gemini-3.1-flash-lite-image:image.description':
+    "Gemini 3.1 Flash Lite Image (Nano Banana 2 Lite) is Google's fastest and most cost-efficient image generation model, built for high-volume generation and editing.",
   'seedream-5-0-260128.description':
     'ByteDance-Seedream-5.0-lite by BytePlus features web-retrieval-augmented generation for real-time information, enhanced complex prompt interpretation, and improved reference consistency for professional visual creation.',
   'fal-ai/bytedance/seedream/v4.5.description':

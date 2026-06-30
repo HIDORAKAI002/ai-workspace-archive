@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-07-01 01:37 IST] Auto-Sync
+- **46 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Kubernetes MCP Server, NVIDIA NeMo Guardrails, n8n, Activepieces, Trigger.dev, Windmill, ToolJet, Budibase, Directus, Hoppscotch, Plane, modelcontextprotocol/java-sdk, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, infiniflow/ragflow, arize-ai/phoenix, Arize-ai/openinference, open-telemetry/opentelemetry-python, firecrawl/firecrawl, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, obra/superpowers, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
+
 ## [2026-06-30 18:31 IST] Auto-Sync
 - **32 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Exa MCP Server, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Flowise, Activepieces, Trigger.dev, Budibase, modelcontextprotocol/kotlin-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 

@@ -1,5 +1,52 @@
 # mastra
 
+## 1.17.0-alpha.9
+
+### Patch Changes
+
+- Updated dependencies [[`e84e791`](https://github.com/mastra-ai/mastra/commit/e84e79174031d7bc8793ca6c805eb38b06e7cfb1)]:
+  - @mastra/core@1.48.0-alpha.9
+  - @mastra/deployer@1.48.0-alpha.9
+
+## 1.17.0-alpha.8
+
+### Patch Changes
+
+- Updated dependencies [[`0ac14ce`](https://github.com/mastra-ai/mastra/commit/0ac14cea48e1b0a7857782153c78f7242fdf7e1a), [`c2f0b7f`](https://github.com/mastra-ai/mastra/commit/c2f0b7f1370f4428d165f51f0d1d9a48331cc257)]:
+  - @mastra/core@1.48.0-alpha.8
+  - @mastra/deployer@1.48.0-alpha.8
+
+## 1.17.0-alpha.7
+
+### Minor Changes
+
+- `mastra dev` and `mastra build` now pick up file-based agents defined under `src/mastra/agents/<name>/`. Agents created this way appear in Studio and respond just like agents registered in code, and the two styles can be mixed in one project. Files committed under `agents/<name>/workspace/` are mirrored into the agent's workspace so it starts with them on disk. Agents can also declare subagents under `agents/<name>/subagents/<childId>/`, which the agent can delegate to as a tool named after the directory. ([#18609](https://github.com/mastra-ai/mastra/pull/18609))
+
+  ```text
+  src/mastra/agents/weather/
+    config.ts          # export default agentConfig({ model: 'openai/gpt-4o' })
+    instructions.md
+    tools/get_weather.ts
+  ```
+
+  ```bash
+  mastra dev   # discovers and registers src/mastra/agents/weather automatically
+  ```
+
+### Patch Changes
+
+- Fix `ENOENT: .mastra-fs-agents-entry.mjs` when running `mastra dev`/`mastra build` in a project that uses file-based agents. The generated fs-agents wrapper entry was written before `bundler.prepare()` emptied the output directory, so it was wiped before the bundler could read it. Wrapper generation is now split: `prepareFsAgentsEntry` returns the generated source without writing, and the new `writeFsAgentsEntry` writes it after `prepare()` runs. ([#18694](https://github.com/mastra-ai/mastra/pull/18694))
+
+  ```ts
+  const fsAgents = await prepareFsAgentsEntry({ entryFile, mastraDir, outputDirectory });
+  await bundler.prepare(outputDirectory); // empties output dir
+  await writeFsAgentsEntry(fsAgents); // wrapper now survives for the bundler
+  ```
+
+- Updated dependencies [[`8be63b0`](https://github.com/mastra-ai/mastra/commit/8be63b015fb8d72cea1220f05e7dc3bb997cc249), [`7331245`](https://github.com/mastra-ai/mastra/commit/733124501b4504578648cf15ab6d64330e8778c7), [`ee14cae`](https://github.com/mastra-ai/mastra/commit/ee14cae244805783bde518a6142de28b744b169c), [`345eecc`](https://github.com/mastra-ai/mastra/commit/345eecce6ba519b5d987f0e10b5de4c8e5734580), [`ee14cae`](https://github.com/mastra-ai/mastra/commit/ee14cae244805783bde518a6142de28b744b169c)]:
+  - @mastra/core@1.48.0-alpha.7
+  - @mastra/deployer@1.48.0-alpha.7
+
 ## 1.16.1-alpha.6
 
 ### Patch Changes
