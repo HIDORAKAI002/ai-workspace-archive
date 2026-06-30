@@ -10,6 +10,6 @@ export const AgentBrowserSkill: BuiltinSkill = {
   description:
     'Browser automation CLI for AI agents (agent-browser v0.31.1). Use when tasks involve website or Electron interaction such as navigation, form filling, clicking, screenshot capture, scraping data, login flows, and end-to-end app testing.',
   identifier: AgentBrowserIdentifier,
-  name: 'Agent Browser',
+  name: 'agent-browser',
   source: 'builtin',
 };
