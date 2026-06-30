@@ -182,6 +182,9 @@ navigation:
               - page: PolicyAI
                 path: configure-rails/guardrail-catalog/community/policyai.mdx
                 slug: policyai
+              - page: Polygraf
+                path: configure-rails/guardrail-catalog/community/polygraf.mdx
+                slug: polygraf
               - page: Presidio
                 path: configure-rails/guardrail-catalog/community/presidio.mdx
                 slug: presidio

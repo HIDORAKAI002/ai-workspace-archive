@@ -343,4 +343,61 @@ describe('SkillsExecutionRuntime', () => {
       expect(result.state).toMatchObject({ name: 'artifacts', source: 'builtin' });
     });
   });
+
+  describe('case-insensitive name matching', () => {
+    it('activateSkill matches a builtin regardless of casing', async () => {
+      const runtime = new SkillsExecutionRuntime({
+        builtinSkills: [
+          {
+            content: 'browser content',
+            description: 'browser',
+            identifier: 'lobe-agent-browser',
+            name: 'agent-browser',
+            source: 'builtin',
+          },
+        ],
+        service: createMockService(),
+      });
+
+      for (const name of ['agent-browser', 'Agent-Browser', 'AGENT-BROWSER']) {
+        const result = await runtime.activateSkill({ name });
+        expect(result.success).toBe(true);
+        expect(result.content).toContain('browser content');
+      }
+    });
+
+    it('activateSkill matches a project skill regardless of casing', async () => {
+      const readFile = vi.fn().mockResolvedValue('# project skill body');
+      const runtime = new SkillsExecutionRuntime({
+        deviceFileAccess: { listFiles: vi.fn(), readFile },
+        projectSkills: [{ location: '/work/.agents/skills/my-skill/SKILL.md', name: 'my-skill' }],
+        service: createMockService(),
+      });
+
+      const result = await runtime.activateSkill({ name: 'My-Skill' });
+      expect(result.success).toBe(true);
+      expect(result.content).toContain('# project skill body');
+      expect(result.state).toMatchObject({ source: 'project' });
+    });
+
+    it('readReference matches a builtin regardless of casing', async () => {
+      const runtime = new SkillsExecutionRuntime({
+        builtinSkills: [
+          {
+            content: 'main',
+            description: '',
+            identifier: 'lobehub',
+            name: 'lobehub',
+            resources: { 'references/kb': { content: 'kb body', fileHash: 'h', size: 7 } },
+            source: 'builtin',
+          },
+        ],
+        service: createMockService(),
+      });
+
+      const result = await runtime.readReference({ id: 'LobeHub', path: 'references/kb' });
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('kb body');
+    });
+  });
 });
