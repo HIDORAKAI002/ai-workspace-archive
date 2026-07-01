@@ -5,6 +5,54 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — housekeeping: CHANGELOG backfill + per-domain counter validation
+
+### Added — `derive_counters.py` per-domain table validation
+
+`scripts/derive_counters.py --check` now also validates the README "Skills Overview"
+per-domain table: each domain row's count must equal the SKILL.md count in its linked
+folder, and every on-disk domain must have a row. Previously `--check` only validated
+the headline aggregates, so per-domain rows drifted silently (e.g. the `markdown-html`
+domain was missing from the table entirely, and several rows lagged new-skill merges).
+This closes that gap — CI gate G3 now catches per-domain drift too.
+
+### Changed — README per-domain table trued up
+
+Fixed six stale domain-row counts and added the missing `markdown-html` row so the
+per-domain rows sum to the headline total (354).
+
+### Added — backfill: five skill additions that merged without their own changelog entries
+
+Earlier contributor-PR hardening merges updated headline counters but not this log.
+Backfilled, newest-first:
+
+- **`research/deep-research`** (PR #872, hardened from #851 by @Socialpranker) — rigor-first multi-source meta-research: 9-phase pipeline, triangulation (>=3 independent differently-typed sources per thesis), mandatory adversarial pass, per-source files with verbatim quotes, no fabricated citations. Full research/ plugin parity.
+- **`engineering/zero-hallucination-coder`** (PR #870, hardened from #854 by @mehanshbarthwal-lab) — opt-in Discuss → Map → Decompose → Execute → Verify coding loop + lazy-senior YAGNI ladder; no invented APIs / assumed imports / placeholder code. Synthesizes Ralph, GSD Core, Graphify, Ponytail.
+- **`ra-qm-team/skills/agent-decision-receipts`** (PR #868 + #869, hardened from #863 by @CWNApps) — tamper-evident, post-quantum-signed receipts for consequential agent actions (EU AI Act Art 12). Stdlib manifest builder; signing delegated to the Apache-2.0 `openagentontology` package (opt-in install).
+- **`engineering-team/skills/named-persona-adversarial-review`** (PR #867, superseding #866 by @YuhaoLin2005) — code review through named, sourced engineering philosophies with confidence-leveled attribution and an anti-fabrication rule for quotes.
+- **`productivity/roast`** (PR #865) — 5-angle adversarial idea panel (Critic/Champion/Analyst/Investigator/Customer) → one GO/RESHAPE/KILL verdict, with a weighted veto-gated synthesizer + cheapest-48h-test designer.
+
+## [Unreleased] — local-seo-manager: local / Map-Pack SEO skill (this PR)
+
+### Added — `marketing-skill/skills/local-seo-manager`
+
+Hardened port of external contribution #797 (@Steffonet). Fills a gap: the library
+had national/technical SEO (`seo-audit`, `programmatic-seo`) but no local /
+Google Map-Pack SEO skill for service-area businesses (appliance repair, HVAC,
+plumbing, cleaning, electrical).
+
+- **4-mode SKILL.md** — GBP audit, service-area page generation, NAP consistency, LocalBusiness schema.
+- **3 stdlib scripts** — `nap_checker.py` (NAP consistency scanner), `service_area_generator.py`
+  (neighborhood page-brief generator), `schema_generator.py` (LocalBusiness / HomeAndConstructionBusiness JSON-LD).
+- **3 references** — 80-point local-SEO checklist, local schema types, review-response templates.
+- Hardening applied before merge: fixed dangling cross-refs (`ai-seo` → `aeo`, removed the
+  non-existent `gbp-content-creator` companion), description now passes `skill_description_validator`,
+  and (per automated review) `service_area_generator` now renders the previously-dropped
+  `business_type` / `services` / `state` inputs, `schema_generator` no longer emits an empty
+  `geo` block, and the unused `import sys` was removed from all three scripts.
+- No `plugin.json` / marketplace entry needed — the `marketing-skills` plugin globs `./skills`.
+- Counters: 352 → 353 skills, 590 → 593 Python tools, 718 → 721 references.
+
 ## [Unreleased] — newgen audit follow-up: P0 fixes, path sweep, CI guards
 
 ### Deprecated / Removed Skills (migration notes)

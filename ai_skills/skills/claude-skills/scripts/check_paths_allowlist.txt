@@ -36,3 +36,12 @@ engineering-team/self-improving-agent/skills/extract/SKILL.md :: api-client-rege
 # file reference. Would point outside the repo root if resolved literally;
 # allowlisted as a teaching example, not an actual file.
 engineering-team/skills/security-pen-testing/SKILL.md :: ../../../etc/passwd
+
+# arquiteto-de-empresa (OKF bundle builder, PT-BR) teaching examples:
+# the identidade.md link is shown inside a markdown code-example demonstrating
+# how OKF bundle links look in the USER's generated output, not a repo file;
+# the command's references/phase_playbook.md points at its sibling skill's
+# references/ dir (the file exists under the skill, not under commands/).
+c-level-advisor/arquiteto-de-empresa/skills/arquiteto-de-empresa/SKILL.md :: ../00-fundacao/identidade.md
+c-level-advisor/skills/arquiteto-de-empresa/SKILL.md :: ../00-fundacao/identidade.md
+c-level-advisor/arquiteto-de-empresa/commands/cs-arquiteto.md :: references/phase_playbook.md

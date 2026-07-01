@@ -8,7 +8,8 @@ user-invocable: false
 
 How LobeHub products should feel, and concrete rules to get there. Use this when
 **building or reviewing** any user-facing flow. For component/styling choices see
-**react**, for wording see **microcopy**, for imperative modal wiring see **modal**.
+**react**, for wording see **DESIGN.md** (Voice & Content), for imperative modal
+wiring see **modal**.
 
 ## Design values
 
@@ -361,5 +362,5 @@ The product should grow with the user — deeper power shows up as needs deepen.
 ## Related skills
 
 - **modal** — imperative `createModal` state-machine wiring for confirm/progress/done.
-- **microcopy** — wording for confirm / done / empty / error states.
+- **DESIGN.md** (Voice & Content) — wording for confirm / done / empty / error states.
 - **react** — component priority, `Button` usage, styling.

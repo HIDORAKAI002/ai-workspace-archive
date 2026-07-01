@@ -141,7 +141,7 @@ description: "74 engineering - powerful skills — advanced agent-native skill a
 
     ---
 
-    Tier: POWERFUL
+    Tier: POWERFUL · Category: Engineering · Domain: AI / API Integration
 
 -   **[Migration Architect](migration-architect.md)**
 

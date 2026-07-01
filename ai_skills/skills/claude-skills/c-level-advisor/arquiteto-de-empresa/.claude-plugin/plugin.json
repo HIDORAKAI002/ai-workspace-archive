@@ -1,0 +1,15 @@
+{
+  "name": "arquiteto-de-empresa",
+  "description": "Arquiteto de Empresa (PT-BR): constrói um negócio do zero como um bundle OKF (Open Knowledge Format) — uma árvore de arquivos .md versionáveis com frontmatter type, links formando grafo, e index.md/log.md reservados, legível por humanos e por agentes. Conduz o fundador por uma entrevista de 12 fases (fundação, estratégia, mercado, financeiro, comercial, marketing, produto, operações, tech, pessoas, jurídico, governança), uma fase por vez, e gera os conceitos markdown conformantes. 3 ferramentas stdlib: scaffold_bundle (andaime do bundle), okf_linter (valida type/arquivos reservados/links), index_generator (regenera os index.md). Standalone-installable; também empacotado em c-level-skills.",
+  "version": "2.10.3",
+  "author": {
+    "name": "leoal",
+    "url": "https://github.com/alirezarezvani/claude-skills"
+  },
+  "homepage": "https://github.com/alirezarezvani/claude-skills/tree/main/c-level-advisor/arquiteto-de-empresa",
+  "repository": "https://github.com/alirezarezvani/claude-skills",
+  "license": "MIT",
+  "skills": [
+    "./skills"
+  ]
+}
