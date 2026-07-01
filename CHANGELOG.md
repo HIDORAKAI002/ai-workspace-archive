@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-07-01 15:11 IST] Auto-Sync
+- **33 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Langfuse, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Budibase, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, open-webui/open-webui, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, googleapis/python-genai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-07-01 08:28 IST] Auto-Sync
 - **36 Repositories Updated:** Public APIs Directory, MCP Python SDK, MCP TypeScript SDK, Exa MCP Server, Activepieces, Directus, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, VoltAgent, BerriAI/litellm, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, Arize-ai/openinference, abi/screenshot-to-code, firecrawl/firecrawl, danny-avila/LibreChat, google-gemini/gemini-cli, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow, lyogavin/airllm, nousresearch/hermes-agent
 
