@@ -124,6 +124,7 @@ import { markdownToTxt } from '@/utils/markdownToTxt';
 import { resolveDeviceAccessPolicy } from './deviceAccessPolicy';
 import { buildAllowedBuiltinTools, isDeviceToolIdentifier } from './deviceToolRegistry';
 import { ingestAttachment } from './ingestAttachment';
+import { pruneRegeneratedBranch } from './pruneRegeneratedBranch';
 import { resolveDeviceWorkingDirectory } from './resolveDeviceWorkingDirectory';
 import { isWorkspaceCacheFresh, upsertWorkspaceScan } from './workspaceInitCache';
 
@@ -1097,7 +1098,7 @@ export class AiAgentService {
       log('execAgent: appended additional instructions to systemRole');
     }
 
-    let resumeParentMessage;
+    let resumeParentMessage: Awaited<ReturnType<MessageModel['findById']>>;
 
     // `resumeApproval` implies the same "load parent message + skip user
     // message creation" semantics as `resume`. Callers that go through the
@@ -2039,6 +2040,40 @@ export class AiAgentService {
         historyMessagesCache = messages.filter((msg) => !selfMessageIds.has(msg.id));
       } else {
         historyMessagesCache = [];
+      }
+
+      // ── Regenerate: drop the anchor user message's existing answer branch ──
+      // In gateway/server runtime mode the client only sends `parentMessageId`
+      // (the user message being regenerated) and lets the server rebuild the
+      // context. The topic query above still returns the anchor's *previous*
+      // assistant branch (the answer being replaced) and — when a middle turn is
+      // regenerated — the later turns that continued from it. Leaving them in
+      // makes the model see an already-answered turn and "continue" it instead of
+      // producing a fresh answer (`[U1, A1]` → continue rather than `[U1]` → A2).
+      //
+      // The branch must be pruned even after `/compact`: compaction hides the
+      // grouped messages and `query` returns a synthetic `compressedGroup` node
+      // that carries neither `parentId` nor (for compaction) the group's
+      // `parentMessageId`, so ancestry can't be walked from `query` output alone.
+      // We load the raw message tree (including hidden/compacted messages) and
+      // compute the anchor's descendants from it, then drop both regular
+      // descendant messages and any group node whose members fall in that branch.
+      //
+      // Scoped to a `user`-role anchor: the human-approval resume path anchors on
+      // a tool message and must keep the in-flight turn (including parallel-tool
+      // sibling messages) intact, so it is intentionally left untouched.
+      if (
+        historyMessagesCache &&
+        effectiveResume &&
+        parentMessageId &&
+        resumeParentMessage?.role === 'user' &&
+        appContext?.topicId
+      ) {
+        const tree = await this.messageModel.queryTopicMessageTree({
+          threadId: appContext.threadId,
+          topicId: appContext.topicId,
+        });
+        historyMessagesCache = pruneRegeneratedBranch(historyMessagesCache, tree, parentMessageId);
       }
 
       return historyMessagesCache;

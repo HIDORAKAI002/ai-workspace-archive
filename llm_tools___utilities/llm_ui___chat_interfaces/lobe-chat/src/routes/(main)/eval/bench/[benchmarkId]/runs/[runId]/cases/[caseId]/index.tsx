@@ -3,6 +3,7 @@
 import type { EvalThreadResult } from '@lobechat/types';
 import { Flexbox } from '@lobehub/ui';
 import { Tabs } from '@lobehub/ui/base-ui';
+import { cssVar } from 'antd-style';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
@@ -90,22 +91,28 @@ const CaseDetail = memo(() => {
     <Flexbox height="100%" style={{ overflow: 'hidden' }}>
       <CaseHeader
         caseNumber={(caseResult.testCase?.sortOrder ?? 0) + 1}
-        evalResult={caseResult.evalResult}
-        passed={caseResult.passed}
+        evalResult={displayEvalResult}
+        passed={displayPassed}
         runName={runDetail?.name || runId!.slice(0, 8)}
+        score={displayScore}
         onBack={() => navigate(`/eval/bench/${benchmarkId}/runs/${runId}`)}
         onNext={nextCaseId ? () => navigate(`${basePath}/${nextCaseId}`) : undefined}
         onPrev={prevCaseId ? () => navigate(`${basePath}/${prevCaseId}`) : undefined}
       />
       {hasMultipleThreads && (
-        <Tabs
-          activeKey={activeThreadId!}
-          items={threads.map((thread, index) => ({
-            key: thread.threadId,
-            label: t('caseDetail.threads.attempt', { number: index + 1 }),
-          }))}
-          onChange={(key) => setActiveThreadId(key)}
-        />
+        <Flexbox
+          paddingInline={16}
+          style={{ borderBlockEnd: `1px solid ${cssVar.colorBorderSecondary}`, flex: 'none' }}
+        >
+          <Tabs
+            activeKey={activeThreadId!}
+            items={threads.map((thread, index) => ({
+              key: thread.threadId,
+              label: t('caseDetail.threads.attempt', { number: index + 1 }),
+            }))}
+            onChange={(key) => setActiveThreadId(key)}
+          />
+        </Flexbox>
       )}
       <Flexbox horizontal flex={1} style={{ overflow: 'hidden' }}>
         {topicId && agentId ? (
