@@ -56,6 +56,61 @@ Dataset-name precedence: `PHOENIX_TEST_DATASET` env > `phoenix_dataset` in `pyte
 
 Hoisted evaluators bind arguments **by parameter name**: `output` (from `log_output`), `input` (parametrized fields), `expected`/`reference`/`metadata` (parametrized fields of that name), `trace_id`. Any `arize-phoenix-evals` evaluator (`FaithfulnessEvaluator`, etc.) or any `run_experiment` function works unchanged. Every score is wrapped in its own evaluator span linked to the trace.
 
+## Two kinds of checks: invariants vs. signals
+
+The decision that shapes every eval suite is which checks gate CI and which only trend. Get this split right and the rest is plumbing.
+
+- **Hard invariants** — exactly one acceptable behavior, verifiable in code (a required refusal, valid JSON, a tool that must fire). `assert` these. A failure records `pass=False` and turns CI red, like any unit test.
+- **Quality signals** — answers that live on a spectrum with no single correct string (helpfulness, groundedness, tone). Score with an LLM judge and **`log_evaluation`/`evaluate` only** — do *not* `assert` per case. LLM output is non-deterministic, so one weak answer shouldn't break the build; watch the aggregate trend in Phoenix instead. Gate on the trend separately (e.g. a nightly threshold or `run_experiment`), not on every case.
+
+Rule of thumb: assert the behavior you'd be embarrassed to ship broken; log everything else as a signal.
+
+## LLM-as-a-judge inside a test
+
+A judge is just an evaluator passed to `evaluate()` (or hoisted on the marker). The cleanest judge is a `create_classifier` from `arize-phoenix-evals`: it emits a label mapped to a numeric score plus an explanation, recorded as its own annotation under a linked evaluator span. `evaluate(judge, **kwargs)` fills the prompt-template variables from `kwargs` — pass the judge only what it needs to grade. The judge runs on its own model, configured independently of the system under test (see configuring the judge LLM).
+
+```python
+import time
+
+import pytest
+from phoenix.client.pytest import evaluate, log_evaluation, log_output
+from phoenix.evals import LLM, create_classifier
+
+# Judge reads just the question + response; the evaluate() kwargs fill these vars.
+helpfulness = create_classifier(
+    name="helpfulness",
+    llm=LLM(provider="anthropic", model="claude-sonnet-4-6"),
+    prompt_template=(
+        "Question: {{question}}\n\nResponse: {{response}}\n\n"
+        'Label "helpful" if it accurately answers the question, else "unhelpful".'
+    ),
+    choices={"helpful": 1.0, "unhelpful": 0.0},
+)
+
+CASES = [
+    ("How do I get a refund?", False),
+    ("What's the capital of France?", True),  # off-topic → must refuse
+]
+
+@pytest.mark.phoenix(dataset="support-bot")
+@pytest.mark.parametrize("question,expect_refusal", CASES, ids=["refund", "offtopic"])
+def test_support_response(question, expect_refusal):
+    t0 = time.perf_counter()
+    response = answer_question(question)
+    log_output({"response": response})
+
+    log_evaluation(name="latency_ms", score=(time.perf_counter() - t0) * 1000)  # CODE signal
+
+    if expect_refusal:
+        assert "I don't have information on that" in response  # hard invariant → gates CI
+    else:
+        # Quality signal — judged, NOT asserted. Helpfulness only means something
+        # for answerable questions, so judge here; it trends in Phoenix.
+        evaluate(helpfulness, question=question, response=response)
+```
+
+Refusal = invariant (asserted → gates CI); helpfulness + latency = signals (logged → trended). Judge only the cases where quality is meaningful. To gate CI on a judge anyway, capture its score and assert: `result = evaluate(judge, ...); assert result["score"] == 1.0` — reserve for invariants a code check can't express. For *groundedness*, add a `{{context}}` var and pass `context=...`, or use the pre-built `FaithfulnessEvaluator`.
+
 ## Environment variables
 
 | Variable | Default | Purpose |
