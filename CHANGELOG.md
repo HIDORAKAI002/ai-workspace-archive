@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-07-02 04:49 IST] Auto-Sync
+- **41 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, GitHub MCP Server, Promptfoo, NVIDIA NeMo Guardrails, Dify, Langflow, Activepieces, Trigger.dev, Windmill, Directus, modelcontextprotocol/csharp-sdk, modelcontextprotocol/rust-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, arize-ai/phoenix, firecrawl/firecrawl, danny-avila/LibreChat, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, nousresearch/hermes-agent
+
 ## [2026-07-01 22:06 IST] Auto-Sync
 - **38 Repositories Updated:** Langfuse, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Langflow, Activepieces, Trigger.dev, Windmill, Budibase, Directus, Plane, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, browser-use/browser-use, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, Arize-ai/openinference, danny-avila/LibreChat, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 
