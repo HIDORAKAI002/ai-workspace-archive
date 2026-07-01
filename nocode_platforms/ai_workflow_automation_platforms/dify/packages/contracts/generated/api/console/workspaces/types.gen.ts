@@ -551,7 +551,7 @@ export type AppAccessMatrix = {
 
 export type ResourceUserAccessPoliciesResponse = {
   data?: Array<ResourceUserAccessPolicies>
-  scope: string
+  scope: RbacResourceWhitelistScope
 }
 
 export type ReplaceUserAccessPolicies = {
@@ -824,7 +824,7 @@ export type TriggerOAuthClientResponse = {
   configured: boolean
   custom_configured: boolean
   custom_enabled: boolean
-  oauth_client_schema: unknown
+  oauth_client_schema: Array<TriggerProviderConfigResponse>
   params: {
     [key: string]: unknown
   }
@@ -1134,9 +1134,7 @@ export type PluginAutoUpgradeSettingsResponseModel = {
 export type PluginInstallationItemResponse = {
   checksum: string
   created_at: string
-  declaration: {
-    [key: string]: unknown
-  }
+  declaration: PluginDeclarationResponse
   endpoints_active: number
   endpoints_setups: number
   id: string
@@ -1156,7 +1154,7 @@ export type LatestPluginCache = {
   alternative_plugin_id: string
   deprecated_reason: string
   plugin_id: string
-  status: string
+  status: 'active' | 'deleted'
   unique_identifier: string
   version: string
 }
@@ -1342,6 +1340,27 @@ export type ProviderConfig = {
 
 export type TriggerCreationMethod = 'APIKEY' | 'MANUAL' | 'OAUTH'
 
+export type TriggerProviderConfigResponse = {
+  default?: number | string | number | boolean | null
+  help?: I18nObject | null
+  label?: I18nObject | null
+  multiple?: boolean
+  name: string
+  options?: Array<TriggerProviderConfigOptionResponse> | null
+  placeholder?: I18nObject | null
+  required?: boolean
+  scope?: AppSelectorScope | ModelSelectorScope | ToolSelectorScope | null
+  type:
+    | 'app-selector'
+    | 'array[tools]'
+    | 'boolean'
+    | 'model-selector'
+    | 'secret-input'
+    | 'select'
+    | 'text-input'
+  url?: string | null
+}
+
 export type RequestLog = {
   created_at: string
   endpoint: string
@@ -1479,39 +1498,6 @@ export type StrategySetting = 'disabled' | 'fix_only' | 'latest'
 
 export type UpgradeMode = 'all' | 'exclude' | 'partial'
 
-export type PluginInstallationSource = 'github' | 'marketplace' | 'package' | 'remote'
-
-export type CoreToolsEntitiesCommonEntitiesI18nObject = {
-  en_US: string
-  ja_JP?: string | null
-  pt_BR?: string | null
-  zh_Hans?: string | null
-}
-
-export type PluginCategoryBuiltinToolResponse = {
-  author: string
-  description: CoreToolsEntitiesCommonEntitiesI18nObject
-  label: CoreToolsEntitiesCommonEntitiesI18nObject
-  labels: Array<string>
-  name: string
-  output_schema: {
-    [key: string]: unknown
-  }
-  parameters?: Array<{
-    [key: string]: unknown
-  }> | null
-  [key: string]: unknown
-}
-
-export type ToolProviderType
-  = | 'api'
-    | 'app'
-    | 'builtin'
-    | 'dataset-retrieval'
-    | 'mcp'
-    | 'plugin'
-    | 'workflow'
-
 export type PluginDeclarationResponse = {
   agent_strategy?: {
     [key: string]: unknown
@@ -1551,6 +1537,39 @@ export type PluginDeclarationResponse = {
   verified?: boolean
   version: string
 }
+
+export type PluginInstallationSource = 'github' | 'marketplace' | 'package' | 'remote'
+
+export type CoreToolsEntitiesCommonEntitiesI18nObject = {
+  en_US: string
+  ja_JP?: string | null
+  pt_BR?: string | null
+  zh_Hans?: string | null
+}
+
+export type PluginCategoryBuiltinToolResponse = {
+  author: string
+  description: CoreToolsEntitiesCommonEntitiesI18nObject
+  label: CoreToolsEntitiesCommonEntitiesI18nObject
+  labels: Array<string>
+  name: string
+  output_schema: {
+    [key: string]: unknown
+  }
+  parameters?: Array<{
+    [key: string]: unknown
+  }> | null
+  [key: string]: unknown
+}
+
+export type ToolProviderType
+  = | 'api'
+    | 'app'
+    | 'builtin'
+    | 'dataset-retrieval'
+    | 'mcp'
+    | 'plugin'
+    | 'workflow'
 
 export type RbacRoleAccount = {
   account_id: string
@@ -1627,6 +1646,11 @@ export type CoreEntitiesProviderEntitiesBasicProviderConfigType
     | 'secret-input'
     | 'select'
     | 'text-input'
+
+export type TriggerProviderConfigOptionResponse = {
+  label: I18nObject
+  value: string
+}
 
 export type AiModelEntityResponse = {
   deprecated?: boolean
@@ -4817,7 +4841,7 @@ export type PostWorkspacesCurrentTriggerProviderByProviderSubscriptionsVerifyByS
 
 export type PostWorkspacesCurrentTriggerProviderByProviderSubscriptionsVerifyBySubscriptionIdResponses
   = {
-    200: TriggerProviderOpaqueResponse
+    200: TriggerSubscriptionBuilderVerifyResponse
   }
 
 export type PostWorkspacesCurrentTriggerProviderByProviderSubscriptionsVerifyBySubscriptionIdResponse
