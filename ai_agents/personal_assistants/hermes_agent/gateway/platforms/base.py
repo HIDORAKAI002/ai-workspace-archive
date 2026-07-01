@@ -1931,6 +1931,26 @@ _SUBCHAT_NOT_FOUND_SUBSTRINGS = (
 )
 
 
+def _error_blob(exc: Optional[BaseException] = None, error_text: str = "") -> str:
+    """Build the lowercased text blob both send-error classifiers match against.
+
+    Single source of truth so ``classify_send_error`` and
+    ``is_chat_level_not_found`` can never drift (e.g. one including the
+    exception class name and the other not) and silently disagree on the same
+    failure.  Includes ``str(exc)`` (when non-empty) and the exception's class
+    name, plus any explicit ``error_text``.
+    """
+    parts = []
+    if error_text:
+        parts.append(error_text)
+    if exc is not None:
+        exc_str = str(exc)
+        if exc_str:
+            parts.append(exc_str)
+        parts.append(exc.__class__.__name__)
+    return " ".join(parts).lower()
+
+
 def classify_send_error(exc: Optional[BaseException], error_text: str = "") -> str:
     """Map a send exception / error string to a :data:`SEND_ERROR_KINDS` value.
 
@@ -1939,13 +1959,7 @@ def classify_send_error(exc: Optional[BaseException], error_text: str = "") -> s
     use.  Conservative — anything unrecognized returns ``"unknown"`` so callers
     never mistake an unclassified failure for a benign one.
     """
-    parts = []
-    if error_text:
-        parts.append(error_text)
-    if exc is not None:
-        parts.append(str(exc))
-        parts.append(exc.__class__.__name__)
-    blob = " ".join(parts).lower()
+    blob = _error_blob(exc, error_text)
     if not blob.strip():
         return "unknown"
     if "message_too_long" in blob or "too long" in blob or "message is too long" in blob:
@@ -1988,7 +2002,7 @@ def classify_send_error(exc: Optional[BaseException], error_text: str = "") -> s
     return "unknown"
 
 
-def is_chat_level_not_found(error_text: str = "", exc: Optional[BaseException] = None) -> bool:
+def is_chat_level_not_found(exc: Optional[BaseException] = None, error_text: str = "") -> bool:
     """Whether a ``not_found`` failure means the *whole chat* is gone.
 
     :func:`classify_send_error` collapses chat-level and thread/topic/message-level
@@ -1997,13 +2011,12 @@ def is_chat_level_not_found(error_text: str = "", exc: Optional[BaseException] =
     forum topic or an edited-away message leaves the parent chat reachable.  When
     both a chat-level and a sub-chat marker are present, the sub-chat reading wins
     (conservative: never kill a chat that may still be reachable).
+
+    Argument order mirrors :func:`classify_send_error` (``exc`` first) and both
+    share :func:`_error_blob`, so the two classifiers cannot disagree on the same
+    failure.
     """
-    parts = []
-    if error_text:
-        parts.append(error_text)
-    if exc is not None:
-        parts.append(str(exc))
-    blob = " ".join(parts).lower()
+    blob = _error_blob(exc, error_text)
     if any(s in blob for s in _SUBCHAT_NOT_FOUND_SUBSTRINGS):
         return False
     return any(s in blob for s in _CHAT_LEVEL_NOT_FOUND_SUBSTRINGS)
@@ -2293,6 +2306,21 @@ class BasePlatformAdapter(ABC):
     # shared prompt builders read it via getattr(adapter,
     # "typed_command_prefix", "/"); no per-platform branching at call sites.
     typed_command_prefix: str = "/"
+
+    # Whether this adapter supports the ``in_channel`` continuable-cron surface
+    # (``platforms.<p>.extra.cron_continuable_surface: in_channel``): a
+    # continuable cron job delivered FLAT into a channel (no dedicated thread),
+    # with the user's plain channel reply continuing the job in-context via the
+    # shared-channel session.  Only coherent on a platform that has BOTH a
+    # flat-reply outbound gate AND a whole-channel inbound session bucket keyed
+    # ``(platform, chat_id, None)`` — today that is Slack (``reply_in_thread:
+    # false``).  Default False: an unsupported platform fails SAFE, treating
+    # ``in_channel`` as ``thread`` (a threaded continuation ≈ today's
+    # behaviour), never a dropped continuation.  Read generically by the cron
+    # scheduler via ``getattr(adapter, "supports_inchannel_continuable",
+    # False)`` — no per-platform branching at the call site (the key stays a
+    # generic seam; Slack is merely the first consumer).
+    supports_inchannel_continuable: bool = False
 
     def __init__(self, config: PlatformConfig, platform: Platform):
         self.config = config
