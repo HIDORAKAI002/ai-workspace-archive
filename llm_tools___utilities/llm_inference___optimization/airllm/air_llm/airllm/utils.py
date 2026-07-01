@@ -204,15 +204,32 @@ def split_and_save_layers(checkpoint_path, layer_shards_saving_path=None, splitt
         saving_path = Path(layer_shards_saving_path) / splitted_model_dir_name
 
 
+    # Build a weight_map (param name -> file that stores it). Multi-shard checkpoints ship an
+    # index.json; small/modern models often ship a single file with no index, so synthesize one.
     safetensors_format = False
     if os.path.exists(checkpoint_path / 'pytorch_model.bin.index.json'):
         with open(checkpoint_path / 'pytorch_model.bin.index.json', 'rb') as f:
             index = json.load(f)['weight_map']
-    else:
+    elif os.path.exists(checkpoint_path / 'model.safetensors.index.json'):
         safetensors_format = True
-        assert os.path.exists(checkpoint_path / 'model.safetensors.index.json'), f'model.safetensors.index.json should exist.'
         with open(checkpoint_path / 'model.safetensors.index.json', 'rb') as f:
             index = json.load(f)['weight_map']
+    elif os.path.exists(checkpoint_path / 'model.safetensors'):
+        # single-file safetensors checkpoint: map every tensor to that one file
+        safetensors_format = True
+        from safetensors import safe_open
+        with safe_open(str(checkpoint_path / 'model.safetensors'), framework='pt') as f:
+            index = {k: 'model.safetensors' for k in f.keys()}
+    elif os.path.exists(checkpoint_path / 'pytorch_model.bin'):
+        # single-file torch checkpoint: map every tensor to that one file
+        safetensors_format = False
+        single_sd = torch.load(checkpoint_path / 'pytorch_model.bin', map_location='cpu')
+        index = {k: 'pytorch_model.bin' for k in single_sd.keys()}
+        del single_sd
+    else:
+        raise FileNotFoundError(
+            f"No model weights found under {checkpoint_path}. Expected one of: "
+            f"model.safetensors(.index.json) or pytorch_model.bin(.index.json).")
 
     if layer_names is None:
         n_layers = len(set([int(k.split('.')[2]) for k in index.keys() if 'model.layers' in k]))
@@ -227,6 +244,11 @@ def split_and_save_layers(checkpoint_path, layer_shards_saving_path=None, splitt
         if 'rotary_pos_emb' in layer_names:
             layers = [layer_names['rotary_pos_emb']] + layers
         layers = [l + "." for l in layers]
+
+    # Drop layers that have no weights in the checkpoint. This happens for tied embeddings,
+    # where lm_head shares storage with embed_tokens and has no entry of its own. Without this we
+    # would try to save an empty shard (which fails) and never detect the split as complete.
+    layers = [l for l in layers if any(k.startswith(l) for k in index.keys())]
 
 
     # check if splitting exists and all files are there
@@ -255,6 +277,17 @@ def split_and_save_layers(checkpoint_path, layer_shards_saving_path=None, splitt
     n_shards = len(set(index.values()))
     state_dict = {}
 
+    # Map shard ordinal -> actual checkpoint filename, taken straight from the index. We must NOT
+    # reconstruct names like f"model-000{n:02d}-of-000{n_shards:02d}.safetensors": repos differ in
+    # zero-padding width (e.g. DeepSeek uses model-00001-of-000004.safetensors) and in extension.
+    shard_num_to_file = {}
+    for v in set(index.values()):
+        parts = v.split('-')
+        if len(parts) > 1:
+            try:
+                shard_num_to_file[int(parts[1])] = v
+            except ValueError:
+                pass
 
     if not os.path.exists(saving_path):
         #os.makedirs(saving_path)
@@ -268,23 +301,21 @@ def split_and_save_layers(checkpoint_path, layer_shards_saving_path=None, splitt
         # checking whether after spliting from '-', if second element exists. otherwise it throws errors for single 'model.safetensor' files
         shards = [int(v.split('-')[1]) for k, v in index.items() if k.startswith(layer) and '-' in v and len(v.split('-')) > 1]
         if len(shards) > 0:
-            if max(shards) > shard:
-                # optinoally delete original file
+            # A layer can span several shards (especially fp8 checkpoints, where each weight has a
+            # companion weight_scale_inv tensor). Load *every* shard up to the highest one this layer
+            # references, not just the next one -- otherwise the layer is saved missing some tensors
+            # (e.g. the block scales), which silently corrupts fp8 weights.
+            while max(shards) > shard:
+                # optionally delete the original file we're done with (its tensors are already in RAM)
                 if delete_original and shard != 0:
-                    if not safetensors_format:
-                        to_delete = checkpoint_path / f'pytorch_model-000{shard:02d}-of-000{n_shards:02d}.bin'
-                    else:
-                        to_delete = checkpoint_path / f'model-000{shard:02d}-of-000{n_shards:02d}.safetensors'
+                    to_delete = checkpoint_path / shard_num_to_file[shard]
 
                     print(f"deleting original file: {to_delete}")
                     remove_real_and_linked_file(to_delete)
                 shard += 1
                 print(f'Loading shard {shard}/{n_shards}')
 
-                if not safetensors_format:
-                    to_load = checkpoint_path / f'pytorch_model-000{shard:02d}-of-000{n_shards:02d}.bin'
-                else:
-                    to_load = checkpoint_path / f'model-000{shard:02d}-of-000{n_shards:02d}.safetensors'
+                to_load = checkpoint_path / shard_num_to_file[shard]
 
                 # check if to_load exist, if not downloaad it...
                 if not os.path.exists(to_load):
@@ -374,9 +405,20 @@ def find_or_create_local_splitted_path(model_local_path_or_repo_id, layer_shards
                 f"Found local directory in {model_local_path_or_repo_id}, but didn't find downloaded model. Try using {model_local_path_or_repo_id} as a HF repo...")
 
     # it should be a repo id at this point...
+    # First grab everything except the (potentially huge) weight files. For multi-shard models the
+    # index.json tells us the structure and we stream each shard on demand during splitting.
     hf_cache_path = huggingface_hub.snapshot_download(model_local_path_or_repo_id, token=hf_token,
         #allow_patterns= ["model.safetensors.index.json", 'pytorch_model.bin.index.json'],
         ignore_patterns=['*.safetensors', '*.bin'])
+
+    # Single-file checkpoints have no index.json, so there's nothing to stream on demand and we
+    # can't infer the structure without the file itself. Download the single weight file now.
+    has_index = os.path.exists(Path(hf_cache_path) / 'model.safetensors.index.json') or \
+                os.path.exists(Path(hf_cache_path) / 'pytorch_model.bin.index.json')
+    if not has_index:
+        hf_cache_path = huggingface_hub.snapshot_download(
+            model_local_path_or_repo_id, token=hf_token,
+            allow_patterns=['model.safetensors', 'pytorch_model.bin'])
 
 
     # check if there's safetensors saved, if so, exclude torch saves
