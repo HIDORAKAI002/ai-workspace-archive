@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { AgentRuntimeCoordinator } from '../AgentRuntimeCoordinator';
 import { createAgentStateManager, createStreamEventManager } from '../factory';
+import { VISIBLE_OUTPUT_END_PUBLISHED_STEP_INDEX_METADATA_KEY } from '../visibleOutputEnd';
 
 // Mock factory module to avoid Redis/env access
 vi.mock('../factory', () => ({
@@ -285,6 +286,93 @@ describe('AgentRuntimeCoordinator', () => {
         consoleError.mockRestore();
       }
 
+      expect(mockStreamManager.publishAgentRuntimeEnd).toHaveBeenCalledWith({
+        finalState: stepResult.newState,
+        operationId,
+        reason: 'done',
+        stepIndex: 5,
+        uiMessages: undefined,
+      });
+    });
+
+    it('does not republish visible_output_end when the step already published it', async () => {
+      const operationId = 'test-operation-id';
+      const stepResult = {
+        executionTime: 1000,
+        newState: {
+          metadata: { [VISIBLE_OUTPUT_END_PUBLISHED_STEP_INDEX_METADATA_KEY]: 5 },
+          status: 'done',
+          stepCount: 5,
+        },
+        stepIndex: 5,
+      };
+
+      mockStateManager.loadAgentState.mockResolvedValue({ status: 'running', stepCount: 4 });
+
+      await coordinator.saveStepResult(operationId, stepResult as any);
+
+      expect(mockStreamManager.publishStreamEvent).not.toHaveBeenCalledWith(
+        operationId,
+        expect.objectContaining({ type: 'visible_output_end' }),
+      );
+      expect(mockStreamManager.publishAgentRuntimeEnd).toHaveBeenCalledWith({
+        finalState: stepResult.newState,
+        operationId,
+        reason: 'done',
+        stepIndex: 5,
+        uiMessages: undefined,
+      });
+    });
+
+    it('does not republish visible_output_end when AgentRuntime.step advanced stepCount', async () => {
+      const operationId = 'test-operation-id';
+      const stepResult = {
+        executionTime: 1000,
+        newState: {
+          metadata: { [VISIBLE_OUTPUT_END_PUBLISHED_STEP_INDEX_METADATA_KEY]: 0 },
+          status: 'done',
+          stepCount: 1,
+        },
+        stepIndex: 0,
+      };
+
+      mockStateManager.loadAgentState.mockResolvedValue({ status: 'running', stepCount: 0 });
+
+      await coordinator.saveStepResult(operationId, stepResult as any);
+
+      expect(mockStreamManager.publishStreamEvent).not.toHaveBeenCalledWith(
+        operationId,
+        expect.objectContaining({ type: 'visible_output_end' }),
+      );
+      expect(mockStreamManager.publishAgentRuntimeEnd).toHaveBeenCalledWith({
+        finalState: stepResult.newState,
+        operationId,
+        reason: 'done',
+        stepIndex: 0,
+        uiMessages: undefined,
+      });
+    });
+
+    it('does not republish visible_output_end when a following finish step enters done', async () => {
+      const operationId = 'test-operation-id';
+      const stepResult = {
+        executionTime: 1000,
+        newState: {
+          metadata: { [VISIBLE_OUTPUT_END_PUBLISHED_STEP_INDEX_METADATA_KEY]: 3 },
+          status: 'done',
+          stepCount: 5,
+        },
+        stepIndex: 5,
+      };
+
+      mockStateManager.loadAgentState.mockResolvedValue({ status: 'running', stepCount: 4 });
+
+      await coordinator.saveStepResult(operationId, stepResult as any);
+
+      expect(mockStreamManager.publishStreamEvent).not.toHaveBeenCalledWith(
+        operationId,
+        expect.objectContaining({ type: 'visible_output_end' }),
+      );
       expect(mockStreamManager.publishAgentRuntimeEnd).toHaveBeenCalledWith({
         finalState: stepResult.newState,
         operationId,
