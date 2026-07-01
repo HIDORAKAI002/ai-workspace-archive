@@ -259,6 +259,21 @@ describe("runSearchTarget orchestration", () => {
       expect(byStatus(status).metadata.searchStatus).toBe(status);
       expect(byStatus(status).scraped).toBe(true);
     }
+    expect(byStatus("alert").judgment).toMatchObject({
+      meaningful: true,
+      reason: "filing confirmed",
+      meaningfulChanges: [],
+    });
+    expect(byStatus("watching").judgment).toMatchObject({
+      meaningful: false,
+      reason: "filing confirmed",
+      meaningfulChanges: [],
+    });
+    expect(byStatus("ignored").judgment).toMatchObject({
+      meaningful: false,
+      reason: "filing confirmed",
+      meaningfulChanges: [],
+    });
   });
 
   it("re-evaluates a known page when the goalVersion changed (stale memory)", async () => {
@@ -308,6 +323,11 @@ describe("runSearchTarget orchestration", () => {
     const seen = out.pageUpserts.find(u => u.status === "already_seen")!;
     expect(seen.scraped).toBe(true);
     expect(seen.metadata.searchStatus).toBe("already_seen");
+    expect(seen.judgment).toMatchObject({
+      meaningful: true,
+      reason: "filing confirmed",
+      meaningfulChanges: [],
+    });
   });
 
   it("uses the canonical URL as the event key (label is the verdict concept)", async () => {

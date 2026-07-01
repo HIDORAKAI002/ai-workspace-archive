@@ -248,6 +248,18 @@ type SearchTargetRunResult = {
   }>;
 };
 
+function judgmentFromSearchVerdict(
+  verdict: SearchVerdict,
+  meaningful: boolean,
+): NonNullable<SearchTargetRunResult["pageUpserts"][number]["judgment"]> {
+  return {
+    meaningful,
+    confidence: "high",
+    reason: verdict.rationale,
+    meaningfulChanges: [],
+  };
+}
+
 export async function runSearchTarget(params: {
   monitor: {
     id: string;
@@ -605,6 +617,10 @@ export async function runSearchTarget(params: {
     resultsJudged += 1;
 
     const decision = verdictToDecision(verdict);
+    const meaningfulJudgment = judgmentFromSearchVerdict(
+      verdict,
+      decision === "notify",
+    );
 
     const baseMeta = {
       fingerprint,
@@ -630,6 +646,7 @@ export async function runSearchTarget(params: {
         status: "ignored",
         scraped: depth === "deep",
         metadata: { ...baseMeta, searchStatus: "ignored" },
+        judgment: meaningfulJudgment,
       });
       continue;
     }
@@ -646,6 +663,7 @@ export async function runSearchTarget(params: {
         status: "watching",
         scraped: depth === "deep",
         metadata: { ...baseMeta, searchStatus: "watching" },
+        judgment: meaningfulJudgment,
       });
       continue;
     }
@@ -673,6 +691,7 @@ export async function runSearchTarget(params: {
         status: "already_seen",
         scraped: depth === "deep",
         metadata: { ...eventMeta, searchStatus: "already_seen" },
+        judgment: meaningfulJudgment,
       });
       continue;
     }
@@ -713,12 +732,7 @@ export async function runSearchTarget(params: {
         eventAlertCount,
         eventLastAlertAt: nowIso,
       },
-      judgment: {
-        meaningful: true,
-        confidence: "high",
-        reason: verdict.rationale,
-        meaningfulChanges: [],
-      },
+      judgment: meaningfulJudgment,
     });
   }
 
