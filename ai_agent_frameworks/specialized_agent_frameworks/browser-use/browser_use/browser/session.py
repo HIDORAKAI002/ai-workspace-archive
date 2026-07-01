@@ -438,7 +438,7 @@ class BrowserSession(BaseModel):
 	@classmethod
 	def from_system_chrome(cls, profile_directory: str | None = None, **kwargs: Any) -> Self:
 		"""Create a BrowserSession using system's Chrome installation and profile"""
-		from browser_use.skill_cli.utils import find_chrome_executable, get_chrome_profile_path, list_chrome_profiles
+		from browser_use.browser.chrome import find_chrome_executable, get_chrome_profile_path, list_chrome_profiles
 
 		executable_path = find_chrome_executable()
 		if executable_path is None:
@@ -450,7 +450,7 @@ class BrowserSession(BaseModel):
 				'  Windows: C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 			)
 
-		user_data_dir = get_chrome_profile_path(None)
+		user_data_dir = get_chrome_profile_path(None, executable_path=executable_path)
 		if user_data_dir is None:
 			raise RuntimeError(
 				'Could not detect Chrome profile directory for your platform.\n'
@@ -482,7 +482,7 @@ class BrowserSession(BaseModel):
 	@classmethod
 	def list_chrome_profiles(cls) -> list[dict[str, str]]:
 		"""List available Chrome profiles on the system"""
-		from browser_use.skill_cli.utils import list_chrome_profiles
+		from browser_use.browser.chrome import list_chrome_profiles
 
 		return list_chrome_profiles()
 

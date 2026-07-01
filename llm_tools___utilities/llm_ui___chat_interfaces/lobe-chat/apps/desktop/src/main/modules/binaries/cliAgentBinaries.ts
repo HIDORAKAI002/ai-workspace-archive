@@ -214,15 +214,33 @@ const HETEROGENEOUS_CLI_AGENT_OPTIONS = {
   Pick<ValidatedDetectorOptions, 'validateKeywords'>
 >;
 
-// Well-known absolute install locations probed when a bare command isn't on
-// PATH. The Codex desktop app bundles a fully functional CLI inside Codex.app
-// (sharing ~/.codex auth/config) but never symlinks it into PATH, so
-// `which codex` misses an otherwise working install.
-const getWellKnownCommandPaths = (agentType: HeterogeneousCliAgentType): string[] => {
-  if (platform() !== 'darwin') return [];
+// The default (bare) command each agent type is shipped to run. The well-known
+// fallback locations below hold *this* binary, so they may only be probed when
+// the requested command is the default — never for a custom command.
+const DEFAULT_COMMAND: Record<HeterogeneousCliAgentType, string> = {
+  'claude-code': 'claude',
+  'codex': 'codex',
+};
 
+// Well-known absolute install locations probed when a bare command isn't on
+// PATH. This covers GUI-launched apps with a lean launchd PATH: Claude's
+// official installer can put `claude` under ~/.local/bin, while the Codex
+// desktop app bundles a functional CLI inside Codex.app without symlinking it.
+const getWellKnownCommandPaths = (agentType: HeterogeneousCliAgentType): string[] => {
   switch (agentType) {
+    case 'claude-code': {
+      if (platform() !== 'darwin' && platform() !== 'linux') return [];
+
+      return [
+        path.join(homedir(), '.local', 'bin', 'claude'),
+        path.join(homedir(), '.bun', 'bin', 'claude'),
+        path.join(homedir(), '.npm-global', 'bin', 'claude'),
+        path.join(homedir(), 'Library', 'pnpm', 'claude'),
+      ];
+    }
     case 'codex': {
+      if (platform() !== 'darwin') return [];
+
       const bundledCli = path.join('Codex.app', 'Contents', 'Resources', 'codex');
       return [
         path.join('/Applications', bundledCli),
@@ -245,10 +263,12 @@ export const detectHeterogeneousCliCommand = async (
   const status = await detectValidatedCommand(command, validator);
   if (status.available) return status;
 
-  // A bare command missing from PATH may still live at a well-known install
-  // location (e.g. the Codex desktop app's bundled CLI). Don't second-guess
-  // an explicit user-configured path.
-  if (!command.trim().includes(path.sep)) {
+  // The default command missing from PATH may still live at a well-known install
+  // location (e.g. the Codex desktop app's bundled CLI). Only probe those for the
+  // default command: the well-known paths hold the *default* binary, so applying
+  // them to a custom command (e.g. `claude-beta`) would silently resolve it to
+  // stock `claude` instead of reporting the configured command as missing.
+  if (command.trim() === DEFAULT_COMMAND[agentType]) {
     for (const candidate of getWellKnownCommandPaths(agentType)) {
       const fallbackStatus = await detectValidatedCommand(candidate, validator);
       if (fallbackStatus.available) return fallbackStatus;
@@ -288,14 +308,17 @@ const defineValidatedBinary = (
 /**
  * Claude Code CLI
  * @see https://docs.claude.com/en/docs/claude-code
+ *
+ * Goes through `detectHeterogeneousCliCommand` so Finder/launchd-started
+ * desktop builds can still discover user-local installs such as
+ * `~/.local/bin/claude` when that directory is absent from the inherited PATH.
  */
-export const claudeCodeBinary: BinarySpec = defineValidatedBinary({
-  candidates: ['claude'],
+export const claudeCodeBinary: BinarySpec = {
   description: 'Claude Code - Anthropic official agentic coding CLI',
+  detect: () => detectHeterogeneousCliCommand('claude-code', 'claude'),
   name: 'claude',
   priority: 1,
-  validateKeywords: ['claude code'],
-});
+};
 
 /**
  * OpenAI Codex CLI

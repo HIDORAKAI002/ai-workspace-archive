@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-07-01 22:06 IST] Auto-Sync
+- **38 Repositories Updated:** Langfuse, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Langflow, Activepieces, Trigger.dev, Windmill, Budibase, Directus, Plane, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, browser-use/browser-use, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, Arize-ai/openinference, danny-avila/LibreChat, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-07-01 15:11 IST] Auto-Sync
 - **33 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Langfuse, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Budibase, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, open-webui/open-webui, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, googleapis/python-genai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent
 
