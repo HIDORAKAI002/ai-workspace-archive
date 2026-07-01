@@ -29,6 +29,8 @@ FIELD_TYPE_OVERRIDES: dict[tuple[str, str], str] = {
     ("FlowDefinition", "methods"): "map of string to [Method](#method-methods)",
     ("FlowMethodDefinition", "do"): "[Action](#action)",
     ("FlowCrewActionDefinition", "with"): "inline crew definition",
+    ("CrewAgentDefinition", "llm"): "string or inline LLM config",
+    ("AgentDefinition", "llm"): "string or inline LLM config",
 }
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -124,6 +126,7 @@ MODEL_TITLES = {
     "CrewAgentDefinition": "Crew Agent Definition",
     "CrewTaskDefinition": "Crew Task Definition",
     "AgentDefinition": "Agent Definition",
+    "LLMDefinition": "LLM Definition",
     "FlowConfigDefinition": "Config",
     "FlowPersistenceDefinition": "Persistence",
     "FlowHumanFeedbackDefinition": "Human Feedback",
@@ -162,7 +165,7 @@ MODEL_SPECS: tuple[ModelSpec, ...] = (
         descriptions={
             "do": "Single action object executed when this method runs.",
             "start": "Marks a start method. Use `true` for the normal entrypoint. String or map conditions are advanced trigger conditions; use them only when the user asks for event/condition-based starts.",
-            "listen": 'Trigger condition that runs this method after upstream events. A string target can be a method name or a router-emitted event name, and both live in the same trigger namespace. Map conditions are for `and`/`or` trigger composition, for example `{"and": ["validated", "processed"]}`.',
+            "listen": 'Trigger condition that runs this method after upstream events. A string target can be a method name or a router-emitted event name, and both live in the same trigger namespace. Methods must not listen to their own method name. Map conditions are for `and`/`or` trigger composition, for example `{"and": ["validated", "processed"]}`.',
             "router": "Whether the method output should be treated as the next event name. Router actions must return one event name string, with no surrounding explanation.",
             "emit": "Declared router events this method may emit. Each emitted event name should be unique and should not collide with method names.",
         },
@@ -222,6 +225,16 @@ MODEL_SPECS: tuple[ModelSpec, ...] = (
         "methods.<name>.do[call=crew].with.agents.<name>",
         hidden=True,
         examples=True,
+        descriptions={
+            "llm": "Language model that runs this crew agent. Use an object when setting LLM options such as `max_tokens`.",
+            "planning_config": "Agent planning configuration. Set `max_attempts` to limit planning refinement attempts before task execution.",
+        },
+    ),
+    ModelSpec(
+        "LLMDefinition",
+        "LLM Definition",
+        hidden=True,
+        examples=True,
     ),
     ModelSpec(
         "CrewTaskDefinition",
@@ -241,6 +254,8 @@ MODEL_SPECS: tuple[ModelSpec, ...] = (
         examples=True,
         descriptions={
             "input": "Input passed to the individual agent kickoff outside of a crew. Use a single string value, often a dynamic `${...}` expression. When an agent needs multiple fields, build one single-line CEL string with labels and separators, using `text(root, 'path')` for values that may be missing or null, for example `${'Ticket ID: ' + text(state, 'ticket_id') + '; Message: ' + text(state, 'message')}`. In YAML, avoid `\\n` escapes inside `${...}` strings.",
+            "llm": "Language model that runs this agent. Use an object when setting LLM options such as `max_tokens`.",
+            "planning_config": "Agent planning configuration. Set `max_attempts` to limit planning refinement attempts before task execution.",
         },
     ),
     ModelSpec("FlowConfigDefinition", "Config", "config"),
@@ -342,7 +357,9 @@ class FlowSkillReferenceExtractor:
                 "CrewAgentDefinition",
                 "CrewTaskDefinition",
             ),
+            "CrewAgentDefinition": ("LLMDefinition",),
             "FlowAgentActionDefinition": ("AgentDefinition",),
+            "AgentDefinition": ("LLMDefinition",),
         }
         return [
             self.extract_model(_SPECS_BY_NAME[name])

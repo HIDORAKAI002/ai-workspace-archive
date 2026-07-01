@@ -63,8 +63,21 @@ global.isProduction = config.IS_PRODUCTION;
 
 setSentryServiceTag("api");
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json({ limit: "10mb" }));
+// Capture the exact request bytes so integrations that sign the raw payload
+// (e.g. Slack's X-Slack-Signature) can verify it after body parsing. Typed with
+// the node http types body-parser's `verify` hook expects.
+const captureRawBody = (
+  req: http.IncomingMessage,
+  _res: http.ServerResponse,
+  buf: Buffer,
+) => {
+  if (buf && buf.length) {
+    (req as http.IncomingMessage & { rawBody?: Buffer }).rawBody = buf;
+  }
+};
+
+app.use(bodyParser.urlencoded({ extended: true, verify: captureRawBody }));
+app.use(bodyParser.json({ limit: "10mb", verify: captureRawBody }));
 
 app.use(cors()); // Add this line to enable CORS
 

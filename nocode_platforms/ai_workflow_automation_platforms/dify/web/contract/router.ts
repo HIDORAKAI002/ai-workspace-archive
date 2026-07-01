@@ -34,11 +34,13 @@ import { resetPassword } from '@dify/contracts/api/console/reset-password/orpc.g
 import { ruleCodeGenerate } from '@dify/contracts/api/console/rule-code-generate/orpc.gen'
 import { ruleGenerate } from '@dify/contracts/api/console/rule-generate/orpc.gen'
 import { ruleStructuredOutputGenerate } from '@dify/contracts/api/console/rule-structured-output-generate/orpc.gen'
+import { snippets } from '@dify/contracts/api/console/snippets/orpc.gen'
 import { spec } from '@dify/contracts/api/console/spec/orpc.gen'
 import { systemFeatures } from '@dify/contracts/api/console/system-features/orpc.gen'
 import { tagBindings } from '@dify/contracts/api/console/tag-bindings/orpc.gen'
 import { tags } from '@dify/contracts/api/console/tags/orpc.gen'
 import { test } from '@dify/contracts/api/console/test/orpc.gen'
+import { trialApps } from '@dify/contracts/api/console/trial-apps/orpc.gen'
 import { trialModels } from '@dify/contracts/api/console/trial-models/orpc.gen'
 import { website } from '@dify/contracts/api/console/website/orpc.gen'
 import { workflowGenerate } from '@dify/contracts/api/console/workflow-generate/orpc.gen'
@@ -87,11 +89,13 @@ const communityContract = {
   ruleCodeGenerate,
   ruleGenerate,
   ruleStructuredOutputGenerate,
+  snippets,
   spec,
   systemFeatures,
   tagBindings,
   tags,
   test,
+  trialApps,
   trialModels,
   website,
   workflow,
