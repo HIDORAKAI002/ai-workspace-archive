@@ -485,9 +485,13 @@ export async function sendMonitoringEmailSummary(params: {
   // complete (a missed meaningful alert is worse than a noisy one).
   if (params.monitor.judge_enabled && params.monitor.goal) {
     const changedPages = params.pages.filter(p => p.status === "changed");
-    const nonChangedActivity = params.pages.some(
-      p => p.status === "new" || p.status === "removed" || p.status === "error",
-    );
+    // Use the authoritative check counters (aggregated over ALL pages), not the
+    // page list — the runner caps `pages` at 100, so scanning it can miss
+    // new/removed/error activity beyond the cap and wrongly suppress the email.
+    const nonChangedActivity =
+      params.check.new_count > 0 ||
+      params.check.removed_count > 0 ||
+      params.check.error_count > 0;
     const changedListComplete =
       changedPages.length >= params.check.changed_count;
     if (changedPages.length > 0 && !nonChangedActivity && changedListComplete) {

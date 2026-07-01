@@ -139,15 +139,35 @@ const monitorScheduleSchema = z
     timezone: schedule.timezone,
   }));
 
-const monitorNotificationInner = z.strictObject({
-  email: z
-    .strictObject({
-      enabled: z.boolean().optional().default(false),
-      recipients: z.array(z.email()).max(25).optional().default([]),
-      includeDiffs: z.boolean().optional().default(false),
-    })
-    .optional(),
-});
+const monitorNotificationInner = z
+  .strictObject({
+    email: z
+      .strictObject({
+        enabled: z.boolean().optional().default(false),
+        recipients: z.array(z.email()).max(25).optional().default([]),
+        includeDiffs: z.boolean().optional().default(false),
+      })
+      .optional(),
+    // Slack delivery goes to a single channel in the team's connected
+    // workspace. The bot token lives on the slack_installations row, so only
+    // the channel reference is stored on the monitor.
+    slack: z
+      .strictObject({
+        enabled: z.boolean().optional().default(false),
+        channelId: z.string().trim().min(1).max(64).optional(),
+        channelName: z.string().max(128).optional(),
+      })
+      .optional(),
+  })
+  .superRefine((notification, ctx) => {
+    if (notification.slack?.enabled && !notification.slack.channelId) {
+      ctx.addIssue({
+        code: "custom",
+        message: "A Slack channel is required when Slack notifications are enabled",
+        path: ["slack", "channelId"],
+      });
+    }
+  });
 // Create defaults a missing notification to {}; the UPDATE schema deliberately does
 // not (a default there would materialize {} on a PATCH and wipe the stored email config).
 const monitorNotificationSchema = monitorNotificationInner

@@ -6,7 +6,45 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-06-30T17:56:29Z</updated>
+  <updated>2026-07-01T20:45:29Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.198</id>
+    <title>Claude Code v2.1.198</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.198"/>
+    <updated>2026-07-01T20:45:29Z</updated>
+    <content type="html">&lt;p&gt;• Claude in Chrome is now generally available&lt;/p&gt;
+&lt;p&gt;• Added background agent notifications in claude agents — sessions that need input or finish now fire the Notification hook (agent_needs_input / agent_completed)&lt;/p&gt;
+&lt;p&gt;• Added /dataviz skill for chart and dashboard design guidance with a runnable color-palette validator&lt;/p&gt;
+&lt;p&gt;• Gateway: added Claude Platform on AWS (anthropicAws) as an upstream provider; model-not-found responses now advance the failover chain&lt;/p&gt;
+&lt;p&gt;• Background agents launched from claude agents now commit, push, and open a draft PR when they finish code work in a worktree, instead of stopping to ask&lt;/p&gt;
+&lt;p&gt;• The built-in Explore agent now inherits the main session's model (capped at opus) instead of running on haiku&lt;/p&gt;
+&lt;p&gt;• Subagents and context compaction now inherit the session's extended thinking configuration, improving output quality on delegated tasks&lt;/p&gt;
+&lt;p&gt;• Fixed brief network drops mid-response aborting the turn — transient errors like ECONNRESET now retry with backoff instead of failing&lt;/p&gt;
+&lt;p&gt;• Fixed excessive background classifier requests when sandboxed processes repeatedly accessed the same network host&lt;/p&gt;
+&lt;p&gt;• Fixed background tasks in web, desktop, and VS Code task panels getting stuck on "Running" after they finish or after resuming a session&lt;/p&gt;
+&lt;p&gt;• Fixed agent teams: a teammate that dies on an API error now reports "failed" to the lead, and messaging a stuck teammate wakes it to retry immediately&lt;/p&gt;
+&lt;p&gt;• Fixed the /diff panel not refreshing when you switch branches or commit outside the session&lt;/p&gt;
+&lt;p&gt;• Fixed markdown tables overflowing and wrapping their right border when rendered in fullscreen mode&lt;/p&gt;
+&lt;p&gt;• Fixed Claude Platform on AWS and Mantle sessions dead-ending with "Please run /login" when the STS token expires — awsAuthRefresh now runs automatically&lt;/p&gt;
+&lt;p&gt;• Fixed "no route to host" for local-network hosts in macOS background agent sessions by declaring Local Network entitlements&lt;/p&gt;
+&lt;p&gt;• Fixed /desktop failing with "Cannot determine working directory" after entering and exiting a worktree&lt;/p&gt;
+&lt;p&gt;• Fixed background agents repeatedly showing "Reconnecting…" every ~52 seconds on macOS while the agents view was open&lt;/p&gt;
+&lt;p&gt;• Fixed pressing ← inside claude attach &amp;lt;id&amp;gt; exiting to the shell instead of opening the agent view&lt;/p&gt;
+&lt;p&gt;• Fixed claude --bg silently creating an unattachable session when combined with --print/-p; the conflicting flags are now rejected up front&lt;/p&gt;
+&lt;p&gt;• Fixed the workflow progress view dropping the earliest agents from the list while the phase counter stayed correct in SDK and desktop-app sessions&lt;/p&gt;
+&lt;p&gt;• Fixed .claude/rules/ conditional rules not loading when the target file is reached via a symlinked path&lt;/p&gt;
+&lt;p&gt;• Fixed Cmd+click not opening URLs in fullscreen mode in Warp on macOS&lt;/p&gt;
+&lt;p&gt;• Fixed double-click word selection in fullscreen mode to select the entire URL including the scheme&lt;/p&gt;
+&lt;p&gt;• Fixed plan mode not auto-allowing read-only tool calls when a session starts in plan mode&lt;/p&gt;
+&lt;p&gt;• Fixed /branch deriving its default fork name from the compaction summary instead of the first real prompt&lt;/p&gt;
+&lt;p&gt;• Improved focus mode: subagents launched in a turn now appear in its activity summary, and completed background notifications fold into a single count&lt;/p&gt;
+&lt;p&gt;• Improved syntax highlighting accuracy in code blocks, diffs, and file previews by upgrading to highlight.js 11&lt;/p&gt;
+&lt;p&gt;• Keyboard shortcut hints now show opt/cmd instead of alt/super when connected from a Mac over SSH&lt;/p&gt;
+&lt;p&gt;• Improved API retry UX: the error reason is now shown after the second attempt, and a status page link replaces the spinner tip when the API is overloaded&lt;/p&gt;
+&lt;p&gt;• /login now opens the sign-in dialog from the claude agents view instead of saying it isn't available&lt;/p&gt;
+&lt;p&gt;• Subagents now treat messages from the agent that launched them as normal task direction; an agent's message is still never treated as the user's approval&lt;/p&gt;
+&lt;p&gt;• Removed the /agents wizard; ask Claude to create or manage subagents, or edit .claude/agents/ directly&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.197</id>
     <title>Claude Code v2.1.197</title>
@@ -410,42 +448,5 @@
     <updated>2026-06-09T17:23:03Z</updated>
     <content type="html">&lt;p&gt;• Introducing Claude Fable 5: a Mythos-class model that we’ve made safe for general use. Fable’s capabilities exceed those of any model we’ve ever made generally available. Update to version 2.1.170 for access. https://www.anthropic.com/news/claude-fable-5-mythos-5&lt;/p&gt;
 &lt;p&gt;• Fixed sessions not saving transcripts (and not appearing in --resume) when launched from the VS Code integrated terminal or any shell that inherited Claude Code environment variables.&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.169</id>
-    <title>Claude Code v2.1.169</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.169"/>
-    <updated>2026-06-08T21:57:10Z</updated>
-    <content type="html">&lt;p&gt;• Self-hosted runner: added a post-session lifecycle hook that runs after the session ends and before the workspace is deleted, so you can snapshot uncommitted work or export logs; also made the child-process SIGTERM→SIGKILL window configurable (default unchanged at 5s)&lt;/p&gt;
-&lt;p&gt;• Added --safe-mode flag (and CLAUDE_CODE_SAFE_MODE) to start Claude Code with all customizations (CLAUDE.md, plugins, skills, hooks, MCP servers) disabled for troubleshooting&lt;/p&gt;
-&lt;p&gt;• Added /cd command to move a session to a new working directory without breaking the prompt cache mid-session&lt;/p&gt;
-&lt;p&gt;• Added a disableBundledSkills setting and CLAUDE_CODE_DISABLE_BUNDLED_SKILLS environment variable to hide bundled skills, workflows, and built-in slash commands from the model&lt;/p&gt;
-&lt;p&gt;• Fixed Up/Down arrows jumping to command history past the wrapped rows of a long input line — they now move through each visual row first, and history recall enters at the near edge&lt;/p&gt;
-&lt;p&gt;• Fixed enterprise managed MCP policies (allowedMcpServers/deniedMcpServers) not being enforced on reconnect, IDE-typed configs, --mcp-config servers during the first session after install, or before remote settings loaded; also fixed slow cold starts for orgs without remote settings&lt;/p&gt;
-&lt;p&gt;• Fixed a ~30-50ms UI stall at the start of each turn for macOS users logged in with claude.ai credentials&lt;/p&gt;
-&lt;p&gt;• Fixed claude -p being slow or appearing to hang on Windows while waiting for the slash-command/skill scan (regression in 2.1.161)&lt;/p&gt;
-&lt;p&gt;• Fixed Remote Control getting stuck on "reconnecting" after resuming a session when an OAuth token refresh happened at the same time&lt;/p&gt;
-&lt;p&gt;• Fixed Git Credential Manager's "Connect to GitHub" popup appearing on Windows at startup when background git commands ran without cached credentials&lt;/p&gt;
-&lt;p&gt;• Fixed footer hints (e.g. "esc to interrupt") not showing for users with a custom statusline&lt;/p&gt;
-&lt;p&gt;• Fixed stale permission and dialog prompts reappearing every time you reattached to a remote session whose worker had died while waiting on them&lt;/p&gt;
-&lt;p&gt;• Fixed claude agents --json omitting blocked and just-dispatched background sessions; added --all to include completed sessions, plus new id and state fields&lt;/p&gt;
-&lt;p&gt;• Fixed agents view leaving a stale/garbled frame after navigating back from an agent on WSL in Windows Terminal&lt;/p&gt;
-&lt;p&gt;• Fixed background agents ignoring project-level settings env values (e.g. ANTHROPIC_MODEL) when dispatched onto a pre-warmed worker&lt;/p&gt;
-&lt;p&gt;• Fixed MCPB plugin cache being spuriously invalidated on Windows, causing unnecessary re-extraction&lt;/p&gt;
-&lt;p&gt;• Fixed plugin .in_use PID lock files accumulating without bound; stale markers from crashed sessions are now swept once per day&lt;/p&gt;
-&lt;p&gt;• Fixed untrusted project settings being able to set OTEL client-certificate paths without trust confirmation&lt;/p&gt;
-&lt;p&gt;• /workflows now opens immediately even while a turn is in progress&lt;/p&gt;
-&lt;p&gt;• Improved TaskCreate reliability: malformed inputs are repaired automatically and validation errors for unloaded tools include the schema&lt;/p&gt;
-&lt;p&gt;• Improved the error message shown when your organization has disabled API key authentication, with guidance based on where the active API key comes from&lt;/p&gt;
-&lt;p&gt;• Reduced CPU usage while responses stream and during spinner animations&lt;/p&gt;
-&lt;p&gt;• Restored a default 5-minute idle timeout on Vertex/Foundry so a stalled stream aborts instead of hanging indefinitely; set API_FORCE_IDLE_TIMEOUT=0 to opt out&lt;/p&gt;
-&lt;p&gt;• Remote-managed settings with an invalid entry now apply their remaining valid policies and surface the validation error, instead of silently dropping the whole payload&lt;/p&gt;
-&lt;p&gt;• Background sessions now preserve --ide, --chrome, --bare, --remote-control, and other flags across retire→wake, and respawn state validation was hardened&lt;/p&gt;
-&lt;p&gt;• Background sessions are now told that shared-checkout edits are blocked until they enter a worktree, avoiding a wasted rejected edit before EnterWorktree&lt;/p&gt;
-&lt;p&gt;• The "CLAUDE.md is too long" warning threshold now scales with the model's context window&lt;/p&gt;
-&lt;p&gt;• Auto-updater on Windows now stops retrying within a session once claude.exe is held by another process&lt;/p&gt;
-&lt;p&gt;• Improved color contrast for skill tags in the slash-command menu&lt;/p&gt;
-&lt;p&gt;• Promo credit claims for Apple/Google-billed subscribers without a payment method now explain where to add one&lt;/p&gt;
-&lt;p&gt;• Added a tip suggesting claude agents when running multiple concurrent sessions&lt;/p&gt;</content>
   </entry>
 </feed>

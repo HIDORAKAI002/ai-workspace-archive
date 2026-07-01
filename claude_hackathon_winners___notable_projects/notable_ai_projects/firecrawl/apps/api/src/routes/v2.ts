@@ -78,6 +78,15 @@ import {
   unsubscribeMonitorEmailController,
   updateMonitorController,
 } from "../controllers/v2/monitor";
+import {
+  slackChannelsController,
+  slackCommandsController,
+  slackDisconnectController,
+  slackEventsController,
+  slackOAuthCallbackController,
+  slackOAuthStartController,
+  slackStatusController,
+} from "../controllers/v2/slack";
 
 export const v2Router = express.Router();
 expressWs(express()).applyTo(v2Router);
@@ -468,6 +477,33 @@ v2Router.get(
   authMiddleware(RateLimiterMode.CrawlStatus),
   wrap(getMonitorCheckController),
 );
+
+// Slack integration ("Add to Slack" + /monitor slash command).
+// Public endpoints (OAuth callback, slash command, events) authenticate via the
+// OAuth state nonce / Slack request signature rather than a Firecrawl API key.
+v2Router.post(
+  "/slack/oauth/start",
+  authMiddleware(RateLimiterMode.CrawlStatus),
+  wrap(slackOAuthStartController),
+);
+v2Router.get("/slack/oauth/callback", wrap(slackOAuthCallbackController));
+v2Router.get(
+  "/slack/status",
+  authMiddleware(RateLimiterMode.CrawlStatus),
+  wrap(slackStatusController),
+);
+v2Router.get(
+  "/slack/channels",
+  authMiddleware(RateLimiterMode.CrawlStatus),
+  wrap(slackChannelsController),
+);
+v2Router.delete(
+  "/slack/installation",
+  authMiddleware(RateLimiterMode.CrawlStatus),
+  wrap(slackDisconnectController),
+);
+v2Router.post("/slack/commands", wrap(slackCommandsController));
+v2Router.post("/slack/events", wrap(slackEventsController));
 
 v2Router.post(
   ["/browser", "/interact"],

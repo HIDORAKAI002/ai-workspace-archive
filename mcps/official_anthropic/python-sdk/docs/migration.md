@@ -27,7 +27,7 @@ Like `call_tool()` above, `MCPServer.get_prompt()` now returns
 `Iterable[ReadResourceContents] | InputRequiredResult`: at 2026-07-28 an
 `@mcp.prompt()` function or an `@mcp.resource()` template function may answer
 with an `InputRequiredResult` to request client input first (see
-[Multi-round-trip requests](advanced/multi-round-trip.md)). If you call these
+[Multi-round-trip requests](handlers/multi-round-trip.md)). If you call these
 methods directly, narrow with `isinstance` (or
 `assert not isinstance(result, InputRequiredResult)` when your prompt and
 resource functions never return one). `Prompt.render()` and
@@ -411,6 +411,8 @@ On the high-level `Client`, `client.server_capabilities`, `client.server_info`, 
 
 In v1, connecting to a server always performed the `initialize` handshake. In v2, `Client` defaults to `mode='auto'`: on enter it probes `server/discover` and, if the server doesn't support it, falls back to the `initialize` handshake. Pass `mode='legacy'` to force the initialize handshake and reproduce v1's byte-identical pre-2026 behavior, or pass a modern protocol-version string (e.g. `mode='2026-07-28'`) to pin a version without probing.
 
+The probe is transport-independent: v2 servers answer it over stdio (and any other stream-pair transport) as well as streamable HTTP, so `mode='auto'` lands on `2026-07-28` against a v2 server on every transport. If your stdio workflow relies on server-initiated requests (sampling, push elicitation), pass `mode='legacy'` — a 2026-07-28 connection refuses them on every transport.
+
 For an in-process `Client(server)` (where `server` is a `Server` or `MCPServer` instance), `mode='auto'` dispatches calls directly through `DirectDispatcher` with no JSON-RPC framing. Pass `mode='legacy'` if you need the in-memory JSON-RPC transport that v1 used.
 
 `Client.send_ping()` is deprecated (ping is removed in 2026-07-28); pin `mode='legacy'` if you need it.
@@ -437,7 +439,7 @@ Base64-sentinel decoding is strict everywhere it applies, including the `Mcp-Nam
 
 ### `Client` verbs may serve cached responses ([SEP-2549](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2549))
 
-On protocol 2026-07-28, servers attach caching hints (`ttlMs`, `cacheScope`) to the cacheable results, and `Client` now honors them: `list_tools`, `list_prompts`, `list_resources`, `list_resource_templates`, and `read_resource` may serve a cached response instead of making a round trip, for as long as the server's `ttlMs` says the result is fresh. With the default configuration, servers that send no hints, including every pre-2026 server, see identical call-for-call behavior, because hint-less results are not cached (a `CacheConfig.default_ttl_ms` above zero caches them too). Pass `Client(..., cache=False)` to disable the cache and restore v1 behavior exactly; per-call control (`cache_mode`) and configuration (`CacheConfig`) are described in [Caching hints](advanced/caching.md).
+On protocol 2026-07-28, servers attach caching hints (`ttlMs`, `cacheScope`) to the cacheable results, and `Client` now honors them: `list_tools`, `list_prompts`, `list_resources`, `list_resource_templates`, and `read_resource` may serve a cached response instead of making a round trip, for as long as the server's `ttlMs` says the result is fresh. With the default configuration, servers that send no hints, including every pre-2026 server, see identical call-for-call behavior, because hint-less results are not cached (a `CacheConfig.default_ttl_ms` above zero caches them too). Pass `Client(..., cache=False)` to disable the cache and restore v1 behavior exactly; per-call control (`cache_mode`) and configuration (`CacheConfig`) are described in [Caching hints](client/caching.md).
 
 ### Server extensions API ([SEP-2133](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2133))
 
@@ -783,7 +785,7 @@ Context injection for static resources is not supported — use a
 template with at least one variable or access context through other
 means.
 
-See [URI templates](advanced/uri-templates.md) for the full template syntax,
+See [URI templates](servers/uri-templates.md) for the full template syntax,
 security configuration, and filesystem safety utilities.
 
 ### Registering lowlevel handlers from `MCPServer`
@@ -1510,7 +1512,7 @@ Behavior changes:
 
 Tasks ([SEP-1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686)) have been removed from the MCP specification and are no longer part of this SDK. The `mcp.client.experimental`, `mcp.server.experimental`, `mcp.shared.experimental`, and `mcp.server.lowlevel.experimental` modules have been removed, along with the `experimental` properties on `ClientSession`, `ServerSession`, `Server`, and `ServerRequestContext`. The corresponding `Task*` types remain in `mcp_types` as types-only definitions.
 
-Tasks are expected to return as a separate MCP extension in a future release.
+The 2026-07-28 revision reintroduces Tasks as an official extension: [SEP-2663](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2663), `io.modelcontextprotocol/tasks`, redesigned around polling (`tasks/get`) instead of a blocking `tasks/result`. This SDK does not implement the extension yet.
 
 ## Deprecations
 
@@ -1663,7 +1665,7 @@ The implementation is responsible for validating the assertion per RFC 7523 §3 
 
 ### 2025-11-25 and 2026-07-28 protocol fields modeled
 
-`mcp_types` models the 2025-11-25 and 2026-07-28 protocol fields (e.g. `resultType`, `ttlMs`/`cacheScope` on cacheable results, `inputResponses`/`requestState` on retried requests), so inbound payloads carrying these keys parse into typed fields and round-trip. `ttlMs`/`cacheScope` default to `0`/`"private"` (immediately stale, not shared-cacheable); `resultType` defaults to `"complete"` on concrete results (`None` on `EmptyResult`); the server strips all of them from the wire at pre-2026 versions. Servers set per-method values with `cache_hints={method: CacheHint(...)}` on the `Server`/`MCPServer` constructor — see [Caching hints](advanced/caching.md).
+`mcp_types` models the 2025-11-25 and 2026-07-28 protocol fields (e.g. `resultType`, `ttlMs`/`cacheScope` on cacheable results, `inputResponses`/`requestState` on retried requests), so inbound payloads carrying these keys parse into typed fields and round-trip. `ttlMs`/`cacheScope` default to `0`/`"private"` (immediately stale, not shared-cacheable); `resultType` defaults to `"complete"` on concrete results (`None` on `EmptyResult`); the server strips all of them from the wire at pre-2026 versions. Servers set per-method values with `cache_hints={method: CacheHint(...)}` on the `Server`/`MCPServer` constructor. See [Caching hints](client/caching.md) for details.
 
 ### `streamable_http_app()` available on lowlevel Server
 
@@ -1691,7 +1693,7 @@ The lowlevel `Server` also now exposes a `session_manager` property to access th
 
 ### `ElicitationResult` is now a subscriptable generic alias
 
-`ElicitationResult` is now a `TypeAliasType` instead of a plain union, so `ElicitationResult[Confirm]` works as an annotation (resolver dependency injection consumes it that way - see [Dependencies](tutorial/dependencies.md)). The members are unchanged: `AcceptedElicitation[T] | DeclinedElicitation | CancelledElicitation`.
+`ElicitationResult` is now a `TypeAliasType` instead of a plain union, so `ElicitationResult[Confirm]` works as an annotation (resolver dependency injection consumes it that way - see [Dependencies](handlers/dependencies.md)). The members are unchanged: `AcceptedElicitation[T] | DeclinedElicitation | CancelledElicitation`.
 
 The one behavioral change: a runtime `isinstance(result, ElicitationResult)` now raises `TypeError`. Check against the member classes directly instead:
 
