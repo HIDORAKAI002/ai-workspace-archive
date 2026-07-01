@@ -2,6 +2,7 @@
 
 !!! info "You are viewing the in-development v2 documentation"
     For the current stable release, see the [v1.x documentation](https://py.sdk.modelcontextprotocol.io/).
+    Trying v2? [Tell us what you find](https://github.com/modelcontextprotocol/python-sdk/issues/new?template=v2-feedback.yaml) — it is the most useful thing you can do for the SDK right now.
 
 The **Model Context Protocol (MCP)** lets applications provide context to LLMs in a standardized way, separating the concern of *providing* context from the LLM interaction itself.
 
@@ -20,21 +21,21 @@ Python 3.10+.
 === "uv"
 
     ```bash
-    uv add "mcp[cli]==2.0.0a3"
+    uv add "mcp[cli]==2.0.0b1"
     ```
 
 === "pip"
 
     ```bash
-    pip install "mcp[cli]==2.0.0a3"
+    pip install "mcp[cli]==2.0.0b1"
     ```
 
 The `[cli]` extra gives you the `mcp` command; you'll want it for development.
 
-!!! warning "Pin the version while v2 is in alpha"
+!!! warning "Pin the version while v2 is in beta"
     Installers never select a pre-release unless you name one, so an unpinned `uv add "mcp[cli]"`
     gives you the latest **v1.x** release, which this documentation does not describe. Check
-    [PyPI](https://pypi.org/project/mcp/#history) for the newest alpha before you copy the line
+    [PyPI](https://pypi.org/project/mcp/#history) for the newest beta before you copy the line
     above. See [Installation](installation.md) for the details.
 
 ## Example
