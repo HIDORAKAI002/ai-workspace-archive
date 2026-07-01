@@ -32,6 +32,7 @@ import {
 import { createWebhookSender, WebhookEvent } from "../webhook";
 import { sendMonitorPageWebhook } from "./results";
 import { sendMonitoringEmailSummary } from "../notification/monitoring_email";
+import { sendMonitoringSlackSummary } from "../notification/monitoring_slack";
 import {
   bulkUpsertMonitorPages,
   calculateMonitorCheckActualCredits,
@@ -386,7 +387,7 @@ async function sendNotifications(params: {
   monitor: MonitorRow;
   check: MonitorCheckRow;
   pages: PageResult[];
-}): Promise<{ webhook?: unknown; email?: unknown }> {
+}): Promise<{ webhook?: unknown; email?: unknown; slack?: unknown }> {
   const payload = {
     monitorId: params.monitor.id,
     checkId: params.check.id,
@@ -466,9 +467,34 @@ async function sendNotifications(params: {
     })),
   });
 
+  let slackStatus: unknown = { attempted: false };
+  try {
+    slackStatus = await sendMonitoringSlackSummary({
+      monitor: params.monitor,
+      check: params.check,
+      pages: nonSamePages.map(page => ({
+        url: page.url,
+        status: page.status,
+        judgment: page.judgment ?? null,
+      })),
+    });
+  } catch (error) {
+    logger.warn("Slack monitor summary threw", {
+      error,
+      monitorId: params.monitor.id,
+      checkId: params.check.id,
+    });
+    slackStatus = {
+      attempted: true,
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+
   return {
     webhook: webhookStatus,
     email: emailStatus,
+    slack: slackStatus,
   };
 }
 
@@ -1434,8 +1460,11 @@ export async function reconcileRunningMonitorChecks(
       }
 
       if (await claimMonitorNotification(check.id)) {
-        let notificationStatus: { webhook?: unknown; email?: unknown } | null =
-          null;
+        let notificationStatus: {
+          webhook?: unknown;
+          email?: unknown;
+          slack?: unknown;
+        } | null = null;
         try {
           const pages = (await listMonitorCheckPages({
             teamId: monitor.team_id,
