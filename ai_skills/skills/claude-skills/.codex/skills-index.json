@@ -3,7 +3,7 @@
   "name": "claude-code-skills",
   "description": "Production-ready skill packages for AI agents - Marketing, Engineering, Product, C-Level, PM, and RA/QM",
   "repository": "https://github.com/alirezarezvani/claude-skills",
-  "total_skills": 344,
+  "total_skills": 352,
   "skills": [
     {
       "name": "business-growth-skills",
@@ -82,6 +82,18 @@
       "source": "../../c-level-advisor/skills/agent-protocol",
       "category": "c-level",
       "description": "Inter-agent communication protocol for C-suite agent teams. Defines invocation syntax, loop prevention, isolation rules, and response formats. Use when C-suite agents need to query each other, coordinate cross-functional analysis, or run board meetings with multiple agent roles."
+    },
+    {
+      "name": "arquiteto-de-empresa",
+      "source": "../../c-level-advisor/skills/arquiteto-de-empresa",
+      "category": "c-level",
+      "description": "Arquiteto de Empresa: constr\u00f3i um neg\u00f3cio do zero como bundle OKF (Open Knowledge Format) \u2014 uma \u00e1rvore de arquivos .md version\u00e1veis com frontmatter type, links formando grafo, e index.md/log.md reservados, leg\u00edvel por humanos e por agentes. Conduz o fundador por uma entrevista de 12 fases (funda\u00e7\u00e3o, estrat\u00e9gia, mercado, financeiro, comercial, marketing, produto, opera\u00e7\u00f5es, tech, pessoas, jur\u00eddico, governan\u00e7a), uma fase por vez, poucas perguntas por bloco, e gera os conceitos como markdown conformante. Acione quando o usu\u00e1rio quiser criar, estruturar ou documentar uma empresa inteira em pastas e arquivos .md; quando mencionar montar minha empresa do zero, empresa como c\u00f3digo, base de conhecimento da empresa para IA ler, wiki da empresa para agentes, OKF, ou bundle de conhecimento. Em portugu\u00eas do Brasil."
+    },
+    {
+      "name": "arquiteto-de-empresa",
+      "source": "../../c-level-advisor/arquiteto-de-empresa/skills/arquiteto-de-empresa",
+      "category": "c-level",
+      "description": "Arquiteto de Empresa: constr\u00f3i um neg\u00f3cio do zero como bundle OKF (Open Knowledge Format) \u2014 uma \u00e1rvore de arquivos .md version\u00e1veis com frontmatter type, links formando grafo, e index.md/log.md reservados, leg\u00edvel por humanos e por agentes. Conduz o fundador por uma entrevista de 12 fases (funda\u00e7\u00e3o, estrat\u00e9gia, mercado, financeiro, comercial, marketing, produto, opera\u00e7\u00f5es, tech, pessoas, jur\u00eddico, governan\u00e7a), uma fase por vez, poucas perguntas por bloco, e gera os conceitos como markdown conformante. Acione quando o usu\u00e1rio quiser criar, estruturar ou documentar uma empresa inteira em pastas e arquivos .md; quando mencionar montar minha empresa do zero, empresa como c\u00f3digo, base de conhecimento da empresa para IA ler, wiki da empresa para agentes, OKF, ou bundle de conhecimento. Em portugu\u00eas do Brasil."
     },
     {
       "name": "board-deck-builder",
@@ -738,6 +750,12 @@
       "description": "Microsoft 365 tenant administration for Global Administrators. Automate M365 tenant setup, Office 365 admin tasks, Azure AD user management, Exchange Online configuration, Teams administration, and security policies. Generate PowerShell scripts for bulk operations, Conditional Access policies, license management, and compliance reporting. Use for M365 tenant manager, Office 365 admin, Azure AD users, Global Administrator, tenant configuration, or Microsoft 365 automation."
     },
     {
+      "name": "named-persona-adversarial-review",
+      "source": "../../engineering-team/skills/named-persona-adversarial-review",
+      "category": "engineering",
+      "description": "Code review through the lens of real engineers' documented philosophies (Torvalds, Thompson, Carmack, Kent Beck, Jobs, Cagan). Complements abstract-role adversarial review with named, sourced perspectives. Use when automated review findings feel generic, when a PR has architectural or UX impact, or when the author wants pre-submit hardening beyond standard checks."
+    },
+    {
       "name": "promote",
       "source": "../../engineering-team/self-improving-agent/skills/promote",
       "category": "engineering",
@@ -1380,6 +1398,12 @@
       "description": "Create new agent skills with proper structure, progressive disclosure, and bundled resources. Use when user wants to create, write, build, or author a new skill."
     },
     {
+      "name": "zero-hallucination-coder",
+      "source": "../../engineering/zero-hallucination-coder/skills/zero-hallucination-coder",
+      "category": "engineering-advanced",
+      "description": "Runs a disciplined Discuss -> Map -> Decompose -> Execute -> Verify loop that grounds code in verified structure \u2014 no invented APIs, no assumed imports, no placeholder code \u2014 with a lazy-senior-dev YAGNI ladder that deletes unnecessary code before it is written. Use when a coding task is high-stakes, complex, or spans existing code (auth, databases, migrations, multi-file features), or when the user explicitly asks to plan carefully before coding, avoid hallucinated code, or work rigorously. Not for trivial edits, typos, or throwaway one-off scripts \u2014 those do not need the full loop."
+    },
+    {
       "name": "business-investment-advisor",
       "source": "../../finance/business-investment-advisor/skills/business-investment-advisor",
       "category": "finance",
@@ -1528,6 +1552,12 @@
       "source": "../../marketing-skill/skills/launch-strategy",
       "category": "marketing",
       "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,' 'beta launch,' 'early access,' 'waitlist,' 'product update,' 'GTM plan,' 'launch checklist,' or 'launch momentum.' This skill covers phased launches, channel strategy, and ongoing launch momentum."
+    },
+    {
+      "name": "local-seo-manager",
+      "source": "../../marketing-skill/skills/local-seo-manager",
+      "category": "marketing",
+      "description": "Manage local SEO for service-area businesses \u2014 appliance repair, HVAC, plumbing, cleaning, and any business that serves customers at their location. Use when the user wants to: audit Google Business Profile, generate neighborhood service area pages, check NAP consistency across directories, create LocalBusiness schema, or write review responses. Triggers: 'local SEO', 'Google Business Profile', 'GBP', 'service area page', 'NAP consistency', 'local citations', 'LocalBusiness schema', 'review responses', 'Google Maps ranking'. NOT for national SEO (use seo-audit). NOT for general schema (use schema-markup). NOT for AI answer-engine visibility (use aeo)."
     },
     {
       "name": "marketing-context",
@@ -1830,6 +1860,12 @@
       "description": "Mid-conversation reflection skill that pauses execution and zooms out from detail-mode to honestly reassess direction, assumptions, and bias. Use when the user says 'reflect', 'take a step back', 'step back', 'zoom out', 'are we missing something', 'bigger picture', 'sanity check this', 'are we on track', 'are we overthinking this', 'forest for the trees', or any variation signaling intent to break out of detail-mode and reassess. Also trigger when the conversation has gone deep on implementation details without strategic check-in, or when the user shows signs of being stuck \u2014 that's often a signal the framing needs a reset, not more detail work. Intentionally low-intake: runs the 5-dimension analysis immediately when prior context is rich enough; asks one forcing clarifier only when invocation context is too thin to reassess from."
     },
     {
+      "name": "roast",
+      "source": "../../productivity/roast/skills/roast",
+      "category": "productivity",
+      "description": "Use when someone asks to roast an idea, pressure-test or stress-test an idea, validate a business idea, \"convene the panel\", get a brutal second opinion before building something, or says \"/roast\". Spins up a 5-angle panel (Critic, Champion, Analyst, Investigator, Customer) that attacks the idea from every angle, then a Judge returns one GO / RESHAPE / KILL verdict with the cheapest test to de-risk it."
+    },
+    {
       "name": "atlassian-admin",
       "source": "../../project-management/skills/atlassian-admin",
       "category": "project-management",
@@ -1882,6 +1918,12 @@
       "source": "../../project-management/skills/team-communications",
       "category": "project-management",
       "description": "Write internal company communications \u2014 3P updates (Progress/Plans/Problems), company-wide newsletters, FAQ roundups, incident reports, leadership updates, status reports, project updates, and general internal comms. Use this skill any time the user asks to draft, edit, or format something meant for internal audiences. Trigger on keywords like \"3P\", \"weekly update\", \"newsletter\", \"FAQ\", \"internal comms\", \"status report\", \"company update\", \"team update\", \"incident report\", or any request to summarize work for leadership, teammates, or the broader company. Even casual requests like \"write my update\" or \"summarize what my team did this week\" should trigger this skill."
+    },
+    {
+      "name": "agent-decision-receipts",
+      "source": "../../ra-qm-team/skills/agent-decision-receipts",
+      "category": "ra-qm",
+      "description": "Mint a tamper-evident, post-quantum-signed receipt for a consequential agent action (deploy, delete, pay, grant-access, model decision) so it can be verified later from the certificate alone. Use when an autonomous agent takes a side-effecting action that may need to be proven later, or when satisfying EU AI Act Article 12 record-keeping. Three decisions: whether an action needs a receipt, minting it, verifying it. Signing is delegated to the open-source OpenAgentOntology package. Not after-the-fact log analysis; not a hosted notary; not a legal opinion."
     },
     {
       "name": "capa-officer",
@@ -1992,6 +2034,12 @@
       "description": "Use when the user asks to prepare for SOC 2 audits, map Trust Service Criteria, build control matrices, collect audit evidence, perform gap analysis, or assess SOC 2 Type I vs Type II readiness."
     },
     {
+      "name": "deep-research",
+      "source": "../../research/deep-research/skills/deep-research",
+      "category": "research",
+      "description": "Run a disciplined, multi-source research investigation for a high-stakes question or decision \u2014 fan-out web search across many channels, parallel sub-agents, source triangulation (each claim backed by \u22653 independent sources), an adversarial review pass, and every source saved to its own file with verbatim quotes for reuse. Use when a low-quality answer is expensive: strategy work, comparing N products/methods/markets, validating a hypothesis with external data, or mapping how a field works. NOT for quick fact-checks (answer directly), structured 12-dimension competitor scoring (use competitive-teardown), or fast topic overviews where the decision risk is low (use the research router instead)."
+    },
+    {
       "name": "dossier",
       "source": "../../research/dossier/skills/dossier",
       "category": "research",
@@ -2007,7 +2055,7 @@
       "name": "litreview",
       "source": "../../research/litreview/skills/litreview",
       "category": "research",
-      "description": "Academic literature orientation skill that searches papers via Consensus, builds a strategic search plan using PICO (default) or SPIDER / Decomposition / hybrid as fallbacks, and synthesizes findings into a formatted Word (.docx) research guide. Grill-me intake (research question specificity + framework hint + tentative depth) before the recon search; a second forcing checkpoint after Phase 2 confirms framework + sub-areas + depth before searches consume budget. Configurable depth (5/10/20 queries) controls coverage vs. speed. Output is a 'launching pad' \u2014 an orientation guide that lets a researcher dive in confidently, not a finished review. Use when the user starts literature-oriented research (e.g., 'litreview on [topic]', 'literature review on [topic]', 'I'm starting a literature review on X', 'I'm writing a paper on X', 'help me research X', 'I'm doing research on X', 'can you help me research X'). Do NOT use for single one-off paper searches wanting a quick list \u2014 that's a plain Consensus search."
+      "description": "Academic literature orientation skill that searches papers via free keyless APIs (PubMed E-utilities + OpenAlex) by default \u2014 with the Consensus MCP as an optional enhancement lane when connected \u2014 builds a strategic search plan using PICO (default) or SPIDER / Decomposition / hybrid as fallbacks, and synthesizes findings into a formatted Word (.docx) research guide. Grill-me intake (research question specificity + framework hint + tentative depth) before the recon search; a second forcing checkpoint after Phase 2 confirms framework + sub-areas + depth before searches consume budget. Configurable depth (5/10/20 queries) controls coverage vs. speed. Output is a 'launching pad' \u2014 an orientation guide that lets a researcher dive in confidently, not a finished review. Use when the user starts literature-oriented research (e.g., 'litreview on [topic]', 'literature review on [topic]', 'I'm starting a literature review on X', 'I'm writing a paper on X', 'help me research X', 'I'm doing research on X', 'can you help me research X'). Do NOT use for single one-off paper searches wanting a quick list \u2014 that's a plain PubMed/OpenAlex (or Consensus) query."
     },
     {
       "name": "notebooklm",
@@ -2082,7 +2130,7 @@
       "description": "Internal BizOps skills (v2.8.0): process mapping, vendor management, capacity planning (Erlang-C), internal comms (ADKAR+Kotter), knowledge ops (SOP+runbook), procurement (UNSPSC)"
     },
     "c-level": {
-      "count": 66,
+      "count": 68,
       "source": "../../c-level-advisor",
       "description": "Executive leadership and advisory skills"
     },
@@ -2102,12 +2150,12 @@
       "description": "Markdown-to-HTML converter (v2.10.0 foundation): orchestrator (context: fork, deterministic doctype classifier, refuses < 100 lines per Shihipar) + design-system (one-time onboarding wizard with WCAG-AA-validated 12-token palette, project > global > defaults precedence). Converter sub-skills (md-document, md-review, md-slides) land in v2.10.1."
     },
     "engineering": {
-      "count": 51,
+      "count": 52,
       "source": "../../engineering-team",
       "description": "Software engineering and technical skills"
     },
     "engineering-advanced": {
-      "count": 78,
+      "count": 79,
       "source": "../../engineering",
       "description": "Advanced engineering skills - agents, RAG, MCP, CI/CD, databases, observability"
     },
@@ -2117,7 +2165,7 @@
       "description": "Financial analysis, valuation, and forecasting skills"
     },
     "marketing": {
-      "count": 48,
+      "count": 49,
       "source": "../../marketing-skill",
       "description": "Marketing, content, and demand generation skills"
     },
@@ -2127,7 +2175,7 @@
       "description": "Product management and design skills"
     },
     "productivity": {
-      "count": 6,
+      "count": 7,
       "source": "../../productivity",
       "description": "Personal-productivity skills - capture, email, reflect"
     },
@@ -2137,12 +2185,12 @@
       "description": "Project management and Atlassian skills"
     },
     "ra-qm": {
-      "count": 18,
+      "count": 19,
       "source": "../../ra-qm-team",
       "description": "Regulatory affairs and quality management skills"
     },
     "research": {
-      "count": 8,
+      "count": 9,
       "source": "../../research",
       "description": "Research orchestrator + 6 specialists (pulse, litreview, grants, dossier, patent, syllabus, notebooklm)"
     },

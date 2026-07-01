@@ -21,7 +21,9 @@ Modes:
   --check     exit 1 listing mismatches if the headline counters claimed in
               README.md, root CLAUDE.md ("Current Scope" line), and
               marketplace.json metadata.description disagree with derived
-              values. CI gate G3.
+              values. Also validates the README "Skills Overview" per-domain
+              table: every domain row's count must equal the SKILL.md count in
+              its linked folder, and every on-disk domain must have a row. CI gate G3.
 
 Stdlib only. No writes ever.
 """
@@ -152,6 +154,74 @@ def extract_claims(text: str) -> dict:
     return claims
 
 
+# ---------------------------------------------------------------------------
+# Per-domain table validation: the README "Skills Overview" table has one row
+# per domain, each ending in a `[<folder>/](<folder>/)` link. Every row's count
+# must equal the SKILL.md count in its folder, and every on-disk domain must
+# have a row. This catches per-domain drift that the headline aggregates miss.
+# ---------------------------------------------------------------------------
+
+DOMAIN_ROW_RE = re.compile(r"^\|\s*\*\*")
+DOMAIN_LINK_RE = re.compile(r"\]\(([^)]+?)/?\)")
+
+
+def derive_per_domain(root: Path) -> dict:
+    """Return {top_level_domain: SKILL.md count}."""
+    counts = {}
+    for path in canonical_walk(root):
+        if path.name == "SKILL.md":
+            rel = path.relative_to(root)
+            if len(rel.parts) > 1:
+                counts[rel.parts[0]] = counts.get(rel.parts[0], 0) + 1
+    return counts
+
+
+def parse_domain_table(root: Path, readme_text: str) -> dict:
+    """Parse README domain rows -> {domain_folder: claimed_count}.
+
+    Only rows whose trailing link resolves to a real top-level directory are
+    treated as domain rows, so other bold-first-cell tables (install matrices,
+    the skills-vs-agents table) are ignored.
+    """
+    table = {}
+    for line in readme_text.splitlines():
+        if not DOMAIN_ROW_RE.match(line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 3:
+            continue
+        count = next((int(c) for c in cells[1:] if c.isdigit()), None)
+        link = DOMAIN_LINK_RE.search(cells[-1])
+        if count is None or not link:
+            continue
+        folder = link.group(1).strip().rstrip("/").split("/")[0]
+        if folder and (root / folder).is_dir():
+            table[folder] = count
+    return table
+
+
+def check_domain_table(root: Path) -> list:
+    """Return mismatch strings between README domain rows and on-disk SKILL.md counts."""
+    readme = root / "README.md"
+    if not readme.is_file():
+        return []
+    per_domain = derive_per_domain(root)
+    table = parse_domain_table(root, readme.read_text(encoding="utf-8"))
+    problems = []
+    for folder, claimed in sorted(table.items()):
+        actual = per_domain.get(folder, 0)
+        if claimed != actual:
+            problems.append(
+                f"README domain table: '{folder}' row claims {claimed}, disk has {actual} skills"
+            )
+    for domain, actual in sorted(per_domain.items()):
+        if domain not in table:
+            problems.append(
+                f"README domain table: domain '{domain}' ({actual} skills) has no row"
+            )
+    return problems
+
+
 def run_check(root: Path, derived: dict) -> int:
     sources = []
 
@@ -188,6 +258,8 @@ def run_check(root: Path, derived: dict) -> int:
                 mismatches.append(
                     f"{label}: claims {key}={claimed}, derived {key}={actual}"
                 )
+
+    mismatches.extend(check_domain_table(root))
 
     if mismatches:
         print("COUNTER CHECK FAILED — headline claims disagree with derived values:")

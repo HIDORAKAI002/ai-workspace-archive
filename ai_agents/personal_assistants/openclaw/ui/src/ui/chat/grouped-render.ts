@@ -13,6 +13,7 @@ import type { SidebarContent } from "../sidebar-content.ts";
 import { detectTextDirection } from "../text-direction.ts";
 import { resolveToolDisplay } from "../tool-display.ts";
 import type {
+  ChatItem,
   MessageContentItem,
   MessageGroup,
   NormalizedMessage,
@@ -42,11 +43,25 @@ type AssistantAttachmentAvailability =
   | { status: "checking" }
   | { status: "available"; mediaTicket?: string; mediaTicketExpiresAt?: number }
   | { status: "unavailable"; reason: string; checkedAt: number };
+type PairingQrExpiryNotice = {
+  title: string;
+  reason: string;
+};
+type PairingQrExpiryRefreshTimer = {
+  expiresAtMs: number;
+  onRequestUpdate: () => void;
+  timer: ReturnType<typeof setTimeout>;
+};
 
 const assistantAttachmentAvailabilityCache = new Map<string, AssistantAttachmentAvailability>();
 const assistantAttachmentRefreshTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const pairingQrExpiryRefreshTimers = new Map<string, PairingQrExpiryRefreshTimer>();
 const ASSISTANT_ATTACHMENT_UNAVAILABLE_RETRY_MS = 5_000;
 const ASSISTANT_ATTACHMENT_MEDIA_TICKET_REFRESH_SKEW_MS = 30_000;
+const PAIRING_QR_EXPIRED_NOTICE: PairingQrExpiryNotice = {
+  title: "Pairing QR expired",
+  reason: "Run /pair qr again to generate a fresh setup code.",
+};
 let assistantAttachmentAvailabilityRenderVersion = 0;
 
 export type ChatTimestampDisplay = {
@@ -106,6 +121,10 @@ export function resetAssistantAttachmentAvailabilityCacheForTest() {
     clearTimeout(timer);
   }
   assistantAttachmentRefreshTimers.clear();
+  for (const { timer } of pairingQrExpiryRefreshTimers.values()) {
+    clearTimeout(timer);
+  }
+  pairingQrExpiryRefreshTimers.clear();
   for (const blobUrl of managedImageBlobUrlResolvedCache.values()) {
     URL.revokeObjectURL(blobUrl);
   }
@@ -319,6 +338,9 @@ function extractImages(message: unknown): ImageBlock[] {
           });
         }
       } else if (b.type === "openclaw_pairing_qr") {
+        if (isExpiredPairingQrBlock(b)) {
+          continue;
+        }
         const imageUrl = b.image_url;
         if (typeof imageUrl === "string") {
           appendImageBlock(images, {
@@ -338,6 +360,103 @@ function extractImages(message: unknown): ImageBlock[] {
   }
 
   return images;
+}
+
+function readPairingQrExpiresAtMs(block: Record<string, unknown>): number | undefined {
+  const expiresAtMs = block.expiresAtMs;
+  return typeof expiresAtMs === "number" && Number.isFinite(expiresAtMs) ? expiresAtMs : undefined;
+}
+
+function isExpiredPairingQrBlock(block: Record<string, unknown>, nowMs = Date.now()): boolean {
+  const expiresAtMs = readPairingQrExpiresAtMs(block);
+  return expiresAtMs !== undefined && expiresAtMs <= nowMs;
+}
+
+function extractPairingQrExpiryNotices(
+  message: unknown,
+  nowMs = Date.now(),
+): PairingQrExpiryNotice[] {
+  const m = message as Record<string, unknown>;
+  const content = m.content;
+  if (!Array.isArray(content)) {
+    return [];
+  }
+  const notices: PairingQrExpiryNotice[] = [];
+  for (const block of content) {
+    if (!block || typeof block !== "object") {
+      continue;
+    }
+    const b = block as Record<string, unknown>;
+    if (b.type === "openclaw_pairing_qr" && isExpiredPairingQrBlock(b, nowMs)) {
+      notices.push(PAIRING_QR_EXPIRED_NOTICE);
+    }
+  }
+  return notices;
+}
+
+function resolveNearestFuturePairingQrExpiresAtMs(
+  message: unknown,
+  nowMs = Date.now(),
+): number | undefined {
+  const m = message as Record<string, unknown>;
+  const content = m.content;
+  if (!Array.isArray(content)) {
+    return undefined;
+  }
+  let nearestExpiresAtMs: number | undefined;
+  for (const block of content) {
+    if (!block || typeof block !== "object") {
+      continue;
+    }
+    const b = block as Record<string, unknown>;
+    if (b.type !== "openclaw_pairing_qr") {
+      continue;
+    }
+    const expiresAtMs = readPairingQrExpiresAtMs(b);
+    if (expiresAtMs === undefined || expiresAtMs <= nowMs) {
+      continue;
+    }
+    nearestExpiresAtMs =
+      nearestExpiresAtMs === undefined ? expiresAtMs : Math.min(nearestExpiresAtMs, expiresAtMs);
+  }
+  return nearestExpiresAtMs;
+}
+
+function clearPairingQrExpiryRefreshTimer(messageKey: string) {
+  const existing = pairingQrExpiryRefreshTimers.get(messageKey);
+  if (!existing) {
+    return;
+  }
+  clearTimeout(existing.timer);
+  pairingQrExpiryRefreshTimers.delete(messageKey);
+}
+
+function schedulePairingQrExpiryRefresh(
+  messageKey: string,
+  message: unknown,
+  onRequestUpdate: (() => void) | undefined,
+) {
+  const nowMs = Date.now();
+  const expiresAtMs = resolveNearestFuturePairingQrExpiresAtMs(message, nowMs);
+  const existing = pairingQrExpiryRefreshTimers.get(messageKey);
+  if (!expiresAtMs || !onRequestUpdate) {
+    if (existing) {
+      clearPairingQrExpiryRefreshTimer(messageKey);
+    }
+    return;
+  }
+  if (existing?.expiresAtMs === expiresAtMs && existing.onRequestUpdate === onRequestUpdate) {
+    return;
+  }
+  clearPairingQrExpiryRefreshTimer(messageKey);
+  const timer = setTimeout(
+    () => {
+      pairingQrExpiryRefreshTimers.delete(messageKey);
+      onRequestUpdate();
+    },
+    Math.max(0, expiresAtMs - nowMs),
+  );
+  pairingQrExpiryRefreshTimers.set(messageKey, { expiresAtMs, onRequestUpdate, timer });
 }
 
 function extractTranscriptAttachments(message: unknown): AttachmentItem[] {
@@ -364,54 +483,61 @@ function extractTranscriptAttachments(message: unknown): AttachmentItem[] {
   return attachments;
 }
 
-export function renderReadingIndicatorGroup(
-  assistant?: AssistantIdentity,
-  basePath?: string,
-  authToken?: string | null,
-) {
+/** A contiguous run of in-flight streaming items rendered under one assistant group. */
+export type StreamGroupPart = Extract<ChatItem, { kind: "stream" } | { kind: "reading-indicator" }>;
+
+type StreamGroupOptions = {
+  onOpenSidebar?: (content: SidebarContent) => void;
+  assistant?: AssistantIdentity;
+  basePath?: string;
+  authToken?: string | null;
+};
+
+function renderReadingIndicatorBubble() {
   return html`
-    <div class="chat-group assistant">
-      ${renderChatAvatar("assistant", assistant, undefined, basePath, authToken)}
-      <div class="chat-group-messages">
-        <div class="chat-bubble chat-reading-indicator" aria-hidden="true">
-          <span class="chat-reading-indicator__dots">
-            <span></span><span></span><span></span>
-          </span>
-        </div>
-      </div>
+    <div class="chat-bubble chat-reading-indicator" aria-hidden="true">
+      <span class="chat-reading-indicator__dots"> <span></span><span></span><span></span> </span>
     </div>
   `;
 }
 
-export function renderStreamingGroup(
-  text: string,
-  startedAt: number,
-  isStreaming = true,
-  onOpenSidebar?: (content: SidebarContent) => void,
-  assistant?: AssistantIdentity,
-  basePath?: string,
-  authToken?: string | null,
-) {
+// One assistant group per contiguous run of streaming items: a reply that
+// arrives as several stream segments renders under a single avatar/footer
+// instead of flashing a separate avatar+bubble per segment (#63956).
+export function renderStreamGroup(parts: StreamGroupPart[], opts: StreamGroupOptions = {}) {
+  const { onOpenSidebar, assistant, basePath, authToken } = opts;
   const name = assistant?.name ?? "Assistant";
+  // Footer (sender + time) anchors to the earliest streamed segment; a run that
+  // is only the reading indicator has no timestamp and therefore no footer.
+  const streamStarts = parts.flatMap((part) => (part.kind === "stream" ? [part.startedAt] : []));
+  const footerStartedAt = streamStarts.length > 0 ? Math.min(...streamStarts) : null;
 
   return html`
     <div class="chat-group assistant">
       ${renderChatAvatar("assistant", assistant, undefined, basePath, authToken)}
       <div class="chat-group-messages">
-        ${renderGroupedMessage(
-          {
-            role: "assistant",
-            content: [{ type: "text", text }],
-            timestamp: startedAt,
-          },
-          `stream:${startedAt}`,
-          { isStreaming, showReasoning: false },
-          onOpenSidebar,
+        ${parts.map((part) =>
+          part.kind === "reading-indicator"
+            ? renderReadingIndicatorBubble()
+            : renderGroupedMessage(
+                {
+                  role: "assistant",
+                  content: [{ type: "text", text: part.text }],
+                  timestamp: part.startedAt,
+                },
+                part.key,
+                { isStreaming: part.isStreaming, showReasoning: false },
+                onOpenSidebar,
+              ),
         )}
-        <div class="chat-group-footer">
-          <span class="chat-sender-name">${name}</span>
-          ${renderChatTimestamp(startedAt)}
-        </div>
+        ${footerStartedAt !== null
+          ? html`
+              <div class="chat-group-footer">
+                <span class="chat-sender-name">${name}</span>
+                ${renderChatTimestamp(footerStartedAt)}
+              </div>
+            `
+          : nothing}
       </div>
     </div>
   `;
@@ -1008,6 +1134,32 @@ function renderReplyPill(replyTarget: NormalizedMessage["replyTarget"]) {
           ? "Replying to current message"
           : `Replying to ${replyTarget.id}`}
       </span>
+    </div>
+  `;
+}
+
+function renderPairingQrExpiryNotices(notices: PairingQrExpiryNotice[]) {
+  if (notices.length === 0) {
+    return nothing;
+  }
+  return html`
+    <div class="chat-pairing-qr-notices">
+      ${notices.map(
+        (notice) => html`
+          <div
+            class="chat-assistant-attachment-card chat-assistant-attachment-card--blocked chat-pairing-qr-expired"
+          >
+            <div class="chat-assistant-attachment-card__header">
+              <span class="chat-assistant-attachment-card__icon">${icons.alertTriangle}</span>
+              <span class="chat-assistant-attachment-card__title">${notice.title}</span>
+              <span class="chat-assistant-attachment-badge chat-assistant-attachment-badge--muted"
+                >Expired</span
+              >
+            </div>
+            <div class="chat-assistant-attachment-card__reason">${notice.reason}</div>
+          </div>
+        `,
+      )}
     </div>
   `;
 }
@@ -1666,8 +1818,11 @@ function renderGroupedMessage(
     authToken: opts.assistantAttachmentAuthToken,
     onRequestUpdate: opts.onRequestUpdate,
   };
+  schedulePairingQrExpiryRefresh(messageKey, message, opts.onRequestUpdate);
   const images = resolveRenderableMessageImages(extractImages(message), imageRenderOptions);
   const hasImages = images.length > 0;
+  const pairingQrExpiryNotices = extractPairingQrExpiryNotices(message);
+  const hasPairingQrExpiryNotices = pairingQrExpiryNotices.length > 0;
 
   const normalizedMessage = normalizeMessage(message);
   const extractedText = normalizedMessage.content
@@ -1733,6 +1888,7 @@ function renderGroupedMessage(
     !markdown &&
     !visibleToolCards &&
     !hasImages &&
+    !hasPairingQrExpiryNotices &&
     visibleAttachments.length === 0 &&
     assistantViewBlocks.length === 0 &&
     !normalizedMessage.replyTarget
@@ -1837,6 +1993,7 @@ function renderGroupedMessage(
               ${toolMessageExpanded
                 ? html`
                     <div class="chat-tool-msg-body">
+                      ${renderPairingQrExpiryNotices(pairingQrExpiryNotices)}
                       ${renderMessageImages(images, imageRenderOptions)}
                       ${renderAssistantAttachments(
                         visibleAttachments,
@@ -1895,6 +2052,7 @@ function renderGroupedMessage(
             </div>
           `
         : html`
+            ${renderPairingQrExpiryNotices(pairingQrExpiryNotices)}
             ${renderMessageImages(images, imageRenderOptions)}
             ${renderAssistantAttachments(
               visibleAttachments,

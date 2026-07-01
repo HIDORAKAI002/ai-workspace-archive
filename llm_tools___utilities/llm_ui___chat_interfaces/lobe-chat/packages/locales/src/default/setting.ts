@@ -684,6 +684,10 @@ export default {
   'settingChatAppearance.fontSize.marks.normal': 'Standard',
   'settingChatAppearance.fontSize.title': 'Font Size',
   'settingChatAppearance.highlighterTheme.title': 'Code Highlight Theme',
+  'settingChatAppearance.linkIcon.desc': "Turn this off if you don't need it.",
+  'settingChatAppearance.linkIcon.previewMessage':
+    'Check out <site></site> and <repo></repo> for more details.',
+  'settingChatAppearance.linkIcon.title': 'Show icons in message links',
   'settingChatAppearance.mermaidTheme.title': 'Mermaid Theme',
   'settingChatAppearance.title': 'Chat Appearance',
   'settingChatAppearance.transitionMode.desc': 'Choose how chat messages appear',

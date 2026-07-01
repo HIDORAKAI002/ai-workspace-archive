@@ -11,7 +11,6 @@ import {
   type LucideIcon,
   MonitorDownIcon,
   ServerIcon,
-  ShieldCheckIcon,
   TerminalIcon,
   Trash2Icon,
   ZapIcon,
@@ -32,12 +31,13 @@ import DeviceItem from './DeviceItem';
 import { useCanEditDevice } from './useCanEditDevice';
 
 const styles = createStaticStyles(({ css }) => ({
+  // ─── Onboarding empty state ───
   badge: css`
     padding-block: 1px;
     padding-inline: 8px;
     border-radius: 999px;
 
-    font-size: 11px;
+    font-size: ${cssVar.fontSizeSM};
     font-weight: 500;
     color: ${cssVar.colorPrimary};
 
@@ -49,12 +49,6 @@ const styles = createStaticStyles(({ css }) => ({
     border-radius: ${cssVar.borderRadiusLG};
 
     background: ${cssVar.colorBgContainer};
-
-    transition: border-color 0.2s;
-
-    &:hover {
-      border-color: ${cssVar.colorPrimaryBorder};
-    }
   `,
   capabilityIcon: css`
     display: flex;
@@ -65,20 +59,15 @@ const styles = createStaticStyles(({ css }) => ({
     height: 36px;
     border-radius: ${cssVar.borderRadius};
 
-    color: ${cssVar.colorText};
+    color: ${cssVar.colorTextSecondary};
 
-    background: ${cssVar.colorFillSecondary};
-  `,
-  detailCol: css`
-    align-self: stretch;
-    min-width: 0;
-    border: 1px solid ${cssVar.colorBorderSecondary};
-    border-radius: ${cssVar.borderRadiusLG};
+    background: ${cssVar.colorFillTertiary};
   `,
   emptyCard: css`
     overflow: hidden;
     border: 1px solid ${cssVar.colorBorderSecondary};
     border-radius: ${cssVar.borderRadiusLG};
+
     background: ${cssVar.colorBgContainer};
   `,
   emptyHero: css`
@@ -99,16 +88,74 @@ const styles = createStaticStyles(({ css }) => ({
     height: 56px;
     border-radius: ${cssVar.borderRadiusLG};
 
-    color: ${cssVar.colorPrimary};
+    color: ${cssVar.colorText};
 
-    background: ${cssVar.colorPrimaryBg};
+    background: ${cssVar.colorFillSecondary};
   `,
-  listCol: css`
+  option: css`
+    cursor: pointer;
+
+    padding: 20px;
+
+    background: ${cssVar.colorBgContainer};
+
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: ${cssVar.colorFillTertiary};
+    }
+
+    &:focus-visible {
+      outline: 2px solid ${cssVar.colorPrimary};
+      outline-offset: -2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  `,
+  optionGrid: css`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+
+    background: ${cssVar.colorBorderSecondary};
+  `,
+  optionIcon: css`
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    height: 40px;
+    border-radius: ${cssVar.borderRadius};
+
+    color: ${cssVar.colorTextSecondary};
+
+    background: ${cssVar.colorFillTertiary};
+  `,
+  // ─── Master-detail surfaces ───
+  detailCol: css`
+    align-self: stretch;
+
     min-width: 0;
     border: 1px solid ${cssVar.colorBorderSecondary};
     border-radius: ${cssVar.borderRadiusLG};
+
+    background: ${cssVar.colorBgContainer};
+  `,
+  listCol: css`
+    overflow: hidden;
+
+    min-width: 0;
+    border: 1px solid ${cssVar.colorBorderSecondary};
+    border-radius: ${cssVar.borderRadiusLG};
+
+    background: ${cssVar.colorBgContainer};
   `,
   listHeader: css`
+    min-height: 44px;
     padding-block: 8px;
     padding-inline: 12px;
     border-block-end: 1px solid ${cssVar.colorBorderSecondary};
@@ -124,40 +171,6 @@ const styles = createStaticStyles(({ css }) => ({
     cursor: pointer;
     user-select: none;
   `,
-  option: css`
-    cursor: pointer;
-    padding: 20px;
-    background: ${cssVar.colorBgContainer};
-    transition: background 0.2s;
-
-    &:hover {
-      background: ${cssVar.colorFillQuaternary};
-    }
-  `,
-  optionGrid: css`
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: ${cssVar.colorBorderSecondary};
-  `,
-  optionIcon: css`
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-
-    width: 40px;
-    height: 40px;
-    border-radius: ${cssVar.borderRadius};
-
-    color: ${cssVar.colorTextSecondary};
-
-    background: ${cssVar.colorFillSecondary};
-  `,
-  subtitle: css`
-    font-size: 13px;
-    color: ${cssVar.colorTextTertiary};
-  `,
 }));
 
 interface ConnectOptionProps {
@@ -169,16 +182,30 @@ interface ConnectOptionProps {
 }
 
 const ConnectOption = memo<ConnectOptionProps>(({ icon, title, desc, badge, onClick }) => (
-  <Flexbox horizontal align={'flex-start'} className={styles.option} gap={14} onClick={onClick}>
+  <Flexbox
+    horizontal
+    align={'flex-start'}
+    className={styles.option}
+    gap={16}
+    role={'button'}
+    tabIndex={0}
+    onClick={onClick}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onClick();
+      }
+    }}
+  >
     <span className={styles.optionIcon}>
       <Icon icon={icon} size={20} />
     </span>
-    <Flexbox flex={1} gap={2}>
+    <Flexbox flex={1} gap={4} style={{ minWidth: 0 }}>
       <Flexbox horizontal align={'center'} gap={8}>
-        <Text style={{ fontSize: 14, fontWeight: 500 }}>{title}</Text>
+        <Text weight={500}>{title}</Text>
         {badge && <span className={styles.badge}>{badge}</span>}
       </Flexbox>
-      <Text className={styles.subtitle} style={{ fontSize: 12 }}>
+      <Text color={cssVar.colorTextTertiary} fontSize={12}>
         {desc}
       </Text>
     </Flexbox>
@@ -207,19 +234,18 @@ const Capabilities = memo(() => {
   ];
   return (
     <Flexbox gap={16}>
-      <Flexbox horizontal align={'center'} gap={8}>
-        <Icon icon={ShieldCheckIcon} size={16} style={{ color: cssVar.colorPrimary }} />
-        <Text style={{ fontSize: 14, fontWeight: 500 }}>{t('devices.capabilities.title')}</Text>
-      </Flexbox>
+      <Text fontSize={12} type={'secondary'} weight={500}>
+        {t('devices.capabilities.title')}
+      </Text>
       <Flexbox horizontal gap={16}>
         {items.map((cap) => (
           <Flexbox className={styles.capabilityCard} flex={1} gap={12} key={cap.title}>
             <span className={styles.capabilityIcon}>
               <Icon icon={cap.icon} size={18} />
             </span>
-            <Flexbox gap={2}>
-              <Text style={{ fontSize: 14, fontWeight: 500 }}>{cap.title}</Text>
-              <Text className={styles.subtitle} style={{ fontSize: 12 }}>
+            <Flexbox gap={4}>
+              <Text weight={500}>{cap.title}</Text>
+              <Text color={cssVar.colorTextTertiary} fontSize={12}>
                 {cap.desc}
               </Text>
             </Flexbox>
@@ -229,6 +255,27 @@ const Capabilities = memo(() => {
     </Flexbox>
   );
 });
+
+// Loading placeholder that reuses the list-card chrome and only skeletonises the
+// row text — loading → loaded is a content swap, not a relayout (ux §4.1).
+const ListSkeleton = memo(() => (
+  <Flexbox className={styles.listCol} flex={1}>
+    <Flexbox horizontal align={'center'} className={styles.listHeader}>
+      <Skeleton.Button active size={'small'} style={{ height: 16, minWidth: 80, width: 80 }} />
+    </Flexbox>
+    <Flexbox gap={2} padding={4}>
+      {[0, 1, 2, 3].map((i) => (
+        <Flexbox horizontal align={'center'} gap={12} key={i} style={{ padding: 12 }}>
+          <Skeleton.Avatar active shape={'square'} size={36} />
+          <Flexbox flex={1} gap={8}>
+            <Skeleton.Button active size={'small'} style={{ height: 14, width: 140 }} />
+            <Skeleton.Button active size={'small'} style={{ height: 12, width: 200 }} />
+          </Flexbox>
+        </Flexbox>
+      ))}
+    </Flexbox>
+  </Flexbox>
+));
 
 interface DeviceManagerProps {
   /** Open the enrollment wizard (the modal is owned by the route, by the header button). */
@@ -281,7 +328,7 @@ const DeviceManager = memo<DeviceManagerProps>(({ onConnect, scope }) => {
   // Hook must run before any early return so render order stays stable.
   const canEditDevice = useCanEditDevice();
 
-  if (isLoading) return <Skeleton active paragraph={{ rows: 4 }} title={false} />;
+  if (isLoading) return <ListSkeleton />;
 
   // ─── Empty state: onboarding hero + connect options + capabilities ───
   if (devices.length === 0) {
@@ -292,10 +339,10 @@ const DeviceManager = memo<DeviceManagerProps>(({ onConnect, scope }) => {
             <span className={styles.heroIcon}>
               <Icon icon={isWorkspace ? ServerIcon : MonitorDownIcon} size={28} />
             </span>
-            <Text style={{ fontSize: 18, fontWeight: 600 }}>
+            <Text fontSize={18} weight={600}>
               {t(isWorkspace ? 'workspaceSetting.devices.heroTitle' : 'devices.empty.title')}
             </Text>
-            <Text className={styles.subtitle} style={{ maxWidth: 440 }}>
+            <Text style={{ maxWidth: 440 }} type={'secondary'}>
               {t(isWorkspace ? 'workspaceSetting.devices.heroDesc' : 'devices.empty.desc')}
             </Text>
           </Flexbox>
@@ -339,6 +386,7 @@ const DeviceManager = memo<DeviceManagerProps>(({ onConnect, scope }) => {
   const checkedCount = editableDevices.filter((d) => checkedIds.has(d.deviceId)).length;
   const allChecked = editableDevices.length > 0 && checkedCount === editableDevices.length;
   const someChecked = checkedCount > 0 && !allChecked;
+  const selectionActive = checkedCount > 0;
 
   const toggleChecked = (deviceId: string, next: boolean) =>
     setCheckedIds((prev) => {
@@ -387,13 +435,13 @@ const DeviceManager = memo<DeviceManagerProps>(({ onConnect, scope }) => {
             {editableDevices.length > 0 && (
               <Checkbox checked={allChecked} indeterminate={someChecked} />
             )}
-            <Text style={{ fontSize: 13 }} type={'secondary'}>
-              {checkedCount > 0
+            <Text fontSize={12} type={'secondary'} weight={500}>
+              {selectionActive
                 ? t('devices.selection.selected', { count: checkedCount })
                 : t('devices.selection.total', { count: devices.length })}
             </Text>
           </Flexbox>
-          {checkedCount > 0 && (
+          {selectionActive && (
             <Button
               danger
               icon={<Icon icon={Trash2Icon} />}
@@ -405,7 +453,7 @@ const DeviceManager = memo<DeviceManagerProps>(({ onConnect, scope }) => {
             </Button>
           )}
         </Flexbox>
-        <Flexbox className={styles.listScroll} padding={4}>
+        <Flexbox className={styles.listScroll} gap={2} padding={4}>
           {devices.map((device) => {
             const editable = canEditDevice(device);
             return (
@@ -415,6 +463,7 @@ const DeviceManager = memo<DeviceManagerProps>(({ onConnect, scope }) => {
                 isCurrent={isCurrent(device.deviceId)}
                 key={device.deviceId}
                 selected={device.deviceId === selectedId}
+                selectionActive={selectionActive}
                 // Withholding the handler also withholds the checkbox; non-
                 // editable rows render without a tick so bulk selection only
                 // ever includes devices the server would accept.
