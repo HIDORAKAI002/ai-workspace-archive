@@ -68,6 +68,8 @@ flowchart LR
 
 The MCP Protocol is an evolving standard using date-based versioning (YYYY-MM-DD format). The current protocol version is **2025-11-25**. You can see the latest updates to the [protocol specification](https://modelcontextprotocol.io/specification/2025-11-25/)
 
+> **Looking ahead:** a release candidate for the next specification version, **2026-07-28**, was announced in May 2026 and is scheduled to ship July 28, 2026. It makes the protocol stateless at the transport layer (removing the `initialize` handshake and session IDs), formalizes an Extensions framework, and deprecates Roots, Sampling, and Logging in favor of newer patterns. See [What's Changing in MCP: The 2026-07-28 Release Candidate](./mcp-2026-07-28-release-candidate.md) for a full breakdown.
+
 ### 1. Hosts
 
 In the Model Context Protocol (MCP), **Hosts** are AI applications that serve as the primary interface through which users interact with the protocol. Hosts coordinate and manage connections to multiple MCP servers by creating dedicated MCP clients for each server connection. Examples of Hosts include:
@@ -188,6 +190,8 @@ In the Model Context Protocol (MCP), **clients** can expose primitives that enab
 
 ### Sampling
 
+> **Deprecation notice:** the `2026-07-28` release candidate marks Sampling as deprecated in favor of direct integration with LLM provider APIs. It continues to work in `2025-11-25` and for at least a year after any deprecation, but new designs should prefer the replacement pattern. See [What's Changing in MCP: The 2026-07-28 Release Candidate](./mcp-2026-07-28-release-candidate.md).
+
 **Sampling** allows servers to request language model completions from the client's AI application. This primitive enables servers to access LLM capabilities without embedding their own model dependencies:
 
 - **Model-Independent Access**: Servers can request completions without including LLM SDKs or managing model access
@@ -199,6 +203,8 @@ In the Model Context Protocol (MCP), **clients** can expose primitives that enab
 Sampling is initiated through the `sampling/complete` method, where servers send completion requests to clients.
 
 ### Roots
+
+> **Deprecation notice:** the `2026-07-28` release candidate marks Roots as deprecated in favor of tool parameters, resource URIs, or server configuration. It continues to work in `2025-11-25` and for at least a year after any deprecation. See [What's Changing in MCP: The 2026-07-28 Release Candidate](./mcp-2026-07-28-release-candidate.md).
 
 **Roots** provide a standardized way for clients to expose filesystem boundaries to servers, helping servers understand which directories and files they have access to:
 
@@ -223,6 +229,8 @@ Elicitation requests are made using the `elicitation/request` method to collect 
 **URL Mode Elicitation**: Servers can also request URL-based user interactions, allowing servers to direct users to external web pages for authentication, confirmation, or data entry.
 
 ### Logging
+
+> **Deprecation notice:** the `2026-07-28` release candidate marks Logging as deprecated in favor of `stderr` for stdio transports and OpenTelemetry for structured observability. It continues to work in `2025-11-25` and for at least a year after any deprecation. See [What's Changing in MCP: The 2026-07-28 Release Candidate](./mcp-2026-07-28-release-candidate.md).
 
 **Logging** allows servers to send structured log messages to clients for debugging, monitoring, and operational visibility:
 
@@ -662,6 +670,8 @@ This structured communication ensures reliable, traceable, and extensible intera
 
 ### Tasks (Experimental)
 
+> **Looking ahead:** the `2026-07-28` release candidate graduates Tasks out of the experimental core specification into a dedicated Tasks extension with a redesigned lifecycle (`tasks/get`, `tasks/update`, `tasks/cancel`; `tasks/list` is removed). If you build against the experimental API described below, plan to migrate. See [What's Changing in MCP: The 2026-07-28 Release Candidate](./mcp-2026-07-28-release-candidate.md).
+
 **Tasks** are an experimental feature that provides durable execution wrappers enabling deferred result retrieval and status tracking for MCP requests:
 
 - **Long-Running Operations**: Track expensive computations, workflow automation, and batch processing
@@ -697,3 +707,5 @@ Design a simple MCP tool that would be useful in your domain. Define:
 ## What's next
 
 Next: [Chapter 2: Security](../02-Security/README.md)
+
+Curious what's coming after `2025-11-25`? Read [What's Changing in MCP: The 2026-07-28 Release Candidate](./mcp-2026-07-28-release-candidate.md).

@@ -30,6 +30,8 @@ Research from the [Microsoft Digital Defense Report](https://aka.ms/mddr) demons
 
 > **Note:** This information reflects MCP security standards as of **February 5, 2026**, aligned with **MCP Specification 2025-11-25**. The MCP protocol continues evolving rapidly, and future implementations may introduce new authentication patterns and enhanced controls. Always refer to the current [MCP Specification](https://spec.modelcontextprotocol.io/), [MCP GitHub repository](https://github.com/modelcontextprotocol), and [security best practices documentation](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) for the latest guidance.
 
+> **Looking ahead:** the `2026-07-28` release candidate hardens authorization further — clients must validate the `iss` parameter on authorization responses (RFC 9207), declare an OpenID Connect `application_type` during Dynamic Client Registration, and bind registered credentials to the issuing authorization server. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) for the full list of authorization SEPs.
+
 ## 🏔️ MCP Security Summit Workshop (Sherpa)
 
 For **hands-on security training**, we highly recommend the **MCP Security Summit Workshop** (Sherpa) - a comprehensive guided expedition to securing MCP servers in Microsoft Azure.

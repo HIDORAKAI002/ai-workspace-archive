@@ -142,6 +142,8 @@ Client
 
 ### -1- Create a web server and MCP instance
 
+> **Looking ahead:** the TypeScript example below tracks HTTP transports in a `transports` map keyed by `mcp-session-id`, per **MCP Specification 2025-11-25**. The `2026-07-28` release candidate removes the `initialize` handshake and session ID entirely, so this per-session transport map goes away in favor of stateless, self-contained requests. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
 In our first step, we need to create the web server instance and the MCP Server.
 
 **Python**
