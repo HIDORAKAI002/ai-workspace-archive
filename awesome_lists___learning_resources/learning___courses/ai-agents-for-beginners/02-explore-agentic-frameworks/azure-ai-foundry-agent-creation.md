@@ -1,20 +1,20 @@
 # Azure AI Agent Service Development
 
-In this exercise, you use the Azure AI Agent service tools in the [Microsoft Foundry portal](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) to create a agent for Flight Booking. The agent will be able to interact with users and provide information about flights.
+In this exercise, you use the Azure AI Agent service tools in the [Microsoft Foundry portal](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) to create an agent for Flight Booking. The agent will be able to interact with users and provide information about flights.
 
 ## Prerequisites
 
 To complete this exercise, you need the following:
 1. An Azure account with an active subscription. [Create an account for free](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. You need permissions to create an Microsoft Foundry hub or have one created for you.
+2. You need permissions to create a Microsoft Foundry hub or have one created for you.
     - If your role is Contributor or Owner, you can follow the steps in this tutorial.
 
-## Create an Microsoft Foundry hub
+## Create a Microsoft Foundry hub
 
 > **Note:** Microsoft Foundry was formerly known as Azure AI Studio.
 
-1. Follow these guidelines from the [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) blog post for creating an Microsoft Foundry hub.
-2.  When your project is created, close any tips that are displayed and review the project page in Microsoft Foundry portal, which should look similar to the following image:
+1. Follow these guidelines from the [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) blog post for creating a Microsoft Foundry hub.
+2. When your project is created, close any tips that are displayed and review the project page in the Microsoft Foundry portal, which should look similar to the following image:
 
     ![Microsoft Foundry Project](./images/azure-ai-foundry.png)
 

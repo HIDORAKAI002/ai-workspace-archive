@@ -194,7 +194,6 @@ describe('GlobalConfig', () => {
 			disabled: false,
 			path: 'api',
 			swaggerUiDisabled: false,
-			packagesEnabled: false,
 		},
 		templates: {
 			enabled: true,
@@ -256,6 +255,8 @@ describe('GlobalConfig', () => {
 				includeWorkflowInfoMetrics: false,
 				workflowInfoMetricInterval: 60,
 				includeDbPoolMetrics: false,
+				includeWorkflowPublicationMetrics: false,
+				workflowPublicationMetricInterval: 60,
 			},
 			additionalNonUIRoutes: '',
 			disableProductionWebhooksOnMainProcess: false,
