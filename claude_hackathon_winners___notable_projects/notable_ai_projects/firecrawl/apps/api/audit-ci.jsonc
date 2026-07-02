@@ -7,7 +7,7 @@
         // multi-major jump outside the upstream range. Do not override across majors
         // without compatibility approval.
         // Owner: team-engineering-reviewers. Tracking: create internal ticket.
-        // Expires: 2026-06-30.
+        // Expires: 2026-07-08.
         "GHSA-v2v4-37r5-5v8g"
     ]
 }
