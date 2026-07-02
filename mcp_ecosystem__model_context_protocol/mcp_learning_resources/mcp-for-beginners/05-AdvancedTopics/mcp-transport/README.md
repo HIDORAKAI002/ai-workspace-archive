@@ -2,6 +2,8 @@
 
 The Model Context Protocol (MCP) provides flexibility in transport mechanisms, allowing custom implementations for specialized enterprise environments. This advanced guide explores custom transport implementations using Azure Event Grid and Azure Event Hubs as practical examples for building scalable, cloud-native MCP solutions.
 
+> **Looking ahead:** this guide is written against **MCP Specification 2025-11-25**, where session ordering must be preserved per session (see Message Protocol below). The `2026-07-28` release candidate removes the protocol-level session entirely and requires `Mcp-Method`/`Mcp-Name` headers so gateways and custom transports can route per-request instead of per-session. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
 ## Introduction
 
 While MCP's standard transports (stdio and HTTP streaming) serve most use cases, enterprise environments often require specialized transport mechanisms for improved scalability, reliability, and integration with existing cloud infrastructure. Custom transports enable MCP to leverage cloud-native messaging services for asynchronous communication, event-driven architectures, and distributed processing.

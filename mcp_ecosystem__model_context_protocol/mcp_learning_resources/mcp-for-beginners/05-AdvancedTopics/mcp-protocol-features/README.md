@@ -2,6 +2,8 @@
 
 This guide explores advanced MCP protocol features that go beyond basic tool and resource handling. Understanding these features helps you build more robust, user-friendly, and production-ready MCP servers.
 
+> **Looking ahead:** the `2026-07-28` release candidate deprecates the Logging primitive (favoring `stderr` for stdio and OpenTelemetry for structured observability), removes the `initialize`/session model referenced in Server Lifecycle Events below, and moves the experimental Tasks feature into a dedicated Tasks extension with a new `tasks/get`/`tasks/update`/`tasks/cancel` lifecycle. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
 ## Features Covered
 
 1. **Progress Notifications** - Report progress for long-running operations

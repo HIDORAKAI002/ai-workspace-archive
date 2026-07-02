@@ -10,6 +10,8 @@ This chapter covers a series of advanced topics in Model Context Protocol (MCP) 
 
 This lesson explores advanced concepts in Model Context Protocol implementation, focusing on multi-modal integration, scalability, security best practices, and enterprise integration. These topics are essential for building production-grade MCP applications that can handle complex requirements in enterprise environments.
 
+> **Looking ahead:** several topics below are affected by the `2026-07-28` MCP specification release candidate — Root Contexts (5.4) and Sampling (5.6) build on primitives that the release candidate marks as deprecated, and the experimental Tasks feature referenced in Protocol Features (5.16) moves to a dedicated Tasks extension. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) for details.
+
 ## Learning Objectives
 
 By the end of this lesson, you will be able to:
