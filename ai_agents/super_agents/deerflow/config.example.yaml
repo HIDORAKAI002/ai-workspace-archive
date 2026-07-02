@@ -47,6 +47,17 @@ token_budget:
   warn_threshold: 0.8           # Warn at 80% of the budget
   hard_stop_threshold: 1.0      # Force stop at 100% of the budget
 
+# ============================================================================
+# Recursion Limit — Hard ceiling for a client-supplied run recursion_limit
+# ============================================================================
+# A run's recursion_limit caps the number of LangGraph super-steps (each is at
+# least one LLM call). The Gateway never trusts a client-supplied value
+# verbatim: any value above this ceiling is clamped down to it, preventing
+# runaway API cost / DoS. Invalid or non-positive client values fall back to
+# the server default of 100. Raise this only if you legitimately run very
+# deeply nested subagent graphs.
+max_recursion_limit: 1000
+
 
 # ============================================================================
 # Models Configuration
@@ -663,6 +674,21 @@ tools:
   #   # wait_for_timeout_ms: 2000        # Extra wait after page load in milliseconds
   #   # wait_for_selector: "article"     # CSS selector to wait for before returning
 
+  # Web fetch tool (uses Crawl4AI - self-hosted headless Chromium, no API key)
+  # Crawl4AI returns server-cleaned "fit" markdown directly (no readability step needed),
+  # ideal for JavaScript-heavy sites. Self-host (JWT auth is off by default, no key):
+  #   docker run -d -p 11235:11235 --shm-size=1g unclecode/crawl4ai:0.8.6
+  # For Docker deployments, use the Docker service name instead of localhost.
+  # NOTE: Only one web_fetch provider can be active at a time.
+  # Comment out the Jina AI web_fetch entry below before enabling this one.
+  # - name: web_fetch
+  #   group: web
+  #   use: deerflow.community.crawl4ai.tools:web_fetch_tool
+  #   base_url: http://localhost:11235   # Crawl4AI server URL (Docker: http://crawl4ai:11235)
+  #   timeout: 30                         # Request timeout in seconds
+  #   # filter: fit                       # Markdown filter: fit (default) | raw | bm25 | llm
+  #   # token: $CRAWL4AI_TOKEN            # Bearer token (only if the server has JWT auth enabled)
+
   # Web capture tool (uses Browserless /screenshot to render a page as an artifact)
   # Browserless captures JavaScript-heavy pages with a real headless Chrome and
   # writes the screenshot into the current thread's outputs. It can run against
@@ -765,6 +791,20 @@ tools:
   #   use: deerflow.community.serper.tools:image_search_tool
   #   max_results: 5   # capped at 10 by the Serper provider
   #   # api_key: $SERPER_API_KEY  # Optional explicit env-var reference
+
+  # Image search tool (uses Brave Image Search API, requires BRAVE_SEARCH_API_KEY)
+  # Brave provides independent image results and works alongside the Brave web search tool.
+  # Note: set BRAVE_SEARCH_API_KEY in your environment before starting the app.
+  # Avoid putting literal API keys in config.yaml; use the $VAR form instead.
+  # - name: image_search
+  #   group: web
+  #   use: deerflow.community.brave.tools:image_search_tool
+  #   max_results: 5   # capped at 200 by Brave Image Search
+  #   # country: US
+  #   # search_lang: en
+  #   # safesearch: strict
+  #   # spellcheck: true
+  #   # api_key: $BRAVE_SEARCH_API_KEY  # Optional explicit env-var reference
 
   # File operations tools
   - name: ls
