@@ -20,13 +20,13 @@ After completing this lesson, you will know how to:
 
 ## Code Samples 
 
-Code samples for [Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framewrok) can be found in this repository under `xx-python-agent-framework` and `xx-dotnet-agent-framework` files.
+Code samples for [Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framework) can be found in this repository under `xx-python-agent-framework` and `xx-dotnet-agent-framework` files.
 
 ## Understanding Microsoft Agent Framework
 
 ![Framework Intro](./images/framework-intro.png)
 
-[Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framewrok) is Microsoft's unified framework for building AI agents. It offers the flexibility to address the wide variety of agentic use cases seen in both production and research environments including:
+[Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framework) is Microsoft's unified framework for building AI agents. It offers the flexibility to address the wide variety of agentic use cases seen in both production and research environments including:
 
 - **Sequential Agent orchestration** in scenarios where step-by-step workflows are needed.
 - **Concurrent orchestration** in scenarios where agents need to complete tasks at the same time.
@@ -84,7 +84,7 @@ agent = OpenAIChatClient().create_agent( name="HelpfulAssistant", instructions="
 or [MiniMax](https://platform.minimaxi.com/), which provides an OpenAI-compatible API with large context windows (up to 204K tokens):
 
 ```python
-agent = OpenAIChatClient(base_url="https://api.minimax.io/v1", api_key=os.environ["MINIMAX_API_KEY"], model_id="MiniMax-M2.7").create_agent( name="HelpfulAssistant", instructions="You are a helpful assistant.", )
+agent = OpenAIChatClient(base_url="https://api.minimax.io/v1", api_key=os.environ["MINIMAX_API_KEY"], model_id="MiniMax-M3").create_agent( name="HelpfulAssistant", instructions="You are a helpful assistant.", )
 ```
 
 or remote agents using the A2A protocol:

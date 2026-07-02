@@ -3,16 +3,16 @@ module github.com/weaviate/weaviate
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
 	cloud.google.com/go/storage v1.60.0
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.20.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.22.0
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.4
 	github.com/KimMachineGun/automemlimit v0.7.5
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/armon/go-metrics v0.4.1
-	github.com/aws/aws-sdk-go-v2 v1.41.5
+	github.com/aws/aws-sdk-go-v2 v1.42.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.14
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.50.4
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.99.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.104.1
 	github.com/aws/aws-sdk-go-v2/service/sagemakerruntime v1.39.6
 	github.com/bits-and-blooms/bloom/v3 v3.7.1
 	github.com/bmatcuk/doublestar v1.3.4
@@ -38,7 +38,7 @@ require (
 	github.com/go-openapi/errors v0.22.4
 	github.com/go-openapi/loads v0.23.2
 	github.com/go-openapi/runtime v0.29.2
-	github.com/go-openapi/spec v0.22.3
+	github.com/go-openapi/spec v0.22.6
 	github.com/go-openapi/strfmt v0.25.0
 	github.com/go-openapi/swag v0.23.0
 	github.com/go-openapi/validate v0.25.1
@@ -61,8 +61,8 @@ require (
 	github.com/johnbellone/grpc-middleware-sentry v0.4.0
 	github.com/jonboulle/clockwork v0.5.0
 	github.com/klauspost/compress v1.18.2
-	github.com/launchdarkly/go-sdk-common/v3 v3.4.0
-	github.com/launchdarkly/go-server-sdk/v7 v7.14.6
+	github.com/launchdarkly/go-sdk-common/v3 v3.5.0
+	github.com/launchdarkly/go-server-sdk/v7 v7.15.4
 	github.com/mark3labs/mcp-go v0.37.1-0.20250812151906-9f16336f83e1
 	github.com/maypok86/otter/v2 v2.2.1
 	github.com/minio/minio-go/v7 v7.0.97
@@ -118,7 +118,7 @@ require (
 	cloud.google.com/go/iam v1.5.3 // indirect
 	cloud.google.com/go/monitoring v1.24.3 // indirect
 	dario.cat/mergo v1.0.2 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.12.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.31.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0 // indirect
@@ -127,21 +127,21 @@ require (
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/aws/aws-sdk-go v1.44.298 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.8 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.13 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.21 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.21 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.21 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.29 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.29 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.6 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.22 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.13 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.21 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.21 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.30 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.12 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.22 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.29 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.30 // indirect
 	github.com/aws/aws-sdk-go-v2/service/signin v1.0.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.30.15 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.10 // indirect
-	github.com/aws/smithy-go v1.24.2 // indirect
+	github.com/aws/smithy-go v1.27.1 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.24.2 // indirect
@@ -169,17 +169,17 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-openapi/analysis v0.24.1 // indirect
-	github.com/go-openapi/jsonpointer v0.22.4 // indirect
-	github.com/go-openapi/jsonreference v0.21.4 // indirect
-	github.com/go-openapi/swag/conv v0.25.4 // indirect
+	github.com/go-openapi/jsonpointer v0.23.1 // indirect
+	github.com/go-openapi/jsonreference v0.21.6 // indirect
+	github.com/go-openapi/swag/conv v0.26.1 // indirect
 	github.com/go-openapi/swag/fileutils v0.25.1 // indirect
-	github.com/go-openapi/swag/jsonname v0.25.4 // indirect
-	github.com/go-openapi/swag/jsonutils v0.25.4 // indirect
-	github.com/go-openapi/swag/loading v0.25.4 // indirect
+	github.com/go-openapi/swag/jsonname v0.26.1 // indirect
+	github.com/go-openapi/swag/jsonutils v0.26.1 // indirect
+	github.com/go-openapi/swag/loading v0.26.1 // indirect
 	github.com/go-openapi/swag/mangling v0.25.1 // indirect
-	github.com/go-openapi/swag/stringutils v0.25.4 // indirect
-	github.com/go-openapi/swag/typeutils v0.25.4 // indirect
-	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
+	github.com/go-openapi/swag/stringutils v0.26.1 // indirect
+	github.com/go-openapi/swag/typeutils v0.26.1 // indirect
+	github.com/go-openapi/swag/yamlutils v0.26.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -207,8 +207,8 @@ require (
 	github.com/lanrat/extsort v1.0.2 // indirect
 	github.com/launchdarkly/ccache v1.1.0 // indirect
 	github.com/launchdarkly/eventsource v1.10.0 // indirect
-	github.com/launchdarkly/go-jsonstream/v3 v3.1.0 // indirect
-	github.com/launchdarkly/go-sdk-events/v3 v3.5.0 // indirect
+	github.com/launchdarkly/go-jsonstream/v3 v3.1.1 // indirect
+	github.com/launchdarkly/go-sdk-events/v3 v3.6.2 // indirect
 	github.com/launchdarkly/go-semver v1.0.3 // indirect
 	github.com/launchdarkly/go-server-sdk-evaluation/v3 v3.0.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20240909124753-873cd0166683 // indirect

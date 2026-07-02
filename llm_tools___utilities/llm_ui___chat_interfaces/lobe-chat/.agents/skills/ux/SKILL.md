@@ -87,7 +87,7 @@ The one-screen scan. Each line links back to a module above for the full rule + 
 **Read — viewing data & lists** ([read.md](references/read.md))
 
 - [ ] Empty / loading / error states are all designed; empty is a real page with a CTA. Always-rendered chrome (toolbar/header) still gets a body empty state. If the `Empty` component ships a `search`/no-match variant, **wire it** — don't render `<Empty/>` bare so a zero-result search shows the first-run onboarding.
-- [ ] Error is checked before the empty branch — a failed fetch never renders as empty (read `error`, don't coerce `data ?? [] → Empty`); a detail page reads `error` before falling to `NotFound` (failed-to-load ≠ deleted/404).
+- [ ] Error is checked before the empty branch — a failed fetch never renders as empty (read `error`, don't coerce `data ?? [] → Empty`); a detail page reads `error` before falling to `NotFound` (failed-to-load ≠ deleted/404). On a **metrics/dashboard** surface the failure default is a zero-valued object (`?? {…:0}`) that renders as a confident `$0` — read `error` before any aggregate, don't fall through to zeros.
 - [ ] List designed across 1 → 10k rows (virtual scroll / pagination / batch as needed).
 - [ ] Search / filter over a paginated list queries the full set server-side, not just the loaded page (no false "no results" for unfetched rows).
 - [ ] Capped/scrollable/virtualized list scrolls the restored active item into view on mount (`block: 'nearest'`, re-run after async rows mount).
@@ -125,7 +125,7 @@ The one-screen scan. Each line links back to a module above for the full rule + 
 **Feedback — loading & system response** ([feedback.md](references/feedback.md))
 
 - [ ] No antd `Spin`; use `NeuralNetworkLoading` / project loaders.
-- [ ] Every loading state can fail: on error or timeout, show a failed state with a Reload/Retry action — never an infinite spinner. In an auto-dismissing surface (upload dock / progress toast), the countdown clears **success only** — a failed item persists with Retry.
+- [ ] Every loading state can fail: on error or timeout, show a failed state with a Reload/Retry action — never an infinite spinner. In an auto-dismissing surface (upload dock / progress toast), the countdown clears **success only** — a failed item persists with Retry. An error state / retry action that's **modeled in the store but consumed by no surface** (`isXError` selector / `retryX` action with zero `rg` call sites) is still a missing error state — a built-but-orphaned path is a permanent skeleton at the pixel.
 - [ ] A compound gate waiting on a secondary/dependent fetch gates on its **in-flight** flag and releases on settled (data / resolved-`null` / error) — never on the dependency being present in a map, or an absent-by-design dependency hangs it forever.
 - [ ] An awaited write that gates navigation/advance resets its busy flag in `finally` + offers retry — a failed write never permanently disables the forward/Back control.
 - [ ] Autosave surfaces a save-state (saving → saved → failed with retry), never a silent write; the save-state enum actually includes a `failed` variant (a catch that resets to `idle` is a silent write); one save-feedback convention across a multi-field surface, ideally in the shared form wrapper.
@@ -134,6 +134,7 @@ The one-screen scan. Each line links back to a module above for the full rule + 
 **Grow — discoverability & progressive disclosure** ([grow.md](references/grow.md))
 
 - [ ] Advanced capability is progressively disclosed / discoverable at the moment of need.
+- [ ] A control that borrows a keyboard/CLI idiom (numbered `1`/`2`/`3` chips, `⌘K` badge, arrow-nav, keycap hint) actually wires those keys — or is restyled so it doesn't imply an absent shortcut; a keycap-looking chip with no handler is a false affordance, worst in a surface ported from a CLI. Confirm the keys fire at L3.
 - [ ] A config surface for a feature with its own data/management area links to it in-context (close the config → manage loop) — not just a promise in copy.
 - [ ] Multi-step flow (>2 steps: wizard/onboarding) shows a step/progress indicator (position + total) and keeps non-essential steps skippable with a visible escape hatch.
 
