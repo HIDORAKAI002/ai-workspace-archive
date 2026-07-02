@@ -1141,6 +1141,49 @@ class TestVisionClientFallback:
         assert response.usage.prompt_tokens == 3
         assert response.usage.completion_tokens == 4
 
+    def test_anthropic_auxiliary_client_uses_model_output_limit_by_default(self):
+        from agent.auxiliary_client import AnthropicAuxiliaryClient
+
+        final_message = SimpleNamespace(
+            content=[SimpleNamespace(type="text", text="aux response")],
+            stop_reason="end_turn",
+            usage=SimpleNamespace(input_tokens=3, output_tokens=4),
+        )
+        messages_api = SimpleNamespace(create=MagicMock())
+        real_client = SimpleNamespace(messages=messages_api)
+        captured_kwargs = {}
+
+        def fake_create_anthropic_message(_client, kwargs):
+            captured_kwargs.update(kwargs)
+            return final_message
+
+        client = AnthropicAuxiliaryClient(
+            real_client,
+            "claude-opus-4-8",
+            "sk-test",
+            "https://api.anthropic.com",
+        )
+
+        with patch(
+            "agent.anthropic_adapter.create_anthropic_message",
+            side_effect=fake_create_anthropic_message,
+        ):
+            response = client.chat.completions.create(
+                messages=[{"role": "user", "content": "summarize"}],
+            )
+
+        assert response.choices[0].message.content == "aux response"
+        # Behavior contract, not a frozen literal: a capless native-Anthropic
+        # aux call must default to the model's native output ceiling (resolved
+        # via _get_anthropic_max_output) rather than the old hidden 2000 cap.
+        # Asserting against the resolver keeps this test alive across
+        # model-table churn while still catching a regression to `or 2000`.
+        from agent.anthropic_adapter import _get_anthropic_max_output
+
+        expected_ceiling = _get_anthropic_max_output("claude-opus-4-8")
+        assert expected_ceiling > 2000
+        assert captured_kwargs["max_tokens"] == expected_ceiling
+
 
 class TestAuxiliaryPoolAwareness:
     def test_try_nous_uses_pool_entry(self):
