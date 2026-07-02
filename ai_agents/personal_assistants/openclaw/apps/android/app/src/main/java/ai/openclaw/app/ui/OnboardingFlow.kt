@@ -139,9 +139,10 @@ fun OnboardingFlow(
   val onboardingDark = appearanceThemeMode.isDark(systemDark = isSystemInDarkTheme())
   ClawDesignTheme(dark = onboardingDark) {
     val context = LocalContext.current
-    val statusText by viewModel.statusText.collectAsState()
-    val gatewayConnectionProblem by viewModel.gatewayConnectionProblem.collectAsState()
-    val isConnected by viewModel.isConnected.collectAsState()
+    val gatewayConnectionDisplay by viewModel.gatewayConnectionDisplay.collectAsState()
+    val statusText = gatewayConnectionDisplay.statusText
+    val gatewayConnectionProblem = gatewayConnectionDisplay.problem
+    val isConnected = gatewayConnectionDisplay.isConnected
     val isNodeConnected by viewModel.isNodeConnected.collectAsState()
     val nodeCapabilityApprovalState by viewModel.nodeCapabilityApprovalState.collectAsState()
     val runtimeInitialized by viewModel.runtimeInitialized.collectAsState()
@@ -1369,6 +1370,9 @@ internal fun canFinishOnboarding(
       -> true
     }
 
+private val requiredContactPermissions = listOf(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)
+private val requiredCalendarPermissions = listOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
+
 /** Builds permission rows and applies granted feature toggles after onboarding. */
 @Composable
 private fun rememberPermissionState(
@@ -1382,8 +1386,12 @@ private fun rememberPermissionState(
   }
   val photosPermissions = photoReadPermissionsForRequest()
   var photosGranted by rememberSaveable { mutableStateOf(hasPhotoReadPermission(context)) }
-  var contactsGranted by rememberSaveable { mutableStateOf(hasPermission(context, Manifest.permission.READ_CONTACTS)) }
-  var calendarGranted by rememberSaveable { mutableStateOf(hasPermission(context, Manifest.permission.READ_CALENDAR)) }
+  var contactsGranted by rememberSaveable {
+    mutableStateOf(requiredContactPermissions.all { permission -> hasPermission(context, permission) })
+  }
+  var calendarGranted by rememberSaveable {
+    mutableStateOf(requiredCalendarPermissions.all { permission -> hasPermission(context, permission) })
+  }
   var notificationsGranted by rememberSaveable {
     mutableStateOf(Build.VERSION.SDK_INT < 33 || hasPermission(context, Manifest.permission.POST_NOTIFICATIONS))
   }
@@ -1429,8 +1437,18 @@ private fun rememberPermissionState(
         permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true ||
         locationGranted
       photosGranted = hasPhotoReadPermission(context) || photosPermissions.any { permissions[it] == true }
-      contactsGranted = permissions[Manifest.permission.READ_CONTACTS] ?: contactsGranted
-      calendarGranted = permissions[Manifest.permission.READ_CALENDAR] ?: calendarGranted
+      contactsGranted =
+        mergedRequiredPermissionGrantState(
+          permissions = permissions,
+          requiredPermissions = requiredContactPermissions,
+          currentlyGranted = { permission -> hasPermission(context, permission) },
+        )
+      calendarGranted =
+        mergedRequiredPermissionGrantState(
+          permissions = permissions,
+          requiredPermissions = requiredCalendarPermissions,
+          currentlyGranted = { permission -> hasPermission(context, permission) },
+        )
       notificationsGranted =
         if (Build.VERSION.SDK_INT >= 33) {
           permissions[Manifest.permission.POST_NOTIFICATIONS] ?: notificationsGranted
@@ -1439,8 +1457,11 @@ private fun rememberPermissionState(
         }
       motionGranted = permissions[Manifest.permission.ACTIVITY_RECOGNITION] ?: motionGranted
       smsGranted =
-        (permissions[Manifest.permission.SEND_SMS] ?: smsGranted) &&
-        (permissions[Manifest.permission.READ_SMS] ?: smsGranted)
+        mergedRequiredPermissionGrantState(
+          permissions = permissions,
+          requiredPermissions = listOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS),
+          currentlyGranted = { permission -> hasPermission(context, permission) },
+        )
       callLogGranted = permissions[Manifest.permission.READ_CALL_LOG] ?: callLogGranted
     }
 
@@ -1467,10 +1488,10 @@ private fun rememberPermissionState(
         null
       },
       PermissionRowModel("Contacts", "Read contacts securely", Icons.Default.Person, contactsGranted) {
-        request(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)
+        request(*requiredContactPermissions.toTypedArray())
       },
       PermissionRowModel("Calendar", "Read events and schedules", Icons.Default.CalendarMonth, calendarGranted) {
-        request(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR)
+        request(*requiredCalendarPermissions.toTypedArray())
       },
       PermissionRowModel("Notifications", "Send important alerts", Icons.Default.Notifications, notificationsGranted) {
         if (Build.VERSION.SDK_INT >= 33) request(Manifest.permission.POST_NOTIFICATIONS)
@@ -1510,6 +1531,13 @@ private fun rememberPermissionState(
     },
   )
 }
+
+/** RequestMultiplePermissions only reports launched permissions, so omitted entries use current system state. */
+internal fun mergedRequiredPermissionGrantState(
+  permissions: Map<String, Boolean>,
+  requiredPermissions: List<String>,
+  currentlyGranted: (String) -> Boolean,
+): Boolean = requiredPermissions.all { permission -> permissions[permission] ?: currentlyGranted(permission) }
 
 private fun hasPermission(
   context: Context,

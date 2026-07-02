@@ -63,6 +63,8 @@ By the time you complete this journey, you'll have the confidence to build your 
 
 This curriculum is aligned with **MCP Specification 2025-11-25** (the latest stable release). The MCP specification uses date-based versioning (YYYY-MM-DD format) to ensure clear protocol version tracking.
 
+> **Looking ahead:** a release candidate for the next specification version, **2026-07-28**, is scheduled to ship on July 28, 2026. It makes the protocol stateless at the transport layer, formalizes an Extensions framework (MCP Apps, Tasks), hardens authorization, and deprecates Roots, Sampling, and Logging. See [What's Changing in MCP: The 2026-07-28 Release Candidate](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md) for a full breakdown.
+
 These resources become more valuable as your understanding grows, but don't feel pressured to read everything immediately. Start with the areas that interest you most!
 - 📘 [MCP Documentation](https://modelcontextprotocol.io/) – This is your go-to resource for step-by-step tutorials and user guides. The documentation is written with beginners in mind, providing clear examples you can follow along with at your own pace.
 - 📜 [MCP Specification](https://modelcontextprotocol.io/specification/2025-11-25) – Think of this as your comprehensive reference manual. As you work through the curriculum, you'll find yourself returning here to look up specific details and explore advanced features.
@@ -149,6 +151,7 @@ Module 11 deserves special mention - it's a complete 13-lab hands-on learning pa
 | **Module 0-3: Fundamentals** | | | |
 | 00 | Introduction to MCP | Overview of the Model Context Protocol and its significance in AI pipelines | [Read more](./00-Introduction/README.md) |
 | 01 | Core Concepts Explained | In-depth exploration of core MCP concepts | [Read more](./01-CoreConcepts/README.md) |
+| 1.1 | What's Changing in MCP (2026-07-28 RC) | Stateless protocol, Extensions framework, and feature deprecations coming in the next spec version | [Guide](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md) |
 | 02 | Security in MCP | Security threats and best practices | [Read more](./02-Security/README.md) |
 | 03 | Getting Started with MCP | Environment setup, basic servers/clients, integration | [Read more](./03-GettingStarted/README.md) |
 | **Module 3: Building Your First Server & Client** | | | |

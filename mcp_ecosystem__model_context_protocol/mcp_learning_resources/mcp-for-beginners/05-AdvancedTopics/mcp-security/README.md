@@ -2,6 +2,8 @@
 
 > **Current Standard**: This guide reflects [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) security requirements and official [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
 
+> **Looking ahead:** the `2026-07-28` release candidate hardens authorization further — clients must validate the `iss` parameter on authorization responses (RFC 9207), declare an OpenID Connect `application_type` during Dynamic Client Registration, and bind registered credentials to the issuing authorization server. It also formally prohibits sessions for authentication, consistent with the "MUST NOT use sessions for authentication" rule already called out below. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) for the full list of authorization SEPs.
+
 Security is critical for MCP implementations, especially in enterprise environments. This advanced guide explores comprehensive security practices for production MCP deployments, addressing both traditional security concerns and AI-specific threats unique to the Model Context Protocol.
 
 ## Introduction
