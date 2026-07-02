@@ -1,13 +1,3 @@
-**Browser Use CLI 3.0 is here.** Give your coding agent a browser it can use reliably.
-
-Paste this into Claude Code, Codex, etc:
-
-```text
-Install or upgrade browser-use to the latest stable version with uv using Python 3.12, register the skill from `browser-use skill`, and connect it to my browser. Follow https://github.com/browser-use/browser-use if setup or connection fails.
-```
-
-Or try the hosted agent in [Browser Use Cloud](https://cloud.browser-use.com?utm_source=github&utm_medium=readme&utm_campaign=cli_3_0_launch).
-
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/2ccdb752-22fb-41c7-8948-857fc1ad7e24">
   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/774a46d5-27a0-490c-b7d0-e65fcbbfa358">
@@ -47,6 +37,14 @@ Or try the hosted agent in [Browser Use Cloud](https://cloud.browser-use.com?utm
 </div>
 
 </br>
+
+**Browser Use CLI 3.0 is here.** Give your coding agent a browser it can use reliably.
+
+Paste this into Claude Code, Codex, etc:
+
+```text
+Install or upgrade browser-use to the latest stable version with uv using Python 3.12, register the skill from `browser-use skill`, and connect it to my browser. Follow https://github.com/browser-use/browser-use if setup or connection fails.
+```
 
 🌤️ Want to skip the setup? Use our <b>[cloud](https://cloud.browser-use.com?utm_source=github&utm_medium=readme-skip-setup)</b> for faster, scalable, stealth-enabled browser automation!
 
