@@ -764,6 +764,21 @@
       "translated": "$remoteGatewaySecurityRule $remoteGatewaySecurityFix"
     },
     {
+      "id": "native.android.d5230e4551045851",
+      "source": "Setup code uses an IPv6 zone ID. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "کد راه‌اندازی از شناسهٔ محدودهٔ IPv6 استفاده می‌کند. از یک نشانی IPv6 بدون محدوده یا نام میزبان LAN استفاده کنید."
+    },
+    {
+      "id": "native.android.ca9fc2ce10f4028a",
+      "source": "QR code uses an IPv6 zone ID. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "کد QR از شناسهٔ محدودهٔ IPv6 استفاده می‌کند. از یک نشانی IPv6 بدون محدوده یا نام میزبان LAN استفاده کنید."
+    },
+    {
+      "id": "native.android.141236601fece71e",
+      "source": "IPv6 zone IDs are not supported. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "شناسه‌های محدودهٔ IPv6 پشتیبانی نمی‌شوند. از یک نشانی IPv6 بدون محدوده یا نام میزبان LAN استفاده کنید."
+    },
+    {
       "id": "native.android.47e3c19d55f0150b",
       "source": "Setup code has invalid gateway URL.",
       "translated": "کد راه‌اندازی URL نامعتبر gateway دارد."
@@ -5499,29 +5514,39 @@
       "translated": "\\(diagnosticsIssueCount)"
     },
     {
-      "id": "native.apple.f93745d2550799de",
-      "source": "Location \\(self.locationLabel)",
-      "translated": "مکان \\(self.locationLabel)"
-    },
-    {
       "id": "native.apple.acbedcae9f022c29",
       "source": "Location off",
       "translated": "مکان خاموش است"
     },
     {
-      "id": "native.apple.539d9f2b9cde9cb3",
-      "source": "Off",
-      "translated": "خاموش"
+      "id": "native.apple.7d31e35d20b78c2d",
+      "source": "Location While Using",
+      "translated": "مکان هنگام استفاده"
     },
     {
-      "id": "native.apple.86a934ca21b05d9c",
-      "source": "While Using",
-      "translated": "هنگام استفاده"
+      "id": "native.apple.b94b8d4e935c81fb",
+      "source": "Location While Using, effective Off",
+      "translated": "مکان هنگام استفاده، عملاً خاموش"
     },
     {
-      "id": "native.apple.7774b67d295ea77d",
-      "source": "Always",
-      "translated": "همیشه"
+      "id": "native.apple.6533895b2a1f2b2d",
+      "source": "Location While Using, effective Always",
+      "translated": "مکان هنگام استفاده، عملاً همیشه"
+    },
+    {
+      "id": "native.apple.c3c9d2baa0607380",
+      "source": "Location Always",
+      "translated": "مکان همیشه"
+    },
+    {
+      "id": "native.apple.10fe695bb1cd3c62",
+      "source": "Location Always, effective While Using",
+      "translated": "مکان همیشه، عملاً هنگام استفاده"
+    },
+    {
+      "id": "native.apple.306454b6d067e1ee",
+      "source": "Location Always, effective Off",
+      "translated": "مکان همیشه، عملاً خاموش"
     },
     {
       "id": "native.apple.2829150c12160b55",
@@ -6647,6 +6672,111 @@
       "id": "native.apple.2275552c26460945",
       "source": "OpenClaw uses on-device speech recognition for talk mode and voice wake.",
       "translated": "OpenClaw برای حالت گفت‌وگو و بیدارباش صوتی از تشخیص گفتار روی دستگاه استفاده می‌کند."
+    },
+    {
+      "id": "native.apple.cf0450b542893fb5",
+      "source": "Off",
+      "translated": "خاموش"
+    },
+    {
+      "id": "native.apple.c470d02f26ac51f6",
+      "source": "While Using",
+      "translated": "هنگام استفاده"
+    },
+    {
+      "id": "native.apple.663b3e453bb47c07",
+      "source": "Always",
+      "translated": "همیشه"
+    },
+    {
+      "id": "native.apple.2dc593065171c201",
+      "source": "Location sharing is disabled in OpenClaw. Location Services are off in iOS Settings.",
+      "translated": "اشتراک‌گذاری مکان در OpenClaw غیرفعال است. خدمات مکان در تنظیمات iOS خاموش است."
+    },
+    {
+      "id": "native.apple.1dc990a9cc0500c5",
+      "source": "Location sharing is disabled in OpenClaw. iOS currently allows Always.",
+      "translated": "اشتراک‌گذاری مکان در OpenClaw غیرفعال است. iOS در حال حاضر اجازه «همیشه» را می‌دهد."
+    },
+    {
+      "id": "native.apple.9a4e858d2b218d41",
+      "source": "Location sharing is disabled in OpenClaw. iOS currently allows While Using.",
+      "translated": "اشتراک‌گذاری مکان در OpenClaw غیرفعال است. iOS در حال حاضر اجازه «هنگام استفاده» را می‌دهد."
+    },
+    {
+      "id": "native.apple.ab481eb11214797f",
+      "source": "Location sharing is disabled.",
+      "translated": "اشتراک‌گذاری مکان غیرفعال است."
+    },
+    {
+      "id": "native.apple.34699b6a26b51110",
+      "source": "Location Services are off in iOS Settings.",
+      "translated": "خدمات مکان در تنظیمات iOS خاموش است."
+    },
+    {
+      "id": "native.apple.3b96b639e7442ee3",
+      "source": "Foreground location requests are allowed. Precise Location is on.",
+      "translated": "درخواست‌های مکان در پیش‌زمینه مجاز هستند. مکان دقیق روشن است."
+    },
+    {
+      "id": "native.apple.9e537e22f834f4d5",
+      "source": "Foreground location requests are allowed. Precise Location is off.",
+      "translated": "درخواست‌های مکان در پیش‌زمینه مجاز هستند. مکان دقیق خاموش است."
+    },
+    {
+      "id": "native.apple.3241d6de1ab6b340",
+      "source": "Foreground location requests are allowed.",
+      "translated": "درخواست‌های مکان در پیش‌زمینه مجاز هستند."
+    },
+    {
+      "id": "native.apple.7b16935cf96c6ee3",
+      "source": "Background location requests and significant-change updates are allowed. Precise Location is on.",
+      "translated": "درخواست‌های مکان در پس‌زمینه و به‌روزرسانی‌های تغییر مهم مجاز هستند. مکان دقیق روشن است."
+    },
+    {
+      "id": "native.apple.b1503179f7e1058d",
+      "source": "Background location requests and significant-change updates are allowed. Precise Location is off.",
+      "translated": "درخواست‌های مکان در پس‌زمینه و به‌روزرسانی‌های تغییر مهم مجاز هستند. مکان دقیق خاموش است."
+    },
+    {
+      "id": "native.apple.6f63c4f93b7a9ab5",
+      "source": "Background location requests and significant-change updates are allowed.",
+      "translated": "درخواست‌های مکان در پس‌زمینه و به‌روزرسانی‌های تغییر مهم مجاز هستند."
+    },
+    {
+      "id": "native.apple.95a6772115ad8b63",
+      "source": "Always is selected, but iOS currently allows location only while using the app. Precise Location is on.",
+      "translated": "Always انتخاب شده است، اما iOS در حال حاضر فقط هنگام استفاده از برنامه اجازهٔ دسترسی به موقعیت مکانی را می‌دهد. Precise Location روشن است."
+    },
+    {
+      "id": "native.apple.8ab7fd180dc593f6",
+      "source": "Always is selected, but iOS currently allows location only while using the app. Precise Location is off.",
+      "translated": "Always انتخاب شده است، اما iOS در حال حاضر فقط هنگام استفاده از برنامه اجازهٔ دسترسی به موقعیت مکانی را می‌دهد. Precise Location خاموش است."
+    },
+    {
+      "id": "native.apple.15bc589594491413",
+      "source": "Always is selected, but iOS currently allows location only while using the app.",
+      "translated": "Always انتخاب شده است، اما iOS در حال حاضر فقط هنگام استفاده از برنامه اجازهٔ دسترسی به موقعیت مکانی را می‌دهد."
+    },
+    {
+      "id": "native.apple.30ce7ced43a0a752",
+      "source": "Location permission is denied in iOS Settings.",
+      "translated": "دسترسی به موقعیت مکانی در تنظیمات iOS رد شده است."
+    },
+    {
+      "id": "native.apple.0de03d90e4280432",
+      "source": "Location permission is restricted on this device.",
+      "translated": "دسترسی به موقعیت مکانی در این دستگاه محدود شده است."
+    },
+    {
+      "id": "native.apple.0d0506a7417e7d92",
+      "source": "Choose a location mode to request iOS permission.",
+      "translated": "برای درخواست مجوز iOS، یک حالت موقعیت مکانی انتخاب کنید."
+    },
+    {
+      "id": "native.apple.633f011b81108a8c",
+      "source": "OpenClaw cannot determine the current iOS location permission.",
+      "translated": "OpenClaw نمی‌تواند مجوز فعلی موقعیت مکانی iOS را تشخیص دهد."
     },
     {
       "id": "native.apple.0d030e96f7738497",

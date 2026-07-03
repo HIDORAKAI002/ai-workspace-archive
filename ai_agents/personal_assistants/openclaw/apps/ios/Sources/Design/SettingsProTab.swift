@@ -51,6 +51,12 @@ struct SettingsProTab: View {
     @State var showResetOnboardingAlert = false
     @State var suppressCredentialPersist = false
     @State var locationStatusText: String?
+    @State var locationPermissionSummary = LocationPermissionSummary(
+        desiredMode: .off,
+        locationServicesEnabled: true,
+        authorizationStatus: .notDetermined,
+        accuracyAuthorization: .fullAccuracy)
+    @State var locationPermissionRefreshID = 0
     @State var previousLocationModeRaw: String = OpenClawLocationMode.off.rawValue
     @State var notificationStatus: SettingsNotificationStatus = .checking
     @State var isRequestingNotificationAuthorization = false

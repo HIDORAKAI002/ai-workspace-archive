@@ -1,10 +1,9 @@
 'use client';
 
 import { Flexbox } from '@lobehub/ui';
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router';
 
-import NotFound from '@/components/404';
 import FloatingChatPanel from '@/features/FloatingChatPanel';
 import { useDocumentChatTopic } from '@/features/FloatingChatPanel/useDocumentChatTopic';
 import { PageEditor } from '@/features/PageEditor';
@@ -14,6 +13,7 @@ import { useUserStore } from '@/store/user';
 import { labPreferSelectors } from '@/store/user/selectors';
 
 import Header from './Header';
+import { buildAgentDocumentsPath } from './navigation';
 import { useAgentDocumentItem } from './useAgentDocumentItem';
 
 interface AgentDocumentPageProps {
@@ -57,6 +57,23 @@ const AgentDocumentPage = memo<AgentDocumentPageProps>(({ documentId }) => {
     [agentId, navigate],
   );
 
+  // Deleting the open document lands on the docs index (empty-state guidance +
+  // the persistent document tree) rather than the deleted doc's now-404 route.
+  const backToDocs = useCallback(
+    () => navigate(agentId ? buildAgentDocumentsPath(agentId) : '/agent'),
+    [agentId, navigate],
+  );
+
+  // The doc backing this route can vanish while the page is open — most often
+  // deleted from the working-sidebar tree (which optimistically drops the row
+  // from the same list this reads). Redirect to the docs index rather than
+  // stranding the user on a 404 for a doc they just removed. `isNotFound` is
+  // precise (list resolved, doc genuinely absent — not a load error), so a bad
+  // deep link also lands on the index instead of a dead end.
+  useEffect(() => {
+    if (isNotFound && agentId) navigate(buildAgentDocumentsPath(agentId), { replace: true });
+  }, [isNotFound, agentId, navigate]);
+
   // A skill index doc is stored as `SKILL.md`; show the skill name (bundle title) instead.
   const isSkillIndex = !!skillBundle;
   const title = skillBundle
@@ -73,22 +90,16 @@ const AgentDocumentPage = memo<AgentDocumentPageProps>(({ documentId }) => {
         title={title}
         updatedAt={item?.updatedAt}
         onBack={backToChat}
-        onDeleted={backToChat}
+        onDeleted={backToDocs}
       />
     ),
-    [agentId, backToChat, documentId, item?.id, item?.updatedAt, itemError, title],
+    [agentId, backToChat, backToDocs, documentId, item?.id, item?.updatedAt, itemError, title],
   );
 
-  // Genuinely-absent doc: show the not-found state for the whole content module
-  // rather than a breadcrumb with a placeholder "无标题" title + a title skeleton
-  // sitting above a 404 body.
-  if (isNotFound) {
-    return (
-      <Flexbox flex={1} height={'100%'} style={{ minHeight: 0 }} width={'100%'}>
-        <NotFound />
-      </Flexbox>
-    );
-  }
+  // Genuinely-absent doc (deleted or bad deep link): render nothing while the
+  // redirect effect above sends the user to the docs index, instead of flashing
+  // a 404 for a doc that simply moved to the empty-state landing.
+  if (isNotFound) return null;
 
   return (
     <Flexbox flex={1} height={'100%'} style={{ minHeight: 0, overflow: 'hidden' }} width={'100%'}>

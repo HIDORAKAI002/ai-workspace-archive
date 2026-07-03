@@ -764,6 +764,21 @@
       "translated": "$remoteGatewaySecurityRule $remoteGatewaySecurityFix"
     },
     {
+      "id": "native.android.d5230e4551045851",
+      "source": "Setup code uses an IPv6 zone ID. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "Mã thiết lập sử dụng ID vùng IPv6. Hãy dùng địa chỉ IPv6 không có phạm vi hoặc tên máy chủ LAN."
+    },
+    {
+      "id": "native.android.ca9fc2ce10f4028a",
+      "source": "QR code uses an IPv6 zone ID. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "Mã QR sử dụng ID vùng IPv6. Hãy dùng địa chỉ IPv6 không có phạm vi hoặc tên máy chủ LAN."
+    },
+    {
+      "id": "native.android.141236601fece71e",
+      "source": "IPv6 zone IDs are not supported. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "ID vùng IPv6 không được hỗ trợ. Hãy dùng địa chỉ IPv6 không có phạm vi hoặc tên máy chủ LAN."
+    },
+    {
       "id": "native.android.47e3c19d55f0150b",
       "source": "Setup code has invalid gateway URL.",
       "translated": "Mã thiết lập có URL gateway không hợp lệ."
@@ -5499,29 +5514,39 @@
       "translated": "\\(diagnosticsIssueCount)"
     },
     {
-      "id": "native.apple.f93745d2550799de",
-      "source": "Location \\(self.locationLabel)",
-      "translated": "Vị trí \\(self.locationLabel)"
-    },
-    {
       "id": "native.apple.acbedcae9f022c29",
       "source": "Location off",
       "translated": "Vị trí tắt"
     },
     {
-      "id": "native.apple.539d9f2b9cde9cb3",
-      "source": "Off",
-      "translated": "Tắt"
+      "id": "native.apple.7d31e35d20b78c2d",
+      "source": "Location While Using",
+      "translated": "Vị trí Khi sử dụng"
     },
     {
-      "id": "native.apple.86a934ca21b05d9c",
-      "source": "While Using",
-      "translated": "Khi sử dụng"
+      "id": "native.apple.b94b8d4e935c81fb",
+      "source": "Location While Using, effective Off",
+      "translated": "Vị trí Khi sử dụng, hiệu lực là Tắt"
     },
     {
-      "id": "native.apple.7774b67d295ea77d",
-      "source": "Always",
-      "translated": "Luôn luôn"
+      "id": "native.apple.6533895b2a1f2b2d",
+      "source": "Location While Using, effective Always",
+      "translated": "Vị trí Khi sử dụng, hiệu lực là Luôn luôn"
+    },
+    {
+      "id": "native.apple.c3c9d2baa0607380",
+      "source": "Location Always",
+      "translated": "Vị trí Luôn luôn"
+    },
+    {
+      "id": "native.apple.10fe695bb1cd3c62",
+      "source": "Location Always, effective While Using",
+      "translated": "Vị trí Luôn luôn, hiệu lực là Khi sử dụng"
+    },
+    {
+      "id": "native.apple.306454b6d067e1ee",
+      "source": "Location Always, effective Off",
+      "translated": "Vị trí Luôn luôn, hiệu lực là Tắt"
     },
     {
       "id": "native.apple.2829150c12160b55",
@@ -6647,6 +6672,111 @@
       "id": "native.apple.2275552c26460945",
       "source": "OpenClaw uses on-device speech recognition for talk mode and voice wake.",
       "translated": "OpenClaw sử dụng nhận dạng giọng nói trên thiết bị cho chế độ trò chuyện và đánh thức bằng giọng nói."
+    },
+    {
+      "id": "native.apple.cf0450b542893fb5",
+      "source": "Off",
+      "translated": "Tắt"
+    },
+    {
+      "id": "native.apple.c470d02f26ac51f6",
+      "source": "While Using",
+      "translated": "Khi sử dụng"
+    },
+    {
+      "id": "native.apple.663b3e453bb47c07",
+      "source": "Always",
+      "translated": "Luôn luôn"
+    },
+    {
+      "id": "native.apple.2dc593065171c201",
+      "source": "Location sharing is disabled in OpenClaw. Location Services are off in iOS Settings.",
+      "translated": "Chia sẻ vị trí đã bị tắt trong OpenClaw. Dịch vụ định vị đang tắt trong Cài đặt iOS."
+    },
+    {
+      "id": "native.apple.1dc990a9cc0500c5",
+      "source": "Location sharing is disabled in OpenClaw. iOS currently allows Always.",
+      "translated": "Chia sẻ vị trí đã bị tắt trong OpenClaw. iOS hiện cho phép Luôn luôn."
+    },
+    {
+      "id": "native.apple.9a4e858d2b218d41",
+      "source": "Location sharing is disabled in OpenClaw. iOS currently allows While Using.",
+      "translated": "Chia sẻ vị trí đã bị tắt trong OpenClaw. iOS hiện cho phép Khi sử dụng."
+    },
+    {
+      "id": "native.apple.ab481eb11214797f",
+      "source": "Location sharing is disabled.",
+      "translated": "Chia sẻ vị trí đã bị tắt."
+    },
+    {
+      "id": "native.apple.34699b6a26b51110",
+      "source": "Location Services are off in iOS Settings.",
+      "translated": "Dịch vụ định vị đang tắt trong Cài đặt iOS."
+    },
+    {
+      "id": "native.apple.3b96b639e7442ee3",
+      "source": "Foreground location requests are allowed. Precise Location is on.",
+      "translated": "Các yêu cầu vị trí khi ứng dụng ở nền trước được cho phép. Vị trí chính xác đang bật."
+    },
+    {
+      "id": "native.apple.9e537e22f834f4d5",
+      "source": "Foreground location requests are allowed. Precise Location is off.",
+      "translated": "Các yêu cầu vị trí khi ứng dụng ở nền trước được cho phép. Vị trí chính xác đang tắt."
+    },
+    {
+      "id": "native.apple.3241d6de1ab6b340",
+      "source": "Foreground location requests are allowed.",
+      "translated": "Các yêu cầu vị trí khi ứng dụng ở nền trước được cho phép."
+    },
+    {
+      "id": "native.apple.7b16935cf96c6ee3",
+      "source": "Background location requests and significant-change updates are allowed. Precise Location is on.",
+      "translated": "Các yêu cầu vị trí trong nền và cập nhật thay đổi đáng kể được cho phép. Vị trí chính xác đang bật."
+    },
+    {
+      "id": "native.apple.b1503179f7e1058d",
+      "source": "Background location requests and significant-change updates are allowed. Precise Location is off.",
+      "translated": "Các yêu cầu vị trí trong nền và cập nhật thay đổi đáng kể được cho phép. Vị trí chính xác đang tắt."
+    },
+    {
+      "id": "native.apple.6f63c4f93b7a9ab5",
+      "source": "Background location requests and significant-change updates are allowed.",
+      "translated": "Các yêu cầu vị trí trong nền và cập nhật thay đổi đáng kể được cho phép."
+    },
+    {
+      "id": "native.apple.95a6772115ad8b63",
+      "source": "Always is selected, but iOS currently allows location only while using the app. Precise Location is on.",
+      "translated": "Luôn luôn được chọn, nhưng iOS hiện chỉ cho phép vị trí khi đang sử dụng ứng dụng. Vị trí chính xác đang bật."
+    },
+    {
+      "id": "native.apple.8ab7fd180dc593f6",
+      "source": "Always is selected, but iOS currently allows location only while using the app. Precise Location is off.",
+      "translated": "Luôn luôn được chọn, nhưng iOS hiện chỉ cho phép vị trí khi đang sử dụng ứng dụng. Vị trí chính xác đang tắt."
+    },
+    {
+      "id": "native.apple.15bc589594491413",
+      "source": "Always is selected, but iOS currently allows location only while using the app.",
+      "translated": "Luôn luôn được chọn, nhưng iOS hiện chỉ cho phép vị trí khi đang sử dụng ứng dụng."
+    },
+    {
+      "id": "native.apple.30ce7ced43a0a752",
+      "source": "Location permission is denied in iOS Settings.",
+      "translated": "Quyền vị trí bị từ chối trong Cài đặt iOS."
+    },
+    {
+      "id": "native.apple.0de03d90e4280432",
+      "source": "Location permission is restricted on this device.",
+      "translated": "Quyền vị trí bị hạn chế trên thiết bị này."
+    },
+    {
+      "id": "native.apple.0d0506a7417e7d92",
+      "source": "Choose a location mode to request iOS permission.",
+      "translated": "Chọn chế độ vị trí để yêu cầu quyền iOS."
+    },
+    {
+      "id": "native.apple.633f011b81108a8c",
+      "source": "OpenClaw cannot determine the current iOS location permission.",
+      "translated": "OpenClaw không thể xác định quyền vị trí iOS hiện tại."
     },
     {
       "id": "native.apple.0d030e96f7738497",
