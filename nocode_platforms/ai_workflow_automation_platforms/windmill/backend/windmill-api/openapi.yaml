@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 
 info:
-  version: 1.745.0
+  version: 1.746.0
   title: Windmill API
 
   contact:
@@ -6221,12 +6221,15 @@ paths:
                     $ref: "#/components/schemas/QuotaInfo"
                   resources:
                     $ref: "#/components/schemas/QuotaInfo"
+                  forks:
+                    $ref: "#/components/schemas/QuotaInfo"
                 required:
                   - scripts
                   - flows
                   - apps
                   - variables
                   - resources
+                  - forks
 
   /w/{workspace}/workspaces/prune_versions:
     post:
@@ -19898,6 +19901,55 @@ paths:
             application/json:
               schema: {}
 
+  /w/{workspace}/job_helpers/storage_usage:
+    get:
+      summary: Get the storage usage of the workspace object storage, per configured storage. On Community Edition, also returns the workspace storage quota.
+      operationId: getStorageUsage
+      tags:
+        - helpers
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+        - name: refresh
+          in: query
+          description: recount usage by listing the storage instead of returning cached values
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Storage usage
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_bytes:
+                    type: integer
+                    format: int64
+                  quota_bytes:
+                    type: integer
+                    format: int64
+                    description: only present on Community Edition, where workspace storage is capped
+                  storages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        storage:
+                          type: string
+                        bytes:
+                          type: integer
+                          format: int64
+                        computed_at:
+                          type: string
+                          format: date-time
+                      required:
+                        - storage
+                        - bytes
+                        - computed_at
+                required:
+                  - total_bytes
+                  - storages
+
   /w/{workspace}/job_helpers/list_stored_files:
     get:
       summary: List the file keys available in a workspace object storage
@@ -21381,6 +21433,20 @@ paths:
                         in_pipeline:
                           type: boolean
                           description: True iff the script is a pipeline member (deployed with `// pipeline`). Omitted when false.
+                        macros:
+                          type: array
+                          description: Macros this script provides to the workspace registry (deployed `// macros` library). Omitted when empty.
+                          items:
+                            type: object
+                            required: [name, params, is_table]
+                            properties:
+                              name:
+                                type: string
+                              params:
+                                type: string
+                                description: verbatim parameter list
+                              is_table:
+                                type: boolean
                   edges:
                     type: array
                     items:
@@ -21446,6 +21512,56 @@ paths:
                               $ref: "#/components/schemas/AssetUsageKind"
                             runnable_path:
                               type: string
+                  macro_edges:
+                    type: array
+                    description: Macro-library → consumer edges (deploy-recorded call detection plus `// use`). Omitted when empty.
+                    items:
+                      type: object
+                      required: [lib_path, consumer_path, macro_names, via_use]
+                      properties:
+                        lib_path:
+                          type: string
+                        consumer_path:
+                          type: string
+                        macro_names:
+                          type: array
+                          items:
+                            type: string
+                        via_use:
+                          type: boolean
+
+  /w/{workspace}/assets/macros:
+    get:
+      summary: List every workspace DuckDB macro (deployed `// macros` libraries)
+      operationId: listWorkspaceMacros
+      tags:
+        - asset
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: all registry macros, ordered by provider then name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [name, params, body, is_table, provider_path]
+                  properties:
+                    name:
+                      type: string
+                    params:
+                      type: string
+                      description: verbatim parameter list
+                    body:
+                      type: string
+                      description: verbatim body after AS [TABLE]
+                    is_table:
+                      type: boolean
+                    provider_path:
+                      type: string
+                      description: path of the `// macros` library script
 
   /w/{workspace}/assets/pipelines:
     get:
@@ -22880,6 +22996,7 @@ components:
         [
           openai,
           azure_openai,
+          azure_foundry,
           anthropic,
           mistral,
           deepseek,
