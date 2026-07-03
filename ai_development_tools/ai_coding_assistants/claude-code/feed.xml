@@ -6,7 +6,30 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-07-02T23:35:12Z</updated>
+  <updated>2026-07-03T16:52:26Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.200</id>
+    <title>Claude Code v2.1.200</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.200"/>
+    <updated>2026-07-03T16:52:26Z</updated>
+    <content type="html">&lt;p&gt;• Changed AskUserQuestion dialogs to no longer auto-continue by default; opt into an idle timeout via /config&lt;/p&gt;
+&lt;p&gt;• Changed the "default" permission mode to "Manual" across the CLI, --help, VS Code, and JetBrains; --permission-mode manual and "defaultMode": "manual" are accepted alongside default&lt;/p&gt;
+&lt;p&gt;• Fixed a crash at startup when disabledMcpServers or enabledMcpServers in .claude.json is set to a non-array value&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions silently stopping mid-turn after sleep/wake or when reopening a stalled session&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions re-running a turn cancelled with Esc after a stall respawn&lt;/p&gt;
+&lt;p&gt;• Fixed background agents never starting again after a crash left a stale daemon.lock whose PID the OS reused&lt;/p&gt;
+&lt;p&gt;• Fixed background-agent daemon handover so a reinstalled older build can no longer take over the daemon; build recency is now judged by the version's embedded build timestamp&lt;/p&gt;
+&lt;p&gt;• Fixed background-agent roster issues: transient corruption permanently disabling orphan cleanup, older binaries not preserving fields written by newer versions, and socket auth tokens being stripped during daemon restarts&lt;/p&gt;
+&lt;p&gt;• Fixed subagents cut off by a rate limit before producing any text output returning an empty result instead of failing cleanly&lt;/p&gt;
+&lt;p&gt;• Fixed control bytes from background-agent output reaching the terminal in the agent view&lt;/p&gt;
+&lt;p&gt;• Fixed claude agents --plugin-dir &amp;lt;dir&amp;gt; not showing the plugin's agents and skills in the agent view when the flag is placed after agents&lt;/p&gt;
+&lt;p&gt;• Fixed project-scoped plugins not loading correctly from git worktrees of the same repository&lt;/p&gt;
+&lt;p&gt;• Fixed /mcp server list not tracking focus for screen readers and magnifiers&lt;/p&gt;
+&lt;p&gt;• Fixed voice dictation showing a misleading "Voice connection failed" message when a recording captures no audio&lt;/p&gt;
+&lt;p&gt;• Fixed rendering flicker under tmux 3.4+ by enabling synchronized terminal output&lt;/p&gt;
+&lt;p&gt;• Improved screen-reader output: decorative glyphs are now hidden, transcript symbols read as short labels, and nested tables read as Header: value. lines&lt;/p&gt;
+&lt;p&gt;• Improved the install script to explain when installation is killed by the system running out of memory&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.199</id>
     <title>Claude Code v2.1.199</title>
@@ -435,41 +458,5 @@
     <updated>2026-06-11T05:41:48Z</updated>
     <content type="html">&lt;p&gt;• Fixed Fable 5 model names with a [1m] suffix not being normalized — Fable 5 includes 1M context by default, so the suffix is now stripped automatically&lt;/p&gt;
 &lt;p&gt;• Fixed a spurious "sandbox dependencies missing" startup warning on Windows when sandbox was enabled in settings&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.172</id>
-    <title>Claude Code v2.1.172</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.172"/>
-    <updated>2026-06-10T20:44:09Z</updated>
-    <content type="html">&lt;p&gt;• Sub-agents can now spawn their own sub-agents (up to 5 levels deep)&lt;/p&gt;
-&lt;p&gt;• Amazon Bedrock now reads the AWS region from ~/.aws config files when AWS_REGION isn't set, matching AWS SDK precedence; /status shows where the region came from&lt;/p&gt;
-&lt;p&gt;• Added a search bar when browsing a marketplace's plugins in /plugin&lt;/p&gt;
-&lt;p&gt;• Added model attribute to the claude_code.lines_of_code.count OTEL metric&lt;/p&gt;
-&lt;p&gt;• Fixed sessions using 1M context without usage credits getting permanently stuck — the session now automatically compacts back under the standard context limit&lt;/p&gt;
-&lt;p&gt;• Fixed a repeating "an image in the conversation could not be processed and was removed" error when the conversation contained multiple images&lt;/p&gt;
-&lt;p&gt;• Fixed the agents view keeping a session under Working with a busy spinner for up to 30 seconds after the worker replied&lt;/p&gt;
-&lt;p&gt;• Fixed background agents potentially reading another directory's project settings (.mcp.json approvals, trust) when dispatched onto a pre-warmed worker&lt;/p&gt;
-&lt;p&gt;• Fixed background-session attach failing with EAUTH for sessions started on an older version after the daemon auto-updated&lt;/p&gt;
-&lt;p&gt;• Fixed a background sub-agent staying stuck as "active" in the agent panel after a nested agent it spawned was stopped&lt;/p&gt;
-&lt;p&gt;• Fixed /model suggestions in the claude agents dispatch input rendering with a misleading slash prefix and showing models disabled for your org&lt;/p&gt;
-&lt;p&gt;• Fixed availableModels restrictions not being applied to subagent model overrides, the agent dispatch model picker, and the advisor model&lt;/p&gt;
-&lt;p&gt;• Fixed availableModels allowlists hiding the /model picker's Opus and Sonnet 1M rows when entries use version-specific IDs like claude-opus-4-8&lt;/p&gt;
-&lt;p&gt;• Fixed the /model picker on Bedrock offering models the provider doesn't serve — selecting one silently switched the session model and lit the selection marker on multiple rows&lt;/p&gt;
-&lt;p&gt;• Fixed model IDs getting a doubled 1M-context suffix (e.g. [1M][1m]) when ANTHROPIC_DEFAULT_OPUS_MODEL already includes one&lt;/p&gt;
-&lt;p&gt;• Fixed opusplan model setting not shipping with 1M context in plan mode for entitled users; the opusplan[1m] workaround now also correctly switches to Opus in plan mode&lt;/p&gt;
-&lt;p&gt;• Fixed WebFetch(domain:*.example.com) wildcard domain rules never matching subdomains in allow, deny, and ask position, and file permission rules with mid-pattern wildcards (e.g. Read(secrets-*/config.json)) being rejected at startup&lt;/p&gt;
-&lt;p&gt;• Fixed up-arrow prompt history showing the main agent's prompts while a subagent's chat tab is open&lt;/p&gt;
-&lt;p&gt;• Fixed memory recall not finding mounted team memory stores (CLAUDE_MEMORY_STORES) in remote sessions&lt;/p&gt;
-&lt;p&gt;• Fixed workflow validation rejecting scripts whose prompt strings or comments merely mention Date.now()/Math.random()&lt;/p&gt;
-&lt;p&gt;• Disable mouse tracking on Windows consoles that don't fully support it&lt;/p&gt;
-&lt;p&gt;• Fixed the /plugin marketplace list losing its cursor after backing out of a long plugin list, and Esc from the plugin browser returning to the wrong tab&lt;/p&gt;
-&lt;p&gt;• Improved performance in long conversations by removing redundant message normalization and avoiding full message-history transforms when streaming tool-use state is unchanged&lt;/p&gt;
-&lt;p&gt;• Reduced idle CPU usage: /goal status chip no longer re-renders the terminal at 5 Hz while idle, and fewer UI re-renders while subagents run in parallel&lt;/p&gt;
-&lt;p&gt;• Improved Claude in Chrome tool loading: browser tools now load in a single batched call instead of one per tool&lt;/p&gt;
-&lt;p&gt;• Improved the non-interactive Usage Policy refusal message to suggest starting a new session or changing your model&lt;/p&gt;
-&lt;p&gt;• /code-review now keeps the ultra option visible when you're not signed in to claude.ai, with an explanation that the cloud review requires a claude.ai account&lt;/p&gt;
-&lt;p&gt;• Shortened the Remote Control footer indicator to "/rc active" and hid it on narrow terminals&lt;/p&gt;
-&lt;p&gt;• Stopped promoting /loop in remote sessions, where pending loops don't keep the container alive&lt;/p&gt;
-&lt;p&gt;• [VSCode] Fixed PowerShell tool calls rendering as raw JSON instead of a proper command display and permission dialog, and stripped ANSI escape codes from displayed shell output&lt;/p&gt;</content>
   </entry>
 </feed>
