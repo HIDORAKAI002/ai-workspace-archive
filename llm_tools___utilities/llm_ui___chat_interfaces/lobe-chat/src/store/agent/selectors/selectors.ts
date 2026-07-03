@@ -16,7 +16,7 @@ import {
   type MetaData,
   type RuntimeEnvConfig,
 } from '@lobechat/types';
-import { KnowledgeType } from '@lobechat/types';
+import { getWorkingDirEffectivePath, KnowledgeType } from '@lobechat/types';
 
 import { DEFAULT_OPENING_QUESTIONS } from '@/features/AgentSetting/store/selectors';
 import { resolveTargetDeviceId } from '@/helpers/agentWorkingDirectory';
@@ -274,7 +274,7 @@ const currentAgentWorkingDirectory =
     const agencyConfig = currentAgentConfig(s)?.agencyConfig;
     const targetDeviceId = resolveTargetDeviceId(agencyConfig, currentDeviceId);
     const agentChoice = targetDeviceId
-      ? agencyConfig?.workingDirByDevice?.[targetDeviceId]
+      ? getWorkingDirEffectivePath(agencyConfig?.workingDirByDevice?.[targetDeviceId])
       : undefined;
 
     return agentChoice ?? s.localAgentWorkingDirectoryMap[activeAgentId] ?? homePath;

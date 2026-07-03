@@ -1,7 +1,6 @@
 import { TASK_STATUSES } from '@lobechat/builtin-tool-task';
 import type { TaskListItem, TaskParticipant } from '@lobechat/types';
 import { TRPCError } from '@trpc/server';
-import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { withScopedPermission } from '@/business/server/trpc-middlewares/rbacPermission';
@@ -11,7 +10,6 @@ import { BriefModel } from '@/database/models/brief';
 import { TaskModel } from '@/database/models/task';
 import { TaskTopicModel } from '@/database/models/taskTopic';
 import { TopicModel } from '@/database/models/topic';
-import { workspaceMembers } from '@/database/schemas';
 import type { LobeChatDatabase } from '@/database/type';
 import { assertAgentUsableBy } from '@/database/utils/agent-access';
 import { router } from '@/libs/trpc/lambda';
@@ -21,6 +19,7 @@ import { publishResourceEvent } from '@/server/services/resourceEvents';
 import { TaskService } from '@/server/services/task';
 import { TaskLifecycleService } from '@/server/services/taskLifecycle';
 import { TaskRunnerService } from '@/server/services/taskRunner';
+import { hasWorkspaceScopedPermission } from '@/server/services/workspacePermission';
 import { TransferErrorCode } from '@/types/transferError';
 
 const taskProcedure = wsCompatProcedure.use(serverDatabase).use(async (opts) => {
@@ -1027,8 +1026,9 @@ export const taskRouter = router({
       }
 
       // Reject changing the assignee to a private agent on a public task —
-      // visibility invariant from LOBE-10961. `undefined` means "no change";
-      // `null` clears the assignee and is always safe.
+      // a public task must never be assigned to a private agent.
+      // `undefined` means "no change"; `null` clears the assignee and is
+      // always safe.
       if (data.assigneeAgentId) {
         const agentVisibility = await ctx.agentModel.getAgentVisibility(data.assigneeAgentId);
         ctx.taskService.assertAgentVisibilityCompat(resolved.visibility, agentVisibility);
@@ -1040,9 +1040,10 @@ export const taskRouter = router({
           : await resolveSafeParentTaskId(model, resolved.id, parentTaskId);
 
       // Reparenting a public task under a private one breaks the parent
-      // visibility invariant from LOBE-10962 #3 — workspace members would
-      // still see the child while its new parent is hidden. `undefined`
-      // means "no change"; `null` clears the parent and is always safe.
+      // visibility invariant — a subtask cannot be more public than its
+      // parent (otherwise workspace members would still see the child while
+      // its new parent is hidden). `undefined` means "no change"; `null`
+      // clears the parent and is always safe.
       if (resolvedParentTaskId) {
         const newParent = await model.findById(resolvedParentTaskId);
         ctx.taskService.assertParentVisibilityCompat(resolved.visibility, newParent?.visibility);
@@ -1089,7 +1090,7 @@ export const taskRouter = router({
         // Mirror the edit-lock contract from `update`: reject visibility flips
         // while another workspace member is actively editing this task. Without
         // this check a collaborator could silently retitle a private task to
-        // public (or vice versa) while you're mid-edit. LOBE-10962 #1.
+        // public (or vice versa) while you're mid-edit.
         if (ctx.workspaceId) {
           const blockedBy = await ctx.editLockService.getBlockingHolder('task', resolved.id);
           if (blockedBy) {
@@ -1106,18 +1107,14 @@ export const taskRouter = router({
         // policy at line ~1166): only they can change visibility on tasks
         // created by other members.
         if (ctx.workspaceId && resolved.createdByUserId !== ctx.userId) {
-          const [membership] = await ctx.serverDB
-            .select({ role: workspaceMembers.role })
-            .from(workspaceMembers)
-            .where(
-              and(
-                eq(workspaceMembers.workspaceId, ctx.workspaceId),
-                eq(workspaceMembers.userId, ctx.userId),
-                isNull(workspaceMembers.deletedAt),
-              ),
-            )
-            .limit(1);
-          if (!membership || membership.role !== 'owner') {
+          const canOverride = await hasWorkspaceScopedPermission({
+            action: 'AGENT_UPDATE',
+            db: ctx.serverDB,
+            scopes: ['ALL'],
+            userId: ctx.userId,
+            workspaceId: ctx.workspaceId,
+          });
+          if (!canOverride) {
             throw new TRPCError({
               code: 'FORBIDDEN',
               message: 'Only the task creator or workspace owner can change visibility',
@@ -1126,17 +1123,17 @@ export const taskRouter = router({
         }
 
         // Promoting a task to public while a private agent is its assignee
-        // breaks the visibility invariant from LOBE-10961. Reject early —
-        // the user should reassign first, then promote.
+        // breaks the visibility invariant. Reject early — the user should
+        // reassign first, then promote.
         if (input.visibility === 'public' && resolved.assigneeAgentId) {
           const agentVisibility = await ctx.agentModel.getAgentVisibility(resolved.assigneeAgentId);
           ctx.taskService.assertAgentVisibilityCompat(input.visibility, agentVisibility);
         }
 
         // Promoting a subtask to public while its parent is still private
-        // would orphan the child in the workspace view (LOBE-10962 #3). The
-        // user must promote the parent chain first, or keep the subtask
-        // private.
+        // would orphan the child in the workspace view — a subtask cannot
+        // be more public than its parent. The user must promote the parent
+        // chain first, or keep the subtask private.
         if (input.visibility === 'public' && resolved.parentTaskId) {
           const parent = await ctx.taskModel.findById(resolved.parentTaskId);
           ctx.taskService.assertParentVisibilityCompat(input.visibility, parent?.visibility);
@@ -1295,18 +1292,14 @@ export const taskRouter = router({
         });
 
       if (ctx.workspaceId && task.createdByUserId !== ctx.userId) {
-        const [membership] = await ctx.serverDB
-          .select({ role: workspaceMembers.role })
-          .from(workspaceMembers)
-          .where(
-            and(
-              eq(workspaceMembers.workspaceId, ctx.workspaceId),
-              eq(workspaceMembers.userId, ctx.userId),
-              isNull(workspaceMembers.deletedAt),
-            ),
-          )
-          .limit(1);
-        if (!membership || membership.role !== 'owner') {
+        const canOverride = await hasWorkspaceScopedPermission({
+          action: 'AGENT_UPDATE',
+          db: ctx.serverDB,
+          scopes: ['ALL'],
+          userId: ctx.userId,
+          workspaceId: ctx.workspaceId,
+        });
+        if (!canOverride) {
           throw new TRPCError({
             cause: { data: { code: TransferErrorCode.OwnerOnly } },
             code: 'FORBIDDEN',
@@ -1324,18 +1317,13 @@ export const taskRouter = router({
       }
 
       if (input.targetWorkspaceId) {
-        const [targetMembership] = await ctx.serverDB
-          .select({ role: workspaceMembers.role })
-          .from(workspaceMembers)
-          .where(
-            and(
-              eq(workspaceMembers.workspaceId, input.targetWorkspaceId),
-              eq(workspaceMembers.userId, ctx.userId),
-              isNull(workspaceMembers.deletedAt),
-            ),
-          )
-          .limit(1);
-        if (!targetMembership || targetMembership.role === 'viewer') {
+        const canWriteTarget = await hasWorkspaceScopedPermission({
+          action: 'AGENT_UPDATE',
+          db: ctx.serverDB,
+          userId: ctx.userId,
+          workspaceId: input.targetWorkspaceId,
+        });
+        if (!canWriteTarget) {
           throw new TRPCError({
             cause: { data: { code: TransferErrorCode.TargetNoWriteAccess } },
             code: 'FORBIDDEN',
@@ -1364,18 +1352,13 @@ export const taskRouter = router({
         });
 
       if (input.targetWorkspaceId) {
-        const [targetMembership] = await ctx.serverDB
-          .select({ role: workspaceMembers.role })
-          .from(workspaceMembers)
-          .where(
-            and(
-              eq(workspaceMembers.workspaceId, input.targetWorkspaceId),
-              eq(workspaceMembers.userId, ctx.userId),
-              isNull(workspaceMembers.deletedAt),
-            ),
-          )
-          .limit(1);
-        if (!targetMembership || targetMembership.role === 'viewer') {
+        const canWriteTarget = await hasWorkspaceScopedPermission({
+          action: 'AGENT_UPDATE',
+          db: ctx.serverDB,
+          userId: ctx.userId,
+          workspaceId: input.targetWorkspaceId,
+        });
+        if (!canWriteTarget) {
           throw new TRPCError({
             cause: { data: { code: TransferErrorCode.TargetNoWriteAccess } },
             code: 'FORBIDDEN',

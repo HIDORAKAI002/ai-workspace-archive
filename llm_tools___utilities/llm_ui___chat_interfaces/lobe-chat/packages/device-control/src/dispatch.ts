@@ -10,9 +10,11 @@ import {
   getLinkedPullRequest,
   listGitBranches,
   listGitRemoteBranches,
+  listGitWorktrees,
   moveLocalFiles,
   pullGitBranch,
   pushGitBranch,
+  removeGitWorktree,
   renameGitBranch,
   renameLocalFile,
   revertGitFile,
@@ -54,9 +56,11 @@ export const DEVICE_RPC_METHODS = [
   'getGitAheadBehind',
   'listGitBranches',
   'listGitRemoteBranches',
+  'listGitWorktrees',
   'checkoutGitBranch',
   'renameGitBranch',
   'deleteGitBranch',
+  'removeGitWorktree',
   'pullGitBranch',
   'pushGitBranch',
   'revertGitFile',
@@ -153,6 +157,10 @@ export const executeDeviceRpc = async (
       return listGitRemoteBranches((params as { path: string }).path);
     }
 
+    case 'listGitWorktrees': {
+      return listGitWorktrees((params as { path: string }).path);
+    }
+
     case 'checkoutGitBranch': {
       return checkoutGitBranch(params as { branch: string; create?: boolean; path: string });
     }
@@ -163,6 +171,10 @@ export const executeDeviceRpc = async (
 
     case 'deleteGitBranch': {
       return deleteGitBranch(params as { branch: string; path: string });
+    }
+
+    case 'removeGitWorktree': {
+      return removeGitWorktree(params as { path: string; worktreePath: string });
     }
 
     case 'pullGitBranch': {
