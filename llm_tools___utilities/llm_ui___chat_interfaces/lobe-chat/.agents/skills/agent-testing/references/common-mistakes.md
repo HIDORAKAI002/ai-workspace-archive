@@ -59,7 +59,60 @@ See `probe-mock-patterns.md` for the full working recipes.
 
 ---
 
-## Case 3 — (placeholder) append the user's next negative feedback below
+## Case 3 — Deriving the task from commit messages / branch name instead of the actual ask
+
+**Wrong approach**: on a resumed session with lost prior context, reading the
+branch name (`fix/hetero-callback-signal-metadata`) and top commits (signal
+metadata + Monitor re-enable) and concluding _that_ was the thing to verify —
+then spinning up a whole Monitor E2E — when the user's real task (" 异构 Agent
+消息块转发功能缺失 ") was an entirely different feature (message multi-select /
+forward not exposed on hetero agents). Made the user say "你是丢失上下文了吗？"
+and "你理解错了" twice.
+
+**Why it's wrong**: a branch's committed work is not necessarily the current
+ask. When context was summarized/lost, the commit history is a _hypothesis_, not
+the task. The task lives in the user's words.
+
+**What it breaks**: burned a full Monitor test run + two rounds of clarifying
+questions on the wrong feature before course-correcting.
+
+**Correct approach**: when the user references a task you don't have in context,
+say so plainly and RECOVER it before acting — check `.records/reports/` for
+prior sessions on this branch, read the live conversation's own messages (the
+desktop app persists them; the very first user turn is usually the task), or ask
+for a pointer. Only translate the ask into code/commits after it's grounded.
+Note: the LobeHub desktop app conversation you're driving may BE the host session
+running you — its message list is the source of truth for what was asked.
+
+---
+
+## Case 4 — Asserting a capture/tooling root cause from plausibility instead of measuring it
+
+**Wrong approach**: when a screenshot came out black and CDP capture failed, I
+declared root causes from what "sounded right" and published them: first
+"terminal lacks Screen Recording permission" (put it in the shipped report), then
+"CDP is immune to display sleep", then the opposite "headful CDP stalls when the
+display sleeps". Each was stated before running the experiment.
+
+**Why it's wrong**: every one was falsifiable in seconds and most were wrong.
+`CGPreflightScreenCaptureAccess` returned _granted_; a pixel probe showed the black
+frame was **display sleep**, not permission; a raw-CDP A/B (display asleep, window
+minimized) showed CDP capture works fine in both — so the real cause was the
+agent-browser daemon wedging (D5), not sleep at all.
+
+**What it breaks**: a **published report with a wrong root cause**, plus wasted
+round-trips flip-flopping and having to retract each claim.
+
+**Correct approach**: for any capture / permission / timing / "environment"
+failure, **reproduce and measure before asserting or publishing** — pixel
+brightness (mean/max) for blackness, `CGPreflightScreenCaptureAccess` for the TCC
+bit, an A/B with the variable toggled (display asleep vs awake; window normal vs
+minimized) to isolate the cause. State "confirmed by X" vs "suspected", and never
+ship a root cause into a report that a one-line probe could have checked.
+
+---
+
+## Case 5 — (placeholder) append the user's next negative feedback below
 
 <!-- New case template:
 ## Case N — one-line summary of the mistake

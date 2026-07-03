@@ -53,7 +53,8 @@ describe("research.searchPapers", () => {
     const { client, calls } = makeClient(() => ({ status: 200, data: { results: [] } }));
     await client.searchPapers("q");
     const qs = new URLSearchParams(calls[0].split("?")[1]);
-    expect([...qs.keys()]).toEqual(["query"]);
+    expect([...qs.keys()]).toEqual(["query", "origin"]);
+    expect(qs.get("origin")).toMatch(/^js-sdk@/);
   });
 
   test("rejects empty query", async () => {
@@ -74,10 +75,14 @@ describe("research.searchPapers", () => {
 });
 
 describe("research.getPaper", () => {
-  test("detail mode encodes the id and sends no query params", async () => {
+  test("detail mode encodes the id and sends only the origin param", async () => {
     const { client, calls } = makeClient(() => ({ status: 200, data: { paper: {} } }));
     await client.getPaper("arxiv:2105.05233");
-    expect(calls[0]).toBe("/v2/search/research/papers/arxiv%3A2105.05233");
+    const [path, query] = calls[0].split("?");
+    expect(path).toBe("/v2/search/research/papers/arxiv%3A2105.05233");
+    const qs = new URLSearchParams(query);
+    expect([...qs.keys()]).toEqual(["origin"]);
+    expect(qs.get("origin")).toMatch(/^js-sdk@/);
   });
 
   test("read mode adds query and k", async () => {
