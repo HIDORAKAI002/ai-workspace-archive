@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-07-03 08:22 IST] Auto-Sync
+- **28 Repositories Updated:** MCP TypeScript SDK, Langfuse, Dify, Trigger.dev, Windmill, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, milvus-io/milvus, arize-ai/phoenix, Arize-ai/openinference, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, obra/superpowers, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-07-03 01:21 IST] Auto-Sync
 - **44 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Langfuse, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Budibase, modelcontextprotocol/csharp-sdk, modelcontextprotocol/rust-sdk, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/mcp-for-beginners, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, openlit/openlit, BradyFU/Awesome-Multimodal-Large-Language-Models, danny-avila/LibreChat, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
 

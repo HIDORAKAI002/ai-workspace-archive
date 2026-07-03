@@ -6,13 +6,44 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-07-01T20:45:29Z</updated>
+  <updated>2026-07-02T23:35:12Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.199</id>
+    <title>Claude Code v2.1.199</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.199"/>
+    <updated>2026-07-02T23:35:12Z</updated>
+    <content type="html">&lt;p&gt;• Stacked slash-skill invocations like /skill-a /skill-b do XYZ now load all leading skills (up to 5), not just the first&lt;/p&gt;
+&lt;p&gt;• Fixed SSL certificate errors (TLS-inspecting proxies, missing NODE_EXTRA_CA_CERTS, expired certs) burning retries before showing actionable guidance — they now fail immediately with the fix hint&lt;/p&gt;
+&lt;p&gt;• Fixed streaming responses being discarded when the API emits a mid-stream overloaded/server error after partial output — the partial is now kept with an incomplete-response notice&lt;/p&gt;
+&lt;p&gt;• Fixed subagents cut off by a rate limit or server error silently failing instead of returning their partial work to the parent&lt;/p&gt;
+&lt;p&gt;• Fixed subagents reporting API errors (e.g. usage limit reached) as successful results — the error is now reported to the parent agent&lt;/p&gt;
+&lt;p&gt;• Fixed the background-agent daemon on Linux killing itself and every running agent every ~50 seconds after an unclean shutdown left a corrupted worker record&lt;/p&gt;
+&lt;p&gt;• Fixed background agents failing to cold-start over SSH on macOS with "Could not switch to audit session" (regression in 2.1.196)&lt;/p&gt;
+&lt;p&gt;• Fixed claude stop being silently undone when it raced a background-agent respawn — the respawn now honors the stop&lt;/p&gt;
+&lt;p&gt;• Fixed background job progress indicators stalling for minutes while the job ran long commands&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions on memory-starved machines showing a generic error — they now indicate low memory and suggest freeing resources&lt;/p&gt;
+&lt;p&gt;• Fixed remote sessions briefly flapping between Working and Idle in the agent view when a background agent completes&lt;/p&gt;
+&lt;p&gt;• Fixed idle subagents vanishing from the agent panel while other subagents were still working; surplus idle agents now collapse into an expandable summary row&lt;/p&gt;
+&lt;p&gt;• Fixed typing /model or /fast while viewing a subagent silently opening the lead's model picker — a notice now explains the command applies to the lead&lt;/p&gt;
+&lt;p&gt;• Fixed SessionStart, Setup, and SubagentStart hooks silently hiding stderr when exiting with code 2 — the error is now shown in the transcript&lt;/p&gt;
+&lt;p&gt;• Fixed claude --dangerously-skip-permissions daemon &amp;lt;subcommand&amp;gt; being treated as a chat prompt instead of running the subcommand&lt;/p&gt;
+&lt;p&gt;• Fixed SendMessage silently misrouting when a re-spawned agent reuses a previous agent's name — the tool now detects the mismatch and asks the caller to retarget&lt;/p&gt;
+&lt;p&gt;• Fixed opening or resuming a session with no new messages needlessly growing the transcript file&lt;/p&gt;
+&lt;p&gt;• Fixed backgrounding a session with ← or /background dropping its /color from the agent view row&lt;/p&gt;
+&lt;p&gt;• Fixed resetting a corrupted config file from the startup recovery dialog destroying it unrecoverably — it now backs up the file first&lt;/p&gt;
+&lt;p&gt;• Fixed Claude in Chrome repeatedly opening the reconnect page when sessions run from different builds or config directories&lt;/p&gt;
+&lt;p&gt;• Fixed plan mode not prompting for state-changing browser tool calls; read-only browser_batch calls are now correctly auto-allowed&lt;/p&gt;
+&lt;p&gt;• Transient server rate-limit errors (429s unrelated to your usage limit) are now retried automatically with backoff for subscribers instead of failing the turn&lt;/p&gt;
+&lt;p&gt;• CLAUDE_CODE_RETRY_WATCHDOG now raises the default retry count for non-capacity transient errors to 300 and lifts the cap of 15 on CLAUDE_CODE_MAX_RETRIES&lt;/p&gt;
+&lt;p&gt;• claude agents session rows now show pull-request links as bare #N without the redundant "PR" label&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.198</id>
     <title>Claude Code v2.1.198</title>
     <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.198"/>
     <updated>2026-07-01T20:45:29Z</updated>
-    <content type="html">&lt;p&gt;• Claude in Chrome is now generally available&lt;/p&gt;
+    <content type="html">&lt;p&gt;• Subagents now run in the background by default, so Claude keeps working while they run and is notified when they finish (previously a gradual rollout)&lt;/p&gt;
+&lt;p&gt;• Claude in Chrome is now generally available&lt;/p&gt;
 &lt;p&gt;• Added background agent notifications in claude agents — sessions that need input or finish now fire the Notification hook (agent_needs_input / agent_completed)&lt;/p&gt;
 &lt;p&gt;• Added /dataviz skill for chart and dashboard design guidance with a runnable color-palette validator&lt;/p&gt;
 &lt;p&gt;• Gateway: added Claude Platform on AWS (anthropicAws) as an upstream provider; model-not-found responses now advance the failover chain&lt;/p&gt;
@@ -440,13 +471,5 @@
 &lt;p&gt;• Shortened the Remote Control footer indicator to "/rc active" and hid it on narrow terminals&lt;/p&gt;
 &lt;p&gt;• Stopped promoting /loop in remote sessions, where pending loops don't keep the container alive&lt;/p&gt;
 &lt;p&gt;• [VSCode] Fixed PowerShell tool calls rendering as raw JSON instead of a proper command display and permission dialog, and stripped ANSI escape codes from displayed shell output&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.170</id>
-    <title>Claude Code v2.1.170</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.170"/>
-    <updated>2026-06-09T17:23:03Z</updated>
-    <content type="html">&lt;p&gt;• Introducing Claude Fable 5: a Mythos-class model that we’ve made safe for general use. Fable’s capabilities exceed those of any model we’ve ever made generally available. Update to version 2.1.170 for access. https://www.anthropic.com/news/claude-fable-5-mythos-5&lt;/p&gt;
-&lt;p&gt;• Fixed sessions not saving transcripts (and not appearing in --resume) when launched from the VS Code integrated terminal or any shell that inherited Claude Code environment variables.&lt;/p&gt;</content>
   </entry>
 </feed>
