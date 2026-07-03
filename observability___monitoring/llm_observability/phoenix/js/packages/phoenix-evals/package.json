@@ -1,6 +1,6 @@
 {
   "name": "@arizeai/phoenix-evals",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A library for running evaluations for AI use cases",
   "keywords": [
     "arize",
@@ -39,6 +39,14 @@
     "./llm/*": {
       "import": "./dist/esm/llm/*.js",
       "require": "./dist/src/llm/*.js"
+    },
+    "./code": {
+      "import": "./dist/esm/code/index.js",
+      "require": "./dist/src/code/index.js"
+    },
+    "./code/*": {
+      "import": "./dist/esm/code/*.js",
+      "require": "./dist/src/code/*.js"
     },
     "./template/*": {
       "import": "./dist/esm/template/*.js",
