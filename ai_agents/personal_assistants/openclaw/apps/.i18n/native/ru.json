@@ -764,6 +764,21 @@
       "translated": "$remoteGatewaySecurityRule $remoteGatewaySecurityFix"
     },
     {
+      "id": "native.android.d5230e4551045851",
+      "source": "Setup code uses an IPv6 zone ID. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "Код настройки использует идентификатор зоны IPv6. Используйте IPv6-адрес без области действия или имя хоста в LAN."
+    },
+    {
+      "id": "native.android.ca9fc2ce10f4028a",
+      "source": "QR code uses an IPv6 zone ID. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "QR-код использует идентификатор зоны IPv6. Используйте IPv6-адрес без области действия или имя хоста в LAN."
+    },
+    {
+      "id": "native.android.141236601fece71e",
+      "source": "IPv6 zone IDs are not supported. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "Идентификаторы зон IPv6 не поддерживаются. Используйте IPv6-адрес без области действия или имя хоста в LAN."
+    },
+    {
       "id": "native.android.47e3c19d55f0150b",
       "source": "Setup code has invalid gateway URL.",
       "translated": "Код настройки содержит недействительный URL Gateway."
@@ -5499,29 +5514,39 @@
       "translated": "\\(diagnosticsIssueCount)"
     },
     {
-      "id": "native.apple.f93745d2550799de",
-      "source": "Location \\(self.locationLabel)",
-      "translated": "Местоположение \\(self.locationLabel)"
-    },
-    {
       "id": "native.apple.acbedcae9f022c29",
       "source": "Location off",
       "translated": "Геолокация выключена"
     },
     {
-      "id": "native.apple.539d9f2b9cde9cb3",
-      "source": "Off",
-      "translated": "Выкл."
+      "id": "native.apple.7d31e35d20b78c2d",
+      "source": "Location While Using",
+      "translated": "Геопозиция при использовании"
     },
     {
-      "id": "native.apple.86a934ca21b05d9c",
-      "source": "While Using",
-      "translated": "При использовании"
+      "id": "native.apple.b94b8d4e935c81fb",
+      "source": "Location While Using, effective Off",
+      "translated": "Геопозиция при использовании, фактически выключено"
     },
     {
-      "id": "native.apple.7774b67d295ea77d",
-      "source": "Always",
-      "translated": "Всегда"
+      "id": "native.apple.6533895b2a1f2b2d",
+      "source": "Location While Using, effective Always",
+      "translated": "Геопозиция при использовании, фактически всегда"
+    },
+    {
+      "id": "native.apple.c3c9d2baa0607380",
+      "source": "Location Always",
+      "translated": "Геопозиция всегда"
+    },
+    {
+      "id": "native.apple.10fe695bb1cd3c62",
+      "source": "Location Always, effective While Using",
+      "translated": "Геопозиция всегда, фактически при использовании"
+    },
+    {
+      "id": "native.apple.306454b6d067e1ee",
+      "source": "Location Always, effective Off",
+      "translated": "Геопозиция всегда, фактически выключено"
     },
     {
       "id": "native.apple.2829150c12160b55",
@@ -6647,6 +6672,111 @@
       "id": "native.apple.2275552c26460945",
       "source": "OpenClaw uses on-device speech recognition for talk mode and voice wake.",
       "translated": "OpenClaw использует распознавание речи на устройстве для режима разговора и голосовой активации."
+    },
+    {
+      "id": "native.apple.cf0450b542893fb5",
+      "source": "Off",
+      "translated": "Выключено"
+    },
+    {
+      "id": "native.apple.c470d02f26ac51f6",
+      "source": "While Using",
+      "translated": "При использовании"
+    },
+    {
+      "id": "native.apple.663b3e453bb47c07",
+      "source": "Always",
+      "translated": "Всегда"
+    },
+    {
+      "id": "native.apple.2dc593065171c201",
+      "source": "Location sharing is disabled in OpenClaw. Location Services are off in iOS Settings.",
+      "translated": "Передача геопозиции отключена в OpenClaw. Службы геолокации выключены в настройках iOS."
+    },
+    {
+      "id": "native.apple.1dc990a9cc0500c5",
+      "source": "Location sharing is disabled in OpenClaw. iOS currently allows Always.",
+      "translated": "Передача геопозиции отключена в OpenClaw. Сейчас iOS разрешает «Всегда»."
+    },
+    {
+      "id": "native.apple.9a4e858d2b218d41",
+      "source": "Location sharing is disabled in OpenClaw. iOS currently allows While Using.",
+      "translated": "Передача геопозиции отключена в OpenClaw. Сейчас iOS разрешает «При использовании»."
+    },
+    {
+      "id": "native.apple.ab481eb11214797f",
+      "source": "Location sharing is disabled.",
+      "translated": "Передача геопозиции отключена."
+    },
+    {
+      "id": "native.apple.34699b6a26b51110",
+      "source": "Location Services are off in iOS Settings.",
+      "translated": "Службы геолокации выключены в настройках iOS."
+    },
+    {
+      "id": "native.apple.3b96b639e7442ee3",
+      "source": "Foreground location requests are allowed. Precise Location is on.",
+      "translated": "Запросы геопозиции на переднем плане разрешены. Точная геопозиция включена."
+    },
+    {
+      "id": "native.apple.9e537e22f834f4d5",
+      "source": "Foreground location requests are allowed. Precise Location is off.",
+      "translated": "Запросы геопозиции на переднем плане разрешены. Точная геопозиция выключена."
+    },
+    {
+      "id": "native.apple.3241d6de1ab6b340",
+      "source": "Foreground location requests are allowed.",
+      "translated": "Запросы геопозиции на переднем плане разрешены."
+    },
+    {
+      "id": "native.apple.7b16935cf96c6ee3",
+      "source": "Background location requests and significant-change updates are allowed. Precise Location is on.",
+      "translated": "Запросы геопозиции в фоновом режиме и обновления при значительном изменении местоположения разрешены. Точная геопозиция включена."
+    },
+    {
+      "id": "native.apple.b1503179f7e1058d",
+      "source": "Background location requests and significant-change updates are allowed. Precise Location is off.",
+      "translated": "Запросы геопозиции в фоновом режиме и обновления при значительном изменении местоположения разрешены. Точная геопозиция выключена."
+    },
+    {
+      "id": "native.apple.6f63c4f93b7a9ab5",
+      "source": "Background location requests and significant-change updates are allowed.",
+      "translated": "Запросы геопозиции в фоновом режиме и обновления при значительном изменении местоположения разрешены."
+    },
+    {
+      "id": "native.apple.95a6772115ad8b63",
+      "source": "Always is selected, but iOS currently allows location only while using the app. Precise Location is on.",
+      "translated": "Выбрано «Всегда», но сейчас iOS разрешает доступ к геопозиции только при использовании приложения. Точная геопозиция включена."
+    },
+    {
+      "id": "native.apple.8ab7fd180dc593f6",
+      "source": "Always is selected, but iOS currently allows location only while using the app. Precise Location is off.",
+      "translated": "Выбрано «Всегда», но сейчас iOS разрешает доступ к геопозиции только при использовании приложения. Точная геопозиция выключена."
+    },
+    {
+      "id": "native.apple.15bc589594491413",
+      "source": "Always is selected, but iOS currently allows location only while using the app.",
+      "translated": "Выбрано «Всегда», но сейчас iOS разрешает доступ к геопозиции только при использовании приложения."
+    },
+    {
+      "id": "native.apple.30ce7ced43a0a752",
+      "source": "Location permission is denied in iOS Settings.",
+      "translated": "Доступ к геопозиции запрещен в настройках iOS."
+    },
+    {
+      "id": "native.apple.0de03d90e4280432",
+      "source": "Location permission is restricted on this device.",
+      "translated": "Доступ к геопозиции ограничен на этом устройстве."
+    },
+    {
+      "id": "native.apple.0d0506a7417e7d92",
+      "source": "Choose a location mode to request iOS permission.",
+      "translated": "Выберите режим геопозиции, чтобы запросить разрешение iOS."
+    },
+    {
+      "id": "native.apple.633f011b81108a8c",
+      "source": "OpenClaw cannot determine the current iOS location permission.",
+      "translated": "OpenClaw не удается определить текущее разрешение iOS на доступ к геопозиции."
     },
     {
       "id": "native.apple.0d030e96f7738497",

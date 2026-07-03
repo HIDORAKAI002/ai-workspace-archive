@@ -764,6 +764,21 @@
       "translated": "$remoteGatewaySecurityRule $remoteGatewaySecurityFix"
     },
     {
+      "id": "native.android.d5230e4551045851",
+      "source": "Setup code uses an IPv6 zone ID. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "Installatiecode gebruikt een IPv6-zone-ID. Gebruik een IPv6-adres zonder scope of een LAN-hostnaam."
+    },
+    {
+      "id": "native.android.ca9fc2ce10f4028a",
+      "source": "QR code uses an IPv6 zone ID. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "QR-code gebruikt een IPv6-zone-ID. Gebruik een IPv6-adres zonder scope of een LAN-hostnaam."
+    },
+    {
+      "id": "native.android.141236601fece71e",
+      "source": "IPv6 zone IDs are not supported. Use an unscoped IPv6 address or a LAN hostname.",
+      "translated": "IPv6-zone-ID's worden niet ondersteund. Gebruik een IPv6-adres zonder scope of een LAN-hostnaam."
+    },
+    {
       "id": "native.android.47e3c19d55f0150b",
       "source": "Setup code has invalid gateway URL.",
       "translated": "De setupcode heeft een ongeldige Gateway-URL."
@@ -5499,29 +5514,39 @@
       "translated": "\\(diagnosticsIssueCount)"
     },
     {
-      "id": "native.apple.f93745d2550799de",
-      "source": "Location \\(self.locationLabel)",
-      "translated": "Locatie \\(self.locationLabel)"
-    },
-    {
       "id": "native.apple.acbedcae9f022c29",
       "source": "Location off",
       "translated": "Locatie uit"
     },
     {
-      "id": "native.apple.539d9f2b9cde9cb3",
-      "source": "Off",
-      "translated": "Uit"
+      "id": "native.apple.7d31e35d20b78c2d",
+      "source": "Location While Using",
+      "translated": "Locatie bij gebruik"
     },
     {
-      "id": "native.apple.86a934ca21b05d9c",
-      "source": "While Using",
-      "translated": "Bij gebruik"
+      "id": "native.apple.b94b8d4e935c81fb",
+      "source": "Location While Using, effective Off",
+      "translated": "Locatie bij gebruik, effectief Uit"
     },
     {
-      "id": "native.apple.7774b67d295ea77d",
-      "source": "Always",
-      "translated": "Altijd"
+      "id": "native.apple.6533895b2a1f2b2d",
+      "source": "Location While Using, effective Always",
+      "translated": "Locatie bij gebruik, effectief Altijd"
+    },
+    {
+      "id": "native.apple.c3c9d2baa0607380",
+      "source": "Location Always",
+      "translated": "Locatie altijd"
+    },
+    {
+      "id": "native.apple.10fe695bb1cd3c62",
+      "source": "Location Always, effective While Using",
+      "translated": "Locatie altijd, effectief Bij gebruik"
+    },
+    {
+      "id": "native.apple.306454b6d067e1ee",
+      "source": "Location Always, effective Off",
+      "translated": "Locatie altijd, effectief Uit"
     },
     {
       "id": "native.apple.2829150c12160b55",
@@ -6647,6 +6672,111 @@
       "id": "native.apple.2275552c26460945",
       "source": "OpenClaw uses on-device speech recognition for talk mode and voice wake.",
       "translated": "OpenClaw gebruikt spraakherkenning op het apparaat voor de praatmodus en spraakactivering."
+    },
+    {
+      "id": "native.apple.cf0450b542893fb5",
+      "source": "Off",
+      "translated": "Uit"
+    },
+    {
+      "id": "native.apple.c470d02f26ac51f6",
+      "source": "While Using",
+      "translated": "Bij gebruik"
+    },
+    {
+      "id": "native.apple.663b3e453bb47c07",
+      "source": "Always",
+      "translated": "Altijd"
+    },
+    {
+      "id": "native.apple.2dc593065171c201",
+      "source": "Location sharing is disabled in OpenClaw. Location Services are off in iOS Settings.",
+      "translated": "Locatiedeling is uitgeschakeld in OpenClaw. Locatievoorzieningen zijn uitgeschakeld in iOS-instellingen."
+    },
+    {
+      "id": "native.apple.1dc990a9cc0500c5",
+      "source": "Location sharing is disabled in OpenClaw. iOS currently allows Always.",
+      "translated": "Locatiedeling is uitgeschakeld in OpenClaw. iOS staat momenteel Altijd toe."
+    },
+    {
+      "id": "native.apple.9a4e858d2b218d41",
+      "source": "Location sharing is disabled in OpenClaw. iOS currently allows While Using.",
+      "translated": "Locatiedeling is uitgeschakeld in OpenClaw. iOS staat momenteel Bij gebruik toe."
+    },
+    {
+      "id": "native.apple.ab481eb11214797f",
+      "source": "Location sharing is disabled.",
+      "translated": "Locatiedeling is uitgeschakeld."
+    },
+    {
+      "id": "native.apple.34699b6a26b51110",
+      "source": "Location Services are off in iOS Settings.",
+      "translated": "Locatievoorzieningen zijn uitgeschakeld in iOS-instellingen."
+    },
+    {
+      "id": "native.apple.3b96b639e7442ee3",
+      "source": "Foreground location requests are allowed. Precise Location is on.",
+      "translated": "Locatieverzoeken op de voorgrond zijn toegestaan. Exacte locatie is ingeschakeld."
+    },
+    {
+      "id": "native.apple.9e537e22f834f4d5",
+      "source": "Foreground location requests are allowed. Precise Location is off.",
+      "translated": "Locatieverzoeken op de voorgrond zijn toegestaan. Exacte locatie is uitgeschakeld."
+    },
+    {
+      "id": "native.apple.3241d6de1ab6b340",
+      "source": "Foreground location requests are allowed.",
+      "translated": "Locatieverzoeken op de voorgrond zijn toegestaan."
+    },
+    {
+      "id": "native.apple.7b16935cf96c6ee3",
+      "source": "Background location requests and significant-change updates are allowed. Precise Location is on.",
+      "translated": "Locatieverzoeken op de achtergrond en updates bij significante wijzigingen zijn toegestaan. Exacte locatie is ingeschakeld."
+    },
+    {
+      "id": "native.apple.b1503179f7e1058d",
+      "source": "Background location requests and significant-change updates are allowed. Precise Location is off.",
+      "translated": "Locatieverzoeken op de achtergrond en updates bij significante wijzigingen zijn toegestaan. Exacte locatie is uitgeschakeld."
+    },
+    {
+      "id": "native.apple.6f63c4f93b7a9ab5",
+      "source": "Background location requests and significant-change updates are allowed.",
+      "translated": "Locatieverzoeken op de achtergrond en updates bij significante wijzigingen zijn toegestaan."
+    },
+    {
+      "id": "native.apple.95a6772115ad8b63",
+      "source": "Always is selected, but iOS currently allows location only while using the app. Precise Location is on.",
+      "translated": "Altijd is geselecteerd, maar iOS staat locatie momenteel alleen toe tijdens het gebruik van de app. Exacte locatie is ingeschakeld."
+    },
+    {
+      "id": "native.apple.8ab7fd180dc593f6",
+      "source": "Always is selected, but iOS currently allows location only while using the app. Precise Location is off.",
+      "translated": "Altijd is geselecteerd, maar iOS staat locatie momenteel alleen toe tijdens het gebruik van de app. Exacte locatie is uitgeschakeld."
+    },
+    {
+      "id": "native.apple.15bc589594491413",
+      "source": "Always is selected, but iOS currently allows location only while using the app.",
+      "translated": "Altijd is geselecteerd, maar iOS staat locatie momenteel alleen toe tijdens het gebruik van de app."
+    },
+    {
+      "id": "native.apple.30ce7ced43a0a752",
+      "source": "Location permission is denied in iOS Settings.",
+      "translated": "Locatietoestemming is geweigerd in iOS-instellingen."
+    },
+    {
+      "id": "native.apple.0de03d90e4280432",
+      "source": "Location permission is restricted on this device.",
+      "translated": "Locatietoestemming is beperkt op dit apparaat."
+    },
+    {
+      "id": "native.apple.0d0506a7417e7d92",
+      "source": "Choose a location mode to request iOS permission.",
+      "translated": "Kies een locatiemodus om iOS-toestemming aan te vragen."
+    },
+    {
+      "id": "native.apple.633f011b81108a8c",
+      "source": "OpenClaw cannot determine the current iOS location permission.",
+      "translated": "OpenClaw kan de huidige iOS-locatietoestemming niet bepalen."
     },
     {
       "id": "native.apple.0d030e96f7738497",
