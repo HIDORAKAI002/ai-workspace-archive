@@ -26,10 +26,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -37,7 +38,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
 
       - name: Install git-cliff
         # not allowed by NVIDIA
@@ -77,9 +78,11 @@ jobs:
         run: |
           git cliff \
             --unreleased \
-            --tag     v${{ steps.version.outputs.version }} \
+            --tag     v${STEPS_VERSION_OUTPUTS_VERSION} \
             --strip all \
             > CHANGELOG.new.md
+        env:
+          STEPS_VERSION_OUTPUTS_VERSION: ${{ steps.version.outputs.version }}
 
       - name: Inject release block just above the previous entry
         run: |
@@ -97,7 +100,9 @@ jobs:
             && rm CHANGELOG.new.md
 
       - name: Update version with uv
-        run: uv version --no-sync "${{ steps.version.outputs.version }}"
+        run: uv version --no-sync "${STEPS_VERSION_OUTPUTS_VERSION}"
+        env:
+          STEPS_VERSION_OUTPUTS_VERSION: ${{ steps.version.outputs.version }}
 
       - name: Update version in README.md
         env:
@@ -141,7 +146,7 @@ jobs:
           PY
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: chore/release-${{ steps.version.outputs.version }}

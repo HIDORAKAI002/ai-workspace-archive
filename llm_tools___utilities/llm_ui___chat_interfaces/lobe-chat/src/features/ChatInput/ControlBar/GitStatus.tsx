@@ -13,11 +13,13 @@ import {
   useFetchGitBranch,
   useFetchGitLinkedPR,
   useFetchGitWorkingTreeStatus,
+  useFetchGitWorktrees,
 } from '@/store/device';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 
 import BranchSwitcher from './BranchSwitcher';
+import WorktreeSwitcher from './WorktreeSwitcher';
 
 const styles = createStaticStyles(({ css }) => {
   return {
@@ -147,12 +149,14 @@ const styles = createStaticStyles(({ css }) => {
 interface GitStatusProps {
   /** When set, git status / branch switch / pull / push all run against this
    * remote device via RPC. Omit for the local machine (talks over IPC). */
+  agentId: string;
   deviceId?: string;
   isGithub: boolean;
   path: string;
+  sourcePath?: string;
 }
 
-const GitStatus = memo<GitStatusProps>(({ path, isGithub, deviceId }) => {
+const GitStatus = memo<GitStatusProps>(({ agentId, path, sourcePath, isGithub, deviceId }) => {
   const { t } = useTranslation('device');
   // Transport (Electron IPC vs device RPC) is decided inside the service; the
   // component just reads, identically for local and remote.
@@ -167,6 +171,7 @@ const GitStatus = memo<GitStatusProps>(({ path, isGithub, deviceId }) => {
     path,
   );
   const { data: aheadBehind, mutate: mutateAheadBehind } = useFetchGitAheadBehind(deviceId, path);
+  const { data: worktrees = [], mutate: mutateWorktrees } = useFetchGitWorktrees(deviceId, path);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [pulling, setPulling] = useState(false);
   const [pushing, setPushing] = useState(false);
@@ -191,8 +196,14 @@ const GitStatus = memo<GitStatusProps>(({ path, isGithub, deviceId }) => {
   }, [showRightPanel, workingSidebarTab, setWorkingSidebarTab, toggleRightPanel]);
 
   const refreshAfterSync = useCallback(async () => {
-    await Promise.all([mutateBranch(), mutatePR(), mutateWorkingStatus(), mutateAheadBehind()]);
-  }, [mutateBranch, mutatePR, mutateWorkingStatus, mutateAheadBehind]);
+    await Promise.all([
+      mutateBranch(),
+      mutatePR(),
+      mutateWorkingStatus(),
+      mutateAheadBehind(),
+      mutateWorktrees(),
+    ]);
+  }, [mutateBranch, mutatePR, mutateWorkingStatus, mutateAheadBehind, mutateWorktrees]);
 
   // Flip the displayed branch instantly on checkout. No revalidate here — the
   // switcher's onAfterCheckout reconciles once the checkout lands. The linked-PR
@@ -285,7 +296,21 @@ const GitStatus = memo<GitStatusProps>(({ path, isGithub, deviceId }) => {
     </div>
   );
 
-  const branchNode = detached ? (
+  const hasMultipleWorktrees = worktrees.length > 1;
+
+  const branchNode = hasMultipleWorktrees ? (
+    <WorktreeSwitcher
+      agentId={agentId}
+      currentBranch={branch}
+      detached={detached}
+      deviceId={deviceId}
+      isGithub={isGithub}
+      path={path}
+      sourcePath={sourcePath ?? path}
+      worktrees={worktrees}
+      onWorktreesChange={mutateWorktrees}
+    />
+  ) : detached ? (
     // Detached HEAD → plain branch label (nothing to switch to).
     <Tooltip title={branchTooltip}>{branchTrigger}</Tooltip>
   ) : (

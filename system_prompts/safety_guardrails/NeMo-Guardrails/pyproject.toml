@@ -62,8 +62,6 @@ multilingual = ["fast-langdetect (>=1.0.0)"]
 
 chat-ui = ["chainlit (>=2.11.0,<3.0.0)"]
 
-hf-classifier = ["transformers (>=4.35.0)", "torch (>=2.0.0)"]
-
 # eval
 eval = [
   "tqdm (>=4.65,<5.0)",
@@ -96,13 +94,11 @@ all = [
   "uvicorn (>=0.23)",
   "watchdog (>=3.0.0)",
   "chainlit (>=2.11.0,<3.0.0)",
-  "transformers (>=4.35.0)",
-  "torch (>=2.0.0)",
 ]
 
 [dependency-groups]
 lint = ["ruff==0.14.6"]
-typing = ["pyright>=1.1.405,<2.0.0"]
+typing = ["ty==0.0.56"]
 test = [
   "pytest>=7.2.2,<9.0.0",
   "pytest-asyncio>=0.21.0,<1.0.0",
@@ -158,8 +154,8 @@ source-exclude = [
   "/nemoguardrails/CLAUDE.md",
 ]
 
-# Directories in which to run Pyright type-checking
-[tool.pyright]
+# Directories in which to run ty type-checking
+[tool.ty.src]
 include = [
   "nemoguardrails/rails/**",
   "nemoguardrails/actions/**",
@@ -175,6 +171,20 @@ include = [
 exclude = [
   "nemoguardrails/llm/providers/trtllm/**",
 ]
+
+[tool.ty.analysis]
+allowed-unresolved-imports = [
+  "aioredis",
+  "cohere",
+  "google.genai",
+]
+
+[[tool.ty.overrides]]
+include = ["nemoguardrails/actions/v2_x/generation.py"]
+
+[tool.ty.overrides.rules]
+invalid-method-override = "ignore"
+
 
 [tool.pytest.ini_options]
 addopts = "-p no:warnings"
