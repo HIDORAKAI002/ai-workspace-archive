@@ -25,11 +25,17 @@ repos:
           - --license-filepath
           - LICENSE.md
           - --use-current-year
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.26.1
+    hooks:
+      - id: zizmor
+
   - repo: local
     hooks:
-      - id: pyright
-        name: pyright
-        entry: uv run pyright
+      - id: ty
+        name: ty
+        entry: uv run --locked --group=dev ty check
         language: system
-        types: [python]
         pass_filenames: false
+        always_run: true
+        require_serial: true
