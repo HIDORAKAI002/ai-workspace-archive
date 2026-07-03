@@ -284,6 +284,7 @@ export function SpansTable(props: SpansTableProps) {
                 name
                 metadata
                 statusCode
+                statusMessage
                 startTime
                 latencyMs
                 tokenCountTotal @skip(if: $rootSpansOnly)
@@ -670,6 +671,32 @@ export function SpansTable(props: SpansTableProps) {
       enableSorting: false,
     },
     {
+      header: () => (
+        <Flex direction="row" gap="size-50">
+          <span>error</span>
+          <ContextualHelp>
+            <Heading level={3} weight="heavy">
+              Error
+            </Heading>
+            <Text>
+              The status message recorded on the span when its status code is
+              ERROR, e.g. an exception message.
+            </Text>
+          </ContextualHelp>
+        </Flex>
+      ),
+      accessorKey: "statusMessage",
+      id: "error",
+      enableSorting: false,
+      cell: ({ getValue }) => {
+        const value = getValue() as string;
+        if (!value) {
+          return "--";
+        }
+        return <Text color="danger">{value}</Text>;
+      },
+    },
+    {
       header: "notes",
       accessorKey: "spanAnnotations",
       id: "spanNotes",
@@ -1043,7 +1070,7 @@ export function SpansTable(props: SpansTableProps) {
                 // can result in isEmpty=true and hasNext=true when traces exist but lack matching root
                 // spans. This is an undesirable edge case. The optimization is a stopgap solution that
                 // will be replaced to eliminate this condition.
-                <ProjectTableEmpty projectName={data.name} />
+                <ProjectTableEmpty />
               ) : columnSizingInfo.isResizingColumn ? (
                 <MemoizedTableBody
                   table={table}

@@ -249,6 +249,7 @@ export function TracesTable(props: TracesTableProps) {
                 name
                 metadata
                 statusCode
+                statusMessage
                 startTime
                 endTime
                 latencyMs
@@ -310,6 +311,7 @@ export function TracesTable(props: TracesTableProps) {
                       spanKind
                       name
                       statusCode: propagatedStatusCode
+                      statusMessage
                       startTime
                       endTime
                       latencyMs
@@ -788,6 +790,35 @@ export function TracesTable(props: TracesTableProps) {
         cell: TextCell,
       },
       {
+        header: () => (
+          <Flex direction="row" gap="size-50" alignItems="center">
+            <span>error</span>
+            <ContextualHelp>
+              <Heading level={3} weight="heavy">
+                Error
+              </Heading>
+              <Text>
+                The status message recorded on the span when its status code is
+                ERROR, e.g. an exception message.
+              </Text>
+            </ContextualHelp>
+          </Flex>
+        ),
+        accessorKey: "statusMessage",
+        id: "error",
+        enableSorting: false,
+        cell: ({ getValue, row }) => {
+          if (row.original.__additionalRow) {
+            return null;
+          }
+          const value = getValue() as string;
+          if (!value) {
+            return "--";
+          }
+          return <Text color="danger">{value}</Text>;
+        },
+      },
+      {
         header: "metadata",
         accessorKey: "metadata",
         enableSorting: false,
@@ -1078,7 +1109,7 @@ export function TracesTable(props: TracesTableProps) {
             ))}
           </thead>
           {isEmpty ? (
-            <ProjectTableEmpty projectName={data.name} />
+            <ProjectTableEmpty />
           ) : columnSizingInfo.isResizingColumn ? (
             <MemoizedTableBody
               table={
