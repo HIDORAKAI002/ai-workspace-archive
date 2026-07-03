@@ -47,6 +47,7 @@ The MCP ecosystem consists of various components and participants that work toge
 - [Community MCP Servers](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - Growing list of community-developed MCP servers
 - [Awesome MCP Servers](https://github.com/wong2/awesome-mcp-servers) - Curated list of MCP servers
 - [PulseMCP](https://www.pulsemcp.com/) - Community hub & newsletter for discovering MCP resources
+- [Remote OpenClaw](https://www.remoteopenclaw.com/) - Free searchable directory of MCP servers, agent skills, and plugins
 - [Discord Server](https://discord.gg/jHEGxQu2a5) - Connect with MCP developers
 - Language-specific SDK implementations
 - Blog posts and tutorials
