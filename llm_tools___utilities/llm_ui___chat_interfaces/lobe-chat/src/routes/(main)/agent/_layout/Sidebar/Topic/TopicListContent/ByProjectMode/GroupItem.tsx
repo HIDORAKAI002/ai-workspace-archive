@@ -4,7 +4,6 @@ import { createStaticStyles, cssVar, cx, keyframes } from 'antd-style';
 import {
   FolderClosedIcon,
   FolderOpenIcon,
-  HandIcon,
   type LucideIcon,
   PlusIcon,
   TriangleAlertIcon,
@@ -15,6 +14,7 @@ import { useParams } from 'react-router';
 
 import { useActiveWorkspaceSlug } from '@/business/client/hooks/useActiveWorkspaceSlug';
 import RingLoadingIcon from '@/components/RingLoading';
+import { STATUS_META } from '@/components/StatusIcon';
 import { isDesktop } from '@/const/version';
 import { useCommitWorkingDirectory } from '@/features/ChatInput/ControlBar/useCommitWorkingDirectory';
 import { resolveExecutionTarget } from '@/helpers/executionTarget';
@@ -153,7 +153,7 @@ const CollapsedStatusBadges = memo<{ counts: ProjectTopicStatusCounts }>(({ coun
     {
       className: styles.statusBadgeWaiting,
       count: counts.waitingForHuman,
-      icon: HandIcon,
+      icon: STATUS_META.needsAttention.icon,
       label: t('projectStatus.waitingForHuman', { count: counts.waitingForHuman }),
     },
     {

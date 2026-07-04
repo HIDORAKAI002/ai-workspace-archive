@@ -34,12 +34,12 @@ Welcome to one of the most extensive and dynamic collections of Prompt Engineeri
 </tr>
 </table>
 
-[![Subscribe to DiamantAI Newsletter](images/subscribe-button.svg)](https://diamantai.substack.com/?r=336pe4&utm_campaign=pub-share-checklist)
+[![Subscribe to DiamantAI Newsletter](images/subscribe-button.svg)](https://newsletter.diamant-ai.com/?r=336pe4&utm_campaign=pub-share-checklist)
 
 *Join over 50,000 AI enthusiasts getting unique cutting-edge insights and free tutorials!* ***Plus, subscribers get exclusive early access and special discounts to our upcoming RAG Techniques course!***
 </div>
 
-[![DiamantAI's newsletter](images/substack_image.png)](https://diamantai.substack.com/?r=336pe4&utm_campaign=pub-share-checklist)
+[![DiamantAI's newsletter](images/substack_image.png)](https://newsletter.diamant-ai.com/?r=336pe4&utm_campaign=pub-share-checklist)
 
 ## 🎓 From prompts to production
 
