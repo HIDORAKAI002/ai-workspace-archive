@@ -409,9 +409,7 @@ async def main():
         print(f"Assistant: {result.final_output}")
 ```
 
-If a run pauses for approval and you resume from a [`RunState`][agents.run_state.RunState], the
-SDK keeps the saved `conversation_id` / `previous_response_id` / `auto_previous_response_id`
-settings so the resumed turn continues in the same server-managed conversation.
+If a run pauses for approval and you resume from a [`RunState`][agents.run_state.RunState], the SDK keeps the saved `conversation_id` / `previous_response_id` / `auto_previous_response_id` settings so the resumed turn continues in the same server-managed conversation.
 
 `conversation_id` and `previous_response_id` are mutually exclusive. Use `conversation_id` when you want a named conversation resource that can be shared across systems. Use `previous_response_id` when you want the lightest Responses API continuation primitive from one turn to the next.
 
@@ -530,8 +528,7 @@ print(result.final_output)
 
 ## Durable execution integrations and human-in-the-loop
 
-For tool approval pause/resume patterns, start with the dedicated [Human-in-the-loop guide](human_in_the_loop.md).
-The integrations below are for durable orchestration when runs may span long waits, retries, or process restarts.
+For tool approval pause/resume patterns, start with the dedicated [Human-in-the-loop guide](human_in_the_loop.md). The integrations below are for durable orchestration when runs may span long waits, retries, or process restarts.
 
 ### Dapr
 
@@ -543,8 +540,7 @@ You can use the Agents SDK [Temporal](https://temporal.io/) integration to run d
 
 ### Restate
 
-You can use the Agents SDK [Restate](https://restate.dev/) integration for lightweight, durable agents, including human approval, handoffs, and session management. The integration requires Restate's single-binary runtime as a dependency, and supports running agents as processes/containers or serverless functions.
-Read the [overview](https://www.restate.dev/blog/durable-orchestration-for-ai-agents-with-restate-and-openai-sdk) or view the [docs](https://docs.restate.dev/ai) for more details.
+You can use the Agents SDK [Restate](https://restate.dev/) integration for lightweight, durable agents, including human approval, handoffs, and session management. The integration requires Restate's single-binary runtime as a dependency, and supports running agents as processes/containers or serverless functions. Read the [overview](https://www.restate.dev/blog/durable-orchestration-for-ai-agents-with-restate-and-openai-sdk) or view the [docs](https://docs.restate.dev/ai) for more details.
 
 ### DBOS
 
