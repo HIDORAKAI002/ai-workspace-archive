@@ -3,13 +3,14 @@ import type { ChatTopicMetadata, ChatTopicStatus } from '@lobechat/types';
 import { formatElapsedClockTime } from '@lobechat/utils';
 import { Flexbox, Icon, Skeleton, Tag, Text, Tooltip } from '@lobehub/ui';
 import { createStaticStyles, cssVar, keyframes, useTheme } from 'antd-style';
-import { CheckCircle2, Hand, HashIcon, MessageSquareDashed, TriangleAlert } from 'lucide-react';
+import { CheckCircle2, HashIcon, MessageSquareDashed, TriangleAlert } from 'lucide-react';
 import { memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useActiveWorkspaceSlug } from '@/business/client/hooks/useActiveWorkspaceSlug';
 import DotsLoading from '@/components/DotsLoading';
 import RingLoadingIcon from '@/components/RingLoading';
+import { STATUS_META } from '@/components/StatusIcon';
 import { isDesktop } from '@/const/version';
 import DirIcon from '@/features/ChatInput/ControlBar/DirIcon';
 import { useHasDraft } from '@/features/ChatInput/draftStorage';
@@ -344,7 +345,13 @@ const TopicItem = memo<TopicItemProps>(
           titleColor={cssVar.colorText}
           icon={(() => {
             if (isWaitingForHuman) {
-              return <Icon icon={Hand} size={'small'} style={{ color: cssVar.colorInfo }} />;
+              return (
+                <Icon
+                  icon={STATUS_META.needsAttention.icon}
+                  size={'small'}
+                  style={{ color: STATUS_META.needsAttention.color }}
+                />
+              );
             }
             if (shouldShowRunningIcon) {
               return (
