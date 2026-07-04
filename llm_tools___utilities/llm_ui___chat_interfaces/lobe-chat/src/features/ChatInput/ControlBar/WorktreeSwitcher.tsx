@@ -8,13 +8,13 @@ import {
   DropdownMenuPositioner,
   DropdownMenuRoot,
   DropdownMenuTrigger,
+  toast,
 } from '@lobehub/ui/base-ui';
 import { createStaticStyles, cssVar } from 'antd-style';
 import { CheckIcon, GitForkIcon, Trash2Icon } from 'lucide-react';
-import { memo, type MouseEvent, useCallback, useMemo, useState } from 'react';
+import { memo, type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { message } from '@/components/AntdStaticMethods';
 import { gitService } from '@/services/git';
 
 import { useCommitWorkingDirectory } from './useCommitWorkingDirectory';
@@ -336,8 +336,15 @@ const getWorktreeBranch = (
 const isDisabled = (worktree: DeviceGitWorktreeListItem): boolean =>
   !!worktree.bare || !!worktree.prunable;
 
-const canRemoveWorktree = (worktree: DeviceGitWorktreeListItem): boolean =>
-  !!worktree.detached && !worktree.current && !worktree.locked && !isDisabled(worktree);
+// The main/source worktree can never be removed (`git worktree remove <main>`
+// fails with "is a main working tree"), and when the agent runs on a linked
+// worktree it is listed with `current: false` — so exclude it by path too, not
+// just via the `current` flag, to avoid offering a delete that always errors.
+const canRemoveWorktree = (worktree: DeviceGitWorktreeListItem, sourcePath: string): boolean =>
+  !worktree.current &&
+  !worktree.locked &&
+  !isDisabled(worktree) &&
+  normalizeDisplayPath(worktree.path) !== normalizeDisplayPath(sourcePath);
 
 interface DirtyStatProps {
   status?: DeviceGitWorktreeListItem['status'];
@@ -384,6 +391,7 @@ const WorktreeSwitcher = memo<WorktreeSwitcherProps>(
     const { t } = useTranslation('device');
     const { t: tCommon } = useTranslation('common');
     const [open, setOpen] = useState(false);
+    const currentRowRef = useRef<HTMLDivElement>(null);
     const { commit } = useCommitWorkingDirectory(agentId);
 
     const currentWorktree = useMemo(
@@ -436,17 +444,28 @@ const WorktreeSwitcher = memo<WorktreeSwitcherProps>(
               worktreePath: worktree.path,
             });
             if (result.success) {
-              message.success(t('workingDirectory.removeWorktreeSuccess'));
+              toast.success(t('workingDirectory.removeWorktreeSuccess'));
               await onWorktreesChange?.();
               return;
             }
-            message.error(result.error || t('workingDirectory.removeWorktreeFailed'));
+            toast.error(result.error || t('workingDirectory.removeWorktreeFailed'));
           },
           title: t('workingDirectory.removeWorktreeTitle'),
         });
       },
       [deviceId, onWorktreesChange, path, t, tCommon],
     );
+
+    // Scroll the current worktree into view each time the dropdown opens — the
+    // list mounts at scrollTop=0, so a current worktree below the fold would
+    // otherwise read as "nothing selected".
+    useEffect(() => {
+      if (!open) return;
+      const raf = requestAnimationFrame(() => {
+        currentRowRef.current?.scrollIntoView({ block: 'nearest' });
+      });
+      return () => cancelAnimationFrame(raf);
+    }, [open, worktrees.length, currentPath]);
 
     const triggerTitle = detached
       ? t('workingDirectory.detachedHead', { sha: currentBranch })
@@ -494,7 +513,7 @@ const WorktreeSwitcher = memo<WorktreeSwitcherProps>(
                       );
                       const displayPath = getRelativeDisplayPath(worktree.path, sourcePath);
                       const disabled = isDisabled(worktree);
-                      const removable = canRemoveWorktree(worktree);
+                      const removable = canRemoveWorktree(worktree, sourcePath);
 
                       return (
                         <DropdownMenuItem
@@ -503,6 +522,7 @@ const WorktreeSwitcher = memo<WorktreeSwitcherProps>(
                           closeOnClick={false}
                           data-current={worktree.current}
                           key={worktree.path}
+                          ref={worktree.path === currentPath ? currentRowRef : undefined}
                           onClick={() => void commitWorktree(worktree)}
                         >
                           <div className={styles.itemMain}>
