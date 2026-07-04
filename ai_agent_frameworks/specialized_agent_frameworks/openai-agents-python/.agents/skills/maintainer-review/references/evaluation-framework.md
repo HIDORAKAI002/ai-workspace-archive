@@ -34,6 +34,7 @@ Treat validity, severity, and merge-worthiness as separate results. Also disting
 | Existing capability | Can configuration, composition, cloning, callbacks, extension points, or a caller-owned layer already satisfy the outcome? | Current release code, tests, docs, and an exact supported workflow |
 | Compatibility | Is released behavior or durable state changed? | Latest release comparison and explicit contract inspection |
 | Solution fit | Is the requested mechanism the best design and implementation layer? | Proposed solution compared with the strongest existing path and at least one narrower or more coherent alternative |
+| Maintainer-owned scope | When several plausible semantics remain, which behavior should the SDK own? | A concrete maintainer decision grounded in compatibility, user outcome, and API design, not an open-ended contributor choice |
 | Resource ownership | Can stale, failed, cancelled, or overlapping work mutate or clean up resources owned by surviving work? | Interleaving trace, attempt or generation ownership, and survivor assertions |
 | Maintenance cost | What permanent complexity and review burden does it add? | Changed surface, new branches/configuration, test burden, remaining work |
 
@@ -135,6 +136,8 @@ Do not use implementation correctness, bounded remaining work, CI status, or con
 
 Keep issue impact and patch risk separate. `Severity` describes the underlying issue or user need. A regression, compatibility break, lifecycle leak, or maintenance hazard introduced by the proposed patch belongs under `Patch risk` and must not inflate or obscure the issue severity.
 
+When a PR exposes an ambiguous semantic boundary, decide whether that boundary belongs to maintainers before drafting requests. If the choice affects SDK contract, compatibility, persistence, error semantics, public API meaning, or cross-path behavior, the review should pick one direction or explicitly block on maintainer input. Do not delegate that choice to the contributor as "either X or Y"; ask for the chosen behavior and the tests or docs needed to lock it down.
+
 ## Documentation threshold
 
 Do not treat documentation as automatically required for every public option, constructor parameter, provider setting, or behavior change. Make docs merge-blocking only when at least one of these is true:
@@ -234,6 +237,8 @@ Keep each draft polite, direct, and copy-paste-ready. Usually use 60-160 words i
 3. Give the exact next action or the condition for reconsideration.
 
 Do not include internal labels such as `severity: low`, speculate about AI authorship or contributor intent, repeat the full review, or soften the message until the requested action becomes unclear.
+
+Do not ask contributors to choose maintainer-owned semantics. If two implementations are technically possible but one changes the SDK contract, decide the contract in the review and make the comment actionable. Use a short rationale such as "This keeps the new handler scoped to the existing raise site" or "This makes the handler name match all invalid final messages", then request the exact code and tests for that decision.
 
 ### Close
 

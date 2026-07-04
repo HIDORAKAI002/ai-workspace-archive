@@ -260,7 +260,7 @@ export default {
   'heteroAgent.executionTarget.gatewayDesc':
     'Run through the device gateway so other clients can follow progress',
   'heteroAgent.executionTarget.loading': 'Loading devices…',
-  'heteroAgent.executionTarget.local': 'This device',
+  'heteroAgent.executionTarget.local': 'Local device',
   'heteroAgent.executionTarget.localDesc': 'Run as a local process on this desktop app',
   'heteroAgent.executionTarget.manage': 'Manage',
   'heteroAgent.executionTarget.noDevices':
@@ -1023,6 +1023,7 @@ export default {
 
   'createTask.assignee': 'Assignee',
   'createTask.collapse': 'Hide input',
+  'createTask.createFailed': 'Failed to create task',
   'createTask.expandToInline': 'Dock to page',
   'createTask.instructionPlaceholder': 'Add task instruction...',
   'createTask.submit': 'Create task',
@@ -1385,6 +1386,7 @@ export default {
   'workingPanel.skills.rename.placeholder': 'Skill name',
   'workingPanel.skills.rename.title': 'Rename skill',
   'workingPanel.skills.section.agent': 'Agent skills',
+  'workingPanel.skills.section.device': 'Device skills',
   'workingPanel.skills.section.project': 'Project skills',
   'workingPanel.skills.section.user': 'User skills',
   'workingPanel.skills.title': 'Skills',
@@ -1431,6 +1433,8 @@ export default {
   'workingPanel.review.textDiff.enable': 'Enable inline text diff',
   'workingPanel.review.title': 'Review',
   'workingPanel.review.tooLarge': 'File is too large to diff inline',
+  'workingPanel.review.tree.hide': 'Hide file tree',
+  'workingPanel.review.tree.show': 'Show file tree',
   'workingPanel.review.unstaged': 'Unstaged',
   'workingPanel.review.viewMode.split': 'Switch to split view',
   'workingPanel.review.viewMode.unified': 'Switch to unified view',

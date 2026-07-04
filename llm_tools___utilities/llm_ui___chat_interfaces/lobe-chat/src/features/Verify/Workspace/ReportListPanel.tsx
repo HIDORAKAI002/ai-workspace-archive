@@ -3,14 +3,17 @@
 import type { VerifyRunStatus, VerifyVerdict } from '@lobechat/types';
 import {
   ActionIcon,
+  Center,
   DraggablePanel,
   DraggablePanelContainer,
   type DraggablePanelProps,
+  Empty,
+  Flexbox,
   Icon,
   Text,
 } from '@lobehub/ui';
 import type { DropdownItem } from '@lobehub/ui/base-ui';
-import { confirmModal, DropdownMenu, ScrollArea } from '@lobehub/ui/base-ui';
+import { confirmModal, DropdownMenu } from '@lobehub/ui/base-ui';
 import { App } from 'antd';
 import { createStaticStyles, cssVar, useResponsive } from 'antd-style';
 import dayjs from 'dayjs';
@@ -19,6 +22,7 @@ import {
   CircleCheck,
   CircleHelp,
   CircleX,
+  ClipboardCheck,
   LoaderCircle,
   MoreHorizontal,
   PanelLeftClose,
@@ -30,6 +34,8 @@ import { memo, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 
+import NavItem from '@/features/NavPanel/components/NavItem';
+import { SkeletonList } from '@/features/NavPanel/components/SkeletonList';
 import { mutate } from '@/libs/swr';
 import { verifyKeys } from '@/libs/swr/keys';
 import type { VerifyReportSummary } from '@/services/verify';
@@ -122,57 +128,9 @@ const styles = createStaticStyles(({ css }) => ({
     padding-block: 6px 16px;
     padding-inline: 8px;
   `,
-  item: css`
-    display: grid;
-    grid-template-columns: 18px minmax(0, 1fr) 26px;
-    gap: 10px;
-    align-items: center;
-
-    width: 100%;
-    padding-block: 9px;
-    padding-inline: 10px;
-    border-radius: ${cssVar.borderRadius};
-
-    background: transparent;
-
-    &:hover {
-      background: ${cssVar.colorFillQuaternary};
-    }
-
-    &[data-active='true'] {
-      background: ${cssVar.colorFillSecondary};
-    }
-
-    &[data-mutating='true'] {
-      pointer-events: none;
-      opacity: 0.62;
-    }
-
-    &:hover [data-role='item-action'],
-    &:focus-within [data-role='item-action'],
-    &[data-active='true'] [data-role='item-action'] {
-      opacity: 1;
-    }
-  `,
-  glyph: css`
-    display: flex;
-  `,
-  itemBody: css`
-    min-width: 0;
-  `,
-  itemMain: css`
-    cursor: pointer;
-
-    display: block;
-
-    width: 100%;
-    min-width: 0;
-    padding: 0;
-    border: none;
-
-    text-align: start;
-
-    background: transparent;
+  editRow: css`
+    padding-block: 4px;
+    padding-inline: 4px;
   `,
   spin: css`
     animation: verify-spin 1.1s linear infinite;
@@ -181,20 +139,6 @@ const styles = createStaticStyles(({ css }) => ({
       to {
         transform: rotate(360deg);
       }
-    }
-  `,
-  itemTitle: css`
-    overflow: hidden;
-    display: block;
-
-    font-size: 13px;
-    line-height: 1.4;
-    color: ${cssVar.colorText};
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    &[data-active='true'] {
-      font-weight: 600;
     }
   `,
   itemSub: css`
@@ -225,12 +169,7 @@ const styles = createStaticStyles(({ css }) => ({
       box-shadow: 0 0 0 2px ${cssVar.colorPrimaryBg};
     }
   `,
-  itemAction: css`
-    opacity: 0;
-    transition: opacity 0.12s ease;
-  `,
   counts: css`
-    font-family: ${cssVar.fontFamilyCode};
     font-variant-numeric: tabular-nums;
 
     em {
@@ -246,6 +185,12 @@ const styles = createStaticStyles(({ css }) => ({
 
     padding-block: 24px;
     padding-inline: 12px;
+  `,
+  emptyState: css`
+    height: 100%;
+    min-height: 240px;
+    padding-block: 24px;
+    padding-inline: 16px;
   `,
   emptyMsg: css`
     font-size: 12px;
@@ -422,64 +367,58 @@ const ReportListItem = memo<{
     },
   ];
 
-  return (
-    <div className={styles.item} data-active={active} data-mutating={mutating}>
-      <span className={styles.glyph} style={{ color: meta.color }}>
-        <Icon
-          className={glyph === 'running' ? styles.spin : undefined}
-          icon={meta.icon}
-          size={15}
+  // Rename swaps the whole row for an inline input.
+  if (editing) {
+    return (
+      <div className={styles.editRow}>
+        <input
+          autoFocus
+          className={styles.itemTitleInput}
+          value={draftTitle}
+          onBlur={() => void commitRename()}
+          onChange={(e) => setDraftTitle(e.target.value)}
+          onFocus={(e) => e.currentTarget.select()}
+          onKeyDown={(e) => {
+            e.stopPropagation();
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              void commitRename();
+            }
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              cancelRename();
+            }
+          }}
         />
-      </span>
-      <span className={styles.itemBody}>
-        {editing ? (
-          <input
-            autoFocus
-            className={styles.itemTitleInput}
-            value={draftTitle}
-            onBlur={() => void commitRename()}
-            onChange={(e) => setDraftTitle(e.target.value)}
-            onFocus={(e) => e.currentTarget.select()}
-            onKeyDown={(e) => {
-              e.stopPropagation();
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                void commitRename();
-              }
-              if (e.key === 'Escape') {
-                e.preventDefault();
-                cancelRename();
-              }
-            }}
-          />
-        ) : (
-          <button
-            className={styles.itemMain}
-            title={title}
-            type={'button'}
-            onClick={() => navigate(`/verify/${item.run.id}`)}
-          >
-            <span className={styles.itemTitle} data-active={active}>
-              {title}
-            </span>
-            <span className={styles.itemSub}>
-              {time ? <span>{time}</span> : null}
-              {total > 0 && glyph !== 'running' ? (
-                <span className={styles.counts}>
-                  {passed}/{total}
-                  {failed > 0 ? (
-                    <>
-                      {' '}
-                      · <em>{t('verify:list.failedCount', { count: failed })}</em>
-                    </>
-                  ) : null}
-                </span>
-              ) : null}
-            </span>
-          </button>
-        )}
-      </span>
-      {!editing && (
+      </div>
+    );
+  }
+
+  const description =
+    time || (total > 0 && glyph !== 'running') ? (
+      <Flexbox horizontal className={styles.itemSub} gap={8}>
+        {time ? <span>{time}</span> : null}
+        {total > 0 && glyph !== 'running' ? (
+          <span className={styles.counts}>
+            {passed}/{total}
+            {failed > 0 ? (
+              <>
+                {' · '}
+                <em>{t('verify:list.failedCount', { count: failed })}</em>
+              </>
+            ) : null}
+          </span>
+        ) : null}
+      </Flexbox>
+    ) : undefined;
+
+  return (
+    <NavItem
+      active={active}
+      description={description}
+      title={title}
+      titleColor={cssVar.colorText}
+      actions={
         <DropdownMenu
           iconSpaceMode={'group'}
           items={menuItems}
@@ -487,15 +426,23 @@ const ReportListItem = memo<{
           popupProps={{ style: { minWidth: 140 } }}
         >
           <ActionIcon
-            className={styles.itemAction}
-            data-role={'item-action'}
             icon={MoreHorizontal}
             size={'small'}
             title={t('verify:workspace.actions.more')}
           />
         </DropdownMenu>
-      )}
-    </div>
+      }
+      icon={
+        <Icon
+          className={glyph === 'running' ? styles.spin : undefined}
+          icon={meta.icon}
+          size={16}
+          style={{ color: meta.color }}
+        />
+      }
+      style={mutating ? { opacity: 0.62, pointerEvents: 'none' } : undefined}
+      onClick={() => navigate(`/verify/${item.run.id}`)}
+    />
   );
 });
 
@@ -505,7 +452,7 @@ const ReportListPanel = memo(() => {
   const { t } = useTranslation('verify');
   const { runId } = useParams<{ runId: string }>();
   const { md = true } = useResponsive();
-  const { data, mutate: refreshReports } = useVerifyReportSummaries();
+  const { data, isLoading, mutate: refreshReports } = useVerifyReportSummaries();
   const reports = useMemo(() => data ?? [], [data]);
 
   const [query, setQuery] = useState('');
@@ -572,24 +519,30 @@ const ReportListPanel = memo(() => {
           </label>
         </div>
 
-        <ScrollArea style={{ flex: 1, minHeight: 0 }}>
-          {filtered.length === 0 ? (
-            <div className={styles.empty}>
-              {query.trim() ? (
-                <>
-                  <span className={styles.emptyMsg}>
-                    {t('workspace.searchEmptyPrefix')}
-                    <b className={styles.queryHl}>{query.trim()}</b>
-                    {t('workspace.searchEmptySuffix')}
-                  </span>
-                  <button className={styles.clearBtn} type={'button'} onClick={() => setQuery('')}>
-                    {t('workspace.clearSearch')}
-                  </button>
-                </>
-              ) : (
-                <span className={styles.emptyMsg}>{t('workspace.listEmpty')}</span>
-              )}
-            </div>
+        <Flexbox flex={1} style={{ minHeight: 0, overflowX: 'hidden', overflowY: 'auto' }}>
+          {isLoading && !data ? (
+            <SkeletonList rows={6} style={{ paddingBlock: 6, paddingInline: 8 }} />
+          ) : filtered.length === 0 ? (
+            query.trim() ? (
+              <div className={styles.empty}>
+                <span className={styles.emptyMsg}>
+                  {t('workspace.searchEmptyPrefix')}
+                  <b className={styles.queryHl}>{query.trim()}</b>
+                  {t('workspace.searchEmptySuffix')}
+                </span>
+                <button className={styles.clearBtn} type={'button'} onClick={() => setQuery('')}>
+                  {t('workspace.clearSearch')}
+                </button>
+              </div>
+            ) : (
+              <Center className={styles.emptyState}>
+                <Empty
+                  description={t('workspace.listEmpty')}
+                  icon={ClipboardCheck}
+                  title={t('workspace.listEmptyTitle')}
+                />
+              </Center>
+            )
           ) : (
             <div className={styles.list}>
               {filtered.map((item) => (
@@ -602,7 +555,7 @@ const ReportListPanel = memo(() => {
               ))}
             </div>
           )}
-        </ScrollArea>
+        </Flexbox>
       </DraggablePanelContainer>
     </DraggablePanel>
   );

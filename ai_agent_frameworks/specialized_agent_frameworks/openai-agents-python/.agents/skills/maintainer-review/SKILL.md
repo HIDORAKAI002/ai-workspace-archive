@@ -19,7 +19,8 @@ Make a maintainer decision, not a generic code-review summary. Separate these qu
 8. For a PR, is this solution worth merging and maintaining?
 9. Can overlapping or stale operations corrupt shared state or clean up resources owned by surviving work?
 10. If competing PRs exist, which single implementation path should maintainers pursue?
-11. What concise maintainer message should communicate a closure or change request clearly and politely?
+11. Which ambiguous scope or semantic choices are maintainer-owned product/API decisions, and what concrete direction should the contributor implement?
+12. What concise maintainer message should communicate a closure or change request clearly and politely?
 
 Treat an issue's requested field, callback, flag, class, or implementation strategy as a proposed mechanism, not as the accepted requirement. Do not begin by asking how to implement it. First prove that a concrete user outcome is not already supported and that the proposed mechanism is better than the available alternatives.
 
@@ -180,6 +181,8 @@ When multiple open PRs address the same issue, make one portfolio-level recommen
 
 Always compare the proposed patch with the strongest existing supported approach and at least one alternative: no code change, validation or documentation, a narrower fix, reuse of an existing helper, or a different layer that enforces the invariant consistently. A review is incomplete if it establishes only that the patch works without establishing why the current product cannot meet the underlying need and why this design is preferable.
 
+When multiple plausible semantic scopes, compatibility boundaries, or public API contracts remain, do not ask the contributor to choose among maintainer-owned options. Decide the preferred scope from the evidence, compatibility contract, and product/API design principles, then request that specific change. If the evidence is insufficient to choose, mark the review preliminary or request maintainer input; do not present an open-ended implementation fork as the contributor's decision.
+
 ### 7. Report findings and maintainer action
 
 Choose the assessment language using this precedence:
@@ -198,6 +201,8 @@ For PRs, put `Need evidence` before code recommendation. When the need is not `D
 When existing functionality or a better alternative materially affects the decision, state it explicitly in the evidence and recommendation. Name the exact supported path, what it does and does not cover, and why it is preferable. Do not bury a `Not worth completing` or `Supersede with a simpler alternative` conclusion beneath praise for implementation quality.
 
 When recommending closure, requesting more evidence, requesting code changes, or superseding a PR, append the English, copy-paste-ready maintainer comment defined by the framework. If multiple PRs need different actions, label one draft for each affected PR. Include only merge-blocking requests in the main action paragraph; keep optional documentation or polish clearly non-blocking or omit it.
+
+For request-changes comments, phrase maintainer-owned semantic decisions as a directive, not as a menu. It is fine to mention the rejected alternative briefly in the rationale, but the requested action must identify the chosen behavior, scope, or compatibility boundary. Use "please do X because..." instead of "either do X or Y" when X versus Y changes the SDK contract or user-visible semantics.
 
 Do not produce a line-by-line review unless requested. Do not equate passing tests with merge-worthiness, or a logically correct patch with practical value.
 
