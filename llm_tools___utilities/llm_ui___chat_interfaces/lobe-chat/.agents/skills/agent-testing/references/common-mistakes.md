@@ -112,12 +112,70 @@ ship a root cause into a report that a one-line probe could have checked.
 
 ---
 
-## Case 5 — (placeholder) append the user's next negative feedback below
+## Case 5 — Attaching the stale "before" screenshot as a passed case's evidence (unlabeled)
 
-<!-- New case template:
-## Case N — one-line summary of the mistake
-**Wrong approach**: …
-**Why it's wrong**: …
-**What it breaks**: …
-**Correct approach**: …
--->
+**Wrong approach**: after verifying a UI change on the live-code instance, I put
+BOTH the "after" (live) and the "before" (stale-build) screenshots into the same
+`cases[].evidence` array, unlabeled. The verify page renders every evidence image
+with its filename as a heading, so the user opened `01-drag-overlay.png` /
+`02-switcher-popover.png` (the STALE shots) and saw the old 28px gap + Apple logo —
+concluding "还是没贴边 / 还是 Apple logo, 你没改啊".
+
+**Why it's wrong**: a passed case's evidence must show the PASSING (after) state.
+An unlabeled before-shot sitting next to it reads as "the current result", making a
+correct fix look broken. Filenames are not captions — the viewer can't tell
+before from after.
+
+**What it breaks**: the user reads a green/passed report as a failure, loses trust,
+and it takes another round to re-explain.
+
+**Correct approach**: never ship a raw stale/before screenshot as standalone
+evidence. If a contrast helps, build ONE labeled before→after composite (e.g. sharp:
+crop the region from each, add a "BEFORE …/AFTER …" header bar, place side by side)
+and attach that single image. Evidence for a passed case = the after state (or a
+clearly-labeled comparison), full stop.
+
+## Case 6 — `app://renderer` desktop instance runs the STALE built bundle, not working-tree code
+
+**Wrong approach**: driving the already-running desktop app on CDP 9222 (URL
+`app://renderer/…`) to verify a working-tree UI change, and eyeballing the first
+screenshot as "looks changed".
+
+**Why it's wrong**: the resident desktop app serves a BUILT renderer snapshot — it
+does not reflect uncommitted/HMR src changes. The measured `::before` inset was
+still 28px (old) even though the code said 10px. Eyeballing nearly passed it.
+
+**What it breaks**: verifying against code that isn't your change → a false pass (or
+false fail), on the wrong bundle entirely.
+
+**Correct approach**: to verify working-tree UI in the desktop shape, start an
+isolated dev instance that loads live code — `electron-dev.sh start <id>` runs
+`electron-vite dev` (its own CDP/Vite, copied login), which DOES bundle your src
+changes. Prove it's live by MEASURING a known-changed value (e.g. computed
+`::before` inset 10px vs old 28px) before trusting any screenshot. Don't kill the
+user's resident 9222 app — use a pool id. Also: `agent-browser open` mangles
+`app://` → `https://app//…` (ERR\_CONNECTION\_CLOSED); navigate inside the SPA by
+clicking its own `<a href>` links, not `open`.
+
+## Case 7 — Embedding a local-path screenshot in the chat reply (broken-image placeholder)
+
+**Wrong approach**: ending the final reply with an inline image embed pointing at
+the report dir — `![caption](.records/reports/<ts>-<slug>/assets/06-foo.png)` —
+believing a leading `!` makes it render as a picture in chat.
+
+**Why it's wrong**: the chat UI can't load a local filesystem path. The embed
+renders as an empty grey broken-image box (the user sees a placeholder + " 完全
+看不了图内容 "), and the plain-link form `[Image](…local…png)` is an un-openable
+dead link. Local report paths only resolve on the machine, never inside the
+message. The earlier guidance that said "if a visual helps, embed it as an image,
+not a link" was itself wrong and has been removed.
+
+**What it breaks**: the reply looks like it has evidence but shows nothing —
+the user gets a broken box instead of the screenshot, and has to go find the
+verify link anyway.
+
+**Correct approach**: put NO images and NO local-file links in the chat reply.
+The published `https://app.lobehub.com/verify/<id>` page already renders every
+screenshot inline — that URL is the only visual deliverable. Describe key visual
+outcomes in prose; mention the local report dir as a plain string (not a
+markdown link) if a reference is useful.

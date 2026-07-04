@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -48,6 +48,7 @@ vi.mock('@lobehub/ui/base-ui', () => ({
       {children}
     </div>
   ),
+  toast: { error: messageErrorMock, info: vi.fn(), success: messageSuccessMock },
 }));
 
 vi.mock('antd-style', () => ({
@@ -98,8 +99,9 @@ describe('WorktreeSwitcher', () => {
       />,
     );
 
-    expect(screen.getByTestId('worktree-dropdown-trigger').firstElementChild?.tagName).toBe('DIV');
-    expect(screen.getByTestId('worktree-tooltip')).toBeTruthy();
+    const trigger = screen.getByTestId('worktree-dropdown-trigger');
+    expect(trigger.firstElementChild?.tagName).toBe('DIV');
+    expect(within(trigger).getByTestId('worktree-tooltip')).toBeTruthy();
   });
 
   it('renders dirty stats and omits clean labels in the worktree list', () => {
@@ -173,7 +175,7 @@ describe('WorktreeSwitcher', () => {
     expect(screen.getByText('/tmp/project-scratch')).toBeTruthy();
   });
 
-  it('confirms and removes a detached non-current worktree', async () => {
+  it('confirms and removes a non-current worktree', async () => {
     const onWorktreesChange = vi.fn();
     render(
       <WorktreeSwitcher
@@ -208,9 +210,11 @@ describe('WorktreeSwitcher', () => {
       />,
     );
 
-    expect(screen.getAllByLabelText('workingDirectory.removeWorktreeAction')).toHaveLength(1);
+    // both the detached and the branch worktree are removable; only the current one is not
+    const removeButtons = screen.getAllByLabelText('workingDirectory.removeWorktreeAction');
+    expect(removeButtons).toHaveLength(2);
 
-    fireEvent.click(screen.getByLabelText('workingDirectory.removeWorktreeAction'));
+    fireEvent.click(removeButtons[0]);
 
     expect(commitMock).not.toHaveBeenCalled();
     expect(confirmModalMock).toHaveBeenCalledTimes(1);
@@ -225,6 +229,45 @@ describe('WorktreeSwitcher', () => {
     expect(onWorktreesChange).toHaveBeenCalled();
     expect(messageSuccessMock).toHaveBeenCalledWith('workingDirectory.removeWorktreeSuccess');
     expect(messageErrorMock).not.toHaveBeenCalled();
+  });
+
+  it('never offers to remove the source worktree even when it is not current', () => {
+    render(
+      <WorktreeSwitcher
+        isGithub
+        agentId="agent-1"
+        currentBranch="feat/current"
+        deviceId="device-1"
+        path="/repo-canary"
+        sourcePath="/repo"
+        worktrees={[
+          {
+            // The main/source worktree — listed as non-current because the agent
+            // runs on a linked worktree. `git worktree remove` would always fail.
+            branch: 'main',
+            current: false,
+            path: '/repo',
+            status: { added: 0, clean: true, deleted: 0, modified: 0, total: 0 },
+          },
+          {
+            branch: 'canary',
+            current: true,
+            path: '/repo-canary',
+            status: { added: 0, clean: true, deleted: 0, modified: 0, total: 0 },
+          },
+          {
+            branch: 'feature',
+            current: false,
+            path: '/repo-feature',
+            status: { added: 0, clean: true, deleted: 0, modified: 0, total: 0 },
+          },
+        ]}
+      />,
+    );
+
+    // Only the linked branch worktree is removable; the source and the current
+    // worktree are both excluded.
+    expect(screen.getAllByLabelText('workingDirectory.removeWorktreeAction')).toHaveLength(1);
   });
 
   it('commits the selected worktree path as the working directory', () => {
