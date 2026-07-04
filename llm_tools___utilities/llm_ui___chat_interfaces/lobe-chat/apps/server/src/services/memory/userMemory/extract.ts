@@ -49,7 +49,7 @@ import type {
 } from '@lobechat/types';
 import { RequestTrigger } from '@lobechat/types';
 import { type FlowControl } from '@upstash/qstash';
-import { Client } from '@upstash/workflow';
+import type { Client } from '@upstash/workflow';
 import debug from 'debug';
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import { join } from 'pathe';
@@ -67,6 +67,7 @@ import { UserMemorySourceBenchmarkLoCoMoModel } from '@/database/models/userMemo
 import { AiInfraRepos } from '@/database/repositories/aiInfra';
 import { getServerDB } from '@/database/server';
 import { buildWorkspaceWhere } from '@/database/utils/workspace';
+import { OtelWorkflowClient } from '@/libs/qstash';
 import { getServerGlobalConfig } from '@/server/globalConfig';
 import { type MemoryAgentConfig } from '@/server/globalConfig/parseMemoryExtractionConfig';
 import { parseMemoryExtractionConfig } from '@/server/globalConfig/parseMemoryExtractionConfig';
@@ -2718,13 +2719,17 @@ const PROCESS_USERS_FLOW_CONTROL = {
   ratePerSecond: 1,
 } satisfies FlowControl;
 
-// NOTICE: Trigger-side flow control is required for initial workflow delivery.
-// A serve() flowControl setting alone is applied after the run starts, so it cannot prevent
-// many process-user-topics runs from entering execution at the same time.
-const PROCESS_USER_TOPICS_FLOW_CONTROL = {
-  key: 'memory-user-memory.pipelines.chat-topic.process-user-topics',
-  parallelism: 25,
-} satisfies FlowControl;
+const getProcessUserTopicsFlowControl = (): FlowControl => {
+  const { workflow } = parseMemoryExtractionConfig();
+
+  return {
+    key: 'memory-user-memory.pipelines.chat-topic.process-user-topics',
+    // NOTICE: Trigger-side flow control is required for initial workflow delivery.
+    // A serve() flowControl setting alone is applied after the run starts, so it cannot prevent
+    // many process-user-topics runs from entering execution at the same time.
+    parallelism: workflow?.processUserTopicsParallelism ?? 25,
+  };
+};
 
 const getWorkflowUrl = (path: string, baseUrl: string) => {
   const url = new URL(path, baseUrl);
@@ -2742,7 +2747,7 @@ const getWorkflowClient = () => {
     (config as Record<string, unknown>).url = process.env.QSTASH_URL;
   }
 
-  return new Client(config);
+  return new OtelWorkflowClient(config);
 };
 
 export class MemoryExtractionWorkflowService {
@@ -2796,7 +2801,7 @@ export class MemoryExtractionWorkflowService {
     const url = getWorkflowUrl(WORKFLOW_PATHS.userTopics, payload.baseUrl);
     return this.getClient().trigger({
       body: payload,
-      flowControl: PROCESS_USER_TOPICS_FLOW_CONTROL,
+      flowControl: getProcessUserTopicsFlowControl(),
       headers: options?.extraHeaders,
       url,
     });
