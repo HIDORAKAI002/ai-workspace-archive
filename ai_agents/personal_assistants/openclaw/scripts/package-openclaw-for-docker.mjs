@@ -648,7 +648,11 @@ async function main() {
   const checkStartedAt = Date.now();
   await run(
     "node",
-    [path.join(ROOT_DIR, "scripts/check-openclaw-package-tarball.mjs"), tarball],
+    [
+      path.join(ROOT_DIR, "scripts/check-openclaw-package-tarball.mjs"),
+      "--require-bundled-workspace-deps",
+      tarball,
+    ],
     sourceDir,
     {
       timeoutMs: resolveTimeoutMs(
