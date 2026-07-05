@@ -224,9 +224,11 @@ _LAST_EXPANDED_CONFIG_BY_PATH: Dict[str, Any] = {}
 # produces a fresh inode, so stat() sees a new mtime_ns and the next
 # load repopulates automatically — no explicit invalidation hook.
 # Cached tuple is (user_mtime_ns, user_size, managed_mtime_ns, managed_size,
-# merged_value) — the managed-file signature is folded in so editing the
-# managed-scope config.yaml invalidates the cache (see managed_scope).
-_LOAD_CONFIG_CACHE: Dict[str, Tuple[int, int, int, int, Dict[str, Any]]] = {}
+# merged_value, env_ref_snapshot) — the managed-file signature is folded in so
+# editing the managed-scope config.yaml invalidates the cache (see
+# managed_scope), and the env snapshot invalidates it when a referenced ${VAR}
+# changes value (late .env load, in-process rotation — #58514).
+_LOAD_CONFIG_CACHE: Dict[str, Tuple[int, int, int, int, Dict[str, Any], Dict[str, Optional[str]]]] = {}
 # (path, mtime_ns, size) -> cached raw yaml dict. Same pattern as
 # _LOAD_CONFIG_CACHE but for read_raw_config() — used when callers want
 # the user's on-disk values without defaults merged in.
@@ -1163,6 +1165,9 @@ DEFAULT_CONFIG = {
         # Explicit opt-in: mount the host cwd into /workspace for Docker sessions.
         # Default off because passing host directories into a sandbox weakens isolation.
         "docker_mount_cwd_to_workspace": False,
+        # Opt-in egress lockdown for Docker terminal sessions. When false,
+        # Docker runs with --network=none so commands cannot reach the network.
+        "docker_network": True,
         "docker_extra_args": [],        # Extra flags passed verbatim to docker run
         # Explicit opt-in: run the Docker container as the host user's uid:gid
         # (via `--user`).  When enabled, files written into bind-mounted dirs
@@ -2435,6 +2440,16 @@ DEFAULT_CONFIG = {
         "mode": "manual",
         "timeout": 60,
         "cron_mode": "deny",
+        # User-defined deny rules: fnmatch globs matched against terminal
+        # commands. A match blocks the command unconditionally — BEFORE the
+        # --yolo / /yolo / mode=off bypass — making this the user-editable
+        # counterpart to the code-shipped hardline blocklist. Patterns are
+        # case-insensitive and must be quoted in YAML when they start with
+        # * or contain {}/!/: sequences. Example:
+        #   deny:
+        #     - "git push --force*"
+        #     - "*curl*|*sh*"
+        "deny": [],
         # When true, /reload-mcp asks the user to confirm before rebuilding
         # the MCP tool set for the active session.  Reloading invalidates
         # the provider prompt cache (tool schemas are baked into the system
@@ -5282,8 +5297,8 @@ def warn_deprecated_cwd_env_vars(config: Optional[Dict[str, Any]] = None) -> Non
         hint_path = os.environ.get("HERMES_HOME", "~/.hermes")
         lines.insert(0, "\033[33m⚠ Deprecated .env settings detected:\033[0m")
         lines.append(
-            f"  \033[2mMove to config.yaml instead:  "
-            f"terminal:\\n    cwd: /your/project/path\033[0m"
+            "  \033[2mMove to config.yaml instead:  "
+            "terminal:\\n    cwd: /your/project/path\033[0m"
         )
         lines.append(
             f"  \033[2mThen remove the old entries from {hint_path}/.env\033[0m"
@@ -5516,7 +5531,7 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
             config["stt"] = stt
             _persist_migration(config)
             if not quiet:
-                print(f"  ✓ Migrated legacy stt.model to provider-specific config")
+                print("  ✓ Migrated legacy stt.model to provider-specific config")
 
     # ── Version 14 → 15: add explicit gateway interim-message gate ──
     if current_ver < 15:
@@ -6147,6 +6162,31 @@ def _expand_env_vars(obj):
     return obj
 
 
+def _env_ref_snapshot(obj, snapshot=None):
+    """Map every ``${VAR}`` name referenced in config values to its current
+    ``os.environ`` value (``None`` when unset).
+
+    Stored alongside cached ``load_config()`` results so a cache hit can
+    detect that the cached expansion was made against a *different*
+    environment — e.g. a ``load_config()`` that ran before
+    ``load_hermes_dotenv()`` populated the process env, or an env var
+    rotated in-process after the first load. File mtime/size alone cannot
+    see either case (#58514).
+    """
+    if snapshot is None:
+        snapshot = {}
+    if isinstance(obj, str):
+        for name in re.findall(r"\${([^}]+)}", obj):
+            snapshot[name] = os.environ.get(name)
+    elif isinstance(obj, dict):
+        for value in obj.values():
+            _env_ref_snapshot(value, snapshot)
+    elif isinstance(obj, list):
+        for item in obj:
+            _env_ref_snapshot(item, snapshot)
+    return snapshot
+
+
 def _items_by_unique_name(items):
     """Return a name-indexed dict only when all items have unique string names."""
     if not isinstance(items, list):
@@ -6499,6 +6539,56 @@ def read_raw_config() -> Dict[str, Any]:
         return data
 
 
+def require_readable_config_before_write(config_path: Optional[Path] = None) -> None:
+    """Refuse to replace an existing config.yaml that cannot be read."""
+    if config_path is None:
+        config_path = get_config_path()
+    try:
+        config_path.stat()
+    except FileNotFoundError:
+        return
+    except OSError as exc:
+        raise RuntimeError(
+            f"Refusing to overwrite {config_path}: existing config.yaml cannot be accessed "
+            f"({exc}). Fix the file permissions or move it aside first."
+        ) from exc
+
+    try:
+        with open(config_path, "rb") as f:
+            f.read(1)
+    except OSError as exc:
+        raise RuntimeError(
+            f"Refusing to overwrite {config_path}: existing config.yaml cannot be read "
+            f"({exc}). Fix the file permissions or move it aside first."
+        ) from exc
+
+
+def atomic_config_write(config_path: Path, data: Any, **kwargs: Any) -> None:
+    """Fail-closed atomic write for ``config.yaml``.
+
+    The single chokepoint every config-update path should use instead of
+    calling :func:`utils.atomic_yaml_write` directly. It runs
+    :func:`require_readable_config_before_write` first, so a full-file
+    replacement can never silently clobber an existing ``config.yaml`` that
+    degraded to an empty dict on read (permission error, broken mount,
+    transient I/O). New-file creation still works when the path is absent.
+
+    Root cause this guards: ``read_raw_config()`` returns ``{}`` for BOTH an
+    absent file and an unreadable-but-present file. Callers that read then
+    overwrite can't tell the two apart, so an unreadable config would be
+    replaced with only defaults or the single edited section. Routing every
+    write through this helper enforces the invariant in one place rather than
+    relying on each of ~15 independent write sites to remember the guard.
+
+    ``kwargs`` are forwarded verbatim to ``atomic_yaml_write``
+    (``sort_keys``, ``default_flow_style``, ``extra_content``, ...).
+    """
+    from utils import atomic_yaml_write
+
+    require_readable_config_before_write(config_path)
+    atomic_yaml_write(config_path, data, **kwargs)
+
+
 def load_config() -> Dict[str, Any]:
     """Load configuration from ~/.hermes/config.yaml.
 
@@ -6589,6 +6679,7 @@ TERMINAL_CONFIG_ENV_MAP = {
     "docker_volumes": "TERMINAL_DOCKER_VOLUMES",
     "docker_env": "TERMINAL_DOCKER_ENV",
     "docker_mount_cwd_to_workspace": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
+    "docker_network": "TERMINAL_DOCKER_NETWORK",
     "docker_extra_args": "TERMINAL_DOCKER_EXTRA_ARGS",
     "docker_run_as_host_user": "TERMINAL_DOCKER_RUN_AS_HOST_USER",
     "docker_persist_across_processes": "TERMINAL_DOCKER_PERSIST_ACROSS_PROCESSES",
@@ -6696,7 +6787,14 @@ def _load_config_impl(*, want_deepcopy: bool) -> Dict[str, Any]:
 
         cached = _LOAD_CONFIG_CACHE.get(path_key)
         if cached is not None and cache_sig is not None and cached[:4] == cache_sig:
-            return copy.deepcopy(cached[4]) if want_deepcopy else cached[4]
+            # File signatures match, but the cached expansion is only valid if
+            # every ${VAR} it was expanded against still has the same value.
+            # Without this, a load_config() that ran before load_hermes_dotenv()
+            # pins unexpanded literals (e.g. auxiliary.<task>.api_key) for the
+            # life of the process (#58514).
+            env_snapshot = cached[5] if len(cached) > 5 else {}
+            if all(os.environ.get(k) == v for k, v in env_snapshot.items()):
+                return copy.deepcopy(cached[4]) if want_deepcopy else cached[4]
 
         config = copy.deepcopy(DEFAULT_CONFIG)
 
@@ -6733,9 +6831,15 @@ def _load_config_impl(*, want_deepcopy: bool) -> Dict[str, Any]:
             # (deepcopy=True) callers can mutate freely without affecting the
             # cached value, and ``load_config_readonly()`` (deepcopy=False)
             # callers all see the same stable cached object. The cached tuple is
-            # (user_mtime, user_size, managed_mtime, managed_size, value).
+            # (user_mtime, user_size, managed_mtime, managed_size, value,
+            # env_ref_snapshot). The snapshot records the environment values
+            # this expansion was made against so later loads can detect env
+            # drift (late .env load, in-process rotation) — see cache hit above.
             cached_copy = copy.deepcopy(expanded)
-            _LOAD_CONFIG_CACHE[path_key] = (*cache_sig, cached_copy)
+            env_snapshot = _env_ref_snapshot(normalized)
+            if managed_config:
+                _env_ref_snapshot(managed_config, env_snapshot)
+            _LOAD_CONFIG_CACHE[path_key] = (*cache_sig, cached_copy, env_snapshot)
             # On the readonly path return the same cached object subsequent
             # calls will see — keeps "two readonly calls return the same
             # object" invariant that callers may rely on for identity checks.
@@ -6864,6 +6968,7 @@ def save_config(
 
         ensure_hermes_home()
         config_path = get_config_path()
+        require_readable_config_before_write(config_path)
         # Compute explicit user paths BEFORE any normalisation --------
         # _normalize_max_turns_config may inject agent.max_turns from
         # DEFAULT_CONFIG; using the raw dict preserves which paths the
@@ -7210,8 +7315,8 @@ def _check_non_ascii_credential(key: str, value: str) -> str:
         f"\n"
         + "\n".join(f"  {line}" for line in bad_chars[:5])
         + ("\n  ... and more" if len(bad_chars) > 5 else "")
-        + f"\n\n  The non-ASCII characters have been stripped automatically.\n"
-        f"  If authentication fails, re-copy the key from the provider's dashboard.\n",
+        + "\n\n  The non-ASCII characters have been stripped automatically.\n"
+        "  If authentication fails, re-copy the key from the provider's dashboard.\n",
         file=sys.stderr,
     )
     return sanitized
@@ -7843,6 +7948,7 @@ def set_config_value(key: str, value: str):
     # Read the raw user config (not merged with defaults) to avoid
     # dumping all default values back to the file
     config_path = get_config_path()
+    require_readable_config_before_write(config_path)
     user_config = {}
     if config_path.exists():
         try:
