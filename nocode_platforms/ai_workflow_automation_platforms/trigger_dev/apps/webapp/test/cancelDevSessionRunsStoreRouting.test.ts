@@ -3,14 +3,14 @@
 // splitEnabled boundary and recording client wrappers are injected.
 import { heteroPostgresTest, postgresTest } from "@internal/testcontainers";
 import type { PrismaClient } from "@trigger.dev/database";
-import { generateKsuidId } from "@trigger.dev/core/v3/isomorphic";
+import { generateRunOpsId } from "@trigger.dev/core/v3/isomorphic";
 import { describe, expect, vi } from "vitest";
 import type { PrismaReplicaClient } from "~/db.server";
 import { CancelDevSessionRunsService } from "~/v3/services/cancelDevSessionRuns.server";
 
 vi.setConfig({ testTimeout: 60_000 });
 
-// 25-char cuid body (length-disjoint from the 27-char KSUID) → LEGACY residency.
+// 25-char cuid body (no v1 version marker) → LEGACY residency.
 function generateLegacyCuid() {
   const suffix = Array.from(
     { length: 24 },
@@ -90,10 +90,10 @@ function recording(client: PrismaClient, opts: { forbidden?: boolean } = {}) {
 
 describe("CancelDevSessionRunsService store routing (hetero)", () => {
   heteroPostgresTest(
-    "a NEW run (ksuid) resolves on the new store via read-through, by friendlyId and by id",
+    "a NEW run (run-ops id) resolves on the new store via read-through, by friendlyId and by id",
     async ({ prisma17, prisma14 }) => {
-      const id = generateKsuidId();
-      expect(id.length).toBe(27);
+      const id = generateRunOpsId();
+      expect(id.length).toBe(26);
       const friendlyId = `run_${id}`;
 
       const { project, organization, runtimeEnvironment } = await seedOrgProjectEnv(
@@ -127,7 +127,7 @@ describe("CancelDevSessionRunsService store routing (hetero)", () => {
           cancelledAt: new Date(),
           reason: "test",
         });
-        // ksuid → NEW: new store served the read, legacy never touched.
+        // run-ops id → NEW: new store served the read, legacy never touched.
         expect(newClient.calls.length).toBe(1);
         expect(legacy.calls.length).toBe(0);
       }
@@ -204,7 +204,7 @@ describe("CancelDevSessionRunsService passthrough (single-DB)", () => {
   postgresTest(
     "with no read-through deps, the run is read from the single DB and session reads stay on it",
     async ({ prisma }) => {
-      const id = generateKsuidId();
+      const id = generateRunOpsId();
       const friendlyId = `run_${id}`;
 
       const { project, organization, runtimeEnvironment } = await seedOrgProjectEnv(prisma, "pt");

@@ -1,4 +1,4 @@
-import { BatchId, generateKsuidId } from "@trigger.dev/core/v3/isomorphic";
+import { BatchId, generateRunOpsId } from "@trigger.dev/core/v3/isomorphic";
 import {
   resolveRunIdMintKind as defaultResolveRunIdMintKind,
   type RunIdMintKind,
@@ -14,8 +14,8 @@ const defaultDeps: ResolveDeps = {
 };
 
 export function batchIdForMintKind(kind: RunIdMintKind): { id: string; friendlyId: string } {
-  if (kind === "ksuid") {
-    const id = generateKsuidId();
+  if (kind === "runOpsId") {
+    const id = generateRunOpsId();
     return { id, friendlyId: BatchId.toFriendlyId(id) };
   }
   return BatchId.generate();

@@ -14,7 +14,7 @@ import {
   TriggerTraceContext,
 } from "@trigger.dev/core/v3";
 import {
-  generateKsuidId,
+  generateRunOpsId,
   parseTraceparent,
   RunId,
   serializeTraceparent,
@@ -129,16 +129,21 @@ export class RunEngineTriggerTaskService {
   }
 
   // Mint a new run's friendlyId. The id-kind decides which store the run is born
-  // in (cuid → legacy store, ksuid → new store), so the whole subgraph of a run
+  // in (cuid → legacy store, run-ops id → new store), so the whole subgraph of a run
   // must agree. Two cases:
   //
   //  - ROOT run (no parent): mint by the environment's cutover setting.
   //  - CHILD run (has a parent): inherit the parent's residency by id-shape, so a
-  //    parent and child never split across stores (ksuid parent → ksuid child,
+  //    parent and child never split across stores (run-ops parent → run-ops child,
   //    cuid parent → cuid child).
+  // `region` is the caller-requested region (body.options.region). The id is
+  // minted before the worker queue is resolved (the idempotency concern needs
+  // the friendlyId first), so the stamped region char reflects the requested
+  // region — or the default char when the run targets the default region.
   private async mintRunFriendlyId(
     environment: AuthenticatedEnvironment,
-    parentRunFriendlyId?: string
+    parentRunFriendlyId?: string,
+    region?: string
   ): Promise<string> {
     const mintKind = parentRunFriendlyId
       ? resolveInheritedMintKind(parentRunFriendlyId)
@@ -148,8 +153,8 @@ export class RunEngineTriggerTaskService {
           orgFeatureFlags: environment.organization.featureFlags,
         });
 
-    return mintKind === "ksuid"
-      ? RunId.toFriendlyId(generateKsuidId())
+    return mintKind === "runOpsId"
+      ? RunId.toFriendlyId(generateRunOpsId(region))
       : RunId.generate().friendlyId;
   }
 
@@ -183,7 +188,11 @@ export class RunEngineTriggerTaskService {
           // parent is present, else the environment's setting.
           const runFriendlyId =
             options?.runFriendlyId ??
-            (await this.mintRunFriendlyId(environment, body.options?.parentRunId));
+            (await this.mintRunFriendlyId(
+              environment,
+              body.options?.parentRunId,
+              body.options?.region
+            ));
           const triggerRequest = {
             taskId,
             friendlyId: runFriendlyId,

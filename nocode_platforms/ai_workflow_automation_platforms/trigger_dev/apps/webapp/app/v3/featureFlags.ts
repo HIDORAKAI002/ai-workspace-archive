@@ -18,7 +18,7 @@ export const FEATURE_FLAG = {
   computeMigrationPaidPercentage: "computeMigrationPaidPercentage",
   computeMigrationRequireTemplate: "computeMigrationRequireTemplate",
   devBranchesEnabled: "devBranchesEnabled",
-  runOpsMintKsuid: "runOpsMintKsuid",
+  runOpsMintKind: "runOpsMintKind",
 } as const;
 
 export const FeatureFlagCatalog = {
@@ -51,9 +51,9 @@ export const FeatureFlagCatalog = {
   [FEATURE_FLAG.computeMigrationRequireTemplate]: z.boolean(),
   // Per-org access to development branches. Off unless enabled for the org.
   [FEATURE_FLAG.devBranchesEnabled]: z.coerce.boolean(),
-  // Per-org KSUID mint cutover. Defaults to "cuid"; only honored when
-  // RUN_OPS_MINT_KSUID_ENABLED is on AND isSplitEnabled() is true.
-  [FEATURE_FLAG.runOpsMintKsuid]: z.enum(["cuid", "ksuid"]),
+  // Per-org run-ops-id mint cutover. Defaults to "cuid"; only honored when
+  // RUN_OPS_MINT_ENABLED is on AND isSplitEnabled() is true.
+  [FEATURE_FLAG.runOpsMintKind]: z.enum(["cuid", "runOpsId"]),
 };
 
 export type FeatureFlagKey = keyof typeof FeatureFlagCatalog;

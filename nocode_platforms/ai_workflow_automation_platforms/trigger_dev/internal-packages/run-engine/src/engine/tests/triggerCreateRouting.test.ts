@@ -7,7 +7,7 @@ import {
   type CreateFailedRunInput,
   type CreateRunInput,
 } from "@internal/run-store";
-import { RunId, ownerEngine, generateKsuidId } from "@trigger.dev/core/v3/isomorphic";
+import { RunId, ownerEngine, generateRunOpsId } from "@trigger.dev/core/v3/isomorphic";
 import type { PrismaClientOrTransaction } from "@trigger.dev/database";
 import { expect } from "vitest";
 import { RunEngine } from "../index.js";
@@ -100,8 +100,8 @@ function freshRunId() {
   return RunId.generate().friendlyId;
 }
 
-function freshKsuidRunId() {
-  return RunId.toFriendlyId(generateKsuidId());
+function freshRunOpsRunId() {
+  return RunId.toFriendlyId(generateRunOpsId());
 }
 
 const baseTriggerParams = (friendlyId: string, environment: any, taskIdentifier: string) => ({
@@ -381,7 +381,7 @@ describe("RunEngine trigger/create routing", () => {
     }
   );
 
-  // Split/two-store proof: with the ksuid mint enabled, a NEW-minted run id is
+  // Split/two-store proof: with the run-ops id mint enabled, a NEW-minted run id is
   // classified NEW and a RoutingRunStore writes it to the run-ops (NEW) store,
   // never the LEGACY store. Proves a new run is born on the run-ops store.
   containerTest(
@@ -405,7 +405,7 @@ describe("RunEngine trigger/create routing", () => {
         const taskIdentifier = "test-task";
         await setupBackgroundWorker(engine, environment, taskIdentifier);
 
-        const friendlyId = freshKsuidRunId();
+        const friendlyId = freshRunOpsRunId();
         // Sanity: this id classifies NEW so RoutingRunStore must pick newStore.
         expect(ownerEngine(friendlyId)).toBe("NEW");
 
@@ -426,7 +426,7 @@ describe("RunEngine trigger/create routing", () => {
 
   // A child triggered with the parent's residency persists to the
   // SAME store the parent was written to (routing-by-run-id). Both parent and
-  // child mint NEW (ksuid) ids → both land on newStore.
+  // child mint NEW (run-ops id) ids → both land on newStore.
   containerTest("child inherits the parent's residency store", async ({ prisma, redisOptions }) => {
     const environment = await setupAuthenticatedEnvironment(prisma, "PRODUCTION");
     const newStore = new CountingRunStore({ prisma, readOnlyPrisma: prisma, label: "new" });
@@ -448,7 +448,7 @@ describe("RunEngine trigger/create routing", () => {
       await setupBackgroundWorker(engine, environment, [parentTask, childTask]);
 
       const parentRun = await engine.trigger(
-        baseTriggerParams(freshKsuidRunId(), environment, parentTask)
+        baseTriggerParams(freshRunOpsRunId(), environment, parentTask)
       );
 
       await engine.dequeueFromWorkerQueue({ consumerId: "test", workerQueue: "main" });
@@ -459,7 +459,7 @@ describe("RunEngine trigger/create routing", () => {
       });
 
       const childRun = await engine.trigger({
-        ...baseTriggerParams(freshKsuidRunId(), environment, childTask),
+        ...baseTriggerParams(freshRunOpsRunId(), environment, childTask),
         resumeParentOnCompletion: true,
         parentTaskRunId: parentRun.id,
         rootTaskRunId: parentRun.id,

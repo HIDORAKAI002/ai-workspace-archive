@@ -1,13 +1,13 @@
 // RED→GREEN repro for the run-ops split BASELINE BLOCKER:
 // RoutingRunStore cross-DB PROBE reads forward the caller's control-plane `client` into the #new
 // sub-store probe, so #new queries the CONTROL-PLANE DB instead of its own (5434) and never finds a
-// ksuid-resident batch/attempt → returns null. Live effect: batchSystem.#tryCompleteBatch calls
+// run-ops id-resident batch/attempt → returns null. Live effect: batchSystem.#tryCompleteBatch calls
 // `runStore.findBatchTaskRunById(batchId, undefined, this.$.prisma)` → null → "batch doesn't exist"
 // → the batch waitpoint is never completed → every `batchTriggerAndWait` parent hangs forever.
 //
 // `heteroRunOpsPostgresTest` gives a REAL split topology: prisma17 = real RunOpsPrismaClient over the
 // dedicated subset schema (#new / 5434), prisma14 = full legacy schema on a SEPARATE physical PG
-// container (#legacy / control-plane). NEVER mocked. The repro seeds a ksuid batch (and a ksuid
+// container (#legacy / control-plane). NEVER mocked. The repro seeds a run-ops batch (and a run-ops id
 // attempt) on #new and probes via the router passing the LEGACY client as the read client — exactly
 // as the live caller does. RED before the fix (router forwards the client → #new reads control-plane
 // → null); GREEN after (router drops the client → #new reads its own DB → finds the row).
@@ -23,9 +23,9 @@ import type { RunStoreSchemaVariant } from "./types.js";
 type AnyClient = PrismaClient | RunOpsPrismaClient;
 
 // ownerEngine classifies by internal-id LENGTH (runOpsResidency.ts): 25 chars → cuid → LEGACY,
-// 27 chars → ksuid → NEW.
+// a v1 body (26 chars, version "1" at index 25) → NEW.
 const CUID_25 = "c".repeat(25); // → LEGACY (#legacy / prisma14, full schema)
-const KSUID_27 = "k".repeat(27); // → NEW (#new / prisma17, dedicated subset schema)
+const NEW_ID_26 = "k".repeat(24) + "01"; // → NEW (#new / prisma17, dedicated subset schema)
 
 async function seedEnvironment(
   prisma: AnyClient,
@@ -96,13 +96,13 @@ describe("run-ops split — cross-DB probe reads must NOT forward the caller's c
   // findBatchTaskRunById — the live batchTriggerAndWait hang: #tryCompleteBatch probes with the
   // control-plane client, which the router forwarded into #new → #new read the wrong DB → null.
   heteroRunOpsPostgresTest(
-    "findBatchTaskRunById FINDS a ksuid batch on #new even when probed with the LEGACY (control-plane) client",
+    "findBatchTaskRunById FINDS a run-ops batch on #new even when probed with the LEGACY (control-plane) client",
     async ({ prisma14, prisma17 }) => {
       const { router } = makeSplitRouter(prisma14, prisma17);
       const env = await seedEnvironment(prisma17, "dedicated", "batchprobe_new");
-      const batchId = `batch_${KSUID_27}`; // ksuid → #new
+      const batchId = `batch_${NEW_ID_26}`; // run-ops id → #new
 
-      // Seed the batch directly on #new (5434), exactly where a runEngine-routed ksuid batch lives.
+      // Seed the batch directly on #new (5434), exactly where a runEngine-routed run-ops batch lives.
       await prisma17.batchTaskRun.create({
         data: {
           id: batchId,
@@ -151,11 +151,11 @@ describe("run-ops split — cross-DB probe reads must NOT forward the caller's c
 
   // findBatchTaskRunByFriendlyId — same anti-pattern (env-scoped friendlyId probe).
   heteroRunOpsPostgresTest(
-    "findBatchTaskRunByFriendlyId FINDS a ksuid batch on #new despite the LEGACY client",
+    "findBatchTaskRunByFriendlyId FINDS a run-ops batch on #new despite the LEGACY client",
     async ({ prisma14, prisma17 }) => {
       const { router } = makeSplitRouter(prisma14, prisma17);
       const env = await seedEnvironment(prisma17, "dedicated", "batchfid_new");
-      const batchId = `batch_${KSUID_27}`;
+      const batchId = `batch_${NEW_ID_26}`;
       const friendlyId = "batch_fid_new";
 
       await prisma17.batchTaskRun.create({
@@ -180,11 +180,11 @@ describe("run-ops split — cross-DB probe reads must NOT forward the caller's c
 
   // findBatchTaskRunByIdempotencyKey — same anti-pattern (env + idempotency-key probe).
   heteroRunOpsPostgresTest(
-    "findBatchTaskRunByIdempotencyKey FINDS a ksuid batch on #new despite the LEGACY client",
+    "findBatchTaskRunByIdempotencyKey FINDS a run-ops batch on #new despite the LEGACY client",
     async ({ prisma14, prisma17 }) => {
       const { router } = makeSplitRouter(prisma14, prisma17);
       const env = await seedEnvironment(prisma17, "dedicated", "batchidem_new");
-      const batchId = `batch_${KSUID_27}`;
+      const batchId = `batch_${NEW_ID_26}`;
       const idempotencyKey = "idem_batch_new";
 
       await prisma17.batchTaskRun.create({
@@ -209,14 +209,14 @@ describe("run-ops split — cross-DB probe reads must NOT forward the caller's c
   );
 
   // findTaskRunAttempt — same anti-pattern. A classifiable taskRunId routes to the owning store
-  // (#new for a ksuid run) but the control-plane client was still forwarded into it.
+  // (#new for a run-ops run) but the control-plane client was still forwarded into it.
   heteroRunOpsPostgresTest(
-    "findTaskRunAttempt FINDS a ksuid attempt on #new even when probed with the LEGACY client",
+    "findTaskRunAttempt FINDS a run-ops id attempt on #new even when probed with the LEGACY client",
     async ({ prisma14, prisma17 }) => {
       const { router } = makeSplitRouter(prisma14, prisma17);
       const env = await seedEnvironment(prisma17, "dedicated", "attempt_new");
-      const runId = `run_${KSUID_27}`; // ksuid run → #new
-      const attemptId = `attempt_${KSUID_27}`;
+      const runId = `run_${NEW_ID_26}`; // run-ops run → #new
+      const attemptId = `attempt_${NEW_ID_26}`;
 
       // The attempt's owning run lives on #new (the FK is co-resident on the dedicated schema).
       await prisma17.taskRun.create({
@@ -247,10 +247,10 @@ describe("run-ops split — cross-DB probe reads must NOT forward the caller's c
           number: 1,
           friendlyId: "attempt_fid_new",
           taskRunId: runId,
-          backgroundWorkerId: `bw_${KSUID_27}`,
-          backgroundWorkerTaskId: `bwt_${KSUID_27}`,
+          backgroundWorkerId: `bw_${NEW_ID_26}`,
+          backgroundWorkerTaskId: `bwt_${NEW_ID_26}`,
           runtimeEnvironmentId: env.environment.id,
-          queueId: `queue_${KSUID_27}`,
+          queueId: `queue_${NEW_ID_26}`,
           status: "PENDING",
         },
       });
@@ -274,7 +274,7 @@ describe("run-ops split — cross-DB probe reads must NOT forward the caller's c
       // Single-DB config: both slots point at the same dedicated store (split effectively OFF).
       const router = new RoutingRunStore({ new: newStore, legacy: newStore });
       const env = await seedEnvironment(prisma17, "dedicated", "splitoff_new");
-      const batchId = `batch_${KSUID_27}`;
+      const batchId = `batch_${NEW_ID_26}`;
 
       await prisma17.batchTaskRun.create({
         data: {
