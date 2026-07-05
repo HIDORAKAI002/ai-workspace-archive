@@ -4,7 +4,7 @@ import { RunEngine } from "@internal/run-engine";
 import { setupAuthenticatedEnvironment, setupBackgroundWorker } from "@internal/run-engine/tests";
 import { containerTest } from "@internal/testcontainers";
 import { trace } from "@opentelemetry/api";
-import { RunId, classifyKind, generateKsuidId } from "@trigger.dev/core/v3/isomorphic";
+import { RunId, classifyKind, generateRunOpsId } from "@trigger.dev/core/v3/isomorphic";
 import { TriggerFailedTaskService } from "../../app/runEngine/services/triggerFailedTask.server";
 import { EventRepository } from "../../app/v3/eventRepository/eventRepository.server";
 
@@ -86,15 +86,15 @@ describe("TriggerFailedTaskService — failed run residency", () => {
   );
 
   containerTest(
-    "failed child of a NEW (ksuid) parent mints ksuid (call)",
+    "failed child of a NEW (run-ops id) parent mints run-ops id (call)",
     async ({ prisma, redisOptions }) => {
       const engine = makeEngine(prisma, redisOptions);
       const environment = await setupAuthenticatedEnvironment(prisma, "PRODUCTION");
       const taskIdentifier = "failed-residency-task";
       await setupBackgroundWorker(engine, environment, taskIdentifier);
 
-      const parentFriendlyId = RunId.toFriendlyId(generateKsuidId());
-      expect(classifyKind(parentFriendlyId)).toBe("ksuid");
+      const parentFriendlyId = RunId.toFriendlyId(generateRunOpsId());
+      expect(classifyKind(parentFriendlyId)).toBe("runOpsId");
       await engine.trigger(
         {
           friendlyId: parentFriendlyId,
@@ -122,7 +122,7 @@ describe("TriggerFailedTaskService — failed run residency", () => {
         parentRunId: parentFriendlyId,
       });
 
-      expect(classifyKind(friendlyId!)).toBe("ksuid");
+      expect(classifyKind(friendlyId!)).toBe("runOpsId");
 
       // The failed run write must land (persistence) and link to the resolved parent.
       const persisted = await prisma.taskRun.findFirst({ where: { friendlyId: friendlyId! } });
@@ -182,14 +182,14 @@ describe("TriggerFailedTaskService — failed run residency", () => {
   );
 
   containerTest(
-    "failed child of a NEW parent mints ksuid (callWithoutTraceEvents)",
+    "failed child of a NEW parent mints run-ops id (callWithoutTraceEvents)",
     async ({ prisma, redisOptions }) => {
       const engine = makeEngine(prisma, redisOptions);
       const environment = await setupAuthenticatedEnvironment(prisma, "PRODUCTION");
       const taskIdentifier = "failed-residency-task";
       await setupBackgroundWorker(engine, environment, taskIdentifier);
 
-      const parentFriendlyId = RunId.toFriendlyId(generateKsuidId());
+      const parentFriendlyId = RunId.toFriendlyId(generateRunOpsId());
       await engine.trigger(
         {
           friendlyId: parentFriendlyId,
@@ -220,7 +220,7 @@ describe("TriggerFailedTaskService — failed run residency", () => {
         parentRunId: parentFriendlyId,
       });
 
-      expect(classifyKind(friendlyId!)).toBe("ksuid");
+      expect(classifyKind(friendlyId!)).toBe("runOpsId");
 
       await engine.quit();
     }
@@ -236,9 +236,9 @@ describe("TriggerFailedTaskService — failed run residency", () => {
 
       const service = makeService(prisma, engine);
 
-      // A well-formed ksuid parent friendlyId that was NEVER triggered → no row.
+      // A well-formed run-ops parent friendlyId that was NEVER triggered → no row.
       // Exercises the missing-parent fallback in callWithoutTraceEvents.
-      const absentParentFriendlyId = RunId.toFriendlyId(generateKsuidId());
+      const absentParentFriendlyId = RunId.toFriendlyId(generateRunOpsId());
 
       const friendlyId = await service.callWithoutTraceEvents({
         environmentId: environment.id,
