@@ -390,7 +390,17 @@ export const skillsRuntime: ServerRuntimeRegistration = {
     }
 
     return new SkillsExecutionRuntime({
-      builtinSkills: [...filterBuiltinSkills(builtinSkills), ...agentSkillBuiltins],
+      builtinSkills: [
+        // Device-only skills resolve in device-capable runs — mirrors the
+        // SkillEngine gate in aiAgent that builds <available_skills>, so a
+        // `device-unrouted` run can activate/read them before the model routes
+        // a device. `activeDeviceId` is the fallback for callers without an
+        // execution plan.
+        ...filterBuiltinSkills(builtinSkills, {
+          canExecuteOnDevice: context.deviceCapable ?? !!activeDeviceId,
+        }),
+        ...agentSkillBuiltins,
+      ],
       deviceFileAccess,
       projectSkills,
       service,
