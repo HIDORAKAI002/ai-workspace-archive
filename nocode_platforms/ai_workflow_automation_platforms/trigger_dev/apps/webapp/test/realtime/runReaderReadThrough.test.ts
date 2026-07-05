@@ -16,15 +16,15 @@ import { RunHydrator } from "~/services/realtime/runReader.server";
 // (which live in the hydrator, not the store) are unaffected by the seam.
 //
 // The heterogeneous fixture gives real legacy + new Postgres containers; NO DB is mocked. The ONLY
-// non-DB fake is the residency selector that the routing-shaped store uses (`ownerEngine`: ksuid ->
+// non-DB fake is the residency selector that the routing-shaped store uses (`ownerEngine`: run-ops id ->
 // NEW, cuid -> LEGACY), exactly the substrate the RoutingRunStore ships. Run ids are 25 chars (cuid
-// -> LEGACY) or 27 chars (ksuid -> NEW) so the classifier routes them deterministically.
+// -> LEGACY) or v1-shaped (26 chars, version "1" at index 25 -> NEW) so the classifier routes them deterministically.
 
-// 25-char internal id -> cuid -> LEGACY; 27-char internal id -> ksuid -> NEW. The
+// 25-char internal id -> cuid -> LEGACY; v1 internal id (26 chars, version "1" at index 25) -> NEW. The
 // classifier strips a leading `<prefix>_`, so these ids must carry NO underscore (a bare
 // alphanumeric body of the exact length).
 function newId(label: string): string {
-  return ("k" + label.replace(/[^a-z0-9]/gi, "")).padEnd(27, "0").slice(0, 27);
+  return ("k" + label.replace(/[^0-9a-v]/g, "")).padEnd(24, "0").slice(0, 24) + "01";
 }
 function legacyId(label: string): string {
   return ("c" + label.replace(/[^a-z0-9]/gi, "")).padEnd(25, "0").slice(0, 25);
@@ -310,7 +310,7 @@ describe("RunHydrator read-route through the runStore seam (legacy + new)", () =
     }
   );
 
-  // Terminal-metadata read-seam: a NEW-resident (ksuid) run's final metadata is hydrated through
+  // Terminal-metadata read-seam: a NEW-resident (run-ops id) run's final metadata is hydrated through
   // the owning (NEW) store, not off a generic legacy replica. Asserts read-seam ROUTING for the
   // terminal read; it is not a hard ordering/consistency guarantee about when the terminal marker
   // and the row's terminal columns converge.

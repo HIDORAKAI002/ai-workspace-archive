@@ -12,7 +12,7 @@ import {
   Prisma,
 } from "@trigger.dev/database";
 import type { RunStore } from "@internal/run-store";
-import { generateKsuidId, RunId } from "@trigger.dev/core/v3/isomorphic";
+import { generateRunOpsId, RunId } from "@trigger.dev/core/v3/isomorphic";
 import { z } from "zod";
 import type { PrismaClientOrTransaction } from "~/db.server";
 import { prisma } from "~/db.server";
@@ -344,13 +344,14 @@ export class BatchTriggerV3Service extends BaseService {
   }
 
   // Mint a child run's friendlyId so it lands in the SAME physical store as its
-  // residency anchor. The caller passes the batch's friendlyId, so a ksuid
-  // (NEW) anchor yields a ksuid (NEW) child and a cuid anchor yields a cuid
+  // residency anchor. The caller passes the batch's friendlyId, so a run-ops id
+  // (NEW) anchor yields a run-ops id (NEW) child and a cuid anchor yields a cuid
   // (LEGACY) child. With no anchor it falls back to the env's cutover setting.
   // Mirrors RunEngineTriggerTaskService.mintRunFriendlyId.
   private async mintChildFriendlyId(
     environment: AuthenticatedEnvironment,
-    anchorFriendlyId?: string
+    anchorFriendlyId?: string,
+    region?: string
   ): Promise<string> {
     const mintKind = anchorFriendlyId
       ? resolveInheritedMintKind(anchorFriendlyId)
@@ -360,8 +361,8 @@ export class BatchTriggerV3Service extends BaseService {
           orgFeatureFlags: environment.organization.featureFlags,
         });
 
-    return mintKind === "ksuid"
-      ? RunId.toFriendlyId(generateKsuidId())
+    return mintKind === "runOpsId"
+      ? RunId.toFriendlyId(generateRunOpsId(region))
       : RunId.generate().friendlyId;
   }
 
@@ -379,7 +380,7 @@ export class BatchTriggerV3Service extends BaseService {
     if (body?.dependentAttempt) {
       return Promise.all(
         body.items.map(async (item) => ({
-          id: await this.mintChildFriendlyId(environment, childAnchor),
+          id: await this.mintChildFriendlyId(environment, childAnchor, item.options?.region),
           isCached: false,
           idempotencyKey: undefined,
           taskIdentifier: item.task,
@@ -441,7 +442,7 @@ export class BatchTriggerV3Service extends BaseService {
             expiredRunIds.add(cachedRun.friendlyId);
 
             return {
-              id: await this.mintChildFriendlyId(environment, childAnchor),
+              id: await this.mintChildFriendlyId(environment, childAnchor, item.options?.region),
               isCached: false,
               idempotencyKey: item.options?.idempotencyKey ?? undefined,
               taskIdentifier: item.task,
@@ -457,7 +458,7 @@ export class BatchTriggerV3Service extends BaseService {
         }
 
         return {
-          id: await this.mintChildFriendlyId(environment, childAnchor),
+          id: await this.mintChildFriendlyId(environment, childAnchor, item.options?.region),
           isCached: false,
           idempotencyKey: item.options?.idempotencyKey ?? undefined,
           taskIdentifier: item.task,
@@ -1001,7 +1002,7 @@ export async function tryCompleteBatchV3(
   batchId: string,
   tx: PrismaClientOrTransaction,
   scheduleResumeOnComplete: boolean,
-  // Threaded in so a ksuid (NEW-resident) batch + its items are read/written on the owning
+  // Threaded in so a run-ops id (NEW-resident) batch + its items are read/written on the owning
   // store, not the control-plane `tx`. Defaults to the singleton (single-DB = passthrough).
   runStore: RunStore = defaultRunStore
 ) {
@@ -1061,7 +1062,7 @@ export async function completeBatchTaskRunItemV3(
   scheduleResumeOnComplete = false,
   taskRunAttemptId?: string,
   retryAttempt?: number,
-  // Threaded in so a ksuid (NEW-resident) batch's item lands on the owning store; route by
+  // Threaded in so a run-ops id (NEW-resident) batch's item lands on the owning store; route by
   // batchTaskRunId (items co-reside with their batch). Defaults to the singleton.
   runStore: RunStore = defaultRunStore
 ) {

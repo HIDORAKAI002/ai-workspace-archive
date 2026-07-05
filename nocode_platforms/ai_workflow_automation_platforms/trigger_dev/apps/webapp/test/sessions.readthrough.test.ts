@@ -11,7 +11,7 @@ vi.mock("~/db.server", () => ({
 
 import { heteroRunOpsPostgresTest, postgresTest } from "@internal/testcontainers";
 import { buildRunStore } from "~/v3/runStore.server";
-import { generateKsuidId } from "@trigger.dev/core/v3/isomorphic";
+import { generateRunOpsId } from "@trigger.dev/core/v3/isomorphic";
 import type { RunOpsPrismaClient } from "@internal/run-ops-database";
 import type { PrismaClient } from "@trigger.dev/database";
 import {
@@ -91,7 +91,7 @@ async function createLegacyRun(
 }
 
 /**
- * Create a NEW (dedicated run-ops) TaskRun with a ksuid id — classifies NEW and
+ * Create a NEW (dedicated run-ops) TaskRun with a run-ops id — classifies NEW and
  * lives only on the run-ops DB. Scalar tenant columns only (the subset schema is
  * FK-free, so no org/project/env rows are required here).
  */
@@ -250,16 +250,16 @@ describe("sessions serializer currentRunId resolution", () => {
   );
 
   // --- Split single-run across two physical DBs (the production-shaped break) ---
-  // ksuid (NEW-DB) session run must serialize a non-null friendlyId, and a cuid
+  // run-ops id (NEW-DB) session run must serialize a non-null friendlyId, and a cuid
   // (LEGACY) run must still resolve — proving the asymmetry is gone.
   heteroRunOpsPostgresTest(
-    "split single-run resolves a NEW-ksuid run from the run-ops DB and a LEGACY-cuid run from control-plane",
+    "split single-run resolves a NEW-run-ops run from the run-ops DB and a LEGACY-cuid run from control-plane",
     async ({ prisma14, prisma17 }) => {
       const ctx = await seedParents(prisma14, "split-single");
 
       const newRun = await createNewRun(prisma17, ctx, {
         friendlyId: "run_new",
-        id: generateKsuidId(),
+        id: generateRunOpsId(),
       });
       const legacyRun = await createLegacyRun(prisma14, ctx, { friendlyId: "run_legacy" });
 
@@ -299,7 +299,7 @@ describe("sessions serializer currentRunId resolution", () => {
 
       const newRun = await createNewRun(prisma17, ctx, {
         friendlyId: "run_bnew",
-        id: generateKsuidId(),
+        id: generateRunOpsId(),
       });
       const legacyRun = await createLegacyRun(prisma14, ctx, { friendlyId: "run_blegacy" });
       const crossEnvRun = await createLegacyRun(prisma14, otherCtx, { friendlyId: "run_bcross" });
