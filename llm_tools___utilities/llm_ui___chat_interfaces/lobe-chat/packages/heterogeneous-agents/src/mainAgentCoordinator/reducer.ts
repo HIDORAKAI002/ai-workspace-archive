@@ -156,7 +156,10 @@ const openTurn = (state: MainAgentRunState, data: any, ctx: MainAgentReduceCtx):
   next.currentAssistantId = messageId;
   // The spine only advances on NORMAL turns — a signal/reactive turn is a
   // tool-child callback, so the next normal turn re-mounts on the pre-callback
-  // spine assistant, not on the callback.
+  // spine assistant, not on the callback. A signal turn that then emits a
+  // tool_use is really back on the main chain; `reduceToolsChunk` advances the
+  // spine onto it at that point (derived from `currentAssistantId`, so it holds
+  // on a cold replica too — see there).
   if (!isSignalTurn) next.lastSpineMessageId = messageId;
   next.currentMainMessageId = mainMessageId;
   next.accContent = '';
@@ -273,6 +276,22 @@ const reduceToolsChunk = (
   // Advance the chain fallback to this turn's last tool message.
   const lastToolMsgId = newToolMsgIds.at(-1);
   if (lastToolMsgId) next.lastToolMsgIdEver = lastToolMsgId;
+
+  // Any assistant that emits a tool_use is on the main chain, so it is a spine
+  // message — advance the spine onto it. For a normal turn this is a no-op
+  // (`openTurn` already pointed the spine here). For a turn OPENED as a
+  // signal/reactive callback that then called a tool, this promotes it so the
+  // NEXT normal turn chains off THIS turn instead of the pre-signal assistant —
+  // otherwise the wire forks and the read side drops everything after the fork.
+  //
+  // Deriving the promotion from `currentAssistantId` (not a per-turn "opened as
+  // signal" flag) is what keeps it correct on a cold / non-sticky serverless
+  // replica: an in-memory flag is NOT rehydrated by `refreshMainStateFromDb`,
+  // but `currentAssistantId` and `lastSpineMessageId` ARE — and a mid-flight
+  // signal turn is still toolless in the DB, so the recovered spine is the
+  // pre-signal assistant (≠ currentAssistantId) and this batch's `tools_calling`
+  // promotes it exactly as a warm replica would.
+  next.lastSpineMessageId = next.currentAssistantId;
 
   return { intents, state: next };
 };
