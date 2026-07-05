@@ -834,7 +834,7 @@ describe("test-projects args", () => {
   it("routes unit ui targets to the unit ui config", () => {
     expect(buildVitestRunPlans(["ui/src/ui/views/channels.test.ts"])).toEqual([
       {
-        config: "test/vitest/vitest.unit-ui.config.ts",
+        config: "test/vitest/vitest.ui.config.ts",
         forwardedArgs: [],
         includePatterns: ["ui/src/ui/views/channels.test.ts"],
         watchMode: false,
@@ -941,6 +941,7 @@ describe("test-projects args", () => {
           "src/gateway/server.agent.gateway-server-agent-b.test.ts",
           "src/gateway/server.chat.gateway-server-chat-b.test.ts",
           "src/gateway/server.sessions.permissions-hooks.test.ts",
+          "src/gateway/terminal/launch.test.ts",
         ],
         watchMode: false,
       },

@@ -44,14 +44,14 @@ concurrency:
 
 jobs:
   tag-external:
-    if: github.event_name != 'workflow_dispatch'
+    if: github.repository_owner == 'langchain-ai' && github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
 
       - name: Generate GitHub App token
         id: app-token
@@ -112,14 +112,14 @@ jobs:
             console.log(`Added '${label}' label to issue #${issue_number}`);
 
   backfill:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.repository_owner == 'langchain-ai' && github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
 
       - name: Generate GitHub App token
         id: app-token
