@@ -104,6 +104,14 @@ Check out a variety of sample implementations of the SDK in the examples section
 
 - **[research_bot](https://github.com/openai/openai-agents-python/tree/main/examples/research_bot):** Simple deep research clone that demonstrates complex multi-agent research workflows.
 
+- **[sandbox](https://github.com/openai/openai-agents-python/tree/main/examples/sandbox):** Examples for running agents in isolated workspaces, including:
+
+    -   Basic sandbox agent setup (`examples/sandbox/basic.py`)
+    -   Unix-local and Docker sandbox lifecycle examples
+    -   Sandbox-backed handoffs (`examples/sandbox/handoffs.py`)
+    -   Sandbox memory and snapshot resume (`examples/sandbox/memory.py`)
+    -   Sandbox agents exposed as tools (`examples/sandbox/sandbox_agents_as_tools.py`)
+
 - **[tools](https://github.com/openai/openai-agents-python/tree/main/examples/tools):** Learn how to implement OAI hosted tools and experimental Codex tooling such as:
 
     -   Web search and web search with filters
