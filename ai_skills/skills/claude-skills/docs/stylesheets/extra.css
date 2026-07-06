@@ -881,3 +881,21 @@
     font-size: 1.5rem !important;
   }
 }
+
+/* Footer AI-agent discovery links (llms.txt / llms-full.txt) */
+.md-copyright__ai {
+  font-size: 0.64rem;
+  opacity: 0.75;
+  margin-top: 0.15rem;
+}
+
+.md-copyright__ai a {
+  color: currentColor;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.md-copyright__ai a:hover,
+.md-copyright__ai a:focus {
+  opacity: 1;
+}

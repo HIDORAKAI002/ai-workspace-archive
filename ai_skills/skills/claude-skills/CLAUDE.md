@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI and Claude Code - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 354 production-ready skills across 18 domains with 593 Python automation tools, 722 reference guides, 96 agents (cs-* + 7 personas), and 102 slash commands, distributed as 82 marketplace plugins. Headline counters are derived from the tree by `scripts/derive_counters.py` (run with `--check` to verify the docs still match). **v2.9.0 (complete)** added the **research-ops/** top-level domain — enterprise Research Operations (orchestrator + clinical-research + research-finance + market-research + product-research), the managed counterpart to the academic research/ domain, with `context: fork` orchestration and a Matt Pocock "Forcing-question library" in every SKILL.md plus `/cs:grill-research-ops`. **v2.8.0 (complete)** added 2 new top-level domains — **business-operations/** (7 internal-ops skills: orchestrator + process-mapper + vendor-management + capacity-planner + internal-comms + knowledge-ops + procurement-optimizer) and **commercial/** (8 per-deal-economics skills: orchestrator + pricing-strategist + deal-desk + partnerships-architect + channel-economics + commercial-policy + rfp-responder + commercial-forecaster) — with orchestrator skills using `context: fork` for chaining, Matt Pocock docs-anchored "Forcing-question library" in every SKILL.md, plus `/cs:grill-bizops` and `/cs:grill-commercial`. **v2.8.2** adds a productivity-shaped `handoff` skill (sibling to engineering/handoff) inspired by Matt Pocock — first-run setup with configurable save location, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, `--refresh` flag. **v2.8.1** upgraded the engineering role-skills (senior-fullstack / senior-frontend / senior-backend) with karpathy-coder + Matt Pocock decision engines + per-role forcing questions. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
+**Current Scope:** 355 production-ready skills across 18 domains with 602 Python automation tools, 731 reference guides, 99 agents (cs-* + 7 personas), and 109 slash commands, distributed as 83 marketplace plugins. Headline counters are derived from the tree by `scripts/derive_counters.py` (run with `--check` to verify the docs still match). **v2.11.1 (current)** upgrades **product-team/** and **project-management/** into agent-harness domains: both prose routers rebuilt as `context: fork` orchestrators with deterministic goal routers (exit-code route/ask/refuse), a Jira MCP snapshot bridge (Kanban-Guide-2025 flow metrics + seeded Monte Carlo forecasts, verified end-to-end into velocity_analyzer), a delegation-governance loop gate (human owner / reviewer / machine-checkable acceptance / close refusal), a Torres continuous-discovery cadence tracker + Opportunity Solution Tree linter, cs-pm-orchestrator + cs-product-orchestrator agents, and /cs:pm|grill-pm|pm-loop + /cs:product|grill-product|product-loop commands — plus the public audit record `audit/pm-product-agentic-2026-07/` (AR-rubric scores for all 26 skills, research-backed improvement fields, executable verification criteria). **v2.9.0 (complete)** added the **research-ops/** top-level domain — enterprise Research Operations (orchestrator + clinical-research + research-finance + market-research + product-research), the managed counterpart to the academic research/ domain, with `context: fork` orchestration and a Matt Pocock "Forcing-question library" in every SKILL.md plus `/cs:grill-research-ops`. **v2.8.0 (complete)** added 2 new top-level domains — **business-operations/** (7 internal-ops skills: orchestrator + process-mapper + vendor-management + capacity-planner + internal-comms + knowledge-ops + procurement-optimizer) and **commercial/** (8 per-deal-economics skills: orchestrator + pricing-strategist + deal-desk + partnerships-architect + channel-economics + commercial-policy + rfp-responder + commercial-forecaster) — with orchestrator skills using `context: fork` for chaining, Matt Pocock docs-anchored "Forcing-question library" in every SKILL.md, plus `/cs:grill-bizops` and `/cs:grill-commercial`. **v2.8.2** adds a productivity-shaped `handoff` skill (sibling to engineering/handoff) inspired by Matt Pocock — first-run setup with configurable save location, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, `--refresh` flag. **v2.8.1** upgraded the engineering role-skills (senior-fullstack / senior-frontend / senior-backend) with karpathy-coder + Matt Pocock decision engines + per-role forcing questions. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -61,7 +61,7 @@ claude-code-skills/
 ├── agents/                    # 32 standalone agents (cs-* + 7 personas); 51+ cs-* agents repo-wide
 ├── commands/                  # slash commands (changelog, tdd, saas-health, prd, code-to-prd, plugin-audit, sprint-plan, slo-design, etc.); 87+ repo-wide
 ├── engineering-team/          # 51 core engineering skills + Playwright Pro + Self-Improving Agent + Security Suite
-├── engineering/               # 78 POWERFUL-tier advanced skills (incl. AgentHub, autoresearch-agent, self-eval, llm-wiki, tc-tracker, ship-gate, slo-architect, write-a-skill, caveman, grill-me, handoff)
+├── engineering/               # 81 POWERFUL-tier advanced skills (incl. AgentHub, autoresearch-agent, self-eval, llm-wiki, tc-tracker, ship-gate, slo-architect, write-a-skill, caveman, grill-me, handoff, agent-harness)
 ├── product-team/              # 17 product skills (incl. apple-hig-expert) + Python tools
 ├── marketing-skill/           # 46 marketing skills (8 pods) + Python tools
 ├── c-level-advisor/           # 66 C-level advisory skills (full C-suite + founder-mode agents + orchestration)
@@ -158,6 +158,32 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 - Prefer standard library implementations
 
 ## Current Version
+
+**Version:** v2.11.1 (pm/product agent-harness domains — deep audit + orchestrated loops for product-team & project-management)
+
+**v2.11.1 highlights — both PM/product routers become agent harnesses:**
+
+Extends the v2.11.0 agent-harness layer to the two people-process domains. Public audit record at `audit/pm-product-agentic-2026-07/` (AR-rubric scores for all 26 skills, research-backed improvement fields, executable verification criteria).
+
+- **project-management → delivery loop:** `pm-skills` rebuilt as a `context: fork` orchestrator with 3 stdlib tools — `pm_goal_router.py` (8 lanes, exit-code route/ask/refuse), `jira_snapshot_bridge.py` (saved `searchJiraIssuesUsingJql` output → Kanban-Guide-2025 flow metrics with SLE + aging-WIP alerts + seeded Monte Carlo forecasts that sample zero-throughput weeks, or the scrum-master sprint schema — verified end-to-end into `velocity_analyzer.py`), `delivery_loop_gate.py` (delegation governance G1–G6: human owner, reviewer for agent tasks, machine-checkable acceptance, evidence-before-done, close refusal, exhausted-budget-is-escalation). Five reusable PM loops documented with named terminal states. Agent `cs-pm-orchestrator`; commands `/cs:pm`, `/cs:grill-pm`, `/cs:pm-loop`.
+- **product-team → discovery loop:** `product-skills` rebuilt as a `context: fork` orchestrator with 3 stdlib tools — `product_goal_router.py` (16 lanes incl. the 4 standalone plugins), `discovery_cadence_tracker.py` (Torres weekly-habit health 0–100 with named gaps + `next_loop_action`), `ost_linter.py` (Opportunity Solution Tree rules O1–O5; exit 2 blocks an unsound tree from driving a roadmap). Agent `cs-product-orchestrator`; commands `/cs:product`, `/cs:grill-product`, `/cs:product-loop`.
+- **6 new references** citing 6–7 sources each (flow/forecasting canon, agentic delivery governance, PM loop playbook, continuous discovery, product operating model, AI product evals) + pinned fixtures; fixed the two CLI-noncompliant product tools (`user_story_generator.py`, `persona_generator.py` — real argparse `--help`, seeded determinism); regenerated both domain harness manifests (orchestrators now score all five `agentic_signals`; manifest builder now truncates descriptions on word boundaries).
+- **Counters:** tools 596 → 602; refs 725 → 731; agents 97 → 99; commands 103 → 109 (derived via `scripts/derive_counters.py --check`).
+
+---
+
+**Version:** v2.11.0 (agent-harness — turn any domain into a bounded, self-verifying agent loop + engineering agentic-readiness audit)
+
+**v2.11.0 highlights — agent-harness skill + AR audit of both engineering folders:**
+
+New `engineering/agent-harness/` skill — the thin unifying layer that lets an agent or subagent pick up a goal for any of the repo's 18 domains, decompose it into verifiable tasks, execute them with the domain's own tools, verify each with machine-run checks, retry within caps, escalate to a human on exhausted budgets, and refuse to close until every task is verified or explicitly waived.
+
+- **3 stdlib tools:** `harness_manifest_builder.py` (scans a domain folder → `manifest.v1` JSON: skills, tools, exact `--help`/`--sample` checks, static agentic signals), `goal_compiler.py` (goal + manifest → `plan.v1` task plan via deterministic keyword scoring; refuses vague goals exit 3 with forcing questions, no-match exit 4 with nearest candidates), `loop_controller.py` (JSON-backed `init/next/record/verify/close/status` state machine — runs verification checks itself via subprocess to prevent verification theater, caps attempts + iterations with escalation, refuses close while any task is unverified; atomic state writes via `os.replace`).
+- **18 committed per-domain manifests** under `assets/harnesses/` (the whole repo, machine-readable), a JSON schema, `harness-runner` agent, `/cs:harness <domain> <goal>` command, and 3 references citing the 2024–2026 harness canon (Anthropic long-running-agents harness, verifier's law, SWE-agent, Ralph loop, Cognition serialize-writers, plus the repo's own tc-tracker / autoresearch locked-evaluator / loop-library stop-state primitives — reuse, not reinvention).
+- **Agentic-readiness audit** at `audit/engineering-agentic-2026-07/` — both `engineering/` (63 skills) and `engineering-team/` (52 skills) re-scored on a 6-dimension AR rubric (goal intake, decomposition, deterministic execution, verification, loop discipline, close-out) plus a delta check against the June 2026 baseline. Combined: 26 HARNESS-READY · 39 LOOP-CAPABLE · 43 TOOL-ONLY · 7 PROSE-ONLY. Headline finding: **AR5 (loop discipline) is the repo-wide gap** — a one-sentence iteration-cap sweep across ~15 skills would roughly double HARNESS-READY. New defects logged (ship-gate orphaned scanner + table drift, senior-data-engineer CLI mismatch, senior-ml-engineer stale 2024 pricing).
+- **Marketplace + counters:** 82 → 83 plugins; skills 354 → 355; tools 593 → 596; refs 722 → 725 (derived via `scripts/derive_counters.py --check`).
+
+---
 
 **Version:** v2.10.3 (md-slides — slide-deck converter; completes the markdown-html/ domain)
 
@@ -514,6 +540,14 @@ This repository publishes skills to **ClawHub** (clawhub.com) as the distributio
 
 **Quality Standard:** Each skill should save users 40%+ time while improving consistency/quality by 30%+.
 
+## Self-learning
+
+When I correct you, or you catch yourself making a mistake: before continuing add the lesson as a one-line rule under ## Lessons, so it never happens again
+
+## Lessons
+
+- (Claude adds rules here)
+
 ## Additional Resources
 
 - **.gitignore:** Excludes .vscode/, .DS_Store, AGENTS.md, PROMPTS.md, .env*
@@ -524,6 +558,6 @@ This repository publishes skills to **ClawHub** (clawhub.com) as the distributio
 
 ---
 
-**Last Updated:** June 10, 2026
-**Version:** v2.10.3
-**Status:** 345 skills deployed across 17 domains, 78 marketplace plugins, docs site live (counters derived via `scripts/derive_counters.py`)
+**Last Updated:** July 3, 2026
+**Version:** v2.11.1
+**Status:** 355 skills deployed across 18 domains, 83 marketplace plugins, docs site live (counters derived via `scripts/derive_counters.py`)
