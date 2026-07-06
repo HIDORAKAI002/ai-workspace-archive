@@ -493,6 +493,16 @@ export function wrapRunOpsClientForErrorNormalization<C extends RunOpsCapableCli
  * so `instanceof Prisma.PrismaClientKnownRequestError` works regardless of which
  * generated client backs the store.
  */
+// Relations present on the full control-plane schema but ABSENT from the dedicated run-ops subset;
+// selecting one against the dedicated client throws an opaque Prisma error for NEW-resident data.
+const BATCH_TASK_RUN_CONTROL_PLANE_RELATIONS = ["runsBlocked", "waitpoints", "runtimeEnvironment"];
+const TASK_RUN_ATTEMPT_CONTROL_PLANE_RELATIONS = [
+  "backgroundWorker",
+  "backgroundWorkerTask",
+  "runtimeEnvironment",
+  "queue",
+];
+
 export class PostgresRunStore implements RunStore {
   private readonly prisma: RunOpsCapableClient;
   private readonly readOnlyPrisma: RunOpsCapableClient;
@@ -527,6 +537,25 @@ export class PostgresRunStore implements RunStore {
     );
   }
 
+  // Run `fn` atomically: reuse the caller's interactive transaction if it gave us a real one, else open
+  // our own on this store's writer. A real interactive tx has no `$transaction` method; a base client
+  // (which callers, e.g. the engine's dequeue/resume paths, thread through for routing) DOES - so a base
+  // client still gets a fresh transaction. Used by write methods that create a row plus dependent rows
+  // (snapshot + completed-waitpoints, run + associated-waitpoint) which must commit together.
+  #withOptionalTransaction<R>(
+    tx: PrismaClientOrTransaction | undefined,
+    fn: (client: PrismaClientOrTransaction) => Promise<R>
+  ): Promise<R> {
+    const alreadyInTransaction =
+      tx !== undefined && typeof (tx as { $transaction?: unknown }).$transaction !== "function";
+    if (alreadyInTransaction) {
+      return fn(tx);
+    }
+    return (this.prisma as RunOpsTransactionalClient).$transaction((t) =>
+      fn(t as unknown as PrismaClientOrTransaction)
+    );
+  }
+
   async createRun(
     params: CreateRunInput,
     tx?: PrismaClientOrTransaction
@@ -547,15 +576,19 @@ export class PostgresRunStore implements RunStore {
     };
 
     if (this.schemaVariant === "dedicated") {
-      const run = (await client.taskRun.create({
-        data: {
-          ...params.data,
-          executionSnapshots: { create: snapshotCreate },
-        },
-      })) as TaskRun;
+      // The run + its associated RUN-type waitpoint are two writes here (the legacy branch below nests
+      // them). Commit them together so a crash / lagging read never leaves a run without its waitpoint.
+      return this.#withOptionalTransaction(tx, async (c) => {
+        const run = (await c.taskRun.create({
+          data: {
+            ...params.data,
+            executionSnapshots: { create: snapshotCreate },
+          },
+        })) as TaskRun;
 
-      const associatedWaitpoint = await this.#createAssociatedWaitpoint(client, run.id, params);
-      return { ...run, associatedWaitpoint };
+        const associatedWaitpoint = await this.#createAssociatedWaitpoint(c, run.id, params);
+        return { ...run, associatedWaitpoint };
+      });
     }
 
     return client.taskRun.create({
@@ -633,12 +666,15 @@ export class PostgresRunStore implements RunStore {
     const client = tx ?? this.prisma;
 
     if (this.schemaVariant === "dedicated") {
-      const run = (await client.taskRun.create({
-        data: { ...params.data },
-      })) as TaskRun;
+      // Run + associated RUN-type waitpoint are two writes here; commit them together (see createRun).
+      return this.#withOptionalTransaction(tx, async (c) => {
+        const run = (await c.taskRun.create({
+          data: { ...params.data },
+        })) as TaskRun;
 
-      const associatedWaitpoint = await this.#createAssociatedWaitpoint(client, run.id, params);
-      return { ...run, associatedWaitpoint };
+        const associatedWaitpoint = await this.#createAssociatedWaitpoint(c, run.id, params);
+        return { ...run, associatedWaitpoint };
+      });
     }
 
     return client.taskRun.create({
@@ -954,8 +990,17 @@ export class PostgresRunStore implements RunStore {
     data: LockRunData,
     tx?: PrismaClientOrTransaction
   ): Promise<Prisma.TaskRunGetPayload<{}>> {
-    const prisma = tx ?? this.prisma;
+    // The run-lock update (with its nested PENDING_EXECUTING snapshot) and the completed-waitpoint
+    // connect must commit together, or a replica-served resume read can see the snapshot without its
+    // links and drop the resume.
+    return this.#withOptionalTransaction(tx, (c) => this.#lockRunToWorker(runId, data, c));
+  }
 
+  async #lockRunToWorker(
+    runId: string,
+    data: LockRunData,
+    prisma: PrismaClientOrTransaction
+  ): Promise<Prisma.TaskRunGetPayload<{}>> {
     const dedicated = this.schemaVariant === "dedicated";
 
     const result = await prisma.taskRun.update({
@@ -1533,8 +1578,17 @@ export class PostgresRunStore implements RunStore {
     input: CreateExecutionSnapshotInput,
     tx?: PrismaClientOrTransaction
   ): Promise<Prisma.TaskRunExecutionSnapshotGetPayload<{ include: { checkpoint: true } }>> {
-    const prisma = tx ?? this.prisma;
+    // The snapshot row and its completed-waitpoint join rows MUST commit together. `/snapshots/since`
+    // can be served from a lagging read replica, so a snapshot that commits before its links can be
+    // read back waitpoint-less and the runner's resume is lost (the run hangs). This is the warm-continue
+    // path: the engine threads its base prisma through as `tx`, which is not a real transaction.
+    return this.#withOptionalTransaction(tx, (c) => this.#createExecutionSnapshot(input, c));
+  }
 
+  async #createExecutionSnapshot(
+    input: CreateExecutionSnapshotInput,
+    prisma: PrismaClientOrTransaction
+  ): Promise<Prisma.TaskRunExecutionSnapshotGetPayload<{ include: { checkpoint: true } }>> {
     const {
       run,
       snapshot,
@@ -1616,6 +1670,41 @@ export class PostgresRunStore implements RunStore {
       SELECT "B" FROM "_completedWaitpoints" WHERE "A" = ${snapshotId}
     `;
     return result.map((r) => r.B);
+  }
+
+  // One query: LEFT JOIN the snapshot to its completed-waitpoint links so `present` (snapshot visible
+  // on this reader) and `ids` come from the SAME point-in-time. A multi-reader replica can otherwise
+  // return the snapshot (via a separate read) while a different, laggier reader returns 0 links.
+  async findSnapshotCompletedWaitpointIdsWithPresence(
+    snapshotId: string,
+    client?: ReadClient
+  ): Promise<{ present: boolean; ids: string[] }> {
+    const prisma = client ?? this.readOnlyPrisma;
+
+    const joinDelegate = (prisma as RunOpsCapableClient).completedWaitpoint;
+    if (this.schemaVariant === "dedicated" && joinDelegate) {
+      const rows = await prisma.$queryRaw<{ id: string; waitpointId: string | null }[]>`
+        SELECT s."id", cw."waitpointId"
+        FROM "TaskRunExecutionSnapshot" s
+        LEFT JOIN "CompletedWaitpoint" cw ON cw."snapshotId" = s."id"
+        WHERE s."id" = ${snapshotId}
+      `;
+      return {
+        present: rows.length > 0,
+        ids: rows.filter((r) => r.waitpointId !== null).map((r) => r.waitpointId as string),
+      };
+    }
+
+    const rows = await prisma.$queryRaw<{ id: string; B: string | null }[]>`
+      SELECT s."id", cw."B"
+      FROM "TaskRunExecutionSnapshot" s
+      LEFT JOIN "_completedWaitpoints" cw ON cw."A" = s."id"
+      WHERE s."id" = ${snapshotId}
+    `;
+    return {
+      present: rows.length > 0,
+      ids: rows.filter((r) => r.B !== null).map((r) => r.B as string),
+    };
   }
 
   // Reverse of `connectedRuns`: the run ids linked to a waitpoint. Co-resident with the RUN (the join
@@ -1950,11 +2039,43 @@ export class PostgresRunStore implements RunStore {
     return prisma.taskRunWaitpoint.deleteMany(args);
   }
 
+  // The dedicated subset schema lacks control-plane relations; a pass-through include/select of one
+  // throws an opaque Prisma "Unknown field" 500 for NEW-resident data - invisible to tsc, since the
+  // run-ops client is typed as the full schema. Reject the known control-plane-only keys with a clear
+  // message at the boundary. No-op on the legacy (full-schema) store.
+  #assertSubsetSelectable(
+    fields: Record<string, unknown> | null | undefined,
+    forbidden: readonly string[],
+    method: string
+  ): void {
+    if (this.schemaVariant !== "dedicated" || !fields) return;
+    for (const key of forbidden) {
+      if (fields[key]) {
+        throw new Error(
+          `${method}: "${key}" is not available on the dedicated run-ops subset schema ` +
+            `(control-plane-only); resolve it via the control-plane instead of selecting it here.`
+        );
+      }
+    }
+  }
+
   async findTaskRunAttempt<T extends Prisma.TaskRunAttemptFindFirstArgs>(
     args: Prisma.SelectSubset<T, Prisma.TaskRunAttemptFindFirstArgs>,
     client?: ReadClient
   ): Promise<Prisma.TaskRunAttemptGetPayload<T> | null> {
     const prisma = client ?? this.readOnlyPrisma;
+
+    const forbidden = TASK_RUN_ATTEMPT_CONTROL_PLANE_RELATIONS;
+    this.#assertSubsetSelectable(
+      (args as { include?: Record<string, unknown> }).include,
+      forbidden,
+      "findTaskRunAttempt"
+    );
+    this.#assertSubsetSelectable(
+      (args as { select?: Record<string, unknown> }).select,
+      forbidden,
+      "findTaskRunAttempt"
+    );
 
     return prisma.taskRunAttempt.findFirst(
       args
@@ -2007,6 +2128,12 @@ export class PostgresRunStore implements RunStore {
   ): Promise<Prisma.BatchTaskRunGetPayload<{ include: T }> | null> {
     const prisma = client ?? this.prisma;
 
+    this.#assertSubsetSelectable(
+      args?.include as Record<string, unknown> | undefined,
+      BATCH_TASK_RUN_CONTROL_PLANE_RELATIONS,
+      "findBatchTaskRunById"
+    );
+
     return prisma.batchTaskRun.findFirst({
       where: { id },
       ...(args?.include ? { include: args.include } : {}),
@@ -2020,6 +2147,12 @@ export class PostgresRunStore implements RunStore {
     client?: ReadClient
   ): Promise<Prisma.BatchTaskRunGetPayload<{ include: T }> | null> {
     const prisma = client ?? this.readOnlyPrisma;
+
+    this.#assertSubsetSelectable(
+      args?.include as Record<string, unknown> | undefined,
+      BATCH_TASK_RUN_CONTROL_PLANE_RELATIONS,
+      "findBatchTaskRunByFriendlyId"
+    );
 
     return prisma.batchTaskRun.findFirst({
       where: { friendlyId, runtimeEnvironmentId: environmentId },
@@ -2036,6 +2169,12 @@ export class PostgresRunStore implements RunStore {
     client?: ReadClient
   ): Promise<Prisma.BatchTaskRunGetPayload<{ include: T }> | null> {
     const prisma = client ?? this.prisma;
+
+    this.#assertSubsetSelectable(
+      args?.include as Record<string, unknown> | undefined,
+      BATCH_TASK_RUN_CONTROL_PLANE_RELATIONS,
+      "findBatchTaskRunByIdempotencyKey"
+    );
 
     return prisma.batchTaskRun.findFirst({
       where: { runtimeEnvironmentId: environmentId, idempotencyKey },
