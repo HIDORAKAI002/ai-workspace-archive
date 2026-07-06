@@ -5,7 +5,7 @@ import { toast } from '@lobehub/ui/base-ui';
 import { createStaticStyles, cssVar } from 'antd-style';
 import isEqual from 'fast-deep-equal';
 import { ArrowDownIcon, ArrowUpIcon, GitBranchIcon, GitPullRequest } from 'lucide-react';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import RingLoadingIcon from '@/components/RingLoading';
@@ -17,8 +17,8 @@ import {
   useFetchGitAheadBehind,
   useFetchGitBranch,
   useFetchGitLinkedPR,
-  useFetchGitWorkingTreeStatus,
   useFetchGitWorktrees,
+  useReviewPatches,
 } from '@/store/device';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
@@ -181,9 +181,11 @@ const GitStatus = memo<GitStatusProps>(({ agentId, path, sourcePath, isGithub, d
   const branch = branchData?.branch;
   const detached = branchData?.detached;
   const { data: prData, mutate: mutatePR } = useFetchGitLinkedPR(deviceId, path, branch, isGithub);
-  const { data: workingStatus, mutate: mutateWorkingStatus } = useFetchGitWorkingTreeStatus(
-    deviceId,
+  const { data: reviewPatches, mutate: mutateReviewPatches } = useReviewPatches(
     path,
+    'unstaged',
+    undefined,
+    deviceId,
   );
   const { data: aheadBehind, mutate: mutateAheadBehind } = useFetchGitAheadBehind(deviceId, path);
   const { data: worktrees = [], mutate: mutateWorktrees } = useFetchGitWorktrees(deviceId, path);
@@ -219,11 +221,11 @@ const GitStatus = memo<GitStatusProps>(({ agentId, path, sourcePath, isGithub, d
     await Promise.all([
       mutateBranch(),
       mutatePR(),
-      mutateWorkingStatus(),
+      mutateReviewPatches(),
       mutateAheadBehind(),
       mutateWorktrees(),
     ]);
-  }, [mutateBranch, mutatePR, mutateWorkingStatus, mutateAheadBehind, mutateWorktrees]);
+  }, [mutateBranch, mutatePR, mutateReviewPatches, mutateAheadBehind, mutateWorktrees]);
 
   // Flip the displayed branch instantly on checkout. No revalidate here — the
   // switcher's onAfterCheckout reconciles once the checkout lands. The linked-PR
@@ -325,6 +327,23 @@ const GitStatus = memo<GitStatusProps>(({ agentId, path, sourcePath, isGithub, d
     }
   }, [deviceId, path, pulling, pushing, refreshAfterSync, t]);
 
+  const diffStats = useMemo(() => {
+    const patches = [
+      ...(reviewPatches?.patches ?? []),
+      ...(reviewPatches?.submodules ?? []).flatMap((submodule) => submodule.patches),
+    ];
+    return patches.reduce(
+      (acc, patch) => {
+        acc.additions += patch.additions ?? 0;
+        acc.deletions += patch.deletions ?? 0;
+        acc.files += 1;
+        return acc;
+      },
+      { additions: 0, deletions: 0, files: 0 },
+    );
+  }, [reviewPatches?.patches, reviewPatches?.submodules]);
+  const hasChanges = diffStats.files > 0;
+
   if (!branch) return null;
 
   const branchTooltip = detached ? t('workingDirectory.detachedHead', { sha: branch }) : branch;
@@ -340,13 +359,11 @@ const GitStatus = memo<GitStatusProps>(({ agentId, path, sourcePath, isGithub, d
       ? t('workingDirectory.ghMissing')
       : undefined;
 
-  const hasChanges = !!workingStatus && !workingStatus.clean;
-
   const diffStatTooltip = hasChanges
-    ? t('workingDirectory.diffStatTooltip', {
-        added: workingStatus!.added,
-        deleted: workingStatus!.deleted,
-        modified: workingStatus!.modified,
+    ? t('workingDirectory.diffLineStatTooltip', {
+        added: diffStats.additions,
+        deleted: diffStats.deletions,
+        files: diffStats.files,
       })
     : undefined;
 
@@ -393,8 +410,9 @@ const GitStatus = memo<GitStatusProps>(({ agentId, path, sourcePath, isGithub, d
       onAfterCheckout={() => {
         void mutateBranch();
         void mutatePR();
-        void mutateWorkingStatus();
+        void mutateReviewPatches();
         void mutateAheadBehind();
+        void mutateWorktrees();
       }}
     >
       <Tooltip title={branchTooltip}>{branchTrigger}</Tooltip>
@@ -450,18 +468,18 @@ const GitStatus = memo<GitStatusProps>(({ agentId, path, sourcePath, isGithub, d
   );
 
   const diffNode = (() => {
-    if (!hasChanges || !workingStatus) return null;
+    if (!hasChanges) return null;
     const diffButton = (
       <div className={styles.trigger} role="button" onClick={handleToggleReview}>
         <span className={styles.diffStat}>
-          {workingStatus.added > 0 && (
-            <span className={styles.diffStatAdded}>+{workingStatus.added}</span>
+          {diffStats.additions > 0 && (
+            <span className={styles.diffStatAdded}>+{diffStats.additions}</span>
           )}
-          {workingStatus.modified > 0 && (
-            <span className={styles.diffStatModified}>±{workingStatus.modified}</span>
+          {diffStats.deletions > 0 && (
+            <span className={styles.diffStatDeleted}>-{diffStats.deletions}</span>
           )}
-          {workingStatus.deleted > 0 && (
-            <span className={styles.diffStatDeleted}>-{workingStatus.deleted}</span>
+          {diffStats.additions === 0 && diffStats.deletions === 0 && diffStats.files > 0 && (
+            <span className={styles.diffStatModified}>±{diffStats.files}</span>
           )}
         </span>
       </div>

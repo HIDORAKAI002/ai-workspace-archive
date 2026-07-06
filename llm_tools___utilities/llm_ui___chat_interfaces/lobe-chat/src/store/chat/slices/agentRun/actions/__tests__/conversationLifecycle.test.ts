@@ -1478,6 +1478,57 @@ describe('ConversationLifecycle actions', () => {
         );
       });
 
+      it('should recover heterogeneous context selections from the persisted user message metadata', async () => {
+        mockConstEnv.isDesktop = true;
+        setupMockSelectors({
+          agentConfig: {
+            agencyConfig: {
+              heterogeneousProvider: { command: 'codex', type: 'codex' },
+            },
+          },
+        });
+
+        const persistedContextSelections = [
+          {
+            content: 'const selected = true;',
+            filePath: 'src/example.ts',
+            id: 'code-selection',
+            lineRange: { endLine: 12, startLine: 10 },
+            source: 'code' as const,
+          },
+        ];
+        const { result } = renderHook(() => useChatStore());
+        vi.spyOn(aiChatService, 'sendMessageInServer').mockResolvedValue({
+          assistantMessageId: TEST_IDS.ASSISTANT_MESSAGE_ID,
+          messages: [
+            createMockMessage({
+              id: TEST_IDS.USER_MESSAGE_ID,
+              metadata: { contextSelections: persistedContextSelections },
+              role: 'user',
+            }),
+            createMockMessage({ id: TEST_IDS.ASSISTANT_MESSAGE_ID, role: 'assistant' }),
+          ],
+          topicId: TEST_IDS.TOPIC_ID,
+          topics: [],
+          userMessageId: TEST_IDS.USER_MESSAGE_ID,
+        } as any);
+        executeHeterogeneousAgentMock.mockResolvedValue(undefined);
+
+        await act(async () => {
+          await result.current.sendMessage({
+            message: TEST_CONTENT.USER_MESSAGE,
+            context: createTestContext(),
+          });
+        });
+
+        expect(executeHeterogeneousAgentMock).toHaveBeenCalledWith(
+          expect.any(Function),
+          expect.objectContaining({
+            contextSelections: persistedContextSelections,
+          }),
+        );
+      });
+
       it('should materialize local file mention editor data into persisted tool-result snapshots', async () => {
         mockConstEnv.isDesktop = true;
         setupMockSelectors({

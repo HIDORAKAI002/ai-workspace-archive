@@ -20,7 +20,7 @@ import {
   WrapTextIcon,
 } from 'lucide-react';
 import path from 'path-browserify-esm';
-import { Fragment, memo, useMemo, useRef, useState } from 'react';
+import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import NeuralNetworkLoading from '@/components/NeuralNetworkLoading';
@@ -31,7 +31,12 @@ import FileRow from './FileRow';
 import FileTreeNav from './FileTreeNav';
 import GroupHeader from './GroupHeader';
 import { itemKey } from './reviewTreeNodes';
-import { type ReviewMode, useGitRemoteBranches, useReviewPatches } from './useReviewPatches';
+import {
+  invalidateGitReviewCaches,
+  type ReviewMode,
+  useGitRemoteBranches,
+  useReviewPatches,
+} from './useReviewPatches';
 
 interface RepoGroup {
   absolutePath: string;
@@ -49,6 +54,7 @@ const REVIEW_MODE_STORAGE_KEY = 'lobechat-review-mode';
 const BASE_REF_OVERRIDES_STORAGE_KEY = 'lobechat-review-base-overrides';
 
 interface ReviewProps {
+  active: boolean;
   /**
    * Target device the working directory lives on. Undefined for local desktop;
    * set for a remote / web-bound device so git ops route through the device RPCs.
@@ -218,7 +224,7 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
   `,
 }));
 
-const Review = memo<ReviewProps>(({ deviceId, onToggleTree, showTree, workingDirectory }) => {
+const Review = memo<ReviewProps>(({ active, deviceId, onToggleTree, showTree, workingDirectory }) => {
   const { t } = useTranslation('chat');
   const [mode, setMode] = useLocalStorageState<ReviewMode>(REVIEW_MODE_STORAGE_KEY, 'unstaged');
   // Per-repo base-ref override — when set, the branch diff compares against
@@ -238,12 +244,28 @@ const Review = memo<ReviewProps>(({ deviceId, onToggleTree, showTree, workingDir
     });
   };
 
-  const { data, isLoading, isValidating, mutate } = useReviewPatches(
+  const { data, isLoading, isValidating } = useReviewPatches(
     workingDirectory,
     mode,
     baseOverride,
     deviceId,
+    active,
   );
+  const invalidateReviewData = useCallback(
+    async () =>
+      invalidateGitReviewCaches({
+        baseRef: baseOverride,
+        deviceId,
+        dirPath: workingDirectory,
+        mode,
+      }),
+    [baseOverride, deviceId, mode, workingDirectory],
+  );
+
+  useEffect(() => {
+    if (!active) return;
+    void invalidateReviewData();
+  }, [active, invalidateReviewData]);
   // Lazy: only fetch remote branches list once the user opens the picker.
   const [basePickerOpen, setBasePickerOpen] = useState(false);
   const { data: remoteBranches } = useGitRemoteBranches(
@@ -406,7 +428,7 @@ const Review = memo<ReviewProps>(({ deviceId, onToggleTree, showTree, workingDir
       icon: <RefreshCwIcon size={14} />,
       key: 'refresh',
       label: t('workingPanel.review.refresh'),
-      onClick: () => void mutate(),
+      onClick: () => void invalidateReviewData(),
     },
     { type: 'divider' },
     {
@@ -649,7 +671,7 @@ const Review = memo<ReviewProps>(({ deviceId, onToggleTree, showTree, workingDir
                           textDiff={textDiff}
                           viewMode={viewMode}
                           wordWrap={wordWrap}
-                          onReverted={() => void mutate()}
+                          onReverted={() => void invalidateReviewData()}
                           onToggle={() => toggleFileKey(key)}
                         />
                       );

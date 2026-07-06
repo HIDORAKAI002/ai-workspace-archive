@@ -155,6 +155,7 @@ const FileRow = memo<FileRowProps>(
                 truncated={entry.truncated}
                 viewMode={viewMode}
                 wordWrap={wordWrap}
+                workingDirectory={repoAbsolutePath}
               />
             </m.div>
           )}
