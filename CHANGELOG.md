@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-07-06 16:42 IST] Auto-Sync
+- **36 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Langfuse, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Windmill, Budibase, Awesome n8n Templates, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, openai/openai-agents-python, pydantic/pydantic-ai, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, ChatGPTNextWeb/NextChat, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, arize-ai/phoenix, Jenqyang/Awesome-AI-Agents, vercel/ai, apache/airflow, sgl-project/sglang, shanraisshan/claude-code-best-practice, vectorize-io/hindsight, bytedance/deer-flow, lyogavin/airllm, nousresearch/hermes-agent
+
 ## [2026-07-06 10:02 IST] Auto-Sync
 - **22 Repositories Updated:** Promptfoo, Dify, Trigger.dev, Windmill, Appsmith, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, arben-adm/mcp-sequential-thinking, langchain-ai/langchain, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, ChatGPTNextWeb/NextChat, infiniflow/ragflow, open-telemetry/opentelemetry-python, unslothai/unsloth, sgl-project/sglang, shanraisshan/claude-code-best-practice, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 
