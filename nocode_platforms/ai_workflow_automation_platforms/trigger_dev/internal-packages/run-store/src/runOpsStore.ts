@@ -827,16 +827,30 @@ export class RoutingRunStore implements RunStore {
     input: CreateExecutionSnapshotInput,
     tx?: PrismaClientOrTransaction
   ): Promise<Prisma.TaskRunExecutionSnapshotGetPayload<{ include: { checkpoint: true } }>> {
-    return (await this.#routeOrNewForWrite(input.run.id)).createExecutionSnapshot(input);
+    // Forward the caller's control-plane tx only to the #legacy store; a #new (cross-DB) write can't
+    // join it, so it's dropped there (the atomic #new path uses runInTransaction instead).
+    const store = await this.#routeOrNewForWrite(input.run.id);
+    return store.createExecutionSnapshot(input, store === this.#legacy ? tx : undefined);
   }
 
-  // A snapshot lives with its run; route by the snapshot id's residency.
-  findSnapshotCompletedWaitpointIds(snapshotId: string, client?: ReadClient): Promise<string[]> {
-    const store = this.#routeOrNew(snapshotId);
-    return store.findSnapshotCompletedWaitpointIds(
-      snapshotId,
-      RoutingRunStore.#ownPrimary(store, client)
-    );
+  // Snapshot ids are cuids (they always classify LEGACY), and a snapshot's CompletedWaitpoint join
+  // co-locates with its run, which may live on either store, so fan out to BOTH and merge (like
+  // findWaitpointCompletedSnapshotIds) rather than route by the un-classifiable snapshot id.
+  async findSnapshotCompletedWaitpointIds(
+    snapshotId: string,
+    client?: ReadClient
+  ): Promise<string[]> {
+    const [fromNew, fromLegacy] = await Promise.all([
+      this.#new.findSnapshotCompletedWaitpointIds(
+        snapshotId,
+        RoutingRunStore.#ownPrimary(this.#new, client)
+      ),
+      this.#legacy.findSnapshotCompletedWaitpointIds(
+        snapshotId,
+        RoutingRunStore.#ownPrimary(this.#legacy, client)
+      ),
+    ]);
+    return uniqueStrings([...fromNew, ...fromLegacy]);
   }
 
   // Keyed by waitpointId, but the WaitpointRunConnection / CompletedWaitpoint join co-locates with the
@@ -1291,11 +1305,12 @@ export class RoutingRunStore implements RunStore {
       const store = await this.#resolveWaitpointStore(waitpointId);
       return store.deleteManyTaskRunWaitpoints(args, store === this.#legacy ? tx : undefined);
     }
-    // Keyed by taskRunId (or other): a run's edges may straddle DBs mid-drain, so delete from
-    // both. Can't span one tx across two DBs, so it's dropped for the both-stores path.
+    // Keyed by taskRunId (or other): a run's edges may straddle DBs mid-drain, so delete from both.
+    // One tx can't span two DBs, so the #new leg is auto-commit; the caller's tx is control-plane, so
+    // the #legacy leg keeps it (atomic with the caller's op, matching the waitpointId-keyed path).
     const [fromNew, fromLegacy] = await Promise.all([
       this.#new.deleteManyTaskRunWaitpoints(args),
-      this.#legacy.deleteManyTaskRunWaitpoints(args),
+      this.#legacy.deleteManyTaskRunWaitpoints(args, tx),
     ]);
     return { count: fromNew.count + fromLegacy.count };
   }
@@ -1484,9 +1499,11 @@ export class RoutingRunStore implements RunStore {
     args: Prisma.BatchTaskRunItemUpdateManyArgs,
     tx?: PrismaClientOrTransaction
   ): Promise<Prisma.BatchPayload> {
+    // Items co-reside with their batch; route by batchTaskRunId (residency-encoding) first. The item
+    // id is a cuid that always classifies LEGACY, so leading with it misroutes a NEW batch's items.
     const id =
-      RoutingRunStore.#scalarId(args.where) ??
-      RoutingRunStore.#scalarField(args.where, "batchTaskRunId");
+      RoutingRunStore.#scalarField(args.where, "batchTaskRunId") ??
+      RoutingRunStore.#scalarId(args.where);
     if (id !== undefined) {
       const store = this.#routeOrNew(id);
       return store.updateManyBatchTaskRunItems(args, store === this.#legacy ? tx : undefined);
