@@ -1311,6 +1311,8 @@ export type TeamFlags = {
   checkRobotsOnScrape?: boolean;
   crawlTtlHours?: number;
   ipWhitelist?: boolean;
+  // gates the per-team API key IP allowlist (ip_restriction_config table)
+  ipRestriction?: boolean;
   skipCountryCheck?: boolean;
   browserBeta?: boolean;
   bypassCreditChecks?: boolean;

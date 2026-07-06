@@ -151,6 +151,44 @@ describe("resolveWaitpointThroughReadThrough (hetero PG14 legacy + dedicated run
     }
   );
 
+  // Read-your-writes: a token completed immediately after mint may not be on the replicas yet. The
+  // replica-only read-through misses, and without a primary fallback we 404 a valid token (the
+  // authoritative completeWaitpoint never runs). The primary fallback must find it.
+  heteroRunOpsPostgresTest(
+    "a NEW-resident token missing on both replicas is found on the run-ops primary (no spurious 404)",
+    async ({ prisma17, prisma14 }) => {
+      // A NEW-resident token lives on the run-ops DB (prisma17); its cuid id fans new-then-legacy.
+      // Both replicas here lack it (pointed at prisma14), so only the run-ops primary can serve it.
+      const id = generateLegacyCuid();
+      const environmentId = generateRunOpsId();
+      const projectId = generateRunOpsId();
+      const seeded = await seedWaitpoint(prisma17, id, { id: environmentId, projectId });
+
+      const newClient = recording(prisma14);
+      const legacyReplica = recording(prisma14);
+      const newPrimary = recording(prisma17);
+
+      const result = await resolveWaitpointThroughReadThrough({
+        waitpointId: id,
+        environmentId,
+        read: read(id, environmentId),
+        deps: {
+          splitEnabled: true,
+          newClient: newClient.handle,
+          legacyReplica: legacyReplica.handle,
+          newPrimary: newPrimary.handle,
+        },
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe(seeded.id);
+      // Both replicas probed and missed; the fallback read the run-ops primary (never control-plane).
+      expect(newClient.calls.length).toBe(1);
+      expect(legacyReplica.calls.length).toBe(1);
+      expect(newPrimary.calls.length).toBe(1);
+    }
+  );
+
   heteroRunOpsPostgresTest(
     "bare caller (no deps) resolves a NEW-resident waitpoint via the safe run-ops defaults",
     async ({ prisma17, prisma14 }) => {
@@ -170,6 +208,8 @@ describe("resolveWaitpointThroughReadThrough (hetero PG14 legacy + dedicated run
         defaults: {
           newClient: prisma14 as unknown as PrismaReplicaClient,
           legacyReplica: prisma14 as unknown as PrismaReplicaClient,
+          // Primaries also miss the NEW-resident waitpoint, so the miss stays a miss.
+          newPrimary: prisma14 as unknown as PrismaReplicaClient,
           splitEnabled: true,
         },
       });
@@ -183,6 +223,7 @@ describe("resolveWaitpointThroughReadThrough (hetero PG14 legacy + dedicated run
         defaults: {
           newClient: prisma17 as unknown as PrismaReplicaClient,
           legacyReplica: prisma14 as unknown as PrismaReplicaClient,
+          newPrimary: prisma17 as unknown as PrismaReplicaClient,
           splitEnabled: true,
         },
       });
@@ -206,6 +247,9 @@ describe("resolveWaitpointThroughReadThrough (hetero PG14 legacy + dedicated run
         splitEnabled: true,
         newClient: recording(prisma17).handle,
         legacyReplica: recording(prisma14).handle,
+        // The run-ops-primary fallback also misses this never-seeded token; inject a container client
+        // so it does not reach for the unconnectable production singleton.
+        newPrimary: recording(prisma17).handle,
       },
     });
 

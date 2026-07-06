@@ -445,6 +445,47 @@ describe('ClaudeCodeAdapter', () => {
       expect(end!.data.toolCallId).toBe('t1');
     });
 
+    it('aligns tool_end with the server shape — carries payload + result', () => {
+      const adapter = new ClaudeCodeAdapter();
+      adapter.adapt({ subtype: 'init', type: 'system' });
+      adapter.adapt({
+        message: {
+          id: 'msg_1',
+          content: [
+            {
+              id: 't1',
+              input: { command: 'git worktree add ../wt' },
+              name: 'Bash',
+              type: 'tool_use',
+            },
+          ],
+        },
+        type: 'assistant',
+      });
+
+      const events = adapter.adapt({
+        message: {
+          content: [{ content: 'Preparing worktree', tool_use_id: 't1', type: 'tool_result' }],
+          role: 'user',
+        },
+        type: 'user',
+      });
+
+      const end = events.find((e) => e.type === 'tool_end');
+      // Payload mirrors tool_start's `{ toolCalling }` so `onAfterCall` can resolve
+      // the executor by identifier and read the command args; result gives success.
+      expect(end!.data.payload).toEqual({
+        toolCalling: {
+          apiName: 'Bash',
+          arguments: JSON.stringify({ command: 'git worktree add ../wt' }),
+          id: 't1',
+          identifier: 'claude-code',
+          type: 'default',
+        },
+      });
+      expect(end!.data.result).toMatchObject({ content: 'Preparing worktree', success: true });
+    });
+
     it('handles array-shaped tool_result content', () => {
       const adapter = new ClaudeCodeAdapter();
       adapter.adapt({ subtype: 'init', type: 'system' });
@@ -626,9 +667,11 @@ describe('ClaudeCodeAdapter', () => {
     // CC's `Read` on images returns a `tool_result` whose `content` is an
     // `image` block (base64). The generic mapper had no branch for it so
     // resultContent collapsed to '' and the UI's StatusIndicator stuck on the
-    // spinner. Minimal fix: emit a placeholder so the tool ends in completed
-    // state. Image echo (thumbnails) is deferred.
-    it('renders image blocks as a non-empty placeholder', () => {
+    // spinner ( minimal fix: emit an `[Image: …]` content placeholder).
+    //  keeps that placeholder as the human-readable fallback AND
+    // preserves the base64 body on `pluginState.images` so the runtime
+    // pipeline can upload it and the UI can echo a thumbnail.
+    it('renders image blocks as a non-empty placeholder and preserves base64 on pluginState.images', () => {
       const adapter = new ClaudeCodeAdapter();
       adapter.adapt({ subtype: 'init', type: 'system' });
       adapter.adapt({
@@ -663,6 +706,9 @@ describe('ClaudeCodeAdapter', () => {
       expect(result!.data.toolCallId).toBe('r1');
       expect(result!.data.content).toBe('[Image: image/png]');
       expect(result!.data.isError).toBe(false);
+      expect(result!.data.pluginState.images).toEqual([
+        { data: 'AAAA', mediaType: 'image/png' },
+      ]);
 
       const end = events.find((e) => e.type === 'tool_end');
       expect(end).toBeDefined();
@@ -696,6 +742,31 @@ describe('ClaudeCodeAdapter', () => {
 
       const result = events.find((e) => e.type === 'tool_result');
       expect(result!.data.content).toBe('[Image: image]');
+      expect(result!.data.pluginState.images).toEqual([{ data: 'AAAA', mediaType: 'image' }]);
+    });
+
+    it('does not set pluginState.images for a text-only tool_result', () => {
+      const adapter = new ClaudeCodeAdapter();
+      adapter.adapt({ subtype: 'init', type: 'system' });
+      adapter.adapt({
+        message: {
+          id: 'msg_1',
+          content: [{ id: 'r1', input: { file_path: 'x.ts' }, name: 'Read', type: 'tool_use' }],
+        },
+        type: 'assistant',
+      });
+
+      const events = adapter.adapt({
+        message: {
+          content: [{ content: 'plain text', tool_use_id: 'r1', type: 'tool_result' }],
+          role: 'user',
+        },
+        type: 'user',
+      });
+
+      const result = events.find((e) => e.type === 'tool_result');
+      expect(result!.data.content).toBe('plain text');
+      expect(result!.data.pluginState).toBeUndefined();
     });
   });
 
@@ -1684,6 +1755,10 @@ describe('ClaudeCodeAdapter', () => {
       expect(events).toHaveLength(1);
       expect(events[0].type).toBe('tool_end');
       expect(events[0].data.toolCallId).toBe('t1');
+      // A pending tool that never produced a result must NOT report success —
+      // otherwise side-effect hooks would treat an unfinished tool as completed.
+      expect(events[0].data.isSuccess).toBe(false);
+      expect(events[0].data.result).toMatchObject({ success: false });
     });
 
     it('returns empty array when no pending tools', () => {

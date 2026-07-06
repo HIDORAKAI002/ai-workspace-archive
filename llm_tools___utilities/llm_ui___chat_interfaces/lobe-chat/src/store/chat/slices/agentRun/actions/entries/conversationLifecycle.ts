@@ -845,6 +845,12 @@ export class ConversationLifecycleActionImpl {
           clearNewKey: true,
           skipRefreshMessage: true,
         });
+        // resolveOptimisticTopic migrated the optimistic topic's loading owner
+        // onto the real id; it is released in the executor `finally` below —
+        // NOT here — because the persisted `status === 'running'` (the run
+        // spinner's other driver) is only written after startSession resolves,
+        // so releasing before the executor takes over would blank the sidebar
+        // spinner during a slow CLI startup.
       }
 
       // Clean up temp messages
@@ -946,6 +952,16 @@ export class ConversationLifecycleActionImpl {
           message: e instanceof Error ? e.message : 'Unknown error',
           type: 'HeterogeneousAgentError',
         });
+      } finally {
+        // Release the creation owner migrated by resolveOptimisticTopic (run
+        // end no longer clears topicLoadingIds since #16745, so without this
+        // the sidebar spinner sticks forever). Held until the run settles so
+        // the spinner stays continuous through the pre-`running` startup gap;
+        // it can't mask `waitingForHuman` — the sidebar item renders that
+        // state with higher priority than the running icon.
+        if (optimisticTopic && optimisticTopicResolved && heteroData.topicId) {
+          this.#get().internal_updateTopicLoading(heteroData.topicId, false);
+        }
       }
 
       return {
@@ -1001,6 +1017,19 @@ export class ConversationLifecycleActionImpl {
         // the new topic, so the shared hook reads the persisted conversation from
         // the store and titles it. Fire-and-forget.
         if (result.topicId) {
+          // executeGatewayAgent resolved the optimistic topic row via
+          // internal_replaceTopicId, which migrates its topicLoadingIds owner
+          // onto the real topic id. From here the run spinner is owned by the
+          // persisted `status === 'running'` (#16745 removed the transports'
+          // run-end topicLoadingIds clears), so release the migrated creation
+          // owner now — with no release left downstream, the sidebar spinner
+          // would stick forever after the run completes.
+          // No `optimisticTopicResolved = true` here: the gateway branch
+          // returns before the client-mode code that reads it.
+          if (optimisticTopic && optimisticTopicActive) {
+            this.#get().internal_updateTopicLoading(result.topicId, false);
+            optimisticTopicActive = false;
+          }
           void sendRunLifecycle
             .afterUserMessagePersisted({
               assistantMessageId: result.assistantMessageId,

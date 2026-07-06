@@ -16,6 +16,7 @@ import {
   keylessTeamId,
 } from "../lib/keyless";
 import { isKeylessIpSuspicious } from "../lib/spur";
+import { checkIpRestriction } from "../lib/ip-restriction";
 import { deleteKey, getValue, setValue } from "../services/redis";
 import { redlock } from "../services/redlock";
 import { eq } from "drizzle-orm";
@@ -799,6 +800,21 @@ async function supaAuthenticateUser(
       mode ?? RateLimiterMode.Crawl,
       chunk.rate_limits,
     );
+  }
+
+  if (chunk?.flags?.ipRestriction) {
+    const ipCheck = await checkIpRestriction(
+      req.ip ?? req.socket?.remoteAddress,
+      chunk.team_id,
+      chunk.flags,
+    );
+    if (!ipCheck.allowed) {
+      return {
+        success: false,
+        error: ipCheck.error,
+        status: ipCheck.status,
+      };
+    }
   }
 
   const team_endpoint_token = token === config.PREVIEW_TOKEN ? iptoken : teamId;

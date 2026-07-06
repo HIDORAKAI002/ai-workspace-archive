@@ -242,6 +242,18 @@ export const idempotency_keys = pgTable("idempotency_keys", {
   created_at: ts("created_at").notNull().defaultNow(),
 });
 
+// Per-team API key IP allowlist, gated by the ipRestriction team flag.
+// Enforced only when allowed_ips is non-empty; entries are IPv4/IPv6/CIDR.
+export const ip_restriction_config = pgTable("ip_restriction_config", {
+  id: uuid("id").notNull().defaultRandom(),
+  team_id: uuid("team_id").notNull().unique(),
+  allowed_ips: jsonb("allowed_ips")
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  created_at: ts("created_at").notNull().defaultNow(),
+  updated_at: ts("updated_at").notNull().defaultNow(),
+});
+
 export const llm_texts = pgTable("llm_texts", {
   id: uuid("id").notNull().defaultRandom(),
   origin_url: text("origin_url").notNull(),
