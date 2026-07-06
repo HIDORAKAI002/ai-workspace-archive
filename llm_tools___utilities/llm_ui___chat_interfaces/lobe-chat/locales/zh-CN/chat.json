@@ -1295,6 +1295,7 @@
   "workingPanel.resources.updatedAt": "更新于 {{time}}",
   "workingPanel.resources.viewMode.list": "列表视图",
   "workingPanel.resources.viewMode.tree": "树状视图",
+  "workingPanel.review.addSelectionToContext.success": "已将选中代码加入上下文",
   "workingPanel.review.baseRef.default": "默认",
   "workingPanel.review.baseRef.loading": "正在加载分支…",
   "workingPanel.review.baseRef.reset": "恢复默认分支",

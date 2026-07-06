@@ -583,7 +583,6 @@ export class GatewayActionImpl {
     this.#get().moveQueuedMessages(messageMapKey(context), messageMapKey(execContext));
 
     if (result.topicId) {
-      if (!optimisticTopic) this.#get().internal_updateTopicLoading(result.topicId, true);
       void this.#get().updateTopicStatus?.({
         agentId: context.agentId,
         groupId: context.groupId,
@@ -696,7 +695,6 @@ export class GatewayActionImpl {
         // terminal-missing fallback so the op never sticks `running`.
         if (!terminalReceived) this.#get().completeOperation(gatewayOpId);
         if (result.topicId) {
-          this.#get().internal_updateTopicLoading(result.topicId, false);
           // A clean completion the user isn't watching is owned by
           // `markTopicUnread` (status: 'unread'); skip the 'active' write so
           // the two never race over the status field. Every other case (viewing,
@@ -848,8 +846,6 @@ export class GatewayActionImpl {
       gatewayUrl: agentGatewayUrl,
       onEvent: eventRouter,
       onSessionComplete: ({ succeeded, terminalReceived, authFailed }) => {
-        this.#get().internal_updateTopicLoading(topicId, false);
-
         // A reconnect is a passive re-subscribe — it must not END a run it merely
         // re-subscribed to. Only finalize when the close PROVES the op is over:
         //   - terminalReceived: a real agent_runtime_end / error streamed in, or

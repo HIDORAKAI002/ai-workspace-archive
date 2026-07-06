@@ -29,6 +29,7 @@
   "workingDirectory.detachedHead": "游离 HEAD，当前提交 {{sha}}",
   "workingDirectory.detachedHeadShort": "detached@{{sha}}",
   "workingDirectory.detachedWorktree": "detached",
+  "workingDirectory.diffLineStatTooltip": "新增行 {{added}} · 删除行 {{deleted}} · 变更文件 {{files}}",
   "workingDirectory.diffStatTooltip": "新增 {{added}} · 修改 {{modified}} · 删除 {{deleted}}",
   "workingDirectory.filesAdded": "新增",
   "workingDirectory.filesDeleted": "删除",

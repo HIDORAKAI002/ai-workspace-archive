@@ -30,6 +30,8 @@ export default {
   'workingDirectory.detachedHead': 'Detached HEAD at {{sha}}',
   'workingDirectory.diffStatTooltip':
     'Added {{added}} · Modified {{modified}} · Deleted {{deleted}}',
+  'workingDirectory.diffLineStatTooltip':
+    'Added lines {{added}} · Deleted lines {{deleted}} · Changed files {{files}}',
   'workingDirectory.filesAdded': 'Added',
   'workingDirectory.filesDeleted': 'Deleted',
   'workingDirectory.filesEmpty': 'No uncommitted changes',

@@ -65,8 +65,7 @@ const normalizeErrorText = (value?: string) => value?.replaceAll(/\s+/g, ' ').tr
  */
 const shouldSuppressTerminalErrorEcho = (content: string, errorData: unknown): boolean => {
   const body = errorData as
-    | { clearEchoedContent?: boolean; code?: string; message?: string; stderr?: string }
-    | undefined;
+    { clearEchoedContent?: boolean; code?: string; message?: string; stderr?: string } | undefined;
   // Keep in sync with the interpreters' ECHO_TRIGGER_CODES.
   if (!body?.clearEchoedContent && body?.code !== 'AuthRequired') return false;
   const normalizedContent = normalizeErrorText(content);
@@ -182,9 +181,7 @@ const streamInit = (state: MainAgentRunState, data: any): ReduceResult => {
   // provenance; `openTurn` owns it for every later turn. Only seed it once — a
   // later non-newStep stream_start must not clobber the open turn's id.
   const seedMainMessageId =
-    typeof data?.messageId === 'string' && !state.currentMainMessageId
-      ? data.messageId
-      : undefined;
+    typeof data?.messageId === 'string' && !state.currentMainMessageId ? data.messageId : undefined;
 
   if (Object.keys(update).length === 0 && !seedMainMessageId) return { intents: [], state };
 

@@ -237,6 +237,7 @@ export class ConversationLifecycleActionImpl {
     metadata,
     onlyAddUserMessage,
     context,
+    contextSelections,
     messages: inputMessages,
     parentId: inputParentId,
     pageSelections,
@@ -291,6 +292,7 @@ export class ConversationLifecycleActionImpl {
       messages: inputMessages,
       parentId: inputParentId,
       pageSelections,
+      contextSelections,
     });
 
     // /compact — directly compress context without sending any message
@@ -382,9 +384,13 @@ export class ConversationLifecycleActionImpl {
       ? await materializeLocalSystemToolSnapshots(localFileReferences)
       : [];
     const userMessageMetadata =
-      metadata || pageSelections?.length || localSystemToolSnapshots.length
+      metadata ||
+      contextSelections?.length ||
+      pageSelections?.length ||
+      localSystemToolSnapshots.length
         ? {
             ...metadata,
+            ...(contextSelections?.length ? { contextSelections } : undefined),
             ...(pageSelections?.length ? { pageSelections } : undefined),
             ...(localSystemToolSnapshots.length ? { localSystemToolSnapshots } : undefined),
           }
@@ -451,7 +457,11 @@ export class ConversationLifecycleActionImpl {
     }
 
     if (onlyAddUserMessage) {
-      await this.#get().addUserMessage({ message, fileList: fileIdList });
+      await this.#get().addUserMessage({
+        message,
+        fileList: fileIdList,
+        metadata: userMessageMetadata,
+      });
 
       return;
     }
@@ -763,6 +773,7 @@ export class ConversationLifecycleActionImpl {
               editorData,
               files: fileIdList,
               metadata: userMessageMetadata,
+              contextSelections,
               pageSelections,
               parentId,
             },
@@ -868,9 +879,12 @@ export class ConversationLifecycleActionImpl {
       // branch returns early (line 498) and never reaches that clear.
       this.#get().updateOperationMetadata(operationId, { inputEditorTempState: null });
 
-      if (heteroData.topicId && !optimisticTopicResolved) {
-        this.#get().internal_updateTopicLoading(heteroData.topicId, true);
-      }
+      // Sidebar "running" spinner for hetero runs is driven off the persisted
+      // `topic.status === 'running'` (written by the executor's writeTopicStatus,
+      // and bucketed by resolveStatusBucket) — no separate client-only
+      // `topicLoadingIds` overlay, which used to desync: it cleared on the
+      // linear sendPrompt path (below) while `status` stayed 'running' when the
+      // executor's onComplete stalled, leaving the topic spinning after finish.
 
       // Start heterogeneous agent execution
       const { operationId: heteroOpId } = this.#get().startOperation({
@@ -890,6 +904,13 @@ export class ConversationLifecycleActionImpl {
         // may already be cleared by this point, so we read from DB instead)
         const userMsg = heteroData.messages.find((m: any) => m.id === heteroData.userMessageId);
         const persistedImageList = userMsg?.imageList;
+        const persistedMetadata = userMsg?.metadata as MessageMetadata | undefined;
+        const effectiveContextSelections = contextSelections?.length
+          ? contextSelections
+          : persistedMetadata?.contextSelections;
+        const effectivePageSelections = pageSelections?.length
+          ? pageSelections
+          : persistedMetadata?.pageSelections;
 
         // Read heterogeneous-agent session id from topic metadata for multi-turn
         // resume. `resolveHeteroResume` drops the sessionId when the saved cwd
@@ -909,10 +930,12 @@ export class ConversationLifecycleActionImpl {
         await executeHeterogeneousAgent(() => this.#get(), {
           assistantMessageId: heteroData.assistantMessageId,
           context: heteroContext,
+          contextSelections: effectiveContextSelections,
           heterogeneousProvider,
           imageList: persistedImageList?.length ? persistedImageList : undefined,
           message,
           operationId: heteroOpId,
+          pageSelections: effectivePageSelections,
           resumeSessionId,
           workingDirectory,
           workingDirectoryConfig,
@@ -924,8 +947,6 @@ export class ConversationLifecycleActionImpl {
           type: 'HeterogeneousAgentError',
         });
       }
-
-      if (heteroData.topicId) this.#get().internal_updateTopicLoading(heteroData.topicId, false);
 
       return {
         assistantMessageId: heteroData.assistantMessageId,
@@ -1065,6 +1086,7 @@ export class ConversationLifecycleActionImpl {
             editorData,
             files: fileIdList,
             metadata: userMessageMetadata,
+            contextSelections,
             pageSelections,
             parentId,
           },

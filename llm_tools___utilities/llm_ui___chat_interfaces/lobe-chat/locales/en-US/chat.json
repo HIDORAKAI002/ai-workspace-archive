@@ -1295,6 +1295,7 @@
   "workingPanel.resources.updatedAt": "Updated {{time}}",
   "workingPanel.resources.viewMode.list": "List view",
   "workingPanel.resources.viewMode.tree": "Tree view",
+  "workingPanel.review.addSelectionToContext.success": "Added selected lines to context",
   "workingPanel.review.baseRef.default": "default",
   "workingPanel.review.baseRef.loading": "Loading branches…",
   "workingPanel.review.baseRef.reset": "Reset to default branch",
