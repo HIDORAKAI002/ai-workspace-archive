@@ -17,12 +17,12 @@ const gitHookMocks = vi.hoisted(() => ({
   mutateAheadBehind: vi.fn(),
   mutateBranch: vi.fn(),
   mutatePR: vi.fn(),
-  mutateWorkingTreeStatus: vi.fn(),
+  mutateReviewPatches: vi.fn(),
   mutateWorktrees: vi.fn(),
   useFetchGitAheadBehind: vi.fn(),
   useFetchGitBranch: vi.fn(),
   useFetchGitLinkedPR: vi.fn(),
-  useFetchGitWorkingTreeStatus: vi.fn(),
+  useReviewPatches: vi.fn(),
   useFetchGitWorktrees: vi.fn(),
 }));
 
@@ -44,7 +44,7 @@ vi.mock('@/store/device', () => ({
   useFetchGitAheadBehind: gitHookMocks.useFetchGitAheadBehind,
   useFetchGitBranch: gitHookMocks.useFetchGitBranch,
   useFetchGitLinkedPR: gitHookMocks.useFetchGitLinkedPR,
-  useFetchGitWorkingTreeStatus: gitHookMocks.useFetchGitWorkingTreeStatus,
+  useReviewPatches: gitHookMocks.useReviewPatches,
   useFetchGitWorktrees: gitHookMocks.useFetchGitWorktrees,
 }));
 
@@ -126,9 +126,22 @@ beforeEach(() => {
     data: { pullRequest: null },
     mutate: gitHookMocks.mutatePR,
   });
-  gitHookMocks.useFetchGitWorkingTreeStatus.mockReturnValue({
-    data: { added: 1, clean: false, deleted: 0, modified: 2, total: 3 },
-    mutate: gitHookMocks.mutateWorkingTreeStatus,
+  gitHookMocks.useReviewPatches.mockReturnValue({
+    data: {
+      mode: 'unstaged',
+      patches: [
+        {
+          additions: 3,
+          deletions: 1,
+          filePath: 'src/example.ts',
+          isBinary: false,
+          patch: '',
+          status: 'modified',
+          truncated: false,
+        },
+      ],
+    },
+    mutate: gitHookMocks.mutateReviewPatches,
   });
   gitHookMocks.useFetchGitAheadBehind.mockReturnValue({
     data: undefined,
@@ -143,6 +156,15 @@ beforeEach(() => {
 describe('GitStatus', () => {
   it('opens the review panel when clicking remote device diff stats', () => {
     render(<GitStatus agentId="agent-1" deviceId="device-1" isGithub={false} path="/repo" />);
+
+    expect(gitHookMocks.useReviewPatches).toHaveBeenCalledWith(
+      '/repo',
+      'unstaged',
+      undefined,
+      'device-1',
+    );
+    expect(screen.getByText('+3')).toBeInTheDocument();
+    expect(screen.getByText('-1')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button'));
 

@@ -29,6 +29,7 @@
   "workingDirectory.detachedHead": "Detached HEAD at {{sha}}",
   "workingDirectory.detachedHeadShort": "detached@{{sha}}",
   "workingDirectory.detachedWorktree": "detached",
+  "workingDirectory.diffLineStatTooltip": "Added lines {{added}} · Deleted lines {{deleted}} · Changed files {{files}}",
   "workingDirectory.diffStatTooltip": "Added {{added}} · Modified {{modified}} · Deleted {{deleted}}",
   "workingDirectory.filesAdded": "Added",
   "workingDirectory.filesDeleted": "Deleted",

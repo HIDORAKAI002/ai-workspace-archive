@@ -1410,6 +1410,7 @@ export default {
   'workingPanel.review.baseRef.loading': 'Loading branches…',
   'workingPanel.review.baseRef.reset': 'Reset to default branch',
   'workingPanel.review.baseRef.unresolved': 'Pick a base branch',
+  'workingPanel.review.addSelectionToContext.success': 'Added selected lines to context',
   'workingPanel.review.binary': 'Binary file — diff not shown',
   'workingPanel.review.collapseAll': 'Collapse all',
   'workingPanel.review.copied': 'Path copied',

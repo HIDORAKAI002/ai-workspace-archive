@@ -222,6 +222,42 @@ def check_domain_table(root: Path) -> list:
     return problems
 
 
+# README shields.io badges of the form ![Skills](.../Skills-355-brightgreen...).
+# Validated separately from prose CLAIM_PATTERNS: badges are a fixed
+# `<Label>-<count>-<color>` shape, so a per-label regex is exact and cannot
+# over-match surrounding prose. Covers the counters that ship as badges.
+BADGE_PATTERNS = {
+    "skills": re.compile(r"Skills-(\d+)-"),
+    "agents": re.compile(r"Agents-(\d+)-"),
+    "commands": re.compile(r"Commands-(\d+)-"),
+}
+
+
+def check_readme_badges(root: Path, derived: dict) -> list:
+    """Return mismatch strings between README shield badges and derived counts."""
+    readme = root / "README.md"
+    if not readme.is_file():
+        return []
+    text = readme.read_text(encoding="utf-8")
+    out = []
+    for key, pattern in BADGE_PATTERNS.items():
+        match = pattern.search(text)
+        if not match:
+            # Fail loudly rather than skip: a renamed/removed badge would
+            # otherwise silently drop out of the gate (mirrors run_check's
+            # "no recognizable counter claims found" precedent).
+            out.append(
+                f"README badge: '{key}' badge not found "
+                f"(expected a '{key.capitalize()}-<n>-' shield)"
+            )
+        elif int(match.group(1)) != derived[key]:
+            out.append(
+                f"README badge: '{key}' badge claims {match.group(1)}, "
+                f"derived {key}={derived[key]}"
+            )
+    return out
+
+
 def run_check(root: Path, derived: dict) -> int:
     sources = []
 
@@ -260,6 +296,7 @@ def run_check(root: Path, derived: dict) -> int:
                 )
 
     mismatches.extend(check_domain_table(root))
+    mismatches.extend(check_readme_badges(root, derived))
 
     if mismatches:
         print("COUNTER CHECK FAILED — headline claims disagree with derived values:")

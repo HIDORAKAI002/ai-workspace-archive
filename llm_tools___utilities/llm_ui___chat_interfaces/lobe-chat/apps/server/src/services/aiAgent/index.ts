@@ -2492,6 +2492,22 @@ export class AiAgentService {
         executionPlan.kind,
         activeDeviceId ?? 'none',
       );
+      // A device-targeted run that could not be routed silently degrades exec
+      // (lobe-skills runCommand/execScript) to the cloud sandbox. Surface it as
+      // a structured warn — `bound-device-offline` with a requestedDeviceId is
+      // the desktop "local device" pick whose gateway connection dropped, and
+      // this log is the breadcrumb for diagnosing WHY the device was judged
+      // offline (lazy WS connect vs getScopedOnlineDevices failing silently).
+      if (executionPlan.kind === 'device-unrouted') {
+        console.warn('[AiAgentService] device-unrouted: exec degrades to cloud sandbox', {
+          boundDeviceId,
+          onlineDeviceCount: onlineDevices.length,
+          reason: executionPlan.reason,
+          requestedDeviceId,
+          topicId,
+          userId: this.userId,
+        });
+      }
 
       // Resolve the operation's group context ONCE here and snapshot it into op
       // metadata below — the per-step context engine reads it back without a DB
@@ -2556,7 +2572,14 @@ export class AiAgentService {
         // lobe-agent drops `callSubAgent` so the model can't recurse into nested
         // sub-agents (which the runtime rejects, looping until the inactivity
         // watchdog kills the op). Mirrors the frontend `createAgentToolsEngine`.
+        // `executionEnv` mirrors the resolved plan so exec-capable tools
+        // (lobe-skills) can state where their commands actually run — most
+        // importantly the `device-unrouted` degradation, where the user picked
+        // a local device that is offline and exec silently lands in the sandbox.
         manifestContext: {
+          executionEnv: executionPlan.kind,
+          executionEnvUnroutedReason:
+            executionPlan.kind === 'device-unrouted' ? executionPlan.reason : undefined,
           isSubAgent: appContext?.isSubAgent,
           scope: appContext?.scope ?? undefined,
         },

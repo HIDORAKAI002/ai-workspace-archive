@@ -1,21 +1,49 @@
 # Project Management Skills - Claude Code Guidance
 
-This guide covers the 9 production-ready project management skills, 12 Python automation tools, and bundled Atlassian Remote MCP integration (`.mcp.json` ships with the plugin — OAuth handled by Claude Code, no env vars required).
+This guide covers the 9 production-ready project management skills, 15 Python automation tools, and bundled Atlassian Remote MCP integration (`.mcp.json` ships with the plugin — OAuth handled by Claude Code, no env vars required).
 
 ## PM Skills Overview
 
 **Available Skills:**
-1. **senior-pm/** - Portfolio health, risk analysis, resource planning (3 scripts)
-2. **scrum-master/** - Sprint health, velocity forecasting, retrospectives (3 scripts)
-3. **jira-expert/** - JQL building, workflow validation (2 scripts)
-4. **confluence-expert/** - Space structure, content auditing (2 scripts)
-5. **atlassian-admin/** - Permission auditing (1 script)
-6. **atlassian-templates/** - Template scaffolding (1 script)
+1. **pm-skills/** - Domain orchestrator (`context: fork`) + agentic delivery loop (3 scripts: goal router, Jira snapshot bridge, delivery loop gate)
+2. **senior-pm/** - Portfolio health, risk analysis, resource planning (3 scripts)
+3. **scrum-master/** - Sprint health, velocity forecasting, retrospectives (3 scripts)
+4. **jira-expert/** - JQL building, workflow validation (2 scripts)
+5. **confluence-expert/** - Space structure, content auditing (2 scripts)
+6. **atlassian-admin/** - Permission auditing (1 script)
+7. **atlassian-templates/** - Template scaffolding (1 script)
+8. **meeting-analyzer/** - Meeting transcript behavioral analysis (prompt-driven; scripts are follow-up work)
+9. **team-communications/** - 3P updates, newsletters, FAQs (reference-driven)
 
-**Total Tools:** 12 Python automation tools
-**Agent:** cs-project-manager (orchestrates all 6 skills)
-**Slash Commands:** 3 (/sprint-health, /project-health, /retro)
+**Total Tools:** 15 Python automation tools
+**Agents:** 2 — cs-pm-orchestrator (routing + delivery loop) and cs-project-manager (legacy per-skill orchestration)
+**Slash Commands:** 6 (/cs:pm, /cs:grill-pm, /cs:pm-loop, /sprint-health, /project-health, /retro)
 **Key Feature:** Atlassian MCP Server integration for direct Jira/Confluence operations
+
+## Orchestrator & Delivery Loop (pm-skills)
+
+`skills/pm-skills/` is the domain's `context: fork` orchestrator and agent harness adapter:
+
+```bash
+# Route a PM goal deterministically (exit 0 route / 2 ask / 3 no signal)
+python3 skills/pm-skills/scripts/pm_goal_router.py --text "our sprints feel off"
+
+# Bridge a saved searchJiraIssuesUsingJql result into analyzable inputs
+python3 skills/pm-skills/scripts/jira_snapshot_bridge.py --input snapshot.json --to flow --forecast 20
+python3 skills/pm-skills/scripts/jira_snapshot_bridge.py --input snapshot.json --to sprint > sprint_data.json
+python3 skills/scrum-master/scripts/velocity_analyzer.py sprint_data.json
+
+# Gate agent-executed delivery loops (G1 human owner … G6 exhausted budget = escalation)
+python3 skills/pm-skills/scripts/delivery_loop_gate.py --plan plan.json --mode plan   # exit 2 = blocked
+python3 skills/pm-skills/scripts/delivery_loop_gate.py --plan plan.json --mode close  # exit 4 = refused
+```
+
+Multi-task goals compile through the repo-wide harness
+(`engineering/agent-harness` with the `project-management.json` manifest). Hard rules:
+agents contribute, humans own; forecasts are Monte Carlo ranges, never dates; exhausted
+budgets escalate — never reported as success. The five reusable PM loops (sprint-flow,
+health, retro-action, RAID-hygiene, comms) are documented in
+`skills/pm-skills/references/pm_loop_playbook.md`.
 
 ## Atlassian MCP Integration
 
@@ -179,8 +207,8 @@ python atlassian-templates/scripts/template_scaffolder.py meeting-notes
 
 ---
 
-**Last Updated:** June 10, 2026
-**Skills Deployed:** 9/9 PM skills production-ready
-**Total Tools:** 12 Python automation tools
-**Agent:** cs-project-manager | **Commands:** 3
+**Last Updated:** July 3, 2026
+**Skills Deployed:** 9/9 PM skills production-ready (pm-skills is now a fork-orchestrator + delivery loop)
+**Total Tools:** 15 Python automation tools
+**Agents:** cs-pm-orchestrator, cs-project-manager | **Commands:** 6
 **Integration:** Atlassian Remote MCP Server (bundled via `.mcp.json`) for Jira/Confluence automation
