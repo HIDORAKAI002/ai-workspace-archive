@@ -87,7 +87,7 @@ Remove-Item -Recurse -Force .git
 
 This course offers a series of Jupyter Notebooks that you can run with to get hands-on experience building AI Agents.
 
-The code samples use **Microsoft Agent Framework (MAF)** with the `AzureAIProjectAgentProvider`, which connects to **Azure AI Agent Service V2** (the Responses API) through **Microsoft Foundry**.
+The code samples use **Microsoft Agent Framework (MAF)** with the `FoundryChatClient`, which connects to **Microsoft Foundry Agent Service V2** (the Responses API) through **Microsoft Foundry**.
 
 All Python notebooks are labelled `*-python-agent-framework.ipynb`.
 
@@ -123,7 +123,7 @@ All Python notebooks are labelled `*-python-agent-framework.ipynb`.
     ```
 
 - **Azure CLI** — Required for authentication. Install from [aka.ms/installazurecli](https://aka.ms/installazurecli).
-- **Azure Subscription** — For access to Microsoft Foundry and Azure AI Agent Service.
+- **Azure Subscription** — For access to Microsoft Foundry and Microsoft Foundry Agent Service.
 - **Microsoft Foundry Project** — A project with a deployed model (e.g., `gpt-4o`). See [Step 1](#step-1-create-a-microsoft-foundry-project) below.
 
 We have included a `requirements.txt` file in the root of this repository that contains all the required Python packages to run the code samples.
@@ -142,11 +142,11 @@ Make sure that you are using the right version of Python in VSCode.
 
 ![image](https://github.com/user-attachments/assets/a85e776c-2edb-4331-ae5b-6bfdfb98ee0e)
 
-## Set Up Microsoft Foundry and Azure AI Agent Service
+## Set Up Microsoft Foundry and Microsoft Foundry Agent Service
 
 ### Step 1: Create a Microsoft Foundry Project
 
-You need an Azure AI Foundry **hub** and **project** with a deployed model to run the notebooks.
+You need an Microsoft Foundry **hub** and **project** with a deployed model to run the notebooks.
 
 1. Go to [ai.azure.com](https://ai.azure.com) and sign in with your Azure account.
 2. Create a **hub** (or use an existing one). See: [Hub resources overview](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
@@ -236,19 +236,21 @@ Lesson 5 uses **Azure AI Search** for retrieval-augmented generation. If you pla
 | `AZURE_SEARCH_SERVICE_ENDPOINT` | Azure portal → your **Azure AI Search** resource → **Overview** → URL |
 | `AZURE_SEARCH_API_KEY` | Azure portal → your **Azure AI Search** resource → **Settings** → **Keys** → primary admin key |
 
-## Additional Setup for Lesson 6 and Lesson 8 (GitHub Models)
+## Additional Setup for Lessons that Call Azure OpenAI Directly (Lessons 6 and 8)
 
-Some notebooks in lessons 6 and 8 use **GitHub Models** instead of Azure AI Foundry. If you plan to run those samples, add these variables to your `.env` file:
+Some notebooks in lessons 6 and 8 call **Azure OpenAI** directly (using the **Responses API**) instead of going through a Microsoft Foundry project. These samples previously used GitHub Models, which is deprecated (retiring July 2026) and does not support the Responses API. If you plan to run those samples, add these variables to your `.env` file:
 
 | Variable | Where to find it |
 |----------|-----------------|
-| `GITHUB_TOKEN` | GitHub → **Settings** → **Developer settings** → **Personal access tokens** |
-| `GITHUB_ENDPOINT` | Use `https://models.inference.ai.azure.com` (default value) |
-| `GITHUB_MODEL_ID` | Model name to use (e.g. `gpt-4o-mini`) |
+| `AZURE_OPENAI_ENDPOINT` | Azure portal → your **Azure OpenAI** resource → **Keys and Endpoint** → Endpoint (e.g. `https://<your-resource>.openai.azure.com`) |
+| `AZURE_OPENAI_DEPLOYMENT` | The name of your deployed model (e.g. `gpt-4o-mini`) that supports the Responses API |
+| `AZURE_OPENAI_API_KEY` | Optional — only if you use key-based auth instead of `az login` / Entra ID |
+
+> The Responses API uses the stable `/openai/v1/` endpoint, so no `api-version` is required. Sign in with `az login` to use keyless Entra ID authentication.
 
 ## Alternative Provider: MiniMax (OpenAI-Compatible)
 
-[MiniMax](https://platform.minimaxi.com/) provides large-context models (up to 204K tokens) through an OpenAI-compatible API. Since the Microsoft Agent Framework's `OpenAIChatClient` works with any OpenAI-compatible endpoint, you can use MiniMax as a drop-in alternative to GitHub Models or OpenAI.
+[MiniMax](https://platform.minimaxi.com/) provides large-context models (up to 204K tokens) through an OpenAI-compatible API. Since the Microsoft Agent Framework's `OpenAIChatClient` works with any OpenAI-compatible endpoint, you can use MiniMax as a drop-in alternative to Azure OpenAI or OpenAI.
 
 Add these variables to your `.env` file:
 
@@ -262,13 +264,65 @@ Add these variables to your `.env` file:
 
 The code samples that use `OpenAIChatClient` (e.g., Lesson 14 hotel booking workflow) will automatically detect and use your MiniMax configuration when `MINIMAX_API_KEY` is set.
 
+## Alternative Provider: Foundry Local (Run Models On-Device)
+
+[Foundry Local](https://foundrylocal.ai) is a lightweight runtime that downloads, manages, and serves language models **entirely on your own machine** through an OpenAI-compatible API — no cloud, no Azure subscription, and no API keys. It's a great option for offline development, experimenting without incurring cloud costs, or keeping data on-device.
+
+Because the Microsoft Agent Framework's `OpenAIChatClient` works with any OpenAI-compatible endpoint, Foundry Local is a drop-in local alternative to Azure OpenAI.
+
+**1. Install Foundry Local**
+
+```bash
+# Windows
+winget install Microsoft.FoundryLocal
+
+# macOS
+brew install foundrylocal
+```
+
+**2. Download and run a model** (this also starts the local service):
+
+```bash
+foundry model list          # see available models
+foundry model run phi-4-mini
+```
+
+**3. Install the Python SDK** used to discover the local endpoint:
+
+```bash
+pip install foundry-local-sdk
+```
+
+**4. Point the Microsoft Agent Framework at your local model:**
+
+```python
+from foundry_local import FoundryLocalManager
+from agent_framework.openai import OpenAIChatClient
+
+# Downloads (if needed) and serves the model locally, then discovers the endpoint/port.
+manager = FoundryLocalManager("phi-4-mini")
+
+chat_client = OpenAIChatClient(
+    base_url=manager.endpoint,      # e.g. http://localhost:<port>/v1
+    api_key=manager.api_key,        # always "not-required" for Foundry Local
+    model_id=manager.get_model_info("phi-4-mini").id,
+)
+
+agent = chat_client.as_agent(
+    name="LocalAgent",
+    instructions="You are a helpful assistant running fully on-device.",
+)
+```
+
+> **Note:** Foundry Local exposes an OpenAI-compatible **Chat Completions** endpoint. Use it for local development and offline scenarios. For the full **Responses API** feature set (stateful conversations, deep tool orchestration, and agent-style development), target **Azure OpenAI** or a **Microsoft Foundry** project as shown in the lessons. See the [Foundry Local documentation](https://foundrylocal.ai) for the current model catalog and platform support.
+
 ## Additional Setup for Lesson 8 (Bing Grounding Workflow)
 
-The conditional workflow notebook in lesson 8 uses **Bing grounding** via Azure AI Foundry. If you plan to run that sample, add this variable to your `.env` file:
+The conditional workflow notebook in lesson 8 uses **Bing grounding** via Microsoft Foundry. If you plan to run that sample, add this variable to your `.env` file:
 
 | Variable | Where to find it |
 |----------|-----------------|
-| `BING_CONNECTION_ID` | Azure AI Foundry portal → your project → **Management** → **Connected resources** → your Bing connection → copy the connection ID |
+| `BING_CONNECTION_ID` | Microsoft Foundry portal → your project → **Management** → **Connected resources** → your Bing connection → copy the connection ID |
 
 ## Troubleshooting
 

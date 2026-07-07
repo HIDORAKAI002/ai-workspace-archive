@@ -97,8 +97,31 @@ This approach keeps the flexible, vision-based reasoning that Browser-Use is goo
 - Website monitoring and alerting
 - Intelligent form filling across multi-step flows
 
+## Real-World Example: Microsoft Project Opal
+
+The agent you build in this lesson is a small, local version of a **computer use agent (CUA)** — a program that drives a browser the way a person would. Microsoft is bringing this same idea to the enterprise with **[Project Opal (Frontier)](https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-project-opal-frontier)**, a capability in Microsoft 365 Copilot.
+
+With Project Opal, you describe a task and the agent works on your behalf using **computer use on a secure Windows 365 Cloud PC**, operating across your organization's browser-based applications, sites, and data. It works **asynchronously in the background**, and you can guide the work or take control at any time. Example jobs include:
+
+- Managing security group membership requests
+- Collecting and validating audit evidence for compliance reviews
+- Triaging IT incidents (updating ticket status, assigning owners, closing duplicates)
+- Compiling Excel data into a financial close deck
+
+Opal is a useful reference for what a **production-grade, trustworthy** computer use agent looks like — and it reinforces concepts from earlier lessons:
+
+| Concept in this course | How Project Opal applies it |
+|------------------------|-----------------------------|
+| **Human-in-the-loop** (Lesson 06) | Opal pauses for login credentials, sensitive data, or ambiguous instructions, and never enters passwords or submits forms without explicit confirmation. You can *Take Control* and *Return Control* mid-task. |
+| **Trustworthy & secure agents** (Lessons 06 & 18) | Runs in an isolated Windows 365 Cloud PC, is browser-only by default (other computer access blocked, enforced via Intune), uses *your* identity so it only accesses what you're authorized for, and logs every action for auditability. |
+| **Planning & metacognition** (Lessons 07 & 09) | Opal generates a plan for the job first, then supervises its own reasoning at each step and pauses if it detects suspicious activity. |
+| **Reusable capabilities / tools** (Lesson 04) | **Skills** let you write instructions for repeatable jobs (imported from a `.md` file or authored with Opal) and reuse them across conversations. |
+
+> **Availability:** Project Opal is currently available to users in the [Frontier early access program](https://adoption.microsoft.com/copilot/frontier-program/) with a Microsoft 365 Copilot subscription, and your administrator must complete setup. Because it's an experimental Frontier feature, capabilities may change over time.
+
 ## Additional Resources
 
+- [Get started with Project Opal (Frontier)](https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-project-opal-frontier)
 - [Browser-Use Playwright integration template](https://docs.browser-use.com/examples/templates/playwright-integration)
 - [Browser-Use actor parameters and content extraction](https://docs.browser-use.com/customize/actor/all-parameters)
 - [Course Setup](../00-course-setup/README.md)

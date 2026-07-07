@@ -10,6 +10,12 @@ For the source code, see [`hindsight-integrations/eve`](https://github.com/vecto
 
 ← [Back to main changelog](../index.md)
 
+## [0.2.1](https://github.com/vectorize-io/hindsight/tree/integrations/eve/v0.2.1)
+
+**Features**
+
+- Eve integration now retains the assistant’s reply in memory by default.<span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/benfrank241" target="_blank" rel="noopener noreferrer" style={{color: "var(--ifm-color-primary)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", verticalAlign: "middle"}}>@benfrank241</a><span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/vectorize-io/hindsight/commit/29cc1d7fd" target="_blank" rel="noopener noreferrer" style={{fontFamily: "var(--ifm-font-family-monospace, monospace)", fontSize: "0.85em", color: "var(--ifm-color-emphasis-600)"}}>29cc1d7fd</a>
+
 ## [0.2.0](https://github.com/vectorize-io/hindsight/tree/integrations/eve/v0.2.0)
 
 **Features**

@@ -1,8 +1,8 @@
-## Event Name: Build your code-first app with Azure AI Agent Service (EMEA/US offering)
+## Event Name: Build your code-first app with Microsoft Foundry Agent Service (EMEA/US offering)
 
 ## Description
 
-The Azure AI Agent Service is a seamless blend of service and SDK that simplifies the development of robust AI-driven solutions. In this session, you'll learn how to build your own code-first AI agent with Azure that can answer questions, perform data analysis, and integrate external data sources. You'll also explore more complex architectures, including multiple agents working together.
+The Microsoft Foundry Agent Service is a seamless blend of service and SDK that simplifies the development of robust AI-driven solutions. In this session, you'll learn how to build your own code-first AI agent with Azure that can answer questions, perform data analysis, and integrate external data sources. You'll also explore more complex architectures, including multiple agents working together.
 
 ## URL
 <https://developer.microsoft.com/en-us/reactor/events/25325/>
@@ -74,11 +74,11 @@ By the end of this session, you’ll have a clear blueprint for building and dep
 
 ---
 
-## Event Name: Your First AI Agent in JS with Azure AI Agent Service
+## Event Name: Your First AI Agent in JS with Microsoft Foundry Agent Service
 
 ## Description
 
-Learn how to build your first AI agent using the JavaScript SDK for Azure AI Agent Service, a fully managed platform that makes development easy. You’ll see how to set it up, connect tools like Azure AI Search, and deploy a simple question-answering agent. With a live demo, you’ll discover how automatic tool calling and managed state simplify the process. Perfect for beginners, this session gives you practical steps and tips to start your AI agent journey with confidence.
+Learn how to build your first AI agent using the JavaScript SDK for Microsoft Foundry Agent Service, a fully managed platform that makes development easy. You’ll see how to set it up, connect tools like Azure AI Search, and deploy a simple question-answering agent. With a live demo, you’ll discover how automatic tool calling and managed state simplify the process. Perfect for beginners, this session gives you practical steps and tips to start your AI agent journey with confidence.
 
 ## URL
 <https://developer.microsoft.com/en-us/reactor/events/25381/>
@@ -149,11 +149,11 @@ Get ready for a session packed with hype, high-stakes AI drama, and must-know st
 
 ---
 
-## Event Name: Build your code-first app with Azure AI Agent Service (.NET)
+## Event Name: Build your code-first app with Microsoft Foundry Agent Service (.NET)
 
 ## Description
 
-The Azure AI Agent Service is a seamless blend of service and SDK that simplifies the development of robust AI-driven solutions. In this session, you'll learn how to build your own code-first AI agent with Azure and C# that can answer questions, perform data analysis, and integrate external data sources. You'll also explore more complex architectures, including multiple agents working together.
+The Microsoft Foundry Agent Service is a seamless blend of service and SDK that simplifies the development of robust AI-driven solutions. In this session, you'll learn how to build your own code-first AI agent with Azure and C# that can answer questions, perform data analysis, and integrate external data sources. You'll also explore more complex architectures, including multiple agents working together.
 
 ## URL
 <https://developer.microsoft.com/en-us/reactor/events/25370/>
