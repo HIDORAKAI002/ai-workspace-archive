@@ -40,6 +40,7 @@ from agent_framework import (
     executor,
 )
 from agent_framework.openai import OpenAIChatClient
+from azure.identity import AzureCliCredential
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
@@ -181,10 +182,11 @@ async def main() -> None:
     print("🏨 HOTEL BOOKING CONDITIONAL WORKFLOW")
     print("=" * 80)
 
-    # Provider selection: GitHub Models, OpenAI, or MiniMax
-    # The OpenAIChatClient works with any OpenAI-compatible API.
+    # Provider selection: Azure OpenAI (Responses API), OpenAI, or MiniMax
+    # The OpenAIChatClient works with any OpenAI-compatible API, and targets the
+    # Azure OpenAI Responses API when given an azure_endpoint + credential.
     minimax_api_key = os.getenv("MINIMAX_API_KEY")
-    github_token = os.getenv("GITHUB_TOKEN")
+    azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
     openai_api_key = os.getenv("OPENAI_API_KEY")
 
     if minimax_api_key:
@@ -197,14 +199,15 @@ async def main() -> None:
             model_id=os.environ.get("MINIMAX_MODEL_ID", "MiniMax-M3"),
         )
         print("Using MiniMax provider")
-    elif github_token:
-        # GitHub Models
+    elif azure_openai_endpoint:
+        # Azure OpenAI (Responses API). Sign in with `az login` for keyless Entra ID auth.
+        # GitHub Models is deprecated (retiring July 2026) and does not support the Responses API.
         chat_client = OpenAIChatClient(
-            base_url=os.environ.get("GITHUB_ENDPOINT", "https://models.inference.ai.azure.com"),
-            api_key=github_token,
-            model_id=os.environ.get("GITHUB_MODEL_ID", "gpt-4o"),
+            azure_endpoint=azure_openai_endpoint,
+            credential=AzureCliCredential(),
+            model_id=os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-4o-mini"),
         )
-        print("Using GitHub Models provider")
+        print("Using Azure OpenAI (Responses API) provider")
     else:
         # Default: OpenAI
         chat_client = OpenAIChatClient(model_id="gpt-4o")

@@ -1,6 +1,6 @@
-# Azure AI Agent Service Development
+# Microsoft Foundry Agent Service Development
 
-In this exercise, you use the Azure AI Agent service tools in the [Microsoft Foundry portal](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) to create an agent for Flight Booking. The agent will be able to interact with users and provide information about flights.
+In this exercise, you use the Microsoft Foundry Agent Service tools in the [Microsoft Foundry portal](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) to create an agent for Flight Booking. The agent will be able to interact with users and provide information about flights.
 
 ## Prerequisites
 
@@ -97,6 +97,6 @@ When you have finished testing the agent, you can delete it to avoid incurring a
 
 - [Microsoft Foundry documentation](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
 - [Microsoft Foundry portal](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
-- [Getting Started with Azure AI Studio](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
+- [Getting Started with Microsoft Foundry](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
 - [Fundamentals of AI agents on Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
 - [Azure AI Discord](https://aka.ms/AzureAI/Discord)

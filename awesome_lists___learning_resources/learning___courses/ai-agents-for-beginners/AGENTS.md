@@ -8,7 +8,7 @@ This repository contains "AI Agents for Beginners" - a comprehensive educational
 - Python 3.12+
 - Jupyter Notebooks for interactive learning
 - AI Frameworks: Microsoft Agent Framework (MAF)
-- Azure AI Services: Microsoft Foundry, Azure AI Foundry Agent Service V2
+- Azure AI Services: Microsoft Foundry, Microsoft Foundry Agent Service V2
 
 **Architecture:**
 - Lesson-based structure (00-15+ directories)
@@ -20,7 +20,7 @@ This repository contains "AI Agents for Beginners" - a comprehensive educational
 
 ### Prerequisites
 - Python 3.12 or higher
-- Azure subscription (for Azure AI Foundry)
+- Azure subscription (for Microsoft Foundry)
 - Azure CLI installed and authenticated (`az login`)
 
 ### Initial Setup
@@ -52,8 +52,8 @@ This repository contains "AI Agents for Beginners" - a comprehensive educational
 
 ### Required Environment Variables
 
-For **Azure AI Foundry** (Required):
-- `AZURE_AI_PROJECT_ENDPOINT` - Azure AI Foundry project endpoint
+For **Microsoft Foundry** (Required):
+- `AZURE_AI_PROJECT_ENDPOINT` - Microsoft Foundry project endpoint
 - `AZURE_AI_MODEL_DEPLOYMENT_NAME` - Model deployment name (e.g., gpt-4o)
 
 For **Azure AI Search** (Lesson 05 - RAG):
@@ -81,9 +81,9 @@ Each lesson contains multiple Jupyter notebooks for different frameworks:
 
 ### Working with Microsoft Agent Framework
 
-**Microsoft Agent Framework + Azure AI Foundry:**
+**Microsoft Agent Framework + Microsoft Foundry:**
 - Requires Azure subscription
-- Uses `AzureAIProjectAgentProvider` for Agent Service V2 (agents visible in Foundry portal)
+- Uses `FoundryChatClient` for Agent Service V2 (agents visible in Foundry portal)
 - Production-ready with built-in observability
 - File pattern: `*-python-agent-framework.ipynb`
 
@@ -107,7 +107,7 @@ This is an educational repository with example code rather than production code 
 
 3. **Verify environment variables:**
    ```bash
-   python -c "import os; from dotenv import load_dotenv; load_dotenv(); print('✓ GITHUB_TOKEN' if os.getenv('GITHUB_TOKEN') else '✗ GITHUB_TOKEN missing')"
+   python -c "import os; from dotenv import load_dotenv; load_dotenv(); print('✓ AZURE_AI_PROJECT_ENDPOINT' if os.getenv('AZURE_AI_PROJECT_ENDPOINT') else '✗ AZURE_AI_PROJECT_ENDPOINT missing')"
    ```
 
 ### Running Individual Notebooks
@@ -217,7 +217,7 @@ Use descriptive titles:
 2. **Environment variables:**
    - Always create `.env` from `.env.example`
    - Don't commit `.env` file (it's in `.gitignore`)
-   - GitHub token needs appropriate permissions
+   - Sign in with `az login` for keyless Entra ID authentication
 
 3. **Package conflicts:**
    - Use a fresh virtual environment
@@ -227,7 +227,7 @@ Use descriptive titles:
 4. **Azure services:**
    - Azure AI services require active subscription
    - Some features are region-specific
-   - Free tier limitations apply to GitHub Models
+   - Ensure your Azure OpenAI model deployment supports the Responses API
 
 ### Learning Path
 
@@ -241,8 +241,8 @@ Recommended progression through lessons:
 ### Framework Selection
 
 Choose framework based on your goals:
-- **All lessons**: Microsoft Agent Framework (MAF) with `AzureAIProjectAgentProvider`
-- **Agents register server-side** in Azure AI Foundry Agent Service V2 and are visible in the Foundry portal
+- **All lessons**: Microsoft Agent Framework (MAF) with `FoundryChatClient`
+- **Agents register server-side** in Microsoft Foundry Agent Service V2 and are visible in the Foundry portal
 
 ### Getting Help
 
