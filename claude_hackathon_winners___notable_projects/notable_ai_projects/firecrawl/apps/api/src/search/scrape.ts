@@ -10,6 +10,7 @@ import { ScrapeJobData } from "../types";
 import { SearchV2Response } from "../lib/entities";
 import type { BillingMetadata } from "../services/billing/types";
 import { getScrapeZDR } from "../lib/zdr-helpers";
+import type { ThreatProtectionPolicy } from "../lib/threat-protection/types";
 
 export interface DocumentWithCostTracking {
   document: Document;
@@ -40,6 +41,7 @@ interface ScrapeSearchOptions {
   billing?: BillingMetadata;
   agentIndexOnly?: boolean;
   keylessReserved?: boolean;
+  threatProtectionPolicy?: ThreatProtectionPolicy | null;
 }
 
 async function scrapeSearchResultDirect(
@@ -81,6 +83,7 @@ async function scrapeSearchResultDirect(
           zeroDataRetention,
           teamFlags: flags,
           agentIndexOnly: options.agentIndexOnly ?? false,
+          threatProtection: options.threatProtectionPolicy ?? undefined,
         },
         skipNuq: true,
         origin: options.origin,

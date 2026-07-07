@@ -37,6 +37,7 @@ import {
 } from "../../lib/keyless";
 import { projectScrapeCredits } from "../../lib/keyless-credit-projection";
 import { applyAgentAuthDiscoveryHeader } from "../../lib/agent-auth-discovery";
+import { resolveThreatProtection } from "../../lib/threat-protection/request";
 
 const AGENT_INTEROP_CONCURRENCY_BOOST = 3;
 
@@ -72,11 +73,33 @@ export async function scrapeController(
         });
       });
 
+      // Threat protection: resolve the effective policy (org config +
+      // per-request override). No-ops (null policy, zero I/O) for teams
+      // without the flag.
+      const threatProtection = await resolveThreatProtection({
+        teamId: req.auth.team_id,
+        orgId: req.acuc?.org_id ?? null,
+        flags: req.acuc?.flags ?? null,
+        override: req.body.threatProtection,
+      });
+      if (threatProtection.error) {
+        setSpanAttributes(span, {
+          "scrape.error": threatProtection.error,
+          "scrape.status_code": 403,
+        });
+        return res.status(403).json({
+          success: false,
+          error: threatProtection.error,
+        });
+      }
+
       // Permission check span
       const permissions = await withSpan(
         "api.scrape.check_permissions",
         async permSpan => {
-          const perms = checkPermissions(req.body, req.acuc?.flags);
+          const perms = checkPermissions(req.body, req.acuc?.flags, {
+            threatProtectionOrgConfig: threatProtection.orgConfig,
+          });
           setSpanAttributes(permSpan, {
             "permissions.success": !perms.error,
             "permissions.error": perms.error,
@@ -306,6 +329,7 @@ export async function scrapeController(
                       zeroDataRetention,
                       teamFlags: req.acuc?.flags ?? null,
                       agentIndexOnly: (req as any).agentIndexOnly ?? false,
+                      threatProtection: threatProtection.policy ?? undefined,
                     },
                     skipNuq: true,
                     origin,
@@ -410,6 +434,17 @@ export async function scrapeController(
               "scrape.status_code": 400,
             });
             return res.status(400).json({
+              success: false,
+              code: e.code,
+              error: e.message,
+            });
+          }
+
+          if (e.code === "unsafe_domain_blocked") {
+            setSpanAttributes(span, {
+              "scrape.status_code": 403,
+            });
+            return res.status(403).json({
               success: false,
               code: e.code,
               error: e.message,

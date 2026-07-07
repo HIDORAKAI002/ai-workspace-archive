@@ -60,6 +60,10 @@ import {
   browserWebhookDestroyedController,
 } from "../controllers/v2/browser";
 import { activityController } from "../controllers/v1/activity";
+import {
+  getTeamThreatProtectionController,
+  putTeamThreatProtectionController,
+} from "../controllers/v2/team-threat-protection";
 import { supportProxyController } from "../controllers/v2/support-proxy";
 import { createResearchRouter } from "../controllers/v2/research-proxy";
 import {
@@ -411,6 +415,18 @@ v2Router.get(
   "/team/activity",
   authMiddleware(RateLimiterMode.Account),
   wrap(activityController),
+);
+
+v2Router.get(
+  "/team/threat-protection",
+  authMiddleware(RateLimiterMode.Account),
+  wrap(getTeamThreatProtectionController),
+);
+
+v2Router.put(
+  "/team/threat-protection",
+  authMiddleware(RateLimiterMode.Account),
+  wrap(putTeamThreatProtectionController),
 );
 
 v2Router.post(

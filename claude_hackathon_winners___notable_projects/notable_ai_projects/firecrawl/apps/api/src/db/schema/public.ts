@@ -73,6 +73,8 @@ export const api_keys = pgTable(
     team_id: uuid("team_id"),
     owner_id: uuid("owner_id"),
     agent_provisioned: boolean("agent_provisioned").default(false),
+    // API-key-scoped concurrency limit; null = key inherits the team limit only
+    concurrency: integer("concurrency"),
   },
   table => [
     // Target of key_restriction_config's composite FK, which pins a
@@ -652,6 +654,19 @@ export const teams = pgTable("teams", {
   referrer_integration: varchar("referrer_integration"),
   allocated_concurrent_browsers: integer("allocated_concurrent_browsers"),
   org_id: uuid("org_id").notNull(),
+});
+
+// Org-scoped threat protection configuration (enterprise feature, gated by the
+// `threatProtection` team flag). One row per org; DDL is applied out-of-band.
+// The policy document lives in the `config` jsonb column (parsed tolerantly in
+// lib/threat-protection/store.ts); only `mode` is a dedicated column.
+export const threat_protection_config = pgTable("threat_protection_config", {
+  id: uuid("id").notNull().defaultRandom(),
+  org_id: uuid("org_id").notNull().unique(),
+  mode: varchar("mode").notNull().default("off"),
+  config: jsonb("config").notNull().default({}),
+  created_at: ts("created_at").notNull().defaultNow(),
+  updated_at: ts("updated_at").notNull().defaultNow(),
 });
 
 export const user_notifications = pgTable("user_notifications", {

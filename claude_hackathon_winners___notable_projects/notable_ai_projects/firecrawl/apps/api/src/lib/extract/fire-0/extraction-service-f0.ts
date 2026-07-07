@@ -39,6 +39,7 @@ import {
 } from "./usage/llm-cost-f0";
 import { SourceTracker_F0 } from "./helpers/source-tracker-f0";
 import { getACUCTeam } from "../../../controllers/auth";
+import { resolveThreatProtection } from "../../threat-protection/request";
 
 interface ExtractServiceOptions {
   request: ExtractRequest;
@@ -91,6 +92,18 @@ export async function performExtraction_F0(
   let sources: Record<string, string[]> = {};
 
   const acuc = await getACUCTeam(teamId);
+
+  // Threat protection: resolve the effective policy once for this extract
+  // job (org config + the request's threatProtection override, which the
+  // controller already validated). Threaded into every document scrape so
+  // both user-provided and discovered URLs are enforced in the pipeline.
+  const threatProtectionPolicy = (
+    await resolveThreatProtection({
+      teamId,
+      flags: acuc?.flags ?? null,
+      override: request.threatProtection,
+    })
+  ).policy;
 
   const logger = _logger.child({
     module: "extract",
@@ -341,6 +354,7 @@ export async function performExtraction_F0(
             flags: acuc?.flags ?? null,
             apiKeyId,
             requestId: extractId,
+            threatProtectionPolicy,
           },
           urlTraces,
           logger.child({
@@ -636,6 +650,7 @@ export async function performExtraction_F0(
             flags: acuc?.flags ?? null,
             apiKeyId,
             requestId: extractId,
+            threatProtectionPolicy,
           },
           urlTraces,
           logger.child({

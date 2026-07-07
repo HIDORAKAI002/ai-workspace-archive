@@ -69,6 +69,15 @@ export function getIgnoreRobots(flags: TeamFlags | undefined): OrgFlagMode {
 }
 
 /**
+ * Resolves the effective threat protection mode from team flags.
+ */
+export function getThreatProtection(flags: TeamFlags | undefined): OrgFlagMode {
+  if (flags?.threatProtection === "forced") return "forced";
+  if (flags?.threatProtection === "allowed") return "allowed";
+  return "disabled";
+}
+
+/**
  * Resolves the effective customRobotsAgent mode from team flags.
  * Only supports "disabled" (default) and "allowed" — no "forced" mode.
  */

@@ -36,6 +36,7 @@ import {
 } from "../../lib/keyless";
 import { projectScrapeCredits } from "../../lib/keyless-credit-projection";
 import { applyAgentAuthDiscoveryHeader } from "../../lib/agent-auth-discovery";
+import { resolveThreatProtection } from "../../lib/threat-protection/request";
 
 export async function scrapeController(
   req: RequestWithAuth<{}, ScrapeResponse, ScrapeRequest>,
@@ -50,7 +51,22 @@ export async function scrapeController(
   const preNormalizedBody = { ...req.body };
   req.body = scrapeRequestSchema.parse(req.body);
 
-  const permissions = checkPermissions(req.body, req.acuc?.flags);
+  const threatProtection = await resolveThreatProtection({
+    teamId: req.auth.team_id,
+    orgId: req.acuc?.org_id ?? null,
+    flags: req.acuc?.flags ?? null,
+    override: req.body.threatProtection,
+  });
+  if (threatProtection.error) {
+    return res.status(403).json({
+      success: false,
+      error: threatProtection.error,
+    });
+  }
+
+  const permissions = checkPermissions(req.body, req.acuc?.flags, {
+    threatProtectionOrgConfig: threatProtection.orgConfig,
+  });
   if (permissions.error) {
     return res.status(403).json({
       success: false,
@@ -212,6 +228,7 @@ export async function scrapeController(
               zeroDataRetention,
               teamFlags: req.acuc?.flags ?? null,
               agentIndexOnly: (req as any).agentIndexOnly ?? false,
+              threatProtection: threatProtection.policy ?? undefined,
             },
             skipNuq: true,
             origin,
@@ -269,6 +286,14 @@ export async function scrapeController(
 
       if (e.code === "SCRAPE_ACTIONS_NOT_SUPPORTED") {
         return res.status(400).json({
+          success: false,
+          code: e.code,
+          error: e.message,
+        });
+      }
+
+      if (e.code === "unsafe_domain_blocked") {
+        return res.status(403).json({
           success: false,
           code: e.code,
           error: e.message,

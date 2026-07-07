@@ -106,7 +106,7 @@ export class NuqFdbExternalSlots {
       tn,
       this.ks,
       entry,
-      { team: true, crawl: false },
+      { team: true, key: false, crawl: false },
       Date.now(),
       newTxContext(),
     );
