@@ -1,16 +1,17 @@
 #!/usr/bin/dotnet run
 
 #:package Microsoft.Extensions.AI@10.*
-#:package Microsoft.Extensions.AI.OpenAI@10.*-*
 #:package Microsoft.Agents.AI.OpenAI@1.*-*
+#:package Azure.AI.OpenAI@2.1.0
+#:package Azure.Identity@1.13.1
 
-using System.ClientModel;
 using System.ComponentModel;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-using OpenAI;
+using Azure.AI.OpenAI;
+using Azure.Identity;
 
 // ============================================================================
 // AGENTIC DESIGN PRINCIPLES DEMONSTRATION
@@ -57,18 +58,12 @@ static string SaveUserPreference(
     return $"Preference saved: {preferenceType} is now set to '{preferenceValue}'. I will remember this for future suggestions.";
 }
 
-// Extract configuration from environment variables
-var github_endpoint = Environment.GetEnvironmentVariable("GH_ENDPOINT") ?? "https://models.github.ai/inference";
-var github_model_id = Environment.GetEnvironmentVariable("GH_MODEL_ID") ?? "openai/gpt-5-mini";
-var github_token = Environment.GetEnvironmentVariable("GH_TOKEN") ?? throw new InvalidOperationException("GH_TOKEN is not set.");
+// Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
+var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
+    ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4o-mini";
 
-// Configure OpenAI Client Options
-var openAIOptions = new OpenAIClientOptions()
-{
-    Endpoint = new Uri(github_endpoint)
-};
-
-var openAIClient = new OpenAIClient(new ApiKeyCredential(github_token), openAIOptions);
+var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
 // Agent Identity
 var AGENT_NAME = "TravelAgent";
@@ -115,10 +110,9 @@ What kind of trip would you like me to help you plan today?"
 """;
 
 // Create AI Agent with Design Principles
-AIAgent agent = openAIClient
-    .GetChatClient(github_model_id)
-    .AsIChatClient()
-    .AsAIAgent(
+AIAgent agent = azureClient
+    .GetOpenAIResponseClient(deployment)
+    .CreateAIAgent(
         name: AGENT_NAME,
         instructions: AGENT_INSTRUCTIONS,
         tools: [

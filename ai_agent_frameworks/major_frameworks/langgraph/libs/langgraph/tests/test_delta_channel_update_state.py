@@ -2,10 +2,13 @@
 
 Originally a regression suite for deepagents#3774 — `update_state` on a *fresh*
 thread silently dropped the first write to a `DeltaChannel`-backed channel
-because channel writes were only persisted when a previous checkpoint existed.
-Fixed by lazily persisting an empty stub checkpoint on a fresh thread so the
-first write has a parent to anchor under (mirrors the exit-mode lazy-stub
-pattern in `_loop._put_exit_delta_writes`).
+because channel writes were only persisted when a previous checkpoint existed
+and no snapshot was written either, so the checkpoint reconstructed to empty.
+
+Fixed by forcing a self-contained `_DeltaSnapshot` blob into the first
+checkpoint on a fresh thread (`saved is None`), so the value is stored inline
+and no ancestor write-replay is required. This keeps the read/replay path
+untouched.
 
 Coverage:
 
@@ -13,8 +16,8 @@ Coverage:
 * non-fresh thread: `update_state` after `invoke`, after another `update_state`,
   and `bulk_update_state` with multiple per-superstep updates
 * update-by-id end-to-end via `update_state` (DeltaChannel reducer semantics)
-* state-history chain shape on a fresh thread (lazy stub + update checkpoint
-  with correct parent linking)
+* state-history chain shape on a fresh thread (single self-contained update
+  checkpoint with the snapshot inline and no parent)
 """
 
 from typing import Annotated, Any
@@ -94,7 +97,7 @@ async def test_aupdate_state_fresh_thread_delta_channel() -> None:
 
 def test_update_state_after_invoke_delta_channel() -> None:
     """The non-fresh-thread path was already working before the fix; pin it
-    down so the lazy-stub change for fresh threads doesn't regress it."""
+    down so the forced-snapshot change for fresh threads doesn't regress it."""
     saver = InMemorySaver()
     graph = _build_graph(saver)
     config = {"configurable": {"thread_id": "after-invoke-sync"}}
@@ -133,9 +136,9 @@ async def test_aupdate_state_after_invoke_delta_channel() -> None:
 
 
 def test_consecutive_update_states_delta_channel() -> None:
-    """First update_state lazily persists a stub; the second sees a real
-    parent (`saved is not None`) and takes the original write path. Both
-    messages must round-trip in chronological order."""
+    """First update_state forces a self-contained snapshot seed; the second
+    sees a real parent (`saved is not None`) and anchors its writes under that
+    seed. Both messages must round-trip in chronological order."""
     saver = InMemorySaver()
     graph = _build_graph(saver)
     config = {"configurable": {"thread_id": "consecutive-sync"}}
@@ -252,14 +255,14 @@ def test_bulk_update_state_multi_task_per_superstep_delta_channel() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Public-API observation of the lazy-stub mechanism
+# Public-API observation of the forced-snapshot mechanism
 # ---------------------------------------------------------------------------
 
 
 def test_state_history_chain_after_fresh_update_state_delta_channel() -> None:
-    """A fresh-thread `update_state` should produce two checkpoints visible
-    via `get_state_history`: a stub (step=-1, no parent) and the update
-    (step=0, parent=stub). Both attributed `source='update'`."""
+    """A fresh-thread `update_state` should produce a single self-contained
+    checkpoint visible via `get_state_history`: step=0, `source='update'`,
+    no parent, with the DeltaChannel value snapshotted inline."""
     saver = InMemorySaver()
     graph = _build_graph(saver)
     config = {"configurable": {"thread_id": "history-chain"}}
@@ -270,25 +273,12 @@ def test_state_history_chain_after_fresh_update_state_delta_channel() -> None:
         as_node="model",
     )
 
-    # Newest first per `get_state_history` ordering.
     history = list(graph.get_state_history(config))
-    assert len(history) == 2
+    assert len(history) == 1
 
-    update_snapshot, stub_snapshot = history
-
+    (update_snapshot,) = history
     assert update_snapshot.metadata is not None
     assert update_snapshot.metadata["source"] == "update"
     assert update_snapshot.metadata["step"] == 0
+    assert update_snapshot.parent_config is None
     assert [m.content for m in update_snapshot.values["messages"]] == ["hello"]
-
-    assert stub_snapshot.metadata is not None
-    assert stub_snapshot.metadata["source"] == "update"
-    assert stub_snapshot.metadata["step"] == -1
-    assert stub_snapshot.parent_config is None
-
-    # The update checkpoint's parent is the stub.
-    assert update_snapshot.parent_config is not None
-    assert (
-        update_snapshot.parent_config["configurable"]["checkpoint_id"]
-        == stub_snapshot.config["configurable"]["checkpoint_id"]
-    )

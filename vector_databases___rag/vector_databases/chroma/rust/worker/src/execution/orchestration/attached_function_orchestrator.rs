@@ -352,10 +352,13 @@ impl AttachedFunctionOrchestrator {
     ) -> bool {
         if let Some(work_queue_client) = &self.output_context.work_queue_client {
             let operator = Box::new(QueueFunctionOperator::new(work_queue_client.clone()));
+            let compaction_offset = (self.get_input_collection_info().collection.log_position >= 0)
+                .then_some(self.get_input_collection_info().collection.log_position);
             let input = QueueFunctionInput::new(
                 attached_function.id,
                 self.get_input_collection_info().collection_id,
                 attached_function.completion_offset as i64,
+                compaction_offset,
             );
             let task = wrap(
                 operator,
@@ -363,7 +366,7 @@ impl AttachedFunctionOrchestrator {
                 ctx.receiver(),
                 self.context().task_cancellation_token.clone(),
             );
-            let res = self.dispatcher().send(task, None).await;
+            let res = self.dispatcher().send(task, Some(Span::current())).await;
             self.ok_or_terminate(res, ctx).await.is_some()
         } else {
             tracing::error!("Async attached function found but no WorkQueue client configured");
@@ -430,7 +433,7 @@ impl AttachedFunctionOrchestrator {
             ctx.receiver(),
             self.context().task_cancellation_token.clone(),
         );
-        let res = self.dispatcher().send(task, None).await;
+        let res = self.dispatcher().send(task, Some(Span::current())).await;
         self.ok_or_terminate(res, ctx).await;
     }
 
@@ -1030,7 +1033,7 @@ impl Handler<TaskResult<CollectionAndSegments, GetCollectionAndSegmentsError>>
             ctx.receiver(),
             self.context().task_cancellation_token.clone(),
         );
-        let res = self.dispatcher().send(task, None).await;
+        let res = self.dispatcher().send(task, Some(Span::current())).await;
         self.ok_or_terminate(res, ctx).await;
     }
 }

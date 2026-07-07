@@ -54,6 +54,18 @@ that combine these parts:
 | Orchestration | Routing work across tools, steps, or agents | A planner calls a search tool, then a summarizer |
 | Trust | Safety, security, evaluation, and observability | Logs tool calls and asks before high-impact actions |
 
+## Models and Providers
+
+The course code samples use the **Microsoft Agent Framework (MAF)** and target the **Azure OpenAI Responses API** — the recommended API going forward, which combines chat completions, tool calling, multimodal input, and stateful conversations in a single API surface. You connect either through a **Microsoft Foundry** project (with `FoundryChatClient`) or to Azure OpenAI directly (with `OpenAIChatClient`).
+
+As you work through the lessons, you have a few provider options:
+
+- **Microsoft Foundry / Azure OpenAI (Responses API)** — the primary path used across the lessons. Sign in with `az login` for keyless Entra ID authentication.
+- **Foundry Local** — run models fully on-device through an OpenAI-compatible API (no cloud, no API keys). Ideal for offline or cost-free experimentation. See [Course Setup](./00-course-setup/README.md).
+- **MiniMax** — an OpenAI-compatible provider with large-context models, usable as a drop-in alternative.
+
+> **Note:** GitHub Models is deprecated (retiring July 2026) and does not support the Responses API. The samples have been updated to use Azure OpenAI / Microsoft Foundry instead.
+
 ## Choose Your Learning Path
 
 You can take the full course in order, or jump to a path based on what you want
@@ -89,8 +101,8 @@ vocabulary you will need for the rest of the course.
 | [11 - Agentic Protocols](./11-agentic-protocols/README.md) | How protocols connect agents to tools and other agents. | Identify where a standard protocol could simplify integration. |
 | [12 - Context Engineering](./12-context-engineering/README.md) | How to select, trim, isolate, and manage context. | Decide what belongs in the prompt and what should stay out. |
 | [13 - Agent Memory](./13-agent-memory/README.md) | How agents can save useful information across interactions. | Choose one safe preference your demo could remember. |
-| [14 - Microsoft Agent Framework](./14-microsoft-agent-framework/README.md) | Framework-specific building blocks for agents and workflows. | Map your demo steps to framework concepts. |
-| [15 - Computer Use Agents](./15-browser-use/README.md) | How agents can interact with browser or UI surfaces. | Pick one browser task that should still require user confirmation. |
+| [14 - Microsoft Agent Framework](./14-microsoft-agent-framework/README.md) | Framework-specific building blocks for agents and workflows, plus hosting LangChain/LangGraph agents on Microsoft Foundry. | Map your demo steps to framework concepts. |
+| [15 - Computer Use Agents](./15-browser-use/README.md) | How agents can interact with browser or UI surfaces, including real-world examples like Microsoft Project Opal. | Pick one browser task that should still require user confirmation. |
 | [18 - Securing AI Agents](./18-securing-ai-agents/README.md) | How to make agent actions more auditable and tamper-evident. | Decide what actions in your demo should be logged or receipted. |
 
 Lessons 16 and 17 are listed in the main README as coming soon. Add them to your
