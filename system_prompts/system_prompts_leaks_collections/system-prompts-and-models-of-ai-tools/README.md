@@ -10,8 +10,8 @@
 
 <div align="center" markdown="1">
 
-### [Issue Tracking for AI Agents](https://github.com/latitude-dev/latitude-llm)  
-[Open Source Monitoring platform](https://github.com/latitude-dev/latitude-llm)
+### [Make your AI agents self-healing](https://github.com/latitude-dev/latitude-llm)  
+[Open Source.](https://github.com/latitude-dev/latitude-llm)
 
 </div>
 
