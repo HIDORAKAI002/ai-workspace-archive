@@ -24,70 +24,35 @@ def _exit_code(result: int | str | None) -> int:
 	return 1
 
 
-def _first_env_value(names: tuple[str, ...]) -> str | None:
+def _set_harness_client_env() -> None:
 	import os
 
-	for name in names:
-		value = os.environ.get(name)
-		if value:
-			return value
-	return None
+	os.environ['BH_CLIENT'] = 'browser-use-cli'
+	os.environ['BH_CLIENT_VERSION'] = _browser_use_version()
 
 
-def _detect_agent_client() -> str | None:
-	return _first_env_value(('BROWSER_USE_AGENT_CLIENT',))
-
-
-def _detect_model() -> tuple[str | None, str | None]:
-	return _first_env_value(('BROWSER_USE_AGENT_MODEL',)), _first_env_value(('BROWSER_USE_MODEL_PROVIDER',))
-
-
-def _redacted_task(task: str | None) -> str | None:
-	if task is None:
-		return None
-	return '[redacted]'
-
-
-def _capture_cli_event(
+def _capture_via_harness(
 	*,
-	action: str,
-	mode: str,
 	command: str,
 	start_time: float,
-	task: str | None = None,
 	result: int | str | None = None,
 	error_message: str | None = None,
 ) -> None:
 	try:
-		import logging
+		from browser_harness import telemetry as harness_telemetry
 
-		from browser_use.telemetry import CLITelemetryEvent, ProductTelemetry
-
-		model, model_provider = _detect_model()
-		telemetry_logger = logging.getLogger('browser_use.telemetry.service')
-		telemetry_logger_disabled = telemetry_logger.disabled
-		telemetry_logger.disabled = True
-		try:
-			telemetry = ProductTelemetry()
-			telemetry.capture(
-				CLITelemetryEvent(
-					version=_browser_use_version(),
-					action=action,
-					mode=mode,
-					command=command,
-					task=_redacted_task(task),
-					task_length=len(task) if task is not None else None,
-					agent_client=_detect_agent_client(),
-					model=model,
-					model_provider=model_provider,
-					duration_seconds=time.monotonic() - start_time,
-					exit_code=_exit_code(result),
-					error_message=error_message,
-				)
-			)
-			telemetry.flush()
-		finally:
-			telemetry_logger.disabled = telemetry_logger_disabled
+		capture_cli_event = getattr(harness_telemetry, 'capture_cli_event', None)
+		if capture_cli_event is None:
+			return
+		_set_harness_client_env()
+		code = _exit_code(result)
+		capture_cli_event(
+			action='error' if code else 'completed',
+			command=command,
+			duration_seconds=time.monotonic() - start_time,
+			exit_code=code,
+			error_message=error_message,
+		)
 	except Exception:
 		pass
 
@@ -205,12 +170,15 @@ def _patch_browser_harness_cli_text() -> None:
 	telemetry.run_telemetry_cli = run_telemetry_cli
 
 
-def _run_browser_harness() -> int | None:
-	import os
+_delegated_to_harness = False
 
+
+def _run_browser_harness() -> int | None:
 	from browser_harness import run
 
-	os.environ['BH_CLIENT'] = 'browser-use-cli'
+	global _delegated_to_harness
+
+	_set_harness_client_env()
 	_patch_browser_harness_cli_text()
 	args = sys.argv[1:]
 	if args and args[0] == 'doctor' and args[1:]:
@@ -220,6 +188,7 @@ def _run_browser_harness() -> int | None:
 		if args[1:] != ['--fix-snap']:
 			print('usage: browser-use doctor [--fix-snap]', file=sys.stderr)
 			sys.exit(2)
+	_delegated_to_harness = True
 	run.main()
 	return None
 
@@ -279,64 +248,66 @@ Core helpers: new_tab(url), goto_url(url), page_info(), capture_screenshot(),
   click_at_xy(x, y), js(code), cdp(method, ...), wait_for_load()
 
 Read the full interface now:   browser-use skill show
-Install the skill so you remember it in future sessions (also upgrades the CLI):
+Install the CLI 3.0 skill (upgrades the CLI and replaces any pre-existing browser-use skill):
                                browser-use skill install
+Then load the freshly installed browser-use skill, and follow it to use the latest CLI.
 Skill reference:               https://github.com/browser-use/browser-use/blob/main/browser_use/skills/browser-use/SKILL.md
 Health check:                  browser-use --doctor"""
 
 
-def _read_harness_task(args: list[str]) -> str | None:
-	for flag in ('-c', '--code'):
-		if flag in args:
-			index = args.index(flag)
-			if index + 1 < len(args):
-				return args[index + 1]
-	if args or sys.stdin.isatty():
-		return None
-	code = sys.stdin.read()
-	sys.stdin = StringIO(code)
-	return code
-
-
-def _command_context(args: list[str]) -> tuple[str, str]:
+def _command_name(args: list[str]) -> str:
 	if '--mcp' in args:
-		return 'mcp_server', 'mcp'
+		return 'mcp'
 	if args and args[0] == 'install':
-		return 'install', 'install'
+		return 'install'
 	if args and args[0] == 'init':
-		return 'init', 'init'
+		return 'init'
 	if '--template' in args or '-t' in args:
-		return 'init', 'init'
+		return 'init'
 	if args and args[0] == 'skill':
-		return 'skill', 'skill'
+		return 'skill'
 	legacy = _legacy_command(args)
 	if legacy is not None:
-		return 'browser_harness', f'legacy:{legacy}'
-	return 'browser_harness', args[0] if args else 'run'
+		return f'legacy:{legacy}'
+	return args[0] if args else 'run'
 
 
-def _dispatch(args: list[str]) -> tuple[int | None, str, str, str | None]:
+def _dispatch(args: list[str]) -> tuple[int | None, str]:
 	if '--mcp' in args:
 		_run_mcp_server()
-		return 0, 'mcp_server', 'mcp', None
+		return 0, 'mcp'
 	if args and args[0] == 'install':
-		return _run_install_command(args[1:]), 'install', 'install', None
+		return _run_install_command(args[1:]), 'install'
 	if args and args[0] == 'init':
-		return _run_init_command(args[1:]), 'init', 'init', None
+		return _run_init_command(args[1:]), 'init'
 	if '--template' in args or '-t' in args:
-		return _run_init_command(args), 'init', 'init', None
+		return _run_init_command(args), 'init'
 	if args and args[0] == 'skill':
 		from browser_use.skills.install import handle as handle_skill_command
 
-		return handle_skill_command(args[1:]), 'skill', 'skill', None
+		return handle_skill_command(args[1:]), 'skill'
 
 	legacy = _legacy_command(args)
 	if legacy is not None:
 		print(_legacy_migration_message(legacy), file=sys.stderr)
-		return 2, 'browser_harness', f'legacy:{legacy}', None
+		return 2, f'legacy:{legacy}'
 
-	task = _read_harness_task(args)
-	return _run_browser_harness(), 'browser_harness', args[0] if args else 'run', task
+	return _run_browser_harness(), args[0] if args else 'run'
+
+
+class _StderrTail:
+	"""Pass-through stderr wrapper that remembers the tail as error context."""
+
+	def __init__(self, wrapped):
+		self._wrapped = wrapped
+		self.tail = ''
+
+	def write(self, text):
+		self.tail = (self.tail + text)[-500:]
+		return self._wrapped.write(text)
+
+	def __getattr__(self, name):
+		return getattr(self._wrapped, name)
 
 
 def browser_use_tui_main() -> int | None:
@@ -345,44 +316,40 @@ def browser_use_tui_main() -> int | None:
 
 
 def main() -> int | None:
+	global _delegated_to_harness
+
+	_delegated_to_harness = False
 	args = sys.argv[1:]
 	start_time = time.monotonic()
-	mode, command = _command_context(args)
-	task = None
+	command = _command_name(args)
+	stderr_tail = _StderrTail(sys.stderr)
+	sys.stderr = stderr_tail
 	try:
-		result, mode, command, task = _dispatch(args)
+		result, command = _dispatch(args)
 	except SystemExit as exc:
 		result = exc.code
-		_capture_cli_event(
-			action='error' if _exit_code(result) else 'completed',
-			mode=mode,
-			command=command,
-			start_time=start_time,
-			task=task,
-			result=result,
-			error_message=str(result) if isinstance(result, str) else None,
-		)
+		if not _delegated_to_harness:
+			_capture_via_harness(
+				command=command,
+				start_time=start_time,
+				result=result,
+				error_message=str(result) if isinstance(result, str) else stderr_tail.tail.strip() or None,
+			)
 		raise
 	except Exception as exc:
-		_capture_cli_event(
-			action='error',
-			mode=mode,
+		if not _delegated_to_harness:
+			_capture_via_harness(command=command, start_time=start_time, result=1, error_message=str(exc))
+		raise
+	finally:
+		sys.stderr = stderr_tail._wrapped
+
+	if not _delegated_to_harness:
+		_capture_via_harness(
 			command=command,
 			start_time=start_time,
-			task=task,
-			result=1,
-			error_message=str(exc),
+			result=result,
+			error_message=(stderr_tail.tail.strip() or None) if _exit_code(result) else None,
 		)
-		raise
-
-	_capture_cli_event(
-		action='error' if _exit_code(result) else 'completed',
-		mode=mode,
-		command=command,
-		start_time=start_time,
-		task=task,
-		result=result,
-	)
 	return result
 
 

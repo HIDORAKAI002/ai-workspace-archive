@@ -52,6 +52,7 @@ from fastapi.routing import APIRoute
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from hindsight_api import MemoryEngine
+from hindsight_api.config import RETAIN_EXTRACTION_MODES
 
 
 def _annotation_is_nullable(annotation: Any) -> bool:
@@ -1245,7 +1246,7 @@ class CreateBankRequest(BaseModel):
     )
     retain_extraction_mode: str | None = Field(
         default=None,
-        description="Fact extraction mode: 'concise' (default), 'verbose', or 'custom'.",
+        description="Fact extraction mode: 'concise' (default), 'verbose', 'custom', 'verbatim', or 'chunks'.",
     )
     retain_custom_instructions: str | None = Field(
         default=None,
@@ -1433,6 +1434,7 @@ class ListMemoryUnitsResponse(BaseModel):
                         "date": "2024-01-15T10:30:00Z",
                         "type": "world",
                         "entities": "Alice (PERSON), Google (ORGANIZATION)",
+                        "metadata": {"source": "slack", "channel": "engineering"},
                     }
                 ],
                 "total": 150,
@@ -1666,8 +1668,8 @@ class UpdateMemoryRequest(BaseModel):
 
     @model_validator(mode="after")
     def _require_an_edit(self) -> "UpdateMemoryRequest":
-        if all(
-            v is None
+        has_value_edit = any(
+            v is not None
             for v in (
                 self.text,
                 self.context,
@@ -1677,7 +1679,9 @@ class UpdateMemoryRequest(BaseModel):
                 self.entities,
                 self.state,
             )
-        ):
+        )
+        has_date_clear = bool({"occurred_start", "occurred_end"} & self.model_fields_set)
+        if not has_value_edit and not has_date_clear:
             raise ValueError("Provide at least one field to update.")
         if self.state is not None and self.state not in ("valid", "invalidated"):
             raise ValueError("state must be 'valid' or 'invalidated'.")
@@ -2203,7 +2207,8 @@ class BankTemplateConfig(BaseModel):
     reflect_mission: str | None = Field(default=None, description="Mission/context for Reflect operations")
     retain_mission: str | None = Field(default=None, description="Steers what gets extracted during retain")
     retain_extraction_mode: str | None = Field(
-        default=None, description="Fact extraction mode: 'concise' (default), 'verbose', or 'custom'"
+        default=None,
+        description="Fact extraction mode: 'concise' (default), 'verbose', 'custom', 'verbatim', or 'chunks'",
     )
     retain_custom_instructions: str | None = Field(
         default=None, description="Custom extraction prompt (when mode='custom')"
@@ -2429,10 +2434,10 @@ def validate_bank_template(manifest: "BankTemplateManifest") -> list[str]:
     if manifest.bank:
         bank = manifest.bank
         if bank.retain_extraction_mode is not None:
-            valid_modes = ("concise", "verbose", "custom", "chunks")
-            if bank.retain_extraction_mode not in valid_modes:
+            if bank.retain_extraction_mode not in RETAIN_EXTRACTION_MODES:
                 errors.append(
-                    f"bank.retain_extraction_mode: must be one of {valid_modes}, got '{bank.retain_extraction_mode}'"
+                    "bank.retain_extraction_mode: "
+                    f"must be one of {RETAIN_EXTRACTION_MODES}, got '{bank.retain_extraction_mode}'"
                 )
         if bank.retain_custom_instructions and bank.retain_extraction_mode != "custom":
             errors.append("bank.retain_custom_instructions: requires retain_extraction_mode='custom'")
@@ -3750,13 +3755,23 @@ def _register_routes(app: FastAPI):
     ):
         """Curate a single memory unit (edit text / invalidate / revert)."""
         try:
+            occurred_start = (
+                ""
+                if "occurred_start" in request.model_fields_set and request.occurred_start is None
+                else request.occurred_start
+            )
+            occurred_end = (
+                ""
+                if "occurred_end" in request.model_fields_set and request.occurred_end is None
+                else request.occurred_end
+            )
             data = await app.state.memory.update_memory_unit(
                 bank_id=bank_id,
                 memory_id=memory_id,
                 text=request.text,
                 context=request.context,
-                occurred_start=request.occurred_start,
-                occurred_end=request.occurred_end,
+                occurred_start=occurred_start,
+                occurred_end=occurred_end,
                 new_fact_type=request.fact_type,
                 entities=request.entities,
                 state=request.state,

@@ -6639,6 +6639,17 @@ class MemoryEngine(MemoryEngineInterface):
                         mentioned_at=live["mentioned_at"],
                         entities=[r["canonical_name"] for r in ent_rows],
                     )
+                    # Keep the stored text-search vector in sync with curated
+                    # text/context edits. Use the incoming parameters here:
+                    # PostgreSQL evaluates UPDATE RHS expressions before the
+                    # sibling SET assignments take effect, so column references
+                    # would see the pre-edit text/context.
+                    from .db.ops_postgresql import pg_search_vector_expr
+
+                    sv_expr = pg_search_vector_expr(get_config(), text_col="$3", context_col="$4")
+                    search_vector_clause = (
+                        f",\n                            search_vector = {sv_expr}" if sv_expr else ""
+                    )
                     await enqueue_relink_victims(conn, bank_id, [memory_id], ops=backend.ops)
                     await conn.execute(
                         f"""
@@ -6646,7 +6657,7 @@ class MemoryEngine(MemoryEngineInterface):
                         SET text = $3, context = $4, fact_type = $5, occurred_start = $6,
                             occurred_end = $7, event_date = $8, embedding = $9::vector,
                             consolidated_at = NULL, consolidation_failed_at = NULL,
-                            edited_at = now(), updated_at = now()
+                            edited_at = now(), updated_at = now(){search_vector_clause}
                         WHERE id = $1 AND bank_id = $2
                         """,
                         str(memory_uuid),
@@ -7466,7 +7477,7 @@ class MemoryEngine(MemoryEngineInterface):
                 f"""
                 SELECT id, text, event_date, context, fact_type, document_id,
                        mentioned_at, occurred_start, occurred_end, chunk_id, proof_count,
-                       tags, consolidated_at, consolidation_failed_at, edited_at, {curation_cols}
+                       tags, metadata, consolidated_at, consolidation_failed_at, edited_at, {curation_cols}
                 FROM {source_table}
                 {where_clause}
                 ORDER BY mentioned_at DESC NULLS LAST, created_at DESC
@@ -7521,6 +7532,7 @@ class MemoryEngine(MemoryEngineInterface):
                         "chunk_id": row["chunk_id"] if row["chunk_id"] else None,
                         "proof_count": row["proof_count"] if row["proof_count"] is not None else 1,
                         "tags": list(row["tags"]) if row["tags"] else [],
+                        "metadata": conn.parse_json(row["metadata"]) if row["metadata"] is not None else {},
                         "consolidated_at": row["consolidated_at"].isoformat() if row["consolidated_at"] else None,
                         "consolidation_failed_at": (
                             row["consolidation_failed_at"].isoformat() if row["consolidation_failed_at"] else None
@@ -7573,7 +7585,7 @@ class MemoryEngine(MemoryEngineInterface):
             # back to the archive (with its invalidation bookkeeping) on a miss.
             select_cols = (
                 "id, text, context, event_date, occurred_start, occurred_end, "
-                "mentioned_at, fact_type, document_id, chunk_id, tags, source_memory_ids, "
+                "mentioned_at, fact_type, document_id, chunk_id, tags, metadata, source_memory_ids, "
                 "observation_scopes, edited_at"
             )
             row = await conn.fetchrow(
@@ -7617,6 +7629,7 @@ class MemoryEngine(MemoryEngineInterface):
                 "document_id": row["document_id"] if row["document_id"] else None,
                 "chunk_id": str(row["chunk_id"]) if row["chunk_id"] else None,
                 "tags": row["tags"] if row["tags"] else [],
+                "metadata": conn.parse_json(row["metadata"]) if row["metadata"] is not None else {},
                 "observation_scopes": row["observation_scopes"] if row["observation_scopes"] else None,
                 "state": unit_state,
                 "invalidation_reason": row["invalidation_reason"],
