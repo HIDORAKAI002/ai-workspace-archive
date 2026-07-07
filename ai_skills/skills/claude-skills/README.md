@@ -11,9 +11,9 @@ The most comprehensive open-source library of Claude Code skills and agent plugi
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Skills](https://img.shields.io/badge/Skills-355-brightgreen?style=for-the-badge)](#skills-overview)
-[![Agents](https://img.shields.io/badge/Agents-97-blue?style=for-the-badge)](#agents)
+[![Agents](https://img.shields.io/badge/Agents-99-blue?style=for-the-badge)](#agents)
 [![Personas](https://img.shields.io/badge/Personas-7-purple?style=for-the-badge)](#personas)
-[![Commands](https://img.shields.io/badge/Commands-103-orange?style=for-the-badge)](#commands)
+[![Commands](https://img.shields.io/badge/Commands-109-orange?style=for-the-badge)](#commands)
 [![Stars](https://img.shields.io/github/stars/alirezarezvani/claude-skills?style=for-the-badge)](https://github.com/alirezarezvani/claude-skills/stargazers)
 [![SkillCheck Validated](https://img.shields.io/badge/SkillCheck-Validated-4c1?style=for-the-badge)](https://getskillcheck.com)
 

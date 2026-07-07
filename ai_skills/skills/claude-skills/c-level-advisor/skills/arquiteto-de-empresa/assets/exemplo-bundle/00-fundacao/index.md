@@ -1,9 +1,10 @@
-# 00 — Fundação
+# 00 — Foundation
 
-Ancoragem da identidade da Cafeteria Aurora e do problema que ela resolve.
+Anchoring Aurora Café's identity and the problem it solves.
 
-## Conceitos
+## Concepts
 
-| Conceito | O que é | type | status |
+| Concept | What it is | type | status |
 |---|---|---|---|
-| [identidade](identidade.md) | Propósito, missão e valores | Fundação | rascunho |
+| [identidade](identidade.md) | Purpose, mission, and values | Foundation | draft |
+| [problema-solucao](problema-solucao.md) | The pain solved + how | Problem-Solution | draft |

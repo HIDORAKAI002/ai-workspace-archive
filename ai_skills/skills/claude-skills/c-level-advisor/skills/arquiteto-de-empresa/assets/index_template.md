@@ -1,13 +1,13 @@
-# <Nome da Área ou da Empresa>
+# <Area or Company Name>
 
-<1 parágrafo: propósito desta pasta/área.>
+<1 paragraph: purpose of this folder/area.>
 
-## Conceitos
+## Concepts
 
-| Conceito | O que é | type | status |
+| Concept | What it is | type | status |
 |---|---|---|---|
-| [identidade](identidade.md) | Propósito, missão, valores | Fundação | rascunho |
-| [problema-solucao](problema-solucao.md) | Dor + solução | Problema-Solução | rascunho |
+| [identidade](identidade.md) | Purpose, mission, values | Foundation | draft |
+| [problema-solucao](problema-solucao.md) | Pain + solution | Problem-Solution | draft |
 
-<No index.md RAIZ, inclua também o painel das 12 fases (ver references/phase_playbook.md)
-e a linha "Próximo passo sugerido: ...".>
+<In the ROOT index.md, also include the 12-phase dashboard (see references/phase_playbook.md)
+and the line "Suggested next step: ...".>

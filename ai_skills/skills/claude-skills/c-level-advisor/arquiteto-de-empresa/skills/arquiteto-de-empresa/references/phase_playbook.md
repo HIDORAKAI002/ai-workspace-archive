@@ -1,99 +1,99 @@
-# Playbook das 12 fases
+# 12-phase playbook
 
-Roteiro da entrevista. Conduza **na ordem**. Em cada fase: (a) diga o objetivo em 1 linha, (b) faça as perguntas (3-5 por bloco, numeradas), (c) monte os conceitos, (d) confirme e escreva, (e) atualize `index.md` raiz e `log.md`. Os `type` de cada arquivo estão em [`type_vocabulary.md`](type_vocabulary.md).
-
----
-
-## FASE 0 — Descoberta (briefing inicial)
-**Objetivo:** entender que empresa é essa antes de criar qualquer arquivo.
-**Perguntas:**
-1. O que a empresa faz (ou vai fazer)?
-2. Em que estágio está (ideia / MVP / operando / escalando)?
-3. Modelo (serviço, produto, SaaS, marketplace, infoproduto, híbrido)?
-4. Setor e jurisdição (país/estado, tipo de PJ se já houver)?
-5. Já tem nome e marca?
-**Gera:** o esqueleto de pastas (`scaffold_bundle.py`), o `index.md` raiz preenchido e a 1ª entrada no `log.md`.
-
-## FASE 1 — Fundação (`00-fundacao`)
-**Objetivo:** ancorar identidade e o problema.
-**Perguntas:** Por que a empresa existe (propósito além do lucro)? Que dor específica resolve e para quem? Como é o "mundo melhor" que ela cria? Quais 3–5 valores inegociáveis?
-**Gera:** `identidade.md`, `problema-solucao.md`, `manifesto.md`.
-
-## FASE 2 — Estratégia & Modelo de Negócio (`01-estrategia`)
-**Objetivo:** desenhar como a empresa cria, entrega e captura valor.
-**Perguntas:** Proposta de valor central (o "antes vs depois" do cliente)? Como entra receita (única, recorrência, comissão, ticket)? Estrutura de custos principal? Vantagem que dificulta cópia (dados, marca, rede, processo, custo)?
-**Gera:** `business-model-canvas.md`, `proposta-de-valor.md`, `posicionamento.md`, `vantagem-competitiva.md`.
-
-## FASE 3 — Mercado & Inteligência (`02-mercado`)
-**Objetivo:** dimensionar oportunidade e mapear o terreno.
-**Perguntas:** 3–5 concorrentes/alternativas reais (inclui "não fazer nada")? Tamanho aproximado do mercado e fatia atingível? Cliente ideal (ICP) em uma frase? Tendências a favor/contra?
-**Gera:** `analise-mercado.md` (TAM/SAM/SOM), `concorrentes.md`, `icp-personas.md`, `swot.md`.
-> Se autorizado e houver busca, valide tamanho de mercado, concorrentes e tendências; cite fontes no corpo e registre URLs em `resource`.
-
-## FASE 4 — Financeiro (`03-financeiro`)
-**Objetivo:** transformar o modelo em números.
-**Perguntas:** Preço (ou faixa) por produto/serviço e margem estimada? Custos fixos e variáveis mensais? Meta de faturamento nos 12 primeiros meses? Precisa de capital inicial — quanto e de onde?
-**Gera:** `modelo-receita.md`, `estrutura-custos.md`, `precificacao.md`, `unit-economics.md` (CAC, LTV, payback, margem), `projecoes.md` (conservador / base / agressivo + break-even).
-
-## FASE 5 — Go-to-Market & Comercial (`04-comercial`)
-**Objetivo:** definir como a empresa adquire e fecha clientes.
-**Perguntas:** Como o cliente descobre você? Caminho do primeiro contato até o pagamento? Quem vende (você, time, autoatendimento)? Meta de novos clientes/mês?
-**Gera:** `funil-vendas.md`, `processo-comercial.md`, `playbook-vendas.md`, `metas-comerciais.md`.
-
-## FASE 6 — Marketing & Marca (`05-marketing`)
-**Objetivo:** dar voz, narrativa e canais à empresa.
-**Perguntas:** Como a marca deve "soar" (técnico, próximo, premium, irreverente)? 3 pilares de conteúdo? Em que canais o cliente já está? Oferta de entrada (isca/lead magnet)?
-**Gera:** `branding.md`, `estrategia-conteudo.md`, `canais.md`, `calendario-editorial.md`.
-
-## FASE 7 — Produto (`06-produto`) — _pular se serviço puro_
-**Objetivo:** especificar o que se entrega como produto.
-**Perguntas:** Produto/feature núcleo do MVP? O que fica fora da v1? Como o cliente usa no dia a dia? Como medir que está funcionando?
-**Gera:** `prd.md`, `roadmap.md`, `features.md`.
-
-## FASE 8 — Operações & Processos (`07-operacoes`)
-**Objetivo:** garantir que a empresa funcione sem depender só do fundador.
-**Perguntas:** 3–5 processos que não podem falhar (entrega, atendimento, cobrança…)? Ferramentas que sustentam a operação? Quem faz o quê? Gargalos atuais?
-**Gera:** `processos.md`, `stack-ferramentas.md`, `fornecedores.md` e `sops/SOP-XX-*.md` dos processos críticos.
-
-## FASE 9 — Tech & Infra (`08-tech`) — _só se houver infra digital_
-**Objetivo:** desenhar a base técnica.
-**Perguntas:** Stack atual ou desejada? Construir vs contratar? Onde roda (cloud/VPS) e qual escala esperada? Integrações obrigatórias?
-**Gera:** `arquitetura.md`, `stack.md`, `infraestrutura.md`.
-
-## FASE 10 — Pessoas & Cultura (`09-pessoas`)
-**Objetivo:** estruturar quem toca a empresa.
-**Perguntas:** Quem está hoje e qual papel ocupa? 3 próximas contratações por prioridade? Como vocês trabalham (modelo, cadência)? Comportamentos que definem a cultura?
-**Gera:** `organograma.md`, `funcoes-responsabilidades.md` (RACI), `cultura.md`, `plano-contratacao.md`.
-
-## FASE 11 — Jurídico & Compliance (`10-juridico`)
-**Objetivo:** dar lastro legal à operação.
-**Perguntas:** Tipo de PJ e divisão societária (sócios e %)? Sócios/parceiros com contrato a formalizar? Que dados de clientes você trata (LGPD)? Precisa de licença/regulação do setor?
-**Gera:** `estrutura-societaria.md`, `compliance.md`, modelos em `contratos/`.
-> Inclua sempre no corpo: *"documentos-base, não substituem revisão de advogado".*
-
-## FASE 12 — Governança & OKRs (`11-governanca`)
-**Objetivo:** instalar o sistema de pilotagem.
-**Perguntas:** Métrica-norte (a única que melhor mede valor entregue)? 3 objetivos do próximo trimestre? Rituais de acompanhamento? Dashboards essenciais?
-**Gera:** `okrs.md`, `rituais.md`, `metricas.md` (north star + por área) e fecha o ciclo no `log.md`.
+The interview script. Run **in order**. In each phase: (a) state the objective in 1 line, (b) ask the questions (3-5 per block, numbered), (c) assemble the concepts, (d) confirm and write, (e) update the root `index.md` and `log.md`. The `type` of each file is in [`type_vocabulary.md`](type_vocabulary.md).
 
 ---
 
-## Painel de progresso (manter no `index.md` raiz)
+## PHASE 0 — Discovery (initial briefing)
+**Objective:** understand what company this is before creating any file.
+**Questions:**
+1. What does the company do (or plan to do)?
+2. What stage is it at (idea / MVP / operating / scaling)?
+3. Model (service, product, SaaS, marketplace, info-product, hybrid)?
+4. Sector and jurisdiction (country/state, entity type if one already exists)?
+5. Does it already have a name and brand?
+**Generates:** the folder skeleton (`scaffold_bundle.py`), the filled-in root `index.md`, and the 1st entry in `log.md`.
 
-| Fase | Área | Status |
+## PHASE 1 — Foundation (`00-fundacao`)
+**Objective:** anchor identity and the problem.
+**Questions:** Why does the company exist (purpose beyond profit)? What specific pain does it solve and for whom? What is the "better world" it creates? What are the 3–5 non-negotiable values?
+**Generates:** `identidade.md`, `problema-solucao.md`, `manifesto.md`.
+
+## PHASE 2 — Strategy & Business Model (`01-estrategia`)
+**Objective:** design how the company creates, delivers, and captures value.
+**Questions:** Core value proposition (the customer's "before vs. after")? How does revenue come in (one-off, recurring, commission, ticket)? Main cost structure? Advantage that makes copying hard (data, brand, network, process, cost)?
+**Generates:** `business-model-canvas.md`, `proposta-de-valor.md`, `posicionamento.md`, `vantagem-competitiva.md`.
+
+## PHASE 3 — Market & Intelligence (`02-mercado`)
+**Objective:** size the opportunity and map the terrain.
+**Questions:** 3–5 real competitors/alternatives (including "do nothing")? Approximate market size and reachable share? Ideal customer (ICP) in one sentence? Trends for/against?
+**Generates:** `analise-mercado.md` (TAM/SAM/SOM), `concorrentes.md`, `icp-personas.md`, `swot.md`.
+> If authorized and search is available, validate market size, competitors, and trends; cite sources in the body and record URLs in `resource`.
+
+## PHASE 4 — Financial (`03-financeiro`)
+**Objective:** turn the model into numbers.
+**Questions:** Price (or range) per product/service and estimated margin? Fixed and variable monthly costs? Revenue target for the first 12 months? Do you need initial capital — how much and from where?
+**Generates:** `modelo-receita.md`, `estrutura-custos.md`, `precificacao.md`, `unit-economics.md` (CAC, LTV, payback, margin), `projecoes.md` (conservative / base / aggressive + break-even).
+
+## PHASE 5 — Go-to-Market & Sales (`04-comercial`)
+**Objective:** define how the company acquires and closes customers.
+**Questions:** How does the customer discover you? Path from first contact to payment? Who sells (you, a team, self-service)? Target of new customers/month?
+**Generates:** `funil-vendas.md`, `processo-comercial.md`, `playbook-vendas.md`, `metas-comerciais.md`.
+
+## PHASE 6 — Marketing & Brand (`05-marketing`)
+**Objective:** give the company voice, narrative, and channels.
+**Questions:** How should the brand "sound" (technical, approachable, premium, irreverent)? 3 content pillars? Which channels is the customer already on? Entry offer (hook/lead magnet)?
+**Generates:** `branding.md`, `estrategia-conteudo.md`, `canais.md`, `calendario-editorial.md`.
+
+## PHASE 7 — Product (`06-produto`) — _skip if pure service_
+**Objective:** specify what is delivered as a product.
+**Questions:** Core product/feature of the MVP? What is out of scope for v1? How does the customer use it day to day? How do you measure that it is working?
+**Generates:** `prd.md`, `roadmap.md`, `features.md`.
+
+## PHASE 8 — Operations & Processes (`07-operacoes`)
+**Objective:** ensure the company runs without depending only on the founder.
+**Questions:** 3–5 processes that cannot fail (delivery, support, billing…)? Tools that sustain the operation? Who does what? Current bottlenecks?
+**Generates:** `processos.md`, `stack-ferramentas.md`, `fornecedores.md`, and `sops/SOP-XX-*.md` for the critical processes.
+
+## PHASE 9 — Tech & Infra (`08-tech`) — _only if there is digital infrastructure_
+**Objective:** design the technical base.
+**Questions:** Current or desired stack? Build vs. buy? Where it runs (cloud/VPS) and what scale is expected? Mandatory integrations?
+**Generates:** `arquitetura.md`, `stack.md`, `infraestrutura.md`.
+
+## PHASE 10 — People & Culture (`09-pessoas`)
+**Objective:** structure who runs the company.
+**Questions:** Who is here today and what role do they hold? 3 next hires by priority? How do you work (model, cadence)? Behaviors that define the culture?
+**Generates:** `organograma.md`, `funcoes-responsabilidades.md` (RACI), `cultura.md`, `plano-contratacao.md`.
+
+## PHASE 11 — Legal & Compliance (`10-juridico`)
+**Objective:** give the operation legal grounding.
+**Questions:** Entity type and ownership split (partners and %)? Partners/collaborators with a contract to formalize? What customer data do you handle (data-protection law — e.g. GDPR / LGPD / CCPA, per jurisdiction)? Do you need a sector license/regulation?
+**Generates:** `estrutura-societaria.md`, `compliance.md`, templates in `contratos/`.
+> Always include in the body: *"these are base documents; they do not replace review by a lawyer".*
+
+## PHASE 12 — Governance & OKRs (`11-governanca`)
+**Objective:** install the steering system.
+**Questions:** North-star metric (the single one that best measures value delivered)? 3 objectives for the next quarter? Follow-up rituals? Essential dashboards?
+**Generates:** `okrs.md`, `rituais.md`, `metricas.md` (north star + per area) and closes the cycle in `log.md`.
+
+---
+
+## Progress dashboard (keep in the root `index.md`)
+
+| Phase | Area | Status |
 |---|---|---|
-| 0 | Descoberta | ⬜ |
-| 1 | Fundação | ⬜ |
-| 2 | Estratégia | ⬜ |
-| 3 | Mercado | ⬜ |
-| 4 | Financeiro | ⬜ |
-| 5 | Comercial | ⬜ |
+| 0 | Discovery | ⬜ |
+| 1 | Foundation | ⬜ |
+| 2 | Strategy | ⬜ |
+| 3 | Market | ⬜ |
+| 4 | Financial | ⬜ |
+| 5 | Sales | ⬜ |
 | 6 | Marketing | ⬜ |
-| 7 | Produto | ⬜ |
-| 8 | Operações | ⬜ |
+| 7 | Product | ⬜ |
+| 8 | Operations | ⬜ |
 | 9 | Tech | ⬜ |
-| 10 | Pessoas | ⬜ |
-| 11 | Jurídico | ⬜ |
-| 12 | Governança | ⬜ |
+| 10 | People | ⬜ |
+| 11 | Legal | ⬜ |
+| 12 | Governance | ⬜ |
 
-Legenda: ✅ feito · 🚧 em andamento · ⬜ pendente. O `index_generator.py` regenera esta tabela a partir do que existe em disco.
+Legend: ✅ done · 🚧 in progress · ⬜ pending. The `index_generator.py` regenerates this table from what exists on disk.

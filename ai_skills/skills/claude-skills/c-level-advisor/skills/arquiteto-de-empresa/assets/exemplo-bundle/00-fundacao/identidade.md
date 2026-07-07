@@ -1,27 +1,27 @@
 ---
-type: Fundação
-title: Identidade — Cafeteria Aurora
-description: Propósito, missão e valores inegociáveis da Cafeteria Aurora
-tags: [fundacao, identidade, cultura]
+type: Foundation
+title: Identity — Aurora Café
+description: Purpose, mission, and non-negotiable values of Aurora Café
+tags: [foundation, identity, culture]
 timestamp: 2026-06-19T10:00:00Z
-status: rascunho
-versao: 0.1
+status: draft
+version: 0.1
 ---
 
-# Identidade — Cafeteria Aurora
+# Identity — Aurora Café
 
-## Propósito
+## Purpose
 
-Transformar a primeira hora do dia do bairro num ritual que vale acordar para viver.
+Turn the neighborhood's first hour of the day into a ritual worth waking up for.
 
-## Missão
+## Mission
 
-Servir café de origem rastreável, num espaço onde as pessoas querem ficar — não só passar.
+Serve coffee of traceable origin, in a space where people want to stay — not just pass through.
 
-## Valores inegociáveis
+## Non-negotiable values
 
-1. **Grão sempre rastreável.** Sabemos o produtor de cada lote.
-2. **Atendimento que lembra o nome.** Relação, não transação.
-3. **Desperdício mínimo.** Borra, copos e sobras têm destino.
+1. **Always-traceable bean.** We know the producer of every lot.
+2. **Service that remembers your name.** Relationship, not transaction.
+3. **Minimal waste.** Grounds, cups, and leftovers all have a destination.
 
-> O problema concreto que isso resolve está em [problema-solucao](problema-solucao.md) `[SUPOSIÇÃO: arquivo a criar na FASE 1]`.
+> The concrete problem this solves is in [problema-solucao](problema-solucao.md).

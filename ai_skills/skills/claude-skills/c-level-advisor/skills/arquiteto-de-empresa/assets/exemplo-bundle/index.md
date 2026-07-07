@@ -1,27 +1,27 @@
-# Cafeteria Aurora — Bundle OKF (exemplo)
+# Aurora Café — OKF Bundle (example)
 
-Mini bundle de demonstração do formato. Empresa fictícia (cafeteria de bairro) com a FASE 1 (Fundação) preenchida. Mostra os arquivos reservados (`index.md`, `log.md`) e um conceito real com frontmatter `type`.
+A mini demonstration bundle of the format. Fictional company (a neighborhood café) with PHASE 1 (Foundation) filled in. Shows the reserved files (`index.md`, `log.md`) and a real concept with frontmatter `type`.
 
-## Dados da empresa
+## Company data
 
-- **Nome:** Cafeteria Aurora
-- **Estágio:** ideia
-- **Modelo:** serviço (cafeteria física)
-- **Jurisdição:** Brasil (MEI a definir)
+- **Name:** Aurora Café
+- **Stage:** idea
+- **Model:** service (physical café)
+- **Jurisdiction:** Brazil (MEI — *Microempreendedor Individual*, sole-proprietor entity — to be defined)
 
-## Progresso das fases
+## Phase progress
 
-| Fase | Área | Status |
+| Phase | Area | Status |
 |---|---|---|
-| 0 | Descoberta | ✅ |
-| 1 | Fundação | 🚧 |
-| 2 | Estratégia | ⬜ |
-| 3 | Mercado | ⬜ |
+| 0 | Discovery | ✅ |
+| 1 | Foundation | 🚧 |
+| 2 | Strategy | ⬜ |
+| 3 | Market | ⬜ |
 
-**Próximo passo sugerido:** concluir `00-fundacao/problema-solucao.md` e iniciar a FASE 2 (Estratégia).
+**Suggested next step:** add `00-fundacao/manifesto.md` to complete PHASE 1, then start PHASE 2 (Strategy).
 
-## Pastas
+## Folders
 
-| Pasta | O que é |
+| Folder | What it is |
 |---|---|
-| [00-fundacao](00-fundacao/index.md) | Identidade, problema-solução, manifesto |
+| [00-fundacao](00-fundacao/index.md) | Identity, problem-solution, manifesto |
