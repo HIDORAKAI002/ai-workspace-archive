@@ -98,11 +98,26 @@ const verifyRunIdInputSchema = z.object({ verifyRunId: z.string() });
 
 // The scenario's context (coding scope), rendered as the report's scope header.
 // Shared by createRun and updateRun so a re-ingest can refresh the scope in place.
+const webUrlSchema = z
+  .string()
+  .url()
+  .refine((value) => {
+    const protocol = new URL(value).protocol;
+    return protocol === 'http:' || protocol === 'https:';
+  });
+
+const pullRequestContextSchema = z.object({
+  number: z.union([z.number(), z.string()]).optional(),
+  title: z.string().optional(),
+  url: webUrlSchema.optional(),
+});
+
 const runContextSchema = z.object({
   branch: z.string().optional(),
   commit: z.string().optional(),
   entry: z.string().optional(),
   focus: z.string().optional(),
+  pullRequest: pullRequestContextSchema.optional(),
   surfaces: z.array(z.string()).optional(),
   testedAt: z.string().optional(),
 });
