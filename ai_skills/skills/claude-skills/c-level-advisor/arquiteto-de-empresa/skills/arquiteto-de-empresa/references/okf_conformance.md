@@ -1,91 +1,91 @@
-# Conformância OKF (Open Knowledge Format v0.1)
+# OKF Conformance (Open Knowledge Format v0.1)
 
-Referência das regras que tornam a saída do Arquiteto de Empresa um **bundle OKF conformante** — uma base de conhecimento legível por humanos e por agentes, sem camada de tradução.
+Reference for the rules that make the Company Architect's output a **conformant OKF bundle** — a knowledge base readable by humans and by agents, with no translation layer.
 
-## O que é um bundle OKF
+## What an OKF bundle is
 
-Um **bundle** é um diretório de arquivos Markdown (`.md`). Cada arquivo representa **um conceito**. A identidade canônica do conceito é o seu **caminho relativo sem a extensão**:
+A **bundle** is a directory of Markdown files (`.md`). Each file represents **one concept**. The concept's canonical identity is its **relative path without the extension**:
 
 ```
-03-financeiro/unit-economics.md   →  conceito "03-financeiro/unit-economics"
+03-financeiro/unit-economics.md   →  concept "03-financeiro/unit-economics"
 ```
 
-A hierarquia de pastas é só organização física. A estrutura **semântica** real emerge dos **links** entre conceitos (o grafo), que costuma ser mais rica que a árvore de pastas.
+The folder hierarchy is just physical organization. The real **semantic** structure emerges from the **links** between concepts (the graph), which is usually richer than the folder tree.
 
-## Regra 1 — Cada arquivo é um conceito
+## Rule 1 — Each file is a concept
 
-Um arquivo, um conceito. Não junte "estratégia + financeiro" num só `.md`. Se um conceito fica grande demais, quebre em conceitos menores e ligue-os por links. Isso mantém o grafo navegável e os diffs legíveis em versionamento (git).
+One file, one concept. Do not merge "strategy + financial" into a single `.md`. If a concept grows too large, break it into smaller concepts and link them. This keeps the graph navigable and the diffs readable under version control (git).
 
-## Regra 2 — Frontmatter YAML com `type` obrigatório
+## Rule 2 — YAML frontmatter with mandatory `type`
 
-Todo arquivo **de conceito** abre com um bloco `---` de frontmatter YAML contendo, no mínimo, o campo `type`. Os demais campos são opcionais e chaves extras são toleradas.
+Every **concept** file opens with a `---` YAML frontmatter block containing, at minimum, the `type` field. The other fields are optional and extra keys are tolerated.
 
 ```yaml
 ---
-type: Modelo Financeiro          # OBRIGATÓRIO — ver type_vocabulary.md
+type: Financial Model            # REQUIRED — see type_vocabulary.md
 title: Unit Economics
-description: CAC, LTV, payback e margem de contribuição
-tags: [financeiro, metricas]
-timestamp: 2026-06-19T10:00:00Z  # ISO 8601, último update significativo
-resource: https://docs.google.com/spreadsheets/d/...   # URI canônica, se houver
-status: rascunho                  # extra tolerado: rascunho | em-revisao | aprovado
-versao: 0.1                       # extra tolerado
+description: CAC, LTV, payback, and contribution margin
+tags: [financial, metrics]
+timestamp: 2026-06-19T10:00:00Z  # ISO 8601, last significant update
+resource: https://docs.google.com/spreadsheets/d/...   # canonical URI, if any
+status: draft                     # tolerated extra: draft | in-review | approved
+version: 0.1                       # tolerated extra
 ---
 ```
 
-O valor de `type` vem de um vocabulário controlado e consistente — ver [`type_vocabulary.md`](type_vocabulary.md). É o `type` que permite a um agente filtrar "todos os conceitos do tipo `Persona`" sem ler o corpo.
+The `type` value comes from a controlled and consistent vocabulary — see [`type_vocabulary.md`](type_vocabulary.md). It is `type` that lets an agent filter "all concepts of type `Persona`" without reading the body.
 
-## Regra 3 — Relações são links markdown no corpo
+## Rule 3 — Relations are markdown links in the body
 
-Conceitos se ligam com **links markdown normais** dentro do texto:
+Concepts link to each other with **normal markdown links** inside the text:
 
 ```markdown
-A precificação deriva da [Proposta de Valor](../01-estrategia/proposta-de-valor.md)
-e alimenta as [Projeções](projecoes.md).
+Pricing derives from the [Value Proposition](../01-estrategia/proposta-de-valor.md)
+and feeds the [Projections](projecoes.md).
 ```
 
-Esses links formam o **grafo de conhecimento**. **Não** declare dependências como arrays no frontmatter — o grafo vive no corpo, onde o link tem contexto. Prefira caminhos relativos (resilientes a mover o bundle).
+These links form the **knowledge graph**. Do **not** declare dependencies as arrays in the frontmatter — the graph lives in the body, where the link has context. Prefer relative paths (resilient to moving the bundle).
 
-## Regra 4 — `index.md` e `log.md` são reservados
+## Rule 4 — `index.md` and `log.md` are reserved
 
-Dois nomes têm semântica especial e **não** carregam `type`:
+Two names have special semantics and do **not** carry `type`:
 
-- **`index.md`** — listagem/sumário do conteúdo da pasta (progressive disclosure). Cada pasta tem o seu; o `index.md` raiz é o painel do bundle inteiro.
-- **`log.md`** — histórico append-only de mudanças e decisões. Normalmente só na raiz.
+- **`index.md`** — listing/summary of the folder's content (progressive disclosure). Every folder has its own; the root `index.md` is the dashboard for the whole bundle.
+- **`log.md`** — append-only history of changes and decisions. Usually only at the root.
 
-Um linter conformante trata como erro um `index.md`/`log.md` que tenha `type`, e como erro um conceito que **não** tenha.
+A conformant linter treats an `index.md`/`log.md` that has a `type` as an error, and a concept that does **not** have one as an error.
 
-## Regra 5 — Legível por humano e máquina
+## Rule 5 — Readable by human and machine
 
-Markdown puro. Sem runtime, sem SDK, sem banco. Um humano lê no editor; um agente lê o mesmo arquivo e o frontmatter dá a ele a estrutura. Essa é a tese do formato: **a documentação é a interface**, igual para os dois.
+Plain markdown. No runtime, no SDK, no database. A human reads it in an editor; an agent reads the same file and the frontmatter gives it the structure. That is the format's thesis: **the documentation is the interface**, the same for both.
 
-## Convenções de nomenclatura
+## Naming conventions
 
-- Minúsculas, sem acento, hífen no lugar de espaço: `unit-economics.md`, `proposta-de-valor.md`.
-- SOPs no formato `SOP-01-nome-do-processo.md`.
-- Pastas numeradas por fase: `00-fundacao`, `01-estrategia`, … `11-governanca`.
-- Toda pasta tem um `index.md`.
+- Lowercase, no accents, hyphen instead of space: `unit-economics.md`, `proposta-de-valor.md`.
+- SOPs in the format `SOP-01-process-name.md`.
+- Folders numbered by phase: `00-fundacao`, `01-estrategia`, … `11-governanca`.
+- Every folder has an `index.md`.
 
-## Conteúdo dos arquivos reservados
+## Content of the reserved files
 
-- **`index.md` de pasta:** 1 parágrafo de propósito da área + tabela `| Conceito | O que é | type | status |` com link para cada arquivo.
-- **`log.md` raiz:** entradas cronológicas `## 2026-06-19T10:00:00Z — <título>` com: o que mudou, decisão tomada, alternativas descartadas, motivo.
+- **Folder `index.md`:** 1 paragraph of the area's purpose + a `| Concept | What it is | type | status |` table with a link to each file.
+- **Root `log.md`:** chronological entries `## 2026-06-19T10:00:00Z — <title>` with: what changed, decision made, discarded alternatives, rationale.
 
-## Checklist de conformância (o que o linter verifica)
+## Conformance checklist (what the linter checks)
 
-- [ ] Todo conceito (`.md` que não seja `index.md`/`log.md`) tem frontmatter com `type` não vazio.
-- [ ] `type` pertence ao vocabulário de [`type_vocabulary.md`](type_vocabulary.md).
-- [ ] `index.md` e `log.md` **não** têm `type`.
-- [ ] Links markdown relativos resolvem para arquivos existentes.
-- [ ] Nomes em kebab-case, sem acento/espaço.
-- [ ] Toda pasta tem `index.md`.
+- [ ] Every concept (`.md` that is not `index.md`/`log.md`) has frontmatter with a non-empty `type`.
+- [ ] `type` belongs to the vocabulary in [`type_vocabulary.md`](type_vocabulary.md).
+- [ ] `index.md` and `log.md` do **not** have `type`.
+- [ ] Relative markdown links resolve to existing files.
+- [ ] Names in kebab-case, no accents/spaces.
+- [ ] Every folder has an `index.md`.
 
-## Fontes
+## Sources
 
-1. **Open Knowledge Format (OKF) v0.1** — especificação aberta para empacotar conhecimento como Markdown + YAML frontmatter, originada no contexto Google Cloud / agentes de IA.
-2. **agentskills.io — SKILL.md standard** — convenção de `SKILL.md` com frontmatter YAML adotada por Claude Code, Codex, Gemini CLI e Hermes Agent (mesmo contrato deste repositório).
-3. **CommonMark Spec** (https://spec.commonmark.org/) — base de Markdown portável usada nos corpos dos conceitos.
-4. **YAML 1.2 Spec** (https://yaml.org/spec/1.2.2/) — sintaxe do frontmatter.
-5. **ISO 8601** — formato de `timestamp` (`2026-06-19T10:00:00Z`).
-6. **Zettelkasten / Niklas Luhmann** — princípio de "uma nota = um conceito" e conhecimento como grafo de links, fundamento conceitual do bundle.
-7. **Docs-as-Code** (Anne Gentle, *Docs Like Code*) — documentação versionada, revisada e construída como software; justifica o bundle em git.
+1. **Open Knowledge Format (OKF) v0.1** — open specification for packaging knowledge as Markdown + YAML frontmatter, originating in the Google Cloud / AI agents context.
+2. **agentskills.io — SKILL.md standard** — the `SKILL.md` convention with YAML frontmatter adopted by Claude Code, Codex, Gemini CLI, and Hermes Agent (the same contract as this repository).
+3. **CommonMark Spec** (https://spec.commonmark.org/) — portable Markdown base used in the concept bodies.
+4. **YAML 1.2 Spec** (https://yaml.org/spec/1.2.2/) — frontmatter syntax.
+5. **ISO 8601** — `timestamp` format (`2026-06-19T10:00:00Z`).
+6. **Zettelkasten / Niklas Luhmann** — the "one note = one concept" principle and knowledge as a graph of links, the conceptual foundation of the bundle.
+7. **Docs-as-Code** (Anne Gentle, *Docs Like Code*) — documentation versioned, reviewed, and built like software; justifies the bundle in git.

@@ -1,10 +1,10 @@
-# Log de decisões
+# Decision log
 
-Histórico append-only. Entrada mais recente no topo. Use timestamp ISO 8601.
+Append-only history. Most recent entry at the top. Use an ISO 8601 timestamp.
 
-## 2026-06-19T10:00:00Z — Bundle criado
+## 2026-06-19T10:00:00Z — Bundle created
 
-- **O que mudou:** esqueleto OKF gerado; FASE 0 (descoberta) concluída.
-- **Decisão:** <a decisão tomada>.
-- **Alternativas descartadas:** <opções consideradas e por que caíram>.
-- **Motivo:** <justificativa>.
+- **What changed:** OKF skeleton generated; PHASE 0 (discovery) completed.
+- **Decision:** <the decision made>.
+- **Discarded alternatives:** <options considered and why they were dropped>.
+- **Rationale:** <justification>.

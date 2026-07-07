@@ -1,6 +1,6 @@
 {
   "name": "arquiteto-de-empresa",
-  "description": "Arquiteto de Empresa (PT-BR): constrói um negócio do zero como um bundle OKF (Open Knowledge Format) — uma árvore de arquivos .md versionáveis com frontmatter type, links formando grafo, e index.md/log.md reservados, legível por humanos e por agentes. Conduz o fundador por uma entrevista de 12 fases (fundação, estratégia, mercado, financeiro, comercial, marketing, produto, operações, tech, pessoas, jurídico, governança), uma fase por vez, e gera os conceitos markdown conformantes. 3 ferramentas stdlib: scaffold_bundle (andaime do bundle), okf_linter (valida type/arquivos reservados/links), index_generator (regenera os index.md). Standalone-installable; também empacotado em c-level-skills.",
+  "description": "Company Architect: builds a business from scratch as an OKF (Open Knowledge Format) bundle — a tree of version-controllable .md files with frontmatter type, links forming a graph, and reserved index.md/log.md, readable by humans and agents. Guides the founder through a 12-phase interview (foundation, strategy, market, financial, sales, marketing, product, operations, tech, people, legal, governance), one phase at a time, and generates conformant markdown concepts. 3 stdlib tools: scaffold_bundle (bundle scaffolding), okf_linter (validates type/reserved files/links), index_generator (regenerates the index.md files). Standalone-installable; also bundled in c-level-skills.",
   "version": "2.10.3",
   "author": {
     "name": "leoal",

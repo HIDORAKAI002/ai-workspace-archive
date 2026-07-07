@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""index_generator.py — (Re)gera as tabelas de conceitos dos index.md de um bundle OKF.
+"""index_generator.py — (Re)generates the concept tables of the index.md files of an OKF bundle.
 
-Para cada pasta que tenha um `index.md` com os marcadores
-`<!-- okf:index:start -->` ... `<!-- okf:index:end -->`, lê os conceitos irmãos
-(.md que não sejam index.md/log.md), extrai title/description/type/status do
-frontmatter e regenera a tabela entre os marcadores.
+For each folder that has an `index.md` with the markers
+`<!-- okf:index:start -->` ... `<!-- okf:index:end -->`, it reads the sibling concepts
+(.md that are not index.md/log.md), extracts title/description/type/status from the
+frontmatter, and regenerates the table between the markers.
 
-Por padrão é dry-run (mostra o que mudaria). Use --write para gravar.
-Determinístico, apenas stdlib.
+By default it is a dry-run (shows what would change). Use --write to save.
+Deterministic, standard library only.
 
-Uso:
-    python index_generator.py                      # demo em bundle de exemplo embutido
-    python index_generator.py ./minha-empresa      # dry-run: mostra tabelas propostas
-    python index_generator.py ./minha-empresa --write
-    python index_generator.py ./minha-empresa --output json
+Usage:
+    python index_generator.py                      # demo on an embedded example bundle
+    python index_generator.py ./my-company   # dry-run: shows proposed tables
+    python index_generator.py ./my-company --write
+    python index_generator.py ./my-company --output json
     python index_generator.py --sample
 """
 
@@ -62,7 +62,7 @@ def concept_rows(folder):
         status = fm.get("status", "")
         rows.append(f"| [{slug}]({name}) | {what} | {tp} | {status} |")
     if not rows:
-        rows = ["<!-- (sem conceitos ainda) -->"]
+        rows = ["<!-- (no concepts yet) -->"]
     return rows
 
 
@@ -70,7 +70,7 @@ def replace_between(text, body):
     si = text.find(START)
     ei = text.find(END)
     if si == -1 or ei == -1 or ei < si:
-        return None  # sem marcadores
+        return None  # no markers
     new_block = START + "\n" + "\n".join(body) + "\n" + END
     return text[:si] + new_block + text[ei + len(END):]
 
@@ -115,25 +115,25 @@ def build_sample_bundle(base):
     root = os.path.join(base, "exemplo")
     os.makedirs(os.path.join(root, "00-fundacao"), exist_ok=True)
     with open(os.path.join(root, "00-fundacao", "index.md"), "w", encoding="utf-8") as f:
-        f.write("# Fundação\n\n## Conceitos\n\n| Conceito | O que é | type | status |\n|---|---|---|---|\n"
+        f.write("# Foundation\n\n## Concepts\n\n| Concept | What it is | type | status |\n|---|---|---|---|\n"
                 + START + "\n" + END + "\n")
     with open(os.path.join(root, "00-fundacao", "identidade.md"), "w", encoding="utf-8") as f:
-        f.write("---\ntype: Fundação\ntitle: Identidade\ndescription: Propósito, missão e valores\n"
-                "status: rascunho\n---\n\n# Identidade\n")
+        f.write("---\ntype: Foundation\ntitle: Identity\ndescription: Purpose, mission, and values\n"
+                "status: draft\n---\n\n# Identity\n")
     return root
 
 
 def render_text(r):
     out = ["=" * 64, "INDEX GENERATOR (OKF)", f"Bundle: {r['bundle']}",
-           f"Modo: {r['mode']}   index.md processados: {r['indexes_processed']}   "
-           f"alterados: {r['indexes_changed']}", "=" * 64]
+           f"Mode: {r['mode']}   index.md processed: {r['indexes_processed']}   "
+           f"changed: {r['indexes_changed']}", "=" * 64]
     for item in r["results"]:
-        flag = "ALTERA" if item["changed"] else "ok"
-        out.append(f"\n[{flag}] {item['index']}  ({item['concepts']} conceito(s))")
+        flag = "CHANGE" if item["changed"] else "ok"
+        out.append(f"\n[{flag}] {item['index']}  ({item['concepts']} concept(s))")
         for row in item["rows"]:
             out.append(f"    {row}")
     if r["mode"] == "dry-run":
-        out.append("\n(dry-run: nada gravado. Use --write para aplicar.)")
+        out.append("\n(dry-run: nothing saved. Use --write to apply.)")
     return "\n".join(out)
 
 
@@ -144,25 +144,25 @@ def main():
         pass
 
     p = argparse.ArgumentParser(
-        description="(Re)gera as tabelas de conceitos dos index.md de um bundle OKF.",
+        description="(Re)generates the concept tables of the index.md files of an OKF bundle.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    p.add_argument("path", nargs="?", help="Pasta do bundle (omitido = exemplo embutido)")
-    p.add_argument("--sample", action="store_true", help="Usa o bundle de exemplo embutido")
-    p.add_argument("--write", action="store_true", help="Grava as mudanças (default: dry-run)")
+    p.add_argument("path", nargs="?", help="Bundle folder (omitted = embedded example)")
+    p.add_argument("--sample", action="store_true", help="Uses the embedded example bundle")
+    p.add_argument("--write", action="store_true", help="Saves the changes (default: dry-run)")
     p.add_argument("--output", choices=("text", "json"), default="text")
     args = p.parse_args()
 
     if args.path and not args.sample:
         if not os.path.isdir(args.path):
-            print(f"erro: não é uma pasta: {args.path}", file=sys.stderr)
+            print(f"error: not a folder: {args.path}", file=sys.stderr)
             return 2
         result = process(args.path, args.write)
     else:
         with tempfile.TemporaryDirectory() as tmp:
             result = process(build_sample_bundle(tmp), args.write)
-            result["bundle"] = "<bundle de exemplo embutido>"
+            result["bundle"] = "<embedded example bundle>"
 
     if args.output == "json":
         print(json.dumps(result, indent=2, ensure_ascii=False))

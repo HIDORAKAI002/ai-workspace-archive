@@ -1,17 +1,17 @@
 ---
-type: <um valor do vocabulário — ver references/type_vocabulary.md>
-title: <Nome de exibição do conceito>
-description: <Resumo em 1 linha>
+type: <one value from the vocabulary — see references/type_vocabulary.md>
+title: <Concept display name>
+description: <1-line summary>
 tags: [<tag>, <tag>]
 timestamp: 2026-06-19T10:00:00Z
-resource: <URI canônica, se houver — planilha, doc, repo, dashboard>
-status: rascunho
-versao: 0.1
+resource: <canonical URI, if any — spreadsheet, doc, repo, dashboard>
+status: draft
+version: 0.1
 ---
 
-# <Título do conceito>
+# <Concept title>
 
-<Corpo em markdown. Ligue a outros conceitos com links relativos, ex.:>
-Deriva da [Proposta de Valor](../01-estrategia/proposta-de-valor.md).
+<Body in markdown. Link to other concepts with relative links, e.g.:>
+Derives from the [Value Proposition](../01-estrategia/proposta-de-valor.md).
 
-<Marque suposições com [SUPOSIÇÃO] quando o fundador não tiver respondido.>
+<Mark assumptions with [ASSUMPTION] when the founder has not answered.>
