@@ -31,6 +31,12 @@ import {
 } from "../../services/worker/nuq-router";
 import { logRequest } from "../../services/logging/log_job";
 import { getScrapeZDR } from "../../lib/zdr-helpers";
+import { resolveThreatProtection } from "../../lib/threat-protection/request";
+import { checkDomain } from "../../lib/threat-protection";
+import { UnsafeDomainBlockedError } from "../../lib/threat-protection/error";
+import { normalizeDomain } from "../../lib/threat-protection/verdict";
+import { calculateThreatScanCredits } from "../../lib/scrape-billing";
+import { billTeam } from "../../services/billing/credit_billing";
 
 export async function crawlController(
   req: RequestWithAuth<{}, CrawlResponse, CrawlRequest>,
@@ -39,15 +45,64 @@ export async function crawlController(
   const preNormalizedBody = req.body;
   req.body = crawlRequestSchema.parse(req.body);
 
+  const threatProtection = await resolveThreatProtection({
+    teamId: req.auth.team_id,
+    orgId: req.acuc?.org_id ?? null,
+    flags: req.acuc?.flags ?? null,
+    override: req.body.scrapeOptions?.threatProtection,
+  });
+  if (threatProtection.error) {
+    return res.status(403).json({
+      success: false,
+      error: threatProtection.error,
+    });
+  }
+
   const permissions = checkPermissions(
     { ...req.body, crawlerOptions: req.body },
     req.acuc?.flags,
+    { threatProtectionOrgConfig: threatProtection.orgConfig },
   );
   if (permissions.error) {
     return res.status(403).json({
       success: false,
       error: permissions.error,
     });
+  }
+
+  // Threat protection: check the seed URL before kicking off the crawl.
+  // Blocked seed => request-level error. Discovered links are checked during
+  // link discovery in the workers (blocked ones are silently skipped).
+  if (threatProtection.policy) {
+    const seedDomain = normalizeDomain(req.body.url);
+    const decision = await checkDomain(seedDomain, threatProtection.policy, {
+      teamId: req.auth.team_id,
+    });
+    if (!decision.allowed) {
+      // A blocked seed still bills the scan fee when the classifier was
+      // consulted — the scan already happened. (An allowed seed is not billed
+      // here: its scrape job re-checks the cached verdict and bills there.)
+      const threatScanCredits = calculateThreatScanCredits([decision]);
+      if (threatScanCredits > 0) {
+        billTeam(
+          req.auth.team_id,
+          req.acuc?.sub_id ?? undefined,
+          threatScanCredits,
+          req.acuc?.api_key_id ?? null,
+          { endpoint: "crawl" },
+        ).catch(error => {
+          _logger.error(
+            `Failed to bill team ${req.auth.team_id} for ${threatScanCredits} threat scan credit(s): ${error}`,
+          );
+        });
+      }
+      const error = new UnsafeDomainBlockedError(seedDomain, decision);
+      return res.status(403).json({
+        success: false,
+        code: error.code,
+        error: error.message,
+      });
+    }
   }
 
   const keyRestriction = await checkKeyFormatRestriction(
@@ -210,6 +265,7 @@ export async function crawlController(
       saveScrapeResultToGCS: config.GCS_FIRE_ENGINE_BUCKET_NAME ? true : false,
       zeroDataRetention,
       agentIndexOnly: (req as any).agentIndexOnly ?? false,
+      threatProtection: threatProtection.policy ?? undefined,
     },
     team_id: req.auth.team_id,
     createdAt: Date.now(),

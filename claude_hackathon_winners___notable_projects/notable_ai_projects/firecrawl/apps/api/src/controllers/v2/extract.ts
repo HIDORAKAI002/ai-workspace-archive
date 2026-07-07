@@ -14,6 +14,13 @@ import { logger as _logger } from "../../lib/logger";
 import { logRequest } from "../../services/logging/log_job";
 import { config } from "../../config";
 import { getScrapeZDR } from "../../lib/zdr-helpers";
+import {
+  checkUrlsAgainstThreatPolicy,
+  resolveThreatProtection,
+} from "../../lib/threat-protection/request";
+import { UnsafeDomainBlockedError } from "../../lib/threat-protection/error";
+import { calculateThreatScanCredits } from "../../lib/scrape-billing";
+import { billTeam } from "../../services/billing/credit_billing";
 
 /**
  * Extracts data from the provided URLs based on the request parameters.
@@ -71,6 +78,64 @@ export async function extractController(
         success: false,
         error: UNSUPPORTED_SITE_MESSAGE,
       });
+    }
+  }
+
+  // Threat protection: check target URLs before fetching. Blocked URLs are
+  // reported via invalidURLs (with ignoreInvalidURLs) or reject the request.
+  // Discovered URLs are enforced in the scrape pipeline via the policy
+  // threaded through the extract job.
+  const threatProtection = await resolveThreatProtection({
+    teamId: req.auth.team_id,
+    orgId: req.acuc?.org_id ?? null,
+    flags: req.acuc?.flags ?? null,
+    override: req.body.threatProtection,
+  });
+  if (threatProtection.error) {
+    return res.status(403).json({
+      success: false,
+      error: threatProtection.error,
+    });
+  }
+  if (threatProtection.policy && (req.body.urls?.length ?? 0) > 0) {
+    const { blocked, decisionsByDomain } = await checkUrlsAgainstThreatPolicy(
+      req.body.urls ?? [],
+      threatProtection.policy,
+      { teamId: req.auth.team_id },
+    );
+    // Every consulted decision (fresh or cached provider verdict) is a
+    // billable scan (+2 per scanned domain) — including when the request is
+    // rejected below: the scans already happened.
+    const threatScanCredits = calculateThreatScanCredits(
+      decisionsByDomain.values(),
+    );
+    if (threatScanCredits > 0) {
+      billTeam(
+        req.auth.team_id,
+        req.acuc?.sub_id ?? undefined,
+        threatScanCredits,
+        req.acuc?.api_key_id ?? null,
+        { endpoint: "extract", jobId: extractId },
+      ).catch(error => {
+        _logger.error(
+          `Failed to bill team ${req.auth.team_id} for ${threatScanCredits} threat scan credit(s): ${error}`,
+        );
+      });
+    }
+    if (blocked.length > 0) {
+      if (req.body.ignoreInvalidURLs) {
+        invalidURLs.push(...blocked.map(x => x.url));
+      } else {
+        const first = blocked[0];
+        const error = new UnsafeDomainBlockedError(
+          first.domain,
+          first.decision,
+        );
+        return res.status(403).json({
+          success: false,
+          error: error.message,
+        });
+      }
     }
   }
 

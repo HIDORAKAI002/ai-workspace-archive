@@ -73,6 +73,28 @@ export async function recordRobotsBlocked(crawlId: string, url: string) {
   );
 }
 
+/**
+ * Records a URL that was silently skipped during crawl link discovery because
+ * its domain was blocked by the team's threat protection policy. The crawl
+ * continues without it; the record (url -> full ThreatDecision JSON) is kept
+ * for the security-logging layer to read.
+ *
+ * ZDR posture: this hash follows the same rules as the rest of the transient
+ * crawl bookkeeping in this file (crawl doc, visited sets, robots_blocked) —
+ * it necessarily holds URLs while the crawl runs, lives in the evict Redis,
+ * and expires after 24h like every other crawl key. Additionally, for
+ * zero-data-retention crawls it is deleted eagerly in {@link finishCrawl}.
+ */
+export async function recordThreatBlocked(
+  crawlId: string,
+  url: string,
+  decision: unknown,
+) {
+  const key = "crawl:" + crawlId + ":threat_blocked";
+  await redisEvictConnection.hset(key, url, JSON.stringify(decision));
+  await redisEvictConnection.expire(key, 24 * 60 * 60);
+}
+
 export async function markCrawlActive(id: string) {
   await redisEvictConnection.sadd("active_crawls", id);
 }
@@ -331,6 +353,13 @@ export async function finishCrawl(id: string, __logger: Logger = _logger) {
   // Clear visited sets to save memory
   await redisEvictConnection.del("crawl:" + id + ":visited");
   await redisEvictConnection.del("crawl:" + id + ":visited_unique");
+
+  // Eagerly drop the threat-protection bookkeeping (URL -> decision records
+  // of silently skipped discoveries) instead of letting it ride out its 24h
+  // TTL. Nothing reads it after the crawl finishes, and deleting it
+  // unconditionally keeps the ZDR guarantee even when the crawl document is
+  // missing or unreadable at finish time.
+  await redisEvictConnection.del("crawl:" + id + ":threat_blocked");
 }
 
 export async function getCrawlJobs(id: string): Promise<string[]> {

@@ -12,6 +12,7 @@ import { getJobPriority } from "../../job-priority";
 import type { Logger } from "winston";
 import { isUrlBlocked } from "../../../scraper/WebScraper/utils/blocklist";
 import { scrapeQueue } from "../../../services/worker/nuq-router";
+import type { ThreatProtectionPolicy } from "../../threat-protection/types";
 
 interface ScrapeDocumentOptions {
   url: string;
@@ -22,6 +23,8 @@ interface ScrapeDocumentOptions {
   flags: TeamFlags | null;
   apiKeyId: number | null;
   requestId?: string;
+  /** Effective threat protection policy; enforced in the scrape pipeline. */
+  threatProtectionPolicy?: ThreatProtectionPolicy | null;
 }
 
 export async function scrapeDocument_F0(
@@ -66,6 +69,7 @@ export async function scrapeDocument_F0(
         internalOptions: {
           teamId: options.teamId,
           bypassBilling: true,
+          threatProtection: options.threatProtectionPolicy ?? undefined,
         },
         origin: options.origin,
         is_scrape: true,

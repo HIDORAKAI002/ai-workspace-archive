@@ -22,6 +22,7 @@ import { ScrapeJobTimeoutError } from "../../lib/error";
 import { captureExceptionWithZdrCheck } from "../../services/sentry";
 import { z } from "zod";
 import { executeSearch } from "../../search/execute";
+import { resolveThreatProtection } from "../../lib/threat-protection/request";
 import {
   DocumentWithCostTracking,
   scrapeSearchResults,
@@ -151,6 +152,22 @@ export async function searchController(
       origin: req.body.origin,
     });
 
+    // Threat protection: resolve the effective policy. Blocked domains are
+    // removed from search results entirely.
+    const threatProtection = await resolveThreatProtection({
+      teamId: req.auth.team_id,
+      orgId: req.acuc?.org_id ?? null,
+      flags: req.acuc?.flags ?? null,
+      override:
+        req.body.threatProtection ?? req.body.scrapeOptions?.threatProtection,
+    });
+    if (threatProtection.error) {
+      return res.status(403).json({
+        success: false,
+        error: threatProtection.error,
+      });
+    }
+
     await logRequest({
       id: jobId,
       kind: "search",
@@ -228,6 +245,7 @@ export async function searchController(
         zeroDataRetention,
         agentIndexOnly: (req as any).agentIndexOnly ?? false,
         keylessReserved: reservedKeylessCredits > 0,
+        threatProtectionPolicy: threatProtection.policy,
       },
       logger,
     );
