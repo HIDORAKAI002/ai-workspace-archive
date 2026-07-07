@@ -16,6 +16,12 @@ import { v7 as uuidv7 } from "uuid";
 import { isBaseDomain, extractBaseDomain } from "../../lib/url-utils";
 import { getScrapeZDR } from "../../lib/zdr-helpers";
 import { resolveViaAvgrab } from "../../lib/avgrab-resolve";
+import {
+  checkUrlsAgainstThreatPolicy,
+  resolveThreatProtection,
+} from "../../lib/threat-protection/request";
+import { normalizeDomain } from "../../lib/threat-protection/verdict";
+import { calculateThreatScanCredits } from "../../lib/scrape-billing";
 
 configDotenv();
 
@@ -38,7 +44,22 @@ export async function mapController(
   const originalRequest = req.body;
   req.body = mapRequestSchema.parse(req.body);
 
-  const permissions = checkPermissions(req.body, req.acuc?.flags);
+  const threatProtection = await resolveThreatProtection({
+    teamId: req.auth.team_id,
+    orgId: req.acuc?.org_id ?? null,
+    flags: req.acuc?.flags ?? null,
+    override: req.body.threatProtection,
+  });
+  if (threatProtection.error) {
+    return res.status(403).json({
+      success: false,
+      error: threatProtection.error,
+    });
+  }
+
+  const permissions = checkPermissions(req.body, req.acuc?.flags, {
+    threatProtectionOrgConfig: threatProtection.orgConfig,
+  });
   if (permissions.error) {
     return res.status(403).json({
       success: false,
@@ -189,17 +210,37 @@ export async function mapController(
     }
   }
 
+  // Threat protection: remove links on blocked domains from the returned
+  // URL list entirely. Every consulted decision (fresh or cached provider
+  // verdict) is a billable scan (+2 per scanned domain).
+  let threatScanCredits = 0;
+  if (threatProtection.policy && result.mapResults.length > 0) {
+    const { decisionsByDomain } = await checkUrlsAgainstThreatPolicy(
+      result.mapResults.map(x => x.url),
+      threatProtection.policy,
+      { teamId: req.auth.team_id },
+    );
+    threatScanCredits = calculateThreatScanCredits(decisionsByDomain.values());
+    result.mapResults = result.mapResults.filter(x => {
+      const decision = decisionsByDomain.get(normalizeDomain(x.url));
+      return decision === undefined || decision.allowed;
+    });
+  }
+
   // Bill the team
+  const creditsToBill = 1 + threatScanCredits;
   billTeam(
     req.auth.team_id,
     req.acuc?.sub_id ?? undefined,
-    1,
+    creditsToBill,
     req.acuc?.api_key_id ?? null,
     { endpoint: "map", jobId: mapId },
   ).catch(error => {
-    logger.error(
-      `Failed to bill team ${req.auth.team_id} for 1 credit: ${error}`,
-    );
+    logger.error("Failed to bill team for map credits", {
+      teamId: req.auth.team_id,
+      creditsToBill,
+      error,
+    });
   });
 
   logMap({
@@ -217,7 +258,7 @@ export async function mapController(
       location: req.body.location,
     },
     results: result.mapResults,
-    credits_cost: 1,
+    credits_cost: creditsToBill,
     zeroDataRetention: false, // not supported
   }).catch(error => {
     logger.error(`Failed to log job for team ${req.auth.team_id}: ${error}`);

@@ -5,6 +5,7 @@ import { RateLimiterMode, ScrapeJobData } from "../../types";
 import { getACUCTeam } from "../../controllers/auth";
 import { redisEvictConnection } from "../../services/redis";
 import { isSelfHosted } from "../../lib/deployment";
+import { getApiKeyConcurrencyLimit } from "../../lib/api-key-concurrency";
 import {
   getTeamQueueLimit,
   getConcurrencyLimitActiveJobsCount,
@@ -257,6 +258,21 @@ export async function fdbEnqueueScrapeJobs(
   const queueCap =
     teamLimit === null ? Number.MAX_SAFE_INTEGER : getTeamQueueLimit(teamLimit);
 
+  // API-key-scoped concurrency: applies when every job in the batch was
+  // requested with the same key (batches always are; child jobs inherit the
+  // kickoff's apiKeyId) and that key has a limit configured.
+  let keyGate: { id: string; limit: number } | null = null;
+  if (teamLimit !== null) {
+    const keyIds = new Set(jobs.map(j => j.data.apiKeyId ?? null));
+    const apiKeyId = keyIds.size === 1 ? [...keyIds][0] : null;
+    if (apiKeyId !== null) {
+      const keyLimit = await getApiKeyConcurrencyLimit(apiKeyId);
+      if (keyLimit !== null) {
+        keyGate = { id: String(apiKeyId), limit: keyLimit };
+      }
+    }
+  }
+
   const results = await optionalFdb(() =>
     scrapeQueueFdb.addJobs(
       jobs.map(j => ({
@@ -274,7 +290,7 @@ export async function fdbEnqueueScrapeJobs(
           timesOutAt: new Date(Date.now() + j.backlogTimeoutMs),
         },
       })),
-      { teamLimit, queueCap },
+      { teamLimit, queueCap, key: keyGate },
     ),
   );
 
