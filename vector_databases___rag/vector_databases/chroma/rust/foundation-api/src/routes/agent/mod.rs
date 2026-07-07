@@ -7,12 +7,13 @@
 //! `action`/`observation`/`done` schema. Inference is non-streaming
 //! (Anthropic), so events are step-level, not token-level.
 //!
-//! The two tools (`search`, `subagent_search`) reuse the same cores as the
-//! standalone `/api/search` and `/api/subagent_search` routes; per-request
-//! state (collection, token, deep-research creds) is resolved once in the
-//! handler and captured by the tools. The shared `reqwest::Client` is cloned
-//! into both the Anthropic model and the deep-research tool so connection pools
-//! are reused rather than rebuilt per request.
+//! The tools (`search`, `read_page`, `subagent_search`) reuse the same cores as
+//! the standalone `/api/search`, `/api/read-page`, and `/api/subagent_search`
+//! routes; per-request state (collection, token, deep-research creds) is
+//! resolved once in the handler and captured by the tools. The shared
+//! `reqwest::Client` is cloned into both the Anthropic model and the
+//! deep-research tool so connection pools are reused rather than rebuilt per
+//! request.
 //!
 //! Clients may seed the agent's system prompt via the request body (`system`);
 //! when omitted, a built-in default steers the agent to answer from the
@@ -36,7 +37,7 @@ use chroma_agent::{
 };
 use events::{action_event, action_text, observation_event, AgentSseEvent};
 
-use crate::agent_tools::{SearchTool, SubagentSearchTool};
+use crate::agent_tools::{ReadPageTool, SearchTool, SubagentSearchTool};
 use crate::routes::subagent_search::SubagentSearchCreds;
 use crate::routes::{caller_token, to_sse_event, whoami::whoami_and_authorize};
 use crate::wiki::embed::WikiEmbedder;
@@ -47,9 +48,11 @@ use crate::{auth::AuthzAction, errors::ServerError, server::FoundationApiServer}
 /// to ground its answer in the knowledge base via the available tools.
 const DEFAULT_SYSTEM_PROMPT: &str = "You are a research assistant for an internal \
 knowledge base. Use the `search` tool for targeted lookups and the \
-`subagent_search` tool for broad, multi-part research questions. Ground every \
-claim in retrieved documents and cite the document ids you relied on. If the \
-tools surface nothing relevant, say so plainly rather than guessing.";
+`subagent_search` tool for broad, multi-part research questions. When a search \
+hit looks relevant, use the `read_page` tool with its `slug` to read the full \
+page before relying on it. Ground every claim in retrieved documents and cite \
+the document ids you relied on. If the tools surface nothing relevant, say so \
+plainly rather than guessing.";
 
 /// Request body for `POST /api/agent`.
 #[derive(Debug, Deserialize, Validate)]
@@ -176,20 +179,20 @@ async fn build_agent(
 
     let mut toolset = ToolSet::new();
     toolset.add(SearchTool::new(
-        collection,
+        collection.clone(),
         WikiEmbedder::new(None),
         token.clone(),
+    ));
+    toolset.add(ReadPageTool::new(
+        collection,
+        tenant.to_string(),
+        server.config.foundation.foundation_ui_origin.clone(),
     ));
 
     // The deep-research tool is optional: register it only when the dependency
     // is configured, so the agent still runs (search-only) without it.
     if let Some(url) = server.config.foundation.deep_research_api_url.clone() {
-        let creds = SubagentSearchCreds {
-            chroma_api_key: token,
-            chroma_tenant: tenant.to_string(),
-            chroma_database: server.config.foundation.database_name.clone(),
-            collection_name: server.config.foundation.wiki_collection.clone(),
-        };
+        let creds = SubagentSearchCreds::from_config(&server.config.foundation, tenant, token);
         toolset.add(SubagentSearchTool::new(
             server.shared_http_client.clone(),
             url,
@@ -202,38 +205,6 @@ async fn build_agent(
         .with_client(server.shared_http_client.clone());
 
     Ok(Agent::new(toolset, Box::new(inference)).with_system_prompt(request.system.clone()))
-}
-
-/// Runs the same agent loop as `/api/agent` and returns the terminal answer.
-/// Used by the MCP `ask_foundation` tool, which needs one request/response
-/// value rather than an SSE event stream.
-///
-/// The caller is responsible for validating `request` (via
-/// [`AgentRequest::validate`]) beforehand; validation is not repeated here so
-/// that a bad request surfaces as a validation error at the call site rather
-/// than being mislabeled as an inference failure.
-pub(crate) async fn run_agent_to_final_text(
-    server: &FoundationApiServer,
-    headers: &HeaderMap,
-    tenant: &str,
-    request: &AgentRequest,
-) -> Result<String, AgentRouteError> {
-    let model = request
-        .model
-        .parse::<AnthropicModel>()
-        .map_err(|_| AgentRouteError::UnknownModel(request.model.clone()))?;
-    let agent = build_agent(server, headers, tenant, request, model).await?;
-    let mut stream = Box::pin(drive_agent(agent, request.input.clone()));
-
-    while let Some(event) = stream.next().await {
-        match event {
-            AgentSseEvent::Done { final_text } => return Ok(final_text),
-            AgentSseEvent::Error { message } => return Err(AgentRouteError::Inference(message)),
-            AgentSseEvent::Action { .. } | AgentSseEvent::Observation { .. } => {}
-        }
-    }
-
-    Ok(String::new())
 }
 
 // ---------------------------------------------------------------------------
