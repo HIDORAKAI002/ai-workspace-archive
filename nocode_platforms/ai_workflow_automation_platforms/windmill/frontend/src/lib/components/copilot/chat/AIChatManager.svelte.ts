@@ -58,6 +58,7 @@ import { BROWSER } from 'esm-env'
 import { workspaceStore, type DBSchemas } from '$lib/stores'
 import { askTools, prepareAskSystemMessage, prepareAskUserMessage } from './ask/core'
 import { readDocsPageTool, searchDocsTool } from './docs/core'
+import { TypewriterReveal } from './typewriterReveal'
 import { chatState, DEFAULT_SIZE, triggerablesByAi } from './sharedChatState.svelte'
 import {
 	createAppBackendRunnableContextElement,
@@ -101,6 +102,11 @@ import { scopedKey, onUserChange, migrateLegacyLocalStorage } from '$lib/userSco
 import { getLocalSetting, storeLocalSetting } from '$lib/utils'
 import { AttachedFilesStore } from './files/attachedFiles.svelte'
 import { appendAttachedFilesRoster } from './files/fileTools'
+
+// SSR and users who prefer reduced motion get no typewriter pacing.
+function prefersInstantReveal(): boolean {
+	return !BROWSER || (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false)
+}
 
 // Compaction of the stored history: once the projected request size
 // (contextTokens — the provider's report when current, a fresh chars/4
@@ -277,6 +283,19 @@ export class AIChatManager {
 	currentReply = $state<string>('')
 	currentReasoning = $state<string>('')
 	currentReasoningActive = $state<boolean>(false)
+	// Smooths the provider's bursty delivery into continuous typing by revealing
+	// buffered text a slice per frame. The reply and the reasoning/thinking stream
+	// each get their own reveal (independent buffers, both append to their own
+	// $state). Reduced-motion (sampled once — the pref never changes mid-session)
+	// and SSR fall back to instant.
+	private replyReveal = new TypewriterReveal({
+		onReveal: (chunk) => (this.currentReply += chunk),
+		instant: prefersInstantReveal()
+	})
+	private reasoningReveal = new TypewriterReveal({
+		onReveal: (chunk) => (this.currentReasoning += chunk),
+		instant: prefersInstantReveal()
+	})
 	displayMessages = $state<DisplayMessage[]>([])
 	messages = $state<ChatCompletionMessageParam[]>([])
 	/** Provider-reported context size of the last committed turn (prompt +
@@ -367,10 +386,11 @@ export class AIChatManager {
 
 	// Workspace items the CURRENT chat modified via AI tool calls, as
 	// `${UserDraftItemKind}:${storagePath}` keys (see modifiedItemsMask.ts).
-	// undefined = untracked: the global side-panel chat (never initialised) and
-	// loaded legacy chats with no stored mask, both of which fall back to the
-	// show-all bar. A SvelteSet (even empty) = tracked. Reactive so the session
-	// bar updates as tools record mid-turn.
+	// undefined = untracked: only the global side-panel chat (never initialised),
+	// which falls back to the show-all bar. Session chats are always tracked (a
+	// SvelteSet, even empty) — see loadPastChat/initRuntime — so their Edits
+	// surface never claims drafts the session didn't touch. Reactive so the
+	// session bar updates as tools record mid-turn.
 	modifiedItems = $state<SvelteSet<string> | undefined>(undefined)
 
 	// Start tracking for a brand-new session chat (empty = "tracked, nothing yet").
@@ -1073,7 +1093,12 @@ export class AIChatManager {
 			skills: this.globalSkills
 		})
 		const baseHelpers: GlobalToolHelpers = {
-			...(this.isSessionChat ? { sessionId: this.sessionId } : {}),
+			// A session targets its own fixed (possibly forked) workspace, so capture it for
+			// permission gating. The global side-panel chat follows the live navigation
+			// workspace instead, so leave it unset there — allowedOpenPages reads the store.
+			...(this.isSessionChat
+				? { sessionId: this.sessionId, operatingWorkspace: this.operatingWorkspace }
+				: {}),
 			testActiveFlow: async (args?: Record<string, any>) => this.flowAiChatHelpers?.testFlow(args),
 			attachedFiles: this.attachedFiles,
 			getUserInstructions: () => getUserCustomPrompts()[AIMode.GLOBAL] ?? '',
@@ -1740,6 +1765,8 @@ export class AIChatManager {
 				this.modifiedItems ? [...this.modifiedItems] : undefined
 			)
 
+			this.replyReveal.reset()
+			this.reasoningReveal.reset()
 			this.currentReply = ''
 			this.currentReasoning = ''
 			this.currentReasoningActive = false
@@ -1800,10 +1827,16 @@ export class AIChatManager {
 				messages: [...this.messages],
 				abortController: this.abortController,
 				callbacks: {
-					onNewToken: (token) => (this.currentReply += token),
-					onReasoningDelta: (token) => (this.currentReasoning += token),
+					onNewToken: (token) => this.replyReveal.push(token),
+					onReasoningDelta: (token) => this.reasoningReveal.push(token),
 					onReasoningStart: () => (this.currentReasoningActive = true),
 					onMessageEnd: () => {
+						// Drain any un-revealed backlog into currentReply first, so the reads
+						// below see the full text. This funnel covers clean completion, tool
+						// boundaries, and abort/error — flush-before-read is the invariant that
+						// keeps text from being lost or duplicated on any exit path.
+						this.replyReveal.flush()
+						this.reasoningReveal.flush()
 						// Keep the streamed text for the abort/error paths. Non-empty only:
 						// parsers flush (and reset) when a tool call starts after text, and
 						// the catch's later empty call would wipe it — stale keeps are
@@ -2006,6 +2039,11 @@ export class AIChatManager {
 			sendUserToast(getSendRequestErrorMessage(err, webSearchUnavailable), true)
 		} finally {
 			this.loading = false
+			// Turn teardown: cancel any in-flight reveal frame and drop leftover
+			// backlog. onMessageEnd already flushed on every outcome, so this only
+			// releases the loop; it never discards uncommitted text.
+			this.replyReveal.reset()
+			this.reasoningReveal.reset()
 		}
 		// Flush the queued message. Send it after a cleanly committed turn OR a
 		// deliberate user cancel (Esc / Stop) — in both cases the user is ready
@@ -2159,13 +2197,14 @@ export class AIChatManager {
 			this.displayMessages = chat.displayMessages
 			this.messages = chat.actualMessages
 			this.contextUsage = normalizeContextUsage(chat.contextUsage)
-			// Seed the modified-items mask from the stored chat. A stored array
-			// (even empty) → tracked; a legacy chat with no field stays untracked
-			// (undefined) so the session bar falls back to showing all drafts. The
-			// global side-panel chat never tracks, so leave it untouched there.
+			// Seed the modified-items mask from the stored chat. A session's Edits
+			// surface is scoped strictly to what this session edited, so it must never
+			// fall back to showing every draft in the (possibly forked) workspace: a
+			// legacy chat with no stored mask seeds an empty tracked set, not undefined.
+			// The global side-panel chat never tracks, so leave it untouched there.
 			if (this.isSessionChat) {
 				const stored = this.historyManager.getModifiedItems(id)
-				this.modifiedItems = stored !== undefined ? new SvelteSet(stored) : undefined
+				this.modifiedItems = new SvelteSet(stored ?? [])
 			}
 			this.#automaticScroll = true
 			this.onChatRotated?.(id)
