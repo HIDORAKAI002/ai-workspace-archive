@@ -1,41 +1,41 @@
 ---
 name: "cs-arquiteto"
-description: "/cs:arquiteto — Constrói uma empresa do zero como bundle OKF (árvore de .md com type + grafo de links). Conduz a entrevista de 12 fases, uma de cada vez, e gera os conceitos markdown conformantes. Em português do Brasil."
+description: "/cs:arquiteto — Builds a company from scratch as an OKF bundle (tree of .md with type + link graph). Guides the 12-phase interview, one at a time, and generates conformant markdown concepts. In English."
 ---
 
-# /cs:arquiteto — Arquiteto de Empresa
+# /cs:arquiteto — Company Architect
 
-**Comando:** `/cs:arquiteto`
+**Command:** `/cs:arquiteto`
 
-## Quando rodar
+## When to run
 
-- Quer criar/estruturar/documentar uma empresa inteira como pastas e arquivos `.md`.
-- Quer uma base de conhecimento da empresa que humanos e agentes de IA leiam sem tradução.
-- Está começando um negócio do zero e quer a "planta" antes da operação.
+- You want to create/structure/document an entire company as folders and `.md` files.
+- You want a company knowledge base that humans and AI agents read without translation.
+- You are starting a business from scratch and want the "blueprint" before operations.
 
-## O que você recebe
+## What you get
 
-Um **bundle OKF** conformante: árvore de pastas das 12 fases, cada conceito como `.md` com frontmatter `type`, ligados por links markdown, mais `index.md` (painel) e `log.md` (decisões).
+A conformant **OKF bundle**: folder tree of the 12 phases, each concept as a `.md` with frontmatter `type`, linked by markdown links, plus `index.md` (dashboard) and `log.md` (decisions).
 
-## Gatilhos (auto-invocação sem digitar /cs:)
+## Triggers (auto-invocation without typing /cs:)
 
-- "quero montar minha empresa do zero"
-- "cria a empresa em formato de pastas"
-- "documenta meu negócio como código"
-- "base de conhecimento da empresa para os agentes lerem"
-- "empresa como wiki para IA", "OKF", "bundle de conhecimento"
+- "I want to build my company from scratch"
+- "create the company as folders"
+- "document my business as code"
+- "company knowledge base for the agents to read"
+- "company as a wiki for AI", "OKF", "knowledge bundle"
 
-## Disciplina
+## Discipline
 
-- Entrevista antes de construir; uma fase por vez; 3-5 perguntas por bloco.
-- Confirma a lista de arquivos (+ `type`) antes de escrever.
-- Atualiza `index.md` raiz e `log.md` a cada fase.
+- Interview before building; one phase at a time; 3-5 questions per block.
+- Confirm the file list (+ `type`) before writing.
+- Update the root `index.md` and `log.md` after each phase.
 
-## Fluxo
+## Flow
 
-1. Pergunta o nome do bundle (empresa/pasta raiz).
-2. Roda `scaffold_bundle.py "<nome>" --out ./<slug>` (ou monta as pastas à mão).
-3. Inicia a **FASE 0** (descoberta) — só as perguntas dela; para e aguarda.
-4. A cada fase: confirma → escreve conceitos → roda `okf_linter.py` + `index_generator.py --write` → mostra o "próximo passo sugerido".
+1. Ask for the bundle name (company/root folder).
+2. Run `scaffold_bundle.py "<name>" --out ./<slug>` (or build the folders by hand).
+3. Start **PHASE 0** (discovery) — only its questions; stop and wait.
+4. Each phase: confirm → write concepts → run `okf_linter.py` + `index_generator.py --write` → show the "suggested next step".
 
-Detalhes em `skills/arquiteto-de-empresa/SKILL.md` e `references/phase_playbook.md`.
+Details in `skills/arquiteto-de-empresa/SKILL.md` and `references/phase_playbook.md`.

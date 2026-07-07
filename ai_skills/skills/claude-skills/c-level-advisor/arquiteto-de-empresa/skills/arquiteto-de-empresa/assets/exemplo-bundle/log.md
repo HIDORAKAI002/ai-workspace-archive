@@ -1,8 +1,8 @@
-# Log de decisões — Cafeteria Aurora
+# Decision log — Aurora Café
 
-## 2026-06-19T10:00:00Z — Bundle criado
+## 2026-06-19T10:00:00Z — Bundle created
 
-- **O que mudou:** esqueleto OKF gerado; FASE 0 (descoberta) concluída.
-- **Decisão:** posicionar como cafeteria de bairro com foco em grãos especiais.
-- **Alternativas descartadas:** modelo de franquia (capital alto), só delivery (sem o ritual presencial que é o diferencial).
-- **Motivo:** o valor central é a experiência presencial; franquia diluiria a marca cedo demais.
+- **What changed:** OKF skeleton generated; PHASE 0 (discovery) completed.
+- **Decision:** position as a neighborhood café focused on specialty beans.
+- **Discarded alternatives:** franchise model (high capital), delivery-only (loses the in-person ritual that is the differentiator).
+- **Rationale:** the core value is the in-person experience; a franchise would dilute the brand too early.

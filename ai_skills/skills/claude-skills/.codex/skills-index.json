@@ -3,7 +3,7 @@
   "name": "claude-code-skills",
   "description": "Production-ready skill packages for AI agents - Marketing, Engineering, Product, C-Level, PM, and RA/QM",
   "repository": "https://github.com/alirezarezvani/claude-skills",
-  "total_skills": 353,
+  "total_skills": 355,
   "skills": [
     {
       "name": "business-growth-skills",
@@ -87,13 +87,13 @@
       "name": "arquiteto-de-empresa",
       "source": "../../c-level-advisor/skills/arquiteto-de-empresa",
       "category": "c-level",
-      "description": "Arquiteto de Empresa: constr\u00f3i um neg\u00f3cio do zero como bundle OKF (Open Knowledge Format) \u2014 uma \u00e1rvore de arquivos .md version\u00e1veis com frontmatter type, links formando grafo, e index.md/log.md reservados, leg\u00edvel por humanos e por agentes. Conduz o fundador por uma entrevista de 12 fases (funda\u00e7\u00e3o, estrat\u00e9gia, mercado, financeiro, comercial, marketing, produto, opera\u00e7\u00f5es, tech, pessoas, jur\u00eddico, governan\u00e7a), uma fase por vez, poucas perguntas por bloco, e gera os conceitos como markdown conformante. Acione quando o usu\u00e1rio quiser criar, estruturar ou documentar uma empresa inteira em pastas e arquivos .md; quando mencionar montar minha empresa do zero, empresa como c\u00f3digo, base de conhecimento da empresa para IA ler, wiki da empresa para agentes, OKF, ou bundle de conhecimento. Em portugu\u00eas do Brasil."
+      "description": "Company Architect: builds a business from scratch as an OKF (Open Knowledge Format) bundle \u2014 a tree of version-controllable .md files with frontmatter type, links forming a graph, and reserved index.md/log.md, readable by humans and agents. Guides the founder through a 12-phase interview (foundation, strategy, market, financial, sales, marketing, product, operations, tech, people, legal, governance), one phase at a time, few questions per block, and generates the concepts as conformant markdown. Trigger when the user wants to create, structure, or document an entire company in folders and .md files; when they mention build my company from scratch, company as code, company knowledge base for AI to read, company wiki for agents, OKF, or knowledge bundle. In English."
     },
     {
       "name": "arquiteto-de-empresa",
       "source": "../../c-level-advisor/arquiteto-de-empresa/skills/arquiteto-de-empresa",
       "category": "c-level",
-      "description": "Arquiteto de Empresa: constr\u00f3i um neg\u00f3cio do zero como bundle OKF (Open Knowledge Format) \u2014 uma \u00e1rvore de arquivos .md version\u00e1veis com frontmatter type, links formando grafo, e index.md/log.md reservados, leg\u00edvel por humanos e por agentes. Conduz o fundador por uma entrevista de 12 fases (funda\u00e7\u00e3o, estrat\u00e9gia, mercado, financeiro, comercial, marketing, produto, opera\u00e7\u00f5es, tech, pessoas, jur\u00eddico, governan\u00e7a), uma fase por vez, poucas perguntas por bloco, e gera os conceitos como markdown conformante. Acione quando o usu\u00e1rio quiser criar, estruturar ou documentar uma empresa inteira em pastas e arquivos .md; quando mencionar montar minha empresa do zero, empresa como c\u00f3digo, base de conhecimento da empresa para IA ler, wiki da empresa para agentes, OKF, ou bundle de conhecimento. Em portugu\u00eas do Brasil."
+      "description": "Company Architect: builds a business from scratch as an OKF (Open Knowledge Format) bundle \u2014 a tree of version-controllable .md files with frontmatter type, links forming a graph, and reserved index.md/log.md, readable by humans and agents. Guides the founder through a 12-phase interview (foundation, strategy, market, financial, sales, marketing, product, operations, tech, people, legal, governance), one phase at a time, few questions per block, and generates the concepts as conformant markdown. Trigger when the user wants to create, structure, or document an entire company in folders and .md files; when they mention build my company from scratch, company as code, company knowledge base for AI to read, company wiki for agents, OKF, or knowledge bundle. In English."
     },
     {
       "name": "board-deck-builder",
@@ -1218,6 +1218,12 @@
       "description": "Zero-downtime migration planning, compatibility validation, and rollback strategy generation. Tools for system, database, and infrastructure migrations with minimal business impact. Use when planning a database migration, infrastructure cutover, system replacement, or any high-risk transition that needs explicit rollback paths."
     },
     {
+      "name": "minimalist",
+      "source": "../../engineering/minimalist",
+      "category": "engineering-advanced",
+      "description": "Use when the user asks to write code efficiently, avoid over-engineering, reduce dependencies, or prevent unnecessary abstractions. Enforces a strict efficiency ladder: YAGNI, reuse, stdlib, native platform, existing deps \u2014 before writing any new code."
+    },
+    {
       "name": "monorepo-navigator",
       "source": "../../engineering/skills/monorepo-navigator",
       "category": "engineering-advanced",
@@ -1366,6 +1372,12 @@
       "source": "../../engineering/autoresearch-agent/skills/status",
       "category": "engineering-advanced",
       "description": "Show experiment dashboard with results, active loops, and progress. Use when the user runs /ar:status or asks how an autoresearch experiment is going."
+    },
+    {
+      "name": "strict-api",
+      "source": "../../engineering/strict-api",
+      "category": "engineering-advanced",
+      "description": "Use when the user says 'no hallucinations', 'verify APIs', 'reality check', or 'don't invent functions'. Prevents the agent from calling methods, imports, or variables that do not provably exist in the user's installed version."
     },
     {
       "name": "tc-tracker",
@@ -2161,7 +2173,7 @@
       "description": "Software engineering and technical skills"
     },
     "engineering-advanced": {
-      "count": 80,
+      "count": 82,
       "source": "../../engineering",
       "description": "Advanced engineering skills - agents, RAG, MCP, CI/CD, databases, observability"
     },

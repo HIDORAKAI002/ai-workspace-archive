@@ -178,14 +178,53 @@ describe('verifyRouter', () => {
       modelMocks.updateRun.mockResolvedValueOnce(updatedRun);
 
       await createCaller().updateRun({
-        value: { context: { branch: 'feat/x', commit: 'abc123' }, goal: 'ship x' },
+        value: {
+          context: {
+            branch: 'feat/x',
+            commit: 'abc123',
+            pullRequest: {
+              number: 42,
+              title: 'Ship x',
+              url: 'https://github.com/lobehub/lobehub/pull/42',
+            },
+          },
+          goal: 'ship x',
+        },
         verifyRunId: 'run-1',
       });
 
       expect(modelMocks.updateRun).toHaveBeenCalledWith('run-1', {
-        context: { branch: 'feat/x', commit: 'abc123' },
+        context: {
+          branch: 'feat/x',
+          commit: 'abc123',
+          pullRequest: {
+            number: 42,
+            title: 'Ship x',
+            url: 'https://github.com/lobehub/lobehub/pull/42',
+          },
+        },
         goal: 'ship x',
       });
+    });
+
+    it('rejects non-web pull request URLs before storing report context', async () => {
+      await expect(
+        createCaller().updateRun({
+          value: {
+            context: {
+              pullRequest: {
+                number: 42,
+                title: 'Unsafe PR',
+                url: 'javascript:alert(1)',
+              },
+            },
+          },
+          verifyRunId: 'run-1',
+        }),
+      ).rejects.toThrow();
+
+      expect(modelMocks.findRunById).not.toHaveBeenCalled();
+      expect(modelMocks.updateRun).not.toHaveBeenCalled();
     });
   });
 

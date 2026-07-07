@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""scaffold_bundle.py — Cria o esqueleto de um bundle OKF (Open Knowledge Format) para uma empresa.
+"""scaffold_bundle.py — Creates the skeleton of an OKF (Open Knowledge Format) bundle for a company.
 
-Gera a árvore de pastas das 12 fases, com `index.md` em cada pasta, mais o
-`index.md` raiz (painel das fases) e o `log.md` raiz. Arquivos reservados
-(index.md / log.md) NÃO recebem `type`, conforme a spec OKF.
+Generates the folder tree of the 12 phases, with an `index.md` in each folder, plus the
+root `index.md` (phase dashboard) and the root `log.md`. Reserved files
+(index.md / log.md) do NOT receive a `type`, per the OKF spec.
 
-As pastas `06-produto` e `08-tech` só são criadas com --has-product / --has-tech.
+The `06-produto` and `08-tech` folders are only created with --has-product / --has-tech.
 
-Determinístico. Sem chamadas de LLM. Apenas stdlib.
+Deterministic. No LLM calls. Standard library only.
 
-Uso:
-    python scaffold_bundle.py                      # preview (dry-run) de "Empresa Exemplo"
-    python scaffold_bundle.py "Minha Empresa" --out ./minha-empresa
+Usage:
+    python scaffold_bundle.py                      # preview (dry-run) of "Example Company"
+    python scaffold_bundle.py "My Company" --out ./my-company
     python scaffold_bundle.py "Acme" --out ./acme --has-product --has-tech
     python scaffold_bundle.py "Acme" --out ./acme --dry-run --output json
-    python scaffold_bundle.py --sample             # idem ao primeiro (preview, não escreve)
+    python scaffold_bundle.py --sample             # same as the first (preview, does not write)
 """
 
 import argparse
@@ -24,38 +24,38 @@ import re
 import sys
 import unicodedata
 
-# Pastas das fases. (slug, rótulo, condicional?)
+# Phase folders. (slug, label, conditional?)
 FOLDERS = [
-    ("00-fundacao", "Fundação", None),
-    ("01-estrategia", "Estratégia", None),
-    ("02-mercado", "Mercado", None),
-    ("03-financeiro", "Financeiro", None),
-    ("04-comercial", "Comercial", None),
+    ("00-fundacao", "Foundation", None),
+    ("01-estrategia", "Strategy", None),
+    ("02-mercado", "Market", None),
+    ("03-financeiro", "Financial", None),
+    ("04-comercial", "Sales", None),
     ("05-marketing", "Marketing", None),
-    ("06-produto", "Produto", "has_product"),
-    ("07-operacoes", "Operações", None),
+    ("06-produto", "Product", "has_product"),
+    ("07-operacoes", "Operations", None),
     ("08-tech", "Tech", "has_tech"),
-    ("09-pessoas", "Pessoas", None),
-    ("10-juridico", "Jurídico", None),
-    ("11-governanca", "Governança", None),
+    ("09-pessoas", "People", None),
+    ("10-juridico", "Legal", None),
+    ("11-governanca", "Governance", None),
 ]
 
-# Painel: (nº da fase, área) — fase 0 = descoberta, sem pasta própria.
+# Dashboard: (phase number, area) — phase 0 = discovery, no folder of its own.
 DASHBOARD = [
-    (0, "Descoberta"), (1, "Fundação"), (2, "Estratégia"), (3, "Mercado"),
-    (4, "Financeiro"), (5, "Comercial"), (6, "Marketing"), (7, "Produto"),
-    (8, "Operações"), (9, "Tech"), (10, "Pessoas"), (11, "Jurídico"),
-    (12, "Governança"),
+    (0, "Discovery"), (1, "Foundation"), (2, "Strategy"), (3, "Market"),
+    (4, "Financial"), (5, "Sales"), (6, "Marketing"), (7, "Product"),
+    (8, "Operations"), (9, "Tech"), (10, "People"), (11, "Legal"),
+    (12, "Governance"),
 ]
 
 
 def slugify(name):
-    """minúsculas, sem acento, hífen no lugar de espaço."""
+    """lowercase, no accents, hyphen instead of space."""
     nfkd = unicodedata.normalize("NFKD", name)
     ascii_only = "".join(c for c in nfkd if not unicodedata.combining(c))
     ascii_only = ascii_only.lower()
     ascii_only = re.sub(r"[^a-z0-9]+", "-", ascii_only).strip("-")
-    return ascii_only or "empresa"
+    return ascii_only or "company"
 
 
 def planned_folders(has_product, has_tech):
@@ -71,49 +71,49 @@ def root_index(name, folders):
     rows = "\n".join(f"| {n} | {area} | ⬜ |" for n, area in DASHBOARD)
     folder_rows = "\n".join(f"| [{slug}]({slug}/index.md) | {label} |" for slug, label in folders)
     return (
-        f"# {name} — Bundle OKF\n\n"
-        "Empresa documentada como código (Open Knowledge Format v0.1). "
-        "Cada arquivo é um conceito; relações são links markdown; `index.md`/`log.md` são reservados.\n\n"
-        "## Dados da empresa\n\n"
-        f"- **Nome:** {name}\n- **Estágio:** _(a preencher na FASE 0)_\n"
-        "- **Modelo:** _(serviço / produto / SaaS / marketplace / híbrido)_\n\n"
-        "## Progresso das 12 fases\n\n"
-        "| Fase | Área | Status |\n|---|---|---|\n"
+        f"# {name} — OKF Bundle\n\n"
+        "Company documented as code (Open Knowledge Format v0.1). "
+        "Each file is a concept; relations are markdown links; `index.md`/`log.md` are reserved.\n\n"
+        "## Company data\n\n"
+        f"- **Name:** {name}\n- **Stage:** _(to be filled in PHASE 0)_\n"
+        "- **Model:** _(service / product / SaaS / marketplace / hybrid)_\n\n"
+        "## Progress of the 12 phases\n\n"
+        "| Phase | Area | Status |\n|---|---|---|\n"
         f"{rows}\n\n"
-        "Legenda: ✅ feito · 🚧 em andamento · ⬜ pendente.\n\n"
-        "**Próximo passo sugerido:** iniciar a FASE 0 (descoberta).\n\n"
-        "## Pastas\n\n"
-        "| Pasta | Área |\n|---|---|\n"
+        "Legend: ✅ done · 🚧 in progress · ⬜ pending.\n\n"
+        "**Suggested next step:** start PHASE 0 (discovery).\n\n"
+        "## Folders\n\n"
+        "| Folder | Area |\n|---|---|\n"
         f"{folder_rows}\n"
     )
 
 
 def root_log(name):
     return (
-        f"# Log de decisões — {name}\n\n"
-        "Histórico append-only. Entrada mais recente no topo. Timestamp ISO 8601.\n\n"
-        "## 2026-01-01T00:00:00Z — Bundle criado\n\n"
-        "- **O que mudou:** esqueleto OKF gerado por scaffold_bundle.py.\n"
-        "- **Decisão:** _(a registrar)_.\n"
-        "- **Alternativas descartadas:** _(a registrar)_.\n"
-        "- **Motivo:** _(a registrar)_.\n"
+        f"# Decision log — {name}\n\n"
+        "Append-only history. Most recent entry at the top. ISO 8601 timestamp.\n\n"
+        "## 2026-01-01T00:00:00Z — Bundle created\n\n"
+        "- **What changed:** OKF skeleton generated by scaffold_bundle.py.\n"
+        "- **Decision:** _(to be recorded)_.\n"
+        "- **Discarded alternatives:** _(to be recorded)_.\n"
+        "- **Rationale:** _(to be recorded)_.\n"
     )
 
 
 def folder_index(label):
     return (
         f"# {label}\n\n"
-        "_(1 parágrafo: propósito desta área.)_\n\n"
-        "## Conceitos\n\n"
-        "| Conceito | O que é | type | status |\n|---|---|---|---|\n"
+        "_(1 paragraph: purpose of this area.)_\n\n"
+        "## Concepts\n\n"
+        "| Concept | What it is | type | status |\n|---|---|---|---|\n"
         "<!-- okf:index:start -->\n"
-        "<!-- (sem conceitos ainda — gerado por index_generator.py) -->\n"
+        "<!-- (no concepts yet — generated by index_generator.py) -->\n"
         "<!-- okf:index:end -->\n"
     )
 
 
 def build_plan(name, out_dir, has_product, has_tech):
-    """Retorna lista de (caminho_relativo, conteúdo) que seriam escritos."""
+    """Returns a list of (relative_path, content) that would be written."""
     folders = planned_folders(has_product, has_tech)
     files = [
         ("index.md", root_index(name, folders)),
@@ -145,22 +145,22 @@ def main():
         pass
 
     p = argparse.ArgumentParser(
-        description="Cria o esqueleto de um bundle OKF para uma empresa.",
+        description="Creates the skeleton of an OKF bundle for a company.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    p.add_argument("name", nargs="?", help="Nome da empresa (omitido = preview de exemplo)")
-    p.add_argument("--out", help="Pasta de destino (default: ./<slug-do-nome>)")
-    p.add_argument("--has-product", action="store_true", help="Inclui a pasta 06-produto")
-    p.add_argument("--has-tech", action="store_true", help="Inclui a pasta 08-tech")
-    p.add_argument("--force", action="store_true", help="Sobrescreve arquivos existentes")
-    p.add_argument("--dry-run", action="store_true", help="Não escreve; só mostra o plano")
-    p.add_argument("--sample", action="store_true", help="Preview de 'Empresa Exemplo' (não escreve)")
+    p.add_argument("name", nargs="?", help="Company name (omitted = example preview)")
+    p.add_argument("--out", help="Destination folder (default: ./<name-slug>)")
+    p.add_argument("--has-product", action="store_true", help="Includes the 06-produto folder")
+    p.add_argument("--has-tech", action="store_true", help="Includes the 08-tech folder")
+    p.add_argument("--force", action="store_true", help="Overwrites existing files")
+    p.add_argument("--dry-run", action="store_true", help="Does not write; only shows the plan")
+    p.add_argument("--sample", action="store_true", help="Preview of 'Example Company' (does not write)")
     p.add_argument("--output", choices=("text", "json"), default="text")
     args = p.parse_args()
 
     sample_mode = args.sample or not args.name
-    name = args.name or "Empresa Exemplo"
+    name = args.name or "Example Company"
     dry = args.dry_run or sample_mode
     out_dir = args.out or os.path.join(".", slugify(name))
 
@@ -168,10 +168,10 @@ def main():
 
     if dry:
         written, skipped = [], []
-        action = "PREVIEW (nada escrito)"
+        action = "PREVIEW (nothing written)"
     else:
         written, skipped = write_plan(out_dir, files, args.force)
-        action = "ESCRITO"
+        action = "WRITTEN"
 
     result = {
         "name": name,
@@ -188,17 +188,17 @@ def main():
         print(json.dumps(result, indent=2, ensure_ascii=False))
     else:
         print("=" * 64)
-        print("SCAFFOLD BUNDLE OKF")
-        print(f"Empresa: {name}")
-        print(f"Destino: {out_dir}   [{action}]")
+        print("SCAFFOLD OKF BUNDLE")
+        print(f"Company: {name}")
+        print(f"Destination: {out_dir}   [{action}]")
         print("=" * 64)
         for rel, _ in files:
             mark = "+" if (dry or rel in written) else ("=" if rel in skipped else " ")
             print(f"  [{mark}] {rel}")
         if skipped:
-            print(f"\n{len(skipped)} arquivo(s) preservado(s) (use --force para sobrescrever).")
+            print(f"\n{len(skipped)} file(s) preserved (use --force to overwrite).")
         if dry:
-            print("\n(dry-run/sample: nada foi escrito. Rode com um nome + --out para gerar.)")
+            print("\n(dry-run/sample: nothing was written. Run with a name + --out to generate.)")
     return 0
 
 

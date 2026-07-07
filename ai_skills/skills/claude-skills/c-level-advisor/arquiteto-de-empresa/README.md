@@ -1,19 +1,19 @@
 # arquiteto-de-empresa
 
-Plugin standalone do **Arquiteto de Empresa** — constrói um negócio do zero como um **bundle OKF** (Open Knowledge Format): uma árvore de arquivos `.md` versionáveis, com frontmatter `type`, links formando grafo, e `index.md`/`log.md` reservados — legível por humanos e por agentes de IA.
+Standalone plugin for the **Company Architect** — builds a business from scratch as an **OKF bundle** (Open Knowledge Format): a tree of version-controllable `.md` files, with frontmatter `type`, links forming a graph, and reserved `index.md`/`log.md` — readable by humans and by AI agents.
 
-**Dual-published:** também empacotado dentro de `c-level-skills` (`./c-level-advisor`). O conteúdo em `./skills/arquiteto-de-empresa/` espelha `../skills/arquiteto-de-empresa/`; `scripts/sync_skill_bundles.py` mantém os dois em sincronia.
+**Dual-published:** also bundled inside `c-level-skills` (`./c-level-advisor`). The content in `./skills/arquiteto-de-empresa/` mirrors `../skills/arquiteto-de-empresa/`; `scripts/sync_skill_bundles.py` keeps the two in sync.
 
-Veja `./skills/arquiteto-de-empresa/SKILL.md` para a documentação completa.
+See `./skills/arquiteto-de-empresa/SKILL.md` for the full documentation.
 
-## O que faz
+## What it does
 
-Conduz o fundador por uma **entrevista de 12 fases** (fundação → estratégia → mercado → financeiro → comercial → marketing → produto → operações → tech → pessoas → jurídico → governança), uma fase por vez, e materializa cada resposta como conceitos markdown conformantes ao OKF.
+Guides the founder through a **12-phase interview** (foundation → strategy → market → financial → sales → marketing → product → operations → tech → people → legal → governance), one phase at a time, and materializes each answer as OKF-conformant markdown concepts.
 
-## Ferramentas (stdlib, sem LLM)
+## Tools (stdlib, no LLM)
 
-- `scaffold_bundle.py` — cria a árvore de pastas OKF + `index.md`/`log.md`.
-- `okf_linter.py` — valida `type` nos conceitos, arquivos reservados e links.
-- `index_generator.py` — (re)gera as tabelas dos `index.md`.
+- `scaffold_bundle.py` — creates the OKF folder tree + `index.md`/`log.md`.
+- `okf_linter.py` — validates `type` on concepts, reserved files, and links.
+- `index_generator.py` — (re)generates the `index.md` tables.
 
-Idioma: **português do Brasil**.
+Language: **English**.
