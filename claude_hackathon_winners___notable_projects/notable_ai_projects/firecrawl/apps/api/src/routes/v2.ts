@@ -59,6 +59,10 @@ import {
   browserListController,
   browserWebhookDestroyedController,
 } from "../controllers/v2/browser";
+import {
+  browserReplayController,
+  browserReplayPageController,
+} from "../controllers/v2/browser-replay";
 import { activityController } from "../controllers/v1/activity";
 import {
   getTeamThreatProtectionController,
@@ -539,6 +543,18 @@ v2Router.post(
   ["/browser/:sessionId/execute", "/interact/:sessionId/execute"],
   authMiddleware(RateLimiterMode.BrowserExecute),
   wrap(browserExecuteController),
+);
+
+v2Router.get(
+  ["/browser/:sessionId/replay", "/interact/:sessionId/replay"],
+  authMiddleware(RateLimiterMode.BrowserExecute),
+  wrap(browserReplayController),
+);
+
+v2Router.get(
+  ["/browser/:sessionId/replay/:pageId", "/interact/:sessionId/replay/:pageId"],
+  authMiddleware(RateLimiterMode.BrowserExecute),
+  wrap(browserReplayPageController),
 );
 
 v2Router.delete(
