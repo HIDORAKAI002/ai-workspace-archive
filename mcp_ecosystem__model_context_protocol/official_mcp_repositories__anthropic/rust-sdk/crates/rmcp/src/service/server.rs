@@ -10,10 +10,7 @@ use url::Url;
 
 use super::*;
 #[cfg(feature = "elicitation")]
-use crate::model::{
-    ElicitRequest, ElicitRequestParams, ElicitResult, ElicitationAction,
-    ElicitationCompleteNotification, ElicitationResponseNotificationParam,
-};
+use crate::model::{ElicitRequest, ElicitRequestParams, ElicitResult, ElicitationAction};
 use crate::{
     model::{
         CancelledNotification, CancelledNotificationParam, ClientInfo, ClientJsonRpcMessage,
@@ -474,8 +471,6 @@ impl Peer<RoleServer> {
     method!(peer_req create_elicitation ElicitRequest(ElicitRequestParams) => ElicitResult);
     #[cfg(feature = "elicitation")]
     method!(peer_req_with_timeout create_elicitation_with_timeout ElicitRequest(ElicitRequestParams) => ElicitResult);
-    #[cfg(feature = "elicitation")]
-    method!(peer_not notify_url_elicitation_completed ElicitationCompleteNotification(ElicitationResponseNotificationParam));
 
     method!(peer_not notify_cancelled CancelledNotification(CancelledNotificationParam));
     method!(peer_not notify_progress ProgressNotification(ProgressNotificationParam));

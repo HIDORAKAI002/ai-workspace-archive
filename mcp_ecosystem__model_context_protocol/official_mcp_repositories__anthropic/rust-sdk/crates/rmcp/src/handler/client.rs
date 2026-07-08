@@ -66,10 +66,6 @@ impl<H: ClientHandler> Service<RoleClient> for H {
             ServerNotification::PromptListChangedNotification(_notification_no_param) => {
                 self.on_prompt_list_changed(context).await
             }
-            ServerNotification::ElicitationCompleteNotification(notification) => {
-                self.on_url_elicitation_notification_complete(notification.params, context)
-                    .await
-            }
             ServerNotification::TaskStatusNotification(notification) => {
                 self.on_task_status(notification.params, context).await
             }
@@ -242,13 +238,6 @@ pub trait ClientHandler: Sized + Send + Sync + 'static {
         std::future::ready(())
     }
 
-    fn on_url_elicitation_notification_complete(
-        &self,
-        params: ElicitationResponseNotificationParam,
-        context: NotificationContext<RoleClient>,
-    ) -> impl Future<Output = ()> + MaybeSendFuture + '_ {
-        std::future::ready(())
-    }
     fn on_task_status(
         &self,
         params: TaskStatusNotificationParam,
