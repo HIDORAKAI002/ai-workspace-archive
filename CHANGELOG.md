@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-07-08 16:00 IST] Auto-Sync
+- **28 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Awesome ChatGPT Prompts, Langfuse, n8n, Dify, Langflow, Activepieces, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, apache/airflow, unslothai/unsloth, sgl-project/sglang, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, lyogavin/airllm, nousresearch/hermes-agent
+
 ## [2026-07-08 09:17 IST] Auto-Sync
 - **33 Repositories Updated:** Exa MCP Server, Promptfoo, Dify, Langflow, Activepieces, Trigger.dev, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, Swarms, BerriAI/litellm, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, chroma-core/chroma, infiniflow/ragflow, arize-ai/phoenix, firecrawl/firecrawl, googleapis/python-genai, vercel/ai, unslothai/unsloth, sgl-project/sglang, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
 
