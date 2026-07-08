@@ -26,44 +26,42 @@ from typing import Literal, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
 
-class GoogleMapsParam(TypedDict):
-    r"""A tool that can be used by the model to call Google Maps."""
-
-    enable_widget: NotRequired[bool]
-    r"""Whether to return a widget context token in the tool call result of the
-    response.
-    """
-    latitude: NotRequired[float]
-    r"""The latitude of the user's location."""
-    longitude: NotRequired[float]
-    r"""The longitude of the user's location."""
-    type: Literal["google_maps"]
-
-
-class GoogleMaps(BaseModel):
-    r"""A tool that can be used by the model to call Google Maps."""
-
-    enable_widget: Optional[bool] = None
-    r"""Whether to return a widget context token in the tool call result of the
-    response.
+class RetrievalResultDeltaTypedDict(TypedDict):
+    r"""Used by Vertex Retrieval tools such as Parallel AI, Exa AI, Vertex AI Search,
+    etc.
+    ToolResultDelta.type
     """
 
-    latitude: Optional[float] = None
-    r"""The latitude of the user's location."""
+    is_error: NotRequired[bool]
+    r"""Whether the retrieval resulted in an error."""
+    signature: NotRequired[str]
+    r"""A signature hash for backend validation."""
+    type: Literal["retrieval_result"]
 
-    longitude: Optional[float] = None
-    r"""The longitude of the user's location."""
+
+class RetrievalResultDelta(BaseModel):
+    r"""Used by Vertex Retrieval tools such as Parallel AI, Exa AI, Vertex AI Search,
+    etc.
+    ToolResultDelta.type
+    """
+
+    is_error: Optional[bool] = None
+    r"""Whether the retrieval resulted in an error."""
+
+    signature: Optional[str] = None
+    r"""A signature hash for backend validation."""
 
     type: Annotated[
         Annotated[
-            Literal["google_maps"], AfterValidator(validate_const("google_maps"))
+            Literal["retrieval_result"],
+            AfterValidator(validate_const("retrieval_result")),
         ],
         pydantic.Field(alias="type"),
-    ] = "google_maps"
+    ] = "retrieval_result"
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["enable_widget", "latitude", "longitude"])
+        optional_fields = set(["is_error", "signature"])
         serialized = handler(self)
         m = {}
 
@@ -79,6 +77,6 @@ class GoogleMaps(BaseModel):
 
 
 try:
-    GoogleMaps.model_rebuild()
+    RetrievalResultDelta.model_rebuild()
 except NameError:
     pass

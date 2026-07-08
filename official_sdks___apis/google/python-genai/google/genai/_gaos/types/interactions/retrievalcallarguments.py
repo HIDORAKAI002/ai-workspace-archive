@@ -18,39 +18,27 @@
 
 from __future__ import annotations
 from .. import BaseModel, UNSET_SENTINEL
-from ...utils import validate_const
-from .filesearchresult import FileSearchResult, FileSearchResultTypedDict
-import pydantic
 from pydantic import model_serializer
-from pydantic.functional_validators import AfterValidator
-from typing import List, Literal, Optional
-from typing_extensions import Annotated, NotRequired, TypedDict
+from typing import List, Optional
+from typing_extensions import NotRequired, TypedDict
 
 
-class FileSearchResultDeltaTypedDict(TypedDict):
-    result: List[FileSearchResultTypedDict]
-    signature: NotRequired[str]
-    r"""A signature hash for backend validation."""
-    type: Literal["file_search_result"]
+class RetrievalCallArgumentsTypedDict(TypedDict):
+    r"""The arguments to pass to Retrieval tools."""
+
+    queries: NotRequired[List[str]]
+    r"""Queries for Retrieval information."""
 
 
-class FileSearchResultDelta(BaseModel):
-    result: List[FileSearchResult]
+class RetrievalCallArguments(BaseModel):
+    r"""The arguments to pass to Retrieval tools."""
 
-    signature: Optional[str] = None
-    r"""A signature hash for backend validation."""
-
-    type: Annotated[
-        Annotated[
-            Literal["file_search_result"],
-            AfterValidator(validate_const("file_search_result")),
-        ],
-        pydantic.Field(alias="type"),
-    ] = "file_search_result"
+    queries: Optional[List[str]] = None
+    r"""Queries for Retrieval information."""
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["signature"])
+        optional_fields = set(["queries"])
         serialized = handler(self)
         m = {}
 
@@ -63,9 +51,3 @@ class FileSearchResultDelta(BaseModel):
                     m[k] = val
 
         return m
-
-
-try:
-    FileSearchResultDelta.model_rebuild()
-except NameError:
-    pass
