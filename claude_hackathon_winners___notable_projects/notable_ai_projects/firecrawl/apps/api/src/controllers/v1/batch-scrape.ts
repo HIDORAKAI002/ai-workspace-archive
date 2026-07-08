@@ -154,22 +154,21 @@ export async function batchScrapeController(
   // Threat protection: reject/report blocked URLs at enqueue time so they
   // never consume scrape slots (mirrors the isUrlBlocked handling above).
   if (threatProtection.policy) {
-    const { blocked } = await checkUrlsAgainstThreatPolicy(
+    const { blocked, decisionsByUrl } = await checkUrlsAgainstThreatPolicy(
       urls,
       threatProtection.policy,
       { teamId: req.auth.team_id },
     );
     if (blocked.length > 0) {
-      // Blocked domains whose decision consulted the classifier (fresh or
-      // cached verdict) bill the scan fee (+2 per scanned domain) even
-      // though they will never be scraped — the scan already happened.
-      // Allowed URLs are not billed here: their scrape jobs re-check the
-      // cached verdict and bill there.
-      const blockedDecisionsByDomain = new Map(
-        blocked.map(x => [x.domain, x.decision]),
-      );
+      // Consulted decisions bill the scan fee (+2 per unique scanned URL) —
+      // the scans already happened. With ignoreInvalidURLs the allowed URLs
+      // proceed to scrape jobs that bill their own scans, so only blocked
+      // ones bill here; when the whole request is rejected below, no scrape
+      // jobs will ever run, so every scanned URL bills here.
       const threatScanCredits = calculateThreatScanCredits(
-        blockedDecisionsByDomain.values(),
+        req.body.ignoreInvalidURLs
+          ? blocked.map(x => x.decision)
+          : decisionsByUrl.values(),
       );
       if (threatScanCredits > 0) {
         billTeam(
@@ -200,10 +199,7 @@ export async function batchScrapeController(
         unnormalizedURLs = keptUnnormalized;
       } else {
         const first = blocked[0];
-        const error = new UnsafeDomainBlockedError(
-          first.domain,
-          first.decision,
-        );
+        const error = new UnsafeDomainBlockedError(first.url, first.decision);
         return res.status(403).json({
           success: false,
           code: error.code,

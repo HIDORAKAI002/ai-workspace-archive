@@ -201,6 +201,13 @@ def _prepare_search_request(request: SearchRequest) -> Dict[str, Any]:
         data["excludeDomains"] = validated_request.exclude_domains
         data.pop("exclude_domains", None)
     
+    # threat_protection → threatProtection
+    if validated_request.threat_protection is not None:
+        data["threatProtection"] = validated_request.threat_protection.model_dump(
+            by_alias=True, exclude_none=True
+        )
+        data.pop("threat_protection", None)
+
     # scrape_options → scrapeOptions
     if validated_request.scrape_options is not None:
         scrape_data = prepare_scrape_options(validated_request.scrape_options)
