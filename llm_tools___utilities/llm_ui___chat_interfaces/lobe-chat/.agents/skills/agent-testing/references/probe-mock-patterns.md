@@ -509,3 +509,9 @@
   a streaming loading state on screen, inject a server-side `await sleep(8000)` before the
   slow lookup in the page (\[AGENT-TEST], revert) — TTFB stays \~0.3s so loading.tsx renders
   while the route hangs, giving a wide static-capture window.
+
+### E7. curl "502" on localhost with nothing listening = shell proxy env
+
+- With `http_proxy`/`HTTP_PROXY` set, `curl http://localhost:<port>` returns the
+  proxy's 502 instead of connection-refused, faking a "server up but broken" signal.
+  Always `curl --noproxy '*'` for local port probes.

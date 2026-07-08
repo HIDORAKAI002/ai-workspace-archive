@@ -290,6 +290,7 @@ export default {
   'creds.file.uploadFailed': 'File upload failed',
   'creds.file.uploadSuccess': 'File uploaded successfully',
   'creds.file.uploading': 'Uploading...',
+  'creds.orgSetupRequired': 'Community Profile not set up yet. Please complete the workspace Community Profile setup to manage credentials.',
   'creds.signIn': 'Sign In to Market',
   'creds.signInRequired': 'Please sign in to the Market to manage your credentials',
   'creds.form.addPair': 'Add Key-Value Pair',
@@ -417,12 +418,6 @@ export default {
   'devices.title': 'My Devices',
   'devices.workingDirectory': 'Working dir: {{path}}',
   'checkingPermissions': 'Checking permissions...',
-  'danger.clear.action': 'Clear Now',
-  'danger.clear.confirm': "Clear all chat data? This can't be undone.",
-  'danger.clear.desc':
-    'Delete all data, including agents, files, messages, and skills. Your account will NOT be deleted.',
-  'danger.clear.success': 'All conversation messages have been cleared',
-  'danger.clear.title': 'Clear Data',
   'danger.reset.action': 'Reset Now',
   'danger.reset.confirm': 'Reset all settings?',
   'danger.reset.currentVersion': 'Current Version',
@@ -2670,9 +2665,6 @@ When I am ___, I need ___
   'workspaceSetting.tab.general': 'General',
   'workspaceSetting.tab.members': 'Members',
   'workspaceSetting.storage.comingSoon': 'Workspace-scoped data import & export is coming soon.',
-  'workspaceSetting.storage.danger.clear.desc':
-    'Delete all data in this workspace, including agents, files, messages, and skills. The workspace itself will NOT be deleted.',
-  'workspaceSetting.storage.danger.clear.title': 'Clear Workspace Data',
   'workspaceSetting.storage.danger.reset.desc':
     'Restore all workspace settings to defaults. Workspace data will not be deleted.',
   'workspaceSetting.storage.danger.reset.title': 'Reset Workspace Settings',
