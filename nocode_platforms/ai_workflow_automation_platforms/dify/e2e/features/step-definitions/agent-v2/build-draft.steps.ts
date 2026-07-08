@@ -1,4 +1,4 @@
-import type { Response } from '@playwright/test'
+import type { Page, Response } from '@playwright/test'
 import type { DifyWorld } from '../../support/world'
 import { readFile } from 'node:fs/promises'
 import { Given, Then, When } from '@cucumber/cucumber'
@@ -10,6 +10,7 @@ import {
 import {
   agentBuildDraftExists,
   applyAgentBuildDraft,
+  getAgentBuildDraft,
   saveAgentBuildDraft,
 } from '../../agent-v2/support/agent-build-draft'
 import { agentBuilderFixedInputs, agentBuilderPreseededResources } from '../../agent-v2/support/agent-builder-resources'
@@ -33,6 +34,21 @@ import {
 } from './configure-helpers'
 
 const BUILD_DRAFT_RUNTIME_STEP_TIMEOUT_MS = 180_000
+const BUILD_NOTE_FILE_NAME = 'build_note.md'
+const BUILD_NOTE_MARKER = 'E2E_BUILD_DRAFT_PASS'
+const BUILD_NOTE_GENERATED_BADGE = 'Generated'
+
+const getBuildDraftBar = (page: Page) =>
+  page.getByRole('group', { name: 'Build draft' })
+
+const getBuildNoteFileButton = (page: Page) =>
+  page.getByRole('region', { name: 'Files' })
+    .getByRole('button')
+    .filter({ hasText: BUILD_NOTE_FILE_NAME })
+    .filter({ hasText: BUILD_NOTE_GENERATED_BADGE })
+
+const getConfigNote = (value: Awaited<ReturnType<typeof getAgentBuildDraft>>) =>
+  value.agent_soul?.config_note ?? ''
 
 Given(
   'an Agent v2 Build draft adds the supported E2E files, skills, and env',
@@ -138,7 +154,7 @@ When(
     await page.getByRole('button', { name: 'Start build' }).click()
     expect((await checkoutResponsePromise).ok()).toBe(true)
     expect((await chatResponsePromise).ok()).toBe(true)
-    await expect(page.getByText('Build draft')).toBeVisible({ timeout: 120_000 })
+    await expect(getBuildDraftBar(page)).toBeVisible({ timeout: 120_000 })
     await expect(page.getByRole('button', { exact: true, name: 'Apply' })).toBeEnabled({ timeout: 120_000 })
     await expect(page.getByRole('button', { exact: true, name: 'Discard' })).toBeEnabled()
   },
@@ -172,7 +188,20 @@ const expectPageResponseOK = async (response: Response, action: string) => {
 }
 
 When('I discard the Agent v2 Build draft', async function (this: DifyWorld) {
-  await this.getPage().getByRole('button', { exact: true, name: 'Discard' }).click()
+  const page = this.getPage()
+  const agentId = getCurrentAgentId(this)
+
+  await page.getByRole('button', { exact: true, name: 'Discard' }).click()
+  const confirmDialog = page.getByRole('alertdialog', { name: 'Clear session and discard changes?' })
+  await expect(confirmDialog).toBeVisible()
+
+  const discardResponsePromise = page.waitForResponse(response => (
+    response.request().method() === 'DELETE'
+    && new URL(response.url()).pathname.endsWith(`/console/api/agent/${agentId}/build-draft`)
+  ))
+
+  await confirmDialog.getByRole('button', { name: 'Confirm' }).click()
+  await expectPageResponseOK(await discardResponsePromise, 'Discard Agent v2 Build draft')
 })
 
 When(
@@ -245,7 +274,7 @@ Then('Agent v2 Build chat unavailable Skill and Tool recovery should be availabl
 Then('I should see the Agent v2 Build draft pending changes', async function (this: DifyWorld) {
   const page = this.getPage()
 
-  await expect(page.getByText('Build draft')).toBeVisible({ timeout: 30_000 })
+  await expect(getBuildDraftBar(page)).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole('button', { exact: true, name: 'Apply' })).toBeEnabled()
   await expect(page.getByRole('button', { exact: true, name: 'Discard' })).toBeEnabled()
 })
@@ -256,6 +285,20 @@ Then('I should see the Agent v2 Build mode confirmation state', async function (
   await expect(page.getByText('Build mode', { exact: true })).toBeVisible()
   await expect(page.getByText('Configure can only be updated by the agent in this mode.')).toBeVisible()
   await expect(page.getByText('Shape this setup through the chat on the right, then Apply.')).toBeVisible()
+})
+
+Then(
+  'the Agent v2 Build draft should include the generated build note',
+  async function (this: DifyWorld) {
+    await expect.poll(
+      async () => getConfigNote(await getAgentBuildDraft(getCurrentAgentId(this))),
+      { timeout: 30_000 },
+    ).toContain(BUILD_NOTE_MARKER)
+  },
+)
+
+Then('I should see the generated Agent v2 build note in Configure', async function (this: DifyWorld) {
+  await expect(getBuildNoteFileButton(this.getPage())).toBeVisible()
 })
 
 Then('Agent v2 Build chat should be blocked until a model is configured', async function (this: DifyWorld) {
@@ -312,6 +355,16 @@ Then(
       },
       { timeout: 30_000 },
     ).toBe(false)
+  },
+)
+
+Then(
+  'the normal Agent v2 draft should not include the generated build note',
+  async function (this: DifyWorld) {
+    await expect.poll(
+      async () => (await getAgentComposerDraft(getCurrentAgentId(this))).agent_soul?.config_note ?? '',
+      { timeout: 30_000 },
+    ).not.toContain(BUILD_NOTE_MARKER)
   },
 )
 
@@ -401,7 +454,7 @@ Then(
 Then('the Agent v2 Build draft should no longer be active', async function (this: DifyWorld) {
   const page = this.getPage()
 
-  await expect(page.getByText('Build draft')).not.toBeVisible()
+  await expect(getBuildDraftBar(page)).not.toBeVisible()
   await expect(page.getByRole('button', { name: 'Apply' })).not.toBeVisible()
   await expect(page.getByRole('button', { name: 'Discard' })).not.toBeVisible()
 })
