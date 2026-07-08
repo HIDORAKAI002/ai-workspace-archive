@@ -4,6 +4,48 @@ description: "CrewAI의 제품 업데이트, 개선 사항 및 버그 수정"
 icon: "clock"
 mode: "wide"
 ---
+<Update label="2026년 7월 7일">
+  ## v1.15.2
+
+  [GitHub 릴리스 보기](https://github.com/crewAIInc/crewAI/releases/tag/1.15.2)
+
+  ## 변경 사항
+
+  ### 기능
+  - 크루 마법사에서 최신 LLM 모델을 동적으로 가져옵니다.
+  - 인라인 기술 정의를 지원합니다.
+  - 생성된 흐름 정의 작성 기술을 추가합니다.
+  - 템플릿화된 흐름 액션 입력을 지원합니다.
+  - 흐름 CEL 프롬프트를 위한 텍스트 도우미를 추가합니다.
+  - 흐름 기술 예제를 위한 텍스트 도우미를 추가합니다.
+  - AgentExecutor에서 메시지 설정 및 피드백 처리를 구현합니다.
+  - 흐름 정의에 리포지토리 에이전트를 추가합니다.
+  - 흐름을 위한 스트림 프레임 프로토콜을 정의합니다.
+  - CrewDefinition에서 도구 및 앱 유형을 지정합니다.
+  - 템플릿 명령을 crewAIInc-fde 조직으로 다시 포인팅합니다.
+
+  ### 버그 수정
+  - 정확한 API 키로 모델 카탈로그 캐시를 키하고 TTL을 단축하며 Ollama를 건너뜁니다.
+  - `crewai run` 흐름 입력 해상도 및 상태 스키마에서 프롬프트를 통합합니다.
+  - onnx 1.22.0 및 nltk PYSEC-2026-597에 대한 pip-audit 실패를 해결합니다.
+  - 흐름에 대한 버전을 작성하고 있는지 확인합니다.
+  - bedrock 추가에 aiobotocore를 포함합니다.
+  - 자기 청취 흐름 메서드를 거부합니다.
+  - Edge에서 문서 버전 내비게이션을 제거하여 새 페이지가 누락되지 않도록 합니다.
+
+  ### 문서
+  - 새로운 대시보드 변경 사항에 맞추어 규칙에서 정책으로 언어를 업데이트합니다.
+  - 흐름 에이전트 옵션을 문서화합니다.
+  - 내비게이션에 스트리밍 문서를 추가합니다.
+  - 에이전트 제어 평면에서 비용 제한 규칙 유형을 문서화합니다.
+  - Datadog 가이드에서 CREWAI_LOG_FORMAT 참조를 제거합니다.
+
+  ## 기여자
+
+  @akaKuruma, @danielfsbarreto, @github-code-quality[bot], @joaomdmoura, @lorenzejay, @lucasgomide, @manisrinivasan2k1, @renatonitta, @vinibrsl
+
+</Update>
+
 <Update label="2026년 7월 1일">
   ## v1.15.2a2
 

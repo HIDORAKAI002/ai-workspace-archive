@@ -81,6 +81,23 @@ content-type: application/json
   "language": "python"
 }
 
+### Get Session Replay metadata — works after the session is destroyed
+GET {{baseUrl}}/v2/interact/{{sessionId}}/replay HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+
+### Get Session Replay HLS playlist for tab 0
+GET {{baseUrl}}/v2/interact/{{sessionId}}/replay/0 HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+
+### Create Browser Session without recording
+POST {{baseUrl}}/v2/browser HTTP/1.1
+Authorization: Bearer {{$dotenv TEST_API_KEY}}
+content-type: application/json
+
+{
+  "recordSession": false
+}
+
 ### Delete Browser Session — replace sessionId with actual id
 DELETE {{baseUrl}}/v2/browser/{{sessionId}} HTTP/1.1
 Authorization: Bearer {{$dotenv TEST_API_KEY}}

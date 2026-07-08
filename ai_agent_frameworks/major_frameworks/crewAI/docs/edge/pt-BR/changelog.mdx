@@ -4,6 +4,48 @@ description: "Atualizações de produto, melhorias e correções do CrewAI"
 icon: "clock"
 mode: "wide"
 ---
+<Update label="07 jul 2026">
+  ## v1.15.2
+
+  [Ver release no GitHub](https://github.com/crewAIInc/crewAI/releases/tag/1.15.2)
+
+  ## O que Mudou
+
+  ### Recursos
+  - Puxe os modelos LLM mais recentes dinamicamente no assistente de equipe.
+  - Suporte a definições de habilidades inline.
+  - Adicione habilidade de autoria de definição de fluxo gerada.
+  - Suporte a entradas de ação de fluxo template.
+  - Adicione um helper de texto para prompts CEL de fluxo.
+  - Adicione um helper de texto para exemplo de habilidade de fluxo.
+  - Implemente configuração de mensagem e tratamento de feedback no AgentExecutor.
+  - Adicione agentes de repositório às definições de fluxo.
+  - Defina o protocolo de quadro de stream para fluxos.
+  - Tipo de ferramenta e aplicativo em CrewDefinition.
+  - Reponha comandos de template para a organização crewAIInc-fde.
+
+  ### Correções de Bugs
+  - Chaveie o cache do catálogo de modelos pela chave de API exata, reduza o TTL e ignore Ollama.
+  - Unifique a resolução de entrada de fluxo e prompt do comando `crewai run` a partir do esquema de estado.
+  - Resolva falhas de pip-audit para onnx 1.22.0 e nltk PYSEC-2026-597.
+  - Garanta que estamos escrevendo a versão para fluxos.
+  - Inclua aiobotocore no extra do bedrock.
+  - Rejeite métodos de fluxo de autoescuta.
+  - Remova a navegação de versão de docs do Edge para que novas páginas não sejam descartadas.
+
+  ### Documentação
+  - Atualize a linguagem de Regras para Políticas para corresponder às novas mudanças do painel.
+  - Documente opções de agente de fluxo.
+  - Adicione documentação de streaming à navegação.
+  - Documente o tipo de regra Limite de Custo no Planejamento de Controle do Agente.
+  - Remova referências a CREWAI_LOG_FORMAT do guia Datadog.
+
+  ## Contribuidores
+
+  @akaKuruma, @danielfsbarreto, @github-code-quality[bot], @joaomdmoura, @lorenzejay, @lucasgomide, @manisrinivasan2k1, @renatonitta, @vinibrsl
+
+</Update>
+
 <Update label="01 jul 2026">
   ## v1.15.2a2
 
