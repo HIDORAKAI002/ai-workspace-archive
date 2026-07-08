@@ -24,6 +24,8 @@ function prepareMapPayload(
       payload.integration = options.integration.trim();
     if (options.origin) payload.origin = options.origin;
     if (options.location != null) payload.location = options.location;
+    if (options.threatProtection != null)
+      payload.threatProtection = options.threatProtection;
   }
   return payload;
 }

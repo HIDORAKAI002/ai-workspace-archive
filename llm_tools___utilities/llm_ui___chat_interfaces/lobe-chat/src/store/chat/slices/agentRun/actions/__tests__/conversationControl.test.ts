@@ -640,6 +640,58 @@ describe('ConversationControl actions', () => {
       expect(executeClientAgentSpy).not.toHaveBeenCalled();
     });
 
+    it('completes the approval even if a Stop lands mid optimistic write (best-effort Stop)', async () => {
+      const { result } = renderHook(() => useChatStore());
+
+      const agentId = 'global-agent';
+      const topicId = 'global-topic';
+
+      const toolMessage = createMockMessage({
+        id: 'tool-msg-1',
+        role: 'tool',
+        plugin: { identifier: 'test-plugin', type: 'default', arguments: '{}', apiName: 'test' },
+      });
+
+      const globalKey = messageMapKey({ agentId, topicId });
+
+      act(() => {
+        useChatStore.setState({
+          activeAgentId: agentId,
+          activeTopicId: topicId,
+          activeThreadId: undefined,
+          dbMessagesMap: { [globalKey]: [toolMessage] },
+          messagesMap: { [globalKey]: [toolMessage] },
+        });
+      });
+
+      // Simulate a Stop pressed while the optimistic update is in flight: cancel
+      // the just-created interim op from inside the awaited optimistic write.
+      // `intervention: approved` is already persisted, so bailing here would
+      // leave the tool approved-but-never-executed (stuck). The approval must
+      // complete atomically — Stop is best-effort in this sub-second window.
+      vi.spyOn(result.current, 'optimisticUpdateMessagePlugin').mockImplementation(
+        async (_id, _value, ctx) => {
+          if (ctx?.operationId) result.current.cancelOperation(ctx.operationId);
+        },
+      );
+      // Stub the runtime setup so the assertion targets "did we reach the run?",
+      // not the full agent-config resolution.
+      vi.spyOn(result.current, 'internal_createAgentState').mockReturnValue({
+        state: {},
+        context: {},
+      } as any);
+      const executeClientAgentSpy = vi
+        .spyOn(result.current, 'executeClientAgent')
+        .mockResolvedValue(undefined);
+
+      await act(async () => {
+        await result.current.approveToolCalling('tool-msg-1', 'group-1');
+      });
+
+      // The run proceeds despite the cancelled op — no stuck approval.
+      expect(executeClientAgentSpy).toHaveBeenCalled();
+    });
+
     describe('server-mode branch', () => {
       it('should start a new Gateway op with resumeApproval.decision=approved and NOT run local runtime', async () => {
         const { result } = renderHook(() => useChatStore());
@@ -1629,6 +1681,47 @@ describe('ConversationControl actions', () => {
         executeGatewayAgentSpy.mockRestore();
       });
     });
+
+    it('should bail before running if a Stop cancels the interim op during synthetic message creation', async () => {
+      const { result } = renderHook(() => useChatStore());
+      const agentId = 'global-agent';
+      const topicId = 'global-topic';
+      const toolMessage = createMockMessage({
+        id: 'tool-msg-1',
+        role: 'tool',
+        plugin: { identifier: 'test-plugin', type: 'default', arguments: '{}', apiName: 'test' },
+      });
+      const globalKey = messageMapKey({ agentId, topicId });
+      act(() => {
+        useChatStore.setState({
+          activeAgentId: agentId,
+          activeTopicId: topicId,
+          activeThreadId: undefined,
+          dbMessagesMap: { [globalKey]: [toolMessage] },
+          messagesMap: { [globalKey]: [toolMessage] },
+        });
+      });
+
+      vi.spyOn(result.current, 'optimisticUpdateMessagePlugin').mockResolvedValue(undefined);
+      vi.spyOn(result.current, 'optimisticUpdateMessageContent').mockResolvedValue(undefined);
+      // Stop lands while the synthetic user message is being created — a later
+      // await than the guard before it.
+      vi.spyOn(result.current, 'optimisticCreateMessage').mockImplementation(async (_msg, ctx) => {
+        if (ctx?.operationId) result.current.cancelOperation(ctx.operationId);
+        return { id: 'submitted-user-msg', messages: [] } as any;
+      });
+      const internal_createAgentStateSpy = vi.spyOn(result.current, 'internal_createAgentState');
+      const executeClientAgentSpy = vi
+        .spyOn(result.current, 'executeClientAgent')
+        .mockResolvedValue(undefined);
+
+      await act(async () => {
+        await result.current.submitToolInteraction('tool-msg-1', { answer: 'blue' });
+      });
+
+      expect(internal_createAgentStateSpy).not.toHaveBeenCalled();
+      expect(executeClientAgentSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('skipToolInteraction', () => {
@@ -1869,6 +1962,47 @@ describe('ConversationControl actions', () => {
           parentMessageType: 'user',
         }),
       );
+    });
+
+    it('should bail before running if a Stop cancels the interim op during synthetic message creation', async () => {
+      const { result } = renderHook(() => useChatStore());
+      const agentId = 'global-agent';
+      const topicId = 'global-topic';
+      const toolMessage = createMockMessage({
+        id: 'tool-msg-1',
+        role: 'tool',
+        plugin: { identifier: 'test-plugin', type: 'default', arguments: '{}', apiName: 'test' },
+      });
+      const globalKey = messageMapKey({ agentId, topicId });
+      act(() => {
+        useChatStore.setState({
+          activeAgentId: agentId,
+          activeTopicId: topicId,
+          activeThreadId: undefined,
+          dbMessagesMap: { [globalKey]: [toolMessage] },
+          messagesMap: { [globalKey]: [toolMessage] },
+        });
+      });
+
+      vi.spyOn(result.current, 'optimisticUpdateMessagePlugin').mockResolvedValue(undefined);
+      vi.spyOn(result.current, 'optimisticUpdateMessageContent').mockResolvedValue(undefined);
+      // Stop lands while the synthetic user message is being created — a later
+      // await than the guard before it.
+      vi.spyOn(result.current, 'optimisticCreateMessage').mockImplementation(async (_msg, ctx) => {
+        if (ctx?.operationId) result.current.cancelOperation(ctx.operationId);
+        return { id: 'skipped-user-msg', messages: [] } as any;
+      });
+      const internal_createAgentStateSpy = vi.spyOn(result.current, 'internal_createAgentState');
+      const executeClientAgentSpy = vi
+        .spyOn(result.current, 'executeClientAgent')
+        .mockResolvedValue(undefined);
+
+      await act(async () => {
+        await result.current.skipToolInteraction('tool-msg-1', 'not needed');
+      });
+
+      expect(internal_createAgentStateSpy).not.toHaveBeenCalled();
+      expect(executeClientAgentSpy).not.toHaveBeenCalled();
     });
   });
 
