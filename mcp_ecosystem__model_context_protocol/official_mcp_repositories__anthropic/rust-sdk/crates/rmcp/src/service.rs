@@ -1103,9 +1103,11 @@ where
                         JsonRpcMessage::Error(error) => error.id.as_ref(),
                         _ => None,
                     } {
-                        if let Some(ct) = local_ct_pool.remove(id) {
-                            ct.cancel();
-                        }
+                        let Some(ct) = local_ct_pool.remove(id) else {
+                            tracing::debug!(%id, "dropping response for cancelled request");
+                            continue;
+                        };
+                        ct.cancel();
                         let send = transport.send(m);
                         let current_span = tracing::Span::current();
                         response_send_tasks.spawn(async move {
