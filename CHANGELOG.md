@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-07-08 09:17 IST] Auto-Sync
+- **33 Repositories Updated:** Exa MCP Server, Promptfoo, Dify, Langflow, Activepieces, Trigger.dev, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, Swarms, BerriAI/litellm, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, chroma-core/chroma, infiniflow/ragflow, arize-ai/phoenix, firecrawl/firecrawl, googleapis/python-genai, vercel/ai, unslothai/unsloth, sgl-project/sglang, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
+
 ## [2026-07-08 02:34 IST] Auto-Sync
 - **37 Repositories Updated:** MCP TypeScript SDK, Langfuse, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, Plane, modelcontextprotocol/csharp-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, BerriAI/litellm, ggml-org/llama.cpp, lobehub/lobe-chat, cline/cline, chroma-core/chroma, arize-ai/phoenix, Arize-ai/openinference, danny-avila/LibreChat, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 
