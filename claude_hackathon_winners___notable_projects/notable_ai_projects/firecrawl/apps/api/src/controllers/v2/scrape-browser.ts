@@ -99,6 +99,7 @@ type BrowserExecuteRequest = z.infer<typeof browserExecuteRequestSchema>;
 
 interface BrowserExecuteResponse {
   success: boolean;
+  sessionId?: string;
   cdpUrl?: string;
   liveViewUrl?: string;
   interactiveLiveViewUrl?: string;
@@ -370,6 +371,7 @@ export async function scrapeInteractController(
 
   return res.status(200).json({
     success: !hasError,
+    sessionId: session.id,
     cdpUrl: session.cdp_url,
     liveViewUrl: session.cdp_path,
     interactiveLiveViewUrl: session.cdp_interactive_path,
@@ -626,6 +628,11 @@ async function createSessionForScrape(
         "/browsers",
         {
           ttl,
+          // Record interact sessions so the replay endpoints (which we expose
+          // via the returned sessionId) have data. Set explicitly rather than
+          // relying on the browser service's implicit default, matching the
+          // standalone browser create path.
+          record: true,
           ...(activityTtl !== undefined ? { activityTtl } : {}),
           ...(persistentStorage !== undefined ? { persistentStorage } : {}),
         },

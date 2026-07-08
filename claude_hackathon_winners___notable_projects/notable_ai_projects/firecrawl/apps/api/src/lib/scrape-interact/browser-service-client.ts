@@ -82,3 +82,31 @@ export async function browserServiceRequest<T>(
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
+
+/**
+ * Call the browser service and return the raw response body as text
+ * (used for HLS playlists). Throws `BrowserServiceError` on non-2xx.
+ */
+export async function browserServiceRequestText(
+  method: string,
+  path: string,
+): Promise<{ body: string; contentType: string | null }> {
+  const url = `${config.BROWSER_SERVICE_URL}${path}`;
+  const res = await fetch(url, {
+    method,
+    headers: browserServiceHeaders(),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new BrowserServiceError(
+      res.status,
+      `Browser service ${method} ${path} failed (${res.status}): ${text}`,
+    );
+  }
+
+  return {
+    body: await res.text(),
+    contentType: res.headers.get("content-type"),
+  };
+}

@@ -108,7 +108,7 @@ describe("api/mcp handler", () => {
     capturedRequests.length = 0;
     rateLimitInstances.length = 0;
     redisValues.clear();
-    isJwtTokenMock.mockImplementation((token: string) => token === "jwt-token" || token === "invalid-jwt");
+    isJwtTokenMock.mockImplementation((token: string) => token === "jwt-token" || token === "keyless-jwt" || token === "invalid-jwt");
     verifyOAuthTokenMock.mockResolvedValue(null);
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -346,7 +346,7 @@ describe("api/mcp handler", () => {
     expect(new URL(forwardedRequest?.url ?? "").searchParams.has("exaApiKey")).toBe(false);
   });
 
-  it("uses an OAuth JWT api key claim from Authorization bearer tokens", async () => {
+  it("uses an OAuth JWT from Authorization bearer tokens", async () => {
     verifyOAuthTokenMock.mockResolvedValue({
       sub: "user-1",
       "exa:team_id": "team-1",
@@ -364,7 +364,30 @@ describe("api/mcp handler", () => {
 
     expect(verifyOAuthTokenMock).toHaveBeenCalledWith("jwt-token");
     expect(config).toMatchObject({
-      exaApiKey: "oauth-api-key",
+      oauthAccessToken: "jwt-token",
+      userProvidedApiKey: true,
+      authMethod: "oauth",
+    });
+  });
+
+  it("accepts a keyless OAuth JWT from Authorization bearer tokens", async () => {
+    verifyOAuthTokenMock.mockResolvedValue({
+      sub: "user-1",
+      "exa:team_id": "team-1",
+      scope: "mcp:tools",
+    });
+
+    const { config } = await callHandleRequest(
+      new Request("https://mcp.exa.ai/mcp", {
+        headers: {
+          authorization: "Bearer keyless-jwt",
+        },
+      }),
+    );
+
+    expect(verifyOAuthTokenMock).toHaveBeenCalledWith("keyless-jwt");
+    expect(config).toMatchObject({
+      oauthAccessToken: "keyless-jwt",
       userProvidedApiKey: true,
       authMethod: "oauth",
     });
@@ -447,6 +470,29 @@ describe("api/mcp handler", () => {
         "agent_cancel_run",
       ],
     });
+  });
+
+  it("enables agent tools with key", async () => {
+    const { config, forwardedRequest } = await callHandleRequest(
+      new Request("https://mcp.exa.ai/mcp?tools=agent_tools", {
+        headers: {
+          "x-api-key": "user-key",
+        },
+      }),
+    );
+
+    expect(config).toMatchObject({
+      exaApiKey: "user-key",
+      userProvidedApiKey: true,
+      authMethod: "api_key",
+      enabledTools: [
+        "agent_create_run",
+        "agent_wait_for_run",
+        "agent_get_run_output",
+        "agent_cancel_run",
+      ],
+    });
+    expect(forwardedRequest?.headers.get("x-api-key")).toBeNull();
   });
 
   it("expands the agent tool alias from ENABLED_TOOLS", async () => {
