@@ -35,16 +35,20 @@ type pendingStep struct {
 }
 
 type fakeEditOpBucket struct {
-	mu         sync.Mutex
-	registered map[string]lsmkv.OpDescriptor
-	pendingSeq [][]string    // successive EditOpPending responses; last repeats
-	script     []pendingStep // if set, takes precedence over pendingSeq (per-call val/err; last repeats)
-	callIdx    int
-	deleted    []string // opIDs passed to DeleteEditOp
-	deleteErr  error
-	pendingErr error                          // when set, EditOpPending returns it
-	pendingFn  func(string) ([]string, error) // when set, overrides all other pending sources
-	polled     chan struct{}                  // if set, a non-blocking signal per EditOpPending call
+	mu             sync.Mutex
+	registered     map[string]lsmkv.OpDescriptor
+	pendingSeq     [][]string    // successive EditOpPending responses; last repeats
+	script         []pendingStep // if set, takes precedence over pendingSeq (per-call val/err; last repeats)
+	callIdx        int
+	deleted        []string // opIDs passed to DeleteEditOp
+	deleteErr      error
+	quarantined    []string   // EditOpQuarantined response (nil = none)
+	quarantinedSeq [][]string // successive responses; last repeats (precedence over quarantined)
+	quarantinedErr error      // when set, EditOpQuarantined returns it
+	quarantineIdx  int
+	pendingErr     error                          // when set, EditOpPending returns it
+	pendingFn      func(string) ([]string, error) // when set, overrides all other pending sources
+	polled         chan struct{}                  // if set, a non-blocking signal per EditOpPending call
 }
 
 func (f *fakeEditOpBucket) RegisterEditOp(opID string, desc lsmkv.OpDescriptor) error {
@@ -86,6 +90,23 @@ func (f *fakeEditOpBucket) EditOpPending(opID string) ([]string, error) {
 	}
 	f.callIdx++
 	return f.pendingSeq[i], nil
+}
+
+func (f *fakeEditOpBucket) EditOpQuarantined(opID string) ([]string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.quarantinedErr != nil {
+		return nil, f.quarantinedErr
+	}
+	if len(f.quarantinedSeq) > 0 {
+		i := f.quarantineIdx
+		if i >= len(f.quarantinedSeq) {
+			i = len(f.quarantinedSeq) - 1
+		}
+		f.quarantineIdx++
+		return f.quarantinedSeq[i], nil
+	}
+	return f.quarantined, nil
 }
 
 func (f *fakeEditOpBucket) DeleteEditOp(opID string) error {
@@ -587,7 +608,77 @@ func TestProcessUnits_PartialArm_DrainsArmedFailsMissing(t *testing.T) {
 	require.Contains(t, bucket2.registered, "op1")
 }
 
-// --- OnGroupCompleted ---// --- OnGroupCompleted ---// --- OnGroupCompleted ---
+// TestStartTask_QuarantinedSegment_UnitFailed pins the quarantine->FAILED
+// handoff: the unit must fail, not complete, when a segment is quarantined.
+func TestStartTask_QuarantinedSegment_UnitFailed(t *testing.T) {
+	bucket := &fakeEditOpBucket{
+		pendingSeq:  [][]string{{"s1"}}, // never drains on its own
+		quarantined: []string{"s1"},
+	}
+	shards := &fakeShards{bucket: bucket}
+	rec := newFakeRecorder()
+	p := newTestDropProvider(shards, &fakeFinalizer{}, rec)
+
+	task := dropTask(distributedtask.TaskStatusStarted, map[string]*distributedtask.Unit{
+		"u1": {ID: "u1", Status: distributedtask.UnitStatusPending},
+	})
+	h, err := p.StartTask(task)
+	require.NoError(t, err)
+	waitDone(t, h)
+
+	require.Contains(t, rec.failed, "u1", "a quarantined segment must fail the unit")
+	require.Contains(t, rec.failed["u1"], "quarantined")
+	require.Empty(t, rec.completed, "the unit must not complete when a segment is quarantined")
+}
+
+// TestStartTask_QuarantineAppearsMidDrain_UnitFailed pins that the check runs
+// every tick, not only at start.
+func TestStartTask_QuarantineAppearsMidDrain_UnitFailed(t *testing.T) {
+	bucket := &fakeEditOpBucket{
+		pendingSeq:     [][]string{{"s1", "s2"}, {"s1"}},
+		quarantinedSeq: [][]string{{}, {"s1"}},
+	}
+	shards := &fakeShards{bucket: bucket}
+	rec := newFakeRecorder()
+	p := newTestDropProvider(shards, &fakeFinalizer{}, rec)
+
+	task := dropTask(distributedtask.TaskStatusStarted, map[string]*distributedtask.Unit{
+		"u1": {ID: "u1", Status: distributedtask.UnitStatusPending},
+	})
+	h, err := p.StartTask(task)
+	require.NoError(t, err)
+	waitDone(t, h)
+
+	require.Contains(t, rec.failed, "u1")
+	require.Contains(t, rec.failed["u1"], "quarantined")
+	require.Empty(t, rec.completed)
+}
+
+// TestStartTask_QuarantineReadErrorPersistent_UnitFailed pins that a
+// quarantine-read failure shares the poll's blip tolerance: persistent errors
+// fail the unit after maxConsecutivePollErrors.
+func TestStartTask_QuarantineReadErrorPersistent_UnitFailed(t *testing.T) {
+	bucket := &fakeEditOpBucket{
+		pendingSeq:     [][]string{{"s1"}},
+		quarantinedErr: errors.New("bolt read failed"),
+	}
+	shards := &fakeShards{bucket: bucket}
+	rec := newFakeRecorder()
+	p := newTestDropProvider(shards, &fakeFinalizer{}, rec)
+
+	task := dropTask(distributedtask.TaskStatusStarted, map[string]*distributedtask.Unit{
+		"u1": {ID: "u1", Status: distributedtask.UnitStatusPending},
+	})
+	h, err := p.StartTask(task)
+	require.NoError(t, err)
+	waitDone(t, h)
+
+	require.Contains(t, rec.failed, "u1")
+	require.Contains(t, rec.failed["u1"], "consecutive errors")
+	require.Empty(t, rec.completed)
+}
+
+// --- OnGroupCompleted ---
 
 func TestOnGroupCompleted_PerTenantIndexFilesRemoved(t *testing.T) {
 	shards := &fakeShards{}
@@ -830,6 +921,112 @@ func TestCheckClassMutation_DoesNotBlockDeleteDuringDrop(t *testing.T) {
 	// the schema FSM cascade-deletes the task, so the guard must not block it.
 	require.NoError(t, p.CheckClassMutation("C", []*distributedtask.Task{activeDropTask("t1", "C", "v1")}))
 	require.NoError(t, p.CheckClassMutation("Other", []*distributedtask.Task{activeDropTask("t1", "C", "v1")}))
+}
+
+func finishedDropTask(id, collection string, targets ...string) *distributedtask.Task {
+	t := activeDropTask(id, collection, targets...)
+	t.Status = distributedtask.TaskStatusFinished
+	return t
+}
+
+func swappingDropTask(id, collection string, targets ...string) *distributedtask.Task {
+	t := activeDropTask(id, collection, targets...)
+	t.Status = distributedtask.TaskStatusSwapping
+	return t
+}
+
+func corruptDropTask(id string, status distributedtask.TaskStatus) *distributedtask.Task {
+	return &distributedtask.Task{
+		Namespace:      DropVectorIndexNamespace,
+		TaskDescriptor: distributedtask.TaskDescriptor{ID: id, Version: 1},
+		Payload:        []byte("not json"),
+		Status:         status,
+	}
+}
+
+func TestCheckVectorConfigRemoval_GatesOnFinished(t *testing.T) {
+	p := newTestDropProvider(&fakeShards{}, &fakeFinalizer{}, newFakeRecorder())
+
+	t.Run("finished task covering the vector allows removal", func(t *testing.T) {
+		err := p.CheckVectorConfigRemoval("C", []string{"v1"},
+			[]*distributedtask.Task{finishedDropTask("t1", "C", "v1", "v2")})
+		require.NoError(t, err)
+	})
+
+	t.Run("collection matches case-insensitively, target exact-case only", func(t *testing.T) {
+		require.NoError(t, p.CheckVectorConfigRemoval("c", []string{"v1"},
+			[]*distributedtask.Task{finishedDropTask("t1", "C", "v1")}),
+			"collection names are case-insensitive")
+		require.Error(t, p.CheckVectorConfigRemoval("C", []string{"V1"},
+			[]*distributedtask.Task{finishedDropTask("t1", "C", "v1")}),
+			"a case-differing sibling is a DIFFERENT vector; a finished task for v1 must not vouch for V1")
+	})
+
+	t.Run("swapping task covering the vector allows removal", func(t *testing.T) {
+		// OnTaskCompleted fires at SWAPPING; rejecting it self-blocks the finalizer.
+		err := p.CheckVectorConfigRemoval("C", []string{"v1"},
+			[]*distributedtask.Task{swappingDropTask("t1", "C", "v1")})
+		require.NoError(t, err)
+	})
+
+	t.Run("corrupt finished task does not vouch", func(t *testing.T) {
+		err := p.CheckVectorConfigRemoval("C", []string{"v1"},
+			[]*distributedtask.Task{corruptDropTask("t1", distributedtask.TaskStatusFinished)})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "no completed cleanup task")
+	})
+
+	t.Run("corrupt active task does not block a valid voucher", func(t *testing.T) {
+		err := p.CheckVectorConfigRemoval("C", []string{"v1"},
+			[]*distributedtask.Task{
+				corruptDropTask("t1", distributedtask.TaskStatusStarted),
+				finishedDropTask("t2", "C", "v1"),
+			})
+		require.NoError(t, err)
+	})
+
+	t.Run("active (not finished) task rejects removal", func(t *testing.T) {
+		err := p.CheckVectorConfigRemoval("C", []string{"v1"},
+			[]*distributedtask.Task{activeDropTask("t1", "C", "v1")})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "still active")
+	})
+
+	t.Run("newer active task blocks a replayed old task's removal", func(t *testing.T) {
+		// Epoch-blindness: an old FINISHED task covers v1, but a newer drop of the
+		// re-used name is running — removal would free the name mid-cleanup.
+		err := p.CheckVectorConfigRemoval("C", []string{"v1"},
+			[]*distributedtask.Task{finishedDropTask("t1", "C", "v1"), activeDropTask("t2", "C", "v1")})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "still active")
+	})
+
+	t.Run("no task at all rejects removal (manual PATCH to skip cleanup)", func(t *testing.T) {
+		err := p.CheckVectorConfigRemoval("C", []string{"v1"}, nil)
+		require.Error(t, err)
+	})
+
+	t.Run("finished task on a different collection does not vouch", func(t *testing.T) {
+		err := p.CheckVectorConfigRemoval("C", []string{"v1"},
+			[]*distributedtask.Task{finishedDropTask("t1", "Other", "v1")})
+		require.Error(t, err)
+	})
+
+	t.Run("finished task not covering the vector does not vouch", func(t *testing.T) {
+		err := p.CheckVectorConfigRemoval("C", []string{"v1"},
+			[]*distributedtask.Task{finishedDropTask("t1", "C", "v9")})
+		require.Error(t, err)
+	})
+
+	t.Run("every removed vector must be covered", func(t *testing.T) {
+		err := p.CheckVectorConfigRemoval("C", []string{"v1", "v2"},
+			[]*distributedtask.Task{finishedDropTask("t1", "C", "v1")})
+		require.Error(t, err, "v2 has no finished task")
+	})
+
+	t.Run("empty removal list is a no-op", func(t *testing.T) {
+		require.NoError(t, p.CheckVectorConfigRemoval("C", nil, nil))
+	})
 }
 
 func TestCheckTenantMutation_BlocksDuringDrop(t *testing.T) {

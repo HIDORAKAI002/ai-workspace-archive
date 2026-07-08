@@ -41,6 +41,8 @@ function prepareSearchPayload(req: SearchRequest): Record<string, unknown> {
     payload.integration = req.integration.trim();
   if (req.origin) payload.origin = req.origin;
   if (req.enterprise) payload.enterprise = req.enterprise;
+  if (req.threatProtection != null)
+    payload.threatProtection = req.threatProtection;
   if (req.scrapeOptions) {
     ensureValidScrapeOptions(req.scrapeOptions as ScrapeOptions);
     payload.scrapeOptions = req.scrapeOptions;

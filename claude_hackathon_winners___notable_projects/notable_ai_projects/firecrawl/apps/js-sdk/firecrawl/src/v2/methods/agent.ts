@@ -1,4 +1,4 @@
-import { type AgentResponse, type AgentStatusResponse, type AgentWebhookConfig } from "../types";
+import { type AgentResponse, type AgentStatusResponse, type AgentWebhookConfig, type ThreatProtectionOptions } from "../types";
 import { HttpClient } from "../utils/httpClient";
 import { normalizeAxiosError, throwForBadResponse } from "../utils/errorHandler";
 import { isZodSchema, zodSchemaToJsonSchema } from "../../utils/zodSchemaToJson";
@@ -14,6 +14,7 @@ function prepareAgentPayload(args: {
   strictConstrainToURLs?: boolean;
   model?: "spark-1-pro" | "spark-1-mini";
   webhook?: string | AgentWebhookConfig;
+  threatProtection?: ThreatProtectionOptions;
 }): Record<string, unknown> {
   const body: Record<string, unknown> = {};
   if (args.urls) body.urls = args.urls;
@@ -27,6 +28,8 @@ function prepareAgentPayload(args: {
   if (args.strictConstrainToURLs !== null && args.strictConstrainToURLs !== undefined) body.strictConstrainToURLs = args.strictConstrainToURLs;
   if (args.model !== null && args.model !== undefined) body.model = args.model;
   if (args.webhook != null) body.webhook = args.webhook;
+  if (args.threatProtection != null)
+    body.threatProtection = args.threatProtection;
   return body;
 }
 

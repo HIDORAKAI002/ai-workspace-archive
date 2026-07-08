@@ -71,22 +71,18 @@ export async function agentController(
     });
   }
   if (threatProtection.policy && (req.body.urls?.length ?? 0) > 0) {
-    const { blocked } = await checkUrlsAgainstThreatPolicy(
+    const { blocked, decisionsByUrl } = await checkUrlsAgainstThreatPolicy(
       req.body.urls ?? [],
       threatProtection.policy,
       { teamId: req.auth.team_id },
     );
     if (blocked.length > 0) {
-      // Blocked domains whose decision consulted the classifier (fresh or
-      // cached verdict) bill the scan fee (+2 per scanned domain) even
-      // though the request is rejected — the scan already happened. Allowed
-      // start URLs are not billed here: the agent's API-driven scrapes
-      // re-check the policy in the scrape pipeline and bill there.
-      const blockedDecisionsByDomain = new Map(
-        blocked.map(x => [x.domain, x.decision]),
-      );
+      // The whole request is rejected below, so no agent job will ever run
+      // to bill the allowed start URLs' scans — every consulted decision
+      // (allowed and blocked) bills its scan fee here (+2 per unique
+      // scanned URL): the scans already happened.
       const threatScanCredits = calculateThreatScanCredits(
-        blockedDecisionsByDomain.values(),
+        decisionsByUrl.values(),
       );
       if (threatScanCredits > 0) {
         billTeam(
@@ -102,9 +98,10 @@ export async function agentController(
         });
       }
       const first = blocked[0];
-      const error = new UnsafeDomainBlockedError(first.domain, first.decision);
+      const error = new UnsafeDomainBlockedError(first.url, first.decision);
       return res.status(403).json({
         success: false,
+        code: error.code,
         error: error.message,
       });
     }
