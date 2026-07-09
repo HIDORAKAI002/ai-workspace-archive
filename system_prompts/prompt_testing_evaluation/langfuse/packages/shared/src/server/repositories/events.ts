@@ -480,6 +480,28 @@ export const getObservationsCountFromEventsTable = async (
   return Number(count[0].count);
 };
 
+/**
+ * Row count plus approximate distinct trace count over the same filtered set,
+ * computed in a single ClickHouse pass. Powers the events-table select-all
+ * batch-delete confirmation ("N items spanning M unique traces").
+ */
+export const getObservationsCountsFromEventsTable = async (
+  opts: ObservationTableQuery,
+): Promise<{ totalCount: number; uniqueTraceCount: number }> => {
+  const counts = await getObservationsFromEventsTableInternal<{
+    count: string;
+    unique_trace_count: string;
+  }>({
+    ...opts,
+    select: "count-with-unique-traces",
+  });
+
+  return {
+    totalCount: Number(counts[0].count),
+    uniqueTraceCount: Number(counts[0].unique_trace_count),
+  };
+};
+
 export const getObservationsWithModelDataFromEventsTable = async (
   opts: ObservationTableQuery,
 ): Promise<FullEventsObservations> => {
@@ -560,7 +582,11 @@ export const getTraceDeleteCursorPageFromEvents = async (props: {
 
 async function getObservationsFromEventsTableInternal<T>(
   opts: ObservationTableQuery & {
-    select: "count" | "rows" | "trace-delete-cursor";
+    select:
+      | "count"
+      | "count-with-unique-traces"
+      | "rows"
+      | "trace-delete-cursor";
     selectToolData?: boolean;
     cursor?: PublicApiObservationsQuery["cursor"];
     preferredClickhouseService?: PreferredClickhouseService;
@@ -601,8 +627,10 @@ async function getObservationsFromEventsTableInternal<T>(
       column === "scores" ||
       column === "scores_avg" ||
       column === "score_categories" ||
+      column === "score_booleans" ||
       column === "scores (numeric)" ||
-      column === "scores (categorical)"
+      column === "scores (categorical)" ||
+      column === "scores (boolean)"
     );
   });
   const hasTraceScoresFilter = baseFilter.some((f) => {
@@ -610,8 +638,10 @@ async function getObservationsFromEventsTableInternal<T>(
     return (
       column === "trace_scores_avg" ||
       column === "trace_score_categories" ||
+      column === "trace_score_booleans" ||
       column === "trace scores (numeric)" ||
-      column === "trace scores (categorical)"
+      column === "trace scores (categorical)" ||
+      column === "trace scores (boolean)"
     );
   });
   const orderByEntries = orderByToEntries(
@@ -624,6 +654,8 @@ async function getObservationsFromEventsTableInternal<T>(
 
   if (opts.select === "count") {
     queryBuilder.selectFieldSet("count");
+  } else if (opts.select === "count-with-unique-traces") {
+    queryBuilder.selectFieldSet("countWithUniqueTraces");
   } else if (opts.select === "trace-delete-cursor") {
     queryBuilder.selectRaw(
       "e.span_id AS id",
@@ -1763,7 +1795,10 @@ async function getTracesFromEventsTableForPublicApiInternal<T>(
 
   // Check if filters specifically reference score aggregation columns
   const hasScoreAggregationFilters = tracesFilter.some(
-    (f) => f.field === "s.scores_avg" || f.field === "s.score_categories",
+    (f) =>
+      f.field === "s.scores_avg" ||
+      f.field === "s.score_categories" ||
+      f.field === "s.score_booleans",
   );
 
   // Build traces CTE using eventsTracesAggregation WITHOUT filters
@@ -1797,6 +1832,7 @@ async function getTracesFromEventsTableForPublicApiInternal<T>(
           "score_ids",
           "scores_avg",
           "score_categories",
+          "score_booleans",
         ],
       })
       .leftJoin(
