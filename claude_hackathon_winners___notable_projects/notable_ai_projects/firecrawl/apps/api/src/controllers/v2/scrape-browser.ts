@@ -574,7 +574,11 @@ async function createSessionForScrape(
   const autumnResult = await autumnService.checkCredits({
     teamId: req.auth.team_id,
     value: estimatedCredits,
-    properties: { source: "scrapeBrowserCreate", path: req.path },
+    properties: {
+      source: "scrapeBrowserCreate",
+      path: req.path,
+      apiKeyId: req.acuc?.api_key_id ?? null,
+    },
   });
 
   if (autumnResult !== null && !autumnResult.allowed) {
@@ -699,9 +703,21 @@ async function createSessionForScrape(
       );
     }
 
-    // Ensure only one tab exists with the content page in the foreground.
-    // The replay may have created extra tabs. Find the one with content,
-    // close everything else, update the REPL's page var, and bring to front.
+    // Prime agent-browser before consolidating: its first command of a session
+    // spawns an about:blank tab, so trigger it now and let the sync below close it.
+    const primeResult = await browserServiceRequest<BrowserServiceExecResponse>(
+      "POST",
+      `/browsers/${svcResponse.sessionId}/exec`,
+      {
+        code: `agent-browser get url`,
+        language: "bash",
+        timeout: 10,
+        origin: "scrape_replay_sync",
+      },
+    ).catch(() => null);
+
+    // Keep only the content tab, repoint the REPL's page var, bring to front.
+    // agent-browser falls back to the surviving tab when its own is closed.
     await browserServiceRequest(
       "POST",
       `/browsers/${svcResponse.sessionId}/exec`,
@@ -722,19 +738,23 @@ async function createSessionForScrape(
       },
     ).catch(() => {});
 
-    // Sync agent-browser to the correct page
-    const syncResult = await browserServiceRequest<BrowserServiceExecResponse>(
-      "POST",
-      `/browsers/${svcResponse.sessionId}/exec`,
-      {
-        code: `agent-browser get url`,
-        language: "bash",
-        timeout: 10,
-        origin: "scrape_replay_sync",
-      },
-    );
+    // Verify agent-browser is on the content page after cleanup.
+    let agentUrl = (primeResult?.stdout || "").trim();
+    if (!agentUrl || agentUrl === "about:blank") {
+      const syncResult =
+        await browserServiceRequest<BrowserServiceExecResponse>(
+          "POST",
+          `/browsers/${svcResponse.sessionId}/exec`,
+          {
+            code: `agent-browser get url`,
+            language: "bash",
+            timeout: 10,
+            origin: "scrape_replay_sync",
+          },
+        );
+      agentUrl = (syncResult.stdout || "").trim();
+    }
 
-    const agentUrl = (syncResult.stdout || "").trim();
     if (!agentUrl || agentUrl === "about:blank") {
       logger.info("agent-browser on wrong page after replay, navigating", {
         agentUrl,

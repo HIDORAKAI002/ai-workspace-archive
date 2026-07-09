@@ -248,7 +248,10 @@ export async function searchController(req: Request, res: Response) {
       const autumnResult = await autumnService.checkCredits({
         teamId: team_id,
         value: 1,
-        properties: { source: "v0/search" },
+        properties: {
+          source: "v0/search",
+          apiKeyId: chunk?.api_key_id ?? null,
+        },
       });
       // null = Autumn unavailable / self-hosted -> fail open, matching v1/v2.
       if (autumnResult !== null && !autumnResult.allowed) {

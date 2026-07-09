@@ -142,7 +142,7 @@ export async function crawlController(req: Request, res: Response) {
     const autumnResult = await autumnService.checkCredits({
       teamId: team_id,
       value: limitCheck,
-      properties: { source: "v0/crawl" },
+      properties: { source: "v0/crawl", apiKeyId: chunk?.api_key_id ?? null },
     });
 
     if (autumnResult !== null && !autumnResult.allowed) {

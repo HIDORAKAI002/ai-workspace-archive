@@ -213,8 +213,14 @@ export async function browserCreateController(
 
   req.body = browserCreateRequestSchema.parse(req.body);
 
-  const { ttl, activityTtl, streamWebView, recordSession, profile, integration } =
-    req.body;
+  const {
+    ttl,
+    activityTtl,
+    streamWebView,
+    recordSession,
+    profile,
+    integration,
+  } = req.body;
 
   if (!config.BROWSER_SERVICE_URL) {
     return res.status(503).json({
@@ -231,7 +237,11 @@ export async function browserCreateController(
   const autumnResult = await autumnService.checkCredits({
     teamId: req.auth.team_id,
     value: estimatedCredits,
-    properties: { source: "browserCreate", path: req.path },
+    properties: {
+      source: "browserCreate",
+      path: req.path,
+      apiKeyId: req.acuc?.api_key_id ?? null,
+    },
   });
 
   if (autumnResult !== null && !autumnResult.allowed) {

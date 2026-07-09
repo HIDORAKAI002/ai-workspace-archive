@@ -111,6 +111,34 @@ describe("checkCreditsMiddleware – Autumn overage handling", () => {
     expect(res.status).not.toHaveBeenCalled();
     expect(req.body.limit).toBe(5);
   });
+
+  it("forwards the API key id in the check properties so Autumn can enforce per-key limits", async () => {
+    checkCreditsMock.mockResolvedValue({ allowed: true, remaining: 100 });
+
+    const req = buildReq({
+      acuc: { adjusted_credits_used: 0, api_key_id: 4242 },
+    });
+    await runMiddleware(req);
+
+    expect(checkCreditsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({ apiKeyId: 4242 }),
+      }),
+    );
+  });
+
+  it("sends a null apiKeyId when the request has no resolved api key id", async () => {
+    checkCreditsMock.mockResolvedValue({ allowed: true, remaining: 100 });
+
+    const req = buildReq();
+    await runMiddleware(req);
+
+    expect(checkCreditsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({ apiKeyId: null }),
+      }),
+    );
+  });
 });
 
 describe("checkCreditsMiddleware – unverified agent-key 50-credit cap", () => {

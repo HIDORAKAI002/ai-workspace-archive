@@ -1,69 +1,84 @@
 ---
 name: release
-description: Prepare a playwright-mcp release — roll Playwright, bump the version, and write GitHub release notes that combine changes from this repo and upstream microsoft/playwright since the last release.
+description: Prepare a playwright-mcp release — roll Playwright, bump the version, and open a `chore: mark v0.0.<next>` PR whose body IS the release notes (changes from this repo and upstream microsoft/playwright since the last release).
 ---
 
 # Preparing a Release
 
-Most MCP source lives upstream at `~/playwright/packages/playwright-core/src/tools/` (and `tests/mcp/`). A release combines an upstream Playwright roll, a version bump in this repo, and release notes that draw from both.
+A release is a `chore: mark v0.0.<next>` commit whose **PR body is the release notes**. There is a single PR — the version bump and the notes ship together. Most MCP source lives upstream at `~/playwright/packages/playwright-core/src/tools/` (and `tests/mcp/`), so the notes draw from both this repo and upstream.
 
 ## 1. Roll Playwright
 
 Follow the "Rolling Playwright" steps in `CLAUDE.md`: run `node roll.js`, branch as `roll-pw-<version-suffix>`, run `npm test`, and open a `chore: roll Playwright to <version>` PR. **Wait for it to merge into `main`** before proceeding.
 
-## 2. Bump the version (PR off `main`)
+## 2. Bump the version
 
 ```bash
 git checkout main && git pull
 git checkout -b mark-v0.0.<next>
 # Bump "version" in package.json, package-lock.json (both occurrences), and server.json (both occurrences)
-git commit -am "chore: mark v0.0.<next>"
-git push -u origin mark-v0.0.<next>
-gh pr create --repo microsoft/playwright-mcp --head <user>:mark-v0.0.<next> \
-  --title "chore: mark v0.0.<next>" --body "## Summary
-- Bump version to 0.0.<next>"
 ```
 
-## 3. Find the cutoff
+Do NOT open the PR yet — its body must be the release notes, so write those first (steps 3–5).
+
+## 3. Find the exact commit window
+
+The reliable boundary is the **`gitHead` of each published alpha build**, not a fuzzy date window (date windows double-count commits that land on the boundary day — e.g. a commit written on the previous release's build date but not actually in that build).
 
 ```bash
-# Last published release and its date
-gh release list --repo microsoft/playwright-mcp --limit 5
+# Playwright version pinned by the previous release (last "mark v" commit) and by this release
+git log --oneline | grep "mark v" | head -1
+git show <prev-release-sha>:package.json | grep '"playwright":'   # baseline alpha
+grep '"playwright":' package.json                                 # new alpha (already rolled)
 
-# Format reference — use the most recent non-trivial release
-gh release view v0.0.<prev> --repo microsoft/playwright-mcp
-
-# Playwright version that shipped in the last release
-git show <prev-release-commit>:package.json | grep -E '"playwright|"@playwright"'
-# Convert the alpha timestamp to a UTC date for the upstream log filter
-date -r <timestamp_seconds> -u
+# Resolve each alpha to the exact upstream commit it was built from
+npm view playwright-core@<baseline-alpha> gitHead   # e.g. -> 287ad476...
+npm view playwright-core@<new-alpha> gitHead         # e.g. -> a061d963...
 ```
+
+The window is `<baseline-gitHead>..<new-gitHead>`.
 
 ## 4. Collect changes
 
 ```bash
-# Upstream playwright (MCP code path widened to catch tools/cli/dashboard/extension too)
+# Upstream playwright — MCP code path widened to catch tools/extension/dashboard too
 cd ~/playwright
-git log --since="<prev UTC>" --until="<new UTC>" --oneline -- \
+git log <baseline-gitHead>..<new-gitHead> --reverse --pretty='%h %s' -- \
   packages/playwright-core/src/tools/ packages/playwright-core/src/extension/ tests/mcp/
 
 # This repo
 cd -
-git log <last-release-commit>..HEAD --oneline
+git log <prev-release-sha>..HEAD --oneline
 ```
 
-Filter for `feat(mcp)`, `fix(mcp)`, `feat(extension)`, `fix(extension)`, and dashboard changes. Many extension PRs land in *both* repos because the extension source lives upstream now — prefer the `microsoft/playwright` PR link. Use `git show <sha> --stat` to disambiguate when a commit subject is ambiguous. Drop reverted commits, test-only changes, docs, and anything not user-visible.
+Filter for `feat(mcp)`, `fix(mcp)`, `feat(extension)`, `fix(extension)`, `feat(aria)` snapshot changes, and dashboard changes. Many extension PRs land in *both* repos because the extension source lives upstream now — prefer the `microsoft/playwright` PR link. Use `git show <sha> --stat` to disambiguate ambiguous subjects.
+
+**Drop:** test-only changes, docs, `chore(deps)`, CLI-daemon internals with no MCP-facing effect, reverted commits, and anything not user-visible. **Verify membership** of boundary commits with `git merge-base --is-ancestor <sha> <gitHead>` — a commit can be listed in the previous release's notes yet not actually be in that build; if it was already announced, do not repeat it.
 
 ## 5. Write `release-notes.md`
 
-Follow the format from the prior release: `## What's New` (with `### New Tools`, `### Tool Improvements`, optional `### Browser Extension`, `### Dashboard`, `### Other Changes`) and `## Bug Fixes`. Link each entry to its PR (`[#NNNNN](https://github.com/microsoft/playwright/pull/NNNNN)` or the playwright-mcp equivalent). **Do not mention features that are not yet enabled by default** — confirm with the user before listing experimental flags.
+Follow the format from the prior release (`gh pr view <prev-PR> --repo microsoft/playwright-mcp --json body -q .body`). **No top-level `#` header** — the PR title is the heading. Sections: `## What's New` (with `### New Tools`, `### Tool Improvements`, optional `### Browser Extension`, `### Dashboard`, `### Other Changes`) then `## Bug Fixes`. Link each entry to its PR (`[#NNNNN](https://github.com/microsoft/playwright/pull/NNNNN)` or the playwright-mcp equivalent). Fold follow-up PRs into the feature they extend (e.g. a `browser_find` enhancement joins the `browser_find` bullet).
 
-## 6. Create the draft release
+Wording rules:
+- Only list things that change user-visible behavior.
+- **Do not mention features that are not enabled by default** — confirm with the user before listing experimental flags.
+
+## 6. Commit, push, open the PR with the notes as its body
 
 ```bash
-gh release create v0.0.<next> --repo microsoft/playwright-mcp \
-  --draft --title "v0.0.<next>" --target main \
-  --notes-file release-notes.md
+git commit -am "chore: mark v0.0.<next>"
+git push -u origin mark-v0.0.<next>
+gh pr create --repo microsoft/playwright-mcp --head <user>:mark-v0.0.<next> \
+  --base main \
+  --title "chore: mark v0.0.<next>" \
+  --body-file release-notes.md
 ```
 
-Publish the draft once the mark PR is merged.
+The PR body is the release notes verbatim — no `#` header, no filename, nothing else.
+
+## Pitfalls
+
+- **Don't open the version-bump PR with a placeholder body** and backfill later — write the notes first so the PR is created with them.
+- **Don't use a date window** for the upstream diff — use the `gitHead` range. Dates double-count boundary-day commits.
+- **Don't re-announce** a commit that already appeared in the previous release's notes; check ancestry with `git merge-base --is-ancestor`.
+- **Don't include a `#` header** in the PR body — GitHub renders the PR title already.
