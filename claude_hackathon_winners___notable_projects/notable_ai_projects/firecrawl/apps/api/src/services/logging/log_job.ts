@@ -202,6 +202,7 @@ export async function logRequest(request: LoggedRequest) {
     trackFirstSurfaceUse({
       teamId: request.team_id,
       origin: request.origin,
+      integration: request.integration,
       kind: request.kind,
       apiVersion: request.api_version,
       apiKeyId: request.api_key_id,

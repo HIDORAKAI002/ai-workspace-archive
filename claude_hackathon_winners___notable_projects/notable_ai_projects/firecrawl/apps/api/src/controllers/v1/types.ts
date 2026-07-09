@@ -1287,6 +1287,7 @@ export type AuthCreditUsageChunk = {
     scrapeAgentPreview?: number;
     browser?: number;
     browserExecute?: number;
+    browserReplay?: number;
     account?: number;
     supportAsk?: number;
     supportDocsSearch?: number;
@@ -1333,6 +1334,19 @@ export type TeamFlags = {
   researchBeta?: boolean;
   highlightsBeta?: boolean;
   enrichBeta?: boolean;
+  professionalProfileCompanyDataBeta?: boolean;
+  organizationDataSourceAccess?: Record<
+    string,
+    {
+      status?: "enabled" | "disabled" | "suspended" | string | null;
+      termsKey?: string | null;
+      termsVersion?: string | null;
+      termsAcceptedAt?: string | null;
+      enabledAt?: string | null;
+      disabledAt?: string | null;
+      disabledReason?: string | null;
+    }
+  >;
   // routes the team's new queue work to the FoundationDB backend
   nuqFdb?: boolean;
 } | null;
