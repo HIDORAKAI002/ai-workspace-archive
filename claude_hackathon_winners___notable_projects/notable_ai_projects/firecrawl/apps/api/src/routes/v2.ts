@@ -547,13 +547,13 @@ v2Router.post(
 
 v2Router.get(
   ["/browser/:sessionId/replay", "/interact/:sessionId/replay"],
-  authMiddleware(RateLimiterMode.BrowserExecute),
+  authMiddleware(RateLimiterMode.BrowserReplay),
   wrap(browserReplayController),
 );
 
 v2Router.get(
   ["/browser/:sessionId/replay/:pageId", "/interact/:sessionId/replay/:pageId"],
-  authMiddleware(RateLimiterMode.BrowserExecute),
+  authMiddleware(RateLimiterMode.BrowserReplay),
   wrap(browserReplayPageController),
 );
 

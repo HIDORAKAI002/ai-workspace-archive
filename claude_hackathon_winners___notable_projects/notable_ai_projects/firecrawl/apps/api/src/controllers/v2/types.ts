@@ -1563,6 +1563,19 @@ export type TeamFlags = {
   highlightsBeta?: boolean;
   menuBeta?: boolean;
   enrichBeta?: boolean;
+  professionalProfileCompanyDataBeta?: boolean;
+  organizationDataSourceAccess?: Record<
+    string,
+    {
+      status?: "enabled" | "disabled" | "suspended" | string | null;
+      termsKey?: string | null;
+      termsVersion?: string | null;
+      termsAcceptedAt?: string | null;
+      enabledAt?: string | null;
+      disabledAt?: string | null;
+      disabledReason?: string | null;
+    }
+  >;
 } | null;
 
 interface RequestWithMaybeACUC<

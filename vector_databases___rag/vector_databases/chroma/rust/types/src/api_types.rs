@@ -41,7 +41,7 @@ use crate::UpdateEmbeddingsPayload;
 use crate::UpdateMetadata;
 use crate::Where;
 use crate::WhereValidationError;
-pub use chroma_api_types::{OccReadMode, OccReadToken, StaleReadError, STALE_READ_ERROR_NAME};
+use chroma_api_types::{OccReadMode, OccReadToken, StaleReadError};
 use chroma_error::ChromaValidationError;
 use chroma_error::{ChromaError, ErrorCodes};
 use serde::Deserialize;
@@ -1334,7 +1334,7 @@ impl AddCollectionRecordsPayload {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, Validate, Serialize)]
+#[derive(Debug, Clone, PartialEq, Validate, Serialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct AddCollectionRecordsRequest {
     pub tenant_id: String,
@@ -1458,7 +1458,7 @@ pub struct UpdateCollectionRecordsPayload {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, Validate, Serialize)]
+#[derive(Debug, Clone, PartialEq, Validate, Serialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct UpdateCollectionRecordsRequest {
     pub tenant_id: String,
@@ -1554,7 +1554,7 @@ pub struct UpsertCollectionRecordsPayload {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, Validate, Serialize)]
+#[derive(Debug, Clone, PartialEq, Validate, Serialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct UpsertCollectionRecordsRequest {
     pub tenant_id: String,
@@ -1647,7 +1647,7 @@ pub struct DeleteCollectionRecordsPayload {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, Validate, Serialize)]
+#[derive(Debug, Clone, PartialEq, Validate, Serialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DeleteCollectionRecordsRequest {
     pub tenant_id: String,
@@ -2122,6 +2122,82 @@ impl From<(GetResult, IncludeList)> for GetResponse {
         }
         res
     }
+}
+
+////////////////////////// Conditional Transaction //////////////////////////
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ConditionalGetRequestPayload {
+    pub ids: Option<Vec<String>>,
+    #[serde(flatten)]
+    pub where_fields: RawWhereFields,
+    pub limit: Option<u32>,
+    pub offset: Option<u32>,
+    #[serde(default = "IncludeList::default_get")]
+    pub include: IncludeList,
+    pub read_token: Option<u64>,
+}
+
+impl ConditionalGetRequestPayload {
+    pub fn into_get_payload(self) -> GetRequestPayload {
+        GetRequestPayload {
+            ids: self.ids,
+            where_fields: self.where_fields,
+            limit: self.limit,
+            offset: self.offset,
+            include: self.include,
+        }
+    }
+}
+
+/// Response for a transactional get.
+///
+/// This mirrors `GetResponse`, but includes the OCC read token that pins all
+/// later reads and the eventual commit to the same log snapshot.
+#[derive(Clone, Deserialize, Serialize, Debug, Default)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ConditionalGetResponse {
+    pub ids: Vec<String>,
+    pub embeddings: Option<Vec<Vec<f32>>>,
+    pub documents: Option<Vec<Option<String>>>,
+    pub uris: Option<Vec<Option<String>>>,
+    pub metadatas: Option<Vec<Option<Metadata>>>,
+    pub include: Vec<Include>,
+    pub read_token: u64,
+}
+
+impl ConditionalGetResponse {
+    pub fn from_get_response(response: GetResponse, read_token: u64) -> Self {
+        Self {
+            ids: response.ids,
+            embeddings: response.embeddings,
+            documents: response.documents,
+            uris: response.uris,
+            metadatas: response.metadatas,
+            include: response.include,
+            read_token,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "operation", content = "payload", rename_all = "snake_case")]
+pub enum ConditionalTransactionOperationPayload {
+    Add(AddCollectionRecordsPayload),
+    Update(UpdateCollectionRecordsPayload),
+    Upsert(UpsertCollectionRecordsPayload),
+    Delete(DeleteCollectionRecordsPayload),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ConditionalCommitPayload {
+    pub read_token: Option<u64>,
+    #[serde(default)]
+    pub read_ids: Vec<String>,
+    pub operations: Vec<ConditionalTransactionOperationPayload>,
 }
 
 ////////////////////////// Query //////////////////////////

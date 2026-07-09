@@ -2,6 +2,7 @@ use crate::grpc_log::{GrpcLog, GrpcPushLogsError, GrpcSealLogError, ScoutLogFrag
 use crate::in_memory_log::InMemoryLog;
 use crate::sqlite_log::SqliteLog;
 use crate::types::CollectionInfo;
+use chroma_api_types::CONDITIONAL_WRITE_CONFLICT_MESSAGE;
 use chroma_error::{ChromaError, ErrorCodes};
 use chroma_memberlist::client_manager::ClientAssignmentError;
 use chroma_types::{
@@ -9,6 +10,12 @@ use chroma_types::{
     ForkLogsResponse, LogRecord, OperationRecord, ResetError, ResetResponse, TopologyName,
 };
 use std::fmt::Debug;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PushLogsResult {
+    pub record_count: i32,
+    pub first_inserted_record_offset: Option<i64>,
+}
 
 #[derive(Clone, Debug)]
 pub struct CollectionRecord {
@@ -51,6 +58,12 @@ pub enum PushLogsError {
     /// Conditional writes are not supported by this log implementation.
     #[error("conditional writes are not supported by {0} log")]
     ConditionalWritesUnsupported(&'static str),
+    /// The conditional write was rejected because the observed log state changed.
+    #[error("conditional write conflict")]
+    ConditionalWriteConflict,
+    /// The record count cannot be represented by the log-service API.
+    #[error("too many records in push_logs request: {0}")]
+    RecordCountOutOfRange(usize),
     /// Any other push failure.
     #[error(transparent)]
     Other(Box<dyn ChromaError>),
@@ -62,6 +75,8 @@ impl ChromaError for PushLogsError {
             PushLogsError::Backoff => ErrorCodes::ResourceExhausted,
             PushLogsError::BackoffCompaction => ErrorCodes::ResourceExhausted,
             PushLogsError::ConditionalWritesUnsupported(_) => ErrorCodes::Unimplemented,
+            PushLogsError::ConditionalWriteConflict => ErrorCodes::AlreadyExists,
+            PushLogsError::RecordCountOutOfRange(_) => ErrorCodes::InvalidArgument,
             PushLogsError::Other(e) => e.code(),
         }
     }
@@ -72,6 +87,12 @@ impl From<GrpcPushLogsError> for PushLogsError {
         match err {
             GrpcPushLogsError::Backoff => PushLogsError::Backoff,
             GrpcPushLogsError::BackoffCompaction => PushLogsError::BackoffCompaction,
+            GrpcPushLogsError::FailedToPushLogs(status)
+                if status.code() == tonic::Code::Aborted
+                    && status.message() == CONDITIONAL_WRITE_CONFLICT_MESSAGE =>
+            {
+                PushLogsError::ConditionalWriteConflict
+            }
             other => PushLogsError::Other(Box::new(other)),
         }
     }
@@ -86,6 +107,18 @@ pub enum Log {
 }
 
 impl Log {
+    pub fn implementation_name(&self) -> &'static str {
+        match self {
+            Log::Sqlite(_) => "sqlite",
+            Log::Grpc(_) => "grpc",
+            Log::InMemory(_) => "in-memory",
+        }
+    }
+
+    pub fn supports_conditional_transactions(&self) -> bool {
+        matches!(self, Log::Grpc(_))
+    }
+
     #[tracing::instrument(skip(self))]
     pub async fn read(
         &mut self,
@@ -184,6 +217,30 @@ impl Log {
         cmek: Option<Cmek>,
         condition: Option<PushLogsCondition>,
     ) -> Result<(), PushLogsError> {
+        self.push_logs_with_result(
+            tenant,
+            database_name,
+            collection_id,
+            records,
+            cmek,
+            condition,
+        )
+        .await
+        .map(|_| ())
+    }
+
+    #[tracing::instrument(skip(self, records), err(Display))]
+    pub async fn push_logs_with_result(
+        &mut self,
+        tenant: &str,
+        database_name: DatabaseName,
+        collection_id: CollectionUuid,
+        records: Vec<OperationRecord>,
+        cmek: Option<Cmek>,
+        condition: Option<PushLogsCondition>,
+    ) -> Result<PushLogsResult, PushLogsError> {
+        let record_count = i32::try_from(records.len())
+            .map_err(|_| PushLogsError::RecordCountOutOfRange(records.len()))?;
         match self {
             Log::Sqlite(log) => {
                 if condition.is_some() {
@@ -191,7 +248,11 @@ impl Log {
                 }
                 log.push_logs(collection_id, records)
                     .await
-                    .map_err(|e| PushLogsError::Other(Box::new(e)))
+                    .map_err(|e| PushLogsError::Other(Box::new(e)))?;
+                Ok(PushLogsResult {
+                    record_count,
+                    first_inserted_record_offset: None,
+                })
             }
             Log::Grpc(log) => log
                 .push_logs(database_name, collection_id, records, cmek, condition)
@@ -427,5 +488,15 @@ mod tests {
             PushLogsError::ConditionalWritesUnsupported("in-memory")
         ));
         assert_eq!(ErrorCodes::Unimplemented, err.code());
+    }
+
+    #[test]
+    fn grpc_conditional_write_conflict_maps_to_typed_error() {
+        let status = tonic::Status::aborted(CONDITIONAL_WRITE_CONFLICT_MESSAGE);
+        let err = PushLogsError::from(GrpcPushLogsError::FailedToPushLogs(status));
+
+        assert!(matches!(err, PushLogsError::ConditionalWriteConflict));
+        assert_eq!(ErrorCodes::AlreadyExists, err.code());
+        assert_eq!(CONDITIONAL_WRITE_CONFLICT_MESSAGE, err.to_string());
     }
 }
