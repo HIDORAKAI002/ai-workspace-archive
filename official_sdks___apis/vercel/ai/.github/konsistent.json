@@ -87,8 +87,6 @@
           "use": "aisdk/provider-model-file-must-export-model-class",
           "excludeFiles": [
             "${providerId}-video-model.ts",
-            "packages/deepinfra/src/deepinfra-image-model.ts",
-            "packages/fireworks/src/fireworks-image-model.ts",
             "packages/gateway/src/gateway-embedding-model.ts",
             "packages/gateway/src/gateway-image-model.ts",
             "packages/gateway/src/gateway-language-model.ts",
@@ -96,7 +94,6 @@
             "packages/gateway/src/gateway-reranking-model.ts",
             "packages/gateway/src/gateway-speech-model.ts",
             "packages/gateway/src/gateway-transcription-model.ts",
-            "packages/mistral/src/mistral-embedding-model.ts",
             "packages/openai-compatible/src/image/openai-compatible-image-model.ts"
           ]
         },
