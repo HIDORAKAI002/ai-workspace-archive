@@ -52,7 +52,7 @@ export async function fireclawController(
   const creditCheck = await autumnService.checkCredits({
     teamId: req.auth.team_id,
     value: totalCredits,
-    properties: { source: "fireclaw" },
+    properties: { source: "fireclaw", apiKeyId: chunk?.api_key_id ?? null },
   });
 
   if (creditCheck !== null && !creditCheck.allowed) {

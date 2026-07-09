@@ -148,6 +148,7 @@ export function checkCreditsMiddleware(
         properties: {
           source: "checkCreditsMiddleware",
           path: req.path,
+          apiKeyId: req.acuc?.api_key_id ?? null,
         },
         featureId,
       });
