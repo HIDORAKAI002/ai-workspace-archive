@@ -224,7 +224,7 @@ Lead-agent middlewares are assembled in strict order across three functions: the
 4. **ThreadDataMiddleware** - Creates per-thread directories under the user's isolation scope (`backend/.deer-flow/users/{user_id}/threads/{thread_id}/user-data/{workspace,uploads,outputs}`); resolves `user_id` via `get_effective_user_id()` (falls back to `"default"` in no-auth mode)
 5. **UploadsMiddleware** - Tracks and injects newly uploaded files into conversation (lead agent only)
 6. **SandboxMiddleware** - Acquires sandbox, stores `sandbox_id` in state
-7. **DanglingToolCallMiddleware** - Injects placeholder ToolMessages for AIMessage tool_calls that lack responses (e.g., user interruption), preserving raw provider tool-call payloads in `additional_kwargs["tool_calls"]`
+7. **DanglingToolCallMiddleware** - Injects placeholder ToolMessages for AIMessage tool_calls that lack responses (e.g., user interruption), preserving raw provider tool-call payloads in `additional_kwargs["tool_calls"]`; malformed empty tool-call names are normalized to a recoverable error so strict OpenAI-compatible providers do not reject the next request
 8. **LLMErrorHandlingMiddleware** - Normalizes provider/model invocation failures into recoverable assistant-facing errors before later stages run
 9. **GuardrailMiddleware** - *(optional, if `guardrails.enabled`)* Pre-tool-call authorization via pluggable `GuardrailProvider`; returns an error ToolMessage on deny. Providers: built-in `AllowlistProvider` (zero deps), OAP policy providers (e.g. `aport-agent-guardrails`), or custom. See [docs/GUARDRAILS.md](docs/GUARDRAILS.md)
 10. **SandboxAuditMiddleware** - Audits sandboxed shell/file operations for security logging before tool execution
@@ -422,6 +422,14 @@ Additional providers also live here (`boxlite`, `brave`, `browserless`, `crawl4a
 - **Cache invalidation**: Detects config file changes via mtime comparison
 - **Transports**: stdio (command-based), SSE, HTTP
 - **OAuth (HTTP/SSE)**: Supports token endpoint flows (`client_credentials`, `refresh_token`) with automatic token refresh + Authorization header injection
+- **Routing hints**: `extensions_config.json -> mcpServers.<server>.routing` and
+  `tools.<original_tool_name>.routing` are soft preference metadata. The effective
+  routing is resolved while `mcp/tools.py::get_mcp_tools()` still has both
+  `source_name` and the original MCP tool name, then stored on `tool.metadata`
+  under `deerflow_mcp_routing`. Prompt rendering uses
+  `tools/builtins/tool_search.py::get_mcp_routing_hints_prompt_section`, which
+  references `tool_search` when a hinted MCP tool is currently deferred; do not
+  add a parallel routing middleware for PR1-style preference hints.
 - **Stdio file outputs**: Persistent stdio sessions are scoped by `user_id:thread_id`. For stdio transports only, DeerFlow pins the subprocess default `cwd` to the thread workspace and `TMPDIR`/`TMP`/`TEMP` to `workspace/.mcp/tmp/`, unless the operator explicitly configured `cwd` or temp env values. SSE/HTTP transports skip this filesystem prep entirely.
 - **Stdio path translation**: MCP-returned local file references are not copied. If a `ResourceLink` or conservative free-text path resolves to an existing file inside the thread's mounted user-data tree, it is translated deterministically to `/mnt/user-data/...`; paths outside that tree remain unchanged.
 - **Runtime updates**: Gateway API saves to extensions_config.json; the Gateway-embedded runtime detects changes via mtime
@@ -707,7 +715,7 @@ Returns `{}` when Langfuse is not in the enabled providers — LangSmith-only de
 - `memory` - Memory system (enabled, storage_path, debounce_seconds, model_name, max_facts, fact_confidence_threshold, injection_enabled, max_injection_tokens, staleness_review_enabled, staleness_age_days, staleness_min_candidates, staleness_max_removals_per_cycle, staleness_protected_categories)
 
 **`extensions_config.json`**:
-- `mcpServers` - Map of server name → config (enabled, type, command, args, env, url, headers, oauth, description)
+- `mcpServers` - Map of server name → config (enabled, type, command, args, env, url, headers, oauth, description, `routing`, `tools`, `tool_call_timeout`). `routing.mode="prefer"` emits `<mcp_routing_hints>` prompt guidance; if `tool_search` defers the hinted tool, the guidance points at promotion first. It does not hard-disable other tools.
 - `skills` - Map of skill name → state (enabled)
 
 Both can be modified at runtime via Gateway API endpoints or `DeerFlowClient` methods.
