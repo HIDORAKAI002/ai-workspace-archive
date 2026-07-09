@@ -59,7 +59,7 @@ const mockUserProfileResponseState = vi.hoisted(() => ({
       currentEnv: 'cloud',
     },
   } as {
-    profile?: {
+    profile: {
       id: string
       name: string
       email: string
@@ -85,11 +85,19 @@ const mockLangGeniusVersionState = vi.hoisted(() => ({
     version: '1.0.1',
     release_date: '',
     release_notes: '',
+    features: {
+      can_replace_logo: false,
+      model_load_balancing_enabled: false,
+    },
     can_auto_update: false,
   } as {
     version: string
     release_date: string
     release_notes: string
+    features: {
+      can_replace_logo: boolean
+      model_load_balancing_enabled: boolean
+    }
     can_auto_update: boolean
   } | undefined,
 }))
@@ -140,6 +148,22 @@ vi.mock('@/service/client', () => ({
             ...options,
           }),
         },
+      },
+    },
+    version: {
+      get: {
+        queryOptions: (options: {
+          enabled?: boolean
+          input?: {
+            query: {
+              current_version: string
+            }
+          }
+        }) => ({
+          queryKey: ['version', options.input?.query.current_version],
+          queryFn: async () => mockLangGeniusVersionState.data,
+          ...options,
+        }),
       },
     },
   },
@@ -259,6 +283,9 @@ function createTestQueryClient() {
 
 function renderConsoleBootstrap() {
   const queryClient = createTestQueryClient()
+  queryClient.setQueryData(['user-profile'], mockUserProfileResponseState.data)
+  queryClient.setQueryData(['system-features'], mockSystemFeaturesState.data)
+
   const view = render(
     <JotaiProvider>
       <QueryClientProvider client={queryClient}>
@@ -308,6 +335,10 @@ describe('Console bootstrap', () => {
       version: '1.0.1',
       release_date: '',
       release_notes: '',
+      features: {
+        can_replace_logo: false,
+        model_load_balancing_enabled: false,
+      },
       can_auto_update: false,
     }
     mockGetRequest.mockImplementation((url: string) => {
@@ -349,20 +380,14 @@ describe('Console bootstrap', () => {
       expect(await screen.findByText('version:1.0.0/1.0.1/cloud')).toBeInTheDocument()
     })
 
-    it('should fall back to placeholder values when profile, workspace, permission, or version data is missing', async () => {
-      mockUserProfileResponseState.data = {
-        meta: {
-          currentVersion: null,
-          currentEnv: null,
-        },
-      }
+    it('should fall back to placeholder values when workspace, permission, or version data is missing', async () => {
       mockCurrentWorkspaceQueryState.data = undefined
       mockPermissionKeysState.permissionKeys = []
       mockLangGeniusVersionState.data = undefined
 
       renderConsoleBootstrap()
 
-      expect(await screen.findByText('user:')).toBeInTheDocument()
+      expect(await screen.findByText('user:user@example.com')).toBeInTheDocument()
       expect(screen.getByText(`workspace:${initialWorkspaceInfo.name}`)).toBeInTheDocument()
       expect(screen.getByText(`role:${initialWorkspaceInfo.role}`)).toBeInTheDocument()
       expect(screen.getByText('keys:')).toBeInTheDocument()
