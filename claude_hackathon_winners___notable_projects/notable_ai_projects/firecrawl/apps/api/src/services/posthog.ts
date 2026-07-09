@@ -48,7 +48,7 @@ function capturePostHog(
   })();
 }
 
-/** Normalized request surface, derived from the free-form `origin` field. */
+/** Normalized request surface, derived from the `origin` + `integration` fields. */
 type RequestSurface =
   | "playground"
   | "sdk"
@@ -59,18 +59,27 @@ type RequestSurface =
   | "other";
 
 /**
- * Map the free-form `origin` request field to a coarse surface category.
+ * Map a request's `origin` + `integration` fields to a coarse surface category.
  *
- * `origin` is client-set (defaults to "api"); these are the values observed in
- * practice. NOTE: confirm the exact strings sent by firecrawl-mcp and
- * firecrawl-cli — adjust the prefixes below if they differ.
+ * Both are client-set. `origin` (defaults to "api") carries the SDK
+ * (`*-sdk@ver`, `api-sdk`), MCP (`mcp` / `mcp-fastmcp`), playground (`website`),
+ * and `monitor`. The CLI is the exception: it sets `integration: "cli"` on every
+ * command but leaves `origin` at the "api" default on its high-volume commands
+ * (scrape/crawl/search/map/agent/parse/browser) — only feedback/interact/
+ * search-feedback also set `origin: "cli"`. So CLI must be detected via
+ * `integration`, or the bulk of CLI traffic is miscounted as `api`. (Verified
+ * against firecrawl/cli.)
  */
-function originToSurface(origin?: string | null): RequestSurface {
+function originToSurface(
+  origin?: string | null,
+  integration?: string | null,
+): RequestSurface {
   const o = (origin ?? "").toLowerCase();
+  const i = (integration ?? "").toLowerCase();
+  if (i === "cli" || o === "cli") return "cli";
   if (o === "website" || o.includes("playground")) return "playground";
   if (o.startsWith("mcp")) return "mcp";
-  if (o.startsWith("cli") || o.includes("firecrawl-cli")) return "cli";
-  if (o.includes("sdk")) return "sdk"; // e.g. "api-sdk"
+  if (o.includes("sdk")) return "sdk"; // e.g. "api-sdk", "js-sdk@x"
   if (o.startsWith("monitor")) return "monitor";
   if (o === "api") return "api";
   return "other";
@@ -128,11 +137,12 @@ async function resolveDistinctId(
 export function trackFirstSurfaceUse(args: {
   teamId: string;
   origin?: string | null;
+  integration?: string | null;
   kind: string;
   apiVersion: string;
   apiKeyId?: number | null;
 }): void {
-  const { teamId, origin, kind, apiVersion, apiKeyId } = args;
+  const { teamId, origin, integration, kind, apiVersion, apiKeyId } = args;
 
   // No PostHog key → capture is a no-op. Bail BEFORE the Redis SETNX so we don't
   // burn the dedup marker without emitting (which would lose the milestone for
@@ -144,7 +154,7 @@ export function trackFirstSurfaceUse(args: {
 
   void (async () => {
     try {
-      const surface = originToSurface(origin);
+      const surface = originToSurface(origin, integration);
       const key = `firecrawl:surface_first:${teamId}:${surface}`;
       // SET key 1 NX → "OK" only the very first time; null otherwise. Atomic.
       const isFirst = await redisEvictConnection.set(key, "1", "NX");
@@ -157,6 +167,7 @@ export function trackFirstSurfaceUse(args: {
       capturePostHog("api_surface_first_used", distinctId, {
         surface,
         raw_origin: origin ?? null,
+        raw_integration: integration ?? null,
         kind,
         api_version: apiVersion,
         team_id: teamId,

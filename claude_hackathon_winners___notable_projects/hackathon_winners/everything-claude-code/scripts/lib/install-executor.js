@@ -739,7 +739,8 @@ function createManifestInstallPlan(options = {}) {
     moduleIds: options.moduleIds || [],
     includeComponentIds: options.includeComponentIds || [],
     excludeComponentIds: options.excludeComponentIds || [],
-    target
+    target,
+    exemptValidationCodes: options.exemptValidationCodes || [],
   });
   const adapter = getInstallTargetAdapter(target);
   const operations = dedupeCopyFileOperations(

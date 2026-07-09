@@ -212,6 +212,26 @@ openai.beta.threads.runs.submitToolOutputsStream();
 
 This method can be used to submit a tool output to a run waiting on the output and start a stream.
 
+### Configuring file search results
+
+`max_num_results` is a run-level `file_search` tool override. Set it at
+`tools[].file_search.max_num_results` when creating or streaming a run:
+
+```ts
+const run = openai.beta.threads.runs.stream(thread.id, {
+  assistant_id: assistant.id,
+  tools: [
+    {
+      type: 'file_search',
+      file_search: { max_num_results: 10 },
+    },
+  ],
+});
+```
+
+Message attachments only associate a file with the `file_search` tool, so their `tools` entries use
+`{ type: 'file_search' }` without a nested `file_search` configuration object.
+
 ### Assistant Events
 
 The assistant API provides events you can subscribe to for the following events.
@@ -286,12 +306,31 @@ More information on tools can be found here [Tools](https://platform.openai.com/
 
 ```ts
 .on('error', (error: OpenAIError) => ...)
+.on('abort', (error: APIUserAbortError) => ...)
 .on('end', () => ...)
 ```
 
-The `error` event is emitted when the stream encounters an API or SDK error. The `end` event is the last SDK
-event emitted when the stream finishes, including after an error or abort. The raw `[DONE]` marker is consumed
-by the SDK rather than emitted through the `event` listener.
+The `error` event is emitted when the stream encounters an API or SDK error. The `abort` event is emitted
+when the stream is cancelled through an `AbortSignal` or `.abort()`. The `end` event is the last SDK event
+emitted when the stream finishes, including after an error or abort. The raw `[DONE]` marker is consumed by
+the SDK rather than emitted through the `event` listener.
+
+Register `error` and `abort` listeners before handing the stream to another consumer. If you call a
+promise-returning helper such as `.done()` or `.finalRun()`, await or catch that promise as well; event
+listeners do not handle a separate promise rejection.
+
+```ts
+const run = openai.beta.threads.runs
+  .stream(threadId, { assistant_id: assistantId })
+  .on('error', (error) => console.error('Run failed:', error))
+  .on('abort', (error) => console.error('Run aborted:', error));
+
+try {
+  await run.finalRun();
+} catch (error) {
+  // Handle the rejected helper promise here.
+}
+```
 
 ### Assistant Methods
 
@@ -573,11 +612,13 @@ The event fired for the last message with a `role: "function"`.
 
 #### `.on('error', (error: OpenAIError) => …)`
 
-The event fired when an error is encountered outside of a `parse` function or an abort.
+The event fired when an error is encountered outside of a `parse` function or an abort. User-initiated aborts are
+not emitted as `error` events; listen for `abort` instead.
 
 #### `.on('abort', (error: APIUserAbortError) => …)`
 
-The event fired when the stream receives a signal to abort.
+The event fired when the stream receives a signal to abort. After this event, `done()` and the `final*` helpers
+reject with the same `APIUserAbortError`.
 
 #### `.on('totalUsage', (usage: CompletionUsage) => …)` (without `stream`, usage is not currently reported with `stream`)
 

@@ -29,7 +29,10 @@ import {
   CREDITS_FEATURE_ID,
 } from "../services/autumn/autumn.service";
 import { getTeamBalance } from "../services/autumn/usage";
-import { canUseDataLayerForRequest } from "../lib/data-layer";
+import {
+  getDataLayerAccessForRequest,
+  getThirdPartyDataTermsRequiredResponse,
+} from "../lib/data-layer";
 import { getScrapeZDR } from "../lib/zdr-helpers";
 
 export function checkCreditsMiddleware(
@@ -298,9 +301,9 @@ export function blocklistMiddleware(
       getScrapeZDR(req.acuc?.flags) === "forced" ||
       req.body?.zeroDataRetention === true ||
       req.body?.lockdown === true;
-    const canUseDataLayer =
+    const dataLayerAccess =
       typeof req.body.url === "string" &&
-      (await canUseDataLayerForRequest({
+      (await getDataLayerAccessForRequest({
         url: req.body.url,
         formats: req.body.formats,
         actions: req.body.actions,
@@ -314,6 +317,14 @@ export function blocklistMiddleware(
         lockdown: req.body.lockdown,
         flags: req.acuc?.flags ?? null,
       }));
+    const canUseDataLayer =
+      typeof dataLayerAccess === "object" && dataLayerAccess.allowed;
+
+    if (typeof dataLayerAccess === "object" && dataLayerAccess.termsRequired) {
+      if (!res.headersSent) {
+        return res.status(403).json(getThirdPartyDataTermsRequiredResponse());
+      }
+    }
 
     if (
       typeof req.body.url === "string" &&

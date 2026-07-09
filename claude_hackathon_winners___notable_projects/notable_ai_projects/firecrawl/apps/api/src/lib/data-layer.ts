@@ -5,6 +5,21 @@ import { config } from "../config";
 import type { FormatObject } from "../controllers/v2/types";
 import { logger as rootLogger } from "./logger";
 
+type OrganizationDataSourceAccessRecord = {
+  status?: string | null;
+  termsKey?: string | null;
+  termsVersion?: string | null;
+  termsAcceptedAt?: string | null;
+  enabledAt?: string | null;
+  disabledAt?: string | null;
+  disabledReason?: string | null;
+};
+
+type OrganizationDataSourceAccess = Record<
+  string,
+  OrganizationDataSourceAccessRecord | null | undefined
+>;
+
 type RouteInput = {
   url: string;
   formats?: FormatObject[] | unknown[];
@@ -17,7 +32,10 @@ type RouteInput = {
   blockAds?: boolean;
   zeroDataRetention?: boolean;
   lockdown?: boolean;
-  flags?: { enrichBeta?: boolean } | null;
+  flags?: {
+    professionalProfileCompanyDataBeta?: boolean;
+    organizationDataSourceAccess?: OrganizationDataSourceAccess | null;
+  } | null;
 };
 
 export type DataLayerScrapeMetadata = {
@@ -27,10 +45,26 @@ export type DataLayerScrapeMetadata = {
 
 const SUPPORTED_FORMATS = new Set(["markdown", "json", "deterministicJson"]);
 const DATA_LAYER_SUCCESS_CREDITS = 15;
+const PROFESSIONAL_PROFILE_COMPANY_DATA_TERMS_SOURCE_ID =
+  "professional_profile_company_data";
+const PROFESSIONAL_PROFILE_COMPANY_DATA_BETA_FLAG =
+  "professionalProfileCompanyDataBeta";
+const THIRD_PARTY_DATA_TERMS_VERSION = "2026-07-03";
+const THIRD_PARTY_DATA_TERMS_REQUIRED_CODE = "THIRD_PARTY_DATA_TERMS_REQUIRED";
+const THIRD_PARTY_DATA_TERMS_REQUIRED_MESSAGE =
+  "An organization admin must accept the Professional Profile & Company Data terms before this URL can be processed.";
 
 const DATA_LAYER_CAPABILITIES_PATH = "/v1/data-layer/capabilities";
 const DATA_LAYER_CAPABILITIES_TIMEOUT_MS = 2_000;
 const DATA_LAYER_CAPABILITIES_FALLBACK_TTL_MS = 30_000;
+
+const dataLayerCapabilityRouteSchema = z
+  .object({
+    domains: z.string().array().optional(),
+    baseDomains: z.string().array().optional(),
+    pathPrefixes: z.string().array().optional(),
+  })
+  .passthrough();
 
 const dataLayerCapabilitiesSchema = z
   .object({
@@ -38,12 +72,20 @@ const dataLayerCapabilitiesSchema = z
     ttlSeconds: z.number().positive().optional(),
     domains: z.string().array().optional(),
     baseDomains: z.string().array().optional(),
+    routes: dataLayerCapabilityRouteSchema.array().optional(),
   })
   .passthrough();
+
+type DataLayerCapabilityRoute = {
+  domains: Set<string>;
+  baseDomains: Set<string>;
+  pathPrefixes: string[];
+};
 
 type DataLayerCapabilities = {
   domains: Set<string>;
   baseDomains: Set<string>;
+  routes: DataLayerCapabilityRoute[];
   ttlMs: number;
 };
 
@@ -59,6 +101,15 @@ function normalizeHost(host: string): string {
   return host.trim().toLowerCase().replace(/\.$/, "");
 }
 
+function normalizePathPrefix(prefix: string): string {
+  const trimmed = prefix.trim();
+  if (!trimmed) {
+    return "/";
+  }
+
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+}
+
 function normalizeCapabilities(
   raw: z.infer<typeof dataLayerCapabilitiesSchema>,
 ): DataLayerCapabilities {
@@ -70,6 +121,11 @@ function normalizeCapabilities(
   return {
     domains: new Set((raw.domains ?? []).map(normalizeHost)),
     baseDomains: new Set((raw.baseDomains ?? []).map(normalizeHost)),
+    routes: (raw.routes ?? []).map(route => ({
+      domains: new Set((route.domains ?? []).map(normalizeHost)),
+      baseDomains: new Set((route.baseDomains ?? []).map(normalizeHost)),
+      pathPrefixes: (route.pathPrefixes ?? []).map(normalizePathPrefix),
+    })),
     ttlMs: Math.max(1_000, ttlMs),
   };
 }
@@ -143,6 +199,14 @@ function dataLayerCapabilitiesMatchUrl(
   }
 
   const host = normalizeHost(parsed.hostname);
+  const pathname = parsed.pathname || "/";
+
+  if (capabilities.routes.length > 0) {
+    return capabilities.routes.some(route =>
+      dataLayerRouteMatchesUrl(route, host, pathname),
+    );
+  }
+
   if (capabilities.domains.has(host)) {
     return true;
   }
@@ -154,6 +218,28 @@ function dataLayerCapabilitiesMatchUrl(
   }
 
   return false;
+}
+
+function dataLayerRouteMatchesUrl(
+  route: DataLayerCapabilityRoute,
+  host: string,
+  pathname: string,
+): boolean {
+  const hostMatches =
+    route.domains.has(host) ||
+    [...route.baseDomains].some(
+      baseDomain => host === baseDomain || host.endsWith(`.${baseDomain}`),
+    );
+
+  if (!hostMatches) {
+    return false;
+  }
+
+  if (route.pathPrefixes.length === 0) {
+    return true;
+  }
+
+  return route.pathPrefixes.some(prefix => pathname.startsWith(prefix));
 }
 
 export async function isDataLayerSupportedUrl(
@@ -245,10 +331,64 @@ export function isSupportedDataLayerFormatRequest(
   });
 }
 
-export async function canUseDataLayerForRequest(
-  input: RouteInput,
-): Promise<boolean> {
-  if (input.flags?.enrichBeta !== true) {
+function getOrganizationDataSourceAccess(
+  flags: RouteInput["flags"],
+): OrganizationDataSourceAccessRecord | null {
+  const access = flags?.organizationDataSourceAccess;
+  if (typeof access !== "object" || access === null) {
+    return null;
+  }
+
+  for (const record of Object.values(access)) {
+    if (
+      typeof record === "object" &&
+      record !== null &&
+      record.termsKey === PROFESSIONAL_PROFILE_COMPANY_DATA_TERMS_SOURCE_ID
+    ) {
+      return record;
+    }
+  }
+
+  return null;
+}
+
+function hasCurrentOrganizationDataSourceTerms(
+  access: OrganizationDataSourceAccessRecord,
+  termsKey: string,
+  version: string,
+): boolean {
+  return access.termsKey === termsKey && access.termsVersion === version;
+}
+
+type DataSourceAccessDecision = "allowed" | "terms_required" | "not_enabled";
+
+function getProfessionalProfileCompanyDataDecision(
+  flags: RouteInput["flags"],
+): DataSourceAccessDecision {
+  if (config.USE_DB_AUTHENTICATION !== true) {
+    return "allowed";
+  }
+
+  const access = getOrganizationDataSourceAccess(flags);
+  if (access) {
+    if (access.status !== "enabled") {
+      return "not_enabled";
+    }
+
+    return hasCurrentOrganizationDataSourceTerms(
+      access,
+      PROFESSIONAL_PROFILE_COMPANY_DATA_TERMS_SOURCE_ID,
+      THIRD_PARTY_DATA_TERMS_VERSION,
+    )
+      ? "allowed"
+      : "terms_required";
+  }
+
+  return "terms_required";
+}
+
+function isDataLayerEligibleRequest(input: RouteInput): boolean {
+  if (input.flags?.[PROFESSIONAL_PROFILE_COMPANY_DATA_BETA_FLAG] !== true) {
     return false;
   }
 
@@ -288,7 +428,63 @@ export async function canUseDataLayerForRequest(
     return false;
   }
 
-  return isDataLayerSupportedUrl(input.url);
+  return true;
+}
+
+export async function getDataLayerAccessForRequest(input: RouteInput): Promise<
+  | {
+      allowed: true;
+      termsRequired: false;
+    }
+  | {
+      allowed: false;
+      termsRequired: boolean;
+    }
+> {
+  if (!isDataLayerEligibleRequest(input)) {
+    return { allowed: false, termsRequired: false };
+  }
+
+  const supported = await isDataLayerSupportedUrl(input.url);
+  if (!supported) {
+    return { allowed: false, termsRequired: false };
+  }
+
+  const dataSourceDecision = getProfessionalProfileCompanyDataDecision(
+    input.flags,
+  );
+  if (dataSourceDecision === "terms_required") {
+    return { allowed: false, termsRequired: true };
+  }
+  if (dataSourceDecision !== "allowed") {
+    return { allowed: false, termsRequired: false };
+  }
+
+  return { allowed: true, termsRequired: false };
+}
+
+export async function canUseDataLayerForRequest(
+  input: RouteInput,
+): Promise<boolean> {
+  return (await getDataLayerAccessForRequest(input)).allowed;
+}
+
+function getThirdPartyDataTermsSettingsUrl(): string {
+  return `${config.FIRECRAWL_DASHBOARD_URL.replace(/\/+$/, "")}/app/settings?tab=data-sources`;
+}
+
+export function getThirdPartyDataTermsRequiredResponse() {
+  return {
+    success: false,
+    code: THIRD_PARTY_DATA_TERMS_REQUIRED_CODE,
+    error: THIRD_PARTY_DATA_TERMS_REQUIRED_MESSAGE,
+    requiresAction: {
+      type: "accept_terms",
+      terms: PROFESSIONAL_PROFILE_COMPANY_DATA_TERMS_SOURCE_ID,
+      version: THIRD_PARTY_DATA_TERMS_VERSION,
+      url: getThirdPartyDataTermsSettingsUrl(),
+    },
+  };
 }
 
 export function getDataLayerSuccessCredits(input: {
@@ -314,6 +510,11 @@ export function getDataLayerSuccessCredits(input: {
 export function setDataLayerCapabilitiesForTest(input: {
   domains?: string[];
   baseDomains?: string[];
+  routes?: {
+    domains?: string[];
+    baseDomains?: string[];
+    pathPrefixes?: string[];
+  }[];
   ttlSeconds?: number;
 }) {
   cachedCapabilities = {

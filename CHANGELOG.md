@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-07-09 05:53 IST] Auto-Sync
+- **37 Repositories Updated:** Promptfoo, NVIDIA NeMo Guardrails, n8n, Activepieces, Trigger.dev, Windmill, Appsmith, ToolJet, Directus, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, run-llama/llama_index, openai/openai-agents-python, pydantic/pydantic-ai, VoltAgent, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, chroma-core/chroma, arize-ai/phoenix, affaan-m/everything-claude-code, firecrawl/firecrawl, openai/openai-node, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, vectorize-io/hindsight, nousresearch/hermes-agent
+
 ## [2026-07-08 22:58 IST] Auto-Sync
 - **41 Repositories Updated:** Kubernetes MCP Server, GitHub MCP Server, AI Tools System Prompts, Langfuse, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Budibase, Directus, modelcontextprotocol/java-sdk, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, VoltAgent, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, weaviate/weaviate, infiniflow/ragflow, Arize-ai/openinference, Jenqyang/Awesome-AI-Agents, firecrawl/firecrawl, googleapis/python-genai, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, ScrapeGraphAI/Scrapegraph-ai, nousresearch/hermes-agent
 

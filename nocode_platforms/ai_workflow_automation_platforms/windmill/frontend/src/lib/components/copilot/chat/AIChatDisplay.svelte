@@ -40,6 +40,7 @@
 	import ChatTypingIndicator from './ChatTypingIndicator.svelte'
 	import AIChatInput from './AIChatInput.svelte'
 	import QueuedMessageChip from './QueuedMessageChip.svelte'
+	import JobsSegment from './JobsSegment.svelte'
 	import { getModifierKey } from '$lib/utils'
 	import type { SelectedContext } from './app/core'
 	import AttachedFilesBar from './files/AttachedFilesBar.svelte'
@@ -591,7 +592,11 @@ the panel, or the Escape-to-stop focus check would wrongly reject them. -->
 
 	{#if messages.length > 0}
 		<div class="flex-1 min-h-0 relative">
-			<div class="absolute inset-0 overflow-y-scroll pt-2" bind:this={scrollEl} onscroll={onScroll}>
+			<div
+				class="absolute inset-0 overflow-y-scroll pt-2 scrollbar-subtle"
+				bind:this={scrollEl}
+				onscroll={onScroll}
+			>
 				<div
 					class={wideLayout
 						? 'w-full max-w-3xl mx-auto px-7 flex flex-col pb-2'
@@ -699,6 +704,13 @@ the panel, or the Escape-to-stop focus check would wrongly reject them. -->
 		{/if}
 		<div>
 			<QueuedMessageChip />
+			{#if aiChatManager.mode === AIMode.GLOBAL && !aiChatManager.isSessionChat}
+				<!-- Standalone Jobs bar for the global side-panel chat. In /sessions the
+				     Jobs segment lives inside the session bar (SessionChangesBar). -->
+				<div class="mb-1">
+					<JobsSegment standalone />
+				</div>
+			{/if}
 			{#if aiChatManager.mode === AIMode.GLOBAL}
 				<!-- In sessions, file chips sit above the fork/draft bar (inputPreface). Selected
 				     context gets no badge row here — items already appear as highlighted @mentions
