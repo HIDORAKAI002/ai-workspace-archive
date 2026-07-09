@@ -4,7 +4,7 @@ use crate::{
     CollectionsWithSegmentsProvider,
 };
 use backon::{ExponentialBuilder, Retryable};
-use chroma_api_types::HeartbeatResponse;
+use chroma_api_types::{HeartbeatResponse, OccReadMode, OccReadToken, StaleReadError};
 use chroma_config::{registry, Configurable};
 use chroma_error::{ChromaError, ErrorCodes};
 use chroma_log::{LocalCompactionManager, LocalCompactionManagerConfig, Log, PushLogsError};
@@ -12,44 +12,48 @@ use chroma_metering::{
     CollectionForkContext, CollectionReadContext, CollectionWriteContext, Enterable,
     ExternalCollectionReadContext, FinishRequest, FtsQueryLength, LatestCollectionLogicalSizeBytes,
     LogSizeBytes, MetadataPredicateCount, MeterEvent, MeteredFutureExt, PulledLogSizeBytes,
-    QueryEmbeddingCount, ReturnBytes, WriteAction,
+    QueryEmbeddingCount, ReadAction, ReturnBytes, WriteAction,
 };
 use chroma_segment::local_segment_manager::LocalSegmentManager;
 use chroma_sqlite::db::SqliteDb;
 use chroma_sysdb::{DatabaseOrTopology, GetCollectionsOptions, SysDb};
 use chroma_system::System;
+use chroma_types::chroma_proto::PushLogsCondition;
 use chroma_types::{
+    buffered_write_to_records,
     operator::{
         Aggregate, CountResult, Filter, GetResult, GroupBy, Key, KnnBatch, KnnBatchResult,
         KnnProjection, KnnProjectionOutput, Limit, Projection, ProjectionOutput, Scan,
         SearchPayloadResult, SearchRecord, SearchResult, Select,
     },
     plan::{Count, Get, Knn, Search, SearchPayload},
-    AddAttachedFunctionInputRequest, AddAttachedFunctionInputResponse, AddCollectionRecordsError,
-    AddCollectionRecordsRequest, AddCollectionRecordsResponse, AttachFunctionRequest,
-    AttachFunctionResponse, AttachedFunctionApiResponse, Cmek, Collection, CollectionAndSegments,
-    CollectionUuid, CountCollectionsError, CountCollectionsRequest, CountCollectionsResponse,
-    CountRequest, CountResponse, CreateCollectionError, CreateCollectionRequest,
-    CreateCollectionResponse, CreateDatabaseError, CreateDatabaseRequest, CreateDatabaseResponse,
-    CreateTenantError, CreateTenantRequest, CreateTenantResponse, DatabaseName,
-    DeleteCollectionError, DeleteCollectionRecordsError, DeleteCollectionRecordsRequest,
-    DeleteCollectionRecordsResponse, DeleteCollectionRequest, DeleteCollectionResponse,
-    DeleteDatabaseError, DeleteDatabaseRequest, DeleteDatabaseResponse, DetachFunctionError,
-    DetachFunctionRequest, DetachFunctionResponse, ExecutorError, ForkCollectionError,
-    ForkCollectionRequest, ForkCollectionResponse, GetCollectionByCrnError,
+    validate_conditional_commit_scope, AddAttachedFunctionInputRequest,
+    AddAttachedFunctionInputResponse, AddCollectionRecordsError, AddCollectionRecordsRequest,
+    AddCollectionRecordsResponse, AttachFunctionRequest, AttachFunctionResponse,
+    AttachedFunctionApiResponse, Cmek, Collection, CollectionAndSegments, CollectionUuid,
+    ConditionalBufferedWrite, ConditionalCommitError, ConditionalCommitRequest,
+    ConditionalCommitResult, ConditionalTransactionError, CountCollectionsError,
+    CountCollectionsRequest, CountCollectionsResponse, CountRequest, CountResponse,
+    CreateCollectionError, CreateCollectionRequest, CreateCollectionResponse, CreateDatabaseError,
+    CreateDatabaseRequest, CreateDatabaseResponse, CreateTenantError, CreateTenantRequest,
+    CreateTenantResponse, DatabaseName, DeleteCollectionError, DeleteCollectionRecordsError,
+    DeleteCollectionRecordsRequest, DeleteCollectionRecordsResponse, DeleteCollectionRequest,
+    DeleteCollectionResponse, DeleteDatabaseError, DeleteDatabaseRequest, DeleteDatabaseResponse,
+    DetachFunctionError, DetachFunctionRequest, DetachFunctionResponse, ExecutorError,
+    ForkCollectionError, ForkCollectionRequest, ForkCollectionResponse, GetCollectionByCrnError,
     GetCollectionByCrnRequest, GetCollectionByCrnResponse, GetCollectionByIdError,
     GetCollectionByIdRequest, GetCollectionByIdResponse, GetCollectionError, GetCollectionRequest,
     GetCollectionResponse, GetCollectionsError, GetDatabaseError, GetDatabaseRequest,
     GetDatabaseResponse, GetRequest, GetResponse, GetTenantError, GetTenantRequest,
     GetTenantResponse, HealthCheckResponse, HeartbeatError, Include, IndexStatusError,
     IndexStatusResponse, KnnIndex, ListCollectionsRequest, ListCollectionsResponse,
-    ListDatabasesError, ListDatabasesRequest, ListDatabasesResponse, OccReadMode, OccReadToken,
-    Operation, OperationRecord, QueryError, QueryRequest, QueryResponse, ResetError, ResetResponse,
-    Schema, SearchRequest, SearchResponse, SegmentType, StaleReadError, UpdateCollectionError,
-    UpdateCollectionRecordsError, UpdateCollectionRecordsRequest, UpdateCollectionRecordsResponse,
-    UpdateCollectionRequest, UpdateCollectionResponse, UpdateTenantError, UpdateTenantRequest,
-    UpdateTenantResponse, UpsertCollectionRecordsError, UpsertCollectionRecordsRequest,
-    UpsertCollectionRecordsResponse, Where,
+    ListDatabasesError, ListDatabasesRequest, ListDatabasesResponse, Operation, OperationRecord,
+    QueryError, QueryRequest, QueryResponse, ResetError, ResetResponse, Schema, SearchRequest,
+    SearchResponse, SegmentType, UpdateCollectionError, UpdateCollectionRecordsError,
+    UpdateCollectionRecordsRequest, UpdateCollectionRecordsResponse, UpdateCollectionRequest,
+    UpdateCollectionResponse, UpdateTenantError, UpdateTenantRequest, UpdateTenantResponse,
+    UpsertCollectionRecordsError, UpsertCollectionRecordsRequest, UpsertCollectionRecordsResponse,
+    Where,
 };
 use opentelemetry::global;
 use opentelemetry::metrics::Counter;
@@ -86,6 +90,45 @@ struct GetReadPlan {
     stale_read_token: Option<OccReadToken>,
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+struct ConditionalCommitWriteMetering {
+    add_log_size_bytes: u64,
+    update_log_size_bytes: u64,
+    upsert_log_size_bytes: u64,
+    delete_log_size_bytes: u64,
+}
+
+impl ConditionalCommitWriteMetering {
+    fn add_log_size_bytes(&mut self, action: WriteAction, log_size_bytes: u64) {
+        match action {
+            WriteAction::Add => {
+                self.add_log_size_bytes = self.add_log_size_bytes.saturating_add(log_size_bytes)
+            }
+            WriteAction::Update => {
+                self.update_log_size_bytes =
+                    self.update_log_size_bytes.saturating_add(log_size_bytes)
+            }
+            WriteAction::Upsert => {
+                self.upsert_log_size_bytes =
+                    self.upsert_log_size_bytes.saturating_add(log_size_bytes)
+            }
+            WriteAction::Delete => {
+                self.delete_log_size_bytes =
+                    self.delete_log_size_bytes.saturating_add(log_size_bytes)
+            }
+        }
+    }
+
+    fn into_events(self) -> [(WriteAction, u64); 4] {
+        [
+            (WriteAction::Add, self.add_log_size_bytes),
+            (WriteAction::Update, self.update_log_size_bytes),
+            (WriteAction::Upsert, self.upsert_log_size_bytes),
+            (WriteAction::Delete, self.delete_log_size_bytes),
+        ]
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct ServiceBasedFrontend {
     allow_reset: bool,
@@ -106,6 +149,28 @@ pub struct ServiceBasedFrontend {
 }
 
 impl ServiceBasedFrontend {
+    pub fn ensure_conditional_transactions_supported(
+        &self,
+    ) -> Result<(), ConditionalTransactionError> {
+        if self.log_client.supports_conditional_transactions() {
+            return Ok(());
+        }
+
+        Err(ConditionalTransactionError::UnsupportedLogImplementation {
+            implementation: self.log_client.implementation_name().to_string(),
+        })
+    }
+
+    pub fn ensure_conditional_commit_supported(&self) -> Result<(), ConditionalCommitError> {
+        if self.log_client.supports_conditional_transactions() {
+            return Ok(());
+        }
+
+        Err(ConditionalCommitError::TransactionsNotSupported {
+            implementation: self.log_client.implementation_name().to_string(),
+        })
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         allow_reset: bool,
@@ -1571,6 +1636,273 @@ impl ServiceBasedFrontend {
             .await
     }
 
+    fn buffered_write_action(write: &ConditionalBufferedWrite) -> WriteAction {
+        match write {
+            ConditionalBufferedWrite::Add(_) => WriteAction::Add,
+            ConditionalBufferedWrite::Update(_) => WriteAction::Update,
+            ConditionalBufferedWrite::Upsert(_) => WriteAction::Upsert,
+            ConditionalBufferedWrite::Delete(_) => WriteAction::Delete,
+        }
+    }
+
+    async fn validate_buffered_write_for_commit(
+        &mut self,
+        write: &ConditionalBufferedWrite,
+        database_name: DatabaseName,
+        collection_id: CollectionUuid,
+    ) -> Result<(), ConditionalCommitError> {
+        match write {
+            ConditionalBufferedWrite::Add(request) => {
+                self.validate_embedding(
+                    database_name,
+                    collection_id,
+                    Some(&request.embeddings),
+                    true,
+                    |embedding: &Vec<f32>| Some(embedding.len()),
+                )
+                .await
+                .map_err(|err| ConditionalCommitError::Other(Box::new(err)))?;
+            }
+            ConditionalBufferedWrite::Update(request) => {
+                self.validate_embedding(
+                    database_name,
+                    collection_id,
+                    request.embeddings.as_ref(),
+                    true,
+                    |embedding| embedding.as_ref().map(|emb| emb.len()),
+                )
+                .await
+                .map_err(|err| ConditionalCommitError::Other(Box::new(err)))?;
+            }
+            ConditionalBufferedWrite::Upsert(request) => {
+                self.validate_embedding(
+                    database_name,
+                    collection_id,
+                    Some(&request.embeddings),
+                    true,
+                    |embedding: &Vec<f32>| Some(embedding.len()),
+                )
+                .await
+                .map_err(|err| ConditionalCommitError::Other(Box::new(err)))?;
+            }
+            ConditionalBufferedWrite::Delete(_) => {}
+        }
+        Ok(())
+    }
+
+    async fn conditional_commit_observed_offset(
+        &mut self,
+        tenant_id: &str,
+        database_name: DatabaseName,
+        collection_id: CollectionUuid,
+        observed_log_offset: Option<i64>,
+    ) -> Result<i64, ConditionalCommitError> {
+        if let Some(observed_log_offset) = observed_log_offset {
+            return Ok(observed_log_offset);
+        }
+
+        let scouted_offset = self
+            .log_client
+            .scout_logs(tenant_id, database_name, collection_id, 0)
+            .await
+            .map_err(ConditionalCommitError::Other)?;
+        i64::try_from(scouted_offset).map_err(|_| {
+            ConditionalCommitError::InvalidArgument(format!(
+                "scouted log offset {scouted_offset} exceeds i64 range"
+            ))
+        })
+    }
+
+    async fn conditional_commit_append(
+        &mut self,
+        request: ConditionalCommitRequest,
+        region: &str,
+    ) -> Result<Option<i64>, ConditionalCommitError> {
+        let metering_started_at = Instant::now();
+        let expected_record_count = request.record_count();
+        let (tenant_id, database_name, collection_id) =
+            validate_conditional_commit_scope(&request)?;
+        let database_name_for_metering = database_name.as_ref().to_string();
+        let submit_read_metering = !request.read_ids.is_empty();
+        let collection = self
+            .get_cached_collection(database_name.clone(), collection_id)
+            .await
+            .map_err(|err| ConditionalCommitError::Other(Box::new(err)))?;
+        let latest_collection_logical_size_bytes = collection.size_bytes_post_compaction;
+
+        for write in &request.buffered_writes {
+            self.validate_buffered_write_for_commit(write, database_name.clone(), collection_id)
+                .await?;
+        }
+
+        let mut records = Vec::with_capacity(expected_record_count);
+        let mut write_metering = ConditionalCommitWriteMetering::default();
+        for write in request.buffered_writes {
+            let write_action = Self::buffered_write_action(&write);
+            let (mut write_records, write_log_size_bytes) = buffered_write_to_records(write)?;
+            write_metering.add_log_size_bytes(write_action, write_log_size_bytes);
+            records.append(&mut write_records);
+        }
+
+        let observed_log_offset = self
+            .conditional_commit_observed_offset(
+                &tenant_id,
+                database_name.clone(),
+                collection_id,
+                request.observed_log_offset,
+            )
+            .await?;
+        let condition = PushLogsCondition {
+            observed_log_offset,
+            read_ids: request.read_ids,
+        };
+        let cmek = collection
+            .schema
+            .as_ref()
+            .and_then(|schema| schema.cmek.clone());
+
+        let retries = Arc::new(AtomicUsize::new(0));
+        let commit_to_retry = || {
+            let mut self_clone = self.clone();
+            let tenant_id_clone = tenant_id.clone();
+            let database_name_clone = database_name.clone();
+            let records_clone = records.clone();
+            let cmek_clone = cmek.clone();
+            let condition_clone = condition.clone();
+            async move {
+                self_clone
+                    .log_client
+                    .push_logs_with_result(
+                        &tenant_id_clone,
+                        database_name_clone,
+                        collection_id,
+                        records_clone,
+                        cmek_clone,
+                        Some(condition_clone),
+                    )
+                    .await
+            }
+        };
+        let res = commit_to_retry
+            .retry(self.retries_builder)
+            .when(|e| matches!(e, PushLogsError::Backoff))
+            .notify(|_, _| {
+                let retried = retries.fetch_add(1, Ordering::Relaxed);
+                if retried > 0 {
+                    tracing::info!(
+                        "Retrying conditional commit request for collection {}",
+                        collection_id
+                    );
+                }
+            })
+            .await;
+
+        match res {
+            Ok(push_result) => {
+                if usize::try_from(push_result.record_count).ok() != Some(expected_record_count) {
+                    tracing::warn!(
+                        expected_record_count,
+                        reported_record_count = push_result.record_count,
+                        %tenant_id,
+                        ?database_name,
+                        %collection_id,
+                        "Log service reported a different conditional commit record count than requested"
+                    );
+                }
+
+                let metering_finished_at = Instant::now();
+                if submit_read_metering {
+                    let collection_read_context = CollectionReadContext::new(
+                        tenant_id.clone(),
+                        database_name_for_metering.clone(),
+                        collection_id.0.to_string(),
+                        ReadAction::Get,
+                        region.to_string(),
+                    );
+                    if let Err(error) = collection_read_context
+                        .request_received_at
+                        .store(metering_started_at)
+                    {
+                        tracing::error!(
+                            "Failed to set conditional commit read metering start time: {:?}",
+                            error
+                        );
+                    }
+                    collection_read_context.fts_query_length(0);
+                    collection_read_context.metadata_predicate_count(0);
+                    collection_read_context.query_embedding_count(0);
+                    collection_read_context.pulled_log_size_bytes(0);
+                    collection_read_context
+                        .latest_collection_logical_size_bytes(latest_collection_logical_size_bytes);
+                    collection_read_context.return_bytes(0);
+                    collection_read_context.finish_request(metering_finished_at);
+                    if let Ok(()) = MeterEvent::CollectionRead(collection_read_context)
+                        .submit()
+                        .await
+                    {
+                        self.metrics.metering_read_counter.add(1, &[]);
+                    }
+                }
+
+                for (action, log_size_bytes) in write_metering.into_events() {
+                    if log_size_bytes == 0 {
+                        continue;
+                    }
+                    let collection_write_context = CollectionWriteContext::new(
+                        tenant_id.clone(),
+                        database_name_for_metering.clone(),
+                        collection_id.0.to_string(),
+                        action,
+                        region.to_string(),
+                    );
+                    if let Err(error) = collection_write_context
+                        .request_received_at
+                        .store(metering_started_at)
+                    {
+                        tracing::error!(
+                            "Failed to set conditional commit write metering start time: {:?}",
+                            error
+                        );
+                    }
+                    collection_write_context.log_size_bytes(log_size_bytes);
+                    collection_write_context.finish_request(metering_finished_at);
+                    if let Ok(()) = MeterEvent::CollectionWrite(collection_write_context)
+                        .submit()
+                        .await
+                    {
+                        self.metrics.metering_write_counter.add(1, &[]);
+                    }
+                }
+
+                Ok(push_result.first_inserted_record_offset)
+            }
+            Err(PushLogsError::Backoff | PushLogsError::BackoffCompaction) => {
+                Err(ConditionalCommitError::Backoff)
+            }
+            Err(other) => Err(ConditionalCommitError::Other(Box::new(other))),
+        }
+    }
+
+    pub async fn conditional_commit(
+        &mut self,
+        request: ConditionalCommitRequest,
+        region: String,
+    ) -> Result<ConditionalCommitResult, ConditionalCommitError> {
+        self.ensure_conditional_commit_supported()?;
+        if request.buffered_writes.is_empty() {
+            return Ok(ConditionalCommitResult {
+                first_inserted_record_offset: None,
+                record_count: 0,
+            });
+        }
+        let record_count = request.record_count();
+        let first_inserted_record_offset = self.conditional_commit_append(request, &region).await?;
+        Ok(ConditionalCommitResult {
+            first_inserted_record_offset,
+            record_count,
+        })
+    }
+
     pub async fn add(
         &mut self,
         AddCollectionRecordsRequest {
@@ -3023,12 +3355,147 @@ mod tests {
     use super::*;
 
     #[test]
+    fn conditional_commit_record_conversion_preserves_order_and_delete_shape() {
+        let collection_id = CollectionUuid::default();
+        let add = AddCollectionRecordsRequest::try_new(
+            "tenant".to_string(),
+            "database".to_string(),
+            collection_id,
+            vec!["add-a".to_string(), "add-b".to_string()],
+            vec![vec![1.0], vec![2.0]],
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        let update = UpdateCollectionRecordsRequest::try_new(
+            "tenant".to_string(),
+            "database".to_string(),
+            collection_id,
+            vec!["update".to_string()],
+            Some(vec![Some(vec![3.0])]),
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        let delete = DeleteCollectionRecordsRequest::try_new(
+            "tenant".to_string(),
+            "database".to_string(),
+            collection_id,
+            Some(vec!["delete".to_string()]),
+            None,
+            None,
+        )
+        .unwrap();
+
+        let mut records = Vec::new();
+        for write in [
+            ConditionalBufferedWrite::Add(add),
+            ConditionalBufferedWrite::Update(update),
+            ConditionalBufferedWrite::Delete(delete),
+        ] {
+            records.extend(buffered_write_to_records(write).unwrap().0);
+        }
+        let got = records
+            .into_iter()
+            .map(|record| {
+                (
+                    record.id,
+                    record.embedding,
+                    record.encoding,
+                    record.metadata,
+                    record.document,
+                    record.operation,
+                )
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            got,
+            vec![
+                (
+                    "add-a".to_string(),
+                    Some(vec![1.0]),
+                    Some(chroma_types::ScalarEncoding::FLOAT32),
+                    Some(chroma_types::UpdateMetadata::new()),
+                    None,
+                    Operation::Add,
+                ),
+                (
+                    "add-b".to_string(),
+                    Some(vec![2.0]),
+                    Some(chroma_types::ScalarEncoding::FLOAT32),
+                    Some(chroma_types::UpdateMetadata::new()),
+                    None,
+                    Operation::Add,
+                ),
+                (
+                    "update".to_string(),
+                    Some(vec![3.0]),
+                    Some(chroma_types::ScalarEncoding::FLOAT32),
+                    Some(chroma_types::UpdateMetadata::new()),
+                    None,
+                    Operation::Update,
+                ),
+                (
+                    "delete".to_string(),
+                    None,
+                    None,
+                    None,
+                    None,
+                    Operation::Delete,
+                ),
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn conditional_commit_unsupported_log_returns_transactions_not_supported() {
+        let registry = Registry::new();
+        let system = System::new();
+        let config = FrontendConfig::sqlite_in_memory();
+        let mut frontend = ServiceBasedFrontend::try_from_config(&(config, system), &registry)
+            .await
+            .unwrap();
+
+        let err = frontend
+            .conditional_commit(
+                ConditionalCommitRequest {
+                    buffered_writes: Vec::new(),
+                    observed_log_offset: None,
+                    read_ids: Vec::new(),
+                },
+                String::new(),
+            )
+            .await
+            .unwrap_err();
+
+        assert!(matches!(
+            err,
+            ConditionalCommitError::TransactionsNotSupported { ref implementation }
+                if implementation == "sqlite"
+        ));
+        assert_eq!(ErrorCodes::Unimplemented, err.code());
+    }
+
+    #[test]
     fn occ_read_capture_plan_uses_exact_scouted_offset() {
         let plan = ServiceBasedFrontend::get_read_plan(true, OccReadMode::Capture, Some(42))
             .expect("capture should succeed with scouting enabled");
         let token = OccReadToken::try_new(42).unwrap();
         assert_eq!(plan.log_upper_bound_offset, 42);
         assert_eq!(plan.response_read_token, Some(token));
+        assert_eq!(plan.stale_read_token, Some(token));
+    }
+
+    #[test]
+    fn occ_read_at_token_plan_uses_token_offset() {
+        let token = OccReadToken::try_new(42).unwrap();
+        let plan = ServiceBasedFrontend::get_read_plan(true, OccReadMode::AtToken(token), Some(99))
+            .expect("read at token should use the supplied token");
+        assert_eq!(plan.log_upper_bound_offset, 42);
+        assert_eq!(plan.response_read_token, None);
         assert_eq!(plan.stale_read_token, Some(token));
     }
 
