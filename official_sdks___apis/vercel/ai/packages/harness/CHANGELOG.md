@@ -1,5 +1,19 @@
 # @ai-sdk/harness
 
+## 1.0.25
+
+### Patch Changes
+
+- 44e988a: fix(harness): fix harness tool approval regression
+
+## 1.0.24
+
+### Patch Changes
+
+- Updated dependencies [b9ac19f]
+- Updated dependencies [a4186d6]
+  - ai@7.0.20
+
 ## 1.0.23
 
 ### Patch Changes

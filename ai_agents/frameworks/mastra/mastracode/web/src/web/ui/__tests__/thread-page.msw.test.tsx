@@ -221,7 +221,7 @@ describe('MastraCode thread pages', () => {
     expect(await screen.findByRole('heading', { name: 'What do you want to work on?' })).toBeInTheDocument();
     expect(screen.getAllByPlaceholderText(/Ask Mastra Code/)).toHaveLength(1);
     const draftRegion = screen.getByRole('region', { name: 'What do you want to work on?' });
-    expect(within(draftRegion).getByRole('textbox')).toHaveAttribute('rows', '4');
+    expect(within(draftRegion).getByRole('textbox')).toHaveClass('field-sizing-content', 'min-h-28');
     expect(within(draftRegion).getByText('MastraCode Test')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/new');
     expect(screen.queryByText('Reply from thread one')).not.toBeInTheDocument();
@@ -310,16 +310,15 @@ describe('MastraCode thread pages', () => {
     await expectPathname(router, '/new');
   });
 
-  it('given an unknown thread deep link, then the URL falls back to /new with an error notice in route state', async () => {
+  it('given an unknown thread deep link, then the URL settles on the most recent thread in scope', async () => {
     const captured = useAgentControllerHandlers({ failSwitchFor: ['nope'] });
     const { router } = renderRoutes('/threads/nope');
 
-    await expectPathname(router, '/new');
-    await waitFor(() =>
-      expect((router.state.location.state as { routeErrorNotice?: string } | null)?.routeErrorNotice).toMatch(
-        /Failed to switch thread/,
-      ),
-    );
+    // Threads are scoped per worktree, so an unknown route thread is the
+    // normal outcome of a worktree switch: settle on the scope's most recent
+    // thread instead of bouncing through /new with an error.
+    await expectPathname(router, `/threads/${threadOne.id}`);
+    await waitFor(() => expect(screen.getByText('Reply from thread one')).toBeInTheDocument());
     expect(captured.switched).not.toContain('nope');
   });
 });

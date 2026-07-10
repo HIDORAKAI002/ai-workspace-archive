@@ -8,7 +8,6 @@ import { NotificationType } from "../../types";
 import { logger } from "../../../src/lib/logger";
 import { sendSlackWebhook } from "../alerts/slack";
 import { getNotificationString } from "./notification_string";
-import { AuthCreditUsageChunk } from "../../controllers/v1/types";
 import { redlock } from "../redlock";
 import { redisEvictConnection } from "../redis";
 import { trackEvent } from "../ledger/tracking";
@@ -80,7 +79,6 @@ export async function sendNotification(
   notificationType: NotificationType,
   startDateString: string | null,
   endDateString: string | null,
-  chunk: AuthCreditUsageChunk,
   bypassRecentChecks: boolean = false,
   is_ledger_enabled: boolean = false,
   context: NotificationContext = {},
@@ -90,7 +88,6 @@ export async function sendNotification(
     notificationType,
     startDateString,
     endDateString,
-    chunk,
     bypassRecentChecks,
     is_ledger_enabled,
     context,
@@ -210,7 +207,6 @@ async function sendNotificationInternal(
   notificationType: NotificationType,
   startDateString: string | null,
   endDateString: string | null,
-  chunk: AuthCreditUsageChunk,
   bypassRecentChecks: boolean = false,
   is_ledger_enabled: boolean = false,
   context: NotificationContext = {},
@@ -334,7 +330,7 @@ async function sendNotificationInternal(
 
       if (config.SLACK_ADMIN_WEBHOOK_URL && emails.length > 0) {
         sendSlackWebhook(
-          `${getNotificationString(notificationType)}: Team ${team_id}, with email ${emails[0].email}. Number of credits used: ${chunk.adjusted_credits_used} | Number of credits in the plan: ${chunk.price_credits}`,
+          `${getNotificationString(notificationType)}: Team ${team_id}, with email ${emails[0].email}`,
           false,
           config.SLACK_ADMIN_WEBHOOK_URL,
         ).catch(error => {

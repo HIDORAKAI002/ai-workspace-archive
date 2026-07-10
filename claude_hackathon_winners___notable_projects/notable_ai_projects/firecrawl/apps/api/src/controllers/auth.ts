@@ -9,7 +9,7 @@ import { getAgentSponsorStatus } from "../services/agent-sponsor";
 import { getRedisConnection } from "../services/queue-service";
 import { getRateLimiter } from "../services/rate-limiter";
 import {
-  KEYLESS_CREDITS_MESSAGE,
+  KEYLESS_FREE_TIER_LIMIT_MESSAGE,
   consumeKeylessRequest,
   isKeylessConfigured,
   isKeylessIpEligible,
@@ -36,7 +36,7 @@ function normalizedApiIsUuid(potentialUuid: string): boolean {
   return isValidUuid(potentialUuid);
 }
 
-export async function setCachedACUC(
+async function setCachedACUC(
   api_key: string,
   is_extract: boolean,
   acuc:
@@ -97,14 +97,8 @@ const mockPreviewACUC: (
     extractAgentPreview: 1,
     scrapeAgentPreview: 5,
   },
-  price_credits: 99999999,
   price_should_be_graceful: false,
   price_associated_auto_recharge_price_id: null,
-  credits_used: 0,
-  coupon_credits: 99999999,
-  adjusted_credits_used: 0,
-  remaining_credits: 99999999,
-  total_credits_sum: 99999999,
   plan_priority: {
     bucketLimit: 25,
     planModifier: 0.1,
@@ -137,14 +131,8 @@ const mockACUC: () => AuthCreditUsageChunk = () => ({
     extractAgentPreview: 99999999,
     scrapeAgentPreview: 99999999,
   },
-  price_credits: 99999999,
   price_should_be_graceful: false,
   price_associated_auto_recharge_price_id: null,
-  credits_used: 0,
-  coupon_credits: 99999999,
-  adjusted_credits_used: 0,
-  remaining_credits: 99999999,
-  total_credits_sum: 99999999,
   plan_priority: {
     bucketLimit: 25,
     planModifier: 0.1,
@@ -325,7 +313,7 @@ export async function getACUC(
   }
 }
 
-export async function setCachedACUCTeam(
+async function setCachedACUCTeam(
   team_id: string,
   is_extract: boolean,
   acuc:
@@ -472,9 +460,10 @@ export async function clearACUCTeam(team_id: string): Promise<void> {
   await getRedisConnection().sadd("billed_teams", team_id);
 }
 
-const KEYLESS_REQUESTS_MESSAGE = `You've reached today's limit of free, unauthenticated requests to Firecrawl. Sign up for a free API key at https://firecrawl.dev for 1000 more credits and higher rate limits for free. (If you're an agent, you can also use https://firecrawl.dev/auth.md)`;
+const KEYLESS_ENDPOINT_NOT_AVAILABLE_MESSAGE = `This endpoint is not supported by the keyless free tier. Sign up for a free API key at https://www.firecrawl.dev/signin for more endpoints, more usage, and higher rate limits.
 
-const KEYLESS_ENDPOINT_NOT_AVAILABLE_MESSAGE = `This endpoint is not available without an API key. Sign up for a free API key at https://firecrawl.dev for 1000 more credits and higher rate limits for free. (If you're an agent, you can also use https://firecrawl.dev/auth.md)`;
+Then authenticate with:
+Authorization: Bearer YOUR_API_KEY`;
 
 const KEYLESS_SUSPICIOUS_IP_MESSAGE = `Unfortunately, your IP address looks suspicious, so Firecrawl can't be used without an API key from here. Sign up for a free API key at https://firecrawl.dev for 1000 credits and higher rate limits for free. (If you're an agent, you can also use https://firecrawl.dev/auth.md)`;
 
@@ -604,10 +593,7 @@ async function handleKeylessAuth(
     });
     return {
       success: false,
-      error:
-        result.reason === "credits"
-          ? KEYLESS_CREDITS_MESSAGE
-          : KEYLESS_REQUESTS_MESSAGE,
+      error: KEYLESS_FREE_TIER_LIMIT_MESSAGE,
       status: 429,
       // Out of free quota — emit the OAuth-discovery header so agents can find
       // the key/signup flow at the moment they actually need a key.

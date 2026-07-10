@@ -14,6 +14,8 @@ mod extension;
 mod meta;
 mod mrtr;
 mod prompt;
+#[cfg(feature = "request-state")]
+mod request_state;
 mod resource;
 mod serde_impl;
 mod task;
@@ -26,6 +28,8 @@ pub use extension::*;
 pub use meta::*;
 pub use mrtr::*;
 pub use prompt::*;
+#[cfg(feature = "request-state")]
+pub use request_state::*;
 pub use resource::*;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value;
@@ -167,6 +171,9 @@ impl ProtocolVersion {
     pub const V_2025_03_26: Self = Self(Cow::Borrowed("2025-03-26"));
     pub const V_2024_11_05: Self = Self(Cow::Borrowed("2024-11-05"));
     pub const LATEST: Self = Self::V_2025_11_25;
+
+    /// First protocol version that requires SEP-2243 standard HTTP headers.
+    pub const STANDARD_HEADERS: Self = Self::V_2026_07_28;
 
     /// All protocol versions known to this SDK.
     pub const KNOWN_VERSIONS: &[Self] = &[
@@ -512,6 +519,7 @@ pub struct JsonRpcNotification<N = Notification> {
 pub struct ErrorCode(pub i32);
 
 impl ErrorCode {
+    pub const HEADER_MISMATCH: Self = Self(-32020);
     pub const RESOURCE_NOT_FOUND: Self = Self(-32002);
     pub const INVALID_REQUEST: Self = Self(-32600);
     pub const METHOD_NOT_FOUND: Self = Self(-32601);
@@ -557,7 +565,9 @@ impl ErrorData {
     pub fn resource_not_found(message: impl Into<Cow<'static, str>>, data: Option<Value>) -> Self {
         Self::new(ErrorCode::RESOURCE_NOT_FOUND, message, data)
     }
-
+    pub fn header_mismatch(message: impl Into<Cow<'static, str>>, data: Option<Value>) -> Self {
+        Self::new(ErrorCode::HEADER_MISMATCH, message, data)
+    }
     pub fn parse_error(message: impl Into<Cow<'static, str>>, data: Option<Value>) -> Self {
         Self::new(ErrorCode::PARSE_ERROR, message, data)
     }
