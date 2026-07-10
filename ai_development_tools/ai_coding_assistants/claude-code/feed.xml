@@ -6,7 +6,40 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-07-08T21:21:58Z</updated>
+  <updated>2026-07-09T23:34:23Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.206</id>
+    <title>Claude Code v2.1.206</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.206"/>
+    <updated>2026-07-09T23:34:23Z</updated>
+    <content type="html">&lt;p&gt;• Added directory path suggestions to /cd, matching /add-dir behavior&lt;/p&gt;
+&lt;p&gt;• Added a /doctor check that proposes trimming checked-in CLAUDE.md files by cutting content Claude could derive from the codebase&lt;/p&gt;
+&lt;p&gt;• /commit-push-pr now auto-allows git push to the repo's configured push remote (remote.pushDefault, or the sole remote when only one is configured) in addition to origin&lt;/p&gt;
+&lt;p&gt;• Gateway: /login now supports Anthropic-operated public gateway endpoints&lt;/p&gt;
+&lt;p&gt;• EnterWorktree now asks for confirmation before entering a git worktree outside the project's .claude/worktrees/ directory&lt;/p&gt;
+&lt;p&gt;• Background agents now upgrade to a new version in the background right after a Claude Code update, instead of paying a slow stale-session upgrade when you attach&lt;/p&gt;
+&lt;p&gt;• Fixed an expired login failing every model with a misleading "There's an issue with the selected model" error instead of prompting to run /login&lt;/p&gt;
+&lt;p&gt;• Fixed claude --resume and --continue not responding to keyboard input on startup&lt;/p&gt;
+&lt;p&gt;• Fixed MCP servers configured via --mcp-config or .mcp.json ignoring a per-server request_timeout_ms, which caused long-running MCP tool calls to time out at the 60s default in fresh sessions&lt;/p&gt;
+&lt;p&gt;• Fixed CLAUDE_CODE_EXTRA_BODY being silently ignored by claude agents / --bg background workers; the shell-exported override now follows the dispatching session&lt;/p&gt;
+&lt;p&gt;• Fixed OAuth MCP servers requiring manual re-authentication after a single failed token refresh&lt;/p&gt;
+&lt;p&gt;• Fixed --permission-prompt-tool pointing at an MCP server crashing with "MCP tool not found" on cold start before the server finishes connecting&lt;/p&gt;
+&lt;p&gt;• Fixed /model picker rows printing a price for a different model than the row named, and stopped quoting first-party list prices on providers that don't bill them&lt;/p&gt;
+&lt;p&gt;• Fixed server-provided model rows being misplaced in the /model picker when an entitlement or allowlist restriction drops the row they were positioned against&lt;/p&gt;
+&lt;p&gt;• Fixed desktop sessions getting stuck showing "running" after a slash command was sent mid-turn&lt;/p&gt;
+&lt;p&gt;• Fixed keyboard input being ignored in the agents view when a setup prompt appeared before a bare claude --resume on Windows&lt;/p&gt;
+&lt;p&gt;• Fixed claude rm leaving the removed job in the daemon roster, causing the row to reappear in claude agents&lt;/p&gt;
+&lt;p&gt;• Fixed /remote-control showing "Unknown command" when logged out — it now explains how to sign in&lt;/p&gt;
+&lt;p&gt;• Fixed left arrow not stepping back out of a phase or agent in the workflow detail view&lt;/p&gt;
+&lt;p&gt;• Fixed /status listing the same broken-install warning twice&lt;/p&gt;
+&lt;p&gt;• Fixed false "disused plugin" tips and skewed disuse telemetry for LSP plugins&lt;/p&gt;
+&lt;p&gt;• Fixed /doctor's update check to compare Homebrew installs against their cask's channel instead of the settings channel&lt;/p&gt;
+&lt;p&gt;• Fixed the fullscreen jump-to-bottom pill suggesting Ctrl+End on macOS, not showing rebound chords, and wrapping over the transcript&lt;/p&gt;
+&lt;p&gt;• Bedrock: fixed a multi-minute startup hang when using an awsCredentialExport helper on networks with restricted egress&lt;/p&gt;
+&lt;p&gt;• Improved /code-review findings quality on claude-opus-4-8 across all effort levels&lt;/p&gt;
+&lt;p&gt;• Improved agents view: status column now uses full terminal width instead of truncating at 64 characters&lt;/p&gt;
+&lt;p&gt;• Changed agents view: Ctrl+X now permanently removes a completed session, and sessions no longer render twice; deleted background jobs stay deleted&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.205</id>
     <title>Claude Code v2.1.205</title>
@@ -461,20 +494,5 @@
 &lt;p&gt;• Fixed tab-indented code rendering with incorrect indentation in the Write (create-file) preview&lt;/p&gt;
 &lt;p&gt;• Fixed user prompts queued mid-turn not showing a full-width background highlight in the transcript&lt;/p&gt;
 &lt;p&gt;• Fixed the activity spinner's pulse dwelling on the wrong glyph size in Ghostty&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.179</id>
-    <title>Claude Code v2.1.179</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.179"/>
-    <updated>2026-06-16T20:22:06Z</updated>
-    <content type="html">&lt;p&gt;• Fixed mid-stream connection drops: partial responses are now preserved instead of showing a raw error, and the spinner no longer gets stuck at "running tool"&lt;/p&gt;
-&lt;p&gt;• Fixed mouse-wheel scrolling in WSL2 under Windows Terminal and VS Code (regression in 2.1.172)&lt;/p&gt;
-&lt;p&gt;• Fixed a sandbox denyRead/allowRead glob over a large directory tree making the Bash tool description enormous and the session unusable on Linux&lt;/p&gt;
-&lt;p&gt;• Fixed the feedback survey capturing a single-digit reply as a session rating immediately after a turn completes&lt;/p&gt;
-&lt;p&gt;• Fixed the welcome screen stacking multiple promotional banners — at most one promo now shows per session&lt;/p&gt;
-&lt;p&gt;• Fixed Ctrl+O not showing the subagent's transcript when viewing a subagent&lt;/p&gt;
-&lt;p&gt;• Fixed clicking the prompt input not returning focus from the subagent/footer panel&lt;/p&gt;
-&lt;p&gt;• Fixed remote session background tasks appearing stuck as "still running" between turns&lt;/p&gt;
-&lt;p&gt;• Improved plugin loading performance in remote sessions&lt;/p&gt;</content>
   </entry>
 </feed>
