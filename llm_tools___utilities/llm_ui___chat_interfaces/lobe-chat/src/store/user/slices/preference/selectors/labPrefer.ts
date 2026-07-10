@@ -3,9 +3,9 @@ import { DEFAULT_PREFERENCE } from '@lobechat/const';
 import { type UserState } from '@/store/user/initialState';
 
 export const labPreferSelectors = {
-  enableAgentDocumentFloatingChatPanel: (s: UserState): boolean =>
-    s.preference.lab?.enableAgentDocumentFloatingChatPanel ??
-    DEFAULT_PREFERENCE.lab?.enableAgentDocumentFloatingChatPanel ??
+  enableAgentGraphConfig: (s: UserState): boolean =>
+    s.preference.lab?.enableAgentGraphConfig ??
+    DEFAULT_PREFERENCE.lab?.enableAgentGraphConfig ??
     false,
   enableAgentSelfIteration: (s: UserState): boolean =>
     s.preference.lab?.enableAgentSelfIteration ?? false,
