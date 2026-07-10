@@ -34,6 +34,7 @@ import { ssoRedirectForEmail } from "~/services/ssoAutoDiscovery.server";
 import { logger, tryCatch } from "@trigger.dev/core/v3";
 import { env } from "~/env.server";
 import { extractClientIp } from "~/utils/extractClientIp.server";
+import { magicLinkEmailCookie } from "./magicLinkEmailCookie.server";
 
 export const meta: MetaFunction = ({ matches }) => {
   const parentMeta = matches
@@ -73,14 +74,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // confirmation renders the flashed error as magicLinkError below.
   const url = new URL(request.url);
   const sanitized = sanitizeRedirectPath(url.searchParams.get("redirectTo"));
-  // The email-link strategy stores the submitted address in the session
-  // (`auth:email`) alongside the magic-link key, so read it from there to name
-  // the confirmation — no address in the URL, and no separate cookie to leak
-  // into the client bundle. Validate before echoing it back.
-  const emailValue = session.get("auth:email");
+  // The submitted address is carried in a short-lived cookie (not the URL) so
+  // the confirmation can name it. Validate before echoing it back.
+  const emailCookie = await magicLinkEmailCookie.parse(request.headers.get("Cookie"));
   const email =
-    typeof emailValue === "string" && z.string().email().safeParse(emailValue).success
-      ? emailValue
+    typeof emailCookie === "string" && z.string().email().safeParse(emailCookie).success
+      ? emailCookie
       : null;
   if (!session.has("triggerdotdev:magiclink")) {
     // Throw (not return) so the redirect doesn't widen the loader's return
@@ -92,6 +91,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   const error = session.get("auth:error");
+  // Same migration hygiene as /login: pre-fix sessions stored this with
+  // set(), which get() doesn't clear — unset so the commit below removes it.
+  session.unset("auth:error");
 
   const redirectTo = sanitized === "/" ? null : sanitized;
   const headers = new Headers();
@@ -142,7 +144,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!result.success) {
     const session = await getUserSession(request);
-    session.set("auth:error", {
+    // flash, not set: a set() key survives every later read/commit, so the
+    // error would reappear on each /login visit long after the failed attempt.
+    session.flash("auth:error", {
       message: "Please enter a valid email address.",
     });
 
@@ -192,7 +196,8 @@ export async function action({ request }: ActionFunctionArgs) {
               : "Failed sending magic link. Please try again shortly.";
 
           const session = await getUserSession(request);
-          session.set("auth:error", {
+          // flash, not set — same one-shot semantics as the validation error above.
+          session.flash("auth:error", {
             message: errorMessage,
           });
 
@@ -216,13 +221,20 @@ export async function action({ request }: ActionFunctionArgs) {
         return redirect(ssoRedirect);
       }
 
-      // The email-link strategy stores the address in the session (`auth:email`)
-      // and throws its own redirect Response (with the committed session cookie),
-      // so return it directly — the confirmation reads the email from the session.
-      return await authenticator.authenticate("email-link", request, {
-        successRedirect: "/login/magic",
-        failureRedirect: "/login",
-      });
+      // authenticator.authenticate throws its redirect Response; attach the
+      // sent-to email as a short-lived cookie so the confirmation can name it
+      // without putting the address in the URL.
+      try {
+        return await authenticator.authenticate("email-link", request, {
+          successRedirect: "/login/magic",
+          failureRedirect: "/login",
+        });
+      } catch (thrown) {
+        if (thrown instanceof Response) {
+          thrown.headers.append("Set-Cookie", await magicLinkEmailCookie.serialize(email));
+        }
+        throw thrown;
+      }
     }
     case "reset":
     default: {

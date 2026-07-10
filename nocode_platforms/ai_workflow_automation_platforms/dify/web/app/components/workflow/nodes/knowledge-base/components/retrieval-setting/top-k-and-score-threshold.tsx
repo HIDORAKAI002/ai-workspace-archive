@@ -55,10 +55,10 @@ export function TopKAndScoreThreshold({
   readonly,
 }: TopKAndScoreThresholdProps) {
   const { t } = useTranslation()
-  const topKLabel = t('datasetConfig.top_k', { ns: 'appDebug' })
-  const scoreThresholdLabel = t('datasetConfig.score_threshold', { ns: 'appDebug' })
-  const topKTip = t('datasetConfig.top_kTip', { ns: 'appDebug' })
-  const scoreThresholdTip = t('datasetConfig.score_thresholdTip', { ns: 'appDebug' })
+  const topKLabel = t($ => $['datasetConfig.top_k'], { ns: 'appDebug' })
+  const scoreThresholdLabel = t($ => $['datasetConfig.score_threshold'], { ns: 'appDebug' })
+  const topKTip = t($ => $['datasetConfig.top_kTip'], { ns: 'appDebug' })
+  const scoreThresholdTip = t($ => $['datasetConfig.score_thresholdTip'], { ns: 'appDebug' })
   const scoreThresholdHidden = scoreThreshold.hidden === true
   const scoreThresholdEnabled = scoreThresholdHidden ? false : (scoreThreshold.enabled ?? false)
 
@@ -72,7 +72,6 @@ export function TopKAndScoreThreshold({
           <Infotip
             aria-label={topKTip}
             className="ml-0.5 size-3.5"
-            iconClassName="h-3.5 w-3.5"
           >
             {topKTip}
           </Infotip>
@@ -115,7 +114,6 @@ export function TopKAndScoreThreshold({
                   <Infotip
                     aria-label={scoreThresholdTip}
                     className="ml-0.5 size-3.5"
-                    iconClassName="h-3.5 w-3.5"
                   >
                     {scoreThresholdTip}
                   </Infotip>

@@ -23,6 +23,7 @@
 	import { goto } from '$lib/navigation'
 	import SessionWrapper from '$lib/components/sessions/SessionWrapper.svelte'
 	import PreviewTabHost from '$lib/components/sessions/PreviewTabHost.svelte'
+	import { useIsDarkMode } from '$lib/components/DarkModeObserver.svelte'
 	import {
 		createSession,
 		getEffectiveWorkspaceId,
@@ -38,7 +39,8 @@
 	import {
 		getOrCreateRuntime,
 		getRuntime,
-		listRuntimes
+		listRuntimes,
+		type SessionRuntime
 	} from '$lib/components/sessions/sessionRuntime.svelte'
 	import { markSessionSeen } from '$lib/components/sessions/sessionUnread.svelte'
 	import { isGlobalAiEnabled } from '$lib/components/copilot/chat/global/gate'
@@ -48,7 +50,7 @@
 		matchPreviewPage,
 		pageKey,
 		parsePreviewItemRoute,
-		previewLocationLabel,
+		previewTabLabel,
 		type PreviewTarget
 	} from '$lib/components/sessions/previewRouter'
 	import { toolReloadEffect, tabsToReload } from '$lib/components/sessions/previewReload'
@@ -56,6 +58,10 @@
 	import { splitterPointerCapture } from '$lib/utils/splitterPointerCapture'
 
 	const globalEnabled = isGlobalAiEnabled()
+
+	// One observer shared by every tab host, which mirrors it into page iframes
+	// (see PreviewTabHost).
+	const isDarkMode = useIsDarkMode()
 
 	// The sessions page hosts preview iframes that load Windmill pages. If one of
 	// those iframes navigates back to /sessions, mounting the full UI again would
@@ -243,7 +249,7 @@
 	// Adapt the session tab model to DraggableTabs items (labels derived from the
 	// observed location; every tab closable, none pinned).
 	const previewTabItems = $derived<TabItem[]>(
-		(owner?.tabs ?? []).map((t) => ({ id: t.id, label: tabLabel(t.loc) }))
+		(owner?.tabs ?? []).map((t) => ({ id: t.id, label: tabLabelFor(activeRuntime, t.loc) }))
 	)
 	let newTabOpen = $state(false)
 	// Separate open flag for the empty-state launcher: it can be mounted at the
@@ -266,19 +272,43 @@
 	// null = let Splitpanes auto-distribute (initial even split).
 	let previewPaneSize = $state<number | null>(null)
 	let chatPaneSize = $state<number | null>(null)
-	let lastExpandedPreviewSize = 50
+	// Even split for a session with no saved width. Effect A's seed and effect B's
+	// write-back-skip guard must share this exact value, or B persists the default
+	// and breaks the never-resized (undefined) invariant.
+	const DEFAULT_SPLIT = 50
+	let lastExpandedPreviewSize = DEFAULT_SPLIT
+	// Which owner previewPaneSize is currently seeded for. The Pane is shared across
+	// warm sessions, so we reseed the expanded width when the active session changes.
+	let seededOwner: SessionPreviewTabs | undefined = undefined
+
+	// Effect A — layout: reseed on session switch, then apply collapse/fullscreen.
 	$effect(() => {
+		const o = owner
 		const collapsed = previewCollapsed
 		const full = fullscreen
 		untrack(() => {
+			const switched = o !== seededOwner
+			if (switched) {
+				seededOwner = o
+				// Read the saved size UNTRACKED: this must not re-run when effect B
+				// writes it back, or the two effects loop.
+				lastExpandedPreviewSize = o?.previewSize ?? DEFAULT_SPLIT
+				// Seed the pane for the incoming session on the switch frame. The
+				// collapsed case seeds 0, so the capture below never captures the
+				// outgoing session's leftover width as this session's.
+				previewPaneSize = collapsed ? 0 : lastExpandedPreviewSize
+			}
+			// effect A doesn't track previewPaneSize, so a drag never re-runs it: this is
+			// the only place the live width is saved before a sentinel (collapse→0 /
+			// fullscreen→100) overwrites it. The switch-frame value is the seed, not a drag.
+			if (!switched && previewPaneSize && previewPaneSize > 0 && previewPaneSize < 100) {
+				lastExpandedPreviewSize = previewPaneSize
+			}
 			if (full) {
 				// Chat pane is unmounted: the preview is the only pane and must own
 				// the full width, not its remembered split share.
 				previewPaneSize = 100
 			} else if (collapsed) {
-				if (previewPaneSize && previewPaneSize > 0 && previewPaneSize < 100) {
-					lastExpandedPreviewSize = previewPaneSize
-				}
 				previewPaneSize = 0
 				chatPaneSize = 100
 			} else {
@@ -286,6 +316,27 @@
 					previewPaneSize = lastExpandedPreviewSize
 				}
 				chatPaneSize = 100 - previewPaneSize
+			}
+		})
+	})
+
+	// Effect B — write-back: persist a genuine user-dragged width to the model.
+	$effect(() => {
+		const size = previewPaneSize
+		untrack(() => {
+			// Skip when size still matches the model's saved width, or the 50 default
+			// for a never-resized session (owner.previewSize === undefined): effect A's
+			// reseed sets previewPaneSize to exactly that, and persisting it would
+			// materialize the default and lose the "never resized" (undefined) state.
+			if (
+				!previewCollapsed &&
+				!fullscreen &&
+				size != null &&
+				size > 0 &&
+				size < 100 &&
+				size !== (owner?.previewSize ?? DEFAULT_SPLIT)
+			) {
+				owner?.setPreviewSize(size)
 			}
 		})
 	})
@@ -416,10 +467,13 @@
 		owner?.navigate(target)
 	}
 
-	// Short tab label: a known page's name, else a run detail, else the item's leaf
-	// name, else path.
-	function tabLabel(url: string): string {
-		return previewLocationLabel(url)
+	// Short tab label. For a raw-app tab, feed its own per-path cell so the tab is
+	// labelled by that app's pending draft path (a rename parked at `draft_<uuid>`),
+	// scoped to the tab's own runtime rather than another session's.
+	function tabLabelFor(rt: SessionRuntime | undefined, url: string): string {
+		const route = parsePreviewItemRoute(url)
+		const rawAppDraft = rt && route?.raw_app ? rt.rawAppCell(route.itemPath).store.val : undefined
+		return previewTabLabel(url, rawAppDraft)
 	}
 
 	// A link click inside a live editor (e.g. a subflow reference) re-points the
@@ -531,7 +585,7 @@
 		<div class="flex-1 min-h-0 flex flex-row relative" use:splitterPointerCapture>
 			<Splitpanes
 				horizontal={false}
-				class="flex-1 min-h-0 splitter-hidden {previewCollapsed ? 'splitter-off' : ''}"
+				class="flex-1 min-h-0 session-splitter {previewCollapsed ? 'splitter-off' : ''}"
 			>
 				{#if !fullscreen}
 					<!-- Chat column. Warm sessions stay mounted (stacked, visibility-toggled)
@@ -707,7 +761,8 @@
 											runtime={rt}
 											active={s.id === activeSession?.id && tab.id === tabs?.activeId}
 											mounted={mountedTabKeys.has(tabKey(s.id, tab.id))}
-											label={tabLabel(tab.loc)}
+											label={tabLabelFor(rt, tab.loc)}
+											darkMode={isDarkMode.val}
 											onNavigate={navigateEditorTo}
 											onLoad={(frame) => tabs && onTabLoad(tabs, tab, frame)}
 										/>
@@ -781,19 +836,30 @@
 </div>
 
 <style>
-	/* Invisible-but-draggable splitter between the chat and the preview: a real
-	   (layout-occupying) gutter, wide enough to grab. No overlap tricks — the
-	   zone can't cover the chat's scrollbar or the preview's edge. */
-	:global(.splitpanes--vertical.splitter-hidden) > :global(.splitpanes__splitter) {
+	/* Draggable gutter between the chat and the preview: a real (layout-occupying)
+	   10px-wide grab zone, no overlap tricks that could cover the chat's scrollbar
+	   or the preview's edge. Transparent at rest; on hover the app-global
+	   `.splitpanes__splitter::after` grabber fades in. Uses a dedicated class, not
+	   the shared `.splitter-hidden`, which force-zeroes splitter opacity and would
+	   hide that grabber. */
+	:global(.splitpanes--vertical.session-splitter) > :global(.splitpanes__splitter) {
 		background-color: transparent !important;
 		border: none !important;
-		opacity: 0 !important;
 		width: 10px !important;
+	}
+	/* Inset the global hover grabber from the pane's top/bottom edges so the line
+	   doesn't run the full height, and round its ends into a pill — a lighter,
+	   more contained hint. */
+	:global(.splitpanes--vertical.session-splitter) > :global(.splitpanes__splitter)::after {
+		top: 8px !important;
+		bottom: 8px !important;
+		height: auto !important;
+		border-radius: 9999px !important;
 	}
 
 	/* Collapsed preview: the pane is resized to 0 but stays mounted, so remove
-	   the (invisible) gutter entirely — it would otherwise leave a dead 10px
-	   drag zone on the chat's right edge. */
+	   the gutter entirely — it would otherwise leave a dead 10px drag zone on the
+	   chat's right edge. */
 	:global(.splitpanes--vertical.splitter-off) > :global(.splitpanes__splitter) {
 		display: none !important;
 	}

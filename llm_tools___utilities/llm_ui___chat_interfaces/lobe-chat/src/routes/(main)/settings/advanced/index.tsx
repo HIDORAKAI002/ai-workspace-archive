@@ -48,7 +48,7 @@ const Page = memo(() => {
 
   const [
     isPreferenceInit,
-    enableAgentDocumentFloatingChatPanel,
+    enableAgentGraphConfig,
     enableInputMarkdown,
     enablePlatformAgent,
     enableImessage,
@@ -58,7 +58,7 @@ const Page = memo(() => {
     updateLab,
   ] = useUserStore((s) => [
     preferenceSelectors.isPreferenceInit(s),
-    labPreferSelectors.enableAgentDocumentFloatingChatPanel(s),
+    labPreferSelectors.enableAgentGraphConfig(s),
     labPreferSelectors.enableInputMarkdown(s),
     labPreferSelectors.enablePlatformAgent(s),
     labPreferSelectors.enableImessage(s),
@@ -162,16 +162,16 @@ const Page = memo(() => {
     {
       children: (
         <Switch
-          checked={enableAgentDocumentFloatingChatPanel}
+          checked={enableAgentGraphConfig}
           loading={!isPreferenceInit}
-          onChange={(checked) => updateLab({ enableAgentDocumentFloatingChatPanel: checked })}
+          onChange={(checked: boolean) => updateLab({ enableAgentGraphConfig: checked })}
         />
       ),
       className: styles.labItem,
-      desc: tLabs('features.agentDocumentFloatingChatPanel.desc'),
-      label: tLabs('features.agentDocumentFloatingChatPanel.title'),
+      desc: tLabs('features.agentGraphConfig.desc'),
+      label: tLabs('features.agentGraphConfig.title'),
       minWidth: undefined,
-    },
+    } satisfies FormItemProps,
     {
       children: (
         <Switch
