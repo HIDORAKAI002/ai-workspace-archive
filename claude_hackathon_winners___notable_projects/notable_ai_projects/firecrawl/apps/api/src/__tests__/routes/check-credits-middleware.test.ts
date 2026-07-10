@@ -47,7 +47,7 @@ function buildReq(overrides: any = {}): any {
     path: "/v1/crawl",
     body: { limit: 100 },
     auth: { team_id: "team_test", org_id: "org_test" },
-    acuc: { adjusted_credits_used: 0 },
+    acuc: {},
     ...overrides,
   };
 }
@@ -116,7 +116,7 @@ describe("checkCreditsMiddleware – Autumn overage handling", () => {
     checkCreditsMock.mockResolvedValue({ allowed: true, remaining: 100 });
 
     const req = buildReq({
-      acuc: { adjusted_credits_used: 0, api_key_id: 4242 },
+      acuc: { api_key_id: 4242 },
     });
     await runMiddleware(req);
 
@@ -149,7 +149,6 @@ describe("checkCreditsMiddleware – unverified agent-key 50-credit cap", () => 
   function buildUnverifiedReq(overrides: any = {}) {
     return buildReq({
       acuc: {
-        adjusted_credits_used: 0,
         _agentSponsor: {
           status: "pending",
           verification_deadline: new Date(

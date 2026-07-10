@@ -77,10 +77,10 @@ export function checkCreditsMiddleware(
           }
 
           // Enforce 50-credit cap for unverified agent keys. Autumn is the
-          // source of truth for credit usage now (not ACUC.adjusted_credits_used):
-          // getTeamBalance().usage is the team's credits used this period. If
-          // Autumn is unavailable we fail open (skip the cap), matching the
-          // Autumn-outage behavior of the main credit check below.
+          // source of truth for credit usage: getTeamBalance().usage is the
+          // team's credits used this period. If Autumn is unavailable we fail
+          // open (skip the cap), matching the Autumn-outage behavior of the
+          // main credit check below.
           const UNVERIFIED_CREDIT_LIMIT = 50;
           let unverifiedCreditsUsed: number | null = null;
           try {
@@ -260,13 +260,6 @@ export function authMiddleware(
 
       req.auth = { team_id, org_id };
       req.acuc = chunk ?? undefined;
-      if (chunk) {
-        req.account = {
-          remainingCredits: chunk.price_should_be_graceful
-            ? chunk.remaining_credits + chunk.price_credits
-            : chunk.remaining_credits,
-        };
-      }
       next();
     })().catch(err => next(err));
   };

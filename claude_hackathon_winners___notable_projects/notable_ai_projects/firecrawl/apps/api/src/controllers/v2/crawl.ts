@@ -146,7 +146,10 @@ export async function crawlController(
     api_key_id: req.acuc?.api_key_id ?? null,
   });
 
-  let { remainingCredits } = req.account!;
+  // checkCreditsMiddleware (always runs before this controller) is the source
+  // of truth: Infinity when Autumn allows the request, the real remaining when
+  // it clamps a low-credit crawl. Default to no clamp if it's somehow unset.
+  let remainingCredits = req.account?.remainingCredits ?? Infinity;
   const useDbAuthentication = config.USE_DB_AUTHENTICATION;
   if (!useDbAuthentication) {
     remainingCredits = Infinity;

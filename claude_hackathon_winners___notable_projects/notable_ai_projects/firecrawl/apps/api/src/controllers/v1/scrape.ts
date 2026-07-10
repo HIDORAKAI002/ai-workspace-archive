@@ -29,7 +29,7 @@ import { getErrorContactMessage } from "../../lib/deployment";
 import { captureExceptionWithZdrCheck } from "../../services/sentry";
 import { getScrapeZDR } from "../../lib/zdr-helpers";
 import {
-  KEYLESS_CREDITS_MESSAGE,
+  KEYLESS_FREE_TIER_LIMIT_MESSAGE,
   adjustKeylessCredits,
   logKeylessCreditUsage,
   reserveKeylessCredits,
@@ -157,7 +157,7 @@ export async function scrapeController(
       applyAgentAuthDiscoveryHeader(res);
       return res.status(429).json({
         success: false,
-        error: KEYLESS_CREDITS_MESSAGE,
+        error: KEYLESS_FREE_TIER_LIMIT_MESSAGE,
       });
     }
     reservedKeylessCredits = projectedKeylessCredits;

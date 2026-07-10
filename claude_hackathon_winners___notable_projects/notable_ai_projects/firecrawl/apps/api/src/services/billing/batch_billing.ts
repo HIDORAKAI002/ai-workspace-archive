@@ -3,7 +3,6 @@ import { getRedisConnection } from "../queue-service";
 import { billTeam6 } from "../../db/rpc";
 import * as Sentry from "@sentry/node";
 import { withAuth } from "../../lib/withAuth";
-import { setCachedACUC, setCachedACUCTeam } from "../../controllers/auth";
 import {
   autumnService,
   featureIdForBillingEndpoint,
@@ -319,38 +318,6 @@ export async function queueBillingOperation(
       );
       await processBillingBatch();
     }
-    // TODO is there a better way to do this?
-
-    // Update cached credits used immediately to provide accurate feedback to users
-    // This is optimistic - actual billing happens in batch
-    // Should we add this?
-    // I guess batch is fast enough that it's fine
-
-    // if (config.USE_DB_AUTHENTICATION) {
-    //   (async () => {
-    //     // Get API keys for this team to update in cache
-    //     const { data } = await supabase_service
-    //       .from("api_keys")
-    //       .select("key")
-    //       .eq("team_id", team_id);
-
-    //     for (const apiKey of (data ?? []).map(x => x.key)) {
-    //       await setCachedACUC(apiKey, (acuc) =>
-    //         acuc
-    //           ? {
-    //               ...acuc,
-    //               credits_used: acuc.credits_used + credits,
-    //               adjusted_credits_used: acuc.adjusted_credits_used + credits,
-    //               remaining_credits: acuc.remaining_credits - credits,
-    //             }
-    //           : null,
-    //       );
-    //     }
-    //   })().catch(error => {
-    //     logger.error("Failed to update cached credits", { error, team_id });
-    //   });
-    // }
-
     return { success: true };
   } catch (error) {
     logger.error("Error queueing billing operation", { error, team_id });
@@ -412,34 +379,6 @@ async function supaBillTeam(
     .catch(err => {
       _logger.warn("Failed to add team to billed_teams set", { err, team_id });
     });
-
-  // Update cached ACUC to reflect the new credit usage
-  (async () => {
-    for (const apiKey of (data ?? []).map(x => x.api_key)) {
-      await setCachedACUC(apiKey, is_extract, acuc =>
-        acuc
-          ? {
-              ...acuc,
-              credits_used: acuc.credits_used + credits,
-              adjusted_credits_used: acuc.adjusted_credits_used + credits,
-              remaining_credits: acuc.remaining_credits - credits,
-            }
-          : null,
-      );
-      await setCachedACUCTeam(team_id, is_extract, acuc =>
-        acuc
-          ? {
-              ...acuc,
-              credits_used: acuc.credits_used + credits,
-              adjusted_credits_used: acuc.adjusted_credits_used + credits,
-              remaining_credits: acuc.remaining_credits - credits,
-            }
-          : null,
-      );
-    }
-  })().catch(error => {
-    _logger.error("Failed to update cached credits", { error, team_id });
-  });
 
   return { success: true, data };
 }

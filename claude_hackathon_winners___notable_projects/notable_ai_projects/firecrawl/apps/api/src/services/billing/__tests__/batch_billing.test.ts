@@ -11,8 +11,6 @@ const {
   trackCredits,
   refundCredits,
   billTeam6,
-  setCachedACUC,
-  setCachedACUCTeam,
 } = vi.hoisted(() => {
   const logger: any = {
     info: vi.fn(),
@@ -27,8 +25,6 @@ const {
     trackCredits: vi.fn<(args: any) => Promise<boolean>>(),
     refundCredits: vi.fn<(args: any) => Promise<void>>(),
     billTeam6: vi.fn<(params: any) => Promise<{ api_key: string }[]>>(),
-    setCachedACUC: vi.fn(),
-    setCachedACUCTeam: vi.fn(),
   };
 });
 
@@ -55,11 +51,6 @@ vi.mock("../../autumn/autumn.service", () => ({
 
 vi.mock("../../../db/rpc", () => ({
   billTeam6,
-}));
-
-vi.mock("../../../controllers/auth", () => ({
-  setCachedACUC,
-  setCachedACUCTeam,
 }));
 
 let queue: string[] = [];
