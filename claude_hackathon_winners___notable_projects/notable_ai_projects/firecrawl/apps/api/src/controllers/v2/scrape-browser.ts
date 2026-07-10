@@ -46,7 +46,7 @@ import { getScrapeZDR } from "../../lib/zdr-helpers";
 import { RequestWithAuth, ScrapeOptions } from "./types";
 import { billTeam } from "../../services/billing/credit_billing";
 import {
-  KEYLESS_CREDITS_MESSAGE,
+  KEYLESS_FREE_TIER_LIMIT_MESSAGE,
   adjustKeylessCredits,
   keylessTeamUuid,
   logKeylessCreditUsage,
@@ -219,7 +219,7 @@ export async function scrapeInteractController(
     if ("error" in created) {
       if (
         created.status === 429 &&
-        created.body.error === KEYLESS_CREDITS_MESSAGE
+        created.body.error === KEYLESS_FREE_TIER_LIMIT_MESSAGE
       ) {
         applyAgentAuthDiscoveryHeader(res);
       }
@@ -564,7 +564,7 @@ async function createSessionForScrape(
       status: 429,
       body: {
         success: false,
-        error: KEYLESS_CREDITS_MESSAGE,
+        error: KEYLESS_FREE_TIER_LIMIT_MESSAGE,
       },
       error: true,
     };

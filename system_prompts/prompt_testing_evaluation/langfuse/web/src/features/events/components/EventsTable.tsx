@@ -444,6 +444,8 @@ export default function ObservationsEventsTable({
       loading: isFilterOptionsPending,
       loadingColumns,
       implicitDefaultConfig: DEFAULT_SIDEBAR_IMPLICIT_ENVIRONMENT_CONFIG,
+      // v4 fast-mode surface — drives `isV4` on filters:* analytics (LFE-10781).
+      isV4: true,
     };
 
     if (peekContext) {
@@ -541,6 +543,7 @@ export default function ObservationsEventsTable({
     applyFilters: searchBarApplyFilters,
   } = useEventsSearchBar({
     projectId,
+    tableName: eventsFilterConfig.tableName,
     enabled: searchBarMode,
     filterState: queryFilter.explicitFilterState,
     searchQuery,
@@ -612,8 +615,13 @@ export default function ObservationsEventsTable({
     .concat(userIdFilter)
     .concat(sessionIdFilter);
 
-  // Use external filter state if provided, otherwise use combined filter state
-  const filterState = externalFilterState || combinedFilterState;
+  // Use external filter state if provided, otherwise use combined filter
+  // state. Even with an external filter, still apply the date-range bound so
+  // callers that pass an externalDateRange (e.g. the eval preview's "last 24
+  // hours" window) have it honored for the row query, not just score columns.
+  const filterState = externalFilterState
+    ? externalFilterState.concat(dateRangeFilter)
+    : combinedFilterState;
 
   // Use the custom hook for observations data fetching
   const {
@@ -1700,6 +1708,7 @@ export default function ObservationsEventsTable({
             {searchBarMode && (
               <EventsSearchBarRow
                 projectId={projectId}
+                tableName={eventsFilterConfig.tableName}
                 store={searchBarStore}
                 commit={searchBarCommit}
                 observed={observedOptions}

@@ -1,8 +1,8 @@
 import { Button } from '@mastra/playground-ui/components/Button';
 import { Target } from 'lucide-react';
 
-import { useChatTranscript } from '../context/useChatTranscript';
 import { useChatSessionContext } from '../context/useChatSessionContext';
+import { useChatTranscript } from '../context/useChatTranscript';
 import {
   useClearAgentControllerGoalMutation,
   usePauseAgentControllerGoalMutation,
@@ -12,6 +12,11 @@ import { AGENT_CONTROLLER_ID } from '../services/constants';
 
 const goalBar = 'flex shrink-0 items-center gap-2.5 border-b border-border1 bg-accent2/5 px-4 py-2 text-xs';
 
+/**
+ * Progress bar for an active goal. Renders nothing when no goal is set —
+ * goals are started via the `/goal <objective>` slash command, so the chat
+ * stays uncluttered by default.
+ */
 export function GoalPanel() {
   const { resourceId, sessionEnabled, baseUrl } = useChatSessionContext();
   const { transcript } = useChatTranscript();
@@ -21,7 +26,7 @@ export function GoalPanel() {
   const clearGoalMutation = useClearAgentControllerGoalMutation(hookArgs);
   const goal = transcript.goal;
 
-  if (!goal) return null;
+  if (!sessionEnabled || !goal) return null;
 
   const progress = `${goal.iteration}/${goal.maxRuns}`;
 

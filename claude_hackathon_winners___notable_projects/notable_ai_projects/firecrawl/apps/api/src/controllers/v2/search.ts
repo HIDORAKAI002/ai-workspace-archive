@@ -8,7 +8,7 @@ import {
 } from "./types";
 import { billTeam } from "../../services/billing/credit_billing";
 import {
-  KEYLESS_CREDITS_MESSAGE,
+  KEYLESS_FREE_TIER_LIMIT_MESSAGE,
   adjustKeylessCredits,
   logKeylessCreditUsage,
   reserveKeylessCredits,
@@ -192,7 +192,7 @@ export async function searchController(
         applyAgentAuthDiscoveryHeader(res);
         return res.status(429).json({
           success: false,
-          error: KEYLESS_CREDITS_MESSAGE,
+          error: KEYLESS_FREE_TIER_LIMIT_MESSAGE,
         });
       }
       reservedKeylessCredits = projectedKeylessCredits;
