@@ -1708,10 +1708,10 @@ export interface BetaFallbackMessageIterationUsage {
 /**
  * One entry in the `fallbacks` chain on a `/v1/messages` request.
  *
- * `model` is required. The four override fields (`max_tokens`, `thinking`,
- * `output_config`, and `speed`) replace the corresponding top-level field for this
- * attempt only and are validated as if the request were made to `model`. Any other
- * key is rejected at parse time.
+ * `model` is required. The override fields (`max_tokens`, `thinking`,
+ * `output_config`, and `speed`) set the corresponding parameter for this attempt
+ * only and are validated as if the request were made to `model`. Any other key is
+ * rejected at parse time.
  */
 export interface BetaFallbackParam {
   /**
@@ -1726,6 +1726,11 @@ export interface BetaFallbackParam {
 
   output_config?: BetaOutputConfig | null;
 
+  /**
+   * Inference speed mode. `fast` provides significantly faster output token
+   * generation at premium pricing. Not all models support `fast`; invalid
+   * combinations are rejected at create time.
+   */
   speed?: 'standard' | 'fast' | null;
 
   thinking?: BetaThinkingConfigEnabled | BetaThinkingConfigDisabled | BetaThinkingConfigAdaptive | null;
@@ -3878,7 +3883,9 @@ export interface BetaUsage {
   service_tier: 'standard' | 'priority' | 'batch' | null;
 
   /**
-   * The inference speed mode used for this request.
+   * Inference speed mode. `fast` provides significantly faster output token
+   * generation at premium pricing. Not all models support `fast`; invalid
+   * combinations are rejected at create time.
    */
   speed: 'standard' | 'fast' | null;
 }
@@ -4708,8 +4715,9 @@ export interface MessageCreateParamsBase {
   service_tier?: 'auto' | 'standard_only';
 
   /**
-   * Body param: The inference speed mode for this request. `"fast"` enables high
-   * output-tokens-per-second inference.
+   * Body param: Inference speed mode. `fast` provides significantly faster output
+   * token generation at premium pricing. Not all models support `fast`; invalid
+   * combinations are rejected at create time.
    */
   speed?: 'standard' | 'fast' | null;
 
@@ -5018,8 +5026,9 @@ export interface MessageCountTokensParams {
   output_format?: BetaJSONOutputFormat | null;
 
   /**
-   * Body param: The inference speed mode for this request. `"fast"` enables high
-   * output-tokens-per-second inference.
+   * Body param: Inference speed mode. `fast` provides significantly faster output
+   * token generation at premium pricing. Not all models support `fast`; invalid
+   * combinations are rejected at create time.
    */
   speed?: 'standard' | 'fast' | null;
 
