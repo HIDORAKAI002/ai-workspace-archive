@@ -18,25 +18,18 @@
 
 from __future__ import annotations
 from ..types import BaseModel, UNSET_SENTINEL
-from ..types.interactions import (
-    createagentinteraction as interactions_createagentinteraction,
-    createmodelinteraction as interactions_createmodelinteraction,
-    interaction as interactions_interaction,
-    interactionsseevent as interactions_interactionsseevent,
-)
-from ..utils import FieldMetadata, PathParamMetadata, RequestMetadata
-from ..utils.eventstreaming import AsyncStream, Stream
+from ..utils import FieldMetadata, PathParamMetadata
 from pydantic import model_serializer
-from typing import Optional, Union
-from typing_extensions import Annotated, NotRequired, TypeAliasType, TypedDict
+from typing import Optional
+from typing_extensions import Annotated, NotRequired, TypedDict
 
 
-class CreateInteractionGlobalsTypedDict(TypedDict):
+class GetTriggerGlobalsTypedDict(TypedDict):
     api_version: NotRequired[str]
     r"""Which version of the API to use."""
 
 
-class CreateInteractionGlobals(BaseModel):
+class GetTriggerGlobals(BaseModel):
     api_version: Annotated[
         Optional[str],
         FieldMetadata(path=PathParamMetadata(style="simple", explode=False)),
@@ -60,39 +53,18 @@ class CreateInteractionGlobals(BaseModel):
         return m
 
 
-CreateInteractionRequestBodyParam = TypeAliasType(
-    "CreateInteractionRequestBodyParam",
-    Union[
-        interactions_createmodelinteraction.CreateModelInteractionParam,
-        interactions_createagentinteraction.CreateAgentInteractionParam,
-    ],
-)
-r"""The request body."""
-
-
-CreateInteractionRequestBody = TypeAliasType(
-    "CreateInteractionRequestBody",
-    Union[
-        interactions_createmodelinteraction.CreateModelInteraction,
-        interactions_createagentinteraction.CreateAgentInteraction,
-    ],
-)
-r"""The request body."""
-
-
-class CreateInteractionRequestParam(TypedDict):
-    body: CreateInteractionRequestBodyParam
-    r"""The request body."""
+class GetTriggerRequestParam(TypedDict):
+    id: str
+    r"""Resource name of the trigger."""
     api_version: NotRequired[str]
     r"""Which version of the API to use."""
 
 
-class CreateInteractionRequest(BaseModel):
-    body: Annotated[
-        CreateInteractionRequestBody,
-        FieldMetadata(request=RequestMetadata(media_type="application/json")),
+class GetTriggerRequest(BaseModel):
+    id: Annotated[
+        str, FieldMetadata(path=PathParamMetadata(style="simple", explode=False))
     ]
-    r"""The request body."""
+    r"""Resource name of the trigger."""
 
     api_version: Annotated[
         Optional[str],
@@ -115,27 +87,3 @@ class CreateInteractionRequest(BaseModel):
                     m[k] = val
 
         return m
-
-
-CreateInteractionResponseTypedDict = TypeAliasType(
-    "CreateInteractionResponseTypedDict",
-    Union[
-        interactions_interaction.InteractionTypedDict,
-        Union[
-            Stream[interactions_interactionsseevent.InteractionSSEEventTypedDict],
-            AsyncStream[interactions_interactionsseevent.InteractionSSEEventTypedDict],
-        ],
-    ],
-)
-
-
-CreateInteractionResponse = TypeAliasType(
-    "CreateInteractionResponse",
-    Union[
-        interactions_interaction.Interaction,
-        Union[
-            Stream[interactions_interactionsseevent.InteractionSSEEvent],
-            AsyncStream[interactions_interactionsseevent.InteractionSSEEvent],
-        ],
-    ],
-)
