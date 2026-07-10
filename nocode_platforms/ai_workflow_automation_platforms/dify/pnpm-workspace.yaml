@@ -120,7 +120,6 @@ catalog:
   '@tsslint/compat-eslint': 3.1.4
   '@tsslint/config': 3.1.4
   '@types/js-cookie': 3.0.6
-  '@types/js-yaml': 4.0.9
   '@types/lockfile': 1.0.4
   '@types/negotiator': 0.6.4
   '@types/node': 25.9.5
@@ -178,7 +177,7 @@ catalog:
   hono: 4.12.28
   html-entities: 2.6.0
   html-to-image: 1.11.13
-  i18next: 26.3.5
+  i18next: 26.3.6
   i18next-resources-to-backend: 1.2.1
   iconify-import-svg: 0.2.0
   immer: 11.1.11
@@ -188,7 +187,7 @@ catalog:
   jotai-tanstack-query: 0.11.0
   js-audio-recorder: 1.0.7
   js-cookie: 3.0.8
-  js-yaml: 4.3.0
+  js-yaml: 5.2.1
   jsonschema: 1.5.0
   katex: 0.17.0
   knip: 6.25.0
@@ -216,7 +215,7 @@ catalog:
   react: 19.2.7
   react-dom: 19.2.7
   react-easy-crop: 6.2.2
-  react-i18next: 16.6.6
+  react-i18next: 17.0.9
   react-multi-email: 1.0.25
   react-papaparse: 4.4.0
   react-pdf-highlighter: 8.0.0-rc.0

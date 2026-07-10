@@ -1,4 +1,10 @@
-import type { AgentRuntimeContext, AgentState } from '@lobechat/agent-runtime';
+import type {
+  Agent,
+  AgentRuntimeContext,
+  AgentState,
+  GeneralAgentConfig,
+} from '@lobechat/agent-runtime';
+import { GeneralChatAgent, GraphAgent } from '@lobechat/agent-runtime';
 import { BUILTIN_AGENT_SLUGS, getAgentRuntimeConfig } from '@lobechat/builtin-agents';
 import { builtinSkills } from '@lobechat/builtin-skills';
 import { CloudSandboxManifest } from '@lobechat/builtin-tool-cloud-sandbox';
@@ -40,6 +46,7 @@ import type {
   ExecSubAgentResult,
   ExecVirtualSubAgentParams,
   LobeAgentAgencyConfig,
+  LobeAgentConfig,
   MessagePluginItem,
   RuntimeMentionedAgent,
   UserInterventionConfig,
@@ -50,11 +57,13 @@ import {
   getActivePluginIds,
   getDisabledPluginIds,
   getWorkingDirEffectivePath,
+  ReasoningGraphSchema,
   RequestTrigger,
   ThreadStatus,
   ThreadType,
 } from '@lobechat/types';
 import { nanoid } from '@lobechat/utils';
+import { isRecord } from '@lobechat/utils/object';
 import { TRPCError } from '@trpc/server';
 import debug from 'debug';
 
@@ -147,6 +156,32 @@ import {
 import { isWorkspaceCacheFresh, upsertWorkspaceScan } from './workspaceInitCache';
 
 const log = debug('lobe-server:ai-agent-service');
+
+const createGraphAwareAgentFactory =
+  (
+    upstreamFactory?: AgentRuntimeServiceOptions['agentFactory'],
+  ): ((config: GeneralAgentConfig) => Agent) =>
+  (config) => {
+    if (upstreamFactory) {
+      return upstreamFactory(config);
+    }
+
+    const runtimeAgentConfig = isRecord(config.agentConfig)
+      ? (config.agentConfig as LobeAgentConfig)
+      : undefined;
+    const graph = runtimeAgentConfig?.chatConfig?.graph;
+    if (runtimeAgentConfig?.chatConfig?.enableGraphMode && graph) {
+      const graphResult = ReasoningGraphSchema.safeParse(graph);
+
+      if (graphResult.success) {
+        return new GraphAgent({ ...config, graph: graphResult.data });
+      }
+
+      log('Invalid graph agent snapshot, falling back to default runtime: %O', graphResult.error);
+    }
+
+    return new GeneralChatAgent(config);
+  };
 
 /**
  * Format error for storage in thread metadata
@@ -466,6 +501,7 @@ export class AiAgentService {
     this.topicModel = new TopicModel(db, userId, wsId);
     this.agentRuntimeService = new AgentRuntimeService(db, userId, {
       ...options?.runtimeOptions,
+      agentFactory: createGraphAwareAgentFactory(options?.runtimeOptions?.agentFactory),
       // ── Runtime delegate ─────────────────────────────────────────────────
       // Operations the runtime delegates back UP to this layer. The dependency
       // arrow is one-way (AiAgentService → AgentRuntimeService), so the runtime
@@ -1481,13 +1517,34 @@ export class AiAgentService {
     // exclude this freshly-created turn — history must be the PRIOR turns only,
     // otherwise the new prompt is double-counted in the LLM context.
     const selfMessageIds = new Set<string>();
-    const userMessageParentId =
-      runFromHistory || parentMessageId
-        ? undefined
-        : await this.messageModel.getLatestSpineMessageId?.({
-            threadId: appContext?.threadId ?? null,
-            topicId,
-          });
+    // Anchor the new user turn on the conversation tail. Never leave it
+    // undefined for a topic that already has messages: `parentId: undefined`
+    // persists a second ROOT, and the renderer walks the parentId forest
+    // depth-first — an earlier root's still-growing subtree is emitted before a
+    // later root, so the newest reply lands ABOVE older messages (LOBE-11489).
+    //
+    // `getLatestSpineMessageId` skips tool rows and toolless signal turns, so it
+    // can come back empty on a topic built entirely from signal callbacks; fall
+    // back to the latest non-tool row rather than orphaning the turn.
+    const resolveUserMessageParentId = async () => {
+      if (runFromHistory) return undefined;
+      if (parentMessageId) return parentMessageId;
+
+      const threadId = appContext?.threadId ?? null;
+      const spineId = await this.messageModel.getLatestSpineMessageId({ threadId, topicId });
+      if (spineId) return spineId;
+
+      const fallbackId = await this.messageModel.getLatestNonToolMessageId({ threadId, topicId });
+      if (fallbackId) {
+        log(
+          'execAgent: no spine head for topic %s, anchoring user turn on latest non-tool message %s',
+          topicId,
+          fallbackId,
+        );
+      }
+      return fallbackId;
+    };
+    const userMessageParentId = await resolveUserMessageParentId();
     const userMessageRecord = runFromHistory
       ? undefined
       : await this.messageModel.create({
@@ -1535,7 +1592,9 @@ export class AiAgentService {
       groupId: appContext?.groupId ?? undefined,
       metadata: orchestrationMetadata,
       model: isHeteroAgent ? undefined : model,
-      parentId: parentMessageId ?? userMessageRecord?.id,
+      // Chain onto the user turn we just persisted; `parentMessageId` is the
+      // anchor only on a resume, where no user message is created.
+      parentId: userMessageRecord?.id ?? parentMessageId,
       provider: isHeteroAgent ? heteroType : provider,
       role: 'assistant',
       threadId: appContext?.threadId ?? undefined,
@@ -2018,6 +2077,7 @@ export class AiAgentService {
 
           const result = await deviceGateway.dispatchAgentRun({
             ...heteroParams,
+            args: heteroExecArgs,
             cwd: deviceCwd,
             deviceId: dispatchDeviceId,
             systemContext: deviceSystemContext,

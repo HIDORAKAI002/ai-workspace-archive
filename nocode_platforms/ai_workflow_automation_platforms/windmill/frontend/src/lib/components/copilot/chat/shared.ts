@@ -509,8 +509,17 @@ export type ToolDisplayAction = CreatedResourceAction | NavigateAction
 export type UserQuestionDisplay = {
 	question: string
 	choices: string[]
-	selectedChoice?: string
+	multiSelect?: boolean
+	selectedChoices?: string[] // canonical answer (new code writes only this)
+	selectedChoice?: string // legacy/read-only: pre-multiselect persisted history
 	canceled?: boolean
+}
+
+// The single place that understands the legacy answer shape: new code writes
+// selectedChoices, but history persisted before multi-select only has the
+// scalar selectedChoice. Read answers through this so both shapes resolve.
+export function answeredChoices(q: UserQuestionDisplay): string[] | undefined {
+	return q.selectedChoices ?? (q.selectedChoice ? [q.selectedChoice] : undefined)
 }
 
 export type ToolDisplayMessage = {
@@ -573,7 +582,7 @@ export function isActiveUserQuestion(message: DisplayMessage | undefined): boole
 			message.userQuestion &&
 			message.isLoading &&
 			!message.error &&
-			!message.userQuestion.selectedChoice &&
+			!answeredChoices(message.userQuestion)?.length &&
 			!message.userQuestion.canceled
 	)
 }
@@ -667,9 +676,14 @@ export async function processToolCall<T>({
 			requiresConfirmation && toolCallbacks.shouldAutoAcceptToolConfirmations?.() === true
 		const needsConfirmation = requiresConfirmation && !autoAcceptConfirmation
 
+		const confirmationContent =
+			typeof tool?.confirmationMessage === 'function'
+				? tool.confirmationMessage(args)
+				: tool?.confirmationMessage
+
 		toolCallbacks.setToolStatus(toolCall.id, {
 			...(requiresConfirmation
-				? { content: tool.confirmationMessage ?? 'Waiting for confirmation...' }
+				? { content: confirmationContent ?? 'Waiting for confirmation...' }
 				: {}),
 			parameters: args,
 			isLoading: true,
@@ -767,7 +781,9 @@ export interface Tool<T> {
 	}) => MaybePromise<string | undefined>
 	setSchema?: (helpers: any) => Promise<void>
 	requiresConfirmation?: boolean
-	confirmationMessage?: string
+	/** Header shown on the confirmation card before the tool runs. Pass a function
+	 * to derive it from the parsed arguments (e.g. name the script being tested). */
+	confirmationMessage?: string | ((args: any) => string)
 	showDetails?: boolean
 	autoCollapseDetails?: boolean
 	streamArguments?: boolean
@@ -878,7 +894,7 @@ export interface ToolCallbacks {
 	requestUserQuestion?: (
 		toolId: string,
 		question: UserQuestionDisplay
-	) => Promise<string | undefined>
+	) => Promise<string[] | undefined>
 	/** Records a workspace item the tool call created/edited/deleted, by its
 	 * canonical (itemKind, storagePath). Session chats wire this to accumulate the
 	 * chat's modified-items mask; the global side-panel chat omits it (no-op). */

@@ -39,13 +39,13 @@ export type UserGuide = z.infer<typeof UserGuideSchema>;
 
 export const UserLabSchema = z.object({
   /**
+   * enable graph runtime configuration for agents
+   */
+  enableAgentGraphConfig: z.boolean().optional(),
+  /**
    * enable agent self-iteration feedback capture and policy execution
    */
   enableAgentSelfIteration: z.boolean().optional(),
-  /**
-   * enable the floating chat panel in agent document preview
-   */
-  enableAgentDocumentFloatingChatPanel: z.boolean().optional(),
   /**
    * enable the Fleet view (side-by-side running-task dashboard)
    */
