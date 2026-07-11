@@ -27,6 +27,7 @@ import type {
   ConversationContext,
   HeterogeneousProviderConfig,
   MessageMapScope,
+  ModelUsage,
   PageSelection,
   UIChatMessage,
   WorkingDirConfig,
@@ -166,12 +167,19 @@ const toHeterogeneousAgentMessageError = (error: unknown, agentType?: string): C
     };
   }
 
+  // A plain `{message}` object (adapter wire data / IPC error envelope)
+  // without the session-error marker keys above still carries the only
+  // human-readable reason — don't flatten it to the generic fallback.
+  const objectMessage =
+    typeof error === 'object' && error && 'message' in error && typeof error.message === 'string'
+      ? error.message
+      : undefined;
   const message =
     error instanceof Error
       ? error.message
       : typeof error === 'string'
         ? error
-        : 'Agent execution failed';
+        : (objectMessage ?? 'Agent execution failed');
 
   // Surface the underlying `cause` (e.g. undici's `ENOTFOUND` / `ECONNREFUSED`
   // hidden under a generic `TypeError: fetch failed`). The desktop IPC layer
@@ -1665,12 +1673,12 @@ export const executeHeterogeneousAgent = async (
 
       case 'recordUsage': {
         const update = {
+          // Keep usage on the promoted top-level field so the live message UI
+          // can render it immediately, before the terminal DB refresh runs.
+          usage: intent.usage as ModelUsage,
           // Wholesale metadata overwrite — re-stamp the provenance the
-          // createAssistant write put there, or usage would wipe it.
-          metadata: {
-            ...heteroProvenance(mainState.currentMainMessageId),
-            usage: intent.usage as any,
-          },
+          // createAssistant write put there.
+          metadata: heteroProvenance(mainState.currentMainMessageId),
           ...(intent.model && { model: intent.model }),
           ...(intent.provider && { provider: intent.provider }),
         };
