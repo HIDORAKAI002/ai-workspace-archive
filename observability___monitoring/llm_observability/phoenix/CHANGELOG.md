@@ -1,5 +1,35 @@
 # Changelog
 
+## [17.26.0](https://github.com/Arize-ai/phoenix/compare/arize-phoenix-v17.25.0...arize-phoenix-v17.26.0) (2026-07-11)
+
+
+### Features
+
+* clarify forced tool choice menus ([#14279](https://github.com/Arize-ai/phoenix/issues/14279)) ([ef40f5e](https://github.com/Arize-ai/phoenix/commit/ef40f5e489f20f367ff11817098143c7f15be2bd))
+
+
+### Bug Fixes
+
+* make span status code filters case insensitive ([#14287](https://github.com/Arize-ai/phoenix/issues/14287)) ([d6b3740](https://github.com/Arize-ai/phoenix/commit/d6b3740c3fe753862562da5aa216155fcb7f9ce0))
+* **ui:** add selected spans to newly created dataset ([#14276](https://github.com/Arize-ai/phoenix/issues/14276)) ([5da578b](https://github.com/Arize-ai/phoenix/commit/5da578bbc5dba55fecb9ae07752ea99a21636d2e))
+* **ui:** constrain action-bar dataset picker height ([#14280](https://github.com/Arize-ai/phoenix/issues/14280)) ([b0e718b](https://github.com/Arize-ai/phoenix/commit/b0e718bbb6ce55554b1bddde7e31f35cff7188a8))
+
+## [17.25.0](https://github.com/Arize-ai/phoenix/compare/arize-phoenix-v17.24.0...arize-phoenix-v17.25.0) (2026-07-11)
+
+
+### Features
+
+* **agents:** approval-gated annotation config tools + span-coding for PXI ([#13866](https://github.com/Arize-ai/phoenix/issues/13866)) ([189271b](https://github.com/Arize-ai/phoenix/commit/189271b38ff6dc7be6d90acd92089ea07ccafa0d))
+* phoenix env file ([#14188](https://github.com/Arize-ai/phoenix/issues/14188)) ([c0ab6a9](https://github.com/Arize-ai/phoenix/commit/c0ab6a9715bd8050094f8ac4135c7fa5d556c453))
+* **ui:** add Metrics tab to the dataset page with experiment charts ([#14106](https://github.com/Arize-ai/phoenix/issues/14106)) ([2c00ee5](https://github.com/Arize-ai/phoenix/commit/2c00ee52cd23521005e726103fdbd249f8d6ada1))
+* **ui:** refine experiment metric charts ([#14208](https://github.com/Arize-ai/phoenix/issues/14208)) ([f1eb3b8](https://github.com/Arize-ai/phoenix/commit/f1eb3b8fa6452582a556fb4102c13ffa68292a47))
+
+
+### Bug Fixes
+
+* **ui:** keep filters applied on project tables during live streaming refresh ([#14217](https://github.com/Arize-ai/phoenix/issues/14217)) ([fd6ce19](https://github.com/Arize-ai/phoenix/commit/fd6ce19eb33c123cf99e2269d709db032660500d))
+* **ui:** make traces kind column resizable ([#14201](https://github.com/Arize-ai/phoenix/issues/14201)) ([b691946](https://github.com/Arize-ai/phoenix/commit/b6919469c8e6fbdb71e380fb5576a948319ea8e2))
+
 ## [17.24.0](https://github.com/Arize-ai/phoenix/compare/arize-phoenix-v17.23.0...arize-phoenix-v17.24.0) (2026-07-10)
 
 
