@@ -381,6 +381,8 @@ const EnvironmentSchema = z
 
     // Master switch for the native realtime backend; off = Electric serves everything, publishes no-op.
     REALTIME_BACKEND_NATIVE_ENABLED: z.string().default("0"),
+    // Default backend when an org has no `realtimeBackend` override and no global flag row is set.
+    REALTIME_BACKEND_DEFAULT: z.enum(["electric", "native", "shadow"]).default("electric"),
     // Live long-poll backstop hold (ms); matches Electric's ~20s cadence.
     REALTIME_BACKEND_NATIVE_LIVE_POLL_TIMEOUT_MS: z.coerce.number().int().default(20_000),
     // Jitter ratio on the live-poll hold (0.15 = ±15%) to avoid synchronized refetch herds.
@@ -1936,6 +1938,13 @@ const EnvironmentSchema = z
     EVENTS_CLICKHOUSE_MAX_TRACE_SUMMARY_VIEW_COUNT: z.coerce.number().int().default(25_000),
     EVENTS_CLICKHOUSE_MAX_TRACE_DETAILED_SUMMARY_VIEW_COUNT: z.coerce.number().int().default(5_000),
     EVENTS_CLICKHOUSE_MAX_LIVE_RELOADING_SETTING: z.coerce.number().int().default(2000),
+
+    // OTLP ingest transform worker pool (opt-in). When enabled, decode/convert/enrich run in a
+    // worker_threads pool instead of the request event loop; the single consolidated insert path
+    // is unchanged.
+    OTEL_TRANSFORM_WORKER_POOL_ENABLED: BoolEnv.default(false),
+    OTEL_TRANSFORM_WORKER_POOL_SIZE: z.coerce.number().int().optional(),
+    OTEL_TRANSFORM_WORKER_PATH: z.string().optional(),
 
     // Organization data stores registry
     ORGANIZATION_DATA_STORES_RELOAD_INTERVAL_MS: z.coerce
