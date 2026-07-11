@@ -1,16 +1,15 @@
 import type {
-  LLMCallExecuteInput,
   LLMStreamPayload,
   LLMStreamResult,
   LLMTransport,
+  LLMTurnInput,
 } from '@lobechat/agent-runtime';
 import { consumeStreamUntilDone } from '@lobechat/model-runtime';
 
 import { initModelRuntimeFromDB } from '@/server/modules/ModelRuntime';
 
 import type { RuntimeExecutorContext } from '../context';
-import { callLlm as createServerCallLlmExecutor } from './serverCallLlmExecutor';
-import { resolveServerCallLlmTooling } from './serverCallLlmTooling';
+import { executeServerCallLlmTurn } from './serverCallLlmExecutor';
 
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error && error.message) return error.message;
@@ -29,19 +28,15 @@ const getErrorMessage = (error: unknown): string => {
 export class ServerLLMTransport implements LLMTransport {
   constructor(private readonly ctx: RuntimeExecutorContext) {}
 
-  executeCall(input: LLMCallExecuteInput): ReturnType<NonNullable<LLMTransport['executeCall']>> {
-    return createServerCallLlmExecutor(this.ctx, {
+  executeTurn(input: LLMTurnInput): ReturnType<NonNullable<LLMTransport['executeTurn']>> {
+    return executeServerCallLlmTurn(this.ctx, {
       assistantMessage: input.assistantMessage,
+      context: input.context,
       model: input.model,
-      parentId: input.parentId,
       provider: input.provider,
+      state: input.state,
       stepLabel: input.stepLabel,
-      tooling: resolveServerCallLlmTooling(
-        this.ctx,
-        input.state,
-        input.instruction.payload.allowedToolNames,
-      ),
-    })(input.instruction, input.state);
+    });
   }
 
   async stream(
