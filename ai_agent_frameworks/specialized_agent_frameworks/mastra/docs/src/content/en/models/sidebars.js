@@ -278,6 +278,11 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'providers/empiriolabs',
+          label: 'EmpirioLabs AI',
+        },
+        {
+          type: 'doc',
           id: 'providers/evroc',
           label: 'evroc',
         },
@@ -463,6 +468,11 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'providers/model-oracle-ai',
+          label: 'Model Oracle AI',
+        },
+        {
+          type: 'doc',
           id: 'providers/modelscope',
           label: 'ModelScope',
         },
@@ -560,6 +570,11 @@ const sidebars = {
           type: 'doc',
           id: 'providers/perplexity-agent',
           label: 'Perplexity Agent',
+        },
+        {
+          type: 'doc',
+          id: 'providers/pioneer',
+          label: 'Pioneer',
         },
         {
           type: 'doc',
@@ -705,6 +720,11 @@ const sidebars = {
           type: 'doc',
           id: 'providers/umans-ai-coding-plan',
           label: 'Umans AI Coding Plan',
+        },
+        {
+          type: 'doc',
+          id: 'providers/unorouter',
+          label: 'UnoRouter',
         },
         {
           type: 'doc',
