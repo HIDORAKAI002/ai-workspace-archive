@@ -47,6 +47,7 @@ logger = logging.getLogger(__name__)
 # Seed applied to every Groq request for deterministic behavior
 DEFAULT_LLM_SEED = 4242
 JSON_MODE_USER_HINT = "Return valid json only."
+DEFAULT_VERIFICATION_MAX_COMPLETION_TOKENS = 512
 
 
 def _validate_ollama_num_ctx(value: Any) -> int | None:
@@ -633,6 +634,10 @@ class OpenAICompatibleLLM(LLMInterface):
             return True
         return self.provider == "openai" and bool(self.base_url)
 
+    def _verification_max_completion_tokens(self) -> int:
+        """Return the startup verification budget for OpenAI-compatible gateways."""
+        return DEFAULT_VERIFICATION_MAX_COMPLETION_TOKENS
+
     async def verify_connection(self) -> None:
         """
         Verify that the provider is configured correctly by making a simple test call.
@@ -644,7 +649,7 @@ class OpenAICompatibleLLM(LLMInterface):
             logger.info(f"Verifying connection: {self.provider}/{self.model}")
             await self.call(
                 messages=[{"role": "user", "content": "Say 'ok'"}],
-                max_completion_tokens=100,
+                max_completion_tokens=self._verification_max_completion_tokens(),
                 max_retries=2,
                 initial_backoff=0.5,
                 max_backoff=2.0,
