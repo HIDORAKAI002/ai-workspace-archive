@@ -150,6 +150,21 @@
       "format": "const",
       "const": "boolean"
     },
+    "CacheScope": {
+      "description": "Scope describing who may cache cacheable list/read results (SEP-2549).\n\nDefaults to [`CacheScope::Public`] when absent from the wire.",
+      "oneOf": [
+        {
+          "description": "Any client or intermediary may cache and serve the response to any user.",
+          "type": "string",
+          "const": "public"
+        },
+        {
+          "description": "Only the requesting user's client may cache the response.",
+          "type": "string",
+          "const": "private"
+        }
+      ]
+    },
     "CallToolResult": {
       "description": "The result of a tool call operation.\n\nContains the content returned by the tool execution and an optional\nflag indicating whether the operation resulted in an error.",
       "type": "object",
@@ -1515,6 +1530,17 @@
           ],
           "additionalProperties": true
         },
+        "cacheScope": {
+          "description": "Scope describing who may cache this result (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CacheScope"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "nextCursor": {
           "type": [
             "string",
@@ -1535,6 +1561,15 @@
             }
           ],
           "default": "complete"
+        },
+        "ttlMs": {
+          "description": "Time, in milliseconds, that this result may be treated as fresh (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
         }
       },
       "required": [
@@ -1550,6 +1585,17 @@
             "null"
           ],
           "additionalProperties": true
+        },
+        "cacheScope": {
+          "description": "Scope describing who may cache this result (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CacheScope"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "nextCursor": {
           "type": [
@@ -1571,6 +1617,15 @@
             }
           ],
           "default": "complete"
+        },
+        "ttlMs": {
+          "description": "Time, in milliseconds, that this result may be treated as fresh (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
         }
       },
       "required": [
@@ -1586,6 +1641,17 @@
             "null"
           ],
           "additionalProperties": true
+        },
+        "cacheScope": {
+          "description": "Scope describing who may cache this result (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CacheScope"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "nextCursor": {
           "type": [
@@ -1607,6 +1673,15 @@
             }
           ],
           "default": "complete"
+        },
+        "ttlMs": {
+          "description": "Time, in milliseconds, that this result may be treated as fresh (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
         }
       },
       "required": [
@@ -1655,6 +1730,17 @@
           ],
           "additionalProperties": true
         },
+        "cacheScope": {
+          "description": "Scope describing who may cache this result (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CacheScope"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "nextCursor": {
           "type": [
             "string",
@@ -1675,6 +1761,15 @@
           "items": {
             "$ref": "#/definitions/Tool"
           }
+        },
+        "ttlMs": {
+          "description": "Time, in milliseconds, that this result may be treated as fresh (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
         }
       },
       "required": [
@@ -2214,6 +2309,17 @@
           ],
           "additionalProperties": true
         },
+        "cacheScope": {
+          "description": "Scope describing who may cache this result (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CacheScope"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "contents": {
           "description": "The actual content of the resource",
           "type": "array",
@@ -2221,7 +2327,7 @@
             "$ref": "#/definitions/ResourceContents"
           }
         },
-        "result_type": {
+        "resultType": {
           "description": "Result type discriminator. Absent values deserialize as `\"complete\"`.",
           "allOf": [
             {
@@ -2229,6 +2335,15 @@
             }
           ],
           "default": "complete"
+        },
+        "ttlMs": {
+          "description": "Time, in milliseconds, that this result may be treated as fresh (SEP-2549).\nRequired by spec version 2026-07-28, but optional here to maintain compatibility\nwith older spec versions.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
         }
       },
       "required": [
