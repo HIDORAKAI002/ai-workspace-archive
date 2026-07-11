@@ -9,6 +9,7 @@ export {
 	ClineNotSubscribedError,
 	ClineOrgIndividualInferenceSubscriptionError,
 	ClinePassLimitError,
+	extractClinePassLimitMessage,
 	getClineOrgIndividualInferenceSubscriptionMessage,
 	getClineNotSubscribedMessage,
 	getClinePassSubscriptionUrl,
@@ -135,6 +136,11 @@ export {
 	type UserRemoteConfigOrganization,
 	type UserRemoteConfigResponse,
 } from "./account";
+export {
+	hashSecret,
+	setSdkLogger,
+	sdkDebug,
+} from "./logging/early-logger";
 export {
 	createOAuthClientCallbacks,
 	type OAuthClientCallbacksOptions,
