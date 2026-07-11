@@ -1,28 +1,21 @@
 import asyncio
-from collections.abc import Mapping
-from typing import Any
-from urllib.parse import unquote, urlparse, urlunparse
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 from openai.types.responses.web_search_tool import Filters
 from openai.types.shared.reasoning import Reasoning
 
 from agents import Agent, ModelSettings, Runner, WebSearchTool, trace
+from examples.web_search_utils import extract_url_citations, extract_web_search_source_urls
 
 ALLOWED_DOMAINS = ["developers.openai.com"]
-
-
-def _get_field(obj: Any, key: str) -> Any:
-    if isinstance(obj, Mapping):
-        return obj.get(key)
-    return getattr(obj, key, None)
 
 
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
 
 
-def _normalized_source_urls(sources: Any) -> list[str]:
-    allowed_hosts = set(ALLOWED_DOMAINS)
+def _normalize_source_url(url: str) -> str | None:
+    allowed_domains = {domain.lower().rstrip(".") for domain in ALLOWED_DOMAINS}
     blocked_suffixes = (
         ".css",
         ".eot",
@@ -42,34 +35,50 @@ def _normalized_source_urls(sources: Any) -> list[str]:
         ".gz",
     )
 
-    urls: list[str] = []
+    try:
+        parsed = urlsplit(url)
+        port = parsed.port
+    except ValueError:
+        return None
+
+    hostname = parsed.hostname.lower().rstrip(".") if parsed.hostname else None
+    if (
+        parsed.scheme not in {"http", "https"}
+        or hostname is None
+        or parsed.username is not None
+        or parsed.password is not None
+        or port is not None
+        or not any(
+            hostname == domain or hostname.endswith(f".{domain}") for domain in allowed_domains
+        )
+    ):
+        return None
+
+    path = parsed.path.rstrip("/")
+    decoded_path = unquote(path)
+    if (
+        not path
+        or any(character in decoded_path for character in "?#")
+        or any(ord(character) < 32 or ord(character) == 127 for character in decoded_path)
+        or decoded_path.lower().endswith(blocked_suffixes)
+    ):
+        return None
+
+    return urlunsplit((parsed.scheme, hostname, path, "", ""))
+
+
+def _normalized_source_urls(urls: list[str]) -> list[str]:
+    normalized_urls: list[str] = []
     seen: set[str] = set()
-    if not isinstance(sources, list):
-        return urls
 
-    for source in sources:
-        url = getattr(source, "url", None)
-        if url is None and isinstance(source, Mapping):
-            url = source.get("url")
-        if not isinstance(url, str):
+    for url in urls:
+        normalized = _normalize_source_url(url)
+        if normalized is None or normalized in seen:
             continue
-
-        parsed = urlparse(url)
-        if parsed.scheme not in {"http", "https"} or parsed.netloc not in allowed_hosts:
-            continue
-
-        path = unquote(parsed.path).split("#", 1)[0].rstrip("/")
-        if not path or path.endswith(blocked_suffixes):
-            continue
-
-        normalized = urlunparse((parsed.scheme, parsed.netloc, path, "", "", ""))
-        if normalized in seen:
-            continue
-
         seen.add(normalized)
-        urls.append(normalized)
+        normalized_urls.append(normalized)
 
-    return urls
+    return normalized_urls
 
 
 async def main():
@@ -78,7 +87,8 @@ async def main():
         model="gpt-5.6",
         instructions=(
             "You are a helpful agent that searches OpenAI developer documentation. Answer only "
-            "from the allowed official documentation sources and include inline citations."
+            "from the allowed official documentation sources and include inline citations. Cite "
+            "the official page for each model when comparing multiple models."
         ),
         tools=[
             WebSearchTool(
@@ -103,34 +113,29 @@ async def main():
         )
         result = await Runner.run(agent, query)
 
-        source_urls: list[str] = []
-        for item in result.new_items:
-            if item.type != "tool_call_item":
-                continue
+        citations = extract_url_citations(result.new_items)
+        cited_urls = _normalized_source_urls([citation.url for citation in citations])
+        retrieved_urls = _normalized_source_urls(extract_web_search_source_urls(result.new_items))
+        model_documentation_urls = [
+            url for url in retrieved_urls if "/api/docs/models/gpt-5.6-" in url
+        ]
 
-            raw_call = item.raw_item
-            call_type = _get_field(raw_call, "type")
-            if call_type != "web_search_call":
-                continue
-
-            action = _get_field(raw_call, "action")
-            sources = _get_field(action, "sources") if action else None
-            if not sources:
-                continue
-
-            for url in _normalized_source_urls(sources):
-                if url not in source_urls:
-                    source_urls.append(url)
-
-        if not any("/models/gpt-5.6-" in url for url in source_urls):
+        if not cited_urls:
+            raise RuntimeError("Expected at least one official inline citation in the final answer")
+        if not model_documentation_urls:
             raise RuntimeError(
-                f"Expected GPT-5.6 model documentation in sources, got {source_urls}"
+                f"Expected GPT-5.6 model documentation in retrieved sources, got {retrieved_urls}"
             )
 
         print()
-        print("### Sources ###")
+        print("### Cited sources ###")
         print()
-        for url in source_urls:
+        for url in cited_urls:
+            print(f"- {url}")
+        print()
+        print("### Retrieved model documentation ###")
+        print()
+        for url in model_documentation_urls:
             print(f"- {url}")
         print()
         print("### Final output ###")
