@@ -85,7 +85,7 @@ class TavilyClient {
     this.server = new Server(
       {
         name: "tavily-mcp",
-        version: "0.2.20",
+        version: "0.2.21",
       },
       {
         capabilities: {
@@ -726,6 +726,13 @@ class TavilyClient {
 
       return { error: `Research task timed out. Documentation: ${this.docsURLs.research}` };
     } catch (error: any) {
+      // If the API signals that this request must use streaming, fall back to
+      // stream=true transparently and assemble the report in memory — the tool
+      // result is identical to the polling flow.
+      if (error.response?.status === 400 &&
+          error.response?.data?.detail?.error_code === 'research_stream_required') {
+        return this.researchViaStream(params);
+      }
       if (error.response?.status === 401) {
         throw new Error(`Invalid API key. Documentation: ${this.docsURLs.research}`);
       } else if (error.response?.status === 429) {
@@ -733,6 +740,154 @@ class TavilyClient {
       }
       throw error;
     }
+  }
+
+  private async researchViaStream(params: any): Promise<TavilyResearchResponse> {
+    const HEADERS_TIMEOUT_MS = 30000;      // time budget for the response to start
+    const STREAM_IDLE_TIMEOUT_MS = 300000; // 5 min: tolerate the silent report-generation phase (the report is generated then flushed at once, so no bytes flow meanwhile)
+    const maxStreamDuration = params.model === 'mini' ? 300000 : 900000;
+
+    const controller = new AbortController();
+    const headerTimer = setTimeout(() => controller.abort(), HEADERS_TIMEOUT_MS);
+    let response;
+    try {
+      response = await this.axiosInstance.post(
+        this.baseURLs.research,
+        {
+          input: params.input,
+          model: params.model || 'auto',
+          api_key: API_KEY,
+          stream: true
+        },
+        {
+          responseType: 'stream',
+          signal: controller.signal,
+          timeout: 0, // lifetime is enforced by the timers below, not by axios
+          validateStatus: () => true
+        }
+      );
+    } catch (error: any) {
+      const reason = controller.signal.aborted
+        ? `no response after ${HEADERS_TIMEOUT_MS / 1000}s`
+        : error.message;
+      return { error: `Research stream request failed: ${reason}. Documentation: ${this.docsURLs.research}` };
+    } finally {
+      clearTimeout(headerTimer);
+    }
+
+    const stream = response.data;
+
+    if (response.status !== 200) {
+      const body = await this.readStreamBounded(stream, 16384);
+      let detail = body;
+      try {
+        const parsed = JSON.parse(body);
+        detail = JSON.stringify(parsed.detail ?? parsed);
+      } catch { /* keep raw body */ }
+      return { error: `Research stream request failed (HTTP ${response.status}): ${detail}. Documentation: ${this.docsURLs.research}` };
+    }
+
+    return new Promise<TavilyResearchResponse>((resolve) => {
+      let content = '';
+      let buffer = '';
+      let settled = false;
+      let idleTimer: NodeJS.Timeout | undefined;
+
+      const settle = (result: TavilyResearchResponse) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(idleTimer);
+        clearTimeout(overallTimer);
+        // Tear the connection down immediately — never leave it open once the
+        // outcome is known.
+        stream.destroy();
+        resolve(result);
+      };
+
+      const overallTimer = setTimeout(() => {
+        settle({ error: `Research stream timed out after ${maxStreamDuration / 1000}s. Documentation: ${this.docsURLs.research}` });
+      }, maxStreamDuration);
+
+      const resetIdleTimer = () => {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+          settle({ error: `Research stream received no data for ${STREAM_IDLE_TIMEOUT_MS / 1000}s; connection closed. Documentation: ${this.docsURLs.research}` });
+        }, STREAM_IDLE_TIMEOUT_MS);
+      };
+      resetIdleTimer();
+
+      const handleFrame = (frame: string) => {
+        let eventType = 'message';
+        const dataLines: string[] = [];
+        for (const line of frame.split(/\r?\n/)) {
+          if (line.startsWith('event:')) eventType = line.slice(6).trim();
+          else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+        }
+        const data = dataLines.join('\n');
+
+        if (eventType === 'error') {
+          let message: any = data;
+          try { message = JSON.parse(data).error ?? data; } catch { /* keep raw data */ }
+          if (typeof message === 'object') message = JSON.stringify(message);
+          settle({ error: `Research stream error: ${message}. Documentation: ${this.docsURLs.research}` });
+          return;
+        }
+        if (eventType === 'done') {
+          settle(content
+            ? { content }
+            : { error: `Research stream completed without content. Documentation: ${this.docsURLs.research}` });
+          return;
+        }
+        if (!data) return;
+        try {
+          const delta = JSON.parse(data).choices?.[0]?.delta;
+          if (typeof delta?.content === 'string') content += delta.content;
+        } catch { /* tolerate malformed frames; completion integrity is guarded by the done event */ }
+      };
+
+      stream.on('data', (chunk: Buffer) => {
+        if (settled) return;
+        resetIdleTimer();
+        buffer += chunk.toString('utf-8');
+        const frames = buffer.split('\n\n');
+        buffer = frames.pop() ?? '';
+        for (const frame of frames) {
+          if (settled) break;
+          if (frame.trim()) handleFrame(frame);
+        }
+      });
+      stream.on('error', (err: Error) => {
+        settle({ error: `Research stream connection error: ${err.message}. Documentation: ${this.docsURLs.research}` });
+      });
+      // 'end'/'close' without a done event means the connection dropped before
+      // completion — a partial report is worse than an explicit error.
+      stream.on('end', () => {
+        // The server ends the stream right after `event: done` without a
+        // trailing blank line, so the final frame may still be buffered —
+        // flush it before judging the outcome.
+        if (!settled && buffer.trim()) handleFrame(buffer.trim());
+        settle({ error: `Research stream ended before completion. Documentation: ${this.docsURLs.research}` });
+      });
+      stream.on('close', () => {
+        settle({ error: `Research stream closed before completion. Documentation: ${this.docsURLs.research}` });
+      });
+    });
+  }
+
+  /** Read at most maxBytes from a stream as text, then destroy it. */
+  private readStreamBounded(stream: any, maxBytes: number): Promise<string> {
+    return new Promise((resolve) => {
+      let data = '';
+      const timer = setTimeout(() => { stream.destroy(); resolve(data); }, 10000);
+      const finish = () => { clearTimeout(timer); resolve(data); };
+      stream.on('data', (chunk: Buffer) => {
+        data += chunk.toString('utf-8');
+        if (data.length >= maxBytes) stream.destroy();
+      });
+      stream.on('end', finish);
+      stream.on('close', finish);
+      stream.on('error', finish);
+    });
   }
 }
 
