@@ -163,6 +163,8 @@ const configSchema = z.object({
   // bearer auth for legacy/external services; the in-cluster service omits it.
   HIGHLIGHT_MODEL_URL: z.string().optional(),
   HIGHLIGHT_MODEL_TOKEN: z.string().optional(),
+  HIGHLIGHT_SHADOW_RATE: z.coerce.number().min(0).max(1).default(0),
+  HIGHLIGHT_SHADOW_MAX_INFLIGHT: z.coerce.number().int().positive().default(8),
 
   // Fire Engine
   FIRE_ENGINE_BETA_URL: z.string().optional(),

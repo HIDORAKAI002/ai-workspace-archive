@@ -27,6 +27,7 @@ function mockFetchOnce(body: unknown, ok = true, status = 200) {
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.clearAllMocks();
 });
@@ -41,7 +42,7 @@ describe("generateHighlightsBatch", () => {
         { id: "0", markdown: "# First\n\nbody text" },
         { id: "1", markdown: "# Second\n\nmore text" },
       ],
-      { logger },
+      { logger, requestId: "request-1" },
     );
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -49,6 +50,7 @@ describe("generateHighlightsBatch", () => {
     expect(url).toBe("https://highlight.test/batch_highlight");
     expect(init.method).toBe("POST");
     expect(init.headers.Authorization).toBe("Bearer secret-token");
+    expect(init.headers["X-Request-ID"]).toBe("request-1");
 
     const sent = JSON.parse(init.body);
     expect(sent).toEqual({
@@ -171,6 +173,35 @@ describe("generateHighlightsBatch", () => {
 
   it("returns null when the service errors", async () => {
     mockFetchOnce({ error: "boom" }, false, 500);
+    const onFailure = vi.fn();
+
+    const out = await generateHighlightsBatch(
+      "q",
+      [{ id: "0", markdown: "md" }],
+      { logger, onFailure },
+    );
+
+    expect(out).toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(onFailure).toHaveBeenCalledWith("http_5xx");
+    expect(logger.warn).toHaveBeenCalled();
+  });
+
+  it("retries one transient server failure", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        text: async () => "unavailable",
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ pages: [] }),
+        text: async () => "",
+      });
+    vi.stubGlobal("fetch", fetchMock);
 
     const out = await generateHighlightsBatch(
       "q",
@@ -178,8 +209,57 @@ describe("generateHighlightsBatch", () => {
       { logger },
     );
 
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(out).toEqual(new Map());
+  });
+
+  it.each([null, []])(
+    "classifies malformed JSON response %j as invalid",
+    async body => {
+      mockFetchOnce(body);
+      const onFailure = vi.fn();
+
+      const out = await generateHighlightsBatch(
+        "q",
+        [{ id: "0", markdown: "md" }],
+        { logger, onFailure },
+      );
+
+      expect(out).toBeNull();
+      expect(onFailure).toHaveBeenCalledWith("invalid_response");
+    },
+  );
+
+  it("does not retry after the request deadline aborts during backoff", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn().mockImplementation(
+      () =>
+        new Promise(resolve =>
+          setTimeout(
+            () =>
+              resolve({
+                ok: false,
+                status: 503,
+                text: async () => "unavailable",
+              }),
+            29_990,
+          ),
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const onFailure = vi.fn();
+
+    const resultPromise = generateHighlightsBatch(
+      "q",
+      [{ id: "0", markdown: "md" }],
+      { logger, onFailure },
+    );
+    await vi.advanceTimersByTimeAsync(30_000);
+    const out = await resultPromise;
+
     expect(out).toBeNull();
-    expect(logger.warn).toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(onFailure).toHaveBeenCalledWith("timeout");
   });
 
   it("falls back to legacy per-page calls while the old service URL is configured", async () => {
@@ -226,5 +306,21 @@ describe("generateHighlightsBatch", () => {
       "legacy query highlight failed",
       expect.objectContaining({ pageId: "1" }),
     );
+  });
+
+  it("does not fan out fallback requests when fallback is disabled", async () => {
+    const fetchMock = mockFetchOnce({ error: "not found" }, false, 404);
+
+    const out = await generateHighlightsBatch(
+      "q",
+      [
+        { id: "0", markdown: "first" },
+        { id: "1", markdown: "second" },
+      ],
+      { logger, allowLegacyFallback: false, logPayload: false },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(out).toBeNull();
   });
 });

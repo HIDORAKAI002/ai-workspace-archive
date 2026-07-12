@@ -14,6 +14,7 @@ import {
   calculateScrapeCredits,
 } from "./scrape";
 import { applySearchHighlights, highlightsEnvReady } from "./highlights";
+import { runSearchHighlightsShadow } from "./highlights-shadow";
 import { trackSearchResults, trackSearchRequest } from "../lib/tracking";
 import type { BillingMetadata } from "../services/billing/types";
 import type { ThreatProtectionPolicy } from "../lib/threat-protection/types";
@@ -247,12 +248,20 @@ export async function executeSearch(
   // Runs after scraping (mergeScrapedContent rebuilds the result objects, so
   // highlight mutations must come last to survive). Uses the user's original
   // query, not the domain-filtered upstream query.
-  if (
+  const shouldApplyHighlights =
     options.highlights &&
     flags?.highlightsBeta === true &&
-    highlightsEnvReady()
-  ) {
+    highlightsEnvReady();
+  if (shouldApplyHighlights) {
     await applySearchHighlights(searchResponse, query, logger);
+  } else {
+    runSearchHighlightsShadow({
+      response: searchResponse,
+      query,
+      requestId: context.requestId,
+      teamId,
+      zeroDataRetention: zeroDataRetention === true || isZDR === true,
+    });
   }
 
   const scrapeFormats = scrapeOptions?.formats
