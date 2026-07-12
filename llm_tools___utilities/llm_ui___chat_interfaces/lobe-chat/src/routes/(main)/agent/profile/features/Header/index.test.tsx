@@ -1,7 +1,7 @@
 import type * as LobeChatConst from '@lobechat/const';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type * as LucideReact from 'lucide-react';
-import type { PropsWithChildren, ReactNode } from 'react';
+import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import Header from './index';
@@ -147,9 +147,19 @@ vi.mock('@/features/AgentBreadcrumb', () => ({
 }));
 
 vi.mock('@/features/NavHeader', () => ({
-  default: ({ left, right }: { left?: ReactNode; right?: ReactNode }) => (
+  default: ({
+    left,
+    right,
+    styles,
+  }: {
+    left?: ReactNode;
+    right?: ReactNode;
+    styles?: { left?: CSSProperties };
+  }) => (
     <header>
-      {left}
+      <div data-testid="nav-header-left" style={styles?.left}>
+        {left}
+      </div>
       {right}
     </header>
   ),
@@ -220,8 +230,20 @@ describe('Agent profile Header', () => {
     mocks.agentState.isCurrentAgentHeterogeneous = false;
     mocks.agentState.systemRole = 'You are helpful.';
     mocks.agentState.config.plugins = ['lobe-web-browsing'];
+    mocks.globalState.showAgentBuilderPanel = false;
     mocks.profileState.editor = undefined;
   });
+
+  it.each([false, true])(
+    'keeps the breadcrumb aligned with the left content inset when builder expanded is %s',
+    (showAgentBuilderPanel) => {
+      mocks.globalState.showAgentBuilderPanel = showAgentBuilderPanel;
+
+      render(<Header />);
+
+      expect(screen.getByTestId('nav-header-left').style.paddingInlineStart).toBe('8px');
+    },
+  );
 
   it('should show the markdown export action', () => {
     render(<Header />);
