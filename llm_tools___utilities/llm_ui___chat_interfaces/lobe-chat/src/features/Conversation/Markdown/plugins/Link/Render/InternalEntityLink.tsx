@@ -86,11 +86,7 @@ export const InternalEntityLink = memo<InternalEntityLinkProps>(({ href, label, 
 
       event.preventDefault();
 
-      if (
-        'workspaceSlug' in reference &&
-        reference.workspaceSlug &&
-        reference.type !== 'verify'
-      ) {
+      if ('workspaceSlug' in reference && reference.workspaceSlug && reference.type !== 'verify') {
         navigate(reference.pathname, { escape: true });
         return;
       }

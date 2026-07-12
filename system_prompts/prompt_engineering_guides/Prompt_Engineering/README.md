@@ -118,7 +118,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
 ### 🌱 Fundamental Concepts
 
 1. **[Introduction to Prompt Engineering](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/intro-prompt-engineering-lesson.ipynb)**
-   
+
    #### Overview 🔎
    A comprehensive introduction to the fundamental concepts of prompt engineering in the context of AI and language models.
 
@@ -126,7 +126,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
    Combines theoretical explanations with practical demonstrations, covering basic concepts, structured prompts, comparative analysis, and problem-solving applications.
 
 2. **[Basic Prompt Structures](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/basic-prompt-structures.ipynb)**
-   
+
    #### Overview 🔎
    Explores two fundamental types of prompt structures: single-turn prompts and multi-turn prompts (conversations).
 
@@ -134,7 +134,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
    Uses OpenAI's GPT model and LangChain to demonstrate single-turn and multi-turn prompts, prompt templates, and conversation chains.
 
 3. **[Prompt Templates and Variables](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/prompt-templates-variables-jinja2.ipynb)**
-   
+
    #### Overview 🔎
    Introduces creating and using prompt templates with variables, focusing on Python and the Jinja2 templating engine.
 
@@ -144,7 +144,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
 ### 🔧 Core Techniques
 
 4. **[Zero-Shot Prompting](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/zero-shot-prompting.ipynb)**
-   
+
    #### Overview 🔎
    Explores zero-shot prompting, allowing language models to perform tasks without specific examples or prior training.
 
@@ -152,7 +152,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
    Demonstrates direct task specification, role-based prompting, format specification, and multi-step reasoning using OpenAI and LangChain.
 
 5. **[Few-Shot Learning and In-Context Learning](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/few-shot-learning.ipynb)**
-   
+
    #### Overview 🔎
    Covers Few-Shot Learning and In-Context Learning techniques using OpenAI's GPT models and the LangChain library.
 
@@ -160,7 +160,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
    Implements basic and advanced few-shot learning, in-context learning, and best practices for example selection and evaluation.
 
 6. **[Chain of Thought (CoT) Prompting](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/cot-prompting.ipynb)**
-   
+
    #### Overview 🔎
    Introduces Chain of Thought (CoT) prompting, encouraging AI models to break down complex problems into step-by-step reasoning processes.
 
@@ -170,7 +170,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
 ### 🔍 Advanced Strategies
 
 7. **[Self-Consistency and Multiple Paths of Reasoning](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/self-consistency.ipynb)**
-   
+
    #### Overview 🔎
    Explores techniques for generating diverse reasoning paths and aggregating results to improve AI-generated answers.
 
@@ -178,7 +178,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
    Demonstrates designing diverse reasoning prompts, generating multiple responses, implementing aggregation methods, and applying self-consistency checks.
 
 8. **[Constrained and Guided Generation](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/constrained-guided-generation.ipynb)**
-   
+
    #### Overview 🔎
    Focuses on techniques to set up constraints for model outputs and implement rule-based generation.
 
@@ -186,7 +186,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
    Uses LangChain's PromptTemplate for structured prompts, implements constraints, and explores rule-based generation techniques.
 
 9. **[Role Prompting](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/role-prompting.ipynb)**
-   
+
    #### Overview 🔎
    Explores assigning specific roles to AI models and crafting effective role descriptions.
 
@@ -196,7 +196,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
 ### 🚀 Advanced Implementations
 
 10. **[Task Decomposition in Prompts](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/task-decomposition-prompts.ipynb)**
-    
+
     #### Overview 🔎
     Explores techniques for breaking down complex tasks and chaining subtasks in prompts.
 
@@ -204,7 +204,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
     Covers problem analysis, subtask definition, targeted prompt engineering, sequential execution, and result synthesis.
 
 11. **[Prompt Chaining and Sequencing](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/prompt-chaining-sequencing.ipynb)**
-    
+
     #### Overview 🔎
     Demonstrates how to connect multiple prompts and build logical flows for complex AI-driven tasks.
 
@@ -212,7 +212,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
     Explores basic prompt chaining, sequential prompting, dynamic prompt generation, and error handling within prompt chains.
 
 12. **[Instruction Engineering](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/instruction-engineering-notebook.ipynb)**
-    
+
     #### Overview 🔎
     Focuses on crafting clear and effective instructions for language models, balancing specificity and generality.
 
@@ -222,7 +222,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
 ### 🎨 Optimization and Refinement
 
 13. **[Prompt Optimization Techniques](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/prompt-optimization-techniques.ipynb)**
-    
+
     #### Overview 🔎
     Explores advanced techniques for optimizing prompts, focusing on A/B testing and iterative refinement.
 
@@ -230,7 +230,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
     Demonstrates A/B testing of prompts, iterative refinement processes, and performance evaluation using relevant metrics.
 
 14. **[Handling Ambiguity and Improving Clarity](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/ambiguity-clarity.ipynb)**
-    
+
     #### Overview 🔎
     Focuses on identifying and resolving ambiguous prompts and techniques for writing clearer prompts.
 
@@ -238,7 +238,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
     Covers analyzing ambiguous prompts, implementing strategies to resolve ambiguity, and exploring techniques for writing clearer prompts.
 
 15. **[Prompt Length and Complexity Management](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/prompt-length-complexity-management.ipynb)**
-    
+
     #### Overview 🔎
     Explores techniques for managing prompt length and complexity when working with large language models.
 
@@ -248,7 +248,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
 ### 🛠️ Specialized Applications
 
 16. **[Negative Prompting and Avoiding Undesired Outputs](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/negative-prompting.ipynb)**
-    
+
     #### Overview 🔎
     Explores negative prompting and techniques for avoiding undesired outputs from large language models.
 
@@ -256,7 +256,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
     Covers basic negative examples, explicit exclusions, constraint implementation using LangChain, and methods for evaluating and refining negative prompts.
 
 17. **[Prompt Formatting and Structure](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/prompt-formatting-structure.ipynb)**
-    
+
     #### Overview 🔎
     Explores various prompt formats and structural elements, demonstrating their impact on AI model responses.
 
@@ -264,7 +264,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
     Demonstrates creating various prompt formats, incorporating structural elements, and comparing responses from different prompt structures.
 
 18. **[Prompts for Specific Tasks](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/specific-task-prompts.ipynb)**
-    
+
     #### Overview 🔎
     Explores the creation and use of prompts for specific tasks: text summarization, question-answering, code generation, and creative writing.
 
@@ -274,7 +274,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
 ### 🌍 Advanced Applications
 
 19. **[Multilingual and Cross-lingual Prompting](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/multilingual-prompting.ipynb)**
-    
+
     #### Overview 🔎
     Explores techniques for designing prompts that work effectively across multiple languages and for language translation tasks.
 
@@ -282,7 +282,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
     Covers creating multilingual prompts, implementing language detection and adaptation, designing cross-lingual translation prompts, and handling various writing systems and scripts.
 
 20. **[Ethical Considerations in Prompt Engineering](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/ethical-prompt-engineering.ipynb)**
-    
+
     #### Overview 🔎
     Explores the ethical dimensions of prompt engineering, focusing on avoiding biases and creating inclusive and fair prompts.
 
@@ -290,7 +290,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
     Covers identifying biases in prompts, implementing strategies to create inclusive prompts, and methods to evaluate and improve the ethical quality of AI outputs.
 
 21. **[Prompt Security and Safety](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/prompt-security-and-safety.ipynb)**
-    
+
     #### Overview 🔎
     Focuses on preventing prompt injections and implementing content filters in prompts for safe and secure AI applications.
 
@@ -298,7 +298,7 @@ Explore our extensive list of prompt engineering techniques, ranging from basic 
     Covers techniques for prompt injection prevention, content filtering implementation, and testing the effectiveness of security and safety measures.
 
 22. **[Evaluating Prompt Effectiveness](https://github.com/NirDiamant/Prompt_Engineering/blob/main/all_prompt_engineering_techniques/evaluating-prompt-effectiveness.ipynb)**
-    
+
     #### Overview 🔎
     Explores methods and techniques for evaluating the effectiveness of prompts in AI language models.
 
@@ -356,4 +356,6 @@ This project is licensed under a custom non-commercial license - see the [LICENS
 ⭐️ If you find this repository helpful, please consider giving it a star!
 
 Keywords: Prompt Engineering, AI, Machine Learning, Natural Language Processing, LLM, Language Models, NLP, Conversational AI, Zero-Shot Learning, Few-Shot Learning, Chain of Thought
+
+![](https://europe-west1-prompt-eng-views-tracker.cloudfunctions.net/prompt-eng-tracker?notebook=main-readme)
 
