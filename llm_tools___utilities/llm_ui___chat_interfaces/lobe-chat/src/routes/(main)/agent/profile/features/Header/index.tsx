@@ -246,7 +246,6 @@ const Header = memo(() => {
 
   return (
     <NavHeader
-      styles={{ left: { paddingInlineStart: 24 } }}
       left={
         <Flexbox horizontal align={'center'} gap={8}>
           {activeAgentId && (
@@ -272,6 +271,11 @@ const Header = memo(() => {
           )}
         </Flexbox>
       }
+      styles={{
+        left: {
+          paddingInlineStart: 8,
+        },
+      }}
     />
   );
 });
