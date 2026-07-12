@@ -40,8 +40,11 @@ import { Truncate } from "@phoenix/components/core/utility/Truncate";
 import { useTimeRange } from "@phoenix/components/datetime";
 import {
   CellWithControlsWrap,
+  ColumnHeaderCell,
+  ColumnOrderingProvider,
   createRowSelectionColumn,
   LoadMoreRow,
+  useColumnOrder,
 } from "@phoenix/components/table";
 import {
   CHECKBOX_COLUMN_ID,
@@ -817,6 +820,22 @@ export function SpansTable(props: SpansTableProps) {
   );
   const setColumnSizing = useTracingContext((state) => state.setColumnSizing);
   const columnSizing = useTracingContext((state) => state.columnSizing);
+  const storedColumnOrder = useTracingContext((state) => state.columnOrder);
+  const setStoredColumnOrder = useTracingContext(
+    (state) => state.setColumnOrder
+  );
+  const {
+    leafColumnOrder,
+    visibleColumnOrder,
+    onVisibleColumnOrderChange,
+    getColumnOrderIndex,
+  } = useColumnOrder({
+    columns,
+    columnOrder: storedColumnOrder,
+    onColumnOrderChange: setStoredColumnOrder,
+    columnVisibility,
+    nonOrderableColumnIds: [CHECKBOX_COLUMN_ID],
+  });
   const table = useReactTable<TableRow>({
     columns,
     data: tableData,
@@ -825,6 +844,7 @@ export function SpansTable(props: SpansTableProps) {
       columnVisibility,
       rowSelection,
       columnSizing,
+      columnOrder: leafColumnOrder,
       columnPinning: CHECKBOX_COLUMN_PINNING,
     },
     defaultColumn: defaultColumnSettings,
@@ -927,7 +947,10 @@ export function SpansTable(props: SpansTableProps) {
                   </ToggleButton>
                 </ToggleButtonGroup>
                 <TableMetricsChartSelector view="spans" />
-                <SpanColumnSelector columns={computedColumns} query={data} />
+                <SpanColumnSelector
+                  columns={table.getAllColumns()}
+                  query={data}
+                />
                 <ProjectFilterConfigButton />
                 <TableAsideToggleButton />
               </Flex>
@@ -942,100 +965,127 @@ export function SpansTable(props: SpansTableProps) {
               }
               ref={tableContainerRef}
             >
-              <table
-                css={selectableTableCSS}
-                style={{
-                  ...columnSizeVars,
-                  width: table.getTotalSize(),
-                  minWidth: "100%",
-                }}
+              <ColumnOrderingProvider
+                columnOrder={visibleColumnOrder}
+                onColumnOrderChange={onVisibleColumnOrderChange}
               >
-                <thead>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <th
-                          colSpan={header.colSpan}
-                          style={{
-                            ...getCommonPinningStyles(header.column),
-                            width: `calc(var(--header-${header.id}-size) * 1px)`,
-                          }}
-                          key={header.id}
-                        >
-                          {header.isPlaceholder ? null : (
-                            <>
-                              <div
-                                {...{
-                                  className: header.column.getCanSort()
-                                    ? "sort"
-                                    : "",
-                                  onClick:
-                                    header.column.getToggleSortingHandler(),
-                                  style: {
-                                    left: header.getStart(),
-                                    width: header.getSize(),
-                                  },
-                                }}
-                              >
-                                <Truncate maxWidth={header.getSize()}>
-                                  {flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
-                                </Truncate>
-                                {header.column.getIsSorted() ? (
-                                  <Icon
-                                    className="sort-icon"
-                                    svg={
-                                      header.column.getIsSorted() === "asc" ? (
-                                        <Icons.CaretUpFilled />
-                                      ) : (
-                                        <Icons.CaretDownFilled />
-                                      )
-                                    }
+                <table
+                  css={selectableTableCSS}
+                  style={{
+                    ...columnSizeVars,
+                    width: table.getTotalSize(),
+                    minWidth: "100%",
+                  }}
+                >
+                  <thead>
+                    {table
+                      .getHeaderGroups()
+                      .map((headerGroup, headerGroupIndex) => (
+                        <tr key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => {
+                            const headerStyle = {
+                              ...getCommonPinningStyles(header.column),
+                              width: `calc(var(--header-${header.id}-size) * 1px)`,
+                            };
+                            const headerContent =
+                              header.isPlaceholder ? null : (
+                                <>
+                                  <div
+                                    {...{
+                                      className: header.column.getCanSort()
+                                        ? "sort"
+                                        : "",
+                                      onClick:
+                                        header.column.getToggleSortingHandler(),
+                                      style: {
+                                        left: header.getStart(),
+                                        width: header.getSize(),
+                                      },
+                                    }}
+                                  >
+                                    <Truncate maxWidth={header.getSize()}>
+                                      {flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext()
+                                      )}
+                                    </Truncate>
+                                    {header.column.getIsSorted() ? (
+                                      <Icon
+                                        className="sort-icon"
+                                        svg={
+                                          header.column.getIsSorted() ===
+                                          "asc" ? (
+                                            <Icons.CaretUpFilled />
+                                          ) : (
+                                            <Icons.CaretDownFilled />
+                                          )
+                                        }
+                                      />
+                                    ) : null}
+                                  </div>
+                                  <div
+                                    {...{
+                                      onMouseDown: header.getResizeHandler(),
+                                      onTouchStart: header.getResizeHandler(),
+                                      className: `resizer ${
+                                        header.column.getIsResizing()
+                                          ? "isResizing"
+                                          : ""
+                                      }`,
+                                    }}
                                   />
-                                ) : null}
-                              </div>
-                              <div
-                                {...{
-                                  onMouseDown: header.getResizeHandler(),
-                                  onTouchStart: header.getResizeHandler(),
-                                  className: `resizer ${
-                                    header.column.getIsResizing()
-                                      ? "isResizing"
-                                      : ""
-                                  }`,
-                                }}
-                              />
-                            </>
-                          )}
-                        </th>
+                                </>
+                              );
+                            return (
+                              <ColumnHeaderCell
+                                key={header.id}
+                                columnId={header.column.id}
+                                // Only the top header group is reorderable;
+                                // sub-headers of a group column move with it
+                                index={
+                                  headerGroupIndex === 0
+                                    ? getColumnOrderIndex(header.column.id)
+                                    : -1
+                                }
+                                label={
+                                  typeof header.column.columnDef.header ===
+                                  "string"
+                                    ? header.column.columnDef.header
+                                    : undefined
+                                }
+                                colSpan={header.colSpan}
+                                style={headerStyle}
+                              >
+                                {headerContent}
+                              </ColumnHeaderCell>
+                            );
+                          })}
+                        </tr>
                       ))}
-                    </tr>
-                  ))}
-                </thead>
-                {isEmpty && !hasNext ? (
-                  // The trace-based pagination optimization (https://github.com/Arize-ai/phoenix/pull/8539)
-                  // can result in isEmpty=true and hasNext=true when traces exist but lack matching root
-                  // spans. This is an undesirable edge case. The optimization is a stopgap solution that
-                  // will be replaced to eliminate this condition.
-                  <ProjectTableEmpty />
-                ) : columnSizingInfo.isResizingColumn ? (
-                  <MemoizedTableBody
-                    table={table}
-                    hasNext={hasNext}
-                    onLoadNext={() => loadNext(PAGE_SIZE)}
-                    isLoadingNext={isLoadingNext}
-                  />
-                ) : (
-                  <TableBody
-                    table={table}
-                    hasNext={hasNext}
-                    onLoadNext={() => loadNext(PAGE_SIZE)}
-                    isLoadingNext={isLoadingNext}
-                  />
-                )}
-              </table>
+                  </thead>
+                  {isEmpty && !hasNext ? (
+                    // The trace-based pagination optimization (https://github.com/Arize-ai/phoenix/pull/8539)
+                    // can result in isEmpty=true and hasNext=true when traces exist but lack matching root
+                    // spans. This is an undesirable edge case. The optimization is a stopgap solution that
+                    // will be replaced to eliminate this condition.
+                    <ProjectTableEmpty />
+                  ) : columnSizingInfo.isResizingColumn ? (
+                    <MemoizedTableBody
+                      table={table}
+                      hasNext={hasNext}
+                      onLoadNext={() => loadNext(PAGE_SIZE)}
+                      isLoadingNext={isLoadingNext}
+                    />
+                  ) : (
+                    <TableBody
+                      table={table}
+                      hasNext={hasNext}
+                      onLoadNext={() => loadNext(PAGE_SIZE)}
+                      isLoadingNext={isLoadingNext}
+                    />
+                  )}
+                </table>
+              </ColumnOrderingProvider>
             </div>
             {selectedRows.length ? (
               <SpanSelectionToolbar
