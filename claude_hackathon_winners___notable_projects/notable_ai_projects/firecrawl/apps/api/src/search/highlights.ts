@@ -11,6 +11,7 @@ import { parseMarkdown } from "../lib/html-to-markdown";
 import { htmlTransform } from "../scraper/scrapeURL/lib/removeUnwantedElements";
 import type { ScrapeOptions } from "../controllers/v2/types";
 import { generateHighlightsBatch } from "./highlight-model";
+import type { HighlightFailureReason } from "./highlight-model";
 import { config } from "../config";
 
 // How far back into the index we're willing to reach for highlight source text.
@@ -44,6 +45,7 @@ const ERROR_COUNT_TO_REGISTER = 3;
 async function getIndexedMarkdownForURL(
   url: string,
   logger: Logger,
+  logUrl = true,
 ): Promise<string | null> {
   if (!useIndex) {
     return null;
@@ -110,7 +112,7 @@ async function getIndexedMarkdownForURL(
   } catch (error) {
     logger.warn("highlights: index lookup failed", {
       error: error instanceof Error ? error.message : String(error),
-      url,
+      ...(logUrl ? { url } : {}),
     });
     return null;
   }
@@ -129,8 +131,22 @@ export async function applySearchHighlights(
   response: SearchV2Response,
   query: string,
   logger: Logger,
-): Promise<{ attempted: number; indexHits: number; replaced: number }> {
+  options: {
+    applyResults?: boolean;
+    suppressSummaryLog?: boolean;
+    suppressPayloadLog?: boolean;
+    allowLegacyFallback?: boolean;
+    requestId?: string;
+  } = {},
+): Promise<{
+  attempted: number;
+  indexHits: number;
+  replaced: number;
+  succeeded: boolean;
+  failureReason?: HighlightFailureReason;
+}> {
   const start = Date.now();
+  const applyResults = options.applyResults ?? true;
 
   // Collect every result we could highlight, each with a setter for its snippet
   // field: web results carry it in `description`, news results in `snippet`.
@@ -156,13 +172,15 @@ export async function applySearchHighlights(
 
   const attempted = targets.length;
   if (attempted === 0) {
-    return { attempted, indexHits: 0, replaced: 0 };
+    return { attempted, indexHits: 0, replaced: 0, succeeded: true };
   }
 
   // Look up indexed markdown for every URL in parallel, keeping the markdown for
   // each hit so we can send it to the highlight model service.
   const markdowns = await Promise.all(
-    targets.map(t => getIndexedMarkdownForURL(t.url, logger)),
+    targets.map(t =>
+      getIndexedMarkdownForURL(t.url, logger, !options.suppressPayloadLog),
+    ),
   );
   const hits: {
     apply: (h: string) => void;
@@ -177,6 +195,8 @@ export async function applySearchHighlights(
   // Send every hit in one request. IDs are local batch indexes, so a missing or
   // empty response only falls back the corresponding provider snippet.
   let replaced = 0;
+  let succeeded = true;
+  let failureReason: HighlightFailureReason | undefined;
   if (indexHits > 0) {
     const results = await generateHighlightsBatch(
       query,
@@ -184,25 +204,52 @@ export async function applySearchHighlights(
         id: String(index),
         markdown: hit.markdown,
       })),
-      { logger },
+      options.suppressPayloadLog || options.allowLegacyFallback === false
+        ? {
+            logger,
+            logPayload: !options.suppressPayloadLog,
+            allowLegacyFallback: options.allowLegacyFallback,
+            ...(options.requestId ? { requestId: options.requestId } : {}),
+            onFailure: reason => {
+              failureReason = reason;
+            },
+          }
+        : {
+            logger,
+            ...(options.requestId ? { requestId: options.requestId } : {}),
+            onFailure: reason => {
+              failureReason = reason;
+            },
+          },
     );
+    succeeded = results !== null;
     if (results) {
       hits.forEach((hit, index) => {
         const snippet = results.get(String(index))?.markdown;
         if (snippet?.trim()) {
-          hit.apply(snippet);
+          if (applyResults) {
+            hit.apply(snippet);
+          }
           replaced++;
         }
       });
     }
   }
 
-  logger.info("Search highlights applied", {
+  if (!options.suppressSummaryLog) {
+    logger.info("Search highlights applied", {
+      attempted,
+      indexHits,
+      replaced,
+      timeTakenMs: Date.now() - start,
+    });
+  }
+
+  return {
     attempted,
     indexHits,
     replaced,
-    timeTakenMs: Date.now() - start,
-  });
-
-  return { attempted, indexHits, replaced };
+    succeeded,
+    ...(failureReason ? { failureReason } : {}),
+  };
 }
