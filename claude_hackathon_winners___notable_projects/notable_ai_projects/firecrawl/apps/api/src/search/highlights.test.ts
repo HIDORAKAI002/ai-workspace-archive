@@ -39,6 +39,7 @@ vi.mock("./highlight-model", () => ({
 
 import { generateHighlightsBatch } from "./highlight-model";
 import { config } from "../config";
+import { indexGetRecent5 } from "../db/rpc";
 import { applySearchHighlights, highlightsEnvReady } from "./highlights";
 
 const logger = {
@@ -94,11 +95,19 @@ describe("applySearchHighlights", () => {
           markdown: "markdown:<main>index:https://second.test.json</main>",
         },
       ],
-      { logger },
+      {
+        logger,
+        onFailure: expect.any(Function),
+      },
     );
     expect(response.web[0].description).toBe("first highlight");
     expect(response.news[0].snippet).toBe("second highlight");
-    expect(result).toEqual({ attempted: 2, indexHits: 2, replaced: 2 });
+    expect(result).toEqual({
+      attempted: 2,
+      indexHits: 2,
+      replaced: 2,
+      succeeded: true,
+    });
   });
 
   it("preserves individual fallbacks for missing and empty batch pages", async () => {
@@ -118,7 +127,12 @@ describe("applySearchHighlights", () => {
       "first fallback",
       "second fallback",
     ]);
-    expect(result).toEqual({ attempted: 2, indexHits: 2, replaced: 0 });
+    expect(result).toEqual({
+      attempted: 2,
+      indexHits: 2,
+      replaced: 0,
+      succeeded: true,
+    });
   });
 
   it("preserves every fallback when the batch request fails", async () => {
@@ -136,6 +150,72 @@ describe("applySearchHighlights", () => {
       "first fallback",
       "second fallback",
     ]);
-    expect(result).toEqual({ attempted: 2, indexHits: 2, replaced: 0 });
+    expect(result).toEqual({
+      attempted: 2,
+      indexHits: 2,
+      replaced: 0,
+      succeeded: false,
+    });
+  });
+
+  it("runs without mutating the response or logging payloads in shadow mode", async () => {
+    vi.mocked(generateHighlightsBatch).mockResolvedValue(
+      new Map([["0", { highlights: [], markdown: "shadow highlight" }]]),
+    );
+    const response = {
+      web: [{ url: "https://first.test", description: "fallback" }],
+    } as any;
+
+    const result = await applySearchHighlights(response, "query", logger, {
+      applyResults: false,
+      suppressSummaryLog: true,
+      suppressPayloadLog: true,
+      allowLegacyFallback: false,
+    });
+
+    expect(response.web[0].description).toBe("fallback");
+    expect(result).toEqual({
+      attempted: 1,
+      indexHits: 1,
+      replaced: 1,
+      succeeded: true,
+    });
+    expect(generateHighlightsBatch).toHaveBeenCalledWith(
+      "query",
+      expect.any(Array),
+      {
+        logger,
+        logPayload: false,
+        allowLegacyFallback: false,
+        onFailure: expect.any(Function),
+      },
+    );
+    expect(logger.info).not.toHaveBeenCalledWith(
+      "Search highlights applied",
+      expect.anything(),
+    );
+  });
+
+  it("omits result URLs from shadow lookup failures", async () => {
+    vi.mocked(indexGetRecent5).mockRejectedValueOnce(
+      new Error("lookup failed"),
+    );
+    const response = {
+      web: [{ url: "https://private.test", description: "fallback" }],
+    } as any;
+
+    await applySearchHighlights(response, "query", logger, {
+      applyResults: false,
+      suppressSummaryLog: true,
+      suppressPayloadLog: true,
+      allowLegacyFallback: false,
+    });
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      "highlights: index lookup failed",
+      {
+        error: "lookup failed",
+      },
+    );
   });
 });
