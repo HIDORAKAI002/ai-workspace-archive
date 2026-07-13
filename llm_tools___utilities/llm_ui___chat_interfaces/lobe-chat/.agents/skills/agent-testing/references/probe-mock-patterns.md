@@ -661,6 +661,27 @@ executionTarget: 'local'` in `agencyConfig`) + one message per case asking CC to
   just added (`curl -s 127.0.0.1:<vitePort>/src/path/File.tsx | grep -c myNewSymbol`) before blaming the
   code. `electron-dev.sh stop <id>` then start again to get a clean server.
 
+### E8b. The standalone `apps/desktop` install BREAKS the root workspace's type resolution — re-run the root install after it
+
+- **Situation**: a worktree set up per E8 (`pnpm install` at the root, then
+  `cd apps/desktop && pnpm install`). Everything runs — Electron boots, the renderer serves live
+  code — but a full `bun run type-check` that passed BEFORE the desktop install now fails with
+  dozens of errors that have nothing to do with the change under test:
+  `Module '"@lobechat/types"' has no exported member 'MetaData' | 'HotkeyId' | …` plus
+  `Type 'UserHotkeyConfig' is missing the following properties from type 'UserHotkeyConfig'` —
+  the same name on both sides, i.e. **two copies of `@lobechat/types` in one program**.
+- **Doesn't work**: chasing it as a code defect, or checking the symlink
+  (`node_modules/@lobechat/types → ../../packages/types` looks correct) and `packages/types/node_modules`
+  (its deps are all present). Both look fine while the program still sees two instances.
+- **Cause**: `apps/desktop` is NOT in the root pnpm workspace (see E8). Its standalone install
+  re-resolves the `packages/*` links from its own lockfile and rewrites shared package deps under
+  `packages/*/node_modules`, leaving the root workspace pointing at a second instance.
+- **Works**: run `pnpm install` at the worktree root ONE MORE TIME, after the desktop install
+  (\~1.5 min, mostly cached). Type-check goes back to 0 errors and Electron keeps working.
+  So the safe order is: root install → desktop install → root install again. And never publish a
+  "type-check failed" verdict from a worktree until you've re-run the root install — the failure is
+  environmental, and the error text (a type "missing properties from" itself) is the tell.
+
 ### E9. Electron dev's FIRST cold boot sits on the splash with an empty `#root` for 1–3 minutes
 
 - **Situation**: after `electron-dev.sh start <id>`, `app-probe.sh auth` returns `isSignedIn:false`,
@@ -986,6 +1007,19 @@ nodeintegration, plugins, disablewebsecurity, allowpopups, preload, …`). The h
 - **Doesn't work**: `sessionStore.createSession({...})` — the desktop app doesn't use the classic session store (`sessions` is `[]`, `activeId` is `'inbox'`); agents are a server-backed model in `agentStore.agentMap` keyed by `agt_...`. The created session never becomes the active agent.
 - **Works**: back up the active agent's full config (`model`, `provider`, `agencyConfig`, relevant `chatConfig`), reconfigure it in place (`updateAgentConfigById` + `updateAgentChatConfigById`), run the test, then restore every field and clear any injected key-vault entry. Also: `chat.sendMessage` requires `context: { agentId, topicId, isNew }` or it throws `Cannot destructure property 'agentId' of 'context'`. Reads right after an `updateAgent*` can be stale — re-read after \~1.5s to confirm persistence.
 
+### C7. DB-seeded task rows need a `task_`-prefixed id or `resolve()` silently misses them
+
+- **Situation**: seeding a `tasks` row directly in SQL for a router probe, with a
+  hand-written id like `tsk_foo`, then calling a task procedure — it 404s
+  ("Task not found") even though the row exists and the caller is a member.
+- **Doesn't work**: any id not starting with `task_`. `TaskModel.resolve()`
+  (`packages/database/src/models/task.ts:220-223`) only treats the input as a row
+  id when it starts with `task_`; everything else is upper-cased and looked up as
+  a workspace `identifier` (e.g. `T-1`), so `tsk_foo` becomes the identifier
+  lookup `TSK_FOO` → null.
+- **Works**: use the idGenerator prefix (`task_<suffix>`) for seeded ids, or pass
+  the row's `identifier` (`T-<seq>`) to the procedure instead.
+
 ### F1. Seeding a shared topic by raw SQL: messages MUST carry `agent_id`, or the share page renders skeletons forever
 
 - **Situation**: fixture-seeding a `/share/t/<id>` page (topics + messages + `topic_shares`
@@ -996,3 +1030,16 @@ nodeintegration, plugins, disablewebsecurity, allowpopups, preload, …`). The h
 - **Works**: set `agent_id` on every seeded message row (matching the topic's `agent_id`).
   Probe the endpoint directly before blaming the UI:
   `/trpc/lambda/message.getMessages?input={"json":{"topicId":..,"topicShareId":..,"agentId":..}}`.
+
+### F2. Seeded share topics also need `topics.agent_id`, or the client never fires the message fetch
+
+- **Situation**: same setup as F1, but the failure is one layer earlier — metadata (title)
+  renders while `message.getMessages` never even appears in network requests.
+- **Doesn't work**: assuming the fetch failed — it was never fired. `useFetchMessages`
+  gates on `!!context.agentId && !!context.topicId`
+  (`src/store/chat/slices/message/actions/query.ts:268`), and the share page passes
+  `agentId: data.agentId ?? ''` — a topic seeded without `agent_id` yields `''` → SWR key
+  is null → no request, silent skeleton (a Case-1 lookalike with no error anywhere).
+- **Works**: seed an `agents` row and set `topics.agent_id` (and `messages.agent_id`)
+  before opening the share page. Verify the fetch actually fired via
+  `agent-browser network requests | grep getMessages`, not by waiting on the UI.
