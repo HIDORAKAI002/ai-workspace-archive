@@ -1,21 +1,23 @@
-# MCP 协议功能深度探讨
+# MCP 协议功能深入解析
 
-本指南探讨了超越基本工具和资源处理的高级 MCP 协议功能。理解这些功能有助于你构建更健壮、更易用且适合生产环境的 MCP 服务器。
+本指南探讨超越基础工具和资源处理的高级 MCP 协议功能。理解这些功能有助于您构建更健壮、用户友好且适合生产环境的 MCP 服务器。
 
-## 涉及功能
+> **展望未来：** `2026-07-28` 发布候选版本将废弃 Logging 原语（优先使用 `stderr` 进行 stdio 以及 OpenTelemetry 实现结构化可观察性），移除下文所述的 Server Lifecycle Events 中的 `initialize`/会话模型，并将实验性的 Tasks 功能迁移到专用的 Tasks 扩展中，采用新的 `tasks/get`/`tasks/update`/`tasks/cancel` 生命周期。详见 [MCP 的变化：2026-07-28 发布候选版本](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
 
-1. **进度通知** - 报告长时间运行操作的进度
-2. **请求取消** - 允许客户端取消正在进行的请求
-3. **资源模板** - 带参数的动态资源 URI
-4. **服务器生命周期事件** - 适当的初始化和关闭
-5. **日志控制** - 服务器端日志配置
-6. **错误处理模式** - 一致的错误响应
+## 涵盖的功能
+
+1. <strong>进度通知</strong> - 报告长时间运行操作的进展
+2. <strong>请求取消</strong> - 允许客户端取消正在进行的请求
+3. <strong>资源模板</strong> - 支持带参数的动态资源 URI
+4. <strong>服务器生命周期事件</strong> - 适当的初始化和关闭处理
+5. <strong>日志控制</strong> - 服务器端日志配置
+6. <strong>错误处理模式</strong> - 一致的错误响应
 
 ---
 
 ## 1. 进度通知
 
-对于耗时操作（数据处理、文件下载、API 调用），进度通知能让用户及时了解状况。
+对于耗时操作（数据处理、文件下载、API 调用），进度通知让用户保持知情。
 
 ### 工作原理
 
@@ -24,12 +26,13 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call（长时间操作）
-    Server-->>Client: 通知：进度10%
-    Server-->>Client: 通知：进度50%
-    Server-->>Client: 通知：进度90%
+    Client->>Server: 工具/调用（长操作）
+    Server-->>Client: 通知：进度 10%
+    Server-->>Client: 通知：进度 50%
+    Server-->>Client: 通知：进度 90%
     Server->>Client: 结果（完成）
 ```
+
 ### Python 实现
 
 ```python
@@ -49,7 +52,7 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # 处理数据块
+            # 处理块
             await process_chunk(chunk)
             processed += len(chunk)
             
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # 每处理一个项目报告一次进度
+        # 在每个项目后报告进度
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -134,7 +137,7 @@ async def handle_progress(notification):
 # 注册处理程序
 session.on_notification("notifications/progress", handle_progress)
 
-# 调用工具（进度更新将通过处理程序到达）
+# 调用工具（进度更新将通过处理程序接收）
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
@@ -160,7 +163,7 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # 搜索多页内容
+        for page in range(100):  # 在许多页面中搜索
             # 检查是否请求取消
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. 资源模板
 
-资源模板支持通过参数动态构建 URI，适用于 API 和数据库。
+资源模板允许使用参数构建动态 URI，适用于 API 和数据库。
 
 ### 定义模板
 
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. 服务器生命周期事件
 
-合理的初始化和关闭处理确保资源管理的整洁。
+适当的初始化和关闭处理确保资源管理的清晰。
 
 ### Python 生命周期管理
 
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// 结合优雅关闭的使用方式
+// 配合优雅关闭使用
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -469,7 +472,7 @@ await server.start();
 
 MCP 支持客户端可控制的服务器端日志级别。
 
-### 实现日志级别
+### 日志级别实现
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# 将 MCP 级别映射到 Python 日志级别
+# 将 MCP 等级映射到 Python 日志等级
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -516,7 +519,7 @@ async def debug_operation(data: str) -> str:
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # 向客户端发送日志通知
+    # 发送日志通知给客户端
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -537,9 +540,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ## 6. 错误处理模式
 
-一致的错误处理有助于调试和用户体验。
+一致的错误处理改善调试和用户体验。
 
-### MCP 错误码
+### MCP 错误代码
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -665,7 +668,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # 报告任务开始
+    # 报告任务已启动
     await ctx.report_status("running", "Initializing training...")
     
     # 训练循环
@@ -682,15 +685,15 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### 工具注解
+### 工具注释
 
 ```python
-# 注解提供有关工具行为的元数据
+# 注释提供有关工具行为的元数据
 @app.tool(
     annotations={
         "destructive": False,      # 不修改数据
         "idempotent": True,        # 可以安全重试
-        "timeout_seconds": 30,     # 预期最长持续时间
+        "timeout_seconds": 30,     # 预期最大持续时间
         "requires_approval": False # 无需用户批准
     }
 )
@@ -703,9 +706,9 @@ async def safe_query(query: str) -> str:
 
 ## 后续内容
 
-- [模块 8 - 最佳实践](../../08-BestPractices/README.md)
+- [第8模块 - 最佳实践](../../08-BestPractices/README.md)
 - [5.14 - 上下文工程](../mcp-contextengineering/README.md)
-- [MCP 规范更新日志](https://spec.modelcontextprotocol.io/)
+- [MCP 规范变更日志](https://spec.modelcontextprotocol.io/)
 
 ---
 
@@ -719,6 +722,6 @@ async def safe_query(query: str) -> str:
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**免责声明**：  
-本文件使用 AI 翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 进行翻译。虽然我们力求准确，但请注意自动翻译可能包含错误或不准确之处。应以原始语言版本的文件为权威来源。对于重要信息，建议采用专业人工翻译。因使用本翻译而产生的任何误解或误释，我们概不负责。
+**免责声明**：
+本文件由 AI 翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻译完成。尽管我们力求准确，但请注意，自动翻译可能包含错误或不准确之处。原始语言版文件应视为权威来源。对于重要信息，建议使用专业人工翻译。我们对因使用本翻译而产生的任何误解或误释不承担责任。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

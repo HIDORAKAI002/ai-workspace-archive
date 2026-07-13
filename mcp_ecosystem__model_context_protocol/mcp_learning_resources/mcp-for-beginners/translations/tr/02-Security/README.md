@@ -1,57 +1,59 @@
 # MCP Güvenliği: Yapay Zeka Sistemleri için Kapsamlı Koruma
 
-[![MCP Güvenliği En İyi Uygulamalar](../../../translated_images/tr/03.175aed6dedae133f.webp)](https://youtu.be/88No8pw706o)
+[![MCP Security Best Practices](../../../translated_images/tr/03.175aed6dedae133f.webp)](https://youtu.be/88No8pw706o)
 
 _(Bu dersin videosunu izlemek için yukarıdaki görsele tıklayın)_
 
-Güvenlik, yapay zeka sistemi tasarımının temelidir; bu yüzden bunu ikinci bölümümüz olarak önceliklendiriyoruz. Bu, Microsoft’un [Güvenli Gelecek Girişimi](https://www.microsoft.com/security/blog/2025/04/17/microsofts-secure-by-design-journey-one-year-of-success/) kapsamında yer alan **Tasarımda Güvenlik** ilkesine uyum sağlamaktadır.
+Güvenlik, yapay zeka sistemi tasarımında temel bir unsurdur; bu nedenle bunu ikinci bölümümüz olarak önceliklendiriyoruz. Bu, Microsoft'un [Secure Future Initiative](https://www.microsoft.com/security/blog/2025/04/17/microsofts-secure-by-design-journey-one-year-of-success/) kapsamında yer alan **Güvenli Tasarım** (Secure by Design) ilkesine uygundur.
 
-Model Context Protocol (MCP), yapay zeka destekli uygulamalara güçlü yeni yetenekler getirirken geleneksel yazılım risklerini aşan benzersiz güvenlik zorlukları da ortaya koymaktadır. MCP sistemleri, yerleşik güvenlik endişeleri (güvenli kodlama, en az ayrıcalık ilkesi, tedarik zinciri güvenliği) ve yapay zekaya özgü yeni tehditler (prompt enjeksiyonu, araç zehirlenmesi, oturum kaçırma, kafası karışmış vekil saldırıları, jeton geçişi açıkları ve dinamik yetenek değiştirme) ile karşı karşıyadır.
+Model Context Protocol (MCP), yapay zeka destekli uygulamalara güçlü yeni yetenekler getirirken, geleneksel yazılım risklerinin ötesine geçen benzersiz güvenlik zorluklarını da beraberinde getirir. MCP sistemleri, köklü güvenlik endişeleri (güvenli kodlama, en az ayrıcalık, tedarik zinciri güvenliği) yanında prompt enjeksiyonu, araç zehirleme, oturum kaçırma, kafa karışıklığı saldırıları, token geçiş açıklıkları ve dinamik yetenek değişiklikleri gibi yapay zekaya özgü yeni tehditlerle karşı karşıyadır.
 
-Bu ders, MCP uygulamalarındaki en kritik güvenlik risklerini inceler—kimlik doğrulama, yetkilendirme, aşırı izinler, dolaylı prompt enjeksiyonu, oturum güvenliği, kafası karışmış vekil sorunları, jeton yönetimi ve tedarik zinciri açıkları gibi konuları kapsar. Microsoft çözümleri olan Prompt Shields, Azure İçerik Güvenliği ve GitHub İleri Düzey Güvenlik gibi araçları kullanarak MCP dağıtımınızı güçlendirmek için bu risklere karşı uygulanabilir kontrolleri ve en iyi uygulamaları öğrenirsiniz.
+Bu ders, MCP uygulamalarındaki en kritik güvenlik risklerini inceleyecek—kimlik doğrulama, yetkilendirme, aşırı izinler, dolaylı prompt enjeksiyonu, oturum güvenliği, kafa karışıklığı sorunları, token yönetimi ve tedarik zinciri açıkları gibi konuları kapsıyor. Bu riskleri azaltmak için uygulanabilir kontrolleri ve en iyi uygulamaları öğrenecek, Microsoft çözümleri olan Prompt Shields, Azure Content Safety ve GitHub Advanced Security ile MCP kurulumunuzu güçlendireceksiniz.
 
-## Öğrenim Hedefleri
+## Öğrenme Hedefleri
 
 Bu dersin sonunda şunları yapabileceksiniz:
 
-- **MCP’ye Özgü Tehditleri Tanımlamak**: MCP sistemlerindeki benzersiz güvenlik risklerini tanımak; prompt enjeksiyonu, araç zehirlenmesi, aşırı izinler, oturum kaçırma, kafası karışmış vekil sorunları, jeton geçişi açıkları ve tedarik zinciri riskleri dahil
-- **Güvenlik Kontrollerini Uygulamak**: Güçlü kimlik doğrulama, en az ayrıcalık erişimi, güvenli jeton yönetimi, oturum güvenliği kontrolleri ve tedarik zinciri doğrulaması gibi etkili azaltımları hayata geçirmek
-- **Microsoft Güvenlik Çözümlerini Kullanmak**: MCP iş yükü koruması için Microsoft Prompt Shields, Azure İçerik Güvenliği ve GitHub İleri Düzey Güvenlik’i anlamak ve dağıtmak
-- **Araç Güvenliğini Doğrulamak**: Araç metadata doğrulamasının önemini kavramak, dinamik değişiklikleri izlemek ve dolaylı prompt enjeksiyonu saldırılarına karşı savunma yapmak
-- **En İyi Uygulamaları Entegre Etmek**: Yerleşik güvenlik temelleri (güvenli kodlama, sunucu sertleştirme, sıfır güven) ile MCP’ye özgü kontrolleri birleştirerek kapsamlı koruma sağlamak
+- **MCP'ye Özgü Tehditleri Tanımlama**: Prompt enjeksiyonu, araç zehirleme, aşırı izinler, oturum kaçırma, kafa karışıklığı sorunları, token geçiş açıklıkları ve tedarik zinciri riskleri dahil olmak üzere MCP sistemlerindeki benzersiz güvenlik risklerini tanıyın  
+- **Güvenlik Kontrollerini Uygulama**: Sağlam kimlik doğrulama, en az ayrıcalıklı erişim, güvenli token yönetimi, oturum güvenliği kontrolleri ve tedarik zinciri doğrulaması gibi etkili iyileştirmeleri hayata geçirin  
+- **Microsoft Güvenlik Çözümlerini Kullanma**: MCP iş yükü koruması için Microsoft Prompt Shields, Azure Content Safety ve GitHub Advanced Security'yi anlayın ve uygulayın  
+- **Araç Güvenliğini Doğrulama**: Araç meta verilerinin doğrulanmasının, dinamik değişikliklerin izlenmesinin ve dolaylı prompt enjeksiyonu saldırılarına karşı savunmanın önemini kavrayın  
+- **En İyi Uygulamaları Entegre Etme**: Yerleşik güvenlik temellerini (güvenli kodlama, sunucu sertleştirme, sıfır güven) MCP'ye özgü kontrollerle birleşik olarak kapsamlı koruma sağlayın  
 
 # MCP Güvenlik Mimarisi ve Kontrolleri
 
-Modern MCP uygulamaları, hem geleneksel yazılım güvenliği hem de yapay zekaya özgü tehditleri ele alan katmanlı güvenlik yaklaşımları gerektirir. Hızla gelişen MCP spesifikasyonu, güvenlik kontrollerini olgunlaştırmaya devam ederek kurumsal güvenlik mimarileriyle ve yerleşik en iyi uygulamalarla daha iyi entegrasyon sağlamaktadır.
+Modern MCP uygulamalarında hem geleneksel yazılım güvenliği hem de yapay zekaya özgü tehditlere yönelik katmanlı güvenlik yaklaşımları gereklidir. Hızla gelişen MCP spesifikasyonu, güvenlik kontrollerini olgunlaştırmaya devam ederek kurumsal güvenlik mimarileri ve yerleşik en iyi uygulamalarla entegrasyonu kolaylaştırmaktadır.
 
-[Microsoft Dijital Savunma Raporu](https://aka.ms/mddr) araştırmaları, **rapor edilen ihlallerin %98’inin güçlü güvenlik hijyeni ile önlenebileceğini** göstermektedir. En etkili koruma stratejisi, temel güvenlik uygulamalarını MCP’ye özgü kontrollerle birleştirmektir—kanıtlanmış temel güvenlik önlemleri, genel güvenlik riskini azaltmada en etkili yöntemdir.
+[Microsoft Dijital Savunma Raporu](https://aka.ms/mddr) araştırması, **rapor edilen ihlallerin %98'inin sağlam bir güvenlik hijyeni ile önlenebileceğini** göstermektedir. En etkili koruma stratejisi, temel güvenlik uygulamalarını MCP'ye özgü kontrollerle harmanlamaktır—kanıtlanmış temel güvenlik önlemleri, genel güvenlik riskini azaltmada en etkili yöntemdir.
 
 ## Mevcut Güvenlik Durumu
 
-> **Not:** Bu bilgi **5 Şubat 2026** tarihindeki MCP güvenlik standartlarını yansıtmaktadır ve **MCP Spesifikasyon 2025-11-25** ile uyumludur. MCP protokolü hızla evrilmektedir ve gelecekteki uygulamalar yeni kimlik doğrulama kalıpları ve geliştirilmiş kontroller getirebilir. En güncel rehberlik için her zaman mevcut [MCP Spesifikasyonuna](https://spec.modelcontextprotocol.io/), [MCP GitHub deposuna](https://github.com/modelcontextprotocol) ve [güvenlik en iyi uygulamaları dokümantasyonuna](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) başvurun.
+> **Not:** Bu bilgiler, **5 Şubat 2026** tarihindeki MCP güvenlik standartlarını yansıtmaktadır ve **MCP Spesifikasyonu 2025-11-25** ile uyumludur. MCP protokolü hızla evrilmeye devam etmekte olup, gelecekteki uygulamalarda yeni kimlik doğrulama desenleri ve geliştirilmiş kontroller sunulabilir. En güncel rehberlik için her zaman mevcut [MCP Spesifikasyonunu](https://spec.modelcontextprotocol.io/), [MCP GitHub deposunu](https://github.com/modelcontextprotocol) ve [güvenlik en iyi uygulamaları dokümantasyonunu](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) kontrol edin.
+
+> **Geleceğe Bakış:** `2026-07-28` sürüm adayı yetkilendirmeyi daha da güçlendiriyor — istemciler yetkilendirme yanıtlarındaki `iss` parametresini doğrulamalı (RFC 9207), Dinamik İstemci Kaydı sırasında OpenID Connect `application_type` beyan etmeli ve kayıtlı kimlik bilgilerini yetkilendirme sunucusuna bağlamalı. Yetkilendirme SEP'lerinin tam listesi için bkz. [MCP’de Neler Değişiyor: 2026-07-28 Sürüm Adayı](../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## 🏔️ MCP Güvenlik Zirvesi Atölyesi (Sherpa)
 
-**Pratik güvenlik eğitimi** için, Microsoft Azure’da MCP sunucularının güvenceye alınması için kapsamlı ve rehberli bir yolculuk olan **MCP Güvenlik Zirvesi Atölyesi (Sherpa)**’yı şiddetle öneriyoruz.
+Elde uygulamalı güvenlik eğitimi için, Microsoft Azure’da MCP sunucularının güvenliğini sağlamak üzere kapsamlı rehberli bir keşif olan **MCP Güvenlik Zirvesi Atölyesi**ni (Sherpa) şiddetle tavsiye ederiz.
 
 ### Atölye Genel Bakışı
 
-[MCP Güvenlik Zirvesi Atölyesi](https://azure-samples.github.io/sherpa/), "güvenlik açığı → istismar → düzeltme → doğrulama" metodolojisiyle uygulanabilir, pratik güvenlik eğitimi sunar. Şunları yapacaksınız:
+[MCP Güvenlik Zirvesi Atölyesi](https://azure-samples.github.io/sherpa/) "güvenlik açığı → sömürü → düzeltme → doğrulama" metodolojisini izleyerek pratik, uygulanabilir güvenlik eğitimi sunar. Şunları yapacaksınız:
 
-- **Hedefe Kırarak Öğrenmek**: Niyetli olarak güvensiz sunucuları istismar ederek güvenlik açıklarını deneyimleyin
-- **Azure Yerel Güvenliğini Kullanmak**: Azure Entra ID, Key Vault, API Yönetimi ve AI İçerik Güvenliği'nden yararlanın
-- **Derin Savunmayı Takip Etmek**: Kapsamlı güvenlik katmanları oluşturulan kamp alanlarından ilerleyin
-- **OWASP Standartlarını Uygulamak**: Her teknik, [OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/) ile eşleşir
-- **Üretim Koduna Sahip Olmak**: Çalışan ve test edilmiş uygulamalarla ayrılın
+- **Kırarak Öğrenme**: Kasıtlı olarak güvensiz sunucuları istismar ederek zafiyetleri deneyimleyin  
+- **Azure Yerel Güvenliği Kullanma**: Azure Entra ID, Key Vault, API Management ve AI Content Safety’den yararlanın  
+- **Derin Savunma Yaklaşımı**: Güvenlik katmanları oluşturduğunuz kamplardan geçiş yapın  
+- **OWASP Standartlarını Uygulama**: Her teknik, [OWASP MCP Azure Güvenlik Rehberi](https://microsoft.github.io/mcp-azure-security-guide/) ile örtüşür  
+- **Üretim Kodu Elde Etme**: Çalışan ve test edilmiş uygulamalarla ayrılırsınız  
 
-### Yolculuk Rotası
+### Keşif Rotası
 
-| Kamp | Odak Noktası | Kapsanan OWASP Riskleri |
-|------|--------------|-------------------------|
-| **Ana Kamp** | MCP temelleri & kimlik doğrulama açıkları | MCP01, MCP07 |
+| Kamp | Odak | Kapsanan OWASP Riskleri |
+|------|-------|-------------------------|
+| **Ana Kamp** | MCP temelleri & kimlik doğrulama zafiyetleri | MCP01, MCP07 |
 | **Kamp 1: Kimlik** | OAuth 2.1, Azure Yönetilen Kimlik, Key Vault | MCP01, MCP02, MCP07 |
-| **Kamp 2: Ağ Geçidi** | API Yönetimi, Özel Uç Noktalar, yönetişim | MCP02, MCP06, MCP07, MCP09 |
-| **Kamp 3: Giriş/Çıkış Güvenliği** | Prompt enjeksiyonu, PII koruma, içerik güvenliği | MCP03, MCP05, MCP06, MCP10 |
+| **Kamp 2: Ağ Geçidi** | API Yönetimi, Özel Uç Noktalar, yönetim | MCP02, MCP06, MCP07, MCP09 |
+| **Kamp 3: Giriş/Çıkış Güvenliği** | Prompt enjeksiyonu, Kişisel Verilerin Korunması, içerik güvenliği | MCP03, MCP05, MCP06, MCP10 |
 | **Kamp 4: İzleme** | Log Analytics, panolar, tehdit tespiti | MCP04, MCP08 |
 | **Zirve** | Kırmızı Takım / Mavi Takım entegrasyon testi | Hepsi |
 
@@ -59,444 +61,445 @@ Modern MCP uygulamaları, hem geleneksel yazılım güvenliği hem de yapay zeka
 
 ## OWASP MCP İlk 10 Güvenlik Riski
 
-[OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/), MCP uygulamaları için en kritik on güvenlik riskini detaylandırır:
+[OWASP MCP Azure Güvenlik Rehberi](https://microsoft.github.io/mcp-azure-security-guide/), MCP uygulamaları için en kritik on güvenlik riskini detaylandırır:
 
-| Risk | Açıklama | Azure ile Azaltma |
-|------|----------|-------------------|
-| **MCP01** | Jeton Yönetimi Hataları ve Gizli Bilgi Açığa Çıkması | Azure Key Vault, Yönetilen Kimlik |
-| **MCP02** | Kapsam Kıvrımı ile Ayrıcalık Yükseltme | RBAC, Koşullu Erişim |
-| **MCP03** | Araç Zehirlenmesi | Araç doğrulama, bütünlük denetimi |
-| **MCP04** | Yazılım Tedarik Zinciri Saldırıları ve Bağımlılık Manipülasyonu | GitHub İleri Düzey Güvenlik, bağımlılık taraması |
-| **MCP05** | Komut Enjeksiyonu ve Yürütme | Girdi doğrulama, sandbox uygulaması |
-| **MCP06** | Niyet Akışının Altüst Edilmesi | Azure AI İçerik Güvenliği, Prompt Shields |
-| **MCP07** | Yetersiz Kimlik Doğrulama ve Yetkilendirme | Azure Entra ID, PKCE ile OAuth 2.1 |
-| **MCP08** | Denetim ve Telemetri Eksikliği | Azure Monitor, Uygulama İçgörüleri |
-| **MCP09** | Gölge MCP Sunucuları | API Merkezi yönetişimi, ağ izolasyonu |
-| **MCP10** | Bağlam Enjeksiyonu ve Aşırı Paylaşım | Veri sınıflandırması, asgari maruziyet |
+| Risk | Açıklama | Azure ile İyileştirme |
+|------|----------|-----------------------|
+| **MCP01** | Token Yanlış Yönetimi & Gizlilik Sızıntısı | Azure Key Vault, Yönetilen Kimlik |
+| **MCP02** | Yetki Aşımı (Scope Creep) | RBAC, Koşullu Erişim |
+| **MCP03** | Araç Zehirleme | Araç doğrulama, bütünlük kontrolü |
+| **MCP04** | Yazılım Tedarik Zinciri Saldırıları & Bağımlılık Değiştirme | GitHub Advanced Security, bağımlılık taraması |
+| **MCP05** | Komut Enjeksiyonu & Yürütme | Girdi doğrulama, sandboxing |
+| **MCP06** | Niyet Akışı Manipülasyonu | Azure AI Content Safety, Prompt Shields |
+| **MCP07** | Yetersiz Kimlik Doğrulama & Yetkilendirme | Azure Entra ID, PKCE ile OAuth 2.1 |
+| **MCP08** | Denetim ve Telemetri Eksikliği | Azure Monitor, Application Insights |
+| **MCP09** | Gölge MCP Sunucuları | API Merkezi yönetimi, ağ izolasyonu |
+| **MCP10** | Kontekst Enjeksiyonu & Aşırı Paylaşım | Veri sınıflandırması, minimal maruziyet |
 
-### MCP Kimlik Doğrulamasının Evrimi
+### MCP Kimlik Doğrulama Evrimi
 
-MCP spesifikasyonu kimlik doğrulama ve yetkilendirme yaklaşımında önemli değişiklikler geçirdi:
+MCP spesifikasyonu kimlik doğrulama ve yetkilendirme yaklaşımında önemli gelişmeler göstermiştir:
 
-- **Orijinal Yaklaşım**: İlk spesifikasyonlar, geliştiricilerin özel kimlik doğrulama sunucularını uygulamasını gerektiriyordu; MCP sunucuları ise OAuth 2.0 Yetkilendirme Sunucusu olarak kullanıcı kimlik doğrulamasını doğrudan yönetiyordu
-- **Mevcut Standart (2025-11-25)**: Güncellenmiş spesifikasyon, MCP sunucuların Microsoft Entra ID gibi dış kimlik sağlayıcılarına kimlik doğrulamasını devretmesine izin vererek güvenlik duruşunu iyileştiriyor ve uygulama karmaşıklığını azaltıyor
-- **Taşıma Katmanı Güvenliği**: Yerel (STDIO) ve uzak (Streamable HTTP) bağlantılar için uygun kimlik doğrulama kalıplarıyla geliştirilmiş güvenli taşıma mekanizmaları desteği
+- **Orijinal Yaklaşım**: İlk spesifikasyonlarda geliştiriciler özel kimlik doğrulama sunucuları implementasyonu yapmak zorundaydı; MCP sunucuları OAuth 2.0 Yetkilendirme Sunucusu olarak kullanıcı kimlik doğrulamasını doğrudan yönetiyordu  
+- **Mevcut Standart (2025-11-25)**: Güncellenen spesifikasyon MCP sunucularının kimlik doğrulamayı Microsoft Entra ID gibi dış kimlik sağlayıcılarına devretmesine olanak tanıyıp, güvenlik duruşunu iyileştirdi ve uygulama karmaşıklığını azalttı  
+- **Taşıma Katmanı Güvenliği**: Yerel (STDIO) ve uzak (Streamable HTTP) bağlantılar için uygun kimlik doğrulama desenleriyle gelişmiş güvenli taşıma desteği  
 
 ## Kimlik Doğrulama ve Yetkilendirme Güvenliği
 
 ### Mevcut Güvenlik Zorlukları
 
-Modern MCP uygulamaları, birçok kimlik doğrulama ve yetkilendirme sorunu ile karşılaşır:
+Modern MCP uygulamaları, kimlik doğrulama ve yetkilendirme alanında çeşitli zorluklarla karşı karşıyadır:
 
 ### Riskler ve Tehdit Vektörleri
 
-- **Yanlış Yapılandırılmış Yetkilendirme Mantığı**: MCP sunucularındaki hatalı yetkilendirme uygulamaları, hassas verileri açığa çıkarabilir ve erişim kontrollerini yanlış uygulayabilir
-- **OAuth Jeton Sızıntısı**: Yerel MCP sunucu jetonu çalınması, saldırganların sunucu kimliğine bürünerek aşağı akış hizmetlerine erişmesini sağlar
-- **Jeton Geçişi Açıkları**: Yanlış jeton işleme güvenlik kontrollerinin atlanmasına ve hesap verebilirlik boşluklarına yol açar
-- **Aşırı İzinler**: Gereğinden fazla ayrıcalık verilmiş MCP sunucular, en az ayrıcalık ilkesi ihlal edilir ve saldırı yüzeyleri genişler
+- **Yanlış Yapılandırılmış Yetkilendirme Mantığı**: MCP sunucularındaki hatalı yetkilendirme uygulaması hassas verilerin açığa çıkmasına ve erişim kontrollerinin yanlış uygulanmasına yol açabilir  
+- **OAuth Token İhlali**: Yerel MCP sunucu tokenlarının çalınması, saldırganların sunucu kimliği taklidi yapmasına ve alt sistemlere erişmesine olanak verir  
+- **Token Geçiş Açıkları**: Uygunsuz token kullanımı güvenlik kontrollerinin atlanmasına ve hesap verebilirlik boşluklarına sebep olur  
+- **Aşırı İzinler**: Gereğinden fazla yetkiye sahip MCP sunucuları en az ayrıcalık prensibini ihlal eder ve saldırı yüzeyini genişletir  
 
-#### Jeton Geçişi: Kritik Bir Antipattern
+#### Token Geçişi: Kritik Bir Antipattern
 
-Mevcut MCP yetkilendirme spesifikasyonunda ağır güvenlik risklerinden dolayı **jeton geçişi kesinlikle yasaktır**:
+Mevcut MCP yetkilendirme spesifikasyonunda **token geçişi açıkça yasaktır**, çünkü ciddi güvenlik etkileri vardır:
 
-##### Güvenlik Kontrollerinin Atlanması
-- MCP sunucuları ve aşağı akış API’ları, oran sınırlaması, istek doğrulama, trafik izlemesi gibi kritik güvenlik kontrollerini uygular
-- İstemci den API’ye doğrudan jeton kullanımı bu temel korumaları atlayarak güvenlik mimarisini zayıflatır
+##### Güvenlik Kontrolü Atlatma  
+- MCP sunucuları ve bağlı API'ler, oran sınırlama, istek doğrulama ve trafik izleme gibi kritik güvenlik kontrollerini düzgün token doğrulamasıyla uygular  
+- İstemci ile API arasında doğrudan token kullanımı bu temel korumaları atlar ve güvenlik mimarisini zayıflatır  
 
-##### Hesap Verebilirlik ve Denetim Problemleri
-- MCP sunucuları, üst akış tarafından verilen jetonları kullanan istemciler arasında ayrım yapamaz; denetim yolları kırılır
-- Aşağı akış kaynak sunucu günlükleri gerçek MCP sunucu arabulucusu yerine yanıltıcı istek kökenlerini gösterir
-- Olay inceleme ve uyum denetimi oldukça zorlaşır
+##### Hesap Verebilirlik ve Denetim Zorlukları  
+- MCP sunucuları, üst akış tarafından verilen tokenları kullanan istemcileri ayırt edemez; denetim izleri bozulur  
+- Alt sistem günlükleri yanlışlıkla MCP sunucusunun aracı olduğunu gizleyerek kayıtlarda yanıltıcı talepler gösterir  
+- Olay inceleme ve uyumluluk denetimleri zorlaşır  
 
-##### Veri Sızıntısı Riskleri
-- Doğrulanmamış jeton iddiaları, çalınan jetonlarla kötü niyetli aktörlerin MCP sunucularını veri sızıntısı aracı olarak kullanmasına olanak sağlar
-- Güven sınırı ihlalleri, yetkisiz erişim desenlerinin atlanmasına neden olur
+##### Veri Sızdırma Riskleri  
+- Doğrulanmamış token iddiaları ile kötü niyetli aktörler çalınan tokenları kullanarak MCP sunucularını veri sızdırma aracı olarak kötüye kullanabilir  
+- Güven sınırı ihlalleri, yetkisiz erişim desenlerinin güvenlik kontrollerini atlamasına neden olur  
 
-##### Çoklu Servis Saldırı Vektörleri
-- Kabul edilen kötüye kullanılmış jetonlar, birden fazla servise erişim sağlıyarak yan hareket (lateral movement) imkanı verir
-- Jeton kökenleri doğrulanamadığında servisler arası güven varsayımları ihlal edilebilir
+##### Çoklu Hizmet Saldırıları  
+- Birden fazla hizmet tarafından kabul edilen ele geçirilmiş tokenlar, bağlı sistemler arasında yatay hareketliliği kolaylaştırır  
+- Hizmetler arası güven varsayımları token kökeni doğrulanamadığında tehlikeye girer  
 
-### Güvenlik Kontrolleri ve Azaltımlar
+### Güvenlik Kontrolleri ve İyileştirmeler
 
-**Kritik Güvenlik Gereklilikleri:**
+**Temel Güvenlik Gereksinimleri:**
 
-> **ZORUNLU**: MCP sunucuları, açıkça MCP sunucusu için verilmemiş herhangi bir jetonu **kabul ETMEMELİDİR**.
+> **ZORUNLU**: MCP sunucuları **açıkça MCP sunucusu için verilmemiş tokenları kabul ETMEMELİDİR**
 
-#### Kimlik Doğrulama ve Yetkilendirme Kontrolleri
+#### Kimlik Doğrulama & Yetkilendirme Kontrolleri
 
-- **Titiz Yetkilendirme İncelemesi**: MCP sunucu yetkilendirme mantığı kapsamlı şekilde denetlenmeli; yalnızca amaçlanan kullanıcı ve istemciler hassas kaynaklara erişmeli
-  - **Uygulama Rehberi**: [Azure API Yönetimini MCP Sunucuları için Kimlik Doğrulama Ağ Geçidi olarak kullanma](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)
-  - **Kimlik Entegrasyonu**: [Microsoft Entra ID kullanarak MCP Sunucusu Kimlik Doğrulaması](https://den.dev/blog/mcp-server-auth-entra-id-session/)
+- **Titiz Yetkilendirme İncelemesi**: MCP sunucularının yetkilendirme mantığı ayrıntılı denetlenmeli, yalnızca izin verilen kullanıcı ve istemcilerin hassas kaynaklara erişimi sağlanmalı  
+  - **Uygulama Rehberi**: [MCP Sunucuları için Azure API Yönetimi’nin Kimlik Doğrulama Ağ Geçidi olarak kullanımı](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)  
+  - **Kimlik Entegrasyonu**: [MCP Sunucu Kimlik Doğrulaması için Microsoft Entra ID kullanımı](https://den.dev/blog/mcp-server-auth-entra-id-session/)  
 
-- **Güvenli Jeton Yönetimi**: [Microsoft'un jeton doğrulama ve yaşam döngüsü en iyi uygulamalarını](https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens) uygulama
-  - Jeton hedef kitlesi (audience) iddialarının MCP sunucu kimliğiyle eşleştiğini doğrulama
-  - Doğru jeton yenileme ve süre bitimi politikaları uygulama
-  - Jeton tekrar oynatma saldırılarını ve yetkisiz kullanımı önleme
+- **Güvenli Token Yönetimi**: [Microsoft token doğrulama ve yaşam döngüsü en iyi uygulamalarını](https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens) uygulayın  
+  - Token hedef iddialarının MCP sunucu kimliği ile uyumunu doğrulayın  
+  - Uygun token yenileme ve süresi dolma politikalarını hayata geçirin  
+  - Token tekrarı saldırılarını ve yetkisiz kullanımı engelleyin  
 
-- **Korunan Jeton Depolama**: Jetonları hem korunarak hem de aktarımda şifreleyerek güvenli saklama
-  - **En İyi Uygulamalar**: [Güvenli Jeton Depolama ve Şifreleme Kılavuzları](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)
+- **Korunan Token Depolama**: Tokenları hem dinlenirken hem iletimde şifreleyerek güvenli biçimde saklayın  
+  - **En İyi Uygulamalar**: [Güvenli Token Depolama ve Şifreleme Kılavuzu](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)  
 
 #### Erişim Kontrolü Uygulaması
 
-- **En Az Ayrıcalık İlkesi**: MCP sunucularına yalnızca gerekli minimum izinler verilmelidir
-  - Ayrıcalık kıvrılmasını önlemek için düzenli izin incelemeleri ve güncellemeleri
-  - **Microsoft Dokümantasyonu**: [Güvenli En Az Ayrıcalıklı Erişim](https://learn.microsoft.com/entra/identity-platform/secure-least-privileged-access)
+- **En Az Ayrıcalık İlkesi**: MCP sunucularına sadece gerekli minimum izinler verilmeli  
+  - Yetki genişlemesini önlemek için düzenli izin incelemeleri ve güncellemeleri yapın  
+  - **Microsoft Dokümantasyonu**: [Güvenli En Az Ayrıcalıklı Erişim](https://learn.microsoft.com/entra/identity-platform/secure-least-privileged-access)  
 
-- **Rol Tabanlı Erişim Kontrolü (RBAC)**: Detaylı rol atamalarıyla uygulama
-  - Rolleri belirli kaynaklar ve işlemlerle sıkı şekilde sınırlandırma
-  - Geniş veya gereksiz izinlerden kaçınma; saldırı yüzeylerini küçültme
+- **Rol Tabanlı Erişim Kontrolü (RBAC)**: İnce taneli rol atamaları yapın  
+  - Rolleri belirli kaynak ve eylemlerle sıkı bir şekilde sınırlayın  
+  - Saldırı yüzeyini genişleten gereksiz veya genel izinlerden kaçının  
 
-- **Sürekli İzin İzleme**: Sürekli erişim denetimi ve izleme uygulama
-  - İzin kullanım modellerini anomaliler için izleme
-  - Aşırı veya kullanılmayan ayrıcalıkları hızlıca düzeltme
+- **Sürekli İzin İzleme**: Erişim denetimleri ve izlemeyi devam ettirin  
+  - İzin kullanım desenlerini anomaliler için izleyin  
+  - Aşırı veya kullanılmayan izinleri hızlıca iyileştirin  
 
 ## Yapay Zekaya Özgü Güvenlik Tehditleri
 
-### Prompt Enjeksiyonu ve Araç Manipülasyon Saldırıları
+### Prompt Enjeksiyonu & Araç Manipülasyonu Saldırıları
 
-Modern MCP uygulamaları, geleneksel güvenlik önlemlerinin tam karşılayamadığı gelişmiş yapay zeka odaklı saldırılarla karşılaşmaktadır:
+Modern MCP uygulamaları, geleneksel güvenlik önlemlerinin tam karşılayamadığı sofistike yapay zekaya özgü saldırı vektörleriyle karşı karşıyadır:
 
-#### **Dolaylı Prompt Enjeksiyonu (Çapraz-Domain Prompt Enjeksiyonu)**
+#### **Dolaylı Prompt Enjeksiyonu (Alanlar Arası Prompt Enjeksiyonu)**
 
-**Dolaylı Prompt Enjeksiyonu**, MCP destekli yapay zeka sistemlerinde en kritik güvenlik açıklarından biridir. Saldırganlar, yapay zekanın daha sonra meşru komutlar olarak işleyeceği dış kaynaklı içeriğe—belgeler, web sayfaları, e-postalar veya veri kaynakları içine zararlı talimatlar gömer.
+**Dolaylı Prompt Enjeksiyonu**, MCP destekli yapay zeka sistemlerinde en kritik zafiyetlerden biridir. Saldırganlar, kötü niyetli talimatları dış kaynaklı içeriklere—dokümanlar, web sayfaları, e-postalar veya veri kaynakları—gömer; yapay zeka sistemleri ise bu içeriği meşru komutlar olarak işler.
 
 **Saldırı Senaryoları:**
-- **Belge Tabanlı Enjeksiyon**: İşlenen belgelerde gizlenmiş kötü niyetli talimatlar, istenmeyen AI hareketlerini tetikler
-- **Web İçeriği İstismarı**: Kazınan (scraped) web sayfalarında gömülü promptlar AI davranışını manipüle eder
-- **E-posta Tabanlı Saldırılar**: E-postalardaki zararlı promptlar, AI asistanlarının bilgi sızdırmasına veya yetkisiz işlemler yapmasına yol açar
-- **Veri Kaynağı Kontaminasyonu**: Saptırılmış veritabanları veya API’ler AI sistemlerine kirli içerik sağlar
+- **Doküman Bazlı Enjeksiyon**: İşlenen belgelerde gizlenmiş kötü niyetli talimatlar AI’nin istenmeyen eylemlerine yol açar  
+- **Web İçeriği Sömürüsü**: AI davranışını değiştiren gömülü promptlar içeren tehlikeye düşmüş web sayfaları  
+- **E-posta Bazlı Saldırılar**: AI asistanlarının bilgi sızdırmasına veya yetkisiz eylemler yapmasına neden olan kötü niyetli prompt içeren e-postalar  
+- **Veri Kaynağı Kontaminasyonu**: MCP sistemlerine kirli içerik sunan tehlikeye düşmüş veritabanları veya API’ler  
 
-**Gerçek Dünya Etkisi**: Bu saldırılar veri sızdırma, gizlilik ihlalleri, zararlı içerik üretimi ve kullanıcı etkileşimlerinin manipülasyonuna neden olabilir. Detaylı analiz için bkz. [MCP’de Prompt Enjeksiyonu (Simon Willison)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/).
+**Gerçek Dünya Etkisi**: Bu saldırılar veri sızdırma, gizlilik ihlalleri, zararlı içerik oluşturulması ve kullanıcı etkileşimlerinin manipülasyonu gibi sonuçlar doğurabilir. Ayrıntılı analiz için bkz. [MCP’de Prompt Injection (Simon Willison)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/).
 
-![Prompt Enjeksiyonu Saldırı Diyagramı](../../../translated_images/tr/prompt-injection.ed9fbfde297ca877.webp)
+![Prompt Injection Attack Diagram](../../../translated_images/tr/prompt-injection.ed9fbfde297ca877.webp)
 
-#### **Araç Zehirlenmesi Saldırıları**
+#### **Araç Zehirleme Saldırıları**
 
-**Araç Zehirlenmesi**, MCP araçlarını tanımlayan metadata hedef alınır; LLM’lerin araç açıklamalarını ve parametreleri nasıl yorumlayarak yürütme kararları verdiğinden faydalanılır.
+**Araç Zehirleme**, MCP araçlarını tanımlayan meta verileri hedef alır ve LLM’lerin araç açıklamaları ile parametrelerini yorumlayarak yürütme kararları vermesini kötüye kullanır.
 
 **Saldırı Mekanizmaları:**
-- **Metadata Manipülasyonu**: Saldırganlar, araç açıklamalarına, parametre tanımlarına veya kullanım örneklerine zararlı talimatlar enjekte eder
-- **Görünmez Talimatlar**: İnsan kullanıcı tarafından görülmeyen, ancak AI modelleri tarafından işlenen gizli promptlar
-- **Dinamik Araç Değiştirme ("Rug Pull")**: Kullanıcı onayı alındıktan sonra araçlar kötü niyetli işlemler yapmak üzere değiştirilir, kullanıcı farkında olmaz
-- **Parametre Enjeksiyonu**: Araç parametre şemalarına gömülü kötü amaçlı içerik model davranışını etkiler
+- **Meta Veri Manipülasyonu**: Saldırganlar araç açıklamalarına, parametre tanımlarına veya kullanım örneklerine kötü niyetli talimatlar enjekte eder  
+- **Görünmez Talimatlar**: İnsan kullanıcılar tarafından görülmeyen ama AI modelleri tarafından işlenen gizli promptlar  
+- **Dinamik Araç Değişikliği ("Rug Pulls")**: Kullanıcı onayıyla onaylanmış araçlar, kullanıcı farkında olmadan kötü niyetli işlemleri yapmak üzere sonradan değiştirilir  
+- **Parametre Enjeksiyonu**: Araç parametre şemalarına gömülü kötü içerik model davranışını etkiler  
 
-**Barındırılan Sunucu Riskleri**: Uzaktan MCP sunucuları, araç tanımları ilk kullanıcı onayından sonra güncellenebileceği için artan riskler barındırır. Önceden güvenli araçlar kötü niyetli hale dönüşebilir. Kapsamlı analiz için bkz. [Araç Zehirlenmesi Saldırıları (Invariant Labs)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks).
+**Barındırılan Sunucu Riskleri**: Uzaktan MCP sunucuları, araç tanımlarının ilk kullanıcı onayından sonra güncellenebilir olması nedeniyle artan riskler sunar; bu durum daha önce güvenli olan araçların kötü niyetli hale gelmesine neden olabilir. Kapsamlı analiz için bkz. [Tool Poisoning Attacks (Invariant Labs)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks).
 
-![Araç Enjeksiyonu Saldırı Diyagramı](../../../translated_images/tr/tool-injection.3b0b4a6b24de6bef.webp)
+![Tool Injection Attack Diagram](../../../translated_images/tr/tool-injection.3b0b4a6b24de6bef.webp)
 
 #### **Ek Yapay Zeka Saldırı Vektörleri**
 
-- **Çapraz-Domain Prompt Enjeksiyonu (XPIA)**: Birden çok alan kaynaklı içerikleri kullanarak güvenlik kontrollerini aşan gelişmiş saldırılar
-- **Dinamik Yetenek Değişikliği**: Araç yeteneklerinde, ilk güvenlik değerlendirmelerinden kaçan gerçek zamanlı değişiklikler  
-- **Kapsam Penceresi Zehirlenmesi**: Kötü niyetli talimatları gizlemek için büyük kapsam pencerelerini manipüle eden saldırılar  
-- **Model Karışıklığı Saldırıları**: Model kısıtlamalarını kullanarak öngörülemez veya güvensiz davranışlar oluşturmak  
+- **Çapraz Alan İstek Enjeksiyonu (XPIA)**: Güvenlik kontrollerini aşmak için birden çok alandaki içeriği kullanan karmaşık saldırılar  
+- **Dinamik Yetenek Değişikliği**: İlk güvenlik değerlendirmelerinden kaçan araç yeteneklerinde gerçek zamanlı değişiklikler  
+- **Bağlam Penceresi Zehirlenmesi**: Kötü niyetli talimatları gizlemek için geniş bağlam pencerelerini manipüle eden saldırılar  
+- **Model Karışıklık Saldırıları**: Model kısıtlamalarını kötüye kullanarak öngörülemez veya güvensiz davranışlar oluşturma  
 
-### AI Güvenlik Riski Etkisi
+### Yapay Zeka Güvenlik Risk Etkisi
 
 **Yüksek Etkili Sonuçlar:**  
-- **Veri Sızdırma**: Yetkisiz erişim ve hassas kurumsal veya kişisel verilerin çalınması  
-- **Gizlilik İhlalleri**: Kişisel olarak tanımlanabilir bilgiler (PII) ve gizli ticari verilerin ifşası  
-- **Sistem Manipülasyonu**: Kritik sistemler ve iş akışlarında istenmeyen değişiklikler  
-- **Kimlik Bilgisi Hırsızlığı**: Kimlik doğrulama jetonları ve hizmet kimlik bilgilerinin ele geçirilmesi  
-- **Yanal Hareket**: Ele geçirilmiş AI sistemlerinin daha geniş ağ saldırıları için sıçrama noktası olarak kullanılması  
+- **Veri Çıkarımı**: Hassas kurumsal veya kişisel verilere yetkisiz erişim ve hırsızlık  
+- **Gizlilik İhlalleri**: Kişisel olarak tanımlanabilir bilgilerin (PII) ve gizli iş verilerinin açığa çıkması  
+- **Sistem Manipülasyonu**: Kritik sistemlerde ve iş akışlarında istenmeyen değişiklikler  
+- **Kimlik Bilgisi Hırsızlığı**: Kimlik doğrulama belirteçleri ve hizmet kimlik bilgilerinin ele geçirilmesi  
+- **Yanal Hareketlilik**: Ele geçirilmiş yapay zeka sistemlerinin daha geniş ağ saldırıları için pivot olarak kullanılması  
 
-### Microsoft AI Güvenlik Çözümleri
+### Microsoft Yapay Zeka Güvenlik Çözümleri
 
-#### **AI İstek Kalkanları: Enjeksiyon Saldırılarına Karşı Gelişmiş Koruma**
+#### **Yapay Zeka İstek Kalkanları: Enjeksiyon Saldırılarına Karşı Gelişmiş Koruma**
 
-Microsoft **AI İstek Kalkanları**, çeşitli güvenlik katmanları vasıtasıyla doğrudan ve dolaylı istek enjeksiyon saldırılarına kapsamlı koruma sağlar:
+Microsoft **Yapay Zeka İstek Kalkanları**, çok katmanlı güvenlik önlemleriyle hem doğrudan hem dolaylı istek enjeksiyon saldırılarına kapsamlı savunma sağlar:
 
 ##### **Temel Koruma Mekanizmaları:**
 
 1. **Gelişmiş Tespit ve Filtreleme**  
-   - Makine öğrenimi algoritmaları ve NLP teknikleri, dış içerikteki kötü niyetli talimatları tespit eder  
-   - Gömülü tehditler için belgeler, web sayfaları, e-postalar ve veri kaynaklarının gerçek zamanlı analizi  
-   - Meşru ve kötü niyetli istek kalıplarının bağlamsal olarak anlaşılması  
+   - Makine öğrenimi algoritmaları ve NLP teknikleri, dış içerikteki kötü amaçlı talimatları tespit eder  
+   - Belgeler, web sayfaları, e-postalar ve veri kaynaklarında gömülü tehditlerin gerçek zamanlı analizi  
+   - Meşru ve kötü amaçlı istek kalıplarının bağlamsal anlaşılması  
 
-2. **Spotlight Teknikleri**  
-   - Güvenilir sistem talimatları ile potansiyel olarak tehlikeye uğramış dış girdiler arasındaki farkı ayırt eder  
-   - Model uygunluğunu artıran ancak kötü niyetli içeriği izole eden metin dönüşüm yöntemleri  
-   - AI sistemlerinin uygun talimat hiyerarşisini korumasına ve enjeksiyonlu komutları görmezden gelmesine yardımcı olur  
+2. **Vurgulama Teknikleri**  
+   - Güvenilen sistem talimatları ile potansiyel olarak ele geçirilmiş dış girdileri ayırt eder  
+   - Metin dönüşümü yöntemleri, modeli ilgili tutarken kötü niyetli içeriği izole eder  
+   - Yapay zeka sistemlerinin talimat hiyerarşisini korumasına ve enjeksiyonlu komutları görmezden gelmesine yardımcı olur  
 
-3. **Ayraç ve Veri İşaretleme Sistemleri**  
-   - Güvenilen sistem mesajları ile dış girdi metni arasında açık sınır tanımı sağlar  
-   - Güvenilir ve güvenilmez veri kaynakları arasındaki sınırları vurgulayan özel işaretler  
-   - Talimat karışıklığını ve yetkisiz komut yürütmesini önleyen net ayrım  
+3. **Sınırlayıcı ve Veri İşaretleme Sistemleri**  
+   - Güvenilen sistem mesajları ile dış girdi metni arasında belirgin sınır tanımlaması  
+   - Güvenilen ve güvenilmeyen veri kaynakları arasındaki sınırları özel işaretçilerle vurgular  
+   - Talimat karışıklığını ve yetkisiz komut yürütmeyi önler  
 
 4. **Sürekli Tehdit İstihbaratı**  
    - Microsoft, ortaya çıkan saldırı kalıplarını sürekli izler ve savunmaları günceller  
-   - Yeni enjeksiyon teknikleri ve saldırı vektörleri için proaktif tehdit avcılığı  
-   - Evrilen tehditlere karşı etkinliği sürdürmek için düzenli güvenlik model güncellemeleri  
+   - Yeni enjeksiyon teknikleri ve saldırı vektörleri üzerinde proaktif tehdit avcılığı  
+   - Gelişen tehditlere karşı etkinliği korumak için düzenli güvenlik modeli güncellemeleri  
 
 5. **Azure İçerik Güvenliği Entegrasyonu**  
-   - Kapsamlı Azure AI İçerik Güvenliği paketinin parçası  
-   - Jailbreak girişimleri, zararlı içerik ve güvenlik politikası ihlalleri için ek tespit  
-   - AI uygulama bileşenleri arasında birleşik güvenlik kontrolleri  
+   - Kapsamlı Azure Yapay Zeka İçerik Güvenliği paketinin parçası  
+   - Jailbreak denemeleri, zararlı içerik ve güvenlik politikası ihlalleri için ek tespitler  
+   - Yapay zeka uygulama bileşenleri genelinde birleşik güvenlik kontrolleri  
 
-**Uygulama Kaynakları**: [Microsoft İstek Kalkanları Belgeleri](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+**Uygulama Kaynakları**: [Microsoft Prompt Shields Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
 
-![Microsoft İstek Kalkanları Koruması](../../../translated_images/tr/prompt-shield.ff5b95be76e9c78c.webp)
+![Microsoft Prompt Shields Protection](../../../translated_images/tr/prompt-shield.ff5b95be76e9c78c.webp)
 
 
-## Gelişmiş MCP Güvenlik Tehditleri
+## İleri Düzey MCP Güvenlik Tehditleri
 
-### Oturum Ele Geçirme Güvenlik Açıkları
+### Oturum Kaçırma Zafiyetleri
 
-**Oturum ele geçirme**, durum bilgisi olan MCP uygulamalarında kritik bir saldırı vektörünü temsil eder; burada yetkisiz taraflar meşru oturum kimlik bilgilerini ele geçirir ve kötüye kullanarak istemci kimliğine bürünür ve yetkisiz işlemler gerçekleştirir.
+**Oturum kaçırma**, durum bilgisi olan MCP uygulamalarında kritik bir saldırı vektörünü temsil eder; yetkisiz taraflar, geçerli oturum kimlik bilgilerini ele geçirip kötüye kullanarak istemcileri taklit eder ve yetkisiz işlemler gerçekleştirir.
 
 #### **Saldırı Senaryoları ve Riskler**
 
-- **Oturum Ele Geçirme İstek Enjeksiyonu**: Çalıntı oturum kimlik bilgilerine sahip saldırganlar, oturum durumu paylaşan sunuculara kötü niyetli olaylar enjekte ederek zararlı eylemler tetikleyebilir veya hassas verilere erişebilir  
-- **Doğrudan Taklit**: Çalıntı oturum kimlik bilgileri, kimlik doğrulamayı atlayarak attackerların meşru kullanıcı gibi MCP sunucularına doğrudan çağrılar yapmasını sağlar  
-- **İhlal Edilmiş Devam Edilebilir Akışlar**: Saldırganlar istekleri erken sonlandırabilir, bu da meşru istemcilerin potansiyel kötü niyetli içerikle devam etmesine neden olabilir  
+- **Oturum Kaçırma İstek Enjeksiyonu**: Çalınan oturum kimlik bilgisine sahip saldırganlar, oturum durumunu paylaşan sunuculara kötü niyetli olaylar enjekte ederek zararlı işlemleri tetikleyebilir veya hassas verilere erişebilir  
+- **Doğrudan Taklit**: Çalınan oturum kimlikleri, kimlik doğrulamayı atlayarak saldırganların meşru kullanıcı gibi MCP sunucusunu doğrudan çağırmasını sağlar  
+- **Ele Geçirilmiş Devam Ettirilebilir Akışlar**: Saldırganlar istekleri erken sonlandırabilir, meşru istemcilerin potansiyel olarak kötü niyetli içerikle devam etmesine neden olabilir  
 
-#### **Oturum Yönetimi için Güvenlik Kontrolleri**
+#### **Oturum Yönetimi İçin Güvenlik Kontrolleri**
 
 **Kritik Gereksinimler:**  
-- **Yetkilendirme Doğrulaması**: Yetkilendirme uygulayan MCP sunucuları, TÜM gelen istekleri doğrulamalı ve kimlik doğrulama için oturumlara güvenmemelidir  
-- **Güvenli Oturum Oluşturma**: Güvenli, deterministik olmayan oturum kimlikleri kriptografik rastgele sayı üreteçleriyle oluşturulmalıdır  
-- **Kullanıcıya Özel Bağlama**: Oturum kimlikleri, `<user_id>:<session_id>` gibi formatlarla kullanıcıya özgü bilgilere bağlanarak kullanıcılar arası oturum suistimalini önlemelidir  
-- **Oturum Yaşam Döngüsü Yönetimi**: Güvenlik açıklarını sınırlamak için uygun süre sonunda sona erdirme, değiştirme ve geçersiz kılma uygulanmalıdır  
-- **Taşıma Güvenliği**: Oturum kimliği yakalanmasını önlemek için tüm iletişimde HTTPS zorunludur  
+- **Yetkilendirme Doğrulaması**: Yetkilendirme uygulayan MCP sunucuları TÜM gelen istekleri doğrulamalı ve kimlik doğrulama için oturumlara güvenmemelidir  
+- **Güvenli Oturum Oluşturma**: Kriptografik olarak güvenli, rastgele sayı üreteçleri kullanılarak belirlenmeyen oturum kimlikleri oluşturulmalı  
+- **Kullanıcıya Özel Bağlama**: Oturum kimlikleri, çapraz kullanıcı oturum kötüye kullanımını önlemek için `<user_id>:<session_id>` gibi kullanıcıya özgü bilgilerle bağlanmalı  
+- **Oturum Yaşam Döngüsü Yönetimi**: Güvenlik açıklarını sınırlamak için uygun sona erdirme, döndürme ve geçersiz kılma uygulanmalı  
+- **İletim Güvenliği**: Oturum kimliği yakalamalarını önlemek için tüm iletişimlerde HTTPS zorunludur  
 
-### Karışıklık Vekili Problemi
+### Karışık Vekil Problemi
 
-**Karışıklık vekili problemi**, MCP sunucularının istemciler ile üçüncü taraf hizmetler arasında kimlik doğrulama vekili olarak hareket ettiği durumlarda ortaya çıkar; burada statik istemci kimliği sömürüsü yoluyla yetkilendirme atlatma fırsatları oluşur.
+**Karışık vekil problemi**, MCP sunucuları istemciler ile üçüncü taraf hizmetler arasında kimlik doğrulama vekili olarak hareket ettiğinde meydana gelir; statik istemci ID kullanımının kötüye kullanılması yoluyla yetkilendirme atlama fırsatları oluşturur.
 
-#### **Saldırı Mekanikleri ve Riskler**
+#### **Saldırı Mekaniği ve Riskler**
 
-- **Çerez Tabanlı Onay Atlatma**: Önceki kullanıcı kimlik doğrulaması onay çerezleri oluşturur; saldırganlar, kötü amaçlı yetkilendirme istekleriyle ve kötü niyetli yönlendirme URI’leri ile bunu sömürür  
-- **Yetkilendirme Kodu Hırsızlığı**: Mevcut onay çerezleri yetkilendirme sunucusunun onay ekranlarını atlamasına ve kodları saldırgan kontrolündeki uç noktalara yönlendirmesine neden olabilir  
-- **Yetkisiz API Erişimi**: Çalınan yetkilendirme kodları, açık onay olmadan token değişimini ve kullanıcı taklidini sağlar  
+- **Çerez Tabanlı Onay Atlatma**: Önceki kullanıcı kimlik doğrulaması, saldırganların kötü amaçlı yetkilendirme isteklerinde kötü amaçlı yönlendirme URI’leri ile istismar ettiği onay çerezleri oluşturur  
+- **Yetkilendirme Kodu Hırsızlığı**: Mevcut onay çerezleri, yetkilendirme sunucularının onay ekranını atlayarak kodların saldırgan kontrollü uç noktalara yönlendirilmesine neden olabilir  
+- **Yetkisiz API Erişimi**: Çalınan yetkilendirme kodları, açık onay olmaksızın belirteç değişimi ve kullanıcı taklit işlemlerine olanak tanır  
 
 #### **Azaltma Stratejileri**
 
 **Zorunlu Kontroller:**  
-- **Açık Onay Gereksinimleri**: Statik istemci kimlikleri kullanan MCP vekil sunucuları, dinamik olarak kayıt edilen her istemci için kullanıcı onayı almalıdır  
-- **OAuth 2.1 Güvenlik Uygulaması**: Tüm yetkilendirme isteklerinde PKCE (Kod Değişimi için Kanıt Anahtarı) dahil olmak üzere güncel OAuth güvenlik uygulamalarına uyulmalıdır  
-- **Sıkı İstemci Doğrulama**: Kötüye kullanımı önlemek için yönlendirme URI’leri ve istemci kimlikleri titizlikle doğrulanmalıdır  
+- **Açık Onay Gereksinimleri**: Statik istemci ID kullanan MCP vekil sunucuları, her dinamik olarak kaydedilen istemci için kullanıcı onayı almalıdır  
+- **OAuth 2.1 Güvenliği Uygulaması**: Tüm yetkilendirme isteklerinde PKCE (Proof Key for Code Exchange) dahil mevcut OAuth güvenlik en iyi uygulamaları takip edilmeli  
+- **Katı İstemci Doğrulaması**: Yönlendirme URI’leri ve istemci kimliklerinin kötüye kullanımını önlemek için sıkı doğrulama uygulanmalı  
 
-### Token Geçişi Güvenlik Açıkları  
+### Belirteç Geçişi Zafiyetleri
 
-**Token geçişi**, MCP sunucularının istemci tokenlarını doğru doğrulama olmadan kabul edip downstream API’lere ilettiği açık bir karşı-desendir; bu MCP yetkilendirme spesifikasyonlarını ihlal eder.
+**Belirteç geçişi**, MCP sunucularının istemci belirteçlerini uygun doğrulama yapmadan kabul edip aşağı yöndeki API’lere iletmesiyle ortaya çıkan açık bir anti-pattern’i temsil eder; bu MCP yetkilendirme spesifikasyonlarını ihlal eder.
 
-#### **Güvenlik Sonuçları**
+#### **Güvenlik Etkileri**
 
-- **Kontrol Atlatma**: İstemci’den API’ye doğrudan token kullanımı kritik hız sınırı, doğrulama ve izleme kontrollerini atlar  
-- **Denetim İzinin Bozulması**: Yukarı akışta verilen tokenlar, istemci tanımlamasını imkansız kılarak olay soruşturmasını engeller  
-- **Vekil Tabanlı Veri Sızdırma**: Doğrulanmamış tokenlar, saldırganların sunucuları yetkisiz veri erişimi için vekil olarak kullanmasını sağlar  
-- **Güven Sınırı İhlalleri**: Token kaynağı doğrulanamadığında downstream servislerin güven varsayımları ihlal edilir  
-- **Çoklu Hizmet Saldırı Yayılımı**: Birden fazla serviste kabul edilen çalıntı tokenlar yanal hareketi mümkün kılar  
+- **Kontrol Atlama**: İstemciden API’ye doğrudan belirteç kullanımı kritik oran sınırlama, doğrulama ve izleme kontrollerini atlar  
+- **Denetim İzinin Bozulması**: Yukarı akıştan verilen belirteçler, istemci tanımlamasını imkansız kılarak olay soruşturma yeteneklerini bozar  
+- **Aracı Bazlı Veri Sızdırma**: Doğrulanmamış belirteçler, kötü niyetli aktörlerin sunucuları yetkisiz veri erişimi için vekil olarak kullanmasına olanak tanır  
+- **Güven Sınırı İhlalleri**: Belirteç kökenleri doğrulanamadığında aşağı yöndeki hizmetlerin güven varsayımları ihlal olabilir  
+- **Çok Hizmetli Saldırı Yayılımı**: Wimbledon belirteçleri birden çok hizmette kabul edilerek yanal hareketi mümkün kılar  
 
 #### **Gerekli Güvenlik Kontrolleri**
 
-**Tartışılmaz Gereksinimler:**  
-- **Token Doğrulama**: MCP sunucuları, açıkça MCP sunucusu için verilmemiş tokenları kabul ETMEMELİDİR  
-- **Hedef Kitle Doğrulaması**: Token hedef kitlesi (aud) iddiasının MCP sunucusunun kimliği ile eşleştiği kesinlikle doğrulanmalıdır  
-- **Uygun Token Yaşam Döngüsü**: Kısa ömürlü erişim tokenları güvenli döndürme politikalarıyla uygulanmalıdır  
+**Tartışmasız Gereksinimler:**  
+- **Belirteç Doğrulama**: MCP sunucuları, açıkça MCP sunucusuna verilmemiş belirteçleri kabul etmemelidir  
+- **Hedef Kitle Doğrulaması**: Her zaman belirteç hedef kitle iddialarının MCP sunucusu kimliğiyle uyuştuğunu doğrulamalıdır  
+- **Uygun Belirteç Yaşam Döngüsü**: Kısa ömürlü erişim belirteçleri ve güvenli döndürme uygulamaları yürürlükte olmalıdır  
 
 
-## AI Sistemleri için Tedarik Zinciri Güvenliği
+## Yapay Zeka Sistemleri için Tedarik Zinciri Güvenliği
 
-Tedarik zinciri güvenliği, geleneksel yazılım bağımlılıklarının ötesine geçerek tüm AI ekosistemini kapsamaktadır. Modern MCP uygulamaları, sistem bütünlüğünü tehdit edebilecek tüm AI bileşenlerini titizlikle doğrulamalı ve izlemelidir.
+Tedarik zinciri güvenliği, geleneksel yazılım bağımlılıklarının ötesine geçerek tüm yapay zeka ekosistemini kapsar. Modern MCP uygulamaları, sistem bütünlüğünü tehlikeye atabilecek potansiyel zafiyetleri önlemek için tüm yapay zeka ile ilgili bileşenleri titizlikle doğrulamalı ve izlemelidir.
 
-### Genişletilmiş AI Tedarik Zinciri Bileşenleri
+### Genişletilmiş Yapay Zeka Tedarik Zinciri Bileşenleri
 
 **Geleneksel Yazılım Bağımlılıkları:**  
-- Açık kaynak kütüphaneler ve çerçeveler  
+- Açık kaynak kitaplıklar ve çerçeveler  
 - Konteyner imajları ve temel sistemler  
-- Geliştirme araçları ve yapı boru hatları  
-- Altyapı bileşenleri ve servisleri  
+- Geliştirme araçları ve derleme boru hatları  
+- Altyapı bileşenleri ve hizmetler  
 
-**AI’ye Özgü Tedarik Zinciri Öğeleri:**  
-- **Foundation Modelleri**: Farklı sağlayıcılardan önceden eğitilmiş modeller, kaynağın doğrulanması gerekir  
-- **Embedding Servisleri**: Harici vektörleştirme ve anlamsal arama hizmetleri  
-- **Kapsam Sağlayıcıları**: Veri kaynakları, bilgi tabanları ve belge depoları  
-- **Üçüncü Taraf API’ler**: Harici AI servisleri, ML boru hatları ve veri işleme uç noktaları  
-- **Model Artifaktları**: Ağırlıklar, yapılandırmalar ve ince ayarlı model varyantları  
-- **Eğitim Veri Kaynakları**: Model eğitimi ve ince ayarı için kullanılan veri setleri  
+**Yapay Zeka’ya Özgü Tedarik Zinciri Öğeleri:**  
+- **Temel Modeller**: Köken doğrulaması gereken çeşitli sağlayıcılardan ön eğitimli modeller  
+- **Yerleştirme Hizmetleri**: Harici vektörleştirme ve semantik arama servisleri  
+- **Bağlam Sağlayıcıları**: Veri kaynakları, bilgi tabanları ve belge depoları  
+- **Üçüncü Taraf API’ler**: Harici yapay zeka servisleri, ML boru hatları ve veri işleme uç noktaları  
+- **Model Artefaktları**: Ağırlıklar, yapılandırmalar ve ince ayarlı model varyantları  
+- **Eğitim Veri Kaynakları**: Model eğitimi ve ince ayar için kullanılan veri kümeleri  
 
 ### Kapsamlı Tedarik Zinciri Güvenlik Stratejisi
 
 #### **Bileşen Doğrulama ve Güven**  
-- **Kaynak Doğrulaması**: Tüm AI bileşenlerinin kökeni, lisansı ve bütünlüğü doğrulanmalı  
-- **Güvenlik Değerlendirmesi**: Modeller, veri kaynakları ve AI servisleri için zafiyet taramaları ve güvenlik incelemeleri yapılmalı  
-- **Reputasyon Analizi**: AI hizmet sağlayıcılarının güvenlik geçmişi ve uygulamaları değerlendirilmelidir  
-- **Uyumluluk Doğrulaması**: Tüm bileşenlerin kurumsal güvenlik ve düzenleyici gereksinimlere uygunluğu sağlanmalı  
+- **Köken Doğrulaması**: Tüm yapay zeka bileşenlerinin kaynak, lisanslama ve bütünlüğü entegrasyondan önce doğrulanır  
+- **Güvenlik Değerlendirmesi**: Modeller, veri kaynakları ve yapay zeka servisleri için zafiyet taramaları ve güvenlik incelemeleri gerçekleştirilir  
+- **Reputasyon Analizi**: Yapay zeka hizmet sağlayıcılarının güvenlik sicili ve uygulamaları değerlendirilir  
+- **Uyumluluk Doğrulaması**: Tüm bileşenlerin kurumsal güvenlik ve düzenleyici gereksinimleri karşıladığı garanti edilir  
 
 #### **Güvenli Dağıtım Boru Hatları**  
-- **Otomatik CI/CD Güvenliği**: Otomatik dağıtım boru hatları boyunca güvenlik taraması entegrasyonu  
-- **Artifakt Bütünlüğü**: Dağıtılan tüm artifaktlar için kriptografik doğrulama (kod, modeller, yapılandırmalar)  
-- **Aşamalı Dağıtım**: Her aşamada güvenlik doğrulaması yapılan kademeli dağıtım stratejileri  
-- **Güvenilir Artifakt Depoları**: Sadece doğrulanmış, güvenli artifakt kayıtlarından ve depolarından dağıtım  
+- **Otomatik CI/CD Güvenliği**: Otomatik dağıtım boru hatları boyunca güvenlik taraması entegre edilir  
+- **Artefakt Bütünlüğü**: Dağıtılan tüm artefaktların (kod, modeller, yapılandırmalar) kriptografik doğrulaması yapılır  
+- **Aşamalı Dağıtım**: Her aşamada güvenlik doğrulamasıyla kademeli dağıtım stratejileri kullanılır  
+- **Güvenilir Artefakt Depoları**: Sadece doğrulanmış, güvenli artefakt kayıtlarından dağıtım yapılır  
 
-#### **Sürekli İzleme ve Yanıt**  
-- **Bağımlılık Taraması**: Tüm yazılım ve AI bileşen bağımlılıkları için sürekli zafiyet takibi  
-- **Model İzleme**: Model davranışı, performans kayması ve güvenlik anormalliklerinin sürekli değerlendirilmesi  
-- **Servis Sağlığı Takibi**: Harici AI servislerinin kullanılabilirliği, güvenlik olayları ve politika değişiklikleri izlenir  
-- **Tehdit İstihbaratı Entegrasyonu**: AI ve ML güvenlik risklerine özgü tehdit beslemeleri entegre edilir  
+#### **Sürekli İzleme ve Müdahale**  
+- **Bağımlılık Taraması**: Tüm yazılım ve yapay zeka bileşen bağımlılıkları için sürekli zafiyet izleme  
+- **Model İzleme**: Model davranışı, performans kayması ve güvenlik anomalilerinin kesintisiz değerlendirilmesi  
+- **Hizmet Sağlığı Takibi**: Harici yapay zeka servislerinin kullanılabilirliği, güvenlik olayları ve politika değişikliklerinin izlenmesi  
+- **Tehdit İstihbaratı Entegrasyonu**: Yapay zeka ve ML güvenlik risklerine özgü tehdit beslemelerinin dahil edilmesi  
 
 #### **Erişim Kontrolü ve En Az Ayrıcalık**  
-- **Bileşen Seviyesi İzinler**: Modeller, veriler ve hizmetlere iş gereksinimine dayalı erişim kısıtlaması  
-- **Servis Hesabı Yönetimi**: Minimal izinlere sahip özel servis hesapları uygulanması  
-- **Ağ Segmentasyonu**: AI bileşenleri izole edilir ve servisler arası ağ erişimi sınırlandırılır  
-- **API Ağ Geçidi Kontrolleri**: Harici AI servislerine erişim kontrollü ve izlenebilir merkezi API ağ geçitleri kullanımı  
+- **Bileşen Düzeyinde İzinler**: Modeller, veriler ve hizmetlere iş gereksinimine dayalı erişim kısıtlamaları  
+- **Hizmet Hesabı Yönetimi**: Minimum gerekli ayrıcalıklara sahip özel hizmet hesapları uygulanır  
+- **Ağ Segmentasyonu**: Yapay zeka bileşenleri izole edilir ve hizmetler arası ağ erişimi sınırlandırılır  
+- **API Ağ Geçidi Kontrolleri**: Harici yapay zeka hizmetlerine erişim merkezi API ağ geçitleri ile kontrol edilir ve izlenir  
 
 #### **Olay Müdahalesi ve Kurtarma**  
-- **Hızlı Müdahale Prosedürleri**: İhlal edilen AI bileşenlerinin yamalanması veya değiştirilmesi için belirlenmiş süreçler  
-- **Kimlik Bilgisi Devir Döngüsü**: Sırlar, API anahtarları ve servis kimlik bilgilerinin otomatik döndürülmesi  
-- **Geri Alma Yeteneği**: AI bileşenlerinin önceki sağlam sürümlerine hızla dönüş yeteneği  
-- **Tedarik Zinciri İhlali Kurtarma**: Yukarı akıştaki hizmet ihlallerine özel müdahale prosedürleri  
+- **Hızlı Müdahale Prosedürleri**: Ele geçirilen yapay zeka bileşenlerinin yamalanması veya değiştirilmesi için belirlenmiş süreçler  
+- **Kimlik Bilgisi Değişimi**: Sırlar, API anahtarları ve hizmet kimlik bilgileri için otomatik döndürme sistemleri  
+- **Geri Alma Yeteneği**: Yapay zeka bileşenlerinin önceden bilinen güvenli sürümlerine hızlı geri dönüş yeteneği  
+- **Tedarik Zinciri İhlali Kurtarma**: Yukarı akış yapay zeka hizmeti ihlallerine özel müdahale prosedürleri  
 
-### Microsoft Güvenlik Araçları ve Entegrasyon
+### Microsoft Güvenlik Araçları ve Entegrasyonu
 
-**GitHub Advanced Security**, kapsamlı tedarik zinciri koruması sağlar; bunlar arasında:  
-- **Gizli Anahtar Taraması**: Depolarda kimlik bilgileri, API anahtarları ve tokenların otomatik tespiti  
+**GitHub Advanced Security**, şunları içeren kapsamlı tedarik zinciri koruması sağlar:  
+- **Gizli Bilgi Taraması**: Depolarda kimlik bilgileri, API anahtarları ve belirteçlerin otomatik tespiti  
 - **Bağımlılık Taraması**: Açık kaynak bağımlılıkları ve kütüphaneler için zafiyet değerlendirmesi  
-- **CodeQL Analizi**: Güvenlik açıkları ve kodlama hatalarına yönelik statik kod analizi  
+- **CodeQL Analizi**: Güvenlik açıkları ve kodlama hataları için statik kod analizi  
 - **Tedarik Zinciri İçgörüleri**: Bağımlılık sağlığı ve güvenlik durumu görünürlüğü  
 
 **Azure DevOps & Azure Repos Entegrasyonu:**  
-- Microsoft geliştirme platformlarında kesintisiz güvenlik taraması entegrasyonu  
-- AI iş yüklerinde Azure Pipelines üzerinde otomatik güvenlik kontrolleri  
-- Güvenli AI bileşen dağıtımı için politika zorlamaları  
+- Microsoft geliştirme platformları genelinde kesintisiz güvenlik taraması entegrasyonu  
+- AI iş yükleri için Azure Pipelines’da otomatik güvenlik kontrolleri  
+- Güvenli yapay zeka bileşen dağıtımı için politika uygulaması  
 
 **Microsoft İç Uygulamaları:**  
-Microsoft, tüm ürünlerde kapsamlı tedarik zinciri güvenlik uygulamaları yürütmektedir. Denenmiş yaklaşımlar hakkında bilgi edinin: [Microsoft'ta Yazılım Tedarik Zincirini Güvenceye Alma Yolculuğu](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/).
+Microsoft, tüm ürünlerinde kapsamlı tedarik zinciri güvenlik uygulamaları yürütmektedir. Kanıtlanmış yaklaşımlar hakkında bilgi için bkz. [The Journey to Secure the Software Supply Chain at Microsoft](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/).
 
 
 ## Temel Güvenlik En İyi Uygulamaları
 
-MCP uygulamaları, kuruluşunuzun mevcut güvenlik duruşunu devralır ve üzerine inşa eder. Temel güvenlik uygulamalarının güçlendirilmesi, AI sistemleri ve MCP dağıtımları için genel güvenliği önemli ölçüde artırır.
+MCP uygulamaları, kuruluşunuzun mevcut güvenlik duruşunu devralır ve üzerine inşa eder. Temel güvenlik uygulamalarının güçlendirilmesi, yapay zeka sistemleri ve MCP dağıtımlarının genel güvenliğini önemli ölçüde artırır.
 
-### Temel Güvenlik Temelleri
+### Temel Güvenlik Prensipleri
 
 #### **Güvenli Geliştirme Uygulamaları**  
-- **OWASP Uyumluluğu**: [OWASP Top 10](https://owasp.org/www-project-top-ten/) web uygulama zafiyetlerine karşı koruma  
-- **AI’ye Özgü Koruma**: [LLMler için OWASP Top 10](https://genai.owasp.org/download/43299/?tmstv=1731900559) kontrolleri uygulanması  
-- **Güvenli Gizli Yönetimi**: Tokenlar, API anahtarları ve hassas konfigürasyon verileri için özel kasalar kullanımı  
-- **Uçtan Uca Şifreleme**: Tüm uygulama bileşenleri ve veri akışlarında güvenli iletişim sağlama  
-- **Girdi Doğrulama**: Tüm kullanıcı girdileri, API parametreleri ve veri kaynaklarının titiz validasyonu  
+- **OWASP Uyumu**: [OWASP Top 10](https://owasp.org/www-project-top-ten/) web uygulaması zafiyetlerine karşı korunma  
+- **Yapay Zeka’ya Özgü Koruma**: [OWASP Top 10 for LLMs](https://genai.owasp.org/download/43299/?tmstv=1731900559) için kontrollerin uygulanması  
+- **Güvenli Gizli Yönetimi**: Belirteçler, API anahtarları ve hassas yapılandırma verileri için özel kasalar kullanımı  
+- **Uçtan Uca Şifreleme**: Tüm uygulama bileşenleri ve veri akışlarında güvenli iletişim  
+- **Girdi Doğrulama**: Tüm kullanıcı girdileri, API parametreleri ve veri kaynaklarının titiz doğrulanması  
 
-#### **Altyapı Güçlendirmesi**  
-- **Çok Faktörlü Kimlik Doğrulama**: Tüm yönetici ve servis hesapları için zorunlu MFA  
-- **Yama Yönetimi**: İşletim sistemleri, çerçeveler ve bağımlılıklar için otomatik, zamanında yama uygulaması  
-- **Kimlik Sağlayıcı Entegrasyonu**: Kurumsal kimlik sağlayıcıları (Microsoft Entra ID, Active Directory) ile merkezi kimlik yönetimi  
-- **Ağ Segmentasyonu**: MCP bileşenlerinin yanal hareket olasılığını sınırlamak için mantıksal izolasyon  
-- **En Az Ayrıcalık Prensibi**: Tüm sistem bileşenleri ve hesaplar için gereken minimum yetkiler  
+#### **Altyapı Sertleştirme**  
+- **Çok Faktörlü Kimlik Doğrulama**: Tüm yönetim ve hizmet hesapları için zorunlu MFA  
+- **Yama Yönetimi**: İşletim sistemleri, çerçeveler ve bağımlılıklar için otomatik ve zamanında yamalama  
+- **Kimlik Sağlayıcı Entegrasyonu**: Microsoft Entra ID, Active Directory gibi kurumsal kimlik sağlayıcılarıyla merkezi kimlik yönetimi  
+- **Ağ Segmentasyonu**: Yanal hareket potansiyelini sınırlamak için MCP bileşenlerinin mantıksal izolasyonu  
+- **Asgari Ayrıcalık İlkesi**: Tüm sistem bileşenleri ve hesaplar için minimum gerekli izinler  
 
 #### **Güvenlik İzleme ve Tespit**  
-- **Kapsamlı Kayıt Tutma**: MCP istemci-sunucu etkileşimleri de dahil olmak üzere AI uygulama aktivitelerinin detaylı kaydı  
+- **Kapsamlı Kayıt Tutma**: MCP istemci-sunucu etkileşimleri dahil yapay zeka uygulama aktivitelerinin detaylı kaydı  
 - **SIEM Entegrasyonu**: Anomali tespiti için merkezi güvenlik bilgi ve olay yönetimi  
-- **Davranış Analitiği**: Sistem ve kullanıcı davranışlarındaki olağan dışı kalıpları tespit etmek için AI destekli izleme  
-- **Tehdit İstihbaratı**: Harici tehdit beslemeleri ve ihlal göstergeleri (IOC) entegrasyonu  
-- **Olay Müdahalesi**: Güvenlik olayı tespiti, yanıt ve kurtarma için iyi tanımlanmış prosedürler  
+- **Davranışsal Analitik**: Sistem ve kullanıcı davranışlarında olağan dışı desenleri tespit etmek için yapay zeka destekli izleme  
+- **Tehdit İstihbaratı**: Harici tehdit beslemeleri ve ihlal göstergelerinin (IOCs) entegrasyonu  
+- **Olay Müdahalesi**: Güvenlik olaylarının tespiti, yanıtı ve kurtarılması için belirlenmiş prosedürler  
 
 #### **Sıfır Güven Mimarisi**  
 - **Asla Güvenme, Her Zaman Doğrula**: Kullanıcılar, cihazlar ve ağ bağlantılarının sürekli doğrulanması  
-- **Mikro Segmentasyon**: Bireysel iş yüklerini ve servisleri izole eden ayrıntılı ağ kontrolleri  
+- **Mikro-Segmentasyon**: Bireysel iş yükleri ve hizmetleri izole eden ayrıntılı ağ kontrolleri  
 - **Kimlik Merkezli Güvenlik**: Ağ konumu yerine doğrulanmış kimliklere dayalı güvenlik politikaları  
-- **Sürekli Risk Değerlendirmesi**: Mevcut bağlam ve davranışa göre dinamik güvenlik duruşu değerlendirmesi  
-- **Koşullu Erişim**: Risk faktörleri, konum ve cihaz güvenine göre uyarlanabilir erişim kontrolleri  
+- **Sürekli Risk Değerlendirmesi**: Mevcut bağlama ve davranışa göre dinamik güvenlik durumu değerlendirmesi  
+- **Koşullu Erişim**: Risk faktörlerine, konuma ve cihaz güvenilirliğine göre uyarlanan erişim kontrolleri  
 
-### Kurumsal Entegrasyon Kalıpları
+### Kurumsal Entegrasyon Desenleri
 
 #### **Microsoft Güvenlik Ekosistemi Entegrasyonu**  
-- **Microsoft Defender for Cloud**: Kapsamlı bulut güvenlik duruşu yönetimi  
-- **Azure Sentinel**: AI iş yükleri için bulut tabanlı SIEM ve SOAR yetenekleri  
-- **Microsoft Entra ID**: Koşullu erişim politikaları ile kurumsal kimlik ve erişim yönetimi  
+- **Microsoft Defender for Cloud**: Kapsamlı bulut güvenlik durumu yönetimi  
+- **Azure Sentinel**: Yapay zeka iş yükü koruması için bulut tabanlı SIEM ve SOAR yetenekleri  
+- **Microsoft Entra ID**: Koşullu erişim politikalarıyla kurumsal kimlik ve erişim yönetimi  
 - **Azure Key Vault**: Donanım güvenlik modülü (HSM) destekli merkezi gizli yönetimi  
-- **Microsoft Purview**: AI veri kaynakları ve iş akışları için veri yönetişimi ve uyumluluk  
+- **Microsoft Purview**: Yapay zeka veri kaynakları ve iş akışları için veri yönetişimi ve uyumluluk  
 
 #### **Uyumluluk ve Yönetişim**  
-- **Düzenleyici Uyumluluk**: MCP uygulamalarının sektör özelinde uyumluluk gereksinimlerini karşılaması (GDPR, HIPAA, SOC 2)  
-- **Veri Sınıflandırması**: AI sistemleri tarafından işlenen hassas verilerin uygun kategorize edilmesi ve yönetimi  
-- **Denetim Kayıtları**: Düzenleyici uyumluluk ve adli soruşturma için kapsamlı kayıt tutma  
-- **Gizlilik Kontrolleri**: AI sistem mimarisinde gizlilik-önden tasarım ilkelerinin uygulanması  
-- **Değişim Yönetimi**: AI sistem değişikliklerinin güvenlik incelemeleri için resmi süreçler  
+- **Regülasyon Uyumu**: MCP uygulamalarının sektöre özgü uyumluluk gereksinimlerini (GDPR, HIPAA, SOC 2) karşıladığından emin olunması  
+- **Veri Sınıflandırması**: AI sistemleri tarafından işlenen hassas verilerin uygun şekilde kategorize edilmesi ve yönetilmesi  
+- **Denetim Kayıtları**: Düzenleyici uyumluluk ve adli araştırma için kapsamlı kayıt tutulması  
+- **Gizlilik Kontrolleri**: AI sistem mimarisinde gizlilik odaklı tasarım ilkelerinin uygulanması  
+- **Değişiklik Yönetimi**: AI sistemi değişikliklerinin güvenlik incelemeleri için resmi süreçler  
 
-Bu temel uygulamalar, MCP’ye özgü güvenlik kontrollerinin etkinliğini artıran ve AI destekli uygulamalar için kapsamlı koruma sağlayan sağlam bir güvenlik altyapısı oluşturur.
+Bu temel uygulamalar, MCP'ye özgü güvenlik kontrollerinin etkinliğini artıran ve AI destekli uygulamalara kapsamlı koruma sağlayan sağlam bir güvenlik temelini oluşturur.
 
-## Temel Güvenlik Çıkarımları
-- **Katmanlı Güvenlik Yaklaşımı**: Temel güvenlik uygulamalarını (güvenli kodlama, en az ayrıcalık, tedarik zinciri doğrulaması, sürekli izleme) AI'ya özgü kontrollerle birleştirerek kapsamlı koruma sağlamak
+## Önemli Güvenlik Dersleri
 
-- **AI'ya Özgü Tehdit Ortamı**: MCP sistemleri, istem enjekte etme, araç zehirlenmesi, oturum kaçırma, karışık vekil sorunları, token geçişi açıkları ve aşırı izinler gibi özel risklerle karşı karşıyadır ve bunlar özel önlemler gerektirir
+- **Katmanlı Güvenlik Yaklaşımı**: Temel güvenlik uygulamalarını (güvenli kodlama, en az ayrıcalık, tedarik zinciri doğrulaması, sürekli izleme) AI'ya özgü kontrollerle birleştirerek kapsamlı koruma sağlama  
 
-- **Kimlik Doğrulama ve Yetkilendirme Mükemmelliği**: Dış kimlik sağlayıcıları (Microsoft Entra ID) kullanarak sağlam kimlik doğrulaması uygulamak, doğru token doğrulamasını zorunlu kılmak ve MCP sunucunuz için açıkça verilmemiş tokenları asla kabul etmemek
+- **AI'ya Özgü Tehdit Manzarası**: MCP sistemleri, prompt enjeksiyonu, araç zehirlenmesi, oturum kaçırma, kafa karışıklığı problemleri, token geçiş açıkları ve aşırı izinler gibi özel risklerle karşılaşır ve bunlar için özel önlemler gerektirir  
 
-- **AI Saldırılarının Önlenmesi**: Dolaylı istem enjekte etme ve araç zehirlenmesi saldırılarına karşı Microsoft Prompt Shields ve Azure Content Safety'yi dağıtmak; araç meta verilerini doğrulamak ve dinamik değişiklikleri izlemek
+- **Kimlik Doğrulama ve Yetkilendirme Mükemmelliği**: Microsoft Entra ID gibi harici kimlik sağlayıcıları kullanarak sağlam kimlik doğrulama uygulayın, uygun token doğrulamasını zorunlu kılın ve MCP sunucunuz için açıkça verilmemiş tokenleri kabul etmeyin  
 
-- **Oturum ve İletim Güvenliği**: Kullanıcı kimliklerine bağlı kriptografik olarak güvenli, belirlenemez oturum kimlikleri kullanmak, doğru oturum yaşam döngüsü yönetimini uygulamak ve kimlik doğrulama için asla oturumlar kullanmamak
+- **AI Saldırı Önleme**: Microsoft Prompt Shields ve Azure Content Safety kullanarak dolaylı prompt enjeksiyonu ve araç zehirlenmesi saldırılarına karşı savunun, araç meta verilerini doğrulayın ve dinamik değişiklikleri izleyin  
 
-- **OAuth Güvenlik En İyi Uygulamaları**: Dinamik kayıtlı istemciler için açık kullanıcı onayı ile karışık vekil saldırılarını önlemek, PKCE ile doğru OAuth 2.1 uygulaması yapmak ve yönlendirme URI doğrulamasını titizlikle sağlamak
+- **Oturum ve Taşıma Güvenliği**: Kullanıcı kimliklerine bağlı, kriptografik olarak güvenli, belirli olmayan oturum kimlikleri kullanın, oturum yaşam döngüsü yönetimini doğru uygulayın ve oturumları kimlik doğrulamaya asla kullanmayın  
 
-- **Token Güvenlik İlkeleri**: Token geçişi antipatternlerinden kaçınmak, token hedef kitle iddialarını doğrulamak, güvenli döndürme ile kısa ömürlü tokenlar uygulamak ve net güven sınırları korumak
+- **OAuth Güvenlik En İyi Uygulamaları**: Dinamik olarak kayıtlı istemciler için kullanıcı onayını açık şekilde talep ederek kafa karışıklığı saldırılarını önleyin, PKCE ile doğru OAuth 2.1 uygulaması yapın ve yönlendirme URI doğrulamasını sıkı şekilde yapın  
 
-- **Kapsamlı Tedarik Zinciri Güvenliği**: AI ekosistemi bileşenlerini (modeller, gömülü veriler, bağlam sağlayıcılar, dış API'ler) geleneksel yazılım bağımlılıklarıyla aynı güvenlik titizliği ile ele almak
+- **Token Güvenlik İlkeleri**: Token geçiş anti-paternlerinden kaçının, token hedef kitle iddialarını doğrulayın, kısa ömürlü tokenlar uygulayın ve güvenli döndürmeyi sağlayın, açık güven sınırlarını koruyun  
 
-- **Sürekli Evrim**: Hızla gelişen MCP spesifikasyonları ile güncel kalmak, güvenlik topluluğu standartlarına katkıda bulunmak ve protokol olgunlaştıkça uyarlanabilir güvenlik duruşları sürdürmek
+- **Kapsamlı Tedarik Zinciri Güvenliği**: AI ekosistemi bileşenlerinin tamamını (modeller, embeddingler, bağlam sağlayıcıları, dış API'ler) geleneksel yazılım bağımlılıkları kadar yüksek güvenlik önlemleriyle ele alın  
 
-- **Microsoft Güvenlik Entegrasyonu**: Gelişmiş MCP dağıtım koruması için Microsoft'un kapsamlı güvenlik ekosisteminden (Prompt Shields, Azure Content Safety, GitHub Advanced Security, Entra ID) yararlanmak
+- **Sürekli Evrim**: Hızla gelişen MCP spesifikasyonlarını yakından takip edin, güvenlik topluluk standartlarına katkıda bulunun ve protokol olgunlaştıkça adaptif güvenlik duruşlarını sürdürün  
+
+- **Microsoft Güvenlik Entegrasyonu**: MCP dağıtım korumasını artırmak için Microsoft'un kapsamlı güvenlik ekosisteminden (Prompt Shields, Azure Content Safety, GitHub Advanced Security, Entra ID) yararlanın  
 
 ## Kapsamlı Kaynaklar
 
-### **Resmi MCP Güvenlik Dokümantasyonu**
+### **Resmi MCP Güvenlik Belgeleri**
 - [MCP Spesifikasyonu (Güncel: 2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [MCP Güvenlik En İyi Uygulamaları](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
 - [MCP Yetkilendirme Spesifikasyonu](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 - [MCP GitHub Deposu](https://github.com/modelcontextprotocol)
 
 ### **OWASP MCP Güvenlik Kaynakları**
-- [OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/) - Azure uygulama rehberi ile kapsamlı OWASP MCP En İyi 10
-- [OWASP MCP En İyi 10](https://owasp.org/www-project-mcp-top-10/) - Resmi OWASP MCP güvenlik riskleri
-- [MCP Güvenlik Zirvesi Atölyesi (Sherpa)](https://azure-samples.github.io/sherpa/) - Azure'da MCP için uygulamalı güvenlik eğitimi
+- [OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/) - Kapsamlı OWASP MCP İlk 10 ve Azure uygulama rehberi  
+- [OWASP MCP İlk 10](https://owasp.org/www-project-mcp-top-10/) - Resmi OWASP MCP güvenlik riskleri  
+- [MCP Güvenlik Zirvesi Atölyesi (Sherpa)](https://azure-samples.github.io/sherpa/) - Azure üzerinde MCP için pratik güvenlik eğitimi  
 
-### **Güvenlik Standartları ve En İyi Uygulamalar**
+### **Güvenlik Standartları & En İyi Uygulamalar**
 - [OAuth 2.0 Güvenlik En İyi Uygulamaları (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
-- [OWASP En İyi 10 Web Uygulaması Güvenliği](https://owasp.org/www-project-top-ten/)
-- [Büyük Dil Modelleri için OWASP En İyi 10](https://genai.owasp.org/download/43299/?tmstv=1731900559)
+- [OWASP İlk 10 Web Uygulaması Güvenliği](https://owasp.org/www-project-top-ten/)
+- [Büyük Dil Modelleri için OWASP İlk 10](https://genai.owasp.org/download/43299/?tmstv=1731900559)
 - [Microsoft Dijital Savunma Raporu](https://aka.ms/mddr)
 
-### **AI Güvenlik Araştırma ve Analizleri**
-- [MCP'de İstem Enjekte Etme (Simon Willison)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)
+### **AI Güvenlik Araştırma & Analizleri**
+- [MCP’de Prompt Enjeksiyonu (Simon Willison)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)
 - [Araç Zehirlenmesi Saldırıları (Invariant Labs)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)
-- [MCP Güvenlik Araştırma Brifingi (Wiz Security)](https://www.wiz.io/blog/mcp-security-research-briefing#remote-servers-22)
+- [MCP Güvenlik Araştırma Raporu (Wiz Security)](https://www.wiz.io/blog/mcp-security-research-briefing#remote-servers-22)
 
 ### **Microsoft Güvenlik Çözümleri**
-- [Microsoft Prompt Shields Dokümantasyonu](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
-- [Azure Content Safety Servisi](https://learn.microsoft.com/azure/ai-services/content-safety/)
+- [Microsoft Prompt Shields Belgeleri](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+- [Azure Content Safety Hizmeti](https://learn.microsoft.com/azure/ai-services/content-safety/)
 - [Microsoft Entra ID Güvenliği](https://learn.microsoft.com/entra/identity-platform/secure-least-privileged-access)
 - [Azure Token Yönetimi En İyi Uygulamaları](https://learn.microsoft.com/entra/identity-platform/access-tokens)
 - [GitHub Gelişmiş Güvenlik](https://github.com/security/advanced-security)
 
-### **Uygulama Kılavuzları ve Eğitimler**
-- [Azure API Yönetimi ile MCP Kimlik Doğrulama Geçidi](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)
-- [Microsoft Entra ID ile MCP Sunucuları Kimlik Doğrulaması](https://den.dev/blog/mcp-server-auth-entra-id-session/)
+### **Uygulama Kılavuzları & Eğitimler**
+- [Azure API Management ile MCP Kimlik Doğrulama Geçidi](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)
+- [Microsoft Entra ID ile MCP Sunucu Kimlik Doğrulaması](https://den.dev/blog/mcp-server-auth-entra-id-session/)
 - [Güvenli Token Depolama ve Şifreleme (Video)](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)
 
-### **DevOps ve Tedarik Zinciri Güvenliği**
+### **DevOps & Tedarik Zinciri Güvenliği**
 - [Azure DevOps Güvenliği](https://azure.microsoft.com/products/devops)
 - [Azure Repos Güvenliği](https://azure.microsoft.com/products/devops/repos/)
-- [Microsoft Tedarik Zinciri Güvenlik Yolculuğu](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/)
+- [Microsoft Tedarik Zinciri Güvenliği Yolculuğu](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/)
 
-## **Ek Güvenlik Dokümantasyonu**
+## **Ek Güvenlik Belgeleri**
 
-Kapsamlı güvenlik rehberi için, bu bölümdeki özel belgelere başvurun:
+Kapsamlı güvenlik rehberliği için, bu bölümdeki özel belgelere başvurabilirsiniz:
 
-- **[MCP Güvenlik En İyi Uygulamaları 2025](./mcp-security-best-practices-2025.md)** - MCP uygulamaları için tam güvenlik en iyi uygulamaları
-- **[Azure Content Safety Uygulaması](./azure-content-safety-implementation.md)** - Azure Content Safety entegrasyonu için pratik uygulama örnekleri  
-- **[MCP Güvenlik Kontrolleri 2025](./mcp-security-controls-2025.md)** - MCP dağıtımları için en yeni güvenlik kontrolleri ve teknikleri
-- **[MCP En İyi Uygulamalar Hızlı Referans](./mcp-best-practices.md)** - Temel MCP güvenlik uygulamaları için hızlı referans rehberi
-- **[BlueHat 2026: AI’nın Geleceğini Güvence Altına Almak: Derin Savunma Kalıpları ile MCP Güvenliği](https://www.youtube.com/watch?v=cVWB58kEt-Y)** - Microsoft Güvenlik Müdahale Merkezi (MSRC) tarafından sunulan derin savunma kalıpları
+- **[MCP Güvenlik En İyi Uygulamaları 2025](./mcp-security-best-practices-2025.md)** - MCP uygulamaları için eksiksiz güvenlik en iyi uygulamaları  
+- **[Azure Content Safety Uygulaması](./azure-content-safety-implementation.md)** - Azure Content Safety entegrasyonunda pratik uygulama örnekleri  
+- **[MCP Güvenlik Kontrolleri 2025](./mcp-security-controls-2025.md)** - MCP dağıtımları için en son güvenlik kontrolleri ve teknikleri  
+- **[MCP En İyi Uygulamalar Hızlı Referans](./mcp-best-practices.md)** - Temel MCP güvenlik uygulamaları için hızlı başvuru rehberi  
+- **[BlueHat 2026: Yapay zekanın geleceğini güvence altına alma: Derin savunma desenleriyle MCP güvenliği](https://www.youtube.com/watch?v=cVWB58kEt-Y)** - Microsoft Güvenlik Müdahale Merkezi (MSRC) tarafından derin savunma desenleri  
 
-### **Uygulamalı Güvenlik Eğitimi**
+### **Pratik Güvenlik Eğitimi**
 
-- **[MCP Güvenlik Zirvesi Atölyesi (Sherpa)](https://azure-samples.github.io/sherpa/)** - Base Camp'ten Zirve'ye ilerleyen kamplarla Azure'da MCP sunucularının güvenliğini sağlayan kapsamlı uygulamalı atölye çalışması
-- **[OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/)** - Tüm OWASP MCP En İyi 10 risk için referans mimari ve uygulama rehberi
+- **[MCP Güvenlik Zirvesi Atölyesi (Sherpa)](https://azure-samples.github.io/sherpa/)** - Azure üzerinde MCP sunucularının güvenliği için temel kamp’tan zirveye kadar kapsamlı uygulamalı atölye  
+- **[OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/)** - Tüm OWASP MCP İlk 10 risk için referans mimarisi ve uygulama rehberi  
 
 ---
 
-## Sonraki Adım
+## Sonraki
 
 Sonraki: [Bölüm 3: Başlarken](../03-GettingStarted/README.md)
 

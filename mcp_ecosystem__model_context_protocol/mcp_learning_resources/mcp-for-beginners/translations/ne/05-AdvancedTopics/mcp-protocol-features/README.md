@@ -1,35 +1,38 @@
-# MCP प्रोटोकल सुविधा गहिरो अन्वेषण
+# MCP प्रोटोकल सुविधाहरू गहिरो अध्ययन
 
-यो मार्गदर्शिकाले आधारभूत उपकरण र स्रोत व्यवस्थापन भन्दा पर गएर उन्नत MCP प्रोटोकल सुविधाहरू अन्वेषण गर्छ। यी सुविधाहरू बुझ्दा तपाईंले थप बलियो, प्रयोगकर्तामैत्री र उत्पादन-तय MCP सर्भरहरू निर्माण गर्न सक्नुहुन्छ।
+यो मार्गदर्शिकाले आधारभूत उपकरण र स्रोत ह्यान्डलिंग भन्दा पर जान्ने उन्नत MCP प्रोटोकल सुविधाहरू अन्वेषण गर्छ। यी सुविधाहरू बुझ्नाले तपाईंलाई अझ बलियो, प्रयोगकर्ता-मित्रवत्, र उत्पादन-तयार MCP सर्भरहरू निर्माण गर्न मद्दत गर्दछ।
+
+> **अगाडि हेर्दा:** `2026-07-28` रिलिज क्यान्डिडेटले लगिङ प्रिमिटिभ (stdio का लागि `stderr` र संरचित अवलोकनका लागि OpenTelemetry प्राथमिकता दिने) लाई अवैध बनाउँछ, तल उल्लेखित सर्भर लाइफसाइकल घटनाहरूमा उल्लेख गरिएको `initialize`/सेसन मोडेल हटाउँछ, र प्रयोगात्मक Tasks सुविधालाई नयाँ `tasks/get`/`tasks/update`/`tasks/cancel` लाइफसाइकल सहित समर्पित Tasks विस्तारमा सार्दछ। हेर्नुहोस् [MCP मा के के परिवर्तन हुँदैछ: 2026-07-28 रिलिज क्यान्डिडेट](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)।
 
 ## समेटिएका सुविधाहरू
 
-1. **प्रगति सूचनाहरू** - लामो समय चल्ने अपरेसनहरूको प्रगतिको रिपोर्ट गर्नुहोस्
-2. **अनुरोध रद्दीकरण** - ग्राहकहरूले चलिरहेका अनुरोधहरू रद्द गर्न सक्ने अनुमति
-3. **स्रोत टेम्प्लेटहरू** - प्यारामिटरहरूसँग गतिशील स्रोत URI हरू
-4. **सर्भर जीवनचक्र घटना** - उचित आरम्भ र बन्द प्रक्रियाहरू
-5. **लगिङ नियन्त्रण** - सर्भर-पक्षको लगिङ कन्फिगरेसन
-6. **त्रुटि ह्यान्डलिङ ढाँचा** - सुसंगत त्रुटि प्रतिक्रिया
+1. **प्रगति सूचनाहरू** - लामो समय चल्ने अपरेसनहरूको प्रगति रिपोर्ट गर्नुहोस्
+2. **अनुरोध रद्द गर्नु** - ग्राहकहरूलाई इन-फ्लाइट अनुरोधहरू रद्द गर्न अनुमति दिनुहोस्
+3. **स्रोत टेम्प्लेटहरू** - प्यारामिटरहरू सहित गतिशील स्रोत URI हरू
+4. **सर्भर लाइफसाइकल घटनाहरू** - उचित आरम्भ र बन्द प्रक्रिया
+5. **लगिङ नियन्त्रण** - सर्भर-साइड लगिङ कन्फिगरेसन
+6. **त्रुटि ह्यान्डलिङ ढाँचाहरू** - सुसंगत त्रुटि प्रतिक्रिया
 
 ---
 
 ## १. प्रगति सूचनाहरू
 
-समय लाग्ने अपरेसनहरू (डेटा प्रशोधन, फाइल डाउनलोड, API कलहरू) का लागि प्रगति सूचनाले प्रयोगकर्ताहरूलाई जानकारीमा राख्छ।
+ती अपरेसनहरूका लागि जुन समय लाग्छ (डाटा प्रशोधन, फाइल डाउनलोड, API कलहरू), प्रगति सूचनाहरूले प्रयोगकर्ताहरूलाई जानकारीमा राख्दछन्।
 
-### यसले कसरी काम गर्छ
+### कसरी काम गर्छ
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (लामो अपरेसन)
+    Client->>Server: उपकरणहरू/कल (लामो अपरेशन)
     Server-->>Client: सूचना: प्रगति १०%
     Server-->>Client: सूचना: प्रगति ५०%
     Server-->>Client: सूचना: प्रगति ९०%
-    Server->>Client: नतिजा (पूरा)
+    Server->>Client: परिणाम (पूरा)
 ```
+
 ### Python कार्यान्वयन
 
 ```python
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # प्रगति गणनाको लागि फाइल आकार प्राप्त गर्नुहोस्
+    # प्रगति गणनाका लागि फाइल आकार प्राप्त गर्नुहोस्
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # खन्ड प्रक्रिया गर्नुहोस्
+            # टुक्रा प्रशोधन गर्नुहोस्
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # प्रगति सूचन पठाउनुहोस्
+            # प्रगति सूचना पठाउनुहोस्
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # प्रत्येक वस्तु पछि प्रगति रिपोर्ट गर्नुहोस्
+        # प्रत्येक वस्तुको पछि प्रगति रिपोर्ट गर्नुहोस्
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // प्रगति सूचित गर्नुहोस्
+      // प्रगतिको सूचना पठाउनुहोस्
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### ग्राहक-पक्ष ह्यान्डलिङ (Python)
+### ग्राहक ह्यान्डलिङ (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,18 +134,18 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# ह्यान्डलर दर्ता गर्नुहोस्
+# रजिष्टर ह्यान्डलर
 session.on_notification("notifications/progress", handle_progress)
 
-# उपकरण कल गर्नुहोस् (प्रगतिको अपडेटहरू ह्यान्डलरमार्फत आउनेछन्)
+# टुल कल गर्नुहोस् (प्रगति अपडेटहरू ह्यान्डलरमार्फत आउनेछन्)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## २. अनुरोध रद्दीकरण
+## २. अनुरोध रद्द गर्नु
 
-ग्राहकहरूले आवश्यक नाघेका वा धेरै लामो समय लिएर रहेका अनुरोधहरू रद्द गर्न सक्ने सुविधा।
+ग्राहकहरूलाई आवश्यकता नभएको वा धेरै समय लिइरहेको अनुरोधहरू रद्द गर्न अनुमति दिनुहोस्।
 
 ### Python कार्यान्वयन
 
@@ -161,19 +164,19 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # धेरै पृष्ठहरू मार्फत खोजी गर्नुहोस्
-            # रद्दीकरण अनुरोध गरिएको छ कि छैन जाँच गर्नुहोस्
+            # रद्द गर्ने अनुरोध गरिएको छ कि छैन जाँच गर्नुहोस्
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # पृष्ठ खोजीको अनुकरण गर्नुहोस्
+            # पृष्ठ खोजीको नक्कल गर्नुहोस्
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # सानोतिनो ढिलाइले रद्दीकरण जाँचहरू गर्न अनुमति दिन्छ
+            # सानो पर्खाइले रद्द गर्ने जाँचहरू अनुमति दिन्छ
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # आंशिक परिणामहरू फर्काउनुहोस्
+        # आंशिक परिणामहरू फिर्ता गर्नुहोस्
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### रद्दीकरण सन्दर्भ कार्यान्वयन
+### रद्द गर्ने सन्दर्भ कार्यान्वयन
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # सामान्य समय समाप्ति, जारी राख्नुहोस्
+            pass  # सामान्य समय सीमा, जारी राख्नुहोस्
 ```
 
-### ग्राहक-पक्ष रद्दीकरण
+### ग्राहक-पट्टिको रद्द गर्नु
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # अनुरोध रद्ध गर्नुहोस्
+        # अनुरोध रद्द गर्नुहोस्
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,9 +265,9 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## ३. स्रोत टेम्प्लेटहरू
 
-स्रोत टेम्प्लेटहरूले प्यारामिटरहरूसहित गतिशील URI निर्माण गर्ने सुविधा दिन्छ, जुन API र डेटाबेसहरूका लागि उपयोगी छ।
+स्रोत टेम्प्लेटहरूले प्यारामिटरहरू सहित गतिशील URI निर्माण गर्न अनुमति दिन्छ, जुन API र डाटाबेसहरूको लागि उपयोगी छ।
 
-### टेम्प्लेट परिभाषा
+### टेम्प्लेट परिभाषित गर्दै
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # प्यारामिटरहरू निकाल्नको लागि URI पार्स गर्नुहोस्
+    # प्यारामिटरहरू निकाल्न URI पार्स गर्नुहोस्
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // GitHub मुद्दा URI पार्स गर्नुहोस्
+  // GitHub इश्यू URI पार्स गर्नुहोस्
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## ४. सर्भर जीवनचक्र घटना
+## ४. सर्भर लाइफसाइकल घटनाहरू
 
-उचित आरम्भ र बन्द प्रक्रियाले स्रोतहरूको सफा व्यवस्थापन सुनिश्चित गर्छ।
+सही आरम्भ र बन्द व्यवस्थापनले सरस्रोतहरूको सफा प्रबंधन सुनिश्चित गर्दछ।
 
-### Python जीवनचक्र व्यवस्थापन
+### Python लाइफसाइकल व्यवस्थापन
 
 ```python
 from mcp.server import Server
@@ -383,7 +386,7 @@ async def lifespan(server: Server):
     """Manage server lifecycle."""
     global db_connection, cache
     
-    # सुरु गर्दैछ
+    # सुरु हुने प्रक्रिया
     print("🚀 Server starting...")
     db_connection = await create_database_connection()
     cache = await create_cache_client()
@@ -391,7 +394,7 @@ async def lifespan(server: Server):
     
     yield  # सर्भर यहाँ चल्छ
     
-    # बन्द गर्दैछ
+    # बन्द गर्ने प्रक्रिया
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript जीवनचक्र
+### TypeScript लाइफसाइकल
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -425,7 +428,7 @@ class ManagedServer {
   }
   
   async start() {
-    // स्रोतहरू प्रारम्भ गर्नुहोस्
+    // स्रोतहरू आरम्भ गर्नुहोस्
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // this.dbConnection सुरक्षित रूपमा प्रयोग गर्नुहोस्
+      // यस.dbConnection सुरक्षित रूपमा प्रयोग गर्नुहोस्
       // ...
     });
   }
 }
 
-// शालीन बन्दसँग प्रयोग
+// शान्तिपूर्वक बन्द गर्ने प्रयोग गर्नुहोस्
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## ५. लगिङ नियन्त्रण
 
-MCP सर्भर-पक्ष लगिङ स्तरहरू समर्थन गर्दछ जुन ग्राहकहरूले नियन्त्रण गर्न सक्छन्।
+MCP ले सर्भर-साइड लगिङ स्तरहरू समर्थन गर्दछ जुन ग्राहकहरूले नियन्त्रण गर्न सक्छन्।
 
-### लगिङ स्तर कार्यान्वयन
+### लगिङ स्तरहरू कार्यान्वयन गर्दै
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP स्तरहरूलाई Python लगिङ स्तरहरूमा नक्साङ्कन गर्नुहोस्
+# MCP स्तरहरूलाई Python लगिङ स्तरहरूसँग म्याप गर्नुहोस्
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,14 +512,14 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### ग्राहकलाई लग सन्देशहरू पठाउने
+### ग्राहकलाई लग सन्देशहरू पठाउँदै
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # ग्राहकलाई लग सूचना पठाउनुहोस्
+    # ग्राहकलाई लग नोटिफिकेसन पठाउनुहोस्
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## ६. त्रुटि ह्यान्डलिङ ढाँचा
+## ६. त्रुटि ह्यान्डलिङ ढाँचाहरू
 
-सुसंगत त्रुटि ह्यान्डलिङले डिबगिङ र प्रयोगकर्ता अनुभव सुधार्छ।
+सुसंगत त्रुटि ह्यान्डलिङले डिबगिङ र प्रयोगकर्ता अनुभव सुधार गर्दछ।
 
 ### MCP त्रुटि कोडहरू
 
@@ -588,7 +591,7 @@ async def safe_operation(input: str) -> str:
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # कार्य सम्पन्न गर्नुहोस्
+        # सञ्चालन गर्नुहोस्
         result = await perform_operation(input)
         
         if result is None:
@@ -653,22 +656,22 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## प्रायोगिक सुविधाहरू (MCP 2025-11-25)
+## प्रयोगात्मक सुविधाहरू (MCP 2025-11-25)
 
-यी सुविधाहरू निर्दिष्टिमा प्रायोगिक भनेर चिन्हित छन्:
+यी सुविधाहरू निर्दिष्टिमा प्रयोगात्मक भनेर चिन्ह लगाइएको छ:
 
-### कार्यहरू (लामो समय चल्ने अपरेसनहरू)
+### Tasks (लामो समय चल्ने अपरेसनहरू)
 
 ```python
-# टास्कहरूले अवस्था सहित लामो समयसम्म चल्ने अपरेसनहरूको ट्र्याकिङ गर्न अनुमति दिन्छन्
+# कार्यहरूले स्थिति सहित दीर्घकालीन सञ्चालनहरू ट्र्याक गर्न अनुमति दिन्छ
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # टास्क सुरु भयो रिपोर्ट गर्नुहोस्
+    # कार्य शुरू भएको रिपोर्ट गर्नुहोस्
     await ctx.report_status("running", "Initializing training...")
     
-    # तालिम लूप
+    # प्रशिक्षण लूप
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -685,13 +688,13 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
 ### उपकरण एनोटेसनहरू
 
 ```python
-# उपकरणको व्यवहार सम्बन्धी मेटाडाटा प्रदान गर्दछ
+# एनोटेसनहरूले उपकरण व्यवहारको बारेमा मेटाडाटा प्रदान गर्छन्
 @app.tool(
     annotations={
-        "destructive": False,      # डाटा परिवर्तन गर्दैन
+        "destructive": False,      # डेटा परिवर्तन गर्दैन
         "idempotent": True,        # पुन: प्रयास गर्न सुरक्षित
         "timeout_seconds": 30,     # अपेक्षित अधिकतम अवधि
-        "requires_approval": False # प्रयोगकर्ता अनुमोदन आवश्यक छैन
+        "requires_approval": False # प्रयोगकर्ता स्वीकृति आवश्यक छैन
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,17 +704,17 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## के आउँदैछ
+## के अगाडि छ
 
 - [मोड्युल ८ - उत्तम अभ्यासहरू](../../08-BestPractices/README.md)
-- [५.१४ - सन्दर्भ इन्जिनियरिङ](../mcp-contextengineering/README.md)
-- [MCP स्पेसिफिकेसन परिवर्तन विवरण](https://spec.modelcontextprotocol.io/)
+- [5.14 - सन्दर्भ इन्जिनियरिङ](../mcp-contextengineering/README.md)
+- [MCP निर्दिष्टीकरण परिवर्तन विवरण](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## अतिरिक्त स्रोतहरू
 
-- [MCP स्पेसिफिकेसन 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP निर्दिष्टीकरण 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [JSON-RPC 2.0 त्रुटि कोडहरू](https://www.jsonrpc.org/specification#error_object)
 - [Python SDK उदाहरणहरू](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [TypeScript SDK उदाहरणहरू](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
@@ -720,5 +723,5 @@ async def safe_query(query: str) -> str:
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **अस्वीकरण**:
-यो दस्तावेज एआई अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरी अनुवाद गरिएको हो। हामी शुद्धताको लागि प्रयासरत छौं, तर कृपया जानकारि हुनुस् कि स्वचालित अनुवादमा त्रुटि वा अशुद्धता हुन सक्छ। मूल दस्तावेज यसको मूल भाषामै आधिकारिक स्रोत मानिनुपर्नेछ। महत्वपूर्ण जानकारीका लागि पेशेवर मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट हुने कुनै पनि गलत बुझाइ वा व्याख्यागत त्रुटिको लागि हामी उत्तरदायी छैनौं।
+यो दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरेर अनुवाद गरिएको हो। हामी सही हुन प्रयास गर्छौं, तर कृपया जानकार हुनुस् कि स्वचालित अनुवादमा त्रुटिहरू वा अशुद्धताहरू हुन सक्छन्। मूल दस्तावेज़ यसको मूल भाषामा आधिकारिक स्रोत मानिनुपर्छ। महत्वपूर्ण जानकारीका लागि व्यावसायिक मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट उत्पन्न कुनै पनि गलत बुझाइ वा त्रुटिको लागि हामी जिम्मेवार छैनौं।
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

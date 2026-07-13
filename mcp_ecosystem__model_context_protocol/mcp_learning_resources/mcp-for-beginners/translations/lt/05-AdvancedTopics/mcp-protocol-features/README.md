@@ -1,21 +1,23 @@
-# MCP protokolo funkcijų išsamus apžvalga
+# MCP protokolo funkcijų gilus nagrinėjimas
 
-Šiame vadove nagrinėjamos pažangios MCP protokolo funkcijos, kurios viršija pagrindinį įrankių ir resursų valdymą. Šių funkcijų supratimas padeda kurti stabilesnius, vartotojui draugiškesnius ir gamybai paruoštus MCP serverius.
+Šiame vadove nagrinėjamos pažangios MCP protokolo funkcijos, kurios eina toliau už pagrindinį įrankių ir išteklių valdymą. Supratimas apie šias funkcijas padeda kurti tvirtesnius, vartotojui draugiškesnius ir gamybinėms sąlygoms paruoštus MCP serverius.
+
+> **Žvelgiant į ateitį:** `2026-07-28` leidimo kandidatas pašalina Registravimo pirmtaką (teikiant pirmenybę `stderr` stdio ir OpenTelemetry struktūruotam stebėjimui), pašalina toliau pateiktą Serverio gyvavimo ciklo įvykiuose minimą `initialize`/sesijos modelį ir perkelia eksperimentinę Uždavinių funkciją į skirtą Uždavinių plėtinį su nauju `tasks/get`/`tasks/update`/`tasks/cancel` gyvavimo ciklu. Žr. [Kas keičiasi MCP: 2026-07-28 leidimo kandidatas](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Aptariamos funkcijos
 
-1. **Progreso pranešimai** - ilgo vykdymo operacijų progreso ataskaita  
-2. **Užklausų atšaukimas** - klientų galimybė atšaukti vykstančias užklausas  
-3. **Resursų šablonai** - dinaminiai resursų URI su parametrais  
-4. **Serverio gyvavimo ciklo įvykiai** - tinkama inicializacija ir išjungimas  
-5. **Registravimo (logging) valdymas** - serverio pusės registravimo konfigūracija  
-6. **Klaidų tvarkymo modeliai** - nuoseklūs klaidų atsakymai
+1. **Progreso pranešimai** - Pranešimų apie ilgai vykstančias operacijas pateikimas
+2. **Užklausų atšaukimas** - Leidimas klientams atšaukti vykdomas užklausas
+3. **Išteklių šablonai** - Dinaminiai išteklių URI su parametrais
+4. **Serverio gyvavimo ciklo įvykiai** - Teisingas inicijavimas ir išjungimas
+5. **Registravimo valdymas** - Serverio pusės registravimo konfigūravimas
+6. **Klaidų valdymo šablonai** - Nuoseklūs klaidų atsakymai
 
 ---
 
 ## 1. Progreso pranešimai
 
-Operacijoms, kurios užtrunka (duomenų apdorojimas, failų atsisiuntimas, API kvietimai), progreso pranešimai leidžia vartotojams gauti informacijos.
+Operacijoms, kurios užtrunka (duomenų apdorojimas, failų atsisiuntimai, API skambučiai), progreso pranešimai informuoja vartotojus.
 
 ### Kaip tai veikia
 
@@ -24,12 +26,13 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (ilgas veiksmas)
+    Client->>Server: tools/call (ilgas veikimas)
     Server-->>Client: pranešimas: pažanga 10%
     Server-->>Client: pranešimas: pažanga 50%
     Server-->>Client: pranešimas: pažanga 90%
     Server->>Client: rezultatas (baigta)
 ```
+
 ### Python įgyvendinimas
 
 ```python
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Gauti failo dydį progreso skaičiavimui
+    # Gaukite failo dydį pažangos skaičiavimui
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Apdoroti dalį
+            # Apdorokite gabalėlį
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Siųsti progreso pranešimą
+            # Siųsti pažangos pranešimą
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Pranešti apie progresą po kiekvieno elemento
+        # Praneškite apie pažangą po kiekvieno elemento
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Kliento apdorojimas (Python)
+### Kliento valdymas (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,7 +134,7 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Registruoti tvarkyklę
+# Užregistruoti tvarkyklę
 session.on_notification("notifications/progress", handle_progress)
 
 # Iškvietimo įrankis (progreso atnaujinimai bus gaunami per tvarkyklę)
@@ -142,7 +145,7 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. Užklausų atšaukimas
 
-Leiskite klientams atšaukti užklausas, kurios nebereikalingos arba užima per daug laiko.
+Leidžiama klientams atšaukti užklausas, kurios nebereikalingos arba užtrunka pernelyg ilgai.
 
 ### Python įgyvendinimas
 
@@ -161,15 +164,15 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # Ieškoti per daugelį puslapių
-            # Patikrinti, ar buvo prašyta atšaukimo
+            # Patikrinti, ar buvo prašyta atšaukti
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Imituoti puslapio paiešką
+            # Simuliuoti puslapio paiešką
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Nedidelė pauzė leidžia tikrinti atšaukimus
+            # Nedidelis delsimas leidžia tikrinti atšaukimą
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -231,7 +234,7 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Normalus laiko limitas, tęsti
+            pass  # Normalus laiko limitas, tęskite
 ```
 
 ### Kliento pusės atšaukimas
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Užklausos atšaukimas
+        # Panaikinti užklausą
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -260,11 +263,11 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. Resursų šablonai
+## 3. Išteklių šablonai
 
-Resursų šablonai leidžia dinamiškai kurti URI su parametrais, kas naudinga API ir duomenų bazėms.
+Išteklių šablonai leidžia dinamiškai kurti URI su parametrais, naudinga API ir duomenų bazėms.
 
-### Šablonų apibrėžimas
+### Šablonų aprašymas
 
 ```python
 from mcp.server import Server
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Analizuokite GitHub problemos URI
+  // Analizuoti GitHub problemos URI
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. Serverio gyvavimo ciklo įvykiai
 
-Tinkamas inicializavimas ir išjungimas užtikrina švarų resursų valdymą.
+Tinkamas inicijavimas ir išjungimo valdymas užtikrina švarų išteklių valdymą.
 
 ### Python gyvavimo ciklo valdymas
 
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# Bendras būsena
+# Bendras būsenos valdymas
 db_connection = None
 cache = None
 
@@ -425,7 +428,7 @@ class ManagedServer {
   }
   
   async start() {
-    // Inicijuoti išteklius
+    // Inicializuoti išteklius
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
@@ -435,7 +438,7 @@ class ManagedServer {
   }
   
   async stop() {
-    // Atlaisvinti išteklius
+    // Išvalyti išteklius
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Naudojimas su švelniu uždarymu
+// Naudojimas su sklandžiu išjungimu
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Susieti MCP lygius su Python registravimo lygiais
+# Susieti MCP lygius su Python žurnalo lygiais
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,14 +512,14 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Užrašų siuntimas klientui
+### Registravimo žinučių siuntimas klientui
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Siųsti įrašų pranešimą klientui
+    # Siųsti žurnalo pranešimą klientui
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Klaidų tvarkymo modeliai
+## 6. Klaidų valdymo šablonai
 
-Nuoseklus klaidų tvarkymas pagerina klaidų tyrimą ir vartotojo patirtį.
+Nuoseklus klaidų valdymas gerina derinimą ir vartotojo patirtį.
 
 ### MCP klaidų kodai
 
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Strukturizuoti klaidų atsakymai
+### Struktūruoti klaidų atsakymai
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Patvirtinti įvestį
+    # Patikrinti įvestį
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -584,11 +587,11 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # Patikrinti leidimus
+        # Patikrinti teises
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # Vykdyti operaciją
+        # Atlikti operaciją
         result = await perform_operation(input)
         
         if result is None:
@@ -601,12 +604,12 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Užfiksuoti netikėtas klaidas
+        # Užfiksuoti nenumatytas klaidas
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### Klaidų tvarkymas TypeScript
+### Klaidų valdymas TypeScript
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -655,12 +658,12 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## Eksperimentinės funkcijos (MCP 2025-11-25)
 
-Šios funkcijos specifikacijoje pažymėtos kaip eksperimentinės:
+Šios funkcijos pažymėtos kaip eksperimentinės specifikacijoje:
 
-### Užduotys (ilgo vykdymo operacijos)
+### Uždaviniai (ilgai trunkančios operacijos)
 
 ```python
-# Užduotys leidžia sekti ilgai trunkančias operacijas su būsena
+# Užduotys leidžia stebėti ilgai trunkančias operacijas su būsena
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -685,12 +688,12 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
 ### Įrankių anotacijos
 
 ```python
-# Anotacijos pateikia metaduomenis apie įrankio elgseną
+# Anotacijos pateikia metaduomenis apie įrankio veikimą
 @app.tool(
     annotations={
-        "destructive": False,      # Nekeičia duomenų
-        "idempotent": True,        # Saugūs pakartotiniai bandymai
-        "timeout_seconds": 30,     # Tikėtinas maksimalus laikas
+        "destructive": False,      # Nedaro jokio duomenų pakeitimo
+        "idempotent": True,        # Saugus bandyti dar kartą
+        "timeout_seconds": 30,     # Tikėtinas maksimalus trukmės laikas
         "requires_approval": False # Vartotojo patvirtinimas nereikalingas
     }
 )
@@ -703,22 +706,22 @@ async def safe_query(query: str) -> str:
 
 ## Kas toliau
 
-- [Modulis 8 - Geriausios praktikos](../../08-BestPractices/README.md)  
-- [5.14 - Konteksto inžinerija](../mcp-contextengineering/README.md)  
-- [MCP specifikacijos pakeitimų žurnalas](https://spec.modelcontextprotocol.io/)  
+- [8 modulis - Gerosios praktikos](../../08-BestPractices/README.md)
+- [5.14 - Konteksto inžinerija](../mcp-contextengineering/README.md)
+- [MCP specifikacijos pakeitimų žurnalas](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Papildomi ištekliai
 
-- [MCP Specifikacija 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [JSON-RPC 2.0 klaidų kodai](https://www.jsonrpc.org/specification#error_object)  
-- [Python SDK pavyzdžiai](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [MCP specifikacija 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 klaidų kodai](https://www.jsonrpc.org/specification#error_object)
+- [Python SDK pavyzdžiai](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [TypeScript SDK pavyzdžiai](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Atsakomybės apribojimas**:  
-Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, atkreipkite dėmesį, kad automatiniai vertimai gali turėti klaidų arba netikslumų. Pradinė dokumento versija gimtąja kalba laikoma autoritetingu šaltiniu. Svarbiai informacijai rekomenduojamas profesionalus žmogiškasis vertimas. Mes neatsakome už jokius nesusipratimus ar neteisingas interpretacijas, kilusias naudojant šį vertimą.
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

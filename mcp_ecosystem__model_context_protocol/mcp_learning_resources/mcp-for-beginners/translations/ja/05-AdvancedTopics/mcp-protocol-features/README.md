@@ -1,21 +1,23 @@
-# MCP プロトコル機能の詳細解説
+# MCPプロトコルの機能詳細解説
 
-このガイドでは、基本的なツールやリソースの処理を超えた高度な MCP プロトコル機能を探ります。これらの機能を理解することで、より堅牢でユーザーフレンドリー、かつ本番対応可能な MCP サーバーの構築に役立ちます。
+本ガイドでは、基本的なツールやリソースの操作を超えた高度なMCPプロトコルの機能について解説します。これらの機能を理解することで、より堅牢でユーザーフレンドリー、かつ本番運用に適したMCPサーバーを構築できます。
 
-## 取り扱う機能
+> **今後の予定:** `2026-07-28`リリース候補では、ログ機能のプリミティブが非推奨となり（stdioには`stderr`を推奨し、構造化された可観測性にはOpenTelemetryを推奨）、下記のサーバーライフサイクルイベントで言及されている`initialize`/セッションモデルを削除し、実験的なTasks機能を独立したTasks拡張モジュールへと移行、新たに`tasks/get`/`tasks/update`/`tasks/cancel`のライフサイクルを持ちます。詳細は[What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)を参照してください。
 
-1. **進行状況通知** - 長時間かかる操作の進行状況を報告
-2. **リクエストのキャンセル** - クライアントによる進行中リクエストのキャンセルを許可
-3. **リソーステンプレート** - パラメーター付きの動的リソースURI
-4. **サーバーライフサイクルイベント** - 適切な初期化とシャットダウン
-5. **ログ制御** - サーバー側のログ設定管理
-6. **エラーハンドリングパターン** - 一貫したエラー応答
+## 対応機能一覧
+
+1. <strong>進捗通知</strong> - 長時間かかる処理の進捗を報告する
+2. <strong>リクエストキャンセル</strong> - クライアントが進行中のリクエストをキャンセル可能にする
+3. <strong>リソーステンプレート</strong> - パラメータ付きの動的リソースURIの構築
+4. <strong>サーバーライフサイクルイベント</strong> - 適切な初期化とシャットダウンの管理
+5. <strong>ログ制御</strong> - サーバー側ログ設定の操作
+6. <strong>エラーハンドリングパターン</strong> - 一貫したエラー応答
 
 ---
 
-## 1. 進行状況通知
+## 1. 進捗通知
 
-データ処理、ファイルダウンロード、API呼び出しなど、時間のかかる操作に対して、進行状況通知はユーザーへの情報提供を維持します。
+時間のかかる処理（データ処理、ファイルダウンロード、API呼び出しなど）において、進捗通知はユーザーに状況を知らせ続けます。
 
 ### 動作の仕組み
 
@@ -25,12 +27,13 @@ sequenceDiagram
     participant Server
     
     Client->>Server: tools/call（長時間操作）
-    Server-->>Client: 通知：進捗 10%
-    Server-->>Client: 通知：進捗 50%
-    Server-->>Client: 通知：進捗 90%
+    Server-->>Client: 通知: 進行状況 10%
+    Server-->>Client: 通知: 進行状況 50%
+    Server-->>Client: 通知: 進行状況 90%
     Server->>Client: 結果（完了）
 ```
-### Python 実装
+
+### Pythonでの実装例
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -43,7 +46,7 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # 進行状況の計算のためにファイルサイズを取得する
+    # 進行状況計算のためにファイルサイズを取得する
     file_size = os.path.getsize(file_path)
     processed = 0
     
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # 各項目の後に進行状況を報告する
+        # 各アイテムの後に進行状況を報告する
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### TypeScript 実装
+### TypeScriptでの実装例
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### クライアント処理 (Python)
+### クライアント側処理（Python）
 
 ```python
 async def handle_progress(notification):
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# ハンドラーを登録する
+# ハンドラを登録する
 session.on_notification("notifications/progress", handle_progress)
 
-# ツールを呼び出す（進捗更新はハンドラーを通じて届きます）
+# ツールを呼び出す（進行状況の更新はハンドラ経由で届きます）
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. リクエストのキャンセル
+## 2. リクエストキャンセル
 
-不要になった、または時間がかかりすぎるリクエストをクライアントがキャンセルできるようにします。
+クライアントが不要になった、または処理時間が長すぎるリクエストをキャンセルできるようにします。
 
-### Python 実装
+### Pythonでの実装例
 
 ```python
 from mcp.server import Server
@@ -169,7 +172,7 @@ async def long_running_search(query: str, ctx) -> str:
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # 小さな遅延でキャンセルのチェックを可能にする
+            # 小さな遅延がキャンセル確認を可能にする
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### キャンセルコンテキストの実装
+### キャンセル用コンテキストの実装
 
 ```python
 class CancellableContext:
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # 通常のタイムアウト、続行
 ```
 
-### クライアント側のキャンセル
+### クライアント側でのキャンセル処理
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # 取消リクエスト
+        # リクエストのキャンセル
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. リソーステンプレート
 
-リソーステンプレートは、パラメーターを使用した動的URI構築を可能にし、APIやデータベースで便利です。
+リソーステンプレートはパラメータ付きの動的URI構築を可能にし、APIやデータベースで役立ちます。
 
 ### テンプレートの定義
 
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### TypeScript 実装
+### TypeScriptでの実装例
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -364,9 +367,9 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. サーバーライフサイクルイベント
 
-適切な初期化とシャットダウン処理は、リソース管理をクリーンに保ちます。
+適切な初期化とシャットダウンの処理を管理し、リソースを健全に保ちます。
 
-### Python ライフサイクル管理
+### Pythonでのライフサイクル管理
 
 ```python
 from mcp.server import Server
@@ -389,7 +392,7 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # サーバーはここで動作します
+    yield  # サーバーはここで実行されます
     
     # シャットダウン
     print("🛑 Server shutting down...")
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript ライフサイクル
+### TypeScriptでのライフサイクル管理
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// 優雅なシャットダウンでの使用方法
+// 優雅なシャットダウンと共に使用する
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,7 +470,7 @@ await server.start();
 
 ## 5. ログ制御
 
-MCP はクライアントが制御できるサーバー側のログレベルをサポートします。
+MCPはクライアントが制御可能なサーバー側のログレベルをサポートします。
 
 ### ログレベルの実装
 
@@ -509,7 +512,7 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### クライアントへのログメッセージ送信
+### クライアントにログメッセージを送信する方法
 
 ```python
 @app.tool()
@@ -537,9 +540,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ## 6. エラーハンドリングパターン
 
-一貫したエラーハンドリングにより、デバッグとユーザー体験が向上します。
+一貫したエラーハンドリングはデバッグとユーザー体験の向上に繋がります。
 
-### MCP エラーコード
+### MCPのエラーコード
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -601,12 +604,12 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # 予期しないエラーをログに記録する
+        # 予期しないエラーを記録する
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### TypeScript におけるエラーハンドリング
+### TypeScriptでのエラーハンドリング
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -636,7 +639,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
       throw error;  // すでにMCPエラーです
     }
     
-    // 他のエラーを変換する
+    // 他のエラーを変換します
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
@@ -653,19 +656,19 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## 実験的機能 (MCP 2025-11-25)
+## 実験的機能（MCP 2025-11-25）
 
-これらの機能は仕様上、実験的にマークされています：
+これらの機能は仕様上で実験的としてマークされています：
 
-### タスク（長時間実行操作）
+### Tasks（長時間実行操作）
 
 ```python
-# タスクは状態付きの長時間実行される操作の追跡を可能にします
+# タスクは状態を持つ長時間実行される操作の追跡を可能にします
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # タスク開始を報告する
+    # タスク開始を報告
     await ctx.report_status("running", "Initializing training...")
     
     # トレーニングループ
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### ツールアノテーション
+### ツール注釈
 
 ```python
-# アノテーションはツールの動作に関するメタデータを提供します
+# 注釈はツールの動作に関するメタデータを提供します
 @app.tool(
     annotations={
         "destructive": False,      # データを変更しません
         "idempotent": True,        # 再試行しても安全です
-        "timeout_seconds": 30,     # 予想される最大実行時間
-        "requires_approval": False # ユーザーの承認は不要です
+        "timeout_seconds": 30,     # 予想される最大時間
+        "requires_approval": False # ユーザーの承認は必要ありません
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## 次に読むべき内容
+## 今後の展望
 
-- [モジュール 8 - ベストプラクティス](../../08-BestPractices/README.md)
+- [モジュール8 - ベストプラクティス](../../08-BestPractices/README.md)
 - [5.14 - コンテキストエンジニアリング](../mcp-contextengineering/README.md)
-- [MCP 仕様変更履歴](https://spec.modelcontextprotocol.io/)
+- [MCP仕様変更履歴](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## 追加リソース
 
-- [MCP 仕様 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP仕様 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [JSON-RPC 2.0 エラーコード](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK 例](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [TypeScript SDK 例](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [Python SDKサンプル](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [TypeScript SDKサンプル](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **免責事項**：
-本書類はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を利用して翻訳されました。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知ください。原文の言語による文書が権威ある正式な情報源とみなされます。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の使用に起因する誤解や誤訳について、当方は一切の責任を負いかねます。
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

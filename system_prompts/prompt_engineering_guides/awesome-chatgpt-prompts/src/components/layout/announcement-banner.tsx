@@ -25,22 +25,52 @@ export interface AnnouncementBannerConfig {
 // Edit this to change/disable the active announcement.
 // Set to `null` to hide the banner entirely.
 export const ACTIVE_ANNOUNCEMENT: AnnouncementBannerConfig | null = {
-  id: "ms-build-2026",
-  href: "https://build.microsoft.com/en-US/sessions/LTG468",
-  external: true,
+  id: "latentshift-istanbul-2026",
   message: (
     <>
-      <span className="font-semibold">Fatih Kadir Akın</span> is speaking about
-      prompts.chat at <span className="font-semibold">Microsoft Build 2026</span>
-      {" · June 2–3, San Francisco"}
+      <Link
+        href="https://latentshift.ai/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:underline"
+      >
+        <span className="font-semibold">prompts.chat</span> is sponsoring to{" "}
+        <span className="font-semibold">LatentShift AI Conference</span> in 17
+        October 2026 in Istanbul
+      </Link>{" "}
+      ·{" "}
+      <Link
+        href="https://latentshift.ai/cfp/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-semibold underline-offset-2 hover:underline"
+      >
+        CfPs are open until 15 Aug →
+      </Link>
     </>
   ),
   messageShort: (
     <>
-      <span className="font-semibold">prompts.chat</span> at Microsoft Build 2026
+      <Link
+        href="https://latentshift.ai/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:underline"
+      >
+        <span className="font-semibold">prompts.chat</span> × LatentShift AI ·
+        Istanbul
+      </Link>{" "}
+      ·{" "}
+      <Link
+        href="https://latentshift.ai/cfp/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-semibold underline-offset-2 hover:underline"
+      >
+        CfPs open until 15 Aug →
+      </Link>
     </>
   ),
-  cta: "View session →",
 };
 
 export function AnnouncementBanner({

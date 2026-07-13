@@ -1,33 +1,33 @@
-# Komunita a príspevky
+# Komunita a Príspevky
 
-[![Ako prispieť do MCP: Nástroje, dokumentácia, kód a viac](../../../translated_images/sk/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
+[![Ako prispieť do MCP: Nástroje, Dokumentácia, Kód a Viac](../../../translated_images/sk/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
 
-_(Kliknite na obrázok vyššie na zobrazenie videa tejto lekcie)_
+_(Kliknite na obrázok vyššie pre zobrazenie videa k tejto lekcii)_
 
 ## Prehľad
 
-Táto lekcia sa zameriava na to, ako sa zapojiť do komunity MCP, prispieť do ekosystému MCP a dodržiavať najlepšie praktiky pre kolaboratívny vývoj. Porozumenie tomu, ako sa zapojiť do open-source projektov MCP, je nevyhnutné pre tých, ktorí chcú formovať budúcnosť tejto technológie.
+Táto lekcia sa zameriava na to, ako sa zapojiť do komunity MCP, prispieť do ekosystému MCP a nasledovať osvedčené postupy pre kolaboratívny vývoj. Pochopenie, ako sa zúčastniť open-source projektov MCP, je nevyhnutné pre tých, ktorí chcú formovať budúcnosť tejto technológie.
 
 ## Ciele učenia
 
 Na konci tejto lekcie budete schopní:
 
-- Porozumieť štruktúre komunity a ekosystému MCP
-- Efektívne sa zapojiť do fór a diskusií komunity MCP
-- Prispievať do open-source repozitárov MCP
+- Pochopiť štruktúru komunity a ekosystému MCP
+- Efektívne sa zapájať do fór a diskusií komunity MCP
+- Prispieť do open-source repozitárov MCP
 - Vytvárať a zdieľať vlastné nástroje a servery MCP
-- Dodržiavať najlepšie praktiky pre vývoj a spoluprácu MCP
-- Objavovať komunitné zdroje a rámce na vývoj MCP
+- Dodržiavať osvedčené postupy pre vývoj a kolaboráciu MCP
+- Objaviť komunitné zdroje a rámce pre vývoj MCP
 
 ## Ekosystém komunity MCP
 
-Ekosystém MCP pozostáva z rôznych komponentov a účastníkov, ktorí spolupracujú na rozvoji protokolu.
+Ekosystém MCP pozostáva z rôznych zložiek a účastníkov, ktorí spolupracujú na rozvoji protokolu.
 
 ### Kľúčové komponenty komunity
 
-1. **Správcovia jadra protokolu**: Oficiálna [GitHub organizácia Model Context Protocol](https://github.com/modelcontextprotocol) spravuje základné špecifikácie MCP a referenčné implementácie
-2. **Vývojári nástrojov**: Jednotlivci a tímy, ktoré vytvárajú nástroje a servery MCP
-3. **Poskytovatelia integrácií**: Spoločnosti, ktoré integrujú MCP do svojich produktov a služieb
+1. **Hlavní udržiavatelia protokolu**: Oficiálna [Github organizácia Model Context Protocol](https://github.com/modelcontextprotocol) udržiava základné špecifikácie MCP a referenčné implementácie
+2. **Vývojári nástrojov**: Jednotlivci a tímy vytvárajúce MCP nástroje a servery
+3. **Poskytovatelia integrácie**: Spoločnosti, ktoré integrujú MCP do svojich produktov a služieb
 4. **Koncoví používatelia**: Vývojári a organizácie, ktoré používajú MCP vo svojich aplikáciách
 5. **Prispievatelia**: Členovia komunity, ktorí prispievajú kódom, dokumentáciou alebo inými zdrojmi
 
@@ -35,74 +35,75 @@ Ekosystém MCP pozostáva z rôznych komponentov a účastníkov, ktorí spolupr
 
 #### Oficiálne kanály
 
-- [Organizácia MCP na GitHub](https://github.com/modelcontextprotocol)
-- [Dokumentácia MCP](https://modelcontextprotocol.io/)
-- [Špecifikácia MCP](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [GitHub diskusie](https://github.com/orgs/modelcontextprotocol/discussions)
-- [Repozitár príkladov a serverov MCP](https://github.com/modelcontextprotocol/servers)
+- [MCP GitHub organizácia](https://github.com/modelcontextprotocol)
+- [MCP Dokumentácia](https://modelcontextprotocol.io/)
+- [MCP Špecifikácia](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [GitHub Diskusie](https://github.com/orgs/modelcontextprotocol/discussions)
+- [MCP Príklady & Repozitár Serverov](https://github.com/modelcontextprotocol/servers)
 
 #### Komunitou riadené zdroje
 
-- [Klienti MCP](https://modelcontextprotocol.io/clients) - Zoznam klientov podporujúcich integrácie MCP
-- [Komunitné servery MCP](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - Rastúci zoznam serverov MCP vyvinutých komunitou
-- [Awesome MCP Servers](https://github.com/wong2/awesome-mcp-servers) - Kurátorovaný zoznam serverov MCP
-- [PulseMCP](https://www.pulsemcp.com/) - Komunitné centrum a newsletter na objavovanie zdrojov MCP
-- [Discord server](https://discord.gg/jHEGxQu2a5) - Spojte sa s vývojármi MCP
-- SDK implementácie špecifické pre jazyky
-- Blogy a návody
+- [MCP Klienti](https://modelcontextprotocol.io/clients) - Zoznam klientov podporujúcich MCP integrácie
+- [Komunitné MCP Servery](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - Rozrastajúci sa zoznam MCP serverov vyvinutých komunitou
+- [Awesome MCP Servery](https://github.com/wong2/awesome-mcp-servers) - Kurátorovaný zoznam MCP serverov
+- [PulseMCP](https://www.pulsemcp.com/) - Komunitné centrum a newsletter pre objavovanie MCP zdrojov
+- [Remote OpenClaw](https://www.remoteopenclaw.com/) - Bezplatný vyhľadávací adresár MCP serverov, schopností agentov a pluginov
+- [Discord Server](https://discord.gg/jHEGxQu2a5) - Spojte sa s vývojármi MCP
+- SDK implementácie pre konkrétne jazyky
+- Blogové príspevky a návody
 
 ## Prispievanie do MCP
 
 ### Typy príspevkov
 
-Ekosystém MCP vítá rôzne typy príspevkov:
+Ekosystém MCP víta rôzne typy príspevkov:
 
-1. **Príspevky kódu**:
+1. **Kódové príspevky**:
    - Vylepšenia jadra protokolu
    - Opravy chýb
-   - Implementácia nástrojov a serverov
-   - Knižnice klienta/servera v rôznych jazykoch
+   - Implementácie nástrojov a serverov
+   - Knižnice klient/server v rôznych jazykoch
 
 2. **Dokumentácia**:
-   - Vylepšovanie existujúcej dokumentácie
-   - Vytváranie tutoriálov a príručiek
+   - Zlepšovanie existujúcej dokumentácie
+   - Vytváranie návodov a príručiek
    - Prekladanie dokumentácie
    - Vytváranie príkladov a vzorových aplikácií
 
-3. **Podpora komunity**:
+3. **Komunitná podpora**:
    - Odpovedanie na otázky vo fórach a diskusiách
    - Testovanie a hlásenie problémov
    - Organizovanie komunitných podujatí
-   - Mentorovanie nových prispievateľov
+   - Mentoring nových prispievateľov
 
 ### Proces prispievania: Jadro protokolu
 
-Ak chcete prispieť do jadra protokolu MCP alebo oficiálnych implementácií, riaďte sa princípmi z [oficiálnych usmernení na prispievanie](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
+Ak chcete prispieť do jadra MCP protokolu alebo oficiálnych implementácií, dodržujte tieto princípy z [oficiálnych pravidiel prispievania](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
 
-1. **Jednoduchosť a minimalizmus**: Špecifikácia MCP udržiava vysoký štandard pre pridávanie nových konceptov. Pridávanie vecí do špecifikácie je jednoduchšie než ich odstraňovanie.
+1. **Jednoduchosť a minimalizmus**: Špecifikácia MCP udržiava vysoké štandardy pre pridávanie nových konceptov. Je jednoduchšie niečo pridať ako to odstrániť.
 
-2. **Konkretizovaný prístup**: Zmeny v špecifikácii by mali vychádzať zo špecifických implementačných problémov, nie zo špekulatívnych nápadov.
+2. **Konkrétny prístup**: Zmeny špecifikácie by mali vychádzať zo skutočných implementačných výziev, nie zo špekulatívnych nápadov.
 
-3. **Etapy návrhu**:
-   - Definovať: Preskúmať problém, overiť, či ho majú aj iní používatelia MCP
-   - Prototypovať: Vytvoriť ukážkové riešenie a demonštrovať jeho praktické využitie
+3. **Fázy návrhu**:
+   - Definovať: Preskúmať problém, overiť, že aj iní používatelia MCP čelia podobnej situácii
+   - Prototyp: Vybudovať príkladové riešenie a ukázať jeho praktické použitie
    - Napísať: Na základe prototypu napísať návrh špecifikácie
 
 ### Nastavenie vývojového prostredia
 
 ```bash
-# Vytvoriť fork repozitára
+# Vytvorte fork repozitára
 git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
 cd modelcontextprotocol
 
 # Nainštalovať závislosti
 npm install
 
-# Pre zmeny schémy, overiť a vygenerovať schema.json:
+# Pri zmenách schémy overte a vygenerujte schema.json:
 npm run check:schema:ts
 npm run generate:schema
 
-# Pre zmeny dokumentácie
+# Pri zmenách dokumentácie
 npm run check:docs
 npm run format
 
@@ -113,13 +114,13 @@ npm run serve:docs
 ### Príklad: Prispievanie opravou chyby
 
 ```javascript
-// Pôvodný kód s chybou v typescript-sdk
+// Originálny kód s chybou v typescript-sdk
 export function validateResource(resource: unknown): resource is MCPResource {
   if (!resource || typeof resource !== 'object') {
     return false;
   }
   
-  // Chyba: Chýbajúca validácia vlastnosti
+  // Chyba: Chýba validácia vlastnosti
   // Súčasná implementácia:
   const hasName = 'name' in resource;
   const hasSchema = 'schema' in resource;
@@ -145,7 +146,7 @@ export function validateResource(resource: unknown): resource is MCPResource {
 ### Príklad: Prispievanie novým nástrojom do štandardnej knižnice
 
 ```python
-# Príklad príspevku: Nástroj na spracovanie CSV údajov pre štandardnú knižnicu MCP
+# Príklad príspevku: Nástroj na spracovanie CSV dát pre štandardnú knižnicu MCP
 
 from mcp_tools import Tool, ToolRequest, ToolResponse, ToolExecutionException
 import pandas as pd
@@ -211,7 +212,7 @@ class CsvProcessingTool(Tool):
             operation = request.parameters.get("operation")
             output_format = request.parameters.get("outputFormat", "json")
             
-            # Získať CSV údaje buď priamo, alebo z URL
+            # Získať CSV dáta buď z priamych dát alebo URL
             df = await self._get_dataframe(request)
             
             # Spracovať na základe požadovanej operácie
@@ -302,18 +303,18 @@ class CsvProcessingTool(Tool):
             raise ToolExecutionException(f"Unsupported output format: {format}")
 ```
 
-### Pokyny pre prispievateľov
+### Pravidlá príspevkov
 
-Ak chcete úspešne prispieť do projektov MCP:
+Pre úspešné prispievanie do MCP projektov:
 
-1. **Začnite s malým**: Začnite s dokumentáciou, opravami chýb alebo malými vylepšeniami
-2. **Dodržiavajte štýlový sprievodca**: Dodržujte štýl kódu a konvencie projektu
-3. **Píšte testy**: Pridajte testy jednotiek pre vaše príspevky kódu
-4. **Dokumentujte svoju prácu**: Pridajte jasnú dokumentáciu pre nové funkcie alebo zmeny
-5. **Podávajte cielené PR**: Udržujte pull requesty zamerané na jeden problém alebo funkciu
-6. **Zapojte sa do spätnej väzby**: Buďte otvorení spätnej väzbe k vašim príspevkom
+1. **Začnite s malými krokmi**: Začnite dokumentáciou, opravami chýb alebo malými vylepšeniami
+2. **Dodržujte štýlový sprievodca**: Dodržujte štýl kódovania a konvencie projektu
+3. **Píšte testy**: Zahrňte jednotkové testy pre vaše kódové príspevky
+4. **Dokumentujte svoju prácu**: Pridajte jasnú dokumentáciu k novým funkciám alebo zmenám
+5. **Podávajte cielene PR**: Udržiavajte pull requesty sústredené na jediný problém alebo funkciu
+6. **Reagujte na spätnú väzbu**: Buďte otvorení spätnej väzbe k vašim príspevkom
 
-### Príklad pracovného postupu príspevku
+### Príklad pracovného procesu prispievania
 
 ```bash
 # Klonujte repozitár
@@ -323,31 +324,31 @@ cd typescript-sdk
 # Vytvorte novú vetvu pre váš príspevok
 git checkout -b feature/my-contribution
 
-# Spravte svoje zmeny
+# Urobte svoje zmeny
 # ...
 
 # Spustite testy, aby ste sa uistili, že vaše zmeny neporušujú existujúcu funkcionalitu
 npm test
 
-# Uložte svoje zmeny s popisným komentárom
+# Uložte zmeny s popisným odkazom
 git commit -am "Fix validation in resource handler"
 
 # Nahrajte svoju vetvu do svojho forku
 git push origin feature/my-contribution
 
 # Vytvorte pull request zo svojej vetvy do hlavného repozitára
-# Následne reagujte na spätnú väzbu a podľa potreby iterujte na vašom PR
+# Potom reagujte na spätnú väzbu a podľa potreby upravujte svoj PR
 ```
 
-## Vytváranie a zdieľanie serverov MCP
+## Vytváranie a zdieľanie MCP serverov
 
-Jedným z najcennejších spôsobov, ako prispieť do ekosystému MCP, je vytvárať a zdieľať vlastné servery MCP. Komunita už vyvinula stovky serverov pre rôzne služby a prípady použitia.
+Jedným z najhodnotnejších spôsobov prispievania do ekosystému MCP je vytváranie a zdieľanie vlastných MCP serverov. Komunita už vyvinula stovky serverov pre rôzne služby a prípady použitia.
 
-### Rámce na vývoj serverov MCP
+### Rámce na vývoj MCP serverov
 
-K dispozícii je niekoľko rámcov na zjednodušenie vývoja serverov MCP:
+K dispozícii je niekoľko rámcov na zjednodušenie vývoja MCP serverov:
 
-1. **Oficiálne SDK** (v súlade so [špecifikáciou MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)):
+1. **Oficiálne SDK** (v súlade so [štandardom MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)):
    - [TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
    - [Python SDK](https://github.com/modelcontextprotocol/python-sdk)
    - [C# SDK](https://github.com/modelcontextprotocol/csharp-sdk)
@@ -357,15 +358,15 @@ K dispozícii je niekoľko rámcov na zjednodušenie vývoja serverov MCP:
    - [Swift SDK](https://github.com/modelcontextprotocol/swift-sdk)
    - [Rust SDK](https://github.com/modelcontextprotocol/rust-sdk)
 
-2. **Komunitné rámce**:
-   - [MCP-Framework](https://mcp-framework.com/) - Vytvárajte servery MCP s eleganciou a rýchlosťou v TypeScripte
-   - [MCP Declarative Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - Serverové MCP anotáciami riadené v Jave
-   - [Quarkus MCP Server SDK](https://github.com/quarkiverse/quarkus-mcp-server) - Java rámec pre servery MCP
-   - [Next.js MCP Server Template](https://github.com/vercel-labs/mcp-for-next.js) - Štartovací projekt Next.js pre servery MCP
+2. **Rámce komunity**:
+   - [MCP-Framework](https://mcp-framework.com/) - Vytvárajte MCP servery s eleganciou a rýchlosťou v TypeScripte
+   - [MCP Deklaratívne Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - Anotáciami riadené MCP servery v Jave
+   - [Quarkus MCP Server SDK](https://github.com/quarkiverse/quarkus-mcp-server) - Java rámec pre MCP servery
+   - [Next.js MCP Server Template](https://github.com/vercel-labs/mcp-for-next.js) - Štartovací projekt Next.js pre MCP servery
 
 ### Vývoj zdieľateľných nástrojov
 
-#### Príklad .NET: Vytvorenie balíčka zdieľateľného nástroja
+#### Príklad v .NET: Vytváranie balíčka zdieľateľných nástrojov
 
 ```csharp
 // Create a new .NET library project
@@ -471,10 +472,10 @@ namespace McpFinanceTools
 // dotnet nuget push bin/Release/McpFinanceTools.1.0.0.nupkg -s https://api.nuget.org/v3/index.json -k YOUR_API_KEY
 ```
 
-#### Príklad Java: Vytvorenie Maven balíčka pre nástroje
+#### Príklad v Jave: Vytváranie Maven balíčka pre nástroje
 
 ```java
-// konfigurácia pom.xml pre zdieľateľný balík nástrojov MCP
+// Konfigurácia pom.xml pre zdieľateľný balík nástrojov MCP
 <!-- 
 <project>
     <groupId>com.example</groupId>
@@ -559,7 +560,7 @@ public class WeatherForecastTool implements Tool {
     }
     
     private Map<String, Object> getForecast(String location, int days) {
-        // Implementácia by volala API počasia
+        // Implementácia by zavolala API počasia
         // Zjednodušený príklad
         Map<String, Object> result = new HashMap<>();
         // Pridajte údaje o predpovedi...
@@ -567,15 +568,15 @@ public class WeatherForecastTool implements Tool {
     }
 }
 
-// Vytvorte a publikujte pomocou Maven
+// Skompilujte a publikujte pomocou Maven
 // mvn clean package
 // mvn deploy
 ```
 
-#### Príklad Python: Publikovanie balíčka na PyPI
+#### Príklad v Pythone: Publikovanie balíčka na PyPI
 
 ```python
-# Adresárová štruktúra balíka PyPI:
+# Adresárová štruktúra pre balík PyPI:
 # mcp_nlp_tools/
 # ├── LICENSE
 # ├── README.md
@@ -613,7 +614,7 @@ setup(
 )
 """
 
-# Príklad implementácie nástroja NLP (sentiment_tool.py)
+# Príklad implementácie NLP nástroja (sentiment_tool.py)
 from mcp_tools import Tool, ToolRequest, ToolResponse, ToolExecutionException
 from transformers import pipeline
 import torch
@@ -622,7 +623,7 @@ class SentimentAnalysisTool(Tool):
     """MCP tool for sentiment analysis of text"""
     
     def __init__(self, model_name="distilbert-base-uncased-finetuned-sst-2-english"):
-        # Načítajte model analýzy sentimentu
+        # Načítať model analýzy sentimentu
         self.sentiment_analyzer = pipeline("sentiment-analysis", model=model_name)
     
     def get_name(self):
@@ -650,14 +651,14 @@ class SentimentAnalysisTool(Tool):
     
     async def execute_async(self, request: ToolRequest) -> ToolResponse:
         try:
-            # Extrahujte parametre
+            # Extrahovať parametre
             text = request.parameters.get("text")
             include_score = request.parameters.get("includeScore", True)
             
-            # Analyzujte sentiment
+            # Analyzovať sentiment
             sentiment_result = self.sentiment_analyzer(text)[0]
             
-            # Naformátujte výsledok
+            # Naformátovať výsledok
             result = {
                 "sentiment": sentiment_result["label"],
                 "text": text
@@ -666,7 +667,7 @@ class SentimentAnalysisTool(Tool):
             if include_score:
                 result["score"] = sentiment_result["score"]
             
-            # Vráťte výsledok
+            # Vrátiť výsledok
             return ToolResponse(result=result)
             
         except Exception as e:
@@ -677,71 +678,71 @@ class SentimentAnalysisTool(Tool):
 # python -m twine upload dist/*
 ```
 
-### Zdieľanie najlepších praktík
+### Zdieľanie osvedčených postupov
 
-Pri zdieľaní nástrojov MCP s komunitou:
+Pri zdieľaní MCP nástrojov s komunitou:
 
 1. **Kompletná dokumentácia**:
    - Dokumentujte účel, použitie a príklady
    - Vysvetlite parametre a návratové hodnoty
-   - Dokumentujte všetky externé závislosti
+   - Zdokumentujte akékoľvek externé závislosti
 
-2. **Spracovanie chýb**:
+2. **Riešenie chýb**:
    - Implementujte robustné spracovanie chýb
-   - Poskytnite užitočné chybové správy
-   - Hladko riešte hraničné prípady
+   - Poskytujte užitočné chybové hlásenia
+   - Ošetrujte okrajové prípady elegantne
 
-3. **Výkonové úvahy**:
+3. **Výkonové aspekty**:
    - Optimalizujte pre rýchlosť aj využitie zdrojov
-   - Používajte cache, kde je to vhodné
+   - Implementujte cache, kde je to vhodné
    - Zvážte škálovateľnosť
 
 4. **Bezpečnosť**:
-   - Používajte zabezpečené API kľúče a overovanie
+   - Používajte bezpečné API kľúče a autentifikáciu
    - Validujte a sanitizujte vstupy
-   - Implementujte obmedzenia rýchlosti pre externé volania API
+   - Implementujte limitovanie početnosti volaní pre externé API
 
 5. **Testovanie**:
    - Zahrňte komplexné testovacie pokrytie
-   - Testujte s rôznymi typmi vstupov a hraničnými prípadmi
+   - Testujte s rôznymi typmi vstupov a okrajovými prípadmi
    - Dokumentujte testovacie postupy
 
-## Spolupráca komunity a najlepšie postupy
+## Komunitná spolupráca a osvedčené postupy
 
 Efektívna spolupráca je kľúčom k prosperujúcemu ekosystému MCP.
 
 ### Komunikačné kanály
 
-- GitHub Issues a diskusie
+- GitHub Issues a Diskusie
 - Microsoft Tech Community
 - Kanály Discord a Slack
 - Stack Overflow (tag: `model-context-protocol` alebo `mcp`)
 
-### Revízie kódu
+### Kódové revízie
 
-Pri revízii príspevkov do MCP:
+Pri hodnotení príspevkov do MCP:
 
-1. **Zrozumiteľnosť**: Je kód jasný a dobre zdokumentovaný?
-2. **Správnosť**: Funguje podľa očakávaní?
+1. **Jasnosť**: Je kód zrozumiteľný a dobre zdokumentovaný?
+2. **Správnosť**: Funguje podľa očakávania?
 3. **Konzistentnosť**: Dodržiava konvencie projektu?
-4. **Kompletnosť**: Obsahuje testy a dokumentáciu?
-5. **Bezpečnosť**: Existujú bezpečnostné riziká?
+4. **Kompletnosť**: Sú zahrnuté testy a dokumentácia?
+5. **Bezpečnosť**: Existujú nejaké bezpečnostné riziká?
 
 ### Kompatibilita verzií
 
 Pri vývoji pre MCP:
 
-1. **Verziu protokolu**: Dodržiavajte verziu protokolu MCP, ktorú váš nástroj podporuje
-2. **Kompatibilitu klientov**: Zvážte spätnú kompatibilitu
-3. **Kompatibilitu serverov**: Dodržiavajte usmernenia pre implementáciu serverov
-4. **Zásadné zmeny**: Jasne dokumentujte všetky zásadné zmeny
+1. **Verzionovanie protokolu**: Dodržiavajte verziu MCP protokolu, ktorú váš nástroj podporuje
+2. **Kompatibilita klienta**: Zvážte spätnú kompatibilitu
+3. **Kompatibilita servera**: Dodržiavajte smernice pre implementáciu servera
+4. **Nezlučiteľné zmeny**: Jasne dokumentujte akékoľvek nezlučiteľné zmeny
 
-## Príklad komunitného projektu: Registrovanie nástrojov MCP
+## Príklad komunitného projektu: Registrovník nástrojov MCP
 
-Dôležitým komunitným príspevkom môže byť vývoj verejného registru nástrojov MCP.
+Významným komunitným príspevkom môže byť vývoj verejného registrovníka MCP nástrojov.
 
 ```python
-# Príklad schémy pre API registra nástrojov komunity
+# Príklad schémy pre API registra komunitných nástrojov
 
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field, HttpUrl
@@ -817,35 +818,35 @@ async def delete_tool(tool_name: str):
     return {"message": f"Tool '{tool_name}' deleted"}
 ```
 
-## Kľúčové zhrnutia
+## Kľúčové poznatky
 
-- Komunita MCP je rozmanitá a vítá rôzne typy príspevkov
-- Príspevky do MCP môžu zahŕňať vylepšenia jadra protokolu až po vlastné nástroje
-- Dodržiavanie pravidiel prispievania zvyšuje pravdepodobnosť akceptácie vášho PR
-- Vytváranie a zdieľanie nástrojov MCP je cenný spôsob, ako rozšíriť ekosystém
-- Komunitná spolupráca je nevyhnutná pre rast a vylepšenie MCP
+- Komunita MCP je rôznorodá a vítá rôzne typy príspevkov
+- Príspevky do MCP môžu byť od vylepšení jadra protokolu po vlastné nástroje
+- Dodržiavanie pravidiel prispievania zvyšuje šancu na prijatie vášho PR
+- Vytváranie a zdieľanie MCP nástrojov je hodnotný príspevok na rozvoj ekosystému
+- Komunitná spolupráca je kľúčová pre rast a zlepšenie MCP
 
 ## Cvičenie
 
-1. Identifikujte oblasť v ekosystéme MCP, kde by ste mohli prispieť podľa vašich zručností a záujmov
-2. Forknite repozitár MCP a nastavte si lokálne vývojové prostredie
-3. Vytvorte malé vylepšenie, opravu chyby alebo nástroj, ktorý by prospešil komunite
-4. Zdokumentujte váš príspevok s vhodnými testami a dokumentáciou
-5. Podajte pull request do zodpovedajúceho repozitára
+1. Identifikujte oblasť v ekosystéme MCP, kde môžete prispieť podľa svojich zručností a záujmov
+2. Vytvorte fork repozitára MCP a nastavte si lokálne vývojové prostredie
+3. Vytvorte malé vylepšenie, opravu chyby alebo nástroj, ktorý prospeje komunite
+4. Zdokumentujte svoj príspevok s príslušnými testami a dokumentáciou
+5. Podajte pull request do príslušného repozitára
 
-## Ďalšie zdroje
+## Dodatočné zdroje
 
-- [Projekty komunity MCP](https://github.com/topics/model-context-protocol)
+- [Komunitné projekty MCP](https://github.com/topics/model-context-protocol)
 
 ---
 
-## Čo bude ďalej
+## Čo ďalej
 
 Ďalej: [Lekcie z raného prijatia](../07-LessonsfromEarlyAdoption/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Zrieknutie sa zodpovednosti**:
-Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatizované preklady môžu obsahovať chyby alebo nepresnosti. Originálny dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne výklady vyplývajúce z použitia tohto prekladu.
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

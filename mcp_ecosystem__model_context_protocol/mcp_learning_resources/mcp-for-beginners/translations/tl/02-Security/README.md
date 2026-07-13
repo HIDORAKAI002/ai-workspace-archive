@@ -1,505 +1,510 @@
-# MCP Security: Komprehensibong Proteksyon para sa mga AI System
+# Seguridad ng MCP: Komprehensibong Proteksyon para sa mga Sistema ng AI
 
 [![MCP Security Best Practices](../../../translated_images/tl/03.175aed6dedae133f.webp)](https://youtu.be/88No8pw706o)
 
-_(I-click ang larawan sa itaas upang panoorin ang video ng leksyong ito)_
+_(I-click ang larawan sa itaas upang panoorin ang video ng araling ito)_
 
-Ang seguridad ay pundamental sa disenyo ng AI system, kaya inuuna namin ito bilang aming pangalawang seksyon. Ito ay naaayon sa prinsipyo ng Microsoft na **Secure by Design** mula sa [Secure Future Initiative](https://www.microsoft.com/security/blog/2025/04/17/microsofts-secure-by-design-journey-one-year-of-success/).
+Ang seguridad ay pundamental sa disenyo ng sistema ng AI, kaya pinapahalagahan namin ito bilang aming pangalawang seksyon. Ito ay alinsunod sa prinsipyo ng Microsoft na **Secure by Design** mula sa [Secure Future Initiative](https://www.microsoft.com/security/blog/2025/04/17/microsofts-secure-by-design-journey-one-year-of-success/).
 
-Ang Model Context Protocol (MCP) ay nagdadala ng makapangyarihang bagong kakayahan sa mga aplikasyon na pinatatakbo ng AI habang ipinapakilala ang mga natatanging hamon sa seguridad na lumalampas sa tradisyonal na panganib sa software. Ang mga MCP system ay humaharap sa parehong mga nakagisnang isyu sa seguridad (secure coding, least privilege, seguridad sa supply chain) at mga bagong tukoy na banta sa AI tulad ng prompt injection, tool poisoning, session hijacking, confused deputy attacks, token passthrough vulnerabilities, at dynamic capability modification.
+Ang Model Context Protocol (MCP) ay nagdadala ng makapangyarihang bagong kakayahan sa mga aplikasyon na pinapatakbo ng AI habang ipinakikilala ang mga natatanging hamon sa seguridad na lagpas sa tradisyunal na panganib ng software. Ang mga sistema ng MCP ay humaharap sa parehong mga nakagawian nang isyu sa seguridad (secure coding, least privilege, seguridad ng supply chain) pati na rin sa mga bagong banta na partikular sa AI kabilang ang prompt injection, tool poisoning, session hijacking, confused deputy attacks, mga kahinaan sa token passthrough, at dynamic na pagbabago ng kakayahan.
 
-Tinutuklas ng lekson na ito ang mga pinaka-kritikal na panganib sa seguridad sa mga implementasyon ng MCP—kabilang ang authentication, authorization, labis na permiso, indirect prompt injection, session security, problema sa confused deputy, pamamahala ng token, at mga kahinaan sa supply chain. Matututuhan mo ang mga napapanahong kontrol at pinakamahusay na kasanayan upang mabawasan ang mga panganib na ito habang ginagamit ang Microsoft na mga solusyon tulad ng Prompt Shields, Azure Content Safety, at GitHub Advanced Security upang palakasin ang iyong MCP deployment.
+Tinutuklas ng araling ito ang pinaka-krusyal na mga panganib sa seguridad sa mga implementasyon ng MCP—saklaw ang authentication, authorization, labis na pahintulot, indirect prompt injection, seguridad ng session, confused deputy problems, pamamahala ng token, at mga kahinaan sa supply chain. Matututuhan mo ang mga maipapatupad na kontrol at pinakamahusay na mga praktis upang mapagaan ang mga panganib na ito habang ginagamit ang mga solusyon ng Microsoft tulad ng Prompt Shields, Azure Content Safety, at GitHub Advanced Security upang palakasin ang iyong MCP deployment.
 
 ## Mga Layunin sa Pagkatuto
 
-Sa pagtatapos ng lekson na ito, magagawa mong:
+Sa pagtatapos ng araling ito, magagawa mong:
 
-- **Kilalanin ang mga Tukoy na Banta sa MCP**: Makilala ang mga natatanging panganib sa seguridad sa mga MCP system kabilang ang prompt injection, tool poisoning, labis na permiso, session hijacking, problema sa confused deputy, token passthrough vulnerabilities, at panganib sa supply chain
-- **Ilapat ang mga Kontrol sa Seguridad**: Magpatupad ng epektibong mga mitigasyon kabilang ang matibay na authentication, least privilege access, secure token management, session security controls, at supply chain verification
-- **Gamitin ang mga Solusyon sa Seguridad ng Microsoft**: Maunawaan at ilagay ang Microsoft Prompt Shields, Azure Content Safety, at GitHub Advanced Security para sa proteksyon ng MCP workload
-- **I-validate ang Seguridad ng Tool**: Kilalanin ang kahalagahan ng validation ng tool metadata, pagmamanman para sa dynamic changes, at pagtatanggol laban sa indirect prompt injection attacks
-- **Isama ang Pinakamahusay na Kasanayan**: Pagsamahin ang mga naitaguyod na pundasyon ng seguridad (secure coding, server hardening, zero trust) gamit ang MCP-specific controls para sa komprehensibong proteksyon
+- **Kilalanin ang mga Banta na Espesipiko sa MCP**: Tukuyin ang mga natatanging panganib sa seguridad sa mga sistema ng MCP kabilang ang prompt injection, tool poisoning, labis na pahintulot, session hijacking, confused deputy problems, mga kahinaan sa token passthrough, at mga panganib sa supply chain
+- **Ipatupad ang mga Kontrol sa Seguridad**: Maglagay ng mabisang mitigations kabilang ang matatag na authentication, least privilege access, secure token management, session security controls, at pagsusuri ng supply chain
+- **Gamitin ang mga Solusyon sa Seguridad ng Microsoft**: Unawain at gamitin ang Microsoft Prompt Shields, Azure Content Safety, at GitHub Advanced Security para sa proteksyon ng MCP workload
+- **Patunayan ang Seguridad ng Tool**: Kilalanin ang kahalagahan ng pag-validate ng metadata ng tool, pagmamanman sa mga dynamic na pagbabago, at pagtatanggol laban sa indirect prompt injection attacks
+- **Isama ang Pinakamahusay na mga Praktis**: Pagsamahin ang mga nakagawiang pundasyon ng seguridad (secure coding, server hardening, zero trust) kasama ang mga kumpol ng MCP-specific controls para sa komprehensibong proteksyon
 
-# MCP Security Architecture & Controls
+# Arkitektura at Mga Kontrol ng Seguridad ng MCP
 
-Ang mga makabagong implementasyon ng MCP ay nangangailangan ng layers ng seguridad na tumutugon sa parehong tradisyonal na seguridad sa software at mga tukoy na banta sa AI. Ang mabilis na pagbabago ng MCP specification ay patuloy na pinabubuti ang mga kontrol nito sa seguridad, na nagpapahintulot ng mas mahusay na integrasyon sa mga enterprise security architecture at mga naitaguyod na pinakamahusay na kasanayan.
+Nangangailangan ang mga modernong implementasyon ng MCP ng laplayer na mga pamamaraan sa seguridad na sumasaklaw sa parehong tradisyunal na seguridad ng software at mga banta partikular sa AI. Patuloy na umuunlad ang MCP specification sa pagpapahusay ng mga kontrol sa seguridad, na nagpapahintulot ng mas maayos na integrasyon sa mga arkitekturang pangseguridad ng enterprise at mga nakagawiang pinakamahusay na praktis.
 
-Ipinapakita ng pananaliksik mula sa [Microsoft Digital Defense Report](https://aka.ms/mddr) na **98% ng mga iniulat na paglabag ay maiiwasan sa pamamagitan ng matibay na hygiene sa seguridad**. Ang pinaka-epektibong estratehiya sa proteksyon ay pinaglalapat ang pundamental na mga kasanayan sa seguridad kasama ang MCP-specific controls—ang mga patunay na baseline security measures ang pinakamalaking epekto sa pagbabawas ng pangkalahatang panganib sa seguridad.
+Ipinapakita ng pananaliksik mula sa [Microsoft Digital Defense Report](https://aka.ms/mddr) na **98% ng mga naiulat na paglabag ay maiiwasan sa pamamagitan ng masiglang hygiene sa seguridad**. Ang pinakaepektibong estratehiya sa proteksyon ay pinagsasama ang mga pundasyong gawi sa seguridad at specific controls ng MCP—ang mga patunay na baseline na hakbang sa seguridad ay nananatiling pinaka-maalab sa pagbawas ng pangkalahatang panganib sa seguridad.
 
-## Kasalukuyang Kalagayan ng Seguridad
+## Kasalukuyang Kalakaran ng Seguridad
 
-> **Tandaan:** Ang impormasyon na ito ay sumasalamin sa mga pamantayan ng seguridad ng MCP noong **Pebrero 5, 2026**, na naaayon sa **MCP Specification 2025-11-25**. Ang MCP protocol ay patuloy na mabilis umuunlad, at ang mga susunod na implementasyon ay maaaring magpakilala ng mga bagong authentication pattern at pinahusay na mga kontrol. Laging sumangguni sa kasalukuyang [MCP Specification](https://spec.modelcontextprotocol.io/), [MCP GitHub repository](https://github.com/modelcontextprotocol), at [security best practices documentation](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) para sa pinakabagong gabay.
+> **Tandaan:** Ang impormasyong ito ay sumasalamin sa mga pamantayan sa seguridad ng MCP noong **Pebrero 5, 2026**, kaugnay ng **MCP Specification 2025-11-25**. Patuloy ang mabilis na pag-unlad ng protocol ng MCP, at ang mga susunod na implementasyon ay maaaring magpakilala ng mga bagong pattern ng authentication at pinahusay na mga kontrol. Laging sumangguni sa kasalukuyang [MCP Specification](https://spec.modelcontextprotocol.io/), [MCP GitHub repository](https://github.com/modelcontextprotocol), at [security best practices documentation](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) para sa pinakabagong gabay.
+
+> **Paghahandang Tumingin sa Hinaharap:** pinatatag ng `2026-07-28` release candidate ang authorization — kailangang patunayan ng mga kliyente ang `iss` parameter sa mga authorization responses (RFC 9207), ideklara ang OpenID Connect `application_type` sa panahon ng Dynamic Client Registration, at itali ang mga rehistradong kredensyal sa nag-isyu na authorization server. Tingnan ang [What's Changing in MCP: The 2026-07-28 Release Candidate](../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) para sa buong listahan ng authorization SEPs.
 
 ## 🏔️ MCP Security Summit Workshop (Sherpa)
 
-Para sa **praktikal na pagsasanay sa seguridad**, malugod naming inirerekomenda ang **MCP Security Summit Workshop** (Sherpa) - isang komprehensibong gabay na ekspedisyon upang maprotektahan ang mga MCP server sa Microsoft Azure.
+Para sa **hands-on na pagsasanay sa seguridad**, lubos naming inirerekomenda ang **MCP Security Summit Workshop** (Sherpa) - isang komprehensibong ginabayan na ekspedisyon sa pag-secure ng mga MCP server sa Microsoft Azure.
 
 ### Pangkalahatang-ideya ng Workshop
 
-Ang [MCP Security Summit Workshop](https://azure-samples.github.io/sherpa/) ay nagbibigay ng praktikal at napapanahong pagsasanay sa seguridad gamit ang subok na metodolohiyang "vulnerable → exploit → fix → validate". Matututuhan mo ang:
+Ang [MCP Security Summit Workshop](https://azure-samples.github.io/sherpa/) ay nagbibigay ng praktikal at maipapatupad na pagsasanay sa seguridad sa pamamagitan ng napatunayang metodolohiyang "vulnerable → exploit → fix → validate". Ikaw ay:
 
-- **Pagkatuto sa Pamamagitan ng Pagwasak**: Maranasan ang mga kahinaan sa seguridad sa pamamagitan ng pag-atake sa mga sinadyang insecure na server
-- **Gamitin ang Azure-Native Security**: Gamitin ang Azure Entra ID, Key Vault, API Management, at AI Content Safety
-- **Sundin ang Defense-in-Depth**: Umusad sa mga kampo na bumubuo ng komprehensibong mga layer ng seguridad
-- **Ilapat ang Mga Pamantayan ng OWASP**: Bawat teknik ay nagtutugma sa [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)
-- **Makuha ang Production Code**: Magdala ng gumaganang, nasubukang implementasyon pagkatapos
+- **Matuto sa Pamamagitan ng Pagbali**: Maranasan ang mga kahinaan sa seguridad sa pamamagitan ng pagsasamantala ng sadyang di-secure na mga server
+- **Gamitin ang Azure-Native Security**: Samantalahin ang Azure Entra ID, Key Vault, API Management, at AI Content Safety
+- **Sundin ang Defense-in-Depth**: Isagawa ang mga hakbang upang bumuo ng komprehensibong mga layer ng seguridad
+- **Ipatupad ang Mga Pamantayan ng OWASP**: Ang bawat teknik ay nagmamapa sa [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)
+- **Kumuha ng Production Code**: Umalis na may gumagana at nasubok na mga implementasyon
 
 ### Ruta ng Ekspedisyon
 
-| Kampo | Pokus | Mga Panganib ng OWASP na Tinatalakay |
-|-------|-------|-------------------------------------|
+| Kampo | Pokus | Mga Saklaw ng Panganib ng OWASP |
+|------|-------|---------------------|
 | **Base Camp** | Mga pundasyon ng MCP at mga kahinaan sa authentication | MCP01, MCP07 |
 | **Camp 1: Identity** | OAuth 2.1, Azure Managed Identity, Key Vault | MCP01, MCP02, MCP07 |
 | **Camp 2: Gateway** | API Management, Private Endpoints, pamamahala | MCP02, MCP06, MCP07, MCP09 |
-| **Camp 3: I/O Security** | Prompt injection, proteksyon ng PII, seguridad ng nilalaman | MCP03, MCP05, MCP06, MCP10 |
+| **Camp 3: I/O Security** | Prompt injection, proteksyon ng PII, content safety | MCP03, MCP05, MCP06, MCP10 |
 | **Camp 4: Monitoring** | Log Analytics, dashboards, pagtuklas ng banta | MCP04, MCP08 |
-| **The Summit** | Pagsasanib ng Red Team / Blue Team test | Lahat |
+| **The Summit** | Red Team / Blue Team integration test | Lahat |
 
-**Magsimula:** [https://azure-samples.github.io/sherpa/](https://azure-samples.github.io/sherpa/)
+**Simulan Na**: [https://azure-samples.github.io/sherpa/](https://azure-samples.github.io/sherpa/)
 
-## OWASP MCP Top 10 Security Risks
+## Pangunahing 10 Panganib sa Seguridad ng OWASP MCP
 
-Detalyado sa [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) ang sampung pinaka-kritikal na panganib sa seguridad para sa mga implementasyon ng MCP:
+Ang [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) ay nagdedetalye ng sampung pinaka-krusyal na panganib sa seguridad para sa mga implementasyong MCP:
 
-| Panganib | Paglalarawan | Azure Mitigation |
-|----------|--------------|------------------|
-| **MCP01** | Token Mismanagement at Pagsisiwalat ng Sekreto | Azure Key Vault, Managed Identity |
-| **MCP02** | Pagtaas ng Pribilehiyo sa pamamagitan ng Scope Creep | RBAC, Conditional Access |
-| **MCP03** | Tool Poisoning | Validation ng tool, pagsuri ng integridad |
-| **MCP04** | Atake sa Software Supply Chain at Pambabaluktot sa Dependensya | GitHub Advanced Security, dependency scanning |
-| **MCP05** | Command Injection at Pagsasagawa | Pag-validate ng input, sandboxing |
-| **MCP06** | Pagbabago ng Daloy ng Intensyon | Azure AI Content Safety, Prompt Shields |
-| **MCP07** | Hindi Sapat na Authentication at Authorization | Azure Entra ID, OAuth 2.1 kasama ang PKCE |
+| Panganib | Paglalarawan | Pagsugpo sa Azure |
+|------|-------------|------------------|
+| **MCP01** | Maling Pamamahala ng Token & Paglalantad ng Mga Lihim | Azure Key Vault, Managed Identity |
+| **MCP02** | Pagsusulong ng Pribilehiyo sa Pamamagitan ng Scope Creep | RBAC, Conditional Access |
+| **MCP03** | Tool Poisoning | Pag-validate ng tool, beripikasyon ng integridad |
+| **MCP04** | Mga Atake sa Software Supply Chain & Dependency Tampering | GitHub Advanced Security, dependency scanning |
+| **MCP05** | Command Injection & Execution | Pag-validate ng input, sandboxing |
+| **MCP06** | Intent Flow Subversion | Azure AI Content Safety, Prompt Shields |
+| **MCP07** | Hindi Sapat na Authentication & Authorization | Azure Entra ID, OAuth 2.1 na may PKCE |
 | **MCP08** | Kawalan ng Audit at Telemetry | Azure Monitor, Application Insights |
-| **MCP09** | Shadow MCP Servers | API Center governance, network isolation |
-| **MCP10** | Context Injection at Labis na Pagbabahagi | Pag-uuri ng data, minimal na exposure |
+| **MCP09** | Shadow MCP Servers | Pamamahala sa API Center, paghihiwalay ng network |
+| **MCP10** | Context Injection & Labis na Pagbabahagi | Klasipikasyon ng data, minimal na exposyur |
 
-### Ebolusyon ng Authentication ng MCP
+### Pag-unlad ng Authentication ng MCP
 
-Malaki ang nabago ng MCP specification sa paraan ng authentication at authorization:
+Lubos na umunlad ang MCP specification sa paraan ng authentication at authorization:
 
-- **Orihinal na Paraan**: Ang mga unang specification ay nag-aatas sa mga developer na magpatupad ng sariling custom authentication servers, kung saan ang mga MCP server ay kumikilos bilang OAuth 2.0 Authorization Servers na direktang nagmamanage ng authentication ng user
-- **Kasalukuyang Pamantayan (2025-11-25)**: Ang na-update na specification ay nagpapahintulot sa mga MCP server na idelegar ang authentication sa mga panlabas na identity provider (tulad ng Microsoft Entra ID), na nagpapabuti sa seguridad at nagpapadali ng implementasyon
-- **Transport Layer Security**: Pinahusay na suporta para sa secure transport mechanisms na may wastong authentication pattern para sa parehong lokal (STDIO) at remote (Streamable HTTP) na koneksyon
+- **Orihinal na Paraan**: Kinailangan sa mga maagang specification na magpatupad ng mga custom na authentication server ang mga developer, na ang mga MCP server ang kumilos bilang OAuth 2.0 Authorization Servers na direktang nangangalaga ng user authentication
+- **Kasalukuyang Pamantayan (2025-11-25)**: Ang na-update na specification ay nagpapahintulot sa mga MCP server na i-delegate ang authentication sa mga panlabas na identity provider (tulad ng Microsoft Entra ID), na nagpapabuti sa posture ng seguridad at nagpapababa ng kompleksidad ng implementasyon
+- **Transport Layer Security**: Pinahusay na suporta para sa mga secure na transport mechanism na may tamang mga authentication pattern para sa parehong lokal (STDIO) at remote (Streamable HTTP) na koneksyon
 
-## Authentication at Authorization Security
+## Seguridad sa Authentication at Authorization
 
-### Mga Hamon sa Kasalukuyan
+### Mga Hamon sa Seguridad sa Kasalukuyan
 
-Ang mga modernong implementasyon ng MCP ay nahaharap sa ilang mga hamon sa authentication at authorization:
+Ang mga modernong implementasyon ng MCP ay humaharap sa ilang mga hamon sa authentication at authorization:
 
-### Mga Panganib at Vector ng Atake
+### Mga Panganib at Vector ng Banta
 
-- **Maling Pagkakonpigurasyon ng Authorization Logic**: Ang maling implementasyon ng authorization sa MCP server ay maaaring maglantad ng sensitibong data at mali ang paglalapat ng access controls
-- **Pagkakompromiso ng OAuth Token**: Ang pagnanakaw ng token mula sa lokal na MCP server ay nagbibigay daan sa mga umaatake na magpanggap bilang mga server at ma-access ang mga downstream na serbisyo
-- **Token Passthrough Vulnerabilities**: Ang mali o hindi tamang paghawak ng token ay lumilikha ng bypass sa mga kontrol sa seguridad at mga puwang sa pananagutan
-- **Labis na Permission**: Ang sobrang pribilehiyo ng mga MCP server ay lumalabag sa prinsipyong least privilege at pinalalawak ang mga panganib sa pag-atake
+- **Maling Pagkakaayos ng Logic ng Authorization**: Ang baluktot na implementasyon ng authorization sa mga MCP server ay maaaring maglantad ng sensitibong data at maling paglalapat ng mga kontrol sa access
+- **Kompromisong OAuth Token**: Ang pagnanakaw ng token mula sa lokal na MCP server ay nagbibigay-daan sa mga attacker na magpanggap bilang server at makakuha ng access sa downstream services
+- **Mga Kahinaan sa Token Passthrough**: Ang maling paghawak ng token ay lumilikha ng mga bypass sa kontrol sa seguridad at puwang sa pananagutan
+- **Labis na Pahintulot**: Ang sobrang pribilehiyo ng mga MCP server ay lumalabag sa prinsipyo ng least privilege at pinalalawak ang mga attack surface
 
 #### Token Passthrough: Isang Kritikal na Anti-Pattern
 
-**Ang token passthrough ay mahigpit na ipinagbabawal** sa kasalukuyang MCP authorization specification dahil sa malubhang epekto nito sa seguridad:
+**Ang token passthrough ay tahasang ipinagbabawal** sa kasalukuyang specification ng MCP authorization dahil sa matinding epekto sa seguridad:
 
-##### Pag-iwas sa Kontrol sa Seguridad  
-- Ang MCP server at downstream na mga API ay nagpapatupad ng mahahalagang kontrol sa seguridad (limitasyon ng rate, pag-validate ng request, pagmamanman ng trapiko) na nakabatay sa tamang pagsusuri ng token
-- Ang direktang paggamit ng token mula sa kliyente papuntang API ay nilalampasan ang mga mahahalagang proteksyong ito, na sumisira sa arkitektura ng seguridad
+##### Pagsalungat sa Mga Kontrol sa Seguridad
+- Nagpapatupad ang mga MCP server at downstream API ng mahahalagang kontrol sa seguridad (rate limiting, pag-validate ng request, pagmamanman ng trapiko) na nakasalalay sa wastong pag-validate ng token
+- Ang direktang paggamit ng token mula sa client papuntang API ay nagpapalampas sa mga mahahalagang proteksyon na ito, na sumisira sa arkitekturang pangseguridad
 
 ##### Mga Hamon sa Pananagutan at Audit  
-- Hindi makilala ng MCP server ang mga kliyente gamit ang tokens na ibinigay sa gagamitin na upstream, kaya nawawala ang mga audit trail
-- Nagpapakita ang mga log ng downstream resource server ng maling pinagmulan ng request kaysa sa aktwal na MCP server na tagapamagitan
-- Nagiging mas mahirap ang pagsisiyasat ng insidente at auditing para sa pagsunod
+- Hindi kayang tukuyin ng mga MCP server ang pagitan ng mga client na gumagamit ng mga token na inisyu sa itaas, na nagpapasira sa audit trails
+- Ipinapakita ng mga log ng downstream resource server ang mga maling pinagmulan ng request sa halip na ang aktwal na mga MCP server intermediary
+- Ang pagsisiyasat ng insidente at pag-audit para sa pagsunod ay nagiging mas mahirap nang malaki
 
-##### Panganib sa Pag-agaw ng Data  
-- Pinapayagan ng hindi nabe-validate na mga claim ng token ang mga masamang aktor na may nakaw na token na gamitin ang MCP server bilang proxy para sa pag-agaw ng data
-- Ang paglabag sa trust boundary ay nagbibigay daan sa hindi awtorisadong pag-access na nilalampasan ang mga inaasahang kontrol sa seguridad
+##### Panganib ng Data Exfiltration
+- Pinapayagan ng hindi na-validate na mga claim ng token ang mga malisyosong aktor na may mga ninakaw na token na gamitin ang mga MCP server bilang mga proxy para sa pagkuha ng data
+- Ang mga paglabag sa trust boundary ay nagpapahintulot sa mga hindi awtorisadong pattern ng pag-access na pumapalya sa mga nakatakdang kontrol sa seguridad
 
-##### Multi-Serbisyo na Vector ng Atake  
-- Ang mga kompromisadong token na tinatanggap ng maraming serbisyo ay nagbibigay-daan sa paggalaw lateral sa mga naka-konektang sistema
-- Maaring malabag ang mga assumptions ng tiwala sa pagitan ng mga serbisyo kapag hindi na-verify ang pinagmulan ng token
+##### Mga Vector ng Atake sa Maramihang Serbisyo
+- Ang mga kompromisadong token na tinatanggap ng maraming serbisyo ay nagbibigay-daan sa lateral movement sa mga konektadong sistema
+- Maaaring masira ang mga palagay ng pagtitiwala sa pagitan ng mga serbisyo kapag hindi maberipika ang pinagmulan ng token
 
-### Mga Kontrol sa Seguridad at Mga Pamamaraang Mitigasyon
+### Mga Kontrol at Mitigasyon sa Seguridad
 
-**Kritikal na Pangangailangan sa Seguridad:**
+**Kritikal na Mga Pangangailangan sa Seguridad:**
 
-> **MANDATORY**: Ang mga MCP server ay **HINDI DAPAT** tumanggap ng anumang token na hindi tahasang inilabas para sa MCP server
+> **MANDATORY**: Ang mga MCP server **HINDI DAPAT** tumanggap ng anumang token na hindi tahasang inisyu para sa MCP server
 
 #### Mga Kontrol sa Authentication at Authorization
 
-- **Masusing Pagsusuri ng Authorization**: Magsagawa ng komprehensibong audit sa authorization logic ng MCP server upang matiyak na tanging ang mga nais na user at kliyente lang ang makaka-access sa sensitibong resources
-  - **Gabay sa Implementasyon**: [Azure API Management bilang Authentication Gateway para sa MCP Servers](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)
+- **Masusing Pagsusuri sa Authorization**: Isagawa ang komprehensibong audit ng logic ng authorization ng MCP server upang matiyak na tanging ang mga nilalayong user at client lamang ang makakas access sa sensitibong resources
+  - **Gabay sa Implementasyon**: [Azure API Management bilang Authentication Gateway para sa mga MCP Server](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)
   - **Integrasyon ng Identity**: [Paggamit ng Microsoft Entra ID para sa Authentication ng MCP Server](https://den.dev/blog/mcp-server-auth-entra-id-session/)
 
-- **Secure Token Management**: Ipatupad ang [mga pinakamahusay na kasanayan sa token validation at lifecycle ng Microsoft](https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens)
-  - I-validate na tugma ang token audience claims sa pagkakakilanlan ng MCP server
-  - Ipatupad ang tamang token rotation at expiration policies
-  - Iwasan ang token replay attacks at hindi awtorisadong paggamit
+- **Secure Token Management**: Ipatupad ang [mga pinakamahusay na praktis sa token validation at lifecycle ng Microsoft](https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens)
+  - Patunayan na tumutugma ang mga claim ng audience ng token sa pagkakakilanlan ng MCP server
+  - Ipatupad ang wastong token rotation at mga polisiya ng expiration
+  - Pigilan ang mga atake sa replay ng token at hindi awtorisadong paggamit
 
-- **Protektadong Pag-iimbak ng Token**: Siguraduhing naka-encrypt ang token storage sa parehong estado at transit
-  - **Pinakamahusay na Kasanayan**: [Secure Token Storage and Encryption Guidelines](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)
+- **Protektadong Imbakan ng Token**: Siguraduhing naka-encrypt ang imbakan ng token sa pareho, at sa rest at sa transit
+  - **Pinakamahusay na mga Praktis**: [Secure Token Storage and Encryption Guidelines](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)
 
-#### Pagpapatupad ng Access Control
+#### Implementasyon ng Access Control
 
-- **Prinsipyo ng Least Privilege**: Bigyan lamang ang mga MCP server ng pinakamababang permiso na kinakailangan para sa nais na functionality
-  - Regular na pagsusuri at pag-update ng permiso upang maiwasan ang privilege creep
+- **Prinsipyo ng Least Privilege**: Bigyan ang mga MCP server ng tanging mga pinakamababang pahintulot na kinakailangan para sa nilalayong functionality
+  - Regular na pagsuri at pag-update ng mga pahintulot upang maiwasan ang privilege creep
   - **Dokumentasyon ng Microsoft**: [Secure Least-Privileged Access](https://learn.microsoft.com/entra/identity-platform/secure-least-privileged-access)
 
-- **Role-Based Access Control (RBAC)**: Magpatupad ng masusing pagtatalaga ng mga role
-  - Higpitan ang saklaw ng mga role sa partikular na mga resource at aksyon
-  - Iwasan ang malawak o hindi kinakailangang permiso na nagpapalawak ng surface ng pag-atake
+- **Role-Based Access Control (RBAC)**: Ipatupad ang mga maselan na asignasyon ng papel
+  - I-limitang maigi ang mga papel sa mga tiyak na resources at aksyon
+  - Iwasan ang malawak o hindi kinakailangang mga pahintulot na nagpapalawak ng mga attack surface
 
-- **Patuloy na Pagmamanman ng Permiso**: Magpatupad ng tuloy-tuloy na pag-audit at pagmamanman ng access
-  - Bantayan ang mga pattern ng paggamit ng permiso para sa mga anomalya
-  - Agad na solusyunan ang labis o hindi nagagamit na mga pribilehiyo
+- **Tuloy-tuloy na Pagmamanman ng Pahintulot**: Ipatupad ang tuloy-tuloy na pag-audit at pagmamanman ng access
+  - Bantayan ang mga pattern ng paggamit ng pahintulot para sa mga anomalya
+  - Agarang ayusin ang labis o hindi nagagamit na mga pribilehiyo
 
-## Mga Tukoy na Banta sa Seguridad ng AI
+## Mga Espesipikong Banta sa Seguridad ng AI
 
-### Prompt Injection at Mga Pag-atake sa Manipulasyon ng Tool
+### Mga Atake sa Prompt Injection at Pagsasamantala sa Tool
 
-Ang mga makabagong implementasyon ng MCP ay nahaharap sa mga sopistikadong AI-specific attack vector na hindi ganap na natutugunan ng tradisyonal na mga hakbang sa seguridad:
+Ang mga modernong implementasyon ng MCP ay humaharap sa masalimuot na mga vector ng AI-specific na pag-atake na hindi ganap na natutugunan ng mga tradisyunal na pamamaraan sa seguridad:
 
 #### **Indirect Prompt Injection (Cross-Domain Prompt Injection)**
 
-Ang **Indirect Prompt Injection** ay isa sa mga pinaka-kritikal na kahinaan sa mga sistemang AI na pinapaandar ng MCP. Ang mga attacker ay naglalagay ng malisyosong mga tagubilin sa loob ng panlabas na nilalaman—mga dokumento, web pages, emails, o mga pinagmumulan ng data—na kalaunan ay pinoproseso ng mga AI system bilang mga lehitimong utos.
+Ang **Indirect Prompt Injection** ay isa sa pinaka-krusyal na kahinaan sa mga sistemang pinalalakas ng MCP na AI. Isinusulat ng mga attacker ang malisyosong mga tagubilin sa panlabas na nilalaman—mga dokumento, mga web page, email, o mga pinagkukunan ng data—na pagkatapos ay pinoproseso ng mga sistema ng AI bilang lehitimong mga utos.
 
 **Mga Senaryo ng Atake:**
-- **Pag-inject sa Dokumento**: Mga malisyosong tagubilin na nakatago sa mga dokumentong pinoproseso na nagdudulot ng hindi inaasahang aksyon ng AI
-- **Eksploytasyon ng Web Content**: Mga kompromisadong web pages na naglalaman ng nakaembed na mga prompt na nagmamanipula sa kilos ng AI kapag kinukuha
-- **Mga Atake gamit ang Email**: Malisyosong prompt sa mga email na nagdudulot sa AI assistant na mag-leak ng impormasyon o magsagawa ng hindi otorisadong gawa
-- **Kontaminasyon ng Pinagmumulan ng Data**: Mga kompromisadong databases o API na naghahatid ng maruming nilalaman sa mga AI system
+- **Injection batay sa Dokumento**: Mga malisyosong tagubilin na nakatago sa mga pinoprosesong dokumento na nagdudulot ng hindi inaasahang aksyon ng AI
+- **Pagsasamantala sa Nilalaman ng Web**: Mga nabiktima na mga web page na naglalaman ng mga naka-embed na prompt na nililinang ang AI kapag kinuha
+- **Mga Atakeng Batay sa Email**: Malisyosong prompt sa mga email na nagpapasabog ng impormasyon o nagdudulot ng hindi awtorisadong aksyon mula sa mga AI assistant
+- **Kontaminasyon ng Pinagkukunan ng Data**: Mga naapektuhang database o API na naghahatid ng kontaminadong nilalaman sa mga sistema ng AI
 
-**Epekto sa Totoong Mundo**: Ang mga pag-atakeng ito ay maaaring magresulta sa pag-agaw ng data, paglabag sa privacy, paggawa ng nakakapinsalang nilalaman, at manipulasyon ng mga interaksyon ng user. Para sa detalyadong pagsusuri, tingnan ang [Prompt Injection in MCP (Simon Willison)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/).
+**Tunay na Epekto sa Mundo**: Maaaring magresulta ang mga atakeng ito sa pagkuha ng data, paglabag sa privacy, pagbuo ng nakakapinsalang nilalaman, at pagmamanipula sa interaksyon ng user. Para sa detalyadong pagsusuri, tingnan ang [Prompt Injection in MCP (Simon Willison)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/).
 
 ![Prompt Injection Attack Diagram](../../../translated_images/tl/prompt-injection.ed9fbfde297ca877.webp)
 
-#### **Tool Poisoning Attacks**
+#### **Mga Atake sa Tool Poisoning**
 
-Ang **Tool Poisoning** ay tumatarget sa metadata na naglalarawan ng mga MCP tool, na ginagamit ng LLM upang interpretahin ang mga deskripsyon at parameter ng tool para sa mga desisyong pagpapatupad.
+Ang **Tool Poisoning** ay tumatarget sa metadata na naglalarawan sa mga tool ng MCP, na sinasamantala kung paano binibigyang-kahulugan ng LLMs ang mga deskripsyon ng tool at mga parameter upang gumawa ng mga desisyon sa pagpapatupad.
 
 **Mga Mekanismo ng Atake:**
-- **Manipulasyon ng Metadata**: Ang mga attacker ay nag-iinject ng malisyosong tagubilin sa mga deskripsyon ng tool, mga depinisyon ng parameter, o mga halimbawa ng paggamit
-- **Hindi Nakikitang Mga Tagubilin**: Nakakubling prompt sa metadata ng tool na pinoproseso ng AI models ngunit hindi nakikita ng mga tao
-- **Dynamic Tool Modification ("Rug Pulls")**: Ang mga tool na inaprubahan ng mga user ay binabago pagkatapos upang gumawa ng malisyosong aksyon nang hindi nalalaman ng user
-- **Parameter Injection**: Malisyosong nilalaman na nakapasok sa tool parameter schemas na nakakaapekto sa behavior ng modelo
+- **Manipulasyon ng Metadata**: Ang mga attacker ay nag-iinject ng malisyosong mga tagubilin sa mga deskripsyon ng tool, definisyon ng parameter, o mga halimbawa ng paggamit
+- **Hindi Nakikitang Mga Tagubilin**: Mga nakatagong prompt sa tool metadata na pinoproseso ng mga modelo ng AI ngunit hindi nakikita ng mga tao
+- **Dynamic na Pagbabago ng Tool ("Rug Pulls")**: Ang mga tool na inaprubahan ng mga user ay binabago sa kalaunan upang magsagawa ng malisyosong aksyon nang walang kaalaman ng user
+- **Parameter Injection**: Malisyosong nilalaman na naka-embed sa mga schema ng parameter ng tool na nakakaapekto sa ugali ng modelo
 
-**Panganib sa Hosted Server**: Ang mga remote MCP server ay nagdudulot ng mas mataas na panganib dahil maaaring ma-update ang mga depinisyon ng tool pagkatapos ng paunang pag-apruba ng user, na lumilikha ng mga senaryo kung saan ang dati nang ligtas na mga tool ay nagiging malisyoso. Para sa komprehensibong pagsusuri, tingnan ang [Tool Poisoning Attacks (Invariant Labs)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks).
+
+**Mga Panganib ng Hosted Server**: Ang mga remote na MCP server ay nagdudulot ng mas mataas na panganib dahil ang mga depinisyon ng tool ay maaaring ma-update pagkatapos ng unang pag-apruba ng user, na lumilikha ng mga senaryo kung saan ang mga dating ligtas na tool ay nagiging malisyoso. Para sa komprehensibong pagsusuri, tingnan ang [Tool Poisoning Attacks (Invariant Labs)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks).
 
 ![Tool Injection Attack Diagram](../../../translated_images/tl/tool-injection.3b0b4a6b24de6bef.webp)
 
-#### **Karagdagang AI Attack Vector**
+#### **Karagdagang AI Attack Vectors**
 
-- **Cross-Domain Prompt Injection (XPIA)**: Mga sopistikadong atake na gumagamit ng nilalaman mula sa maraming domain upang malusutan ang mga kontrol sa seguridad
-- **Dynamic Capability Modification**: Mga pagbabago sa kakayahan ng tool sa real-time na nakakalusot sa mga paunang pagsusuri sa seguridad
-- **Context Window Poisoning**: Mga atake na nagmamanipula ng malalaking context window upang itago ang mga malisyosong tagubilin
-- **Model Confusion Attacks**: Pagsasamantala sa mga limitasyon ng modelo upang lumikha ng hindi inaasahan o hindi ligtas na mga gawi
+- **Cross-Domain Prompt Injection (XPIA)**: Mga sopistikadong atake na nagpapakinabang sa nilalaman mula sa iba't ibang domain upang lampasan ang mga kontrol sa seguridad
+- **Dynamic Capability Modification**: Mga pagbabagong real-time sa mga kakayahan ng tool na nakakaiwas sa unang mga pagsusuri ng seguridad
+- **Context Window Poisoning**: Mga atake na nagmamanipula ng malalawak na context windows upang itago ang malisyosong mga instruksyon
+- **Model Confusion Attacks**: Pagsasamantala sa mga limitasyon ng modelo upang lumikha ng hindi mahalagang o hindi ligtas na mga pag-uugali
 
 
-### AI Security Risk Impact
+### Epekto ng Panganib sa Seguridad ng AI
 
-**Mataas na Epekto ng Mga Bunga:**
-- **Data Exfiltration**: Hindi awtorisadong pag-access at pagnanakaw ng sensitibong datos ng enterprise o personal
-- **Privacy Breaches**: Pagkakalantad ng personally identifiable information (PII) at kumpidensyal na datos ng negosyo  
-- **System Manipulation**: Hindi inaasahang mga pagbabago sa mga kritikal na sistema at workflows
-- **Credential Theft**: Pagsasamantala sa mga authentication token at mga credentials ng serbisyo
-- **Lateral Movement**: Paggamit ng kompromisadong mga sistema ng AI bilang pivots para sa mas malawak na mga pag-atake sa network
+**Mataas na Epekto ng Mga Resulta:**
+- **Data Exfiltration**: Hindi awtorisadong pag-access at pagnanakaw ng sensitibong data ng kumpanya o personal na impormasyon
+- **Mga Paglabag sa Privacy**: Paglalantad ng personal na makikilalang impormasyon (PII) at kumpidensyal na data ng negosyo  
+- **Manipulasyon ng Sistema**: Hindi inaasahang pagbabago sa mga kritikal na sistema at workflows
+- **Pagnanakaw ng Credential**: Pagsira sa mga authentication token at kredensyal ng serbisyo
+- **Lateral Movement**: Paggamit sa mga nahawang AI system bilang pivot para sa mas malawak na mga network na atake
 
-### Microsoft AI Security Solutions
+### Mga Solusyon ng Microsoft para sa Seguridad ng AI
 
-#### **AI Prompt Shields: Advanced Protection Against Injection Attacks**
+#### **AI Prompt Shields: Advanced na Proteksyon Laban sa Injection Attacks**
 
-Nagbibigay ang Microsoft **AI Prompt Shields** ng komprehensibong depensa laban sa parehong direktang at di-direktang mga pag-atake ng prompt injection sa pamamagitan ng maraming layer ng seguridad:
+Nagbibigay ang Microsoft **AI Prompt Shields** ng komprehensibong depensa laban sa parehong direktang at hindi direktang prompt injection attacks sa pamamagitan ng maraming mga layer ng seguridad:
 
-##### **Core Protection Mechanisms:**
+##### **Mga Pangunahing Mekanismo ng Proteksyon:**
 
 1. **Advanced Detection & Filtering**
-   - Mga algorithm ng machine learning at mga teknik ng NLP para matukoy ang malisyosong mga tagubilin sa panlabas na nilalaman
-   - Real-time na pagsusuri ng mga dokumento, web pages, emails, at pinagkukunan ng datos para sa mga nakatagong banta
-   - Kontekstuwal na pag-unawa sa mga lehitimo laban sa malisyosong mga pattern ng prompt
+   - Mga algorithm ng machine learning at mga teknik sa NLP na nakaka-detect ng malisyosong instruksyon sa panlabas na nilalaman
+   - Real-time na pagsusuri ng mga dokumento, web pages, email, at mga pinagkukunan ng data para sa nakatagong mga banta
+   - Kontekstwal na pag-unawa ng mga lehitimong kumpara sa malisyosong pattern ng prompt
 
 2. **Spotlighting Techniques**  
-   - Nagbibigay-diin sa pagitan ng pinagkakatiwalaang mga tagubilin ng sistema at posibleng kompromisadong panlabas na input
-   - Mga paraan ng pagbabago ng teksto na nagpapahusay sa kaugnayan ng modelo habang inihihiwalay ang malisyosong nilalaman
-   - Tinutulungan ang mga AI systems na mapanatili ang tamang hierarchy ng tagubilin at balewalain ang mga iniksyon na utos
+   - Nakikilala ang pagkakaiba sa pagitan ng mga pinagkakatiwalaang instruksyon ng sistema at posibleng kompromisadong panlabas na input
+   - Mga paraan ng pagbabago ng teksto na nagpapahusay sa kaugnayan sa modelo habang inihiwalay ang malisyosong nilalaman
+   - Tinutulungan ang mga AI system na panatilihin ang wastong hierarchy ng instruksyon at balewalain ang mga iniksiyong utos
 
 3. **Delimiter & Datamarking Systems**
-   - Tiyak na hangganan sa pagitan ng pinagkakatiwalaang mga mensahe ng sistema at panlabas na teksto ng input
-   - Mga espesyal na marka na nagha-highlight sa mga hangganan sa pagitan ng pinagkakatiwalaan at hindi pinagkakatiwalaang pinagkukunan ng datos
-   - Malinaw na paghihiwalay para maiwasan ang kalituhan sa tagubilin at hindi awtorisadong pagpapatupad ng utos
+   - Eksaktong pagtukoy ng hangganan sa pagitan ng mga pinagkakatiwalaang mensahe ng sistema at panlabas na teksto ng input
+   - Espesyal na mga marker na nagha-highlight ng mga hangganan sa pagitan ng pinagkakatiwalaan at hindi pinagkakatiwalaang mga pinagkukunan ng data
+   - Malinaw na paghihiwalay upang maiwasan ang kalituhan sa instruksyon at hindi awtorisadong pagpapatupad ng mga utos
 
 4. **Continuous Threat Intelligence**
-   - Patuloy na pagmamanman ng Microsoft sa mga umuusbong na pattern ng pag-atake at pag-update ng mga depensa
-   - Proaktibong paghahanap ng banta para sa mga bagong teknik ng injection at mga vector ng pag-atake
-   - Regular na pag-update ng modelo ng seguridad upang mapanatili ang bisa laban sa mga nagbabagong banta
+   - Patuloy na minomonitor ng Microsoft ang mga lumalabas na pattern ng atake at ina-update ang mga depensa
+   - Proaktibong panghuhuli ng banta para sa mga bagong teknik sa injection at mga attack vector
+   - Regular na pag-update ng security models upang mapanatili ang pagiging epektibo laban sa mga nagbabagong banta
 
 5. **Azure Content Safety Integration**
    - Bahagi ng komprehensibong Azure AI Content Safety suite
-   - Karagdagang pagtuklas para sa mga tangkang jailbreak, nakakasamang nilalaman, at paglabag sa patakaran ng seguridad
-   - Nagkakaisang mga kontrol sa seguridad sa buong mga bahagi ng AI application
+   - Karagdagang pagtuklas para sa mga jailbreak attempt, mapaminsalang nilalaman, at mga paglabag sa security policy
+   - Pinagbubuong mga kontrol sa seguridad sa lahat ng bahagi ng AI application
 
-**Implementation Resources**: [Microsoft Prompt Shields Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+**Mga Mapagkukunan sa Implementasyon**: [Microsoft Prompt Shields Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
 
 ![Microsoft Prompt Shields Protection](../../../translated_images/tl/prompt-shield.ff5b95be76e9c78c.webp)
 
 
-## Advanced MCP Security Threats
+## Mga Advanced na Banta sa Seguridad ng MCP
 
-### Session Hijacking Vulnerabilities
+### Mga Kahinaan sa Session Hijacking
 
-Ang **session hijacking** ay kumakatawan sa isang kritikal na vector ng pag-atake sa mga stateful MCP implementations kung saan ang hindi awtorisadong mga partido ay nakakakuha at inaabuso ang lehitimong mga identifier ng session upang magpanggap bilang mga kliyente at magsagawa ng hindi awtorisadong mga aksyon.
+Ang **session hijacking** ay isang kritikal na attack vector sa mga stateful na implementasyon ng MCP kung saan ang mga hindi awtorisadong partido ay nakakakuha at inaabuso ang mga lehitimong session identifier upang magpanggap na mga kliyente at magsagawa ng hindi awtorisadong mga aksyon.
 
-#### **Attack Scenarios & Risks**
+#### **Mga Senaryo ng Atake at Mga Panganib**
 
-- **Session Hijack Prompt Injection**: Ang mga umaatake na may ninakaw na session IDs ay nag-iinject ng malisyosong mga pangyayari sa mga server na nagbabahagi ng session state, na posibleng mag-trigger ng mapanganib na aksyon o pag-access sa sensitibong datos
-- **Direct Impersonation**: Ang ninakaw na session IDs ay nagpapahintulot ng direktang tawag sa MCP server na nilalampasan ang authentication, na tinatrato ang mga umaatake bilang mga lehitimong gumagamit
-- **Compromised Resumable Streams**: Maaaring papatayin ng mga umaatake ang mga kahilingan nang maaga, dahilan upang mag-resume ang mga lehitimong kliyente gamit ang posibleng malisyosong nilalaman
+- **Session Hijack Prompt Injection**: Ang mga ataker na may nanakaw na session ID ay nag-i-inject ng malisyosong mga pangyayari sa mga server na nagbabahagi ng session state, na posibleng mag-trigger ng mapanganib na mga aksyon o maka-access ng sensitibong data
+- **Direktang Pang-aapaw**: Ang mga nanakaw na session ID ay nagpapahintulot ng direktang tawag sa MCP server na nilalaktawan ang authentication, tinatrato ang mga ataker bilang lehitimong mga gumagamit
+- **Komprontadong Resumable Streams**: Maaaring putulin ng mga ataker ang mga kahilingan nang maaga, na nagiging sanhi ng pag-resume ng mga lehitimong kliyente na may posibleng malisyosong nilalaman
 
-#### **Security Controls for Session Management**
+#### **Mga Kontrol sa Seguridad para sa Pamamahala ng Session**
 
-**Critical Requirements:**
-- **Authorization Verification**: Ang mga MCP server na nagpapatupad ng authorization **DAPAT** tiyakin ang LAHAT ng pumapasok na mga kahilingan at **HINDI DAPAT** umasa sa sessions para sa authentication
-- **Secure Session Generation**: Gumamit ng cryptographically secure, non-deterministic na session IDs na nilikha gamit ang secure random number generators
-- **User-Specific Binding**: Isa-bind ang session IDs sa user-specific na impormasyon gamit ang mga format tulad ng `<user_id>:<session_id>` upang maiwasan ang pag-abuso sa session ng ibang user
-- **Session Lifecycle Management**: Magpatupad ng wastong expiration, rotation, at invalidation upang limitahan ang mga vulnerability window
-- **Transport Security**: Mandatory ang HTTPS para sa lahat ng komunikasyon upang maiwasan ang interception ng session ID
+**Kritikal na Mga Kinakailangan:**
+- **Pagpapatunay ng Awtorisasyon**: Ang mga MCP server na nagpapasakatuparan ng awtorisasyon **DAPAT** patunayan ANG LAHAT ng mga papasok na kahilingan at **HINDI DAPAT** umasa sa mga session para sa authentication
+- **Secure Session Generation**: Gumamit ng cryptographically secure, non-deterministic na mga session ID na ginawa gamit ang mga secure na random number generator
+- **User-Specific Binding**: Itali ang mga session ID sa user-specific na impormasyon gamit ang mga format gaya ng `<user_id>:<session_id>` upang maiwasan ang pang-aabusong cross-user session
+- **Pamamahala ng Lifecycle ng Session**: Ipatupad ang wastong expiration, rotation, at invalidation upang limitahan ang mga window ng kahinaan
+- **Seguridad ng Transportasyon**: Mandatoryong HTTPS para sa lahat ng komunikasyon upang maiwasan ang interception ng session ID
 
-### Confused Deputy Problem
+### Problema sa Confused Deputy
 
-Ang **confused deputy problem** ay nangyayari kapag ang mga MCP server ay kumilos bilang mga authentication proxy sa pagitan ng mga kliyente at third-party na serbisyo, na lumilikha ng pagkakataon para sa bypass ng authorization sa pamamagitan ng static client ID exploitation.
+Nagaganap ang **confused deputy problem** kapag ang mga MCP server ay kumikilos bilang authentication proxy sa pagitan ng mga kliyente at third-party na mga serbisyo, na lumilikha ng pagkakataon para sa bypass ng awtorisasyon sa pamamagitan ng static client ID exploitation.
 
-#### **Attack Mechanics & Risks**
+#### **Mechanics ng Atake at Mga Panganib**
 
-- **Cookie-based Consent Bypass**: Ang naunang authentication ng user ay lumilikha ng mga consent cookies na inaabuso ng mga umaatake gamit ang malisyosong mga kahilingan ng authorization na may crafted redirect URI
-- **Authorization Code Theft**: Maaaring sanhi ng existing consent cookies ang pag-skip ng authorization servers sa consent screens, na nagre-redirect ng mga code sa mga endpoint na kontrolado ng umaatake  
-- **Unauthorized API Access**: Ang mga ninakaw na authorization code ay nagpapahintulot ng token exchange at pagpapanggap sa user nang walang explicit na pahintulot
+- **Cookie-based Consent Bypass**: Ang naunang user authentication ay lumilikha ng consent cookies na pinagsasamantalahan ng mga ataker sa pamamagitan ng malisyosong mga kahilingan sa awtorisasyon gamit ang crafted redirect URIs
+- **Pagnanakaw ng Authorization Code**: Ang umiiral na consent cookies ay maaaring magdulot na laktawan ng mga authorization server ang consent screens, na nireredirect ang mga code sa mga endpoint na kontrolado ng ataker  
+- **Hindi Awtorisadong Access sa API**: Ang mga nanakaw na authorization code ay nagpapahintulot ng palitan ng token at pagpapanggap na user nang walang tahasang pag-apruba
 
-#### **Mitigation Strategies**
+#### **Mga Estratehiya ng Pag-iwas**
 
-**Mandatory Controls:**
-- **Explicit Consent Requirements**: Ang mga MCP proxy server na gumagamit ng static client IDs **DAPAT** humingi ng pahintulot ng user para sa bawat dynamic na nairehistrong client
-- **OAuth 2.1 Security Implementation**: Sundin ang kasalukuyang mga best practice ng OAuth security kabilang ang PKCE (Proof Key for Code Exchange) para sa lahat ng kahilingan ng authorization
-- **Strict Client Validation**: Ipatupad ang mahigpit na validation ng redirect URIs at client identifiers upang maiwasan ang pagsasamantala
+**Mandatoryong Mga Kontrol:**
+- **Espesipikong Mga Kinakailangan sa Pahintulot**: Ang mga MCP proxy server na gumagamit ng static client ID **DAPAT** kumuha ng pahintulot ng user para sa bawat dynamically registered client
+- **Pagpapatupad ng Seguridad sa OAuth 2.1**: Sundin ang kasalukuyang pinakamahusay na kasanayan sa seguridad ng OAuth kabilang ang PKCE (Proof Key for Code Exchange) para sa lahat ng mga kahilingan sa awtorisasyon
+- **Mahigpit na Pagpapatunay ng Kliyente**: Ipatupad ang mahigpit na pagpapatunay ng mga redirect URI at client identifier upang maiwasan ang pagsasamantala
 
-### Token Passthrough Vulnerabilities  
+### Mga Kahinaan sa Token Passthrough  
 
-Ang **token passthrough** ay kumakatawan sa isang tahasang anti-pattern kung saan ang mga MCP server ay tumatanggap ng client tokens nang walang wastong validation at ipinapasa ito sa downstream APIs, na lumalabag sa mga espesipikasyon ng MCP authorization.
+Ang **token passthrough** ay isang tahasang anti-pattern kung saan ang mga MCP server ay tumatanggap ng mga token ng kliyente nang walang wastong pagpapatunay at ipinapasa ang mga ito sa mga downstream API, na lumalabag sa mga pagtutukoy ng MCP authorization.
 
-#### **Security Implications**
+#### **Mga Implikasyon sa Seguridad**
 
-- **Control Circumvention**: Direktang paggamit ng token mula client papuntang API na nilalampasan ang mahahalagang control tulad ng rate limiting, validation, at monitoring
-- **Audit Trail Corruption**: Ang mga token na inisyu ng upstream ay nagpapahirap sa pagkilala ng client, na sumisira sa kakayahan sa pag-iimbestiga
-- **Proxy-based Data Exfiltration**: Pinahihintulutan ng mga unvalidated token ang mga malisyosong aktor na gamitin ang mga server bilang proxy para sa hindi awtorisadong pag-access sa datos
-- **Trust Boundary Violations**: Maaaring malabag ang mga palagay sa tiwala ng downstream services kapag hindi makumpirma ang pinanggalingan ng token
-- **Multi-service Attack Expansion**: Ang mga kompromisadong token na tinatanggap sa maraming serbisyo ay nagpapahintulot ng lateral movement
+- **Pag-iwas sa Kontrol**: Ang direktang paggamit ng client-to-API token ay nilalaktawan ang mga kritikal na rate limiting, validation, at monitoring control
+- **Korapsyon ng Audit Trail**: Ang mga token na inilabas upstream ay nagpapahirap sa pagkilala ng kliyente, na lumalabag sa kakayahan para sa pagsisiyasat ng insidente
+- **Data Exfiltration na may Proxy**: Ang mga hindi napatunayang token ay nagpapahintulot sa mga malisyosong aktor na gamitin ang mga server bilang proxy para sa hindi awtorisadong pag-access ng data
+- **Paglabag sa Trust Boundary**: Maaaring malabag ang mga pananaw sa tiwala ng mga downstream na serbisyo kapag hindi mapatunayan ang pinagmulan ng token
+- **Paglawak ng Atake sa Maramihang Serbisyo**: Ang mga kompromisadong token na tinatanggap sa maraming serbisyo ay nagpapahintulot ng lateral movement
 
-#### **Required Security Controls**
+#### **Kinakailangang Mga Kontrol sa Seguridad**
 
-**Non-negotiable Requirements:**
-- **Token Validation**: Ang mga MCP server **HINDI DAPAT** tumanggap ng mga token na hindi sadyang inisyu para sa MCP server
-- **Audience Verification**: Laging i-validate ang audience claims ng token na tumutugma sa pagkakakilanlan ng MCP server
-- **Proper Token Lifecycle**: Magpatupad ng short-lived access tokens na may secure rotation practices
+**Hindi Mapag-uusapang Kinakailangan:**
+- **Token Validation**: Ang mga MCP server ay **HINDI DAPAT** tumanggap ng mga token na hindi tahasang inilabas para sa MCP server
+- **Audience Verification**: Palaging patunayan kung ang mga audience claim ng token ay tumutugma sa pagkakakilanlan ng MCP server
+- **Wastong Lifecycle ng Token**: Ipatupad ang mga panandaliang access token na may ligtas na mga gawi sa pag-ikot
 
 
-## Supply Chain Security for AI Systems
+## Seguridad sa Supply Chain para sa mga AI System
 
-Ang seguridad ng supply chain ay umunlad lampas sa tradisyonal na mga software dependency upang saklawin ang buong AI ecosystem. Dapat na higpitan ng mga modernong MCP implementation ang pag-verify at pagmamanman ng lahat ng AI-related na bahagi, dahil bawat isa ay nagdadala ng posibleng mga kahinaan na maaaring makompromiso ang integridad ng sistema.
+Ang seguridad sa supply chain ay umunlad lampas sa tradisyunal na software dependencies upang masaklaw ang buong AI ecosystem. Ang mga modernong implementasyon ng MCP ay kailangang mahigpit na mag-verify at mag-monitor ng lahat ng mga komponenteng may kinalaman sa AI, dahil bawat isa ay nagdadala ng posibleng kahinaan na maaaring makompromiso ang integridad ng sistema.
 
-### Expanded AI Supply Chain Components
+### Pinalawak na Mga Komponent ng AI Supply Chain
 
-**Traditional Software Dependencies:**
+**Tradisyunal na Software Dependencies:**
 - Mga open-source na library at framework
 - Mga container image at base system  
-- Mga development tools at build pipelines
-- Mga infrastructure component at serbisyo
+- Mga development tool at build pipeline
+- Mga componente ng imprastruktura at serbisyo
 
-**AI-Specific Supply Chain Elements:**
-- **Foundation Models**: Mga pre-trained na modelo mula sa iba't ibang provider na nangangailangan ng verification ng origen
-- **Embedding Services**: Mga panlabas na serbisyo ng vectorization at semantic search
-- **Context Providers**: Mga pinagkukunan ng datos, knowledge bases, at mga repositoryo ng dokumento  
-- **Third-party APIs**: Mga panlabas na AI services, ML pipelines, at mga endpoint ng data processing
-- **Model Artifacts**: Mga timbang, configuration, at fine-tuned model variants
-- **Training Data Sources**: Mga datasets na ginamit para sa pagsasanay at fine-tuning ng modelo
+**Mga Elemento ng Supply Chain na Tukoy sa AI:**
+- **Foundation Models**: Mga pre-trained na modelo mula sa iba't ibang provider na nangangailangan ng verification ng pinagmulan
+- **Embedding Services**: Panlabas na mga serbisyo para sa vectorization at semantic search
+- **Context Providers**: Mga pinagmumulan ng data, knowledge base, at repositoryo ng dokumento  
+- **Third-party APIs**: Panlabas na AI services, ML pipelines, at mga endpoint ng pagproseso ng data
+- **Model Artifacts**: Timbang, mga configuration, at fine-tuned na mga variant ng modelo
+- **Pinagmulan ng Training Data**: Mga dataset na ginamit para sa pagsasanay ng modelo at fine-tuning
 
-### Comprehensive Supply Chain Security Strategy
+### Komprehensibong Estratehiya ng Seguridad sa Supply Chain
 
-#### **Component Verification & Trust**
-- **Provenance Validation**: Patunayan ang pinagmulan, lisensiya, at integridad ng lahat ng AI components bago isama
-- **Security Assessment**: Magsagawa ng vulnerability scans at security reviews para sa mga modelo, pinagkukunan ng datos, at AI services
-- **Reputation Analysis**: Tasahin ang security track record at mga gawi ng mga provider ng AI service
-- **Compliance Verification**: Siguraduhin na ang lahat ng bahagi ay sumusunod sa mga pangangailangan ng seguridad at regulasyon ng organisasyon
+#### **Pag-verify ng Komponent at Pagtitiwala**
+- **Pagpapatunay ng Pinagmulan**: Patunayan ang pinagmulan, lisensya, at integridad ng lahat ng AI component bago ang integrasyon
+- **Pagsusuri sa Seguridad**: Magsagawa ng vulnerability scan at security review para sa mga modelo, pinagmumulan ng data, at mga serbisyo ng AI
+- **Pagsusuri ng Reputasyon**: Suriin ang track record sa seguridad at mga praktis ng mga provider ng serbisyo ng AI
+- **Pagpapatunay ng Kompiyansa**: Tiyakin na lahat ng components ay pumasa sa mga kinakailangan sa seguridad at regulasyon ng organisasyon
 
 #### **Secure Deployment Pipelines**  
 - **Automated CI/CD Security**: Isama ang security scanning sa buong automated deployment pipelines
-- **Artifact Integrity**: Magpatupad ng cryptographic verification para sa lahat ng deployed artifacts (code, modelo, configuration)
-- **Staged Deployment**: Gamitin ang progressive deployment strategies na may security validation sa bawat stage
-- **Trusted Artifact Repositories**: Mag-deploy lamang mula sa mga verified at secure na artifact registries at repositories
+- **Integridad ng Artifacts**: Ipatupad ang cryptographic verification para sa lahat ng inilulunsad na artifacts (code, models, configurations)
+- **Staged Deployment**: Gumamit ng progresibong deployment strategy na may security validation sa bawat yugto
+- **Trusted Artifact Repositories**: Mag-deploy lamang mula sa mga napatunayang secure artifact registry at repositoryo
 
-#### **Continuous Monitoring & Response**
-- **Dependency Scanning**: Patuloy na pagmamanman ng mga vulnerability ng lahat ng software at AI component dependencies
-- **Model Monitoring**: Walang tigil na pagsusuri sa behavior ng modelo, performance drift, at security anomalies
-- **Service Health Tracking**: Subaybayan ang panlabas na AI services para sa availability, mga security incident, at pagbabago sa patakaran
-- **Threat Intelligence Integration**: Isama ang mga threat feed na tukoy sa AI at ML security risks
+#### **Patuloy na Pagmo-monitor at Pagtugon**
+- **Dependency Scanning**: Tuluy-tuloy na pagmo-monitor ng kahinaan para sa lahat ng software at AI component dependencies
+- **Model Monitoring**: Patuloy na pagsusuri ng pag-uugali ng modelo, paglipat ng performance, at mga anomalya sa seguridad
+- **Pagsubaybay sa Kalusugan ng Serbisyo**: I-monitor ang availability, mga insidente ng seguridad, at pagbabago sa polisiya ng mga panlabas na serbisyo ng AI
+- **Pag-integrate ng Threat Intelligence**: Isama ang mga threat feeds na partikular sa AI at ML security risks
 
-#### **Access Control & Least Privilege**
-- **Component-level Permissions**: Limitahan ang access sa mga modelo, datos, at serbisyo batay sa pangangailangan ng negosyo
-- **Service Account Management**: Magpatupad ng dedikadong mga service account na may pinakamababang kinakailangang permiso
-- **Network Segmentation**: Ihiwalay ang mga AI component at limitahan ang network access sa pagitan ng mga serbisyo
-- **API Gateway Controls**: Gumamit ng sentralisadong API gateways para kontrolin at subaybayan ang access sa panlabas na AI services
+#### **Kontrol sa Access at Least Privilege**
+- **Mga Pahintulot sa Antas ng Komponent**: Limitahan ang access sa mga modelo, data, at serbisyo base sa kinakailangang negosyo
+- **Pamamahala ng Service Account**: Ipatupad ang dedikadong mga service account na may pinakamababang kinakailangang pahintulot
+- **Segmentation ng Network**: Ihiwalay ang mga AI component at limitahan ang network access sa pagitan ng mga serbisyo
+- **Mga Kontrol sa API Gateway**: Gumamit ng sentralisadong API gateways upang kontrolin at i-monitor ang access sa mga panlabas na serbisyo ng AI
 
-#### **Incident Response & Recovery**
-- **Rapid Response Procedures**: Nakapirming mga proseso para sa pag-patch o pagpapalit ng kompromisadong AI components
-- **Credential Rotation**: Automated na sistema para sa pag-ikot ng mga sikreto, API key, at mga credentials ng serbisyo
-- **Rollback Capabilities**: Kakayahang mabilis na bumalik sa mga dating kilalang magandang bersyon ng AI components
-- **Supply Chain Breach Recovery**: Espesipikong mga proseso para sa pagtugon sa mga kompromiso sa upstream AI services
+#### **Pagtugon sa Insidente at Pagbawi**
+- **Mga Mabilis na Proseso ng Pagtugon**: Itinatag na mga proseso para sa pag-patch o pagpapalit ng mga kompromisadong AI component
+- **Pag-ikot ng Credential**: Automated na mga sistema para sa pag-ikot ng mga sikreto, API key, at kredensyal ng serbisyo
+- **Kakayahang Magbalik sa Nakaraang Bersyon**: Kakayahang mabilis na bumalik sa mga dating kilalang maayos na bersyon ng AI component
+- **Pagbawi mula sa Supply Chain Breach**: Tiyak na mga pamamaraan para sa pagtugon sa mga kompromiso sa upstream na AI serbisyo
 
-### Microsoft Security Tools & Integration
+### Mga Tool at Integrasyon ng Seguridad ng Microsoft
 
 Nagbibigay ang **GitHub Advanced Security** ng komprehensibong proteksyon sa supply chain kabilang ang:
-- **Secret Scanning**: Automated na pagtuklas ng mga credentials, API keys, at token sa mga repository
-- **Dependency Scanning**: Pagsusuri ng vulnerability para sa mga open-source dependencies at libraries
-- **CodeQL Analysis**: Static code analysis para sa mga security vulnerability at isyu sa coding
-- **Supply Chain Insights**: Visibility sa kalusugan at status ng seguridad ng dependencies
+- **Secret Scanning**: Automated na pagtuklas ng mga kredensyal, API key, at token sa mga repositoryo
+- **Dependency Scanning**: Pagsusuri ng kahinaan para sa mga open-source dependency at libro
+- **CodeQL Analysis**: Static code analysis para sa mga kahinaan sa seguridad at mga isyu sa pag-code
+- **Supply Chain Insights**: Visibility sa kalusugan at estado ng seguridad ng mga dependency
 
-**Azure DevOps & Azure Repos Integration:**
-- Seamless na integrasyon ng security scanning sa mga Microsoft development platform
-- Automated na mga security check sa Azure Pipelines para sa mga AI workload
-- Pagpapatupad ng polisiya para sa secure na deployment ng AI components
+**Integrasyon ng Azure DevOps at Azure Repos:**
+- Seamless na integrasyon ng security scanning sa mga platform ng Microsoft development
+- Automated na security check sa Azure Pipelines para sa mga AI workload
+- Pagpapatupad ng polisiya para sa ligtas na deployment ng mga AI component
 
-**Microsoft Internal Practices:**
-Malawak na ipinatutupad ng Microsoft ang mga security practice sa supply chain sa lahat ng produkto. Alamin ang mga napatunayang pamamaraan sa [The Journey to Secure the Software Supply Chain at Microsoft](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/).
+**Mga Panloob na Praktis ng Microsoft:**
+Nagpapatupad ang Microsoft ng malawak na mga praktis sa seguridad ng supply chain sa lahat ng produkto. Matuto tungkol sa mga napatunayang pamamaraan sa [The Journey to Secure the Software Supply Chain at Microsoft](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/).
 
 
-## Foundation Security Best Practices
+## Mga Pinakamahusay na Praktis para sa Foundation Security
 
-Nangangahulugan ang mga MCP implementation ng pag-angkla at pagpapaunlad sa umiiral na security posture ng iyong organisasyon. Ang pagpapalakas sa mga pundamental na gawi sa seguridad ay lubos na nagpapahusay sa kabuuang seguridad ng mga AI system at mga deployment ng MCP.
+Namamana at pinapahusay ng mga implementasyon ng MCP ang umiiral na postura ng seguridad ng iyong organisasyon. Ang pagpapalakas ng mga pundasyon na praktis sa seguridad ay makabuluhang nagpapabuti sa pangkalahatang seguridad ng mga AI system at deployment ng MCP.
 
-### Core Security Fundamentals
+### Mga Pangunahing Pundasyon ng Seguridad
 
-#### **Secure Development Practices**
-- **OWASP Compliance**: Proteksyon laban sa [OWASP Top 10](https://owasp.org/www-project-top-ten/) na mga kahinaan sa web application
-- **AI-Specific Protections**: Ipatupad ang mga control para sa [OWASP Top 10 for LLMs](https://genai.owasp.org/download/43299/?tmstv=1731900559)
-- **Secure Secrets Management**: Gumamit ng dedikadong vault para sa mga token, API key, at sensitibong configuration data
-- **End-to-End Encryption**: Ipatupad ang ligtas na komunikasyon sa lahat ng bahagi ng application at daloy ng datos
-- **Input Validation**: Mahigpit na pagsusuri ng lahat ng input ng user, API parameter, at mga pinagkukunan ng datos
+#### **Mga Praktis sa Secure Development**
+- **Pagsunod sa OWASP**: Protektahan laban sa [OWASP Top 10](https://owasp.org/www-project-top-ten/) mga kahinaan sa web application
+- **Mga Proteksyon na Tukoy sa AI**: Ipatupad ang mga kontrol para sa [OWASP Top 10 para sa LLMs](https://genai.owasp.org/download/43299/?tmstv=1731900559)
+- **Secure Secrets Management**: Gumamit ng mga nakalaang vault para sa mga token, API keys, at sensitibong configuration data
+- **End-to-End Encryption**: Ipatupad ang secure na komunikasyon sa lahat ng bahagi ng application at daloy ng data
+- **Input Validation**: Mahigpit na pagpapatunay ng lahat ng input ng user, parameter ng API, at mula sa mga pinagmumulan ng data
 
-#### **Infrastructure Hardening**
-- **Multi-Factor Authentication**: Mandatory ang MFA para sa lahat ng administrative at service account
-- **Patch Management**: Automated at napapanahong patching para sa mga operating system, framework, at dependencies  
-- **Identity Provider Integration**: Sentralisadong identity management sa pamamagitan ng enterprise identity providers (Microsoft Entra ID, Active Directory)
-- **Network Segmentation**: Lohikal na paghihiwalay ng mga MCP component upang limitahan ang potensyal ng lateral movement
-- **Principle of Least Privilege**: Pinakamababang kinakailangang permiso para sa lahat ng bahagi ng sistema at account
+#### **Pagpapatibay ng Imprastruktura**
+- **Multi-Factor Authentication**: Mandatoryong MFA para sa lahat ng mga administrative at service account
+- **Patch Management**: Automated at napapanahong pag-patch para sa mga operating system, framework, at dependency  
+- **Integrasyon ng Identity Provider**: Sentralisadong pamamahala ng pagkakakilanlan sa pamamagitan ng mga enterprise identity provider (Microsoft Entra ID, Active Directory)
+- **Segmentation ng Network**: Lohikal na paghihiwalay ng mga MCP component upang limitahan ang potensyal na lateral movement
+- **Prinsipyo ng Least Privilege**: Pinakamababang kinakailangang pahintulot para sa lahat ng componente ng sistema at account
 
-#### **Security Monitoring & Detection**
-- **Comprehensive Logging**: Detalyadong pag-log ng mga aktibidad ng AI application, kabilang ang interaction ng MCP client-server
-- **SIEM Integration**: Sentralisadong security information at event management para sa anomaly detection
-- **Behavioral Analytics**: AI-powered monitoring upang matukoy ang mga hindi pangkaraniwang pattern ng sistema at gawi ng user
-- **Threat Intelligence**: Integrasyon ng mga panlabas na threat feed at indicators of compromise (IOCs)
-- **Incident Response**: Malinaw na mga proseso para sa pagtuklas, pagtugon, at pag-recover sa mga security incident
+#### **Pagmo-monitor at Pagkilala sa Seguridad**
+- **Komprehensibong Logging**: Detalyadong pag-log ng mga aktibidad ng AI application, kabilang ang mga pakikipag-ugnayan ng MCP client-server
+- **SIEM Integration**: Sentralisadong security information at event management para sa pagtuklas ng anomalya
+- **Behavioral Analytics**: Pagsubaybay gamit ang AI upang matukoy ang mga hindi karaniwang pattern sa pag-uugali ng sistema at mga gumagamit
+- **Threat Intelligence**: Integrasyon ng mga panlabas na threat feed at mga indicator ng kompromiso (IOC)
+- **Pagtugon sa Insidente**: Mga malinaw na proseso para sa pagtuklas, pagtugon, at pagbawi mula sa mga insidente sa seguridad
 
 #### **Zero Trust Architecture**
-- **Never Trust, Always Verify**: Patuloy na beripikasyon ng mga user, device, at koneksyon sa network
-- **Micro-Segmentation**: Granular na control sa network na naghihiwalay sa mga indibidwal na workload at serbisyo
-- **Identity-Centric Security**: Mga polisiya sa seguridad na nakabatay sa beripikadong pagkakakilanlan kaysa sa lokasyon ng network
-- **Continuous Risk Assessment**: Dinamikong pagsusuri ng security posture base sa kasalukuyang konteksto at gawi
-- **Conditional Access**: Mga control sa access na nag-aangkop base sa risk factors, lokasyon, at tiwala sa device
+- **Huwag Manalig, Palaging Patunayan**: Tuluy-tuloy na pag-verify ng mga user, device, at koneksyon sa network
+- **Micro-Segmentation**: Detalyadong mga kontrol sa network na naghihiwalay sa mga indibidwal na workload at serbisyo
+- **Seguridad na Nakatuon sa Pagkakakilanlan**: Mga polisiya sa seguridad batay sa napatunayang pagkakakilanlan sa halip na lokasyon ng network
+- **Tuloy-tuloy na Pagtatasa ng Panganib**: Dinamikong pagsusuri ng postura ng seguridad base sa kasalukuyang konteksto at pag-uugali
+- **Conditional Access**: Mga kontrol sa access na umaangkop batay sa mga risk factor, lokasyon, at pagtitiwala sa device
 
-### Enterprise Integration Patterns
+### Mga Pattern sa Integrasyon ng Enterprise
 
-#### **Microsoft Security Ecosystem Integration**
+#### **Integrasyon sa Ecosystem ng Microsoft Security**
 - **Microsoft Defender for Cloud**: Komprehensibong cloud security posture management
-- **Azure Sentinel**: Cloud-native SIEM at SOAR na kakayahan para sa proteksyon ng AI workload
-- **Microsoft Entra ID**: Enterprise identity at access management na may conditional access policies
-- **Azure Key Vault**: Sentralisadong secrets management na may hardware security module (HSM) support
-- **Microsoft Purview**: Data governance at pagsunod para sa mga pinagkukunan ng datos at workflows ng AI
+- **Azure Sentinel**: Cloud-native SIEM at SOAR kapabilidad para sa proteksyon ng AI workload
+- **Microsoft Entra ID**: Pamamahala ng pagkakakilanlan at access sa enterprise na may conditional access policies
+- **Azure Key Vault**: Sentralisadong pamamahala ng mga sikreto na suportado ng hardware security module (HSM)
+- **Microsoft Purview**: Pamamahala ng data at pagsunod para sa mga pinagmumulan ng AI data at workflows
 
-#### **Compliance & Governance**
-- **Regulatory Alignment**: Siguraduhin na ang mga MCP implementation ay sumusunod sa mga industry-specific na regulasyon (GDPR, HIPAA, SOC 2)
-- **Data Classification**: Tamang pagkakategorya at paghawak ng sensitibong datos na pinoproseso ng mga AI system
+#### **Pagsunod at Pamamahala**
+- **Regulatory Alignment**: Tiyakin na ang mga implementasyon ng MCP ay pumapasa sa mga partikular na kinakailangan sa pagsunod ng industriya (GDPR, HIPAA, SOC 2)
+
+- **Pag-uuri ng Data**: Tamang pagkategorya at paghawak ng sensitibong data na pinoproseso ng mga sistemang AI
 - **Audit Trails**: Komprehensibong pag-log para sa pagsunod sa regulasyon at forensic investigation
-- **Privacy Controls**: Pagpapatupad ng privacy-by-design na mga prinsipyo sa arkitektura ng AI system
-- **Change Management**: Pormal na mga proseso para sa mga security review ng mga pagbabago sa AI system
+- **Mga Kontrol sa Privacy**: Pagsasagawa ng mga prinsipyo ng privacy-by-design sa arkitektura ng sistema ng AI
+- **Pamamahala ng Pagbabago**: Pormal na mga proseso para sa pagsusuri ng seguridad sa mga pagbabago sa sistema ng AI
 
-Ang mga pundamental na gawi na ito ay lumilikha ng matibay na baseline sa seguridad na nagpapahusay sa bisa ng MCP-specific na mga kontrol sa seguridad at nagbibigay ng komprehensibong proteksyon para sa mga AI-driven na aplikasyon.
+Ang mga pundamental na gawaing ito ay lumilikha ng matatag na basehan ng seguridad na nagpapahusay sa bisa ng mga seguridad na kontrol na partikular sa MCP at nagbibigay ng komprehensibong proteksyon para sa mga aplikasyon na pinapatakbo ng AI.
 
-## Key Security Takeaways
-- **Layered Security Approach**: Pagsamahin ang mga pangunahing kasanayan sa seguridad (secure coding, least privilege, supply chain verification, continuous monitoring) kasama ang mga AI-specific control para sa komprehensibong proteksyon
+## Pangunahing Mga Natutunan sa Seguridad
 
-- **AI-Specific Threat Landscape**: Ang mga MCP system ay nahaharap sa mga natatanging panganib kabilang ang prompt injection, tool poisoning, session hijacking, confused deputy problems, token passthrough vulnerabilities, at labis na mga permiso na nangangailangan ng espesyal na mga mitigasyon
+- **Layered Security Approach**: Pagsamahin ang mga pundamental na praktis sa seguridad (secure coding, least privilege, supply chain verification, continuous monitoring) kasama ang mga partikular na kontrol sa AI para sa komprehensibong proteksyon
 
-- **Authentication & Authorization Excellence**: Magpatupad ng matibay na authentication gamit ang mga external identity provider (Microsoft Entra ID), ipatupad ang wastong token validation, at huwag kailanman tanggapin ang mga token na hindi tahasang inilabas para sa iyong MCP server
+- **Espesipikong Landscape ng Banta sa AI**: Ang mga sistema ng MCP ay humaharap sa mga natatanging panganib kabilang ang prompt injection, tool poisoning, session hijacking, confused deputy problems, token passthrough vulnerabilities, at sobrang mga permiso na nangangailangan ng espesyal na mga mitigasyon
 
-- **AI Attack Prevention**: Magdeploy ng Microsoft Prompt Shields at Azure Content Safety para ipagtanggol laban sa hindi direktang prompt injection at tool poisoning attacks, habang sinusuri ang tool metadata at mino-monitor ang mga dynamic na pagbabago
+- **Kahusayan sa Authentication at Authorization**: Magpatupad ng matibay na authentication gamit ang mga panlabas na tagapagbigay ng pagkakakilanlan (Microsoft Entra ID), ipatupad ang wastong token validation, at huwag kailanman tanggapin ang mga token na hindi tahasang inilabas para sa iyong MCP server
 
-- **Session & Transport Security**: Gumamit ng cryptographically secure, non-deterministic session IDs na naka-bind sa mga user identity, ipatupad ang tamang session lifecycle management, at huwag kailanman gamitin ang mga session para sa authentication
+- **Pagsugpo sa AI Attack**: I-deploy ang Microsoft Prompt Shields at Azure Content Safety para ipagtanggol laban sa hindi direktang prompt injection at tool poisoning attack, habang pinapatunayan ang metadata ng tool at binabantayan ang mga dinamiko na pagbabago
 
-- **OAuth Security Best Practices**: Iwasan ang confused deputy attacks sa pamamagitan ng tahasang user consent para sa mga dynamically registered clients, wastong implementasyon ng OAuth 2.1 gamit ang PKCE, at mahigpit na redirect URI validation  
+- **Seguridad ng Session at Transport**: Gumamit ng cryptographically secure, non-deterministic na mga session ID na naka-bind sa mga pagkakakilanlan ng user, ipatupad ang wastong pamamahala ng lifecycle ng session, at huwag kailanman gamitin ang mga session para sa authentication
 
-- **Token Security Principles**: Iwasan ang mga token passthrough anti-patterns, suriin ang token audience claims, magpatupad ng short-lived tokens na may secure na rotation, at panatilihin ang malinaw na trust boundaries
+- **Pinakamahusay na Praktis sa Seguridad ng OAuth**: Iwasan ang confused deputy attacks sa pamamagitan ng tahasang pahintulot ng user para sa dynamically registered clients, wastong implementasyon ng OAuth 2.1 na may PKCE, at mahigpit na validasyon ng redirect URI  
 
-- **Comprehensive Supply Chain Security**: Tratuhin ang lahat ng mga bahagi ng AI ecosystem (mga modelo, embeddings, context providers, external APIs) nang may parehong rigor sa seguridad tulad ng tradisyonal na mga software dependency
+- **Mga Prinsipyo ng Seguridad ng Token**: Iwasan ang token passthrough anti-patterns, patunayan ang mga audience claims ng token, ipatupad ang mga short-lived na token na may secure rotation, at panatilihin ang malinaw na trust boundaries
 
-- **Continuous Evolution**: Manatiling napapanahon sa mabilis na pagbabago ng MCP specifications, mag-ambag sa mga pamantayan ng security community, at panatilihin ang adaptive security postures habang umuunlad ang protocol
+- **Komprehensibong Seguridad ng Supply Chain**: Tratuhin ang lahat ng mga bahagi ng AI ecosystem (mga modelo, embeddings, context providers, panlabas na API) na may parehong riguroso na seguridad tulad ng tradisyunal na mga dependencies ng software
 
-- **Microsoft Security Integration**: Gamitin ang komprehensibong security ecosystem ng Microsoft (Prompt Shields, Azure Content Safety, GitHub Advanced Security, Entra ID) para sa pinalakas na proteksyon ng MCP deployment
+- **Patuloy na Ebolusyon**: Manatiling napapanahon sa mabilis na nagbabagong mga espesipikasyon ng MCP, mag-ambag sa mga pamantayan ng komunidad sa seguridad, at panatilihin ang mga adaptive na postura sa seguridad habang lumalago ang protocol
 
-## Comprehensive Resources
+- **Integrasyon ng Microsoft Security**: Gamitin ang komprehensibong ecosystem ng seguridad ng Microsoft (Prompt Shields, Azure Content Safety, GitHub Advanced Security, Entra ID) para sa pinahusay na proteksyon ng deployment ng MCP
 
-### **Official MCP Security Documentation**
+## Komprehensibong Mga Mapagkukunan
+
+### **Opisyal na Dokumentasyon ng MCP Security**
 - [MCP Specification (Current: 2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 - [MCP GitHub Repository](https://github.com/modelcontextprotocol)
 
 ### **OWASP MCP Security Resources**
-- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Komprehensibong OWASP MCP Top 10 na may gabay sa Azure implementation
-- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Opisyal na mga panganib sa seguridad ng OWASP MCP
+- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Komprehensibong OWASP MCP Top 10 na may gabay sa implementasyon ng Azure
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Opisyal na mga panganib sa seguridad ng MCP ng OWASP
 - [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Hands-on na pagsasanay sa seguridad para sa MCP sa Azure
 
-### **Security Standards & Best Practices**
+### **Mga Pamantayan at Pinakamahusay na Praktis sa Seguridad**
 - [OAuth 2.0 Security Best Practices (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
 - [OWASP Top 10 Web Application Security](https://owasp.org/www-project-top-ten/)
-- [OWASP Top 10 for Large Language Models](https://genai.owasp.org/download/43299/?tmstv=1731900559)
+- [OWASP Top 10 para sa Large Language Models](https://genai.owasp.org/download/43299/?tmstv=1731900559)
 - [Microsoft Digital Defense Report](https://aka.ms/mddr)
 
-### **AI Security Research & Analysis**
+### **Pananaliksik at Pagsusuri sa Seguridad ng AI**
 - [Prompt Injection in MCP (Simon Willison)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)
 - [Tool Poisoning Attacks (Invariant Labs)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)
 - [MCP Security Research Briefing (Wiz Security)](https://www.wiz.io/blog/mcp-security-research-briefing#remote-servers-22)
 
-### **Microsoft Security Solutions**
+### **Mga Solusyon sa Seguridad ng Microsoft**
 - [Microsoft Prompt Shields Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
 - [Azure Content Safety Service](https://learn.microsoft.com/azure/ai-services/content-safety/)
 - [Microsoft Entra ID Security](https://learn.microsoft.com/entra/identity-platform/secure-least-privileged-access)
 - [Azure Token Management Best Practices](https://learn.microsoft.com/entra/identity-platform/access-tokens)
 - [GitHub Advanced Security](https://github.com/security/advanced-security)
 
-### **Implementation Guides & Tutorials**
+### **Mga Gabay sa Implementasyon at Tutorial**
 - [Azure API Management as MCP Authentication Gateway](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)
 - [Microsoft Entra ID Authentication with MCP Servers](https://den.dev/blog/mcp-server-auth-entra-id-session/)
 - [Secure Token Storage and Encryption (Video)](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)
 
-### **DevOps & Supply Chain Security**
+### **Seguridad sa DevOps at Supply Chain**
 - [Azure DevOps Security](https://azure.microsoft.com/products/devops)
 - [Azure Repos Security](https://azure.microsoft.com/products/devops/repos/)
 - [Microsoft Supply Chain Security Journey](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/)
 
-## **Additional Security Documentation**
+## **Karagdagang Dokumentasyon sa Seguridad**
 
 Para sa komprehensibong gabay sa seguridad, sumangguni sa mga espesyal na dokumentong ito sa seksyong ito:
 
-- **[MCP Security Best Practices 2025](./mcp-security-best-practices-2025.md)** - Kumpletong pinakamahusay na mga kasanayan sa seguridad para sa mga implementasyon ng MCP
-- **[Azure Content Safety Implementation](./azure-content-safety-implementation.md)** - Praktikal na mga halimbawa ng implementasyon para sa Azure Content Safety integration  
-- **[MCP Security Controls 2025](./mcp-security-controls-2025.md)** - Pinakabagong mga kontrol sa seguridad at mga teknik para sa MCP deployments
-- **[MCP Best Practices Quick Reference](./mcp-best-practices.md)** - Mabilisang gabay para sa mahahalagang MCP security practices
-- **[BlueHat 2026: Securing the future of AI: Securing MCP with defense in depth patterns](https://www.youtube.com/watch?v=cVWB58kEt-Y)** - Mga pattern ng defense-in-depth mula sa Microsoft Security Response Center (MSRC)
+- **[MCP Security Best Practices 2025](./mcp-security-best-practices-2025.md)** - Kumpletong pinakamahusay na praktis sa seguridad para sa mga implementasyon ng MCP
+- **[Azure Content Safety Implementation](./azure-content-safety-implementation.md)** - Mga praktikal na halimbawa ng implementasyon para sa integrasyon ng Azure Content Safety  
+- **[MCP Security Controls 2025](./mcp-security-controls-2025.md)** - Pinakabagong mga kontrol at teknik sa seguridad para sa mga deployment ng MCP
+- **[MCP Best Practices Quick Reference](./mcp-best-practices.md)** - Mabilisang sanggunian para sa mahahalagang praktis sa seguridad ng MCP
+- **[BlueHat 2026: Securing the future of AI: Securing MCP with defense in depth patterns](https://www.youtube.com/watch?v=cVWB58kEt-Y)** - Mga pattern sa defense-in-depth mula sa Microsoft Security Response Center (MSRC)
 
-### **Hands-On Security Training**
+### **Hands-On na Pagsasanay sa Seguridad**
 
-- **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** - Komprehensibong hands-on workshop para sa pag-secure ng MCP servers sa Azure mula Base Camp hanggang Summit na progressive camps
-- **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)** - Reference architecture at gabay sa implementasyon para sa lahat ng OWASP MCP Top 10 risks
+- **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** - Komprehensibong hands-on workshop para sa pagseseguro ng mga server ng MCP sa Azure mula Base Camp hanggang Summit
+- **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)** - Reference architecture at gabay sa implementasyon para sa lahat ng OWASP MCP Top 10 na panganib
 
 ---
 
-## What's Next
+## Ano ang Susunod
 
-Next: [Chapter 3: Getting Started](../03-GettingStarted/README.md)
+Susunod: [Kabanata 3: Pagsisimula](../03-GettingStarted/README.md)
 
 ---
 

@@ -1,13 +1,15 @@
-# MCP प्रोटोकॉल विशेषताएँ डीप डाइव
+# MCP प्रोटोकॉल फीचर्स डीप डायव
 
-यह मार्गदर्शिका उन्नत MCP प्रोटोकॉल विशेषताओं की जांच करती है जो बुनियादी टूल और संसाधन हैंडलिंग से आगे जाती हैं। इन विशेषताओं को समझना आपको अधिक मजबूत, उपयोगकर्ता-मित्रवत, और उत्पादन-तैयार MCP सर्वर बनाने में मदद करता है।
+यह गाइड उन्नत MCP प्रोटोकॉल फीचर्स का अन्वेषण करता है जो बुनियादी टूल और संसाधन प्रबंधन से परे जाते हैं। इन फीचर्स को समझने से आप अधिक मजबूत, उपयोगकर्ता-मित्रवत, और उत्पादन-तैयार MCP सर्वर बना सकते हैं।
 
-## कवर की गई विशेषताएं
+> **आगे की ओर देखते हुए:** `2026-07-28` रिलीज़ उम्मीदवार Logging प्रिमिटिव को डिप्रिकेट करता है (stdio के लिए `stderr` और संरचित ऑब्ज़र्वेबिलिटी के लिए OpenTelemetry को प्राथमिकता देते हुए), नीचे Server Lifecycle Events में संदर्भित `initialize`/सेशन मॉडल को हटाता है, और प्रायोगिक Tasks फीचर को एक समर्पित Tasks एक्सटेंशन में ले जाता है जिसमें नया `tasks/get`/`tasks/update`/`tasks/cancel` लाइफसाइकिल होता है। देखें [MCP में क्या बदल रहा है: 2026-07-28 रिलीज़ उम्मीदवार](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)।
 
-1. **प्रगति सूचनाएं** - दीर्घकालिक संचालन के लिए प्रगति की रिपोर्ट करें
-2. **अनुरोध रद्द करना** - क्लाइंट को इन-फ्लाइट अनुरोध रद्द करने की अनुमति दें
+## कवर किए गए फीचर्स
+
+1. **प्रगति सूचनाएं** - लंबी चलने वाली प्रक्रियाओं के लिए प्रगति की रिपोर्ट
+2. **अनुरोध रद्दीकरण** - क्लाइंट्स को इन-फ्लाइट अनुरोध रद्द करने की अनुमति देना
 3. **संसाधन टेम्पलेट्स** - पैरामीटर के साथ डायनामिक संसाधन URI
-4. **सर्वर जीवनचक्र घटनाएँ** - उचित प्रारंभिककरण और शटडाउन
+4. **सर्वर लाइफसाइकिल इवेंट्स** - उचित प्रारंभ और बंद करना
 5. **लॉगिंग नियंत्रण** - सर्वर-साइड लॉगिंग कॉन्फ़िगरेशन
 6. **त्रुटि हैंडलिंग पैटर्न** - सुसंगत त्रुटि प्रतिक्रियाएं
 
@@ -15,7 +17,7 @@
 
 ## 1. प्रगति सूचनाएं
 
-ऐसे संचालन जो समय लेते हैं (डेटा प्रसंस्करण, फ़ाइल डाउनलोड, API कॉल्स), प्रगति सूचनाएं उपयोगकर्ताओं को सूचित रखती हैं।
+ऐसी प्रक्रियाओं के लिए जो समय लेती हैं (डेटा प्रोसेसिंग, फाइल डाउनलोड, API कॉल), प्रगति सूचनाएं उपयोगकर्ताओं को सूचित रखती हैं।
 
 ### यह कैसे काम करता है
 
@@ -24,12 +26,13 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (लंबा ऑपरेशन)
+    Client->>Server: tools/call (लंबी प्रक्रिया)
     Server-->>Client: सूचना: प्रगति 10%
     Server-->>Client: सूचना: प्रगति 50%
     Server-->>Client: सूचना: प्रगति 90%
     Server->>Client: परिणाम (पूर्ण)
 ```
+
 ### पायथन कार्यान्वयन
 
 ```python
@@ -43,7 +46,7 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # प्रगति गणना के लिए फ़ाइल का आकार प्राप्त करें
+    # प्रगति गणना के लिए फ़ाइल आकार प्राप्त करें
     file_size = os.path.getsize(file_path)
     processed = 0
     
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // प्रगति अधिसूचना भेजें
+      // प्रगति सूचना भेजें
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -131,18 +134,18 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# हैंडलर पंजीकृत करें
+# रजिस्ट्री हैंडलर
 session.on_notification("notifications/progress", handle_progress)
 
-# उपकरण कॉल करें (प्रगति अपडेट हैंडलर के माध्यम से प्राप्त होंगे)
+# टूल कॉल करें (प्रगति अपडेट्स हैंडलर के माध्यम से आयेंगे)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. अनुरोध रद्द करना
+## 2. अनुरोध रद्दीकरण
 
-क्लाइंट्स को ऐसे अनुरोध रद्द करने की अनुमति दें जो अब आवश्यक नहीं हैं या जिनमें अधिक समय लग रहा है।
+उन अनुरोधों को रद्द करने की अनुमति दें जो अब आवश्यक नहीं हैं या बहुत अधिक समय ले रहे हैं।
 
 ### पायथन कार्यान्वयन
 
@@ -161,7 +164,7 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # कई पृष्ठों में खोजें
-            # जांचें कि रद्दीकरण का अनुरोध किया गया था या नहीं
+            # जांचें कि क्या रद्दीकरण का अनुरोध किया गया था
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### रद्द करने के संदर्भ को लागू करना
+### रद्दीकरण संदर्भ को लागू करना
 
 ```python
 class CancellableContext:
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # सामान्य टाइमआउट, जारी रखें
 ```
 
-### क्लाइंट साइड रद्द करना
+### क्लाइंट-साइड रद्दीकरण
 
 ```python
 import asyncio
@@ -262,9 +265,9 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. संसाधन टेम्पलेट्स
 
-संसाधन टेम्पलेट्स पैरामीटर के साथ डायनामिक URI निर्माण की अनुमति देते हैं, जो API और डेटाबेस के लिए उपयोगी है।
+संसाधन टेम्पलेट्स पैरामीटर के साथ डायनामिक URI निर्माण की अनुमति देते हैं, जो API और डेटाबेस के लिए उपयोगी हैं।
 
-### टेम्पलेट्स परिभाषित करना
+### टेम्पलेट्स को परिभाषित करना
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # पैरामीटर निकालने के लिए URI को पार्स करें
+    # URI को पार्स करके पैरामीटर निकालें
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // GitHub समस्या URI पार्स करें
+  // GitHub समस्या URI को पार्स करें
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. सर्वर जीवनचक्र घटनाएँ
+## 4. सर्वर लाइफसाइकिल इवेंट्स
 
-सही प्रारंभिककरण और शटडाउन हैंडलिंग साफ़ संसाधन प्रबंधन सुनिश्चित करती है।
+उचित प्रारंभ और बंद करने का प्रबंधन साफ-सुथरे संसाधन प्रबंधन को सुनिश्चित करता है।
 
-### पायथन जीवनचक्र प्रबंधन
+### पायथन लाइफसाइकिल प्रबंधन
 
 ```python
 from mcp.server import Server
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### टाइपस्क्रिप्ट जीवनचक्र
+### टाइपस्क्रिप्ट लाइफसाइकिल
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -425,7 +428,7 @@ class ManagedServer {
   }
   
   async start() {
-    // संसाधनों को आरंभ करें
+    // संसाधनों को प्रारंभ करें
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// ग्रेसफुल शटडाउन के साथ उपयोग
+// सुगम शटडाउन के साथ उपयोग
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## 5. लॉगिंग नियंत्रण
 
-MCP सर्वर-साइड लॉगिंग स्तरों का समर्थन करता है जिन्हें क्लाइंट नियंत्रित कर सकते हैं।
+MCP सर्वर-साइड लॉगिंग स्तरों का समर्थन करता है जिसे क्लाइंट नियंत्रित कर सकते हैं।
 
-### लॉगिंग स्तर लागू करना
+### लॉगिंग स्तरों को लागू करना
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP स्तरों को पायथन लॉगिंग स्तरों से मैप करें
+# MCP स्तरों को Python लॉगिंग स्तरों से मैप करें
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,14 +512,14 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### लॉग संदेश क्लाइंट को भेजना
+### क्लाइंट को लॉग संदेश भेजना
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # ग्राहक को लॉग सूचना भेजें
+    # लॉग सूचना क्लाइंट को भेजें
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -537,7 +540,7 @@ async def complex_operation(input: str, ctx) -> str:
 
 ## 6. त्रुटि हैंडलिंग पैटर्न
 
-सुसंगत त्रुटि हैंडलिंग डिबगिंग और उपयोगकर्ता अनुभव में सुधार करती है।
+सुसंगत त्रुटि हैंडलिंग डिबगिंग और उपयोगकर्ता अनुभव को बेहतर बनाती है।
 
 ### MCP त्रुटि कोड
 
@@ -576,7 +579,7 @@ class InternalError(ToolError):
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # इनपुट मान्य करें
+    # इनपुट को मान्य करें
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -584,11 +587,11 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # अनुमतियाँ जांचें
+        # अनुमतियों की जांच करें
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # संचालन करें
+        # ऑपरेशन करें
         result = await perform_operation(input)
         
         if result is None:
@@ -601,7 +604,7 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # अप्रत्याशित त्रुटियों को लॉग करें
+        # अनपेक्षित त्रुटियों को लॉग करें
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // और अधिक मान्यता...
+  // और अधिक मान्यकरण...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -653,19 +656,19 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## प्रायोगिक विशेषताएं (MCP 2025-11-25)
+## प्रायोगिक फीचर्स (MCP 2025-11-25)
 
-ये विशेषताएं विनिर्देश में प्रायोगिक के रूप में चिह्नित हैं:
+ये फीचर्स विनिर्देशन में प्रायोगिक के रूप में चिह्नित हैं:
 
-### कार्य (दीर्घकालिक संचालन)
+### टास्क्स (लंबी चलने वाली प्रक्रियाएं)
 
 ```python
-# टास्क स्थिति के साथ लंबी अवधि के संचालन को ट्रैक करने की अनुमति देते हैं
+# कार्यों के साथ राज्य के साथ लंबी अवधि तक चलने वाले संचालन का ट्रैकिंग करना संभव होता है
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # टास्क शुरू होने की रिपोर्ट करें
+    # कार्य शुरू होने की रिपोर्ट करें
     await ctx.report_status("running", "Initializing training...")
     
     # प्रशिक्षण लूप
@@ -688,10 +691,10 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
 # एनोटेशन टूल व्यवहार के बारे में मेटाडेटा प्रदान करते हैं
 @app.tool(
     annotations={
-        "destructive": False,      # डेटा संशोधित नहीं करता
-        "idempotent": True,        # पुनः प्रयास करने में सुरक्षित
+        "destructive": False,      # डेटा को संशोधित नहीं करता है
+        "idempotent": True,        # पुन: प्रयास करने के लिए सुरक्षित
         "timeout_seconds": 30,     # अपेक्षित अधिकतम अवधि
-        "requires_approval": False # उपयोगकर्ता स्वीकृति की आवश्यकता नहीं
+        "requires_approval": False # उपयोगकर्ता की मंजूरी की आवश्यकता नहीं है
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,17 +704,17 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## अगला क्या है
+## आगे क्या है
 
 - [मॉड्यूल 8 - सर्वोत्तम प्रथाएं](../../08-BestPractices/README.md)
 - [5.14 - संदर्भ इंजीनियरिंग](../mcp-contextengineering/README.md)
-- [MCP विनिर्देश परिवर्तन लॉग](https://spec.modelcontextprotocol.io/)
+- [MCP विनिर्देशन चेंजलॉग](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## अतिरिक्त संसाधन
 
-- [MCP विनिर्देश 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP विनिर्देशन 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [JSON-RPC 2.0 त्रुटि कोड](https://www.jsonrpc.org/specification#error_object)
 - [पायथन SDK उदाहरण](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [टाइपस्क्रिप्ट SDK उदाहरण](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
@@ -720,5 +723,5 @@ async def safe_query(query: str) -> str:
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **अस्वीकरण**:
-यह दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) का उपयोग करके अनुवादित किया गया है। जबकि हम सटीकता के प्रयास करते हैं, कृपया ध्यान दें कि स्वचालित अनुवाद में त्रुटियाँ या गलतियां हो सकती हैं। मूल दस्तावेज़ अपनी मूल भाषा में अधिकारिक स्रोत माना जाना चाहिए। महत्वपूर्ण जानकारी के लिए, पेशेवर मानव अनुवाद की अनुशंसा की जाती है। इस अनुवाद के उपयोग से उत्पन्न किसी भी गलतफहमी या गलत व्याख्या के लिए हम जिम्मेदार नहीं हैं।
+इस दस्तावेज़ का अनुवाद AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) का उपयोग करके किया गया है। जबकि हम सटीकता के लिए प्रयास करते हैं, कृपया ध्यान दें कि स्वचालित अनुवादों में त्रुटियाँ या अशुद्धियाँ हो सकती हैं। मूल दस्तावेज़ अपनी मूल भाषा में ही प्रामाणिक स्रोत माना जाना चाहिए। महत्वपूर्ण जानकारी के लिए, पेशेवर मानव अनुवाद की सिफारिश की जाती है। इस अनुवाद के उपयोग से उत्पन्न किसी भी गलतफहमी या गलत व्याख्या के लिए हम उत्तरदायी नहीं हैं।
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

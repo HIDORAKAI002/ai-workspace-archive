@@ -1,36 +1,39 @@
-# MCP-protokollets funktioner i detalj
+# Djupdykning i MCP-protokollfunktioner
 
-Denna guide utforskar avancerade funktioner i MCP-protokollet som går bortom grundläggande verktygs- och resursanvändning. Att förstå dessa funktioner hjälper dig att bygga mer robusta, användarvänliga och produktionsklara MCP-servrar.
+Denna guide utforskar avancerade MCP-protokollfunktioner som går bortom grundläggande verktygs- och resursbearbetning. Att förstå dessa funktioner hjälper dig att bygga mer robusta, användarvänliga och produktionsklara MCP-servrar.
 
-## Behandlade funktioner
+> **Framåtblick:** releasekandidaten `2026-07-28` avskrivs Logging-primitive (föredrar `stderr` för stdio och OpenTelemetry för strukturerad observabilitet), tar bort `initialize`/sessionsmodellen som refereras i Server Lifecycle Events nedan, och flyttar den experimentella funktion Tasks till en dedikerad Tasks-förlängning med en ny livscykel `tasks/get`/`tasks/update`/`tasks/cancel`. Se [Vad som förändras i MCP: Releasekandidat 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Förloppsrapporter** – Rapportera förlopp för långvariga operationer  
-2. **Avbryt begäran** – Tillåt klienter att avbryta pågående förfrågningar  
-3. **Resursmallar** – Dynamiska resurs-URI:er med parametrar  
-4. **Serverns livscykelhändelser** – Korrekt initiering och nedstängning  
-5. **Loggkontroll** – Serverbaserad loggkonfiguration  
-6. **Felhanteringsmönster** – Konsekventa felbesked
+## Behandlade Funktioner
+
+1. **Statusmeddelanden** - Rapportera framsteg för långvariga operationer
+2. **Avbryt Förfrågningar** - Tillåt klienter att avbryta pågående förfrågningar
+3. **Resursmallar** - Dynamiska resurs-URI:er med parametrar
+4. **Serverlivscykelhändelser** - Korrekt initiering och nedstängning
+5. **Loggkontroll** - Server-sidans loggkonfiguration
+6. **Felhanteringsmönster** - Konsekventa felmeddelanden
 
 ---
 
-## 1. Förloppsrapporter
+## 1. Statusmeddelanden
 
-För operationer som tar tid (databehandling, filhämtningar, API-anrop) håller förloppsrapporter användare informerade.
+För operationer som tar tid (databehandling, filnedladdningar, API-anrop) håller statusmeddelanden användarna informerade.
 
-### Så fungerar det
+### Hur det fungerar
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (lång operation)
-    Server-->>Client: notifikation: framsteg 10%
-    Server-->>Client: notifikation: framsteg 50%
-    Server-->>Client: notifikation: framsteg 90%
-    Server->>Client: resultat (klart)
+    Client->>Server: verktyg/samtal (lång operation)
+    Server-->>Client: notis: framsteg 10%
+    Server-->>Client: notis: framsteg 50%
+    Server-->>Client: notis: framsteg 90%
+    Server->>Client: resultat (slutfört)
 ```
-### Python-implementering
+
+### Python-implementation
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Hämta filstorlek för progressberäkning
+    # Hämta filstorlek för framstegskalkyl
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Behandla delmängd
+            # Bearbeta del
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Skicka progressnotifikation
+            # Skicka framstegsinformation
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### TypeScript-implementering
+### TypeScript-implementation
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // Skicka statusmeddelande
+      // Skicka framstegsmeddelande
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Registrera handlare
+# Registrera handläggare
 session.on_notification("notifications/progress", handle_progress)
 
-# Anropa verktyg (framstegsuppdateringar kommer att tas emot via handlare)
+# Anropa verktyg (förloppsuppdateringar kommer att tas emot via handläggare)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. Avbryt begäran
+## 2. Avbryt Förfrågningar
 
-Tillåt klienter att avbryta förfrågningar som inte längre behövs eller tar för lång tid.
+Tillåt klienter att avbryta förfrågningar som inte längre behövs eller som tar för lång tid.
 
-### Python-implementering
+### Python-implementation
 
 ```python
 from mcp.server import Server
@@ -160,12 +163,12 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Söka igenom många sidor
+        for page in range(100):  # Sök igenom många sidor
             # Kontrollera om avbokning begärdes
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Simulera sökning på sidan
+            # Simulera sid-sökning
             page_results = await search_page(query, page)
             results.extend(page_results)
             
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### Implementera avbrottskontext
+### Implementera Avbrottskontext
 
 ```python
 class CancellableContext:
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # Normal tidsgräns, fortsätt
 ```
 
-### Klientsidans avbrytning
+### Avbryt på klientsidan
 
 ```python
 import asyncio
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Resursmallar
 
-Resursmallar tillåter dynamisk konstruktion av URI med parametrar, användbart för API:er och databaser.
+Resursmallar möjliggör dynamisk URI-konstruktion med parametrar, användbart för API:er och databaser.
 
 ### Definiera mallar
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Analysera URI för att extrahera parametrar
+    # Tolka URI för att extrahera parametrar
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### TypeScript-implementering
+### TypeScript-implementation
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Tolka GitHub-ärende URI
+  // Tolka GitHub-ärende-URI
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. Serverns livscykelhändelser
+## 4. Serverlivscykelhändelser
 
-Korrekt initiering och nedstängning säkerställer ren hantering av resurser.
+Korrekt hantering av initiering och nedstängning säkerställer ren resursförvaltning.
 
-### Hantering av livscykel i Python
+### Python-livscykelhantering
 
 ```python
 from mcp.server import Server
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# Delad status
+# Delat tillstånd
 db_connection = None
 cache = None
 
@@ -389,7 +392,7 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # Servern körs här
+    yield  # Server körs här
     
     # Avstängning
     print("🛑 Server shutting down...")
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Användning med mjuk avstängning
+// Användning med smidig avstängning
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,7 +470,7 @@ await server.start();
 
 ## 5. Loggkontroll
 
-MCP stödjer serverbaserade loggnivåer som klienter kan kontrollera.
+MCP stöder server-sidans loggnivåer som klienter kan styra.
 
 ### Implementera loggnivåer
 
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Mappa MCP-nivåer till Python-loggningsnivåer
+# Mappa MCP-nivåer till Python loggningsnivåer
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Strukturerade felbesked
+### Strukturerade felmeddelanden
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Validera inmatning
+    # Validera indata
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -653,11 +656,11 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## Experimentella funktioner (MCP 2025-11-25)
+## Experimentella Funktioner (MCP 2025-11-25)
 
-Dessa funktioner är märkta som experimentella i specifikationen:
+Dessa funktioner är markerade som experimentella i specifikationen:
 
-### Uppgifter (långvariga operationer)
+### Tasks (Långvariga operationer)
 
 ```python
 # Uppgifter möjliggör spårning av långvariga operationer med tillstånd
@@ -665,7 +668,7 @@ Dessa funktioner är märkta som experimentella i specifikationen:
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Rapportera att uppgiften startade
+    # Rapportera att uppgiften har startat
     await ctx.report_status("running", "Initializing training...")
     
     # Träningsloop
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Verktygskommentarer
+### Verktygsmärkningar
 
 ```python
-# Anmärkningar ger metadata om verktygets beteende
+# Kommentarer tillhandahåller metadata om verktygets beteende
 @app.tool(
     annotations={
-        "destructive": False,      # Modifierar inte data
+        "destructive": False,      # Ändrar inte data
         "idempotent": True,        # Säker att försöka igen
-        "timeout_seconds": 30,     # Förväntad maxlängd
-        "requires_approval": False # Ingen användargodkännande behövs
+        "timeout_seconds": 30,     # Förväntad maximal varaktighet
+        "requires_approval": False # Ingen användargodkännande krävs
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## Vad händer härnäst
+## Vad är nästa steg
 
-- [Modul 8 - Bästa praxis](../../08-BestPractices/README.md)  
-- [5.14 - Kontextteknik](../mcp-contextengineering/README.md)  
-- [MCP-specifikations ändringslogg](https://spec.modelcontextprotocol.io/)  
+- [Modul 8 - Bästa Praxis](../../08-BestPractices/README.md)
+- [5.14 - Kontextteknik](../mcp-contextengineering/README.md)
+- [MCP-specifikationsändringslogg](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Ytterligare resurser
 
-- [MCP-specifikation 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [JSON-RPC 2.0 felkoder](https://www.jsonrpc.org/specification#error_object)  
-- [Python SDK-exempel](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [MCP-specifikation 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 Felkoder](https://www.jsonrpc.org/specification#error_object)
+- [Python SDK-exempel](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [TypeScript SDK-exempel](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Ansvarsfriskrivning**:
-Detta dokument har översatts med hjälp av AI-översättningstjänsten [Co-op Translator](https://github.com/Azure/co-op-translator). Även om vi strävar efter noggrannhet, bör du vara medveten om att automatiska översättningar kan innehålla fel eller brister. Det ursprungliga dokumentet på dess modersmål ska anses vara den auktoritativa källan. För kritisk information rekommenderas professionell mänsklig översättning. Vi ansvarar inte för några missförstånd eller feltolkningar som uppstår till följd av användningen av denna översättning.
+Detta dokument har översatts med hjälp av AI-översättningstjänsten [Co-op Translator](https://github.com/Azure/co-op-translator). Även om vi strävar efter noggrannhet, var vänlig notera att automatiska översättningar kan innehålla fel eller brister. Det ursprungliga dokumentet på dess modersmål bör betraktas som den auktoritativa källan. För kritisk information rekommenderas professionell mänsklig översättning. Vi ansvarar inte för några missförstånd eller feltolkningar som uppstår till följd av användningen av denna översättning.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

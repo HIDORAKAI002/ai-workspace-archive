@@ -1,36 +1,39 @@
-# MCP Protokoll Jellemzők Mélyreható Bemutatása
+# MCP Protokoll funkciók mélyreható ismertetése
 
-Ez az útmutató az MCP protokoll fejlettebb jellemzőit tárgyalja, amelyek túlmutatnak az alapvető eszköz- és erőforrás-kezelésen. Ezeknek a jellemzőknek a megértése segít robosztusabb, felhasználóbarátabb és éles környezetre kész MCP szervereket építeni.
+Ez az útmutató a fejlettebb MCP protokoll funkciókat tárgyalja, amelyek túlmutatnak az alapvető eszköz- és erőforrás-kezelésen. E funkciók megértése segít robosztusabb, felhasználóbarátabb és éles környezetbe alkalmas MCP szervereket építeni.
 
-## Tárgyalt Jellemzők
+> **Előretekintés:** a `2026-07-28` kiadásra jelölt verzió elavulttá teszi a Logging primitívet (helyette `stderr` használata stdio-hoz és OpenTelemetry strukturált megfigyeléshez), eltávolítja az alábbi Server Lifecycle Events-ben hivatkozott `initialize`/munkamenet modellt, és az kísérleti Tasks funkciót egy dedikált Tasks kiterjesztésbe helyezi új `tasks/get`/`tasks/update`/`tasks/cancel` életciklussal. Lásd: [Mi változik az MCP-ben: 2026-07-28 kiadásra jelölt verzió](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Folyamatjelzések** - Hosszú ideig futó műveletek előrehaladásának jelentése  
-2. **Kérés Megszakítása** - Ügyfeleknek lehetőség a folyamatban lévő kérések törlésére  
-3. **Erőforrás Sablonok** - Dinamikus erőforrás URI-k paraméterekkel  
-4. **Szerver Életciklus Események** - Megfelelő inicializálás és leállítás  
-5. **Naplózás Szabályozás** - Szerveroldali naplózási beállítások  
-6. **Hibakezelési Minták** - Következetes hibaválaszok  
+## Lefedett funkciók
+
+1. **Előrehaladás értesítések** - Hosszú futású műveletek előrehaladásának jelentése
+2. **Kérés törlése** - Engedélyezze az ügyfelek számára a futó kérések megszakítását
+3. **Erőforrás sablonok** - Paraméterezett, dinamikus erőforrás URI-k
+4. **Szerver életciklus események** - Megfelelő inicializálás és leállítás
+5. **Naplózási vezérlés** - Szerver-oldali naplózási konfiguráció
+6. **Hibakezelési minták** - Egységes hiba-válaszok
 
 ---
 
-## 1. Folyamatjelzések
+## 1. Előrehaladás értesítések
 
-Az időigényes műveletek esetén (adatfeldolgozás, fájlletöltés, API hívások) a folyamatjelzések tájékoztatják a felhasználókat.
+Az időigényes műveletek (adatfeldolgozás, fájlletöltés, API hívások) esetén az előrehaladás értesítések tájékoztatják a felhasználókat.
 
-### Működés
+### Hogyan működik
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (hosszú művelet)
-    Server-->>Client: értesítés: előrehaladás 10%
-    Server-->>Client: értesítés: előrehaladás 50%
-    Server-->>Client: értesítés: előrehaladás 90%
+    Client->>Server: eszközök/hívás (hosszú művelet)
+    Server-->>Client: értesítés: folyamatban 10%
+    Server-->>Client: értesítés: folyamatban 50%
+    Server-->>Client: értesítés: folyamatban 90%
     Server->>Client: eredmény (kész)
 ```
-### Python Megvalósítás
+
+### Python megvalósítás
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Fájlméret lekérése a folyamatjelző számításhoz
+    # Fájlméret lekérése a folyamat előrehaladásának számításához
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Feldolgozás darabonként
+            # Feldolgozza a darabot
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Folyamatjelző értesítés küldése
+            # Elküldi a folyamat előrehaladásáról szóló értesítést
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Folyamatjelző jelentése minden elem után
+        # Jelenti a folyamat előrehaladását minden elem után
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### TypeScript Megvalósítás
+### TypeScript megvalósítás
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // Küldjön haladási értesítést
+      // Előrehaladási értesítés küldése
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -134,17 +137,17 @@ async def handle_progress(notification):
 # Kezelő regisztrálása
 session.on_notification("notifications/progress", handle_progress)
 
-# Eszköz hívása (a folyamat előrehaladásáról szóló frissítések a kezelőn keresztül érkeznek)
+# Eszköz meghívása (a folyamat előrehaladásáról értesítések érkeznek a kezelőn keresztül)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. Kérés Megszakítása
+## 2. Kérés törlése
 
-Lehetővé teszi, hogy az ügyfelek megszakítsák azokat a kéréseket, amelyekre már nincs szükség vagy amelyek túl sokáig tartanak.
+Lehetővé teszi az ügyfeleknek olyan kérések törlését, amelyekre már nincs szükség vagy túl sokáig tartanak.
 
-### Python Megvalósítás
+### Python megvalósítás
 
 ```python
 from mcp.server import Server
@@ -160,16 +163,16 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Több oldalon keresés
-            # Ellenőrizze, hogy a törlés kérése megtörtént-e
+        for page in range(100):  # Sok oldalon keresés
+            # Ellenőrizze, hogy lemondás lett-e kérve
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Oldalkeresés szimulálása
+            # Oldal keresésének szimulálása
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Kis késleltetés lehetővé teszi a törlés ellenőrzését
+            # Kis késés lehetővé teszi a lemondás ellenőrzését
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### Megszakítási Kontextus Implementálása
+### Törlési kontextus megvalósítása
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Normál időtúllépés, folytatás
+            pass  # Normál időkorlát, folytatás
 ```
 
-### Ügyféloldali Megszakítás
+### Ügyfél-oldali törlés
 
 ```python
 import asyncio
@@ -260,11 +263,11 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. Erőforrás Sablonok
+## 3. Erőforrás sablonok
 
-Az erőforrás sablonok lehetővé teszik dinamikus URI felépítését paraméterekkel, ami hasznos API-k és adatbázisok esetén.
+Az erőforrás sablonok lehetővé teszik dinamkus URI-k építését paraméterekkel, ami hasznos API-khoz és adatbázisokhoz.
 
-### Sablonok Definiálása
+### Sablonok definiálása
 
 ```python
 from mcp.server import Server
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### TypeScript Megvalósítás
+### TypeScript megvalósítás
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // GitHub probléma URI-ának elemzése
+  // GitHub issue URI elemzése
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. Szerver Életciklus Események
+## 4. Szerver életciklus események
 
-A megfelelő inicializálás és leállítás biztosítja az erőforrások tiszta kezelését.
+A helyes inicializálás és leállítás biztosítja az erőforrások tiszta kezelését.
 
-### Python Életciklus Kezelése
+### Python életciklus kezelés
 
 ```python
 from mcp.server import Server
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript Életciklus
+### TypeScript életciklus
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // A this.dbConnection biztonságos használata
+      // Használja biztonságosan ezt: this.dbConnection
       // ...
     });
   }
 }
 
-// Használat szép leállítással
+// Használat szelíd leállítással
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. Naplózás Szabályozás
+## 5. Naplózási vezérlés
 
-Az MCP támogatja a szerveroldali naplózási szinteket, amelyeket az ügyfelek vezérelhetnek.
+Az MCP támogatja a szerver-oldali naplózási szinteket, amelyeket az ügyfelek vezérelhetnek.
 
-### Naplózási Szintek Implementálása
+### Naplózási szintek megvalósítása
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP szintek leképezése a Python naplózási szintekre
+# Térképezze az MCP szinteket a Python naplózási szintekre
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,20 +512,20 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Naplóüzenetek Küldése az Ügyfélnek
+### Naplóüzenetek küldése az ügyfélnek
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Küldjön napló értesítést az ügyfélnek
+    # Naplóértesítés küldése az ügyfélnek
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Végezze el a munkát...
+    # Munka folyamatban...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Hibakezelési Minták
+## 6. Hibakezelési minták
 
-A következetes hibakezelés javítja a hibakeresést és a felhasználói élményt.
+Az egységes hibakezelés javítja a hibakeresést és a felhasználói élményt.
 
-### MCP Hibakódok
+### MCP hiba-kódok
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Strukturált Hibaválaszok
+### Strukturált hiba válaszok
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Érvényesítsd a bemenetet
+    # Érvényesítse a bemenetet
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -584,11 +587,11 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # Ellenőrizd az engedélyeket
+        # Ellenőrizze az engedélyeket
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # Hajtsd végre a műveletet
+        # Végezze el a műveletet
         result = await perform_operation(input)
         
         if result is None:
@@ -601,7 +604,7 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Naplózd a váratlan hibákat
+        # Naplózza a váratlan hibákat
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Már MCP hiba
+      throw error;  // Már egy MCP hiba
     }
     
     // Egyéb hibák átalakítása
@@ -653,22 +656,22 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## Kísérleti Jellemzők (MCP 2025-11-25)
+## Kísérleti funkciók (MCP 2025-11-25)
 
-Ezek a jellemzők a specifikáció szerint kísérleti státuszban vannak:
+Ezek a funkciók kísérleti jelöléssel szerepelnek a specifikációban:
 
-### Feladatok (Hosszú Futtatású Műveletek)
+### Feladatok (Hosszú futású műveletek)
 
 ```python
-# A feladatok lehetővé teszik a hosszú futású műveletek állapotának nyomon követését
+# A feladatok lehetővé teszik a hosszú ideig futó műveletek állapotának követését
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Feladat elindítva jelzés
+    # Feladat elindulásának jelentése
     await ctx.report_status("running", "Initializing training...")
     
-    # Tanulási ciklus
+    # Tanítási ciklus
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -682,14 +685,14 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Eszköz Megjegyzések
+### Eszköz annotációk
 
 ```python
 # Az annotációk metaadatokat szolgáltatnak az eszköz viselkedéséről
 @app.tool(
     annotations={
         "destructive": False,      # Nem módosít adatokat
-        "idempotent": True,        # Biztonságos ismételni
+        "idempotent": True,        # Biztonságosan újrapróbálható
         "timeout_seconds": 30,     # Várt maximális időtartam
         "requires_approval": False # Nem szükséges felhasználói jóváhagyás
     }
@@ -703,22 +706,22 @@ async def safe_query(query: str) -> str:
 
 ## Mi következik
 
-- [8. Modul - Legjobb Gyakorlatok](../../08-BestPractices/README.md)  
-- [5.14 - Kontextus Mérnökség](../mcp-contextengineering/README.md)  
-- [MCP Specifikáció Változásnapló](https://spec.modelcontextprotocol.io/)  
+- [8. modul - Legjobb gyakorlatok](../../08-BestPractices/README.md)
+- [5.14 - Kontextus mérnökség](../mcp-contextengineering/README.md)
+- [MCP Specifikáció változásnapló](https://spec.modelcontextprotocol.io/)
 
 ---
 
-## További Források
+## További források
 
-- [MCP Specifikáció 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [JSON-RPC 2.0 Hibakódok](https://www.jsonrpc.org/specification#error_object)  
-- [Python SDK Példák](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
-- [TypeScript SDK Példák](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [MCP Specifikáció 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 hiba-kódok](https://www.jsonrpc.org/specification#error_object)
+- [Python SDK példák](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [TypeScript SDK példák](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Felelősség kizárása**:  
-Ezt a dokumentumot az AI fordító szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével fordítottuk le. Bár törekszünk a pontosságra, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti, anyanyelvi dokumentum tekintendő hiteles forrásnak. Kritikus információk esetén szakmai, emberi fordítást javaslunk. Nem vállalunk felelősséget az e fordítás használatából eredő félreértésekért vagy félreértelmezésekért.
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

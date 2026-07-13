@@ -1,21 +1,23 @@
-# Дълбок преглед на функциите на MCP протокола
+# Задълбочен анализ на функциите на MCP протокола
 
-Този наръчник разглежда разширени функции на MCP протокола, които надхвърлят основната работа с инструменти и ресурси. Разбирането на тези функции ви помага да изградите по-здрави, удобни за потребителя и готови за производство MCP сървъри.
+Това ръководство изследва усъвършенствани функции на MCP протокола, които надхвърлят базовото управление на инструменти и ресурси. Разбирането на тези функции ви помага да изградите по-стабилни, удобни за потребителя и готови за производство MCP сървъри.
 
-## Обхванати функции
+> **Поглед напред:** релийз кандидатът от `2026-07-28` премахва примитива за логване (като дава предпочитание на `stderr` за stdio и OpenTelemetry за структурирана наблюдаемост), премахва модела `initialize`/сесия, описан по-долу в Събитията от жизнения цикъл на сървъра, и премества експерименталната функция Задачи в отделно разширение за Задачи с нов жизнен цикъл `tasks/get`/`tasks/update`/`tasks/cancel`. Вижте [Какво се променя в MCP: Релийз кандидат 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Уведомления за напредъка** - Отчитане на напредъка при дълготрайни операции  
-2. **Отмяна на заявки** - Позволява на клиентите да отменят заявки в процес на изпълнение  
-3. **Шаблони за ресурси** - Динамични URI за ресурси с параметри  
-4. **Събития в жизнения цикъл на сървъра** - Коректна инициализация и спиране  
-5. **Контрол на логването** - Конфигурация на логването от страна на сървъра  
-6. **Модели за обработка на грешки** - Последователни отговори при грешки
+## Покрити функции
+
+1. **Уведомления за напредък** - Отчитане на прогреса при длъжки операции
+2. **Отказване на заявки** - Позволяване на клиентите да отменят текущи заявки
+3. **Шаблони за ресурси** - Динамични URI на ресурси с параметри
+4. **Събития от жизнения цикъл на сървъра** - Правилно инициализиране и спиране
+5. **Контрол на логването** - Конфигурация на логване от страна на сървъра
+6. **Шаблони за обработка на грешки** - Последователни отговори при грешки
 
 ---
 
-## 1. Уведомления за напредъка
+## 1. Уведомления за напредък
 
-При операции, които отнемат време (обработка на данни, изтегляне на файлове, API повиквания), уведомленията за напредъка държат потребителите информирани.
+За операции, които отнемат време (обработка на данни, изтегляне на файлове, API повиквания), уведомленията за напредък държат потребителите информирани.
 
 ### Как работи
 
@@ -25,11 +27,12 @@ sequenceDiagram
     participant Server
     
     Client->>Server: инструменти/извикване (дълга операция)
-    Server-->>Client: известие: прогрес 10%
-    Server-->>Client: известие: прогрес 50%
-    Server-->>Client: известие: прогрес 90%
+    Server-->>Client: известие: напредък 10%
+    Server-->>Client: известие: напредък 50%
+    Server-->>Client: известие: напредък 90%
     Server->>Client: резултат (завършено)
 ```
+
 ### Имплементация на Python
 
 ```python
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Вземете размера на файла за изчисляване на прогреса
+    # Вземете размера на файла за изчисляване на напредъка
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Обработете част от файла
+            # Обработете част
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Изпратете известие за прогрес
+            # Изпратете известие за напредъка
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Докладвайте прогреса след всеки елемент
+        # Докладвайте напредъка след всеки елемент
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // Изпрати уведомление за напредък
+      // Изпрати уведомление за напредъка
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Обработка от клиента (Python)
+### Обработка на клиента (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,18 +134,18 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Регистрирай обработчик
+# Регистриране на обработчик
 session.on_notification("notifications/progress", handle_progress)
 
-# Извикай инструмент (актуализации на прогреса ще пристигат чрез обработчика)
+# Извикване на инструмент (актуализации за напредъка ще пристигат чрез обработчика)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. Отмяна на заявки
+## 2. Отказване на заявки
 
-Позволете на клиентите да отменят заявки, които вече не са необходими или отнемат твърде много време.
+Позволете на клиентите да отменят заявки, които вече не са им необходими или отнемат твърде много време.
 
 ### Имплементация на Python
 
@@ -161,15 +164,15 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # Търсене през много страници
-            # Проверка дали е поискана отмяна
+            # Проверете дали е поискано отказване
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Симулиране на търсене в страница
+            # Симулира търсене на страница
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Малка пауза позволява проверки за отмяна
+            # Малка пауза позволява проверки за отказване
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### Реализиране на контекст за отмяна
+### Имплементиране на контекст за отказване
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Нормално изчакване, продължи
+            pass  # Нормално изтичане на време, продължи
 ```
 
-### Отмяна от страна на клиента
+### Отказване от страна на клиента
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Заявка за анулиране
+        # Заявка за отмяна
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Шаблони за ресурси
 
-Шаблоните за ресурси позволяват динамично създаване на URI с параметри, полезно за API-та и бази данни.
+Шаблоните за ресурси позволяват динамично изграждане на URI с параметри, полезни за API-та и бази данни.
 
 ### Дефиниране на шаблони
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Анализирайте URI, за да извлечете параметрите
+    # Разгърнете URI, за да извлечете параметрите
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Анализиране на URI за GitHub проблем
+  // Анализирайте URI на GitHub заявка
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. Събития в жизнения цикъл на сървъра
+## 4. Събития от жизнения цикъл на сървъра
 
-Коректното инициализиране и спиране гарантира чисто управление на ресурсите.
+Правилното инициализиране и спиране гарантират чисто управление на ресурсите.
 
-### Управление на жизнения цикъл в Python
+### Управление на жизнения цикъл на Python
 
 ```python
 from mcp.server import Server
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### Жизнен цикъл в TypeScript
+### Жизнен цикъл на TypeScript
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -435,7 +438,7 @@ class ManagedServer {
   }
   
   async stop() {
-    // Почистване на ресурсите
+    // Освобождаване на ресурси
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Използване с плавно изключване
+// Използване с плавно спиране
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## 5. Контрол на логването
 
-MCP поддържа нива на логване от страна на сървъра, които клиентите могат да управляват.
+MCP поддържа нива за логване от страна на сървъра, които клиентите могат да управляват.
 
-### Имплементиране на нива на логване
+### Имплементиране на нива за логване
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Съответствие на нивата MCP с нивата на логване в Python
+# Картографиране на MCP нивата към нивата на логване в Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,20 +512,20 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Изпращане на лог съобщения към клиента
+### Изпращане на съобщения за лог към клиента
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Изпратете известие за регистрационен файл към клиента
+    # Изпратете известие за журнал към клиента
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Изпълнете работа...
+    # Извършете работа...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Модели за обработка на грешки
+## 6. Шаблони за обработка на грешки
 
-Последователната обработка на грешки подобрява дебъгването и потребителското изживяване.
+Последователната обработка на грешки подобрява отстраняването на проблеми и потребителското преживяване.
 
 ### MCP кодове за грешки
 
@@ -576,7 +579,7 @@ class InternalError(ToolError):
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Валидиране на входа
+    # Валидация на входа
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -588,7 +591,7 @@ async def safe_operation(input: str) -> str:
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # Извършване на операция
+        # Извършване на операцията
         result = await perform_operation(input)
         
         if result is None:
@@ -601,7 +604,7 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Записване на неочаквани грешки в журнал
+        # Записване на неочаквани грешки в лог
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // Повече валидация...
+  // Повече валидиране...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Вече е грешка от MCP
+      throw error;  // Вече е грешка на MCP
     }
     
     // Конвертиране на други грешки
@@ -657,18 +660,18 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 Тези функции са маркирани като експериментални в спецификацията:
 
-### Задачи (дълготрайни операции)
+### Задачи (длъжки операции)
 
 ```python
-# Задачите позволяват проследяване на дълготрайни операции със състояние
+# Задачите позволяват проследяване на дългосрочни операции със състояние
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Отчет за стартиране на задачата
+    # Докладване за стартиране на задачата
     await ctx.report_status("running", "Initializing training...")
     
-    # Цикъл на обучение
+    # Обучителен цикъл
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -689,7 +692,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
 @app.tool(
     annotations={
         "destructive": False,      # Не променя данните
-        "idempotent": True,        # Безопасно за повторно опитване
+        "idempotent": True,        # Безопасно за повторен опит
         "timeout_seconds": 30,     # Очаквана максимална продължителност
         "requires_approval": False # Не се изисква одобрение от потребителя
     }
@@ -703,22 +706,22 @@ async def safe_query(query: str) -> str:
 
 ## Какво следва
 
-- [Модул 8 - Добри практики](../../08-BestPractices/README.md)  
-- [5.14 - Контекстно инженерство](../mcp-contextengineering/README.md)  
-- [Журнал на промените в MCP спецификацията](https://spec.modelcontextprotocol.io/)
+- [Модул 8 - Най-добри практики](../../08-BestPractices/README.md)
+- [5.14 - Инженеринг на контекста](../mcp-contextengineering/README.md)
+- [Промените в MCP Спецификацията](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Допълнителни ресурси
 
-- [MCP Спецификация 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [JSON-RPC 2.0 Кодове за грешки](https://www.jsonrpc.org/specification#error_object)  
-- [Примери за Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
-- [Примери за TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [MCP Спецификация 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 кодове за грешки](https://www.jsonrpc.org/specification#error_object)
+- [Примери с Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [Примери с TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Отказ от отговорност**:
-Този документ е преведен с помощта на AI преводаческа услуга [Co-op Translator](https://github.com/Azure/co-op-translator). Въпреки че се стремим към точност, моля, имайте предвид, че автоматизираните преводи могат да съдържат грешки или неточности. Оригиналният документ на неговия оригинален език трябва да се счита за авторитетен източник. За критична информация се препоръчва професионален човешки превод. Не носим отговорност за каквито и да е недоразумения или неправилни тълкувания, произтичащи от използването на този превод.
+Този документ е преведен с помощта на AI преводачески услуга [Co-op Translator](https://github.com/Azure/co-op-translator). Въпреки че се стремим към точност, моля имайте предвид, че автоматизираните преводи могат да съдържат грешки или неточности. Оригиналният документ на неговия роден език трябва да се счита за авторитетен източник. За критична информация се препоръчва професионален човешки превод. Ние не носим отговорност за каквито и да е недоразумения или неправилни тълкувания, произтичащи от използването на този превод.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

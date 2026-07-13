@@ -1,24 +1,26 @@
-# Sampling - menyerahkan ciri kepada Klien
+# Persampelan - mendelegasikan ciri kepada Klien
 
-Kadang-kadang, anda memerlukan Klien MCP dan Pelayan MCP untuk bekerjasama mencapai matlamat bersama. Anda mungkin mempunyai kes di mana Pelayan memerlukan bantuan LLM yang berada pada klien. Untuk situasi ini, sampling adalah apa yang anda harus gunakan.
+> **Notis penghapusan:** calon pelepasan spesifikasi MCP `2026-07-28` menandakan Persampelan sebagai tidak digalakkan demi integrasi langsung dengan API pembekal LLM. Persampelan terus berfungsi dalam `2025-11-25` dan sekurang-kurangnya setahun selepas sebarang penghapusan rasmi, jadi segala yang ada dalam pelajaran ini masih sah — tetapi reka bentuk pelayan baru harus menilai corak penggantian tersebut. Lihat [Apa Yang Berubah dalam MCP: Calon Pelepasan 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Mari kita terokai beberapa kes penggunaan dan cara membina penyelesaian yang melibatkan sampling.
+Kadang-kadang, anda memerlukan Klien MCP dan Pelayan MCP untuk bekerjasama bagi mencapai matlamat bersama. Anda mungkin mempunyai kes di mana Pelayan memerlukan bantuan LLM yang terletak pada klien. Untuk situasi ini, persampelan adalah apa yang harus anda gunakan.
+
+Mari kita terokai beberapa kes penggunaan dan bagaimana membina penyelesaian yang melibatkan persampelan.
 
 ## Gambaran Keseluruhan
 
-Dalam pelajaran ini, kami memfokuskan pada penjelasan bila dan di mana untuk menggunakan Sampling dan bagaimana untuk mengkonfigurasinya.
+Dalam pelajaran ini, kita memberi tumpuan kepada menerangkan bila dan di mana untuk menggunakan Persampelan dan bagaimana untuk mengkonfigurasinya.
 
 ## Objektif Pembelajaran
 
-Dalam bab ini, kami akan:
+Dalam bab ini, kita akan:
 
-- Menjelaskan apa itu Sampling dan bila menggunakannya.
-- Menunjukkan bagaimana untuk mengkonfigurasi Sampling dalam MCP.
-- Memberikan contoh Sampling dalam tindakan.
+- Terangkan apa itu Persampelan dan bila hendak menggunakannya.
+- Tunjukkan bagaimana mengkonfigurasi Persampelan dalam MCP.
+- Berikan contoh Persampelan dalam tindakan.
 
-## Apa itu Sampling dan kenapa menggunakannya?
+## Apa itu Persampelan dan kenapa menggunakannya?
 
-Sampling adalah ciri lanjutan yang berfungsi dengan cara berikut:
+Persampelan adalah ciri lanjutan yang berfungsi dengan cara berikut:
 
 ```mermaid
 sequenceDiagram
@@ -27,19 +29,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Tulis catatan blog
-    MCP Client->>MCP Server: Panggilan alat (draf catatan blog)
+    User->>MCP Client: Pos blog pengarang
+    MCP Client->>MCP Server: Panggilan alat (draf pos blog)
     MCP Server->>MCP Client: Permintaan pensampelan (buat ringkasan)
-    MCP Client->>LLM: Jana ringkasan catatan blog
-    LLM->>MCP Client: Hasil ringkasan
-    MCP Client->>MCP Server: Respons pensampelan (ringkasan)
-    MCP Server->>MCP Client: Lengkapkan catatan blog (draf + ringkasan)
-    MCP Client->>User: Catatan blog siap
+    MCP Client->>LLM: Jana ringkasan pos blog
+    LLM->>MCP Client: Keputusan ringkasan
+    MCP Client->>MCP Server: Tindak balas pensampelan (ringkasan)
+    MCP Server->>MCP Client: Pos blog lengkap (draf + ringkasan)
+    MCP Client->>User: Pos blog siap
 ```
 
-### Permintaan Sampling
+### Permintaan persampelan
 
-Ok, sekarang kita ada pandangan menyeluruh tentang satu senario yang boleh dipercayai, mari bincang permintaan sampling yang dihantar oleh pelayan kembali kepada klien. Berikut adalah bagaimana permintaan seperti ini boleh kelihatan dalam format JSON-RPC:
+Baik, sekarang kita ada pandangan am tentang senario yang dipercayai, mari kita bincangkan tentang permintaan persampelan yang dihantar balik oleh pelayan kepada klien. Berikut adalah bagaimana permintaan sedemikian boleh kelihatan dalam format JSON-RPC:
 
 ```json
 {
@@ -71,17 +73,17 @@ Ok, sekarang kita ada pandangan menyeluruh tentang satu senario yang boleh diper
 }
 ```
 
-Terdapat beberapa perkara di sini yang patut kita tegaskan:
+Terdapat beberapa perkara yang patut diberi perhatian di sini:
 
-- Prompt, di bawah content -> text, adalah arahan kita untuk LLM meringkaskan kandungan pos blog.
+- Prompt, di bawah content -> text, ialah arahan kita untuk LLM merumuskan kandungan pos blog.
 
-- **modelPreferences**. Bahagian ini adalah hanya itu, satu keutamaan, satu cadangan konfigurasi yang harus digunakan dengan LLM. Pengguna boleh memilih sama ada untuk mengikuti cadangan ini atau mengubahnya. Dalam kes ini terdapat cadangan model untuk digunakan serta keutamaan kelajuan dan kebijaksanaan.
-- **systemPrompt**, ini adalah prompt sistem biasa yang memberi personaliti kepada LLM anda dan mengandungi arahan panduan.
-- **maxTokens**, ini adalah satu lagi sifat yang digunakan untuk menyatakan berapa banyak token yang disyorkan untuk tugasan ini.
+- **modelPreferences**. Bahagian ini hanyalah sebagai keutamaan, satu cadangan konfigurasi yang perlu digunakan dengan LLM. Pengguna boleh memilih sama ada untuk mengikuti cadangan ini atau mengubahnya. Dalam kes ini terdapat cadangan model yang hendak digunakan serta keutamaan kepantasan dan kecerdasan.
+- **systemPrompt**, ini ialah prompt sistem biasa anda yang memberikan LLM anda personaliti dan mengandungi arahan panduan.
+- **maxTokens**, ini adalah satu lagi sifat yang digunakan untuk menyatakan berapa banyak token yang disyorkan untuk digunakan dalam tugas ini.
 
-### Respons Sampling
+### Respon persampelan
 
-Respons ini adalah apa yang akhirnya dihantar oleh Klien MCP kembali kepada Pelayan MCP dan merupakan hasil dari klien yang memanggil LLM, menunggu respons itu dan kemudian membina mesej ini. Berikut adalah bagaimana ia boleh kelihatan dalam JSON-RPC:
+Respon ini adalah apa yang Klien MCP akhirnya hantar balik kepada Pelayan MCP dan merupakan hasil klien memanggil LLM, menunggu respon itu dan kemudian membina mesej ini. Berikut adalah bagaimana ia boleh kelihatan dalam JSON-RPC:
 
 ```json
 {
@@ -99,13 +101,13 @@ Respons ini adalah apa yang akhirnya dihantar oleh Klien MCP kembali kepada Pela
 }
 ```
 
-Perhatikan bagaimana respons adalah ringkasan pos blog seperti yang kami minta. Juga perhatikan bagaimana `model` yang digunakan bukan apa yang kami minta tetapi "gpt-5" dan bukan "claude-3-sonnet". Ini untuk menggambarkan bahawa pengguna boleh berubah fikiran mengenai apa yang hendak digunakan dan bahawa permintaan sampling anda adalah satu cadangan.
+Perhatikan bagaimana respon itu adalah abstrak pos blog seperti yang kita minta. Juga perhatikan bagaimana `model` yang digunakan bukan apa yang kita minta tetapi "gpt-5" berbanding "claude-3-sonnet". Ini untuk menggambarkan bahawa pengguna boleh menukar fikiran mengenai apa yang hendak digunakan dan permintaan persampelan anda adalah cadangan.
 
-Ok, sekarang kita faham aliran utama, dan tugasan berguna untuk digunakan seperti "penciptaan pos blog + abstrak", mari lihat apa yang perlu dilakukan untuk menjayakannya.
+Baik, sekarang kita faham aliran utama, dan tugas berguna untuk menggunakannya ialah "penciptaan pos blog + abstrak", mari kita lihat apa yang perlu dilakukan agar ia berfungsi.
 
 ### Jenis mesej
 
-Mesej sampling tidak terhad kepada teks sahaja tetapi anda juga boleh menghantar imej dan audio. Berikut adalah bagaimana JSON-RPC kelihatan berbeza:
+Mesej persampelan tidak terhad kepada teks sahaja tetapi anda juga boleh menghantar imej dan audio. Berikut adalah bagaimana JSON-RPC kelihatan berbeza:
 
 **Teks**
 
@@ -136,13 +138,13 @@ Mesej sampling tidak terhad kepada teks sahaja tetapi anda juga boleh menghantar
 }
 ```
 
-> NOTE: untuk maklumat lebih terperinci tentang Sampling, semak [dokumen rasmi](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> NOTA: untuk maklumat lebih terperinci tentang Persampelan, semak [dokumen rasmi](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Cara Mengkonfigurasi Sampling dalam Klien
+## Cara Mengkonfigurasi Persampelan dalam Klien
 
-> Nota: jika anda hanya membina pelayan, anda tidak perlu buat banyak di sini.
+> Nota: jika anda hanya membina pelayan, anda tidak perlu melakukan banyak di sini.
 
-Dalam klien, anda perlu menentukan ciri berikut seperti ini:
+Dalam klien, anda perlu menentukan ciri berikut seperti berikut:
 
 ```json
 {
@@ -152,18 +154,18 @@ Dalam klien, anda perlu menentukan ciri berikut seperti ini:
 }
 ```
 
-Ini akan diambil kira apabila klien pilihan anda dimulakan dengan pelayan.
+Ini kemudian akan diambil apabila klien yang anda pilih memulakan dengan pelayan.
 
-## Contoh Sampling dalam Tindakan - Buat Pos Blog
+## Contoh Persampelan dalam Tindakan - Cipta Pos Blog
 
-Mari kita kodkan pelayan sampling bersama, kita perlu lakukan perkara berikut:
+Mari kita kodkan pelayan persampelan bersama-sama, kita perlu melakukan perkara berikut:
 
 1. Cipta alat pada Pelayan.
-2. Alat itu harus mencipta permintaan sampling
-3. Alat harus menunggu permintaan sampling klien dijawab.
-4. Kemudian hasil alat itu harus dihasilkan.
+1. Alat tersebut harus mencipta permintaan persampelan.
+1. Alat harus menunggu permintaan persampelan klien dijawab.
+1. Kemudian hasil alat harus dihasilkan.
 
-Mari kita lihat kod ini langkah demi langkah:
+Mari kita lihat kod langkah demi langkah:
 
 ### -1- Cipta alat
 
@@ -176,9 +178,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Cipta permintaan sampling
+### -2- Cipta permintaan persampelan
 
-Lanjutkan alat anda dengan kod berikut:
+Luaskan alat anda dengan kod berikut:
 
 **python**
 
@@ -204,7 +206,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Tunggu respons dan kembalikan respons
+### -3- Tunggu respon dan pulangkan respon
 
 **python**
 
@@ -296,12 +298,12 @@ if __name__ == "__main__":
 # jalankan aplikasi dengan: python server.py
 ```
 
-### -5- Uji dengan Visual Studio Code
+### -5- Uji di Visual Studio Code
 
-Untuk menguji ini dalam Visual Studio Code, lakukan perkara berikut:
+Untuk menguji ini di Visual Studio Code, lakukan berikut:
 
-1. Mulakan pelayan dalam terminal
-2. Tambah ke *mcp.json* (dan pastikan ia dimulakan) contohnya seperti ini:
+1. Mula pelayan dalam terminal
+1. Tambahkannya ke *mcp.json* (dan pastikan ia dimulakan) contohnya seperti berikut:
 
    ```json
    "servers": {
@@ -312,41 +314,41 @@ Untuk menguji ini dalam Visual Studio Code, lakukan perkara berikut:
    }
    ```
 
-3. Taipkan prompt:
+1. Taipkan prompt:
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-4. Benarkan sampling berlaku. Kali pertama anda menguji ini anda akan dipaparkan dialog tambahan yang anda perlu terima, kemudian anda akan melihat dialog biasa untuk meminta anda menjalankan alat
+1. Benarkan persampelan berlaku. Kali pertama anda menguji ini anda akan dipersembahkan dengan dialog tambahan yang perlu anda terima, kemudian anda akan melihat dialog biasa untuk meminta anda menjalankan alat
 
-5. Periksa hasil. Anda akan melihat hasilnya dipaparkan dengan baik dalam GitHub Copilot Chat tetapi anda juga boleh memeriksa respons JSON mentah.
+1. Periksa hasil. Anda akan melihat keputusan dipaparkan dengan kemas dalam GitHub Copilot Chat tetapi anda juga boleh memeriksa respon JSON mentah.
 
-**Bonus**. Alat Visual Studio Code mempunyai sokongan hebat untuk sampling. Anda boleh mengkonfigurasi akses Sampling pada pelayan yang dipasang dengan menavigasi seperti ini:
+**Bonus**. Alat Visual Studio Code mempunyai sokongan hebat untuk persampelan. Anda boleh mengkonfigurasi akses Persampelan pada pelayan yang dipasang anda dengan melayarinya seperti berikut:
 
-1. Navigasi ke seksyen sambungan.
-2. Pilih ikon gear untuk pelayan yang dipasang dalam seksyen "MCP SERVERS - INSTALLED".
-3. Pilih "Configure Model Access", di sini anda boleh memilih Model mana GitHub Copilot dibenarkan gunakan semasa melakukan sampling. Anda juga boleh melihat semua permintaan sampling yang berlaku baru-baru ini dengan memilih "Show Sampling requests".
+1. Layari bahagian ekstensi.
+1. Pilih ikon cog untuk pelayan yang dipasang dalam bahagian "MCP SERVERS - INSTALLED".
+1 Pilih "Configure Model Access", di sini anda boleh memilih model yang GitHub Copilot dibenarkan gunakan semasa melakukan persampelan. Anda juga boleh melihat semua permintaan persampelan yang berlaku baru-baru ini dengan memilih "Show Sampling requests".
 
 ## Tugasan
 
-Dalam tugasan ini, anda akan membina Sampling yang sedikit berbeza iaitu integrasi sampling yang menyokong penjanaan penerangan produk. Berikut adalah senario anda:
+Dalam tugasan ini, anda akan membina persampelan yang sedikit berbeza iaitu integrasi persampelan yang menyokong menghasilkan deskripsi produk. Berikut adalah senario anda:
 
-**Senario**: Pekerja pejabat belakang di e-dagang memerlukan bantuan, ia mengambil masa terlalu lama untuk menghasilkan penerangan produk. Oleh itu, anda perlu membina penyelesaian di mana anda boleh memanggil alat "create_product" dengan "title" dan "keywords" sebagai argumen dan ia harus menghasilkan produk lengkap termasuk medan "description" yang perlu diisi oleh LLM klien.
+**Senario**: Pekerja pejabat belakang di sebuah e-dagang memerlukan bantuan, ia mengambil masa yang terlalu lama untuk menghasilkan deskripsi produk. Oleh itu, anda perlu membina penyelesaian di mana anda boleh memanggil alat "create_product" dengan "title" dan "keywords" sebagai argumen dan ia harus menghasilkan produk lengkap termasuk medan "description" yang mesti diisi oleh LLM klien.
 
-TIP: gunakan apa yang anda pelajari sebelum ini untuk membina pelayan ini dan alatnya menggunakan permintaan sampling.
+TIP: gunakan apa yang anda pelajari sebelum ini untuk membina pelayan ini dan alatnya menggunakan permintaan persampelan.
 
 ## Penyelesaian
 
 [Penyelesaian](./solution/README.md)
 
-## Kunci Pengajaran
+## Intipati Utama
 
-Sampling adalah ciri yang kuat yang membenarkan pelayan mendelegasikan tugasan kepada klien apabila ia memerlukan bantuan LLM.
+Persampelan adalah ciri yang hebat membolehkan pelayan mendelegasikan tugasan kepada klien apabila ia memerlukan bantuan LLM.
 
-## Apa Yang Seterusnya
+## Apa Seterusnya
 
-- [Bab 4 - Pelaksanaan praktikal](../../04-PracticalImplementation/README.md)
+- [Bab 4 - Pelaksanaan Praktikal](../../04-PracticalImplementation/README.md)
 
 ---
 

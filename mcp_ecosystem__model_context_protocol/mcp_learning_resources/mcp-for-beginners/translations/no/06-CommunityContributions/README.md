@@ -1,67 +1,68 @@
-# Community and Contributions
+# Fellesskap og Bidrag
 
-[![How to Contribute to MCP: Tools, Docs, Code and More](../../../translated_images/no/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
+[![Hvordan bidra til MCP: Verktøy, dokumentasjon, kode og mer](../../../translated_images/no/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
 
-_(Klikk på bildet over for å se video av denne leksjonen)_
+_(Klikk på bildet over for å se videoen av denne leksjonen)_
 
 ## Oversikt
 
-Denne leksjonen fokuserer på hvordan man kan engasjere seg i MCP-fellesskapet, bidra til MCP-økosystemet og følge beste praksis for samarbeidende utvikling. Å forstå hvordan man deltar i åpen kildekode-prosjekter innen MCP er essensielt for de som ønsker å forme fremtiden for denne teknologien.
+Denne leksjonen fokuserer på hvordan man engasjerer seg i MCP-fellesskapet, bidrar til MCP-økosystemet, og følger beste praksis for samarbeidende utvikling. Å forstå hvordan man deltar i åpne MCP-prosjekter er essensielt for de som ønsker å forme fremtiden for denne teknologien.
 
 ## Læringsmål
 
 Ved slutten av denne leksjonen vil du kunne:
 
 - Forstå strukturen i MCP-fellesskapet og økosystemet
-- Delta effektivt i MCP-fellesskapets fora og diskusjoner
-- Bidra til MCP åpne kildekode-repositorier
-- Lage og dele egne MCP-verktøy og servere
+- Delta effektivt i MCP-fellesskapets forum og diskusjoner
+- Bidra til MCP-åpen kildekode-repositorier
+- Lage og dele egendefinerte MCP-verktøy og servere
 - Følge beste praksis for MCP-utvikling og samarbeid
 - Oppdage fellesskapsressurser og rammeverk for MCP-utvikling
 
-## MCP-fellesskapets økosystem
+## MCP-fellesskapets Økosystem
 
-MCP-økosystemet består av ulike komponenter og deltakere som samarbeider for å fremme protokollen.
+MCP-økosystemet består av ulike komponenter og deltakere som jobber sammen for å utvikle protokollen.
 
-### Viktige fellesskapskomponenter
+### Viktige Fellesskapskomponenter
 
-1. **Kjerneprotokollvedlikeholdere**: Den offisielle [Model Context Protocol GitHub-organisasjonen](https://github.com/modelcontextprotocol) vedlikeholder de grunnleggende MCP-spesifikasjonene og referanseimplementasjonene.
-2. **Verktøyutviklere**: Enkeltpersoner og team som lager MCP-verktøy og servere.
-3. **Integrasjonsleverandører**: Bedrifter som integrerer MCP i sine produkter og tjenester.
-4. **Sluttbrukere**: Utviklere og organisasjoner som bruker MCP i sine applikasjoner.
-5. **Bidragsytere**: Fellesskapsmedlemmer som bidrar med kode, dokumentasjon eller andre ressurser.
+1. **Kjerneprotokollvedlikeholdere**: Den offisielle [Model Context Protocol GitHub-organisasjonen](https://github.com/modelcontextprotocol) vedlikeholder kjernespesifikasjonene og referanseimplementeringene for MCP
+2. **Verktøyutviklere**: Personer og team som lager MCP-verktøy og servere
+3. **Integrasjonsleverandører**: Selskaper som integrerer MCP i sine produkter og tjenester
+4. **Sluttbrukere**: Utviklere og organisasjoner som bruker MCP i sine applikasjoner
+5. **Bidragsytere**: Fellesskapsmedlemmer som bidrar med kode, dokumentasjon eller andre ressurser
 
 ### Fellesskapsressurser
 
-#### Offisielle kanaler
+#### Offisielle Kanaler
 
-- [MCP GitHub-organisasjon](https://github.com/modelcontextprotocol)
+- [MCP GitHub Organisasjon](https://github.com/modelcontextprotocol)
 - [MCP Dokumentasjon](https://modelcontextprotocol.io/)
 - [MCP Spesifikasjon](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [GitHub Diskusjoner](https://github.com/orgs/modelcontextprotocol/discussions)
 - [MCP Eksempler & Servere Repository](https://github.com/modelcontextprotocol/servers)
 
-#### Fellesskapsdrevne ressurser
+#### Fellesskapsdrevne Ressurser
 
-- [MCP Klienter](https://modelcontextprotocol.io/clients) - Liste over klienter som støtter MCP-integrasjoner
-- [Community MCP Servere](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - Voksende liste over MCP-servere utviklet av fellesskapet
-- [Awesome MCP Servere](https://github.com/wong2/awesome-mcp-servers) - Kvalitetskontrollert liste over MCP-servere
+- [MCP-klienter](https://modelcontextprotocol.io/clients) - Liste over klienter som støtter MCP-integrasjoner
+- [Fellesskaps MCP Servere](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - Voksende liste over MCP-servere utviklet av fellesskapet
+- [Awesome MCP Servere](https://github.com/wong2/awesome-mcp-servers) - Kuratert liste over MCP-servere
 - [PulseMCP](https://www.pulsemcp.com/) - Fellesskapshub & nyhetsbrev for å oppdage MCP-ressurser
-- [Discord Server](https://discord.gg/jHEGxQu2a5) - Koble med MCP-utviklere
-- Språkspesifikke SDK-implementeringer
+- [Remote OpenClaw](https://www.remoteopenclaw.com/) - Gratis søkbar katalog over MCP-servere, agentferdigheter og plugins
+- [Discord-server](https://discord.gg/jHEGxQu2a5) - Knytt kontakt med MCP-utviklere
+- SDK-implementeringer spesifikke for språk
 - Blogginnlegg og veiledninger
 
 ## Bidra til MCP
 
-### Typer bidrag
+### Typer Bidrag
 
-MCP-økosystemet ønsker ulike typer bidrag velkommen:
+MCP-økosystemet ønsker forskjellige typer bidrag velkommen:
 
 1. **Kodebidrag**:
    - Forbedringer av kjerneprotokollen
    - Feilrettinger
-   - Verktøy- og serverimplementasjoner
-   - Klient-/server-biblioteker i forskjellige språk
+   - Implementasjoner av verktøy og servere
+   - Klient-/serverbiblioteker i ulike språk
 
 2. **Dokumentasjon**:
    - Forbedre eksisterende dokumentasjon
@@ -70,28 +71,28 @@ MCP-økosystemet ønsker ulike typer bidrag velkommen:
    - Lage eksempler og prøveapplikasjoner
 
 3. **Fellesskapsstøtte**:
-   - Svar på spørsmål i fora og diskusjoner
+   - Svar på spørsmål i forum og diskusjoner
    - Teste og rapportere problemer
    - Organisere fellesskapsarrangementer
    - Veilede nye bidragsytere
 
 ### Bidragsprosess: Kjerneprotokoll
 
-For å bidra til kjerneprotokollen eller offisielle implementasjoner, følg prinsippene i de [offisielle retningslinjene for bidrag](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
+For å bidra til den kjerne MCP-protokollen eller offisielle implementasjoner, følg prinsippene fra de [offisielle retningslinjene for å bidra](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
 
-1. **Enkelhet og minimalisme**: MCP-spesifikasjonen har høye krav for å legge til nye konsepter. Det er lettere å legge til ting i en spesifikasjon enn å fjerne dem.
+1. **Enkelhet og Minimalisme**: MCP-spesifikasjonen setter en høy terskel for å legge til nye konsepter. Det er lettere å legge til ting i en spesifikasjon enn å fjerne dem.
 
-2. **Konkret tilnærming**: Endringer i spesifikasjonen bør baseres på konkrete implementeringsutfordringer, ikke spekulative ideer.
+2. **Konkrete Tilnærminger**: Endringer i spesifikasjonen bør være basert på konkrete implementeringsutfordringer, ikke spekulative ideer.
 
-3. **Faser av et forslag**:
-   - Definer: Utforsk problemområdet, bekreft at andre MCP-brukere har et lignende problem
-   - Prototype: Bygg et eksempel på en løsning og demonstrer praktisk bruk
+3. **Forslagets Stadier**:
+   - Definer: Utforsk problemområdet, og bekreft at andre MCP-brukere har et liknende problem
+   - Prototype: Bygg en eksempel-løsning og demonstrer dens praktiske bruk
    - Skriv: Basert på prototypen, skriv et spesifikasjonsforslag
 
-### Utviklingsmiljøoppsett
+### Oppsett av Utviklingsmiljø
 
 ```bash
-# Forke depotet
+# Fork depotet
 git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
 cd modelcontextprotocol
 
@@ -106,7 +107,7 @@ npm run generate:schema
 npm run check:docs
 npm run format
 
-# Forhåndsvis dokumentasjonen lokalt (valgfritt):
+# Forhåndsvis dokumentasjon lokalt (valgfritt):
 npm run serve:docs
 ```
 
@@ -119,7 +120,7 @@ export function validateResource(resource: unknown): resource is MCPResource {
     return false;
   }
   
-  // Feil: Manglende egenskapsvalidering
+  // Feil: Manglende validering av egenskap
   // Nåværende implementering:
   const hasName = 'name' in resource;
   const hasSchema = 'schema' in resource;
@@ -145,7 +146,7 @@ export function validateResource(resource: unknown): resource is MCPResource {
 ### Eksempel: Bidra med et nytt verktøy til standardbiblioteket
 
 ```python
-# Eksempelbidrag: Et verktøy for behandling av CSV-data for MCP-standardbiblioteket
+# Eksempelbidrag: Et CSV-databehandlingsverktøy for MCP-standardbiblioteket
 
 from mcp_tools import Tool, ToolRequest, ToolResponse, ToolExecutionException
 import pandas as pd
@@ -207,7 +208,7 @@ class CsvProcessingTool(Tool):
     
     async def execute_async(self, request: ToolRequest) -> ToolResponse:
         try:
-            # Hent ut parametere
+            # Ekstraher parametere
             operation = request.parameters.get("operation")
             output_format = request.parameters.get("outputFormat", "json")
             
@@ -275,7 +276,7 @@ class CsvProcessingTool(Tool):
     
     def _transform_data(self, df: pd.DataFrame, params: Dict[str, Any]) -> Dict[str, Any]:
         """Transforms the data based on parameters"""
-        # Implementeringen vil inkludere ulike transformasjoner
+        # Implementering vil inkludere ulike transformasjoner
         return {
             "status": "success",
             "message": "Transformation applied"
@@ -302,18 +303,18 @@ class CsvProcessingTool(Tool):
             raise ToolExecutionException(f"Unsupported output format: {format}")
 ```
 
-### Retningslinjer for bidrag
+### Retningslinjer for Bidrag
 
-For å lykkes med ditt bidrag til MCP-prosjekter:
+For å lage et vellykket bidrag til MCP-prosjekter:
 
-1. **Start i det små**: Begynn med dokumentasjon, feilrettinger eller små forbedringer
-2. **Følg stilguiden**: Hold deg til prosjektets kodingstil og konvensjoner
-3. **Skriv tester**: Inkluder enhetstester for dine kodebidrag
-4. **Dokumenter arbeidet ditt**: Legg til tydelig dokumentasjon for nye funksjoner eller endringer
-5. **Send presise PR-er**: Hold pull requests fokusert på ett enkelt problem eller funksjon
-6. **Engasjer deg i tilbakemeldinger**: Vær lydhør for tilbakemeldinger på dine bidrag
+1. **Start Smått**: Begynn med dokumentasjon, feilrettinger eller små forbedringer
+2. **Følg Stilguiden**: Overhold kodestil og konvensjoner i prosjektet
+3. **Skriv Tester**: Inkluder enhetstester for dine kodebidrag
+4. **Dokumenter Arbeidet Ditt**: Legg til tydelig dokumentasjon for nye funksjoner eller endringer
+5. **Send Inn Fokusert PR**: Hold pull requests fokusert på et enkelt problem eller funksjon
+6. **Engasjer Deg med Tilbakemeldinger**: Vær lydhør for tilbakemeldinger på dine bidrag
 
-### Eksempel på arbeidsflyt for bidrag
+### Eksempel på Bidragsarbeidsflyt
 
 ```bash
 # Klon depotet
@@ -323,29 +324,29 @@ cd typescript-sdk
 # Opprett en ny gren for ditt bidrag
 git checkout -b feature/my-contribution
 
-# Gjør dine endringer
+# Gjør endringene dine
 # ...
 
 # Kjør tester for å sikre at endringene dine ikke bryter eksisterende funksjonalitet
 npm test
 
-# Committ endringene dine med en beskrivende melding
+# Commiter endringene dine med en beskrivende melding
 git commit -am "Fix validation in resource handler"
 
 # Push grenen din til din fork
 git push origin feature/my-contribution
 
-# Opprett en pull request fra din gren til hoveddepotet
-# Deretter engasjer deg med tilbakemeldinger og iterer på PR-en din etter behov
+# Opprett en pull request fra grenen din til hoveddepotet
+# Engasjer deg i tilbakemeldinger og iterer på PR-en din etter behov
 ```
 
-## Lage og dele MCP-servere
+## Lage og Dele MCP-servere
 
-En av de mest verdifulle måtene å bidra til MCP-økosystemet på er ved å lage og dele egne MCP-servere. Fellesskapet har allerede utviklet hundrevis av servere for ulike tjenester og bruksområder.
+En av de mest verdifulle måtene å bidra til MCP-økosystemet er ved å lage og dele egendefinerte MCP-servere. Fellesskapet har allerede utviklet hundrevis av servere for forskjellige tjenester og bruksområder.
 
-### MCP-serverutviklingsrammeverk
+### Rammeverk for MCP-serverutvikling
 
-Flere rammeverk finnes for å forenkle MCP-serverutvikling:
+Flere rammeverk finnes for å gjøre MCP-serverutvikling enklere:
 
 1. **Offisielle SDK-er** (i tråd med [MCP Spesifikasjon 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)):
    - [TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
@@ -359,13 +360,13 @@ Flere rammeverk finnes for å forenkle MCP-serverutvikling:
 
 2. **Fellesskapsrammeverk**:
    - [MCP-Framework](https://mcp-framework.com/) - Bygg MCP-servere med eleganse og fart i TypeScript
-   - [MCP Declarative Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - Annotationsdrevne MCP-servere med Java
+   - [MCP Deklarative Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - Annotasjonsdrevne MCP-servere med Java
    - [Quarkus MCP Server SDK](https://github.com/quarkiverse/quarkus-mcp-server) - Java-rammeverk for MCP-servere
-   - [Next.js MCP Server Template](https://github.com/vercel-labs/mcp-for-next.js) - Starter Next.js-prosjekt for MCP-servere
+   - [Next.js MCP Server Template](https://github.com/vercel-labs/mcp-for-next.js) - Startprosjekt for MCP-servere med Next.js
 
-### Utvikle delbare verktøy
+### Utvikling av Delbare Verktøy
 
-#### .NET-eksempel: Lage en delbar verktøypakke
+#### .NET Eksempel: Lage en Delbar Verktøypakke
 
 ```csharp
 // Create a new .NET library project
@@ -471,7 +472,7 @@ namespace McpFinanceTools
 // dotnet nuget push bin/Release/McpFinanceTools.1.0.0.nupkg -s https://api.nuget.org/v3/index.json -k YOUR_API_KEY
 ```
 
-#### Java-eksempel: Lage en Maven-pakke for verktøy
+#### Java Eksempel: Lage en Maven-pakke for Verktøy
 
 ```java
 // pom.xml-konfigurasjon for en delbar MCP-verktøypakke
@@ -559,7 +560,7 @@ public class WeatherForecastTool implements Tool {
     }
     
     private Map<String, Object> getForecast(String location, int days) {
-        // Implementering ville kalle vær-API
+        // Implementeringen vil kalle vær-API
         // Forenklet eksempel
         Map<String, Object> result = new HashMap<>();
         // Legg til værmeldingsdata...
@@ -567,12 +568,12 @@ public class WeatherForecastTool implements Tool {
     }
 }
 
-// Bygg og publiser med Maven
+// Bygg og publiser ved hjelp av Maven
 // mvn clean package
 // mvn deploy
 ```
 
-#### Python-eksempel: Publisere en PyPI-pakke
+#### Python Eksempel: Publisere en PyPI-pakke
 
 ```python
 # Katalogstruktur for en PyPI-pakke:
@@ -585,7 +586,7 @@ public class WeatherForecastTool implements Tool {
 # │   ├── sentiment_tool.py
 # │   └── translation_tool.py
 
-# Eksempel setup.py
+# Eksempel på setup.py
 """
 from setuptools import setup, find_packages
 
@@ -613,7 +614,7 @@ setup(
 )
 """
 
-# Eksempel på implementering av NLP-verktøy (sentiment_tool.py)
+# Eksempel på NLP-verktøyimplementering (sentiment_tool.py)
 from mcp_tools import Tool, ToolRequest, ToolResponse, ToolExecutionException
 from transformers import pipeline
 import torch
@@ -622,7 +623,7 @@ class SentimentAnalysisTool(Tool):
     """MCP tool for sentiment analysis of text"""
     
     def __init__(self, model_name="distilbert-base-uncased-finetuned-sst-2-english"):
-        # Last inn sentimentanalysemodellen
+        # Last inn modell for sentimentanalyse
         self.sentiment_analyzer = pipeline("sentiment-analysis", model=model_name)
     
     def get_name(self):
@@ -677,11 +678,11 @@ class SentimentAnalysisTool(Tool):
 # python -m twine upload dist/*
 ```
 
-### Deling av beste praksis
+### Dele Beste Praksis
 
 Når du deler MCP-verktøy med fellesskapet:
 
-1. **Fullstendig dokumentasjon**:
+1. **Fullstendig Dokumentasjon**:
    - Dokumenter formål, bruk og eksempler
    - Forklar parametere og returverdier
    - Dokumenter eventuelle eksterne avhengigheter
@@ -689,56 +690,56 @@ Når du deler MCP-verktøy med fellesskapet:
 2. **Feilhåndtering**:
    - Implementer robust feilhåndtering
    - Gi nyttige feilmeldinger
-   - Håndter kanttilfeller elegant
+   - Håndter grense-tilfeller elegant
 
-3. **Ytelsesbetraktninger**:
-   - Optimaliser både for hastighet og ressursbruk
-   - Implementer caching når det er passende
-   - Tenk på skalerbarhet
+3. **Ytelseshensyn**:
+   - Optimaliser for både hastighet og ressursbruk
+   - Implementer caching der det passer
+   - Vurder skalerbarhet
 
 4. **Sikkerhet**:
    - Bruk sikre API-nøkler og autentisering
-   - Valider og rens input
-   - Implementer rate limiting for eksterne API-kall
+   - Valider og rens inndata
+   - Implementer ratebegrensning for eksterne API-kall
 
 5. **Testing**:
    - Inkluder omfattende testdekning
-   - Test med ulike inputtyper og kanttilfeller
+   - Test med ulike inndata typar og grense-tilfeller
    - Dokumenter testprosedyrer
 
-## Fellesskapssamarbeid og beste praksis
+## Fellesskapssamarbeid og Beste Praksis
 
-Effektivt samarbeid er nøkkelen til et blomstrende MCP-økosystem.
+Effektiv samarbeid er nøkkelen til et blomstrende MCP-økosystem.
 
 ### Kommunikasjonskanaler
 
 - GitHub Issues og Diskusjoner
 - Microsoft Tech Community
 - Discord- og Slack-kanaler
-- Stack Overflow (tagg: `model-context-protocol` eller `mcp`)
+- Stack Overflow (tag: `model-context-protocol` eller `mcp`)
 
 ### Kodegjennomganger
 
-Ved gjennomgang av MCP-bidrag:
+Når du vurderer MCP-bidrag:
 
-1. **Klarhet**: Er koden klar og godt dokumentert?
-2. **Riktighet**: Fungerer den som forventet?
+1. **Klarhet**: Er koden tydelig og godt dokumentert?
+2. **Korrekthet**: Fungerer den som forventet?
 3. **Konsistens**: Følger den prosjektets konvensjoner?
 4. **Fullstendighet**: Er tester og dokumentasjon inkludert?
 5. **Sikkerhet**: Er det noen sikkerhetsbekymringer?
 
 ### Versjonskompatibilitet
 
-Ved utvikling for MCP:
+Når du utvikler for MCP:
 
 1. **Protokollversjonering**: Følg MCP-protokollversjonen verktøyet ditt støtter
 2. **Klientkompatibilitet**: Vurder bakoverkompatibilitet
-3. **Serverkompatibilitet**: Følg serverimplementasjonsretningslinjer
-4. **Bruddendringer**: Dokumenter tydelig eventuelle bruddendringer
+3. **Serverkompatibilitet**: Følg retningslinjer for serverimplementasjon
+4. **Brytende Endringer**: Dokumenter klart eventuelle brytende endringer
 
-## Eksempel på fellesskapsprosjekt: MCP-verktøyregister
+## Eksempel på Fellesskapsprosjekt: MCP Tool Registry
 
-En viktig fellesskapsbidrag kan være å utvikle et offentlig register for MCP-verktøy.
+Et viktig fellesskapsbidrag kan være å utvikle et offentlig register for MCP-verktøy.
 
 ```python
 # Eksempelskjema for et API for verktøyregister i fellesskapet
@@ -781,7 +782,7 @@ class Tool(ToolRegistration):
 # FastAPI-applikasjon for registeret
 app = FastAPI(title="MCP Tool Registry")
 
-# Minnebasert database for dette eksemplet
+# Hukommelsesdatabase for dette eksempelet
 tools_db = {}
 
 @app.post("/tools", response_model=Tool)
@@ -817,35 +818,35 @@ async def delete_tool(tool_name: str):
     return {"message": f"Tool '{tool_name}' deleted"}
 ```
 
-## Viktige punkter
+## Viktige Læringspunkt
 
-- MCP-fellesskapet er mangfoldig og ønsker ulike typer bidrag velkommen
-- Bidrag til MCP kan variere fra kjerneprotokollforbedringer til egendefinerte verktøy
-- Å følge retningslinjene for bidrag øker sjansen for at PR-en din blir akseptert
-- Å lage og dele MCP-verktøy er en verdifull måte å styrke økosystemet på
-- Fellesskapssamarbeid er essensielt for vekst og forbedring av MCP
+- MCP-fellesskapet er mangfoldig og ønsker forskjellige typer bidrag velkommen
+- Å bidra til MCP kan variere fra kjerneprotokollforbedringer til egendefinerte verktøy
+- Å følge bidragsretningslinjene øker sjansen for at PR-en din blir godkjent
+- Å lage og dele MCP-verktøy er en verdifull måte å forbedre økosystemet på
+- Samarbeid i fellesskapet er essensielt for MCPs vekst og forbedring
 
 ## Øvelse
 
-1. Identifiser et område i MCP-økosystemet hvor du kan bidra basert på dine ferdigheter og interesser
+1. Identifiser et område i MCP-økosystemet der du kan bidra basert på dine ferdigheter og interesser
 2. Fork MCP-repositoriet og sett opp et lokalt utviklingsmiljø
-3. Lag en liten forbedring, feilretting eller et verktøy som kan være til nytte for fellesskapet
-4. Dokumenter bidraget ditt med adekvate tester og dokumentasjon
-5. Send en pull request til det riktige repositoriet
+3. Lag en liten forbedring, feilretting eller verktøy som vil ha nytte for fellesskapet
+4. Dokumenter bidraget ditt med riktige tester og dokumentasjon
+5. Send inn en pull request til riktig repositorium
 
 ## Tilleggsressurser
 
-- [MCP Community Projects](https://github.com/topics/model-context-protocol)
+- [MCP Fellesskapsprosjekter](https://github.com/topics/model-context-protocol)
 
 ---
 
-## Hva nå
+## Hva Nå
 
-Neste: [Lessons from Early Adoption](../07-LessonsfromEarlyAdoption/README.md)
+Neste: [Leksjoner fra tidlig adopsjon](../07-LessonsfromEarlyAdoption/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Ansvarsfraskrivelse**:
-Dette dokumentet er oversatt ved bruk av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vennligst vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på dets originalspråk skal anses som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal betraktes som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,21 +1,23 @@
-# MCP Protokol Funktioner Dybt Dyk
+# MCP Protokolfunktioner Dybdegående
 
-Denne guide udforsker avancerede MCP protokol funktioner, der går ud over grundlæggende håndtering af værktøjer og ressourcer. Forståelse af disse funktioner hjælper dig med at bygge mere robuste, brugervenlige og produktionsklare MCP servere.
+Denne guide udforsker avancerede MCP protokolfunktioner, der går ud over grundlæggende håndtering af værktøjer og ressourcer. Forståelse af disse funktioner hjælper dig med at bygge mere robuste, brugervenlige og produktionsklare MCP servere.
+
+> **Fremadskuende:** `2026-07-28` releasekandidaten udfaser Logging-primitivet (favoriserer `stderr` til stdio og OpenTelemetry til struktureret observabilitet), fjerner `initialize`/sessionsmodellen nævnt under Serverens Livscyklus Events nedenfor og flytter den eksperimentelle Tasks-funktion til en dedikeret Tasks-udvidelse med en ny `tasks/get`/`tasks/update`/`tasks/cancel` livscyklus. Se [Hvad ændres i MCP: 2026-07-28 Releasekandidat](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Dækkede Funktioner
 
-1. **Fremdriftsmeddelelser** - Rapportér fremdrift for langvarige operationer  
-2. **Annullering af Forespørgsler** - Lad klienter annullere igangværende forespørgsler  
-3. **Ressource Skabeloner** - Dynamiske ressource-URI'er med parametre  
-4. **Server Livscyklus Begivenheder** - Korrekt initialisering og nedlukning  
-5. **Logningskontrol** - Server-side logningskonfiguration  
-6. **Fejlhåndteringsmønstre** - Konsistente fejlbeskeder  
+1. **Fremskridtsnotifikationer** - Rapportér fremskridt for langvarige operationer
+2. **Annullering af Anmodninger** - Tillad klienter at annullere igangværende anmodninger
+3. **Ressourcetemplater** - Dynamiske resource-URI’er med parametre
+4. **Server Livscyklus Events** - Korrekt initialisering og nedlukning
+5. **Logningskontrol** - Server-side logningskonfiguration
+6. **Mønstre for Fejlhåndtering** - Konsistente fejlsvar
 
 ---
 
-## 1. Fremdriftsmeddelelser
+## 1. Fremskridtsnotifikationer
 
-For operationer, der tager tid (databehandling, filoverførsler, API-opkald), holder fremdriftsmeddelelser brugerne informerede.
+For operationer, der tager tid (databehandling, filoverførsler, API-opkald), holder fremskridtsnotifikationer brugerne informerede.
 
 ### Sådan Fungerer Det
 
@@ -28,8 +30,9 @@ sequenceDiagram
     Server-->>Client: notifikation: fremgang 10%
     Server-->>Client: notifikation: fremgang 50%
     Server-->>Client: notifikation: fremgang 90%
-    Server->>Client: resultat (fuldført)
-```  
+    Server->>Client: resultat (færdig)
+```
+
 ### Python Implementering
 
 ```python
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Hent filstørrelse til fremskridtsberegning
+    # Hent filstørrelse til fremdriftsberegning
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Behandl stykke
+            # Behandl bid
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Send fremskridtsmeddelelse
+            # Send fremdriftsmeddelelse
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Rapportér fremskridt efter hver genstand
+        # Rapporter fremdrift efter hvert element
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -89,7 +92,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-  
+
 ### TypeScript Implementering
 
 ```typescript
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // Send fremdriftsmeddelelse
+      // Send statusmeddelelse
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -122,8 +125,8 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-  
-### Klient Håndtering (Python)
+
+### Klienthåndtering (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,18 +134,18 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Registrer handler
+# Registrer håndteringsfunktion
 session.on_notification("notifications/progress", handle_progress)
 
-# Kald værktøj (fremskridtsopdateringer vil ankomme via handler)
+# Kald værktøj (fremgangsopdateringer modtages via håndteringsfunktionen)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-  
+
 ---
 
-## 2. Annullering af Forespørgsler
+## 2. Annullering af Anmodninger
 
-Lad klienter annullere forespørgsler, der ikke længere er nødvendige eller tager for lang tid.
+Tillad klienter at annullere anmodninger, der ikke længere er nødvendige eller tager for lang tid.
 
 ### Python Implementering
 
@@ -165,7 +168,7 @@ async def long_running_search(query: str, ctx) -> str:
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Simuler sidesøgning
+            # Simuler side-søgning
             page_results = await search_page(query, page)
             results.extend(page_results)
             
@@ -197,7 +200,7 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-  
+
 ### Implementering af Annulleringskontekst
 
 ```python
@@ -233,8 +236,8 @@ class CancellableContext:
         except asyncio.TimeoutError:
             pass  # Normal timeout, fortsæt
 ```
-  
-### Klient-Side Annullering
+
+### Klientside Annullering
 
 ```python
 import asyncio
@@ -257,14 +260,14 @@ async def search_with_timeout(session, query, timeout=30):
         })
         return "Search timed out"
 ```
-  
+
 ---
 
-## 3. Ressource Skabeloner
+## 3. Ressourcetemplater
 
-Ressource skabeloner tillader dynamisk opbygning af URI'er med parametre, nyttigt for API'er og databaser.
+Ressourcetemplater tillader dynamisk konstruktion af URI’er med parametre, nyttigt til API’er og databaser.
 
-### Definere Skabeloner
+### Definering af Templater
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Parse URI'en for at udtrække parametre
+    # Analyser URI'en for at udtrække parametre
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -316,7 +319,7 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-  
+
 ### TypeScript Implementering
 
 ```typescript
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Parse GitHub problem URI
+  // Analyser GitHub-issue-URI
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -359,14 +362,14 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-  
+
 ---
 
-## 4. Server Livscyklus Begivenheder
+## 4. Server Livscyklus Events
 
-Korrekt håndtering af initialisering og nedlukning sikrer ren ressourcehåndtering.
+Korrekt håndtering af initialisering og nedlukning sikrer ren ressourceadministration.
 
-### Python Livscyklus Håndtering
+### Python Livscyklus Administration
 
 ```python
 from mcp.server import Server
@@ -391,7 +394,7 @@ async def lifespan(server: Server):
     
     yield  # Server kører her
     
-    # Nedlukning
+    # Lukning
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -405,7 +408,7 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-  
+
 ### TypeScript Livscyklus
 
 ```typescript
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Brug med ordentlig nedlukning
+// Brug med blid nedlukning
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -462,7 +465,7 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-  
+
 ---
 
 ## 5. Logningskontrol
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Kortlæg MCP-niveauer til Python logging-niveauer
+# Kortlæg MCP-niveauer til Python-logningsniveauer
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,7 +511,7 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-  
+
 ### Afsendelse af Logbeskeder til Klient
 
 ```python
@@ -516,7 +519,7 @@ async def debug_operation(data: str) -> str:
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Send lognotifikation til klient
+    # Send lognotifikation til klienten
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -532,10 +535,10 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-  
+
 ---
 
-## 6. Fejlhåndteringsmønstre
+## 6. Mønstre for Fejlhåndtering
 
 Konsistent fejlhåndtering forbedrer fejlfinding og brugeroplevelse.
 
@@ -568,7 +571,7 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-  
+
 ### Strukturerede Fejlsvar
 
 ```python
@@ -576,7 +579,7 @@ class InternalError(ToolError):
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Valider input
+    # Validér input
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -584,7 +587,7 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # Tjek tilladelser
+        # Kontroller tilladelser
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
@@ -605,7 +608,7 @@ async def safe_operation(input: str) -> str:
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-  
+
 ### Fejlhåndtering i TypeScript
 
 ```typescript
@@ -650,25 +653,25 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-  
+
 ---
 
 ## Eksperimentelle Funktioner (MCP 2025-11-25)
 
 Disse funktioner er markeret som eksperimentelle i specifikationen:
 
-### Opgaver (Langvarige Operationer)
+### Tasks (Langvarige operationer)
 
 ```python
-# Opgaver tillader sporing af langvarige operationer med tilstand
+# Opgaver tillader sporing af langvarige processer med tilstand
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Rapporter opgave startet
+    # Rapportér opgave startede
     await ctx.report_status("running", "Initializing training...")
     
-    # Træningsloop
+    # Træningssløjfe
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -681,11 +684,11 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-  
-### Værktøjsannotationer
+
+### Værktøjsannoteringer
 
 ```python
-# Annotationer giver metadata om værktøjets opførsel
+# Annotationer giver metadata om værktøjets adfærd
 @app.tool(
     annotations={
         "destructive": False,      # Ændrer ikke data
@@ -698,27 +701,27 @@ async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-  
+
 ---
 
-## Hvad Kommer Nu
+## Hvad Kommer Næste
 
-- [Modul 8 - Bedste Praksis](../../08-BestPractices/README.md)  
-- [5.14 - Kontekst Engineering](../mcp-contextengineering/README.md)  
-- [MCP Specifikationsændringer](https://spec.modelcontextprotocol.io/)  
+- [Modul 8 - Best Practices](../../08-BestPractices/README.md)
+- [5.14 - Context Engineering](../mcp-contextengineering/README.md)
+- [MCP Specifikationsændringer](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Yderligere Ressourcer
 
-- [MCP Specifikation 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [JSON-RPC 2.0 Fejlkoder](https://www.jsonrpc.org/specification#error_object)  
-- [Python SDK Eksempler](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [MCP Specifikation 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 Fejlkoder](https://www.jsonrpc.org/specification#error_object)
+- [Python SDK Eksempler](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [TypeScript SDK Eksempler](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Ansvarsfraskrivelse**:
-Dette dokument er oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, skal du være opmærksom på, at automatiske oversættelser kan indeholde fejl eller unøjagtigheder. Det oprindelige dokument på dets modersmål skal betragtes som den autoritative kilde. For vigtig information anbefales professionel menneskelig oversættelse. Vi påtager os intet ansvar for misforståelser eller fejltolkninger, der opstår som følge af brugen af denne oversættelse.
+Dette dokument er blevet oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, skal du være opmærksom på, at automatiserede oversættelser kan indeholde fejl eller unøjagtigheder. Det originale dokument på dets oprindelige sprog bør betragtes som den autoritative kilde. For kritisk information anbefales professionel menneskelig oversættelse. Vi påtager os intet ansvar for misforståelser eller fejltolkninger, der opstår som følge af brugen af denne oversættelse.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

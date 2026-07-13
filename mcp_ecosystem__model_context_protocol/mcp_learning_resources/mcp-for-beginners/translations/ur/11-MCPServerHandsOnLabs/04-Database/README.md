@@ -1,31 +1,31 @@
 # ڈیٹا بیس ڈیزائن اور اسکیمہ
 
-## 🎯 اس لیب میں کیا شامل ہے
+## 🎯 اس لیب میں کیا سکھایا جائے گا
 
-یہ لیب Zava Retail سسٹم کے لیے PostgreSQL ڈیٹا بیس ڈیزائن پر تفصیل سے روشنی ڈالتی ہے۔ آپ ایک جامع ریٹیل اسکیمہ کو ویکٹر سرچ کی صلاحیتوں، ملٹی ٹیننٹ ڈیٹا ماڈلنگ، اور ڈیٹا آئسولیشن کے لیے Row Level Security (RLS) کے ساتھ نافذ کرنا سیکھیں گے۔
+یہ لیب زاوہ ریٹیل سسٹم کے لئے پوسٹگرSQL ڈیٹا بیس ڈیزائن میں گہرائی سے جھانکتی ہے۔ آپ ایک جامع ریٹیل اسکیمہ بنانے کا طریقہ سیکھیں گے جس میں ویکٹر سرچ کی صلاحیتیں، کثیر کرایہ دار ڈیٹا ماڈلنگ، اور ڈیٹا علیحدگی کے لیے رو لیول سیکیورٹی (RLS) شامل ہیں۔
 
 ## جائزہ
 
-ڈیٹا بیس ہمارے MCP سرور کی بنیاد ہے، جو متعدد اسٹورز کے ریٹیل ڈیٹا کو محفوظ کرتا ہے اور سخت ڈیٹا آئسولیشن کو برقرار رکھتا ہے۔ ہم PostgreSQL کو pgvector ایکسٹینشن کے ساتھ استعمال کرتے ہیں تاکہ سیمینٹک سرچ کی صلاحیتیں فراہم کی جا سکیں، جس سے صارفین قدرتی زبان کے سوالات کے ذریعے مصنوعات تلاش کر سکیں۔
+ڈیٹا بیس ہمارے MCP سرور کی بنیاد ہے، جو متعدد اسٹورز میں ریٹیل ڈیٹا کو ذخیرہ کرتا ہے جبکہ سخت ڈیٹا علیحدگی کو برقرار رکھتا ہے۔ ہم پوسٹگرSQL کو pgvector ایکسٹینشن کے ساتھ استعمال کرتے ہیں تاکہ معنوی تلاش کی صلاحیتوں کو فعال کیا جا سکے، جس سے صارفین قدرتی زبان کی تلاش کے ذریعے مصنوعات تلاش کر سکتے ہیں۔
 
-ہمارا اسکیمہ جدید ملٹی ٹیننٹ پیٹرنز کی پیروی کرتا ہے، جس میں Row Level Security یہ یقینی بناتی ہے کہ صارفین صرف اپنے مجاز اسٹورز کے ڈیٹا تک رسائی حاصل کر سکیں۔ یہ طریقہ کار انٹرپرائز گریڈ سیکیورٹی فراہم کرتا ہے جبکہ بہترین کارکردگی کو برقرار رکھتا ہے۔
+ہمارا اسکیمہ جدید کثیر کرایہ دار نمونوں کی پیروی کرتا ہے جس میں رو لیول سیکیورٹی یقینی بناتی ہے کہ صارفین صرف اپنے مجاز اسٹورز کا ڈیٹا تک رسائی حاصل کر سکیں۔ یہ طریقہ کار انٹرپرائز گریڈ سیکیورٹی فراہم کرتا ہے جبکہ بہترین کارکردگی کو برقرار رکھتا ہے۔
 
 ## سیکھنے کے مقاصد
 
-اس لیب کے اختتام تک، آپ یہ کرنے کے قابل ہوں گے:
+اس لیب کے اختتام تک، آپ قابل ہوں گے:
 
-- **ڈیزائن**: قابل توسیع ملٹی ٹیننٹ ریٹیل ڈیٹا بیس اسکیمہ  
-- **نافذ کریں**: PostgreSQL کو pgvector کے ساتھ ویکٹر سرچ کے لیے  
-- **تشکیل دیں**: Row Level Security ڈیٹا آئسولیشن کے لیے  
-- **پیدا کریں**: ٹیسٹنگ کے لیے حقیقت پسندانہ نمونہ ڈیٹا  
-- **بہتر بنائیں**: ریٹیل ورک لوڈز کے لیے ڈیٹا بیس کی کارکردگی  
-- **نافذ کریں**: بیک اپ اور ریکوری کی حکمت عملی  
+- **ڈیزائن** کرنے کے لئے اسکیل ایبل کثیر کرایہ دار ریٹیل ڈیٹا بیس اسکیمے
+- **عمل درآمد** کرنے کے لئے پوسٹگرSQL کو pgvector کے ساتھ ویکٹر سرچ کے لیے
+- **ترتیب دینے** کے لئے رو لیول سیکیورٹی ڈیٹا علیحدگی کے لیے
+- **تیار کرنے** کے لئے حقیقی نمونے کے ڈیٹا کا ٹیسٹنگ کے لیے
+- **بہتر بنانے** کے لئے ڈیٹا بیس کی کارکردگی ریٹیل ورک لوڈز کے لیے
+- **عمل درآمد** کو بیک اپ اور بازیابی کی حکمت عملیوں کے لیے
 
-## 🗃️ ڈیٹا بیس آرکیٹیکچر
+## 🗃️ ڈیٹا بیس کا ڈھانچہ
 
-### PostgreSQL اور pgvector
+### پوسٹگرSQL اور pgvector کے ساتھ
 
-ہمارا ڈیٹا بیس PostgreSQL کی انٹرپرائز خصوصیات کو pgvector ایکسٹینشن کے ساتھ AI پاورڈ سرچ کے لیے استعمال کرتا ہے:
+ہمارا ڈیٹا بیس پوسٹگرSQL کی انٹرپرائز خصوصیات کو pgvector ایکسٹینشن کے ساتھ استعمال کرتا ہے جو AI سے چلنے والی تلاش کو فعال بناتی ہے:
 
 ```sql
 -- Enable required extensions
@@ -37,10 +37,9 @@ CREATE EXTENSION IF NOT EXISTS "vector";
 SELECT * FROM pg_extension WHERE extname = 'vector';
 ```
 
+### کثیر کرایہ دار ڈھانچہ
 
-### ملٹی ٹیننٹ آرکیٹیکچر
-
-ڈیٹا بیس **شیئرڈ ڈیٹا بیس، شیئرڈ اسکیمہ** ملٹی ٹیننسی ماڈل کو Row Level Security کے ساتھ استعمال کرتا ہے:
+ڈیٹا بیس ایک **مشترکہ ڈیٹا بیس، مشترکہ اسکیمہ** کثیر کرایہ داری ماڈل استعمال کرتا ہے جس میں رو لیول سیکیورٹی شامل ہے:
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -56,10 +55,9 @@ SELECT * FROM pg_extension WHERE extname = 'vector';
 └─────────────────────────────────────────────────┘
 ```
 
-
 ## 📊 بنیادی اسکیمہ ڈیزائن
 
-### اسٹورز ٹیبل (ٹیننٹ ماسٹر)
+### اسٹورز کی ٹیبل (کرایہ دار ماسٹر)
 
 ```sql
 -- Stores table: Master tenant registry
@@ -86,8 +84,7 @@ CREATE INDEX idx_stores_region ON retail.stores(region);
 CREATE INDEX idx_stores_active ON retail.stores(is_active) WHERE is_active = TRUE;
 ```
 
-
-### کسٹمرز ٹیبل
+### کسٹمرز کی ٹیبل
 
 ```sql
 -- Customers table with RLS
@@ -123,8 +120,7 @@ CREATE INDEX idx_customers_loyalty_tier ON retail.customers(loyalty_tier);
 CREATE INDEX idx_customers_created_at ON retail.customers(created_at);
 ```
 
-
-### پروڈکٹس ٹیبل اور کیٹیگریز
+### مصنوعات کی ٹیبل کے ساتھ کیٹیگریز
 
 ```sql
 -- Product categories
@@ -206,7 +202,6 @@ CREATE INDEX idx_products_text_search ON retail.products USING GIN(
 );
 ```
 
-
 ### سیلز ٹرانزیکشنز
 
 ```sql
@@ -282,10 +277,9 @@ CREATE INDEX idx_sales_transaction_items_transaction_id ON retail.sales_transact
 CREATE INDEX idx_sales_transaction_items_product_id ON retail.sales_transaction_items(product_id);
 ```
 
+## 🔍 ویکٹر سرچ کی عمل آوری
 
-## 🔍 ویکٹر سرچ کا نفاذ
-
-### پروڈکٹ ایمبیڈنگز ٹیبل
+### مصنوعات ایمبیڈنگز کی ٹیبل
 
 ```sql
 -- Product embeddings for semantic search
@@ -321,7 +315,6 @@ CREATE INDEX idx_product_embeddings_product_id ON retail.product_embeddings(prod
 CREATE INDEX idx_product_embeddings_store_id ON retail.product_embeddings(store_id);
 CREATE INDEX idx_product_embeddings_model ON retail.product_embeddings(embedding_model);
 ```
-
 
 ### ویکٹر سرچ فنکشنز
 
@@ -367,10 +360,9 @@ $$;
 GRANT EXECUTE ON FUNCTION retail.search_products_by_similarity TO mcp_user;
 ```
 
+## 🔐 رو لیول سیکیورٹی کی ترتیب
 
-## 🔐 Row Level Security کی ترتیب
-
-### ڈیٹا بیس رولز اور اجازتیں
+### ڈیٹا بیس کے کردار اور اجازتیں
 
 ```sql
 -- Create MCP application role
@@ -422,7 +414,6 @@ $$;
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION retail.set_store_context TO mcp_user;
 ```
-
 
 ### آڈٹ لاگنگ
 
@@ -518,8 +509,7 @@ CREATE TRIGGER sales_transactions_audit_trigger
     FOR EACH ROW EXECUTE FUNCTION retail.audit_trigger();
 ```
 
-
-## 📊 نمونہ ڈیٹا کی تخلیق
+## 📊 نمونہ ڈیٹا کی تیاری
 
 ### حقیقت پسندانہ ٹیسٹ ڈیٹا اسکرپٹ
 
@@ -546,7 +536,7 @@ class SampleDataGenerator:
         self.connection_string = connection_string
         self.stores = ['seattle', 'redmond', 'bellevue', 'online']
         
-        # Product categories with realistic items
+        # مصنوعات کے زمرے حقیقت پسندانہ اشیاء کے ساتھ
         self.product_data = {
             'Electronics': {
                 'brands': ['Apple', 'Samsung', 'Sony', 'LG', 'HP', 'Dell'],
@@ -649,7 +639,7 @@ class SampleDataGenerator:
     async def _generate_products(self, conn, count: int) -> List[Dict]:
         """Generate realistic product data."""
         
-        # Get category IDs
+        # زمرے کے آئی ڈی حاصل کریں
         categories = await conn.fetch("SELECT category_id, category_name FROM retail.product_categories")
         category_map = {cat['category_name']: cat['category_id'] for cat in categories}
         
@@ -666,9 +656,9 @@ class SampleDataGenerator:
             brand = random.choice(self.product_data[category_name]['brands'])
             item_type = random.choice(self.product_data[category_name]['items'])
             
-            # Generate realistic pricing
+            # حقیقت پسندانہ قیمتیں تیار کریں
             base_price = random.uniform(10, 1000)
-            cost = base_price * random.uniform(0.4, 0.7)  # 40-70% cost margin
+            cost = base_price * random.uniform(0.4, 0.7)  # 40-70٪ لاگت کا مارجن
             
             product_data = {
                 'store_id': store_id,
@@ -715,14 +705,14 @@ class SampleDataGenerator:
         """Generate realistic sales transaction data."""
         
         for _ in range(count):
-            # Select customer and matching store products
+            # گاہک اور مطابقت پذیر اسٹور مصنوعات منتخب کریں
             customer = random.choice(customers)
             store_products = [p for p in products if p['store_id'] == customer['store_id']]
             
             if not store_products:
                 continue
             
-            # Generate transaction basics
+            # لین دین کی بنیادی معلومات تیار کریں
             transaction_date = fake.date_time_between(start_date='-1y', end_date='now')
             transaction_type = random.choices(
                 ['sale', 'return', 'exchange'],
@@ -734,7 +724,7 @@ class SampleDataGenerator:
                 weights=[45, 25, 20, 10]
             )[0]
             
-            # Generate transaction items (1-5 items per transaction)
+            # لین دین کی اشیاء تیار کریں (فی لین دین 1-5 اشیاء)
             num_items = random.choices([1, 2, 3, 4, 5], weights=[40, 30, 20, 7, 3])[0]
             selected_products = random.sample(store_products, min(num_items, len(store_products)))
             
@@ -745,9 +735,9 @@ class SampleDataGenerator:
                 quantity = random.randint(1, 3)
                 unit_price = product['price']
                 
-                # Apply random discounts occasionally
+                # کبھی کبھار تصادفی چھوٹ لاگو کریں
                 discount_amount = 0
-                if random.random() < 0.2:  # 20% chance of discount
+                if random.random() < 0.2:  # 20٪ چھوٹ کا امکان
                     discount_amount = unit_price * quantity * random.uniform(0.05, 0.25)
                 
                 total_price = (unit_price * quantity) - discount_amount
@@ -761,12 +751,12 @@ class SampleDataGenerator:
                     'discount_amount': discount_amount
                 })
             
-            # Calculate totals
+            # کل حساب کریں
             discount_amount = sum(item['discount_amount'] for item in transaction_items)
-            tax_amount = subtotal * 0.08  # 8% tax rate
+            tax_amount = subtotal * 0.08  # 8٪ ٹیکس کی شرح
             total_amount = subtotal + tax_amount
             
-            # Insert transaction
+            # لین دین داخل کریں
             transaction_id = await conn.fetchval("""
                 INSERT INTO retail.sales_transactions (
                     store_id, customer_id, transaction_date, transaction_type,
@@ -781,7 +771,7 @@ class SampleDataGenerator:
                 f"REG{random.randint(1, 5)}", f"RCP{fake.random_number(digits=8)}"
             )
             
-            # Insert transaction items
+            # لین دین کی اشیاء داخل کریں
             for item in transaction_items:
                 await conn.execute("""
                     INSERT INTO retail.sales_transaction_items (
@@ -793,7 +783,7 @@ class SampleDataGenerator:
                     item['unit_price'], item['total_price'], item['discount_amount']
                 )
 
-# Usage example
+# استعمال کی مثال
 if __name__ == "__main__":
     import os
     from config import Config
@@ -804,10 +794,9 @@ if __name__ == "__main__":
     asyncio.run(generator.generate_all_data())
 ```
 
-
 ## 🚀 کارکردگی کی بہتری
 
-### ڈیٹا بیس کی تشکیل
+### ڈیٹا بیس کی ترتیب
 
 ```sql
 -- Performance-oriented PostgreSQL settings
@@ -839,8 +828,7 @@ log_disconnections = on
 log_line_prefix = '%t [%p-%l] %q%u@%d '
 ```
 
-
-### کوئری آپٹیمائزیشن ویوز
+### سوال کی اصلاح کے مناظر
 
 ```sql
 -- Create monitoring views for query performance
@@ -888,7 +876,6 @@ WHERE schemaname = 'retail'
 ORDER BY idx_tup_read DESC;
 ```
 
-
 ### خودکار دیکھ بھال
 
 ```sql
@@ -933,20 +920,19 @@ $$;
 -- Example cron entry: 0 2 * * 0 psql -d retail_db -c "SELECT retail.perform_maintenance();"
 ```
 
+## 💾 بیک اپ اور بازیابی
 
-## 💾 بیک اپ اور ریکوری
-
-### بیک اپ کی حکمت عملی
+### بیک اپ حکمت عملی
 
 ```bash
 #!/bin/bash
 # scripts/backup_database.sh
 
-# Comprehensive backup script for production environments
+# پروڈکشن ماحول کے لیے جامع بیک اپ اسکرپٹ
 
 set -e
 
-# Configuration
+# ترتیب
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 DB_NAME="${POSTGRES_DB:-retail_db}"
@@ -954,17 +940,17 @@ DB_USER="${POSTGRES_USER:-postgres}"
 BACKUP_DIR="/backups/postgresql"
 RETENTION_DAYS=30
 
-# Create backup directory
+# بیک اپ ڈائریکٹری بنائیں
 mkdir -p "$BACKUP_DIR"
 
-# Generate backup filename with timestamp
+# وقت کے نشان کے ساتھ بیک اپ فائل کا نام بنائیں
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/retail_backup_$TIMESTAMP.sql"
 COMPRESSED_BACKUP="$BACKUP_FILE.gz"
 
 echo "Starting database backup: $TIMESTAMP"
 
-# Create comprehensive backup
+# جامع بیک اپ بنائیں
 pg_dump \
     --host="$DB_HOST" \
     --port="$DB_PORT" \
@@ -977,17 +963,17 @@ pg_dump \
     --format=custom \
     --file="$BACKUP_FILE"
 
-# Compress backup
+# بیک اپ کو کمپریس کریں
 gzip "$BACKUP_FILE"
 
-# Verify backup integrity
+# بیک اپ کی سالمیت کی تصدیق کریں
 echo "Verifying backup integrity..."
 pg_restore --list "$COMPRESSED_BACKUP" > /dev/null
 
-# Clean up old backups
+# پرانے بیک اپ صاف کریں
 find "$BACKUP_DIR" -name "retail_backup_*.sql.gz" -mtime +$RETENTION_DAYS -delete
 
-# Calculate backup size
+# بیک اپ کا حجم معلوم کریں
 BACKUP_SIZE=$(du -h "$COMPRESSED_BACKUP" | cut -f1)
 
 echo "Backup completed successfully:"
@@ -995,7 +981,7 @@ echo "  File: $COMPRESSED_BACKUP"
 echo "  Size: $BACKUP_SIZE"
 echo "  Timestamp: $TIMESTAMP"
 
-# Optional: Upload to cloud storage
+# اختیاری: کلاؤڈ اسٹوریج پر اپ لوڈ کریں
 if [ -n "$AZURE_STORAGE_ACCOUNT" ] && [ -n "$AZURE_STORAGE_KEY" ]; then
     echo "Uploading backup to Azure Storage..."
     az storage blob upload \
@@ -1007,14 +993,13 @@ if [ -n "$AZURE_STORAGE_ACCOUNT" ] && [ -n "$AZURE_STORAGE_KEY" ]; then
 fi
 ```
 
-
-### ریکوری کے طریقہ کار
+### بازیابی کے طریقہ کار
 
 ```bash
 #!/bin/bash
 # scripts/restore_database.sh
 
-# Database restoration script
+# ڈیٹا بیس بحالی کا سکرپٹ
 
 set -e
 
@@ -1027,7 +1012,7 @@ fi
 BACKUP_FILE="$1"
 TARGET_DB="${2:-retail_db_restored}"
 
-# Configuration
+# ترتیب
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 DB_USER="${POSTGRES_USER:-postgres}"
@@ -1036,13 +1021,13 @@ echo "Starting database restoration..."
 echo "  Source: $BACKUP_FILE"
 echo "  Target: $TARGET_DB"
 
-# Verify backup file exists
+# بیک اپ فائل موجود ہے اس کی تصدیق کریں
 if [ ! -f "$BACKUP_FILE" ]; then
     echo "Error: Backup file not found: $BACKUP_FILE"
     exit 1
 fi
 
-# Create target database
+# ہدف ڈیٹا بیس بنائیں
 createdb \
     --host="$DB_HOST" \
     --port="$DB_PORT" \
@@ -1050,9 +1035,9 @@ createdb \
     --owner="$DB_USER" \
     "$TARGET_DB"
 
-# Restore from backup
+# بیک اپ سے بحال کریں
 if [[ "$BACKUP_FILE" == *.gz ]]; then
-    # Compressed backup
+    # کمپریس شدہ بیک اپ
     gunzip -c "$BACKUP_FILE" | pg_restore \
         --host="$DB_HOST" \
         --port="$DB_PORT" \
@@ -1062,7 +1047,7 @@ if [[ "$BACKUP_FILE" == *.gz ]]; then
         --clean \
         --if-exists
 else
-    # Uncompressed backup
+    # غیر کمپریس شدہ بیک اپ
     pg_restore \
         --host="$DB_HOST" \
         --port="$DB_PORT" \
@@ -1077,7 +1062,7 @@ fi
 echo "Database restoration completed successfully!"
 echo "Restored database: $TARGET_DB"
 
-# Verify restoration
+# بحالی کی تصدیق کریں
 echo "Verifying restoration..."
 TABLES_COUNT=$(psql \
     --host="$DB_HOST" \
@@ -1091,50 +1076,51 @@ TABLES_COUNT=$(psql \
 echo "Verified $TABLES_COUNT tables in retail schema"
 ```
 
-
 ## 🎯 اہم نکات
 
-اس لیب کو مکمل کرنے کے بعد، آپ کے پاس یہ ہونا چاہیے:
+اس لیب کو مکمل کرنے کے بعد، آپ کے پاس ہوگا:
 
-✅ **ملٹی ٹیننٹ ڈیٹا بیس ڈیزائن**: محفوظ ڈیٹا آئسولیشن کے لیے Row Level Security نافذ کیا  
-✅ **ویکٹر سرچ کی صلاحیتیں**: سیمینٹک پروڈکٹ سرچ کے لیے pgvector تشکیل دیا  
-✅ **جامع اسکیمہ**: پروڈکشن کے لیے تیار ریٹیل ڈیٹا بیس اسکیمہ تخلیق کیا  
-✅ **نمونہ ڈیٹا کی تخلیق**: ترقی اور ٹیسٹنگ کے لیے حقیقت پسندانہ ٹیسٹ ڈیٹا بنایا  
-✅ **کارکردگی کی بہتری**: انڈیکسز اور کوئری آپٹیمائزیشن تشکیل دی  
-✅ **بیک اپ اور ریکوری**: مضبوط ڈیٹا تحفظ کی حکمت عملی قائم کی  
+✅ **کثیر کرایہ دار ڈیٹا بیس ڈیزائن**: محفوظ ڈیٹا علیحدگی کے لیے رو لیول سیکیورٹی کا نفاذ  
+✅ **ویکٹر سرچ کی صلاحیتیں**: معنوی مصنوعات تلاش کے لیے pgvector کی ترتیب  
+✅ **جامع اسکیمہ**: پیداواری معیار کا ریٹیل ڈیٹا بیس اسکیمہ تیار کیا  
+✅ **نمونہ ڈیٹا کی تیاری**: ترقی اور جانچ کے لیے حقیقت پسندانہ ٹیسٹ ڈیٹا تیار کیا  
+✅ **کارکردگی کی بہتری**: انڈیکسز اور سوال کی اصلاح کو ترتیب دیا  
+✅ **بیک اپ اور بازیابی**: مضبوط ڈیٹا تحفظ کی حکمت عملی قائم کی  
 
-## 🚀 آگے کیا ہے
+## 🚀 اگلا کیا ہے
 
-**[Lab 05: MCP Server Implementation](../05-MCP-Server/README.md)** کے ساتھ جاری رکھیں:
+جاری رکھیں **[Lab 05: MCP Server Implementation](../05-MCP-Server/README.md)** کے ساتھ تاکہ:
 
-- وہ FastMCP سرور بنائیں جو اس ڈیٹا بیس سے جڑتا ہے  
-- MCP پروٹوکول کے لیے ڈیٹا بیس کوئری ٹولز نافذ کریں  
-- ایمبیڈنگز کا استعمال کرتے ہوئے سیمینٹک سرچ کی صلاحیتیں شامل کریں  
-- کنکشن پولنگ اور ایرر ہینڈلنگ کو تشکیل دیں  
+- FastMCP سرور بنائیں جو اس ڈیٹا بیس سے جڑتا ہے
+- MCP پروٹوکول کے لیے ڈیٹا بیس سوال کے اوزار نافذ کریں
+- ایمبیڈنگز کا استعمال کرتے ہوئے معنوی تلاش کی صلاحیتیں شامل کریں
+- کنکشن پولنگ اور غلطی کی ہینڈلنگ کی ترتیب دیں
 
 ## 📚 اضافی وسائل
 
-### PostgreSQL اور pgvector
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/) - مکمل PostgreSQL حوالہ  
-- [pgvector Extension](https://github.com/pgvector/pgvector) - PostgreSQL کے لیے ویکٹر مماثلت سرچ  
-- [PostgreSQL Performance Tuning](https://wiki.postgresql.org/wiki/Performance_Optimization) - آپٹیمائزیشن کے بہترین طریقے  
+### پوسٹگرSQL اور pgvector
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/) - پوسٹگرSQL کی مکمل حوالہ جات
+- [pgvector Extension](https://github.com/pgvector/pgvector) - پوسٹگرSQL کے لیے ویکٹر مماثلت تلاش
+- [PostgreSQL Performance Tuning](https://wiki.postgresql.org/wiki/Performance_Optimization) - اصلاح کی بہترین عملی طریقے
 
-### ملٹی ٹیننٹ آرکیٹیکچر
-- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS دستاویزات  
-- [Multi-Tenant Data Architecture](https://docs.microsoft.com/azure/architecture/patterns/multitenancy) - Azure آرکیٹیکچر پیٹرنز  
-- [Database Security Best Practices](https://www.postgresql.org/docs/current/security.html) - PostgreSQL سیکیورٹی گائیڈ  
+### کثیر کرایہ دار ڈھانچہ
+- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - پوسٹگرSQL RLS دستاویزات
+- [Multi-Tenant Data Architecture](https://docs.microsoft.com/azure/architecture/patterns/multitenancy) - Azure کی طرزوں کا خاکہ
+- [Database Security Best Practices](https://www.postgresql.org/docs/current/security.html) - پوسٹگرSQL سیکیورٹی رہنما
 
 ### ویکٹر ڈیٹا بیسز
-- [Vector Search Fundamentals](https://www.pinecone.io/learn/vector-database/) - ویکٹر ڈیٹا بیسز کو سمجھنا  
-- [Embedding Models](https://platform.openai.com/docs/guides/embeddings) - OpenAI ایمبیڈنگز دستاویزات  
-- [HNSW Algorithm](https://arxiv.org/abs/1603.09320) - Hierarchical Navigable Small World گراف  
+- [Vector Search Fundamentals](https://www.pinecone.io/learn/vector-database/) - ویکٹر ڈیٹا بیسز کی تفہیم
+- [Embedding Models](https://platform.openai.com/docs/guides/embeddings) - OpenAI ایمبیڈنگز کی دستاویزات
+- [HNSW Algorithm](https://arxiv.org/abs/1603.09320) - ہیرارکی نیویگیبل سمال ورلڈ گرافز
 
 ---
 
 **پچھلا**: [Lab 03: Environment Setup](../03-Setup/README.md)  
-**اگلا**: [Lab 05: MCP Server Implementation](../05-MCP-Server/README.md)  
+**اگلا**: [Lab 05: MCP Server Implementation](../05-MCP-Server/README.md)
 
 ---
 
-**ڈسکلیمر**:  
-یہ دستاویز AI ترجمہ سروس [Co-op Translator](https://github.com/Azure/co-op-translator) کا استعمال کرتے ہوئے ترجمہ کی گئی ہے۔ ہم درستگی کے لیے کوشش کرتے ہیں، لیکن براہ کرم آگاہ رہیں کہ خودکار ترجمے میں غلطیاں یا غیر درستیاں ہو سکتی ہیں۔ اصل دستاویز کو اس کی اصل زبان میں مستند ذریعہ سمجھا جانا چاہیے۔ اہم معلومات کے لیے، پیشہ ور انسانی ترجمہ کی سفارش کی جاتی ہے۔ ہم اس ترجمے کے استعمال سے پیدا ہونے والی کسی بھی غلط فہمی یا غلط تشریح کے ذمہ دار نہیں ہیں۔
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ڈس کلیمر**:
+یہ دستاویز AI ترجمہ سروس [Co-op Translator](https://github.com/Azure/co-op-translator) کے ذریعے ترجمہ کی گئی ہے۔ جبکہ ہم درستگی کے لیے کوشاں ہیں، براہ کرم اس بات سے آگاہ رہیں کہ خودکار ترجمے میں غلطیاں یا عدم درستیاں ہو سکتی ہیں۔ اصل دستاویز اپنے مادری زبان میں مستند ماخذ سمجھی جائے گی۔ حساس معلومات کے لیے پیشہ ور انسانی ترجمہ کی سفارش کی جاتی ہے۔ اس ترجمے کے استعمال سے پیدا ہونے والی کسی بھی غلط فہمی یا غلط تشریح کی ذمہ داری ہم قبول نہیں کرتے۔
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

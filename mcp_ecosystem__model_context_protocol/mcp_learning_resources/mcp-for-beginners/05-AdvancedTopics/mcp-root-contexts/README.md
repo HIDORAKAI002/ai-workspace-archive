@@ -1,4 +1,8 @@
+> [DEPRECATED: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # MCP Root Contexts
+
+> **Deprecation notice:** the `2026-07-28` MCP specification release candidate marks Roots as deprecated in favor of tool parameters, resource URIs, or server configuration. Roots continue to work in `2025-11-25` and for at least a year after any formal deprecation, so everything in this lesson remains valid - but new server designs should evaluate the replacement pattern. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 Root contexts are a fundamental concept in the Model Context Protocol that provide a persistent layer for maintaining conversation history and shared state across multiple requests and sessions.
 

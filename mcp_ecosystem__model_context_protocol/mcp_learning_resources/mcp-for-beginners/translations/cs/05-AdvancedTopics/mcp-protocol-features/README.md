@@ -1,21 +1,23 @@
-# Hloubkový přehled funkcí protokolu MCP
+# Detailní průzkum funkcí protokolu MCP
 
-Tato příručka zkoumá pokročilé funkce protokolu MCP, které přesahují základní práci s nástroji a zdroji. Pochopení těchto funkcí vám pomůže vytvořit robustnější, uživatelsky přívětivější a do produkce vhodné servery MCP.
+Tento průvodce zkoumá pokročilé funkce protokolu MCP, které přesahují základní manipulaci s nástroji a zdroji. Pochopení těchto funkcí vám pomůže vytvořit robustnější, uživatelsky přívětivější a produkčně připravené MCP servery.
+
+> **Výhled do budoucna:** kandidátská verze vydání `2026-07-28` odstraňuje primitivum Logging (upřednostňuje `stderr` pro stdio a OpenTelemetry pro strukturovanou observabilitu), odstraňuje model `initialize`/session zmíněný níže u Server Lifecycle Events a přesouvá experimentální funkci Tasks do samostatného rozšíření Tasks s novým životním cyklem `tasks/get`/`tasks/update`/`tasks/cancel`. Viz [Co se mění v MCP: Kandidátská verze vydání 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Pokryté funkce
 
-1. **Oznámení o průběhu** - Hlásit pokrok u dlouhotrvajících operací  
-2. **Zrušení požadavku** - Umožnit klientům zrušit probíhající požadavky  
-3. **Šablony zdrojů** - Dynamické URI zdrojů s parametry  
-4. **Životní cyklus serveru** - Správná inicializace a ukončení  
-5. **Řízení logování** - Konfigurace serverového logování  
-6. **Vzorové zpracování chyb** - Konzistentní odpovědi na chyby  
+1. **Oznámení o průběhu** - hlášení pokroku u dlouhotrvajících operací
+2. **Zrušení požadavků** - umožnění klientům zrušit probíhající požadavky
+3. **Šablony zdrojů** - dynamické URI zdrojů s parametry
+4. **Události životního cyklu serveru** - správná inicializace a ukončení
+5. **Řízení logování** - konfigurace serverového logování
+6. **Vzory zpracování chyb** - konzistentní odpovědi na chyby
 
 ---
 
 ## 1. Oznámení o průběhu
 
-U operací, které trvají déle (zpracování dat, stahování souborů, volání API), udržují oznámení o průběhu uživatele informované.
+U operací, které trvají delší dobu (zpracování dat, stahování souborů, API volání), udržují oznámení o průběhu uživatele informované.
 
 ### Jak to funguje
 
@@ -25,12 +27,13 @@ sequenceDiagram
     participant Server
     
     Client->>Server: tools/call (dlouhá operace)
-    Server-->>Client: upozornění: průběh 10%
-    Server-->>Client: upozornění: průběh 50%
-    Server-->>Client: upozornění: průběh 90%
+    Server-->>Client: oznámení: průběh 10%
+    Server-->>Client: oznámení: průběh 50%
+    Server-->>Client: oznámení: průběh 90%
     Server->>Client: výsledek (dokončeno)
-```  
-### Python implementace
+```
+
+### Implementace v Pythonu
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -49,7 +52,7 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Zpracovat část
+            # Zpracovat blok
             await process_chunk(chunk)
             processed += len(chunk)
             
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Hlásit průběh po každé položce
+        # Nahlásit průběh po každé položce
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -89,8 +92,8 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-  
-### TypeScript implementace
+
+### Implementace v TypeScriptu
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // Odeslat oznámení o postupu
+      // Odeslat oznámení o průběhu
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -122,8 +125,8 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-  
-### Zpracování na klientovi (Python)
+
+### Zpracování na straně klienta (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Registrujte zpracovatele
+# Registrovat obslužnou rutinu
 session.on_notification("notifications/progress", handle_progress)
 
-# Zavolejte nástroj (aktualizace průběhu budou přicházet přes zpracovatele)
+# Zavolat nástroj (aktualizace průběhu budou přicházet přes obslužnou rutinu)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-  
+
 ---
 
-## 2. Zrušení požadavku
+## 2. Zrušení požadavků
 
-Umožněte klientům zrušit požadavky, které už nejsou potřeba, nebo trvají příliš dlouho.
+Umožněte klientům zrušit požadavky, které již nejsou potřeba nebo trvají příliš dlouho.
 
-### Python implementace
+### Implementace v Pythonu
 
 ```python
 from mcp.server import Server
@@ -197,7 +200,7 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-  
+
 ### Implementace kontextu zrušení
 
 ```python
@@ -231,9 +234,9 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Normální vypršení časového limitu, pokračujte
+            pass  # Normální timeout, pokračujte
 ```
-  
+
 ### Zrušení na straně klienta
 
 ```python
@@ -250,21 +253,21 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Požadavek na zrušení
+        # Žádost o zrušení
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
         })
         return "Search timed out"
 ```
-  
+
 ---
 
 ## 3. Šablony zdrojů
 
 Šablony zdrojů umožňují dynamickou konstrukci URI s parametry, užitečné pro API a databáze.
 
-### Definice šablon
+### Definování šablon
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Analyzujte URI pro získání parametrů
+    # Analyzovat URI pro извлечení параметрů
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -316,8 +319,8 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-  
-### TypeScript implementace
+
+### Implementace v TypeScriptu
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Analyzovat URI problému GitHubu
+  // Rozparsovat URI problému na GitHubu
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -359,14 +362,14 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-  
+
 ---
 
-## 4. Životní cyklus serveru
+## 4. Události životního cyklu serveru
 
-Správná inicializace a ukončení zajišťují čistou správu zdrojů.
+Správná inicializace a ukončení zajišťuje čistou správu zdrojů.
 
-### Správa životního cyklu v Pythonu
+### Řízení životního cyklu v Pythonu
 
 ```python
 from mcp.server import Server
@@ -383,7 +386,7 @@ async def lifespan(server: Server):
     """Manage server lifecycle."""
     global db_connection, cache
     
-    # Spuštění
+    # Inicializace
     print("🚀 Server starting...")
     db_connection = await create_database_connection()
     cache = await create_cache_client()
@@ -405,7 +408,7 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-  
+
 ### Životní cyklus v TypeScriptu
 
 ```typescript
@@ -425,17 +428,17 @@ class ManagedServer {
   }
   
   async start() {
-    // Inicializovat zdroje
+    // Inicializace zdrojů
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
     
-    // Spustit server
+    // Spuštění serveru
     await this.server.connect(transport);
   }
   
   async stop() {
-    // Vyčistit zdroje
+    // Vyčištění zdrojů
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -446,7 +449,7 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // Bezpečně použijte this.dbConnection
+      // Bezpečné používání this.dbConnection
       // ...
     });
   }
@@ -462,12 +465,12 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-  
+
 ---
 
 ## 5. Řízení logování
 
-MCP podporuje serverové úrovně logování, které klienti mohou ovládat.
+MCP podporuje úrovně logování na straně serveru, které klienti mohou ovládat.
 
 ### Implementace úrovní logování
 
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Namapujte úrovně MCP na úrovně protokolování v Pythonu
+# Namapujte úrovně MCP na úrovně Python logování
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,7 +511,7 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-  
+
 ### Odesílání logovacích zpráv klientovi
 
 ```python
@@ -522,7 +525,7 @@ async def complex_operation(input: str, ctx) -> str:
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Provádět práci...
+    # Proveďte práci...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -532,12 +535,12 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-  
+
 ---
 
-## 6. Vzorové zpracování chyb
+## 6. Vzory zpracování chyb
 
-Konzistentní zpracování chyb zlepšuje ladění a uživatelskou zkušenost.
+Konzistentní zpracování chyb zlepšuje ladění a uživatelský zážitek.
 
 ### Kódy chyb MCP
 
@@ -568,7 +571,7 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-  
+
 ### Strukturované odpovědi na chyby
 
 ```python
@@ -588,7 +591,7 @@ async def safe_operation(input: str) -> str:
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # Proveďte operaci
+        # Provést operaci
         result = await perform_operation(input)
         
         if result is None:
@@ -601,11 +604,11 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Zaznamenat neočekávané chyby
+        # Protokolovat neočekávané chyby
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-  
+
 ### Zpracování chyb v TypeScriptu
 
 ```typescript
@@ -633,10 +636,10 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Už chyba MCP
+      throw error;  // Již chyba MCP
     }
     
-    // Převést ostatní chyby
+    // Převést jiné chyby
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
@@ -650,17 +653,17 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-  
+
 ---
 
 ## Experimentální funkce (MCP 2025-11-25)
 
 Tyto funkce jsou ve specifikaci označeny jako experimentální:
 
-### Úkoly (dlouhotrvající operace)
+### Tasks (dlouhotrvající operace)
 
 ```python
-# Úkoly umožňují sledování dlouhodobých operací se stavem
+# Úkoly umožňují sledování dlouhotrvajících operací s stavem
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -681,7 +684,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-  
+
 ### Anotace nástrojů
 
 ```python
@@ -690,35 +693,35 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     annotations={
         "destructive": False,      # Nemění data
         "idempotent": True,        # Bezpečné opakování
-        "timeout_seconds": 30,     # Očekávaná max délka trvání
-        "requires_approval": False # Nepotřebuje schválení uživatele
+        "timeout_seconds": 30,     # Očekávaná maximální doba trvání
+        "requires_approval": False # Není potřeba schválení uživatelem
     }
 )
 async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-  
+
 ---
 
-## Co bude dál
+## Co dál
 
-- [Modul 8 - Nejlepší praktiky](../../08-BestPractices/README.md)  
-- [5.14 - Context Engineering](../mcp-contextengineering/README.md)  
-- [Změny ve specifikaci MCP](https://spec.modelcontextprotocol.io/)  
+- [Modul 8 - Nejlepší praktiky](../../08-BestPractices/README.md)
+- [5.14 - Kontextové inženýrství](../mcp-contextengineering/README.md)
+- [Změny specifikace MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Další zdroje
 
-- [Specifikace MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [Chybové kódy JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [Příklady Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [Specifikace MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Kódy chyb JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [Příklady Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [Příklady TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Prohlášení o vyloučení odpovědnosti**:
-Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o přesnost, mějte na paměti, že automatické překlady mohou obsahovat chyby nebo nepřesnosti. Původní dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro důležité informace se doporučuje profesionální lidský překlad. Nepřebíráme odpovědnost za jakékoli nedorozumění nebo chybné výklady vzniklé použitím tohoto překladu.
+**Prohlášení o omezení odpovědnosti**:
+Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o co největší přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Originální dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro kritické informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoli nedorozumění nebo nesprávné interpretace vzniklé použitím tohoto překladu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

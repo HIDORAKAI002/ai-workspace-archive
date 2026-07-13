@@ -1,48 +1,49 @@
-# Uhandisi wa Muktadha: Dhana Inayochipuka katika Mfumo wa MCP
+# Uhandisi wa Muktadha: Dhana Inayoibuka Katika Eneo la MCP
 
 ## Muhtasari
 
-Uhandisi wa muktadha ni dhana inayochipuka katika eneo la AI inayochunguza jinsi taarifa zinavyopangwa, kutolewa, na kudumishwa wakati wa mwingiliano kati ya wateja na huduma za AI. Kadri mfumo wa Model Context Protocol (MCP) unavyoendelea, kuelewa jinsi ya kusimamia muktadha kwa ufanisi kunakuwa muhimu zaidi. Moduli hii inatambulisha dhana ya uhandisi wa muktadha na kuchunguza matumizi yake yanayowezekana katika utekelezaji wa MCP.
+Uhandisi wa muktadha ni dhana inayoibuka katika eneo la AI inayochunguza jinsi habari inavyopangwa, kuwasilishwa, na kudumishwa kupitia mwingiliano kati ya wateja na huduma za AI. Kadiri mfumo wa Model Context Protocol (MCP) unavyoendelea, kuelewa jinsi ya kusimamia muktadha kwa ufanisi kunakuwa muhimu zaidi. Moduli hii inatambulisha dhana ya uhandisi wa muktadha na kuchunguza matumizi yake yanayoweza kutekelezwa katika utekelezaji wa MCP.
 
 ## Malengo ya Kujifunza
 
 Mwisho wa moduli hii, utaweza:
 
-- Kuelewa dhana inayochipuka ya uhandisi wa muktadha na jukumu lake linalowezekana katika matumizi ya MCP
-- Kutambua changamoto kuu katika usimamizi wa muktadha ambazo muundo wa MCP unashughulikia
+- Kuelewa dhana inayoibuka ya uhandisi wa muktadha na nafasi yake inayowezekana katika programu za MCP
+- Kubainisha changamoto kuu katika usimamizi wa muktadha ambazo muundo wa itifaki ya MCP unazitendea kazi
 - Kuchunguza mbinu za kuboresha utendaji wa modeli kupitia usimamizi bora wa muktadha
 - Kuzingatia njia za kupima na kutathmini ufanisi wa muktadha
-- Kutumia dhana hizi zinazochipuka kuboresha uzoefu wa AI kupitia mfumo wa MCP
+- Kutumia dhana hizi zinazoinuka kuboresha uzoefu wa AI kupitia mfumo wa MCP
 
 ## Utangulizi wa Uhandisi wa Muktadha
 
-Uhandisi wa muktadha ni dhana inayochipuka inayolenga muundo wa makusudi na usimamizi wa mtiririko wa taarifa kati ya watumiaji, programu, na modeli za AI. Tofauti na nyanja zilizoanzishwa kama uhandisi wa maelekezo (prompt engineering), uhandisi wa muktadha bado unafafanuliwa na wataalamu wanapojaribu kutatua changamoto za kipekee za kutoa modeli za AI taarifa sahihi kwa wakati sahihi.
+Uhandisi wa muktadha ni dhana inayoibuka inayolenga kubuni na kusimamia mtiririko wa taarifa kwa makusudi kati ya watumiaji, programu, na mifano ya AI. Tofauti na nyanja zilizowekwa kama vile uhandisi wa maelekezo, uhandisi wa muktadha bado unafafanuliwa na wataalamu wanapojitahidi kutatua changamoto za kipekee za kutoa mifano ya AI taarifa sahihi kwa wakati sahihi.
 
-Kadri modeli kubwa za lugha (LLMs) zinavyoendelea, umuhimu wa muktadha unazidi kuwa dhahiri. Ubora, umuhimu, na muundo wa muktadha tunaotoa huathiri moja kwa moja matokeo ya modeli. Uhandisi wa muktadha unachunguza uhusiano huu na kutafuta kuendeleza kanuni za usimamizi wa muktadha kwa ufanisi.
+Kadiri mifano mikubwa ya lugha (LLMs) inavyobadilika, umuhimu wa muktadha umeongezeka. Ubora, umuhimu, na muundo wa muktadha tunaopewa huathiri moja kwa moja matokeo ya modeli. Uhandisi wa muktadha unachunguza uhusiano huu na unatafuta kuendeleza kanuni za usimamizi mzuri wa muktadha.
 
-> "Mnamo 2025, modeli zilizopo zitakuwa na akili sana. Lakini hata binadamu mwenye akili zaidi hatakuwa na uwezo wa kufanya kazi yake kwa ufanisi bila muktadha wa kile anachoulizwa kufanya... 'Uhandisi wa muktadha' ni kiwango kinachofuata cha uhandisi wa maelekezo. Ni kuhusu kufanya hili kiotomatiki katika mfumo wa nguvu." — Walden Yan, Cognition AI
+> "Mnamo 2025, mifano ile iko huko ni yenye akili sana. Lakini hata mwanadamu mwerevu zaidi hatataweza kufanya kazi yao kwa ufanisi bila muktadha wa kile wanachoombwa kufanya... 'Uhandisi wa muktadha' ni ngazi inayofuata ya uhandisi wa maelekezo. Ni kuhusu kufanya hivi kiotomatiki katika mfumo unaobadilika." — Walden Yan, Cognition AI
 
 Uhandisi wa muktadha unaweza kujumuisha:
 
 1. **Uchaguzi wa Muktadha**: Kuamua ni taarifa gani zinazofaa kwa kazi fulani
-2. **Muundo wa Muktadha**: Kupanga taarifa ili kuongeza uelewa wa modeli
-3. **Utoaji wa Muktadha**: Kuboresha jinsi na wakati taarifa zinavyotumwa kwa modeli
-4. **Udumishaji wa Muktadha**: Kusimamia hali na mabadiliko ya muktadha kwa muda
+2. **Upangaji wa Muktadha**: Kupanga taarifa ili kuongeza ufahamu wa modeli
+3. **Uwasilishaji wa Muktadha**: Kuboresha jinsi na lini taarifa zinatolewa kwa mifano
+4. **Uendelezaji wa Muktadha**: Kusimamia hali na mabadiliko ya muktadha kwa muda
 5. **Tathmini ya Muktadha**: Kupima na kuboresha ufanisi wa muktadha
 
-Maeneo haya ya kuzingatia ni muhimu hasa kwa mfumo wa MCP, ambao hutoa njia sanifu kwa programu za kutoa muktadha kwa LLMs.
+Sehemu hizi za kuzingatia ni muhimu hasa katika mfumo wa MCP, ambao hutoa njia iliyopanuliwa kwa programu kutoa muktadha kwa LLMs.
+
 
 ## Mtazamo wa Safari ya Muktadha
 
-Njia moja ya kuona uhandisi wa muktadha ni kufuatilia safari ambayo taarifa inachukua kupitia mfumo wa MCP:
+Njia moja ya kuona uhandisi wa muktadha ni kufuatilia safari ya taarifa kupitia mfumo wa MCP:
 
 ```mermaid
 graph LR
-    A[User Input] --> B[Context Assembly]
-    B --> C[Model Processing]
-    C --> D[Response Generation]
-    D --> E[State Management]
-    E -->|Next Interaction| A
+    A[Ingizo la Mtumiaji] --> B[Ukusanyaji wa Muktadha]
+    B --> C[Usindikaji wa Mfano]
+    C --> D[Uundaji wa Majibu]
+    D --> E[Usimamizi wa Hali]
+    E -->|Mwingiliano Ufuatao| A
     
     style A fill:#A8D5BA,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
     style B fill:#7FB3D5,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -53,32 +54,32 @@ graph LR
 
 ### Hatua Muhimu katika Safari ya Muktadha:
 
-1. **Ingizo la Mtumiaji**: Taarifa ghafi kutoka kwa mtumiaji (maandishi, picha, nyaraka)
+1. **Ingizo la Mtumiaji**: Taarifa mbichi kutoka kwa mtumiaji (maandishi, picha, nyaraka)
 2. **Muungano wa Muktadha**: Kuchanganya ingizo la mtumiaji na muktadha wa mfumo, historia ya mazungumzo, na taarifa nyingine zilizopatikana
-3. **Usindikaji wa Modeli**: Modeli ya AI inasindika muktadha uliounganishwa
-4. **Uzalishaji wa Majibu**: Modeli inatoa matokeo kulingana na muktadha uliotolewa
-5. **Usimamizi wa Hali**: Mfumo unasasisha hali yake ya ndani kulingana na mwingiliano
+3. **Usindishaji wa Modeli**: Modeli ya AI inasindika muktadha uliounganishwa
+4. **Uundaji wa Majibu**: Modeli hutoa matokeo kulingana na muktadha uliotolewa
+5. **Usimamizi wa Hali**: Mfumo huboresha hali yake ya ndani kulingana na mwingiliano
 
-Mtazamo huu unaonyesha asili ya nguvu ya muktadha katika mifumo ya AI na huibua maswali muhimu kuhusu jinsi ya kusimamia taarifa kwa ufanisi katika kila hatua.
+Mtazamo huu unaonyesha asili ya mabadiliko ya muktadha katika mifumo ya AI na unaongeza maswali muhimu kuhusu jinsi bora ya kusimamia taarifa katika kila hatua.
 
-## Kanuni Zinazochipuka katika Uhandisi wa Muktadha
+## Kanuni Zinazoibuka katika Uhandisi wa Muktadha
 
-Kadri uwanja wa uhandisi wa muktadha unavyoanza kuundwa, baadhi ya kanuni za awali zinaanza kujitokeza kutoka kwa wataalamu. Kanuni hizi zinaweza kusaidia kuongoza chaguo za utekelezaji wa MCP:
+Wakati eneo la uhandisi wa muktadha linapoanza kuchukua muundo, baadhi ya kanuni za mapema zinaanza kuibuka kutoka kwa wataalamu. Kanuni hizi zinaweza kusaidia kuelekeza chaguzi za utekelezaji wa MCP:
 
-### Kanuni ya 1: Shiriki Muktadha Kikamilifu
+### Kanuni 1: Sambaza Muktadha Kwa Ukamilifu
 
-Muktadha unapaswa kushirikiwa kikamilifu kati ya vipengele vyote vya mfumo badala ya kugawanywa kati ya mawakala au michakato mbalimbali. Wakati muktadha unaposambazwa, maamuzi yaliyofanywa katika sehemu moja ya mfumo yanaweza kupingana na yale yaliyofanywa mahali pengine.
+Muktadha unapaswa kusambazwa kikamilifu kati ya vipengele vyote vya mfumo badala ya kugawanywa kwa sehemu nyingi za mawakala au michakato. Wakati muktadha unategemezwa, maamuzi yanayofanywa sehemu moja ya mfumo yanaweza kutofautiana na yale yanayotolewa sehemu nyingine.
 
 ```mermaid
 graph TD
-    subgraph "Fragmented Context Approach"
-    A1[Agent 1] --- C1[Context 1]
-    A2[Agent 2] --- C2[Context 2]
-    A3[Agent 3] --- C3[Context 3]
+    subgraph "Njia ya Muktadha ulio Gawanyika"
+    A1[Wakala 1] --- C1[Muktadha 1]
+    A2[Wakala 2] --- C2[Muktadha 2]
+    A3[Wakala 3] --- C3[Muktadha 3]
     end
     
-    subgraph "Unified Context Approach"
-    B1[Agent] --- D1[Shared Complete Context]
+    subgraph "Njia ya Muktadha Iliyounifishwa"
+    B1[Wakala] --- D1[Muktadha Kamili wa Pamoja]
     end
     
     style A1 fill:#AED6F1,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -91,81 +92,82 @@ graph TD
     style D1 fill:#D7BDE2,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
 ```
 
-Katika matumizi ya MCP, hii inapendekeza kubuni mifumo ambapo muktadha unazunguka bila mshono kupitia bomba lote badala ya kugawanywa.
+Katika programu za MCP, hili linaashiria kubuni mifumo ambapo muktadha hujielea bila mshono katika njia nzima badala ya kutojumuishwa.
 
-### Kanuni ya 2: Tambua Kwamba Vitendo Hubeba Maamuzi ya Kificho
+### Kanuni 2: Tambua Kwamba Hatua Zinabeba Maamuzi Yasiyo ya Kusimuliwa
 
-Kila kitendo ambacho modeli huchukua kina maamuzi ya kificho kuhusu jinsi ya kutafsiri muktadha. Wakati vipengele vingi vinapofanya kazi kwenye muktadha tofauti, maamuzi haya ya kificho yanaweza kupingana, na kusababisha matokeo yasiyo thabiti.
+Kila hatua inayochukuliwa na modeli ina maamuzi yasiyo ya wazi kuhusu jinsi ya kutafsiri muktadha. Wakati vipengele vingi vinapochukua hatua kwenye muktadha tofauti, maamuzi haya yasiyo rasmi yanaweza kutofautiana, na kusababisha matokeo yasiyo sawia.
 
-Kanuni hii ina athari muhimu kwa matumizi ya MCP:
-- Pendelea usindikaji wa mstari wa kazi ngumu badala ya utekelezaji sambamba na muktadha uliogawanyika
-- Hakikisha kwamba sehemu zote za maamuzi zina ufikiaji wa taarifa sawa ya muktadha
-- Buni mifumo ambapo hatua za baadaye zinaweza kuona muktadha kamili wa maamuzi ya awali
+Kanuni hii ina maana muhimu kwa programu za MCP:
+- Tumia usindikaji wa mistari kwa kazi ngumu badala ya utekelezaji sambamba na muktadha uliogawanywa
+- Hakikisha kwamba mahali pa maamuzi yote panapata taarifa sawa za muktadha
+- Tengeneza mifumo ambapo hatua za baadaye zinaweza kuona muktadha kamili wa maamuzi ya awali
 
-### Kanuni ya 3: Linganisha Kina cha Muktadha na Vikwazo vya Dirisha
+### Kanuni 3: Linganisha Kina cha Muktadha na Mipaka ya Dirisha
 
-Kadri mazungumzo na michakato inavyokuwa mirefu, madirisha ya muktadha hatimaye hujaa. Uhandisi wa muktadha wa ufanisi huchunguza njia za kusimamia mvutano huu kati ya muktadha wa kina na vikwazo vya kiufundi.
+Kadiri mazungumzo na michakato inavyoongezeka, madirisha ya muktadha huweza kuzidiwa. Uhandisi mzuri wa muktadha unachunguza mbinu za kusimamia mvutano kati ya muktadha kamili na vikwazo vya kiufundi.
 
-Njia zinazowezekana zinazochunguzwa ni pamoja na:
-- Ukandamizaji wa muktadha unaohifadhi taarifa muhimu huku ukipunguza matumizi ya tokeni
-- Upakiaji wa muktadha kwa hatua kulingana na umuhimu kwa mahitaji ya sasa
-- Muhtasari wa mwingiliano wa awali huku ukihifadhi maamuzi na ukweli muhimu
+Mbinu zinazoweza kutafutwa ni pamoja na:
+- Usisiki wa muktadha unaodumisha taarifa muhimu huku ukipunguza matumizi ya tokeni
+- Kupakia muktadha kidogo kidogo kulingana na umuhimu kwa mahitaji ya sasa
+- Muhtasari wa maongezi ya awali huku ukihifadhi maamuzi na ukweli muhimu
 
 ## Changamoto za Muktadha na Muundo wa Itifaki ya MCP
 
-Model Context Protocol (MCP) ilibuniwa kwa ufahamu wa changamoto za kipekee za usimamizi wa muktadha. Kuelewa changamoto hizi husaidia kuelezea vipengele muhimu vya muundo wa MCP:
+Model Context Protocol (MCP) ilitumika kuundwa kwa kuzingatia changamoto za kipekee za usimamizi wa muktadha. Kuelewa changamoto hizi kunasaidia kufafanua vipengele kuu vya muundo wa itifaki ya MCP:
 
-### Changamoto ya 1: Vikwazo vya Dirisha la Muktadha
-Modeli nyingi za AI zina ukubwa wa dirisha la muktadha lililowekwa, na hivyo kupunguza kiasi cha taarifa wanazoweza kusindika mara moja.
+
+### Changamoto 1: Mipaka ya Dirisha la Muktadha
+Mifano mingi ya AI ina ukubwa wa dirisha la muktadha uliowekwa, ukizuia kiasi cha taarifa zinazoweza kusindika mara moja.
 
 **Jibu la Muundo wa MCP:** 
-- Itifaki inaunga mkono muktadha uliopangwa, unaotegemea rasilimali ambao unaweza kurejelewa kwa ufanisi
-- Rasilimali zinaweza kugawanywa na kupakiwa kwa hatua
+- Itifaki inaunga mkono muktadha uliopangwa kwa rasilimali unaoweza kutumiwa kwa ufanisi
+- Rasilimali zinaweza kupangwa kwa kurasa na kupakiwa hatua kwa hatua
 
-### Changamoto ya 2: Uamuzi wa Umuhimu
-Kuamua ni taarifa gani ni muhimu zaidi kujumuishwa katika muktadha ni kazi ngumu.
+### Changamoto 2: Uamuzi wa Umuhimu
+Kuamua ni taarifa gani ambazo ni muhimu zaidi kujumuisha katika muktadha ni ngumu.
 
 **Jibu la Muundo wa MCP:**
-- Zana zinazobadilika huruhusu upatikanaji wa taarifa kwa nguvu kulingana na mahitaji
-- Maelekezo yaliyopangwa huwezesha muundo thabiti wa muktadha
+- Vifaa vya kubadilika vinavyowezesha upokezi wa muktadha kwa hali ya sasa kulingana na mahitaji
+- Maelekezo yaliyopangwa hutoa muundo thabiti wa muktadha
 
-### Changamoto ya 3: Udumishaji wa Muktadha
+### Changamoto 3: Uendelevu wa Muktadha
 Kusimamia hali katika mwingiliano kunahitaji ufuatiliaji makini wa muktadha.
 
 **Jibu la Muundo wa MCP:**
-- Usimamizi wa kikao uliosanifiwa
-- Mifumo ya mwingiliano iliyoelezwa wazi kwa mabadiliko ya muktadha
+- Usimamizi uliosawazishwa wa vikao
+- Mifumo ya wazi ya mabadiliko ya muktadha katika mwingiliano
 
-### Changamoto ya 4: Muktadha wa Aina Nyingi
+### Changamoto 4: Muktadha wa Modal Wingi
 Aina tofauti za data (maandishi, picha, data iliyopangwa) zinahitaji usimamizi tofauti.
 
 **Jibu la Muundo wa MCP:**
-- Muundo wa itifaki unakubali aina mbalimbali za maudhui
-- Uwakilishi uliosanifiwa wa taarifa za aina nyingi
+- Muundo wa itifaki unazingatia aina mbalimbali za maudhui
+- Uwakilishi uliosawahishwa wa taarifa za modal nyingi
 
-### Changamoto ya 5: Usalama na Faragha
-Muktadha mara nyingi una taarifa nyeti ambazo lazima zilindwe.
+### Changamoto 5: Usalama na Faragha
+Muktadha mara nyingi una taarifa nyeti ambazo zinapaswa kulindwa.
 
 **Jibu la Muundo wa MCP:**
 - Mipaka wazi kati ya majukumu ya mteja na seva
-- Chaguo za usindikaji wa ndani ili kupunguza kufichuliwa kwa data
+- Chaguo za usindikaji wa ndani kupunguza ufunuo wa data
 
-Kuelewa changamoto hizi na jinsi MCP inavyoshughulikia hutoa msingi wa kuchunguza mbinu za hali ya juu za uhandisi wa muktadha.
+Kuelewa changamoto hizi na jinsi MCP inazitendea kazi hutoa msingi wa kuchunguza mbinu za uhandisi wa muktadha zilizoendelea zaidi.
 
-## Mbinu Zinazochipuka za Uhandisi wa Muktadha
+## Njia Zinazoibuka za Uhandisi wa Muktadha
 
-Kadri uwanja wa uhandisi wa muktadha unavyoendelea, mbinu kadhaa zenye matumaini zinaanza kujitokeza. Hizi zinawakilisha mawazo ya sasa badala ya mazoea yaliyowekwa, na zitaendelea kubadilika kadri tunavyopata uzoefu zaidi na utekelezaji wa MCP.
+Kadiri eneo la uhandisi wa muktadha linavyoendelea, mbinu kadhaa zenye matumaini zinaibuka. Hizi zinaonyesha fikra za sasa badala ya mbinu zilizothibitishwa, na huenda zikabadilika kadiri tunavyopata uzoefu zaidi na utekelezaji wa MCP.
 
-### 1. Usindikaji wa Mstari wa Thread Moja
+### 1. Usindikaji Mstari wa Mtu Mmoja
 
-Tofauti na usanifu wa mawakala wengi unaosambaza muktadha, baadhi ya wataalamu wanagundua kuwa usindikaji wa mstari wa thread moja unazalisha matokeo thabiti zaidi. Hii inaendana na kanuni ya kudumisha muktadha wa umoja.
+Tofauti na miundo ya mawakala wengi inayosambaza muktadha, baadhi ya wataalamu wanagundua kwamba usindikaji mtari wa mtu mmoja huleta matokeo thabiti zaidi. Hii inaendana na kanuni ya kudumisha muktadha uliojumlishwa.
 
 ```mermaid
 graph TD
-    A[Task Start] --> B[Process Step 1]
-    B --> C[Process Step 2]
-    C --> D[Process Step 3]
-    D --> E[Result]
+    A[Kuanza Kazi] --> B[Hatua ya Mchakato 1]
+    B --> C[Hatua ya Mchakato 2]
+    C --> D[Hatua ya Mchakato 3]
+    D --> E[Matokeo]
     
     style A fill:#A9CCE3,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
     style B fill:#A3E4D7,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -174,36 +176,36 @@ graph TD
     style E fill:#D2B4DE,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
 ```
 
-Ingawa mbinu hii inaweza kuonekana kuwa na ufanisi mdogo kuliko usindikaji sambamba, mara nyingi huzalisha matokeo yanayolingana na ya kuaminika zaidi kwa sababu kila hatua inajengwa juu ya uelewa kamili wa maamuzi ya awali.
+Ingawa njia hii inaweza kuonekana si yenye ufanisi kama usindikaji sambamba, mara nyingi hutoa matokeo ya kueleweka na ya kuaminika kwa sababu kila hatua hujengwa juu ya kuelewa kikamilifu maamuzi ya awali.
 
-### 2. Kugawanya Muktadha na Kuweka Kipaumbele
+### 2. Kugawanya na Kuweka Kipaumbele Muktadha
 
-Kugawanya muktadha mkubwa katika vipande vinavyoweza kudhibitiwa na kuweka kipaumbele kwa kile kilicho muhimu zaidi.
+Kuvunja muktadha mkubwa katika vipande vinavyoweza kudhibitiwa na kuweka kipaumbele kwa mambo muhimu zaidi.
 
 ```python
-# Conceptual Example: Context Chunking and Prioritization
+# Mfano wa Kifanananishi: Kugawanya na Kuweka Kipaumbele Muktadha
 def process_with_chunked_context(documents, query):
-    # 1. Break documents into smaller chunks
+    # 1. Gawanya nyaraka kuwa vipande vidogo
     chunks = chunk_documents(documents)
     
-    # 2. Calculate relevance scores for each chunk
+    # 2. Hesabu alama za umuhimu kwa kila kipande
     scored_chunks = [(chunk, calculate_relevance(chunk, query)) for chunk in chunks]
     
-    # 3. Sort chunks by relevance score
+    # 3. Panga vipande kwa alama ya umuhimu
     sorted_chunks = sorted(scored_chunks, key=lambda x: x[1], reverse=True)
     
-    # 4. Use the most relevant chunks as context
+    # 4. Tumia vipande vyenye umuhimu zaidi kama muktadha
     context = create_context_from_chunks([chunk for chunk, score in sorted_chunks[:5]])
     
-    # 5. Process with the prioritized context
+    # 5. Fanya kazi kwa kutumia muktadha uliowekwa kipaumbele
     return generate_response(context, query)
 ```
 
-Dhana hapo juu inaonyesha jinsi tunavyoweza kugawanya nyaraka kubwa katika vipande vinavyoweza kudhibitiwa na kuchagua sehemu muhimu zaidi kwa muktadha. Mbinu hii inaweza kusaidia kufanya kazi ndani ya vikwazo vya dirisha la muktadha huku ikitumia hifadhidata kubwa.
+Dhana hapo juu inaonyesha jinsi tunavyoweza kuvunja nyaraka kubwa kuwa vipande vinavyoshughulikiwa na kuchagua sehemu tu zinazofaa zaidi kwa muktadha. Njia hii inaweza kusaidia kufanya kazi ndani ya mipaka ya dirisha la muktadha huku ikitumia vituo vikubwa vya maarifa.
 
-### 3. Upakiaji wa Muktadha kwa Hatua
+### 3. Kupakia Muktadha Kidogo Kidogo
 
-Kupakia muktadha kwa hatua kadri inavyohitajika badala ya mara moja.
+Kupakia muktadha pole pole kulingana na mahitaji badala ya kwa mara moja.
 
 ```mermaid
 sequenceDiagram
@@ -212,34 +214,34 @@ sequenceDiagram
     participant MCP Server
     participant AI Model
 
-    User->>App: Ask Question
-    App->>MCP Server: Initial Request
-    MCP Server->>AI Model: Minimal Context
-    AI Model->>MCP Server: Initial Response
+    User->>App: Uliza Swali
+    App->>MCP Server: Ombi la Awali
+    MCP Server->>AI Model: Muktadha Mdogo
+    AI Model->>MCP Server: Jibu la Awali
     
-    alt Needs More Context
-        MCP Server->>MCP Server: Identify Missing Context
-        MCP Server->>MCP Server: Load Additional Context
-        MCP Server->>AI Model: Enhanced Context
-        AI Model->>MCP Server: Final Response
+    alt Inahitaji Muktadha Zaidi
+        MCP Server->>MCP Server: Tambua Muktadha Uliokosekana
+        MCP Server->>MCP Server: Pakia Muktadha Zaidi
+        MCP Server->>AI Model: Muktadha Ulioimarishwa
+        AI Model->>MCP Server: Jibu la Mwisho
     end
     
-    MCP Server->>App: Response
-    App->>User: Answer
+    MCP Server->>App: Jibu
+    App->>User: Jibu
 ```
 
-Upakiaji wa muktadha kwa hatua huanza na muktadha mdogo na kupanuka tu inapohitajika. Hii inaweza kupunguza kwa kiasi kikubwa matumizi ya tokeni kwa maswali rahisi huku ikidumisha uwezo wa kushughulikia maswali magumu.
+Kupakia muktadha pole pole huanza na muktadha mdogo sana na kuongezeka tu wakati ni muhimu. Hii inaweza kupunguza sana matumizi ya tokeni kwa maswali rahisi huku ikidumisha uwezo wa kushughulikia maswali magumu.
 
-### 4. Ukandamizaji wa Muktadha na Muhtasari
+### 4. Usikisaji na Muhtasari wa Muktadha
 
-Kupunguza ukubwa wa muktadha huku ukihifadhi taarifa muhimu.
+Kupunguza ukubwa wa muktadha huku ukidumisha taarifa muhimu.
 
 ```mermaid
 graph TD
-    A[Full Context] --> B[Compression Model]
-    B --> C[Compressed Context]
-    C --> D[Main Processing Model]
-    D --> E[Response]
+    A[Muktadha Kamili] --> B[Mfano wa Mfinyazo]
+    B --> C[Muktadha Uliofinywa]
+    C --> D[Mfano Mkuu wa Usindikaji]
+    D --> E[Jibu]
     
     style A fill:#A9CCE3,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
     style B fill:#A3E4D7,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -248,131 +250,187 @@ graph TD
     style E fill:#F9E79F,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
 ```
 
-Ukandamizaji wa muktadha unalenga:
-- Kuondoa taarifa zisizohitajika
+Usisiki wa muktadha unazingatia:
+- Kuondoa taarifa rudufu
 - Kufupisha maudhui marefu
 - Kutoa ukweli na maelezo muhimu
 - Kuhifadhi vipengele muhimu vya muktadha
-- Kuboresha ufanisi wa tokeni
+- Kuboresha matumizi ya tokeni
 
-Mbinu hii inaweza kuwa muhimu hasa kwa kudumisha mazungumzo marefu ndani ya madirisha ya muktadha au kwa kusindika nyaraka kubwa kwa ufanisi. Baadhi ya wataalamu wanatumia modeli maalum kwa ukandamizaji wa muktadha na muhtasari wa historia ya mazungumzo.
+Njia hii inaweza kuwa na thamani sana kwa kudumisha mazungumzo marefu ndani ya madirisha ya muktadha au kusindika nyaraka kubwa kwa ufanisi. Wataalamu wengine hutumia mifano maalumu hasa kwa ajili ya usisiki na muhtasari wa historia ya mazungumzo.
 
-## Mazingatio ya Uhandisi wa Muktadha wa Kichunguzi
 
-Tunapochunguza uwanja unaochipuka wa uhandisi wa muktadha, kuna mazingatio kadhaa yanayostahili kuzingatiwa wakati wa kufanya kazi na utekelezaji wa MCP. Haya si mazoea bora ya lazima bali maeneo ya uchunguzi ambayo yanaweza kuleta maboresho katika kesi yako maalum.
+## Mambo ya Kuzingatia Katika Uhandisi wa Muktadha
 
-### Fikiria Malengo Yako ya Muktadha
+Tunapoendelea kuchunguza eneo la uhandisi wa muktadha linaloibuka, mambo kadhaa yanastahili kuzingatiwa wakati wa kufanya kazi na utekelezaji wa MCP. Haya si mbinu bora zilizopendekezwa lakini ni maeneo ya uchunguzi ambayo yanaweza kuleta maboresho katika matumizi yako maalum.
 
-Kabla ya kutekeleza suluhisho tata za usimamizi wa muktadha, eleza wazi unachojaribu kufanikisha:
-- Ni taarifa gani maalum ambayo modeli inahitaji kufanikiwa?
-- Ni taarifa gani muhimu dhidi ya zile za ziada?
-- Ni vikwazo vyako vya utendaji (muda wa kusubiri, vikwazo vya tokeni, gharama)?
+### Angalia Malengo Yako ya Muktadha
 
-### Chunguza Mbinu za Muktadha Zenye Tabaka
+Kabla ya kutekeleza suluhisho tata za usimamizi wa muktadha, fafanua wazi unachojaribu kufanikisha:
+- Taarifa gani hasa modeli inahitaji kufanikisha
+- Ni taarifa gani muhimu dhidi ya zisizo za lazima?
+- Ni vizuizi gani vinaathiri utendaji wako (kasoro, mipaka ya tokeni, gharama)?
 
-Baadhi ya wataalamu wanapata mafanikio na muktadha uliopangwa katika tabaka za dhana:
-- **Tabaka la Msingi**: Taarifa muhimu ambayo modeli inahitaji kila wakati
-- **Tabaka la Hali**: Muktadha maalum kwa mwingiliano wa sasa
-- **Tabaka la Msaada**: Taarifa za ziada ambazo zinaweza kusaidia
-- **Tabaka la Akiba**: Taarifa zinazopatikana tu inapohitajika
+### Chunguza Njia za Muktadha Zinazopangwa Kiwanda
 
-### Chunguza Mikakati ya Upatikanaji
+Wataalamu wengine wanapata mafanikio na muktadha uliopangwa kwa tabaka za dhana:
+- **Tabaka la Msingi**: Taarifa muhimu ambazo modeli daima inahitaji
+- **Tabaka la Hali**: Muktadha maalum wa mwingiliano wa sasa
+- **Tabaka la Msaada**: Taarifa za ziada zinazoweza kusaidia
+- **Tabaka la Kurejea**: Taarifa zinazopatikana tu wakati zinahitajika
+
+### Chunguza Mikakati ya Upokezi
 
 Ufanisi wa muktadha wako mara nyingi hutegemea jinsi unavyopata taarifa:
-- Utafutaji wa semantiki na embeddings kwa kupata taarifa zinazohusiana dhana
-- Utafutaji wa maneno muhimu kwa maelezo maalum ya ukweli
-- Mbinu za mseto zinazochanganya njia nyingi za upatikanaji
-- Uchujaji wa metadata ili kupunguza wigo kulingana na kategoria, tarehe, au vyanzo
+- Utafutaji wa maana na embeddings kwa kupata taarifa zinazohusiana kidhania
+- Utafutaji kwa misamiati kwa taarifa dhabiti maalum
+- Njia mseto zinazochanganya mbinu tofauti za upokezi
+- Kuchuja metadata kupunguza eneo kulingana na makundi, tarehe, au vyanzo
 
-### Jaribu Ushirikiano wa Muktadha
+### Jaribu Ulinganifu wa Muktadha
 
-Muundo na mtiririko wa muktadha wako unaweza kuathiri uelewa wa modeli:
-- Kuweka taarifa zinazohusiana pamoja
+Muundo na mtiririko wa muktadha wako unaweza kuathiri ufahamu wa modeli:
+- Kuhusisha taarifa zinazohusiana pamoja
 - Kutumia muundo na mpangilio thabiti
-- Kudumisha mpangilio wa kimantiki au wa muda inapofaa
-- Kuepuka taarifa zinazopingana
+- Kudumisha mpangilio wa kimantiki au wa kihistoria inapafaa
+- Kuepuka taarifa zinazoleta mgongano
 
-### Pima Faida na Hasara za Usanifu wa Mawakala Wengi
+### Pima Upinzani wa Miundo ya Multi-Agent
 
-Ingawa usanifu wa mawakala wengi ni maarufu katika mifumo mingi ya AI, huja na changamoto kubwa kwa usimamizi wa muktadha:
-- Kugawanyika kwa muktadha kunaweza kusababisha maamuzi yasiyo thabiti kati ya mawakala
-- Usindikaji sambamba unaweza kuanzisha migongano ambayo ni vigumu kusuluhisha
+Ingawa miundo ya mawakala wengi ni maarufu katika mifumo mingi ya AI, ina changamoto kubwa za usimamizi wa muktadha:
+- Kugawanyika kwa muktadha kunaweza kusababisha maamuzi yasiyo sawia kati ya mawakala
+- Usindikaji sambamba unaweza kuanzisha migongano ambayo ni vigumu kutatua
 - Mzigo wa mawasiliano kati ya mawakala unaweza kupunguza faida za utendaji
-- Usimamizi wa hali tata unahitajika kudumisha mshikamano
+- Usimamizi wa hali tata unahitajika kudumisha ulinganifu
 
-Katika hali nyingi, mbinu ya wakala mmoja yenye usimamizi wa muktadha wa kina inaweza kutoa matokeo ya kuaminika zaidi kuliko mawakala wengi maalum wenye muktadha uliogawanyika.
+Katika matukio mengi, njia ya wakala mmoja yenye usimamizi wa kina wa muktadha inaweza kutoa matokeo ya kuaminika zaidi kuliko mawakala wengi maalumu wenye muktadha uliogawanyika.
 
 ### Tengeneza Mbinu za Tathmini
 
-Ili kuboresha uhandisi wa muktadha kwa muda, fikiria jinsi utakavyopima mafanikio:
-- Kupima A/B miundo tofauti ya muktadha
-- Kufuatilia matumizi ya tokeni na nyakati za majibu
-- Kufuatilia kuridhika kwa mtumiaji na viwango vya kukamilisha kazi
-- Kuchambua ni lini na kwa nini mikakati ya muktadha inashindwa
+Ili kuboresha uhandisi wa muktadha kwa muda, zingatia jinsi utakavyopima mafanikio:
+- Kujaribu A/B aina mbalimbali za muundo wa muktadha
+- Kufuatilia matumizi ya tokeni na muda wa jibu
+- Kufuatilia kuridhika kwa watumiaji na viwango vya kukamilika kwa kazi
+- Kuchambua wakati na sababu za kushindwa kwa mikakati ya muktadha
 
-Mazingatio haya yanawakilisha maeneo ya uchunguzi yanayoendelea katika uwanja wa uhandisi wa muktadha. Kadri uwanja unavyokomaa, mifumo na mazoea ya uhakika zaidi yanaweza kujitokeza.
+Mambo haya yanaonyesha maeneo ya shughuli katika eneo la uhandisi wa muktadha. Kadiri eneo linavyoendelea, mifumo na mbinu thabiti huenda zikajitokeza.
 
 ## Kupima Ufanisi wa Muktadha: Mfumo Unaobadilika
 
-Kadri uhandisi wa muktadha unavyochipuka kama dhana, wataalamu wanaanza kuchunguza jinsi tunavyoweza kupima ufanisi wake. Hakuna mfumo uliowekwa bado, lakini vipimo mbalimbali vinazingatiwa ambavyo vinaweza kusaidia kuongoza kazi ya baadaye.
+Kadiri uhandisi wa muktadha unavyoibuka kama dhana, wataalamu wanaanza kuchunguza jinsi tunavyoweza kupima ufanisi wake. Hakuna mfumo uliowekwa bado, lakini vipimo mbalimbali vinaangaliwa ambavyo vinaweza kusaidia kuelekeza kazi za baadaye.
 
-### Vipimo Vinavyowezekana vya Kupima
+### Vipimo Vinavyoweza Kuangaliwa
 
-#### 1. Mazingatio ya Ufanisi wa Ingizo
 
-- **Uwiano wa Muktadha kwa Majibu**: Ni kiasi gani cha muktadha kinahitajika ikilinganishwa na ukubwa wa majibu?
-- **Matumizi ya Tokeni**: Asilimia gani ya tokeni za muktadha zinazotolewa zinaonekana kuathiri majibu?
-- **Kupunguza Muktadha**: Tunaweza kukandamiza taarifa ghafi kwa ufanisi kiasi gani?
+#### 1. Mambo ya Ufanisi wa Ingizo
 
-#### 2. Mazingatio ya Utendaji
+- **Kiwango cha Muktadha-Kwa-Jibu**: Muktadha kiasi gani unahitajika ikilinganishwa na ukubwa wa jibu?
+- **Matumizi ya Tokeni**: Ni asilimia ngapi ya tokeni za muktadha zinazotumika inaonekana kuathiri jibu?
+- **Kupunguza Muktadha**: Tunawezaje kusisitiza taarifa ghafi kwa ufanisi?
 
-- **Athari ya Muda wa Kusubiri**: Usimamizi wa muktadha unaathirije muda wa majibu?
-- **Uchumi wa Tokeni**: Je, tunatumia tokeni kwa ufanisi?
-- **Usahihi wa Upatikanaji**: Taarifa zilizopatikana ni muhimu kiasi gani?
-- **Matumizi ya Rasilimali**: Ni rasilimali gani za kompyuta zinazohitajika?
+#### 2. Mambo ya Utendaji
 
-#### 3. Mazingatio ya Ubora
+- **Athari ya Kasoro**: Usimamizi wa muktadha huathirije muda wa jibu?
+- **Uchumi wa Tokeni**: Je, tunaboresha matumizi ya tokeni kwa ufanisi?
+- **Usahihi wa Upokezi**: Taarifa zilizopatikana ni muhimu kiasi gani?
+- **Matumizi ya Rasilimali**: Rasilimali gani za kompyuta zinahitajika?
 
-- **Umuhimu wa Majibu**: Majibu yanashughulikia swali vizuri kiasi gani?
-- **Usahihi wa Ukweli**: Je, usimamizi wa muktadha unaboresha usahihi wa ukweli?
-- **Mshikamano**: Majibu yanalingana katika maswali yanayofanana?
-- **Kiwango cha Uhalisia**: Je, muktadha bora unapunguza uhalisia wa modeli?
+#### 3. Mambo ya Ubora
 
-#### 4. Mazingatio ya Uzoefu wa Mtumiaji
+- **Umuhimu wa Jibu**: Jibu linashughulikia swali vizuri kiasi gani?
+- **Usahihi wa Ukweli**: Usimamizi wa muktadha unaboresha usahihi wa ukweli?
+- **Ulinganifu**: Majibu ni thabiti kwa maswali yanayofanana?
+- **Kiwango cha Uongo**: Je, muktadha bora hupunguza utabiri wa uwongo wa modeli?
 
-- **Kiwango cha Ufuatiliaji**: Watumiaji wanahitaji ufafanuzi mara ngapi?
-- **Kukamilisha Kazi**: Watumiaji wanakamilisha malengo yao kwa
-- [Model Context Protocol Website](https://modelcontextprotocol.io/)
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol/modelcontextprotocol)
-- [MCP Documentation](https://modelcontextprotocol.io/docs)
+#### 4. Mambo ya Uzoefu wa Mtumiaji
+
+- **Kiwango cha Ufuatiliaji**: Watumiaji huwa na maswali ya ufafanuzi mara ngapi?
+- **Kukamilika kwa Kazi**: Watumiaji hufanikisha malengo yao vyema?
+- **Viashiria vya Kuridhika**: Watumiaji hupewa kiwango gani cha uzoefu wao?
+
+### Njia Za Uchunguzi wa Upimaji
+
+Wakati wa kujaribu uhandisi wa muktadha katika utekelezaji wa MCP, zingatia njia hizi za uchunguzi:
+
+1. **Ulinganifu wa Msingi**: Anzisha kiwango cha msingi kwa njia rahisi za muktadha kabla ya kujaribu mbinu ngumu zaidi
+
+2. **Mabadiliko ya Polepole**: Badilisha kipengele kimoja cha usimamizi wa muktadha kwa wakati kutenganisha athari yake
+
+3. **Tathmini Zinazoangazia Mtumiaji**: Changanya vipimo vya kiasi na maoni ya watumiaji
+
+4. **Uchambuzi wa Kushindwa**: Chunguza kesi ambapo mikakati ya muktadha inashindwa kuelewa maboresho yanayowezekana
+
+5. **Tathmini Zenye Vipengele Vingi**: Zingatia mzigo kati ya ufanisi, ubora, na uzoefu wa mtumiaji
+
+Njia hii ya majaribio yenye vipengele vingi inalingana na asili inayoibuka ya uhandisi wa muktadha.
+
+## Mawazo ya Mwisho
+
+Uhandisi wa muktadha ni eneo linaloibuka la uchunguzi ambalo linaweza kuwa msingi wa programu bora za MCP. Kwa kuzingatia kwa makini jinsi taarifa inavyopeperushwa kupitia mfumo wako, unaweza kuunda uzoefu wa AI unaofaa zaidi, sahihi, na wenye thamani kwa watumiaji.
+
+Mbinu na njia zilizotajwa katika moduli hii zinaonyesha fikra za mapema katika eneo hili, si mbinu zilizothibitishwa. Uhandisi wa muktadha unaweza kuendelea kuwa somo lililobainishwa zaidi kadiri uwezo wa AI unavyobadilika na kuelewa kwetu kunavyozidi kuwa kina. Kwa sasa, majaribio yanayochanganywa na upimaji makini huonekana kuwa njia yenye tija zaidi.
+
+## Mwelekeo Inayoweza Kuja Baadaye
+
+Eneo la uhandisi wa muktadha bado liko katika hatua za awali, lakini mwelekeo kadhaa wenye matumaini yanaibuka:
+
+- Kanuni za uhandisi wa muktadha zinaweza kuathiri sana utendaji wa modeli, ufanisi, uzoefu wa mtumiaji, na kuaminika
+- Njia za mstari mmoja na usimamizi kamili wa muktadha huenda zikashinda miundo ya mawakala wengi kwa matumizi mengi
+- Mifano maalumu ya usisiki wa muktadha huenda zikawa sehemu za kawaida katika minyororo ya AI
+- Mvutano kati ya ukamilifu wa muktadha na mipaka ya tokeni huenda ukaweka msukumo wa ubunifu katika usimamizi wa muktadha
+- Kadiri mifano inavyosonga mbele katika mawasiliano yenye ufanisi kama binadamu, ushirikiano wa kweli wa mawakala wengi unaweza kuwa halali zaidi
+- Utekelezaji wa MCP huenda ukabadilika ili kuekeza mifumo ya usimamizi wa muktadha inayotokana na majaribio ya sasa
+
+```mermaid
+graph TD
+    A[Uchunguzi wa Awali] -->|Majaribio| B[Mifumo Inayoibuka]
+    B -->|Uhakiki| C[Mbinu Zinazothibitishwa]
+    C -->|Matumizi| D[Changamoto Mpya]
+    D -->|Ubunifu| A
+    
+    style A fill:#AED6F1,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style B fill:#A9DFBF,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style C fill:#F4D03F,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style D fill:#F5B7B1,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+```
+
+## Rasilimali
+
+### Rasilimali Rasmi za MCP
+- [Tovuti ya Model Context Protocol](https://modelcontextprotocol.io/)
+- [Maelezo ya Model Context Protocol](https://github.com/modelcontextprotocol/modelcontextprotocol)
+
+- [Nyaraka za MCP](https://modelcontextprotocol.io/docs)
 - [MCP C# SDK](https://github.com/modelcontextprotocol/csharp-sdk)
 - [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
-- [MCP Inspector](https://github.com/modelcontextprotocol/inspector) - Zana ya majaribio ya kuona kwa seva za MCP
+- [MCP Inspector](https://github.com/modelcontextprotocol/inspector) - Chombo cha mtihani wa kuona kwa seva za MCP
 
 ### Makala za Uhandisi wa Muktadha
-- [Usijenge Wakala Wengi: Kanuni za Uhandisi wa Muktadha](https://cognition.ai/blog/dont-build-multi-agents) - Maoni ya Walden Yan kuhusu kanuni za uhandisi wa muktadha
-- [Mwongozo wa Kivitendo wa Kujenga Mawakala](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf) - Mwongozo wa OpenAI kuhusu muundo bora wa mawakala
-- [Kujenga Mawakala Wenye Ufanisi](https://www.anthropic.com/engineering/building-effective-agents) - Mbinu ya Anthropic katika ukuzaji wa mawakala
+- [Usijenge Wagent Wengi: Kanuni za Uhandisi wa Muktadha](https://cognition.ai/blog/dont-build-multi-agents) - Maoni ya Walden Yan juu ya kanuni za uhandisi wa muktadha
+- [Mwongozo wa Kivitendo wa Kujenga Wagent](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf) - Mwongozo wa OpenAI juu ya muundo wa wagent wenye ufanisi
+- [Kujenga Wagent Wenye Ufanisi](https://www.anthropic.com/engineering/building-effective-agents) - Mbinu ya Anthropic ya ukuzaji wa wagent
 
-### Utafiti Husika
-- [Kuongeza Urejeshaji wa Kielezo kwa Miundo Mikubwa ya Lugha](https://arxiv.org/abs/2310.01487) - Utafiti kuhusu mbinu za urejeshaji wa kielezo
-- [Kupotea Katikati: Jinsi Miundo ya Lugha Inavyotumia Muktadha Mrefu](https://arxiv.org/abs/2307.03172) - Utafiti muhimu kuhusu mifumo ya usindikaji wa muktadha
-- [Kizazi cha Picha Kilichopangwa na Maandishi kwa Ngazi ya Hierarkia kwa CLIP Latents](https://arxiv.org/abs/2204.06125) - Karatasi ya DALL-E 2 yenye maoni kuhusu muundo wa muktadha
-- [Kuchunguza Jukumu la Muktadha katika Miundo Mikubwa ya Lugha](https://aclanthology.org/2023.findings-emnlp.124/) - Utafiti wa hivi karibuni kuhusu usimamizi wa muktadha
-- [Ushirikiano wa Mawakala Wengi: Utafiti](https://arxiv.org/abs/2304.03442) - Utafiti kuhusu mifumo ya mawakala wengi na changamoto zake
+### Utafiti Unaohusiana
+- [Uongezaji wa Uvutaji wa Muktadha kwa Models za Lugha Kubwa](https://arxiv.org/abs/2310.01487) - Utafiti juu ya mbinu za uvutaji wa muktadha zinazobadilika
+- [Kupotea Katikati: Jinsi Models za Lugha Zinavyotumia Muktadha Mrefu](https://arxiv.org/abs/2307.03172) - Utafiti muhimu juu ya mifumo ya usindikaji muktadha
+- [Uundaji wa Picha Ulioungwa kwa Maandishi wa Ngazi za Juu kwa CLIP Latents](https://arxiv.org/abs/2204.06125) - Karatasi ya DALL-E 2 yenye maarifa juu ya muundo wa muktadha
+- [Kuchunguza Nafasi ya Muktadha katika Miundo ya Modeli Kubwa za Lugha](https://aclanthology.org/2023.findings-emnlp.124/) - Utafiti wa hivi karibuni juu ya usimamizi wa muktadha
+- [Ushirikiano wa Multi-Agent: Utafiti wa Mapitio](https://arxiv.org/abs/2304.03442) - Utafiti juu ya mifumo ya wagent wengi na changamoto zao
 
-### Rasilimali za Ziada
-- [Mbinu za Kuboresha Dirisha la Muktadha](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/context-window)
-- [Mbinu za Juu za RAG](https://www.microsoft.com/en-us/research/blog/retrieval-augmented-generation-rag-and-frontier-models/)
-- [Nyaraka za Kernel ya Semantiki](https://github.com/microsoft/semantic-kernel)
-- [Zana ya AI kwa Usimamizi wa Muktadha](https://github.com/microsoft/aitoolkit)
+### Rasilimali Zaidi
+- [Mbinu za Uboreshaji Dirisha la Muktadha](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/context-window)
+- [Mbinu Zinazoendelea za RAG](https://www.microsoft.com/en-us/research/blog/retrieval-augmented-generation-rag-and-frontier-models/)
+- [Nyaraka za Semantic Kernel](https://github.com/microsoft/semantic-kernel)
+- [Seti ya Zana za AI kwa Usimamizi wa Muktadha](https://github.com/microsoft/aitoolkit)
 
-## Nini kinafuata 
+## Nini kinachofuata
 
-- [5.15 MCP Usafiri Maalum](../mcp-transport/README.md)
+- [5.15 Usafirishaji Maalum wa MCP](../mcp-transport/README.md)
 
 ---
 
-**Kanusho**:  
-Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kuhakikisha usahihi, tafsiri za kiotomatiki zinaweza kuwa na makosa au kutokuwa sahihi. Hati ya asili katika lugha yake ya awali inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu ya binadamu inapendekezwa. Hatutawajibika kwa kutoelewana au tafsiri zisizo sahihi zinazotokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

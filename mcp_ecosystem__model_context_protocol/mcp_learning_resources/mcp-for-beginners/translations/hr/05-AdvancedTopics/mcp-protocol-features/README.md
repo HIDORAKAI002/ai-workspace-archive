@@ -1,23 +1,25 @@
-# MCP Protocol Features Deep Dive
+# Detaljno o značajkama MCP protokola
 
-Ovaj vodič istražuje napredne značajke MCP protokola koje nadilaze osnovno rukovanje alatima i resursima. Razumijevanje ovih značajki pomaže vam u izgradnji robusnijih, korisnički prihvatljivijih i proizvodno spremnih MCP poslužitelja.
+Ovaj vodič istražuje napredne značajke MCP protokola koje nadilaze osnovno rukovanje alatima i resursima. Razumijevanje ovih značajki pomaže vam u izgradnji robusnijih, korisnički pristupačnijih i spremnih za produkciju MCP servera.
 
-## Features Covered
+> **Gledajući unaprijed:** kandidat za izdanje `2026-07-28` ukida Logiranje kao primitiv (favorizirajući `stderr` za stdio i OpenTelemetry za strukturiranu observabilnost), uklanja model `initialize`/sesije spomenut u Događajima životnog ciklusa servera dolje, te premješta eksperimentalnu značajku Zadataka u posebni dodatak Zadataka s novim životnim ciklusom `tasks/get`/`tasks/update`/`tasks/cancel`. Pogledajte [Što se mijenja u MCP-u: kandidat za izdanje 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Progress Notifications** - Izvještavanje o napretku za dugotrajne operacije
-2. **Request Cancellation** - Omogućavanje klijentima da otkažu zahtjeve u tijeku
-3. **Resource Templates** - Dinamičke URI resursa s parametrima
-4. **Server Lifecycle Events** - Ispravno pokretanje i zaustavljanje
-5. **Logging Control** - Konfiguracija zapisivanja na strani poslužitelja
-6. **Error Handling Patterns** - Dosljedni odgovori na pogreške
+## Obuhvaćene značajke
+
+1. **Obavijesti o napretku** - Izvještavanje o napretku za dugotrajne operacije
+2. **Otkaživanje zahtjeva** - Omogućavanje klijentima da otkažu zahtjeve u toku
+3. **Predlošci resursa** - Dinamičke URI adrese resursa s parametrima
+4. **Događaji životnog ciklusa servera** - Ispravno inicijaliziranje i isključivanje
+5. **Kontrola logiranja** - Konfiguracija logiranja na strani servera
+6. **Obrasci rukovanja pogreškama** - Dosljedni odgovori na pogreške
 
 ---
 
-## 1. Progress Notifications
+## 1. Obavijesti o napretku
 
-Za operacije koje traju (obrada podataka, preuzimanje datoteka, pozivi API-ja), obavijesti o napretku održavaju korisnike informiranima.
+Za operacije koje traju duže vrijeme (obrada podataka, preuzimanja datoteka, API pozivi), obavijesti o napretku održavaju korisnike informiranima.
 
-### How It Works
+### Kako to radi
 
 ```mermaid
 sequenceDiagram
@@ -28,9 +30,10 @@ sequenceDiagram
     Server-->>Client: obavijest: napredak 10%
     Server-->>Client: obavijest: napredak 50%
     Server-->>Client: obavijest: napredak 90%
-    Server->>Client: rezultat (dovršeno)
+    Server->>Client: rezultat (kompletno)
 ```
-### Python Implementation
+
+### Python implementacija
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Dobivanje veličine datoteke za izračun napretka
+    # Dohvati veličinu datoteke za izračun napretka
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Obrada dijela
+            # Obradi dio
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Slanje obavijesti o napretku
+            # Pošalji obavijest o napretku
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Izvještavanje o napretku nakon svake stavke
+        # Prijavi napredak nakon svake stavke
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### TypeScript Implementation
+### TypeScript implementacija
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Client Handling (Python)
+### Rukovanje na strani klijenta (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Registriraj upravitelja
+# Registriraj rukovatelja
 session.on_notification("notifications/progress", handle_progress)
 
-# Pozovi alat (ažuriranja napretka dolazit će putem upravitelja)
+# Pozovi alat (ažuriranja napretka dolazit će putem rukovatelja)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. Request Cancellation
+## 2. Otkaživanje zahtjeva
 
-Omogućite klijentima da otkažu zahtjeve koji više nisu potrebni ili traju predugo.
+Omogućite klijentima da otkažu zahtjeve koji nisu više potrebni ili traju predugo.
 
-### Python Implementation
+### Python implementacija
 
 ```python
 from mcp.server import Server
@@ -160,7 +163,7 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Pretraži kroz mnogo stranica
+        for page in range(100):  # Pretraži kroz mnoge stranice
             # Provjeri je li otkazivanje zatraženo
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
@@ -169,7 +172,7 @@ async def long_running_search(query: str, ctx) -> str:
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Mala pauza omogućuje provjere otkazivanja
+            # Mali odmak omogućuje provjere otkazivanja
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### Implementing Cancellation Context
+### Implementacija konteksta otkazivanja
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Normalno istekao, nastavi
+            pass  # Normalno vrijeme isteka, nastavi
 ```
 
-### Client-Side Cancellation
+### Otkazivanje na strani klijenta
 
 ```python
 import asyncio
@@ -260,11 +263,11 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. Resource Templates
+## 3. Predlošci resursa
 
-Predlošci resursa omogućuju dinamičku konstrukciju URI-ja s parametrima, korisno za API-je i baze podataka.
+Predlošci resursa omogućuju dinamičku konstrukciju URI adresa s parametrima, korisno za API-je i baze podataka.
 
-### Defining Templates
+### Definiranje predložaka
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Parsiraj URI za izdvajanje parametara
+    # Analiziraj URI za izdvajanje parametara
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### TypeScript Implementation
+### TypeScript implementacija
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Parsiraj URI problema na GitHubu
+  // Parsiraj URI GitHub issue-a
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. Server Lifecycle Events
+## 4. Događaji životnog ciklusa servera
 
-Ispravno upravljanje pokretanjem i gašenjem osigurava uredno upravljanje resursima.
+Ispravno inicijaliziranje i isključivanje osigurava čisto upravljanje resursima.
 
-### Python Lifecycle Management
+### Upravljanje životnim ciklusom u Pythonu
 
 ```python
 from mcp.server import Server
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# Zajedničko stanje
+# Dijeljeno stanje
 db_connection = None
 cache = None
 
@@ -389,7 +392,7 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # Poslužitelj radi ovdje
+    yield  # Server radi ovdje
     
     # Gašenje
     print("🛑 Server shutting down...")
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript Lifecycle
+### Životni ciklus u TypeScriptu
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -425,12 +428,12 @@ class ManagedServer {
   }
   
   async start() {
-    // Inicijaliziraj resurse
+    // Inicijalizirajte resurse
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
     
-    // Pokreni server
+    // Pokreni poslužitelj
     await this.server.connect(transport);
   }
   
@@ -446,7 +449,7 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // Sigurno koristi this.dbConnection
+      // Sigurno koristite this.dbConnection
       // ...
     });
   }
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. Logging Control
+## 5. Kontrola logiranja
 
-MCP podržava razine zapisivanja na strani poslužitelja koje klijenti mogu kontrolirati.
+MCP podržava server-side razine logiranja kojima klijenti mogu upravljati.
 
-### Implementing Logging Levels
+### Implementacija razina logiranja
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Preslikaj MCP razine na Python razine logiranja
+# Preslikajte MCP razine na Python razine zapisivanja
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,7 +512,7 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Sending Log Messages to Client
+### Slanje log poruka klijentu
 
 ```python
 @app.tool()
@@ -522,7 +525,7 @@ async def complex_operation(input: str, ctx) -> str:
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Izvrši rad...
+    # Obavljaj posao...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Error Handling Patterns
+## 6. Obrasci rukovanja pogreškama
 
 Dosljedno rukovanje pogreškama poboljšava otklanjanje pogrešaka i korisničko iskustvo.
 
-### MCP Error Codes
+### MCP kodovi pogrešaka
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Structured Error Responses
+### Strukturirani odgovori s pogreškama
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Provjeri unos
+    # Provjeri unesene podatke
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -606,7 +609,7 @@ async def safe_operation(input: str) -> str:
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### Error Handling in TypeScript
+### Rukovanje pogreškama u TypeScriptu
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // Više provjera...
+  // Više provjere valjanosti...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -653,11 +656,11 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## Experimental Features (MCP 2025-11-25)
+## Eksperimentalne značajke (MCP 2025-11-25)
 
 Ove su značajke označene kao eksperimentalne u specifikaciji:
 
-### Tasks (Long-Running Operations)
+### Zadaci (dugotrajne operacije)
 
 ```python
 # Zadaci omogućuju praćenje dugotrajnih operacija s državom
@@ -668,7 +671,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     # Prijavi da je zadatak započeo
     await ctx.report_status("running", "Initializing training...")
     
-    # Petlja za treniranje
+    # Petlja treniranja
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Tool Annotations
+### Anotacije alata
 
 ```python
-# Bilješke pružaju metapodatke o ponašanju alata
+# Anotacije pružaju metapodatke o ponašanju alata
 @app.tool(
     annotations={
         "destructive": False,      # Ne mijenja podatke
-        "idempotent": True,        # Sigurno za ponovno pokušavanje
+        "idempotent": True,        # Sigurno za ponovni pokušaj
         "timeout_seconds": 30,     # Očekivano maksimalno trajanje
-        "requires_approval": False # Nije potrebno odobrenje korisnika
+        "requires_approval": False # Nije potrebna odobrenje korisnika
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## What's Next
+## Što je sljedeće
 
-- [Module 8 - Best Practices](../../08-BestPractices/README.md)
-- [5.14 - Context Engineering](../mcp-contextengineering/README.md)
-- [MCP Specification Changelog](https://spec.modelcontextprotocol.io/)
+- [Modul 8 - Najbolje prakse](../../08-BestPractices/README.md)
+- [5.14 - Inženjering konteksta](../mcp-contextengineering/README.md)
+- [Dnevnici promjena MCP specifikacije](https://spec.modelcontextprotocol.io/)
 
 ---
 
-## Additional Resources
+## Dodatni resursi
 
-- [MCP Specification 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 Error Codes](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK Examples](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [TypeScript SDK Examples](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [MCP specifikacija 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 kodovi pogrešaka](https://www.jsonrpc.org/specification#error_object)
+- [Primjeri Python SDK-a](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [Primjeri TypeScript SDK-a](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Odricanje od odgovornosti**:  
-Ovaj dokument je preveden korištenjem AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako se trudimo osigurati točnost, molimo imajte na umu da automatski prijevodi mogu sadržavati pogreške ili netočnosti. Izvorni dokument na njegovom izvornom jeziku treba se smatrati autoritativnim izvorom. Za kritične informacije preporučuje se profesionalni ljudski prijevod. Ne snosimo odgovornost za bilo kakva nesporazuma ili pogrešna tumačenja proizašla iz korištenja ovog prijevoda.
+**Napomena**:
+Ovaj dokument je preveden korištenjem AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati greške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za važne informacije preporuča se profesionalni ljudski prijevod. Nismo odgovorni za bilo kakva nesporazumevanja ili pogrešne interpretacije koje proizlaze iz korištenja ovog prijevoda.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

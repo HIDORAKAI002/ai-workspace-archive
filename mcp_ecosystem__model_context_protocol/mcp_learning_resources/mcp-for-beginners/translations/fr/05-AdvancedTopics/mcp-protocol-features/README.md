@@ -1,23 +1,25 @@
-# Exploration Approfondie des Fonctionnalités du Protocole MCP
+# Analyse Approfondie des Fonctionnalités du Protocole MCP
 
-Ce guide explore des fonctionnalités avancées du protocole MCP qui vont au-delà de la gestion basique des outils et des ressources. Comprendre ces fonctionnalités vous aide à construire des serveurs MCP plus robustes, conviviaux et prêts pour la production.
+Ce guide explore les fonctionnalités avancées du protocole MCP qui vont au-delà de la gestion de base des outils et des ressources. Comprendre ces fonctionnalités vous aide à construire des serveurs MCP plus robustes, conviviaux et prêts pour la production.
 
-## Fonctionnalités Couverts
+> **À venir :** le candidat à la version `2026-07-28` déprécie la primitive de journalisation (privilégiant `stderr` pour stdio et OpenTelemetry pour une observabilité structurée), supprime le modèle `initialize`/session référencé dans les Événements du Cycle de Vie du Serveur ci-dessous, et déplace la fonctionnalité expérimentale Tâches dans une extension dédiée avec un nouveau cycle de vie `tasks/get`/`tasks/update`/`tasks/cancel`. Voir [Ce qui change dans MCP : le candidat à la version 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Notifications de Progression** - Signaler la progression pour les opérations longues
-2. **Annulation de Requête** - Permettre aux clients d'annuler les requêtes en cours
+## Fonctionnalités Couvertes
+
+1. **Notifications de Progression** - Rapporter la progression des opérations longues
+2. **Annulation de Requête** - Permettre aux clients d’annuler les requêtes en cours
 3. **Modèles de Ressources** - URI de ressources dynamiques avec paramètres
 4. **Événements du Cycle de Vie du Serveur** - Initialisation et arrêt appropriés
 5. **Contrôle de la Journalisation** - Configuration de la journalisation côté serveur
-6. **Modèles de Gestion des Erreurs** - Réponses d'erreur cohérentes
+6. **Schémas de Gestion des Erreurs** - Réponses d’erreur cohérentes
 
 ---
 
 ## 1. Notifications de Progression
 
-Pour les opérations qui prennent du temps (traitement de données, téléchargements de fichiers, appels API), les notifications de progression maintiennent l'utilisateur informé.
+Pour les opérations qui prennent du temps (traitement de données, téléchargements de fichiers, appels API), les notifications de progression tiennent les utilisateurs informés.
 
-### Comment Cela Fonctionne
+### Comment ça Fonctionne
 
 ```mermaid
 sequenceDiagram
@@ -25,12 +27,13 @@ sequenceDiagram
     participant Server
     
     Client->>Server: outils/appel (opération longue)
-    Server-->>Client: notification : progression 10%
-    Server-->>Client: notification : progression 50%
-    Server-->>Client: notification : progression 90%
+    Server-->>Client: notification : progression 10 %
+    Server-->>Client: notification : progression 50 %
+    Server-->>Client: notification : progression 90 %
     Server->>Client: résultat (terminé)
 ```
-### Implémentation en Python
+
+### Implémentation Python
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -49,7 +52,7 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Traiter le segment
+            # Traiter le morceau
             await process_chunk(chunk)
             processed += len(chunk)
             
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### Implémentation en TypeScript
+### Implémentation TypeScript
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Gestion côté Client (Python)
+### Gestion Client (Python)
 
 ```python
 async def handle_progress(notification):
@@ -142,9 +145,9 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. Annulation de Requête
 
-Permettre aux clients d'annuler des requêtes qui ne sont plus nécessaires ou qui prennent trop de temps.
+Permettre aux clients d’annuler les requêtes qui ne sont plus nécessaires ou qui prennent trop de temps.
 
-### Implémentation en Python
+### Implémentation Python
 
 ```python
 from mcp.server import Server
@@ -160,12 +163,12 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Rechercher à travers de nombreuses pages
+        for page in range(100):  # Rechercher à travers plusieurs pages
             # Vérifier si une annulation a été demandée
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Simuler la recherche sur la page
+            # Simuler la recherche de page
             page_results = await search_page(query, page)
             results.extend(page_results)
             
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### Mise en œuvre du Contexte d'Annulation
+### Implémentation du Contexte d’Annulation
 
 ```python
 class CancellableContext:
@@ -231,7 +234,7 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Délai d'attente normal, continuer
+            pass  # Délai normal dépassé, continuer
 ```
 
 ### Annulation Côté Client
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Modèles de Ressources
 
-Les modèles de ressources permettent la construction dynamique d'URI avec des paramètres, utile pour les API et bases de données.
+Les modèles de ressources permettent la construction dynamique d’URI avec des paramètres, utile pour les APIs et les bases de données.
 
 ### Définition des Modèles
 
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### Implémentation en TypeScript
+### Implémentation TypeScript
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Analyser l'URI de l'issue GitHub
+  // Analyser l'URI du problème GitHub
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. Événements du Cycle de Vie du Serveur
 
-Une gestion appropriée de l'initialisation et de l'arrêt assure une gestion propre des ressources.
+Une gestion appropriée de l’initialisation et de l’arrêt assure une administration propre des ressources.
 
 ### Gestion du Cycle de Vie en Python
 
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Utilisation avec arrêt en douceur
+// Utilisation avec arrêt progressif
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## 5. Contrôle de la Journalisation
 
-MCP prend en charge des niveaux de journalisation côté serveur que les clients peuvent contrôler.
+MCP supporte des niveaux de journalisation côté serveur que les clients peuvent contrôler.
 
-### Mise en œuvre des Niveaux de Journalisation
+### Implémentation des Niveaux de Journalisation
 
 ```python
 from mcp.server import Server
@@ -509,7 +512,7 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Envoi de Messages de Journalisation au Client
+### Envoi des Messages de Journal au Client
 
 ```python
 @app.tool()
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Modèles de Gestion des Erreurs
+## 6. Schémas de Gestion des Erreurs
 
-Une gestion cohérente des erreurs améliore le débogage et l'expérience utilisateur.
+Une gestion cohérente des erreurs améliore le débogage et l’expérience utilisateur.
 
-### Codes d'Erreur MCP
+### Codes d’Erreur MCP
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,7 +572,7 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Réponses d'Erreur Structurées
+### Réponses d’Erreur Structurées
 
 ```python
 @app.tool()
@@ -601,7 +604,7 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Enregistrer les erreurs inattendues
+        # Consigner les erreurs inattendues
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Déjà une erreur MCP
+      throw error;  // Erreur MCP déjà existante
     }
     
     // Convertir d'autres erreurs
@@ -657,10 +660,10 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 Ces fonctionnalités sont marquées comme expérimentales dans la spécification :
 
-### Tâches (Opérations de Longue Durée)
+### Tâches (Opérations Longues)
 
 ```python
-# Les tâches permettent de suivre des opérations de longue durée avec un état
+# Les tâches permettent de suivre les opérations de longue durée avec état
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Annotations d'Outils
+### Annotations des Outils
 
 ```python
 # Les annotations fournissent des métadonnées sur le comportement de l'outil
 @app.tool(
     annotations={
         "destructive": False,      # Ne modifie pas les données
-        "idempotent": True,        # Sans danger pour une nouvelle tentative
+        "idempotent": True,        # Peut être réessayé sans risque
         "timeout_seconds": 30,     # Durée maximale prévue
-        "requires_approval": False # Aucune approbation utilisateur requise
+        "requires_approval": False # Aucune approbation utilisateur nécessaire
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,7 +704,7 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## Et Après
+## Et Après ?
 
 - [Module 8 - Bonnes Pratiques](../../08-BestPractices/README.md)
 - [5.14 - Ingénierie du Contexte](../mcp-contextengineering/README.md)
@@ -712,13 +715,13 @@ async def safe_query(query: str) -> str:
 ## Ressources Supplémentaires
 
 - [Spécification MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [Codes d'Erreur JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [Codes d’Erreur JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
 - [Exemples SDK Python](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [Exemples SDK TypeScript](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Avertissement** :  
-Ce document a été traduit à l’aide du service de traduction automatique [Co-op Translator](https://github.com/Azure/co-op-translator). Bien que nous nous efforçons d’assurer l’exactitude, veuillez noter que les traductions automatisées peuvent contenir des erreurs ou des inexactitudes. Le document original dans sa langue d’origine doit être considéré comme la source faisant foi. Pour des informations critiques, il est recommandé de recourir à une traduction professionnelle humaine. Nous déclinons toute responsabilité en cas de malentendus ou de mauvaises interprétations résultant de l’utilisation de cette traduction.
+**Avertissement** :
+Ce document a été traduit à l'aide du service de traduction automatique [Co-op Translator](https://github.com/Azure/co-op-translator). Bien que nous nous efforçions d'assurer l'exactitude, veuillez noter que les traductions automatisées peuvent contenir des erreurs ou des inexactitudes. Le document original dans sa langue native doit être considéré comme la source faisant autorité. Pour les informations critiques, il est recommandé de recourir à une traduction professionnelle réalisée par un humain. Nous ne saurions être tenus responsables des malentendus ou erreurs d'interprétation découlant de l'utilisation de cette traduction.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

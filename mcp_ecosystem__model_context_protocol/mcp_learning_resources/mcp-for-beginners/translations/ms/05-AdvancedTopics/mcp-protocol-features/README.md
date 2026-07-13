@@ -1,21 +1,23 @@
-# Ciri-ciri Protokol MCP Mendalam
+# Terokai Mendalam Ciri Protokol MCP
 
-Panduan ini meneroka ciri-ciri protokol MCP yang maju yang melangkaui pengendalian alat dan sumber asas. Memahami ciri-ciri ini membantu anda membina pelayan MCP yang lebih mantap, mesra pengguna, dan siap untuk produksi.
+Panduan ini meneroka ciri protokol MCP yang maju yang melangkaui pengendalian alat dan sumber asas. Memahami ciri-ciri ini membantu anda membina pelayan MCP yang lebih teguh, mesra pengguna, dan sedia untuk pengeluaran.
 
-## Ciri-ciri Yang Dibincangkan
+> **Melihat ke hadapan:** calon keluaran `2026-07-28` menangguhkan primitif Logging (mengutamakan `stderr` untuk stdio dan OpenTelemetry untuk pemerhatian berstruktur), membuang model `initialize`/sesi yang disebut dalam Peristiwa Kitaran Hayat Pelayan di bawah, dan memindahkan ciri Eksperimen Tasks ke sambungan Tasks khusus dengan kitaran hidup baru `tasks/get`/`tasks/update`/`tasks/cancel`. Lihat [Apa yang Berubah dalam MCP: Calon Keluaran 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Pemberitahuan Kemajuan** - Melaporkan kemajuan untuk operasi yang memakan masa lama  
-2. **Pembatalan Permintaan** - Membenarkan klien membatalkan permintaan yang sedang diproses  
-3. **Templat Sumber** - URI sumber dinamik dengan parameter  
-4. **Peristiwa Kitaran Hayat Pelayan** - Inisialisasi dan penutupan yang betul  
-5. **Kawalan Log** - Konfigurasi log di sisi pelayan  
-6. **Corak Pengendalian Ralat** - Respons ralat yang konsisten  
+## Ciri-ciri Yang Diliputi
+
+1. **Notifikasi Kemajuan** - Melaporkan kemajuan untuk operasi jangka panjang
+2. **Pembatalan Permintaan** - Benarkan klien membatalkan permintaan yang sedang berjalan
+3. **Templat Sumber** - URI sumber dinamik dengan parameter
+4. **Peristiwa Kitaran Hayat Pelayan** - Inisialisasi dan penutupan yang betul
+5. **Kawalan Logging** - Konfigurasi logging sisi pelayan
+6. **Corak Pengendalian Ralat** - Respons ralat yang konsisten
 
 ---
 
-## 1. Pemberitahuan Kemajuan
+## 1. Notifikasi Kemajuan
 
-Untuk operasi yang mengambil masa (pemprosesan data, muat turun fail, panggilan API), pemberitahuan kemajuan memastikan pengguna sentiasa dimaklumkan.
+Untuk operasi yang mengambil masa (pemprosesan data, muat turun fail, panggilan API), notifikasi kemajuan memastikan pengguna sentiasa dimaklumkan.
 
 ### Cara Ia Berfungsi
 
@@ -25,11 +27,12 @@ sequenceDiagram
     participant Server
     
     Client->>Server: tools/call (operasi panjang)
-    Server-->>Client: notifikasi: kemajuan 10%
-    Server-->>Client: notifikasi: kemajuan 50%
-    Server-->>Client: notifikasi: kemajuan 90%
+    Server-->>Client: pemberitahuan: kemajuan 10%
+    Server-->>Client: pemberitahuan: kemajuan 50%
+    Server-->>Client: pemberitahuan: kemajuan 90%
     Server->>Client: keputusan (lengkap)
-```  
+```
+
 ### Pelaksanaan Python
 
 ```python
@@ -89,7 +92,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-  
+
 ### Pelaksanaan TypeScript
 
 ```typescript
@@ -122,7 +125,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-  
+
 ### Pengendalian Klien (Python)
 
 ```python
@@ -137,12 +140,12 @@ session.on_notification("notifications/progress", handle_progress)
 # Panggil alat (kemas kini kemajuan akan diterima melalui pengendali)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-  
+
 ---
 
 ## 2. Pembatalan Permintaan
 
-Membenarkan klien membatalkan permintaan yang tidak lagi diperlukan atau mengambil masa terlalu lama.
+Benarkan klien membatalkan permintaan yang tidak lagi diperlukan atau mengambil masa terlalu lama.
 
 ### Pelaksanaan Python
 
@@ -161,19 +164,19 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # Cari melalui banyak halaman
-            # Periksa jika pembatalan diminta
+            # Semak jika pembatalan diminta
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Menyimulasikan pencarian halaman
+            # Menyimulasikan carian halaman
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Lewatan kecil membenarkan pemeriksaan pembatalan
+            # Kelewatan kecil membenarkan pemeriksaan pembatalan
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # Pulangkan hasil sebahagian
+        # Pulangkan keputusan separa
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -197,8 +200,8 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-  
-### Pelaksanaan Konteks Pembatalan
+
+### Melaksanakan Konteks Pembatalan
 
 ```python
 class CancellableContext:
@@ -231,9 +234,9 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Tamat masa biasa, sambung
+            pass  # Tamat masa biasa, teruskan
 ```
-  
+
 ### Pembatalan di Pihak Klien
 
 ```python
@@ -257,7 +260,7 @@ async def search_with_timeout(session, query, timeout=30):
         })
         return "Search timed out"
 ```
-  
+
 ---
 
 ## 3. Templat Sumber
@@ -316,7 +319,7 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-  
+
 ### Pelaksanaan TypeScript
 
 ```typescript
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Memparsing URI isu GitHub
+  // Tafsir URI isu GitHub
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -359,7 +362,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-  
+
 ---
 
 ## 4. Peristiwa Kitaran Hayat Pelayan
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# Keadaan dikongsi
+# Negeri kongsi
 db_connection = None
 cache = None
 
@@ -405,7 +408,7 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-  
+
 ### Kitaran Hayat TypeScript
 
 ```typescript
@@ -425,7 +428,7 @@ class ManagedServer {
   }
   
   async start() {
-    // Inisialisasi sumber
+    // Mulakan sumber
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
@@ -435,7 +438,7 @@ class ManagedServer {
   }
   
   async stop() {
-    // Kemas kini sumber
+    // Bersihkan sumber
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Penggunaan dengan penutupan lancar
+// Penggunaan dengan penutupan yang teratur
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -462,14 +465,14 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-  
+
 ---
 
-## 5. Kawalan Log
+## 5. Kawalan Logging
 
-MCP menyokong tahap log di sisi pelayan yang boleh dikawal oleh klien.
+MCP menyokong tahap logging sisi pelayan yang boleh dikawal oleh klien.
 
-### Pelaksanaan Tahap Log
+### Melaksanakan Tahap Logging
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Pemetaan tahap MCP ke tahap pencatatan Python
+# Pemetaan tahap MCP ke tahap log Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,7 +511,7 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-  
+
 ### Menghantar Mesej Log ke Klien
 
 ```python
@@ -516,7 +519,7 @@ async def debug_operation(data: str) -> str:
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Hantar pemberitahuan log kepada klien
+    # Hantar pemberitahuan log kepada pelanggan
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -532,12 +535,12 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-  
+
 ---
 
 ## 6. Corak Pengendalian Ralat
 
-Pengendalian ralat yang konsisten memperbaiki debug dan pengalaman pengguna.
+Pengendalian ralat yang konsisten meningkatkan proses debugging dan pengalaman pengguna.
 
 ### Kod Ralat MCP
 
@@ -568,8 +571,8 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-  
-### Respons Ralat Terstruktur
+
+### Respons Ralat Berstruktur
 
 ```python
 @app.tool()
@@ -601,11 +604,11 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Log ralat tidak dijangka
+        # Log ralat yang tidak dijangka
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-  
+
 ### Pengendalian Ralat dalam TypeScript
 
 ```typescript
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Sudah menjadi ralat MCP
+      throw error;  // Sudah ralat MCP
     }
     
     // Tukar ralat lain
@@ -650,22 +653,22 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-  
+
 ---
 
-## Ciri-ciri Eksperimen (MCP 2025-11-25)
+## Ciri Eksperimen (MCP 2025-11-25)
 
 Ciri-ciri ini ditandakan sebagai eksperimen dalam spesifikasi:
 
-### Tugas (Operasi Jangka Panjang)
+### Tasks (Operasi Jangka Panjang)
 
 ```python
-# Tugas membolehkan penjejakan operasi yang berjalan lama dengan keadaan
+# Tugasan membenarkan penjejakan operasi jangka panjang dengan keadaan
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Laporkan tugas dimulakan
+    # Lapor tugasan bermula
     await ctx.report_status("running", "Initializing training...")
     
     # Gelung latihan
@@ -681,7 +684,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-  
+
 ### Anotasi Alat
 
 ```python
@@ -690,35 +693,35 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     annotations={
         "destructive": False,      # Tidak mengubah data
         "idempotent": True,        # Selamat untuk cuba semula
-        "timeout_seconds": 30,     # Tempoh maksimum yang dijangka
-        "requires_approval": False # Tidak memerlukan kelulusan pengguna
+        "timeout_seconds": 30,     # Jangka masa maksimum yang dijangka
+        "requires_approval": False # Tiada kelulusan pengguna diperlukan
     }
 )
 async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-  
+
 ---
 
-## Apa Yang Seterusnya
+## Apa Seterusnya
 
-- [Modul 8 - Amalan Terbaik](../../08-BestPractices/README.md)  
-- [5.14 - Kejuruteraan Konteks](../mcp-contextengineering/README.md)  
-- [Sejarah Perubahan Spesifikasi MCP](https://spec.modelcontextprotocol.io/)  
+- [Modul 8 - Amalan Terbaik](../../08-BestPractices/README.md)
+- [5.14 - Kejuruteraan Konteks](../mcp-contextengineering/README.md)
+- [Log Perubahan Spesifikasi MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Sumber Tambahan
 
-- [Spesifikasi MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [Kod Ralat JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [Contoh SDK Python](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [Spesifikasi MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Kod Ralat JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [Contoh SDK Python](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [Contoh SDK TypeScript](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil perhatian bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat penting, terjemahan profesional oleh manusia adalah disyorkan. Kami tidak bertanggungjawab atas sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat penting, terjemahan oleh manusia profesional adalah disyorkan. Kami tidak bertanggungjawab terhadap sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

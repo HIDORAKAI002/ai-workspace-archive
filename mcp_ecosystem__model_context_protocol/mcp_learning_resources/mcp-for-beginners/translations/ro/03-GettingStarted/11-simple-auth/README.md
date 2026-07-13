@@ -1,25 +1,25 @@
 # Autentificare simplă
 
-SDK-urile MCP suportă utilizarea OAuth 2.1, care, să fim sinceri, este un proces destul de complex ce implică concepte precum server de autentificare, server de resurse, trimiterea acreditărilor, obținerea unui cod, schimbarea codului pentru un token bearer până când în final se pot obține datele resursei. Dacă nu ești obișnuit cu OAuth, care este o metodă excelentă de implementat, este o idee bună să începi cu un nivel de bază de autentificare și să construiești până la o securitate tot mai bună. De aceea există acest capitol, pentru a te ajuta să ajungi la o autentificare mai avansată.
+SDK-urile MCP suportă utilizarea OAuth 2.1, care, să fim corecți, este un proces destul de complex ce implică concepte precum server auth, server de resurse, trimiterea credențialelor, obținerea unui cod, schimbarea codului pentru un token bearer până când poți obține în sfârșit datele de resurse. Dacă nu ești obișnuit cu OAuth, care este un lucru grozav de implementat, este o idee bună să începi cu un nivel de autentificare de bază și să construiești treptat către o securitate tot mai bună. De aceea există acest capitol, pentru a te ajuta să avansezi spre autentificări mai avansate.
 
 ## Autentificare, ce înțelegem prin asta?
 
-Auth este prescurtarea pentru autentificare și autorizare. Ideea este că trebuie să facem două lucruri:
+Autentificarea este prescurtarea de la autentificare și autorizare. Ideea este că trebuie să facem două lucruri:
 
-- **Autentificarea**, care este procesul de a determina dacă lăsăm o persoană să intre în casa noastră, că are dreptul de a fi „aici”, adică să aibă acces la serverul nostru de resurse unde funcționalitățile MCP Server-ului nostru trăiesc.
-- **Autorizarea**, este procesul de a afla dacă un utilizator ar trebui să aibă acces la aceste resurse specifice pe care le solicită, de exemplu aceste comenzi sau aceste produse, sau dacă este permis să citească conținutul dar nu să șteargă, ca alt exemplu.
+- **Autentificare**, care este procesul de a afla dacă permitem unei persoane să intre în casa noastră, adică dacă au dreptul să fie "aici", adică să aibă acces la serverul nostru de resurse unde trăiesc funcționalitățile MCP Server.
+- **Autorizare**, este procesul de a afla dacă un utilizator ar trebui să aibă acces la aceste resurse specifice pe care le cere, de exemplu aceste comenzi sau aceste produse sau dacă este permis să citească conținutul dar nu să șteargă, ca alt exemplu.
 
-## Acreditări: cum spunem sistemului cine suntem
+## Credențiale: cum spunem sistemului cine suntem
 
-Ei bine, cei mai mulți dezvoltatori web încep să gândească în termeni de oferire a unei acreditări serverului, de obicei un secret care spune dacă pot fi aici „autentificare”. Această acreditare este de obicei o versiune encodificată base64 a unui nume de utilizator și a unei parole sau o cheie API care identifică în mod unic un utilizator specific.
+Ei bine, majoritatea dezvoltatorilor web încep să gândească în termeni de a oferi o credențială serverului, de obicei un secret care spune dacă au voie să fie aici „Autentificare”. Această credențială este de obicei o versiune codificată base64 a unui nume de utilizator și parolă sau o cheie API care identifică în mod unic un utilizator specific.
 
-Aceasta implică trimiterea ei printr-un header numit „Authorization” astfel:
+Aceasta implică trimiterea printr-un header numit „Authorization”, astfel:
 
 ```json
 { "Authorization": "secret123" }
 ```
 
-Aceasta este de obicei denumită autentificare de bază. Cum funcționează întregul flux este în felul următor:
+Aceasta este de obicei denumită autentificare de bază. Cum funcționează apoi fluxul general este în felul următor:
 
 ```mermaid
 sequenceDiagram
@@ -32,7 +32,8 @@ sequenceDiagram
    Server-->>Client: 1a, te cunosc, iată datele tale
    Server-->>Client: 1b, nu te cunosc, 401 
 ```
-Acum că înțelegem cum funcționează din punct de vedere al fluxului, cum îl implementăm? Ei bine, majoritatea serverelor web au un concept numit middleware, un fragment de cod care rulează ca parte a cererii și poate verifica acreditările, iar dacă acestea sunt valide, poate lăsa cererea să treacă. Dacă cererea nu are acreditări valide, atunci primești o eroare de autentificare. Să vedem cum se poate implementa asta:
+
+Acum că înțelegem cum funcționează din punct de vedere al fluxului, cum o implementăm? Ei bine, majoritatea serverelor web au un concept numit middleware, o bucată de cod care rulează ca parte a cererii și poate verifica credențialele și, dacă acestea sunt valide, permite cererii să treacă. Dacă cererea nu are credențiale valide, obții o eroare de autentificare. Să vedem cum se poate implementa asta:
 
 **Python**
 
@@ -52,7 +53,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         print("Valid token, proceeding...")
        
         response = await call_next(request)
-        # adaugă orice anteturi ale clientului sau modifică răspunsul într-un anumit fel
+        # adaugă orice anteturi pentru client sau modifică în vreun fel răspunsul
         return response
 
 
@@ -61,14 +62,14 @@ starlette_app.add_middleware(CustomHeaderMiddleware)
 
 Aici avem:
 
-- Creat un middleware numit `AuthMiddleware` unde metoda sa `dispatch` este invocată de serverul web.
+- Creat un middleware numit `AuthMiddleware` unde metoda sa `dispatch` este apelată de serverul web.
 - Adăugat middleware-ul la serverul web:
 
     ```python
     starlette_app.add_middleware(AuthMiddleware)
     ```
 
-- Scris logica de validare care verifică dacă headerul Authorization este prezent și dacă secretul trimis este valid:
+- Scris logica de validare care verifică dacă header-ul Authorization este prezent și dacă secretul trimis este valid:
 
     ```python
     has_header = request.headers.get("Authorization")
@@ -81,19 +82,19 @@ Aici avem:
         return Response(status_code=403, content="Forbidden")
     ```
 
-    dacă secretul este prezent și valid atunci lăsăm cererea să treacă apelând `call_next` și returnăm răspunsul.
+    dacă secretul este prezent și valid, atunci lăsăm cererea să treacă apelând `call_next` și returnăm răspunsul.
 
     ```python
     response = await call_next(request)
-    # adaugă orice anteturi pentru client sau modifică răspunsul într-un fel
+    # adaugă orice anteturi personalizate sau modifică răspunsul într-un fel
     return response
     ```
 
-Cum funcționează este că dacă o cerere web este făcută către server, middleware-ul va fi invocat și, dat fiind implementarea, va lăsa cererea să treacă sau va returna o eroare care indică faptul că clientul nu are voie să înainteze.
+Cum funcționează este că dacă o cerere web este făcută către server, middleware-ul va fi invocat și, dată fiind implementarea, fie va lăsa cererea să treacă, fie va returna o eroare care indică faptul că clientul nu are permisiunea să continue.
 
 **TypeScript**
 
-Aici creăm un middleware cu popularul framework Express și interceptăm cererea înainte să ajungă la MCP Server. Iată codul pentru asta:
+Aici creăm un middleware cu framework-ul popular Express și interceptăm cererea înainte să ajungă la MCP Server. Iată codul pentru asta:
 
 ```typescript
 function isValid(secret) {
@@ -101,7 +102,7 @@ function isValid(secret) {
 }
 
 app.use((req, res, next) => {
-    // 1. Antetul de autorizare este prezent?
+    // 1. Headerul de autorizare este prezent?
     if(!req.headers["Authorization"]) {
         res.status(401).send('Unauthorized');
     }
@@ -115,20 +116,20 @@ app.use((req, res, next) => {
 
    
     console.log('Middleware executed');
-    // 3. Transmite cererea la următorul pas din fluxul de procesare.
+    // 3. Trimite cererea la pasul următor în fluxul de procesare a cererilor.
     next();
 });
 ```
 
 În acest cod:
 
-1. Verificăm dacă headerul Authorization este prezent, altfel trimitem eroare 401.
-2. Ne asigurăm că acreditarea/tokenul este valid, dacă nu trimitem eroare 403.
-3. În final, trecem mai departe cererea în pipeline și returnăm resursa solicitată.
+1. Verificăm dacă header-ul Authorization este prezent, dacă nu, trimitem o eroare 401.
+2. Asigurăm că credențiala/tokenul este valid, dacă nu, trimitem o eroare 403.
+3. În final, permite cererea în pipeline și returnează resursa solicitată.
 
-## Exercițiu: Implementarea autentificării
+## Exercițiu: Implementați autentificarea
 
-Să luăm cunoștințele noastre și să încercăm să o implementăm. Iată planul:
+Să ne folosim cunoștințele și să încercăm să implementăm. Iată planul:
 
 Server
 
@@ -137,15 +138,17 @@ Server
 
 Client
 
-- Trimite o cerere web, cu acreditare, prin header.
+- Trimitem cerere web, cu credențială, prin header.
 
 ### -1- Crearea unui server web și a unei instanțe MCP
 
-La primul pas, trebuie să creăm instanța serverului web și MCP Server-ul.
+> **Privind înainte:** exemplul de mai jos TypeScript urmărește transporturile HTTP într-o mapă `transports` indexată după `mcp-session-id`, conform **Specificației MCP 2025-11-25**. Candidatul la lansare `2026-07-28` elimină handshake-ul `initialize` și ID-ul sesiunii totalmente, deci această mapă per sesiune dispare în favoarea cererilor stateless, auto-conținute. Consultați [Ce se schimbă în MCP: candidatul la lansare 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+În primul nostru pas, trebuie să creăm instanța serverului web și MCP Server.
 
 **Python**
 
-Aici creăm o instanță MCP Server, creăm o aplicație starlette web și o găzduim cu uvicorn.
+Aici creăm o instanță MCP server, creăm o aplicație web starlette și o găzduim cu uvicorn.
 
 ```python
 # crearea serverului MCP
@@ -178,8 +181,8 @@ run(starlette_app)
 
 În acest cod:
 
-- Cream MCP Server.
-- Construim aplicația starlette web din MCP Server, `app.streamable_http_app()`.
+- Creăm MCP Server.
+- Construim aplicația web starlette din MCP Server, `app.streamable_http_app()`.
 - Găzduim și servim aplicația web folosind uvicorn `server.serve()`.
 
 **TypeScript**
@@ -192,10 +195,10 @@ const server = new McpServer({
       version: "1.0.0"
     });
 
-    // ... configurează resursele serverului, uneltele și instrucțiunile ...
+    // ... configurați resursele serverului, instrumentele și comenzile ...
 ```
 
-Această creare a MCP Server-ului trebuie să aibă loc în definiția noastră de rută POST /mcp, așa că hai să luăm codul de mai sus și să-l mutăm astfel:
+Această creare a MCP Server trebuie să se întâmple în definiția rutei POST /mcp, deci să mutăm codul de mai sus astfel:
 
 ```typescript
 import express from "express";
@@ -207,12 +210,12 @@ import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
 const app = express();
 app.use(express.json());
 
-// Hartă pentru stocarea transporturilor după ID-ul sesiunii
+// Harta pentru a stoca transporturile după ID-ul sesiunii
 const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
 // Gestionați cererile POST pentru comunicarea client-server
 app.post('/mcp', async (req, res) => {
-  // Verificați dacă există ID-ul sesiunii
+  // Verificați existența ID-ului sesiunii
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
   let transport: StreamableHTTPServerTransport;
 
@@ -227,13 +230,13 @@ app.post('/mcp', async (req, res) => {
         // Stocați transportul după ID-ul sesiunii
         transports[sessionId] = transport;
       },
-      // Protecția împotriva reasignării DNS este dezactivată implicit pentru compatibilitate inversă. Dacă rulați acest server
+      // Protecția împotriva rebinding-ului DNS este dezactivată implicit pentru compatibilitate inversă. Dacă rulați acest server
       // local, asigurați-vă că setați:
       // enableDnsRebindingProtection: true,
       // allowedHosts: ['127.0.0.1'],
     });
 
-    // Eliminați transportul când este închis
+    // Curățați transportul când este închis
     transport.onclose = () => {
       if (transport.sessionId) {
         delete transports[transport.sessionId];
@@ -244,7 +247,7 @@ app.post('/mcp', async (req, res) => {
       version: "1.0.0"
     });
 
-    // ... configurați resursele, uneltele și mesajele serverului ...
+    // ... configurați resursele serverului, uneltele și prompturile ...
 
     // Conectați-vă la serverul MCP
     await server.connect(transport);
@@ -261,7 +264,7 @@ app.post('/mcp', async (req, res) => {
     return;
   }
 
-  // Gestionați cererea
+  // Gestionează cererea
   await transport.handleRequest(req, res, req.body);
 });
 
@@ -277,44 +280,44 @@ const handleSessionRequest = async (req: express.Request, res: express.Response)
   await transport.handleRequest(req, res);
 };
 
-// Gestionați cererile GET pentru notificările server-to-client prin SSE
+// Gestionează cererile GET pentru notificări server-către-client prin SSE
 app.get('/mcp', handleSessionRequest);
 
-// Gestionați cererile DELETE pentru terminarea sesiunii
+// Gestionează cererile DELETE pentru terminarea sesiunii
 app.delete('/mcp', handleSessionRequest);
 
 app.listen(3000);
 ```
 
-Acum vezi cum crearea MCP Server-ului a fost mutată în interiorul `app.post("/mcp")`.
+Acum vezi cum crearea MCP Server a fost mutată în cadrul `app.post("/mcp")`.
 
-Să trecem la pasul următor de a crea middleware-ul pentru a valida acreditarea primită.
+Hai să trecem la pasul următor de creare a middleware-ului pentru a valida credențiala primită.
 
 ### -2- Implementarea unui middleware pentru server
 
-Să trecem la partea de middleware. Aici vom crea un middleware care caută o acreditare în headerul `Authorization` și o validează. Dacă este acceptabilă, cererea va continua să facă ce trebuie (ex. listarea uneltelor, citirea unei resurse sau funcționalitatea MCP solicitată de client).
+Să trecem la partea de middleware. Aici vom crea un middleware care caută o credențială în header-ul `Authorization` și o validează. Dacă e acceptabilă, cererea va continua să facă ceea ce trebuie (de ex., listarea uneltelor, citirea unei resurse sau orice altă funcționalitate MCP pe care clientul o cere).
 
 **Python**
 
-Pentru a crea middleware-ul, trebuie să creăm o clasă care moștenește `BaseHTTPMiddleware`. Sunt două părți interesante:
+Pentru a crea middleware-ul, trebuie să creăm o clasă care moștenește `BaseHTTPMiddleware`. Sunt două elemente interesante:
 
 - Cererea `request`, din care citim informațiile din header.
-- `call_next` callback-ul pe care trebuie să-l chemăm dacă clientul a adus o acreditare pe care o acceptăm.
+- `call_next`, callback-ul pe care trebuie să-l apelăm dacă clientul a adus o credențială pe care o acceptăm.
 
-În primul rând, trebuie să gestionăm cazul în care headerul `Authorization` lipsește:
+Mai întâi, trebuie să gestionăm cazul în care header-ul `Authorization` lipsește:
 
 ```python
 has_header = request.headers.get("Authorization")
 
-# niciun antet prezent, eșuează cu 401, altfel continuă.
+# nu există antet, eșuează cu 401, altfel continuă.
 if not has_header:
     print("-> Missing Authorization header!")
     return Response(status_code=401, content="Unauthorized")
 ```
 
-Aici trimitem mesaj 401 unauthorized deoarece clientul eșuează la autentificare.
+Aici trimitem un mesaj 401 unauthorized pentru că clientul nu trece autentificarea.
 
-Apoi, dacă a fost trimisă o acreditare, trebuie să-i verificăm validitatea astfel:
+Apoi, dacă o credențială a fost trimisă, trebuie să verificăm validitatea ei astfel:
 
 ```python
  if not valid_token(has_header):
@@ -322,7 +325,7 @@ Apoi, dacă a fost trimisă o acreditare, trebuie să-i verificăm validitatea a
     return Response(status_code=403, content="Forbidden")
 ```
 
-Observă cum trimitem un mesaj 403 forbidden mai sus. Să vedem middleware-ul complet mai jos care implementează tot ce am menționat:
+Observă cum trimitem un mesaj 403 forbidden mai sus. Să vedem middleware-ul complet mai jos implementând tot ce am descris:
 
 ```python
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -348,7 +351,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 Foarte bine, dar ce face funcția `valid_token`? Iată-o mai jos:
 
 ```python
-# NU utilizați pentru producție - îmbunătățiți-l !!
+# NU folosiți pentru producție - îmbunătățiți-l !!
 def valid_token(token: str) -> bool:
     # eliminați prefixul "Bearer "
     if token.startswith("Bearer "):
@@ -357,20 +360,20 @@ def valid_token(token: str) -> bool:
     return False
 ```
 
-Evident că asta ar trebui îmbunătățită.
+Evident, acest lucru ar trebui să fie îmbunătățit.
 
-IMPORTANT: NU ar trebui NICIODATĂ să ai secrete de genul acesta în cod. Ar trebui ideal să preiei valoarea cu care compari dintr-o sursă de date sau de la un IDP (furnizor de identitate) sau, mai bine, să lași IDP-ul să facă validarea.
+IMPORTANT: Nu ar trebui NICIODATĂ să ai astfel de secrete în cod. Ideal ar fi să preiei valoarea pentru comparație dintr-o sursă de date sau de la un IDP (provider de identitate) sau mai bine, să lași IDP să facă validarea.
 
 **TypeScript**
 
-Pentru a implementa asta cu Express, trebuie să folosim metoda `use` care preia funcții middleware.
+Pentru a implementa asta cu Express, trebuie să apelăm metoda `use` care ia funcții de middleware.
 
 Trebuie să:
 
-- Interacționăm cu variabila cerere pentru a verifica acreditarea transmisă în proprietatea `Authorization`.
-- Validăm acreditarea și, dacă este validă, lăsăm cererea să continue ca solicitarea MCP a clientului să facă ce trebuie (ex. listare unelte, citire resurse sau orice altceva legat de MCP).
+- Interacționăm cu variabila cerere pentru a verifica credențiala transmisă în proprietatea `Authorization`.
+- Validăm credențiala și dacă este validă, permitem cererii să continue și solicitarea MCP a clientului să facă ce trebuie (de ex., listarea uneltelor, citirea unei resurse sau orice altceva legat de MCP).
 
-Aici verificăm dacă headerul `Authorization` este prezent, dacă nu, oprim cererea să continue:
+Aici verificăm dacă header-ul `Authorization` este prezent și dacă nu, oprim cererea să treacă:
 
 ```typescript
 if(!req.headers["authorization"]) {
@@ -379,9 +382,9 @@ if(!req.headers["authorization"]) {
 }
 ```
 
-Dacă headerul nu este trimis deloc, primești 401.
+Dacă header-ul nu este trimis deloc, primești 401.
 
-Apoi verificăm dacă acreditarea este validă, dacă nu oprim iar cererea cu un mesaj puțin diferit:
+Apoi verificăm dacă credențiala este validă, dacă nu oprim din nou cererea, dar cu un mesaj ușor diferit:
 
 ```typescript
 if(!isValid(token)) {
@@ -390,7 +393,7 @@ if(!isValid(token)) {
 } 
 ```
 
-Observă cum acum primești eroarea 403.
+Observă cum acum primești o eroare 403.
 
 Iată codul complet:
 
@@ -415,18 +418,18 @@ app.use((req, res, next) => {
 });
 ```
 
-Am configurat serverul web să accepte un middleware care verifică acreditarea pe care clientul ni-o trimite. Dar clientul?
+Am configurat serverul web să accepte un middleware care verifică credențiala pe care clientul, sperăm, ne-o trimite. Ce facem cu clientul însuși?
 
-### -3- Trimiterea cererii web cu acreditare prin header
+### -3- Trimite cerere web cu credențială prin header
 
-Trebuie să ne asigurăm că clientul transmite acreditarea prin header. Deoarece vom folosi un client MCP pentru asta, trebuie să vedem cum se face.
+Trebuie să ne asigurăm că clientul transmite credențiala prin header. Deoarece vom folosi un client MCP pentru asta, trebuie să aflăm cum se face.
 
 **Python**
 
-Pentru client, trebuie să transmitem un header cu acreditarea noastră astfel:
+Pentru client, trebuie să transmitem un header cu acea credențială astfel:
 
 ```python
-# NU codifica valoarea direct, păstreaz-o cel puțin într-o variabilă de mediu sau un spațiu de stocare mai sigur
+# NU codifica valoarea direct, cel puțin să fie într-o variabilă de mediu sau un depozit mai sigur
 token = "secret-token"
 
 async with streamablehttp_client(
@@ -443,24 +446,24 @@ async with streamablehttp_client(
         ) as session:
             await session.initialize()
       
-            # TODO, ce vrei să faci în client, de ex. listarea uneltelor, apelarea uneltelor etc.
+            # TODO, ce dorești să faci în client, de ex. listarea uneltelor, apelarea uneltelor etc.
 ```
 
-Observă cum populăm proprietatea `headers` astfel ` headers = {"Authorization": f"Bearer {token}"}`.
+Observă cum completăm proprietatea `headers`, astfel ` headers = {"Authorization": f"Bearer {token}"}`.
 
 **TypeScript**
 
 Putem rezolva asta în doi pași:
 
-1. Populăm un obiect de configurație cu acreditarea noastră.
-2. Transmitem obiectul de configurație transportului.
+1. Completăm un obiect de configurare cu credențiala noastră.
+2. Transmitem obiectul de configurare transportului.
 
 ```typescript
 
-// NU codifica valoarea fixă așa cum este prezentat aici. Cel puțin păstreaz-o ca o variabilă de mediu și folosește ceva de genul dotenv (în modul de dezvoltare).
+// NU codifica valoarea direct așa cum este arătat aici. Cel puțin să fie o variabilă de mediu și folosește ceva de genul dotenv (în modul dev).
 let token = "secret123"
 
-// definește un obiect pentru opțiunea de transport a clientului
+// definește un obiect de opțiuni pentru transportul clientului
 let options: StreamableHTTPClientTransportOptions = {
   sessionId: sessionId,
   requestInit: {
@@ -470,7 +473,7 @@ let options: StreamableHTTPClientTransportOptions = {
   }
 };
 
-// transmite obiectul de opțiuni către transport
+// trece obiectul de opțiuni la transport
 async function main() {
    const transport = new StreamableHTTPClientTransport(
       new URL(serverUrl),
@@ -478,46 +481,46 @@ async function main() {
    );
 ```
 
-Aici vezi cum am creat obiectul `options` și am plasat headerele sub proprietatea `requestInit`.
+Aici vezi mai sus cum a trebuit să creăm un obiect `options` și să punem header-urile sub proprietatea `requestInit`.
 
-IMPORTANT: Cum îmbunătățim asta de aici? Ei bine, implementarea curentă are câteva probleme. În primul rând, trimiterea unei acreditări astfel este destul de riscantă, decât dacă ai cel puțin HTTPS. Chiar și atunci, acreditarea poate fi furată, așa că ai nevoie de un sistem unde poți revoca cu ușurință tokenul și să adaugi verificări suplimentare precum de unde vine în lume, dacă cererea se face prea des (comportament asemănător botului), pe scurt, sunt o mulțime de aspecte. 
+IMPORTANT: Cum îl îmbunătățim de aici? Ei bine, implementarea curentă are unele probleme. În primul rând, trimiterea unei credențiale așa este destul de riscantă decât dacă ai cel puțin HTTPS. Chiar și așa, credențiala poate fi furată, deci ai nevoie de un sistem unde poți revoca ușor tokenul și poți adăuga verificări suplimentare, precum de unde vine cererea, se întâmplă cererea prea des (comportament bot), pe scurt, sunt multe preocupări.
 
-Trebuie spus însă, că pentru API-uri foarte simple unde nu vrei ca nimeni să apeleze API-ul fără autentificare, ce avem aici este un început bun.
+Totuși, trebuie spus că pentru API-uri foarte simple unde nu vrei ca oricine să apeleze API-ul fără autentificare, ceea ce avem aici este un bun început.
 
-Cu toate acestea, să încercăm să întărim securitatea puțin folosind un format standardizat precum JSON Web Token, cunoscut și ca JWT sau „JOT”.
+Cu asta spus, să încercăm să întărim securitatea puțin folosind un format standardizat precum JSON Web Token, cunoscut și ca JWT sau "JOT" tokens.
 
 ## JSON Web Tokens, JWT
 
-Deci, încercăm să îmbunătățim lucrurile față de simpla trimitere a acreditărilor. Care sunt îmbunătățirile imediate pe care le obținem adoptând JWT?
+Deci, încercăm să îmbunătățim lucrurile față de simpla trimitere a unor credențiale. Care sunt îmbunătățirile imediate pe care le aduce adoptarea JWT?
 
-- **Îmbunătățiri de securitate**. În autentificarea de bază, trimiți numele de utilizator și parola ca token encodificat base64 (sau o cheie API) iar și iar, ceea ce crește riscul. Cu JWT, trimiți numele de utilizator și parola și primești un token în schimb, care este și limitat în timp, adică expiră. JWT îți permite să folosești control fin al accesului folosind roluri, scope-uri și permisiuni.
-- **Fără stare și scalabilitate**. JWT-urile sunt auto-conținute, poartă toate informațiile utilizatorului și elimină necesitatea de stocare server-side a sesiunii. Tokenul se poate valida și local.
-- **Interoperabilitate și federație**. JWT-ul este central pentru Open ID Connect și este folosit cu furnizori cunoscuți de identitate ca Entra ID, Google Identity și Auth0. De asemenea, permite folosirea single sign on și multe altele, făcându-l de nivel enterprise.
-- **Modularitate și flexibilitate**. JWT-urile pot fi folosite și cu API Gateway-uri precum Azure API Management, NGINX și altele. Suportă și scenarii de autentificare și comunicare server-la-server, incluzând scenarii de impersonare și delegare.
-- **Performanță și caching**. JWT-urile pot fi puse în cache după decodare, ceea ce reduce nevoia de parsing. Acest lucru ajută în aplicațiile cu trafic mare, îmbunătățind debitul și reducând încărcarea infrastructurii.
-- **Funcționalități avansate**. Suportă introspecția (verificarea validității pe server) și revocarea (facerea token-ului invalid).
+- **Îmbunătățiri de securitate**. În autentificarea de bază, trimiți numele de utilizator și parola ca un token codificat base64 (sau o cheie API) mereu, ceea ce crește riscul. Cu JWT, trimiți username-ul și parola și primești înapoi un token care este și limitat în timp, adică expiră. JWT îți permite să folosești control de acces detaliat folosind roluri, domenii și permisiuni.
+- **Statelessness și scalabilitate**. JWT-urile sunt auto-conținute, transportă toată informația utilizatorului și elimină necesitatea de a stoca sesiuneserver-side. Tokenul poate fi validat local.
+- **Interoperabilitate și federație**. JWT este central în Open ID Connect și este folosit cu furnizori de identitate cunoscuți precum Entra ID, Google Identity și Auth0. De asemenea, fac posibile single sign-on-ul și multe altele, oferind nivel enterprise.
+- **Modularitate și flexibilitate**. JWT-urile pot fi folosite și cu API Gateways precum Azure API Management, NGINX și altele. Suportă scenarii de autentificare și comunicații server-to-service, inclusiv impersonare și delegare.
+- **Performanță și caching**. JWT-urile pot fi puse în cache după decodare, ceea ce reduce nevoia de parsing. Acest lucru ajută în special la aplicațiile cu trafic mare, îmbunătățind throughput-ul și reducând încărcarea asupra infrastructurii alese.
+- **Funcționalități avansate**. Suportă și introspecție (verificarea valabilității pe server) și revocare (anularea unui token).
 
 Cu toate aceste beneficii, să vedem cum putem duce implementarea noastră la nivelul următor.
 
 ## Transformarea autentificării de bază în JWT
 
-Așadar, schimbările la nivel înalt sunt:
+Deci, schimbările pe care trebuie să le facem la nivel înalt sunt:
 
-- **Învățăm să construim un token JWT** și să-l pregătim pentru a fi trimis de client către server.
-- **Validăm un token JWT**, și dacă e valid, lăsăm clientul să acceseze resursele.
-- **Stocare sigură a tokenului**. Cum păstrăm acest token.
-- **Protejarea rutelor**. Trebuie să protejăm rutele, în cazul nostru, rutele și funcționalitățile MCP specifice.
-- **Adăugarea tokenurilor de refresh**. Ne asigurăm că creăm tokenuri cu durată scurtă de viață, dar și tokenuri de refresh cu durată lungă, care pot fi folosite pentru a obține tokenuri noi dacă cele vechi expiră. De asemenea, să existe un endpoint de refresh și o strategie de rotație.
+- **Învățăm să construim un token JWT** și să-l pregătim pentru a fi trimis de la client la server.
+- **Validăm un token JWT**, iar dacă este valid, permitem clientului să acceseze resursele noastre.
+- **Stocarea securizată a tokenului**. Cum stocăm acest token.
+- **Protejăm rutele**. Trebuie să protejăm rutele, în cazul nostru, trebuie protejate rutele și funcționalitățile MCP specifice.
+- **Adăugăm tokenuri de refresh**. Să creăm tokenuri cu durată de viață scurtă și tokenuri de refresh cu durată lungă care pot fi folosite pentru a obține tokenuri noi dacă expiră. De asemenea, să existe un endpoint de refresh și o strategie de rotație.
 
 ### -1- Construirea unui token JWT
 
-Mai întâi, un token JWT are următoarele părți:
+În primul rând, un token JWT are următoarele părți:
 
 - **header**, algoritmul folosit și tipul tokenului.
-- **payload**, revendicările (claims), ca subiect (sub - utilizatorul sau entitatea reprezentată de token, de obicei userid în scenariul de autentificare), exp (data expirării) rolul (role)
-- **semnătura**, semnată cu un secret sau o cheie privată.
+- **payload**, declarații (claims), precum sub (utilizatorul sau entitatea pe care tokenul o reprezintă. Într-un scenariu auth acesta este de obicei userid-ul), exp (când expiră), role (rolul)
+- **semnătură**, semnată cu un secret sau cheie privată.
 
-Pentru asta, trebuie să construim header-ul, payload-ul și tokenul encodat.
+Pentru asta, trebuie să construim header-ul, payload-ul și tokenul codificat.
 
 **Python**
 
@@ -528,7 +531,7 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 import datetime
 
-# Cheia secretă utilizată pentru a semna JWT-ul
+# Cheia secretă folosită pentru a semna JWT-ul
 secret_key = 'your-secret-key'
 
 header = {
@@ -536,29 +539,29 @@ header = {
     "typ": "JWT"
 }
 
-# informațiile utilizatorului și revendicările sale și timpul de expirare
+# informațiile utilizatorului, revendicările și timpul de expirare
 payload = {
     "sub": "1234567890",               # Subiect (ID-ul utilizatorului)
     "name": "User Userson",                # Revendicare personalizată
     "admin": True,                     # Revendicare personalizată
-    "iat": datetime.datetime.utcnow(),# Emiterea la
+    "iat": datetime.datetime.utcnow(),# Emis la
     "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Expirare
 }
 
-# criptare
+# îl codifică
 encoded_jwt = jwt.encode(payload, secret_key, algorithm="HS256", headers=header)
 ```
 
 În codul de mai sus am:
 
-- Definit un header folosind HS256 ca algoritm și tipul ca JWT.
-- Construim un payload care conține subiectul sau id-ul utilizatorului, un nume de utilizator, un rol, când a fost emis și când expiră, implementând astfel aspectul limitat în timp pe care l-am menționat mai devreme.
+- Definit un header folosind HS256 ca algoritm și tipul să fie JWT.
+- Construim un payload care conține un subiect sau id-ul utilizatorului, un nume de utilizator, un rol, când a fost emis și când expiră, implementând astfel aspectul limitării în timp menționat anterior.
 
 **TypeScript**
 
-Aici vom avea nevoie de câteva dependențe care ne vor ajuta să construim tokenul JWT.
+Aici vom avea nevoie de niște dependințe care ne vor ajuta să construim tokenul JWT.
 
-Dependențe
+Dependințe
 
 ```sh
 
@@ -566,14 +569,14 @@ npm install jsonwebtoken
 npm install --save-dev @types/jsonwebtoken
 ```
 
-Acum că avem asta, să creăm headerul, payloadul și astfel să creăm tokenul encodat.
+Acum că avem asta pregătit, să creăm header-ul, payload-ul și prin ele să generăm tokenul codificat.
 
 ```typescript
 import jwt from 'jsonwebtoken';
 
 const secretKey = 'your-secret-key'; // Folosește variabile de mediu în producție
 
-// Definirea sarcinii utile
+// Definește payload-ul
 const payload = {
   sub: '1234567890',
   name: 'User usersson',
@@ -582,13 +585,13 @@ const payload = {
   exp: Math.floor(Date.now() / 1000) + 60 * 60 // Expiră în 1 oră
 };
 
-// Definirea antetului (opțional, jsonwebtoken setează implicit)
+// Definește antetul (opțional, jsonwebtoken setează valori implicite)
 const header = {
   alg: 'HS256',
   typ: 'JWT'
 };
 
-// Creare token
+// Creează tokenul
 const token = jwt.sign(payload, secretKey, {
   algorithm: 'HS256',
   header: header
@@ -600,14 +603,14 @@ console.log('JWT:', token);
 Acest token este:
 
 Semnat folosind HS256
-Valabil 1 oră
-Include revendicări ca sub, name, admin, iat și exp.
+Valabil timp de 1 oră
+Include declarații precum sub, name, admin, iat și exp.
 
 ### -2- Validarea unui token
 
-Trebuie să validăm un token; asta ar trebui făcut pe server pentru a ne asigura că ce trimite clientul este valid. Trebuie să facem multe verificări aici, de la validarea structurii tokenului până la validitatea lui. E încurajat să adaugi și alte verificări pentru a vedea dacă utilizatorul este în sistemul tău și altele.
+Trebuie, de asemenea, să validăm un token, lucru pe care ar trebui să-l facem pe server pentru a ne asigura că ceea ce clientul ne trimite este într-adevăr valid. Sunt multe verificări pe care ar trebui să le facem, de la validarea structurii sale la valabilitatea lui. De asemenea, e recomandat să adăugăm alte verificări, cum ar fi dacă utilizatorul există în sistemul tău și altele.
 
-Pentru a valida un token, trebuie să îl decodăm ca să-l putem citi și apoi să începem verificările de validitate:
+Pentru a valida un token, trebuie să-l decodăm ca să-l putem citi și apoi să începem verificările de valabilitate:
 
 **Python**
 
@@ -627,11 +630,12 @@ except InvalidTokenError as e:
 
 ```
 
-În acest cod, apelăm `jwt.decode` folosind tokenul, cheia secretă și algoritmul ales ca input. Observă folosirea unui bloc try-catch pentru că o validare eșuată declanșează o excepție.
+
+În acest cod, apelăm `jwt.decode` folosind tokenul, cheia secretă și algoritmul ales ca input. Observați cum folosim o construcție try-catch deoarece o validare eșuată duce la ridicarea unei erori.
 
 **TypeScript**
 
-Aici trebuie să apelăm `jwt.verify` pentru a obține o versiune decodată a tokenului pe care o putem analiza mai departe. Dacă acest apel eșuează, înseamnă că structura tokenului este incorectă sau nu mai este valid.
+Aici trebuie să apelăm `jwt.verify` pentru a obține o versiune decodificată a tokenului pe care o putem analiza în continuare. Dacă acest apel eșuează, înseamnă că structura tokenului este incorectă sau nu mai este valid.
 
 ```typescript
 
@@ -643,18 +647,19 @@ try {
 }
 ```
 
-NOTĂ: cum am menționat anterior, ar trebui să efectuăm verificări suplimentare pentru a confirma că acest token identifică un utilizator din sistemul nostru și pentru a asigura că utilizatorul are drepturile pe care le revendică.
+NOTĂ: după cum s-a menționat anterior, ar trebui să efectuăm verificări suplimentare pentru a ne asigura că acest token indică un utilizator din sistemul nostru și să ne asigurăm că utilizatorul are drepturile pe care le pretinde.
 
-Următorul pas: să aruncăm o privire la controlul accesului bazat pe roluri, cunoscut și ca RBAC.
+Următorul pas este să explorăm controlul accesului bazat pe roluri, cunoscut și ca RBAC.
+
 ## Adăugarea controlului accesului bazat pe roluri
 
-Ideea este că vrem să exprimăm că diferite roluri au permisiuni diferite. De exemplu, presupunem că un administrator poate face totul, un utilizator normal poate citi/scrie, iar un invitat poate doar să citească. Prin urmare, iată câteva niveluri posibile de permisiuni:
+Ideea este că vrem să exprimăm faptul că diferitele roluri au permisiuni diferite. De exemplu, presupunem că un admin poate face totul, iar un utilizator normal poate doar citi/scrie, iar un oaspete poate doar citi. Prin urmare, aici sunt câteva niveluri posibile de permisiuni:
 
-- Admin.Write  
-- User.Read  
-- Guest.Read  
+- Admin.Write 
+- User.Read
+- Guest.Read
 
-Să vedem cum putem implementa un astfel de control cu middleware. Middleware-urile pot fi adăugate pe rute specifice, precum și pentru toate rutele.
+Să vedem cum putem implementa un astfel de control cu middleware. Middleware-urile pot fi adăugate pe fiecare rută sau pentru toate rutele.
 
 **Python**
 
@@ -663,8 +668,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 import jwt
 
-# NU pune secretul în cod, acesta este doar pentru scopuri demonstrative. Citește-l dintr-un loc sigur.
-SECRET_KEY = "your-secret-key" # pune asta într-o variabilă de mediu
+# NU aveți secretul în cod, acesta este doar pentru demonstrație. Citiți-l dintr-un loc sigur.
+SECRET_KEY = "your-secret-key" # pune acest lucru într-o variabilă de mediu
 REQUIRED_PERMISSION = "User.Read"
 
 class JWTPermissionMiddleware(BaseHTTPMiddleware):
@@ -690,8 +695,8 @@ class JWTPermissionMiddleware(BaseHTTPMiddleware):
 
 
 ```
-  
-Există câteva moduri diferite de a adăuga middleware-ul, cum este mai jos:
+
+Există câteva moduri diferite de a adăuga middleware ca mai jos:
 
 ```python
 
@@ -702,7 +707,7 @@ middleware = [
 
 app = Starlette(routes=routes, middleware=middleware)
 
-# Alt 2: adaugă middleware după ce aplicația starlette este deja construită
+# Alt 2: adaugă middleware după ce aplicația starlette a fost deja construită
 starlette_app.add_middleware(JWTPermissionMiddleware)
 
 # Alt 3: adaugă middleware pentru fiecare rută
@@ -714,7 +719,7 @@ routes = [
     )
 ]
 ```
-  
+
 **TypeScript**
 
 Putem folosi `app.use` și un middleware care va rula pentru toate cererile.
@@ -759,15 +764,15 @@ app.use((req, res, next) => {
 });
 
 ```
-  
-Există destul de multe lucruri pe care le putem lăsa middleware-ului nostru să le facă și pe care middleware-ul NOSTRU TREBUIE să le facă, și anume:
 
-1. Verifică dacă header-ul de autorizare este prezent  
-2. Verifică dacă tokenul este valid, apelăm `isValid` care este o metodă pe care am scris-o și care verifică integritatea și valabilitatea tokenului JWT.  
-3. Verifică dacă utilizatorul există în sistemul nostru, acest lucru trebuie verificat.
+Sunt câteva lucruri pe care middleware-ul nostru ar trebui să le facă, și anume:
+
+1. Verifică dacă există header-ul de autorizare
+2. Verifică dacă tokenul este valid, apelăm `isValid` care este o metodă scrisă de noi ce verifică integritatea și validitatea tokenului JWT.
+3. Verifică dacă utilizatorul există în sistemul nostru, ceea ce trebuie să verificăm.
 
    ```typescript
-    // utilizatori în baza de date
+    // utilizatori în DB
    const users = [
      "user1",
      "User usersson",
@@ -776,28 +781,28 @@ Există destul de multe lucruri pe care le putem lăsa middleware-ului nostru s�
    function isExistingUser(token) {
      let decodedToken = verifyToken(token);
 
-     // TODO, verifică dacă utilizatorul există în baza de date
+     // DE FACUT, verifică dacă utilizatorul există în DB
      return users.includes(decodedToken?.name || "");
    }
    ```
-  
-De mai sus, am creat o listă foarte simplă `users`, care ar trebui să fie evident într-o bază de date.
 
-4. Suplimentar, ar trebui să verificăm și dacă tokenul are permisiunile corecte.
+   Mai sus, am creat o listă foarte simplă `users`, care evident ar trebui să fie într-o bază de date.
+
+4. În plus, ar trebui să verificăm și dacă tokenul are permisiunile corecte.
 
    ```typescript
    if(!hasScopes(token, ["User.Read"])){
         res.status(403).send('Forbidden - insufficient scopes');
    }
    ```
-  
-În codul de mai sus din middleware, verificăm că tokenul conține permisiunea User.Read, dacă nu, trimitem un error 403. Mai jos este metoda helper `hasScopes`.
+
+   În codul de mai sus din middleware, verificăm că tokenul conține permisiunea User.Read, altfel returnăm o eroare 403. Mai jos este metoda helper `hasScopes`.
 
    ```typescript
    function hasScopes(scope: string, requiredScopes: string[]) {
      let decodedToken = verifyToken(scope);
     return requiredScopes.every(scope => decodedToken?.scopes.includes(scope));
-  }  
+  }
    ```
 
 Have a think which additional checks you should be doing, but these are the absolute minimum of checks you should be doing.
@@ -839,16 +844,16 @@ app.use((err, req, res, next) => {
 });
 
 ```
-  
-Acum că ai văzut cum middleware-ul poate fi folosit atât pentru autentificare, cât și pentru autorizare, cum rămâne cu MCP, schimbă modul în care facem autentificarea? Să aflăm în următoarea secțiune.
+
+Acum ați văzut cum middleware-ul poate fi folosit atât pentru autentificare, cât și pentru autorizare, dar cum rămâne cu MCP? Schimbă acesta modul în care facem autentificarea? Să aflăm în secțiunea următoare.
 
 ### -3- Adăugarea RBAC la MCP
 
-Ai văzut până acum cum poți adăuga RBAC prin middleware, dar pentru MCP nu există o metodă ușoară de a adăuga RBAC per funcționalitate MCP, așa că ce facem? Ei bine, trebuie doar să adăugăm cod ca acesta care verifică, în acest caz, dacă clientul are drepturile să apeleze un anumit instrument:
+Până acum ați văzut cum se poate adăuga RBAC prin middleware, însă pentru MCP nu există o modalitate ușoară de a adăuga RBAC per funcționalitate MCP, așadar ce facem? Ei bine, trebuie să adăugăm un cod ca acesta care verifică, în acest caz, dacă clientul are drepturile să apeleze un anumit instrument:
 
-Ai câteva variante diferite despre cum să realizezi RBAC per funcționalitate, iată câteva:
+Aveți câteva opțiuni diferite pentru a realiza RBAC per funcționalitate, iată câteva dintre ele:
 
-- Adaugă o verificare pentru fiecare instrument, resursă, prompt unde trebuie să verifici nivelul de permisiune.
+- Adăugați o verificare pentru fiecare instrument, resursă, prompt unde trebuie să verificați nivelul de permisiune.
 
    **python**
 
@@ -858,9 +863,9 @@ Ai câteva variante diferite despre cum să realizezi RBAC per funcționalitate,
       try:
           check_permissions(role="Admin.Write", request)
       catch:
-        pass # clientul a eșuat la autorizare, ridică eroarea de autorizare
+        pass # clientul a eșuat autorizarea, generează eroare de autorizare
    ```
-  
+
    **typescript**
 
    ```typescript
@@ -888,7 +893,7 @@ Ai câteva variante diferite despre cum să realizezi RBAC per funcționalitate,
    ```
 
 
-- Folosește o abordare avansată pe server și handler-ele cererilor ca să minimizezi câte locuri trebuie să faci această verificare.
+- Folosiți o abordare avansată de server și handler-e de cereri pentru a minimiza numărul de locuri în care trebuie să faceți verificarea.
 
    **Python**
 
@@ -900,21 +905,21 @@ Ai câteva variante diferite despre cum să realizezi RBAC per funcționalitate,
    }
 
    def has_permission(user_permissions, required_permissions) -> bool:
-      # user_permissions: listă de permisiuni pe care le are utilizatorul
-      # required_permissions: listă de permisiuni necesare pentru instrument
+      # user_permissions: lista de permisiuni pe care utilizatorul le are
+      # required_permissions: lista de permisiuni necesare pentru unealtă
       return any(perm in user_permissions for perm in required_permissions)
 
    @server.call_tool()
    async def handle_call_tool(
      name: str, arguments: dict[str, str] | None
    ) -> list[types.TextContent]:
-    # Presupune că request.user.permissions este o listă de permisiuni pentru utilizator
+    # Presupunem că request.user.permissions este o listă de permisiuni pentru utilizator
      user_permissions = request.user.permissions
      required_permissions = tool_permission.get(name, [])
      if not has_permission(user_permissions, required_permissions):
-        # Ridică eroarea "Nu ai permisiunea de a apela instrumentul {name}"
+        # Aruncă eroare "Nu aveți permisiunea să apelați unealta {name}"
         raise Exception(f"You don't have permission to call tool {name}")
-     # continuă și apelează instrumentul
+     # continuă și apelează unealta
      # ...
    ```   
    
@@ -941,26 +946,26 @@ Ai câteva variante diferite despre cum să realizezi RBAC per funcționalitate,
       // continuă..
    });
    ```
-  
-   Notă, va trebui să te asiguri că middleware-ul tău atribuie un token decodat proprietății user a cererii pentru ca codul de mai sus să fie simplu.
 
-### Sumarizând
+   Notă, trebuie să vă asigurați că middleware-ul atribuie tokenul decodificat proprietății user a cererii astfel încât codul de mai sus să fie simplu.
 
-Acum că am discutat cum să adăugăm suport pentru RBAC în general și pentru MCP în particular, e timpul să încerci să implementezi securitatea pe cont propriu pentru a te asigura că ai înțeles conceptele prezentate.
+### Recapitulare
 
-## Temă 1: Construiește un server mcp și un client mcp folosind autentificare basic
+Acum că am discutat cum să adăugăm suport pentru RBAC în general și pentru MCP în particular, este timpul să încercați să implementați securitatea pe cont propriu pentru a vă asigura că ați înțeles conceptele prezentate.
 
-Aici vei utiliza ceea ce ai învățat în termeni de trimitere a credentialelor prin headere.
+## Tema 1: Construiește un server MCP și un client MCP folosind autentificare de bază
+
+Aici veți folosi ceea ce ați învățat despre trimiterea credențialelor prin header-e.
 
 ## Soluția 1
 
 [Solution 1](./code/basic/README.md)
 
-## Temă 2: Actualizează soluția din Tema 1 să folosească JWT
+## Tema 2: Actualizează soluția din Tema 1 pentru a folosi JWT
 
-Ia prima soluție, dar de data aceasta, să o îmbunătățim.
+Luați prima soluție, dar de data aceasta, să o îmbunătățim.
 
-În loc să folosim Basic Auth, să folosim JWT.
+În loc să folosiți Basic Auth, să folosim JWT.
 
 ## Soluția 2
 
@@ -968,23 +973,23 @@ Ia prima soluție, dar de data aceasta, să o îmbunătățim.
 
 ## Provocare
 
-Adaugă RBAC per instrument așa cum am descris în secțiunea „Adăugarea RBAC la MCP”.
+Adăugați RBAC per instrument așa cum am descris în secțiunea "Add RBAC to MCP".
 
 ## Rezumat
 
-Sperăm că ai învățat multe în acest capitol, de la securitate inexistentă, la securitate de bază, la JWT și cum poate fi adăugat la MCP.
+Sperăm că ați învățat multe în acest capitol, de la lipsa totală a securității, la securitatea de bază, la JWT și cum poate fi adăugat în MCP.
 
-Am construit o bază solidă cu JWT-uri personalizate, dar pe măsură ce ne extindem, ne îndreptăm spre un model de identitate bazat pe standarde. Adoptarea unui IdP precum Entra sau Keycloak ne permite să externalizăm emiterea, validarea și managementul ciclului de viață al tokenurilor către o platformă de încredere — ceea ce ne eliberează să ne concentrăm pe logica aplicației și pe experiența utilizatorului.
+Am construit o bază solidă folosind JWT-uri personalizate, dar pe măsură ce scalăm ne îndreptăm către un model de identitate bazat pe standarde. Adoptarea unui IdP precum Entra sau Keycloak ne permite să externalizăm emiterea tokenurilor, validarea și gestionarea ciclului de viață către o platformă de încredere — eliberându-ne să ne concentrăm pe logica aplicației și experiența utilizatorului.
 
-Pentru asta, avem un capitol mai [avansat despre Entra](../../05-AdvancedTopics/mcp-security-entra/README.md)
+Pentru asta, avem un [capitol mai avansat despre Entra](../../05-AdvancedTopics/mcp-security-entra/README.md)
 
 ## Ce urmează
 
-- Următorul: [Configurarea gazdelor MCP](../12-mcp-hosts/README.md)
+- Următorul: [Setarea gazdelor MCP](../12-mcp-hosts/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Declinare a responsabilității**:  
-Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). Deși ne străduim pentru acuratețe, vă rugăm să fiți conștienți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un specialist uman. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite rezultate din utilizarea acestei traduceri.
+**Declinare a responsabilității**:
+Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). În timp ce ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un om. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care decurg din utilizarea acestei traduceri.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

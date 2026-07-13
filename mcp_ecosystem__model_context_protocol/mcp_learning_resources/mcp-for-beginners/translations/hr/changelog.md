@@ -1,288 +1,309 @@
-# Changelog: MCP za početnike - Kurikulum
+# Dnevnik promjena: MCP za početnike - nastavni plan
 
-Ovaj dokument služi kao zapis svih značajnih promjena napravljenih u Model Context Protocol (MCP) za početnike kurikulumu. Promjene su zabilježene obrnutim kronološkim redoslijedom (najnovije promjene prve).
+Ovaj dokument služi kao zapis svih značajnih promjena napravljenih u Model Context Protocol (MCP) za početnike nastavni plan. Promjene su zabilježene u obrnutom kronološkom redoslijedu (najnovije promjene prve).
+
+## 2. srpnja 2026.
+
+### Nova lekcija: Kandidat za izdanje MCP specifikacije 2026-07-28
+
+Dodano pokrivanje nadolazećeg kandidata za izdanje MCP specifikacije `2026-07-28` (najavljeno 21. svibnja 2026; konačno izdanje planirano za 28. srpnja 2026), sažeto iz [službene najave na blogu](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/). Osnovna verzija nastavnog plana ostaje **MCP Specifikacija 2025-11-25** do izlaska nove verzije, pa se ovo predstavlja kao smjernice za budućnost, a ne kao prerada postojećih lekcija.
+
+- **Nova**: [01-CoreConcepts/mcp-2026-07-28-release-candidate.md](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md) — puna lekcija koja pokriva stateless protokol jezgru (uklanjanje `initialize` handshake i `Mcp-Session-Id`), nove `Mcp-Method`/`Mcp-Name` zaglavlja za usmjeravanje, `ttlMs`/`cacheScope` metapodatke za keširanje, W3C Trace Context u `_meta`, formalni Extensions okvir (MCP aplikacije i novo Tasks proširenje), šest SEP-ova za pojačanje autorizacije, zastarijevanje Roots/Sampling/Logging te prelazak na pun JSON Schema 2020-12 za sheme alata.
+- **Ažurirano** s pogledom u budućnost kroz poveznice na novu lekciju:
+  - [01-CoreConcepts/README.md](./01-CoreConcepts/README.md): bilješka o verziji protokola, dijelovi Sampling/Roots/Logging/Tasks i "Što slijedi"
+  - [02-Security/README.md](./02-Security/README.md): upozorenje o pojačavanju autorizacije
+  - [03-GettingStarted/06-http-streaming/README.md](./03-GettingStarted/06-http-streaming/README.md): upozorenje o stateless transportu
+  - [03-GettingStarted/14-sampling/README.md](./03-GettingStarted/14-sampling/README.md): upozorenje o zastarijevanju Samplinga
+  - [05-AdvancedTopics/mcp-protocol-features/README.md](./05-AdvancedTopics/mcp-protocol-features/README.md): upozorenje o zastarijevanju Logiranja i o Tasks proširenju
+  - [05-AdvancedTopics/mcp-transport/README.md](./05-AdvancedTopics/mcp-transport/README.md): upozorenje o stateless/sessions routing-u
+  - [README.md](./README.md): bilješka "Gledajući unaprijed" u odjeljku o specifikaciji i novi unos `1.1` u tablici modula nastavnog plana
+  - [study_guide.md](./study_guide.md): pogled u budućnost pod točkom Pregled osnovnih koncepata i datirana dopunska bilješka
+  - [03-GettingStarted/11-simple-auth/README.md](./03-GettingStarted/11-simple-auth/README.md): upozorenje o `mcp-session-id` transport map prije modela stateless zahtjeva
+  - [05-AdvancedTopics/README.md](./05-AdvancedTopics/README.md): pregled modula s upozorenjima na zastarijevanje Root Contexts/Sampling i o Tasks proširenju
+  - [05-AdvancedTopics/mcp-security/README.md](./05-AdvancedTopics/mcp-security/README.md): upozorenje o pojačavanju autorizacije
 
 ## 24. lipnja 2026.
 
 ### Nova lekcija: Korištenje MCP-a u Copilot aplikaciji
 
-- [Sekcija alata](./12-tooling/README.md) Dodana sekcija alata.
+- [Odjeljak Alati](./12-tooling/README.md) Dodan odjeljak alata.
 - [MCP u Copilot aplikaciji](./12-tooling/01-copilot-app/README.md)
 
 ## 16. lipnja 2026.
 
-### Usuglašavanje MCP specifikacije i validacija primjera
+### Poravnanje MCP specifikacije i validacija primjera
 
-Validiran je kurikulum u odnosu na trenutačnu **MCP specifikaciju 2025-11-25** i najnovije službene SDK-ove, zatim su ispravljene preostale zastarjele specifikacijske reference i potvrđeno da osnovni primjeri i dalje rade i kompajliraju se.
+Validiran nastavni plan prema trenutno važećoj **MCP specifikaciji 2025-11-25** i najnovijim službenim SDK-ovima, zatim ispravljeni preostali zastarjeli referencni dijelovi specifikacije i potvrđeno da primjeri i dalje uspješno grade i pokreću.
 
 #### Ispravci verzije specifikacije (2025-06-18 / 2025-03-26 → 2025-11-25)
 
-Ažuriran je engleski sadržaj gdje se još uvijek tvrdilo da je starija revizija specifikacije *trenutni/najnoviji* standard, a linkovi su preusmjereni na kanonske `modelcontextprotocol.io` putanje specifikacije:
-- **05-AdvancedTopics/mcp-security/README.md**: Ažurirani banner "Current Standard", uvod, naslov jezgrenih sigurnosnih načela, naslov obaveznih zahtjeva, sekcija Microsoft Entra ID, veze na Reference i Resurse, te završna sigurnosna napomena (8 referenci) na 2025-11-25
-- **05-AdvancedTopics/mcp-transport/README.md**: Ažurirana veza na dodatne resurse specifikacije i banner "Current Standard" na 2025-11-25
-- **05-AdvancedTopics/mcp-realtimesearch/README.md**: Zamijenjen zastarjeli link `2025-03-26` za sigurnost i povjerenje s trenutačnom stranom najboljih sigurnosnih praksi 2025-11-25
-- **03-GettingStarted/14-sampling/README.md**: Ažuriran link na službene dokumente o uzorkovanju na 2025-11-25
-- **03-GettingStarted/05-stdio-server/README.md**: Ažurirana referenca u sadašnjem vremenu "trenutna MCP specifikacija" i veza na dodatne resurse na 2025-11-25 (povijesne bilješke o zabrani SSE su ostale netaknute radi točnosti)
+Ažuriran je engleski sadržaj gdje je još tvrdio da je starija revizija specifikacije *trenutni/najnoviji* standard, te su linkovi preusmjereni na kanonske `modelcontextprotocol.io` putanje specifikacije:
+- **05-AdvancedTopics/mcp-security/README.md**: Ažurirana traka "Trenutni standard", uvod, naslov osnovnih sigurnosnih principa, naslov obaveznih zahtjeva, odjeljak Microsoft Entra ID, linkovi na Reference i Resurse i završno sigurnosno upozorenje (8 referenci) na verziju 2025-11-25
+- **05-AdvancedTopics/mcp-transport/README.md**: Ažurirani link za dodatne resurse i traka "Trenutni standard" na 2025-11-25
+- **05-AdvancedTopics/mcp-realtimesearch/README.md**: Zamijenjen zastarjeli link `2025-03-26` za sigurnosne i trust prakse s aktualnom stranicom najboljih sigurnosnih praksi 2025-11-25
+- **03-GettingStarted/14-sampling/README.md**: Ažuriran link službenih dokumenata o samplingu na 2025-11-25
+- **03-GettingStarted/05-stdio-server/README.md**: Ažurirana sadašnja referenca "trenutne MCP specifikacije" i link za dodatne resurse specifikacije na 2025-11-25 (povijesne napomene o zastarijevanju SSE ostale su radi točnosti)
 
-#### Validacija primjera u odnosu na trenutačne SDK-ove
+#### Validacija primjera prema trenutnim SDK-ovima
 
-- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**: `npm install` je riješio `@modelcontextprotocol/sdk@1.29.0`; `tsc --noEmit` nije prijavio greške tipova — postojeći `McpServer`/`StdioServerTransport` API-ji ostaju valjani
-- **Python (03-GettingStarted/01-first-server/solution/python)**: Validirano u izoliranom `.venv` s `mcp[cli]` (1.27.2); `py_compile` je prošao i `FastMCP.list_tools()` je ispravno vratio alate `add` i `subtract`
-- Potvrđeno da svi primjeri s verzijskim ograničenjima `@modelcontextprotocol/sdk` (`>=1.26.0` / `^1.26.0` / `^1.27.0`) uredno rješavaju na trenutačni `1.29.0` bez prekidajućih API promjena
+- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**: `npm install` instalirao `@modelcontextprotocol/sdk@1.29.0`; `tsc --noEmit` prošao bez grešaka u tipovima — postojeći `McpServer`/`StdioServerTransport` API-ji su valjani
+- **Python (03-GettingStarted/01-first-server/solution/python)**: Validirano u izoliranom `.venv` s `mcp[cli]` (1.27.2); `py_compile` prošao i `FastMCP.list_tools()` ispravno vratio alate `add` i `subtract`
+- Potvrđeno da se sve verzijske rasponi `@modelcontextprotocol/sdk` u primjerima (`>=1.26.0` / `^1.26.0` / `^1.27.0`) uredno rješavaju na trenutnu verziju `1.29.0` bez prekida API-ja
 
-#### Usklađivanje verzija ovisnosti (zatvaranje verzijskih praznina)
+#### Poravnanje pinova ovisnosti (zatvaranje verzijskih praznina)
 
-Ažurirane zastarjele verzije SDK pinova kako bi svaki primjer pratio trenutni MCP release, usklađeno s konvencijom u cijelom repozitoriju:
-- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**: Povećan `@modelcontextprotocol/sdk` s `^1.8.0` → `>=1.26.0` i ažuriran zastarjeli opis paketa `"updated for MCP 2025-06-18"` u `"aligned with MCP Specification 2025-11-25"`
-- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** i **lab4/code/github_mcp_server/pyproject.toml**: Povećan pin `mcp==1.23.0` → `mcp>=1.26.0`; regenerirani oba `uv.lock` datoteke (`uv lock`) tako da lockfile-ovi rješavaju na trenutačni `mcp 1.27.2` i ostaju sinkronizirani s manifestima
+Podignuti su zastarjeli pinovi SDK-ova tako da svaki primjer prati aktualno MCP izdanje, u skladu s konvencijom cijelog repozitorija:
+- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**: Povećan `@modelcontextprotocol/sdk` s `^1.8.0` na `>=1.26.0` i ažuriran zastarjeli opis paketa `"updated for MCP 2025-06-18"` u `"aligned with MCP Specification 2025-11-25"`
+- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** i **lab4/code/github_mcp_server/pyproject.toml**: Povećan točni pin `mcp==1.23.0` na `mcp>=1.26.0`; obnavljane obje `uv.lock` datoteke (`uv lock`) tako da zaključne datoteke rješavaju na trenutni `mcp 1.27.2` i ostaju sinkronizirane s manifestima
 
-#### Analiza praznina u kurikulumu — pokrivenost najnovijih značajki specifikacije
+#### Analiza praznina u nastavnom planu — pokrivenost najnovijih značajki specifikacije
 
-Potvrđeno je da kurikulum već pokriva sve primitivne značajke uvedene/razrađene u MCP 2025-11-25, tako da nema praznina u sadržaju:
-- **Uzorkovanje**: Lekcija 03-GettingStarted/14-sampling plus 05-AdvancedTopics/mcp-sampling
-- **Eliciranje (uključujući URL način rada)**: Dokumentirano u 01-CoreConcepts i 05-AdvancedTopics/mcp-protocol-features
-- **Korijeni**: Dokumentirano u 00-Introduction, 01-CoreConcepts i 05-AdvancedTopics/mcp-root-contexts
-- **Zadaci (eksperimentalni, dugotrajni operacije)**: Dokumentirano u 01-CoreConcepts i 05-AdvancedTopics/mcp-protocol-features
-- **Bilješke alata** (`readOnlyHint` / `destructiveHint`): Dokumentirano u 01-CoreConcepts i 05-AdvancedTopics/mcp-protocol-features
+Potvrđeno da nastavni plan već pokriva sve primitivne elemente uvedene/razrađene u MCP 2025-11-25, tako da ne postoje praznine u sadržaju:
+- **Sampling**: lekcija 03-GettingStarted/14-sampling plus 05-AdvancedTopics/mcp-sampling
+- **Elicitation (uključujući URL mod)**: dokumentirano u 01-CoreConcepts i 05-AdvancedTopics/mcp-protocol-features
+- **Roots**: dokumentirano u 00-Introduction, 01-CoreConcepts i 05-AdvancedTopics/mcp-root-contexts
+- **Tasks (eksperimentalne, dugotrajne operacije)**: dokumentirano u 01-CoreConcepts i 05-AdvancedTopics/mcp-protocol-features
+- **Tool Annotations** (`readOnlyHint` / `destructiveHint`): dokumentirano u 01-CoreConcepts i 05-AdvancedTopics/mcp-protocol-features
 
-### Ojačavanje sigurnosti i uklanjanje ranjivosti ovisnosti
+### Pojačanje sigurnosti i popravljanje ranjivosti ovisnosti
 
-Proveden je potpuni sigurnosni pregled svih ovisničkih manifestacija i izvornog koda primjera, nakon čega su riješene sve prijavljene npm sigurnosne preporuke i jedna sigurnosna greška na razini koda. Nakon popravka, `npm audit` prijavljuje **0 ranjivosti** u svim pregledanim direktorijima.
+Izveden je kompletan sigurnosni pregled svih manifest datoteka ovisnosti i izvornog koda primjera, zatim su otklonjene sve prijavljene npm sigurnosne preporuke i jedna sigurnosna slabost na razini koda. Nakon popravka, `npm audit` izvještava o **0 ranjivosti** u svakom revidiranom direktoriju.
 
-#### npm ranjivosti ovisnosti (transitivne) — ispravljene
+#### npm ranjivosti ovisnosti (transitivnih) — ispravljeno
 
-Pregledano svih 15 predanih `package-lock.json` datoteka. Ranjivosti su bile ograničene na tranzitivne ovisnosti koje koriste MCP Inspector alat za razvoj, OpenAI klijent i MCP SDK; sve su sada riješene bez prekida primjera:
-- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** i **lab3/code/weather_mcp/inspector**: Povećan `@modelcontextprotocol/inspector` (`0.16.6` / `0.14.1` → `0.22.0`), što je uklonilo prijave vezane za ugrađene `ajv`, `brace-expansion`, `diff`, `path-to-regexp` i `ws`. Dodan npm `overrides` unos koji forsira ispravljeni `shell-quote@1.8.4` za uklanjanje posljednje kritične preporuke koju je nosio `concurrently`; regenerirani lockfile-ovi (sada 0 ranjivosti)
-- **03-GettingStarted/samples/typescript**: `npm audit fix` je ažurirao tranzitivni `qs` (umjereno) na ispravljenu verziju
-- **03-GettingStarted/samples/javascript**: `npm audit fix` je ažurirao tranzitivni `hono` (umjereno) na ispravljenu verziju
-- **03-GettingStarted/03-llm-client/solution/typescript**: `npm audit fix` je ažurirao tranzitivni `form-data` (visoko) na ispravljenu verziju
-- **03-GettingStarted/11-simple-auth/solution/typescript**: Generirana je nedostajuća `package-lock.json` da projekt bude reproducibilan i moguće ga je auditirati (0 ranjivosti)
+Revidirano svih 15 predanih `package-lock.json` datoteka. Ranjivosti su bile ograničene na transitivne ovisnosti koje uvodi MCP Inspector razvojni alat, OpenAI klijent i MCP SDK; sve su sada riješene bez prekida primjera:
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** i **lab3/code/weather_mcp/inspector**: Povećan `@modelcontextprotocol/inspector` (`0.16.6` / `0.14.1` → `0.22.0`), što je uklonilo priložene sigurnosne preporuke za `ajv`, `brace-expansion`, `diff`, `path-to-regexp` i `ws`. Dodan npm unos `overrides` koji forsira zakrpani `shell-quote@1.8.4` za uklanjanje preostale kritične sigurnosne preporuke koju nosi `concurrently`; obnavljane obje zaključne datoteke (sada 0 ranjivosti)
+- **03-GettingStarted/samples/typescript**: `npm audit fix` ažurirao tranzitivni `qs` (umjereno) u zakrpanu verziju
+- **03-GettingStarted/samples/javascript**: `npm audit fix` ažurirao tranzitivni `hono` (umjereno) u zakrpanu verziju
+- **03-GettingStarted/03-llm-client/solution/typescript**: `npm audit fix` ažurirao tranzitivni `form-data` (visoko) u zakrpanu verziju
+- **03-GettingStarted/11-simple-auth/solution/typescript**: Generirana nedostajuća `package-lock.json` datoteka tako da je projekt reproducibilan i podložan reviziji (0 ranjivosti)
 
 #### Sigurnosni popravak na razini koda (OWASP A03: Injection)
 
-- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**: Uklonjen `shell=True` iz `open_in_vscode` alata. Prijašnji `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` je dopuštao da znakovi ljuske u putanji mape budu interpretirani od strane `cmd.exe` (vektor za napad ubrizgavanjem naredbi). Sada pokreće direktno razriješeni `Code.exe` s mapom kao argumentom — bez ljuske — što je funkcionalno ekvivalentno i sigurno
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**: Uklonjen `shell=True` iz alata `open_in_vscode`. Prethodni `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` je dopuštao shell metaznakove u putanji do mape koji bi se interpretirali kroz `cmd.exe` (vektor za injekciju naredbi). Sada je izravno pokrenut razriješeni `Code.exe` s mapom kao argumentom — bez korištenja shell-a — što je funkcionalno jednako i sigurno
 
-#### Revizija ovisnosti za Python
+#### Revizija Python ovisnosti
 
-- Pregledani su svi Python zahtjevi koristeći `pip-audit`. `05-AdvancedTopics` i `03-GettingStarted/samples/python` nisu prijavili **nikakve ranjivosti** (njihova `mcp` / `httpx` / `pydantic` / `python-dotenv` ograničenja rješavaju se na ispravljene verzije)
-- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**: `pip-audit` je označio tranzitivnu ovisnost **`werkzeug` 3.1.1** s tri DoS preporuke vezane uz `safe_join` Windows nazive uređaja — `CVE-2025-66221`, `CVE-2026-21860` i `CVE-2026-27199` (sve ispravljeno u verziji 3.1.6). Dodan je eksplicitan sigurnosni pin `werkzeug>=3.1.6` tako da se rješava ispravljena verzija; potvrđeno da se ograničenje uredno rješava u `chainlit` / `mcp` / `semantic-kernel` stogu
+- Revidirani svi Python zahtjevi s `pip-audit`. `05-AdvancedTopics` i `03-GettingStarted/samples/python` prijavili su **nema poznatih ranjivosti** (njihovi `mcp` / `httpx` / `pydantic` / `python-dotenv` rasponi se rješavaju na trenutno zakrpane verzije)
+- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**: `pip-audit` je označio tranzitivnu ovisnost **`werkzeug` 3.1.1** s tri `safe_join` Windows device-name DoS preporuke — `CVE-2025-66221`, `CVE-2026-21860`, i `CVE-2026-27199` (sve popravljeno u verziji 3.1.6). Dodan eksplicitan sigurnosni pin `werkzeug>=3.1.6` tako da se rješava zakrpanija verzija; potvrđeno da se ograničenje uredno rješava u `chainlit` / `mcp` / `semantic-kernel` stack-u
 
-### Rebrendiranje imena proizvoda
+### Rebranding imena proizvoda
 
-Ažuriran je sav sadržaj kurikuluma kako bi se odrazila Microsoftova promjena imena proizvoda:
+Ažuriran je sav sadržaj nastavnog plana kako bi odražavao Microsoftov rebranding proizvoda:
 
 #### Azure AI Foundry → Microsoft Foundry
-- **SUPPORT.md**: Ažuriran Discord link zajednice
-- **AGENTS.md**: Ažurirana referenca na Discord server
+- **SUPPORT.md**: Ažurirana poveznica na Discord zajednicu
+- **AGENTS.md**: Ažurirana referenca Discord servera
 - **README.md**: Ažurirane reference tehnološkog ekosustava
 - **study_guide.md**: Ažurirane reference studija slučaja
-- **05-AdvancedTopics/README.md**: Ažuriran naslov i opis Modula 5.13
+- **05-AdvancedTopics/README.md**: Ažuriran naslov i opis modula 5.13
 - **05-AdvancedTopics/mcp-integration/README.md**: Ažuriran naslov sekcije i opis
-- **05-AdvancedTopics/mcp-foundry-agent-integration/README.md**: Potpuno ažuriranje naslova i sadržaja modula
-- **05-AdvancedTopics/mcp-security-entra/README.md**: Ažuriran interni link
+- **05-AdvancedTopics/mcp-foundry-agent-integration/README.md**: Potpuno ažuriran naslov i sadržaj modula
+- **05-AdvancedTopics/mcp-security-entra/README.md**: Ažurirana među-referenca link
 - **07-LessonsfromEarlyAdoption/README.md**: Ažurirane reference studija slučaja
-- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**: Ažuriran naslov Sekcije 9, bedževi i mogućnosti
-- **08-BestPractices/README.md**: Ažuriran Discord link zajednice
-- **09-CaseStudy/docs-mcp/solution/scenario3/README.md**: Ažurirana referenca na Discord kanal
-- **09-CaseStudy/docs-mcp/solution/python/README.md**: Ažurirana referenca postavljanja modela
+- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**: Ažuriran naslov sekcije 9, značke i mogućnosti
+- **08-BestPractices/README.md**: Ažurirana poveznica na Discord zajednicu
+- **09-CaseStudy/docs-mcp/solution/scenario3/README.md**: Ažurirana referenca Discord kanala
+- **09-CaseStudy/docs-mcp/solution/python/README.md**: Ažurirana referenca za implementaciju modela
 - **11-MCPServerHandsOnLabs/00-Introduction/README.md**: Ažurirana tablica AI usluga
 - **11-MCPServerHandsOnLabs/03-Setup/README.md**: Ažurirane reference resursa
 
-#### AI Toolkit / AITK → Microsoft Foundry Toolkit Extension za VS Code
-- **README.md**: Ažurirane glavne reference kurikuluma
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**: Ažurirani naslov modula, pregled i svi naslovi modula
+#### AI toolkit / AITK → Microsoft Foundry Toolkit proširenje za VS Code
+
+- **README.md**: Ažurirani glavni kurikulum reference
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**: Ažuriran naslov modula, pregled i svi naslovi modula
 - **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/README.md**: Ažurirani naslov, ciljevi učenja, upute za postavljanje i resursi
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**: Ažurirani naslov, ciljevi učenja, tablica MCP hostova i križne reference
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/README.md**: Ažurirani naslov, bedževi, preduvjeti i resursi
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/README.md**: Ažurirane reference Agent Buildera i link za povratne informacije
-- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab4/README.md**: Ažurirani preduvjeti i reference ekstenzije
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**: Ažurirani naslov, ciljevi učenja, tablica MCP hostova i međureferenciranje
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/README.md**: Ažurirani naslov, značke, preduvjeti i resursi
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/README.md**: Ažurirani Agent Builder reference i poveznica za povratne informacije
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab4/README.md**: Ažurirani preduvjeti i reference na proširenja
 
 ---
 
 ## 11. travnja 2026.
 
-### Nova lekcija, popravci dokumentacije i ažuriranja ovisnosti
+### Nova lekcija, ispravci dokumentacije i ažuriranja ovisnosti
 
-#### Novi sadržaj kurikuluma dodan
+#### Dodan novi sadržaj kurikuluma
 
 **Modul 05 - Napredne teme**
-- **Lekcija 5.17: Protumačenje višestrukih agenata s MCP-om u protivničkom pristupu** (`05-AdvancedTopics/mcp-adversarial-agents/README.md`): Novi sveobuhvatni vodič koji pokriva obrazac protivničke debate za višestruke agente
-  - Mermaid dijagram arhitekture: dva agenta → zajednički MCP server → transkript debate → sudac → presuda
-  - Zajednički MCP poslužitelj alata (`web_search` + `run_python`) implementiran u Pythonu i TypeScriptu
-  - Suprotstavljene sistemske upute (ZA / PROTIV / Sudac) s eksplicitnim zahtjevima za korištenje alata
-  - Orkestrator debate u Pythonu, TypeScriptu i C# koji upravlja rundama i usmjerava argumente
-  - MCP `ClientSession` povezivanje za orkestrator do stvarnih poziva alata
-  - Tablica primjera uporabe (otkrivanje halucinacija, modeliranje prijetnji, pregled dizajna API-ja, faktografska provjera, tehnička selekcija)
-  - Sigurnosni aspekti: izvođenje u izolaciji, validacija poziva alata, ograničenje stope poziva, zapisivanje revizije
+- **Lekcija 5.17: Protivničko višeagentno rezoniranje s MCP-om** (`05-AdvancedTopics/mcp-adversarial-agents/README.md`): Novi opsežni vodič koji pokriva obrazac protivničke debate za višagentske sustave
+  - Mermaid dijagram arhitekture: dva agenta → zajednički MCP poslužitelj → transkript debate → sudac → presuda
+  - Zajednički MCP alat poslužitelj (`web_search` + `run_python`) implementiran u Pythonu i TypeScriptu
+  - Suprotstavljeni sistemski upiti (ZA / PROTIV / Sudac) s eksplicitnim zahtjevima za korištenje alata
+  - Orkestrator debate u Pythonu, TypeScriptu i C# za upravljanje rundama i usmjeravanje argumenata
+  - Povezivanje MCP `ClientSession` za orkestrator do stvarnih poziva alata
+  - Tablica primjera upotrebe (otkrivanje halucinacija, modeliranje prijetnji, pregled dizajna API-ja, provjera činjenica, odabir tehnologije)
+  - Sigurnosne mjere: izvršenje u sandboxu, validacija poziva alata, ograničenje brzine, audiranje zapisnika
   - Strukturirana vježba s tri praktična scenarija (pregled koda, odluka o arhitekturi, moderacija sadržaja)
 
-#### Popravci dokumentacije
+#### Ispravci dokumentacije
 
-**Modul 03 - Početak rada**
-- **05-stdio-server/README.md**: Popravljen nepotpun TypeScript stdio server primjer — dodana instancija transporta (`new StdioServerTransport()`) i poziv `server.connect(transport)` kako bi se uskladilo s primjerima u Pythonu i .NET-u u istoj sekciji
-- **14-sampling/README.md**: Ispravak tipfelera — ispravljeno `"Sampling is an davanced features"` → `"Sampling is an advanced feature"`
+**Modul 03 - Uvod**
+- **05-stdio-server/README.md**: Ispravljena nepotpuna TypeScript stdio poslužiteljska skripta — dodano nedostajuće instanciranje transporta (`new StdioServerTransport()`) i poziv `server.connect(transport)` za usklađivanje s primjerima u Pythonu i .NET-u u istom odjeljku
+- **14-sampling/README.md**: Ispravljena tipfeler — ispravljeno `"Sampling is an davanced features"` → `"Sampling is an advanced feature"`
 
 #### Ažuriranja kurikuluma
 
 **Glavni README.md**
-- Dodan redak 5.17 (Protumačenje višestrukih agenata s MCP-om u protivničkom pristupu) u tablicu kurikuluma s direktnim linkom na novu lekciju
+- Dodan unos 5.17 (Protivničko višeagentno rezoniranje s MCP-om) u tablicu kurikuluma s direktnom vezom na novu lekciju
 
 **05-AdvancedTopics/README.md**
-- Dodan redak lekcije 5.17 u tablicu lekcija
+- Dodan red za Lekciju 5.17 u tablicu lekcija
 
 **study_guide.md**
-- Dodana tema Protumačenja višestrukih agenata u protivničkom pristupu u konceptualnu mapu i prozni opis Naprednih tema
+- Dodana tema Protivničko višeagentno rezoniranje u mentalnu mapu i opis u proznom obliku Naprednih tema
 
-#### Popravci koda i sigurnosti
+#### Ispravci koda i sigurnosti
 
 **Modul 05 - Protivnički agenti (`mcp-adversarial-agents`)**
-- **Sigurnosna ispravka — injekcija naredbi**: Zamijenjena shell interpolacija `execSync` s `execFile` + `promisify` u TypeScript alatu `run_python`, eliminirajući površinu za injekciju naredbi (LLM-kontrolirani kod sada se prosljeđuje kao doslovni argv element bez ikakve uključenosti shell-a)
-- **Povezivanje petlje MCP alata**: Ažuriran Python orkestrator debata da koristi `AsyncAnthropic` klijent (zamijenivši blokirajući sinkroni `Anthropic`), prosljeđuje živi `ClientSession` direktno svakom potezu agenta, dohvaća definicije alata preko `session.list_tools()` u svakom potezu, i šalje blokove `tool_use` preko `session.call_tool()` u petlji dok model ne emitira konačni tekstualni odgovor
+- **Sigurnosni popravak — ubrizgavanje naredbi**: Zamijenjen `execSync` shell interpolacija s `execFile` + `promisify` u TypeScript `run_python` alatu, eliminirajući površinu ubrizgavanja naredbi (LLM-kontrolirani kod sada se prosljeđuje kao doslovni argv element bez uključenja shell-a)
+- **Povezivanje petlje MCP alata**: Ažuriran Python orkestrator debate da koristi `AsyncAnthropic` klijenta (umjesto blokirajućeg sinhronog `Anthropic`), prosljeđuje uživo `ClientSession` direktno za svaki okret agenta, dohvaća definicije alata putem `session.list_tools()` u svakom okretu i šalje `tool_use` blokove preko `session.call_tool()` u petlji dok model ne emitira konačni tekstualni odgovor
 
 #### Ažuriranja ovisnosti
 
-- Ažuriran `hono` na verziju 4.12.12 u više paketa (03-GettingStarted, 04-PracticalImplementation, 10-StreamliningAIWorkflows)
-- Ažuriran `@hono/node-server` s 1.19.11 na 1.19.13 u TypeScript paketima
-- Ažuriran `cryptography` s 46.0.5 na 46.0.7 u Python paketima (10-StreamliningAIWorkflows laboratoriji 3 i 4)
-- Ažuriran `lodash` s 4.17.23 na 4.18.1 u 10-StreamliningAIWorkflows inspektoru
+- Podignut `hono` na verziju 4.12.12 u više paketa (03-GettingStarted, 04-PracticalImplementation, 10-StreamliningAIWorkflows)
+- Podignut `@hono/node-server` s 1.19.11 na 1.19.13 u TypeScript paketima
+- Podignut `cryptography` s 46.0.5 na 46.0.7 u Python paketima (10-StreamliningAIWorkflows laboratoriji 3 i 4)
+- Podignut `lodash` s 4.17.23 na 4.18.1 u 10-StreamliningAIWorkflows inspectoru
 
 #### Prijevodi
 
-- Sinkronizirani prijevodi za 48+ jezika s najnovijim promjenama izvornog koda (i18n ažuriranje)
+- Sinhronizirani prijevodi za preko 48 jezika s najnovijim promjenama izvora (i18n ažuriranje)
 
 ---
 
 ## 5. veljače 2026.
 
-### Poboljšanja validacije i navigacije kroz cijeli repozitorij
+### Poboljšanja validacije i navigacije u cijelom repozitoriju
 
-#### Novi kurikulum sadržaj dodan
+#### Dodan novi sadržaj kurikuluma
 
-**Modul 03 - Početak rada**
-- **12-mcp-hosts/README.md**: Novi sveobuhvatni vodič za postavljanje MCP hostova
+**Modul 03 - Uvod**
+- **12-mcp-hosts/README.md**: Novi opsežni vodič za postavljanje MCP hostova
   - Primjeri konfiguracije Claude Desktop, VS Code, Cursor, Cline, Windsurf
-  - JSON predlošci konfiguracije za sve glavne hostove
-  - Tablica usporedbe tipova prijenosa (stdio, SSE/HTTP, WebSocket)
-  - Rješavanje čestih problema s vezom
-  - Najbolje sigurnosne prakse za konfiguraciju hosta
+  - JSON konfiguracijske predloške za sve glavne hostove
+  - Tablica usporedbe tipova transporta (stdio, SSE/HTTP, WebSocket)
+  - Rješavanje uobičajenih problema s povezivanjem
+  - Sigurnosne najbolje prakse za konfiguraciju hosta
 
-- **13-mcp-inspector/README.md**: Novi vodič za otklanjanje pogrešaka za MCP Inspektor
-  - Metode instalacije (npx, globalni npm, iz izvornog koda)
-  - Povezivanje na servere preko stdio i HTTP/SSE
-  - Alati za testiranje, resursi i tijekovi rada prompta
-  - Integracija VS Code s MCP Inspektorom
-  - Uobičajeni scenariji otklanjanja pogrešaka i rješenja
+- **13-mcp-inspector/README.md**: Novi vodič za ispravljanje pogrešaka za MCP Inspector
+  - Metode instalacije (npx, globalni npm, iz izvora)
+  - Povezivanje na poslužitelje preko stdio i HTTP/SSE
+  - Alati za testiranje, resursi i tijekovi rada s upitima
+  - Integracija s VS Code za MCP Inspector
+  - Uobičajene situacije ispravljanja pogrešaka s rješenjima
 
 **Modul 04 - Praktična implementacija**
 - **pagination/README.md**: Novi vodič za implementaciju paginacije
-  - Obrasci paginacije temeljene na kursoru u Pythonu, TypeScriptu, Javi
+  - Obrasci paginacije temeljenih na pokazivaču (cursor) u Pythonu, TypeScriptu, Javi
   - Rukovanje paginacijom na strani klijenta
-  - Strategije dizajna kursora (neprozirni vs. strukturirani)
+  - Strategije dizajna pokazivača (neprozirni vs. strukturirani)
   - Preporuke za optimizaciju performansi
 
 **Modul 05 - Napredne teme**
-- **mcp-protocol-features/README.md**: Novi dubinski pregled protokolskih značajki
+- **mcp-protocol-features/README.md**: Novi detaljni opis značajki protokola
   - Implementacija obavijesti o napretku
-  - Obrasci otkazivanja zahtjeva
-  - Predlošci resursa s URI obrascima
-  - Upravljanje životnim ciklusom servera
+  - Obrasci za otkazivanje zahtjeva
+  - Predlošci resursa s obrascima URI-ja
+  - Upravljanje životnim ciklusom poslužitelja
   - Kontrola razine zapisivanja
   - Obrasci obrade pogrešaka s JSON-RPC kodovima
 
-#### Popravci navigacije (ažurirano 24+ datoteka)
+#### Ispravci navigacije (ažurirano 24+ datoteka)
 
-**Glavne modul READMEs**
- Sada poveznice vode i na prvi lekciju I na sljedeći modul
+**Glavni moduli READMEs**
+ Sada s vezama na prvu lekciju I sljedeći modul
 
-**Poddatoteke 02-Sigurnost**
-- Svi 5 pratećih sigurnosnih dokumenata sada imaju navigaciju "Što slijedi":
+**02-Security poddatoteke**
+- Svi 5 dodatnih sigurnosnih dokumenata sada imaju navigaciju „Što je sljedeće“:
 
-**Datoteke 09-CaseStudy**
-- Svi case study dokumenti sada imaju sekvencijalnu navigaciju:
+**09-CaseStudy datoteke**
+- Sve datoteke studije slučaja sada imaju sekvencijalnu navigaciju:
 
-**Laboratoriji 10-StreamliningAI**
-Dodana sekcija Što slijedi u pregledu Modula 10 i Modula 11
+**10-StreamliningAI laboratoriji**
+Dodan odjeljak Što je sljedeće u pregledu Modula 10 i Modula 11
 
-#### Popravci koda i sadržaja
+#### Ispravci kodova i sadržaja
 
-**Ažuriranja SDK-a i ovisnosti**
+**Ažuriranja SDK i ovisnosti**
 Ispravljena prazna verzija openai na `^4.95.0`
 Ažuriran SDK s `^1.8.0` na `>=1.26.0`
-Ažurirane oznake verzije mcp na `>=1.26.0`
+Ažurirane veze verzija mcp-a na `>=1.26.0`
 
-**Popravci koda**
-Ispravljena nevažeća verzija modela `gpt-4o-mini` u `gpt-4.1-mini`
+**Ispravci koda**
+Ispravljeni nevažeći model `gpt-4o-mini` u `gpt-4.1-mini`
 
-**Popravci sadržaja**
-Ispravljena neispravna poveznica `READMEmd` → `README.md`, ispravljen zaglavlje kurikuluma `Module 1-3` → `Module 0-3`, ispravljena putanja osjetljiva na velika i mala slova
-Uklonjen oštećeni duplicirani sadržaj Case Study 5
+**Ispravci sadržaja**
+Ispravljena neispravna poveznica `READMEmd` → `README.md`, ispravljena zaglavlja kurikuluma `Module 1-3` → `Module 0-3`, ispravljena putanja osjetljiva na velika/mala slova
+Uklonjen oštećeni duplicirani sadržaj studije slučaja 5
 
 **Poboljšanja za početnike**
-Dodan ispravan uvod, ciljevi učenja i preduvjeti za početnike
+Dodani prikladan uvod, ciljevi učenja i preduvjeti za početnike
 
 #### Ažuriranja kurikuluma
 
 **Glavni README.md**
-- Dodani unos 3.12 (MCP Hosts), 3.13 (MCP Inspector), 4.1 (Paginacija), 5.16 (Značajke protokola) u tablicu kurikuluma
+- Dodani unosi 3.12 (MCP hostovi), 3.13 (MCP inspector), 4.1 (Paginacija), 5.16 (Značajke protokola) u tablicu kurikuluma
 
 **Modul READMEs**
 Dodane lekcije 12 i 13 u listu lekcija
-Dodana sekcija Praktični vodiči s poveznicom na paginaciju
-Dodane lekcije 5.15 (Prilagođeni prijenos) i 5.16 (Značajke protokola)
+Dodan odjeljak Praktični vodiči s vezom na paginaciju
+Dodane lekcije 5.15 (Prilagođeni transport) i 5.16 (Značajke protokola)
 
 **study_guide.md**
-- Ažurirana mentalna karta s temama: MCP Hosts Setup, MCP Inspector, Strategije paginacije, Dubinski pregled značajki protokola
+- Ažurirana mentalna mapa sa svim novim temama: Postavljanje MCP hostova, MCP Inspector, strategije paginacije, dubinska analiza značajki protokola
 
 ## 28. siječnja 2026.
 
-### Pregled usklađenosti s MCP specifikacijom 2025-11-25
+### Revizija usklađenosti s MCP specifikacijom 2025-11-25
 
-#### Unapređenje temeljnih koncepata (01-CoreConcepts/)
-- **Novi klijentski primitiv - Roots**: Dodana sveobuhvatna dokumentacija o Roots primitivu klijenta, omogućujući serverima razumijevanje granica datotečnog sustava i pristupnih dozvola
-- **Anotacije alata**: Dodana dokumentacija o ponašajnim anotacijama alata (`readOnlyHint`, `destructiveHint`) za bolje odluke u izvršavanju alata
-- **Pozivanje alata u uzorkovanju**: Ažurirana dokumentacija o uzorkovanju s uključenim parametrima `tools` i `toolChoice` za modelom vođeno pozivanje alata tijekom zahtjeva za uzorkovanje
-- **URL način poticanja**: Dodana dokumentacija o poticanju putem URL-a za vanjske mrežne interakcije inicirane serverom
-- **Zadaci (eksperimentalno)**: Dodana nova sekcija koja dokumentira eksperimentalnu značajku Zadataka za trajne omotnice izvršavanja i odgođeno dohvaćanje rezultata
-- **Podrška za ikone**: Napomena da alati, resursi, predlošci resursa i prompte sada mogu uključivati ikone kao dodatne metapodatke
+#### Unapređenje osnovnih koncepata (01-CoreConcepts/)
+- **Novi klijentski primitiv - Korijeni**: Dodana obuhvatna dokumentacija o korijenskom klijentskom primitivu koji omogućava poslužiteljima razumijevanje granica datotečnog sustava i pristupnih prava
+- **Napomene o alatima**: Dodana dokumentacija o ponašajnim oznakama alata (`readOnlyHint`, `destructiveHint`) radi bolje odluke o izvršavanju alata
+- **Pozivanje alata u uzorkovanju**: Ažurirana dokumentacija Sampling da uključi parametre `tools` i `toolChoice` za upravljano pozivanje alata tijekom zahtjeva uzorkovanja
+- **URL Mode Elicitation**: Dodana dokumentacija o URL-baziranom poticanju za poslužiteljem inicirane vanjske web interakcije
+- **Zadaci (Eksperimentalno)**: Dodan novi odjeljak dokumentirajući eksperimentalnu funkciju Zadaci za trajne omotače izvršenja i odgođeno dohvaćanje rezultata
+- **Podrška za ikone**: Napomenuto da alati, resursi, predlošci resursa i upiti sada mogu uključivati ikone kao dodatne metapodatke
 
 #### Ažuriranja dokumentacije
-- **README.md**: Dodana referenca MCP Specifikacije 2025-11-25 i objašnjenje verzioniranja prema datumu
-- **study_guide.md**: Ažurirana karta kurikuluma kako uključuje Zadatke i anotacije alata u sekciji Temeljni koncepti; ažurirana vremenska oznaka dokumenta
+- **README.md**: Dodana referenca MCP specifikacije 2025-11-25 i objašnjenje verzioniranja po datumu
+- **study_guide.md**: Ažurirana karta kurikuluma da uključi Zadatke i Napomene o alatima u odjeljak Osnovni koncepti; ažuriran vremenski žig dokumenta
 
-#### Verifikacija usklađenosti specifikacije
-- **Verzija protokola**: Potvrđene sve reference dokumentacije na aktualnu MCP Specifikaciju 2025-11-25
-- **Poravnanje arhitekture**: Potvrđena točnost dokumentacije dvoslojne arhitekture (Data Layer + Transport Layer)
-- **Dokumentacija primitiva**: Provjereni server primitives (Resursi, Prompte, Alati) i klijentski primitiv (Uzorkovanje, Poticanje, Zapisivanje, Roots)
-- **Transportni mehanizmi**: Provjerena točnost dokumentacije za STDIO i Streamable HTTP transport
-- **Sigurnosne smjernice**: Potvrđen usklađen sadržaj s aktualnim MCP sigurnosnim najboljim praksama
+#### Verifikacija sukladnosti sa specifikacijom
+- **Verzija protokola**: Potvrđeno da sva dokumentacija referira trenutnu MCP specifikaciju 2025-11-25
+- **Poravnanje arhitekture**: Potvrđena točnost dokumentacije dvoslojne arhitekture (Podatkovni sloj + Transportni sloj)
+- **Dokumentacija primitiva**: Validirani poslužiteljski primitivci (Resursi, Upiti, Alati) i klijentski primitivci (Sampling, Elicitation, Zapisivanje, Korijeni)
+- **Transportni mehanizmi**: Potvrđena točnost dokumentacije STDIO i Streamable HTTP transporta
+- **Sigurnosne smjernice**: Potvrđeno slaganje sa sadašnjom dokumentacijom najboljih sigurnosnih praksi MCP-a
 
-#### Ključne MCP 2025-11-25 značajke dokumentirane
-- **Otkrivanje OpenID Connect**: Otkrivanje servera za identitet putem OIDC
-- **OAuth Client ID metapodaci dokumenata**: Preporučeni mehanizam registracije klijenta
+#### Ključne značajke MCP 2025-11-25 dokumentirane
+- **OpenID Connect otkrivanje**: Otkrivanje poslužitelja za autentifikaciju putem OIDC
+- **OAuth Client ID metapodaci dokumenata**: Preporučen mehanizam registracije klijenta
 - **JSON Schema 2020-12**: Zadani dijalekt za MCP definicije shema
-- **SDK hijerarhijski sustav**: Formalizirani zahtjevi za podršku i održavanje SDK značajki
-- **Struktura upravljanja**: Formalizirane radne skupine i interesne skupine u MCP upravljanju
+- **SDK slojevitost**: Formalizirani zahtjevi za podršku i održavanje značajki SDK-a
+- **Struktura upravljanja**: Formalizirani radni i interesni odbori u MCP upravljanju
 
-### Glavno ažuriranje sigurnosne dokumentacije (02-Security/)
+### Veliko ažuriranje sigurnosne dokumentacije (02-Security/)
 
-#### Integracija MCP Security Summit Workshop (Sherpa)
-- **Novi praktični resurs za obuku**: Dodana sveobuhvatna integracija s [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) kroz cijelu sigurnosnu dokumentaciju
-- **Pokriće rute ekspedicije**: Dokumentiran kompletan tijek od Base Camp do Summit kampa
-- **Poravnanje s OWASP**: Sve sigurnosne smjernice sada su u skladu s OWASP MCP Azure sigurnosnim vodičem i rizicima
+#### Integracija MCP sigurnosnog summita Sherpa radionice
+- **Novi praktični resurs za obuku**: Dodana sveobuhvatna integracija sa [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) kroz cijelu sigurnosnu dokumentaciju
+- **Pokrivenost rute ekspedicije**: Dokumentiran potpuni tijek od baznog logora do vrha
+- **Usklađenost s OWASP-om**: Sve sigurnosne smjernice sada mapirane na OWASP MCP Azure sigurnosni vodič
 
 #### Integracija OWASP MCP Top 10
-- **Nova sekcija**: Dodan tablica OWASP MCP Top 10 sigurnosnih rizika sa Azure mitigacijama u glavnom sigurnosnom README-u
-- **Dokumentacija temeljena na riziku**: Ažuriran mcp-security-controls-2025.md s OWASP MCP referencama rizika za svaki sigurnosni domen
-- **Referentna arhitektura**: Poveznica na OWASP MCP Azure Security Guide referentnu arhitekturu i obrasce implementacije
+- **Novi odjeljak**: Dodana tablica OWASP MCP Top 10 sigurnosnih rizika sa Azure mitigacijama u glavnom sigurnosnom README
+- **Dokumentacija temeljem rizika**: Ažuriran mcp-security-controls-2025.md s referencama OWASP MCP rizika za svaki sigurnosni domen
+- **Referentna arhitektura**: Poveznica na OWASP MCP Azure sigurnosni vodič referentne arhitekture i obrasce implementacije
 
 #### Ažurirane sigurnosne datoteke
-- **README.md**: Dodan pregled Sherpa radionice, tablica rute ekspedicije, sažetak OWASP MCP Top 10 rizika i sekcija praktične obuke
-- **mcp-security-controls-2025.md**: Ažurirano zaglavlje na veljaču 2026., dodane OWASP referencije rizika (MCP01-MCP08), ispravljena nedosljednost verzije specifikacije
-- **mcp-security-best-practices-2025.md**: Dodana sekcija Sherpa i OWASP resursa, ažurirana vremenska oznaka
-- **mcp-best-practices.md**: Dodana sekcija praktične obuke s poveznicama na Sherpa i OWASP
-- **azure-content-safety-implementation.md**: Dodana OWASP MCP06 referenca, usklađenost sa Sherpa Camp 3 i dodatna sekcija resursa
+- **README.md**: Dodan pregled Sherpa radionice, tablica ruta ekspedicije, sažetak OWASP MCP Top 10 rizika i odjeljak za praktičnu obuku
+- **mcp-security-controls-2025.md**: Ažurirano zaglavlje na veljaču 2026., dodane OWASP referale na rizike (MCP01-MCP08), ispravljena nesukladnost verzije specifikacije
+- **mcp-security-best-practices-2025.md**: Dodan odjeljak resursa Sherpa i OWASP, ažuriran vremenski žig
+- **mcp-best-practices.md**: Dodan odjeljak praktične obuke s poveznicama na Sherpa i OWASP
+- **azure-content-safety-implementation.md**: Dodan OWASP MCP06 referal, poravnanje s Sherpa kampom 3 i dodatni odjeljak resursa
 
-#### Dodani novi poveznici na resurse
+#### Dodane nove veze na resurse
 - [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)
 - [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)
@@ -290,400 +311,402 @@ Dodane lekcije 5.15 (Prilagođeni prijenos) i 5.16 (Značajke protokola)
 
 ### Poravnanje MCP specifikacije 2025-11-25 kroz cijeli kurikulum
 
-#### Modul 03 - Početak rada
-- **SDK dokumentacija**: Dodan Go SDK na službenu listu SDK-a; ažurirane sve SDK reference u skladu s MCP Specifikacijom 2025-11-25
-- **Pojašnjenje prijevoza**: Ažurirani opisi STDIO i HTTP Streaming prijenosa s eksplicitnim referencama na specifikaciju
+#### Modul 03 - Uvod
+- **SDK dokumentacija**: Dodan Go SDK na službenu listu SDK-a; ažurirane sve SDK reference za usklađenost s MCP specifikacijom 2025-11-25
+- **Pojašnjenje transporta**: Ažurirani opisi STDIO i HTTP streaming transporta s eksplicitnim referencama na specifikaciju
 
 #### Modul 04 - Praktična implementacija
-- **SDK ažuriranja**: Dodan Go SDK; ažurirana SDK lista sa verzijom specifikacije
-- **Specifikacija autorizacije**: Ažuriran MCP Authorization link na trenutnu verziju 2025-11-25
+- **Ažuriranja SDK-a**: Dodan Go SDK; ažurirana lista SDK-a s referencom verzije specifikacije
+- **Specifikacija autorizacije**: Ažurirana veza na MCP autorizacijsku specifikaciju na trenutačnu verziju 2025-11-25
 
 #### Modul 05 - Napredne teme
-- **Nove značajke**: Dodana napomena o novim MCP Specifikacija 2025-11-25 značajkama (Zadaci, Anotacije alata, URL način poticanja, Roots)
-- **Sigurnosni resursi**: Dodane poveznice OWASP MCP Top 10 i Sherpa radionice u dodatnu literaturu
+- **Nove značajke**: Dodana napomena o novim MCP specifikacijskim značajkama 2025-11-25 (Zadaci, Napomene o alatima, URL Mode Elicitation, Korijeni)
+- **Sigurnosni resursi**: Dodane veze OWASP MCP Top 10 i Sherpa radionice u dodatne reference
 
-#### Modul 06 - Zajednički doprinosi
-- **Lista SDK-a**: Dodani Swift i Rust SDK; ažuriran link specifikacije na 2025-11-25
-- **Referenca specifikacije**: Ažurirana MCP Specifikacija na izravni URL specifikacije
+#### Modul 06 - Doprinosi zajednice
+- **Lista SDK-a**: Dodani Swift i Rust SDK-ovi; ažurirana veza na specifikaciju 2025-11-25
+- **Referenca specifikacije**: Ažurirana veza MCP specifikacije na direktni URL specifikacije
 
-#### Modul 07 - Lekcije iz ranih usvajanja
-- **Ažuriranja resursa**: Dodan MCP Specifikacija 2025-11-25 link i OWASP MCP Top 10 u dodatne resurse
+#### Modul 07 - Lekcije ranog usvajanja
 
-#### Modul 08 - Najbolje prakse
-- **Verzija specifikacije**: Ažurirana MCP Specifikacija na 2025-11-25
-- **Sigurnosni resursi**: Dodane OWASP MCP Top 10 i Sherpa radionica u dodatnu literaturu
+- **Ažuriranja Resursa**: Dodan MCP Specification 2025-11-25 link i OWASP MCP Top 10 u dodatne resurse
 
-#### Modul 10 - Optimiziranje AI tijekova rada
-- **Ažuriranje značke**: MCP verzija promijenjena s verzije SDK (1.9.3) na verziju specifikacije (2025-11-25)
-- **Poveznice na resurse**: Ažuriran MCP Specifikacija link; dodan OWASP MCP Top 10
+#### Modul 08 - Najbolje Prakse
+- **Verzija Specifikacije**: Ažuriran MCP Specification referenca na 2025-11-25
+- **Sigurnosni Resursi**: Dodani OWASP MCP Top 10 i Sherpa radionica u dodatne reference
 
-#### Modul 11 - MCP Server Hands-On laboratoriji
-- **Referenca specificikacije**: Ažuriran MCP Specifikacija link na verziju 2025-11-25
-- **Sigurnosni resursi**: Dodan OWASP MCP Top 10 u službene resurse
+#### Modul 10 - Optimizacija AI Radnih Tokova
+- **Ažuriranje Bedža**: Promijenjen MCP verzijski bedž sa SDK verzije (1.9.3) na verziju specifikacije (2025-11-25)
+- **Linkovi Resursa**: Ažuriran MCP Specification link; dodan OWASP MCP Top 10
+
+#### Modul 11 - MCP Server Praktične Radionice
+- **Referenca Specifikacije**: Ažuriran MCP Specification link na verziju 2025-11-25
+- **Sigurnosni Resursi**: Dodan OWASP MCP Top 10 u službene resurse
 
 ## 18. prosinca 2025.
 
-### Ažuriranje sigurnosne dokumentacije - MCP Specifikacija 2025-11-25
+### Ažuriranje Sigurnosne Dokumentacije - MCP Specification 2025-11-25
 
-#### Najbolje sigurnosne prakse MCP-a (02-Security/mcp-best-practices.md) - Ažuriranje verzije specifikacije
-- **Ažuriranje verzije protokola**: Ažurirano na referencu najnovije MCP Specifikacije 2025-11-25 (objavljeno 25. studenog 2025)
-  - Ažurirane sve reference verzije specifikacije s 2025-06-18 na 2025-11-25
-  - Ažurirani datumi dokumenta s 18. kolovoza 2025 na 18. prosinca 2025
-  - Provjereno da sve URL-ove specifikacije vode na važeću dokumentaciju
-- **Validacija sadržaja**: Sveobuhvatna provjera sigurnosnih najboljih praksi u skladu s najnovijim standardima
-  - **Microsoft sigurnosna rješenja**: Provjereni aktualni termini i poveznice za Prompt Shields (ranije "detekcija rizika jailbreaka"), Azure Content Safety, Microsoft Entra ID i Azure Key Vault
-  - **OAuth 2.1 sigurnost**: Potvrđena usklađenost s najnovijim sigurnosnim praksama OAuth-a
-  - **OWASP standardi**: Provjerene aktualnosti referenci OWASP Top 10 za LLM modele
-  - **Azure usluge**: Provjereni svi Microsoft Azure dokumentacijski linkovi i najbolje prakse
-- **Poravnanje sa standardima**: Sve referencirane sigurnosne norme potvrđene kao aktualne
-  - NIST AI Risk Management Framework
+#### MCP Sigurnosne Najbolje Prakse (02-Security/mcp-best-practices.md) - Ažuriranje Verzije Specifikacije
+- **Ažuriranje Verzije Protokola**: Ažurirano na referencu najnovije MCP Specification 2025-11-25 (izdano 25. studenog 2025.)
+  - Ažurirane sve reference verzija specifikacije s 2025-06-18 na 2025-11-25
+  - Ažurirani datumi u dokumentu s 18. kolovoza 2025. na 18. prosinca 2025.
+  - Provjereno da svi URL-ovi specifikacije vode na trenutnu dokumentaciju
+- **Validacija Sadržaja**: Sveobuhvatna validacija sigurnosnih najboljih praksi prema najnovijim standardima
+  - **Microsoft Sigurnosna Rješenja**: Provjereni aktualni termini i poveznice za Prompt Shields (prije "detekcija rizika od jailbreaka"), Azure Content Safety, Microsoft Entra ID i Azure Key Vault
+  - **OAuth 2.1 Sigurnost**: Potvrđena usklađenost s najnovijim OAuth sigurnosnim najboljim praksama
+  - **OWASP Standardi**: Validirane OWASP Top 10 reference za LLM i dalje su aktualne
+  - **Azure Usluge**: Provjerene sve Microsoft Azure dokumentacijske veze i najbolje prakse
+- **Usklađenost sa Standardima**: Svi referencirani sigurnosni standardi potvrđeni kao trenutačni
+  - NIST AI Okvir za upravljanje rizikom
   - ISO 27001:2022
-  - OAuth 2.1 Najbolje sigurnosne prakse
+  - OAuth 2.1 Sigurnosne Najbolje Prakse
   - Azure sigurnosni i usklađenost okviri
-- **Resursi implementacije**: Provjereni svi vodiči za implementaciju i resursi
-  - Obrasci autentifikacije u Azure API Management
-  - Vodiči za integraciju Microsoft Entra ID-a
-  - Upravljanje tajnama u Azure Key Vaultu
-  - DevSecOps pipeline-i i rješenja za nadzor
+- **Resursi za Implementaciju**: Validirani svi vodiči za implementaciju i resursi
+  - Azure API Management obrasci autentifikacije
+  - Microsoft Entra ID integracijski vodiči
+  - Azure Key Vault upravljanje tajnama
+  - DevSecOps pipelines i monitoringska rješenja
 
-### Osiguranje kvalitete dokumentacije
-- **Usklađenost s specifikacijom**: Provjereno da sve obavezne MCP sigurnosne zahtjeve (MUST/MUST NOT) usklađuju s najnovijom specifikacijom
-- **Aktualnost resursa**: Potvrđeno da su svi vanjski linkovi na Microsoft dokumentaciju, sigurnosne standarde i vodiče za implementaciju aktualni
-- **Pokriće najboljih praksi**: Potvrđeno sveobuhvatno pokrivanje autentifikacije, autorizacije, AI-specifičnih prijetnji, sigurnosti opskrbnog lanca i enterprise obrazaca
+### Osiguranje Kvalitete Dokumentacije
+- **Usklađenost sa Specifikacijom**: Osigurano da svi obavezni MCP sigurnosni zahtjevi (MORA/MORA NE) budu usklađeni s najnovijom specifikacijom
+- **Ažurnost Resursa**: Provjereni svi vanjski linkovi na Microsoft dokumentaciju, sigurnosne standarde i vodiče za implementaciju
+- **Pokrivenost Najboljih Praksi**: Potvrđena sveobuhvatna pokrivenost autentifikacije, autorizacije, AI-specifičnih prijetnji, sigurnosti lanca opskrbe i enterprise obrazaca
 
 ## 6. listopada 2025.
 
-### Proširenje sekcije za početak rada – Napredno korištenje servera i jednostavna autentifikacija
+### Proširenje Sekcije Za Početak – Napredna Upotreba Servera i Jednostavna Autentifikacija
 
-#### Napredno korištenje servera (03-GettingStarted/10-advanced)
-- **Dodano novo poglavlje**: Predstavljen sveobuhvatan vodič za napredno korištenje MCP servera, obuhvaćajući redovitu i niskorazinsku arhitekturu servera.
-  - **Redovni vs. Niskorazinski poslužitelj**: Detaljna usporedba i primjeri koda u Pythonu i TypeScriptu za oba pristupa.
-  - **Dizajn baziran na obrađivačima**: Objašnjenje upravljanja alatima/izvorima/poticanjem baziranim na obrađivačima za skalabilne, fleksibilne implementacije poslužitelja.
-  - **Praktični obrasci**: Stvarni scenariji gdje su obrasci niskorazinskog poslužitelja korisni za napredne značajke i arhitekturu.
+#### Napredna Upotreba Servera (03-GettingStarted/10-advanced)
+- **Dodano Novo Poglavlje**: Uveden sveobuhvatan vodič za naprednu upotrebu MCP servera, pokrivajući regularnu i low-level server arhitekturu.
+  - **Regularni vs Low-Level Server**: Detaljna usporedba i primjeri koda u Pythonu i TypeScriptu za oba pristupa.
+  - **Dizajn Temeljen na Handlerima**: Objašnjenje upravljanja alatima/resursima/promptima pomoću handler-based pristupa za skalabilne, fleksibilne server implementacije.
+  - **Praktični Obrasci**: Stvarni scenariji gdje su low-level server paterni korisni za napredne značajke i arhitekturu.
 
-#### Jednostavna autentifikacija (03-GettingStarted/11-simple-auth)
-- **Dodano novo poglavlje**: Korak-po-korak vodič za implementaciju jednostavne autentifikacije u MCP poslužiteljima.
-  - **Koncepti autentifikacije**: Jasno objašnjenje autentifikacije naspram autorizacije te rukovanja vjerodajnicama.
-  - **Osnovna implementacija autentifikacije**: Obrasci autentifikacije bazirani na middlewareu u Pythonu (Starlette) i TypeScriptu (Express) s primjerima koda.
-  - **Napredak prema naprednoj sigurnosti**: Smjernice za početak sa jednostavnom autentifikacijom i napredovanje prema OAuth 2.1 i RBAC s referencama na napredne sigurnosne module.
+#### Jednostavna Autentifikacija (03-GettingStarted/11-simple-auth)
+- **Dodano Novo Poglavlje**: Korak-po-korak vodič za implementaciju jednostavne autentifikacije u MCP serverima.
+  - **Koncepti Autentifikacije**: Jasno objašnjenje razlike između autentifikacije i autorizacije te upravljanja vjerodajnicama.
+  - **Osnovna Implementacija Autentifikacije**: Obrasci autentifikacije temeljeni na middlewareu u Pythonu (Starlette) i TypeScriptu (Express), s primjerima koda.
+  - **Progresija do Napredne Sigurnosti**: Smjernice za početak s jednostavnom autentifikacijom i napredak prema OAuth 2.1 i RBAC, uz reference na napredne sigurnosne module.
 
-Ove nadopune pružaju praktične, interaktivne smjernice za izgradnju robusnijih, sigurnijih i fleksibilnijih implementacija MCP poslužitelja, povezujući osnovne koncepte s naprednim proizvodnim obrascima.
+Ova dodavanja pružaju praktične, hands-on smjernice za izgradnju robusnijih, sigurnijih i fleksibilnijih MCP server implementacija, spajajući temeljne koncepte s naprednim obrascima proizvodnje.
 
 ## 29. rujna 2025.
 
-### MCP poslužiteljski laboratoriji integracije baza podataka – sveobuhvatan praktični put učenja
+### MCP Server Integracija Baze Podataka Radionice - Sveobuhvatni Praktični Put Učenja
 
-#### 11-MCPServerHandsOnLabs – Novi kompletni kurikulum integracije baza podataka
-- **Potpuni put učenja sa 13 laboratorija**: Dodan sveobuhvatan praktični kurikulum za izgradnju produkcijski spremnih MCP poslužitelja s integracijom PostgreSQL baze podataka
-  - **Prava primjena u stvarnom svijetu**: Primjer upotrebe Zava Retail analitike koji demonstrira obrasce razine poduzeća
-  - **Strukturirani napredak u učenju**:
-    - **Laboratoriji 00-03: Osnove** – Uvod, osnovna arhitektura, sigurnost i multitenancy, postavljanje okoline
-    - **Laboratoriji 04-06: Izgradnja MCP poslužitelja** – Dizajn baze podataka i sheme, implementacija MCP poslužitelja, razvoj alata  
-    - **Laboratoriji 07-09: Napredne značajke** – Integracija semantičkog pretraživanja, testiranje i ispravljanje grešaka, integracija s VS Code
-    - **Laboratoriji 10-12: Proizvodnja i najbolje prakse** – Strategije implementacije, nadzor i promatranje, najbolje prakse i optimizacija
-  - **Tehnologije razine poduzeća**: FastMCP okvir, PostgreSQL s pgvector, Azure OpenAI embeddings, Azure Container Apps, Application Insights
-  - **Napredne značajke**: Sigurnost na razini retka (RLS), semantičko pretraživanje, pristup podacima za više korisnika, vektorska ugrušavanja, nadzor u stvarnom vremenu
+#### 11-MCPServerHandsOnLabs - Novi Sveobuhvatni Kurikulum Integracije Baza Podataka
+- **Potpuni Put Učenja s 13 Radionica**: Dodan sveobuhvatan praktični kurikulum za izgradnju produkcijski spremnih MCP servera s integracijom PostgreSQL baze podataka
+  - **Stvarna Implementacija**: Zava Retail analitički slučaj pokazuje enterprise razne obrasce
+  - **Strukturirana Progresija Učenja**:
+    - **Radionice 00-03: Osnove** - Uvod, Temeljna Arhitektura, Sigurnost i Multi-Tenant, Postavljanje Okoline
+    - **Radionice 04-06: Izgradnja MCP Servera** - Dizajn baze podataka i shema, Implementacija MCP Servera, Razvoj alata  
+    - **Radionice 07-09: Napredne Značajke** - Integracija semantičkog pretraživanja, Testiranje i Debugging, VS Code integracija
+    - **Radionice 10-12: Produkcija i Najbolje Prakse** - Strategije postavljanja, Monitoring i promatranje, Najbolje prakse i optimizacija
+  - **Enterprise Tehnologije**: FastMCP framework, PostgreSQL s pgvector, Azure OpenAI embeddings, Azure Container Apps, Application Insights
+  - **Napredne Značajke**: Row Level Security (RLS), semantičko pretraživanje, multi-tenant pristup podacima, vektorske ugradnje, nadzor u stvarnom vremenu
 
-#### Standardizacija terminologije – Pretvorba modula u laboratorije
-- **Sveobuhvatna nadogradnja dokumentacije**: Sustavno ažurirani svi README fajlovi u 11-MCPServerHandsOnLabs koristeći terminologiju „laboratorij“ umjesto „modul“
-  - **Naslovi sekcija**: Ažurirano „What This Module Covers“ u „What This Lab Covers“ u svih 13 laboratorija
-  - **Opis sadržaja**: Promijenjeno „This module provides...“ u „This lab provides...“ kroz dokumentaciju
-  - **Ciljevi učenja**: Ažurirano „By the end of this module...“ u „By the end of this lab...“
-  - **Linkovi za navigaciju**: Pretvoreni svi „Module XX:“ navodi u „Lab XX:“ u međureferencama i navigaciji
-  - **Praćenje završetka**: Ažurirano „After completing this module...“ u „After completing this lab...“
-  - **Očuvane tehničke reference**: Održane Python reference modula u konfiguracijskim datotekama (npr. `"module": "mcp_server.main"`)
+#### Standardizacija Terminologije - Konverzija Modula u Radionice
+- **Sveobuhvatno Ažuriranje Dokumentacije**: Sistematski ažurirani svi README fajlovi u 11-MCPServerHandsOnLabs da koriste termin "Lab" umjesto "Module"
+  - **Naslovi Sekcija**: Promijenjeno "What This Module Covers" u "What This Lab Covers" kroz svih 13 radionica
+  - **Opis Sadržaja**: Promijenjeno "This module provides..." u "This lab provides..." kroz dokumentaciju
+  - **Ciljevi Učenja**: Promijenjeno "By the end of this module..." u "By the end of this lab..."
+  - **Navigacijske Poveznice**: Pretvoreni svi "Module XX:" referenci u "Lab XX:" u međureferencama i navigaciji
+  - **Praćenje Završetka**: Promijenjeno "After completing this module..." u "After completing this lab..."
+  - **Očuvane Tehničke Reference**: Očuvani Python modul referenci u konfiguracijskim datotekama (npr. `"module": "mcp_server.main"`)
 
-#### Unapređenja vodiča za učenje (study_guide.md)
-- **Vizualna karta kurikuluma**: Dodan novi odjeljak „11. Database Integration Labs“ s vizualizacijom strukture laboratorija
-- **Struktura repozitorija**: Ažurirano s deset na jedanaest glavnih sekcija s detaljnim opisom 11-MCPServerHandsOnLabs
-- **Smjernice za put učenja**: Poboljšane upute za navigaciju koje pokrivaju sekcije 00-11
-- **Obuhvat tehnologija**: Dodani detalji o FastMCP, PostgreSQL-u i Azure uslugama integracije
-- **Ishodi učenja**: Naglasak na razvoju produkcijski spremnih poslužitelja, obrascima integracije baze podataka i sigurnosti razine poduzeća
+#### Poboljšanje Vodiča za Učenje (study_guide.md)
+- **Vizualna Mapa Kurikuluma**: Dodana nova sekcija "11. Database Integration Labs" sa sveobuhvatnom vizualizacijom strukture radionice
+- **Struktura Repozitorija**: Ažurirano s deset na jedanaest glavnih sekcija s detaljnim opisom 11-MCPServerHandsOnLabs
+- **Smjernice Putanje Učenja**: Poboljšane upute za navigaciju kroz sekcije 00-11
+- **Pokriće Tehnologije**: Dodani detalji o FastMCP, PostgreSQL, integracija Azure servisa
+- **Ishodi Učenja**: Naglašen razvoj produkcijski spremnih servera, obrasci integracije baza podataka i enterprise sigurnost
 
-#### Unapređenje strukture glavnog README-a
-- **Terminologija bazirana na laboratorijima**: Ažuriran glavni README.md u 11-MCPServerHandsOnLabs za dosljednu upotrebu strukture "Laboratorij"
-- **Organizacija puta učenja**: Jasan napredak od osnovnih koncepata preko napredne implementacije do produkcijske primjene
-- **Fokus na stvarni svijet**: Naglasak na praktičnoj, hands-on nastavi s obrascima i tehnologijama razine poduzeća
+#### Poboljšanje Glavne README Strukture
+- **Terminologija Bazirana na Radionicama**: Ažuriran glavni README.md u 11-MCPServerHandsOnLabs da dosljedno koristi "Lab" strukturu
+- **Organizacija Putanje Učenja**: Jasna progresija od temeljnih koncepata preko napredne implementacije do produkcijskog postavljanja
+- **Fokus na Stvarni Svijet**: Naglasak na praktično, hands-on učenje s enterprise razinama obrazaca i tehnologija
 
-### Poboljšanja kvalitete i konzistencije dokumentacije
-- **Naglasak na praktično učenje**: Ojačani praktični, laboratorijski pristup kroz cijelu dokumentaciju
-- **Fokus na obrasce razine poduzeća**: Istaknute produkcijski spremne implementacije i sigurnosne razmatranja za poduzeća
-- **Integracija tehnologije**: Sveobuhvatan pregled modernih Azure usluga i AI integracijskih obrazaca
-- **Napredak u učenju**: Jasan, strukturiran put od osnovnih pojmova do produkcijske implementacije
+### Poboljšanja Kvalitete i Dosljednosti Dokumentacije
+- **Naglasak na Praktično Učenje**: Pojačan praktični, bazirani na radionicama pristup kroz cijelu dokumentaciju
+- **Fokus na Enterprise Obrasce**: Istaknute produkcijski spremne implementacije i enterprise sigurnosni aspekti
+- **Integracija Tehnologije**: Sveobuhvatno pokrivanje suvremenih Azure servisa i AI integracijskih obrazaca
+- **Progresija Učenja**: Jasna, strukturirana putanja od osnovnih koncepata do produkcijskog postavljanja
 
 ## 26. rujna 2025.
 
-### Unapređenje studija slučaja – Integracija GitHub MCP Registryja
+### Poboljšanja Studija Slučaja - GitHub MCP Registry Integracija
 
-#### Studije slučaja (09-CaseStudy/) – Fokus na razvoj ekosustava
-- **README.md**: Značajno proširen s detaljnom studijom slučaja GitHub MCP Registryja
-  - **Studija slučaja GitHub MCP Registryja**: Nova opsežna studija slučaja ispitivanja lansiranja GitHub MCP Registryja u rujnu 2025.
-    - **Analiza problema**: Detaljno ispitivanje izazova fragmentiranog pronalaženja i implementacije MCP poslužitelja
-    - **Arhitektura rješenja**: GitHubov centralizirani pristup registru s instalacijom VS Code jednim klikom
-    - **Poslovni utjecaj**: Mjerljiva poboljšanja u onboarding procesu i produktivnosti programera
-    - **Strateška vrijednost**: Naglasak na modularnu implementaciju agenata i interoperabilnost alata
-    - **Razvoj ekosustava**: Pozicioniranje kao temeljna platforma za agentnu integraciju
-  - **Unaprijeđena struktura studije slučaja**: Ažurirane sve sedam studija slučaja s dosljednim formatiranjem i sveobuhvatnim opisima
-    - Azure AI Travel Agents: Naglasak na višestruku orkestraciju agenata
-    - Azure DevOps Integration: Fokus na automatizaciju radnog toka
-    - Dohvaćanje dokumentacije u stvarnom vremenu: Implementacija klijenta u Python konzoli
-    - Interaktivni generator studijskog plana: Lancilit web aplikacija za konverzaciju
-    - Dokumentacija u uređivaču: Integracija s VS Code i GitHub Copilot
-    - Azure API Management: Obrasci integracije API-ja za poduzeća
-    - GitHub MCP Registry: Razvoj ekosustava i platforma za zajednicu
-  - **Sveobuhvatan zaključak**: Prepisan odjeljak zaključka koji ističe sedam studija slučaja koje pokrivaju višedimenzionalne MCP implementacije
-    - Integracija poduzeća, orkestracija višestrukih agenata, produktivnost programera
-    - Razvoj ekosustava, obrazovne aplikacije kao kategorije
-    - Poboljšani uvidi u arhitektonske obrasce, strategije implementacije i najbolje prakse
-    - Naglasak na MCP kao zreli, produkcijski spremni protokol
+#### Studije Slučaja (09-CaseStudy/) - Fokus na Razvoju Ekosustava
+- **README.md**: Veliko proširenje s opsežnim GitHub MCP Registry studijom slučaja
+  - **GitHub MCP Registry Studija Slučaja**: Nova sveobuhvatna studija ispitujući GitHub-ovo lansiranje MCP Registryja u rujnu 2025.
+    - **Analiza Problema**: Detaljna analiza fragmentiranog otkrivanja MCP servera i izazova postavljanja
+    - **Arhitektura Rješenja**: GitHubov centralizirani pristup registru s jednim klikom instalacije za VS Code
+    - **Poslovni Utjecaj**: Mjerljiva poboljšanja u onboardingu developera i produktivnosti
+    - **Strateška Vrijednost**: Fokus na modularnu implementaciju agenata i međualatnu interoperabilnost
+    - **Razvoj Ekosustava**: Pozicioniranje kao osnovna platforma za agentnu integraciju
+  - **Poboljšana Struktura Studije Slučaja**: Ažurirane sve sedam studija slučaja s dosljednim formatiranjem i sveobuhvatnim opisima
+    - Azure AI Travel Agents: Naglasak na višestruku agentnu koordinaciju
+    - Azure DevOps Integracija: Fokus na automatizaciju radnog toka
+    - Dohvat Dokumentacije u Realnom Vremenu: Implementacija konzolnog Python klijenta
+    - Interaktivni Generator Studijskog Plana: Chainlit konverzacijska web aplikacija
+    - Dokumentacija unutar Editora: VS Code i GitHub Copilot integracija
+    - Azure API Management: Enterprise API integracijski obrasci
+    - GitHub MCP Registry: razvoj ekosustava i platforma zajednice
+  - **Sveobuhvatan Zaključak**: Prepisani zaključak s naglaskom na sedam studija slučaja koje pokrivaju višestruke dimenzije MCP implementacije
+    - Enterprise integracija, višeagentna orkestracija, produktivnost developera
+    - Kategorizacija razvoja ekosustava i edukativnih primjena
+    - Poboljšani uvidi u arhitektonske obrasce, implementacijske strategije i najbolje prakse
+    - Naglasak na MCP kao zrelom, produkcijski spremnom protokolu
 
-#### Ažuriranja vodiča za učenje (study_guide.md)
-- **Vizualna karta kurikuluma**: Ažuriran mentalni prikaz za uključivanje GitHub MCP Registryja u odjeljak Studije slučaja
-- **Opis studija slučaja**: Proširen s generičkih opisa na detaljnu analizu sedam opširnih studija slučaja
-- **Struktura repozitorija**: Ažurirana sekcija 10 kako bi odražavala opsežno pokrivanje studija slučaja sa specifičnim detaljima implementacije
-- **Integracija dnevnika promjena**: Dodan unos za 26. rujna 2025. koji dokumentira dodatak GitHub MCP Registryja i unapređenja studija slučaja
-- **Ažuriranja datuma**: Ažuriran vremenski pečat podnožja za najnoviju reviziju (26. rujna 2025.)
+#### Ažuriranja Vodiča za Učenje (study_guide.md)
+- **Vizualna Mapa Kurikuluma**: Ažurirana mapa koncepta da uključi GitHub MCP Registry u odjeljak Studija Slučaja
+- **Opis Studija Slučaja**: Prošireni iz generičkih opisa na detaljnu analizu sedam sveobuhvatnih studija slučaja
+- **Struktura Repozitorija**: Ažurirana sekcija 10 radi odražavanja sveobuhvatnog obuhvata studije slučaja s konkretnim detaljima implementacije
+- **Integracija Dnevnika Promjena**: Dodan zapis od 26. rujna 2025. dokumentirajući dodatak GitHub MCP Registry i poboljšanja studija slučaja
+- **Ažuriranja Datuma**: Ažuriran podnožni timestamp da odražava najnoviju reviziju (26. rujna 2025.)
 
-### Poboljšanja kvalitete dokumentacije
-- **Unapređenje konzistentnosti**: Standardizirano formatiranje i struktura studija slučaja za svih sedam primjera
-- **Sveobuhvatno pokrivanje**: Studije slučaja sada obuhvaćaju poduzeća, produktivnost programera i razvoj ekosustava
-- **Strateško pozicioniranje**: Povećan fokus na MCP kao temeljnu platformu za implementaciju agentskih sustava
-- **Integracija resursa**: Ažurirani dodatni resursi za uključivanje poveznice na GitHub MCP Registry
+### Poboljšanja Kvalitete Dokumentacije
+- **Poboljšana Dosljednost**: Standardizirano formatiranje i struktura studija slučaja kroz svih sedam primjera
+- **Sveobuhvatno Pokriće**: Studije slučaja sada pokrivaju enterprise, produktivnost developera i scenarije razvoja ekosustava
+- **Strateško Pozicioniranje**: Pojačan fokus na MCP kao osnovnoj platformi za implementaciju agentnih sustava
+- **Integracija Resursa**: Ažurirani dodatni resursi kako bi uključili GitHub MCP Registry link
 
 ## 15. rujna 2025.
 
-### Proširenje naprednih tema – Prilagođeni transporti i inženjerstvo konteksta
+### Proširenje Naprednih Tema - Prilagođeni Transporti i Inženjering Konteksta
 
-#### Prilagođeni MCP transporti (05-AdvancedTopics/mcp-transport/) – Novi vodič za naprednu implementaciju
+#### MCP Prilagođeni Transporti (05-AdvancedTopics/mcp-transport/) - Novi Vodič za Naprednu Implementaciju
 - **README.md**: Potpuni vodič za implementaciju prilagođenih MCP transportnih mehanizama
-  - **Azure Event Grid transport**: Sveobuhvatna implementacija serverless event-driven transporta
-    - Primjeri u C#, TypeScriptu i Pythonu s integracijom Azure Functions
-    - Obrasci event-driven arhitekture za skalabilna MCP rješenja
-    - Primatelji webhookova i push-based rukovanje porukama
-  - **Azure Event Hubs transport**: Implementacija transporta za visokoprotočni streaming
-    - Mogućnosti streaming u stvarnom vremenu za scenarije s niskom latencijom
-    - Strategije particioniranja i upravljanje točkama provjere
+  - **Azure Event Grid Transport**: Sveobuhvatna serverless event-driven transport implementacija
+    - Primjeri u C#, TypeScript i Python uz integraciju Azure Functions
+    - Event-driven arhitekture za skalabilna MCP rješenja
+    - Primatelji webhookova i push-based obrada poruka
+  - **Azure Event Hubs Transport**: Implementacija streaming transporta velike propusnosti
+    - Streaming u stvarnom vremenu za scenarije niske latencije
+    - Strategije particioniranja i upravljanje checkpointima
     - Grupiranje poruka i optimizacija performansi
-  - **Obrasci integracije poduzeća**: Produkcijski spremni arhitektonski primjeri
+  - **Enterprise Integracijski Obrasci**: Produkcijski arhitektonski primjeri
     - Distribuirana MCP obrada preko više Azure Functions
-    - Hibridne transportne arhitekture koje kombiniraju više tipova transporta
-    - Strategije trajnosti poruka, pouzdanosti i upravljanje pogreškama
-  - **Sigurnost i nadzor**: Integracija Azure Key Vault i obrasci promatranja
-    - Autentifikacija upravljanih identiteta i pristup najmanjeg privilegija
-    - Telemetrija Application Insights i nadzor performansi
-    - Prekidači krugova i obrasci otpornosti na pogreške
-  - **Okviri za testiranje**: Sveobuhvatne strategije testiranja prilagođenih transporta
-    - Jedinično testiranje s test-dvostrukim objektima i mock frameworkima
+    - Hibridne transportne arhitekture kombinirajući više transportnih vrsta
+    - Strategije otpornosti, pouzdanosti i obrade pogrešaka poruka
+  - **Sigurnost i Monitoring**: Integracija Azure Key Vault i obrasci promatranja
+    - Autentifikacija upravljanim identitetom i pristup s najmanjim privilegijama
+    - Telemetrija Application Insights i monitoring performansi
+    - Prekidači struje i obrasci otpornosti na pogreške
+  - **Okviri za Testiranje**: Sveobuhvatne strategije testiranja prilagođenih transporta
+    - Jedinični testovi s test dablovima i mocking frameworkima
     - Integracijsko testiranje s Azure Test Containers
-    - Razmatranje performansi i testiranja opterećenja
+    - Razmatranja za testiranje performansi i opterećenja
 
-#### Inženjerstvo konteksta (05-AdvancedTopics/mcp-contextengineering/) – Nova disciplina u razvoju AI-a
-- **README.md**: Sveobuhvatno istraživanje inženjerstva konteksta kao novog područja
-  - **Osnovni principi**: Potpuno dijeljenje konteksta, svijest o odlukama akcija i upravljanje kontekstnim prozorima
-  - **Poravnanje s MCP protokolom**: Kako dizajn MCP-a rješava izazove inženjerstva konteksta
+#### Inženjering Konteksta (05-AdvancedTopics/mcp-contextengineering/) - Rastuća AI Disciplina
+- **README.md**: Sveobuhvatan pregled inženjeringa konteksta kao rastućeg područja
+  - **Temeljna Načela**: Potpuno dijeljenje konteksta, svijest o odlukama za akciju i upravljanje kontekstnim prozorima
+  - **Usklađenost s MCP Protokolom**: Kako dizajn MCP-a adresira izazove inženjeringa konteksta
     - Ograničenja kontekstnih prozora i progresivne strategije učitavanja
     - Određivanje relevantnosti i dinamičko dohvaćanje konteksta
-    - Upravljanje multimodalnim kontekstom i sigurnosni aspekti
-  - **Pristupi implementaciji**: Jednoprocesorska naspram višestrukih agenata arhitektura
-    - Tehnike rezanja i prioritizacije konteksta
-    - Progresivno učitavanje i kompresijske strategije
-    - Pristupi slojevitog konteksta i optimizacija dohvata
-  - **Okvir mjerenja**: Emerging metrics za procjenu učinkovitosti konteksta
+    - Multimodalno upravljanje kontekstom i sigurnosne razmatranja
+  - **Pristupi Implementaciji**: Jednoprijeđna vs. višestruka agentna arhitektura
+    - Segmentacija i prioritizacija konteksta
+    - Progresivno učitavanje i strategije kompresije konteksta
+    - Višeslojni pristupi kontekstu i optimizacija dohvaćanja
+  - **Okvir za Mjerenje**: Rastuće metrike za procjenu učinkovitosti konteksta
     - Učinkovitost unosa, performanse, kvaliteta i korisničko iskustvo
     - Eksperimentalni pristupi optimizaciji konteksta
-    - Analiza neuspjeha i metodologije poboljšanja
+    - Analiza neuspjeha i metode poboljšanja
 
-#### Ažuriranja navigacije kroz kurikulum (README.md)
-- **Unaprijeđena struktura modula**: Ažurirana tablica kurikuluma za uključivanje novih naprednih tema
-  - Dodani unosi za Inženjerstvo konteksta (5.14) i Prilagođeni transport (5.15)
-  - Dosljedno formatiranje i navigacijski linkovi za sve module
-  - Ažurirani opisi za odražavanje trenutnog obuhvata sadržaja
+#### Ažuriranja Navigacije Kurikuluma (README.md)
+- **Poboljšana Struktura Modula**: Ažurirana tablica kurikuluma da uključi nove napredne teme
+  - Dodani unosi Inženjering Konteksta (5.14) i Prilagođeni Transport (5.15)
+  - Dosljedno formatiranje i navigacijski linkovi kroz sve module
+  - Ažurirani opisi da odražavaju trenutačni opseg sadržaja
 
-### Poboljšanja strukture direktorija
-- **Standardizacija imenovanja**: Preimenovan „mcp transport“ u „mcp-transport“ radi dosljednosti s ostalim mapama naprednih tema
-- **Organizacija sadržaja**: Sve mape 05-AdvancedTopics sada prate dosljedan obrasac imenovanja (mcp-[tema])
+### Poboljšanja Strukture Direktorija
+- **Standardizacija Imenovanja**: Preimenovan "mcp transport" u "mcp-transport" radi usklađenosti s ostalim mapama naprednih tema
+- **Organizacija Sadržaja**: Sve 05-AdvancedTopics mape sada slijede dosljedan obrazac imenovanja (mcp-[tema])
 
-### Poboljšanja kvalitete dokumentacije
-- **Poravnanje s MCP specifikacijom**: Sav novi sadržaj referira trenutnu MCP Specifikaciju 2025-06-18
-- **Primjeri u više jezika**: Sveobuhvatni primjeri koda u C#, TypeScriptu i Pythonu
-- **Fokus na poduzeće**: Produkcijski spremni obrasci i integracija Azure clouda kroz cijeli sadržaj
+### Poboljšanja Kvalitete Dokumentacije
+- **Usklađenost s MCP Specifikacijom**: Svi novi sadržaji referenciraju aktualnu MCP Specification 2025-06-18
+- **Primjeri na Više Jezika**: Sveobuhvatni primjeri koda u C#, TypeScriptu i Pythonu
+
+- **Fokus na poduzeće**: Uzorci spremni za proizvodnju i integracija Azure oblaka kroz cijeli sustav
 - **Vizualna dokumentacija**: Mermaid dijagrami za vizualizaciju arhitekture i toka
 
 ## 18. kolovoza 2025.
 
-### Sveobuhvatna nadogradnja dokumentacije – standardi MCP 2025-06-18
+### Sveobuhvatna nadogradnja dokumentacije - Standardi MCP 2025-06-18
 
-#### Najbolje sigurnosne prakse MCP (02-Security/) – Potpuna modernizacija
-- **MCP-SECURITY-BEST-PRACTICES-2025.md**: Potpuna prerada usklađena s MCP Specifikacijom 2025-06-18
-  - **Obavezni zahtjevi**: Dodani eksplicitni ZAHTJEVI/NIJE DOZVOLJENO iz službene specifikacije s jasnim vizualnim oznakama
-  - **12 temeljnih sigurnosnih praksi**: Restrukturirano sa 15 stavki na cjelovita sigurnosna područja
+#### Najbolje sigurnosne prakse MCP-a (02-Security/) - Potpuna modernizacija
+- **MCP-SECURITY-BEST-PRACTICES-2025.md**: Potpuna prerada usklađena s MCP specifikacijom 2025-06-18
+  - **Obavezni zahtjevi**: Dodani eksplicitni ZAHTJEVA/SAMO NE smiju zahtjevi iz službene specifikacije s jasnim vizualnim pokazateljima
+  - **12 osnovnih sigurnosnih praksi**: Restrukturirane s popisa od 15 stavki u sveobuhvatne sigurnosne domene
     - Sigurnost tokena i autentifikacija s integracijom vanjskog pružatelja identiteta
-    - Upravljanje sesijama i sigurnost transporta s kriptografskim zahtjevima
-    - Zaštita specifična za AI uz Microsoft Prompt Shields integraciju
-    - Kontrola pristupa i dopuštenja prema principu najmanjih privilegija
-    - Sigurnost sadržaja i nadzor s Azure Content Safety integracijom
-    - Sigurnost lanca opskrbe s cjelovitom verifikacijom komponenti
-    - Sigurnost OAuth-a i sprječavanje "confused deputy" napada s PKCE implementacijom
-    - Odgovor na incidente i oporavak sa automatiziranim sposobnostima
-    - Usklađenost i upravljanje u skladu s propisima
-    - Napredne sigurnosne kontrole s arhitekturom nultog povjerenja
-    - Microsoftov sigurnosni ekosustav i cjelovita rješenja
-    - Kontinuirani razvoj sigurnosti s adaptivnim praksama
-  - **Microsoftova sigurnosna rješenja**: Poboljšane smjernice za integraciju Prompt Shields, Azure Content Safety, Entra ID i GitHub Advanced Security
-  - **Resursi za implementaciju**: Kategorizirani sveobuhvatni poveznici po službenoj MCP dokumentaciji, Microsoft sigurnosnim rješenjima, sigurnosnim standardima i vodičima za implementaciju
+    - Upravljanje sesijama i sigurnost prijenosa s kriptografskim zahtjevima
+    - Zaštita specifična za AI s integracijom Microsoft Prompt Shields
+    - Kontrola pristupa i dozvole s načelom najmanjih privilegija
+    - Sigurnost i nadzor sadržaja s integracijom Azure Content Safety
+    - Sigurnost lanca opskrbe s detaljnom verifikacijom komponenti
+    - OAuth sigurnost i sprječavanje Confused Deputy napada s implementacijom PKCE
+    - Odgovor na incidente i oporavak s automatiziranim mogućnostima
+    - Usklađenost i upravljanje s regulatornim zahtjevima
+    - Napredne sigurnosne kontrole s arhitekturom zero trust
+    - Integracija Microsoft sigurnosnog ekosustava s opsežnim rješenjima
+    - Kontinuirana evolucija sigurnosti s prilagodljivim praksama
+  - **Microsoft sigurnosna rješenja**: Poboljšane smjernice za integraciju Prompt Shields, Azure Content Safety, Entra ID i GitHub Advanced Security
+  - **Resursi za implementaciju**: Kategorizirane sveobuhvatne poveznice po službenoj MCP dokumentaciji, Microsoft sigurnosnim rješenjima, sigurnosnim standardima i vodičima za implementaciju
 
-#### Napredne sigurnosne kontrole (02-Security/) – Enterprise implementacija
-- **MCP-SECURITY-CONTROLS-2025.md**: Potpuna prerada s okvirom sigurnosti razine poduzeća
-  - **9 sveobuhvatnih sigurnosnih područja**: Prošireno iz osnovnih kontrola u detaljan okvir za poduzeća
-    - Napredna autentifikacija i autorizacija s Microsoft Entra ID integracijom
-    - Sigurnost tokena i kontrole protiv prosljeđivanja s cjelovitom validacijom
-    - Sigurnosne kontrole sesija s prevencijom preuzimanja
-    - Sigurnosne kontrole specifične za AI s prevencijom injekcija poticaja i otrovanja alata
-    - Prevencija "confused deputy" napada s OAuth proxy sigurnošću
+#### Napredne sigurnosne kontrole (02-Security/) - Implementacija za poduzeća
+- **MCP-SECURITY-CONTROLS-2025.md**: Potpuna preinaka s sigurnosnim okvirom razine poduzeća
+  - **9 sveobuhvatnih sigurnosnih domena**: Prošireno s osnovnih kontrola na detaljan okvir za poduzeća
+    - Napredna autentifikacija i autorizacija s integracijom Microsoft Entra ID
+    - Sigurnost tokena i kontrole protiv neovlaštenog prosljeđivanja s opsežnom validacijom
+    - Sigurnosne kontrole sesija s prevencijom preuzimanja kontrole
+    - AI-specifične sigurnosne kontrole s prevencijom prompt injekcija i trovanja alata
+    - Prevencija Confused Deputy napada s OAuth proxy sigurnošću
     - Sigurnost izvršavanja alata s sandboxingom i izolacijom
     - Sigurnosne kontrole lanca opskrbe s verifikacijom ovisnosti
-    - Kontrole nadzora i detekcije s SIEM integracijom
+    - Kontrole nadzora i detekcije s integracijom SIEM
     - Odgovor na incidente i oporavak s automatiziranim mogućnostima
-  - **Primjeri implementacije**: Dodani detaljni YAML blokovi konfiguracije i primjeri koda
-  - **Integracija Microsoft rješenja**: Sveobuhvatno pokrivanje Azure sigurnosnih servisa, GitHub Advanced Security i upravljanja identitetima razine poduzeća
+  - **Primjeri implementacije**: Dodani detaljni YAML konfiguracijski blokovi i primjeri koda
+  - **Integracija s Microsoft rješenjima**: Opsežno pokrivanje Azure sigurnosnih usluga, GitHub Advanced Security i identitetskog upravljanja na razini poduzeća
 
-#### Sigurnost naprednih tema (05-AdvancedTopics/mcp-security/) – Produkcijski spremna implementacija
-- **README.md**: Potpuna prerada za sigurnosnu implementaciju razine poduzeća
-  - **Poravnanje s trenutnom specifikacijom**: Ažurirano prema MCP Specifikaciji 2025-06-18 s obaveznim sigurnosnim zahtjevima
-  - **Unaprijeđena autentifikacija**: Integracija Microsoft Entra ID s detaljnim .NET i Java Spring Security primjerima
-  - **Integracija sigurnosti AI-a**: Implementacija Microsoft Prompt Shields i Azure Content Safety s detaljnim Python primjerima
-  - **Napredna mitigacija prijetnji**: Sveobuhvatni primjeri implementacije za
-    - Prevenciju "confused deputy" napada s PKCE i validacijom pristanka korisnika
-    - Sprječavanje prosljeđivanja tokena s validacijom publike i sigurnim upravljanjem tokenima
-    - Sprječavanje preuzimanja sesije uz kriptografsko povezivanje i analizu ponašanja
-  - **Integracija sigurnosti u poduzećima**: Praćenje Azure Application Insights, pipelinei za otkrivanje prijetnji i sigurnost opskrbnog lanca
-  - **Kontrolna lista implementacije**: Jasna razlika između obaveznih i preporučenih sigurnosnih kontrola s prednostima Microsoft sigurnosnog ekosustava
+#### Napredne sigurnosne teme (05-AdvancedTopics/mcp-security/) - Implementacija spremna za proizvodnju
+- **README.md**: Potpuna prerada za sigurnosnu implementaciju u poduzeću
+  - **Usklađenost s trenutnom specifikacijom**: Ažurirano prema MCP specifikaciji 2025-06-18 s obaveznim sigurnosnim zahtjevima
+  - **Napredna autentifikacija**: Integracija Microsoft Entra ID s opsežnim .NET i Java Spring Security primjerima
+  - **Integracija AI sigurnosti**: Implementacija Microsoft Prompt Shields i Azure Content Safety s detaljnim Python primjerima
+  - **Napredna mitigacija prijetnji**: Opsežni primjeri implementacije za
+    - Prevenciju Confused Deputy napada s PKCE i validacijom korisničkog pristanka
+    - Prevenciju prosljeđivanja tokena s validacijom publike i sigurnim upravljanjem tokenima
+    - Prevenciju preuzimanja sesije s kriptografskim vezivanjem i analizom ponašanja
+  - **Integracija sigurnosti poduzeća**: Nadgledanje Azure Application Insights, pipelineovi za detekciju prijetnji i sigurnost lanca opskrbe
+  - **Popis za implementaciju**: Jasno označene obavezne i preporučene sigurnosne kontrole s prednostima ekosustava Microsoft sigurnosti
 
-### Kvaliteta dokumentacije i usklađenost sa standardima
-- **Specifikacijske reference**: Ažurirane sve reference prema trenutnoj MCP specifikaciji 2025-06-18
-- **Microsoft sigurnosni ekosustav**: Poboljšani smjernice za integraciju kroz svu sigurnosnu dokumentaciju
-- **Praktična implementacija**: Dodani detaljni primjeri koda u .NET, Javi i Pythonu s obrascima za poduzeća
+### Kvaliteta dokumentacije i usklađenost s normama
+- **Referencije specifikacije**: Ažurirani svi linkovi na trenutnu MCP specifikaciju 2025-06-18
+- **Microsoft sigurnosni ekosustav**: Poboljšane smjernice za integraciju kroz svu sigurnosnu dokumentaciju
+- **Praktična implementacija**: Dodani detaljni primjeri koda u .NET-u, Javi i Pythonu s obrascima za poduzeća
 - **Organizacija resursa**: Sveobuhvatna kategorizacija službene dokumentacije, sigurnosnih standarda i vodiča za implementaciju
-- **Vizualni indikatori**: Jasno označavanje obaveznih zahtjeva naspram preporučenih praksi
+- **Vizualni pokazatelji**: Jasno označavanje obaveznih zahtjeva naspram preporučenih praksi
 
 
 #### Osnovni koncepti (01-CoreConcepts/) - Potpuna modernizacija
-- **Ažuriranje verzije protokola**: Ažurirano za referencu na trenutnu MCP specifikaciju 2025-06-18 s verzioniranjem na temelju datuma (format GGGG-MM-DD)
-- **Dorada arhitekture**: Poboljšani opisi Hosts, Klijenata i Servera za prikaz trenutnih MCP arhitektonskih obrazaca
-  - Hosts sada jasno definirani kao AI aplikacije koje koordiniraju više MCP klijentskih veza
-  - Klijenti opisani kao povezivači protokola koji održavaju odnos jedan-na-jedan sa serverima
-  - Serveri prošireni s lokalnim i udaljenim scenarijima implementacije
-- **Restrukturiranje primitiva**: Potpuna prenamjena server i klijentskih primitiva
-  - Server primitivci: Resursi (izvori podataka), Upiti (predlošci), Alati (izvršne funkcije) s detaljnim objašnjenjima i primjerima
-  - Klijentski primitivci: Uzorkovanje (LLM dovršetci), Pokretanje (unosi korisnika), Evidencija (debugiranje/praćenje)
-  - Ažurirano s trenutačnim obrascima metoda otkrivanja (`*/list`), dohvaćanja (`*/get`) i izvršavanja (`*/call`)
-- **Arhitektura protokola**: Uveden model dvoslojne arhitekture
-  - Sloj podataka: Temelj JSON-RPC 2.0 s upravljanjem životnim ciklusom i primitivcima
-  - Transportni sloj: STDIO (lokalno) i Streamable HTTP s SSE (udaljeni) mehanizmi prijenosa
-- **Sigurnosni okvir**: Sveobuhvatni sigurnosni principi uključujući eksplicitni pristanak korisnika, zaštitu privatnosti podataka, sigurnost izvršenja alata i sigurnost transportnog sloja
-- **Komunikacijski obrasci**: Ažurirane poruke protokola za prikaz inicijalizacije, otkrivanja, izvršenja i tokova obavijesti
-- **Primjeri koda**: Osvježeni višejезični primjeri (.NET, Java, Python, JavaScript) za prikaz trenutačnih MCP SDK obrazaca
+- **Ažuriranje verzije protokola**: Ažurirano za referencu trenutne MCP specifikacije 2025-06-18 s verzioniranjem temeljenim na datumu (format: GGGG-MM-DD)
+- **Dorada arhitekture**: Poboljšani opisi domaćina, klijenata i poslužitelja za reflektiranje trenutnih MCP arhitektonskih obrazaca
+  - Domaćini sada jasno definirani kao AI aplikacije koje koordiniraju više MCP klijent veza
+  - Klijenti opisani kao protokolarni priključci koji održavaju odnos jedan-na-jedan s poslužiteljima
+  - Poslužitelji prošireni s lokalnim i udaljenim scenarijima postavljanja
+- **Potpuna preinaka primitiva**: Potpuna prerada primitives poslužitelja i klijenata
+  - Primitivi poslužitelja: Resursi (izvori podataka), Prompts (predlošci), Alati (izvršne funkcije) s detaljnim objašnjenjima i primjerima
+  - Primitivi klijenta: Uzorkovanje (dovršetci LLM-a), Elicitation (unos korisnika), Logiranje (debugging/nadzor)
+  - Ažurirano s trenutnim obrascima metoda za otkrivanje (`*/list`), dohvat (`*/get`) i izvršavanje (`*/call`)
+- **Arhitektura protokola**: Uvođenje dvoslojnog modela arhitekture
+  - Sloj podataka: JSON-RPC 2.0 temelj s upravljanjem životnim ciklusom i primitivima
+  - Sloj prijenosa: STDIO (lokalno) i Streamable HTTP s SSE (udaljeni) mehanizmi prijenosa
+- **Sigurnosni okvir**: Sveobuhvatna sigurnosna načela uključujući eksplicitan korisnički pristanak, zaštitu privatnosti podataka, sigurnost izvršavanja alata i sigurnost sloja prijenosa
+- **Obrasci komunikacije**: Ažurirane protokolarne poruke koje prikazuju tokove inicijalizacije, otkrivanja, izvršavanja i obavještavanja
+- **Primjeri koda**: Osvježeni primjeri za više jezika (.NET, Java, Python, JavaScript) koji reflektiraju trenutne MCP SDK obrasce
 
-#### Sigurnost (02-Security/) - Sveobuhvatna sigurnosna prenamjena  
-- **Usklađenost sa standardima**: Potpuna usklađenost s MCP specifikacijom 2025-06-18 za sigurnosne zahtjeve
-- **Evolucija autentikacije**: Dokumentiran razvoj od prilagođenih OAuth servera do delegacije vanjskih davatelja identiteta (Microsoft Entra ID)
-- **AI-specifična analiza prijetnji**: Poboljšano pokrivanje modernih AI napadačkih vektora
-  - Detaljni scenariji napada injekcijom upita s primjerima iz stvarnog svijeta
-  - Mehanizmi trovanja alata i obrasci napada "rug pull"
-  - Trovanje kontekstnog prozora i napadi zbunjivanja modela
+#### Sigurnost (02-Security/) - Sveobuhvatna preinaka sigurnosti  
+- **Usklađenost sa standardima**: Potpuna usklađenost sa zahtjevima sigurnosti MCP specifikacije 2025-06-18
+- **Evolucija autentifikacije**: Dokumentirana evolucija od prilagođenih OAuth poslužitelja do delegacije vanjskom pružatelju identiteta (Microsoft Entra ID)
+- **Analiza prijetnji specifičnih za AI**: Poboljšano pokrivanje modernih AI vektora napada
+  - Detaljni scenariji napada prompt injekcijom s realnim primjerima
+  - Mehanizmi trovanja alata i obrasci "rug pull" napada
+  - Trovanje kontekstnog prozora i napadi na zbunjivanje modela
 - **Microsoft AI sigurnosna rješenja**: Sveobuhvatno pokrivanje Microsoft sigurnosnog ekosustava
-  - AI Prompt Shields s naprednim tehnikama otkrivanja, isticanja i odvajača
-  - Integracijski obrasci za Azure Content Safety
-  - GitHub Advanced Security za zaštitu opskrbnog lanca
-- **Napredna ublažavanja prijetnji**: Detaljne sigurnosne kontrole za
-  - Preuzimanje sesije s MCP-specifičnim scenarijima napada i zahtjevima za kriptografski ID sesije
-  - Problemi zbunjenog poslužitelja (confused deputy) u MCP proxy scenarijima s eksplicitnim zahtjevima za pristanak
-  - Ranljivosti propuštanja tokena s obaveznom validacijom
-- **Sigurnost opskrbnog lanca**: Prošireno pokrivanje AI opskrbnog lanca uključujući temeljne modele, usluge ugradnje, pružatelje konteksta i API-je trećih strana
-- **Temeljna sigurnost**: Poboljšana integracija s obrascima sigurnosti poduzeća uključujući arhitekturu zero trust i Microsoft sigurnosni ekosustav
-- **Organizacija resursa**: Kategorizirani sveobuhvatni linkovi prema vrsti (Službena dokumentacija, Standardi, Istraživanja, Microsoft rješenja, Vodiči za implementaciju)
+  - AI Prompt Shields s naprednom detekcijom, isticanjem i tehnikama razdjelnika
+  - Obrasci integracije Azure Content Safety
+  - GitHub Advanced Security za zaštitu lanca opskrbe
+- **Napredna mitigacija prijetnji**: Detaljne sigurnosne kontrole za
+  - Preuzimanje sesije s MCP-specifičnim scenarijima napada i kriptografskim zahtjevima za ID sesije
+  - Problemi Confused Deputy u MCP proxy scenarijima s eksplicitnim zahtjevima za pristanak
+  - Ranljivosti prosljeđivanja tokena s obaveznim kontrolama validacije
+- **Sigurnost lanca opskrbe**: Prošireno pokrivanje AI lanca opskrbe uključujući osnovne modele, usluge embeddings, pružatelje konteksta i API-je trećih strana
+- **Osnovna sigurnost**: Poboljšana integracija s obrascima sigurnosti za poduzeća uključujući arhitekturu zero trust i Microsoft sigurnosni ekosustav
+- **Organizacija resursa**: Kategorizirane sveobuhvatne poveznice prema tipu (Službena dokumentacija, Standardi, Istraživanja, Microsoft rješenja, Vodiči za implementaciju)
 
-### Poboljšanja kvalitete dokumentacije
-- **Strukturirani ciljevi učenja**: Poboljšani ciljevi s jasnim, izvedivim ishodima
-- **Kros-reference**: Dodane poveznice između povezanih tema iz sigurnosti i osnovnih koncepata
-- **Ažurirane informacije**: Ažurirani svi datumski zapisi i linkovi na specifikacije u skladu s trenutnim standardima
-- **Smjernice za implementaciju**: Dodane specifične i izvedive smjernice kroz obje sekcije
+### Unapređenja kvalitete dokumentacije
+- **Strukturirani ciljevi učenja**: Poboljšani ciljevi učenja s konkretnim, ostvarivim rezultatima 
+- **Međureferencije**: Dodane poveznice između povezanih tema sigurnosti i osnovnih koncepata
+- **Ažurne informacije**: Ažurirani svi datumski podaci i poveznice na trenutačne standarde
+- **Smjernice za implementaciju**: Dodane konkretne i ostvarive smjernice kroz oba dijela
 
 ## 16. srpnja 2025.
 
-### README i poboljšanja navigacije
-- Potpuno redizajniran sustav navigacije u README.md
-- Zamijenjeni `<details>` tagovi s pristupačnijim tabličnim formatom
-- Kreirane alternativne opcije izgleda u novom folderu "alternative_layouts"
-- Dodani primjeri kartičnog, tababilnog i akordion stila navigacije
-- Ažuriran odjeljak o strukturi repozitorija kako bi uključivao sve najnovije datoteke
-- Poboljšan odjeljak "Kako koristiti ovaj kurikulum" s jasnim preporukama
-- Ažurirani poveznici na MCP specifikacije prema ispravnim URL-ovima
-- Dodan odjeljak o kontekst inženjerstvu (5.14) u strukturu kurikuluma
+### Nadogradnje README-a i navigacije
+- Potpuno redizajnirana navigacija kurikuluma u README.md
+- Zamijenjeni `<details>` tagovi pristupačnijim tabličnim formatom
+- Kreirane alternativne opcije izgleda u novoj mapi "alternative_layouts"
+- Dodani primjeri navigacije card-based, tabbed-style i accordion-style
+- Ažuriran odjeljak strukture repozitorija za uključivanje svih najnovijih datoteka
+- Poboljšan odjeljak "Kako koristiti ovaj kurikulum" sa jasnim preporukama
+- Ažurirane poveznice MCP specifikacije za ispravne URL-ove
+- Dodan odjeljak Context Engineering (5.14) u strukturu kurikuluma
 
-### Ažuriranja vodiča za učenje
-- Potpuno revidiran vodič za usklađivanje s trenutnom strukturom repozitorija
-- Dodani novi odjeljci za MCP klijente i alate te popularne MCP servere
-- Ažurirana vizualna karta kurikuluma za precizno prikazivanje svih tema
+### Nadogradnje priručnika za učenje
+- Potpuno revidiran priručnik za učenje radi usklađivanja sa trenutnom strukturom repozitorija
+- Dodani novi odjeljci za MCP klijente i alate, te popularne MCP poslužitelje
+- Ažurirana Vizualna karta kurikuluma za točno prikazivanje svih tema
 - Poboljšani opisi naprednih tema za pokrivanje svih specijaliziranih područja
-- Ažuriran odjeljak studija slučaja za stvarne primjere
-- Dodan ovaj sveobuhvatni changelog
+- Ažuriran odjeljak studija slučaja da odražava stvarne primjere
+- Dodan ovaj sveobuhvatni zapis promjena
 
-### Zajednički doprinosi (06-CommunityContributions/)
-- Dodane detaljne informacije o MCP serverima za generiranje slika
-- Dodan sveobuhvatni odjeljak o korištenju Claudea u VSCode
-- Dodane upute za postavljanje i korištenje terminal klijenta Cline
+### Doprinosi zajednice (06-CommunityContributions/)
+- Dodane detaljne informacije o MCP poslužiteljima za generiranje slika
+- Dodan sveobuhvatni odjeljak o korištenju Claude u VSCodeu
+- Dodane upute za postavljanje i korištenje Cline terminalnog klijenta
 - Ažuriran odjeljak MCP klijenta za uključivanje svih popularnih opcija klijenata
-- Poboljšani primjeri doprinosa s točnijim uzorcima koda
+- Poboljšani primjeri doprinosa s preciznijim uzorcima koda
 
 ### Napredne teme (05-AdvancedTopics/)
-- Organizirane sve mape specijaliziranih tema s dosljednim imenovanjem
-- Dodani materijali i primjeri iz područja kontekst inženjerstva
-- Dodana dokumentacija za integraciju Foundry agenta
-- Poboljšana dokumentacija integracije sigurnosti Entra ID
+- Organizirane sve mape specijaliziranih tema s dosljednim nazivljem
+- Dodani materijali i primjeri kontekstualnog inženjerstva
+- Dodana dokumentacija integracije Foundry agenta
+- Poboljšana dokumentacija sigurnosne integracije Entra ID-a
 
 ## 11. lipnja 2025.
 
-### Početna izrada
-- Objavljena prva verzija kurikuluma MCP za početnike
-- Kreirana osnovna struktura za svih 10 glavnih sekcija
-- Implementirana Vizualna karta kurikuluma za navigaciju
-- Dodani početni primjeri projekata u više programskih jezika
+### Početno kreiranje
+- Objavljena prva verzija MCP za početnike kurikuluma
+- Kreirana osnovna struktura svih 10 glavnih odjeljaka
+- Implementirana Vizualna karta kurikuluma radi navigacije
+- Dodani početni uzorci projekata u više programskih jezika
 
 ### Početak rada (03-GettingStarted/)
-- Kreirani prvi primjeri implementacije servera
+- Kreirani prvi primjeri implementacije poslužitelja
 - Dodane smjernice za razvoj klijenta
-- Uključene upute za integraciju LLM klijenta
-- Dodana dokumentacija za integraciju u VS Code
-- Implementirani primjeri servera sa Server-Sent Events (SSE)
+- Upute za integraciju LLM klijenta uključene
+- Dodana dokumentacija za integraciju VS Codea
+- Implementirani primjeri poslužitelja za Server-Sent Events (SSE)
 
 ### Osnovni koncepti (01-CoreConcepts/)
-- Dodano detaljno objašnjenje arhitekture klijent-server
+- Dodano detaljno objašnjenje arhitekture klijent-poslužitelj
 - Kreirana dokumentacija o ključnim komponentama protokola
-- Dokumentirani obrasci poruka u MCP
+- Dokumentirani obrasci poruka u MCP-u
 
 ## 23. svibnja 2025.
 
 ### Struktura repozitorija
 - Inicijaliziran repozitorij s osnovnom strukturom mapa
-- Kreirani README datoteke za svaku glavnu sekciju
+- Kreirani README fajlovi za svaki glavni odjeljak
 - Postavljena infrastruktura za prijevod
-- Dodani slikovni sadržaji i dijagrami
+- Dodane slike i dijagrami
 
 ### Dokumentacija
 - Kreiran početni README.md s pregledom kurikuluma
 - Dodani CODE_OF_CONDUCT.md i SECURITY.md
-- Postavljen SUPPORT.md s uputama za traženje pomoći
-- Kreirana preliminarna struktura vodiča za učenje
+- Postavljen SUPPORT.md s uputama za dobivanje pomoći
+- Kreirana preliminarna struktura priručnika za učenje
 
 ## 15. travnja 2025.
 
 ### Planiranje i okvir
-- Početno planiranje MCP kurikuluma za početnike
-- Definirani ciljevi učenja i ciljana publika
-- Opisana struktura kurikuluma s 10 sekcija
+- Početno planiranje MCP za početnike kurikuluma
+- Definiranje ciljeva učenja i ciljne publike
+- Nacrtao 10-odjeljnu strukturu kurikuluma
 - Razvijen konceptualni okvir za primjere i studije slučaja
-- Kreirani početni prototipni primjeri za ključne koncepte
+- Kreirani početni prototipni primjeri ključnih koncepata
 
 ---
 

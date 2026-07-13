@@ -32,6 +32,7 @@ sequenceDiagram
    Server-->>Client: 1a, I know you, here's your data
    Server-->>Client: 1b, I don't know you, 401 
 ```
+
 Now that we understand how it works from a flow standpoint, how do we implement it? Well, most web servers have a concept called middleware, a piece of code that runs as part of the request that can verify credentials, and if credentials are valid can let the request pass through. If the request doesn't have valid credentials then you get an auth error. Let's see how this can be implemented:
 
 **Python**
@@ -52,7 +53,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         print("Valid token, proceeding...")
        
         response = await call_next(request)
-        # add any custom headers or modify the response in some way
+        # add any customer headers or change in the response in some way
         return response
 
 
@@ -115,7 +116,7 @@ app.use((req, res, next) => {
 
    
     console.log('Middleware executed');
-    // 3. Pass the request to the next step in the request pipeline.
+    // 3. Passes request to the next step in the request pipeline.
     next();
 });
 ```
@@ -140,6 +141,8 @@ Client
 - Send web request, with credential, via header.
 
 ### -1- Create a web server and MCP instance
+
+> **Looking ahead:** the TypeScript example below tracks HTTP transports in a `transports` map keyed by `mcp-session-id`, per **MCP Specification 2025-11-25**. The `2026-07-28` release candidate removes the `initialize` handshake and session ID entirely, so this per-session transport map goes away in favor of stateless, self-contained requests. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 In our first step, we need to create the web server instance and the MCP Server.
 
@@ -180,7 +183,7 @@ In this code we:
 
 - Create the MCP Server.
 - Construct the the starlette web app from the MCP Server, `app.streamable_http_app()`.
-- Host and server the web app using uvicorn `server.serve()`.
+- Host and serve the web app using uvicorn `server.serve()`.
 
 **TypeScript**
 
@@ -627,6 +630,7 @@ except InvalidTokenError as e:
 
 ```
 
+
 In this code, we call `jwt.decode` using the token, the secret key and the chosen algorithm as input. Note how we use a try-catch construct as a failed validation leads to an error being raised.
 
 **TypeScript**
@@ -646,6 +650,7 @@ try {
 NOTE: as mentioned previously, we should perform additional checks to ensure this token points out a user in our system and ensure the user has the rights it claims to have.
 
 Next, let's look into role based access control, also known as RBAC.
+
 ## Adding role based access control
 
 The idea is that we want to express that different roles have different permissions. For example, we assume an admin can do everything and that a normal user can do read/write and that a guest can only read. Therefore, here are some possible permission levels:
@@ -695,17 +700,17 @@ There a few different ways to add the middleware like below:
 
 ```python
 
-# Alt 1: add middleware while constructing starlette app
+# Option 1: add middleware while constructing starlette app
 middleware = [
     Middleware(JWTPermissionMiddleware)
 ]
 
 app = Starlette(routes=routes, middleware=middleware)
 
-# Alt 2: add middleware after starlette app is already constructed
+# Option 2: add middleware after starlette app is already constructed
 starlette_app.add_middleware(JWTPermissionMiddleware)
 
-# Alt 3: add middleware per route
+# Option 3: add middleware per route
 routes = [
     Route(
         "/mcp",
@@ -858,7 +863,7 @@ You have a few different choices on how to accomplish per feature RBAC, here are
       try:
           check_permissions(role="Admin.Write", request)
       catch:
-        pass # the client failed authorization, raise an authorization error
+        pass # client failed authorization, raise authorization error
    ```
 
    **typescript**
@@ -985,6 +990,6 @@ For that, we have a more [advanced chapter on Entra](../../05-AdvancedTopics/mcp
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
+**Disclaimer**:
 This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

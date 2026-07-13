@@ -1,36 +1,38 @@
-# MCP Egne Transporter - Avansert Implementeringsveiledning
+# MCP Egne Transports - Avansert Implementeringsguide
 
-Model Context Protocol (MCP) gir fleksibilitet i transportmekanismer, og tillater egendefinerte implementeringer for spesialiserte virksomhetsmiljøer. Denne avanserte veiledningen utforsker egendefinerte transportimplementeringer ved bruk av Azure Event Grid og Azure Event Hubs som praktiske eksempler på å bygge skalerbare, sky-native MCP-løsninger.
+Model Context Protocol (MCP) gir fleksibilitet i transportmekanismer, og tillater egendefinerte implementeringer for spesialiserte bedriftsmiljøer. Denne avanserte guiden utforsker egendefinerte transportimplementeringer med Azure Event Grid og Azure Event Hubs som praktiske eksempler på å bygge skalerbare, sky-natve MCP-løsninger.
+
+> **Ser fremover:** denne guiden er skrevet i henhold til **MCP Spesifikasjon 2025-11-25**, hvor sesjonsrekkefølge må bevares per sesjon (se meldingsprotokoll nedenfor). `2026-07-28` kandidatversjonen fjerner protokollnivå-sesjonen helt og krever `Mcp-Method`/`Mcp-Name` headere slik at gateways og egendefinerte transporter kan rute per forespørsel i stedet for per sesjon. Se [Hva Endres i MCP: Kandidatversjonen 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Introduksjon
 
-Selv om MCPs standardtransporter (stdio og HTTP streaming) dekker de fleste bruksområder, krever virksomhetsmiljøer ofte spesialiserte transportmekanismer for forbedret skalerbarhet, pålitelighet og integrasjon med eksisterende skyinfrastruktur. Egne transporter gjør det mulig for MCP å utnytte sky-native meldings tjenester for asynkron kommunikasjon, hendelsesdrevne arkitekturer og distribuert behandling.
+Mens MCPs standardtransporter (stdio og HTTP streaming) dekker de fleste bruksområder, trenger bedriftsmiljøer ofte spesialiserte transportmekanismer for bedre skalerbarhet, pålitelighet og integrasjon med eksisterende skyinfrastruktur. Egne transporter gjør det mulig for MCP å utnytte sky-native meldingssystemer for asynkron kommunikasjon, hendelsesstyrte arkitekturer og distribuert behandling.
 
-Denne leksjonen utforsker avanserte transportimplementeringer basert på den nyeste MCP-spesifikasjonen (2025-11-25), Azure meldings tjenester og etablerte virksomhetsintegrasjonsmønstre.
+Denne leksjonen utforsker avanserte transportimplementeringer basert på den nyeste MCP-spesifikasjonen (2025-11-25), Azure meldings tjenester og etablerte bedriftsintegrasjonsmønstre.
 
 ### **MCP Transportarkitektur**
 
-**Fra MCP-spesifikasjonen (2025-11-25):**
+**Fra MCP Spesifikasjon (2025-11-25):**
 
-- **Standardtransporter**: stdio (anbefalt), HTTP streaming (for eksterne scenarier)  
-- **Egendefinerte transporter**: Enhver transport som implementerer MCP meldingsutvekslingsprotokoll  
-- **Meldingsformat**: JSON-RPC 2.0 med MCP-spesifikke utvidelser  
-- **Toveis kommunikasjon**: Full dupleks kommunikasjon kreves for varsler og svar
+- **Standardtransporter**: stdio (anbefalt), HTTP streaming (for fjerntilfeller)
+- **Egendefinerte transporter**: Enhver transport som implementerer MCP meldingsutvekslingsprotokoll
+- **Meldingsformat**: JSON-RPC 2.0 med MCP-spesifikke utvidelser
+- **Toveis kommunikasjon**: Full dupleks kommunikasjon påkrevd for varsler og svar
 
 ## Læringsmål
 
-Etter denne avanserte leksjonen vil du kunne:
+Ved slutten av denne avanserte leksjonen vil du kunne:
 
-- **Forstå krav til egendefinerte transporter**: Implementere MCP-protokoll over hvilken som helst transportlag mens du opprettholder samsvar  
-- **Bygge Azure Event Grid-transport**: Lage hendelsesdrevne MCP-servere ved bruk av Azure Event Grid for serverløs skalerbarhet  
-- **Implementere Azure Event Hubs-transport**: Designe høy gjennomstrømming MCP-løsninger med Azure Event Hubs for sanntidsstrømming  
-- **Anvende virksomhetsmønstre**: Integrere egendefinerte transporter med eksisterende Azure-infrastruktur og sikkerhetsmodeller  
-- **Håndtere transportpålitelighet**: Implementere meldings utholdenhet, rekkefølge og feilbehandling for virksomhetsscenarier  
-- **Optimalisere ytelse**: Designe transportløsninger for skalering, latenstid og gjennomstrømmingskrav
+- **Forstå krav til egendefinerte transporter**: Implementere MCP-protokoll over hvilken som helst transportlag samtidig som samsvar opprettholdes
+- **Bygge Azure Event Grid Transport**: Lage hendelsesdrevne MCP-servere med Azure Event Grid for serverløs skalerbarhet
+- **Implementere Azure Event Hubs Transport**: Designe høyt gjennomstrømnings MCP-løsninger med Azure Event Hubs for sanntidsstrømming
+- **Bruke bedriftsmønstre**: Integrere egendefinerte transporter med eksisterende Azure-infrastruktur og sikkerhetsmodeller
+- **Håndtere transportpålitelighet**: Implementere meldingsutholdenhet, rekkefølge og feilbehandling for bedriftsmiljøer
+- **Optimalisere ytelse**: Designe transportløsninger for skalerbarhet, latens og gjennomstrømningskrav
 
 ## **Transportkrav**
 
-### **Kjernekrav fra MCP-spesifikasjonen (2025-11-25):**
+### **Kjernekrav fra MCP Spesifikasjon (2025-11-25):**
 
 ```yaml
 Message Protocol:
@@ -49,28 +51,28 @@ Custom Transport:
   interoperability: "MUST maintain protocol compatibility"
 ```
 
-## **Implementering av Azure Event Grid-transport**
+## **Azure Event Grid Transport Implementering**
 
-Azure Event Grid tilbyr en serverløs hendelsesrutingstjeneste ideell for hendelsesdrevne MCP-arkitekturer. Denne implementeringen viser hvordan man bygger skalerbare, løst koblede MCP-systemer.
+Azure Event Grid tilbyr en serverløs hendelsesrutingstjeneste ideell for hendelsesdrevne MCP-arkitekturer. Denne implementeringen demonstrerer hvordan man bygger skalerbare, løst koblede MCP-systemer.
 
-### **Arkitekturoversikt**
+### **Arkitektur Oversikt**
 
 ```mermaid
 graph TB
     Client[MCP-klient] --> EG[Azure Event Grid]
-    EG --> Server[MCP-serverfunksjon]
+    EG --> Server[MCP Server-funksjon]
     Server --> EG
     EG --> Client
     
     subgraph "Azure-tjenester"
         EG
         Server
-        KV[Nøkkellager]
-        Monitor[Application Insights]
+        KV[Key Vault]
+        Monitor[Programinnsikt]
     end
 ```
 
-### **C# Implementering - Event Grid-transport**
+### **C# Implementering - Event Grid Transport**
 
 ```csharp
 using Azure.Messaging.EventGrid;
@@ -142,7 +144,7 @@ public async Task<IActionResult> HandleEventGridMessage(
 }
 ```
 
-### **TypeScript Implementering - Event Grid-transport**
+### **TypeScript Implementering - Event Grid Transport**
 
 ```typescript
 import { EventGridPublisherClient, AzureKeyCredential } from "@azure/eventgrid";
@@ -176,9 +178,9 @@ export class EventGridMcpTransport implements McpTransport {
         await this.publisher.sendEvents([event]);
     }
     
-    // Hendelsesstyrt mottak via Azure Functions
+    // Hendelsesdrevet mottak via Azure Functions
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
-        // Implementering vil bruke Azure Functions Event Grid-trigger
+        // Implementeringen vil bruke Azure Functions Event Grid-utløser
         // Dette er et konseptuelt grensesnitt for webhook-mottakeren
     }
 }
@@ -205,7 +207,7 @@ app.eventGrid("mcpEventGridHandler", {
 });
 ```
 
-### **Python Implementering - Event Grid-transport**
+### **Python Implementering - Event Grid Transport**
 
 ```python
 from azure.eventgrid import EventGridPublisherClient, EventGridEvent
@@ -240,7 +242,7 @@ class EventGridMcpTransport:
         """Register message handler for incoming events"""
         self.message_handler = handler
 
-# Azure Functions-implementasjon
+# Azure Functions-implementering
 import azure.functions as func
 import logging
 
@@ -254,18 +256,18 @@ def main(event: func.EventGridEvent) -> None:
         response = process_mcp_message(mcp_message)
         
         # Send svar tilbake via Event Grid
-        # (Implementeringen vil opprette en ny Event Grid-klient)
+        # (Implementeringen vil opprette ny Event Grid-klient)
         
     except Exception as e:
         logging.error(f"Error processing MCP Event Grid message: {e}")
         raise
 ```
 
-## **Implementering av Azure Event Hubs-transport**
+## **Azure Event Hubs Transport Implementering**
 
-Azure Event Hubs tilbyr høy gjennomstrømming og sanntidsstrømmemuligheter for MCP-scenarioer som krever lav latenstid og høyt meldingsvolum.
+Azure Event Hubs tilbyr høyt gjennomstrømning, sanntids strømmemuligheter for MCP-scenarier som krever lav ventetid og stort meldingsvolum.
 
-### **Arkitekturoversikt**
+### **Arkitektur Oversikt**
 
 ```mermaid
 graph TB
@@ -274,10 +276,10 @@ graph TB
     Server --> EH
     EH --> Client
     
-    subgraph "Event Hubs-funksjoner"
+    subgraph "Funksjoner for Event Hubs"
         Partition[Partisjonering]
         Retention[Meldingslagring]
-        Scaling[Auto skalering]
+        Scaling[Autoskalering]
     end
     
     EH --> Partition
@@ -285,7 +287,7 @@ graph TB
     EH --> Scaling
 ```
 
-### **C# Implementering - Event Hubs-transport**
+### **C# Implementering - Event Hubs Transport**
 
 ```csharp
 using Azure.Messaging.EventHubs;
@@ -359,7 +361,7 @@ public class EventHubsMcpTransport : IMcpTransport, IDisposable
 }
 ```
 
-### **TypeScript Implementering - Event Hubs-transport**
+### **TypeScript Implementering - Event Hubs Transport**
 
 ```typescript
 import { 
@@ -439,7 +441,7 @@ export class EventHubsMcpTransport implements McpTransport {
 }
 ```
 
-### **Python Implementering - Event Hubs-transport**
+### **Python Implementering - Event Hubs Transport**
 
 ```python
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient
@@ -525,9 +527,9 @@ class EventHubsMcpTransport:
         await self.consumer.close()
 ```
 
-## **Avanserte transportmønstre**
+## **Avanserte Transportmønstre**
 
-### **Meldingers utholdenhet og pålitelighet**
+### **Meldingsutholdenhet og Pålitelighet**
 
 ```csharp
 // Implementing message durability with retry logic
@@ -554,7 +556,7 @@ public class ReliableTransportWrapper : IMcpTransport
 }
 ```
 
-### **Integrasjon av transportsikkerhet**
+### **Transport Sikkerhetsintegrasjon**
 
 ```csharp
 // Integrating Azure Key Vault for transport security
@@ -576,7 +578,7 @@ public class SecureTransportFactory
 }
 ```
 
-### **Transportovervåking og observabilitet**
+### **Transport Overvåking og Observabilitet**
 
 ```csharp
 // Adding telemetry to custom transports
@@ -615,9 +617,9 @@ public class ObservableTransport : IMcpTransport
 }
 ```
 
-## **Virksomhetsintegrasjonsscenarioer**
+## **Bedriftsintegrasjon Scenarier**
 
-### **Scenario 1: Distribuert MCP-behandling**
+### **Scenario 1: Distribuert MCP Behandling**
 
 Bruke Azure Event Grid for å distribuere MCP-forespørsler over flere behandlingsnoder:
 
@@ -633,9 +635,9 @@ Benefits:
   - Cost optimization with serverless compute
 ```
 
-### **Scenario 2: Sanntids MCP-strømming**
+### **Scenario 2: Sanntids MCP Strømming**
 
-Bruke Azure Event Hubs for hyppige MCP-interaksjoner:
+Bruke Azure Event Hubs for høyfrekvente MCP-interaksjoner:
 
 ```yaml
 Architecture:
@@ -649,9 +651,9 @@ Benefits:
   - Built-in partitioning for parallel processing
 ```
 
-### **Scenario 3: Hybrid transportarkitektur**
+### **Scenario 3: Hybrid Transportarkitektur**
 
-Kombinere flere transporter for forskjellige bruksområder:
+Kombinere flere transporter for ulike bruksområder:
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -677,7 +679,7 @@ public class HybridMcpTransport : IMcpTransport
 
 ## **Ytelsesoptimalisering**
 
-### **Meldingsgruppering for Event Grid**
+### **Meldingsbatching for Event Grid**
 
 ```csharp
 public class BatchingEventGridTransport : IMcpTransport
@@ -737,9 +739,9 @@ public class PartitionedEventHubsTransport : IMcpTransport
 }
 ```
 
-## **Testing av egendefinerte transporter**
+## **Testing av Egne Transporter**
 
-### **Enhetstesting med testdobbelt**
+### **Enhetstesting med Test Doubles**
 
 ```csharp
 [Test]
@@ -803,44 +805,44 @@ public async Task EventHubsTransport_IntegrationTest()
 
 ### **Transportdesignprinsipper**
 
-1. **Idempotens**: Sikre at meldingsbehandling er idempotent for å håndtere duplikater  
-2. **Feilhåndtering**: Implementer omfattende feilbehandling og dødbrevlister  
-3. **Overvåking**: Legg til detaljerte telemetri- og helsesjekker  
-4. **Sikkerhet**: Bruk administrerte identiteter og minste privilegietilgang  
-5. **Ytelse**: Design for dine spesifikke krav til latenstid og gjennomstrømning
+1. **Idempotens**: Sikre at meldingsbehandling er idempotent for å håndtere duplikater
+2. **Feilhåndtering**: Implementere omfattende feilhåndtering og døde-brev-køer
+3. **Overvåking**: Legg til detaljert telemetri og helsekontroller
+4. **Sikkerhet**: Bruk administrerte identiteter og minst privilegert tilgang
+5. **Ytelse**: Design for dine spesifikke latens- og gjennomstrømningskrav
 
-### **Azure-spesifikke anbefalinger**
+### **Azure-spesifikke Anbefalinger**
 
-1. **Bruk administrert identitet**: Unngå tilkoblingsstrenger i produksjon  
-2. **Implementer kretsbrytere**: Beskytt mot Azure-tjenesteavbrudd  
-3. **Overvåk kostnader**: Følg med på meldingsvolum og behandlingkostnader  
-4. **Planlegg for skala**: Design partisjonerings- og skaleringsstrategier tidlig  
-5. **Test grundig**: Bruk Azure DevTest Labs for omfattende testing
+1. **Bruk administrert identitet**: Unngå forbindelsesstrenger i produksjon
+2. **Implementer kretsbrytere**: Beskytt mot Azure tjenesteutfall
+3. **Overvåk kostnader**: Følg med på meldingsvolum og behandlingskostnader
+4. **Planlegg for skalerbarhet**: Design partisjonering og skaleringsstrategier tidlig
+5. **Test grundig**: Bruk Azure DevTest Labs for grundig testing
 
 ## **Konklusjon**
 
-Egendefinerte MCP-transporter muliggjør kraftige virksomhetsscenarier ved bruk av Azures meldings tjenester. Ved å implementere Event Grid- eller Event Hubs-transporter kan du bygge skalerbare, pålitelige MCP-løsninger som sømløst integreres med eksisterende Azure-infrastruktur.
+Egendefinerte MCP-transporter muliggjør kraftige bedriftsløsninger ved bruk av Azures meldings tjenester. Ved å implementere Event Grid eller Event Hubs transporter, kan du bygge skalerbare, pålitelige MCP-løsninger som integreres sømløst med eksisterende Azure-infrastruktur.
 
-Eksemplene som er gitt demonstrerer produksjonsklare mønstre for å implementere egendefinerte transporter samtidig som MCP-protokollsamsvar og Azures beste praksis opprettholdes.
+De oppgitte eksemplene demonstrerer produksjonsklare mønstre for implementering av egendefinerte transporter samtidig som MCP protokoll samsvar og Azure beste praksis opprettholdes.
 
 ## **Ytterligere ressurser**
 
-- [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)  
-- [Azure Event Grid Documentation](https://docs.microsoft.com/azure/event-grid/)  
-- [Azure Event Hubs Documentation](https://docs.microsoft.com/azure/event-hubs/)  
-- [Azure Functions Event Grid Trigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)  
-- [Azure SDK for .NET](https://github.com/Azure/azure-sdk-for-net)  
-- [Azure SDK for TypeScript](https://github.com/Azure/azure-sdk-for-js)  
+- [MCP Spesifikasjon 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
+- [Azure Event Grid Dokumentasjon](https://docs.microsoft.com/azure/event-grid/)
+- [Azure Event Hubs Dokumentasjon](https://docs.microsoft.com/azure/event-hubs/)
+- [Azure Functions Event Grid Trigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
+- [Azure SDK for .NET](https://github.com/Azure/azure-sdk-for-net)
+- [Azure SDK for TypeScript](https://github.com/Azure/azure-sdk-for-js)
 - [Azure SDK for Python](https://github.com/Azure/azure-sdk-for-python)
 
 ---
 
-> *Denne veiledningen fokuserer på praktiske implementeringsmønstre for produksjonsklare MCP-systemer. Valider alltid transportimplementeringer mot dine spesifikke krav og Azure-tjenestebegrensninger.*  
-> **Gjeldende standard**: Denne veiledningen reflekterer [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) transportkrav og avanserte transportmønstre for virksomhetsmiljøer.
+> *Denne guiden fokuserer på praktiske implementeringsmønstre for produksjons MCP-systemer. Valider alltid transportimplementeringer opp mot dine spesifikke krav og Azure tjenestebegrensninger.*
+> **Gjeldende standard**: Denne guiden gjenspeiler [MCP Spesifikasjon 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) transportkrav og avanserte transportmønstre for bedriftsmiljøer.
 
 
-## Hva er neste
-- [6. Community Contributions](../../06-CommunityContributions/README.md)
+## Hva nå
+- [6. Fellesskapsbidrag](../../06-CommunityContributions/README.md)
 
 ---
 

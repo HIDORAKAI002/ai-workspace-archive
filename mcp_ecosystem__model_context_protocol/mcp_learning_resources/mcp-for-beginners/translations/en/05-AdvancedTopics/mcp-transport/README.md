@@ -2,6 +2,8 @@
 
 The Model Context Protocol (MCP) provides flexibility in transport mechanisms, allowing custom implementations for specialized enterprise environments. This advanced guide explores custom transport implementations using Azure Event Grid and Azure Event Hubs as practical examples for building scalable, cloud-native MCP solutions.
 
+> **Looking ahead:** this guide is written against **MCP Specification 2025-11-25**, where session ordering must be preserved per session (see Message Protocol below). The `2026-07-28` release candidate removes the protocol-level session entirely and requires `Mcp-Method`/`Mcp-Name` headers so gateways and custom transports can route per-request instead of per-session. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
 ## Introduction
 
 While MCP's standard transports (stdio and HTTP streaming) serve most use cases, enterprise environments often require specialized transport mechanisms for improved scalability, reliability, and integration with existing cloud infrastructure. Custom transports enable MCP to leverage cloud-native messaging services for asynchronous communication, event-driven architectures, and distributed processing.
@@ -240,21 +242,21 @@ class EventGridMcpTransport:
         """Register message handler for incoming events"""
         self.message_handler = handler
 
-# Implementación de Azure Functions
+# Azure Functions implementation
 import azure.functions as func
 import logging
 
 def main(event: func.EventGridEvent) -> None:
     """Azure Functions Event Grid trigger for MCP messages"""
     try:
-        # Análisis del mensaje MCP del evento Event Grid
+        # Parse MCP message from Event Grid event
         mcp_message = json.loads(event.get_body().decode('utf-8'))
         
-        # Procesar mensaje MCP
+        # Process MCP message
         response = process_mcp_message(mcp_message)
         
-        # Enviar respuesta a través de Event Grid
-        # (La implementación crearía un nuevo cliente de Event Grid)
+        # Send response back via Event Grid
+        # (Implementation would create new Event Grid client)
         
     except Exception as e:
         logging.error(f"Error processing MCP Event Grid message: {e}")
@@ -475,7 +477,7 @@ class EventHubsMcpTransport:
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
-            "timestamp": "2025-01-14T10:30:00Z"  # Use real timestamp
+            "timestamp": "2025-01-14T10:30:00Z"  # Use actual timestamp
         }
         
         async with self.producer:
@@ -496,7 +498,7 @@ class EventHubsMcpTransport:
         async with self.consumer:
             await self.consumer.receive(
                 on_event=self._on_event_received(message_handler),
-                starting_position="-1"  # Start from the beginning
+                starting_position="-1"  # Start from beginning
             )
     
     def _on_event_received(self, handler: Callable):

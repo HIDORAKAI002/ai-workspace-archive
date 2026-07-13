@@ -1,31 +1,31 @@
 # データベース設計とスキーマ
 
-## 🎯 このラボで学べること
+## 🎯 このラボで扱う内容
 
-このラボでは、Zava RetailシステムのPostgreSQLデータベース設計について深く掘り下げます。ベクター検索機能、多テナントデータモデリング、データ分離のためのRow Level Security (RLS) を備えた包括的な小売スキーマを実装する方法を学びます。
+このラボでは、Zava RetailシステムのPostgreSQLデータベース設計を深く掘り下げます。ベクトル検索機能、多テナントのデータモデリング、データ分離のための行レベルセキュリティ（RLS）を備えた包括的な小売スキーマの実装方法を学びます。
 
 ## 概要
 
-データベースはMCPサーバーの基盤であり、複数の店舗にわたる小売データを保存しながら厳格なデータ分離を維持します。PostgreSQLとpgvector拡張機能を使用してセマンティック検索機能を実現し、顧客が自然言語クエリを使用して商品を検索できるようにしています。
+データベースはMCPサーバーの基盤であり、複数店舗の小売データを保存しながら厳密なデータ分離を維持します。PostgreSQLとpgvector拡張を使用し、自然言語クエリによるセマンティック検索機能を可能にしています。
 
-スキーマは、Row Level Securityを使用してユーザーが許可された店舗のデータにのみアクセスできるようにする、最新の多テナントパターンに従っています。このアプローチは、エンタープライズレベルのセキュリティを提供しながら、最適なパフォーマンスを維持します。
+私たちのスキーマは現代の多テナントパターンを踏襲し、行レベルセキュリティによってユーザーが許可された店舗のデータのみアクセス可能としています。この方法はエンタープライズレベルのセキュリティを提供しつつ、最適なパフォーマンスを維持します。
 
 ## 学習目標
 
-このラボを終えると、以下ができるようになります：
+このラボ終了時には、以下ができるようになります：
 
-- **スケーラブルな多テナント小売データベーススキーマを設計**する  
-- **PostgreSQLとpgvectorを実装**してベクター検索を行う  
-- **Row Level Securityを設定**してデータ分離を実現する  
-- **テスト用のリアルなサンプルデータを生成**する  
-- **小売ワークロード向けにデータベースのパフォーマンスを最適化**する  
-- **バックアップとリカバリ戦略を実装**する  
+- スケーラブルな多テナント小売データベーススキーマを<strong>設計</strong>する
+- ベクトル検索のためにpgvectorを利用したPostgreSQLを<strong>実装</strong>する
+- データ分離のために行レベルセキュリティを<strong>設定</strong>する
+- テスト用に現実的なサンプルデータを<strong>生成</strong>する
+- 小売ワークロードのためにデータベースパフォーマンスを<strong>最適化</strong>する
+- バックアップとリカバリ戦略を<strong>実装</strong>する
 
 ## 🗃️ データベースアーキテクチャ
 
 ### PostgreSQLとpgvector
 
-このデータベースは、PostgreSQLのエンタープライズ機能とpgvector拡張機能を組み合わせて、AI駆動の検索を実現しています：
+私たちのデータベースはPostgreSQLのエンタープライズ機能と、AIによる検索を可能にするpgvector拡張を組み合わせています：
 
 ```sql
 -- Enable required extensions
@@ -37,10 +37,9 @@ CREATE EXTENSION IF NOT EXISTS "vector";
 SELECT * FROM pg_extension WHERE extname = 'vector';
 ```
 
+### マルチテナントアーキテクチャ
 
-### 多テナントアーキテクチャ
-
-データベースは、Row Level Securityを使用した**共有データベース、共有スキーマ**の多テナントモデルを採用しています：
+データベースは<strong>共有データベース、共有スキーマ</strong>の多テナントモデルを使い、行レベルセキュリティで保護しています：
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -56,10 +55,9 @@ SELECT * FROM pg_extension WHERE extname = 'vector';
 └─────────────────────────────────────────────────┘
 ```
 
-
 ## 📊 コアスキーマ設計
 
-### ストアテーブル（テナントマスター）
+### Storesテーブル（テナントマスター）
 
 ```sql
 -- Stores table: Master tenant registry
@@ -86,8 +84,7 @@ CREATE INDEX idx_stores_region ON retail.stores(region);
 CREATE INDEX idx_stores_active ON retail.stores(is_active) WHERE is_active = TRUE;
 ```
 
-
-### 顧客テーブル
+### Customersテーブル
 
 ```sql
 -- Customers table with RLS
@@ -123,8 +120,7 @@ CREATE INDEX idx_customers_loyalty_tier ON retail.customers(loyalty_tier);
 CREATE INDEX idx_customers_created_at ON retail.customers(created_at);
 ```
 
-
-### 商品テーブルとカテゴリ
+### Categories付きProductsテーブル
 
 ```sql
 -- Product categories
@@ -206,8 +202,7 @@ CREATE INDEX idx_products_text_search ON retail.products USING GIN(
 );
 ```
 
-
-### 売上トランザクション
+### Sales Transactions
 
 ```sql
 -- Sales transactions table
@@ -282,10 +277,9 @@ CREATE INDEX idx_sales_transaction_items_transaction_id ON retail.sales_transact
 CREATE INDEX idx_sales_transaction_items_product_id ON retail.sales_transaction_items(product_id);
 ```
 
+## 🔍 ベクトル検索の実装
 
-## 🔍 ベクター検索の実装
-
-### 商品埋め込みテーブル
+### Product Embeddingsテーブル
 
 ```sql
 -- Product embeddings for semantic search
@@ -322,8 +316,7 @@ CREATE INDEX idx_product_embeddings_store_id ON retail.product_embeddings(store_
 CREATE INDEX idx_product_embeddings_model ON retail.product_embeddings(embedding_model);
 ```
 
-
-### ベクター検索関数
+### ベクトル検索関数
 
 ```sql
 -- Function to search products by similarity
@@ -367,10 +360,9 @@ $$;
 GRANT EXECUTE ON FUNCTION retail.search_products_by_similarity TO mcp_user;
 ```
 
+## 🔐 行レベルセキュリティ設定
 
-## 🔐 Row Level Securityの設定
-
-### データベースロールと権限
+### データベースのロールと権限
 
 ```sql
 -- Create MCP application role
@@ -422,7 +414,6 @@ $$;
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION retail.set_store_context TO mcp_user;
 ```
-
 
 ### 監査ログ
 
@@ -518,10 +509,9 @@ CREATE TRIGGER sales_transactions_audit_trigger
     FOR EACH ROW EXECUTE FUNCTION retail.audit_trigger();
 ```
 
-
 ## 📊 サンプルデータ生成
 
-### リアルなテストデータスクリプト
+### 現実的なテストデータスクリプト
 
 ```python
 # scripts/generate_sample_data.py
@@ -546,7 +536,7 @@ class SampleDataGenerator:
         self.connection_string = connection_string
         self.stores = ['seattle', 'redmond', 'bellevue', 'online']
         
-        # Product categories with realistic items
+        # 現実的なアイテムを含む商品カテゴリ
         self.product_data = {
             'Electronics': {
                 'brands': ['Apple', 'Samsung', 'Sony', 'LG', 'HP', 'Dell'],
@@ -649,7 +639,7 @@ class SampleDataGenerator:
     async def _generate_products(self, conn, count: int) -> List[Dict]:
         """Generate realistic product data."""
         
-        # Get category IDs
+        # カテゴリIDを取得
         categories = await conn.fetch("SELECT category_id, category_name FROM retail.product_categories")
         category_map = {cat['category_name']: cat['category_id'] for cat in categories}
         
@@ -666,9 +656,9 @@ class SampleDataGenerator:
             brand = random.choice(self.product_data[category_name]['brands'])
             item_type = random.choice(self.product_data[category_name]['items'])
             
-            # Generate realistic pricing
+            # 現実的な価格設定を生成
             base_price = random.uniform(10, 1000)
-            cost = base_price * random.uniform(0.4, 0.7)  # 40-70% cost margin
+            cost = base_price * random.uniform(0.4, 0.7)  # 40〜70％のコストマージン
             
             product_data = {
                 'store_id': store_id,
@@ -715,14 +705,14 @@ class SampleDataGenerator:
         """Generate realistic sales transaction data."""
         
         for _ in range(count):
-            # Select customer and matching store products
+            # 顧客と一致する店舗商品を選択
             customer = random.choice(customers)
             store_products = [p for p in products if p['store_id'] == customer['store_id']]
             
             if not store_products:
                 continue
             
-            # Generate transaction basics
+            # 取引の基本情報を生成
             transaction_date = fake.date_time_between(start_date='-1y', end_date='now')
             transaction_type = random.choices(
                 ['sale', 'return', 'exchange'],
@@ -734,7 +724,7 @@ class SampleDataGenerator:
                 weights=[45, 25, 20, 10]
             )[0]
             
-            # Generate transaction items (1-5 items per transaction)
+            # 取引商品の生成（1取引あたり1〜5商品）
             num_items = random.choices([1, 2, 3, 4, 5], weights=[40, 30, 20, 7, 3])[0]
             selected_products = random.sample(store_products, min(num_items, len(store_products)))
             
@@ -745,9 +735,9 @@ class SampleDataGenerator:
                 quantity = random.randint(1, 3)
                 unit_price = product['price']
                 
-                # Apply random discounts occasionally
+                # 時々ランダムな割引を適用
                 discount_amount = 0
-                if random.random() < 0.2:  # 20% chance of discount
+                if random.random() < 0.2:  # 割引の確率は20％
                     discount_amount = unit_price * quantity * random.uniform(0.05, 0.25)
                 
                 total_price = (unit_price * quantity) - discount_amount
@@ -761,12 +751,12 @@ class SampleDataGenerator:
                     'discount_amount': discount_amount
                 })
             
-            # Calculate totals
+            # 合計を計算
             discount_amount = sum(item['discount_amount'] for item in transaction_items)
-            tax_amount = subtotal * 0.08  # 8% tax rate
+            tax_amount = subtotal * 0.08  # 8％の税率
             total_amount = subtotal + tax_amount
             
-            # Insert transaction
+            # 取引を挿入
             transaction_id = await conn.fetchval("""
                 INSERT INTO retail.sales_transactions (
                     store_id, customer_id, transaction_date, transaction_type,
@@ -781,7 +771,7 @@ class SampleDataGenerator:
                 f"REG{random.randint(1, 5)}", f"RCP{fake.random_number(digits=8)}"
             )
             
-            # Insert transaction items
+            # 取引商品を挿入
             for item in transaction_items:
                 await conn.execute("""
                     INSERT INTO retail.sales_transaction_items (
@@ -793,7 +783,7 @@ class SampleDataGenerator:
                     item['unit_price'], item['total_price'], item['discount_amount']
                 )
 
-# Usage example
+# 使用例
 if __name__ == "__main__":
     import os
     from config import Config
@@ -803,7 +793,6 @@ if __name__ == "__main__":
     
     asyncio.run(generator.generate_all_data())
 ```
-
 
 ## 🚀 パフォーマンス最適化
 
@@ -838,7 +827,6 @@ log_connections = on
 log_disconnections = on
 log_line_prefix = '%t [%p-%l] %q%u@%d '
 ```
-
 
 ### クエリ最適化ビュー
 
@@ -888,7 +876,6 @@ WHERE schemaname = 'retail'
 ORDER BY idx_tup_read DESC;
 ```
 
-
 ### 自動メンテナンス
 
 ```sql
@@ -933,7 +920,6 @@ $$;
 -- Example cron entry: 0 2 * * 0 psql -d retail_db -c "SELECT retail.perform_maintenance();"
 ```
 
-
 ## 💾 バックアップとリカバリ
 
 ### バックアップ戦略
@@ -942,11 +928,11 @@ $$;
 #!/bin/bash
 # scripts/backup_database.sh
 
-# Comprehensive backup script for production environments
+# 本番環境向けの包括的なバックアップスクリプト
 
 set -e
 
-# Configuration
+# 設定
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 DB_NAME="${POSTGRES_DB:-retail_db}"
@@ -954,17 +940,17 @@ DB_USER="${POSTGRES_USER:-postgres}"
 BACKUP_DIR="/backups/postgresql"
 RETENTION_DAYS=30
 
-# Create backup directory
+# バックアップディレクトリを作成
 mkdir -p "$BACKUP_DIR"
 
-# Generate backup filename with timestamp
+# タイムスタンプ付きのバックアップファイル名を生成
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/retail_backup_$TIMESTAMP.sql"
 COMPRESSED_BACKUP="$BACKUP_FILE.gz"
 
 echo "Starting database backup: $TIMESTAMP"
 
-# Create comprehensive backup
+# 包括的なバックアップを作成
 pg_dump \
     --host="$DB_HOST" \
     --port="$DB_PORT" \
@@ -977,17 +963,17 @@ pg_dump \
     --format=custom \
     --file="$BACKUP_FILE"
 
-# Compress backup
+# バックアップを圧縮
 gzip "$BACKUP_FILE"
 
-# Verify backup integrity
+# バックアップの整合性を検証
 echo "Verifying backup integrity..."
 pg_restore --list "$COMPRESSED_BACKUP" > /dev/null
 
-# Clean up old backups
+# 古いバックアップをクリーンアップ
 find "$BACKUP_DIR" -name "retail_backup_*.sql.gz" -mtime +$RETENTION_DAYS -delete
 
-# Calculate backup size
+# バックアップサイズを計算
 BACKUP_SIZE=$(du -h "$COMPRESSED_BACKUP" | cut -f1)
 
 echo "Backup completed successfully:"
@@ -995,7 +981,7 @@ echo "  File: $COMPRESSED_BACKUP"
 echo "  Size: $BACKUP_SIZE"
 echo "  Timestamp: $TIMESTAMP"
 
-# Optional: Upload to cloud storage
+# オプション：クラウドストレージにアップロード
 if [ -n "$AZURE_STORAGE_ACCOUNT" ] && [ -n "$AZURE_STORAGE_KEY" ]; then
     echo "Uploading backup to Azure Storage..."
     az storage blob upload \
@@ -1007,14 +993,13 @@ if [ -n "$AZURE_STORAGE_ACCOUNT" ] && [ -n "$AZURE_STORAGE_KEY" ]; then
 fi
 ```
 
-
 ### リカバリ手順
 
 ```bash
 #!/bin/bash
 # scripts/restore_database.sh
 
-# Database restoration script
+# データベース復元スクリプト
 
 set -e
 
@@ -1027,7 +1012,7 @@ fi
 BACKUP_FILE="$1"
 TARGET_DB="${2:-retail_db_restored}"
 
-# Configuration
+# 設定
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 DB_USER="${POSTGRES_USER:-postgres}"
@@ -1036,13 +1021,13 @@ echo "Starting database restoration..."
 echo "  Source: $BACKUP_FILE"
 echo "  Target: $TARGET_DB"
 
-# Verify backup file exists
+# バックアップファイルが存在するか確認
 if [ ! -f "$BACKUP_FILE" ]; then
     echo "Error: Backup file not found: $BACKUP_FILE"
     exit 1
 fi
 
-# Create target database
+# 対象データベースを作成
 createdb \
     --host="$DB_HOST" \
     --port="$DB_PORT" \
@@ -1050,9 +1035,9 @@ createdb \
     --owner="$DB_USER" \
     "$TARGET_DB"
 
-# Restore from backup
+# バックアップから復元
 if [[ "$BACKUP_FILE" == *.gz ]]; then
-    # Compressed backup
+    # 圧縮バックアップ
     gunzip -c "$BACKUP_FILE" | pg_restore \
         --host="$DB_HOST" \
         --port="$DB_PORT" \
@@ -1062,7 +1047,7 @@ if [[ "$BACKUP_FILE" == *.gz ]]; then
         --clean \
         --if-exists
 else
-    # Uncompressed backup
+    # 非圧縮バックアップ
     pg_restore \
         --host="$DB_HOST" \
         --port="$DB_PORT" \
@@ -1077,7 +1062,7 @@ fi
 echo "Database restoration completed successfully!"
 echo "Restored database: $TARGET_DB"
 
-# Verify restoration
+# 復元を確認
 echo "Verifying restoration..."
 TABLES_COUNT=$(psql \
     --host="$DB_HOST" \
@@ -1091,50 +1076,51 @@ TABLES_COUNT=$(psql \
 echo "Verified $TABLES_COUNT tables in retail schema"
 ```
 
-
 ## 🎯 重要なポイント
 
-このラボを完了すると、以下を達成できます：
+このラボを終えた後、以下が達成されているはずです：
 
-✅ **多テナントデータベース設計**：Row Level Securityを実装して安全なデータ分離を実現  
-✅ **ベクター検索機能**：pgvectorを設定してセマンティックな商品検索を可能にする  
-✅ **包括的なスキーマ**：本番環境対応の小売データベーススキーマを作成  
-✅ **サンプルデータ生成**：開発とテスト用のリアルなデータを構築  
-✅ **パフォーマンス最適化**：インデックスとクエリ最適化を設定  
-✅ **バックアップとリカバリ**：堅牢なデータ保護戦略を確立  
+✅ <strong>多テナントデータベース設計</strong>：データ分離のための行レベルセキュリティを実装  
+✅ <strong>ベクトル検索機能</strong>：製品のセマンティック検索のためpgvectorを設定  
+✅ <strong>包括的なスキーマ</strong>：本番準備完了の小売データベーススキーマを作成  
+✅ <strong>サンプルデータ生成</strong>：開発とテスト用に現実的なテストデータを構築  
+✅ <strong>パフォーマンス最適化</strong>：インデックス設定とクエリ最適化を実施  
+✅ <strong>バックアップとリカバリ</strong>：堅牢なデータ保護戦略を確立  
 
 ## 🚀 次のステップ
 
-**[Lab 05: MCPサーバーの実装](../05-MCP-Server/README.md)** に進んで以下を行いましょう：
+**[Lab 05: MCP Server Implementation](../05-MCP-Server/README.md)** に進み、以下を行います：
 
-- このデータベースに接続するFastMCPサーバーを構築  
-- MCPプロトコル用のデータベースクエリツールを実装  
-- 埋め込みを使用したセマンティック検索機能を追加  
-- コネクションプーリングとエラーハンドリングを設定  
+- このデータベースに接続するFastMCPサーバーを構築
+- MCPプロトコル用のデータベースクエリツールを実装
+- 埋め込みを使ったセマンティック検索機能を追加
+- 接続プーリングとエラーハンドリングを設定
 
 ## 📚 追加リソース
 
-### PostgreSQL & pgvector
-- [PostgreSQL ドキュメント](https://www.postgresql.org/docs/) - PostgreSQLの完全なリファレンス  
-- [pgvector拡張機能](https://github.com/pgvector/pgvector) - PostgreSQL向けのベクター類似検索  
-- [PostgreSQLパフォーマンスチューニング](https://wiki.postgresql.org/wiki/Performance_Optimization) - 最適化のベストプラクティス  
+### PostgreSQL と pgvector
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/) - 完全なPostgreSQLリファレンス
+- [pgvector Extension](https://github.com/pgvector/pgvector) - PostgreSQLのベクトル類似検索
+- [PostgreSQL Performance Tuning](https://wiki.postgresql.org/wiki/Performance_Optimization) - 最適化のベストプラクティス
 
-### 多テナントアーキテクチャ
-- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQLのRLSドキュメント  
-- [多テナントデータアーキテクチャ](https://docs.microsoft.com/azure/architecture/patterns/multitenancy) - Azureのアーキテクチャパターン  
-- [データベースセキュリティのベストプラクティス](https://www.postgresql.org/docs/current/security.html) - PostgreSQLセキュリティガイド  
+### マルチテナントアーキテクチャ
+- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLSドキュメント
+- [Multi-Tenant Data Architecture](https://docs.microsoft.com/azure/architecture/patterns/multitenancy) - Azureのアーキテクチャパターン
+- [Database Security Best Practices](https://www.postgresql.org/docs/current/security.html) - PostgreSQLのセキュリティガイド
 
-### ベクターデータベース
-- [ベクター検索の基礎](https://www.pinecone.io/learn/vector-database/) - ベクターデータベースの理解  
-- [埋め込みモデル](https://platform.openai.com/docs/guides/embeddings) - OpenAIの埋め込みドキュメント  
-- [HNSWアルゴリズム](https://arxiv.org/abs/1603.09320) - 階層型ナビゲーション小世界グラフ  
-
----
-
-**前回**: [Lab 03: 環境セットアップ](../03-Setup/README.md)  
-**次回**: [Lab 05: MCPサーバーの実装](../05-MCP-Server/README.md)  
+### ベクトルデータベース
+- [Vector Search Fundamentals](https://www.pinecone.io/learn/vector-database/) - ベクトルデータベースの基礎理解
+- [Embedding Models](https://platform.openai.com/docs/guides/embeddings) - OpenAI埋め込みドキュメント
+- [HNSW Algorithm](https://arxiv.org/abs/1603.09320) - 階層型ナビゲーブルスモールワールドグラフ
 
 ---
 
-**免責事項**:  
-この文書は、AI翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を追求しておりますが、自動翻訳には誤りや不正確な部分が含まれる可能性があります。元の言語で記載された文書を正式な情報源としてお考えください。重要な情報については、専門の人間による翻訳を推奨します。この翻訳の使用に起因する誤解や誤解について、当社は責任を負いません。
+<strong>前へ</strong>: [Lab 03: Environment Setup](../03-Setup/README.md)  
+<strong>次へ</strong>: [Lab 05: MCP Server Implementation](../05-MCP-Server/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責事項**：
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

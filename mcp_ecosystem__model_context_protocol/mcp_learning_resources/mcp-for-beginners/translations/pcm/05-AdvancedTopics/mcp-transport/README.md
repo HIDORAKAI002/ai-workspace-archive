@@ -1,32 +1,34 @@
 # MCP Custom Transports - Advanced Implementation Guide
 
-Di Model Context Protocol (MCP) dey give flex for transport mechanisms, wey allow custom implementations for speshal enterprise environments dem. Dis advanced guide go explore custom transport implementations wit Azure Event Grid and Azure Event Hubs as beta examples to build scalable, cloud-native MCP solutions.
+Di Model Context Protocol (MCP) dey provide flexibility for transport mechanism dem, wey allow custom implementation for specialized enterprise environment dem. Dis advanced guide go explore custom transport implementation dem using Azure Event Grid and Azure Event Hubs as beta example dem for building scalable, cloud-native MCP solution dem.
+
+> **Looking ahead:** dis guide write based on **MCP Specification 2025-11-25**, wey talk say session ordering must dey preserved per session (see Message Protocol below). Di `2026-07-28` release candidate go comot di protocol-level session full ground and e go require `Mcp-Method`/`Mcp-Name` header dem so that gateway dem and custom transport fit route per-request instead of per-session. Make you check [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Introduction
 
-Even though MCP standard transports (stdio and HTTP streaming) fit most use case, enterprise environments dey often need speshal transport mechanisms to improve scalability, reliability, and integration wit their cloud infrastructure dem wey dey already. Custom transports go make MCP fit use cloud-native messaging services for asynchronous communication, event-driven architectures, and distributed processing.
+Even though MCP standard transport dem (stdio and HTTP streaming) dey serve most use case dem, enterprise environment dem dey always need specialized transport mechanism dem for beta scalability, reliability, and integration with existing cloud infrastructure. Custom transport fit make MCP use cloud-native messaging service dem for asynchronous communication, event-driven architecture dem, and distributed processing.
 
-Dis lesson go explore advanced transport implementations based on di latest MCP specification (2025-11-25), Azure messaging services, and di well-known enterprise integration patterns.
+Dis lesson go explore advanced transport implementation dem wey based on di latest MCP specification (2025-11-25), Azure messaging service dem, and established enterprise integration pattern dem.
 
 ### **MCP Transport Architecture**
 
 **From MCP Specification (2025-11-25):**
 
-- **Standard Transports**: stdio (wey dem recommend), HTTP streaming (for remote matter dem)
+- **Standard Transports**: stdio (we recommend), HTTP streaming (for far case dem)
 - **Custom Transports**: Any transport wey fit implement di MCP message exchange protocol
-- **Message Format**: JSON-RPC 2.0 wit MCP-specific extensions
-- **Bidirectional Communication**: Full duplex communication na im dem require for notifications and responses
+- **Message Format**: JSON-RPC 2.0 with MCP-specific extension dem
+- **Bidirectional Communication**: Full duplex communication need for notifications and responses
 
 ## Learning Objectives
 
 By di time you finish dis advanced lesson, you go fit:
 
-- **Understand Custom Transport Requirements**: Implement MCP protocol for any transport layer wey still dey follow di rules
-- **Build Azure Event Grid Transport**: Make event-driven MCP servers wey use Azure Event Grid for serverless scalability
-- **Implement Azure Event Hubs Transport**: Design high-throughput MCP solutions wey use Azure Event Hubs for real-time streaming
-- **Apply Enterprise Patterns**: Join custom transports wit di Azure infrastructure and security models wey dey already
-- **Handle Transport Reliability**: Implement message durability, ordering, and error handling for enterprise kind situations
-- **Optimize Performance**: Design transport solutions for scale, low latency, and throughput wey you require
+- **Understand Custom Transport Requirements**: Implement MCP protocol over any transport layer as you still dey maintain compliance
+- **Build Azure Event Grid Transport**: Create event-driven MCP server dem using Azure Event Grid for serverless scalability
+- **Implement Azure Event Hubs Transport**: Design high-throughput MCP solution dem using Azure Event Hubs for real-time streaming
+- **Apply Enterprise Patterns**: Join custom transport dem with existing Azure infrastructure and security model dem
+- **Handle Transport Reliability**: Implement message durability, ordering, and error handling for enterprise case dem
+- **Optimize Performance**: Design transport solution dem for scale, latency, and throughput requirement dem
 
 ## **Transport Requirements**
 
@@ -51,22 +53,22 @@ Custom Transport:
 
 ## **Azure Event Grid Transport Implementation**
 
-Azure Event Grid na serverless event routing service wey beta for event-driven MCP architectures. Dis implementation wan show how to build scalable, loosely-coupled MCP systems.
+Azure Event Grid dey provide serverless event routing service wey beta for event-driven MCP architectures. Dis implementation go show how to build scalable, loosely-coupled MCP system dem.
 
 ### **Architecture Overview**
 
 ```mermaid
 graph TB
-    Client[MCP Klayent] --> EG[Azure Event Grid]
-    EG --> Server[MCP Sava Fankshon]
+    Client[MCP Klient] --> EG[Azure Event Grid]
+    EG --> Server[MCP Server Function]
     Server --> EG
     EG --> Client
     
-    subgraph "Azure Sava Dem"
+    subgraph "Azure Services"
         EG
         Server
         KV[Key Vault]
-        Monitor[Applikeshon Insights]
+        Monitor[Application Insights]
     end
 ```
 
@@ -240,7 +242,7 @@ class EventGridMcpTransport:
         """Register message handler for incoming events"""
         self.message_handler = handler
 
-# Azure Functions implemenashen
+# Azure Functions implementation
 import azure.functions as func
 import logging
 
@@ -253,8 +255,8 @@ def main(event: func.EventGridEvent) -> None:
         # Process MCP message
         response = process_mcp_message(mcp_message)
         
-        # Send response back through Event Grid
-        # (Implemenashen go create new Event Grid client)
+        # Send response back via Event Grid
+        # (Implementation go create new Event Grid client)
         
     except Exception as e:
         logging.error(f"Error processing MCP Event Grid message: {e}")
@@ -263,21 +265,21 @@ def main(event: func.EventGridEvent) -> None:
 
 ## **Azure Event Hubs Transport Implementation**
 
-Azure Event Hubs na high-throughput, real-time streaming tool wey good for MCP matter dem wey need low latency and big volume of messages.
+Azure Event Hubs dey provide high-throughput, real-time streaming capability for MCP scenario wey need low latency and high message volume.
 
 ### **Architecture Overview**
 
 ```mermaid
 graph TB
-    Client[MCP Klayant] --> EH[Azure Event Hubs]
-    EH --> Server[MCP Sava]
+    Client[MCP Client] --> EH[Azure Event Hubs]
+    EH --> Server[MCP Server]
     Server --> EH
     EH --> Client
     
-    subgraph "Event Hubs Ficha"
-        Partition[Parishonin]
-        Retention[Meseji Retenshon]
-        Scaling[Oto Skelin]
+    subgraph "Event Hubs Features"
+        Partition[Partitioning]
+        Retention[Message Retention]
+        Scaling[Auto Scaling]
     end
     
     EH --> Partition
@@ -418,7 +420,7 @@ export class EventHubsMcpTransport implements McpTransport {
                         
                         await messageHandler(mcpMessage);
                         
-                        // Update checkpoint for sha sha delivery
+                        // Update checkpoint for at-least-once delivery
                         await context.updateCheckpoint(event);
                     } catch (error) {
                         console.error("Error processing Event Hubs message:", error);
@@ -475,7 +477,7 @@ class EventHubsMcpTransport:
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
-            "timestamp": "2025-01-14T10:30:00Z"  # Use real timestamp
+            "timestamp": "2025-01-14T10:30:00Z"  # Use actual timestamp
         }
         
         async with self.producer:
@@ -496,7 +498,7 @@ class EventHubsMcpTransport:
         async with self.consumer:
             await self.consumer.receive(
                 on_event=self._on_event_received(message_handler),
-                starting_position="-1"  # Start from di beginning
+                starting_position="-1"  # Start from beginning
             )
     
     def _on_event_received(self, handler: Callable):
@@ -619,7 +621,7 @@ public class ObservableTransport : IMcpTransport
 
 ### **Scenario 1: Distributed MCP Processing**
 
-Using Azure Event Grid to spread MCP requests across many processing nodes:
+Using Azure Event Grid for distributing MCP request dem across many processing node dem:
 
 ```yaml
 Architecture:
@@ -635,7 +637,7 @@ Benefits:
 
 ### **Scenario 2: Real-time MCP Streaming**
 
-Using Azure Event Hubs for high-frequency MCP wahala dem:
+Using Azure Event Hubs for high-frequency MCP interaction dem:
 
 ```yaml
 Architecture:
@@ -651,7 +653,7 @@ Benefits:
 
 ### **Scenario 3: Hybrid Transport Architecture**
 
-Combine different transport dem for different kind use case:
+Combine many transport dem for different use case dem:
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -803,25 +805,25 @@ public async Task EventHubsTransport_IntegrationTest()
 
 ### **Transport Design Principles**
 
-1. **Idempotency**: Make sure say message processing fit handle duplicate message well well
-2. **Error Handling**: Implement correct error handling and dead letter queues
-3. **Monitoring**: Add detailed telemetry and health checks
-4. **Security**: Use managed identities and keep access to minimum
-5. **Performance**: Design for your specific latency and throughput requirements
+1. **Idempotency**: Make sure message processing dey idempotent to handle duplicate dem
+2. **Error Handling**: Implement full error handling and dead letter queue dem
+3. **Monitoring**: Add detailed telemetry and health check dem
+4. **Security**: Use managed identities and least privilege access
+5. **Performance**: Design based on your specific latency and throughput requirement dem
 
 ### **Azure-Specific Recommendations**
 
-1. **Use Managed Identity**: No use connection strings for production
+1. **Use Managed Identity**: No put connection strings for production
 2. **Implement Circuit Breakers**: Protect against Azure service wahala dem
-3. **Monitor Costs**: Check message volume and processing costs
-4. **Plan for Scale**: Early plan partitioning and scaling ways
-5. **Test Thoroughly**: Use Azure DevTest Labs to run full testing
+3. **Monitor Costs**: Track message volume and processing cost dem
+4. **Plan for Scale**: Design partitioning and scaling strategy dem early
+5. **Test Thoroughly**: Use Azure DevTest Labs for comprehensive testing
 
 ## **Conclusion**
 
-Custom MCP transports fit open beta strong enterprise opportunities using Azure messaging services. If you implement Event Grid or Event Hubs transports, you fit build scalable and reliable MCP solutions wey join well wit Azure infrastructure wey dey already.
+Custom MCP transport dem fit enable powerful enterprise scenario dem using Azure messaging service dem. By implementing Event Grid or Event Hubs transport dem, you fit build scalable, reliable MCP solution dem wey integrate well with existing Azure infrastructure.
 
-Di examples dem show beta patterns wey ready for production to implement custom transports and still dey MCP protocol compliance and Azure best practices side.
+The example dem wey we provide na production-ready pattern dem for implementing custom transport dem while you still dey maintain MCP protocol compliance and follow Azure best practice dem.
 
 ## **Additional Resources**
 
@@ -835,8 +837,8 @@ Di examples dem show beta patterns wey ready for production to implement custom 
 
 ---
 
-> *Dis guide dey focus on actual implementation patterns for production MCP systems. Always check your transport implementation well well against your own requirements and Azure service limits.*
-> **Current Standard**: Dis guide dey follow [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) transport requirements and advanced transport patterns for enterprise environments.
+> *Dis guide dey focus on practical implementation pattern dem for production MCP system dem. Always check transport implementation dem against your specific requirement dem and Azure service limit dem.*
+> **Current Standard**: Dis guide dey reflect [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) transport requirement dem and advanced transport pattern dem for enterprise environment dem.
 
 
 ## What's Next

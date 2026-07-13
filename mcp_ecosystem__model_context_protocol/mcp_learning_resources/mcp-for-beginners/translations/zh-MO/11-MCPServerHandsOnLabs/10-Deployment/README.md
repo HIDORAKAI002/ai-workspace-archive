@@ -2,24 +2,24 @@
 
 ## 🎯 本實驗涵蓋內容
 
-本實驗提供全面的指導，幫助您使用現代容器化和雲原生方法將 MCP 零售伺服器部署到生產環境。您將學習如何部署可擴展、安全且具備監控功能的 MCP 伺服器，以應對企業級工作負載。
+本實驗提供全面指導，教你如何使用現代容器化及原生雲技術將 MCP 零售伺服器部署到生產環境。你將學習部署可擴展、安全且可監控的 MCP 伺服器，以處理企業級工作負載。
 
 ## 概述
 
-MCP 伺服器的生產部署需要仔細考慮容器化、編排、安全性、可擴展性和監控。本實驗涵蓋了使用 Azure Container Apps 和 PostgreSQL Flexible Server 進行部署，實現 CI/CD 管道，以及配置自動擴展以應對可變工作負載。
+MCP 伺服器的生產部署需仔細考量容器化、編排、安全性、可擴展性及監控。本實驗涵蓋使用 Azure Container Apps 與 PostgreSQL Flexible Server 部署，實作 CI/CD 管線，以及設定可應對波動工作負載的自動擴展功能。
 
-部署策略範圍從用於開發的簡單單容器部署，到具有全面監控和安全功能的多區域、自動擴展的生產環境。
+部署策略包含從簡單的單容器開發部署到具備全面監控及安全功能的多區域自動擴展生產環境。
 
 ## 學習目標
 
-完成本實驗後，您將能夠：
+完成本實驗後，你將能夠：
 
-- **容器化** 使用 Docker 和多階段構建 MCP 伺服器  
-- **部署** 到 Azure Container Apps，並配置安全網絡  
-- **配置** 高可用性的生產級 PostgreSQL  
-- **實現** CI/CD 管道以自動化部署  
-- **擴展** 應用程式以滿足需求  
-- **監控** 生產部署，實現全面的可觀測性  
+- 使用 Docker 多階段建置將 MCP 伺服器容器化  
+- 部署到具有安全網絡的 Azure Container Apps  
+- 配置具備高可用性的生產級 PostgreSQL  
+- 實作自動化部署的 CI/CD 管線  
+- 根據需求自動擴展應用程式  
+- 使用全面的可觀察性監控生產環境部署  
 
 ## 🐳 Docker 容器化
 
@@ -93,8 +93,7 @@ EXPOSE 8000
 CMD ["python", "-m", "mcp_server.main"]
 ```
 
-
-### 用於開發的 Docker Compose
+### 開發用 Docker Compose
 
 ```yaml
 # docker-compose.yml - Development environment
@@ -184,8 +183,7 @@ networks:
     driver: bridge
 ```
 
-
-### 生產環境 Docker Compose
+### 生產用 Docker Compose
 
 ```yaml
 # docker-compose.prod.yml - Production environment
@@ -241,10 +239,9 @@ networks:
     external: true
 ```
 
-
 ## ☁️ Azure Container Apps 部署
 
-### 使用 Bicep 的基礎設施即代碼
+### 以 Bicep 實現基礎架構即代碼
 
 ```bicep
 // infra/container-apps.bicep - Azure Container Apps deployment
@@ -413,7 +410,6 @@ output containerAppFQDN string = mcp_retail_server.properties.configuration.ingr
 output containerAppId string = mcp_retail_server.id
 ```
 
-
 ### PostgreSQL Flexible Server
 
 ```bicep
@@ -499,8 +495,7 @@ output serverId string = postgresqlServer.id
 output databaseName string = retailDatabase.name
 ```
 
-
-## 🚀 CI/CD 管道配置
+## 🚀 CI/CD 管線配置
 
 ### GitHub Actions 工作流程
 
@@ -745,8 +740,7 @@ jobs:
               --revision-weight latest=100
 ```
 
-
-### Azure DevOps 管道
+### Azure DevOps 管線
 
 ```yaml
 # azure-pipelines.yml - Azure DevOps pipeline
@@ -914,8 +908,7 @@ stages:
                         --parameters containerImageTag=$(imageTag)
 ```
 
-
-## 📊 擴展和性能
+## 📊 擴展與效能
 
 ### 自動擴展配置
 
@@ -972,8 +965,7 @@ spec:
       selectPolicy: Max
 ```
 
-
-### 性能監控
+### 效能監控
 
 ```python
 # mcp_server/monitoring/performance.py
@@ -1008,13 +1000,13 @@ class PerformanceMonitor:
         self.config = config
         self.logger = logging.getLogger(__name__)
         
-        # Metrics collection
+        # 指標收集
         self.metrics_history = []
         self.request_times = []
         self.error_count = 0
         self.request_count = 0
         
-        # Database monitoring
+        # 數據庫監控
         self.db_pool = None
         
     async def start_monitoring(self):
@@ -1022,7 +1014,7 @@ class PerformanceMonitor:
         
         self.logger.info("Starting performance monitoring")
         
-        # Start metrics collection task
+        # 開始指標收集任務
         asyncio.create_task(self._collect_metrics_loop())
         asyncio.create_task(self._cleanup_old_metrics())
         
@@ -1034,17 +1026,17 @@ class PerformanceMonitor:
                 metrics = await self._collect_current_metrics()
                 self.metrics_history.append(metrics)
                 
-                # Log critical metrics
+                # 記錄關鍵指標
                 if metrics.cpu_percent > 90:
                     self.logger.warning(f"High CPU usage: {metrics.cpu_percent:.1f}%")
                 
                 if metrics.memory_percent > 90:
                     self.logger.warning(f"High memory usage: {metrics.memory_percent:.1f}%")
                 
-                if metrics.error_rate > 0.05:  # 5% error rate
+                if metrics.error_rate > 0.05:  # 5% 錯誤率
                     self.logger.warning(f"High error rate: {metrics.error_rate:.2%}")
                 
-                await asyncio.sleep(30)  # Collect every 30 seconds
+                await asyncio.sleep(30)  # 每 30 秒收集一次
                 
             except Exception as e:
                 self.logger.error(f"Error collecting metrics: {e}")
@@ -1053,20 +1045,20 @@ class PerformanceMonitor:
     async def _collect_current_metrics(self) -> PerformanceMetrics:
         """Collect current system metrics."""
         
-        # System metrics
+        # 系統指標
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
         
-        # Application metrics
+        # 應用程式指標
         current_time = datetime.utcnow()
         recent_requests = [
             req_time for req_time in self.request_times
             if current_time - req_time < timedelta(minutes=1)
         ]
         
-        request_rate = len(recent_requests) / 60.0  # requests per second
+        request_rate = len(recent_requests) / 60.0  # 每秒請求數
         
-        # Calculate average response time
+        # 計算平均響應時間
         avg_response_time = 0.0
         if hasattr(self, '_recent_response_times'):
             recent_response_times = [
@@ -1076,12 +1068,12 @@ class PerformanceMonitor:
             if recent_response_times:
                 avg_response_time = sum(rt['time'] for rt in recent_response_times) / len(recent_response_times)
         
-        # Error rate calculation
+        # 錯誤率計算
         error_rate = 0.0
         if self.request_count > 0:
             error_rate = self.error_count / self.request_count
         
-        # Database connections
+        # 數據庫連接
         db_connections = 0
         if self.db_pool:
             db_connections = len(self.db_pool._holders)
@@ -1091,7 +1083,7 @@ class PerformanceMonitor:
             cpu_percent=cpu_percent,
             memory_percent=memory.percent,
             memory_used_mb=memory.used / (1024 * 1024),
-            active_connections=0,  # To be implemented with connection tracking
+            active_connections=0,  # 將以連接追蹤方式實現
             request_rate=request_rate,
             avg_response_time=avg_response_time,
             error_rate=error_rate,
@@ -1105,24 +1097,24 @@ class PerformanceMonitor:
             try:
                 cutoff_time = datetime.utcnow() - timedelta(hours=24)
                 
-                # Clean up metrics history
+                # 清理指標歷史
                 self.metrics_history = [
                     m for m in self.metrics_history
                     if m.timestamp > cutoff_time
                 ]
                 
-                # Clean up request times
+                # 清理請求時間
                 self.request_times = [
                     rt for rt in self.request_times
                     if rt > cutoff_time
                 ]
                 
-                # Reset counters periodically
-                if datetime.utcnow().minute == 0:  # Every hour
+                # 週期性重設計數器
+                if datetime.utcnow().minute == 0:  # 每小時
                     self.error_count = 0
                     self.request_count = 0
                 
-                await asyncio.sleep(3600)  # Run every hour
+                await asyncio.sleep(3600)  # 每小時運行
                 
             except Exception as e:
                 self.logger.error(f"Error cleaning up metrics: {e}")
@@ -1138,7 +1130,7 @@ class PerformanceMonitor:
         if not success:
             self.error_count += 1
         
-        # Record response time
+        # 記錄響應時間
         if not hasattr(self, '_recent_response_times'):
             self._recent_response_times = []
         
@@ -1185,12 +1177,12 @@ class PerformanceMonitor:
         if not recent_metrics:
             return {}
         
-        # Calculate averages
+        # 計算平均值
         avg_cpu = sum(m.cpu_percent for m in recent_metrics) / len(recent_metrics)
         avg_memory = sum(m.memory_percent for m in recent_metrics) / len(recent_metrics)
         avg_response_time = sum(m.avg_response_time for m in recent_metrics) / len(recent_metrics)
         
-        # Calculate peaks
+        # 計算峰值
         max_cpu = max(m.cpu_percent for m in recent_metrics)
         max_memory = max(m.memory_percent for m in recent_metrics)
         max_response_time = max(m.avg_response_time for m in recent_metrics)
@@ -1211,10 +1203,9 @@ class PerformanceMonitor:
         }
 ```
 
+## 🔐 生產環境安全配置
 
-## 🔐 生產安全配置
-
-### 安全加固
+### 安全強化
 
 ```yaml
 # k8s/security-policy.yaml - Kubernetes security policies
@@ -1274,23 +1265,22 @@ spec:
           port: 53   # DNS
 ```
 
-
 ### 環境配置
 
 ```bash
 # scripts/setup-production-env.sh
 #!/bin/bash
 
-# Production environment setup script
+# 生產環境設置腳本
 set -euo pipefail
 
 echo "🔧 Setting up production environment..."
 
-# Create resource groups
+# 建立資源群組
 az group create --name "mcp-retail-prod-rg" --location "East US"
 az group create --name "mcp-retail-shared-rg" --location "East US"
 
-# Create Key Vault
+# 建立金鑰保管庫
 echo "🔐 Creating Azure Key Vault..."
 az keyvault create \
   --name "mcp-retail-kv-prod" \
@@ -1298,7 +1288,7 @@ az keyvault create \
   --location "East US" \
   --enable-rbac-authorization true
 
-# Set secrets
+# 設定密鑰
 echo "🔑 Setting up secrets..."
 az keyvault secret set \
   --vault-name "mcp-retail-kv-prod" \
@@ -1310,7 +1300,7 @@ az keyvault secret set \
   --name "azure-openai-key" \
   --value "${AZURE_OPENAI_KEY}"
 
-# Create container registry
+# 建立容器註冊表
 echo "📦 Creating container registry..."
 az acr create \
   --name "mcpretailregistry" \
@@ -1318,7 +1308,7 @@ az acr create \
   --sku Premium \
   --admin-enabled false
 
-# Create virtual network
+# 建立虛擬網絡
 echo "🌐 Creating virtual network..."
 az network vnet create \
   --name "mcp-retail-vnet" \
@@ -1334,7 +1324,7 @@ az network vnet subnet create \
   --address-prefix "10.0.2.0/24" \
   --delegations Microsoft.DBforPostgreSQL/flexibleServers
 
-# Deploy infrastructure
+# 部署基礎設施
 echo "🏗️  Deploying infrastructure..."
 az deployment group create \
   --resource-group "mcp-retail-prod-rg" \
@@ -1344,50 +1334,51 @@ az deployment group create \
 echo "✅ Production environment setup complete!"
 ```
 
+## 🎯 主要重點
 
-## 🎯 關鍵要點
+完成本實驗後，你應該具備：
 
-完成本實驗後，您應該具備以下能力：
+✅ <strong>容器策略</strong>：具安全強化的生產級 Docker 容器  
+✅ <strong>雲端部署</strong>：具備自動擴展及監控的 Azure Container Apps  
+✅ <strong>資料庫部署</strong>：具備高可用性的 PostgreSQL Flexible Server  
+✅ **CI/CD 管線**：自動化測試、建置及部署工作流程  
+✅ <strong>效能監控</strong>：全面的指標收集及警示  
+✅ <strong>安全配置</strong>：生產級安全政策及網絡隔離  
 
-✅ **容器策略**：具備安全加固的生產級 Docker 容器  
-✅ **雲端部署**：Azure Container Apps，支持自動擴展和監控  
-✅ **資料庫部署**：高可用性的 PostgreSQL Flexible Server  
-✅ **CI/CD 管道**：自動化測試、構建和部署工作流程  
-✅ **性能監控**：全面的指標收集和警報系統  
-✅ **安全配置**：生產級安全策略和網絡隔離  
+## 🚀 接下來的步驟
 
-## 🚀 下一步
+繼續進行 **[實驗 11：監控與可觀察性](../11-Monitoring/README.md)** 以：
 
-繼續進行 **[實驗 11：監控和可觀測性](../11-Monitoring/README.md)**，以：
+- 設置完整的 Application Insights 監控  
+- 配置結構化日誌與分散式追蹤  
+- 實作警示及自動回應系統  
+- 監控業務指標及效能 KPI  
 
-- 設置全面的監控，使用 Application Insights  
-- 配置結構化日誌和分佈式追蹤  
-- 實現警報和自動響應系統  
-- 監控業務指標和性能 KPI  
-
-## 📚 其他資源
+## 📚 額外資源
 
 ### 容器技術
 - [Docker 最佳實踐](https://docs.docker.com/develop/dev-best-practices/) - 官方 Docker 最佳實踐  
 - [Azure Container Apps](https://docs.microsoft.com/en-us/azure/container-apps/) - Azure Container Apps 文件  
 - [Kubernetes 文件](https://kubernetes.io/docs/) - Kubernetes 官方文件  
 
-### CI/CD 和 DevOps
+### CI/CD 與 DevOps
 - [GitHub Actions](https://docs.github.com/en/actions) - GitHub Actions 文件  
 - [Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/) - Azure DevOps 服務  
-- [基礎設施即代碼](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/) - Azure Bicep 文件  
+- [基礎架構即代碼](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/) - Azure Bicep 文件  
 
-### 安全和監控
-- [Azure Security Center](https://docs.microsoft.com/en-us/azure/security-center/) - Azure 安全建議  
+### 安全與監控
+- [Azure 安全中心](https://docs.microsoft.com/en-us/azure/security-center/) - Azure 安全建議  
 - [容器安全](https://kubernetes.io/docs/concepts/security/) - Kubernetes 安全概念  
 - [Application Insights](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview) - Azure Application Insights  
 
 ---
 
-**上一章**: [實驗 09：VS Code 整合](../09-VS-Code/README.md)  
-**下一章**: [實驗 11：監控和可觀測性](../11-Monitoring/README.md)  
+<strong>前一章</strong>: [實驗 09：VS Code 整合](../09-VS-Code/README.md)  
+<strong>下一章</strong>: [實驗 11：監控與可觀察性](../11-Monitoring/README.md)
 
 ---
 
-**免責聲明**：  
-本文件已使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。儘管我們努力確保翻譯的準確性，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於關鍵信息，建議使用專業人工翻譯。我們對因使用此翻譯而引起的任何誤解或錯誤解釋不承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責聲明**：
+本文件使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們力求準確，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議尋求專業人工翻譯。我們不對因使用本翻譯而引起的任何誤解或曲解承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

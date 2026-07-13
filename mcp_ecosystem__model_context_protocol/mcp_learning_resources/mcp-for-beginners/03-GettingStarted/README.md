@@ -32,7 +32,7 @@ This section consists of several lessons:
 
 - **13 MCP Inspector**. Debug and test your MCP servers interactively using the MCP Inspector tool. Learn to troubleshoot tools, resources, and protocol messages, [to the lesson](./13-mcp-inspector/README.md)
 
-- **14 Sampling**. Create MCP Servers that collaborate with MCP clients on LLM related tasks. [to the lesson](./14-sampling/README.md)
+- **14 Sampling**. Create MCP Servers that collaborate with MCP clients on LLM related tasks (deprecated in `2026-07-28` release candidate; still valid for `2025-11-25`). [to the lesson](./14-sampling/README.md)
 
 - **15 MCP Apps**. Build MCP Servers that also reply with UI instructions, [to the lesson](./15-mcp-apps/README.md)
 

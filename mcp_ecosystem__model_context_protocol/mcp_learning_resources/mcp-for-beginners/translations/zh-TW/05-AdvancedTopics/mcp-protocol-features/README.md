@@ -1,21 +1,23 @@
 # MCP 協議功能深度解析
 
-本指南探討超越基本工具與資源處理的進階 MCP 協議功能。理解這些功能有助於你打造更健全、使用者友善且適合生產環境的 MCP 伺服器。
+本指南探討超越基本工具與資源處理的進階 MCP 協議功能。了解這些功能有助於您構建更健壯、使用者友好且適合生產環境的 MCP 伺服器。
 
-## 涵蓋的功能
+> **展望未來：** `2026-07-28` 發行候選版本將棄用記錄原語（改用 `stderr` 作為 stdio，並使用 OpenTelemetry 進行結構化觀察），移除下面伺服器生命週期事件中提及的 `initialize`/session 模型，並將實驗性的任務功能移至專用任務擴充套件，採用新的 `tasks/get`/`tasks/update`/`tasks/cancel` 生命週期。請參閱 [MCP 變更內容：2026-07-28 發行候選版本](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
 
-1. **進度通知** - 報告長時間運作的進度
-2. **請求取消** - 允許客戶端取消正在進行中的請求
-3. **資源模板** - 帶參數的動態資源 URI
-4. **伺服器生命週期事件** - 正確的初始化與關閉處理
-5. **日誌控制** - 伺服器端的日誌設定
-6. **錯誤處理模式** - 一致性的錯誤回應
+## 涵蓋功能
+
+1. <strong>進度通知</strong> - 報告長時間執行作業的進度
+2. <strong>請求取消</strong> - 允許客戶端取消正在進行的請求
+3. <strong>資源範本</strong> - 帶參數的動態資源 URI
+4. <strong>伺服器生命週期事件</strong> - 適當的初始化與關閉
+5. <strong>記錄控制</strong> - 伺服器端的記錄配置
+6. <strong>錯誤處理模式</strong> - 一致的錯誤回應
 
 ---
 
 ## 1. 進度通知
 
-針對需要時間的操作（資料處理、檔案下載、API 呼叫），進度通知可讓使用者隨時掌握狀態。
+對於耗時操作（資料處理、檔案下載、API 呼叫），進度通知可讓使用者即時了解狀態。
 
 ### 運作方式
 
@@ -24,12 +26,13 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call（長時間操作）
+    Client->>Server: 工具/呼叫（長時間操作）
     Server-->>Client: 通知：進度 10%
     Server-->>Client: 通知：進度 50%
     Server-->>Client: 通知：進度 90%
     Server->>Client: 結果（完成）
 ```
+
 ### Python 實作
 
 ```python
@@ -43,7 +46,7 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # 取得檔案大小以計算進度
+    # 獲取檔案大小以計算進度
     file_size = os.path.getsize(file_path)
     processed = 0
     
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # 每處理一個項目報告進度
+        # 每處理一個項目後報告進度
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // 傳送進度通知
+      // 發送進度通知
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### 客戶端處理 (Python)
+### 客戶端處理（Python）
 
 ```python
 async def handle_progress(notification):
@@ -131,10 +134,10 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# 註冊處理程序
+# 註冊處理器
 session.on_notification("notifications/progress", handle_progress)
 
-# 呼叫工具（進度更新將通過處理程序傳送）
+# 呼叫工具（進度更新將透過處理器接收）
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
@@ -142,7 +145,7 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. 請求取消
 
-允許客戶端取消不再需要或花費過長時間的請求。
+允許客戶端取消不再需要或耗時過長的請求。
 
 ### Python 實作
 
@@ -161,7 +164,7 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # 搜尋多個頁面
-            # 檢查是否有取消請求
+            # 檢查是否已請求取消
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # 正常逾時，繼續
+            pass  # 正常超時，繼續
 ```
 
-### 客戶端端取消
+### 客戶端取消
 
 ```python
 import asyncio
@@ -260,11 +263,11 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. 資源模板
+## 3. 資源範本
 
-資源模板允許使用參數動態構建 URI，適用於 API 與資料庫。
+資源範本允許帶參數的動態 URI 构建，適用於 API 和資料庫。
 
-### 定義模板
+### 定義範本
 
 ```python
 from mcp.server import Server
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. 伺服器生命週期事件
 
-適當的初始化和關閉處理可確保資源管理乾淨。
+適當的初始化與關閉處理確保資源管理的清潔。
 
 ### Python 生命週期管理
 
@@ -389,7 +392,7 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # 伺服器在此執行
+    yield  # 伺服器在這裡運行
     
     # 關閉
     print("🛑 Server shutting down...")
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// 搭配優雅關閉使用
+// 使用時配合優雅關閉
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. 日誌控制
+## 5. 記錄控制
 
-MCP 支援伺服器端日誌等級，客戶端可以控制。
+MCP 支援伺服器端的記錄等級，客戶端可控制。
 
-### 實作日誌等級
+### 實作記錄等級
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# 將 MCP 等級映射到 Python 日誌等級
+# 將 MCP 等級映射到 Python 記錄等級
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,20 +512,20 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### 傳送日誌訊息給客戶端
+### 傳送記錄消息給客戶端
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # 傳送日誌通知給客戶端
+    # 發送日誌通知給客戶端
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # 執行工作...
+    # 進行工作...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -537,7 +540,7 @@ async def complex_operation(input: str, ctx) -> str:
 
 ## 6. 錯誤處理模式
 
-一致性的錯誤處理提升除錯與使用者體驗。
+一致的錯誤處理改善除錯與使用者體驗。
 
 ### MCP 錯誤代碼
 
@@ -606,7 +609,7 @@ async def safe_operation(input: str) -> str:
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### TypeScript 的錯誤處理
+### TypeScript 中的錯誤處理
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // 已經是 MCP 錯誤
+      throw error;  // 已是 MCP 錯誤
     }
     
     // 轉換其他錯誤
@@ -653,14 +656,14 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## 實驗性功能 (MCP 2025-11-25)
+## 實驗性功能（MCP 2025-11-25）
 
-以下功能在規範中被標記為實驗性：
+這些功能在規範中標記為實驗性：
 
-### 任務（長時間運作）
+### 任務（長時間執行的操作）
 
 ```python
-# 任務允許追蹤具有狀態的長時間運行操作
+# 任务允許追踪具有狀態的長時間運行操作
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### 工具標註
+### 工具註解
 
 ```python
 # 註解提供關於工具行為的元資料
 @app.tool(
     annotations={
         "destructive": False,      # 不會修改資料
-        "idempotent": True,        # 可以安全重試
+        "idempotent": True,        # 可安全重試
         "timeout_seconds": 30,     # 預期最大持續時間
-        "requires_approval": False # 不需要使用者批准
+        "requires_approval": False # 不需使用者批准
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,11 +704,11 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## 接下來的內容
+## 後續步驟
 
 - [模組 8 - 最佳實踐](../../08-BestPractices/README.md)
 - [5.14 - 上下文工程](../mcp-contextengineering/README.md)
-- [MCP 規範變更紀錄](https://spec.modelcontextprotocol.io/)
+- [MCP 規範變更日誌](https://spec.modelcontextprotocol.io/)
 
 ---
 
@@ -719,6 +722,6 @@ async def safe_query(query: str) -> str:
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**免責聲明**：  
-本文件係使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 所翻譯。雖然我們致力於確保翻譯的準確性，但請注意自動翻譯可能包含錯誤或不精確之處。原始文件的母語版本應視為權威來源。對於重要資訊，建議尋求專業人工翻譯。我們不對因使用此翻譯而產生的任何誤解或誤釋負責。
+**免責聲明**：
+此文件已使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們努力追求準確性，但請注意自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應視為權威來源。對於關鍵資訊，建議採用專業人工翻譯。我們不對因使用此翻譯所產生的任何誤解或誤譯承擔責任。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

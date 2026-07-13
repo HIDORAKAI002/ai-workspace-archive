@@ -1,21 +1,23 @@
-# MCP Protocol Features Deep Dive
+# Mergulho Profundo nas Funcionalidades do Protocolo MCP
 
-Este guia explora recursos avançados do protocolo MCP que vão além do manuseio básico de ferramentas e recursos. Compreender esses recursos ajuda você a construir servidores MCP mais robustos, amigáveis e prontos para produção.
+Este guia explora funcionalidades avançadas do protocolo MCP que vão além do manuseio básico de ferramentas e recursos. Entender essas funcionalidades ajuda você a construir servidores MCP mais robustos, amigáveis ao usuário e prontos para produção.
 
-## Funcionalidades Abrangidas
+> **Olhando para o futuro:** o candidato a lançamento `2026-07-28` depreca a primitiva Logging (favoritando `stderr` para stdio e OpenTelemetry para observabilidade estruturada), remove o modelo `initialize`/sessão referenciado nos Eventos do Ciclo de Vida do Servidor abaixo, e move a funcionalidade experimental Tarefas para uma extensão dedicada de Tarefas com um novo ciclo de vida `tasks/get`/`tasks/update`/`tasks/cancel`. Veja [O que está mudando no MCP: O Candidato a Lançamento 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Notificações de Progresso** - Informe o progresso para operações demoradas
-2. **Cancelamento de Requisição** - Permita que clientes cancelem requisições em andamento
-3. **Templates de Recursos** - URIs dinâmicos de recursos com parâmetros
-4. **Eventos do Ciclo de Vida do Servidor** - Inicialização e encerramento adequados
-5. **Controle de Logs** - Configuração de logging no lado do servidor
+## Funcionalidades Cobertas
+
+1. **Notificações de Progresso** - Reportar progresso para operações de longa duração
+2. **Cancelamento de Requisições** - Permitir que clientes cancelem requisições em andamento
+3. **Modelos de Recursos** - URIs dinâmicos de recursos com parâmetros
+4. **Eventos do Ciclo de Vida do Servidor** - Inicialização e desligamento adequados
+5. **Controle de Logging** - Configuração de logging do lado do servidor
 6. **Padrões de Tratamento de Erros** - Respostas de erro consistentes
 
 ---
 
 ## 1. Notificações de Progresso
 
-Para operações que demandam tempo (processamento de dados, downloads de arquivos, chamadas de API), as notificações de progresso mantêm os usuários informados.
+Para operações que levam tempo (processamento de dados, downloads de arquivos, chamadas de API), notificações de progresso mantêm os usuários informados.
 
 ### Como Funciona
 
@@ -30,7 +32,8 @@ sequenceDiagram
     Server-->>Client: notificação: progresso 90%
     Server->>Client: resultado (completo)
 ```
-### Implementação Python
+
+### Implementação em Python
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Reportar progresso após cada item
+        # Relatar progresso após cada item
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### Implementação TypeScript
+### Implementação em TypeScript
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Manipulação no Cliente (Python)
+### Tratamento pelo Cliente (Python)
 
 ```python
 async def handle_progress(notification):
@@ -140,11 +143,11 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ---
 
-## 2. Cancelamento de Requisição
+## 2. Cancelamento de Requisições
 
-Permita que clientes cancelem requisições que não são mais necessárias ou que estão demorando demais.
+Permita que clientes cancelem requisições que não são mais necessárias ou estão demorando demais.
 
-### Implementação Python
+### Implementação em Python
 
 ```python
 from mcp.server import Server
@@ -161,7 +164,7 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # Pesquisar em várias páginas
-            # Verifique se o cancelamento foi solicitado
+            # Verificar se o cancelamento foi solicitado
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # Tempo limite normal, continuar
 ```
 
-### Cancelamento no Lado do Cliente
+### Cancelamento do Lado do Cliente
 
 ```python
 import asyncio
@@ -260,11 +263,11 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. Templates de Recursos
+## 3. Modelos de Recursos
 
-Templates de recursos permitem a construção dinâmica de URIs com parâmetros, útil para APIs e bancos de dados.
+Modelos de recursos permitem construção dinâmica de URIs com parâmetros, útil para APIs e bancos de dados.
 
-### Definindo Templates
+### Definindo Modelos
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Analisar o URI para extrair parâmetros
+    # Analise o URI para extrair parâmetros
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### Implementação TypeScript
+### Implementação em TypeScript
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. Eventos do Ciclo de Vida do Servidor
 
-O tratamento adequado da inicialização e do encerramento assegura o gerenciamento limpo de recursos.
+O tratamento adequado de inicialização e desligamento garante um gerenciamento limpo de recursos.
 
 ### Gerenciamento do Ciclo de Vida em Python
 
@@ -435,7 +438,7 @@ class ManagedServer {
   }
   
   async stop() {
-    // Liberar recursos
+    // Limpar recursos
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. Controle de Logs
+## 5. Controle de Logging
 
-O MCP suporta níveis de logging no lado do servidor que os clientes podem controlar.
+O MCP suporta níveis de logging do lado do servidor que os clientes podem controlar.
 
-### Implementando Níveis de Log
+### Implementando Níveis de Logging
 
 ```python
 from mcp.server import Server
@@ -509,7 +512,7 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Enviando Mensagens de Log ao Cliente
+### Enviando Mensagens de Log para o Cliente
 
 ```python
 @app.tool()
@@ -522,7 +525,7 @@ async def complex_operation(input: str, ctx) -> str:
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Executar trabalho...
+    # Fazer o trabalho...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -539,7 +542,7 @@ async def complex_operation(input: str, ctx) -> str:
 
 Um tratamento consistente de erros melhora a depuração e a experiência do usuário.
 
-### Códigos de Erro MCP
+### Códigos de Erro do MCP
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,7 +572,7 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Respostas de Erro Estruturadas
+### Respostas Estruturadas de Erro
 
 ```python
 @app.tool()
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Já é um erro MCP
+      throw error;  // Já um erro MCP
     }
     
     // Converter outros erros
@@ -655,12 +658,12 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## Funcionalidades Experimentais (MCP 2025-11-25)
 
-Estes recursos são marcados como experimentais na especificação:
+Essas funcionalidades são marcadas como experimentais na especificação:
 
-### Tasks (Operações Longas)
+### Tarefas (Operações de Longa Duração)
 
 ```python
-# Tarefas permitem acompanhar operações de longa duração com estado
+# Tarefas permitem rastrear operações de longa duração com estado
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Anotações de Ferramenta
+### Anotações de Ferramentas
 
 ```python
 # Anotações fornecem metadados sobre o comportamento da ferramenta
 @app.tool(
     annotations={
-        "destructive": False,      # Não modifica dados
+        "destructive": False,      # Não modifica os dados
         "idempotent": True,        # Seguro para tentar novamente
         "timeout_seconds": 30,     # Duração máxima esperada
-        "requires_approval": False # Nenhuma aprovação do usuário necessária
+        "requires_approval": False # Não é necessária aprovação do usuário
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,11 +704,11 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## O que Vem a Seguir
+## O Que Vem a Seguir
 
 - [Módulo 8 - Melhores Práticas](../../08-BestPractices/README.md)
 - [5.14 - Engenharia de Contexto](../mcp-contextengineering/README.md)
-- [Changelog da Especificação MCP](https://spec.modelcontextprotocol.io/)
+- [Registro de Alterações da Especificação MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
@@ -713,12 +716,12 @@ async def safe_query(query: str) -> str:
 
 - [Especificação MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [Códigos de Erro JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
-- [Exemplos do SDK Python](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [Exemplos do SDK TypeScript](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [Exemplos de SDK Python](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [Exemplos de SDK TypeScript](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Aviso Legal**:  
-Este documento foi traduzido utilizando o serviço de tradução automática [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos para garantir a precisão, esteja ciente de que traduções automáticas podem conter erros ou imprecisões. O documento original em seu idioma nativo deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se a tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações equivocadas decorrentes do uso desta tradução.
+**Aviso Legal**:
+Este documento foi traduzido usando o serviço de tradução por IA [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos pela precisão, por favor, esteja ciente de que traduções automatizadas podem conter erros ou imprecisões. O documento original em seu idioma nativo deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações incorretas decorrentes do uso desta tradução.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

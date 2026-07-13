@@ -1,60 +1,62 @@
 # HTTPS Streaming met Model Context Protocol (MCP)
 
-Dit hoofdstuk biedt een uitgebreide gids voor het implementeren van veilige, schaalbare en realtime streaming met het Model Context Protocol (MCP) via HTTPS. Het behandelt de motivatie voor streaming, de beschikbare transportmechanismen, hoe je streamable HTTP in MCP implementeert, beveiligingsbest practices, migratie van SSE, en praktische aanwijzingen voor het bouwen van je eigen streaming MCP-toepassingen.
+Dit hoofdstuk biedt een uitgebreide gids voor het implementeren van veilige, schaalbare en realtime streaming met het Model Context Protocol (MCP) via HTTPS. Het behandelt de motivatie voor streaming, de beschikbare transportmechanismen, hoe streaming HTTP in MCP te implementeren, beveiligingsbest practices, migratie van SSE en praktische richtlijnen voor het bouwen van je eigen streaming MCP-applicaties.
+
+> **Vooruitblik:** deze les beschrijft Streamable HTTP onder **MCP Specificatie 2025-11-25**, waarbij een sessie wordt opgezet tijdens `initialize` en vastgezet met een `Mcp-Session-Id` header. De release candidate `2026-07-28` verwijdert de handshake en sessie-ID volledig, waardoor elk verzoek zelfstandig is en naar elke serverinstantie kan worden gerouteerd zonder sticky sessions. Zie [Wat verandert er in MCP: De 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) voor details.
 
 ## Transportmechanismen en Streaming in MCP
 
-Deze sectie onderzoekt de verschillende transportmechanismen die beschikbaar zijn in MCP en hun rol bij het mogelijk maken van streamingfunctionaliteit voor realtime communicatie tussen clients en servers.
+Deze sectie onderzoekt de verschillende transportmechanismen beschikbaar in MCP en hun rol bij het mogelijk maken van streamingfunctionaliteit voor realtime communicatie tussen clients en servers.
 
 ### Wat is een Transportmechanisme?
 
-Een transportmechanisme definieert hoe data wordt uitgewisseld tussen de client en server. MCP ondersteunt meerdere transporttypes die passen bij verschillende omgevingen en eisen:
+Een transportmechanisme definieert hoe gegevens worden uitgewisseld tussen de client en server. MCP ondersteunt meerdere transporttypen om aan verschillende omgevingen en vereisten te voldoen:
 
-- **stdio**: Standaard invoer/uitvoer, geschikt voor lokale en CLI-gebaseerde tools. Simpel, maar niet geschikt voor web of cloud.
-- **SSE (Server-Sent Events)**: Stelt servers in staat om realtime updates naar clients te pushen via HTTP. Geschikt voor web UIs, maar beperkt in schaalbaarheid en flexibiliteit. Vanaf MCP Specificatie 2025-06-18 is het standalone SSE (Server-Sent Events) transport verouderd en vervangen door "Streamable HTTP" transport.
+- **stdio**: Standaard input/output, geschikt voor lokale en CLI-gebaseerde tools. Eenvoudig maar niet geschikt voor web of cloud.
+- **SSE (Server-Sent Events)**: Hiermee kunnen servers realtime updates naar clients pushen via HTTP. Geschikt voor web UI's, maar beperkt in schaalbaarheid en flexibiliteit. Vanaf MCP Specificatie 2025-06-18 is het standalone SSE (Server-Sent Events) transport afgeschaft en vervangen door het "Streamable HTTP" transport.
 - **Streamable HTTP**: Modern HTTP-gebaseerd streaming transport, ondersteunt notificaties en betere schaalbaarheid. Aanbevolen voor de meeste productie- en cloudscenario's.
 
 ### Vergelijkingstabel
 
-Bekijk onderstaande vergelijkingstabel om de verschillen tussen deze transportmechanismen beter te begrijpen:
+Bekijk de onderstaande vergelijkingstabel om de verschillen tussen deze transportmechanismen te begrijpen:
 
-| Transport         | Realtime Updates | Streaming | Schaalbaarheid | Gebruikssituatie        |
-|-------------------|------------------|-----------|----------------|------------------------|
-| stdio             | Nee              | Nee       | Laag           | Lokale CLI tools       |
-| SSE               | Ja               | Ja        | Medium         | Web, realtime updates  |
-| Streamable HTTP   | Ja               | Ja        | Hoog           | Cloud, multi-client    |
+| Transport         | Realtime Updates | Streaming | Schaalbaarheid | Gebruikssituatie            |
+|-------------------|------------------|-----------|----------------|----------------------------|
+| stdio             | Nee              | Nee       | Laag           | Lokale CLI-tools           |
+| SSE               | Ja               | Ja        | Middelmatig    | Web, realtime updates      |
+| Streamable HTTP   | Ja               | Ja        | Hoog           | Cloud, meerdere clients    |
 
-> **Tip:** De keuze voor het juiste transport beïnvloedt prestaties, schaalbaarheid en gebruikerservaring. **Streamable HTTP** wordt aanbevolen voor moderne, schaalbare en cloudgerichte toepassingen.
+> **Tip:** De keuze van het juiste transport beïnvloedt de prestaties, schaalbaarheid en gebruikerservaring. **Streamable HTTP** wordt aanbevolen voor moderne, schaalbare en cloudklare applicaties.
 
-Let op de transports stdio en SSE die in eerdere hoofdstukken zijn besproken, en hoe streamable HTTP het transport is dat in dit hoofdstuk behandeld wordt.
+Let op de transports stdio en SSE die je in de vorige hoofdstukken hebt gezien en hoe streamable HTTP het transport is dat in dit hoofdstuk wordt behandeld.
 
 ## Streaming: Concepten en Motivatie
 
 Het begrijpen van de fundamentele concepten en motivaties achter streaming is essentieel voor het implementeren van effectieve realtime communicatiesystemen.
 
-**Streaming** is een techniek in netwerkprogrammering die het mogelijk maakt data in kleine, beheersbare stukken of als een reeks gebeurtenissen te verzenden en ontvangen, in plaats van te wachten tot een volledig antwoord klaar is. Dit is vooral nuttig voor:
+**Streaming** is een techniek in netwerkprogrammering waarbij gegevens in kleine, beheersbare stukjes of als een reeks gebeurtenissen worden verzonden en ontvangen, in plaats van te wachten tot de volledige respons klaar is. Dit is vooral nuttig voor:
 
 - Grote bestanden of datasets.
 - Realtime updates (bijv. chat, voortgangsbalken).
 - Langdurige berekeningen waarbij je de gebruiker op de hoogte wilt houden.
 
-Dit moet je op hoofdlijnen weten over streaming:
+Dit is wat je op hoofdlijnen over streaming moet weten:
 
-- Data wordt stapsgewijs geleverd, niet in één keer.
-- De client kan data verwerken zodra deze arriveert.
-- Vermindert waargenomen latency en verbetert de gebruikerservaring.
+- Gegevens worden progressief geleverd, niet allemaal tegelijk.
+- De client kan data verwerken zodra deze binnenkomt.
+- Vermindert waargenomen latency en verbetert gebruikerservaring.
 
 ### Waarom streaming gebruiken?
 
-De redenen om streaming te gebruiken zijn:
+De redenen om streaming te gebruiken zijn als volgt:
 
-- Gebruikers krijgen direct feedback, niet alleen aan het einde.
-- Maakt realtime applicaties en responsieve UIs mogelijk.
-- Efficiënter gebruik van netwerk- en rekenbronnen.
+- Gebruikers krijgen direct feedback, niet pas aan het einde.
+- Maakt realtime applicaties en responsieve UI's mogelijk.
+- Efficiënter gebruik van netwerk- en computerbronnen.
 
-### Simpel Voorbeeld: HTTP Streaming Server & Client
+### Eenvoudig Voorbeeld: HTTP Streaming Server & Client
 
-Hier volgt een eenvoudig voorbeeld van hoe streaming geïmplementeerd kan worden:
+Hier is een eenvoudig voorbeeld van hoe streaming geïmplementeerd kan worden:
 
 #### Python
 
@@ -90,15 +92,15 @@ with requests.get("http://localhost:8000/stream", stream=True) as r:
 
 Dit voorbeeld toont een server die een reeks berichten naar de client stuurt zodra ze beschikbaar zijn, in plaats van te wachten tot alle berichten klaar zijn.
 
-**Hoe werkt het:**
+**Hoe het werkt:**
 
-- De server levert elk bericht zodra het gereed is.
-- De client ontvangt en print elke chunk zodra deze binnenkomt.
+- De server levert elk bericht zodra het klaar is.
+- De client ontvangt en print elk stuk zodra het binnenkomt.
 
 **Vereisten:**
 
-- De server moet een streaming response gebruiken (bijv. `StreamingResponse` in FastAPI).
-- De client moet de response als een stream verwerken (`stream=True` in requests).
+- De server moet een streamingrespons gebruiken (bijv. `StreamingResponse` in FastAPI).
+- De client moet de respons als stream verwerken (`stream=True` in requests).
 - Content-Type is meestal `text/event-stream` of `application/octet-stream`.
 
 #### Java
@@ -166,76 +168,76 @@ public class CalculatorClientApplication implements CommandLineRunner {
 }
 ```
 
-**Java Implementatie Notities:**
+**Java Implementatienotities:**
 
-- Maakt gebruik van Spring Boot’s reactieve stack met `Flux` voor streaming
-- `ServerSentEvent` biedt gestructureerde event streaming met event types
-- `WebClient` met `bodyToFlux()` maakt reactief streamen mogelijk
-- `delayElements()` simuleert verwerkingsvertraging tussen events
-- Events kunnen types hebben (`info`, `result`) voor betere clientverwerking
+- Gebruikt Spring Boot's reactieve stack met `Flux` voor streaming.
+- `ServerSentEvent` biedt gestructureerde event streaming met event types.
+- `WebClient` met `bodyToFlux()` maakt reactieve streamverwerking mogelijk.
+- `delayElements()` simuleert verwerkingstijd tussen events.
+- Events kunnen types hebben (`info`, `result`) voor betere clientverwerking.
 
 ### Vergelijking: Klassieke Streaming vs MCP Streaming
 
-De verschillen tussen hoe streaming op een "klassieke" manier werkt versus in MCP kunnen als volgt worden weergegeven:
+De verschillen tussen de klassieke manier van streaming en de manier waarop het in MCP werkt, kunnen als volgt samengevat worden:
 
-| Kenmerk                 | Klassieke HTTP Streaming       | MCP Streaming (Notificaties)          |
-|-------------------------|-------------------------------|--------------------------------------|
-| Hoofdantwoord            | In chunks                     | Enkelvoudig, aan het einde           |
-| Voortgangsupdates       | Verzonden als data chunks     | Verzonden als notificaties           |
-| Vereisten voor client    | Moet stream verwerken         | Moet message handler implementeren   |
-| Gebruikssituatie         | Grote bestanden, AI token streams | Voortgang, logs, realtime feedback  |
+| Kenmerk                | Klassieke HTTP Streaming       | MCP Streaming (Notificaties)       |
+|------------------------|-------------------------------|-----------------------------------|
+| Hoofdresponse          | Gefragmenteerd                | Enkelvoudig, aan het einde        |
+| Voortgangsupdates      | Verzonden als datablokken      | Verzonden als notificaties        |
+| Clientvereisten        | Moet stream verwerken          | Moet message handler implementeren|
+| Gebruikssituaties      | Grote bestanden, AI token streams | Voortgang, logs, realtime feedback |
 
-### Waargenomen Belangrijke Verschillen
+### Belangrijke Verschillen
 
-Daarnaast enkele belangrijke verschillen:
+Daarnaast zijn er enkele belangrijke verschillen:
 
 - **Communicatiepatroon:**
-  - Klassieke HTTP streaming: gebruikt eenvoudige chunked transfer encoding om data in stukken te verzenden
-  - MCP streaming: gebruikt een gestructureerd notificatiesysteem met JSON-RPC protocol
+  - Klassieke HTTP streaming: gebruikt eenvoudige chunked transfer encoding om data in blokken te verzenden.
+  - MCP streaming: gebruikt een gestructureerd notificatiesysteem met JSON-RPC protocol.
 
 - **Berichtformaat:**
-  - Klassiek HTTP: platte tekstchunks met nieuwe regels
-  - MCP: Gestructureerde LoggingMessageNotification-objecten met metadata
+  - Klassieke HTTP: platte tekstblokken met nieuwe regels.
+  - MCP: gestructureerde LoggingMessageNotification objecten met metadata.
 
-- **Client Implementatie:**
-  - Klassiek HTTP: simpele client die streamende responses verwerkt
-  - MCP: complexere client met een message handler die verschillende types berichten verwerkt
+- **Clientimplementatie:**
+  - Klassieke HTTP: eenvoudige client die streaming responses verwerkt.
+  - MCP: complexere client met een message handler om verschillende soorten berichten te verwerken.
 
 - **Voortgangsupdates:**
-  - Klassiek HTTP: voortgang is onderdeel van de hoofdresponsstream
-  - MCP: voortgang wordt via aparte notificatieberichten verzonden, terwijl het hoofdantwoord aan het einde komt
+  - Klassieke HTTP: voortgang maakt deel uit van de hoofdresponse stream.
+  - MCP: voortgang wordt verzonden via aparte notificatieberichten terwijl de hoofdresponse aan het einde komt.
 
 ### Aanbevelingen
 
-We raden het volgende aan bij de keuze tussen klassieke streamimplementatie (zoals eerder getoond via `/stream`) en streaming via MCP:
+Er zijn enkele aanbevelingen bij het kiezen tussen klassieke streaming (zoals het endpoint dat we je hierboven hebben laten zien met `/stream`) versus streaming via MCP.
 
-- **Voor eenvoudige streamingbehoeften:** Klassieke HTTP streaming is eenvoudiger te implementeren en voldoende voor basale streaming.
+- **Voor eenvoudige streamingbehoeften:** Klassieke HTTP streaming is eenvoudiger te implementeren en volstaat voor basis streaming.
 
-- **Voor complexe, interactieve toepassingen:** MCP streaming biedt een gestructureerdere aanpak met rijkere metadata en scheiding tussen notificaties en uiteindelijke resultaten.
+- **Voor complexe, interactieve applicaties:** MCP streaming biedt een meer gestructureerde aanpak met rijkere metadata en scheiding tussen notificaties en definitieve resultaten.
 
-- **Voor AI-toepassingen:** MCP’s notificatiesysteem is bijzonder nuttig voor langdurige AI-taken waarbij gebruikers op de hoogte gehouden moeten worden van voortgang.
+- **Voor AI-applicaties:** Het notificatiesysteem van MCP is bijzonder nuttig voor langdurige AI-taken waarbij je gebruikers wilt informeren over de voortgang.
 
 ## Streaming in MCP
 
-Oké, je hebt nu enkele aanbevelingen en vergelijkingen gezien tussen klassieke streaming en MCP streaming. Laten we in detail bekijken hoe je streaming binnen MCP kunt benutten.
+Oké, je hebt tot nu toe aanbevelingen en vergelijkingen gezien over het verschil tussen klassieke streaming en streaming in MCP. Laten we nu precies ingaan op hoe je streaming in MCP kunt gebruiken.
 
-Begrijpen hoe streaming werkt binnen het MCP-framework is essentieel voor het bouwen van responsieve apps die realtime feedback geven tijdens langdurige bewerkingen.
+Begrijpen hoe streaming binnen het MCP-kader werkt is essentieel voor het bouwen van responsieve applicaties die realtime feedback geven aan gebruikers tijdens langlopende processen.
 
-In MCP gaat streaming niet over het verzenden van het hoofdantwoord in stukken, maar over het verzenden van **notificaties** naar de client terwijl een tool een verzoek verwerkt. Deze notificaties kunnen voortgangsupdates, logs of andere events bevatten.
+In MCP gaat streaming niet over het versturen van de hoofdresponse in stukjes, maar over het sturen van **notificaties** naar de client terwijl een tool een verzoek verwerkt. Deze notificaties kunnen voortgangsupdates, logs of andere events bevatten.
 
-### Hoe werkt het
+### Hoe het werkt
 
-Het hoofdzakelijke resultaat wordt nog steeds als één enkele response verzonden. Echter, notificaties kunnen als aparte berichten worden verzonden tijdens de verwerking en zo de client realtime bijwerken. De client moet deze notificaties kunnen verwerken en tonen.
+Het hoofdresultaat wordt nog steeds als een enkel antwoord verzonden. Echter, tijdens het verwerken kunnen notificaties als aparte berichten worden gestuurd en zo de client realtime updaten. De client moet deze notificaties kunnen afhandelen en weergeven.
 
 ## Wat is een Notificatie?
 
-We zeiden "Notificatie", wat betekent dat precies in MCP?
+We zeiden "Notificatie", wat betekent dat in de context van MCP?
 
-Een notificatie is een bericht dat van de server naar de client wordt gestuurd om te informeren over voortgang, status of andere gebeurtenissen tijdens een langlopende bewerking. Notificaties verbeteren transparantie en gebruikerservaring.
+Een notificatie is een bericht dat van de server naar de client wordt gestuurd om te informeren over voortgang, status of andere gebeurtenissen tijdens een langlopende operatie. Notificaties verbeteren transparantie en gebruikerservaring.
 
-Bijvoorbeeld, een client dient een notificatie te ontvangen zodra de initiële handshake met de server is gemaakt.
+Bijvoorbeeld, een client moet een notificatie sturen zodra de initiële handshake met de server is gemaakt.
 
-Een notificatie ziet er zo uit als JSON-bericht:
+Een notificatie ziet er als volgt uit als JSON-bericht:
 
 ```json
 {
@@ -247,9 +249,9 @@ Een notificatie ziet er zo uit als JSON-bericht:
 }
 ```
 
-Notificaties behoren tot een MCP-topic bekend als ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
+Notificaties behoren tot een onderwerp in MCP dat ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging) wordt genoemd.
 
-Om logging te laten werken, moet de server dit als feature/capability inschakelen zoals hieronder:
+Om logging te laten werken, moet de server het inschakelen als feature/capability zoals volgt:
 
 ```json
 {
@@ -260,28 +262,28 @@ Om logging te laten werken, moet de server dit als feature/capability inschakele
 ```
 
 > [!NOTE]
-> Afhankelijk van de gebruikte SDK is logging mogelijk standaard ingeschakeld, of moet je dit expliciet inschakelen in je serverconfiguratie.
+> Afhankelijk van de gebruikte SDK kan logging standaard ingeschakeld zijn, of moet je het expliciet inschakelen in je serverconfiguratie.
 
-Er zijn verschillende types notificaties:
+Er zijn verschillende soorten notificaties:
 
-| Niveau    | Beschrijving                  | Voorbeeld Gebruikssituatie       |
-|-----------|------------------------------|---------------------------------|
-| debug     | Gedetailleerde debug informatie | Functie ingang/uitgangspunten   |
-| info      | Algemene informatieve berichten | Voortgangsupdates bij bewerkingen |
-| notice    | Normale maar significante gebeurtenissen | Configuratiewijzigingen     |
-| warning   | Waarschuwingstoestanden      | Gebruik van verouderde functies  |
-| error     | Foutcondities                | Faaloperaties                    |
-| critical  | Kritische condities          | Falen van systeemcomponenten     |
-| alert     | Directe actie vereist        | Gedetecteerde datacorruptie      |
-| emergency | Systeem onbruikbaar          | Volledig systeemfalen            |
+| Niveau     | Beschrijving                   | Voorbeeld Gebruikssituatie    |
+|------------|-------------------------------|-------------------------------|
+| debug      | Gedetailleerde debug-informatie | Functie in- en uitgangen      |
+| info       | Algemene informatieve berichten | Voortgangsupdates             |
+| notice     | Normale maar significante gebeurtenissen | Configuratiewijzigingen  |
+| warning    | Waarschuwingscondities         | Gebruik van verouderde functies|
+| error      | Foutcondities                 | Mislukkingen in operaties     |
+| critical   | Kritieke condities            | Faalgevallen in systeemcomponenten |
+| alert      | Direct actie vereist          | Data corruptie gedetecteerd   |
+| emergency  | Systeem is onbruikbaar         | Compleet systeemfalen         |
 
 ## Notificaties Implementeren in MCP
 
-Om notificaties in MCP te implementeren, moet je zowel server- als clientzijde inrichten om realtime updates te verwerken. Dit stelt je applicatie in staat om gebruikers direct feedback te geven tijdens langdurige operaties.
+Om notificaties in MCP te implementeren, moet je zowel server- als clientzijde instellen om realtime updates te verwerken. Hierdoor kan je applicatie directe feedback geven aan gebruikers tijdens langlopende bewerkingen.
 
 ### Serverzijde: Notificaties Verzenden
 
-Laten we beginnen met de serverzijde. In MCP definieer je tools die notificaties kunnen sturen tijdens het verwerken van verzoeken. De server gebruikt het context object (meestal `ctx`) om berichten naar de client te sturen.
+Laten we beginnen met de serverzijde. In MCP definieer je tools die notificaties kunnen sturen tijdens het verwerken van verzoeken. De server gebruikt het contextobject (gewoonlijk `ctx`) om berichten naar de client te versturen.
 
 #### Python
 
@@ -294,9 +296,9 @@ async def process_files(message: str, ctx: Context) -> TextContent:
     return TextContent(type="text", text=f"Done: {message}")
 ```
 
-In het bovenstaande voorbeeld stuurt de `process_files` tool drie notificaties naar de client tijdens het verwerken van elk bestand. De `ctx.info()` methode wordt gebruikt om informatieve berichten te sturen.
+In het voorgaande voorbeeld stuurt de `process_files` tool drie notificaties naar de client terwijl hij elk bestand verwerkt. De methode `ctx.info()` wordt gebruikt om informatieve berichten te versturen.
 
-Daarnaast, om notificaties mogelijk te maken, zorg dat je server een streaming transport gebruikt (zoals `streamable-http`) en dat je client een message handler implementeert om notificaties te verwerken. Zo zet je de server op om het `streamable-http` transport te gebruiken:
+Daarnaast moet je om notificaties mogelijk te maken ervoor zorgen dat je server een streaming transport gebruikt (zoals `streamable-http`) en dat je client een message handler implementeert om notificaties te verwerken. Zo kun je de server configureren om het `streamable-http` transport te gebruiken:
 
 ```python
 mcp.run(transport="streamable-http")
@@ -319,9 +321,9 @@ public async Task<TextContent> ProcessFiles(string message, ToolContext ctx)
 }
 ```
 
-In dit .NET voorbeeld is de `ProcessFiles` tool voorzien van het `Tool` attribuut en stuurt drie notificaties naar de client tijdens het verwerken van elk bestand. De `ctx.Info()` methode wordt gebruikt om informatieve berichten te sturen.
+In dit .NET voorbeeld is de `ProcessFiles` tool gemarkeerd met de `Tool` attribuut en stuurt drie notificaties naar de client terwijl elk bestand wordt verwerkt. De `ctx.Info()` methode wordt gebruikt om informatieve berichten te verzenden.
 
-Om notificaties in je .NET MCP server in te schakelen, zorg dat je een streaming transport gebruikt:
+Zorg ervoor dat je in je .NET MCP server een streaming transport gebruikt om notificaties te ondersteunen:
 
 ```csharp
 var builder = McpBuilder.Create();
@@ -352,7 +354,7 @@ async with ClientSession(
 ) as session:
 ```
 
-In bovenstaande code controleert de `message_handler` functie of het inkomende bericht een notificatie is. Zo ja, dan print het de notificatie; anders verwerkt het het als een regulier serverbericht. Let ook op hoe de `ClientSession` wordt geïnitialiseerd met de `message_handler` om inkomende notificaties af te handelen.
+In bovenstaande code controleert de functie `message_handler` of het inkomende bericht een notificatie is. Zo ja, dan drukt het de notificatie af, anders wordt het verwerkt als een gewoon serverbericht. Let ook op hoe `ClientSession` wordt geïnitialiseerd met `message_handler` om inkomende notificaties af te handelen.
 
 #### .NET
 
@@ -383,15 +385,15 @@ await client.InitializeAsync();
 // Now the client will process notifications through the MessageHandler
 ```
 
-In dit .NET voorbeeld controleert de `MessageHandler` functie of het inkomende bericht een notificatie is. Zo ja, dan print het de notificatie; anders verwerkt het het als een regulier serverbericht. De `ClientSession` wordt geïnitialiseerd met de message handler via de `ClientSessionOptions`.
+In dit .NET voorbeeld controleert de functie `MessageHandler` of het binnenkomende bericht een notificatie is. Zo ja, wordt de notificatie afgedrukt; anders wordt het als een regulier serverbericht verwerkt. De `ClientSession` wordt geïnitialiseerd met de message handler via `ClientSessionOptions`.
 
-Voor het inschakelen van notificaties, zorg dat je server een streaming transport gebruikt (zoals `streamable-http`) en dat je client een message handler implementeert om notificaties te verwerken.
+Zorg ervoor dat je server een streaming transport gebruikt (zoals `streamable-http`) en dat de client een message handler heeft om notificaties te verwerken.
 
 ## Voortgangsnotificaties & Scenario's
 
-Deze sectie legt het concept van voortgangsnotificaties in MCP uit, waarom ze belangrijk zijn, en hoe je ze implementeert met Streamable HTTP. Ook vind je er een praktische opdracht om je begrip te versterken.
+Deze sectie legt het concept van voortgangsnotificaties in MCP uit, waarom ze belangrijk zijn en hoe je ze kunt implementeren met Streamable HTTP. Je vindt ook een praktische opdracht om je begrip te versterken.
 
-Voortgangsnotificaties zijn realtime berichten die van de server naar de client worden gestuurd tijdens langdurige bewerkingen. In plaats van te wachten tot het hele proces klaar is, houdt de server de client op de hoogte van de huidige status. Dit verbetert transparantie, gebruikerservaring, en maakt debugging eenvoudiger.
+Voortgangsnotificaties zijn realtime berichten die de server naar de client stuurt tijdens langlopende operaties. In plaats van te wachten tot het hele proces klaar is, houdt de server de client op de hoogte van de actuele status. Dit verbetert transparantie, gebruikerservaring en maakt foutopsporing eenvoudiger.
 
 **Voorbeeld:**
 
@@ -404,20 +406,20 @@ Voortgangsnotificaties zijn realtime berichten die van de server naar de client 
 
 ```
 
-### Waarom Voortgangsnotificaties Gebruiken?
+### Waarom voortgangsnotificaties gebruiken?
 
-Voortgangsnotificaties zijn om verschillende redenen essentieel:
+Voortgangsnotificaties zijn om meerdere redenen essentieel:
 
 - **Betere gebruikerservaring:** Gebruikers zien updates terwijl het werk vordert, niet alleen aan het einde.
 - **Realtime feedback:** Clients kunnen voortgangsbalken of logs tonen, waardoor de app responsief aanvoelt.
-- **Eenvoudiger debuggen en monitoren:** Ontwikkelaars en gebruikers zien waar een proces traag is of vastloopt.
+- **Makkelijker debuggen en monitoren:** Ontwikkelaars en gebruikers zien waar een proces traag is of vastloopt.
 
-### Hoe Voortgangsnotificaties Implementeren
+### Hoe voortgangsnotificaties implementeren
 
-Zo implementeer je voortgangsnotificaties in MCP:
+Zo kun je voortgangsnotificaties implementeren in MCP:
 
-- **Op de server:** Gebruik `ctx.info()` of `ctx.log()` om notificaties te sturen zodra elk item verwerkt wordt. Hierdoor ontvangt de client een bericht vóór het hoofdresultaat klaar is.
-- **Op de client:** Implementeer een message handler die luistert naar en notificaties toont zodra ze binnenkomen. Deze handler onderscheidt notificaties van het uiteindelijke resultaat.
+- **Aan de serverzijde:** Gebruik `ctx.info()` of `ctx.log()` om notificaties te versturen naarmate elk item verwerkt wordt. Dit stuurt berichten naar de client vóór het hoofdresultaat klaar is.
+- **Aan de clientzijde:** Implementeer een message handler die luistert naar en notificaties toont zodra ze binnenkomen. Deze handler onderscheidt notificaties van het eindresultaat.
 
 **Servervoorbeeld:**
 
@@ -446,126 +448,126 @@ async def message_handler(message):
 
 ## Beveiligingsoverwegingen
 
-Bij het implementeren van MCP-servers met HTTP-gebaseerde transportsystemen is beveiliging een uiterst belangrijke kwestie die zorgvuldige aandacht vereist voor meerdere aanvalsvectoren en beschermingsmechanismen.
+Bij het implementeren van MCP-servers met HTTP-gebaseerde transports is beveiliging van het grootste belang en vereist het zorgvuldige aandacht voor verschillende aanvalsvectoren en beschermingsmechanismen.
 
 ### Overzicht
 
-Beveiliging is cruciaal bij het openbaar maken van MCP-servers via HTTP. Streamable HTTP brengt nieuwe aanvalspunten met zich mee en vraagt om een zorgvuldige configuratie.
+Beveiliging is cruciaal bij het blootstellen van MCP-servers via HTTP. Streamable HTTP introduceert nieuwe aanvalsvlakken en vereist zorgvuldige configuratie.
 
-### Belangrijke Punten
-
-- **Validatie van Origin Header:** Valideer altijd de `Origin` header om DNS-rebinding aanvallen te voorkomen.
-- **Binding aan Localhost:** Voor lokale ontwikkeling, bind servers aan `localhost` om blootstelling aan het openbare internet te vermijden.
-- **Authenticatie:** Implementeer authenticatie (bijv. API keys, OAuth) voor productie-omgevingen.
-- **CORS:** Configureer Cross-Origin Resource Sharing (CORS) beleid om toegang te beperken.
-- **HTTPS:** Gebruik HTTPS in productie om verkeer te versleutelen.
+### Belangrijke punten
+- **Validatie van de Origin-header**: Valideer altijd de `Origin`-header om DNS-rebinding-aanvallen te voorkomen.
+- **Binding aan localhost**: Bind servers voor lokale ontwikkeling aan `localhost` om te voorkomen dat ze blootgesteld worden aan het openbare internet.
+- **Authenticatie**: Implementeer authenticatie (bijv. API-sleutels, OAuth) voor productie-implementaties.
+- **CORS**: Configureer Cross-Origin Resource Sharing (CORS)-beleid om toegang te beperken.
+- **HTTPS**: Gebruik HTTPS in productie om verkeer te versleutelen.
 
 ### Best Practices
 
-- Vertrouw nooit op inkomende verzoeken zonder validatie.
+- Vertrouw nooit op binnenkomende verzoeken zonder validatie.
 - Log en monitor alle toegang en fouten.
-- Update regelmatig dependencies om beveiligingslekken te dichten.
+- Werk afhankelijkheden regelmatig bij om beveiligingskwetsbaarheden te verhelpen.
 
 ### Uitdagingen
-- Balanceren van beveiliging met gebruiksgemak bij ontwikkeling
+
+- Balanceren tussen beveiliging en ontwikkelgemak
 - Zorgen voor compatibiliteit met verschillende clientomgevingen
 
 ## Upgraden van SSE naar Streamable HTTP
 
-Voor applicaties die momenteel Server-Sent Events (SSE) gebruiken, biedt migreren naar Streamable HTTP verbeterde mogelijkheden en een betere lange-termijnhoudbaarheid voor je MCP-implementaties.
+Voor applicaties die momenteel Server-Sent Events (SSE) gebruiken, biedt migratie naar Streamable HTTP verbeterde mogelijkheden en betere duurzaamheid op lange termijn voor je MCP-implementaties.
 
-### Waarom Upgraden?
+### Waarom upgraden?
 
-Er zijn twee sterke redenen om van SSE naar Streamable HTTP te upgraden:
+Er zijn twee sterke redenen om te upgraden van SSE naar Streamable HTTP:
 
-- Streamable HTTP biedt betere schaalbaarheid, compatibiliteit en rijkere notificatie-ondersteuning dan SSE.
+- Streamable HTTP biedt betere schaalbaarheid, compatibiliteit en uitgebreidere notificatieondersteuning dan SSE.
 - Het is de aanbevolen transportmethode voor nieuwe MCP-applicaties.
 
 ### Migratiestappen
 
-Hier lees je hoe je kunt migreren van SSE naar Streamable HTTP in je MCP-applicaties:
+Zo kun je migreren van SSE naar Streamable HTTP in je MCP-applicaties:
 
-- **Werk de servercode bij** om `transport="streamable-http"` te gebruiken in `mcp.run()`.
-- **Werk de clientcode bij** om `streamablehttp_client` te gebruiken in plaats van de SSE-client.
-- **Implementeer een berichtafhandelaar** in de client om notificaties te verwerken.
+- **Werk servercode bij** naar `transport="streamable-http"` in `mcp.run()`.
+- **Werk clientcode bij** om `streamablehttp_client` te gebruiken in plaats van de SSE-client.
+- **Implementeer een message handler** in de client om notificaties te verwerken.
 - **Test op compatibiliteit** met bestaande tools en workflows.
 
 ### Compatibiliteit behouden
 
-Het wordt aanbevolen om compatibiliteit met bestaande SSE-clients te behouden tijdens het migratieproces. Hier enkele strategieën:
+Het is aan te raden om compatibiliteit met bestaande SSE-clients te behouden tijdens de migratie. Hier zijn enkele strategieën:
 
-- Je kunt zowel SSE als Streamable HTTP ondersteunen door beide transports op verschillende eindpunten te draaien.
-- Migreer clients geleidelijk naar de nieuwe transportlaag.
+- Je kunt zowel SSE als Streamable HTTP ondersteunen door beide transports op verschillende endpoints te draaien.
+- Migreer clients geleidelijk naar de nieuwe transportmethode.
 
 ### Uitdagingen
 
-Zorg dat je de volgende uitdagingen aanpakt tijdens migratie:
+Zorg dat je de volgende uitdagingen aanpakt tijdens de migratie:
 
-- Zeker stellen dat alle clients worden geüpdatet
-- Omgaan met verschillen in notificatiebezorging
+- Zeker stellen dat alle clients worden bijgewerkt
+- Omgaan met verschillen in notificatielevering
 
 ## Beveiligingsoverwegingen
 
 Beveiliging moet een topprioriteit zijn bij het implementeren van elke server, vooral bij het gebruik van HTTP-gebaseerde transports zoals Streamable HTTP in MCP.
 
-Bij het implementeren van MCP-servers met HTTP-gebaseerde transports wordt beveiliging een cruciale zorg die aandacht vereist voor meerdere aanvalsvectoren en beschermingsmechanismen.
+Bij het implementeren van MCP-servers met HTTP-gebaseerde transports wordt beveiliging een cruciale factor die aandacht vereist voor meerdere aanvalsvectoren en beschermingsmechanismen.
 
 ### Overzicht
 
-Beveiliging is essentieel wanneer MCP-servers over HTTP worden blootgesteld. Streamable HTTP introduceert nieuwe aanvalsvlakken en vereist zorgvuldige configuratie.
+Beveiliging is essentieel wanneer MCP-servers via HTTP worden blootgesteld. Streamable HTTP introduceert nieuwe aanvalsvlakken en vereist zorgvuldige configuratie.
 
-Hier enkele belangrijke beveiligingsoverwegingen:
+Hier zijn enkele belangrijke beveiligingsoverwegingen:
 
 - **Validatie van de Origin-header**: Valideer altijd de `Origin`-header om DNS-rebinding-aanvallen te voorkomen.
-- **Binden aan localhost**: Voor lokale ontwikkeling, bind servers aan `localhost` om te voorkomen dat ze openbaar toegankelijk zijn.
-- **Authenticatie**: Implementeer authenticatie (bijv. API-sleutels, OAuth) voor productieomgevingen.
-- **CORS**: Configureer Cross-Origin Resource Sharing (CORS) om toegang te beperken.
-- **HTTPS**: Gebruik HTTPS in productie om het verkeer te versleutelen.
+- **Binding aan localhost**: Bind servers voor lokale ontwikkeling aan `localhost` om te voorkomen dat ze blootgesteld worden aan het openbare internet.
+- **Authenticatie**: Implementeer authenticatie (bijv. API-sleutels, OAuth) voor productie-implementaties.
+- **CORS**: Configureer Cross-Origin Resource Sharing (CORS)-beleid om toegang te beperken.
+- **HTTPS**: Gebruik HTTPS in productie om verkeer te versleutelen.
 
-### Beste praktijken
+### Best Practices
 
-Daarnaast zijn hier enkele beste praktijken bij het implementeren van beveiliging in je MCP-streamingserver:
+Daarnaast volgen hier enkele best practices voor het implementeren van beveiliging in je MCP-streamingserver:
 
-- Vertrouw nooit binnenkomende verzoeken zonder validatie.
+- Vertrouw nooit op binnenkomende verzoeken zonder validatie.
 - Log en monitor alle toegang en fouten.
-- Werk afhankelijkheden regelmatig bij om beveiligingslekken te dichten.
+- Werk afhankelijkheden regelmatig bij om beveiligingskwetsbaarheden te verhelpen.
 
 ### Uitdagingen
 
 Je zult enkele uitdagingen tegenkomen bij het implementeren van beveiliging in MCP-streamingservers:
 
-- Balanceren van beveiliging met gebruiksgemak bij ontwikkeling
+- Balanceren tussen beveiliging en ontwikkelgemak
 - Zorgen voor compatibiliteit met verschillende clientomgevingen
 
-### Opdracht: Bouw je eigen Streaming MCP-app
+### Opdracht: Bouw je eigen streaming MCP-app
 
-**Scenario:**
-Bouw een MCP-server en client waarbij de server een lijst met items (bijv. bestanden of documenten) verwerkt en een notificatie verstuurt voor elk verwerkt item. De client moet elke notificatie tonen zodra deze binnenkomt.
+**Scenario:**  
+Bouw een MCP-server en client waarbij de server een lijst items verwerkt (bijv. bestanden of documenten) en een notificatie verzendt voor elk verwerkt item. De client moet elke notificatie tonen zodra deze binnenkomt.
 
 **Stappen:**
 
-1. Implementeer een servertool die een lijst verwerkt en notificaties verstuurt voor elk item.
-2. Implementeer een client met een berichtafhandelaar om notificaties realtime weer te geven.
-3. Test je implementatie door zowel server als client te draaien, en observeer de notificaties.
+1. Implementeer een serverttool die een lijst verwerkt en notificaties voor elk item verzendt.
+2. Implementeer een client met een message handler om notificaties real-time weer te geven.
+3. Test je implementatie door server en client te draaien en de notificaties te observeren.
 
-[Oplossing](./solution/README.md)
+[Solution](./solution/README.md)
 
-## Verder lezen & wat nu?
+## Verdere literatuur & wat nu?
 
-Om je reis met MCP-streaming voort te zetten en je kennis uit te breiden, biedt deze sectie aanvullende bronnen en aanbevolen vervolgstappen voor het bouwen van geavanceerdere applicaties.
+Om je reis met MCP-streaming voort te zetten en je kennis uit te breiden, biedt deze sectie extra bronnen en voorgestelde volgende stappen om meer geavanceerde applicaties te bouwen.
 
-### Verder lezen
+### Verdere literatuur
 
-- [Microsoft: Inleiding tot HTTP Streaming](https://learn.microsoft.com/aspnet/core/fundamentals/http-requests?view=aspnetcore-8.0&WT.mc_id=%3Fwt.mc_id%3DMVP_452430#streaming)
+- [Microsoft: Introduction to HTTP Streaming](https://learn.microsoft.com/aspnet/core/fundamentals/http-requests?view=aspnetcore-8.0&WT.mc_id=%3Fwt.mc_id%3DMVP_452430#streaming)
 - [Microsoft: Server-Sent Events (SSE)](https://learn.microsoft.com/azure/application-gateway/for-containers/server-sent-events?tabs=server-sent-events-gateway-api&WT.mc_id=%3Fwt.mc_id%3DMVP_452430)
 - [Microsoft: CORS in ASP.NET Core](https://learn.microsoft.com/aspnet/core/security/cors?view=aspnetcore-8.0&WT.mc_id=%3Fwt.mc_id%3DMVP_452430)
 - [Python requests: Streaming Requests](https://requests.readthedocs.io/en/latest/user/advanced/#streaming-requests)
 
 ### Wat nu?
 
-- Probeer geavanceerdere MCP-tools te bouwen die streaming gebruiken voor real-time analyse, chat of gezamenlijke bewerking.
-- Verken integratie van MCP-streaming met frontend frameworks (React, Vue, enz.) voor live UI-updates.
-- Volgende: [Het AI Toolkit gebruiken voor VSCode](../07-aitk/README.md)
+- Probeer meer geavanceerde MCP-tools te bouwen die streaming gebruiken voor realtime analytics, chat of collaboratief bewerken.
+- Verken integratie van MCP-streaming met frontend-frameworks (React, Vue, enz.) voor live UI-updates.
+- Volgende: [Utilising AI Toolkit for VSCode](../07-aitk/README.md)
 
 ---
 

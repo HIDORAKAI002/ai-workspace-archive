@@ -1,35 +1,38 @@
 # بررسی عمیق ویژگی‌های پروتکل MCP
 
-این راهنما به بررسی ویژگی‌های پیشرفته پروتکل MCP می‌پردازد که فراتر از مدیریت پایه‌ای ابزارها و منابع هستند. درک این ویژگی‌ها به شما کمک می‌کند سرورهای MCP مقاوم‌تر، کاربرپسندتر و آماده اجرا در محیط تولید بسازید.
+این راهنما ویژگی‌های پیشرفته پروتکل MCP را که فراتر از مدیریت اولیه ابزارها و منابع است بررسی می‌کند. درک این ویژگی‌ها به شما کمک می‌کند سرورهای MCP پایدارتر، کاربرپسندتر و آماده تولید بسازید.
+
+> **نگاهی به آینده:** نسخه نامزد انتشار `2026-07-28` قابلیت Logging را منسوخ می‌کند (و به جای آن `stderr` برای stdio و OpenTelemetry برای رصد ساختاری استفاده می‌کند)، مدل `initialize`/جلسه را که در بخش رویدادهای چرخه عمر سرور زیر اشاره شده حذف می‌کند و ویژگی تجربی Tasks را به یک اکستنشن اختصاصی Tasks با چرخه عمر جدید `tasks/get`/`tasks/update`/`tasks/cancel` منتقل می‌کند. ببینید [چه چیزهایی در MCP تغییر می‌کند: نامزد انتشار 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## ویژگی‌های پوشش داده شده
 
-1. **اطلاع‌رسانی پیشرفت** - گزارش پیشرفت برای عملیات طولانی‌مدت  
-2. **لغو درخواست** - اجازه به مشتریان برای لغو درخواست‌های در حال اجرا  
-3. **قالب‌های منابع** - آدرس‌های دینامیک منابع با پارامترها  
-4. **رویدادهای چرخه عمر سرور** - مقداردهی اولیه و خاموش‌کردن درست  
-5. **کنترل لاگ‌گیری** - پیکربندی لاگ‌گیری سمت سرور  
-6. **الگوهای مدیریت خطا** - پاسخ‌های خطای سازگار  
+1. **اعلان‌های پیشرفت** - گزارش پیشرفت برای عملیات طولانی‌مدت
+2. **لغو درخواست** - اجازه به مشتری‌ها برای لغو درخواست‌های در حال اجرا
+3. **قالب‌های منبع** - آدرس‌های URI پویا با پارامترها
+4. **رویدادهای چرخه عمر سرور** - راه‌اندازی و خاموش‌سازی درست
+5. **کنترل لاگ‌گذاری** - پیکربندی لاگ‌گذاری در سمت سرور
+6. **الگوهای مدیریت خطا** - پاسخ‌های خطای منسجم
 
 ---
 
-## 1. اطلاع‌رسانی پیشرفت
+## 1. اعلان‌های پیشرفت
 
-برای عملیات‌هایی که زمان می‌برند (پردازش داده، دانلود فایل، تماس با API)، اطلاع‌رسانی پیشرفت کاربران را مطلع نگه می‌دارد.
+برای عملیات زمان‌بر (پردازش داده، دانلود فایل، فراخوانی API)، اعلان‌های پیشرفت کاربران را مطلع نگه می‌دارد.
 
-### نحوه عملکرد
+### چطور کار می‌کند
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (عملیات طولانی)
+    Client->>Server: ابزارها/تماس (عملیات طولانی)
     Server-->>Client: اعلان: پیشرفت ۱۰٪
     Server-->>Client: اعلان: پیشرفت ۵۰٪
     Server-->>Client: اعلان: پیشرفت ۹۰٪
-    Server->>Client: نتیجه (کامل)
-```  
+    Server->>Client: نتیجه (کامل شده)
+```
+
 ### پیاده‌سازی پایتون
 
 ```python
@@ -49,11 +52,11 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # پردازش تکه
+            # پردازش بخش
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # ارسال اعلان پیشرفت
+            # ارسال اطلاع‌رسانی پیشرفت
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -89,7 +92,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-  
+
 ### پیاده‌سازی تایپ‌اسکریپت
 
 ```typescript
@@ -122,8 +125,8 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-  
-### مدیریت مشتری (پایتون)
+
+### مدیریت سمت کلاینت (پایتون)
 
 ```python
 async def handle_progress(notification):
@@ -137,12 +140,12 @@ session.on_notification("notifications/progress", handle_progress)
 # فراخوانی ابزار (به‌روزرسانی‌های پیشرفت از طریق هندلر دریافت می‌شوند)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-  
+
 ---
 
 ## 2. لغو درخواست
 
-اجازه دهید مشتریان درخواست‌هایی که دیگر لازم نیستند یا زمان‌بر هستند را لغو کنند.
+اجازه دهید کلاینت‌ها درخواست‌هایی که دیگر لازم ندارند یا خیلی طول می‌کشند را لغو کنند.
 
 ### پیاده‌سازی پایتون
 
@@ -160,8 +163,8 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # جستجو در میان بسیاری از صفحات
-            # بررسی اینکه آیا لغو درخواست شده است
+        for page in range(100):  # جستجو در بین صفحات متعدد
+            # بررسی کنید آیا لغو درخواست شده است
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -169,7 +172,7 @@ async def long_running_search(query: str, ctx) -> str:
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # تأخیر کوچک اجازه بررسی لغو را می‌دهد
+            # تأخیر کوتاه اجازه بررسی لغو را می‌دهد
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -197,7 +200,7 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-  
+
 ### پیاده‌سازی زمینه لغو
 
 ```python
@@ -233,8 +236,8 @@ class CancellableContext:
         except asyncio.TimeoutError:
             pass  # تایم‌اوت عادی، ادامه دهید
 ```
-  
-### لغو سمت مشتری
+
+### لغو سمت کلاینت
 
 ```python
 import asyncio
@@ -257,12 +260,12 @@ async def search_with_timeout(session, query, timeout=30):
         })
         return "Search timed out"
 ```
-  
+
 ---
 
-## 3. قالب‌های منابع
+## 3. قالب‌های منبع
 
-قالب‌های منابع امکان ساختار URI داینامیک با پارامترها را فراهم می‌کنند که برای APIها و پایگاه‌های داده مفید است.
+قالب‌های منبع اجازه می‌دهند URI ها به صورت پویا با پارامترها ساخته شوند که در APIها و پایگاه داده‌ها کاربرد دارد.
 
 ### تعریف قالب‌ها
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # تجزیه آدرس URI برای استخراج پارامترها
+    # تجزیه URI برای استخراج پارامترها
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -316,7 +319,7 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-  
+
 ### پیاده‌سازی تایپ‌اسکریپت
 
 ```typescript
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // تجزیه‌ی URI مسئله‌ی گیت‌هاب
+  // تجزیه URI مسئله گیت‌هاب
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -359,14 +362,14 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-  
+
 ---
 
 ## 4. رویدادهای چرخه عمر سرور
 
-مدیریت درست مقداردهی اولیه و خاموش‌کردن اطمینان از مدیریت پاک منابع را به همراه دارد.
+مدیریت درست راه‌اندازی و خاموش‌سازی اطمینان می‌دهد منابع به درستی مدیریت شوند.
 
-### مدیریت چرخه عمر پایتون
+### مدیریت چرخه عمر در پایتون
 
 ```python
 from mcp.server import Server
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# حالت مشترک
+# وضعیت مشترک
 db_connection = None
 cache = None
 
@@ -383,7 +386,7 @@ async def lifespan(server: Server):
     """Manage server lifecycle."""
     global db_connection, cache
     
-    # راه اندازی
+    # راه‌اندازی
     print("🚀 Server starting...")
     db_connection = await create_database_connection()
     cache = await create_cache_client()
@@ -405,8 +408,8 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-  
-### چرخه عمر تایپ‌اسکریپت
+
+### چرخه عمر در تایپ‌اسکریپت
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // استفاده‌ی ایمن از this.dbConnection
+      // استفاده ایمن از this.dbConnection
       // ...
     });
   }
 }
 
-// استفاده با خاموشی نرم و کنترل‌شده
+// استفاده با خاموش‌کردن تدریجی
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -462,14 +465,14 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-  
+
 ---
 
-## 5. کنترل لاگ‌گیری
+## 5. کنترل لاگ‌گذاری
 
-MCP سطوح لاگ‌گیری سمت سرور را پشتیبانی می‌کند که مشتریان می‌توانند آن را کنترل کنند.
+MCP از سطوح لاگ‌گذاری در سمت سرور پشتیبانی می‌کند که کلاینت‌ها می‌توانند کنترل کنند.
 
-### پیاده‌سازی سطوح لاگ‌گیری
+### پیاده‌سازی سطوح لاگ‌گذاری
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# نگاشت سطوح MCP به سطوح لاگ‌گیری پایتون
+# نقشه‌برداری سطح‌های MCP به سطح‌های لاگ‌گیری پایتون
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,8 +511,8 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-  
-### ارسال پیام‌های لاگ به مشتری
+
+### ارسال پیام‌های لاگ به کلاینت
 
 ```python
 @app.tool()
@@ -522,7 +525,7 @@ async def complex_operation(input: str, ctx) -> str:
         message=f"Starting complex operation with input: {input}"
     )
     
-    # انجام کار...
+    # در حال انجام کار...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -532,12 +535,12 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-  
+
 ---
 
 ## 6. الگوهای مدیریت خطا
 
-مدیریت خطای سازگار به بهبود اشکال‌زدایی و تجربه کاربری کمک می‌کند.
+مدیریت خطای منسجم باعث بهبود خطایابی و تجربه کاربر می‌شود.
 
 ### کدهای خطای MCP
 
@@ -568,7 +571,7 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-  
+
 ### پاسخ‌های خطای ساختاریافته
 
 ```python
@@ -605,7 +608,7 @@ async def safe_operation(input: str) -> str:
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-  
+
 ### مدیریت خطا در تایپ‌اسکریپت
 
 ```typescript
@@ -650,22 +653,22 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-  
+
 ---
 
-## ویژگی‌های آزمایشی (MCP 2025-11-25)
+## ویژگی‌های تجربی (MCP 2025-11-25)
 
-این ویژگی‌ها در مشخصات به عنوان آزمایشی مشخص شده‌اند:
+این ویژگی‌ها در مشخصات به عنوان تجربی علامت‌گذاری شده‌اند:
 
 ### تسک‌ها (عملیات طولانی‌مدت)
 
 ```python
-# وظایف امکان ردیابی عملیات بلندمدت را با وضعیت فراهم می‌کنند
+# کارها اجازه می‌دهند عملیات‌های طولانی با وضعیت ردیابی شوند
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # گزارش شروع وظیفه
+    # گزارش شروع کار
     await ctx.report_status("running", "Initializing training...")
     
     # حلقه آموزش
@@ -681,16 +684,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-  
+
 ### توضیحات ابزار
 
 ```python
-# حاشیه‌نویسی‌ها اطلاعات متادیتا درباره رفتار ابزار را فراهم می‌کنند
+# حاشیه‌نویسی‌ها فراداده‌ای درباره رفتار ابزار فراهم می‌کنند
 @app.tool(
     annotations={
-        "destructive": False,      # داده را تغییر نمی‌دهد
-        "idempotent": True,        # امن برای دوباره امتحان کردن
-        "timeout_seconds": 30,     # مدت زمان حداکثر مورد انتظار
+        "destructive": False,      # داده‌ها را تغییر نمی‌دهد
+        "idempotent": True,        # ایمن برای تلاش مجدد
+        "timeout_seconds": 30,     # حداکثر مدت زمان مورد انتظار
         "requires_approval": False # نیاز به تأیید کاربر ندارد
     }
 )
@@ -698,27 +701,27 @@ async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-  
+
 ---
 
 ## مراحل بعدی
 
-- [بخش ۸ - بهترین روش‌ها](../../08-BestPractices/README.md)  
-- [۵.۱۴ - مهندسی زمینه](../mcp-contextengineering/README.md)  
-- [تغییرات مشخصات MCP](https://spec.modelcontextprotocol.io/)  
+- [ماژول ۸ - بهترین روش‌ها](../../08-BestPractices/README.md)
+- [۵.۱۴ - مهندسی زمینه](../mcp-contextengineering/README.md)
+- [تغییرات مشخصات MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
-## منابع اضافی
+## منابع بیشتر
 
-- [مشخصات MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [کدهای خطای JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [نمونه‌های SDK پایتون](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
-- [نمونه‌های SDK تایپ‌اسکریپت](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [مشخصات MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [کدهای خطای JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [مثال‌های Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [مثال‌های TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**سلب مسئولیت**:  
-این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما تلاش می‌کنیم دقت را حفظ کنیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است شامل خطاها یا نادرستی‌هایی باشند. سند اصلی به زبان بومی خود باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما مسئول هیچ گونه سوءتفاهم یا برداشت نادرست ناشی از استفاده از این ترجمه نیستیم.
+**سلب مسئولیت**:
+این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما در تلاش برای دقت هستیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است شامل خطاها یا نادرستی‌هایی باشند. سند اصلی به زبان مادری خود باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما در قبال هرگونه سوء تفاهم یا برداشت نادرست ناشی از استفاده از این ترجمه مسئولیتی نداریم.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

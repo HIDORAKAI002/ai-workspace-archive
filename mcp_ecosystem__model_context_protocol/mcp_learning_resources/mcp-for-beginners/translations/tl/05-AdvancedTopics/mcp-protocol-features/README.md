@@ -1,21 +1,23 @@
-# MCP Protocol Features Deep Dive
+# Malalim na Pagsusuri sa Mga Tampok ng MCP Protocol
 
-Ang gabay na ito ay sumasaliksik sa mga advanced na tampok ng MCP protocol na lampas sa mga pangunahing paghawak ng tool at resource. Ang pag-unawa sa mga tampok na ito ay tumutulong sa iyo na makabuo ng mas matatag, madaling gamitin, at handang gamitin sa produksyon na mga server ng MCP.
+Ang gabay na ito ay sumusuri sa mga advanced na tampok ng MCP protocol na lampas sa mga pangunahing pangangasiwa ng tool at resource. Ang pag-unawa sa mga tampok na ito ay tumutulong sa iyo na bumuo ng mas matatag, user-friendly, at handang gamitin sa produksyon na mga MCP server.
+
+> **Tumingin sa hinaharap:** ang release candidate ng `2026-07-28` ay hindi na gagamitin ang Logging primitive (mas pinapaboran ang `stderr` para sa stdio at OpenTelemetry para sa structured observability), inaalis ang modelong `initialize`/session na binanggit sa Server Lifecycle Events sa ibaba, at inililipat ang experimental na Tampok na Tasks sa isang dedikadong Tasks extension na may bagong lifecycle na `tasks/get`/`tasks/update`/`tasks/cancel`. Tingnan ang [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Mga Tampok na Tinalakay
 
-1. **Progress Notifications** - Ulat ng progreso para sa mga pangmatagalang operasyon
-2. **Request Cancellation** - Payagan ang mga kliyente na kanselahin ang mga naka-flight na kahilingan
-3. **Resource Templates** - Dynamic na mga URI ng resource na may mga parameter
-4. **Server Lifecycle Events** - Wastong pagsisimula at pagtigil
-5. **Logging Control** - Pag-configure ng pag-log sa server-side
-6. **Error Handling Patterns** - Konsistent na mga sagot sa error
+1. **Progress Notifications** - Mag-ulat ng progreso para sa mga operasyon na tumatagal
+2. **Request Cancellation** - Payagan ang mga kliyente na kanselahin ang mga nakabinbing kahilingan
+3. **Resource Templates** - Dinamikong mga URI ng resource na may mga parameter
+4. **Server Lifecycle Events** - Angkop na initialization at shutdown
+5. **Logging Control** - Konfigurasyon ng pag-log sa server side
+6. **Error Handling Patterns** - Konsistenteng mga tugon sa error
 
 ---
 
 ## 1. Progress Notifications
 
-Para sa mga operasyong tumatagal ng oras (pagpoproseso ng data, pag-download ng file, tawag sa API), pinananatiling alam ang mga gumagamit sa pamamagitan ng mga progress notification.
+Para sa mga operasyon na tumatagal (pagproseso ng data, pag-download ng file, API calls), pinananatiling may alam ang mga gumagamit sa pamamagitan ng mga notification ng progreso.
 
 ### Paano Ito Gumagana
 
@@ -25,11 +27,12 @@ sequenceDiagram
     participant Server
     
     Client->>Server: tools/call (mahabang operasyon)
-    Server-->>Client: paunawa: progreso 10%
-    Server-->>Client: paunawa: progreso 50%
-    Server-->>Client: paunawa: progreso 90%
-    Server->>Client: resulta (kumpleto)
+    Server-->>Client: abiso: progreso 10%
+    Server-->>Client: abiso: progreso 50%
+    Server-->>Client: abiso: progreso 90%
+    Server->>Client: resulta (tapos na)
 ```
+
 ### Implementasyon sa Python
 
 ```python
@@ -43,13 +46,13 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Kunin ang laki ng file para sa kalkulasyon ng progreso
+    # Kunin ang laki ng file para sa pagkalkula ng progreso
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Proseso ng bahagi
+            # Proseso ang bahagi
             await process_chunk(chunk)
             processed += len(chunk)
             
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // Magpadala ng notipikasyon ng progreso
+      // Magpadala ng abiso ng progreso
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Pag-handle ng Kliyente (Python)
+### Pangangasiwa ng Kliyente (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,18 +134,18 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Irehistro ang tagapangasiwa
+# Magrehistro ng tagapamahala
 session.on_notification("notifications/progress", handle_progress)
 
-# Tawagan ang kasangkapan (ang mga update sa progreso ay darating sa pamamagitan ng tagapangasiwa)
+# Tawagan ang kasangkapan (ang mga pag-update ng progreso ay darating sa pamamagitan ng tagapamahala)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. Request Cancellation
+## 2. Pagkansela ng Kahilingan
 
-Payagan ang mga kliyente na kanselahin ang mga kahilingang hindi na kailangan o masyadong matagal.
+Payagan ang mga kliyente na kanselahin ang mga kahilingan na hindi na kailangan o masyadong matagal.
 
 ### Implementasyon sa Python
 
@@ -160,16 +163,16 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Maghanap sa maraming pahina
+        for page in range(100):  # Maghanap sa maraming mga pahina
             # Suriin kung hiniling ang pagkansela
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # I-simulate ang paghahanap sa pahina
+            # I-simulate ang paghahanap ng pahina
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Maliit na pagkaantala ay nagpapahintulot sa mga pagsusuri ng pagkansela
+            # Maliit na pagkaantala para payagan ang pagsusuri ng pagkansela
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # Karaniwang timeout, magpatuloy
 ```
 
-### Pagkansela mula sa Gilid ng Kliyente
+### Pagkansela sa Panig ng Kliyente
 
 ```python
 import asyncio
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Resource Templates
 
-Pinapayagan ng mga resource template ang dynamic na pagbuo ng URI na may mga parameter, na kapaki-pakinabang para sa mga API at database.
+Pinapayagan ng mga resource template ang dinamiko na pagkakagawa ng URI gamit ang mga parameter, na kapaki-pakinabang para sa mga API at database.
 
 ### Pagtukoy ng Mga Template
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # I-parse ang URI upang kunin ang mga parametro
+    # I-parse ang URI upang kunin ang mga parameter
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. Server Lifecycle Events
 
-Ang wastong pamamahala ng pagsisimula at pagtigil ay nagsisiguro ng malinis na pamamahala ng mga resource.
+Ang angkop na pamamahala sa initialization at shutdown ay nagsisiguro ng maayos na pangangasiwa ng mga resource.
 
 ### Pamamahala ng Lifecycle sa Python
 
@@ -389,7 +392,7 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # Nagsisilbi ang server dito
+    yield  # Nagtatakbo ang server dito
     
     # Pagsasara
     print("🛑 Server shutting down...")
@@ -425,7 +428,7 @@ class ManagedServer {
   }
   
   async start() {
-    // I-initialize ang mga resources
+    // Simulan ang mga pinagkukunan
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
@@ -435,7 +438,7 @@ class ManagedServer {
   }
   
   async stop() {
-    // Linisin ang mga resources
+    // Linisin ang mga pinagkukunan
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. Logging Control
+## 5. Pagkontrol ng Logging
 
-Sinusuportahan ng MCP ang mga level ng pag-log sa server na maaaring kontrolin ng mga kliyente.
+Sinusuportahan ng MCP ang mga antas ng pag-log sa panig ng server na maaaring kontrolin ng mga kliyente.
 
-### Pagpapatupad ng Mga Level ng Pag-log
+### Pagpapatupad ng Mga Antas ng Logging
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# I-map ang mga level ng MCP sa mga level ng logging ng Python
+# Iugnay ang mga antas ng MCP sa mga antas ng pag-log ng Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -516,7 +519,7 @@ async def debug_operation(data: str) -> str:
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Magpadala ng paunawa ng log sa kliyente
+    # Magpadala ng notification ng log sa kliyente
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Error Handling Patterns
+## 6. Mga Pattern sa Pagharap sa Error
 
-Pinapahusay ng konsistent na paghawak sa error ang debugging at karanasan ng gumagamit.
+Ang konsistenteng pagharap sa error ay nagpapabuti sa pagdebug at karanasan ng gumagamit.
 
-### Mga MCP Error Code
+### Mga Kodigo ng Error ng MCP
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,7 +572,7 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Mga Istrakturadong Tugon sa Error
+### Mga Istrukturadong Tugon sa Error
 
 ```python
 @app.tool()
@@ -601,12 +604,12 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Itala ang mga di inaasahang error
+        # I-log ang mga hindi inaasahang error
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### Pag-handle ng Error sa TypeScript
+### Pagharap sa Error sa TypeScript
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // Higit pang pag-validate...
+  // Mas maraming beripikasyon...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Mali na sa MCP
+      throw error;  // Isa na itong MCP error
     }
     
     // I-convert ang ibang mga error
@@ -653,19 +656,19 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## Mga Eksperimentong Tampok (MCP 2025-11-25)
+## Mga Eksperimental na Tampok (MCP 2025-11-25)
 
-Ang mga tampok na ito ay minarkahan bilang mga eksperimento sa espesipikasyon:
+Ang mga tampok na ito ay minarkahan bilang eksperimento sa espesipikasyon:
 
-### Mga Task (Mga Pangmatagalang Operasyon)
+### Tasks (Mahahabang Operasyon)
 
 ```python
-# Pinapayagan ng mga gawain ang pagsubaybay ng mga pang-matagalang operasyon na may estado
+# Pinapahintulutan ng mga gawain ang pagsubaybay sa mga pangmatagalang operasyon na may estado
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Iulat ang pagsisimula ng gawain
+    # Iulat na nagsimula ang gawain
     await ctx.report_status("running", "Initializing training...")
     
     # Loop ng pagsasanay
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Mga Tool Annotation
+### Mga Anotasyon ng Tool
 
 ```python
-# Nagbibigay ang mga anotasyon ng metadata tungkol sa asal ng tool
+# Nagbibigay ang mga anotasyon ng metadata tungkol sa pag-uugali ng tool
 @app.tool(
     annotations={
         "destructive": False,      # Hindi binabago ang data
         "idempotent": True,        # Ligtas subukang muli
-        "timeout_seconds": 30,     # Inaasahang max na tagal
-        "requires_approval": False # Hindi kailangan ng pag-apruba ng gumagamit
+        "timeout_seconds": 30,     # Inaasahang pinakamahabang tagal
+        "requires_approval": False # Hindi kailangan ang pag-apruba ng gumagamit
     }
 )
 async def safe_query(query: str) -> str:
@@ -703,13 +706,13 @@ async def safe_query(query: str) -> str:
 
 ## Ano Ang Susunod
 
-- [Module 8 - Best Practices](../../08-BestPractices/README.md)
+- [Module 8 - Mga Pinakamahusay na Kasanayan](../../08-BestPractices/README.md)
 - [5.14 - Context Engineering](../mcp-contextengineering/README.md)
 - [MCP Specification Changelog](https://spec.modelcontextprotocol.io/)
 
 ---
 
-## Karagdagang Mga Mapagkukunan
+## Karagdagang mga Recursos
 
 - [MCP Specification 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [JSON-RPC 2.0 Error Codes](https://www.jsonrpc.org/specification#error_object)
@@ -719,6 +722,6 @@ async def safe_query(query: str) -> str:
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Paunawa**:  
-Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI na pagsasalin na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagamat nilalayon namin ang katumpakan, mangyaring tandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o kawastuhan. Ang orihinal na dokumento sa kaniyang orihinal na wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang hindi pagkakaunawaan o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
+**Pagtatanggi**:
+Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't nagsusumikap kami para sa katumpakan, pakatandaan na ang awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang maling pagkakaintindi o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

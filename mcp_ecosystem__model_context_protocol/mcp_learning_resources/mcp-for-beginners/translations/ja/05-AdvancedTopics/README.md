@@ -1,88 +1,90 @@
 # MCPの高度なトピック
 
-[![Advanced MCP: Secure, Scalable, and Multi-modal AI Agents](../../../translated_images/ja/06.42259eaf91fccfc6.webp)](https://youtu.be/4yjmGvJzYdY)
+[![高度なMCP：セキュアでスケーラブル、多モーダルAIエージェント](../../../translated_images/ja/06.42259eaf91fccfc6.webp)](https://youtu.be/4yjmGvJzYdY)
 
-_(上の画像をクリックすると、このレッスンのビデオが再生されます)_
+_(ビデオを視聴するには上の画像をクリックしてください)_
 
-この章では、マルチモーダル統合、スケーラビリティ、セキュリティのベストプラクティス、エンタープライズ統合など、Model Context Protocol（MCP）実装における一連の高度なトピックを扱います。これらのトピックは、最新のAIシステムの要求に応える堅牢で生産準備が整ったMCPアプリケーションを構築するために重要です。
+本章では、モデルコンテキストプロトコル（MCP）実装における多モーダル統合、スケーラビリティ、セキュリティのベストプラクティス、企業統合など一連の高度なトピックを扱います。これらのトピックは、現代のAIシステムのニーズに応えうる堅牢で本番対応のMCPアプリケーション構築に不可欠です。
 
 ## 概要
 
-このレッスンでは、Model Context Protocol実装の高度な概念を探求し、マルチモーダル統合、スケーラビリティ、セキュリティのベストプラクティス、およびエンタープライズ統合に焦点を当てます。これらのトピックは、エンタープライズ環境の複雑な要件に対応できる生産クラスのMCPアプリケーションを構築するために不可欠です。
+本レッスンでは、モデルコンテキストプロトコルの実装における高度な概念を探求し、多モーダル統合、スケーラビリティ、セキュリティのベストプラクティス、企業統合に焦点を当てます。これらは複雑な要件を持つ企業環境で運用可能な本番品質のMCPアプリケーション構築に不可欠なトピックです。
+
+> <strong>今後の展望：</strong>以下のいくつかのトピックは `2026-07-28` のMCP仕様リリース候補の影響を受けています。ルートコンテキスト（5.4）とサンプリング（5.6）はリリース候補で非推奨とされたプリミティブに基づいており、プロトコル機能（5.16）で言及されている実験的なTasks機能は専用のTasks拡張に移行します。詳細は[What's Changing in MCP: The 2026-07-28 Release Candidate](../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)をご覧ください。
 
 ## 学習目標
 
-このレッスンの終了時には、以下ができるようになります。
+このレッスンの終了時には、以下ができるようになります：
 
-- MCPフレームワーク内でのマルチモーダル機能の実装
-- 高負荷シナリオに対応するスケーラブルなMCPアーキテクチャの設計
-- MCPのセキュリティ原則に基づくセキュリティのベストプラクティスの適用
-- MCPをエンタープライズAIシステムやフレームワークと統合
-- 生産環境でのパフォーマンスと信頼性の最適化
+- MCPフレームワーク内で多モーダル機能を実装する
+- 高負荷シナリオ向けにスケーラブルなMCPアーキテクチャを設計する
+- MCPのセキュリティ原則に沿ったセキュリティのベストプラクティスを適用する
+- MCPを企業のAIシステムやフレームワークと統合する
+- 本番環境でのパフォーマンスと信頼性を最適化する
 
 ## レッスンとサンプルプロジェクト
 
-| Link | タイトル | 説明 |
+| リンク | タイトル | 説明 |
 |------|-------|-------------|
-| [5.1 Integration with Azure](./mcp-integration/README.md) | Azureとの統合 | Azure上でMCPサーバーを統合する方法を学びます |
-| [5.2 Multi modal sample](./mcp-multi-modality/README.md) | MCPマルチモーダルサンプル | 音声、画像、およびマルチモーダル応答のサンプル |
-| [5.3 MCP OAuth2 sample](../../../05-AdvancedTopics/mcp-oauth2-demo) | MCP OAuth2デモ | Authorization ServerおよびResource ServerとしてのMCPのOAuth2を示す最小限のSpring Bootアプリ。安全なトークン発行、保護されたエンドポイント、Azure Container Appsデプロイ、およびAPI Management統合を実演。 |
-| [5.4 Root Contexts](./mcp-root-contexts/README.md) | ルートコンテキスト | ルートコンテキストについての詳細とその実装方法を学びます |
-| [5.5 Routing](./mcp-routing/README.md) | ルーティング | さまざまなタイプのルーティングを学びます |
-| [5.6 Sampling](./mcp-sampling/README.md) | サンプリング | サンプリングの操作方法を学びます |
-| [5.7 Scaling](./mcp-scaling/README.md) | スケーリング | スケーリングについて学びます |
-| [5.8 Security](./mcp-security/README.md) | セキュリティ | MCPサーバーのセキュリティを確保します |
-| [5.9 Web Search sample](./web-search-mcp/README.md) | Web検索MCP | SerpAPIと統合したPythonのMCPサーバーとクライアント。リアルタイムのウェブ、ニュース、商品検索、Q&Aを実現。マルチツールオーケストレーション、外部API連携、堅牢なエラーハンドリングを示します。 |
-| [5.10 Realtime Streaming](./mcp-realtimestreaming/README.md) | ストリーミング | リアルタイムデータストリーミングは、ビジネスやアプリケーションが即時に情報にアクセスしタイムリーな意思決定を行うために不可欠です。 |
-| [5.11 Realtime Web Search](./mcp-realtimesearch/README.md) | ウェブ検索 | リアルタイムのウェブ検索が、AIモデル、検索エンジン、アプリケーション間でのコンテキスト管理の標準化を通じてMCPによりどのように変革されるかを学びます。 |
-| [5.12  Entra ID Authentication for Model Context Protocol Servers](./mcp-security-entra/README.md) | Entra ID認証 | Microsoft Entra IDは、認可されたユーザーとアプリケーションのみがMCPサーバーとやり取りできるようにする堅牢なクラウドベースのIDおよびアクセス管理ソリューションを提供します。 |
-| [5.13 Microsoft Foundry Agent Integration](./mcp-foundry-agent-integration/README.md) | Microsoft Foundry統合 | Model Context ProtocolサーバーをMicrosoft Foundryエージェントと統合し、標準化された外部データソース接続を用いた強力なツールオーケストレーションとエンタープライズAI機能化を実現する方法を学びます。 |
-| [5.14 Context Engineering](./mcp-contextengineering/README.md) | コンテキストエンジニアリング | MCPサーバーの将来の機会であるコンテキスト最適化、動的コンテキスト管理、およびMCPフレームワーク内での効果的なプロンプトエンジニアリング戦略を含むコンテキストエンジニアリング手法について学びます。 |
-| [5.15 MCP Custom Transport](./mcp-transport/README.md) | カスタムトランスポート | 専用のMCP通信シナリオのためのカスタムトランスポートメカニズムを実装する方法を学びます。 |
-| [5.16 Protocol Features Deep Dive](./mcp-protocol-features/README.md) | プロトコル機能 | 進行状況通知、リクエストキャンセル、リソーステンプレート、エラーハンドリングパターンなどの高度なプロトコル機能をマスターします。 |
-| [5.17 Adversarial Multi-Agent Reasoning](./mcp-adversarial-agents/README.md) | 対立マルチエージェント | 反対の立場を持つ2つのエージェントが単一のMCPツールセットを共有し、幻覚を検出し、エッジケースを表出し、構造化された議論によりより良い調整済みの出力を生成します。 |
+| [5.1 Integration with Azure](./mcp-integration/README.md) | Azureとの統合 | Azure上のMCPサーバーとの統合方法を学びます |
+| [5.2 Multi modal sample](./mcp-multi-modality/README.md) | MCP多モーダルサンプル | 音声、画像、マルチモーダル応答のサンプル |
+| [5.3 MCP OAuth2 sample](../../../05-AdvancedTopics/mcp-oauth2-demo) | MCP OAuth2デモ | OAuth2を認可サーバーとリソースサーバー両方で使用する簡単なSpring Bootアプリ。安全なトークン発行、保護されたエンドポイント、Azure Container Appsへのデプロイ、API管理との連携を示します。 |
+| [5.4 Root Contexts](./mcp-root-contexts/README.md) | ルートコンテキスト | ルートコンテキストの詳細と実装方法を学びます |
+| [5.5 Routing](./mcp-routing/README.md) | ルーティング | 各種ルーティング方法を学びます |
+| [5.6 Sampling](./mcp-sampling/README.md) | サンプリング | サンプリングの取り扱い方法を学びます |
+| [5.7 Scaling](./mcp-scaling/README.md) | スケーリング | スケーリングに関する学習 |
+| [5.8 Security](./mcp-security/README.md) | セキュリティ | MCPサーバーをセキュアに保つ |
+| [5.9 Web Search sample](./web-search-mcp/README.md) | Web検索MCP | SerpAPIと連携したPythonベースのMCPサーバーとクライアント。リアルタイムのウェブ、ニュース、商品検索、Q&A対応を実例で示します。複数ツールの調整、外部API統合、堅牢なエラーハンドリングも実証。 |
+| [5.10 Realtime Streaming](./mcp-realtimestreaming/README.md) | ストリーミング | 今日のデータ駆動型社会において、即時の情報アクセスが必要な場面で不可欠なリアルタイムデータストリーミング|
+| [5.11 Realtime Web Search](./mcp-realtimesearch/README.md) | Web検索 | MCPがAIモデル、検索エンジン、アプリケーション間のコンテキスト管理を標準化し、リアルタイムWeb検索をどのように変革するかを学びます。 | 
+| [5.12  Entra ID Authentication for Model Context Protocol Servers](./mcp-security-entra/README.md) | Entra ID認証 | Microsoft Entra IDはクラウドベースの強力なID・アクセス管理ソリューションを提供し、認可されたユーザーとアプリのみがMCPサーバーとやり取りできるようにします。|
+| [5.13 Microsoft Foundry Agent Integration](./mcp-foundry-agent-integration/README.md) | Microsoft Foundry統合 | MCPサーバーとMicrosoft Foundryエージェントを統合し、強力なツール調整と企業向けAI機能を標準化された外部データソース接続で実現する方法を学びます。|
+| [5.14 Context Engineering](./mcp-contextengineering/README.md) | コンテキストエンジニアリング | MCPサーバーのコンテキスト最適化、動的管理、効果的なプロンプトエンジニアリング戦略など、将来のコンテキストエンジニアリング技術の可能性。|
+| [5.15 MCP Custom Transport](./mcp-transport/README.md) | カスタムトランスポート | 専用のMCP通信シナリオ向けにカスタムトランスポート機構を実装する方法を学びます。|
+| [5.16 Protocol Features Deep Dive](./mcp-protocol-features/README.md) | プロトコル機能 | 進捗通知、リクエストキャンセル、リソーステンプレート、エラーハンドリングパターンなど、プロトコルの高度な機能を習得します。|
+| [5.17 Adversarial Multi-Agent Reasoning](./mcp-adversarial-agents/README.md) | 反競合エージェント | 立場の異なる2つのエージェントが単一のMCPツールセットを共有し、誤認識の検出、エッジケースの洗い出し、構造的な議論を通じたより適切な出力生成を可能にします。|
 
-> **MCP仕様 2025-11-25 の新機能**: 仕様に、進行状況追跡付きの長時間実行操作である<strong>Tasks</strong>、安全性のためのツール挙動に関する<strong>Tool Annotations</strong>、クライアントから特定URLコンテンツの要求を行う<strong>URL Mode Elicitation</strong>、およびワークスペースコンテキスト管理向けの強化された<strong>Roots</strong>の実験的サポートが含まれるようになりました。詳細は[MCP仕様の変更履歴](https://spec.modelcontextprotocol.io/)をご覧ください。
+> **MCP仕様2025-11-25新要素**：仕様に実験的な<strong>Tasks</strong>（進捗追跡付き長時間操作）、**Tool Annotations**（安全性のためのツール動作メタデータ）、**URLモード要請**（クライアントから特定URLコンテンツを要求）、および強化された<strong>Roots</strong>（ワークスペースコンテキスト管理）対応が含まれました。詳細は[MCP仕様変更履歴](https://spec.modelcontextprotocol.io/)をご覧ください。
 
 ## 追加参照資料
 
-高度なMCPトピックの最新情報は以下を参照してください。
-- [MCPドキュメント](https://modelcontextprotocol.io/)
-- [MCP仕様 (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [GitHubリポジトリ](https://github.com/modelcontextprotocol)
-- [OWASP MCPトップ10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - セキュリティリスクと対策
-- [MCPセキュリティサミットワークショップ (Sherpa)](https://azure-samples.github.io/sherpa/) - ハンズオンセキュリティトレーニング
+高度なMCPトピックの最新情報については以下を参照してください：
+- [MCP Documentation](https://modelcontextprotocol.io/)
+- [MCP Specification (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [GitHub Repository](https://github.com/modelcontextprotocol)
+- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - セキュリティリスクと対策
+- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - 実践的セキュリティトレーニング
 
-## 重要なポイント
+## 重要ポイントのまとめ
 
-- マルチモーダルMCP実装により、AIの能力がテキスト処理を超えて拡張される
-- スケーラビリティはエンタープライズ展開に不可欠であり、水平方向および垂直方向のスケールアウトで対応可能
-- 包括的なセキュリティ対策によりデータ保護と適切なアクセス制御を確保
-- Azure OpenAIやMicrosoft AI Foundryなどのプラットフォームとのエンタープライズ統合がMCP機能を強化
-- 最適化されたアーキテクチャと慎重なリソース管理が高度なMCP実装に有益
+- 多モーダルMCP実装はテキスト処理を超えたAI機能拡張をもたらす
+- スケーラビリティは企業展開に不可欠で、水平方向・垂直方向のスケーリングで対応可能
+- 包括的なセキュリティ対策がデータ保護と適切なアクセス制御を確実にする
+- Azure OpenAIやMicrosoft AI Foundryといったプラットフォームとの企業統合がMCP機能を強化する
+- 高度なMCP実装は最適化されたアーキテクチャと慎重なリソース管理で恩恵を受ける
 
 ## 演習
 
-特定のユースケースに対するエンタープライズグレードのMCP実装を設計してください。
+特定のユースケースに向けた企業向けのMCP実装を設計してください：
 
-1. ユースケースのマルチモーダル要件を特定する
-2. 機密データを保護するために必要なセキュリティコントロールを概説する
+1. ユースケースに必要な多モーダル要件を特定する
+2. 機密データを保護するためのセキュリティ制御を概説する
 3. 変動する負荷に対応できるスケーラブルなアーキテクチャを設計する
-4. エンタープライズAIシステムとの統合ポイントを計画する
-5. 潜在的なパフォーマンスボトルネックとその緩和戦略を文書化する
+4. 企業AIシステムとの統合ポイントを計画する
+5. 潜在的な性能ボトルネックと緩和戦略を文書化する
 
 ## 追加リソース
 
-- [Azure OpenAIドキュメント](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
-- [Microsoft AI Foundryドキュメント](https://learn.microsoft.com/en-us/ai-services/)
+- [Azure OpenAI Documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
+- [Microsoft AI Foundry Documentation](https://learn.microsoft.com/en-us/ai-services/)
 
 ---
 
-## 次に進むには
+## 次のステップ
 
-このモジュールのレッスンを [5.1 MCP Integration](./mcp-integration/README.md) から始めてください。
+このモジュールのレッスンは、[5.1 MCP Integration](./mcp-integration/README.md)から始めましょう
 
-このモジュールを完了したら、次に [モジュール6: コミュニティ貢献](../06-CommunityContributions/README.md) に進みましょう。
+このモジュールを完了したら、[モジュール6：コミュニティ貢献](../06-CommunityContributions/README.md)へ進んでください
 
 ---
 

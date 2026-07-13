@@ -1,25 +1,25 @@
 # Egyszerű hitelesítés
 
-Az MCP SDK-k támogatják az OAuth 2.1 használatát, ami elég összetett folyamat, amely olyan fogalmakat foglal magában, mint hitelesítési szerver, erőforrás szerver, hitelesítő adatok beküldése, kód megszerzése, a kód cseréje egy hordozó tokenre, míg végül hozzáférést kapunk az erőforrásokhoz. Ha nem vagy hozzászokva az OAuth használatához, ami egy nagyszerű dolog a bevezetéshez, érdemes alap szintű hitelesítéssel kezdeni, és fokozatosan erősebb biztonságot építeni. Ezért létezik ez a fejezet, hogy segítsen egyre fejlettebb hitelesítéshez eljutni.
+Az MCP SDK-k támogatják az OAuth 2.1 használatát, ami őszintén szólva eléggé összetett folyamat, amely olyan fogalmakat foglal magában, mint hitelesítési szerver, erőforrás-szerver, hitelesítő adatok elküldése, kód megszerzése, a kód cseréje hordozó tokenre, amíg végül hozzáférhetünk az erőforrás-adatainkhoz. Ha nem vagyunk hozzászokva az OAuth használatához, ami egy nagyszerű dolog, érdemes valamilyen alapvető hitelesítéssel kezdeni, és fokozatosan építeni egyre jobb biztonság felé. Ezért létezik ez a fejezet, hogy segítsen egy fejlettebb hitelesítés felé haladni.
 
-## Hitelesítés, mit értünk alatta?
+## Hitelesítés, mit is értünk ezen?
 
-A hitelesítés (auth) az authentication és authorization rövidítése. A gondolat az, hogy két dolgot kell csinálnunk:
+A hitelesítés az authentikáció és a jogosultság-ellenőrzés rövidítése. Az a gondolat, hogy két dolgot kell tennünk:
 
-- **Authentication**, ami annak a folyamata, hogy kiderítsük, beengedünk-e egy személyt a házunkba, vagyis van-e joga "itt lenni", azaz hozzáféréssel bír-e erőforrás szerverünkhöz, ahol az MCP szerver funkciók működnek.
-- **Authorization**, ami annak a folyamata, hogy megállapítsuk, az adott felhasználónak van-e jogosultsága a kért konkrét erőforrásokhoz, például ezekhez a rendelésekhez vagy termékekhez, vagy csak olvasási jogot kap, de például nem törölhet.
+- **Authentikáció**, ami annak a kiderítése, hogy beengedjük-e egy embert a házunkba, jogosult-e "itt" lenni, azaz hogy hozzáférése van-e az erőforrás-szerverünkhöz, ahol az MCP szerver funkciói találhatók.
+- **Jogosultság-ellenőrzés**, az a folyamat, amely megállapítja, hogy egy felhasználónak van-e hozzáférése a konkrét erőforrásokhoz, amiket kér, például ezekhez a megrendelésekhez vagy termékekhez, vagy hogy olvashatja-e a tartalmat, de például nem törölheti azt.
 
-## Hitelesítő adatok: hogyan mutatjuk meg a rendszernek, kik vagyunk
+## Hitelesítő adatok: hogyan mondjuk meg a rendszernek, kik vagyunk
 
-A legtöbb webfejlesztő először arra gondol, hogy biztosítania kell egy hitelesítő adatot a szerver felé, általában egy titkot, amely elmondja, hogy beengedhetik-e ("Authentication"). Ez az adat általában a felhasználónév és jelszó base64 kódolt változata vagy egy egyedi API kulcs, amely azonosít egy konkrét felhasználót.
+Nos, a legtöbb webfejlesztő úgy gondol a hitelesítésre, hogy egy hitelesítő adatot kell szolgáltatnia a szervernek, általában egy titkot, ami megmondja, hogy jogosult-e "itt" lenni - azaz hitelesítés. Ez a hitelesítő adat általában egy base64 kódolt felhasználónév és jelszó, vagy egy API kulcs, amely egyedi módon azonosít egy adott felhasználót.
 
-Ezt egy "Authorization" nevű fejlécen keresztül küldjük, így:
+Ez azt jelenti, hogy ezt egy "Authorization" nevű fejlécen keresztül küldjük el így:
 
 ```json
 { "Authorization": "secret123" }
 ```
 
-Ezt általában alapvető hitelesítésnek (basic authentication) hívják. A folyamat általában így néz ki:
+Ezt általában alapvető hitelesítésnek (basic authentication) nevezik. Az egész folyamat működése a következő:
 
 ```mermaid
 sequenceDiagram
@@ -28,11 +28,12 @@ sequenceDiagram
    participant Server
 
    User->>Client: mutasd az adatokat
-   Client->>Server: mutasd az adatokat, itt a hitelesítő adatom
-   Server-->>Client: 1a, ismerlek, itt az adataid
+   Client->>Server: mutasd az adatokat, itt van a hitelesítőm
+   Server-->>Client: 1a, ismerlek téged, itt vannak az adataid
    Server-->>Client: 1b, nem ismerlek, 401 
 ```
-Most, hogy értjük a folyamatot, hogyan valósítjuk meg? A legtöbb webszervernek van egy ún. middleware fogalma, egy kódrészlet, amely a kérés részeként fut le, ellenőrzi a hitelesítő adatokat, és ha azok érvényesek, átengedi a kérést. Ha érvénytelen hitelesítő adat érkezik, hatástalanítja a kérést és hitelesítési hibát ad vissza. Nézzük meg, hogyan valósítható ez meg:
+
+Most, hogy megértettük a folyamatot, hogyan valósítjuk ezt meg? Nos, a legtöbb webszerver rendelkezik egy middleware nevű fogalommal, egy kódrészlettel, ami a kérés részeként fut, képes ellenőrizni a hitelesítő adatokat, és ha azok érvényesek, engedi a kérés továbblépését. Ha a kérés nem rendelkezik érvényes hitelesítő adatokkal, akkor hitelesítési hibát kapunk. Nézzük meg, hogyan lehet ezt megvalósítani:
 
 **Python**
 
@@ -52,23 +53,23 @@ class AuthMiddleware(BaseHTTPMiddleware):
         print("Valid token, proceeding...")
        
         response = await call_next(request)
-        # adj hozzá bármilyen ügyfél fejlécet vagy módosíts valamit a válaszban
+        # adj hozzá bármilyen ügyfél fejlécet vagy módosíts valahogy a választ
         return response
 
 
 starlette_app.add_middleware(CustomHeaderMiddleware)
 ```
 
-Itt:
+Itt létrehoztunk:
 
-- Létrehoztunk egy `AuthMiddleware` nevű middleware-t, amelynek `dispatch` metódusát a webszerver hívja meg.
+- Egy middleware komponenst `AuthMiddleware` néven, melynek `dispatch` metódusát a webszerver hívja meg.
 - Hozzáadtuk ezt a middleware-t a webszerverhez:
 
     ```python
     starlette_app.add_middleware(AuthMiddleware)
     ```
 
-- Megírtuk az ellenőrző logikát, amely megnézi, hogy az Authorization fejléc jelen van-e, és hogy a küldött titok érvényes-e:
+- Írtunk egy érvényesítési logikát, ami ellenőrzi, hogy az Authorization fejléc jelen van-e és hogy a küldött titok érvényes-e:
 
     ```python
     has_header = request.headers.get("Authorization")
@@ -81,19 +82,19 @@ Itt:
         return Response(status_code=403, content="Forbidden")
     ```
 
-    Ha a titok jelen van és érvényes, akkor a `call_next` meghívásával átengedjük a kérést és visszaadjuk a választ.
+Ha a titok jelen van és érvényes, akkor meghívjuk a `call_next` metódust, hogy a kérés továbbhaladjon, és visszaadjuk a választ.
 
     ```python
     response = await call_next(request)
-    # adj hozzá bármilyen ügyfélfejléceket vagy módosítsd a választ valamilyen módon
+    # adj hozzá bármilyen egyedi fejlécet vagy módosíts valamit a válaszban
     return response
     ```
 
-A működése abból áll, hogy ha egy webes kérés érkezik a szerverhez, a middleware lefut, és implementációjától függően vagy átengedi a kérést, vagy hibát jelez, ami a kliens számára jelzi, hogy nincs jogosultsága továbbhaladni.
+A működés lényege, hogy ha webes kérelem érkezik a szerver felé, a middleware végre lesz hajtva, és annak implementációja szerint vagy engedi tovább a kérelmet, vagy hibát ad vissza, jelezve, hogy a kliens nem folytathatja.
 
 **TypeScript**
 
-Itt az Express népszerű keretrendszerrel készítünk egy middleware-t, amely elfogja a kérést, mielőtt az eljut az MCP szerverhez. A kód így néz ki:
+Itt egy middleware-t hozunk létre a népszerű Express keretrendszerrel, amely elkapja a kérést, mielőtt az MCP szerverhez jutna. Íme a kód:
 
 ```typescript
 function isValid(secret) {
@@ -101,51 +102,53 @@ function isValid(secret) {
 }
 
 app.use((req, res, next) => {
-    // 1. Engedélyezési fejléc jelen van?
+    // 1. Az Authorization fejléc jelen van?
     if(!req.headers["Authorization"]) {
         res.status(401).send('Unauthorized');
     }
     
     let token = req.headers["Authorization"];
 
-    // 2. Érvényesség ellenőrzése.
+    // 2. Ellenőrizze az érvényességet.
     if(!isValid(token)) {
         res.status(403).send('Forbidden');
     }
 
    
     console.log('Middleware executed');
-    // 3. Továbbítja a kérést a kérési csővezeték következő lépéséhez.
+    // 3. Továbbadja a kérést a kérés feldolgozási lépésének következő részére.
     next();
 });
 ```
 
 Ebben a kódban:
 
-1. Először megnézzük, hogy az Authorization fejléc jelen van-e, ha nincs, akkor 401-es hibát küldünk.
-2. Ellenőrizzük, hogy a hitelesítő adat/token érvényes-e, ha nem, 403-as hibát küldünk.
-3. Végül átengedjük a kérést a kéréspipeline-on és visszaküldjük a kért erőforrást.
+1. Ellenőrizzük, hogy az Authorization fejléc jelen van-e; ha nem, 401-es hibát küldünk.
+2. Biztosítjuk, hogy a hitelesítő adat/token érvényes legyen; ha nem, 403-as hibát küldünk.
+3. Végül továbbengedjük a kérést a kérelmi csővezetéken, és visszaadjuk a kért erőforrást.
 
 ## Gyakorlat: Hitelesítés megvalósítása
 
-Vegyük a tudásunkat és próbáljuk megvalósítani. Íme a terv:
+Vegyük az eddigi tudásunkat, és próbáljuk megvalósítani. Íme a terv:
 
 Szerver
 
-- Hozzunk létre egy webszervert és egy MCP példányt.
+- Hozzunk létre egy webszervert és MCP példányt.
 - Valósítsunk meg egy middleware-t a szerverhez.
 
 Kliens
 
-- Küldjünk webes kérést hitelesítő adattal a fejlécen keresztül.
+- Küldjünk webes kérelmet hitelesítő adatokkal, fejlécen keresztül.
 
-### -1- Hozz létre webszervert és MCP példányt
+### -1- Webszerver és MCP példány létrehozása
 
-Az első lépésünk, hogy létrehozzuk a webszerver példányt és az MCP szervert.
+> **Előretekintés:** az alábbi TypeScript példa HTTP átviteleket követ egy `transports` térképen, amelynek kulcsa `mcp-session-id`, az **MCP Specification 2025-11-25** szerint. A `2026-07-28` kiadás jelölt eltávolítja az `initialize` kézfogást és a munkamenet azonosítót, ezért ez a munkamenetek szerinti átvitel térkép megszűnik és helyette állapotmentes, önálló kérések lesznek. Lásd: [Mi változik az MCP-ben: A 2026-07-28 kiadás jelölt](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Az első lépésként létre kell hoznunk a webszerver példányt és az MCP szervert.
 
 **Python**
 
-Itt létrehozunk egy MCP szerver példányt, egy starlette webalkalmazást, és egy uvicorn segítségével futtatjuk.
+Itt létrehozzuk az MCP szerver példányt, létrehozunk egy starlette webalkalmazást, és uvicorn-nal hosztoljuk.
 
 ```python
 # MCP szerver létrehozása
@@ -161,7 +164,7 @@ app = FastMCP(
 # starlette webalkalmazás létrehozása
 starlette_app = app.streamable_http_app()
 
-# alkalmazás kiszolgálása uvicorn segítségével
+# alkalmazás szolgáltatása uvicorn-on keresztül
 async def run(starlette_app):
     import uvicorn
     config = uvicorn.Config(
@@ -179,8 +182,8 @@ run(starlette_app)
 Ebben a kódban:
 
 - Létrehozzuk az MCP szervert.
-- Elkészítjük a starlette web appot az MCP szerverből, `app.streamable_http_app()`.
-- Uvicorn-nal futtatjuk és szolgáltatjuk a webappot `server.serve()`.
+- Felépítjük a starlette webalkalmazást az MCP szerverből, `app.streamable_http_app()`.
+- Hosztoljuk és szervereljük a webalkalmazást uvicorn-nal `server.serve()`.
 
 **TypeScript**
 
@@ -192,10 +195,10 @@ const server = new McpServer({
       version: "1.0.0"
     });
 
-    // ... szerver erőforrások, eszközök és parancsok beállítása ...
+    // ... szerver erőforrások, eszközök és promptok beállítása ...
 ```
 
-Az MCP szerver létrehozását a POST /mcp útvonal definíciójába kell helyeznünk, tehát vegyük az előző kódot és helyezzük át így:
+Ennek az MCP szerver létrehozásnak a POST /mcp útvonalegyüttesen belül kell történnie, így az előző kódot áthelyezzük így:
 
 ```typescript
 import express from "express";
@@ -217,7 +220,7 @@ app.post('/mcp', async (req, res) => {
   let transport: StreamableHTTPServerTransport;
 
   if (sessionId && transports[sessionId]) {
-    // Meglévő szállítás újrafelhasználása
+    // Létező szállítás újrafelhasználása
     transport = transports[sessionId];
   } else if (!sessionId && isInitializeRequest(req.body)) {
     // Új inicializációs kérés
@@ -227,13 +230,13 @@ app.post('/mcp', async (req, res) => {
         // Szállítás tárolása munkamenet azonosító szerint
         transports[sessionId] = transport;
       },
-      // A DNS átirányítás elleni védelem alapértelmezés szerint le van tiltva a visszafelé kompatibilitás miatt. Ha ezt a szervert helyben futtatja
-      // győződjön meg róla, hogy beállítja:
+      // A DNS újracímzés elleni védelem alapértelmezés szerint ki van kapcsolva a visszamenőleges kompatibilitás érdekében. Ha helyben futtatja ezt a szervert
+      // győződjön meg róla, hogy beállította:
       // enableDnsRebindingProtection: true,
       // allowedHosts: ['127.0.0.1'],
     });
 
-    // Szállítás törlése bezáráskor
+    // Szállítás takarítása bezáráskor
     transport.onclose = () => {
       if (transport.sessionId) {
         delete transports[transport.sessionId];
@@ -244,9 +247,9 @@ app.post('/mcp', async (req, res) => {
       version: "1.0.0"
     });
 
-    // ... szerver erőforrásainak, eszközeinek és kérdéseinek beállítása ...
+    // ... szerver erőforrások, eszközök és felhívások beállítása ...
 
-    // Csatlakozás az MCP szerverhez
+    // Kapcsolódás az MCP szerverhez
     await server.connect(transport);
   } else {
     // Érvénytelen kérés
@@ -265,7 +268,7 @@ app.post('/mcp', async (req, res) => {
   await transport.handleRequest(req, res, req.body);
 });
 
-// Újrafelhasználható kezelő GET és DELETE kérésekhez
+// Újrahasználható kezelő GET és DELETE kérésekhez
 const handleSessionRequest = async (req: express.Request, res: express.Response) => {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
   if (!sessionId || !transports[sessionId]) {
@@ -280,41 +283,41 @@ const handleSessionRequest = async (req: express.Request, res: express.Response)
 // GET kérések kezelése szerver-kliens értesítésekhez SSE-n keresztül
 app.get('/mcp', handleSessionRequest);
 
-// DELETE kérések kezelése munkamenet lezárásához
+// DELETE kérések kezelése munkamenet megszüntetéséhez
 app.delete('/mcp', handleSessionRequest);
 
 app.listen(3000);
 ```
 
-Most láthatod, hogy az MCP szerver létrehozása átkerült az `app.post("/mcp")` belsejébe.
+Most látjuk, hogy az MCP szerver létrehozása átkerült az `app.post("/mcp")` részbe.
 
-Lépjünk tovább a middleware elkészítésére, hogy ellenőrizni tudjuk a beérkező hitelesítő adatot.
+Térjünk rá a következő lépésre, hogy létrehozzuk a middleware-t, amely ellenőrzi a bejövő hitelesítő adatokat.
 
 ### -2- Middleware implementálása a szerverhez
 
-Következő lépésként készítsünk egy middleware-t, amely az `Authorization` fejlécben keres hitelesítő adatot és validálja azt. Ha elfogadható, a kérés továbbhaladhat (például eszközök listázása, erőforrás olvasása, vagy bármely MCP funkció végrehajtása).
+Nézzük a middleware részt. Itt olyan middleware-t hozunk létre, amely keresi a hitelesítő adatot az `Authorization` fejlécben és ellenőrzi azt. Ha elfogadható, akkor a kérés továbbléphet, és végrehajtja azt, amire szüksége van (pl. eszközök listázása, erőforrás olvasása vagy bármely MCP funkció, amit a kliens kért).
 
 **Python**
 
-Middleware elkészítéséhez hozzunk létre egy osztályt, amely öröklődik a `BaseHTTPMiddleware`-ből. Két fontos dolog van:
+A middleware létrehozásához egy olyan osztályt kell létrehozni, amely a `BaseHTTPMiddleware`-ből származik. Két fontos elem van:
 
-- A `request`, amiből olvassuk a fejlécet.
-- A `call_next`, az a callback, amit meg kell hívnunk, ha a kliens elfogadott hitelesítő adatot hozott.
+- A kérés (`request`), amelynek fejléc adatait olvassuk.
+- `call_next`, a visszahívás, amelyet akkor hívunk meg, ha a kliens bemutatott egy elfogadott hitelesítő adatot.
 
-Először kezeljük az esetet, ha hiányzik az `Authorization` fejléc:
+Először kezelni kell az esetet, ha az `Authorization` fejléc hiányzik:
 
 ```python
 has_header = request.headers.get("Authorization")
 
-# nincs fejléc, 401-es hibával meghiúsul, különben folytatódik.
+# nincs fejléc, 401-el hibára fut, különben folytatódik.
 if not has_header:
     print("-> Missing Authorization header!")
     return Response(status_code=401, content="Unauthorized")
 ```
 
-Itt egy 401-es "nem jogosult" üzenetet küldünk, mert a kliens nem sikeresen hitelesített.
+Itt egy 401-es "unauthorized" üzenetet küldünk, mert a kliens nem valósította meg a hitelesítést.
 
-Ha elküldtek hitelesítő adatot, meg kell vizsgálnunk annak érvényességét így:
+Ezután, ha megadtak hitelesítő adatot, ellenőrizni kell annak érvényességét így:
 
 ```python
  if not valid_token(has_header):
@@ -322,7 +325,7 @@ Ha elküldtek hitelesítő adatot, meg kell vizsgálnunk annak érvényességét
     return Response(status_code=403, content="Forbidden")
 ```
 
-Láthatod, hogy itt 403-as "tiltott" üzenetet küldünk. Nézzük az egész middleware-t, amely mindent megvalósít, amit eddig említettünk:
+Észrevehető, hogy itt 403-as "forbidden" üzenetet küldünk. Nézzük a teljes middleware-t alább, amely mindent megvalósít, amit eddig említettünk:
 
 ```python
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -345,7 +348,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 ```
 
-Jó, de mi a helyzet a `valid_token` függvénnyel? Íme alább:
+Nagyszerű, de mi a helyzet a `valid_token` függvénnyel? Íme alább:
 
 ```python
 # NE használd éles környezetben - fejleszd tovább !!
@@ -357,20 +360,20 @@ def valid_token(token: str) -> bool:
     return False
 ```
 
-Természetesen ezt érdemes továbbfejleszteni.
+Ez nyilvánvalóan fejlesztésre szorul.
 
-FONTOS: Sose legyenek ilyen titkos adatok a kódban! Ideális esetben az összehasonlításhoz szükséges értéket adatforrásból vagy identitás szolgáltatótól (IDP) kell lekérni, vagy még jobb, ha maga az IDP végzi az ellenőrzést.
+FONTOS: SOHA nem szabad ilyen titkokat kódban tárolni. Ideális esetben az összehasonlításra használt értéket valamilyen adatforrásból vagy egy IDP-től (azonosító szolgáltató) kell lekérni, vagy még jobb, ha maga az IDP végzi az érvényesítést.
 
 **TypeScript**
 
-Express esetén a `use` metódust használjuk middleware függvények hozzáadására.
+Az Express esetében a `use` metódust kell hívni, amely middleware függvényeket fogad.
 
-Ehhez:
+Nekünk kell:
 
-- A kérés objektummal lépünk interakcióba, hogy ellenőrizzük az `Authorization` tulajdonságban átadott hitelesítő adatot.
-- Érvényesítjük a hitelesítő adatot, ha az rendben van, engedjük tovább a kérést, hogy a kliens MCP kérése végrehajtódjon (pl. eszközlista, erőforrás olvasás vagy más MCP funkció).
+- A kérés objektummal interakciózni, hogy ellenőrizzük az `Authorization` tulajdonságban átadott hitelesítő adatot.
+- Érvényesíteni a hitelesítő adatot, és ha elfogadható, akkor engedni a kérés továbblépését, és végrehajtani, amit a kliens MCP kérése igényel (például eszközök listázása, erőforrás olvasása vagy egyéb MCP-hez kapcsolódó dolgok).
 
-Itt megnézzük, hogy megvan-e az `Authorization` fejléc, ha nem, megállítjuk a kérést:
+Itt ellenőrizzük, hogy az `Authorization` fejléc jelen van-e, ha nem, a kérést leállítjuk:
 
 ```typescript
 if(!req.headers["authorization"]) {
@@ -379,9 +382,9 @@ if(!req.headers["authorization"]) {
 }
 ```
 
-Ha hiányzik a fejléc, 401-es hibát kapunk.
+Ha a fejléc nincs elküldve, 401-et kapunk.
 
-Ezután ellenőrizzük a hitelesítő adat érvényességét, ha nem jó, szintén megállítjuk, de más üzenettel:
+Ezután megvizsgáljuk, hogy az hitelesítő adat érvényes-e, ha nem, akkor ismét leállítjuk a kérést, de más üzenettel:
 
 ```typescript
 if(!isValid(token)) {
@@ -390,7 +393,7 @@ if(!isValid(token)) {
 } 
 ```
 
-Itt látható, hogy 403-as hibát kaptunk.
+Itt az látszik, hogy most 403-as hibát kapunk.
 
 Íme a teljes kód:
 
@@ -415,18 +418,18 @@ app.use((req, res, next) => {
 });
 ```
 
-Beállítottuk a webszervert, hogy fogadjon egy middleware-t a kliens által küldött hitelesítő adat ellenőrzésére. És a kliens maga?
+A webszervert úgy állítottuk be, hogy middleware-t fogadjon, amely ellenőrzi a kliens által remélhetőleg elküldött hitelesítő adatokat. Mi a helyzet a klienssel magával?
 
-### -3- Küldj webkérést hitelesítő adattal a fejlécen
+### -3- Webes kérés elküldése hitelesítő adattal a fejlécben
 
-Ellenőrizzük, hogy a kliens a fejlécben továbbítja-e a hitelesítő adatot. Mivel MCP klienst használunk, meg kell néznünk, hogyan kell ezt megtenni.
+Biztosítani kell, hogy a kliens a hitelesítő adatot a fejlécen keresztül továbbítsa. Mivel MCP klienst fogunk használni, ki kell találni, hogyan történik ez.
 
 **Python**
 
-A kliens esetén egy fejlécet kell átadnunk a hitelesítő adattal, így:
+A klienshez egy fejlécet kell átadnunk a hitelesítő adatunkkal így:
 
 ```python
-# NE kódold be az értéket, helyette legyen legalább egy környezeti változóban vagy egy biztonságosabb tárolóban
+# NE keménykódolja az értéket, legalább környezeti változóban vagy biztonságosabb tárolóban legyen
 token = "secret-token"
 
 async with streamablehttp_client(
@@ -443,24 +446,24 @@ async with streamablehttp_client(
         ) as session:
             await session.initialize()
       
-            # TODO, mit szeretnél a kliensben megvalósítani, pl. eszközök listázása, eszközök hívása stb.
+            # TODO, amit a kliensben el akarsz végezni, pl. eszközök listázása, eszközök meghívása stb.
 ```
 
-Itt látható, hogy a `headers` tulajdonságot így töltjük fel: ` headers = {"Authorization": f"Bearer {token}"}`.
+Megfigyelhető, hogy a `headers` tulajdonságot így töltjük fel: ` headers = {"Authorization": f"Bearer {token}"}`.
 
 **TypeScript**
 
 Ezt két lépésben oldhatjuk meg:
 
-1. Feltöltünk egy konfigurációs objektumot a hitelesítő adatunkkal.
-2. Átadjuk a konfigurációt a transportnak.
+1. Kitöltünk egy konfigurációs objektumot a hitelesítő adatunkkal.
+2. Átadjuk a konfigurációs objektumot az átvitelhez.
 
 ```typescript
 
-// NE keménykódolja az értéket, mint itt látható. Legalább tegye környezeti változóvá, és használjon valami hasonlót, mint a dotenv (fejlesztési módban).
+// NE kódolj be itt látható módon értéket. Legalább legyen környezeti változóként kezelve, és használj valami olyasmit, mint a dotenv (fejlesztési módban).
 let token = "secret123"
 
-// definiáljon egy kliens szállítási opció objektumot
+// definiálj egy kliens transzport opció objektumot
 let options: StreamableHTTPClientTransportOptions = {
   sessionId: sessionId,
   requestInit: {
@@ -470,7 +473,7 @@ let options: StreamableHTTPClientTransportOptions = {
   }
 };
 
-// adja át az opció objektumot a szállításnak
+// add át az opciók objektumot a transzportnak
 async function main() {
    const transport = new StreamableHTTPClientTransport(
       new URL(serverUrl),
@@ -478,46 +481,46 @@ async function main() {
    );
 ```
 
-Itt láthatod, hogy létrehoztunk egy `options` objektumot, és a fejlécet a `requestInit` tulajdonság alá helyeztük.
+Az előző példán látható, hogy létrehoztunk egy `options` objektumot és ebbe helyeztük a `headers` tulajdonságot a `requestInit` alatt.
 
-FONTOS: Hogyan fejlesszük tovább innen? Jelenleg ez a megvalósítás kockázatos, ha nincs legalább HTTPS. Még akkor is ellopható a hitelesítő adat, ezért szükséges egy olyan rendszer, ahol könnyen visszavonható a token, illetve további ellenőrzéseket alkalmazunk, például a földrajzi eredetet, a túl gyakori kéréseket (bot-viselkedés), vagyis számos aggály van.
+FONTOS: Hogyan javíthatjuk ezt tovább? Nos, a jelenlegi megvalósításnak vannak problémái. Először is, ha így adunk át hitelesítő adatot, az elég kockázatos, hacsak nincs HTTPS legalább. Még akkor is, a hitelesítő adat ellopható, ezért szükséges egy olyan rendszer, ahol könnyedén visszavonhatjuk a tokeneket, és további ellenőrzéseket adhatunk hozzá, például honnan érkezik a token, túl gyakran történik-e a kérés (bot-szerű viselkedés), szóval számos aggodalom van.
 
-Viszont egyszerű API-knál, ahol nem szeretnénk hitelesítés nélküli hívásokat engedni, ez egy jó kezdés.
+Azonban el kell mondani, hogy nagyon egyszerű API-k esetén, ahol nem szeretnénk, hogy bárki be tudja hívni az API-t autentikáció nélkül, amit itt mutatunk, egy jó kezdet.
 
-Most próbáljuk meg javítani a biztonságot egy szabványosított formátummal, például a JSON Web Token-nel, azaz JWT-vel (más néven "JOT" tokenekkel).
+Ezzel együtt próbáljuk meg kicsit megerősíteni a biztonságot egy szabványosított formátum, a JSON Web Token, más néven JWT vagy "JOT" token használatával.
 
 ## JSON Web Tokenek, JWT
 
-Tehát javítani szeretnénk a nagyon egyszerű hitelesítő adatok küldésén. Milyen azonnali előnyöket ad a JWT?
+Szóval, próbáljuk javítani, hogy ne egyszerű hitelesítő adatokat küldjünk. Milyen azonnali előnyöket ad a JWT bevezetése?
 
-- **Biztonsági fejlesztések**. Basic auth esetén a felhasználónevet és jelszót base64 kódolt tokenként (vagy API kulcsként) ismétlődően küldöd, ami növeli a kockázatot. JWT-vel a felhasználóneved és jelszavad megadása után kapsz egy token-t, amely időben korlátozott, vagyis lejár. JWT lehetővé teszi a finomhangolt hozzáférés-vezérlést szerepkörökkel, hatókörökkel és jogosultságokkal.
-- **Állapotmentesség és skálázhatóság**. A JWT-k önállóak, magukban hordozzák az összes felhasználói információt, így nincs szükség szerveroldali munkamenet tárhelyre. A tokenek helyileg is érvényesíthetők.
-- **Interoperabilitás és federáció**. A JWT az Open ID Connect alapja, és ismert identitásszolgáltatókkal, mint az Entra ID, Google Identity vagy Auth0 együtt használatos. Lehetővé teszi az egypontos bejelentkezést és számos vállalati szintű funkciót.
-- **Modularitás és rugalmasság**. JWT-k használhatók API átjárókkal (Azure API Management, NGINX stb.), autentikációs forgatókönyvekhez és szolgáltatás-szolgáltatás közötti kommunikációhoz, beleértve képviselet és delegálás eseteket is.
-- **Teljesítmény és gyorsítótárazás**. A JWT-k dekódolás után gyorsítótárazhatók, így csökkenthető a folyamatos elemzés szükségessége. Ez különösen hasznos nagy forgalmú alkalmazásoknál, növeli az áteresztőképességet és csökkenti az infrastruktúra terhelését.
-- **Fejlett funkciók**. Támogatja az introspektív (szerver oldali érvényesítés) és visszavonási (token érvénytelenné tétel) képességeket is.
+- **Biztonsági fejlesztések**. Az alapvető hitelesítésben a felhasználónevet és jelszót base64 kódolt tokenként (vagy API kulcsként) ismételten elküldjük, ami növeli a kockázatot. JWT esetén egyszer elküldjük a felhasználónevet és jelszót, és token érkezik vissza, amely időhöz kötött, vagyis lejár. A JWT lehetővé teszi a finomhangolt hozzáférés-szabályozást szerepek, jogosultságok segítségével.
+- **Állapotmentesség és skálázhatóság**. A JWT-k önállóak, magukban hordozzák az összes felhasználói info-t, így nincs szükség szerver oldali munkamenet tárolásra. A token helyben is érvényesíthető.
+- **Interoperabilitás és rendszerek közötti együttműködés**. A JWT az Open ID Connect központi eleme, és ismert azonosító szolgáltatókkal használatos, mint az Entra ID, Google Identity, Auth0. Lehetővé teszi az egységes bejelentkezést és még sok más, így vállalati szintű.
+- **Modularitás és rugalmasság**. A JWT-k használhatók API átjárókkal, mint az Azure API Management, NGINX és egyéb. Támogatják a felhasználói hitelesítést és szerver-szerviz kommunikációt, beleértve az álcázási és delegálási eseteket is.
+- **Teljesítmény és gyorsítótárazás**. A JWT-k dekódolás után gyorsítótárazhatók, ami csökkenti a feldolgozási igényt. Ez főleg nagy forgalmú alkalmazásoknál hasznos, mert javítja a feldolgozási sebességet és csökkenti az infrastruktúra terhelését.
+- **Fejlettebb funkciók**. Támogatja a introspekciót (érvényesség ellenőrzést a szerveren) és visszavonást (token érvénytelenítést).
 
-Ezekkel az előnyökkel nézzük meg, hogyan tehetjük jobbá a megvalósításunkat.
+Ezen előnyökkel nézzük meg, hogyan tudjuk megemelni a megvalósítás szintjét.
 
-## Az alapvető hitelesítés JWT-re váltása
+## Alap hitelesítés átalakítása JWT-re
 
-Nagy vonalakban a következő változtatásokra van szükség:
+Tehát nagy vonalakban az alábbi változtatásokat kell tennünk:
 
-- **Tanuljuk meg a JWT token felépítését**, hogy készen álljon a kliensből a szerver felé küldésre.
-- **Token érvényesítés**, és ha érvényes, engedjük a kliens hozzáférését az erőforrásokhoz.
-- **Biztonságos token tárolás**. Hogyan tároljuk biztonságosan ezt a tokent.
-- **Útvonalak védelme**. Védjük az útvonalakat, nálunk azt, hogy az MCP funkciókat csak jogosultak használhassák.
-- **Frissítő tokenek hozzáadása**. Győződjünk meg róla, hogy rövid életű tokeneket hozunk létre, valamint hosszú életű frissítő tokeneket, amelyekkel új tokenek szerezhetők be lejárat után. Biztosítsunk frissítő végpontot és forgatási stratégiát.
+- **Megtanulni egy JWT token összeállítását**, hogy készen álljon a kliens és szerver közötti küldésre.
+- **Token validálása**, és ha érvényes, engedni a kliensnek az erőforrások elérését.
+- **Biztonságos token tárolás**. Hogy tároljuk ezt a tokent.
+- **Az útvonalak védelme**. Meg kell védenünk az útvonalakat, esetünkben a MCP funkciókat.
+- **Frissítő tokenek hozzáadása**. Győződjünk meg arról, hogy rövid életű tokeneket készítünk, de legyenek hosszú életű frissítő tokenek, amelyekkel új tokent szerezhetünk, ha lejárnak. Legyen frissítő végpont és forgatási stratégia.
 
-### -1- JWT token felépítése
+### -1- JWT token összeállítása
 
-Egy JWT token a következő részekből áll:
+Először egy JWT token az alábbi részekből áll:
 
-- **header** (fejléc), algoritmus és token típus.
-- **payload** (hasznos teher), olyan állításokkal, mint pl. sub (a token által képviselt felhasználó vagy entitás, autentikációs forgatókönyvben tipikusan a felhasználó azonosítója), exp (lejárat), role (szerepkör).
-- **signature** (aláírás), amely titkos kulccsal vagy privát kulccsal van aláírva.
+- **fejléc (header)**, az algoritmus és a token típusa.
+- **tartalom (payload)**, igények, mint pl. sub (a token által képviselt felhasználó vagy entitás, auth esetén tipikusan user id), exp (lejárati idő), role (szerepkör).
+- **aláírás (signature)**, amely egy titkos vagy privát kulccsal készül.
 
-Ehhez létre kell hozni a fejlécet, a payload-ot és az enkódolt tokent.
+Ehhez össze kell állítanunk a fejlécet, a tartalmat és az kódolt tokent.
 
 **Python**
 
@@ -528,7 +531,7 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 import datetime
 
-# Titkos kulcs a JWT aláírásához
+# A JWT aláírásához használt titkos kulcs
 secret_key = 'your-secret-key'
 
 header = {
@@ -536,27 +539,27 @@ header = {
     "typ": "JWT"
 }
 
-# a felhasználói információk, igények és lejárati idő
+# a felhasználói információ és annak állításai, valamint lejárati ideje
 payload = {
     "sub": "1234567890",               # Alany (felhasználói azonosító)
-    "name": "User Userson",                # Egyedi igény
-    "admin": True,                     # Egyedi igény
-    "iat": datetime.datetime.utcnow(),# Kiadva
+    "name": "User Userson",                # Egyedi állítás
+    "admin": True,                     # Egyedi állítás
+    "iat": datetime.datetime.utcnow(),# Kiadás ideje
     "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Lejárat
 }
 
-# kódold le
+# kódolás
 encoded_jwt = jwt.encode(payload, secret_key, algorithm="HS256", headers=header)
 ```
 
-A fenti kódban:
+Ebben a kódban:
 
-- Meghatároztuk a fejlécet HS256 algoritmussal és JWT típussal.
-- Összeállítottuk a payload-ot, amely tartalmaz egy alanyt vagy felhasználói azonosítót, egy felhasználónevet, szerepkört, kiadási dátumot és lejárati időt, így megvalósítva az időkorlátot.
+- Meghatároztunk egy fejléce, ahol az algoritmus HS256 és a típus JWT.
+- Összeállítottunk egy tartalmat, amely tartalmaz egy tárgyat vagy felhasználói azonosítót, egy felhasználónevet, szerepet, mikor adták ki és mikor jár le, így megvalósítva a fent említett időhöz kötöttséget.
 
 **TypeScript**
 
-Ehhez szükségünk lesz néhány függőségre, amelyek segítenek a JWT token létrehozásában.
+Ehhez néhány függőségre lesz szükségünk, amelyek segítenek a JWT token összeállításában.
 
 Függőségek
 
@@ -566,29 +569,29 @@ npm install jsonwebtoken
 npm install --save-dev @types/jsonwebtoken
 ```
 
-Most, hogy megvannak ezek, készítsük el a fejlécet, payload-ot, és ezen keresztül az enkódolt tokent.
+Most, hogy ez megvan, hozzuk létre a fejlécet, tartalmat, és ezen keresztül a kódolt tokent.
 
 ```typescript
 import jwt from 'jsonwebtoken';
 
-const secretKey = 'your-secret-key'; // Használjon környezeti változókat éles környezetben
+const secretKey = 'your-secret-key'; // Használj környezeti változókat éles környezetben
 
-// Definiáld a terhelést
+// Határozd meg a teher adatait
 const payload = {
   sub: '1234567890',
   name: 'User usersson',
   admin: true,
   iat: Math.floor(Date.now() / 1000), // Kiadva
-  exp: Math.floor(Date.now() / 1000) + 60 * 60 // Lejár 1 óra múlva
+  exp: Math.floor(Date.now() / 1000) + 60 * 60 // 1 órán belül lejár
 };
 
-// Fejléc definiálása (opcionális, a jsonwebtoken alapértelmezetten beállít)
+// Határozd meg a fejlécet (opcionális, a jsonwebtoken alapértelmezett értékeket állít be)
 const header = {
   alg: 'HS256',
   typ: 'JWT'
 };
 
-// Token létrehozása
+// Készítsd el a tokent
 const token = jwt.sign(payload, secretKey, {
   algorithm: 'HS256',
   header: header
@@ -599,21 +602,21 @@ console.log('JWT:', token);
 
 Ez a token:
 
-HS256-tal van aláírva
+HS256-tal aláírva
 1 óráig érvényes
-Tartalmaz olyan állításokat, mint sub, name, admin, iat, és exp.
+Tartalmazza az aligényeket, mint sub, name, admin, iat, és exp.
 
-### -2- Token érvényesítése
+### -2- Token validálása
 
-Ellenőriznünk is kell a tokent, ezt a szerveren kell megtennünk, hogy biztosak legyünk, amit a kliens küld, az valóban érvényes. Sokféle ellenőrzést kell végezni, például a struktúra helyességét vagy az érvényességet. Ajánlott további ellenőrzéseket is végrehajtani, például, hogy a felhasználó szerepel-e a rendszerünkben, és jogosultságai megfelelnek-e.
+Szintén szükséges a token validálása, ezt a szerveren kell megtennünk, hogy biztosak legyünk benne, amit a kliens küld, az tényleg érvényes. Sok ellenőrzést kell végezni, a struktúra és az érvényesség megerősítésétől kezdve. Ajánlott további ellenőrzéseket hozzáadni, például, hogy a felhasználó szerepel-e a rendszerben, stb.
 
-A token érvényesítéséhez dekódolni kell, hogy leolvashassuk és megkezdjük az ellenőrzést:
+A token validálásához dekódolni kell, hogy el tudjuk olvasni, majd elkezdjük az érvényességét ellenőrizni:
 
 **Python**
 
 ```python
 
-# Dekódolja és ellenőrzi a JWT-t
+# JWT dekódolása és ellenőrzése
 try:
     decoded = jwt.decode(token, secret_key, algorithms=["HS256"])
     print("✅ Token is valid.")
@@ -627,11 +630,12 @@ except InvalidTokenError as e:
 
 ```
 
-Ebben a kódban a `jwt.decode` hívást végezzük el a tokennel, titkos kulccsal és az elfogadott algoritmussal. Észrevehető a try-except blokk használata, mert hibás érvényesítésnél kivételt dob.
+
+Ebben a kódban a `jwt.decode`-et hívjuk meg a tokennel, a titkos kulccsal és a választott algoritmussal bemenetként. Figyeld meg, hogy try-catch szerkezetet használunk, mivel a sikertelen érvényesítés hibát vált ki.
 
 **TypeScript**
 
-Itt a `jwt.verify` metódust kell hívni, hogy dekódolt változatot kapjunk, amit tovább elemezhetünk. Ha ez hibát dob, akkor a token szerkezete hibás vagy lejárt.
+Itt a `jwt.verify`-t kell meghívnunk, hogy egy visszafejtett token verziót kapjunk, amit tovább elemezhetünk. Ha ez a hívás meghiúsul, akkor a token szerkezete helytelen, vagy már nem érvényes.
 
 ```typescript
 
@@ -643,18 +647,19 @@ try {
 }
 ```
 
-MEGJEGYZÉS: Ahogy korábban említve, további ellenőrzéseket is végre kell hajtani, hogy a token valóban egy létező felhasználóra mutasson rá, és hogy a jogosultságai megfeleljenek.
+MEGJEGYZÉS: ahogy korábban említettük, további ellenőrzéseket kell végeznünk, hogy biztosítsuk, ez a token egy felhasználóra mutat a rendszerünkben, és a felhasználónak valóban megvannak a kijelentett jogosultságai.
 
-Most nézzünk meg egy szerepkör-alapú hozzáférésvezérlést, más néven RBAC-ot.
-## Hozzáadás szerepkör alapú jogosultságkezelés
+Nézzük meg most a szerepalapú hozzáférés-vezérlést, más néven RBAC-ot.
 
-Az az elképzelés, hogy különböző szerepkörök különböző jogosultságokat kapnak. Például feltételezzük, hogy egy admin mindent megtehet, egy normál felhasználó olvashat/írhat, egy vendég pedig csak olvashat. Ezért itt vannak néhány lehetséges jogosultsági szint:
+## Szerepalapú hozzáférés-vezérlés hozzáadása
 
-- Admin.Write 
+Az elképzelés az, hogy különböző szerepekhez különböző jogosultságok tartoznak. Például feltételezzük, hogy egy admin mindent megtehet, egy normál felhasználó olvashat/írhat, egy vendég pedig csak olvashat. Így néhány lehetséges jogosultsági szint:
+
+- Admin.Write
 - User.Read
 - Guest.Read
 
-Nézzük meg, hogyan tudunk ilyen jogosultság-ellenőrzést megvalósítani middleware-rel. Middleware-eket hozzá lehet adni egyes útvonalakhoz, vagy az összes útvonalhoz is.
+Nézzük meg, hogyan valósíthatunk meg ilyen vezérlést middleware-rel. Middlewares hozzáadhatók útvonalanként, valamint az összes útvonalra is.
 
 **Python**
 
@@ -663,7 +668,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 import jwt
 
-# NE legyen a titok a kódban, ez csak bemutató célt szolgál. Olvasd biztonságos helyről.
+# NE legyen a titok a kódban, ez csak bemutató célt szolgál. Olvasd be egy biztonságos helyről.
 SECRET_KEY = "your-secret-key" # tedd környezeti változóba
 REQUIRED_PERMISSION = "User.Read"
 
@@ -691,21 +696,21 @@ class JWTPermissionMiddleware(BaseHTTPMiddleware):
 
 ```
 
-Néhány különböző mód van arra, hogy hozzáadjuk a middleware-t a következőhöz hasonlóan:
+Többféle módja is van a middleware hozzáadásának, az alábbihoz hasonlóan:
 
 ```python
 
-# Alt 1: köztes szoftver hozzáadása a starlette alkalmazás építése közben
+# 1. lehetőség: köztes szoftver hozzáadása a starlette alkalmazás építése közben
 middleware = [
     Middleware(JWTPermissionMiddleware)
 ]
 
 app = Starlette(routes=routes, middleware=middleware)
 
-# Alt 2: köztes szoftver hozzáadása a starlette alkalmazás megépítése után
+# 2. lehetőség: köztes szoftver hozzáadása a starlette alkalmazás már elkészülte után
 starlette_app.add_middleware(JWTPermissionMiddleware)
 
-# Alt 3: köztes szoftver hozzáadása útvonalanként
+# 3. lehetőség: köztes szoftver hozzáadása útvonalanként
 routes = [
     Route(
         "/mcp",
@@ -717,7 +722,7 @@ routes = [
 
 **TypeScript**
 
-Használhatjuk az `app.use`-t és egy olyan middleware-t, ami minden kérésnél lefut.
+Használhatjuk az `app.use`-t és egy middleware-t, ami minden kérésnél fut.
 
 ```typescript
 app.use((req, res, next) => {
@@ -747,7 +752,7 @@ app.use((req, res, next) => {
     }
     console.log("User exists");
 
-    // 4. Ellenőrizze, hogy a token rendelkezik-e a megfelelő engedélyekkel
+    // 4. Ellenőrizze, hogy a token megfelelő jogosultságokkal rendelkezik-e
     if(!hasScopes(token, ["User.Read"])){
         res.status(403).send('Forbidden - insufficient scopes');
     }
@@ -760,11 +765,11 @@ app.use((req, res, next) => {
 
 ```
 
-Sok dolgot engedhetünk meg a middleware-nek és amit a middleware-nek KELL is tennie, nevezetesen:
+Számos dolgot bízhatunk a middleware-re, és amit annak KELL tennie, nevezetesen:
 
-1. Ellenőrizze, hogy van-e engedélyezési fejléc (authorization header)
-2. Ellenőrizze, hogy a token érvényes-e, meghívjuk az `isValid` metódust, melyet mi írtunk és amely a JWT token integritását és érvényességét ellenőrzi.
-3. Ellenőrizze, hogy a felhasználó létezik-e a rendszerünkben, ezt is ellenőriznünk kell.
+1. Ellenőrizni, hogy van-e authorization header
+2. Ellenőrizni, hogy a token érvényes-e, ehhez meghívjuk az `isValid` metódust, amit írtunk, és ami ellenőrzi a JWT token integritását és érvényességét.
+3. Meggyőződni róla, hogy a felhasználó létezik a rendszerünkben, ezt ellenőrizni kell.
 
    ```typescript
     // felhasználók az adatbázisban
@@ -776,14 +781,14 @@ Sok dolgot engedhetünk meg a middleware-nek és amit a middleware-nek KELL is t
    function isExistingUser(token) {
      let decodedToken = verifyToken(token);
 
-     // TODO, ellenőrizni, hogy a felhasználó létezik-e az adatbázisban
+     // TEENDŐ, ellenőrizd, hogy a felhasználó létezik-e az adatbázisban
      return users.includes(decodedToken?.name || "");
    }
    ```
 
-   Fent egy nagyon egyszerű `users` listát hoztunk létre, ami nyilvánvalóan egy adatbázisban kell hogy legyen.
+   Fent egy egyszerű `users` listát készítettünk, ami nyilvánvalóan egy adatbázisban lenne.
 
-4. Emellett ellenőriznünk kell, hogy a token rendelkezik-e a megfelelő jogosultságokkal.
+4. Továbbá meg kell néznünk, hogy a token rendelkezik-e a megfelelő jogosultságokkal.
 
    ```typescript
    if(!hasScopes(token, ["User.Read"])){
@@ -791,7 +796,7 @@ Sok dolgot engedhetünk meg a middleware-nek és amit a middleware-nek KELL is t
    }
    ```
 
-   Ebben a fenti middleware kódban azt ellenőrizzük, hogy a token tartalmazza-e a User.Read jogosultságot, ha nem, akkor 403 hibát küldünk. Lent látható a `hasScopes` segédfüggvény.
+   A fenti middleware kódban megnézzük, hogy a token tartalmazza-e a User.Read jogosultságot, ha nem, 403-as hibát küldünk. Lent a `hasScopes` segédfüggvény található.
 
    ```typescript
    function hasScopes(scope: string, requiredScopes: string[]) {
@@ -840,15 +845,15 @@ app.use((err, req, res, next) => {
 
 ```
 
-Most, hogy láttad, hogyan lehet a middleware-t mind hitelesítésre, mind jogosultságkezelésre használni, mi a helyzet az MCP-vel, megváltoztatja-e az auth megvalósítását? Nézzük meg a következő részben.
+Most, hogy láttad, hogyan használható middleware hitelesítésre és engedélyezésre, mi a helyzet az MCP-vel? Megváltoztatja-e az autentikáció módját? Nézzük meg a következő részben.
 
-### -3- Szerepkör alapú jogosultságok hozzáadása MCP-hez
+### -3- RBAC hozzáadása MCP-hez
 
-Eddig láttad, hogyan lehet middleware-rel RBAC-ot hozzáadni, azonban MCP esetén nincs egyszerű mód, hogy MCP funkciónként külön RBAC-ot adjunk hozzá, akkor mit tegyünk? Egyszerűen csak hozzá kell adnunk ilyen kódot, ami ebben az esetben ellenőrzi, hogy az ügyfél jogosult-e egy adott eszköz meghívására:
+Eddig láttad, hogyan adható RBAC middleware-rel, azonban MCP esetén nincs egyszerű mód funkciónkénti RBAC hozzáadására, tehát mit tehetünk? Egyszerűen hozzáadunk egy kódot, ami például ellenőrzi, hogy az ügyfél jogosult-e egy adott eszköz használatára:
 
-Többféle mód van arra, hogy funkciónkénti RBAC-ot valósítsunk meg, íme néhány:
+Többféle választásod van, hogyan valósítsd meg az egyes funkciókra vonatkozó RBAC-ot, itt van néhány:
 
-- Adj hozzá jogosultság ellenőrzést minden egyes eszközhöz, erőforráshoz, prompthoz, ahol ellenőrizni kell a jogosultsági szintet.
+- Adj egy ellenőrzést minden egyes eszközhöz, erőforráshoz, prompt-hez, ahol szükséges a jogosultsági szint vizsgálata.
 
    **python**
 
@@ -858,7 +863,7 @@ Többféle mód van arra, hogy funkciónkénti RBAC-ot valósítsunk meg, íme n
       try:
           check_permissions(role="Admin.Write", request)
       catch:
-        pass # a kliens nem sikerült azonosítás, engedélyezési hiba kiváltása
+        pass # ügyfél nem sikerült azonosítás, engedélyezési hiba kiváltása
    ```
 
    **typescript**
@@ -875,7 +880,7 @@ Többféle mód van arra, hogy funkciónkénti RBAC-ot valósítsunk meg, íme n
       
       try {
         checkPermissions("Admin.Write", request);
-        // teendő, küldd el az azonosítót a productService-nek és a távoli bejegyzésnek
+        // teendő, küldd el az azonosítót a productService-nek és a távoli belépéshez
       } catch(Exception e) {
         console.log("Authorization error, you're not allowed");  
       }
@@ -888,7 +893,7 @@ Többféle mód van arra, hogy funkciónkénti RBAC-ot valósítsunk meg, íme n
    ```
 
 
-- Használj fejlett szerver megközelítést és kéréskezelőket, hogy minimalizáld, hány helyen kell ellenőrzést végezni.
+- Használj fejlettebb szerverközelítést és kéréskezelőket, hogy minimalizáld az ellenőrzés helyeinek számát.
 
    **Python**
 
@@ -908,13 +913,13 @@ Többféle mód van arra, hogy funkciónkénti RBAC-ot valósítsunk meg, íme n
    async def handle_call_tool(
      name: str, arguments: dict[str, str] | None
    ) -> list[types.TextContent]:
-    # Tegyük fel, hogy a request.user.permissions a felhasználó jogosultságainak listája
+    # Felteszi, hogy a request.user.permissions a felhasználó jogosultságainak listája
      user_permissions = request.user.permissions
      required_permissions = tool_permission.get(name, [])
      if not has_permission(user_permissions, required_permissions):
-        # Dobj hibát "Nincs jogosultságod a(z) {name} eszköz hívásához"
+        # Hibát dob "Nincs jogosultságod a(z) {name} eszköz használatához"
         raise Exception(f"You don't have permission to call tool {name}")
-     # folytasd és hívd meg az eszközt
+     # folytatja és meghívja az eszközt
      # ...
    ```   
    
@@ -924,7 +929,7 @@ Többféle mód van arra, hogy funkciónkénti RBAC-ot valósítsunk meg, íme n
    ```typescript
    function hasPermission(userPermissions: string[], requiredPermissions: string[]): boolean {
        if (!Array.isArray(userPermissions) || !Array.isArray(requiredPermissions)) return false;
-       // Adjon vissza igaz értéket, ha a felhasználónak legalább egy szükséges engedélye van
+       // Igaz értékkel tér vissza, ha a felhasználónak legalább egy szükséges engedélye van
        
        return requiredPermissions.some(perm => userPermissions.includes(perm));
    }
@@ -938,45 +943,45 @@ Többféle mód van arra, hogy funkciónkénti RBAC-ot valósítsunk meg, íme n
          return new Error(`You don't have permission to call ${name}`);
       }
   
-      // folytassa tovább..
+      // folytassa..
    });
    ```
 
-   Fontos, hogy middleware-d biztosítsa, hogy egy dekódolt token legyen hozzárendelve a kérés user property-jéhez, hogy a fenti kód egyszerű legyen.
+   Megjegyzés: biztosítanod kell, hogy a middleware hozzárendeljen egy visszafejtett tokent a kérés user tulajdonságához, így a fentiek egyszerűbben megvalósíthatók.
 
 ### Összefoglalás
 
-Most, hogy megvitattuk, hogyan lehet általánosan és MCP esetén támogatni az RBAC-ot, ideje megpróbálni a biztonságot magad megvalósítani, hogy igazold, megértetted a bemutatott fogalmakat.
+Most, hogy megbeszéltük az RBAC általános és MCP-specifikus támogatásának hozzáadását, ideje megpróbálnod saját magad megvalósítani a biztonságot, hogy biztosan megértetted az itt bemutatott fogalmakat.
 
-## Feladat 1: Építs egy mcp szervert és mcp klienset alap hitelesítéssel
+## Feladat 1: Építs egy MCP szervert és MCP klienst egyszerű hitelesítéssel
 
-Itt azt használod, amit tanultál a hitelesítő adatok fejlécben való továbbításáról.
+Itt a tanultakat alkalmazhatod arra, hogyan küldjük el a hitelesítő adatokat headereken keresztül.
 
 ## Megoldás 1
 
-[Solution 1](./code/basic/README.md)
+[Megoldás 1](./code/basic/README.md)
 
-## Feladat 2: Fejleszd tovább az 1. feladat megoldását JWT alapúra
+## Feladat 2: Fejleszd tovább az 1. feladat megoldását JWT használatára
 
-Vedd az első megoldást, de most fejlesszük tovább.
+Vedd az első megoldást, de javítsuk tovább.
 
-Basic Auth helyett használjuk a JWT-t.
+Ahelyett, hogy Basic Autht használnánk, használjunk JWT-t.
 
 ## Megoldás 2
 
-[Solution 2](./solution/jwt-solution/README.md)
+[Megoldás 2](./solution/jwt-solution/README.md)
 
 ## Kihívás
 
-Add hozzá a szakaszban "Add RBAC to MCP" leírt eszközönkénti RBAC-ot.
+Add hozzá a funkciónkénti RBAC-ot, amit az "Add RBAC to MCP" szakaszban írtunk le.
 
-## Összefoglalás
+## Összegzés
 
-Remélhetőleg sokat tanultál ebben a fejezetben, a teljes biztonság hiányától kezdve az alapbiztonságon át a JWT-ig és annak MCP-hez való hozzáadásáig.
+Remélhetőleg sokat tanultál ebben a fejezetben a biztonság nélküli állapottól kezdve az alapvető biztonságon át a JWT-ig és annak MCP-be való integrációjáig.
 
-Már építettünk egy szilárd alapot egyedi JWT-kkel, de ahogy nő a méretünk, átállunk egy szabványosított identitás modellre. Egy IdP, mint az Entra vagy Keycloak alkalmazásával átháríthatjuk a token kibocsátás, érvényesítés és életciklus-kezelés feladatát egy megbízható platformra — így mi az alkalmazás logikára és a felhasználói élményre koncentrálhatunk.
+Egy szilárd alapot építettünk egyedi JWT-kkel, de ahogy skálázunk, egy szabványalapú identitásmodell felé haladunk. Egy IdP, például az Entra vagy Keycloak elfogadása lehetővé teszi, hogy a token kiadását, érvényesítését és életciklus-kezelését egy megbízható platformra bízzuk — így mi az alkalmazás logikájára és a felhasználói élményre koncentrálhatunk.
 
-Ehhez van egy haladóbb [fejezet az Entráról](../../05-AdvancedTopics/mcp-security-entra/README.md)
+Ehhez egy [haladóbb fejezetünk az Entráról](../../05-AdvancedTopics/mcp-security-entra/README.md) áll rendelkezésre.
 
 ## Mi következik
 
@@ -985,6 +990,6 @@ Ehhez van egy haladóbb [fejezet az Entráról](../../05-AdvancedTopics/mcp-secu
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Jogi Nyilatkozat**:  
-Ez a dokumentum az AI fordító szolgáltatás [Co-op Translator](https://github.com/Azure/co-op-translator) használatával készült. Bár a pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Kritikus információk esetén professzionális emberi fordítás ajánlott. Nem vállalunk felelősséget az e fordítás használatából eredő félreértésekért vagy félreértelmezésekért.
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

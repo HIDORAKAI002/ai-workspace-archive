@@ -1,23 +1,25 @@
-# Szczegółowa analiza funkcji protokołu MCP
+# Szczegółowe Funkcje Protokolu MCP
 
-Ten przewodnik omawia zaawansowane funkcje protokołu MCP, które wykraczają poza podstawową obsługę narzędzi i zasobów. Zrozumienie tych funkcji pomaga tworzyć bardziej niezawodne, przyjazne dla użytkownika i gotowe do produkcji serwery MCP.
+Ten przewodnik omawia zaawansowane funkcje protokołu MCP, które wykraczają poza podstawową obsługę narzędzi i zasobów. Zrozumienie tych funkcji pomaga w tworzeniu bardziej solidnych, przyjaznych dla użytkownika i gotowych do produkcji serwerów MCP.
 
-## Omówione funkcje
+> **Spojrzenie w przyszłość:** kandydat do wydania `2026-07-28` przestaje wspierać prymityw Logging (zamiast tego faworyzuje `stderr` dla stdio oraz OpenTelemetry dla ustrukturyzowanej obserwowalności), usuwa model `initialize`/sesji wspomniany w sekcji Wydarzenia cyklu życia serwera poniżej oraz przenosi eksperymentalną funkcję Tasks do dedykowanego rozszerzenia Tasks z nowym cyklem życia `tasks/get`/`tasks/update`/`tasks/cancel`. Zobacz [Co się zmienia w MCP: Kandydat do wydania 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Powiadomienia o postępie** - raportowanie postępu dla operacji długotrwałych  
-2. **Anulowanie żądań** - pozwalanie klientom na anulowanie trwających żądań  
-3. **Szablony zasobów** - dynamiczne URI zasobów z parametrami  
-4. **Zdarzenia cyklu życia serwera** - właściwa inicjalizacja i zamykanie  
-5. **Kontrola logowania** - konfigurowanie logowania po stronie serwera  
-6. **Wzorce obsługi błędów** - spójne odpowiedzi błędów  
+## Obejmowane Funkcje
+
+1. **Powiadomienia o Postępie** - raportowanie postępu dla operacji trwających długo  
+2. **Anulowanie Żądań** - pozwalanie klientom na anulowanie żądań w trakcie realizacji  
+3. **Szablony Zasobów** - dynamiczne URI zasobów z parametrami  
+4. **Wydarzenia Cyklu Życia Serwera** - odpowiednia inicjalizacja i zamykanie  
+5. **Kontrola Logowania** - konfigurowanie logowania po stronie serwera  
+6. **Wzorce Obsługi Błędów** - spójne odpowiedzi na błędy  
 
 ---
 
-## 1. Powiadomienia o postępie
+## 1. Powiadomienia o Postępie
 
-Dla operacji, które wymagają czasu (przetwarzanie danych, pobieranie plików, wywołania API), powiadomienia o postępie informują użytkowników o stanie.
+Dla operacji, które zajmują czas (przetwarzanie danych, pobieranie plików, wywołania API), powiadomienia o postępie informują użytkowników na bieżąco.
 
-### Jak to działa
+### Jak To Działa
 
 ```mermaid
 sequenceDiagram
@@ -28,9 +30,10 @@ sequenceDiagram
     Server-->>Client: powiadomienie: postęp 10%
     Server-->>Client: powiadomienie: postęp 50%
     Server-->>Client: powiadomienie: postęp 90%
-    Server->>Client: wynik (zakończono)
-```  
-### Implementacja w Pythonie
+    Server->>Client: wynik (zakończone)
+```
+
+### Implementacja w Python
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -89,7 +92,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-  
+
 ### Implementacja w TypeScript
 
 ```typescript
@@ -122,7 +125,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-  
+
 ### Obsługa po stronie klienta (Python)
 
 ```python
@@ -134,17 +137,17 @@ async def handle_progress(notification):
 # Rejestruj obsługę
 session.on_notification("notifications/progress", handle_progress)
 
-# Wywołaj narzędzie (aktualizacje postępu będą przychodzić przez obsługę)
+# Wywołaj narzędzie (aktualizacje postępu będą przesyłane przez obsługę)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-  
+
 ---
 
-## 2. Anulowanie żądań
+## 2. Anulowanie Żądań
 
-Pozwalanie klientom na anulowanie żądań, które nie są już potrzebne lub zajmują zbyt dużo czasu.
+Pozwalaj klientom anulować żądania, które nie są już potrzebne lub trwają zbyt długo.
 
-### Implementacja w Pythonie
+### Implementacja w Python
 
 ```python
 from mcp.server import Server
@@ -161,19 +164,19 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # Przeszukaj wiele stron
-            # Sprawdź, czy anulowanie zostało zażądane
+            # Sprawdź, czy anulowanie zostało żądane
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Symuluj wyszukiwanie na stronie
+            # Symuluj przeszukiwanie strony
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Krótkie opóźnienie pozwala na sprawdzanie anulowania
+            # Krótkie opóźnienie pozwala na sprawdzenie anulowania
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # Zwróć wyniki częściowe
+        # Zwróć częściowe wyniki
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -197,7 +200,7 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-  
+
 ### Implementacja kontekstu anulowania
 
 ```python
@@ -233,7 +236,7 @@ class CancellableContext:
         except asyncio.TimeoutError:
             pass  # Normalny limit czasu, kontynuuj
 ```
-  
+
 ### Anulowanie po stronie klienta
 
 ```python
@@ -250,19 +253,19 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Żądanie anulowania
+        # Prośba o anulowanie
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
         })
         return "Search timed out"
 ```
-  
+
 ---
 
-## 3. Szablony zasobów
+## 3. Szablony Zasobów
 
-Szablony zasobów umożliwiają dynamiczne tworzenie URI z parametrami, przydatne w API i bazach danych.
+Szablony zasobów pozwalają na dynamiczne tworzenie URI z parametrami, co jest przydatne dla API i baz danych.
 
 ### Definiowanie szablonów
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Analizuj URI, aby wyodrębnić parametry
+    # Przeanalizuj URI, aby wyodrębnić parametry
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -316,7 +319,7 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-  
+
 ### Implementacja w TypeScript
 
 ```typescript
@@ -359,14 +362,14 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-  
+
 ---
 
-## 4. Zdarzenia cyklu życia serwera
+## 4. Wydarzenia Cyklu Życia Serwera
 
-Właściwe zarządzanie inicjalizacją i zamykaniem zapewnia czyste zarządzanie zasobami.
+Poprawne zarządzanie inicjalizacją i zamykaniem zapewnia czyste zarządzanie zasobami.
 
-### Zarządzanie cyklem życia w Pythonie
+### Zarządzanie cyklem życia w Python
 
 ```python
 from mcp.server import Server
@@ -391,7 +394,7 @@ async def lifespan(server: Server):
     
     yield  # Serwer działa tutaj
     
-    # Zamknięcie
+    # Zakończenie pracy
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -405,7 +408,7 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-  
+
 ### Cykl życia w TypeScript
 
 ```typescript
@@ -462,12 +465,12 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-  
+
 ---
 
-## 5. Kontrola logowania
+## 5. Kontrola Logowania
 
-MCP obsługuje poziomy logowania po stronie serwera, które klienci mogą kontrolować.
+MCP wspiera poziomy logowania po stronie serwera, które klienci mogą kontrolować.
 
 ### Implementacja poziomów logowania
 
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Mapuj poziomy MCP na poziomy logowania Pythona
+# Mapuj poziomy MCP do poziomów logowania Pythona
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,15 +511,15 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-  
-### Wysyłanie komunikatów logowania do klienta
+
+### Wysyłanie komunikatów logów do klienta
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Wyślij powiadomienie o logu do klienta
+    # Wyślij powiadomienie o logach do klienta
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -532,10 +535,10 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-  
+
 ---
 
-## 6. Wzorce obsługi błędów
+## 6. Wzorce Obsługi Błędów
 
 Spójna obsługa błędów poprawia debugowanie i doświadczenie użytkownika.
 
@@ -568,8 +571,8 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-  
-### Strukturalne odpowiedzi błędów
+
+### Ustrukturyzowane odpowiedzi na błędy
 
 ```python
 @app.tool()
@@ -601,11 +604,11 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Zaloguj nieoczekiwane błędy
+        # Zarejestruj nieoczekiwane błędy
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-  
+
 ### Obsługa błędów w TypeScript
 
 ```typescript
@@ -650,17 +653,17 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-  
+
 ---
 
-## Funkcje eksperymentalne (MCP 2025-11-25)
+## Funkcje Eksperymentalne (MCP 2025-11-25)
 
 Te funkcje są oznaczone jako eksperymentalne w specyfikacji:
 
-### Zadania (operacje długotrwałe)
+### Tasks (Operacje trwające długo)
 
 ```python
-# Zadania umożliwiają śledzenie długotrwałych operacji ze stanem
+# Zadania pozwalają na śledzenie długotrwałych operacji ze stanem
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -681,7 +684,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-  
+
 ### Adnotacje narzędzi
 
 ```python
@@ -691,34 +694,34 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
         "destructive": False,      # Nie modyfikuje danych
         "idempotent": True,        # Bezpieczne do ponowienia
         "timeout_seconds": 30,     # Oczekiwany maksymalny czas trwania
-        "requires_approval": False # Nie wymaga zgody użytkownika
+        "requires_approval": False # Nie wymaga zatwierdzenia użytkownika
     }
 )
 async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-  
+
 ---
 
-## Co dalej
+## Co Dalej
 
-- [Moduł 8 - Najlepsze praktyki](../../08-BestPractices/README.md)  
+- [Moduł 8 - Najlepsze Praktyki](../../08-BestPractices/README.md)  
 - [5.14 - Inżynieria kontekstu](../mcp-contextengineering/README.md)  
-- [Rejestr zmian specyfikacji MCP](https://spec.modelcontextprotocol.io/)  
+- [Zmiany w specyfikacji MCP](https://spec.modelcontextprotocol.io/)  
 
 ---
 
-## Dodatkowe zasoby
+## Dodatkowe Zasoby
 
 - [Specyfikacja MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
 - [Kody błędów JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [Przykłady SDK Pythona](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
-- [Przykłady SDK TypeScript](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [Przykłady Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [Przykłady TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Zastrzeżenie**:  
-Niniejszy dokument został przetłumaczony za pomocą usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mimo że dokładamy starań, aby tłumaczenie było jak najbardziej precyzyjne, prosimy mieć na uwadze, że automatyczne tłumaczenia mogą zawierać błędy lub nieścisłości. Oryginalny dokument w języku źródłowym należy traktować jako źródło ostateczne. W przypadku informacji krytycznych zalecane jest skorzystanie z profesjonalnego, ludzkiego tłumaczenia. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z użycia tego tłumaczenia.
+**Zastrzeżenie**:
+Niniejszy dokument został przetłumaczony za pomocą usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Choć dążymy do dokładności, prosimy pamiętać, że automatyczne tłumaczenia mogą zawierać błędy lub niedokładności. Oryginalny dokument w jego języku źródłowym należy uznawać za autorytatywne źródło. W przypadku informacji krytycznych zalecane jest skorzystanie z profesjonalnego tłumaczenia wykonanego przez człowieka. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z użycia tego tłumaczenia.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

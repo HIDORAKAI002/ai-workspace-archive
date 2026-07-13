@@ -1,4 +1,45 @@
-Please provide the text you want me to translate.
+```mermaid
+sequenceDiagram
+    actor User
+    participant WebApp as Web App<br/>(ContentSafetyController)
+    participant SafetyService as Content Safety Service
+    participant AzureAPI as Azure Content Safety API
+    participant LangChain as LangChain4j
+    participant McpClient as MCP Client
+    participant McpServer as MCP Calculator Server<br/>(Port 8080)
+    participant CalcService as Calculator Service
 
-**Disclaimer**:  
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+    %% User Interaction
+    User->>WebApp: Enter calculation prompt
+    WebApp->>WebApp: Create PromptRequest
+
+    %% Content Safety Check
+    WebApp->>SafetyService: processPrompt(prompt)
+    SafetyService->>AzureAPI: analyzeText(prompt)
+    AzureAPI-->>SafetyService: AnalyzeTextResult
+    SafetyService->>SafetyService: Check if content is safe<br/>(severity < 2 for all categories)
+
+    %% Processing Flow - Safe Content
+    alt Content is safe
+        SafetyService->>LangChain: Pass prompt to Bot.chat()
+        LangChain->>McpClient: Process prompt
+        McpClient->>McpServer: Call appropriate calculator tool via SSE
+        McpServer->>CalcService: Execute calculation<br/>(add, subtract, multiply, etc.)
+        CalcService-->>McpServer: Calculation result
+        McpServer-->>McpClient: Tool execution result
+        McpClient-->>LangChain: Tool result
+        LangChain-->>SafetyService: Bot response
+        SafetyService-->>WebApp: Return result map<br/>{isSafe: "true", botResponse: result, safetyResult: details}
+        WebApp-->>User: Display calculation result and safety info
+    else Content is unsafe
+        SafetyService-->>WebApp: Return result map<br/>{isSafe: "false", safetyResult: details}
+        WebApp-->>User: Display safety warning<br/>(without calculation)
+    end
+```
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
