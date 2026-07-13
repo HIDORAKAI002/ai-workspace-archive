@@ -1,36 +1,39 @@
-# MCP Protocol Features Deep Dive
+# MCP ပရိုတိုကော လက္ခဏာများ နက်နဲစွာ ရှုမြင်ခြင်း
 
-ဤလမ်းညွှန်သည် MCP protocol ၏ အခြေခံကိရိယာနှင့်အသုံးပြုမှုထက် ကျော်၍ ရှုပ်ထွေးသော Features များကို ရှင်းလင်းဖော်ပြထားသည်။ ဤ Features များကိုနားလည်ခြင်းဖြင့် သင့်အား ပိုမိုခိုင်မာပြီး အသုံးပြုရလွယ်ကူသော၊ ထုတ်လုပ်နိုင်သော MCP server များကို တည်ဆောက်နိုင်မှာဖြစ်သည်။
+ဤလမ်းညွှန်မှာ MCP ပရိုတိုကောအခြေခံ ကိရိယာနှင့် အရင်းအမြစ်ကျွမ်းကျင်မှုကို ကျော်လွန်သည့် အဆင့်မြင့် MCP ပရိုတိုကိုး လက္ခဏာများကို ရှင်းလင်းပြောကြားပါသည်။ ဤလက္ခဏာများကို နားလည်ခြင်းဖြင့် သင်သည် ပိုမိုတည်ငြိမ်ပြီး အသုံးပြုရလွယ်ကူသော၊ ထုတ်လုပ်မှုအဆင့်သင့် MCP ဆာဗာများကို တည်ဆောက်နိုင်ပါသည်။
 
-## Features Covered
+> **ရှေ့ဆက်ကြည့်ခြင်း** - `2026-07-28` ထုတ်ပြန်မည့် candidate သည် Logging primitive ကို ရုပ်သိမ်းကာ (`stderr` ကို stdio အတွက်နှင့် OpenTelemetry ကို ဖွဲ့စည်းထားသော နေကြတယ်ပါတယ် မှတ်တမ်းများအတွက်အားထားခြင်းဖြင့်), နောက်မှ Server Lifecycle Events တွင် ဖော်ပြသည့် `initialize`/session မော်ဒယ်ကို ဖယ်ရှား၍၊ နည်းပညာစမ်းသပ် ခြားနားသော Tasks လက္ခဏာကို dedicated Tasks extension ထဲသို့ သယ်ယူပြီး `tasks/get`/`tasks/update`/`tasks/cancel` lifecycle အသစ်ဖြင့် လည်ပတ်စေသည်။  [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) ကို ကြည့်ရှုပါ။
 
-1. **Progress Notifications** - ရေရှည်ပြေးနေသော လုပ်ဆောင်ချက်များအတွက် လုပ်ဆောင်မှု တိုးတက်မှုကို အသိပေးခြင်း
-2. **Request Cancellation** - ဖောက်သည်များအား လက်ရှိ ပြေးဆဲ တောင်းဆိုမှုများကို မလိုအပ်တော့လျှင် ပယ်ဖျက်ခွင့်ပြုခြင်း
-3. **Resource Templates** - ပရမူတားများဖြင့် အမြဲပြောင်းလဲနိုင်သော resource URIs
-4. **Server Lifecycle Events** - သေချာစွာ စတင်ဖွင့်လှစ်ခြင်းနှင့် ပိတ်သိမ်းခြင်း
-5. **Logging Control** - server ဘက်မှ logging ကို စီမံခန့်ခွဲရန် ကွပ်ကဲခြင်း
-6. **Error Handling Patterns** - အမှားဖြစ်ပေါ်စာရင်းများအား တိကျမှုရှိစွာကိုင်တွယ်ခြင်း
+## စုံလင်သော လက္ခဏာများ
+
+1. **တိုးတက်မှု အသိပေးချက်များ** - အချိန်ကြာသော လုပ်ဆောင်မှုများကို တိုးတက်မှု လိုက်နာပြီး သတိပေးခြင်း
+2. **တောင်းဆိုမှုဖျက်သိမ်းခြင်း** - ဖောက်သည်များ၏ လက်ရှိတောင်းဆိုမှု များကို ဖျက်သိမ်းခွင့်ပြုခြင်း
+3. **အရင်းအမြစ် အစမ်းအရိပ်များ** - ပါရာမီတာများဖြင့် ရုပ်သိမ်း URI များ စိတ်ကြိုက်ဖန်တီးခြင်း
+4. **ဆာဗာ အသက်မွေးဝမ်းကြောင်းဖြစ်ရပ်များ** - သင့်တော်သော စလစ်နှင့် ပိတ်ဆို့မှု
+5. **မှတ်တမ်း ထိန်းချုပ်မှု** - ဆာဗာဖက်မှ မှတ်တမ်းရေးခြင်း စီမံခန့်ခွဲမှု
+6. **အမှား ကိုင်တွယ် နည်းပုံစံများ** - တိကျသော အမှား တုံ့ပြန်မှုများ
 
 ---
 
-## 1. Progress Notifications
+## 1. တိုးတက်မှု အသိပေးချက်များ
 
-အချိန်ယူသော လုပ်ငန်းစဉ်များ (ဒေတာဖြင့်ဆက်ဆောင်ခြင်း၊ ဖိုင်ဒေါင်းလုဒ်၊ API ခေါ်ဆိုမှုများ) ဆိုသည်မှာ progress notifications ပေးပို့ခြင်းဖြင့် အသုံးပြုသူများကို အချက်အလက်ပေးစောင့်ကြည့်ပေးနိုင်သည်။
+အချိန်ယူသော လုပ်ငန်းများ (ဒေတာကုန်ကြမ်းမှု, ဖိုင်ဒေါင်းလုတ်များ, API ခေါ်ဆိုမှုများ) အတွက် တိုးတက်မှု အသိပေးချက်များက အသုံးပြုသူများအား သတင်းပို့သည်။
 
-### How It Works
+### မည်သို့ လည်ပတ်သနည်း
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (ရှည်လျားသော လုပ်ဆောင်မှု)
-    Server-->>Client: အသိပေးချက်: တိုးတက်မှု ၁၀%
-    Server-->>Client: အသိပေးချက်: တိုးတက်မှု ၅၀%
-    Server-->>Client: အသိပေးချက်: တိုးတက်မှု ၉၀%
-    Server->>Client: ရလဒ် (ပြီးစီးသွားပြီ)
+    Client->>Server: tools/call (ရှည်လျားသော လည်ပတ်မှု)
+    Server-->>Client: အကြောင်းကြားချက်: တိုးတက်မှု 10%
+    Server-->>Client: အကြောင်းကြားချက်: တိုးတက်မှု 50%
+    Server-->>Client: အကြောင်းကြားချက်: တိုးတက်မှု 90%
+    Server->>Client: ရလဒ် (ပြီးစီးပြီ)
 ```
-### Python Implementation
+
+### Python မှ အကောင်အထည်ဖော်ခြင်း
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # တိုးတက်မှုတွက်ချက်မှုအတွက် ဖိုင်အရွယ်အစားကို ရယူပါ
+    # တိုးတက်မှုတွက်ချက်ရန် ဖိုင်အရွယ်အစားရယူခြင်း
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # အပိုင်းကို တိုက်ရိုက်လုပ်ဆောင်ပါ
+            # ခြက်တစ်ခုကို ဆက်လက်လုပ်ဆောင်ခြင်း
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # တိုးတက်မှု အသိပေးချက် ပို့ပါ
+            # တိုးတက်မှုဖြေကြောင်းပို့ခြင်း
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # ပစ္စည်းတိုင်းပြီးသည့်နောက် တိုးတက်မှုကို รายงานတင်ပြပါ
+        # အရာတိုင်းနောက်မှ တိုးတက်မှုကို အစီရင်ခံခြင်း
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### TypeScript Implementation
+### TypeScript မှ အကောင်အထည်ဖော်ခြင်း
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // တိုးတက်မှု အကြောင်းကြားချက် ပို့ပါ
+      // တိုးတက်မှုအသိပေးချက် ပို့ရန်
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Client Handling (Python)
+### ဖောက်သည်ကိုင်တွယ်မှု (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# ဖော်ပြချက်ကို မှတ်ပုံတင်ပါ
+# ကိုင်တွယ်သူ ကိုမှတ်ပုံတင်ပါ
 session.on_notification("notifications/progress", handle_progress)
 
-# ကိရိယာကို ခေါ်ယူပါ (တိုးတက်မှု အဆင့်အသစ်များကို ဖော်ပြချက်မှတဆင့် လက်ခံရရှိမည်)
+# ကိရိယာကိုခေါ်ပါ (တိုးတက်မှု အပ်ဒိတ်များကို ကိုင်တွယ်သူမှတဆင့် လက်ခံရရှိမည်)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. Request Cancellation
+## 2. တောင်းဆိုမှု ဖျက်သိမ်းခြင်း
 
-ဖောက်သည်များအား လုပ်ဆောင်မှုလိုအပ်ခြင်းမရှိတော့သော တောင်းဆိုမှုများကို ပယ်ဖျက်ခွင့်ပြုပါ။
+ဖောက်သည်များကို လိုအပ်မှုမရှိသည့် သို့မဟုတ် အချိန်မလုံလောက်သော တောင်းဆိုမှုများကို ဖျက်သိမ်းခွင့် ပေးပါ။
 
-### Python Implementation
+### Python မှ အကောင်အထည်ဖော်ခြင်း
 
 ```python
 from mcp.server import Server
@@ -160,20 +163,20 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # စာမျက်နှာများစွာအတွင်း ရှာဖွေပါ
-            # ပယ်ဖျက်ရန် တောင်းဆိုချက် ရှိမရှိ စစ်ဆေးပါ
+        for page in range(100):  # စာမျက်နှာများစွာတွင်ရှာဖွေပါ
+            # ဖျက်သိမ်းခြင်းတောင်းဆိုမှုရှိမရှိစစ်ဆေးပါ
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # စာမျက်နှာရှာဖွေရေး စမ်းသပ်စွမ်းဆောင်မှု
+            # စာမျက်နှာရှာဖွေမှုကို အတုယူပါ
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # သေးငယ်သော ဖြည်းညောင်းချိန်သည် ပယ်ဖျက်ရန် စစ်ဆေးမှုများကို ခွင့်ပြုသည်
+            # သေးငယ်သောနောက်ကျမှုသည် ဖျက်သိမ်းမှုစစ်ဆေးမှုများအတွက်ခွင့်ပြုသည်
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # အပိုင်းအစ ရလဒ်များ ပြန်ပေးပါ
+        # အပိုင်းအစရလဒ်များကိုပြန်အပ်ပါ
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### Implementing Cancellation Context
+### ဖျက်သိမ်းမှု ကွန်တက်စ် တည်ဆောက်ခြင်း
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # ပုံမှန် အချိန်ကုန်နယ်၊ ဆက်လက်လုပ်ဆောင်ပါ။
+            pass  # ပုံမှန်အချိန်ပြတ်၊ ဆက်လက်လုပ်ဆောင်ပါ။
 ```
 
-### Client-Side Cancellation
+### ဖောက်သည်ဖက်မှ ဖျက်သိမ်းခြင်း
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # မေတ္တာရပ်ဆိုင်းရန် တောင်းဆိုချက်
+        # မေတ္တာရပ်ဆိုင်းခြင်းကို တောင်းဆိုပါ။
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -260,11 +263,11 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. Resource Templates
+## 3. အရင်းအမြစ် အစမ်းအရိပ်များ
 
-Resource templates များသည် ပရမူတားများဖြင့် စိတ်ကြိုက် URI များဖန်တီးရန် အသုံးဝင်သည်။ ဥပမာ APIs နှင့် ဒေတာဘေ့(စ်)များနှင့် သုံးနိုင်သည်။
+အရင်းအမြစ် အစမ်းအရိပ်များက ပါရာမီတာဖြင့် ဗဟိုပြု URI များ ဖန်တီးရန် အထောက်အကူပြုသည်၊ API များနှင့် ဒေတာဘေ့စ်များအတွက် သင့်တော်သည်။
 
-### Defining Templates
+### အစမ်းအရိပ် သတ်မှတ်ခြင်း
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # URI ကို ဖတ်ရှု၍ ပါရာမီတာများကို ထုတ်ယူပါ
+    # URI ကို ပလာဇ်လုပြီး ပါရာမီတာတွေ အလွှာခွဲထုတ်ပါ
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### TypeScript Implementation
+### TypeScript မှ အကောင်အထည်ဖော်ခြင်း
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // GitHub အပွင့် URI ကို ဖတ်ရှုပြီး ခွဲခြမ်းစိတ်ဖြာပါ
+  // GitHub အကြောင်းအရာ URI ကို ခွဲထုတ်ပါ။
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. Server Lifecycle Events
+## 4. ဆာဗာ အသက်မွေးဝမ်းကြောင်းဖြစ်ရပ်များ
 
-သေချာစွာ စတင်ဖွင့်လှစ်ခြင်းနှင့် ပိတ်သိမ်းခြင်းဖြင့် ရင်းမြစ်များကို သန့်ရှင်းစွာ စီမံခန့်ခွဲနိုင်သည်။
+သင့်တော်သော စလစ် နှင့် ပိတ်ဆို့ခြင်းကို လုပ်ဆောင်ခြင်းအားဖြင့် သန့်ရှင်းသော အရင်းအမြစ် စီမံခန့်ခွဲမှု ဖြစ်စေသည်။
 
-### Python Lifecycle Management
+### Python အသက်မွေးဝမ်းကြောင်း စီမံခန့်ခွဲမှု
 
 ```python
 from mcp.server import Server
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# မျှဝေသော အခြေအနေ
+# မွေ့လျော်သော အခြေအနေ
 db_connection = None
 cache = None
 
@@ -383,15 +386,15 @@ async def lifespan(server: Server):
     """Manage server lifecycle."""
     global db_connection, cache
     
-    # စတင်ခြင်း
+    # စတင်မှု
     print("🚀 Server starting...")
     db_connection = await create_database_connection()
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # ဆာဗာ ဒီမှာ လည်ပတ်သည်
+    yield  # ဆာဗာ ဒီမှာ ပြေးနေသည်
     
-    # ပိတ်သိမ်းခြင်း
+    # ပိတ်လိမ့်မည်
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript Lifecycle
+### TypeScript အသက်မွေးဝမ်းကြောင်း
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -425,17 +428,17 @@ class ManagedServer {
   }
   
   async start() {
-    // အရင်းအမြစ်များ စတင်တည်ဆောက်သည်
+    // အရင်းအမြစ်များကို စတင်လုပ်ဆောင်သည်
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
     
-    // ဆာဗာကို စတင်ချိတ်ဆက်သည်
+    // ဆာဗာကို စတင်ပါ
     await this.server.connect(transport);
   }
   
   async stop() {
-    // အရင်းအမြစ်များ သန့်စင်သည်
+    // အရင်းအမြစ်များကို သန့်ရှင်းပါ
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // this.dbConnection ကို ဘေးကင်းစွာ အသုံးပြုပါ
+      // ဒီ this.dbConnection ကို လုံခြုံစွာ အသုံးပြုပါ
       // ...
     });
   }
 }
 
-// ဂရေ့စ်ဖုန် ချိတ်ဆက်ပြီး အသုံးပြုခြင်း
+// မြန်ဆန်ပြီး သာယာသော ပိတ်ဆို့မှုနှင့် အသုံးပြုမှု
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. Logging Control
+## 5. မှတ်တမ်း ထိန်းချုပ်မှု
 
-MCP သည် ဖောက်သည်များအား server ဘက် logging အဆင့်များကို ထိန်းချုပ်ခွင့်ပေးသည်။
+MCP သည် ဖောက်သည်များအတွက် ထိန်းချုပ်နိုင်သော ဆာဗာဖက်မှ မှတ်တမ်းရေးလည်းကောင်း အဆင့်များကို ထောက်ပံ့သည်။
 
-### Implementing Logging Levels
+### မှတ်တမ်းရေး အဆင့်များ လုပ်ဆောင်ခြင်း
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP အဆင့်များကို Python မှတ်တမ်းတင်မှုအဆင့်များသို့ မြေပုံဆွဲပါ
+# MCP အဆင့်များကို Python မှတ်တမ်းရေးအဆင့်များနှင့် တွဲဖက်ပါ။
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,14 +512,14 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Sending Log Messages to Client
+### ဖောက်သည်ဆီ သတင်းမက်ဆေ့ခ်ျ ပို့ခြင်း
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # ဖောက်သည်ထံမှတ်တမ်းအသိပေးမှုပေးပို့ရန်
+    # မက်ဆေ့ခ််အသိပေးချက်ကို ဖောက်သည်ထံ ပို့ပါ
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Error Handling Patterns
+## 6. အမှား ကိုင်တွယ် နည်းပုံစံများ
 
-တိကျစွာ error handling ပြုလုပ်ခြင်းသည် ပြဿနာရှာဖွေရေးနှင့် အသုံးပြုသူအတွေ့အကြုံကို တိုးတက်စေသည်။
+တိကျစွာ အမှားကိုင်တွယ်မှုသည် ဒစ်ဘတ်ချ်ခြင်းနှင့် အသုံးပြုသူ အတွေ့အကြုံကို တိုးတက်စေသည်။
 
-### MCP Error Codes
+### MCP အမှား ကုဒ်များ
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Structured Error Responses
+### ဖွဲ့စည်းထားသော အမှား တုံ့ပြန်ချက်များ
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # အချက်အလက်များကို စစ်ဆေးပါ
+    # အချက်အလက်များကို အတည်ပြုပါ
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -606,7 +609,7 @@ async def safe_operation(input: str) -> str:
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### Error Handling in TypeScript
+### TypeScript တွင် အမှားကိုင်တွယ်ခြင်း
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // တစ်ခြား စစ်ဆေးမှုများပိုမိုလုပ်ဆောင်ရန်...
+  // ပိုမိုစစ်ဆေးမှု...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -633,15 +636,15 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // အကြီးစား MCP အမှား ဖြစ်ပြီးစီးပြီ
+      throw error;  // MCP အမှားဖြစ်ပြီးသား
     }
     
-    // အခြား အမှားများကို ပြောင်းလဲရန်
+    // အခြားအမှားများကို ပြောင်းလဲမည်
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
     
-    // မသိသော အမှား
+    // မသိရသောအမှား
     console.error("Unexpected error:", error);
     throw new McpError(
       ErrorCode.InternalError,
@@ -653,22 +656,22 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## Experimental Features (MCP 2025-11-25)
+## စမ်းသပ် စိတ်အားထက်သန်သော လက္ခဏာများ (MCP 2025-11-25)
 
-ဤ Features များသည် စမ်းသပ်ဆန်းစစ်မှုအနေဖြင့် သတ်မှတ်ထားပါသည်။
+ဤလက္ခဏာများကို သတ်မှတ်ချက်တွင် စမ်းသပ် စိတ်အားထက်သန်သည့် လက္ခဏာများအဖြစ် သတ်မှတ်ထားသည်။
 
-### Tasks (Long-Running Operations)
+### Tasks (အချိန်ကြာသော လုပ်ဆောင်ချက်များ)
 
 ```python
-# တာဝန်များသည် အခြေအနေဖြင့် အချိန်ကြာသော လုပ်ဆောင်ချက်များကို လိုက်နာစစ်ဆေးရန် ခွင့်ပြုသည်
+# အလုပ်များသည် အခြေအနေဖြင့် ရေရှည်ဆောင်ရွက်နေသော လုပ်ငန်းစဉ်များကို လိုက်လံကြည့်ရှုရန် အထောက်အကူပြုသည်
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # တာဝန် စတင်ခဲ့သည်ဟု ရုပ်သံသတင်းပေးသည်
+    # အလုပ်စတင်ခြင်းကို အစီရင်ခံသည်
     await ctx.report_status("running", "Initializing training...")
     
-    # လေ့ကျင့်ရေး သွတ်ခြင်း
+    # လေ့ကျင့်ရေးလည်ပတ်မှုကိန်း
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Tool Annotations
+### ကိရိယာ မှတ်ချက်အညွှန်းများ
 
 ```python
-# အညွှန်းများသည် ကိရိယာ၏အပြုအမူအကြောင်း မီတာဒေတာပေးသည်
+# အကြောင်းပြချက်များသည် ကိရိယာအပြုအမူအကြောင်း မီတာဒေတာကို ပံ့ပိုးပေးသည်
 @app.tool(
     annotations={
-        "destructive": False,      # ဒေတာကို ပြောင်းလဲခြင်းမရှိ
-        "idempotent": True,        # ထပ်မံကြိုးစားရန် လုံခြုံသည်
-        "timeout_seconds": 30,     # မျှော်မှန်းထားသော အများဆုံး အချိန်ကြာမြင့်ချိန်
-        "requires_approval": False # အသုံးပြုသူ ခွင့်ပြုချက် မလိုအပ်ပါ
+        "destructive": False,      # ဒေတာကို မပြောင်းလဲပါ
+        "idempotent": True,        # ပြန်လည်ကြိုးစားရန် လုံခြုံသည်
+        "timeout_seconds": 30,     # မျှော်လင့်ထားသော အကြိုးအမြတ်အချိန်အများဆုံး
+        "requires_approval": False # အသုံးပြုသူ၏ အတည်ပြုချက် မလိုအပ်ပါ
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## What's Next
+## နောက်တစ်ဆက်တွဲ
 
-- [Module 8 - Best Practices](../../08-BestPractices/README.md)
-- [5.14 - Context Engineering](../mcp-contextengineering/README.md)
-- [MCP Specification Changelog](https://spec.modelcontextprotocol.io/)
+- [Module 8 - အကောင်းဆုံး လေ့လာမှုများ](../../08-BestPractices/README.md)
+- [5.14 - ဘောလုံး အင်ဂျင်နီယာ](../mcp-contextengineering/README.md)
+- [MCP သတ်မှတ်ချက် ပြောင်းလဲမှု မှတ်တမ်း](https://spec.modelcontextprotocol.io/)
 
 ---
 
-## Additional Resources
+## အပိုဆက်စပ် အရင်းအမြစ်များ
 
-- [MCP Specification 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 Error Codes](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK Examples](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [TypeScript SDK Examples](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [MCP သတ်မှတ်ချက် 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 အမှား ကုဒ်များ](https://www.jsonrpc.org/specification#error_object)
+- [Python SDK နမူနာများ](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [TypeScript SDK နမူနာများ](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ကန့်သတ်ချက်**  
-ဤစာတမ်းကို AI ဘာသာပြန်ဆော့ဖ်ဝဲဖြစ်သော [Co-op Translator](https://github.com/Azure/co-op-translator) မှ အသုံးပြု၍ ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှန်ကန်မှုအတွက် ကြိုးပမ်းသော်လည်း၊ စက်ပြုထားသော ဘာသာပြန်ချက်တွင် အမှားများ သို့မဟုတ် တိကျမှုမရှိမှုများ ရှိနိုင်ကြောင်း သတိပြုရန် မေတ္တာရပ်ခံလိုက်ပါသည်။ မူရင်းစာတမ်းကို မြန်မာဘာသာဖြင့်သာ တရားဝင်အရင်းအမြစ် အနေဖြင့် ယူဆရန် လိုအပ်ပါသည်။ အရေးပါတဲ့ အချက်အလက်များအတွက် မည်သည့်အခါမျှ စာရင်းပိုင်းကျွမ်းကျင်သော လူသားဘာသာပြန်မှုကိုတင်ပြရန် အကြံပြုပါသည်။ ဤဘာသာပြန်ချက်ကို အသုံးပြုခြင်းကြောင့် ဖြစ်ပေါ်လာသော နားလည်မှားဖွယ်​ အပြစ်မဲများအတွက် ကျွန်ုပ်တို့သည် တာဝန်မယူပါ။
+**ပြောကြားချက်**
+ဤစာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) အသုံးပြု၍ ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှန်ကန်မှုအတွက် ကြိုးပမ်းနေသော်လည်း၊ စက်ကိရိယာဘာသာပြန်ခြင်းများတွင် အမှားများ သို့မဟုတ် မှားယွင်းချက်များ ပါဝင်နိုင်ကြောင်း သတိပြုပါရန် လိုအပ်ပါသည်။ မူလစာတမ်းကို မူရင်းဘာသာဖြင့်သာ ယုံကြည်စိတ်ချရသော အချက်အလက်အဖြစ် သတ်မှတ်သင့်သည်။ အရေးကြီးသည့် သတင်းအချက်အလက်များအတွက် ပရော်ဖက်ရှင်နယ် လူသားဘာသာပြန်သူဝန်ဆောင်မှုကို အကြံပြုပါသည်။ ဤဘာသာပြန်ချက်ကို အသုံးပြုခြင်းမှ ဖြစ်ပေါ်လာသော နားလည်မှုကွာခြားမှုများ သို့မဟုတ် မမှန်ကန်သော အသုံးပြုမှုများအတွက် ကျွန်ုပ်တို့ တာဝန်မခံပါ။
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,21 +1,23 @@
-# MCP-Protokollfunktionen im Detail
+# MCP Protokoll-Funktionen im Detail
 
-Diese Anleitung untersucht fortgeschrittene MCP-Protokollfunktionen, die über die grundlegende Handhabung von Tools und Ressourcen hinausgehen. Das Verständnis dieser Funktionen hilft Ihnen, robustere, benutzerfreundlichere und produktionsreife MCP-Server zu erstellen.
+Dieser Leitfaden untersucht erweiterte MCP-Protokollfunktionen, die über einfaches Werkzeug- und Ressourcenhandling hinausgehen. Das Verständnis dieser Funktionen hilft Ihnen, robustere, benutzerfreundlichere und produktionsreife MCP-Server zu bauen.
+
+> **Ein Ausblick:** Der Release-Kandidat `2026-07-28` stellt das Logging-Primitive ein (zugunsten von `stderr` für stdio und OpenTelemetry für strukturierte Beobachtbarkeit), entfernt das unten in Server Lifecycle Events erwähnte `initialize`/Sitzungsmodell und verschiebt die experimentelle Tasks-Funktion in eine eigene Tasks-Erweiterung mit einem neuen `tasks/get`/`tasks/update`/`tasks/cancel`-Lebenszyklus. Siehe [Was sich im MCP ändert: Der Release-Kandidat 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Abgedeckte Funktionen
 
-1. **Fortschrittsbenachrichtigungen** – Fortschritt bei langwierigen Operationen melden  
-2. **Anfrageabbruch** – Clients erlauben, laufende Anfragen abzubrechen  
-3. **Ressourcenvorlagen** – Dynamische Ressourcen-URIs mit Parametern  
-4. **Server-Lifecycle-Ereignisse** – Ordentliche Initialisierung und Herunterfahren  
-5. **Logging-Steuerung** – Serverseitige Protokollierungskonfiguration  
-6. **Fehlerbehandlungsmuster** – Einheitliche Fehlerantworten
+1. **Fortschrittsbenachrichtigungen** - Fortschritt bei lang laufenden Operationen melden
+2. **Anfrageabbrüche** - Ermöglichen, dass Clients laufende Anfragen abbrechen
+3. **Ressourcenvorlagen** - Dynamische Ressourcen-URIs mit Parametern
+4. **Server Lifecycle Events** - Korrekte Initialisierung und Herunterfahren
+5. **Logging-Steuerung** - Serverseitige Logging-Konfiguration
+6. **Fehlerbehandlungsmuster** - Konsistente Fehlerantworten
 
 ---
 
 ## 1. Fortschrittsbenachrichtigungen
 
-Für Operationen, die Zeit in Anspruch nehmen (Datenverarbeitung, Dateidownloads, API-Aufrufe), halten Fortschrittsbenachrichtigungen die Benutzer informiert.
+Für Operationen, die Zeit benötigen (Datenverarbeitung, Dateidownloads, API-Aufrufe), halten Fortschrittsbenachrichtigungen Nutzer informiert.
 
 ### Funktionsweise
 
@@ -24,12 +26,13 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (lange Operation)
+    Client->>Server: tools/call (langer Vorgang)
     Server-->>Client: Benachrichtigung: Fortschritt 10%
     Server-->>Client: Benachrichtigung: Fortschritt 50%
     Server-->>Client: Benachrichtigung: Fortschritt 90%
     Server->>Client: Ergebnis (abgeschlossen)
 ```
+
 ### Python-Implementierung
 
 ```python
@@ -49,11 +52,11 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Verarbeite Datenabschnitt
+            # Chunk verarbeiten
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Sende Fortschrittsbenachrichtigung
+            # Fortschrittsbenachrichtigung senden
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Client-Verarbeitung (Python)
+### Client-Seite (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,7 +134,7 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Handler registrieren
+# Registriere Handler
 session.on_notification("notifications/progress", handle_progress)
 
 # Werkzeug aufrufen (Fortschrittsaktualisierungen werden über den Handler eintreffen)
@@ -140,9 +143,9 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ---
 
-## 2. Anfrageabbruch
+## 2. Anfrageabbrüche
 
-Clients ermöglichen, Anfragen abzubrechen, die nicht mehr benötigt werden oder zu lange dauern.
+Erlauben Sie Clients, Anfragen abzubrechen, die nicht mehr benötigt werden oder zu lange dauern.
 
 ### Python-Implementierung
 
@@ -160,12 +163,12 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Durch viele Seiten suchen
-            # Überprüfen, ob eine Stornierung angefordert wurde
+        for page in range(100):  # Durchsuche viele Seiten
+            # Prüfe, ob eine Stornierung angefordert wurde
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Seitensuche simulieren
+            # Simuliere Seitensuche
             page_results = await search_page(query, page)
             results.extend(page_results)
             
@@ -173,7 +176,7 @@ async def long_running_search(query: str, ctx) -> str:
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # Teilweise Ergebnisse zurückgeben
+        # Teilresultate zurückgeben
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### Implementierung des Abbruchkontexts
+### Implementierung eines Abbruch-Kontexts
 
 ```python
 class CancellableContext:
@@ -231,7 +234,7 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Normale Zeitüberschreitung, fortfahren
+            pass  # Normaler Zeitüberschreitung, fortfahren
 ```
 
 ### Client-seitiger Abbruch
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Anfrage zur Stornierung
+        # Stornierungsanforderung
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Ressourcenvorlagen
 
-Ressourcenvorlagen erlauben die dynamische Konstruktion von URIs mit Parametern, nützlich für APIs und Datenbanken.
+Ressourcenvorlagen ermöglichen dynamische URI-Erstellung mit Parametern, nützlich für APIs und Datenbanken.
 
 ### Vorlagen definieren
 
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. Server-Lifecycle-Ereignisse
+## 4. Server Lifecycle Events
 
-Ordentliche Initialisierung und Herunterfahren gewährleisten sauberes Ressourcenmanagement.
+Korrekte Initialisierung und Herunterfahren sorgen für sauberes Ressourcen-Management.
 
-### Python-Lifecycle-Management
+### Lifecycle Management in Python
 
 ```python
 from mcp.server import Server
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript-Lifecycle
+### TypeScript Lifecycle
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // Verwenden Sie diese.dbConnection sicher
+      // Verwenden Sie this.dbConnection sicher
       // ...
     });
   }
 }
 
-// Verwendung mit sanftem Herunterfahren
+// Verwendung mit sanfter Abschaltung
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## 5. Logging-Steuerung
 
-MCP unterstützt serverseitige Protokollierungsstufen, die Clients steuern können.
+MCP unterstützt serverseitige Logging-Level, die Clients steuern können.
 
-### Implementierung von Protokollstufen
+### Implementierung von Logging-Leveln
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Ordne MCP-Ebenen den Python-Protokollierungsebenen zu
+# Ordne MCP-Level den Python-Logging-Leveln zu
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,7 +512,7 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Senden von Protokollnachrichten an den Client
+### Lognachrichten an Client senden
 
 ```python
 @app.tool()
@@ -522,7 +525,7 @@ async def complex_operation(input: str, ctx) -> str:
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Arbeit ausführen...
+    # Arbeite...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -537,7 +540,7 @@ async def complex_operation(input: str, ctx) -> str:
 
 ## 6. Fehlerbehandlungsmuster
 
-Konsequente Fehlerbehandlung verbessert Debugging und Benutzererfahrung.
+Konsistente Fehlerbehandlung verbessert Debugging und Benutzererfahrung.
 
 ### MCP-Fehlercodes
 
@@ -584,7 +587,7 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # Berechtigungen überprüfen
+        # Berechtigungen prüfen
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
@@ -636,7 +639,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
       throw error;  // Bereits ein MCP-Fehler
     }
     
-    // Andere Fehler konvertieren
+    // Weitere Fehler umwandeln
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
@@ -657,15 +660,15 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 Diese Funktionen sind in der Spezifikation als experimentell gekennzeichnet:
 
-### Tasks (Langlaufende Operationen)
+### Tasks (Lang laufende Operationen)
 
 ```python
-# Aufgaben ermöglichen das Verfolgen lang andauernder Operationen mit Zustand
+# Aufgaben ermöglichen die Verfolgung lang andauernder Vorgänge mit Zustand
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Aufgabe gestartet melden
+    # Bericht Aufgabe gestartet
     await ctx.report_status("running", "Initializing training...")
     
     # Trainingsschleife
@@ -682,15 +685,15 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Werkzeug-Anmerkungen
+### Tool-Anmerkungen
 
 ```python
-# Anmerkungen bieten Metadaten zum Verhalten des Werkzeugs
+# Anmerkungen liefern Metadaten über das Verhalten des Werkzeugs
 @app.tool(
     annotations={
         "destructive": False,      # Verändert keine Daten
-        "idempotent": True,        # Sicher zum erneuten Versuch
-        "timeout_seconds": 30,     # Erwartete maximale Dauer
+        "idempotent": True,        # Sicher erneut zu versuchen
+        "timeout_seconds": 30,     # Erwartete Höchstdauer
         "requires_approval": False # Keine Benutzerfreigabe erforderlich
     }
 )
@@ -703,22 +706,22 @@ async def safe_query(query: str) -> str:
 
 ## Was kommt als Nächstes
 
-- [Modul 8 - Best Practices](../../08-BestPractices/README.md)  
-- [5.14 - Context Engineering](../mcp-contextengineering/README.md)  
+- [Modul 8 - Best Practices](../../08-BestPractices/README.md)
+- [5.14 - Kontext-Engineering](../mcp-contextengineering/README.md)
 - [MCP Spezifikations-Änderungsprotokoll](https://spec.modelcontextprotocol.io/)
 
 ---
 
-## Weiterführende Ressourcen
+## Zusätzliche Ressourcen
 
-- [MCP Spezifikation 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [JSON-RPC 2.0 Fehlercodes](https://www.jsonrpc.org/specification#error_object)  
-- [Python SDK Beispiele](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [MCP Spezifikation 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 Fehlercodes](https://www.jsonrpc.org/specification#error_object)
+- [Python SDK Beispiele](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [TypeScript SDK Beispiele](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Haftungsausschluss**:  
-Dieses Dokument wurde mit dem KI-Übersetzungsdienst [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir uns um Genauigkeit bemühen, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner ursprünglichen Sprache ist als maßgebliche Quelle zu betrachten. Für wichtige Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die aus der Nutzung dieser Übersetzung entstehen.
+**Haftungsausschluss**:
+Dieses Dokument wurde mit dem KI-Übersetzungsdienst [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir uns um Genauigkeit bemühen, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner Ursprungssprache gilt als maßgebliche Quelle. Bei kritischen Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die aus der Verwendung dieser Übersetzung entstehen.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

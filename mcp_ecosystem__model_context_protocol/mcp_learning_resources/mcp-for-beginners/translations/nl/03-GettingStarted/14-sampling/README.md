@@ -1,12 +1,14 @@
 # Sampling - delegeer functies aan de Client
 
-Soms moeten de MCP Client en de MCP Server samenwerken om een gemeenschappelijk doel te bereiken. Je kunt een situatie hebben waarin de Server de hulp nodig heeft van een LLM die op de client draait. Voor deze situatie is sampling wat je zou moeten gebruiken.
+> **Afloopmelding:** de `2026-07-28` MCP specificatie release candidate markeert Sampling als verouderd ten gunste van directe integratie met LLM-provider-API's. Sampling blijft werken in `2025-11-25` en minstens een jaar na enige formele veroudering, dus alles in deze les blijft geldig — maar nieuwe serverontwerpen moeten het vervangingspatroon evalueren. Zie [Wat verandert in MCP: De 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Laten we wat use cases verkennen en hoe je een oplossing bouwt die sampling omvat.
+Soms moeten de MCP Client en MCP Server samenwerken om een gemeenschappelijk doel te bereiken. Je kunt een situatie hebben waarin de Server de hulp nodig heeft van een LLM die op de client draait. Voor deze situatie is sampling hetgeen wat je moet gebruiken.
+
+Laten we enkele use cases verkennen en hoe je een oplossing met sampling bouwt.
 
 ## Overzicht
 
-In deze les richten we ons op het uitleggen wanneer en waar Sampling te gebruiken en hoe je het configureert.
+In deze les richten we ons op het uitleggen wanneer en waar Sampling te gebruiken en hoe het te configureren.
 
 ## Leerdoelen
 
@@ -18,7 +20,7 @@ In dit hoofdstuk zullen we:
 
 ## Wat is Sampling en waarom gebruiken?
 
-Sampling is een geavanceerde functie die op de volgende manier werkt:
+Sampling is een geavanceerde functie die op de volgende wijze werkt:
 
 ```mermaid
 sequenceDiagram
@@ -27,19 +29,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Blogpost schrijven
-    MCP Client->>MCP Server: Hulpmiddel-aanroep (concept blogpost)
-    MCP Server->>MCP Client: Steekproefaanvraag (samenvatting maken)
-    MCP Client->>LLM: Genereer samenvatting blogpost
+    User->>MCP Client: Schrijf blogpost
+    MCP Client->>MCP Server: Hulpmiddel oproep (concept blogpost)
+    MCP Server->>MCP Client: Steekproef aanvraag (maak samenvatting)
+    MCP Client->>LLM: Genereer blogpostsamenvatting
     LLM->>MCP Client: Samenvattingsresultaat
-    MCP Client->>MCP Server: Steekproefantwoord (samenvatting)
+    MCP Client->>MCP Server: Steekproef antwoord (samenvatting)
     MCP Server->>MCP Client: Volledige blogpost (concept + samenvatting)
-    MCP Client->>User: Blogpost klaar
+    MCP Client->>User: Blogpost gereed
 ```
 
-### Sampling aanvraag
+### Sampling-verzoek
 
-Oké, nu hebben we een helikopterview van een geloofwaardig scenario, laten we het hebben over de sampling-aanvraag die de server terugstuurt naar de client. Dit is hoe zo’n aanvraag eruit kan zien in JSON-RPC-formaat:
+Oké, nu hebben we een helikopterview van een geloofwaardig scenario, laten we praten over het sampling-verzoek dat de server terugstuurt naar de client. Zo kan zo'n verzoek eruitzien in JSON-RPC-formaat:
 
 ```json
 {
@@ -71,17 +73,17 @@ Oké, nu hebben we een helikopterview van een geloofwaardig scenario, laten we h
 }
 ```
 
-Er zijn een paar dingen hier die het waard zijn om te benoemen:
+Er zijn hier een paar dingen die het benoemen waard zijn:
 
-- Prompt, onder content -> text, is onze prompt die een instructie is voor de LLM om blogpostinhoud samen te vatten.
+- Prompt, onder content -> text, is onze prompt die een instructie is voor de LLM om content van een blogpost samen te vatten.
 
-- **modelPreferences**. Dit gedeelte is precies dat, een voorkeur, een aanbeveling van welke configuratie te gebruiken met de LLM. De gebruiker kan kiezen deze aanbevelingen te volgen of aan te passen. In dit geval zijn er aanbevelingen over welk model te gebruiken en snelheid en intelligentie prioriteit.
-- **systemPrompt**, dit is je normale systeem prompt die je LLM een persoonlijkheid geeft en instructies bevat.
-- **maxTokens**, dit is een andere eigenschap die aangeeft hoeveel tokens aanbevolen worden voor deze taak.
+- **modelPreferences**. Dit onderdeel is precies dat, een voorkeur, een aanbeveling welke configuratie te gebruiken met de LLM. De gebruiker kan kiezen of hij deze aanbevelingen volgt of aanpast. In dit geval zijn er aanbevelingen over het te gebruiken model en prioriteit voor snelheid en intelligentie.
+- **systemPrompt**, dit is je normale system prompt die je LLM een persoonlijkheid geeft en richtlijnen bevat.
+- **maxTokens**, dit is een andere eigenschap die aangeeft hoeveel tokens aanbevolen zijn voor deze taak.
 
-### Sampling antwoord
+### Sampling-antwoord
 
-Dit antwoord is wat de MCP Client uiteindelijk terugstuurt naar de MCP Server en het resultaat is van het aanroepen van de LLM door de client, wachten op dat antwoord en vervolgens dit bericht opbouwen. Dit is hoe het eruit kan zien in JSON-RPC:
+Dit antwoord is wat de MCP Client uiteindelijk terugstuurt naar de MCP Server en het is het resultaat van de client die de LLM aanroept, wacht op dat antwoord en dan dit bericht opstelt. Zo kan het eruitzien in JSON-RPC:
 
 ```json
 {
@@ -99,13 +101,13 @@ Dit antwoord is wat de MCP Client uiteindelijk terugstuurt naar de MCP Server en
 }
 ```
 
-Let op hoe het antwoord een abstract is van de blogpost zoals we vroegen. Merk ook op hoe het gebruikte `model` niet is wat we vroegen maar "gpt-5" in plaats van "claude-3-sonnet". Dit illustreert dat de gebruiker van gedachten kan veranderen over wat te gebruiken en dat je sampling-aanvraag een aanbeveling is.
+Let op hoe het antwoord een samenvatting van de blogpost is, precies zoals gevraagd. Let ook op dat het gebruikte `model` niet is wat we vroegen maar "gpt-5" in plaats van "claude-3-sonnet". Dit illustreert dat de gebruiker van gedachten kan veranderen over wat te gebruiken en dat jouw sampling-verzoek een aanbeveling is.
 
-Oké, nu we de hoofdflow begrijpen en een nuttige taak om het voor te gebruiken, "blogpostcreatie + abstract", laten we zien wat we moeten doen om het werkend te krijgen.
+Oké, nu we de hoofdflow begrijpen, en de nuttige taak waarvoor het te gebruiken "blogpostcreatie + samenvatting", laten we zien wat we moeten doen om het te laten werken.
 
 ### Berichttypes
 
-Sampling berichten zijn niet beperkt tot alleen tekst maar je kunt ook afbeeldingen en audio verzenden. Zo ziet JSON-RPC er anders uit:
+Samplingberichten zijn niet beperkt tot alleen tekst, maar je kunt ook afbeeldingen en audio verzenden. Zo ziet de JSON-RPC er anders uit:
 
 **Tekst**
 
@@ -126,7 +128,7 @@ Sampling berichten zijn niet beperkt tot alleen tekst maar je kunt ook afbeeldin
 }
 ```
 
-**Audiocontent**
+**Audio-inhoud**
 
 ```json
 {
@@ -136,13 +138,13 @@ Sampling berichten zijn niet beperkt tot alleen tekst maar je kunt ook afbeeldin
 }
 ```
 
-> NOTE: voor meer gedetailleerde info over Sampling, bekijk de [officiële docs](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> NOTE: voor gedetailleerdere informatie over Sampling, bekijk de [officiële docs](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Hoe Sampling te configureren in de Client
+## Hoe Sampling te Configureren in de Client
 
 > Let op: als je alleen een server bouwt, hoef je hier niet veel te doen.
 
-In een client moet je de volgende feature specificeren als volgt:
+In een client moet je de volgende feature als volgt specificeren:
 
 ```json
 {
@@ -152,16 +154,16 @@ In een client moet je de volgende feature specificeren als volgt:
 }
 ```
 
-Dit wordt opgepikt wanneer je gekozen client wordt geïnitialiseerd met de server.
+Dit wordt vervolgens opgepikt wanneer je gekozen client initieert met de server.
 
-## Voorbeeld van Sampling in Actie - Een Blogpost maken
+## Voorbeeld van Sampling in Actie - Maak een Blogpost
 
 Laten we samen een sampling-server coderen, we moeten het volgende doen:
 
 1. Maak een tool op de Server.
-1. Die tool moet een sampling-aanvraag maken.
-1. Tool moet wachten op het beantwoorden van de sampling-aanvraag door de client.
-1. Daarna moet het toolresultaat geproduceerd worden.
+1. Die tool moet een sampling-verzoek maken.
+1. De tool wacht tot het sampling-verzoek van de client beantwoord is.
+1. Dan wordt het resultaat van de tool geproduceerd.
 
 Laten we de code stap voor stap bekijken:
 
@@ -176,7 +178,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Maak een sampling-aanvraag
+### -2- Maak een sampling-verzoek
 
 Breid je tool uit met de volgende code:
 
@@ -282,7 +284,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # retourneer de complete blogpost
+    # retourneer de volledige blogpost
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -296,12 +298,12 @@ if __name__ == "__main__":
 # start de app met: python server.py
 ```
 
-### -5- Testen in Visual Studio Code
+### -5- Test het in Visual Studio Code
 
 Om dit te testen in Visual Studio Code, doe het volgende:
 
-1. Start de server in de terminal
-1. Voeg het toe aan *mcp.json* (en zorg dat het gestart is) bijvoorbeeld zo:
+1. Start server in terminal
+1. Voeg het toe aan *mcp.json* (en zorg dat het gestart is), bijvoorbeeld zo:
 
    ```json
    "servers": {
@@ -318,23 +320,23 @@ Om dit te testen in Visual Studio Code, doe het volgende:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Laat sampling plaatsvinden. De eerste keer dat je dit test, krijg je een extra dialoog te zien die je moet accepteren, daarna zie je de normale dialoog om te vragen of je een tool wilt uitvoeren.
+1. Sta sampling toe. De eerste keer dat je dit test, verschijnt er een extra dialoog die je moet accepteren, daarna zie je de normale dialoog die je vraagt een tool uit te voeren.
 
-1. Inspecteer de resultaten. Je ziet de resultaten zowel netjes weergegeven in GitHub Copilot Chat maar je kunt ook de ruwe JSON-respons inspecteren.
+1. Inspecteer resultaten. Je ziet de resultaten mooi gerenderd in GitHub Copilot Chat, maar je kunt ook de ruwe JSON-antwoord inspecteren.
 
-**Bonus**. Visual Studio Code tooling heeft geweldige ondersteuning voor sampling. Je kunt Sampling toegang configureren op je geïnstalleerde server door er als volgt naartoe te navigeren:
+**Bonus**. Visual Studio Code tooling heeft uitstekende ondersteuning voor sampling. Je kunt Sampling-toegang configureren op je geïnstalleerde server door er als volgt naartoe te navigeren:
 
-1. Navigeer naar de extensiesectie.
-1. Selecteer het tandwielicoon van je geïnstalleerde server in de sectie "MCP SERVERS - INSTALLED".
-1. Selecteer "Configure Model Access", hier kun je selecteren welke Modellen GitHub Copilot mag gebruiken tijdens sampling. Je kunt ook alle recente sampling-aanvragen bekijken door "Show Sampling requests" te selecteren.
+1. Navigeer naar het extensiegedeelte.
+1. Selecteer het tandwielicoon voor je geïnstalleerde server in de sectie "MCP SERVERS - INSTALLED".
+1. Selecteer "Configure Model Access", hier kun je kiezen welke modellen GitHub Copilot mag gebruiken bij het uitvoeren van sampling. Je kunt ook alle recente sampling-verzoeken zien door op "Show Sampling requests" te klikken.
 
 ## Opdracht
 
-In deze opdracht bouw je een iets andere Sampling namelijk een sampling-integratie die het genereren van een productbeschrijving ondersteunt. Dit is je scenario:
+In deze opdracht bouw je een iets andere Sampling, namelijk een sampling-integratie die een productbeschrijving genereert. Dit is je scenario:
 
-**Scenario**: De backoffice-medewerker van een e-commerce heeft hulp nodig; het kost te veel tijd om productbeschrijvingen te genereren. Daarom bouw je een oplossing waarbij je een tool "create_product" kunt aanroepen met "title" en "keywords" als argumenten en die een compleet product moet opleveren inclusief een "description" veld dat ingevuld moet worden door de LLM van een client.
+**Scenario**: De medewerker backoffice van een e-commerce heeft hulp nodig, het kost veel te veel tijd om productbeschrijvingen te maken. Daarom bouw je een oplossing waarbij je een tool "create_product" aanroept met "title" en "keywords" als argumenten en het moet een compleet product opleveren inclusief een "description" veld dat wordt gevuld door de LLM van een client.
 
-TIP: gebruik wat je eerder hebt geleerd om deze server en tool te construeren met een sampling-aanvraag.
+TIP: gebruik wat je eerder hebt geleerd om deze server en zijn tool te bouwen met een sampling-verzoek.
 
 ## Oplossing
 
@@ -344,7 +346,7 @@ TIP: gebruik wat je eerder hebt geleerd om deze server en tool te construeren me
 
 Sampling is een krachtige functie die de server toestaat taken te delegeren aan de client wanneer deze de hulp van een LLM nodig heeft.
 
-## Wat is de volgende stap
+## Wat Nu?
 
 - [Hoofdstuk 4 - Praktische implementatie](../../04-PracticalImplementation/README.md)
 

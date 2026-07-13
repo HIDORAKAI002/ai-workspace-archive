@@ -1,36 +1,38 @@
 # MCP 自定义传输 - 高级实现指南
 
-模型上下文协议（MCP）提供了传输机制的灵活性，允许在专门的企业环境中进行自定义实现。本高级指南通过使用 Azure 事件网格和 Azure 事件中心作为实际示例，探讨构建可扩展的云原生 MCP 解决方案的自定义传输实现。
+Model Context Protocol (MCP) 提供了传输机制的灵活性，允许在专门的企业环境中实现自定义传输。此高级指南通过 Azure Event Grid 和 Azure Event Hubs 的实际示例，探讨自定义传输的实现方法，用于构建可扩展的云原生 MCP 解决方案。
+
+> **展望未来：** 本指南基于 **MCP 规范 2025-11-25** 撰写，其中要求保持会话内的顺序（见下方消息协议）。`2026-07-28` 版本候选将完全移除协议层的会话，并且要求 `Mcp-Method` / `Mcp-Name` 头，以便网关和自定义传输可以按请求而非按会话进行路由。详见 [MCP 变化内容：2026-07-28 版本候选](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
 
 ## 介绍
 
-虽然 MCP 的标准传输（stdio 和 HTTP 流）涵盖了大多数用例，企业环境通常需要专门的传输机制，以提高可扩展性、可靠性并与现有云基础设施集成。自定义传输使 MCP 能利用云原生消息服务，实现异步通信、事件驱动架构以及分布式处理。
+尽管 MCP 的标准传输（stdio 和 HTTP 流）适用于大多数用例，企业环境通常需要专门的传输机制，以提升可扩展性、可靠性及与现有云基础设施的集成能力。自定义传输使 MCP 能够利用云原生消息服务，实现异步通信、事件驱动架构和分布式处理。
 
-本课将基于最新的 MCP 规范（2025-11-25）、Azure 消息服务和成熟的企业集成模式，探讨高级传输实现。
+本课将基于最新 MCP 规范（2025-11-25）、Azure 消息服务和成熟的企业集成模式，探讨高级传输实现。
 
 ### **MCP 传输架构**
 
 **摘自 MCP 规范（2025-11-25）：**
 
-- <strong>标准传输</strong>: stdio（推荐），HTTP 流（适用于远程场景）
-- <strong>自定义传输</strong>: 任何实现 MCP 消息交换协议的传输
-- <strong>消息格式</strong>: JSON-RPC 2.0，附带 MCP 特定扩展
-- <strong>双向通信</strong>: 需要全双工通信以支持通知和响应
+- <strong>标准传输</strong>：stdio（推荐）、HTTP 流（适用于远程场景）
+- <strong>自定义传输</strong>：任何实现 MCP 消息交换协议的传输
+- <strong>消息格式</strong>：带 MCP 特定扩展的 JSON-RPC 2.0
+- <strong>双向通信</strong>：需支持全双工通信，以处理通知和响应
 
 ## 学习目标
 
-完成本高级课程后，您将能够：
+通过本高级课程，您将能够：
 
-- <strong>理解自定义传输需求</strong>：在任何传输层上实现 MCP 协议，同时保持合规性
-- **构建 Azure 事件网格传输**：使用 Azure 事件网格创建事件驱动的 MCP 服务器，实现无服务器可扩展性
-- **实现 Azure 事件中心传输**：设计基于 Azure 事件中心的高吞吐量 MCP 解决方案，实现实时流处理
+- <strong>理解自定义传输要求</strong>：在任何传输层上实现 MCP 协议并保持合规
+- **构建 Azure Event Grid 传输**：使用 Azure Event Grid 创建事件驱动的 MCP 服务器，实现无服务器可扩展性
+- **实现 Azure Event Hubs 传输**：设计基于 Azure Event Hubs 的高吞吐量实时 MCP 流式解决方案
 - <strong>应用企业模式</strong>：将自定义传输与现有 Azure 基础设施和安全模型集成
-- <strong>处理传输可靠性</strong>：实现消息持久性、顺序性和错误处理，满足企业场景需求
-- <strong>优化性能</strong>：设计满足规模、延迟和吞吐量需求的传输方案
+- <strong>处理传输可靠性</strong>：实现消息持久性、顺序和错误处理，满足企业场景需求
+- <strong>优化性能</strong>：针对规模、延迟和吞吐量需求设计传输解决方案
 
-## <strong>传输需求</strong>
+## <strong>传输要求</strong>
 
-### **MCP 规范（2025-11-25）核心要求：**
+### **来自 MCP 规范（2025-11-25）的核心要求：**
 
 ```yaml
 Message Protocol:
@@ -49,16 +51,16 @@ Custom Transport:
   interoperability: "MUST maintain protocol compatibility"
 ```
 
-## **Azure 事件网格传输实现**
+## **Azure Event Grid 传输实现**
 
-Azure 事件网格提供了无服务器事件路由服务，非常适合事件驱动的 MCP 架构。此实现演示如何构建可扩展、松耦合的 MCP 系统。
+Azure Event Grid 提供无服务器事件路由服务，非常适合事件驱动的 MCP 架构。本实现展示如何构建可扩展、松耦合的 MCP 系统。
 
 ### <strong>架构概述</strong>
 
 ```mermaid
 graph TB
     Client[MCP 客户端] --> EG[Azure 事件网格]
-    EG --> Server[MCP 服务器功能]
+    EG --> Server[MCP 服务器函数]
     Server --> EG
     EG --> Client
     
@@ -70,7 +72,7 @@ graph TB
     end
 ```
 
-### **C# 实现 - 事件网格传输**
+### **C# 实现 - Event Grid 传输**
 
 ```csharp
 using Azure.Messaging.EventGrid;
@@ -142,7 +144,7 @@ public async Task<IActionResult> HandleEventGridMessage(
 }
 ```
 
-### **TypeScript 实现 - 事件网格传输**
+### **TypeScript 实现 - Event Grid 传输**
 
 ```typescript
 import { EventGridPublisherClient, AzureKeyCredential } from "@azure/eventgrid";
@@ -176,7 +178,7 @@ export class EventGridMcpTransport implements McpTransport {
         await this.publisher.sendEvents([event]);
     }
     
-    // 通过 Azure Functions 事件驱动接收
+    // 通过 Azure Functions 的事件驱动接收
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
         // 实现将使用 Azure Functions 事件网格触发器
         // 这是 webhook 接收器的概念接口
@@ -205,7 +207,7 @@ app.eventGrid("mcpEventGridHandler", {
 });
 ```
 
-### **Python 实现 - 事件网格传输**
+### **Python 实现 - Event Grid 传输**
 
 ```python
 from azure.eventgrid import EventGridPublisherClient, EventGridEvent
@@ -253,7 +255,7 @@ def main(event: func.EventGridEvent) -> None:
         # 处理 MCP 消息
         response = process_mcp_message(mcp_message)
         
-        # 通过事件网格发送响应回去
+        # 通过事件网格发送响应
         # （实现将创建新的事件网格客户端）
         
     except Exception as e:
@@ -261,9 +263,9 @@ def main(event: func.EventGridEvent) -> None:
         raise
 ```
 
-## **Azure 事件中心传输实现**
+## **Azure Event Hubs 传输实现**
 
-Azure 事件中心提供高吞吐量、实时流处理能力，适用于需要低延迟和大消息量的 MCP 场景。
+Azure Event Hubs 提供高吞吐量、实时流处理能力，适用于需要低延迟和高消息量的 MCP 场景。
 
 ### <strong>架构概述</strong>
 
@@ -285,7 +287,7 @@ graph TB
     EH --> Scaling
 ```
 
-### **C# 实现 - 事件中心传输**
+### **C# 实现 - Event Hubs 传输**
 
 ```csharp
 using Azure.Messaging.EventHubs;
@@ -359,7 +361,7 @@ public class EventHubsMcpTransport : IMcpTransport, IDisposable
 }
 ```
 
-### **TypeScript 实现 - 事件中心传输**
+### **TypeScript 实现 - Event Hubs 传输**
 
 ```typescript
 import { 
@@ -418,7 +420,7 @@ export class EventHubsMcpTransport implements McpTransport {
                         
                         await messageHandler(mcpMessage);
                         
-                        // 更新检查点以确保至少一次传递
+                        // 更新检查点以实现至少一次投递
                         await context.updateCheckpoint(event);
                     } catch (error) {
                         console.error("Error processing Event Hubs message:", error);
@@ -439,7 +441,7 @@ export class EventHubsMcpTransport implements McpTransport {
 }
 ```
 
-### **Python 实现 - 事件中心传输**
+### **Python 实现 - Event Hubs 传输**
 
 ```python
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient
@@ -471,7 +473,7 @@ class EventHubsMcpTransport:
         """Send MCP message via Event Hubs"""
         event_data = EventData(json.dumps(message))
         
-        # 添加MCP特定属性
+        # 添加 MCP 特定属性
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
@@ -503,11 +505,11 @@ class EventHubsMcpTransport:
         """Internal event handler wrapper"""
         async def handle_event(partition_context, event):
             try:
-                # 从事件中心事件解析MCP消息
+                # 从事件中心事件解析 MCP 消息
                 message_body = event.body_as_str(encoding='UTF-8')
                 mcp_message = json.loads(message_body)
                 
-                # 处理MCP消息
+                # 处理 MCP 消息
                 await handler(mcp_message)
                 
                 # 更新检查点以确保至少一次投递
@@ -576,7 +578,7 @@ public class SecureTransportFactory
 }
 ```
 
-### <strong>传输监控与可观察性</strong>
+### <strong>传输监控与可观测性</strong>
 
 ```csharp
 // Adding telemetry to custom transports
@@ -617,9 +619,9 @@ public class ObservableTransport : IMcpTransport
 
 ## <strong>企业集成场景</strong>
 
-### **场景1：分布式 MCP 处理**
+### **场景 1：分布式 MCP 处理**
 
-使用 Azure 事件网格将 MCP 请求分发到多个处理节点：
+使用 Azure Event Grid 在多个处理节点间分发 MCP 请求：
 
 ```yaml
 Architecture:
@@ -633,9 +635,9 @@ Benefits:
   - Cost optimization with serverless compute
 ```
 
-### **场景2：实时 MCP 流处理**
+### **场景 2：实时 MCP 流式处理**
 
-使用 Azure 事件中心实现高频 MCP 交互：
+使用 Azure Event Hubs 进行高频 MCP 交互：
 
 ```yaml
 Architecture:
@@ -649,9 +651,9 @@ Benefits:
   - Built-in partitioning for parallel processing
 ```
 
-### **场景3：混合传输架构**
+### **场景 3：混合传输架构**
 
-针对不同用例组合多种传输：
+结合多种传输满足不同用例需求：
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -677,7 +679,7 @@ public class HybridMcpTransport : IMcpTransport
 
 ## <strong>性能优化</strong>
 
-### <strong>事件网格的消息批处理</strong>
+### **Event Grid 消息批处理**
 
 ```csharp
 public class BatchingEventGridTransport : IMcpTransport
@@ -717,7 +719,7 @@ public class BatchingEventGridTransport : IMcpTransport
 }
 ```
 
-### <strong>事件中心的分区策略</strong>
+### **Event Hubs 分区策略**
 
 ```csharp
 public class PartitionedEventHubsTransport : IMcpTransport
@@ -737,9 +739,9 @@ public class PartitionedEventHubsTransport : IMcpTransport
 }
 ```
 
-## <strong>自定义传输测试</strong>
+## <strong>测试自定义传输</strong>
 
-### <strong>使用测试替身的单元测试</strong>
+### <strong>使用测试桩进行单元测试</strong>
 
 ```csharp
 [Test]
@@ -766,7 +768,7 @@ public async Task EventGridTransport_SendMessage_PublishesCorrectEvent()
 }
 ```
 
-### **使用 Azure 测试容器的集成测试**
+### **使用 Azure 测试容器进行集成测试**
 
 ```csharp
 [Test]
@@ -799,47 +801,47 @@ public async Task EventHubsTransport_IntegrationTest()
 }
 ```
 
-## <strong>最佳实践与指南</strong>
+## <strong>最佳实践和指南</strong>
 
 ### <strong>传输设计原则</strong>
 
-1. <strong>幂等性</strong>：确保消息处理的幂等性以应对重复消息
+1. <strong>幂等性</strong>：确保消息处理幂等，以应对重复消息
 2. <strong>错误处理</strong>：实现全面的错误处理和死信队列
-3. <strong>监控</strong>：增加详细的遥测数据和健康检查
-4. <strong>安全性</strong>：使用托管身份和最小权限访问
-5. <strong>性能</strong>：根据您的特定延迟和吞吐量需求设计
+3. <strong>监控</strong>：添加详细遥测和健康检查
+4. <strong>安全</strong>：使用托管身份和最小权限访问
+5. <strong>性能</strong>：针对具体延迟和吞吐量要求设计
 
-### **Azure 具体建议**
+### **Azure 特定建议**
 
-1. <strong>使用托管身份</strong>：避免在生产环境中使用连接字符串
-2. <strong>实现断路器</strong>：防护 Azure 服务中断
-3. <strong>监控成本</strong>：跟踪消息量和处理费用
-4. <strong>规划扩展</strong>：提前设计分区和扩展策略
-5. <strong>充分测试</strong>：使用 Azure DevTest Labs 进行全面测试
+1. <strong>使用托管身份</strong>：避免在生产中使用连接字符串
+2. <strong>实现断路器</strong>：防护 Azure 服务故障
+3. <strong>监控费用</strong>：追踪消息量和处理成本
+4. <strong>规划扩展</strong>：及早设计分区和扩展策略
+5. <strong>全面测试</strong>：使用 Azure DevTest Labs 做完整测试
 
 ## <strong>结论</strong>
 
-自定义 MCP 传输利用 Azure 消息服务实现强大的企业场景。通过实现事件网格或事件中心传输，您可以构建可扩展、可靠并与现有 Azure 基础设施无缝集成的 MCP 解决方案。
+自定义 MCP 传输利用 Azure 消息服务，实现强大的企业场景。通过实现 Event Grid 或 Event Hubs 传输，您可以构建可扩展、可靠的 MCP 解决方案，完美融合现有 Azure 基础设施。
 
-所提供的示例展示了生产就绪的模式，既保持了 MCP 协议合规性，也符合 Azure 最佳实践。
+示例展示了符合 MCP 协议并遵循 Azure 最佳实践的生产级自定义传输实现模式。
 
 ## <strong>附加资源</strong>
 
 - [MCP 规范 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
-- [Azure 事件网格文档](https://docs.microsoft.com/azure/event-grid/)
-- [Azure 事件中心文档](https://docs.microsoft.com/azure/event-hubs/)
-- [Azure Functions 事件网格触发器](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
-- [Azure .NET SDK](https://github.com/Azure/azure-sdk-for-net)
-- [Azure TypeScript SDK](https://github.com/Azure/azure-sdk-for-js)
-- [Azure Python SDK](https://github.com/Azure/azure-sdk-for-python)
+- [Azure Event Grid 文档](https://docs.microsoft.com/azure/event-grid/)
+- [Azure Event Hubs 文档](https://docs.microsoft.com/azure/event-hubs/)
+- [Azure Functions Event Grid 触发器](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
+- [Azure SDK for .NET](https://github.com/Azure/azure-sdk-for-net)
+- [Azure SDK for TypeScript](https://github.com/Azure/azure-sdk-for-js)
+- [Azure SDK for Python](https://github.com/Azure/azure-sdk-for-python)
 
 ---
 
-> *本指南专注于面向生产 MCP 系统的实用实现模式。请始终根据您的具体需求和 Azure 服务限制验证传输实现。*
-> <strong>当前标准</strong>：本指南反映了[2025-11-25 MCP 规范](https://modelcontextprotocol.io/specification/2025-11-25/)的传输要求及企业环境下的高级传输模式。
+> *本指南聚焦于生产级 MCP 系统的实用实现模式。请务必根据具体需求和 Azure 服务限制验证传输实现。*
+> <strong>当前标准</strong>：本指南反映了[ MCP 规范 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)中的传输要求及企业环境高级传输模式。
 
 
-## 后续内容
+## 后续步骤
 - [6. 社区贡献](../../06-CommunityContributions/README.md)
 
 ---

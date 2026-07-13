@@ -1,57 +1,58 @@
 # Jamii na Michango
 
-[![Jinsi ya Kuchangia MCP: Zana, Nyaraka, Msimbo na Zaidi](../../../translated_images/sw/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
+[![Jinsi ya Kuchangia MCP: Vifaa, Nyaraka, Msimbo na Zaidi](../../../translated_images/sw/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
 
-_(Bonyeza picha hapo juu kutazama video ya somo hili)_
+_(Bonyeza picha hapo juu kuangalia video ya somo hili)_
 
 ## Muhtasari
 
-Somo hili linazingatia jinsi ya kushiriki na jamii ya MCP, kuchangia mfumo wa MCP, na kufuata taratibu bora za maendeleo ya ushirikiano. Kuelewa jinsi ya kushiriki katika miradi ya chanzo huria ya MCP ni muhimu kwa wale wanaotaka kuunda mustakabali wa teknolojia hii.
+Somo hili linaangazia jinsi ya kuhusika na jamii ya MCP, kuchangia katika mfumo wa MCP, na kufuata mbinu bora za maendeleo ya ushirikiano. Kuelewa jinsi ya kushiriki katika miradi ya chanzo wazi ya MCP ni muhimu kwa wale wanaotaka kuunda mustakabali wa teknolojia hii.
 
 ## Malengo ya Kujifunza
 
-Mwisho wa somo hili, utaweza:
+Mwishoni mwa somo hili, utaweza:
 
 - Kuelewa muundo wa jamii na mfumo wa MCP
-- Kushiriki kwa ufanisi katika majukwaa na mijadala ya jamii ya MCP
-- Kuchangia hifadhidata za chanzo huria za MCP
-- Kuunda na kushiriki zana na seva za MCP maalum
-- Kufuatilia taratibu bora za maendeleo na ushirikiano wa MCP
-- Kugundua rasilimali na mifumo ya jamii kwa maendeleo ya MCP
+- Kushiriki kwa ufanisi katika mijadala na vikao vya jamii ya MCP
+- Kuchangia katika hazina za chanzo wazi za MCP
+- Kuunda na kushiriki zana na seva maalum za MCP
+- Kufuata mbinu bora za maendeleo na ushirikiano wa MCP
+- Kugundua rasilimali na mifumo ya jamii kwa ajili ya maendeleo ya MCP
 
-## Mfumo wa Jamii ya MCP
+## Mfumo wa Jamii wa MCP
 
-Mfumo wa MCP unajumuisha vipengele na washiriki mbalimbali wanaofanya kazi pamoja kuendeleza itifaki.
+Mfumo wa MCP unajumuisha vipengele na washiriki mbalimbali wanaofanya kazi pamoja kusukuma mbele itifaki.
 
 ### Vipengele Muhimu vya Jamii
 
-1. **Wahudumu wa Itifaki Kuu**: [Shirika rasmi la GitHub la Model Context Protocol](https://github.com/modelcontextprotocol) linahudumia vipimo vya msingi vya MCP na utekelezaji wa rejea
-2. **Waendelezaji wa Zana**: Watu binafsi na timu zinazozalisha zana na seva za MCP
-3. **Watoa Huduma za Uingizaji**: Kampuni zinazojumuisha MCP katika bidhaa na huduma zao
-4. **Watumiaji wa Mwisho**: Waendelezaji na mashirika wanaotumia MCP katika programu zao
+1. **Watunzaji Wakuu wa Itifaki**: Shirika rasmi la GitHub la [Model Context Protocol](https://github.com/modelcontextprotocol) linatunza maelezo na utekelezaji wa marejeleo ya MCP
+2. **Waendelezaji wa Zana**: Watu binafsi na timu zinazounda zana na seva za MCP
+3. **Watoa Uingizaji**: Makampuni yanayojumuisha MCP katika bidhaa na huduma zao
+4. **Watumiaji wa Mwisho**: Waendelezaji na mashirika yanayotumia MCP katika programu zao
 5. **Wachangiaji**: Wanajamii wanaochangia msimbo, nyaraka, au rasilimali nyingine
 
 ### Rasilimali za Jamii
 
-#### Njia Rasmi
+#### Vituo Rasmi
 
 - [Shirika la MCP GitHub](https://github.com/modelcontextprotocol)
 - [Nyaraka za MCP](https://modelcontextprotocol.io/)
-- [Vipimo vya MCP](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Maelezo ya MCP](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [Mijadala ya GitHub](https://github.com/orgs/modelcontextprotocol/discussions)
-- [Hifadhidata ya Mifano & Seva za MCP](https://github.com/modelcontextprotocol/servers)
+- [Hazina ya Mifano & Seva za MCP](https://github.com/modelcontextprotocol/servers)
 
-#### Rasilimali Zinazoendeshwa na Jamii
+#### Rasilimali Zinazoongozwa na Jamii
 
-- [Wateja wa MCP](https://modelcontextprotocol.io/clients) - Orodha ya wateja wanao支持 uingizaji wa MCP
-- [Seva za MCP za Jamii](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - Orodha inayoongezeka ya seva za MCP zilizotengenezwa na jamii
+- [Wateja wa MCP](https://modelcontextprotocol.io/clients) - Orodha ya wateja wanaounga mkono uingizaji MCP
+- [Seva za Jamii za MCP](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - Orodha inayokua ya seva za MCP zilizotengenezwa na jamii
 - [Seva Bora za MCP](https://github.com/wong2/awesome-mcp-servers) - Orodha iliyoratibiwa ya seva za MCP
-- [PulseMCP](https://www.pulsemcp.com/) - Kituo cha jamii na jarida kwa kugundua rasilimali za MCP
-- [Seva ya Discord](https://discord.gg/jHEGxQu2a5) - Unganisha na waendelezaji wa MCP
-- Utekelezaji wa SDK kwa lugha maalum
-- Machapisho ya blogu na mafunzo
+- [PulseMCP](https://www.pulsemcp.com/) - Kituo cha jamii & jarida la kugundua rasilimali za MCP
+- [Remote OpenClaw](https://www.remoteopenclaw.com/) - Orodha ya bure inayotafutika ya seva za MCP, ujuzi wa maajenti, na viendelezi
+- [Seva ya Discord](https://discord.gg/jHEGxQu2a5) - Ungana na waendelezaji wa MCP
+- Utekelezaji wa SDK za lugha maalum
+- Makala za blogu na mafunzo
 
-## Kuchangia MCP
+## Kuchangia kwenye MCP
 
 ### Aina za Michango
 
@@ -59,9 +60,9 @@ Mfumo wa MCP unakaribisha aina mbalimbali za michango:
 
 1. **Michango ya Msimbo**:
    - Maboresho ya itifaki kuu
-   - Marekebisho ya hitilafu
+   - Marekebisho ya kasoro
    - Utekelezaji wa zana na seva
-   - Maktaba za mteja/seva kwa lugha tofauti
+   - Maktaba za mteja/seva katika lugha tofauti
 
 2. **Nyaraka**:
    - Kuboresha nyaraka zilizopo
@@ -70,35 +71,35 @@ Mfumo wa MCP unakaribisha aina mbalimbali za michango:
    - Kuunda mifano na programu za majaribio
 
 3. **Msaada wa Jamii**:
-   - Kujibu maswali kwenye majukwaa na mijadala
+   - Kujibu maswali kwenye vikao na mijadala
    - Kupima na kuripoti matatizo
    - Kuandaa matukio ya jamii
-   - Kusaidia wachangiaji wapya
+   - Kuwa mentori kwa wachangiaji wapya
 
 ### Mchakato wa Michango: Itifaki Kuu
 
-Ili kuchangia itifaki kuu au utekelezaji rasmi wa MCP, fuata kanuni hizi kutoka [miongozo rasmi ya michango](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
+Ili kuchangia itifaki kuu ya MCP au utekelezaji rasmi, fuata kanuni hizi kutoka kwenye [miongozo rasmi ya michango](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
 
-1. **Urahisi na Unyenyekevu**: Vipimo vya MCP vina viwango vya juu vya kuongeza dhana mpya. Ni rahisi kuongeza vitu kwa kipimo kuliko kuondoa.
+1. **Urahisi na Unyenyekevu**: Maelezo ya MCP yanaweka vizingiti vya juu kwa kuongeza dhana mpya. Ni rahisi zaidi kuongeza mambo kwenye maelezo kuliko kuyafuta.
 
-2. **Mbinu Mahususi**: Mabadiliko ya vipimo yanapaswa kutegemea changamoto mahususi za utekelezaji, si mawazo ya kubahatisha.
+2. **Mbinu Thabiti**: Mabadiliko ya maelezo yanapaswa kutegemea changamoto za utekelezaji maalum, si mawazo ya dhahania.
 
 3. **Hatua za Pendekezo**:
-   - Eleza: Chunguza tatizo, thibitisha kuwa watumiaji wengine wa MCP wanakutana na tatizo kama hilo
-   - Tumia mfano: Tengeneza suluhisho la mfano na uonyeshe matumizi yake halisi
-   - Andika: Kutokana na mfano, andika pendekezo la kipimo
+   - Tafsiri: Chunguza tatizo, thibitisha kwamba watumiaji wengine wa MCP wanakumbana na tatizo kama hilo
+   - Prototipu: Tengeneza suluhisho la mfano na uonyeshe matumizi yake ya vitendo
+   - Andika: Kulingana na prototipu, andika pendekezo la maelezo
 
 ### Usanidi wa Mazingira ya Maendeleo
 
 ```bash
-# Gawanya hifadhi
+# Kopesha hazina
 git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
 cd modelcontextprotocol
 
-# Sakinisha utegemezi
+# Sakinisha vyanzo vinavyotegemewa
 npm install
 
-# Kwa mabadiliko ya skimu, thibitisha na tengeneza schema.json:
+# Kwa mabadiliko ya muundo, hakikisha na tengeneza schema.json:
 npm run check:schema:ts
 npm run generate:schema
 
@@ -106,20 +107,20 @@ npm run generate:schema
 npm run check:docs
 npm run format
 
-# Taze nyaraka kwa ndani (hiari):
+# Angalia awali nyaraka eneo lako (hiari):
 npm run serve:docs
 ```
 
-### Mfano: Kuchangia Marekebisho ya Hitilafu
+### Mfano: Kuchangia Marekebisho ya Kasoro
 
 ```javascript
-// Msimbo wa asili wenye kosa katika typescript-sdk
+// Msimbo wa asili ulio na hitilafu katika typescript-sdk
 export function validateResource(resource: unknown): resource is MCPResource {
   if (!resource || typeof resource !== 'object') {
     return false;
   }
   
-  // Hitilafu: Ukosefu wa ukaguzi wa mali
+  // Hitilafu: Ukosefu wa uthibitishaji wa mali
   // Utekelezaji wa sasa:
   const hasName = 'name' in resource;
   const hasSchema = 'schema' in resource;
@@ -127,13 +128,13 @@ export function validateResource(resource: unknown): resource is MCPResource {
   return hasName && hasSchema;
 }
 
-// Utekelezaji uliorekebishwa katika mchango
+// Utekelezaji uliosahihishwa katika mchango
 export function validateResource(resource: unknown): resource is MCPResource {
   if (!resource || typeof resource !== 'object') {
     return false;
   }
   
-  // Ukaguzi ulioboreshwa
+  // Uthibitishaji ulioboreshwa
   const hasName = 'name' in resource && typeof (resource as MCPResource).name === 'string';
   const hasSchema = 'schema' in resource && typeof (resource as MCPResource).schema === 'object';
   const hasDescription = !('description' in resource) || typeof (resource as MCPResource).description === 'string';
@@ -142,10 +143,10 @@ export function validateResource(resource: unknown): resource is MCPResource {
 }
 ```
 
-### Mfano: Kuchangia Zana Mpya Kwenye Maktaba ya Kawaida
+### Mfano: Kuchangia Zana Mpya kwenye Maktaba Sanifu
 
 ```python
-# Mfano wa mchango: Zana ya usindikaji data ya CSV kwa maktaba ya msaada ya MCP
+# Mfano wa mchango: Zana ya usindikaji wa data ya CSV kwa maktaba ya kawaida ya MCP
 
 from mcp_tools import Tool, ToolRequest, ToolResponse, ToolExecutionException
 import pandas as pd
@@ -207,14 +208,14 @@ class CsvProcessingTool(Tool):
     
     async def execute_async(self, request: ToolRequest) -> ToolResponse:
         try:
-            # Toa vigezo
+            # Chota vigezo
             operation = request.parameters.get("operation")
             output_format = request.parameters.get("outputFormat", "json")
             
-            # Pata data ya CSV kutoka moja kwa moja au URL
+            # Pata data ya CSV kutoka kwa data moja kwa moja au URL
             df = await self._get_dataframe(request)
             
-            # Fanya usindikaji kulingana na ombi la operesheni
+            # Fanya usindikaji kulingana na operesheni inayohitajika
             result = {}
             
             if operation == "summary":
@@ -304,19 +305,19 @@ class CsvProcessingTool(Tool):
 
 ### Miongozo ya Michango
 
-Ili kufanya mchango uliofanikiwa katika miradi ya MCP:
+Ili kufanya mchango wa mafanikio katika miradi ya MCP:
 
-1. **Anza Ndogo**: Anza na nyaraka, marekebisho ya hitilafu, au maboresho madogo
-2. **Fuata Mwongozo wa Mtindo**: Shangilia mtindo na kanuni za mradi
-3. **Andika Vipimo**: Jumuisha vipimo vya kipande cha msimbo uliochangia
-4. **Andika Kazi Yako**: Ongeza nyaraka wazi kwa vipengele vipya au mabadiliko
-5. **Tuma maombi ya marekebisho mahsusi**: Weka maombi ya pull kwa suala au kipengele kimoja
-6. **Shirikiana na Maoni**: Jibu maoni juu ya michango yako
+1. **Anza Kidogo**: Anza na nyaraka, marekebisho ya kasoro, au maboresho madogo
+2. **Fuata Mwongozo wa Mtindo**: Shikilia mtindo wa kuandika msimbo na kanuni za mradi
+3. **Andika Majaribio**: Jumuisha majaribio ya vitengo kwa michango yako ya msimbo
+4. **Eleza Kazi Yako**: Ongeza nyaraka wazi kwa vipengele vipya au mabadiliko
+5. **Wasilisha PR Zilizoelekezwa**: Weka maombi ya kuvuta yakilenga tatizo moja au kipengele kimoja
+6. **Shiriki katika Maoni**: Jibu maoni kuhusu michango yako
 
-### Mfano wa Mchakato wa Michango
+### Mfano wa Mtiririko wa Michango
 
 ```bash
-# Nakili hazina
+# Nakili hifadhi
 git clone https://github.com/modelcontextprotocol/typescript-sdk.git
 cd typescript-sdk
 
@@ -326,28 +327,28 @@ git checkout -b feature/my-contribution
 # Fanya mabadiliko yako
 # ...
 
-# Endesha majaribio kuhakikisha mabadiliko yako hayavunjii utendakazi uliopo
+# Endesha majaribio kuhakikisha mabadiliko yako hayaathiri utendakazi uliopo
 npm test
 
-# Weka mabadiliko yako na ujumbe unaoelezea
+# Jitathmini mabadiliko yako kwa ujumbe unaoelezea
 git commit -am "Fix validation in resource handler"
 
-# Sugua tawi lako kwenye kunja yako
+# Sogeza tawi lako kwenda kwa fork yako
 git push origin feature/my-contribution
 
-# Unda ombi la kuvuta kutoka tawi lako kwenda hazina kuu
-# Kisha shirikiana na maoni na rudia PR yako inapohitajika
+# Unda ombi la kuvuta kutoka kwa tawi lako kwenda hifadhi kuu
+# Kisha jishughulishe na maoni na bofya tena kwenye PR yako kama inavyohitajika
 ```
 
 ## Kuunda na Kushiriki Seva za MCP
 
-Moja ya njia muhimu za kuchangia mfumo wa MCP ni kuunda na kushiriki seva za MCP maalum. Jamii tayari imeunda mamia ya seva kwa huduma na matumizi mbalimbali.
+Njia moja ya thamani ya kuchangia mfumo wa MCP ni kwa kuunda na kushiriki seva maalum za MCP. Jamii tayari imeunda mamia ya seva kwa huduma na matumizi mbalimbali.
 
-### Mifumo ya Kuendeleza Seva za MCP
+### Mifumo ya Maendeleo ya Seva za MCP
 
 Kuna mifumo kadhaa inayopatikana kurahisisha maendeleo ya seva za MCP:
 
-1. **SDK Rasmi** (kuzingatia [Vipimo vya MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)):
+1. **SDK Rasmi** (inayolingana na [Maelezo ya MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)):
    - [SDK ya TypeScript](https://github.com/modelcontextprotocol/typescript-sdk)
    - [SDK ya Python](https://github.com/modelcontextprotocol/python-sdk)
    - [SDK ya C#](https://github.com/modelcontextprotocol/csharp-sdk)
@@ -358,14 +359,14 @@ Kuna mifumo kadhaa inayopatikana kurahisisha maendeleo ya seva za MCP:
    - [SDK ya Rust](https://github.com/modelcontextprotocol/rust-sdk)
 
 2. **Mifumo ya Jamii**:
-   - [MCP-Framework](https://mcp-framework.com/) - Jenga seva za MCP kwa uzuri na haraka kwa kutumia TypeScript
-   - [MCP Declarative Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - Seva za MCP zinazoendeshwa na maelezo kwa Java
+   - [MCP-Framework](https://mcp-framework.com/) - Tengeneza seva za MCP kwa ufanisi na haraka katika TypeScript
+   - [MCP Declarative Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - Seva za MCP zinazoendeshwa kwa maandishi na Java
    - [Quarkus MCP Server SDK](https://github.com/quarkiverse/quarkus-mcp-server) - Mfumo wa Java kwa seva za MCP
    - [Next.js MCP Server Template](https://github.com/vercel-labs/mcp-for-next.js) - Mradi wa kuanzia Next.js kwa seva za MCP
 
 ### Kuendeleza Zana Zinazoweza Kushirikiwa
 
-#### Mfano wa .NET: Kuunda Mafurushi ya Zana Zinazoweza Kushirikiwa
+#### Mfano wa .NET: Kuunda Kifurushi cha Zana Kinachoshirikiwa
 
 ```csharp
 // Create a new .NET library project
@@ -471,10 +472,10 @@ namespace McpFinanceTools
 // dotnet nuget push bin/Release/McpFinanceTools.1.0.0.nupkg -s https://api.nuget.org/v3/index.json -k YOUR_API_KEY
 ```
 
-#### Mfano wa Java: Kuunda Mafurushi ya Maven kwa Zana
+#### Mfano wa Java: Kuunda Kifurushi cha Maven kwa Zana
 
 ```java
-// usanidi wa pom.xml kwa kifurushi cha zana za MCP kinachoshirikiwa
+// usanidi wa pom.xml kwa kifurushi cha zana za MCP zinazoweza kushirikiwa
 <!-- 
 <project>
     <groupId>com.example</groupId>
@@ -535,7 +536,7 @@ public class WeatherForecastTool implements Tool {
     @Override
     public Object getSchema() {
         Map<String, Object> schema = new HashMap<>();
-        // Ufafanuzi wa skima...
+        // Ufafanuzi wa mpangilio...
         return schema;
     }
     
@@ -549,7 +550,7 @@ public class WeatherForecastTool implements Tool {
             // Piga API ya hali ya hewa
             Map<String, Object> forecast = getForecast(location, days);
             
-            // Unda majibu
+            // Tengeneza jibu
             return new ToolResponse.Builder()
                 .setResult(forecast)
                 .build();
@@ -562,23 +563,23 @@ public class WeatherForecastTool implements Tool {
         // Utekelezaji utapiga API ya hali ya hewa
         // Mfano uliorahisishwa
         Map<String, Object> result = new HashMap<>();
-        // Ongeza data ya utabiri...
+        // Ongeza data ya utabiri wa hali ya hewa...
         return result;
     }
 }
 
 // Jenga na chapisha kwa kutumia Maven
 // mvn safi kifurushi
-// mvn sambaza
+// mvn tolea
 ```
 
-#### Mfano wa Python: Kuchapisha Pakiti ya PyPI
+#### Mfano wa Python: Kuchapisha Kifurushi cha PyPI
 
 ```python
 # Muundo wa saraka kwa kifurushi cha PyPI:
 # mcp_nlp_tools/
 # ├── LESENI
-# ├── README.md
+# ├── SOMA.MI
 # ├── setup.py
 # ├── mcp_nlp_tools/
 # │   ├── __init__.py
@@ -613,7 +614,7 @@ setup(
 )
 """
 
-# Mfano wa utekelezaji wa chombo cha NLP (sentiment_tool.py)
+# Mfano wa utekelezaji wa zana ya NLP (sentiment_tool.py)
 from mcp_tools import Tool, ToolRequest, ToolResponse, ToolExecutionException
 from transformers import pipeline
 import torch
@@ -622,7 +623,7 @@ class SentimentAnalysisTool(Tool):
     """MCP tool for sentiment analysis of text"""
     
     def __init__(self, model_name="distilbert-base-uncased-finetuned-sst-2-english"):
-        # Pakia mfano wa uchambuzi wa hisia
+        # Pakua modeli ya uchambuzi wa hisia
         self.sentiment_analyzer = pipeline("sentiment-analysis", model=model_name)
     
     def get_name(self):
@@ -650,7 +651,7 @@ class SentimentAnalysisTool(Tool):
     
     async def execute_async(self, request: ToolRequest) -> ToolResponse:
         try:
-            # Chukua vigezo
+            # Toa vigezo
             text = request.parameters.get("text")
             include_score = request.parameters.get("includeScore", True)
             
@@ -666,82 +667,82 @@ class SentimentAnalysisTool(Tool):
             if include_score:
                 result["score"] = sentiment_result["score"]
             
-            # Rejesha matokeo
+            # Rudisha matokeo
             return ToolResponse(result=result)
             
         except Exception as e:
             raise ToolExecutionException(f"Sentiment analysis failed: {str(e)}")
 
-# Kuchapisha:
+# Kutangaza:
 # python setup.py sdist bdist_wheel
 # python -m twine upload dist/*
 ```
 
-### Kushiriki Taratibu Bora
+### Kushiriki Mbinu Bora
 
-Unaposhiriki zana za MCP na jamii:
+Wakati wa kushiriki zana za MCP na jamii:
 
-1. **Nyota kamili za Nyaraka**:
+1. **Nyaraka Kamili**:
    - Eleza madhumuni, matumizi, na mifano
-   - Eleza vigezo na thamani zinazorejeshwa
-   - Andika rasilimali zozote za nje zinazohitajika
+   - Elezea vigezo na thamani zitakazorejeshwa
+   - Taja utegemezi wowote wa nje
 
-2. **Usimamizi wa Makosa**:
-   - Fanya usimamizi thabiti wa makosa
-   - Toa ujumbe wa makosa wa manufaa
-   - Shughulikia hali za kipekee kwa heshima
+2. **Udhibiti wa Makosa**:
+   - Tekeleza udhibiti wa makosa thabiti
+   - Toa ujumbe mzuri wa makosa
+   - Shughulikia kesi za pembezoni kwa ustadi
 
-3. **Mambo ya Utendaji**:
+3. **Mazingira ya Utendaji**:
    - Boresha kwa kasi na matumizi ya rasilimali
-   - Tumia caching inapofaa
-   - Angalia uwezo wa upanuzi
+   - Tumia uongezaji kumbukumbu inapofaa
+   - Fikiria ufanisi wa kupanuka
 
 4. **Usalama**:
-   - Tumia funguo salama za API na uthibitishaji
+   - Tumia funguo za API salama na uthibitisho
    - Thibitisha na safisha ingizo
-   - Tekeleza mipaka ya mwendo kwa maombi ya API za nje
+   - Tekeleza mipaka ya kiwango kwa simu za API za nje
 
-5. **Vipimo**:
-   - Jumuisha upana wa vipimo kamili
-   - Pima kwa aina tofauti za ingizo na hali za kipekee
-   - Andika taratibu za vipimo
+5. **Majaribio**:
+   - Jumuisha upitishaji kamili wa majaribio
+   - Jaribu kwa aina tofauti za ingizo na kesi za pembezoni
+   - Eleza taratibu za majaribio
 
-## Ushirikiano wa Jamii na Taratibu Bora
+## Ushirikiano wa Jamii na Mbinu Bora
 
-Ushirikiano mzuri ni muhimu kwa ukuaji wa mfumo wa MCP.
+Ushirikiano mzuri ni kiini cha mfumo unaofanikiwa wa MCP.
 
-### Njia za Mawasiliano
+### Vituo vya Mawasiliano
 
-- Masuala na mijadala ya GitHub
-- Jumuiya ya Teknolojia ya Microsoft
-- Sehemu za Discord na Slack
+- Masuala na Mijadala ya GitHub
+- Jamii ya Teknolojia ya Microsoft
+- Vituo vya Discord na Slack
 - Stack Overflow (alama: `model-context-protocol` au `mcp`)
 
-### Mapitio ya Msimbo
+### Ukaguzi wa Msimbo
 
-Unapopitia michango ya MCP:
+Wakati wa kukagua michango ya MCP:
 
-1. **Uwazi**: Je, msimbo ni wazi na umeandikwa vizuri?
-2. **Usahihi**: Je, unafanya kazi kama inavyotarajiwa?
-3. **Ulinganifu**: Je, unazingatia kanuni za mradi?
-4. **Ukamilifu**: Je, vipimo na nyaraka vimejumuishwa?
-5. **Usalama**: Kuna wasiwasi wowote wa usalama?
+1. **Uwiano**: Je, msimbo ni wazi na umeandikwa vizuri?
+2. **Uhalali**: Je, unafanya kazi kama inavyotarajiwa?
+3. **Ulinganifu**: Je, unafuata kanuni za mradi?
+4. **Ukomavu**: Je, majaribio na nyaraka zipo?
+5. **Usalama**: Je, kuna masuala yoyote ya usalama?
 
 ### Ulinganifu wa Toleo
 
-Unapofanya maendeleo kwa MCP:
+Wakati wa kuendeleza kwa ajili ya MCP:
 
-1. **Toleo la Itifaki**: Fuata toleo la itifaki la MCP ambalo zana yako inaunga mkono
-2. **Ulinganifu wa Mteja**: Zingatia ulinganifu wa nyuma
+1. **Matoleo ya Itifaki**: Shikilia toleo la itifaki ambalo zana yako inaunga mkono
+2. **Ulinganifu wa Mteja**: Fikiria ulinganifu wa nyuma
 3. **Ulinganifu wa Seva**: Fuata miongozo ya utekelezaji wa seva
-4. **Mabadiliko ya Kuvunjika**: Elezea wazi mabadiliko yoyote yanayovunja
+4. **Mabadiliko ya Kuvunja**: Elezea mabadiliko yote ya kuvunjika wazi
 
-## Mradi wa Mfano wa Jamii: Rejista ya Zana za MCP
+## Mradi wa Jamii Mfano: Usajili wa Zana za MCP
 
-Mchango muhimu kwa jamii unaweza kuwa kuunda rejista ya umma ya zana za MCP.
+Mchango muhimu wa jamii unaweza kuwa kuendeleza rejista ya umma kwa zana za MCP.
 
 ```python
-# Mfano wa skimu ya API ya rejista ya zana za jamii
+# Mfano wa mpangilio wa API ya rejista ya zana za jamii
 
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field, HttpUrl
@@ -749,7 +750,7 @@ from typing import List, Optional
 import datetime
 import uuid
 
-# Mifano ya rejista ya zana
+# Mifano kwa rejista ya zana
 class ToolSchema(BaseModel):
     """JSON Schema for a tool"""
     type: str
@@ -778,10 +779,10 @@ class Tool(ToolRegistration):
     rating: float = Field(default=0.0)
     ratings_count: int = Field(default=0)
 
-# Programu ya FastAPI kwa ajili ya rejista
+# Programu ya FastAPI kwa rejista
 app = FastAPI(title="MCP Tool Registry")
 
-# Hifadhidata ya kumbukumbu ya ndani kwa mfano huu
+# Hifadhidata ya kumbukumbu kwa mfano huu
 tools_db = {}
 
 @app.post("/tools", response_model=Tool)
@@ -817,21 +818,21 @@ async def delete_tool(tool_name: str):
     return {"message": f"Tool '{tool_name}' deleted"}
 ```
 
-## Mambo Muhimu ya Kumbuka
+## Muhimu wa Kumbukumbu
 
-- Jamii ya MCP ni tofauti na inakaribisha aina mbalimbali za michango
-- Kuchangia MCP kunaweza kuwa kutoka maboresho ya itifaki kuu hadi zana maalum
-- Kufuatilia miongozo ya michango huongeza nafasi ya maombi yako kukubaliwa
-- Kuunda na kushiriki zana za MCP ni njia muhimu ya kuboresha mfumo
-- Ushirikiano wa jamii ni msingi wa ukuaji na maendeleo ya MCP
+- Jamii ya MCP ni ya aina mbalimbali na inakaribisha aina tofauti za michango
+- Kuchangia katika MCP kunaweza kuanzia maboresho ya itifaki kuu hadi zana maalum
+- Kufuatilia miongozo ya michango kunaboresha nafasi ya PR yako kukubaliwa
+- Kuunda na kushiriki zana za MCP ni njia ya thamani ya kuimarisha mfumo
+- Ushirikiano wa jamii ni muhimu kwa ukuaji na uboreshaji wa MCP
 
-## Zoef
+## Mazoezi
 
-1. Tambua eneo katika mfumo wa MCP ambapo unaweza kuchangia kulingana na ujuzi na maslahi yako
-2. Anza hifadhidata ya MCP na tengeneza mazingira ya maendeleo ya ndani
-3. Tengeneza kuboresha kidogo, marekebisho ya hitilafu, au zana itakayowanufaisha jamii
-4. Andika nyaraka na vipimo vya mchango wako
-5. Tuma ombi la pull kwa hifadhidata husika
+1. Tambua eneo katika mfumo wa MCP ambapo unaweza kutoa mchango kulingana na ujuzi na maslahi yako
+2. Fukua hazina ya MCP na weka mazingira ya maendeleo ya eneo lako
+3. Tengeneza uboreshaji mdogo, marekebisho ya kasoro, au zana itakayowanufaisha wanajamii
+4. Andika mchango wako kwa majaribio sahihi na nyaraka
+5. Wasilisha ombi la kuvuta katika hazina sahihi
 
 ## Rasilimali Zaidi
 
@@ -839,13 +840,13 @@ async def delete_tool(tool_name: str):
 
 ---
 
-## Kinachofuata
+## Kibaki Kwamba
 
 Ifuatayo: [Mafunzo kutoka kwa Utekelezaji wa Mapema](../07-LessonsfromEarlyAdoption/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Kiarifu cha Kukwepa Lawama**:
-Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Wakati tunajitahidi kwa usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au kasoro. Hati ya asili katika lugha yake ya asili inapaswa kuchukuliwa kama chanzo kikuu cha taarifa. Kwa habari muhimu, tafsiri ya kitaalamu inayofanywa na mwanadamu inashauriwa. Hatuna dhamana kwa kutoelewana au tafsiri potofu zinazotokana na matumizi ya tafsiri hii.
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

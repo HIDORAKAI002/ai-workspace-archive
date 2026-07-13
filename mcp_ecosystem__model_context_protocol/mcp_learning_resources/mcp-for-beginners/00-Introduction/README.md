@@ -72,9 +72,9 @@ MCP follows a **client-server model**, where:
 - **Resources** – Static or dynamic data for models  
 - **Prompts** – Predefined workflows for guided generation  
 - **Tools** – Executable functions like search, calculations  
-- **Sampling** – Agentic behavior via recursive interactions
+- **Sampling** – Agentic behavior via recursive interactions (deprecated in `2026-07-28` release candidate)
 - **Elicitation** – Server-initiated requests for user input
-- **Roots** – Filesystem boundaries for server access control
+- **Roots** – Filesystem boundaries for server access control (deprecated in `2026-07-28` release candidate)
 
 ### **Protocol Architecture:**
 

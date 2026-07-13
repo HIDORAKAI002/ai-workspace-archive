@@ -1,23 +1,25 @@
 # MCP-protokollan ominaisuudet syvällisesti
 
-Tämä opas tutkii edistyneitä MCP-protokollan ominaisuuksia, jotka ylittävät perus työkalujen ja resurssien käsittelyn. Näiden ominaisuuksien ymmärtäminen auttaa sinua rakentamaan vankempia, käyttäjäystävällisempiä ja tuotantovalmiita MCP-palvelimia.
+Tämä opas käsittelee edistyneitä MCP-protokollan ominaisuuksia, jotka ylittävät perus työkalujen ja resurssien käsittelyn. Näiden ominaisuuksien ymmärtäminen auttaa rakentamaan vakaampia, käyttäjäystävällisempiä ja tuotantovalmiita MCP-palvelimia.
+
+> **Katse tulevaan:** `2026-07-28` julkaisutarkoituksen ehdokas poistaa käytöstä Logging-primitiivin (suositellen `stderr`:iä stdion kanssa ja OpenTelemetryä rakenteelliselle havaittavuudelle), poistaa alla Server Lifecycle Events -osiossa mainitun `initialize`/istuntomallin ja siirtää kokeellisen Tasks-ominaisuuden omaan Tasks-laajennukseensa uuden `tasks/get`/`tasks/update`/`tasks/cancel`-elinkaaren kera. Katso [Mitä MCP:ssä muuttuu: 2026-07-28 julkaisutarkoituksen ehdokas](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Käsitellyt ominaisuudet
 
-1. **Edistymisilmoitukset** - Raportoi pitkäkestoisten operaatioiden edistymisestä
-2. **Pyynnön peruutus** - Anna asiakkaiden peruuttaa kesken olevat pyynnöt
-3. **Resurssipohjat** - Dynaamiset resurssi-URI:t parametreilla
-4. **Palvelimen elinkaaritapahtumat** - Oikea alustaminen ja sammutus
-5. **Lokituksen hallinta** - Palvelimen lokituksen konfigurointi
-6. **Virheiden käsittelymallit** - Johdonmukaiset virhevastaukset
+1. **Edistymisilmoitukset** – Raportoi pitkäkestoisten operaatioiden edistyminen
+2. **Pyyntöjen peruutus** – Salli asiakkaiden peruuttaa keskeneräiset pyynnöt
+3. **Resurssipohjat** – Dynaamiset resurssien URI:t parametreilla
+4. **Palvelimen elinkaaritapahtumat** – Oikea alustus ja sammutus
+5. **Lokituksen hallinta** – Palvelinpuolen lokituksen konfigurointi
+6. **Virheenkäsittelymallit** – Johdonmukaiset virhevastaukset
 
 ---
 
 ## 1. Edistymisilmoitukset
 
-Operaatiot, jotka vievät aikaa (datankäsittely, tiedostojen lataukset, API-kutsut), hyötyvät edistymisilmoituksista, jotka pitävät käyttäjät ajan tasalla.
+Toimintojen, jotka vievät aikaa (datan käsittely, tiedostojen lataukset, API-kutsut), edistymisilmoitukset pitävät käyttäjät ajan tasalla.
 
-### Kuinka se toimii
+### Miten se toimii
 
 ```mermaid
 sequenceDiagram
@@ -30,7 +32,8 @@ sequenceDiagram
     Server-->>Client: ilmoitus: eteneminen 90%
     Server->>Client: tulos (valmis)
 ```
-### Pythonin toteutus
+
+### Python-toteutus
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -43,13 +46,13 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Hae tiedoston koko etenemisen laskentaa varten
+    # Hae tiedoston koko etenemisen laskemista varten
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Käsittele osaa
+            # Käsittele osa
             await process_chunk(chunk)
             processed += len(chunk)
             
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Ilmoita eteneminen jokaisen kohteen jälkeen
+        # Raportoi eteneminen jokaisen kohteen jälkeen
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### TypeScriptin toteutus
+### TypeScript-toteutus
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Asiakaspuolen käsittely (Python)
+### Asiakkaan käsittely (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Rekisteröi käsittelijä
+# Rekisteröi handleri
 session.on_notification("notifications/progress", handle_progress)
 
-# Kutsu työkalua (edistymisilmoitukset saapuvat käsittelijän kautta)
+# Kutsu työkalua (edistymispäivitykset tulevat handlerin kautta)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. Pyynnön peruutus
+## 2. Pyyntöjen peruutus
 
-Salli asiakkaiden peruuttaa pyynnöt, joita ei enää tarvita tai jotka vievät liikaa aikaa.
+Salli asiakkaiden peruuttaa pyynnöt, joita ei enää tarvita tai jotka kestävät liian kauan.
 
-### Pythonin toteutus
+### Python-toteutus
 
 ```python
 from mcp.server import Server
@@ -169,7 +172,7 @@ async def long_running_search(query: str, ctx) -> str:
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Pieni viive sallii peruutustarkistukset
+            # Pieni viive mahdollistaa peruutustarkistukset
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Resurssipohjat
 
-Resurssipohjat sallivat dynaamisen URI-rakenteen parametreilla, mikä on hyödyllistä API:eissa ja tietokannoissa.
+Resurssipohjat mahdollistavat URI:n dynaamisen muodostamisen parametreilla, hyödyllinen API:ille ja tietokannoille.
 
 ### Pohjien määrittely
 
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### TypeScriptin toteutus
+### TypeScript-toteutus
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. Palvelimen elinkaaritapahtumat
 
-Oikea alustaminen ja sammutuksen hallinta varmistavat resurssien puhtaan käsittelyn.
+Oikea alustus- ja sammutuskäsittely varmistaa siistin resurssien hallinnan.
 
 ### Pythonin elinkaaren hallinta
 
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Käyttö sulkeutumisen hallitulla lopetuksella
+// Käyttö sulavasti sammuttaen
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## 5. Lokituksen hallinta
 
-MCP tukee palvelimen puolen lokitusasteita, joita asiakkaat voivat ohjata.
+MCP tukee palvelinpuolen lokitustasoja, joita asiakkaat voivat ohjata.
 
-### Lokitusasteiden toteutus
+### Lokitustasojen toteutus
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Määritä MCP-tasot Pythonin lokitustasoiksi
+# Määritä MCP-tasot Pythonin lokitus tasoihin
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Virheiden käsittelymallit
+## 6. Virheenkäsittelymallit
 
-Johdonmukainen virheiden käsittely parantaa virheiden jäljitystä ja käyttäjäkokemusta.
+Johdonmukainen virheenkäsittely parantaa virheenkorjausta ja käyttökokemusta.
 
 ### MCP-virhekoodit
 
@@ -576,7 +579,7 @@ class InternalError(ToolError):
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Vahvista syöte
+    # Tarkista syöte
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -606,7 +609,7 @@ async def safe_operation(input: str) -> str:
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### Virheiden käsittely TypeScriptissä
+### Virheenkäsittely TypeScriptissä
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -660,12 +663,12 @@ Nämä ominaisuudet on merkitty spesifikaatiossa kokeellisiksi:
 ### Tehtävät (pitkäkestoiset operaatiot)
 
 ```python
-# Tehtävät mahdollistavat pitkään käynnissä olevien operaatioiden seurannan tilan avulla
+# Tehtävät mahdollistavat pitkien operaatioiden seurannan tilan kanssa
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Raportoi tehtävän aloitus
+    # Ilmoita tehtävän aloitus
     await ctx.report_status("running", "Initializing training...")
     
     # Koulutussilmukka
@@ -685,7 +688,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
 ### Työkalujen annotaatiot
 
 ```python
-# Annotaatiot tarjoavat metatietoa työkalun toiminnasta
+# Annotaatiot tarjoavat metatietoa työkalun käyttäytymisestä
 @app.tool(
     annotations={
         "destructive": False,      # Ei muuta dataa
@@ -704,21 +707,21 @@ async def safe_query(query: str) -> str:
 ## Mitä seuraavaksi
 
 - [Moduuli 8 - Parhaat käytännöt](../../08-BestPractices/README.md)
-- [5.14 - Kontextisuunnittelu](../mcp-contextengineering/README.md)
-- [MCP-spesifikaation muutokset](https://spec.modelcontextprotocol.io/)
+- [5.14 - Kontekstisuunnittelu](../mcp-contextengineering/README.md)
+- [MCP Spesifikaation muutokset](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Lisäresurssit
 
-- [MCP-spesifikaatio 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 Virhekoodit](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK Esimerkit](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [TypeScript SDK Esimerkit](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [MCP spesifikaatio 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 virhekoodit](https://www.jsonrpc.org/specification#error_object)
+- [Python SDK esimerkit](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [TypeScript SDK esimerkit](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Vastuuvapauslauseke**:
-Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, huomioithan, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja omalla kielellään tulee pitää ensisijaisena lähteenä. Kriittisissä tiedoissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai virhetulkinnoista.
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

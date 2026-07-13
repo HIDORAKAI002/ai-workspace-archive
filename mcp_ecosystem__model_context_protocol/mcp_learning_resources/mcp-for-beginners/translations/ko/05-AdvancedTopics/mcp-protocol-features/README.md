@@ -2,20 +2,22 @@
 
 이 가이드는 기본 도구 및 리소스 처리 이상의 고급 MCP 프로토콜 기능을 탐구합니다. 이러한 기능을 이해하면 보다 견고하고 사용자 친화적이며 생산 준비가 된 MCP 서버를 구축하는 데 도움이 됩니다.
 
+> **앞을 내다보며:** `2026-07-28` 릴리스 후보는 로깅 원시 기능을 폐기합니다(stdio의 경우 `stderr` 사용, 구조화된 관찰 가능성에는 OpenTelemetry 권장), 아래 서버 라이프사이클 이벤트에서 참조하는 `initialize`/세션 모델을 제거하며, 실험적 작업 기능을 새로운 `tasks/get`/`tasks/update`/`tasks/cancel` 라이프사이클이 포함된 전용 작업 확장으로 이동합니다. 자세한 내용은 [MCP 변경 사항: 2026-07-28 릴리스 후보](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)를 참조하세요.
+
 ## 다루는 기능
 
-1. **진행 알림** - 장시간 실행되는 작업의 진행 상황 보고
-2. **요청 취소** - 클라이언트가 진행 중인 요청을 취소할 수 있도록 허용
-3. **리소스 템플릿** - 매개변수가 있는 동적 리소스 URI
-4. **서버 라이프사이클 이벤트** - 적절한 초기화 및 종료
+1. **진행 상황 알림** - 장기간 실행 작업의 진행 상황 보고
+2. **요청 취소** - 클라이언트가 진행 중인 요청을 취소할 수 있음
+3. **리소스 템플릿** - 매개변수로 동적 리소스 URI 생성
+4. **서버 라이프사이클 이벤트** - 적절한 초기화 및 종료 처리
 5. **로깅 제어** - 서버 측 로깅 구성
 6. **오류 처리 패턴** - 일관된 오류 응답
 
 ---
 
-## 1. 진행 알림
+## 1. 진행 상황 알림
 
-시간이 걸리는 작업(데이터 처리, 파일 다운로드, API 호출 등)의 경우, 진행 알림은 사용자가 상황을 알 수 있도록 도와줍니다.
+시간이 걸리는 작업(데이터 처리, 파일 다운로드, API 호출)에 대해 진행 상황 알림이 사용자를 계속 정보를 제공합니다.
 
 ### 작동 방식
 
@@ -24,13 +26,14 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (긴 작업)
+    Client->>Server: tools/call (장기 작업)
     Server-->>Client: 알림: 진행률 10%
     Server-->>Client: 알림: 진행률 50%
     Server-->>Client: 알림: 진행률 90%
     Server->>Client: 결과 (완료)
 ```
-### Python 구현
+
+### 파이썬 구현
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -53,7 +56,7 @@ async def process_large_file(file_path: str, ctx) -> str:
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # 진행 상황 알림 보내기
+            # 진행 알림 전송
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # 각 항목 후 진행 상황 보고하기
+        # 각 항목 처리 후 진행 상황 보고
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### TypeScript 구현
+### 타입스크립트 구현
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // 진행 알림 보내기
+      // 진행 알림 전송
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### 클라이언트 처리 (Python)
+### 클라이언트 처리 (파이썬)
 
 ```python
 async def handle_progress(notification):
@@ -134,7 +137,7 @@ async def handle_progress(notification):
 # 핸들러 등록
 session.on_notification("notifications/progress", handle_progress)
 
-# 도구 호출 (진행 상황 업데이트는 핸들러를 통해 도착합니다)
+# 도구 호출 (진행 상황 업데이트는 핸들러를 통해 수신됩니다)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
@@ -142,9 +145,9 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. 요청 취소
 
-더 이상 필요하지 않거나 너무 오래 걸리는 요청을 클라이언트가 취소할 수 있도록 허용합니다.
+클라이언트가 더 이상 필요 없거나 시간이 너무 오래 걸리는 요청을 취소할 수 있도록 허용합니다.
 
-### Python 구현
+### 파이썬 구현
 
 ```python
 from mcp.server import Server
@@ -161,7 +164,7 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # 여러 페이지를 검색합니다
-            # 취소 요청이 있었는지 확인합니다
+            # 취소 요청이 있는지 확인합니다
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. 리소스 템플릿
 
-리소스 템플릿은 매개변수를 사용한 동적 URI 구성이 가능하며, API 및 데이터베이스에 유용합니다.
+리소스 템플릿은 매개변수를 사용하여 동적으로 URI를 구성할 수 있게 해주며, API와 데이터베이스에 유용합니다.
 
 ### 템플릿 정의
 
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### TypeScript 구현
+### 타입스크립트 구현
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // GitHub 이슈 URI 파싱하기
+  // GitHub 이슈 URI를 파싱합니다
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -364,9 +367,9 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. 서버 라이프사이클 이벤트
 
-적절한 초기화 및 종료 처리는 리소스 관리를 깨끗하게 유지합니다.
+적절한 초기화 및 종료 처리는 리소스 관리를 깨끗하게 보장합니다.
 
-### Python 라이프사이클 관리
+### 파이썬 라이프사이클 관리
 
 ```python
 from mcp.server import Server
@@ -389,7 +392,7 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # 서버가 여기서 실행됩니다
+    yield  # 서버가 여기에서 실행됩니다
     
     # 종료
     print("🛑 Server shutting down...")
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript 라이프사이클
+### 타입스크립트 라이프사이클
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// 정상 종료와 함께 사용하기
+// 우아한 종료와 함께 사용하기
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP 레벨을 Python 로깅 레벨에 매핑하기
+# MCP 레벨을 파이썬 로깅 레벨에 매핑합니다
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -516,7 +519,7 @@ async def debug_operation(data: str) -> str:
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # 클라이언트에게 로그 알림 전송
+    # 클라이언트에 로그 알림 전송
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -537,7 +540,7 @@ async def complex_operation(input: str, ctx) -> str:
 
 ## 6. 오류 처리 패턴
 
-일관된 오류 처리는 디버깅과 사용자 경험을 개선합니다.
+일관된 오류 처리는 디버깅과 사용자 경험을 향상시킵니다.
 
 ### MCP 오류 코드
 
@@ -576,7 +579,7 @@ class InternalError(ToolError):
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # 입력 값 유효성 검사
+    # 입력 유효성 검사
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -606,7 +609,7 @@ async def safe_operation(input: str) -> str:
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### TypeScript의 오류 처리
+### 타입스크립트 오류 처리
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // 이미 MCP 오류입니다
+      throw error;  // 이미 MCP 오류
     }
     
     // 다른 오류 변환
@@ -655,12 +658,12 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## 실험적 기능 (MCP 2025-11-25)
 
-이러한 기능은 명세서에서 실험적 기능으로 표시됩니다:
+이 기능들은 사양에서 실험적인 것으로 표시됩니다:
 
-### 작업 (장시간 실행 작업)
+### 작업(장기간 실행 작업)
 
 ```python
-# 작업은 상태가 있는 장기 실행 작업을 추적할 수 있게 해줍니다
+# 작업은 상태를 가진 장기 실행 작업을 추적할 수 있게 합니다
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -690,8 +693,8 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     annotations={
         "destructive": False,      # 데이터를 수정하지 않습니다
         "idempotent": True,        # 재시도해도 안전합니다
-        "timeout_seconds": 30,     # 예상 최대 소요 시간
-        "requires_approval": False # 사용자 승인 불필요
+        "timeout_seconds": 30,     # 예상 최대 기간
+        "requires_approval": False # 사용자 승인이 필요 없습니다
     }
 )
 async def safe_query(query: str) -> str:
@@ -705,20 +708,20 @@ async def safe_query(query: str) -> str:
 
 - [모듈 8 - 모범 사례](../../08-BestPractices/README.md)
 - [5.14 - 컨텍스트 엔지니어링](../mcp-contextengineering/README.md)
-- [MCP 명세 변경 로그](https://spec.modelcontextprotocol.io/)
+- [MCP 사양 변경 로그](https://spec.modelcontextprotocol.io/)
 
 ---
 
-## 추가 자료
+## 추가 리소스
 
-- [MCP 명세 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP 사양 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [JSON-RPC 2.0 오류 코드](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK 예제](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [TypeScript SDK 예제](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [파이썬 SDK 예제](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [타입스크립트 SDK 예제](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**면책 조항**:  
-이 문서는 AI 번역 서비스 [Co-op Translator](https://github.com/Azure/co-op-translator)를 사용하여 번역되었습니다. 정확성을 위해 노력하고 있으나, 자동 번역에는 오류나 부정확성이 있을 수 있음을 양지해 주시기 바랍니다. 원문은 해당 언어의 원본 문서가 권위 있는 출처로 간주되어야 합니다. 중요한 정보의 경우 전문 인간 번역을 권장합니다. 본 번역 사용으로 인한 오해나 잘못된 해석에 대해 당사는 책임지지 않습니다.
+**면책 조항**:
+이 문서는 AI 번역 서비스 [Co-op Translator](https://github.com/Azure/co-op-translator)를 사용하여 번역되었습니다. 정확성을 기하기 위해 노력하고 있으나, 자동 번역은 오류나 부정확한 부분이 있을 수 있음을 유의하시기 바랍니다. 원본 문서의 원어본이 권위 있는 자료로 간주되어야 합니다. 중요한 정보의 경우, 전문가의 인간 번역을 권장합니다. 이 번역 사용으로 인해 발생하는 오해나 잘못된 해석에 대해 당사는 책임을 지지 않습니다.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

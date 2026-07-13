@@ -1,36 +1,39 @@
-# การเจาะลึกคุณสมบัติของโปรโตคอล MCP
+# การเจาะลึกคุณลักษณะของโปรโตคอล MCP
 
-คู่มือนี้สำรวจคุณสมบัติขั้นสูงของโปรโตคอล MCP ที่เกินกว่าการจัดการเครื่องมือและทรัพยากรพื้นฐาน การเข้าใจคุณสมบัติเหล่านี้ช่วยให้คุณสร้างเซิร์ฟเวอร์ MCP ที่แข็งแกร่ง ใช้งานง่าย และพร้อมสำหรับการใช้งานในระดับโปรดักชันมากขึ้น
+คู่มือนี้สำรวจคุณลักษณะขั้นสูงของโปรโตคอล MCP ที่เกินกว่าการจัดการเครื่องมือและทรัพยากรพื้นฐาน การทำความเข้าใจคุณลักษณะเหล่านี้ช่วยให้คุณสร้างเซิร์ฟเวอร์ MCP ที่มั่นคง เป็นมิตรกับผู้ใช้ และพร้อมสำหรับการใช้งานจริง
 
-## คุณสมบัติที่ครอบคลุม
+> **มองไปข้างหน้า:** release candidate `2026-07-28` จะเลิกใช้ Primitive การบันทึก (favoring `stderr` สำหรับ stdio และ OpenTelemetry สำหรับความสามารถในการสังเกตเชิงโครงสร้าง), ลบโมเดล `initialize`/session ที่อ้างอิงใน Server Lifecycle Events ด้านล่าง และย้ายฟีเจอร์ทดลอง Tasks ไปยังส่วนขยาย Tasks ที่เฉพาะเจาะจงพร้อมวงจรชีวิตใหม่ `tasks/get`/`tasks/update`/`tasks/cancel` ดูเพิ่มเติมที่ [อะไรกำลังเปลี่ยนใน MCP: Release Candidate 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)
 
-1. **การแจ้งเตือนความคืบหน้า** - รายงานความคืบหน้าสำหรับการดำเนินการที่ใช้เวลานาน  
-2. **การยกเลิกคำขอ** - อนุญาตให้ลูกค้ายกเลิกคำขอที่กำลังดำเนินการ  
-3. **แม่แบบทรัพยากร** - URI ทรัพยากรแบบไดนามิกพร้อมพารามิเตอร์  
-4. **เหตุการณ์วงจรชีวิตเซิร์ฟเวอร์** - การเริ่มต้นและปิดเซิร์ฟเวอร์อย่างถูกต้อง  
-5. **การควบคุมการบันทึก** - การกำหนดค่าการบันทึกฝั่งเซิร์ฟเวอร์  
-6. **รูปแบบการจัดการข้อผิดพลาด** - การตอบกลับข้อผิดพลาดที่สอดคล้องกัน  
+## คุณลักษณะที่ครอบคลุม
+
+1. **การแจ้งความคืบหน้า** - รายงานความคืบหน้าสำหรับปฏิบัติการที่ใช้เวลานาน
+2. **การยกเลิกคำขอ** - อนุญาตให้ไคลเอนต์ยกเลิกคำขอที่กำลังดำเนินการอยู่
+3. **แม่แบบทรัพยากร** - URI ทรัพยากรแบบไดนามิกพร้อมพารามิเตอร์
+4. **เหตุการณ์วงจรชีวิตเซิร์ฟเวอร์** - การเริ่มต้นและปิดระบบอย่างเหมาะสม
+5. **การควบคุมการบันทึก** - การกำหนดค่าบันทึกฝั่งเซิร์ฟเวอร์
+6. **รูปแบบการจัดการข้อผิดพลาด** - การตอบสนองข้อผิดพลาดที่สม่ำเสมอ
 
 ---
 
-## 1. การแจ้งเตือนความคืบหน้า
+## 1. การแจ้งความคืบหน้า
 
-สำหรับการดำเนินการที่ใช้เวลา (การประมวลผลข้อมูล การดาวน์โหลดไฟล์ การเรียกใช้ API) การแจ้งเตือนความคืบหน้าจะช่วยให้ผู้ใช้รับทราบสถานะ
+สำหรับปฏิบัติการที่ใช้เวลานาน (การประมวลผลข้อมูล, การดาวน์โหลดไฟล์, การเรียก API), การแจ้งความคืบหน้าจะช่วยให้ผู้ใช้ได้รับข้อมูล
 
-### วิธีทำงาน
+### วิธีการทำงาน
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (การดำเนินการนาน)
+    Client->>Server: เครื่องมือ/โทร (การดำเนินการนาน)
     Server-->>Client: การแจ้งเตือน: ความคืบหน้า 10%
     Server-->>Client: การแจ้งเตือน: ความคืบหน้า 50%
     Server-->>Client: การแจ้งเตือน: ความคืบหน้า 90%
     Server->>Client: ผลลัพธ์ (เสร็จสมบูรณ์)
 ```
-### การใช้งานใน Python
+
+### การใช้งานในภาษา Python
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -49,7 +52,7 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # ประมวลผลชิ้นส่วน
+            # ประมวลผลส่วนข้อมูล
             await process_chunk(chunk)
             processed += len(chunk)
             
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### การใช้งานใน TypeScript
+### การใช้งานในภาษา TypeScript
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### การจัดการฝั่งลูกค้า (Python)
+### การจัดการฝั่งไคลเอนต์ (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,10 +134,10 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# ลงทะเบียนตัวจัดการ
+# ลงทะเบียนผู้จัดการ
 session.on_notification("notifications/progress", handle_progress)
 
-# เรียกใช้เครื่องมือ (การอัปเดตความคืบหน้าจะมาทางตัวจัดการ)
+# เรียกใช้เครื่องมือ (การอัปเดตความคืบหน้าจะมาถึงผ่านผู้จัดการ)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
@@ -142,9 +145,9 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. การยกเลิกคำขอ
 
-อนุญาตให้ลูกค้ายกเลิกคำขอที่ไม่จำเป็นต้องใช้แล้วหรือใช้เวลานานเกินไป
+อนุญาตให้ไคลเอนต์ยกเลิกคำขอที่ไม่จำเป็นหรือใช้เวลานานเกินไป
 
-### การใช้งานใน Python
+### การใช้งานในภาษา Python
 
 ```python
 from mcp.server import Server
@@ -169,7 +172,7 @@ async def long_running_search(query: str, ctx) -> str:
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # หน่วงเวลาสั้น ๆ เพื่อให้ตรวจสอบการยกเลิกได้
+            # หน่วงเวลาสั้นๆ เพื่อให้ตรวจสอบการยกเลิกได้
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # หมดเวลาปกติ ดำเนินการต่อ
 ```
 
-### การยกเลิกฝั่งลูกค้า
+### การยกเลิกฝั่งไคลเอนต์
 
 ```python
 import asyncio
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. แม่แบบทรัพยากร
 
-แม่แบบทรัพยากรช่วยให้การสร้าง URI แบบไดนามิกด้วยพารามิเตอร์ ซึ่งมีประโยชน์สำหรับ API และฐานข้อมูล
+แม่แบบทรัพยากรช่วยให้การสร้าง URI แบบไดนามิกโดยใช้พารามิเตอร์ ซึ่งเหมาะสำหรับ API และฐานข้อมูล
 
 ### การกำหนดแม่แบบ
 
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### การใช้งานใน TypeScript
+### การใช้งานในภาษา TypeScript
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // แยกวิเคราะห์ URI ของปัญหา GitHub
+  // วิเคราะห์ URI ของปัญหาใน GitHub
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. เหตุการณ์วงจรชีวิตเซิร์ฟเวอร์
 
-การจัดการการเริ่มต้นและปิดเซิร์ฟเวอร์อย่างเหมาะสมช่วยให้การจัดการทรัพยากรเป็นระเบียบ
+การจัดการการเริ่มต้นและการปิดระบบอย่างเหมาะสมช่วยให้การจัดการทรัพยากรสะอาด
 
 ### การจัดการวงจรชีวิตใน Python
 
@@ -391,7 +394,7 @@ async def lifespan(server: Server):
     
     yield  # เซิร์ฟเวอร์ทำงานที่นี่
     
-    # ปิดระบบ
+    # การปิดระบบ
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// การใช้งานพร้อมการปิดอย่างนุ่มนวล
+// การใช้งานกับการปิดระบบอย่างนุ่มนวล
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,7 +470,7 @@ await server.start();
 
 ## 5. การควบคุมการบันทึก
 
-MCP รองรับระดับการบันทึกทางฝั่งเซิร์ฟเวอร์ที่ลูกค้าสามารถควบคุมได้
+MCP รองรับระดับการบันทึกฝั่งเซิร์ฟเวอร์ที่ไคลเอนต์สามารถควบคุมได้
 
 ### การใช้งานระดับการบันทึก
 
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# แมประดับ MCP ไปยังระดับการล็อกของ Python
+# แปลงระดับ MCP เป็นระดับการบันทึกของ Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,14 +512,14 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### ส่งข้อความบันทึกไปยังลูกค้า
+### การส่งข้อความล็อกไปยังไคลเอนต์
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # ส่งการแจ้งเตือนบันทึกไปยังลูกค้า
+    # ส่งการแจ้งเตือนบันทึกไปยังไคลเอนต์
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -537,9 +540,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ## 6. รูปแบบการจัดการข้อผิดพลาด
 
-การจัดการข้อผิดพลาดที่สอดคล้องกันช่วยปรับปรุงการดีบักและประสบการณ์ผู้ใช้
+การจัดการข้อผิดพลาดอย่างสม่ำเสมอช่วยปรับปรุงการดีบักและประสบการณ์ผู้ใช้
 
-### รหัสข้อผิดพลาดของ MCP
+### รหัสข้อผิดพลาด MCP
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,7 +572,7 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### การตอบกลับข้อผิดพลาดแบบมีโครงสร้าง
+### การตอบสนองข้อผิดพลาดแบบมีโครงสร้าง
 
 ```python
 @app.tool()
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // เป็นข้อผิดพลาดของ MCP อยู่แล้ว
+      throw error;  // เป็นข้อผิดพลาด MCP อยู่แล้ว
     }
     
     // แปลงข้อผิดพลาดอื่นๆ
@@ -641,7 +644,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
     
-    // ข้อผิดพลาดที่ไม่รู้จัก
+    // ข้อผิดพลาดที่ไม่ทราบ
     console.error("Unexpected error:", error);
     throw new McpError(
       ErrorCode.InternalError,
@@ -653,14 +656,14 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## คุณสมบัติทดลอง (MCP 2025-11-25)
+## คุณลักษณะทดลอง (MCP 2025-11-25)
 
-คุณสมบัติเหล่านี้ถูกกำหนดให้เป็นคุณสมบัติทดลองในสเปค
+คุณลักษณะเหล่านี้ถูกทำเครื่องหมายว่าเป็นการทดลองในสเปค
 
-### งาน (การดำเนินการที่ใช้เวลานาน)
+### Tasks (ปฏิบัติการระยะยาว)
 
 ```python
-# งานช่วยให้ติดตามการทำงานระยะยาวพร้อมสถานะได้
+# งานช่วยให้ติดตามการดำเนินการที่ใช้เวลานานพร้อมสถานะ
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -668,7 +671,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     # รายงานงานเริ่มต้น
     await ctx.report_status("running", "Initializing training...")
     
-    # วนลูปการฝึกอบรม
+    # วนรอบการฝึกอบรม
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -682,14 +685,14 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### การคอมเมนต์เครื่องมือ
+### การใส่คำอธิบายเครื่องมือ
 
 ```python
 # คำอธิบายประกอบให้ข้อมูลเมตาเกี่ยวกับพฤติกรรมของเครื่องมือ
 @app.tool(
     annotations={
         "destructive": False,      # ไม่แก้ไขข้อมูล
-        "idempotent": True,        # ปลอดภัยต่อการลองใหม่
+        "idempotent": True,        # ปลอดภัยสำหรับการลองใหม่
         "timeout_seconds": 30,     # ระยะเวลาสูงสุดที่คาดไว้
         "requires_approval": False # ไม่ต้องการการอนุมัติจากผู้ใช้
     }
@@ -703,22 +706,22 @@ async def safe_query(query: str) -> str:
 
 ## ต่อไปคืออะไร
 
-- [โมดูล 8 - แนวทางปฏิบัติที่ดีที่สุด](../../08-BestPractices/README.md)  
-- [5.14 - วิศวกรรมบริบท](../mcp-contextengineering/README.md)  
-- [บันทึกการเปลี่ยนแปลงสเปค MCP](https://spec.modelcontextprotocol.io/)  
+- [โมดูล 8 - แนวทางปฏิบัติที่ดีที่สุด](../../08-BestPractices/README.md)
+- [5.14 - วิศวกรรมบริบท](../mcp-contextengineering/README.md)
+- [บันทึกการเปลี่ยนแปลงสเปค MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## แหล่งข้อมูลเพิ่มเติม
 
-- [สเปค MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [รหัสข้อผิดพลาด JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [ตัวอย่าง Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [สเปค MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [รหัสข้อผิดพลาด JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [ตัวอย่าง Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [ตัวอย่าง TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ข้อจำกัดความรับผิดชอบ**:  
-เอกสารนี้ได้รับการแปลโดยใช้บริการแปลภาษาด้วย AI [Co-op Translator](https://github.com/Azure/co-op-translator) แม้เราจะพยายามให้ความถูกต้องสูงสุด แต่โปรดทราบว่าการแปลอัตโนมัติอาจมีข้อผิดพลาดหรือความไม่ถูกต้อง เอกสารต้นฉบับในภาษาดั้งเดิมควรถูกพิจารณาเป็นแหล่งข้อมูลที่เชื่อถือได้ สำหรับข้อมูลที่สำคัญ ควรใช้บริการแปลโดยผู้เชี่ยวชาญมนุษย์ เราไม่รับผิดชอบต่อความเข้าใจผิดหรือการตีความที่ผิดพลาดใด ๆ ที่เกิดขึ้นจากการใช้การแปลนี้
+**ปฏิเสธความรับผิดชอบ**:
+เอกสารนี้ได้รับการแปลโดยใช้บริการแปลภาษา AI [Co-op Translator](https://github.com/Azure/co-op-translator) ขณะที่เราพยายามให้ความถูกต้อง โปรดทราบว่าการแปลโดยอัตโนมัติอาจมีข้อผิดพลาดหรือความไม่ถูกต้อง เอกสารต้นฉบับในภาษาต้นทางควรถูกพิจารณาเป็นแหล่งข้อมูลที่เชื่อถือได้ สำหรับข้อมูลที่สำคัญ แนะนำให้ใช้การแปลโดยมนุษย์มืออาชีพ เราไม่รับผิดชอบต่อความเข้าใจผิดหรือการตีความที่ผิดพลาดที่เกิดขึ้นจากการใช้การแปลนี้
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

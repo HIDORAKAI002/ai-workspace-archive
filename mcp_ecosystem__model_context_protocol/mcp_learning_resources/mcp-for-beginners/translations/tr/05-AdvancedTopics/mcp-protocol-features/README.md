@@ -1,21 +1,23 @@
 # MCP Protokol Özellikleri Derinlemesine İnceleme
 
-Bu rehber, temel araç ve kaynak yönetiminin ötesine geçen gelişmiş MCP protokol özelliklerini inceler. Bu özellikleri anlamak, daha sağlam, kullanıcı dostu ve üretim hazır MCP sunucuları oluşturmanıza yardımcı olur.
+Bu rehber, temel araç ve kaynak yönetiminin ötesine geçen gelişmiş MCP protokol özelliklerini inceler. Bu özellikleri anlamak, daha sağlam, kullanıcı dostu ve üretime hazır MCP sunucuları oluşturmanıza yardımcı olur.
+
+> **İleriye bakış:** `2026-07-28` sürüm adayında Logging primi sona erdiriliyor (stdio için `stderr` ve yapılandırılmış gözlemlenebilirlik için OpenTelemetry tercih ediliyor), aşağıda belirtilen Sunucu Yaşam Döngüsü Olaylarında referans verilen `initialize`/oturum modeli kaldırılıyor ve deneysel Görevler özelliği, yeni `tasks/get`/`tasks/update`/`tasks/cancel` yaşam döngüsüyle ayrı bir Görevler uzantısına taşınıyor. Detaylar için bkz. [MCP'deki Değişiklikler: 2026-07-28 Sürüm Adayı](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Kapsanan Özellikler
 
-1. **İlerleme Bildirimleri** - Uzun süren işlemler için ilerlemeyi bildirin
-2. **İstek İptali** - İstemcilerin devam eden istekleri iptal etmesine izin verin
-3. **Kaynak Şablonları** - Parametreli dinamik kaynak URI'ları
-4. **Sunucu Yaşam Döngüsü Olayları** - Doğru başlatma ve kapatma
-5. **Günlük Kaydı Kontrolü** - Sunucu tarafı günlük yapılandırması
-6. **Hata İşleme Kalıpları** - Tutarlı hata yanıtları
+1. **İlerleme Bildirimleri** - Uzun süren işlemler için ilerlemeyi raporlama  
+2. **İstek İptali** - İstemcilerin devam eden istekleri iptal etmesine izin verme  
+3. **Kaynak Şablonları** - Parametrelerle dinamik kaynak URI'ları  
+4. **Sunucu Yaşam Döngüsü Olayları** - Doğru başlatma ve kapatma  
+5. **Logging Kontrolü** - Sunucu tarafı günlükleme yapılandırması  
+6. **Hata Yönetimi Kalıpları** - Tutarlı hata yanıtları  
 
 ---
 
 ## 1. İlerleme Bildirimleri
 
-Zaman alan işlemler (veri işleme, dosya indirme, API çağrıları) için ilerleme bildirimleri kullanıcıları bilgilendirir.
+Zaman alan işlemler için (veri işleme, dosya indirme, API çağrıları) ilerleme bildirimleri kullanıcıları bilgilendirir.
 
 ### Nasıl Çalışır
 
@@ -30,6 +32,7 @@ sequenceDiagram
     Server-->>Client: bildirim: ilerleme %90
     Server->>Client: sonuç (tamamlandı)
 ```
+  
 ### Python Uygulaması
 
 ```python
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # İlerleme hesaplaması için dosya boyutunu al
+    # İlerleme hesaplaması için dosya boyutunu alın
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Parçayı işle
+            # Parçayı işleyin
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # İlerleme bildirimini gönder
+            # İlerleme bildirimini gönderin
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Her öğeden sonra ilerlemeyi bildir
+        # Her öğeden sonra ilerlemeyi raporlayın
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -89,7 +92,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-
+  
 ### TypeScript Uygulaması
 
 ```typescript
@@ -122,7 +125,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-
+  
 ### İstemci İşleme (Python)
 
 ```python
@@ -134,15 +137,15 @@ async def handle_progress(notification):
 # İşleyici kaydet
 session.on_notification("notifications/progress", handle_progress)
 
-# Aracı çağır (ilerleme güncellemeleri işleyici aracılığıyla gelecektir)
+# Aracı çağır (ilerleme güncellemeleri işleyici aracılığıyla gelecek)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-
+  
 ---
 
 ## 2. İstek İptali
 
-İstemcilerin artık gerekmeyen veya çok uzun süren istekleri iptal etmelerine izin verin.
+İstemcilerin artık gerek duyulmayan veya çok uzun süren istekleri iptal etmesine izin verin.
 
 ### Python Uygulaması
 
@@ -160,8 +163,8 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Birçok sayfada ara
-            # İptal isteğinin olup olmadığını kontrol et
+        for page in range(100):  # Birçok sayfada arama yap
+            # İptal isteği olup olmadığını kontrol et
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -197,8 +200,8 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-
-### İptal Bağlamının Uygulanması
+  
+### İptal Bağlamı Uygulama
 
 ```python
 class CancellableContext:
@@ -233,8 +236,8 @@ class CancellableContext:
         except asyncio.TimeoutError:
             pass  # Normal zaman aşımı, devam et
 ```
-
-### İstemci Tarafı İptal
+  
+### İstemci Tarafı İptali
 
 ```python
 import asyncio
@@ -257,14 +260,14 @@ async def search_with_timeout(session, query, timeout=30):
         })
         return "Search timed out"
 ```
-
+  
 ---
 
 ## 3. Kaynak Şablonları
 
-Kaynak şablonları, API ve veritabanları için yararlı parametrelerle dinamik URI yapımına izin verir.
+Kaynak şablonları, parametrelerle dinamik URI oluşturmayı sağlar, API'ler ve veritabanları için kullanışlıdır.
 
-### Şablonların Tanımlanması
+### Şablonları Tanımlama
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Parametreleri çıkarmak için URI'yi ayrıştır
+    # URI'yi çözümleyerek parametreleri çıkarır
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -316,7 +319,7 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-
+  
 ### TypeScript Uygulaması
 
 ```typescript
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // GitHub sorun URI'sini ayrıştırın
+  // GitHub konu URI'sini ayrıştır
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -359,12 +362,12 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-
+  
 ---
 
 ## 4. Sunucu Yaşam Döngüsü Olayları
 
-Doğru başlatma ve kapatma işlemleri, kaynakların düzgün yönetilmesini sağlar.
+Doğru başlatma ve kapatma işlemleri, temiz kaynak yönetimini sağlar.
 
 ### Python Yaşam Döngüsü Yönetimi
 
@@ -389,9 +392,9 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # Sunucu burada çalışır
+    yield  # Sunucu burada çalışıyor
     
-    # Kapanış
+    # Kapatma
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -405,7 +408,7 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-
+  
 ### TypeScript Yaşam Döngüsü
 
 ```typescript
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // this.dbConnection öğesini güvenli kullan
+      // this.dbConnection öğesini güvenli şekilde kullan
       // ...
     });
   }
 }
 
-// Nazik kapatma ile kullanım
+// Nazik kapanış ile kullanım
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -462,14 +465,14 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-
+  
 ---
 
-## 5. Günlük Kaydı Kontrolü
+## 5. Logging Kontrolü
 
-MCP, istemcilerin kontrol edebileceği sunucu tarafı günlük kayıt düzeylerini destekler.
+MCP, istemcilerin kontrol edebileceği sunucu tarafı günlükleme seviyelerini destekler.
 
-### Günlük Düzeylerinin Uygulanması
+### Günlükleme Seviyelerini Uygulama
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP seviyelerini Python logging seviyelerine eşleştir
+# MCP seviyelerini Python günlükleme seviyelerine eşleştir
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,7 +511,7 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-
+  
 ### İstemciye Günlük Mesajları Gönderme
 
 ```python
@@ -516,13 +519,13 @@ async def debug_operation(data: str) -> str:
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Günlük bildirimini istemciye gönder
+    # İstemciye günlük bildirim gönder
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # İş yap...
+    # Çalışma yap...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -532,12 +535,12 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-
+  
 ---
 
-## 6. Hata İşleme Kalıpları
+## 6. Hata Yönetimi Kalıpları
 
-Tutarlı hata işleme, hata ayıklamayı ve kullanıcı deneyimini iyileştirir.
+Tutarlı hata yönetimi hata ayıklamayı ve kullanıcı deneyimini iyileştirir.
 
 ### MCP Hata Kodları
 
@@ -568,7 +571,7 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-
+  
 ### Yapılandırılmış Hata Yanıtları
 
 ```python
@@ -605,8 +608,8 @@ async def safe_operation(input: str) -> str:
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-
-### TypeScript'te Hata İşleme
+  
+### TypeScript'te Hata Yönetimi
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -650,22 +653,22 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-
+  
 ---
 
 ## Deneysel Özellikler (MCP 2025-11-25)
 
 Bu özellikler spesifikasyonda deneysel olarak işaretlenmiştir:
 
-### Görevler (Uzun Süreçli İşlemler)
+### Görevler (Uzun Süreli İşlemler)
 
 ```python
-# Görevler, durumu ile uzun süre çalışan işlemleri takip etmeyi sağlar
+# Görevler, durumu takip ederek uzun süren işlemlerin takibini sağlar
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Görev başlatıldı bildirimi
+    # Görev başlatıldı bildir
     await ctx.report_status("running", "Initializing training...")
     
     # Eğitim döngüsü
@@ -681,7 +684,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-
+  
 ### Araç Açıklamaları
 
 ```python
@@ -698,27 +701,27 @@ async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-
+  
 ---
 
 ## Sonraki Adımlar
 
-- [Modül 8 - En İyi Uygulamalar](../../08-BestPractices/README.md)
-- [5.14 - Bağlam Mühendisliği](../mcp-contextengineering/README.md)
-- [MCP Spesifikasyon Değişiklik Günlüğü](https://spec.modelcontextprotocol.io/)
+- [Modül 8 - En İyi Uygulamalar](../../08-BestPractices/README.md)  
+- [5.14 - Bağlam Mühendisliği](../mcp-contextengineering/README.md)  
+- [MCP Spesifikasyon Değişiklik Günlüğü](https://spec.modelcontextprotocol.io/)  
 
 ---
 
 ## Ek Kaynaklar
 
-- [MCP Spesifikasyonu 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 Hata Kodları](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK Örnekleri](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [MCP Spesifikasyonu 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
+- [JSON-RPC 2.0 Hata Kodları](https://www.jsonrpc.org/specification#error_object)  
+- [Python SDK Örnekleri](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
 - [TypeScript SDK Örnekleri](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Feragatname**:  
-Bu belge, AI çeviri servisi [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba gösterilse de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi ana dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilmektedir. Bu çevirinin kullanılmasıyla ortaya çıkabilecek herhangi bir yanlış anlama veya yanlış yorumdan dolayı sorumluluk kabul edilmemektedir.
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

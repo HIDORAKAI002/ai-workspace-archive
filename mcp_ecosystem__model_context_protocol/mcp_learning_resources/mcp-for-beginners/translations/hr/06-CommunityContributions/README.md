@@ -1,92 +1,93 @@
 # Zajednica i doprinosi
 
-[![Kako doprinijeti MCP-u: alati, dokumentacija, kod i više](../../../translated_images/hr/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
+[![Kako doprinijeti MCP-u: Alati, dokumentacija, kod i još mnogo toga](../../../translated_images/hr/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
 
-_(Kliknite na gornju sliku za prikaz video lekcije)_
+_(Kliknite na gornju sliku za pregled video lekcije)_
 
 ## Pregled
 
-Ova lekcija fokusira se na to kako se uključiti u MCP zajednicu, doprinositi MCP ekosustavu i slijediti najbolje prakse za suradnički razvoj. Razumijevanje načina sudjelovanja u open-source MCP projektima ključno je za one koji žele oblikovati budućnost ove tehnologije.
+Ova lekcija fokusira se na to kako se uključiti u MCP zajednicu, doprinositi MCP ekosustavu i slijediti najbolje prakse za suradnički razvoj. Razumijevanje kako sudjelovati u open-source MCP projektima ključno je za one koji žele oblikovati budućnost ove tehnologije.
 
 ## Ciljevi učenja
 
-Na kraju ove lekcije moći ćete:
+Do kraja ove lekcije moći ćete:
 
 - Razumjeti strukturu MCP zajednice i ekosustava
-- Učinkovito sudjelovati u forumima i raspravama MCP zajednice
-- Doprinositi MCP open-source spremištima
-- Kreirati i dijeliti prilagođene MCP alate i poslužitelje
-- Slijediti najbolje prakse za MCP razvoj i suradnju
+- Učinkovito sudjelovati u MCP forumima i diskusijama zajednice
+- Doprinositi MCP open-source repozitorijima
+- Kreirati i dijeliti prilagođene MCP alate i servere
+- Pratiti najbolje prakse za MCP razvoj i suradnju
 - Otkriti resurse i okvire zajednice za MCP razvoj
 
-## MCP Ekosustav Zajednice
+## MCP Zajednički Ekosustav
 
-MCP ekosustav sastoji se od različitih komponenti i sudionika koji zajedno rade na unapređenju protokola.
+MCP ekosustav sastoji se od raznih komponenti i sudionika koji zajedno rade na napretku protokola.
 
-### Ključne komponente zajednice
+### Ključne Komponente Zajednice
 
-1. **Glavni održavatelji protokola**: službena [Model Context Protocol GitHub organizacija](https://github.com/modelcontextprotocol) održava osnovne MCP specifikacije i referentne implementacije
-2. **Razvojni programeri alata**: pojedinci i timovi koji izrađuju MCP alate i poslužitelje
-3. **Pružatelji integracija**: tvrtke koje integriraju MCP u svoje proizvode i usluge
-4. **Krajnji korisnici**: programeri i organizacije koje koriste MCP u svojim aplikacijama
-5. **Suradnici**: članovi zajednice koji doprinose kodom, dokumentacijom ili drugim resursima
+1. **Održavatelji osnovnog protokola**: Službena [Model Context Protocol GitHub organizacija](https://github.com/modelcontextprotocol) održava osnovne MCP specifikacije i referentne implementacije
+2. **Razvojni programeri alata**: Pojedinci i timovi koji stvaraju MCP alate i servere
+3. **Pružatelji integracija**: Tvrtke koje integriraju MCP u svoje proizvode i usluge
+4. **Korisnici**: Programeri i organizacije koje koriste MCP u svojim aplikacijama
+5. **Suradnici**: Članovi zajednice koji doprinose kodom, dokumentacijom ili drugim resursima
 
-### Resursi zajednice
+### Resursi Zajednice
 
 #### Službeni kanali
 
-- [MCP GitHub Organizacija](https://github.com/modelcontextprotocol)
+- [MCP GitHub organizacija](https://github.com/modelcontextprotocol)
 - [MCP Dokumentacija](https://modelcontextprotocol.io/)
 - [MCP Specifikacija](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [GitHub Diskusije](https://github.com/orgs/modelcontextprotocol/discussions)
-- [MCP Primjeri & Repozitorij poslužitelja](https://github.com/modelcontextprotocol/servers)
+- [GitHub diskusije](https://github.com/orgs/modelcontextprotocol/discussions)
+- [MCP Primjeri i repozitorij servera](https://github.com/modelcontextprotocol/servers)
 
-#### Resursi pod upravom zajednice
+#### Resursi koje vodi zajednica
 
 - [MCP Klijenti](https://modelcontextprotocol.io/clients) - Popis klijenata koji podržavaju MCP integracije
-- [Zajednički MCP Poslužitelji](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - Rastući popis MCP poslužitelja razvijenih od strane zajednice
-- [Awesome MCP Poslužitelji](https://github.com/wong2/awesome-mcp-servers) - Kurirani popis MCP poslužitelja
-- [PulseMCP](https://www.pulsemcp.com/) - Čvorište zajednice i newsletter za pronalazak MCP resursa
-- [Discord Poslužitelj](https://discord.gg/jHEGxQu2a5) - Povežite se s MCP programerima
-- Implementacije SDK-a za različite programske jezike
+- [Serveri MCP zajednice](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - Rastući popis servera razvijenih od strane zajednice
+- [Awesome MCP Servers](https://github.com/wong2/awesome-mcp-servers) - Kuriirani popis MCP servera
+- [PulseMCP](https://www.pulsemcp.com/) - Centar zajednice i newsletter za otkrivanje MCP resursa
+- [Remote OpenClaw](https://www.remoteopenclaw.com/) - Besplatni pretraživi direktorij MCP servera, vještina agenata i dodataka
+- [Discord Server](https://discord.gg/jHEGxQu2a5) - Povežite se s MCP developerima
+- SDK implementacije specifične za jezik
 - Blog postovi i tutorijali
 
 ## Doprinos MCP-u
 
 ### Vrste doprinosa
 
-MCP ekosustav pozdravlja različite vrste doprinosa:
+MCP ekosustav prihvaća razne vrste doprinosa:
 
 1. **Doprinosi kodom**:
-   - Unapređenja samog protokola
-   - Ispravci bugova
-   - Implementacije alata i poslužitelja
-   - Klijent/poslužiteljske biblioteke u različitim jezicima
+   - Unapređenja osnovnog protokola
+   - Ispravci grešaka
+   - Implementacije alata i servera
+   - Klijentske/server biblioteke na različitim jezicima
 
 2. **Dokumentacija**:
    - Poboljšanje postojeće dokumentacije
    - Kreiranje tutorijala i vodiča
    - Prevođenje dokumentacije
-   - Kreiranje primjera i uzornih aplikacija
+   - Izrada primjera i uzoraka aplikacija
 
 3. **Podrška zajednici**:
    - Odgovaranje na pitanja na forumima i u diskusijama
    - Testiranje i prijavljivanje problema
-   - Organiziranje događanja zajednice
-   - Mentorstvo novim suradnicima
+   - Organizacija događaja zajednice
+   - Mentorstvo novih suradnika
 
-### Proces doprinosa: Glavni protokol
+### Proces doprinosa: Osnovni protokol
 
-Za doprinos osnovnom MCP protokolu ili službenim implementacijama, slijedite ove principe iz [službenih uputa za doprinos](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
+Za doprinos osnovnom MCP protokolu ili službenim implementacijama slijedite principe iz [službenih uputa za doprinos](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
 
-1. **Jednostavnost i minimalizam**: MCP specifikacija postavlja visoke standarde za dodavanje novih koncepata. Lakše je nešto dodati u specifikaciju nego ukloniti.
+1. **Jednostavnost i minimalizam**: MCP specifikacija održava visoke standarde za dodavanje novih koncepata. Lakše je dodati nešto u specifikaciju nego to ukloniti.
 
-2. **Konkretan pristup**: Promjene specifikacije trebaju se temeljiti na konkretnim problemima implementacije, a ne na spekulativnim idejama.
+2. **Konkretan pristup**: Promjene u specifikaciji trebaju biti temeljene na stvarnim izazovima implementacije, a ne na spekulativnim idejama.
 
 3. **Faze prijedloga**:
-   - Definirati: Istražiti problem, potvrditi da drugi MCP korisnici imaju isti problem
-   - Prototip: Izgraditi primjer rješenja i pokazati njegovu praktičnu primjenu
-   - Pisanje: Na temelju prototipa napisati prijedlog specifikacije
+   - Definiraj: Istraži problematiku, potvrdi da drugi MCP korisnici imaju sličan problem
+   - Prototip: Izradi primjer rješenja i demonstriraj njegovu praktičnu primjenu
+   - Napiši: Na temelju prototipa napiši prijedlog specifikacije
 
 ### Postavljanje razvojne okoline
 
@@ -110,7 +111,7 @@ npm run format
 npm run serve:docs
 ```
 
-### Primjer: Doprinos ispravkom buga
+### Primjer: Doprinos ispravkom greške
 
 ```javascript
 // Izvorni kod s greškom u typescript-sdk
@@ -119,7 +120,7 @@ export function validateResource(resource: unknown): resource is MCPResource {
     return false;
   }
   
-  // Greška: Nedostatak provjere svojstava
+  // Greška: Nedostaje provjera svojstava
   // Trenutna implementacija:
   const hasName = 'name' in resource;
   const hasSchema = 'schema' in resource;
@@ -127,7 +128,7 @@ export function validateResource(resource: unknown): resource is MCPResource {
   return hasName && hasSchema;
 }
 
-// Popravljena implementacija u doprinose
+// Ispravljena implementacija u doprinosu
 export function validateResource(resource: unknown): resource is MCPResource {
   if (!resource || typeof resource !== 'object') {
     return false;
@@ -142,7 +143,7 @@ export function validateResource(resource: unknown): resource is MCPResource {
 }
 ```
 
-### Primjer: Doprinos novim alatom u standardnoj biblioteci
+### Primjer: Doprinos novim alatom standardne biblioteke
 
 ```python
 # Primjer doprinosa: Alat za obradu CSV podataka za MCP standardnu biblioteku
@@ -211,10 +212,10 @@ class CsvProcessingTool(Tool):
             operation = request.parameters.get("operation")
             output_format = request.parameters.get("outputFormat", "json")
             
-            # Dohvati CSV podatke izravno iz podataka ili URL-a
+            # Dohvati CSV podatke iz izravnih podataka ili URL-a
             df = await self._get_dataframe(request)
             
-            # Obradi na temelju zatražene operacije
+            # Obradi na temelju tražene operacije
             result = {}
             
             if operation == "summary":
@@ -275,7 +276,7 @@ class CsvProcessingTool(Tool):
     
     def _transform_data(self, df: pd.DataFrame, params: Dict[str, Any]) -> Dict[str, Any]:
         """Transforms the data based on parameters"""
-        # Implementacija bi uključivala različite transformacije
+        # Implementacija bi uključivala razne transformacije
         return {
             "status": "success",
             "message": "Transformation applied"
@@ -306,48 +307,48 @@ class CsvProcessingTool(Tool):
 
 Za uspješan doprinos MCP projektima:
 
-1. **Počnite s malim**: Započnite s dokumentacijom, ispravcima bugova ili malim poboljšanjima
-2. **Slijedite vodič za stil**: Pridržavajte se stila kodiranja i konvencija projekta
-3. **Napišite testove**: Uključite jedinicne testove za svoj kod
-4. **Dokumentirajte svoj rad**: Dodajte jasnu dokumentaciju za nove značajke ili promjene
-5. **Pošaljite ciljani PR**: Radite pull requestove fokusirane na jedan problem ili značajku
-6. **Odgovarajte na povratne informacije**: Budite spremni na povratne informacije o vašem doprinosu
+1. **Započni s malim koracima**: Kreni s dokumentacijom, ispravcima grešaka ili malim poboljšanjima
+2. **Pridržavaj se stila**: Slijedi stil kodiranja i konvencije projekta
+3. **Piši testove**: Uključi jedinične testove za svoje doprinose koda
+4. **Dokumentiraj svoj rad**: Dodaj jasnu dokumentaciju za nove značajke ili promjene
+5. **Podnošenje ciljnih PR-ova**: Drži zahtjeve za povlačenje fokusiranim na jednu problematiku ili značajku
+6. **Uključi se u povratne informacije**: Budi odgovoran na povratne informacije o svojim doprinosima
 
-### Primjer tijeka doprinosa
+### Primjer tijeka rada pri doprinosu
 
 ```bash
 # Klonirajte repozitorij
 git clone https://github.com/modelcontextprotocol/typescript-sdk.git
 cd typescript-sdk
 
-# Napravite novu granu za svoj doprinos
+# Kreirajte novu granu za vaš doprinos
 git checkout -b feature/my-contribution
 
-# Napravite svoje izmjene
+# Napravite svoje promjene
 # ...
 
-# Pokrenite testove kako biste osigurali da vaše izmjene ne pokvare postojeću funkcionalnost
+# Pokrenite testove kako biste osigurali da vaše promjene ne narušavaju postojeću funkcionalnost
 npm test
 
 # Potvrdite svoje promjene s opisnom porukom
 git commit -am "Fix validation in resource handler"
 
-# Gurnite svoju granu na svoj fork
+# Gurnite svoju granu na vaš fork
 git push origin feature/my-contribution
 
-# Napravite pull zahtjev sa svoje grane na glavni repozitorij
-# Zatim se uključite u povratne informacije i iterirajte na svom PR-u po potrebi
+# Kreirajte pull request s vaše grane na glavni repozitorij
+# Zatim se uključite u povratne informacije i po potrebi iterirajte svoj PR
 ```
 
-## Kreiranje i dijeljenje MCP poslužitelja
+## Kreiranje i dijeljenje MCP servera
 
-Jedan od najvrijednijih načina doprinosa MCP ekosustavu je kreiranje i dijeljenje prilagođenih MCP poslužitelja. Zajednica je već razvila stotine poslužitelja za razne usluge i slučajeve korištenja.
+Jedan od najvrijednijih načina za doprinos MCP ekosustavu je kreiranje i dijeljenje prilagođenih MCP servera. Zajednica je već razvila stotine servera za razne usluge i slučajeve korištenja.
 
-### Okviri za razvoj MCP poslužitelja
+### Okviri za razvoj MCP servera
 
-Dostupno je nekoliko okvira za pojednostavljenje razvoja MCP poslužitelja:
+Dostupni su razni okviri koji pojednostavljuju razvoj MCP servera:
 
-1. **Službeni SDK-ovi** (usklađeni s [MCP Specifikacijom 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)):
+1. **Službeni SDK-ovi** (usklađeni prema [MCP specifikaciji 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)):
    - [TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
    - [Python SDK](https://github.com/modelcontextprotocol/python-sdk)
    - [C# SDK](https://github.com/modelcontextprotocol/csharp-sdk)
@@ -358,14 +359,14 @@ Dostupno je nekoliko okvira za pojednostavljenje razvoja MCP poslužitelja:
    - [Rust SDK](https://github.com/modelcontextprotocol/rust-sdk)
 
 2. **Okviri zajednice**:
-   - [MCP-Framework](https://mcp-framework.com/) - Izgradnja MCP poslužitelja s elegancijom i brzinom u TypeScriptu
-   - [MCP Deklarativni Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - MCP poslužitelji vođeni anotacijama u Javi
-   - [Quarkus MCP Server SDK](https://github.com/quarkiverse/quarkus-mcp-server) - Java okvir za MCP poslužitelje
-   - [Next.js MCP Server Predložak](https://github.com/vercel-labs/mcp-for-next.js) - Početni Next.js projekt za MCP poslužitelje
+   - [MCP-Framework](https://mcp-framework.com/) - Izrada MCP servera s elegancijom i brzinom u TypeScriptu
+   - [MCP Deklarativni Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - MCP serveri vođeni anotacijama u Javi
+   - [Quarkus MCP Server SDK](https://github.com/quarkiverse/quarkus-mcp-server) - Java okvir za MCP servere
+   - [Next.js MCP Server Template](https://github.com/vercel-labs/mcp-for-next.js) - Početni Next.js projekt za MCP servere
 
 ### Razvijanje dijeljivih alata
 
-#### .NET primjer: Kreiranje paketa dijeljivih alata
+#### .NET primjer: Kreiranje paketa dijeljivog alata
 
 ```csharp
 // Create a new .NET library project
@@ -474,7 +475,7 @@ namespace McpFinanceTools
 #### Java primjer: Kreiranje Maven paketa za alate
 
 ```java
-// konfiguracija pom.xml za dijeljivi MCP alat paket
+// konfiguracija pom.xml za dijeljivu MCP alatnu jedinicu
 <!-- 
 <project>
     <groupId>com.example</groupId>
@@ -493,7 +494,7 @@ namespace McpFinanceTools
         <repository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/username/mcp-weather-tools</url>
+            <url>https://maven.pkg.github.com/korisnickoime/mcp-vremenski-alati</url>
         </repository>
     </distributionManagement>
 </project>
@@ -546,10 +547,10 @@ public class WeatherForecastTool implements Tool {
             int days = request.getParameters().has("days") ? 
                 request.getParameters().get("days").asInt() : 3;
             
-            // Pozovi vremenski API
+            // Poziv vremenskog API-ja
             Map<String, Object> forecast = getForecast(location, days);
             
-            // Izgradi odgovor
+            // Izrada odgovora
             return new ToolResponse.Builder()
                 .setResult(forecast)
                 .build();
@@ -567,7 +568,7 @@ public class WeatherForecastTool implements Tool {
     }
 }
 
-// Izgradi i objavi koristeći Maven
+// Izgradnja i objava pomoću Mavena
 // mvn clean package
 // mvn deploy
 ```
@@ -650,7 +651,7 @@ class SentimentAnalysisTool(Tool):
     
     async def execute_async(self, request: ToolRequest) -> ToolResponse:
         try:
-            # Izvuci parametre
+            # Izdvoji parametre
             text = request.parameters.get("text")
             include_score = request.parameters.get("includeScore", True)
             
@@ -672,73 +673,73 @@ class SentimentAnalysisTool(Tool):
         except Exception as e:
             raise ToolExecutionException(f"Sentiment analysis failed: {str(e)}")
 
-# Za objavu:
+# Za objavljivanje:
 # python setup.py sdist bdist_wheel
 # python -m twine upload dist/*
 ```
 
 ### Dijeljenje najboljih praksi
 
-Pri dijeljenju MCP alata sa zajednicom:
+Prilikom dijeljenja MCP alata sa zajednicom:
 
 1. **Potpuna dokumentacija**:
-   - Dokumentirajte svrhu, korištenje i primjere
+   - Dokumentirajte svrhu, upotrebu i primjere
    - Objasnite parametre i povratne vrijednosti
-   - Dokumentirajte vanjske ovisnosti
+   - Dokumentirajte sve vanjske ovisnosti
 
 2. **Rukovanje pogreškama**:
-   - Implementirajte robusno rukovanje pogreškama
-   - Pružite korisne poruke o pogreškama
-   - Graciozno obradite rubne slučajeve
+   - Implementirajte robustno rukovanje pogreškama
+   - Osigurajte korisne poruke o pogreškama
+   - Obradite granične slučajeve pažljivo
 
-3. **Razmatranja performansi**:
-   - Optimizirajte brzinu i korištenje resursa
-   - Implementirajte caching kad je prikladno
+3. **Razmatranje performansi**:
+   - Optimizirajte za brzinu i korištenje resursa
+   - Implementirajte cache kada je primjereno
    - Razmotrite skalabilnost
 
 4. **Sigurnost**:
    - Koristite sigurne API ključeve i autentifikaciju
-   - Validirajte i sanitizirajte ulaze
-   - Implementirajte ograničenje propusnosti za vanjske API pozive
+   - Validirajte i sanitizirajte unose
+   - Implementirajte ograničenje brzine za vanjske API pozive
 
 5. **Testiranje**:
    - Uključite sveobuhvatno testiranje
-   - Testirajte različite ulazne tipove i rubne slučajeve
+   - Testirajte s različitim vrstama unosa i graničnim slučajevima
    - Dokumentirajte testne procedure
 
 ## Suradnja zajednice i najbolje prakse
 
 Učinkovita suradnja ključ je uspješnog MCP ekosustava.
 
-### Komunikacijski kanali
+### Kanali komunikacije
 
-- GitHub Issues i Diskusije
+- GitHub Issues i diskusije
 - Microsoft Tech Community
 - Discord i Slack kanali
-- Stack Overflow (oznaka: `model-context-protocol` ili `mcp`)
+- Stack Overflow (tag: `model-context-protocol` ili `mcp`)
 
-### Pregled koda
+### Pregledi koda
 
-Prilikom pregleda doprinosa MCP-u:
+Kod pregleda MCP doprinosa:
 
 1. **Jasnoća**: Je li kod jasan i dobro dokumentiran?
-2. **Ispravnost**: Radi li kod kako je očekivano?
-3. **Dosljednost**: Slijedi li konvencije projekta?
-4. **Potpunost**: Jesu li uključeni testovi i dokumentacija?
+2. **Ispravnost**: Radi li kod kako se očekuje?
+3. **Dosljednost**: Prati li konvencije projekta?
+4. **Potpunost**: Uključuju li testove i dokumentaciju?
 5. **Sigurnost**: Postoje li sigurnosni problemi?
 
 ### Kompatibilnost verzija
 
-Pri razvoju za MCP:
+Prilikom razvoja za MCP:
 
-1. **Verzioniranje protokola**: Pridržavajte se verzije MCP protokola koju vaš alat podržava
-2. **Kompatibilnost klijenata**: Razmotrite unatrag kompatibilnost
-3. **Kompatibilnost poslužitelja**: Slijedite smjernice implementacije poslužitelja
+1. **Verzija protokola**: Pridržavajte se verzije MCP protokola koju vaš alat podržava
+2. **Kompatibilnost klijenta**: Razmotrite kompatibilnost prema unazad
+3. **Kompatibilnost servera**: Slijedite smjernice implementacije servera
 4. **Prekidajuće promjene**: Jasno dokumentirajte sve prekidajuće promjene
 
-## Primjer zajedničkog projekta: MCP Registar Alata
+## Primjer zajedničkog projekta: MCP registar alata
 
-Važan doprinos zajednice može biti razvoj javnog registra MCP alata.
+Važan doprinos zajednice mogao bi biti razvoj javnog registra MCP alata.
 
 ```python
 # Primjer sheme za API registar alata zajednice
@@ -817,35 +818,35 @@ async def delete_tool(tool_name: str):
     return {"message": f"Tool '{tool_name}' deleted"}
 ```
 
-## Glavne pouke
+## Ključne spoznaje
 
-- MCP zajednica je raznolika i pozdravlja različite vrste doprinosa
-- Doprinos MCP-u može varirati od unapređenja glavnog protokola do prilagođenih alata
-- Slijeđenje smjernica za doprinos povećava šanse za prihvaćanje vašeg PR-a
-- Kreiranje i dijeljenje MCP alata vrijedan je način za unapređenje ekosustava
-- Suradnja unutar zajednice ključna je za rast i poboljšanje MCP-a
+- MCP zajednica je raznolika i prihvaća razne vrste doprinosa
+- Doprinos MCP-u može uključivati unapređenja osnovnog protokola do prilagođenih alata
+- Slijeđenje smjernica za doprinos povećava šanse da vaš PR bude prihvaćen
+- Kreiranje i dijeljenje MCP alata je vrijedan način za unapređenje ekosustava
+- Suradnja zajednice je ključna za rast i poboljšanje MCP-a
 
 ## Vježba
 
-1. Identificirajte područje u MCP ekosustavu gdje možete dati doprinos prema svojim vještinama i interesima
+1. Identificirajte područje u MCP ekosustavu u kojem biste mogli dati doprinos prema vašim vještinama i interesima
 2. Forkajte MCP repozitorij i postavite lokalnu razvojnu okolinu
-3. Kreirajte malo poboljšanje, ispravak buga ili alat koji bi koristio zajednici
-4. Dokumentirajte svoj doprinos s pravilnim testovima i dokumentacijom
-5. Pošaljite pull request u odgovarajuće spremište
+3. Kreirajte malo poboljšanje, ispravak greške ili alat koji bi koristio zajednici
+4. Dokumentirajte svoj doprinos s odgovarajućim testovima i dokumentacijom
+5. Pošaljite zahtjev za povlačenje (pull request) u odgovarajući repozitorij
 
 ## Dodatni resursi
 
-- [MCP Zajednički Projekti](https://github.com/topics/model-context-protocol)
+- [MCP Zajednički projekti](https://github.com/topics/model-context-protocol)
 
 ---
 
 ## Što je sljedeće
 
-Sljedeće: [Lekcije iz ranog usvajanja](../07-LessonsfromEarlyAdoption/README.md)
+Sljedeće: [Lekcije od ranog usvajanja](../07-LessonsfromEarlyAdoption/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Izjava o odricanju od odgovornosti**:  
-Ovaj je dokument preveden pomoću AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako nastojimo osigurati točnost, imajte na umu da automatski prijevodi mogu sadržavati pogreške ili netočnosti. Izvorni dokument na izvornom jeziku treba se smatrati službenim i autoritativnim izvorom. Za kritične informacije preporučuje se profesionalni ljudski prijevod. Ne snosimo odgovornost za eventualne nesporazume ili pogrešna tumačenja koja proizlaze iz korištenja ovog prijevoda.
+**Napomena**:
+Ovaj dokument je preveden korištenjem AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati greške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za važne informacije preporuča se profesionalni ljudski prijevod. Nismo odgovorni za bilo kakva nesporazumevanja ili pogrešne interpretacije koje proizlaze iz korištenja ovog prijevoda.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

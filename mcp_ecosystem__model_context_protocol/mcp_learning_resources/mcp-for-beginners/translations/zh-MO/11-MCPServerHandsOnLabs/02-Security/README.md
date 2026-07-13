@@ -1,29 +1,29 @@
 # 安全性與多租戶
 
-## 🎯 本實驗涵蓋內容
+## 🎯 本實驗涵蓋範圍
 
-本實驗提供全面指導，幫助您在 MCP 伺服器上實現企業級安全性與多租戶架構。您將學習如何設計安全且合規的系統，保護敏感的零售數據，同時支持多租戶的靈活訪問模式。
+本實驗提供有關為 MCP 伺服器實現企業級安全性和多租戶的全面指導。您將學習設計安全、合規的系統，以保護敏感的零售數據，同時實現多租戶之間的靈活存取模式。
 
 ## 概述
 
-安全性在處理客戶數據、支付信息和商業智能的零售應用中至關重要。本實驗涵蓋完整的安全架構，從身份驗證與授權到數據隔離與合規監控。
+在處理客戶資料、付款資訊及商業智能的零售應用中，安全性至關重要。本實驗涵蓋從身分驗證與授權到資料隔離及合規監控的完整安全架構。
 
-我們採用深度防禦策略，結合 Azure 身份服務、PostgreSQL 行級安全性（Row Level Security）、應用層控制以及全面的審計日誌，打造一個穩健且合規的平台。
+我們實施深度防禦策略，結合 Azure 身分服務、PostgreSQL 行級安全（Row Level Security）、應用程式層級控制以及全面審計日誌，打造強健且合規的平台。
 
 ## 學習目標
 
 完成本實驗後，您將能夠：
 
-- **實現** 企業級行級安全性以隔離多租戶數據  
-- **設計** 使用 Azure 的安全身份驗證與授權模式  
-- **配置** 符合合規要求的全面審計日誌  
-- **應用** 深度防禦安全策略於所有應用層  
-- **驗證** 通過系統化測試檢查安全性實現  
-- **監控** 安全事件並應對潛在威脅  
+- <strong>實施</strong> 企業級行級安全以達成多租戶資料隔離
+- <strong>設計</strong> Azure 安全身分驗證與授權模式
+- <strong>配置</strong> 符合合規要求的全面審計日誌
+- <strong>應用</strong> 深度防禦安全策略於所有應用層
+- <strong>驗證</strong> 透過系統化測試確保安全實施
+- <strong>監控</strong> 安全事件並回應潛在威脅
 
 ## 🔐 多租戶安全架構
 
-### 安全層概述
+### 安全層級概述
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -44,23 +44,22 @@
 └─────────────────────────────────────────────────┘
 ```
 
-
 ### 多租戶模型
 
-我們的實現採用 **共享數據庫，共享架構** 模型，並結合行級安全性（RLS）：
+我們採用 **共用資料庫、共用架構** 模型並結合行級安全（RLS）：
 
-**優勢：**
-- 成本效益高的資源利用  
-- 簡化維護與更新  
-- 通過 RLS 實現強大的數據隔離  
-- 符合合規要求的審計記錄  
+**優點：**
+- 成本效益高的資源利用
+- 維護與更新簡化
+- 透過 RLS 實現強大的資料隔離
+- 有利合規的審計軌跡
 
-**權衡：**
-- 需要精心設計 RLS 策略  
-- 架構更改會影響所有租戶  
-- 需要穩健的備份與恢復程序  
+**權衡點：**
+- 需謹慎設計 RLS 政策
+- 架構更動會影響所有租戶
+- 需要完善備份與還原程序
 
-## 🛡️ 行級安全性實現
+## 🛡️ 行級安全實作
 
 ### RLS 基礎
 
@@ -78,8 +77,7 @@ GRANT USAGE ON SCHEMA retail TO mcp_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA retail TO mcp_user;
 ```
 
-
-### 商店上下文管理
+### 儲存上下文管理
 
 ```sql
 -- Function to securely set store context
@@ -144,8 +142,7 @@ $$;
 GRANT EXECUTE ON FUNCTION retail.set_store_context TO mcp_user;
 ```
 
-
-### RLS 策略
+### RLS 政策
 
 ```sql
 -- Customers RLS Policy
@@ -229,7 +226,6 @@ CREATE POLICY product_embeddings_store_isolation ON retail.product_embeddings
     );
 ```
 
-
 ### RLS 測試與驗證
 
 ```sql
@@ -266,8 +262,7 @@ END;
 $$;
 ```
 
-
-## 🔑 身份驗證與授權
+## 🔑 身分驗證與授權
 
 ### Azure Entra ID 整合
 
@@ -297,11 +292,11 @@ class AzureAuthenticator:
         self.audience = os.getenv('AZURE_AUDIENCE', self.client_id)
         self.issuer = f"https://login.microsoftonline.com/{self.tenant_id}/v2.0"
         
-        # Cache for JWKS (JSON Web Key Set)
+        # JWKS（JSON 網絡金鑰集）緩存
         self._jwks_cache = None
         self._jwks_cache_expiry = None
         
-        # Key Vault for secrets
+        # 用於秘密的金鑰保管庫
         self.key_vault_url = os.getenv('AZURE_KEY_VAULT_URL')
         self.credential = DefaultAzureCredential()
         
@@ -315,17 +310,17 @@ class AzureAuthenticator:
         """Validate JWT token from Azure Entra ID."""
         
         try:
-            # Get signing keys
+            # 獲取簽署金鑰
             signing_keys = await self._get_signing_keys()
             
-            # Decode token header to get key ID
+            # 解碼令牌標頭以獲取金鑰 ID
             unverified_header = jwt.get_unverified_header(token)
             key_id = unverified_header.get('kid')
             
             if not key_id:
                 raise ValueError("Token missing key ID")
             
-            # Find the corresponding key
+            # 尋找對應的金鑰
             signing_key = None
             for key in signing_keys:
                 if key['kid'] == key_id:
@@ -335,7 +330,7 @@ class AzureAuthenticator:
             if not signing_key:
                 raise ValueError(f"Unable to find signing key for kid: {key_id}")
             
-            # Validate and decode token
+            # 驗證並解碼令牌
             payload = jwt.decode(
                 token,
                 signing_key,
@@ -349,10 +344,10 @@ class AzureAuthenticator:
                 }
             )
             
-            # Extract user information
+            # 擷取使用者資訊
             user_info = self._extract_user_info(payload)
             
-            # Log successful authentication
+            # 記錄成功的身份驗證
             logger.info(
                 "User authenticated successfully",
                 extra={
@@ -382,12 +377,12 @@ class AzureAuthenticator:
         
         current_time = datetime.now(timezone.utc)
         
-        # Check if cache is valid
+        # 檢查緩存是否有效
         if (self._jwks_cache and self._jwks_cache_expiry and 
             current_time < self._jwks_cache_expiry):
             return self._jwks_cache
         
-        # Fetch new JWKS
+        # 獲取新的 JWKS
         jwks_url = f"{self.issuer}/keys"
         
         async with aiohttp.ClientSession() as session:
@@ -397,7 +392,7 @@ class AzureAuthenticator:
                 
                 jwks_data = await response.json()
                 
-        # Cache for 1 hour
+        # 緩存一小時
         self._jwks_cache = jwks_data['keys']
         self._jwks_cache_expiry = current_time.replace(
             hour=current_time.hour + 1
@@ -425,8 +420,8 @@ class AzureAuthenticator:
         """Get list of stores the user has access to."""
         
         try:
-            # This would typically query your user/store mapping
-            # For demo, we'll use a simple Key Vault secret
+            # 通常會查詢您的使用者/商店映射
+            # 範例中，我們將使用簡單的金鑰保管庫秘密
             secret_name = f"user-{user_id}-stores"
             
             if self.secret_client:
@@ -434,20 +429,19 @@ class AzureAuthenticator:
                 store_list = secret.value.split(',')
                 return [store.strip() for store in store_list if store.strip()]
             
-            # Fallback: return default store access
+            # 備用方案：回傳預設商店存取權
             logger.warning(f"No store mapping found for user {user_id}, using default")
-            return ['seattle']  # Default store access
+            return ['seattle']  # 預設商店存取權
             
         except Exception as e:
             logger.error(f"Failed to get store access for user {user_id}: {e}")
-            return []  # No access if we can't determine stores
+            return []  # 若無法確定商店，則無存取權
 
-# Global authenticator instance
+# 全局身份驗證器實例
 azure_authenticator = AzureAuthenticator()
 ```
 
-
-### 授權中介軟件
+### 授權中介軟體
 
 ```python
 # mcp_server/security/authorization.py
@@ -471,7 +465,7 @@ class AuthorizationError(Exception):
 class RoleBasedAuth:
     """Role-based access control implementation."""
     
-    # Define role hierarchy
+    # 定義角色階層
     ROLE_HIERARCHY = {
         'store_admin': ['store_manager', 'store_user', 'store_readonly'],
         'store_manager': ['store_user', 'store_readonly'],
@@ -479,7 +473,7 @@ class RoleBasedAuth:
         'store_readonly': []
     }
     
-    # Define permissions for each role
+    # 定義每個角色的權限
     ROLE_PERMISSIONS = {
         'store_admin': [
             'read_all', 'write_all', 'delete_all', 'manage_users'
@@ -502,10 +496,10 @@ class RoleBasedAuth:
         user_permissions = set()
         
         for role in user_roles:
-            # Add direct permissions
+            # 新增直接權限
             user_permissions.update(cls.ROLE_PERMISSIONS.get(role, []))
             
-            # Add inherited permissions
+            # 新增繼承權限
             inherited_roles = cls.ROLE_HIERARCHY.get(role, [])
             for inherited_role in inherited_roles:
                 user_permissions.update(cls.ROLE_PERMISSIONS.get(inherited_role, []))
@@ -516,24 +510,24 @@ class RoleBasedAuth:
     def get_user_stores(cls, user_info: Dict) -> List[str]:
         """Extract stores user has access to from user info."""
         
-        # This would typically come from your user management system
-        # For demo, we'll extract from custom claims or groups
+        # 這通常來自您的用戶管理系統
+        # 為了示範，我們會從自訂聲明或群組中提取
         
         stores = []
         
-        # Check for direct store assignments in groups
+        # 檢查群組中直接的商店指派
         for group in user_info.get('groups', []):
             if group.startswith('store_'):
                 store_id = group.replace('store_', '')
                 stores.append(store_id)
         
-        # Check for app-specific roles
+        # 檢查應用程式特定角色
         for role in user_info.get('app_roles', []):
             if 'store:' in role:
                 _, store_id = role.split('store:', 1)
                 stores.append(store_id)
         
-        return list(set(stores))  # Remove duplicates
+        return list(set(stores))  # 移除重複項目
 
 def require_auth(required_permission: str = None, require_store_access: bool = True):
     """Decorator to require authentication and authorization."""
@@ -541,7 +535,7 @@ def require_auth(required_permission: str = None, require_store_access: bool = T
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            # Extract request from args (FastAPI dependency injection)
+            # 從引數中提取請求（FastAPI 依賴注入）
             request = None
             for arg in args:
                 if isinstance(arg, Request):
@@ -554,7 +548,7 @@ def require_auth(required_permission: str = None, require_store_access: bool = T
                     detail="Request object not found"
                 )
             
-            # Get authorization header
+            # 取得授權標頭
             auth_header = request.headers.get('Authorization')
             if not auth_header or not auth_header.startswith('Bearer '):
                 raise HTTPException(
@@ -566,10 +560,10 @@ def require_auth(required_permission: str = None, require_store_access: bool = T
             token = auth_header.split(' ')[1]
             
             try:
-                # Validate token
+                # 驗證令牌
                 user_info = await azure_authenticator.validate_token(token)
                 
-                # Check required permission
+                # 檢查所需的權限
                 if required_permission:
                     user_roles = user_info.get('roles', [])
                     if not RoleBasedAuth.has_permission(user_roles, required_permission):
@@ -578,7 +572,7 @@ def require_auth(required_permission: str = None, require_store_access: bool = T
                             detail=f"Insufficient permissions. Required: {required_permission}"
                         )
                 
-                # Check store access
+                # 檢查商店存取權
                 if require_store_access:
                     user_stores = RoleBasedAuth.get_user_stores(user_info)
                     if not user_stores:
@@ -587,15 +581,15 @@ def require_auth(required_permission: str = None, require_store_access: bool = T
                             detail="No store access configured for user"
                         )
                     
-                    # Set default store context (first accessible store)
+                    # 設定預設商店上下文（第一個可存取的商店）
                     request.state.current_store = user_stores[0]
                     request.state.accessible_stores = user_stores
                 
-                # Add user info to request state
+                # 新增用戶資訊至請求狀態
                 request.state.user_info = user_info
                 request.state.user_id = user_info['user_id']
                 
-                # Call the original function
+                # 呼叫原始函數
                 return await func(*args, **kwargs)
                 
             except ValueError as e:
@@ -619,7 +613,7 @@ def require_store_context(store_param: str = 'store_id'):
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            # Get store_id from kwargs
+            # 從 kwargs 取得 store_id
             store_id = kwargs.get(store_param)
             
             if not store_id:
@@ -628,7 +622,7 @@ def require_store_context(store_param: str = 'store_id'):
                     detail=f"Missing required parameter: {store_param}"
                 )
             
-            # Extract request from args
+            # 從引數中提取請求
             request = None
             for arg in args:
                 if isinstance(arg, Request):
@@ -641,14 +635,14 @@ def require_store_context(store_param: str = 'store_id'):
                     detail="Authentication required before store context validation"
                 )
             
-            # Validate user has access to requested store
+            # 驗證用戶是否有權存取請求的商店
             if store_id not in request.state.accessible_stores:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"Access denied to store: {store_id}"
                 )
             
-            # Set store context in request state
+            # 在請求狀態中設定商店上下文
             request.state.current_store = store_id
             
             return await func(*args, **kwargs)
@@ -656,7 +650,6 @@ def require_store_context(store_param: str = 'store_id'):
         return wrapper
     return decorator
 ```
-
 
 ## 🔍 安全審計與合規
 
@@ -748,7 +741,6 @@ $$;
 GRANT EXECUTE ON FUNCTION retail.log_security_event TO mcp_user;
 ```
 
-
 ### 安全監控視圖
 
 ```sql
@@ -805,7 +797,6 @@ GROUP BY DATE_TRUNC('hour', created_at), store_id, resource_type, action
 ORDER BY access_hour DESC, access_count DESC;
 ```
 
-
 ### 安全事件監控
 
 ```python
@@ -838,13 +829,13 @@ class SecurityMonitor:
         self.db_connection_string = db_connection_string
         self.alert_handlers = []
         
-        # Alert thresholds
+        # 警報閾值
         self.thresholds = {
-            'failed_auth_attempts': 5,      # per user per hour
-            'multiple_ip_access': 3,        # different IPs per user per hour
-            'excessive_data_access': 1000,  # queries per user per hour
-            'privilege_escalation': 1,      # any attempt
-            'unauthorized_store_access': 1  # any attempt
+            'failed_auth_attempts': 5,      # 每用戶每小時
+            'multiple_ip_access': 3,        # 每用戶每小時不同的IP
+            'excessive_data_access': 1000,  # 每用戶每小時的查詢
+            'privilege_escalation': 1,      # 任何嘗試
+            'unauthorized_store_access': 1  # 任何嘗試
         }
     
     async def start_monitoring(self):
@@ -854,10 +845,10 @@ class SecurityMonitor:
         while True:
             try:
                 await self._check_security_events()
-                await asyncio.sleep(300)  # Check every 5 minutes
+                await asyncio.sleep(300)  # 每5分鐘檢查一次
             except Exception as e:
                 logger.error(f"Security monitoring error: {e}")
-                await asyncio.sleep(60)  # Short retry on error
+                await asyncio.sleep(60)  # 出錯時短暫重試
     
     async def _check_security_events(self):
         """Check for security events and generate alerts."""
@@ -865,16 +856,16 @@ class SecurityMonitor:
         conn = await asyncpg.connect(self.db_connection_string)
         
         try:
-            # Check failed authentication attempts
+            # 檢查失敗的身份驗證嘗試
             await self._check_failed_auth(conn)
             
-            # Check suspicious access patterns
+            # 檢查可疑的存取模式
             await self._check_suspicious_access(conn)
             
-            # Check data access anomalies
+            # 檢查數據存取異常
             await self._check_data_access_anomalies(conn)
             
-            # Check unauthorized access attempts
+            # 檢查未經授權的存取嘗試
             await self._check_unauthorized_access(conn)
             
         finally:
@@ -992,7 +983,7 @@ class SecurityMonitor:
             extra={'alert_details': alert.details}
         )
         
-        # Send to configured alert handlers
+        # 發送至已配置的警報處理程序
         for handler in self.alert_handlers:
             try:
                 await handler.send_alert(alert)
@@ -1004,13 +995,12 @@ class SecurityMonitor:
         self.alert_handlers.append(handler)
 ```
 
-
 ## 🧪 安全測試與驗證
 
 ### 自動化安全測試
 
 ```python
-# tests/security/test_security.py
+# 測試/安全/測試安全.py
 """
 Comprehensive security tests for MCP server.
 """
@@ -1036,23 +1026,23 @@ class TestRowLevelSecurity:
     async def test_store_context_isolation(self, db_connection):
         """Test that RLS properly isolates data by store."""
         
-        # Set Seattle store context
+        # 設定西雅圖商店環境
         await db_connection.execute("SELECT retail.set_store_context('seattle')")
         
-        # Get customer count
+        # 獲取客戶數量
         seattle_customers = await db_connection.fetchval(
             "SELECT COUNT(*) FROM retail.customers"
         )
         
-        # Set Redmond store context
+        # 設定雷德蒙德商店環境
         await db_connection.execute("SELECT retail.set_store_context('redmond')")
         
-        # Get customer count
+        # 獲取客戶數量
         redmond_customers = await db_connection.fetchval(
             "SELECT COUNT(*) FROM retail.customers"
         )
         
-        # Verify isolation (counts should be different)
+        # 驗證隔離性（計數應該不同）
         assert seattle_customers != redmond_customers or (
             seattle_customers == 0 and redmond_customers == 0
         )
@@ -1068,10 +1058,10 @@ class TestRowLevelSecurity:
     async def test_cross_store_data_leakage(self, db_connection):
         """Test that users cannot access data from other stores."""
         
-        # Set context to one store
+        # 設定環境到一個商店
         await db_connection.execute("SELECT retail.set_store_context('seattle')")
         
-        # Try to insert data with different store_id
+        # 嘗試插入不同 store_id 的資料
         with pytest.raises(Exception):
             await db_connection.execute("""
                 INSERT INTO retail.customers (store_id, first_name, last_name, email)
@@ -1084,7 +1074,7 @@ class TestAuthentication:
     def test_valid_jwt_token(self):
         """Test valid JWT token validation."""
         
-        # Mock valid token
+        # 模擬有效令牌
         token_payload = {
             'oid': 'user-123',
             'email': 'test@example.com',
@@ -1097,31 +1087,31 @@ class TestAuthentication:
             'roles': ['store_user']
         }
         
-        # This would require mocking the JWKS endpoint
-        # In real implementation, use proper test JWT tokens
+        # 這需要模擬 JWKS 端點
+        # 實際實作中，使用適當的測試 JWT 令牌
         
     def test_expired_token_rejection(self):
         """Test that expired tokens are rejected."""
         
         token_payload = {
             'oid': 'user-123',
-            'exp': int((datetime.now(timezone.utc)).timestamp()) - 3600,  # Expired
+            'exp': int((datetime.now(timezone.utc)).timestamp()) - 3600,  # 已過期
             'iat': int((datetime.now(timezone.utc)).timestamp()) - 7200
         }
         
-        # Test would verify that expired tokens are rejected
+        # 測試會驗證過期令牌被拒絕
         
     def test_invalid_audience_rejection(self):
         """Test that tokens with wrong audience are rejected."""
         
         token_payload = {
             'oid': 'user-123',
-            'aud': 'wrong-audience',  # Invalid audience
+            'aud': 'wrong-audience',  # 無效的受眾
             'exp': int((datetime.now(timezone.utc)).timestamp()) + 3600,
             'iat': int((datetime.now(timezone.utc)).timestamp())
         }
         
-        # Test would verify that wrong audience tokens are rejected
+        # 測試會驗證錯誤受眾令牌被拒絕
 
 class TestAuthorization:
     """Test role-based authorization."""
@@ -1131,16 +1121,16 @@ class TestAuthorization:
         
         from mcp_server.security.authorization import RoleBasedAuth
         
-        # Store admin should have all permissions
+        # 商店管理員應該擁有所有權限
         assert RoleBasedAuth.has_permission(['store_admin'], 'read_all')
         assert RoleBasedAuth.has_permission(['store_admin'], 'write_all')
         assert RoleBasedAuth.has_permission(['store_admin'], 'delete_all')
         
-        # Store user should have limited permissions
+        # 商店用戶應該有有限權限
         assert RoleBasedAuth.has_permission(['store_user'], 'read_products')
         assert not RoleBasedAuth.has_permission(['store_user'], 'delete_all')
         
-        # Store readonly should have minimal permissions
+        # 商店只讀應該擁有最少的權限
         assert RoleBasedAuth.has_permission(['store_readonly'], 'read_products')
         assert not RoleBasedAuth.has_permission(['store_readonly'], 'write_transactions')
     
@@ -1149,17 +1139,16 @@ class TestAuthorization:
         
         from mcp_server.security.authorization import RoleBasedAuth
         
-        # Manager should inherit user permissions
+        # 經理應繼承用戶權限
         assert RoleBasedAuth.has_permission(['store_manager'], 'read_products')
         assert RoleBasedAuth.has_permission(['store_manager'], 'write_transactions')
 
-# Security test runner
+# 安全測試執行器
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
 ```
 
-
-### 滲透測試清單
+### 滲透測試檢查清單
 
 ```yaml
 # security-test-checklist.yml
@@ -1207,50 +1196,51 @@ penetration_testing:
         - "Connection pool exhaustion"
 ```
 
+## 🎯 主要重點摘要
 
-## 🎯 關鍵要點
+完成本實驗後，您應已達成：
 
-完成本實驗後，您應該已經：
+✅ <strong>多租戶安全</strong>：實施行級安全實現完整資料隔離  
+✅ **Azure 身分驗證**：整合 Azure Entra ID 並驗證 JWT  
+✅ <strong>基於角色授權</strong>：配置分層角色與權限系統  
+✅ <strong>全面審計日誌</strong>：建立安全事件追蹤與監控  
+✅ <strong>安全測試</strong>：實施自動化安全驗證測試  
+✅ <strong>威脅監控</strong>：創建即時安全事件偵測與提醒  
 
-✅ **多租戶安全性**：實現行級安全性以完全隔離數據  
-✅ **Azure 身份驗證**：整合 Azure Entra ID 並進行 JWT 驗證  
-✅ **基於角色的授權**：配置分層角色與權限系統  
-✅ **全面審計日誌**：建立安全事件追蹤與監控  
-✅ **安全測試**：實現自動化安全驗證測試  
-✅ **威脅監控**：創建實時安全事件檢測與警報  
+## 🚀 接下來做什麼
 
-## 🚀 下一步
+繼續進行 **[Lab 03: 環境設置](../03-Setup/README.md)**，以便：
 
-繼續進行 **[實驗 03：環境設置](../03-Setup/README.md)**，以完成以下內容：
+- 配置具備安全最佳實務的開發環境
+- 設置 Azure 服務以支援身份驗證與監控
+- 實施安全的資料庫連接與秘密管理
+- 驗證開發環境中的安全配置
 
-- 配置符合安全最佳實踐的開發環境  
-- 設置 Azure 服務以進行身份驗證與監控  
-- 實現安全的數據庫連接與密鑰管理  
-- 驗證開發環境中的安全配置  
+## 📚 額外資源
 
-## 📚 其他資源
+### Azure 安全
+- [Azure Entra ID 文件](https://docs.microsoft.com/azure/active-directory/) - 完整身分平台指南
+- [Azure Key Vault](https://docs.microsoft.com/azure/key-vault/) - 秘密管理服務
+- [Azure 安全最佳實務](https://docs.microsoft.com/azure/security/fundamentals/best-practices-and-patterns) - 安全指導
 
-### Azure 安全性
-- [Azure Entra ID 文件](https://docs.microsoft.com/azure/active-directory/) - 完整的身份平台指南  
-- [Azure Key Vault](https://docs.microsoft.com/azure/key-vault/) - 密鑰管理服務  
-- [Azure 安全最佳實踐](https://docs.microsoft.com/azure/security/fundamentals/best-practices-and-patterns) - 安全指導  
-
-### 數據庫安全性
-- [PostgreSQL 行級安全性](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - 官方 RLS 文件  
-- [數據庫安全清單](https://www.postgresql.org/docs/current/security.html) - PostgreSQL 安全指南  
-- [多租戶數據庫模式](https://docs.microsoft.com/azure/architecture/patterns/multitenancy) - 架構模式  
+### 資料庫安全
+- [PostgreSQL 行級安全](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - 官方 RLS 文件
+- [資料庫安全檢查清單](https://www.postgresql.org/docs/current/security.html) - PostgreSQL 安全指南
+- [多租戶資料庫模式](https://docs.microsoft.com/azure/architecture/patterns/multitenancy) - 架構模式
 
 ### 安全測試
-- [OWASP 測試指南](https://owasp.org/www-project-web-security-testing-guide/) - 全面的安全測試  
-- [JWT 安全最佳實踐](https://tools.ietf.org/html/rfc8725) - JWT 安全考量  
-- [API 安全測試](https://owasp.org/www-project-api-security/) - API 特定的安全測試  
+- [OWASP 測試指南](https://owasp.org/www-project-web-security-testing-guide/) - 全面安全測試
+- [JWT 安全最佳實務](https://tools.ietf.org/html/rfc8725) - JWT 安全考量
+- [API 安全測試](https://owasp.org/www-project-api-security/) - API 專屬安全測試
 
 ---
 
-**上一章**: [實驗 01：核心架構概念](../01-Architecture/README.md)  
-**下一章**: [實驗 03：環境設置](../03-Setup/README.md)  
+<strong>上一章</strong>： [Lab 01: 核心架構概念](../01-Architecture/README.md)  
+<strong>下一章</strong>： [Lab 03: 環境設置](../03-Setup/README.md)
 
 ---
 
-**免責聲明**：  
-本文件已使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們致力於提供準確的翻譯，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於關鍵資訊，建議使用專業人工翻譯。我們對因使用此翻譯而產生的任何誤解或錯誤解釋不承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責聲明**：
+本文件使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們力求準確，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議尋求專業人工翻譯。我們不對因使用本翻譯而引起的任何誤解或曲解承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

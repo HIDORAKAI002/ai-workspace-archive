@@ -1,24 +1,26 @@
 # 采样 - 将功能委托给客户端
 
-有时，您需要 MCP 客户端和 MCP 服务器协同工作以实现共同目标。您可能遇到服务器需要客户端上运行的 LLM 帮助的情况。对于这种情况，采样是您应该使用的功能。
+> **弃用通知：** `2026-07-28` MCP 规范发布候选版本标记采样为弃用，建议改为直接集成 LLM 提供商 API。采样在 `2025-11-25` 版本及任何正式弃用后至少一年内仍然有效，因此本课程内容依然有效 — 但新的服务器设计应评估替代方案。详情参见 [MCP 的变化：2026-07-28 发布候选版本](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
 
-让我们探索一些用例以及如何构建涉及采样的解决方案。
+有时，您需要 MCP 客户端和 MCP 服务器协作以实现共同目标。可能出现服务器需要客户端上的 LLM 帮助的情况。针对这种情况，采样是您应该使用的功能。
 
-## 概述
+让我们探讨一些用例以及如何构建涉及采样的解决方案。
 
-本课我们重点说明何时何地使用采样以及如何配置它。
+## 概览
+
+本课程聚焦讲解何时何地使用采样以及如何配置采样。
 
 ## 学习目标
 
-本章中，我们将：
+在本章节中，我们将：
 
-- 解释什么是采样以及何时使用它。
+- 解释什么是采样以及何时使用。
 - 展示如何在 MCP 中配置采样。
-- 提供采样实际应用的例子。
+- 提供采样应用示例。
 
-## 什么是采样以及为何使用它？
+## 什么是采样，为什么使用它？
 
-采样是一项高级功能，其工作原理如下：
+采样是一项高级功能，工作原理如下：
 
 ```mermaid
 sequenceDiagram
@@ -27,19 +29,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: 撰写博客文章
+    User->>MCP Client: 作者博客文章
     MCP Client->>MCP Server: 工具调用（博客文章草稿）
     MCP Server->>MCP Client: 采样请求（创建摘要）
     MCP Client->>LLM: 生成博客文章摘要
     LLM->>MCP Client: 摘要结果
     MCP Client->>MCP Server: 采样响应（摘要）
     MCP Server->>MCP Client: 完整博客文章（草稿 + 摘要）
-    MCP Client->>User: 博客文章准备好
+    MCP Client->>User: 博客文章准备就绪
 ```
 
 ### 采样请求
 
-好了，现在我们对一个可信的场景有了一个全局视角，接下来讲讲服务器发送给客户端的采样请求。下面是该请求的 JSON-RPC 格式示例：
+好的，现在我们对一个可信的场景有了大致了解，接下来谈谈服务器发送给客户端的采样请求。下面是该请求的 JSON-RPC 格式示例：
 
 ```json
 {
@@ -73,15 +75,15 @@ sequenceDiagram
 
 这里有几点值得说明：
 
-- 在 content -> text 下的 Prompt 是我们的提示词，是给 LLM 的指令，用于总结博客文章内容。
+- prompt，在 content -> text 下，是我们的提示，指示 LLM 总结博客文章内容。
 
-- **modelPreferences**。这部分就是偏好，是对 LLM 使用配置的建议推荐。用户可以选择是否按照这些建议或自行更改。本例中对模型使用、速度和智能优先级给出了建议。
-- **systemPrompt**，这是你常用的系统提示，给你的 LLM 赋予个性，并包含指引说明。
-- **maxTokens**，这是用来说明推荐本任务使用多少token的属性。
+- **modelPreferences**。这一部分只是偏好，建议使用何种配置与 LLM 交互。用户可选择接受这些建议或进行更改。本例中，推荐了模型选用及速度和智能优先级。
+- **systemPrompt**，这是您的常规系统提示，用来赋予 LLM 个性并包含指导指令。
+- **maxTokens**，这是用于说明为该任务推荐使用多少令牌的属性。
 
 ### 采样响应
 
-此响应是 MCP 客户端调用 LLM 并等待其响应后，发送回 MCP 服务器的结果。其 JSON-RPC 格式示例如下：
+此响应是 MCP 客户端调用 LLM 后等待响应，再构造的消息，最后发回 MCP 服务器。其 JSON-RPC 格式可能如下：
 
 ```json
 {
@@ -99,13 +101,13 @@ sequenceDiagram
 }
 ```
 
-注意响应是对博客文章的摘要，正如我们所要求的。同时注意使用的 `model` 不是请求中的那个，而是“gpt-5”代替了“claude-3-sonnet”。这用来说明用户可以改变使用的模型，你发出的采样请求只是建议。
+请注意，响应是我们请求的博客文章摘要。还要留意使用的 `model` 并非我们请求的，而是“gpt-5”替代了“claude-3-sonnet”。这演示了用户可以改变使用的模型，采样请求只是建议。
 
-好了，理解了主要流程和一个有用的任务范例“博客文章创作+摘要”，接下来看看需要做哪些操作才能使其工作。
+好了，理解了主流程及“博客文章创作 + 摘要”这类常用任务后，我们来看看如何让它运行起来。
 
 ### 消息类型
 
-采样消息不仅限于文本传递，还可以发送图片和音频。下面展示了 JSON-RPC 的不同表现形式：
+采样消息不限于文本，也可以发送图片和音频。下面是 JSON-RPC 的不同表现形式：
 
 <strong>文本</strong>
 
@@ -136,13 +138,13 @@ sequenceDiagram
 }
 ```
 
-> 注意：有关采样的更多详细信息，请查看[官方文档](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> 注意：有关采样的详细信息，请参阅[官方文档](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
 ## 如何在客户端配置采样
 
-> 注意：如果你只构建服务器，这里无需做太多操作。
+> 注意：如果您只在构建服务器，这里无需做太多配置。
 
-在客户端，需要像下面这样指定以下功能：
+在客户端，您需要按如下方式指定此功能：
 
 ```json
 {
@@ -152,18 +154,18 @@ sequenceDiagram
 }
 ```
 
-此配置将在您的客户端启动并连接服务器时被识别。
+初始化时您的客户端会自动拾取这项配置，连接服务器。
 
-## 采样示例 - 创建博客文章
+## 采样实战示例 - 创建博客文章
 
-让我们一起编写一个采样服务器，我们需要完成以下步骤：
+让我们一起编写采样服务器，需要做如下步骤：
 
-1. 在服务器端创建一个工具。
-2. 该工具应创建一个采样请求。
-3. 工具等待客户端采样请求的响应。
-4. 然后产生工具结果。
+1. 在服务器上创建工具。
+1. 该工具应创建采样请求。
+1. 工具等待客户端对采样请求的答复。
+1. 然后生成工具结果。
 
-逐步来看代码：
+代码逐步演示如下：
 
 ### -1- 创建工具
 
@@ -178,7 +180,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ### -2- 创建采样请求
 
-用以下代码扩展你的工具：
+扩展您的工具，添加以下代码：
 
 **python**
 
@@ -204,7 +206,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- 等待响应并返回结果
+### -3- 等待响应并返回响应
 
 **python**
 
@@ -293,15 +295,15 @@ if __name__ == "__main__":
     # mcp.run()
     mcp.run(transport="streamable-http")
 
-# 使用以下命令运行应用：python server.py
+# 使用以下命令运行应用程序：python server.py
 ```
 
 ### -5- 在 Visual Studio Code 中测试
 
-要在 Visual Studio Code 中测试，请执行如下操作：
+在 Visual Studio Code 中测试，步骤如下：
 
 1. 在终端启动服务器
-1. 将其添加到 *mcp.json* 中（并确保服务器已启动），例如如下：
+1. 将其添加到 *mcp.json*（并确保已启动），如下示例：
 
    ```json
    "servers": {
@@ -312,29 +314,29 @@ if __name__ == "__main__":
    }
    ```
 
-1. 输入提示词：
+1. 输入提示：
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. 允许采样发生。首次测试时你会看到一个额外对话框，需要你确认，随后你将看到正常的工具运行确认对话框。
+1. 允许采样操作。首次测试时会弹出额外对话框需要确认，之后会显示正常的工具运行询问对话框。
 
-1. 检查结果。你将看到 GitHub Copilot Chat 中美观显示的结果，同时也可以查看原始 JSON 响应。
+1. 查看结果。您可以在 GitHub Copilot Chat 中看到漂亮的渲染结果，也可以查看原始 JSON 响应。
 
-<strong>附加</strong>。Visual Studio Code 工具对采样支持极好。你可以这样配置你已安装服务器的采样访问权限：
+<strong>附加说明</strong>。Visual Studio Code 工具对采样支持良好。您可以通过以下步骤配置已安装服务器的采样访问权限：
 
 1. 进入扩展部分。
-1. 在“MCP SERVERS - INSTALLED”章节选择已安装服务器旁的齿轮图标。
-1. 选择“Configure Model Access”，在这里你可以选择 GitHub Copilot 允许在采样时使用哪些模型。你还可以通过选择“Show Sampling requests”查看最近的采样请求记录。
+1. 在 “MCP SERVERS - INSTALLED” 区域选择您安装的服务器的齿轮图标。
+1 选择 “Configure Model Access”，您可以选择 GitHub Copilot 在执行采样时被允许使用的模型。您也可选择 “Show Sampling requests” 查看最近的所有采样请求。
 
-## 练习作业
+## 任务
 
-在本作业中，你将构建一个稍有不同的采样集成，即支持生成产品描述的采样。你的情境如下：
+本任务中，您将构建一个稍有不同的采样，用于生成产品描述。情境如下：
 
-<strong>场景</strong>：电商后台工作人员需要帮助，生成产品描述耗费时间过长。因此，你需要构建一个解决方案，可以调用名为“create_product”的工具，参数包含“title”和“keywords”，并由客户端 LLM 生成完整产品，包括一个由客户端填充的“description”字段。
+<strong>情境</strong>：电商后台工作人员需要帮助，编写产品描述耗时过长。因此，您需构建一个解决方案，可调用名为 "create_product" 的工具，参数包括 "title" 和 "keywords"，该工具应输出完整产品，其中 "description" 字段由客户端的 LLM 填充。
 
-提示：利用之前学到的内容，通过采样请求构造该服务器及其工具。
+提示：利用前面学到的内容，使用采样请求构建此服务器及其工具。
 
 ## 解决方案
 
@@ -342,11 +344,11 @@ if __name__ == "__main__":
 
 ## 关键要点
 
-采样是一项强大功能，当服务器需要 LLM 帮助时，它可以将任务委托给客户端。
+采样是一项强大功能，当服务器需要 LLM 协助时，允许服务器将任务委托给客户端。
 
-## 接下来
+## 下一步
 
-- [第4章 - 实际实现](../../04-PracticalImplementation/README.md)
+- [第4章 - 实践实现](../../04-PracticalImplementation/README.md)
 
 ---
 

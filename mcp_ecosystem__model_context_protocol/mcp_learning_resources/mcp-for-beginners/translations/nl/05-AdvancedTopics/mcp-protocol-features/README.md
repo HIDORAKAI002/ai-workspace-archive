@@ -1,21 +1,23 @@
-# MCP Protocol Functies Diepgaande Verkenning
+# MCP Protocol Functies Diepgaande Analyse
 
-Deze gids onderzoekt geavanceerde MCP-protocolfuncties die verder gaan dan basis gereedschap- en resourcebeheer. Het begrijpen van deze functies helpt je bij het bouwen van robuustere, gebruiksvriendelijkere en productieklare MCP-servers.
+Deze gids onderzoekt geavanceerde MCP protocol functies die verder gaan dan basis tool- en resourcebeheer. Begrip van deze functies helpt je om robuustere, gebruiksvriendelijkere en productieklare MCP servers te bouwen.
+
+> **Vooruitkijkend:** de releasekandidaat van `2026-07-28` schaft de Logging-primitive af (met voorkeur voor `stderr` voor stdio en OpenTelemetry voor gestructureerde observatie), verwijdert het `initialize`/sessiemodel dat hieronder wordt genoemd bij Server Lifecycle Events, en verplaatst de experimentele Tasks-functie naar een toegewijde Tasks-extensie met een nieuwe `tasks/get`/`tasks/update`/`tasks/cancel` levenscyclus. Zie [Wat Verandert in MCP: De 2026-07-28 Releasekandidaat](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Behandelde Functies
 
-1. **Voortgangsnotificaties** - Rapporteren van voortgang voor langdurige bewerkingen  
-2. **Annulering van Verzoeken** - Cliënten toestaan om lopende verzoeken te annuleren  
+1. **Voortgangsnotificaties** - Voortgang rapporteren voor langlopende operaties  
+2. **Annulering van Verzoeken** - Clients toestaan om lopende verzoeken te annuleren  
 3. **Resource Sjablonen** - Dynamische resource-URI's met parameters  
-4. **Server Levenscyclus Gebeurtenissen** - Correcte initialisatie en afsluiting  
-5. **Logging Controle** - Serverzijde loggingconfiguratie  
+4. **Server Levenscyclus Evenementen** - Correct initialiseren en afsluiten  
+5. **Logging Beheer** - Serverzijde configuratie van logging  
 6. **Foutafhandelingspatronen** - Consistente foutreacties  
 
 ---
 
 ## 1. Voortgangsnotificaties
 
-Voor bewerkingen die tijd kosten (gegevensverwerking, bestandsdownloads, API-aanroepen) houden voortgangsnotificaties gebruikers op de hoogte.
+Voor operaties die tijd kosten (gegevensverwerking, bestandsdownloads, API-aanroepen) houden voortgangsnotificaties gebruikers geïnformeerd.
 
 ### Hoe Het Werkt
 
@@ -30,6 +32,7 @@ sequenceDiagram
     Server-->>Client: melding: voortgang 90%
     Server->>Client: resultaat (voltooid)
 ```
+  
 ### Python Implementatie
 
 ```python
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Verkrijg bestandsgrootte voor voortgangsberekening
+    # Bestandsgrootte ophalen voor voortgangsberekening
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Verwerk stukje
+            # Verwerk chunk
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Verstuur voortgangsbericht
+            # Verstuur voortgangsmelding
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -89,7 +92,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-
+  
 ### TypeScript Implementatie
 
 ```typescript
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // Verstuur voortgangsnotificatie
+      // Stuur voortgangsmelding
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -122,7 +125,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-
+  
 ### Clientafhandeling (Python)
 
 ```python
@@ -134,15 +137,15 @@ async def handle_progress(notification):
 # Registreer handler
 session.on_notification("notifications/progress", handle_progress)
 
-# Roep hulpmiddel aan (voortgangsupdates komen binnen via handler)
+# Roep gereedschap aan (voortgangsupdates worden via handler ontvangen)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-
+  
 ---
 
 ## 2. Annulering van Verzoeken
 
-Sta cliënten toe verzoeken te annuleren die niet langer nodig zijn of te lang duren.
+Clients toestaan om verzoeken te annuleren die niet langer nodig zijn of te lang duren.
 
 ### Python Implementatie
 
@@ -160,16 +163,16 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Doorzoek meerdere pagina's
+        for page in range(100):  # Zoek door veel pagina's
             # Controleer of annulering is aangevraagd
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Simuleer pagina zoeken
+            # Simuleer paginazoektocht
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Kleine vertraging maakt annulering controle mogelijk
+            # Kleine vertraging maakt annuleringcontroles mogelijk
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -197,7 +200,7 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-
+  
 ### Implementatie van Annuleringscontext
 
 ```python
@@ -233,8 +236,8 @@ class CancellableContext:
         except asyncio.TimeoutError:
             pass  # Normale time-out, doorgaan
 ```
-
-### Annulering Aan Clientzijde
+  
+### Annulering aan Klantzijde
 
 ```python
 import asyncio
@@ -250,19 +253,19 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Annulering van verzoek
+        # Annulering aanvragen
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
         })
         return "Search timed out"
 ```
-
+  
 ---
 
 ## 3. Resource Sjablonen
 
-Resource-sjablonen maken dynamische URI-constructie met parameters mogelijk, nuttig voor API's en databases.
+Resource sjablonen maken dynamische URI-constructies met parameters mogelijk, handig voor API's en databases.
 
 ### Sjablonen Definiëren
 
@@ -316,7 +319,7 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-
+  
 ### TypeScript Implementatie
 
 ```typescript
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Analyseer GitHub issue URI
+  // Parseer GitHub issue URI
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -359,12 +362,12 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-
+  
 ---
 
-## 4. Server Levenscyclus Gebeurtenissen
+## 4. Server Levenscyclus Evenementen
 
-Correcte initialisatie en afsluitingsafhandeling zorgt voor schoon resourcebeheer.
+Correcte initialisatie en afsluiting zorgt voor schoon resourcebeheer.
 
 ### Python Levenscyclusbeheer
 
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# Gedeelde staat
+# Gedeelde status
 db_connection = None
 cache = None
 
@@ -405,7 +408,7 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-
+  
 ### TypeScript Levenscyclus
 
 ```typescript
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Gebruik met ordentelijke afsluiting
+// Gebruik met nette afsluiting
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -462,14 +465,14 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-
+  
 ---
 
-## 5. Logging Controle
+## 5. Logging Beheer
 
-MCP ondersteunt serverzijde logniveaus die door cliënten kunnen worden geregeld.
+MCP ondersteunt serverzijde loggingniveaus die clients kunnen beheren.
 
-### Logniveaus Implementeren
+### Loggingniveaus Implementeren
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Koppel MCP-niveaus aan Python logging-niveaus
+# Map MCP-niveaus naar Python loggingniveaus
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,15 +511,15 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-
-### Logberichten naar Client Verzenden
+  
+### Logberichten Naar Client Verzenden
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Stuur logmelding naar client
+    # Verzenden logmelding naar client
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -532,7 +535,7 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-
+  
 ---
 
 ## 6. Foutafhandelingspatronen
@@ -568,8 +571,8 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-
-### Gestructureerde Foutantwoorden
+  
+### Gestructureerde Foutreacties
 
 ```python
 @app.tool()
@@ -584,11 +587,11 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # Controleer machtigingen
+        # Controleer permissies
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # Voer de bewerking uit
+        # Voer bewerking uit
         result = await perform_operation(input)
         
         if result is None:
@@ -605,7 +608,7 @@ async def safe_operation(input: str) -> str:
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-
+  
 ### Foutafhandeling in TypeScript
 
 ```typescript
@@ -636,7 +639,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
       throw error;  // Al een MCP-fout
     }
     
-    // Andere fouten converteren
+    // Andere fouten omzetten
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
@@ -650,14 +653,14 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-
+  
 ---
 
 ## Experimentele Functies (MCP 2025-11-25)
 
-Deze functies zijn in de specificatie als experimenteel gemarkeerd:
+Deze functies zijn als experimenteel gemarkeerd in de specificatie:
 
-### Taken (Langdurige Bewerkingen)
+### Taken (Langlopende Operaties)
 
 ```python
 # Taken maken het mogelijk om langlopende operaties met status te volgen
@@ -665,7 +668,7 @@ Deze functies zijn in de specificatie als experimenteel gemarkeerd:
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Taak gestart gerapporteerd
+    # Taak gestart rapporteren
     await ctx.report_status("running", "Initializing training...")
     
     # Trainingslus
@@ -681,31 +684,31 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-
+  
 ### Tool Annotaties
 
 ```python
-# Annotaties bieden metadata over gereedschapsgedrag
+# Annotaties bieden metadata over het gedrag van de tool
 @app.tool(
     annotations={
-        "destructive": False,      # Wijzigt geen gegevens
+        "destructive": False,      # Wijzigt de gegevens niet
         "idempotent": True,        # Veilig om opnieuw te proberen
         "timeout_seconds": 30,     # Verwachte maximale duur
-        "requires_approval": False # Geen goedkeuring van gebruiker nodig
+        "requires_approval": False # Geen gebruikersgoedkeuring nodig
     }
 )
 async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-
+  
 ---
 
-## Wat Nu?
+## Wat Volgt
 
-- [Module 8 - Beste Praktijken](../../08-BestPractices/README.md)  
+- [Module 8 - Best Practices](../../08-BestPractices/README.md)  
 - [5.14 - Context Engineering](../mcp-contextengineering/README.md)  
-- [MCP Specificatie Changelog](https://spec.modelcontextprotocol.io/)  
+- [MCP Specificatie Wijzigingenlog](https://spec.modelcontextprotocol.io/)  
 
 ---
 
@@ -720,5 +723,5 @@ async def safe_query(query: str) -> str:
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:
-Dit document is vertaald met behulp van de AI-vertalingsdienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat automatische vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het oorspronkelijke document in de originele taal wordt beschouwd als de gezaghebbende bron. Voor belangrijke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

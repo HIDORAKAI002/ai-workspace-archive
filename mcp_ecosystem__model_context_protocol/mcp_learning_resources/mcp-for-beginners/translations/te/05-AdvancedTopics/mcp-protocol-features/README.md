@@ -1,21 +1,23 @@
-# MCP ప్రోటోకాల ఫీచర్లు లోతైన అవగాహన
+# MCP ప్రోటోకాల్ ఫీచర్స్ లో లోతైన అవగాహన
 
-ఈ గైడ్ ప్రాథమిక టూల్ మరియు వనరు హేషలింగ్ ముట్టడి వరకు కాకుండా ఉన్న ఉన్నత MCP ప్రోటోకాల లక్షణాలను పరిశీలిస్తుంది. ఈ లక్షణాలను అర్థం చేసుకోవడం మిమ్మల్ని మరింత బలమైన, వినియోగదారులకి అనుకూలమైన, మరియు ఉత్పత్తి-సిద్ధ MCP సర్వర్లను నిర్మించడంలో సహాయపడుతుంది.
+ఈ గైడ్ ప్రాథమిక టూల్ మరియు వనరు హ్యాండ్లింగ్ దాటి ఉన్న ఆధునిక MCP ప్రోటోకాల్ ఫీచర్స్ ను పరిశీలిస్తుంది. ఈ ఫీచర్స్ ను అర్థం చేసుకోవడం ద్వారా మీరు మరింత దృఢమైన, వినియోగదారులకు స్నేహపూర్వకమైన మరియు ప్రొడక్షన్-రెడి MCP సర్వర్లను నిర్మించవచ్చు.
 
-## కవర్ చేసిన ఫీచర్లు
+> **ముందు చూపులు:** `2026-07-28` విడుదల అభ్యర్థి Logging ప్రిమిటివ్‌ను (stdio కోసం `stderr` మరియు సంక్షిప్త పరిశీలన కోసం OpenTelemetryను ప్రాధాన్యం ఇచ్చుతూ) డిప్రికేట్ చేస్తుంది, క్రింద ప్రస్తావించిన సర్వర్ లైఫ్‌సైకిల్ ఈవెంట్లలో ఉన్న `initialize`/సెషన్ మోడల్‌ను తొలగిస్తుంది, మరియు ప్రయోగాత్మక Tasks ఫీచర్‌ను కొత్త `tasks/get`/`tasks/update`/`tasks/cancel` లైఫ్‌సైకిల్‌తో ప్రత్యేక Tasks విస్తరణలోకి మార్చుతుంది. [MCP లో మార్పులు: 2026-07-28 విడుదల అభ్యర్థి](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) చూడండి.
 
-1. **ప్రోగ్రెస్ నోటిఫికేషన్లు** - దీర్ఘకాలంగా నడుచుకునే ఆపరేషన్ల కోసం పురోగతిని నివేదించండి
-2. **రెక్కెస్ట్ రద్దు** - క్లయింట్లు లోపలున్న రిక్వెస్ట్‌లను రద్దు చేయగలిగేలా చేయండి
-3. **రోర్స్ టెంప్లేట్లు** - పారామీటర్లతో డైనమిక్ వనరు URI లు
-4. **సర్వర్ జీవచక్ర సంఘటనలు** - సరైన ప్రారంభం మరియు మరణం నిర్వహణ
-5. **లాగింగ్ నియంత్రణ** - సర్వర్-పక్క లాగింగ్ అమరిక
-6. **లోప నిర్వహణ నమూనాలు** - సక్రమమైన లోప స్పందనలు
+## కవర్ చేసిన ఫీచర్స్
+
+1. **ప్రగతి నోటిఫికేషన్లు** - దీర్ఘకాలిక ఆపరేషన్ల కోసం ప్రగతిని నివేదించడం
+2. **అభ్యర్థన రద్దు** - క్లయింట్లు ఇన్ఫ్లైట్ అభ్యర్థనలను రద్దు చేయడానికి అనుమతిస్తుంది
+3. **వనరు టెంప్లేట్లు** - పారామీటర్లతో డైనమిక్ వనరు URIలు
+4. **సర్వర్ లైఫ్‌సైకిల్ ఈవెంట్లు** - సరైన ఆరంభము మరియు ముగింపు
+5. **లాగింగ్ నియంత్రణ** - సర్వర్-వైపు లాగింగ్ కాన్ఫిగరేషన్
+6. **లోపాలు నిర్వహణ నమూనాలు** - సజావుగా లోప ప్రతిస్పందనలు
 
 ---
 
-## 1. ప్రోగ్రెస్ నోటిఫికేషన్లు
+## 1. ప్రగతి నోటిఫికేషన్లు
 
-సమయాన్ని తీసుకునే ఆపరేషన్ల (డేటా ప్రాసెసింగ్, ఫైల్ డౌన్లోడ్‌లు, API కాల్స్) కొరకు, ప్రోగ్రెస్ నోటిఫికేషన్లు వినియోగదారులను సమాచారంతో ఉంచుతాయి.
+సమయం తీసుకునే ఆపరేషన్ల కోసం (డేటా ప్రాసెసింగ్, ఫైల్ డౌన్లోడ్స్, API కాల్స్), ప్రగతి నోటిఫికేషన్లు వినియోగదారులను సమాచారంలో ఉంచుతాయి.
 
 ### ఇది ఎలా పనిచేస్తుంది
 
@@ -24,13 +26,14 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (దీర్ఘ కార్యకలం)
-    Server-->>Client: సూచన: పురోగతి 10%
-    Server-->>Client: సూచన: పురోగతి 50%
-    Server-->>Client: సూచన: పురోగతి 90%
+    Client->>Server: tools/call (దీర్ఘకాళం ఆపరేషన్)
+    Server-->>Client: notification: ప్రగతి 10%
+    Server-->>Client: notification: ప్రగతి 50%
+    Server-->>Client: notification: ప్రగతి 90%
     Server->>Client: ఫలితం (పూర్తయింది)
 ```
-### పైথాన్ అమలు
+
+### పైనథాన్ అమలు
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -43,7 +46,7 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # పురోగతి లెక్కింపు కోసం ఫైల్ పరిమాణాన్ని పొందండి
+    # అభివృద్ధి లెక్కింపు కోసం ఫైల్ పరిమాణం పొందండి
     file_size = os.path.getsize(file_path)
     processed = 0
     
@@ -53,7 +56,7 @@ async def process_large_file(file_path: str, ctx) -> str:
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # పురోగతి सूचना పంపండి
+            # అభివృద్ధి అభ్యర్థన పంపండి
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # ప్రతి ఐటం తర్వాత పురోగతిని నివేదించండి
+        # ప్రతి అంశం తర్వాత అభివృద్ధిని నివేదించండి
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // పురోగతి సమాచారం పంపించు
+      // ప్రగతి సమాచారం పంపండి
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### క్లయింట్ హ్యాండ్లింగ్ (పైథాన్)
+### క్లయింట్ హ్యాండ్లింగ్ (పైనథాన్)
 
 ```python
 async def handle_progress(notification):
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# హ్యాండ్లర్‌ను నమోదు చేయండి
+# హాండ్లర్ నమోదు చేయండి
 session.on_notification("notifications/progress", handle_progress)
 
-# టూల్‌ని కాల్ చేయండి (ప్రగతి నవీకరణలు హ్యాండ్లర్ ద్వారా వస్తాయి)
+# టూల్‌ని కాల్ చేయండి (ప్రోగ్రెస్ అప్‌డేట్లు హాండ్లర్ ద్వారా వస్తాయి)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. రిక్వెస్ట్ రద్దు
+## 2. అభ్యర్థన రద్దు
 
-ఇంకా అవసరం లేని లేదా ఎక్కువ సమయం తీసుకుంటున్న రిక్వెస్ట్‌లను క్లయింట్లు రద్దు చేయగలుగుతారు.
+ఇప్పుడేం అవసరం లేకుండా లేదా ఎక్కువ సమయం తీసుకుంటున్న అభ్యర్థనలను క్లయింట్లు రద్దు చెయ్యగలుగుతారు.
 
-### పైథాన్ అమలు
+### పైనథాన్ అమలు
 
 ```python
 from mcp.server import Server
@@ -160,8 +163,8 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # అనేక పేజీలను శోధించండి
-            # రద్దు అభ్యర్థించినదా అని తనిఖీ చేయండి
+        for page in range(100):  # అనేక పేజీలలో శోధించండి
+            # రద్దు కోరబడిందో లేదో తనిఖీ చేయండి
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -169,11 +172,11 @@ async def long_running_search(query: str, ctx) -> str:
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # చిన్న ఆలస్యం రద్దు తనిఖీలను అనుమతిస్తుంది
+            # చిన్న ఆలస్యం రద్దు తనిఖీలకు అనుమతిస్తుంది
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # భాగ భాగ ఫలితాలు ఇవ్వండి
+        # భాగస్వామ్య ఫలితాలను 반환 చేయండి
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### రద్దు సందర్భం అమలు
+### రద్దు కాంటెక్స్ట్ అమలు
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # సాధారణ టైమ్ అవుట్, కొనసాగించండి
+            pass  # సాధారణ టైమ్అవుట్, కొనసాగించండి
 ```
 
-### క్లయింట్-పక్క రద్దు
+### క్లయింట్-సైడ్ రద్దు
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # అభ్యర్థన రద్దు చేయడం
+        # రద్దు verzoek
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. వనరు టెంప్లేట్లు
 
-రోర్స్ టెంప్లేట్లు పారామీటర్లతో డైనమిక్ URI నిర్మాణాన్ని అనుమతిస్తాయి, ఇది API లు మరియు డేటాబేస్‌లకు ఉపయోగకరమే.
+వనరు టెంప్లేట్లు పారామీటర్లతో డైనమిక్ URI నిర్మాణాన్ని అనుమతిస్తాయి, ఇది APIs మరియు డేటాబేస్లకు ఉపయోగకరం.
 
 ### టెంప్లేట్లు నిర్వచించడం
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # పారామితులను వెలికితీయడానికి URI ని విభజించండి
+    # URI ని పార్స్ చేసి పారామీటర్లను ఎక్స్‌ట్రాక్ట్ చేయండి
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // GitHub ఇష్యూ URIని పార్స్ చేయండి
+  // GitHub ఇష్యూ URI ను విశ్లేషించండి
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. సర్వర్ జీవచక్ర సంఘటనలు
+## 4. సర్వర్ లైఫ్‌సైకిల్ ఈవెంట్లు
 
-సరైన ప్రారంభ మరియు షట్‌డౌన్ నిర్వహణ వనరుల సురక్షితం నిర్వహణను నిర్ధారిస్తుంది.
+సరైన ఆరంభము మరియు ముగింపు నిర్వహణ శుభ్రమైన వనరు నిర్వహణను నిర్ధారిస్తుంది.
 
-### పైథాన్ జీవచక్ర నిర్వహణ
+### పైనథాన్ లైఫ్‌సైకిల్ నిర్వహణ
 
 ```python
 from mcp.server import Server
@@ -383,7 +386,7 @@ async def lifespan(server: Server):
     """Manage server lifecycle."""
     global db_connection, cache
     
-    # స్టార్ట్ అప్
+    # ప్రారంభం
     print("🚀 Server starting...")
     db_connection = await create_database_connection()
     cache = await create_cache_client()
@@ -391,7 +394,7 @@ async def lifespan(server: Server):
     
     yield  # సర్వర్ ఇక్కడ నడుస్తుంది
     
-    # షట్ డౌన్
+    # మూసివేత
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### టైప్‌స్క్రిప్ట్ జీవచక్ర
+### టైప్‌స్క్రిప్ట్ లైఫ్‌సైకిల్
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -435,7 +438,7 @@ class ManagedServer {
   }
   
   async stop() {
-    // వనరులను శుభ్రం చేయండి
+    // వనరులను శుభ్రపరచండి
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // this.dbConnection ను సురక్షితంగా ఉపయోగించండి
+      // ఈ.dbConnection ను సురక్షితంగా ఉపయోగించండి
       // ...
     });
   }
 }
 
-// సౌమ్యంగా షట్‌డౌన్‌తో ఉపయోగం
+// సున్నితమైన శట్‌డౌన్‌తో ఉపయోగం
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## 5. లాగింగ్ నియంత్రణ
 
-MCP సర్వర్-పక్క లాగింగ్ స్థాయిలను మద్దతు ఇస్తుంది, వీటిని క్లయింట్లు నియంత్రించగలరు.
+MCP సర్వర్ వైపు లాగింగ్ స్థాయిలను మద్దతు ఇస్తుంది, వీటిని క్లయింట్లు నియంత్రించవచ్చు.
 
-### లాగింగ్ స్థాయిల అమలు
+### లాగింగ్ స్థాయిలను అమలు చేయడం
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP స్థాయిలను Python లాగింగ్ స్థాయిలకు మ్యాప్ చేయండి
+# MCP స్థాయులను Python లాగింగ్ స్థాయులకు మ్యాప్ చేయండి
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,7 +512,7 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### క్లయింట్‌కు లాగ్ సందేశాలను పంపించడం
+### క్లయింట్ కు లాగ్ సందేశాలు పంపడం
 
 ```python
 @app.tool()
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. లోప నిర్వహణ నమూనాలు
+## 6. లోపాలు నిర్వహణ నమూనాలు
 
-సక్రమమైన లోప నిర్వహణ డీబగ్గింగ్ మరియు వినియోగదారుల అనుభవం మెరుగుపరుస్తుంది.
+సజావుగా లోపాలు నిర్వహించడం డీబగ్గింగ్ మరియు వినియోగదారుల అనుభవాన్ని మెరుగుపరుస్తుంది.
 
 ### MCP లోప కోడ్స్
 
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### నిర్మిత లోప స్పందనలు
+### నిర్మిత లోప ప్రతిస్పందనలు
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # ఇన్‌పుట్‌ను ధృవీకరించండి
+    # ఇన్‌పుట్‌ను ధృవపరచండి
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -584,7 +587,7 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # అనుమతులు తనిఖీ చేయండి
+        # అనుమతులను తనిఖీ చేయండి
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
@@ -601,7 +604,7 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # అప్రత్యాశిత లోపాలను లాగ్ చేయండి
+        # అనుకోని లోపాలను లాగ్ చేయండి
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // మరింత ధృవీకరణ...
+  // మరింత సత్యాపనం...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -633,15 +636,15 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // ఇప్పటికే MCP లో తప్పు
+      throw error;  // ఇప్పటికే MCP లో లోపం
     }
     
-    // ఇతర పొరపాట్లను మార్చండి
+    // ఇతర లోపాలను మార్పిడి చేయండి
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
     
-    // తెలియని పొరపాటు
+    // తెలియని లోపం
     console.error("Unexpected error:", error);
     throw new McpError(
       ErrorCode.InternalError,
@@ -653,19 +656,19 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## ప్రయోగాత్మక ఫీచర్లు (MCP 2025-11-25)
+## ప్రయోగాత్మక ఫీచర్స్ (MCP 2025-11-25)
 
-ఈ ఫీచర్లు స్పెసిఫికేషన్‌లో ప్రయోగాత్మకంగా గుర్తింపు పొందాయి:
+ఈ ఫీచర్స్ స్పెసిఫికేషన్ లో ప్రయోగాత్మకంగా గుర్తించబడ్డాయి:
 
-### పనులు (దీర్ఘకాల ఆపరేషన్లు)
+### టాస్క్స్ (దీర్ఘకాలిక ఆపరేషన్లు)
 
 ```python
-# టాస్కులు స్థితితో పొడుగు నడిచే కార్యకలాపాలను ట్రాక్ చేయటానికి అనుమతిస్తాయి
+# పనులు స్థితితో ఉన్న దీర్ఘకాలిక కార్యకలాపాలను ట్రాక్ చేయడానికి అనుమతిస్తాయి
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # టాస్క్ ప్రారంభమయింది అని నివేదించండి
+    # పని ప్రారంభమయ్యిందని నివేదిక ఇవ్వండి
     await ctx.report_status("running", "Initializing training...")
     
     # శిక్షణ లూప్
@@ -682,14 +685,14 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### టూల్ వ్యాఖ్యానాలు
+### టూల్ అనోటేషన్లు
 
 ```python
-# annotations టూల్ ప్రవర్తన గురించి మెటాడేటాను అందిస్తాయి
+# annotations సాధనపు ప్రవర్తన గురించి మెటాడేటా అందిస్తాయి
 @app.tool(
     annotations={
-        "destructive": False,      # డేటాను మార్పు చేయదు
-        "idempotent": True,        # మళ్ళీ ప్రయత్నించడంలో సురక్షితం
+        "destructive": False,      # డేటాను మార్చదు
+        "idempotent": True,        # పునఃప్రయత్నం చేయడం సురక్షితం
         "timeout_seconds": 30,     # అంచనా గరిష్ట వ్యవధి
         "requires_approval": False # యూజర్ ఆమోదం అవసరం లేదు
     }
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## తదుపరి ఏమిటి
+## తర్వాత ఏం
 
-- [Module 8 - Best Practices](../../08-BestPractices/README.md)
-- [5.14 - Context Engineering](../mcp-contextengineering/README.md)
-- [MCP Specification Changelog](https://spec.modelcontextprotocol.io/)
+- [మాడ్యూల్ 8 - ఉత్తమ ఆచరణలు](../../08-BestPractices/README.md)
+- [5.14 - కాన్టెక్స్ట్ ఇంజీనీరింగ్](../mcp-contextengineering/README.md)
+- [MCP స్పెసిఫికేషన్ చేంజ్‌లాగ్](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## అదనపు వనరులు
 
-- [MCP Specification 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 Error Codes](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK Examples](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [TypeScript SDK Examples](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [MCP స్పెసిఫికేషన్ 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 లోప కోడ్స్](https://www.jsonrpc.org/specification#error_object)
+- [పైనథాన్ SDK ఉదాహరణలు](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [టైప్‌స్క్రిప్ట్ SDK ఉదాహరణలు](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**బహిష్కరణ**:  
-ఈ డాక్యూమెంట్‌ను AI అనువాద సేవ [Co-op Translator](https://github.com/Azure/co-op-translator) ఉపయోగించి అనువదించబడింది. మేము సరిగ్గా అనువదించడానికి ప్రయత్నించినప్పటికీ, ఆటోమేటెడ్ అనువాదాలలో పొరపాట్లు లేదా అసత్యతలు ఉండే అవకాశం ఉంది. అసలు డాక్యూమెంట్ దాని మాతృభాషలోని ఆధికారిక మూలం గా పరిగణించాలి. ముఖ్యమైన సమాచారం కోసం, 전문 మానవ అనువాదం చేయించుకోవడం మేలుగా ఉంటుంది. ఈ అనువాదం వలన కలిగే ఏవైనా త misunderstandings లేదా తప్పుదొర్లతలకు మేము బాధ్యులేమీ కాదు.
+**అస్వీకరణ**:
+ఈ పత్రం AI అనువాద సేవ [Co-op Translator](https://github.com/Azure/co-op-translator) ఉపయోగించి అనువదించబడింది. మేము ఖచ్చితత్వానికి ప్రయత్నిస్తున్నప్పటికీ, ఆటోమేటెడ్ అనువాదాలు తప్పులు లేదా అసమగ్రతలను కలిగి ఉండవచ్చు. దాని స్వదేశ భాషలో ఉన్న అసలు పత్రాన్ని అధికారం కలిగిన మూలంగా పరిగణించాలి. కీలకమైన సమాచారం కోసం, ప్రొఫెషనల్ మానవ అనువాదాన్ని సిఫారసు చేస్తాము. ఈ అనువాదం ఉపయోగం వల్ల కలిగే ఏవైనా అపార్థాలు లేదా తప్పుదారులు కోసం మేము బాధ్యత వహించము.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

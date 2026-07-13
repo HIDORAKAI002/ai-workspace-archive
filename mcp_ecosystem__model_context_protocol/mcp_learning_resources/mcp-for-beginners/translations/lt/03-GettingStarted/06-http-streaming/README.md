@@ -1,60 +1,62 @@
-# HTTPS srautinimas su Model Context Protocol (MCP)
+# HTTPS srautas su Model Context Protocol (MCP)
 
-Šiame skyriuje pateikiamas išsamus vadovas, kaip įgyvendinti saugų, mastelį palaikantį ir realaus laiko srautinį perdavimą naudojant Model Context Protocol (MCP) per HTTPS. Tai apima srautinio perdavimo motyvaciją, galimus transporto mechanizmus, kaip įgyvendinti srautiniu būdu perduodamą HTTP MCP, saugumo geriausias praktikas, migraciją nuo SSE ir praktines gaires, kaip kurti savo srautines MCP programas.
+Šis skyrius pateikia išsamų vadovą, kaip įgyvendinti saugų, galintį keistis mastu ir realiuoju laiku veikiančią srautą naudojant Model Context Protocol (MCP) per HTTPS. Apžvelgiami srauto motyvai, galimi transportavimo mechanizmai, kaip įgyvendinti srautą palaikančią HTTP MCP, saugumo geriausios praktikos, migracija nuo SSE ir praktinės gairės, kaip kurti savo srautinės MCP programėles.
 
-## Transporto mechanizmai ir srautinimas MCP
+> **Žiūrint į priekį:** ši pamoka aprašo Srautuojamą HTTP pagal **MCP specifikaciją 2025-11-25**, kur sesija užmezgama `initialize` metu ir pririšama su `Mcp-Session-Id` antrašte. „2026-07-28“ konkurencinė versija visiškai pašalina rankos paspaudimą ir sesijos ID, todėl kiekvienas užklausimas yra savarankiškas ir gali būti nukreiptas į bet kurį serverio egzempliorių, neliečiant kintamųjų sesijų. Daugiau informacijos žr. [Kas keičiasi MCP: 2026-07-28 konkurencinė versija](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Šioje skiltyje nagrinėjami MCP galimi transporto mechanizmai ir jų vaidmuo leidžiant realaus laiko srautinio perdavimo galimybes tarp klientų ir serverių.
+## Transportavimo mechanizmai ir srautas MCP
 
-### Kas yra transporto mechanizmas?
+Šiame skyriuje aptariami skirtingi MCP transportavimo mechanizmai ir jų vaidmuo leidžiant srautinę realaus laiko komunikaciją tarp klientų ir serverių.
 
-Transporto mechanizmas apibrėžia, kaip duomenys keičiasi tarp kliento ir serverio. MCP palaiko kelis transporto tipus, kad atitiktų skirtingas aplinkas ir reikalavimus:
+### Kas yra transportavimo mechanizmas?
 
-- **stdio**: Standartinis įėjimas/išėjimas, tinka vietiniams ir komandų eilutės įrankiams. Paprasta, bet netinkama žiniatinkliui ar debesijai.
-- **SSE (Server-Sent Events)**: Leidžia serveriams per HTTP siųsti realaus laiko atnaujinimus klientams. Gerai tinka interneto vartotojo sąsajoms, tačiau turi apribojimų dėl mastelio ir lankstumo. Nuo MCP specifikacijos 2025-06-18 atskiro SSE (Server-Sent Events) transportas nebenaudojamas ir yra pakeistas „Streamable HTTP“ transportu.
-- **Streamable HTTP**: Modernus HTTP pagrindu veikiantis srautinio perdavimo transportas, palaikantis pranešimus ir geresnį mastelį. Rekomenduojamas daugumai gamybinių ir debesijos scenarijų.
+Transportavimo mechanizmas nurodo, kaip duomenys keičiasi tarp kliento ir serverio. MCP palaiko kelis transportavimo tipus, kad atitiktų skirtingas aplinkas ir reikalavimus:
+
+- **stdio**: Standartinis įvesties/išvesties mechanizmas, tinkamas vietinėms ir CLI pagrindu veikiančioms priemonėms. Paprasta, bet netinka žiniatinkliui ar debesų aplinkai.
+- **SSE (Server-Sent Events)**: Leidžia serveriams perduoti realaus laiko atnaujinimus klientams per HTTP. Tinka žiniatinklio UI, bet ribotas mastelį ir lankstumą. Nuo MCP specifikacijos 2025-06-18 atskiro SSE (Server-Sent Events) transportas yra pasenęs ir pakeistas „Srautuojamu HTTP“ transportu.
+- **Srautuojamas HTTP**: Modernus HTTP pagrindu veikiantis srautinio perdavimo transportas, palaikantis pranešimus ir geresnį mastelį. Rekomenduojamas daugumai gamybinių ir debesų scenarijų.
 
 ### Palyginimo lentelė
 
-Pažiūrėkite žemiau pateiktą palyginimo lentelę, kad suprastumėte skirtumus tarp šių transporto mechanizmų:
+Žemiau pateikta palyginimo lentelė, kuri padės suprasti skirtumus tarp šių transportavimo mechanizmų:
 
-| Transportas        | Realiojo laiko atnaujinimai | Srautinimas | Mastelis    | Panaudojimo atvejis      |
-|--------------------|-----------------------------|-------------|-------------|-------------------------|
-| stdio              | Ne                          | Ne          | Žemas       | Vietiniai CLI įrankiai  |
-| SSE                | Taip                        | Taip        | Vidutinis   | Internetas, realiu laiku |
-| Streamable HTTP    | Taip                        | Taip        | Aukštas     | Debesis, keli klientai  |
+| Transportas        | Realaus laiko atnaujinimai | Srautas | Mastelėjimas | Naudojimo atvejis       |
+|-------------------|----------------------------|---------|--------------|------------------------|
+| stdio             | Ne                         | Ne      | Žemas       | Vietinės CLI priemonės |
+| SSE               | Taip                       | Taip    | Vidutinis    | Žiniatinklis, realaus laiko atnaujinimai |
+| Srautuojamas HTTP | Taip                       | Taip    | Aukštas     | Debesys, daugelio klientų aptarnavimas |
 
-> **Patariama:** Tinkamo transporto pasirinkimas veikia našumą, mastelį ir naudotojo patirtį. **Streamable HTTP** rekomenduojamas šiuolaikinėms, masteliui pritaikytoms ir debesies programoms.
+> **Pataria:** pasirinkus tinkamą transportą, gerėja našumas, mastelėjimas ir naudotojo patirtis. **Srautuojamas HTTP** rekomenduojamas modernioms, masteliui pritaikytoms ir debesų aplinkai paruoštoms programoms.
 
-Atkreipkite dėmesį į ankstesniuose skyriuose pristatytus stdio ir SSE transportus, o šiame skyriuje aptariamas Streamable HTTP transportas.
+Atkreipkite dėmesį į transportus stdio ir SSE, kurie buvo parodyti ankstesniuose skyriuose, ir kaip šio skyriaus tema yra srautuojamas HTTP transportas.
 
-## Srautinimas: koncepcijos ir motyvacija
+## Srautas: koncepcijos ir motyvacija
 
-Svarbu suprasti pagrindines srautinimo koncepcijas ir motyvus norint įgyvendinti efektyvias realaus laiko komunikacijos sistemas.
+Suprasti pagrindines srauto koncepcijas ir motyvus yra esminis dalykas efektyvioms realaus laiko komunikacijos sistemoms įgyvendinti.
 
-**Srautinimas** yra tinklo programavimo technika, leidžianti duomenis siųsti ir gauti mažais, valdomais gabalėliais arba kaip įvykių seką, o ne laukti, kol visos atsakymas bus paruoštas. Tai ypač naudinga:
+**Srautavimas** – tai tinklo programavimo technika, kuri leidžia siųsti ir gauti duomenis mažais, valdomais gabalėliais arba kaip įvykių seką, o ne laukti, kol bus paruošta visa atsakymo dalis. Tai ypač naudinga:
 
 - Dideliems failams ar duomenų rinkiniams.
-- Realiojo laiko atnaujinimams (pvz., pokalbiai, pažangos juostos).
-- Ilgai trunkančioms skaičiavimų užduotims, kai norima informuoti naudotoją.
+- Realaus laiko atnaujinimams (pvz., pokalbiai, pažangos juostos).
+- Ilgai trunkančioms skaičiavimų operacijoms, kai norite informuoti vartotoją.
 
-Štai ką svarbu žinoti apie srautinimą aukštu lygiu:
+Štai ką reikia žinoti apie srautinį perdavimą aukštu lygiu:
 
-- Duomenys pateikiami progresyviai, ne visi iš karto.
-- Klientas gali apdoroti duomenis atsižvelgdamas į jų atvykimą.
-- Mažina suvokiamą delsą ir gerina naudotojo patirtį.
+- Duomenys tiekiami palaipsniui, ne visi iš karto.
+- Klientas gali apdoroti duomenis juos gaudamas.
+- Mažina suvokiamą delsą ir pagerina naudotojo patirtį.
 
-### Kodėl naudoti srautinimą?
+### Kodėl naudoti srautą?
 
-Pagrindinės srautinimo naudojimo priežastys yra šios:
+Srautą naudoti verta dėl šių priežasčių:
 
-- Naudotojai gauna grįžtamąjį ryšį iš karto, o ne tik gale
-- Leidžia realiojo laiko programas ir reaguojančias vartotojo sąsajas
-- Efektyvesnis tinklo ir skaičiavimo išteklių naudojimas
+- Vartotojai gauna grįžtamąjį ryšį iš karto, ne tik pabaigoje.
+- Leidžia kurti realaus laiko programas ir reaguojančius UI.
+- Efektyviau naudoja tinklo ir skaičiavimo išteklius.
 
-### Paprastas pavyzdys: HTTP srautinio serverio ir kliento
+### Paprastas pavyzdys: HTTP srautinis serveris ir klientas
 
-Pateikiamas paprastas pavyzdys, kaip galima įgyvendinti srautą:
+Štai paprastas pavyzdys, kaip galima įgyvendinti srautą:
 
 #### Python
 
@@ -88,18 +90,18 @@ with requests.get("http://localhost:8000/stream", stream=True) as r:
             print(line.decode())
 ```
 
-Šiame pavyzdyje serveris siųs klientui atskirus pranešimus, kai jie bus paruošti, o ne lauks, kol visi pranešimai bus paruošti.
+Šis pavyzdys iliustruoja serverį, siunčiantį klientui seriją žinučių, kai jos tampa prieinamos, o ne laukiančią visų žinučių paruošimo.
 
 **Kaip tai veikia:**
 
-- Serveris pateikia kiekvieną pranešimą, kai jis paruoštas.
-- Klientas gauna ir spausdina kiekvieną dalį, kai ji atvyksta.
+- Serveris perduoda kiekvieną žinutę, kai ji yra paruošta.
+- Klientas gauna ir atspausdina kiekvieną gautą gabalėlį.
 
 **Reikalavimai:**
 
-- Serveris turi naudoti srautinį atsaką (pvz., `StreamingResponse` FastAPI).
+- Serveris privalo naudoti srautinį atsakymą (pvz., `StreamingResponse` FastAPI).
 - Klientas turi apdoroti atsakymą kaip srautą (`stream=True` requests).
-- Turinys dažniausiai būna `text/event-stream` arba `application/octet-stream`.
+- Turinys dažniausiai yra `text/event-stream` arba `application/octet-stream`.
 
 #### Java
 
@@ -168,74 +170,74 @@ public class CalculatorClientApplication implements CommandLineRunner {
 
 **Java įgyvendinimo pastabos:**
 
-- Naudoja Spring Boot reaktyvią sistemą su `Flux` srautinimui
-- `ServerSentEvent` teikia struktūruotą srautinį pranešimą su įvykių tipais
-- `WebClient` su `bodyToFlux()` leidžia reaguojančiai vartoti srautus
-- `delayElements()` simuliuoja apdorojimo laiką tarp įvykių
-- Įvykiai gali turėti tipus (`info`, `result`) geresniam kliento apdorojimui
+- Naudoja Spring Boot reaktyviąją krūvą su `Flux` srautavimui.
+- `ServerSentEvent` teikia struktūrizuotą įvykių srautą su įvykių tipais.
+- `WebClient` su `bodyToFlux()` leidžia reaktyvų srautų vartojimą.
+- `delayElements()` imituoja apdorojimo laiką tarp įvykių.
+- Įvykiai gali turėti tipus (`info`, `result`) geresniam kliento apdorojimui.
 
-### Palyginimas: klasikinis srautinimas vs MCP srautinimas
+### Palyginimas: klasikinis srautas vs MCP srautas
 
-Skirtumus tarp „klasikinio“ srautinio perdavimo ir MCP srautinimo galima pavaizduoti taip:
+Skirtumai, kaip srautas veikia klasikiniu būdu ir kaip MCP, galima pavaizduoti taip:
 
-| Funkcija               | Klasikinis HTTP srautinimas    | MCP srautinimas (Pranešimai)      |
-|------------------------|--------------------------------|----------------------------------|
-| Pagrindinis atsakymas   | Gabalėliai                     | Vienas, pabaigoje                |
-| Pažangos atnaujinimai  | Siunčiami kaip duomenų gabalėliai | Siunčiami kaip pranešimai         |
-| Kliento reikalavimai   | Turi apdoroti srautą           | Turi įgyvendinti pranešimų apdorojimą |
-| Panaudojimo atvejis    | Dideli failai, AI žodžių srautai | Pažanga, žurnalai, realaus laiko grįžtamasis ryšys |
+| Funkcija               | Klasikinis HTTP srautas       | MCP srautas (Pranešimai)         |
+|------------------------|-------------------------------|----------------------------------|
+| Pagrindinis atsakymas   | Gabalėliuotas                 | Vienas, pabaigoje               |
+| Progreso atnaujinimai  | Siunčiami kaip duomenų gabalai | Siunčiami kaip pranešimai       |
+| Kliento reikalavimai   | Turi apdoroti srautą          | Reikia įgyvendinti žinučių apdorojimą |
+| Naudojimo atvejis       | Dideli failai, AI žetonų srautai | Progresas, žurnalai, realaus laiko atsiliepimai |
 
-### Pastebimi pagrindiniai skirtumai
+### Pagrindiniai pastebėti skirtumai
 
-Papildomai, keletas pagrindinių skirtumų:
+Be to, čia yra pagrindiniai skirtumai:
 
 - **Komunikacijos modelis:**
-  - Klasikinis HTTP srautinimas: naudoja paprastą srautų perdavimo kodavimą, kad siųstų gabalėlius
-  - MCP srautinimas: naudoja struktūruotą pranešimų sistemą su JSON-RPC protokolu
+  - Klasikinis HTTP srautas: naudoja paprastą gabalėliuoto perdavimo kodavimą duomenims siųsti
+  - MCP srautas: naudoja struktūruotą pranešimų sistemą su JSON-RPC protokolu
 
-- **Pranešimo formatas:**
-  - Klasikinis HTTP: paprasti teksto gabalėliai su naujomis eilutėmis
+- **Žinutės formatas:**
+  - Klasikinis HTTP: paprasti tekstiniai gabalėliai su naujomis eilutėmis
   - MCP: struktūruoti LoggingMessageNotification objektai su metaduomenimis
 
 - **Kliento įgyvendinimas:**
   - Klasikinis HTTP: paprastas klientas, apdorojantis srautinį atsakymą
-  - MCP: sudėtingesnis klientas, turintis pranešimų tvarkytuvą, apdorojantį skirtingo tipo pranešimus
+  - MCP: sudėtingesnis klientas su žiniučių apdorotoju skirtingų tipų žinutėms apdoroti
 
-- **Pažangos atnaujinimai:**
-  - Klasikinis HTTP: pažanga yra pagrindinio srauto dalis
-  - MCP: pažanga siunčiama per atskirus pranešimus, o pagrindinis atsakymas pateikiamas pabaigoje
+- **Progreso atnaujinimai:**
+  - Klasikinis HTTP: progresas yra pagrindinio srauto dalis
+  - MCP: progresas siunčiamas atskirais pranešimų pranešimais, o pagrindinis atsakymas pateikiamas pabaigoje
 
 ### Rekomendacijos
 
-Rekomenduojame keletą dalykų, renkantis tarp klasikinio srautinio perdavimo įgyvendinimo (kaip parodyta `/stream` pavyzdyje) ir srautinio perdavimo per MCP.
+Kai kuriuos dalykus rekomenduojame atsižvelgti renkantis tarp klasikinio srauto (kaip parodyta naudojant `/stream` endpointą aukščiau) ir srauto per MCP.
 
-- **Paprastoms srautinių poreikiams:** Klasikinis HTTP srautinimas yra paprastesnis ir pakankamas baziniams srautinio perdavimo poreikiams.
+- **Paprastiems srauto poreikiams:** klasikinis HTTP srautas yra paprastesnis įgyvendinti ir pakankamas pagrindiniams srauto poreikiams.
 
-- **Sudėtingoms, interaktyvioms programoms:** MCP srautinimas suteikia labiau struktūruotą požiūrį su turtingesniais metaduomenimis ir atskyrimu tarp pranešimų ir galutinių rezultatų.
+- **Sudėtingoms, interaktyvioms programoms:** MCP srautas suteikia struktūruotesnį požiūrį su turtingesniais metaduomenimis ir atskiria pranešimus nuo galutinių rezultatų.
 
-- **Dirbtinio intelekto aplikacijoms:** MCP pranešimų sistema ypač naudinga ilgai trunkančioms DI užduotims, kai norima nuolat informuoti naudotojus apie pažangą.
+- **AI programoms:** MCP pranešimų sistema ypač naudinga ilgai trunkančioms AI užduotims, kai norite informuoti naudotojus apie pažangą.
 
-## Srautinimas MCP
+## Srautas MCP
 
-Gerai, galėjote pamatyti rekomendacijas ir palyginimus tarp klasikinio srautinio perdavimo ir MCP srautinimo. Dabar panagrinėkime tiksliai, kaip galite pasinaudoti srautinimu MCP.
+Taigi, matėme keletą rekomendacijų ir palyginimų, kaip skiriasi klasikinis srautas ir MCP srautas. Dabar detaliau apžvelgsime, kaip tiksliai galite pasinaudoti srautu MCP.
 
-Svarbu suprasti, kaip veikia srautinimas MCP sistemoje norint kurti jautrias programas, teikiančias realaus laiko grįžtamąjį ryšį vartotojams ilgai trunkančių operacijų metu.
+Suprasti, kaip srautas veikia MCP sistemoje, yra svarbu kuriant reaguojančias programas, kurios suteikia realiojo laiko grįžtamąjį ryšį vartotojams vykstant ilgai trunkančioms operacijoms.
 
-MCP srautinimas nėra pagrindinio atsakymo siuntimas gabalėliais, bet **pranešimų** siuntimas klientui, kol įrankis apdoroja užklausą. Šie pranešimai gali apimti pažangos atnaujinimus, žurnalus ar kitus įvykius.
+MCP srautas nėra apie pagrindinio atsakymo siuntimą gabalėliais, o apie **pranešimų** siuntimą klientui, kol įrankis apdoroja užklausą. Šie pranešimai gali apimti pažangos atnaujinimus, žurnalus ar kitus įvykius.
 
 ### Kaip tai veikia
 
-Pagrindinis rezultatas vis dar siunčiamas kaip vienas atsakymas. Tačiau pranešimai gali būti siunčiami kaip atskiros žinutės per apdorojimą ir taip realiu laiku atnaujinti klientą. Klientas turi gebėti apdoroti ir rodyti šiuos pranešimus.
+Pagrindinis rezultatas vis tiek siunčiamas vienu atsakymu. Tačiau pranešimai gali būti siunčiami kaip atskiros žinutės apdorojimo metu, taip atnaujindami klientą realiu laiku. Klientas turi mokėti apdoroti ir rodyti šiuos pranešimus.
 
 ## Kas yra pranešimas?
 
 Minėjome „Pranešimą“, ką tai reiškia MCP kontekste?
 
-Pranešimas yra žinutė, siunčiama iš serverio klientui, informuojant apie pažangą, būseną ar kitus įvykius ilgai trunkančios operacijos metu. Pranešimai gerina skaidrumą ir naudotojo patirtį.
+Pranešimas – tai žinutė, siunčiama iš serverio klientui, informuojanti apie pažangą, būseną ar kitus įvykius ilgai trunkančios operacijos metu. Pranešimai pagerina skaidrumą ir naudotojo patirtį.
 
-Pavyzdžiui, klientas turėtų siųsti pranešimą, kai įvyko pradinis pasisveikinimas su serveriu.
+Pavyzdžiui, klientas turėtų siųsti pranešimą, kai įvyksta pradinis rankos paspaudimas su serveriu.
 
-Pranešimas atrodo taip JSON pranešimu:
+Pranešimas atrodo taip JSON formatu:
 
 ```json
 {
@@ -247,9 +249,9 @@ Pranešimas atrodo taip JSON pranešimu:
 }
 ```
 
-Pranešimai priklauso temai MCP, vadinamai ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
+Pranešimai priskiriami MCP temai, vadinamai ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
 
-Kad žurnalavimas veiktų, serveris turi jį įjungti kaip funkciją/galimybę taip:
+Kad prisijungimas veiktų, serveris turi įjungti šią funkciją/galimybę taip:
 
 ```json
 {
@@ -260,28 +262,28 @@ Kad žurnalavimas veiktų, serveris turi jį įjungti kaip funkciją/galimybę t
 ```
 
 > [!NOTE]
-> Priklausomai nuo naudojamos SDK, žurnalavimas gali būti įjungtas pagal nutylėjimą, arba gali tekti jį aiškiai įjungti serverio konfiguracijoje.
+> Priklausomai nuo naudojamos SDK, prisijungimas gali būti įjungtas pagal numatytuosius nustatymus arba gali prireikti jį aiškiai įjungti serverio konfigūracijoje.
 
-Yra skirtingų pranešimų tipų:
+Yra skirtingi pranešimų tipai:
 
-| Lygis     | Aprašas                      | Pavyzdinis panaudojimo atvejis  |
-|-----------|------------------------------|--------------------------------|
-| debug     | Detali informacija apie klaidas | Funkcijų įėjimai/išėjimai       |
-| info      | Bendri informaciniai pranešimai | Operacijos pažangos atnaujinimai |
-| notice    | Normalūs, bet reikšmingi įvykiai | Konfigūracijos pakeitimai       |
-| warning   | Įspėjamosios sąlygos          | Pasenusios funkcijos naudojimas  |
-| error     | Klaidos sąlygos               | Operacijų nesėkmės               |
-| critical  | Kritinės sąlygos              | Sistemos komponentų gedimai     |
-| alert     | Reikia nedelsti veiksmų       | Aptikta duomenų korupcija       |
-| emergency | Sistema neveikia              | Viso sistema gedimas            |
+| Lygis     | Aprašymas                    | Naudojimo pavyzdys            |
+|-----------|------------------------------|------------------------------|
+| debug     | Išsami informacija apie derinimą | Funkcijų įėjimo/išėjimo taškai |
+| info      | Bendros informacinės žinutės | Operacijos pažangos atnaujinimai |
+| notice    | Normalūs, bet svarbūs įvykiai  | Konfigūracijos pakeitimai     |
+| warning   | Įspėjamieji signalai          | Naudojamos pasenusios funkcijos |
+| error     | Klaidos sąlygos               | Operacijų nesėkmės            |
+| critical  | Kritinės sąlygos              | Sistemos komponentų sutrikimai |
+| alert     | Reikia skubaus veiksmo        | Aptikta duomenų sugadinimas   |
+| emergency | Sistema neveikia              | Viso sistemos gedimas         |
 
 ## Pranešimų įgyvendinimas MCP
 
-Norint įgyvendinti pranešimus MCP, reikia paruošti tiek serverio, tiek kliento puses, kad apdorotų realiojo laiko atnaujinimus. Tai leidžia jūsų programai teikti naudotojams akimirksnius grįžtamuosius ryšius ilgai trunkančių operacijų metu.
+Norint įgyvendinti pranešimus MCP, reikia paruošti tiek serverio, tiek kliento puses realaus laiko atnaujinimams siųsti ir apdoroti. Tai leidžia programai suteikti vartotojams nedelsiant suteikiamą grįžtamąjį ryšį ilgai trunkančių operacijų metu.
 
 ### Serverio pusė: pranešimų siuntimas
 
-Pradėkime nuo serverio pusės. MCP jūs apibrėžiate įrankius, kurie gali siųsti pranešimus apdorodami užklausas. Serveris naudoja konteksto objektą (dažniausiai `ctx`) pranešimams siųsti klientui.
+Pradėkime nuo serverio pusės. MCP aprašo įrankius, kurie gali siųsti pranešimus apdorodami užklausas. Serveris naudoja konteksto objektą (dažniausiai `ctx`), kad siųstų žinutes klientui.
 
 #### Python
 
@@ -294,9 +296,9 @@ async def process_files(message: str, ctx: Context) -> TextContent:
     return TextContent(type="text", text=f"Done: {message}")
 ```
 
-Ankstesniame pavyzdyje `process_files` įrankis siunčia tris pranešimus klientui apdorodamas kiekvieną failą. Metodas `ctx.info()` naudojamas informacinių pranešimų siuntimui.
+Ankstesniame pavyzdyje `process_files` įrankis siunčia tris pranešimus klientui apdorojant kiekvieną failą. `ctx.info()` metodas naudojamas siųsti informacines žinutes.
 
-Be to, norint įjungti pranešimus, įsitikinkite, kad serveris naudoja srautinį transportą (pvz., `streamable-http`) ir jūsų klientas įgyvendina pranešimų tvarkytuvą pranešimų apdorojimui. Štai kaip galite nustatyti serverį naudoti `streamable-http` transportą:
+Be to, norėdami įgalinti pranešimus, įsitikinkite, kad jūsų serveris naudoja srautinį transportą (pvz., `streamable-http`), o klientas turi įgyvendintą žinučių apdorotoją pranešimų apdorojimui. Štai kaip serverį paruošti naudoti `streamable-http` transportą:
 
 ```python
 mcp.run(transport="streamable-http")
@@ -319,9 +321,9 @@ public async Task<TextContent> ProcessFiles(string message, ToolContext ctx)
 }
 ```
 
-Šiame .NET pavyzdyje įrankis `ProcessFiles` pažymėtas atributu `Tool` ir siunčia tris pranešimus klientui apdorodamas kiekvieną failą. Metodas `ctx.Info()` naudojamas informacinių pranešimų siuntimui.
+Šiame .NET pavyzdyje `ProcessFiles` įrankis pažymėtas atributu `Tool` ir siunčia tris pranešimus klientui apdorojant kiekvieną failą. `ctx.Info()` metodas naudojamas siųsti informacines žinutes.
 
-Norėdami įjungti pranešimus savo .NET MCP serveryje, įsitikinkite, kad naudojate srautinį transportą:
+Norint įgalinti pranešimus .NET MCP serveryje, įsitikinkite, kad naudojate srautinį transportą:
 
 ```csharp
 var builder = McpBuilder.Create();
@@ -333,7 +335,7 @@ await builder
 
 ### Kliento pusė: pranešimų gavimas
 
-Klientas turi įgyvendinti pranešimų tvarkytuvą, kad apdorotų ir rodyti pranešimus, kai jie atvyksta.
+Klientas turi įgyvendinti žinučių apdorotoją, kuris priima ir rodo pranešimus juos gavus.
 
 #### Python
 
@@ -352,7 +354,7 @@ async with ClientSession(
 ) as session:
 ```
 
-Ankstesniame kode funkcija `message_handler` tikrina, ar gaunamas pranešimas yra pranešimo tipo. Jei taip, ji atspausdina pranešimą; kitaip, apdoroja kaip įprastą serverio žinutę. Taip pat atkreipkite dėmesį, kad `ClientSession` yra inicijuojama su `message_handler` pranešimų apdorojimui.
+Aukščiau pateiktame kode `message_handler` funkcija tikrina, ar gaunama žinutė yra pranešimas. Jei taip, ji atspausdina pranešimą; kitaip apdoroja jį kaip įprastą serverio žinutę. Taip pat atkreipkite dėmesį, kaip `ClientSession` inicializuojamas su `message_handler` pranešimų gavimui apdoroti.
 
 #### .NET
 
@@ -383,15 +385,15 @@ await client.InitializeAsync();
 // Now the client will process notifications through the MessageHandler
 ```
 
-Šiame .NET pavyzdyje funkcija `MessageHandler` tikrina, ar gaunamas pranešimas yra pranešimo tipo. Jei taip, ji atspausdina pranešimą; kitaip, apdoroja kaip įprastą serverio žinutę. `ClientSession` inicijuojama su pranešimų tvarkytuvu per `ClientSessionOptions`.
+Šiame .NET pavyzdyje `MessageHandler` funkcija tikrina, ar gaunama žinutė yra pranešimas. Jei taip, ji atspausdina pranešimą; kitu atveju apdoroja kaip įprastą serverio žinutę. `ClientSession` inicializuojamas su žinučių apdorotoju per `ClientSessionOptions`.
 
-Norint įjungti pranešimus, užtikrinkite, kad jūsų serveris naudoja srautinį transportą (pvz., `streamable-http`), o klientas įgyvendina pranešimų tvarkytuvą.
+Norint įgalinti pranešimus, įsitikinkite, kad jūsų serveris naudoja srautinį transportą (pvz., `streamable-http`), o klientas turi įgyvendintą žinučių apdorotoją pranešimams apdoroti.
 
-## Pažangos pranešimai ir scenarijai
+## Progresiniai pranešimai ir scenarijai
 
-Šioje skiltyje paaiškinama pažangos pranešimų sąvoka MCP, kodėl jie svarbūs ir kaip juos įgyvendinti naudojant Streamable HTTP. Taip pat rasite praktinę užduotį, kad sustiprintumėte supratimą.
+Šiame skyriuje paaiškinama progresinių pranešimų samprata MCP, kodėl jie svarbūs ir kaip juos įgyvendinti naudojant Srautuojamą HTTP. Taip pat rasite praktinę užduotį žinių įtvirtinimui.
 
-Pažangos pranešimai yra realaus laiko žinutės, siunčiamos iš serverio klientui ilgai trunkančių operacijų metu. Užuot laukęs visos operacijos pabaigos, serveris nuolat atnaujina klientą apie esamą būseną. Tai gerina skaidrumą, naudotojo patirtį ir palengvina klaidų analizę.
+Progresiniai pranešimai yra realaus laiko žinutės, siunčiamos iš serverio klientui ilgų operacijų metu. Vietoje laukimo, kol visa operacija baigsis, serveris periodiškai informuoja klientą apie dabartinę būseną. Tai pagerina skaidrumą, naudotojo patirtį ir palengvina derinimą.
 
 **Pavyzdys:**
 
@@ -404,20 +406,20 @@ Pažangos pranešimai yra realaus laiko žinutės, siunčiamos iš serverio klie
 
 ```
 
-### Kodėl naudoti pažangos pranešimus?
+### Kodėl naudoti progresinius pranešimus?
 
-Pažangos pranešimai yra svarbūs dėl kelių priežasčių:
+Progresiniai pranešimai yra svarbūs dėl kelių priežasčių:
 
-- **Geriau naudotojo patirtis:** Naudotojai mato atnaujinimus vykdymo metu, o ne tik pabaigoje.
-- **Realiojo laiko grįžtamasis ryšys:** Klientai gali rodyti pažangos juostas ar žurnalus, leidžiančius programai atrodyti reaguojančiai.
-- **Lengvesnis klaidų aptikimas ir stebėjimas:** Kūrėjai ir naudotojai mato, kur procesas gali lėtėti ar užstrigti.
+- **Geresnė naudotojo patirtis:** vartotojai mato atnaujinimus darbo metu, ne tik pabaigoje.
+- **Realaus laiko atsiliepimas:** klientai gali rodyti pažangos juostas ar žurnalus, todėl programa atrodo jautresnė.
+- **Lengvesnis derinimas ir stebėjimas:** programuotojai ir vartotojai gali matyti, kur procesas gali lėtėti ar strigti.
 
-### Kaip įgyvendinti pažangos pranešimus
+### Kaip įgyvendinti progresinius pranešimus
 
-Štai kaip galite įgyvendinti pažangos pranešimus MCP:
+Štai kaip galite įgyvendinti progresinius pranešimus MCP:
 
-- **Serverio pusėje:** Naudokite `ctx.info()` arba `ctx.log()`, kad siųstumėte pranešimus apdorojant kiekvieną elementą. Tai siunčia žinutę klientui prieš pagrindinio rezultato paruošimą.
-- **Kliento pusėje:** Įgyvendinkite pranešimų tvarkytuvą, kuris klausosi ir rodo pranešimus jų atvykimo metu. Šis tvarkytuvas atskiria pranešimus nuo galutinio rezultato.
+- **Serverio pusėje:** naudokite `ctx.info()` ar `ctx.log()`, norėdami siųsti pranešimus apdorojant kiekvieną elementą. Tai siunčia žinutę klientui prieš pagrindinio rezultato paruošimą.
+- **Kliento pusėje:** įgyvendinkite žinučių apdorotoją, kuris klausosi ir rodo pranešimus juos gavus. Šis apdorotojas atskiria pranešimus nuo galutinio rezultato.
 
 **Serverio pavyzdys:**
 
@@ -446,126 +448,128 @@ async def message_handler(message):
 
 ## Saugumo svarstymai
 
-Įgyvendinant MCP serverius naudojant HTTP pagrindu veikiančius transportus, saugumas tampa itin svarbia sritimi, reikalaujančia kruopštaus dėmesio įvairioms atakų kryptims ir apsaugos mechanizmams.
+Įgyvendinant MCP serverius su HTTP pagrindu veikiantį transportavimą, saugumas tampa aukščiausio prioriteto klausimu, reikalaujančiu atidaus dėmesio daugeliui atakų vektorių ir apsaugos mechanizmų.
 
 ### Apžvalga
 
-Saugumas yra kritinis veiksnys, kai MCP serveriai yra prieinami per HTTP. Streamable HTTP pristato naujas atakų paviršiaus sritis ir reikalauja kruopštaus konfigūravimo.
+Saugumas yra kritinis, kai MCP serveriai yra prieinami per HTTP. Srautuojamas HTTP įveda naują pavojų paviršių ir reikalauja atsargios konfigūracijos.
 
-### Pagrindiniai punktai
+### Pagrindiniai taškai
 
-- **Origin antraštės tikrinimas**: Visada tikrinkite `Origin` antraštę, kad išvengtumėte DNS peradresavimo atakų.
-- **Localhost pririšimas**: Vietinio kūrimo metu pririškite serverius prie `localhost`, kad nebūtų viešai prieinami.
-- **Autentifikacija**: Gamyboje naudokite autentifikaciją (pvz., API raktus, OAuth).
+
+- **Origin Header Patikra**: Visada tikrinkite `Origin` antraštę, kad išvengtumėte DNS perjungimo (rebinding) atakų.
+- **Localhost pririšimas**: Vietiniam vystymui prijunkite serverius prie `localhost`, kad jų neprieinama viešajame internete.
+- **Autentifikacija**: Gaminiams diegimams įgyvendinkite autentifikaciją (pvz., API raktus, OAuth).
 - **CORS**: Konfigūruokite Cross-Origin Resource Sharing (CORS) politiką prieigos apribojimui.
-- **HTTPS**: Naudokite HTTPS gamybos aplinkoje duomenų šifravimui.
+- **HTTPS**: Naudokite HTTPS gamyboje srauto šifravimui.
 
 ### Geriausios praktikos
 
-- Negalima pasitikėti įeinančiomis užklausomis be validacijos.
-- Registruokite ir stebėkite visus prieigos ir klaidų įvykius.
-- Reguliariai atnaujinkite priklausomybes, kad užtaisytumėte saugumo spragas.
+- Niekada nepasitikėkite atėjusius užklausas be patikrinimo.
+- Fiksuokite ir stebėkite visą prieigą ir klaidas.
+- Reguliariai atnaujinkite priklausomybes saugumo spragoms užtaisymui.
 
 ### Iššūkiai
-- Subalansuoti saugumą ir patogumą vystant
-- Užtikrinti suderinamumą su įvairiomis kliento aplinkomis
 
-## Atnaujinimas nuo SSE prie Streamable HTTP
+- Saugumo ir vystymo patogumo balansas
+- Suderinamumo su įvairiomis kliento aplinkomis užtikrinimas
 
-Programėlėms, kurios šiuo metu naudoja Server-Sent Events (SSE), pereinant prie Streamable HTTP suteikiamos geresnės galimybės ir ilgalaikė MCP įgyvendinimų tvaruma.
+## Pereinant nuo SSE prie Streamable HTTP
 
-### Kodėl atnaujinti?
+Programėlėms, kurios šiuo metu naudoja Server-Sent Events (SSE), pereinamasis žingsnis į Streamable HTTP suteikia pažangesnes galimybes ir geresnį ilgaamžiškumą jūsų MCP implementacijoms.
 
-Yra dvi svarbios priežastys pereiti nuo SSE prie Streamable HTTP:
+### Kodėl pereiti?
 
-- Streamable HTTP suteikia geresnį mastelį, suderinamumą ir išsamesnę pranešimų palaikymą nei SSE.
-- Tai yra rekomenduojamas transportas naujoms MCP programėlėms.
+Yra du svarbūs motyvai pereiti nuo SSE prie Streamable HTTP:
+
+- Streamable HTTP siūlo geresnį skalabilumą, suderinamumą ir išsamesnę pranešimų palaikymą nei SSE.
+- Tai rekomenduojamas transportas naujoms MCP programoms.
 
 ### Migracijos žingsniai
 
-Štai kaip galite pereiti nuo SSE prie Streamable HTTP savo MCP programėlėse:
+Štai kaip galite migratuoti nuo SSE prie Streamable HTTP savo MCP programose:
 
-- **Atnaujinkite serverio kodą** naudoti `transport="streamable-http"` funkcijoje `mcp.run()`.
+- **Atnaujinkite serverio kodą** naudoti `transport="streamable-http"` `mcp.run()`.
 - **Atnaujinkite kliento kodą** naudoti `streamablehttp_client` vietoje SSE kliento.
-- **Įgyvendinkite žinučių tvarkytuvą** klientui, kad apdorotų pranešimus.
-- **Išbandykite suderinamumą** su esamomis priemonėmis ir darbo eiga.
+- **Įgyvendinkite žinučių tvarkyklę** klientui pranešimų apdorojimui.
+- **Išbandykite suderinamumą** su esamais įrankiais ir procesais.
 
-### Suderinamumo palaikymas
+### Suderinamumo išlaikymas
 
-Rekomenduojama palaikyti suderinamumą su esamais SSE klientais migracijos metu. Štai keletas strategijų:
+Rekomenduojama išlaikyti suderinamumą su esamais SSE klientais migracijos metu. Štai keletas strategijų:
 
-- Galite palaikyti tiek SSE, tiek Streamable HTTP paleisdami abu transportus skirtinguose galiniuose taškuose.
-- Palaipsniui migruokite klientus į naują transportą.
+- Galite palaikyti tiek SSE, tiek Streamable HTTP paleisdami abu transportus skirtinguose taškuose.
+- Palaipsniui migruokite klientus prie naujo transporto.
 
 ### Iššūkiai
 
-Užtikrinkite, kad migracijos metu būtų sprendžiami šie klausimai:
+Užtikrinkite, kad migracijos metu išspręstumėte šiuos iššūkius:
 
 - Užtikrinti, kad visi klientai būtų atnaujinti
 - Tvarkyti skirtumus pranešimų pristatyme
 
-## Saugumo aspektai
+## Saugumo Aspektai
 
-Saugumas turi būti aukščiausio prioriteto klausimas diegiant bet kurį serverį, ypač naudojant HTTP pagrindu veikiančius transportus, tokius kaip Streamable HTTP MCP.
+Saugumas turi būti pagrindinis prioritetas įgyvendinant bet kurį serverį, ypač kai naudojate HTTP pagrindu veikiančius transportus, tokius kaip Streamable HTTP MCP.
 
-Diegiant MCP serverius su HTTP pagrindu veikiančiais transportais, saugumas tampa ypač svarbiu klausimu, reikalaujančiu dėmesio įvairiems atakos vektoriams ir apsaugos mechanizmams.
+Įgyvendinant MCP serverius su HTTP pagrindu veikiančiais transportais, saugumas tampa svarbiu aspektu, reikalaujančiu dėmesio kelioms atakų atmainoms ir apsaugos mechanizmams.
 
 ### Apžvalga
 
-Saugumas yra kritinis veiksnys viešai pateikiant MCP serverius per HTTP. Streamable HTTP įveda naujų atakos paviršių ir reikalauja kruopštaus konfigūravimo.
+Saugumas yra kritiškai svarbus MCP serveriams, veikiantiems per HTTP. Streamable HTTP praplečia atakų paviršius ir reikalauja kruopštaus konfigūravimo.
 
-Štai keletas pagrindinių saugumo aspektų:
+Štai keletas svarbių saugumo aspektų:
 
-- **Origin Header validacija**: Visada tikrinkite `Origin` antraštę, kad išvengtumėte DNS perdavimo atakų.
-- **Localhost susiejimas**: Vietinio vystymo metu susiekite serverius su `localhost`, kad jų neatskleistumėte viešajame tinkle.
-- **Autentifikacija**: Įgyvendinkite autentifikaciją (pvz., API raktus, OAuth) gamybos aplinkoje.
+- **Origin Header Patikra**: Visada tikrinkite `Origin` antraštę, kad išvengtumėte DNS perjungimo (rebinding) atakų.
+- **Localhost pririšimas**: Vietiniam vystymui prijunkite serverius prie `localhost`, kad jų neprieinama viešajame internete.
+- **Autentifikacija**: Gaminiams diegimams įgyvendinkite autentifikaciją (pvz., API raktus, OAuth).
 - **CORS**: Konfigūruokite Cross-Origin Resource Sharing (CORS) politiką prieigos apribojimui.
-- **HTTPS**: Gamyboje naudokite HTTPS, kad užšifruotumėte srautą.
+- **HTTPS**: Naudokite HTTPS gamyboje srauto šifravimui.
 
 ### Geriausios praktikos
 
-Be to, štai keletas saugumo geriausių praktikų MCP srautiniame serveryje įgyvendinti:
+Taip pat pateikiamos kelios geriausios praktikos taisyklės, kurias verta laikytis įgyvendinant saugumą savo MCP srautinio serverio kontekste:
 
-- Niekada nepasikliaukite įeinančiais užklausais be validacijos.
-- Registruokite ir stebėkite visus prieigos bandymus ir klaidas.
-- Reguliariai atnaujinkite priklausomybes, kad pataisytumėte saugumo spragas.
+- Niekada nepasitikėkite atėjusioms užklausoms be patikrinimo.
+- Fiksuokite ir stebėkite visą prieigą ir klaidas.
+- Reguliariai atnaujinkite priklausomybes saugumo spragoms užtaisymui.
 
 ### Iššūkiai
 
-Diegiant saugumą MCP srautiniuose serveriuose teks susidurti su iššūkiais:
+Įgyvendinant saugumą MCP srautinio duomenų serveriuose susidursite su šiais iššūkiais:
 
-- Subalansuoti saugumą su patogumu vystant
-- Užtikrinti suderinamumą su įvairiomis kliento aplinkomis
+- Saugumo ir vystymo patogumo balansas
+- Suderinamumo su įvairiomis kliento aplinkomis užtikrinimas
 
-### Užduotis: Sukurkite savo srautinę MCP programą
+### Užduotis: Sukurkite savo srautinę MCP programėlę
 
 **Scenarijus:**
-Sukurkite MCP serverį ir klientą, kur serveris apdoroja elementų sąrašą (pvz., failus ar dokumentus) ir siunčia pranešimą apie kiekvieną apdorotą elementą. Klientas turėtų rodyti kiekvieną atvykstantį pranešimą realiu laiku.
+Sukurkite MCP serverį ir klientą, kur serveris apdoroja sąrašą elementų (pvz., failų ar dokumentų) ir kiekvienam apdorotam elementui siunčia pranešimą. Klientas turi realiu laiku rodyti kiekvieną gautą pranešimą.
 
-**Žingsniai:**
+**Veiksmai:**
 
-1. Įgyvendinkite serverio įrankį, kuris apdoroja sąrašą ir siunčia pranešimus apie kiekvieną elementą.
-2. Įgyvendinkite klientą su žinučių tvarkytuvu, kuris rodo pranešimus realiu laiku.
-3. Išbandykite įgyvendinimą paleidę tiek serverį, tiek klientą ir stebėkite pranešimus.
+1. Įgyvendinkite serverio įrankį, kuris apdoroja sąrašą ir siunčia pranešimus kiekvienam elementui.
+2. Įgyvendinkite klientą su žinučių tvarkykle, kuri realiu laiku rodo pranešimus.
+3. Išbandykite savo įgyvendinimą paleidę serverį ir klientą, stebėkite pranešimus.
 
-[Solution](./solution/README.md)
+[Sprendimas](./solution/README.md)
 
-## Tolimesnis skaitymas ir kas toliau?
+## Tolimesnė literatūra ir kas toliau?
 
-Norint tęsti MCP srautinių programų pažinimą ir plėsti žinias, šiame skyriuje pateikti papildomi ištekliai ir siūlomi kiti žingsniai sudėtingesnėms programėlėms kurti.
+Norėdami tęsti savo kelionę su MCP srautinėmis sistemomis ir išplėsti žinias, ši skiltis pateikia papildomų išteklių ir siūlomų tolesnių žingsnių sudėtingesnėms programoms kurti.
 
-### Tolimesnis skaitymas
+### Tolimesnė literatūra
 
 - [Microsoft: Įvadas į HTTP srautinį perdavimą](https://learn.microsoft.com/aspnet/core/fundamentals/http-requests?view=aspnetcore-8.0&WT.mc_id=%3Fwt.mc_id%3DMVP_452430#streaming)
 - [Microsoft: Server-Sent Events (SSE)](https://learn.microsoft.com/azure/application-gateway/for-containers/server-sent-events?tabs=server-sent-events-gateway-api&WT.mc_id=%3Fwt.mc_id%3DMVP_452430)
 - [Microsoft: CORS ASP.NET Core](https://learn.microsoft.com/aspnet/core/security/cors?view=aspnetcore-8.0&WT.mc_id=%3Fwt.mc_id%3DMVP_452430)
-- [Python requests: Srautinės užklausos](https://requests.readthedocs.io/en/latest/user/advanced/#streaming-requests)
+- [Python requests: Srautinių užklausų naudojimas](https://requests.readthedocs.io/en/latest/user/advanced/#streaming-requests)
 
 ### Kas toliau?
 
-- Pabandykite kurti pažangesnius MCP įrankius naudodami srautinius duomenis realaus laiko analitikai, pokalbiams ar bendram redagavimui.
-- Ištirkite MCP srautinių duomenų integraciją su frontend sistemomis (React, Vue ir kt.) gyviems UI atnaujinimams.
-- Kitas: [Dirbtinio intelekto rinkinio panaudojimas VSCode](../07-aitk/README.md)
+- Pabandykite kurti sudėtingesnius MCP įrankius, kurie naudoja srautinį perdavimą realaus laiko analitikai, pokalbiams ar bendram redagavimui.
+- Tyrinėkite MCP srautinių duomenų integravimą su frontend karkasais (React, Vue ir pan.) gyvoms UI atnaujinimams.
+- Toliau: [AI įrankių rinkinio naudojimas VSCode](../07-aitk/README.md)
 
 ---
 

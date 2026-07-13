@@ -1,36 +1,38 @@
 # MCP 自訂傳輸 - 進階實作指南
 
-模型上下文協議（Model Context Protocol，MCP）提供傳輸機制的彈性，允許在專用企業環境中實作自訂方案。本進階指南探討使用 Azure 事件網格（Event Grid）和 Azure 事件中心（Event Hubs）作為實作範例，打造可擴展的雲端原生 MCP 解決方案。
+Model Context Protocol (MCP) 提供彈性的傳輸機制，允許進行自訂實作以符應專門的企業環境需求。本進階指南以 Azure Event Grid 及 Azure Event Hubs 作為實例，探討如何構建可擴展且原生雲端的 MCP 解決方案。
+
+> <strong>展望未來：</strong>本指南依據 **MCP 規範 2025-11-25** 撰寫，其中會話排序需於每個會話中被保留（詳見下方的訊息協定）。`2026-07-28` 發行候選版本完全移除協定層級的會話，改由要求 `Mcp-Method`/`Mcp-Name` 標頭，使閘道與自訂傳輸可依請求路由替代會話路由。詳情請見 [MCP 新變化：2026-07-28 發行候選版本](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
 
 ## 介紹
 
-雖然 MCP 的標準傳輸（stdio 和 HTTP 串流）可滿足大多數使用情境，但企業環境常需求專用傳輸機制，以提升擴展性、可靠度及整合既有雲端基礎架構。自訂傳輸使 MCP 能利用雲端原生的訊息傳遞服務，支援非同步通訊、事件驅動架構及分布式處理。
+雖然 MCP 的標準傳輸（stdio 與 HTTP 串流）適用大多數使用情境，企業環境通常需要專門的傳輸機制，以提升可擴展性、可靠性及與既有雲端基礎建設整合能力。自訂傳輸使 MCP 能夠利用雲端原生的訊息服務，支援非同步通訊、事件驅動架構及分散式處理。
 
-本課程基於最新 MCP 規範（2025-11-25）、Azure 訊息服務與既有企業整合模式，探討進階傳輸實作。
+本課程探討基於最新版 MCP 規範（2025-11-25）、Azure 訊息服務及既有企業整合模式的進階傳輸實作。
 
 ### **MCP 傳輸架構**
 
-**摘自 MCP 規範（2025-11-25）:**
+**摘錄自 MCP 規範 (2025-11-25):**
 
-- <strong>標準傳輸</strong>：stdio（建議使用）、HTTP 串流（遠端情境）
-- <strong>自訂傳輸</strong>：任何實作 MCP 訊息交換協定的傳輸
-- <strong>訊息格式</strong>：JSON-RPC 2.0，含 MCP 專用擴充
-- <strong>雙向通訊</strong>：需完整雙工，支援通知與回應
+- <strong>標準傳輸</strong>: stdio（建議使用）、HTTP 串流（遠端場景）
+- <strong>自訂傳輸</strong>: 任何實作 MCP 訊息交換協定的傳輸
+- <strong>訊息格式</strong>: JSON-RPC 2.0，附加 MCP 特定擴充
+- <strong>雙向通訊</strong>: 通知與回應需具全雙工通訊能力
 
 ## 學習目標
 
-完成本進階課程後，您將能夠：
+本進階課程結束後，您將能夠：
 
-- <strong>了解自訂傳輸需求</strong>：在任意傳輸層實作 MCP 協定，同時維持規範相容性
-- **構建 Azure 事件網格傳輸**：利用 Azure 事件網格建立事件驅動 MCP 伺服器，實現無伺服器擴展性
-- **實作 Azure 事件中心傳輸**：設計高吞吐量 MCP 解決方案，適用於即時串流
-- <strong>應用企業整合模式</strong>：將自訂傳輸與既有 Azure 基礎架構及安全模型結合
-- <strong>處理傳輸可靠性</strong>：實作訊息持久化、排序與錯誤處理，適用企業場景
-- <strong>優化效能</strong>：為擴展性、延遲與吞吐需求設計傳輸方案
+- <strong>了解自訂傳輸需求</strong>: 在任意傳輸層上實作 MCP 協定且維持符合性
+- **建立 Azure Event Grid 傳輸**: 使用 Azure Event Grid 建構無伺服器可擴展的事件驅動 MCP 伺服器
+- **實作 Azure Event Hubs 傳輸**: 利用 Azure Event Hubs 設計高吞吐量的即時串流 MCP 解決方案
+- <strong>套用企業模式</strong>: 讓自訂傳輸能與既有 Azure 基礎架構及安全模型整合
+- <strong>處理傳輸可靠度</strong>: 實作訊息耐久性、排序及錯誤處理，符合企業場景
+- <strong>優化效能</strong>: 針對規模、延遲與吞吐量需求設計傳輸方案
 
 ## <strong>傳輸需求</strong>
 
-### **MCP 規範（2025-11-25）核心需求：**
+### **MCP 規範 (2025-11-25) 的核心需求：**
 
 ```yaml
 Message Protocol:
@@ -49,11 +51,11 @@ Custom Transport:
   interoperability: "MUST maintain protocol compatibility"
 ```
 
-## **Azure 事件網格傳輸實作**
+## **Azure Event Grid 傳輸實作**
 
-Azure 事件網格提供無伺服器事件路由服務，非常適合事件驅動的 MCP 架構。本實作示範如何建構可擴展、低耦合的 MCP 系統。
+Azure Event Grid 提供無伺服器事件路由服務，非常適合事件驅動的 MCP 架構。此實作展示如何構建可擴展且鬆耦合的 MCP 系統。
 
-### <strong>架構概述</strong>
+### <strong>架構概觀</strong>
 
 ```mermaid
 graph TB
@@ -62,15 +64,15 @@ graph TB
     Server --> EG
     EG --> Client
     
-    subgraph "Azure 服務"
+    subgraph 「Azure 服務」
         EG
         Server
-        KV[金鑰庫]
-        Monitor[應用程式透視]
+        KV[金鑰保管庫]
+        Monitor[應用程式洞察]
     end
 ```
 
-### **C# 實作 - 事件網格傳輸**
+### **C# 實作 - Event Grid 傳輸**
 
 ```csharp
 using Azure.Messaging.EventGrid;
@@ -142,7 +144,7 @@ public async Task<IActionResult> HandleEventGridMessage(
 }
 ```
 
-### **TypeScript 實作 - 事件網格傳輸**
+### **TypeScript 實作 - Event Grid 傳輸**
 
 ```typescript
 import { EventGridPublisherClient, AzureKeyCredential } from "@azure/eventgrid";
@@ -176,14 +178,14 @@ export class EventGridMcpTransport implements McpTransport {
         await this.publisher.sendEvents([event]);
     }
     
-    // 透過 Azure Functions 的事件驅動接收
+    // 透過 Azure Functions 進行事件驅動接收
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
         // 實作將使用 Azure Functions Event Grid 觸發器
-        // 這是 webhook 接收器的概念性介面
+        // 這是一個 webhook 接收器的概念性介面
     }
 }
 
-// Azure Functions 的實作
+// Azure Functions 實作
 import { app, InvocationContext, EventGridEvent } from "@azure/functions";
 
 app.eventGrid("mcpEventGridHandler", {
@@ -194,7 +196,7 @@ app.eventGrid("mcpEventGridHandler", {
             // 處理 MCP 訊息
             const response = await mcpServer.processMessage(mcpMessage);
             
-            // 透過 Event Grid 傳送回應
+            // 透過 Event Grid 發送回應
             await transport.sendMessage(response);
             
         } catch (error) {
@@ -205,7 +207,7 @@ app.eventGrid("mcpEventGridHandler", {
 });
 ```
 
-### **Python 實作 - 事件網格傳輸**
+### **Python 實作 - Event Grid 傳輸**
 
 ```python
 from azure.eventgrid import EventGridPublisherClient, EventGridEvent
@@ -240,41 +242,41 @@ class EventGridMcpTransport:
         """Register message handler for incoming events"""
         self.message_handler = handler
 
-# Azure 函式實作
+# Azure Functions 實作
 import azure.functions as func
 import logging
 
 def main(event: func.EventGridEvent) -> None:
     """Azure Functions Event Grid trigger for MCP messages"""
     try:
-        # 從事件網格事件解析 MCP 訊息
+        # 從 Event Grid 事件解析 MCP 訊息
         mcp_message = json.loads(event.get_body().decode('utf-8'))
         
         # 處理 MCP 訊息
         response = process_mcp_message(mcp_message)
         
-        # 透過事件網格傳送回應
-        # （實作將會建立新的事件網格用戶端）
+        # 透過 Event Grid 傳回回應
+        # （實作將會建立新的 Event Grid 用戶端）
         
     except Exception as e:
         logging.error(f"Error processing MCP Event Grid message: {e}")
         raise
 ```
 
-## **Azure 事件中心傳輸實作**
+## **Azure Event Hubs 傳輸實作**
 
-Azure 事件中心提供高吞吐量、即時串流能力，適用於需要低延遲與大量訊息的 MCP 場景。
+Azure Event Hubs 提供高吞吐量及即時串流功能，適合需要低延遲與大量訊息的 MCP 場景。
 
-### <strong>架構概述</strong>
+### <strong>架構概觀</strong>
 
 ```mermaid
 graph TB
-    Client[MCP 客戶端] --> EH[Azure 事件集線器]
+    Client[MCP 用戶端] --> EH[Azure 事件中心]
     EH --> Server[MCP 伺服器]
     Server --> EH
     EH --> Client
     
-    subgraph "事件集線器功能"
+    subgraph 「事件中心功能」
         Partition[分區]
         Retention[訊息保留]
         Scaling[自動擴展]
@@ -285,7 +287,7 @@ graph TB
     EH --> Scaling
 ```
 
-### **C# 實作 - 事件中心傳輸**
+### **C# 實作 - Event Hubs 傳輸**
 
 ```csharp
 using Azure.Messaging.EventHubs;
@@ -359,7 +361,7 @@ public class EventHubsMcpTransport : IMcpTransport, IDisposable
 }
 ```
 
-### **TypeScript 實作 - 事件中心傳輸**
+### **TypeScript 實作 - Event Hubs 傳輸**
 
 ```typescript
 import { 
@@ -418,7 +420,7 @@ export class EventHubsMcpTransport implements McpTransport {
                         
                         await messageHandler(mcpMessage);
                         
-                        // 更新檢查點以確保至少一次投遞
+                        // 更新檢查點以確保至少一次交付
                         await context.updateCheckpoint(event);
                     } catch (error) {
                         console.error("Error processing Event Hubs message:", error);
@@ -439,7 +441,7 @@ export class EventHubsMcpTransport implements McpTransport {
 }
 ```
 
-### **Python 實作 - 事件中心傳輸**
+### **Python 實作 - Event Hubs 傳輸**
 
 ```python
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient
@@ -475,7 +477,7 @@ class EventHubsMcpTransport:
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
-            "timestamp": "2025-01-14T10:30:00Z"  # 使用實際時間戳記
+            "timestamp": "2025-01-14T10:30:00Z"  # 使用實際時間戳
         }
         
         async with self.producer:
@@ -496,7 +498,7 @@ class EventHubsMcpTransport:
         async with self.consumer:
             await self.consumer.receive(
                 on_event=self._on_event_received(message_handler),
-                starting_position="-1"  # 從頭開始
+                starting_position="-1"  # 從開始處開始
             )
     
     def _on_event_received(self, handler: Callable):
@@ -510,7 +512,7 @@ class EventHubsMcpTransport:
                 # 處理 MCP 訊息
                 await handler(mcp_message)
                 
-                # 更新檢查點以確保至少一次的傳遞
+                # 更新檢查點以確保至少一次交付
                 await partition_context.update_checkpoint(event)
                 
             except Exception as e:
@@ -527,7 +529,7 @@ class EventHubsMcpTransport:
 
 ## <strong>進階傳輸模式</strong>
 
-### <strong>訊息耐久性與可靠性</strong>
+### <strong>訊息耐久性與可靠度</strong>
 
 ```csharp
 // Implementing message durability with retry logic
@@ -617,9 +619,9 @@ public class ObservableTransport : IMcpTransport
 
 ## <strong>企業整合場景</strong>
 
-### **場景 1：分布式 MCP 處理**
+### **場景 1：分散式 MCP 處理**
 
-利用 Azure 事件網格將 MCP 請求分散多個處理節點：
+使用 Azure Event Grid 將 MCP 請求分派至多個處理節點：
 
 ```yaml
 Architecture:
@@ -635,7 +637,7 @@ Benefits:
 
 ### **場景 2：即時 MCP 串流**
 
-使用 Azure 事件中心進行高頻率 MCP 互動：
+使用 Azure Event Hubs 支援高頻率 MCP 互動：
 
 ```yaml
 Architecture:
@@ -651,7 +653,7 @@ Benefits:
 
 ### **場景 3：混合傳輸架構**
 
-為不同使用案例結合多種傳輸：
+結合多種傳輸以應對不同使用情境：
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -677,7 +679,7 @@ public class HybridMcpTransport : IMcpTransport
 
 ## <strong>效能優化</strong>
 
-### <strong>事件網格的訊息批次處理</strong>
+### **Event Grid 的訊息批次處理**
 
 ```csharp
 public class BatchingEventGridTransport : IMcpTransport
@@ -717,7 +719,7 @@ public class BatchingEventGridTransport : IMcpTransport
 }
 ```
 
-### <strong>事件中心的分割策略</strong>
+### **Event Hubs 的分區策略**
 
 ```csharp
 public class PartitionedEventHubsTransport : IMcpTransport
@@ -739,7 +741,7 @@ public class PartitionedEventHubsTransport : IMcpTransport
 
 ## <strong>自訂傳輸測試</strong>
 
-### <strong>使用測試替身的單元測試</strong>
+### <strong>使用測試替身進行單元測試</strong>
 
 ```csharp
 [Test]
@@ -766,7 +768,7 @@ public async Task EventGridTransport_SendMessage_PublishesCorrectEvent()
 }
 ```
 
-### **利用 Azure 測試容器的整合測試**
+### **使用 Azure 測試容器進行整合測試**
 
 ```csharp
 [Test]
@@ -803,40 +805,40 @@ public async Task EventHubsTransport_IntegrationTest()
 
 ### <strong>傳輸設計原則</strong>
 
-1. <strong>冪等性</strong>：確保訊息處理的冪等性以應對重複
-2. <strong>錯誤處理</strong>：實作完善錯誤處理及死信佇列
-3. <strong>監控</strong>：增加詳細遙測與健康檢查
-4. <strong>安全性</strong>：使用管理身分與最小權限存取
-5. <strong>效能</strong>：針對特定延遲與吞吐需求設計
+1. <strong>冪等性</strong>：確保訊息處理具冪等性以應對重複訊息
+2. <strong>錯誤處理</strong>：實作完善的錯誤處理及死信佇列
+3. <strong>監控</strong>：增加詳細的遙測與健康檢查
+4. <strong>安全性</strong>：使用管理身份與最小權限存取
+5. <strong>效能</strong>：針對特定延遲及吞吐需求設計
 
 ### **Azure 專屬建議**
 
-1. <strong>使用管理身分</strong>：避免在生產環境使用連接字串
-2. <strong>實作斷路器</strong>：防護 Azure 服務中斷
-3. <strong>監控成本</strong>：追蹤訊息量與處理費用
-4. <strong>規劃擴展</strong>：提前設計分割與擴充策略
-5. <strong>全面測試</strong>：使用 Azure DevTest Labs 進行測試
+1. <strong>使用管理身份</strong>：避免在生產環境中使用連接字串
+2. <strong>實作斷路器</strong>：防範 Azure 服務中斷
+3. <strong>監控成本</strong>：追蹤訊息量與處理成本
+4. <strong>規劃擴展</strong>：及早設計分區與擴展策略
+5. <strong>全面測試</strong>：利用 Azure DevTest Labs 進行完整測試
 
 ## <strong>結論</strong>
 
-自訂 MCP 傳輸利用 Azure 訊息服務，支援強大企業場景。實作事件網格或事件中心傳輸後，可以建構可擴展、可靠的 MCP 解決方案，並與既有 Azure 基礎架構無縫整合。
+自訂 MCP 傳輸能利用 Azure 的訊息服務實現強大的企業場景。透過實作 Event Grid 或 Event Hubs 傳輸，您可以構建可擴展且可靠的 MCP 解決方案，並與既有 Azure 基礎設施無縫整合。
 
-範例展示符合生產需求的實作模式，同時遵守 MCP 協定與 Azure 最佳實務。
+範例示範符合生產需求的模式，實現自訂傳輸同時保持 MCP 協定合規及遵循 Azure 最佳實務。
 
-## <strong>額外資源</strong>
+## <strong>補充資源</strong>
 
 - [MCP 規範 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
-- [Azure 事件網格文件](https://docs.microsoft.com/azure/event-grid/)
-- [Azure 事件中心文件](https://docs.microsoft.com/azure/event-hubs/)
-- [Azure 函式事件網格觸發器](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
-- [Azure .NET SDK](https://github.com/Azure/azure-sdk-for-net)
-- [Azure TypeScript SDK](https://github.com/Azure/azure-sdk-for-js)
-- [Azure Python SDK](https://github.com/Azure/azure-sdk-for-python)
+- [Azure Event Grid 文件](https://docs.microsoft.com/azure/event-grid/)
+- [Azure Event Hubs 文件](https://docs.microsoft.com/azure/event-hubs/)
+- [Azure Functions Event Grid 觸發器](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
+- [Azure SDK for .NET](https://github.com/Azure/azure-sdk-for-net)
+- [Azure SDK for TypeScript](https://github.com/Azure/azure-sdk-for-js)
+- [Azure SDK for Python](https://github.com/Azure/azure-sdk-for-python)
 
 ---
 
-> *本指南聚焦於生產 MCP 系統的實務實作模式。請務必根據您的具體需求及 Azure 服務限制驗證傳輸實作。*
-> <strong>現行標準</strong>：本指南反映 [MCP 規範 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) 的傳輸需求及企業進階傳輸模式。
+> *本指南聚焦於生產環境 MCP 系統的實務實作模式。請務必根據您的具體需求及 Azure 服務限制驗證傳輸實作。*
+> <strong>現行標準</strong>：本指南反映了 [MCP 規範 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) 的傳輸需求及企業環境的進階傳輸模式。
 
 
 ## 下一步

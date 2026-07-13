@@ -2,85 +2,87 @@
 
 [![Pokročilé MCP: Bezpeční, škálovateľní a multimodálni AI agenti](../../../translated_images/sk/06.42259eaf91fccfc6.webp)](https://youtu.be/4yjmGvJzYdY)
 
-_(Kliknite na obrázok vyššie pre zobrazenie videa tejto lekcie)_
+_(Kliknite na obrázok vyššie pre zobrazenie videa k tejto lekcii)_
 
-Táto kapitola pokrýva sériu pokročilých tém v implementácii Model Context Protocol (MCP), vrátane multimodálnej integrácie, škálovateľnosti, osvedčených bezpečnostných praktík a integrácie do podnikového prostredia. Tieto témy sú kľúčové pre tvorbu robustných a do produkcie pripravených aplikácií MCP, ktoré dokážu splniť požiadavky moderných AI systémov.
+Táto kapitola pokrýva sériu pokročilých tém pri implementácii Model Context Protocol (MCP), vrátane multimodálnej integrácie, škálovateľnosti, najlepších bezpečnostných postupov a podnikovej integrácie. Témy sú kľúčové pre vytváranie robustných a produkčne pripravených aplikácií MCP, ktoré dokážu uspokojiť požiadavky moderných AI systémov.
 
 ## Prehľad
 
-Táto lekcia skúma pokročilé koncepty v implementácii Model Context Protocol, so zameraním na multimodálnu integráciu, škálovateľnosť, bezpečnostné osvedčené postupy a integráciu do podnikového prostredia. Tieto témy sú nevyhnutné pre budovanie produkčne zrelých MCP aplikácií, ktoré zvládnu komplexné požiadavky v podnikovom prostredí.
+Táto lekcia skúma pokročilé koncepty implementácie Model Context Protocol, so zameraním na multimodálnu integráciu, škálovateľnosť, najlepšie bezpečnostné praktiky a podnikové integrácie. Témy sú zásadné pre tvorbu MCP aplikácií určených do produkčného prostredia, ktoré zvládajú komplexné požiadavky v podnikových prostrediach.
+
+> **Pohľad do budúcnosti:** niekoľko tém nižšie je ovplyvnených kandidátom na vydanie špecifikácie MCP z `2026-07-28` — Root Contexts (5.4) a Sampling (5.6) stavajú na primitívach, ktoré kandidát označuje za zastarané, a experimentálna funkcia Tasks spomenutá v Protocol Features (5.16) sa presúva do samostatného rozšírenia Tasks. Viac informácií nájdete v [Čo sa mení v MCP: Kandidát vydania 2026-07-28](../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Ciele učenia
 
 Na konci tejto lekcie budete schopní:
 
-- Implementovať multimodálne schopnosti v rámci MCP rámcov
+- Implementovať multimodálne schopnosti v rámci MCP systémov
 - Navrhovať škálovateľné MCP architektúry pre scenáre s vysokou záťažou
-- Použiť bezpečnostné osvedčené postupy v súlade s bezpečnostnými princípmi MCP
-- Integrovať MCP s podnikovými AI systémami a rámcami
+- Aplikovať najlepšie bezpečnostné postupy v súlade s bezpečnostnými princípmi MCP
+- Integrovať MCP s podnikových AI systémami a rámcami
 - Optimalizovať výkon a spoľahlivosť v produkčnom prostredí
 
-## Lekcie a vzorové projekty
+## Lekcie a ukážkové projekty
 
-| Link | Názov | Popis |
+| Odkaz | Názov | Popis |
 |------|-------|-------------|
-| [5.1 Integration with Azure](./mcp-integration/README.md) | Integrácia s Azure | Naučte sa, ako integrovať váš MCP server na Azure |
-| [5.2 Multi modal sample](./mcp-multi-modality/README.md) | MCP multimodálne vzory | Vzory pre audio, obrázok a multimodálnu odpoveď |
-| [5.3 MCP OAuth2 sample](../../../05-AdvancedTopics/mcp-oauth2-demo) | MCP OAuth2 demo | Minimálna aplikácia Spring Boot ukazujúca OAuth2 s MCP, ako autorizačný a resource server. Demonštruje bezpečné vydávanie tokenov, chránené endpointy, nasadenie do Azure Container Apps a integráciu s API Management. |
-| [5.4 Root Contexts](./mcp-root-contexts/README.md) | Root kontexty | Naučte sa viac o root kontextoch a ich implementácii |
-| [5.5 Routing](./mcp-routing/README.md) | Smerovanie | Naučte sa rôzne typy smerovania |
-| [5.6 Sampling](./mcp-sampling/README.md) | Sampling | Naučte sa, ako pracovať so samplingom |
+| [5.1 Integrácia s Azure](./mcp-integration/README.md) | Integrácia s Azure | Naučte sa integrovať svoj MCP Server na Azure |
+| [5.2 Ukážka multimodality](./mcp-multi-modality/README.md) | MCP multimodálne ukážky | Ukážky pre audio, obraz a multimodálnu odpoveď |
+| [5.3 MCP OAuth2 ukážka](../../../05-AdvancedTopics/mcp-oauth2-demo) | MCP OAuth2 demo | Minimálna aplikácia Spring Boot zobrazujúca OAuth2 s MCP, ako Autorizačný a Zdrojový server. Demonštruje bezpečné vydávanie tokenov, chránené endpointy, nasadenie do Azure Container Apps a integráciu API Management. |
+| [5.4 Root Contexts](./mcp-root-contexts/README.md) | Root kontexty | Dozviete sa viac o root kontexte a ako ich implementovať |
+| [5.5 Routing](./mcp-routing/README.md) | Routing | Naučte sa rôzne typy routovania |
+| [5.6 Sampling](./mcp-sampling/README.md) | Sampling | Naučte sa pracovať so samplingom |
 | [5.7 Scaling](./mcp-scaling/README.md) | Škálovanie | Naučte sa o škálovaní |
-| [5.8 Security](./mcp-security/README.md) | Bezpečnosť | Zabezpečte svoj MCP server |
-| [5.9 Web Search sample](./web-search-mcp/README.md) | Webové vyhľadávanie MCP | Python MCP server a klient integrujúci sa so SerpAPI pre vyhľadávanie webu, správ, produktov a Q&A v reálnom čase. Demonštruje multi-nástrojovú koordináciu, integráciu externých API a robustné spracovanie chýb. |
-| [5.10 Realtime Streaming](./mcp-realtimestreaming/README.md) | Streamovanie | Streamovanie dát v reálnom čase je dnes kľúčové v dátami riadenom svete, kde podniky a aplikácie potrebujú okamžitý prístup k informáciám pre rýchle rozhodovanie. |
-| [5.11 Realtime Web Search](./mcp-realtimesearch/README.md) | Webové vyhľadávanie | Reálne webové vyhľadávanie – ako MCP transformuje vyhľadávanie webu v reálnom čase poskytovaním štandardizovaného prístupu k správe kontextu naprieč AI modelmi, vyhľadávačmi a aplikáciami. |
-| [5.12  Entra ID Authentication for Model Context Protocol Servers](./mcp-security-entra/README.md) | Overovanie Entra ID | Microsoft Entra ID poskytuje robustné cloudové riešenie pre správu identít a prístupov, ktoré pomáha zabezpečiť, že iba autorizovaní používatelia a aplikácie môžu komunikovať s vaším MCP serverom. |
-| [5.13 Microsoft Foundry Agent Integration](./mcp-foundry-agent-integration/README.md) | Integrácia Microsoft Foundry | Naučte sa, ako integrovať Model Context Protocol servery s Microsoft Foundry agentmi, čo umožňuje výkonnú orchestráciu nástrojov a podnikové AI schopnosti so štandardizovanými pripojeniami na externé dátové zdroje. |
-| [5.14 Context Engineering](./mcp-contextengineering/README.md) | Kontext inžinierstvo | Budúce možnosti techník kontext inžinierstva pre MCP servery vrátane optimalizácie kontextu, dynamickej správy kontextu a stratégií efektívneho prompt engineeringu v rámci MCP rámcov. |
-| [5.15 MCP Custom Transport](./mcp-transport/README.md) | Vlastný transport | Naučte sa implementovať vlastné transportné mechanizmy pre špecializované komunikačné scenáre MCP. |
-| [5.16 Protocol Features Deep Dive](./mcp-protocol-features/README.md) | Funkcie protokolu | Ovládnite pokročilé funkcie protokolu vrátane oznámení o priebehu, zrušenia požiadaviek, šablón zdrojov a vzorov spracovania chýb. |
-| [5.17 Adversarial Multi-Agent Reasoning](./mcp-adversarial-agents/README.md) | Adversariálni agenti | Použite dvoch agentov s opačnými postojmi, zdieľajúcich jedinú súpravu MCP nástrojov, aby ste odhalili halucinácie, identifikovali okrajové prípady a vyprodukovali lepšie kalibrované výstupy prostredníctvom štruktúrovanej debaty. |
+| [5.8 Security](./mcp-security/README.md) | Bezpečnosť | Zaistite bezpečnosť svojho MCP Servera |
+| [5.9 Ukážka Web Search MCP](./web-search-mcp/README.md) | Web Search MCP | Python MCP server a klient integrujúci SerpAPI pre vyhľadávanie na webe, novinky, produkty a otázky a odpovede v reálnom čase. Demonštruje orchestráciu viacerých nástrojov, integráciu externých API a robustnú správu chýb. |
+| [5.10 Streamovanie v reálnom čase](./mcp-realtimestreaming/README.md) | Streaming | Streamovanie dát v reálnom čase sa stalo nevyhnutným v dnešnom svete riadenom dátami, kde podniky a aplikácie potrebujú okamžitý prístup k informáciám pre včasné rozhodovanie.|
+| [5.11 Vyhľadávanie na webe v reálnom čase](./mcp-realtimesearch/README.md) | Web Search | Vyhľadávanie na webe v reálnom čase, ako MCP transformuje vyhľadávanie tým, že poskytuje štandardizovaný prístup k správe kontextu medzi AI modelmi, vyhľadávačmi a aplikáciami.| 
+| [5.12 Overovanie Entra ID pre Model Context Protocol servery](./mcp-security-entra/README.md) | Overovanie Entra ID | Microsoft Entra ID poskytuje robustné riešenie na správu identity a prístupu v cloude, ktoré pomáha zabezpečiť, že len autorizovaní používatelia a aplikácie môžu komunikovať s vaším MCP serverom.|
+| [5.13 Integrácia Microsoft Foundry Agenta](./mcp-foundry-agent-integration/README.md) | Integrácia Microsoft Foundry | Naučte sa integrovať Model Context Protocol servery s Microsoft Foundry agentmi, čo umožňuje silnú orchestráciu nástrojov a podnikové AI schopnosti s štandardizovanými pripojeniami k externým zdrojom dát.|
+| [5.14 Context Engineering](./mcp-contextengineering/README.md) | Context Engineering | Budúce príležitosti techník správy kontextu pre MCP servery, vrátane optimalizácie kontextu, dynamickej správy kontextu a stratégií efektívneho prompt engineeringu v rámci MCP systémov.|
+| [5.15 MCP Vlastný Transport](./mcp-transport/README.md) | Vlastný transport | Naučte sa implementovať vlastné transportné mechanizmy pre špecializované MCP komunikačné scenáre.|
+| [5.16 Detailné protokolové funkcie](./mcp-protocol-features/README.md) | Protokolové funkcie | Ovládnite pokročilé protokolové funkcie vrátane oznámení o priebehu, rušenia požiadaviek, šablón zdrojov a vzorov správy chýb.|
+| [5.17 Adversariálne viacagentové uvažovanie](./mcp-adversarial-agents/README.md) | Adversariálni agenti | Použite dvoch agentov s opačnými stanoviskami, ktorí zdieľajú jednu MCP súpravu nástrojov, aby ste odhalili halucinácie, ukázali okrajové prípady a vyprodukovali lepšie kalibrované výstupy prostredníctvom štruktúrovanej debaty.|
 
-> **Novinka v MCP špecifikácii 2025-11-25**: Špecifikácia teraz obsahuje experimentálnu podporu pre **Úlohy** (dlhotrvajúce operácie s monitorovaním priebehu), **Anotácie nástrojov** (metadata o správaní nástrojov pre bezpečnosť), **Elicitáciu URL režimu** (vyžiadanie obsahu konkrétnej URL od klientov) a vylepšené **Rooty** (pre správu kontextu pracovného priestoru). Kompletné detaily nájdete v [MCP changeloge špecifikácie](https://spec.modelcontextprotocol.io/).
+> **Novinka v MCP špecifikácii 2025-11-25**: Špecifikácia teraz obsahuje experimentálnu podporu pre **Tasks** (dlhotrvajúce operácie so sledovaním priebehu), **Tool Annotations** (metadata o správaní nástrojov pre bezpečnosť), **URL Mode Elicitation** (žiadosť o konkrétny URL obsah od klientov) a vylepšené **Roots** (pre správu kontextu pracovného priestoru). Kompletné detaily nájdete v [zmenovom protokole MCP špecifikácie](https://spec.modelcontextprotocol.io/).
 
 ## Dodatočné odkazy
 
-Pre najaktuálnejšie informácie o pokročilých témach MCP si pozrite:
-- [MCP dokumentácia](https://modelcontextprotocol.io/)
-- [MCP špecifikácia (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+Pre najaktuálnejšie informácie o pokročilých témach MCP sa odkazujte na:
+- [Dokumentácia MCP](https://modelcontextprotocol.io/)
+- [Špecifikácia MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [GitHub repozitár](https://github.com/modelcontextprotocol)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - bezpečnostné riziká a opatrenia
-- [MCP Security Summit workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - praktický bezpečnostný tréning
+- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Bezpečnostné riziká a mitigácie
+- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Praktický bezpečnostný tréning
 
 ## Kľúčové poznatky
 
-- Multimodálne implementácie MCP rozširujú AI schopnosti nad rámec spracovania textu
-- Škálovateľnosť je nevyhnutná pre podnikové nasadenia a môže sa riešiť horizontálnym a vertikálnym škálovaním
+- Multimodálne MCP implementácie rozširujú AI schopnosti nad rámec spracovania textu
+- Škálovateľnosť je zásadná pre podnikové nasadenia a dá sa riešiť horizontálnym a vertikálnym škálovaním
 - Komplexné bezpečnostné opatrenia chránia dáta a zabezpečujú správnu kontrolu prístupu
-- Podniková integrácia s platformami ako Azure OpenAI a Microsoft AI Foundry rozširuje schopnosti MCP
-- Pokročilé implementácie MCP profitujú z optimalizovaných architektúr a starostlivého manažmentu zdrojov
+- Podniková integrácia s platformami ako Azure OpenAI a Microsoft AI Foundry zvyšuje schopnosti MCP
+- Pokročilé MCP implementácie profitujú z optimalizovaných architektúr a dôslednej správy zdrojov
 
 ## Cvičenie
 
-Navrhnite podnikové MCP riešenie pre konkrétny prípad použitia:
+Navrhnite implementáciu MCP podnikovej úrovne pre konkrétny použiteľný prípad:
 
-1. Určte multimodálne požiadavky vášho prípadu použitia
-2. Načrtnite bezpečnostné kontroly potrebné na ochranu citlivých dát
-3. Navrhnite škálovateľnú architektúru, ktorá zvládne rôzne zaťaženie
+1. Identifikujte multimodálne požiadavky pre váš prípad použitia
+2. Opíšte bezpečnostné kontroly potrebné na ochranu citlivých dát
+3. Navrhnite škálovateľnú architektúru, ktorá zvládne meniacu sa záťaž
 4. Naplánujte integračné body s podnikových AI systémami
-5. Zdokumentujte možné úzke miesta výkonu a stratégie ich zmiernenia
+5. Zdokumentujte potenciálne výkonnostné úzke miesta a stratégie ich zmiernenia
 
 ## Dodatočné zdroje
 
-- [Azure OpenAI dokumentácia](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
-- [Microsoft AI Foundry dokumentácia](https://learn.microsoft.com/en-us/ai-services/)
+- [Dokumentácia Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
+- [Dokumentácia Microsoft AI Foundry](https://learn.microsoft.com/en-us/ai-services/)
 
 ---
 
 ## Čo ďalej
 
-Preskúmajte lekcie v tomto module začínajúc: [5.1 MCP integrácia](./mcp-integration/README.md)
+Preskúmajte lekcie v tomto module, začínajúc s: [5.1 MCP integrácia](./mcp-integration/README.md)
 
 Po dokončení tohto modulu pokračujte na: [Modul 6: Príspevky komunity](../06-CommunityContributions/README.md)
 

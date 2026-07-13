@@ -29,9 +29,9 @@ By the end of this lesson, you will be able to:
 | [5.1 Integration with Azure](./mcp-integration/README.md) | Integrate with Azure | Learn how to integrate your MCP Server on Azure |
 | [5.2 Multi modal sample](./mcp-multi-modality/README.md) | MCP Multi modal samples  | Samples for audio, image and multi modal response |
 | [5.3 MCP OAuth2 sample](./mcp-oauth2-demo/) | MCP OAuth2 Demo | Minimal Spring Boot app showing OAuth2 with MCP, both as Authorization and Resource Server. Demonstrates secure token issuance, protected endpoints, Azure Container Apps deployment, and API Management integration. |
-| [5.4 Root Contexts](./mcp-root-contexts/README.md) | Root contexts  | Learn more about root context and how to implement them |
+| [5.4 Root Contexts](./mcp-root-contexts/README.md) | Root contexts  | Learn more about root context and how to implement them (deprecated in `2026-07-28` release candidate; still valid for `2025-11-25`) |
 | [5.5 Routing](./mcp-routing/README.md) | Routing | Learn different types of routing |
-| [5.6 Sampling](./mcp-sampling/README.md) | Sampling | Learn how to work with sampling |
+| [5.6 Sampling](./mcp-sampling/README.md) | Sampling | Learn how to work with sampling (deprecated in `2026-07-28` release candidate; still valid for `2025-11-25`) |
 | [5.7 Scaling](./mcp-scaling/README.md) | Scaling  | Learn about scaling |
 | [5.8 Security](./mcp-security/README.md) | Security  | Secure your MCP Server |
 | [5.9 Web Search sample](./web-search-mcp/README.md) | Web Search MCP | Python MCP server and client integrating with SerpAPI for real-time web, news, product search, and Q&A. Demonstrates multi-tool orchestration, external API integration, and robust error handling. |

@@ -1,21 +1,23 @@
-# MCP-protokollfunksjoner i detalj
+# MCP-protokollfunksjoner i dybden
 
-Denne veiledningen utforsker avanserte MCP-protokollfunksjoner som går utover grunnleggende verktøy- og ressursbehandling. Å forstå disse funksjonene hjelper deg med å bygge mer robuste, brukervennlige og produksjonsklare MCP-servere.
+Denne guiden utforsker avanserte MCP-protokollfunksjoner som går utover grunnleggende håndtering av verktøy og ressurser. Å forstå disse funksjonene hjelper deg med å bygge mer robuste, brukervennlige og produksjonsklare MCP-servere.
+
+> **Ser fremover:** `2026-07-28` release candidate avvikler Logging-primtivet (til fordel for `stderr` for stdio og OpenTelemetry for strukturert observabilitet), fjerner `initialize`/sesjonsmodellen nevnt i Server Lifecycle Events nedenfor, og flytter den eksperimentelle Tasks-funksjonen til en egen Tasks-utvidelse med en ny `tasks/get`/`tasks/update`/`tasks/cancel` livssyklus. Se [Hva endres i MCP: 2026-07-28 release candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Dekker funksjoner
 
-1. **Fremdriftsvarsler** - Rapportere fremdrift for langvarige operasjoner
-2. **Avbrytelse av forespørsler** - Gi klienter mulighet til å avbryte pågående forespørsler
-3. **Ressursmaler** - Dynamiske ressurs-URIer med parametere
-4. **Serverlivssyklus-hendelser** - Korrekt initialisering og nedstenging
-5. **Loggingkontroll** - Server-side loggkonfigurasjon
-6. **Feilhåndteringsmønstre** - Konsistente feilsvar
+1. **Progresjonsvarsler** - Rapportere fremdrift for langvarige operasjoner  
+2. **Avbestilling av forespørsler** - La klienter avbryte aktive forespørsler  
+3. **Ressursskjemamaler** - Dynamiske ressurs-URIer med parametere  
+4. **Server livssyklus-hendelser** - Korrekt initiering og nedstengning  
+5. **Logging-kontroll** - Loggingkonfigurasjon på serversiden  
+6. **Feilhåndteringsmønstre** - Konsistente feilsvar  
 
 ---
 
-## 1. Fremdriftsvarsler
+## 1. Progresjonsvarsler
 
-For operasjoner som tar tid (databehandling, filnedlastinger, API-kall) holder fremdriftsvarsler brukerne informert.
+For operasjoner som tar tid (databehandling, filnedlastinger, API-kall), holder progresjonsvarsler brukerne informert.
 
 ### Hvordan det fungerer
 
@@ -25,11 +27,12 @@ sequenceDiagram
     participant Server
     
     Client->>Server: verktøy/kall (lang operasjon)
-    Server-->>Client: varsel: fremdrift 10%
-    Server-->>Client: varsel: fremdrift 50%
-    Server-->>Client: varsel: fremdrift 90%
-    Server->>Client: resultat (fullført)
+    Server-->>Client: varsling: fremdrift 10%
+    Server-->>Client: varsling: fremdrift 50%
+    Server-->>Client: varsling: fremdrift 90%
+    Server->>Client: resultat (ferdig)
 ```
+
 ### Python-implementasjon
 
 ```python
@@ -53,7 +56,7 @@ async def process_large_file(file_path: str, ctx) -> str:
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Send fremdriftsvarsel
+            # Send fremdriftsvarsling
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Rapporter fremdrift etter hvert element
+        # Rapportere fremdrift etter hver enhet
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // Send fremdriftsvarsling
+      // Send fremdriftsvarsel
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -134,15 +137,15 @@ async def handle_progress(notification):
 # Registrer håndterer
 session.on_notification("notifications/progress", handle_progress)
 
-# Kall verktøy (progresjonsoppdateringer vil komme via håndterer)
+# Kall verktøy (fremdriftsoppdateringer vil komme via håndterer)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. Avbrytelse av forespørsler
+## 2. Avbestilling av forespørsler
 
-Gi klienter mulighet til å avbryte forespørsler som ikke lenger trengs eller tar for lang tid.
+La klienter avbryte forespørsler som ikke lenger trengs eller tar for lang tid.
 
 ### Python-implementasjon
 
@@ -165,11 +168,11 @@ async def long_running_search(query: str, ctx) -> str:
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Simuler sidesøk
+            # Simuler side-søk
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Liten forsinkelse tillater avbestillingssjekker
+            # Liten forsinkelse tillater avbestillingskontroller
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # Normal tidsavbrudd, fortsett
 ```
 
-### Klientside-avbrytelse
+### Avbestilling på klientsiden
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Forespørsel om kansellering
+        # Forespør avbestilling
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -260,9 +263,9 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. Ressursmaler
+## 3. Ressursskjemamaler
 
-Ressursmaler tillater dynamisk URI-konstruksjon med parametere, nyttig for APIer og databaser.
+Ressursskjemamaler tillater dynamisk URI-konstruksjon med parametere, nyttig for API-er og databaser.
 
 ### Definere maler
 
@@ -362,9 +365,9 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. Serverlivssyklus-hendelser
+## 4. Server livssyklus-hendelser
 
-Korrekt behandling av initialisering og nedstenging sikrer ren ressursforvaltning.
+Korrekt initiering og nedstengning sikrer ryddig ressursforvaltning.
 
 ### Python livssyklusadministrasjon
 
@@ -430,7 +433,7 @@ class ManagedServer {
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
     
-    // Start server
+    // Start serveren
     await this.server.connect(transport);
   }
   
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Bruk med grasiøs avslutning
+// Bruk med kontrollert nedstenging
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. Loggingkontroll
+## 5. Logging-kontroll
 
-MCP støtter server-side loggnivåer som klienter kan kontrollere.
+MCP støtter serversidige loggnivåer som klienter kan kontrollere.
 
-### Implementering av loggnivåer
+### Implementere loggnivåer
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Kartlegg MCP-nivåer til Python-loggingnivåer
+# Kartlegg MCP-nivåer til Python-loggnivåer
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -537,9 +540,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ## 6. Feilhåndteringsmønstre
 
-Konsistent feilhåndtering forbedrer debugging og brukeropplevelse.
+Konsistent feilhåndtering forbedrer feilsøking og brukeropplevelse.
 
-### MCP-feilkoder
+### MCP feilkoder
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,7 +572,7 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Strukturerte feilsvar
+### Strukturerte feilresponser
 
 ```python
 @app.tool()
@@ -601,7 +604,7 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Loggfør uventede feil
+        # Logg uventede feil
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
@@ -655,9 +658,9 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## Eksperimentelle funksjoner (MCP 2025-11-25)
 
-Disse funksjonene er merket som eksperimentelle i spesifikasjonen:
+Disse funksjonene er merket eksperimentelle i spesifikasjonen:
 
-### Oppgaver (langvarige operasjoner)
+### Tasks (langvarige operasjoner)
 
 ```python
 # Oppgaver tillater sporing av langvarige operasjoner med tilstand
@@ -665,10 +668,10 @@ Disse funksjonene er merket som eksperimentelle i spesifikasjonen:
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Rapportere oppgave startet
+    # Rapportere at oppgaven startet
     await ctx.report_status("running", "Initializing training...")
     
-    # Treningssløyfe
+    # Treningsløkken
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -682,14 +685,14 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Verktøyannotasjoner
+### Verktøysannotasjoner
 
 ```python
-# Anmerkninger gir metadata om verktøyadferd
+# Anmerkninger gir metadata om verktøyets oppførsel
 @app.tool(
     annotations={
         "destructive": False,      # Endrer ikke data
-        "idempotent": True,        # Trygt å prøve på nytt
+        "idempotent": True,        # Trygt å prøve igjen
         "timeout_seconds": 30,     # Forventet maksimal varighet
         "requires_approval": False # Ingen brukerbekreftelse nødvendig
     }
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## Hva kommer nå
+## Hva kommer videre
 
-- [Modul 8 - Beste praksiser](../../08-BestPractices/README.md)
-- [5.14 - Kontekstengineering](../mcp-contextengineering/README.md)
-- [MCP spesifikasjons endringslogg](https://spec.modelcontextprotocol.io/)
+- [Modul 8 - Beste praksis](../../08-BestPractices/README.md)  
+- [5.14 - Context Engineering](../mcp-contextengineering/README.md)  
+- [MCP Spesifikasjonsendringslogg](https://spec.modelcontextprotocol.io/)  
 
 ---
 
-## Ytterligere ressurser
+## Ekstra ressurser
 
-- [MCP Spesifikasjon 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 feilkoder](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK-eksempler](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [MCP Spesifikasjon 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
+- [JSON-RPC 2.0 feilkoder](https://www.jsonrpc.org/specification#error_object)  
+- [Python SDK-eksempler](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
 - [TypeScript SDK-eksempler](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Ansvarsfraskrivelse**:
-Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vennligst vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket bør anses som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår fra bruk av denne oversettelsen.
+Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal betraktes som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

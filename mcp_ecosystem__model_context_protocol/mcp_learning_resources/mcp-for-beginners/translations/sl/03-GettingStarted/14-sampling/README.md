@@ -1,6 +1,8 @@
-# Vzorcevanje – prenesite funkcije na odjemalca
+# Vzorcevanje - delegiranje funkcij odjemalcu
 
-Včasih potrebujete sodelovanje med MCP odjemalcem in MCP strežnikom, da dosežete skupen cilj. Morda imate primer, kjer strežnik potrebuje pomoč LLM, ki je na odjemalcu. Za ta namen je vzorcevanje prava rešitev.
+> **Obvestilo o opustitvi:** različica MCP specifikacije '2026-07-28' označuje vzorcevanje kot opuščeno v korist neposredne integracije z API-ji ponudnikov LLM. Vzorcevanje še vedno deluje v '2025-11-25' in še vsaj eno leto po uradni opustitvi, tako da vse v tej lekciji ostaja veljavno — vendar naj nove zasnove strežnikov ocenijo nadomestni vzorec. Glej [Kaj se spreminja v MCP: Kandidat za izdajo 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Včasih potrebujemo sodelovanje MCP odjemalca in MCP strežnika za dosego skupnega cilja. Morda imate primer, kjer strežnik potrebuje pomoč LLM-ja, ki teče na odjemalcu. V takšni situaciji je vzorcevanje tisto, kar morate uporabiti.
 
 Raziščimo nekaj primerov uporabe in kako zgraditi rešitev, ki vključuje vzorcevanje.
 
@@ -12,11 +14,11 @@ V tej lekciji se osredotočamo na razlago, kdaj in kje uporabiti vzorcevanje ter
 
 V tem poglavju bomo:
 
-- Pojasnili, kaj je vzorcevanje in kdaj ga uporabiti.
-- Prikazali, kako konfigurirati vzorcevanje v MCP.
-- Podali primere vzorcevanja v praksi.
+- Razložili, kaj je vzorcevanje in kdaj ga uporabiti.
+- Pokažemo, kako konfigurirati vzorcevanje v MCP.
+- Dali primere vzorcevanja v praksi.
 
-## Kaj je vzorcevanje in zakaj ga uporabljati?
+## Kaj je vzorcevanje in zakaj ga uporabiti?
 
 Vzorcevanje je napredna funkcija, ki deluje na naslednji način:
 
@@ -27,19 +29,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Napiši blog objavo
-    MCP Client->>MCP Server: Klic orodja (osnutek blog objave)
-    MCP Server->>MCP Client: Zahteva vzorčenja (ustvari povzetek)
-    MCP Client->>LLM: Ustvari povzetek blog objave
+    User->>MCP Client: Objave avtorjevega bloga
+    MCP Client->>MCP Server: Klic orodja (osnutek objave bloga)
+    MCP Server->>MCP Client: Zahteva za vzorčenje (ustvari povzetek)
+    MCP Client->>LLM: Ustvari povzetek objave bloga
     LLM->>MCP Client: Rezultat povzetka
-    MCP Client->>MCP Server: Odziv vzorčenja (povzetek)
-    MCP Server->>MCP Client: Končna blog objava (osnutek + povzetek)
-    MCP Client->>User: Blog objava je pripravljena
+    MCP Client->>MCP Server: Odgovor na vzorčenje (povzetek)
+    MCP Server->>MCP Client: Celotna objava bloga (osnutek + povzetek)
+    MCP Client->>User: Objave bloga pripravljene
 ```
 
 ### Zahteva za vzorcevanje
 
-V redu, zdaj imamo splošen pregled verjetnega scenarija, pogovorimo se o zahtevi za vzorcevanje, ki jo strežnik pošlje nazaj odjemalcu. Tako izgleda takšna zahteva v formatu JSON-RPC:
+Ok, zdaj imamo splošen pogled na verjeten scenarij, pogovorimo se o zahtevi za vzorcevanje, ki jo strežnik pošlje odjemalcu. Takšna zahteva v formatu JSON-RPC je lahko videti takole:
 
 ```json
 {
@@ -71,17 +73,17 @@ V redu, zdaj imamo splošen pregled verjetnega scenarija, pogovorimo se o zahtev
 }
 ```
 
-Nekaj stvari je vrednih poudarka:
+Tu je nekaj stvari, ki jih je vredno izpostaviti:
 
-- Poziv (prompt), pod content -> text, je naš poziv, ki je navodilo LLM, da povzame vsebino blog zapisa.
+- Poziv, pod content -> text, je naš poziv, ki je navodilo LLM-ju, naj povzame vsebino bloga.
 
-- **modelPreferences**. Ta razdelek predstavlja preference oziroma priporočilo, katero konfiguracijo naj LLM uporabi. Uporabnik se lahko odloči, če bo sledil tem priporočilom ali jih spremenil. V tem primeru so priporočila glede modela, hitrosti in prioritete inteligence.
-- **systemPrompt**, to je običajen sistemski poziv, ki da vašemu LLM osebnost in vsebuje navodila.
-- **maxTokens**, to je lastnost, ki določa priporočeno maksimalno število tokenov za to nalogo.
+- **modelPreferences**. Ta razdelek je ravno to, preference, priporočilo glede konfiguracije LLM-ja. Uporabnik se lahko odloči, ali bo sledil tem priporočilom ali jih spremenil. V tem primeru so priporočila glede uporabe modela in prioritete hitrosti ter inteligence.
+- **systemPrompt**, to je vaš običajen sistemski poziv, ki da vašemu LLM-ju osebnost in vsebuje navodila.
+- **maxTokens**, to je lastnost, ki pove, koliko tokenov je priporočeno za to opravilo.
 
 ### Odgovor na vzorcevanje
 
-Ta odgovor pošlje MCP odjemalec nazaj MCP strežniku in je rezultat kliča LLM z odjemalca, nato čakanja na odgovor in konstruiranja te sporočila. Tako izgleda v JSON-RPC:
+Ta odgovor je tisto, kar MCP odjemalec pošlje nazaj MCP strežniku in je rezultat klica LLM-ja, počakanja na odgovor ter sestave sporočila. Lahko je videti takole v JSON-RPC:
 
 ```json
 {
@@ -99,13 +101,13 @@ Ta odgovor pošlje MCP odjemalec nazaj MCP strežniku in je rezultat kliča LLM 
 }
 ```
 
-Opazite, da je odgovor povzetek blog zapisa, tako kot smo zahtevali. Prav tako opazite, da uporabljen `model` ni tisti, ki smo ga zahtevali, ampak "gpt-5" namesto "claude-3-sonnet". To ponazarja, da se lahko uporabnik odloči spremeni svojo izbiro in da je zahteva za vzorcevanje le priporočilo.
+Opazite, da je odgovor povzetek bloga, tako kot smo prosili. Prav tako opazite, da uporabljen `model` ni tisti, ki smo ga zahtevali, ampak "gpt-5" namesto "claude-3-sonnet". To ilustrira, da lahko uporabnik spremeni odločitev o uporabi in da je vaša zahteva za vzorcevanje priporočilo.
 
-V redu, zdaj ko razumemo glavni potek in uporabno nalogo za to – "ustvarjanje blog zapisa + povzetek", poglejmo, kaj moramo storiti, da bo delovalo.
+Ok, zdaj ko razumemo glavni tok in primerno opravilo za to "ustvarjanje blog zapisa + povzetek", poglejmo, kaj moramo narediti, da bo delovalo.
 
 ### Vrste sporočil
 
-Vzorcevalska sporočila niso omejena le na besedilo, ampak lahko pošljete tudi slike in zvok. Tako JSON-RPC izgleda drugače:
+Sporočila za vzorcevanje niso omejena le na besedilo, ampak lahko pošljete tudi slike in zvok. Tako je izgled JSON-RPC drugačen:
 
 **Besedilo**
 
@@ -136,13 +138,13 @@ Vzorcevalska sporočila niso omejena le na besedilo, ampak lahko pošljete tudi 
 }
 ```
 
-> OPOMBA: za bolj podrobne informacije o vzorcevanju si oglejte [uradno dokumentacijo](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> OPOMBA: za podrobnejše informacije o vzorčenju si oglejte [uradno dokumentacijo](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Kako konfigurirati vzorcevanje na odjemalcu
+## Kako konfigurirati vzorcevanje v odjemalcu
 
-> Opomba: če gradite samo strežnik, tukaj vam ni treba storiti veliko.
+> Opomba: če gradite samo strežnik, tukaj ni veliko potrebe po nastavitvah.
 
-Na odjemalcu morate določiti naslednjo funkcijo tako:
+V odjemalcu morate funkcijo nastaviti na naslednji način:
 
 ```json
 {
@@ -152,20 +154,20 @@ Na odjemalcu morate določiti naslednjo funkcijo tako:
 }
 ```
 
-To bo zaznano, ko se bo vaš izbrani odjemalec povezal s strežnikom.
+To bo nato zajeto, ko se bo vaš izbrani odjemalec povezal s strežnikom.
 
-## Primer vzorcevanja v praksi – ustvarjanje blog zapisa
+## Primer vzorcevanja v praksi - Ustvarjanje blog zapisa
 
-Napišimo server za vzorcevanje skupaj, naredili bomo naslednje:
+Napišimo skupaj vzorčni strežnik, za to moramo narediti naslednje:
 
 1. Ustvariti orodje na strežniku.
 1. Orodje naj ustvari zahtevo za vzorcevanje.
-1. Orodje naj počaka na odgovor na zahtevo za vzorcevanje od odjemalca.
-1. Nato naj orodje vrne rezultat.
+1. Orodje naj počaka na odgovor odjemalčeve zahteve za vzorcevanje.
+1. Nato naj se ustvari rezultat orodja.
 
 Poglejmo kodo korak za korakom:
 
-### -1- Ustvarite orodje
+### -1- Ustvari orodje
 
 **python**
 
@@ -176,9 +178,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Ustvarite zahtevo za vzorcevanje
+### -2- Ustvari zahtevo za vzorcevanje
 
-Razširite orodje z naslednjo kodo:
+Razširite svoj alat z naslednjo kodo:
 
 **python**
 
@@ -204,7 +206,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Počakajte na odgovor in ga vrnite
+### -3- Počakaj na odgovor in ga vrni
 
 **python**
 
@@ -213,7 +215,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# vrni celoten izdelek
+# vrni končni izdelek
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -282,7 +284,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # vrni celoten blog prispevek
+    # vrni celoten blog objavo
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -293,15 +295,15 @@ if __name__ == "__main__":
     # mcp.run()
     mcp.run(transport="streamable-http")
 
-# zaženite aplikacijo z: python server.py
+# zaženi aplikacijo z: python server.py
 ```
 
 ### -5- Testiranje v Visual Studio Code
 
-Za testiranje v Visual Studio Code storite naslednje:
+Za testiranje v Visual Studio Code naredite naslednje:
 
-1. Zaženite strežnik v terminalu.
-1. Dodajte ga v *mcp.json* (in preverite, da je zagnan), nekaj takega:
+1. Zaženite strežnik v terminalu
+1. Dodajte ga v *mcp.json* (in poskrbite, da je zagnan), nekaj takega:
 
    ```json
    "servers": {
@@ -318,35 +320,35 @@ Za testiranje v Visual Studio Code storite naslednje:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Dovolite vzorcevanje. Ob prvem testiranju se bo prikazalo dodatno okno, ki ga boste morali sprejeti, nato boste videli običajno okno za zagon orodja.
+1. Dovolite vzorcevanje. Prvič ko to preizkušate, boste prejeli dodatno pogovorno okno, ki ga morate potrditi, nato pa običajno pogovorno okno za uporabo orodja.
 
-1. Preglejte rezultate. Videli boste rezultate lepo prikazane v GitHub Copilot Chatu, lahko pa tudi pregledate surovi JSON odgovor.
+1. Preverite rezultate. Videli jih boste lepo prikazane v GitHub Copilot Chat, lahko pa tudi pregledate surovi JSON odgovor.
 
-**Bonus**. Orodja v Visual Studio Code odlično podpirajo vzorcevanje. Lahko konfigurirate dostop do vzorcevanja na vašem nameščenem strežniku tako:
+**Bonus**. Orodja Visual Studio Code zelo dobro podpirajo vzorcevanje. Dostop do vzorcevanja na vašem nameščenem strežniku lahko konfigurirate tako, da:
 
-1. Pojdite v razdelek z razširitvami.
-1. Izberite ikono zobnika za vaš nameščeni strežnik v razdelku "MCP SERVERS - INSTALLED".
-1. Izberite "Configure Model Access", tukaj lahko izberete, katere modele lahko GitHub Copilot uporablja pri vzorcevanju. Prav tako lahko vidite vse nedavne zahteve za vzorcevanje s klikom na "Show Sampling requests".
+1. Odprete razdelek z razširitvami.
+1. Izberete ikono zobnika za vaš nameščeni strežnik v razdelku "MCP SERVERS - INSTALLED".
+1 Izberete "Configure Model Access", kjer lahko izberete, katere modele lahko GitHub Copilot uporablja pri vzorčenju. Prav tako lahko vidite vse zadnje zahteve za vzorcevanje s klikom na "Show Sampling requests".
 
 ## Naloga
 
-V tej nalogi boste zgradili nekoliko drugačno vzorcevanje, in sicer integracijo vzorcevanja, ki omogoča ustvarjanje opisa izdelka. Tu je vaš scenarij:
+V tej nalogi boste zgradili nekoliko drugačno vzorčenje, in sicer integracijo vzorcevanja, ki podpira generiranje opisa izdelka. Tukaj je vaš scenarij:
 
-**Scenarij**: Delavec v back office-u e-trgovine potrebuje pomoč, ker mu vzame preveč časa ustvarjanje opisov izdelkov. Zato boste zgradili rešitev, kjer lahko pokličete orodje "create_product" z argumentoma "title" in "keywords", ki naj ustvari celoten izdelek vključno z "description" poljem, ki naj bo izpolnjeno z LLM odjemalca.
+**Scenarij**: Delo v upravi e-trgovine zahteva veliko časa za generiranje opisov izdelkov. Zato morate zgraditi rešitev, kjer lahko pokličete orodje "create_product" z argumentoma "title" in "keywords", ki naj ustvari celoten izdelek vključno z poljem "description", ki ga napolni odjemalčev LLM.
 
-NAMIG: uporabite, kar ste se naučili prej, da sestavite ta strežnik in njegovo orodje z uporabo zahteve za vzorcevanje.
+NAMIG: uporabite, kar ste se naučili prej, za konstrukcijo tega strežnika in njegovega orodja z uporabo zahteve za vzorcevanje.
 
 ## Rešitev
 
 [Rešitev](./solution/README.md)
 
-## Ključne ugotovitve
+## Ključna spoznanja
 
-Vzorcevanje je zmogljiva funkcija, ki strežniku omogoča, da naloge prenese na odjemalca, kadar potrebuje pomoč LLM.
+Vzorcevanje je močna funkcija, ki omogoča strežniku, da delegira naloge odjemalcu, ko potrebuje pomoč LLM-ja.
 
 ## Kaj sledi
 
-- [Poglavje 4 – Praktična implementacija](../../04-PracticalImplementation/README.md)
+- [Poglavje 4 - Praktična implementacija](../../04-PracticalImplementation/README.md)
 
 ---
 

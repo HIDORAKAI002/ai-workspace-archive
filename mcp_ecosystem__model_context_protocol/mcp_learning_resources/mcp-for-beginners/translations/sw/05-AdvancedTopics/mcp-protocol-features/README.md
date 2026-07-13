@@ -1,36 +1,39 @@
-# MCP Protocol Features Deep Dive
+# Uchunguzi wa Kina wa Vipengele vya Itifaki ya MCP
 
-Mwongozo huu unachunguza vipengele vya hali ya juu vya itifaki ya MCP vinavyozidi usindikaji wa zana na rasilimali za msingi. Kuelewa vipengele hivi kunakusaidia kujenga seva za MCP zenye nguvu zaidi, rahisi kwa watumiaji, na tayari kwa uzalishaji.
+Mwongozo huu unachunguza vipengele vya juu vya itifaki ya MCP ambavyo vinavuka usindikaji wa zana na rasilimali za msingi. Kuelewa vipengele hivi kuna kusaidia kujenga seva za MCP zenye nguvu zaidi, rafiki kwa mtumiaji, na tayari kwa uzalishaji.
 
-## Features Covered
+> **Kuangalia mbele:** toleo la kandarasi la `2026-07-28` linaacha kutumia kipengele cha Upigaji Kumbukumbu (Logging primitive) (linapendelea `stderr` kwa stdio na OpenTelemetry kwa uangalizi uliopangwa), linaondoa mfano wa `initialize`/kikao kilichotajwa katika Matukio ya Mzunguko wa Maisha ya Seva hapa chini, na linaweka kipengele cha Majukumu cha majaribio katika ugani maalum wa Majukumu wenye mzunguko mpya wa `tasks/get`/`tasks/update`/`tasks/cancel`. Angalia [Nini Kina Badilika katika MCP: Toleo la Kandarasi la 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Progress Notifications** - Ripoti maendeleo kwa shughuli zinazochukua muda mrefu
-2. **Request Cancellation** - Ruhusu wateja kughairi maombi yanayoendelea
-3. **Resource Templates** - URI za rasilimali zinazobadilika na vigezo
-4. **Server Lifecycle Events** - Uanzishaji na kufunga kwa usahihi
-5. **Logging Control** - Usanidi wa kumbukumbu upande wa seva
-6. **Error Handling Patterns** - Majibu ya makosa kwa uwiano
+## Vipengele Vilivyoshughulikiwa
+
+1. **Arifa za Maendeleo** - Ripoti maendeleo kwa shughuli zinazochukua muda mrefu
+2. **Kughairi Maombi** - Ruhusu wateja kughairi maombi yaliyoanzishwa
+3. **Mifano ya Rasilimali** - URI zenye vigezo kwa rasilimali zinazorudishwa kiotomatiki
+4. **Matukio ya Mzunguko wa Maisha ya Seva** - Uanzishaji na kufunga kwa usahihi
+5. **Udhibiti wa Upigaji Kumbukumbu** - Usanidi wa upigaji kumbukumbu upande wa seva
+6. **Mifumo ya Kushughulikia Makosa** - Majibu ya makosa yanayolingana
 
 ---
 
-## 1. Progress Notifications
+## 1. Arifa za Maendeleo
 
-Kwa shughuli zinazochukua muda (usindikaji data, kupakua faili, miito ya API), taarifa za maendeleo hufanya watumiaji wawe na taarifa.
+Kwa shughuli zinazochukua muda (kusindika data, kupakua faili, miito ya API), arifa za maendeleo zinawasaidia watumiaji kupata taarifa.
 
-### How It Works
+### Jinsi Inavyofanya Kazi
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (kazi ndefu)
+    Client->>Server: tools/call (operesheni ndefu)
     Server-->>Client: taarifa: maendeleo 10%
     Server-->>Client: taarifa: maendeleo 50%
     Server-->>Client: taarifa: maendeleo 90%
     Server->>Client: matokeo (imekamilika)
 ```
-### Python Implementation
+
+### Utekelezaji wa Python
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -49,7 +52,7 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Fanyia kipande kazi
+            # Shughulikia kipande
             await process_chunk(chunk)
             processed += len(chunk)
             
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### TypeScript Implementation
+### Utekelezaji wa TypeScript
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Client Handling (Python)
+### Ushughulikiaji wa Mteja (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Sajili mshughuliki
+# Sajili mshughulikiaji
 session.on_notification("notifications/progress", handle_progress)
 
-# Piga simu zana (mabadiliko ya maendeleo yatawasilishwa kupitia mshughuliki)
+# Piga zana (mabadiliko ya maendeleo yatafika kupitia mshughulikiaji)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. Request Cancellation
+## 2. Kughairi Maombi
 
-Ruhusu wateja kughairi maombi ambayo hayahitajiki tena au yanachukua muda mrefu sana.
+Ruhusu wateja kughairi maombi ambao hayahitajiki tena au yanachukua muda mrefu mno.
 
-### Python Implementation
+### Utekelezaji wa Python
 
 ```python
 from mcp.server import Server
@@ -161,19 +164,19 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # Tafuta kupitia kurasa nyingi
-            # Angalia kama kuachishwa kulihitajika
+            # Angalia kama kuairisha kulikuwa kwa ombi
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Tafakari utafutaji wa ukurasa
+            # Onyesha kutafuta kurasa
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Muda mfupi unaruhusu ukaguzi wa kuachishwa
+            # Chelezo kidogo huruhusu ukaguzi wa kuairisha
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # Rudisha matokeo ya sehemu
+        # Rejesha matokeo ya sehemu
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### Implementing Cancellation Context
+### Kutekeleza Muktadha wa Kughairi
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Muda wa kawaida umeisha, endelea
+            pass  # Muda wa kawaida wa kungojea, endelea
 ```
 
-### Client-Side Cancellation
+### Kughairi Upande wa Mteja
 
 ```python
 import asyncio
@@ -260,11 +263,11 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. Resource Templates
+## 3. Mifano ya Rasilimali
 
-Templeti za rasilimali huruhusu ujenzi wa URI zinazobadilika kwa vigezo, muhimu kwa API na hifadhidata.
+Mifano ya rasilimali huruhusu uundaji wa URI za mabadiliko kwa kutumia vigezo, muhimu kwa API na hifadhidata.
 
-### Defining Templates
+### Kufafanua Mifano
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Changanua URI ili kutoa parameta
+    # Tafsiri URI ili kutoa vigezo
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### TypeScript Implementation
+### Utekelezaji wa TypeScript
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Tumia URI ya tatizo la GitHub
+  // Tafsiri URI ya tatizo la GitHub
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. Server Lifecycle Events
+## 4. Matukio ya Mzunguko wa Maisha ya Seva
 
-Uanzishaji na kufunga kwa usahihi husaidia usimamizi safi wa rasilimali.
+Uanzishaji na kufungwa kwa usahihi huhakikisha usimamizi safi wa rasilimali.
 
-### Python Lifecycle Management
+### Usimamizi wa Mzunguko wa Maisha kwa Python
 
 ```python
 from mcp.server import Server
@@ -383,15 +386,15 @@ async def lifespan(server: Server):
     """Manage server lifecycle."""
     global db_connection, cache
     
-    # Mwanzo
+    # Kuanzishwa
     print("🚀 Server starting...")
     db_connection = await create_database_connection()
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # Seva inaendesha hapa
+    yield  # Server inaendesha hapa
     
-    # Kuzimwa
+    # Kufunga
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript Lifecycle
+### Mzunguko wa Maisha wa TypeScript
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. Logging Control
+## 5. Udhibiti wa Upigaji Kumbukumbu
 
-MCP inaunga mkono viwango vya kumbukumbu upande wa seva ambavyo wateja wanaweza kudhibiti.
+MCP inaunga mkono ngazi za upigaji kumbukumbu upande wa seva ambazo wateja wanaweza kudhibiti.
 
-### Implementing Logging Levels
+### Kutekeleza Ngazi za Upigaji Kumbukumbu
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Fananisha viwango vya MCP na viwango vya kurekodi (logging) vya Python
+# Ramisha viwango vya MCP kwa viwango vya uandishi wa kumbukumbu vya Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,7 +512,7 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Sending Log Messages to Client
+### Kutuma Ujumbe za Kumbukumbu kwa Mteja
 
 ```python
 @app.tool()
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Error Handling Patterns
+## 6. Mifumo ya Kushughulikia Makosa
 
-Usimamizi thabiti wa makosa hubaoresha utambuzi wa hitilafu na uzoefu wa mtumiaji.
+Kushughulikia makosa kwa uwiano huongeza urahisi wa utambuzi wa matatizo na uzoefu wa mtumiaji.
 
-### MCP Error Codes
+### Nambari za Makosa ya MCP
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Structured Error Responses
+### Majibu ya Makosa Yaliyopangwa
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Thibitisha ingizo
+    # Hakiki ingizo
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -601,12 +604,12 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Rekodi makosa yasiyotarajiwa
+        # Andika makosa yasiyotarajiwa
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### Error Handling in TypeScript
+### Kushughulikia Makosa kwa TypeScript
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -633,15 +636,15 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Tayari ni kosa la MCP
+      throw error;  // Tayari ni hitilafu ya MCP
     }
     
-    // Badilisha makosa mengine
+    // Geuza makosa mengine
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
     
-    // Kosa lisilojulikana
+    // Hitilafu isiyojulikana
     console.error("Unexpected error:", error);
     throw new McpError(
       ErrorCode.InternalError,
@@ -653,19 +656,19 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## Experimental Features (MCP 2025-11-25)
+## Vipengele vya Maajaribio (MCP 2025-11-25)
 
-Vipengele hivi vimewekwa alama kama vya majaribio kwenye specs:
+Vipengele hivi vimewekwa kama majaribio katika vipimo:
 
-### Tasks (Long-Running Operations)
+### Majukumu (Shughuli Ndefu Zinazofanyika)
 
 ```python
-# Majukumu huruhusu kufuatilia shughuli za muda mrefu zenye hali
+# Kazi zinawezesha kufuatilia shughuli za muda mrefu zenye hali
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Ripoti kazi iliyoanza
+    # Ripoti kazi ilianza
     await ctx.report_status("running", "Initializing training...")
     
     # Mzunguko wa mafunzo
@@ -682,13 +685,13 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Tool Annotations
+### Maelezo ya Zana
 
 ```python
 # Maelezo ya ziada hutoa metadata kuhusu tabia ya chombo
 @app.tool(
     annotations={
-        "destructive": False,      # Haiathiri data
+        "destructive": False,      # Hailizi data
         "idempotent": True,        # Salama kujaribu tena
         "timeout_seconds": 30,     # Muda wa juu unaotarajiwa
         "requires_approval": False # Hakuna idhini ya mtumiaji inahitajika
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## What's Next
+## Nini Kinachofuata
 
-- [Module 8 - Best Practices](../../08-BestPractices/README.md)
-- [5.14 - Context Engineering](../mcp-contextengineering/README.md)
-- [MCP Specification Changelog](https://spec.modelcontextprotocol.io/)
+- [Moduli 8 - Mizingiro Bora](../../08-BestPractices/README.md)
+- [5.14 - Uhandisi wa Muktadha](../mcp-contextengineering/README.md)
+- [Mabadiliko ya Maelezo ya MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
-## Additional Resources
+## Rasilimali Zingine
 
-- [MCP Specification 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 Error Codes](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK Examples](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [TypeScript SDK Examples](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [Maelezo ya MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Nambari za Makosa za JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [Mifano ya SDK ya Python](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [Mifano ya SDK ya TypeScript](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Angalizo**:
-Nyaraka hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kwa usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Nyaraka ya awali katika lugha yake ya asili inapaswa kuzingatiwa kama chanzo chenye dhamana. Kwa taarifa muhimu, tafsiri ya mtaalamu wa binadamu inashauriwa. Hatutojitahadharisha kwa kutoelewana au tafsiri zisizo sahihi zinazotokana na matumizi ya tafsiri hii.
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,35 +1,38 @@
-# الغوص العميق في ميزات بروتوكول MCP
+# نظرة معمقة على ميزات بروتوكول MCP
 
-يستعرض هذا الدليل ميزات متقدمة في بروتوكول MCP تتجاوز التعامل الأساسي مع الأدوات والموارد. يساعد فهم هذه الميزات على بناء خوادم MCP أكثر قوة وسهولة في الاستخدام وجاهزة للإنتاج.
+يستعرض هذا الدليل ميزات متقدمة لبروتوكول MCP تتجاوز التعامل الأساسي مع الأدوات والموارد. فهم هذه الميزات يساعدك في بناء خوادم MCP أكثر متانة وسهولة في الاستخدام وجاهزة للإنتاج.
 
-## الميزات المغطاة
+> **نظرة مستقبلية:** إصدار المرشح `2026-07-28` يوقف دعم بدائية التسجيل (مفضلاً `stderr` لـ stdio وOpenTelemetry للمرصودية المهيكلة)، ويزيل نموذج `initialize`/الجلسة المشار إليه في أحداث دورة حياة الخادم أدناه، وينقل ميزة المهام التجريبية إلى امتداد مخصص للمهام مع دورة حياة جديدة `tasks/get`/`tasks/update`/`tasks/cancel`. راجع [ما الجديد في MCP: إصدار المرشح 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **إشعارات التقدم** - الإبلاغ عن التقدم للعمليات طويلة الأمد  
-2. **إلغاء الطلبات** - السماح للعملاء بإلغاء الطلبات الجارية  
-3. **قوالب الموارد** - عناوين URI ديناميكية للموارد مع معلمات  
-4. **أحداث دورة حياة الخادم** - التهيئة والإيقاف السليم  
-5. **التحكم في السجلات** - تكوين السجلات على جانب الخادم  
-6. **أنماط معالجة الأخطاء** - ردود أخطاء متسقة  
+## الميزات التي سيتم تغطيتها
+
+1. **إشعارات التقدم** - الإبلاغ عن تقدم العمليات ذات المدة الطويلة
+2. **إلغاء الطلبات** - السماح للعملاء بإلغاء الطلبات الجارية
+3. **قوالب الموارد** - عناوين URI للموارد ديناميكية مع معلمات
+4. **أحداث دورة حياة الخادم** - التهيئة والإغلاق السليم
+5. **التحكم في التسجيل** - إعدادات تسجيل الجانب الخادم
+6. **أنماط معالجة الأخطاء** - استجابات خطأ متسقة
 
 ---
 
 ## 1. إشعارات التقدم
 
-للعمليات التي تستغرق وقتاً (معالجة البيانات، تنزيل الملفات، استدعاءات API)، تحافظ إشعارات التقدم على إعلام المستخدمين.
+للعمليات التي تستغرق وقتاً (معالجة البيانات، تنزيل الملفات، استدعاءات API)، تبقي إشعارات التقدم المستخدمين على اطلاع.
 
-### كيف يعمل
+### كيف تعمل
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (عملية طويلة)
+    Client->>Server: أدوات/استدعاء (عملية طويلة)
     Server-->>Client: إشعار: التقدم 10%
     Server-->>Client: إشعار: التقدم 50%
     Server-->>Client: إشعار: التقدم 90%
     Server->>Client: النتيجة (مكتملة)
-```  
+```
+
 ### تنفيذ بايثون
 
 ```python
@@ -89,7 +92,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-  
+
 ### تنفيذ TypeScript
 
 ```typescript
@@ -122,7 +125,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-  
+
 ### التعامل من جهة العميل (بايثون)
 
 ```python
@@ -134,15 +137,15 @@ async def handle_progress(notification):
 # تسجيل المعالج
 session.on_notification("notifications/progress", handle_progress)
 
-# استدعاء الأداة (ستصل تحديثات التقدم عبر المعالج)
+# استدعاء الأداة (سيتم استقبال تحديثات التقدم عبر المعالج)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-  
+
 ---
 
 ## 2. إلغاء الطلبات
 
-السماح للعملاء بإلغاء الطلبات التي لم تعد مطلوبة أو تستغرق وقتاً طويلاً.
+السماح للعملاء بإلغاء الطلبات التي لم تعد ضرورية أو تستغرق وقتاً طويلاً.
 
 ### تنفيذ بايثون
 
@@ -197,7 +200,7 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-  
+
 ### تنفيذ سياق الإلغاء
 
 ```python
@@ -231,9 +234,9 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # انتهاء المهلة العادية، استمر
+            pass  # المهلة العادية، استمر
 ```
-  
+
 ### الإلغاء من جهة العميل
 
 ```python
@@ -257,12 +260,12 @@ async def search_with_timeout(session, query, timeout=30):
         })
         return "Search timed out"
 ```
-  
+
 ---
 
 ## 3. قوالب الموارد
 
-تتيح قوالب الموارد بناء URI ديناميكي مع معلمات، مفيدة لواجهات برمجة التطبيقات وقواعد البيانات.
+تسمح قوالب الموارد ببناء URI ديناميكي مع معلمات، مفيد لواجهات برمجة التطبيقات وقواعد البيانات.
 
 ### تعريف القوالب
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # تحليل عنوان URI لاستخراج المعاملات
+    # تحليل معرف الموارد الموحد لاستخراج المعلمات
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -316,7 +319,7 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-  
+
 ### تنفيذ TypeScript
 
 ```typescript
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // تحليل معرف مشكلة GitHub
+  // تحليل عنوان URI لمسألة GitHub
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -359,12 +362,12 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-  
+
 ---
 
 ## 4. أحداث دورة حياة الخادم
 
-التعامل الصحيح مع التهيئة والإيقاف يضمن إدارة نظيفة للموارد.
+يضمن التعامل السليم مع التهيئة والإغلاق إدارة نظيفة للموارد.
 
 ### إدارة دورة الحياة في بايثون
 
@@ -405,7 +408,7 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-  
+
 ### دورة الحياة في TypeScript
 
 ```typescript
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// الاستخدام مع الإيقاف الآمن
+// الاستخدام مع الإيقاف النظيف
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -462,10 +465,10 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-  
+
 ---
 
-## 5. التحكم في السجلات
+## 5. التحكم في التسجيل
 
 يدعم MCP مستويات تسجيل على جانب الخادم يمكن للعملاء التحكم بها.
 
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# قم بربط مستويات MCP بمستويات تسجيل الدخول في بايثون
+# قم بتعيين مستويات MCP إلى مستويات تسجيل الدخول في بايثون
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,8 +511,8 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-  
-### إرسال رسائل السجل إلى العميل
+
+### إرسال رسائل التسجيل إلى العميل
 
 ```python
 @app.tool()
@@ -522,7 +525,7 @@ async def complex_operation(input: str, ctx) -> str:
         message=f"Starting complex operation with input: {input}"
     )
     
-    # يقوم بالعمل...
+    # القيام بالعمل...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -532,12 +535,12 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-  
+
 ---
 
 ## 6. أنماط معالجة الأخطاء
 
-تعالج الأخطاء بأسلوب متناسق مما يحسن من التصحيح وتجربة المستخدم.
+تحسن معالجة الأخطاء المتسقة من عملية التصحيح وتجربة المستخدم.
 
 ### رموز أخطاء MCP
 
@@ -568,8 +571,8 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-  
-### ردود الأخطاء المهيكلة
+
+### استجابات الخطأ المهيكلة
 
 ```python
 @app.tool()
@@ -605,7 +608,7 @@ async def safe_operation(input: str) -> str:
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-  
+
 ### معالجة الأخطاء في TypeScript
 
 ```typescript
@@ -633,10 +636,10 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // خطأ MCP موجود بالفعل
+      throw error;  // خطأ MCP بالفعل
     }
     
-    // تحويل الأخطاء الأخرى
+    // تحويل أخطاء أخرى
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
@@ -650,17 +653,17 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-  
+
 ---
 
 ## الميزات التجريبية (MCP 2025-11-25)
 
-تم تمييز هذه الميزات كتجريبية في المواصفة:
+هذه الميزات معلمة كتجريبية في المواصفة:
 
 ### المهام (العمليات طويلة الأمد)
 
 ```python
-# تسمح المهام بتتبع العمليات طويلة الأمد مع الحالة
+# تتيح المهام تتبع العمليات طويلة الأمد مع الحالة
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -681,15 +684,15 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-  
-### تعليمات الأدوات
+
+### تعليقات الأدوات
 
 ```python
 # توفر التعليقات التوضيحية بيانات وصفية حول سلوك الأداة
 @app.tool(
     annotations={
-        "destructive": False,      # لا يُعدّل البيانات
-        "idempotent": True,        # آمن للمحاولة مرة أخرى
+        "destructive": False,      # لا يغير البيانات
+        "idempotent": True,        # آمن لإعادة المحاولة
         "timeout_seconds": 30,     # أقصى مدة متوقعة
         "requires_approval": False # لا حاجة لموافقة المستخدم
     }
@@ -698,27 +701,27 @@ async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-  
+
 ---
 
-## ماذا بعد
+## التالي
 
-- [الوحدة 8 - أفضل الممارسات](../../08-BestPractices/README.md)  
-- [5.14 - هندسة السياق](../mcp-contextengineering/README.md)  
-- [سجل تغييرات مواصفة MCP](https://spec.modelcontextprotocol.io/)  
+- [الوحدة 8 - أفضل الممارسات](../../08-BestPractices/README.md)
+- [5.14 - هندسة السياق](../mcp-contextengineering/README.md)
+- [سجل تغييرات مواصفة MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## موارد إضافية
 
-- [مواصفة MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [رموز أخطاء JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [أمثلة SDK بايثون](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [مواصفة MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [رموز خطأ JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [أمثلة SDK بايثون](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [أمثلة SDK TypeScript](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**إخلاء المسؤولية**:
-تمت ترجمة هذا المستند باستخدام خدمة الترجمة بالذكاء الاصطناعي [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى لتحقيق الدقة، يُرجى العلم بأن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الرسمي والمعتمد. للمعلومات الهامة، يُنصح بالترجمة الاحترافية البشرية. نحن غير مسؤولين عن أي سوء فهم أو تفسير ناتج عن استخدام هذه الترجمة.
+**تنويه**:
+تمت ترجمة هذا المستند باستخدام خدمة الترجمة بالذكاء الاصطناعي [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى للدقة، يرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الرسمي والمعتمد. للمعلومات الهامة، يُنصح بالاستعانة بترجمة بشرية محترفة. نحن غير مسؤولين عن أي سوء فهم أو تفسير ناتج عن استخدام هذه الترجمة.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

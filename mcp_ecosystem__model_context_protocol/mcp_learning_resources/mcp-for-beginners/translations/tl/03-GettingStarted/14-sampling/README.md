@@ -1,22 +1,24 @@
-# Sampling - ipagkatiwala ang mga tampok sa Kliyente
+# Sampling - delegasyon ng mga tampok sa Kliyente
 
-Minsan, kailangan ng MCP Client at MCP Server na magtulungan upang makamit ang isang karaniwang layunin. Maaaring magkaroon ka ng kaso kung saan nangangailangan ang Server ng tulong mula sa isang LLM na nasa kliyente. Para sa sitwasyong ito, sampling ang dapat mong gamitin.
+> **Abiso ng pag-deprecate:** Ang `2026-07-28` MCP specification release candidate ay nagmamarka ng Sampling bilang deprecated pabor sa direktang integrasyon sa LLM provider APIs. Patuloy na gagana ang Sampling sa `2025-11-25` at sa loob ng hindi bababa sa isang taon matapos ang anumang pormal na pag-deprecate, kaya't ang lahat sa araling ito ay nananatiling wasto — ngunit ang mga bagong disenyo ng server ay dapat suriin ang kapalit na pattern. Tingnan ang [Ano ang Nagbabago sa MCP: Ang 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Tuklasin natin ang ilang mga kaso ng paggamit at kung paano bumuo ng isang solusyon na may kinalaman sa sampling.
+Minsan, kailangan ng MCP Client at MCP Server na magtulungan upang makamit ang isang pangkaraniwang layunin. Maaari kang magkaroon ng kaso kung saan kailangan ng Server ang tulong ng isang LLM na nasa kliyente. Para sa sitwasyong ito, sampling ang dapat mong gamitin.
+
+Tuklasin natin ang ilang mga kaso ng paggamit at kung paano bumuo ng solusyon gamit ang sampling.
 
 ## Pangkalahatang-ideya
 
 Sa araling ito, tututok tayo sa pagpapaliwanag kung kailan at saan gagamitin ang Sampling at kung paano ito i-configure.
 
-## Mga Layunin sa Pagkatuto
+## Mga Layunin ng Pag-aaral
 
-Sa kabanatang ito, ating:
+Sa kabanatang ito, gagawin natin ang mga sumusunod:
 
 - Ipaliwanag kung ano ang Sampling at kailan ito gagamitin.
 - Ipakita kung paano i-configure ang Sampling sa MCP.
-- Magbigay ng mga halimbawa ng paggamit ng Sampling.
+- Magbigay ng mga halimbawa ng Sampling sa aksyon.
 
-## Ano ang Sampling at bakit ito gagamitin?
+## Ano ang Sampling at bakit ito gamitin?
 
 Ang Sampling ay isang advanced na tampok na gumagana sa sumusunod na paraan:
 
@@ -27,19 +29,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Gumawa ng blog post
-    MCP Client->>MCP Server: Tawag sa kasangkapan (draft ng blog post)
-    MCP Server->>MCP Client: Kahilingan sa sampling (gumawa ng buod)
-    MCP Client->>LLM: Gumawa ng buod ng blog post
+    User->>MCP Client: Post ng blog ng may-akda
+    MCP Client->>MCP Server: Tawag sa kasangkapan (bura ng post sa blog)
+    MCP Server->>MCP Client: Hiling sa pagsubok (gumawa ng buod)
+    MCP Client->>LLM: Gumawa ng buod ng post sa blog
     LLM->>MCP Client: Resulta ng buod
-    MCP Client->>MCP Server: Tugon sa sampling (buod)
-    MCP Server->>MCP Client: Kumpletong blog post (draft + buod)
-    MCP Client->>User: Handa na ang blog post
+    MCP Client->>MCP Server: Tugon sa pagsubok (buod)
+    MCP Server->>MCP Client: Kumpletong post sa blog (bura + buod)
+    MCP Client->>User: Handa na ang post sa blog
 ```
 
-### Request para sa Sampling
+### Kahilingan sa Sampling
 
-Ok, ngayon ay may malawak tayong pagtingin sa isang kapanipaniwalang senaryo, pag-usapan natin ang request para sa sampling na ipinapadala ng server pabalik sa kliyente. Ganito ang hitsura ng ganitong request sa format na JSON-RPC:
+Ok, ngayon ay mayroon tayong mataas na pananaw sa isang kapani-paniwalang senaryo, pag-usapan natin ang kahilingan sa sampling na ipinapadala ng server pabalik sa kliyente. Ganito ang hitsura ng isang kahilingang ito sa format ng JSON-RPC:
 
 ```json
 {
@@ -71,17 +73,17 @@ Ok, ngayon ay may malawak tayong pagtingin sa isang kapanipaniwalang senaryo, pa
 }
 ```
 
-May ilang bagay dito na mahalagang banggitin:
+May ilang bagay dito na dapat i-highlight:
 
-- Prompt, sa ilalim ng content -> text, ay ang ating prompt na isang instruksiyon para sa LLM upang ibuod ang nilalaman ng blog post.
+- Prompt, sa ilalim ng content -> text, ang ating prompt na isang utos para sa LLM upang ibuod ang nilalaman ng blog post.
 
-- **modelPreferences**. Ang seksyong ito ay isang preference lamang, isang rekomendasyon kung anong configuration ang gagamitin sa LLM. Maaaring piliin ng gumagamit kung susundin ang mga rekomendasyong ito o babaguhin ang mga ito. Sa kasong ito, may mga rekomendasyon tungkol sa model na gagamitin at priyoridad sa bilis at katalinuhan.
-- **systemPrompt**, ito ang iyong normal na system prompt na nagbibigay personalidad sa iyong LLM at naglalaman ng mga gabay na instruksiyon.
-- **maxTokens**, ito ay isa pang property na nagsasabi kung ilang tokens ang inirerekomenda para sa gawaing ito.
+- **modelPreferences**. Ang seksyong ito ay isang preference lamang, isang rekomendasyon kung anong konfigurasyon ang gagamitin sa LLM. Puwedeng piliin ng user kung susundin ang mga rekomendasyong ito o babaguhin ang mga ito. Sa kasong ito, may mga rekomendasyon sa modelong gagamitin at prayoridad sa bilis at katalinuhan.
+- **systemPrompt**, ito ang iyong normal na prompt ng system na nagbibigay sa iyong LLM ng personalidad at naglalaman ng mga tagubilin sa gabay.
+- **maxTokens**, ito ay isa pang property na ginagamit upang sabihin kung ilang mga token ang inirerekomenda para sa gawaing ito.
 
 ### Tugon sa Sampling
 
-Ang tugong ito ay ang ipinapadala ng MCP Client pabalik sa MCP Server bilang resulta ng pagtawag ng kliyente sa LLM, paghihintay sa tugon, at pagbuo ng mensaheng ito. Ganito ang hitsura nito sa JSON-RPC:
+Ang tugong ito ang ipinapadala ng MCP Client pabalik sa MCP Server at resulta ng pagtawag ng client sa LLM, paghihintay sa tugon, at pagkatapos ay pagbuo ng mensaheng ito. Ganito ang hitsura nito sa JSON-RPC:
 
 ```json
 {
@@ -99,13 +101,13 @@ Ang tugong ito ay ang ipinapadala ng MCP Client pabalik sa MCP Server bilang res
 }
 ```
 
-Pansinin kung paano ang tugon ay isang abstrak ng blog post tulad ng hinihiling natin. Pansinin din kung paano ang ginamit na `model` ay hindi ang inirequest natin kundi "gpt-5" kaysa sa "claude-3-sonnet". Ito ay nagpapakita na maaaring magbago ang isip ng gumagamit kung ano ang gagamitin at ang iyong sampling request ay isang rekomendasyon lamang.
+Pansinin kung paano ang tugon ay isang buod ng blog post tulad ng ating hiniling. Pansinin din na ang ginamit na `model` ay hindi ang hiniling natin kundi "gpt-5" sa halip na "claude-3-sonnet". Ito ay upang ipakita na maaaring magbago ang isip ng user kung ano ang gagamitin at na ang iyong sampling request ay isang rekomendasyon.
 
-Ok, ngayong naiintindihan na natin ang pangunahing daloy, at isang kapaki-pakinabang na gawain para dito ay "paglikha ng blog post + abstrak", tingnan natin kung ano ang kailangan nating gawin upang mapagana ito.
+Ok, ngayon na nauunawaan natin ang pangunahing daloy, at kapaki-pakinabang na gawain para dito "paggawa ng blog post + buod", tingnan natin kung ano ang kailangan nating gawin upang ito ay gumana.
 
-### Uri ng Mensahe
+### Mga Uri ng Mensahe
 
-Ang mga mensahe ng Sampling ay hindi lang limitado sa teksto kundi maaari ka ring magpadala ng mga larawan at audio. Ganito ang pagkakaiba ng JSON-RPC:
+Ang mga mensahe ng Sampling ay hindi lamang nalilimitahan sa teksto kundi maaari ka ring magpadala ng mga imahe at audio. Ganito ang pagkakaiba ng JSON-RPC:
 
 **Teksto**
 
@@ -116,7 +118,7 @@ Ang mga mensahe ng Sampling ay hindi lang limitado sa teksto kundi maaari ka rin
 }
 ```
 
-**Nilalaman ng Larawan**
+**Nilalaman ng Imahe**
 
 ```json
 {
@@ -136,13 +138,13 @@ Ang mga mensahe ng Sampling ay hindi lang limitado sa teksto kundi maaari ka rin
 }
 ```
 
-> NOTE: para sa mas detalyadong impormasyon tungkol sa Sampling, tingnan ang [opisyal na dokumentasyon](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> TANDAAN: para sa mas detalyadong impormasyon tungkol sa Sampling, tingnan ang [opisyal na dokumentasyon](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Paano Mag-configure ng Sampling sa Kliyente
+## Paano I-configure ang Sampling sa Kliyente
 
-> Tandaan: kung ikaw ay gumagawa lamang ng server, hindi kailangan gawin ng marami rito.
+> Tandaan: kung nagtatayo ka lamang ng server, hindi mo kailangan ng gaanong gawin dito.
 
-Sa isang kliyente, kailangan mong tukuyin ang sumusunod na tampok tulad nito:
+Sa isang kliyente, kailangan mong tukuyin ang sumusunod na tampok sa ganitong paraan:
 
 ```json
 {
@@ -152,18 +154,18 @@ Sa isang kliyente, kailangan mong tukuyin ang sumusunod na tampok tulad nito:
 }
 ```
 
-Ito ay kukunin kapag nag-initialize ang napiling kliyente kasama ang server.
+Ito ay kukunin kapag nagsimula ang iyong napiling kliyente kasama ang server.
 
 ## Halimbawa ng Sampling sa Aksyon - Gumawa ng Blog Post
 
-Gumawa tayo ng sampling server nang magkasama, kailangan nating gawin ang mga sumusunod:
+Gawin nating coding ang isang sampling server nang magkasama, kailangan nating gawin ang mga sumusunod:
 
 1. Gumawa ng tool sa Server.
-1. Ang tool na ito ay dapat gumawa ng sampling request.
-1. Maghintay ang tool para sa tugon mula sa client's sampling request.
-1. Pagkatapos, dapat gawin ang resulta ng tool.
+1. Ang tool na ito ay dapat gumawa ng kahilingan sa sampling
+1. Ang tool ay dapat maghintay para sa tugon ng kliyente sa sampling request.
+1. Pagkatapos ay ang resulta ng tool ay dapat mabuo.
 
-Tingnan natin ang code nang hakbang-hakbang:
+Tingnan natin ang code ng hakbang-hakbang:
 
 ### -1- Gumawa ng tool
 
@@ -176,7 +178,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Gumawa ng sampling request
+### -2- Gumawa ng kahilingan sa sampling
 
 Palawakin ang iyong tool gamit ang sumusunod na code:
 
@@ -204,7 +206,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Maghintay ng tugon at ibalik ang tugon
+### -3- Maghintay para sa tugon at ibalik ang tugon
 
 **python**
 
@@ -213,7 +215,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# ibalik ang kumpletong produkto
+# ibalik ang kompletong produkto
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -282,7 +284,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # ibalik ang buong post ng blog
+    # ibalik ang kumpletong post ng blog
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -296,12 +298,12 @@ if __name__ == "__main__":
 # patakbuhin ang app gamit ang: python server.py
 ```
 
-### -5- Pagsubok nito sa Visual Studio Code
+### -5- Pag-test dito sa Visual Studio Code
 
 Para subukan ito sa Visual Studio Code, gawin ang mga sumusunod:
 
 1. Simulan ang server sa terminal
-1. Idagdag ito sa *mcp.json* (at siguraduhing ito ay naka-start) halimbawa ganito:
+1. Idagdag ito sa *mcp.json* (at siguraduhing ito ay nagsimula) hal. ganito:
 
    ```json
    "servers": {
@@ -318,31 +320,31 @@ Para subukan ito sa Visual Studio Code, gawin ang mga sumusunod:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Payagan ang sampling na mangyari. Sa unang subok ay ipapakita sa iyo ang karagdagang dialog na dapat tanggapin, pagkatapos ay makikita mo ang normal na dialog na humihiling na patakbuhin ang tool
+1. Payagan ang sampling na mangyari. Sa unang pag-test mo nito, ipapakita sa iyo ang karagdagang dialog na kailangan mong tanggapin, pagkatapos ay makikita mo ang normal na dialog para sa paghingi na patakbuhin ang isang tool
 
-1. Suriin ang mga resulta. Makikita mo ang mga resulta na maganda ang pagkakapakita sa GitHub Copilot Chat ngunit maaari mo ring suriin ang raw na JSON response.
+1. Suriin ang mga resulta. Makikita mo ang mga resulta na maayos na ipinakita sa GitHub Copilot Chat ngunit maaari mo ring suriin ang raw JSON response.
 
-**Bonus**. Ang Visual Studio Code tooling ay may mahusay na suporta para sa sampling. Maaari mong i-configure ang access ng Sampling sa iyong naka-install na server sa pamamagitan ng pag-navigate dito ganito:
+**Bonus**. May mahusay na suporta ang Visual Studio Code tooling para sa sampling. Maaari mong i-configure ang Sampling access sa iyong naka-install na server sa pamamagitan ng pag-navigate dito sa ganitong paraan:
 
 1. Pumunta sa seksyon ng extension.
-1. Piliin ang icon ng cog para sa iyong naka-install na server sa seksyon na "MCP SERVERS - INSTALLED".
-1 Piliin ang "Configure Model Access", dito maaari mong piliin kung aling mga Modelo ang pinapayagan ng GitHub Copilot na gamitin kapag ginagawa ang sampling. Makikita mo rin lahat ng mga kahilingang sampling na nangyari kamakailan sa pagpili ng "Show Sampling requests".
+1. Piliin ang icon ng cog para sa iyong naka-install na server sa seksyong "MCP SERVERS - INSTALLED".
+1 Piliin ang "Configure Model Access", dito maaari mong piliin kung aling mga Model ang pinahihintulutan ng GitHub Copilot na gamitin kapag nagsasagawa ng sampling. Maaari mo ring makita ang lahat ng kahilingan sa sampling na nangyari kamakailan sa pamamagitan ng pagpili ng "Show Sampling requests".
 
-## Takdang-aralin
+## Takdang-Aralin
 
-Sa takdang-araling ito, gagawa ka ng bahagyang ibang Sampling, partikular isang sampling integration na sumusuporta sa paggawa ng paglalarawan ng produkto. Narito ang iyong senaryo:
+Sa takdang-aralin na ito, gagawa ka ng bahagyang ibang Sampling na tinatawag na sampling integration na sumusuporta sa paggawa ng paglalarawan ng produkto. Narito ang iyong senaryo:
 
-**Senaryo**: Ang trabahador sa back office sa isang e-commerce ay nangangailangan ng tulong, sobra ang tagal sa paggawa ng mga paglalarawan ng produkto. Kaya, gagawa ka ng solusyon kung saan maaari kang tumawag ng isang tool na "create_product" na may mga argumentong "title" at "keywords" at dapat itong gumawa ng kompletong produkto kabilang ang isang "description" na field na dapat punuin ng LLM ng kliyente.
+**Senaryo**: Ang back office worker sa isang e-commerce ay nangangailangan ng tulong, masyadong matagal ang paggawa ng mga paglalarawan ng produkto. Kaya, gagawa ka ng solusyon kung saan maaari kang tumawag ng tool na "create_product" na may "title" at "keywords" bilang mga argumento at dapat itong lumikha ng kumpletong produkto kabilang ang isang patlang na "description" na dapat punan ng isang LLM ng kliyente.
 
-TIP: gamitin ang mga natutunan mo kanina para buuin ang server na ito at ang tool gamit ang sampling request.
+TIP: gamitin ang natutunan mo noon upang buuin ang server na ito at ang tool nito gamit ang kahilingan sa sampling.
 
 ## Solusyon
 
-[Solution](./solution/README.md)
+[Solusyon](./solution/README.md)
 
-## Pangunahing Mga Natutunan
+## Pangunahing Mga Puntos
 
-Ang Sampling ay isang makapangyarihang tampok na nagpapahintulot sa server na ipagkatiwala ang mga gawain sa kliyente kapag kailangan nito ang tulong ng isang LLM.
+Ang Sampling ay isang makapangyarihang tampok na nagpapahintulot sa server na i-delegate ang mga gawain sa kliyente kapag kailangan nito ng tulong mula sa isang LLM.
 
 ## Ano ang Susunod
 

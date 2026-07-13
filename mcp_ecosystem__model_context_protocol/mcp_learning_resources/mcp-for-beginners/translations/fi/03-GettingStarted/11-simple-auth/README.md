@@ -1,25 +1,25 @@
-# Yksinkertainen autentikointi
+# Yksinkertainen tunnistus
 
-MCP SDK:t tukevat OAuth 2.1:n käyttöä, mikä on rehellisesti sanottuna melko monimutkainen prosessi, joka sisältää käsitteitä kuten todennuspalvelin, resurssipalvelin, tunnistetietojen lähettäminen, koodin saamisen, koodin vaihtamisen bearer-tokeniksi, kunnes lopulta pääsee käsiksi resurssidataan. Jos et ole tottunut OAuthiin, mikä on erinomainen toteutettava asia, on hyvä idea aloittaa jonkinlaisella perusautentikoinnilla ja rakentaa sitä kohti yhä parempaa turvallisuutta. Siksi tämä luku on olemassa, jotta se rakentaa sinua kohti edistyneempää autentikointia.
+MCP SDK:t tukevat OAuth 2.1:n käyttöä, joka on rehellisesti sanottuna melko monimutkainen prosessi, joka sisältää käsitteitä kuten tunnistuspalvelin, resurssipalvelin, tunnistetietojen lähettäminen, koodin saaminen, koodin vaihtaminen kantajan tokeniin, kunnes lopulta pääset käsiksi resurssitietoihisi. Jos et ole tottunut OAuthiin, joka on mahtava toteutettava asia, on hyvä aloittaa jollain perustasolla määritellyllä tunnistuksella ja rakentaa siitä yhä parempaa ja turvallisempaa. Tästä syystä tämä luku on olemassa — rakentamaan sinut kohti kehittyneempää tunnistusta.
 
-## Autentikointi, mitä sillä tarkoitetaan?
+## Tunnistus, mitä sillä tarkoitetaan?
 
-Autentikointi on lyhenne autentikoinnista ja valtuutuksesta. Ajatuksena on, että meidän täytyy tehdä kaksi asiaa:
+Tunnistus on lyhenne autentikoinnista ja valtuutuksesta. Ajatuksena on, että meidän täytyy tehdä kaksi asiaa:
 
-- **Autentikointi**, joka on prosessi, jossa selvitetään, annetaanko henkilön tulla taloon, että heillä on oikeus olla "tässä", eli että heillä on pääsy resurssipalvelimellemme, jossa MCP Server -ominaisuutemme sijaitsevat.
-- **Valtuutus**, on prosessi, jossa tarkastellaan, pitääkö käyttäjällä olla pääsy niihin erityisiin resursseihin, joita he pyytävät, esimerkiksi näihin tilauksiin tai näihin tuotteisiin, tai onko heillä lupa lukea sisältöä mutta ei poistaa sitä, esimerkiksi.
+- **Autentikointi**, eli prosessi, jossa selvitetään, päästetäänkö henkilö meidän taloomme, onko hänellä oikeus olla "tässä", eli pääsy resurssipalvelimellemme, jossa MCP Server -ominaisuutemme sijaitsevat.
+- **Valtuutus**, on prosessi, jossa selvitetään, onko käyttäjällä oikeus päästä käsiksi niihin erityisiin resursseihin, joita hän pyytää, esimerkiksi näihin tilauksiin tai tuotteisiin, tai onko hän esimerkiksi sallittu lukemaan sisältöä mutta ei poistamaan sitä.
 
 ## Tunnistetiedot: miten kerromme järjestelmälle kuka olemme
 
-No, useimmat web-kehittäjät ajattelevat toimittavansa palvelimelle tunnistetiedot, yleensä salaisuuden, joka kertoo, onko heillä lupa olla täällä ("Autentikointi"). Nämä tunnistetiedot ovat tavallisesti base64-koodattu versio käyttäjänimestä ja salasanasta tai API-avain, joka yksilöi tietyn käyttäjän.
+Useimmat web-kehittäjät ajattelevat tavallisesti, että palvelimelle annetaan jonkinlainen tunnistetieto, yleensä salaisuus, joka kertoo, saavatko he olla siellä "Autentikointi". Tämä tunnistetieto on yleensä base64-koodattu versio käyttäjänimestä ja salasanasta tai API-avain, joka yksilöi tietyn käyttäjän.
 
-Tämä sisältää niiden lähettämisen otsikkona nimeltä "Authorization" näin:
+Tämä tarkoittaa, että tunnistetieto lähetetään otsakkeen nimeltä "Authorization" kautta näin:
 
 ```json
 { "Authorization": "secret123" }
 ```
 
-Tätä kutsutaan yleensä perusautentikoinniksi (basic authentication). Kuinka kokonaisprosessi sitten toimii, on seuraava:
+Tätä kutsutaan yleensä perusautentikoinniksi. Kuinka kokonaisvirtaus sitten toimii on seuraavanlainen:
 
 ```mermaid
 sequenceDiagram
@@ -27,12 +27,13 @@ sequenceDiagram
    participant Client
    participant Server
 
-   User->>Client: näytä minulle data
-   Client->>Server: näytä minulle data, tässä on tunnukseni
-   Server-->>Client: 1a, tunnen sinut, tässä datasi
+   User->>Client: näytä minulle tiedot
+   Client->>Server: näytä minulle tiedot, tässä on todistukseni
+   Server-->>Client: 1a, tunnen sinut, tässä ovat tietosi
    Server-->>Client: 1b, en tunne sinua, 401 
 ```
-Nyt kun ymmärrämme, miten se toimii prosessina, kuinka toteutamme sen? Useimmissa web-palvelimissa on käsitteellinen osa nimeltä middleware, koodinpätkä, joka ajetaan osana pyyntöä ja voi tarkistaa tunnistetiedot, ja jos ne ovat kelvolliset, päästää pyynnön läpi. Jos pyynnöllä ei ole kelvollisia tunnistetietoja, saat autentikointivirheen. Katsotaanpa, miten tämä voidaan toteuttaa:
+
+Nyt kun ymmärrämme, miten se toimii virtausnäkökulmasta, miten toteutamme sen? Suurimmassa osassa web-palvelimia on käsite nimeltä middleware, koodinpätkä joka suoritetaan osana pyyntöä, joka voi tarkistaa tunnistetiedot, ja jos ne ovat voimassa, päästää pyynnön läpi. Jos pyynnöllä ei ole voimassa olevia tunnistetietoja, saat tunnistusvirheen. Katsotaan miten tämä voidaan toteuttaa:
 
 **Python**
 
@@ -52,23 +53,23 @@ class AuthMiddleware(BaseHTTPMiddleware):
         print("Valid token, proceeding...")
        
         response = await call_next(request)
-        # lisää asiakasotsakkeita tai muuta vastausta jollakin tavalla
+        # lisää asiakaskohtaiset otsikot tai muuta vastausta jollain tavalla
         return response
 
 
 starlette_app.add_middleware(CustomHeaderMiddleware)
 ```
 
-Tässä olemme:
+Tässä meillä on:
 
-- Luoneet middleware-luokan nimeltä `AuthMiddleware`, jonka `dispatch`-metodia web-palvelin kutsuu.
-- Lisänneet middleware-luokan web-palvelimeen:
+- Luotu `AuthMiddleware`-middleware, jonka `dispatch`-metodia web-palvelin kutsuu.
+- Lisätty middleware web-palvelimelle:
 
     ```python
     starlette_app.add_middleware(AuthMiddleware)
     ```
 
-- Kirjoittaneet validointilogiikan, joka tarkistaa, onko Authorization-otsikko läsnä ja onko lähetetty salaisuus kelvollinen:
+- Kirjoitettu validointilogiikka, joka tarkistaa, onko Authorization-otsake olemassa ja onko lähetetty salaisuus voimassa:
 
     ```python
     has_header = request.headers.get("Authorization")
@@ -81,19 +82,19 @@ Tässä olemme:
         return Response(status_code=403, content="Forbidden")
     ```
 
- jos salaisuus on läsnä ja kelvollinen, annamme pyynnön mennä läpi kutsumalla `call_next` ja palautamme vastauksen.
+    jos salaisuus on olemassa ja voimassa, päästämme pyynnön läpi kutsumalla `call_next` ja palautamme vastauksen.
 
     ```python
     response = await call_next(request)
-    # lisää mahdolliset asiakasotsikot tai muuta vastausta jollain tavalla
+    # lisää asiakkaan otsikoita tai muuta vastausta jollain tavalla
     return response
     ```
 
-Toimintaperiaate on, että jos web-pyyntö tehdään palvelimelle, middleware-koodi käynnistetään, ja toteutuksen perusteella se joko päästää pyynnön läpi tai palauttaa virheen, joka ilmoittaa, että asiakkaalla ei ole oikeutta jatkaa.
+Tämä toimii siten, että jos web-pyyntö tehdään palvelimelle, middleware kutsutaan ja toteutuksensa mukaisesti se joko päästää pyynnön läpi tai palauttaa virheen, joka kertoo asiakkaalle, että hänellä ei ole oikeutta edetä.
 
 **TypeScript**
 
-Tässä luomme middleware-funktion suositulla Express-kehyksellä ja kaappaamme pyynnön ennen kuin se saavuttaa MCP Serverin. Tässä on koodi siihen:
+Tässä luomme middleware:n suositulla Express-kehyksellä ja keskeytämme pyynnön ennen kuin se saavuttaa MCP Serverin. Tässä on koodi siihen:
 
 ```typescript
 function isValid(secret) {
@@ -108,7 +109,7 @@ app.use((req, res, next) => {
     
     let token = req.headers["Authorization"];
 
-    // 2. Tarkista voimassaolo.
+    // 2. Tarkista kelpoisuus.
     if(!isValid(token)) {
         res.status(403).send('Forbidden');
     }
@@ -120,15 +121,15 @@ app.use((req, res, next) => {
 });
 ```
 
-Tässä koodissa teemme:
+Tässä koodissa:
 
-1. Tarkistamme, onko Authorization-otsikko läsnä, jos ei ole, lähetämme 401-virheen.
-2. Varmistamme, että tunniste/tunnus on kelvollinen, jos ei ole, lähetämme 403-virheen.
-3. Lopuksi annamme pyynnön jatkaa pyynnön käsittelyä ja palautamme pyydetyn resurssin.
+1. Tarkistamme, onko Authorization-otsake alun perin olemassa, jos ei ole, lähetämme 401-virheen.
+2. Varmistamme, että tunnistetieto/token on voimassa, ellei ole, lähetämme 403-virheen.
+3. Lopuksi välitämme pyynnön eteenpäin pyyntöpipeline:ssa ja palautamme pyydetyn resurssin.
 
 ## Harjoitus: Toteuta autentikointi
 
-Otetaan opit käyttöön ja kokeillaan toteuttaa se. Tässä suunnitelma:
+Otetaan tietomme ja kokeillaan toteuttaa se. Tässä suunnitelma:
 
 Palvelin
 
@@ -137,15 +138,17 @@ Palvelin
 
 Asiakas
 
-- Lähetä web-pyyntö, sisältäen tunnistetiedot, otsikon kautta.
+- Lähetä web-pyyntö tunnistetiedon kanssa otsakkeessa.
 
 ### -1- Luo web-palvelin ja MCP-instanssi
 
-Ensimmäisessä vaiheessa meidän täytyy luoda web-palvelimen instanssi ja MCP Server.
+> **Katse eteenpäin:** alla oleva TypeScript-esimerkki seuraa HTTP-siirtoja `transports`-kartassa, jossa avaimena on `mcp-session-id`, kuten **MCP Specification 2025-11-25** määrää. Julkaisukandidaatti `2026-07-28` poistaa `initialize` -kättelyn ja session ID:n kokonaan, jolloin tämä per-istunnon siirtokartta poistuu ja tilalle tulee tilattomia, itsenäisiä pyyntöjä. Katso [Mitä MCP:ssä muuttuu: 2026-07-28 julkaisuversio](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Ensimmäisessä vaiheessa meidän tulee luoda web-palvelininstanssi ja MCP Server.
 
 **Python**
 
-Tässä luomme MCP Server -instanssin, luomme starlette web-sovelluksen ja isännöimme sitä uvicornilla.
+Tässä luomme MCP-palvelininstanssin, luomme starlette-websovelluksen ja isännöimme sitä uvicornilla.
 
 ```python
 # luodaan MCP-palvelin
@@ -158,10 +161,10 @@ app = FastMCP(
     debug=True
 )
 
-# luodaan starlette-web-sovellus
+# luodaan starlette-verkkosovellus
 starlette_app = app.streamable_http_app()
 
-# palvelimen sovellus uvicornin kautta
+# tarjoillaan sovellus uvicornin kautta
 async def run(starlette_app):
     import uvicorn
     config = uvicorn.Config(
@@ -179,8 +182,8 @@ run(starlette_app)
 Tässä koodissa:
 
 - Luomme MCP Serverin.
-- Rakennamme starlette web-sovelluksen MCP Serveristä, `app.streamable_http_app()`.
-- Isännöimme ja palvelemme web-sovellusta uvicornilla `server.serve()`.
+- Rakennamme starlette-websovelluksen MCP Serveristä, `app.streamable_http_app()`.
+- Isännöimme ja palvelemme websovellusta käyttäen uvicornia `server.serve()`.
 
 **TypeScript**
 
@@ -192,10 +195,10 @@ const server = new McpServer({
       version: "1.0.0"
     });
 
-    // ... määritä palvelimen resurssit, työkalut ja kehotteet ...
+    // ... aseta palvelinresurssit, työkalut ja kehotteet ...
 ```
 
-Tämän MCP Serverin luominen tulee tehdä POST /mcp -reitillä, joten otetaan yllä oleva koodi ja siirretään se näin:
+Tämä MCP Serverin luonti pitää tehdä POST /mcp -reitillä, joten siirretään yllä oleva koodi näin:
 
 ```typescript
 import express from "express";
@@ -207,12 +210,12 @@ import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
 const app = express();
 app.use(express.json());
 
-// Kartta kuljetusten tallentamiseen istuntotunnuksen mukaan
+// Kartta kuljetusten tallentamiseksi istunnon ID:n mukaan
 const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
-// Käsittele POST-pyynnöt asiakas-palvelin viestintää varten
+// Käsittele POST-pyynnöt asiakas-palvelin -viestintään
 app.post('/mcp', async (req, res) => {
-  // Tarkista olemassa oleva istuntotunnus
+  // Tarkista olemassa oleva istunnon ID
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
   let transport: StreamableHTTPServerTransport;
 
@@ -224,16 +227,16 @@ app.post('/mcp', async (req, res) => {
     transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
       onsessioninitialized: (sessionId) => {
-        // Tallenna kuljetus istuntotunnuksen mukaan
+        // Tallenna kuljetus istunnon ID:n mukaan
         transports[sessionId] = transport;
       },
-      // DNS-uudelleensidonta suojaus on oletuksena pois päältä taaksepäin yhteensopivuuden vuoksi. Jos ajat tätä palvelinta
+      // DNS-uudelleensidontasuojus on oletuksena pois käytöstä taaksepäin yhteensopivuuden vuoksi. Jos ajat tätä palvelinta
       // paikallisesti, varmista että asetat:
       // enableDnsRebindingProtection: true,
       // allowedHosts: ['127.0.0.1'],
     });
 
-    // Siivoa kuljetus suljettaessa
+    // Siivoa kuljetus kun se suljetaan
     transport.onclose = () => {
       if (transport.sessionId) {
         delete transports[transport.sessionId];
@@ -277,44 +280,44 @@ const handleSessionRequest = async (req: express.Request, res: express.Response)
   await transport.handleRequest(req, res);
 };
 
-// Käsittele GET-pyynnöt palvelimen asiakas-ilmoituksia varten SSE:n kautta
+// Käsittele GET-pyynnöt palvelin-asiakas ilmoituksiin SSE:n kautta
 app.get('/mcp', handleSessionRequest);
 
-// Käsittele DELETE-pyynnöt istunnon päättämiseksi
+// Käsittele DELETE-pyynnöt istunnon päättämiseen
 app.delete('/mcp', handleSessionRequest);
 
 app.listen(3000);
 ```
 
-Nyt näet, miten MCP Serverin luonti siirrettiin `app.post("/mcp")` sisälle.
+Nyt näet, miten MCP Serverin luonti on siirretty `app.post("/mcp")` sisälle.
 
-Siirrytään seuraavaan vaiheeseen middlewaren luomiseksi, jotta voimme validoida saapuvat tunnistetiedot.
+Siirrytään seuraavaan vaiheeseen, jossa luomme middleware:n, jolla voimme validoida saapuvan tunnistetiedon.
 
 ### -2- Toteuta middleware palvelimelle
 
-Siirrytään middleware-osioon. Tässä luomme middleware-luokan, joka etsii tunnistetta `Authorization`-otsikosta ja validoi sen. Jos se on hyväksyttävä, pyyntö jatkaa toimitukseen (esim. listataan työkaluja, luetaan resurssi tai mitä MCP-toiminnallisuutta asiakas pyysi).
+Seuraavaksi middleware-osuus. Tässä luomme middleware:n, joka etsii tunnistetietoa `Authorization`-otsakkeesta ja validoi sen. Jos se hyväksytään, pyyntö voi jatkaa ja tehdä haluamansa (esim. listata työkaluja, lukea resurssia tai mitä tahansa MCP-ominaisuutta, jota asiakas pyysi).
 
 **Python**
 
-Middleware luomiseksi meidän täytyy luoda luokka, joka perii `BaseHTTPMiddleware`:stä. Kahta asiaa on mielenkiintoista:
+Middleware:n luomiseksi tarvitsemme luokan, joka perii `BaseHTTPMiddleware`:n. Kaksi tärkeää osaa ovat:
 
-- Pyyntö `request`, josta luemme otsikkotiedot.
-- `call_next`, sitä callbackia kutsutaan, jos asiakkaalla on hyväksyttävä tunniste.
+- Pyyntö `request`, josta luemme otsaketiedot.
+- `call_next` callback, joka täytyy kutsua, jos asiakas on tuonut hyväksyttävän tunnistetiedon.
 
-Ensiksi täytyy käsitellä tapaus, jossa `Authorization`-otsikko puuttuu:
+Ensin käsittelemme tapauksen, jos `Authorization`-otsaketta ei ole:
 
 ```python
 has_header = request.headers.get("Authorization")
 
-# otsikkoa ei ole, epäonnistutaan 401:llä, muuten jatketaan.
+# otsikkoa ei ole, epäonnistuu 401:llä, muuten jatka.
 if not has_header:
     print("-> Missing Authorization header!")
     return Response(status_code=401, content="Unauthorized")
 ```
 
-Tässä lähetämme 401 unauthorized -viestin, koska asiakas epäonnistuu autentikoinnissa.
+Tässä lähetämme 401 unauthorized -viestin, koska asiakas epäonnistuu tunnistautumisessa.
 
-Jos tunniste on lähetetty, täytyy tarkistaa sen kelvollisuus näin:
+Seuraavaksi, jos tunnistetieto on annettu, tarkistamme sen voimassaolon näin:
 
 ```python
  if not valid_token(has_header):
@@ -322,7 +325,7 @@ Jos tunniste on lähetetty, täytyy tarkistaa sen kelvollisuus näin:
     return Response(status_code=403, content="Forbidden")
 ```
 
-Huomaa, että yllä lähetämme 403 forbidden -virheen. Katsotaan koko middleware alla, jossa toteutetaan kaikki yllä mainittu:
+Huomaa, että yllä lähetämme 403 forbidden -viestin. Katsotaan koko middleware alla, joka toteuttaa kaiken edellä mainitun:
 
 ```python
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -345,7 +348,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 ```
 
-Hienoa, mutta entä `valid_token`-funktio? Tässä se on:
+Hienoa, mutta entä `valid_token`-funktio? Tässä se on alla:
 
 ```python
 # ÄLÄ käytä tuotannossa - paranna sitä !!
@@ -357,9 +360,9 @@ def valid_token(token: str) -> bool:
     return False
 ```
 
-Tämän pitäisi toki parantua.
+Tätä pitäisi toki parantaa.
 
-TÄRKEÄÄ: Sinun EI KOSKAAN pidä säilyttää salaisuuksia koodissa. Paras käytäntö on hakea salausarvo tietokannasta tai IDP:ltä (identiteettipalveluntarjoaja) tai vielä parempaa, antaa IDP:n tehdä validointi.
+TÄRKEÄÄ: Sinun ei IKINÄ pitäisi pitää salaisuuksia näin koodissa. Kannattaa mieluummin noutaa arvot tietolähteestä tai IDP:ltä (identiteettipalveluntarjoajalta) tai vielä parempaa, antaa IDP:n tehdä validointi.
 
 **TypeScript**
 
@@ -367,10 +370,10 @@ Toteuttaaksemme tämän Expressillä, meidän täytyy kutsua `use`-metodia, joka
 
 Meidän täytyy:
 
-- Tarkistaa pyyntömuuttuja `Authorization`-ominaisuuden tunnisteen varalta.
-- Validioida tunniste, ja jos kelvollinen, antaa pyynnön jatkaa ja antaa asiakkaan MCP-pyynnön tehdä mitä pitää (esim. listaa työkaluja, lue resurssi tai muuta MCP-toiminnallisuutta).
+- Käyttää pyyntömuuttujaa tarkistaaksemme annetun tunnistetiedon `Authorization`-ominaisuudessa.
+- Validoida tunnistetieto, ja jos se on hyväksytty, päästää pyyntö etenemään ja antaa asiakkaan MCP-pyynnön tehdä haluamansa (esim. listata työkaluja, lukea resurssi tai muuta MCP-toiminnallisuutta).
 
-Tarkistamme ensin, onko `Authorization`-otsikko läsnä, ja jos ei ole, estämme pyynnön etenemisen:
+Tässä tarkistamme, onko `Authorization`-otsake olemassa, ja jos ei, pysäytämme pyynnön:
 
 ```typescript
 if(!req.headers["authorization"]) {
@@ -379,9 +382,9 @@ if(!req.headers["authorization"]) {
 }
 ```
 
-Jos otsikkoa ei ole, saat 401-virheen.
+Jos otsake ei ole lähetetty, saat 401-virheen.
 
-Seuraavaksi tarkistamme, onko tunniste kelvollinen, jos ei ole, pysäytämme pyynnön taas mutta hieman eri viestillä:
+Seuraavaksi tarkistamme, onko tunnistetieto voimassa; jos ei, pysäytämme pyynnön 403-viestillä:
 
 ```typescript
 if(!isValid(token)) {
@@ -392,7 +395,7 @@ if(!isValid(token)) {
 
 Huomaa, että nyt saat 403-virheen.
 
-Tässä koko koodi:
+Tässä on koko koodi:
 
 ```typescript
 app.use((req, res, next) => {
@@ -415,15 +418,15 @@ app.use((req, res, next) => {
 });
 ```
 
-Olemme asettaneet web-palvelimen hyväksymään middleware-funktion, joka tarkistaa asiakkaan lähettämän tunnisteen. Entä asiakkaan puoli?
+Olemme asettaneet web-palvelimen ottamaan middleware mukaan tarkistamaan, lähettääkö asiakas meille toivomamme tunnistetiedon. Entä asiakas itse?
 
-### -3- Lähetä web-pyyntö tunnisteella otsikossa
+### -3- Lähetä web-pyyntö tunnistetiedon kanssa otsakkeessa
 
-Meidän täytyy varmistaa, että asiakas lähettää tunnisteen otsikon kautta. Koska aiomme käyttää MCP-asiakasta, meidän täytyy selvittää, miten se tehdään.
+Meidän täytyy varmistaa, että asiakas lähettää tunnistetiedon otsakkeessa. Koska aiomme käyttää MCP-asiakasta, meidän täytyy selvittää, miten se tehdään.
 
 **Python**
 
-Asiakkaalle meidän täytyy lähettää otsikko, joka sisältää tunnisteen näin:
+Asiakaspuolella meidän täytyy välittää otsake tunnistetietomme kanssa näin:
 
 ```python
 # ÄLÄ kovakoodaa arvoa, säilytä se vähintään ympäristömuuttujassa tai turvallisemmassa tallennustilassa
@@ -443,24 +446,24 @@ async with streamablehttp_client(
         ) as session:
             await session.initialize()
       
-            # TEHTÄVÄ, mitä haluat toteutettavan asiakkaassa, esim. listaa työkalut, kutsu työkalut jne.
+            # TODO, mitä haluat tehdä asiakkaassa, esim. listaa työkalut, kutsu työkaluja jne.
 ```
 
-Huomaa, miten täytämme `headers`-ominaisuuden näin: `headers = {"Authorization": f"Bearer {token}"}`.
+Huomaa, että täytämme `headers`-ominaisuuden näin: `headers = {"Authorization": f"Bearer {token}"}`.
 
 **TypeScript**
 
-Voimme ratkaista tämän kahdessa vaiheessa:
+Ratkaistaan tämä kahdessa vaiheessa:
 
-1. Täytämme konfiguraatio-olion tunnistetiedoilla.
-2. Lähetämme konfiguraatio-olion transportille.
+1. Täytetään kokoonpano-olio tunnistetiedoilla.
+2. Annetaan kokoonpano-olio siirrolle.
 
 ```typescript
 
-// ÄLÄ kovakoodaa arvoa kuten tässä on tehty. Vähintään käytä ympäristömuuttujaa ja jotain kuten dotenv (kehitystilassa).
+// ÄLÄ kovakoodaa arvoa kuten tässä näytetty. Vähintään sen pitäisi olla ympäristömuuttuja ja käytä jotain kuten dotenv (kehitystilassa).
 let token = "secret123"
 
-// määritä client transport -asetukset objektina
+// määrittele client transport -optio-objekti
 let options: StreamableHTTPClientTransportOptions = {
   sessionId: sessionId,
   requestInit: {
@@ -470,7 +473,7 @@ let options: StreamableHTTPClientTransportOptions = {
   }
 };
 
-// välitä options-objekti transportille
+// välitä optio-objekti transportille
 async function main() {
    const transport = new StreamableHTTPClientTransport(
       new URL(serverUrl),
@@ -478,46 +481,46 @@ async function main() {
    );
 ```
 
-Tässä näkyy, miten loimme `options`-olion ja laitoimme otsikot `requestInit`-ominaisuuteen.
+Tässä näet, miten jouduimme luomaan `options`-olion ja sijoittamaan otsakkeet `requestInit`-ominaisuuteen.
 
-TÄRKEÄÄ: Miten parannamme tätä? Nykyisessä toteutuksessa on ongelmia. Ensinnäkin tunnisteen välittäminen näin on riskialtista, ellei sinulla ole vähintään HTTPS:ää. Silloinkin tunniste voidaan varastaa, joten tarvitset järjestelmän, jossa voit helposti peruuttaa tokenin ja lisätä tarkistuksia, kuten mistä päin maailmaa pyyntö tulee, tapahtuuko pyyntö liian usein (botin kaltainen toiminta), lyhyesti sanottuna on monia huolenaiheita.
+TÄRKEÄÄ: Miten parannamme tätä tästä? Nykyisellä toteutuksella on ongelmia. Ensinnäkin tunnistetietojen lähettäminen näin on melko riskialtista, ellei vähintäänkin käytössä ole HTTPS. Jopa silloin tunnistetiedot voidaan varastaa, joten tarvitaan järjestelmä, jossa tokenin voi helposti kumota ja lisätä tarkistuksia, kuten mistä päin maailmaa pyyntö tulee, tapahtuuko se liian usein (bot-tyyppistä käytöstä), lyhyesti, huolia riittää.
 
-Kuitenkin hyvin yksinkertaisille API:lle, joissa et halua kenenkään kutsuvan API:a ilman tunnistautumista, tämä on hyvä aloitus.
+Tätä sanottua, yksinkertaisiin API:hin, joissa et halua kenenkään kutsuvan API:a ilman tunnistautumista, tämä on hyvä alku.
 
-Nyt yritetään parantaa turvallisuutta käyttämällä standardoitua muotoa kuten JSON Web Tokenia, eli JWT:ta.
+Kehitetään tietoturvaa vielä hieman käyttämällä standardoitua muotoa kuten JSON Web Token, eli JWT- tai "JOT"-tokeneita.
 
 ## JSON Web Tokenit, JWT
 
-Joten yritämme parantaa yksinkertaisten tunnisteiden lähettämistä. Mitä parannuksia saamme heti kun otamme JWT:n käyttöön?
+Joten, tavoitteena on parantaa nykyisiä hyvin yksinkertaisia tunnistetietoja. Mitä välittömiä parannuksia JWT:n käyttöönotto tuo?
 
-- **Turvallisuusparannukset**. Perusautentikoinnissa lähetät käyttäjätunnuksen ja salasanan base64-koodattuna tokenina (tai API-avaimen) yhä uudelleen, mikä lisää riskiä. JWT:llä lähetät käyttäjätunnuksen ja salasanan, saat tokenin takaisin ja token on myös aikarajoitettu, eli se vanhenee. JWT mahdollistaa tarkemman pääsynhallinnan käyttäen rooleja, laajuuksia ja oikeuksia.
-- **Stateless ja skaalautuvuus**. JWT:t ovat itsenäisiä, ne sisältävät kaiken käyttäjätiedon ja poistavat tarpeen palvelinpuolen sessiotallennukselle. Token voidaan validoida myös paikallisesti.
-- **Yhteentoimivuus ja liittoutuminen**. JWT on keskeinen Open ID Connectissä ja sitä käytetään tunnettujen identiteetin tarjoajien kuten Entra ID:n, Google Identityn ja Auth0:n kanssa. Ne mahdollistavat myös single sign-onin ja paljon muuta, tehden siitä yritystason ratkaisun.
-- **Modulaarisuus ja joustavuus**. JWT:tä voi käyttää myös API Gateway -ratkaisuissa kuten Azure API Management, NGINX ja muut. Se tukee myös käyttäjän todentamista ja palvelimen välisiä yhteyksiä mukaan lukien muiden käyttäjien puolesta toimimisen ja valtuutuksen.
-- **Suorituskyky ja välimuisti**. JWT:tä voidaan välimuistittaa purkamisen jälkeen, mikä vähentää tarvetta purkaa sitä aina uudelleen. Tämä parantaa erityisesti suuriliikenteisissä sovelluksissa läpimenokykyä ja vähentää kuormaa infrastruktuurillasi.
-- **Edistyneet ominaisuudet**. Se tukee myös introspektiota (validoin tärkeyden tarkistus palvelimella) ja peruutusta (tokenin tekeminen kelvottomaksi).
+- **Turvallisuusparannukset**. Perusautentikoinnissa käyttäjänimi ja salasana lähetetään base64-koodattuna tokenina (tai API-avain) yhä uudestaan, mikä lisää riskiä. JWT:llä lähetät käyttäjänimesi ja salasanasi ja saat tokenin vastineeksi, joka on myös aikarajoitettu eli vanhenee. JWT:n avulla voit helposti käyttää hienojakoista pääsynvalvontaa roolien, scopejen ja käyttöoikeuksien avulla.
+- **Statelessness ja skaalautuvuus**. JWT:t ovat itsenäisiä, ne sisältävät kaiken käyttäjätiedon ja poistavat tarvetta serveripuolen istuntotallennukseen. Tokenin voi myös validoida paikallisesti.
+- **Yhteentoimivuus ja federaatio**. JWT:t ovat Open ID Connectin keskeisiä ja niitä käytetään tunnetuissa identiteetin tarjoajissa kuten Entra ID, Google Identity ja Auth0. Ne mahdollistavat myös kertakirjautumisen ja paljon muuta tehden siitä yritystason ratkaisun.
+- **Modulaarisuus ja joustavuus**. JWT:tä voi käyttää myös API Gatewayn kanssa kuten Azure API Management, NGINX ym. Tuki kattaa autentikointiskenaariot ja palvelin-palvelin -yhteydet mukaan lukien edustamisen ja delegoinnin.
+- **Suorituskyky ja välimuisti**. JWT:t voi välimuistiin purkamisen jälkeen, mikä vähentää tarvetta jäsentämiselle. Tämä auttaa erityisesti suuren liikenteen sovelluksissa parantaen läpäisykykyä ja vähentäen kuormaa infrastruktuurissa.
+- **Edistyneet ominaisuudet**. Tukee myös tarkastelua (validiteetin tarkistus palvelimella) ja mitätöintiä (tekee tokenin virheelliseksi).
 
-Kaikkien näiden etujen ansiosta katsotaan, miten voimme viedä toteutuksemme seuraavalle tasolle.
+Näillä eduilla katsotaan, miten toteutustamme voidaan viedä seuraavalle tasolle.
 
-## Perusautentikoinnin muuttaminen JWT:ksi
+## Perustunnistuksen muuntaminen JWT:ksi
 
-Joten, muutokset, jotka meidän täytyy tehdä korkealla tasolla ovat:
+Muutokset, jotka meidän on tehtävä pinnallisesti ovat:
 
-- **Oppia rakentamaan JWT-token**, joka on valmis lähetettäväksi asiakkaalta palvelimelle.
-- **Validoida JWT-token**, ja jos se on kelvollinen, antaa asiakkaan käyttää resurssejamme.
-- **Turvallinen tokenien tallennus**. Miten tallennamme tokenin.
-- **Suojaa reitit**. Meidän täytyy suojata reitit, tässä tapauksessa MCP-reitit ja ominaisuudet.
-- **Lisää uusinta-tokenit (refresh tokens)**. Varmista, että luomme lyhytikäisiä tokeneita, mutta myös pitkäikäisiä uusintatokenia, joita voi käyttää uusien tokenien hankintaan, jos vanhat vanhenevat. Varmista myös uusinta-pääte ja rotaatiostrategia.
+- **Opi rakentamaan JWT-token** ja valmistamaan se lähetettäväksi asiakkaalta palvelimelle.
+- **Validoi JWT-token**, ja jos se on oikein, anna asiakkaan käyttää resurssejamme.
+- **Turvallinen tokenin säilytys**. Miten säilytämme tämän tokenin.
+- **Suojaa reitit**. Meidän täytyy suojata reitit, meidän tapauksessamme MCP-ominaisuudet.
+- **Lisää refresh-tokenit**. Varmista, että luomme lyhytikäisiä tokeneita, mutta myös pitkäikäisiä refresh-tokeneita, joilla voi hankkia uusia tokeneita vanhentumisen jälkeen. Lisäksi varmista refresh-päätepiste ja kiertostrategia.
 
 ### -1- Rakenna JWT-token
 
-Ensinnäkin JWT-token koostuu seuraavista osista:
+Ensin JWT-tokenissa on seuraavat osat:
 
-- **otsikko (header)**, algoritmi ja tokenin tyyppi.
-- **sisältö (payload)**, väitteet kuten sub (käyttäjä tai entiteetti, jota token edustaa. Todennustilanteessa tämä on yleensä käyttäjätunnus), exp (vanhentumispäivä), role (rooli).
-- **allekirjoitus (signature)**, allekirjoitettu salaisuudella tai yksityisellä avaimella.
+- **otsake**, algoritmi ja tokenin tyyppi.
+- **sisältö (payload)**, claimsit, kuten sub (käyttäjä tai entiteetti, jota token edustaa, yleensä käyttäjätunnus), exp (vanhentumisaika), role (rooli)
+- **allekirjoitus**, joka allekirjoitetaan salaisuudella tai yksityisavaimella.
 
-Tätä varten meidän on rakennettava otsikko, sisältö ja koodattu token.
+Meidän tulee rakentaa otsake, sisältö ja koodattu token.
 
 **Python**
 
@@ -536,13 +539,13 @@ header = {
     "typ": "JWT"
 }
 
-# käyttäjätiedot sekä niiden väitteet ja vanhenemisaika
+# käyttäjätiedot, niiden väitteet ja vanhentumisaika
 payload = {
-    "sub": "1234567890",               # Aiheluokka (käyttäjän tunnus)
-    "name": "User Userson",                # Mukautettu väite
-    "admin": True,                     # Mukautettu väite
-    "iat": datetime.datetime.utcnow(),# Annettu
-    "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Vanhenemisaika
+    "sub": "1234567890",               # Aihe (käyttäjän tunnus)
+    "name": "User Userson",                # Muokattu väite
+    "admin": True,                     # Muokattu väite
+    "iat": datetime.datetime.utcnow(),# Annettu ajankohta
+    "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Vanhentumisaika
 }
 
 # koodaa se
@@ -551,12 +554,12 @@ encoded_jwt = jwt.encode(payload, secret_key, algorithm="HS256", headers=header)
 
 Yllä olevassa koodissa olemme:
 
-- Määritelleet otsikon, jossa käytetään algoritmina HS256 ja tyyppinä JWT.
-- Rakentaneet sisällön, joka sisältää aiheen tai käyttäjätunnuksen, käyttäjänimen, roolin, milloin token luotiin ja milloin se vanhenee täten toteuttaen aikarajoituksen, josta aiemmin mainitsimme.
+- Määritelleet otsakkeen käyttäen HS256-algoritmia ja tyyppiä JWT.
+- Rakentaneet sisällön, joka sisältää aiheen eli käyttäjätunnuksen, käyttäjänimen, roolin, milloin token luotiin ja milloin se vanhenee toteuttaen aikarajoitteen.
 
 **TypeScript**
 
-Tässä tarvitsemme riippuvuuksia, jotka auttavat meitä rakentamaan JWT-tokenin.
+Tässä tarvitsemme riippuvuuksia, jotka auttavat JWT-tokenin rakentamisessa.
 
 Riippuvuudet
 
@@ -566,19 +569,19 @@ npm install jsonwebtoken
 npm install --save-dev @types/jsonwebtoken
 ```
 
-Nyt kun se on paikallaan, luodaan otsikko, sisältö ja niistä koodattu token.
+Nyt kun tämä on valmiina, luodaan otsake, sisältö ja niistä koodattu token.
 
 ```typescript
 import jwt from 'jsonwebtoken';
 
 const secretKey = 'your-secret-key'; // Käytä ympäristömuuttujia tuotannossa
 
-// Määritä hyötykuorma
+// Määritä lataus
 const payload = {
   sub: '1234567890',
   name: 'User usersson',
   admin: true,
-  iat: Math.floor(Date.now() / 1000), // Myöntämisaika
+  iat: Math.floor(Date.now() / 1000), // Annettu ajankohta
   exp: Math.floor(Date.now() / 1000) + 60 * 60 // Vanhenee tunnissa
 };
 
@@ -588,7 +591,7 @@ const header = {
   typ: 'JWT'
 };
 
-// Luo tunnus
+// Luo token
 const token = jwt.sign(payload, secretKey, {
   algorithm: 'HS256',
   header: header
@@ -597,23 +600,23 @@ const token = jwt.sign(payload, secretKey, {
 console.log('JWT:', token);
 ```
 
-Tämä token:
+Tämä token on:
 
-- On allekirjoitettu HS256:lla
-- On voimassa 1 tunnin ajan
-- Sisältää väitteitä kuten sub, name, admin, iat ja exp.
+Allekirjoitettu HS256:lla  
+Voimassa tunnin  
+Sisältää claimit kuten sub, name, admin, iat ja exp.
 
 ### -2- Validoi token
 
-Meidän täytyy myös validoida token, tämä tulee tehdä palvelimella varmistaaksemme, että mitä asiakas meille lähettää on oikeasti kelvollista. Tähän kuuluu monia tarkistuksia rakenteesta validointiin asti. On myös suositeltavaa lisätä tarkistuksia selvittääksemme onko käyttäjä järjestelmässämme ja onko käyttäjällä oikeudet, joita hän väittää omistavansa.
+Meidän tulee myös validoida token, tämä on tehtävä palvelimella varmistaaksemme, että asiakas lähettää meille pätevän tokenin. Tarkistuksia on monia; rakenteen validoinnista tokenin voimassaolon tarkistamiseen. Suositellaan myös muita tarkistuksia, kuten onko käyttäjä tietokannassasi ja muita.
 
-Tokenin validoimiseksi meidän täytyy purkaa se, jotta voimme lukea sen ja alkaa tarkistaa sen kelvollisuus:
+Validointia varten dekoodataan token, jotta voimme lukea sen ja aloittaa validoinnin:
 
 **Python**
 
 ```python
 
-# Pure ja vahvista JWT
+# Dekoodaa ja varmista JWT
 try:
     decoded = jwt.decode(token, secret_key, algorithms=["HS256"])
     print("✅ Token is valid.")
@@ -627,11 +630,11 @@ except InvalidTokenError as e:
 
 ```
 
-Tässä koodissa kutsumme `jwt.decode` tokenilla, salaisella avaimella ja valitulla algoritmilla. Huomaa, että käytämme try-catch rakennetta, koska epäonnistunut validointi aiheuttaa virheen.
+Tässä koodissa kutsumme `jwt.decode` funktiota käyttäen syötteenä tokenia, salaista avainta ja valittua algoritmia. Huomaa, että käytämme try-catch -rakennetta, koska epäonnistunut validointi johtaa virheen syntymiseen.
 
 **TypeScript**
 
-Tässä meidän täytyy kutsua `jwt.verify` saadaksemme puretun version tokenista, jota voimme analysoida. Jos tämä kutsu epäonnistuu, rakenne on virheellinen tai token ei ole enää kelvollinen.
+Tässä meidän on kutsuttava `jwt.verify` saadaksemme dekoodatun version tokenista, jota voimme analysoida tarkemmin. Jos tämä kutsu epäonnistuu, se tarkoittaa, että tokenin rakenne on virheellinen tai se ei ole enää voimassa.
 
 ```typescript
 
@@ -643,18 +646,19 @@ try {
 }
 ```
 
-HUOM: kuten aiemmin mainittu, tulee tehdä lisätarkistuksia varmistamaan, että token osoittaa käyttäjää järjestelmässämme ja että käyttäjällä on vaaditut oikeudet.
+HUOMAUTUS: kuten aiemmin mainittu, meidän tulisi tehdä lisätarkistuksia varmistaaksemme, että tämä token viittaa järjestelmämme käyttäjään ja että käyttäjällä on ne oikeudet, joita se väittää omaavansa.
 
-Seuraavaksi tarkastelemme roolipohjaista pääsynhallintaa eli RBAC:ia.
-## Roolipohjaisen käyttöoikeuden lisääminen
+Seuraavaksi tarkastellaan roolipohjaista käyttöoikeuksien hallintaa, eli RBAC:ia.
 
-Ideana on ilmaista, että eri rooleilla on eri oikeudet. Esimerkiksi oletamme, että ylläpitäjä voi tehdä kaiken, tavallinen käyttäjä voi lukea/kirjoittaa ja vieras voi vain lukea. Tästä syystä tässä on joitakin mahdollisia käyttöoikeustasoja:
+## Roolipohjaisen käyttöoikeuksien hallinnan lisääminen
 
-- Admin.Write 
+Ajatuksena on ilmaista, että eri rooleilla on erilaiset käyttöoikeudet. Esimerkiksi oletamme, että ylläpitäjä voi tehdä kaiken, normaali käyttäjä voi lukea/kirjoittaa ja vierailija voi vain lukea. Täten tässä on joitakin mahdollisia käyttöoikeustasoja:
+
+- Admin.Write
 - User.Read
 - Guest.Read
 
-Katsotaanpa, miten voimme toteuttaa tällaisen kontrollin middlewarella. Middlewareja voidaan lisätä reitille tai kaikille reiteille.
+Katsotaan, miten tällainen hallinta voidaan toteuttaa middlewarella. Middlewareja voidaan lisätä reitille tai kaikille reiteille.
 
 **Python**
 
@@ -663,7 +667,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 import jwt
 
-# ÄLÄ pidä salasanaa suoraan koodissa, tämä on vain esittelyä varten. Lue se turvallisesta paikasta.
+# ÄLÄ laita salaista suoraan koodiin, tämä on vain esimerkki. Lue se turvallisesta paikasta.
 SECRET_KEY = "your-secret-key" # laita tämä ympäristömuuttujaan
 REQUIRED_PERMISSION = "User.Read"
 
@@ -691,11 +695,11 @@ class JWTPermissionMiddleware(BaseHTTPMiddleware):
 
 ```
 
-Middleware voidaan lisätä alla olevan esimerkin mukaisesti:
+Middlewaren lisäämiseen on muutamia erilaisia tapoja, kuten alla:
 
 ```python
 
-# Vaihtoehto 1: lisää middleware starlette-sovellusta rakennettaessa
+# Vaihtoehto 1: lisää middleware rakentamisen yhteydessä starlette-sovellukseen
 middleware = [
     Middleware(JWTPermissionMiddleware)
 ]
@@ -705,7 +709,7 @@ app = Starlette(routes=routes, middleware=middleware)
 # Vaihtoehto 2: lisää middleware sen jälkeen, kun starlette-sovellus on jo rakennettu
 starlette_app.add_middleware(JWTPermissionMiddleware)
 
-# Vaihtoehto 3: lisää middleware jokaiselle reitille
+# Vaihtoehto 3: lisää middlewarea reittikohtaisesti
 routes = [
     Route(
         "/mcp",
@@ -717,7 +721,7 @@ routes = [
 
 **TypeScript**
 
-Voimme käyttää `app.use` ja middlewarea, joka suoritetaan kaikissa pyynnöissä.
+Voimme käyttää `app.use` -funktiota ja middlewarea, joka suoritetaan kaikille pyynnöille.
 
 ```typescript
 app.use((req, res, next) => {
@@ -733,13 +737,13 @@ app.use((req, res, next) => {
     
     let token = req.headers["authorization"];
 
-    // 2. Tarkista, onko tunniste kelvollinen
+    // 2. Tarkista, onko token voimassa
     if(!isValid(token)) {
         res.status(403).send('Forbidden');
         return;
     }  
 
-    // 3. Tarkista, onko tunnisteen käyttäjä olemassa järjestelmässämme
+    // 3. Tarkista, onko tokenin käyttäjä olemassa järjestelmässämme
     if(!isExistingUser(token)) {
         res.status(403).send('Forbidden');
         console.log("User does not exist");
@@ -747,7 +751,7 @@ app.use((req, res, next) => {
     }
     console.log("User exists");
 
-    // 4. Varmista, että tunnisteella on oikeat käyttöoikeudet
+    // 4. Varmista, että tokenilla on oikeat käyttöoikeudet
     if(!hasScopes(token, ["User.Read"])){
         res.status(403).send('Forbidden - insufficient scopes');
     }
@@ -760,11 +764,11 @@ app.use((req, res, next) => {
 
 ```
 
-Middlewaremme tulisi tehdä muutamia asioita, nimittäin:
+Middlewaremme voi tehdä monta asiaa, ja sen TULISI tehdä nämä, nimittäin:
 
-1. Tarkistaa, onko valtuutusheaderi läsnä
-2. Tarkistaa, onko token voimassa, kutsumme `isValid` -metodia, jonka kirjoitimme ja joka tarkistaa JWT-tokenin eheyden ja voimassaolon.
-3. Varmistaa, että käyttäjä on olemassa järjestelmässämme, tämä pitäisi tarkistaa.
+1. Tarkistaa onko authorization-header olemassa
+2. Tarkistaa tokenin pätevyys, kutsumme `isValid`-metodia, jonka olemme kirjoittaneet tarkistamaan JWT-tokenin eheys ja voimassaolo.
+3. Varmistaa, että käyttäjä on järjestelmässämme, tämä tulisi tarkistaa.
 
    ```typescript
     // käyttäjät tietokannassa
@@ -776,14 +780,14 @@ Middlewaremme tulisi tehdä muutamia asioita, nimittäin:
    function isExistingUser(token) {
      let decodedToken = verifyToken(token);
 
-     // TODO, tarkista onko käyttäjä tietokannassa
+     // TODO, tarkista onko käyttäjä olemassa tietokannassa
      return users.includes(decodedToken?.name || "");
    }
    ```
 
-   Yllä olemme luoneet hyvin yksinkertaisen `users` -listan, joka luonnollisesti pitäisi olla tietokannassa.
+   Yllä olemme luoneet hyvin yksinkertaisen `users`-listan, joka tulisi tietenkin säilyttää tietokannassa.
 
-4. Lisäksi meidän pitäisi tarkistaa, että tokenilla on oikeat käyttöoikeudet.
+4. Lisäksi meidän tulisi tarkistaa myös, että tokenilla on oikeat käyttöoikeudet.
 
    ```typescript
    if(!hasScopes(token, ["User.Read"])){
@@ -791,7 +795,7 @@ Middlewaremme tulisi tehdä muutamia asioita, nimittäin:
    }
    ```
 
-   Yllä olevassa middlewarekoodissa tarkistamme, että token sisältää User.Read -käyttöoikeuden, jos ei sisällä, lähetämme virheen 403. Alla on `hasScopes` -apumetodi.
+   Tässä yllä olevassa middleware-koodissa tarkistamme, että token sisältää User.Read-oikeuden, jos ei, palautamme 403-virheen. Alla on `hasScopes`-avustajametodi.
 
    ```typescript
    function hasScopes(scope: string, requiredScopes: string[]) {
@@ -840,15 +844,15 @@ app.use((err, req, res, next) => {
 
 ```
 
-Nyt kun olet nähnyt, miten middlewarea voidaan käyttää sekä autentikointiin että valtuutukseen, entä MCP sitten, muuttaako se tapaa miten teemme autentikoinnin? Selvitetään seuraavassa osassa.
+Nyt olet nähnyt, kuinka middlewarea voidaan käyttää sekä autentikointiin että auktorisointiin. Entä mitä MCP:n tapauksessa, muuttuuko autentikointitapamme? Selvitetään seuraavassa osiossa.
 
 ### -3- Lisää RBAC MCP:hen
 
-Olet nähnyt, miten voit lisätä RBACin middlewarella, mutta MCP:lle ei ole helppoa tapaa lisätä RBACia per MCP ominaisuus, joten mitä teemme? No, meidän täytyy vain lisätä koodi, joka tässä tapauksessa tarkistaa, onko asiakkaalla oikeudet kutsua tiettyä työkalua:
+Olet tähän saakka nähnyt, kuinka RBAC voidaan lisätä middlewarella, mutta MCP:lle ei ole helppoa tapaa lisätä RBAC:ia per MCP-ominaisuus, joten mitä teemme? No, meidän täytyy vain lisätä koodia kuten tämä, joka tarkistaa tässä tapauksessa, onko asiakkaalla oikeudet kutsua tiettyä työkalua:
 
-Sinulla on muutamia eri vaihtoehtoja miten toteuttaa per-ominaisuus RBAC, tässä muutamia:
+Sinulla on muutamia eri vaihtoehtoja tavoittaa per ominaisuustason RBAC, tässä joitakin:
 
-- Lisää tarkistus jokaiselle työkalulle, resurssille, kehotteelle, missä sinun täytyy tarkistaa käyttöoikeustaso.
+- Lisää tarkistus jokaiselle työkalulle, resurssille, kehotteelle, jossa täytyy tarkistaa käyttöoikeustaso.
 
    **python**
 
@@ -858,7 +862,7 @@ Sinulla on muutamia eri vaihtoehtoja miten toteuttaa per-ominaisuus RBAC, täss�
       try:
           check_permissions(role="Admin.Write", request)
       catch:
-        pass # asiakas epäonnistui valtuutuksessa, aiheuta valtuutusvirhe
+        pass # asiakkaan valtuutus epäonnistui, nosta valtuutusvirhe
    ```
 
    **typescript**
@@ -875,7 +879,7 @@ Sinulla on muutamia eri vaihtoehtoja miten toteuttaa per-ominaisuus RBAC, täss�
       
       try {
         checkPermissions("Admin.Write", request);
-        // tehtävä, lähetä tunnus productServiceen ja etäkäyttöön
+        // tehtävä, lähetä tunniste productServicelle ja etämerkinnälle
       } catch(Exception e) {
         console.log("Authorization error, you're not allowed");  
       }
@@ -888,7 +892,7 @@ Sinulla on muutamia eri vaihtoehtoja miten toteuttaa per-ominaisuus RBAC, täss�
    ```
 
 
-- Käytä edistyneempää palvelinlähestymistapaa ja pyyntöjen käsittelijöitä, jotta vähennät paikkojen määrää, joissa tarkistus täytyy tehdä.
+- Käytä kehittyneempää palvelinratkaisua ja pyyntöjen käsittelijöitä, jolloin minimoit tarkistusten määrän eri paikoissa.
 
    **Python**
 
@@ -900,15 +904,15 @@ Sinulla on muutamia eri vaihtoehtoja miten toteuttaa per-ominaisuus RBAC, täss�
    }
 
    def has_permission(user_permissions, required_permissions) -> bool:
-      # käyttäjän_luvat: käyttäjällä olevien lupien lista
-      # vaaditut_luvat: työkalun vaatimat luvat
+      # käyttäjän_oikeudet: käyttäjän omistamien oikeuksien luettelo
+      # vaaditut_oikeudet: työkalun tarvitseman oikeuksien luettelo
       return any(perm in user_permissions for perm in required_permissions)
 
    @server.call_tool()
    async def handle_call_tool(
      name: str, arguments: dict[str, str] | None
    ) -> list[types.TextContent]:
-    # Oleta, että request.user.permissions on käyttäjän lupien lista
+    # Oletetaan, että request.user.permissions on käyttäjän oikeuksien luettelo
      user_permissions = request.user.permissions
      required_permissions = tool_permission.get(name, [])
      if not has_permission(user_permissions, required_permissions):
@@ -924,7 +928,7 @@ Sinulla on muutamia eri vaihtoehtoja miten toteuttaa per-ominaisuus RBAC, täss�
    ```typescript
    function hasPermission(userPermissions: string[], requiredPermissions: string[]): boolean {
        if (!Array.isArray(userPermissions) || !Array.isArray(requiredPermissions)) return false;
-       // Palauta true, jos käyttäjällä on vähintään yksi vaadituista oikeuksista
+       // Palauta tosi, jos käyttäjällä on vähintään yksi vaadittu oikeus
        
        return requiredPermissions.some(perm => userPermissions.includes(perm));
    }
@@ -942,25 +946,25 @@ Sinulla on muutamia eri vaihtoehtoja miten toteuttaa per-ominaisuus RBAC, täss�
    });
    ```
 
-   Huomaa, että sinun täytyy varmistaa, että middlewaresi liittää puretun tokenin pyynnön user-ominaisuuteen, jotta yllä oleva koodi on yksinkertaista.
+   Huomaa, että sinun täytyy varmistaa, että middlewaresi asettaa dekoodatun tokenin pyynnön user-ominaisuuteen, jotta yllä oleva koodi on yksinkertaista.
 
 ### Yhteenveto
 
-Nyt kun olemme keskustelleet, miten lisätä tuki RBACille yleisesti ja erityisesti MCP:lle, on aika yrittää toteuttaa turvallisuus itse varmistaaksesi, että käsitteet ovat sinulle selvät.
+Nyt kun olemme keskustelleet, miten lisätä tuki RBAC:ille yleisesti ja MCP:lle erityisesti, on aika kokeilla turvallisuuden toteuttamista itse, jotta ymmärsit sinulle esitetyt käsitteet.
 
-## Tehtävä 1: Rakenna mcp-palvelin ja mcp-asiakas käyttäen perusautentikointia
+## Tehtävä 1: Rakenna mcp-palvelin ja mcp-asiakas perusautentikoinnilla
 
-Tässä otat oppimasi tiedot käyttäjätunnuksen ja salasanan välittämisestä headerien kautta.
+Tässä otat oppimasi tiedot, kuinka lähetetään tunnistetiedot otsikoiden kautta.
 
 ## Ratkaisu 1
 
 [Solution 1](./code/basic/README.md)
 
-## Tehtävä 2: Päivitä ratkaisua 1 käyttämään JWT:tä
+## Tehtävä 2: Päivitä ratkaisusi tehtävässä 1 käyttämään JWT:tä
 
-Ota ensimmäinen ratkaisu ja parannetaan sitä nyt.
+Ota ensimmäinen ratkaisu ja parannetaan sitä tällä kertaa.
 
-Perusautentikoinnin sijaan käytämme JWT:tä.
+Sen sijaan, että käytetään Basic Authia, käytetään JWT:tä.
 
 ## Ratkaisu 2
 
@@ -968,23 +972,23 @@ Perusautentikoinnin sijaan käytämme JWT:tä.
 
 ## Haaste
 
-Lisää RBAC per työkalu, kuten kuvattiin osiossa "Add RBAC to MCP".
+Lisää RBAC per työkalu, kuten kuvasimme osiossa "Lisää RBAC MCP:hen".
 
 ## Yhteenveto
 
-Toivottavasti olet oppinut paljon tässä luvussa, turvattomuudesta, perusteisiin, JWT:hen ja sen lisäämisestä MCP:hen.
+Toivottavasti olet oppinut tässä luvussa paljon, aina ei-milloinkaan -turvallisuudesta, perus-turvallisuuteen, JWT:hen ja miten se voidaan lisätä MCP:lle.
 
-Olemme rakentaneet vahvan perustan räätälöidyillä JWT:illä, mutta kun skaalaamme, siirrymme kohti standardipohjaista identiteettimallia. IdP:n, kuten Entran tai Keycloak, käyttöönotto antaa meille mahdollisuuden ulkoistaa tokenin luonti, validointi ja elinkaaren hallinta luotettavalle alustalle — vapauttaen meidät keskittymään sovelluslogiikkaan ja käyttäjäkokemukseen.
+Olemme rakentaneet vahvan pohjan räätälöidyillä JWT:illä, mutta kun skaalaamme, siirrymme standardipohjaiseen identiteettimalliin. Tunnistuspalveluntarjoajan kuten Entra tai Keycloak käyttöönotto mahdollistaa tokenien luomisen, validoinnin ja elinkaaren hallinnan siirtämisen luotetulle alustalle — vapauttaen meidät keskittymään sovelluslogiikkaan ja käyttäjäkokemukseen.
 
-Tähän meillä on edistyneempi [luku Entrasta](../../05-AdvancedTopics/mcp-security-entra/README.md)
+Sitä varten meillä on edistyneempi [luku Entrasta](../../05-AdvancedTopics/mcp-security-entra/README.md).
 
 ## Mitä seuraavaksi
 
-- Seuraavaksi: [MCP-hostien asennus](../12-mcp-hosts/README.md)
+- Seuraava: [MCP-isäntien asennus](../12-mcp-hosts/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Vastuuvapauslauseke**:  
-Tämä asiakirja on käännetty AI-käännöspalvelun [Co-op Translator](https://github.com/Azure/co-op-translator) avulla. Vaikka pyrimme tarkkuuteen, ole hyvä ja huomioi, että automaattiseen kääntämiseen voi sisältyä virheitä tai epätarkkuuksia. Alkuperäistä asiakirjaa sen alkuperäiskielellä tulisi pitää ensisijaisena lähteenä. Tärkeissä tiedoissa suositellaan ammattilaisen tekemää ihmiskäännöstä. Emme ota vastuuta tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai virhetulkinnoista.
+**Vastuuvapauslauseke**:
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

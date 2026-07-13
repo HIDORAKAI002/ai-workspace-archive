@@ -1,24 +1,26 @@
-# Sampling - delegiranje značajki Klijentu
+# Uzorčenje - delegiranje značajki klijentu
 
-Ponekad je potrebno da MCP Klijent i MCP Server surađuju kako bi postigli zajednički cilj. Možete imati situaciju u kojoj Server treba pomoć LLM-a koji se nalazi na klijentu. Za takvu situaciju trebate koristiti sampling.
+> **Obavijest o zastarjelosti:** kandidacijska specifikacija MCP iz `2026-07-28` označava uzorčenje kao zastarjelo u korist izravne integracije s API-jima pružatelja LLM. Uzorčenje i dalje funkcionira u `2025-11-25` i barem godinu dana nakon formalne zastarjelosti, tako da je sve u ovoj lekciji i dalje valjano — ali novi dizajni poslužitelja trebaju razmotriti zamjenski obrazac. Pogledajte [Što se mijenja u MCP: Kandidacijska verzija iz 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Istražimo neke slučajeve upotrebe i kako izgraditi rješenje koje uključuje sampling.
+Ponekad je potrebno da MCP Klijent i MCP Poslužitelj surađuju kako bi postigli zajednički cilj. Možda imate situaciju u kojoj Poslužitelj treba pomoć LLM-a koji se nalazi na klijentu. Za takvu situaciju, uzorčenje je ono što trebate koristiti.
+
+Istražimo nekoliko primjera upotrebe i kako izgraditi rješenje koje uključuje uzorčenje.
 
 ## Pregled
 
-U ovoj lekciji fokusiramo se na objašnjenje kada i gdje koristiti Sampling te kako ga konfigurirati.
+U ovoj lekciji fokusiramo se na objašnjenje kada i gdje koristiti Uzorčenje i kako ga konfigurirati.
 
 ## Ciljevi učenja
 
 U ovom poglavlju ćemo:
 
-- Objasniti što je Sampling i kada ga koristiti.
-- Pokazati kako konfigurirati Sampling u MCP-u.
-- Dati primjere korištenja Samplinga u praksi.
+- Objasniti što je Uzorčenje i kada ga koristiti.
+- Pokazati kako konfigurirati Uzorčenje u MCP-u.
+- Dati primjere uzorčenja u praksi.
 
-## Što je Sampling i zašto ga koristiti?
+## Što je Uzorčenje i zašto ga koristiti?
 
-Sampling je napredna značajka koja radi na sljedeći način:
+Uzorčenje je napredna značajka koja funkcionira na sljedeći način:
 
 ```mermaid
 sequenceDiagram
@@ -27,19 +29,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Napiši blog objavu
-    MCP Client->>MCP Server: Poziv alata (skica blog objave)
-    MCP Server->>MCP Client: Zahtjev za uzorkovanje (napravi sažetak)
-    MCP Client->>LLM: Generiraj sažetak blog objave
+    User->>MCP Client: Autorov blog post
+    MCP Client->>MCP Server: Poziv alatu (nacrt blog posta)
+    MCP Server->>MCP Client: Zahtjev za uzorkovanje (kreiraj sažetak)
+    MCP Client->>LLM: Generiraj sažetak blog posta
     LLM->>MCP Client: Rezultat sažetka
     MCP Client->>MCP Server: Odgovor na uzorkovanje (sažetak)
-    MCP Server->>MCP Client: Kompletnu blog objavu (skica + sažetak)
-    MCP Client->>User: Blog objava spremna
+    MCP Server->>MCP Client: Kompletan blog post (nacrt + sažetak)
+    MCP Client->>User: Blog post spreman
 ```
 
-### Zahtjev za Sampling
+### Zahtjev za uzorčenje
 
-Ok, sada imamo širok pregled vjerodostojnog scenarija, razgovarajmo o zahtjevu za sampling koji server šalje nazad klijentu. Evo kako takav zahtjev može izgledati u JSON-RPC formatu:
+Ok, sada kada imamo pregled vjerodostojnog scenarija, razgovarajmo o zahtjevu za uzorčenje koji poslužitelj šalje natrag klijentu. Evo kako takav zahtjev može izgledati u JSON-RPC formatu:
 
 ```json
 {
@@ -71,17 +73,17 @@ Ok, sada imamo širok pregled vjerodostojnog scenarija, razgovarajmo o zahtjevu 
 }
 ```
 
-Ovdje vrijedi istaknuti nekoliko stvari:
+Vrijedi istaknuti nekoliko stvari ovdje:
 
-- Prompt, pod content -> text, je naš prompt koji je uputa LLM-u da sažme sadržaj blog posta.
+- Prompt, unutar content -> text, je naš prompt koji je uputa LLM-u da sažme sadržaj blog posta.
 
-- **modelPreferences**. Ovaj dio je upravo to, preferencija, preporuka koju konfiguraciju koristiti s LLM-om. Korisnik može odlučiti hoće li slijediti ove preporuke ili ih promijeniti. U ovom slučaju postoje preporuke o modelu koji treba koristiti te prioritetu brzine i inteligencije.
-- **systemPrompt**, ovo je vaš uobičajeni sistemski prompt koji daje vašem LLM-u osobnost i sadrži upute za vođenje.
-- **maxTokens**, ovo je još jedno svojstvo koje kaže koliko tokena se preporučuje koristiti za ovaj zadatak.
+- **modelPreferences**. Ovaj dio je upravo to, preferencija, preporuka kakvu konfiguraciju koristiti za LLM. Korisnik može odlučiti hoće li prihvatiti te preporuke ili ih promijeniti. U ovom slučaju postoje preporuke o modelu za korištenje te prioritetu brzine i inteligencije.
+- **systemPrompt**, ovo je vaš uobičajeni sistemski prompt koji daje LLM-u osobnost i sadrži upute.
+- **maxTokens**, ovo je još jedna svojstvo koja govori koliko tokena se preporučuje koristiti za ovaj zadatak.
 
-### Odgovor na Sampling
+### Odgovor na uzorčenje
 
-Ovaj odgovor MCP Klijent na kraju šalje nazad MCP Serveru i rezultat je poziva LLM-u na strani klijenta, čekanja tog odgovora i zatim sastavljanja ove poruke. Evo kako može izgledati u JSON-RPC:
+Ovaj odgovor MCP Klijent vraća MCP Poslužitelju kao rezultat poziva LLM-u, čekanja tog odgovora i zatim sastavljanja ove poruke. Evo kako može izgledati u JSON-RPC formatu:
 
 ```json
 {
@@ -99,13 +101,13 @@ Ovaj odgovor MCP Klijent na kraju šalje nazad MCP Serveru i rezultat je poziva 
 }
 ```
 
-Primijetite kako je odgovor sažetak blog posta upravo onako kako smo tražili. Također primijetite da korišteni `model` nije onaj za koji smo tražili nego "gpt-5" umjesto "claude-3-sonnet". Ovo ilustrira da korisnik može promijeniti mišljenje o tome što će koristiti i da je vaš sampling zahtjev samo preporuka.
+Primijetite kako je odgovor sažetak blog posta upravo kako smo tražili. Također primijetite kako korišteni `model` nije onaj koji smo zatražili, nego "gpt-5" umjesto "claude-3-sonnet". To ilustrira da korisnik može promijeniti odluku o korištenju i da je vaš zahtjev za uzorčenje preporuka.
 
-Ok, sada kada razumijemo glavni tijek i korisnu zadaću za korištenje "izrada blog posta + sažetak", pogledajmo što trebamo napraviti da to funkcionira.
+Ok, sada kad razumijemo glavni tijek i korisnu svrhu "kreiranje blog posta + sažetak", pogledajmo što trebamo napraviti da bi to funkcioniralo.
 
 ### Vrste poruka
 
-Sampling poruke nisu ograničene samo na tekst nego možete slati i slike i audio. Evo kako JSON-RPC izgleda drugačije:
+Poruke za uzorčenje nisu ograničene samo na tekst nego možete slati i slike te zvuk. Evo kako JSON-RPC izgleda u različitim slučajevima:
 
 **Tekst**
 
@@ -126,7 +128,7 @@ Sampling poruke nisu ograničene samo na tekst nego možete slati i slike i audi
 }
 ```
 
-**Audio sadržaj**
+**Sadržaj zvuka**
 
 ```json
 {
@@ -136,13 +138,13 @@ Sampling poruke nisu ograničene samo na tekst nego možete slati i slike i audi
 }
 ```
 
-> NOTE: za detaljnije informacije o Samplingu, pogledajte [službenu dokumentaciju](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> NAPOMENA: za detaljnije informacije o Uzorčenju, pogledajte [službenu dokumentaciju](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Kako konfigurirati Sampling u Klijentu
+## Kako konfigurirati Uzorčenje u Klijentu
 
-> Napomena: ako gradite samo server, ovdje ne trebate puno raditi.
+> Napomena: ako gradite samo poslužitelj, ne morate raditi mnogo ovdje.
 
-U klijentu morate specificirati sljedeću značajku ovako:
+U klijentu trebate specificirati sljedeću značajku na sljedeći način:
 
 ```json
 {
@@ -152,16 +154,16 @@ U klijentu morate specificirati sljedeću značajku ovako:
 }
 ```
 
-Ovo će biti prepoznato kada vaš odabrani klijent inicijalizira vezu sa serverom.
+Ovo će se zatim prepoznati kada vaš odabrani klijent inicijalizira vezu s poslužiteljem.
 
-## Primjer Samplinga u praksi - Izrada blog posta
+## Primjer uzorčenja u praksi - Kreiranje blog posta
 
-Napisat ćemo zajedno sampling server, trebamo napraviti sljedeće:
+Kodirajmo zajedno uzorčni poslužitelj, trebamo učiniti sljedeće:
 
-1. Kreirati alat na Serveru.
-1. Taj alat treba napraviti sampling zahtjev.
-1. Alat treba čekati odgovor na sampling zahtjev sa klijenta.
-1. Zatim proizvesti rezultat alata.
+1. Kreirati alat na poslužitelju.
+1. Taj alat treba kreirati zahtjev za uzorčenje.
+1. Alat treba čekati da klijent odgovori na zahtjev za uzorčenje.
+1. Zatim treba proizvesti rezultat alata.
 
 Pogledajmo kod korak po korak:
 
@@ -176,9 +178,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Kreirajte sampling zahtjev
+### -2- Kreirajte zahtjev za uzorčenje
 
-Proširite svoj alat sljedećim kodom:
+Proširite alat sljedećim kodom:
 
 **python**
 
@@ -204,7 +206,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Pričekajte odgovor i vratite odgovor
+### -3- Čekajte odgovor i vratite odgovor
 
 **python**
 
@@ -298,10 +300,10 @@ if __name__ == "__main__":
 
 ### -5- Testiranje u Visual Studio Codeu
 
-Da biste ovo testirali u Visual Studio Codeu, učinite sljedeće:
+Da biste ovo testirali u Visual Studio Codeu, učinite slijedeće:
 
-1. Pokrenite server u terminalu
-1. Dodajte ga u *mcp.json* (i osigurajte da je pokrenut), nešto poput ovoga:
+1. Pokrenite poslužitelj u terminalu
+1. Dodajte ga u *mcp.json* (i provjerite da je pokrenut), primjerice ovako:
 
    ```json
    "servers": {
@@ -318,31 +320,31 @@ Da biste ovo testirali u Visual Studio Codeu, učinite sljedeće:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Dopustite da se sampling izvrši. Prvi put kada ovo testirate bit će vam prikazan dodatni dijalog koji morate prihvatiti, zatim ćete vidjeti uobičajeni dijalog za traženje pokretanja alata
+1. Dopustite da se dogodi uzorčenje. Prvi put kada ovo testirate, prikazat će vam se dodatni dijalog koji morate prihvatiti, zatim će se pojaviti uobičajeni dijalog za pokretanje alata.
 
-1. Pregledajte rezultate. Vidjet ćete rezultate lijepo prikazane u GitHub Copilot Chatu, ali možete pregledati i sirovi JSON odgovor.
+1. Pregledajte rezultate. Rezultate ćete vidjeti lijepo prikazane u GitHub Copilot Chatu ali možete pregledati i sirovi JSON odgovor.
 
-**Bonus**. Alati u Visual Studio Codeu imaju sjajnu podršku za sampling. Možete konfigurirati pristup Samplingu na instaliranom serveru tako da učinite sljedeće:
+**Bonus**. Visual Studio Code alati imaju odličnu podršku za uzorčenje. Možete konfigurirati pristup uzorčenju za vaš instalirani poslužitelj tako da odete ovako:
 
-1. Navigirajte u sekciju ekstenzija.
-1. Odaberite ikonu zupčanika za svoj instalirani server u sekciji "MCP SERVERS - INSTALLED".
-1 Odaberite "Configure Model Access", ovdje možete odabrati koje modele GitHub Copilot smije koristiti za sampling. Također možete vidjeti sve nedavne sampling zahtjeve odabirom "Show Sampling requests".
+1. Idite u dio za proširenja.
+1. Odaberite ikonu zupčanika za vaš instalirani poslužitelj u sekciji "MCP SERVERS - INSTALLED".
+1 Odaberite "Configure Model Access", ovdje možete odabrati koje modele GitHub Copilot smije koristiti pri uzorkovanju. Također možete vidjeti sve nedavne zahtjeve za uzorčenje odabirom "Show Sampling requests".
 
 ## Zadatak
 
-U ovom zadatku izgradit ćete nešto drugačiji Sampling, naime integraciju za sampling koja podržava generiranje opisa proizvoda. Evo vašeg scenarija:
+U ovom zadatku izgradit ćete nešto drugačiji oblik uzorčenja, naime integraciju za uzorčenje koja podržava generiranje opisa proizvoda. Evo vašeg scenarija:
 
-**Scenarij**: Radnik u back officeu e-trgovine treba pomoć, previše vremena mu oduzima generiranje opisa proizvoda. Stoga trebate izgraditi rješenje u kojem ćete zvati alat "create_product" s argumentima "title" i "keywords" i trebao bi proizvesti kompletan proizvod uključujući polje "description" koje bi trebao popuniti LLM klijenta.
+**Scenarij**: Radnik u back officeu e-trgovine treba pomoć, previše vremena mu treba za generiranje opisa proizvoda. Stoga trebate izgraditi rješenje gdje možete pozvati alat "create_product" s argumentima "title" i "keywords" i alat bi trebao proizvesti kompletan proizvod uključujući polje "description" koje bi trebao popuniti LLM klijenta.
 
-TIP: koristite što ste ranije naučili za izgradnju ovog servera i njegovog alata koristeći sampling zahtjev.
+SAVJET: koristite ono što ste ranije naučili da konstruirate ovaj poslužitelj i njegov alat koristeći zahtjev za uzorčenje.
 
 ## Rješenje
 
 [Rješenje](./solution/README.md)
 
-## Ključni ishodi
+## Ključne spoznaje
 
-Sampling je moćna značajka koja omogućuje serveru delegiranje zadataka klijentu kada mu treba pomoć LLM-a.
+Uzorčenje je moćna značajka koja omogućuje poslužitelju da delegira zadatke klijentu kada mu treba pomoć LLM-a.
 
 ## Što slijedi
 

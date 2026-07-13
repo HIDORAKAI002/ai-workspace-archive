@@ -1,48 +1,49 @@
-# Bağlam Mühendisliği: MCP Ekosisteminde Yükselen Bir Kavram
+# Bağlam Mühendisliği: MCP Ekosisteminde Yeni Bir Kavram
 
 ## Genel Bakış
 
-Bağlam mühendisliği, AI alanında yükselen bir kavramdır ve müşteriler ile AI hizmetleri arasındaki etkileşimlerde bilginin nasıl yapılandırıldığını, iletildiğini ve sürdürüldüğünü inceler. Model Bağlam Protokolü (MCP) ekosistemi geliştikçe, bağlamı etkili bir şekilde yönetmenin önemi giderek artmaktadır. Bu modül, bağlam mühendisliği kavramını tanıtır ve MCP uygulamalarındaki potansiyel kullanım alanlarını keşfeder.
+Bağlam mühendisliği, yapay zeka alanında, müşteriler ile yapay zeka servisleri arasındaki etkileşimlerde bilginin nasıl yapılandırıldığını, iletildiğini ve sürdürüldüğünü inceleyen yeni bir kavramdır. Model Bağlam Protokolü (MCP) ekosistemi geliştikçe, bağlamın etkin yönetimini anlamak giderek daha önemli hale gelir. Bu modülde, bağlam mühendisliği kavramı tanıtılmakta ve MCP uygulamalarındaki potansiyel kullanımları araştırılmaktadır.
 
 ## Öğrenme Hedefleri
 
 Bu modülün sonunda şunları yapabileceksiniz:
 
-- Bağlam mühendisliği kavramını ve MCP uygulamalarındaki potansiyel rolünü anlayın
-- MCP protokol tasarımının ele aldığı bağlam yönetimindeki temel zorlukları belirleyin
-- Daha iyi bağlam yönetimi ile model performansını artırma tekniklerini keşfedin
-- Bağlamın etkinliğini ölçme ve değerlendirme yaklaşımlarını düşünün
-- MCP çerçevesi aracılığıyla AI deneyimlerini iyileştirmek için bu yükselen kavramları uygulayın
+- Bağlam mühendisliğinin ortaya çıkan kavramını ve MCP uygulamalarındaki potansiyel rolünü anlamak
+- MCP protokol tasarımının ele aldığı bağlam yönetimindeki temel zorlukları belirlemek
+- Daha iyi bağlam yönetimi yoluyla model performansını artırma tekniklerini keşfetmek
+- Bağlam etkinliğini ölçme ve değerlendirme yaklaşımlarını düşünmek
+- Bu yeni kavramları MCP çerçevesi aracılığıyla yapay zeka deneyimlerini iyileştirmek için uygulamak
 
 ## Bağlam Mühendisliğine Giriş
 
-Bağlam mühendisliği, kullanıcılar, uygulamalar ve AI modelleri arasındaki bilgi akışının bilinçli tasarımı ve yönetimine odaklanan bir kavramdır. Örneğin, istem mühendisliği gibi yerleşik alanlardan farklı olarak, bağlam mühendisliği henüz uygulayıcılar tarafından tanımlanmakta ve AI modellerine doğru bilgiyi doğru zamanda sağlama zorluklarını çözmek için çalışılmaktadır.
+Bağlam mühendisliği, kullanıcılar, uygulamalar ve yapay zeka modelleri arasındaki bilgi akışının kasıtlı olarak tasarımı ve yönetimine odaklanan yeni bir kavramdır. İleri düzey alanlar olan prompt mühendisliği gibi yerleşik alanlardan farklı olarak, bağlam mühendisliği henüz uygulayıcılar tarafından yapay zeka modellerine doğru zamanda doğru bilgi sağlama konusundaki benzersiz zorlukları çözmek üzere tanımlanıyor.
 
-Büyük dil modelleri (LLM'ler) geliştikçe, bağlamın önemi giderek daha belirgin hale geldi. Sağlanan bağlamın kalitesi, uygunluğu ve yapısı, model çıktıları üzerinde doğrudan etkili olur. Bağlam mühendisliği, bu ilişkiyi inceler ve etkili bağlam yönetimi için ilkeler geliştirmeyi amaçlar.
+Büyük dil modelleri (LLM) geliştikçe, bağlamın önemi giderek belirginleşmiştir. Sağladığımız bağlamın kalitesi, alakasına ve yapısına göre model çıktıları doğrudan etkilenir. Bağlam mühendisliği bu ilişkiyi inceler ve etkili bağlam yönetimi için prensipler geliştirmeyi amaçlar.
 
-> "2025 yılında, mevcut modeller son derece zeki olacak. Ancak en zeki insan bile, kendisinden ne yapması istendiğine dair bağlam olmadan işini etkili bir şekilde yapamayacak... 'Bağlam mühendisliği', istem mühendisliğinin bir sonraki seviyesidir. Dinamik bir sistemde bunu otomatik olarak yapmaktır." — Walden Yan, Cognition AI
+> "2025 yılında, mevcut modeller son derece zeki olacak. Ancak en akıllı insan bile, kendisinden isteneni bağlam olmadan etkili gerçekleştiremeyecek... 'Bağlam mühendisliği' prompt mühendisliğinin bir sonraki aşamasıdır. Bu, dinamik bir sistemde bunu otomatik olarak yapma işi." — Walden Yan, Cognition AI
 
-Bağlam mühendisliği şu alanları kapsayabilir:
+Bağlam mühendisliği şöyle alanları kapsayabilir:
 
-1. **Bağlam Seçimi**: Belirli bir görev için hangi bilginin önemli olduğunu belirlemek
-2. **Bağlam Yapılandırması**: Bilgiyi modelin anlayışını en üst düzeye çıkaracak şekilde düzenlemek
-3. **Bağlam İletimi**: Bilginin modele nasıl ve ne zaman gönderileceğini optimize etmek
-4. **Bağlam Bakımı**: Bağlamın durumunu ve zaman içindeki evrimini yönetmek
-5. **Bağlam Değerlendirmesi**: Bağlamın etkinliğini ölçmek ve iyileştirmek
+1. **Bağlam Seçimi**: Belirli bir görev için hangi bilginin alaka düzeyinde olduğunu belirlemek  
+2. **Bağlam Yapılandırması**: Bilgiyi modelin anlayışını maksimize edecek şekilde düzenlemek  
+3. **Bağlam İletimi**: Bilginin modellere ne zaman ve nasıl gönderileceğini optimize etmek  
+4. **Bağlam Bakımı**: Zamana bağlı olarak bağlamın durumunu ve evrimini yönetmek  
+5. **Bağlam Değerlendirmesi**: Bağlamın etkinliğini ölçmek ve geliştirmek  
 
-Bu odak alanları, LLM'lere bağlam sağlamak için standart bir yol sunan MCP ekosistemi açısından özellikle önemlidir.
+Bu odak alanları, uygulamaların LLM'lere bağlam sağlaması için standartlaştırılmış bir yol sunan MCP ekosistemi için özellikle önemlidir.
+
 
 ## Bağlam Yolculuğu Perspektifi
 
-Bağlam mühendisliğini görselleştirmenin bir yolu, bir MCP sistemi aracılığıyla bilginin izlediği yolculuğu takip etmektir:
+Bağlam mühendisliğini görselleştirmenin bir yolu, bilgilerin MCP sistemi içinde aldığı yolculuğu takip etmektir:
 
 ```mermaid
 graph LR
-    A[User Input] --> B[Context Assembly]
-    B --> C[Model Processing]
-    C --> D[Response Generation]
-    D --> E[State Management]
-    E -->|Next Interaction| A
+    A[Kullanıcı Girdisi] --> B[Bağlam Montajı]
+    B --> C[Model İşleme]
+    C --> D[Cevap Üretimi]
+    D --> E[Durum Yönetimi]
+    E -->|Sonraki Etkileşim| A
     
     style A fill:#A8D5BA,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
     style B fill:#7FB3D5,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -53,32 +54,32 @@ graph LR
 
 ### Bağlam Yolculuğundaki Temel Aşamalar:
 
-1. **Kullanıcı Girdisi**: Kullanıcıdan gelen ham bilgi (metin, görüntüler, belgeler)
-2. **Bağlam Birleştirme**: Kullanıcı girdisini sistem bağlamı, konuşma geçmişi ve diğer alınan bilgilerle birleştirme
-3. **Model İşleme**: AI modeli, birleştirilmiş bağlamı işler
-4. **Yanıt Üretimi**: Model, sağlanan bağlama dayalı çıktılar üretir
-5. **Durum Yönetimi**: Sistem, etkileşim temelinde iç durumunu günceller
+1. **Kullanıcı Girişi**: Kullanıcıdan gelen ham bilgi (metin, resimler, belgeler)  
+2. **Bağlam Birleştirme**: Kullanıcı girdisinin sistem bağlamı, sohbet geçmişi ve diğer alınan bilgilerle birleştirilmesi  
+3. **Model İşleme**: Yapay zeka modelinin birleştirilmiş bağlamı işlemesi  
+4. **Yanıt Üretimi**: Modelin verilen bağlama göre çıktı üretmesi  
+5. **Durum Yönetimi**: Sistem etkileşim temelinde kendi iç durumunu güncellemesi  
 
-Bu perspektif, AI sistemlerindeki bağlamın dinamik doğasını vurgular ve her aşamada bilgiyi en iyi şekilde nasıl yönetebileceğimizle ilgili önemli soruları gündeme getirir.
+Bu perspektif, yapay zeka sistemlerinde bağlamın dinamik doğasını vurgular ve her aşamada bilgiyi nasıl en iyi yönetebileceğimiz konusunda önemli sorular ortaya koyar.
 
-## Bağlam Mühendisliğinde Ortaya Çıkan İlkeler
+## Bağlam Mühendisliğinde Ortaya Çıkan Prensipler
 
-Bağlam mühendisliği alanı şekillendikçe, uygulayıcılardan bazı erken ilkeler ortaya çıkmaya başlamaktadır. Bu ilkeler, MCP uygulama seçimlerini bilgilendirmeye yardımcı olabilir:
+Bağlam mühendisliği alanı şekillenirken, uygulayıcılardan çıkmaya başlayan bazı erken prensipler vardır. Bu prensipler, MCP uygulamalarındaki seçimlere ışık tutabilir:
 
-### İlke 1: Bağlamı Tamamen Paylaşın
+### Prensip 1: Bağlamı Tam Paylaşın
 
-Bağlam, bir sistemin tüm bileşenleri arasında tamamen paylaşılmalı, birden fazla ajan veya süreç arasında parçalanmamalıdır. Bağlam dağıtıldığında, sistemin bir bölümünde alınan kararlar başka bir yerde alınanlarla çelişebilir.
+Bağlam, sistemin tüm bileşenleri arasında parçalanmak yerine eksiksiz paylaşılmalıdır. Bağlam dağıtıldığında, sistemin bir bölümünde alınan kararlar başka yerlerde alınanlarla çelişebilir.
 
 ```mermaid
 graph TD
-    subgraph "Fragmented Context Approach"
-    A1[Agent 1] --- C1[Context 1]
-    A2[Agent 2] --- C2[Context 2]
-    A3[Agent 3] --- C3[Context 3]
+    subgraph "Parçalanmış Bağlam Yaklaşımı"
+    A1[Temsilci 1] --- C1[Bağlam 1]
+    A2[Temsilci 2] --- C2[Bağlam 2]
+    A3[Temsilci 3] --- C3[Bağlam 3]
     end
     
-    subgraph "Unified Context Approach"
-    B1[Agent] --- D1[Shared Complete Context]
+    subgraph "Birleşik Bağlam Yaklaşımı"
+    B1[Temsilci] --- D1[Paylaşılan Tam Bağlam]
     end
     
     style A1 fill:#AED6F1,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -91,81 +92,82 @@ graph TD
     style D1 fill:#D7BDE2,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
 ```
 
-MCP uygulamalarında, bu, bağlamın tüm boru hattı boyunca sorunsuz bir şekilde akmasını sağlamak yerine bölümlere ayrılmamasını önerir.
+MCP uygulamalarında bu, bağlamın tüm boru hattı boyunca kesintisiz akış sağlanacak şekilde sistemlerin tasarlanmasını önerir.
 
-### İlke 2: Eylemlerin Zımni Kararlar İçerdiğini Kabul Edin
+### Prensip 2: Eylemlerin Örtük Kararları Taşıdığını Kabul Edin
 
-Bir modelin gerçekleştirdiği her eylem, bağlamı nasıl yorumlayacağına dair zımni kararlar içerir. Farklı bağlamlar üzerinde birden fazla bileşen çalıştığında, bu zımni kararlar çelişebilir ve tutarsız sonuçlara yol açabilir.
+Modelin her eylemi, bağlamı nasıl yorumlayacağına dair örtük kararları taşır. Birden fazla bileşen farklı bağlamlarda hareket ettiğinde, bu örtük kararlar çelişebilir ve tutarsız sonuçlara yol açabilir.
 
-Bu ilkenin MCP uygulamaları için önemli etkileri vardır:
-- Parçalanmış bağlamla paralel yürütme yerine karmaşık görevlerin doğrusal işlenmesini tercih edin
-- Tüm karar noktalarının aynı bağlamsal bilgiye erişimini sağlayın
-- Daha sonraki adımların önceki kararların tam bağlamını görebileceği sistemler tasarlayın
+Bu prensibin MCP uygulamaları açısından önemli sonuçları vardır:
+- Parçalanmış bağlam ile paralel yürütme yerine karmaşık görevlerde ardışık işleme tercih edilir  
+- Tüm karar noktalarının aynı bağlamsal bilgiye erişimi olmalıdır  
+- Sonraki adımlar önceki kararların tam bağlamını görebilmelidir  
 
-### İlke 3: Bağlam Derinliğini Pencere Sınırlamalarıyla Dengeleyin
+### Prensip 3: Bağlam Derinliği ile Pencere Sınırlamalarını Dengede Tutun
 
-Konuşmalar ve süreçler uzadıkça, bağlam pencereleri sonunda taşar. Etkili bağlam mühendisliği, kapsamlı bağlam ile teknik sınırlamalar arasındaki bu gerilimi yönetme yaklaşımlarını araştırır.
+Sohbetler ve süreçler uzadıkça, bağlam pencereleri aşılır. Etkili bağlam mühendisliği, kapsamlı bağlam ile teknik sınırlamalar arasındaki bu gerilimi yönetme yaklaşımlarını araştırır.
 
-Keşfedilen potansiyel yaklaşımlar şunları içerir:
-- Temel bilgiyi korurken token kullanımını azaltan bağlam sıkıştırma
-- Mevcut ihtiyaçlara göre bağlamın aşamalı olarak yüklenmesi
-- Önceki etkileşimlerin özetlenmesi, önemli kararlar ve gerçekler korunarak
+Keşfedilen potansiyel yaklaşımlar arasında:
+- Ana bilgiyi muhafaza eden, ancak token kullanımını azaltan bağlam sıkıştırma  
+- Güncel ihtiyaçlara göre ilişkili bağlamın kademeli yüklenmesi  
+- Önceki etkileşimlerin özetlenip önemli kararlar ve gerçeklerin korunması  
 
 ## Bağlam Zorlukları ve MCP Protokol Tasarımı
 
-Model Bağlam Protokolü (MCP), bağlam yönetiminin benzersiz zorluklarının farkındalığıyla tasarlanmıştır. Bu zorlukları anlamak, MCP protokol tasarımının temel yönlerini açıklamaya yardımcı olur:
+Model Bağlam Protokolü (MCP), bağlam yönetiminin eşsiz zorluklarını dikkate alarak tasarlandı. Bu zorlukları anlamak, MCP protokol tasarımının temel unsurlarını açıklamaya yardımcı olur:
 
-### Zorluk 1: Bağlam Penceresi Sınırlamaları
-Çoğu AI modeli, bir seferde işleyebileceği bilgi miktarını sınırlayan sabit bağlam pencere boyutlarına sahiptir.
 
-**MCP Tasarım Yanıtı:** 
-- Protokol, verimli bir şekilde referans verilebilen yapılandırılmış, kaynak tabanlı bağlamı destekler
-- Kaynaklar sayfalara ayrılabilir ve aşamalı olarak yüklenebilir
+### Zorluk 1: Bağlam Penceresi Sınırlamaları  
+Çoğu yapay zeka modelinin sabit bağlam pencere boyutları vardır ve aynı anda işlem yapabileceği bilgi miktarını sınırlar.
 
-### Zorluk 2: Uygunluk Belirleme
-Bağlama dahil edilecek en uygun bilgiyi belirlemek zordur.
+**MCP Tasarım Yanıtı:**  
+- Verimli referans verilebilen yapılandırılmış, kaynak tabanlı bağlam desteklenir  
+- Kaynaklar sayfalandırılabilir ve aşamalı yüklenebilir  
 
-**MCP Tasarım Yanıtı:**
-- Esnek araçlar, ihtiyaçlara göre dinamik bilgi alımına olanak tanır
-- Yapılandırılmış istemler, tutarlı bağlam organizasyonunu sağlar
+### Zorluk 2: Alaka Düzeyinin Belirlenmesi  
+Bağlama hangi bilginin dahil edileceğinin belirlenmesi zordur.
 
-### Zorluk 3: Bağlam Sürekliliği
-Etkileşimler arasında durumu yönetmek, bağlamın dikkatli bir şekilde izlenmesini gerektirir.
+**MCP Tasarım Yanıtı:**  
+- İhtiyaca göre dinamik bilgi getirilmesini sağlayan esnek araçlar  
+- Tutarlı bağlam organizasyonu için yapılandırılmış promptlar  
 
-**MCP Tasarım Yanıtı:**
-- Standartlaştırılmış oturum yönetimi
-- Bağlam evrimi için açıkça tanımlanmış etkileşim kalıpları
+### Zorluk 3: Bağlam Kalıcılığı  
+Etkileşimler arasında durumu yönetmek, bağlamın dikkatli takibini gerektirir.
 
-### Zorluk 4: Çok Modlu Bağlam
-Farklı veri türleri (metin, görüntüler, yapılandırılmış veri) farklı işlemler gerektirir.
+**MCP Tasarım Yanıtı:**  
+- Standartlaştırılmış oturum yönetimi  
+- Bağlam evrimi için net tanımlı etkileşim kalıpları  
 
-**MCP Tasarım Yanıtı:**
-- Protokol tasarımı çeşitli içerik türlerini kapsar
-- Çok modlu bilgilerin standartlaştırılmış temsili
+### Zorluk 4: Çok Modlu Bağlam  
+Farklı veri türleri (metin, görseller, yapılandırılmış veri) farklı işlem gerektirir.
 
-### Zorluk 5: Güvenlik ve Gizlilik
+**MCP Tasarım Yanıtı:**  
+- Çeşitli içerik türlerini destekleyen protokol tasarımı  
+- Çok modlu bilgilerin standart gösterimi  
+
+### Zorluk 5: Güvenlik ve Gizlilik  
 Bağlam genellikle korunması gereken hassas bilgiler içerir.
 
-**MCP Tasarım Yanıtı:**
-- İstemci ve sunucu sorumlulukları arasında net sınırlar
-- Veri maruziyetini en aza indirmek için yerel işlem seçenekleri
+**MCP Tasarım Yanıtı:**  
+- İstemci ve sunucu sorumlulukları arasında açık sınırlar  
+- Veri maruziyetini azaltmak için yerel işlem seçenekleri  
 
-Bu zorlukları ve MCP'nin bunlara nasıl yanıt verdiğini anlamak, daha gelişmiş bağlam mühendisliği tekniklerini keşfetmek için bir temel sağlar.
+Bu zorlukları ve MCP'nin bunları nasıl ele aldığını anlamak, gelişmiş bağlam mühendisliği tekniklerini keşfetmek için temel oluşturur.
 
-## Bağlam Mühendisliğinde Ortaya Çıkan Yaklaşımlar
+## Ortaya Çıkan Bağlam Mühendisliği Yaklaşımları
 
-Bağlam mühendisliği alanı geliştikçe, birkaç umut verici yaklaşım ortaya çıkmaktadır. Bunlar, mevcut düşünceyi temsil eder ve henüz yerleşik en iyi uygulamalar değildir; MCP uygulamalarıyla daha fazla deneyim kazandıkça muhtemelen evrilecektir.
+Bağlam mühendisliği alanı geliştikçe, birkaç umut vadeden yaklaşım ortaya çıkmaktadır. Bunlar yerleşik en iyi uygulamalar değil, mevcut düşünce biçimini temsil etmekte olup MCP uygulamalarıyla deneyim kazandıkça evrilecektir.
 
-### 1. Tek İşlemli Doğrusal İşleme
+### 1. Tek İş Parçacıklı Doğrusal İşleme
 
-Bağlamı dağıtan çok ajanlı mimarilerin aksine, bazı uygulayıcılar tek işlemli doğrusal işlemenin daha tutarlı sonuçlar ürettiğini keşfetmektedir. Bu, birleşik bağlamı koruma ilkesine uygundur.
+Bağlamı dağıtan çoklu ajan mimarilerinin aksine, bazı uygulayıcılar tek iş parçacıklı doğrusal işlemenin daha tutarlı sonuçlar ürettiğini buluyor. Bu, birleşik bağlamı koruma prensibiyle uyumludur.
 
 ```mermaid
 graph TD
-    A[Task Start] --> B[Process Step 1]
-    B --> C[Process Step 2]
-    C --> D[Process Step 3]
-    D --> E[Result]
+    A[Görev Başlangıcı] --> B[Süreç Adımı 1]
+    B --> C[Süreç Adımı 2]
+    C --> D[Süreç Adımı 3]
+    D --> E[Sonuç]
     
     style A fill:#A9CCE3,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
     style B fill:#A3E4D7,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -174,36 +176,36 @@ graph TD
     style E fill:#D2B4DE,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
 ```
 
-Bu yaklaşım, paralel işlemden daha az verimli görünebilir, ancak her adım önceki kararların tam anlayışına dayandığı için genellikle daha tutarlı ve güvenilir sonuçlar üretir.
+Bu yaklaşım paralel işleme göre daha az verimli görünebilir ancak genellikle her adımın önceki kararları tam anlayışa dayanması nedeniyle daha tutarlı ve güvenilir sonuçlar üretir.
 
 ### 2. Bağlam Parçalama ve Önceliklendirme
 
-Büyük bağlamları yönetilebilir parçalara ayırmak ve en önemli olanları önceliklendirmek.
+Büyük bağlamların yönetilebilir parçalara bölünmesi ve en önemli kısımların önceliklendirilmesi
 
 ```python
-# Conceptual Example: Context Chunking and Prioritization
+# Kavramsal Örnek: Bağlam Parçalama ve Önceliklendirme
 def process_with_chunked_context(documents, query):
-    # 1. Break documents into smaller chunks
+    # 1. Belgeleri daha küçük parçalara ayırın
     chunks = chunk_documents(documents)
     
-    # 2. Calculate relevance scores for each chunk
+    # 2. Her parça için alaka puanları hesaplayın
     scored_chunks = [(chunk, calculate_relevance(chunk, query)) for chunk in chunks]
     
-    # 3. Sort chunks by relevance score
+    # 3. Parçaları alaka puanına göre sıralayın
     sorted_chunks = sorted(scored_chunks, key=lambda x: x[1], reverse=True)
     
-    # 4. Use the most relevant chunks as context
+    # 4. En ilgili parçaları bağlam olarak kullanın
     context = create_context_from_chunks([chunk for chunk, score in sorted_chunks[:5]])
     
-    # 5. Process with the prioritized context
+    # 5. Önceliklendirilmiş bağlamla işlemi gerçekleştirin
     return generate_response(context, query)
 ```
 
-Yukarıdaki kavram, büyük belgeleri yönetilebilir parçalara ayırma ve bağlam için yalnızca en uygun bölümleri seçme yöntemini gösterir. Bu yaklaşım, bağlam pencere sınırlamaları içinde çalışmaya yardımcı olurken büyük bilgi tabanlarından yararlanmayı sağlar.
+Yukarıdaki kavram, büyük belgelerin nasıl parçalara ayrılabileceğini ve bağlam için yalnızca en alakalı parçaların seçilebileceğini göstermektedir. Bu yöntem, bağlam pencere sınırlamaları içinde büyük bilgi tabanlarından yararlanmayı sağlar.
 
-### 3. Aşamalı Bağlam Yükleme
+### 3. Kademeli Bağlam Yükleme
 
-Bağlamı bir kerede değil, gerektiği gibi aşamalı olarak yüklemek.
+Bağlamı hepsi birden değil, gerektiği şekilde kademeli yükleme
 
 ```mermaid
 sequenceDiagram
@@ -212,34 +214,34 @@ sequenceDiagram
     participant MCP Server
     participant AI Model
 
-    User->>App: Ask Question
-    App->>MCP Server: Initial Request
-    MCP Server->>AI Model: Minimal Context
-    AI Model->>MCP Server: Initial Response
+    User->>App: Soru Sor
+    App->>MCP Server: İlk İstek
+    MCP Server->>AI Model: Minimum Bağlam
+    AI Model->>MCP Server: İlk Yanıt
     
-    alt Needs More Context
-        MCP Server->>MCP Server: Identify Missing Context
-        MCP Server->>MCP Server: Load Additional Context
-        MCP Server->>AI Model: Enhanced Context
-        AI Model->>MCP Server: Final Response
+    alt Daha Fazla Bağlam Gerekli
+        MCP Server->>MCP Server: Eksik Bağlamı Belirle
+        MCP Server->>MCP Server: Ek Bağlam Yükle
+        MCP Server->>AI Model: Geliştirilmiş Bağlam
+        AI Model->>MCP Server: Son Yanıt
     end
     
-    MCP Server->>App: Response
-    App->>User: Answer
+    MCP Server->>App: Yanıt
+    App->>User: Cevap
 ```
 
-Aşamalı bağlam yükleme, minimum bağlamla başlar ve yalnızca gerektiğinde genişler. Bu, basit sorgular için token kullanımını önemli ölçüde azaltırken karmaşık soruları ele alma yeteneğini korur.
+Kademeli bağlam yükleme, önce en az bağlamla başlar, gerektiğinde genişler. Bu, basit sorgular için token kullanımını önemli ölçüde azaltırken, karmaşık soruları işleyebilme yeteneğini korur.
 
 ### 4. Bağlam Sıkıştırma ve Özetleme
 
-Bağlam boyutunu azaltırken temel bilgiyi korumak.
+Bağlam boyutunu kritik bilgiyi koruyarak küçültme
 
 ```mermaid
 graph TD
-    A[Full Context] --> B[Compression Model]
-    B --> C[Compressed Context]
-    C --> D[Main Processing Model]
-    D --> E[Response]
+    A[Tam Bağlam] --> B[Sıkıştırma Modeli]
+    B --> C[Sıkıştırılmış Bağlam]
+    C --> D[Ana İşleme Modeli]
+    D --> E[Cevap]
     
     style A fill:#A9CCE3,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
     style B fill:#A3E4D7,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -248,124 +250,152 @@ graph TD
     style E fill:#F9E79F,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
 ```
 
-Bağlam sıkıştırma şunlara odaklanır:
-- Gereksiz bilgiyi kaldırma
-- Uzun içerikleri özetleme
-- Temel gerçekleri ve ayrıntıları çıkarma
-- Kritik bağlam öğelerini koruma
-- Token verimliliği için optimize etme
+Bağlam sıkıştırma şu konulara odaklanır:  
+- Gereksiz bilgilerin çıkarılması  
+- Uzun içeriklerin özetlenmesi  
+- Önemli gerçek ve detayların çıkarımı  
+- Kritik bağlam öğelerinin korunması  
+- Token verimliliği için optimizasyon  
 
-Bu yaklaşım, uzun konuşmaları bağlam pencereleri içinde tutmak veya büyük belgeleri verimli bir şekilde işlemek için özellikle değerli olabilir. Bazı uygulayıcılar, konuşma geçmişini sıkıştırma ve özetleme için özel modeller kullanmaktadır.
+Bu yaklaşım, uzun sohbetlerin bağlam pencereleri içinde tutulması veya büyük belgelerin verimli işlenmesi için özellikle değerlidir. Bazı uygulayıcılar, özellikle konuşma geçmişinin bağlam sıkıştırması ve özetlemesi için özel modeller kullanmaktadır.
 
-## Keşifsel Bağlam Mühendisliği Düşünceleri
 
-MCP uygulamalarıyla çalışırken bağlam mühendisliği alanını keşfederken dikkate alınması gereken birkaç husus vardır. Bunlar reçeteli en iyi uygulamalar değil, belirli kullanım durumunuzda iyileştirmeler sağlayabilecek keşif alanlarıdır.
+## Keşif Amaçlı Bağlam Mühendisliği Düşünceleri
 
-### Bağlam Hedeflerinizi Düşünün
+Bağlam mühendisliği alanını araştırırken, MCP uygulamalarıyla çalışırken dikkate alınması gereken birkaç husus vardır. Bunlar kural değil, özgün kullanım durumunuzda iyileştirmeler sağlayabilecek keşif alanlarıdır.
 
-Karmaşık bağlam yönetimi çözümleri uygulamadan önce, neyi başarmaya çalıştığınızı açıkça ifade edin:
-- Modelin başarılı olması için hangi özel bilgiye ihtiyaç var?
-- Hangi bilgi temel, hangisi tamamlayıcı?
-- Performans kısıtlamalarınız nelerdir (gecikme, token sınırları, maliyetler)?
+### Bağlam Hedeflerinizi Belirleyin
+
+Karmaşık bağlam yönetimi çözümlerini uygulamadan önce neyi başarmaya çalıştığınızı netleştirin:  
+- Modelin başarılı olması için hangi özel bilgi gereklidir?  
+- Hangi bilgiler temel, hangileri tamamlayıcıdır?  
+- Performans kısıtlarınız nelerdir (gecikme, token sınırları, maliyetler)?  
 
 ### Katmanlı Bağlam Yaklaşımlarını Keşfedin
 
-Bazı uygulayıcılar, kavramsal katmanlarda düzenlenmiş bağlamla başarı bulmaktadır:
-- **Çekirdek Katman**: Modelin her zaman ihtiyaç duyduğu temel bilgi
-- **Durumsal Katman**: Mevcut etkileşimle ilgili bağlam
-- **Destekleyici Katman**: Faydalı olabilecek ek bilgi
-- **Geri Dönüş Katmanı**: Sadece gerektiğinde erişilen bilgi
+Bazı uzmanlar bağlamı kavramsal katmanlarda düzenleyerek başarı sağlamaktadır:  
+- **Çekirdek Katman**: Modelin her zaman ihtiyaç duyduğu temel bilgi  
+- **Durumsal Katman**: Mevcut etkileşime özgü bağlam  
+- **Destekleyici Katman**: Yardımcı olabilecek ek bilgiler  
+- **Yedek Katman**: Yalnızca gerektiğinde erişilen bilgiler  
 
-### Alım Stratejilerini Araştırın
+### Bilgi Getirme Stratejilerini Araştırın
 
-Bağlamınızın etkinliği genellikle bilgiyi nasıl aldığınıza bağlıdır:
-- Kavramsal olarak uygun bilgiyi bulmak için anlamsal arama ve gömme
-- Belirli gerçek ayrıntılar için anahtar kelime tabanlı arama
-- Birden fazla alım yöntemini birleştiren hibrit yaklaşımlar
-- Kategoriler, tarihler veya kaynaklara dayalı kapsamı daraltmak için meta veri filtreleme
+Bağlamınızın etkinliği, bilgiyi nasıl getirdiğinize bağlıdır:  
+- Kavramsal olarak ilgili bilgiyi bulmak için anlamsal arama ve gömme teknikleri  
+- Belirli gerçek detaylar için anahtar kelime tabanlı arama  
+- Birden çok bilgi getirme yöntemini birleştiren hibrit yaklaşımlar  
+- Kapsamı kategori, tarih veya kaynaklara göre sınırlamak için meta veri filtreleme  
 
 ### Bağlam Tutarlılığını Deneyin
 
-Bağlamınızın yapısı ve akışı modelin anlayışını etkileyebilir:
-- İlgili bilgiyi bir arada gruplama
-- Tutarlı biçimlendirme ve organizasyon kullanma
-- Uygun olduğunda mantıksal veya kronolojik sıralamayı koruma
-- Çelişkili bilgiden kaçınma
+Bağlamınızın yapısı ve akışı, modelin anlayışını etkileyebilir:  
+- İlgili bilgileri birlikte gruplama  
+- Tutarlı biçimlendirme ve organizasyon kullanma  
+- Mantıksal veya kronolojik sıralamayı koruma  
+- Çelişkili bilgilerden kaçınma  
 
-### Çok Ajanlı Mimari Ticaretlerini Tartın
+### Çoklu Ajan Mimarilerinin Değiş-Tokuşlarını Tartın
 
-Çok ajanlı mimariler birçok AI çerçevesinde popüler olsa da, bağlam yönetimi için önemli zorluklar içerir:
-- Bağlam parçalanması, ajanlar arasında tutarsız kararlara yol açabilir
-- Paralel işlem, uzlaştırılması zor çelişkiler getirebilir
-- Ajanlar arasındaki iletişim yükü performans kazançlarını dengeleyebilir
-- Tutarlılığı korumak için karmaşık durum yönetimi gereklidir
+Çoklu ajan mimarileri birçok yapay zeka çerçevesinde popüler olsa da, bağlam yönetiminde önemli zorluklar getirir:  
+- Bağlam parçalanması ajanlar arasında tutarsız kararlara yol açabilir  
+- Paralel işlem, uyumsuzluklar doğurabilir  
+- Ajanlar arası iletişim yükü performans kazançlarını düşürebilir  
+- Tutarlılığı korumak için karmaşık durum yönetimi gerekir  
 
-Çoğu durumda, parçalanmış bağlamla uzmanlaşmış birden fazla ajan yerine kapsamlı bağlam yönetimi ile tek ajanlı bir yaklaşım daha güvenilir sonuçlar üretebilir.
+Çoğu durumda, kapsamlı bağlam yönetimiyle tek ajan yaklaşımı, parçalanmış bağlama sahip birden fazla uzmanlaşmış ajandan daha güvenilir sonuçlar üretebilir.
 
 ### Değerlendirme Yöntemleri Geliştirin
 
-Bağlam mühendisliğini zamanla iyileştirmek için başarıyı nasıl ölçeceğinizi düşünün:
-- Farklı bağlam yapılarını A/B testi
-- Token kullanımı ve yanıt sürelerini izleme
-- Kullanıcı memnuniyeti ve görev tamamlama oranlarını takip etme
-- Bağlam stratejilerinin neden ve ne zaman başarısız olduğunu analiz etme
+Zamanla bağlam mühendisliğini geliştirmek için başarıyı nasıl ölçeceğinizi düşünün:  
+- Farklı bağlam yapıları için A/B testleri yapma  
+- Token kullanımı ve yanıt sürelerini izleme  
+- Kullanıcı memnuniyeti ve görev tamamlama oranlarını takip etme  
+- Bağlam stratejilerinin başarısız olduğu durumları analiz etme  
 
-Bu hususlar, bağlam mühendisliği alanındaki aktif keşif alanlarını temsil eder. Alan olgunlaştıkça, daha kesin kalıplar ve uygulamalar muhtemelen ortaya çıkacaktır.
+Bu düşünceler, bağlam mühendisliği alanındaki aktif keşif alanlarını temsil eder. Alan olgunlaştıkça, daha belirgin örüntüler ve uygulamalar ortaya çıkacaktır.
 
 ## Bağlam Etkinliğini Ölçmek: Gelişen Bir Çerçeve
 
-Bağlam mühendisliği bir kavram olarak ortaya çıktıkça, uygulayıcılar bağlamın etkinliğini nasıl ölçebileceğimizi keşfetmeye başlıyor. Henüz yerleşik bir çerçeve yok, ancak gelecekteki çalışmalara rehberlik edebilecek çeşitli ölçütler değerlendiriliyor.
+Bağlam mühendisliği kavramı ortaya çıkarken, uygulayıcılar etkinliğini nasıl ölçebileceğimizi keşfetmeye başlıyor. Henüz yerleşik bir çerçeve yok, ancak gelecek çalışmalara rehberlik edebilecek çeşitli metrikler değerlendiriliyor.
 
-### Potansiyel Ölçüm Boyutları
+### Olası Ölçüm Boyutları
 
-#### 1. Girdi Verimliliği Düşünceleri
 
-- **Bağlam-Yanıt Oranı**: Yanıt boyutuna kıyasla ne kadar bağlam gerekiyor?
-- **Token Kullanımı**: Sağlanan bağlam tokenlarının yüzde kaçı yanıtı etkiliyor gibi görünüyor?
-- **Bağlam Azaltma**: Ham bilgiyi ne kadar etkili bir şekilde sıkıştırabiliriz?
+#### 1. Girdi Verimliliği Hususları
 
-#### 2. Performans Düşünceleri
+- **Bağlam-Yanıt Oranı**: Yanıt büyüklüğüne kıyasla ne kadar bağlama ihtiyaç var?  
+- **Token Kullanımı**: Verilen bağlam token’larının kaçta kaçı yanıta etkide bulunuyor?  
+- **Bağlam Azaltma**: Ham bilgi sıkıştırmada ne kadar etkiliyiz?  
 
-- **Gecikme Etkisi**: Bağlam yönetimi yanıt süresini nasıl etkiliyor?
-- **Token Ekonomisi**: Token kullanımı etkili bir şekilde optimize ediliyor mu?
-- **Alım Hassasiyeti**: Alınan bilgi ne kadar uygun?
-- **Kaynak Kullanımı**: Hangi hesaplama kaynakları gerekiyor?
+#### 2. Performans Hususları
 
-#### 3. Kalite Düşünceleri
+- **Gecikme Etkisi**: Bağlam yönetimi yanıt süresini nasıl etkiliyor?  
+- **Token Ekonomisi**: Token kullanımını etkin optimize ediyor muyuz?  
+- **Getirme Doğruluğu**: Alınan bilgiler ne kadar alaka düzeyinde?  
+- **Kaynak Kullanımı**: Hangi hesaplama kaynakları gerekiyor?  
 
-- **Yanıt Uygunluğu**: Yanıt sorguyu ne kadar iyi karşılıyor?
-- **Gerçek Doğruluk**: Bağlam yönetimi gerçek doğruluğu artırıyor mu?
-- **Tutarlılık**: Benzer sorgular arasında yanıtlar tutarlı mı?
-- **Halüsinasyon Oranı**: Daha iyi bağlam model halüsinasyonlarını azaltıyor mu?
+#### 3. Kalite Hususları
 
-#### 4. Kullanıcı Deneyimi Düşünceleri
+- **Yanıt Alakası**: Yanıt sorguyu ne kadar iyi karşılıyor?  
+- **Gerçeklik Doğruluğu**: Bağlam yönetimi doğrulukta iyileştirme sağlıyor mu?  
+- **Tutarlılık**: Benzer sorularda yanıtlar tutarlı mı?  
+- **Halüsinasyon Oranı**: Daha iyi bağlam modelin yanıltıcı yanıtlarını azaltıyor mu?  
 
-- **Takip Oranı**: Kullanıcılar ne sıklıkla açıklama talep ediyor?
-- **Görev Tamamlama**: Kullanıcılar hedeflerini başarıyla tamamlıyor mu?
-- **Memnuniyet Göstergeleri**: Kullanıcılar deneyimlerini nasıl değerlendiriyor?
+#### 4. Kullanıcı Deneyimi Hususları
+
+- **Takip Sıklığı**: Kullanıcılar ne kadar sık açıklama istiyor?  
+- **Görev Tamamlanması**: Kullanıcılar başarıyla amaçlarını gerçekleştiriyor mu?  
+- **Memnuniyet Göstergeleri**: Kullanıcılar deneyimi nasıl değerlendiriyor?  
 
 ### Ölçüm İçin Keşifsel Yaklaşımlar
 
-MCP uygulamalarında bağlam mühendisliğini denerken, şu keşifsel yaklaşımları düşünün:
+MCP uygulamalarında bağlam mühendisliğiyle denemeler yaparken şu keşifsel yaklaşımları göz önünde bulundurun:
 
-1. **Temel Karşılaştırmalar**: Daha sofistike yöntemleri test etmeden önce basit bağlam yaklaşımlarıyla bir temel oluşturun
+1. **Temel Karşılaştırmalar**: Daha karmaşık yöntemleri test etmeden önce basit bağlam yaklaşımlarıyla temel oluşturun  
+2. **Kademe Kademe Değişiklikler**: Bağlam yönetiminin tek bir yönünü değiştirerek etkilerini izole edin  
+3. **Kullanıcı Odaklı Değerlendirme**: Nicel metriklerle birlikte nitel kullanıcı geri bildirimlerini birleştirin  
+4. **Başarısızlık Analizi**: Bağlam stratejilerinin başarısız olduğu durumları inceleyerek iyileştirme fırsatlarını anlayın  
+5. **Çok Boyutlu Değerlendirme**: Verimlilik, kalite ve kullanıcı deneyimi arasında denge kurmaya çalışın  
 
-2. **Kademeli Değişiklikler**: Bağlam yönetiminin bir yönünü değiştirin ve etkilerini izole edin
+Bu deneysel ve çok yönlü ölçüm yaklaşımı, bağlam mühendisliğinin yeni doğasına uyumludur.
 
-3. **Kullanıcı Merkezli Değerlendirme**: Nicel ölçütleri nitel kullanıcı geri bildirimiyle birleştirin
+## Kapanış Düşünceleri
 
-4. **Başarısızlık Analizi**: Bağlam stratejilerinin başarısız olduğu durumları inceleyerek potansiyel iyileştirmeleri anlayın
+Bağlam mühendisliği, etkili MCP uygulamaları için merkezi bir alan haline gelebilecek yeni bir keşif sahasıdır. Sisteminizde bilginin nasıl aktığını dikkatlice ele alarak, kullanıcılar için daha verimli, doğru ve değerli yapay zeka deneyimleri oluşturabilirsiniz.
 
-5. **Çok Boyutlu Değerlendirme**: Verimlilik, kalite ve kullanıcı deneyimi arasındaki ticaretleri göz önünde bulundurun
+Bu modülde özetlenen teknikler ve yaklaşımlar, bu alanın erken düşüncelerini temsil eder; yerleşik uygulamalar değil. Yapay zekanın yetenekleri geliştikçe ve anlayışımız derinleştikçe bağlam mühendisliği daha tanımlı bir disiplin haline gelebilir. Şimdilik, deney yapmak ve dikkatli ölçüm yapmak en verimli yol gibi görünmektedir.
 
-Bu deneysel, çok yönlü ölçüm yaklaşımı, bağlam mühendisliğinin yükselen doğasıyla uyumludur.
+## Olası Gelecek Yönelimleri
 
-## Son Düşünceler
+Bağlam mühendisliği alanı henüz erken aşamalarda olsa da birkaç umut vadeden yönelimi ortaya çıkmaktadır:
 
-Bağ
-- [Model Context Protocol Website](https://modelcontextprotocol.io/)
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol/modelcontextprotocol)
-- [MCP Documentation](https://modelcontextprotocol.io/docs)
+- Bağlam mühendisliği prensipleri model performansını, verimliliği, kullanıcı deneyimini ve güvenilirliği önemli ölçüde etkileyebilir  
+- Kapsamlı bağlam yönetimiyle tek iş parçacıklı yaklaşımlar, çoklu ajan mimarilerine göre birçok kullanım durumunda daha üstün olabilir  
+- Özel bağlam sıkıştırma modelleri, yapay zeka boru hatlarının standart bileşenleri haline gelebilir  
+- Bağlam bütünlüğü ile token sınırlamaları arasındaki gerilim, bağlam yönetiminde inovasyonu tetikleyecektir  
+- Modeller insan benzeri etkin iletişimde daha yetkin hale geldikçe gerçek çoklu ajan işbirliği daha mümkün olabilir  
+- MCP uygulamaları, mevcut denemelerden ortaya çıkan bağlam yönetim kalıplarını standartlaştıracak şekilde evrilebilir  
+
+```mermaid
+graph TD
+    A[Erken Keşifler] -->|Deneysel Çalışmalar| B[Ortaya Çıkan Kalıplar]
+    B -->|Doğrulama| C[Oluşmuş Uygulamalar]
+    C -->|Uygulama| D[Yeni Zorluklar]
+    D -->|Yenilik| A
+    
+    style A fill:#AED6F1,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style B fill:#A9DFBF,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style C fill:#F4D03F,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style D fill:#F5B7B1,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+```
+
+## Kaynaklar
+
+### Resmi MCP Kaynakları
+- [Model Context Protocol Websitesi](https://modelcontextprotocol.io/)
+- [Model Context Protocol Spesifikasyonu](https://github.com/modelcontextprotocol/modelcontextprotocol)
+- [MCP Belgelendirmesi](https://modelcontextprotocol.io/docs)
 - [MCP C# SDK](https://github.com/modelcontextprotocol/csharp-sdk)
 - [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
@@ -373,27 +403,29 @@ Bağ
 
 ### Bağlam Mühendisliği Makaleleri
 - [Çoklu Ajanlar Oluşturmayın: Bağlam Mühendisliği İlkeleri](https://cognition.ai/blog/dont-build-multi-agents) - Walden Yan'ın bağlam mühendisliği ilkeleri üzerine görüşleri
-- [Ajanlar Oluşturmak İçin Pratik Bir Kılavuz](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf) - OpenAI'ın etkili ajan tasarımı üzerine kılavuzu
+- [Ajan Oluşturmak için Pratik Bir Rehber](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf) - OpenAI'nın etkili ajan tasarımı rehberi
 - [Etkili Ajanlar Oluşturmak](https://www.anthropic.com/engineering/building-effective-agents) - Anthropic'in ajan geliştirme yaklaşımı
 
 ### İlgili Araştırmalar
-- [Büyük Dil Modelleri için Dinamik Geri Çağırma Artırımı](https://arxiv.org/abs/2310.01487) - Dinamik geri çağırma yöntemleri üzerine araştırma
-- [Ortada Kaybolmak: Dil Modelleri Uzun Bağlamları Nasıl Kullanır?](https://arxiv.org/abs/2307.03172) - Bağlam işleme kalıpları üzerine önemli bir araştırma
-- [CLIP Latentleri ile Hiyerarşik Metin Koşullu Görüntü Üretimi](https://arxiv.org/abs/2204.06125) - Bağlam yapılandırması üzerine DALL-E 2 makalesi
-- [Büyük Dil Modeli Mimarilerinde Bağlamın Rolünü Keşfetmek](https://aclanthology.org/2023.findings-emnlp.124/) - Bağlam işleme üzerine son araştırmalar
-- [Çoklu Ajan İşbirliği: Bir Araştırma](https://arxiv.org/abs/2304.03442) - Çoklu ajan sistemleri ve zorlukları üzerine araştırma
+- [Büyük Dil Modelleri için Dinamik Erişim Artırımı](https://arxiv.org/abs/2310.01487) - Dinamik erişim yaklaşımları üzerine araştırma
+- [Ortada Kaybolmak: Dil Modellerinin Uzun Bağlamları Kullanımı](https://arxiv.org/abs/2307.03172) - Bağlam işleme kalıpları üzerine önemli araştırma
+- [CLIP Latentleri ile Hiyerarşik Metin Koşullandırılmış Görüntü Üretimi](https://arxiv.org/abs/2204.06125) - Bağlam yapılandırmaya dair bilgiler içeren DALL-E 2 makalesi
+- [Büyük Dil Modeli Mimarisinde Bağlamın Rolünü Keşfetmek](https://aclanthology.org/2023.findings-emnlp.124/) - Bağlam yönetimi üzerine güncel araştırma
+- [Çoklu Ajan İşbirliği: Bir Anket](https://arxiv.org/abs/2304.03442) - Çoklu ajan sistemleri ve karşılaştıkları zorluklar üzerine araştırma
 
-### Ek Kaynaklar
+### İlave Kaynaklar
 - [Bağlam Penceresi Optimizasyon Teknikleri](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/context-window)
 - [Gelişmiş RAG Teknikleri](https://www.microsoft.com/en-us/research/blog/retrieval-augmented-generation-rag-and-frontier-models/)
-- [Semantic Kernel Dokümantasyonu](https://github.com/microsoft/semantic-kernel)
+- [Semantic Kernel Belgelendirmesi](https://github.com/microsoft/semantic-kernel)
 - [Bağlam Yönetimi için AI Araç Seti](https://github.com/microsoft/aitoolkit)
 
-## Sıradaki Ne 
+## Sonraki Adım 
 
 - [5.15 MCP Özel Taşıma](../mcp-transport/README.md)
 
 ---
 
-**Feragatname**:  
-Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluğu sağlamak için çaba göstersek de, otomatik çeviriler hata veya yanlışlıklar içerebilir. Belgenin orijinal dili, yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımından kaynaklanan herhangi bir yanlış anlama veya yanlış yorumlama durumunda sorumluluk kabul edilmez.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

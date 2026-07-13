@@ -1,36 +1,38 @@
-# MCP mukautetut siirtomenetelmät - edistyneen tason toteutusopas
+# MCP Custom Transports - Edistynyt Toteutusopas
 
-Model Context Protocol (MCP) tarjoaa joustavuutta siirtomekanismeissa, mahdollistaen mukautetut toteutukset erikoistuneisiin yritysympäristöihin. Tämä edistyneen tason opas tutkii mukautettujen siirtomenetelmien toteutuksia käyttäen Azure Event Gridiä ja Azure Event Hubseja käytännön esimerkkeinä skaalautuvien, pilvikohtaisten MCP-ratkaisujen rakentamiseen.
+Model Context Protocol (MCP) tarjoaa joustavuutta siirtomekanismeissa, mahdollistaen mukautetut toteutukset erikoistuneisiin yritysympäristöihin. Tämä edistynyt opas tutkii mukautettujen siirtojen toteutuksia käyttäen Azure Event Gridiä ja Azure Event Hubseja käytännön esimerkkeinä skaalautuvien, pilvi-natiivien MCP-ratkaisujen rakentamiseen.
+
+> **Katse tulevaisuuteen:** tämä opas on kirjoitettu **MCP Specification 2025-11-25** -version pohjalta, jossa istunnon järjestys on säilytettävä istunnon sisällä (katso Viestiprotokolla alla). `2026-07-28` julkaisuehdokas poistaa koko protokotason istunnon ja vaatii `Mcp-Method`/`Mcp-Name` -otsikot, jotta portit ja mukautetut siirrot voivat reitittää pyyntökohtaisesti istunnon sijaan. Katso [Mitä muuttuu MCP:ssä: 2026-07-28 julkaisuehdokas](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Johdanto
 
-Vaikka MCP:n vakiosiirtomenetelmät (stdio ja HTTP-striimaus) palvelevat useimpia käyttötapauksia, yritysympäristöt vaativat usein erikoistuneita siirtomekanismeja skaalautuvuuden, luotettavuuden ja olemassa olevan pilvi-infrastruktuurin integroinnin parantamiseksi. Mukautetut siirtomenetelmät mahdollistavat MCP:n hyödyntää pilvikohtaisia viestintäpalveluja asynkroniseen viestintään, tapahtumapohjaisiin arkkitehtuureihin ja hajautettuun prosessointiin.
+Vaikka MCP:n standardisiirrot (stdio ja HTTP-streamaus) palvelevat useimpia käyttötapauksia, yritysympäristöt vaativat usein erikoistuneita siirtomekanismeja parantamaan skaalautuvuutta, luotettavuutta ja integraatiota olemassa olevan pilvi-infrastruktuurin kanssa. Mukautetut siirrot mahdollistavat MCP:n hyödyntää pilvi-natiiveja viestintäpalveluita asynkroniseen viestintään, tapahtumapohjaisiin arkkitehtuureihin ja hajautettuun käsittelyyn.
 
-Tässä oppitunnissa käsitellään edistyneitä siirtomenetelmien toteutuksia uusimman MCP-spesifikaation (2025-11-25), Azure-viestintäpalveluiden ja vakiintuneiden yritysintegraatiokuvioiden pohjalta.
+Tässä oppitunnissa käsitellään edistyneitä siirtototeutuksia uusimman MCP-spesifikaation (2025-11-25), Azure-viestintäpalveluiden sekä vakiintuneiden yritysintegrointimallien pohjalta.
 
-### **MCP:n siirtorakenne**
+### **MCP Siirtoarkkitehtuuri**
 
-**MCP-spesifikaatiosta (2025-11-25):**
+**MCP Specification (2025-11-25) mukaan:**
 
-- **Vakiosiirtomenetelmät**: stdio (suositeltu), HTTP-striimaus (etäkäyttötilanteisiin)
-- **Mukautetut siirtomenetelmät**: Mikä tahansa siirtokerros, joka toteuttaa MCP-viestinvaihtoprotokollan
+- **Standardisiirrot**: stdio (suositeltu), HTTP-streamaus (etätilanteisiin)
+- **Mukautetut siirrot**: Mikä tahansa siirto, joka toteuttaa MCP-viestinvaihtoprotokollan
 - **Viestimuoto**: JSON-RPC 2.0 MCP-spesifisillä laajennuksilla
-- **Kaksisuuntainen kommunikointi**: Kaksisuuntainen (full duplex) kommunikointi vaaditaan ilmoituksille ja vasteille
+- **Kaksisuuntainen viestintä**: Kaksikanavainen viestintä pakollinen ilmoituksille ja vastauksille
 
 ## Oppimistavoitteet
 
-Oppitunnin lopuksi osaat:
+Edistyneen oppitunnin lopussa osaat:
 
-- **Ymmärtää mukautettujen siirtomenetelmien vaatimukset**: Toteuttaa MCP-protokollaa millä tahansa siirtokerroksella säilyttäen vaatimustenmukaisuuden
-- **Rakentaa Azure Event Grid -siirtomenetelmän**: Luoda tapahtumapohjaisia MCP-palvelimia serverless-skaalautuvuudella
-- **Toteuttaa Azure Event Hubs -siirtomenetelmän**: Suunnitella suurivirtaisia MCP-ratkaisuja reaaliaikaiseen striimaukseen Azure Event Hubsin avulla
-- **Soveltaa yrityskuvioita**: Integroituu mukautetut siirtomenetelmät olemassa olevaan Azure-infrastruktuuriin ja turvallisuusmalleihin
-- **Käsitellä siirtomenetelmän luotettavuutta**: Toteuttaa viestien kestävyys, järjestys ja virheenkäsittely yrityskäyttötilanteita varten
-- **Optimoida suorituskykyä**: Suunnitella siirtoratkaisuja skaalautuvuutta, viivettä ja läpimenokapasiteettia varten
+- **Ymmärtää Mukautettujen Siirtojen Vaatimukset**: Toteuttaa MCP-protokollan minkä tahansa siirtokerroksen päällä noudattaen vaatimuksia
+- **Rakentaa Azure Event Grid -siirron**: Luo tapahtumapohjaisia MCP-palvelimia Azure Event Gridin avulla palvelimettomaan skaalautuvuuteen
+- **Toteuttaa Azure Event Hubs -siirron**: Suunnitella korkealuokkaisia MCP-ratkaisuja Azure Event Hubsin avulla reaaliaikaiseen striimaukseen
+- **Soveltaa Yritysmallien Parhaita Käytäntöjä**: Integroi mukautetut siirrot Azure-infrastruktuuriin ja suojausmalleihin
+- **Käsitellä Siirron Luotettavuutta**: Toteuttaa viestien kestävyys, järjestys ja virheenkäsittely yritysskenaarioissa
+- **Optimoida Suorituskykyä**: Suunnitella siirtoratkaisuja skaalaus-, viive- ja läpäisyaikavaatimuksille
 
-## **Siirtomenetelmän vaatimukset**
+## **Siirtovaatimukset**
 
-### **Keskeiset vaatimukset MCP-spesifikaatiosta (2025-11-25):**
+### **MCP Specification (2025-11-25) keskeiset vaatimukset:**
 
 ```yaml
 Message Protocol:
@@ -49,11 +51,11 @@ Custom Transport:
   interoperability: "MUST maintain protocol compatibility"
 ```
 
-## **Azure Event Grid -siirtomenetelmän toteutus**
+## **Azure Event Grid -siirron Toteutus**
 
-Azure Event Grid tarjoaa serverless-tyyppisen tapahtumien reitityspalvelun, joka soveltuu erinomaisesti tapahtumapohjaisiin MCP-arkkitehtuureihin. Tämä toteutus havainnollistaa, miten rakentaa skaalautuvia, löyhästi kytkettyjä MCP-järjestelmiä.
+Azure Event Grid tarjoaa palvelimettoman tapahtumien reitityspalvelun, joka on ihanteellinen tapahtumapohjaisiin MCP-arkkitehtuureihin. Tämä toteutus näyttää, miten rakentaa skaalautuvia, löyhästi kytkettyjä MCP-järjestelmiä.
 
-### **Arkkitehtuurin yleiskuva**
+### **Arkkitehtuurin Yleiskuva**
 
 ```mermaid
 graph TB
@@ -65,12 +67,12 @@ graph TB
     subgraph "Azure-palvelut"
         EG
         Server
-        KV[Key Vault]
-        Monitor[Sovelluksen Insights]
+        KV[Avainholvi]
+        Monitor[Sovellusinsights]
     end
 ```
 
-### **C# -toteutus - Event Grid -siirtomenetelmä**
+### **C# Toteutus - Event Grid -siirto**
 
 ```csharp
 using Azure.Messaging.EventGrid;
@@ -142,7 +144,7 @@ public async Task<IActionResult> HandleEventGridMessage(
 }
 ```
 
-### **TypeScript -toteutus - Event Grid -siirtomenetelmä**
+### **TypeScript Toteutus - Event Grid -siirto**
 
 ```typescript
 import { EventGridPublisherClient, AzureKeyCredential } from "@azure/eventgrid";
@@ -179,7 +181,7 @@ export class EventGridMcpTransport implements McpTransport {
     // Tapahtumapohjainen vastaanotto Azure Functionsin kautta
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
         // Toteutus käyttäisi Azure Functions Event Grid -laukaisinta
-        // Tämä on käsitteellinen rajapinta webhook-vastaanottimelle
+        // Tämä on konseptuaalinen rajapinta webhook-vastaanottimelle
     }
 }
 
@@ -205,7 +207,7 @@ app.eventGrid("mcpEventGridHandler", {
 });
 ```
 
-### **Python -toteutus - Event Grid -siirtomenetelmä**
+### **Python Toteutus - Event Grid -siirto**
 
 ```python
 from azure.eventgrid import EventGridPublisherClient, EventGridEvent
@@ -261,11 +263,11 @@ def main(event: func.EventGridEvent) -> None:
         raise
 ```
 
-## **Azure Event Hubs -siirtomenetelmän toteutus**
+## **Azure Event Hubs -siirron Toteutus**
 
-Azure Event Hubs tarjoaa suuren läpimenokapasiteetin reaaliaikaisen striimauksen MCP-skenaarioihin, joissa vaaditaan pientä viivettä ja suurta viestimäärää.
+Azure Event Hubs tarjoaa korkean kapasiteetin reaaliaikaisen striimauksen MCP-skenaarioihin, jotka vaativat pientä viivettä ja suurta viestimäärää.
 
-### **Arkkitehtuurin yleiskuva**
+### **Arkkitehtuurin Yleiskuva**
 
 ```mermaid
 graph TB
@@ -274,8 +276,8 @@ graph TB
     Server --> EH
     EH --> Client
     
-    subgraph "Event Hubin ominaisuudet"
-        Partition[Osittaminen]
+    subgraph "Event Hubs -ominaisuudet"
+        Partition[Osiointi]
         Retention[Viestin säilytys]
         Scaling[Automaattinen skaalaus]
     end
@@ -285,7 +287,7 @@ graph TB
     EH --> Scaling
 ```
 
-### **C# -toteutus - Event Hubs -siirtomenetelmä**
+### **C# Toteutus - Event Hubs -siirto**
 
 ```csharp
 using Azure.Messaging.EventHubs;
@@ -359,7 +361,7 @@ public class EventHubsMcpTransport : IMcpTransport, IDisposable
 }
 ```
 
-### **TypeScript -toteutus - Event Hubs -siirtomenetelmä**
+### **TypeScript Toteutus - Event Hubs -siirto**
 
 ```typescript
 import { 
@@ -418,7 +420,7 @@ export class EventHubsMcpTransport implements McpTransport {
                         
                         await messageHandler(mcpMessage);
                         
-                        // Päivitä tarkistuspiste vähintään kerran toimitusta varten
+                        // Päivitä tarkistuspiste vähintään kerta-toimitukselle
                         await context.updateCheckpoint(event);
                     } catch (error) {
                         console.error("Error processing Event Hubs message:", error);
@@ -439,7 +441,7 @@ export class EventHubsMcpTransport implements McpTransport {
 }
 ```
 
-### **Python -toteutus - Event Hubs -siirtomenetelmä**
+### **Python Toteutus - Event Hubs -siirto**
 
 ```python
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient
@@ -471,7 +473,7 @@ class EventHubsMcpTransport:
         """Send MCP message via Event Hubs"""
         event_data = EventData(json.dumps(message))
         
-        # Lisää MCP-kohtaisia ominaisuuksia
+        # Lisää MCP-kohtaiset ominaisuudet
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
@@ -503,14 +505,14 @@ class EventHubsMcpTransport:
         """Internal event handler wrapper"""
         async def handle_event(partition_context, event):
             try:
-                # Purkaa MCP-viesti Event Hubsin tapahtumasta
+                # Jäsennä MCP-viesti Event Hubs -tapahtumasta
                 message_body = event.body_as_str(encoding='UTF-8')
                 mcp_message = json.loads(message_body)
                 
                 # Käsittele MCP-viesti
                 await handler(mcp_message)
                 
-                # Päivitä tarkistuspiste vähintään kertaalle toimitusta varten
+                # Päivitä tarkistuspiste vähintään kertaalle toimituksen varmistamiseksi
                 await partition_context.update_checkpoint(event)
                 
             except Exception as e:
@@ -525,9 +527,9 @@ class EventHubsMcpTransport:
         await self.consumer.close()
 ```
 
-## **Edistyneet siirtokuvioiden mallit**
+## **Edistyneet Siirtokuvioinnit**
 
-### **Viestien kestävyys ja luotettavuus**
+### **Viestien Kestävyys ja Luotettavuus**
 
 ```csharp
 // Implementing message durability with retry logic
@@ -554,7 +556,7 @@ public class ReliableTransportWrapper : IMcpTransport
 }
 ```
 
-### **Siirtoturvallisuuden integrointi**
+### **Siirron Suojausintegraatio**
 
 ```csharp
 // Integrating Azure Key Vault for transport security
@@ -576,7 +578,7 @@ public class SecureTransportFactory
 }
 ```
 
-### **Siirtomonitorointi ja havaittavuus**
+### **Siirron Valvonta ja Havainnointi**
 
 ```csharp
 // Adding telemetry to custom transports
@@ -617,9 +619,9 @@ public class ObservableTransport : IMcpTransport
 
 ## **Yritysintegraatioskenaariot**
 
-### **Skenaario 1: Hajautettu MCP-prosessointi**
+### **Skenaario 1: Hajautettu MCP-käsittely**
 
-Azure Event Gridin käyttö MCP-pyyntöjen jakelussa useiden prosessointisolmujen kesken:
+Azure Event Gridin käyttö MCP-pyyntöjen jakeluun useille käsittelysolmuille:
 
 ```yaml
 Architecture:
@@ -635,7 +637,7 @@ Benefits:
 
 ### **Skenaario 2: Reaaliaikainen MCP-striimaus**
 
-Azure Event Hubsin käyttö korkeataajuisissa MCP-vuorovaikutuksissa:
+Azure Event Hubsin käyttö korkeataajuuksiseen MCP-vuorovaikutukseen:
 
 ```yaml
 Architecture:
@@ -649,9 +651,9 @@ Benefits:
   - Built-in partitioning for parallel processing
 ```
 
-### **Skenaario 3: Hybridisiirtorakenne**
+### **Skenaario 3: Hybridisiirtoarkkitehtuuri**
 
-Useiden siirtomenetelmien yhdistäminen erilaisiin käyttötapauksiin:
+Useiden siirtojen yhdistäminen eri käyttötarkoituksiin:
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -675,9 +677,9 @@ public class HybridMcpTransport : IMcpTransport
 }
 ```
 
-## **Suorituskyvyn optimointi**
+## **Suorituskyvyn Optimointi**
 
-### **Viestien ryhmittely Event Gridissä**
+### **Viestieryhmittely Event Gridissä**
 
 ```csharp
 public class BatchingEventGridTransport : IMcpTransport
@@ -717,7 +719,7 @@ public class BatchingEventGridTransport : IMcpTransport
 }
 ```
 
-### **Osiointistrategia Event Hubseille**
+### **Osastointistrategia Event Hubseille**
 
 ```csharp
 public class PartitionedEventHubsTransport : IMcpTransport
@@ -737,9 +739,9 @@ public class PartitionedEventHubsTransport : IMcpTransport
 }
 ```
 
-## **Mukautettujen siirtomenetelmien testaus**
+## **Mukautettujen Siirtojen Testaus**
 
-### **Yksikkötestaus testikaksoisten avulla**
+### **Yksikkötestaus Testidubbelien avulla**
 
 ```csharp
 [Test]
@@ -766,7 +768,7 @@ public async Task EventGridTransport_SendMessage_PublishesCorrectEvent()
 }
 ```
 
-### **Integraatiotestaus Azure Test Containersilla**
+### **Integraatiotestaus Azure Test Containers -työkalujen kanssa**
 
 ```csharp
 [Test]
@@ -799,35 +801,35 @@ public async Task EventHubsTransport_IntegrationTest()
 }
 ```
 
-## **Parhaat käytännöt ja ohjeet**
+## **Parhaat Käytännöt ja Ohjeet**
 
-### **Siirtosuunnittelun periaatteet**
+### **Siirron Suunnittelun Periaatteet**
 
-1. **Idempotenssi**: Varmista, että viestinkäsittely on idempotenttia, jotta duplikaatit voidaan käsitellä
-2. **Virheenkäsittely**: Toteuta laaja virheenkäsittely ja kuolleiden kirjeiden jonot
-3. **Monitorointi**: Lisää yksityiskohtainen telemetria ja terveystarkastukset
-4. **Turvallisuus**: Käytä hallittuja identiteettejä ja vähimmän oikeuden periaatetta
-5. **Suorituskyky**: Suunnittele tarpeidesi mukainen viive ja läpimenokapasiteetti
+1. **Idempotenssi**: Varmista, että viestien käsittely on idempotenttia, jotta kaksoiskappaleet eivät aiheuta ongelmia
+2. **Virheenkäsittely**: Toteuta kattava virheenkäsittely ja dead letter -jonot
+3. **Valvonta**: Lisää yksityiskohtaista telemetriaa ja terveystarkistuksia
+4. **Suojaus**: Käytä hallittuja identiteettejä ja vähimmän oikeuden periaatetta
+5. **Suorituskyky**: Suunnittele viive- ja läpäisykykyvaatimusten mukaan
 
-### **Azure-spesifiset suositukset**
+### **Azure-kohtaiset Suositukset**
 
-1. **Käytä hallittua identiteettiä**: Vältä yhteysmerkkijonoja tuotannossa
-2. **Toteuta piirikytkimet**: Suojaa Azure-palvelukatkoksia vastaan
-3. **Seuraa kustannuksia**: Tarkkaile viestimääriä ja käsittelykustannuksia
-4. **Suunnittele skaalaus varhaisessa vaiheessa**: Suunnittele osiointi- ja skaalautumisstrategiat ajoissa
-5. **Testaa perusteellisesti**: Käytä Azure DevTest Labsia kattavaan testaukseen
+1. **Käytä Hallittua Identiteettiä**: Vältä yhteysmerkkijonoja tuotannossa
+2. **Toteuta Piirikytkimet**: Suojaa Azuren palvelukatkoksilta
+3. **Valvo Kustannuksia**: Seuraa viestimääriä ja käsittelykustannuksia
+4. **Suunnittele Skaalaus**: Suunnittele osastointi ja skaalausstrategiat varhain
+5. **Testaa Huolellisesti**: Käytä Azure DevTest Labsia kattavaan testaukseen
 
 ## **Yhteenveto**
 
-Mukautetut MCP-siirtomenetelmät mahdollistavat tehokkaat yritysskenaariot hyödyntämällä Azuren viestintäpalveluita. Toteuttamalla Event Gridin tai Event Hubsin siirtomenetelmiä voit rakentaa skaalautuvia, luotettavia MCP-ratkaisuja, jotka integroituvat saumattomasti olemassa olevaan Azure-infrastruktuuriin.
+Mukautetut MCP-siirrot mahdollistavat tehokkaat yrityssovellukset hyödyntämällä Azuren viestintäpalveluita. Toteuttamalla Event Grid- tai Event Hubs -siirrot voit rakentaa skaalautuvia, luotettavia MCP-ratkaisuja, jotka integroituvat sujuvasti olemassa olevaan Azure-infrastruktuuriin.
 
-Tarjotut esimerkit havainnollistavat tuotantovalmiita kuvioita mukautettujen siirtototeutusten luomiseksi MCP-protokollan vaatimustenmukaisuutta ja Azure-parhaita käytäntöjä noudattaen.
+Tarjotut esimerkit demonstroivat tuotantovalmiita kuvioita mukautettujen siirtojen toteuttamiseen samalla kun MCP-protokollan noudattaminen ja Azuren parhaat käytännöt säilyvät.
 
 ## **Lisäresurssit**
 
 - [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
-- [Azure Event Grid Documentation](https://docs.microsoft.com/azure/event-grid/)
-- [Azure Event Hubs Documentation](https://docs.microsoft.com/azure/event-hubs/)
+- [Azure Event Grid Dokumentaatio](https://docs.microsoft.com/azure/event-grid/)
+- [Azure Event Hubs Dokumentaatio](https://docs.microsoft.com/azure/event-hubs/)
 - [Azure Functions Event Grid Trigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
 - [Azure SDK for .NET](https://github.com/Azure/azure-sdk-for-net)
 - [Azure SDK for TypeScript](https://github.com/Azure/azure-sdk-for-js)
@@ -835,12 +837,12 @@ Tarjotut esimerkit havainnollistavat tuotantovalmiita kuvioita mukautettujen sii
 
 ---
 
-> *Tämä opas keskittyy käytännön toteutuskuvioihin tuotantovalmiita MCP-järjestelmiä varten. Varmista aina siirtometelmien toteutukset oman käyttötapauksesi vaatimusten ja Azure-palveluiden rajoitusten mukaisesti.*
-> **Nykyinen standardi**: Tämä opas heijastaa [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) siirtomenetelmävaatimuksia ja edistyneitä siirtokuvioita yritysympäristöjä varten.
+> *Tämä opas keskittyy käytännön toteutuskuvioihin tuotantojärjestelmille. Varmista aina siirtototeutukset omien vaatimustesi ja Azuren palvelurajojen mukaisesti.*
+> **Nykyinen Standardi**: Tämä opas heijastaa [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) siirtovaatimuksia ja edistyneitä siirtokuvioita yritysympäristöihin.
 
 
 ## Mitä seuraavaksi
-- [6. Yhteisön panokset](../../06-CommunityContributions/README.md)
+- [6. Yhteisön Panokset](../../06-CommunityContributions/README.md)
 
 ---
 

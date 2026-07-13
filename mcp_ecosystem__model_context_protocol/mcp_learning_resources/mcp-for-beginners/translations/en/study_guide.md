@@ -139,6 +139,7 @@ The repository is organized into twelve main sections, each focusing on differen
    - Client-server architecture
    - Key protocol components
    - Messaging patterns in MCP
+   - Forward-looking: [What's Changing in MCP: The 2026-07-28 Release Candidate](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md) — the stateless protocol core, Extensions framework, and Roots/Sampling/Logging deprecations expected in the next specification version
 
 3. **Security (02-Security/)**
    - Security threats in MCP-based systems
@@ -346,6 +347,8 @@ This repository welcomes contributions from the community. See the Community Con
 ----
 
 *This study guide was last updated on February 5, 2026, reflecting the latest MCP Specification 2025-11-25 and provides an overview of the repository as of that date. Repository content may be updated after this date.*
+
+*Addendum (July 2, 2026): a lesson on the `2026-07-28` MCP Specification Release Candidate was added under [01-CoreConcepts](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md); the curriculum baseline remains 2025-11-25 until the new specification ships.*
 
 ---
 

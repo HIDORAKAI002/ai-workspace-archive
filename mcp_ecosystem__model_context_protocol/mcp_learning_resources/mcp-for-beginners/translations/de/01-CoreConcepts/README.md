@@ -1,51 +1,51 @@
-# MCP-Grundkonzepte: Meisterung des Model Context Protocol für die KI-Integration
+# MCP Kernkonzepte: Beherrschung des Model Context Protocol zur KI-Integration
 
-[![MCP Core Concepts](../../../translated_images/de/02.8203e26c6fb5a797.webp)](https://youtu.be/earDzWGtE84)
+[![MCP Kernkonzepte](../../../translated_images/de/02.8203e26c6fb5a797.webp)](https://youtu.be/earDzWGtE84)
 
-_(Klicken Sie auf das Bild oben, um das Video dieser Lektion anzusehen)_
+_(Klicken Sie auf das obige Bild, um das Video zu dieser Lektion anzusehen)_
 
-Das [Model Context Protocol (MCP)](https://github.com/modelcontextprotocol) ist ein leistungsstarkes, standardisiertes Framework, das die Kommunikation zwischen großen Sprachmodellen (LLMs) und externen Werkzeugen, Anwendungen und Datenquellen optimiert.  
-Dieser Leitfaden führt Sie durch die Kernkonzepte von MCP. Sie lernen die Client-Server-Architektur, wesentliche Komponenten, Kommunikationsmechanismen und bewährte Implementierungspraktiken kennen.
+Das [Model Context Protocol (MCP)](https://github.com/modelcontextprotocol) ist ein leistungsstarkes, standardisiertes Framework, das die Kommunikation zwischen Large Language Models (LLMs) und externen Werkzeugen, Anwendungen und Datenquellen optimiert.
+Dieses Handbuch führt Sie durch die Kernkonzepte von MCP. Sie lernen die Client-Server-Architektur, wesentliche Komponenten, Kommunikationsmechanismen und bewährte Implementierungspraktiken kennen.
 
-- **Explizite Zustimmung des Benutzers**: Alle Datenzugriffe und Operationen erfordern vor der Ausführung eine ausdrückliche Zustimmung des Benutzers. Benutzer müssen klar verstehen, auf welche Daten zugegriffen und welche Aktionen ausgeführt werden, mit granularer Kontrolle über Berechtigungen und Autorisierungen.
+- **Explizite Benutzerzustimmung**: Alle Datenzugriffe und Operationen erfordern vor der Ausführung eine ausdrückliche Zustimmung des Benutzers. Benutzer müssen klar verstehen, auf welche Daten zugegriffen wird und welche Aktionen durchgeführt werden, mit granularer Kontrolle über Berechtigungen und Autorisierungen.
 
-- **Datenschutz**: Benutzerdaten werden nur mit ausdrücklicher Zustimmung offengelegt und müssen durch robuste Zugriffskontrollen während des gesamten Interaktionszyklus geschützt werden. Implementierungen müssen unbefugte Datenübertragungen verhindern und strikte Datenschutzgrenzen einhalten.
+- **Datenschutz**: Benutzerdaten werden nur mit ausdrücklicher Zustimmung offengelegt und müssen durch robuste Zugriffskontrollen während des gesamten Interaktionszyklus geschützt werden. Implementierungen müssen unbefugte Datenübertragungen verhindern und strenge Datenschutzgrenzen einhalten.
 
-- **Sicherheit bei der Werkzeugausführung**: Jede Werkzeugaufruf erfordert eine ausdrückliche Zustimmung des Benutzers mit klarer Kenntnis über Funktionalität, Parameter und potenzielle Auswirkungen des Werkzeugs. Robuste Sicherheitsgrenzen müssen unbeabsichtigte, unsichere oder böswillige Werkzeugausführung verhindern.
+- **Sichere Ausführung von Werkzeugen**: Jede Werkzeugausführung erfordert die ausdrückliche Zustimmung des Benutzers mit klarem Verständnis der Funktionalität, Parameter und möglichen Auswirkungen des Werkzeugs. Robuste Sicherheitsgrenzen müssen unbeabsichtigte, unsichere oder bösartige Werkzeugsaufrufe verhindern.
 
-- **Transportschicht-Sicherheit**: Alle Kommunikationskanäle sollten geeignete Verschlüsselungs- und Authentifizierungsmechanismen verwenden. Remote-Verbindungen sollten sichere Transportprotokolle und angemessenes Credential-Management implementieren.
+- **Sicherheit der Transportschicht**: Alle Kommunikationskanäle sollten geeignete Verschlüsselungs- und Authentifizierungsmechanismen verwenden. Remote-Verbindungen müssen sichere Transportprotokolle und angemessenes Credential-Management implementieren.
 
 #### Implementierungsrichtlinien:
 
-- **Berechtigungsverwaltung**: Implementieren Sie fein abgestufte Berechtigungssysteme, die es Benutzern ermöglichen zu steuern, welche Server, Werkzeuge und Ressourcen zugänglich sind  
-- **Authentifizierung & Autorisierung**: Verwenden Sie sichere Authentifizierungsmethoden (OAuth, API-Schlüssel) mit ordnungsgemäßem Token-Management und Ablauf  
-- **Eingabevalidierung**: Validieren Sie alle Parameter und Dateneingaben gemäß definierter Schemata zur Vermeidung von Injection-Angriffen  
-- **Audit-Logging**: Führen Sie umfassende Protokolle aller Operationen zur Sicherheitsüberwachung und Compliance
+- **Berechtigungsmanagement**: Implementieren Sie fein abgestufte Berechtigungssysteme, die es Benutzern erlauben, zu kontrollieren, welche Server, Werkzeuge und Ressourcen zugänglich sind
+- **Authentifizierung & Autorisierung**: Verwenden Sie sichere Authentifizierungsmethoden (OAuth, API-Schlüssel) mit ordnungsgemäßem Token-Management und Ablaufsteuerung
+- **Eingabevalidierung**: Validieren Sie alle Parameter und Eingabedaten gemäß festgelegten Schemata, um Injection-Angriffe zu verhindern
+- **Audit Logging**: Führen Sie umfassende Protokolle aller Operationen zur Sicherheitsüberwachung und Compliance
 
 ## Überblick
 
-Diese Lektion untersucht die grundlegende Architektur und die Komponenten, die das Model Context Protocol (MCP) Ökosystem ausmachen. Sie lernen die Client-Server-Architektur, wichtige Komponenten und Kommunikationsmechanismen kennen, die MPC-Interaktionen antreiben.
+Diese Lektion untersucht die grundlegende Architektur und Komponenten, die das Model Context Protocol (MCP) Ökosystem ausmachen. Sie lernen die Client-Server-Architektur, zentrale Komponenten und Kommunikationsmechanismen kennen, die MCP-Interaktionen ermöglichen.
 
 ## Wichtige Lernziele
 
 Am Ende dieser Lektion werden Sie:
 
-- Die MCP-Client-Server-Architektur verstehen.  
-- Rollen und Verantwortlichkeiten von Hosts, Clients und Servern identifizieren.  
-- Die Kernfunktionen analysieren, die MCP zu einer flexiblen Integrationsschicht machen.  
-- Verstehen, wie Informationen im MCP-Ökosystem fließen.  
-- Praktische Einblicke durch Codebeispiele in .NET, Java, Python und JavaScript erhalten.
+- Die MCP Client-Server-Architektur verstehen.
+- Rollen und Verantwortlichkeiten von Hosts, Clients und Servern identifizieren.
+- Die Kernfunktionen analysieren, die MCP zu einer flexiblen Integrationsschicht machen.
+- Lernen, wie Informationen innerhalb des MCP-Ökosystems fließen.
+- Praktische Einblicke durch Codebeispiele in .NET, Java, Python und JavaScript gewinnen.
 
-## MCP-Architektur: Ein tieferer Blick
+## MCP Architektur: Eine tiefere Betrachtung
 
 Das MCP-Ökosystem basiert auf einem Client-Server-Modell. Diese modulare Struktur ermöglicht es KI-Anwendungen, effizient mit Werkzeugen, Datenbanken, APIs und kontextuellen Ressourcen zu interagieren. Lassen Sie uns diese Architektur in ihre Kernkomponenten aufschlüsseln.
 
-Im Kern folgt MCP einer Client-Server-Architektur, bei der eine Host-Anwendung Verbindungen zu mehreren Servern herstellen kann:
+Im Kern folgt MCP einer Client-Server-Architektur, bei der eine Host-Anwendung sich mit mehreren Servern verbinden kann:
 
 ```mermaid
 flowchart LR
     subgraph "Ihr Computer"
-        Host["Host mit MCP (Visual Studio, VS Code, IDEs, Werkzeuge)"]
+        Host["Host mit MCP (Visual Studio, VS Code, IDEs, Tools)"]
         S1["MCP Server A"]
         S2["MCP Server B"]
         S3["MCP Server C"]
@@ -56,76 +56,81 @@ flowchart LR
         S2 <--> D2[("Lokal\Datenquelle B")]
     end
     subgraph "Internet"
-        S3 <-->|"Web-APIs"| D3[("Remote\Dienste")]
+        S3 <-->|"Web-APIs"| D3[("Entfernte\Dienste")]
     end
 ```
-- **MCP Hosts**: Programme wie VSCode, Claude Desktop, IDEs oder KI-Tools, die über MCP auf Daten zugreifen möchten  
-- **MCP Clients**: Protokoll-Clients, die 1:1-Verbindungen zu Servern aufrechterhalten  
-- **MCP Server**: Leichtgewichtige Programme, die jeweils spezifische Fähigkeiten über das standardisierte Model Context Protocol bereitstellen  
-- **Lokale Datenquellen**: Dateien, Datenbanken und Dienste Ihres Computers, auf die MCP-Server sicher zugreifen können  
-- **Remote-Dienste**: Externe Systeme, die über das Internet verfügbar sind und mit denen sich MCP-Server über APIs verbinden können.
 
-Das MCP-Protokoll ist ein sich entwickelnder Standard, der eine Datums-basierte Versionierung (Format JJJJ-MM-TT) verwendet. Die aktuelle Protokollversion ist **2025-11-25**. Die neuesten Updates der [Protokollspezifikation](https://modelcontextprotocol.io/specification/2025-11-25/) können Sie dort einsehen.
+- **MCP Hosts**: Programme wie VSCode, Claude Desktop, IDEs oder KI-Werkzeuge, die über MCP auf Daten zugreifen möchten
+- **MCP Clients**: Protokollclients, die 1:1-Verbindungen zu Servern unterhalten
+- **MCP Server**: Leichtgewichtige Programme, die jeweils spezifische Funktionen über das standardisierte Model Context Protocol bereitstellen
+- **Lokale Datenquellen**: Dateien, Datenbanken und Dienste Ihres Computers, auf die MCP-Server sicher zugreifen können
+- **Remote Services**: Externe Systeme, die über das Internet verfügbar sind und mit denen MCP-Server über APIs verbunden werden können.
+
+Das MCP-Protokoll ist ein sich entwickelnder Standard mit datumsbasierter Versionierung (Format JJJJ-MM-TT). Die aktuelle Protokollversion ist **2025-11-25**. Sie können die neuesten Updates in der [Protokollspezifikation](https://modelcontextprotocol.io/specification/2025-11-25/) einsehen.
+
+> **Ausblick:** Ein Release Candidate für die nächste Spezifikationsversion, **2026-07-28**, wurde im Mai 2026 angekündigt und soll am 28. Juli 2026 veröffentlicht werden. Er macht das Protokoll auf der Transportschicht zustandslos (Entfernung des `initialize` Handshakes und der Sitzungs-IDs), formiert ein Erweiterungs-Framework und stellt Wurzeln, Sampling und Logging zugunsten neuerer Muster ein. Siehe [Was ändert sich in MCP: Der 2026-07-28 Release Candidate](./mcp-2026-07-28-release-candidate.md) für eine vollständige Aufschlüsselung.
 
 ### 1. Hosts
 
-Im Model Context Protocol (MCP) sind **Hosts** KI-Anwendungen, die als primäre Schnittstelle dienen, über die Nutzer mit dem Protokoll interagieren. Hosts koordinieren und verwalten Verbindungen zu mehreren MCP-Servern, indem sie für jede Serververbindung dedizierte MCP-Clients erstellen. Beispiele für Hosts sind:
+Im Model Context Protocol (MCP) sind **Hosts** KI-Anwendungen, die als primäre Schnittstelle dienen, über die Benutzer mit dem Protokoll interagieren. Hosts koordinieren und verwalten Verbindungen zu mehreren MCP-Servern, indem sie für jede Serververbindung dedizierte MCP-Clients erstellen. Beispiele für Hosts sind:
 
-- **KI-Anwendungen**: Claude Desktop, Visual Studio Code, Claude Code  
+- **KI-Anwendungen**: Claude Desktop, Visual Studio Code, Claude Code
 - **Entwicklungsumgebungen**: IDEs und Code-Editoren mit MCP-Integration  
-- **Benutzerdefinierte Anwendungen**: Speziell entwickelte KI-Agenten und Tools
+- **Benutzerdefinierte Anwendungen**: Zweckgebundene KI-Agenten und Werkzeuge
 
 **Hosts** sind Anwendungen, die KI-Modell-Interaktionen koordinieren. Sie:
 
-- **orchestrieren KI-Modelle**: Führen LLMs aus oder interagieren mit ihnen, um Antworten zu generieren und KI-Workflows zu koordinieren  
-- **verwalten Client-Verbindungen**: Erstellen und pflegen für jede MCP-Server-Verbindung einen MCP-Client  
-- **steuern die Benutzeroberfläche**: Handhaben Gesprächsabläufe, Benutzerinteraktionen und Antwortpräsentation  
-- **setzen Sicherheitsrichtlinien um**: Steuern Berechtigungen, Sicherheitsbeschränkungen und Authentifizierung  
-- **verwalten Benutzerzustimmungen**: Steuern Benutzerfreigaben für Datenaustausch und Werkzeugausführung
+- **KI-Modelle orchestrieren**: Führen LLMs aus oder interagieren mit ihnen, um Antworten zu generieren und KI-Workflows zu koordinieren
+- **Client-Verbindungen verwalten**: Erstellen und pflegen jeweils einen MCP-Client pro MCP-Server-Verbindung
+- **Benutzeroberfläche steuern**: Handhaben den Gesprächsfluss, Benutzerinteraktionen und Antwortpräsentation  
+- **Sicherheit durchsetzen**: Kontrollieren Berechtigungen, Sicherheitsbeschränkungen und Authentifizierung
+- **Benutzerzustimmung handhaben**: Verwalten Benutzerzustimmungen für Datenaustausch und Werkzeugausführung
+
 
 ### 2. Clients
 
-**Clients** sind wesentliche Komponenten, die dedizierte Eins-zu-eins-Verbindungen zwischen Hosts und MCP-Servern aufrechterhalten. Jeder MCP-Client wird vom Host instanziiert, um eine spezifische Verbindung zu einem MCP-Server herzustellen und so geordnete und sichere Kommunikationskanäle zu gewährleisten. Mehrere Clients ermöglichen es Hosts, gleichzeitig Verbindungen zu mehreren Servern herzustellen.
+**Clients** sind wesentliche Komponenten, die dedizierte Eins-zu-eins-Verbindungen zwischen Hosts und MCP-Servern aufrechterhalten. Jeder MCP-Client wird vom Host instanziiert, um eine Verbindung zu einem bestimmten MCP-Server herzustellen, was organisierte und sichere Kommunikationskanäle gewährleistet. Mehrere Clients ermöglichen Hosts, gleichzeitig mit mehreren Servern verbunden zu sein.
 
-**Clients** sind Verbindungs-Komponenten innerhalb der Host-Anwendung. Sie:
+**Clients** sind verbindende Komponenten innerhalb der Host-Anwendung. Sie:
 
-- **kommunizieren nach Protokoll**: Senden JSON-RPC 2.0-Anfragen an Server mit Prompts und Anweisungen  
-- **führen Fähigkeitenaushandlung durch**: Verhandeln unterstützte Features und Protokollversionen bei der Initialisierung mit Servern  
-- **führen Werkzeugausführung durch**: Verwalten Werkzeugausführungsanfragen von Modellen und verarbeiten Antworten  
-- **verarbeiten Echtzeit-Updates**: Empfangen Benachrichtigungen und Echtzeit-Updates von Servern  
-- **verarbeiten Antworten**: Verarbeiten und formatieren Serverantworten für die Darstellung an Benutzer
+- **Protokollkommunikation**: Senden JSON-RPC 2.0-Anfragen an Server mit Prompts und Anweisungen
+- **Fähigkeitsverhandlung**: Verhandeln unterstützte Funktionen und Protokollversionen mit Servern während der Initialisierung
+- **Werkzeugausführung**: Verwalten Werkzeugausführungsanforderungen von Modellen und verarbeiten Antworten
+- **Echtzeit-Updates**: Handhaben Benachrichtigungen und Echtzeit-Updates von Servern
+- **Antwortverarbeitung**: Verarbeiten und formatieren Serverantworten zur Anzeige für Benutzer
 
 ### 3. Server
 
-**Server** sind Programme, die Kontext, Werkzeuge und Kompetenzen für MCP-Clients bereitstellen. Sie können lokal (auf demselben Rechner wie der Host) oder remote (auf externen Plattformen) ausgeführt werden und sind verantwortlich für das Handling von Client-Anfragen und Bereitstellung strukturierter Antworten. Server stellen spezifische Funktionen über das standardisierte Model Context Protocol bereit.
+**Server** sind Programme, die Kontext, Werkzeuge und Fähigkeiten für MCP-Clients bereitstellen. Sie können lokal (auf demselben Rechner wie der Host) oder remote (auf externen Plattformen) ausgeführt werden und sind verantwortlich für die Verarbeitung von Client-Anfragen und die Bereitstellung strukturierter Antworten. Server bieten spezifische Funktionalität über das standardisierte Model Context Protocol an.
 
-**Server** sind Dienste, die Kontext und Fähigkeiten bereitstellen. Sie:
+**Server** sind Dienste, die Kontext und Funktionen bereitstellen. Sie:
 
-- **melden Funktionen an**: Registrieren und stellen verfügbare Primitiven (Ressourcen, Prompts, Tools) Clients zur Verfügung  
-- **verarbeiten Anfragen**: Empfangen und führen Werkzeugaufrufe, Ressourcen- und Prompt-Anfragen von Clients aus  
-- **stellen Kontext bereit**: Bieten kontextuelle Informationen und Daten zur Verbesserung von Modellantworten  
-- **verwalten Zustände**: Halten Sitzungszustände und bearbeiten wenn nötig zustandsbehaftete Interaktionen  
-- **senden Echtzeit-Benachrichtigungen**: Informieren über Fähigkeitsänderungen und Updates an verbundene Clients
+- **Feature-Registrierung**: Registrieren und stellen verfügbare Primitiven (Ressourcen, Prompts, Werkzeuge) für Clients bereit
+- **Anfrageverarbeitung**: Empfangen und führen Werkzeugaufrufe, Ressourcenanforderungen und Prompt-Anfragen von Clients aus
+- **Kontextbereitstellung**: Stellen kontextuelle Informationen und Daten bereit, um Modellantworten zu verbessern
+- **Zustandsverwaltung**: Pflegen Sitzungszustände und handhaben zustandsbehaftete Interaktionen, wenn erforderlich
 
-Server können von jedem entwickelt werden, um Modellfähigkeiten mit spezialisierter Funktionalität zu erweitern. Sie unterstützen sowohl lokale als auch remote Bereitstellungsszenarien.
+- **Echtzeit-Benachrichtigungen**: Senden Sie Benachrichtigungen über Fähigkeitsänderungen und Updates an verbundene Clients
+
+Server können von jedem entwickelt werden, um Modellfähigkeiten mit spezialisierten Funktionen zu erweitern, und sie unterstützen sowohl lokale als auch Remote-Bereitstellungsszenarien.
 
 ### 4. Server-Primitiven
 
-Server im Model Context Protocol (MCP) bieten drei Kern-**Primitiven**, die die grundlegenden Bausteine für reichhaltige Interaktionen zwischen Clients, Hosts und Sprachmodellen definieren. Diese Primitiven spezifizieren Arten von kontextuellen Informationen und Aktionen, die über das Protokoll verfügbar sind.
+Server im Model Context Protocol (MCP) bieten drei grundlegende **Primitiven**, die die fundamentalen Bausteine für reichhaltige Interaktionen zwischen Clients, Hosts und Sprachmodellen definieren. Diese Primitiven spezifizieren die Arten von kontextuellen Informationen und Aktionen, die über das Protokoll verfügbar sind.
 
 MCP-Server können jede Kombination der folgenden drei Kernprimitiven bereitstellen:
 
 #### Ressourcen
 
-**Ressourcen** sind Datenquellen, die kontextuelle Informationen für KI-Anwendungen bereitstellen. Sie repräsentieren statische oder dynamische Inhalte, die das Verständnis und die Entscheidungsfindung der Modelle verbessern können:
+**Ressourcen** sind Datenquellen, die kontextuelle Informationen für KI-Anwendungen bereitstellen. Sie repräsentieren statische oder dynamische Inhalte, die das Modellverständnis und die Entscheidungsfindung verbessern können:
 
-- **Kontextuelle Daten**: Strukturierte Informationen und Kontext für die Nutzung durch KI-Modelle  
-- **Wissensbasen**: Dokumentenarchive, Artikel, Handbücher und Forschungspublikationen  
+- **Kontextbezogene Daten**: Strukturierte Informationen und Kontext für den Verbrauch durch KI-Modelle
+- **Wissensdatenbanken**: Dokumentenarchive, Artikel, Handbücher und Forschungsarbeiten
 - **Lokale Datenquellen**: Dateien, Datenbanken und lokale Systeminformationen  
-- **Externe Daten**: API-Antworten, Webdienste und entfernte Systemdaten  
-- **Dynamische Inhalte**: Echtzeitdaten, die sich anhand externer Bedingungen aktualisieren
+- **Externe Daten**: API-Antworten, Webdienste und entfernte Systemdaten
+- **Dynamische Inhalte**: Echtzeitdaten, die sich basierend auf externen Bedingungen aktualisieren
 
-Ressourcen werden durch URIs identifiziert und unterstützen Entdeckung über `resources/list` sowie Abruf mittels `resources/read`:
+Ressourcen werden durch URIs identifiziert und unterstützen die Auflistung über `resources/list` sowie das Abrufen über `resources/read` Methoden:
 
 ```text
 file://documents/project-spec.md
@@ -135,35 +140,35 @@ api://weather/current
 
 #### Prompts
 
-**Prompts** sind wiederverwendbare Vorlagen, die dabei helfen, Interaktionen mit Sprachmodellen zu strukturieren. Sie stellen standardisierte Interaktionsmuster und vorgefertigte Workflows bereit:
+**Prompts** sind wiederverwendbare Vorlagen, die helfen, Interaktionen mit Sprachmodellen zu strukturieren. Sie bieten standardisierte Interaktionsmuster und vorgefertigte Arbeitsabläufe:
 
-- **Vorlagenbasierte Interaktionen**: Vorgefertigte Nachrichten und Gesprächseinstiege  
-- **Workflow-Vorlagen**: Standardisierte Sequenzen für allgemeine Aufgaben und Interaktionen  
-- **Few-shot-Beispiele**: Beispiel-basierte Vorlagen zur Modellanweisung  
-- **Systemprompts**: Grundlegende Prompts, die Modellverhalten und Kontext definieren  
+- **Vorlagenbasierte Interaktionen**: Vorgefertigte Nachrichten und Gesprächseinleitungen
+- **Workflow-Vorlagen**: Standardisierte Abläufe für gängige Aufgaben und Interaktionen
+- **Few-shot-Beispiele**: Beispielbasierte Vorlagen zur Modellanweisung
+- **System-Prompts**: Grundlegende Aufforderungen, die Modellverhalten und Kontext definieren
 - **Dynamische Vorlagen**: Parametrisierte Prompts, die sich an spezifische Kontexte anpassen
 
-Prompts unterstützen Variablenersetzung und können über `prompts/list` entdeckt sowie mit `prompts/get` abgerufen werden:
+Prompts unterstützen Variablenaustausch und können über `prompts/list` entdeckt und mit `prompts/get` abgerufen werden:
 
 ```markdown
 Generate a {{task_type}} for {{product}} targeting {{audience}} with the following requirements: {{requirements}}
 ```
 
-#### Tools
+#### Werkzeuge
 
-**Werkzeuge** sind ausführbare Funktionen, die KI-Modelle aufrufen können, um bestimmte Aktionen auszuführen. Sie repräsentieren die „Verben“ des MCP-Ökosystems und ermöglichen es den Modellen, mit externen Systemen zu interagieren:
+**Werkzeuge** sind ausführbare Funktionen, die KI-Modelle aufrufen können, um spezifische Aktionen auszuführen. Sie repräsentieren die „Verben“ des MCP-Ökosystems und ermöglichen es Modellen, mit externen Systemen zu interagieren:
 
-- **Ausführbare Funktionen**: Einzelne Operationen, die Modelle mit spezifischen Parametern ausführen können  
-- **Integration externer Systeme**: API-Aufrufe, Datenbankabfragen, Dateioperationen, Berechnungen  
-- **Einzigartige Identität**: Jedes Werkzeug hat einen eindeutigen Namen, Beschreibung und Parameterschema  
-- **Strukturierte Ein-/Ausgabe**: Werkzeuge akzeptieren validierte Parameter und geben strukturierte, typisierte Antworten zurück  
-- **Aktionsfähigkeiten**: Ermöglichen es Modellen, reale Aktionen auszuführen und Live-Daten abzurufen
+- **Ausführbare Funktionen**: Diskrete Operationen, die Modelle mit spezifischen Parametern aufrufen können
+- **Integration externer Systeme**: API-Aufrufe, Datenbankabfragen, Dateioperationen, Berechnungen
+- **Eindeutige Identität**: Jedes Werkzeug hat einen eindeutigen Namen, Beschreibung und Parameterschema
+- **Strukturierte Ein-/Ausgabe**: Werkzeuge akzeptieren validierte Parameter und liefern strukturierte, typisierte Antworten zurück
+- **Aktionsfähigkeiten**: Ermöglichen Modellen, reale Aktionen auszuführen und Live-Daten abzurufen
 
-Werkzeuge sind mit JSON Schema für Parameter-Validierung definiert und können über `tools/list` entdeckt sowie über `tools/call` ausgeführt werden. Werkzeuge können zudem **Icons** als zusätzliche Metadaten für eine bessere UI-Präsentation enthalten.
+Werkzeuge werden mit JSON Schema für die Parametervalidierung definiert, über `tools/list` bereitgestellt und mittels `tools/call` ausgeführt. Werkzeuge können außerdem **Icons** als zusätzliche Metadaten für eine bessere UI-Präsentation enthalten.
 
-**Werkzeug-Annotationen**: Werkzeuge unterstützen Verhaltensanmerkungen (z. B. `readOnlyHint`, `destructiveHint`), die beschreiben, ob ein Werkzeug nur lesend oder destruktiv ist, was Clients bei der Entscheidungsfindung zur Werkzeugausführung unterstützt.
+**Werkzeug-Anmerkungen**: Werkzeuge unterstützen Verhaltensanmerkungen (z. B. `readOnlyHint`, `destructiveHint`), die beschreiben, ob ein Werkzeug nur-lesend oder destruktiv ist und helfen Clients dabei, fundierte Entscheidungen über die Werkzeugausführung zu treffen.
 
-Beispiel einer Werkzeugdefinition:
+Beispiel Werkzeugdefinition:
 
 ```typescript
 server.tool(
@@ -182,145 +187,153 @@ server.tool(
 
 ## Client-Primitiven
 
-Im Model Context Protocol (MCP) können **Clients** Primitiven bereitstellen, die es Servern ermöglichen, zusätzliche Fähigkeiten von der Host-Anwendung anzufordern. Diese client-seitigen Primitiven erlauben reichhaltigere, interaktivere Serverimplementierungen, die auf KI-Modellfähigkeiten und Benutzerinteraktionen zugreifen können.
+Im Model Context Protocol (MCP) können **Clients** Primitiven bereitstellen, die es Servern ermöglichen, zusätzliche Fähigkeiten von der Host-Anwendung anzufordern. Diese clientseitigen Primitiven erlauben reichhaltigere, interaktivere Serverimplementierungen, die auf KI-Modellfähigkeiten und Nutzerinteraktionen zugreifen können.
 
 ### Sampling
 
-**Sampling** ermöglicht es Servern, Sprachmodell-Komplettierungen von der KI-Anwendung des Clients anzufordern. Diese Primitive erlaubt Servern, auf LLM-Fähigkeiten zuzugreifen, ohne eigene Modelldependencies einzubetten:
+> **Hinweis zur Veraltung:** Der Release Candidate `2026-07-28` kennzeichnet Sampling als veraltet zugunsten der direkten Integration mit LLM-Provider-APIs. Es funktioniert weiterhin in `2025-11-25` und mindestens ein Jahr nach der Veraltung, aber neue Designs sollten das Ersatzmuster bevorzugen. Siehe [Was ändert sich in MCP: Der Release Candidate 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
-- **Modellunabhängiger Zugriff**: Server können Komplettierungen anfragen, ohne LLM-SDKs einzuschließen oder Modellzugriffe zu verwalten  
-- **Server-initiierte KI**: Ermöglicht Servern, autonom Inhalte unter Nutzung des KI-Modells des Clients zu generieren  
-- **Rekursive LLM-Interaktionen**: Unterstützt komplexe Szenarien, in denen Server KI-Unterstützung für die Verarbeitung benötigen  
-- **Dynamische Inhaltserzeugung**: Erlaubt Servern die Erstellung kontextueller Antworten unter Verwendung des Host-Modells  
-- **Werkzeugaufruf-Unterstützung**: Server können `tools` und `toolChoice` Parameter angeben, um dem Modell des Clients Werkzeugaufrufe während des Sampling zu ermöglichen
+**Sampling** erlaubt Servern, Sprachmodell-Vervollständigungen von der KI-Anwendung des Clients anzufordern. Diese Primitive ermöglicht es Servern, auf LLM-Fähigkeiten zuzugreifen, ohne eigene Modellabhängigkeiten einzubetten:
 
-Sampling wird über die Methode `sampling/complete` initiiert, bei der Server Vollständigkeitsanfragen an Clients senden.
+- **Modellunabhängiger Zugriff**: Server können Vervollständigungen anfordern, ohne LLM-SDKs zu integrieren oder den Modellzugriff zu verwalten
+- **Server-initiiertes KI**: Ermöglicht Servern, autonom Inhalte mit dem Modell des Clients zu erzeugen
+- **Rekursive LLM-Interaktionen**: Unterstützt komplexe Szenarien, in denen Server KI-Unterstützung zur Verarbeitung benötigen
+- **Dynamische Inhaltserzeugung**: Ermöglicht Servern, kontextuelle Antworten mit dem Modell des Hosts zu erstellen
+- **Werkzeugaufruf-Unterstützung**: Server können `tools` und `toolChoice` Parameter übergeben, damit das Modell des Clients Werkzeuge während des Samplings aufruft
+
+Sampling wird über die Methode `sampling/complete` initiiert, bei der Server Vervollständigungsanfragen an Clients senden.
 
 ### Roots
 
-**Roots** bieten eine standardisierte Möglichkeit für Clients, Dateisystemgrenzen für Server offenzulegen und dienen Servern zum Verständnis, auf welche Verzeichnisse und Dateien sie Zugriff haben:
+> **Hinweis zur Veraltung:** Der Release Candidate `2026-07-28` kennzeichnet Roots als veraltet zugunsten von Werkzeugparametern, Ressourcen-URIs oder Serverkonfiguration. Es funktioniert weiterhin in `2025-11-25` und mindestens ein Jahr nach der Veraltung. Siehe [Was ändert sich in MCP: Der Release Candidate 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
-- **Dateisystem-Grenzen**: Definieren Bereiche, in denen Server innerhalb des Dateisystems operieren dürfen  
-- **Zugriffskontrolle**: Helfen Servern zu verstehen, auf welche Verzeichnisse und Dateien sie Zugriffsrechte haben  
-- **Dynamische Updates**: Clients können Server benachrichtigen, wenn sich die Liste der Roots ändert  
-- **URI-basierte Identifikation**: Roots verwenden `file://`-URIs zur Identifikation zugänglicher Verzeichnisse und Dateien
+**Roots** bieten eine standardisierte Möglichkeit für Clients, Dateisystemgrenzen an Server zu übermitteln und Servern zu helfen zu verstehen, auf welche Verzeichnisse und Dateien sie Zugriff haben:
 
-Roots werden über die Methode `roots/list` entdeckt; Clients senden `notifications/roots/list_changed`, wenn sich die Roots ändern.
+- **Dateisystem-Grenzen**: Definieren Grenzen, innerhalb derer Server im Dateisystem operieren können
+- **Zugriffskontrolle**: Helfen Servern zu verstehen, auf welche Verzeichnisse und Dateien sie Zugriffsrechte haben
+- **Dynamische Aktualisierungen**: Clients können Server benachrichtigen, wenn sich die Liste der Roots ändert
+- **URI-basierte Identifikation**: Roots verwenden `file://` URIs zur Identifikation zugänglicher Verzeichnisse und Dateien
 
-### Elicitation  
+Roots werden über die Methode `roots/list` entdeckt, wobei Clients bei Änderungen `notifications/roots/list_changed` senden.
 
-**Elicitation** ermöglicht es Servern, über die Client-Oberfläche zusätzliche Informationen oder Bestätigungen von Nutzern anzufordern:
+### Elicitation
 
-- **Benutzereingabe-Anfragen**: Server können bei Bedarf zusätzliche Informationen für Werkzeugausführungen abfragen  
-- **Bestätigungsdialoge**: Fordern Benutzerzustimmung für sensible oder weitreichende Operationen an  
-- **Interaktive Workflows**: Ermöglichen schrittweise Benutzerinteraktionen durch Server  
-- **Dynamische Parametererfassung**: Sammeln fehlender oder optionaler Parameter während der Werkzeugausführung
+**Elicitation** ermöglicht es Servern, über die Client-Schnittstelle zusätzliche Informationen oder Bestätigungen vom Nutzer anzufordern:
 
-Elicitation-Anfragen erfolgen über die Methode `elicitation/request` und sammeln Benutzereingaben über die Client-Schnittstelle.
+- **Benutzereingabe-Anfragen**: Server können bei Bedarf zusätzliche Informationen zur Werkzeugausführung anfordern
+- **Bestätigungsdialoge**: Fordern Nutzerzustimmungen für sensible oder wirkungsvolle Operationen an
+- **Interaktive Arbeitsabläufe**: Ermöglichen Servern, Schritt-für-Schritt Nutzerinteraktionen zu erstellen
+- **Dynamische Parameterauswahl**: Sammeln fehlender oder optionaler Parameter während der Werkzeugausführung
 
-**URL-Modus Elicitation**: Server können auch URL-basierte Benutzerinteraktionen anfragen, die es erlauben, Nutzer zu externen Webseiten für Authentifizierung, Bestätigung oder Dateneingabe zu leiten.
+Elicitation-Anfragen werden mittels der Methode `elicitation/request` gestellt, um Nutzereingaben über die Schnittstelle des Clients zu sammeln.
 
-### Logging
+**URL-Modus Elicitation**: Server können auch URL-basierte Nutzerinteraktionen anfragen, wobei Nutzer zu externen Webseiten für Authentifizierung, Bestätigung oder Dateneingabe geleitet werden.
 
-**Logging** erlaubt es Servern, strukturierte Lognachrichten an Clients zum Debugging, zur Überwachung und operativen Transparenz zu senden:
+### Protokollierung
 
-- **Debugging-Unterstützung**: Erlaubt Servern, detaillierte Ausführungsprotokolle für Fehlerbehebung bereitzustellen  
-- **Operative Überwachung**: Sendet Statusupdates und Leistungsmetriken an Clients  
-- **Fehlermeldungen**: Liefert detaillierten Fehlerkontext und Diagnosedaten  
-- **Audit-Trails**: Erstellt umfassende Protokolle von Serveroperationen und Entscheidungen
 
-Logging-Nachrichten werden an Clients gesendet, um Transparenz der Serveraktionen zu gewährleisten und die Fehlerbehebung zu erleichtern.
+> **Deprecation-Hinweis:** Die Veröffentlichungskandidatin `2026-07-28` markiert Logging als veraltet zugunsten von `stderr` für stdio-Transporte und OpenTelemetry für strukturierte Beobachtbarkeit. Es funktioniert weiterhin in `2025-11-25` und mindestens ein Jahr nach jeder Deprecation. Siehe [Was sich in MCP ändert: Der Veröffentlichungskandidat 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
-## Informationsfluss im MCP
+**Logging** ermöglicht es Servern, strukturierte Protokollnachrichten an Clients für Debugging, Überwachung und operative Sichtbarkeit zu senden:
 
-Das Model Context Protocol (MCP) definiert einen strukturierten Informationsfluss zwischen Hosts, Clients, Servern und Modellen. Das Verständnis dieses Flusses hilft dabei zu klären, wie Benutzeranfragen verarbeitet werden und wie externe Werkzeuge und Daten in Modellantworten integriert werden.
+- **Debugging-Unterstützung**: Ermöglicht Servern, ausführliche Ausführungsprotokolle zur Fehlerbehebung bereitzustellen
+- **Betriebliche Überwachung**: Sendet Statusaktualisierungen und Leistungskennzahlen an Clients
+- **Fehlermeldung**: Liefert detaillierten Fehlerkontext und Diagnoseinformationen
+- **Auditspuren**: Erstellt umfassende Protokolle von Serveroperationen und Entscheidungen
+
+Logging-Nachrichten werden an Clients gesendet, um Transparenz in Serveroperationen zu gewährleisten und das Debugging zu erleichtern.
+
+## Informationsfluss in MCP
+
+Das Model Context Protocol (MCP) definiert einen strukturierten Informationsfluss zwischen Hosts, Clients, Servern und Modellen. Das Verständnis dieses Flusses hilft, zu klären, wie Benutzeranfragen verarbeitet werden und wie externe Tools und Daten in Modellausgaben integriert werden.
+
 - **Host initiiert Verbindung**  
-  Die Host-Anwendung (z. B. eine IDE oder Chat-Oberfläche) stellt eine Verbindung zu einem MCP-Server her, typischerweise über STDIO, WebSocket oder einen anderen unterstützten Transport.
+  Die Host-Anwendung (z.B. eine IDE oder Chat-Oberfläche) stellt eine Verbindung zu einem MCP-Server her, typischerweise über STDIO, WebSocket oder einen anderen unterstützten Transport.
 
 - **Fähigkeitsverhandlung**  
-  Der Client (eingebettet im Host) und der Server tauschen Informationen über ihre unterstützten Funktionen, Werkzeuge, Ressourcen und Protokollversionen aus. Dies stellt sicher, dass beide Seiten wissen, welche Fähigkeiten für die Sitzung verfügbar sind.
+  Der Client (eingebettet im Host) und der Server tauschen Informationen über ihre unterstützten Funktionen, Werkzeuge, Ressourcen und Protokollversionen aus. Dies stellt sicher, dass beide Seiten die verfügbaren Fähigkeiten für die Sitzung verstehen.
 
 - **Benutzeranfrage**  
-  Der Benutzer interagiert mit dem Host (z. B. durch Eingabe eines Prompts oder Befehls). Der Host sammelt diese Eingabe und übergibt sie zur Verarbeitung an den Client.
+  Der Benutzer interagiert mit dem Host (z.B. Eingabe einer Eingabeaufforderung oder eines Befehls). Der Host sammelt diese Eingabe und übergibt sie an den Client zur Verarbeitung.
 
-- **Nutzung von Ressourcen oder Werkzeugen**  
-  - Der Client kann zusätzliche Kontexte oder Ressourcen beim Server anfordern (wie Dateien, Datenbankeinträge oder Wissensdatenbankartikel), um das Verständnis des Modells zu erweitern.  
-  - Wenn das Modell feststellt, dass ein Werkzeug benötigt wird (z. B. um Daten abzurufen, eine Berechnung durchzuführen oder eine API aufzurufen), sendet der Client eine Anforderung zur Werkzeugausführung an den Server, wobei der Werkzeugname und Parameter angegeben werden.
+- **Verwendung von Ressourcen oder Tools**  
+  - Der Client kann zusätzliche Kontextinformationen oder Ressourcen vom Server anfordern (wie Dateien, Datenbankeinträge oder Wissensdatenbank-Artikel), um das Verständnis des Modells zu bereichern.
+  - Falls das Modell feststellt, dass ein Tool benötigt wird (z.B. um Daten abzurufen, eine Berechnung durchzuführen oder eine API aufzurufen), sendet der Client eine Tool-Aufruf-Anfrage an den Server, in der der Toolname und die Parameter angegeben sind.
 
 - **Serverausführung**  
-  Der Server empfängt die Anfrage zu Ressource oder Werkzeug, führt die notwendigen Operationen aus (z. B. eine Funktion ausführen, eine Datenbank abfragen oder eine Datei abrufen) und gibt die Ergebnisse in einem strukturierten Format an den Client zurück.
+  Der Server erhält die Anfrage für Ressourcen oder Tools, führt die notwendigen Operationen aus (wie das Ausführen einer Funktion, Abfragen einer Datenbank oder Abrufen einer Datei) und gibt die Ergebnisse in strukturierter Form an den Client zurück.
 
 - **Antwortgenerierung**  
-  Der Client integriert die Serverantworten (Ressourcendaten, Werkzeugausgaben usw.) in die fortlaufende Modellinteraktion. Das Modell verwendet diese Informationen, um eine umfassende und kontextuell relevante Antwort zu erzeugen.
+  Der Client integriert die Antworten des Servers (Ressourcendaten, Tool-Ausgaben usw.) in die laufende Modellsitzung. Das Modell nutzt diese Informationen, um eine umfassende und kontextuell relevante Antwort zu erstellen.
 
 - **Ergebnispräsentation**  
-  Der Host erhält die finale Ausgabe vom Client und präsentiert sie dem Benutzer, oft einschließlich sowohl des vom Modell generierten Textes als auch der Ergebnisse aus Werkzeugaufrufen oder Ressourcensuchen.
+  Der Host erhält die endgültige Ausgabe vom Client und präsentiert sie dem Benutzer, oft einschließlich des vom Modell generierten Texts und aller Ergebnisse aus Tool-Ausführungen oder Ressourcenabfragen.
 
-Dieser Ablauf ermöglicht MCP, fortschrittliche, interaktive und kontextbewusste KI-Anwendungen zu unterstützen, indem Modelle nahtlos mit externen Werkzeugen und Datenquellen verbunden werden.
+Dieser Ablauf ermöglicht es MCP, fortgeschrittene, interaktive und kontextbewusste KI-Anwendungen zu unterstützen, indem Modelle nahtlos mit externen Tools und Datenquellen verbunden werden.
 
 ## Protokollarchitektur & Schichten
 
-MCP besteht aus zwei unterschiedlichen architektonischen Schichten, die zusammenarbeiten, um einen vollständigen Kommunikationsrahmen bereitzustellen:
+MCP besteht aus zwei unterschiedlichen architektonischen Schichten, die zusammenarbeiten, um ein vollständiges Kommunikationsframework bereitzustellen:
 
 ### Datenschicht
 
-Die **Datenschicht** implementiert das Kernprotokoll von MCP auf Basis von **JSON-RPC 2.0**. Diese Schicht definiert die Nachrichtenstruktur, Semantik und Interaktionsmuster:
+Die **Datenschicht** implementiert das Kernprotokoll MCP basierend auf **JSON-RPC 2.0**. Diese Schicht definiert die Nachrichtenstruktur, Semantik und Interaktionsmuster:
 
 #### Kernkomponenten:
 
-- **JSON-RPC 2.0 Protokoll**: Alle Kommunikation verwendet das standardisierte JSON-RPC 2.0 Nachrichtenformat für Methodenaufrufe, Antworten und Benachrichtigungen  
-- **Lebenszyklusverwaltung**: Handhabt Verbindungsinitialisierung, Fähigkeitsverhandlung und Sitzungsbeendigung zwischen Clients und Servern  
-- **Serverprimitiven**: Ermöglicht Servern, Kernfunktionen über Werkzeuge, Ressourcen und Prompts bereitzustellen  
-- **Clientprimitiven**: Ermöglicht Servern, Sampling von LLMs anzufordern, Benutzereingaben einzufordern und Lognachrichten zu senden  
-- **Echtzeitbenachrichtigungen**: Unterstützt asynchrone Benachrichtigungen für dynamische Updates ohne Abfrage
+- **JSON-RPC 2.0 Protokoll**: Alle Kommunikationen verwenden das standardisierte JSON-RPC 2.0 Nachrichtenformat für Methodenaufrufe, Antworten und Benachrichtigungen
+- **Lebenszyklusmanagement**: Handhabt Verbindungsinitialisierung, Fähigkeitsverhandlung und Sitzungsbeendigung zwischen Clients und Servern
+- **Serverprimitiven**: Ermöglicht Servern, Kernfunktionen über Tools, Ressourcen und Prompts bereitzustellen
+- **Clientprimitiven**: Ermöglicht Servern, Sampling von LLMs anzufordern, Benutzereingaben zu erfragen und Protokollmeldungen zu senden
+- **Echtzeitbenachrichtigungen**: Unterstützt asynchrone Benachrichtigungen für dynamische Updates ohne Abfragen
 
-#### Schlüsselfunktionen:
+#### Hauptmerkmale:
 
-- **Protokollversionsverhandlung**: Verwendet datumsbasierte Versionierung (JJJJ-MM-TT) zur Gewährleistung der Kompatibilität  
-- **Fähigkeitenentdeckung**: Clients und Server tauschen unterstützte Funktionsinformationen während der Initialisierung aus  
-- **Zustandsbehaftete Sitzungen**: Erhält Verbindungszustand über mehrere Interaktionen hinweg für Kontextkontinuität  
+- **Protokollversionsverhandlung**: Verwendet datumsbasierte Versionsnummern (JJJJ-MM-TT) zur Sicherstellung der Kompatibilität
+- **Fähigkeitsentdeckung**: Clients und Server tauschen unterstützte Feature-Informationen während der Initialisierung aus
+- **Zustandsbehaftete Sitzungen**: Pflegt Verbindungszustand über mehrere Interaktionen für Kontextkontinuität
 
 ### Transportschicht
 
-Die **Transportschicht** verwaltet Kommunikationskanäle, Nachrichtenformatierung und Authentifizierung zwischen MCP-Teilnehmern:
+Die **Transportschicht** verwaltet Kommunikationskanäle, Nachrichtenrahmung und Authentifizierung zwischen MCP-Teilnehmern:
 
 #### Unterstützte Transportmechanismen:
 
-1. **STDIO Transport**:  
-   - Verwendet Standard-Ein-/Ausgabeströme für direkte Prozesskommunikation  
-   - Optimal für lokale Prozesse auf demselben Rechner ohne Netzwerkaufwand  
-   - Häufig benutzt für lokale MCP-Serverimplementierungen
+1. **STDIO Transport**:
+   - Verwendet Standard-Ein-/Ausgabeströme für direkte Prozesskommunikation
+   - Optimal für lokale Prozesse auf derselben Maschine ohne Netzwerk-Overhead
+   - Häufig genutzt für lokale MCP-Serverimplementierungen
 
-2. **Streambarer HTTP-Transport**:  
+2. **Streambarer HTTP-Transport**:
    - Verwendet HTTP POST für Client-zu-Server-Nachrichten  
-   - Optional Server-Sent Events (SSE) für Server-zu-Client-Streaming  
-   - Ermöglicht Remote-Server-Kommunikation über Netzwerke  
-   - Unterstützt Standard-HTTP-Authentifizierung (Bearer-Token, API-Schlüssel, benutzerdefinierte Header)  
-   - MCP empfiehlt OAuth für sichere tokenbasierte Authentifizierung
+   - Optional Server-Sent Events (SSE) für Server-zu-Client-Streaming
+   - Ermöglicht Kommunikation mit entfernten Servern über Netzwerke
+   - Unterstützt Standard-HTTP-Authentifizierung (Bearer-Tokens, API-Schlüssel, benutzerdefinierte Header)
+   - MCP empfiehlt OAuth für sichere, tokenbasierte Authentifizierung
 
 #### Transportabstraktion:
 
-Die Transportschicht abstrahiert Kommunikationsdetails von der Datenschicht und ermöglicht dasselbe JSON-RPC 2.0 Nachrichtenformat über alle Transportmechanismen hinweg. Diese Abstraktion erlaubt Anwendungen, nahtlos zwischen lokalen und entfernten Servern zu wechseln.
+Die Transportschicht abstrahiert Kommunikationsdetails von der Datenschicht und erlaubt dasselbe JSON-RPC 2.0 Nachrichtenformat über alle Transportmechanismen hinweg. Diese Abstraktion ermöglicht Anwendungen, nahtlos zwischen lokalen und entfernten Servern zu wechseln.
 
 ### Sicherheitsüberlegungen
 
-MCP-Implementierungen müssen mehrere kritische Sicherheitsprinzipien einhalten, um sichere, vertrauenswürdige und geschützte Interaktionen in allen Protokolloperationen zu gewährleisten:
+MCP-Implementierungen müssen mehrere kritische Sicherheitsprinzipien einhalten, um sichere, vertrauenswürdige und geschützte Interaktionen über alle Protokolloperationen hinweg zu gewährleisten:
 
-- **Benutzerzustimmung und Kontrolle**: Benutzer müssen ausdrücklich zustimmen, bevor Daten zugänglich gemacht oder Operationen ausgeführt werden. Sie sollen klare Kontrolle darüber haben, welche Daten geteilt und welche Aktionen autorisiert werden, unterstützt durch intuitive Benutzeroberflächen zur Überprüfung und Genehmigung von Aktivitäten.
+- **Benutzerzustimmung und Kontrolle**: Benutzer müssen explizit zustimmen, bevor Daten abgerufen oder Operationen ausgeführt werden. Sie sollten klare Kontrolle darüber haben, welche Daten geteilt und welche Aktionen autorisiert werden, unterstützt durch intuitive Benutzeroberflächen zum Überprüfen und Genehmigen von Aktivitäten.
 
-- **Datenschutz**: Benutzerdaten dürfen nur mit ausdrücklicher Zustimmung freigegeben werden und müssen durch geeignete Zugriffskontrollen geschützt sein. MCP-Implementierungen müssen unerlaubte Datenübertragung verhindern und den Datenschutz in allen Interaktionen gewährleisten.
+- **Datenschutz**: Benutzerdaten dürfen nur mit ausdrücklicher Zustimmung offengelegt werden und müssen durch angemessene Zugriffskontrollen geschützt sein. MCP-Implementierungen müssen unbefugte Datenübertragung verhindern und sicherstellen, dass Datenschutz bei allen Interaktionen gewahrt bleibt.
 
-- **Werkzeugsicherheit**: Vor dem Aufruf eines Werkzeugs ist ausdrückliche Benutzerzustimmung erforderlich. Benutzer sollen die Funktionsweise jedes Werkzeugs verstehen, und robuste Sicherheitsgrenzen müssen durchgesetzt werden, um unbeabsichtigte oder unsichere Werkzeugausführung zu verhindern.
+- **Toolsicherheit**: Vor dem Aufruf eines Tools ist eine ausdrückliche Benutzereinwilligung erforderlich. Benutzer sollen ein klares Verständnis der Funktionalität jedes Tools haben, und robuste Sicherheitsgrenzen müssen durchgesetzt werden, um unbeabsichtigte oder unsichere Tool-Ausführungen zu verhindern.
 
-Durch die Einhaltung dieser Sicherheitsprinzipien stellt MCP sicher, dass Vertrauen, Datenschutz und Sicherheit bei allen Protokollinteraktionen erhalten bleiben und gleichzeitig leistungsstarke KI-Integrationen ermöglicht werden.
+Durch die Einhaltung dieser Sicherheitsprinzipien stellt MCP sicher, dass Benutzervertrauen, Datenschutz und Sicherheit bei allen Protokollinteraktionen gewahrt bleiben und gleichzeitig leistungsstarke KI-Integrationen ermöglicht werden.
 
-## Codebeispiele: Schlüsselfunktionen
+## Codebeispiele: Schlüsselkomponenten
 
-Nachfolgend sind Codebeispiele in mehreren populären Programmiersprachen aufgeführt, die zeigen, wie wichtige MCP-Serverkomponenten und Werkzeuge implementiert werden.
+Im Folgenden finden sich Codebeispiele in mehreren beliebten Programmiersprachen, die die Implementierung wichtiger MCP-Serverkomponenten und Tools illustrieren.
 
-### .NET Beispiel: Einfachen MCP-Server mit Werkzeugen erstellen
+### .NET-Beispiel: Erstellung eines einfachen MCP-Servers mit Tools
 
-Hier ist ein praktisches .NET-Codebeispiel, das demonstriert, wie man einen einfachen MCP-Server mit benutzerdefinierten Werkzeugen implementiert. Dieses Beispiel zeigt, wie man Werkzeuge definiert und registriert, Anfragen verarbeitet und den Server über das Model Context Protocol verbindet.
+Hier ist ein praxisnahes .NET-Codebeispiel, das zeigt, wie man einen einfachen MCP-Server mit benutzerdefinierten Tools implementiert. Das Beispiel veranschaulicht, wie man Tools definiert und registriert, Anfragen bearbeitet und den Server mit dem Model Context Protocol verbindet.
 
 ```csharp
 using System;
@@ -379,9 +392,9 @@ public class WeatherData
 }
 ```
 
-### Java Beispiel: MCP Serverkomponenten
+### Java-Beispiel: MCP-Serverkomponenten
 
-Dieses Beispiel zeigt denselben MCP-Server und Werkzeugregistrierung wie das obige .NET-Beispiel, jedoch in Java implementiert.
+Dieses Beispiel zeigt denselben MCP-Server und Tool-Registrierungsprozess wie das .NET-Beispiel oben, jedoch in Java realisiert.
 
 ```java
 import io.modelcontextprotocol.server.McpServer;
@@ -398,7 +411,7 @@ public class WeatherMcpServer {
             .version("1.0.0")
             .build();
             
-        // Registrieren Sie ein Wettertool
+        // Registrieren Sie ein Wetter-Tool
         server.registerTool(McpToolDefinition.builder("weatherTool")
             .description("Gets current weather for a location")
             .parameter("location", String.class)
@@ -408,7 +421,7 @@ public class WeatherMcpServer {
                 // Wetterdaten abrufen (vereinfacht)
                 WeatherData data = getWeatherData(location);
                 
-                // Formatierte Antwort zurückgeben
+                // Formatierten Antwort zurückgeben
                 return ToolResponse.content(
                     String.format("Temperature: %.1f°F, Conditions: %s, Location: %s", 
                     data.getTemperature(), 
@@ -418,7 +431,7 @@ public class WeatherMcpServer {
             })
             .build());
         
-        // Verbinden Sie den Server über stdio-Transport
+        // Verbinden Sie den Server mit stdio-Transport
         try (StdioServerTransport transport = new StdioServerTransport()) {
             server.connect(transport);
             System.out.println("Weather MCP Server started");
@@ -429,7 +442,7 @@ public class WeatherMcpServer {
     
     private static WeatherData getWeatherData(String location) {
         // Die Implementierung würde eine Wetter-API aufrufen
-        // Vereinfacht zu Demonstrationszwecken
+        // Für Beispielzwecke vereinfacht
         return new WeatherData(72.5, "Sunny", location);
     }
 }
@@ -459,14 +472,14 @@ class WeatherData {
 }
 ```
 
-### Python Beispiel: Aufbau eines MCP-Servers
+### Python-Beispiel: Aufbau eines MCP-Servers
 
-Dieses Beispiel verwendet fastmcp, bitte stellen Sie sicher, dass Sie es zuerst installieren:
+Dieses Beispiel verwendet fastmcp, stellen Sie daher bitte sicher, dass Sie es zuerst installieren:
 
 ```python
 pip install fastmcp
 ```
-Code-Beispiel:
+Codebeispiel:
 
 ```python
 #!/usr/bin/env python3
@@ -474,7 +487,7 @@ import asyncio
 from fastmcp import FastMCP
 from fastmcp.transports.stdio import serve_stdio
 
-# Erstelle einen FastMCP-Server
+# Erstellen Sie einen FastMCP-Server
 mcp = FastMCP(
     name="Weather MCP Server",
     version="1.0.0"
@@ -502,7 +515,7 @@ class WeatherTools:
             ]
         }
 
-# Klassenwerkzeuge registrieren
+# Klasse Werkzeuge registrieren
 weather_tools = WeatherTools()
 
 # Starte den Server
@@ -510,23 +523,23 @@ if __name__ == "__main__":
     asyncio.run(serve_stdio(mcp))
 ```
 
-### JavaScript Beispiel: MCP-Server erstellen
+### JavaScript-Beispiel: Erstellung eines MCP-Servers
 
-Dieses Beispiel zeigt die Erstellung eines MCP-Servers in JavaScript und wie zwei wetterbezogene Werkzeuge registriert werden.
+Dieses Beispiel zeigt die Erstellung eines MCP-Servers in JavaScript und wie zwei wetterbezogene Tools registriert werden.
 
 ```javascript
 // Verwendung des offiziellen Model Context Protocol SDK
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod"; // Zur Parametervalidierung
+import { z } from "zod"; // Zur Parameterüberprüfung
 
-// Erstelle einen MCP-Server
+// Einen MCP-Server erstellen
 const server = new McpServer({
   name: "Weather MCP Server",
   version: "1.0.0"
 });
 
-// Definiere ein Wetter-Tool
+// Ein Wettersymbol definieren
 server.tool(
   "weatherTool",
   {
@@ -534,7 +547,7 @@ server.tool(
   },
   async ({ location }) => {
     // Dies würde normalerweise eine Wetter-API aufrufen
-    // Für die Demonstration vereinfacht
+    // Vereinfacht zur Demonstration
     const weatherData = await getWeatherData(location);
     
     return {
@@ -548,7 +561,7 @@ server.tool(
   }
 );
 
-// Definiere ein Prognose-Tool
+// Ein Vorhersagetool definieren
 server.tool(
   "forecastTool",
   {
@@ -557,7 +570,7 @@ server.tool(
   },
   async ({ location, days }) => {
     // Dies würde normalerweise eine Wetter-API aufrufen
-    // Für die Demonstration vereinfacht
+    // Vereinfacht zur Demonstration
     const forecast = await getForecastData(location, days);
     
     return {
@@ -590,114 +603,119 @@ async function getForecastData(location, days) {
   }));
 }
 
-// Verbinde den Server mit dem stdio-Transport
+// Verbinden Sie den Server mit stdio Transport
 const transport = new StdioServerTransport();
 server.connect(transport).catch(console.error);
 
 console.log("Weather MCP Server started");
 ```
 
-Dieses JavaScript-Beispiel demonstriert, wie man mit dem Model Context Protocol SDK einen MCP-Server erstellt. Es zeigt, wie zwei Werkzeuge namens `weatherTool` und `forecastTool` registriert und MCP-Clients über den `StdioServerTransport` bereitgestellt werden.
+Dieses JavaScript-Beispiel demonstriert, wie man einen MCP-Server mit dem Model Context Protocol SDK erstellt. Es zeigt, wie zwei Tools mit den Namen `weatherTool` und `forecastTool` registriert und MCP-Clients über den `StdioServerTransport` zugänglich gemacht werden.
 
 ## Sicherheit und Autorisierung
 
-MCP umfasst mehrere eingebaute Konzepte und Mechanismen zur Verwaltung von Sicherheit und Autorisierung während des gesamten Protokolls:
+MCP enthält mehrere integrierte Konzepte und Mechanismen zur Verwaltung von Sicherheit und Autorisierung im gesamten Protokoll:
 
-1. **Werkzeug-Berechtigungskontrolle**:  
-   Clients können angeben, welche Werkzeuge ein Modell während einer Sitzung verwenden darf. Dies stellt sicher, dass nur ausdrücklich autorisierte Werkzeuge zugänglich sind und minimiert das Risiko unbeabsichtigter oder unsicherer Operationen. Berechtigungen können dynamisch basierend auf Benutzerpräferenzen, organisatorischen Richtlinien oder dem Kontext der Interaktion konfiguriert werden.
+1. **Tool-Berechtigungssteuerung**:  
+  Clients können angeben, welche Tools ein Modell während einer Sitzung verwenden darf. Dies stellt sicher, dass nur explizit autorisierte Tools zugänglich sind, wodurch das Risiko unbeabsichtigter oder unsicherer Operationen reduziert wird. Berechtigungen können dynamisch basierend auf Benutzerpräferenzen, Organisationsrichtlinien oder dem Kontext der Interaktion konfiguriert werden.
 
 2. **Authentifizierung**:  
-   Server können eine Authentifizierung verlangen, bevor Zugriff auf Werkzeuge, Ressourcen oder sensible Operationen gewährt wird. Dies kann API-Schlüssel, OAuth-Token oder andere Authentifizierungsschemata umfassen. Eine ordnungsgemäße Authentifizierung stellt sicher, dass nur vertrauenswürdige Clients und Benutzer serverseitige Fähigkeiten aufrufen können.
+  Server können vor der Gewährung des Zugriffs auf Tools, Ressourcen oder sensible Operationen eine Authentifizierung verlangen. Dies kann API-Schlüssel, OAuth-Tokens oder andere Authentifizierungsmechanismen umfassen. Eine ordnungsgemäße Authentifizierung stellt sicher, dass nur vertrauenswürdige Clients und Benutzer Serverfunktionen aufrufen können.
 
 3. **Validierung**:  
-   Parametervalidierung wird bei allen Werkzeugaufrufen durchgesetzt. Jedes Werkzeug definiert die erwarteten Typen, Formate und Einschränkungen für seine Parameter, und der Server validiert eingehende Anfragen entsprechend. Dies verhindert fehlerhafte oder bösartige Eingaben, die Werkzeugimplementierungen erreichen, und hilft, die Integrität der Operationen zu erhalten.
+  Die Parametervalidierung wird für alle Tool-Aufrufe durchgesetzt. Jedes Tool definiert erwartete Typen, Formate und Einschränkungen für seine Parameter, und der Server validiert eingehende Anfragen entsprechend. Dies verhindert fehlerhafte oder bösartige Eingaben, die Tool-Implementierungen erreichen, und hilft, die Integrität der Operationen zu erhalten.
 
-4. **Drosselung (Rate Limiting)**:  
-   Um Missbrauch zu verhindern und faire Nutzung der Serverressourcen sicherzustellen, können MCP-Server Drosselungen für Werkzeugaufrufe und Ressourcenaufrufe implementieren. Limits können pro Benutzer, pro Sitzung oder global gelten und helfen, Denial-of-Service-Angriffe oder übermäßigen Ressourcenverbrauch zu vermeiden.
+4. **Ratenbegrenzung**:  
+  Um Missbrauch zu verhindern und eine faire Nutzung der Serverressourcen sicherzustellen, können MCP-Server eine Ratenbegrenzung für Tool-Aufrufe und Ressourcenabrufe implementieren. Ratenbegrenzungen können pro Benutzer, pro Sitzung oder global angewendet werden und schützen vor Denial-of-Service-Angriffen oder übermäßigem Ressourcenverbrauch.
 
-Durch die Kombination dieser Mechanismen bietet MCP eine sichere Grundlage für die Integration von Sprachmodellen mit externen Werkzeugen und Datenquellen und ermöglicht Benutzern und Entwicklern eine fein abgestimmte Kontrolle über Zugriff und Nutzung.
+Durch die Kombination dieser Mechanismen bietet MCP eine sichere Grundlage für die Integration von Sprachmodellen mit externen Tools und Datenquellen, während Benutzern und Entwicklern eine fein granulare Kontrolle über Zugriff und Nutzung ermöglicht wird.
 
-## Protokollnachrichten & Kommunikationsablauf
+## Protokollnachrichten & Kommunikationsfluss
 
-MCP-Kommunikation verwendet strukturierte **JSON-RPC 2.0**-Nachrichten, um klare und verlässliche Interaktionen zwischen Hosts, Clients und Servern zu ermöglichen. Das Protokoll definiert spezifische Nachrichtenmuster für unterschiedliche Operationstypen:
+MCP-Kommunikation nutzt strukturierte **JSON-RPC 2.0**-Nachrichten, um klare und zuverlässige Interaktionen zwischen Hosts, Clients und Servern zu erleichtern. Das Protokoll definiert spezifische Nachrichtenmuster für verschiedene Operationstypen:
 
 ### Kernnachrichtentypen:
 
 #### **Initialisierungsnachrichten**
-- **`initialize` Anfrage**: Stellt Verbindung her und verhandelt Protokollversion und Fähigkeiten  
-- **`initialize` Antwort**: Bestätigt unterstützte Funktionen und Serverinformationen  
-- **`notifications/initialized`**: Signalisiert, dass die Initialisierung abgeschlossen ist und die Sitzung bereitsteht
+- **`initialize`-Anfrage**: Stellt Verbindung her und verhandelt Protokollversion und Fähigkeiten
+- **`initialize`-Antwort**: Bestätigt unterstützte Funktionen und Serverinformationen  
+- **`notifications/initialized`**: Signalisiert, dass die Initialisierung abgeschlossen ist und die Sitzung bereit ist
 
 #### **Entdeckungsnachrichten**
-- **`tools/list` Anfrage**: Entdeckt verfügbare Werkzeuge vom Server  
-- **`resources/list` Anfrage**: Listet verfügbare Ressourcen (Datenquellen) auf  
-- **`prompts/list` Anfrage**: Ruft verfügbare Prompt-Vorlagen ab
+- **`tools/list`-Anfrage**: Erkennt verfügbare Tools vom Server
+- **`resources/list`-Anfrage**: Listet verfügbare Ressourcen (Datenquellen) auf
+- **`prompts/list`-Anfrage**: Ruft verfügbare Prompt-Vorlagen ab
 
 #### **Ausführungsnachrichten**  
-- **`tools/call` Anfrage**: Führt ein spezifisches Werkzeug mit übergebenen Parametern aus  
-- **`resources/read` Anfrage**: Ruft Inhalt einer spezifischen Ressource ab  
-- **`prompts/get` Anfrage**: Holt eine Prompt-Vorlage mit optionalen Parametern
+- **`tools/call`-Anfrage**: Führt ein spezifisches Tool mit angegebenen Parametern aus
+- **`resources/read`-Anfrage**: Ruft Inhalte einer spezifischen Ressource ab
+- **`prompts/get`-Anfrage**: Holt eine Prompt-Vorlage mit optionalen Parametern
 
 #### **Clientseitige Nachrichten**
-- **`sampling/complete` Anfrage**: Server fordert LLM-Vervollständigung vom Client an  
-- **`elicitation/request`**: Server fordert Benutzereingabe über Client-Oberfläche an  
-- **Logging-Nachrichten**: Server sendet strukturierte Protokollnachrichten an den Client
+- **`sampling/complete`-Anfrage**: Server fordert LLM-Vervollständigung vom Client an
+- **`elicitation/request`**: Server fordert Benutzereingaben über die Client-Oberfläche an
+- **Logging-Nachrichten**: Server sendet strukturierte Protokollmeldungen an den Client
 
 #### **Benachrichtigungsnachrichten**
-- **`notifications/tools/list_changed`**: Server benachrichtigt Client über Werkzeugänderungen  
-- **`notifications/resources/list_changed`**: Server benachrichtigt Client über Ressourcenänderungen  
-- **`notifications/prompts/list_changed`**: Server benachrichtigt Client über Prompt-Änderungen
+- **`notifications/tools/list_changed`**: Server informiert Client über Tool-Änderungen
+- **`notifications/resources/list_changed`**: Server informiert Client über Ressourcenänderungen  
+- **`notifications/prompts/list_changed`**: Server informiert Client über Prompt-Änderungen
 
 ### Nachrichtenstruktur:
 
-Alle MCP-Nachrichten folgen dem JSON-RPC 2.0-Format mit:  
-- **Anfragenachrichten**: Enthalten `id`, `method` und optional `params`  
-- **Antwortnachrichten**: Enthalten `id` und entweder `result` oder `error`  
-- **Benachrichtigungsnachrichten**: Enthalten `method` und optional `params` (kein `id` und keine Antwort erwartet)
+Alle MCP-Nachrichten folgen dem JSON-RPC 2.0-Format mit:
+- **Anfrage-Nachrichten**: Enthalten `id`, `method` und optional `params`
+- **Antwort-Nachrichten**: Enthalten `id` und entweder `result` oder `error`  
+- **Benachrichtigungsnachrichten**: Enthalten `method` und optional `params` (kein `id` oder Antwort erwartet)
 
-Diese strukturierte Kommunikation gewährleistet zuverlässige, nachvollziehbare und erweiterbare Interaktionen, die fortschrittliche Szenarien wie Echtzeitupdates, Werkzeugverkettung und robuste Fehlerbehandlung unterstützen.
+Diese strukturierte Kommunikation gewährleistet zuverlässige, nachvollziehbare und erweiterbare Interaktionen zur Unterstützung fortgeschrittener Szenarien wie Echtzeit-Updates, Tool-Verkettung und robuste Fehlerbehandlung.
 
 ### Aufgaben (Experimentell)
 
-**Aufgaben** sind ein experimentelles Feature, das langlebige Ausführungshüllen bereitstellt, welche eine verzögerte Ergebniserfassung und Statusverfolgung für MCP-Anfragen ermöglichen:
+> **Ausblick:** Die Veröffentlichungskandidatin `2026-07-28` hebt Aufgaben aus der experimentellen Kernspezifikation in eine eigenständige Tasks-Erweiterung mit neu gestaltetem Lebenszyklus (`tasks/get`, `tasks/update`, `tasks/cancel`; `tasks/list` wird entfernt). Wenn Sie gegen die unten beschriebene experimentelle API entwickeln, planen Sie bitte eine Migration. Siehe [Was sich in MCP ändert: Der Veröffentlichungskandidat 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
-- **Langlaufende Operationen**: Verfolgt aufwändige Berechnungen, Workflow-Automatisierung und Batch-Verarbeitung  
-- **Verzögerte Ergebnisse**: Überprüft Aufgabenstatus und ruft Ergebnisse ab, wenn Operationen abgeschlossen sind  
-- **Statusverfolgung**: Überwacht Aufgabenfortschritt durch definierte Lebenszyklusphasen  
-- **Mehrphasige Operationen**: Unterstützt komplexe Arbeitsabläufe, die mehrere Interaktionen umfassen
+**Aufgaben** sind eine experimentelle Funktion, die dauerhafte Ausführungshüllen bereitstellen, um verzögerten Ergebnisaustausch und Statusverfolgung für MCP-Anfragen zu ermöglichen:
+
+- **Lang andauernde Operationen**: Verfolgen teure Berechnungen, Workflow-Automatisierung und Batch-Verarbeitung
+- **Verzögerte Ergebnisse**: Abfragen des Aufgabenstatus und Abrufen der Ergebnisse bei Abschluss der Operationen
+- **Statusverfolgung**: Überwachen des Aufgabenfortschritts durch definierte Lebenszykluszustände
+- **Mehrstufige Operationen**: Unterstützen komplexe Workflows, die mehrere Interaktionen umfassen
 
 Aufgaben kapseln Standard-MCP-Anfragen, um asynchrone Ausführungsmuster für Operationen zu ermöglichen, die nicht sofort abgeschlossen werden können.
 
 ## Wichtige Erkenntnisse
 
-- **Architektur**: MCP verwendet eine Client-Server-Architektur, bei der Hosts mehrere Client-Verbindungen zu Servern verwalten  
-- **Teilnehmer**: Das Ökosystem umfasst Hosts (KI-Anwendungen), Clients (Protokollverbindungsstücke) und Server (Fähigkeitsanbieter)  
-- **Transportmechanismen**: Kommunikation unterstützt STDIO (lokal) und streambaren HTTP mit optionalem SSE (remote)  
-- **Kernprimitiven**: Server stellen Werkzeuge (ausführbare Funktionen), Ressourcen (Datenquellen) und Prompts (Vorlagen) bereit  
-- **Clientprimitiven**: Server können Sampling (LLM-Vervollständigungen mit Werkzeugaufrufen), Elicitation (Benutzereingaben inkl. URL-Modus), Roots (Dateisystemgrenzen) und Logging von Clients anfordern  
-- **Experimentelle Features**: Aufgaben bieten langlebige Ausführungshüllen für langlaufende Operationen  
-- **Protokollgrundlage**: Basierend auf JSON-RPC 2.0 mit datumsbasierter Versionierung (aktuell: 2025-11-25)  
-- **Echtzeitfähigkeiten**: Unterstützt Benachrichtigungen für dynamische Updates und Echtzeitsynchronisation  
-- **Sicherheit an erster Stelle**: Explizite Benutzerzustimmung, Datenschutz und sichere Übertragung sind Kernanforderungen
+- **Architektur**: MCP verwendet eine Client-Server-Architektur, bei der Hosts mehrere Client-Verbindungen zu Servern verwalten
+- **Teilnehmer**: Das Ökosystem umfasst Hosts (KI-Anwendungen), Clients (Protokoll-Anschlüsse) und Server (Fähigkeitsanbieter)
+- **Transportmechanismen**: Kommunikation unterstützt STDIO (lokal) und streambaren HTTP mit optionalem SSE (remote)
+- **Kernprimitive**: Server bieten Tools (ausführbare Funktionen), Ressourcen (Datenquellen) und Prompts (Vorlagen) an
+- **Clientprimitive**: Server können Sampling (LLM-Vervollständigungen mit Tool-Aufruf-Unterstützung), Elicitation (Benutzereingaben einschließlich URL-Modus), Roots (Dateisystem-Grenzen) und Logging vom Client anfordern
+- **Experimentelle Funktionen**: Aufgaben bieten dauerhafte Ausführungshüllen für lang andauernde Operationen
+- **Protokollgrundlage**: Basierend auf JSON-RPC 2.0 mit datumsbasierter Versionierung (aktuell: 2025-11-25)
+- **Echtzeitfähigkeiten**: Unterstützt Benachrichtigungen für dynamische Updates und Echtzeit-Synchronisierung
+- **Sicherheit zuerst**: Explizite Benutzerzustimmung, Datenschutz und sicherer Transport sind Kernanforderungen
 
 ## Übung
 
-Entwerfen Sie ein einfaches MCP-Werkzeug, das in Ihrem Fachbereich nützlich wäre. Definieren Sie:  
-1. Wie das Werkzeug heißen würde  
-2. Welche Parameter es akzeptieren würde  
-3. Welche Ausgabe es zurückgeben würde  
-4. Wie ein Modell dieses Werkzeug nutzen könnte, um Benutzerprobleme zu lösen
+Entwerfen Sie ein einfaches MCP-Tool, das in Ihrem Bereich nützlich wäre. Definieren Sie:
+1. Wie das Tool heißen würde
+2. Welche Parameter es akzeptieren würde
+3. Welche Ausgabe es zurückgeben würde
+4. Wie ein Modell dieses Tool zur Lösung von Benutzerproblemen nutzen könnte
 
 
 ---
 
 ## Was kommt als Nächstes
 
-Nächstes: [Kapitel 2: Sicherheit](../02-Security/README.md)
+Nächster Abschnitt: [Kapitel 2: Sicherheit](../02-Security/README.md)
+
+
+Neugierig, was nach dem `2025-11-25` kommt? Lesen Sie [Was sich in MCP ändert: Der Release Candidate vom 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Haftungsausschluss**:  
-Dieses Dokument wurde mithilfe des KI-Übersetzungsdienstes [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir uns um Genauigkeit bemühen, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner Ursprungssprache gilt als maßgebliche Quelle. Für wichtige Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die durch die Nutzung dieser Übersetzung entstehen.
+**Haftungsausschluss**:
+Dieses Dokument wurde mit dem KI-Übersetzungsdienst [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir uns um Genauigkeit bemühen, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner Ursprungssprache gilt als maßgebliche Quelle. Bei kritischen Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die aus der Verwendung dieser Übersetzung entstehen.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

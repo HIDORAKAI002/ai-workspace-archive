@@ -1,212 +1,213 @@
-# 初心者向けモデルコンテキストプロトコル（MCP）学習ガイド
+# 初心者のためのモデルコンテキストプロトコル（MCP） - 学習ガイド
 
-この学習ガイドは、「初心者向けモデルコンテキストプロトコル（MCP）」カリキュラムのリポジトリ構造と内容の概要を提供します。このガイドを使って効率的にリポジトリを探索し、利用可能なリソースを最大限に活用してください。
+この学習ガイドは、「初心者のためのモデルコンテキストプロトコル（MCP）」カリキュラムのリポジトリ構造と内容の概要を提供します。このガイドを使ってリポジトリを効率的にナビゲートし、利用可能なリソースを最大限に活用してください。
 
-## リポジトリの概要
+## リポジトリ概要
 
-モデルコンテキストプロトコル（MCP）は、AIモデルとクライアントアプリケーション間のやり取りの標準化されたフレームワークです。元々はAnthropicによって作成され、その後公式GitHub組織を通じて広範なMCPコミュニティによって保守されています。このリポジトリは、AI開発者、システムアーキテクト、ソフトウェアエンジニア向けにC#、Java、JavaScript、Python、TypeScriptのハンズオンコード例を含む包括的なカリキュラムを提供します。
+モデルコンテキストプロトコル（MCP）は、AIモデルとクライアントアプリケーション間のやり取りに対する標準化されたフレームワークです。Anthropicによって初めて作成され、現在は公式GitHub組織を通じて広範なMCPコミュニティによって維持されています。このリポジトリは、C#、Java、JavaScript、Python、TypeScriptでの実践的なコード例を備えた包括的なカリキュラムを提供し、AI開発者、システムアーキテクト、ソフトウェアエンジニア向けに設計されています。
 
 ## ビジュアルカリキュラムマップ
 
 ```mermaid
 mindmap
-  root((初心者のためのMCP))
-    00. イントロダクション
+  root((MCP for Beginners))
+    00. Introduction
       ::icon(fa fa-book)
-      (プロトコル概要)
-      (標準化の利点)
-      (実世界のユースケース)
-      (AI統合の基本)
-    01. コアコンセプト
+      (Protocol Overview)
+      (Standardization Benefits)
+      (Real-world Use Cases)
+      (AI Integration Fundamentals)
+    01. Core Concepts
       ::icon(fa fa-puzzle-piece)
-      (クライアント-サーバーアーキテクチャ)
-      (プロトコルの要素)
-      (メッセージングパターン)
-      (トランスポートメカニズム)
-      (タスク - 実験的)
-      (ツール注釈)
-    02. セキュリティ
+      (Client-Server Architecture)
+      (Protocol Components)
+      (Messaging Patterns)
+      (Transport Mechanisms)
+      (Tasks - Experimental)
+      (Tool Annotations)
+    02. Security
       ::icon(fa fa-shield)
-      (AI固有の脅威)
-      (ベストプラクティス 2025)
-      (Azureコンテンツ安全性)
-      (認証と認可)
-      (Microsoftプロンプトシールド)
-      (OWASP MCP トップ10)
-      (Sherpaセキュリティワークショップ)
-    03. はじめに
+      (AI-Specific Threats)
+      (Best Practices 2025)
+      (Azure Content Safety)
+      (Auth & Authorization)
+      (Microsoft Prompt Shields)
+      (OWASP MCP Top 10)
+      (Sherpa Security Workshop)
+    03. Getting Started
       ::icon(fa fa-rocket)
-      (最初のサーバー実装)
-      (クライアント開発)
-      (LLMクライアント統合)
-      (VS Code拡張機能)
-      (SSEサーバーセットアップ)
-      (HTTPストリーミング)
-      (AIツールキット統合)
-      (テストフレームワーク)
-      (高度なサーバー利用)
-      (シンプル認証)
-      (デプロイ戦略)
-      (MCPホストセットアップ)
-      (MCPインスペクター)
-    04. 実践的実装
+      (First Server Implementation)
+      (Client Development)
+      (LLM Client Integration)
+      (VS Code Extensions)
+      (SSE Server Setup)
+      (HTTP Streaming)
+      (AI Toolkit Integration)
+      (Testing Frameworks)
+      (Advanced Server Usage)
+      (Simple Auth)
+      (Deployment Strategies)
+      (MCP Hosts Setup)
+      (MCP Inspector)
+    04. Practical Implementation
       ::icon(fa fa-code)
-      (多言語SDK)
-      (テストとデバッグ)
-      (プロンプトテンプレート)
-      (サンプルプロジェクト)
-      (プロダクションパターン)
-      (ページネーション戦略)
-    05. 上級トピック
+      (Multi-Language SDKs)
+      (Testing & Debugging)
+      (Prompt Templates)
+      (Sample Projects)
+      (Production Patterns)
+      (Pagination Strategies)
+    05. Advanced Topics
       ::icon(fa fa-graduation-cap)
-      (コンテキストエンジニアリング)
-      (Foundryエージェント統合)
-      (マルチモーダルAIワークフロー)
-      (OAuth2認証)
-      (リアルタイム検索)
-      (ストリーミングプロトコル)
-      (ルートコンテキスト)
-      (ルーティング戦略)
-      (サンプリング技術)
-      (スケーリングソリューション)
-      (セキュリティ強化)
-      (Entra ID統合)
-      (Web検索MCP)
-      (プロトコル機能の詳細)
-      (敵対的マルチエージェント推論)
+      (Context Engineering)
+      (Foundry Agent Integration)
+      (Multi-modal AI Workflows)
+      (OAuth2 Authentication)
+      (Real-time Search)
+      (Streaming Protocols)
+      (Root Contexts)
+      (Routing Strategies)
+      (Sampling Techniques)
+      (Scaling Solutions)
+      (Security Hardening)
+      (Entra ID Integration)
+      (Web Search MCP)
+      (Protocol Features Deep Dive)
+      (Adversarial Multi-Agent Reasoning)
       
-    06. コミュニティ
+    06. Community
       ::icon(fa fa-users)
-      (コード貢献)
-      (ドキュメント)
-      (MCPクライアントエコシステム)
-      (MCPサーバーレジストリ)
-      (画像生成ツール)
-      (GitHubコラボレーション)
-    07. 早期導入
+      (Code Contributions)
+      (Documentation)
+      (MCP Client Ecosystem)
+      (MCP Server Registry)
+      (Image Generation Tools)
+      (GitHub Collaboration)
+    07. Early Adoption
       ::icon(fa fa-lightbulb)
-      (プロダクション展開)
-      (Microsoft MCPサーバー)
-      (Azure MCPサービス)
-      (企業向けケーススタディ)
-      (将来のロードマップ)
-    08. ベストプラクティス
+      (Production Deployments)
+      (Microsoft MCP Servers)
+      (Azure MCP Service)
+      (Enterprise Case Studies)
+      (Future Roadmap)
+    08. Best Practices
       ::icon(fa fa-check)
-      (パフォーマンス最適化)
-      (フォールトトレランス)
-      (システムの回復力)
-      (モニタリングと可観測性)
-    09. ケーススタディ
+      (Performance Optimization)
+      (Fault Tolerance)
+      (System Resilience)
+      (Monitoring & Observability)
+    09. Case Studies
       ::icon(fa fa-file-text)
-      (Azure API管理)
-      (AI旅行代理店)
-      (Azure DevOps統合)
-      (ドキュメントMCP)
-      (GitHub MCPレジストリ)
-      (VS Code統合)
-      (実世界の実装)
-    10. 実習ワークショップ
+      (Azure API Management)
+      (AI Travel Agent)
+      (Azure DevOps Integration)
+      (Documentation MCP)
+      (GitHub MCP Registry)
+      (VS Code Integration)
+      (Real-world Implementations)
+    10. Hands-on Workshop
       ::icon(fa fa-laptop)
-      (MCPサーバー基礎)
-      (上級開発)
-      (AIツールキット統合)
-      (プロダクション展開)
-      (4つのラボ構成)
-    11. データベース統合ラボ
+      (MCP Server Fundamentals)
+      (Advanced Development)
+      (AI Toolkit Integration)
+      (Production Deployment)
+      (4-Lab Structure)
+    11. Database Integration Labs
       ::icon(fa fa-database)
-      (PostgreSQL統合)
-      (小売分析ユースケース)
-      (行レベルセキュリティ)
-      (セマンティックサーチ)
-      (プロダクション展開)
-      (13ラボ構成)
-      (実践学習)
-    12. ツーリング
+      (PostgreSQL Integration)
+      (Retail Analytics Use Case)
+      (Row Level Security)
+      (Semantic Search)
+      (Production Deployment)
+      (13-Lab Structure)
+      (Hands-on Learning)
+    12. Tooling
       ::icon(fa fa-wrench)
-      (Copilotアプリ内のMCP)
+      (MCP in Copilot app)
 ```
 
 ## リポジトリ構造
 
-リポジトリは12の主要なセクションに分かれており、それぞれがMCPの異なる側面に焦点を当てています：
+リポジトリは、MCPのさまざまな側面に焦点を当てた12の主要セクションに分かれています：
 
 1. **イントロダクション (00-Introduction/)**
    - モデルコンテキストプロトコルの概要
    - AIパイプラインにおける標準化の重要性
-   - 実用的なユースケースと利点
+   - 実践的なユースケースと利点
 
 2. **コアコンセプト (01-CoreConcepts/)**
-   - クライアント・サーバーアーキテクチャ
+   - クライアントサーバーアーキテクチャ
    - 主要なプロトコルコンポーネント
-   - MCPにおけるメッセージングパターン
+   - MCPのメッセージングパターン
+   - 将来展望: [What's Changing in MCP: The 2026-07-28 Release Candidate](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md) — ステートレスプロトコルコア、拡張フレームワーク、次期仕様版で予定されているRoots/Sampling/Loggingの廃止
 
 3. **セキュリティ (02-Security/)**
    - MCPベースシステムのセキュリティ脅威
-   - 実装を安全にするベストプラクティス
+   - セキュリティ実装のベストプラクティス
    - 認証と認可の戦略
    - <strong>包括的なセキュリティドキュメント</strong>：
      - MCPセキュリティベストプラクティス2025
-     - Azureコンテンツセーフティ実装ガイド
+     - Azure Content Safety 実装ガイド
      - MCPセキュリティコントロールと技術
      - MCPベストプラクティスクイックリファレンス
-   - <strong>主要セキュリティトピック</strong>：
+   - <strong>重要なセキュリティトピック</strong>：
      - プロンプトインジェクションとツールポイズニング攻撃
-     - セッションハイジャックと混乱する代理問題
+     - セッションハイジャックと混乱デピュティ問題
      - トークンパススルーの脆弱性
-     - 過剰な権限とアクセス制御
+     - 過剰な権限とアクセストークン制御
      - AIコンポーネントのサプライチェーンセキュリティ
-     - Microsoftプロンプトシールド統合
+     - Microsoft Prompt Shields統合
 
-4. **開始方法 (03-GettingStarted/)**
-   - 環境設定および構成
+4. **はじめに (03-GettingStarted/)**
+   - 環境設定と構成
    - 基本的なMCPサーバーとクライアントの作成
    - 既存アプリケーションとの統合
-   - 含まれるセクション：
-     - 初めてのサーバー実装
+   - 以下のセクションを含む：
+     - 最初のサーバー実装
      - クライアント開発
      - LLMクライアント統合
      - VS Code統合
-     - Server-Sent Events（SSE）サーバー
-     - 高度なサーバー使用
+     - Server-Sent Events (SSE) サーバー
+     - 高度なサーバー利用
      - HTTPストリーミング
      - AIツールキット統合
      - テスト戦略
      - デプロイメントガイドライン
 
-5. **実践的な実装 (04-PracticalImplementation/)**
-   - 様々なプログラミング言語でのSDK使用法
+5. **実践的実装 (04-PracticalImplementation/)**
+   - 複数のプログラミング言語でのSDK使用方法
    - デバッグ、テスト、検証技術
    - 再利用可能なプロンプトテンプレートとワークフローの作成
    - 実装例を含むサンプルプロジェクト
 
 6. **高度なトピック (05-AdvancedTopics/)**
-   - コンテキストエンジニアリング技法
+   - コンテキストエンジニアリング手法
    - Foundryエージェント統合
    - マルチモーダルAIワークフロー
    - OAuth2認証デモ
    - リアルタイム検索機能
    - リアルタイムストリーミング
-   - ルートコンテキストの実装
+   - Root contexts実装
    - ルーティング戦略
    - サンプリング手法
    - スケーリングアプローチ
    - セキュリティ考慮事項
    - Entra IDセキュリティ統合
-   - Web検索統合
-   - 敵対的マルチエージェント推論（討論パターン）
+   - ウェブ検索統合
+   - 対抗的マルチエージェント推論（討論パターン）
 
 7. **コミュニティ貢献 (06-CommunityContributions/)**
-   - コードとドキュメントの貢献方法
-   - GitHubを使ったコラボレーション
-   - コミュニティ主導の拡張とフィードバック
-   - 様々なMCPクライアントの利用法（Claude Desktop、Cline、VSCode）
-   - 画像生成を含む人気のMCPサーバーとの連携
+   - コードおよびドキュメントへの貢献方法
+   - GitHubを通じた協力
+   - コミュニティ駆動型の改善とフィードバック
+   - さまざまなMCPクライアントの利用（Claude Desktop、Cline、VSCode）
+   - 画像生成を含む人気のMCPサーバーとの作業
 
 8. **早期採用からの教訓 (07-LessonsfromEarlyAdoption/)**
-   - 実際の実装と成功事例
-   - MCPベースソリューションの構築とデプロイメント
+   - 実世界の実装例と成功事例
+   - MCPベースのソリューションの構築とデプロイ
    - トレンドと将来のロードマップ
-   - **Microsoft MCPサーバーガイド**：以下を含む10の本番対応Microsoft MCPサーバーの包括的ガイド：
+   - **Microsoft MCPサーバーガイド**：次の10のプロダクション対応Microsoft MCPサーバーに関する包括的ガイド：
      - Microsoft Learn Docs MCPサーバー
      - Azure MCPサーバー（15以上の専門コネクター）
      - GitHub MCPサーバー
@@ -220,74 +221,74 @@ mindmap
 
 9. **ベストプラクティス (08-BestPractices/)**
    - パフォーマンスチューニングと最適化
-   - 障害耐性のあるMCPシステム設計
-   - テストと回復力戦略
+   - フォールトトレラントなMCPシステム設計
+   - テストと回復性戦略
 
 10. **ケーススタディ (09-CaseStudy/)**
-    - <strong>7つの包括的なケーススタディ</strong>で多様なシナリオにおけるMCPの多様性を示す：
-    - **Azure AIトラベルエージェント**：Azure OpenAIとAI Searchによるマルチエージェントオーケストレーション
-    - **Azure DevOps統合**：YouTubeデータ更新のワークフロー自動化
-    - <strong>リアルタイムドキュメント取得</strong>：PythonコンソールクライアントとHTTPストリーミング
-    - <strong>インタラクティブ学習プランジェネレーター</strong>：Chainlitウェブアプリと会話型AI
-    - <strong>エディター内ドキュメント</strong>：VS CodeとGitHub Copilotワークフローの統合
-    - **Azure API Management**：エンタープライズAPI統合とMCPサーバー作成
+    - 多様なシナリオでのMCPの多用途性を示す<strong>7つの包括的なケーススタディ</strong>：
+    - **Azure AIトラベルエージェント**：Azure OpenAIとAI Searchを用いたマルチエージェントオーケストレーション
+    - **Azure DevOps統合**：YouTubeデータ更新によるワークフロープロセスの自動化
+    - <strong>リアルタイムドキュメント取得</strong>：ストリーミングHTTPを備えたPythonコンソールクライアント
+    - <strong>対話型学習計画ジェネレーター</strong>：Chainlitウェブアプリと会話型AI
+    - <strong>エディタ内ドキュメント</strong>：GitHub Copilotワークフローを備えたVS Code統合
+    - **Azure API管理**：企業API統合およびMCPサーバー作成
     - **GitHub MCPレジストリ**：エコシステム開発とエージェント統合プラットフォーム
-    - エンタープライズ統合、開発者生産性、エコシステム開発の実装例を網羅
+    - 企業統合、開発者生産性、エコシステム開発にまたがる実装例
 
 11. **ハンズオンワークショップ (10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/)**
-    - MCPとAIツールキットを組み合わせた総合的なハンズオンワークショップ
-    - AIモデルと現実のツールを橋渡しするインテリジェントアプリケーション構築
-    - 基礎、カスタムサーバー開発、本番デプロイメント戦略をカバーする実践モジュール
+    - MCPとAIツールキットを組み合わせた包括的なハンズオンワークショップ
+    - AIモデルと実世界のツールをつなぐインテリジェントアプリケーションの構築
+    - 基礎からカスタムサーバー開発、プロダクションデプロイ戦略まで実践的なモジュール
     - <strong>ラボ構成</strong>：
-      - ラボ1: MCPサーバーの基本
-      - ラボ2: 高度なMCPサーバー開発
-      - ラボ3: AIツールキット統合
-      - ラボ4: 本番デプロイメントとスケーリング
-    - ステップバイステップのラボベース学習
+      - ラボ1：MCPサーバー基礎
+      - ラボ2：高度なMCPサーバー開発
+      - ラボ3：AIツールキット統合
+      - ラボ4：プロダクションデプロイとスケーリング
+    - ステップバイステップの指示付きラボ学習アプローチ
 
-12. **MCPサーバーデータベース統合ラボ (11-MCPServerHandsOnLabs/)**
-    - PostgreSQL統合を伴う本番対応MCPサーバー構築のための13ラボからなる包括的学習コース
-    - Zava Retailユースケースによる実世界小売分析の実装
-    - 行レベルセキュリティ（RLS）、セマンティックサーチ、マルチテナントデータアクセスなどのエンタープライズグレードパターン
-    - <strong>ラボ構成</strong>：
-      - **ラボ00-03: 基礎** - 入門、アーキテクチャ、セキュリティ、環境設定
-      - **ラボ04-06: MCPサーバー構築** - データベース設計、MCPサーバー実装、ツール開発
-      - **ラボ07-09: 高度機能** - セマンティックサーチ、テスト＆デバッグ、VS Code統合
-      - **ラボ10-12: 本番運用＆ベストプラクティス** - デプロイメント、監視、最適化
+12. **MCPサーバーDB統合ラボ (11-MCPServerHandsOnLabs/)**
+    - PostgreSQL統合のプロダクション対応MCPサーバー作成のための<strong>13ラボの包括的学習パス</strong>
+    - Zava Retailユースケースを使用した<strong>実世界の小売分析実装</strong>
+    - 行レベルセキュリティ (RLS)、セマンティック検索、マルチテナントデータアクセスなどの<strong>企業レベルのパターン</strong>
+    - <strong>完全なラボ構成</strong>：
+      - **ラボ00-03：基礎** - イントロダクション、アーキテクチャ、セキュリティ、環境設定
+      - **ラボ04-06：MCPサーバー構築** - データベース設計、MCPサーバー実装、ツール開発
+      - **ラボ07-09：高度な機能** - セマンティック検索、テスト＆デバッグ、VS Code統合
+      - **ラボ10-12：プロダクション＆ベストプラクティス** - デプロイ、監視、最適化
     - <strong>対象技術</strong>：FastMCPフレームワーク、PostgreSQL、Azure OpenAI、Azure Container Apps、Application Insights
-    - <strong>学習成果</strong>：本番対応MCPサーバー、データベース統合パターン、AI駆動分析、エンタープライズセキュリティ
+    - <strong>学習成果</strong>：プロダクション対応MCPサーバー、データベース統合パターン、AI搭載分析、企業セキュリティ
 
-13. **ツール (12-tooling/)**
-    - Copilotアプリやその他ツールでMCPの使い方を学ぶ
+13. **ツーリング (12-tooling/)**
+    - Copilotアプリやその他ツールでのMCPの使い方を学ぶ
 
 ## 追加リソース
 
 リポジトリには以下の補助リソースが含まれます：
 
-- **Imagesフォルダー**：カリキュラム全体で使用される図解やイラスト
-- <strong>翻訳</strong>：ドキュメントの自動翻訳を含む多言語対応
+- **Imagesフォルダー**：カリキュラム全体で使用される図やイラストを含む
+- <strong>翻訳</strong>：ドキュメントの多言語対応の自動翻訳
 - **公式MCPリソース**：
-  - [MCP Documentation](https://modelcontextprotocol.io/)
-  - [MCP Specification](https://spec.modelcontextprotocol.io/)
-  - [MCP GitHub Repository](https://github.com/modelcontextprotocol)
+  - [MCPドキュメンテーション](https://modelcontextprotocol.io/)
+  - [MCP仕様](https://spec.modelcontextprotocol.io/)
+  - [MCP GitHubリポジトリ](https://github.com/modelcontextprotocol)
 
 ## このリポジトリの使い方
 
-1. <strong>順序学習</strong>：「00」から「11」までの章を順にたどり、体系的に学習してください。
-2. <strong>言語別フォーカス</strong>：興味のあるプログラミング言語のsamplesディレクトリを探索し、実装例を確認してください。
-3. <strong>実践的な実装</strong>：「開始方法」セクションから始めて環境を設定し、最初のMCPサーバーとクライアントを作成しましょう。
+1. <strong>順序学習</strong>：構造化された学習体験のため、章を順番に（00から11まで）進めてください。
+2. <strong>言語別フォーカス</strong>：特定のプログラミング言語に関心がある場合は、サンプルディレクトリで好みの言語の実装を探索してください。
+3. <strong>実践的実装</strong>：「はじめに」セクションから始めて環境を設定し、最初のMCPサーバーとクライアントを作成してください。
 4. <strong>高度な探索</strong>：基礎に慣れたら、高度なトピックに進んで知識を深めてください。
-5. <strong>コミュニティ参加</strong>：GitHubディスカッションやDiscordチャンネルでMCPコミュニティに参加し、専門家や開発者同士で交流しましょう。
+5. <strong>コミュニティ参加</strong>：GitHubのディスカッションやDiscordチャンネルを通じてMCPコミュニティに参加し、専門家や他の開発者と交流しましょう。
 
 ## MCPクライアントとツール
 
-カリキュラムは様々なMCPクライアントとツールをカバーしています：
+カリキュラムでは、さまざまなMCPクライアントとツールを取り扱っています：
 
 1. <strong>公式クライアント</strong>：
-   - Visual Studio Code
+   - Visual Studio Code 
    - Visual Studio Code内のMCP
    - Claude Desktop
-   - VSCode内のClaude
+   - VSCode内のClaude 
    - Claude API
 
 2. <strong>コミュニティクライアント</strong>：
@@ -304,7 +305,7 @@ mindmap
 
 ## 人気のMCPサーバー
 
-リポジトリは様々なMCPサーバーを紹介しています：
+リポジトリは以下のさまざまなMCPサーバーを紹介しています：
 
 1. **公式Microsoft MCPサーバー**：
    - Microsoft Learn Docs MCPサーバー
@@ -341,11 +342,13 @@ mindmap
 
 ## 貢献について
 
-このリポジトリはコミュニティからの貢献を歓迎しています。MCPエコシステムに効果的に貢献する方法については、コミュニティ貢献セクションを参照してください。
+このリポジトリはコミュニティからの貢献を歓迎します。MCPエコシステムへの効果的な貢献方法については、コミュニティ貢献セクションを参照してください。
 
 ----
 
-*この学習ガイドは2026年2月5日に最新のMCP仕様2025-11-25を反映して更新されており、その時点でのリポジトリの概要を提供しています。以降リポジトリ内容は更新される可能性があります。*
+*この学習ガイドは2026年2月5日に最新のMCP仕様2025-11-25を反映して最後に更新され、その時点でのリポジトリ概要を提供しています。リポジトリ内容はこの日以降更新される場合があります。*
+
+*付録（2026年7月2日）：`2026-07-28` MCP仕様リリース候補に関するレッスンが[01-CoreConcepts](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md)に追加されました。新仕様が出るまではカリキュラム基準は2025-11-25のままです。*
 
 ---
 

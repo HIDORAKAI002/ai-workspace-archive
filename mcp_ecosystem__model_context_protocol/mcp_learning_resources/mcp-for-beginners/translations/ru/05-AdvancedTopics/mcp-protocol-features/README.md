@@ -1,21 +1,23 @@
-# Глубокое погружение в функции протокола MCP
+# Глубокое Изучение Функций Протокола MCP
 
-Это руководство исследует расширенные функции протокола MCP, выходящие за рамки базовой обработки инструментов и ресурсов. Понимание этих функций поможет вам создавать более надежные, удобные для пользователей и готовые к производству серверы MCP.
+Это руководство рассматривает расширенные функции протокола MCP, выходящие за рамки базовой работы с инструментами и ресурсами. Понимание этих функций поможет вам создавать более надежные, удобные для пользователей и готовые к производству MCP-серверы.
 
-## Рассмотренные функции
+> **Взгляд в будущее:** кандидат на выпуск `2026-07-28` объявляет устаревшим примитив Logging (в пользу `stderr` для stdio и OpenTelemetry для структурированной наблюдаемости), удаляет модель `initialize`/сессии, упомянутую в разделе События жизненного цикла сервера ниже, и переносит экспериментальную функцию Tasks в отдельное расширение Tasks с новым жизненным циклом `tasks/get`/`tasks/update`/`tasks/cancel`. См. [Что меняется в MCP: кандидат на выпуск 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Уведомления о прогрессе** — Отчет о ходе длительных операций  
-2. **Отмена запросов** — Позволяет клиентам отменять текущие запросы  
-3. **Шаблоны ресурсов** — Динамические URI ресурсов с параметрами  
-4. **События жизненного цикла сервера** — Корректная инициализация и завершение работы  
-5. **Управление логированием** — Конфигурация логирования на стороне сервера  
-6. **Шаблоны обработки ошибок** — Последовательные ответы об ошибках
+## Освещённые функции
+
+1. **Уведомления о прогрессе** - Сообщение о ходе долгих операций
+2. **Отмена запросов** - Позволяет клиентам отменять активные запросы
+3. **Шаблоны ресурсов** - Динамические URI ресурсов с параметрами
+4. **События жизненного цикла сервера** - Правильная инициализация и завершение работы
+5. **Управление логированием** - Конфигурация серверного логирования
+6. **Паттерны обработки ошибок** - Единообразные ответы об ошибках
 
 ---
 
 ## 1. Уведомления о прогрессе
 
-Для операций, которые требуют времени (обработка данных, загрузка файлов, вызовы API), уведомления о прогрессе информируют пользователей.
+Для длительных операций (обработка данных, загрузка файлов, вызовы API) уведомления о прогрессе информируют пользователей.
 
 ### Как это работает
 
@@ -24,12 +26,13 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (долгая операция)
+    Client->>Server: tools/call (длительная операция)
     Server-->>Client: уведомление: прогресс 10%
     Server-->>Client: уведомление: прогресс 50%
     Server-->>Client: уведомление: прогресс 90%
     Server->>Client: результат (завершено)
 ```
+
 ### Реализация на Python
 
 ```python
@@ -43,7 +46,7 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Получить размер файла для вычисления прогресса
+    # Получить размер файла для расчёта прогресса
     file_size = os.path.getsize(file_path)
     processed = 0
     
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Сообщить о прогрессе после каждого элемента
+        # Сообщать о прогрессе после каждого элемента
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Обработка на клиенте (Python)
+### Обработка на стороне клиента (Python)
 
 ```python
 async def handle_progress(notification):
@@ -165,7 +168,7 @@ async def long_running_search(query: str, ctx) -> str:
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Симулировать поиск по странице
+            # Смоделировать поиск по странице
             page_results = await search_page(query, page)
             results.extend(page_results)
             
@@ -231,7 +234,7 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Обычный тайм-аут, продолжаем
+            pass  # Обычный таймаут, продолжаем
 ```
 
 ### Отмена на стороне клиента
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Запрос на отмену
+        # Запрос отмены
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Шаблоны ресурсов
 
-Шаблоны ресурсов позволяют динамически формировать URI с параметрами, что полезно для API и баз данных.
+Шаблоны ресурсов позволяют динамически формировать URI с параметрами, полезно для API и баз данных.
 
 ### Определение шаблонов
 
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. События жизненного цикла сервера
 
-Корректная обработка инициализации и завершения работы обеспечивает правильное управление ресурсами.
+Правильная инициализация и завершение работы обеспечивают аккуратное управление ресурсами.
 
 ### Управление жизненным циклом на Python
 
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# Общие данные
+# Общее состояние
 db_connection = None
 cache = None
 
@@ -389,9 +392,9 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # Здесь работает сервер
+    yield  # Сюда запускается сервер
     
-    # Завершение работы
+    # Выключение
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // Безопасно использовать this.dbConnection
+      // Используйте this.dbConnection безопасно
       // ...
     });
   }
 }
 
-// Использование с корректным завершением работы
+// Использование с безопасным завершением работы
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,7 +470,7 @@ await server.start();
 
 ## 5. Управление логированием
 
-MCP поддерживает уровни логирования на стороне сервера, которыми могут управлять клиенты.
+MCP поддерживает уровни логирования на стороне сервера, которые могут контролировать клиенты.
 
 ### Реализация уровней логирования
 
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Преобразовать уровни MCP в уровни логирования Python
+# Отобразите уровни MCP на уровни журналирования Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,20 +512,20 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Отправка лог-сообщений клиенту
+### Отправка сообщений лога клиенту
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Отправить уведомление о журнале клиенту
+    # Отправить уведомление о логе клиенту
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Выполняется работа...
+    # Выполнить работу...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Шаблоны обработки ошибок
+## 6. Паттерны обработки ошибок
 
-Единообразная обработка ошибок улучшает отладку и опыт пользователя.
+Единообразная обработка ошибок улучшает отладку и пользовательский опыт.
 
 ### Коды ошибок MCP
 
@@ -601,7 +604,7 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Записать непредвиденные ошибки
+        # Записать неожиданные ошибки в журнал
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // Больше проверок...
+  // Больше проверки...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -636,7 +639,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
       throw error;  // Уже ошибка MCP
     }
     
-    // Преобразовать другие ошибки
+    // Конвертировать другие ошибки
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
@@ -655,17 +658,17 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## Экспериментальные функции (MCP 2025-11-25)
 
-Эти функции отмечены как экспериментальные в спецификации:
+Эти функции помечены как экспериментальные в спецификации:
 
 ### Задачи (длительные операции)
 
 ```python
-# Задачи позволяют отслеживать длительно выполняющиеся операции со состоянием
+# Задачи позволяют отслеживать долго выполняющиеся операции со состоянием
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Сообщить о начале задачи
+    # Отчет о запуске задачи
     await ctx.report_status("running", "Initializing training...")
     
     # Цикл обучения
@@ -682,14 +685,14 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Аннотации инструментов
+### Аннотации для инструментов
 
 ```python
 # Аннотации предоставляют метаданные о поведении инструмента
 @app.tool(
     annotations={
         "destructive": False,      # Не изменяет данные
-        "idempotent": True,        # Безопасно повторять попытку
+        "idempotent": True,        # Безопасно повторить попытку
         "timeout_seconds": 30,     # Ожидаемая максимальная продолжительность
         "requires_approval": False # Не требуется одобрение пользователя
     }
@@ -703,22 +706,22 @@ async def safe_query(query: str) -> str:
 
 ## Что дальше
 
-- [Модуль 8 - Лучшие практики](../../08-BestPractices/README.md)  
-- [5.14 - Инженерия контекста](../mcp-contextengineering/README.md)  
-- [Изменения в спецификации MCP](https://spec.modelcontextprotocol.io/)  
+- [Модуль 8 - Лучшие практики](../../08-BestPractices/README.md)
+- [5.14 - Инжиниринг контекста](../mcp-contextengineering/README.md)
+- [Журнал изменений спецификации MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Дополнительные ресурсы
 
-- [Спецификация MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [Коды ошибок JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [Примеры Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [Спецификация MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Коды ошибок JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [Примеры Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [Примеры TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Отказ от ответственности**:  
-Этот документ был переведен с помощью сервиса автоматического перевода [Co-op Translator](https://github.com/Azure/co-op-translator). Несмотря на наши усилия обеспечить точность, имейте в виду, что автоматический перевод может содержать ошибки или неточности. Оригинальный документ на его исходном языке следует считать авторитетным источником. Для критически важной информации рекомендуется использовать профессиональный человеческий перевод. Мы не несем ответственности за любые недоразумения или неверные толкования, возникшие в результате использования этого перевода.
+**Отказ от ответственности**:
+Этот документ был переведен с использованием сервиса машинного перевода [Co-op Translator](https://github.com/Azure/co-op-translator). Несмотря на наши усилия по обеспечению точности, имейте в виду, что автоматический перевод может содержать ошибки или неточности. Оригинальный документ на его исходном языке следует считать авторитетным источником. Для получения критически важной информации рекомендуется обратиться к профессиональному человеческому переводу. Мы не несем ответственности за любые недоразумения или неправильные толкования, возникшие в результате использования этого перевода.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
