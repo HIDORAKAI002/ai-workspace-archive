@@ -1,6 +1,6 @@
 import { logger } from "../../lib/logger";
 import { getRedisConnection } from "../queue-service";
-import { billTeam6 } from "../../db/rpc";
+import { billTeam7 } from "../../db/rpc";
 import * as Sentry from "@sentry/node";
 import { withAuth } from "../../lib/withAuth";
 import {
@@ -102,7 +102,7 @@ async function refundRequestTrackedCredits(group: GroupedBillingOperation) {
 
 /**
  * Dequeues pending billing operations from Redis, groups them by team, and
- * commits each group to Supabase via the `bill_team_6` RPC.
+ * commits each group to Supabase via the `bill_team_7` RPC.
  */
 export async function processBillingBatch() {
   const redis = getRedisConnection();
@@ -358,10 +358,9 @@ async function supaBillTeam(
   // Perform the actual database operation
   let data: { api_key: string }[];
   try {
-    data = await billTeam6({
+    data = await billTeam7({
       team_id,
       subscription_id: subscription_id ?? null,
-      fetch_subscription: subscription_id === undefined,
       credits,
       api_key_id: api_key_id ?? null,
       is_extract,
@@ -371,14 +370,6 @@ async function supaBillTeam(
     _logger.error("Failed to bill team.", { error });
     return { success: false, error };
   }
-
-  // Fire-and-forget — a Redis failure here must not trigger a false Autumn refund
-  // after bill_team_6 has already committed.
-  getRedisConnection()
-    .sadd("billed_teams", team_id)
-    .catch(err => {
-      _logger.warn("Failed to add team to billed_teams set", { err, team_id });
-    });
 
   return { success: true, data };
 }

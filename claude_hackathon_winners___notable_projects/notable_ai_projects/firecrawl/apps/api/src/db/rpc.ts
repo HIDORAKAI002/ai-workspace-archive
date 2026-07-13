@@ -34,7 +34,7 @@ export async function authCreditUsageChunk(
 ): Promise<AuthCreditUsageChunkRow[]> {
   const rows = await execRows<AuthCreditUsageChunkRow>(
     database,
-    sql`select * from auth_credit_usage_chunk_52(input_key => ${input_key})`,
+    sql`select * from auth_credit_usage_chunk_53(input_key => ${input_key})`,
   );
   // api_key_id is a bigint column, so the pg driver hands it back as a string.
   for (const row of rows) {
@@ -51,7 +51,7 @@ export function authCreditUsageChunkFromTeam(
 ): Promise<AuthCreditUsageChunkRow[]> {
   return execRows(
     database,
-    sql`select * from auth_credit_usage_chunk_52_from_team(input_team => ${input_team})`,
+    sql`select * from auth_credit_usage_chunk_53_from_team(input_team => ${input_team})`,
   );
 }
 
@@ -73,17 +73,16 @@ export function agentConsumeFreeRequestIfLeft(
   );
 }
 
-export function billTeam6(params: {
+export function billTeam7(params: {
   team_id: string;
   subscription_id: string | null;
-  fetch_subscription: boolean;
   credits: number;
   api_key_id: number | null;
   is_extract: boolean;
 }): Promise<{ api_key: string }[]> {
   return execRows(
     db,
-    sql`select * from bill_team_6(_team_id => ${params.team_id}, sub_id => ${params.subscription_id}, fetch_subscription => ${params.fetch_subscription}, credits => ${params.credits}, i_api_key_id => ${params.api_key_id}, is_extract_param => ${params.is_extract})`,
+    sql`select * from bill_team_7(_team_id => ${params.team_id}, sub_id => ${params.subscription_id}, credits => ${params.credits}, i_api_key_id => ${params.api_key_id}, is_extract_param => ${params.is_extract})`,
   );
 }
 
@@ -137,10 +136,6 @@ export function monitoringClaimDueMonitors<T = Record<string, any>>(params: {
     db,
     sql`select * from monitoring_claim_due_monitors(p_worker_id => ${params.workerId}, p_limit => ${params.limit}, p_lease_seconds => ${params.leaseSeconds})`,
   );
-}
-
-export async function updateTallyTeam(i_team_id: string): Promise<void> {
-  await db.execute(sql`select update_tally_10_team(i_team_id => ${i_team_id})`);
 }
 
 // ============================================================================
