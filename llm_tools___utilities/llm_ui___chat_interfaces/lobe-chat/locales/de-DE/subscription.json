@@ -403,6 +403,7 @@
   "plans.target": "Zielplan",
   "plans.unlimited": "Unbegrenzt",
   "plans.workspace.features.adminControls": "Zentrale Abrechnung und Rollenverwaltung",
+  "plans.workspace.features.apiKey": "Workspace-API-Schlüssel",
   "plans.workspace.features.auditLog": "Prüfprotokolle",
   "plans.workspace.features.inviteMembers": "Mitglieder einladen",
   "plans.workspace.features.memberBudget": "Pro-Mitglied-Budgetkontrolle",

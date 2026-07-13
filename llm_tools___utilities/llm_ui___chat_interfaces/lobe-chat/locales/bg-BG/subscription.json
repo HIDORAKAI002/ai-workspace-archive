@@ -403,6 +403,7 @@
   "plans.target": "Целеви план",
   "plans.unlimited": "Неограничено",
   "plans.workspace.features.adminControls": "Централизирано управление на фактури и роли",
+  "plans.workspace.features.apiKey": "API ключове за работно пространство",
   "plans.workspace.features.auditLog": "Дневници за одит",
   "plans.workspace.features.inviteMembers": "Поканете членове",
   "plans.workspace.features.memberBudget": "Контрол на бюджета за отделни членове",

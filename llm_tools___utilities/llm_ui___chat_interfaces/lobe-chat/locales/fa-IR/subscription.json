@@ -403,6 +403,7 @@
   "plans.target": "طرح هدف",
   "plans.unlimited": "نامحدود",
   "plans.workspace.features.adminControls": "مدیریت متمرکز صورتحساب و نقش‌ها",
+  "plans.workspace.features.apiKey": "کلیدهای API فضای کاری",
   "plans.workspace.features.auditLog": "گزارش‌های حسابرسی",
   "plans.workspace.features.inviteMembers": "دعوت از اعضا",
   "plans.workspace.features.memberBudget": "کنترل بودجه هر عضو",

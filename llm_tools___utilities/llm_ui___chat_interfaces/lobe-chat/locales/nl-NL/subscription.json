@@ -403,6 +403,7 @@
   "plans.target": "Doel Abonnement",
   "plans.unlimited": "Onbeperkt",
   "plans.workspace.features.adminControls": "Gecentraliseerde facturering en rolbeheer",
+  "plans.workspace.features.apiKey": "Workspace API-sleutels",
   "plans.workspace.features.auditLog": "Auditlogs",
   "plans.workspace.features.inviteMembers": "Leden Uitnodigen",
   "plans.workspace.features.memberBudget": "Budgetbeheer per lid",

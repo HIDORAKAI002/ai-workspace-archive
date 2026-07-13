@@ -403,6 +403,7 @@
   "plans.target": "Целевой план",
   "plans.unlimited": "Без ограничений",
   "plans.workspace.features.adminControls": "Централизованное управление оплатой и ролями",
+  "plans.workspace.features.apiKey": "Ключи API рабочего пространства",
   "plans.workspace.features.auditLog": "Журналы аудита",
   "plans.workspace.features.inviteMembers": "Пригласить участников",
   "plans.workspace.features.memberBudget": "Контроль бюджета для каждого участника",

@@ -403,6 +403,7 @@
   "plans.target": "対象プラン",
   "plans.unlimited": "無制限",
   "plans.workspace.features.adminControls": "集中型の請求とロール管理",
+  "plans.workspace.features.apiKey": "ワークスペース API キー",
   "plans.workspace.features.auditLog": "監査ログ",
   "plans.workspace.features.inviteMembers": "メンバーを招待",
   "plans.workspace.features.memberBudget": "メンバーごとの予算管理",
