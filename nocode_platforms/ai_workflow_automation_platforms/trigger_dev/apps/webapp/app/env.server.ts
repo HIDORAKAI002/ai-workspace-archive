@@ -138,8 +138,10 @@ const EnvironmentSchema = z
       .string()
       .refine(isValidDatabaseUrl, "RUN_OPS_DATABASE_URL is invalid")
       .optional(),
-    // The LEGACY run-ops DB (the control-plane DB during the transition). When unset, legacy
-    // run-ops reuses the existing DATABASE_URL (legacy run-ops == control-plane DB initially).
+    // The LEGACY run-ops DB. Now a CONNECTED DSN (Track 2): when split is on and this is set it builds
+    // an INDEPENDENT legacy Prisma client, no longer an alias of the control-plane client (nor merely
+    // the sentinel's probe target). Unset -> legacy reuses the control-plane client / DATABASE_URL, so
+    // single-DB and self-host installs boot byte-identical.
     RUN_OPS_LEGACY_DATABASE_URL: z
       .string()
       .refine(isValidDatabaseUrl, "RUN_OPS_LEGACY_DATABASE_URL is invalid")
@@ -151,6 +153,22 @@ const EnvironmentSchema = z
       .string()
       .refine(isValidDatabaseUrl, "RUN_OPS_DATABASE_READ_REPLICA_URL is invalid")
       .optional(),
+    // The LEGACY run-ops DB read replica (Track 2). Unset -> the legacy replica handle falls back to the
+    // legacy WRITER (as $replica does with no CP replica). Set in production so legacy reads hit the reader.
+    RUN_OPS_LEGACY_DATABASE_READ_REPLICA_URL: z
+      .string()
+      .refine(isValidDatabaseUrl, "RUN_OPS_LEGACY_DATABASE_READ_REPLICA_URL is invalid")
+      .optional(),
+    // Direct DSN for applying the full @trigger.dev/database migrations to the LEGACY run-ops DB, keeping
+    // its schema current after the control plane moves off it. Direct, not pooled — migrations never run
+    // over a pooler. Optional; unset -> the entrypoint's legacy migrate step is skipped.
+    RUN_OPS_LEGACY_DIRECT_URL: z
+      .string()
+      .refine(isValidDatabaseUrl, "RUN_OPS_LEGACY_DIRECT_URL is invalid")
+      .optional(),
+    // Advisory control-plane co-residency sentinel enforcement (Track 2, T2.3). Default OFF; the advisory
+    // arm always emits its metric, this only turns a still-co-resident pair into a hard boot failure.
+    RUN_OPS_EXPECT_CONTROL_PLANE_SPLIT: BoolEnv.default(false),
     // --- Control-plane datasource repoint. Additive-only. ---
     // Optional control-plane DB. Unset (self-host/single-DB) -> getClient()/getReplicaClient() fall back to
     // DATABASE_URL/DATABASE_READ_REPLICA_URL, so boot is byte-identical. When set, these point at the
@@ -774,7 +792,6 @@ const EnvironmentSchema = z
     CENTS_PER_RUN: z.coerce.number().default(0),
 
     EVENT_LOOP_MONITOR_ENABLED: z.string().default("1"),
-    RESOURCE_MONITOR_ENABLED: z.string().default("0"),
     MAXIMUM_LIVE_RELOADING_EVENTS: z.coerce.number().int().default(1000),
     MAXIMUM_TRACE_SUMMARY_VIEW_COUNT: z.coerce.number().int().default(25_000),
     MAXIMUM_TRACE_DETAILED_SUMMARY_VIEW_COUNT: z.coerce.number().int().default(10_000),
@@ -1618,6 +1635,14 @@ const EnvironmentSchema = z
     RUN_REPLICATION_DISABLE_PAYLOAD_INSERT: z.string().default("0"),
     RUN_REPLICATION_DISABLE_ERROR_FINGERPRINTING: z.string().default("0"),
 
+    // Connection URL for the LEGACY runs-replication source (the runs-CDC slot on the legacy runs DB, plus
+    // the admin recovery route). Direct, not pooled: replication can't run over a pooler. Optional; unset ->
+    // falls back to DATABASE_URL, so nothing changes today.
+    RUN_REPLICATION_LEGACY_DATABASE_URL: z
+      .string()
+      .refine(isValidDatabaseUrl, "RUN_REPLICATION_LEGACY_DATABASE_URL is invalid")
+      .optional(),
+
     // --- Run-ops DB split — second replication source (the NEW dedicated run-ops DB). ---
     // Cloud-only; only consulted when isSplitEnabled() is true. Self-host never sets these.
     // Connection URL for the run-ops DB used by the runs-replication source. Required when the split is
@@ -1658,6 +1683,12 @@ const EnvironmentSchema = z
     SESSION_REPLICATION_PUBLICATION_NAME: z
       .string()
       .default("sessions_to_clickhouse_v1_publication"),
+    // Connection URL for the sessions-replication slot. Direct, not pooled: replication can't run over a
+    // pooler. Optional; unset -> falls back to DATABASE_URL, so nothing changes today.
+    SESSION_REPLICATION_DATABASE_URL: z
+      .string()
+      .refine(isValidDatabaseUrl, "SESSION_REPLICATION_DATABASE_URL is invalid")
+      .optional(),
     SESSION_REPLICATION_MAX_FLUSH_CONCURRENCY: z.coerce.number().int().default(1),
     SESSION_REPLICATION_FLUSH_INTERVAL_MS: z.coerce.number().int().default(1000),
     SESSION_REPLICATION_FLUSH_BATCH_SIZE: z.coerce.number().int().default(100),
@@ -1828,6 +1859,7 @@ const EnvironmentSchema = z
       .enum(["postgres", "clickhouse", "clickhouse_v2"])
       .default("postgres"),
     EVENT_REPOSITORY_DEBUG_LOGS_DISABLED: BoolEnv.default(false),
+    EVENT_REPOSITORY_POSTGRES_WRITES_DISABLED: BoolEnv.default(false),
     EVENTS_CLICKHOUSE_MAX_TRACE_SUMMARY_VIEW_COUNT: z.coerce.number().int().default(25_000),
     EVENTS_CLICKHOUSE_MAX_TRACE_DETAILED_SUMMARY_VIEW_COUNT: z.coerce.number().int().default(5_000),
     EVENTS_CLICKHOUSE_MAX_LIVE_RELOADING_SETTING: z.coerce.number().int().default(2000),
