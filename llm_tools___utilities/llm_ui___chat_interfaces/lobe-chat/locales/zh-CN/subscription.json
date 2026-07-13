@@ -403,6 +403,7 @@
   "plans.target": "目标计划",
   "plans.unlimited": "无限制",
   "plans.workspace.features.adminControls": "集中计费和角色权限管理",
+  "plans.workspace.features.apiKey": "工作区 API 密钥",
   "plans.workspace.features.auditLog": "审计日志",
   "plans.workspace.features.inviteMembers": "邀请成员",
   "plans.workspace.features.memberBudget": "成员预算控制",

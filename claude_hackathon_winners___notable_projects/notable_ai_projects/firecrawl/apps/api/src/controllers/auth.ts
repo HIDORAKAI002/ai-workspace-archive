@@ -6,7 +6,6 @@ import { logger } from "../lib/logger";
 import { parseApi } from "../lib/parseApi";
 import { withAuth } from "../lib/withAuth";
 import { getAgentSponsorStatus } from "../services/agent-sponsor";
-import { getRedisConnection } from "../services/queue-service";
 import { getRateLimiter } from "../services/rate-limiter";
 import {
   KEYLESS_FREE_TIER_LIMIT_MESSAGE,
@@ -455,9 +454,6 @@ export async function clearACUCTeam(team_id: string): Promise<void> {
 
   // Also clear the base cache key
   await deleteKey(`acuc_team_${team_id}`);
-
-  // Add team to billed_teams set so tally gets updated too
-  await getRedisConnection().sadd("billed_teams", team_id);
 }
 
 const KEYLESS_ENDPOINT_NOT_AVAILABLE_MESSAGE = `This endpoint is not supported by the keyless free tier. Sign up for a free API key at https://www.firecrawl.dev/signin for more endpoints, more usage, and higher rate limits.

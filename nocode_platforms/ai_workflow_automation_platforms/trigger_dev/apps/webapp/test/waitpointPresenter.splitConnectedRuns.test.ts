@@ -61,6 +61,7 @@ vi.mock("~/presenters/v3/NextRunListPresenter.server", () => ({
 }));
 
 import { heteroRunOpsPostgresTest } from "@internal/testcontainers";
+import { PostgresRunStore, RoutingRunStore } from "@internal/run-store";
 import type { PrismaClient } from "@trigger.dev/database";
 import type { RunOpsPrismaClient } from "@internal/run-ops-database";
 import {
@@ -69,6 +70,24 @@ import {
 } from "~/presenters/v3/WaitpointPresenter.server";
 
 vi.setConfig({ testTimeout: 90_000 });
+
+// Wire the presenter's run store to the test containers so the connected-run gather routes to the
+// container DBs (NEW=dedicated, LEGACY=legacy) instead of the default localhost:5432 client. The
+// gather's findWaitpointConnectedRunIds fans out to BOTH legs and unions, keeping the split intent.
+function makeRunStore(newClient: PrismaClient, legacyClient: PrismaClient) {
+  return new RoutingRunStore({
+    new: new PostgresRunStore({
+      prisma: newClient as never,
+      readOnlyPrisma: newClient as never,
+      schemaVariant: "dedicated",
+    }),
+    legacy: new PostgresRunStore({
+      prisma: legacyClient as never,
+      readOnlyPrisma: legacyClient as never,
+      schemaVariant: "legacy",
+    }),
+  });
+}
 
 type SeedContext = {
   organizationId: string;
@@ -176,11 +195,16 @@ describe("WaitpointPresenter — connected runs SPLIT across both physical DBs",
       legacyReplicaHolder.client = prisma14;
       newClientHolder.client = prisma17;
 
-      const presenter = new WaitpointPresenter(undefined, undefined, {
-        splitEnabled: true,
-        newClient: prisma17 as unknown as PrismaClient,
-        legacyReplica: prisma14,
-      });
+      const presenter = new WaitpointPresenter(
+        undefined,
+        undefined,
+        {
+          splitEnabled: true,
+          newClient: prisma17 as unknown as PrismaClient,
+          legacyReplica: prisma14,
+        },
+        makeRunStore(prisma17 as unknown as PrismaClient, prisma14)
+      );
 
       const result = await presenter.call({
         friendlyId: waitpoint.friendlyId,

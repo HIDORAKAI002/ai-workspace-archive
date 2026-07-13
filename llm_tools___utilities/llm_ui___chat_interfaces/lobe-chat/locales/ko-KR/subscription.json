@@ -403,6 +403,7 @@
   "plans.target": "대상 플랜",
   "plans.unlimited": "무제한",
   "plans.workspace.features.adminControls": "중앙 집중식 청구 및 역할 관리",
+  "plans.workspace.features.apiKey": "워크스페이스 API 키",
   "plans.workspace.features.auditLog": "감사 로그",
   "plans.workspace.features.inviteMembers": "멤버 초대",
   "plans.workspace.features.memberBudget": "멤버별 예산 관리",

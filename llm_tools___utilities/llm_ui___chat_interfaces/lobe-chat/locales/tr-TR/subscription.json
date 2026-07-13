@@ -403,6 +403,7 @@
   "plans.target": "Hedef Plan",
   "plans.unlimited": "Sınırsız",
   "plans.workspace.features.adminControls": "Merkezi faturalama ve rol yönetimi",
+  "plans.workspace.features.apiKey": "Çalışma Alanı API Anahtarları",
   "plans.workspace.features.auditLog": "Denetim Günlükleri",
   "plans.workspace.features.inviteMembers": "Üyeleri Davet Et",
   "plans.workspace.features.memberBudget": "Üye Başına Bütçe Kontrolü",
