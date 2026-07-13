@@ -403,6 +403,7 @@
   "plans.target": "الخطة المستهدفة",
   "plans.unlimited": "غير محدود",
   "plans.workspace.features.adminControls": "الفوترة المركزية وإدارة الأدوار",
+  "plans.workspace.features.apiKey": "مفاتيح واجهة برمجة التطبيقات للمساحة",
   "plans.workspace.features.auditLog": "سجلات التدقيق",
   "plans.workspace.features.inviteMembers": "دعوة الأعضاء",
   "plans.workspace.features.memberBudget": "التحكم في ميزانية كل عضو",

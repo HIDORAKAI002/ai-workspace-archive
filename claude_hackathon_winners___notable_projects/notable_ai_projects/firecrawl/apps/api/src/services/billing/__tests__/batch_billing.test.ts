@@ -10,7 +10,7 @@ const {
   withAuth,
   trackCredits,
   refundCredits,
-  billTeam6,
+  billTeam7,
 } = vi.hoisted(() => {
   const logger: any = {
     info: vi.fn(),
@@ -24,7 +24,7 @@ const {
     withAuth: vi.fn((fn: any) => fn),
     trackCredits: vi.fn<(args: any) => Promise<boolean>>(),
     refundCredits: vi.fn<(args: any) => Promise<void>>(),
-    billTeam6: vi.fn<(params: any) => Promise<{ api_key: string }[]>>(),
+    billTeam7: vi.fn<(params: any) => Promise<{ api_key: string }[]>>(),
   };
 });
 
@@ -50,7 +50,7 @@ vi.mock("../../autumn/autumn.service", () => ({
 }));
 
 vi.mock("../../../db/rpc", () => ({
-  billTeam6,
+  billTeam7,
 }));
 
 let queue: string[] = [];
@@ -136,7 +136,7 @@ beforeEach(() => {
   queue = [];
   billedTeams.clear();
   locks.clear();
-  billTeam6.mockResolvedValue([]);
+  billTeam7.mockResolvedValue([]);
   trackCredits.mockResolvedValue(true);
   refundCredits.mockResolvedValue(undefined);
 });
@@ -150,7 +150,7 @@ describe("processBillingBatch", () => {
 
     await processBillingBatch();
 
-    expect(billTeam6).toHaveBeenCalled();
+    expect(billTeam7).toHaveBeenCalled();
     expect(trackCredits).not.toHaveBeenCalled();
     expect(captureException).not.toHaveBeenCalled();
   });
@@ -160,13 +160,13 @@ describe("processBillingBatch", () => {
 
     await processBillingBatch();
 
-    expect(billTeam6).toHaveBeenCalled();
+    expect(billTeam7).toHaveBeenCalled();
     expect(trackCredits).not.toHaveBeenCalled();
   });
 
   it("refunds request-tracked credits when billing returns success false", async () => {
     queue = [makeOp({ autumnTrackInRequest: true })];
-    billTeam6.mockRejectedValueOnce(new Error("db failed"));
+    billTeam7.mockRejectedValueOnce(new Error("db failed"));
 
     await processBillingBatch();
 
@@ -186,7 +186,7 @@ describe("processBillingBatch", () => {
 
   it("captures exceptions and refunds when billing throws", async () => {
     queue = [makeOp({ autumnTrackInRequest: true })];
-    billTeam6.mockRejectedValueOnce(new Error("rpc exploded"));
+    billTeam7.mockRejectedValueOnce(new Error("rpc exploded"));
 
     await processBillingBatch();
 
@@ -217,7 +217,7 @@ describe("processBillingBatch", () => {
         autumnTrackInRequest: true,
       }),
     ];
-    billTeam6
+    billTeam7
       .mockRejectedValueOnce(new Error("db failed"))
       .mockResolvedValueOnce([]);
     refundCredits.mockRejectedValueOnce(new Error("refund failed"));
@@ -235,7 +235,7 @@ describe("processBillingBatch", () => {
       },
       featureId: "CREDITS",
     });
-    expect(billTeam6).toHaveBeenCalledTimes(2);
+    expect(billTeam7).toHaveBeenCalledTimes(2);
     // The batch never tracks usage to Autumn, regardless of the request-time flag.
     expect(trackCredits).not.toHaveBeenCalled();
     expect(captureException).toHaveBeenCalled();

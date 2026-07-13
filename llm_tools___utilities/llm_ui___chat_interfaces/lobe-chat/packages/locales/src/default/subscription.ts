@@ -461,6 +461,7 @@ export default {
   'plans.support.title': 'Support',
   'plans.support.ultimate': 'Priority Chat and Email Support',
   'plans.workspace.features.adminControls': 'Centralized billing and role management',
+  'plans.workspace.features.apiKey': 'Workspace API Keys',
   'plans.workspace.features.auditLog': 'Audit Logs',
   'plans.workspace.features.inviteMembers': 'Invite Members',
   'plans.workspace.features.memberBudget': 'Per-member Budget Control',

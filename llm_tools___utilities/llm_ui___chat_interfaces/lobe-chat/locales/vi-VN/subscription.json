@@ -403,6 +403,7 @@
   "plans.target": "Gói mục tiêu",
   "plans.unlimited": "Không giới hạn",
   "plans.workspace.features.adminControls": "Quản lý thanh toán và vai trò tập trung",
+  "plans.workspace.features.apiKey": "Khóa API của Không gian làm việc",
   "plans.workspace.features.auditLog": "Nhật ký kiểm tra",
   "plans.workspace.features.inviteMembers": "Mời thành viên",
   "plans.workspace.features.memberBudget": "Kiểm soát Ngân sách Theo Thành viên",

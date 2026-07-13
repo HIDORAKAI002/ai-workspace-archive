@@ -403,6 +403,7 @@
   "plans.target": "目標方案",
   "plans.unlimited": "無限制",
   "plans.workspace.features.adminControls": "集中式計費與角色管理",
+  "plans.workspace.features.apiKey": "工作區 API 金鑰",
   "plans.workspace.features.auditLog": "稽核日誌",
   "plans.workspace.features.inviteMembers": "邀請成員",
   "plans.workspace.features.memberBudget": "每位成員的預算控制",

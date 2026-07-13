@@ -403,6 +403,7 @@
   "plans.target": "Plano Alvo",
   "plans.unlimited": "Ilimitado",
   "plans.workspace.features.adminControls": "Faturamento centralizado e gerenciamento de funções",
+  "plans.workspace.features.apiKey": "Chaves de API do Espaço de Trabalho",
   "plans.workspace.features.auditLog": "Registros de Auditoria",
   "plans.workspace.features.inviteMembers": "Convidar Membros",
   "plans.workspace.features.memberBudget": "Controle de Orçamento por Membro",

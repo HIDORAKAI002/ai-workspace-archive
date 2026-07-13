@@ -5,6 +5,24 @@ All notable changes to the Firecrawl PHP SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-07-10
+
+### Added
+- Laravel AI SDK integration: native tool classes `FirecrawlScrape`, `FirecrawlSearch`,
+  `FirecrawlMap`, and `FirecrawlCrawl` in `Firecrawl\Laravel\Tools`, plus a
+  `FirecrawlTools::all()` helper. Drop them into any `laravel/ai` agent's `tools()`
+  array; API key and config are reused from the existing Laravel integration.
+  Requires `laravel/ai ^0.9` (PHP 8.3+, Laravel 12+) in the consuming app.
+- `CrawlOptions::with(idempotencyKey:)`: `startCrawl()` now sends the
+  `x-idempotency-key` header, matching the existing batch scrape support.
+- `startCrawl()` and `getCrawlStatus()` accept an optional per-request
+  timeout in seconds.
+
+### Fixed
+- `scrape()`, `search()`, and `map()` now throw `FirecrawlException` when the API
+  returns an HTTP 200 response with `success: false` (for example DNS resolution
+  failures), instead of silently hydrating an empty result.
+
 ## [1.3.0] - 2026-05-12
 
 ### Added
