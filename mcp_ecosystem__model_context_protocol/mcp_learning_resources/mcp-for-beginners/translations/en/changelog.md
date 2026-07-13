@@ -2,6 +2,26 @@
 
 This document serves as a record of all significant changes made to the Model Context Protocol (MCP) for Beginners curriculum. Changes are documented in reverse chronological order (newest changes first).
 
+## July 2nd, 2026
+
+### New Lesson: The 2026-07-28 MCP Specification Release Candidate
+
+Added coverage of the upcoming `2026-07-28` MCP specification release candidate (announced May 21, 2026; final release scheduled July 28, 2026), summarized from the [official announcement blog post](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/). The curriculum's baseline remains **MCP Specification 2025-11-25** until the new version ships, so this is presented as forward-looking guidance rather than a rewrite of existing lessons.
+
+- **New**: [01-CoreConcepts/mcp-2026-07-28-release-candidate.md](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md) — a full lesson covering the stateless protocol core (removal of the `initialize` handshake and `Mcp-Session-Id`), the new `Mcp-Method`/`Mcp-Name` routing headers, `ttlMs`/`cacheScope` caching metadata, W3C Trace Context in `_meta`, the formal Extensions framework (MCP Apps and the new Tasks extension), six authorization-hardening SEPs, the deprecation of Roots/Sampling/Logging, and the move to full JSON Schema 2020-12 for tool schemas.
+- **Updated** with forward-looking callouts linking to the new lesson:
+  - [01-CoreConcepts/README.md](./01-CoreConcepts/README.md): protocol version note, Sampling/Roots/Logging/Tasks sections, and "What's next"
+  - [02-Security/README.md](./02-Security/README.md): authorization hardening callout
+  - [03-GettingStarted/06-http-streaming/README.md](./03-GettingStarted/06-http-streaming/README.md): stateless transport callout
+  - [03-GettingStarted/14-sampling/README.md](./03-GettingStarted/14-sampling/README.md): Sampling deprecation callout
+  - [05-AdvancedTopics/mcp-protocol-features/README.md](./05-AdvancedTopics/mcp-protocol-features/README.md): Logging deprecation and Tasks extension callout
+  - [05-AdvancedTopics/mcp-transport/README.md](./05-AdvancedTopics/mcp-transport/README.md): stateless/session-routing callout
+  - [README.md](./README.md): "Looking ahead" note in the specification section and a new `1.1` entry in the curriculum module table
+  - [study_guide.md](./study_guide.md): forward-looking bullet under the Core Concepts overview and a dated addendum note
+  - [03-GettingStarted/11-simple-auth/README.md](./03-GettingStarted/11-simple-auth/README.md): callout on the `mcp-session-id` transport map ahead of the stateless request model
+  - [05-AdvancedTopics/README.md](./05-AdvancedTopics/README.md): module overview callout on Root Contexts/Sampling deprecations and the Tasks extension
+  - [05-AdvancedTopics/mcp-security/README.md](./05-AdvancedTopics/mcp-security/README.md): authorization hardening callout
+
 ## June 24th, 2026
 
 ### New Lesson: Using MCP in Copilot app
@@ -89,6 +109,7 @@ Updated all curriculum content to reflect Microsoft's product rebranding:
 - **11-MCPServerHandsOnLabs/03-Setup/README.md**: Updated resource references
 
 #### AI Toolkit / AITK → Microsoft Foundry Toolkit Extension for VS Code
+
 - **README.md**: Updated main curriculum references
 - **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**: Updated module title, overview, and all module headers
 - **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/README.md**: Updated title, learning objectives, setup instructions, and resources
@@ -307,6 +328,7 @@ Added lessons 5.15 (Custom Transport) and 5.16 (Protocol Features)
 - **Spec Reference**: Updated MCP Specification link to direct specification URL
 
 #### Module 07 - Lessons from Early Adoption
+
 - **Resource Updates**: Added MCP Specification 2025-11-25 link and OWASP MCP Top 10 to additional resources
 
 #### Module 08 - Best Practices
@@ -506,6 +528,7 @@ These additions provide practical, hands-on guidance for building more robust, s
 ### Documentation Quality Enhancements
 - **MCP Specification Alignment**: All new content references current MCP Specification 2025-06-18
 - **Multi-Language Examples**: Comprehensive code examples in C#, TypeScript, and Python
+
 - **Enterprise Focus**: Production-ready patterns and Azure cloud integration throughout
 - **Visual Documentation**: Mermaid diagrams for architecture and flow visualization
 
@@ -555,9 +578,9 @@ These additions provide practical, hands-on guidance for building more robust, s
   - **Advanced Threat Mitigation**: Comprehensive implementation examples for
     - Confused Deputy Attack Prevention with PKCE and user consent validation
     - Token Passthrough Prevention with audience validation and secure token management
-- Session Hijacking Prevention with cryptographic binding and behavioral analysis
-- **Enterprise Security Integration**: Azure Application Insights monitoring, threat detection pipelines, and supply chain security
-- **Implementation Checklist**: Clear mandatory vs. recommended security controls with Microsoft security ecosystem benefits
+    - Session Hijacking Prevention with cryptographic binding and behavioral analysis
+  - **Enterprise Security Integration**: Azure Application Insights monitoring, threat detection pipelines, and supply chain security
+  - **Implementation Checklist**: Clear mandatory vs. recommended security controls with Microsoft security ecosystem benefits
 
 ### Documentation Quality & Standards Alignment
 - **Specification References**: Updated all references to current MCP Specification 2025-06-18

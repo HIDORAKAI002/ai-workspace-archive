@@ -1,35 +1,38 @@
-# លក្ខណៈពិសេសរបស់ពិធីការ MCP ក្នុងការស្វែងយល់ជ្រៅ
+# ការជ្រាបច្បាស់អំពីលក្ខណៈពិសេសរបស់ព្រ័តូកូល MCP
 
-មគ្គុទេសក៍នេះស្វែងរកលក្ខណៈពិសេសពិធីការដែលកាន់តែខ្ពស់របស់ MCP ដែលលើសពីការគ្រប់គ្រងឧបករណ៍ និងធនធានមូលដ្ឋាន។ ការយល់ដឹងអំពីលក្ខណៈពិសេសទាំងនេះជួយឲ្យអ្នកបង្កើតម៉ាស៊ឺរប្រភេទ MCP ដែលមានភាពរឹងមាំ ជាពិសេសសម្រាប់អ្នកប្រើប្រាស់ និងមានភាពទាន់សម័យសម្រាប់ផលិតផល។
+មគ្គុទេសក៍នេះជ្រាបច្បាស់ពីលក្ខណៈពិសេសជាក់លាក់របស់ព្រ័តូកូល MCP ដែលបន្តពីការដំណើរការឧបករណ៍ និងធនធានមូលដ្ឋាន។ ការយល់ដឹងពីលក្ខណៈពិសេសទាំងនេះជួយឲ្យអ្នកកសាងម៉ាស៊ីនបម្រើ MCP ដែលមានភាពរឹងមាំ​ ប្រើប្រាស់ងាយស្រួល និងត្រឹមត្រូវសម្រាប់ផលិតកម្ម។
 
-## លក្ខណៈពិសេសដែលបានព្រមាន
+> **មើលទៅមុខ៖** កំណែបញ្ចេញ `2026-07-28` បញ្ឈប់ការប្រើប្រាស់ Primitive Logging (ចូលចិត្តប្រើ `stderr` សម្រាប់ stdio និង OpenTelemetry សម្រាប់ការត្រួតពិនិត្យទ្រង់ទ្រាយ), លុបចោលម៉ូឌែល `initialize`/session ដែលបានដកស្រង់នៅក្នុងព្រឹត្តិការណ៍ជីវិតម៉ាស៊ីនបម្រុះខាងក្រោម, ហើយផ្លាស់ប្តូរពិចារណាការបន្ថែមលក្ខខណៈ Tasks តទៅជាការបន្ថែម Tasks ជាវិជ្ជមានដោយមានជីវិតថ្មី `tasks/get`/`tasks/update`/`tasks/cancel`។ សូមមើល [អ្វីដែលផ្លាស់ប្តូរនៅក្នុង MCP: កំណែបញ្ចេញ 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)។
 
-1. **ការជូនដំណឹងដំណើរការ** - រាយការណ៍ដំណើរការសម្រាប់ប្រតិបត្តិការដែលចំណាយពេលយូរ
-2. **ការលុបចោលសំណើ** - អនុញ្ញាតឲ្យអតិថិជនលុបចោលសំណើដែលកំពុងដំណើរការ
-3. **គំរូធនធាន** - អាចបង្កើត URI រួមដោយអថិត្យទិន្នន័យ
-4. **ព្រឹត្តិការណ៍អាយុកាលម៉ាស៊ីនបម្រើ** - ការចាប់ផ្តើម និងបិទម៉ាស៊ីនបម្រើយ៉ាងត្រឹមត្រូវ
-5. **ការត្រួតពិនិត្យការចុះបញ្ជី** - ការកំណត់កម្រិតការចុះបញ្ជីនៅម៉ាស៊ីនបម្រើ
-6. **គំរូការគ្រប់គ្រងកំហុស** - ការឆ្លើយតបកំហុសយ៉ាងសុចរិត
+## លក្ខណៈពិសេសដែលគេសំដៅ
+
+1. **ការជូនដំណឹងអំពីជំហានរៀងៗ** - រាយការណ៍ជំហានសម្រាប់ប្រតិបត្តិការពេលវែង
+2. **សុំបោះបង់សំណើ** - អនុញ្ញាតអតិថិជនបោះបង់សំណើដែលកំពុងបើកហើយ
+3. **វាលទ្រង់ទ្រាយធនធាន** - URI ធនធានឌីណាមិចជាមួយប៉ារ៉ាម៉ែត្រ
+4. **ព្រឹត្តិការណ៍ជីវិតម៉ាស៊ីនបម្រើ** - ការបញ្ចូល និងបិទដោយត្រឹមត្រូវ
+5. **ការត្រួតពិនិត្យកំណត់ហេតុ** - ការកំណត់កម្រិតកំណត់ហេតុរបស់ម៉ាស៊ីនបម្រើ
+6. **លំនាំដំណោះស្រាយកំហុស** - ប្រតិកម្មកំហុសមានជាតិចំរូង
 
 ---
 
-## 1. ការជូនដំណឹងដំណើរការ
+## 1. ការជូនដំណឹងអំពីជំហានរៀងៗ
 
-សម្រាប់ប្រតិបត្តិការដែលចំណាយពេល (ដំណើរការទិន្នន័យ ការទាញយកឯកសារ ការហៅ API) ការជូនដំណឹងដំណើរការជួយឲ្យអ្នកប្រើប្រាស់បានជ្រាប។
+សម្រាប់ប្រតិបត្តិការដែលចំណាយពេល (ដំណើរការតាមទិន្នន័យ, ទាញយកឯកសារ, ហៅ API), ការជូនដំណឹងអំពីជំហានធ្វើឲ្យអ្នកប្រើប្រាស់បានដឹង។
 
-### វាសកម្មយ៉ាងដូចម្តេច
+### វាជាការធ្វើដូចម្តេច
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (ប្រតិបត្តិការល្អយ dlou)
-    Server-->>Client: ជូនដំណឹងៈ ការរីកចម្រើន 10%
-    Server-->>Client: ជូនដំណឹងៈ ការរីកចម្រើន 50%
-    Server-->>Client: ជូនដំណឹងៈ ការរីកចម្រើន 90%
+    Client->>Server: tools/call (ប្រតិបត្តិការវែង)
+    Server-->>Client: សេចក្តីជូនដំណឹង: tiến độ 10%
+    Server-->>Client: សេចក្តីជូនដំណឹង: tiến độ 50%
+    Server-->>Client: សេចក្តីជូនដំណឹង: tiến độ 90%
     Server->>Client: លទ្ធផល (បញ្ចប់)
 ```
+
 ### ការអនុវត្ត Python
 
 ```python
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # ទទួលទំហំឯកសារសម្រាប់ការគណនាការរីកចម្រើន
+    # ទទួលទំហំឯកសារសម្រាប់ការគណនាកំណត់ប្រតិបត្តិការណ៍
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # ដំណើរការផ្នែក
+            # ដំណើរការចំណែក
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # ផ្ញើការជូនដំណឹងអំពីការរីកចម្រើន
+            # ផ្ញើការជូនដំណឹងអំពីការអភិវឌ្ឍន៍
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # របាយការណ៍ការរីកចម្រើនបន្ទាប់ពីមួយធាតុរៀងរាល់មួយ
+        # រាយការណ៍អភិវឌ្ឍន៍បន្ទាប់ពីធាតុមួយៗ
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // ផ្ញើ​ការ​ជូនដំណឹង​ពី​ការរីកចម្រើន
+      // ផ្ញើសេចក្តីជូនដំណឹងអំពីការរីកចម្រើន
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### ការគ្រប់គ្រងពីភាគីអតិថិជន (Python)
+### ការដោះស្រាយអតិថិជន (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,18 +134,18 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# ចុះឈ្មោះអ្នកដោះស្រាយ
+# ចុះបញ្ជីអ្នកដឹកនាំ
 session.on_notification("notifications/progress", handle_progress)
 
-# ហៅឧបករណ៍ (អាប់ដេតជំពាក់នឹងមកដល់តាមអ្នកដោះស្រាយ)
+# អំពាវនាវឧបករណ៍ (ព័ត៌មានជាប់កំណត់នឹងមកដល់តាមរយៈអ្នកដឹកនាំ)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. ការលុបចោលសំណើ
+## 2. សុំបោះបង់សំណើ
 
-អនុញ្ញាតឲ្យអតិថិជនលុបចោលសំណើដែលមិនចាំបាច់ឬកំពុងយឺតពេក។
+អនុញ្ញាតអតិថិជនបោះបង់សំណើដែលមិនចាំបាច់ ឬកំពុងចំណាយពេលយូរ។
 
 ### ការអនុវត្ត Python
 
@@ -161,19 +164,19 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # ស្វែងរកតាមទំព័រច្រើន
-            # ពិនិត្យមើលថាតើបានស្នើសុំបោះបង់ឬអត់
+            # ពិនិត្យមើលថាតើការបោះបង់ត្រូវបានស្នើរឬនៅ
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # ចម្លងការស្វែងរកតាមទំព័រ
+            # រំលឹកការស្វែងរកទំព័រ
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # ពន្យារពេលតិចតួចអនុញ្ញាតឲ្យពិនិត្យការបោះបង់
+            # ពេលយឺតតូចអនុញ្ញាតឱ្យពិនិត្យការបោះបង់
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # ត្រឡប់លទ្ធផលផ្នែកមួយ
+        # បង្រួមលទ្ធផលខ្លះៗ
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### ការអនុវត្ត Context សម្រាប់ការលុបចោល
+### ការអនុវត្តបរិបទបោះបង់
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # ពេលវេលាដែលធម្មតា, ការបន្ត
+            pass  # ពេលវេលាចេញធម្មតា, ដំណើរការបន្ត
 ```
 
-### ការលុបចោលពីភាគីអតិថិជន
+### ការបោះបង់ពីម្ខាងអតិថិជន
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # សំណើរ​លុប​បោះ​បង់
+        # ស្នើសុំបោះបង់
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -260,11 +263,11 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. គំរូធនធាន
+## 3. វាលទ្រង់ទ្រាយធនធាន
 
-គំរូធនធានអនុញ្ញាតឲ្យបង្កើត URI យ៉ាងអាចបត់បែនបានដោយប្រើប៉ារ៉ាម៉ែត្រ សមស្របសម្រាប់ API និងមូលដ្ឋានទិន្នន័យ។
+វាលទ្រង់ទ្រាយធនធានអូសថ៍ URI ឌីណាមិចជាមួយប៉ារ៉ាម៉ែត្រ ដែលមានប្រយោជន៍សម្រាប់ API និងទិន្នន័យ
 
-### ការបង្កើតគំរូ
+### ការកំណត់វាលទ្រង់ទ្រាយ
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # វាយតម្លៃ URI ដើម្បីដក parameters
+    # វិភាគ URI ដើម្បីយកពរម៉ែត្រ
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // បំបែក URI បញ្ហា GitHub
+  // វិភាគ URI បញ្ហា GitHub
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. ព្រឹត្តិការណ៍អាយុកាលម៉ាស៊ីនបម្រើ
+## 4. ព្រឹត្តិការណ៍ជីវិតម៉ាស៊ីនបម្រើ
 
-ការចាប់ផ្តើម និងបិទម៉ាស៊ីនបម្រើយ៉ាងត្រឹមត្រូវធានាថាការគ្រប់គ្រងធនធានមានភាពស្អាតនិងត្រឹមត្រូវ។
+ការបញ្ចូល និងបិទដោយត្រឹមត្រូវធានាការគ្រប់គ្រងធនធានបានស្អាត។
 
-### ការគ្រប់គ្រងអាយុកាល Python
+### ការគ្រប់គ្រងជីវិតម៉ាស៊ីនបម្រើ Python
 
 ```python
 from mcp.server import Server
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# រដ្ឋចែករំលែក
+# រដ្ឋរួម
 db_connection = None
 cache = None
 
@@ -391,7 +394,7 @@ async def lifespan(server: Server):
     
     yield  # ម៉ាស៊ីនមេដំណើរការនៅទីនេះ
     
-    # បិទដោយសុវត្ថិភាព
+    # បិទប្រាក់
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### អាយុកាល TypeScript
+### ជីវិតម៉ាស៊ីនបម្រើ TypeScript
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // ប្រើ this.dbConnection យ៉ាងមានសុវត្ថិភាព
+      // ប្រើ this.dbConnection ដោយសុវត្ថិភាព
       // ...
     });
   }
 }
 
-// ការប្រើប្រាស់ជាមួយការបិទម៉ាស៊ីនយ៉ាងរលូន
+// ការប្រើប្រាស់ជាមួយការបិទម៉ាស៊ីនយ៉ាងផាន់ពិការណ៍
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. ការត្រួតពិនិត្យការចុះបញ្ជី
+## 5. ការត្រួតពិនិត្យកំណត់ហេតុ
 
-MCP គាំទ្រកម្រិតការចុះបញ្ជីនៅម៉ាស៊ីនបម្រើដែលអតិថិជនអាចគ្រប់គ្រងបាន។
+MCP គាំទ្រកម្រិតកំណត់ហេតុផ្នែកម៉ាស៊ីនបម្រើ ដែលអតិថិជនអាចគ្រប់គ្រងបាន។
 
-### ការអនុវត្តកម្រិតការចុះបញ្ជី
+### ការអនុវត្តកម្រិតកំណត់ហេតុ
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# ផ្ទាំងកម្រិត MCP ទៅកម្រិតកំណត់ហេតុ Python
+# ផ្គូផ្គងកម្រិត MCP ទៅកម្រិតកំណត់ហេតុ Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,14 +512,14 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### ការផ្ញើសារចុះបញ្ជីទៅអតិថិជន
+### ការបញ្ជូនសារកំណត់ហេតុទៅអតិថិជន
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # ផ្ញើការជូនដំណឹងកំណត់ហេតុទៅអតិថិជន
+    # ផ្ញើការជូនដំណឹងកំណត់ហេតុទៅឱ្យអតិថិជន
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. គំរូការគ្រប់គ្រងកំហុស
+## 6. លំនាំដំណោះស្រាយកំហុស
 
-ការគ្រប់គ្រងកំហុសយ៉ាងសំរាប់គ្នាធ្វើឲ្យការកែកំហុស និងបទពិសោធ៍អ្នកប្រើប្រាស់មានប្រសិទ្ធភាព។
+ការប្រើលំនាំដំណោះស្រាយកំហុសមានភាពជៀសវាងវានិងជួយពង្រឹងបទពិសោធន៍អ្នកប្រើ។
 
 ### លេខកូដកំហុស MCP
 
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### ការឆ្លើយតបកំហុសដែលមានរចនាសម្ព័ន្ធ
+### ប្រតិកម្មកំហុសមានរចនាសម្ព័ន្ធ
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # ផ្ទៀងផ្ទាត់ការបញ្ចូល
+    # ស្តារាច្បាប់បញ្ចូល
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -584,11 +587,11 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # ពិនិត្យការអនុញ្ញាត
+        # ពិនិត្យសិទ្ធិ
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # អនុវត្តប្រតិបត្តិការ
+        # បំពេញប្រតិបត្តិការ
         result = await perform_operation(input)
         
         if result is None:
@@ -601,12 +604,12 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # ចុះបញ្ជីកំហុសដែលមិនបានរំពឹងទុក
+        # ចុះកំណត់ត្រាកំហុសមិនបានរំពឹងទុក
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### ការគ្រប់គ្រងកំហុសក្នុង TypeScript
+### ការដោះស្រាយកំហុសនៅ TypeScript
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -633,15 +636,15 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // ខុសបន្លំ MCP មានរួចហើយ
+      throw error;  // មានកំហុស MCP ហើយ
     }
     
-    // បម្លែងការខុសផ្សេងទៀត
+    // បម្លែងកំហុសផ្សេងទៀត
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
     
-    // ការខុសមិនស្គាល់
+    // កំហុសមិនស្គាល់
     console.error("Unexpected error:", error);
     throw new McpError(
       ErrorCode.InternalError,
@@ -655,9 +658,9 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## លក្ខណៈពិសេសសាកល្បង (MCP 2025-11-25)
 
-លក្ខណៈពិសេសទាំងនេះត្រូវបានសម្គាល់ថាជាការសាកល្បងក្នុងលក្ខណៈពិសេស៖
+លក្ខណៈពិសេសទាំងនេះត្រូវបានសម្គាល់ថាសាកល្បងក្នុងលក្ខខណ្ឌបញ្ជាក់:
 
-### ភារកិច្ច (ប្រតិបត្តិការដែលចំណាយពេលយូរ)
+### ការងារ (ប្រតិបត្តិការពេលវែង)
 
 ```python
 # ការងារអនុញ្ញាតឲ្យតាមដានប្រតិបត្តិការដែលរត់យូរជាមួយស្ថានភាព
@@ -665,10 +668,10 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # រាយការណ៍ការងារចាប់ផ្តើម
+    # របាយការណ៍បេសកកម្មបានចាប់ផ្តើម
     await ctx.report_status("running", "Initializing training...")
     
-    # វដ្តបណ្តុះបណ្តាល
+    # សាលីបណ្តុះបណ្តាល
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### ការកំណត់សម្គាល់ឧបករណ៍
+### ការបញ្ជាក់ឧបករណ៍
 
 ```python
-# ការប្រាប់ព័ត៌មានផ្តល់ព័ត៌មានអំពីឧបករណ៍ប្រតិបត្តិការ
+# ការកំណត់សម្គាល់ផ្តល់ metadata អំពីរោលនៃឧបករណ៍
 @app.tool(
     annotations={
-        "destructive": False,      # មិនផ្លាស់ប្តូរទិន្នន័យ
-        "idempotent": True,        # មានសុវត្ថិភាពក្នុងការព្យាយាមម្តងទៀត
-        "timeout_seconds": 30,     # រយៈពេលអតិបរមារង់ចាំ
-        "requires_approval": False # មិនចាំបាច់ការអនុម័តពីអ្នកប្រើប្រាស់
+        "destructive": False,      # មិនបានកែប្រែទិន្នន័យឡើយ
+        "idempotent": True,        # សុវត្ថិភាពក្នុងការព្យាយាមម្ដងទៀត
+        "timeout_seconds": 30,     # រយៈពេលអតិបរមាដែលរំពឹងទុក
+        "requires_approval": False # មិនត្រូវការអនុម័តពីអ្នកប្រើប្រាស់
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,17 +704,17 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## អ្វីជាប់ក្រោយ
+## បន្ទាប់មានអ្វី
 
-- [Module 8 - ល្បិចល្អបំផុត](../../08-BestPractices/README.md)
-- [5.14 - វិស្វកម្ម Context](../mcp-contextengineering/README.md)
-- [បម្លាស់ប្តូរពិធីការបញ្ជាក់ MCP](https://spec.modelcontextprotocol.io/)
+- [ម៉ូឌុល 8 - វិធីសាស្រ្តល្អបំផុត](../../08-BestPractices/README.md)
+- [5.14 - វិទ្យាសាស្រ្តបរិបទ](../mcp-contextengineering/README.md)
+- [កំណែប្រែ MCP Specification](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## ធនធានបន្ថែម
 
-- [ពិធីការបញ្ជាក់ MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP Specification 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [លេខកូដកំហុស JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
 - [ឧទាហរណ៍ Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [ឧទាហរណ៍ TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
@@ -719,6 +722,6 @@ async def safe_query(query: str) -> str:
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ការបដិសេធ**៖  
-ឯកសារនេះត្រូវបានបកប្រែដោយប្រើសេវាកម្មបកប្រែ AI [Co-op Translator](https://github.com/Azure/co-op-translator)។ ទោះយើងខិតខំសម្រាប់ភាពត្រឹមត្រូវ ក៏សូមយល់ព្រមថាការបកប្រែដោយស្វ័យប្រវត្តិអាចមានកំហុស ឬភាពមិនត្រឹមត្រូវ។ ឯកសារដើមដោយភាសាដើមគួរត្រូវបានគិតថាជាតំណភក្តីចម្បង។ សម្រាប់ព័ត៌មានសំខាន់ៗ គួរត្រូវបានបកប្រែដោយអ្នកបកប្រែវិជ្ជាជីវៈមនុស្ស។ យើងមិនទទួលខុសត្រូវចំពោះការយល់ច្រឡំ ឬការបកប្រែខុសបណ្តាលមកពីការប្រើប្រាស់ការបកប្រែនេះឡើយ។
+**ការបដិសេធ**:
+ឯកសារនេះត្រូវបានបម្លែងភាសា ដោយប្រើសេវាបម្លែងភាសា AI [Co-op Translator](https://github.com/Azure/co-op-translator)។ ទោះយើងខ្ញុំមានក្តីប្រាថ្នាឱ្យបានច្បាស់លាស់ តែសូមយល់ដឹងថាការបម្លែងដោយស្វ័យប្រវត្តិក៏អាចមានកំហុសឬភាពមិនត្រឹមត្រូវ។ ឯកសារដើមជាភាសាទីតាំងគួរត្រូវបានគេប្រើជាប្រភពច្បាស់លាស់។ សម្រាប់ព័ត៌មានសំខាន់ៗ សូមណែនាំឱ្យប្រើប្រាស់ការប្រែដោយមនុស្សជំនាញ។ យើងខ្ញុំមិនទទួលខុសត្រូវចំពោះការយល់ច្រឡំ ឬការបកស្រាយខុសបន្ទាប់ពីការប្រើប្រាស់ការបម្លែងនេះនោះទេ។
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

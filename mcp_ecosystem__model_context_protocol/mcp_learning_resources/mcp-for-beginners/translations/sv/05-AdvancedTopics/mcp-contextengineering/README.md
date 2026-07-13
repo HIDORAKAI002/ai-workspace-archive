@@ -1,48 +1,49 @@
-# Kontextteknik: Ett framväxande koncept inom MCP-ekosystemet
+# Context Engineering: Ett framväxande koncept inom MCP-ekosystemet
 
 ## Översikt
 
-Kontextteknik är ett framväxande koncept inom AI-området som utforskar hur information struktureras, levereras och upprätthålls under interaktioner mellan klienter och AI-tjänster. När Model Context Protocol (MCP)-ekosystemet utvecklas blir det allt viktigare att förstå hur man effektivt hanterar kontext. Denna modul introducerar konceptet kontextteknik och utforskar dess potentiella tillämpningar i MCP-implementeringar.
+Context engineering är ett framväxande koncept inom AI-området som undersöker hur information struktureras, levereras och underhålls under interaktioner mellan klienter och AI-tjänster. Allt eftersom Model Context Protocol (MCP)-ekosystemet utvecklas blir förståelsen för hur man effektivt hanterar kontext allt viktigare. Denna modul introducerar konceptet context engineering och utforskar dess möjliga tillämpningar i MCP-implementationer.
 
 ## Lärandemål
 
-I slutet av denna modul kommer du att kunna:
+I slutet av denna modul ska du kunna:
 
-- Förstå det framväxande konceptet kontextteknik och dess potentiella roll i MCP-applikationer
-- Identifiera nyckelutmaningar i kontexthantering som MCP-protokollets design adresserar
-- Utforska tekniker för att förbättra modellprestanda genom bättre kontexthantering
+- Förstå det framväxande konceptet context engineering och dess potentiella roll i MCP-applikationer
+- Identifiera viktiga utmaningar inom kontexthantering som MCP-protokolldesignen adresserar
+- Utforska tekniker för att förbättra modellens prestanda genom bättre kontexthantering
 - Överväga metoder för att mäta och utvärdera kontextens effektivitet
 - Tillämpa dessa framväxande koncept för att förbättra AI-upplevelser genom MCP-ramverket
 
-## Introduktion till kontextteknik
+## Introduktion till Context Engineering
 
-Kontextteknik är ett framväxande koncept som fokuserar på den medvetna designen och hanteringen av informationsflödet mellan användare, applikationer och AI-modeller. Till skillnad från etablerade områden som promptteknik håller kontextteknik fortfarande på att definieras av praktiker som arbetar för att lösa de unika utmaningarna med att ge AI-modeller rätt information vid rätt tidpunkt.
+Context engineering är ett framväxande koncept som fokuserar på medveten utformning och hantering av informationsflödet mellan användare, applikationer och AI-modeller. Till skillnad från etablerade områden som prompt engineering är context engineering fortfarande under definition av praktiker när de försöker lösa de unika utmaningarna med att förse AI-modeller med rätt information vid rätt tidpunkt.
 
-När stora språkmodeller (LLMs) har utvecklats har vikten av kontext blivit alltmer uppenbar. Kvaliteten, relevansen och strukturen av den kontext vi tillhandahåller påverkar direkt modellens resultat. Kontextteknik utforskar detta förhållande och strävar efter att utveckla principer för effektiv kontexthantering.
+Eftersom stora språkmodeller (LLM) har utvecklats har vikten av kontext blivit allt tydligare. Kvaliteten, relevansen och strukturen på den kontext vi tillhandahåller påverkar direkt modellens uttalanden. Context engineering utforskar denna relation och strävar efter att utveckla principer för effektiv kontexthantering.
 
-> "År 2025 är modellerna där ute extremt intelligenta. Men även den smartaste människan kommer inte att kunna utföra sitt jobb effektivt utan kontexten av vad de blir ombedda att göra... 'Kontextteknik' är nästa nivå av promptteknik. Det handlar om att göra detta automatiskt i ett dynamiskt system." — Walden Yan, Cognition AI
+> "År 2025 är modellerna där ute extremt intelligenta. Men även den smartaste människan kommer inte att kunna utföra sitt jobb effektivt utan kontexten i vad de ombeds göra... 'Context engineering' är nästa nivå av prompt engineering. Det handlar om att göra detta automatiskt i ett dynamiskt system." — Walden Yan, Cognition AI
 
-Kontextteknik kan omfatta:
+Context engineering kan omfatta:
 
-1. **Kontextval**: Att avgöra vilken information som är relevant för en viss uppgift
-2. **Kontextstrukturering**: Att organisera information för att maximera modellens förståelse
-3. **Kontextleverans**: Att optimera hur och när information skickas till modeller
-4. **Kontextunderhåll**: Att hantera kontextens tillstånd och utveckling över tid
-5. **Kontextevaluering**: Att mäta och förbättra kontextens effektivitet
+1. **Kontextval**: Att avgöra vilken information som är relevant för en given uppgift
+2. **Kontextstrukturering**: Organisera information för att maximera modellens förståelse
+3. **Kontextleverans**: Optimera hur och när information skickas till modeller
+4. **Kontexthantering**: Hantera tillstånd och utveckling av kontext över tid
+5. **Kontextevaluering**: Mäta och förbättra kontextens effektivitet
 
-Dessa fokusområden är särskilt relevanta för MCP-ekosystemet, som tillhandahåller ett standardiserat sätt för applikationer att ge kontext till LLMs.
+Dessa fokusområden är särskilt relevanta för MCP-ekosystemet, som erbjuder ett standardiserat sätt för applikationer att tillhandahålla kontext till LLMs.
 
-## Perspektivet kring kontextens resa
 
-Ett sätt att visualisera kontextteknik är att följa resan som information tar genom ett MCP-system:
+## Perspektivet kring Kontextresan
+
+Ett sätt att visualisera context engineering är att följa resan information tar genom ett MCP-system:
 
 ```mermaid
 graph LR
-    A[User Input] --> B[Context Assembly]
-    B --> C[Model Processing]
-    C --> D[Response Generation]
-    D --> E[State Management]
-    E -->|Next Interaction| A
+    A[Användarinmatning] --> B[Kontextsammanställning]
+    B --> C[Modellbearbetning]
+    C --> D[Svarsgenerering]
+    D --> E[Tillståndshantering]
+    E -->|Nästa interaktion| A
     
     style A fill:#A8D5BA,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
     style B fill:#7FB3D5,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -51,34 +52,34 @@ graph LR
     style E fill:#F9E79F,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
 ```
 
-### Nyckelstadier i kontextens resa:
+### Viktiga steg i Kontextresan:
 
-1. **Användarinmatning**: Råinformation från användaren (text, bilder, dokument)
+1. **Användarinmatning**: Rå information från användaren (text, bilder, dokument)
 2. **Kontextsammanställning**: Kombinera användarinmatning med systemkontext, konversationshistorik och annan hämtad information
 3. **Modellbearbetning**: AI-modellen bearbetar den sammanställda kontexten
-4. **Svarsgenerering**: Modellen producerar resultat baserat på den tillhandahållna kontexten
+4. **Svarsproduktion**: Modellen producerar svar baserat på den tillhandahållna kontexten
 5. **Tillståndshantering**: Systemet uppdaterar sitt interna tillstånd baserat på interaktionen
 
 Detta perspektiv belyser den dynamiska naturen av kontext i AI-system och väcker viktiga frågor om hur man bäst hanterar information i varje steg.
 
-## Framväxande principer inom kontextteknik
+## Framväxande principer i Context Engineering
 
-När området kontextteknik tar form börjar vissa tidiga principer att framträda från praktiker. Dessa principer kan hjälpa till att informera MCP-implementeringsval:
+När context engineering tar form börjar några tidiga principer dyka upp från praktiker. Dessa principer kan hjälpa till att informera val i MCP-implementationer:
 
-### Princip 1: Dela kontext fullständigt
+### Princip 1: Dela Kontext Fullständigt
 
-Kontext bör delas fullständigt mellan alla komponenter i ett system snarare än att fragmenteras över flera agenter eller processer. När kontext är distribuerad kan beslut som fattas i en del av systemet komma i konflikt med beslut som fattas någon annanstans.
+Kontext bör delas fullständigt mellan alla komponenter i ett system snarare än fragmenteras över flera agenter eller processer. När kontext distribueras kan beslut som tas i en del av systemet motsäga beslut som fattas någon annanstans.
 
 ```mermaid
 graph TD
-    subgraph "Fragmented Context Approach"
-    A1[Agent 1] --- C1[Context 1]
-    A2[Agent 2] --- C2[Context 2]
-    A3[Agent 3] --- C3[Context 3]
+    subgraph "Fragmenterad kontextmetod"
+    A1[Agent 1] --- C1[Kontext 1]
+    A2[Agent 2] --- C2[Kontext 2]
+    A3[Agent 3] --- C3[Kontext 3]
     end
     
-    subgraph "Unified Context Approach"
-    B1[Agent] --- D1[Shared Complete Context]
+    subgraph "Enhetlig kontextmetod"
+    B1[Agent] --- D1[Delad fullständig kontext]
     end
     
     style A1 fill:#AED6F1,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -91,39 +92,40 @@ graph TD
     style D1 fill:#D7BDE2,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
 ```
 
-I MCP-applikationer föreslår detta att designa system där kontext flödar sömlöst genom hela pipeline snarare än att vara uppdelad.
+I MCP-applikationer antyder detta att designa system där kontext flyter sömlöst genom hela pipelinen snarare än att vara uppdelad i separata delar.
 
 ### Princip 2: Erkänn att handlingar bär på implicita beslut
 
-Varje handling en modell utför innefattar implicita beslut om hur kontexten ska tolkas. När flera komponenter agerar på olika kontexter kan dessa implicita beslut komma i konflikt, vilket leder till inkonsekventa resultat.
+Varje handling som en modell utför inrymmer implicita beslut om hur kontexten ska tolkas. När flera komponenter agerar utifrån olika kontexter kan dessa implicita beslut kollidera och leda till inkonsekventa resultat.
 
-Denna princip har viktiga implikationer för MCP-applikationer:
-- Föredra linjär bearbetning av komplexa uppgifter framför parallell bearbetning med fragmenterad kontext
-- Säkerställ att alla beslutsställen har tillgång till samma kontextinformation
-- Designa system där senare steg kan se hela kontexten av tidigare beslut
+Denna princip har viktiga konsekvenser för MCP-applikationer:
+- Föredra linjär bearbetning av komplexa uppgifter framför parallell exekvering med fragmenterad kontext
+- Säkerställ att alla beslutsfattande punkter har tillgång till samma kontextuella information
+- Designa system där senare steg kan se hela kontexten för tidigare beslut
 
 ### Princip 3: Balansera kontextdjup med fönsterbegränsningar
 
-När konversationer och processer blir längre överflödar kontextfönster till slut. Effektiv kontextteknik utforskar metoder för att hantera denna spänning mellan omfattande kontext och tekniska begränsningar.
+Allteftersom konversationer och processer blir längre svämmar kontextfönstren till slut över. Effektiv context engineering undersöker metoder för att hantera denna balans mellan heltäckande kontext och tekniska begränsningar.
 
 Potentiella metoder som utforskas inkluderar:
-- Kontextkomprimering som bibehåller väsentlig information samtidigt som tokenanvändningen minskar
-- Progressiv laddning av kontext baserat på relevans för aktuella behov
+- Kontextkomprimering som bibehåller essentiell information samtidigt som tokenanvändningen minskas
+- Progressiv inläsning av kontext baserat på relevans för aktuella behov
 - Sammanfattning av tidigare interaktioner samtidigt som nyckelbeslut och fakta bevaras
 
 ## Kontextutmaningar och MCP-protokollets design
 
-Model Context Protocol (MCP) designades med en medvetenhet om de unika utmaningarna med kontexthantering. Att förstå dessa utmaningar hjälper till att förklara nyckelaspekter av MCP-protokollets design:
+Model Context Protocol (MCP) designades med medvetenhet om de unika utmaningarna med kontexthantering. Att förstå dessa utmaningar hjälper till att förklara viktiga aspekter av MCP-protokollets design:
+
 
 ### Utmaning 1: Begränsningar i kontextfönster
-De flesta AI-modeller har fasta kontextfönsterstorlekar, vilket begränsar hur mycket information de kan bearbeta samtidigt.
+De flesta AI-modeller har fasta storlekar på kontextfönstret, vilket begränsar hur mycket information de kan bearbeta samtidigt.
 
 **MCP-designsvar:** 
-- Protokollet stöder strukturerad, resursbaserad kontext som kan refereras effektivt
+- Protokollet stödjer strukturerad, resursbaserad kontext som kan refereras effektivt
 - Resurser kan pagineras och laddas progressivt
 
-### Utmaning 2: Relevansbestämning
-Att avgöra vilken information som är mest relevant att inkludera i kontexten är svårt.
+### Utmaning 2: Bestämning av relevans
+Att avgöra vilken information som är mest relevant att inkludera i kontext är svårt.
 
 **MCP-designsvar:**
 - Flexibla verktyg möjliggör dynamisk hämtning av information baserat på behov
@@ -134,38 +136,38 @@ Att hantera tillstånd över interaktioner kräver noggrann spårning av kontext
 
 **MCP-designsvar:**
 - Standardiserad sessionshantering
-- Tydligt definierade interaktionsmönster för kontextutveckling
+- Klart definierade interaktionsmönster för kontextevolution
 
-### Utmaning 4: Multimodal kontext
-Olika typer av data (text, bilder, strukturerad data) kräver olika hantering.
+### Utmaning 4: Multi-modal kontext
+Olika typer av data (text, bilder, strukturerad data) kräver olika behandling.
 
 **MCP-designsvar:**
 - Protokolldesignen rymmer olika innehållstyper
-- Standardiserad representation av multimodal information
+- Standardiserad representation av multi-modal information
 
 ### Utmaning 5: Säkerhet och integritet
 Kontext innehåller ofta känslig information som måste skyddas.
 
 **MCP-designsvar:**
-- Tydliga gränser mellan klient- och serveransvar
+- Klara gränser mellan klient- och serveransvar
 - Lokala bearbetningsalternativ för att minimera dataexponering
 
-Att förstå dessa utmaningar och hur MCP adresserar dem ger en grund för att utforska mer avancerade tekniker inom kontextteknik.
+Att förstå dessa utmaningar och hur MCP adresserar dem ger en grund för att utforska mer avancerade tekniker inom context engineering.
 
-## Framväxande metoder inom kontextteknik
+## Framväxande metoder inom Context Engineering
 
-När området kontextteknik utvecklas framträder flera lovande metoder. Dessa representerar aktuellt tänkande snarare än etablerade bästa praxis och kommer sannolikt att utvecklas när vi får mer erfarenhet av MCP-implementeringar.
+Allt eftersom fältet context engineering utvecklas, framträder flera lovande metoder. Dessa representerar aktuell tankegång snarare än etablerade bästa praxis, och kommer sannolikt att utvecklas med ökad erfarenhet av MCP-implementationer.
 
-### 1. Enkeltrådad linjär bearbetning
+### 1. En-trådad linjär bearbetning
 
-I kontrast till multi-agent-arkitekturer som distribuerar kontext finner vissa praktiker att enkeltrådad linjär bearbetning ger mer konsekventa resultat. Detta överensstämmer med principen om att upprätthålla enhetlig kontext.
+Till skillnad från multi-agent-arkitekturer som distribuerar kontext, upptäcker vissa praktiker att en-trådad linjär bearbetning ger mer konsekventa resultat. Detta överensstämmer med principen att bibehålla en enhetlig kontext.
 
 ```mermaid
 graph TD
-    A[Task Start] --> B[Process Step 1]
-    B --> C[Process Step 2]
-    C --> D[Process Step 3]
-    D --> E[Result]
+    A[Uppgift Start] --> B[Process Steg 1]
+    B --> C[Process Steg 2]
+    C --> D[Process Steg 3]
+    D --> E[Resultat]
     
     style A fill:#A9CCE3,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
     style B fill:#A3E4D7,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -174,36 +176,36 @@ graph TD
     style E fill:#D2B4DE,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
 ```
 
-Även om denna metod kan verka mindre effektiv än parallell bearbetning, ger den ofta mer sammanhängande och tillförlitliga resultat eftersom varje steg bygger på en fullständig förståelse av tidigare beslut.
+Även om detta tillvägagångssätt kan verka mindre effektivt än parallell bearbetning, ger det ofta mer sammanhängande och pålitliga resultat eftersom varje steg bygger på en fullständig förståelse av tidigare beslut.
 
-### 2. Kontextuppdelning och prioritering
+### 2. Kontextbrytning och prioritering
 
-Att dela upp stora kontexter i hanterbara delar och prioritera det som är mest viktigt.
+Att dela upp stora kontexter i hanterbara delar och prioritera vad som är viktigast.
 
 ```python
-# Conceptual Example: Context Chunking and Prioritization
+# Konceptuellt exempel: Kontextindelning och prioritering
 def process_with_chunked_context(documents, query):
-    # 1. Break documents into smaller chunks
+    # 1. Dela upp dokument i mindre delar
     chunks = chunk_documents(documents)
     
-    # 2. Calculate relevance scores for each chunk
+    # 2. Beräkna relevanspoäng för varje del
     scored_chunks = [(chunk, calculate_relevance(chunk, query)) for chunk in chunks]
     
-    # 3. Sort chunks by relevance score
+    # 3. Sortera delar efter relevanspoäng
     sorted_chunks = sorted(scored_chunks, key=lambda x: x[1], reverse=True)
     
-    # 4. Use the most relevant chunks as context
+    # 4. Använd de mest relevanta delarna som kontext
     context = create_context_from_chunks([chunk for chunk, score in sorted_chunks[:5]])
     
-    # 5. Process with the prioritized context
+    # 5. Bearbeta med den prioriterade kontexten
     return generate_response(context, query)
 ```
 
-Konceptet ovan illustrerar hur vi kan dela upp stora dokument i hanterbara delar och välja endast de mest relevanta delarna för kontext. Denna metod kan hjälpa till att arbeta inom kontextfönsterbegränsningar samtidigt som stora kunskapsbaser utnyttjas.
+Konceptet ovan illustrerar hur vi kan dela upp stora dokument i hanterbara delar och välja endast de mest relevanta delarna för kontext. Detta tillvägagångssätt kan hjälpa till att arbeta inom begränsningar i kontextfönster samtidigt som stora kunskapsbaser utnyttjas.
 
-### 3. Progressiv kontextladdning
+### 3. Progressiv kontextinläsning
 
-Att ladda kontext progressivt vid behov snarare än allt på en gång.
+Att läsa in kontext progressivt vid behov snarare än på en gång.
 
 ```mermaid
 sequenceDiagram
@@ -212,34 +214,34 @@ sequenceDiagram
     participant MCP Server
     participant AI Model
 
-    User->>App: Ask Question
-    App->>MCP Server: Initial Request
-    MCP Server->>AI Model: Minimal Context
-    AI Model->>MCP Server: Initial Response
+    User->>App: Ställ fråga
+    App->>MCP Server: Initial förfrågan
+    MCP Server->>AI Model: Minimal kontext
+    AI Model->>MCP Server: Initialt svar
     
-    alt Needs More Context
-        MCP Server->>MCP Server: Identify Missing Context
-        MCP Server->>MCP Server: Load Additional Context
-        MCP Server->>AI Model: Enhanced Context
-        AI Model->>MCP Server: Final Response
+    alt Behöver mer kontext
+        MCP Server->>MCP Server: Identifiera saknad kontext
+        MCP Server->>MCP Server: Ladda ytterligare kontext
+        MCP Server->>AI Model: Förbättrad kontext
+        AI Model->>MCP Server: Slutligt svar
     end
     
-    MCP Server->>App: Response
-    App->>User: Answer
+    MCP Server->>App: Svar
+    App->>User: Svar
 ```
 
-Progressiv kontextladdning börjar med minimal kontext och expanderar endast när det behövs. Detta kan avsevärt minska tokenanvändningen för enkla frågor samtidigt som förmågan att hantera komplexa frågor bibehålls.
+Progressiv kontextinläsning startar med minimal kontext och expanderar endast när det är nödvändigt. Detta kan avsevärt minska tokenanvändningen för enkla frågor samtidigt som förmågan att hantera komplexa frågor bibehålls.
 
 ### 4. Kontextkomprimering och sammanfattning
 
-Att minska kontextstorleken samtidigt som väsentlig information bevaras.
+Att minska kontextstorleken samtidigt som essentiell information bevaras.
 
 ```mermaid
 graph TD
-    A[Full Context] --> B[Compression Model]
-    B --> C[Compressed Context]
-    C --> D[Main Processing Model]
-    D --> E[Response]
+    A[Fullständig kontext] --> B[Komprimeringsmodell]
+    B --> C[Komprimerad kontext]
+    C --> D[Huvudbehandlingsmodell]
+    D --> E[Svar]
     
     style A fill:#A9CCE3,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
     style B fill:#A3E4D7,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
@@ -250,158 +252,185 @@ graph TD
 
 Kontextkomprimering fokuserar på:
 - Att ta bort redundant information
-- Att sammanfatta lång innehåll
-- Att extrahera nyckelfakta och detaljer
-- Att bevara kritiska kontextelement
-- Att optimera för tokeneffektivitet
+- Sammanfatta omfattande innehåll
+- Extrahera nyckelfakta och detaljer
+- Bevara kritiska kontextelement
+- Optimera för token-effektivitet
 
-Denna metod kan vara särskilt värdefull för att upprätthålla långa konversationer inom kontextfönster eller för att effektivt bearbeta stora dokument. Vissa praktiker använder specialiserade modeller specifikt för kontextkomprimering och sammanfattning av konversationshistorik.
+Denna metod kan vara särskilt värdefull för att bibehålla långa konversationer inom kontextfönster eller för effektiv bearbetning av stora dokument. Vissa praktiker använder specialiserade modeller specifikt för kontextkomprimering och sammanfattning av konversationshistorik.
 
-## Utforskande överväganden inom kontextteknik
 
-När vi utforskar det framväxande området kontextteknik finns det flera överväganden som är värda att ha i åtanke när man arbetar med MCP-implementeringar. Dessa är inte föreskrivande bästa praxis utan snarare områden för utforskning som kan ge förbättringar i ditt specifika användningsfall.
+## Explorativa överväganden vid Context Engineering
 
-### Tänk på dina kontextmål
+När vi utforskar det framväxande fältet context engineering är flera överväganden värda att hålla i minnet när man arbetar med MCP-implementationer. Dessa är inte föreskrivande bästa praxis utan snarare områden för utforskning som kan leda till förbättringar i ditt specifika användningsfall.
+
+### Överväg dina kontextmål
 
 Innan du implementerar komplexa lösningar för kontexthantering, formulera tydligt vad du försöker uppnå:
 - Vilken specifik information behöver modellen för att lyckas?
 - Vilken information är väsentlig kontra kompletterande?
 - Vilka är dina prestandabegränsningar (latens, tokenbegränsningar, kostnader)?
 
-### Utforska lagerbaserade kontextmetoder
+### Utforska lagerindelade kontextmetoder
 
-Vissa praktiker har framgång med kontext som är organiserad i konceptuella lager:
+Vissa praktiker har framgång med kontext arrangerad i konceptuella lager:
 - **Kärnlager**: Väsentlig information som modellen alltid behöver
-- **Situationslager**: Kontext specifik för den aktuella interaktionen
-- **Stödlager**: Ytterligare information som kan vara användbar
-- **Reservlager**: Information som endast nås vid behov
+- **Situationslager**: Kontext specifik för aktuell interaktion
+- **Stödlager**: Extra information som kan vara hjälpsam
+- **Reservlager**: Information som endast nås när det behövs
 
-### Undersök hämtningstrategier
+### Undersök strategier för informationhämtning
 
-Effektiviteten av din kontext beror ofta på hur du hämtar information:
+Effektiviteten i din kontext beror ofta på hur du hämtar information:
 - Semantisk sökning och inbäddningar för att hitta konceptuellt relevant information
-- Nyckelordsbaserad sökning för specifika faktauppgifter
-- Hybridmetoder som kombinerar flera hämtningstekniker
+- Nyckelordsbaserad sökning för specifika faktadetaljer
+- Hybrida metoder som kombinerar flera sökmetoder
 - Metadatafiltrering för att begränsa omfattningen baserat på kategorier, datum eller källor
 
 ### Experimentera med kontextsammanhang
 
-Strukturen och flödet av din kontext kan påverka modellens förståelse:
-- Att gruppera relaterad information tillsammans
-- Att använda konsekvent formatering och organisation
-- Att upprätthålla logisk eller kronologisk ordning där det är lämpligt
-- Att undvika motsägelsefull information
+Struktur och flöde i din kontext kan påverka modellens förståelse:
+- Gruppera relaterad information tillsammans
+- Använd konsekvent formatering och organisering
+- Bibehålla logisk eller kronologisk ordning där det är lämpligt
+- Undvik motsägelsefull information
 
 ### Väg för- och nackdelar med multi-agent-arkitekturer
 
 Även om multi-agent-arkitekturer är populära i många AI-ramverk, medför de betydande utmaningar för kontexthantering:
 - Kontextfragmentering kan leda till inkonsekventa beslut mellan agenter
-- Parallell bearbetning kan introducera konflikter som är svåra att lösa
-- Kommunikationsöverhead mellan agenter kan motverka prestandaförbättringar
-- Komplex tillståndshantering krävs för att upprätthålla sammanhang
+- Parallell bearbetning kan orsaka konflikter som är svåra att lösa
+- Kommunikationsöverbelastning mellan agenter kan motverka prestandafördelar
+- Komplex tillståndshantering krävs för att bibehålla sammanhang
 
-I många fall kan en enkel-agent-metod med omfattande kontexthantering ge mer tillförlitliga resultat än flera specialiserade agenter med fragmenterad kontext.
+I många fall kan ett enkelt-agent-tillvägagångssätt med omfattande kontexthantering ge mer pålitliga resultat än flera specialiserade agenter med fragmenterad kontext.
 
 ### Utveckla utvärderingsmetoder
 
-För att förbättra kontextteknik över tid, överväg hur du ska mäta framgång:
+För att förbättra context engineering över tid, fundera över hur du ska mäta framgång:
 - A/B-testning av olika kontextstrukturer
 - Övervakning av tokenanvändning och svarstider
-- Spårning av användartillfredsställelse och uppgiftsavslutningsfrekvenser
+- Spårning av användartillfredsställelse och uppgiftsfärdigställandegrad
 - Analys av när och varför kontextstrategier misslyckas
 
-Dessa överväganden representerar aktiva områden för utforskning inom kontextteknik. När området mognar kommer mer definitiva mönster och praxis sannolikt att framträda.
+Dessa överväganden representerar aktiva områden för utforskning inom context engineering. När området mognar kommer mer bestämda mönster och praxis sannolikt att framträda.
 
-## Mäta kontextens effektivitet: En utvecklande ram
+## Mätning av kontexteffektivitet: Ett utvecklande ramverk
 
-När kontextteknik framträder som ett koncept börjar praktiker utforska hur vi kan mäta dess effektivitet. Ingen etablerad ram finns ännu, men olika mått övervägs som kan hjälpa till att vägleda framtida arbete.
+Eftersom context engineering framträder som ett koncept börjar praktiker utforska hur dess effektivitet kan mätas. Inget etablerat ramverk finns ännu, men olika mått övervägs som kan hjälpa till att styra framtida arbete.
 
-### Potentiella mätområden
+### Potentiella mätdimensioner
 
-#### 1. Effektivitet i inmatning
 
-- **Kontext-till-svar-förhållande**: Hur mycket kontext behövs i förhållande till svarstorleken?
-- **Tokenutnyttjande**: Vilken procentandel av tillhandahållna kontexttokens verkar påverka svaret?
-- **Kontextreduktion**: Hur effektivt kan vi komprimera råinformation?
+#### 1. Inmatningseffektivitet
 
-#### 2. Prestandaöverväganden
+- **Kontext-till-svar-förhållande**: Hur mycket kontext krävs i förhållande till svarsstorleken?
+- **Tokenanvändning**: Vilken andel av de tillhandahållna kontexttoken verkar påverka svaret?
+- **Kontextreduktion**: Hur effektivt kan vi komprimera rå information?
+
+#### 2. Prestanda
 
 - **Latenspåverkan**: Hur påverkar kontexthantering svarstiden?
 - **Tokenekonomi**: Optimerar vi tokenanvändningen effektivt?
-- **Hämtningsprecision**: Hur relevant är den hämtade informationen?
-- **Resursutnyttjande**: Vilka beräkningsresurser krävs?
+- **Hämtprecision**: Hur relevant är den hämtade informationen?
+- **Resursanvändning**: Vilka beräkningsresurser krävs?
 
-#### 3. Kvalitetsöverväganden
+#### 3. Kvalitet
 
-- **Svarens relevans**: Hur väl adresserar svaret frågan?
-- **Faktuell noggrannhet**: Förbättrar kontexthantering faktakorrektheten?
+- **Svarens relevans**: Hur väl svarar svaret på frågeställningen?
+- **Faktuell korrekthet**: Förbättrar kontexthantering den faktiska riktigheten?
 - **Konsekvens**: Är svaren konsekventa över liknande frågor?
 - **Hallucinationsfrekvens**: Minskar bättre kontext modellens hallucinationer?
 
-#### 4. Användarupplevelseöverväganden
+#### 4. Användarupplevelse
 
 - **Uppföljningsfrekvens**: Hur ofta behöver användare förtydliganden?
-- **Uppgiftsavslutning**: Lyckas användare med att uppnå sina mål?
-- **Tillfredsställelseindikatorer**: Hur betygsätter användare sin upplevelse?
+- **Uppgiftsavslutning**: Lyckas användare uppnå sina mål?
+- **Tillfredsställelseindikatorer**: Hur värderar användare sin upplevelse?
 
-### Utforskande metoder för mätning
+### Explorativa mätmetoder
 
-När du experimenterar med kontextteknik i MCP-implementeringar, överväg dessa utforskande metoder:
+När du experimenterar med context engineering inom MCP-implementationer, överväg dessa explorativa metoder:
 
-1. **Jämförelser med baslinjer**: Etablera en baslinje med enkla kontextmetoder innan du testar mer sofistikerade metoder
+1. **Baslinjajämförelser**: Etablera en baslinje med enkla kontextmetoder innan mer sofistikerade metoder testas
 
-2. **Inkrementella förändringar**: Ändra en aspekt av kontexthantering i taget för att isolera dess effekter
+2. **Inkrementella förändringar**: Ändra en aspekt av kontexthanteringen åt gången för att isolera effekterna
 
 3. **Användarcentrerad utvärdering**: Kombinera kvantitativa mått med kvalitativ användarfeedback
 
-4. **Felanalys**: Undersök fall där kontextstrategier misslyckas för att förstå potentiella förbättringar
+4. **Felanalys**: Undersökfall där kontextstrategier misslyckas för att förstå potentiella förbättringar
 
 5. **Multidimensionell bedömning**: Överväg avvägningar mellan effektivitet, kvalitet och användarupplevelse
 
-Denna experimentella, mångfacetterade metod för mätning överensstämmer med det framväxande området kontextteknik.
+Detta experimentella, mångfacetterade tillvägagångssätt för mätning överensstämmer med context engineerings framväxande karaktär.
 
 ## Avslutande tankar
 
-Kontextteknik är ett framväxande område för utforskning som kan visa sig vara centralt för effektiva MCP-applikationer. Genom att noggrant överväga hur information flödar genom ditt system kan du potentiellt skapa AI-upplevelser som är mer effektiva, korrekta och värdefulla för användare.
+Context engineering är ett framväxande utforskningsområde som kan visa sig vara centralt för effektiva MCP-applikationer. Genom att medvetet överväga hur information flödar genom ditt system kan du potentiellt skapa AI-upplevelser som är mer effektiva, exakta och värdefulla för användarna.
 
-De tekniker och metoder som beskrivs i denna modul representerar tidigt tänkande inom detta område, inte etablerade praxis. Kontextteknik kan utvecklas till en mer definierad disciplin när AI-förmågor utvecklas och vår förståelse fördjupas. För närvarande verkar experimentering kombinerat med noggrann mätning vara den mest produktiva metoden.
+De tekniker och metoder som presenteras i denna modul representerar tidig tankegång inom området, inte etablerade metoder. Context engineering kan utvecklas till en tydligare disciplin allteftersom AI-kapaciteter utvecklas och vår förståelse fördjupas. För närvarande verkar experimenterande i kombination med noggrann mätning vara det mest produktiva tillvägagångssättet.
 
 ## Potentiella framtida riktningar
 
-Området kontextteknik är fortfarande i sina tidiga stadier, men flera lovande riktningar framträder:
+Fältet context engineering är fortfarande i sin linda, men flera lovande riktningar framträder:
 
-- Principer för kontextteknik kan ha betydande påverkan på modellprestanda, effektivitet
+- Principer för context engineering kan avsevärt påverka modellprestanda, effektivitet, användarupplevelse och tillförlitlighet
+- En-trådade tillvägagångssätt med omfattande kontexthantering kan prestera bättre än multi-agent-arkitekturer för många användningsfall
+- Specialiserade modeller för kontextkomprimering kan bli standardkomponenter i AI-pipelines
+- Spänningen mellan kontextfullständighet och tokenbegränsningar kommer sannolikt att driva innovation inom kontexthantering
+- Allt eftersom modeller blir mer kapabla att kommunicera effektivt på mänskligt sätt kan sann multi-agent-samarbete bli mer genomförbart
+- MCP-implementationer kan utvecklas för att standardisera kontexthanteringsmönster som framträder från nuvarande experiment
+
+```mermaid
+graph TD
+    A[Tidiga Utforskningar] -->|Experimenterande| B[Framväxande Mönster]
+    B -->|Validering| C[Etablerade Metoder]
+    C -->|Tillämpning| D[Nya Utmaningar]
+    D -->|Innovation| A
+    
+    style A fill:#AED6F1,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style B fill:#A9DFBF,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style C fill:#F4D03F,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+    style D fill:#F5B7B1,stroke:#000000,stroke-width:2px,color:#000000,font-weight:bold
+```
+
+## Resurser
+
+### Officiella MCP-resurser
 - [Model Context Protocol Website](https://modelcontextprotocol.io/)
 - [Model Context Protocol Specification](https://github.com/modelcontextprotocol/modelcontextprotocol)
+
 - [MCP Dokumentation](https://modelcontextprotocol.io/docs)
 - [MCP C# SDK](https://github.com/modelcontextprotocol/csharp-sdk)
 - [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [MCP Inspector](https://github.com/modelcontextprotocol/inspector) - Visuellt testverktyg för MCP-servrar
 
-### Artiklar om Context Engineering
-- [Bygg inte Multi-Agents: Principer för Context Engineering](https://cognition.ai/blog/dont-build-multi-agents) - Walden Yans insikter om principer för context engineering
-- [En praktisk guide till att bygga agenter](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf) - OpenAIs guide för effektiv agentdesign
-- [Bygga effektiva agenter](https://www.anthropic.com/engineering/building-effective-agents) - Anthropics metod för agentutveckling
+### Artiklar om kontextteknik
+- [Bygg inte Multi-Agents: Principer för kontextteknik](https://cognition.ai/blog/dont-build-multi-agents) - Walden Yans insikter om principer för kontextteknik
+- [En praktisk guide för att bygga agenter](https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf) - OpenAIs guide för effektiv agentdesign
+- [Att bygga effektiva agenter](https://www.anthropic.com/engineering/building-effective-agents) - Anthropics synsätt på agentutveckling
 
 ### Relaterad forskning
-- [Dynamisk hämtning för stora språkmodeller](https://arxiv.org/abs/2310.01487) - Forskning om dynamiska hämtningstekniker
-- [Vilse i mitten: Hur språkmodeller använder långa kontexter](https://arxiv.org/abs/2307.03172) - Viktig forskning om mönster för kontextbearbetning
-- [Hierarkisk textbaserad bildgenerering med CLIP Latents](https://arxiv.org/abs/2204.06125) - DALL-E 2-papper med insikter om kontextstrukturering
-- [Utforska kontextens roll i arkitekturer för stora språkmodeller](https://aclanthology.org/2023.findings-emnlp.124/) - Ny forskning om kontexthantering
-- [Multi-Agent Samarbete: En översikt](https://arxiv.org/abs/2304.03442) - Forskning om system med flera agenter och deras utmaningar
+- [Dynamisk uppslagsförstärkning för stora språkmodeller](https://arxiv.org/abs/2310.01487) - Forskning om dynamiska uppslagsmetoder
+- [Förlorad i mitten: Hur språkmodeller använder långa kontexter](https://arxiv.org/abs/2307.03172) - Viktig forskning om mönster i kontextbehandling
+- [Hierarkisk textbetingad bildgenerering med CLIP Latents](https://arxiv.org/abs/2204.06125) - DALL-E 2 artikel med insikter om kontextstrukturering
+- [Utforska kontextens roll i arkitekturer för stora språkmodeller](https://aclanthology.org/2023.findings-emnlp.124/) - Senaste forskningen om kontexthantering
+- [Samarbete mellan multi-agenter: En översikt](https://arxiv.org/abs/2304.03442) - Forskning om multi-agent system och deras utmaningar
 
 ### Ytterligare resurser
-- [Tekniker för optimering av kontextfönster](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/context-window)
+- [Optimeringstekniker för kontextfönster](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/context-window)
 - [Avancerade RAG-tekniker](https://www.microsoft.com/en-us/research/blog/retrieval-augmented-generation-rag-and-frontier-models/)
-- [Semantic Kernel Dokumentation](https://github.com/microsoft/semantic-kernel)
-- [AI Toolkit för kontexthantering](https://github.com/microsoft/aitoolkit)
+- [Semantic Kernel-dokumentation](https://github.com/microsoft/semantic-kernel)
+- [AI-verktyg för kontexthantering](https://github.com/microsoft/aitoolkit)
 
-## Vad händer härnäst
+## Vad händer härnäst 
 
-- [5.15 MCP Anpassad Transport](../mcp-transport/README.md)
+- [5.15 MCP Custom Transport](../mcp-transport/README.md)
 
 ---
 
-**Ansvarsfriskrivning**:  
-Detta dokument har översatts med hjälp av AI-översättningstjänsten [Co-op Translator](https://github.com/Azure/co-op-translator). Även om vi strävar efter noggrannhet, bör du vara medveten om att automatiserade översättningar kan innehålla fel eller felaktigheter. Det ursprungliga dokumentet på dess originalspråk bör betraktas som den auktoritativa källan. För kritisk information rekommenderas professionell mänsklig översättning. Vi ansvarar inte för eventuella missförstånd eller feltolkningar som uppstår vid användning av denna översättning.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Ansvarsfriskrivning**:
+Detta dokument har översatts med hjälp av AI-översättningstjänsten [Co-op Translator](https://github.com/Azure/co-op-translator). Även om vi strävar efter noggrannhet, var vänlig notera att automatiska översättningar kan innehålla fel eller brister. Det ursprungliga dokumentet på dess modersmål bör betraktas som den auktoritativa källan. För kritisk information rekommenderas professionell mänsklig översättning. Vi ansvarar inte för några missförstånd eller feltolkningar som uppstår till följd av användningen av denna översättning.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,36 +1,38 @@
-# MCP Vlastné Dopravné Protokoly - Sprievodca Pokročilou Implementáciou
+# MCP Vlastné Transporty - Pokročilý Implementačný Sprievodca
 
-Model Context Protocol (MCP) poskytuje flexibilitu v mechanizmoch prenosu, čo umožňuje vlastné implementácie pre špecializované podnikové prostredia. Tento pokročilý sprievodca skúma implementácie vlastných dopravných protokolov pomocou Azure Event Grid a Azure Event Hubs ako praktické príklady na budovanie škálovateľných, cloud-native MCP riešení.
+Protokol Model Context (MCP) poskytuje flexibilitu v mechanizmoch prenosu, umožňujúc vlastné implementácie pre špecializované podnikové prostredia. Tento pokročilý sprievodca skúma implementácie vlastných transportov pomocou Azure Event Grid a Azure Event Hubs ako praktické príklady na vytváranie škálovateľných, cloud-native MCP riešení.
+
+> **Výhľad do budúcnosti:** tento sprievodca je napísaný podľa **MCP Špecifikácie 2025-11-25**, kde musí byť zachovaná objednávka relácií pre každú reláciu (pozri Protokol správ nižšie). Kandidát na vydanie `2026-07-28` úplne odstraňuje protokolovú reláciu a vyžaduje hlavičky `Mcp-Method`/`Mcp-Name`, aby brány a vlastné transporty mohli smerovať podľa požiadavky namiesto podľa relácie. Pozri [Čo sa mení v MCP: Kandidát na vydanie 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Úvod
 
-Kým štandardné dopravné protokoly MCP (stdio a HTTP streaming) slúžia pre väčšinu prípadov použitia, podnikové prostredia často vyžadujú špecializované mechanizmy prenosu pre lepšiu škálovateľnosť, spoľahlivosť a integráciu s existujúcou cloud infraštruktúrou. Vlastné dopravné prostriedky umožňujú MCP využívať cloud-native servis na správu správ pre asynchrónnu komunikáciu, event-driven architektúry a distribuované spracovanie.
+Hoci štandardné transporty MCP (stdio a HTTP streaming) obsluhujú väčšinu prípadov použitia, podnikové prostredia často vyžadujú špecializované mechanizmy prenosu pre zlepšenú škálovateľnosť, spoľahlivosť a integráciu s existujúcou cloud infraštruktúrou. Vlastné transporty umožňujú MCP využiť cloud-native messaging služby pre asynchrónnu komunikáciu, event-driven architektúry a distribuované spracovanie.
 
-Táto lekcia skúma pokročilé implementácie dopravných protokolov založené na najnovšej špecifikácii MCP (2025-11-25), Azure messaging službách a zavedených podnikových integračných vzoroch.
+Táto lekcia skúma pokročilé implementácie transportov založené na najnovšej špecifikácii MCP (2025-11-25), Azure messaging službách a zavedených podnikových integračných vzorcoch.
 
-### **Architektúra Dopravných Protokolov MCP**
+### **Architektúra MCP Transportu**
 
-**Z MCP Špecifikácie (2025-11-25):**
+**Podľa MCP Špecifikácie (2025-11-25):**
 
-- **Štandardné prenosy**: stdio (odporúčané), HTTP streaming (pre vzdialené scenáre)
-- **Vlastné prenosy**: Akýkoľvek prenos, ktorý implementuje MCP protokol výmeny správ
-- **Formát správy**: JSON-RPC 2.0 s MCP-špecifickými rozšíreniami
-- **Obojsmerná komunikácia**: Vyžaduje sa plnoduplexná komunikácia pre oznámenia a odpovede
+- **Štandardné Transporty**: stdio (odporúčané), HTTP streaming (pre vzdialené scenáre)
+- **Vlastné Transporty**: Akýkoľvek transport, ktorý implementuje MCP protokol výmeny správ
+- **Formát Správy**: JSON-RPC 2.0 s MCP špecifickými rozšíreniami
+- **Obojsmerná Komunikácia**: Vyžaduje sa plný duplex pre notifikácie a odpovede
 
-## Vzdelávacie Ciele
+## Ciele učenia
 
-Na konci tejto pokročilej lekcie budete schopní:
+Po dokončení tejto pokročilej lekcie budete schopní:
 
-- **Pochopiť požiadavky na vlastné prenosy**: Implementovať MCP protokol nad akoukoľvek prenosovou vrstvou pri zachovaní zhody
-- **Vybudovať Azure Event Grid Prenos**: Vytvoriť event-driven MCP servery pomocou Azure Event Grid pre serverless škálovateľnosť
-- **Implementovať Azure Event Hubs Prenos**: Navrhnúť MCP riešenia s vysokou priepustnosťou pomocou Azure Event Hubs pre real-time streaming
-- **Aplikovať podnikové vzory**: Integrovať vlastné prenosy s existujúcou infraštruktúrou Azure a bezpečnostnými modelmi
-- **Zaobchádzať so spoľahlivosťou prenosu**: Implementovať trvácnosť správ, poradie a spracovanie chýb pre podnikové scenáre
-- **Optimalizovať výkon**: Navrhovať dopravné riešenia pre požiadavky škálovania, latencie a priepustnosti
+- **Pochopiť požiadavky na vlastné transporty**: Implementovať MCP protokol cez akúkoľvek transportnú vrstvu pri zachovaní zhody
+- **Vybudovať Azure Event Grid Transport**: Vytvoriť event-driven MCP servery pomocou Azure Event Grid pre serverless škálovateľnosť
+- **Implementovať Azure Event Hubs Transport**: Navrhnúť vysoko priepustné MCP riešenia pomocou Azure Event Hubs pre real-time streaming
+- **Použiť podnikové vzory**: Integrovať vlastné transporty s existujúcou Azure infraštruktúrou a bezpečnostnými modelmi
+- **Riešiť spoľahlivosť transportu**: Implementovať trvanlivosť správ, objednávanie a spracovanie chýb pre podnikové scenáre
+- **Optimalizovať výkon**: Navrhovať transportné riešenia pre škálovanie, latenciu a požiadavky na priepustnosť
 
-## **Požiadavky na Prenos**
+## **Požiadavky na transport**
 
-### **Základné požiadavky zo MCP Špecifikácie (2025-11-25):**
+### **Základné požiadavky podľa MCP Špecifikácie (2025-11-25):**
 
 ```yaml
 Message Protocol:
@@ -49,7 +51,7 @@ Custom Transport:
   interoperability: "MUST maintain protocol compatibility"
 ```
 
-## **Implementácia Dopravného Protokolu Azure Event Grid**
+## **Implementácia Azure Event Grid Transportu**
 
 Azure Event Grid poskytuje serverless službu smerovania udalostí ideálnu pre event-driven MCP architektúry. Táto implementácia demonštruje, ako vybudovať škálovateľné, voľne previazané MCP systémy.
 
@@ -57,20 +59,20 @@ Azure Event Grid poskytuje serverless službu smerovania udalostí ideálnu pre 
 
 ```mermaid
 graph TB
-    Client[MCP Klient] --> EG[Azure Event Grid]
-    EG --> Server[MCP Server Funkcia]
+    Client[MCP klient] --> EG[Azure Event Grid]
+    EG --> Server[MCP serverová funkcia]
     Server --> EG
     EG --> Client
     
-    subgraph "Azure Služby"
+    subgraph "Azure služby"
         EG
         Server
-        KV[Kľúčová Schránka]
-        Monitor[Analytika Aplikácie]
+        KV[Key Vault]
+        Monitor[Application Insights]
     end
 ```
 
-### **Implementácia v C# - Event Grid Prenos**
+### **Implementácia v C# - Event Grid Transport**
 
 ```csharp
 using Azure.Messaging.EventGrid;
@@ -142,7 +144,7 @@ public async Task<IActionResult> HandleEventGridMessage(
 }
 ```
 
-### **Implementácia v TypeScript - Event Grid Prenos**
+### **Implementácia v TypeScript - Event Grid Transport**
 
 ```typescript
 import { EventGridPublisherClient, AzureKeyCredential } from "@azure/eventgrid";
@@ -178,8 +180,8 @@ export class EventGridMcpTransport implements McpTransport {
     
     // Príjem riadený udalosťami cez Azure Functions
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
-        // Implementácia by použila trigger Event Grid v Azure Functions
-        // Toto je koncepčné rozhranie pre prijímač webhooku
+        // Implementácia by používala spúšťač Azure Functions Event Grid
+        // Toto je konceptuálne rozhranie pre prijímač webhooku
     }
 }
 
@@ -205,7 +207,7 @@ app.eventGrid("mcpEventGridHandler", {
 });
 ```
 
-### **Implementácia v Pythone - Event Grid Prenos**
+### **Implementácia v Pythone - Event Grid Transport**
 
 ```python
 from azure.eventgrid import EventGridPublisherClient, EventGridEvent
@@ -247,13 +249,13 @@ import logging
 def main(event: func.EventGridEvent) -> None:
     """Azure Functions Event Grid trigger for MCP messages"""
     try:
-        # Parsovanie MCP správy z udalosti Event Grid
+        # Analyzovať MCP správu z udalosti Event Grid
         mcp_message = json.loads(event.get_body().decode('utf-8'))
         
-        # Spracovanie MCP správy
+        # Spracovať MCP správu
         response = process_mcp_message(mcp_message)
         
-        # Odoslanie odpovede späť cez Event Grid
+        # Odoslať odpoveď späť cez Event Grid
         # (Implementácia by vytvorila nového klienta Event Grid)
         
     except Exception as e:
@@ -261,9 +263,9 @@ def main(event: func.EventGridEvent) -> None:
         raise
 ```
 
-## **Implementácia Dopravného Protokolu Azure Event Hubs**
+## **Implementácia Azure Event Hubs Transportu**
 
-Azure Event Hubs poskytuje vysokorýchlostný, real-time streaming pre MCP scenáre vyžadujúce nízku latenciu a vysoký objem správ.
+Azure Event Hubs poskytuje vysoko priepustné, real-time streaming schopnosti pre MCP scenáre vyžadujúce nízku latenciu a vysoký objem správ.
 
 ### **Prehľad architektúry**
 
@@ -276,7 +278,7 @@ graph TB
     
     subgraph "Funkcie Event Hubs"
         Partition[Particionovanie]
-        Retention[Ponechanie správ]
+        Retention[Uchovávanie správ]
         Scaling[Automatické škálovanie]
     end
     
@@ -285,7 +287,7 @@ graph TB
     EH --> Scaling
 ```
 
-### **Implementácia v C# - Event Hubs Prenos**
+### **Implementácia v C# - Event Hubs Transport**
 
 ```csharp
 using Azure.Messaging.EventHubs;
@@ -359,7 +361,7 @@ public class EventHubsMcpTransport : IMcpTransport, IDisposable
 }
 ```
 
-### **Implementácia v TypeScript - Event Hubs Prenos**
+### **Implementácia v TypeScript - Event Hubs Transport**
 
 ```typescript
 import { 
@@ -439,7 +441,7 @@ export class EventHubsMcpTransport implements McpTransport {
 }
 ```
 
-### **Implementácia v Pythone - Event Hubs Prenos**
+### **Implementácia v Pythone - Event Hubs Transport**
 
 ```python
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient
@@ -475,7 +477,7 @@ class EventHubsMcpTransport:
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
-            "timestamp": "2025-01-14T10:30:00Z"  # Použite skutočný časový údaj
+            "timestamp": "2025-01-14T10:30:00Z"  # Použite aktuálny časový údaj
         }
         
         async with self.producer:
@@ -503,14 +505,14 @@ class EventHubsMcpTransport:
         """Internal event handler wrapper"""
         async def handle_event(partition_context, event):
             try:
-                # Parsujte správu MCP z udalosti Event Hubs
+                # Analyzujte správu MCP z udalosti Event Hubs
                 message_body = event.body_as_str(encoding='UTF-8')
                 mcp_message = json.loads(message_body)
                 
                 # Spracujte správu MCP
                 await handler(mcp_message)
                 
-                # Aktualizujte kontrolný bod pre dodanie aspoň raz
+                # Aktualizujte kontrolný bod pre doručenie aspoň raz
                 await partition_context.update_checkpoint(event)
                 
             except Exception as e:
@@ -525,9 +527,9 @@ class EventHubsMcpTransport:
         await self.consumer.close()
 ```
 
-## **Pokročilé Vzory Prenosov**
+## **Pokročilé vzory transportu**
 
-### **Trvácnosť a spoľahlivosť správ**
+### **Trvanlivosť a spoľahlivosť správ**
 
 ```csharp
 // Implementing message durability with retry logic
@@ -554,7 +556,7 @@ public class ReliableTransportWrapper : IMcpTransport
 }
 ```
 
-### **Integrácia bezpečnosti prenosu**
+### **Integrácia bezpečnosti transportu**
 
 ```csharp
 // Integrating Azure Key Vault for transport security
@@ -576,7 +578,7 @@ public class SecureTransportFactory
 }
 ```
 
-### **Monitorovanie a pozorovateľnosť prenosu**
+### **Monitorovanie a pozorovateľnosť transportu**
 
 ```csharp
 // Adding telemetry to custom transports
@@ -619,7 +621,7 @@ public class ObservableTransport : IMcpTransport
 
 ### **Scenár 1: Distribuované MCP spracovanie**
 
-Využitie Azure Event Grid pre distribuovanie MCP požiadaviek na viaceré spracovateľské uzly:
+Využitie Azure Event Grid na distribúciu MCP požiadaviek naprieč viacerými spracovateľskými uzlami:
 
 ```yaml
 Architecture:
@@ -633,9 +635,9 @@ Benefits:
   - Cost optimization with serverless compute
 ```
 
-### **Scenár 2: Real-time MCP Streaming**
+### **Scenár 2: Real-time MCP streaming**
 
-Využitie Azure Event Hubs pre vysokofrekvenčné MCP interakcie:
+Použitie Azure Event Hubs pre vysokofrekvenčné MCP interakcie:
 
 ```yaml
 Architecture:
@@ -649,9 +651,9 @@ Benefits:
   - Built-in partitioning for parallel processing
 ```
 
-### **Scenár 3: Hybridná architektúra prenosov**
+### **Scenár 3: Hybridná transportná architektúra**
 
-Kombinovanie viacerých prenosov pre rôzne prípady použitia:
+Kombinovanie viacerých transportov pre rôzne prípady použitia:
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -717,7 +719,7 @@ public class BatchingEventGridTransport : IMcpTransport
 }
 ```
 
-### **Stratégia delenia pre Event Hubs**
+### **Strategia partícionovania pre Event Hubs**
 
 ```csharp
 public class PartitionedEventHubsTransport : IMcpTransport
@@ -737,9 +739,9 @@ public class PartitionedEventHubsTransport : IMcpTransport
 }
 ```
 
-## **Testovanie vlastných prenosov**
+## **Testovanie vlastných transportov**
 
-### **Jednotkové testovanie s testovacími dablami**
+### **Jednotkové testovanie s použitím testovacích dvojičiek**
 
 ```csharp
 [Test]
@@ -766,7 +768,7 @@ public async Task EventGridTransport_SendMessage_PublishesCorrectEvent()
 }
 ```
 
-### **Integračné testovanie pomocou Azure Test Containers**
+### **Integračné testovanie s Azure Test Containers**
 
 ```csharp
 [Test]
@@ -799,31 +801,31 @@ public async Task EventHubsTransport_IntegrationTest()
 }
 ```
 
-## **Najlepšie postupy a odporúčania**
+## **Najlepšie praktiky a usmernenia**
 
-### **Zásady návrhu prenosov**
+### **Zásady dizajnu transportu**
 
-1. **Idempotentnosť**: Zabezpečiť idempotentné spracovanie správ na zvládanie duplikátov
-2. **Spracovanie chýb**: Implementovať komplexné spracovanie chýb a dead letter queues
-3. **Monitorovanie**: Pridať podrobnú telemetriu a kontroly stavu
-4. **Bezpečnosť**: Používať spravované identity a prístup s najmenšími privilégiami
-5. **Výkon**: Navrhovať podľa vašich špecifických požiadaviek na latenciu a priepustnosť
+1. **Idempotencia**: Zabezpečiť idempotentné spracovanie správ pre zvládanie duplikátov
+2. **Spracovanie chýb**: Implementovať komplexné spracovanie chýb a fronty mŕtvych listov
+3. **Monitorovanie**: Pridať podrobnú telemetriu a kontrolu zdravotného stavu
+4. **Bezpečnosť**: Používať spravované identity a prístup s najmenším potrebným oprávnením
+5. **Výkon**: Navrhnúť pre konkrétne požiadavky na latenciu a priepustnosť
 
 ### **Odporúčania špecifické pre Azure**
 
-1. **Používajte spravované identity**: Vyhnite sa connection stringom v produkcii
-2. **Implementujte Circuit Breakery**: Chráňte sa proti výpadkom Azure služieb
-3. **Sledujte náklady**: Monitorujte objem správ a náklady na spracovanie
-4. **Plánujte škálovanie**: Navrhujte delenie a škálovacie stratégie včas
-5. **Testujte dôkladne**: Použite Azure DevTest Labs pre komplexné testovanie
+1. **Používať spravovanú identitu**: Vyhnúť sa použitiu connection stringov v produkcii
+2. **Implementovať obvodové prepínače**: Chrániť proti výpadkom Azure služieb
+3. **Monitorovať náklady**: Sledovať objem správ a náklady na spracovanie
+4. **Plánovať škálovanie**: Rané navrhnutie stratégie partícionovania a škálovania
+5. **Dôkladné testovanie**: Použiť Azure DevTest Labs na komplexné testovanie
 
 ## **Záver**
 
-Vlastné MCP prenosy umožňujú silné podnikové scenáre využitím Azure messaging služieb. Implementáciou Event Grid alebo Event Hubs prenosov môžete vybudovať škálovateľné, spoľahlivé MCP riešenia, ktoré sa plynule integrujú s existujúcou infraštruktúrou Azure.
+Vlastné MCP transporty umožňujú silné podnikové scenáre využívajúce Azure messaging služby. Implementáciou Event Grid alebo Event Hubs transportov môžete vybudovať škálovateľné, spoľahlivé MCP riešenia, ktoré sa bezproblémovo integrujú s existujúcou Azure infraštruktúrou.
 
-Poskytnuté príklady demonštrujú produkčne pripravené vzory na implementáciu vlastných prenosov pri zachovaní zhody s MCP protokolom a osvedčenými postupmi Azure.
+Poskytnuté príklady demonštrujú produkčne pripravené vzory pre implementáciu vlastných transportov pri zachovaní zhody s MCP protokolom a odporúčaniami Azure.
 
-## **Dodatkové zdroje**
+## **Doplnkové zdroje**
 
 - [MCP Špecifikácia 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
 - [Dokumentácia Azure Event Grid](https://docs.microsoft.com/azure/event-grid/)
@@ -835,12 +837,12 @@ Poskytnuté príklady demonštrujú produkčne pripravené vzory na implementác
 
 ---
 
-> *Tento sprievodca sa zameriava na praktické implementačné vzory pre produkčné MCP systémy. Vždy overte implementácie prenosov voči vašim špecifickým požiadavkám a limitom služieb Azure.*
-> **Aktuálny štandard**: Tento sprievodca odráža [MCP Špecifikáciu 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) nároky na prenosy a pokročilé dopravné vzory pre podnikové prostredia.
+> *Tento sprievodca sa zameriava na praktické implementačné vzory pre produkčné MCP systémy. Vždy validujte implementácie transportov podľa vašich konkrétnych požiadaviek a limitov Azure služieb.*
+> **Aktuálny štandard**: Tento sprievodca odráža [MCP Špecifikáciu 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) požiadavky na transport a pokročilé transportné vzory pre podnikové prostredia.
 
 
-## Čo nasleduje
-- [6. Komunitné Príspevky](../../06-CommunityContributions/README.md)
+## Čo je ďalej
+- [6. Spoločenský prínos](../../06-CommunityContributions/README.md)
 
 ---
 

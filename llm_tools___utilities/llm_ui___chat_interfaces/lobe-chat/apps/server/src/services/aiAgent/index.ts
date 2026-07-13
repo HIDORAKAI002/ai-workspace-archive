@@ -25,18 +25,19 @@ import {
 import { TaskIdentifier } from '@lobechat/builtin-tool-task';
 import { builtinTools, manualModeExcludeToolIds } from '@lobechat/builtin-tools';
 import { LOADING_FLAT } from '@lobechat/const';
-import type {
-  AgentGroupConfig,
-  AgentManagementContext,
-  BotPlatformContext,
-  LobeToolManifest,
-  ToolExecutor,
-  ToolSource,
+import {
+  type AgentGroupConfig,
+  type AgentManagementContext,
+  type BotPlatformContext,
+  type LobeToolManifest,
+  SkillEngine,
+  type ToolExecutor,
+  type ToolsEngine,
+  type ToolSource,
 } from '@lobechat/context-engine';
-import { SkillEngine, type ToolsEngine } from '@lobechat/context-engine';
 import type { LobeChatDatabase } from '@lobechat/database';
 import { isRemoteHeterogeneousType } from '@lobechat/heterogeneous-agents';
-import { buildTaskManagerDefaultsPrompt } from '@lobechat/prompts';
+import { buildTaskManagerDefaultsPrompt, resourcesTreePrompt } from '@lobechat/prompts';
 import type {
   ChatAudioItem,
   ChatFileItem,
@@ -68,7 +69,6 @@ import {
   ThreadType,
 } from '@lobechat/types';
 import { nanoid } from '@lobechat/utils';
-import { isRecord } from '@lobechat/utils/object';
 import { TRPCError } from '@trpc/server';
 import debug from 'debug';
 
@@ -172,9 +172,7 @@ const createGraphAwareAgentFactory =
       return upstreamFactory(config);
     }
 
-    const runtimeAgentConfig = isRecord(config.agentConfig)
-      ? (config.agentConfig as LobeAgentConfig)
-      : undefined;
+    const runtimeAgentConfig = config.agentConfig as LobeAgentConfig | undefined;
     const graph = runtimeAgentConfig?.chatConfig?.graph;
     if (runtimeAgentConfig?.chatConfig?.enableGraphMode && graph) {
       const graphResult = ReasoningGraphSchema.safeParse(graph);
@@ -3312,15 +3310,16 @@ export class AiAgentService {
     // gates. manifestMap is intentionally broader for discovery and must not
     // by itself authorize a tool in chat/custom mode or without function calls.
     const historicalActivatedToolIds = extractActivatedToolIdsFromMessages(allMessages) ?? [];
-    const activatableToolIds = toolsEngine && historicalActivatedToolIds.length > 0
-      ? toolsEngine.generateToolsDetailed({
-          context: { isExplicitActivation: true },
-          model,
-          provider,
-          skipDefaultTools: true,
-          toolIds: historicalActivatedToolIds,
-        }).enabledToolIds
-      : [];
+    const activatableToolIds =
+      toolsEngine && historicalActivatedToolIds.length > 0
+        ? toolsEngine.generateToolsDetailed({
+            context: { isExplicitActivation: true },
+            model,
+            provider,
+            skipDefaultTools: true,
+            toolIds: historicalActivatedToolIds,
+          }).enabledToolIds
+        : [];
 
     log('execAgent: prepared evalContext for executor');
 
@@ -3521,7 +3520,35 @@ export class AiAgentService {
       }));
       const skillModel = new AgentSkillModel(this.db, this.userId, this.workspaceId);
       const { data: dbSkills } = await skillModel.findAll();
+
+      // Pinned skills need their SKILL.md body injected into context directly,
+      // not lazily via the `activateSkill` tool. Gate on the agent's genuinely
+      // pinned entries (`getActivePluginIds(agentConfig.plugins)`), NOT the
+      // fully-expanded `agentPlugins`: the latter also carries turn-scoped tool
+      // ids (mentions, selected tools, `lobe-topic-reference`, …), which would
+      // eager-activate an auto-mode skill whose identifier merely collides with
+      // one of them. `findAll` uses `skillListColumns` (no `content`), so fetch
+      // bodies only for the pinned subset to keep the op-param payload bounded.
+      // Non-pinned skills stay content-less here and remain lazily activatable.
+      // Content lives in the DB `content` column already (SKILL.md body), so no
+      // zip unpack is needed; mirror `activateSkill` by appending the resource
+      // tree so pinned ZIP/GitHub skills keep their `readReference` paths.
+      const pinnedSkillIds = new Set(getActivePluginIds(agentConfig.plugins));
+      const pinnedDbSkillIds = dbSkills
+        .filter((s) => pinnedSkillIds.has(s.identifier))
+        .map((s) => s.id);
+      const pinnedDbContent = new Map(
+        (await skillModel.findByIds(pinnedDbSkillIds)).map((s) => {
+          const hasResources = !!(s.resources && Object.keys(s.resources).length > 0);
+          const content =
+            hasResources && s.resources
+              ? `${s.content ?? ''}\n\n${resourcesTreePrompt(s.name, s.resources)}`
+              : (s.content ?? undefined);
+          return [s.identifier, content] as const;
+        }),
+      );
       const dbMetas = dbSkills.map((s) => ({
+        content: pinnedDbContent.get(s.identifier),
         description: s.description ?? '',
         identifier: s.identifier,
         name: s.name,
@@ -3536,6 +3563,10 @@ export class AiAgentService {
       // carry the same value.
       const agentSkills = await this.agentDocumentsService.getAgentSkills(resolvedAgentId);
       const agentSkillMetas = agentSkills.map((skill) => ({
+        // `getAgentSkills` already resolves the bundle body, so pinned
+        // agent-document skills inject directly without an extra fetch; only
+        // attach it for the pinned subset to keep the payload lean.
+        content: pinnedSkillIds.has(skill.identifier) ? skill.content : undefined,
         description: skill.description,
         identifier: skill.identifier,
         name: skill.name,
@@ -3694,6 +3725,10 @@ export class AiAgentService {
           orchestrationRole: appContext?.orchestrationRole,
           scope: appContext?.scope,
           sourceMessageId: userMessageRecord?.id ?? parentMessageId ?? undefined,
+          // Live-progress anchor for a callSubAgent child — carries the parked
+          // parent's operationId + placeholder tool message so the child's step
+          // loop can stream its running totals down the parent's gateway channel.
+          subAgentProgress: appContext?.subAgentProgress,
           taskId: operationTaskId,
           threadId: appContext?.threadId,
           topicId,
@@ -4207,10 +4242,20 @@ export class AiAgentService {
       }
     }
 
+    // Live progress for a `callSubAgent` child: its per-step totals ride down the
+    // parked parent's gateway channel (see `appContext.subAgentProgress`). Group
+    // members are excluded — their whole stream is already mirrored onto the
+    // supervisor's channel via `mirrorToOperationId`.
+    const subAgentProgress =
+      options.resumeParentOnComplete && parentOperationId && options.orchestrationRole !== 'member'
+        ? { parentOperationId, toolMessageId: parentMessageId }
+        : undefined;
+
     const appContext: NonNullable<InternalExecAgentParams['appContext']> = {
       groupId,
       isSubAgent: options.isSubAgent,
       orchestrationRole: options.orchestrationRole,
+      subAgentProgress,
       threadId: thread.id,
       topicId,
     };

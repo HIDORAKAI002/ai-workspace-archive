@@ -2,6 +2,8 @@
 
 This guide explores advanced MCP protocol features that go beyond basic tool and resource handling. Understanding these features helps you build more robust, user-friendly, and production-ready MCP servers.
 
+> **Looking ahead:** the `2026-07-28` release candidate deprecates the Logging primitive (favoring `stderr` for stdio and OpenTelemetry for structured observability), removes the `initialize`/session model referenced in Server Lifecycle Events below, and moves the experimental Tasks feature into a dedicated Tasks extension with a new `tasks/get`/`tasks/update`/`tasks/cancel` lifecycle. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
 ## Features Covered
 
 1. **Progress Notifications** - Report progress for long-running operations
@@ -30,6 +32,7 @@ sequenceDiagram
     Server-->>Client: notification: progress 90%
     Server->>Client: result (complete)
 ```
+
 ### Python Implementation
 
 ```python
@@ -160,20 +163,20 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Search through many pages
-            # Check if cancellation was requested
+        for page in range(100):  # Поиск по множеству страниц
+            # Проверить, была ли запрошена отмена
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Simulate page search
+            # Смоделировать поиск по странице
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Small delay allows cancellation checks
+            # Небольшая задержка позволяет проверять отмену
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # Return partial results
+        # Вернуть частичные результаты
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -720,5 +723,5 @@ async def safe_query(query: str) -> str:
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

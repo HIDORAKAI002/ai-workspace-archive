@@ -1,132 +1,136 @@
-# MCP Core Concepts: Savladavanje Protokola Konteksta Modela za AI Integraciju
+# MCP Основни Концепти: Мастеринг Протокола Контекста Модела за AI Интеграцију
 
-[![MCP Core Concepts](../../../translated_images/sr/02.8203e26c6fb5a797.webp)](https://youtu.be/earDzWGtE84)
+[![MCP Основни Концепти](../../../translated_images/sr/02.8203e26c6fb5a797.webp)](https://youtu.be/earDzWGtE84)
 
-_(Kliknite na sliku iznad da pogledate video ove lekcije)_
+_(Кликните на слику изнад да бисте погледали видео о овој лекцији)_
 
-[Model Context Protocol (MCP)](https://github.com/modelcontextprotocol) je moćan, standardizovani okvir koji optimizuje komunikaciju između Velikih Jezičkih Modela (LLM) i eksternih alata, aplikacija i izvora podataka. 
-Ovaj vodič će vas provesti kroz osnovne pojmove MCP. Naučićete o njegovoj klijentsko-server arhitekturi, ključnim komponentama, mehanici komunikacije i najboljim praksama implementacije.
+[Model Context Protocol (MCP)](https://github.com/modelcontextprotocol) је моћан, стандардизовани оквир који оптимизује комуникацију између Великих Језичких Модела (LLM) и екстерних алата, апликација и извора података.
+Овај водич ће вас провести кроз основне концепте MCP-а. Научићете о његовој клијент-сервер архитектури, суштинским компонентама, механизмима комуникације и најбољим праксама имплементације.
 
-- **Izričit pristanak korisnika**: Sav pristup podacima i operacije zahtevaju izričit pristanak korisnika pre izvršenja. Korisnici moraju jasno razumeti kojih podataka će biti pristupljeno i koje će se akcije izvesti, sa detaljnom kontrolom nad dozvolama i ovlašćenjima.
+- **Јасна корисничка сагласност**: Сав приступ подацима и операције захтевају изричиту корисничку дозволу пре извршења. Корисници морају јасно разумети које ће податке приступити и које радње ће бити извршене, уз грануларну контролу над дозволама и ауторизацијама.
 
-- **Zaštita privatnosti podataka**: Korisnički podaci su dostupni samo uz izričit pristanak i moraju biti zaštićeni jakim kontrolama pristupa tokom celog životnog ciklusa interakcije. Implementacije moraju sprečiti neovlašćeni prenos podataka i održavati stroge granice privatnosti.
+- **Заштита приватности података**: Кориснички подаци су изложени само уз изричиту сагласност и морају бити заштићени снажним контролама приступа током целог животног циклуса интеракције. Имплементације морају спречити неовлашћени пренос података и одржавати строге границе приватности.
 
-- **Bezbednost izvršavanja alata**: Svako pokretanje alata zahteva izričit pristanak korisnika sa jasnim razumevanjem funkcionalnosti alata, parametara i potencijalnog uticaja. Robusne bezbednosne granice moraju sprečiti neplanirano, nesigurno ili maliciozno izvršavanje alata.
+- **Безбедност извршења алата**: Свака активација алата захтева јасну корисничку дозволу са разумевањем функција алата, параметара и потенцијалног утицаја. Јаке безбедносне границе морају спречити нежељено, небезбедно или злонамерно извршење алата.
 
-- **Bezbednost sloja transporta**: Svi komunikacioni kanali treba da koriste odgovarajuće mehanizme enkripcije i autentifikacije. Udaljene veze treba da primenjuju sigurne transportne protokole i adekvatno upravljanje akreditivima.
+- **Безбедност транспортног слоја**: Сви канали комуникације треба да користе одговарајуће шифровање и механизме аутентикације. Удаљене везе треба да имплементирају безбедне транспортне протоколе и одговарајуће управљање акредитивима.
 
-#### Smernice za implementaciju:
+#### Упутства за имплементацију:
 
-- **Upravljanje dozvolama**: Implementirajte sisteme finih dozvola koji omogućavaju korisnicima da kontrolišu kojima serverima, alatima i resursima može da se pristupi
-- **Autentifikacija i autorizacija**: Koristite sigurne metode autentifikacije (OAuth, API ključevi) uz pravilno upravljanje tokenima i njihovo isticanje  
-- **Validacija unosa**: Validirajte sve parametre i unose podataka prema definisanim šemama da sprečite injekcione napade
-- **Evidencija aktivnosti (audit logging)**: Održavajte sveobuhvatne zapise svih operacija radi bezbednosnog nadzora i usklađenosti
+- **Управљање дозволама**: Имплементирати фино подешене системе дозвола који омогућавају корисницима контролу који сервери, алати и ресурси су доступни
+- **Аутентификација и ауторизација**: Користити безбедне методе аутентификације (OAuth, API кључеви) са правилним управљањем токенима и истеком
+- **Валидација улаза**: Проверити све параметре и улазне податке у складу са дефинисаним шемама да би се спречили инјекциони напади
+- **Аудит логовање**: Одржавати комплетне записе свих операција за безбедносни надзор и усаглашеност
 
-## Pregled
+## Преглед
 
-Ova lekcija istražuje osnovnu arhitekturu i komponente koje čine Model Context Protocol (MCP) ekosistem. Naučićete o klijentsko-server arhitekturi, ključnim komponentama i komunikacionim mehanizmima koji pokreću MCP interakcije.
+Ова лекција истражује основну архитектуру и компоненте које чине екосистем Model Context Protocol (MCP). Научићете о клијент-сервер архитектури, кључним компонентама и механизмима комуникације који покрећу MCP интеракције.
 
-## Ključni ciljevi učenja
+## Кључни циљеви учења
 
-Na kraju ove lekcije, moći ćete da:
+На крају ове лекције ћете:
 
-- Razumete MCP klijentsko-server arhitekturu.
-- Identifikujete uloge i odgovornosti Hostova, Klijenata i Servera.
-- Analizirate osnovne karakteristike koje čine MCP fleksibilnim slojem integracije.
-- Naučite kako teče informacija unutar MCP ekosistema.
-- Steknete praktične uvide kroz primere koda u .NET, Java, Python, i JavaScript.
+- Разумети MCP клијент-сервер архитектуру.
+- Идентификовати улоге и одговорности Домаћина, Клијената и Серверa.
+- Анализирати основне карактеристике које чине MCP флексибилним слојем интеграције.
+- Научити како информације протичу унутар MCP екосистема.
+- Добити практичне увиде кроз примере кода у .NET, Јава, Пајтон и ЈаваСкрипт.
 
-## MCP arhitektura: Dublji pogled
+## MCP Архитектура: Детаљнији поглед
 
-MCP ekosistem je izgrađen na modelu klijent-server. Ova modularna struktura omogućava AI aplikacijama efikasnu interakciju sa alatima, bazama podataka, API-jima i kontekstualnim resursima. Hajde da razložimo ovu arhitekturu na osnovne komponente.
+MCP екосистем је изграђен на клијент-сервер моделу. Ова модуларна структура омогућава AI апликацијама да ефикасно комуницирају са алатима, базама података, API-јима и контекстуалним ресурсима. Разложимо ову архитектуру на њене основне компоненте.
 
-U srcu, MCP prati klijentsko-server arhitekturu gde host aplikacija može povezati više servera:
+У срцу, MCP следи клијент-сервер архитектуру где једна апликација домаћин може да се повеже са више сервера:
 
 ```mermaid
 flowchart LR
     subgraph "Ваш рачунар"
-        Host["Домаћин са MCP-ом (Visual Studio, VS Code, IDEs, алати)"]
-        S1["MCP Сервер А"]
-        S2["MCP Сервер Б"]
-        S3["MCP Сервер Ц"]
+        Host["Домаћин са MCP (Visual Studio, VS Code, IDE-ови, алати)"]
+        S1["MCP сервер A"]
+        S2["MCP сервер B"]
+        S3["MCP сервер C"]
         Host <-->|"MCP протокол"| S1
         Host <-->|"MCP протокол"| S2
         Host <-->|"MCP протокол"| S3
-        S1 <--> D1[("Локални\Извор података А")]
-        S2 <--> D2[("Локални\Извор података Б")]
+        S1 <--> D1[("Локални\Извор података A")]
+        S2 <--> D2[("Локални\Извор података B")]
     end
     subgraph "Интернет"
         S3 <-->|"Веб API-ји"| D3[("Удаљене\Услуге")]
     end
 ```
-- **MCP Hostovi**: Programi kao što su VSCode, Claude Desktop, IDE-ovi ili AI alati koji žele da pristupe podacima putem MCP
-- **MCP Klijenti**: Protokol klijenti koji održavaju 1:1 veze sa serverima
-- **MCP Serveri**: Laki programi koji izlažu specifične mogućnosti kroz standardizovani Model Context Protocol
-- **Lokalni izvori podataka**: Fajlovi, baze podataka i servisi na vašem računaru kojima MCP serveri mogu sigurno pristupiti
-- **Udaljene usluge**: Eksterni sistemi dostupni preko interneta kojima MCP serveri mogu pristupati preko API-ja.
 
-MCP protokol je standard u razvoju koji koristi verzionisanje zasnovano na datumu (format GGGG-MM-DD). Trenutna verzija protokola je **2025-11-25**. Možete pogledati najnovija ažuriranja na [specifikaciji protokola](https://modelcontextprotocol.io/specification/2025-11-25/)
+- **MCP Домаћини**: Програми као што су VSCode, Claude Desktop, IDE-ови или AI алати који желе приступ подацима преко MCP
+- **MCP Клијенти**: Протоколски клијенти који одржавају 1:1 везе са серверима
+- **MCP Сервери**: Лагани програми који сваки пружају специфичне могућности кроз стандардизовани Model Context Protocol
+- **Локални извори података**: Фајлови, базе података и сервиси вашег рачунара којима MCP сервери могу безбедно приступити
+- **Удаљене услуге**: Екстерни системи доступни преко интернета којима MCP сервери могу приступити преко API-ја.
 
-### 1. Hostovi
+MCP Протокол је стандард у развоју који користи верзионисање засновано на датуму (формат ГГГГ-ММ-ДД). Тренутна верзија протокола је **2025-11-25**. Можете видети најновија ажурирања на [спецификацији протокола](https://modelcontextprotocol.io/specification/2025-11-25/)
 
-U Model Context Protocol-u (MCP), **Hostovi** su AI aplikacije koje služe kao primarni interfejs preko kojeg korisnici komuniciraju sa protokolom. Hostovi koordiniraju i upravljaju vezama sa više MCP servera kreiranjem posvećenih MCP klijenata za svaku server vezu. Primeri Hostova uključuju:
+> **У пракси:** кандидат за издање следеће спецификацијске верзије, **2026-07-28**, најављен је у мају 2026. и планиран за издавање 28. јула 2026. Он чини протокол бездржавним на транспортном слоју (уклања handshake `initialize` и session ID-ове), формализује оквир за додатке (Extensions) и обуставља Roots, Sampling и Logging у корист новијих обрасца. Погледајте [Шта се мења у MCP: кандидат за издање 2026-07-28](./mcp-2026-07-28-release-candidate.md) за комплетан преглед.
 
-- **AI aplikacije**: Claude Desktop, Visual Studio Code, Claude Code
-- **Razvojna okruženja**: IDE-ovi i uređivači koda sa MCP integracijom  
-- **Prilagođene aplikacije**: Namenjeni AI agenti i alati
+### 1. Домаћини
 
-**Hostovi** su aplikacije koje koordiniraju interakcije AI modela. Oni:
+У Model Context Protocol (MCP), **Домаћини** су AI апликације које служе као примарни интерфејс преко којег корисници комуницирају са протоколом. Домаћини координирају и управљају везама према више MCP сервера креирајући посебне MCP клијенте за сваку серверску везу. Примери Домаћина укључују:
 
-- **Orkestriraju AI modele**: Izvršavaju ili komuniciraju sa LLM-ovima da generišu odgovore i koordiniraju AI tokove rada
-- **Upravljaju klijentskim vezama**: Kreiraju i održavaju po jednog MCP klijenta po vezi sa MCP serverom
-- **Kontrolišu korisnički interfejs**: Rukovode tokom razgovora, korisničkim interakcijama i prikazom odgovora  
-- **Sprovode bezbednost**: Kontrolišu dozvole, bezbednosna ograničenja i autentifikaciju
-- **Rukovode korisničkim pristankom**: Upravljaju korisničkim odobravanjem za deljenje podataka i izvršavanje alata
+- **AI апликације**: Claude Desktop, Visual Studio Code, Claude Code
+- **Развојна окружења**: IDE и уредници кода са MCP интеграцијом  
+- **Прилагођене апликације**: Посебно изграђени AI агенти и алати
+
+**Домаћини** су апликације које координишу интеракције AI модела. Они:
+
+- **Оркестрирају AI моделе**: Извршавају или интерактују са LLM-овима да би генерисали одговоре и координисали AI токове рада
+- **Управљају клијентским везама**: Креирају и одржавају по једног MCP клијента за сваку MCP сервер везу
+- **Контролишу кориснички интерфејс**: Обрађују ток разговора, корисничке интеракције и приказ одговора  
+- **Спроводе безбедност**: Контролишу дозволе, безбедносне ограничења и аутентификацију
+- **Обрађују корисничку сагласност**: Управљају одобрењем корисника за дељење података и извршење алата
 
 
-### 2. Klijenti
+### 2. Клијенти
 
-**Klijenti** su ključne komponente koje održavaju posvećene jedan-na-jedan veze između Hostova i MCP servera. Svaki MCP klijent se instancira od strane Host-a za povezivanje sa specifičnim MCP serverom, obezbeđujući organizovane i sigurne komunikacione kanale. Više klijenata omogućava Host-ovima da se istovremeno povežu sa više servera.
+**Клијенти** су суштинске компоненте које одржавају посебне један-на-један везе између Домаћина и MCP сервера. Сваки MCP клијент је иницијализован од стране Домаћина да се повеже са специфичним MCP сервером, обезбеђујући организоване и безбедне канале комуникације. Више клијената омогућава Домаћинима да истовремено повежу више сервера.
 
-**Klijenti** su konektorski delovi unutar host aplikacije. Oni:
+**Клијенти** су конекторске компоненте у оквиру апликације домаћина. Они:
 
-- **Komunikacija protokolom**: Šalju JSON-RPC 2.0 zahteve serverima sa promptovima i instrukcijama
-- **Pregovaranje mogućnosti**: Dogovaraju podržane funkcije i verzije protokola sa serverima tokom inicijalizacije
-- **Izvršavanje alata**: Upravljaju zahtevima za izvršavanje alata od modela i obrađuju odgovore
-- **Ažuriranja u realnom vremenu**: Rukovode notifikacijama i ažuriranjima od servera
-- **Obrada odgovora**: Procesuiraju i formatiraju odgovore servera za prikaz korisnicima
+- **Протоколална комуникација**: Слање JSON-RPC 2.0 захтева серверима са упутствима и инструкцијама
+- **Негoција могућности**: Проводе преговоре о подржаним функцијама и верзијама протокола са серверима током иницијализације
+- **Извршење алата**: Управљају захтевима за извршење алата од модела и обрађују одговоре
+- **Ажурирања у реалном времену**: Обрађују обавештења и ажурирања у реалном времену од сервера
+- **Обрада одговора**: Обрађују и форматирају одговоре сервера за приказ корисницима
 
-### 3. Serveri
+### 3. Сервери
 
-**Serveri** su programi koji obezbeđuju kontekst, alate i funkcionalnosti MCP klijentima. Mogu raditi lokalno (na istoj mašini kao i Host) ili udaljeno (na eksternim platformama), i odgovorni su za rukovanje zahtevima klijenata i pružanje strukturiranih odgovora. Serveri izlažu specifične funkcionalnosti kroz standardizovani Model Context Protocol.
+**Сервери** су програми који обезбеђују контекст, алате и могућности MCP клијентима. Могу функционисати локално (на истом рачунару као и Домаћин) или удаљено (на спољашњим платформама), и одговорни су за обраду захтева клијената и пружање структурираних одговора. Сервери излазе одређену функционалност кроз стандардизовани Model Context Protocol.
 
-**Serveri** su servisi koji pružaju kontekst i mogućnosti. Oni:
+**Сервери** су услуге које пружају контекст и могућности. Они:
 
-- **Registracija mogućnosti**: Registruju i izlažu dostupne primitivne elemente (resurse, promptove, alate) klijentima
-- **Obrada zahteva**: Primaju i izvršavaju pozive alata, zahteve za resursima i promptove od klijenata
-- **Obezbeđivanje konteksta**: Pružaju kontekstualne informacije i podatke za poboljšanje odgovora modela
-- **Upravljanje stanjem**: Održavaju stanje sesije i rukovode sesijskim interakcijama kada je potrebno
-- **Notifikacije u realnom vremenu**: Šalju obaveštenja o promenama i ažuriranjima mogućnosti povezanim klijentima
+- **Регистрација могућности**: Региструју и излажу расположиве примитиве (ресурсе, упите, алате) клијентима
+- **Обрада захтева**: Пријем и извршење позива алата, захтева за ресурсе и упита клијената
+- **Обезбеђење контекста**: Пружају контекстуалне информације и податке за унапређење одговора модела
+- **Управљање стањем**: Одржавају стање сесије и обрађују интеракције са стањем када је потребно
 
-Servere može razviti bilo ko da proširi mogućnosti modela specijalizovanom funkcionalnošću, a podržavaju i lokalnu i udaljenu primenu.
+- **Обавештења у реалном времену**: Слање обавештења о изменама могућности и ажурирањима повезаним клијентима
 
-### 4. Primitivi servera
+Сервере може развити било ко да прошири могућности модела са специјализованом функционалношћу, а подржавају и локалне и удаљене сценарије распоређивања.
 
-Serveri u Model Context Protocol-u (MCP) pružaju tri osnovna **primitiva** koja definišu fundamentalne gradivne blokove za bogatu interakciju između klijenata, hostova i jezičkih modela. Ovi primitivni elementi definišu tipove kontekstualnih informacija i akcija koje su dostupne kroz protokol.
+### 4. Примитиви сервера
 
-MCP serveri mogu izlagati bilo koju kombinaciju sledeća tri osnovna primitiva:
+Сервери у Протоколу контекста модела (MCP) пружају три кључна **примитива** која дефинишу основне градивне блокове за богате интеракције између клијената, домаћина и језичких модела. Ови примитиви одређују типове контекстуалних информација и радњи доступних кроз протокол.
 
-#### Resursi 
+MCP сервери могу изложити било коју комбинацију следећа три основна примитива:
 
-**Resursi** su izvori podataka koji pružaju kontekstualne informacije AI aplikacijama. Oni predstavljaju statički ili dinamički sadržaj koji može unaprediti razumevanje modela i donošenje odluka:
+#### Ресурси
 
-- **Kontekstualni podaci**: Strukturirane informacije i kontekst za korišćenje od strane AI modela
-- **Baze znanja**: Repozitorijumi dokumenata, članci, priručnici i naučni radovi
-- **Lokalni izvori podataka**: Fajlovi, baze podataka i lokalne sistemske informacije  
-- **Eksterni podaci**: API odgovori, veb servisi i udaljeni podaci sistema
-- **Dinamički sadržaj**: Podaci u realnom vremenu koji se ažuriraju na osnovu spoljašnjih uslova
+**Ресурси** су извори података који пружају контекстуалне информације AI апликацијама. Они представљају статички или динамички садржај који може побољшати разумевање модела и доношење одлука:
 
-Resursi se identifikuju URI-jevima i podržavaju pronalaženje preko `resources/list` i pristup preko `resources/read` metoda:
+- **Контекстуални подаци**: Структуриране информације и контекст за коришћење AI модела
+- **Базе знања**: Репозиторијуми докумената, чланци, приручници и научни радови
+- **Локални извори података**: Фајлови, базе података и информације локалног система  
+- **Спољни подаци**: API одговори, веб сервиси и удаљени системски подаци
+- **Динамички садржај**: Подаци у реалном времену који се ажурирају у складу са спољним условима
+
+Ресурси се идентификују URI-јевима и подржавају откривање путем метода `resources/list` и преузимање преко `resources/read`:
 
 ```text
 file://documents/project-spec.md
@@ -134,37 +138,37 @@ database://production/users/schema
 api://weather/current
 ```
 
-#### Promptovi
+#### Упитници
 
-**Promptovi** su ponovo upotrebljivi šabloni koji pomažu u strukturiranju interakcija sa jezičkim modelima. Oni pružaju standardizovane obrasce interakcije i šablonizovane tokove rada:
+**Упитници** су поновљиви шаблони који помажу у структуирању интеракција са језичким моделима. Они пружају стандардиране обрасце интеракције и шаблонизоване токове рада:
 
-- **Interakcije bazirane na šablonima**: Prestruktuirani poruke i započinjanja razgovora
-- **Šabloni tokova rada**: Standardizovane sekvence za česte zadatke i interakcije
-- **Primeri sa malim brojem uzoraka**: Šabloni zasnovani na primerima za instrukcije modelu
-- **Sistemski promptovi**: Osnovni promptovi koji definišu ponašanje i kontekst modela
-- **Dinamički šabloni**: Parametrizovani promptovi koji se prilagođavaju specifičnom kontekstu
+- **Интеракције засноване на шаблонима**: Предструктуриране поруке и покретачи разговора
+- **Шаблони тока рада**: Стандаризовани низови за уобичајене задатке и интеракције
+- **Примери са мало примера**: Шаблони засновани на примерима за упутства модела
+- **Системски упитници**: Основни упитници који дефинишу понашање и контекст модела
+- **Динамички шаблони**: Параметризовани упитници који се прилагођавају специфичним контекстима
 
-Promptovi podržavaju zamenu varijabli i mogu se pronalaziti putem `prompts/list` i preuzimati metodom `prompts/get`:
+Упитници подржавају замене променљивих и могу се открити преко `prompts/list` и преузети са `prompts/get`:
 
 ```markdown
 Generate a {{task_type}} for {{product}} targeting {{audience}} with the following requirements: {{requirements}}
 ```
 
-#### Alati
+#### Алати
 
-**Alati** su izvršni funkcionalni pozivi koje AI modeli mogu pokretati da bi obavili određene radnje. Oni predstavljaju "glagole" MCP ekosistema, omogućavajući modelima da komuniciraju sa eksternim sistemima:
+**Алати** су извршне функције које AI модели могу позвати за обављање одређених радњи. Они представљају „глаголе“ MCP екосистема, омогућавајући моделима да комуницирају са спољним системима:
 
-- **Izvršne funkcije**: Diskretne operacije koje modeli mogu pozivati sa specifičnim parametrima
-- **Integracija eksternih sistema**: API pozivi, upiti baza podataka, operacije nad fajlovima, proračuni
-- **Jedinstveni identitet**: Svaki alat ima jedinstveno ime, opis i šemu parametara
-- **Strukturiran ulaz i izlaz**: Alati prihvataju validirane parametre i vraćaju strukturirane, tipizirane odgovore
-- **Akcijske mogućnosti**: Omogućavaju modelima da izvršavaju radnje u stvarnom svetu i pribavljaju aktuelne podatke
+- **Извршне функције**: Дискретне операције које модели могу позвати са одређеним параметрима
+- **Интеграција спољних система**: API позиви, упити базе података, операције са фајловима, прорачуни
+- **Јединствени идентитет**: Сваки алат има јединствено име, опис и шему параметара
+- **Структурирани улаз/излаз**: Алати примају верификоване параметре и враћају структуриране, типизиране одговоре
+- **Могућности извршавања радњи**: Омогућавају моделима да изводе стварне радње и преузимају податке уживо
 
-Alati su definisani JSON šemom za validaciju parametara i pronalaze se preko `tools/list`, a izvršavaju preko `tools/call`. Alati mogu takođe uključivati **ikone** kao dodatne metapodatke za bolju prezentaciju u korisničkom interfejsu.
+Алати се дефинишу помоћу JSON шеме за валидацију параметара и откривају се преко `tools/list` и покрећу путем `tools/call`. Алати могу такође укључивати **иконе** као додатне метаподатке за бољу презентацију у корисничком интерфејсу.
 
-**Anotacije alata**: Alati podržavaju ponašajne anotacije (npr. `readOnlyHint`, `destructiveHint`) koje opisuju da li je alat samo-za-čitanje ili destruktivan, pomažući klijentima da donesu informisane odluke o izvršavanju alata.
+**Анотације алата**: Алати подржавају понашајне анотације (нпр. `readOnlyHint`, `destructiveHint`) које описују да ли је алат само за читање или деструктиван, помажући клијентима да доносе информисане одлуке о извршењу алата.
 
-Primer definicije alata:
+Пример дефиниције алата:
 
 ```typescript
 server.tool(
@@ -181,147 +185,155 @@ server.tool(
 );
 ```
 
-## Klijentski primitivni elementi
+## Клијентски примитиви
 
-U Model Context Protocol-u (MCP), **klijenti** mogu izlagati primitivne elemente koji omogućavaju serverima da zahtevaju dodatne mogućnosti od host aplikacije. Ovi primitivni elementi na strani klijenta dozvoljavaju bogatije, interaktivnije implementacije servera koje imaju pristup sposobnostima AI modela i korisničkim interakcijama.
+У Протоколу контекста модела (MCP), **клијенти** могу излагати примитиве који омогућавају серверима да затраже додатне могућности од домаћинске апликације. Ови клијентски примитиви омогућавају богатије, интерактивније имплементације сервера које могу приступити могућностима AI модела и интеракцијама са корисницима.
 
-### Uzorkovanje (Sampling)
+### Примерковање
 
-**Uzorkovanje** omogućava serverima da zahtevaju završetke jezičkog modela iz AI aplikacije klijenta. Ovaj primitiv omogućava serverima da pristupe LLM mogućnostima bez ugradnje sopstvenih zavisnosti modela:
+> **Обавештење о застаревању:** кандидат за издање `2026-07-28` означава Примерковање као застарело у корист директне интеграције са API-јевима провајдера LLM. Оно наставља да ради у `2025-11-25` и најмање годину дана након било ког застаревања, али нови дизајни треба да преферирају модел замене. Погледајте [Шта се мења у MCP: кандидат за издање 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
-- **Model-nezavisan pristup**: Serveri mogu zahtevati završetke bez uključivanja SDK-ova LLM-a ili upravljanja pristupom modelu
-- **AI iniciran od strane servera**: Omogućava serverima da autonomno generišu sadržaj korišćenjem modela AI klijenta
-- **Rekurzivne LLM interakcije**: Podržava složene scenarije gde serveri traže AI pomoć za obradu
-- **Dinamička generacija sadržaja**: Omogućava serverima da kreiraju kontekstualne odgovore koristeći model hosta
-- **Podrška za pozivanje alata**: Serveri mogu uključiti parametre `tools` i `toolChoice` da bi omogućili klijentov model da poziva alate tokom uzorkovanja
+**Примерковање** омогућава серверима да затраже довршавање језичког модела из AI апликације клијента. Овај примитив омогућава серверима приступ могућностима LLM без укључивања сопствених зависности модела:
 
-Uzorkovanje se inicira preko metode `sampling/complete`, gde serveri šalju zahteve za završetke klijentima.
+- **Приступ независан од модела**: Сервери могу тражити довршавање без укључивања LLM SDK-а или управљања приступом моделу
+- **AI покренут од сервера**: Омогућава серверима аутономно генерисање садржаја користећи AI модел клијента
+- **Рекурсивне LLM интеракције**: Подржава сложене сценарије у којима сервери требају AI помоћ за обраду
+- **Динамичка генерисање садржаја**: Омогућава серверима да стварају контекстуалне одговоре користећи модел домаћина
+- **Подршка за позивање алата**: Сервери могу укључити параметре `tools` и `toolChoice` да омогуће моделу клијента позивање алата током примерковања
 
-### Koreni (Roots)
+Примерковање се покреће методом `sampling/complete`, где сервери шаљу захтеве за довршавање клијентима.
 
-**Koreni** pružaju standardizovani način za klijente da izlože granice fajl sistema serverima, pomažući serverima da razumeju koje direktorijume i fajlove mogu da pristupe:
+### Корени
 
-- **Granice fajl sistema**: Definišu granice unutar kojih serveri mogu da rade u fajl sistemu
-- **Kontrola pristupa**: Pomažu serverima da razumeju kojima direktorijumima i fajlovima imaju dozvolu za pristup
-- **Dinamička ažuriranja**: Klijenti mogu obaveštavati servere kada se lista korena promeni
-- **Identifikacija zasnovana na URI**: Koreni koriste `file://` URI-je za identifikaciju dostupnih direktorijuma i fajlova
+> **Обавештење о застаревању:** кандидат за издање `2026-07-28` означава Корене као застареле у корист параметара алата, URI-јева ресурса или конфигурације сервера. Они настављају да раде у `2025-11-25` и најмање годину дана након било ког застаревања. Погледајте [Шта се мења у MCP: кандидат за издање 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
-Koreni se pronalaze metodom `roots/list`, dok klijenti šalju `notifications/roots/list_changed` kada dođe do promene korena.
+**Корени** пружају стандардирани начин за изложеност граница фајл система клијентима серверима, помажући серверима да разумеју на које директоријуме и фајлове имају приступ:
 
-### Pribavljanje informacija (Elicitation)  
+- **Границе фајл система**: Дефинишу границе где сервери могу да делују унутар фајл система
+- **Контрола приступа**: Помажу серверима да разумеју којим директоријумима и фајловима имају дозволу за приступ
+- **Динамичка ажурирања**: Клијенти могу обавештавати сервере када се листа корена промени
+- **Идентификација заснована на URI-ју**: Корени користе `file://` URI-је за идентификовање приступачних директоријума и фајлова
 
-**Pribavljanje informacija** omogućava serverima da zahtevaju dodatne informacije ili potvrdu od korisnika putem klijentovog interfejsa:
+Корени се откривају методом `roots/list`, а клијенти шаљу `notifications/roots/list_changed` када се корени промене.
 
-- **Zahtevi za korisničkim unosom**: Serveri mogu tražiti dodatne informacije kada je to potrebno za izvršavanje alata
-- **Dijalozi za potvrdu**: Traže korisnički pristanak za osetljive ili važne operacije
-- **Interaktivni tokovi rada**: Omogućavaju serverima da kreiraju korak-po-korak korisničke interakcije
-- **Dinamičko prikupljanje parametara**: Prikupljanje nedostajućih ili opcionih parametara tokom izvršavanja alata
+### Испитивање  
 
-Zahtevi pribavljanja se vrše korišćenjem metode `elicitation/request` za prikupljanje korisničkog unosa kroz interfejs klijenta.
+**Испитивање** омогућава серверима да затраже додатне информације или потврду од корисника кроз интерфејс клијента:
 
-**Zahtevi u režimu URL-a**: Serveri takođe mogu zahtevati korisničke interakcije bazirane na URL-u, omogućavajući serverima da usmere korisnike na spoljne veb stranice radi autentifikacije, potvrde ili unosa podataka.
+- **Захтеви за унос корисника**: Сервери могу тражити додатне информације када су потребне за извршење алата
+- **Дијалози за потврду**: Захтевају одобрење корисника за осетљиве или значајне операције
+- **Интерактивни токови рада**: Омогућавају серверима да креирају корак-по-корак корисничке интеракције
+- **Динамичко прикупљање параметара**: Прикупљају недостајуће или опционе параметре током извршења алата
 
-### Logovanje
+Захтеви за испитивање се врше помоћу методе `elicitation/request` за прикупљање уноса корисника преко интерфејса клијента.
 
-**Logovanje** omogućava serverima da šalju strukturisane log poruke klijentima radi otklanjanja grešaka, nadzora i vidljivosti operacija:
+**Режим испитивања са URL-јем**: Сервери такође могу да захтевају интеракције са корисницима засноване на URL-јевима, омогућавајући серверима да усмеравају кориснике на спољне веб странице за аутентификацију, потврду или унос података.
 
-- **Podrška za otklanjanje grešaka**: Omogućava serverima da pruže detaljne zapise izvršenja radi rešavanja problema
-- **Operativni nadzor**: Šalju ažuriranja statusa i performansi klijentima
-- **Prijavljivanje grešaka**: Pružaju detaljan kontekst grešaka i dijagnostičke informacije
-- **Evidencija aktivnosti**: Kreiraju sveobuhvatne zapise operacija i odluka servera
+### Логовање
 
-Log poruke se šalju klijentima da bi se obezbedila transparentnost u radu servera i olakšalo otklanjanje grešaka.
 
-## Tok informacija u MCP
+> **Обавештење о застаревању:** кандидат за издање `2026-07-28` означава Логовање као застарело у корист `stderr` за stdio транспорте и OpenTelemetry за структурисану посматрачност. Настаје да ради у верзији `2025-11-25` и најмање годину дана након било ког застаревања. Погледајте [Шта се мења у MCP: Кандидат за издање 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
-Model Context Protocol (MCP) definiše strukturirani tok informacija između hostova, klijenata, servera i modela. Razumevanje ovog toka pomaže da se razjasni kako se obrađuju korisnički zahtevi i kako se eksterni alati i podaci integrišu u odgovore modela.
-- **Домаћин покреће везу**  
-  Апликација домаћина (као што је IDE или интерфејс за ћаскање) успоставља везу са MCP сервером, обично преко STDIO, WebSocket-а или неког другог подржаног транспорта.
+**Логовање** омогућава серверима да шаљу структурисане лог поруке клијентима за отклањање грешака, праћење и оперативну видљивост:
 
-- **Негосијација могућности**  
-  Клијент (уграђен у домаћина) и сервер размењују информације о својим подржаним функцијама, алатима, ресурсима и верзијама протокола. Ово осигурава да обе стране разумеју које су могућности доступне током сесије.
+- **Подршка за отклањање грешака**: Омогућава серверима да пруже детаљне евиденције извршења за решавање проблема
+- **Оперативно праћење**: Шаље обавештења о статусу и метрике перформанси клијентима
+- **Извештавање о грешкама**: Пружа детаљан контекст грешака и дијагностичке информације
+- **Ревизионе стазе**: Креира свеобухватне записе рада и одлука сервера
+
+Лог поруке се шаљу клијентима како би се омогућила транспарентност у раду сервера и олакшало решавање грешака.
+
+## Проток информација у MCP
+
+Протокол контекста модела (MCP) дефинише структуриран проток информација између домаћина, клијената, сервера и модела. Разумевање овог протока помаже у појашњењу како се кориснички захтеви обрађују и како се спољни алати и подаци интегришу у одговоре модела.
+
+- **Домаћин иницира везу**  
+  Апликација домаћина (нпр. IDE или интерфејс за ћаскање) успоставља везу ка MCP серверу, обично преко STDIO, WebSocket-а или другог подржаног транспорта.
+
+- **Неговање могућности**  
+  Клијент (уграђен у домаћина) и сервер размењују информације о подржаним функцијама, алатима, ресурсима и верзијама протокола. Ово обезбеђује да обе стране разумеју које су могућности доступне за сесију.
 
 - **Кориснички захтев**  
-  Корисник интерагује са домаћином (нпр. уноси упит или команду). Домаћин прикупља овај унос и прослеђује га клијенту на обраду.
+  Корисник комуницира са домаћином (нпр. уноси упит или команду). Домаћин прикупља овај унос и прослеђује га клијенту на обраду.
 
 - **Коришћење ресурса или алата**  
-  - Клијент може затражити додатни контекст или ресурсе од сервера (попут датотека, уноса базе података или чланака из базе знања) како би обогатио разумевање модела.  
-  - Ако модел утврди да је потребан алат (нпр. за преузимање података, израчунавање или позивање API-ја), клијент шаље серверу захтев за позив алата, наводећи име алата и параметре.
+  - Клијент може затражити додатни контекст или ресурсе од сервера (као што су фајлови, уноси у бази података или чланци из базе знања) да обогати разумевање модела.
+  - Ако модел утврди да је алат потребан (нпр. за преузимање података, израду прорачуна или позив API-ја), клијент шаље захтев за позив алата серверу, наводећи име алата и параметре.
 
-- **Извршавање на серверу**  
-  Сервер прими захтев за ресурс или алат, изврши неопходне операције (као што је покретање функције, упит у базу података или преузимање датотеке), и враћа резултате клијенту у структурираном формату.
+- **Извршење на серверу**  
+  Сервер прими захтев за ресурс или алат, изврши потребне операције (као што је покретање функције, упит базе података или преузимање фајла), и враћа резултате клијенту у структурисаном формату.
 
 - **Генерисање одговора**  
-  Клијент интегрише одговоре сервера (подаци о ресурсима, излази алата итд.) у текућу интеракцију са моделом. Модел користи ове информације да генерише свеобухватан и контекстуално релевантан одговор.
+  Клијент интегрише одговоре сервера (податке ресурса, излазе алата итд.) у тренутну интеракцију са моделом. Модел користи ове информације да генерише свеобухватан и контекстуално релевантан одговор.
 
 - **Презентација резултата**  
-  Домаћин прими коначни излаз од клијента и приказује га кориснику, често укључујући и текст који је генерисао модел као и резултате позива алата или претрага ресурса.
+  Домаћин прими коначни излаз од клијента и представља га кориснику, често укључујући и текст генерисан од стране модела и резултате извршења алата или претрага ресурса.
 
-Овај ток омогућава MCP да подржи напредне, интерактивне и контекстуално свесне AI апликације повезујући моделе са спољним алатима и изворима података.
+Овај проток омогућава MCP да подржи напредне, интерактивне и контекстуално свесне AI апликације повезујући моделе са спољним алатима и изворима података на беспрекоран начин.
 
-## Архитектура протокола и слојеви
+## Архитектура и слојеви протокола
 
-MCP се састоји из два јасно раздвојена архитектонска слоја који заједно пружају комплетан оквир за комуникацију:
+MCP се састоји од два јасно раздвојена архитектонска слоја која заједно пружају комплетан комуникациони оквир:
 
 ### Слој података
 
-**Слој података** имплементира основни MCP протокол користећи **JSON-RPC 2.0** као основу. Тај слој дефинише структуру порука, семантику и обрасце интеракције:
+**Слој података** имплементира основни MCP протокол користећи **JSON-RPC 2.0** као основу. Овај слој дефинише структуру порука, семантику и образце интеракције:
 
 #### Основне компоненте:
 
-- **JSON-RPC 2.0 протокол**: Сав саобраћај користи стандардизовани JSON-RPC 2.0 формат за позиве метода, одговоре и обавештења  
-- **Управљање животним циклусом**: Обрађује иницијализацију везе, преговорање могућности и завршетак сесије између клијената и сервера  
-- **Примитиви сервера**: Омогућавају серверима да пруже основну функционалност преко алата, ресурса и упита  
-- **Примитиви клијента**: Омогућавају серверима да захтевају узорковање из LLM-ова, добијање корисничког уноса и слање логова  
-- **Обавештења у реалном времену**: Подржава асинхрона обавештења за динамичка ажурирања без потребе за периодичним упитима
+- **JSON-RPC 2.0 протокол**: Цела комуникација користи стандардизовани формат порука JSON-RPC 2.0 за позиве метода, одговоре и нотификације
+- **Управљање животним циклусом**: Руководи иницијализацијом везе, неговањем могућности и прекидом сесије између клијената и сервера
+- **Серверске примитиве**: Омогућава серверима да пруже основну функционалност преко алата, ресурса и упита
+- **Клијентске примитиве**: Омогућава серверима да захтевају узорковање из LLM, терају унос корисника и шаљу лог поруке
+- **Нотификације у реалном времену**: Подржава асинхроне обавештења за динамичке измене без потребе за сталним упитима
 
 #### Кључне карактеристике:
 
-- **Преговарање верзије протокола**: Користи верзије базиране на датуму (ГГГГ-ММ-ДД) ради осигурања компатибилности  
-- **Откривање могућности**: Клијенти и сервери размењују податке о подржаним функцијама током иницијализације  
-- **Сесије са стањем**: Одржава стање везе кроз више интеракција за континуитет контекста
+- **Неговање верзије протокола**: Користи верзионисање засновано на датуму (ГГГГ-ММ-ДД) како би се обезбедила компатибилност
+- **Откривање могућности**: Клијенти и сервери размењују информације о подржаним функцијама током иницијализације
+- **Сесије са статусом**: Одржава стање везе кроз више интеракција ради континуитета контекста
 
-### Слој транспорта
+### Транспортни слој
 
-**Слој транспорта** управља комуникационим каналима, форматирањем порука и аутентификацијом између учесника MCP:
+**Транспортни слој** управља комуникационим каналима, форматирањем порука и аутентификацијом између MCP учесника:
 
-#### Подржани механизми транспорта:
+#### Подржани транспортни механизми:
 
-1. **STDIO транспорт**:  
-   - Користи стандардне улазне/излазне токове за директну комуникацију процеса  
-   - Оптималан за локалне процесе на истом рачунару без мрежног оптерећења  
-   - Често коришћен за локалне имплементације MCP сервера
+1. **STDIO транспорт**:
+   - Користи стандардне улазно/излазне токове за директну процесну комуникацију
+   - Оптималан за локалне процесе на истој машини без мрежног оптерећења
+   - Често се користи за локалне MCP серверске имплементације
 
-2. **HTTP транспорт са стримингом**:  
+2. **Стримујући HTTP транспорт**:
    - Користи HTTP POST за поруке од клијента ка серверу  
-   - Опционо Server-Sent Events (SSE) за стримовање од сервера ка клијенту  
-   - Омогућава удаљену комуникацију преко мрежа  
-   - Подржава стандардну HTTP аутентификацију (bearer токени, API кључеви, прилагођени заглавља)  
-   - MCP препоручује OAuth за сигурну аутентификацију на бази токена
+   - Опционо Server-Sent Events (SSE) за стримовање од сервера ка клијенту
+   - Омогућава комуникацију са удаљеним серверима преко мреже
+   - Подржава стандардну HTTP аутентификацију (bearer токени, API кључеви, прилагођени хедери)
+   - MCP препоручује OAuth за безбедну аутентификацију засновану на токенима
 
 #### Абстракција транспорта:
 
-Слој транспорта апстрахује детаље комуникације од слоја података, омогућавајући исти формат порука JSON-RPC 2.0 преко свих транспортних механизама. Ова абстракција омогућава апликацијама прелазак између локалних и удаљених сервера без проблема.
+Транспортни слој апстрахује детаље комуникације од слоја података, омогућавајући исти JSON-RPC 2.0 формат порука за све транспортне механизме. Ова апстракција омогућава апликацијама да лако пребаце локалне и удаљене сервере.
 
-### Безбедносна разматрања
+### Безбедносне разматрања
 
-Имплементације MCP морају се придржавати неколико критичних безбедносних принципа како би осигурале безбедне, поуздане и сигурне интеракције у свим протоколским операцијама:
+MCP имплементације морају поштовати неколико критичних безбедносних принципа како би осигурале безбедне, поуздане и сигурне интеракције у свим операцијама протокола:
 
-- **Сагласност и контрола корисника**: Корисници морају дати изричиту сагласност пре приступа подацима или извођења операција. Треба да имају јасну контролу о томе који се подаци деле и које радње су овлашћене, подржане интуитивним корисничким интерфејсима за преглед и одобрење активности.
+- **Кориснички пристанак и контрола**: Корисници морају јасно дати пристанак пре него што било који податак буде приступљен или операције извршене. Треба да имају јасну контролу над тим који подаци се деле и које акције су одобрени, подржано интуитивним корисничким интерфејсима за преглед и одобравање активности.
 
-- **Приватност података**: Кориснички подаци се смеју откривати само уз изричиту сагласност и морају бити заштићени одговарајућом контролом приступа. MCP имплементације морају заштитити од неовлашћеног преноса података и обезбедити одржавање приватности током свих интеракција.
+- **Приватност података**: Кориснички подаци се могу открити само уз изричити пристанак и морају бити заштићени одговарајућом контролом приступа. MCP имплементације морају спречавати неовлашћен пренос података и осигурати да приватност буде очувана у току свих интеракција.
 
-- **Безбедност алата**: Пре позива било ког алата потребна је изричита корисничка сагласност. Корисници морају јасно разумети функције сваког алата, а морају се спровести јаке безбедносне границе како би се спречило нежељено или небезбедно извршавање алата.
+- **Сигурност алата**: Пре покретања било ког алата потребан је изричити кориснички пристанак. Корисници треба да имају јасно разумевање сваке функције алата, а морају бити спроведене јаке безбедносне границе како би се спречило ненамерно или несигурно извршење алата.
 
-Пратећи ове принципе безбедности, MCP обезбеђује поверење корисника, приватност и безбедност током свих интеракција протокола, истовремено омогућавајући моћне AI интеграције.
+Поштовањем ових безбедносних принципа, MCP обезбеђује поверење корисника, приватност и безбедност кроз све интеракције протокола, истовремено омогућавајући моћне AI интеграције.
 
 ## Примери кода: Кључне компоненте
 
-Испод су примери кода у неколико популарних програмских језика који илуструју како имплементирати кључне компоненте MCP сервера и алата.
+Испод су примери кода на неколико популарних програмских језика који илуструју како имплементирати кључне компоненте MCP сервера и алата.
 
-### .NET пример: Креирање једноставног MCP сервера са алатима
+### Пример .NET: Креирање једноставног MCP сервера са алатима
 
-Ево практичног .NET примера који показује како имплементирати једноставан MCP сервер са прилагођеним алатима. Овај пример приказује како дефинисати и регистровати алате, обрађивати захтеве и повезати сервер користећи Model Context Protocol.
+Ово је практичан .NET пример кода који показује како имплементирати једноставан MCP сервер са прилагођеним алатима. Пример показује како дефинисати и регистровати алате, руковати захтевима и повезати сервер користећи Протокол контекста модела.
 
 ```csharp
 using System;
@@ -380,9 +392,9 @@ public class WeatherData
 }
 ```
 
-### Java пример: Компоненте MCP сервера
+### Пример у Јави: MCP серверске компоненте
 
-Овај пример демонстрира исти MCP сервер и регистрацију алата као горе наведени .NET пример, али имплементиран у Јави.
+Овај пример демонстрира исти MCP сервер и регистрацију алата као горњи .NET пример, али имплементиран у Јави.
 
 ```java
 import io.modelcontextprotocol.server.McpServer;
@@ -399,17 +411,17 @@ public class WeatherMcpServer {
             .version("1.0.0")
             .build();
             
-        // Региструј алатку за време
+        // Региструј алат за временску прогнозу
         server.registerTool(McpToolDefinition.builder("weatherTool")
             .description("Gets current weather for a location")
             .parameter("location", String.class)
             .execute((ToolExecutionContext ctx) -> {
                 String location = ctx.getParameter("location", String.class);
                 
-                // Добиј податке о времену (поједностављено)
+                // Преузми податке о времену (поједностављено)
                 WeatherData data = getWeatherData(location);
                 
-                // Врати форматиран одговор
+                // Врати форматирани одговор
                 return ToolResponse.content(
                     String.format("Temperature: %.1f°F, Conditions: %s, Location: %s", 
                     data.getTemperature(), 
@@ -419,18 +431,18 @@ public class WeatherMcpServer {
             })
             .build());
         
-        // Повежи сервер користећи стандардни улаз/излаз пренос
+        // Повежи сервер користећи стдио транспорт
         try (StdioServerTransport transport = new StdioServerTransport()) {
             server.connect(transport);
             System.out.println("Weather MCP Server started");
-            // Остави сервер активним док процес не буде прекинут
+            // Одржи сервер активним док се процес не заврши
             Thread.currentThread().join();
         }
     }
     
     private static WeatherData getWeatherData(String location) {
-        // Имплементација би позвала временски API
-        // Пojедностављено за потребе примера
+        // Имплементација би позвала API за временску прогнозу
+        // Пojедностављено у сврху примера
         return new WeatherData(72.5, "Sunny", location);
     }
 }
@@ -460,14 +472,14 @@ class WeatherData {
 }
 ```
 
-### Python пример: Прављење MCP сервера
+### Python пример: Изградња MCP сервера
 
-Овај пример користи fastmcp, зато је потребно да га прво инсталирате:
+Овај пример користи fastmcp, зато га прво инсталирајте:
 
 ```python
 pip install fastmcp
 ```
-Пример кода:
+Code Sample:
 
 ```python
 #!/usr/bin/env python3
@@ -475,7 +487,7 @@ import asyncio
 from fastmcp import FastMCP
 from fastmcp.transports.stdio import serve_stdio
 
-# Креирај FastMCP сервер
+# Креирајте FastMCP сервер
 mcp = FastMCP(
     name="Weather MCP Server",
     version="1.0.0"
@@ -503,23 +515,23 @@ class WeatherTools:
             ]
         }
 
-# Региструј алате класе
+# Региструјте класне алате
 weather_tools = WeatherTools()
 
-# Покрени сервер
+# Покрените сервер
 if __name__ == "__main__":
     asyncio.run(serve_stdio(mcp))
 ```
 
 ### JavaScript пример: Креирање MCP сервера
 
-Овај пример показује креирање MCP сервера у JavaScript-у и како регистровати два алата везана за прогнозу времена.
+Овај пример показује креирање MCP сервера у JavaScript-у и како регистровати два алата повезана са временом.
 
 ```javascript
 // Користећи званични Model Context Protocol SDK
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod"; // За валидацију параметара
+import { z } from "zod"; // За проверу параметара
 
 // Креирај MCP сервер
 const server = new McpServer({
@@ -527,14 +539,14 @@ const server = new McpServer({
   version: "1.0.0"
 });
 
-// Дефиниши алатку за временску прогнозу
+// Дефиниши алат за временску прогнозу
 server.tool(
   "weatherTool",
   {
     location: z.string().describe("The location to get weather for")
   },
   async ({ location }) => {
-    // Ово би обично позивало API за временску прогнозу
+    // Ово би обично позивало временски API
     // Поједностављено за демонстрацију
     const weatherData = await getWeatherData(location);
     
@@ -549,7 +561,7 @@ server.tool(
   }
 );
 
-// Дефиниши алатку за прогнозу
+// Дефиниши алат за прогнозу
 server.tool(
   "forecastTool",
   {
@@ -557,7 +569,7 @@ server.tool(
     days: z.number().default(3).describe("Number of days for forecast")
   },
   async ({ location, days }) => {
-    // Ово би обично позивало API за временску прогнозу
+    // Ово би обично позивало временски API
     // Поједностављено за демонстрацију
     const forecast = await getForecastData(location, days);
     
@@ -598,107 +610,112 @@ server.connect(transport).catch(console.error);
 console.log("Weather MCP Server started");
 ```
 
-Овај JavaScript пример демонстрира како направити MCP сервер користећи Model Context Protocol SDK. Показује како регистровати два алата под именима `weatherTool` и `forecastTool` и учинити их доступним MCP клијентима преко `StdioServerTransport`.
+Овај JavaScript пример показује како креирати MCP сервер користећи Model Context Protocol SDK. Приказује како регистровати два алата под именом `weatherTool` и `forecastTool` и учинити их доступним MCP клијентима преко `StdioServerTransport`.
 
-## Безбедност и овлашћење
+## Безбедност и ауторизација
 
-MCP укључује неколико уграђених концепата и механизама за управљање безбедношћу и овлашћењем у протоколу:
+MCP садржи неколико уграђених концепата и механизама за управљање безбедношћу и ауторизацијом кроз цео протокол:
 
 1. **Контрола дозвола за алате**:  
-  Клијенти могу одредити које алате модел сме да користи током сесије. Ово осигурава да су приступачни само јасно овлашћени алати, смањујући ризик од нежељених или небезбедних операција. Дозволе се могу динамички конфигурисати по корисничким преференцама, организационим политикама или контексту интеракције.
+  Клијенти могу одредити које алате модел сме користити током сесије. Ово осигурава да су приступачни само изричито одобрени алати, смањујући ризик од ненамерних или несигурних операција. Дозволе могу бити динамички подешаване у складу са корисничким преференцама, организационим политикама или контекстом интеракције.
 
 2. **Аутентификација**:  
-  Сервери могу захтевати аутентификацију пре одобравања приступа алатима, ресурсима или осетљивим операцијама. То може укључивати API кључеве, OAuth токене или друге шеме аутентификације. Правилна аутентификација осигурава да само поуздани клијенти и корисници могу да покрећу серверске функције.
+  Сервери могу тражити аутентификацију пре него што одобре приступ алатима, ресурсима или осетљивим операцијама. Ово може укључивати API кључеве, OAuth токене или друге шеме аутентификације. Исправна аутентификација осигурава да само поуздани клијенти и корисници могу покретати серверске могућности.
 
 3. **Валидација**:  
-  Валидација параметара је обавезна за све позиве алата. Сваки алат дефинише очекиване типове, формате и ограничења за своје параметре, а сервер верификује долазне захтеве према тим правилима. Ово спречава неисправне или злонамерне уносе који би могли утицати на имплементацију алата и помаже у одржавању интегритета операција.
+  Валидација параметара се спроводи за све позиве алата. Сваки алат дефинише очекиване типове, формате и ограничења својих параметара, а сервер проверава долазне захтеве у складу са тим. Ово спречава неисправне или злонамерне уносе да стигну до имплементација алата и помаже у очувању интегритета операција.
 
-4. **Ограничење учесталости**:  
-  Да би се спречила злоупотреба и обезбедила фер употреба ресурса сервера, MCP сервери могу спроводити ограничења учесталости за позиве алата и приступ ресурсима. Ограничења могу бити по кориснику, по сесији или глобално, и помажу у заштити од DoS напада или претеране потрошње ресурса.
+4. **Ограничење брзине (rate limiting)**:  
+  Да би се спречиле злоупотребе и обезбедила фер употреба серверских ресурса, MCP сервери могу имплементирати ограничења брзине за позиве алата и приступ ресурсима. Ограничења могу бити по кориснику, по сесији или глобално, и помажу у заштити од напада онемогућавања услуге или претеране потрошње ресурса.
 
-Комбиновањем ових механизама, MCP пружа сигурну основу за интеграцију језичких модела са спољним алатима и изворима података, уз прецизну контролу приступа и коришћења за кориснике и програмере.
+Комбиновањем ових механизама, MCP пружа сигурну основу за интеграцију језичких модела са спољним алатима и изворима података, омогућавајући корисницима и програмерима прецизну контролу приступа и употребе.
 
-## Поруке протокола и ток комуникације
+## Поруке протокола и проток комуникације
 
-MCP комуникација користи структуриран формат порука **JSON-RPC 2.0** за јасне и поуздане интеракције између домаћина, клијената и сервера. Протокол дефинише специфичне обрасце порука за различите типове операција:
+MCP комуникација користи структуриранe **JSON-RPC 2.0** поруке за олакшавање јасних и поузданих интеракција између домаћина, клијената и сервера. Протокол дефинише специфичне обрасце порука за различите типове операција:
 
 ### Основни типови порука:
 
-#### **Поруке иницијализације**
-- **`initialize` захтев**: Успоставља везу и преговара верзију протокола и могућности  
+#### **Поруке инициализације**
+- **`initialize` захтев**: Успоставља везу и негује верзију протокола и могућности
 - **`initialize` одговор**: Потврђује подржане функције и информације о серверу  
-- **`notifications/initialized`**: Сигнализира да је иницијализација завршена и сесија спремна
+- **`notifications/initialized`**: Сигнализира да је иницијализација завршена и да је сесија спремна
 
 #### **Поруке откривања**
-- **`tools/list` захтев**: Открива доступне алате на серверу  
-- **`resources/list` захтев**: Листира расположиве ресурсе (изворе података)  
+- **`tools/list` захтев**: Открива доступне алате на серверу
+- **`resources/list` захтев**: Листира доступне ресурсе (изворе података)
 - **`prompts/list` захтев**: Преузима доступне шаблоне упита
 
-#### **Поруке извршавања**  
-- **`tools/call` захтев**: Извршава одређени алат са прослеђеним параметрима  
-- **`resources/read` захтев**: Преузима садржај одређеног ресурса  
+#### **Поруке извршења**  
+- **`tools/call` захтев**: Извршава одређени алат са датим параметрима
+- **`resources/read` захтев**: Преузима садржај одређеног ресурса
 - **`prompts/get` захтев**: Преузима шаблон упита са опционим параметрима
 
-#### **Поруке са клијентске стране**
-- **`sampling/complete` захтев**: Сервер тражи LLM завршетак од клијента  
-- **`elicitation/request`**: Сервер тражи кориснички унос преко клијент интерфејса  
-- **Поруке логовања**: Сервер шаље структуиране лог поруке клијенту
+#### **Поруке на страни клијента**
+- **`sampling/complete` захтев**: Сервер тражи LLM комплетирање од клијента
+- **`elicitation/request`**: Сервер тражи кориснички унос кроз клијентски интерфејс
+- **Поруке логовања**: Сервер шаље структурисане лог поруке клијенту
 
-#### **Обавештења (Notifications)**
-- **`notifications/tools/list_changed`**: Сервер обавештава клијента о изменама листе алата  
-- **`notifications/resources/list_changed`**: Сервер обавештава клијента о изменама списка ресурса  
-- **`notifications/prompts/list_changed`**: Сервер обавештава клијента о изменама у шаблонима упита
+#### **Нотификационе поруке**
+- **`notifications/tools/list_changed`**: Сервер обавештава клијента о изменама алата
+- **`notifications/resources/list_changed`**: Сервер обавештава клијента о изменама ресурса  
+- **`notifications/prompts/list_changed`**: Сервер обавештава клијента о изменама упита
 
 ### Структура поруке:
 
-Све MCP поруке прате формат JSON-RPC 2.0 са:  
-- **Захтевним порукама**: укључују `id`, `method` и опционе `params`  
-- **Одговорним порукама**: укључују `id` и или `result` или `error`  
-- **Обавештењима**: укључују `method` и опционе `params` (нема `id` нити се очекује одговор)
+Све MCP поруке прате JSON-RPC 2.0 формат са:
+- **Захтевним порукама**: Садрже `id`, `method` и опционалне `params`
+- **Одговорним порукама**: Садрже `id` и или `result` или `error`  
+- **Нотификационим порукама**: Садрже `method` и опционалне `params` (нема `id` и одговор није очекиван)
 
-Ова структура омогућава поуздану, прегледну и прошириву интеракцију која подржава напредне сценарије као што су ажурирања у реалном времену, ланац алата и робусно руковање грешкама.
+Ова структура комуникације обезбеђује поуздане, траживе и прошириве интеракције које подржавају напредне сценарије као што су ажурирања у реалном времену, ланци алата и робусно руковање грешкама.
 
 ### Задаци (експериментално)
 
-**Задаци** су експериментална функција која пружа трајне омотаче за извршавање, омогућавајући одложено преузимање резултата и праћење статуса MCP захтева:
+> **Гледајући унапред:** кандидат за издање `2026-07-28` избацује Задаке из експерименталног језгра спецификације у посебан додатак за Задаке са редизајнираним животним циклусом (`tasks/get`, `tasks/update`, `tasks/cancel`; `tasks/list` је уклоњен). Ако градите на основи експерименталног API-а описаног испод, планирајте миграцију. Погледајте [Шта се мења у MCP: Кандидат за издање 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
-- **Дуготрајне операције**: Прати скупе прорачуне, аутоматизацију радних токова и пакетно обрађивање  
-- **Одложени резултати**: Омогућава упите о статусу задатка и преузимање резултата након завршетка операција  
-- **Праћење статуса**: Контролише напредак задатка кроз дефинисане стадијуме животног циклуса  
-- **Вишестепене операције**: Подржава сложене радне токове који обухватају више интеракција
+**Задаци** су експериментална функција која пружа поуздане омотаче за извршење, омогућавајући одложено преузимање резултата и праћење статуса MCP захтева:
 
-Задаци обавијају стандардне MCP захтеве како би омогућили асинхроно извршавање операција које се не могу одмах завршити.
+- **Дугачке операције**: Праћење скупих прорачуна, аутоматизације токова рада и пакет обработке
+- **Одложени резултати**: Поруџбина статуса задатка и преузимање резултата када се операције заврше
+- **Праћење статуса**: Контрола напретка задатка кроз дефинисане стадијуме животног циклуса
+- **Вишестепене операције**: Подршка сложеним токовима рада који се протежу преко више интеракција
+
+Задаци омотавају стандардне MCP захтеве како би омогућили асинхроне обрасце извршења за операције које не могу бити одмах завршене.
 
 ## Кључне поуке
 
-- **Архитектура**: MCP користи клијент-сервер архитектуру где домаћини управљају везама више клијената ка серверима  
-- **Учесници**: Екосистем укључује домаћине (AI апликације), клијенте (протоколске конекторе) и сервере (преговарче могућности)  
-- **Механизми транспорта**: Комуникација подржава STDIO (локално) и HTTP са стримингом и опционим SSE (удалено)  
-- **Основне примитиве**: Сервери излажу алате (извршне функције), ресурсе (изворе података) и упите (шаблоне)  
-- **Клијентске примитиве**: Сервери могу тражити узорковање (LLM завршетке са подршком за позив алата), добијање уноса (укључујући режим са URL-ом), коренове (границе система фајлова) и логовање од клијената  
-- **Експерименталне функције**: Задаци пружају трајне омотаче извршавања за дуготрајне операције  
-- **Основа протокола**: Изграђен на JSON-RPC 2.0 са верзионисањем на основу датума (тренутна: 2025-11-25)  
-- **Капацитети у реалном времену**: Подржава обавештења за динамичка ажурирања и синхронизацију у реалном времену  
-- **Безбедност на првом месту**: Изричита сагласност корисника, заштита приватности података и сигуран транспорт су основни захтеви
+- **Архитектура**: MCP користи клијент-сервер архитектуру где домаћини управљају више веза клијената ка серверима
+- **Учесници**: Еко-систем обухвата домаћине (AI апликације), клијенте (повезнике протокола) и сервере (пружиоце могућности)
+- **Транспортни механизми**: Комуникација подржава STDIO (локално) и Стримујући HTTP са опционалним SSE (удалјено)
+- **Основне примитиве**: Сервери излажу алате (извршне функције), ресурсе (изворе података) и упите (образце)
+- **Клијентске примитиве**: Сервери могу тражити узорковање (LLM комплетирања са подршком за позив алата), елицирање (кориснички унос укључујући режим URL-а), корене (границе фајл система) и логовање од клијената
+- **Експерименталне функције**: Задаци пружају поуздане омотаче за дуготрајне операције
+- **Ослоне на протокол**: Изграђен на JSON-RPC 2.0 са верзионисањем по датуму (тренутно: 2025-11-25)
+- **Капацитети у реалном времену**: Подржава нотификације за динамичка ажурирања и синхронизацију у реалном времену
+- **Безбедност на првом месту**: Јасан кориснички пристанак, заштита приватности података и безбедан транспорт су основни захтеви
 
 ## Вежба
 
-Осмислите једноставан MCP алат који би био користан у вашем домену. Опишите:  
-1. Како би се алат звао  
-2. Које параметре би прихватао  
-3. Који би излаз враћао  
-4. Како би модел могао користити овај алат да реши проблеме корисника
+Дизајнирајте једноставан MCP алат који би био користан у вашој области. Дефинишите:
+1. Како би се алат звао
+2. Које параметре би прихватао
+3. Који би излаз враћао
+4. Како би модел могао користити овај алат за решавање корисничких проблема
 
 
 ---
 
-## Следеће
+## Шта следи
 
 Следеће: [Поглавље 2: Безбедност](../02-Security/README.md)
+
+
+Радознали сте шта долази након `2025-11-25`? Прочитајте [Шта се мења у MCP: Кандидат за издање 2026-07-28](./mcp-2026-07-28-release-candidate.md).
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Одрицање од одговорности**:
-Овај документ је преведен коришћењем AI преводилачке услуге [Co-op Translator](https://github.com/Azure/co-op-translator). Иако тежимо тачности, молимо имајте у виду да аутоматизовани преводи могу садржати грешке или нетачности. Оригинални документ на његовом изворном језику треба сматрати ауторитетним извором. За критичне информације препоручује се професионални људски превод. Нисмо одговорни за било каква неспоразума или погрешна тумачења која произилазе из коришћења овог превода.
+**Изјава о одрицању одговорности**:
+Овај документ је преведен коришћењем услуге за аутоматски превод [Co-op Translator](https://github.com/Azure/co-op-translator). Иако тежимо тачности, имајте у виду да аутоматски преводи могу садржати грешке или нетачности. Оригинални документ на његовом изворном језику треба сматрати ауторитативним извором. За критичне информације препоручује се професионални људски превод. Нисмо одговорни за било каква неспоразума или погрешна тумачења која произилазе из коришћења овог превода.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

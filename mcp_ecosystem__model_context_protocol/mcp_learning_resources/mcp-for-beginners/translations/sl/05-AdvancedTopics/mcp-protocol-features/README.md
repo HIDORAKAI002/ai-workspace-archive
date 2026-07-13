@@ -1,21 +1,23 @@
-# Poglobljen pogled na značilnosti protokola MCP
+# Podroben pregled funkcij MCP protokola
 
-Ta vodič raziskuje napredne značilnosti protokola MCP, ki presegajo osnovno upravljanje orodij in virov. Razumevanje teh značilnosti vam pomaga zgraditi bolj robustne, prijazne do uporabnika in produkcijsko pripravljene strežnike MCP.
+Ta vodič raziskuje napredne funkcije MCP protokola, ki presegajo osnovno upravljanje orodij in virov. Razumevanje teh funkcij vam pomaga zgraditi bolj robustne, uporabniku prijazne in proizvodno pripravljene MCP strežnike.
 
-## Pregled značilnosti
+> **Pogled v prihodnost:** izid kandidata za izdajo `2026-07-28` opušča primitivno beleženje (prizadevajoč se za `stderr` za stdio in OpenTelemetry za strukturirano opazovanje), odstrani model `initialize`/seje, omenjen spodaj v Dogodkih življenjskega cikla strežnika, in premakne eksperimentalno funkcijo Naloge v namenski dodatek Naloge z novim življenjskim ciklom `tasks/get`/`tasks/update`/`tasks/cancel`. Glejte [Kaj se spreminja v MCP: kandidat za izdajo 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Obvestila o napredku** – Poročanje o napredku za dolgotrajne operacije  
-2. **Preklic zahtev** – Dovoljevanje strankam preklic v teku zahtev  
-3. **Predloge virov** – Dinamični URI-ji virov s parametri  
-4. **Dogodki življenjskega cikla strežnika** – Pravilna inicializacija in zaustavitev  
-5. **Nadzor beleženja** – Konfiguracija beleženja na strežniku  
-6. **Vzorec ravnanja z napakami** – Dosledni odgovori na napake  
+## Pokrite funkcije
+
+1. **Obveščanje o napredku** - poročanje o napredku dolgih operacij
+2. **Preklic zahtev** - dovoljuje strankam preklic zahtev v izvajanju
+3. **Predloge virov** - dinamični URI-ji virov s parametri
+4. **Dogodki življenjskega cikla strežnika** - pravilna inicializacija in zaustavitev
+5. **Nadzor beleženja** - konfiguracija beleženja na strežniški strani
+6. **Vzorec obravnave napak** - dosledni odzivi na napake
 
 ---
 
-## 1. Obvestila o napredku
+## 1. Obveščanje o napredku
 
-Za operacije, ki trajajo dlje (obdelava podatkov, prenos datotek, klici API), obvestila o napredku uporabnike obveščajo o stanju.
+Za operacije, ki zahtevajo čas (obdelava podatkov, prenos datotek, klici API), obveščanje o napredku uporabnike obvešča o dogajanju.
 
 ### Kako deluje
 
@@ -24,12 +26,13 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (dolga operacija)
+    Client->>Server: orodja/klic (dolga operacija)
     Server-->>Client: obvestilo: napredek 10%
     Server-->>Client: obvestilo: napredek 50%
     Server-->>Client: obvestilo: napredek 90%
     Server->>Client: rezultat (zaključeno)
 ```
+
 ### Implementacija v Pythonu
 
 ```python
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### Implementacija v TypeScript-u
+### Implementacija v TypeScriptu
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Ravnanje na strani odjemalca (Python)
+### Ravnanje na strani naročnika (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,10 +134,10 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Registriraj upravljavca
+# Registriraj upravljalnik
 session.on_notification("notifications/progress", handle_progress)
 
-# Pokliči orodje (posodobitve napredka bodo prispele prek upravljavca)
+# Pokliči orodje (posodobitve napredka bodo prispele prek upravljalnika)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
@@ -142,7 +145,7 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. Preklic zahtev
 
-Dovoljevanje strankam, da prekličejo zahteve, ki niso več potrebne ali trajajo predolgo.
+Dovolite strankam, da prekličejo zahteve, ko niso več potrebne ali trajajo predolgo.
 
 ### Implementacija v Pythonu
 
@@ -160,16 +163,16 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Iskanje skozi veliko strani
-            # Preveri, če je bila zahtevana preklica
+        for page in range(100):  # Iskanje po mnogih straneh
+            # Preveri, ali je bilo preklic zahtevan
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Simuliraj iskanje po straneh
+            # Simuliraj iskanje po strani
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Kratek zamik omogoča preverjanje preklica
+            # Majhna zamuda omogoča preverjanje preklica
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Normalni časovni potek, nadaljuj
+            pass  # Običajna časovna omejitev, nadaljuj
 ```
 
-### Preklic na strani odjemalca
+### Preklic na strani naročnika
 
 ```python
 import asyncio
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Predloge virov
 
-Predloge virov omogočajo dinamično sestavo URI-jev s parametri, kar je uporabno za API-je in baze podatkov.
+Predloge virov omogočajo dinamično konstrukcijo URI-jev z parametri, kar je uporabno za API-je in podatkovne baze.
 
 ### Določanje predlog
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Razčleni URI, da pridobiš parametre
+    # Razčlenite URI za pridobitev parametrov
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### Implementacija v TypeScript-u
+### Implementacija v TypeScriptu
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Razčleni URI za GitHub zadevo
+  // Analiziraj URI GitHub zadeve
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### Življenjski cikel v TypeScript-u
+### Življenjski cikel v TypeScriptu
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -430,12 +433,12 @@ class ManagedServer {
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
     
-    // Začni strežnik
+    // Zaženi strežnik
     await this.server.connect(transport);
   }
   
   async stop() {
-    // Očisti vire
+    // Počisti vire
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -467,9 +470,9 @@ await server.start();
 
 ## 5. Nadzor beleženja
 
-MCP podpira ravni beleženja na strani strežnika, ki jih lahko nadzorujejo odjemalci.
+MCP podpira stopnje beleženja na strežniški strani, ki jih lahko nadzorujejo stranke.
 
-### Implementacija ravni beleženja
+### Implementacija stopenj beleženja
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Preslikajte raven MCP na ravni dnevnika v Pythonu
+# Preslikaj ravni MCP na ravni dnevnika v Pythonu
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,20 +512,20 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Pošiljanje zapisov odjemalcu
+### Pošiljanje dnevniških sporočil stranki
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Pošlji beležko o dogodku odjemalcu
+    # Pošlji obvestilo o dnevniku odjemalcu
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Opravi delo...
+    # Naredi delo...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Vzorec ravnanja z napakami
+## 6. Vzorec obravnave napak
 
-Dosledno ravnanje z napakami izboljšuje odpravljanje napak in uporabniško izkušnjo.
+Dosledna obravnava napak izboljša odkrivanje in uporabniško izkušnjo.
 
 ### Kode napak MCP
 
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Strukturirani odgovori na napake
+### Strukturirani odzivi na napake
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Preveri vhodne podatke
+    # Preveri vnos
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -606,7 +609,7 @@ async def safe_operation(input: str) -> str:
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### Ravnanje z napakami v TypeScript-u
+### Obravnava napak v TypeScriptu
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // Več preverjanja ...
+  // Več preverjanja veljavnosti...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Že MCP napaka
+      throw error;  // Že napaka MCP
     }
     
     // Pretvori druge napake
@@ -653,14 +656,14 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## Eksperimentalne značilnosti (MCP 2025-11-25)
+## Eksperimentalne funkcije (MCP 2025-11-25)
 
-Te značilnosti so v specifikaciji označene kot eksperimentalne:
+Te funkcije so v specifikaciji označene kot eksperimentalne:
 
 ### Naloge (dolgotrajne operacije)
 
 ```python
-# Naloge omogočajo spremljanje dolgo trajajočih operacij s stanjem
+# Naloge omogočajo sledenje dolgoročnim operacijam z državo
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
@@ -668,7 +671,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     # Poročilo o začetku naloge
     await ctx.report_status("running", "Initializing training...")
     
-    # Zanka učenja
+    # Zankni cikel učenja
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -689,9 +692,9 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
 @app.tool(
     annotations={
         "destructive": False,      # Ne spreminja podatkov
-        "idempotent": True,        # Varno za ponovni poskus
-        "timeout_seconds": 30,     # Pričakovani največji čas trajanja
-        "requires_approval": False # Ni potrebnega uporabniškega odobritve
+        "idempotent": True,        # Varen za ponovni poskus
+        "timeout_seconds": 30,     # Pričakovana največja trajanje
+        "requires_approval": False # Uporabniško odobritev ni potrebna
     }
 )
 async def safe_query(query: str) -> str:
@@ -703,22 +706,22 @@ async def safe_query(query: str) -> str:
 
 ## Kaj sledi
 
-- [Modul 8 – Najboljše prakse](../../08-BestPractices/README.md)  
-- [5.14 – Inženiring konteksta](../mcp-contextengineering/README.md)  
-- [Spreminjanje specifikacije MCP](https://spec.modelcontextprotocol.io/)  
+- [Modul 8 - najboljše prakse](../../08-BestPractices/README.md)
+- [5.14 - Inženiring konteksta](../mcp-contextengineering/README.md)
+- [Dnevnik sprememb specifikacije MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Dodatni viri
 
-- [Specifikacija MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [Kode napak JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [Primeri Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
-- [Primeri TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [Specifikacija MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Kode napak JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [Primeri v Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [Primeri v TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Opozorilo**:
-Ta dokument je bil preveden z uporabo storitve za avtomatski prevod AI [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, upoštevajte, da lahko avtomatizirani prevodi vsebujejo napake ali netočnosti. Izvirni dokument v njegovem prvotnem jeziku velja za uradni vir. Za pomembne informacije priporočamo strokovni človeški prevod. Ne odgovarjamo za morebitne nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
+**Omejitev odgovornosti**:
+Ta dokument je bil preveden z uporabo AI prevajalske storitve [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da avtomatizirani prevodi lahko vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvirnem jeziku je treba obravnavati kot avtoritativni vir. Za kritične informacije je priporočljiv strokovni človeški prevod. Ne odgovarjamo za morebitna nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

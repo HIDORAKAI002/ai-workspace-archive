@@ -1,21 +1,21 @@
-![MCP-pre-začiatočníkov](../../translated_images/sk/mcp-beginners.2ce2b317996369ff.webp) 
+![MCP-for-beginners](../../translated_images/sk/mcp-beginners.2ce2b317996369ff.webp) 
 
-[![Prispievatelia GitHub](https://img.shields.io/github/contributors/microsoft/mcp-for-beginners.svg)](https://GitHub.com/microsoft/mcp-for-beginners/graphs/contributors)
-[![Problémy GitHub](https://img.shields.io/github/issues/microsoft/mcp-for-beginners.svg)](https://GitHub.com/microsoft/mcp-for-beginners/issues)
-[![Pull requesty GitHub](https://img.shields.io/github/issues-pr/microsoft/mcp-for-beginners.svg)](https://GitHub.com/microsoft/mcp-for-beginners/pulls)
-[![PRs vítané](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![GitHub contributors](https://img.shields.io/github/contributors/microsoft/mcp-for-beginners.svg)](https://GitHub.com/microsoft/mcp-for-beginners/graphs/contributors)
+[![GitHub issues](https://img.shields.io/github/issues/microsoft/mcp-for-beginners.svg)](https://GitHub.com/microsoft/mcp-for-beginners/issues)
+[![GitHub pull-requests](https://img.shields.io/github/issues-pr/microsoft/mcp-for-beginners.svg)](https://GitHub.com/microsoft/mcp-for-beginners/pulls)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
-[![Sledujúci GitHub](https://img.shields.io/github/watchers/microsoft/mcp-for-beginners.svg?style=social&label=Watch)](https://GitHub.com/microsoft/mcp-for-beginners/watchers)
-[![Rozdvojenia GitHub](https://img.shields.io/github/forks/microsoft/mcp-for-beginners.svg?style=social&label=Fork)](https://GitHub.com/microsoft/mcp-for-beginners/fork)
-[![Hviezdičky GitHub](https://img.shields.io/github/stars/microsoft/mcp-for-beginners?style=social&label=Star)](https://GitHub.com/microsoft/mcp-for-beginners/stargazers)
+[![GitHub watchers](https://img.shields.io/github/watchers/microsoft/mcp-for-beginners.svg?style=social&label=Watch)](https://GitHub.com/microsoft/mcp-for-beginners/watchers)
+[![GitHub forks](https://img.shields.io/github/forks/microsoft/mcp-for-beginners.svg?style=social&label=Fork)](https://GitHub.com/microsoft/mcp-for-beginners/fork)
+[![GitHub stars](https://img.shields.io/github/stars/microsoft/mcp-for-beginners?style=social&label=Star)](https://GitHub.com/microsoft/mcp-for-beginners/stargazers)
 
 
 [![Microsoft Foundry Discord](https://dcbadge.limes.pink/api/server/nTYy5BXMWG)](https://discord.gg/nTYy5BXMWG)
 
 Postupujte podľa týchto krokov, aby ste začali používať tieto zdroje:
-1. **Rozdvojte repozitár**: Kliknite na [![Rozdvojenia GitHub](https://img.shields.io/github/forks/microsoft/mcp-for-beginners.svg?style=social&label=Fork)](https://GitHub.com/microsoft/mcp-for-beginners/fork)
-2. **Naklonujte repozitár**:   `git clone https://github.com/microsoft/mcp-for-beginners.git`
-3. **Pripojte sa k** [![Microsoft Foundry Discord](https://dcbadge.limes.pink/api/server/nTYy5BXMWG)](https://discord.gg/nTYy5BXMWG)
+1. **Rozvetvite si Repozitár**: Kliknite na [![GitHub forks](https://img.shields.io/github/forks/microsoft/mcp-for-beginners.svg?style=social&label=Fork)](https://GitHub.com/microsoft/mcp-for-beginners/fork)
+2. **Klonujte Repozitár**:   `git clone https://github.com/microsoft/mcp-for-beginners.git`
+3. **Pridajte sa na** [![Microsoft Foundry Discord](https://dcbadge.limes.pink/api/server/nTYy5BXMWG)](https://discord.gg/nTYy5BXMWG)
 
 
 ### 🌐 Podpora viacerých jazykov
@@ -23,11 +23,11 @@ Postupujte podľa týchto krokov, aby ste začali používať tieto zdroje:
 #### Podporované cez GitHub Action (automatizované a vždy aktuálne)
 
 <!-- CO-OP TRANSLATOR LANGUAGES TABLE START -->
-[Arabčina](../ar/README.md) | [Bengálčina](../bn/README.md) | [Bulharčina](../bg/README.md) | [Barmčina (Myanmar)](../my/README.md) | [Čínština (zjednodušená)](../zh-CN/README.md) | [Čínština (tradičná, Hongkong)](../zh-HK/README.md) | [Čínština (tradičná, Macau)](../zh-MO/README.md) | [Čínština (tradičná, Taiwan)](../zh-TW/README.md) | [Chorvátčina](../hr/README.md) | [Čeština](../cs/README.md) | [Dánčina](../da/README.md) | [Holandčina](../nl/README.md) | [Estónčina](../et/README.md) | [Fínčina](../fi/README.md) | [Francúzština](../fr/README.md) | [Nemčina](../de/README.md) | [Gréčtina](../el/README.md) | [Hebrejčina](../he/README.md) | [Hindčina](../hi/README.md) | [Maďarčina](../hu/README.md) | [Indonézština](../id/README.md) | [Taliančina](../it/README.md) | [Japončina](../ja/README.md) | [Kannadčina](../kn/README.md) | [Khmerčina](../km/README.md) | [Kórejčina](../ko/README.md) | [Litovčina](../lt/README.md) | [Malajčina](../ms/README.md) | [Malajálamčina](../ml/README.md) | [Maráthčina](../mr/README.md) | [Nepálčina](../ne/README.md) | [Nigerijský pidžin](../pcm/README.md) | [Norština](../no/README.md) | [Perzština (Farsi)](../fa/README.md) | [Poľština](../pl/README.md) | [Portugalčina (Brazília)](../pt-BR/README.md) | [Portugalčina (Portugalsko)](../pt-PT/README.md) | [Pandžábčina (Gurmukhi)](../pa/README.md) | [Rumunčina](../ro/README.md) | [Ruština](../ru/README.md) | [Srbčina (cyrilika)](../sr/README.md) | [Slovenčina](./README.md) | [Slovinčina](../sl/README.md) | [Španielčina](../es/README.md) | [Swahilčina](../sw/README.md) | [Švédčina](../sv/README.md) | [Tagalog (Filipínčina)](../tl/README.md) | [Tamilčina](../ta/README.md) | [Telugčina](../te/README.md) | [Thajčina](../th/README.md) | [Turečtina](../tr/README.md) | [Ukrajinčina](../uk/README.md) | [Urdu](../ur/README.md) | [Vietnamčina](../vi/README.md)
+[Arabic](../ar/README.md) | [Bengali](../bn/README.md) | [Bulgarian](../bg/README.md) | [Burmese (Myanmar)](../my/README.md) | [Chinese (Simplified)](../zh-CN/README.md) | [Chinese (Traditional, Hong Kong)](../zh-HK/README.md) | [Chinese (Traditional, Macau)](../zh-MO/README.md) | [Chinese (Traditional, Taiwan)](../zh-TW/README.md) | [Croatian](../hr/README.md) | [Czech](../cs/README.md) | [Danish](../da/README.md) | [Dutch](../nl/README.md) | [Estonian](../et/README.md) | [Finnish](../fi/README.md) | [French](../fr/README.md) | [German](../de/README.md) | [Greek](../el/README.md) | [Hebrew](../he/README.md) | [Hindi](../hi/README.md) | [Hungarian](../hu/README.md) | [Indonesian](../id/README.md) | [Italian](../it/README.md) | [Japanese](../ja/README.md) | [Kannada](../kn/README.md) | [Khmer](../km/README.md) | [Korean](../ko/README.md) | [Lithuanian](../lt/README.md) | [Malay](../ms/README.md) | [Malayalam](../ml/README.md) | [Marathi](../mr/README.md) | [Nepali](../ne/README.md) | [Nigerian Pidgin](../pcm/README.md) | [Norwegian](../no/README.md) | [Persian (Farsi)](../fa/README.md) | [Polish](../pl/README.md) | [Portuguese (Brazil)](../pt-BR/README.md) | [Portuguese (Portugal)](../pt-PT/README.md) | [Punjabi (Gurmukhi)](../pa/README.md) | [Romanian](../ro/README.md) | [Russian](../ru/README.md) | [Serbian (Cyrillic)](../sr/README.md) | [Slovak](./README.md) | [Slovenian](../sl/README.md) | [Spanish](../es/README.md) | [Swahili](../sw/README.md) | [Swedish](../sv/README.md) | [Tagalog (Filipino)](../tl/README.md) | [Tamil](../ta/README.md) | [Telugu](../te/README.md) | [Thai](../th/README.md) | [Turkish](../tr/README.md) | [Ukrainian](../uk/README.md) | [Urdu](../ur/README.md) | [Vietnamese](../vi/README.md)
 
-> **Radšej naklonovať lokálne?**
+> **Uprednostňujete lokálne klonovanie?**
 >
-> Tento repozitár obsahuje vyše 50 jazykových prekladov, čo výrazne zväčšuje veľkosť sťahovania. Ak chcete klonovať bez prekladov, použite sparse checkout:
+> Tento repozitár obsahuje viac ako 50 jazykových prekladov, čo výrazne zväčšuje veľkosť sťahovania. Ak chcete klonovať bez prekladov, použite sparse checkout:
 >
 > **Bash / macOS / Linux:**
 > ```bash
@@ -43,177 +43,182 @@ Postupujte podľa týchto krokov, aby ste začali používať tieto zdroje:
 > git sparse-checkout set --no-cone "/*" "!translations" "!translated_images"
 > ```
 >
-> Toto vám poskytne všetko potrebné na dokončenie kurzu oveľa rýchlejšie.
+> Toto vám poskytne všetko potrebné na dokončenie kurzu s omnoho rýchlejším sťahovaním.
 <!-- CO-OP TRANSLATOR LANGUAGES TABLE END -->
 
-# 🚀 Učebný plán Model Context Protocol (MCP) pre začiatočníkov
+# 🚀 Kurz Model Context Protocol (MCP) pre začiatočníkov
 
-## **Naučte sa MCP na praktických príkladoch kódu v C#, Java, JavaScript, Rust, Python a TypeScript**
+## **Naučte sa MCP s praktickými príkladmi kódu v C#, Java, JavaScript, Rust, Python a TypeScript**
 
-## 🧠 Prehľad učebného plánu Model Context Protocol
-Vitajte na vašej ceste do sveta Model Context Protocol! Ak ste sa niekedy zaujímali, ako AI aplikácie komunikujú s rôznymi nástrojmi a službami, čoskoro objavíte elegantné riešenie, ktoré mení spôsob, akým vývojári vytvárajú inteligentné systémy.
+## 🧠 Prehľad kurzu o Model Context Protocol
+Vitajte na svojej ceste do sveta Model Context Protocol! Ak ste sa niekedy zamýšľali, ako aplikácie AI komunikujú s rôznymi nástrojmi a službami, teraz objavíte elegantné riešenie, ktoré mení spôsob, akým vývojári vytvárajú inteligentné systémy.
 
-Predstavte si MCP ako univerzálneho prekladateľa pre AI aplikácie – rovnako ako USB porty umožňujú pripojiť akékoľvek zariadenie k počítaču, MCP umožňuje AI modelom pripojiť sa ku ktorémukoľvek nástroju alebo službe štandardizovaným spôsobom. Či už budujete svoj prvý chatbot alebo pracujete na zložitých AI pracovných procesoch, pochopenie MCP vám poskytne silu vytvárať schopnejšie a flexibilnejšie aplikácie.
+Predstavte si MCP ako univerzálneho prekladateľa pre AI aplikácie – rovnako ako USB porty umožňujú pripojiť akékoľvek zariadenie k vášmu počítaču, MCP umožňuje AI modelom pripojiť sa ku každému nástroju alebo službe štandardizovaným spôsobom. Či už vytvárate svoj prvý chatbot alebo pracujete na komplikovaných AI pracovných postupoch, pochopenie MCP vám dá moc vytvoriť schopnejšie a flexibilnejšie aplikácie.
 
-Tento učebný plán je navrhnutý s trpezlivosťou a starostlivosťou pre vašu vzdelávaciu cestu. Začneme jednoduchými konceptmi, ktoré už poznáte, a postupne budeme rozvíjať vaše znalosti prostredníctvom praktického precvičovania v obľúbenom programovacom jazyku. Každý krok obsahuje jasné vysvetlenia, praktické príklady a množstvo povzbudenia.
+Tento kurz je navrhnutý s trpezlivosťou a starostlivosťou o vašu učebnú cestu. Začneme jednoduchými konceptmi, ktoré už poznáte, a postupne budeme budovať vašu odbornosť prostredníctvom praktických cvičení vo vašom obľúbenom programovacom jazyku. Každý krok obsahuje jasné vysvetlenia, praktické príklady a veľa povzbudenia po ceste.
 
-Keď túto cestu dokončíte, budete mať sebavedomie vytvoriť vlastné MCP servery, integrovať ich s populárnymi AI platformami a porozumieť, ako táto technológia formuje budúcnosť vývoja AI. Poďme spoločne začať toto vzrušujúce dobrodružstvo!
+Keď túto cestu dokončíte, budete mať dôveru vytvoriť si vlastné MCP servery, integrovať ich s populárnymi AI platformami a pochopíte, ako táto technológia formuje budúcnosť vývoja AI. Poďme na túto vzrušujúcu výpravu spolu!
 
 ### Oficiálna dokumentácia a špecifikácie
 
-Tento učebný plán je zosúladený s **MCP Špecifikáciou 2025-11-25** (najnovšie stabilné vydanie). Špecifikácia MCP používa dátumové verzovanie (formát RRRR-MM-DD), aby zabezpečila jasné sledovanie verzií protokolu.
+Tento kurz je zosúladený so **špecifikáciou MCP 2025-11-25** (najnovšia stabilná verzia). Špecifikácia MCP používa číslovanie verzií podľa dátumu (formát RRRR-MM-DD) na zabezpečenie jasného sledovania verzií protokolu.
 
-Tieto zdroje sa stávajú užitočnejšími, ako vaše pochopenie rastie, ale necíťte sa pod tlakom, aby ste čítali všetko naraz. Začnite v oblastiach, ktoré vás najviac zaujímajú!
-- 📘 [MCP Dokumentácia](https://modelcontextprotocol.io/) – Toto je váš hlavný zdroj na podrobné návody a používateľské príručky. Dokumentácia je napísaná s ohľadom na začiatočníkov a poskytuje jasné príklady, ktorým môžete ľahko porozumieť vlastným tempom.
-- 📜 [MCP Špecifikácia](https://modelcontextprotocol.io/specification/2025-11-25) – Predstavuje komplexný referenčný manuál. Počas štúdia sa sem budete vracať pre hľadanie konkrétnych podrobností a skúmanie pokročilých funkcií.
-- 📜 [Verzovanie MCP Špecifikácie](https://modelcontextprotocol.io/specification/versioning) – Obsahuje informácie o histórii verzií protokolu a o tom, ako MCP používa verzovanie podľa dátumu (formát RRRR-MM-DD).
-- 🧑‍💻 [MCP GitHub Repozitár](https://github.com/modelcontextprotocol) – Tu nájdete SDK, nástroje a ukážky kódu v rôznych programovacích jazykoch. Je to ako pokladnica praktických príkladov a pripravených komponentov.
-- 🌐 [MCP Komunita](https://github.com/orgs/modelcontextprotocol/discussions) – Pripojte sa k ostatným študentom a skúseným vývojárom v diskusiách o MCP. Je to podporná komunita, kde sú otázky vítané a vedomosti sa slobodne zdieľajú.
+> **S výhľadom:** kandidát na vydanie ďalšej verzie špecifikácie, **2026-07-28**, je plánovaný na 28. júla 2026. Protokol sa stane bezstavovým na transportnej vrstve, formalizuje rámec Rozšírení (MCP Aplikácie, Úlohy), zosilní autorizáciu a zruší korene, vzorkovanie a protokolovanie. Kompletný prehľad nájdete v [Čo sa mení v MCP: Kandidát na vydanie 2026-07-28](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Tieto zdroje sa stanú hodnotnejšími, ako budete viac rozumieť, ale necíťte tlak čítať všetko okamžite. Začnite oblasťami, ktoré vás najviac zaujímajú!
+- 📘 [MCP Dokumentácia](https://modelcontextprotocol.io/) – Toto je váš hlavný zdroj s krok za krokom návodmi a sprievodcami. Dokumentácia je písaná pre začiatočníkov, poskytuje jasné príklady, ktoré môžete sledovať vlastným tempom.
+- 📜 [MCP Špecifikácia](https://modelcontextprotocol.io/specification/2025-11-25) – Považujte to za váš komplexný referenčný manuál. Počas prechádzania kurzom sa tu budete vracať, aby ste si pozreli konkrétne detaily a preskúmali pokročilé funkcie.
+- 📜 [MCP Číslovanie verzií](https://modelcontextprotocol.io/specification/versioning) – Obsahuje informácie o histórii verzií protokolu a o tom, ako MCP používa číslovanie verzií podľa dátumu (formát RRRR-MM-DD).
+- 🧑‍💻 [MCP GitHub Repozitár](https://github.com/modelcontextprotocol) – Tu nájdete SDK, nástroje a ukážky kódu v rôznych programovacích jazykoch. Je to pokladnica praktických príkladov a pripravených komponentov.
+- 🌐 [MCP Komunita](https://github.com/orgs/modelcontextprotocol/discussions) – Pridajte sa k ďalším študentom a skúseným vývojárom v diskusiách o MCP. Je to podporná komunita, kde sú otázky vítané a zdieľanie znalostí je slobodné.
   
 ## Ciele učenia
 
-Na konci tohto kurzu sa budete cítiť sebaisto a nadšene z nových schopností. Tu sú hlavné výstupy:
+Po skončení tohto kurzu budete cítiť istotu a nadšenie z vašich nových schopností. Čo dosiahnete:
 
-• **Pochopiť základy MCP**: Zistíte, čo je Model Context Protocol a prečo mení spôsob spolupráce AI aplikácií, pomocou analógií a príkladov, ktoré dávajú zmysel.
+• **Pochopenie základov MCP**: Porozumiete, čo je Model Context Protocol a prečo mení spôsob, akým AI aplikácie spolupracujú, pomocou analógií a príkladov, ktoré dávajú zmysel.
 
-• **Postaviť svoj prvý MCP server**: Vytvoríte funkčný MCP server vo vašom obľúbenom programovacom jazyku, začínajúc jednoduchými príkladmi a postupne rozširujúc svoje zručnosti.
+• **Vytvorte svoj prvý MCP server**: Vytvoríte funkčný MCP server vo vašom preferovanom programovacom jazyku, začínajúc jednoduchými príkladmi a krok za krokom rozvíjajúc svoje zručnosti.
 
-• **Prepojiť AI modely s reálnymi nástrojmi**: Naučíte sa spojiť AI modely s reálnymi službami, čím získajú vaše aplikácie nové a silné schopnosti.
+• **Prepojte AI modely s reálnymi nástrojmi**: Naučíte sa, ako mostiť medzeru medzi AI modelmi a skutočnými službami, čím svojím aplikáciám pridáte silné nové schopnosti.
 
-• **Implementovať bezpečnostné osvedčené postupy**: Porozumiete, ako udržiavať implementácie MCP bezpečné, chrániac aplikácie aj používateľov.
+• **Implementujte bezpečnostné najlepšie praktiky**: Pochopíte, ako udržať vaše MCP implementácie bezpečné a chránené, chrániať aplikácie aj používateľov.
 
-• **Nasadzovať s istotou**: Naučíte sa, ako pripraviť projekty MCP na nasadenie do produkcie pomocou praktických stratégií, ktoré fungujú v reálnom svete.
+• **Zaveďte s dôverou**: Budete vedieť, ako preniesť svoje MCP projekty z vývoja do produkcie, s praktickými stratégiami nasadenia, ktoré fungujú v reálnom svete.
 
-• **Pripojiť sa ku komunite MCP**: Stane sa súčasťou rastúcej komunity vývojárov, ktorí formujú budúcnosť vývoja AI aplikácií. 
+• **Pridajte sa ku komunite MCP**: Stanete sa súčasťou rastúcej komunity vývojárov, ktorí formujú budúcnosť vývoja AI aplikácií.
 
-## Nevyhnutné pozadie
+## Podstatné pozadie
 
-Predtým, ako sa pustíme do detailov MCP, uistime sa, že sa cítite pohodlne s niektorými základnými pojmami. Nebojte sa, nemusíte byť expert – všetko potrebné postupne vysvetlíme!
+Skôr než sa pustíme do špecifík MCP, uistime sa, že ste oboznámení s niektorými základnými konceptmi. Nebojte sa, ak v týchto oblastiach nie ste expert – všetko potrebné vám vysvetlíme za pochodu!
 
 ### Pochopenie protokolov (základ)
 
-Predstavte si protokol ako pravidlá konverzácie. Keď voláte kamarátovi, obaja viete povedať "ahoj" pri zdvihnutí, striedať sa v rozprávaní a na konci povedať "dovidenia". Počítačové programy potrebujú podobné pravidlá na účinnú komunikáciu.
+Predstavte si protokol ako pravidlá pre rozhovor. Keď voláte priateľovi, obaja viete, že sa pozdravíte "ahoj", striedate sa v rozprávaní a na konci poviete "zbohom". Počítačové programy potrebujú podobné pravidlá, aby mohli efektívne komunikovať.
 
-MCP je protokol – súbor dohodnutých pravidiel, ktoré pomáhajú AI modelom a aplikáciám viesť produktívne "rozhovory" s nástrojmi a službami. Rovnako ako pravidlá uľahčujú ľudskú komunikáciu, MCP robí komunikáciu AI aplikácií oveľa spoľahlivejšou a efektívnejšou.
+MCP je protokol – súbor dohodnutých pravidiel, ktoré pomáhajú AI modelom a aplikáciám viesť produktívne "rozhovory" s nástrojmi a službami. Rovnako ako pravidlá konverzácie zlepšujú ľudskú komunikáciu, MCP robí komunikáciu AI aplikácií oveľa spoľahlivejšou a silnejšou.
 
 ### Vzťahy klient-server (ako programy spolupracujú)
 
-Tieto vzťahy používate denne! Keď používate prehliadač (klienta) na návštevu webu, spájate sa so serverom, ktorý vám odošle obsah stránky. Prehliadač vie, ako žiadať dáta a server vie, ako odpovedať.
+Už každý deň používate vzťahy klient-server! Keď používate webový prehliadač (klient) na návštevu webovej stránky, pripájate sa na webový server, ktorý vám posiela obsah stránky. Prehliadač vie, ako požiadať o informácie, a server vie, ako odpovedať.
 
-V MCP máme podobný vzťah: AI modely fungujú ako klienti, ktorí žiadajú informácie alebo vykonanie akcií, a MCP servery poskytujú tieto služby. Je to ako mať pomocníka (server), ktorého AI môže požiadať o vykonanie konkrétnych úloh.
+V MCP máme podobný vzťah: AI modely vystupujú ako klienti, ktorí požadujú informácie alebo akcie, zatiaľ čo MCP servery poskytujú tieto schopnosti. Je to ako mať užitočného asistenta (server), ktorého si AI môže požiadať o vykonanie konkrétnych úloh.
 
-### Prečo je štandardizácia dôležitá (spoločná spolupráca)
+### Prečo je štandardizácia dôležitá (aby veci spolu fungovali)
 
-Predstavte si, že by každý výrobca áut používal iný tvar benzínovej pištole – potrebovali by ste iný adaptér pre každé auto! Štandardizácia znamená dohodnúť sa na spoločnom prístupe, aby všetko fungovalo hladko spolu.
+Predstavte si, že každý výrobca automobilov používa iný tvar benzínových čerpadiel – na každý automobil by ste potrebovali iný adaptér! Štandardizácia znamená dohodnúť sa na spoločných prístupoch tak, aby veci fungovali spolu bez problémov.
 
-MCP zabezpečuje štandardizáciu pre AI aplikácie. Namiesto toho, aby každý AI model potreboval vlastný kód pre každý nástroj, MCP vytvára univerzálny spôsob komunikácie. Vývojári tak môžu nástroje vytvoriť raz a použiť ich s množstvom rôznych AI systémov.
+MCP túto štandardizáciu poskytuje pre AI aplikácie. Namiesto toho, aby každý AI model potreboval vlastný kód pre prácu s každým nástrojom, MCP vytvára univerzálny spôsob komunikácie. Znamená to, že vývojári môžu nástroje vytvoriť raz a tie budú fungovať s viacerými rôznymi AI systémami.
 
 ## 🧭 Prehľad vašej učebnej cesty
 
-Vaša MCP cesta je starostlivo rozvrhnutá, aby postupne budovala vaše sebavedomie a zručnosti. Každá fáza predstavuje nové koncepty a zároveň upevňuje už naučené.
+Vaša MCP cesta je starostlivo štruktúrovaná tak, aby postupne budovala vašu istotu a zručnosti. Každá fáza predstavuje nové koncepty a zároveň posilňuje to, čo ste sa už naučili.
 
-### 🌱 Základná fáza: Pochopenie základov (moduly 0-2)
+### 🌱 Fáza základov: Pochopenie základov (Moduly 0-2)
 
-Tu začína vaše dobrodružstvo! Predstavíme vám koncepty MCP jednoduchými analógiami a príkladmi z bežného života. Pochopíte, čo MCP je, prečo existuje a ako zapadá do sveta vývoja AI.
+Tu začína vaše dobrodružstvo! Predstavíme vám koncepty MCP pomocou známych analógií a jednoduchých príkladov. Pochopíte, čo je MCP, prečo existuje a ako zapadá do väčšieho sveta vývoja AI.
 
-• **Modul 0 – Úvod do MCP**: Začneme preskúmaním, čo MCP je a prečo je také dôležité pre moderné AI aplikácie. Uvidíte reálne príklady MCP v akcii a pochopíte, ako rieši bežné problémy vývojárov.
+• **Modul 0 - Úvod do MCP**: Začneme preskúmaním, čo je MCP a prečo je také dôležité pre moderné AI aplikácie. Uvidíte reálne príklady MCP v akcii a pochopíte, ako rieši bežné problémy, ktorým vývojári čelia.
 
-• **Modul 1 – Vysvetlenie základných konceptov**: Naučíte sa kľúčové stavebné kamene MCP. Použijeme veľa analógií a vizuálnych príkladov, aby ste tieto koncepty pochopili prirodzene a ľahko.
 
-• **Modul 2 – Bezpečnosť v MCP**: Bezpečnosť môže znieť zastrašujúco, ale ukážeme vám, ako MCP obsahuje vstavané bezpečnostné prvky a naučíme vás najlepšie postupy na ochranu vašich aplikácií od začiatku.
+• **Modul 1 - Vysvetlené základné koncepty**: Tu sa naučíte základné stavebné bloky MCP. Použijeme množstvo analógií a vizuálnych príkladov, aby tieto koncepty pôsobili prirodzene a zrozumiteľne.
 
-### 🔨 Fáza tvorby: Vytváranie prvých implementácií (Modul 3)
-Teraz začína pravá zábava! Získate praktické skúsenosti s tvorbou skutočných MCP serverov a klientov. Nebojte sa – začneme jednoducho a prevedieme vás každým krokom.
+• **Modul 2 - Bezpečnosť v MCP**: Bezpečnosť môže znieť zastrašujúco, ale ukážeme vám, ako MCP obsahuje zabudované bezpečnostné funkcie a naučíme vás najlepšie postupy, ktoré chránia vaše aplikácie od začiatku.
 
-Tento modul obsahuje viacero praktických návodov, ktoré vám umožnia cvičiť vo vašom preferovanom programovacom jazyku. Vytvoríte si svoj prvý server, zostavíte klienta, ktorý sa k nemu pripojí, a dokonca sa naučíte integrovať s populárnymi vývojárskymi nástrojmi ako VS Code.
+### 🔨 Fáza budovania: Vytváranie vašich prvých implementácií (Modul 3)
 
-Každý návod obsahuje kompletné príklady kódu, tipy na riešenie problémov a vysvetlenia, prečo robíme konkrétne dizajnové rozhodnutia. Na konci tejto fázy budete mať funkčné implementácie MCP, na ktoré môžete byť hrdí!
+Teraz sa začína tá pravá zábava! Získate praktické skúsenosti s tvorbou skutočných MCP serverov a klientov. Nebojte sa - začneme jednoducho a prevedieme vás každým krokom.
 
-### 🚀 Fáza rastu: Pokročilé koncepty a aplikácie v reálnom svete (Moduly 4-5)
+Tento modul obsahuje niekoľko praktických návodov, ktoré vám umožnia cvičiť vo vašom preferovanom programovacom jazyku. Vytvoríte svoj prvý server, zostavíte klienta na pripojenie k nemu a dokonca integrujete populárne vývojové nástroje ako VS Code.
 
-Akonáhle zvládnete základy, ste pripravení preskúmať sofistikovanejšie funkcie MCP. Pokryjeme praktické implementačné stratégie, techniky ladenia a pokročilé témy ako integrácia multimodálnej AI.
+Každý návod obsahuje úplné ukážky kódu, tipy na riešenie problémov a vysvetlenia prečo robíme konkrétne dizajnové rozhodnutia. Na konci tejto fázy budete mať funkčné implementácie MCP, na ktoré môžete byť hrdí!
 
-Naučíte sa tiež, ako škálovať svoje MCP implementácie pre produkčné použitie a integrovať ich s cloudovými platformami ako Azure. Tieto moduly vás pripravia na tvorbu MCP riešení schopných zvládať požiadavky v reálnom svete.
+### 🚀 Fáza rastu: Pokročilé koncepty a aplikácia v reálnom svete (Moduly 4-5)
+
+Keď ovládnete základy, ste pripravení preskúmať sofistikovanejšie funkcie MCP. Pokryjeme praktické implementačné stratégie, techniky ladenia a pokročilé témy ako multi-modálna integrácia AI.
+
+Tiež sa naučíte, ako škálovať svoje implementácie MCP pre produkčné využitie a integrovať ich s cloudovými platformami ako Azure. Tieto moduly vás pripravia na tvorbu MCP riešení, ktoré zvládnu požiadavky reálneho sveta.
 
 ### 🌟 Fáza majstrovstva: Komunita a špecializácia (Moduly 6-11)
 
-Záverečná fáza sa zameriava na vstup do MCP komunity a špecializáciu v oblastiach, ktoré vás najviac zaujímajú. Naučíte sa, ako prispievať do open-source MCP projektov, implementovať pokročilé autentifikačné vzory a vytvárať komplexné riešenia integrované s databázami.
+Záverečná fáza sa zameriava na vstup do komunity MCP a špecializáciu v oblastiach, ktoré vás najviac zaujímajú. Naučíte sa, ako prispieť do open-source projektov MCP, implementovať pokročilé autentifikačné vzory a vytvárať komplexné riešenia integrované s databázami.
 
-Modul 11 si zaslúži osobitné spomenutie – ide o kompletnú 13-laboratórnu praktickú cestu, ktorá vás naučí vytvoriť produkčne pripravené MCP servery s integráciou PostgreSQL. Je to ako záverečný projekt, ktorý zjednocuje všetko, čo ste sa naučili!
+Modul 11 si zaslúži špeciálnu zmienku – je to kompletná 13-laboratórna praktická učebná cesta, ktorá vás naučí stavať produkčne pripravené MCP servery s integráciou PostgreSQL. Je to ako záverečný projekt, ktorý spája všetko, čo ste sa naučili!
 
-### 📚 Kompletná štruktúra kurikula
+### 📚 Kompletná štruktúra učebného plánu
 
 | Modul | Téma | Popis | Odkaz |
 |--------|-------|-------------|------|
-| **Modul 0-3: Základy** | | | |
-| 00 | Úvod do MCP | Prehľad Model Context Protocol a jeho význam v AI pipeline | [Čítať viac](./00-Introduction/README.md) |
-| 01 | Vysvetlenie jadrových konceptov | Hlboký prieskum základných MCP konceptov | [Čítať viac](./01-CoreConcepts/README.md) |
-| 02 | Bezpečnosť v MCP | Hrozby bezpečnosti a osvedčené postupy | [Čítať viac](./02-Security/README.md) |
-| 03 | Začína sa s MCP | Nastavenie prostredia, základné servery/klienti, integrácia | [Čítať viac](./03-GettingStarted/README.md) |
-| **Modul 3: Vytvorenie prvého servera a klienta** | | | |
+| **Moduly 0-3: Základy** | | | |
+| 00 | Úvod do MCP | Prehľad Protokolu Kontextu Modelu a jeho význam v AI pipeline | [Čítať viac](./00-Introduction/README.md) |
+| 01 | Vysvetlené základné koncepty | Hĺbkový prieskum základných konceptov MCP | [Čítať viac](./01-CoreConcepts/README.md) |
+| 1.1 | Čo sa mení v MCP (2026-07-28 RC) | Bezstavový protokol, framework rozšírení a odstraňovanie funkcií v nasledujúcej verzii špecifikácie | [Návod](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md) |
+| 02 | Bezpečnosť v MCP | Bezpečnostné hrozby a najlepšie postupy | [Čítať viac](./02-Security/README.md) |
+| 03 | Začíname s MCP | Nastavenie prostredia, základné servery/klienti, integrácia | [Čítať viac](./03-GettingStarted/README.md) |
+| **Modul 3: Stavanie prvého servera a klienta** | | | |
 | 3.1 | Prvý server | Vytvorte svoj prvý MCP server | [Návod](./03-GettingStarted/01-first-server/README.md) |
-| 3.2 | Prvý klient | Vyvinúť základného MCP klienta | [Návod](./03-GettingStarted/02-client/README.md) |
+| 3.2 | Prvý klient | Vyvíjajte základného MCP klienta | [Návod](./03-GettingStarted/02-client/README.md) |
 | 3.3 | Klient s LLM | Integrácia veľkých jazykových modelov | [Návod](./03-GettingStarted/03-llm-client/README.md) |
 | 3.4 | Integrácia VS Code | Používanie MCP serverov vo VS Code | [Návod](./03-GettingStarted/04-vscode/README.md) |
-| 3.5 | stdio server | Vytvorenie serverov používajúcich stdio transport | [Návod](./03-GettingStarted/05-stdio-server/README.md) |
-| 3.6 | HTTP streamovanie | Implementácia HTTP streamovania v MCP | [Návod](./03-GettingStarted/06-http-streaming/README.md) |
-| 3.7 | Microsoft Foundry Toolkit | Použitie Microsoft Foundry Toolkit s MCP | [Návod](./03-GettingStarted/07-aitk/README.md) |
-| 3.8 | Testovanie | Testovanie implementácie MCP servera | [Návod](./03-GettingStarted/08-testing/README.md) |
-| 3.9 | Nasadenie | Nasadenie MCP serverov do produkcie | [Návod](./03-GettingStarted/09-deployment/README.md) |
-| 3.10 | Pokročilé využitie servera | Použitie pokročilých serverov pre pokročilé funkcie a zlepšenú architektúru | [Návod](./03-GettingStarted/10-advanced/README.md) |
-| 3.11 | Jednoduchá autentifikácia | Kapitola ukazujúca autentifikáciu od základov a RBAC | [Návod](./03-GettingStarted/11-simple-auth/README.md) |
-| 3.12 | MCP Hosty | Konfigurácia Claude Desktop, Cursor, Cline a ďalších MCP hostov | [Návod](./03-GettingStarted/12-mcp-hosts/README.md) |
+| 3.5 | stdio Server | Vytvorte servery používajúce stdio transport | [Návod](./03-GettingStarted/05-stdio-server/README.md) |
+| 3.6 | HTTP Streaming | Implementujte HTTP streaming v MCP | [Návod](./03-GettingStarted/06-http-streaming/README.md) |
+| 3.7 | Microsoft Foundry Toolkit | Používajte Microsoft Foundry Toolkit s MCP | [Návod](./03-GettingStarted/07-aitk/README.md) |
+| 3.8 | Testovanie | Testujte svoju implementáciu MCP servera | [Návod](./03-GettingStarted/08-testing/README.md) |
+| 3.9 | Nasadenie | Nasadzujte MCP servery do produkcie | [Návod](./03-GettingStarted/09-deployment/README.md) |
+| 3.10 | Pokročilé využitie servera | Používajte pokročilé servery pre pokročilé funkcie a lepšiu architektúru | [Návod](./03-GettingStarted/10-advanced/README.md) |
+| 3.11 | Jednoduchá autentifikácia | Kapitola ukazujúca autentifikáciu od začiatku a RBAC | [Návod](./03-GettingStarted/11-simple-auth/README.md) |
+| 3.12 | MCP hosts | Konfigurácia Claude Desktop, Cursor, Cline a ďalších MCP hostov | [Návod](./03-GettingStarted/12-mcp-hosts/README.md) |
 | 3.13 | MCP Inspector | Ladenie a testovanie MCP serverov pomocou nástroja Inspector | [Návod](./03-GettingStarted/13-mcp-inspector/README.md) |
-| 3.14 | Sampling | Použitie sampling na spoluprácu s klientom | [Návod](./03-GettingStarted/14-sampling/README.md) |
-| 3.15 | MCP aplikácie | Vytváranie MCP aplikácií | [Návod](./03-GettingStarted/15-mcp-apps/README.md) |
-| **Modul 4-5: Praktické a pokročilé témy** | | | |
-| 04 | Praktická implementácia | SDK, ladenie, testovanie, znovu použiteľné prompt šablóny | [Čítať viac](./04-PracticalImplementation/README.md) |
-| 4.1 | Pagína | Práca s veľkými množinami výsledkov pomocou stránkovania na základe kurzora | [Návod](./04-PracticalImplementation/pagination/README.md) |
-| 05 | Pokročilé témy v MCP | Multimodálna AI, škálovanie, použitie v podniku | [Čítať viac](./05-AdvancedTopics/README.md) |
+| 3.14 | Sampling | Použite sampling na spoluprácu s klientom | [Návod](./03-GettingStarted/14-sampling/README.md) |
+| 3.15 | MCP Apps | Stavba MCP aplikácií | [Návod](./03-GettingStarted/15-mcp-apps/README.md) |
+| **Moduly 4-5: Praktické & Pokročilé** | | | |
+| 04 | Praktická implementácia | SDK, ladenie, testovanie, znovu použiteľné šablóny promptov | [Čítať viac](./04-PracticalImplementation/README.md) |
+| 4.1 | Paginácia | Správa veľkých súborov výsledkov s pagináciou založenou na kurzore | [Návod](./04-PracticalImplementation/pagination/README.md) |
+| 05 | Pokročilé témy v MCP | Multi-modálna AI, škálovanie, podnikové využitie | [Čítať viac](./05-AdvancedTopics/README.md) |
 | 5.1 | Integrácia Azure | MCP integrácia s Azure | [Návod](./05-AdvancedTopics/mcp-integration/README.md) |
-| 5.2 | Multimodalita | Práca s viacerými modalitami | [Návod](./05-AdvancedTopics/mcp-multi-modality/README.md) |
+| 5.2 | Multi-modalita | Práca s viacerými modalitami | [Návod](./05-AdvancedTopics/mcp-multi-modality/README.md) |
 | 5.3 | OAuth2 Demo | Implementácia OAuth2 autentifikácie | [Návod](./05-AdvancedTopics/mcp-oauth2-demo/README.md) |
-| 5.4 | Root kontexty | Pochopenie a implementácia root kontextov | [Návod](./05-AdvancedTopics/mcp-root-contexts/README.md) |
-| 5.5 | Routing | Stratégie routovania v MCP | [Návod](./05-AdvancedTopics/mcp-routing/README.md) |
+| 5.4 | Root Contexts | Pochopenie a implementácia root kontextov | [Návod](./05-AdvancedTopics/mcp-root-contexts/README.md) |
+| 5.5 | Routing | MCP routing stratégie | [Návod](./05-AdvancedTopics/mcp-routing/README.md) |
 | 5.6 | Sampling | Sampling techniky v MCP | [Návod](./05-AdvancedTopics/mcp-sampling/README.md) |
 | 5.7 | Škálovanie | Škálovanie MCP implementácií | [Návod](./05-AdvancedTopics/mcp-scaling/README.md) |
 | 5.8 | Bezpečnosť | Pokročilé bezpečnostné úvahy | [Návod](./05-AdvancedTopics/mcp-security/README.md) |
-| 5.9 | Webové vyhľadávanie | Implementácia webových vyhľadávacích schopností | [Návod](./05-AdvancedTopics/web-search-mcp/README.md) |
-| 5.10 | Reálne časové streamovanie | Vytváranie funkcií pre streamovanie v reálnom čase | [Návod](./05-AdvancedTopics/mcp-realtimestreaming/README.md) |
-| 5.11 | Reálne časové vyhľadávanie | Implementácia vyhľadávania v reálnom čase | [Návod](./05-AdvancedTopics/mcp-realtimesearch/README.md) |
+| 5.9 | Webové vyhľadávanie | Implementácia webového vyhľadávania | [Návod](./05-AdvancedTopics/web-search-mcp/README.md) |
+| 5.10 | Realtime Streaming | Vytvorenie funkcionality pre streamovanie v reálnom čase | [Návod](./05-AdvancedTopics/mcp-realtimestreaming/README.md) |
+| 5.11 | Realtime Vyhľadávanie | Implementovanie realtime vyhľadávania | [Návod](./05-AdvancedTopics/mcp-realtimesearch/README.md) |
 | 5.12 | Entra ID autentifikácia | Autentifikácia s Microsoft Entra ID | [Návod](./05-AdvancedTopics/mcp-security-entra/README.md) |
 | 5.13 | Integrácia Foundry | Integrácia s Microsoft Foundry | [Návod](./05-AdvancedTopics/mcp-foundry-agent-integration/README.md) |
-| 5.14 | Context engineering | Techniky efektívneho inžinierstva kontextu | [Návod](./05-AdvancedTopics/mcp-contextengineering/README.md) |
-| 5.15 | Vlastný MCP transport | Implementácie vlastných transportov | [Návod](./05-AdvancedTopics/mcp-transport/README.md) |
-| 5.16 | Funkcie protokolu | Upozornenia o pokroku, zrušenie, šablóny zdrojov | [Návod](./05-AdvancedTopics/mcp-protocol-features/README.md) |
-| 5.17 | Adversariálne multi-agentné uvažovanie | Dvaja agenti argumentujú protichodné stránky pomocou zdieľaných MCP nástrojov, hodnotené agentom sudcom | [Návod](./05-AdvancedTopics/mcp-adversarial-agents/README.md) |
-| **Modul 6-10: Komunita a najlepšie postupy** | | | |
-| 06 | Komunitné príspevky | Ako prispievať do MCP ekosystému | [Návod](./06-CommunityContributions/README.md) |
-| 07 | Postrehy z raného adopcie | Príbehy zo života o implementácii | [Návod](./07-LessonsfromEarlyAdoption/README.md) |
-| 08 | Najlepšie postupy pre MCP | Výkon, odolnosť voči chybám, robustnosť | [Návod](./08-BestPractices/README.md) |
-| 09 | MCP štúdie prípadov | Praktické príklady implementácie | [Návod](./09-CaseStudy/README.md) |
-| 10 | Praktický workshop | Budovanie MCP servera s Microsoft Foundry Toolkit | [Lab](./10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md) |
-| **Modul 11: MCP Server Hands On Lab** | | | |
-| 11 | MCP server databázová integrácia | Komplexná 13-laboratórna praktická cesta pre integráciu PostgreSQL | [Lab](./11-MCPServerHandsOnLabs/README.md) |
-| 11.1 | Úvod | Prehľad MCP s databázovou integráciou a prípad použitia detailnej analýzy z maloobchodu | [Lab 00](./11-MCPServerHandsOnLabs/00-Introduction/README.md) |
-| 11.2 | Jadro architektúry | Pochopenie architektúry MCP servera, databázových vrstiev a bezpečnostných vzorov | [Lab 01](./11-MCPServerHandsOnLabs/01-Architecture/README.md) |
-| 11.3 | Bezpečnosť a multi-tenancy | RLS, autentifikácia a prístup k údajom viacerých nájomcov | [Lab 02](./11-MCPServerHandsOnLabs/02-Security/README.md) |
-| 11.4 | Nastavenie prostredia | Nastavenie vývojového prostredia, Docker, Azure zdroje | [Lab 03](./11-MCPServerHandsOnLabs/03-Setup/README.md) |
-| 11.5 | Návrh databázy | Nastavenie PostgreSQL, návrh maloobchodného schémy a ukážkové dáta | [Lab 04](./11-MCPServerHandsOnLabs/04-Database/README.md) |
-| 11.6 | MCP server implementácia | Vytváranie FastMCP servera s databázovou integráciou | [Lab 05](./11-MCPServerHandsOnLabs/05-MCP-Server/README.md) |
-| 11.7 | Vývoj nástrojov | Tvorba nástrojov pre dopyty do databázy a introspekciu schémy | [Lab 06](./11-MCPServerHandsOnLabs/06-Tools/README.md) |
-| 11.8 | Sémantické vyhľadávanie | Implementácia vektorových embeddingov s Azure OpenAI a pgvector | [Lab 07](./11-MCPServerHandsOnLabs/07-Semantic-Search/README.md) |
-| 11.9 | Testovanie a ladenie | Testovacie stratégie, nástroje na ladenie a prístupy k validácii | [Lab 08](./11-MCPServerHandsOnLabs/08-Testing/README.md) |
-| 11.10 | Integrácia VS Code | Konfigurácia integrácie MCP vo VS Code a použitie AI chatu | [Lab 09](./11-MCPServerHandsOnLabs/09-VS-Code/README.md) |
-| 11.11 | Nasadzovacie stratégie | Nasadenie cez Docker, Azure Container Apps a úvahy o škálovaní | [Lab 10](./11-MCPServerHandsOnLabs/10-Deployment/README.md) |
-| 11.12 | Monitorovanie | Application Insights, logovanie, monitorovanie výkonu | [Lab 11](./11-MCPServerHandsOnLabs/11-Monitoring/README.md) |
-| 11.13 | Najlepšie postupy | Optimalizácia výkonu, spevňovanie bezpečnosti a tipy pre produkciu | [Lab 12](./11-MCPServerHandsOnLabs/12-Best-Practices/README.md) |
-| **Modul 12: MCP nástroje** | | | |
-| 12.1 | Nástroje | Použitie MCP v aplikácii Copilot | [Návod](./12-tooling/README.md) |
+| 5.14 | Kontextové inžinierstvo | Techniky efektívneho kontextového inžinierstva | [Návod](./05-AdvancedTopics/mcp-contextengineering/README.md) |
+| 5.15 | Vlastný MCP transport | Implementácie vlastného transportu | [Návod](./05-AdvancedTopics/mcp-transport/README.md) |
+| 5.16 | Funkcie protokolu | Notifikácie o pokroku, zrušenie, šablóny zdrojov | [Návod](./05-AdvancedTopics/mcp-protocol-features/README.md) |
+| 5.17 | Adversariálne multi-agentné uvažovanie | Dvaja agenti diskutujúci protichodné strany používajúci zdieľané MCP nástroje, hodnotené rozhodcom-agentom | [Návod](./05-AdvancedTopics/mcp-adversarial-agents/README.md) |
+| **Moduly 6-10: Komunita & Najlepšie postupy** | | | |
+| 06 | Príspevky komunity | Ako prispievať do ekosystému MCP | [Návod](./06-CommunityContributions/README.md) |
+| 07 | Postrehy z raného prijatia | Skutočné príbehy implementácie | [Návod](./07-LessonsfromEarlyAdoption/README.md) |
+| 08 | Najlepšie postupy pre MCP | Výkonnosť, odolnosť voči chybám, reziliencia | [Návod](./08-BestPractices/README.md) |
+| 09 | MCP prípadové štúdie | Praktické príklady implementácie | [Návod](./09-CaseStudy/README.md) |
+| 10 | Praktický workshop | Stavba MCP servera s Microsoft Foundry Toolkit | [Laboratórium](./10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md) |
+| **Modul 11: MCP server praktické laboratórium** | | | |
+| 11 | Integrácia MCP servera s databázou | Komplexná 13-laboratórna praktická učebná cesta pre integráciu PostgreSQL | [Laboratóriá](./11-MCPServerHandsOnLabs/README.md) |
+| 11.1 | Úvod | Prehľad MCP s integráciou databázy a prípad použitia maloobchodnej analytiky | [Laboratórium 00](./11-MCPServerHandsOnLabs/00-Introduction/README.md) |
+| 11.2 | Jadrová architektúra | Pochopenie architektúry MCP servera, databázových vrstiev a bezpečnostných vzorov | [Laboratórium 01](./11-MCPServerHandsOnLabs/01-Architecture/README.md) |
+| 11.3 | Bezpečnosť & Multi-tenancy | Bezpečnosť na úrovni riadku, autentifikácia a viacnásobný prístup k dátam viacerých nájomcov | [Laboratórium 02](./11-MCPServerHandsOnLabs/02-Security/README.md) |
+| 11.4 | Nastavenie prostredia | Nastavenie vývojového prostredia, Docker, Azure zdroje | [Laboratórium 03](./11-MCPServerHandsOnLabs/03-Setup/README.md) |
+| 11.5 | Dizajn databázy | Nastavenie PostgreSQL, návrh maloobchodného schémy a ukážkové dáta | [Laboratórium 04](./11-MCPServerHandsOnLabs/04-Database/README.md) |
+| 11.6 | Implementácia MCP servera | Stavba FastMCP servera s integráciou databázy | [Laboratórium 05](./11-MCPServerHandsOnLabs/05-MCP-Server/README.md) |
+| 11.7 | Vývoj nástrojov | Vytváranie nástrojov pre dopyty do databázy a introspekcia schémy | [Laboratórium 06](./11-MCPServerHandsOnLabs/06-Tools/README.md) |
+| 11.8 | Sémantické vyhľadávanie | Implementácia vektorových vkladov s Azure OpenAI a pgvector | [Laboratórium 07](./11-MCPServerHandsOnLabs/07-Semantic-Search/README.md) |
+| 11.9 | Testovanie & ladenie | Stratégie testovania, nástroje ladenia a prístupy k validácii | [Laboratórium 08](./11-MCPServerHandsOnLabs/08-Testing/README.md) |
+| 11.10 | Integrácia VS Code | Konfigurácia integrácie MCP do VS Code a použitie AI chatu | [Laboratórium 09](./11-MCPServerHandsOnLabs/09-VS-Code/README.md) |
+| 11.11 | Stratégie nasadenia | Nasadenie pomocou Docker, Azure Container Apps a zváženie škálovania | [Laboratórium 10](./11-MCPServerHandsOnLabs/10-Deployment/README.md) |
+| 11.12 | Monitorovanie | Application Insights, protokolovanie, monitorovanie výkonu | [Laboratórium 11](./11-MCPServerHandsOnLabs/11-Monitoring/README.md) |
+| 11.13 | Najlepšie postupy | Optimalizácia výkonu, spevňovanie bezpečnosti a tipy pre produkciu | [Laboratórium 12](./11-MCPServerHandsOnLabs/12-Best-Practices/README.md) |
+| **Modul 12: Nástroje MCP** | | | |
+| 12.1 | Nástroje | Použitie MCP v aplikácii Copilot | [ Návod ](./12-tooling/README.md) |
 
 ### 💻 Ukážkové projekty kódu
 
-Jednou z najzaujímavejších častí učenia MCP je vidieť, ako sa vaše kódovacie schopnosti postupne zlepšujú. Navrhli sme naše príklady kódu tak, aby začínali jednoducho a postupne rástli do sofistikovanejších úrovní podľa rastúceho porozumenia. Takto predstavujeme koncepty – s kódom, ktorý je ľahko pochopiteľný, ale ukazuje skutočné princípy MCP, pochopíte nielen čo kód robí, ale aj prečo je štruktúrovaný týmto spôsobom a ako zapadá do väčších MCP aplikácií.
+Jednou z najzaujímavejších častí učenia MCP je vidieť, ako vaše kódovacie schopnosti postupne rastú. Naše príklady kódu sú navrhnuté tak, aby začínali jednoducho a postupne sa zložitejšie, ako sa vaše pochopenie prehlbuje. Takto predstavujeme koncepty – s kódom, ktorý je ľahko pochopiteľný, no demonštruje skutočné princípy MCP, pochopíte nielen čo tento kód robí, ale aj prečo je takto štruktúrovaný a ako zapadá do väčších MCP aplikácií.
 
 #### Základné príklady MCP kalkulačky
 
@@ -221,135 +226,136 @@ Jednou z najzaujímavejších častí učenia MCP je vidieť, ako sa vaše kódo
 |----------|-------------|------|
 | C# | Príklad MCP servera | [Zobraziť kód](./03-GettingStarted/samples/csharp/README.md) |
 | Java | MCP kalkulačka | [Zobraziť kód](./03-GettingStarted/samples/java/calculator/README.md) |
-| JavaScript | MCP demo | [Zobraziť kód](./03-GettingStarted/samples/javascript/README.md) |
-| Python | MCP server | [Zobraziť kód](../../03-GettingStarted/samples/python/mcp_calculator_server.py) |
-| TypeScript | MCP príklad | [Zobraziť kód](./03-GettingStarted/samples/typescript/README.md) |
-| Rust | MCP príklad | [Zobraziť kód](./03-GettingStarted/samples/rust/README.md) |
 
-#### Pokročilé MCP implementácie
+| JavaScript | MCP Demo | [Zobraziť kód](./03-GettingStarted/samples/javascript/README.md) |
+| Python | MCP Server | [Zobraziť kód](../../03-GettingStarted/samples/python/mcp_calculator_server.py) |
+| TypeScript | MCP Example | [Zobraziť kód](./03-GettingStarted/samples/typescript/README.md) |
+| Rust | MCP Example | [Zobraziť kód](./03-GettingStarted/samples/rust/README.md) |
+
+#### Pokročilé implementácie MCP
 
 | Jazyk | Popis | Odkaz |
 |----------|-------------|------|
 | C# | Pokročilý príklad | [Zobraziť kód](./04-PracticalImplementation/samples/csharp/README.md) |
-| Java so Spring | Príklad Container App | [Zobraziť kód](./04-PracticalImplementation/samples/java/containerapp/README.md) |
+| Java so Spring | Príklad kontajnerovej aplikácie | [Zobraziť kód](./04-PracticalImplementation/samples/java/containerapp/README.md) |
 | JavaScript | Pokročilý príklad | [Zobraziť kód](./04-PracticalImplementation/samples/javascript/README.md) |
 | Python | Komplexná implementácia | [Zobraziť kód](./04-PracticalImplementation/samples/python/README.md) |
-| TypeScript | Príklad Container | [Zobraziť kód](./04-PracticalImplementation/samples/typescript/README.md) |
+| TypeScript | Príklad kontajnera | [Zobraziť kód](./04-PracticalImplementation/samples/typescript/README.md) |
 
 
-## 🎯 Predpoklady pre učenie MCP
+## 🎯 Predpoklady na učenie MCP
 
-Aby ste z tohto učebného plánu získali maximum, mali by ste mať:
+Aby ste z tohto kurikula vyťažili čo najviac, mali by ste mať:
 
 - Základné znalosti programovania aspoň v jednom z nasledujúcich jazykov: C#, Java, JavaScript, Python alebo TypeScript
-- Pochopenie klient-server modelu a API
+- Pochopenie modelu klient-server a API
 - Znalosť konceptov REST a HTTP
-- (Voliteľné) Povedomie o pojmoch AI/ML
+- (Voliteľné) Základy AI/ML konceptov
 
-- Pripojenie sa k diskusiám našej komunity pre podporu
+- Zapájanie sa do našich komunitných diskusií pre podporu
 
 ## 📚 Študijný sprievodca a zdroje
 
-Tento repozitár obsahuje niekoľko zdrojov, ktoré vám pomôžu efektívne sa orientovať a učiť:
+Tento repozitár obsahuje viaceré zdroje, ktoré vám pomôžu efektívne sa orientovať a učiť:
 
 ### Študijný sprievodca
 
-Komplexný [Študijný sprievodca](./study_guide.md) je k dispozícii, aby vám pomohol efektívne sa orientovať v tomto repozitári. Tento vizuálny mapovací plán učebného obsahu ukazuje, ako sú všetky témy prepojené, a poskytuje pokyny na efektívne používanie vzorových projektov. Je obzvlášť užitočný, ak ste vizuálny typ, ktorý rád vidí celkový obraz.
+Komplexný [Študijný sprievodca](./study_guide.md) je k dispozícii, aby vám pomohol efektívne prejsť tento repozitár. Tento vizuálny mapový plán kurikula zobrazuje, ako sú všetky témy prepojené a poskytuje pokyny, ako efektívne používať ukážkové projekty. Je to obzvlášť užitočné, ak ste vizuálny žiak, ktorý rád vidí celkový obraz.
 
 Sprievodca obsahuje:
-- Vizuálnu mapu učebného plánu zobrazujúcu všetky pokryté témy
-- Detailný rozpis každej časti repozitára
-- Pokyny na používanie vzorových projektov
-- Odporúčané učebné cesty pre rôzne úrovne zručností
-- Dodatočné zdroje na doplnenie vašej študijnej cesty
+- Vizuálnu mapu kurikula zobrazujúcu všetky pokryté témy
+- Detailné rozdelenie jednotlivých sekcií repozitára
+- Pokyny na používanie ukážkových projektov
+- Odporúčané študijné cesty pre rôzne úrovne zručností
+- Dodatočné zdroje na doplnenie vášho štúdia
 
-### Zmeny (Changelog)
+### Zoznam zmien
 
-Vedieme podrobný [Zmenový zoznam](./changelog.md), ktorý sleduje všetky významné aktualizácie učebných materiálov, aby ste mohli zostať v obraze s najnovšími vylepšeniami a doplnkami.
-- Pridanie nového obsahu
+Vedie sa detailný [Zoznam zmien](./changelog.md), ktorý sleduje všetky významné aktualizácie materiálov kurikula, takže môžete zostať v obraze o najnovších vylepšeniach a doplnkoch.
+- Nový pridaný obsah
 - Štrukturálne zmeny
 - Vylepšenia funkcií
 - Aktualizácie dokumentácie
 
-## 🛠️ Ako efektívne používať tento učebný plán
+## 🛠️ Ako efektívne používať toto kurikulum
 
 Každá lekcia v tomto sprievodcovi obsahuje:
 
-1. Jasné vysvetlenie konceptov MCP  
-2. Ukážky kódu v reálnom čase v rôznych jazykoch  
-3. Cvičenia na vytváranie reálnych MCP aplikácií  
-4. Extra zdroje pre pokročilých študentov
+1. Jasné vysvetlenia konceptov MCP  
+2. Živé ukážky kódu v niekoľkých jazykoch  
+3. Cvičenia na vytváranie skutočných MCP aplikácií  
+4. Dodatočné zdroje pre pokročilých študentov
 
-### Naučme sa MCP s C# - séria tutoriálov
-Naučíme sa o Model Context Protocole (MCP), modernom rámci navrhnutom na štandardizáciu interakcií medzi AI modelmi a klientskymi aplikáciami. V tomto úvodnom kurze pre začiatočníkov vás zoznámime s MCP a prevedieme vytvorením vášho prvého MCP servera.
+### Poďme sa učiť MCP s C# - séria tutoriálov
+Poďme sa naučiť o Model Context Protocol (MCP), špičkovom rámci navrhnutom na štandardizáciu interakcií medzi AI modelmi a klientskymi aplikáciami. Prostredníctvom tejto priateľskej a začiatočníckej lekcie vás prevedieme MCP a pomôžeme vytvoriť váš prvý MCP server.
 #### C#: [https://aka.ms/letslearnmcp-csharp](https://aka.ms/letslearnmcp-csharp)
 #### Java: [https://aka.ms/letslearnmcp-java](https://aka.ms/letslearnmcp-java)
 #### JavaScript: [https://aka.ms/letslearnmcp-javascript](https://aka.ms/letslearnmcp-javascript)
 #### Python: [https://aka.ms/letslearnmcp-python](https://aka.ms/letslearnmcp-python)
 
-## 🎓 Vaša MCP cesta začína
+## 🎓 Začína vaša cesta s MCP
 
-Gratulujeme! Práve ste urobili prvý krok na vzrušujúcej ceste, ktorá rozšíri vaše programátorské schopnosti a spojí vás s popredím vývoja AI.
+Gratulujeme! Práve ste urobili prvý krok na vzrušujúcej ceste, ktorá rozšíri vaše programátorské schopnosti a pripojí vás k špičke vývoja AI.
 
 ### Čo ste už dosiahli
 
-Prečítaním tohto úvodu ste už začali budovať svoj základ vedomostí o MCP. Rozumiete, čo je MCP, prečo je dôležitý a ako vám tento učebný plán pomôže na vašej učebnej ceste. To je významný úspech a začiatok vašej odbornosti v tejto dôležitej technológii.
+Prečítaním tohto úvodu ste už začali budovať základy svojich vedomostí o MCP. Rozumiete, čo je MCP, prečo je dôležité a ako vám toto kurikulum pomôže na vašej študijnej ceste. To je významný úspech a začiatok vašej expertízy v tejto dôležitej technológii.
 
-### Dobrodružstvo, ktoré vás čaká
+### Dobrodružstvo pred vami
 
-Ako budete prechádzať modulmi, pamätajte, že každý expert bol raz začiatočník. Koncepty, ktoré sa vám teraz môžu zdať zložité, sa stanú druhou prirodzenosťou, keď ich budete cvičiť a aplikovať. Každý malý krok vedie k silným schopnostiam, ktoré vám budú slúžiť počas celej vašej vývojárskej kariéry.
+Ako budete postupovať modulmi, pamätajte, že každý odborník bol kedysi začiatočník. Koncepty, ktoré sa teraz môžu zdať zložité, sa stanú druhou prirodzenosťou, keď ich budete precvičovať a aplikovať. Každý malý krok buduje schopnosti, ktoré vám budú slúžiť počas celej vašej programátorskej kariéry.
 
 ### Vaša podporná sieť
 
-Pridávate sa ku komunite študentov a odborníkov, ktorí sú nadšení pre MCP a ochotní pomôcť ostatným uspieť. Či už máte problém s programátorskou výzvou alebo sa tešíte na zdieľanie prelomového objavu, komunita je tu, aby podporila vašu cestu.
+Pripájate sa ku komunite študentov a odborníkov, ktorí sú vášniví pre MCP a ochotní pomáhať ostatným uspieť. Či už ste uviazli na programovacej výzve alebo ste nadšený z úspechu, komunita je tu, aby vás podporila.
 
-Ak narazíte na problém alebo máte otázky ohľadom tvorby AI aplikácií, pridajte sa k ostatným študentom a skúseným vývojárom v diskusiách o MCP. Je to podporná komunita, kde sú otázky vítané a vedomosti voľne zdieľané.
+Ak narazíte na problém alebo máte nejaké otázky o tvorbe AI aplikácií. Pridajte sa k ostatným študentom a skúseným vývojárom v diskusiách o MCP. Je to podporná komunita, kde sú otázky vítané a poznatky voľne zdieľané.
 
 [![Microsoft Foundry Discord](https://dcbadge.limes.pink/api/server/nTYy5BXMWG)](https://discord.gg/nTYy5BXMWG)
 
-Ak máte spätnú väzbu k produktu alebo problémy počas vývoja, navštívte:
+Ak máte spätnú väzbu k produktu alebo narazíte na chyby počas tvorby, navštívte:
 
 [![Microsoft Foundry Developer Forum](https://img.shields.io/badge/GitHub-Microsoft_Foundry_Developer_Forum-blue?style=for-the-badge&logo=github&color=000000&logoColor=fff)](https://aka.ms/foundry/forum)
 
-### Ste pripravení začať?
+### Pripravení začať?
 
-Vaše MCP dobrodružstvo začína teraz! Začnite s Modulom 0, aby ste sa ponorili do prvých praktických skúseností s MCP, alebo preskúmajte vzorové projekty, aby ste videli, čo budete vytvárať. Pamätajte - každý expert začínal presne tam, kde ste teraz vy a s trpezlivosťou a praxou budete prekvapení, čo všetko dokážete.
+Vaše dobrodružstvo s MCP začína teraz! Začnite Modulom 0, aby ste sa hneď pustili do prvých praktických skúseností s MCP, alebo preskúmajte ukážkové projekty a pozrite sa, čo budete tvoriť. Pamätajte - každý odborník začal presne tam, kde ste vy, a s trpezlivosťou a praxou budete prekvapení, čo dosiahnete.
 
-Vitajte vo svete vývoja Model Context Protocol. Postavme niečo úžasné spolu!
+Vítame vás vo svete vývoja Model Context Protocolu. Poďme spolu vytvoriť niečo úžasné!
 
-## 🤝 Príspevky do vzdelávacej komunity
+## 🤝 Prispievanie do vzdelávacej komunity
 
-Tento učebný plán rastie a silnie vďaka príspevkom študentov ako ste vy! Či už opravujete chybu, navrhujete jasnejšie vysvetlenie alebo pridávate nový príklad, vaše príspevky pomáhajú ostatným začiatočníkom uspieť.
+Toto kurikulum rastie a posilňuje sa vďaka príspevkom študentov ako ste vy! Či už opravujete preklep, navrhujete jasnejšie vysvetlenie alebo pridávate nový príklad, vaše príspevky pomáhajú ostatným začiatočníkom uspieť.
 
-Vďaka Microsoft Valued Professional [Shivam Goyal](https://www.linkedin.com/in/shivam2003/) za príspevky vo forme ukážok kódu.
+Vďaka Microsoft Valued Professional [Shivam Goyal](https://www.linkedin.com/in/shivam2003/) za prispievanie ukážkových kódov.
 
-Proces prispievania je navrhnutý tak, aby bol prívetivý a podporujúci. Väčšina príspevkov vyžaduje Contributor License Agreement (CLA), no automatizované nástroje vás hladko prevedú procesom.
+Proces prispievania je navrhnutý tak, aby bol vítajúci a podporný. Väčšina príspevkov vyžaduje licenčnú dohodu o prispievateľovi (CLA), no automatizované nástroje vás hladko prevedú procesom.
 
-## 📜 Otvorené vzdelávanie (Open Source Learning)
+## 📜 Open Source vzdelávanie
 
-Celý tento učebný plán je dostupný pod licenciou MIT [LICENSE](../../LICENSE), čo znamená, že ho môžete voľne používať, upravovať a zdieľať. Podporuje to našu misiu sprístupniť poznatky o MCP vývojárom po celom svete.
-## 🤝 Pravidlá prispievania
+Celé toto kurikulum je k dispozícii pod licenciou MIT [LICENSE](../../LICENSE), čo znamená, že ho môžete slobodne používať, modifikovať a zdieľať. Toto podporuje našu misiu sprístupniť vedomosti o MCP vývojárom všade.
+## 🤝 Zásady prispievania
 
-Tento projekt vítá prispievateľov a návrhy. Väčšina príspevkov vyžaduje, aby ste súhlasili s
-Contributor License Agreement (CLA), kde potvrdzujete, že máte právo a naozaj udeľujete nám
-práva na použitie vášho príspevku. Podrobnosti nájdete na <https://cla.opensource.microsoft.com>.
+Tento projekt vítá príspevky a návrhy. Väčšina príspevkov vyžaduje, aby ste súhlasili s
+licenčnou dohodou prispievateľa (CLA), ktorá vyhlasuje, že máte právo a skutočne nám dávate
+práva na použitie vášho príspevku. Pre viac informácií navštívte <https://cla.opensource.microsoft.com>.
 
-Keď odošlete pull request, CLA bot automaticky zistí, či musíte poskytnúť
-CLA a označí PR príslušne (napr. stavová kontrola, komentár). Stačí sledovať pokyny
-poskytnuté botom. Tento proces absolvujete iba raz pre všetky repozitáre používajúce našu CLA.
+Pri odoslaní pull requestu CLA bot automaticky určí, či potrebujete poskytnúť
+CLA a vhodne označí PR (napr. kontrola stavu, komentár). Jednoducho dodržujte inštrukcie
+poskytnuté botom. Tento proces budete musieť absolvovať iba raz pre všetky repozitáre používajúce našu CLA.
 
 Tento projekt prijal [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-Pre viac informácií si prečítajte [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) alebo
-kontaktujte [opencode@microsoft.com](mailto:opencode@microsoft.com) s ďalšími otázkami alebo pripomienkami.
+Viac informácií nájdete vo [FAQ k etickému kódexu](https://opensource.microsoft.com/codeofconduct/faq/) alebo
+kontaktujte [opencode@microsoft.com](mailto:opencode@microsoft.com) v prípade ďalších otázok alebo pripomienok.
 
 ---
 
-*Ste pripravení začať svoju MCP cestu? Začnite s [Modul 00 - Úvod do MCP](./00-Introduction/README.md) a urobte prvé kroky vo svete vývoja Model Context Protocol!*
+*Ste pripravení začať svoju cestu s MCP? Začnite s [Modul 00 - Úvod do MCP](./00-Introduction/README.md) a vykročte prvými krokmi do sveta vývoja Model Context Protocol!*
 
 
 
 ## 🎒 Ďalšie kurzy
-Náš tím produkuje aj ďalšie kurzy! Pozrite si:
+Náš tím vytvára aj ďalšie kurzy! Pozrite si:
 
 <!-- CO-OP TRANSLATOR OTHER COURSES START -->
 ### LangChain
@@ -358,37 +364,38 @@ Náš tím produkuje aj ďalšie kurzy! Pozrite si:
 [![LangChain pre začiatočníkov](https://img.shields.io/badge/LangChain%20for%20Beginners-22C55E?style=for-the-badge&labelColor=E5E7EB&color=0553D6)](https://github.com/microsoft/langchain-for-beginners?WT.mc_id=m365-94501-dwahlin)
 ---
 
-### Azure / Edge / MCP / Agentov
+### Azure / Edge / MCP / Agenti
 [![AZD pre začiatočníkov](https://img.shields.io/badge/AZD%20for%20Beginners-0078D4?style=for-the-badge&labelColor=E5E7EB&color=0078D4)](https://github.com/microsoft/AZD-for-beginners?WT.mc_id=academic-105485-koreyst)
 [![Edge AI pre začiatočníkov](https://img.shields.io/badge/Edge%20AI%20for%20Beginners-00B8E4?style=for-the-badge&labelColor=E5E7EB&color=00B8E4)](https://github.com/microsoft/edgeai-for-beginners?WT.mc_id=academic-105485-koreyst)
 [![MCP pre začiatočníkov](https://img.shields.io/badge/MCP%20for%20Beginners-009688?style=for-the-badge&labelColor=E5E7EB&color=009688)](https://github.com/microsoft/mcp-for-beginners?WT.mc_id=academic-105485-koreyst)
-[![AI Agentov pre začiatočníkov](https://img.shields.io/badge/AI%20Agents%20for%20Beginners-00C49A?style=for-the-badge&labelColor=E5E7EB&color=00C49A)](https://github.com/microsoft/ai-agents-for-beginners?WT.mc_id=academic-105485-koreyst)
+[![AI Agent pre začiatočníkov](https://img.shields.io/badge/AI%20Agents%20for%20Beginners-00C49A?style=for-the-badge&labelColor=E5E7EB&color=00C49A)](https://github.com/microsoft/ai-agents-for-beginners?WT.mc_id=academic-105485-koreyst)
 
 ---
  
-### Séria Generatívnej AI
-[![Generatívna AI pre začiatočníkov](https://img.shields.io/badge/Generative%20AI%20for%20Beginners-8B5CF6?style=for-the-badge&labelColor=E5E7EB&color=8B5CF6)](https://github.com/microsoft/generative-ai-for-beginners?WT.mc_id=academic-105485-koreyst)
-[![Generatívna AI (.NET)](https://img.shields.io/badge/Generative%20AI%20(.NET)-9333EA?style=for-the-badge&labelColor=E5E7EB&color=9333EA)](https://github.com/microsoft/Generative-AI-for-beginners-dotnet?WT.mc_id=academic-105485-koreyst)
-[![Generatívna AI (Java)](https://img.shields.io/badge/Generative%20AI%20(Java)-C084FC?style=for-the-badge&labelColor=E5E7EB&color=C084FC)](https://github.com/microsoft/generative-ai-for-beginners-java?WT.mc_id=academic-105485-koreyst)
-[![Generatívna AI (JavaScript)](https://img.shields.io/badge/Generative%20AI%20(JavaScript)-E879F9?style=for-the-badge&labelColor=E5E7EB&color=E879F9)](https://github.com/microsoft/generative-ai-with-javascript?WT.mc_id=academic-105485-koreyst)
+### Séria Generatívne AI
+[![Generatívne AI pre začiatočníkov](https://img.shields.io/badge/Generative%20AI%20for%20Beginners-8B5CF6?style=for-the-badge&labelColor=E5E7EB&color=8B5CF6)](https://github.com/microsoft/generative-ai-for-beginners?WT.mc_id=academic-105485-koreyst)
+[![Generatívne AI (.NET)](https://img.shields.io/badge/Generative%20AI%20(.NET)-9333EA?style=for-the-badge&labelColor=E5E7EB&color=9333EA)](https://github.com/microsoft/Generative-AI-for-beginners-dotnet?WT.mc_id=academic-105485-koreyst)
+[![Generatívne AI (Java)](https://img.shields.io/badge/Generative%20AI%20(Java)-C084FC?style=for-the-badge&labelColor=E5E7EB&color=C084FC)](https://github.com/microsoft/generative-ai-for-beginners-java?WT.mc_id=academic-105485-koreyst)
+[![Generatívne AI (JavaScript)](https://img.shields.io/badge/Generative%20AI%20(JavaScript)-E879F9?style=for-the-badge&labelColor=E5E7EB&color=E879F9)](https://github.com/microsoft/generative-ai-with-javascript?WT.mc_id=academic-105485-koreyst)
 
 ---
  
 ### Základné učenie
-[![ML pre začiatočníkov](https://img.shields.io/badge/ML%20for%20Beginners-22C55E?style=for-the-badge&labelColor=E5E7EB&color=22C55E)](https://aka.ms/ml-beginners?WT.mc_id=academic-105485-koreyst)
+[![Strojové učenie pre začiatočníkov](https://img.shields.io/badge/ML%20for%20Beginners-22C55E?style=for-the-badge&labelColor=E5E7EB&color=22C55E)](https://aka.ms/ml-beginners?WT.mc_id=academic-105485-koreyst)
 [![Dátová veda pre začiatočníkov](https://img.shields.io/badge/Data%20Science%20for%20Beginners-84CC16?style=for-the-badge&labelColor=E5E7EB&color=84CC16)](https://aka.ms/datascience-beginners?WT.mc_id=academic-105485-koreyst)
 [![AI pre začiatočníkov](https://img.shields.io/badge/AI%20for%20Beginners-A3E635?style=for-the-badge&labelColor=E5E7EB&color=A3E635)](https://aka.ms/ai-beginners?WT.mc_id=academic-105485-koreyst)
 [![Kyberbezpečnosť pre začiatočníkov](https://img.shields.io/badge/Cybersecurity%20for%20Beginners-F97316?style=for-the-badge&labelColor=E5E7EB&color=F97316)](https://github.com/microsoft/Security-101?WT.mc_id=academic-96948-sayoung)
-[![Webový vývoj pre začiatočníkov](https://img.shields.io/badge/Web%20Dev%20for%20Beginners-EC4899?style=for-the-badge&labelColor=E5E7EB&color=EC4899)](https://aka.ms/webdev-beginners?WT.mc_id=academic-105485-koreyst)
-[![IoT pre začiatočníkov](https://img.shields.io/badge/IoT%20for%20Beginners-14B8A6?style=for-the-badge&labelColor=E5E7EB&color=14B8A6)](https://aka.ms/iot-beginners?WT.mc_id=academic-105485-koreyst)
-[![Vývoj XR pre začiatočníkov](https://img.shields.io/badge/XR%20Development%20for%20Beginners-38BDF8?style=for-the-badge&labelColor=E5E7EB&color=38BDF8)](https://github.com/microsoft/xr-development-for-beginners?WT.mc_id=academic-105485-koreyst)
+
+[![Web Dev for Beginners](https://img.shields.io/badge/Web%20Dev%20for%20Beginners-EC4899?style=for-the-badge&labelColor=E5E7EB&color=EC4899)](https://aka.ms/webdev-beginners?WT.mc_id=academic-105485-koreyst)
+[![IoT for Beginners](https://img.shields.io/badge/IoT%20for%20Beginners-14B8A6?style=for-the-badge&labelColor=E5E7EB&color=14B8A6)](https://aka.ms/iot-beginners?WT.mc_id=academic-105485-koreyst)
+[![XR Development for Beginners](https://img.shields.io/badge/XR%20Development%20for%20Beginners-38BDF8?style=for-the-badge&labelColor=E5E7EB&color=38BDF8)](https://github.com/microsoft/xr-development-for-beginners?WT.mc_id=academic-105485-koreyst)
 
 ---
  
 ### Séria Copilot
-[![Copilot pre AI párované programovanie](https://img.shields.io/badge/Copilot%20for%20AI%20Paired%20Programming-FACC15?style=for-the-badge&labelColor=E5E7EB&color=FACC15)](https://aka.ms/GitHubCopilotAI?WT.mc_id=academic-105485-koreyst)
-[![Copilot pre C#/.NET](https://img.shields.io/badge/Copilot%20for%20C%23/.NET-FBBF24?style=for-the-badge&labelColor=E5E7EB&color=FBBF24)](https://github.com/microsoft/mastering-github-copilot-for-dotnet-csharp-developers?WT.mc_id=academic-105485-koreyst)
-[![Copilot Dobrodružstvo](https://img.shields.io/badge/Copilot%20Adventure-FDE68A?style=for-the-badge&labelColor=E5E7EB&color=FDE68A)](https://github.com/microsoft/CopilotAdventures?WT.mc_id=academic-105485-koreyst)
+[![Copilot for AI Paired Programming](https://img.shields.io/badge/Copilot%20for%20AI%20Paired%20Programming-FACC15?style=for-the-badge&labelColor=E5E7EB&color=FACC15)](https://aka.ms/GitHubCopilotAI?WT.mc_id=academic-105485-koreyst)
+[![Copilot for C#/.NET](https://img.shields.io/badge/Copilot%20for%20C%23/.NET-FBBF24?style=for-the-badge&labelColor=E5E7EB&color=FBBF24)](https://github.com/microsoft/mastering-github-copilot-for-dotnet-csharp-developers?WT.mc_id=academic-105485-koreyst)
+[![Copilot Adventure](https://img.shields.io/badge/Copilot%20Adventure-FDE68A?style=for-the-badge&labelColor=E5E7EB&color=FDE68A)](https://github.com/microsoft/CopilotAdventures?WT.mc_id=academic-105485-koreyst)
 <!-- CO-OP TRANSLATOR OTHER COURSES END -->
 
 ---

@@ -1,58 +1,58 @@
-# Sampling a Model Context Protocolban
+# Mintavételezés a Model Kontextus Protokollban
 
-A sampling egy erőteljes MCP funkció, amely lehetővé teszi a szerverek számára, hogy LLM kiegészítéseket kérjenek a kliensen keresztül, így kifinomult, ügynöki viselkedéseket valósíthatnak meg, miközben megőrzik a biztonságot és a magánszférát. A megfelelő sampling beállítás jelentősen javíthatja a válaszok minőségét és teljesítményét. Az MCP szabványos módot kínál arra, hogy meghatározzuk, hogyan generáljanak a modellek szöveget, olyan paraméterekkel, amelyek befolyásolják a véletlenszerűséget, kreativitást és koherenciát.
+A mintavételezés egy erőteljes MCP funkció, amely lehetővé teszi a szerverek számára, hogy LLM befejezéseket kérjenek az ügyfélen keresztül, elősegítve a kifinomult, ügynöki viselkedéseket, miközben megőrzik a biztonságot és az adatvédelmet. A megfelelő mintavételezési konfiguráció drámaian javíthatja a válasz minőségét és teljesítményét. Az MCP szabványosított módot kínál arra, hogyan generálnak a modellek szöveget, meghatározott paraméterekkel, amelyek befolyásolják a véletlenszerűséget, kreativitást és koherenciát.
 
 ## Bevezetés
 
-Ebben a leckében megvizsgáljuk, hogyan lehet konfigurálni a sampling paramétereket MCP kérésekben, és megértjük a sampling mögötti protokollmechanizmust.
+Ebben a leckében megvizsgáljuk, hogyan lehet konfigurálni a mintavételezési paramétereket MCP kérésekben, valamint megértjük a mintavételezés mögöttes protokoll mechanizmusait.
 
 ## Tanulási célok
 
 A lecke végére képes leszel:
 
-- Megérteni az MCP-ben elérhető kulcsfontosságú sampling paramétereket.
-- Különböző felhasználási esetekhez konfigurálni a sampling paramétereket.
-- Determinisztikus samplinget megvalósítani reprodukálható eredményekhez.
-- Dinamikusan állítani a sampling paramétereket a kontextus és a felhasználói preferenciák alapján.
-- Sampling stratégiákat alkalmazni a modell teljesítményének javítására különböző helyzetekben.
-- Megérteni, hogyan működik a sampling a kliens-szerver MCP folyamatban.
+- Megérteni az MCP-ben elérhető kulcsmintavételezési paramétereket.
+- Beállítani mintavételezési paramétereket különböző felhasználási esetekhez.
+- Megvalósítani determinisztikus mintavételezést reprodukálható eredményekhez.
+- Dinamikusan igazítani a mintavételezési paramétereket a kontextus és a felhasználói preferenciák alapján.
+- Alkalmazni mintavételezési stratégiákat a modell teljesítményének javítására különféle helyzetekben.
+- Megérteni, hogyan működik a mintavételezés az MCP kliens-szerver folyamatában.
 
-## Hogyan működik a sampling az MCP-ben
+## Hogyan működik a mintavételezés az MCP-ben
 
-A sampling folyamata az MCP-ben a következő lépésekből áll:
+Az MCP mintavételezési folyamata a következő lépéseket követi:
 
-1. A szerver elküld egy `sampling/createMessage` kérést a kliensnek
-2. A kliens átnézi a kérést, és módosíthatja azt
-3. A kliens mintát vesz egy LLM-ből
-4. A kliens átnézi a kiegészítést
-5. A kliens visszaküldi az eredményt a szervernek
+1. A szerver küld egy `sampling/createMessage` kérést az ügyfélnek
+2. Az ügyfél átnézi a kérést és módosíthatja azt
+3. Az ügyfél mintát vesz egy LLM-ből
+4. Az ügyfél átnézi a befejezést
+5. Az ügyfél visszaküldi az eredményt a szervernek
 
-Ez az emberi felügyeletet biztosító kialakítás garantálja, hogy a felhasználók irányításuk alatt tarthatják, mit lát és generál az LLM.
+Ez az emberi beavatkozással tervezett modell biztosítja, hogy a felhasználók ellenőrzésük alatt tartsák, mit lát és generál a LLM.
 
-## Sampling paraméterek áttekintése
+## Mintavételezési paraméterek áttekintése
 
-Az MCP a következő sampling paramétereket definiálja, amelyeket a kliens kérésekben lehet konfigurálni:
+Az MCP az alábbi mintavételezési paramétereket határozza meg, amelyek konfigurálhatók ügyfélkérésekben:
 
 | Paraméter | Leírás | Tipikus tartomány |
-|-----------|--------|-------------------|
-| `temperature` | Szabályozza a token kiválasztás véletlenszerűségét | 0.0 - 1.0 |
-| `maxTokens` | A generálandó tokenek maximális száma | Egész szám |
-| `stopSequences` | Egyedi szekvenciák, amelyek megállítják a generálást, ha előfordulnak | Karakterláncok tömbje |
+|-----------|-------------|---------------|
+| `temperature` | A token kiválasztás véletlenszerűségének vezérlése | 0.0 - 1.0 |
+| `maxTokens` | Generálandó maximális tokenek száma | Egész érték |
+| `stopSequences` | Egyedi szekvenciák, amelyek találatkor leállítják a generálást | Karaktersorozatok tömbje |
 | `metadata` | További, szolgáltató-specifikus paraméterek | JSON objektum |
 
-Sok LLM szolgáltató további paramétereket támogat a `metadata` mezőn keresztül, amelyek például:
+Sok LLM szolgáltató támogat további paramétereket a `metadata` mezőn keresztül, amelyek közé tartozhatnak:
 
-| Gyakori kiterjesztés paraméter | Leírás | Tipikus tartomány |
-|-------------------------------|--------|-------------------|
-| `top_p` | Nucleus sampling – korlátozza a tokeneket a legmagasabb kumulatív valószínűségre | 0.0 - 1.0 |
-| `top_k` | Korlátozza a token kiválasztást a legjobb K opcióra | 1 - 100 |
-| `presence_penalty` | Bünteti a tokeneket a szövegben való előfordulásuk alapján | -2.0 - 2.0 |
-| `frequency_penalty` | Bünteti a tokeneket a szövegben való gyakoriságuk alapján | -2.0 - 2.0 |
-| `seed` | Meghatározott véletlenszám-generátor mag a reprodukálható eredményekhez | Egész szám |
+| Gyakori bővítő paraméter | Leírás | Tipikus tartomány |
+|-----------|-------------|---------------|
+| `top_p` | Nucleus mintavételezés - korlátozza a tokeneket a legnagyobb kumulatív valószínűséghez | 0.0 - 1.0 |
+| `top_k` | A token kiválasztás korlátozása a legjobb K opcióra | 1 - 100 |
+| `presence_penalty` | Bünteti a szövegben már előfordult tokeneket | -2.0 - 2.0 |
+| `frequency_penalty` | Bünteti tokenek gyakoriságát a szövegben | -2.0 - 2.0 |
+| `seed` | Egy adott véletlenszám-generátor mag a reprodukálható eredményekhez | Egész érték |
 
-## Példa kérés formátum
+## Kéréspélda formátuma
 
-Íme egy példa arra, hogyan kérhetünk samplinget egy kliensnél MCP-ben:
+Íme egy példa arra, hogyan kérhetjük le a mintavételezést egy ügyféltől MCP-ben:
 
 ```json
 {
@@ -75,9 +75,9 @@ Sok LLM szolgáltató további paramétereket támogat a `metadata` mezőn keres
 }
 ```
 
-## Válasz formátum
+## Válasz formátuma
 
-A kliens egy kiegészítési eredményt ad vissza:
+Az ügyfél visszaküld egy befejezési eredményt:
 
 ```json
 {
@@ -91,44 +91,44 @@ A kliens egy kiegészítési eredményt ad vissza:
 }
 ```
 
-## Ember a folyamatban vezérlők
+## Emberi felügyelet a folyamatban
 
-Az MCP sampling kialakítása emberi felügyeletet tart szem előtt:
+Az MCP mintavételezés emberi ellenőrzéssel készült:
 
-- **Promptok esetén**:
-  - A klienseknek meg kell mutatniuk a felhasználóknak a javasolt promptot
-  - A felhasználók módosíthatják vagy elutasíthatják a promptokat
-  - A rendszer promptokat szűrni vagy módosítani lehet
-  - A kontextus bevonását a kliens szabályozza
+- **A promptok esetén**:
+  - Az ügyfeleknek meg kell mutatniuk a felhasználóknak a javasolt promptot
+  - A felhasználóknak módosíthatniuk vagy visszautasíthatniuk kell a promptokat
+  - A rendszer promptokat szűrhetik vagy módosíthatják
+  - A kontextus bevonását az ügyfél irányítja
 
-- **Kiegészítések esetén**:
-  - A klienseknek meg kell mutatniuk a felhasználóknak a kiegészítést
-  - A felhasználók módosíthatják vagy elutasíthatják a kiegészítéseket
-  - A kliensek szűrhetik vagy módosíthatják a kiegészítéseket
-  - A felhasználók szabályozzák, melyik modellt használják
+- **A befejezéseknél**:
+  - Az ügyfeleknek meg kell mutatniuk a felhasználóknak a befejezést
+  - A felhasználóknak módosíthatniuk vagy visszautasíthatniuk kell a befejezéseket
+  - Az ügyfelek szűrhetik vagy módosíthatják a befejezéseket
+  - A felhasználók vezérlik, mely modell használatos
 
-Ezekkel az alapelvekkel nézzük meg, hogyan valósítható meg a sampling különböző programozási nyelveken, különös tekintettel azokra a paraméterekre, amelyeket a legtöbb LLM szolgáltató támogat.
+Ezekkel az elvekkel a háttérben nézzük meg, hogyan valósítható meg a mintavételezés különböző programozási nyelveken, különösen azokat a paramétereket, amelyeket a legtöbb LLM szolgáltató támogat.
 
 ## Biztonsági megfontolások
 
-Az MCP sampling megvalósításakor vedd figyelembe az alábbi biztonsági legjobb gyakorlatokat:
+MCP-ben történő mintavételezés megvalósításakor az alábbi biztonsági legjobb gyakorlatokat érdemes betartani:
 
-- **Ellenőrizd az összes üzenettartalmat** mielőtt elküldenéd a kliensnek
-- **Tisztítsd meg az érzékeny információkat** a promptokból és kiegészítésekből
-- **Alkalmazz sebességkorlátokat** a visszaélések megelőzésére
-- **Figyeld a sampling használatot** szokatlan minták után kutatva
+- **Érvényesíts minden üzenettartalmat** mielőtt elküldöd az ügyfélnek
+- **Tisztítsd meg az érzékeny információkat** a promptokból és befejezésekből
+- **Vezess be korlátozásokat** a túlzott használat megakadályozására
+- **Figyeld a mintavételezés használatát** szokatlan mintákért
 - **Titkosítsd az adatokat átvitel közben** biztonságos protokollokkal
 - **Kezeld a felhasználói adatvédelmet** a vonatkozó szabályozások szerint
-- **Auditáld a sampling kéréseket** megfelelőség és biztonság érdekében
-- **Szabályozd a költségkitettséget** megfelelő korlátokkal
-- **Alkalmazz időkorlátokat** a sampling kérésekre
-- **Kezeld a modellhibákat** megfelelő tartalék megoldásokkal
+- **Ellenőrizd a mintavételezési kéréseket** megfelelőség és biztonság szempontjából
+- **Szabályozd a költségeket** megfelelő korlátokkal
+- **Alkalmazz időkorlátokat** a mintavételezési kérésekre
+- **Kezeld a modellhibákat kifinomultan** megfelelő tartalék megoldásokkal
 
-A sampling paraméterek lehetővé teszik a nyelvi modellek viselkedésének finomhangolását, hogy elérjük a kívánt egyensúlyt a determinisztikus és kreatív kimenetek között.
+A mintavételezési paraméterek lehetővé teszik, hogy finomhangoljuk a nyelvi modellek viselkedését az elvárt egyensúly eléréséhez a determinisztikus és kreatív kimenetek között.
 
-Nézzük meg, hogyan konfigurálhatók ezek a paraméterek különböző programozási nyelveken.
+Nézzük meg, hogyan állíthatóak be ezek a paraméterek különböző programozási nyelveken.
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -167,46 +167,46 @@ public class SamplingExample
 Az előző kódban:
 
 - Létrehoztunk egy MCP klienst egy adott szerver URL-lel.
-- Beállítottunk egy kérést sampling paraméterekkel, mint például `temperature`, `top_p` és `top_k`.
+- Konfiguráltunk egy kérést mintavételezési paraméterekkel, mint például `temperature`, `top_p` és `top_k`.
 - Elküldtük a kérést, és kiírtuk a generált szöveget.
 - Használtuk:
-    - `allowedTools`-t, hogy megadjuk, mely eszközöket használhatja a modell a generálás során. Ebben az esetben engedélyeztük az `ideaGenerator` és `marketAnalyzer` eszközöket, hogy segítsenek kreatív alkalmazásötletek generálásában.
-    - `frequencyPenalty` és `presencePenalty`-t a kimenet ismétlődésének és változatosságának szabályozására.
-    - `temperature`-t a kimenet véletlenszerűségének szabályozására, ahol a magasabb értékek kreatívabb válaszokat eredményeznek.
-    - `top_p`-t, hogy korlátozzuk a tokenek kiválasztását a legmagasabb kumulatív valószínűséget képviselő tokenekre, javítva a generált szöveg minőségét.
-    - `top_k`-t, hogy a modellt a legvalószínűbb K tokenre korlátozzuk, ami segíthet koherensebb válaszok generálásában.
-    - `frequencyPenalty` és `presencePenalty`-t az ismétlődés csökkentésére és a változatosság ösztönzésére a generált szövegben.
+    - `allowedTools` megadására, hogy mely eszközöket használhat a modell a generálás során. Ebben az esetben engedélyeztük az `ideaGenerator` és `marketAnalyzer` eszközöket, hogy segítsék kreatív alkalmazásötletek generálását.
+    - `frequencyPenalty` és `presencePenalty` a kimenet ismétlődésének és változatosságának szabályozására.
+    - `temperature` a kimenet véletlenszerűségének szabályozására, ahol magasabb értékek kreatívabb válaszokat eredményeznek.
+    - `top_p` a tokenek kiválasztásának korlátozására, hogy a legnagyobb kumulatív valószínűségű tokenekhez tartozzanak, javítva ezzel a generált szöveg minőségét.
+    - `top_k` a modell korlátozására a legvalószínűbb K tokenre, ami elősegíti a koherensebb válaszokat.
+    - `frequencyPenalty` és `presencePenalty` az ismétlődés csökkentésére és a változatosság növelésére a generált szövegben.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// JavaScript példa: Hőmérséklet és Top-P mintavételezési konfiguráció
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // Inicializálja az MCP klienst
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // Kérés konfigurálása különböző mintavételezési paraméterekkel
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // Magasabb hőmérséklet = több véletlenszerűség/kreativitás
+    topP: 0.92,          // A tokeneket a felső 92%-os valószínűségi tömeggel vegye figyelembe
+    frequencyPenalty: 0.6, // Csökkentse a token sorozatok ismétlődését
+    presencePenalty: 0.4   // Büntesse az eddig szövegben megjelent tokeneket
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // Alacsonyabb hőmérséklet = determinisztikusabb/tényalapúbb
+    topP: 0.85,          // Kicsit fókuszáltabb token kiválasztás
+    frequencyPenalty: 0.2, // Minimális ismétlődési büntetés
+    presencePenalty: 0.1   // Minimális jelenléti büntetés
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // Küldjön két kérést különböző mintavételezési konfigurációkkal
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -240,54 +240,54 @@ demonstrateSampling();
 Az előző kódban:
 
 - Inicializáltunk egy MCP klienst szerver URL-lel és API kulccsal.
-- Két különböző sampling paraméterkészletet állítottunk be: egyet kreatív feladatokra, egyet tényalapú feladatokra.
-- Elküldtük a kéréseket ezekkel a konfigurációkkal, lehetővé téve, hogy a modell különböző eszközöket használjon az egyes feladatokhoz.
-- Kiírtuk a generált válaszokat, hogy bemutassuk a különböző sampling paraméterek hatását.
-- Használtuk az `allowedTools`-t, hogy megadjuk, mely eszközöket használhat a modell a generálás során. Ebben az esetben kreatív feladatokhoz engedélyeztük az `ideaGenerator` és `environmentalImpactTool` eszközöket, míg tényalapú feladatokhoz a `factChecker` és `dataAnalysisTool` eszközöket.
+- Két készlet mintavételezési paramétert állítottunk be: az egyik kreatív feladatokra, a másik tényszerű feladatokra.
+- Elküldtünk kéréseket ezekkel a beállításokkal, lehetővé téve, hogy a modell adott eszközöket használjon minden feladat során.
+- Kiírtuk a generált válaszokat a különböző mintavételezési paraméterek hatásainak bemutatására.
+- Használtuk az `allowedTools`-t, hogy megadjuk, mely eszközöket használhat a modell a generálás során. Ebben az esetben engedélyeztük az `ideaGenerator` és `environmentalImpactTool` eszközöket kreatív feladatokhoz, valamint a `factChecker` és `dataAnalysisTool` eszközöket tényszerű feladatokhoz.
 - Használtuk a `temperature`-t a kimenet véletlenszerűségének szabályozására, ahol a magasabb értékek kreatívabb válaszokat eredményeznek.
-- Használtuk a `top_p`-t, hogy korlátozzuk a tokenek kiválasztását a legmagasabb kumulatív valószínűséget képviselő tokenekre, javítva a generált szöveg minőségét.
-- Használtuk a `frequencyPenalty` és `presencePenalty`-t az ismétlődés csökkentésére és a változatosság ösztönzésére a kimenetben.
-- Használtuk a `top_k`-t, hogy a modellt a legvalószínűbb K tokenre korlátozzuk, ami segíthet koherensebb válaszok generálásában.
+- Használtuk a `top_p`-t a tokenek kiválasztásának korlátozására, hogy a legnagyobb kumulatív valószínűségű tokenek közé tartozzanak, javítva a generált szöveg minőségét.
+- Használtuk a `frequencyPenalty` és `presencePenalty` paramétereket az ismétlődés csökkentésére és a változatosság elősegítésére a kimenetben.
+- Használtuk a `top_k`-t, hogy korlátozzuk a modellt a legvalószínűbb K tokenre, ami elősegíti a koherensebb válaszokat.
 
 ---
 
-## Determinisztikus sampling
+## Determinisztikus mintavételezés
 
-Azoknál az alkalmazásoknál, ahol következetes kimenetekre van szükség, a determinisztikus sampling reprodukálható eredményeket biztosít. Ezt úgy éri el, hogy fix véletlenszám-generátor magot használ, és a hőmérsékletet nullára állítja.
+Olyan alkalmazások esetén, ahol következetes kimenetek szükségesek, a determinisztikus mintavételezés biztosítja a reprodukálható eredményeket. Ez úgy valósul meg, hogy rögzített véletlenszám-magot használunk és a hőmérsékletet nullára állítjuk.
 
-Nézzük meg az alábbi mintapéldát, amely bemutatja a determinisztikus sampling megvalósítását különböző programozási nyelveken.
+Nézzük meg az alábbi mintapéldát, amely bemutatja a determinisztikus mintavételezést különböző programozási nyelveken.
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// Java példa: Determinisztikus válaszok rögzített maggal
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // Rögzített mag használata a determinisztikus eredményekhez
         
-        // First request with fixed seed
+        // Első kérés rögzített maggal
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // Nulla hőmérséklet a maximális determinisztikusságért
             .build();
             
-        // Second request with the same seed
+        // Második kérés ugyanazzal a maggal
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // Mindkét kérés végrehajtása
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // A válaszoknak azonosaknak kell lenniük a ugyanaz miatt a mag és hőmérséklet=0 miatt
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -298,17 +298,17 @@ public class DeterministicSamplingExample {
 
 Az előző kódban:
 
-- Létrehoztunk egy MCP klienst egy megadott szerver URL-lel.
-- Két kérést konfiguráltunk ugyanazzal a prompttal, fix maggal és nulla hőmérséklettel.
-- Mindkét kérést elküldtük, és kiírtuk a generált szöveget.
-- Bemutattuk, hogy a válaszok azonosak a sampling konfiguráció determinisztikus jellege miatt (ugyanaz a mag és hőmérséklet).
-- Használtuk a `setSeed`-et egy fix véletlenszám-generátor mag megadására, biztosítva, hogy a modell mindig ugyanazt a kimenetet generálja ugyanarra a bemenetre.
-- A `temperature`-t nullára állítottuk a maximális determinisztikusság érdekében, vagyis a modell mindig a legvalószínűbb következő tokent választja véletlenszerűség nélkül.
+- Létrehoztunk egy MCP klienst megadott szerver URL-lel.
+- Két kérést konfiguráltunk ugyanazzal a prompttal, rögzített maggal és nulla hőmérséklettel.
+- Mindkét kérést elküldtük és kiírtuk a generált szöveget.
+- Bemutattuk, hogy a válaszok azonosak a mintavételezési konfiguráció determinisztikus jellege miatt (ugyanaz a mag és hőmérséklet).
+- Használtuk a `setSeed`-et a rögzített véletlenszám-mag megadására, biztosítva, hogy a modell ugyanazt a kimenetet generálja ugyanarra a bemenetre minden alkalommal.
+- Beállítottuk a `temperature`-t nullára, hogy maximális determinizmust érjünk el, vagyis a modell mindig a legvalószínűbb következő tokent választja véletlenszerűség nélkül.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// JavaScript példa: Determinisztikus válaszok mag vezérléssel
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -320,19 +320,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // Első kérés rögzített maggal
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // Nulla hőmérséklet a maximális determinisztikához
     });
     
-    // Second request with same seed and temperature
+    // Második kérés ugyanazzal a maggal és hőmérséklettel
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // Harmadik kérés különböző maggal, de ugyanazzal a hőmérséklettel
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -355,25 +355,25 @@ deterministicSampling();
 Az előző kódban:
 
 - Inicializáltunk egy MCP klienst szerver URL-lel.
-- Két kérést konfiguráltunk ugyanazzal a prompttal, fix maggal és nulla hőmérséklettel.
-- Mindkét kérést elküldtük, és kiírtuk a generált szöveget.
-- Bemutattuk, hogy a válaszok azonosak a sampling konfiguráció determinisztikus jellege miatt (ugyanaz a mag és hőmérséklet).
-- Használtuk a `seed`-et egy fix véletlenszám-generátor mag megadására, biztosítva, hogy a modell mindig ugyanazt a kimenetet generálja ugyanarra a bemenetre.
-- A `temperature`-t nullára állítottuk a maximális determinisztikusság érdekében, vagyis a modell mindig a legvalószínűbb következő tokent választja véletlenszerűség nélkül.
-- Egy másik magot használtunk a harmadik kéréshez, hogy megmutassuk, a mag megváltoztatása eltérő kimeneteket eredményez ugyanazzal a prompttal és hőmérséklettel.
+- Két kérést konfiguráltunk ugyanazzal a prompttal, rögzített maggal és nulla hőmérséklettel.
+- Mindkét kérést elküldtük és kiírtuk a generált szöveget.
+- Bemutattuk, hogy a válaszok azonosak a mintavételezési konfiguráció determinisztikus jellege miatt (ugyanaz a mag és hőmérséklet).
+- Használtuk a `seed`-et a rögzített véletlenszám-mag megadására, biztosítva, hogy a modell ugyanazt a kimenetet generálja ugyanarra a bemenetre minden alkalommal.
+- Beállítottuk a `temperature`-t nullára, hogy maximális determinizmust érjünk el, vagyis a modell mindig a legvalószínűbb következő tokent választja véletlenszerűség nélkül.
+- Egy harmadik kéréshez másik magot használtunk, hogy megmutassuk, a mag változtatása eltérő kimeneteket eredményez, még azonos prompt és hőmérséklet mellett is.
 
 ---
 
-## Dinamikus sampling konfiguráció
+## Dinamikus mintavételezési konfiguráció
 
-Az intelligens sampling a kontextus és a kérés követelményei alapján állítja be a paramétereket. Ez azt jelenti, hogy dinamikusan módosítja a `temperature`, `top_p` és büntetéseket a feladat típusa, a felhasználói preferenciák vagy a korábbi teljesítmény alapján.
+Az intelligens mintavételezés a paramétereket a kérés kontextusa és követelményei szerint állítja be. Ez azt jelenti, hogy dinamikusan módosítja a paramétereket, mint a hőmérséklet, top_p és büntetések, a feladat típusa, a felhasználói preferenciák vagy a történelmi teljesítmény alapján.
 
-Nézzük meg, hogyan valósítható meg a dinamikus sampling különböző programozási nyelveken.
+Nézzük meg, hogyan valósítható meg a dinamikus mintavételezés különböző programozási nyelveken.
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# Python példa: Dinamikus mintavételezés a kérés kontextusa alapján
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -381,7 +381,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # Mintavételi előbeállítások definiálása különböző feladattípusokhoz
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -389,22 +389,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # Alap előbeállítás kiválasztása
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # Beállítás a felhasználói preferenciák alapján, ha megadott
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # Hőmérséklet méretezése a kreativitási preferencia (1-10) alapján
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # top_p beállítása a kívánt válaszváltozatosság szerint
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # Egyéni mintavételezési paraméterekkel kérés létrehozása és küldése
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -412,7 +412,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # Válasz visszaadása mintavételi metaadatokkal az átláthatóság érdekében
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -422,30 +422,30 @@ class DynamicSamplingService:
 
 Az előző kódban:
 
-- Létrehoztunk egy `DynamicSamplingService` osztályt, amely az adaptív samplinget kezeli.
-- Meghatároztunk sampling előbeállításokat különböző feladattípusokra (kreatív, tényalapú, kód, elemző).
-- Kiválasztottuk az alap sampling előbeállítást a feladattípus alapján.
-- Módosítottuk a sampling paramétereket a felhasználói preferenciák, például kreativitás és változatosság alapján.
-- Elküldtük a kérést a dinamikusan konfigurált sampling paraméterekkel.
-- Visszaadtuk a generált szöveget a használt sampling paraméterekkel és a feladattípussal a transzparencia érdekében.
-- Használtuk a `temperature`-t a kimenet véletlenszerűségének szabályozására, ahol a magasabb értékek kreatívabb válaszokat eredményeznek.
-- Használtuk a `top_p`-t, hogy korlátozzuk a tokenek kiválasztását a legmagasabb kumulatív valószínűséget képviselő tokenekre, javítva a generált szöveg minőségét.
+- Létrehoztunk egy `DynamicSamplingService` osztályt, amely kezeli az adaptív mintavételezést.
+- Meghatároztunk mintavételezési előbeállításokat különböző feladattípusokhoz (kreatív, tényszerű, kód, analitikus).
+- A feladattípus alapján kiválasztottuk az alap mintavételezési előbeállítást.
+- A felhasználói preferenciák, például a kreativitási és változatossági szint alapján módosítottuk a mintavételezési paramétereket.
+- Elküldtük a kérést a dinamikusan konfigurált mintavételezési paraméterekkel.
+- Visszaadtuk a generált szöveget, valamint a használt mintavételezési paramétereket és a feladat típusát az átláthatóság érdekében.
+- Használtuk a `temperature`-t a kimenet véletlenszerűségének szabályozására, ahol magasabb értékek kreatívabb válaszokat eredményeznek.
+- Használtuk a `top_p`-t a tokenek kiválasztásának korlátozására, hogy a legnagyobb kumulatív valószínűséghez tartozzanak, javítva a generált szöveg minőségét.
 - Használtuk a `frequency_penalty`-t az ismétlődés csökkentésére és a változatosság ösztönzésére a kimenetben.
-- Használtuk a `user_preferences`-t, hogy lehetővé tegyük a sampling paraméterek testreszabását a felhasználó által meghatározott kreativitás és változatosság szint alapján.
-- Használtuk a `task_type`-ot, hogy meghatározzuk a kéréshez megfelelő sampling stratégiát, lehetővé téve a feladat jellegének megfelelőbb válaszokat.
-- A `send_request` metódussal elküldtük a promptot a konfigurált sampling paraméterekkel, biztosítva, hogy a modell a megadott követelmények szerint generáljon szöveget.
-- A `generated_text` segítségével lekértük a modell válaszát, amelyet a sampling paraméterekkel és a feladattípussal együtt visszaadtunk további elemzés vagy megjelenítés céljából.
-- A `min` és `max` függvényekkel biztosítottuk, hogy a felhasználói preferenciák érvényes tartományban maradjanak, megakadályozva a hibás sampling konfigurációkat.
+- Használtuk a `user_preferences`-t, hogy a felhasználó által meghatározott kreativitási és változatossági szintek alapján testreszabhassuk a mintavételezési paramétereket.
+- Használtuk a `task_type`-ot, hogy meghatározzuk a megfelelő mintavételezési stratégiát a kéréshez, lehetővé téve a feladat természetétől függő pontosabb válaszokat.
+- Használtuk a `send_request` metódust a konfigurált mintavételezési paraméterekkel ellátott prompt elküldésére, biztosítva, hogy a modell a megadott követelmények szerint generáljon szöveget.
+- Használtuk a `generated_text`-et, hogy lekérjük a modell válaszát, amely aztán visszaadásra került a mintavételezési paraméterekkel és a feladattípussal együtt további elemzés vagy megjelenítés céljából.
+- Használtuk a `min` és `max` függvényeket annak biztosítására, hogy a felhasználói preferenciák érvényes tartományok között legyenek, megakadályozva érvénytelen mintavételezési konfigurációkat.
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript Dynamic](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// JavaScript példa: Dinamikus mintavételi konfiguráció a felhasználói kontextus alapján
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // Alap mintavételi profilok meghatározása
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -453,15 +453,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // A történelmi teljesítmény nyomon követése
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // Feladat típusának észlelése a promptból
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // Egyszerű heurisztikus detektálás - továbbfejleszthető ML osztályozással
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -482,57 +482,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // Ha nincs egyértelmű típus, alapértelmezettként beszélgetős mód
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // Mintavételi paraméterek kiszámítása a kontextus és a felhasználói preferenciák alapján
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // A feladat típusának észlelése
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // Alapprofil lekérése
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // Felhasználói preferenciák szerinti igazítás
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // 1-10 skáláról megfelelő hőmérséklet tartományra átalakítás
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // Minél magasabb a pontosság, annál alacsonyabb a topP (koncentráltabb kiválasztás)
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // Minél magasabb az állandóság, annál alacsonyabb a büntetés
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // Teljesítménytörténetből tanult beállítások alkalmazása
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // Egyszerű adaptív logika - fejleszthető kifinomultabb algoritmusokkal
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // Csak a legfrissebb történelmet figyelembe venni
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // Átlagos teljesítményértékek kiszámítása
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // Ha a teljesítmény a küszöb alatti, paraméterek módosítása
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // Enyhe igazítás biztonságosabb értékek felé
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -540,32 +540,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // Teljesítmény rögzítése jövőbeli igazításokhoz
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // 0-1-es válaszminőségi értékelés
     });
     
-    // Limit history size
+    // Történet méretének korlátozása
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // Optimalizált mintavételi paraméterek lekérése
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // Kérés küldése optimalizált paraméterekkel
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // Ha a felhasználó visszajelzést ad, rögzíteni a jövőbeli optimalizációhoz
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -578,7 +578,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// Példa használat
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -587,13 +587,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // Kreatív feladat egyedi felhasználói preferenciákkal
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // Magas kreativitás (1-10)
+          consistency: 3  // Alacsony állandóság (1-10)
         }
       }
     );
@@ -603,14 +603,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // Kódgenerálási feladat
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // Alacsony kreativitás
+          precision: 8,   // Magas pontosság
+          consistency: 9  // Magas állandóság
         }
       }
     );
@@ -630,12 +630,35 @@ demonstrateAdaptiveSampling();
 
 Az előző kódban:
 
-- Létrehoztunk egy `AdaptiveSamplingManager` osztályt, amely dinamikusan kezeli a samplinget a feladattípus és a felhasználói preferenciák alapján.
-- Meghatároztunk sampling profilokat különböző feladattípusokra (kreatív, tényalapú, kód, beszélgetés).
-- Megvalósítottunk egy metódust a feladattípus felismerésére a prompt alapján egyszerű heurisztikák segítségével.
-- Kiszámoltuk a sampling paramétereket a feladattípus és a felhasználói preferenciák alapján.
-- Alkalmaztuk a tanult módosításokat a korábbi teljesítmény alapján a sampling paraméterek optimalizálására.
-- Rögzítettük a teljes
+- Létrehoztunk egy `AdaptiveSamplingManager` osztályt, amely kezeli a dinamikus mintavételezést a feladattípus és a felhasználói preferenciák alapján.
+- Meghatároztunk mintavételezési profilokat különböző feladattípusokhoz (kreatív, tényszerű, kód, beszélgetés-alapú).
+- Megvalósítottunk egy módszert, amely egyszerű heuristikák segítségével felismeri a prompt feladattípusát.
+- Kiszámítottuk a mintavételezési paramétereket a feladattípus és a felhasználói preferenciák alapján.
+- Alkalmaztuk a múltbeli teljesítmény alapján tanult korrekciókat a mintavételezési paraméterek optimalizálásához.
+- Rögzítettük a teljesítményt a jövőbeni módosításokhoz, lehetővé téve a rendszer számára a múltbeli interakciókból való tanulást.
+- Kéréseket küldtünk dinamikusan konfigurált mintavételezési paraméterekkel, és visszaadtuk a generált szöveget a használt paraméterekkel és a felismert feladattípussal együtt.
+- Használtuk:
+    - `userPreferences` a mintavételezési paraméterek testreszabására a felhasználó által definiált kreativitás, precizitás és következetesség szintek alapján.
+    - `detectTaskType` a feladat természetének meghatározására a prompt alapján, lehetővé téve a feladatnak megfelelő mintavételezési stratégiák alkalmazását.
+    - `recordPerformance` a generált válaszok teljesítményének naplózására, elősegítve a rendszer alkalmazkodását és javulását az idő múlásával.
+    - `applyLearnedAdjustments` a mintavételezési paraméterek módosítására a múltbeli teljesítmény alapján, javítva a modell képességét a magas minőségű válaszok generálására.
+    - `generateResponse` a teljes mintavételezési folyamat kapszulázására, megkönnyítve a hívást különböző promptok és kontextusok esetén.
+    - `allowedTools` megadására, hogy mely eszközöket használhat a modell a generálás során, lehetővé téve a kontextusra érzékeny válaszokat.
+    - `feedbackScore` a felhasználók számára, hogy visszajelzést adjanak a generált válasz minőségéről, amelyet a modell teljesítményének további finomhangolására lehet használni.
+    - `performanceHistory` a korábbi interakciók nyilvántartására, lehetővé téve a rendszer számára, hogy tanuljon a korábbi sikerekből és hibákból.
+    - `getSamplingParameters` a mintavételezési paraméterek dinamikus beállítására a kérés kontextusa alapján, így rugalmasabb és reagálóbb modell viselkedést biztosítva.
+    - `detectTaskType` a feladat osztályozására a prompt alapján, lehetővé téve a rendszer számára a különböző típusú kérésekhez megfelelő mintavételezési stratégiák alkalmazását.
+    - `samplingProfiles` az alap mintavételezési konfigurációk meghatározására különböző feladattípusokhoz, megkönnyítve a gyors beállítást a kérés jellegétől függően.
 
-**Jogi nyilatkozat**:  
-Ez a dokumentum az AI fordító szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár a pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Kritikus információk esetén professzionális emberi fordítást javaslunk. Nem vállalunk felelősséget az ebből a fordításból eredő félreértésekért vagy téves értelmezésekért.
+---
+
+## Mi jön ezután
+
+- [5.7 Skálázás](../mcp-scaling/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

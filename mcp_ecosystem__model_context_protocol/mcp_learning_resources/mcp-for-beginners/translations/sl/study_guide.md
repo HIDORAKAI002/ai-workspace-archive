@@ -1,214 +1,215 @@
-# Model Context Protocol (MCP) za začetnike - Študijski vodič
+# Protokol modelnega konteksta (MCP) za začetnike - študijski vodič
 
-Ta študijski vodič ponuja pregled strukture in vsebine repozitorija za učni načrt "Model Context Protocol (MCP) za začetnike". Uporabite ta vodič za učinkovito navigacijo po repozitoriju in kar najbolj izkoristite razpoložljive vire.
+Ta študijski vodič ponuja pregled strukture in vsebine repozitorija za učni načrt "Protokol modelnega konteksta (MCP) za začetnike". Uporabite ta vodič za učinkovito navigacijo po repozitoriju in kar najboljše izkoristite razpoložljive vire.
 
 ## Pregled repozitorija
 
-Model Context Protocol (MCP) je standardiziran okvir za interakcije med AI modeli in odjemalskimi aplikacijami. Sprva ga je ustvaril Anthropic, MCP pa zdaj vzdržuje širša MCP skupnost preko uradne organizacije GitHub. Ta repozitorij zagotavlja obsežen učni načrt s praktičnimi primeri kode v C#, Javi, JavaScriptu, Pythonu in TypeScript, namenjen razvijalcem umetne inteligence, sistemskim arhitektom in programski opremi.
+Protokol modelnega konteksta (MCP) je standardiziran okvir za interakcije med AI modeli in odjemalskimi aplikacijami. Prvotno ga je ustvaril Anthropic, MCP pa zdaj vzdržuje širša skupnost MCP prek uradne organizacije GitHub. Ta repozitorij zagotavlja celovit učni načrt z interaktivnimi primeri kode v C#, Javi, JavaScriptu, Pythonu in TypeScriptu, namenjen razvijalcem AI, arhitektom sistemov in programskim inženirjem.
 
 ## Vizualna karta učnega načrta
 
 ```mermaid
 mindmap
-  root((MCP za začetnike))
-    00. Uvod
+  root((MCP for Beginners))
+    00. Introduction
       ::icon(fa fa-book)
-      (Pregled protokola)
-      (Koristi standardizacije)
-      (Praktični primeri uporabe)
-      (Osnove integracije AI)
-    01. Osnovni pojmi
+      (Protocol Overview)
+      (Standardization Benefits)
+      (Real-world Use Cases)
+      (AI Integration Fundamentals)
+    01. Core Concepts
       ::icon(fa fa-puzzle-piece)
-      (Arhitektura odjemalec-strežnik)
-      (Sestavni deli protokola)
-      (Vzorce sporočanja)
-      (Mehanizmi prenosa)
-      (Naloge - eksperimentalno)
-      (Oznake orodij)
-    02. Varnost
+      (Client-Server Architecture)
+      (Protocol Components)
+      (Messaging Patterns)
+      (Transport Mechanisms)
+      (Tasks - Experimental)
+      (Tool Annotations)
+    02. Security
       ::icon(fa fa-shield)
-      (Grožnje specifične za AI)
-      (Najboljše prakse 2025)
-      (Azure varnost vsebine)
-      (Avtentikacija in avtorizacija)
-      (Microsoft zaščite pred navedbami)
+      (AI-Specific Threats)
+      (Best Practices 2025)
+      (Azure Content Safety)
+      (Auth & Authorization)
+      (Microsoft Prompt Shields)
       (OWASP MCP Top 10)
-      (Delavnica delu varnost Sherpa)
-    03. Začetek
+      (Sherpa Security Workshop)
+    03. Getting Started
       ::icon(fa fa-rocket)
-      (Prva implementacija strežnika)
-      (Razvoj odjemalca)
-      (Integracija LLM odjemalca)
-      (Razširitve VS Code)
-      (Nastavitev SSE strežnika)
-      (HTTP pretakanje)
-      (Integracija AI orodij)
-      (Testni okviri)
-      (Napredna uporaba strežnika)
-      (Preprosta avtentikacija)
-      (Strategije uvajanja)
-      (Nastavitev gostiteljev MCP)
-      (Inšpektor MCP)
-    04. Praktična izvedba
+      (First Server Implementation)
+      (Client Development)
+      (LLM Client Integration)
+      (VS Code Extensions)
+      (SSE Server Setup)
+      (HTTP Streaming)
+      (AI Toolkit Integration)
+      (Testing Frameworks)
+      (Advanced Server Usage)
+      (Simple Auth)
+      (Deployment Strategies)
+      (MCP Hosts Setup)
+      (MCP Inspector)
+    04. Practical Implementation
       ::icon(fa fa-code)
-      (Večjezični SDK-ji)
-      (Testiranje in odpravljanje napak)
-      (Predloge za navedbe)
-      (Vzorčni projekti)
-      (Produkcijski vzorci)
-      (Strategije paginacije)
-    05. Napredne teme
+      (Multi-Language SDKs)
+      (Testing & Debugging)
+      (Prompt Templates)
+      (Sample Projects)
+      (Production Patterns)
+      (Pagination Strategies)
+    05. Advanced Topics
       ::icon(fa fa-graduation-cap)
-      (Inženiring konteksta)
-      (Integracija agenta Foundry)
-      (Večmodalni AI delovni tokovi)
-      (OAuth2 avtentikacija)
-      (Iskanje v realnem času)
-      (Pretakalni protokoli)
-      (Temeljni konteksti)
-      (Strategije usmerjanja)
-      (Tehnike vzorčenja)
-      (Rešitve za skaliranje)
-      (Utrjevanje varnosti)
-      (Integracija Entra ID)
-      (MCP spletno iskanje)
-      (Poglobljen pogled na funkcije protokola)
-      (Nasprotno večagentno sklepanj)
+      (Context Engineering)
+      (Foundry Agent Integration)
+      (Multi-modal AI Workflows)
+      (OAuth2 Authentication)
+      (Real-time Search)
+      (Streaming Protocols)
+      (Root Contexts)
+      (Routing Strategies)
+      (Sampling Techniques)
+      (Scaling Solutions)
+      (Security Hardening)
+      (Entra ID Integration)
+      (Web Search MCP)
+      (Protocol Features Deep Dive)
+      (Adversarial Multi-Agent Reasoning)
       
-    06. Skupnost
+    06. Community
       ::icon(fa fa-users)
-      (Prispevki kode)
-      (Dokumentacija)
-      (Ekosistem odjemalcev MCP)
-      (Registracija strežnikov MCP)
-      (Orodja za generiranje slik)
-      (Sodelovanje na GitHub)
-    07. Zgodnja posvojitev
+      (Code Contributions)
+      (Documentation)
+      (MCP Client Ecosystem)
+      (MCP Server Registry)
+      (Image Generation Tools)
+      (GitHub Collaboration)
+    07. Early Adoption
       ::icon(fa fa-lightbulb)
-      (Produkcijska uvajanja)
-      (Microsoft MCP strežniki)
-      (Storitev Azure MCP)
-      (Podjetniške študije primerov)
-      (Prihodnja strategija)
-    08. Najboljše prakse
+      (Production Deployments)
+      (Microsoft MCP Servers)
+      (Azure MCP Service)
+      (Enterprise Case Studies)
+      (Future Roadmap)
+    08. Best Practices
       ::icon(fa fa-check)
-      (Optimizacija zmogljivosti)
-      (Odpornost na napake)
-      (Odpornost sistema)
-      (Nadzor in opazovanje)
-    09. Študije primerov
+      (Performance Optimization)
+      (Fault Tolerance)
+      (System Resilience)
+      (Monitoring & Observability)
+    09. Case Studies
       ::icon(fa fa-file-text)
-      (Upravljanje API Azure)
-      (AI potovalni agent)
-      (Integracija Azure DevOps)
-      (Dokumentacija MCP)
-      (Registracija MCP na GitHub)
-      (Integracija VS Code)
-      (Praktične implementacije)
-    10. Praktična delavnica
+      (Azure API Management)
+      (AI Travel Agent)
+      (Azure DevOps Integration)
+      (Documentation MCP)
+      (GitHub MCP Registry)
+      (VS Code Integration)
+      (Real-world Implementations)
+    10. Hands-on Workshop
       ::icon(fa fa-laptop)
-      (Osnove MCP strežnika)
-      (Napredni razvoj)
-      (Integracija AI orodij)
-      (Produkcijsko uvajanje)
-      (Struktura 4 delavnic)
-    11. Laboratoriji integracije podatkovnih baz
+      (MCP Server Fundamentals)
+      (Advanced Development)
+      (AI Toolkit Integration)
+      (Production Deployment)
+      (4-Lab Structure)
+    11. Database Integration Labs
       ::icon(fa fa-database)
-      (Integracija PostgreSQL)
-      (Uporaba maloprodajne analitike)
-      (Varnost na ravni vrstic)
-      (Semantično iskanje)
-      (Produkcijsko uvajanje)
-      (Struktura 13 delavnic)
-      (Praktično učenje)
-    12. Orodja
+      (PostgreSQL Integration)
+      (Retail Analytics Use Case)
+      (Row Level Security)
+      (Semantic Search)
+      (Production Deployment)
+      (13-Lab Structure)
+      (Hands-on Learning)
+    12. Tooling
       ::icon(fa fa-wrench)
-      (MCP v aplikaciji Copilot)
+      (MCP in Copilot app)
 ```
 
 ## Struktura repozitorija
 
-Repozitorij je organiziran v dvanajst glavnih odsekov, ki se osredotočajo na različne vidike MCP:
+Repozitorij je organiziran v dvanajst glavnih razdelkov, ki se osredotočajo na različne vidike MCP:
 
 1. **Uvod (00-Introduction/)**
-   - Pregled Model Context Protocol
-   - Zakaj je standardizacija pomembna v AI procesih
+   - Pregled protokola modelnega konteksta
+   - Zakaj je standardizacija pomembna v AI potekih
    - Praktični primeri uporabe in koristi
 
-2. **Osnovni pojmi (01-CoreConcepts/)**
-   - Arhitektura klient-strežnik
+2. **Osnovni koncepti (01-CoreConcepts/)**
+   - Arhitektura odjemalec-strežnik
    - Ključne sestavine protokola
-   - Vzorci sporočanja v MCP
+   - Vzorce za pošiljanje sporočil v MCP
+   - Napovedi: [Kaj se spreminja v MCP: Kandidat za izdajo 2026-07-28](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md) — jedro protokola brez stanja, okvir za razširitve ter pričakovane ukinitve Roots/Sampling/Logging v naslednji različici specifikacije
 
 3. **Varnost (02-Security/)**
-   - Varnostne grožnje v sistemih, ki temeljijo na MCP
+   - Varnostna tveganja v sistemih na osnovi MCP
    - Najboljše prakse za varno implementacijo
-   - Strategije preverjanja pristnosti in avtorizacije
+   - Strategije za preverjanje pristnosti in avtorizacijo
    - **Celovita varnostna dokumentacija**:
-     - MCP varnostne najboljše prakse 2025
-     - Priročnik za implementacijo Azure Content Safety
-     - MCP varnostni nadzori in tehnike
-     - Hiter pregled najboljših praks MCP
+     - Najboljše prakse varnosti MCP 2025
+     - Vodnik za izvajanje varnosti vsebine Azure
+     - Nadzor in tehnike varnosti MCP
+     - Hitri referenčni vodič najboljših praks MCP
    - **Ključne varnostne teme**:
-     - Napadi z vstavljanjem pozivov in strupenimi orodji
-     - Prestrezanje sej in problemi z zmedenimi odvetniki
-     - Ranljivosti pri prenašanju žetonov
-     - Pretirane dovoljenja in nadzor dostopa
-     - Varnost dobavne verige za AI komponente
+     - Napadi s pozivnim injiciranjem in strupenjem orodij
+     - Prevzem sej in težave z zmedeno pooblastitvijo (confused deputy)
+     - Ranljivosti pri prehodu žetonov
+     - Pretirano dovoljenje in nadzor dostopa
+     - Varnost oskrbovalne verige za AI komponente
      - Integracija Microsoft Prompt Shields
 
-4. **Začetek (03-GettingStarted/)**
+4. **Začetek dela (03-GettingStarted/)**
    - Nastavitev in konfiguracija okolja
    - Ustvarjanje osnovnih MCP strežnikov in odjemalcev
    - Integracija z obstoječimi aplikacijami
-   - Vsebuje odseke za:
-     - Prvo implementacijo strežnika
-     - Razvoj klienta
-     - Integracijo LLM klienta
-     - Integracijo z VS Code
-     - Strežnik z dogodki, poslanimi od strežnika (SSE)
+   - Vključuje razdelke za:
+     - Prva implementacija strežnika
+     - Razvoj odjemalca
+     - Integracija LLM odjemalca
+     - Integracija v VS Code
+     - Strežnik s Strežčenimi dogodki (Server-Sent Events, SSE)
      - Napredna uporaba strežnika
-     - HTTP pretakanje
-     - Integracijo AI orodjarne
+     - Pretakanje HTTP
+     - Integracija AI orodjarne
      - Strategije testiranja
-     - Navodila za uvajanje
+     - Priporočila za nameščanje
 
 5. **Praktična implementacija (04-PracticalImplementation/)**
    - Uporaba SDK-jev v različnih programskih jezikih
    - Tehnike odpravljanja napak, testiranja in preverjanja
-   - Oblikovanje večkrat uporabnih predlog pozivov in delovnih tokov
-   - Primeri projektov s prikazi implementacij
+   - Oblikovanje ponovno uporabnih predlog in potekov pozivov
+   - Vzorčni projekti s primeri implementacije
 
 6. **Napredne teme (05-AdvancedTopics/)**
    - Tehnike inženiringa konteksta
    - Integracija Foundry agenta
-   - Večmodalni AI delovni tokovi
+   - Več-modalni AI poteki
    - Demonstracije preverjanja pristnosti OAuth2
-   - Iskalne zmogljivosti v realnem času
+   - Zmožnosti iskanja v realnem času
    - Pretakanje v realnem času
-   - Implementacija korenskih kontekstov
-   - Strategije usmerjanja
+   - Implementacija Root kontekstov
+   - Usmerjevalne strategije
    - Tehnike vzorčenja
-   - Pristopi skaliranja
-   - Varnostne zadeve
+   - Pristopi k skaliranju
+   - Varnostni premisleki
    - Integracija varnosti Entra ID
    - Integracija spletnega iskanja
-   - Protivovrstno večagentno razmišljanje (vzorec debate)
+   - Protivajalno več-agentno razmišljanje (vzorce debat)
 
 7. **Prispevki skupnosti (06-CommunityContributions/)**
    - Kako prispevati k kodi in dokumentaciji
-   - Sodelovanje preko GitHub
-   - Skupnostno vodene izboljšave in povratne informacije
-   - Uporaba različnih MCP klientov (Claude Desktop, Cline, VSCode)
-   - Delo s priljubljenimi MCP strežniki vključno z generiranjem slik
+   - Sodelovanje prek GitHub
+   - Izboljšave in povratne informacije skupnosti
+   - Uporaba različnih MCP odjemalcev (Claude Desktop, Cline, VSCode)
+   - Delo s priljubljenimi MCP strežniki vključno s generiranjem slik
 
-8. **Nauki iz zgodnjega uvajanja (07-LessonsfromEarlyAdoption/)**
-   - Resnični primeri implementacij in zgodbe o uspehu
-   - Gradnja in uvajanje rešitev na osnovi MCP
-   - Trend in prihodnja roadmapa
-   - **Vodnik Microsoft MCP strežnikov**: Celovit vodnik za 10 MCP strežnikov, pripravljenih za produkcijo, vključno z:
+8. **Lekcije iz zgodnje uporabe (07-LessonsfromEarlyAdoption/)**
+   - Implementacije v resničnem svetu in uspešne zgodbe
+   - Gradnja in nameščanje rešitev na osnovi MCP
+   - Trend in prihodnja razvojna pot
+   - **Microsoft vodič po MCP strežnikih**: Celovit vodič po 10 proizvodno pripravljenih Microsoft MCP strežnikih, vključno z:
      - Microsoft Learn Docs MCP strežnik
-     - Azure MCP strežnik (več kot 15 specializiranih priključkov)
+     - Azure MCP strežnik (15+ specializiranih vmesnikov)
      - GitHub MCP strežnik
      - Azure DevOps MCP strežnik
      - MarkItDown MCP strežnik
@@ -219,79 +220,79 @@ Repozitorij je organiziran v dvanajst glavnih odsekov, ki se osredotočajo na ra
      - Microsoft 365 Agents Toolkit MCP strežnik
 
 9. **Najboljše prakse (08-BestPractices/)**
-   - Prilagajanje performans in optimizacija
-   - Načrtovanje odpornih MCP sistemov
+   - Prilagajanje in optimizacija zmogljivosti
+   - Oblikovanje MCP sistemov brez napak
    - Strategije testiranja in odpornosti
 
 10. **Študije primerov (09-CaseStudy/)**
-    - **Sedem obsežnih študij primerov**, ki prikazujejo vsestranskost MCP v različnih scenarijih:
-    - **Azure AI Travel Agents**: večagentna orkestracija z Azure OpenAI in AI Search
-    - **Integracija Azure DevOps**: avtomatizacija potekov dela z YouTube posodobitvami podatkov
+    - **Sedem celovitih študij primerov**, ki prikazujejo vsestranskost MCP v različnih scenarijih:
+    - **Azure AI Travel Agents**: Orkestracija več agentov z Azure OpenAI in AI Iskanjem
+    - **Integracija Azure DevOps**: Avtomatizacija potekov dela s posodobitvami podatkov YouTube
     - **Pridobivanje dokumentacije v realnem času**: Python konzolni odjemalec z HTTP pretakanjem
-    - **Interaktivni generator učnega načrta**: spletna aplikacija Chainlit z govorilno AI
-    - **Dokumentacija v urejevalniku**: integracija VS Code z delovnimi tokovi GitHub Copilot
-    - **Azure API Management**: integracija poslovnega API-ja z ustvarjanjem MCP strežnika
-    - **GitHub MCP Registry**: razvoj ekosistema in platforma za agentno integracijo
-    - Primeri implementacije na področju poslovne integracije, produktivnosti razvijalcev in razvoja ekosistema
+    - **Interaktivni generator učnih načrtov**: Chainlit spletna aplikacija z konverzacijskim AI
+    - **Dokumentacija v urejevalniku**: Integracija VS Code z GitHub Copilot poteki
+    - **Azure API Management**: Podjetniška API integracija z ustvarjanjem MCP strežnika
+    - **Register MCP GitHub**: Razvoj ekosistema in platforma za agentno integracijo
+    - Primeri implementacij, ki segajo od podjetniške integracije, produktivnosti razvijalcev do razvoja ekosistema
 
 11. **Praktična delavnica (10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/)**
-    - Celovita praktična delavnica, ki združuje MCP z AI orodjarno
-    - Gradnja inteligentnih aplikacij, ki povezujejo AI modele z realnimi orodji
-    - Praktični moduli, ki pokrivajo osnove, razvoj po meri in strategije uvajanja v produkcijo
-    - **Struktura laboratorijev**:
+    - Celovita praktična delavnica, ki združuje MCP z AI Orodjarno
+    - Gradnja inteligentnih aplikacij, ki povezujejo AI modele z orodji resničnega sveta
+    - Praktični moduli, ki pokrivajo osnove, razvoj lastnih strežnikov in strategije produkcijskega nameščanja
+    - **Struktura laboratorija**:
       - Laboratorij 1: Osnove MCP strežnika
       - Laboratorij 2: Napredni razvoj MCP strežnika
-      - Laboratorij 3: Integracija AI orodjarne
-      - Laboratorij 4: Uvajanje v produkcijo in skaliranje
-    - Pristop učenja z laboratoriji z navodili korak za korakom
+      - Laboratorij 3: Integracija AI Orodjarne
+      - Laboratorij 4: Produkcijsko nameščanje in skaliranje
+    - Pristop učenja na osnovi laboratorijev z navodili korak za korakom
 
 12. **Laboratoriji za integracijo MCP strežnika z bazo podatkov (11-MCPServerHandsOnLabs/)**
-    - **Celovit učni program s 13 laboratoriji** za gradnjo produkcijsko pripravljenih MCP strežnikov z integracijo PostgreSQL
-    - **Implementacija realnih maloprodajnih analiz** z uporabo primera Zava Retail
-    - **Poslovni vzorci** vključno z varnostjo na nivoju vrstic (RLS), semantičnim iskanjem in večnajemniškim dostopom do podatkov
-    - **Popolna struktura laboratorijev**:
-      - **Laboratoriji 00-03: Temelji** - Uvod, arhitektura, varnost, nastavitev okolja
-      - **Laboratoriji 04-06: Izgradnja MCP strežnika** - Oblikovanje baze, implementacija strežnika, razvoj orodij
+    - **Celovit učni načrt s 13 laboratoriji** za gradnjo produkcijsko pripravljenih MCP strežnikov z integracijo PostgreSQL
+    - **Implementacija resničnih maloprodajnih analiz** z uporabo primera Zava Retail
+    - **Vzorce podjetniške ravni**, vključno z varnostjo na nivoju vrstic (RLS), semantičnim iskanjem in dostopom do več najemnikov
+    - **Popolna struktura laboratorija**:
+      - **Laboratoriji 00-03: Osnove** - Uvod, arhitektura, varnost, nastavitev okolja
+      - **Laboratoriji 04-06: Gradnja MCP strežnika** - Oblikovanje baze podatkov, implementacija MCP strežnika, razvoj orodij
       - **Laboratoriji 07-09: Napredne funkcije** - Semantično iskanje, testiranje in odpravljanje napak, integracija VS Code
-      - **Laboratoriji 10-12: Produkcija in najboljše prakse** - Uvajanje, spremljanje, optimizacija
-    - **Pokrite tehnologije**: FastMCP ogrodje, PostgreSQL, Azure OpenAI, Azure Container Apps, Application Insights
-    - **Rezultati učenja**: Produkcijsko pripravljeni MCP strežniki, vzorci integracije baz podatkov, AI podprte analize, poslovna varnost
+      - **Laboratoriji 10-12: Produkcija in najboljše prakse** - Namestitev, nadzor, optimizacija
+    - **Uporabljene tehnologije**: okvir FastMCP, PostgreSQL, Azure OpenAI, Azure Container Apps, Application Insights
+    - **Učne rezultate**: Produkcijsko pripravljeni MCP strežniki, vzorci integracije baze podatkov, analitika na osnovi AI, podjetniška varnost
 
 13. **Orodja (12-tooling/)**
-    - Naučite se uporabljati MCP v Copilot aplikaciji in drugih orodjih
+    - Naučite se, kako uporabljati MCP v aplikaciji Copilot in drugih orodjih
 
 ## Dodatni viri
 
 Repozitorij vključuje podporne vire:
 
-- **Mapa s slikami**: Vsebuje diagrame in ilustracije, uporabljene skozi učni načrt
-- **Prevodi**: Večjezična podpora z avtomatiziranimi prevodi dokumentacije
-- **Uradni viri MCP**:
+- **Mapa slik**: Vsebuje diagrame in ilustracije, uporabljene skozi učni načrt
+- **Prevodi**: Podpora več jezikom z avtomatiziranimi prevodi dokumentacije
+- **Uradni MCP viri**:
   - [MCP dokumentacija](https://modelcontextprotocol.io/)
   - [MCP specifikacija](https://spec.modelcontextprotocol.io/)
   - [MCP repozitorij GitHub](https://github.com/modelcontextprotocol)
 
 ## Kako uporabljati ta repozitorij
 
-1. **Učenje po zaporedju**: Sledite poglavjem v vrstnem redu (00 do 11) za strukturirano učenje.
-2. **Osredotočenost na jezik**: Če vas zanima določen programski jezik, preglejte mape s primeri implementacij v vašem izbranem jeziku.
-3. **Praktična implementacija**: Začnite z razdelkom "Začetek" za nastavitev okolja in ustvarjanje prvega MCP strežnika in odjemalca.
-4. **Napredna raziskovanja**: Ko obvladate osnove, poglobite znanje z naprednimi temami.
-5. **Skupnostna vključenost**: Pridružite se MCP skupnosti preko GitHub razprav in Discord kanalov za povezovanje z strokovnjaki in razvijalci.
+1. **Zaporedno učenje**: Sledite poglavjem po vrsti (od 00 do 11) za strukturirano učno izkušnjo.
+2. **Osredotočenost na jezik**: Če vas zanima določen programski jezik, raziskujte imenike vzorcev za implementacije v izbranem jeziku.
+3. **Praktična implementacija**: Začnite z razdelkom "Začetek dela" za nastavitev okolja in ustvarjanje prvega MCP strežnika in odjemalca.
+4. **Napredna raziskovanja**: Ko boste obvladali osnove, se poglobite v napredne teme za širitev znanja.
+5. **Vključenost skupnosti**: Pridružite se MCP skupnosti preko GitHub razprav in Discord kanalov, da se povežete s strokovnjaki in drugimi razvijalci.
 
-## MCP klienti in orodja
+## MCP odjemalci in orodja
 
-Učni načrt pokriva različne MCP kliente in orodja:
+Učni načrt pokriva različne MCP odjemalce in orodja:
 
-1. **Uradni klienti**:
+1. **Uradni odjemalci**:
    - Visual Studio Code
    - MCP v Visual Studio Code
    - Claude Desktop
    - Claude v VSCode
    - Claude API
 
-2. **Skupnostni klienti**:
-   - Cline (terminalski)
+2. **Odjemalci skupnosti**:
+   - Cline (na terminalu)
    - Cursor (urejevalnik kode)
    - ChatMCP
    - Windsurf
@@ -304,11 +305,11 @@ Učni načrt pokriva različne MCP kliente in orodja:
 
 ## Priljubljeni MCP strežniki
 
-Repozitorij predstavlja različne MCP strežnike, vključno z:
+Repozitorij predstavlja različne MCP strežnike, med drugim:
 
 1. **Uradni Microsoft MCP strežniki**:
    - Microsoft Learn Docs MCP strežnik
-   - Azure MCP strežnik (več kot 15 specializiranih priključkov)
+   - Azure MCP strežnik (15+ specializiranih povezovalnikov)
    - GitHub MCP strežnik
    - Azure DevOps MCP strežnik
    - MarkItDown MCP strežnik
@@ -319,20 +320,20 @@ Repozitorij predstavlja različne MCP strežnike, vključno z:
    - Microsoft 365 Agents Toolkit MCP strežnik
 
 2. **Uradni referenčni strežniki**:
-   - Filesystem
+   - Datotečni sistem
    - Fetch
-   - Memory
-   - Sequential Thinking
+   - Pomnilnik
+   - Zaporedno razmišljanje
 
 3. **Generiranje slik**:
    - Azure OpenAI DALL-E 3
    - Stable Diffusion WebUI
    - Replicate
 
-4. **Razvojna orodja**:
+4. **Orodja za razvoj**:
    - Git MCP
-   - Terminal Control
-   - Code Assistant
+   - Nadzor terminala
+   - Asistent za kodo
 
 5. **Specializirani strežniki**:
    - Salesforce
@@ -341,11 +342,13 @@ Repozitorij predstavlja različne MCP strežnike, vključno z:
 
 ## Prispevanje
 
-Ta repozitorij sprejema prispevke skupnosti. Za navodila o tem, kako učinkovito prispevati k ekosistemu MCP, si oglejte odsek Prispevki skupnosti.
+Ta repozitorij sprejema prispevke iz skupnosti. Oglejte si razdelek Prispevki skupnosti za navodila, kako učinkovito prispevati v ekosistem MCP.
 
 ----
 
-*Ta študijski vodič je bil nazadnje posodobljen 5. februarja 2026, odraža najnovejšo MCP specifikacijo z dne 25.11.2025 in ponuja pregled repozitorija do tega datuma. Vsebina repozitorija se lahko po tem datumu posodablja.*
+*Ta študijski vodič je bil nazadnje posodobljen 5. februarja 2026, odražajoč najnovejšo MCP Specifikacijo 2025-11-25 in ponuja pregled repozitorija na ta datum. Vsebina repozitorija se lahko po tem datumu posodobi.*
+
+*Dodatek (2. julij 2026): pod [01-CoreConcepts](./01-CoreConcepts/mcp-2026-07-28-release-candidate.md) je dodana lekcija o `2026-07-28` Kandidatu za izdajo MCP Specifikacije; osnovni učni načrt ostaja 2025-11-25 do izdaje nove specifikacije.*
 
 ---
 

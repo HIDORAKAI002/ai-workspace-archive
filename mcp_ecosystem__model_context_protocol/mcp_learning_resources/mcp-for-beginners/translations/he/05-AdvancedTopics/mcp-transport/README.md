@@ -1,36 +1,38 @@
-# MCP פרטי תחבורה - מדריך יישום מתקדם
+# מדריך מתקדם ליישום תחבורה מותאמת אישית ב-MCP
 
-פרוטוקול הקשר של המודל (MCP) מספק גמישות במנגנוני התחבורה, ומאפשר יישומים מותאמים לסביבות ארגוניות מתמחות. מדריך מתקדם זה חוקר יישומי תחבורה מותאמים באמצעות Azure Event Grid ו-Azure Event Hubs כדוגמאות מעשיות לבניית פתרונות MCP ניתנים להרחבה, מבוססי ענן.
+פרוטוקול הקשר מודל (MCP) מספק גמישות במנגנוני התחבורה, ומאפשר יישומים מותאמים אישית עבור סביבות ארגוניות מיוחדות. מדריך מתקדם זה חוקר יישומי תחבורה מותאמת אישית תוך שימוש ב-Azure Event Grid ו-Azure Event Hubs כדוגמאות מעשיות לבניית פתרונות MCP ניתנים להרחבה ומבוססי ענן.
 
-## מבוא
+> **מבט לעתיד:** מדריך זה נכתב מול **מפרט MCP מ-2025-11-25**, שבו חייבים לשמור על סדר הפעלות לפי הפעלה (ראה פרוטוקול ההודעות מטה). מועמד לשחרור `2026-07-28` מסיר את מושג ההפעלה ברמת הפרוטוקול ודורש כותרות `Mcp-Method`/`Mcp-Name` כך ש שערים ותחבורה מותאמת יוכלו לנתב לפי בקשה במקום לפי הפעלה. ראה [מה משתנה ב-MCP: מועמד לשחרור מ-2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-בעוד שהתחבורה הסטנדרטית של MCP (stdio ו-HTTP streaming) מספקת רוב מקרי השימוש, סביבות ארגוניות דורשות לעיתים מנגנוני תחבורה מיוחדים לשיפור הרחבתיות, אמינות ואינטגרציה עם תשתיות ענן קיימות. תחבורות מותאמות מאפשרות ל-MCP לנצל שירותי הודעות מבוססי ענן לתקשורת אסינכרונית, ארכיטקטורות מונעות אירועים ועיבוד מבוזר.
+## הקדמה
 
-שיעור זה חוקר יישומי תחבורה מתקדמים בהתבסס על מפרט MCP העדכני ביותר (2025-11-25), שירותי הודעות Azure ודפוסי אינטגרציה ארגוניים מבוססים.
+בעוד שתחבורות הסטנדרטיות של MCP (stdio ו-HTTP streaming) משרתות את רוב מקרי השימוש, סביבות ארגוניות לעיתים דורשות מנגנוני תחבורה מיוחדים לשיפור יכולות ההרחבה, האמינות, והאינטגרציה עם תשתיות ענן קיימות. תחבורות מותאמות אישית מאפשרות ל-MCP לנצל שירותי העברת הודעות מבוססי ענן לתקשורת אסינכרונית, ארכיטקטורות מונעות אירועים ועיבוד מבוזר.
 
-### **ארכיטקטורת תחבורה MCP**
+שיעור זה חוקר יישומים מתקדמים של תחבורה על בסיס מפרט MCP העדכני (2025-11-25), שירותי העברת הודעות של Azure ודפוסי אינטגרציה ארגוניים מבוססים.
 
-**מ מפרט MCP (2025-11-25):**
+### **ארכיטקטורת תחבורה של MCP**
 
-- **תחבורות סטנדרטיות**: stdio (מומלץ), HTTP streaming (לסביבות מרוחקות)  
-- **תחבורות מותאמות**: כל תחבורה שמממשת את פרוטוקול חילופי ההודעות של MCP  
-- **פורמט הודעה**: JSON-RPC 2.0 עם הרחבות ספציפיות ל-MCP  
-- **תקשורת דו-כיוונית**: תקשורת דו-סטרימית מלאה נדרשת להודעות ועדכונים  
+**ממפרט MCP (2025-11-25):**
 
-## יעדי למידה
+- **תחבורות סטנדרטיות**: stdio (מומלץ), HTTP streaming (לתרחישים מרוחקים)
+- **תחבורות מותאמות אישית**: כל תחבורה שמממשת את פרוטוקול חילופי ההודעות של MCP
+- **פורמט הודעה**: JSON-RPC 2.0 עם הרחבות ספציפיות ל-MCP
+- **תקשורת דו-כיוונית**: נדרשת תקשורת דו-כיוונית מלאה למטרות התראות ותגובות
 
-בסיום שיעור מתקדם זה, תוכלו:
+## מטרות הלמידה
 
-- **להבין דרישות תחבורה מותאמת**: ליישם פרוטוקול MCP על גבי כל שכבת תחבורה תוך שמירה על תאימות  
-- **לבנות תחבורה Azure Event Grid**: ליצור שרתי MCP מונחי אירועים באמצעות Azure Event Grid להרחבה ללא שרת  
-- **ליישם תחבורה Azure Event Hubs**: לתכנן פתרונות MCP בעלי עיבוד מהיר באמצעות Azure Event Hubs לשידור בזמן אמת  
-- **להחיל דפוסי אינטגרציה ארגוניים**: לשלב תחבורות מותאמות עם תשתיות Azure קיימות ומודלים של אבטחה  
-- **לטפל באמינות התחבורה**: ליישם עמידות הודעות, סידור ועיבוד שגיאות במקרי ארגון  
-- **לאופטימיזציה ביצועים**: לתכנן פתרונות תחבורה עבור דרישות הרחבה, השהיה וקצב העברה  
+בסיום שיעור מתקדם זה, תוכל:
+
+- **להבין דרישות תחבורה מותאמת אישית**: לממש פרוטוקול MCP על כל שכבת תחבורה תוך שמירת תאימות
+- **לבנות תחבורה מבוססת Azure Event Grid**: ליצור שרתי MCP מונעי אירועים המשתמשים ב-Azure Event Grid להרחבה ללא שרתים
+- **לממש תחבורה מבוססת Azure Event Hubs**: לתכנן פתרונות MCP קצבי גבוה המשתמשים ב-Azure Event Hubs לסטרימינג בזמן אמת
+- **ליישם דפוסים ארגוניים**: לשלב תחבורות מותאמות עם תשתיות אבטחה ו-Azure קיימות
+- **לטפל באמינות התחבורה**: לממש עמידות הודעות, מיון, וטיפול בשגיאות למקרי ארגוניים
+- **לאופטימיזציה של ביצועים**: לתכנן פתרונות תחבורה לדרישות קנה מידה, השהיה וקצב העברה
 
 ## **דרישות תחבורה**
 
-### **דרישות ליבה ממפרט MCP (2025-11-25):**
+### **דרישות ליבה מהמפרט MCP (2025-11-25):**
 
 ```yaml
 Message Protocol:
@@ -49,28 +51,28 @@ Custom Transport:
   interoperability: "MUST maintain protocol compatibility"
 ```
 
-## **יישום תחבורה Azure Event Grid**
+## **יישום תחבורה ב-Azure Event Grid**
 
-Azure Event Grid מספק שירות ניתוב אירועים ללא שרת, אידיאלי לארכיטקטורות MCP מונחות אירועים. יישום זה מדגים כיצד לבנות מערכות MCP מודולריות וניתנות להרחבה.
+Azure Event Grid מספק שירות ניתוב אירועים ללא שרת, אידיאלי לארכיטקטורות MCP מונעות אירועים. יישום זה מדגים כיצד לבנות מערכות MCP ניתנות להרחבה ובעלות בריח.
 
 ### **סקירת ארכיטקטורה**
 
 ```mermaid
 graph TB
-    Client[לקוח MCP] --> EG[רשת האירועים של Azure]
+    Client[לקוח MCP] --> EG[גריד אירועים של אזור]
     EG --> Server[פונקציית שרת MCP]
     Server --> EG
     EG --> Client
     
-    subgraph "שירותי Azure"
+    subgraph "שירותי אזור"
         EG
         Server
-        KV[מאגר מפתחות]
-        Monitor[תובנות יישום]
+        KV[מחסן מפתחות]
+        Monitor[תובנות היישום]
     end
 ```
 
-### **יישום ב-C# - תחבורה Event Grid**
+### **יישום ב-C# - תחבורה ל-Event Grid**
 
 ```csharp
 using Azure.Messaging.EventGrid;
@@ -142,7 +144,7 @@ public async Task<IActionResult> HandleEventGridMessage(
 }
 ```
 
-### **יישום ב-TypeScript - תחבורה Event Grid**
+### **יישום ב-TypeScript - תחבורה ל-Event Grid**
 
 ```typescript
 import { EventGridPublisherClient, AzureKeyCredential } from "@azure/eventgrid";
@@ -178,12 +180,12 @@ export class EventGridMcpTransport implements McpTransport {
     
     // קבלה מונעת אירועים באמצעות Azure Functions
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
-        // המימוש ישתמש ב-Triger של Event Grid ב-Azure Functions
-        // זהו ממשק רעיוני למקבל ה-webhook
+        // המימוש ישתמש בטריגר של Azure Functions Event Grid
+        // זו ממשק קונספטואלי למקבל הוובהוק
     }
 }
 
-// מימוש באמצעות Azure Functions
+// מימוש של Azure Functions
 import { app, InvocationContext, EventGridEvent } from "@azure/functions";
 
 app.eventGrid("mcpEventGridHandler", {
@@ -194,7 +196,7 @@ app.eventGrid("mcpEventGridHandler", {
             // עיבוד הודעת MCP
             const response = await mcpServer.processMessage(mcpMessage);
             
-            // שליחת תגובה דרך Event Grid
+            // שליחת תגובה באמצעות Event Grid
             await transport.sendMessage(response);
             
         } catch (error) {
@@ -205,7 +207,7 @@ app.eventGrid("mcpEventGridHandler", {
 });
 ```
 
-### **יישום ב-Python - תחבורה Event Grid**
+### **יישום ב-Python - תחבורה ל-Event Grid**
 
 ```python
 from azure.eventgrid import EventGridPublisherClient, EventGridEvent
@@ -240,7 +242,7 @@ class EventGridMcpTransport:
         """Register message handler for incoming events"""
         self.message_handler = handler
 
-# מימוש Azure Functions
+# יישום Azure Functions
 import azure.functions as func
 import logging
 
@@ -253,17 +255,17 @@ def main(event: func.EventGridEvent) -> None:
         # עיבוד הודעת MCP
         response = process_mcp_message(mcp_message)
         
-        # שליחת תגובה חזרה דרך Event Grid
-        # (המימוש ייצור לקוח Event Grid חדש)
+        # שלח תגובה חזרה דרך Event Grid
+        # (היישום ייצור לקוח חדש של Event Grid)
         
     except Exception as e:
         logging.error(f"Error processing MCP Event Grid message: {e}")
         raise
 ```
 
-## **יישום תחבורה Azure Event Hubs**
+## **יישום תחבורה ב-Azure Event Hubs**
 
-Azure Event Hubs מספק יכולות שידור בזמן אמת עם קצב העברה גבוה למקרי MCP שדורשים השהיה נמוכה ונפח הודעות גדול.
+Azure Event Hubs מספק יכולות סטרימינג בזמן אמת ותעבורה גבוהה לתרחישי MCP הדורשים השהיה נמוכה ונפח הודעות גבוה.
 
 ### **סקירת ארכיטקטורה**
 
@@ -275,9 +277,9 @@ graph TB
     EH --> Client
     
     subgraph "תכונות מרכזי אירועים"
-        Partition[חלוקה]
+        Partition[חלקיות]
         Retention[שמירת הודעות]
-        Scaling[גידול אוטומטי]
+        Scaling[קנה מידה אוטומטי]
     end
     
     EH --> Partition
@@ -285,7 +287,7 @@ graph TB
     EH --> Scaling
 ```
 
-### **יישום ב-C# - תחבורה Event Hubs**
+### **יישום ב-C# - תחבורה ל-Event Hubs**
 
 ```csharp
 using Azure.Messaging.EventHubs;
@@ -359,7 +361,7 @@ public class EventHubsMcpTransport : IMcpTransport, IDisposable
 }
 ```
 
-### **יישום ב-TypeScript - תחבורה Event Hubs**
+### **יישום ב-TypeScript - תחבורה ל-Event Hubs**
 
 ```typescript
 import { 
@@ -418,7 +420,7 @@ export class EventHubsMcpTransport implements McpTransport {
                         
                         await messageHandler(mcpMessage);
                         
-                        // עדכן נקודת בדיקה לזירוז מסירה לפחות פעם אחת
+                        // עדכון נקודת ביקורת עבור אספקה לפחות פעם אחת
                         await context.updateCheckpoint(event);
                     } catch (error) {
                         console.error("Error processing Event Hubs message:", error);
@@ -439,7 +441,7 @@ export class EventHubsMcpTransport implements McpTransport {
 }
 ```
 
-### **יישום ב-Python - תחבורה Event Hubs**
+### **יישום ב-Python - תחבורה ל-Event Hubs**
 
 ```python
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient
@@ -471,11 +473,11 @@ class EventHubsMcpTransport:
         """Send MCP message via Event Hubs"""
         event_data = EventData(json.dumps(message))
         
-        # הוסף תכונות ייחודיות ל-MCP
+        # הוסף מאפיינים ספציפיים ל-MCP
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
-            "timestamp": "2025-01-14T10:30:00Z"  # השתמש בטיימסטמפ אמיתי
+            "timestamp": "2025-01-14T10:30:00Z"  # השתמש בחותמת זמן אמיתית
         }
         
         async with self.producer:
@@ -503,14 +505,14 @@ class EventHubsMcpTransport:
         """Internal event handler wrapper"""
         async def handle_event(partition_context, event):
             try:
-                # פרש הודעת MCP מאירוע Hub אירועים
+                # נתח הודעת MCP מאירוע ב-Event Hubs
                 message_body = event.body_as_str(encoding='UTF-8')
                 mcp_message = json.loads(message_body)
                 
-                # עבד את הודעת MCP
+                # עבד את הודעת ה-MCP
                 await handler(mcp_message)
                 
-                # עדכן נקודת ביקורת למשלוח לפחות פעם אחת
+                # עדכן נקודת עצירה עבור משלוח לפחות פעם אחת
                 await partition_context.update_checkpoint(event)
                 
             except Exception as e:
@@ -527,7 +529,7 @@ class EventHubsMcpTransport:
 
 ## **דפוסי תחבורה מתקדמים**
 
-### **עמידות והאמינות של ההודעות**
+### **עמידות ואמינות הודעות**
 
 ```csharp
 // Implementing message durability with retry logic
@@ -554,7 +556,7 @@ public class ReliableTransportWrapper : IMcpTransport
 }
 ```
 
-### **אינטגרציית אבטחת התחבורה**
+### **אינטגרציית אבטחת תחבורה**
 
 ```csharp
 // Integrating Azure Key Vault for transport security
@@ -576,7 +578,7 @@ public class SecureTransportFactory
 }
 ```
 
-### **ניטור ויכולת תצפית של התחבורה**
+### **מעקב ושקיפות תחבורה**
 
 ```csharp
 // Adding telemetry to custom transports
@@ -615,11 +617,11 @@ public class ObservableTransport : IMcpTransport
 }
 ```
 
-## **מקרי אינטגרציה ארגוניים**
+## **תרחישי אינטגרציה ארגוניים**
 
-### **מקרה 1: עיבוד MCP מבוזר**
+### **תרחיש 1: עיבוד MCP מבוזר**
 
-שימוש ב-Azure Event Grid להפצת בקשות MCP בין מספר צמתים לעיבוד:
+שימוש ב-Azure Event Grid להפצת בקשות MCP לרוחב מספר צמתים לעיבוד:
 
 ```yaml
 Architecture:
@@ -633,9 +635,9 @@ Benefits:
   - Cost optimization with serverless compute
 ```
 
-### **מקרה 2: שידור MCP בזמן אמת**
+### **תרחיש 2: סטרימינג בזמן אמת ב-MCP**
 
-שימוש ב-Azure Event Hubs לאינטראקציות MCP בתדר גבוה:
+שימוש ב-Azure Event Hubs לאינטראקציות MCP ברמת תדר גבוהה:
 
 ```yaml
 Architecture:
@@ -649,9 +651,9 @@ Benefits:
   - Built-in partitioning for parallel processing
 ```
 
-### **מקרה 3: ארכיטקטורת תחבורה היברידית**
+### **תרחיש 3: ארכיטקטורת תחבורה היברידית**
 
-שילוב תחבורות מרובות למקרי שימוש שונים:
+שילוב מספר תחבורות למקרי שימוש שונים:
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -675,9 +677,9 @@ public class HybridMcpTransport : IMcpTransport
 }
 ```
 
-## **אופטימיזציה לביצועים**
+## **אופטימיזציה של ביצועים**
 
-### **אצווה להודעות עבור Event Grid**
+### **קיבוץ הודעות ל-Event Grid**
 
 ```csharp
 public class BatchingEventGridTransport : IMcpTransport
@@ -717,7 +719,7 @@ public class BatchingEventGridTransport : IMcpTransport
 }
 ```
 
-### **אסטרטגיית פרטיציות עבור Event Hubs**
+### **אסטרטגיית חלוקה ל-Event Hubs**
 
 ```csharp
 public class PartitionedEventHubsTransport : IMcpTransport
@@ -737,9 +739,9 @@ public class PartitionedEventHubsTransport : IMcpTransport
 }
 ```
 
-## **בדיקת תחבורות מותאמות**
+## **בדיקות תחבורה מותאמת אישית**
 
-### **בדיקות יחידה עם אובייקטים מזויפים**
+### **בדיקות יחידה עם אובייקטים מדומים**
 
 ```csharp
 [Test]
@@ -799,48 +801,48 @@ public async Task EventHubsTransport_IntegrationTest()
 }
 ```
 
-## **הנחיות ושיטות עבודה מומלצות**
+## **שיטות עבודה מומלצות והנחיות**
 
-### **עקרונות עיצוב תחבורה**
+### **עקרונות עיצוב התחבורה**
 
-1. **אידמופוטנטיות**: להבטיח שעיבוד הודעות הוא אידמופוטנטי לטיפול בכפילויות  
-2. **טיפול בשגיאות**: ליישם טיפול שגיאות מלא ותורים למכתבים מתים  
-3. **ניטור**: להוסיף טלמטריה מפורטת ובדיקות בריאות  
-4. **אבטחה**: להשתמש בזהויות מנוהלות וגישה עם הרשאות מינימליות  
-5. **ביצועים**: לעצב בהתאם לדרישות השהיה וקצב העברה ספציפיים  
+1. **אידמפוטנטיות**: להבטיח שעיבוד הודעות הוא אידמפוטנטי לטיפול בכפילויות
+2. **טיפול בשגיאות**: לממש טיפול שגיאות מקיף ותורים למכתבי מוות
+3. **מעקב**: להוסיף טלמטריה מפורטת ובדיקות בריאות
+4. **אבטחה**: להשתמש במזהים מנוהלים וגישה במינימום הרשאה
+5. **ביצועים**: לתכנן לפי דרישות השהיה וקצב העברה
 
-### **המלצות ייחודיות ל-Azure**
+### **המלצות ייעודיות ל-Azure**
 
-1. **שימוש בזהות מנוהלת**: להימנע משימוש במחרוזות חיבור בפרודקשן  
-2. **יישום מפסקי מעגל**: להגן מפני תקלות בשירותי Azure  
-3. **מעקב על עלויות**: לעקוב אחרי נפח הודעות ועלויות עיבוד  
-4. **תכנון להרחבה**: לתכנן מיד אסטרטגיות פרטיציה וסקלינג  
-5. **בדיקה יסודית**: להשתמש ב-Azure DevTest Labs לבדיקות מקיפות  
+1. **שימוש במזהה מנוהל**: להימנע משרשראות חיבור בפרודקשן
+2. **מימוש שבירות מעגלים**: להגן מפני תקלות בשירותי Azure
+3. **מעקב עלויות**: לעקוב אחרי נפח הודעות ועלויות עיבוד
+4. **תכנון להרחבה**: לתכנן אסטרטגיות חלוקה והרחבה מראש
+5. **בדיקות מעמיקות**: להשתמש ב-Azure DevTest Labs לבדיקות נרחבות
 
 ## **סיכום**
 
-תחבורות MCP מותאמות מאפשרות מקרי ארגון חזקים המשתמשים בשירותי הודעות של Azure. באמצעות מימוש תחבורות Event Grid או Event Hubs, ניתן לבנות פתרונות MCP ניתנים להרחבה ואמינים המשולבים חלק עם תשתיות Azure קיימות.
+תחבורות MCP מותאמות אישית מאפשרות תרחישים ארגוניים רבי עוצמה תוך שימוש בשירותי העברת ההודעות של Azure. באמצעות יישום תחבורות Event Grid או Event Hubs, ניתן לבנות פתרונות MCP ניתנים להרחבה ואמינים שמשתלבים באופן חלק עם תשתית Azure קיימת.
 
-הדוגמאות שסופקו ממחישות דפוסי ייצור מוכנים ליישום תחבורות מותאמות תוך שמירה על תאימות לפרוטוקול MCP ושיטות עבודה מומלצות של Azure.
+הדוגמאות מספקות דפוסים מוכנים לייצור ליישום תחבורות מותאמות תוך שמירה על תאימות לפרוטוקול MCP ושיטות העבודה המומלצות בענן Azure.
 
 ## **משאבים נוספים**
 
-- [מפרט MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)  
-- [תיעוד Azure Event Grid](https://docs.microsoft.com/azure/event-grid/)  
-- [תיעוד Azure Event Hubs](https://docs.microsoft.com/azure/event-hubs/)  
-- [Azure Functions Event Grid Trigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)  
-- [Azure SDK for .NET](https://github.com/Azure/azure-sdk-for-net)  
-- [Azure SDK for TypeScript](https://github.com/Azure/azure-sdk-for-js)  
-- [Azure SDK for Python](https://github.com/Azure/azure-sdk-for-python)  
+- [מפרט MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
+- [תיעוד Azure Event Grid](https://docs.microsoft.com/azure/event-grid/)
+- [תיעוד Azure Event Hubs](https://docs.microsoft.com/azure/event-hubs/)
+- [טריגר Event Grid ב-Azure Functions](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
+- [Azure SDK ל-.NET](https://github.com/Azure/azure-sdk-for-net)
+- [Azure SDK ל-TypeScript](https://github.com/Azure/azure-sdk-for-js)
+- [Azure SDK ל-Python](https://github.com/Azure/azure-sdk-for-python)
 
 ---
 
-> *מדריך זה מתמקד בדפוסי יישום מעשיים למערכות MCP בפועל. יש לאמת תמיד את יישומי התחבורה בהתאם לדרישות הספציפיות שלכם ולמגבלות שירותי Azure.*  
-> **תקן נוכחי**: מדריך זה משקף את [מפרט MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) דרישות התחבורה ודפוסי תחבורה מתקדמים לסביבות ארגוניות.  
+> *מדריך זה מתמקד בדפוסי יישום מעשיים למערכות MCP מוכנות ייצור. יש לאמת תמיד את יישומי התחבורה מול הדרישות הספציפיות שלך ומגבלות שירותי Azure.*
+> **תקן נוכחי:** מדריך זה משקף את [מפרט MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) דרישות תחבורה ודפוסים מתקדמים לסביבות ארגוניות.
 
 
 ## מה הלאה
-- [6. תרומות קהילה](../../06-CommunityContributions/README.md)
+- [6. תרומות מהקהילה](../../06-CommunityContributions/README.md)
 
 ---
 

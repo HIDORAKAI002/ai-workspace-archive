@@ -1,14 +1,16 @@
-# Детаљан преглед функција MCP протокола
+# Детаљан преглед карактеристика MCP протокола
 
-Овај водич истражује напредне функције MCP протокола које превазилазе основно руковање алаткама и ресурсима. Разумевање ових функција помаже вам да направите робусније, пријатније за кориснике и спремне за продукцију MCP сервере.
+Овај водич истражује напредне функције MCP протокола које превазилазе основно руковање алатима и ресурсима. Разумевање ових функција вам помаже да изградите робусније, пријатније за кориснике и спремне за производну употребу MCP сервере.
 
-## Обухваћене функције
+> **Поглед унапред:** издање кандидата за `2026-07-28` означава као застарелу примитиву Logging (преферирајући `stderr` за stdio и OpenTelemetry за структурирану посматраност), уклања модел `initialize`/сесије наведен у наставку под Догађаји животног циклуса сервера, и премешта експерименталну функцију Tasks у посебну екстензију Tasks са новим животним циклусом `tasks/get`/`tasks/update`/`tasks/cancel`. Погледајте [Шта се мења у MCP: Издање кандидата за 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Обавештења о напретку** - Извештавање о напретку за дуготрајне операције  
-2. **Отказивање захтева** - Омогућава клијентима да откажу тренутне захтеве  
-3. **Шаблони ресурса** - Динамички URI ресурса са параметрима  
-4. **Догађаји животног циклуса сервера** - Правилна иницијализација и искључење  
-5. **Контрола логовања** - Конфигурација логовања на страни сервера  
+## Обрађене функције
+
+1. **Обавештења о напретку** - Прикажи напредак за дуготрајне операције
+2. **Отказивање захтева** - Омогући клијентима да отказују активне захтеве
+3. **Шаблони ресурса** - Динамички URI-ји ресурса са параметрима
+4. **Догађаји животног циклуса сервера** - Правилна иницијализација и гашење
+5. **Контрола логовања** - Конфигурација логовања на страни сервера
 6. **Обрасци руковања грешкама** - Конзистентни одговори на грешке
 
 ---
@@ -17,19 +19,20 @@
 
 За операције које трају (обрада података, преузимање фајлова, API позиви), обавештења о напретку држе кориснике информисаним.
 
-### Како функционише
+### Како ради
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (дуга операција)
-    Server-->>Client: обавештење: напрредак 10%
-    Server-->>Client: обавештење: напрредак 50%
-    Server-->>Client: обавештење: напрредак 90%
+    Client->>Server: tools/call (дужа операција)
+    Server-->>Client: обавештење: напретка 10%
+    Server-->>Client: обавештење: напретка 50%
+    Server-->>Client: обавештење: напретка 90%
     Server->>Client: резултат (завршено)
-```  
+```
+
 ### Python имплементација
 
 ```python
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Добиј величину датотеке за израчунавање напретка
+    # Добити величину фајла за рачунање напретка
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Обради део
+            # Обрадити део
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Пошаљи обавештење о напретку
+            # Послати обавештење о напретку
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # Пријави напредак након сваког предмета
+        # Пријавити напредак након сваке ставке
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -89,7 +92,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-  
+
 ### TypeScript имплементација
 
 ```typescript
@@ -122,8 +125,8 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-  
-### Руководење на страни клијента (Python)
+
+### Руководство клијентом (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,18 +134,18 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Региструј обрађивач
+# Региструјте обрађивач
 session.on_notification("notifications/progress", handle_progress)
 
-# Позови алат (ажурирања напретка ће стизати преко обрађивача)
+# Позовите алат (ажурирања напретка ће стизати преко обрађивача)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-  
+
 ---
 
 ## 2. Отказивање захтева
 
-Омогућите клијентима да откажу захтеве који више нису потребни или који предуго трају.
+Омогућите клијентима да отказују захтеве који више нису потребни или трају предуго.
 
 ### Python имплементација
 
@@ -160,16 +163,16 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Претражи кроз много страница
-            # Провери да ли је затражено отказивање
+        for page in range(100):  # Претражуј кроз више страна
+            # Провери да ли је захтевано отказивање
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Симулира претрагу странице
+            # Симулирај претрагу странице
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Мало одлагање омогућава провере отказивања
+            # Мало одлагање омогућава проверу отказивања
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -197,7 +200,7 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-  
+
 ### Имплементација контекста отказивања
 
 ```python
@@ -231,9 +234,9 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Нормално истекло време, наставите
+            pass  # Нормално време чекања, настави
 ```
-  
+
 ### Отказивање на страни клијента
 
 ```python
@@ -257,12 +260,12 @@ async def search_with_timeout(session, query, timeout=30):
         })
         return "Search timed out"
 ```
-  
+
 ---
 
 ## 3. Шаблони ресурса
 
-Шаблони ресурса омогућавају динамичку конструкцију URI-а са параметрима, корисно за API-је и базе података.
+Шаблони ресурса омогућавају динамичку конструкцију URI-јева са параметрима, корисно за API-је и базе података.
 
 ### Дефинисање шаблона
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # Анализирај URI да би извукао параметре
+    # Парсирај УРИ да би издвојио параметре
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -316,7 +319,7 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-  
+
 ### TypeScript имплементација
 
 ```typescript
@@ -359,12 +362,12 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-  
+
 ---
 
 ## 4. Догађаји животног циклуса сервера
 
-Правилно руковање иницијализацијом и искључењем обезбеђује чисто управљање ресурсима.
+Правилна иницијализација и гашење обезбеђују чисто руковање ресурсима.
 
 ### Управљање животним циклусом у Python-у
 
@@ -405,7 +408,7 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-  
+
 ### Животни циклус у TypeScript-у
 
 ```typescript
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// Коришћење са благим искључивањем
+// Коришћење са мирним искључењем
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -462,12 +465,12 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-  
+
 ---
 
 ## 5. Контрола логовања
 
-MCP подржава нивое логовања на страни сервера које клијенти могу контролисати.
+MCP подржава нивое логовања са стране сервера које клијенти могу контролисати.
 
 ### Имплементација нивоа логовања
 
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Мапирајте MCP нивое на Python logging нивое
+# Мапирајте MCP нивое на Python нивое логовања
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,21 +511,21 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-  
-### Слање порука лога ка клијенту
+
+### Слање лог порука клијенту
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Пошаљи обавештење о дневнику клијенту
+    # Пошаљи обавештење о логовању клијенту
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Обављање рада...
+    # Обави посао...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -532,12 +535,12 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-  
+
 ---
 
 ## 6. Обрасци руковања грешкама
 
-Конзистентно руковање грешкама унапређује отклањање грешака и корисничко искуство.
+Конзистентно руковање грешкама побољшава отклањање грешака и корисничко искуство.
 
 ### MCP кодови грешака
 
@@ -568,15 +571,15 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-  
-### Структурирани одговори о грешкама
+
+### Структурисани одговори на грешке
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # Валидација уноса
+    # Валидација улаза
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -584,7 +587,7 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # Провера дозвола
+        # Провери дозволе
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
@@ -601,12 +604,12 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # Евидентирај неочекиване грешке
+        # Запиши неочекиване грешке
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-  
-### Руковање грешкама у TypeScript-у
+
+### Руководство грешкама у TypeScript-у
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Већ MCP грешка
+      throw error;  // Већ грешка MCP-а
     }
     
     // Претвори друге грешке
@@ -650,25 +653,25 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-  
+
 ---
 
 ## Експерименталне функције (MCP 2025-11-25)
 
 Ове функције су означене као експерименталне у спецификацији:
 
-### Задаци (дуготрајне операције)
+### Tasks (Дуготрајне операције)
 
 ```python
-# Задаци омогућавају праћење дуготрајних операција са стањем
+# Задатке омогућавају праћење дуготрајних операција са стањем
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Пријавити да је задатак започео
+    # Пријави покретање задатка
     await ctx.report_status("running", "Initializing training...")
     
-    # Петља обуке
+    # Петља тренирања
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -681,8 +684,8 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-  
-### Анотације алата
+
+### Аннотације алата
 
 ```python
 # Аннотације пружају метаподатке о понашању алата
@@ -691,34 +694,34 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
         "destructive": False,      # Не мења податке
         "idempotent": True,        # Безбедно за поновни покушај
         "timeout_seconds": 30,     # Очекујано максимално трајање
-        "requires_approval": False # Није потребна корисничка сагласност
+        "requires_approval": False # Није потребно одобрење корисника
     }
 )
 async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-  
+
 ---
 
 ## Шта следи
 
-- [Модул 8 - Најбоље праксе](../../08-BestPractices/README.md)  
-- [5.14 - Инжењеринг контекста](../mcp-contextengineering/README.md)  
-- [Измена спецификације MCP](https://spec.modelcontextprotocol.io/)  
+- [Модул 8 - Најбоље праксе](../../08-BestPractices/README.md)
+- [5.14 - Инжењеринг контекста](../mcp-contextengineering/README.md)
+- [Дневник измена спецификације MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Додатни ресурси
 
-- [MCP спецификација 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [JSON-RPC 2.0 кодови грешака](https://www.jsonrpc.org/specification#error_object)  
-- [Примери Python SDK-а](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
-- [Примери TypeScript SDK-а](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [Спецификација MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 кодови грешака](https://www.jsonrpc.org/specification#error_object)
+- [Python SDK примери](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [TypeScript SDK примери](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Изјава о одрицању одговорности**:
-Овај документ је преведен коришћењем АИ услуге за превођење [Co-op Translator](https://github.com/Azure/co-op-translator). Иако тежимо тачности, имајте на уму да аутоматизовани преводи могу садржати грешке или нетачности. Оригинални документ на његовом изворном језику треба сматрати ауторитативним извором. За критичне информације препоручује се професионални људски превод. Нисмо одговорни за било каква неспоразумевања или погрешне интерпретације које могу проистећи из употребе овог превода.
+Овај документ је преведен коришћењем услуге за аутоматски превод [Co-op Translator](https://github.com/Azure/co-op-translator). Иако тежимо тачности, имајте у виду да аутоматски преводи могу садржати грешке или нетачности. Оригинални документ на његовом изворном језику треба сматрати ауторитативним извором. За критичне информације препоручује се професионални људски превод. Нисмо одговорни за било каква неспоразума или погрешна тумачења која произилазе из коришћења овог превода.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

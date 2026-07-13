@@ -1,21 +1,23 @@
-# Βαθύτερη Εξέταση Χαρακτηριστικών Πρωτοκόλλου MCP
+# Βαθιά Επισκόπηση Δυνατοτήτων Πρωτοκόλλου MCP
 
-Αυτός ο οδηγός εξερευνά προχωρημένα χαρακτηριστικά πρωτοκόλλου MCP που υπερβαίνουν τη βασική διαχείριση εργαλείων και πόρων. Η κατανόηση αυτών των χαρακτηριστικών σας βοηθά να κατασκευάσετε πιο ανθεκτικούς, φιλικούς προς το χρήστη και έτοιμους για παραγωγή MCP servers.
+Αυτός ο οδηγός εξερευνά προηγμένες δυνατότητες του πρωτοκόλλου MCP που υπερβαίνουν τη βασική διαχείριση εργαλείων και πόρων. Η κατανόηση αυτών των δυνατοτήτων βοηθά στην κατασκευή πιο ανθεκτικών, φιλικών προς τον χρήστη και έτοιμων για παραγωγή διακομιστών MCP.
 
-## Καλυπτόμενα Χαρακτηριστικά
+> **Μια ματιά στο μέλλον:** ο υποψήφιος προς έκδοση της `2026-07-28` αποσύρει το πρωτότυπο Logging (προτιμώντας το `stderr` για stdio και το OpenTelemetry για δομημένη παρατηρησιμότητα), αφαιρεί το μοντέλο `initialize`/συνεδρίας που αναφέρεται στα Συμβάντα Κύκλου Ζωής Διακομιστή παρακάτω, και μεταφέρει τη πειραματική δυνατότητα Tasks σε μια αφιερωμένη επέκταση Tasks με νέο κύκλο ζωής `tasks/get`/`tasks/update`/`tasks/cancel`. Δείτε [Τι Αλλάζει στο MCP: Ο Υποψήφιος Έκδοσης 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Ειδοποιήσεις Προόδου** - Αναφορά προόδου για εργασίες μακράς διάρκειας  
-2. **Ακύρωση Αιτήσεων** - Επιτρέπει στους πελάτες να ακυρώνουν αιτήσεις σε εξέλιξη  
-3. **Πρότυπα Πόρων** - Δυναμικά URI πόρων με παραμέτρους  
-4. **Γεγονότα Κύκλου Ζωής Διακομιστή** - Σωστή αρχικοποίηση και τερματισμός  
-5. **Έλεγχος Καταγραφής** - Διαχείριση ρυθμίσεων καταγραφής στον διακομιστή  
-6. **Σχεδιασμοί Διαχείρισης Σφαλμάτων** - Συνεπείς απαντήσεις σφαλμάτων  
+## Καλυπτόμενες Δυνατότητες
+
+1. **Ειδοποιήσεις Προόδου** - Αναφορά προόδου για μακροχρόνιες λειτουργίες
+2. **Ακύρωση Αιτήσεων** - Επιτρέπει στους πελάτες να ακυρώσουν αιτήσεις σε εξέλιξη
+3. **Πρότυπα Πόρων** - Δυναμικά URIs πόρων με παραμέτρους
+4. **Συμβάντα Κύκλου Ζωής Διακομιστή** - Σωστή αρχικοποίηση και τερματισμός
+5. **Έλεγχος Καταγραφής** - Διαμόρφωση καταγραφής στην πλευρά διακομιστή
+6. **Σχήματα Διαχείρισης Σφαλμάτων** - Συνεπείς απαντήσεις σφαλμάτων
 
 ---
 
 ## 1. Ειδοποιήσεις Προόδου
 
-Για λειτουργίες που απαιτούν χρόνο (επεξεργασία δεδομένων, λήψεις αρχείων, κλήσεις API), οι ειδοποιήσεις προόδου κρατούν τους χρήστες ενήμερους.
+Για λειτουργίες που απαιτούν χρόνο (επεξεργασία δεδομένων, λήψεις αρχείων, κλήσεις API), οι ειδοποιήσεις προόδου διατηρούν ενημερωμένους τους χρήστες.
 
 ### Πώς Λειτουργεί
 
@@ -24,12 +26,13 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (μακροχρόνια λειτουργία)
+    Client->>Server: εργαλεία/κλήση (μακρά λειτουργία)
     Server-->>Client: ειδοποίηση: πρόοδος 10%
     Server-->>Client: ειδοποίηση: πρόοδος 50%
     Server-->>Client: ειδοποίηση: πρόοδος 90%
-    Server->>Client: αποτέλεσμα (ολοκληρώθηκε)
+    Server->>Client: αποτέλεσμα (ολοκληρωμένο)
 ```
+
 ### Υλοποίηση σε Python
 
 ```python
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Λάβετε το μέγεθος του αρχείου για τον υπολογισμό της προόδου
+    # Λάβετε το μέγεθος αρχείου για τον υπολογισμό της προόδου
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Επεξεργαστείτε το κομμάτι
+            # Επεξεργαστείτε το τμήμα
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Αποστείλετε ειδοποίηση προόδου
+            # Στείλτε ειδοποίηση προόδου
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Διαχείριση Πελάτη (Python)
+### Διαχείριση από Πελάτη (Python)
 
 ```python
 async def handle_progress(notification):
@@ -142,7 +145,7 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. Ακύρωση Αιτήσεων
 
-Επιτρέπει στους πελάτες να ακυρώνουν αιτήσεις που δεν χρειάζονται πλέον ή διαρκούν πολύ.
+Επιτρέψτε στους πελάτες να ακυρώσουν αιτήσεις που δεν χρειάζονται πλέον ή διαρκούν υπερβολικά.
 
 ### Υλοποίηση σε Python
 
@@ -165,11 +168,11 @@ async def long_running_search(query: str, ctx) -> str:
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # Προσομοίωση αναζήτησης σελίδας
+            # Προσομοίωση αναζήτησης σε σελίδα
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Μικρή καθυστέρηση επιτρέπει ελέγχους ακύρωσης
+            # Μικρή καθυστέρηση επιτρέπει τον έλεγχο ακύρωσης
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Κανονική λήξη χρόνου, συνεχίστε
+            pass  # Κανονικός χρόνος αναμονής, συνέχεια
 ```
 
-### Ακύρωση από την Πλευρά του Πελάτη
+### Ακύρωση από Πελάτη
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Ακύρωση αιτήματος
+        # Αίτημα ακύρωσης
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Ανάλυση του URI προβλήματος στο GitHub
+  // Αναλύστε το URI του ζητήματος GitHub
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,9 +365,9 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. Γεγονότα Κύκλου Ζωής Διακομιστή
+## 4. Συμβάντα Κύκλου Ζωής Διακομιστή
 
-Η σωστή διαχείριση αρχικοποίησης και τερματισμού εξασφαλίζει καθαρή διαχείριση πόρων.
+Η σωστή διαχείριση της αρχικοποίησης και του τερματισμού εξασφαλίζει καθαρή διαχείριση πόρων.
 
 ### Διαχείριση Κύκλου Ζωής σε Python
 
@@ -391,7 +394,7 @@ async def lifespan(server: Server):
     
     yield  # Ο διακομιστής τρέχει εδώ
     
-    # Τερματισμός
+    # Τερματισμός λειτουργίας
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -425,12 +428,12 @@ class ManagedServer {
   }
   
   async start() {
-    // Ενημερώστε πόρους
+    // Αρχικοποίηση πόρων
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
     
-    // Ξεκινήστε τον διακομιστή
+    // Εκκίνηση διακομιστή
     await this.server.connect(transport);
   }
   
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // Χρησιμοποιήστε προσεκτικά το this.dbConnection
+      // Χρησιμοποιήστε αυτό το this.dbConnection με ασφάλεια
       // ...
     });
   }
 }
 
-// Χρήση με ομαλή τερματισμό
+// Χρήση με ομαλή τερματισμό λειτουργίας
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,7 +470,7 @@ await server.start();
 
 ## 5. Έλεγχος Καταγραφής
 
-Το MCP υποστηρίζει επίπεδα καταγραφής στην πλευρά του διακομιστή που μπορούν να ελέγχονται από τους πελάτες.
+Το MCP υποστηρίζει επίπεδα καταγραφής στην πλευρά διακομιστή που μπορούν να ελέγχονται από τους πελάτες.
 
 ### Υλοποίηση Επιπέδων Καταγραφής
 
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Χαρτογραφήστε τα επίπεδα MCP στα επίπεδα καταγραφής της Python
+# Αντιστοίχιση επιπέδων MCP με επίπεδα καταγραφής Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -516,13 +519,13 @@ async def debug_operation(data: str) -> str:
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Στείλε ειδοποίηση καταγραφής στον πελάτη
+    # Αποστολή ειδοποίησης καταγραφής στον πελάτη
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Κάνε εργασία...
+    # Εκτέλεση εργασίας...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Σχεδιασμοί Διαχείρισης Σφαλμάτων
+## 6. Σχήματα Διαχείρισης Σφαλμάτων
 
 Η συνεπής διαχείριση σφαλμάτων βελτιώνει τον εντοπισμό σφαλμάτων και την εμπειρία χρήστη.
 
-### Κωδικοί Σφαλμάτων MCP
+### Κώδικες Σφαλμάτων MCP
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -584,7 +587,7 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # Έλεγχος αδειών
+        # Έλεγχος δικαιωμάτων
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // Περισσότερος έλεγχος εγκυρότητας...
+  // Περισσότερος έλεγχος...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // Ήδη σφάλμα MCP
+      throw error;  // Ήδη ένα σφάλμα MCP
     }
     
     // Μετατροπή άλλων σφαλμάτων
@@ -653,19 +656,19 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## Πειραματικά Χαρακτηριστικά (MCP 2025-11-25)
+## Πειραματικές Δυνατότητες (MCP 2025-11-25)
 
-Αυτά τα χαρακτηριστικά χαρακτηρίζονται ως πειραματικά στην προδιαγραφή:
+Αυτές οι δυνατότητες χαρακτηρίζονται ως πειραματικές στην προδιαγραφή:
 
-### Εργασίες (Λειτουργίες Μακράς Διάρκειας)
+### Tasks (Μακροχρόνιες Λειτουργίες)
 
 ```python
-# Οι εργασίες επιτρέπουν την παρακολούθηση μακροχρόνιων λειτουργιών με κατάσταση
+# Οι εργασίες επιτρέπουν την παρακολούθηση εκτεταμένων λειτουργιών με κατάσταση
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Αναφέρετε ότι η εργασία ξεκίνησε
+    # Αναφορά έναρξης εργασίας
     await ctx.report_status("running", "Initializing training...")
     
     # Βρόχος εκπαίδευσης
@@ -682,14 +685,14 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### Σχολιασμοί Εργαλείων
+### Σημειώσεις Εργαλείων
 
 ```python
-# Οι σχολιασμοί παρέχουν μεταδεδομένα σχετικά με τη συμπεριφορά του εργαλείου
+# Οι σημειώσεις παρέχουν μεταδεδομένα σχετικά με τη συμπεριφορά του εργαλείου
 @app.tool(
     annotations={
-        "destructive": False,      # Δεν τροποποιεί δεδομένα
-        "idempotent": True,        # Ασφαλές για επαναδοκιμή
+        "destructive": False,      # Δεν τροποποιεί τα δεδομένα
+        "idempotent": True,        # Ασφαλές για επανάληψη
         "timeout_seconds": 30,     # Αναμενόμενη μέγιστη διάρκεια
         "requires_approval": False # Δεν απαιτείται έγκριση χρήστη
     }
@@ -703,22 +706,22 @@ async def safe_query(query: str) -> str:
 
 ## Τι Ακολουθεί
 
-- [Module 8 - Καλές Πρακτικές](../../08-BestPractices/README.md)  
-- [5.14 - Μηχανική Συμφραζομένων](../mcp-contextengineering/README.md)  
-- [Κατάλογος Αλλαγών Προδιαγραφής MCP](https://spec.modelcontextprotocol.io/)  
+- [Ενότητα 8 - Βέλτιστες Πρακτικές](../../08-BestPractices/README.md)
+- [5.14 - Μηχανική Πλαισίου](../mcp-contextengineering/README.md)
+- [Καταγραφή Αλλαγών Προδιαγραφής MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Επιπλέον Πόροι
 
-- [Προδιαγραφή MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [Κωδικοί Σφαλμάτων JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [Παραδείγματα Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
+- [Προδιαγραφή MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Κώδικες Σφαλμάτων JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [Παραδείγματα Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [Παραδείγματα TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Αποποίηση ευθυνών**:  
-Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Παρόλο που προσπαθούμε για ακρίβεια, παρακαλούμε λάβετε υπόψη ότι οι αυτόματες μεταφράσεις μπορεί να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα θα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε καμία ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+**Αποποίηση ευθυνών**:
+Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Ενώ επιδιώκουμε την ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

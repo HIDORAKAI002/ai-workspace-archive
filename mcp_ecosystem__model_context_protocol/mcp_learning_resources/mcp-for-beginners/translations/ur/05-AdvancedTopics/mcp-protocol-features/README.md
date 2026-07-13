@@ -1,21 +1,23 @@
-# MCP پروٹوکول کی خصوصیات کی تفصیلی جانچ
+# MCP پروٹوکول خصوصیات کی مفصل جانچ
 
-یہ گائیڈ ترقی یافتہ MCP پروٹوکول خصوصیات کا جائزہ لیتی ہے جو بنیادی ٹول اور وسائل کی ہینڈلنگ سے آگے ہیں۔ ان خصوصیات کو سمجھنے سے آپ زیادہ مضبوط، صارف دوست، اور پیداواری قابل MCP سرورز بنا سکتے ہیں۔
+یہ گائیڈ اعلی درجے کی MCP پروٹوکول خصوصیات کا جائزہ لیتا ہے جو بنیادی ٹول اور وسائل کی ہینڈلنگ سے آگے بڑھتی ہیں۔ ان خصوصیات کو سمجھنے سے آپ زیادہ مضبوط، صارف دوست، اور پیداواری MCP سرورز بنا سکتے ہیں۔
+
+> **آگے دیکھیں:** `2026-07-28` کے ریلیز کینڈیڈیٹ میں لاگنگ بنیادی کو ترک کیا گیا ہے (stdio کے لیے `stderr` اور ساخت بند نگرانی کے لیے OpenTelemetry کو ترجیح دی گئی ہے)، نیچے دیے گئے سرور لائف سائیکل ایونٹس میں حوالہ دیے گئے `initialize`/session ماڈل کو ہٹا دیا گیا ہے، اور تجرباتی ٹاسکس فیچر کو ایک مخصوص ٹاسکس ایکسٹینشن میں منتقل کر دیا گیا ہے جس میں نیا `tasks/get`/`tasks/update`/`tasks/cancel` لائف سائیکل ہے۔ دیکھیں [MCP میں کیا تبدیل ہو رہا ہے: 2026-07-28 ریلیز کینڈیڈیٹ](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)۔
 
 ## شامل خصوصیات
 
-1. **پیش رفت کی اطلاعات** - طویل دورانیے کے آپریشنز کی پیش رفت کی اطلاع دینا  
-2. **درخواست منسوخی** - کلائنٹس کو زیر التواء درخواستیں منسوخ کرنے کی اجازت دینا  
-3. **وسائل کے ٹیمپلیٹس** - متحرک وسائل کے URI جو پیرامیٹرز کے ساتھ ہوں  
-4. **سرور کے دورِ زندگی کے واقعات** - مناسب ابتدائی اور بندش کا انتظام  
-5. **لاگنگ کنٹرول** - سرور کی طرف سے لاگنگ کی ترتیبات  
-6. **غلطی ہینڈلنگ کے نمونے** - مستقل غلطی کے جوابات  
+1. **پیش رفت کی اطلاعات** - طویل چلنے والی آپریشنز کی پیش رفت کی رپورٹنگ
+2. **درخواست منسوخی** - کلائنٹس کو ان فلائٹ درخواستیں منسوخ کرنے کی اجازت دینا
+3. **وسائل کے ٹیمپلیٹس** - متغیرات کے ساتھ متحرک وسائل کے URI
+4. **سرور لائف سائیکل ایونٹس** - مناسب ابتدائیہ اور بندش
+5. **لاگنگ کنٹرول** - سرور کی طرف سے لاگنگ کی ترتیب
+6. **غلطی سنبھالنے کے نمونے** - مستقل غلطی کے جوابات
 
 ---
 
 ## 1. پیش رفت کی اطلاعات
 
-ایسے آپریشنز کے لیے جو وقت لیتے ہیں (ڈیٹا پراسیسنگ، فائل ڈاؤن لوڈز، API کالز)، پیش رفت کی اطلاعات صارفین کو آگاہ رکھتی ہیں۔
+ایسے آپریشنز کے لیے جو وقت لیتے ہیں (ڈیٹا پروسیسنگ، فائل ڈاؤن لوڈز، API کالز)، پیش رفت کی اطلاعات صارفین کو آگاہ رکھتی ہیں۔
 
 ### یہ کیسے کام کرتا ہے
 
@@ -25,11 +27,12 @@ sequenceDiagram
     participant Server
     
     Client->>Server: tools/call (طویل عمل)
-    Server-->>Client: اطلاع: پیش رفت 10%
-    Server-->>Client: اطلاع: پیش رفت 50%
-    Server-->>Client: اطلاع: پیش رفت 90%
+    Server-->>Client: اطلاع: ترقی 10%
+    Server-->>Client: اطلاع: ترقی 50%
+    Server-->>Client: اطلاع: ترقی 90%
     Server->>Client: نتیجہ (مکمل)
 ```
+
 ### پائتھن میں نفاذ
 
 ```python
@@ -43,7 +46,7 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # پراگرس کے حساب کے لیے فائل کا سائز حاصل کریں
+    # پیش رفت کی حساب کتاب کے لیے فائل کا سائز حاصل کریں
     file_size = os.path.getsize(file_path)
     processed = 0
     
@@ -53,7 +56,7 @@ async def process_large_file(file_path: str, ctx) -> str:
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # پراگرس کی اطلاع بھیجیں
+            # پیش رفت کی اطلاعات بھیجیں
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # ہر آئٹم کے بعد پراگرس کی رپورٹ کریں
+        # ہر آئٹم کے بعد پیش رفت کی رپورٹ کریں
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -131,18 +134,18 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# ہینڈلر رجسٹر کریں
+# ہینڈلر کو رجسٹر کریں
 session.on_notification("notifications/progress", handle_progress)
 
-# ٹول کال کریں (پیش رفت کی تازہ کاری ہینڈلر کے ذریعے موصول ہوگی)
+# ٹول کو کال کریں (پروگریس اپڈیٹس ہینڈلر کے ذریعے موصول ہوں گی)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. درخواست منسوخی
+## 2. درخواست کی منسوخی
 
-کلائنٹس کو ایسی درخواستیں منسوخ کرنے کی اجازت دیں جو اب ضروری نہیں رہیں یا بہت طویل عرصہ لے رہی ہوں۔
+ایسی درخواستوں کو منسوخ کرنے کی اجازت دیں جو اب ضرورت نہیں رہیں یا بہت زیادہ وقت لے رہی ہوں۔
 
 ### پائتھن میں نفاذ
 
@@ -165,11 +168,11 @@ async def long_running_search(query: str, ctx) -> str:
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # صفحہ تلاش کرنے کی نقل بنائیں
+            # صفحہ تلاش کی نقل کریں
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # چھوٹا وقفہ منسوخی کی جانچ کی اجازت دیتا ہے
+            # چھوٹا وقفہ منسوخی چیک کی اجازت دیتا ہے
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### منسوخی کا سیاق و سباق نافذ کرنا
+### منسوخی کانٹیکسٹ کا نفاذ
 
 ```python
 class CancellableContext:
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # معمول کا وقت ختم، جاری رکھیں
 ```
 
-### کلائنٹ سائیڈ منسوخی
+### کلائنٹ-سائیڈ منسوخی
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # درخواست منسوخی
+        # درخواست کی منسوخی
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. وسائل کے ٹیمپلیٹس
 
-وسائل کے ٹیمپلیٹس متحرک URI کی تعمیر کی اجازت دیتے ہیں جو پیرامیٹرز کے ساتھ ہوتے ہیں، یہ APIs اور ڈیٹا بیسز کے لیے مفید ہے۔
+وسائل کے ٹیمپلیٹس متحرک URI کی تخلیق کی اجازت دیتے ہیں جن میں متغیرات شامل ہوتے ہیں، جو APIs اور ڈیٹا بیسز کے لیے مفید ہیں۔
 
 ### ٹیمپلیٹس کی تعریف
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # URI کو پارس کریں تاکہ پیرامیٹرز نکالے جا سکیں
+    # یو آر آئی کو پارس کریں تاکہ پیرامیٹرز نکالے جا سکیں
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // گٹ ہب مسئلہ URI کو پارس کریں
+  // گٹ ہب مسئلہ URI تجزیہ کریں
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. سرور کے دورِ زندگی کے واقعات
+## 4. سرور لائف سائیکل ایونٹس
 
-مناسب ابتدائی اور بندش کا انتظام صاف ستھرا وسائل کا انتظام یقینی بناتا ہے۔
+مناسب ابتدائیہ اور بندش وسائل کے صاف انتظام کو یقینی بناتی ہے۔
 
-### پائتھن میں زندگی کے دور کا انتظام
+### پائتھن لائف سائیکل مینجمنٹ
 
 ```python
 from mcp.server import Server
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# مشترکہ حالت
+# مشترکہ ریاست
 db_connection = None
 cache = None
 
@@ -383,7 +386,7 @@ async def lifespan(server: Server):
     """Manage server lifecycle."""
     global db_connection, cache
     
-    # اسٹارٹ اپ
+    # آغاز
     print("🚀 Server starting...")
     db_connection = await create_database_connection()
     cache = await create_cache_client()
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### ٹائپ اسکرپٹ میں زندگی کا دور
+### ٹائپ اسکرپٹ لائف سائیکل
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -425,7 +428,7 @@ class ManagedServer {
   }
   
   async start() {
-    // وسائل کو ابتدائی حالت میں لائیں
+    // وسائل کو شروع کریں
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP کی سطحوں کو Python لاگنگ کی سطحوں سے میپ کریں
+# MCP کی سطحوں کو Python لاگنگ کی سطحوں سے مماثل کریں
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,7 +512,7 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### لاگ پیغامات کلائنٹ کو بھیجنا
+### کلائنٹ کو لاگ پیغامات بھیجنا
 
 ```python
 @app.tool()
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. غلطی ہینڈلنگ کے نمونے
+## 6. غلطی سنبھالنے کے نمونے
 
-مستقل غلطی کا ہینڈلنگ ڈیبگنگ اور صارف کے تجربے کو بہتر بناتا ہے۔
+مسلسل غلطی سنبھالنے سے ڈی بگنگ اور صارف کے تجربے میں بہتری آتی ہے۔
 
-### MCP کی غلطی کے کوڈز
+### MCP غلطی کوڈز
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,7 +572,7 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### منظم شدہ غلطی کے جوابات
+### ساخت بند غلطی کے جوابات
 
 ```python
 @app.tool()
@@ -584,11 +587,11 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # اجازتیں چیک کریں
+        # اجازتوں کو چیک کریں
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # آپریشن انجام دیں
+        # عمل انجام دیں
         result = await perform_operation(input)
         
         if result is None:
@@ -606,7 +609,7 @@ async def safe_operation(input: str) -> str:
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### ٹائپ اسکرپٹ میں غلطی کا ہینڈلنگ
+### ٹائپ اسکرپٹ میں غلطی سنبھالنا
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // مزید تصدیق...
+  // مزید توثیق...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -633,7 +636,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // پہلے ہی ایک MCP کی خرابی ہے
+      throw error;  // پہلے سے ایک MCP خرابی
     }
     
     // دیگر غلطیوں کو تبدیل کریں
@@ -655,17 +658,17 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## تجرباتی خصوصیات (MCP 2025-11-25)
 
-یہ خصوصیات وضاحت میں تجرباتی کے طور پر نشان زد ہیں:
+یہ خصوصیات وضاحت میں تجرباتی کے طور پر نشان زد کی گئی ہیں:
 
-### کام (طویل آپریشنز)
+### ٹاسکس (طویل چلنے والی آپریشنز)
 
 ```python
-# کام اسٹیٹ کے ساتھ طویل المدتی آپریشنز کا سراغ لگانے کی اجازت دیتے ہیں
+# کام لمبے عرصے تک چلنے والے عمل کی حالت کے ساتھ ٹریک کرنے کی اجازت دیتے ہیں
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # رپورٹ کام شروع ہوا
+    # کام شروع ہونے کی اطلاع دیں
     await ctx.report_status("running", "Initializing training...")
     
     # تربیتی لوپ
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### ٹول تشریحات
+### ٹول کی تشریحات
 
 ```python
 # ٹول کے رویے کے بارے میں میٹا ڈیٹا فراہم کرتے ہیں
 @app.tool(
     annotations={
-        "destructive": False,      # ڈیٹا کو تبدیل نہیں کرتا
+        "destructive": False,      # ڈیٹا میں ترمیم نہیں کرتا
         "idempotent": True,        # دوبارہ کوشش کرنا محفوظ ہے
         "timeout_seconds": 30,     # متوقع زیادہ سے زیادہ دورانیہ
-        "requires_approval": False # صارف کی منظوری کی ضرورت نہیں ہے
+        "requires_approval": False # صارف کی منظوری کی ضرورت نہیں
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## آگے کیا ہے
+## اگلے مراحل
 
-- [ماڈیول 8 - بہترین عمل](../../08-BestPractices/README.md)  
-- [5.14 - سیاق و سباق کی انجینئرنگ](../mcp-contextengineering/README.md)  
-- [MCP وضاحت کی تبدیلیوں کا ریکارڈ](https://spec.modelcontextprotocol.io/)  
+- [ماڈیول 8 - بہترین طریقے](../../08-BestPractices/README.md)
+- [5.14 - کانٹیکسٹ انجینئرنگ](../mcp-contextengineering/README.md)
+- [MCP وضاحت تبدیلی لاگ](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## اضافی وسائل
 
-- [MCP وضاحت 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [JSON-RPC 2.0 کی غلطی کے کوڈز](https://www.jsonrpc.org/specification#error_object)  
-- [پائتھن SDK کی مثالیں](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
-- [ٹائپ اسکرپٹ SDK کی مثالیں](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [MCP وضاحت 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 غلطی کوڈز](https://www.jsonrpc.org/specification#error_object)
+- [پائتھن SDK مثالیں](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [ٹائپ اسکرپٹ SDK مثالیں](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**اخطار**:  
-اس دستاویز کا ترجمہ AI ترجمہ سروس [Co-op Translator](https://github.com/Azure/co-op-translator) کا استعمال کرتے ہوئے کیا گیا ہے۔ اگرچہ ہم درستگی کی کوشش کرتے ہیں، براہ کرم نوٹ کریں کہ خودکار تراجم میں غلطیاں یا عدم درستیاں ہو سکتی ہیں۔ اصل دستاویز جو اپنی اصلی زبان میں ہے، اسے معتبر ذریعہ سمجھا جانا چاہئے۔ اہم معلومات کے لئے پیشہ ور انسانی ترجمہ تجویز کیا جاتا ہے۔ اس ترجمے کے استعمال سے ہونے والی کسی بھی غلط فہمی یا غلط تشریح کے لئے ہم ذمہ دار نہیں ہیں۔
+**ڈس کلیمر**:
+یہ دستاویز AI ترجمہ سروس [Co-op Translator](https://github.com/Azure/co-op-translator) کے ذریعے ترجمہ کی گئی ہے۔ جبکہ ہم درستگی کے لیے کوشاں ہیں، براہ کرم اس بات سے آگاہ رہیں کہ خودکار ترجمے میں غلطیاں یا عدم درستیاں ہو سکتی ہیں۔ اصل دستاویز اپنے مادری زبان میں مستند ماخذ سمجھی جائے گی۔ حساس معلومات کے لیے پیشہ ور انسانی ترجمہ کی سفارش کی جاتی ہے۔ اس ترجمے کے استعمال سے پیدا ہونے والی کسی بھی غلط فہمی یا غلط تشریح کی ذمہ داری ہم قبول نہیں کرتے۔
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

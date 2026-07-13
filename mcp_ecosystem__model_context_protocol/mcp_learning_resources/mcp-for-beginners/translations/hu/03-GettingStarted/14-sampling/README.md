@@ -1,20 +1,22 @@
-# Mintavételezés - képességek delegálása az ügyfélnek
+# Mintavételezés - képességek delegálása az Ügyfélnek
 
-Néha szükség van arra, hogy az MCP kliens és az MCP szerver együttműködjenek egy közös cél elérése érdekében. Előfordulhat, hogy a szerver egy olyan LLM segítségére támaszkodik, amely az ügyfélnél található. Ilyen helyzetben a mintavételezést kell használnod.
+> **Elavulási értesítés:** a `2026-07-28` MCP specifikáció kiadási jelöltje a mintavételezést elavultnak jelöli az LLM szolgáltató API-kkal való közvetlen integráció javára. A mintavételezés továbbra is működik a `2025-11-25` verzióban és legalább egy évig bármilyen hivatalos elavulás után, így minden ebben a leckében szereplő információ érvényes marad — de az új szerverterveknek értékelniük kell a helyettesítő mintát. Lásd: [Mi változik az MCP-ben: a 2026-07-28 kiadási jelölt](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Nézzünk meg néhány használati esetet és azt, hogy miként építhetünk megoldást mintavételezés alkalmazásával.
+Néha az MCP Ügyfélnek és az MCP Szervernek együtt kell működnie egy közös cél eléréséhez. Lehet olyan eset, amikor a Szervernek egy, az ügyfélen lévő LLM segítségére van szüksége. Ilyen helyzetekre kell használni a mintavételezést.
+
+Nézzük meg néhány használati esetet és azt, hogyan építhetünk megoldást a mintavételezés alkalmazásával.
 
 ## Áttekintés
 
-Ebben a leckében arra fókuszálunk, hogy mikor és hol érdemes használni a mintavételezést, illetve hogyan kell konfigurálni azt.
+Ebben a leckében arra koncentrálunk, hogy mikor és hol érdemes a mintavételezést alkalmazni, és hogyan kell konfigurálni.
 
 ## Tanulási célok
 
 Ebben a fejezetben:
 
-- Elmagyarázzuk, mi az a mintavételezés, és mikor használjuk.
-- Bemutatjuk, hogyan kell az MCP-ben konfigurálni a mintavételezést.
-- Példákat adunk a mintavételezés használatára.
+- Elmagyarázzuk, mi az a mintavételezés és mikor használjuk.
+- Bemutatjuk, hogyan kell konfigurálni a mintavételezést az MCP-ben.
+- Példákat adunk a mintavételezés gyakorlati használatára.
 
 ## Mi az a mintavételezés és miért használjuk?
 
@@ -27,19 +29,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Blogbejegyzés írása
-    MCP Client->>MCP Server: Eszközhívás (blogbejegyzés tervezet)
-    MCP Server->>MCP Client: Mintavételezési kérés (összefoglaló készítése)
+    User->>MCP Client: Szerző blogbejegyzés
+    MCP Client->>MCP Server: Eszköz hívás (blog bejegyzés vázlat)
+    MCP Server->>MCP Client: Mintavételi kérés (összefoglaló készítése)
     MCP Client->>LLM: Blogbejegyzés összefoglaló generálása
     LLM->>MCP Client: Összefoglaló eredmény
-    MCP Client->>MCP Server: Mintavételezési válasz (összefoglaló)
-    MCP Server->>MCP Client: Teljes blogbejegyzés (tervezet + összefoglaló)
+    MCP Client->>MCP Server: Mintavételi válasz (összefoglaló)
+    MCP Server->>MCP Client: Teljes blogbejegyzés (vázlat + összefoglaló)
     MCP Client->>User: Blogbejegyzés kész
 ```
 
 ### Mintavételezési kérés
 
-Oké, most, hogy van egy nagy rálátásunk egy valós helyzetre, beszéljünk a szerver által az ügyfélnek küldött mintavételezési kérésről. Íme, hogyan nézhet ki egy ilyen kérés JSON-RPC formátumban:
+Rendben, most, hogy átfogó képet kaptunk egy hihető forgatókönyvről, beszéljünk a szerver által az ügyfélnek küldött mintavételezési kérésről. Íme, hogyan nézhet ki egy ilyen kérés JSON-RPC formátumban:
 
 ```json
 {
@@ -71,17 +73,17 @@ Oké, most, hogy van egy nagy rálátásunk egy valós helyzetre, beszéljünk a
 }
 ```
 
-Itt néhány dologra érdemes felhívni a figyelmet:
+Érdemes kiemelni néhány dolgot:
 
-- A Prompt, a content -> text alatt, az a prompt, ami egy utasítás az LLM-nek, hogy összefoglalja egy blogbejegyzés tartalmát.
+- A prompt, a content -> text alatt, a kérést jelenti, amely egy utasítás az LLM-nek, hogy foglalja össze a blogbejegyzés tartalmát.
 
-- **modelPreferences**. Ez a rész valóban egy ajánlás, egy javaslat, hogy milyen konfigurációt használjunk az LLM-mel. A felhasználó eldöntheti, hogy követi-e ezeket az ajánlásokat, vagy megváltoztatja őket. Ebben az esetben ajánlások vannak a használandó modellről, valamint a sebesség és intelligencia prioritásáról.
-- **systemPrompt**, ez a normál rendszer promptod, ami személyiséget ad az LLM-ednek és tartalmaz útmutató utasításokat.
-- **maxTokens**, ez egy másik tulajdonság, ami megadja, hogy hány token használata ajánlott ehhez a feladathoz.
+- **modelPreferences**. Ez a rész csak egy preferencia, egy ajánlás arra, hogy milyen konfigurációt érdemes az LLM-mel használni. A felhasználó eldöntheti, hogy követi-e ezeket az ajánlásokat vagy módosítja azokat. Ebben az esetben javasolt modell, valamint sebesség és intelligencia prioritás van megadva.
+- **systemPrompt**, ez a szokásos rendszer prompt, amely személyiséget ad az LLM-nek és tartalmaz útmutató utasításokat.
+- **maxTokens**, ez egy másik tulajdonság, amely jelzi, hogy hány token használata ajánlott ehhez a feladathoz.
 
 ### Mintavételezési válasz
 
-Ez a válasz az, amit az MCP kliens visszaküld az MCP szervernek, és az eredmény, amely az LLM hívásának eredményeként jön létre, megvárja a választ, majd felépíti ezt az üzenetet. Íme, hogyan nézhet ki JSON-RPC formátumban:
+Ez a válasz az, amit az MCP Ügyfél visszaküld a MCP Szervernek, és az ügyfél által az LLM hívásának eredménye, várt választ, majd ennek az üzenetnek az összeállítása. Íme hogyan nézhet ki JSON-RPC formátumban:
 
 ```json
 {
@@ -99,13 +101,13 @@ Ez a válasz az, amit az MCP kliens visszaküld az MCP szervernek, és az eredm�
 }
 ```
 
-Észreveheted, hogy a válasz egy kivonat a blogbejegyzésből, ahogyan kértük. Illetve arra is figyelj, hogy a használt `model` nem az, amit kértünk, hanem a "gpt-5" a "claude-3-sonnet" helyett. Ez azt mutatja, hogy a felhasználó megváltoztathatja, mit szeretne használni, és hogy a mintavételezési kérés csak egy ajánlás.
+Figyelje meg, hogy a válasz a blogbejegyzés kivonata, ahogy kértük. Vegyük észre azt is, hogy a használt `model` nem az, amit kértünk, hanem a "gpt-5" a "claude-3-sonnet" helyett. Ez azt illusztrálja, hogy a felhasználó megváltoztathatja döntését a használni kívánt modellről, és hogy a mintavételezési kérés egy ajánlás.
 
-Oké, most, hogy értjük az alapfolyamatot, és egy hasznos feladatot rá, mint a "blogbejegyzés létrehozása + kivonat", nézzük meg, mit kell tennünk a működés érdekében.
+Rendben, most, hogy megértettük a fő folyamatot, és hasznos feladatnak tűnik a "blogbejegyzés készítés + kivonat", nézzük meg, mit kell tennünk a működéshez.
 
 ### Üzenettípusok
 
-A mintavételezési üzenetek nem csak szövegre korlátozódnak, hanem képeket és hanganyagot is küldhetsz. Íme, hogyan néz ki a JSON-RPC eltérő esetben:
+A mintavételezési üzenetek nemcsak szövegre korlátozódnak, hanem képek és hang is küldhető. Íme, hogyan néz ki másként a JSON-RPC:
 
 **Szöveg**
 
@@ -136,11 +138,11 @@ A mintavételezési üzenetek nem csak szövegre korlátozódnak, hanem képeket
 }
 ```
 
-> MEGJEGYZÉS: részletesebb információkért a mintavételezésről, nézd meg a [hivatalos dokumentációt](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> MEGJEGYZÉS: a mintavételezésről részletesebb információkat talál a [hivatalos dokumentációban](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Hogyan konfiguráljuk a mintavételezést az ügyfélben
+## Hogyan konfiguráljuk a mintavételezést az Ügyfélben
 
-> Megjegyzés: ha csak szervert építesz, nem kell sokat tenned itt.
+> Megjegyzés: ha csak szervert épít, akkor itt nem kell sok mindent tennie.
 
 Egy ügyfélben a következőképpen kell megadni a funkciót:
 
@@ -152,18 +154,18 @@ Egy ügyfélben a következőképpen kell megadni a funkciót:
 }
 ```
 
-Ezt követően a választott kliens kiválasztáskor és a szerverhez való csatlakozáskor ez fel lesz véve.
+Ezt azután a kiválasztott ügyfél veszi fel, amikor inicializálódik a szerverrel.
 
-## Példa a mintavételezés használatára - Blogbejegyzés létrehozása
+## Példa működés közbeni mintavételezésre - Blogbejegyzés létrehozása
 
-Kódoljunk együtt egy mintavételezési szervert, a következő lépéseket kell végrehajtanunk:
+Írjunk együtt egy mintavételezési szervert, a következőket kell megtennünk:
 
-1. Hozz létre egy eszközt a szerveren.
-1. Az eszköz hozzon létre egy mintavételezési kérést.
-1. Az eszköz várjon az ügyfél mintavételezési kérésének megválaszolására.
-1. Ezután az eszköz eredménye elkészül.
+1. Hozzon létre egy eszközt a Szerveren.
+1. Az eszköznek mintavételezési kérést kell létrehoznia.
+1. Az eszköznek várnia kell az ügyfél mintavételezési kérésének válaszára.
+1. Ezután létre kell hozni az eszköz eredményét.
 
-Nézzük lépésről lépésre a kódot:
+Nézzük meg a kódot lépésről lépésre:
 
 ### -1- Az eszköz létrehozása
 
@@ -178,7 +180,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ### -2- Mintavételezési kérés létrehozása
 
-Bővítsd az eszközt a következő kóddal:
+Bővítse az eszközt a következő kóddal:
 
 **python**
 
@@ -213,7 +215,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# a teljes termék visszaadása
+# add vissza a teljes terméket
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -290,18 +292,18 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 if __name__ == "__main__":
     print("Starting server...")
-    # mcp.run()
+    # mcp.futtatás()
     mcp.run(transport="streamable-http")
 
-# futtassa az appot ezzel: python server.py
+# indítsa az alkalmazást a következővel: python server.py
 ```
 
 ### -5- Tesztelés Visual Studio Code-ban
 
-A Visual Studio Code-ban való teszteléshez kövesd a következő lépéseket:
+A Visual Studio Code-ban való teszteléshez tegye a következőket:
 
-1. Indítsd el a szervert a terminálban
-1. Add hozzá a *mcp.json*-hoz (és ellenőrizd, hogy elindult), például így:
+1. Indítsa el a szervert a terminálban
+1. Adja hozzá az *mcp.json*-hez (és győződjön meg róla, hogy elindult), például így:
 
    ```json
    "servers": {
@@ -312,37 +314,37 @@ A Visual Studio Code-ban való teszteléshez kövesd a következő lépéseket:
    }
    ```
 
-1. Írj be egy promptot:
+1. Írjon be egy promptot:
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Engedélyezd a mintavételezést. Először, amikor kipróbálod, egy további párbeszédablak jelenik meg, amit el kell fogadnod, majd meglátod a szokásos párbeszédet, amely eszköz futtatását kéri.
+1. Engedje meg a mintavételezés megtörténtét. Első alkalommal, amikor ezt teszteli, egy további párbeszédablak jelenik meg, amit el kell fogadnia, majd a normál párbeszéd lesz, amely eszköz futtatására kér.
 
-1. Ellenőrizd az eredményeket. Az eredményeket szépen megjelenítve látod a GitHub Copilot Chatben, de a nyers JSON válasz is megvizsgálható.
+1. Vizsgálja meg az eredményeket. Láthatja az eredményeket szépen megjelenítve a GitHub Copilot Chat-ben, de a nyers JSON válasz is megtekinthető.
 
-**Bónusz**. A Visual Studio Code eszköztára kiváló támogatást nyújt a mintavételezéshez. Az alábbi módon konfigurálhatod a mintavételezés hozzáférést az installált szervereden:
+**Bónusz**. A Visual Studio Code eszköztár nagyszerű támogatást nyújt a mintavételezéshez. A telepített szerveren a mintavételezés hozzáférését így konfigurálhatja:
 
-1. Navigálj a bővítmény szekcióhoz.
-1. Válaszd ki az installált szerverhez tartozó fogaskerék ikont az "MCP SERVERS - INSTALLED" szekcióban.
-1 Válaszd a "Modell hozzáférés konfigurálása" opciót, itt kiválaszthatod, mely modellek használhatók a GitHub Copilot számára mintavételezés közben. Láthatod továbbá az összes utóbbi mintavételezési kérést a "Mintavételezési kérések megjelenítése" gombra kattintva.
+1. Navigáljon a bővítmény szekcióhoz.
+1. Válassza ki a fogaskerék ikont a telepített szervernél az "MCP SZERVEREK - TELEPÍTVE" részben.
+1 Válassza a "Modell hozzáférés konfigurálása" opciót, ahol kiválaszthatja, hogy a GitHub Copilot mely modelleket használhat a mintavételezés során. Itt láthatja az összes legutóbbi mintavételezési kérést is, ha kiválasztja a "Mintavételezési kérések megjelenítése" opciót.
 
 ## Feladat
 
-Ebben a feladatban egy kissé eltérő mintavételezést építesz, nevezetesen egy mintavételezési integrációt, amely támogatja egy termékleírás generálását. Íme a forgatókönyved:
+Ebben a feladatban egy kissé eltérő mintavételezést fog építeni, nevezetesen egy olyan mintavételezési integrációt, amely termékleírás generálását támogatja. Íme a forgatókönyv:
 
-**Forgatókönyv**: Az e-kereskedelmi back office dolgozójának segítség kell, mert túl sok időt vesz igénybe termékleírásokat generálni. Ezért egy olyan megoldást kell építened, ahol egy "create_product" nevű eszközt hívsz meg "title" és "keywords" paraméterekkel, és amelynek eredménye egy teljes termék, beleértve egy "description" mezőt, amit az ügyfél LLM-je tölt ki.
+**Forgatókönyv**: Egy e-kereskedelmi back office munkatársnak segítségre van szüksége, mert túl sok idő termékleírásokat generálni. Ezért egy olyan megoldást kell készítenie, ahol meghívhat egy "create_product" eszközt "title" és "keywords" argumentumokkal, és az eszköznek egy teljes terméket kell előállítania, beleértve egy "description" mezőt is, amelyet az ügyfél LLM-je tölt ki.
 
-TIPP: Használd, amit korábban tanultál, hogy összeállítsd ezt a szervert és eszközét mintavételezési kérés segítségével.
+TIP: használja a korábban tanultakat, hogy ezt a szervert és az eszközét mintavételezési kéréssel építse fel.
 
 ## Megoldás
 
 [Megoldás](./solution/README.md)
 
-## Főbb tanulságok
+## Fontos tanulságok
 
-A mintavételezés egy erőteljes funkció, amely lehetővé teszi a szerver számára, hogy feladatokat delegáljon az ügyfélnek, amikor LLM segítségére van szüksége.
+A mintavételezés egy erőteljes funkció, amely lehetővé teszi, hogy a szerver feladatokat delegáljon az ügyfélnek, amikor LLM segítsége szükséges.
 
 ## Mi következik
 

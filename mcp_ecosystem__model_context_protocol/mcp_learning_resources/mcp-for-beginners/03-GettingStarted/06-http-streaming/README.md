@@ -251,6 +251,8 @@ A notification looks like so as a JSON message:
 
 Notifications belongs to a topic in MCP referred to as ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
 
+> **Deprecation notice:** the `2026-07-28` MCP specification release candidate marks the Logging primitive as deprecated in favor of `stderr` for stdio transports and OpenTelemetry for structured observability. Logging continues to work in `2025-11-25` and for at least a year after any formal deprecation. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
 To get logging to work, the server needs to enable it as feature/capability like so:
 
 ```json

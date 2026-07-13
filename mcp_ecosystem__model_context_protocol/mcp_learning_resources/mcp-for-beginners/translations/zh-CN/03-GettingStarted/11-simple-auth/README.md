@@ -1,25 +1,25 @@
-# 简单认证
+# 简单身份验证
 
-MCP SDK 支持使用 OAuth 2.1，老实说这是一个相当复杂的过程，涉及认证服务器、资源服务器、提交凭证、获取代码、用代码换取 Bearer 令牌，直到最终获取资源数据。如果你不熟悉 OAuth，它确实是一个很好的实现方案，那么从基础级别的认证开始，逐步构建更高级别的安全措施是个不错的主意。这就是本章存在的原因，为你打好基础，逐步迈向更高级的认证。
+MCP SDK 支持使用 OAuth 2.1，公平地说，这个过程相当复杂，涉及身份验证服务器、资源服务器、提交凭据、获取代码、用代码换取承载令牌，直到最终获得资源数据等概念。如果你不熟悉 OAuth，这本是一个很棒的实现方案，那么先从一些基础的身份验证开始，并逐步构建更好更安全的方案是个不错的主意。这就是本章存在的原因，带你深入理解更高级的身份验证。
 
-## 认证，我们指的是什么？
+## 身份验证，我们指的是什么？
 
-认证是 authentication 和 authorization 的简称。意思是我们需要做两件事：
+身份验证是 authentication 和 authorization 的缩写。我们的目标是完成两件事情：
 
-- **身份验证（Authentication）**，即确定是否允许某人进入我们的“家”，也就是说确认他们有权“在这里”，即访问我们的资源服务器，这里运行着 MCP 服务器的功能。
-- **授权（Authorization）**，即判断用户是否应该访问他们请求的特定资源，例如这些订单或这些产品，或者他们是否只被允许读取内容，但不能删除，作为另一种示例。
+- **Authentication** ：这是确定是否允许某人进入我们“房子”的过程，也就是确认他们有权“在此”，即访问我们 MCP 服务器功能所在的资源服务器的过程。
+- **Authorization** ：这是确认用户是否应当访问他们请求的具体资源的过程，例如这些订单、这些产品，或者他们是否有权限读取内容但不能删除，作为另一种示例。
 
-## 凭证：我们如何告诉系统我们是谁
+## 凭据：我们如何告诉系统我们是谁
 
-大部分网页开发者通常会想到向服务器提供凭证，通常是一个秘密，用来表示他们是否被允许这里“通过身份验证”。这种凭证通常是用户名和密码的 base64 编码版本，或者是唯一标识某个用户的 API 密钥。
+大多数 Web 开发者习惯于向服务器提供凭据，通常是一个秘密，用来表明他们是否被允许访问（即身份验证）。这个凭据通常是用户名和密码的 base64 编码形式，或者唯一标识某个用户的 API 密钥。
 
-这通常通过一个名为 "Authorization" 的请求头发送，如下：
+这通常通过一个名为 "Authorization" 的头部发送，格式如下：
 
 ```json
 { "Authorization": "secret123" }
 ```
 
-这通常被称为基础认证。整体流程如下：
+这通常被称为基本身份验证（basic authentication）。整体流程如下：
 
 ```mermaid
 sequenceDiagram
@@ -27,12 +27,13 @@ sequenceDiagram
    participant Client
    participant Server
 
-   User->>Client: 显示数据给我
-   Client->>Server: 显示数据给我，这是我的凭证
+   User->>Client: 给我看数据
+   Client->>Server: 给我看数据，这是我的凭证
    Server-->>Client: 1a，我认识你，这是你的数据
    Server-->>Client: 1b，我不认识你，401 
 ```
-现在我们理解了流程，如何实现呢？大多数 Web 服务器都有一个叫做中间件（middleware）的概念，它是在请求过程中运行的一段代码，能验证凭证，如果凭证有效，就允许请求通过。如果请求没有有效凭证，则返回认证错误。来看如何实现：
+
+理解了流程之后，我们如何实现呢？大多数 Web 服务器都有中间件（middleware）这个概念，它是请求部分执行的代码，可以验证凭据，如果凭据有效就放行请求。如果请求没有有效凭据，则返回身份验证错误。来看一个实现示例：
 
 **Python**
 
@@ -61,14 +62,14 @@ starlette_app.add_middleware(CustomHeaderMiddleware)
 
 这里我们：
 
-- 创建了一个叫 `AuthMiddleware` 的中间件，它的 `dispatch` 方法由 Web 服务器调用。
-- 把该中间件添加到了 Web 服务器：
+- 创建了一个名为 `AuthMiddleware` 的中间件，其 `dispatch` 方法被 Web 服务器调用。
+- 把中间件添加到 Web 服务器：
 
     ```python
     starlette_app.add_middleware(AuthMiddleware)
     ```
 
-- 编写了验证逻辑，检查 `Authorization` 请求头是否存在以及发送的秘密是否有效：
+- 编写了验证逻辑，检查是否存在 Authorization 头部及其秘密是否有效：
 
     ```python
     has_header = request.headers.get("Authorization")
@@ -81,19 +82,19 @@ starlette_app.add_middleware(CustomHeaderMiddleware)
         return Response(status_code=403, content="Forbidden")
     ```
 
-    如果秘密存在且有效，我们通过调用 `call_next` 让请求通过，并返回响应。
+    如果秘密存在且有效，则通过调用 `call_next` 放行请求并返回响应。
 
     ```python
     response = await call_next(request)
-    # 添加任何客户头或以某种方式更改响应
+    # 添加任何客户标头或以某种方式更改响应
     return response
     ```
 
-工作原理是，如果有 Web 请求向服务器发起，中间件就会被调用，根据它的实现，要么允许请求通过，要么返回提示客户端没有权限继续的错误。
+工作原理是：当有 Web 请求发送到服务器时，中间件被调用，根据实现要么放行请求，要么返回错误，说明客户端不允许继续操作。
 
 **TypeScript**
 
-这里使用流行的框架 Express 创建一个中间件，在请求到达 MCP 服务器之前拦截它。代码如下：
+在这里，我们使用流行的 Express 框架创建了一个中间件，在请求到达 MCP Server 之前拦截它。代码如下：
 
 ```typescript
 function isValid(secret) {
@@ -101,7 +102,7 @@ function isValid(secret) {
 }
 
 app.use((req, res, next) => {
-    // 1. 是否存在授权头？
+    // 1. 有授权头吗？
     if(!req.headers["Authorization"]) {
         res.status(401).send('Unauthorized');
     }
@@ -115,40 +116,42 @@ app.use((req, res, next) => {
 
    
     console.log('Middleware executed');
-    // 3. 将请求传递到请求流程的下一步。
+    // 3. 将请求传递到请求管道中的下一步。
     next();
 });
 ```
 
-在这段代码中我们：
+该代码中：
 
-1. 首先检查是否存在 `Authorization` 请求头，如无，发送 401 错误。
-2. 验证凭证/令牌是否有效，如无，发送 403 错误。
-3. 最后将请求传递到处理管道中，返回请求的资源。
+1. 首先检查是否存在 Authorization 头部，如果没有，发送 401 错误。
+2. 确保凭据/令牌有效，否则发送 403 错误。
+3. 最后将请求继续传递，返回请求的资源。
 
-## 练习：实现认证
+## 练习：实现身份验证
 
-让我们利用所学来尝试实现认证。计划如下：
+现在让我们应用所学尝试实现身份验证，计划如下：
 
 服务器
 
 - 创建一个 Web 服务器和 MCP 实例。
-- 为服务器实现一个中间件。
+- 为服务器实现中间件。
 
 客户端
 
-- 通过请求头发送带凭证的 Web 请求。
+- 通过头部发送带凭证的 Web 请求。
 
 ### -1- 创建 Web 服务器和 MCP 实例
 
-第一步，我们需要创建 Web 服务器实例和 MCP 服务器。
+> **前瞻:** 下方的 TypeScript 示例根据 **MCP 规范 2025-11-25** 通过 `mcp-session-id` 键维护 HTTP 传输映射 `transports`。`2026-07-28` 版本候选移除了 `initialize` 握手和会话 ID，因此该每会话传输映射将被无状态且自包含的请求所替代。详情见 [MCP 的变更：2026-07-28 版本候选](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
+
+第一步，我们需要创建 Web 服务器实例和 MCP Server。
 
 **Python**
 
-这里我们创建一个 MCP 服务器实例，创建一个 starlette Web 应用，用 uvicorn 托管它。
+这里创建一个 MCP 服务器实例，创建一个 starlette Web 应用，并通过 uvicorn 托管它。
 
 ```python
-# 创建 MCP 服务器
+# 创建MCP服务器
 
 app = FastMCP(
     name="MCP Resource Server",
@@ -158,10 +161,10 @@ app = FastMCP(
     debug=True
 )
 
-# 创建 starlette 网络应用
+# 创建starlette网络应用
 starlette_app = app.streamable_http_app()
 
-# 通过 uvicorn 提供应用服务
+# 通过uvicorn提供应用服务
 async def run(starlette_app):
     import uvicorn
     config = uvicorn.Config(
@@ -176,15 +179,15 @@ async def run(starlette_app):
 run(starlette_app)
 ```
 
-代码中我们：
+代码中：
 
-- 创建了 MCP 服务器。
-- 通过 MCP 服务器调用 `app.streamable_http_app()` 构造了 starlette Web 应用。
-- 使用 uvicorn `server.serve()` 托管并服务该 Web 应用。
+- 创建 MCP Server。
+- 从 MCP Server 构造 starlette Web 应用，`app.streamable_http_app()`。
+- 使用 uvicorn 托管并服务 Web 应用 `server.serve()`。
 
 **TypeScript**
 
-这里我们创建一个 MCP 服务器实例。
+这里创建一个 MCP Server 实例。
 
 ```typescript
 const server = new McpServer({
@@ -195,7 +198,7 @@ const server = new McpServer({
     // ... 设置服务器资源、工具和提示 ...
 ```
 
-该 MCP 服务器创建代码需要写在 POST /mcp 路由定义中，所以我们把上面代码移至：
+这个 MCP Server 的创建需要放在我们的 POST /mcp 路由定义中，所以我们将上面代码移到这里：
 
 ```typescript
 import express from "express";
@@ -217,7 +220,7 @@ app.post('/mcp', async (req, res) => {
   let transport: StreamableHTTPServerTransport;
 
   if (sessionId && transports[sessionId]) {
-    // 重用已存在的传输
+    // 重用现有传输
     transport = transports[sessionId];
   } else if (!sessionId && isInitializeRequest(req.body)) {
     // 新的初始化请求
@@ -227,7 +230,7 @@ app.post('/mcp', async (req, res) => {
         // 按会话ID存储传输
         transports[sessionId] = transport;
       },
-      // 默认情况下禁用DNS绑定重绑定保护以保持向后兼容。如果你在本地运行此服务器
+      // DNS重绑定保护默认禁用以保持向后兼容性。如果您在本地运行此服务器
       // 请确保设置：
       // enableDnsRebindingProtection: true,
       // allowedHosts: ['127.0.0.1'],
@@ -249,7 +252,7 @@ app.post('/mcp', async (req, res) => {
     // 连接到MCP服务器
     await server.connect(transport);
   } else {
-    // 无效的请求
+    // 无效请求
     res.status(400).json({
       jsonrpc: '2.0',
       error: {
@@ -265,7 +268,7 @@ app.post('/mcp', async (req, res) => {
   await transport.handleRequest(req, res, req.body);
 });
 
-// GET和DELETE请求的可复用处理器
+// 可重用的GET和DELETE请求处理程序
 const handleSessionRequest = async (req: express.Request, res: express.Response) => {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
   if (!sessionId || !transports[sessionId]) {
@@ -277,44 +280,44 @@ const handleSessionRequest = async (req: express.Request, res: express.Response)
   await transport.handleRequest(req, res);
 };
 
-// 处理通过SSE进行服务器到客户端通知的GET请求
+// 处理通过SSE进行的服务器到客户端通知的GET请求
 app.get('/mcp', handleSessionRequest);
 
-// 处理用于终止会话的DELETE请求
+// 处理会话终止的DELETE请求
 app.delete('/mcp', handleSessionRequest);
 
 app.listen(3000);
 ```
 
-你可以看到 MCP 服务器的创建被移到了 `app.post("/mcp")` 内部。
+这样你会看到 MCP Server 创建是在 `app.post("/mcp")` 里面。
 
-接下来实现中间件用于验证传入凭证。
+接下来我们创建中间件以验证传入凭据。
 
 ### -2- 为服务器实现中间件
 
-接下来进入中间件部分。这里我们创建一个中间件，检查请求头 `Authorization` 中的凭证并进行验证。如果有效，请求继续进行（例如列出工具、读取资源或其他 MCP 功能）。
+下面进入中间件部分。我们将创建一个中间件，检查 `Authorization` 头部中的凭证并验证它。如果接受则请求继续执行（例如列出工具、读取资源或执行客户端请求的 MCP 功能）。
 
 **Python**
 
-创建中间件需要创建一个继承自 `BaseHTTPMiddleware` 的类。关键点有两个：
+创建中间件需要继承 `BaseHTTPMiddleware` 类，有两个重要参数：
 
-- 请求对象 `request`，用来读取请求头信息。
-- `call_next` 回调，若客户端携带我们接受的凭证，需要调用它。
+- 请求参数 `request`，我们从中读取头信息。
+- `call_next` 回调，如果客户端凭据被接受，我们调用它。
 
-首先处理缺少 `Authorization` 请求头的情况：
+先处理缺失 `Authorization` 头部的情况：
 
 ```python
 has_header = request.headers.get("Authorization")
 
-# 如果没有头部，返回401失败，否则继续。
+# 没有头部，返回401错误，否则继续。
 if not has_header:
     print("-> Missing Authorization header!")
     return Response(status_code=401, content="Unauthorized")
 ```
 
-这里返回 401 未授权错误，因为客户端认证失败。
+这里发送 401 未授权消息，因为客户端身份验证失败。
 
-接着，如果提交了凭证，需要验证其有效性：
+如果提交了凭据，我们验证其有效性：
 
 ```python
  if not valid_token(has_header):
@@ -322,7 +325,7 @@ if not has_header:
     return Response(status_code=403, content="Forbidden")
 ```
 
-上面返回了 403 禁止访问错误。下面是完整的中间件代码，包含了上述所有逻辑：
+上面发送了 403 禁止访问消息。下面是完整的中间件代码，包括上述所有逻辑：
 
 ```python
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -345,10 +348,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 ```
 
-那么 `valid_token` 函数怎么办？如下：
+很好，那么 `valid_token` 函数呢？代码如下：
 
 ```python
-# 不要用于生产环境 - 改善它！！
+# 不要用于生产环境 - 需要改进！！
 def valid_token(token: str) -> bool:
     # 删除 "Bearer " 前缀
     if token.startswith("Bearer "):
@@ -357,20 +360,20 @@ def valid_token(token: str) -> bool:
     return False
 ```
 
-显然这里可以进一步完善。
+这个函数显然还可以改进。
 
-重要提示：你绝不应该把秘密直接写在代码中。理想情况下，你应该从数据源或 IDP（身份服务提供商）获取比较值，或者更好的是让 IDP 进行验证。
+重要：你绝不应该把秘密写死在代码里。理想情况下，应从数据源或身份服务提供者（IDP）获取比较值，或者更好由 IDP 进行验证。
 
 **TypeScript**
 
-在 Express 中实现此功能，需要调用 `use` 方法并传入中间件函数。
+使用 Express 实现时，我们调用 `use` 方法，接收中间件函数。
 
 我们需要：
 
-- 访问请求对象，检查 `Authorization` 属性中的凭证。
-- 验证凭证是否有效，有效则允许请求继续执行客户端 MCP 请求（例如列出工具、读取资源等）。
+- 访问请求变量，检查 `Authorization` 中传递的凭证。
+- 验证凭证，若有效允许请求继续，执行客户的 MCP 请求（如列出工具、读资源或其他 MCP 相关功能）。
 
-这里检查了 `Authorization` 请求头是否存在，如不存在就阻止请求通过：
+这里我们检查是否存在 Authorization 头部，不存在则阻止请求：
 
 ```typescript
 if(!req.headers["authorization"]) {
@@ -379,9 +382,9 @@ if(!req.headers["authorization"]) {
 }
 ```
 
-如果一开始没有发送该请求头，会收到 401 错误。
+头部缺失时，返回 401。
 
-接下来检查凭证有效性，无效则阻止请求，并返回不同的消息：
+接着检查凭证有效性，无效时返回不同的消息阻止请求：
 
 ```typescript
 if(!isValid(token)) {
@@ -390,7 +393,7 @@ if(!isValid(token)) {
 } 
 ```
 
-这是 403 错误。
+注意这里返回 403 错误。
 
 完整代码如下：
 
@@ -415,18 +418,18 @@ app.use((req, res, next) => {
 });
 ```
 
-我们已设置 Web 服务器使用中间件检查客户端发送的凭证。那么客户端端是怎么做的呢？
+我们已配置服务器中间件，验证客户端发送的凭证。那么客户端部分怎么办呢？
 
-### -3- 通过请求头发送带凭证的 Web 请求
+### -3- 通过头部发送带凭据的 Web 请求
 
-需要确保客户端通过请求头传递凭证。由于我们使用 MCP 客户端，得了解如何实现。
+确保客户端通过头部传递凭据。我们将使用 MCP 客户端实现这一点，接下来看看怎么做。
 
 **Python**
 
-客户端需要传递带有凭证的请求头，如下：
+客户端需要带上凭证的头部，如下：
 
 ```python
-# 不要硬编码值，至少要放在环境变量或更安全的存储中
+# 不要硬编码该值，至少应将其保存在环境变量或更安全的存储中
 token = "secret-token"
 
 async with streamablehttp_client(
@@ -443,21 +446,21 @@ async with streamablehttp_client(
         ) as session:
             await session.initialize()
       
-            # 待办事项，您希望在客户端完成的操作，例如列出工具、调用工具等。
+            # 待办，你希望在客户端完成的操作，例如列出工具、调用工具等。
 ```
 
-可以看到我们这么设置 `headers` 属性：` headers = {"Authorization": f"Bearer {token}"}` 。
+注意我们是这么填充 `headers` 属性的：`headers = {"Authorization": f"Bearer {token}"}`。
 
 **TypeScript**
 
-实现步骤有两步：
+我们分两步实现：
 
-1. 创建一个包含凭证的配置对象。
-2. 将配置对象传给传输层。
+1. 用凭证填充配置对象。
+2. 把配置对象传给传输层。
 
 ```typescript
 
-// 不要像这里显示的那样硬编码值。至少应将其作为环境变量，并在开发模式下使用类似 dotenv 的工具。
+// 不要像这里显示的那样硬编码值。至少将其作为环境变量，并在开发模式下使用类似 dotenv 的东西。
 let token = "secret123"
 
 // 定义一个客户端传输选项对象
@@ -478,46 +481,46 @@ async function main() {
    );
 ```
 
-如上所示，我们创建了 `options` 对象，并且将请求头放在 `requestInit` 属性里。
+这里你看到我们是创建了一个 `options` 对象，把头部放在了 `requestInit` 属性下。
 
-重要提示：那该如何改进呢？目前的实现有一定隐患。首先，除非至少启用了 HTTPS，否则以这种方式传递凭证风险较高。即便 HTTPS，凭证仍有被窃取风险，因此需要有一套机制方便撤销令牌，并额外检查请求来源地、请求频率是否异常（类似机器人行为）等，涉及非常多安全细节。
+重要：如何进一步改进？当前实现存在一定风险，至少需要 HTTPS，否则凭据可能被窃取。你需要一个系统能方便地撤销令牌，并进行额外检查，比如请求发自何处、请求频率（防机器人行为）等，总之有很多安全考量。
 
-不过，对于非常简单的 API，如果你只是不想让未认证用户调用，这种实现是一个不错的起点。
+总体来说，对于非常简单的 API，若不希望任何未认证的调用，这是一个不错的起点。
 
-说了这么多，让我们通过使用标准化格式如 JSON Web Token（JWT，简称“JOT”令牌）来稍微强化安全性。
+话虽如此，让我们尝试使用标准化格式 JSON Web Token（JWT，又称 JOT 令牌）来加强安全。
 
 ## JSON Web 令牌，JWT
 
-那么我们试图改进，不再使用很简单的凭证。采用 JWT 有哪些立即见效的提升？
+我们正在尝试改进发送简单凭据的做法。那么采用 JWT 的直接改进有哪些？
 
-- <strong>安全性提升</strong>。基础认证中，你重复发送用户名和密码的 base64 编码（或 API 密钥），风险较高。使用 JWT 时，你发送用户名和密码换取一个令牌，该令牌有时间限制，过期即失效。JWT 容易实现基于角色、权限范围和授予的细粒度访问控制。
-- <strong>无状态和可扩展性</strong>。JWT 是自包含的，携带了所有用户信息，免去了服务器端会话存储需求。令牌也可以本地验证。
-- <strong>互通性和联合身份</strong>。JWT 是 Open ID Connect 的核心，常与已知身份提供商如 Entra ID、Google Identity 和 Auth0 配合使用。它也支持单点登录等企业级功能。
-- <strong>模块化和灵活性</strong>。JWT 可配合 Azure API 管理、NGINX 等 API 网关使用，也支持用户认证场景、服务器间通信，包括模拟和委托场景。
-- <strong>性能和缓存</strong>。JWT 解码后可缓存，减少重复解析开销，这对于高流量应用有助于提升吞吐量和减轻基础架构负载。
-- <strong>高级特性</strong>。支持 introspection（服务器端令牌有效性检查）和注销（令牌失效）。
+- <strong>安全改进</strong>。基本验证中，用户名和密码（或 API key）是反复 base64 编码发送的，风险较高。JWT 中，你先发送用户名和密码拿到一个令牌，且令牌有过期时间。JWT 方便使用基于角色、范围和权限的细粒度访问控制。
+- <strong>无状态和可扩展性</strong>。JWT 是自包含的，携带所有用户信息，无需服务器端会话存储。令牌能在本地验证。
+- <strong>互操作性和联合身份验证</strong>。JWT 是 Open ID Connect 的核心，用于 Entra ID、Google Identity、Auth0 等身份提供方，也支持单点登录等企业级功能。
+- <strong>模块化和灵活性</strong>。JWT 也可用于 API 网关如 Azure API Management、NGINX 等 ，支持用户认证和服务间通信场景，包括仿冒和委托。
+- <strong>性能和缓存</strong>。JWT 解码后可缓存，减少解析需求。对高流量应用来说，提高吞吐率，减轻基础设施负载。
+- <strong>高级特性</strong>。支持服务端有效性检查（introspection）和撤销（revocation）。
 
-综合这些好处，让我们看看如何将实现提升到下一个层级。
+有了这些好处，来看看我们如何将实现提升到新水平。
 
-## 将基础认证转成 JWT
+## 将基本身份验证转为 JWT
 
-概览我们需要做的改动：
+我们需要做的主要改动是：
 
-- **学会构造 JWT 令牌**，使其可用于客户端到服务器的传输。
-- **验证 JWT 令牌**，验过就允许客户端访问资源。
-- <strong>安全存储令牌</strong>。令牌应如何存储。
-- <strong>保护路由</strong>。需要保护路由和特定 MCP 功能。
-- <strong>添加刷新令牌</strong>。确保令牌有效期短，刷新令牌有效期长，便于续期，且要实现刷新接口和轮换策略。
+- **学习构造 JWT 令牌**，让它能从客户端发送到服务器。
+- **验证 JWT 令牌**，若有效，允许客户端访问资源。
+- <strong>安全存储令牌</strong>，我们如何存储令牌。
+- <strong>保护路由</strong>，保护路由和具体 MCP 功能。
+- <strong>添加刷新令牌</strong>，确保短期令牌加长效刷新令牌，支持获取新令牌，且有刷新端点和旋转策略。
 
 ### -1- 构造 JWT 令牌
 
-JWT 令牌由以下几部分组成：
+JWT 令牌包含以下部分：
 
-- **头部（header）**，算法和令牌类型。
-- **负载（payload）**，声明（claims），如 sub（令牌代表的用户或实体，通常是用户ID），exp（过期时间），角色等。
-- **签名（signature）**，使用密钥或私钥签名。
+- **header**，使用的算法和令牌类型。
+- **payload**，声明，如 sub（代表令牌的用户或实体，认证场景通常是用户 ID）、exp（过期时间）、role（角色）。
+- **signature**，使用秘密或私钥签名。
 
-我们需要构造头部、负载并生成编码令牌。
+我们需要构造 header、payload 并编码令牌。
 
 **Python**
 
@@ -538,7 +541,7 @@ header = {
 
 # 用户信息及其声明和过期时间
 payload = {
-    "sub": "1234567890",               # 主题（用户 ID）
+    "sub": "1234567890",               # 主题（用户ID）
     "name": "User Userson",                # 自定义声明
     "admin": True,                     # 自定义声明
     "iat": datetime.datetime.utcnow(),# 签发时间
@@ -549,16 +552,16 @@ payload = {
 encoded_jwt = jwt.encode(payload, secret_key, algorithm="HS256", headers=header)
 ```
 
-上面代码：
+以上代码：
 
-- 定义了头部，使用 HS256 算法，类型为 JWT。
-- 构造了负载，包含主题（用户 ID）、用户名、角色、签发时间和过期时间，实现了时间限定功能。
+- 定义了 header，算法是 HS256，类型是 JWT。
+- 构造了 payload，包含主题（用户 ID）、用户名、角色、签发时间和过期时间，实现了前面提到的时限特性。
 
 **TypeScript**
 
-这里我们需要一些依赖包来辅助构造 JWT 令牌。
+我们需要一些依赖库帮助构造 JWT 令牌。
 
-依赖项
+依赖
 
 ```sh
 
@@ -566,23 +569,23 @@ npm install jsonwebtoken
 npm install --save-dev @types/jsonwebtoken
 ```
 
-依赖就绪后，创建头部和负载，并生成编码令牌。
+有了依赖，创建 header 和 payload，然后生成编码令牌：
 
 ```typescript
 import jwt from 'jsonwebtoken';
 
 const secretKey = 'your-secret-key'; // 在生产环境中使用环境变量
 
-// 定义载荷
+// 定义负载
 const payload = {
   sub: '1234567890',
   name: 'User usersson',
   admin: true,
   iat: Math.floor(Date.now() / 1000), // 签发时间
-  exp: Math.floor(Date.now() / 1000) + 60 * 60 // 1 小时后过期
+  exp: Math.floor(Date.now() / 1000) + 60 * 60 // 1小时后过期
 };
 
-// 定义头部（可选，jsonwebtoken 设置默认值）
+// 定义头部（可选，jsonwebtoken 会设置默认值）
 const header = {
   alg: 'HS256',
   typ: 'JWT'
@@ -597,17 +600,17 @@ const token = jwt.sign(payload, secretKey, {
 console.log('JWT:', token);
 ```
 
-该令牌：
+令牌特征：
 
-使用 HS256 签名  
-有效期 1 小时  
-包含 sub、name、admin、iat 和 exp 等声明。
+使用 HS256 签名
+有效期 1 小时
+包含 sub、name、admin、iat、exp 等声明
 
 ### -2- 验证令牌
 
-服务器端需要验证令牌，确保客户端传来的令牌确实有效。验证内容包括结构及有效性。建议增添额外检查，比如确认用户存在且权限正确。
+我们还需验证令牌，这在服务器端完成，确保客户端传递的是有效的令牌。可做多项验证，包括结构和有效性检查，还建议检查用户是否在系统中等。
 
-验证令牌需先解码以读取内容，再检查有效性：
+验证令牌步骤是先解码，再开始校验有效性：
 
 **Python**
 
@@ -627,11 +630,12 @@ except InvalidTokenError as e:
 
 ```
 
-此处调用 `jwt.decode`，传入令牌、密钥和算法。用 try-catch 捕获异常，验证失败会触发异常。
+
+在这段代码中，我们调用 `jwt.decode`，使用 token、密钥和选定的算法作为输入。注意我们使用了 try-catch 结构，因为验证失败会导致抛出错误。
 
 **TypeScript**
 
-这里调用 `jwt.verify`，获取解码后的令牌信息并进一步分析。调用失败意味着令牌结构错误或已失效。
+这里我们需要调用 `jwt.verify` 来获取一个已解码的 token 版本，以便进一步分析。如果此调用失败，意味着 token 的结构不正确或者它已经无效。
 
 ```typescript
 
@@ -643,18 +647,19 @@ try {
 }
 ```
 
-注意：如前所述，应做更多检查，保证令牌指向系统中的用户，且用户拥有所声明的权限。
+注意：如前所述，我们应执行额外检查，确保此 token 指向我们系统中的某个用户，并确保该用户拥有它声称的权限。
 
-接下来，我们看看基于角色的访问控制（RBAC）。
+接下来，让我们来看一下基于角色的访问控制，也称为 RBAC。
+
 ## 添加基于角色的访问控制
 
-我们的想法是表达不同角色有不同的权限。例如，我们假设管理员可以做所有事情，普通用户可以读写，访客只能读取。因此，这里有一些可能的权限级别：
+其核心思想是为不同角色表达不同权限。例如，我们假设管理员拥有所有权限，普通用户拥有读写权限，访客只能读取权限。因此，这里列出一些可能的权限等级：
 
 - Admin.Write 
 - User.Read
 - Guest.Read
 
-让我们来看一下如何用中间件实现这样的控制。中间件可以针对每个路由添加，也可以为所有路由添加。
+下面我们看看如何通过中间件实现这种控制。中间件可以为单一路由添加，也可以为所有路由添加。
 
 **Python**
 
@@ -663,8 +668,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 import jwt
 
-# 不要在代码中包含秘密信息，这只是为了演示目的。请从安全的地方读取。
-SECRET_KEY = "your-secret-key" # 将此放入环境变量中
+# 不要像这样在代码中包含密钥，这仅用于演示目的。请从安全的位置读取它。
+SECRET_KEY = "your-secret-key" # 将其放入环境变量中
 REQUIRED_PERMISSION = "User.Read"
 
 class JWTPermissionMiddleware(BaseHTTPMiddleware):
@@ -691,25 +696,25 @@ class JWTPermissionMiddleware(BaseHTTPMiddleware):
 
 ```
 
-有几种不同的方法像下面这样添加中间件：
+有几种不同的方法来添加以下中间件：
 
 ```python
 
-# 方案1：在构建starlette应用时添加中间件
+# 选项 1：在构造 starlette 应用时添加中间件
 middleware = [
     Middleware(JWTPermissionMiddleware)
 ]
 
 app = Starlette(routes=routes, middleware=middleware)
 
-# 方案2：在starlette应用已构建后添加中间件
+# 选项 2：在 starlette 应用构造完成后添加中间件
 starlette_app.add_middleware(JWTPermissionMiddleware)
 
-# 方案3：针对每个路由添加中间件
+# 选项 3：为每个路由添加中间件
 routes = [
     Route(
         "/mcp",
-        endpoint=..., # 处理程序
+        endpoint=..., # 处理函数
         middleware=[Middleware(JWTPermissionMiddleware)]
     )
 ]
@@ -717,14 +722,14 @@ routes = [
 
 **TypeScript**
 
-我们可以使用 `app.use` 和一个会对所有请求运行的中间件。
+我们可以使用 `app.use` 来添加一个会对所有请求运行的中间件。
 
 ```typescript
 app.use((req, res, next) => {
     console.log('Request received:', req.method, req.url, req.headers);
     console.log('Headers:', req.headers["authorization"]);
 
-    // 1. 检查授权头是否已发送
+    // 1. 检查是否已发送授权头
 
     if(!req.headers["authorization"]) {
         res.status(401).send('Unauthorized');
@@ -760,11 +765,11 @@ app.use((req, res, next) => {
 
 ```
 
-我们的中间件可以做且应该做的事情有不少，主要包括：
+我们可以让中间件完成许多事情，并且中间件应该做的有：
 
-1. 检查是否存在授权头
-2. 检查令牌是否有效，我们调用了 `isValid`，这是我们编写的方法，用于检查 JWT 令牌的完整性和有效性。
-3. 验证用户在我们的系统中是否存在，我们应该检查这一点。
+1. 检查是否存在 authorization 头部
+2. 检查 token 是否有效，我们调用了 `isValid` 方法，这个方法用于检测 JWT token 的完整性和有效性。
+3. 验证用户是否存在于我们的系统中，我们应检查此项。
 
    ```typescript
     // 数据库中的用户
@@ -781,9 +786,9 @@ app.use((req, res, next) => {
    }
    ```
 
-   上面，我们创建了一个非常简单的 `users` 列表，当然它应该在数据库中。
+   上面，我们创建了一个非常简单的 `users` 列表，显然这应存储在数据库中。
 
-4. 另外，我们还应该检查令牌是否具有正确的权限。
+4. 此外，我们还应检查 token 是否拥有正确的权限。
 
    ```typescript
    if(!hasScopes(token, ["User.Read"])){
@@ -791,7 +796,7 @@ app.use((req, res, next) => {
    }
    ```
 
-   在上面中间件的代码中，我们检查令牌是否包含 User.Read 权限，如果没有，则发送 403 错误。下面是 `hasScopes` 辅助方法。
+   上面中间件的代码中，我们检查 token 是否包含 User.Read 权限，如果没有，则返回 403 错误。下面是 `hasScopes` 辅助方法。
 
    ```typescript
    function hasScopes(scope: string, requiredScopes: string[]) {
@@ -840,15 +845,15 @@ app.use((err, req, res, next) => {
 
 ```
 
-现在你已经看到中间件如何用于身份验证和授权，那么 MCP 呢？它会改变我们做身份验证的方式吗？让我们在下一节中了解。
+现在你已经看到中间件如何同时用于身份验证和授权，那么 MCP 呢，它是否改变了我们的认证方式？让我们在下一节找出答案。
 
-### -3- 给 MCP 添加 RBAC
+### -3- 向 MCP 添加 RBAC
 
-到目前为止你已经看到如何通过中间件添加 RBAC，然而对于 MCP，没有简单的方法添加针对每个 MCP 功能的 RBAC，那我们怎么办？其实很简单，我们只需添加类似以下代码，检查客户端是否有调用特定工具的权限：
+到目前为止你已经看到如何通过中间件添加 RBAC，然而对于 MCP，没有简单的方法添加每个 MCP 功能的 RBAC，那我们怎么办？我们只能添加这样的代码，检查客户端是否有权调用特定工具：
 
-你有几种实现每个功能 RBAC 的不同选择，以下是一些：
+你有几种不同选择来实现每个功能的 RBAC，下面是一些方式：
 
-- 针对你需要检查权限等级的每个工具、资源、提示添加检查。
+- 为每个需要检查权限级别的工具、资源、提示添加检查。
 
    **python**
 
@@ -858,7 +863,7 @@ app.use((err, req, res, next) => {
       try:
           check_permissions(role="Admin.Write", request)
       catch:
-        pass # 客户端授权失败，引发授权错误
+        pass # 客户端授权失败，抛出授权错误
    ```
 
    **typescript**
@@ -888,7 +893,7 @@ app.use((err, req, res, next) => {
    ```
 
 
-- 使用高级服务器方法和请求处理程序，这样你就能最小化需要做权限检查的位置数量。
+- 使用高级服务器方法和请求处理函数，尽量减少需要检查权限的地方数量。
 
    **Python**
 
@@ -912,7 +917,7 @@ app.use((err, req, res, next) => {
      user_permissions = request.user.permissions
      required_permissions = tool_permission.get(name, [])
      if not has_permission(user_permissions, required_permissions):
-        # 抛出错误 "您没有调用工具 {name} 的权限"
+        # 抛出错误 "您没有权限调用工具 {name}"
         raise Exception(f"You don't have permission to call tool {name}")
      # 继续并调用工具
      # ...
@@ -924,7 +929,7 @@ app.use((err, req, res, next) => {
    ```typescript
    function hasPermission(userPermissions: string[], requiredPermissions: string[]): boolean {
        if (!Array.isArray(userPermissions) || !Array.isArray(requiredPermissions)) return false;
-       // 如果用户至少拥有一个所需的权限，则返回true
+       // 如果用户至少拥有一个所需权限，则返回真
        
        return requiredPermissions.some(perm => userPermissions.includes(perm));
    }
@@ -942,49 +947,49 @@ app.use((err, req, res, next) => {
    });
    ```
 
-   注意，你需要确保你的中间件将解码后的令牌赋值给请求的 user 属性，这样上面的代码才会很简单。
+   注意，你需要确保中间件将解码的 token 分配给请求的 user 属性，这样上述代码才能简化。
 
 ### 总结
 
-现在我们讨论了如何一般性地支持 RBAC，以及如何为 MCP 实际添加 RBAC，是时候尝试自己实现安全功能以确保掌握了介绍的概念。
+现在我们讨论了如何一般性地添加 RBAC 支持，尤其是针对 MCP，接下来是自己动手实现安全机制，确保你理解所讲的概念。
 
-## 练习 1：使用基本身份验证构建 mcp 服务器和 mcp 客户端
+## 任务 1：使用基础认证构建 MCP 服务器和 MCP 客户端
 
-这里你将运用你所学的通过请求头发送凭证的知识。
+这里你将使用之前学到的通过头部发送凭据的知识。
 
-## 方案 1
+## 解决方案 1
 
-[方案 1](./code/basic/README.md)
+[解决方案 1](./code/basic/README.md)
 
-## 练习 2：将练习 1 的方案升级为使用 JWT
+## 任务 2：升级任务 1 的解决方案使用 JWT
 
-基于第一个方案，但这次让我们改进它。
+采用第一个解决方案，但这次我们来改进它。
 
-不使用基本身份验证，改用 JWT。
+不再使用基础认证，而是使用 JWT。
 
-## 方案 2
+## 解决方案 2
 
-[方案 2](./solution/jwt-solution/README.md)
+[解决方案 2](./solution/jwt-solution/README.md)
 
 ## 挑战
 
-为我们在“给 MCP 添加 RBAC”章节中描述的每个工具添加 RBAC。
+根据“向 MCP 添加 RBAC”章节描述，为每个工具添加 RBAC。
 
 ## 总结
 
-希望你在本章学到了很多内容，从没有安全，到基础安全，再到 JWT 及其如何集成到 MCP 中。
+希望你在本章学到了很多，从没有安全，到基础安全，再到 JWT 以及如何将其添加到 MCP。
 
-我们已经建立了用自定义 JWT 的坚实基础，但随着规模扩大，我们正在向基于标准的身份模型迈进。采用像 Entra 或 Keycloak 这样的身份提供商(IdP)，让我们能将令牌的颁发、验证和生命周期管理托管给可信平台——这样我们就可以专注于应用逻辑和用户体验。
+我们已经用自定义 JWT 建立了坚实的基础，但随着规模增长，我们正向基于标准的身份模型转变。采用像 Entra 或 Keycloak 这样的 IdP，可以将令牌的签发、验证和生命周期管理交由可信平台处理 —— 让我们可以专注于应用逻辑和用户体验。
 
-为此，我们有一章更[高级的关于 Entra 的内容](../../05-AdvancedTopics/mcp-security-entra/README.md)
+为此，我们准备了更[高级的 Entra 章节](../../05-AdvancedTopics/mcp-security-entra/README.md)
 
-## 接下来
+## 接下来是什么
 
-- 下一篇：[设置 MCP 主机](../12-mcp-hosts/README.md)
+- 下一步：[设置 MCP 主机](../12-mcp-hosts/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**免责声明**：  
-本文件已通过 AI 翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻译完成。虽然我们力求准确，但请注意自动翻译可能存在错误或不准确之处。原始语言版本的文件应被视为权威来源。对于关键信息，建议使用专业人工翻译。我们不对因使用本翻译而产生的任何误解或误释承担责任。
+**免责声明**：
+本文件由 AI 翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻译完成。尽管我们力求准确，但请注意，自动翻译可能包含错误或不准确之处。原始语言版文件应视为权威来源。对于重要信息，建议使用专业人工翻译。我们对因使用本翻译而产生的任何误解或误释不承担责任。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

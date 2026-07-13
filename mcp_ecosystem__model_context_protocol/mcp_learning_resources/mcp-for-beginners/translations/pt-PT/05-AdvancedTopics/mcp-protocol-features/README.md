@@ -1,21 +1,23 @@
 # Análise Detalhada das Funcionalidades do Protocolo MCP
 
-Este guia explora funcionalidades avançadas do protocolo MCP que vão além do manuseio básico de ferramentas e recursos. Compreender estas funcionalidades ajuda-o a construir servidores MCP mais robustos, fáceis de usar e prontos para produção.
+Este guia explora funcionalidades avançadas do protocolo MCP que vão além do manuseamento básico de ferramentas e recursos. Compreender estas funcionalidades ajuda a construir servidores MCP mais robustos, fáceis de usar e prontos para produção.
+
+> **Perspetiva futura:** o candidato a lançamento `2026-07-28` descontinua a primitiva de Logging (favorecendo `stderr` para stdio e OpenTelemetry para observabilidade estruturada), elimina o modelo `initialize`/sessão referido nos Eventos de Ciclo de Vida do Servidor abaixo, e move a funcionalidade experimental de Tarefas para uma extensão dedicada de Tarefas com um novo ciclo de vida `tasks/get`/`tasks/update`/`tasks/cancel`. Veja [O Que Está a Mudar no MCP: O Candidato a Lançamento 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
 ## Funcionalidades Abordadas
 
-1. **Notificações de Progresso** - Reportar progresso para operações de longa duração
-2. **Cancelamento de Requisições** - Permitir que clientes cancelem pedidos em curso
-3. **Modelos de Recursos** - URIs de recursos dinâmicos com parâmetros
+1. **Notificações de Progresso** - Reportar progresso para operações demoradas
+2. **Cancelamento de Requisições** - Permitir que os clientes cancelem requisições em andamento
+3. **Modelos de Recursos** - URIs dinâmicos de recursos com parâmetros
 4. **Eventos do Ciclo de Vida do Servidor** - Inicialização e encerramento adequados
-5. **Controlo de Log** - Configuração de registo do lado do servidor
-6. **Padrões de Manipulação de Erros** - Respostas de erro consistentes
+5. **Controlo de Logging** - Configuração de logging do lado do servidor
+6. **Padrões de Tratamento de Erros** - Respostas de erro consistentes
 
 ---
 
 ## 1. Notificações de Progresso
 
-Para operações que demoram (processamento de dados, downloads de ficheiros, chamadas API), as notificações de progresso mantêm os utilizadores informados.
+Para operações que demoram (processamento de dados, downloads de ficheiros, chamadas de API), as notificações de progresso mantêm os utilizadores informados.
 
 ### Como Funciona
 
@@ -30,6 +32,7 @@ sequenceDiagram
     Server-->>Client: notificação: progresso 90%
     Server->>Client: resultado (completo)
 ```
+
 ### Implementação em Python
 
 ```python
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### Manipulação no Cliente (Python)
+### Manuseamento pelo Cliente (Python)
 
 ```python
 async def handle_progress(notification):
@@ -134,7 +137,7 @@ async def handle_progress(notification):
 # Registar manipulador
 session.on_notification("notifications/progress", handle_progress)
 
-# Chamar ferramenta (as atualizações de progresso chegarão através do manipulador)
+# Chamar ferramenta (atualizações de progresso chegarão via manipulador)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
@@ -142,7 +145,7 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. Cancelamento de Requisições
 
-Permite que clientes cancelem pedidos que já não são necessários ou que estão a demorar demasiado.
+Permita que clientes cancelem requisições que já não são necessárias ou que estão a demorar demasiado.
 
 ### Implementação em Python
 
@@ -160,8 +163,8 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Pesquisar em várias páginas
-            # Verificar se foi solicitada a cancelamento
+        for page in range(100):  # Pesquisar por várias páginas
+            # Verificar se foi solicitado cancelamento
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # Tempo limite normal, continuar
+            pass  # Timeout normal, continuar
 ```
 
-### Cancelamento do Lado do Cliente
+### Cancelamento pelo Lado do Cliente
 
 ```python
 import asyncio
@@ -262,9 +265,9 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Modelos de Recursos
 
-Os modelos de recursos permitem a construção dinâmica de URIs com parâmetros, úteis para APIs e bases de dados.
+Os modelos de recursos permitem construção dinâmica de URIs com parâmetros, útil para APIs e bases de dados.
 
-### Definindo Modelos
+### Definição de Modelos
 
 ```python
 from mcp.server import Server
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Analisar URI de problema do GitHub
+  // Analisar URI de issue do GitHub
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. Eventos do Ciclo de Vida do Servidor
 
-O tratamento adequado da inicialização e encerramento assegura uma gestão limpa dos recursos.
+O manuseamento adequado da inicialização e encerramento garante uma gestão limpa de recursos.
 
 ### Gestão do Ciclo de Vida em Python
 
@@ -383,13 +386,13 @@ async def lifespan(server: Server):
     """Manage server lifecycle."""
     global db_connection, cache
     
-    # Inicialização
+    # Arranque
     print("🚀 Server starting...")
     db_connection = await create_database_connection()
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # O servidor corre aqui
+    yield  # O servidor funciona aqui
     
     # Encerramento
     print("🛑 Server shutting down...")
@@ -446,7 +449,7 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // Usar esta.dbConnection com segurança
+      // Usar this.dbConnection com segurança
       // ...
     });
   }
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. Controlo de Log
+## 5. Controlo de Logging
 
-O MCP suporta níveis de registo do lado do servidor que os clientes podem controlar.
+O MCP suporta níveis de logging do lado do servidor que podem ser controlados pelos clientes.
 
-### Implementação dos Níveis de Registo
+### Implementação de Níveis de Logging
 
 ```python
 from mcp.server import Server
@@ -516,13 +519,13 @@ async def debug_operation(data: str) -> str:
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Enviar notificação de registo para o cliente
+    # Enviar notificação de log para o cliente
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Fazer trabalho...
+    # Executar trabalho...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. Padrões de Manipulação de Erros
+## 6. Padrões de Tratamento de Erros
 
-A manipulação consistente de erros melhora a depuração e a experiência do utilizador.
+Um tratamento consistente de erros melhora a depuração e a experiência do utilizador.
 
 ### Códigos de Erro MCP
 
@@ -569,7 +572,7 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### Respostas de Erro Estruturadas
+### Respostas Estruturadas de Erro
 
 ```python
 @app.tool()
@@ -606,7 +609,7 @@ async def safe_operation(input: str) -> str:
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### Manipulação de Erros em TypeScript
+### Tratamento de Erros em TypeScript
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -655,7 +658,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## Funcionalidades Experimentais (MCP 2025-11-25)
 
-Estas funcionalidades estão assinaladas como experimentais na especificação:
+Estas funcionalidades estão marcadas como experimentais na especificação:
 
 ### Tarefas (Operações de Longa Duração)
 
@@ -665,7 +668,7 @@ Estas funcionalidades estão assinaladas como experimentais na especificação:
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Relatar tarefa iniciada
+    # Relatar início da tarefa
     await ctx.report_status("running", "Initializing training...")
     
     # Ciclo de treino
@@ -688,7 +691,7 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
 # As anotações fornecem metadados sobre o comportamento da ferramenta
 @app.tool(
     annotations={
-        "destructive": False,      # Não modifica dados
+        "destructive": False,      # Não modifica os dados
         "idempotent": True,        # Seguro para tentar novamente
         "timeout_seconds": 30,     # Duração máxima esperada
         "requires_approval": False # Não é necessária aprovação do utilizador
@@ -701,10 +704,10 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## Próximos Passos
+## O Que Segue
 
-- [Módulo 8 - Boas Práticas](../../08-BestPractices/README.md)
-- [5.14 - Engenharia de Contexto](../mcp-contextengineering/README.md)
+- [Módulo 8 - Melhores Práticas](../../08-BestPractices/README.md)
+- [5.14 - Engenharia de Contextos](../mcp-contextengineering/README.md)
 - [Registo de Alterações da Especificação MCP](https://spec.modelcontextprotocol.io/)
 
 ---
@@ -719,6 +722,6 @@ async def safe_query(query: str) -> str:
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Aviso Legal**:  
-Este documento foi traduzido utilizando o serviço de tradução por IA [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos por garantir a precisão, tenha em atenção que traduções automáticas podem conter erros ou imprecisões. O documento original na sua língua nativa deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se a tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações erradas decorrentes do uso desta tradução.
+**Aviso Legal**:
+Este documento foi traduzido utilizando o serviço de tradução automática [Co-op Translator](https://github.com/Azure/co-op-translator). Embora nos esforcemos pela precisão, esteja ciente de que traduções automáticas podem conter erros ou imprecisões. O documento original na sua língua nativa deve ser considerado a fonte autorizada. Para informações críticas, recomenda-se tradução profissional humana. Não nos responsabilizamos por quaisquer mal-entendidos ou interpretações incorretas resultantes da utilização desta tradução.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

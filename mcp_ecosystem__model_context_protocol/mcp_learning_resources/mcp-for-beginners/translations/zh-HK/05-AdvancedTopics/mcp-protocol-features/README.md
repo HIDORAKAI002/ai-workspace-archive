@@ -1,35 +1,38 @@
-# MCP 協議功能深度探討
+# MCP 協議功能深入探討
 
-本指南探討 MCP 協議中超越基本工具和資源處理的進階功能。了解這些功能有助於您構建更穩健、使用者友好且適合生產環境的 MCP 伺服器。
+本指南探討超越基本工具和資源處理的進階 MCP 協議功能。了解這些功能可幫助您構建更強大、使用者友好且適合生產環境的 MCP 伺服器。
 
-## 涵蓋的功能
+> **前瞻:** `2026-07-28` 發行候選版本將棄用 Logging 基元（改用 `stderr` 作為標準輸入輸出，並使用 OpenTelemetry 進行結構化觀察），移除下文伺服器生命週期事件中提到的 `initialize`/session 模型，並將實驗性 Tasks 功能移入專門的 Tasks 擴展，該擴展帶有新的 `tasks/get`/`tasks/update`/`tasks/cancel` 生命週期。詳見 [MCP 的變更: 2026-07-28 發行候選版本](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
 
-1. **進度通知** - 報告長時間運行操作的進度
-2. **請求取消** - 允許客戶端取消正在進行的請求
-3. **資源模板** - 可帶參數的動態資源 URI
-4. **伺服器生命週期事件** - 妥善的初始化與關閉
-5. **日誌控制** - 伺服器端日誌配置
-6. **錯誤處理模式** - 一致的錯誤回應
+## 涵蓋功能
+
+1. <strong>進度通知</strong> - 報告長時間運行操作的進度
+2. <strong>請求取消</strong> - 允許客戶端取消正在進行的請求
+3. <strong>資源範本</strong> - 使用參數的動態資源 URI
+4. <strong>伺服器生命週期事件</strong> - 合理的初始化與關閉
+5. <strong>日誌控制</strong> - 伺服器端日誌配置
+6. <strong>錯誤處理範式</strong> - 一致的錯誤回應
 
 ---
 
 ## 1. 進度通知
 
-針對需要時間的操作（資料處理、文件下載、API 調用），進度通知可讓使用者持續了解狀態。
+對於需要時間的操作（資料處理、檔案下載、API 調用），進度通知可讓用戶保持知悉狀態。
 
-### 運作原理
+### 運作方式
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call（長操作）
+    Client->>Server: tools/call（長時間操作）
     Server-->>Client: 通知：進度 10%
     Server-->>Client: 通知：進度 50%
     Server-->>Client: 通知：進度 90%
     Server->>Client: 結果（完成）
 ```
+
 ### Python 實作
 
 ```python
@@ -49,7 +52,7 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # 處理數據塊
+            # 處理區塊
             await process_chunk(chunk)
             processed += len(chunk)
             
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # 每處理一項後報告進度
+        # 每處理一個項目後報告進度
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### 客戶端處理（Python）
+### 客戶端處理 (Python)
 
 ```python
 async def handle_progress(notification):
@@ -134,7 +137,7 @@ async def handle_progress(notification):
 # 註冊處理器
 session.on_notification("notifications/progress", handle_progress)
 
-# 呼叫工具（進度更新將透過處理器發出）
+# 調用工具（進度更新將通過處理器接收）
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
@@ -142,7 +145,7 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. 請求取消
 
-允許客戶端取消不再需要或執行時間過長的請求。
+允許客戶端取消不再需要或耗時過長的請求。
 
 ### Python 實作
 
@@ -160,20 +163,20 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # 透過多個頁面搜尋
-            # 檢查是否要求取消
+        for page in range(100):  # 搜索多個頁面
+            # 檢查是否有取消請求
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # 模擬頁面搜尋
+            # 模擬頁面搜索
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # 小延遲允許檢查取消
+            # 小延遲允許取消檢查
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # 回傳部分結果
+        # 返回部分結果
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # 正常超時，繼續
 ```
 
-### 客戶端端取消
+### 客戶端取消
 
 ```python
 import asyncio
@@ -260,11 +263,11 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. 資源模板
+## 3. 資源範本
 
-資源模板允許帶參數的動態 URI 建構，適用於 API 與資料庫。
+資源範本允許透過參數動態構造 URI，對 API 和資料庫非常實用。
 
-### 定義模板
+### 定義範本
 
 ```python
 from mcp.server import Server
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // 解析 GitHub 問題 URI
+  // 解析 GitHub issue URI
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. 伺服器生命週期事件
 
-妥善的初始化與關閉機制確保資源管理乾淨。
+合理的初始化和關閉處理確保乾淨的資源管理。
 
 ### Python 生命週期管理
 
@@ -389,7 +392,7 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # 伺服器在這裡運行
+    yield  # 伺服器於此運行
     
     # 關閉
     print("🛑 Server shutting down...")
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript 生命週期
+### TypeScript 的生命週期
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -452,7 +455,7 @@ class ManagedServer {
   }
 }
 
-// 用於優雅關機的用法
+// 用於優雅關閉的使用方式
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## 5. 日誌控制
 
-MCP 支援伺服器端日誌層級，且可由客戶端控制。
+MCP 支援伺服器端的日誌等級，且可由客戶端控制。
 
-### 實作日誌層級
+### 實作日誌等級
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# 將 MCP 級別映射到 Python 日誌級別
+# 將 MCP 級別映射到 Python 記錄級別
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,20 +512,20 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### 傳送日誌訊息給客戶端
+### 發送日誌訊息至客戶端
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # 向客戶端發送日誌通知
+    # 發送日誌通知到客戶端
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # 進行工作...
+    # 做工作...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. 錯誤處理模式
+## 6. 錯誤處理範式
 
-一致的錯誤處理提升除錯效率與使用者體驗。
+一致的錯誤處理提升除錯與使用者體驗。
 
 ### MCP 錯誤代碼
 
@@ -601,7 +604,7 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # 紀錄意外錯誤
+        # 記錄意外錯誤
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // 需要更多驗證...
+  // 更多驗證...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -655,17 +658,17 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## 實驗性功能 (MCP 2025-11-25)
 
-這些功能在規範中標記為實驗性：
+這些功能在規範中標示為實驗性：
 
-### 任務（長時間運行的操作）
+### Tasks（長時間運行操作）
 
 ```python
-# 任務允許跟蹤具有狀態的長時間運行操作
+# 任務允許追蹤具有狀態的長時間運作
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # 報告任務已開始
+    # 報告任務開始
     await ctx.report_status("running", "Initializing training...")
     
     # 訓練迴圈
@@ -685,13 +688,13 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
 ### 工具註解
 
 ```python
-# 註解提供關於工具行為的元數據
+# 註釋提供有關工具行為的元數據
 @app.tool(
     annotations={
-        "destructive": False,      # 不會更改數據
-        "idempotent": True,        # 可以安全重試
-        "timeout_seconds": 30,     # 預期的最大持續時間
-        "requires_approval": False # 無需用戶批准
+        "destructive": False,      # 不會修改數據
+        "idempotent": True,        # 可安全重試
+        "timeout_seconds": 30,     # 預期最長持續時間
+        "requires_approval": False # 不需要用戶批准
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,9 +704,9 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## 接下來
+## 下一步
 
-- [模組 8 - 最佳實務](../../08-BestPractices/README.md)
+- [模組 8 - 最佳實踐](../../08-BestPractices/README.md)
 - [5.14 - 上下文工程](../mcp-contextengineering/README.md)
 - [MCP 規範變更日誌](https://spec.modelcontextprotocol.io/)
 
@@ -719,6 +722,6 @@ async def safe_query(query: str) -> str:
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**免責聲明**：  
-本文件乃使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們致力於翻譯準確，但請注意，自動翻譯可能包含錯誤或不準確之處。原文件之母語版本應視為權威資料。對於重要資訊，建議聘請專業人工翻譯。我們不對因使用本翻譯而產生之任何誤解或誤釋承擔責任。
+**免責聲明**：
+本文件由 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻譯而成。雖然我們致力於確保準確性，但請注意，機器自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議進行專業人工翻譯。我們不對因使用本翻譯而產生的任何誤解或誤釋承擔責任。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

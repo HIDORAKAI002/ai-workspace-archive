@@ -1,3 +1,5 @@
+> [DEPRECATED: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
+
 # Sampling - delegate features to the Client
 
 > **Deprecation notice:** the `2026-07-28` MCP specification release candidate marks Sampling as deprecated in favor of direct integration with LLM provider APIs. Sampling continues to work in `2025-11-25` and for at least a year after any formal deprecation, so everything in this lesson remains valid — but new server designs should evaluate the replacement pattern. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).

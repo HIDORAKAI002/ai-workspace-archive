@@ -1,21 +1,23 @@
-# MCP ਪ੍ਰੋਟੋਕੋਲ ਫੀਚਰ ਡੂੰਘਾਈ ਨਾਲ ਸਮਝਣਾ
+# MCP ਪ੍ਰੋਟੋਕੋਲ ਫੀਚਰਾਂ ਦੀ ਡੂੰਘੀ ਛਾਣਬੀਨ
 
-ਇਹ ਗਾਈਡ ਬੁਨਿਆਦੀ ਟੂਲ ਅਤੇ ਸਾਧਨ ਸੰਭਾਲ ਤੋਂ ਅੱਗੇ ਜਾਣ ਵਾਲੇ ਉन्नਤ MCP ਪ੍ਰੋਟੋਕੋਲ ਫੀਚਰਾਂ ਦੀ ਜਾਂਚ ਕਰਦੀ ਹੈ। ਇਹ ਫੀਚਰ ਸਮਝਨਾ ਤੁਹਾਨੂੰ ਹੋਰ ਮਜ਼ਬੂਤ, ਉਪਭੋਗਤਾ-ਮਿੱਤਰ ਅਤੇ ਉਤਪਾਦਨ-ਤਿਆਰ MCP ਸਰਵਰ ਬਣਾਉਣ ਵਿੱਚ ਮਦਦ ਕਰਦਾ ਹੈ।
+ਇਹ ਗਾਈਡ ਬੁਨਿਆਦੀ ਟੂਲ ਅਤੇ ਸਾਂਧਨ ਸੰਭਾਲ ਤੋਂ ਉਪਰਲੇ ਉੱਨਤ MCP ਪ੍ਰੋਟੋਕੋਲ ਫੀਚਰਾਂ ਦੀ ਸਮੀਖਿਆ ਕਰਦੀ ਹੈ। ਇਹਨਾਂ ਫੀਚਰਾਂ ਨੂੰ ਸਮਝਣ ਨਾਲ ਤੁਸੀਂ ਵਧੇਰੇ ਮਜ਼ਬੂਤ, ਉਪਯੋਗਕਰਤਾ-ਮਿੱਤਰ ਅਤੇ ਉਤਪਾਦਨ-ਤਿਆਰ MCP ਸਰਵਰ ਬਣਾਉਣ ਵਿੱਚ ਸਹਾਇਤਾ ਪ੍ਰਾਪਤ ਕਰੋਂਗੇ।
 
-## ਫੀਚਰ ਕਵਰ ਕੀਤੇ ਗਏ
+> **ਅੱਗੇ ਦੇਖਦੇ ਹੋਏ:** `2026-07-28` ਰਿਲੀਜ਼ ਕੈਂਡੀਡੇਟ Logging ਪ੍ਰਮਿਤਿਵ ਨੂੰ ਹਟਾਂਦਾ ਹੈ (stdio ਲਈ `stderr` ਅਤੇ ਸੰਰਚਿਤ ਨਜ਼ਰਦੀ ਲਈ OpenTelemetry ਨੂੰ ਤਰਜੀਹ ਦਿੰਦੇ ਹੋਏ), ਹੇਠਾਂ ਦਿੱਤੇ Server Lifecycle Events ਵਿੱਚ ਜ਼ਿਕਰ ਕੀਤੇ `initialize`/ਸੈਸ਼ਨ ਮਾਡਲ ਨੂੰ ਹਟਾਂਦਾ ਹੈ, ਅਤੇ ਪ੍ਰਯੋਗਾਤਮਕ Tasks ਫੀਚਰ ਨੂੰ ਇੱਕ ਨਵੇਂ `tasks/get`/`tasks/update`/`tasks/cancel` ਜੀਵਨਚੱਕਰ ਵਾਲੇ Tasks ਐਕਸਟੈਂਸ਼ਨ ਵਿੱਚ ਸ਼ਾਮਲ ਕਰਦਾ ਹੈ। ਵੇਖੋ [MCP ਵਿੱਚ ਕੀ ਬਦਲ ਰਿਹਾ ਹੈ: 2026-07-28 ਰਿਲੀਜ਼ ਕੈਂਡੀਡੇਟ](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)।
 
-1. **ਪ੍ਰੋਗਰੈੱਸ ਸੂਚਨਾਵਾਂ** - ਲੰਬੇ ਸਮੇਂ ਚੱਲ ਰਹੀਆਂ ਕਾਰਵਾਈਆਂ ਲਈ ਪ੍ਰਗਤੀ ਦੀ ਸੂਚਨਾ ਦਿਓ
-2. **ਬੇਨਤੀ ਰੱਦਗੀ** - ਕਲਾਇੰਟਾਂ ਨੂੰ ਚੱਲ ਰਹੀਆਂ ਬੇਨਤੀਆਂ ਰੱਦ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿਓ
-3. **ਸਾਧਨ ਟੈਮਪਲੇਟਸ** - ਪੈਰਾਮੀਟਰਾਂ ਨਾਲ ਗਤੀਸ਼ੀਲ ਸਾਧਨ URI
-4. **ਸਰਵਰ ਲਾਈਫਸਾਈਕਲ ਇਵੈਂਟਸ** - ਢੰਗ ਨਾਲ ਸ਼ੁਰੂਅਾਤ ਅਤੇ ਬੰਦ ਕਰੋ
-5. **ਲੌਗਿੰਗ ਕੰਟਰੋਲ** - ਸਰਵਰ-ਪਾਸੇ ਲੌਗਿੰਗ ਸੰਰਚਨਾ
-6. **ਗਲਤੀ ਸੰਭਾਲਣ ਦੇ ਨਮੂਨੇ** - ਇਕਸਾਰ ਗਲਤੀ ਜਵਾਬ
+## ਕਵਰ ਕੀਤੇ ਫੀਚਰ
+
+1. **ਪ੍ਰਗਤੀ ਸੂਚਨਾਵਾਂ** - ਲੰਬੇ ਸਮੇਂ ਚੱਲ ਰਹੀਆਂ ਕਾਰਵਾਈਆਂ ਦੀ ਪ੍ਰਗਤੀ ਦੀ ਰਿਪੋਰਟਿੰਗ
+2. **ਰੀਕਵੇਸਟ ਰੱਦਗੀ** - ਕਲੀਐਂਟਾਂ ਨੂੰ ਚਾਲੂ ਰੀਕਵੇਸਟਾਂ ਨੂੰ ਰੱਦ ਕਰਨ ਦੀ ਆਗਿਆ
+3. **ਸਰੋਤ ਟੈਮਪਲੇਟ** - ਪੈਰਾਮੀਟਰਾਂ ਨਾਲ ਗਤੀਸ਼ੀਲ ਸਰੋਤ URI
+4. **ਸਰਵਰ ਜੀਵਨ ਚੱਕਰ ਘਟਨਾਵਾਂ** - ਸਹੀ ਸ਼ੁਰੂਆਤ ਅਤੇ ਬੰਦ
+5. **ਲੌਗਿੰਗ ਨਿਯੰਤਰਣ** - ਸਰਵਰ-ਪਾਸੇ ਲੌਗਿੰਗ ਸੰਰਚਨਾ
+6. **ਤ੍ਰੁੱਟੀ ਸੰਭਾਲ ਪੈਟਰਨ** - ਲਗਾਤਾਰ ਤ੍ਰੁੱਟੀ ਜਵਾਬ
 
 ---
 
-## 1. ਪ੍ਰੋਗਰੈੱਸ ਸੂਚਨਾਵਾਂ
+## 1. ਪ੍ਰਗਤੀ ਸੂਚਨਾਵਾਂ
 
-ਜੇਕਰ ਕਾਰਵਾਈਆਂ ਵਿੱਚ ਸਮਾਂ ਲੱਗਦਾ ਹੈ (ਡਾਟਾ ਪ੍ਰੋਸੈਸਿੰਗ, ਫਾਇਲ ਡਾਊਨਲੋਡ, API ਕਾਲ), ਤਾਂ ਪ੍ਰੋਗਰੈੱਸ ਸੂਚਨਾਵਾਂ ਉਪਭੋਗਤਾਵਾਂ ਨੂੰ ਜਾਣੂ ਰੱਖਦੀਆਂ ਹਨ।
+ਜਿਨ੍ਹਾਂ ਕਾਰਵਾਈਆਂ ਵਿੱਚ ਸਮਾਂ ਲੱਗਦਾ ਹੈ (ਡਾਟਾ ਪ੍ਰੋਸੈਸਿੰਗ, ਫਾਇਲ ਡਾਊਨਲੋਡ, API ਕਾਲ), ਪ੍ਰਗਤੀ ਸੂਚਨਾਵਾਂ ਉਪਭੋਗਤਾਵਾਂ ਨੂੰ ਜਾਣੂ ਰੱਖਦੀਆਂ ਹਨ।
 
 ### ਇਹ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ
 
@@ -24,13 +26,14 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (ਲੰਮਾ ਆਪ੍ਰੇਸ਼ਨ)
+    Client->>Server: ਸੰਦ/ਕਾਲ (ਲੰਮਾ ਓਪਰੇਸ਼ਨ)
     Server-->>Client: ਸੂਚਨਾ: ਪ੍ਰਗਤੀ 10%
     Server-->>Client: ਸੂਚਨਾ: ਪ੍ਰਗਤੀ 50%
     Server-->>Client: ਸੂਚਨਾ: ਪ੍ਰਗਤੀ 90%
     Server->>Client: ਨਤੀਜਾ (ਪੂਰਾ)
 ```
-### Python ਇੰਪਲੀਮੈਂਟੇਸ਼ਨ
+
+### ਪਾਈਥਨ ਲਾਗੂ ਕਰਨ
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -43,7 +46,7 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # ਪ੍ਰਗਤੀ ਗਣਨਾ ਲਈ ਫਾਇਲ ਦਾ ਆਕਾਰ ਪ੍ਰਾਪਤ ਕਰੋ
+    # ਪ੍ਰਗਤੀ ਦੀ ਗਿਣਤੀ ਲਈ ਫਾਇਲ ਦਾ ਆਕਾਰ ਪ੍ਰਾਪਤ ਕਰੋ
     file_size = os.path.getsize(file_path)
     processed = 0
     
@@ -53,7 +56,7 @@ async def process_large_file(file_path: str, ctx) -> str:
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # ਪ੍ਰਗਤੀ ਸੂਚਨਾ ਭੇਜੋ
+            # ਪ੍ਰਗਤੀ ਦੀ ਸੂਚਨਾ ਭੇਜੋ
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # ਹਰ ਇਕ ਆਈਟਮ ਤੋਂ ਬਾਅਦ ਪ੍ਰਗਤੀ ਦੀ ਰਿਪੋਰਟ ਕਰੋ
+        # ਹਰ ਆਈਟਮ ਦੇ ਬਾਅਦ ਪ੍ਰਗਤੀ ਦੀ ਰਿਪੋਰਟ ਕਰੋ
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### TypeScript ਇੰਪਲੀਮੈਂਟੇਸ਼ਨ
+### ਟਾਈਪਸਕ੍ਰਿਪਟ ਲਾਗੂ ਕਰਨ
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### ਕਲਾਇੰਟ ਸੰਭਾਲ (Python)
+### ਕਲੀਐਂਟ ਸੰਭਾਲ (ਪਾਈਥਨ)
 
 ```python
 async def handle_progress(notification):
@@ -134,17 +137,17 @@ async def handle_progress(notification):
 # ਹੈਂਡਲਰ ਰਜਿਸਟਰ ਕਰੋ
 session.on_notification("notifications/progress", handle_progress)
 
-# ਟੂਲ ਕਾਲ ਕਰੋ (ਪ੍ਰਗਤੀ ਅਪਡੇਟ ਹਨਡਲਰ ਰਾਹੀਂ ਆਈਂਗੇ)
+# ਟੂਲ ਨੂੰ ਕਾਲ ਕਰੋ (ਪ੍ਰਗਤੀ ਅੱਪਡੇਟ ਹੈਂਡਲਰ ਰਾਹੀਂ ਮਿਲਣਗੇ)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. ਬੇਨਤੀ ਰੱਦਗੀ
+## 2. ਰੀਕਵੇਸਟ ਰੱਦਗੀ
 
-ਕਲਾਇੰਟਾਂ ਨੂੰ ਉਹਨਾਂ ਬੇਨਤੀਆਂ ਨੂੰ ਰੱਦ ਕਰਨ ਦਿਓ ਜੋ ਹੁਣ ਲੋੜੀਂਦੀਆਂ ਨਹੀਂ ਜਾਂ ਜ਼ਿਆਦਾ ਸਮਾਂ ਲੈ ਰਹੀਆਂ ਹਨ।
+ਕਲੀਐਂਟਾਂ ਨੂੰ ਉਹ ਰੀਕਵੇਸਟ ਰੱਦ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿਓ ਜੋ ਹੁਣ ਲੋੜੀਂਦੇ ਨਹੀਂ ਰਹੇ ਜਾਂ ਬਹੁਤ ਜ਼ਿਆਦਾ ਸਮਾਂ ਲੈ ਰਹੇ ਹਨ।
 
-### Python ਇੰਪਲੀਮੈਂਟੇਸ਼ਨ
+### ਪਾਈਥਨ ਲਾਗੂ ਕਰਨ
 
 ```python
 from mcp.server import Server
@@ -160,20 +163,20 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # ਬਹੁਤ ਸਾਰੀਆਂ ਪੰਨਿਆਂ ਵਿੱਚ ਖੋਜ ਕਰੋ
-            # ਜਾਂਚੋ ਕਿ ਰੱਦ ਕਰਨ ਦੀ ਬੇਨਤੀ ਕੀਤੀ ਗਈ ਸੀ ਜਾਂ ਨਹੀਂ
+        for page in range(100):  # ਕਈ ਪੰਨਿਆਂ ਵਿੱਚ ਖੋਜੋ
+            # ਜਾਂਚ ਕਰੋ ਕਿ ਰੱਦ ਕਰਨ ਦੀ ਬੇਨਤੀ ਕੀਤੀ ਗਈ ਸੀ ਜਾਂ ਨਹੀਂ
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # ਪੰਨਾ ਖੋਜ ਦਾ ਨਕਲ ਬਣਾ ਕੇ ਦਿਖਾਓ
+            # ਪੰਨਾ ਖੋਜ ਦੀ ਨਕਲ ਕਰੋ
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # ਛੋਟਾ ਦੇਰੀ ਰੱਦ ਕਰਨ ਦੀ ਜਾਂਚ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦੀ ਹੈ
+            # ਛੋਟਾ ਦੇਰੀ ਰੱਦ ਕਰਨ ਦੀ ਜਾਂਚ ਦੀ ਆਗਿਆ ਦਿੰਦਾ ਹੈ
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # ਅਧੂਰੇ ਨਤੀਜੇ ਵਾਪਸ ਕਰੋ
+        # ਹਿੱਸਾ ਨਤੀਜੇ ਵਾਪਸ ਕਰੋ
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### ਰੱਦਗੀ ਸੰਦਰਭ ਲਾਗੂ ਕਰਨਾ
+### ਰੱਦਗੀ ਸੰਦੇਭ ਨੂੰ ਲਾਗੂ ਕਰਨਾ
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # ਸਧਾਰਣ ਸਮਿਆਂਤਮਿਕਤਾ, ਜਾਰੀ ਰੱਖੋ
+            pass  # ਆਮ ਸਮੇਂ ਦੀ ਸੀਮਾ ਖਤਮ, ਜਾਰੀ ਰੱਖੋ
 ```
 
-### ਕਲਾਇੰਟ-ਪਾਸੇ ਰੱਦਗੀ
+### ਕਲੀਐਂਟ-ਪਾਸੇ ਰੱਦਗੀ
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # ਬੇਨਤੀ ਰੱਦ ਕਰੋ
+        # ਬੇਨਤੀ ਰੱਦ ਕਰਨ ਦੀ
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -260,9 +263,9 @@ async def search_with_timeout(session, query, timeout=30):
 
 ---
 
-## 3. ਸਾਧਨ ਟੈਮਪਲੇਟਸ
+## 3. ਸਰੋਤ ਟੈਮਪਲੇਟ
 
-ਸਾਧਨ ਟੈਮਪਲੇਟਸ ਪੈਰਾਮੀਟਰਾਂ ਨਾਲ ਗਤੀਸ਼ੀਲ URI ਬਣਾਉਣ ਦੀ ਆਗਿਆ ਦਿੰਦੀਆਂ ਹਨ, ਜੋ API ਅਤੇ ਡੇਟਾਬੇਸ ਲਈ ਲਾਭਦਾਇਕ ਹੈ।
+ਸਰੋਤ ਟੈਮਪਲੇਟ ਪੈਰਾਮੀਟਰਾਂ ਨਾਲ ਗਤੀਸ਼ੀਲ URI ਬਣਾਉਣ ਦੀ ਆਗਿਆ ਦਿੰਦੇ ਹਨ, ਜੋ APIs ਅਤੇ ਡੇਟਾਬੇਸ ਲਈ ਲਾਭਦਾਇਕ ਹੈ।
 
 ### ਟੈਮਪਲੇਟ ਪਰਿਭਾਸ਼ਿਤ ਕਰਨਾ
 
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # ਪੈਰਾਮੀਟਰਾਂ ਨੂੰ ਕੱਢਣ ਲਈ URI ਨੂੰ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ
+    # URI ਨੂੰ ਪਾਰਸ ਕਰਕੇ ਪੈਰਾਮੀਟਰ ਨਿਕਾਲੋ
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### TypeScript ਇੰਪਲੀਮੈਂਟੇਸ਼ਨ
+### ਟਾਈਪਸਕ੍ਰਿਪਟ ਲਾਗੂ ਕਰਨਾ
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // GitHub ਇਸ਼ੂ URI ਨੂੰ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ
+  // ਗਿਟਹਬ ਮਾਮਲਾ URI ਨੂੰ ਪਾਰਸ ਕਰੋ
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. ਸਰਵਰ ਲਾਈਫਸਾਈਕਲ ਇਵੈਂਟਸ
+## 4. ਸਰਵਰ ਜੀਵਨ ਚੱਕਰ ਘਟਨਾਵਾਂ
 
-ਢੰਗ ਨਾਲ ਸ਼ੁਰੂਅਾਤ ਅਤੇ ਬੰਦ ਕਰਨ ਨਾਲ ਸਾਫ਼-ਸੁਥਰਾ ਸਾਧਨ ਪ੍ਰਬੰਧਨ ਨਿਸ਼ਚਿਤ ਹੁੰਦਾ ਹੈ।
+ਸਹੀ ਸ਼ੁਰੂਆਤ ਅਤੇ ਬੰਦ ਕਰਨ ਨਾਲ ਸਾਫ਼-ਸੁਥਰਾ ਸਰੋਤ ਪ੍ਰਬੰਧਨ ਯਕੀਨੀ ਬਣਦਾ ਹੈ।
 
-### Python ਲਾਈਫਸਾਈਕਲ ਪ੍ਰਬੰਧਨ
+### ਪਾਈਥਨ ਜੀਵਨ ਚੱਕਰ ਪ੍ਰਬੰਧਨ
 
 ```python
 from mcp.server import Server
@@ -383,7 +386,7 @@ async def lifespan(server: Server):
     """Manage server lifecycle."""
     global db_connection, cache
     
-    # ਸ਼ੁਰੂਆਤ
+    # ਸਟਾਰਟਅਪ
     print("🚀 Server starting...")
     db_connection = await create_database_connection()
     cache = await create_cache_client()
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### TypeScript ਲਾਈਫਸਾਈਕਲ
+### ਟਾਈਪਸਕ੍ਰਿਪਟ ਜੀਵਨ ਚੱਕਰ
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -425,7 +428,7 @@ class ManagedServer {
   }
   
   async start() {
-    // ਸਾਧਨਾਂ ਨੂੰ ਸ਼ੁਰੂ ਕਰੋ
+    // ਸਰੋਤ ਸ਼ੁਰੂ ਕਰੋ
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
@@ -435,7 +438,7 @@ class ManagedServer {
   }
   
   async stop() {
-    // ਸਾਧਨਾਂ ਨੂੰ ਸਾਫ ਕਰੋ
+    // ਸਰੋਤ ਸਾਫ ਕਰੋ
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // ਇਹ.dbConnection ਨੂੰ ਸੁਰੱਖਿਅਤ ਤੌਰ 'ਤੇ ਵਰਤੋ
+      // ਇਸ.dbConnection ਨੂੰ ਸੁਰੱਖਿਅਤ ਤਰੀਕੇ ਨਾਲ ਵਰਤੋ
       // ...
     });
   }
 }
 
-// ਨਰਮ ਬੰਦ ਕਰਨ ਨਾਲ ਵਰਤੋਂ
+// ਸੌਖਾ ਬੰਦ ਕਰਦੇ ਸਮੇਂ ਵਰਤੋਂ
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -465,11 +468,11 @@ await server.start();
 
 ---
 
-## 5. ਲੌਗਿੰਗ ਕੰਟਰੋਲ
+## 5. ਲੌਗਿੰਗ ਨਿਯੰਤਰਣ
 
-MCP ਸਰਵਰ-ਪਾਸੇ ਲੌਗਿੰਗ ਲੈਵਲ ਨਾਲ ਸਹਿਯੋਗ ਦਿੰਦਾ ਹੈ ਜਿਹੜੇ ਕਲਾਇੰਟਾਂ ਦੁਆਰਾ ਨਿਯੰਤਰਿਤ ਕੀਤੇ ਜਾ ਸਕਦੇ ਹਨ।
+MCP ਸਰਵਰ-ਪਾਸੇ ਲੌਗਿੰਗ ਪੱਧਰਾਂ ਦਾ ਸਮਰਥਨ ਕਰਦਾ ਹੈ ਜਿਸਨੂੰ ਕਲੀਐਂਟ ਨਿਯੰਤਰਿਤ ਕਰ ਸਕਦੇ ਹਨ।
 
-### ਲੌਗਿੰਗ ਲੈਵਲ ਲਾਗੂ ਕਰਨਾ
+### ਲੌਗਿੰਗ ਪੱਧਰ ਲਾਗੂ ਕਰਨਾ
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP ਲੈਵਲਾਂ ਨੂੰ ਪਾਇਥਨ ਲੌਗਿੰਗ ਲੈਵਲਾਂ ਨਾਲ ਮੇਪ ਕਰੋ
+# MCP ਪੱਧਰਾਂ ਨੂੰ Python ਲੋਗਿੰਗ ਪੱਧਰਾਂ ਨਾਲ ਮੇਲ ਕਰੋ
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,14 +512,14 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### ਕਲਾਇੰਟ ਨੂੰ ਲੌਗ ਸੁਨੇਹੇ ਭੇਜਣਾ
+### ਕਲੀਐਂਟ ਨੂੰ ਲੌਗ ਸੁਨੇਹੇ ਭੇਜਣਾ
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # ਲੋਗ ਸੂਚਨਾ ਗ੍ਰਾਹਕ ਨੂੰ ਭੇਜੋ
+    # ਲਾਗ ਸੂਚਨਾ ਗਾਹਕ ਨੂੰ ਭੇਜੋ
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. ਗਲਤੀ ਸੰਭਾਲਣ ਦੇ ਨਮੂਨੇ
+## 6. ਤ੍ਰੁੱਟੀ ਸੰਭਾਲ ਪੈਟਰਨ
 
-ਇਕਸਾਰ ਗਲਤੀ ਸੰਭਾਲਣ ਡੀਬੱਗਿੰਗ ਅਤੇ ਉਪਭੋਗਤਾ ਅਨੁਭਵ ਸੁਧਾਰਦਾ ਹੈ।
+ਲਗਾਤਾਰ ਤ੍ਰੁੱਟੀ ਸੰਭਾਲ ਡਿਬੱਗਿੰਗ ਅਤੇ ਉਪਭੋਗਤਾ ਅਨੁਭਵ ਨੂੰ ਬਹਿਤਰ ਬਣਾਉਂਦੀ ਹੈ।
 
-### MCP ਗਲਤੀ ਕੋਡ
+### MCP ਤ੍ਰੁੱਟੀ ਕੋਡ
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### ਸੰਰਚਿਤ ਗਲਤੀ ਜਵਾਬ
+### ਸੰਰਚਿਤ ਤ੍ਰੁੱਟੀ ਜਵਾਬ
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # ਇਨਪੁਟ ਨੂੰ ਵੈਧ ਕਰੋ
+    # ਇਨਪੁਟ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -601,12 +604,12 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # ਅਣਪੇਖੇ ਤਰੁਟੀਆਂ ਨੂੰ ਲੌਗ ਕਰੋ
+        # ਅਣਉਮੀਦਤ ਗਲਤੀਆਂ ਲੌਗ ਕਰੋ
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### TypeScript ਵਿੱਚ ਗਲਤੀ ਸੰਭਾਲਣ
+### ਟਾਈਪਸਕ੍ਰਿਪਟ ਵਿੱਚ ਤ੍ਰੁੱਟੀ ਸੰਭਾਲ
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // ਹੋਰ ਪ੍ਰਮਾਣਿਕਤਾ...
+  // ਹੋਰ ਸਚਾਈ ਕਣਕੀ...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -633,15 +636,15 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // ਪਹਿਲਾਂ ਹੀ ਇੱਕ ਐਮਸੀਪੀ ਗਲਤੀ
+      throw error;  // ਪਹਿਲਾਂ ਹੀ ਇਕ MCP ਗ਼ਲਤੀ
     }
     
-    // ਹੋਰ ਗਲਤੀਆਂ ਬਦਲੋ
+    // ਹੋਰ ਗ਼ਲਤੀਆਂ ਬਦਲੋ
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
     
-    // ਅਣਜਾਣ ਗਲਤੀ
+    // ਅਣਜਾਣ ਗ਼ਲਤੀ
     console.error("Unexpected error:", error);
     throw new McpError(
       ErrorCode.InternalError,
@@ -653,22 +656,22 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## ਪ੍ਰਯੋਗਤਮਕ ਫੀਚਰ (MCP 2025-11-25)
+## ਪ੍ਰਯੋਗਾਤਮਕ ਫੀਚਰ (MCP 2025-11-25)
 
-ਇਹ ਫੀਚਰ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਵਿੱਚ ਪ੍ਰਯੋਗਤਮਕ ਵਜੋਂ ਨਿਸ਼ਾਨਦੇਹ ਹਨ:
+ਇਹ ਫੀਚਰ ਵਿਸ਼ੇਸ਼ਣ ਵਿੱਚ ਪ੍ਰਯੋਗਾਤਮਕ ਵਜੋਂ ਨਿਸ਼ਾਨਦਾਰ ਹਨ:
 
-### ਕਾਰਜ (ਲੰਬੇ ਸਮੇਂ ਚੱਲ ਰਹੀਆਂ ਕਾਰਵਾਈਆਂ)
+### ਟਾਸਕ (ਲੰਬੇ ਸਮੇਂ ਚੱਲਣ ਵਾਲੀਆਂ ਕਾਰਵਾਈਆਂ)
 
 ```python
-# ਟਾਸਕ ਰਾਜ ਨਾਲ ਲੰਮੇ ਸਮੇਂ ਚੱਲ ਰਹੀਆਂ ਕਾਰਵਾਈਆਂ ਦਾ ਟ੍ਰੈਕਿੰਗ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦੇ ਹਨ
+# ਕੰਮ ਲੰਬੇ ਸਮੇਂ ਚੱਲ ਰਹੇ ਓਪਰੇਸ਼ਨਾਂ ਨੂੰ ਸਥਿਤੀ ਨਾਲ ਟਰੈਕ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦੇ ਹਨ
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # ਟਾਸਕ ਸ਼ੁਰੂ ਹੋਇਆ ਦੀ ਰਿਪੋਰਟ ਕਰੋ
+    # ਕੰਮ ਸ਼ੁਰੂ ਹੋਣ ਦੀ ਰਿਪੋਰਟ
     await ctx.report_status("running", "Initializing training...")
     
-    # ਸਿਖਲਾਈ ਲੂਪ
+    # ਟ੍ਰੇਨਿੰਗ ਲੂਪ
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -685,13 +688,13 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
 ### ਟੂਲ ਟਿੱਪਣੀਆਂ
 
 ```python
-# ਟੂਲ ਦੇ ਵਿਹਾਰ ਬਾਰੇ ਮੈਟਾਡੇਟਾ ਦਿੰਦੇ ਹਨ
+# ਐਨੋਟੇਸ਼ਨ ਟੂਲ ਦੇ ਵਿਹਾਰ ਬਾਰੇ ਮੈਟਾਡੇਟਾ ਪ੍ਰਦਾਨ ਕਰਦੇ ਹਨ
 @app.tool(
     annotations={
-        "destructive": False,      # ਡੇਟਾ ਨੂੰ ਬਦਲਦਾ ਨਹੀਂ
-        "idempotent": True,        # ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰਨ ਲਈ ਸੁਰੱਖਿਅਤ
-        "timeout_seconds": 30,     # ਉਮੀਦ ਕੀਤੀ ਜਾ ਰਹੀ ਵੱਧ ਤੋਂ ਵੱਧ ਮਿਆਦ
-        "requires_approval": False # ਕਿਸੇ ਉਪਭੋਗਤਾ ਦੀ ਮਨਜ਼ੂਰੀ ਦੀ ਲੋੜ ਨਹੀਂ
+        "destructive": False,      # ਡਾਟਾ ਨੂੰ ਬਦਲਦਾ ਨਹੀਂ ਹੈ
+        "idempotent": True,        # ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰਨ ਲਈ ਸੁਰੱਖਿਅਤ
+        "timeout_seconds": 30,     # ਉਮੀਦਵਾਰ ਵੱਧੋਤਮ ਅਵਧੀ
+        "requires_approval": False # ਕੋਈ ਯੂਜ਼ਰ ਮਨਜ਼ੂਰੀ ਦੀ ਲੋੜ ਨਹੀਂ
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## ਅਗਲਾ ਕੀ ਹੈ
+## ਅੱਗੇ ਕੀ ਹੈ
 
-- [Module 8 - ਸਭ ਤੋਂ ਵਧੀਆ ਤਰੀਕੇ](../../08-BestPractices/README.md)
-- [5.14 - ਮਕਾਮ ਇੰਜੀਨੀਅਰਿੰਗ](../mcp-contextengineering/README.md)
-- [MCP ਵਿਸ਼ੇਸ਼ਤਾ ਬਦਲਾਅ ਲਿਸਟ](https://spec.modelcontextprotocol.io/)
+- [ਮੋਡੀਊਲ 8 - ਬੈਸਟ ਪ੍ਰੈਕਟਿਸ](../../08-BestPractices/README.md)
+- [5.14 - ਸੰਦਰਭ ਇੰਜੀਨੀਅਰਿੰਗ](../mcp-contextengineering/README.md)
+- [MCP ਵਿਸ਼ੇਸ਼ਣ ਚੇਂਜਲੋਗ](https://spec.modelcontextprotocol.io/)
 
 ---
 
-## ਵਾਧੂ ਸਾਧਨ
+## ਵਾਧੂ ਸਰੋਤ
 
-- [MCP ਵਿਸ਼ੇਸ਼ਤਾ 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 ਗਲਤੀ ਕੋਡ](https://www.jsonrpc.org/specification#error_object)
-- [Python SDK ਉਦਾਹਰਨਾਂ](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [TypeScript SDK ਉਦਾਹਰਨਾਂ](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [MCP ਵਿਸ਼ੇਸ਼ਣ 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 ਤ੍ਰੁੱਟੀ ਕੋਡ](https://www.jsonrpc.org/specification#error_object)
+- [Python SDK ਉਦਾਹਰਣ](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [TypeScript SDK ਉਦਾਹਰਣ](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ਅਸਵੀਕਾਰੋਕਤ**:  
-ਇਹ ਦਸਤਾਵੇਜ਼ AI ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਅਨੁਵਾਦ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਅਤਾ ਲਈ ਯਤਨਸ਼ੀਲ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਵਿੱਚ ਰੱਖੋ ਕਿ ਆਟੋਮੈਟਿਕ ਅਨੁਵਾਦ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਥਿਰਤਾਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਨੂੰ ਇਸ ਦੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਹੀ ਪ੍ਰਮਾਣਿਕ ਸਰੋਤ ਮੰਨਣਾ ਚਾਹੀਦਾ ਹੈ। ਮਹੱਤਵਪੂਰਨ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੀ ਵਰਤੋਂ ਤੋਂ ਉਤਪੰਨ ਕਿਸੇ ਵੀ ਭੁੱਲ-ਭੁਲਾਈ ਜਾਂ ਗਲਤ ਸਿਸਿਆ ਨੂੰ ਜ਼ਿੰਮੇਵਾਰ ਨਹੀਂ ਮੰਨਦੇ।
+**ਅਸਵੀਕਾਰੋਪਣ**:
+ਇਸ ਦਸਤਾਵੇਜ਼ ਦਾ ਅਨੁਵਾਦ ਏਆਈ ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾਵਾਂ ਲਈ ਯਤਨਸ਼ੀਲ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮੱਤਿਆਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਅਧਿਕਾਰਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਜਰੂਰੀ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫ਼ਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੇ ਉਪਯੋਗ ਤੋਂ ਪੈਦਾ ਹੋਣ ਵਾਲੀਆਂ ਕਿਸੇ ਵੀ ਗਲਤਫਹਿਮੀਆਂ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆਵਾਂ ਲਈ ਜਵਾਬਦੇਹ ਨਹੀਂ ਹਾਂ।
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

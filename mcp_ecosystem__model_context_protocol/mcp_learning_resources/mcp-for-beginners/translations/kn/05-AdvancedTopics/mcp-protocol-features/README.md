@@ -1,21 +1,23 @@
-# MCP ಪ್ರೋಟೋಕಾಲ್ ವೈಶಿಷ್ಟ್ಯಗಳ ಆಳವಾಗಿ ಪರಿಶೀಲನೆ
+# MCP ಪ್ರೋಟೋಕಾಲ್ ವೈಶಿಷ್ಟ್ಯಗಳ ಗಂಭೀರ ವಿಮರ್ಶೆ
 
-ಈ ಮಾರ್ಗದರ್ಶಕವು ಮೂಲೋಪಯೋಗಿ ಉಪಕರಣ ಮತ್ತು ಸಂಪನ್ಮೂಲ ಸಂಸ್ಕರಣೆಯನ್ನು ಮೀರಿದ ಆಧುನಿಕ MCP ಪ್ರೋಟೋಕಾಲ್ ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಅನ್ವೇಷಿಸುತ್ತದೆ. ಈ ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವ ಮೂಲಕ ನೀವು ಹೆಚ್ಚು ಸದೃಢ, ಬಳಕೆದಾರ ಸ್ನೇಹಿ ಮತ್ತು ಉತ್ಪಾದನಾ ಸಿದ್ಧ MCP ಸರ್ವರ್‌ಗಳನ್ನು ನಿರ್ಮಿಸಬಹುದು.
+ಈ ಮಾರ್ಗದರ್ಶಿಕೆ ಮೂಲ ಉಪಕರಣ ಮತ್ತು ಸಂಪನ್ಮೂಲ ನಿರ್ವಹಣೆಯನ್ನು ಮೀರುತ್ತಿರುವ ಉನ್ನತ MCP ಪ್ರೋಟೋಕಾಲ್ ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಅನ್ವೇಷಿಸುತ್ತದೆ. ಈ ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವ ಮೂಲಕ ನೀವು ಹೆಚ್ಚು ಬಲಿಷ್ಠ, ಬಳಕೆದಾರ ಸ್ನೇಹಿ ಮತ್ತು ಉತ್ಪಾದನೆ-ತಯಾರ MCP ಸರ್ವರ್‌ಗಳನ್ನು ನಿರ್ಮಿಸಬಹುದು.
 
-## ಒಳಗೊಂಡ ವೈಶಿಷ್ಟ್ಯಗಳು
+> **ಮುಂದಿನ ದೃಷ್ಟಿ:** `2026-07-28` ಬಿಡುಗಡೆ ಅಭ್ಯರ್ಥಿ ಲಾಗಿಂಗ್ ಪ್ರಿಮಿಟಿವ್ ಅನ್ನು ನಿಷೇಧಿಸುತ್ತದೆ (stdio ಗಾಗಿ `stderr` ಮತ್ತು ರಚನೆ ಮಾಡಿದ ಅವಲೋಕನಕ್ಕೆ OpenTelemetry ಯನ್ನು ಪ್ರಾಥಮ್ಯ ನೀಡುತ್ತದೆ), ಕೆಳಗಿನ Server Lifecycle Events ನಲ್ಲಿ ಸೂಚಿಸಲಾದ `initialize`/ಸೆಷನ್ ಮಾದರಿಯನ್ನು ತೆಗೆದುಹಾಕುತ್ತದೆ, ಮತ್ತು ಪ್ರಯೋಗಾತ್ಮಕ Tasks ವೈಶಿಷ್ಟ್ಯವನ್ನು ಹೊಸ `tasks/get`/`tasks/update`/`tasks/cancel` ಲೈಫ್‌ಸೈಕಲ್ ಹೊಂದಿರುವ ನಿಗದಿತ Tasks ವಿಸ್ತಾರದಲ್ಲಿ ವರ್ಗಾಯಿಸುತ್ತದೆ. ನೋಡಿ [MCP ನಲ್ಲಿ ಏನು ಬದಲಾಗುತ್ತಿದೆ: 2026-07-28 ಬಿಡುಗಡೆ ಅಭ್ಯರ್ಥಿ](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **ಪ್ರಗತಿ ಸೂಚನೆಗಳು** - ದೀರ್ಘಕಾಲೀನ ಕಾರ್ಯಗಳ ಪ್ರಗತಿಯನ್ನು ವರದಿ ಮಾಡುವುದು
-2. **ವಿನಂತಿ ರದ್ದುಪಡಿಸುವಿಕೆ** - ಗ್ರಾಹಕರು ಪ್ರಸ್ತುತ ಇರುವ ವಿನಂತಿಗಳನ್ನು ರದ್ದುಪಡಿಸಲು ಅನುಮತಿಸುವುದು
-3. **ಸಂಪನ್ಮೂಲ ಟೆಂಪ್ಲೇಟುಗಳು** - ಪ್ಯಾರಾಮೀಟರ್‌ಗಳೊಂದಿಗೆ ಡೈನಾಮಿಕ್ ಸಂಪನ್ಮೂಲ URIಗಳು
-4. **ಸರ್ವರ್ ಜೀವನಚಕ್ರ ಘಟನೆಗಳು** - ಸರಿಯಾದ ಆರಂಭ ಮತ್ತು ಶಟ್‌ಡೌನ್
-5. **ಲಾಗಿಂಗ್ ನಿಯಂತ್ರಣ** - ಸರ್ವರ್‌ಗಡ್ಡೆ ಲಾಗ್‌ಗಳನ್ನು ಸಂರಚಿಸುವಿಕೆ
-6. **ದೋಷ ನಿರ್ವಹಣಾ ಮಾದರಿಗಳು** - ಸತತ ದೋಷ ಪ್ರತಿಕ್ರಿಯೆಗಳು
+## ಒಳಗೊಂಡಿರುವ ವೈಶಿಷ್ಟ್ಯಗಳು
+
+1. **ಪ್ರಗತಿ ಅಣಕಗಳು** - ದೀರ್ಘಗಾಮಿ ಕಾರ್ಯಗಳಿಗೆ ಪ್ರಗತಿಯ ವರದಿ
+2. **ವಿನಂತಿ ರದ್ದು ಮಾಡುವುದು** - ಗ್ರಾಹಕರು ಪ್ರಗತಿಯಲ್ಲಿ ಇರುವ ವಿನಂತಿಗಳನ್ನು ರದ್ದುಮಾಡಿಕೊಳ್ಳಲು ಅವಕಾಶ
+3. **ಸಂಪನ್ಮೂಲ ಟೆಂಪ್ಲೇಟುಗಳು** - ಪರಿಮಾಣಗಳೊಂದಿಗೆ ಗತಿಶೀಲ URI ಗಳು
+4. **ಸರ್ವರ್ ಲೈಫ್‌ಸೈಕಲ್ ಘಟನೆಗಳು** - ಸೂಕ್ತ ಆರಂಭ ಮತ್ತು ಶಟ್ಡೌನ್
+5. **ಲಾಗಿಂಗ್ ನಿಯಂತ್ರಣ** - ಸರ್ವರ್-ಪಕ್ಷ ಲಾಗಿಂಗ್ ಸಂರಚನೆ
+6. **ದೋಷ ನಿರ್ವಹಣಾ ನಕ್ಷೆಗಳು** - ಸಹಜ ದೋಷ ಪ್ರತಿಕ್ರಿಯೆಗಳು
 
 ---
 
-## 1. ಪ್ರಗತಿ ಸೂಚನೆಗಳು
+## 1. ಪ್ರಗತಿ ಅಣಕಗಳು
 
-ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುವ ಕಾರ್ಯಗಳಿಗಾಗಿ (ಡೇಟಾ ಪ್ರಕ್ರಿಯೆ, ಫೈಲ್ ಡೌನ್‌ಲೋಡ್, API ಕರೆಗಳು), ಪ್ರಗತಿ ಸೂಚನೆಗಳು ಬಳಕೆದಾರರನ್ನು ಮಾಹಿತಿ ನೀಡುತ್ತವೆ.
+ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುವ ಕಾರ್ಯಗಳಿಗಾಗಿ (ಡೇಟಾ ಪ್ರಕ್ರಿಯೆ, ಫೈಲ್ ಡೌನ್‌ಲೋಡ್‌ಗಳು, API ಕರೆಗಳು), ಪ್ರಗತಿ ಅಣಕಗಳು ಬಳಕೆದಾರರನ್ನು ಮಾಹಿತಿ ನೀಡುತ್ತವೆ.
 
 ### ಇದು ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ
 
@@ -24,13 +26,14 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (ದೀರ್ಘ ಕಾರ್ಯಾಚರಣೆ)
+    Client->>Server: tools/call (ದೀರ್ಘ ಪ್ರಕ್ರಿಯೆ)
     Server-->>Client: ಸೂಚನೆ: ಪ್ರಗತಿ 10%
     Server-->>Client: ಸೂಚನೆ: ಪ್ರಗತಿ 50%
     Server-->>Client: ಸೂಚನೆ: ಪ್ರಗತಿ 90%
-    Server->>Client: ಫಲಿತಾಂಶ (ಸಂಪೂರ್ಣ)
+    Server->>Client: ಫಲಿತಾಂಶ (ಪೂರ್ಣವಾಗಿದೆ)
 ```
-### ಪೈಥಾನ್ ಅನುಷ್ಠಾನ
+
+### ಪೈಥಾನ್ ಜಾರಿಗೊಳಿಸಲಾಗುತ್ತಿದೆ
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -43,17 +46,17 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # ಪ್ರಗತಿ ಲೆಕ್ಕಾಚಾರಕ್ಕಾಗಿ ಫೈಲ್ ಗಾತ್ರವನ್ನು ಪಡೆಯಿರಿ
+    # ಪ್ರಗತಿ ಲెక్కಿಸಲು ಕಡತ ಗಾತ್ರವನ್ನು ಪಡೆಯಿರಿ
     file_size = os.path.getsize(file_path)
     processed = 0
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # ತುಂಡನ್ನು ಪ್ರಕ್ರಿಯೋಜಿಸಿ
+            # ಭಾಗವನ್ನು ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಿ
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # ಪ್ರಗತಿ ತಿಳಿಸುವಿಕೆ ಕಳುಹಿಸಿ
+            # ಪ್ರಗತಿ ಸೂಚನೆಯನ್ನು ಕಳುಹಿಸಿ
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # ஒவ்வொரு ಐಟಮ್ ನಂತರವೂ ಪ್ರಗತಿಯನ್ನು ವರದಿ ಮಾಡಿ
+        # ಪ್ರತಿ ಐಟಮ್ ನಂತರ ಪ್ರಗತಿಯನ್ನು ವರದಿ ಮಾಡಿ
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### ಟೈಪ್‌ಸ್ಕ್ರಿಪ್ಟ್ ಅನುಷ್ಠಾನ
+### ಟೈಪ್ಸ್ಕ್ರಿಪ್ಟ್ ಜಾರಿಗೊಳಿಸಲಾಗುತ್ತಿದೆ
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // ಪ್ರಗತಿ ಸೂಚನೆ ಕಳುಹಿಸಿ
+      // ಪ್ರಗತಿ ಸೂಚನೆಯನ್ನು ಕಳುಹಿಸಿ
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -123,7 +126,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
 });
 ```
 
-### ಗ್ರಾಹಕ ಸಂಸ್ಕರಣೆ (ಪೈಥಾನ್)
+### ಕ್ಲೈಂಟ್ ನಿರ್ವಹಣೆ (ಪೈಥಾನ್)
 
 ```python
 async def handle_progress(notification):
@@ -134,17 +137,17 @@ async def handle_progress(notification):
 # ಹ್ಯಾಂಡ್ಲರ್ ಅನ್ನು ನೋಂದಾಯಿಸಿ
 session.on_notification("notifications/progress", handle_progress)
 
-# ಸಾಧನವನ್ನು ಕರೆಮಾಡಿ (ಪ್ರಗತಿಯ ನವೀಕರಣಗಳು ಹ್ಯಾಂಡ್ಲರ್ ಮೂಲಕ ಬರುವವು)
+# ಉಪಕರಣವನ್ನು ಕರೆಮಾಡಿ (ಪ್ರಗತಿ تازهಗೀಕರು ಹ್ಯಾಂಡ್ಲರ್ ಮೂಲಕ ಬರುತ್ತವೆ)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## 2. ವಿನಂತಿ ರದ್ದುಪಡಿಸುವಿಕೆ
+## 2. ವಿನಂತಿ ರದ್ದು ಮಾಡುವುದು
 
-ಈಗ ಆಗಾಗ ಅಗತ್ಯವಿಲ್ಲದ ಅಥವಾ ತುಂಬಾ ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿರುವ ವಿನಂತಿಗಳನ್ನು ಗ್ರಾಹಕರು ರದ್ದುಪಡಿಸಲು ಅನುಮತಿಸಿ.
+ಇನ್ನುಬಳಸದೆ ಇರುವ ಅಥವಾ ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿರುವ ವಿನಂತಿಗಳನ್ನು ಗ್ರಾಹಕರು ರದ್ದುಮಾಡಿಕೊಳ್ಳಲು ಅವಕಾಶ ನೀಡಿ.
 
-### ಪೈಥಾನ್ ಅನುಷ್ಠಾನ
+### ಪೈಥಾನ್ ಜಾರಿಗೊಳಿಸಲಾಗುತ್ತಿದೆ
 
 ```python
 from mcp.server import Server
@@ -160,20 +163,20 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # ಹಲವು ಪುಟಗಳಲ್ಲಿ ಹುಡುಕಿ
-            # ರದ್ದು ಮಾಡಲಾಗಿದೆಯೆಂದು ಪರಿಶೀಲಿಸಿ
+        for page in range(100):  # ಅನೇಕ ಪುಟಗಳನ್ನು ಹುಡುಕಿ
+            # ರದ್ದುಪಡಿಸುವಿಕೆ ವಿನಂತಿಯಾಗಿದೆ ಎಂದು ಪರಿಶೀಲಿಸಿ
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # ಪುಟ ಹುಡುಕುವ ನಕಲಿ ಅನುಕರಣೆ
+            # ಪುಟ ಹುಡುಕುವಿಕೆ ಆವರಣಿಸು
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # ಸಣ್ಣ ವಿಳಂಬ ರದ್ದುಪಡಿಸುವಿಕೆ ಪರಿಶೀಲಿಸಲು ಅನುಮತಿಸುತ್ತದೆ
+            # ಸಣ್ಣ ವಿಳಂಬವು ರದ್ದುಪಡಿಸುವಿಕೆ ಪರಿಶೀಲನೆಗೆ ಅವಕಾಶ ನೀಡುತ್ತದೆ
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # ಭಾಗಶಃ ಫಲಿತಾಂಶಗಳನ್ನು ನೀಡು
+        # ಭಾಗಿಕ ಫಲಿತಾಂಶಗಳನ್ನು ಹಿಂತಿರುಗಿಸಿ
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### ರದ್ದುಪಡಿಸುವ ಪ_contextು ಅನುಷ್ಠಾನ
+### ರದ್ದುಪಡಿಸುವ ಪ್ರಾಸಂಗಿಕತೆಯನ್ನು ಜಾರಿಗೊಳಿಸುವುದು
 
 ```python
 class CancellableContext:
@@ -231,10 +234,10 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # ಸಾಮಾನ್ಯ ಸಮಯ ಮಿತಿಯು, ಮುಂದುವರೆಯಿರಿ
+            pass  # ಸಾಮಾನ್ಯ ಸಮಯ ಮುಗಿದಿದೆ, ಮುಂದುವರಿಸಿ
 ```
 
-### ಗ್ರಾಹಕ-ಪಾರ್ಶ್ವ ರದ್ದುಪಡಿಸುವಿಕೆ
+### ಕ್ಲೈಂಟ್-ಪಕ್ಷ ರದ್ದು
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # ವಿನಂತಿ ರದ್ದುಪಡಿಸಿ
+        # ವಿನಂತಿ ರದ್ದುಗೊಳಿಸುವಿಕೆ
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,9 +265,9 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. ಸಂಪನ್ಮೂಲ ಟೆಂಪ್ಲೇಟುಗಳು
 
-ಸಂಪನ್ಮೂಲ ಟೆಂಪ್ಲೇಟುಗಳು ಪ್ಯಾರಾಮೀಟರ್‌ಗಳೊಂದಿಗೆ ಡೈನಾಮಿಕ್ URI ನಿರ್ಮಾಣಕ್ಕೆ ಅನುಕೂಲವಾಗುತ್ತವೆ, APIಗಳು ಮತ್ತು ಡೇಟಾಬೇಸ್‌ಗಳಿಗೆ ಉಪಯುಕ್ತ.
+ಸಂಪನ್ಮೂಲ ಟೆಂಪ್ಲೇಟುಗಳು ಪರಿಮಾಣಗಳೊಂದಿಗೆ ಗತಿಶೀಲ URI ನಿರ್ಮಾಣಕ್ಕೆ ಅವಕಾಶ ನೀಡುತ್ತವೆ, API ಗಳಿಗಾಗಿ ಮತ್ತು ಡೇಟಾಬೇಸ್ ಗಳಿಗಾಗಿ ಉಪಯುಕ್ತ.
 
-### ಟೆಂಪ್ಲೇಟು ನಿರ್ಧಾರ
+### ಟೆಂಪ್ಲೇಟುಗಳನ್ನು ನಿರ್ಧರಿಸುವುದು
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # ಪ್ಯಾರامیಟರ್‌ಗಳನ್ನು ತೆಗೆಯಲು URI ಅನ್ನು ವಿಶ್ಲೇಷಿಸಿ
+    # URI ಅನ್ನು ವಿಶ್ಲೇಷಿಸಿ ಪರಿಮಾಣಗಳನ್ನು ಹೊರತೆಗೆಯಲು
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### ಟೈಪ್‌ಸ್ಕ್ರಿಪ್ಟ್ ಅನುಷ್ಠಾನ
+### ಟೈಪ್ಸ್ಕ್ರಿಪ್ಟ್ ಜಾರಿಗೊಳಿಸಲಾಗುತ್ತಿದೆ
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // GitHub ಸಮಸ್ಯೆ URI ವಿಲಕ್ಷಣಗೊಳಿಸಿ
+  // GitHub ಸಮಸ್ಯೆಯ URI ಅನ್ನು ಪಾರ್ಸ್ ಮಾಡಿ
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,11 +365,11 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## 4. ಸರ್ವರ್ ಜೀವನಚಕ್ರ ಘಟನೆಗಳು
+## 4. ಸರ್ವರ್ ಲೈಫ್‌ಸೈಕಲ್ ಘಟನೆಗಳು
 
-ಸರಿಯಾದ ಆರಂಭ ಮತ್ತು ಶಟ್‌ಡೌನ್ ನಿರ್ವಹಣೆುವಿಕೆ ಶುದ್ಧ ಸಂಪನ್ಮೂಲ ನಿರ್ವಹಣೆಯನ್ನು ಖಚಿತಪಡಿಸುತ್ತದೆ.
+ಸೂಕ್ತ ಆರಂಭ ಮತ್ತು ಶಟ್ಡೌನ್ ನಿರ್ವಹಣೆ ಸ್ವಚ್ಛ ಸಂಪನ್ಮೂಲ ನಿರ್ವಹಣೆಯನ್ನು ಖಚಿತಪಡಿಸುತ್ತದೆ.
 
-### ಪೈಥಾನ್ ಜೀವನಚಕ್ರ ನಿರ್ವಹಣೆ
+### ಪೈಥಾನ್ ಲೈಫ್‌ಸೈಕಲ್ ನಿರ್ವಹಣೆ
 
 ```python
 from mcp.server import Server
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# ಹಂಚಿಕೊಂಡ ರಾಜ್ಯ
+# ಹಂಚಿಕೆ ಹೊಂದಿದ ಸ್ಥಿತಿ
 db_connection = None
 cache = None
 
@@ -389,9 +392,9 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # ಸರ್ವರ್ ಇಲ್ಲಿ ನಡೆಯುತ್ತದೆ
+    yield  # ಸರ್ವರ್ ಇಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ
     
-    # ನಿಶ್ಚೇದ
+    # ನಿಲ್ಲಿಸುವುದು
     print("🛑 Server shutting down...")
     await db_connection.close()
     await cache.close()
@@ -406,7 +409,7 @@ async def query_database(sql: str) -> str:
     return str(result)
 ```
 
-### ಟೈಪ್‌ಸ್ಕ್ರಿಪ್ಟ್ ಜೀವನಚಕ್ರ
+### ಟೈಪ್ಸ್ಕ್ರಿಪ್ಟ್ ಲೈಫ್‌ಸೈಕಲ್
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -425,7 +428,7 @@ class ManagedServer {
   }
   
   async start() {
-    // ಸಂಪನ್ಮೂಲಗಳನ್ನು ಪ್ರಾರಂಭಿಸಿ
+    // ಸಂಪನ್ಮೂಲಗಳನ್ನು ಆರಂಭಿಸಿ
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
@@ -435,7 +438,7 @@ class ManagedServer {
   }
   
   async stop() {
-    // ಸಂಪನ್ಮೂಲಗಳನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸಿ
+    // ಸಂಪನ್ಮೂಲಗಳನ್ನು ಶುದ್ಧೀಕರಿಸಿ
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // ಈ.dbConnection ಅನ್ನು ಸುರക്ഷಿತವಾಗಿ ಬಳಸಿ
+      // ಈ.dbConnection ಅನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಬಳಸಿ
       // ...
     });
   }
 }
 
-// ಮೃದುವಾಗಿರುವ ಸಮಾಪ್ತಿಯೊಂದಿಗೆ ಬಳಕೆ
+// ಸೌಮ್ಯ ಶಟ್ಡೌನ್ೊಂದಿಗೆ ಬಳಕೆ
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## 5. ಲಾಗಿಂಗ್ ನಿಯಂತ್ರಣ
 
-MCP ಸರ್ವರ್-ಪಾರ್ಶ್ವ ಲಾಗಿಂಗ್ ತಳಿಗಳನ್ನು ಬೆಂಬಲಿಸುತ್ತದೆ, ಜಾವಿಸುವವರಿಗೆ ನಿಯಂತ್ರಣವನ್ನು ನೀಡುತ್ತದೆ.
+MCP ಗೃಹಪಕ್ಷ ಲಾಗಿಂಗ್ ಮಟ್ಟಗಳನ್ನು ಬೆಂಬಲಿಸುತ್ತದೆ, ಅವನ್ನು ಗ್ರಾಹಕರು ನಿಯಂತ್ರಿಸಬಹುದು.
 
-### ಲಾಗಿಂಗ್ ಲೆವೆಲ್‌ಗಳ ಅನುಷ್ಠಾನ
+### ಲಾಗಿಂಗ್ ಮಟ್ಟಗಳನ್ನು ಜಾರಿಗೊಳಿಸುವುದು
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP ಮಟ್ಟಗಳನ್ನು Python ಲಾಗಿಂಗ್ ಮಟ್ಟಗಳಿಗೆ ನಕ್ಷೆ ಮಾಡಿರಿ
+# MCP ಮಟ್ಟಗಳನ್ನು Python لاگಿಂಗ್ ಮಟ್ಟಗಳಿಗೆ ನಕ್ಷೆಮಾಡಿ
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,14 +512,14 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### ಗ್ರಾಹಕರಿಗೆ ಲಾಗ್ ಸಂದೇಶಗಳನ್ನು ಕಳುಹಿಸುವಿಕೆ
+### ಗ್ರಾಹಕರಿಗೆ ಲಾಗ್ ಸಂದೇಶಗಳನ್ನು ಕಳುಹಿಸುವುದು
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # ಲಾಗ್ уведомನೆ ಗ್ರಾಹಕ에게 ಕಳುಹಿಸಿ
+    # ಕ್ಲೈಂಟ್‌ಗೆ ಲಾಗ್ ನೋಟಿಫಿಕೇಶನ್ ಕಳುಹಿಸಿ
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
@@ -535,11 +538,11 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## 6. ದೋಷ ನಿರ್ವಹಣಾ ಮಾದರಿಗಳು
+## 6. ದೋಷ ನಿರ್ವಹಣಾ ನಕ್ಷೆಗಳು
 
-ಸತತ ದೋಷ ನಿರ್ವಹಣೆ ದೋಷಗಳಿಂದ ಪತ್ತೆಹಚ್ಚುವಿಕೆ ಮತ್ತು ಬಳಕೆದಾರ ಅನುಭವವನ್ನು ಸುಧಾರಿಸುತ್ತದೆ.
+ಸಹಜ ದೋಷ ನಿರ್ವಹಣೆಯು ಡಿಬಗ್ಗಿಂಗ್ ಮತ್ತು ಬಳಕೆದಾರ ಅನುಭವವನ್ನು ಸುಧಾರಿಸುತ್ತದೆ.
 
-### MCP ದೋಷ ಕೋಡ್‌ಗಳು
+### MCP ದೋಷ ಕೋಡ್ಗಳು
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -569,14 +572,14 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### ರಚಿತ ದೋಷ ಪ್ರತಿಕ್ರಿಯೆಗಳು
+### ರಚನೆ ಮಾಡಿದ ದೋಷ ಪ್ರತಿಕ್ರಿಯೆಗಳು
 
 ```python
 @app.tool()
 async def safe_operation(input: str) -> str:
     """Tool with comprehensive error handling."""
     
-    # ಇನ್‌ಪುಟ್ ಅವರನ್ನು ಪರಿಶೀಲಿಸಿ
+    # ಇನ್‌ಪುಟ್ ಅನ್ನು ಮಾನ್ಯೀಕರಿಸಿ
     if not input:
         raise ValidationError("Input cannot be empty")
     
@@ -601,12 +604,12 @@ async def safe_operation(input: str) -> str:
     except TimeoutError as e:
         raise InternalError(f"Operation timed out: {e}")
     except Exception as e:
-        # ಅಪ್ರತೀಕ್ಷಿತ ದೋಷಗಳನ್ನು ಲಾಗ್ ಮಾಡಿ
+        # ಅನपेक्षित ದೋಷಗಳನ್ನು ಲಾಗ್ ಮಾಡಿ
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### ಟೈಪ್‌ಸ್ಕ್ರಿಪ್ಟ್‌ನಲ್ಲಿ ದೋಷ ನಿರ್ವಹಣೆ
+### ಟೈಪ್ಸ್ಕ್ರಿಪ್ಟ್ ನಲ್ಲಿ ದೋಷ ನಿರ್ವಹಣೆ
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -618,7 +621,7 @@ function validateInput(data: unknown): asserts data is ValidInput {
       "Input must be an object"
     );
   }
-  // ಇನ್ನಷ್ಟು ಮಾನ್ಯತೆ...
+  // ಹೆಚ್ಚು ಮಾನ್ಯತೆ...
 }
 
 server.setRequestHandler(CallToolSchema, async (request) => {
@@ -641,7 +644,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
     
-    // ಅನಾನ್ಯ ದೋಷ
+    // ಅಜ್ಞಾನ ದೋಷ
     console.error("Unexpected error:", error);
     throw new McpError(
       ErrorCode.InternalError,
@@ -653,19 +656,19 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## ಪ್ರಾಯೋಗಿಕ ವೈಶಿಷ್ಟ್ಯಗಳು (MCP 2025-11-25)
+## ಪ್ರಯೋಗಾತ್ಮಕ ವೈಶಿಷ್ಟ್ಯಗಳು (MCP 2025-11-25)
 
-ಈ ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ವಿವರಣೆಯಲ್ಲಿ ಪ್ರಾಯೋಗಿಕವೆಂದು ಗುರುತಿಸಲಾಗಿದೆ:
+ಈ ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ನಿರ್ದಿಷ್ಟಿಸುವ ಸಂದರ್ಭದಲ್ಲಿ ಪ್ರಯೋಗಾತ್ಮಕವೆಂದು ಗುರುತಿಸಲಾಗಿದೆ:
 
-### ಕಾರ್ಯಗಳು (ದೀರ್ಘಕಾಲೀನ ಕಾರ್ಯಗಳು)
+### ಕಾರ್ಯಗಳು (ದೀರ್ಘಗಾಮಿ ಕಾರ್ಯಗಳು)
 
 ```python
-# ಕಾರ್ಯಗಳು ಸ್ಥಿತಿಯೊಂದಿಗೆ ದೀರ್ಘಕಾಲ ನಡೆಯುವ ಕಾರ್ಯಗಳನ್ನು ಹಿಮ್ಮೇಳಿಸುವಂತೆ ಮಾಡುತ್ತವೆ
+# ಕಾರ್ಯಗಳು ಸ್ಥಿತಿಯೊಂದಿಗೆ ದೀರ್ಘಾವಧಿಯ ಕಾರ್ಯಾಚರಣೆಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಲು ಅನುಮತಿಸುತ್ತವೆ
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # ಕಾರ್ಯ ಆರಂಭವಾಯ್ತು ಎಂದು ವರದಿ ಮಾಡಿ
+    # ಕಾರ್ಯ ಪ್ರಾರಂಭವಾಯಿತು ಎಂದು ವರದಿ ಮಾಡಿ
     await ctx.report_status("running", "Initializing training...")
     
     # ತರಬೇತಿ ಲೂಪ್
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### ಉಪಕರಣ ಟಿಪ್ಪಣಿಗಳು
+### ಉಪಕರಣ ಗುರುತುಗಳು
 
 ```python
-# ಟೂಲಿನ ವರ್ತನೆಗುರಿಹಿತ ಮಾಹಿತಿಯನ್ನು ನೀಡುತ್ತದೆ
+# ಉಪಕರಣದ ನಡವಳಿಕೆ ಬಗ್ಗೆ ಮೆಟಾಡೇಟಾವನ್ನು ಕೊಡುತ್ತದೆ
 @app.tool(
     annotations={
         "destructive": False,      # ಡೇಟಾವನ್ನು ಬದಲಾಯಿಸುವುದಿಲ್ಲ
-        "idempotent": True,        # ಮರುಪ್ರಯತ್ನಿಸುವುದು ಸುರಕ್ಷಿತ
+        "idempotent": True,        # ಸುರಕ್ಷಿತವಾಗಿ ಪುನಃ ಪ್ರಯತ್ನಿಸಬಹುದು
         "timeout_seconds": 30,     # ನಿರೀಕ್ಷಿತ ಗರಿಷ್ಠ ಅವಧಿ
-        "requires_approval": False # ಬಳಕೆದಾರ ಅನುಮೋದನೆ ಅಗತ್ಯವಿಲ್ಲ
+        "requires_approval": False # ಬಳಕೆದಾರ ಅನುಮತಿಯನ್ನು ಅಗತ್ಯವಿಲ್ಲ
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## ಮುಂದಿನದು ಏನು
+## ಮುಂದೇನು
 
-- [ಮಾಡ್ಯೂಲ್ 8 - ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು](../../08-BestPractices/README.md)
-- [5.14 - ಸಾಂದರ್ಭಿಕ ಇಂಜಿನೀಯರಿಂಗ್](../mcp-contextengineering/README.md)
-- [MCP ನಿರ್ದಿಷ್ಟತೆ ಚೇಂಜ್‌ಲಾಗ್](https://spec.modelcontextprotocol.io/)
+- [ಅಧ್ಯಾಯ 8 - ಉತ್ತಮ ಆಚಾರಗಳು](../../08-BestPractices/README.md)
+- [5.14 - ಸಾಂದರ್ಭಿಕ ಎಂಜಿನಿಯರಿಂಗ್](../mcp-contextengineering/README.md)
+- [MCP ವಿಶೇಷಣ ಬದಲಾವಣೆಚರిత్రೆ](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## ಹೆಚ್ಚುವರಿ ಸಂಪನ್ಮೂಲಗಳು
 
-- [MCP ನಿರ್ದಿಷ್ಟತೆ 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 ದೋಷ ಕೋಡ್‌ಗಳು](https://www.jsonrpc.org/specification#error_object)
+- [MCP ವಿಶೇಷಣ 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC 2.0 ದೋಷ ಕೋಡ್ಗಳು](https://www.jsonrpc.org/specification#error_object)
 - [ಪೈಥಾನ್ SDK ಉದಾಹರಣೆಗಳು](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
-- [ಟೈಪ್‌ಸ್ಕ್ರಿಪ್ಟ್ SDK ಉದಾಹರಣೆಗಳು](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [ಟೈಪ್ಸ್ಕ್ರಿಪ್ಟ್ SDK ಉದಾಹರಣೆಗಳು](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ತ್ಯಜ್ಯಾನುಬಂಧ**:  
-ಈ ದಾಖಲೆವನ್ನು AI ಅನುವಾದ ಸೇವೆ [Co-op Translator](https://github.com/Azure/co-op-translator) ಬಳಸಿ ಅನುವಾದಿಸಲಾಗಿದೆ. ನಾವು ನಿಖರತೆಯಿಗಾಗಿ ಪ್ರಯತ್ನಿಸುವದರೂ, ಸ್ವಯಂಚಾಲಿತ ಅನುವಾದಗಳಲ್ಲಿ ತಪ್ಪುಗಳು ಅಥವಾ ತಪ್ಪು ಅರ್ಥಗಳು ಇರಬಹುದು ಎಂದು ದಯವಿಟ್ಟು ಗಮನಿಸಿ. ಮೂಲ ಭಾಷೆಯಲ್ಲಿರುವ ಮೂಲದಾಖಲೆ ಅನ್ನು ಅಧಿಕೃತ ಮೂಲವೆಂದು ಪರಿಗಣಿಸಬೇಕು. ಪ್ರಮುಖ ಮಾಹಿತಿಗಾಗಿ, ವೃತ್ತಿಪರ ಮನುಷ್ಯ ಅನುವಾದವನ್ನು ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ. ಈ ಅನುವಾದದ ಬಳಕೆಯಿಂದ ಉಂಟಾಗುವ ಯಾವುದೇ ತಪ್ಪು ಗ್ರಹಿಕೆಗಳು ಅಥವಾ ಅರ್ಥ ಬದಲಾವಣೆಗಳಿಗೆ ನಾವು ಹೊಣೆಗಾರರಾಗಿರಲ್ಲ.
+**ಅಸ್ವೀಕಾರ**:
+ಈ ದಸ್ತಾವೇಜು AI ಅನುವಾದ ಸೇವೆ [Co-op Translator](https://github.com/Azure/co-op-translator) ಬಳಸಿ ಅನುವಾದಿಸಲಾಗಿದೆ. ನಾವು ನಿಖರತೆಯನ್ನು ಸಾಧಿಸಲು ಪ್ರಯತ್ನಿಸುತ್ತಿದ್ದರೂ, ದಯವಿಟ್ಟು ಗಮನಿಸಿ, ಸ್ವಯಂಚಾಲಿತ ಅನುವಾದಗಳಲ್ಲಿ ದೋಷಗಳು ಅಥವಾ ಅಸಡ್ಡೆಗಳು ಇರಬಹುದು. ಮೂಲ ಭಾಷೆಯಲ್ಲಿರುವ ಮೂಲ ದಸ್ತಾವೇಜು ಪ್ರಾಮಾಣಿಕ ಮೂಲವೆಂದು ಪರಿಗಣಿಸಬೇಕು. ಪ್ರಮುಖ ಮಾಹಿತಿಗಾಗಿ, ವೃತ್ತಿಪರ ಮಾನವ ಅನುವಾದವನ್ನು ಶಿಫಾರಸು ಮಾಡಲಾಗುತ್ತದೆ. ಈ ಅನುವಾದವನ್ನು ಬಳಸುವ ಮೂಲಕ ಉಂಟಾಗುವ ಯಾವುದೇ ತಪ್ಪು ಅರ್ಥಗಳ ಅಥವಾ ತಪ್ಪು ವ್ಯಾಖ್ಯಾನಗಳ ಬಗ್ಗೆ ನಾವು ಹೊಣೆಗಾರರಲ್ಲ.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

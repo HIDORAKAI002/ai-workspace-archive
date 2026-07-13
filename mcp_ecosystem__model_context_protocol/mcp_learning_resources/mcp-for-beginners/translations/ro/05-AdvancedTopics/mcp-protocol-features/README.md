@@ -1,21 +1,23 @@
-# Explorare Detaliată a Funcțiilor Protocolului MCP
+# Explorare Detaliată a Funcționalităților Protocolului MCP
 
-Acest ghid explorează funcții avansate ale protocolului MCP care depășesc gestionarea de bază a uneltelor și resurselor. Înțelegerea acestor funcții te ajută să construiești servere MCP mai robuste, ușor de utilizat și gata pentru producție.
+Acest ghid explorează caracteristici avansate ale protocolului MCP care depășesc manipularea de bază a instrumentelor și resurselor. Înțelegerea acestor caracteristici vă ajută să construiți servere MCP mai robuste, prietenoase cu utilizatorul și pregătite pentru producție.
 
-## Funcții Acoperite
+> **Privind înainte:** candidatul la lansarea `2026-07-28` depreciază primitiva Logging (favorizând `stderr` pentru stdio și OpenTelemetry pentru observabilitatea structurată), elimină modelul `initialize`/session menționat mai jos în Evenimentele din Ciclu de Viață al Serverului și mută funcția experimentală Tasks într-o extensie dedicată Tasks cu un nou ciclu de viață `tasks/get`/`tasks/update`/`tasks/cancel`. Vezi [Ce se schimbă în MCP: candidatul la lansarea 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Notificări de Progres** - Raportarea progresului pentru operațiuni de durată lungă  
-2. **Anularea Cererilor** - Permite clienților să anuleze cererile în curs  
-3. **Șabloane de Resurse** - URI-uri dinamice de resurse cu parametri  
-4. **Evenimente în Ciclu de Viață al Serverului** - Inițializare și închidere corectă  
-5. **Controlul Logării** - Configurarea logării pe partea de server  
-6. **Modele de Gestionare a Erorilor** - Răspunsuri consistente la erori  
+## Funcționalități Acoperite
+
+1. **Notificări de Progres** - Raportați progresul pentru operațiuni de lungă durată
+2. **Anularea Cererilor** - Permiteți clienților să anuleze cererile în curs
+3. **Șabloane de Resurse** - URI-uri de resurse dinamice cu parametri
+4. **Evenimente din Ciclu de Viață al Serverului** - Inițializare și oprire corectă
+5. **Controlul Jurnalizării (Logging)** - Configurare a jurnalizării pe partea serverului
+6. **Modele de Gestionare a Erorilor** - Răspunsuri consistente la erori
 
 ---
 
 ## 1. Notificări de Progres
 
-Pentru operațiuni care necesită timp (procesarea datelor, descărcări de fișiere, apeluri API), notificările de progres țin utilizatorii informați.
+Pentru operațiuni ce necesită timp (procesare date, descărcări de fișiere, apeluri API), notificările de progres mențin utilizatorii informați.
 
 ### Cum Funcționează
 
@@ -24,13 +26,14 @@ sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (operație îndelungată)
+    Client->>Server: tools/call (operație lungă)
     Server-->>Client: notificare: progres 10%
     Server-->>Client: notificare: progres 50%
     Server-->>Client: notificare: progres 90%
-    Server->>Client: rezultat (finalizat)
-```  
-### Implementare Python
+    Server->>Client: rezultat (complet)
+```
+
+### Implementare în Python
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -49,11 +52,11 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # Procesează fragmentul
+            # Procesează segmentul
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # Trimite notificare de progres
+            # Trimite notificarea de progres
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -89,8 +92,8 @@ async def batch_operation(items: list[str], ctx) -> str:
     
     return f"Completed {total} items"
 ```
-  
-### Implementare TypeScript
+
+### Implementare în TypeScript
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -122,8 +125,8 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
   }
 });
 ```
-  
-### Gestionarea pe Client (Python)
+
+### Gestionarea Clientului (Python)
 
 ```python
 async def handle_progress(notification):
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# Înregistrează handler
+# Înregistrează handlerul
 session.on_notification("notifications/progress", handle_progress)
 
-# Apelează instrumentul (actualizările de progres vor fi primite prin handler)
+# Apelează unealta (actualizările de progres vor ajunge prin handler)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
-  
+
 ---
 
 ## 2. Anularea Cererilor
 
-Permite clienților să anuleze cererile care nu mai sunt necesare sau care durează prea mult.
+Permiteți clienților să anuleze cererile care nu mai sunt necesare sau care durează prea mult.
 
-### Implementare Python
+### Implementare în Python
 
 ```python
 from mcp.server import Server
@@ -160,8 +163,8 @@ async def long_running_search(query: str, ctx) -> str:
     results = []
     
     try:
-        for page in range(100):  # Caută prin mai multe pagini
-            # Verifică dacă a fost solicitată anularea
+        for page in range(100):  # Caută prin multe pagini
+            # Verifică dacă s-a cerut anularea
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -169,11 +172,11 @@ async def long_running_search(query: str, ctx) -> str:
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # O întârziere mică permite verificări de anulare
+            # O mică întârziere permite verificările de anulare
             await asyncio.sleep(0.1)
             
     except CancelledError:
-        # Returnează rezultate parțiale
+        # Returnează rezultatele parțiale
         return f"Cancelled. Found {len(results)} results before cancellation."
     
     return f"Found {len(results)} total results"
@@ -197,7 +200,7 @@ async def download_file(url: str, ctx) -> str:
             
             return f"Downloaded {downloaded} bytes"
 ```
-  
+
 ### Implementarea Contextului de Anulare
 
 ```python
@@ -233,8 +236,8 @@ class CancellableContext:
         except asyncio.TimeoutError:
             pass  # Timeout normal, continuă
 ```
-  
-### Anularea pe Partea de Client
+
+### Anularea pe Partea Clientului
 
 ```python
 import asyncio
@@ -257,7 +260,7 @@ async def search_with_timeout(session, query, timeout=30):
         })
         return "Search timed out"
 ```
-  
+
 ---
 
 ## 3. Șabloane de Resurse
@@ -316,8 +319,8 @@ async def read_resource(uri: str) -> str:
     
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
-  
-### Implementare TypeScript
+
+### Implementare în TypeScript
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -359,12 +362,12 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
   throw new Error(`Unknown resource URI: ${uri}`);
 });
 ```
-  
+
 ---
 
-## 4. Evenimente în Ciclu de Viață al Serverului
+## 4. Evenimente din Ciclu de Viață al Serverului
 
-Gestionarea corectă a inițializării și închiderii asigură o administrare curată a resurselor.
+Gestionarea corectă a inițializării și opririi asigură o administrare curată a resurselor.
 
 ### Managementul Ciclu de Viață în Python
 
@@ -405,7 +408,7 @@ async def query_database(sql: str) -> str:
     result = await db_connection.execute(sql)
     return str(result)
 ```
-  
+
 ### Ciclu de Viață în TypeScript
 
 ```typescript
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // Folosește this.dbConnection în siguranță
+      // Utilizează this.dbConnection în siguranță
       // ...
     });
   }
 }
 
-// Utilizare cu oprire controlată
+// Utilizare cu oprire grațioasă
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -462,14 +465,14 @@ process.on('SIGINT', async () => {
 
 await server.start();
 ```
-  
+
 ---
 
-## 5. Controlul Logării
+## 5. Controlul Jurnalizării (Logging)
 
-MCP suportă niveluri de logare pe partea de server pe care clienții le pot controla.
+MCP suportă niveluri de jurnalizare de partea serverului pe care clienții le pot controla.
 
-### Implementarea Nivelurilor de Logare
+### Implementarea Nivelurilor de Jurnalizare
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Mapează nivelurile MCP la nivelurile de logare Python
+# Mapează nivelurile MCP la nivelurile de logging Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -508,21 +511,21 @@ async def debug_operation(data: str) -> str:
         logger.error(f"Processing failed: {e}")
         raise
 ```
-  
-### Trimiterea Mesajelor de Log către Client
+
+### Trimiterea Mesajelor de Jurnal către Client
 
 ```python
 @app.tool()
 async def complex_operation(input: str, ctx) -> str:
     """Operation that logs to client."""
     
-    # Trimite notificare de jurnal către client
+    # Trimite notificare jurnal către client
     await ctx.send_log(
         level="info",
         message=f"Starting complex operation with input: {input}"
     )
     
-    # Efectuează lucrarea...
+    # Efectuează lucru...
     result = await do_work(input)
     
     await ctx.send_log(
@@ -532,14 +535,14 @@ async def complex_operation(input: str, ctx) -> str:
     
     return result
 ```
-  
+
 ---
 
 ## 6. Modele de Gestionare a Erorilor
 
 Gestionarea consistentă a erorilor îmbunătățește depanarea și experiența utilizatorului.
 
-### Coduri de Eroare MCP
+### Coduri de Erori MCP
 
 ```python
 from mcp.types import McpError, ErrorCode
@@ -568,7 +571,7 @@ class InternalError(ToolError):
     def __init__(self, message: str):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
-  
+
 ### Răspunsuri Structurate la Erori
 
 ```python
@@ -588,7 +591,7 @@ async def safe_operation(input: str) -> str:
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
-        # Efectuează operația
+        # Efectuează operațiunea
         result = await perform_operation(input)
         
         if result is None:
@@ -605,7 +608,7 @@ async def safe_operation(input: str) -> str:
         logger.exception(f"Unexpected error in safe_operation")
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
-  
+
 ### Gestionarea Erorilor în TypeScript
 
 ```typescript
@@ -636,7 +639,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
       throw error;  // Eroare MCP deja existentă
     }
     
-    // Convertește alte erori
+    // Convertiți alte erori
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
@@ -650,14 +653,14 @@ server.setRequestHandler(CallToolSchema, async (request) => {
   }
 });
 ```
-  
+
 ---
 
-## Funcții Experimentale (MCP 2025-11-25)
+## Funcționalități Experimentale (MCP 2025-11-25)
 
-Aceste funcții sunt marcate ca experimentale în specificație:
+Aceste funcționalități sunt marcate ca experimentale în specificație:
 
-### Task-uri (Operațiuni de Durată Lungă)
+### Tasks (Operațiuni de Lungă Durată)
 
 ```python
 # Sarcinile permit urmărirea operațiunilor de lungă durată cu stare
@@ -665,7 +668,7 @@ Aceste funcții sunt marcate ca experimentale în specificație:
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # Raportați începutul sarcinii
+    # Raportați că sarcina a început
     await ctx.report_status("running", "Initializing training...")
     
     # Bucla de antrenament
@@ -681,15 +684,15 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     await ctx.report_status("completed", "Training finished")
     return f"Model {model_id} trained successfully"
 ```
-  
-### Anotări pentru Unelte
+
+### Anotări pentru Instrumente
 
 ```python
-# Anotările oferă metadate despre comportamentul uneltei
+# Anotările oferă metadate despre comportamentul instrumentului
 @app.tool(
     annotations={
         "destructive": False,      # Nu modifică datele
-        "idempotent": True,        # Sigur de încercat din nou
+        "idempotent": True,        # Sigur de reîncercat
         "timeout_seconds": 30,     # Durata maximă așteptată
         "requires_approval": False # Nu este necesară aprobarea utilizatorului
     }
@@ -698,27 +701,27 @@ async def safe_query(query: str) -> str:
     """A read-only database query tool."""
     return await execute_read_query(query)
 ```
-  
+
 ---
 
 ## Ce Urmează
 
-- [Modulul 8 - Cele Mai Bune Practici](../../08-BestPractices/README.md)  
-- [5.14 - Ingineria Contextului](../mcp-contextengineering/README.md)  
-- [Schimbări în Specificația MCP](https://spec.modelcontextprotocol.io/)  
+- [Modul 8 - Cele Mai Bune Practici](../../08-BestPractices/README.md)
+- [5.14 - Inginerie Contextuală](../mcp-contextengineering/README.md)
+- [Jurnalul Modificărilor Specificației MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Resurse Suplimentare
 
-- [Specificația MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [Coduri de Eroare JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [Exemple SDK Python](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
-- [Exemple SDK TypeScript](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [Specificația MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Coduri de Erori JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [Exemple Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [Exemple TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Declinare a responsabilității**:  
-Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). Deși ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original, în limba sa nativă, trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un specialist. Nu ne asumăm răspunderea pentru eventualele neînțelegeri sau interpretări greșite ce pot apărea în urma utilizării acestei traduceri.
+**Declinare a responsabilității**:
+Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). În timp ce ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un om. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care decurg din utilizarea acestei traduceri.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

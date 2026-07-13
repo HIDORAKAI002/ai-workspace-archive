@@ -1,5 +1,7 @@
 # Sampling - delegate features to the Client
 
+> **Deprecation notice:** the `2026-07-28` MCP specification release candidate marks Sampling as deprecated in favor of direct integration with LLM provider APIs. Sampling continues to work in `2025-11-25` and for at least a year after any formal deprecation, so everything in this lesson remains valid — but new server designs should evaluate the replacement pattern. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
 Sometimes, you need the MCP Client and the MCP Server to collaborate to achieve a common goal. You might have a case where the Server requires the help of an LLM that sits on the client. For this situation, sampling is what you should use.
 
 Let's explore some use cases and how to build a solution involving sampling.
@@ -27,14 +29,14 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Author blog post
-    MCP Client->>MCP Server: Tool call (blog post draft)
-    MCP Server->>MCP Client: Sampling request (create summary)
-    MCP Client->>LLM: Generate blog post summary
-    LLM->>MCP Client: Summary result
-    MCP Client->>MCP Server: Sampling response (summary)
-    MCP Server->>MCP Client: Complete blog post (draft + summary)
-    MCP Client->>User: Blog post ready
+    User->>MCP Client: Publicación de blog del autor
+    MCP Client->>MCP Server: Llamada a herramienta (borrador de publicación de blog)
+    MCP Server->>MCP Client: Solicitud de muestreo (crear resumen)
+    MCP Client->>LLM: Generar resumen de publicación de blog
+    LLM->>MCP Client: Resultado del resumen
+    MCP Client->>MCP Server: Respuesta de muestreo (resumen)
+    MCP Server->>MCP Client: Publicación de blog completa (borrador + resumen)
+    MCP Client->>User: Publicación de blog lista
 ```
 
 ### Sampling request

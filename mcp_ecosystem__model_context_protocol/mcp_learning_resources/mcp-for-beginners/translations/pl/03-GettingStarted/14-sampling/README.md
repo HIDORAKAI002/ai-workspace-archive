@@ -1,8 +1,10 @@
 # Sampling - delegowanie funkcji do Klienta
 
-Czasami potrzebujesz, aby klient MCP i serwer MCP współpracowały, aby osiągnąć wspólny cel. Możesz mieć sytuację, w której Serwer wymaga pomocy LLM znajdującego się na kliencie. W takim przypadku należy użyć mechanizmu sampling.
+> **Informacja o wycofaniu:** kandydat na specyfikację MCP z dnia `2026-07-28` oznacza Sampling jako przestarzały na rzecz bezpośredniej integracji z interfejsami API dostawców LLM. Sampling nadal działa w `2025-11-25` i przez co najmniej rok po formalnym wycofaniu, więc wszystko w tej lekcji pozostaje aktualne — ale nowe projekty serwerów powinny rozważyć wzorzec zastępczy. Zobacz [Co się zmienia w MCP: kandydat na wydanie 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Przyjrzyjmy się kilku zastosowaniom i jak zbudować rozwiązanie wykorzystujące sampling.
+Czasem potrzebujesz, aby klient MCP i serwer MCP współpracowały, aby osiągnąć wspólny cel. Możesz mieć przypadek, w którym serwer wymaga pomocy LLM, który działa po stronie klienta. W takiej sytuacji powinieneś użyć sampling.
+
+Przyjrzyjmy się kilku przypadkom użycia i jak zbudować rozwiązanie z wykorzystaniem sampling.
 
 ## Przegląd
 
@@ -12,9 +14,9 @@ W tej lekcji skupimy się na wyjaśnieniu, kiedy i gdzie używać Sampling oraz 
 
 W tym rozdziale:
 
-- Wyjaśnimy, czym jest Sampling i kiedy go stosować.
+- Wyjaśnimy, czym jest Sampling i kiedy go używać.
 - Pokażemy, jak skonfigurować Sampling w MCP.
-- Zaprezentujemy przykłady działania Sampling.
+- Przedstawimy przykłady działania Sampling.
 
 ## Czym jest Sampling i dlaczego go używać?
 
@@ -27,19 +29,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Napisz wpis na bloga
-    MCP Client->>MCP Server: Wywołanie narzędzia (szkic wpisu)
+    User->>MCP Client: Napisz post na bloga
+    MCP Client->>MCP Server: Wywołanie narzędzia (szkic posta)
     MCP Server->>MCP Client: Żądanie próbkowania (utwórz streszczenie)
-    MCP Client->>LLM: Wygeneruj streszczenie wpisu na bloga
+    MCP Client->>LLM: Wygeneruj streszczenie posta na bloga
     LLM->>MCP Client: Wynik streszczenia
     MCP Client->>MCP Server: Odpowiedź próbkowania (streszczenie)
-    MCP Server->>MCP Client: Ukończony wpis na bloga (szkic + streszczenie)
-    MCP Client->>User: Wpis na bloga gotowy
+    MCP Server->>MCP Client: Kompletny post na bloga (szkic + streszczenie)
+    MCP Client->>User: Post na bloga gotowy
 ```
 
-### Żądanie Sampling
+### Żądanie sampling
 
-Ok, mamy teraz obraz sytuacji z dużej perspektywy, porozmawiajmy o żądaniu sampling, które serwer wysyła do klienta. Oto jak takie żądanie może wyglądać w formacie JSON-RPC:
+Dobrze, mamy teraz ogólny obraz wiarygodnego scenariusza, porozmawiajmy o żądaniu sampling, które serwer wysyła z powrotem do klienta. Tak może wyglądać takie żądanie w formacie JSON-RPC:
 
 ```json
 {
@@ -71,17 +73,17 @@ Ok, mamy teraz obraz sytuacji z dużej perspektywy, porozmawiajmy o żądaniu sa
 }
 ```
 
-Warto zwrócić uwagę na kilka rzeczy:
+Warto tu zwrócić uwagę na kilka rzeczy:
 
-- Prompt, w polu content -> text, to nasz prompt będący instrukcją dla LLM do streszczenia treści wpisu na blogu.
+- Prompt, pod content -> text, to nasza instrukcja dla LLM, aby podsumował treść wpisu na blogu.
 
-- **modelPreferences**. Ta sekcja to właśnie preferencje, rekomendacje dotyczące konfiguracji LLM. Użytkownik może zdecydować, czy przyjąć te rekomendacje czy je zmienić. W tym przypadku znajdują się rekomendacje dotyczące modelu do użycia oraz priorytetów szybkości i inteligencji.
-- **systemPrompt**, to typowy prompt systemowy, który nadaje LLM osobowość i zawiera instrukcje oraz wskazówki.
-- **maxTokens**, to kolejne pole, które mówi, ile tokenów jest zalecane do wykorzystania w tym zadaniu.
+- **modelPreferences**. Ta sekcja to właśnie preferencje, rekomendacja konfiguracji do użycia z LLM. Użytkownik może zdecydować, czy skorzystać z tych rekomendacji, czy je zmienić. W tym przypadku są rekomendacje dotyczące modelu, szybkości i priorytetu inteligencji.
+- **systemPrompt**, to normalny prompt systemowy, który nadaje osobowość twojemu LLM i zawiera instrukcje.
+- **maxTokens**, to właściwość mówiąca, ile tokenów zaleca się użyć do tego zadania.
 
-### Odpowiedź Sampling
+### Odpowiedź sampling
 
-Ta odpowiedź to to, co klient MCP ostatecznie wysyła z powrotem do serwera MCP i jest wynikiem wywołania LLM, oczekiwania na odpowiedź, a następnie skonstruowania tej wiadomości. Oto jak może wyglądać w formacie JSON-RPC:
+Ta odpowiedź jest tym, co Klient MCP ostatecznie wysyła z powrotem do Serwera MCP i jest wynikiem wywołania LLM po stronie klienta, oczekiwaniem na odpowiedź i skonstruowaniem tej wiadomości. Tak może wyglądać w JSON-RPC:
 
 ```json
 {
@@ -99,13 +101,13 @@ Ta odpowiedź to to, co klient MCP ostatecznie wysyła z powrotem do serwera MCP
 }
 ```
 
-Zwróć uwagę, że odpowiedź to abstrakt wpisu na blogu, dokładnie taki, o jaki prosiliśmy. Zauważ też, że użyty `model` nie jest tym, o który prosiliśmy, a "gpt-5" zamiast "claude-3-sonnet". Ilustruje to fakt, że użytkownik może zmienić zdanie co do modelu, a twoje żądanie sampling jest jedynie rekomendacją.
+Zwróć uwagę, że odpowiedź to abstrakt wpisu na blogu, tak jak prosiliśmy. Zauważ też, że użyty `model` nie jest tym, o który prosiliśmy, tylko "gpt-5" zamiast "claude-3-sonnet". To ma pokazać, że użytkownik może zmienić zdanie, co do wyboru i że twoje żądanie sampling to tylko rekomendacja.
 
-Ok, teraz gdy rozumiemy główny przebieg i przydatne zadanie, do którego można to użyć – "tworzenie wpisu na blog + abstrakt" – zobaczmy, co musimy zrobić, aby to uruchomić.
+Dobrze, skoro rozumiemy główny przepływ oraz przydatne zadanie "tworzenie wpisu na bloga + abstrakt", zobaczmy co trzeba zrobić, aby to działało.
 
 ### Typy wiadomości
 
-Wiadomości sampling nie muszą ograniczać się tylko do tekstu, ale możesz także wysyłać obrazy i dźwięki. Oto jak różni się JSON-RPC:
+Wiadomości sampling nie ograniczają się tylko do tekstu, możesz również wysyłać obrazy i audio. Tak inaczej wygląda JSON-RPC:
 
 **Tekst**
 
@@ -126,7 +128,7 @@ Wiadomości sampling nie muszą ograniczać się tylko do tekstu, ale możesz ta
 }
 ```
 
-**Zawartość dźwięku**
+**Zawartość audio**
 
 ```json
 {
@@ -136,11 +138,11 @@ Wiadomości sampling nie muszą ograniczać się tylko do tekstu, ale możesz ta
 }
 ```
 
-> NOTE: dla bardziej szczegółowych informacji na temat Sampling zajrzyj do [oficjalnej dokumentacji](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> NOTE: po więcej szczegółowych informacji o Sampling zajrzyj do [oficjalnej dokumentacji](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Jak skonfigurować Sampling w kliencie
+## Jak skonfigurować Sampling w Kliencie
 
-> Uwaga: jeśli tworzysz tylko serwer, nie musisz tu wiele robić.
+> Uwaga: jeśli budujesz tylko serwer, nie musisz tu wiele robić.
 
 W kliencie musisz określić następującą funkcję w ten sposób:
 
@@ -152,20 +154,20 @@ W kliencie musisz określić następującą funkcję w ten sposób:
 }
 ```
 
-To zostanie przejęte, gdy wybrany klient zainicjuje połączenie z serwerem.
+To zostanie rozpoznane podczas inicjalizacji twojego klienta z serwerem.
 
-## Przykład działania Sampling – Tworzenie wpisu na bloga
+## Przykład działania Sampling - tworzenie wpisu na bloga
 
-Zakodujmy razem serwer obsługujący sampling, musimy wykonać następujące kroki:
+Stwórzmy razem serwer do sampling, musimy zrobić następujące kroki:
 
-1. Utworzyć narzędzie na Serwerze.
-2. To narzędzie powinno utworzyć żądanie sampling.
-3. Narzędzie powinno czekać na odpowiedź sampling od klienta.
-4. Następnie powinno zwrócić wynik narzędzia.
+1. Stwórz narzędzie po stronie Serwera.
+1. To narzędzie powinno wygenerować żądanie sampling
+1. Narzędzie powinno czekać na odpowiedź klienta na żądanie sampling.
+1. Następnie powinno wygenerować wynik narzędzia.
 
 Zobaczmy kod krok po kroku:
 
-### -1- Utwórz narzędzie
+### -1- Stwórz narzędzie
 
 **python**
 
@@ -176,9 +178,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Utwórz żądanie sampling
+### -2- Stwórz żądanie sampling
 
-Rozszerz swoje narzędzie następującym kodem:
+Rozszerz narzędzie o następujący kod:
 
 **python**
 
@@ -204,7 +206,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Poczekaj na odpowiedź i zwróć ją
+### -3- Czekaj na odpowiedź i zwróć ją
 
 **python**
 
@@ -213,7 +215,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# zwróć kompletny produkt
+# zwróć pełny produkt
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -282,7 +284,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # zwróć cały wpis na blogu
+    # zwróć pełny wpis na blogu
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -293,15 +295,15 @@ if __name__ == "__main__":
     # mcp.run()
     mcp.run(transport="streamable-http")
 
-# uruchom aplikację poleceniem: python server.py
+# uruchom aplikację za pomocą: python server.py
 ```
 
 ### -5- Testowanie w Visual Studio Code
 
-Aby to przetestować w Visual Studio Code, wykonaj następujące kroki:
+Aby to przetestować w Visual Studio Code, wykonaj:
 
 1. Uruchom serwer w terminalu
-2. Dodaj go do *mcp.json* (upewnij się, że jest uruchomiony), na przykład tak:
+1. Dodaj go do *mcp.json* (i upewnij się, że jest uruchomiony), na przykład tak:
 
    ```json
    "servers": {
@@ -318,23 +320,23 @@ Aby to przetestować w Visual Studio Code, wykonaj następujące kroki:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Pozwól na wykonanie sampling. Przy pierwszym teście pojawi się dodatkowe okno dialogowe, które musisz zaakceptować, potem zobaczysz standardowe okno z pytaniem o uruchomienie narzędzia.
+1. Pozwól na sampling. Przy pierwszym teście pojawi się dodatkowe okno dialogowe, które trzeba zaakceptować, potem pojawi się normalne okno z prośbą o uruchomienie narzędzia.
 
-1. Sprawdź wyniki. Zobaczysz wyniki ładnie wyrenderowane w GitHub Copilot Chat, ale możesz też zobaczyć surową odpowiedź JSON.
+1. Sprawdź wyniki. Zobaczysz wyniki ładnie wyrenderowane w GitHub Copilot Chat, ale możesz też przejrzeć surową odpowiedź JSON.
 
-**Bonus**. Narzędzia Visual Studio Code mają świetne wsparcie dla sampling. Możesz skonfigurować dostęp do Sampling na zainstalowanym serwerze w następujący sposób:
+**Bonus**. Visual Studio Code oferuje świetne wsparcie dla sampling. Możesz skonfigurować dostęp do Sampling na zainstalowanym serwerze, postępując tak:
 
 1. Przejdź do sekcji rozszerzeń.
-2. Wybierz ikonę koła zębatego dla zainstalowanego serwera w sekcji "MCP SERVERS - INSTALLED".
-3. Wybierz "Configure Model Access", tutaj możesz wybrać, których modeli GitHub Copilot może używać podczas Sampling. Możesz też zobaczyć wszystkie ostatnie żądania Sampling wybierając "Show Sampling requests".
+1. Wybierz ikonę koła zębatego przy twoim zainstalowanym serwerze w sekcji "MCP SERVERS - INSTALLED".
+1 Wybierz "Configure Model Access", tutaj możesz wybrać, które modele GitHub Copilot może używać do sampling. Możesz też zobaczyć wszystkie ostatnie żądania sampling wybierając "Show Sampling requests".
 
 ## Zadanie
 
-W tym zadaniu zbudujesz nieco inny Sampling, mianowicie integrację sampling wspierającą generowanie opisu produktu. Oto twoja sytuacja:
+W tym zadaniu zbudujesz nieco inny Sampling, a mianowicie integrację sampling wspierającą generowanie opisu produktu. Oto twój scenariusz:
 
-**Scenariusz**: Pracownik zaplecza e-commerce potrzebuje pomocy, ponieważ generowanie opisów produktów zajmuje za dużo czasu. Dlatego masz zbudować rozwiązanie, gdzie możesz wywołać narzędzie "create_product" z argumentami "title" i "keywords", które powinno wygenerować pełny produkt łącznie z polem "description" wypełnionym przez LLM na kliencie.
+**Scenariusz**: Pracownik zaplecza e-commerce potrzebuje pomocy, generowanie opisów produktów zajmuje za dużo czasu. Dlatego masz zbudować rozwiązanie, gdzie wywołujesz narzędzie "create_product" z argumentami "title" i "keywords" i powinno wygenerować kompletny produkt z polem "description" wypełnionym przez LLM klienta.
 
-TIP: użyj tego, czego nauczyłeś się wcześniej, aby skonstruować ten serwer i jego narzędzie za pomocą żądania sampling.
+TIP: wykorzystaj to, czego nauczyłeś się wcześniej, aby skonstruować serwer i jego narzędzie za pomocą żądania sampling.
 
 ## Rozwiązanie
 

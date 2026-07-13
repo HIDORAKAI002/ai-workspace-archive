@@ -1,37 +1,37 @@
 # קהילה ותרומות
 
-[![איך לתרום ל- MCP: כלים, תיעוד, קוד ועוד](../../../translated_images/he/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
+[![איך לתרום ל-MCP: כלים, מסמכים, קוד ועוד](../../../translated_images/he/07.1179f6de46ff196e.webp)](https://youtu.be/v1pvCYAWpRE)
 
-_(לחץ על התמונה למעלה כדי לצפות בסרטון של השיעור הזה)_
+_(לחץ על התמונה למעלה לצפייה בווידאו של השיעור הזה)_
 
 ## סקירה כללית
 
-שיעור זה מתמקד כיצד להשתתף בקהילת MCP, לתרום לאקוסיסטם של MCP, ולעקוב אחר שיטות עבודה מומלצות לפיתוח שיתופי. הבנת הדרך להשתתף בפרויקטים של MCP בקוד פתוח היא חיונית עבור אלו המעוניינים לעצב את עתיד הטכנולוגיה הזאת.
+שיעור זה מתמקד כיצד להשתתף בקהילת MCP, לתרום למערכת האקולוגית של MCP ולפעול על פי שיטות עבודה מומלצות לפיתוח שיתופי. הבנת הדרך להשתתף בפרויקטים של MCP בקוד פתוח חיונית למי שמעוניין לעצב את עתיד הטכנולוגיה הזו.
 
 ## מטרות הלמידה
 
-בסיום השיעור תוכל:
+בסוף שיעור זה תוכל:
 
-- להבין את מבנה הקהילה והאקוסיסטם של MCP
-- להשתתף בצורה אפקטיבית בפורומים ודיונים של קהילת MCP
-- לתרום למאגרי הקוד הפתוח של MCP
+- להבין את מבנה הקהילה והמערכת האקולוגית של MCP
+- להשתתף ביעילות בפורומים ודיונים של קהילת MCP
+- לתרום למחסנים של MCP בקוד פתוח
 - ליצור ולשתף כלים ושרתים מותאמים אישית של MCP
-- לעקוב אחר שיטות עבודה מומלצות לפיתוח ושיתוף ב-MCP
+- לפעול לפי שיטות עבודה מומלצות לפיתוח ושיתופי פעולה ב-MCP
 - לגלות משאבים ומסגרות קהילתיות לפיתוח MCP
 
-## האקוסיסטם של קהילת MCP
+## מערכת הקהילה של MCP
 
-האקוסיסטם של MCP מורכב מרכיבים ומשתתפים שונים שעובדים יחד לקידום הפרוטוקול.
+מערכת האקולוגית של MCP מורכבת מרכיבים ומשתתפים שונים שעובדים יחד לקידום הפרוטוקול.
 
-### רכיבי הקהילה המרכזיים
+### רכיבי מפתח בקהילה
 
-1. **אחראים על פרוטוקול הליבה**: ארגון GitHub הרשמי של [Model Context Protocol](https://github.com/modelcontextprotocol) מנהל את המפרטים הראשיים והיישומים ההתייחסותיים של MCP
-2. **מפתחי כלים**: יחידים וצוותים שיוצרים כלים ושרתים ל-MCP
-3. **ספקי אינטגרציה**: חברות שמשלבות את MCP במוצרים ובשירותים שלהן
+1. **מחזיקי תוכן הליבה של הפרוטוקול**: [ארגון GitHub הרשמי של Model Context Protocol](https://github.com/modelcontextprotocol) שומר על המפרטים המרכזיים של MCP ומימושים ייעודיים
+2. **מפתחים של כלים**: יחידים וצוותים שיוצרים כלים ושרתים של MCP
+3. **ספקי אינטגרציה**: חברות שמשלבות MCP במוצרים ובשירותים שלהן
 4. **משתמשים סופיים**: מפתחים וארגונים שמשתמשים ב-MCP באפליקציות שלהם
-5. **תורמים**: חברי קהילה שתורמים קוד, תיעוד או משאבים אחרים
+5. **תורמים**: חברי קהילה שתורמים קוד, מסמכים או משאבים אחרים
 
-### משאבים קהילתיים
+### משאבי קהילה
 
 #### ערוצים רשמיים
 
@@ -41,72 +41,73 @@ _(לחץ על התמונה למעלה כדי לצפות בסרטון של השי
 - [דיונים ב-GitHub](https://github.com/orgs/modelcontextprotocol/discussions)
 - [מאגר דוגמאות ושרתים של MCP](https://github.com/modelcontextprotocol/servers)
 
-#### משאבים בהובלת הקהילה
+#### משאבים מונעים על ידי הקהילה
 
 - [לקוחות MCP](https://modelcontextprotocol.io/clients) - רשימה של לקוחות התומכים באינטגרציות MCP
 - [שרתים קהילתיים של MCP](https://github.com/modelcontextprotocol/servers?tab=readme-ov-file#-community-servers) - רשימה מתפתחת של שרתים שפותחו על ידי הקהילה
-- [שרתים מצוינים של MCP](https://github.com/wong2/awesome-mcp-servers) - רשימה נבחרת של שרתי MCP
-- [PulseMCP](https://www.pulsemcp.com/) - מרכז קהילתי ועלון גיליון לגילוי משאבים של MCP
-- [שרת דיסקורד](https://discord.gg/jHEGxQu2a5) - התחברו עם מפתחי MCP
-- מימושי SDK לשפות שונות
-- פוסטים בבלוג וסרטוני הדרכה
+- [שרתים מדהימים של MCP](https://github.com/wong2/awesome-mcp-servers) - רשימה נבחרת של שרתי MCP
+- [PulseMCP](https://www.pulsemcp.com/) - מרכז קהילתי ועלון לגלות משאבי MCP
+- [Remote OpenClaw](https://www.remoteopenclaw.com/) - מדריך חינמי לחיפוש שרתי MCP, מיומנויות סוכן ותוספים
+- [שרת דיסקורד](https://discord.gg/jHEGxQu2a5) - התחבר עם מפתחי MCP
+- מימושי SDK לפי שפות
+- פוסטים בבלוג ומדריכים
 
 ## תרומה ל-MCP
 
-### סוגי התרומות
+### סוגי תרומות
 
-האקו-סיסטם של MCP מקבל בברכה סוגים שונים של תרומות:
+מערכת האקולוגית של MCP מקבלת מגוון סוגי תרומות:
 
 1. **תרומות קוד**:
    - שיפורים בפרוטוקול הליבה
    - תיקוני באגים
-   - יישומי כלים ושרתים
+   - מימושים של כלים ושרתים
    - ספריות לקוח/שרת בשפות שונות
 
 2. **תיעוד**:
    - שיפור תיעוד קיים
-   - יצירת הדרכות ומדריכים
+   - יצירת מדריכים וסרטוטים
    - תרגום תיעוד
-   - יצירת דוגמאות ואפליקציות לדוגמה
+   - יצירת דוגמאות ויישומים לדוגמה
 
-3. **תמיכה בקהילה**:
+3. **תמיכת קהילה**:
    - מענה לשאלות בפורומים ובדיונים
    - בדיקות ודיווח על בעיות
    - ארגון אירועים קהילתיים
-   - חונכות לתורמים חדשים
+   - חניכה של תורמים חדשים
 
 ### תהליך התרומה: פרוטוקול הליבה
 
-כדי לתרום לפרוטוקול הליבה של MCP או ליישומים הרשמיים, עקוב אחרי העקרונות מתוך [הנחיות התרומה הרשמיות](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
+כדי לתרום לפרוטוקול הליבה של MCP או מימושים רשמיים, פעל לפי העקרונות ב-[הנחיות התרומה הרשמי](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CONTRIBUTING.md):
 
-1. **פשטות ומינימליזם**: מפרט MCP מכתיב רף גבוה להוספת מושגים חדשים. קל יותר להוסיף דברים למפרט מאשר להסיר.
+1. **פשטות ומינימליזם**: מפרט ה-MCP שומר על רמה גבוהה להוספת רעיונות חדשים. קל יותר להוסיף דברים למפרט מאשר להסיר אותם.
 
-2. **גישה קונקרטית**: שינויים במפרט צריכים להתבסס על אתגרים יישומיים ספציפיים, לא על ספקולציות.
+2. **גישה עניינית**: שינויים במפרט צריכים להיות מבוססים על אתגרי מימוש ספציפיים, לא על רעיונות ספקולטיביים.
 
-3. **שלבי הצעת פתרון**:
-   - הגדרה: חקר את הבעיה, ואימות שיתר משתמשי MCP נתקלים בבעיה דומה
-   - פרוטוטייפ: בנה דוגמה והראה את השימוש המעשי שלה
-   - כתיבה: בהתבסס על הפרוטוטייפ, כתוב הצעת מפרט
+3. **שלבי הצעה**:
+   - הגדרה: חקור את תחום הבעיה, אמת שמשתמשי MCP אחרים מתמודדים עם בעיה דומה
+   - אבטיפוס: בנה דוגמה והדגם את השימוש המעשי
+   - כתיבה: בהתבסס על האבטיפוס, כתוב הצעת מפרט
 
-### הגדרת סביבת הפיתוח
+### הגדרת סביבת פיתוח
 
 ```bash
-# פורק את המאגר
+# יצירת תיקיית קוד ראשי מהמאגר
 git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
 cd modelcontextprotocol
 
-# התקן תלותיות
+# התקן תלותים
 npm install
 
-# עבור שינויים בסכמה, אשר וצרף schema.json:
+# לשינויים במבנה, אמת וייצר schema.json:
 npm run check:schema:ts
 npm run generate:schema
 
-# עבור שינויים בתיעוד
+# לשינויים בתיעוד
 npm run check:docs
 npm run format
 
-# הצג תיעוד במחשב המקומי (אופציונלי):
+# תצוגה מקדימה של התיעוד במחשב המקומי (אופציונלי):
 npm run serve:docs
 ```
 
@@ -119,7 +120,7 @@ export function validateResource(resource: unknown): resource is MCPResource {
     return false;
   }
   
-  // באג: חסר אימות תכונה
+  // באג: חסר אימות של תכונה
   // מימוש נוכחי:
   const hasName = 'name' in resource;
   const hasSchema = 'schema' in resource;
@@ -133,7 +134,7 @@ export function validateResource(resource: unknown): resource is MCPResource {
     return false;
   }
   
-  // שיפור באימות
+  // שיפור האימות
   const hasName = 'name' in resource && typeof (resource as MCPResource).name === 'string';
   const hasSchema = 'schema' in resource && typeof (resource as MCPResource).schema === 'object';
   const hasDescription = !('description' in resource) || typeof (resource as MCPResource).description === 'string';
@@ -142,10 +143,10 @@ export function validateResource(resource: unknown): resource is MCPResource {
 }
 ```
 
-### דוגמה: תרומת כלי חדש לספרייה סטנדרטית
+### דוגמה: תרומת כלי חדש לספרייה התקנית
 
 ```python
-# דוגמת תרומה: כלי לעיבוד נתוני CSV לספריית הסטנדרט MCP
+# תרומת דוגמה: כלי לעיבוד נתוני CSV לספריית הסטנדרט MCP
 
 from mcp_tools import Tool, ToolRequest, ToolResponse, ToolExecutionException
 import pandas as pd
@@ -211,10 +212,10 @@ class CsvProcessingTool(Tool):
             operation = request.parameters.get("operation")
             output_format = request.parameters.get("outputFormat", "json")
             
-            # קבלת נתוני CSV מגליון ישיר או כתובת URL
+            # קבלת נתוני CSV מתוך נתונים ישירים או כתובת URL
             df = await self._get_dataframe(request)
             
-            # עיבוד בהתאם לפעולה המבוקשת
+            # עיבוד בהתבסס על הפעולה המבוקשת
             result = {}
             
             if operation == "summary":
@@ -275,7 +276,7 @@ class CsvProcessingTool(Tool):
     
     def _transform_data(self, df: pd.DataFrame, params: Dict[str, Any]) -> Dict[str, Any]:
         """Transforms the data based on parameters"""
-        # המימוש יכלול טרנספורמציות שונות
+        # המימוש יכלול המרות שונות
         return {
             "status": "success",
             "message": "Transformation applied"
@@ -302,70 +303,70 @@ class CsvProcessingTool(Tool):
             raise ToolExecutionException(f"Unsupported output format: {format}")
 ```
 
-### הנחיות תרומה
+### הנחיות לתרומה
 
 כדי להצליח לתרום לפרויקטים של MCP:
 
-1. **התחל קטן**: התחל בתיעוד, תיקוני באגים, או שיפורים קטנים
-2. **עקוב אחר מדריך הסגנון**: שמור על סגנון קוד וקונבנציות הפרויקט
-3. **כתוב בדיקות**: כלל בדיקות יחידה לתרומות הקוד שלך
-4. **תעד את עבודתך**: הוסף תיעוד ברור לתכונות חדשות או שינויים
-5. **הגש בקשות משיכה ממוקדות**: שמור על בקשות משיכה ממוקדות לסוגיה או תכונה אחת
-6. **שיתוף פעולה עם משוב**: היה תגובתי למשוב על התרומות שלך
+1. **התחל בקטן**: התחל בתיעוד, תיקוני באגים או שיפורים קטנים
+2. **עמוד במדריך הסגנון**: פעל לפי סגנון הקוד והנורמות של הפרויקט
+3. **כתוב מבחנים**: כלל מבחני יחידה לתרומות הקוד שלך
+4. **תעד את עבודתך**: הוסף תיעוד ברור לתכונות או שינויים חדשים
+5. **הגש בקשות משיכה ממוקדות**: שמור בקשות משיכה ממוקדות בבעיה או תכונה אחת
+6. **השתתף עם משוב**: היה תגובתי למשוב על התרומות שלך
 
-### דוגמה לזרימת עבודה לתרומה
+### דוגמת זרימת עבודה לתרומה
 
 ```bash
-# שכפול המאגר
+# שכפל את המאגר
 git clone https://github.com/modelcontextprotocol/typescript-sdk.git
 cd typescript-sdk
 
-# צור סניף חדש לתרומתך
+# צור ענף חדש לתרומתך
 git checkout -b feature/my-contribution
 
 # בצע את השינויים שלך
 # ...
 
-# הרץ בדיקות כדי לוודא שהשינויים שלך לא שוברים פונקציונליות קיימת
+# הפעל בדיקות כדי לוודא שהשינויים שלך לא שוברים פונקציונליות קיימת
 npm test
 
-# בצע התחייבות לשינויים שלך עם הודעה מתארת
+# התחייב את השינויים שלך עם הודעה מתארת
 git commit -am "Fix validation in resource handler"
 
-# דחוף את הסניף שלך לפורק שלך
+# דחף את הענף שלך לפורק שלך
 git push origin feature/my-contribution
 
-# צור בקשת מיזוג מהסניף שלך למאגר הראשי
-# לאחר מכן, התייחס למשוב וחזור על בקשת המיזוג לפי הצורך
+# צור בקשת משיכה מהענף שלך למאגר הראשי
+# לאחר מכן, התייחס למשוב וחזור על בקשת המשיכה לפי הצורך
 ```
 
-## יצירת ושיתוף שרתי MCP
+## יצירת שרתי MCP ושיתופם
 
-אחת הדרכים החשובות לתרום לאקוסיסטם MCP היא ליצור ולשתף שרתי MCP מותאמים אישית. הקהילה כבר פיתחה מאות שרתים לשירותים ואפשרויות שימוש שונות.
+אחת הדרכים הכי חשובות לתרום למערכת האקולוגית של MCP היא על ידי יצירה ושיתוף שרתי MCP מותאמים אישית. הקהילה כבר פיתחה מאות שרתים לשירותים ומקרי שימוש שונים.
 
-### מסגרות לפיתוח שרתי MCP
+### מסגרות פיתוח שרתי MCP
 
-זמינות כמה מסגרות שמפשטות את פיתוח שרתי MCP:
+מספר מסגרות זמינות לפשט את פיתוח שרתי MCP:
 
-1. **SDK רשמיים** (תואמים עם [מפרט MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)):
-   - [TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
-   - [Python SDK](https://github.com/modelcontextprotocol/python-sdk)
-   - [C# SDK](https://github.com/modelcontextprotocol/csharp-sdk)
-   - [Go SDK](https://github.com/modelcontextprotocol/go-sdk)
-   - [Java SDK](https://github.com/modelcontextprotocol/java-sdk)
-   - [Kotlin SDK](https://github.com/modelcontextprotocol/kotlin-sdk)
-   - [Swift SDK](https://github.com/modelcontextprotocol/swift-sdk)
-   - [Rust SDK](https://github.com/modelcontextprotocol/rust-sdk)
+1. **SDK רשמיים** (מתואמים עם [מפרט MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)):
+   - [SDK ב-TypeScript](https://github.com/modelcontextprotocol/typescript-sdk)
+   - [SDK ב-Python](https://github.com/modelcontextprotocol/python-sdk)
+   - [SDK ב-C#](https://github.com/modelcontextprotocol/csharp-sdk)
+   - [SDK ב-Go](https://github.com/modelcontextprotocol/go-sdk)
+   - [SDK ב-Java](https://github.com/modelcontextprotocol/java-sdk)
+   - [SDK ב-Kotlin](https://github.com/modelcontextprotocol/kotlin-sdk)
+   - [SDK ב-Swift](https://github.com/modelcontextprotocol/swift-sdk)
+   - [SDK ב-Rust](https://github.com/modelcontextprotocol/rust-sdk)
 
 2. **מסגרות קהילתיות**:
-   - [MCP-Framework](https://mcp-framework.com/) - בניית שרתי MCP ביופי ומהירות ב-TypeScript
-   - [MCP Declarative Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - שרתי MCP מונעי אנוטציות עם Java
-   - [Quarkus MCP Server SDK](https://github.com/quarkiverse/quarkus-mcp-server) - מסגרת Java לשרתי MCP
-   - [Next.js MCP Server Template](https://github.com/vercel-labs/mcp-for-next.js) - פרויקט התחלה ב-Next.js לשרתי MCP
+   - [MCP-Framework](https://mcp-framework.com/) - בנה שרתי MCP באלגנטיות ובמהירות עם TypeScript
+   - [MCP Declarative Java SDK](https://github.com/codeboyzhou/mcp-declarative-java-sdk) - שרתי MCP מונחי הערות עם Java
+   - [Quarkus MCP Server SDK](https://github.com/quarkiverse/quarkus-mcp-server) - מסגרת Java לשרתים של MCP
+   - [תבנית שרת MCP ל-Next.js](https://github.com/vercel-labs/mcp-for-next.js) - פרויקט התחלתי לשרתים ב-Next.js
 
 ### פיתוח כלים לשיתוף
 
-#### דוגמת .NET: יצירת חבילת כלים לשיתוף
+#### דוגמה ב-.NET: יצירת חבילת כלי לשיתוף
 
 ```csharp
 // Create a new .NET library project
@@ -471,10 +472,10 @@ namespace McpFinanceTools
 // dotnet nuget push bin/Release/McpFinanceTools.1.0.0.nupkg -s https://api.nuget.org/v3/index.json -k YOUR_API_KEY
 ```
 
-#### דוגמת Java: יצירת חבילת Maven לכלים
+#### דוגמה ב-Java: יצירת חבילת Maven לכלים
 
 ```java
-// קובץ תצורה pom.xml לחבילת כלי MCP שניתן לשתף
+// קובץ pom.xml להגדרת חבילה לשימוש חוזר של כלי MCP
 <!-- 
 <project>
     <groupId>com.example</groupId>
@@ -546,7 +547,7 @@ public class WeatherForecastTool implements Tool {
             int days = request.getParameters().has("days") ? 
                 request.getParameters().get("days").asInt() : 3;
             
-            // קריאה ל-API מזג האוויר
+            // קריאה ל-API מזג אוויר
             Map<String, Object> forecast = getForecast(location, days);
             
             // בניית תגובה
@@ -559,7 +560,7 @@ public class WeatherForecastTool implements Tool {
     }
     
     private Map<String, Object> getForecast(String location, int days) {
-        // יישום שיקרא ל-API מזג האוויר
+        // המימוש יקרא ל-API מזג אוויר
         // דוגמה מפושטת
         Map<String, Object> result = new HashMap<>();
         // הוסף נתוני תחזית...
@@ -572,20 +573,20 @@ public class WeatherForecastTool implements Tool {
 // mvn deploy
 ```
 
-#### דוגמת Python: פרסום חבילת PyPI
+#### דוגמה ב-Python: פרסום חבילת PyPI
 
 ```python
-# מבנה תיקיות עבור חבילת PyPI:
+# מבנה התיקיות לחבילה ב-PyPI:
 # mcp_nlp_tools/
-# ├── רישיון
-# ├── קובץ README.md
-# ├── קובץ setup.py
-# ├── תיקיית mcp_nlp_tools/
-# │   ├── הקובץ __init__.py
-# │   ├── קובץ sentiment_tool.py
-# │   └── קובץ translation_tool.py
+# ├── LICENSE
+# ├── README.md
+# ├── setup.py
+# ├── mcp_nlp_tools/
+# │   ├── __init__.py
+# │   ├── sentiment_tool.py
+# │   └── translation_tool.py
 
-# דוגמה לקובץ setup.py
+# דוגמת קובץ setup.py
 """
 from setuptools import setup, find_packages
 
@@ -613,7 +614,7 @@ setup(
 )
 """
 
-# דוגמה ליישום כלי NLP (sentiment_tool.py)
+# דוגמת מימוש כלי NLP (sentiment_tool.py)
 from mcp_tools import Tool, ToolRequest, ToolResponse, ToolExecutionException
 from transformers import pipeline
 import torch
@@ -622,7 +623,7 @@ class SentimentAnalysisTool(Tool):
     """MCP tool for sentiment analysis of text"""
     
     def __init__(self, model_name="distilbert-base-uncased-finetuned-sst-2-english"):
-        # טען את מודל ניתוח הסנטימנט
+        # טען את מודל ניתוח הרגש
         self.sentiment_analyzer = pipeline("sentiment-analysis", model=model_name)
     
     def get_name(self):
@@ -650,14 +651,14 @@ class SentimentAnalysisTool(Tool):
     
     async def execute_async(self, request: ToolRequest) -> ToolResponse:
         try:
-            # חילוץ פרמטרים
+            # הפק פרמטרים
             text = request.parameters.get("text")
             include_score = request.parameters.get("includeScore", True)
             
-            # נתח את הסנטימנט
+            # נתח את הרגש
             sentiment_result = self.sentiment_analyzer(text)[0]
             
-            # עיצוב התוצאה
+            # עבד את התוצאה
             result = {
                 "sentiment": sentiment_result["label"],
                 "text": text
@@ -679,69 +680,69 @@ class SentimentAnalysisTool(Tool):
 
 ### שיתוף שיטות עבודה מומלצות
 
-בעת שיתוף כלים של MCP עם הקהילה:
+כשמשתפים כלים של MCP עם הקהילה:
 
 1. **תיעוד מלא**:
-   - תעד מטרות, שימוש, ודוגמאות
+   - תאר את המטרה, השימוש והדוגמאות
    - הסבר פרמטרים וערכי החזרה
-   - תעד תלות חיצונית במידת הצורך
+   - תעד כל תלות חיצונית
 
-2. **ניהול שגיאות**:
-   - יישם טיפול שגיאות מקיף
+2. **טיפול בשגיאות**:
+   - יישם טיפול שגיאות איתן
    - ספק הודעות שגיאה מועילות
-   - טיפול במקרים קיצוניים בצורה אלגנטית
+   - התמודד בנועם עם מקרי קצה
 
 3. **שיקולי ביצועים**:
    - אופטימיזציה למהירות ולשימוש במשאבים
-   - יישם מטמון במידת הצורך
-   - שקול קנה מידה
+   - יישום מטמון במידת הצורך
+   - שקול סקלאביליות
 
 4. **אבטחה**:
-   - השתמש במפתחות API מאובטחים ואימות
-   - אמת ונקה קלטים
-   - יישם הגבלת קצב לקריאות חיצוניות
+   - השתמש במפתחות API ובאימות מאובטחים
+   - אמת ושַׁפֵּץ קלטים
+   - יישם הגבלת קצב לקריאות API חיצוניות
 
 5. **בדיקות**:
-   - כלל כיסוי בדיקות מקיף
-   - בדוק עם סוגי קלט שונים ומקרים קיצוניים
-   - תעד את נהלי הבדיקה
+   - כלל כיסוי בדיקה מקיף
+   - בדוק עם סוגי קלט שונים ומקרי קצה
+   - תעד נהלי בדיקה
 
 ## שיתוף פעולה קהילתי ושיטות עבודה מומלצות
 
-שיתוף פעולה אפקטיבי הוא מפתח לאקוסיסטם MCP משגשג.
+שיתוף פעולה יעיל הוא המפתח למערכת אקולוגית בריאה של MCP.
 
 ### ערוצי תקשורת
 
 - נושאים ודיונים ב-GitHub
-- קהילת Microsoft Tech
+- Microsoft Tech Community
 - ערוצי Discord ו-Slack
-- Stack Overflow (תג: `model-context-protocol` או `mcp`)
+- Stack Overflow (תיוג: `model-context-protocol` או `mcp`)
 
-### ביקורות קוד
+### סקירות קוד
 
-בעת סקירת תרומות ל-MCP:
+בסקירת תרומות ל-MCP:
 
 1. **בהירות**: האם הקוד ברור ומתועד היטב?
-2. **תקינות**: האם הוא עובד כמצופה?
-3. **עקביות**: האם הוא עוקב אחרי קונבנציות הפרויקט?
-4. **שלימות**: האם כלולים בדיקות ותיעוד?
-5. **אבטחה**: האם קיימות סוגיות אבטחה?
+2. **נכונות**: האם הוא פועל לפי הציפיות?
+3. **עקביות**: האם הוא פועל לפי נורמות הפרויקט?
+4. **שלימות**: האם קיימים בדיקות ותיעוד?
+5. **אבטחה**: האם קיימות בעיות אבטחה?
 
-### תאימות לגרסאות
+### תאימות גרסאות
 
 בעת פיתוח ל-MCP:
 
-1. **גרסת פרוטוקול**: הישמע לגרסת הפרוטוקול שהכלי שלך תומך בה
+1. **גרסת פרוטוקול**: שמור על גרסת הפרוטוקול שהכלי שלך תומך בה
 2. **תאימות לקוחות**: שקול תאימות לאחור
-3. **תאימות שרתים**: עקוב אחר הנחיות יישום שרתים
-4. **שינויים לא תואמים**: תעד שינויים שבורים בבירור
+3. **תאימות שרתים**: פעל לפי הנחיות מימוש שרתים
+4. **שינויים שוברי**: תעד בבירור שינויים שוברי תאימות
 
-## פרויקט קהילתי לדוגמה: רישום כלים של MCP
+## דוגמה לפרויקט קהילתי: רישום כלי MCP
 
 תרומה קהילתית חשובה יכולה להיות פיתוח רישום ציבורי לכלי MCP.
 
 ```python
-# דוגמת סכימה לממשק API של רישום כלים קהילתי
+# דוגמה לסכימת API לרישום כלי קהילה
 
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field, HttpUrl
@@ -778,10 +779,10 @@ class Tool(ToolRegistration):
     rating: float = Field(default=0.0)
     ratings_count: int = Field(default=0)
 
-# אפליקציית FastAPI לרישום
+# יישום FastAPI לרישום
 app = FastAPI(title="MCP Tool Registry")
 
-# בסיס נתונים בזיכרון לדוגמה הזו
+# מסד נתונים בזיכרון לדוגמה זו
 tools_db = {}
 
 @app.post("/tools", response_model=Tool)
@@ -819,33 +820,33 @@ async def delete_tool(tool_name: str):
 
 ## נקודות מפתח
 
-- קהילת MCP מגוונת ומקבלת מגוון תרומות
-- תרומה ל-MCP יכולה לכלול שיפורי פרוטוקול ועד כלים מותאמים אישית
-- הקפדה על הנחיות תרומה משפרת את הסיכוי לאישור בקשות משיכה
-- יצירה ושיתוף של כלים ל-MCP הם דרך חשובה להעשיר את האקוסיסטם
+- קהילת MCP מגוונת ומקבלת סוגי תרומות שונים
+- תרומה ל-MCP יכולה לכלול שיפורים בפרוטוקול הליבה וכלים מותאמים אישית
+- פנייה להנחיות התרומה משפרת את הסיכוי לקבל בקשת משיכה
+- יצירה ושיתוף כלים ל-MCP הם דרך חשובה להעשיר את המערכת האקולוגית
 - שיתוף פעולה קהילתי חיוני לצמיחה ושיפור MCP
 
 ## תרגיל
 
-1. זהה תחום באקו-סיסטם של MCP שבו תוכל לתרום בהתאם לכישורים ותחומי העניין שלך
-2. ספר את מאגר ה-MCP והקם סביבת פיתוח מקומית
-3. צור שיפור קטן, תיקון באג, או כלי שישפר את הקהילה
-4. תעד את תרומתך עם בדיקות ותיעוד נאותים
-5. הגש בקשת משיכה למאגר המתאים
+1. זהה תחום במערכת האקולוגית של MCP שבו תוכל לתרום בהתבסס על כישוריך ותחומי העניין שלך
+2. פורק את מאגר MCP והכן סביבת פיתוח מקומית
+3. צור שיפור קטן, תיקון באג או כלי שיכול להביא תועלת לקהילה
+4. תעד את תרומתך עם מבחנים ותיעוד נאותים
+5. הגש בקשת משיכה למחסן המתאים
 
 ## משאבים נוספים
 
-- [פרויקטים קהילתיים של MCP](https://github.com/topics/model-context-protocol)
+- [פרויקטי קהילה של MCP](https://github.com/topics/model-context-protocol)
 
 ---
 
 ## מה הלאה
 
-הבא: [שיעורים מאימוץ מוקדם](../07-LessonsfromEarlyAdoption/README.md)
+הבא: [לקחים מאימוץ מוקדם](../07-LessonsfromEarlyAdoption/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**כתב ויתור**:  
-מסמך זה תורגם באמצעות שירות תרגום מבוסס בינה מלאכותית [Co-op Translator](https://github.com/Azure/co-op-translator). אף שאנו שואפים לדיוק, יש לזכור כי תרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. המסמך המקורי בשפת המקור שלו הוא המקור הרשמי והמהימן. למידע קריטי מומלץ להשתמש בתרגום מקצועי של אדם. איננו נושאים באחריות על כל אי הבנות או פרשנויות שגויות הנובעות מהשימוש בתרגום זה.
+**כתב ויתור**:
+מסמך זה תורגם באמצעות שירות תרגום אוטומטי [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון שתרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. יש להחשיב את המסמך המקורי בשפתו הטבעית כמקור הסמכות. למידע קריטי מומלץ להשתמש בתרגום מקצועי על ידי מתרגם אדם. אנו לא אחראים לכל אי-הבנה או פירוש שגוי הנובע מהשימוש בתרגום זה.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

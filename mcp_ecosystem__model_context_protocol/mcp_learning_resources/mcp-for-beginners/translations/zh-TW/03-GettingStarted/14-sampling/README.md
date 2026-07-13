@@ -1,24 +1,26 @@
-# 抽樣 - 將功能委派給用戶端
+# 取樣 - 將功能委派給 Client
 
-有時候，您需要 MCP 用戶端和 MCP 伺服器合作以實現共同目標。可能會遇到伺服器需要用戶端上的大型語言模型(LLM)協助的情況。對於這種情況，您應該使用抽樣（Sampling）。
+> **停用通知：** `2026-07-28` MCP 規格候選版本標記取樣為棄用，建議改為直接整合 LLM 供應商 API。取樣在 `2025-11-25` 版本及任何正式棄用後至少一年內仍然可用，因此本課程內容仍有效 — 但新的伺服器設計應評估替代方案。詳見 [MCP 的變更內容：2026-07-28 發行候選版本](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
 
-讓我們探索一些使用案例以及如何建構涉及抽樣的解決方案。
+有時候，你需要 MCP Client 與 MCP Server 協作以達成共同目標。你可能會遇到伺服器需要遍及在客戶端的 LLM 幫助的情況。這時，取樣是你應該使用的功能。
+
+讓我們來探討一些使用案例，以及如何建立一個包含取樣的解決方案。
 
 ## 概述
 
-本課程將重點說明何時以及在哪裡使用抽樣，以及如何配置它。
+在本課程中，我們將重點說明何時何地使用取樣，以及如何配置它。
 
 ## 學習目標
 
 在本章中，我們將：
 
-- 解釋什麼是抽樣以及何時使用。
-- 示範如何在 MCP 中配置抽樣。
-- 提供抽樣實際應用的範例。
+- 解釋什麼是取樣以及何時使用它。
+- 示範如何在 MCP 中配置取樣。
+- 提供取樣應用的範例。
 
-## 什麼是抽樣以及為何使用它？
+## 什麼是取樣及為何使用它？
 
-抽樣是一項進階功能，其運作方式如下：
+取樣是一個進階功能，其運作方式如下：
 
 ```mermaid
 sequenceDiagram
@@ -27,19 +29,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: 撰寫部落格文章
+    User->>MCP Client: 作者部落格文章
     MCP Client->>MCP Server: 工具呼叫（部落格文章草稿）
     MCP Server->>MCP Client: 取樣請求（建立摘要）
     MCP Client->>LLM: 產生部落格文章摘要
     LLM->>MCP Client: 摘要結果
     MCP Client->>MCP Server: 取樣回應（摘要）
-    MCP Server->>MCP Client: 完成部落格文章（草稿 + 摘要）
-    MCP Client->>User: 部落格文章已完成
+    MCP Server->>MCP Client: 完整部落格文章（草稿 + 摘要）
+    MCP Client->>User: 部落格文章完成
 ```
 
-### 抽樣請求
+### 取樣請求
 
-好的，現在我們對一個可信場景有了宏觀了解，讓我們談談伺服器傳回用戶端的抽樣請求。此類請求在 JSON-RPC 格式中可能長這樣：
+好的，現在我們對一個可信的場景有了高層次的了解，接下來談談伺服器發送回客戶端的取樣請求。以下是此類請求的 JSON-RPC 格式示例：
 
 ```json
 {
@@ -71,17 +73,17 @@ sequenceDiagram
 }
 ```
 
-這裡有幾個值得注意的地方：
+這裡有幾點值得說明：
 
-- 在 content -> text 底下的 Prompt，是我們給 LLM 的摘要指令，目標是摘要部落格文章內容。
+- 在 content -> text 底下的 Prompt，就是我們給 LLM 的指令，讓它來摘要部落格文章內容。
 
-- **modelPreferences**。這部分即偏好設定，是建議用於 LLM 的配置。用戶可以選擇接受建議或自行更改。在此案例中，包含模型選擇及速度與智能優先權的建議。
-- **systemPrompt**，這是您常見的系統提示，賦予 LLM 個性並包含指導說明。
-- **maxTokens**，這是另一個屬性，用來建議此任務可使用的最大 token 數量。
+- **modelPreferences**。此部分就是偏好設定，是對該 LLM 應使用何種配置的建議。用戶可選擇接受這些建議或修改它們。本例中對應使用的模型、速度以及智能優先順序都有建議。
+- **systemPrompt**，這是你的正常系統提示，賦予 LLM 個性並包含指導指令。
+- **maxTokens**，這是另一個屬性，用來指明這個任務建議使用多少令牌數。
 
-### 抽樣回應
+### 取樣回應
 
-此回應是 MCP 用戶端最終傳回 MCP 伺服器的內容，是用戶端呼叫 LLM、等待回應並組成訊息的結果。它在 JSON-RPC 格式中可能長這樣：
+此回應是 MCP Client 最終發送回 MCP Server 的訊息，為客戶端呼叫 LLM、等待回應後組成。以下是其 JSON-RPC 格式示例：
 
 ```json
 {
@@ -99,13 +101,13 @@ sequenceDiagram
 }
 ```
 
-請注意回應內容是部落格文章的摘要，就如同我們要求的一樣。同時注意使用的 `model` 並非原本要求的，而是從「claude-3-sonnet」改用「gpt-5」。這用來說明用戶可在使用前改變心意，而您的抽樣請求是建議而非強制。
+請注意，回應是我們要求的部落格文章摘要。另外注意，實際使用的 `model` 不是我們請求的，而是 "gpt-5" 取代了 "claude-3-sonnet"。這說明用戶可以改變使用的模型，代表取樣請求只是建議。
 
-好了，現在我們理解主流程及有用的任務範例「部落格文章創建 + 摘要」，接著看看要如何實作。
+好的，既然了解主要流程及有用的任務場景：「部落格文章創作 + 摘要」，接下來看看如何實作它。
 
 ### 訊息類型
 
-抽樣訊息不限單純文字，還可傳送圖片與音訊。以下是 JSON-RPC 的不同表現方式：
+取樣訊息不僅限於文字，也能傳送圖片和音訊。以下是 JSON-RPC 格式的差異示例：
 
 <strong>文字</strong>
 
@@ -116,7 +118,7 @@ sequenceDiagram
 }
 ```
 
-<strong>圖像內容</strong>
+<strong>圖片內容</strong>
 
 ```json
 {
@@ -136,13 +138,13 @@ sequenceDiagram
 }
 ```
 
-> 注意：欲了解更多抽樣詳情，請參閱[官方文件](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)。
+> 注意：更多取樣詳細資訊請參考[官方文件](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## 如何在用戶端配置抽樣
+## 如何在 Client 配置取樣
 
-> 注意：若您只建造伺服器端，這裡不需做太多設定。
+> 注意：如果你僅在建構伺服器，這部分不需做太多設定。
 
-在用戶端，您需要像這樣指定下列功能：
+在 Client 端，你需要如此指定此功能：
 
 ```json
 {
@@ -152,18 +154,18 @@ sequenceDiagram
 }
 ```
 
-當您選擇的用戶端初始化並連接此伺服器時，系統會自動載入這個設定。
+在你選擇的 Client 初始化與伺服器連線時，它就會被接收。
 
-## 抽樣實例 - 創建部落格文章
+## 取樣實作範例 - 創作一篇部落格文章
 
-讓我們一起編寫一個抽樣伺服器，需要完成以下步驟：
+我們一起來編寫一個取樣伺服器，需完成以下步驟：
 
-1. 在伺服器上建立一個工具。
-2. 該工具應建立一個抽樣請求。
-3. 工具等待用戶端的抽樣回應。
-4. 然後產生工具的結果。
+1. 在伺服器端建立一個工具。
+1. 該工具應建立取樣請求。
+1. 工具應等待客戶端對取樣請求的回應。
+1. 然後產生工具結果。
 
-讓我們逐步查看程式碼：
+我們逐步看以下程式碼：
 
 ### -1- 建立工具
 
@@ -176,9 +178,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- 建立抽樣請求
+### -2- 建立取樣請求
 
-在您的工具中加入以下程式碼：
+在你的工具中追加如下程式碼：
 
 **python**
 
@@ -293,15 +295,15 @@ if __name__ == "__main__":
     # mcp.run()
     mcp.run(transport="streamable-http")
 
-# 使用以下指令執行應用程式：python server.py
+# 使用以下指令執行應用程式: python server.py
 ```
 
 ### -5- 在 Visual Studio Code 中測試
 
-要在 Visual Studio Code 中測試，請依照以下步驟：
+要在 Visual Studio Code 中進行測試，請執行以下步驟：
 
 1. 在終端機啟動伺服器
-2. 將其新增到 *mcp.json* 中（並確保已啟動），如下範例：
+1. 把它加到 *mcp.json* （並確保已啟動），例如這樣：
 
    ```json
    "servers": {
@@ -312,41 +314,41 @@ if __name__ == "__main__":
    }
    ```
 
-3. 輸入提示文字：
+1. 輸入提示語：
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-4. 允許進行抽樣。首次測試時會跳出額外對話框，您需要接受，接著會看到要求您執行工具的標準對話框。
+1. 允許取樣執行。第一次測試會出現一個額外對話框，你需要接受，然後會看到正常的要求執行工具對話框。
 
-5. 查看結果。您會在 GitHub Copilot Chat 中看到漂亮呈現的結果，也可以檢視原始的 JSON 回應。
+1. 檢視結果。你會在 GitHub Copilot Chat 以漂亮版面看到結果，也可以查看原始 JSON 回應。
 
-<strong>額外提示</strong>。Visual Studio Code 工具有良好抽樣支援。您可這樣設定所安裝的伺服器的抽樣存取：
+<strong>額外資訊</strong>。Visual Studio Code 工具有很好的取樣支援。你可以透過以下步驟在已安裝的伺服器中配置取樣存取：
 
-1. 到擴充功能部分。
-2. 在「MCP SERVERS - INSTALLED」區段，選擇已安裝伺服器的齒輪圖示。
-3. 選擇「Configure Model Access」，於此可選擇 GitHub Copilot 在執行抽樣時允許使用的模型。您亦能藉由「Show Sampling requests」檢視最近執行過的所有抽樣請求。
+1. 進入擴充功能區。
+1. 在「MCP SERVERS - INSTALLED」區段中，選擇已安裝伺服器的齒輪圖示。
+1 選擇「Configure Model Access」，在此可設定 GitHub Copilot 在執行取樣時允許使用哪些模型。也可以透過「Show Sampling requests」查看最近所有取樣請求。
 
 ## 作業
 
-在本次作業中，您將建造一個稍有不同的抽樣整合，即產生產品描述的抽樣。您的場景如下：
+在此作業中，你將建構一個略有不同的取樣整合，支援生成產品描述。以下是你的情境：
 
-<strong>場景</strong>：電商後台人員需要協助，產生產品描述耗時過長。因此，您要建構一個解決方案，可以透過呼叫名為 "create_product" 的工具，帶入 "title" 和 "keywords" 作為參數，此工具會產出完整產品資訊，其中 "description" 欄位應由用戶端的 LLM 填寫。
+<strong>情境</strong>：電商後台工作人員需要幫助，生成產品描述耗費太多時間。因此，你將建立一套解決方案，可呼叫名為 "create_product" 的工具，帶入 "title" 和 "keywords" 作為參數，並應由客戶端 LLM 填充完整產品，包括 "description" 欄位。
 
-小提示：利用您之前學到的知識，以抽樣請求建構此伺服器及其工具。
+提示：利用之前學到的內容，使用取樣請求構建此伺服器及其工具。
 
 ## 解答
 
 [解答](./solution/README.md)
 
-## 重要重點
+## 主要重點
 
-抽樣是一項強大功能，當伺服器需要 LLM 協助時，它能將任務委派給用戶端執行。
+取樣是功能強大的特性，可讓伺服器在需要 LLM 協助時，委派任務給客戶端。
 
-## 後續內容
+## 下一步
 
-- [第 4 章 - 實務應用](../../04-PracticalImplementation/README.md)
+- [第四章 - 實作練習](../../04-PracticalImplementation/README.md)
 
 ---
 

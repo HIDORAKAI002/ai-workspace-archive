@@ -1,36 +1,38 @@
 # MCP Custom Transports - Hướng Dẫn Triển Khai Nâng Cao
 
-Model Context Protocol (MCP) cung cấp sự linh hoạt trong các cơ chế truyền tải, cho phép triển khai tùy chỉnh cho các môi trường doanh nghiệp chuyên biệt. Hướng dẫn nâng cao này khám phá các triển khai truyền tải tùy chỉnh sử dụng Azure Event Grid và Azure Event Hubs làm ví dụ thực tiễn để xây dựng các giải pháp MCP quy mô lớn, tích hợp đám mây bản địa.
+Model Context Protocol (MCP) cung cấp sự linh hoạt trong các cơ chế truyền tải, cho phép triển khai tùy chỉnh cho các môi trường doanh nghiệp chuyên biệt. Hướng dẫn nâng cao này khám phá các triển khai truyền tải tùy chỉnh sử dụng Azure Event Grid và Azure Event Hubs như các ví dụ thực tế để xây dựng các giải pháp MCP có khả năng mở rộng và bản địa trên đám mây.
 
-## Giới Thiệu
+> **Nhìn về phía trước:** hướng dẫn này viết dựa trên **MCP Specification 2025-11-25**, trong đó thứ tự phiên làm việc phải được bảo toàn theo từng phiên (xem Giao Thức Tin Nhắn bên dưới). Phiên bản thử nghiệm `2026-07-28` loại bỏ hoàn toàn phiên ở cấp giao thức và yêu cầu các header `Mcp-Method`/`Mcp-Name` để các cổng và truyền tải tùy chỉnh có thể định tuyến theo từng yêu cầu thay vì theo phiên. Xem thêm [Có gì thay đổi trong MCP: Phiên bản thử nghiệm 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Trong khi các phương thức truyền tải chuẩn của MCP (stdio và HTTP streaming) phục vụ hầu hết các trường hợp sử dụng, các môi trường doanh nghiệp thường cần các cơ chế truyền tải chuyên biệt để cải thiện khả năng mở rộng, độ tin cậy và tích hợp với hạ tầng đám mây hiện có. Các truyền tải tùy chỉnh cho phép MCP tận dụng các dịch vụ nhắn tin bản địa đám mây để giao tiếp bất đồng bộ, kiến trúc hướng sự kiện và xử lý phân tán.
+## Giới thiệu
 
-Bài học này khám phá các triển khai truyền tải nâng cao dựa trên đặc tả MCP mới nhất (2025-11-25), dịch vụ nhắn tin Azure và các mô hình tích hợp doanh nghiệp được thiết lập.
+Trong khi các truyền tải tiêu chuẩn của MCP (stdio và HTTP streaming) phục vụ hầu hết các trường hợp sử dụng, các môi trường doanh nghiệp thường yêu cầu các cơ chế truyền tải chuyên biệt để cải thiện khả năng mở rộng, độ tin cậy và tích hợp với hạ tầng đám mây hiện có. Truyền tải tùy chỉnh cho phép MCP tận dụng các dịch vụ nhắn tin bản địa đám mây để giao tiếp bất đồng bộ, kiến trúc hướng sự kiện và xử lý phân tán.
+
+Bài học này khám phá các triển khai truyền tải nâng cao dựa trên tiêu chuẩn MCP mới nhất (2025-11-25), dịch vụ nhắn tin Azure và các mẫu tích hợp doanh nghiệp được thiết lập.
 
 ### **Kiến Trúc Truyền Tải MCP**
 
-**Từ Đặc Tả MCP (2025-11-25):**
+**Trích từ MCP Specification (2025-11-25):**
 
-- **Truyền Tải Chuẩn**: stdio (khuyến nghị), HTTP streaming (cho các kịch bản từ xa)
-- **Truyền Tải Tùy Chỉnh**: Bất kỳ cơ chế truyền tải nào thực hiện giao thức trao đổi tin nhắn MCP
-- **Định Dạng Tin Nhắn**: JSON-RPC 2.0 với các mở rộng đặc thù MCP
-- **Giao Tiếp Hai Chiều**: Yêu cầu giao tiếp hai chiều đầy đủ cho thông báo và phản hồi
+- **Truyền tải tiêu chuẩn**: stdio (khuyến nghị), HTTP streaming (cho các trường hợp từ xa)
+- **Truyền tải tùy chỉnh**: Bất kỳ truyền tải nào triển khai giao thức trao đổi tin nhắn MCP
+- **Định dạng tin nhắn**: JSON-RPC 2.0 với các phần mở rộng đặc thù MCP
+- **Giao tiếp hai chiều**: Yêu cầu truyền thông song công đầy đủ cho thông báo và phản hồi
 
-## Mục Tiêu Học Tập
+## Mục tiêu học tập
 
-Kết thúc bài học nâng cao này, bạn sẽ có thể:
+Sau bài học nâng cao này, bạn sẽ có thể:
 
-- **Hiểu Yêu Cầu Truyền Tải Tùy Chỉnh**: Triển khai giao thức MCP trên bất kỳ lớp truyền tải nào đồng thời duy trì tuân thủ
-- **Xây Dựng Truyền Tải Azure Event Grid**: Tạo máy chủ MCP hướng sự kiện sử dụng Azure Event Grid cho khả năng mở rộng không máy chủ
-- **Triển Khai Truyền Tải Azure Event Hubs**: Thiết kế giải pháp MCP thông lượng cao sử dụng Azure Event Hubs cho streaming thời gian thực
-- **Áp Dụng Các Mô Hình Doanh Nghiệp**: Tích hợp truyền tải tùy chỉnh với hạ tầng và mô hình bảo mật Azure hiện có
-- **Xử Lý Độ Tin Cậy Truyền Tải**: Triển khai độ bền tin nhắn, thứ tự và xử lý lỗi cho các kịch bản doanh nghiệp
-- **Tối Ưu Hiệu Năng**: Thiết kế giải pháp truyền tải đáp ứng yêu cầu về quy mô, độ trễ và thông lượng
+- **Hiểu các yêu cầu truyền tải tùy chỉnh**: Triển khai giao thức MCP qua bất kỳ lớp truyền tải nào trong khi đảm bảo tuân thủ
+- **Xây dựng truyền tải Azure Event Grid**: Tạo các máy chủ MCP hướng sự kiện sử dụng Azure Event Grid để có khả năng mở rộng không máy chủ
+- **Triển khai truyền tải Azure Event Hubs**: Thiết kế giải pháp MCP thông lượng cao sử dụng Azure Event Hubs cho streaming thời gian thực
+- **Áp dụng các mẫu doanh nghiệp**: Tích hợp truyền tải tùy chỉnh với hạ tầng Azure và mô hình bảo mật hiện có
+- **Xử lý độ tin cậy truyền tải**: Triển khai tính bền vững tin nhắn, bảo toàn thứ tự và xử lý lỗi cho các kịch bản doanh nghiệp
+- **Tối ưu hiệu suất**: Thiết kế giải pháp truyền tải đáp ứng yêu cầu về quy mô, độ trễ và thông lượng
 
-## **Yêu Cầu Truyền Tải**
+## **Yêu cầu truyền tải**
 
-### **Yêu Cầu Cốt Lõi từ Đặc Tả MCP (2025-11-25):**
+### **Yêu cầu cốt lõi từ MCP Specification (2025-11-25):**
 
 ```yaml
 Message Protocol:
@@ -49,28 +51,28 @@ Custom Transport:
   interoperability: "MUST maintain protocol compatibility"
 ```
 
-## **Triển Khai Truyền Tải Azure Event Grid**
+## **Triển khai Truyền tải Azure Event Grid**
 
-Azure Event Grid cung cấp dịch vụ định tuyến sự kiện không máy chủ lý tưởng cho kiến trúc MCP hướng sự kiện. Triển khai này trình bày cách xây dựng hệ thống MCP quy mô lớn, kết nối rời rạc.
+Azure Event Grid cung cấp dịch vụ định tuyến sự kiện không máy chủ lý tưởng cho kiến trúc MCP hướng sự kiện. Triển khai này minh họa cách xây dựng hệ thống MCP có khả năng mở rộng, kết nối lỏng lẻo.
 
-### **Tổng Quan Kiến Trúc**
+### **Tổng quan Kiến trúc**
 
 ```mermaid
 graph TB
     Client[MCP Client] --> EG[Azure Event Grid]
-    EG --> Server[Chức năng Máy chủ MCP]
+    EG --> Server[Chức Năng Máy Chủ MCP]
     Server --> EG
     EG --> Client
     
-    subgraph "Dịch vụ Azure"
+    subgraph "Dịch Vụ Azure"
         EG
         Server
-        KV[Khoá bí mật]
-        Monitor[Thông tin ứng dụng]
+        KV[Key Vault]
+        Monitor[Application Insights]
     end
 ```
 
-### **Triển Khai C# - Truyền Tải Event Grid**
+### **Triển khai C# - Truyền tải Event Grid**
 
 ```csharp
 using Azure.Messaging.EventGrid;
@@ -142,7 +144,7 @@ public async Task<IActionResult> HandleEventGridMessage(
 }
 ```
 
-### **Triển Khai TypeScript - Truyền Tải Event Grid**
+### **Triển khai TypeScript - Truyền tải Event Grid**
 
 ```typescript
 import { EventGridPublisherClient, AzureKeyCredential } from "@azure/eventgrid";
@@ -176,9 +178,9 @@ export class EventGridMcpTransport implements McpTransport {
         await this.publisher.sendEvents([event]);
     }
     
-    // Nhận kích hoạt sự kiện qua Azure Functions
+    // Nhận sự kiện theo sự kiện qua Azure Functions
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
-        // Triển khai sẽ sử dụng kích hoạt Event Grid của Azure Functions
+        // Việc triển khai sẽ sử dụng Azure Functions Event Grid trigger
         // Đây là giao diện khái niệm cho bộ nhận webhook
     }
 }
@@ -205,7 +207,7 @@ app.eventGrid("mcpEventGridHandler", {
 });
 ```
 
-### **Triển Khai Python - Truyền Tải Event Grid**
+### **Triển khai Python - Truyền tải Event Grid**
 
 ```python
 from azure.eventgrid import EventGridPublisherClient, EventGridEvent
@@ -261,11 +263,11 @@ def main(event: func.EventGridEvent) -> None:
         raise
 ```
 
-## **Triển Khai Truyền Tải Azure Event Hubs**
+## **Triển khai Truyền tải Azure Event Hubs**
 
-Azure Event Hubs cung cấp khả năng streaming thời gian thực, thông lượng cao cho các kịch bản MCP yêu cầu độ trễ thấp và khối lượng tin nhắn lớn.
+Azure Event Hubs cung cấp khả năng streaming thời gian thực với thông lượng cao cho các kịch bản MCP yêu cầu độ trễ thấp và lưu lượng tin nhắn lớn.
 
-### **Tổng Quan Kiến Trúc**
+### **Tổng quan Kiến trúc**
 
 ```mermaid
 graph TB
@@ -274,10 +276,10 @@ graph TB
     Server --> EH
     EH --> Client
     
-    subgraph "Tính năng của Event Hubs"
-        Partition[Phân vùng]
-        Retention[Lưu trữ tin nhắn]
-        Scaling[Tự động mở rộng]
+    subgraph "Tính Năng Event Hubs"
+        Partition[Phân Vùng]
+        Retention[Lưu Trữ Tin Nhắn]
+        Scaling[Tự Động Mở Rộng]
     end
     
     EH --> Partition
@@ -285,7 +287,7 @@ graph TB
     EH --> Scaling
 ```
 
-### **Triển Khai C# - Truyền Tải Event Hubs**
+### **Triển khai C# - Truyền tải Event Hubs**
 
 ```csharp
 using Azure.Messaging.EventHubs;
@@ -359,7 +361,7 @@ public class EventHubsMcpTransport : IMcpTransport, IDisposable
 }
 ```
 
-### **Triển Khai TypeScript - Truyền Tải Event Hubs**
+### **Triển khai TypeScript - Truyền tải Event Hubs**
 
 ```typescript
 import { 
@@ -439,7 +441,7 @@ export class EventHubsMcpTransport implements McpTransport {
 }
 ```
 
-### **Triển Khai Python - Truyền Tải Event Hubs**
+### **Triển khai Python - Truyền tải Event Hubs**
 
 ```python
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient
@@ -471,7 +473,7 @@ class EventHubsMcpTransport:
         """Send MCP message via Event Hubs"""
         event_data = EventData(json.dumps(message))
         
-        # Thêm các thuộc tính đặc thù của MCP
+        # Thêm các thuộc tính riêng cho MCP
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
@@ -503,14 +505,14 @@ class EventHubsMcpTransport:
         """Internal event handler wrapper"""
         async def handle_event(partition_context, event):
             try:
-                # Phân tích tin nhắn MCP từ sự kiện Event Hubs
+                # Phân tích thông điệp MCP từ sự kiện Event Hubs
                 message_body = event.body_as_str(encoding='UTF-8')
                 mcp_message = json.loads(message_body)
                 
-                # Xử lý tin nhắn MCP
+                # Xử lý thông điệp MCP
                 await handler(mcp_message)
                 
-                # Cập nhật điểm kiểm tra cho việc giao hàng ít nhất một lần
+                # Cập nhật điểm kiểm tra để giao hàng ít nhất một lần
                 await partition_context.update_checkpoint(event)
                 
             except Exception as e:
@@ -525,9 +527,9 @@ class EventHubsMcpTransport:
         await self.consumer.close()
 ```
 
-## **Mô Hình Truyền Tải Nâng Cao**
+## **Mẫu truyền tải nâng cao**
 
-### **Độ Bền và Độ Tin Cậy Tin Nhắn**
+### **Tính bền vững và độ tin cậy tin nhắn**
 
 ```csharp
 // Implementing message durability with retry logic
@@ -554,7 +556,7 @@ public class ReliableTransportWrapper : IMcpTransport
 }
 ```
 
-### **Tích Hợp Bảo Mật Truyền Tải**
+### **Tích hợp bảo mật truyền tải**
 
 ```csharp
 // Integrating Azure Key Vault for transport security
@@ -576,7 +578,7 @@ public class SecureTransportFactory
 }
 ```
 
-### **Giám Sát và Quan Sát Truyền Tải**
+### **Giám sát và quan sát truyền tải**
 
 ```csharp
 // Adding telemetry to custom transports
@@ -615,11 +617,11 @@ public class ObservableTransport : IMcpTransport
 }
 ```
 
-## **Kịch Bản Tích Hợp Doanh Nghiệp**
+## **Kịch bản tích hợp doanh nghiệp**
 
-### **Kịch Bản 1: Xử Lý MCP Phân Tán**
+### **Kịch bản 1: Xử lý MCP phân tán**
 
-Sử dụng Azure Event Grid để phân phối các yêu cầu MCP trên nhiều nút xử lý:
+Sử dụng Azure Event Grid để phân phối các yêu cầu MCP qua nhiều nút xử lý:
 
 ```yaml
 Architecture:
@@ -633,7 +635,7 @@ Benefits:
   - Cost optimization with serverless compute
 ```
 
-### **Kịch Bản 2: Streaming MCP Thời Gian Thực**
+### **Kịch bản 2: Streaming MCP thời gian thực**
 
 Sử dụng Azure Event Hubs cho các tương tác MCP tần suất cao:
 
@@ -649,7 +651,7 @@ Benefits:
   - Built-in partitioning for parallel processing
 ```
 
-### **Kịch Bản 3: Kiến Trúc Truyền Tải Lai**
+### **Kịch bản 3: Kiến trúc truyền tải lai**
 
 Kết hợp nhiều truyền tải cho các trường hợp sử dụng khác nhau:
 
@@ -675,9 +677,9 @@ public class HybridMcpTransport : IMcpTransport
 }
 ```
 
-## **Tối Ưu Hiệu Năng**
+## **Tối ưu hiệu suất**
 
-### **Gộp Tin Nhắn cho Event Grid**
+### **Gộp tin nhắn cho Event Grid**
 
 ```csharp
 public class BatchingEventGridTransport : IMcpTransport
@@ -717,7 +719,7 @@ public class BatchingEventGridTransport : IMcpTransport
 }
 ```
 
-### **Chiến Lược Phân Vùng cho Event Hubs**
+### **Chiến lược phân vùng cho Event Hubs**
 
 ```csharp
 public class PartitionedEventHubsTransport : IMcpTransport
@@ -737,9 +739,9 @@ public class PartitionedEventHubsTransport : IMcpTransport
 }
 ```
 
-## **Kiểm Thử Truyền Tải Tùy Chỉnh**
+## **Kiểm thử truyền tải tùy chỉnh**
 
-### **Kiểm Thử Đơn Vị với Test Doubles**
+### **Kiểm thử đơn vị với đối tượng thay thế**
 
 ```csharp
 [Test]
@@ -766,7 +768,7 @@ public async Task EventGridTransport_SendMessage_PublishesCorrectEvent()
 }
 ```
 
-### **Kiểm Thử Tích Hợp với Azure Test Containers**
+### **Kiểm thử tích hợp với Azure Test Containers**
 
 ```csharp
 [Test]
@@ -799,48 +801,48 @@ public async Task EventHubsTransport_IntegrationTest()
 }
 ```
 
-## **Các Thực Hành Tốt Nhất và Hướng Dẫn**
+## **Thực hành tốt nhất và hướng dẫn**
 
-### **Nguyên Tắc Thiết Kế Truyền Tải**
+### **Nguyên tắc thiết kế truyền tải**
 
-1. **Idempotency**: Đảm bảo xử lý tin nhắn là idempotent để xử lý các bản sao
-2. **Xử Lý Lỗi**: Triển khai xử lý lỗi toàn diện và hàng đợi dead letter
-3. **Giám Sát**: Thêm telemetry chi tiết và kiểm tra sức khỏe
-4. **Bảo Mật**: Sử dụng managed identities và quyền truy cập tối thiểu
-5. **Hiệu Năng**: Thiết kế phù hợp với yêu cầu độ trễ và thông lượng cụ thể
+1. **Tính idempotent**: Đảm bảo xử lý tin nhắn có thể lặp lại để xử lý trùng lặp
+2. **Xử lý lỗi**: Triển khai xử lý lỗi toàn diện và hàng đợi thư chết
+3. **Giám sát**: Thêm telemetry chi tiết và kiểm tra sức khỏe
+4. **Bảo mật**: Sử dụng managed identities và quyền truy cập tối thiểu
+5. **Hiệu suất**: Thiết kế theo yêu cầu độ trễ và thông lượng cụ thể của bạn
 
-### **Khuyến Nghị Riêng Azure**
+### **Khuyến nghị đặc thù Azure**
 
-1. **Sử Dụng Managed Identity**: Tránh chuỗi kết nối trong môi trường sản xuất
-2. **Triển Khai Circuit Breakers**: Bảo vệ khỏi sự cố dịch vụ Azure
-3. **Theo Dõi Chi Phí**: Giám sát khối lượng tin nhắn và chi phí xử lý
-4. **Lập Kế Hoạch Quy Mô**: Thiết kế phân vùng và chiến lược mở rộng sớm
-5. **Kiểm Thử Kỹ Lưỡng**: Sử dụng Azure DevTest Labs để kiểm thử toàn diện
+1. **Sử dụng Managed Identity**: Tránh dùng chuỗi kết nối trong môi trường sản xuất
+2. **Triển khai Circuit Breakers**: Bảo vệ chống lại sự cố dịch vụ Azure
+3. **Giám sát chi phí**: Theo dõi khối lượng tin nhắn và chi phí xử lý
+4. **Lập kế hoạch cho quy mô**: Thiết kế chiến lược phân vùng và mở rộng sớm
+5. **Kiểm thử kỹ lưỡng**: Sử dụng Azure DevTest Labs để kiểm thử toàn diện
 
-## **Kết Luận**
+## **Kết luận**
 
-Truyền tải MCP tùy chỉnh cho phép các kịch bản doanh nghiệp mạnh mẽ sử dụng dịch vụ nhắn tin Azure. Bằng cách triển khai truyền tải Event Grid hoặc Event Hubs, bạn có thể xây dựng các giải pháp MCP mở rộng, tin cậy tích hợp liền mạch với hạ tầng Azure hiện có.
+Các truyền tải MCP tùy chỉnh cho phép triển khai các kịch bản doanh nghiệp mạnh mẽ sử dụng dịch vụ nhắn tin Azure. Bằng cách triển khai truyền tải Event Grid hoặc Event Hubs, bạn có thể xây dựng các giải pháp MCP có khả năng mở rộng và đáng tin cậy, tích hợp liền mạch với hạ tầng Azure hiện có.
 
-Các ví dụ cung cấp mô hình sẵn sàng sản xuất cho triển khai truyền tải tùy chỉnh đồng thời duy trì tuân thủ giao thức MCP và thực hành tốt nhất của Azure.
+Các ví dụ cung cấp các mẫu sẵn sàng sử dụng trong sản xuất cho việc triển khai truyền tải tùy chỉnh đồng thời tuân thủ giao thức MCP và các thực hành tốt nhất của Azure.
 
-## **Tài Nguyên Bổ Sung**
+## **Tài nguyên bổ sung**
 
 - [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
-- [Azure Event Grid Documentation](https://docs.microsoft.com/azure/event-grid/)
-- [Azure Event Hubs Documentation](https://docs.microsoft.com/azure/event-hubs/)
+- [Tài liệu Azure Event Grid](https://docs.microsoft.com/azure/event-grid/)
+- [Tài liệu Azure Event Hubs](https://docs.microsoft.com/azure/event-hubs/)
 - [Azure Functions Event Grid Trigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
-- [Azure SDK for .NET](https://github.com/Azure/azure-sdk-for-net)
-- [Azure SDK for TypeScript](https://github.com/Azure/azure-sdk-for-js)
-- [Azure SDK for Python](https://github.com/Azure/azure-sdk-for-python)
+- [Azure SDK cho .NET](https://github.com/Azure/azure-sdk-for-net)
+- [Azure SDK cho TypeScript](https://github.com/Azure/azure-sdk-for-js)
+- [Azure SDK cho Python](https://github.com/Azure/azure-sdk-for-python)
 
 ---
 
-> *Hướng dẫn này tập trung vào các mẫu triển khai thực tiễn cho hệ thống MCP trong sản xuất. Luôn kiểm tra triển khai truyền tải theo yêu cầu cụ thể và giới hạn dịch vụ Azure của bạn.*
-> **Chuẩn Hiện Tại**: Hướng dẫn này phản ánh yêu cầu truyền tải theo [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) và các mô hình truyền tải nâng cao cho môi trường doanh nghiệp.
+> *Hướng dẫn này tập trung vào các mẫu triển khai thực tiễn cho hệ thống MCP sản xuất. Luôn xác thực các triển khai truyền tải phù hợp với yêu cầu cụ thể và giới hạn dịch vụ Azure của bạn.*
+> **Tiêu chuẩn hiện tại**: Hướng dẫn phản ánh [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) các yêu cầu truyền tải và các mẫu truyền tải nâng cao cho môi trường doanh nghiệp.
 
 
-## What's Next
-- [6. Community Contributions](../../06-CommunityContributions/README.md)
+## Tiếp theo
+- [6. Đóng góp Cộng đồng](../../06-CommunityContributions/README.md)
 
 ---
 

@@ -1,25 +1,25 @@
 # Simple auth
 
-MCP SDKs dey support di use of OAuth 2.1 wey to be fair, na real work wey dey involve concepts like auth server, resource server, posting credentials, getting code, exchanging code for bearer token till you fit finally get your resource data. If you no sabi OAuth well wey be beta thing to implement, e good make you start with basic auth and build am up to better security. Na why dis chapter dey, to build you reach more advanced auth.
+MCP SDKs support di use of OAuth 2.1 wey to be fair na one kain process wey get plenty tins like auth server, resource server, posting credentials, getting code, swapping di code for bearer token till you fit finally get your resource data. If you no sabi OAuth wey good as to use am, e betta make you start wit basic level of auth den build up go better and better security. Na why dis chapter dey, to build you go advanced auth.
 
 ## Auth, wetin we mean?
 
-Auth na short form for authentication and authorization. Di idea na say we need do two tins:
+Auth na short form for authentication an authorization. Di idea be say we gats do two tins:
 
-- **Authentication**, na di process of finding out if person go fit enter our house, if dem get right to "be here" mean say dem get access to our resource server wey MCP Server features dey.
-- **Authorization**, na di process of finding out if user fit get access to di specific resources wey dem dey ask for, example na these orders or products or whether dem fit read di content but no fit delete as example.
+- **Authentication**, na di process to sabi if person fit enter our house, say dem get di right to dey "here" wey mean get access to our resource server wey MCP Server features dey.
+- **Authorization**, na to find out if user suppose get access to specific resources wey dem dey ask for, example dis orders or dis products or if dem fit just read di content but no fit delete am as example.
 
-## Credentials: how we take tell di system who we be
+## Credentials: how we tell system who we be
 
-Most web developers dey start to think say dem go provide credential to di server, normally secret wey say if dem fit be here "Authentication". Dis credential fit be base64 encoded username and password or API key wey identify specific user.
+Well, most web developers for road go start to tink how dem go give credential to server, usually secret wey talk if dem fit dey here "Authentication". Dis credential usually na base64 encoded version of username and password or API key wey identify particular user.
 
-Dis one dey sent through header wey dem dey call "Authorization" like dis:
+Dis one mean say e go send am through header wey dem dey call "Authorization" like dis:
 
 ```json
 { "Authorization": "secret123" }
 ```
 
-Dis one na basic authentication dem dey call am. How di overall flow dey work na like dis:
+Dis one usually dem dey call basic authentication. How di flow e go work na like dis:
 
 ```mermaid
 sequenceDiagram
@@ -32,7 +32,8 @@ sequenceDiagram
    Server-->>Client: 1a, I sabi you, here na your data
    Server-->>Client: 1b, I no sabi you, 401 
 ```
-Now we understand how e dey work from flow side, how we go implement am? Most web servers get middleware concept, na piece of code wey dey run as part of di request wey fit verify credentials, if credentials valid e go let request pass. If e no valid, you go get auth error. Make we see how to implement am:
+
+Now say we don understand how e dey flow, how we go fit implement am? Well, most web servers get something wey dem dey call middleware, na piece of code wey dey run as part of di request wey fit check credentials, and if credentials dey okay, e fit allow request pass through. If request no get valid credentials, you go get auth error. Make we see how e fit work:
 
 **Python**
 
@@ -52,23 +53,23 @@ class AuthMiddleware(BaseHTTPMiddleware):
         print("Valid token, proceeding...")
        
         response = await call_next(request)
-        # add any customer headers or change for di response somehow
+        # add any customa headers or change di response for any kain way
         return response
 
 
 starlette_app.add_middleware(CustomHeaderMiddleware)
 ```
 
-Here we get: 
+Here we get:
 
-- Middleware called `AuthMiddleware` where di `dispatch` method dey called by di web server.
-- Middleware don add go the web server:
+- Create middleware wey dem call `AuthMiddleware` and e get `dispatch` method wey web server dey call.
+- Add middleware join web server:
 
     ```python
     starlette_app.add_middleware(AuthMiddleware)
     ```
 
-- Writen validation code wey check if Authorization header dey and if di secret wey dem send valid:
+- Write validation logic wey check if Authorization header dey and if secret wey dem send valid:
 
     ```python
     has_header = request.headers.get("Authorization")
@@ -81,19 +82,19 @@ Here we get:
         return Response(status_code=403, content="Forbidden")
     ```
 
-    if secret dey and valid, we go let request pass by calling `call_next` and return di response.
+    if secret dey and e valid, we go allow request go through by calling `call_next` and return di response.
 
     ```python
     response = await call_next(request)
-    # add any customer headers or change for di response somehow
+    # put any customer header dem or change anything for di response one how
     return response
     ```
 
-How e dey work be say if web request come the server middleware go run and from implementation e go let request pass or e go return error say client no fit continue.
+How e dey work be say if web request come server, middleware go run and based on im implementation, e go either allow di request go through or e go return error say client no fit continue.
 
 **TypeScript**
 
-Here we create middleware with Express wey popular and intercept di request before e reach MCP Server. Dis na di code for am:
+Here we create middleware with popular framework Express and intercept di request before e reach MCP Server. Dis na di code:
 
 ```typescript
 function isValid(secret) {
@@ -101,54 +102,56 @@ function isValid(secret) {
 }
 
 app.use((req, res, next) => {
-    // 1. Authorization header dey?
+    // 1. Authorization header dey present?
     if(!req.headers["Authorization"]) {
         res.status(401).send('Unauthorized');
     }
     
     let token = req.headers["Authorization"];
 
-    // 2. Check say e correct.
+    // 2. Check if e valid.
     if(!isValid(token)) {
         res.status(403).send('Forbidden');
     }
 
    
     console.log('Middleware executed');
-    // 3. Carry di request go di next step for di request pipeline.
+    // 3. Pass di request go next step for di request pipeline.
     next();
 });
 ```
 
-For dis code we:
+For dis code:
 
-1. Check if Authorization header dey, if no dey, we send 401 error.
-2. Check if credential/token valid, if no dey valid, we send 403 error.
-3. Lastly, pass di request down pipeline and return di resource wey dem request.
+1. We check if Authorization header dey first, if e no dey, we send 401 error.
+2. We check if credential/token valid, if e no valid, we send 403 error.
+3. Finally, e pass request continue and return di resource wey client ask for.
 
 ## Exercise: Implement authentication
 
-Make we use our knowledge try implement am. Di plan na dis:
+Make we use our knowledge try run am. Dis na di plan:
 
 Server
 
-- Create web server and MCP instance.
+- Create web server plus MCP instance.
 - Implement middleware for server.
 
-Client 
+Client
 
-- Send web request with credential via header.
+- Send web request wit credential via header.
 
 ### -1- Create web server and MCP instance
 
-For first step, we go create the web server instance and MCP Server.
+> **Looking ahead:** di TypeScript example below dey track HTTP transports for `transports` map keyed by `mcp-session-id`, based on **MCP Specification 2025-11-25**. Di `2026-07-28` release candidate go remove `initialize` handshake and session ID completely, so dis per-session transport map go change to stateless, self-contained requests. Check [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+For our first step, we need create web server instance and MCP Server.
 
 **Python**
 
-Here we create MCP server instance, create starlette web app and host am using uvicorn.
+Here we create MCP server instance, create starlette web app den host am wit uvicorn.
 
 ```python
-# di di MCP Server
+# di dey create MCP Server
 
 app = FastMCP(
     name="MCP Resource Server",
@@ -158,10 +161,10 @@ app = FastMCP(
     debug=True
 )
 
-# di di starlette web app
+# di dey create starlette web app
 starlette_app = app.streamable_http_app()
 
-# dey serve app wit uvicorn
+# di dey serve app through uvicorn
 async def run(starlette_app):
     import uvicorn
     config = uvicorn.Config(
@@ -176,11 +179,11 @@ async def run(starlette_app):
 run(starlette_app)
 ```
 
-For dis code we:
+For dis code:
 
 - Create MCP Server.
 - Build starlette web app from MCP Server, `app.streamable_http_app()`.
-- Host and server web app using uvicorn `server.serve()`.
+- Host and serve web app with uvicorn `server.serve()`.
 
 **TypeScript**
 
@@ -192,10 +195,10 @@ const server = new McpServer({
       version: "1.0.0"
     });
 
-    // ... set up server resources, tools, and prompts ...
+    // ... arrange server tins dem, tools, an prompts ...
 ```
 
-This MCP Server creation need happen inside our POST /mcp route, so make we move di code:
+Dis MCP Server creation gats happen inside our POST /mcp route definition, so make we move code like dis:
 
 ```typescript
 import express from "express";
@@ -212,28 +215,28 @@ const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
 // Handle POST requests for client-to-server communication
 app.post('/mcp', async (req, res) => {
-  // Check if session ID dey already
+  // Check if session ID don dey already
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
   let transport: StreamableHTTPServerTransport;
 
   if (sessionId && transports[sessionId]) {
-    // Use di transport wey already dey
+    // Use the transport wey dey already
     transport = transports[sessionId];
   } else if (!sessionId && isInitializeRequest(req.body)) {
     // New initialization request
     transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
       onsessioninitialized: (sessionId) => {
-        // Store di transport by session ID
+        // Store transport by session ID
         transports[sessionId] = transport;
       },
-      // DNS rebinding protection no dey on by default for backward compatibility. If you dey run dis server
+      // DNS rebinding protection no dey enabled by default to maintain compatibility. If you dey run this server
       // locally, make sure say you set:
       // enableDnsRebindingProtection: true,
       // allowedHosts: ['127.0.0.1'],
     });
 
-    // Clean up transport wen e close
+    // Clean transport when e close
     transport.onclose = () => {
       if (transport.sessionId) {
         delete transports[transport.sessionId];
@@ -246,7 +249,7 @@ app.post('/mcp', async (req, res) => {
 
     // ... set up server resources, tools, and prompts ...
 
-    // Connect to di MCP server
+    // Connect to the MCP server
     await server.connect(transport);
   } else {
     // Invalid request
@@ -261,7 +264,7 @@ app.post('/mcp', async (req, res) => {
     return;
   }
 
-  // Handle di request
+  // Handle the request
   await transport.handleRequest(req, res, req.body);
 });
 
@@ -286,35 +289,35 @@ app.delete('/mcp', handleSessionRequest);
 app.listen(3000);
 ```
 
-Now you see say MCP Server creation dey inside `app.post("/mcp")`.
+Now you see how MCP Server creation move inside `app.post("/mcp")`.
 
-Make we go next step to create middleware to validate di incoming credential.
+Make we go next step to create middleware to validate incoming credential.
 
 ### -2- Implement middleware for server
 
-Make we start with middleware now. We go create middleware wey go look for credential inside `Authorization` header and check if e valid. If ok, request go continue do wetin e suppose do (like list tools, read resource or MCP function wey client request).
+Make we do middleware part now. Here we go create middleware wey go look for credential for `Authorization` header and check am. If e be okay, request go continue do wetin e gats do (example list tools, read resource or any MCP function di client ask).
 
 **Python**
 
-To create middleware, we need create class wey inherit from `BaseHTTPMiddleware`. Two tins important:
+To create middleware, we need create class wey inherit from `BaseHTTPMiddleware`. Two tins dey important:
 
-- The request `request`, we go read header info from am.
-- `call_next` callback we need call if client bring valid credential.
+- Di request `request`, we go read header info from.
+- `call_next` na di callback we gats call if client bring credential wey we accept.
 
-First, we go handle case if `Authorization` header no dey:
+First, we gats handle case if `Authorization` header no dey:
 
 ```python
 has_header = request.headers.get("Authorization")
 
-# no header dey, fail wit 401, if no, continue.
+# if no header dey, make e fail wit 401, if no, continue.
 if not has_header:
     print("-> Missing Authorization header!")
     return Response(status_code=401, content="Unauthorized")
 ```
 
-Here we send 401 unauthorized message because client fail authentication.
+Here we send 401 unauthorized message as client fail authentication.
 
-Next, if credential show, we check if e valid like dis:
+Next, if person submit credential, we go check if e valid:
 
 ```python
  if not valid_token(has_header):
@@ -322,7 +325,7 @@ Next, if credential show, we check if e valid like dis:
     return Response(status_code=403, content="Forbidden")
 ```
 
-Note how we send 403 forbidden message. Make we check full middleware wey implement all dis:
+See how we send 403 forbidden message for up. Make we see full middleware wey do everything we talk:
 
 ```python
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -345,32 +348,32 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 ```
 
-Good, but wetin `valid_token` function do? Here e dey:
+Great, but wetin be `valid_token` function? Here e be:
 
 ```python
-# NO use dis one for production - make am beta !!
+# NO use am for production - make am beta !!
 def valid_token(token: str) -> bool:
-    # commot the "Bearer " prefix
+    # comot the "Bearer " prefix
     if token.startswith("Bearer "):
         token = token[7:]
         return token == "secret-token"
     return False
 ```
 
-Dis one fit better.
+Dis one fit improve well well.
 
-IMPORTANT: You no suppose put secrets like dis for code. Normally, you go get di value from data source or IDP (identity service provider) or better, make IDP do di validation.
+IMPORTANT: You suppose NEVER keep secrets like dis for code. Ideally, you go fetch di value from data source or from IDP (identity service provider) or better make IDP do di validation.
 
 **TypeScript**
 
-To implement this with Express, we call `use` method to take middleware functions.
+To implement wit Express, we gats call `use` method wey dey take middleware functions.
 
 We need:
 
-- Work with request variable to check credential inside `Authorization`.
-- Validate credential, if valid, allow request continue and do wetin MCP suppose do.
+- Interact wit request to check di credential wey dem pass inside `Authorization` property.
+- Validate di credential and if e okay, make request continue do wetin e gats do (example list tools, read resource or any MCP thing).
 
-Here, we check if `Authorization` header dey, if no, we stop request:
+Here, we dey check if `Authorization` header dey and if no, we stop request:
 
 ```typescript
 if(!req.headers["authorization"]) {
@@ -379,9 +382,9 @@ if(!req.headers["authorization"]) {
 }
 ```
 
-If no header, you go get 401.
+If header no dey, you go get 401.
 
-Next, we check if credential valid, if no, we stop again with different message:
+Next, we check if credential valid, if no, we stop request again wit different message:
 
 ```typescript
 if(!isValid(token)) {
@@ -390,9 +393,9 @@ if(!isValid(token)) {
 } 
 ```
 
-You go get 403 error now.
+See how you dey get 403 error now.
 
-Here be full code:
+Full code here:
 
 ```typescript
 app.use((req, res, next) => {
@@ -415,18 +418,18 @@ app.use((req, res, next) => {
 });
 ```
 
-We set up web server to accept middleware to check client credential. How about client side?
+We don set web server to accept middleware to check credential wey client send. How about client?
 
-### -3- Send web request with credential via header
+### -3- Send web request wit credential via header
 
-We need make sure client dey send credential inside header. We go use MCP client, but how to do am?
+We need make sure client dey send credential through header. Since we go use MCP client do am, we need see how e go be.
 
 **Python**
 
-For client, we pass header with credential like dis:
+For client, we need pass header wit credential like dis:
 
 ```python
-# NO hardcode di value, make e dey at least for environmental variable or betta storage weh secure pass
+# NO hardcode di value, make e dey at least for environment variable or somtin wey secure pass
 token = "secret-token"
 
 async with streamablehttp_client(
@@ -443,24 +446,24 @@ async with streamablehttp_client(
         ) as session:
             await session.initialize()
       
-            # TODO, wetin you wan make di client do, like list tools, call tools and so on
+            # TODO, wetin you want make di client do, like list tools, call tools and so on
 ```
 
-Note how we fill `headers` like ` headers = {"Authorization": f"Bearer {token}"}`.
+See how we set `headers` property like dis ` headers = {"Authorization": f"Bearer {token}"}`.
 
 **TypeScript**
 
-We fit do am two way:
+We fit do dis in two steps:
 
-1. Create config object with credential.
-2. Pass config to transport.
+1. Fill configuration object wit credential.
+2. Pass configuration object to transport.
 
 ```typescript
 
-// NO hardcode di value like dis here. For minimum, make e be env variable and use sometin like dotenv (for dev mode).
+// NO hardcode di value like dis here. At least make am one env variable and use sometin like dotenv (for dev mode).
 let token = "secret123"
 
-// define client transport option object
+// define one client transport option object
 let options: StreamableHTTPClientTransportOptions = {
   sessionId: sessionId,
   requestInit: {
@@ -470,7 +473,7 @@ let options: StreamableHTTPClientTransportOptions = {
   }
 };
 
-// pass di options object go di transport
+// carry di options object go di transport
 async function main() {
    const transport = new StreamableHTTPClientTransport(
       new URL(serverUrl),
@@ -478,46 +481,46 @@ async function main() {
    );
 ```
 
-You see we create `options` object and put headers inside `requestInit`.
+Here you see how we create `options` object and put headers under `requestInit`.
 
-IMPORTANT: How we fit improve am from here? Current way get some risk. First, passing credential like dis dey risky unless you get HTTPS at least. Even so, credential fit thief so you need system to easily revoke token and add other checks like where e come from, if request baka-too-often (bot behaviour), and more.
+IMPORTANT: How you go improve am from dis point? Well, di current way get wahala. First, to send credential like this na risk unless you dey use HTTPS. Even so, credential fit thief, so you gats get system wey fit revoke token quick quick and add checks like where e dey come from, if request dey too frequent (bot behavior), many things dey worry. 
 
-But, for simple APIs wey no want anybody call API without authentication, dis one na good start.
+But for very simple APIs where you no want person just dey use your API without auth, wetin we get here good start.
 
-Now, make we try tighten security small using standard format like JSON Web Token, JWT or "JOT" tokens.
+With dis talk, make we try make security better small by using standard format like JSON Web Token, wey dem also dey call JWT or "JOT" tokens.
 
 ## JSON Web Tokens, JWT
 
-So we dey try improve from simple credentials. Wetin JWT give us quick improvement?
+So, we dey try improve from sending simple credentials. Wetin we go gain if we use JWT?
 
-- **Security improvement**. For basic auth, you send username and password as base64 or API key again and again which risk dey high. With JWT, you send username and password get token and e dey expire after some time. JWT let you control access small-small using roles, scopes, permissions.
-- **Statelessness and scalability**. JWT self-contained, carry all user info and no need store session for server side. Token fit validate locally.
-- **Interoperability and federation**. JWT na core for Open ID Connect and e dey use for known ID providers like Entra ID, Google Identity and Auth0. E make single sign on and more possible, dey enterprise quality.
-- **Modularity and flexibility**. JWT fit work with API Gateways like Azure API Management, NGINX and more. E support auth scenarios and server-server communication like impersonation and delegation.
-- **Performance and caching**. JWT fit cache after decode to reduce parsing. This help more for high-traffic apps to increase throughput and reduce server load.
-- **Advanced features**. E also support introspection (check valid on server) and revocation (make token invalid).
+- **Security improvements**. For basic auth, you dey send username and password as base64 token (or API key) every time which increase risk. Wit JWT, you send username and password and get token back, plus e get time expiry. JWT let you use fine-grained access control with roles, scopes and permissions.
+- **Statelessness and scalability**. JWTs get everything inside dem, dem carry all user info and no need to store for server-side session. You fit validate token locally.
+- **Interoperability and federation**. JWTs na di core of Open ID Connect and dem dey use am with identity providers like Entra ID, Google Identity and Auth0. Dem also allow single sign on and more, wey make am enterprise-level.
+- **Modularity and flexibility**. JWTs fit use with API Gateways like Azure API Management, NGINX and others. E support use authentication scenarios and server-to-service communication including impersonation and delegation.
+- **Performance and caching**. JWTs fit cache after decode, wey reduce parsing needed. This dey help high-traffic apps cause e increase throughput and reduce load on infrastructure.
+- **Advanced features**. E go support introspection (checking validity on server) and revocation (making token invalid).
 
-With dis benefits, make we see how to improve our implementation.
+With all dis benefits, make we see how to take our implementation go next level.
 
 ## Turning basic auth into JWT
 
-Di high level changes we go do na:
+So, di changes we gats do at high level na:
 
-- **Learn how to construct JWT token** ready to send from client to server.
-- **Validate JWT token** make if valid, let client get resources.
-- **Secure token storage** how to store am.
-- **Protect routes** need protect routes and specific MCP features.
-- **Add refresh tokens** create short-lived tokens plus long-lived refresh tokens to get new tokens if old one expire. Add refresh endpoint and rotation strategy.
+- **Learn how to construct JWT token** and ready am for sending from client to server.
+- **Validate JWT token**, and if e valid, make client fit get our resources.
+- **Secure token storage**. How to store di token.
+- **Protect routes**. We gats protect di routes, in our case, protect routes and specific MCP features.
+- **Add refresh tokens**. Make sure tokens we create short-lived, but get refresh tokens wey long-lived wey fit get new tokens if expiry done. Also get refresh endpoint and rotation strategy.
 
 ### -1- Construct JWT token
 
-JWT token get dis parts:
+First, JWT token get these parts:
 
-- **header**, algorithm used and token type.
-- **payload**, claims like sub (user or entity token represent, normally userid), exp (when e expire), role (the role)
-- **signature**, signed with secret or private key.
+- **header**, algorithm wey dem use and token type.
+- **payload**, claims like sub (user or entity token represent, normally userid for auth), exp (expiry time), role (role)
+- **signature**, signed wit secret or private key.
 
-We need build header, payload then encoded token.
+We go create header, payload and encoded token.
 
 **Python**
 
@@ -528,7 +531,7 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 import datetime
 
-# Secret key wey dem dey use sign the JWT
+# Secret key wey dem dey use to sign the JWT
 secret_key = 'your-secret-key'
 
 header = {
@@ -536,7 +539,7 @@ header = {
     "typ": "JWT"
 }
 
-# the user info and im claims plus when e go expire
+# di user info, im claims, and im expiry time
 payload = {
     "sub": "1234567890",               # Subject (user ID)
     "name": "User Userson",                # Custom claim
@@ -552,11 +555,11 @@ encoded_jwt = jwt.encode(payload, secret_key, algorithm="HS256", headers=header)
 For dis code:
 
 - Define header with HS256 algorithm and type JWT.
-- Build payload with subject/user id, username, role, issued time and expiry time to add time bound feature.
+- Construct payload wey get subject or user id, username, role, issued time and expiry time to do di time-bound part we mention early.
 
 **TypeScript**
 
-For dis we need dependencies for making JWT token.
+Here we need dependencies to help create JWT token.
 
 Dependencies
 
@@ -566,29 +569,29 @@ npm install jsonwebtoken
 npm install --save-dev @types/jsonwebtoken
 ```
 
-Now make we create header, payload and encoded token.
+Now we get dis set, make we create header, payload then encoded token.
 
 ```typescript
 import jwt from 'jsonwebtoken';
 
 const secretKey = 'your-secret-key'; // Use env vars for production
 
-// Define the payload
+// Define di payload
 const payload = {
   sub: '1234567890',
   name: 'User usersson',
   admin: true,
-  iat: Math.floor(Date.now() / 1000), // Issued at
-  exp: Math.floor(Date.now() / 1000) + 60 * 60 // E go expire for 1 hour
+  iat: Math.floor(Date.now() / 1000), // Issued for
+  exp: Math.floor(Date.now() / 1000) + 60 * 60 // E go expire afta 1 hour
 };
 
-// Define the header (optional, jsonwebtoken dey set defaults)
+// Define di header (optional, jsonwebtoken dey set defaults)
 const header = {
   alg: 'HS256',
   typ: 'JWT'
 };
 
-// Create the token
+// Create di token
 const token = jwt.sign(payload, secretKey, {
   algorithm: 'HS256',
   header: header
@@ -597,17 +600,17 @@ const token = jwt.sign(payload, secretKey, {
 console.log('JWT:', token);
 ```
 
-This token:
+Dis token:
 
-Signed with HS256
+Signed wit HS256
 Valid for 1 hour
-Has claims like sub, name, admin, iat, exp.
+Include claims like sub, name, admin, iat, and exp.
 
 ### -2- Validate token
 
-We need validate token on server to make sure client send correct token. Many checks including token structure and validity. Also add checks if user dey your system and if user get rights.
+We gats also validate token. Na server gats do dis to ensure wetin client send legit. Many checks dey from validating structure to token validity. You fit add other checks like if user dey your system and others.
 
-To validate, decode token then check:
+To validate token, decode am so you fit read am and start to check am:
 
 **Python**
 
@@ -627,11 +630,11 @@ except InvalidTokenError as e:
 
 ```
 
-For dis code, we call `jwt.decode` with token, secret key and algorithm. We use try-catch because failure go throw error.
+For dis code, we dey call `jwt.decode` using di token, di secret key and di chosen algorithm as input. Note how we use try-catch construct as e fit fail validation wey go raise error.
 
 **TypeScript**
 
-Here we call `jwt.verify` to decode token for analysis. If fail, token structure wrong or e no valid.
+For here, we need to call `jwt.verify` to get decoded version of di token we fit analyze further. If dis call fail, e mean di token structure no correct or e don no valid again. 
 
 ```typescript
 
@@ -643,18 +646,19 @@ try {
 }
 ```
 
-NOTE: like we talk before, you suppose add other checks to confirm this token belong to user and user get rights.
+NOTE: as we talk before, we suppose do extra checks to make sure say dis token dey represent user for our system and make sure say di user get rights wey e talk say e get.
 
-Next, make we look role based access control, wey dem call RBAC.
+Next, mek we check role based access control, wey dem sabi as RBAC.
+
 ## Adding role based access control
 
-Di idea be say we want talk say different roles get different permissions. For example, we assume say admin fit do everything and say normal user fit do read/write and say guest fit only read. So, here be some possible permission levels:
+Di idea be say we want talk say different roles get different permissions. For example, we assume say admin fit do everything and say normal user fit do read/write and say guest fit only read. So, here some possible permission levels:
 
 - Admin.Write 
 - User.Read
 - Guest.Read
 
-Make we see how we fit take implement such control with middleware. Middleware fit join for each route as well as for all routes.
+Mek we see how we fit implement dis kind control with middleware. Middlewares fit add per route and also for all routes.
 
 **Python**
 
@@ -663,7 +667,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 import jwt
 
-# NO try put di secret inside di code, dis na only for show. Make you read am from place wey dey safe.
+# NO keep di secret for inside di code like dis, dis one na only for show. Make you read am from beta place.
 SECRET_KEY = "your-secret-key" # put dis one for env variable
 REQUIRED_PERMISSION = "User.Read"
 
@@ -691,21 +695,21 @@ class JWTPermissionMiddleware(BaseHTTPMiddleware):
 
 ```
 
-E get some different ways to add middleware like dis below:
+Different ways dey to add middleware like dis below:
 
 ```python
 
-# Alt 1: put middleware while you dey build starlette app
+# Alt 1: add middleware wen u dey build starlette app
 middleware = [
     Middleware(JWTPermissionMiddleware)
 ]
 
 app = Starlette(routes=routes, middleware=middleware)
 
-# Alt 2: put middleware after starlette app don already build
+# Alt 2: add middleware after starlette app don already build
 starlette_app.add_middleware(JWTPermissionMiddleware)
 
-# Alt 3: put middleware per route
+# Alt 3: add middleware for each route
 routes = [
     Route(
         "/mcp",
@@ -717,7 +721,7 @@ routes = [
 
 **TypeScript**
 
-We fit use `app.use` and middleware wey go run for all requests.
+We fit use `app.use` and middleware wey go run for all requests. 
 
 ```typescript
 app.use((req, res, next) => {
@@ -733,7 +737,7 @@ app.use((req, res, next) => {
     
     let token = req.headers["authorization"];
 
-    // 2. Check if token na correct one
+    // 2. Check if token correct
     if(!isValid(token)) {
         res.status(403).send('Forbidden');
         return;
@@ -747,7 +751,7 @@ app.use((req, res, next) => {
     }
     console.log("User exists");
 
-    // 4. Make sure say the token get correct permission
+    // 4. Confirm say token get the correct permissions
     if(!hasScopes(token, ["User.Read"])){
         res.status(403).send('Forbidden - insufficient scopes');
     }
@@ -760,11 +764,11 @@ app.use((req, res, next) => {
 
 ```
 
-E get plenti tins we fit let our middleware do and tins wey our middleware MUST do, na these ones:
+Plenty things dey we fit let our middleware do and things wey our middleware suppose do, like:
 
 1. Check if authorization header dey
-2. Check if token valid, we go call `isValid` wey be method wey we write wey go check integrity and validity of JWT token.
-3. Verify say user dey our system, we suppose check dis one.
+2. Check if token valid, we dey call `isValid` wey be method we write wey dey check integrity and validity of JWT token.
+3. Verify say user dey for our system, we suppose check dis.
 
    ```typescript
     // users wey dey for DB
@@ -776,14 +780,14 @@ E get plenti tins we fit let our middleware do and tins wey our middleware MUST 
    function isExistingUser(token) {
      let decodedToken = verifyToken(token);
 
-     // TODO, check if user dey for DB
+     // TODO, make sure say user dey for DB or no
      return users.includes(decodedToken?.name || "");
    }
    ```
 
-   For up there, we create simple `users` list, we suppose keep am for database.
+   For di code wey dem write above, we create simple `users` list wey suppose dey for database obviously.
 
-4. Plus, we suppose also check say token get correct permissions.
+4. Also, we suppose check say token get correct permissions.
 
    ```typescript
    if(!hasScopes(token, ["User.Read"])){
@@ -791,7 +795,7 @@ E get plenti tins we fit let our middleware do and tins wey our middleware MUST 
    }
    ```
 
-   For dis code from middleware, we check say token get User.Read permission, if e no get we go send 403 error. Below na `hasScopes` helper method.
+   For di code from middleware above, we check say token get User.Read permission, if e no get, we go send 403 error. Below na `hasScopes` helper method.
 
    ```typescript
    function hasScopes(scope: string, requiredScopes: string[]) {
@@ -840,15 +844,15 @@ app.use((err, req, res, next) => {
 
 ```
 
-Now you don see how middleware fit work for both authentication and authorization, but how about MCP, e dey change how we do auth? Make we find out for the next section.
+Now you don see how middleware fit use for authentication and authorization, but how e be for MCP, e change how we dey do auth? Make we find out for next section.
 
 ### -3- Add RBAC to MCP
 
-You don see how you fit add RBAC with middleware, but for MCP e no easy to add per MCP feature RBAC, so wetin we go do? Well, na to add code like dis wey go check if client get rights to call specific tool:
+You don see how you fit add RBAC through middleware, but for MCP, no easy way to add per MCP feature RBAC, so wetin we go do? We just add code like dis wey check if client get rights to call specific tool:
 
-You get different ways to do per feature RBAC, here be some:
+You get different options how to do per feature RBAC, here some:
 
-- Add check for each tool, resource, prompt wey you need check permission level.
+- Add check for every tool, resource, prompt wey you need to check permission level.
 
    **python**
 
@@ -858,7 +862,7 @@ You get different ways to do per feature RBAC, here be some:
       try:
           check_permissions(role="Admin.Write", request)
       catch:
-        pass # klayan no fit get permission, raise permission gbege
+        pass # client no fit get authorization, raise authorization error
    ```
 
    **typescript**
@@ -888,7 +892,7 @@ You get different ways to do per feature RBAC, here be some:
    ```
 
 
-- Use advanced server approach and request handlers so you reduce how many places you go make check.
+- Use advanced server approach and request handlers make you reduce how many places wey you need to do di check.
 
    **Python**
 
@@ -900,21 +904,21 @@ You get different ways to do per feature RBAC, here be some:
    }
 
    def has_permission(user_permissions, required_permissions) -> bool:
-      # user_permissions: list of permissions weh di user get
-      # required_permissions: list of permissions weh di tool need
+      # user_permissions: list of permissions wey di user get
+      # required_permissions: list of permissions wey di tool need
       return any(perm in user_permissions for perm in required_permissions)
 
    @server.call_tool()
    async def handle_call_tool(
      name: str, arguments: dict[str, str] | None
    ) -> list[types.TextContent]:
-    # Assume say request.user.permissions be list of permissions weh di user get
+    # Make we assume say request.user.permissions na list of permissions wey di user get
      user_permissions = request.user.permissions
      required_permissions = tool_permission.get(name, [])
      if not has_permission(user_permissions, required_permissions):
-        # Raise error "You no get permission to call tool {name}"
+        # Comot error "You no get permission to call tool {name}"
         raise Exception(f"You don't have permission to call tool {name}")
-     # carry on make you call tool
+     # continue make e call tool
      # ...
    ```   
    
@@ -924,7 +928,7 @@ You get different ways to do per feature RBAC, here be some:
    ```typescript
    function hasPermission(userPermissions: string[], requiredPermissions: string[]): boolean {
        if (!Array.isArray(userPermissions) || !Array.isArray(requiredPermissions)) return false;
-       // Return true if user get at least one required permission
+       // Return true if user get at least one permission wey dem need
        
        return requiredPermissions.some(perm => userPermissions.includes(perm));
    }
@@ -938,29 +942,29 @@ You get different ways to do per feature RBAC, here be some:
          return new Error(`You don't have permission to call ${name}`);
       }
   
-      // continue dey go..
+      // carry on..
    });
    ```
 
-   Note, you go need make sure say your middleware assign decoded token to request's user property so code up there go simple.
+   Note, you need to make sure say your middleware assign decoded token to request's user property so code above easy.
 
 ### Summing up
 
-Now we don talk how to add support for RBAC in general and MCP in particular, na time to try implement security by yourself to make sure say you understand the concepts wey we show you.
+Now we don talk how to add support for RBAC in general and MCP in particular, time don reach to try implement security by yourself to make sure you understand di concepts wey dem present you.
 
-## Assignment 1: Build an mcp server and mcp client using basic authentication
+## Assignment 1: Build mcp server and mcp client using basic authentication
 
-Here you go use wetin you don learn about sending credentials through headers.
+Here you go take wetin you learn on how to send credentials through headers.
 
 ## Solution 1
 
 [Solution 1](./code/basic/README.md)
 
-## Assignment 2: Upgrade the solution from Assignment 1 to use JWT
+## Assignment 2: Upgrade solution from Assignment 1 to use JWT
 
-Take the first solution but this time, make we improve am.
+Take di first solution but dis time, mek we improve am. 
 
-Instead of using Basic Auth, make we use JWT.
+Instead of using Basic Auth, make we use JWT. 
 
 ## Solution 2
 
@@ -968,15 +972,15 @@ Instead of using Basic Auth, make we use JWT.
 
 ## Challenge
 
-Add the RBAC per tool wey we describe for section "Add RBAC to MCP".
+Add RBAC per tool wey we describe for section "Add RBAC to MCP".
 
 ## Summary
 
-You don hopefully learn plenti things for this chapter, from no security at all, to basic security, to JWT and how we fit add am to MCP.
+You don hopefully learn plenty for dis chapter, from no security at all, to basic security, to JWT and how e fit add to MCP.
 
-We build solid foundation with custom JWTs, but as we dey scale, we dey move towards standards-based identity model. To use IdP like Entra or Keycloak dey help us offload token issuance, validation, and lifecycle management to trusted platform — we go fit focus on app logic and user experience.
+We don build solid foundation with custom JWTs, but as we dey scale, we dey move toward standards-based identity model. To adopt IdP like Entra or Keycloak go let us offload token issuance, validation, and lifecycle management to trusted platform — so that we fit focus on app logic and user experience.
 
-For that one, we get more [advanced chapter on Entra](../../05-AdvancedTopics/mcp-security-entra/README.md)
+For dat one, we get more [advanced chapter on Entra](../../05-AdvancedTopics/mcp-security-entra/README.md)
 
 ## What's Next
 
@@ -986,5 +990,5 @@ For that one, we get more [advanced chapter on Entra](../../05-AdvancedTopics/mc
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:
-Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you sabi say automated translation fit get errors or mistakes. The original document Wey e dey for im correct language na im be di main correct source. For important information, make person wey sabi do human translation do am. We no go take responsibility for any misunderstanding or wrong meaning Wey fit show as person use dis translation.
+Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you know say automated translation fit get errors or mistakes. Di original document for dia own language na im be di correct source. For important info, make person wey sabi human translation do am. We no go responsible for any misunderstanding or wrong understanding wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

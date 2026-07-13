@@ -1,36 +1,39 @@
-# MCP প্রোটোকল বৈশিষ্ট্য গভীরভাবে
+# MCP প্রোটোকল ফিচার গভীর অন্বেষণ
 
-এই গাইডটি মৌলিক টুল এবং রিসোর্স পরিচালনার বাইরে উন্নত MCP প্রোটোকল বৈশিষ্ট্যগুলো অন্বেষণ করে। এই বৈশিষ্ট্যগুলি বোঝা আপনাকে আরও দৃঢ়, ব্যবহারকারী-বান্ধব, এবং প্রোডাকশন-রেডি MCP সার্ভার তৈরি করতে সাহায্য করে।
+এই গাইডটি উন্নত MCP প্রোটোকল ফিচারগুলো অন্বেষণ করে যা মৌলিক টুল এবং রিসোর্স পরিচালনার বাইরে যায়। এই ফিচারগুলি বোঝা আপনাকে আরও মজবুত, ব্যবহারকারী-বান্ধব এবং প্রোডাকশন-রেডি MCP সার্ভার তৈরিতে সাহায্য করে।
 
-## কাভার করা বৈশিষ্ট্যসমূহ
+> **আগাম দৃষ্টিভঙ্গি:** `2026-07-28` রিলিজ ক্যান্ডিডেট লগিং প্রিমিটিভকে অব্যাহত রাখে না (স্ট্যান্ডার্ড আউটপুটের জন্য `stderr` এবং স্ট্রাকচার্ড অবজারভেবিলিটির জন্য OpenTelemetry কে অগ্রাধিকার দেয়), নিচে উল্লেখিত সার্ভার লাইফসাইকেল ইভেন্টে রেফারেন্সকৃত `initialize`/সেশন মডেল অপসারণ করে, এবং পরীক্ষামূলক Tasks ফিচারটিকে একটি নিবেদিত Tasks এক্সটেনশনে স্থানান্তর করে নতুন `tasks/get`/`tasks/update`/`tasks/cancel` লাইফসাইকেলসহ। বিস্তারিত দেখুন [MCP-তে কি পরিবর্তন হচ্ছে: 2026-07-28 রিলিজ ক্যান্ডিডেট](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)।
 
-1. **প্রগতি বিজ্ঞপ্তি** - দীর্ঘমেয়াদী অপারেশনগুলোর জন্য প্রগতি রিপোর্ট করা
-2. **অনুরোধ বাতিলকরণ** - ক্লায়েন্টদের চলমান অনুরোধ বাতিল করার অনুমতি দেওয়া
-3. **রিসোর্স টেমপ্লেট** - প্যারামিটার সহ গতিশীল রিসোর্স URI
-4. **সার্ভার লাইফসাইকেল ইভেন্টস** - সঠিক ইনিশিয়ালাইজেশন এবং শাটডাউন
+## আচ্ছাদিত ফিচারসমূহ
+
+1. **প্রগতি বিজ্ঞপ্তি** - দীর্ঘমেয়াদী অপারেশনের জন্য অগ্রগতির প্রতিবেদন
+2. **রিকোয়েস্ট বাতিলকরণ** - ক্লায়েন্টদের চলমান অনুরোধ বাতিল করার সুযোগ দেয়
+3. **রিসোর্স টেমপ্লেট** - প্যারামিটারসহ ডায়নামিক রিসোর্স URI
+4. **সার্ভার লাইফসাইকেল ইভেন্ট** - সুষ্ঠু ইনিশিয়ালাইজেশন এবং শাটডাউন
 5. **লগিং নিয়ন্ত্রণ** - সার্ভার-সাইড লগিং কনফিগারেশন
-6. **ত্রুটি পরিচালনার প্যাটার্ন** - সঙ্গতিপূর্ণ ত্রুটি প্রতিক্রিয়া
+6. **ত্রুটি হ্যান্ডলিং প্যাটার্ন** - সঙ্গতিপূর্ণ ত্রুটি প্রতিক্রিয়া
 
 ---
 
 ## ১. প্রগতি বিজ্ঞপ্তি
 
-সেই অপারেশনগুলোর জন্য যেগুলো সময় নেয় (ডেটা প্রসেসিং, ফাইল ডাউনলোড, API কল), প্রগতি বিজ্ঞপ্তি ব্যবহারকারীদের আপডেট রাখে।
+এমন অপারেশনগুলির জন্য যারা সময় নেয় (ডেটা প্রক্রিয়াকরণ, ফাইল ডাউনলোড, API কল), প্রগতি বিজ্ঞপ্তি ব্যবহারকারীদের অবহিত রাখে।
 
-### এটি কিভাবে কাজ করে
+### এটা কীভাবে কাজ করে
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Server
     
-    Client->>Server: tools/call (দীর্ঘ অপারেশন)
-    Server-->>Client: notification: অগ্রগতি ১০%
-    Server-->>Client: notification: অগ্রগতি ৫০%
-    Server-->>Client: notification: অগ্রগতি ৯০%
+    Client->>Server: টুলস/কল (দীর্ঘ অপারেশন)
+    Server-->>Client: নোটিফিকেশন: অগ্রগতি ১০%
+    Server-->>Client: নোটিফিকেশন: অগ্রগতি ৫০%
+    Server-->>Client: নোটিফিকেশন: অগ্রগতি ৯০%
     Server->>Client: ফলাফল (সম্পূর্ণ)
 ```
-### পাইথন ইমপ্লিমেন্টেশন
+
+### পাইথন বাস্তবায়ন
 
 ```python
 from mcp.server import Server, NotificationOptions
@@ -49,11 +52,11 @@ async def process_large_file(file_path: str, ctx) -> str:
     
     with open(file_path, 'rb') as f:
         while chunk := f.read(8192):
-            # চাঙ্ক প্রক্রিয়াকরণ করুন
+            # অংশ প্রক্রিয়া করুন
             await process_chunk(chunk)
             processed += len(chunk)
             
-            # অগ্রগতির বিজ্ঞপ্তি পাঠান
+            # অগ্রগতি বিজ্ঞপ্তি পাঠান
             progress = (processed / file_size) * 100
             await ctx.send_notification(
                 ProgressNotification(
@@ -77,7 +80,7 @@ async def batch_operation(items: list[str], ctx) -> str:
         result = await process_item(item)
         results.append(result)
         
-        # প্রতি আইটেমের পরে অগ্রগতি রিপোর্ট করুন
+        # প্রতিটি আইটেমের পরে অগ্রগতি রিপোর্ট করুন
         await ctx.send_notification(
             ProgressNotification(
                 progressToken=ctx.request_id,
@@ -90,7 +93,7 @@ async def batch_operation(items: list[str], ctx) -> str:
     return f"Completed {total} items"
 ```
 
-### টাইপস্ক্রিপ্ট ইমপ্লিমেন্টেশন
+### টাইপস্ক্রিপ্ট বাস্তবায়ন
 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -106,7 +109,7 @@ server.setRequestHandler(CallToolSchema, async (request, extra) => {
       const result = await processItem(items[i]);
       results.push(result);
       
-      // অগ্রগতি নোটিফিকেশন পাঠান
+      // অগ্রগতি বিজ্ঞপ্তি পাঠান
       await extra.sendNotification({
         method: "notifications/progress",
         params: {
@@ -131,20 +134,20 @@ async def handle_progress(notification):
     params = notification.params
     print(f"Progress: {params.progress}/{params.total} - {params.message}")
 
-# রেজিস্টার হ্যান্ডলার
+# হ্যান্ডলার নিবন্ধন করুন
 session.on_notification("notifications/progress", handle_progress)
 
-# টুল কল করুন (অগ্রগতি আপডেটগুলি হ্যান্ডলারের মাধ্যমে আসবে)
+# টুল কল করুন (প্রগ্রেস আপডেটগুলি হ্যান্ডলারের মাধ্যমে আসবে)
 result = await session.call_tool("process_large_file", {"file_path": "/data/large.csv"})
 ```
 
 ---
 
-## ২. অনুরোধ বাতিলকরণ
+## ২. রিকোয়েস্ট বাতিলকরণ
 
-ক্লায়েন্টদের এমন অনুরোধ বাতিল করার অনুমতি দিন যা আর দরকার নেই বা অনেক দেরি করছে।
+ক্লায়েন্টদের আর দরকার নেই এমন বা খুব বেশি সময় নিচ্ছে এমন রিকোয়েস্ট বাতিল করার সুযোগ দিন।
 
-### পাইথন ইমপ্লিমেন্টেশন
+### পাইথন বাস্তবায়ন
 
 ```python
 from mcp.server import Server
@@ -161,15 +164,15 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # অনেক পৃষ্ঠায় অনুসন্ধান করুন
-            # যাচাই করুন যে বাতিলের অনুরোধ করা হয়েছিল কিনা
+            # পরীক্ষা করুন অনুলোপনের অনুরোধ করা হয়েছে কিনা
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
-            # পৃষ্ঠা অনুসন্ধানের অনুকরণ করুন
+            # পৃষ্ঠা অনুসন্ধান অনুকরণ করুন
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # ছোট বিলম্ব বাতিল পরীক্ষা করার সুযোগ দেয়
+            # ছোট বিলম্ব অনুলোপনের পরীক্ষা করার সুযোগ দেয়
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -231,7 +234,7 @@ class CancellableContext:
             )
             raise CancelledError(self._cancel_reason)
         except asyncio.TimeoutError:
-            pass  # স্বাভাবিক সময়সীমা, চালিয়ে যান
+            pass  # সাধারণ টাইমআউট, চালিয়ে যান
 ```
 
 ### ক্লায়েন্ট-সাইড বাতিলকরণ
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # অনুরোধ বাতিল করা
+        # অনুরোধ বাতিল করা হয়েছে
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,9 +265,9 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## ৩. রিসোর্স টেমপ্লেট
 
-রিসোর্স টেমপ্লেট প্যারামিটারসহ গতিশীল URI তৈরি করতে দেয়, যা API এবং ডাটাবেসের জন্য উপযোগী।
+রিসোর্স টেমপ্লেট প্যারামিটারসহ ডায়নামিক URI নির্মাণের সুযোগ দেয়, যা API এবং ডেটাবেসের জন্য উপযোগী।
 
-### টেমপ্লেট নির্ধারণ
+### টেমপ্লেট সংজ্ঞায়িত করা
 
 ```python
 from mcp.server import Server
@@ -300,7 +303,7 @@ async def list_templates() -> list[ResourceTemplate]:
 async def read_resource(uri: str) -> str:
     """Read resource, expanding template parameters."""
     
-    # প্যারামিটারগুলি বের করার জন্য ইউআরআই পার্স করুন
+    # প্যারামিটারগুলি বের করতে URI পার্স করুন
     if uri.startswith("db://users/"):
         user_id = uri.split("/")[-1]
         return await fetch_user(user_id)
@@ -317,7 +320,7 @@ async def read_resource(uri: str) -> str:
     raise ValueError(f"Unknown resource URI: {uri}")
 ```
 
-### টাইপস্ক্রিপ্ট ইমপ্লিমেন্টেশন
+### টাইপস্ক্রিপ্ট বাস্তবায়ন
 
 ```typescript
 server.setRequestHandler(ListResourceTemplatesSchema, async () => {
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // গিটহাব ইস্যু URI পার্স করুন
+  // GitHub ইস্যু URI বিশ্লেষণ করুন
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -362,9 +365,9 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ---
 
-## ৪. সার্ভার লাইফসাইকেল ইভেন্টস
+## ৪. সার্ভার লাইফসাইকেল ইভেন্ট
 
-সঠিক ইনিশিয়ালাইজেশন এবং শাটডাউন হ্যান্ডলিং পরিষ্কার রিসোর্স ব্যবস্থাপনা নিশ্চিত করে।
+সুষ্ঠু ইনিশিয়ালাইজেশন এবং শাটডাউন হ্যান্ডলিং সুনিশ্চিত করে পরিষ্কার রিসোর্স ব্যবস্থাপনা।
 
 ### পাইথন লাইফসাইকেল ম্যানেজমেন্ট
 
@@ -374,7 +377,7 @@ from contextlib import asynccontextmanager
 
 app = Server("lifecycle-server")
 
-# শেয়ার্ড স্টেট
+# শেয়ার করা অবস্থা
 db_connection = None
 cache = None
 
@@ -389,7 +392,7 @@ async def lifespan(server: Server):
     cache = await create_cache_client()
     print("✅ Resources initialized")
     
-    yield  # সার্ভার এখানে রান করে
+    yield  # সার্ভার এখানে চলে
     
     # শাটডাউন
     print("🛑 Server shutting down...")
@@ -425,7 +428,7 @@ class ManagedServer {
   }
   
   async start() {
-    // সম্পদ 초기 করুন
+    // রিসোর্সগুলি প্রাথমিককরণ করুন
     console.log("🚀 Server starting...");
     this.dbConnection = await createDatabaseConnection();
     console.log("✅ Database connected");
@@ -435,7 +438,7 @@ class ManagedServer {
   }
   
   async stop() {
-    // সম্পদ পরিস্কার করুন
+    // রিসোর্সগুলি পরিস্কার করুন
     console.log("🛑 Server shutting down...");
     if (this.dbConnection) {
       await this.dbConnection.close();
@@ -446,13 +449,13 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // নিরাপদে এই.dbConnection ব্যবহার করুন
+      // এই.dbConnection নিরাপদে ব্যবহার করুন
       // ...
     });
   }
 }
 
-// সুন্দর শাটডাউন সহ ব্যবহার
+// সুশৃঙ্খল বন্ধের সাথে ব্যবহার
 const server = new ManagedServer();
 
 process.on('SIGINT', async () => {
@@ -467,9 +470,9 @@ await server.start();
 
 ## ৫. লগিং নিয়ন্ত্রণ
 
-MCP সার্ভার-সাইড লগিং স্তর সমর্থন করে যা ক্লায়েন্ট নিয়ন্ত্রণ করতে পারে।
+MCP সার্ভার-সাইড লগিং লেভেলগুলো সমর্থন করে যা ক্লায়েন্টরা নিয়ন্ত্রণ করতে পারে।
 
-### লগিং স্তর বাস্তবায়ন
+### লগিং লেভেল বাস্তবায়ন
 
 ```python
 from mcp.server import Server
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# MCP স্তরগুলি Python লগিং স্তরের সাথে ম্যাপ করুন
+# MCP স্তরগুলোকে পাইথন লগিং স্তরে ম্যাপ করুন
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -535,9 +538,9 @@ async def complex_operation(input: str, ctx) -> str:
 
 ---
 
-## ৬. ত্রুটি পরিচালনার প্যাটার্ন
+## ৬. ত্রুটি হ্যান্ডলিং প্যাটার্ন
 
-সঙ্গতিপূর্ণ ত্রুটি ব্যবস্থাপনা ডিবাগিং এবং ব্যবহারকারীর অভিজ্ঞতা উন্নত করে।
+সঙ্গতিপূর্ণ ত্রুটি হ্যান্ডলিং ডিবাগিং এবং ব্যবহারকারীর অভিজ্ঞতা উন্নত করে।
 
 ### MCP ত্রুটি কোডসমূহ
 
@@ -569,7 +572,7 @@ class InternalError(ToolError):
         super().__init__(ErrorCode.INTERNAL_ERROR, message)
 ```
 
-### গঠনমূলক ত্রুটি প্রতিক্রিয়া
+### স্ট্রাকচার্ড ত্রুটি প্রতিক্রিয়া
 
 ```python
 @app.tool()
@@ -606,7 +609,7 @@ async def safe_operation(input: str) -> str:
         raise InternalError(f"Unexpected error: {type(e).__name__}")
 ```
 
-### টাইপস্ক্রিপ্টে ত্রুটি পরিচালনা
+### টাইপস্ক্রিপ্টে ত্রুটি হ্যান্ডলিং
 
 ```typescript
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
@@ -633,10 +636,10 @@ server.setRequestHandler(CallToolSchema, async (request) => {
     
   } catch (error) {
     if (error instanceof McpError) {
-      throw error;  // ইতিমধ্যে একটি MCP ত্রুটি
+      throw error;  // ইতিমধ্যেই একটি MCP ত্রুটি
     }
     
-    // অন্যান্য ত্রুটি রূপান্তর করুন
+    // অন্যান্য ত্রুটিগুলো রূপান্তর করুন
     if (error instanceof NotFoundError) {
       throw new McpError(ErrorCode.InvalidRequest, error.message);
     }
@@ -653,22 +656,22 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ---
 
-## পরীক্ষামূলক বৈশিষ্ট্যসমূহ (MCP 2025-11-25)
+## পরীক্ষামূলক ফিচারসমূহ (MCP 2025-11-25)
 
-নির্দিষ্টকরণে এই বৈশিষ্ট্যগুলো পরীক্ষামূলক হিসেবে চিহ্নিত:
+এই ফিচারগুলো স্পেসিফিকেশনে পরীক্ষামূলক হিসেবে চিহ্নিত করা হয়েছে:
 
-### টাস্কসমূহ (দীর্ঘকাল চলা অপারেশন)
+### টাস্কস (দীর্ঘমেয়াদী অপারেশন)
 
 ```python
-# কাজগুলি রাজ্যের সাথে দীর্ঘমেয়াদী অপারেশনগুলি ট্র্যাক করতে দেয়
+# টাস্কগুলো অবস্থা সহ দীর্ঘস্থায়ী অপারেশন ট্র্যাক করতে দেয়
 @app.task()
 async def training_task(model_id: str, data_path: str, ctx) -> str:
     """Long-running ML training task."""
     
-    # কাজ শুরু হয়েছে রিপোর্ট করুন
+    # রিপোর্ট টাস্ক শুরু হয়েছে
     await ctx.report_status("running", "Initializing training...")
     
-    # প্রশিক্ষণের লুপ
+    # প্রশিক্ষণ লুপ
     for epoch in range(100):
         await train_epoch(model_id, data_path, epoch)
         await ctx.report_status(
@@ -682,16 +685,16 @@ async def training_task(model_id: str, data_path: str, ctx) -> str:
     return f"Model {model_id} trained successfully"
 ```
 
-### টুল এনোটেশন
+### টুল অ্যানোটেশনসমূহ
 
 ```python
-# টুলের আচরণ সম্পর্কে মেটাডাটা প্রদান করে
+# টুলের কার্যকলাপ সম্পর্কে মেটাডেটা প্রদান করে
 @app.tool(
     annotations={
         "destructive": False,      # ডেটা পরিবর্তন করে না
         "idempotent": True,        # পুনরায় চেষ্টা করা নিরাপদ
         "timeout_seconds": 30,     # প্রত্যাশিত সর্বোচ্চ সময়কাল
-        "requires_approval": False # ব্যবহারকারীর অনুমোদন প্রয়োজন নেই
+        "requires_approval": False # ব্যবহারকারীর অনুমোদনের প্রয়োজন নেই
     }
 )
 async def safe_query(query: str) -> str:
@@ -701,24 +704,24 @@ async def safe_query(query: str) -> str:
 
 ---
 
-## পরবর্তী কী
+## পরবর্তী কি
 
-- [মডিউল ৮ - সেরা অনুশীলনসমূহ](../../08-BestPractices/README.md)
-- [5.14 - প্রসঙ্গ প্রকৌশল](../mcp-contextengineering/README.md)
+- [মডিউল ৮ - সেরা প্র্যাকটিস](../../08-BestPractices/README.md)
+- [৫.১৪ - প্রসঙ্গ ইঞ্জিনিয়ারিং](../mcp-contextengineering/README.md)
 - [MCP স্পেসিফিকেশন চেঞ্জলগ](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## অতিরিক্ত সম্পদ
 
-- [MCP স্পেসিফিকেশন 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [JSON-RPC 2.0 ত্রুটি কোডসমূহ](https://www.jsonrpc.org/specification#error_object)
+- [MCP স্পেসিফিকেশন ২০২৫-১১-২৫](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [JSON-RPC ২.০ ত্রুটি কোডসমূহ](https://www.jsonrpc.org/specification#error_object)
 - [পাইথন SDK উদাহরণসমূহ](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
 - [টাইপস্ক্রিপ্ট SDK উদাহরণসমূহ](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**অস্বীকারোক্তি**:  
-এই নথিটি AI অনুবাদ সেবা [Co-op Translator](https://github.com/Azure/co-op-translator) ব্যবহার করে অনূদিত হয়েছে। আমরা যথাসম্ভব সঠিকতার চেষ্টা করি, তবে স্বয়ংক্রিয় অনুবাদে ভুল বা অসঙ্গতি থাকতে পারে। মূল নথির নিজভাষার সংস্করণই কর্তৃত্বপূর্ণ উৎস হিসেবে বিবেচনা করা উচিত। গুরুত্বপূর্ণ তথ্যের জন্য পেশাদার মানব অনুবাদ গ্রহণ করার সুপারিশ করা হয়। এই অনুবাদের ব্যবহার থেকে সৃষ্ট যেকোনো ভুল বোঝাবুঝি বা ভুল ব্যাখ্যার জন্য আমরা দায়ী নই।
+**অস্বীকৃতি**:
+এই নথিটি AI অনুবাদ পরিষেবা [Co-op Translator](https://github.com/Azure/co-op-translator) ব্যবহার করে অনূদিত হয়েছে। যদিও আমরা শুদ্ধতার জন্য চেষ্টা করি, অনুগ্রহ করে মনে রাখবেন যে স্বয়ংক্রিয় অনুবাদে ত্রুটি বা অসঙ্গতি থাকতে পারে। মূল নথিটি তার স্বভাষায় কর্তৃত্বপূর্ণ উৎস হিসেবে বিবেচিত হওয়া উচিত। গুরুত্বপূর্ণ তথ্যের জন্য পেশাদার মানব অনুবাদ সুপারিশ করা হয়। এই অনুবাদের ব্যবহারে প্রয়োজনীয় ভুল বোঝাবুঝি বা ভুল ব্যাখ্যার জন্য আমরা দায়বদ্ধ নই।
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

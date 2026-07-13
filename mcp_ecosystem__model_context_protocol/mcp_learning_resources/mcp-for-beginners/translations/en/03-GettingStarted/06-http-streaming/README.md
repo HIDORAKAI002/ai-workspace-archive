@@ -2,6 +2,8 @@
 
 This chapter provides a comprehensive guide to implementing secure, scalable, and real-time streaming with the Model Context Protocol (MCP) using HTTPS. It covers the motivation for streaming, the available transport mechanisms, how to implement streamable HTTP in MCP, security best practices, migration from SSE, and practical guidance for building your own streaming MCP applications. 
 
+> **Looking ahead:** this lesson describes Streamable HTTP under **MCP Specification 2025-11-25**, where a session is established during `initialize` and pinned with an `Mcp-Session-Id` header. The `2026-07-28` release candidate removes the handshake and session ID entirely, making every request self-contained and routable to any server instance without sticky sessions. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) for details.
+
 ## Transport Mechanisms and Streaming in MCP
 
 This section explores the different transport mechanisms available in MCP and their role in enabling streaming capabilities for real-time communication between clients and servers.
@@ -454,6 +456,7 @@ Security is critical when exposing MCP servers over HTTP. Streamable HTTP introd
 
 ### Key Points
 
+
 - **Origin Header Validation**: Always validate the `Origin` header to prevent DNS rebinding attacks.
 - **Localhost Binding**: For local development, bind servers to `localhost` to avoid exposing them to the public internet.
 - **Authentication**: Implement authentication (e.g., API keys, OAuth) for production deployments.
@@ -467,6 +470,7 @@ Security is critical when exposing MCP servers over HTTP. Streamable HTTP introd
 - Regularly update dependencies to patch security vulnerabilities.
 
 ### Challenges
+
 - Balancing security with ease of development
 - Ensuring compatibility with various client environments
 

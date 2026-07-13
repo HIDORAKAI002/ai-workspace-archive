@@ -1,25 +1,25 @@
-# Pengesahan mudah
+# Auth mudah
 
-SDK MCP menyokong penggunaan OAuth 2.1 yang agak rumit melibatkan konsep seperti pelayan pengesahan, pelayan sumber, menghantar kelayakan, mendapatkan kod, menukar kod kepada token pembawa sehingga anda akhirnya boleh mendapatkan data sumber anda. Jika anda tidak biasa dengan OAuth yang merupakan sesuatu yang bagus untuk dilaksanakan, adalah idea yang baik untuk bermula dengan tahap pengesahan asas dan membina sehingga keselamatan yang lebih baik. Sebab itulah bab ini wujud, untuk membina anda ke pengesahan yang lebih maju.
+SDK MCP menyokong penggunaan OAuth 2.1 yang sebenarnya adalah proses yang agak rumit melibatkan konsep seperti pelayan pengesahan, pelayan sumber, menghantar kelayakan, mendapatkan kod, menukar kod itu kepada token pembawa sehingga akhirnya anda boleh mendapatkan data sumber anda. Jika anda tidak biasa dengan OAuth yang merupakan sesuatu yang bagus untuk dilaksanakan, adalah idea yang baik untuk bermula dengan tahap asas pengesahan dan membangunkannya ke tahap keselamatan yang lebih baik dan lebih baik. Itulah sebabnya bab ini wujud, untuk membina anda kepada pengesahan yang lebih maju.
 
-## Pengesahan, apa maksudnya?
+## Auth, apa maksud kita?
 
-Pengesahan adalah singkatan bagi pengesahan dan kebenaran. Idea ini ialah kita perlu melakukan dua perkara:
+Auth adalah singkatan kepada pengesahan dan kebenaran. Idenya adalah kita perlu melakukan dua perkara:
 
-- **Pengesahan**, iaitu proses untuk mengetahui sama ada kita membenarkan seseorang masuk ke rumah kita, bahawa mereka mempunyai hak untuk "di sini" iaitu mempunyai akses ke pelayan sumber kita di mana ciri-ciri MCP Server kita berada.
-- **Kebenaran**, ialah proses untuk mengetahui jika pengguna harus mempunyai akses ke sumber tertentu yang mereka minta, contohnya pesanan-pesanan ini atau produk ini atau sama ada mereka dibenarkan membaca kandungan tetapi tidak memadam sebagai contoh lain.
+- **Pengesahan (Authentication)**, iaitu proses mengenal pasti sama ada kita membenarkan seseorang memasuki rumah kita, bahawa mereka mempunyai hak untuk "berada di sini," iaitu mempunyai akses ke pelayan sumber kita di mana ciri MCP Server kita berada.
+- **Kebenaran (Authorization)**, adalah proses untuk mengetahui sama ada pengguna sepatutnya mempunyai akses kepada sumber-sumber tertentu yang mereka minta, sebagai contoh pesanan ini atau produk ini atau sama ada mereka dibenarkan membaca kandungan tapi tidak memadamkan sebagai contoh lain.
 
 ## Kelayakan: bagaimana kita memberitahu sistem siapa kita
 
-Kebanyakan pembangun web biasanya mula berfikir dari segi memberikan kelayakan kepada pelayan, biasanya rahsia yang memberitahu jika mereka dibenarkan berada di sini "Pengesahan". Kelayakan ini biasanya ialah versi base64 yang dienkod daripada nama pengguna dan kata laluan atau kunci API yang mengenal pasti pengguna tertentu.
+Kebanyakan pembangun web biasanya mula berfikir dari segi memberikan kelayakan kepada pelayan, biasanya suatu rahsia yang mengatakan sama ada mereka dibenarkan berada di sini "Pengesahan". Kelayakan ini biasanya adalah versi kod base64 bagi nama pengguna dan kata laluan atau kunci API yang mengenal pasti pengguna tertentu secara unik.
 
-Ini melibatkan penghantaran melalui header yang dipanggil "Authorization" seperti berikut:
+Ini melibatkan penghantarannya melalui header yang dipanggil "Authorization" seperti berikut:
 
 ```json
 { "Authorization": "secret123" }
 ```
 
-Ini biasanya dirujuk sebagai pengesahan asas. Cara aliran keseluruhan berfungsi adalah seperti berikut:
+Ini biasanya dirujuk sebagai pengesahan asas. Bagaimana aliran keseluruhan berfungsi adalah seperti berikut:
 
 ```mermaid
 sequenceDiagram
@@ -28,11 +28,12 @@ sequenceDiagram
    participant Server
 
    User->>Client: tunjukkan saya data
-   Client->>Server: tunjukkan saya data, ini kelayakan saya
-   Server-->>Client: 1a, saya kenal awak, ini data awak
-   Server-->>Client: 1b, saya tak kenal awak, 401 
+   Client->>Server: tunjukkan saya data, ini adalah kelayakan saya
+   Server-->>Client: 1a, saya kenal kamu, ini adalah data kamu
+   Server-->>Client: 1b, saya tidak kenal kamu, 401 
 ```
-Kini kita faham bagaimana ia berfungsi dari sudut aliran, bagaimana kita melaksanakannya? Kebanyakan pelayan web mempunyai konsep yang dipanggil middleware, satu keping kod yang berjalan sebagai sebahagian daripada permintaan yang boleh mengesahkan kelayakan, dan jika kelayakan sah boleh membenarkan permintaan diteruskan. Jika permintaan tidak mempunyai kelayakan yang sah maka anda mendapat ralat pengesahan. Mari kita lihat bagaimana ini boleh dilaksanakan:
+
+Sekarang kita faham bagaimana ia berfungsi dari sudut aliran, bagaimana kita melaksanakannya? Kebanyakan pelayan web mempunyai konsep yang dipanggil middleware, iaitu sekeping kod yang berjalan sebagai sebahagian daripada permintaan yang boleh mengesahkan kelayakan, dan jika kelayakan itu sah boleh membenarkan permintaan itu melalui. Jika permintaan tidak mempunyai kelayakan sah maka anda akan mendapat ralat auth. Mari kita lihat bagaimana ini boleh dilaksanakan:
 
 **Python**
 
@@ -52,7 +53,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         print("Valid token, proceeding...")
        
         response = await call_next(request)
-        # tambah mana-mana pengepala pelanggan atau ubah balasan dengan cara tertentu
+        # tambah sebarang pengepala pelanggan atau ubah dalam respons dengan cara tertentu
         return response
 
 
@@ -68,7 +69,7 @@ Di sini kita ada:
     starlette_app.add_middleware(AuthMiddleware)
     ```
 
-- Menulis logik pengesahan yang memeriksa sama ada header Authorization hadir dan jika rahsia yang dihantar sah:
+- Menulis logik pengesahan yang memeriksa jika header Authorization ada dan jika rahsia yang dihantar adalah sah:
 
     ```python
     has_header = request.headers.get("Authorization")
@@ -81,19 +82,19 @@ Di sini kita ada:
         return Response(status_code=403, content="Forbidden")
     ```
 
-    jika rahsia itu hadir dan sah maka kita membenarkan permintaan diteruskan dengan memanggil `call_next` dan mengembalikan respons.
+    jika rahsia itu ada dan sah maka kita membenarkan permintaan itu melalui dengan memanggil `call_next` dan memulangkan respons.
 
     ```python
     response = await call_next(request)
-    # tambah sebarang pengepala pelanggan atau ubah suai dalam respons dengan sesuatu cara
+    # tambah sebarang pengepala pelanggan atau ubah dalam respons dengan cara tertentu
     return response
     ```
 
-Cara ia berfungsi ialah jika permintaan web dibuat ke arah pelayan middleware akan dipanggil dan berdasarkan pelaksanaan ia akan sama ada membenarkan permintaan diteruskan atau akhirnya mengembalikan ralat yang menunjukkan klien tidak dibenarkan meneruskan.
+Cara kerjanya adalah jika permintaan web dibuat ke pelayan middleware akan dipanggil dan dengan pelaksanannya ia akan sama ada membenarkan permintaan itu melalui atau mengembalikan ralat yang menunjukkan klien tidak dibenarkan meneruskan.
 
 **TypeScript**
 
-Di sini kita buat middleware dengan rangka kerja popular Express dan mencegat permintaan sebelum ia sampai ke MCP Server. Ini adalah kodnya:
+Di sini kita mencipta middleware dengan framework popular Express dan menyekat permintaan sebelum ia sampai ke MCP Server. Berikut adalah kodnya:
 
 ```typescript
 function isValid(secret) {
@@ -101,51 +102,53 @@ function isValid(secret) {
 }
 
 app.use((req, res, next) => {
-    // 1. Adakah header kebenaran hadir?
+    // 1. Header kebenaran hadir?
     if(!req.headers["Authorization"]) {
         res.status(401).send('Unauthorized');
     }
     
     let token = req.headers["Authorization"];
 
-    // 2. Periksa kesahan.
+    // 2. Semak kesahihan.
     if(!isValid(token)) {
         res.status(403).send('Forbidden');
     }
 
    
     console.log('Middleware executed');
-    // 3. Serahkan permintaan ke langkah seterusnya dalam saluran permintaan.
+    // 3. Hantar permintaan ke langkah seterusnya dalam saluran permintaan.
     next();
 });
 ```
 
 Dalam kod ini kita:
 
-1. Memeriksa jika header Authorization wujud daripada awal, jika tidak, kita hantar ralat 401.
-2. Memastikan kelayakan/token sah, jika tidak, kita hantar ralat 403.
-3. Akhirnya meneruskan permintaan dalam saluran permintaan dan mengembalikan sumber yang diminta.
+1. Memeriksa jika header Authorization ada pada mulanya, jika tidak, kita hantar ralat 401.
+2. Memastikan kelayakan/token itu sah, jika tidak, kita hantar ralat 403.
+3. Akhir sekali meneruskan permintaan dalam saluran permintaan dan mengembalikan sumber yang diminta.
 
 ## Latihan: Melaksanakan pengesahan
 
-Mari kita gunakan pengetahuan kita dan cuba melaksanakannya. Ini adalah rancangannya:
+Mari kita gunakan pengetahuan kita dan cuba melaksanakannya. Berikut adalah rancangannya:
 
 Pelayan
 
-- Cipta pelayan web dan contoh MCP.
-- Laksanakan middleware untuk pelayan itu.
+- Cipta pelayan web dan instans MCP.
+- Melaksanakan middleware untuk pelayan.
 
 Klien
 
 - Hantar permintaan web, dengan kelayakan, melalui header.
 
-### -1- Cipta pelayan web dan contoh MCP
+### -1- Cipta pelayan web dan instans MCP
 
-Dalam langkah pertama kita, kita perlu mencipta contoh pelayan web dan MCP Server.
+> **Melihat ke hadapan:** contoh TypeScript di bawah menjejaki penghantaran HTTP dalam peta `transports` yang dikunci oleh `mcp-session-id`, mengikut **Spesifikasi MCP 2025-11-25**. Calon pelepasan `2026-07-28` menghapuskan proses handshake `initialize` dan ID sesi sepenuhnya, jadi peta penghantaran per sesi ini akan hilang bagi permintaan bebas status. Lihat [Apa yang Berubah dalam MCP: Calon Pelepasan 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Dalam langkah pertama kita, kita perlu mencipta instans pelayan web dan MCP Server.
 
 **Python**
 
-Di sini kita cipta contoh MCP Server, cipta aplikasi web starlette dan hoskan dengan uvicorn.
+Di sini kita mencipta instans MCP Server, mencipta aplikasi web starlette dan menghoskannya dengan uvicorn.
 
 ```python
 # mencipta Pelayan MCP
@@ -178,13 +181,13 @@ run(starlette_app)
 
 Dalam kod ini kita:
 
-- Cipta MCP Server.
-- Bina aplikasi web starlette dari MCP Server, `app.streamable_http_app()`.
-- Hoskan dan servis aplikasi web menggunakan uvicorn `server.serve()`.
+- Mencipta MCP Server.
+- Membina aplikasi web starlette dari MCP Server, `app.streamable_http_app()`.
+- Menghoskan dan menjalankan aplikasi web menggunakan uvicorn `server.serve()`.
 
 **TypeScript**
 
-Di sini kita buat contoh MCP Server.
+Di sini kita mencipta instans MCP Server.
 
 ```typescript
 const server = new McpServer({
@@ -195,7 +198,7 @@ const server = new McpServer({
     // ... sediakan sumber pelayan, alat, dan arahan ...
 ```
 
-Penciptaan MCP Server ini perlu dilakukan dalam definisi laluan POST /mcp kita, jadi mari kita ambil kod di atas dan pindahkan seperti berikut:
+Penciptaan MCP Server ini perlu berlaku dalam definisi laluan POST /mcp kita, jadi mari kita ambil kod di atas dan pindahkan seperti berikut:
 
 ```typescript
 import express from "express";
@@ -217,7 +220,7 @@ app.post('/mcp', async (req, res) => {
   let transport: StreamableHTTPServerTransport;
 
   if (sessionId && transports[sessionId]) {
-    // Gunakan semula pengangkutan sedia ada
+    // Gunakan semula pengangkutan yang sedia ada
     transport = transports[sessionId];
   } else if (!sessionId && isInitializeRequest(req.body)) {
     // Permintaan inisialisasi baru
@@ -227,7 +230,7 @@ app.post('/mcp', async (req, res) => {
         // Simpan pengangkutan mengikut ID sesi
         transports[sessionId] = transport;
       },
-      // Perlindungan pengikatan semula DNS dilumpuhkan secara lalai untuk keserasian ke belakang. Jika anda menjalankan pelayan ini
+      // Perlindungan DNS rebinding dilumpuhkan secara lalai untuk keserasian ke belakang. Jika anda menjalankan pelayan ini
       // secara tempatan, pastikan untuk menetapkan:
       // enableDnsRebindingProtection: true,
       // allowedHosts: ['127.0.0.1'],
@@ -265,7 +268,7 @@ app.post('/mcp', async (req, res) => {
   await transport.handleRequest(req, res, req.body);
 });
 
-// Pengendali boleh guna semula untuk permintaan GET dan DELETE
+// Pengendali boleh guna untuk permintaan GET dan DELETE
 const handleSessionRequest = async (req: express.Request, res: express.Response) => {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
   if (!sessionId || !transports[sessionId]) {
@@ -277,7 +280,7 @@ const handleSessionRequest = async (req: express.Request, res: express.Response)
   await transport.handleRequest(req, res);
 };
 
-// Mengendalikan permintaan GET untuk notifikasi pelayan-ke-klien melalui SSE
+// Mengendalikan permintaan GET untuk pemberitahuan pelayan-ke-klien melalui SSE
 app.get('/mcp', handleSessionRequest);
 
 // Mengendalikan permintaan DELETE untuk penamatan sesi
@@ -286,33 +289,33 @@ app.delete('/mcp', handleSessionRequest);
 app.listen(3000);
 ```
 
-Kini anda nampak bagaimana penciptaan MCP Server dipindahkan ke dalam `app.post("/mcp")`.
+Sekarang anda lihat bagaimana penciptaan MCP Server dipindahkan dalam `app.post("/mcp")`.
 
-Mari teruskan ke langkah seterusnya iaitu mencipta middleware supaya kita boleh mengesahkan kelayakan yang masuk.
+Mari kita teruskan ke langkah seterusnya iaitu mencipta middleware supaya kita boleh mengesahkan kelayakan yang datang.
 
-### -2- Laksanakan middleware untuk pelayan
+### -2- Melaksanakan middleware untuk pelayan
 
-Mari kita lihat bahagian middleware seterusnya. Di sini kita akan buat middleware yang mencari kelayakan dalam header `Authorization` dan mengesahkannya. Jika boleh diterima maka permintaan akan diteruskan untuk melakukan apa yang diperlukan (contohnya senaraikan alat, baca sumber atau fungsi MCP yang diminta klien).
+Mari kita buat bahagian middleware seterusnya. Di sini kita akan mencipta middleware yang mencari kelayakan dalam header `Authorization` dan mengesahkannya. Jika ia boleh diterima maka permintaan akan diteruskan melakukan apa yang perlu (contohnya menyenaraikan alat, membaca sumber atau apa sahaja fungsi MCP yang diminta klien).
 
 **Python**
 
-Untuk membuat middleware, kita perlu mencipta kelas yang mewarisi dari `BaseHTTPMiddleware`. Ada dua bahagian menarik:
+Untuk mencipta middleware, kita perlu mencipta kelas yang mewarisi dari `BaseHTTPMiddleware`. Ada dua perkara menarik:
 
-- Permintaan `request` , yang kita baca maklumat header daripadanya.
-- `call_next` panggilan balik yang perlu kita panggil jika klien membawa kelayakan yang kita terima.
+- Permintaan `request`, yang kita baca maklumat header darinya.
+- `call_next` iaitu pemanggil balik yang kita perlu panggil jika klien membawa kelayakan yang kita terima.
 
-Pertama, kita perlu tangani kes jika header `Authorization` hilang:
+Pertama, kita perlu mengendalikan kasus jika header `Authorization` tidak ada:
 
 ```python
 has_header = request.headers.get("Authorization")
 
-# tiada tajuk, gagal dengan 401, jika tidak teruskan.
+# tiada pengepala, gagal dengan 401, jika tidak teruskan.
 if not has_header:
     print("-> Missing Authorization header!")
     return Response(status_code=401, content="Unauthorized")
 ```
 
-Di sini kita hantar mesej 401 tidak dibenarkan kerana klien gagal pengesahan.
+Di sini kita hantar mesej tidak dibenarkan 401 kerana klien gagal pengesahan.
 
 Seterusnya, jika kelayakan dihantar, kita perlu periksa kesahihannya seperti berikut:
 
@@ -322,7 +325,7 @@ Seterusnya, jika kelayakan dihantar, kita perlu periksa kesahihannya seperti ber
     return Response(status_code=403, content="Forbidden")
 ```
 
-Perhatikan bagaimana kita hantar mesej 403 dilarang di atas. Mari lihat middleware penuh di bawah yang melaksanakan semua yang kita bincangkan:
+Perhatikan bagaimana kita menghantar mesej terlarang 403 di atas. Mari lihat middleware penuh di bawah melaksanakan segala yang kita sebutkan tadi:
 
 ```python
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -345,10 +348,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 ```
 
-Bagus, tapi bagaimana dengan fungsi `valid_token`? Ini dia di bawah:
+Bagus, tapi bagaimana dengan fungsi `valid_token`? Berikut di bawah:
 
 ```python
-# JANGAN guna untuk produksi - tingkatkan ia !!
+# JANGAN gunakan untuk pengeluaran - tingkatkan ia !!
 def valid_token(token: str) -> bool:
     # buang awalan "Bearer "
     if token.startswith("Bearer "):
@@ -357,20 +360,20 @@ def valid_token(token: str) -> bool:
     return False
 ```
 
-Ini jelas sepatutnya dipertingkatkan.
+Ini tentunya boleh diperbaiki.
 
-PENTING: Anda TIDAK SEPATUTNYA menyimpan rahsia seperti ini dalam kod. Anda sebaiknya mengambil nilai untuk dibandingkan dari sumber data atau dari IDP (pembekal perkhidmatan identiti) atau lebih baik lagi, biarkan IDP lakukan pengesahan.
+PENTING: Anda TIDAK BOLEH menyimpan rahsia seperti ini dalam kod. Anda sebaiknya dapatkan nilai untuk dibandingkan dari sumber data atau dari IDP (penyedia perkhidmatan identiti) atau lebih baik lagi, biar IDP yang mengendali pengesahan.
 
 **TypeScript**
 
-Untuk melaksanakan ini dengan Express, kita perlu panggil kaedah `use` yang mengambil fungsi middleware.
+Untuk melaksanakan ini dengan Express, kita perlu memanggil kaedah `use` yang mengambil fungsi middleware.
 
 Kita perlu:
 
-- Berinteraksi dengan pembolehubah permintaan untuk periksa kelayakan yang dihantar dalam sifat `Authorization`.
-- Sahkan kelayakan, dan jika sah, benarkan permintaan diteruskan supaya permintaan MCP klien dapat lakukan yang sepatutnya (contohnya senaraikan alat, baca sumber atau apa-apa yang berkaitan MCP).
+- Berinteraksi dengan pembolehubah permintaan untuk memeriksa kelayakan yang dihantar dalam sifat `Authorization`.
+- Sahkan kelayakan, dan jika sah benarkan permintaan berterusan dan biarkan permintaan MCP klien lakukan apa yang sepatutnya (contohnya senarai alat, baca sumber atau apa sahaja yang berkaitan MCP).
 
-Di sini, kita periksa jika header `Authorization` hadir dan jika tidak, kita hentikan permintaan daripada diteruskan:
+Di sini, kita memeriksa jika header `Authorization` ada dan jika tidak, kita hentikan permintaan daripada diteruskan:
 
 ```typescript
 if(!req.headers["authorization"]) {
@@ -379,9 +382,9 @@ if(!req.headers["authorization"]) {
 }
 ```
 
-Jika header tidak dihantar sama sekali, anda akan terima 401.
+Jika header tidak dihantar dari awal, anda akan menerima 401.
 
-Seterusnya, kita periksa jika kelayakan sah, jika tidak kita sekali lagi hentikan permintaan tapi dengan mesej sedikit berbeza:
+Seterusnya, kita periksa jika kelayakan sah, jika tidak kita sekali lagi hentikan permintaan tetapi dengan mesej yang sedikit berbeza:
 
 ```typescript
 if(!isValid(token)) {
@@ -390,9 +393,9 @@ if(!isValid(token)) {
 } 
 ```
 
-Perhatikan bagaimana anda kini dapat ralat 403.
+Perhatikan bagaimana anda kini mendapat ralat 403.
 
-Ini adalah kod penuh:
+Berikut adalah kod penuh:
 
 ```typescript
 app.use((req, res, next) => {
@@ -415,18 +418,18 @@ app.use((req, res, next) => {
 });
 ```
 
-Kita telah sediakan pelayan web untuk menerima middleware bagi memeriksa kelayakan yang diharapkan dihantar oleh klien. Bagaimana pula dengan klien?
+Kita telah menyediakan pelayan web untuk menerima middleware bagi memeriksa kelayakan yang klien harap-harapnya hantar kepada kita. Bagaimana pula dengan klien itu sendiri?
 
 ### -3- Hantar permintaan web dengan kelayakan melalui header
 
-Kita perlu pastikan klien menghantar kelayakan melalui header. Oleh kerana kita akan gunakan klien MCP untuk ini, kita perlu tahu bagaimana caranya.
+Kita perlu memastikan klien menghantar kelayakan melalui header. Oleh kerana kita akan menggunakan klien MCP untuk itu, kita perlu faham bagaimana ia dilakukan.
 
 **Python**
 
-Untuk klien, kita perlu hantar header dengan kelayakan seperti ini:
+Untuk klien, kita perlu hantar header dengan kelayakan kita seperti berikut:
 
 ```python
-# JANGAN kod nilai secara keras, simpan sekurang-kurangnya dalam pembolehubah persekitaran atau penyimpanan yang lebih selamat
+# JANGAN kodkan nilai secara keras, simpan sekurang-kurangnya dalam pembolehubah persekitaran atau penyimpanan yang lebih selamat
 token = "secret-token"
 
 async with streamablehttp_client(
@@ -443,21 +446,21 @@ async with streamablehttp_client(
         ) as session:
             await session.initialize()
       
-            # TODO, apa yang anda mahu dilakukan di klien, contohnya senaraikan alat, panggil alat dan sebagainya.
+            # TODO, apa yang anda mahu dilakukan di klien, contohnya senaraikan alat, panggil alat dan lain-lain.
 ```
 
-Perhatikan bagaimana kita isi sifat `headers` seperti ini ` headers = {"Authorization": f"Bearer {token}"}`.
+Perhatikan bagaimana kita mengisi sifat `headers` seperti ` headers = {"Authorization": f"Bearer {token}"}`.
 
 **TypeScript**
 
 Kita boleh selesaikan ini dalam dua langkah:
 
-1. Isi objek konfigurasi dengan kelayakan kita.
-2. Serahkan objek konfigurasi kepada transport.
+1. Isikan objek konfigurasi dengan kelayakan kita.
+2. Hantar objek konfigurasi kepada pengangkut (transport).
 
 ```typescript
 
-// JANGAN masukkan nilai secara keras seperti yang ditunjukkan di sini. Sekurang-kurangnya jadikan ia sebagai pembolehubah persekitaran dan gunakan sesuatu seperti dotenv (dalam mod pembangunan).
+// JANGAN tetapkan nilai secara keras seperti yang ditunjukkan di sini. Sekurang-kurangnya jadikan ia sebagai pembolehubah persekitaran dan gunakan sesuatu seperti dotenv (dalam mod pembangun).
 let token = "secret123"
 
 // takrifkan objek pilihan pengangkutan klien
@@ -478,46 +481,46 @@ async function main() {
    );
 ```
 
-Di sini anda nampak bagaimana kita perlu cipta objek `options` dan letakkan header kita di bawah sifat `requestInit`.
+Di sini anda lihat di atas bagaimana kita perlu mencipta objek `options` dan letakkan header kita di bawah sifat `requestInit`.
 
-PENTING: Bagaimana kita tingkatkan dari sini? Sebenarnya pelaksanaan sedia ada ada beberapa isu. Pertama, menghantar kelayakan seperti ini agak berisiko melainkan anda sekurang-kurangnya ada HTTPS. Walaupun begitu, kelayakan boleh dicuri jadi anda perlu sistem di mana anda mudah batalkan token dan tambah semakan tambahan seperti dari mana token berasal, adakah permintaan berlaku terlalu kerap (kelakuan bot), secara ringkas, ada banyak kebimbangan.
+PENTING: Bagaimana kita memperbaikinya dari sini? Baiklah, pelaksanaan sekarang ada beberapa isu. Pertama, menghantar kelayakan seperti ini agak berisiko kecuali anda mempunyai HTTPS sekurang-kurangnya. Walaupun begitu, kelayakan boleh dicuri jadi anda perlukan sistem di mana anda boleh dengan mudah membatalkan token dan tambah pemeriksaan tambahan seperti dari mana ia datang di dunia, adakah permintaan berlaku terlalu kerap (tingkah laku bot), ringkasnya, banyak kebimbangan.
 
-Walau begitu, untuk API yang sangat mudah dimana anda tidak mahu sesiapa pun memanggil API anda tanpa pengesahan dan apa yang kita ada di sini adalah permulaan yang baik.
+Walaupun begitu, untuk API yang sangat mudah di mana anda tidak mahu sesiapa pun memanggil API anda tanpa diautentikasi dan apa yang kita ada di sini adalah permulaan yang baik.
 
-Dengan itu, mari kita cuba kukuhkan keselamatan sedikit dengan menggunakan format piawai seperti JSON Web Token, juga dikenali sebagai JWT atau token "JOT".
+Dengan itu, mari cuba kuatkan keselamatan sedikit dengan menggunakan format piawai seperti JSON Web Token, juga dikenali sebagai JWT atau token "JOT".
 
-## JSON Web Token, JWT
+## JSON Web Tokens, JWT
 
-Jadi, kita cuba tingkatkan dari menghantar kelayakan yang sangat mudah. Apakah peningkatan segera yang kita dapat apabila mengguna pakai JWT?
+Jadi, kita cuba memperbaiki perkara daripada menghantar kelayakan yang sangat mudah. Apakah peningkatan segera yang kita dapat dengan mengamalkan JWT?
 
-- **Peningkatan keselamatan**. Dalam pengesahan asas, anda hantar nama pengguna dan kata laluan sebagai token base64 (atau kunci API) berulang-ulang yang meningkatkan risiko. Dengan JWT, anda hantar nama pengguna dan kata laluan dan dapat token sebagai balasan serta ia juga terikat masa bermaksud ia akan tamat tempoh. JWT membolehkan anda menggunakan kawalan akses terperinci menggunakan peranan, skop dan kebenaran.
-- **Tidak bergantung keadaan dan boleh skala**. JWT adalah berdiri sendiri, ia membawa semua maklumat pengguna dan menghapuskan keperluan penyimpanan sesi pelayan. Token juga boleh disahkan secara tempatan.
-- **Interoperabiliti dan persekutuan**. JWT adalah teras Open ID Connect dan digunakan dengan pembekal identiti terkenal seperti Entra ID, Google Identity dan Auth0. Ia juga membolehkan log masuk tunggal dan banyak lagi menjadikannya setaraf perusahaan.
-- **Modulariti dan fleksibiliti**. JWT juga boleh digunakan dengan API Gateways seperti Azure API Management, NGINX dan lain. Ia juga menyokong senario pengesahan pengguna dan komunikasi pelayan-ke-perkhidmatan termasuk penyamar dan pendelegasian.
-- **Prestasi dan caching**. JWT boleh disimpan cache setelah disahkod yang mengurangkan keperluan untuk mengurai. Ini membantu terutamanya dengan aplikasi trafik tinggi kerana meningkatkan kadar capaian dan mengurangkan beban pada infrastruktur pilihan anda.
-- **Ciri-ciri lanjutan**. Ia juga menyokong introspeksi (memeriksa kesahan pada pelayan) dan pembatalan (menjadikan token tidak sah).
+- **Peningkatan keselamatan**. Dalam auth asas, anda hantar nama pengguna dan kata laluan sebagai token base64 yang berulang-ulang (atau anda hantar kunci API) yang meningkatkan risiko. Dengan JWT, anda hantar nama pengguna dan kata laluan dan dapat token sebagai balasan dan ia juga terikat masa bermakna ia akan tamat tempoh. JWT membolehkan anda menggunakan kawalan akses terperinci menggunakan peranan, skop dan kebenaran.
+- **Tanpa status dan boleh skala**. JWT adalah sendiri terkandung, ia membawa semua maklumat pengguna dan menghapuskan keperluan untuk simpanan sesi pelayan. Token juga boleh disahkan secara tempatan.
+- **Interoperabiliti dan federasi**. JWT adalah teras Open ID Connect dan digunakan dengan penyedia identiti yang dikenali seperti Entra ID, Google Identity dan Auth0. Ia juga membolehkan menggunakan log masuk tunggal dan banyak lagi menjadikannya setaraf perusahaan.
+- **Modulariti dan fleksibiliti**. JWT juga boleh digunakan dengan API Gateways seperti Azure API Management, NGINX dan lain-lain. Ia juga menyokong senario pengesahan penggunaan dan komunikasi pelayan-ke-perkhidmatan termasuk penyamaran dan pendelegasian.
+- **Prestasi dan caching**. JWT boleh di-cache selepas penyahkodan yang mengurangkan keperluan untuk penguraian. Ini membantu terutamanya dengan aplikasi trafik tinggi kerana ia meningkatkan throughput dan mengurangkan beban pada infrastruktur pilihan anda.
+- **Ciri-ciri lanjutan**. Ia juga menyokong introspeksi (semak kesahihan di pelayan) dan pembatalan (membuat token tidak sah).
 
-Dengan semua manfaat ini, mari lihat bagaimana kita boleh tingkatkan pelaksanaan kita ke tahap seterusnya.
+Dengan semua manfaat ini, mari lihat bagaimana kita boleh bawa pelaksanaan kita ke tahap seterusnya.
 
-## Menukar pengesahan asas kepada JWT
+## Menukar auth asas menjadi JWT
 
 Jadi, perubahan yang perlu kita buat pada tahap tinggi adalah untuk:
 
 - **Belajar membina token JWT** dan sediakan ia untuk dihantar dari klien ke pelayan.
-- **Sahkan token JWT**, dan jika sah, benarkan klien mendapat sumber kita.
+- **Sahkan token JWT**, dan jika sah, benarkan klien akses sumber kita.
 - **Simpan token dengan selamat**. Bagaimana kita simpan token ini.
-- **Lindungi laluan**. Kita perlu lindungi laluan, dalam kes kita, perlu lindungi laluan dan ciri MCP tertentu.
-- **Tambah token penyegaran**. Pastikan kita cipta token yang jangka hayat singkat tapi token penyegaran yang jangka hayat panjang yang boleh digunakan untuk mendapatkan token baru jika token tamat tempoh. Juga pastikan ada titik akhir penyegaran dan strategi pusing ganti.
+- **Lindungi laluan**. Kita perlu lindungi laluan, dalam kes kita, kita perlu lindungi laluan dan ciri MCP tertentu.
+- **Tambah token segar**. Pastikan kita cipta token yang hayatnya pendek tetapi token segar yang hayatnya panjang yang boleh digunakan untuk dapatkan token baru jika tamat tempoh. Juga pastikan ada titik akhir segar dan strategi pusingan.
 
-### -1- Bina token JWT
+### -1- Membina token JWT
 
-Pertama, token JWT ada bahagian berikut:
+Pertama sekali, token JWT ada bahagian berikut:
 
 - **header**, algoritma yang digunakan dan jenis token.
-- **payload**, tuntutan, seperti sub (pengguna atau entiti yang token wakili. Dalam senario pengesahan ini biasanya ID pengguna), exp (masa tamat tempoh), role (peranan)
-- **signature**, ditandatangani dengan rahsia atau kunci persendirian.
+- **payload**, tuntutan, seperti sub (pengguna atau entiti yang token wakili. Dalam senario auth ini biasanya id pengguna), exp (masa tamat tempoh) role (peranan)
+- **tandatangan**, ditandatangani dengan rahsia atau kunci peribadi.
 
-Untuk ini, kita perlu bina header, payload dan token yang telah dienkod.
+Untuk ini, kita perlu membina header, payload dan token yang dikodkan.
 
 **Python**
 
@@ -528,7 +531,7 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 import datetime
 
-# Kunci rahsia yang digunakan untuk menandatangani JWT
+# Kunci rahsia digunakan untuk menandatangani JWT
 secret_key = 'your-secret-key'
 
 header = {
@@ -545,18 +548,18 @@ payload = {
     "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Tamat tempoh
 }
 
-# menyandikannya
+# mengekodnya
 encoded_jwt = jwt.encode(payload, secret_key, algorithm="HS256", headers=header)
 ```
 
 Dalam kod di atas kita telah:
 
-- Tetapkan header menggunakan HS256 sebagai algoritma dan jenis kepada JWT.
-- Bina payload yang mengandungi subjek atau ID pengguna, nama pengguna, peranan, bila ia dikeluarkan dan bila ia akan tamat tempoh dengan itu melaksanakan aspek terikat masa yang kita sebut tadi.
+- Mendefinisikan header menggunakan HS256 sebagai algoritma dan jenis sebagai JWT.
+- Membina payload yang mengandungi subjek atau id pengguna, nama pengguna, peranan, bila ia dikeluarkan dan bila ia diatur untuk tamat tempoh dengan itu melaksanakan aspek terikat masa yang kita sebut tadi.
 
 **TypeScript**
 
-Di sini kita akan perlukan beberapa kebergantungan yang akan membantu kita bina token JWT.
+Di sini kita memerlukan beberapa kebergantungan yang akan membantu kita membina token JWT.
 
 Kebergantungan
 
@@ -566,29 +569,29 @@ npm install jsonwebtoken
 npm install --save-dev @types/jsonwebtoken
 ```
 
-Kini setelah kita ada itu, mari cipta header, payload dan melalui itu cipta token yang dienkod.
+Sekarang kita ada itu, mari cipta header, payload dan melalui itu cipta token yang dikodkan.
 
 ```typescript
 import jwt from 'jsonwebtoken';
 
-const secretKey = 'your-secret-key'; // Gunakan pembolehubah env dalam pengeluaran
+const secretKey = 'your-secret-key'; // Gunakan pembolehubah persekitaran dalam pengeluaran
 
-// Tetapkan payload
+// Takrifkan muatan
 const payload = {
   sub: '1234567890',
   name: 'User usersson',
   admin: true,
   iat: Math.floor(Date.now() / 1000), // Dikeluarkan pada
-  exp: Math.floor(Date.now() / 1000) + 60 * 60 // Tamat dalam 1 jam
+  exp: Math.floor(Date.now() / 1000) + 60 * 60 // Luput dalam 1 jam
 };
 
-// Tetapkan header (pilihan, jsonwebtoken menetapkan lalai)
+// Takrifkan pengepala (pilihan, jsonwebtoken menetapkan lalai)
 const header = {
   alg: 'HS256',
   typ: 'JWT'
 };
 
-// Buat token
+// Cipta token
 const token = jwt.sign(payload, secretKey, {
   algorithm: 'HS256',
   header: header
@@ -597,17 +600,17 @@ const token = jwt.sign(payload, secretKey, {
 console.log('JWT:', token);
 ```
 
-Token ini:
+Token ini adalah:
 
 Ditandatangani menggunakan HS256
-Sah selama 1 jam
+Sah untuk 1 jam
 Termasuk tuntutan seperti sub, name, admin, iat, dan exp.
 
 ### -2- Sahkan token
 
-Kita juga perlu sahkan token, ini sesuatu yang sepatutnya kita lakukan di pelayan untuk pastikan apa yang klien hantar kepada kita adalah benar-benar sah. Ada banyak semakan yang perlu dibuat dari mengesahkan strukturnya kepada kesahihannya. Anda juga digalakkan menambah semakan lain untuk lihat jika pengguna ada dalam sistem anda dan banyak lagi.
+Kita juga perlu mengesahkan token, ini sesuatu yang sepatutnya kita lakukan di pelayan untuk memastikan apa yang klien hantar kepada kita adalah benar-benar sah. Terdapat banyak pemeriksaan yang perlu kita buat di sini dari sahkan strukturnya hingga kesahihannya. Anda juga digalakkan untuk tambah pemeriksaan lain untuk lihat jika pengguna berada dalam sistem anda dan banyak lagi.
 
-Untuk sahkan token, kita perlu nyahkod supaya kita boleh membacanya dan mula periksa kesahihannya:
+Untuk mengesahkan token, kita perlu menyahkodnya supaya kita boleh membacanya dan kemudian mula memeriksa kesahihannya:
 
 **Python**
 
@@ -627,11 +630,12 @@ except InvalidTokenError as e:
 
 ```
 
-Dalam kod ini, kita panggil `jwt.decode` menggunakan token, kunci rahsia dan algoritma terpilih sebagai input. Perhatikan kita gunakan konstruksi try-catch kerana jika pengesahan gagal ia akan menyebabkan ralat.
+
+Dalam kod ini, kami memanggil `jwt.decode` menggunakan token, kunci rahsia dan algoritma yang dipilih sebagai input. Perhatikan bagaimana kami menggunakan konstruksi try-catch kerana kegagalan pengesahan akan menyebabkan ralat dibangkitkan.
 
 **TypeScript**
 
-Di sini kita perlu panggil `jwt.verify` untuk mendapatkan versi nyahkod token yang boleh kita analisa lanjut. Jika panggilan ini gagal, ini bermakna strukturnya salah atau ia tidak lagi sah.
+Di sini kami perlu memanggil `jwt.verify` untuk mendapatkan versi token yang telah diterjemah yang boleh kami analisis lebih lanjut. Jika panggilan ini gagal, itu bermakna struktur token tidak betul atau ia tidak lagi sah.
 
 ```typescript
 
@@ -643,18 +647,19 @@ try {
 }
 ```
 
-CATATAN: seperti disebut sebelum ini, kita harus buat semakan tambahan untuk pastikan token ini menunjukkan pengguna dalam sistem kita dan pastikan pengguna mempunyai hak yang didakwa.
+CATATAN: seperti yang dinyatakan sebelum ini, kita perlu melakukan pemeriksaan tambahan untuk memastikan token ini menunjukkan pengguna dalam sistem kita dan memastikan pengguna mempunyai hak yang didakwa.
 
-Seterusnya, mari kita lihat kawalan akses berdasarkan peranan, juga dikenali sebagai RBAC.
-## Menambah kawalan akses berdasarkan peranan
+Seterusnya, mari lihat kawalan akses berasaskan peranan, juga dikenali sebagai RBAC.
 
-Idea adalah kita mahu menyatakan bahawa peranan yang berbeza mempunyai keizinan yang berbeza. Contohnya, kita menganggap seorang admin boleh melakukan segala-galanya dan seorang pengguna biasa boleh membaca/menulis dan seorang tetamu hanya boleh membaca. Oleh itu, berikut adalah beberapa tahap keizinan yang mungkin:
+## Menambah kawalan akses berasaskan peranan
 
-- Admin.Tulis 
+Idenya ialah kita ingin menyatakan bahawa peranan yang berbeza mempunyai kebenaran yang berbeza. Contohnya, kita anggap seorang admin boleh melakukan segala-galanya dan pengguna biasa boleh melakukan baca/tulis dan tetamu hanya boleh membaca. Oleh itu, berikut adalah beberapa tahap kebenaran yang mungkin:
+
+- Admin.Tulis
 - Pengguna.Baca
 - Tetamu.Baca
 
-Mari kita lihat bagaimana kita boleh melaksanakan kawalan sedemikian dengan middleware. Middleware boleh ditambah untuk setiap laluan serta untuk semua laluan.
+Mari kita lihat bagaimana kita boleh melaksanakan kawalan sedemikian dengan middleware. Middleware boleh ditambah bagi setiap laluan serta untuk semua laluan.
 
 **Python**
 
@@ -663,8 +668,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 import jwt
 
-# JANGAN letakkan rahsia dalam kod seperti ini, ini adalah untuk tujuan demonstrasi sahaja. Baca ia dari tempat yang selamat.
-SECRET_KEY = "your-secret-key" # letakkan ini dalam pembolehubah persekitaran
+# JANGAN letakkan rahsia dalam kod seperti ini, ini hanya untuk tujuan demonstrasi. Baca ia dari tempat yang selamat.
+SECRET_KEY = "your-secret-key" # letakkan ini dalam pembolehubah env
 REQUIRED_PERMISSION = "User.Read"
 
 class JWTPermissionMiddleware(BaseHTTPMiddleware):
@@ -691,7 +696,7 @@ class JWTPermissionMiddleware(BaseHTTPMiddleware):
 
 ```
 
-Terdapat beberapa cara untuk menambah middleware seperti di bawah:
+Terdapat beberapa cara berbeza untuk menambah middleware seperti di bawah:
 
 ```python
 
@@ -702,7 +707,7 @@ middleware = [
 
 app = Starlette(routes=routes, middleware=middleware)
 
-# Alt 2: tambah middleware selepas aplikasi starlette dibina
+# Alt 2: tambah middleware selepas aplikasi starlette telah dibina
 starlette_app.add_middleware(JWTPermissionMiddleware)
 
 # Alt 3: tambah middleware bagi setiap laluan
@@ -724,7 +729,7 @@ app.use((req, res, next) => {
     console.log('Request received:', req.method, req.url, req.headers);
     console.log('Headers:', req.headers["authorization"]);
 
-    // 1. Periksa jika header kebenaran telah dihantar
+    // 1. Semak jika header kebenaran telah dihantar
 
     if(!req.headers["authorization"]) {
         res.status(401).send('Unauthorized');
@@ -733,13 +738,13 @@ app.use((req, res, next) => {
     
     let token = req.headers["authorization"];
 
-    // 2. Periksa jika token adalah sah
+    // 2. Semak jika token adalah sah
     if(!isValid(token)) {
         res.status(403).send('Forbidden');
         return;
     }  
 
-    // 3. Periksa jika pengguna token wujud dalam sistem kami
+    // 3. Semak jika pengguna token wujud dalam sistem kami
     if(!isExistingUser(token)) {
         res.status(403).send('Forbidden');
         console.log("User does not exist");
@@ -760,11 +765,11 @@ app.use((req, res, next) => {
 
 ```
 
-Terdapat beberapa perkara yang boleh kita benarkan middleware kita dan yang middleware kita SEPATUTNYA lakukan, iaitu:
+Terdapat beberapa perkara yang boleh kita benarkan middleware kita lakukan dan middleware kita SEPATUTNYA lakukan, iaitu:
 
-1. Semak jika header kebenaran (authorization) wujud
-2. Semak jika token sah, kita panggil `isValid` yang merupakan kaedah yang kita tulis untuk menyemak integriti dan kesahihan token JWT.
-3. Sahkan pengguna wujud dalam sistem kita, kita harus memeriksa ini.
+1. Semak jika header pengesahan wujud
+2. Semak jika token sah, kita panggil `isValid` yang merupakan kaedah yang kami tulis untuk memeriksa integriti dan kesahan token JWT.
+3. Sahkan pengguna wujud dalam sistem kita, kita perlu memeriksa ini.
 
    ```typescript
     // pengguna dalam DB
@@ -776,14 +781,14 @@ Terdapat beberapa perkara yang boleh kita benarkan middleware kita dan yang midd
    function isExistingUser(token) {
      let decodedToken = verifyToken(token);
 
-     // TODO, semak jika pengguna wujud dalam DB
+     // TODO, periksa jika pengguna wujud dalam DB
      return users.includes(decodedToken?.name || "");
    }
    ```
 
-   Di atas, kita telah mencipta senarai `users` yang sangat mudah, yang sepatutnya berada dalam pangkalan data sudah tentu.
+   Di atas, kami telah mencipta senarai `users` yang sangat ringkas, yang sepatutnya berada dalam pangkalan data sudah tentu.
 
-4. Tambahan, kita juga harus menyemak token mempunyai keizinan yang betul.
+4. Selain itu, kami juga perlu memeriksa token mempunyai kebenaran yang betul.
 
    ```typescript
    if(!hasScopes(token, ["User.Read"])){
@@ -791,7 +796,7 @@ Terdapat beberapa perkara yang boleh kita benarkan middleware kita dan yang midd
    }
    ```
 
-   Dalam kod di atas dari middleware, kita menyemak bahawa token mengandungi keizinan User.Read, jika tidak kita menghantar ralat 403. Di bawah adalah kaedah pembantu `hasScopes`.
+   Dalam kod di atas daripada middleware, kami menyemak bahawa token mengandungi kebenaran User.Read, jika tidak kami menghantar ralat 403. Di bawah ialah kaedah pembantu `hasScopes`.
 
    ```typescript
    function hasScopes(scope: string, requiredScopes: string[]) {
@@ -840,15 +845,15 @@ app.use((err, req, res, next) => {
 
 ```
 
-Sekarang anda telah melihat bagaimana middleware boleh digunakan untuk pengesahan dan kebenaran, bagaimana pula dengan MCP, adakah ia mengubah cara kita melakukan pengesahan? Mari kita ketahui dalam bahagian seterusnya.
+Kini anda telah melihat bagaimana middleware boleh digunakan untuk pengesahan dan kebenaran, bagaimana pula dengan MCP, adakah ia mengubah cara kita melakukan pengesahan? Mari kita ketahui di bahagian seterusnya.
 
 ### -3- Tambah RBAC ke MCP
 
-Anda telah melihat setakat ini bagaimana anda boleh menambah RBAC melalui middleware, namun, untuk MCP tiada cara mudah untuk menambah RBAC per ciri MCP, jadi apa yang kita buat? Baiklah, kita hanya perlu menambah kod seperti ini yang memeriksa dalam kes ini sama ada klien mempunyai hak untuk memanggil alat tertentu:
+Anda telah melihat setakat ini bagaimana anda boleh menambah RBAC melalui middleware, namun, untuk MCP tiada cara mudah untuk menambah RBAC per ciri MCP, jadi apa yang kita lakukan? Baiklah, kita hanya perlu menambah kod seperti ini yang menyemak dalam kes ini sama ada klien mempunyai hak untuk memanggil alat tertentu:
 
-Anda mempunyai beberapa pilihan berbeza bagaimana untuk mencapai RBAC per ciri, berikut adalah beberapa:
+Anda mempunyai beberapa pilihan berbeza tentang bagaimana untuk melaksanakan RBAC per ciri, berikut adalah beberapa pilihan:
 
-- Tambah pemeriksaan untuk setiap alat, sumber, prompt di mana anda perlu menyemak tahap keizinan.
+- Tambah semakan untuk setiap alat, sumber, prompt di mana anda perlu semak tahap kebenaran.
 
    **python**
 
@@ -858,7 +863,7 @@ Anda mempunyai beberapa pilihan berbeza bagaimana untuk mencapai RBAC per ciri, 
       try:
           check_permissions(role="Admin.Write", request)
       catch:
-        pass # pelanggan gagal pengesahan, timbulkan ralat pengesahan
+        pass # pelanggan gagal kebenaran, tingkatkan ralat kebenaran
    ```
 
    **typescript**
@@ -875,7 +880,7 @@ Anda mempunyai beberapa pilihan berbeza bagaimana untuk mencapai RBAC per ciri, 
       
       try {
         checkPermissions("Admin.Write", request);
-        // todo, hantar id ke productService dan remote entry
+        // todo, hantar id ke productService dan entri jauh
       } catch(Exception e) {
         console.log("Authorization error, you're not allowed");  
       }
@@ -888,7 +893,7 @@ Anda mempunyai beberapa pilihan berbeza bagaimana untuk mencapai RBAC per ciri, 
    ```
 
 
-- Guna pendekatan pelayan yang maju dan pengendali permintaan supaya anda mengurangkan berapa banyak tempat anda perlu membuat semakan.
+- Gunakan pendekatan pelayan maju dan pengendali permintaan supaya anda meminimumkan berapa banyak tempat anda perlu membuat semakan.
 
    **Python**
 
@@ -924,7 +929,7 @@ Anda mempunyai beberapa pilihan berbeza bagaimana untuk mencapai RBAC per ciri, 
    ```typescript
    function hasPermission(userPermissions: string[], requiredPermissions: string[]): boolean {
        if (!Array.isArray(userPermissions) || !Array.isArray(requiredPermissions)) return false;
-       // Pulangkan benar jika pengguna mempunyai sekurang-kurangnya satu kebenaran yang diperlukan
+       // Kembalikan benar jika pengguna mempunyai sekurang-kurangnya satu kebenaran yang diperlukan
        
        return requiredPermissions.some(perm => userPermissions.includes(perm));
    }
@@ -942,15 +947,15 @@ Anda mempunyai beberapa pilihan berbeza bagaimana untuk mencapai RBAC per ciri, 
    });
    ```
 
-   Nota, anda perlu pastikan middleware anda menetapkan token yang telah diterjemah (decoded) kepada sifat pengguna permintaan supaya kod di atas menjadi mudah.
+   Nota, anda perlu memastikan middleware anda menetapkan token yang telah diterjemah kepada sifat user permintaan supaya kod di atas menjadi mudah.
 
 ### Ringkasan
 
-Kini kita telah berbincang tentang cara menambah sokongan untuk RBAC secara am dan untuk MCP khususnya, tiba masanya untuk mencuba melaksanakan keselamatan sendiri untuk memastikan anda memahami konsep yang dibentangkan.
+Kini kita telah bincangkan bagaimana untuk menambah sokongan untuk RBAC secara umum dan untuk MCP khususnya, sudah tiba masanya untuk mencuba melaksanakan keselamatan sendiri untuk memastikan anda memahami konsep yang telah dibentangkan.
 
 ## Tugasan 1: Bina pelayan mcp dan klien mcp menggunakan pengesahan asas
 
-Di sini anda akan mengambil apa yang telah anda pelajari dari segi menghantar kelayakan melalui header.
+Di sini anda akan menggunakan apa yang telah anda pelajari dalam menghantar kelayakan melalui header.
 
 ## Penyelesaian 1
 
@@ -958,7 +963,7 @@ Di sini anda akan mengambil apa yang telah anda pelajari dari segi menghantar ke
 
 ## Tugasan 2: Tingkatkan penyelesaian dari Tugasan 1 untuk menggunakan JWT
 
-Ambil penyelesaian pertama tetapi kali ini, mari kita memperbaikinya.
+Ambil penyelesaian pertama tetapi kali ini, mari kita perbaiki.
 
 Daripada menggunakan Basic Auth, mari kita gunakan JWT.
 
@@ -974,17 +979,17 @@ Tambah RBAC per alat yang kami terangkan dalam bahagian "Tambah RBAC ke MCP".
 
 Harapnya anda telah belajar banyak dalam bab ini, dari tiada keselamatan langsung, kepada keselamatan asas, kepada JWT dan bagaimana ia boleh ditambah ke MCP.
 
-Kami telah membina asas yang kukuh dengan JWT tersuai, tetapi apabila skala berkembang, kami bergerak ke arah model identiti berasaskan piawaian. Menggunakan IdP seperti Entra atau Keycloak membolehkan kami memindahkan penerbitan token, pengesahan, dan pengurusan siklus hayat kepada platform dipercayai — membolehkan kami fokus pada logik aplikasi dan pengalaman pengguna.
+Kami telah membina asas yang kukuh dengan JWT tersuai, tetapi apabila kami skala, kami bergerak menuju model identiti berasaskan piawaian. Menggunakan IdP seperti Entra atau Keycloak membolehkan kami menyerahkan pengeluaran token, pengesahan, dan pengurusan kitar hayat kepada platform yang dipercayai — membebaskan kami untuk memberi tumpuan kepada logik aplikasi dan pengalaman pengguna.
 
-Untuk itu, kami ada satu [bab lanjutan tentang Entra](../../05-AdvancedTopics/mcp-security-entra/README.md)
+Untuk itu, kami mempunyai bab yang lebih [maju tentang Entra](../../05-AdvancedTopics/mcp-security-entra/README.md)
 
 ## Apa Seterusnya
 
-- Seterusnya: [Menyediakan Hos MCP](../12-mcp-hosts/README.md)
+- Seterusnya: [Menyediakan Host MCP](../12-mcp-hosts/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat kritikal, terjemahan manusia profesional disyorkan. Kami tidak bertanggungjawab atas sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat penting, terjemahan oleh manusia profesional adalah disyorkan. Kami tidak bertanggungjawab terhadap sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

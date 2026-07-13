@@ -1,31 +1,31 @@
 # 数据库设计与架构
 
-## 🎯 本实验内容
+## 🎯 本实验涵盖内容
 
-本实验深入探讨了 Zava 零售系统的 PostgreSQL 数据库设计。您将学习如何实现一个全面的零售数据库架构，包括向量搜索功能、多租户数据建模以及用于数据隔离的行级安全（RLS）。
+本实验深入探讨了 Zava 零售系统的 PostgreSQL 数据库设计。您将学习如何实现一个具备向量搜索功能、多租户数据建模及行级安全（RLS）以实现数据隔离的综合零售数据库模式。
 
-## 概述
+## 概览
 
-数据库是我们 MCP 服务器的基础，用于存储多个商店的零售数据，同时保持严格的数据隔离。我们使用 PostgreSQL 和 pgvector 扩展来实现语义搜索功能，使客户能够通过自然语言查询找到产品。
+数据库是我们 MCP 服务器的基础，负责存储多个门店的零售数据，同时保持严格的数据隔离。我们使用带有 pgvector 扩展的 PostgreSQL 以实现语义搜索功能，让客户可通过自然语言查询查找产品。
 
-我们的架构遵循现代多租户模式，通过行级安全（Row Level Security）确保用户只能访问其授权商店的数据。这种方法在提供企业级安全性的同时，保持了最佳性能。
+我们的模式遵循现代多租户设计，采用行级安全确保用户只能访问其授权门店的数据。此方法提供企业级安全性，同时保持最佳性能。
 
 ## 学习目标
 
 完成本实验后，您将能够：
 
-- **设计** 可扩展的多租户零售数据库架构  
-- **实现** PostgreSQL 与 pgvector 的向量搜索功能  
-- **配置** 行级安全以实现数据隔离  
-- **生成** 用于测试的真实样本数据  
-- **优化** 零售工作负载的数据库性能  
-- **实施** 备份和恢复策略  
+- <strong>设计</strong> 可扩展的多租户零售数据库模式
+- <strong>实现</strong> 使用 pgvector 的 PostgreSQL 向量搜索
+- <strong>配置</strong> 行级安全实现数据隔离
+- <strong>生成</strong> 真实的测试样本数据
+- <strong>优化</strong> 零售工作负载的数据库性能
+- <strong>实施</strong> 备份与恢复策略
 
 ## 🗃️ 数据库架构
 
-### PostgreSQL 与 pgvector
+### 带 pgvector 的 PostgreSQL
 
-我们的数据库结合了 PostgreSQL 的企业级功能和 pgvector 扩展，实现了 AI 驱动的搜索功能：
+我们的数据库利用 PostgreSQL 的企业特性，结合 pgvector 扩展提供 AI 驱动的搜索：
 
 ```sql
 -- Enable required extensions
@@ -37,10 +37,9 @@ CREATE EXTENSION IF NOT EXISTS "vector";
 SELECT * FROM pg_extension WHERE extname = 'vector';
 ```
 
-
 ### 多租户架构
 
-数据库采用了 **共享数据库、共享架构** 的多租户模型，并结合行级安全：
+数据库采用 **共享数据库，共享模式** 的多租户模型，并结合行级安全：
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -56,10 +55,9 @@ SELECT * FROM pg_extension WHERE extname = 'vector';
 └─────────────────────────────────────────────────┘
 ```
 
+## 📊 核心模式设计
 
-## 📊 核心架构设计
-
-### Stores 表（租户主表）
+### 门店表（租户主表）
 
 ```sql
 -- Stores table: Master tenant registry
@@ -86,8 +84,7 @@ CREATE INDEX idx_stores_region ON retail.stores(region);
 CREATE INDEX idx_stores_active ON retail.stores(is_active) WHERE is_active = TRUE;
 ```
 
-
-### Customers 表
+### 客户表
 
 ```sql
 -- Customers table with RLS
@@ -123,8 +120,7 @@ CREATE INDEX idx_customers_loyalty_tier ON retail.customers(loyalty_tier);
 CREATE INDEX idx_customers_created_at ON retail.customers(created_at);
 ```
 
-
-### Products 表及分类
+### 含类别的产品表
 
 ```sql
 -- Product categories
@@ -206,7 +202,6 @@ CREATE INDEX idx_products_text_search ON retail.products USING GIN(
 );
 ```
 
-
 ### 销售交易
 
 ```sql
@@ -282,10 +277,9 @@ CREATE INDEX idx_sales_transaction_items_transaction_id ON retail.sales_transact
 CREATE INDEX idx_sales_transaction_items_product_id ON retail.sales_transaction_items(product_id);
 ```
 
-
 ## 🔍 向量搜索实现
 
-### 产品嵌入表
+### 产品向量表
 
 ```sql
 -- Product embeddings for semantic search
@@ -321,7 +315,6 @@ CREATE INDEX idx_product_embeddings_product_id ON retail.product_embeddings(prod
 CREATE INDEX idx_product_embeddings_store_id ON retail.product_embeddings(store_id);
 CREATE INDEX idx_product_embeddings_model ON retail.product_embeddings(embedding_model);
 ```
-
 
 ### 向量搜索函数
 
@@ -367,8 +360,7 @@ $$;
 GRANT EXECUTE ON FUNCTION retail.search_products_by_similarity TO mcp_user;
 ```
 
-
-## 🔐 行级安全设置
+## 🔐 行级安全配置
 
 ### 数据库角色与权限
 
@@ -422,7 +414,6 @@ $$;
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION retail.set_store_context TO mcp_user;
 ```
-
 
 ### 审计日志
 
@@ -518,7 +509,6 @@ CREATE TRIGGER sales_transactions_audit_trigger
     FOR EACH ROW EXECUTE FUNCTION retail.audit_trigger();
 ```
 
-
 ## 📊 样本数据生成
 
 ### 真实测试数据脚本
@@ -546,7 +536,7 @@ class SampleDataGenerator:
         self.connection_string = connection_string
         self.stores = ['seattle', 'redmond', 'bellevue', 'online']
         
-        # Product categories with realistic items
+        # 含有真实商品的产品类别
         self.product_data = {
             'Electronics': {
                 'brands': ['Apple', 'Samsung', 'Sony', 'LG', 'HP', 'Dell'],
@@ -649,7 +639,7 @@ class SampleDataGenerator:
     async def _generate_products(self, conn, count: int) -> List[Dict]:
         """Generate realistic product data."""
         
-        # Get category IDs
+        # 获取类别ID
         categories = await conn.fetch("SELECT category_id, category_name FROM retail.product_categories")
         category_map = {cat['category_name']: cat['category_id'] for cat in categories}
         
@@ -666,9 +656,9 @@ class SampleDataGenerator:
             brand = random.choice(self.product_data[category_name]['brands'])
             item_type = random.choice(self.product_data[category_name]['items'])
             
-            # Generate realistic pricing
+            # 生成真实的定价
             base_price = random.uniform(10, 1000)
-            cost = base_price * random.uniform(0.4, 0.7)  # 40-70% cost margin
+            cost = base_price * random.uniform(0.4, 0.7)  # 40-70%的成本利润率
             
             product_data = {
                 'store_id': store_id,
@@ -715,14 +705,14 @@ class SampleDataGenerator:
         """Generate realistic sales transaction data."""
         
         for _ in range(count):
-            # Select customer and matching store products
+            # 选择客户和匹配的商店产品
             customer = random.choice(customers)
             store_products = [p for p in products if p['store_id'] == customer['store_id']]
             
             if not store_products:
                 continue
             
-            # Generate transaction basics
+            # 生成交易基础信息
             transaction_date = fake.date_time_between(start_date='-1y', end_date='now')
             transaction_type = random.choices(
                 ['sale', 'return', 'exchange'],
@@ -734,7 +724,7 @@ class SampleDataGenerator:
                 weights=[45, 25, 20, 10]
             )[0]
             
-            # Generate transaction items (1-5 items per transaction)
+            # 生成交易商品（每笔交易1-5件商品）
             num_items = random.choices([1, 2, 3, 4, 5], weights=[40, 30, 20, 7, 3])[0]
             selected_products = random.sample(store_products, min(num_items, len(store_products)))
             
@@ -745,9 +735,9 @@ class SampleDataGenerator:
                 quantity = random.randint(1, 3)
                 unit_price = product['price']
                 
-                # Apply random discounts occasionally
+                # 偶尔应用随机折扣
                 discount_amount = 0
-                if random.random() < 0.2:  # 20% chance of discount
+                if random.random() < 0.2:  # 20%的折扣概率
                     discount_amount = unit_price * quantity * random.uniform(0.05, 0.25)
                 
                 total_price = (unit_price * quantity) - discount_amount
@@ -761,12 +751,12 @@ class SampleDataGenerator:
                     'discount_amount': discount_amount
                 })
             
-            # Calculate totals
+            # 计算总额
             discount_amount = sum(item['discount_amount'] for item in transaction_items)
-            tax_amount = subtotal * 0.08  # 8% tax rate
+            tax_amount = subtotal * 0.08  # 8%的税率
             total_amount = subtotal + tax_amount
             
-            # Insert transaction
+            # 插入交易记录
             transaction_id = await conn.fetchval("""
                 INSERT INTO retail.sales_transactions (
                     store_id, customer_id, transaction_date, transaction_type,
@@ -781,7 +771,7 @@ class SampleDataGenerator:
                 f"REG{random.randint(1, 5)}", f"RCP{fake.random_number(digits=8)}"
             )
             
-            # Insert transaction items
+            # 插入交易商品
             for item in transaction_items:
                 await conn.execute("""
                     INSERT INTO retail.sales_transaction_items (
@@ -793,7 +783,7 @@ class SampleDataGenerator:
                     item['unit_price'], item['total_price'], item['discount_amount']
                 )
 
-# Usage example
+# 使用示例
 if __name__ == "__main__":
     import os
     from config import Config
@@ -803,7 +793,6 @@ if __name__ == "__main__":
     
     asyncio.run(generator.generate_all_data())
 ```
-
 
 ## 🚀 性能优化
 
@@ -838,7 +827,6 @@ log_connections = on
 log_disconnections = on
 log_line_prefix = '%t [%p-%l] %q%u@%d '
 ```
-
 
 ### 查询优化视图
 
@@ -888,8 +876,7 @@ WHERE schemaname = 'retail'
 ORDER BY idx_tup_read DESC;
 ```
 
-
-### 自动化维护
+### 自动维护
 
 ```sql
 -- Create function for automated maintenance
@@ -933,7 +920,6 @@ $$;
 -- Example cron entry: 0 2 * * 0 psql -d retail_db -c "SELECT retail.perform_maintenance();"
 ```
 
-
 ## 💾 备份与恢复
 
 ### 备份策略
@@ -942,11 +928,11 @@ $$;
 #!/bin/bash
 # scripts/backup_database.sh
 
-# Comprehensive backup script for production environments
+# 生产环境的综合备份脚本
 
 set -e
 
-# Configuration
+# 配置
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 DB_NAME="${POSTGRES_DB:-retail_db}"
@@ -954,17 +940,17 @@ DB_USER="${POSTGRES_USER:-postgres}"
 BACKUP_DIR="/backups/postgresql"
 RETENTION_DAYS=30
 
-# Create backup directory
+# 创建备份目录
 mkdir -p "$BACKUP_DIR"
 
-# Generate backup filename with timestamp
+# 生成带时间戳的备份文件名
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/retail_backup_$TIMESTAMP.sql"
 COMPRESSED_BACKUP="$BACKUP_FILE.gz"
 
 echo "Starting database backup: $TIMESTAMP"
 
-# Create comprehensive backup
+# 创建综合备份
 pg_dump \
     --host="$DB_HOST" \
     --port="$DB_PORT" \
@@ -977,17 +963,17 @@ pg_dump \
     --format=custom \
     --file="$BACKUP_FILE"
 
-# Compress backup
+# 压缩备份
 gzip "$BACKUP_FILE"
 
-# Verify backup integrity
+# 验证备份完整性
 echo "Verifying backup integrity..."
 pg_restore --list "$COMPRESSED_BACKUP" > /dev/null
 
-# Clean up old backups
+# 清理旧备份
 find "$BACKUP_DIR" -name "retail_backup_*.sql.gz" -mtime +$RETENTION_DAYS -delete
 
-# Calculate backup size
+# 计算备份大小
 BACKUP_SIZE=$(du -h "$COMPRESSED_BACKUP" | cut -f1)
 
 echo "Backup completed successfully:"
@@ -995,7 +981,7 @@ echo "  File: $COMPRESSED_BACKUP"
 echo "  Size: $BACKUP_SIZE"
 echo "  Timestamp: $TIMESTAMP"
 
-# Optional: Upload to cloud storage
+# 可选：上传到云存储
 if [ -n "$AZURE_STORAGE_ACCOUNT" ] && [ -n "$AZURE_STORAGE_KEY" ]; then
     echo "Uploading backup to Azure Storage..."
     az storage blob upload \
@@ -1007,14 +993,13 @@ if [ -n "$AZURE_STORAGE_ACCOUNT" ] && [ -n "$AZURE_STORAGE_KEY" ]; then
 fi
 ```
 
-
-### 恢复流程
+### 恢复程序
 
 ```bash
 #!/bin/bash
 # scripts/restore_database.sh
 
-# Database restoration script
+# 数据库恢复脚本
 
 set -e
 
@@ -1027,7 +1012,7 @@ fi
 BACKUP_FILE="$1"
 TARGET_DB="${2:-retail_db_restored}"
 
-# Configuration
+# 配置
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 DB_USER="${POSTGRES_USER:-postgres}"
@@ -1036,13 +1021,13 @@ echo "Starting database restoration..."
 echo "  Source: $BACKUP_FILE"
 echo "  Target: $TARGET_DB"
 
-# Verify backup file exists
+# 验证备份文件是否存在
 if [ ! -f "$BACKUP_FILE" ]; then
     echo "Error: Backup file not found: $BACKUP_FILE"
     exit 1
 fi
 
-# Create target database
+# 创建目标数据库
 createdb \
     --host="$DB_HOST" \
     --port="$DB_PORT" \
@@ -1050,9 +1035,9 @@ createdb \
     --owner="$DB_USER" \
     "$TARGET_DB"
 
-# Restore from backup
+# 从备份恢复
 if [[ "$BACKUP_FILE" == *.gz ]]; then
-    # Compressed backup
+    # 压缩备份
     gunzip -c "$BACKUP_FILE" | pg_restore \
         --host="$DB_HOST" \
         --port="$DB_PORT" \
@@ -1062,7 +1047,7 @@ if [[ "$BACKUP_FILE" == *.gz ]]; then
         --clean \
         --if-exists
 else
-    # Uncompressed backup
+    # 未压缩备份
     pg_restore \
         --host="$DB_HOST" \
         --port="$DB_PORT" \
@@ -1077,7 +1062,7 @@ fi
 echo "Database restoration completed successfully!"
 echo "Restored database: $TARGET_DB"
 
-# Verify restoration
+# 验证恢复情况
 echo "Verifying restoration..."
 TABLES_COUNT=$(psql \
     --host="$DB_HOST" \
@@ -1091,50 +1076,51 @@ TABLES_COUNT=$(psql \
 echo "Verified $TABLES_COUNT tables in retail schema"
 ```
 
+## 🎯 重点总结
 
-## 🎯 关键收获
+完成本实验后，您应具备：
 
-完成本实验后，您将掌握：
+✅ <strong>多租户数据库设计</strong>：实现行级安全实现安全数据隔离  
+✅ <strong>向量搜索能力</strong>：配置 pgvector 实现语义产品搜索  
+✅ <strong>全面模式设计</strong>：创建可投入生产的零售数据库模式  
+✅ <strong>样本数据生成</strong>：构建真实测试数据用于开发和测试  
+✅ <strong>性能优化</strong>：配置索引及查询优化  
+✅ <strong>备份与恢复</strong>：建立稳健的数据保护策略  
 
-✅ **多租户数据库设计**：实现了行级安全以确保数据隔离  
-✅ **向量搜索功能**：配置了 pgvector 以实现语义产品搜索  
-✅ **全面的架构设计**：创建了生产级零售数据库架构  
-✅ **样本数据生成**：构建了用于开发和测试的真实测试数据  
-✅ **性能优化**：配置了索引并优化了查询性能  
-✅ **备份与恢复**：建立了可靠的数据保护策略  
+## 🚀 接下来
 
-## 🚀 下一步
+继续学习 **[实验 05：MCP 服务器实现](../05-MCP-Server/README.md)**，以：
 
-继续学习 **[实验 05：MCP 服务器实现](../05-MCP-Server/README.md)**，以便：
+- 构建连接此数据库的 FastMCP 服务器
+- 实现 MCP 协议的数据库查询工具
+- 使用向量嵌入添加语义搜索功能
+- 配置连接池与错误处理
 
-- 构建连接到该数据库的 FastMCP 服务器  
-- 实现 MCP 协议的数据库查询工具  
-- 添加基于嵌入的语义搜索功能  
-- 配置连接池和错误处理  
-
-## 📚 补充资源
+## 📚 额外资源
 
 ### PostgreSQL 与 pgvector
-- [PostgreSQL 文档](https://www.postgresql.org/docs/) - 完整的 PostgreSQL 参考文档  
-- [pgvector 扩展](https://github.com/pgvector/pgvector) - PostgreSQL 的向量相似性搜索  
-- [PostgreSQL 性能调优](https://wiki.postgresql.org/wiki/Performance_Optimization) - 优化最佳实践  
+- [PostgreSQL 文档](https://www.postgresql.org/docs/) - 完整的 PostgreSQL 参考资料
+- [pgvector 扩展](https://github.com/pgvector/pgvector) - PostgreSQL 向量相似度搜索
+- [PostgreSQL 性能调优](https://wiki.postgresql.org/wiki/Performance_Optimization) - 优化最佳实践
 
 ### 多租户架构
-- [行级安全](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS 文档  
-- [多租户数据架构](https://docs.microsoft.com/azure/architecture/patterns/multitenancy) - Azure 架构模式  
-- [数据库安全最佳实践](https://www.postgresql.org/docs/current/security.html) - PostgreSQL 安全指南  
+- [行级安全](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS 文档
+- [多租户数据架构](https://docs.microsoft.com/azure/architecture/patterns/multitenancy) - Azure 架构模式
+- [数据库安全最佳实践](https://www.postgresql.org/docs/current/security.html) - PostgreSQL 安全指南
 
 ### 向量数据库
-- [向量搜索基础](https://www.pinecone.io/learn/vector-database/) - 理解向量数据库  
-- [嵌入模型](https://platform.openai.com/docs/guides/embeddings) - OpenAI 嵌入文档  
-- [HNSW 算法](https://arxiv.org/abs/1603.09320) - 分层可导航小世界图  
+- [向量搜索基础](https://www.pinecone.io/learn/vector-database/) - 理解向量数据库
+- [嵌入模型](https://platform.openai.com/docs/guides/embeddings) - OpenAI 嵌入文档
+- [HNSW 算法](https://arxiv.org/abs/1603.09320) - 分层导航小世界图
 
 ---
 
-**上一节**: [实验 03：环境设置](../03-Setup/README.md)  
-**下一节**: [实验 05：MCP 服务器实现](../05-MCP-Server/README.md)  
+<strong>上一个</strong>: [实验 03：环境设置](../03-Setup/README.md)  
+<strong>下一个</strong>: [实验 05：MCP 服务器实现](../05-MCP-Server/README.md)
 
 ---
 
-**免责声明**：  
-本文档使用AI翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 进行翻译。尽管我们努力确保翻译的准确性，但请注意，自动翻译可能包含错误或不准确之处。原始语言的文档应被视为权威来源。对于关键信息，建议使用专业人工翻译。我们对因使用此翻译而产生的任何误解或误读不承担责任。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免责声明**：
+本文件由 AI 翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻译完成。尽管我们力求准确，但请注意，自动翻译可能包含错误或不准确之处。原始语言版文件应视为权威来源。对于重要信息，建议使用专业人工翻译。我们对因使用本翻译而产生的任何误解或误释不承担责任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

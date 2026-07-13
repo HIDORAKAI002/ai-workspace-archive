@@ -1,51 +1,51 @@
-# MCP põhikontseptsioonid: Model Context Protocoli valdamine tehisintellekti integratsiooniks
+# MCP põhimõisted: Model Context Protocol'i valdamine tehisintellekti integreerimiseks
 
-[![MCP põhikontseptsioonid](../../../translated_images/et/02.8203e26c6fb5a797.webp)](https://youtu.be/earDzWGtE84)
+[![MCP põhimõisted](../../../translated_images/et/02.8203e26c6fb5a797.webp)](https://youtu.be/earDzWGtE84)
 
-_(Klõpsake ülaloleval pildil, et vaadata selle õppetunni videot)_
+_(Selle õppetunni video vaatamiseks klõpsake ülaloleval pildil)_
 
-[Model Context Protocol (MCP)](https://github.com/modelcontextprotocol) on võimas, standardiseeritud raamistik, mis optimeerib suhtlust suurte keelemudelite (LLM-ide) ning väliste tööriistade, rakenduste ja andmeallikate vahel.  
-See juhend viib teid MCP põhikontseptsioonide juurde. Õpite selle kliendi-serveri arhitektuuri, olulisi komponente, suhtlusmehhanisme ja parimaid rakenduspraktikaid.
+[Model Context Protocol (MCP)](https://github.com/modelcontextprotocol) on võimas ja standardiseeritud raamistik, mis optimeerib suhtlust Suurte Keelemudelite (LLM-ide) ning väliste tööriistade, rakenduste ja andmeallikate vahel. 
+See juhend viib teid MCP põhimõistete juurde. Õpite selle kliendi-serveri arhitektuuri, oluliste komponentide, suhtlusmehhanismi ja parimate rakenduspraktikate kohta.
 
-- **Selge kasutaja nõusolek**: Kõik andmete ligipääsud ja toimingud nõuavad selgesõnalist kasutaja kinnitust enne täideviimist. Kasutajad peavad selgelt mõistma, milliseid andmeid ligipääseb ja millised toimingud viiakse läbi, koos üksikasjaliku kontrolliga õiguste ja volituste üle.  
+- **Kasutaja selge nõusolek**: Kõik andmetele ligipääs ja toimingud nõuavad enne täitmist kasutaja selget heakskiitu. Kasutajad peavad selgelt mõistma, milliseid andmeid päästakse ja milliseid toiminguid tehakse, võimaldades detailset kontrolli õiguste ja volituste üle.
 
-- **Andmekaitse ja privaatsus**: Kasutaja andmeid avaldatakse ainult selgesõnalise nõusoleku korral ning neid tuleb kogu interaktsiooni jooksul tugevalt kaitsta juurdepääsu kontrollidega. Rakendused peavad takistama volitamata andmeedastust ja hoidma rangeid privaatsuspiiranguid.  
+- **Andmete privaatsuskaitse**: Kasutaja andmeid eksponeeritakse ainult selge nõusoleku alusel ning neid tuleb kogu suhtluse elutsükli vältel kaitsta kindlate ligipääsukontrollidega. Rakendused peavad takistama volitamata andmeedastust ning hoida ranget privaatsuse piiri.
 
-- **Tööriistade täitmiskindlus**: Iga tööriista kutsung nõuab selgesõnalist kasutaja nõusolekut koos arusaamisega tööriista funktsioonidest, parameetritest ja võimalikust mõjust. Tugevad turvapiirid peavad takistama soovimatut, ebaturvalist või pahatahtlikku tööriistade täitmist.  
+- **Tööriistade täitmise turvalisus**: Iga tööriista käivitamine vajab selget kasutaja nõusolekut, kus kasutatakse tööriista funktsionaalsuse, parameetrite ja võimaliku mõju selgitamist. Kindlad turvapiirid peavad vältima ettenähtud kasutuseta, ohtlikke või pahatahtlikke käivitusi.
 
-- **Andmekandja turvalisus**: Kõik suhtluskanalid peaksid kasutama sobivaid krüpteerimis- ja autentimismeetodeid. Kaugühendused peavad rakendama turvalisi transpordiprotokolle ja nõuetekohast volituste haldust.  
+- **Transporditaseme turvalisus**: Kõik kommunikatsioonikanalid peaksid kasutama sobivaid krüpteerimis- ja autentimismehhanisme. Kaugühendused peaksid rakendama turvalisi transpordiprotokolle ja korrektset mandaadi haldust.
 
-#### Rakendusjuhised:
+#### Rakendamise juhised:
 
-- **Õiguste haldus**: Rakendage peene teravusega õigussüsteeme, mis võimaldavad kasutajatel kontrollida, millised serverid, tööriistad ja ressursid on ligipääsetavad  
-- **Autentimine ja autoriseerimine**: Kasutage turvalisi autentimismeetodeid (OAuth, API võtmed) koos nõuetekohase tokenite halduse ja aegumisega  
-- **Sisendi valideerimine**: Valideerige kõiki parameetreid ja andmesisendeid vastavalt määratletud skeemidele, et vältida sisestusrünnakuid  
-- **Auditilogimine**: Hoolitsege kõigi toimingute põhjalike logide säilitamise eest julgeoleku jälgimiseks ja nõuetele vastavuse tagamiseks  
+- **Õiguste haldamine**: Rakendage peenhäälestatud õiguste süsteeme, mis võimaldavad kasutajatel määrata, millised serverid, tööriistad ja ressursid on kättesaadavad
+- **Autentimine ja autoriseerimine**: Kasutage turvalisi autentimismeetodeid (OAuth, API-võtmed) koos korraliku tokeni halduse ja aegumisega  
+- **Sisendite valideerimine**: Kontrollige kõiki parameetreid ja sisendeid määratletud skeemide järgi, et vältida süstimisrünnakuid
+- **Auditilogid**: Hoiustage kõigi toimingute täielikke logisid turvaseire ja vastavuse tagamiseks
 
-## Ülevaade  
+## Ülevaade
 
-See õppetund uurib Model Context Protocoli (MCP) ökosüsteemi alusarhitektuuri ja komponente. Saate teada kliendi-serveri arhitektuuri, võtmekomponendid ja suhtlusmehhanismid, mis võimaldavad MCP interaktsioone.
+Selles õppetunnis uuritakse põhilist arhitektuuri ja komponente, mis moodustavad Model Context Protocoli (MCP) ökosüsteemi. Õpite tundma kliendi-serveri arhitektuuri, põhikomponente ja suhtlusmehhanisme, mis toetavad MCP-l põhinevaid interaktsioone.
 
-## Peamised õpieesmärgid  
+## Peamised õpieesmärgid
 
-Selle õppetunni lõpuks oskate:
+Selle õppetunni lõpuks:
 
-- Mõista MCP kliendi-serveri arhitektuuri.  
-- Tuvastada Hostide, klientide ja serverite rollid ja vastutused.  
-- Analüüsida põhifunktsioone, mis teevad MCP-st paindliku integratsioonikihi.  
-- Õppida, kuidas informatsioon voolab MCP ökosüsteemis.  
-- Saada praktilisi teadmisi näidiskoodide abil .NET, Java, Python ja JavaScript keeles.  
+- Mõistate MCP kliendi-serveri arhitektuuri.
+- Tuletate meelde Hostide, Kliendi ja Serverite rolle ja vastutusi.
+- Analüüsite põhifunktsioone, mis teevad MCP-st paindliku integreerimiskihi.
+- Õpite, kuidas info MCP ökosüsteemis voolab.
+- Saate praktilisi teadmisi näidiskoodide kaudu .NET, Java, Python ja JavaScripti keeltes.
 
-## MCP arhitektuur: sügavama pilguheit  
+## MCP arhitektuur: Sügavamat pilku
 
-MCP ökosüsteem on üles ehitatud kliendi-serveri mudelile. See modulaarne struktuur võimaldab tehisintellekti rakendustel tõhusalt suhelda tööriistade, andmebaaside, API-de ja kontekstuaalsete ressurssidega. Vaatame seda arhitektuuri selle põhilisteks komponentideks.
+MCP ökosüsteem baseerub kliendi-serveri mudelil. See moodulpõhine ülesehitus võimaldab AI rakendustel tõhusalt suhelda tööriistade, andmebaaside, API-de ja kontekstuaalsete ressurssidega. Vaatame selle arhitektuuri põhikomponentide kaupa.
 
-Põhimõtteliselt järgib MCP kliendi-serveri arhitektuuri, kus hostrakendusel võib olla ühendus mitme serveriga:
+MCP põhineb kliendi-serveri arhitektuuril, kus hostrakendus saab ühendada mitme serveriga:
 
 ```mermaid
 flowchart LR
     subgraph "Teie arvuti"
-        Host["Host koos MCP-ga (Visual Studio, VS Code, IDE-d, Tööriistad)"]
+        Host["Host MCP-ga (Visual Studio, VS Code, IDEd, Tööriistad)"]
         S1["MCP Server A"]
         S2["MCP Server B"]
         S3["MCP Server C"]
@@ -56,114 +56,118 @@ flowchart LR
         S2 <--> D2[("Kohalik\Andmeallikas B")]
     end
     subgraph "Internet"
-        S3 <-->|"Veeb API-d"| D3[("Kaug\Teenused")]
+        S3 <-->|"Veebiliidesed"| D3[("Kaugteenused")]
     end
 ```
-- **MCP hostsid**: programmid nagu VSCode, Claude Desktop, IDE-d või tehisintellekti tööriistad, mis soovivad MCP kaudu andmetele ligi pääseda  
-- **MCP kliendid**: protokolli kliendid, kes hoiavad ükshaaval ühendusi serveritega  
-- **MCP serverid**: kergekaalulised programmid, mis pakuvad standardiseeritud Model Context Protocoli kaudu konkreetseid võimeid  
-- **Kohalikud andmeallikad**: Teie arvuti failid, andmebaasid ja teenused, millele MCP serverid võivad turvaliselt ligi pääseda  
-- **Kaugteenused**: välised süsteemid, mis on interneti kaudu ligipääsetavad ning millele MCP serverid ühenduvad API-de kaudu.  
 
-MCP protokoll on arenev standard, mis kasutab kuupõhist versioonihaldust (kujund YYYY-MM-DD). Praegune protokolli versioon on **2025-11-25**. Võite näha uusimaid uuendusi [protokolli spetsifikatsioonis](https://modelcontextprotocol.io/specification/2025-11-25/).
+- **MCP Hosts (hostid)**: Programmid nagu VSCode, Claude Desktop, IDEd või AI tööriistad, mis soovivad andmetele MCP kaudu ligi pääseda
+- **MCP Clients (kliendid)**: Protokolli kliendid, kes hoiavad 1:1 ühendust serveritega
+- **MCP Servers (serverid)**: Kerged programmid, mis igal üksikul pakuvad konkreetseid funktsioone läbi Model Context Protocolli standardi
+- **Kohalikud andmeallikad**: Teie arvuti failid, andmebaasid ja teenused, millele MCP serverid saavad turvaliselt ligi pääseda
+- **Kaugteenused**: Välised süsteemid internetis, millele MCP serverid saavad API-de kaudu ühendust luua.
 
-### 1. Hostid  
+MCP protokoll on arenev standard, kasutades kuupõhist versioonihaldust (formaat YYYY-MM-DD). Praegune protokolli versioon on **2025-11-25**. Viimased muudatused leiate [protokolli spetsifikatsiooni](https://modelcontextprotocol.io/specification/2025-11-25/) lehelt.
 
-Model Context Protocolis (MCP) on **hostid** tehisintellekti rakendused, mis toimivad peamise liidesena, mille kaudu kasutajad protokolliga suhtlevad. Hostid koordineerivad ning haldavad mitme MCP serveriga ühendusi, luues iga serveriühenduse jaoks pühendatud MCP kliendi. Hostide näited on:
+> **Tulevikku vaadates:** järgmise spetsifikatsiooni versiooni **2026-07-28** versiooni vabaväljaanne teatati 2026. aasta mais ning see on planeeritud välja tulema 28. juulil 2026. See teeb protokolli transporditaseme olekuta (eemaldades `initialize` käepigistuse ja sessiooni ID-d), formaliseerib laienduste raamistiku ning deprekeerib Roots, Sampling ja Logging kasutades selle asemel uuemaid mustreid. Täieliku ülevaate leiate [MCP muudatustest: 2026-07-28 vabaväljaanne](./mcp-2026-07-28-release-candidate.md).
 
-- **tehisintellekti rakendused**: Claude Desktop, Visual Studio Code, Claude Code  
-- **arenduskeskkonnad**: IDE-d ja koodiredaktorid MCP integratsiooniga  
-- **kohandatud rakendused**: spetsiaalselt loodud tehisintellekti agendid ja tööriistad  
+### 1. Hostid
 
-**Hostid** on rakendused, mis koordineerivad tehisintellekti mudelitega suhtlemist. Nad:
+Model Context Protocol'is (MCP) on **hostid** AI rakendused, mis toimivad peamise liidesena, mille kaudu kasutajad protokolliga suhtlevad. Hostid koordineerivad ja haldavad ühendusi mitmete MCP serveritega luues iga serveri ühenduse jaoks pühendatud MCP kliendid. Näited hostidest:
 
-- **korraldavad tehisintellekti mudeleid**: täidavad või suhtlevad LLMidega, et genereerida vastuseid ja koordineerida AI töövooge  
-- **haldavad kliendiühendusi**: loovad ja hoiavad iga MCP serveriühenduse jaoks ühe MCP kliendi  
-- **juhtivad kasutajaliidest**: haldavad vestluse kulgu, kasutajate suhtlusi ja vastuste kuvamist  
-- **rakendavad turvalisust**: kontrollivad õigusi, turvapiiranguid ja autentimist  
-- **käsitlevad kasutaja nõusolekut**: haldavad kasutaja kinnitusi andmete jagamiseks ja tööriistade täitmiseks  
+- **AI rakendused**: Claude Desktop, Visual Studio Code, Claude Code
+- **Arendus keskkonnad**: IDEd ja koodiredaktorid MCP integratsiooniga  
+- **Kohandatud rakendused**: Eesmärgipõhised AI agendid ja tööriistad
 
-### 2. Kliendid  
+**Hostid** on rakendused, mis koordineerivad AI mudelitega suhtlemist. Nad:
 
-**Kliendid** on olulised komponendid, mis hoiavad pühendatud ühe-ühe vastu ühendusi hostide ja MCP serverite vahel. Iga MCP klient luuakse hosti poolt konkreetse MCP serveriga ühenduse loomiseks, tagades organiseeritud ja turvalised suhtluskanalid. Mitmed kliendid võimaldavad hostidel samaaegselt ühendada mitme serveriga.
+- **Orkestreerivad AI mudeleid**: Käivitavad või suhtlevad LLM-ide kaudu, et genereerida vastuseid ja korraldada AI töövooge
+- **Halda kliendiühendusi**: Loovad ja hoiavad ühe MCP kliendi igale MCP serveriga ühendusele
+- **Juhivad kasutajaliidest**: Käsitlevad vestluse voogu, kasutajate suhtlusi ja vastuste kuvamist  
+- **Tagavad turvalisuse**: Juhtivad lubasid, turvapiiranguid ja autentimist
+- **Haldavad kasutajaluba**: Juhtivad kasutaja nõusolekut andmete jagamiseks ja tööriistade täitmiseks
 
-**Kliendid** on ühenduskomponendid hostrakenduses. Nad:
 
-- **protokolli suhtlus**: saadavad serveritele JSON-RPC 2.0 päringuid koos promptide ja juhistega  
-- **võime läbirääkimised**: läbiräägivad serveritega toetatud funktsioone ja protokolli versioone algatamisel  
-- **tööriistade täitmine**: haldavad mudelitelt tööriistade täitmiskäske ja töötlevad vastuseid  
-- **reaalajas uuendused**: käsitlevad serveritelt tulevaid teavitusi ja reaalajas uuendusi  
-- **vastuste töötlemine**: töötlevad ja vormindavad serveri vastuseid kasutajale kuvamiseks  
+### 2. Kliendid
 
-### 3. Serverid  
+**Kliendid** on olulised komponendid, mis hoiavad pühendatud ühe-ühe vastu ühendusi Hostide ja MCP serverite vahel. Iga MCP klient luuakse Host'i poolt, et ühendada konkreetse MCP serveriga, tagades organiseeritud ja turvalise suhtluskanali. Mitme kliendi olemasolu võimaldab Hostidel samaaegselt ühenduda mitme serveriga.
 
-**Serverid** on programmid, mis pakuvad MCP klientidele konteksti, tööriistu ja funktsionaalsusi. Nad võivad töötada lokaalselt (hostiga samal masinal) või kaugelt (välisel platvormil) ning on vastutavad kliendipäringute töötlemise ja struktureeritud vastuste pakkumise eest. Serverid pakuvad kindlaid funktsioone standardiseeritud Model Context Protocoli kaudu.
+**Kliendid** on ühenduskomponendid hostrakenduse sees. Nad:
 
-**Serverid** on teenused, mis pakuvad konteksti ja võimeid. Nad:
+- **Protokolli suhtlus**: Saadavad JSON-RPC 2.0 päringuid serveritele koos promptide ja juhistega
+- **Võimekuse läbirääkimine**: Läbiräägivad toetatud funktsioone ja protokolli versioone serveritega initsialiseerimisel
+- **Tööriistade käivitamine**: Halda mudelitelt tööriistade käivitamisettekandeid ja töötle vastuseid
+- **Reaalajas uuendused**: Töötlevad serverite teavitusi ja reaalajas uuendusi
+- **Vastuste töötlemine**: Töötlevad ja vormindavad serveri vastuseid kasutajale kuvamiseks
 
-- **registreerivad omadusi**: registreerivad ja avaldavad klientidele kättesaadavad primitiivid (ressursid, promptid, tööriistad)  
-- **päringutöötlus**: võtavad vastu ja täidavad tööriistakutseid, ressurspäringuid ja promptipäringuid klientidelt  
-- **konteksti pakkumine**: annavad kontekstitud informatsiooni ja andmeid, et täiustada mudeli vastuseid  
-- **seisundi haldus**: hoiavad sessiooni olekut ja haldavad vajadusel olekupidavaid interaktsioone  
-- **reaalaja teavitused**: saadavad klientidele teavitusi võime muutuste ja uuenduste kohta  
+### 3. Serverid
 
-Serverid võivad olla arendatud kellegi poolt, kes soovib laiendada mudelite võimeid spetsialiseerunud funktsionaalsusega ning nad toetavad nii kohalikke kui ka kaugdeploy-imisstsenaariume.
+**Serverid** on programmid, mis annavad MCP klientidele konteksti, tööriistu ja funktsionaalsust. Nad võivad töötada lokaalselt (samal arvutil kui host) või kaugelt (välimistel platvormidel), ning vastutavad kliendi päringute töötlemise ja struktureeritud vastuste pakkumise eest. Serverid eksponeerivad konkreetset funktsionaalsust standardiseeritud Model Context Protocolli kaudu.
 
-### 4. Serveri primitiivid  
+**Serverid** on teenused, mis pakuvad konteksti ja võimekust. Nad:
 
-Model Context Protocoli (MCP) serverid pakuvad kolme põhikomponenti ehk **primitiivi**, mis määratlevad rikkalike interaktsioonide põhilised ehituskivid klientide, hostide ja keelemudelite vahel. Need primitiivid täpsustavad protokolli kaudu kättesaadavaid kontekstuaalse info tüüpe ja toiminguid.
+- **Funktsioonide registreerimine**: Registreerivad ja eksponeerivad klientidele saadaolevaid primitiive (ressursse, prompt’e, tööriistu)
+- **Päringute töötlemine**: Võtavad vastu ja käivitavad tööriistakutseid, ressursi- ja prompti päringuid klientidelt
+- **Konteksti pakkumine**: Annavad kontekstuaalset infot ja andmeid mudeli vastuste rikastamiseks
+- **Oleku haldus**: Hoiavad sessiooni olekut ja haldavad vajadusel oleku põhiseid interaktsioone
+- **Reaalajas teavitused**: Saadavad teavitusi võimekuse muutustest ja uuendustest ühendatud klientidele
 
-MCP serverid võivad avaldada mis tahes kombinatsiooni järgmistest kolmest põhikomponendist:
+Serverid võivad olla arendatud ükskõik kellegi poolt, et laiendada mudelite võimekust spetsialiseeritud toimingutega ning toetavad nii lokaalseid kui ka kaugjuurutuse stsenaariume.
 
-#### Ressursid  
+### 4. Serveri primitiivid
 
-**Ressursid** on andmeallikad, mis pakuvad tehisintellekti rakendustele kontekstuaalset teavet. Need esindavad staatilist või dünaamilist sisu, mis võib parandada mudeli mõistmist ja otsuste tegemist:
+Model Context Protocolli (MCP) serverid pakuvad kolme põhikomponenti ehk **primitiivi**, mis määratlevad rikkalike interaktsioonide ehituskivid klientide, hostide ja keelemudelite vahel. Need primitiivid määratlevad protokolli kaudu kättesaadava kontekstuaalse info ja toimingutüüpe.
 
-- **kontekstipõhine andmestik**: struktureeritud info ja kontekst AI mudeli tarbeks  
-- **teadmiste baasid**: dokumendikogud, artiklid, juhendid ja teadustööd  
-- **kohalikud andmeallikad**: failid, andmebaasid ja kohalik süsteemi info  
-- **välised andmed**: API vastused, veebiteenused ja kaugandmed  
-- **dünaamiline sisu**: reaalajas uuenevad andmed vastavalt välistingimustele  
+MCP serverid võivad pakkuda ükskõik millist järgmistest põhilistest primitiividest:
 
-Ressursid on identifitseeritud URI-dega ja toetavad avastamist meetodite `resources/list` kaudu ning lugemist `resources/read` abil: 
+#### Ressursid
+
+**Ressursid** on andmeallikad, mis annavad tehisintellekti rakendustele kontekstuaalset infot. Need esindavad staatilist või dünaamilist sisu, mis võib parandada mudeli mõistmist ja otsuste tegemist:
+
+- **Kontekstuaalsed andmed**: Struktureeritud info ja kontekst AI mudeli tarbeks
+- **Teadmusbaasid**: Dokumentide arhiivid, artiklid, juhendid ja teadustööd
+- **Kohalikud andmeallikad**: Failid, andmebaasid ja lokaalsüsteemi info  
+- **Välised andmed**: API vastused, veebiteenused ja kaugelt pärit süsteemi info
+- **Dünaamiline sisu**: Reaalajas andmed, mis muutuvad väliste tingimuste põhjal
+
+Ressursid identifitseeritakse URI-dega ning toetavad avastamist `resources/list` ja pärimist `resources/read` meetodite kaudu:
 
 ```text
 file://documents/project-spec.md
 database://production/users/schema
 api://weather/current
 ```
-  
-#### Promptid  
 
-**Promptid** on taaskasutatavad mallid, mis aitavad struktureerida keelemudelitega suhtlemist. Need pakuvad standardiseeritud suhtlusmustreid ja mallipõhiseid töövooge:
+#### Prompt’id
 
-- **mallipõhised interaktsioonid**: ette valmistatud sõnumid ja vestluse algatamised  
-- **töövoo mallid**: standardiseeritud järjestused tavapärasteks ülesanneteks ja suhtlusteks  
-- **näidismallid väheste näidetega**: mudelikäsitluseks mõeldud näidismallid  
-- **süsteemi promptid**: põhilised promptid, mis määravad mudeli käitumise ja konteksti  
-- **dünaamilised mallid**: parameetritega promptid, mis kohanduvad konkreetsete kontekstide jaoks  
+**Prompt’id** on korduvkasutatavad mallid, mis aitavad keelemudelitega suhtlust struktureerida. Need pakuvad standardiseeritud suhtlusmustreid ja mallipõhiseid töövooge:
 
-Promptide puhul on toetatud muutujate asendamine ning need on leitavad `prompts/list` kaudu ning kättesaadavad `prompts/get` abil:  
+- **Mallipõhised suhtlused**: Eelstruktureeritud sõnumid ja vestluse algatamised
+- **Töövoogude mallid**: Standardiseeritud jadad korduvateks ülesanneteks ja suhtlusteks
+- **Näidispõhised mallid**: Näidispõhised juhised mudelile
+- **Süsteemi prompt’id**: Põhiprompt’id, mis määratlevad mudeli käitumist ja konteksti
+- **Dünaamilised mallid**: Parameetriseeritud prompt’id, mis kohanevad konkreetse kontekstiga
+
+Prompt’id toetavad muutujate asendamist ning neid saab leida `prompts/list` ja pärida `prompts/get` kaudu:
 
 ```markdown
 Generate a {{task_type}} for {{product}} targeting {{audience}} with the following requirements: {{requirements}}
 ```
-  
-#### Tööriistad  
 
-**Tööriistad** on täidetavad funktsioonid, mida AI mudelid saavad kutsuda konkreetsete toimingute sooritamiseks. Need on MCP ökosüsteemi "tegusõnad", võimaldades mudelitel suhelda välissüsteemidega:
+#### Tööriistad
 
-- **täidetavad funktsioonid**: diskreetsed toimingud, mida mudelid saavad kindlate parameetritega kutsuda  
-- **välissüsteemide integratsioon**: API kõned, andmebaasi päringud, failitoimingud, arvutused  
-- **unikaalne identiteet**: igal tööriistal on eristav nimi, kirjeldus ja parameetrite skeem  
-- **struktureeritud sisend-väljund**: tööriistad aktsepteerivad valideeritud parameetreid ja tagastavad struktureeritud, tüübiga vastuseid  
-- **toimingu võimed**: võimaldavad mudelitel teha reaalseid toiminguid ja hankida reaalajas andmeid  
+**Tööriistad** on täidetavad funktsioonid, mida tehisintellekti mudelid saavad käivitada konkreetsete toimingute tegemiseks. Need esindavad MCP ökosüsteemi "teisendeid", võimaldades mudelitel suhelda välissüsteemidega:
 
-Tööriistu defineeritakse JSON skeemiga parameetrite valideerimiseks ning neid avastatakse `tools/list` kaudu ja käivitatakse `tools/call` meetodiga. Tööriistad võivad sisaldada ka **ikoonasid** täiendava metaandmetena parema kasutajaliidese esituseks.
+- **Täidetavad funktsioonid**: Diskreetsed operatsioonid, mida mudelid saavad konkreetsete parameetritega käivitada
+- **Välissüsteemide integratsioon**: API kõned, andmebaasi päringud, failioperatsioonid, arvutused
+- **Unikaalne identiteet**: Igal tööriistal on eriline nimi, kirjeldus ja parameetrite skeem
+- **Struktureeritud sisend/väljund**: Tööriistad aktsepteerivad valideeritud parameetreid ning tagastavad struktureeritud, tüübitud vastuseid
+- **Toimingute võimekus**: Võimaldab mudelitel teha reaalseid toiminguid ja pärida reaalajas andmeid
 
-**Tööriista annotatsioonid**: tööriistad toetavad käitumisannotatsioone (näiteks `readOnlyHint`, `destructiveHint`), mis kirjeldavad, kas tööriist on ainult lugemiseks või destruktiivne, aidates klientidel teha teadlikumaid otsuseid tööriistade täitmisel.
+Tööriistu määratletakse JSON Skeemiga parameetrite valideerimiseks ning neid leitakse `tools/list` ja käivitatakse `tools/call` meetodite kaudu. Tööriistad võivad sisaldada ka **ikoonidena** täiendavat metaandmestikku parema kasutajaliidese esituse jaoks.
 
-Näidis tööriista definitsioon:  
+**Tööriistade annotatsioonid**: Tööriistad toetavad käitumuslikke annotatsioone (nt `readOnlyHint`, `destructiveHint`), mis kirjeldavad, kas tööriist on ainult lugemiseks või destruktiivne, aidates klientidel teha teadlikke otsuseid tööriista käivitamiseks.
+
+Näide tööriista definitsioonist:
 
 ```typescript
 server.tool(
@@ -174,153 +178,159 @@ server.tool(
     max_results: z.number().default(10).describe("Maximum results to return")
   }, 
   async (params) => {
-    // Teosta otsing ja tagasta struktureeritud tulemused
+    // Tee otsing ja tagasta struktureeritud tulemused
     return await productService.search(params);
   }
 );
 ```
-  
-## Kliendi primitiivid  
 
-Model Context Protocolis (MCP) võivad **kliendid** avaldada primitiive, mis võimaldavad serveritel taotleda hostrakenduselt täiendavaid võimeid. Need kliendi-primitiivid võimaldavad rikkalikumaid, interaktiivsemaid serverirakendusi, mis pääsevad ligi AI mudelite võimetele ja kasutajate interaktsioonidele.
+## Kliendi primitiivid
 
-### Võttekäik (Sampling)  
+Model Context Protocolli (MCP) puhul võivad **kliendid** eksponeerida primitiive, mis võimaldavad serveritel taotleda hostrakenduselt täiendavaid funktsionaalsusi. Need kliendipoolsed primitiivid võimaldavad rikkalikke ja interaktiivseid serveri rakendusi, mis pääsevad ligi AI mudelite võimekusele ja kasutajate interaktsioonidele.
 
-**Võttekäik** võimaldab serveritel taotleda keelemudeli täitmiskompletatsioone kliendi AI rakenduselt. See primitiiv võimaldab serveritel kasutada LLM võimeid ilma oma mudelispetsiifikatsioonita:
+### Valimine
 
-- **mudelist sõltumatu ligipääs**: serverid saavad taotleda täitmisi ilma LLM SDK-sid kaasamata või mudeli ligipääsu haldamata  
-- **serveri algatatud AI**: võimaldab serveritel autonoomselt sisu genereerida, kasutades kliendi mudelit  
-- **rekursiivsed LLM interaktsioonid**: toetab keerukaid stsenaariume, kus serverid vajavad AI abi töötlemiseks  
-- **dünaamiline sisuloome**: lubab serveritel luua kontekstuaalseid vastuseid hosti mudeli abil  
-- **tööriistade kutsumise tugi**: serverid võivad lisada `tools` ja `toolChoice` parameetreid, et lubada kliendi mudelil tööriistu samal ajal kutsuda  
+> **Allakäigu teade:** `2026-07-28` vabaväljaanne märgib Valimise (Sampling) deprecated'iks AI mudelite otsepöördumisega läbi LLM pakkujate API-de. See jätkab tööd versioonis `2025-11-25` ja vähemalt aasta pärast allakäiku, kuid uued lahendused peaksid eelistama asendavat mustrit. Vaata [MCP muudatused: 2026-07-28 vabaväljaanne](./mcp-2026-07-28-release-candidate.md).
 
-Võttekäik algatatakse meetodi `sampling/complete` kaudu, kus serverid saadavad täitmistaotlusi klientidele.
+**Valimine** võimaldab serveritel paluda kliendi AI rakenduselt keelemudeli täitmisi. See primitiiv võimaldab serveritel kasutada LLM võimekust ilma, et peaksid enda mudeleid integreerima:
 
-### Juurdepääsupunktid (Roots)  
+- **Mudelist sõltumatu juurdepääs**: Serverid saavad pärida täitmisi ilma, et peaksid ise LLM SDK-sid kaasama või mudeli ligipääsu haldama
+- **Serveripoolne AI initsieerimine**: Võimaldab serveritel iseseisvalt genereerida sisu kasutades kliendi AI mudelit
+- **Rekursiivsed LLM suhtlused**: Toetab keerukaid stsenaariume, kus serveritel on vaja AI abi töötlemiseks
+- **Dünaamiline sisu genereerimine**: Võimaldab serveritel luua kontekstuaalseid vastuseid, kasutades hosti mudelit
+- **Tööriistakutse tugi**: Serverid saavad lisada `tools` ja `toolChoice` parameetreid, võimaldades kliendi mudelil tööriistu Valimise käigus kutsuda
 
-**Roots** pakuvad standardiseeritud viisi klientidel avada failisüsteemi piirid serveritele, aidates serveritel mõista, millistele kaustadele ja failidele neil on ligipääs:
+Valimine initsieeritakse `sampling/complete` meetodi kaudu, kus serverid saadavad täitmisettekanded klientidele.
 
-- **failisüsteemi piirid**: määratlevad, kus serverid võivad failisüsteemis tegutseda  
-- **ligipääsu kontroll**: aitavad serveritel mõista, millistel kaustadel ja failidel on ligipääsuõigus  
-- **dünaamilised uuendused**: kliendid võivad serveritele teada anda, kui juurdepääsupunktide nimekiri muutub  
-- **URI-põhine identifitseerimine**: juurdepääsupunktide identifikaatoriteks on `file://` URI-d, mis määravad ligipääsetavad kaustad ja failid  
+### Roots
 
-Juurdepääsupunkte leitakse meetodiga `roots/list`, kliendid saadavad `notifications/roots/list_changed` teavitusi, kui juured muutuvad.
+> **Allakäigu teade:** `2026-07-28` vabaväljaanne märgib Roots'i deprecated'iks tööriistaparameetrite, ressursi URI-de või serveri konfiguratsiooni kasuks. See jätkab tööd versioonis `2025-11-25` ja vähemalt aasta pärast allakäiku. Vaata [MCP muudatused: 2026-07-28 vabaväljaanne](./mcp-2026-07-28-release-candidate.md).
 
-### Info pärimine (Elicitation)  
+**Roots** pakuvad standardiseeritud viisi klientide poolt failisüsteemi piiride avaldamiseks serveritele, aidates serveritel mõista, millised kaustad ja failid on nende jaoks kättesaadavad:
 
-**Info pärimine** võimaldab serveritel taotleda kasutajatelt täiendavat informatsiooni või kinnitust kliendi liidese kaudu:
+- **Failisüsteemi piirid**: Määratlevad alad, kus serverid võivad failisüsteemis tegutseda
+- **Juurdepääsukontroll**: Aitavad serveritel mõista, millistele kaustadele ja failidele neil on ligipääsuload
+- **Dünaamilised uuendused**: Kliendid saavad teavitada servereid, kui Rootsade nimekiri muutub
+- **URI-põhine identifitseerimine**: Roots'id kasutavad `file://` URI-sid, et tuvastada ligipääsetavaid katalooge ja faile
 
-- **kasutaja sisendi taotlused**: serverid võivad küsida lisainfot tööriista täitmiseks vajalike parameetrite kohta  
-- **kinnitusküsimused**: küsivad kasutaja nõusolekut tundlike või olulisemate toimingute jaoks  
-- **interaktiivsed töövood**: lubavad serveritel luua samm-sammult kasutajaga interaktsioone  
-- **dünaamiline parameetrite kogumine**: koguvad puuduvad või valikulised parameetrid tööriista täitmisel  
+Roots avaldatakse `roots/list` meetodi kaudu, kliendid saadavad `notifications/roots/list_changed` teateid Roots muutumisel.
 
-Info päringu taotlused tehakse meetodi `elicitation/request` kaudu kasutaja sisendi kogumiseks kliendi liidese kaudu.
+### Info pärimine
 
-**URL-režiimi info pärimine**: serverid võivad taotleda ka URL-põhist kasutajaliidest, suunates kasutajad välistele veebilehtedele autentimiseks, kinnituseks või andmete sisestamiseks.
+**Info pärimine** võimaldab serveritel taotleda täiendavat infot või kasutajalt kinnitust läbi kliendi liidese:
 
-### Logimine  
+- **Kasutajasisendi päringud**: Serverid võivad küsida lisainfot, kui see on vajalik tööriista täitmiseks
+- **Kinnituskasted**: Paluvad kasutajalt nõusolekut tundlike või mõjusate toimingute jaoks
+- **Interaktiivsed töövood**: Võimaldavad serveritel luua samm-sammulisi kasutajate interaktsioone
+- **Dünaamiline parameetrite kogumine**: Koguvad puuduvaid või valikulisi parameetreid tööriista täitmise käigus
 
-**Logimine** võimaldab serveritel saata struktureeritud logisõnumeid klientidele silumiseks, monitooringuks ja operatiivse nähtavuse tagamiseks:
+Info pärimise taotlusi tehakse `elicitation/request` meetodi abil kasutajaliidese kaudu.
 
-- **silumise tugi**: lubab serveritel esitada üksikasjalikke täitmislogisid tõrkeotsinguks  
-- **operatiivne järelevalve**: saadab klientidele olekuuuendusi ja jõudlusmõõdikuid  
-- **veateadete edastamine**: pakub põhjalikku vea konteksti ja diagnostilist infot  
-- **audiitradade loomine**: loob põhjalikke logisid serveri toimingutest ja otsustest  
+**URL režiimi pärimine**: Serverid saavad samuti taotleda URL-põhist kasutajate suhtlust, suunates kasutajaid välistele veebilehtedele autentimiseks, kinnitamiseks või andmesisestuseks.
 
-Logisõnumid saadetakse klientidele, et tagada serveritoimingute läbipaistvus ja hõlbustada silumist.
+### Logimine
+> **Keeldumise teade:** `2026-07-28` väljalaske kandidaat märgib Logging'i kasutuse lõppemise eelistatult `stderr` kasutamise kasuks stdio transpordiks ja OpenTelemetry kasutamise struktureeritud jälgimise jaoks. See jätkab töötamist `2025-11-25` ja vähemalt aasta pärast mis tahes keeldumist. Vaata [Mis muutub MCP-s: 2026-07-28 väljalaske kandidaat](./mcp-2026-07-28-release-candidate.md).
 
-## Informatsiooni voog MCP-s  
+**Logging** võimaldab serveritel saata klientidele struktureeritud logisõnumeid silumise, monitoorimise ja operatiivse nähtavuse jaoks:
 
-Model Context Protocol (MCP) määratleb struktureeritud informatsioonivoogude vahetuse hostide, klientide, serverite ja mudelite vahel. Selle voo mõistmine aitab selgitada, kuidas kasutajate päringud töödeldakse ning kuidas välised tööriistad ja andmed integreeritakse mudeli vastustesse.
+- **Silumise tugi**: Võimaldab serveritel pakkuda detailseid täitmispäevikuid tõrkeotsinguks
+- **Operatiivne monitooring**: Saadab kliendile olekuuuendusi ja jõudlusmõõdikuid
+- **Veaaruandlus**: Esitab detailse veakonteksti ja diagnostika info
+- **Auditirajad**: Loob põhjalikke serveri toimingute ja otsuste logisid
+
+Logisõnumeid saadetakse klientidele, et pakkuda läbipaistvust serveri toimingutesse ja hõlbustada silumist.
+
+## Informatsiooni voog MCP-s
+
+Model Context Protocol (MCP) määratleb struktureeritud info voolu hostide, klientide, serverite ja mudelite vahel. Selle voo mõistmine aitab selgitada, kuidas kasutajapäringud töödeldakse ja kuidas välised tööriistad ning andmed mudeli vastustesse integreeritakse.
+
 - **Host alustab ühendust**  
-  Hostrakendus (näiteks IDE või vestluse liides) loob ühenduse MCP serveriga, tavaliselt STDIO, WebSocketi või muu toetatud transpordi kaudu.
+  Hostrakendus (nt IDE või vestluse liides) loob ühenduse MCP serveriga, tavaliselt STDIO, WebSocketi või muu toetatud transpordi kaudu.
 
 - **Võimekuse läbirääkimised**  
-  Klient (mis on integreeritud hosti) ja server vahetavad teavet oma toetatud funktsioonide, tööriistade, ressursside ja protokolli versioonide kohta. See tagab, et mõlemad pooled mõistavad, millised võimekused sessioonis kättesaadavad on.
+  Klient (hostis sisse ehitatud) ja server vahetavad infot toetatud funktsioonide, tööriistade, ressursside ja protokolliversioonide kohta. See tagab, et mõlemad pooled mõistavad, millised võimed sessioonis saadaval on.
 
-- **Kasutajapäring**  
+- **Kasutaja päring**  
   Kasutaja suhtleb hostiga (nt sisestab käsu või päringu). Host kogub selle sisendi ja edastab selle töötlemiseks kliendile.
 
-- **Ressursside või tööriistade kasutamine**  
-  - Klient võib taotleda serverilt täiendavat konteksti või ressursse (nt faile, andmebaasi kirjeid või teadmistebaasi artikleid), et mudeli arusaamist rikastada.  
-  - Kui mudel otsustab, et on vajalik tööriist (nt andmete hankimiseks, arvutuste tegemiseks või API kutsumiseks), saadab klient serverile tööriista kasutamise taotluse, täpsustades tööriista nime ja parameetrid.
+- **Ressursside või tööriistade kasutus**  
+  - Klient võib pärida täiendavat konteksti või ressursse serverilt (nt faile, andmebaasi kirjeid või teadmistebaasi artikleid), et rikastada mudeli arusaamist.
+  - Kui mudel otsustab, et on vaja tööriista (nt andmete pärimine, arvutuse tegemine või API kutsumine), saadab klient tööriista käivitamise päringu serverile, määrates tööriista nime ja parameetrid.
 
 - **Serveri täitmine**  
-  Server võtab vastu ressursi- või tööriistataotluse, täidab vajalikud toimingud (nt funktsiooni käivitamine, andmebaasipäringu tegemine või faili toomine) ja tagastab tulemused kliendile struktuuritud kujul.
+  Server võtab vastu ressursi- või tööriista päringu, täidab vajalikud toimingud (nt funktsiooni käitamine, andmebaasi päring või faili hankimine) ja tagastab tulemused kliendile struktureeritud vormis.
 
 - **Vastuse genereerimine**  
-  Klient integreerib serveri vastused (ressursiandmed, tööriistade väljundid jne) käimasolevasse mudeli suhtlusse. Mudel kasutab neid andmeid, et koostada põhjalik ja kontekstuaalselt asjakohane vastus.
+  Klient integreerib serveri vastused (ressursiandmed, tööriistade väljundid jms) käimasolevasse mudeli suhtlusse. Mudel kasutab seda infot, et genereerida terviklik ja kontekstil sobiv vastus.
 
 - **Tulemuse esitamine**  
-  Host saab kliendilt lõpliku väljundi ja esitab selle kasutajale, sageli sisaldades nii mudeli genereeritud teksti kui ka tööriistade täitmise või ressursside otsingu tulemusi.
+  Host saab kliendilt lõpptulemuse ja kuvab selle kasutajale, sageli sisaldades nii mudeli genereeritud teksti kui ka tööriistade täitmise või ressursside otsingu tulemusi.
 
-See töövoog võimaldab MCP-l toetada keerukaid, interaktiivseid ja kontekstiteadlikke tehisintellekti rakendusi, ühendades sujuvalt mudeleid väliste tööriistade ja andmeallikatega.
+See voog võimaldab MCP-l toetada arenenud, interaktiivseid ja kontekstitundlikke tehisintellekti rakendusi, ühendades mudeleid sujuvalt väliste tööriistade ja andmeallikatega.
 
 ## Protokolli arhitektuur ja kihid
 
-MCP koosneb kahest erinevast arhitektuurikihist, mis töötavad koos, et pakkuda täielikku suhtlusraamistikku:
+MCP koosneb kahest eraldi arhitektuurikihist, mis töötavad koos täisväärtusliku suhtlusraamistiku pakkumiseks:
 
 ### Andmekiht
 
-**Andmekiht** rakendab MCP põhiprotookolli, kasutades **JSON-RPC 2.0** standardit. See kiht määratleb sõnumite struktuuri, semantika ja suhtlusmustrid:
+**Andmekiht** rakendab põhiosas MCP protokolli, kasutades **JSON-RPC 2.0**-d. See kiht määratleb sõnumite struktuuri, semantika ja interaktsioonimustrid:
 
 #### Põhikomponendid:
 
-- **JSON-RPC 2.0 protokoll**: Kõik suhtlus toimub standardiseeritud JSON-RPC 2.0 sõnumiformaadis meetodite kutsumiseks, vastusteks ja teavitusteks  
-- **Elutsükli haldus**: Haldab ühenduse loomist, võimekuse läbirääkimisi ja sessiooni lõpetamist klientide ja serverite vahel  
-- **Serveri primitiivid**: Võimaldab serveritel pakkuda põhifunktsionaalsust tööriistade, ressursside ja promptide kaudu  
-- **Kliendi primitiivid**: Võimaldab serveritel taotleda LLM-i proovivõttu, kasutajasisendi küsimist ja logisõnumite saatmist  
-- **Reaalajas teavitused**: Toetab asünkroonseid teavitusi dünaamiliste värskenduste jaoks ilma päringuta
+- **JSON-RPC 2.0 protokoll**: Kõik suhtlus kasutab standardiseeritud JSON-RPC 2.0 sõnumivormi meetodite kutsumiseks, vastusteks ja teadeteks
+- **Elutsükli haldus**: Käitleb ühenduse algatamist, võimekuse läbirääkimisi ja sessiooni lõpetamist klientide ja serverite vahel
+- **Serveri primitiivid**: Võimaldab serveritel pakkuda põhifunktsionaalsust tööriistade, ressursside ja promptide kaudu
+- **Kliendi primitiivid**: Võimaldab serveritel nõuda LLM-i proovi võtmist, kasutaja sisendi esitamist ja logisõnumite saatmist
+- **Reaalajas teavitused**: Toetab asünkroonseid teavitusi dünaamiliste uuenduste jaoks ilma vahetult pärimata
 
-#### Põhijooned:
+#### Olulised omadused:
 
-- **Protokolli versiooni läbirääkimine**: Kasutab kuupõhist versioonihaldust (AAAA-KK-PP), et tagada ühilduvus  
-- **Võimekuse avastamine**: Kliendid ja serverid vahetavad algatamisel toetatud funktsioonide teavet  
-- **Oleku säilitamine**: Säilitab ühenduse oleku mitme suhtluse vältel konteksti järjepidevuseks
+- **Protokolli versiooni läbirääkimine**: Kasutab kuupõhist versioonihaldust (AAAA-KK-PP), tagamaks ühilduvust
+- **Võimekuse avastamine**: Kliendid ja serverid vahetavad toetatud funktsioonide infot algatamisel
+- **Oleku säilitavad sessioonid**: Säilitab ühenduse oleku mitme interaktsiooni vahel, et tagada konteksti järjepidevus
 
 ### Transpordikiht
 
-**Transpordikiht** haldab kommunikatsioonikanaleid, sõnumite vormindamist ja autentimist MCP osaliste vahel:
+**Transpordikiht** juhib kommunikatsioonikanaleid, sõnumite vormistamist ja autentimist MCP osapoolte vahel:
 
 #### Toetatud transpordimehhanismid:
 
 1. **STDIO transport**:  
-   - Kasutab standardset sisend-/väljundvoogu otseseks protsessi suhtluseks  
-   - Optimaalne samas seadmes töötavate protsesside jaoks, ilma võrgu koormuseta  
-   - Sageli kasutatav kohalikeks MCP serveri rakendusteks
+   - Kasutab standard sisend-/väljundvooge otseseks protsessidevaheliseks suhtluseks  
+   - Optimaalne kohalikuks tööks samal masinal ilma võrgu ülekandekuludeta  
+   - Levinud kohalikus MCP serveri rakendustes
 
-2. **Streamitav HTTP transport**:  
-   - Kasutab HTTP POST-i kliendilt serverile sõnumiteks  
-   - Valikuline Server-Sent Events (SSE) serverilt kliendile voogedastuseks  
-   - Võimaldab kaugsuhtlust serveritega võrgus  
-   - Toetab standardset HTTP autentimist (tokenid, API võtmed, kohandatud päised)  
-   - MCP soovitab turvaliseks tokeni autentimiseks OAuth kombineerimist
+2. **Voodav HTTP transport**:  
+   - Kasutab HTTP POST-i kliendilt serverile sõnumite saatmiseks  
+   - Valikuline serveri-poolsete sündmuste (Server-Sent Events, SSE) kasutamine serverilt kliendile voogedastamiseks  
+   - Võimaldab kaugserverite sidevõrguüleselt  
+   - Toetab standardset HTTP autentimist (bearer-tokens, API võtmed, kohandatud päised)  
+   - MCP soovitab turvaliseks tokenipõhiseks autentimiseks OAuthi
 
 #### Transpordi abstraktsioon:
 
-Transpordikiht eraldab suhtluse tehnilised detailid andmekihist, võimaldades sama JSON-RPC 2.0 sõnumiformaati kõigi transpordimeetodite puhul. See abstraktsioon võimaldab rakendustel sujuvalt vahetada lokaalse ja kaugsuhtluse vahel.
+Transpordikiht abstraktiseerib andmekihile suhtluse detaile, võimaldades sama JSON-RPC 2.0 sõnumivormingut kogu transpordimehhanismide ulatuses. See võimaldab rakendustel vahetada sujuvalt kohaliku ja kaugserveri vahel.
 
 ### Turvalisuse kaalutlused
 
-MCP rakendused peavad järgima mitmeid olulisi turvapõhimõtteid, et tagada turvalised, usaldusväärsed ja kaitstud suhtlused kõigi protokolli toimingute jooksul:
+MCP rakendused peavad järgima mitmeid olulisi turvapõhimõtteid, et tagada turvalised, usaldusväärsed ja kaitstud suhted kogu protokolli ulatuses:
 
-- **Kasutaja nõusolek ja kontroll**: Kasutajad peavad andma selgesõnalise nõusoleku enne, kui andmetele ligi päästakse või toiminguid tehakse. Neil peaks olema selge kontroll selle üle, millised andmed jagatakse ja millised toimingud on lubatud, mida toetavad kasutajasõbralikud liidesed tegevuste vaatamiseks ja kinnitamiseks.
+- **Kasutaja nõusolek ja kontroll**: Kasutajad peavad andma selgesõnalise nõusoleku enne andmete kasutamist või toimingute tegemist. Neil peab olema selge kontroll, milliseid andmeid jagatakse ja millised toimingud on lubatud, toetatuna intuitiivsete kasutajaliidestega tegevuste läbivaatamiseks ja kinnitamiseks.
 
-- **Andmete privaatsus**: Kasutaja andmeid tohib avalikustada ainult selgesõnalise nõusoleku alusel ning neid tuleb kaitsta sobivate ligipääsu kontrollidega. MCP rakendused peavad vältima volitamata andmeedastust ja tagama privaatsuse säilimise kogu suhtluse vältel.
+- **Andmete privaatsus**: Kasutajaandmeid tohib avalikustada ainult selgesõnalise nõusoleku alusel ning need peavad olema kaitstud sobivate juurdepääsu kontrollidega. MCP rakendused peavad vältima volitamata andmete edastamist ning tagama privaatsuse kõikides suhtlustes.
 
-- **Tööriistade ohutus**: Enne tööriista kasutamist on vaja selget kasutaja nõusolekut. Kasutajatele tuleb selgelt tutvustada iga tööriista funktsionaalsust ning kehtestada tugevad turvapiirangud, et vältida soovimatuid või ohtlikke tööriista juhtumisi.
+- **Tööriistade turvalisus**: Enne mis tahes tööriista kasutamist on vaja kasutaja selget nõusolekut. Kasutajad peaksid mõistma tööriista funktsionaalsust ning tugevaid turvapiire tuleb rakendada, et vältida soovimatut või ohtlikku tööriista täitmist.
 
-Nende turvapõhimõtete järgimisega tagab MCP kasutajate usalduse, privaatsuse ja ohutuse kõigi protokolli tegevuste ajal ning võimaldab võimsaid tehisintellekti integratsioone.
+Nende turvapõhimõtete järgimisega tagab MCP kasutajate usalduse, privaatsuse ja turvalisuse kogu protokolli kasutuse jooksul, võimaldades samal ajal võimsaid tehisintellekti integratsioone.
 
-## Koodinäited: põhikomponendid
+## Koodinäited: Põhikomponendid
 
-Järgnevalt on näited mitmes populaarses programmeerimiskeeles, mis illustreerivad oluline MCP serveri komponentide ja tööriistade rakendamist.
+Järgnevalt on toodud koodinäited mitmes populaarses programmeerimiskeeles, mis demonstreerivad kuidas rakendada MCP serveri põhikomponente ja tööriistu.
 
-### .NET näide: lihtsa MCP serveri loomine tööriistadega
+### .NET näide: Lihtsa MCP serveri loomine tööriistadega
 
-Siin on praktiline .NET koodinäide, mis demonstreerib lihtsa MCP serveri loomist kohandatud tööriistadega. See näide näitab, kuidas määratleda ja registreerida tööriistu, töödelda taotlusi ning ühendada server Model Context Protocoliga.
+Siin on praktiline .NET koodinäide, mis näitab lihtsa MCP serveri rakendamist kohandatud tööriistadega. Näide demonstreerib tööriistade defineerimist ja registreerimist, päringute käsitlemist ning serveri ühendamist Model Context Protocoliga.
 
 ```csharp
 using System;
@@ -381,7 +391,7 @@ public class WeatherData
 
 ### Java näide: MCP serveri komponendid
 
-See näide demonstreerib sama MCP serveri ja tööriistade registreerimist nagu ülaltoodud .NET näites, kuid Java keeles.
+See näide demonstreerib sama MCP serverit ja tööriistade registrit nagu ülal .NET näites, kuid on teostatud Javas.
 
 ```java
 import io.modelcontextprotocol.server.McpServer;
@@ -398,7 +408,7 @@ public class WeatherMcpServer {
             .version("1.0.0")
             .build();
             
-        // Registreeri ilma tööriist
+        // Registreeri ilmavahend
         server.registerTool(McpToolDefinition.builder("weatherTool")
             .description("Gets current weather for a location")
             .parameter("location", String.class)
@@ -422,14 +432,14 @@ public class WeatherMcpServer {
         try (StdioServerTransport transport = new StdioServerTransport()) {
             server.connect(transport);
             System.out.println("Weather MCP Server started");
-            // Hoia server töötamas kuni protsess lõpetatakse
+            // Hoia server töös kuni protsess lõpetatakse
             Thread.currentThread().join();
         }
     }
     
     private static WeatherData getWeatherData(String location) {
-        // Rakendus kutsuks ilma API-d
-        // Lihtsustatud näite eesmärgil
+        // Rakendus kutsuks ilmastiku API-d
+        // Lihtsustatud näite eesmärkidel
         return new WeatherData(72.5, "Sunny", location);
     }
 }
@@ -459,14 +469,14 @@ class WeatherData {
 }
 ```
 
-### Python näide: MCP serveri ehitamine
+### Python näide: MCP serveri loomine
 
-See näide kasutab fastmcp raamistiku, seega palun paigaldage see esmalt:
+See näide kasutab fastmcp-d, seega palun installige see esmalt:
 
 ```python
 pip install fastmcp
 ```
-Koodinäide:
+Koodi näide:
 
 ```python
 #!/usr/bin/env python3
@@ -505,14 +515,14 @@ class WeatherTools:
 # Registreeri klassi tööriistad
 weather_tools = WeatherTools()
 
-# Alusta serverit
+# Käivita server
 if __name__ == "__main__":
     asyncio.run(serve_stdio(mcp))
 ```
 
-### JavaScripti näide: MCP serveri loomine
+### JavaScript näide: MCP serveri loomine
 
-See näide demonstreerib MCP serveri loomist JavaScriptis ning kahe ilmaalase tööriista registreerimist.
+See näide näitab, kuidas luua MCP serveri JavaScriptis ja registreerida kaks ilmaga seotud tööriista.
 
 ```javascript
 // Kasutades ametlikku Model Context Protocol SDK-d
@@ -526,15 +536,15 @@ const server = new McpServer({
   version: "1.0.0"
 });
 
-// Määra ilmariist
+// Määra ilmastikutööriist
 server.tool(
   "weatherTool",
   {
     location: z.string().describe("The location to get weather for")
   },
   async ({ location }) => {
-    // Tavaliselt kutsuks see ilmainterfeisi API-d
-    // Lihtsustatud demonstratsiooniks
+    // See tavaliselt kutsub ilmaprognoosi API-d
+    // Lihtsustatud demonstreerimiseks
     const weatherData = await getWeatherData(location);
     
     return {
@@ -548,7 +558,7 @@ server.tool(
   }
 );
 
-// Määra prognoosiriist
+// Määra prognoositööriist
 server.tool(
   "forecastTool",
   {
@@ -556,8 +566,8 @@ server.tool(
     days: z.number().default(3).describe("Number of days for forecast")
   },
   async ({ location, days }) => {
-    // Tavaliselt kutsuks see ilmainterfeisi API-d
-    // Lihtsustatud demonstratsiooniks
+    // See tavaliselt kutsub ilmaprognoosi API-d
+    // Lihtsustatud demonstreerimiseks
     const forecast = await getForecastData(location, days);
     
     return {
@@ -573,7 +583,7 @@ server.tool(
 
 // Abifunktsioonid
 async function getWeatherData(location) {
-  // Simuleeri API-kõnet
+  // Simuleeri API kõnet
   return {
     temperature: 72.5,
     conditions: "Sunny",
@@ -582,7 +592,7 @@ async function getWeatherData(location) {
 }
 
 async function getForecastData(location, days) {
-  // Simuleeri API-kõnet
+  // Simuleeri API kõnet
   return Array.from({ length: days }, (_, i) => ({
     day: i + 1,
     temperature: 70 + Math.floor(Math.random() * 10),
@@ -590,114 +600,117 @@ async function getForecastData(location, days) {
   }));
 }
 
-// Ühenda server stdio transpordiga
+// Ühenda server stdio transpordi kaudu
 const transport = new StdioServerTransport();
 server.connect(transport).catch(console.error);
 
 console.log("Weather MCP Server started");
 ```
+  
+See JavaScripti näide demonstreerib MCP serveri loomist kasutades Model Context Protocol SDK-d. Näitab, kuidas registreerida kaks tööriista nimega `weatherTool` ja `forecastTool` ning teha need MCP klientidele kättesaadavaks `StdioServerTransport` kaudu.
 
-See JavaScripti näide näitab, kuidas luua MCP server kasutades Model Context Protocol SDK-d. Näidatakse kahe tööriista registreerimist nimega `weatherTool` ja `forecastTool` ning nende kättesaadavaks tegemist MCP klientidele `StdioServerTransporti` kaudu.
+## Turvalisus ja Autoriseerimine
 
-## Turvalisus ja autoriseerimine
+MCP sisaldab mitmeid sisseehitatud mõisteid ja mehhanisme turvalisuse ja autoriseerimise haldamiseks kogu protokolli ulatuses:
 
-MCP sisaldab mitmeid sisseehitatud kontseptsioone ja mehhanisme turvalisuse ja autoriseerimise haldamiseks kogu protokolli ulatuses:
-
-1. **Tööriistade õiguste kontroll**:  
-   Kliendid saavad määrata, milliseid tööriistu mudel võib sessiooni jooksul kasutada. See tagab, et vaid selgesõnaliselt lubatud tööriistad on kättesaadavad, vähendades tahtmatute või ohtlike toimingute riski. Õigusi saab dünaamiliselt määrata kasutaja eelistuste, organisatsiooni poliitikate või konteksti alusel.
+1. **Tööriista-lubade kontroll**:  
+  Kliendid saavad määrata, milliseid tööriistu mudel tohib sessiooni ajal kasutada. See tagab, et ligi pääseb ainult selgelt lubatud tööriistadele, vähendades soovimatute või ebaturvaliste toimingute riski. Lube saab dünaamiliselt seadistada vastavalt kasutaja eelistustele, organisatsiooni poliitikale või suhtluse kontekstile.
 
 2. **Autentimine**:  
-   Serverid võivad nõuda autentimist enne, kui lubatakse juurdepääs tööriistadele, ressurssidele või tundlikele toimingutele. See võib hõlmata API võtmeid, OAuth tokeneid või muid autentimismehhanisme. Õige autentimine tagab, et ainult usaldusväärsed kliendid ja kasutajad saavad serveri võimekusi kasutada.
+  Serverid võivad nõuda autentimist enne tööriistade, ressursside või tundlike toimingute kasutamist. See võib hõlmata API võtmeid, OAuth-tokeneid või muid autentimisskeeme. Nõuetekohane autentimine tagab, et ainult usaldusväärsed kliendid ja kasutajad pääsevad ligi serveri võimetele.
 
 3. **Valideerimine**:  
-   Kõikide tööriistade kutsumiste parameetreid kontrollitakse. Iga tööriist määratleb oma parameetrite eeldatavad tüübid, vormingud ja piirangud ning server valideerib sisenevad taotlused nende alusel. See takistab valesti vormistatud või pahatahtlikku sisendit jõudmast tööriistade rakendustesse ning aitab säilitada toimingute terviklikkust.
+  Kõikide tööriistakutsete parameetrite kehtivuse kontroll on kohustuslik. Iga tööriist määratleb eeldatavad tüübid, formaadid ja piirangud oma parameetritele ning server valideerib sisenevaid päringuid vastavalt. See takistab vigase või pahatahtliku sisendi jõudmist tööriistade rakendustesse ja aitab säilitada toimingute terviklikkust.
 
-4. **Kiiruse piiramine**:  
-   Kuritarvituste vältimiseks ja serveri ressursside õiglaseks kasutamiseks võivad MCP serverid rakendada tööriistakutsete ja ressursside ligipääsu kiiruspiiranguid. Piirangud võivad kehtida kasutaja, sessiooni või globaalsete tasandite järgi ning aitavad kaitsta teenusetõrje rünnakute ja liigse ressursikasutuse eest.
+4. **Kiirusepiirangud**:  
+  Serveri ressursside väärkasutuse vältimiseks ja õiglasema kasutamise tagamiseks võib MCP server rakendada tööriistakutsete ja ressurssidele ligipääsu kiirusepiiranguid. Piiranguid saab rakendada kasutaja, sessiooni või üldise tasemel, aidates kaitsta teenuse keelamise rünnakute ja liigse koormuse eest.
 
-Nende mehhanismide kombineerimisel pakub MCP turvalist alust keelemudelite integratsiooniks väliste tööriistade ja andmeallikatega, võimaldades kasutajatel ja arendajatel täpset ligipääsu ja kasutuse kontrolli.
+Nende mehhanismide kombineerimisel pakub MCP turvalist alust keelemudelite integreerimiseks väliste tööriistade ja andmeallikatega, jättes kasutajatele ja arendajatele detailse kontrolli ligipääsu ja kasutamise üle.
 
 ## Protokolli sõnumid ja suhtlusvoog
 
-MCP suhtlus kasutab struktureeritud **JSON-RPC 2.0** sõnumeid, et võimaldada selget ja usaldusväärset suhtlust hostide, klientide ja serverite vahel. Protokoll määratleb kindlad sõnumimustrid erinevat tüüpi toimingute jaoks:
+MCP suhtlemine kasutab struktureeritud **JSON-RPC 2.0** sõnumeid, et hõlbustada selget ja usaldusväärset interaktsiooni hostide, klientide ja serverite vahel. Protokoll määratleb täpsed sõnumimustrid erinevate toimingute jaoks:
 
-### Põhisõnumi tüübid:
+### Põhisõnumite tüübid:
 
-#### **Algatamist sõnumid**
-- **`initialize` päring**: Loob ühenduse ja läbiräägib protokolli versiooni ning võimekuse  
-- **`initialize` vastus**: Kinnitab toetatud omadused ja serveri info  
-- **`notifications/initialized`**: Teatab, et algatamine on lõpetatud ja sessioon valmis
+#### **Algatamise sõnumid**
+- **`initialize` päring**: Loob ühenduse ning läbiräägib protokolli versiooni ja võimekusi  
+- **`initialize` vastus**: Kinnitus toetatud funktsioonide ja serveri info kohta  
+- **`notifications/initialized`**: Märgib, et algatamine on lõppenud ja sessioon valmis
 
 #### **Avastamise sõnumid**
-- **`tools/list` päring**: Otsib saadaval olevaid tööriistu serverist  
-- **`resources/list` päring**: Loetleb saadaval olevaid ressursse (andmeallikaid)  
-- **`prompts/list` päring**: Toob kättesaadavad promptide mallid
+- **`tools/list` päring**: Avastab serverist saadaval olevad tööriistad  
+- **`resources/list` päring**: Loetleb saadaval olevad ressursid (andmeallikad)  
+- **`prompts/list` päring**: Hangib saadaval olevad prompt-mallid
 
-#### **Täideviimise sõnumid**  
-- **`tools/call` päring**: Käivitab konkreetse tööriista koos antud parameetritega  
-- **`resources/read` päring**: Toob konkreetse ressursi sisu  
-- **`prompts/get` päring**: Toob promptide malli koos valikuliste parameetritega
+#### **Täitmiskäsud**  
+- **`tools/call` päring**: Käivitab konkreetse tööriista koos parameetritega  
+- **`resources/read` päring**: Hangib sisu konkreetsest ressursist  
+- **`prompts/get` päring**: Toob prompt-malli koos valikuliste parameetritega
 
 #### **Kliendipoolsed sõnumid**
-- **`sampling/complete` päring**: Server taotleb LLM completet kliendilt  
-- **`elicitation/request`**: Server küsib kasutajasisendit kliendi liidese kaudu  
-- **Logimise sõnumid**: Server saadab struktureeritud logisõnumeid kliendile
+- **`sampling/complete` päring**: Server küsib klientidelt LLM täiendust  
+- **`elicitation/request`**: Server küsib kasutajalt sisendit kliendi liidese kaudu  
+- **Logging sõnumid**: Server saadab struktureeritud logisõnumeid kliendile
 
-#### **Teavituste sõnumid**
-- **`notifications/tools/list_changed`**: Server teatab tööriistade muutustest  
-- **`notifications/resources/list_changed`**: Server teatab ressursside muutustest  
-- **`notifications/prompts/list_changed`**: Server teatab promptide muutustest
+#### **Teavitussõnumid**
+- **`notifications/tools/list_changed`**: Server teavitab tööriistade muutustest  
+- **`notifications/resources/list_changed`**: Server teavitab ressursside muutustest  
+- **`notifications/prompts/list_changed`**: Server teavitab prompt-mallide muutustest
 
 ### Sõnumite struktuur:
 
 Kõik MCP sõnumid järgivad JSON-RPC 2.0 formaati:
-- **Päringusõnumid**: Sisaldavad `id`, `method` ja valikulisi `params`  
-- **Vastusõnumid**: Sisaldavad `id` ja kas `result` või `error`  
-- **Teavituste sõnumid**: Sisaldavad `method` ja valikulisi `params` (puudub `id`, vastust ei oodata)
 
-See struktureeritud suhtlus tagab usaldusväärse, jälgitava ja laiendatava kommunikatsiooni, toetades keerukaid stsenaariume nagu reaalajas värskendused, tööriistade ühendamine ja tõhus vigade käitlemine.
+- **Päringu sõnumid**: sisaldavad `id`, `method` ja valikulisi `params`  
+- **Vastus-sõnumid**: sisaldavad `id` ja kas `result` või `error`  
+- **Teavitussõnumid**: sisaldavad `method` ja valikulisi `params` (ilma `id` või vastuseta)
 
-### Ülesanded (eksperimentaalne)
+See struktureeritud side tagab usaldusväärse, jälgitava ja laiendatava suhtluse, mis toetab arenenud stsenaariume nagu reaalajas uuendused, tööriistade ahelad ja robustne veakäsitlus.
 
-**Ülesanded** on eksperimentaalne funktsioon, mis pakub püsivaid täitmise mähiseid, võimaldades viivitusega tulemuste pärimist ja staatuse jälgimist MCP taotlustele:
+### Ülesanded (Eksperimentaalne)
 
-- **Pikalt kestvad toimingud**: Jälgib ressursimahukaid arvutusi, töövoo automatiseerimist ja partiitöötlust  
-- **Viivitatud tulemused**: Pärib ülesande olekut ja tagastab tulemused töö lõppemisel  
-- **Oleku jälgimine**: Jälgib ülesande edenemist määratletud elutsükli olekutes  
+> **Pilguheit tulevikku:** `2026-07-28` väljalaske kandidaat viib Ülesanded (Tasks) eksperimentaalsest põhispetsifikatsioonist pühendatud ülesandete laienduseks koos ümber kujundatud elutsükliga (`tasks/get`, `tasks/update`, `tasks/cancel`; `tasks/list` eemaldatud). Kui te kasutate alljärgnevat eksperimentaalset API-d, planeerige migratsioon. Vaata [Mis muutub MCP-s: 2026-07-28 väljalaske kandidaat](./mcp-2026-07-28-release-candidate.md).
+
+**Ülesanded** on eksperimentaalne funktsioon, mis pakub püsivaid täitmise kapsleid, mis võimaldavad MCP päringute tulemuste hilisemat pärimist ja staatuse jälgimist:
+
+- **Pikalt kestvad toimingud**: Jälgib kulukaid arvutusi, töövoogude automatiseerimist ja hulgiprotsesse  
+- **Hilinenud tulemused**: Väärtuse päring ja tulemuste saamine peale toimingute lõpetamist  
+- **Staatusse jälgimine**: Ülesande edenemise jälgimine määratletud elutsükli olekutega  
 - **Mitmeastmelised toimingud**: Toetab keerukaid töövooge, mis hõlmavad mitut suhtlust
 
-Ülesanded pakuvad standardsetele MCP päringutele mähiseid, võimaldades asünkroonseid täitmismustreid operatsioonide jaoks, mis ei saa kohe valmis.
+Ülesanded kapseldavad standardseid MCP päringuid, võimaldades asünkroonseid täitmismustreid toimingutele, mida ei saa kohe lõpetada.
 
 ## Peamised järeldused
 
 - **Arhitektuur**: MCP kasutab kliendi-serveri arhitektuuri, kus hostid haldavad mitut kliendiühendust serveritega  
-- **Osalised**: Ökosüsteemis on hostid (tehisintellekti rakendused), kliendid (protokolli ühendajad) ja serverid (võimekuse pakkujad)  
-- **Transpordimehhanismid**: Suhtlus toetab STDIO-d (kohalik) ja streamitavat HTTP-d koos valikulise SSE-ga (kaugjuhtimine)  
-- **Põhifunktsioonid**: Serverid pakuvad tööriistu (käideldavaid funktsioone), ressursse (andmeallikaid) ja promptide malle  
-- **Kliendi funktsioonid**: Serverid saavad taotleda proovivõttu (LLM täitmised koos tööriistakutsed), sisendi pärimist (kasutajalt kaasa arvatud URL-režiim), juurusid (failisüsteemi piire) ja logimist klientidelt  
-- **Eksperimentaalsed funktsioonid**: Ülesanded pakuvad pikaajaliste toimingute jaoks püsivaid täitmise mähiseid  
-- **Protokolli alus**: Põhineb JSON-RPC 2.0-l kuupõhise versioonihaldusega (praegune: 2025-11-25)  
-- **Reaalajas võimekused**: Toetab teavitusi dünaamiliste värskenduste ja reaalajas sünkroonimise jaoks  
-- **Turvalisus esikohal**: Selgesõnaline kasutajanõusolek, andmete privaatsuse kaitse ja turvaline transpordikiht on põhivajadused
+- **Osapooled**: Ökosüsteemi kuuluvad hostid (tehisintellekti rakendused), kliendid (protokolli ühendajad) ja serverid (võimekuste pakkujad)  
+- **Transpordimehhanismid**: Suhtlus toetab STDIO (kohalik) ja voogedastusega HTTP-d koos valikulise SSE-ga (kaugjuhtimine)  
+- **Põhielemendid**: Serverid pakuvad tööriistu (käivitatavad funktsioonid), ressursse (andmeallikad) ja prompt'e (mallid)  
+- **Kliendi elemendid**: Serverid saavad nõuda proovivõttu (LLM täiendused tööriistakutsete toega), info pärimist (kasutaja sisend, sh URL-režiim), juurdepääsupiire (failisüsteemi piirid) ja logimist klientidelt  
+- **Eksperimentaalsed funktsioonid**: Ülesanded pakuvad püsivaid täitmise kapsleid pikalt kestvatele toimingutele  
+- **Protokolli alus**: JSON-RPC 2.0 koos kuupõhise versioonihaldusega (praegune: 2025-11-25)  
+- **Reaalajas võimekused**: Toetab teavitusi dünaamiliste uuenduste ja sünkroneerimise jaoks  
+- **Turvalisus esikohal**: Selge kasutajanõusolek, andmete privaatsuskaitse ja turvaline transport on põhitingimused
 
 ## Harjutus
 
-Mõtle välja lihtne MCP tööriist, mis oleks kasulik sinu valdkonnas. Määra:  
-1. Tööriista nimi  
-2. Vastuvõetavad parameetrid  
-3. Mis väljundi tööriist annab  
+Disainige lihtne MCP tööriist, mis oleks kasulik teie valdkonnas. Määratlege:
+1. Kuidas tööriist kannaks nime
+2. Milliseid parameetreid see võtaks
+3. Millist väljundit see tagastaks
 4. Kuidas mudel võiks seda tööriista kasutada kasutajaprobleemide lahendamiseks
-
 
 ---
 
 ## Mis järgmiseks
 
 Järgmine: [2. peatükk: Turvalisus](../02-Security/README.md)
+Oled uudishimulik, mis tuleb pärast `2025-11-25`? Loe [Mis muutub MCP-s: 2026-07-28 versiooni kandidaadi väljaanne](./mcp-2026-07-28-release-candidate.md).
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Vastutusest loobumine**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame täpsust, pidage palun meeles, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Originaaldokument tema emakeeles tuleks pidada autoriteetseks allikaks. Kriitilise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgendamise eest.
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,21 +1,23 @@
-# Análisis Profundo de las Funcionalidades del Protocolo MCP
+# Profundización en las Características del Protocolo MCP
 
-Esta guía explora funcionalidades avanzadas del protocolo MCP que van más allá del manejo básico de herramientas y recursos. Comprender estas características te ayuda a construir servidores MCP más robustos, amigables para el usuario y listos para producción.
+Esta guía explora funcionalidades avanzadas del protocolo MCP que van más allá del manejo básico de herramientas y recursos. Entender estas características te ayuda a construir servidores MCP más robustos, fáciles de usar y listos para producción.
 
-## Funcionalidades Cubiertas
+> **Mirando al futuro:** el candidato de lanzamiento `2026-07-28` desaprueba el primitivo de Registro (favoreciendo `stderr` para stdio y OpenTelemetry para observabilidad estructurada), elimina el modelo `initialize`/de sesión referido en Eventos del Ciclo de Vida del Servidor más abajo, y mueve la funcionalidad experimental de Tareas a una extensión dedicada de Tareas con un nuevo ciclo de vida `tasks/get`/`tasks/update`/`tasks/cancel`. Véase [Qué Cambia en MCP: El Candidato de Lanzamiento 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-1. **Notificaciones de Progreso** - Reportar el progreso para operaciones de larga duración  
-2. **Cancelación de Solicitudes** - Permitir a los clientes cancelar solicitudes en curso  
-3. **Plantillas de Recursos** - URIs dinámicas para recursos con parámetros  
-4. **Eventos del Ciclo de Vida del Servidor** - Inicialización y apagado apropiados  
-5. **Control de Registro de Eventos** - Configuración del registro en el lado del servidor  
-6. **Patrones de Manejo de Errores** - Respuestas consistentes ante errores
+## Características Cubiertas
+
+1. **Notificaciones de Progreso** - Informar progreso para operaciones de larga duración
+2. **Cancelación de Solicitudes** - Permitir que los clientes cancelen solicitudes en curso
+3. **Plantillas de Recursos** - URIs dinámicos de recursos con parámetros
+4. **Eventos del Ciclo de Vida del Servidor** - Inicialización y apagado adecuados
+5. **Control de Registro** - Configuración del registro en el servidor
+6. **Patrones de Manejo de Errores** - Respuestas de error consistentes
 
 ---
 
 ## 1. Notificaciones de Progreso
 
-Para operaciones que toman tiempo (procesamiento de datos, descargas de archivos, llamadas API), las notificaciones de progreso mantienen informados a los usuarios.
+Para operaciones que toman tiempo (procesamiento de datos, descargas de archivos, llamadas a APIs), las notificaciones de progreso mantienen a los usuarios informados.
 
 ### Cómo Funciona
 
@@ -30,6 +32,7 @@ sequenceDiagram
     Server-->>Client: notificación: progreso 90%
     Server->>Client: resultado (completo)
 ```
+
 ### Implementación en Python
 
 ```python
@@ -43,7 +46,7 @@ app = Server("progress-server")
 async def process_large_file(file_path: str, ctx) -> str:
     """Process a large file with progress updates."""
     
-    # Obtener tamaño del archivo para cálculo del progreso
+    # Obtener tamaño del archivo para el cálculo del progreso
     file_size = os.path.getsize(file_path)
     processed = 0
     
@@ -142,7 +145,7 @@ result = await session.call_tool("process_large_file", {"file_path": "/data/larg
 
 ## 2. Cancelación de Solicitudes
 
-Permitir a los clientes cancelar solicitudes que ya no se necesitan o que están tardando demasiado.
+Permite a los clientes cancelar solicitudes que ya no son necesarias o que están tomando demasiado tiempo.
 
 ### Implementación en Python
 
@@ -161,7 +164,7 @@ async def long_running_search(query: str, ctx) -> str:
     
     try:
         for page in range(100):  # Buscar a través de muchas páginas
-            # Verificar si se solicitó la cancelación
+            # Verificar si se solicitó cancelación
             if ctx.is_cancelled:
                 raise CancelledError("Search cancelled by user")
             
@@ -169,7 +172,7 @@ async def long_running_search(query: str, ctx) -> str:
             page_results = await search_page(query, page)
             results.extend(page_results)
             
-            # Pequeña demora permite verificar cancelaciones
+            # Pequeña demora permite comprobaciones de cancelación
             await asyncio.sleep(0.1)
             
     except CancelledError:
@@ -198,7 +201,7 @@ async def download_file(url: str, ctx) -> str:
             return f"Downloaded {downloaded} bytes"
 ```
 
-### Implementación del Contexto de Cancelación
+### Implementando Contexto de Cancelación
 
 ```python
 class CancellableContext:
@@ -234,7 +237,7 @@ class CancellableContext:
             pass  # Tiempo de espera normal, continuar
 ```
 
-### Cancelación del Lado del Cliente
+### Cancelación en el Lado Cliente
 
 ```python
 import asyncio
@@ -250,7 +253,7 @@ async def search_with_timeout(session, query, timeout=30):
         result = await asyncio.wait_for(task, timeout=timeout)
         return result
     except asyncio.TimeoutError:
-        # Cancelación de solicitud
+        # Solicitud de cancelación
         await session.send_notification({
             "method": "notifications/cancelled",
             "params": {"requestId": task.request_id, "reason": "Timeout"}
@@ -262,7 +265,7 @@ async def search_with_timeout(session, query, timeout=30):
 
 ## 3. Plantillas de Recursos
 
-Las plantillas de recursos permiten la construcción dinámica de URIs con parámetros, útil para APIs y bases de datos.
+Las plantillas de recursos permiten la construcción dinámica de URIs con parámetros, útiles para APIs y bases de datos.
 
 ### Definiendo Plantillas
 
@@ -342,7 +345,7 @@ server.setRequestHandler(ListResourceTemplatesSchema, async () => {
 server.setRequestHandler(ReadResourceSchema, async (request) => {
   const uri = request.params.uri;
   
-  // Analizar URI de problema de GitHub
+  // Analizar el URI del problema de GitHub
   const githubMatch = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/);
   if (githubMatch) {
     const [_, owner, repo, issueNumber] = githubMatch;
@@ -364,7 +367,7 @@ server.setRequestHandler(ReadResourceSchema, async (request) => {
 
 ## 4. Eventos del Ciclo de Vida del Servidor
 
-El manejo adecuado de la inicialización y el apagado asegura una gestión limpia de los recursos.
+El manejo adecuado de la inicialización y el apagado asegura una gestión limpia de recursos.
 
 ### Gestión del Ciclo de Vida en Python
 
@@ -446,7 +449,7 @@ class ManagedServer {
   
   private setupHandlers() {
     this.server.setRequestHandler(CallToolSchema, async (request) => {
-      // Usar this.dbConnection de forma segura
+      // Usar this.dbConnection de manera segura
       // ...
     });
   }
@@ -465,9 +468,9 @@ await server.start();
 
 ---
 
-## 5. Control de Registro de Eventos
+## 5. Control de Registro
 
-MCP soporta niveles de registro en el lado del servidor que los clientes pueden controlar.
+MCP soporta niveles de registro del lado servidor que los clientes pueden controlar.
 
 ### Implementando Niveles de Registro
 
@@ -478,7 +481,7 @@ import logging
 
 app = Server("logging-server")
 
-# Mapear niveles MCP a niveles de registro de Python
+# Mapear niveles MCP a niveles de logging de Python
 LEVEL_MAP = {
     LoggingLevel.DEBUG: logging.DEBUG,
     LoggingLevel.INFO: logging.INFO,
@@ -509,7 +512,7 @@ async def debug_operation(data: str) -> str:
         raise
 ```
 
-### Envío de Mensajes de Registro al Cliente
+### Enviando Mensajes de Registro al Cliente
 
 ```python
 @app.tool()
@@ -537,7 +540,7 @@ async def complex_operation(input: str, ctx) -> str:
 
 ## 6. Patrones de Manejo de Errores
 
-El manejo consistente de errores mejora la depuración y la experiencia del usuario.
+Un manejo de errores consistente mejora la depuración y la experiencia del usuario.
 
 ### Códigos de Error MCP
 
@@ -584,7 +587,7 @@ async def safe_operation(input: str) -> str:
         raise ValidationError(f"Input too large: {len(input)} chars (max 10000)")
     
     try:
-        # Verificar permisos
+        # Comprobar permisos
         if not await check_permission(input):
             raise PermissionError(f"read {input}")
         
@@ -655,7 +658,7 @@ server.setRequestHandler(CallToolSchema, async (request) => {
 
 ## Funcionalidades Experimentales (MCP 2025-11-25)
 
-Estas funcionalidades están marcadas como experimentales en la especificación:
+Estas características están marcadas como experimentales en la especificación:
 
 ### Tareas (Operaciones de Larga Duración)
 
@@ -703,22 +706,22 @@ async def safe_query(query: str) -> str:
 
 ## Qué Sigue
 
-- [Módulo 8 - Mejores Prácticas](../../08-BestPractices/README.md)  
-- [5.14 - Ingeniería de Contexto](../mcp-contextengineering/README.md)  
+- [Módulo 8 - Mejores Prácticas](../../08-BestPractices/README.md)
+- [5.14 - Ingeniería de Contexto](../mcp-contextengineering/README.md)
 - [Registro de Cambios de la Especificación MCP](https://spec.modelcontextprotocol.io/)
 
 ---
 
 ## Recursos Adicionales
 
-- [Especificación MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [Códigos de Error JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)  
-- [Ejemplos SDK Python](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)  
-- [Ejemplos SDK TypeScript](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
+- [Especificación MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Códigos de Error JSON-RPC 2.0](https://www.jsonrpc.org/specification#error_object)
+- [Ejemplos Python SDK](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [Ejemplos TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Aviso Legal**:
-Este documento ha sido traducido utilizando el servicio de traducción automática [Co-op Translator](https://github.com/Azure/co-op-translator). Aunque nos esforzamos por la precisión, tenga en cuenta que las traducciones automáticas pueden contener errores o inexactitudes. El documento original en su idioma nativo debe considerarse la fuente autorizada. Para información crítica, se recomienda una traducción profesional realizada por humanos. No nos hacemos responsables de cualquier malentendido o interpretación errónea derivada del uso de esta traducción.
+**Descargo de responsabilidad**:
+Este documento ha sido traducido utilizando el servicio de traducción automática [Co-op Translator](https://github.com/Azure/co-op-translator). Aunque nos esforzamos por la precisión, tenga en cuenta que las traducciones automatizadas pueden contener errores o inexactitudes. El documento original en su idioma nativo debe considerarse la fuente autorizada. Para información crítica, se recomienda una traducción profesional humana. No somos responsables de cualquier malentendido o interpretación errónea que surja del uso de esta traducción.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
