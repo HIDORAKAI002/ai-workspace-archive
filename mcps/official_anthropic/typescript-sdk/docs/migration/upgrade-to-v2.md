@@ -848,7 +848,7 @@ hierarchy also exposes the same check as an explicit static guard
 TypeScript — use whichever style your codebase prefers; both read the same brand.
 Fine print (applies equally to `instanceof` and `isInstance`):
 
-- **Version skew** — matching needs *both* copies at a brand-aware release; against an
+- **Version skew** — matching needs _both_ copies at a brand-aware release; against an
   older copy, behavior degrades to plain prototype `instanceof` (false across bundles).
   During mixed-version rollouts, recognize errors without class identity: match
   `error.name` plus the class's discriminant field (`code`, `status`), or reconstruct
@@ -1325,8 +1325,9 @@ if (CallToolResultSchema.safeParse(value).success) { ... }
 
 `@modelcontextprotocol/core` is the canonical home for the spec's Zod schema constants
 (and the OAuth/OpenID metadata schemas). It is runtime-neutral (its only dependency is
-`zod`) and is **not** required by `client` / `server` — install it only if you import the
-raw schemas directly.
+`zod`) and arrives transitively as the shared runtime schema graph of `client` /
+`server` — add it to your own `dependencies` only when you import the raw schemas
+directly.
 
 If you would rather keep your project Zod-free, the **`isSpecType` / `specTypeSchemas`**
 alternatives are exported from `@modelcontextprotocol/client` and `…/server`:
@@ -1587,7 +1588,7 @@ rewrite required unless noted.
   instead of sending the request. Set `enforceStrictCapabilities: true` in `ClientOptions`
   to restore the v1 throw.
 - Called **without a `cursor`**, the same methods now **auto-aggregate every page** and
-  return `nextCursor: undefined`. Passing `{ cursor }` still fetches one page. Manual
+  return an aggregate with no `nextCursor`. Passing `{ cursor }` still fetches one page. Manual
   pagination loops keep working (the first iteration returns everything); replace them
   with the bare no-arg call. The walk is capped at `ClientOptions.listMaxPages` (default
   64); overrun throws `SdkError(ListPaginationExceeded)`. There is no way to fetch only
@@ -1605,6 +1606,9 @@ rewrite required unless noted.
   trip. Per-call override: `{ cacheMode: 'refresh' | 'bypass' }`. New `ClientOptions`:
   `cachePartition`, `defaultCacheTtlMs`. `ResponseCacheStore` gained `delete(key)`;
   `InMemoryResponseCacheStore` is now bounded (`{ maxEntries }`, default 512).
+  `CacheEntry.value` (and the `set()` entry value) is the JSON-serialized result
+  document (`string`, not `unknown`): persist and return it verbatim, `JSON.parse`
+  it to inspect.
 
 #### Server (Streamable HTTP transport)
 
