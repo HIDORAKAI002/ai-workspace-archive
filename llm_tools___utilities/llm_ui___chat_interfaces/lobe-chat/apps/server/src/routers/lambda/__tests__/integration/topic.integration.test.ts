@@ -14,8 +14,7 @@ vi.mock('@/database/core/db-adaptor', () => ({
   getServerDB: vi.fn(() => testDB),
 }));
 
-// Mock next/server's after() to execute callback immediately in tests
-vi.mock('next/server', () => ({
+vi.mock('@/server/utils/scheduleAfterResponse', () => ({
   after: vi.fn((callback: () => void) => callback()),
 }));
 
@@ -467,10 +466,10 @@ describe('Topic Router Integration Tests', () => {
         .values({ title: 'Legacy Topic', sessionId: testSessionId, agentId: null, userId })
         .returning();
 
-      // Querying the agent triggers the background backfill via after().
+      // Querying the agent triggers the background backfill after the response.
       await caller.getTopics({ agentId: testAgentId });
 
-      // Wait for the after() callback to run
+      // Wait for the scheduled callback to run.
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const [migrated] = await serverDB.select().from(topics).where(eq(topics.id, legacyTopic.id));
