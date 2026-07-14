@@ -173,3 +173,11 @@ Join the [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) to m
 - [MCP Documentation](https://learn.microsoft.com/python/api/overview/azure/ai-projects-readme)
 - [NLWeb Repo](https://github.com/nlweb-ai/NLWeb)
 - [Microsoft Agent Framework](https://aka.ms/ai-agents-beginners/agent-framework)
+
+## Previous Lesson
+
+[AI Agents in Production](../10-ai-agents-production/README.md)
+
+## Next Lesson
+
+[Context Engineering for AI Agents](../12-context-engineering/README.md)

@@ -8,6 +8,7 @@ from collections.abc import (
     Awaitable,
     Callable,
     Iterable,
+    Sequence,
 )
 from contextlib import AbstractContextManager, aclosing, nullcontext
 from copy import deepcopy
@@ -35,7 +36,14 @@ from opentelemetry.trace import (
     format_trace_id,
     get_current_span,
 )
-from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    StringConstraints,
+    field_validator,
+)
 from pydantic.alias_generators import to_camel
 from pydantic_ai import AgentRunResult
 from pydantic_ai.ui.vercel_ai import VercelAIAdapter
@@ -70,6 +78,7 @@ from typing_extensions import TypeIs, assert_never
 from phoenix.config import (
     get_env_phoenix_agents_assistant_project_name,
     get_env_phoenix_agents_disable_bash,
+    get_env_phoenix_agents_force_tracing,
     get_env_phoenix_agents_web_access_enabled,
 )
 from phoenix.db import models
@@ -79,6 +88,7 @@ from phoenix.server.agents.agent_factory import build_agent
 from phoenix.server.agents.capabilities import get_external_tool_definition
 from phoenix.server.agents.capabilities.skills import Skill
 from phoenix.server.agents.context import (
+    AppContext,
     ChatContext,
     ResolvedContexts,
     resolve_contexts,
@@ -225,18 +235,45 @@ class TurnTraceContext(_CamelModel):
 class AssistantMessageMetadata(_CamelModel):
     """Wire schema for the chat stream's `message_metadata` payload."""
 
+    type: Literal["assistant"] = "assistant"
     session_id: str
     trace: AssistantMessageMetadataTraceIds | None = None
     turn_trace_context: TurnTraceContext | None = None
     usage: AssistantMessageMetadataUsage | None = None
 
 
-class AssistantMetadataUIMessage(UIMessage):
-    """`UIMessage` with `metadata` narrowed to `AssistantMessageMetadata`."""
+class UserMessageMetadata(_CamelModel):
+    """Wire schema for metadata the browser attaches to outgoing user messages."""
 
-    metadata: AssistantMessageMetadata | None = (
-        None  # custom metadata type (provides stronger type in the OpenAPI schema)
-    )
+    type: Literal["user"] = "user"
+    current_date_time: Annotated[str, StringConstraints(strip_whitespace=True, max_length=128)]
+    time_zone: Annotated[str, StringConstraints(strip_whitespace=True, max_length=128)]
+
+
+MessageMetadata = Annotated[
+    AssistantMessageMetadata | UserMessageMetadata,
+    Field(discriminator="type"),
+]
+
+
+class PhoenixUIMessage(UIMessage):
+    """`UIMessage` with `metadata` narrowed to the Phoenix wire shapes."""
+
+    metadata: MessageMetadata | None = None
+
+
+def _resolve_browser_clock(messages: Sequence[PhoenixUIMessage]) -> AppContext | None:
+    """Return the newest user-message browser-clock stamp, if any."""
+    for message in reversed(messages):
+        if message.role != "user":
+            continue
+        if isinstance(message.metadata, UserMessageMetadata):
+            return AppContext(
+                type="app",
+                current_date_time=message.metadata.current_date_time,
+                time_zone=message.metadata.time_zone,
+            )
+    return None
 
 
 class _ObservabilityMixin(BaseModel):
@@ -279,7 +316,7 @@ class _ChatMessageMixin(_ObservabilityMixin):
             "Unknown or context-unavailable names are ignored."
         ),
     )
-    messages: list[AssistantMetadataUIMessage]
+    messages: list[PhoenixUIMessage]
     model: AgentModelSelection
     turn_trace_context: TurnTraceContext | None = Field(default=None, alias="turnTraceContext")
 
@@ -901,6 +938,25 @@ def _contexts_need_model_provider_availability(contexts: ResolvedContexts) -> bo
     return contexts.dataset is not None or contexts.llm_evaluator is not None
 
 
+def _resolve_trace_recording(
+    *,
+    ingest_traces: bool,
+    export_remote_traces: bool,
+    allow_local_traces: bool,
+    allow_remote_export: bool,
+) -> tuple[bool, bool]:
+    if get_env_phoenix_agents_force_tracing():
+        return True, True
+    return (
+        ingest_traces and allow_local_traces,
+        export_remote_traces and allow_remote_export,
+    )
+
+
+def _resolve_attach_user_id(attach_user_id: bool) -> bool:
+    return get_env_phoenix_agents_force_tracing() or attach_user_id
+
+
 class _SubagentMessageChunksClosed:
     """Sentinel marking the subagent message chunk queue as closed."""
 
@@ -1134,8 +1190,12 @@ def create_agents_router(authentication_enabled: bool) -> APIRouter:
             raise HTTPException(status_code=403, detail="Viewer users cannot enable mutations")
 
         recording = request.app.state.system_settings.agent_trace_recording
-        ingest_traces = bool(body.ingest_traces and recording.allow_local_traces)
-        export_remote_traces = bool(body.export_remote_traces and recording.allow_remote_export)
+        ingest_traces, export_remote_traces = _resolve_trace_recording(
+            ingest_traces=body.ingest_traces,
+            export_remote_traces=body.export_remote_traces,
+            allow_local_traces=recording.allow_local_traces,
+            allow_remote_export=recording.allow_remote_export,
+        )
         project_name = get_env_phoenix_agents_assistant_project_name()
         tracer = (
             Tracer(
@@ -1245,9 +1305,14 @@ def create_agents_router(authentication_enabled: bool) -> APIRouter:
             raise HTTPException(status_code=403, detail="Agents are disabled")
         body = request_body.root
         request_received_at = datetime.now(timezone.utc)
+        attach_user_id = _resolve_attach_user_id(body.attach_user_id)
         recording = request.app.state.system_settings.agent_trace_recording
-        ingest_traces = bool(body.ingest_traces and recording.allow_local_traces)
-        export_remote_traces = bool(body.export_remote_traces and recording.allow_remote_export)
+        ingest_traces, export_remote_traces = _resolve_trace_recording(
+            ingest_traces=body.ingest_traces,
+            export_remote_traces=body.export_remote_traces,
+            allow_local_traces=recording.allow_local_traces,
+            allow_remote_export=recording.allow_remote_export,
+        )
         project_name = get_env_phoenix_agents_assistant_project_name()
         tracer = (
             Tracer(
@@ -1265,6 +1330,8 @@ def create_agents_router(authentication_enabled: bool) -> APIRouter:
             tracer.tracer_provider.add_span_processor(agent_span_recorder)
 
         resolved_contexts = resolve_contexts(body.contexts)
+        if (browser_clock := _resolve_browser_clock(body.messages)) is not None:
+            resolved_contexts.app = browser_clock
         user = request.user if "user" in request.scope else None
         phoenix_user = user if isinstance(user, PhoenixUser) else None
         phoenix_user_email: str | None = None
@@ -1391,7 +1458,7 @@ def create_agents_router(authentication_enabled: bool) -> APIRouter:
                     requested_skill_names=body.requested_skills,
                     available_skills=available_skills,
                     load_skill_template=agent_prompts.load_skill,
-                    message_factory=AssistantMetadataUIMessage,
+                    message_factory=PhoenixUIMessage,
                 )
         adapter: VercelAIAdapter[AgentDependencies, AgentOutput] = VercelAIAdapter(
             agent=agent,
@@ -1453,7 +1520,7 @@ def create_agents_router(authentication_enabled: bool) -> APIRouter:
                 with (
                     detached_otel_context(parent_context),
                     using_session(session_id=session_id),
-                    _maybe_using_user(body.attach_user_id, phoenix_user_email),
+                    _maybe_using_user(attach_user_id, phoenix_user_email),
                 ):
                     raw_stream = adapter.run_stream(deps=deps, on_complete=_on_complete)
                     assert _is_async_generator(raw_stream)
@@ -1526,7 +1593,7 @@ def create_agents_router(authentication_enabled: bool) -> APIRouter:
                                 else (str(stream_error) or type(stream_error).__name__)
                             ),
                             end_time=datetime.now(timezone.utc),
-                            user_email=phoenix_user_email if body.attach_user_id else None,
+                            user_email=phoenix_user_email if attach_user_id else None,
                         )
                     tracer.tracer_provider.force_flush()
                     if ingest_traces:
@@ -1557,9 +1624,14 @@ def create_agents_router(authentication_enabled: bool) -> APIRouter:
             raise HTTPException(status_code=404, detail=f"Unknown agent: {agent_id!r}")
         if not request.app.state.system_settings.agent_assistant_enabled.enabled:
             raise HTTPException(status_code=403, detail="Agents are disabled")
+        attach_user_id = _resolve_attach_user_id(body.attach_user_id)
         recording = request.app.state.system_settings.agent_trace_recording
-        ingest_traces = bool(body.ingest_traces and recording.allow_local_traces)
-        export_remote_traces = bool(body.export_remote_traces and recording.allow_remote_export)
+        ingest_traces, export_remote_traces = _resolve_trace_recording(
+            ingest_traces=body.ingest_traces,
+            export_remote_traces=body.export_remote_traces,
+            allow_local_traces=recording.allow_local_traces,
+            allow_remote_export=recording.allow_remote_export,
+        )
         project_name = get_env_phoenix_agents_assistant_project_name()
         tracer = (
             Tracer(
@@ -1595,7 +1667,7 @@ def create_agents_router(authentication_enabled: bool) -> APIRouter:
             with (
                 detached_otel_context(parent_context),
                 using_metadata({"session_id": session_id}),
-                _maybe_using_user(body.attach_user_id, phoenix_user_email),
+                _maybe_using_user(attach_user_id, phoenix_user_email),
             ):
                 result = await summarize_messages(messages=history, model=model)
         except SummarizationError as exc:

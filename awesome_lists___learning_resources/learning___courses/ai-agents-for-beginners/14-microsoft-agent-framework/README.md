@@ -371,7 +371,7 @@ Because the **Responses API is the primary API for agent-style development in Fo
 
 ```bash
 export FOUNDRY_PROJECT_ENDPOINT="https://<resource>.services.ai.azure.com/api/projects/<project>"
-export FOUNDRY_MODEL_NAME="gpt-4.1"
+export FOUNDRY_MODEL_NAME="gpt-5-mini"
 ```
 
 When the agent later runs as a hosted agent in Foundry, the platform injects `FOUNDRY_PROJECT_ENDPOINT` automatically.
@@ -392,7 +392,7 @@ _AZURE_AI_SCOPE = "https://ai.azure.com/.default"
 
 def build_chat_model() -> ChatOpenAI:
     project_endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"].rstrip("/")
-    deployment = os.environ.get("FOUNDRY_MODEL_NAME", "gpt-4.1")
+    deployment = os.environ.get("FOUNDRY_MODEL_NAME", "gpt-5-mini")
     credential = DefaultAzureCredential()
     project = AIProjectClient(endpoint=project_endpoint, credential=credential)
     openai_client = project.get_openai_client()
@@ -433,3 +433,10 @@ Code samples for Microsoft Agent Framework can be found in this repository under
 ## Got More Questions About Microsoft Agent Framework?
 
 Join the [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) to meet with other learners, attend office hours and get your AI Agents questions answered.
+## Previous Lesson
+
+[Memory for AI Agents](../13-agent-memory/README.md)
+
+## Next Lesson
+
+[Building Computer Use Agents (CUA)](../15-browser-use/README.md)

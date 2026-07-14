@@ -30,7 +30,7 @@ Env.Load("../../../.env");
 
 // Configure Microsoft Foundry endpoint and credentials
 var azure_foundry_endpoint = Environment.GetEnvironmentVariable("AZURE_AI_PROJECT_ENDPOINT") ?? throw new InvalidOperationException("AZURE_AI_PROJECT_ENDPOINT is not set.");
-var azure_foundry_model_id = "gpt-4o-mini";
+var azure_foundry_model_id = "gpt-5-mini";
 var bing_conn_id = Environment.GetEnvironmentVariable("BING_CONNECTION_ID");
 
 // Agent Instructions for Content Production Workflow

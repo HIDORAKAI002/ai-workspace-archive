@@ -51,7 +51,7 @@ graph LR
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Then sign in so AzureCliCredential can get a token
 az login
 ```
@@ -59,7 +59,7 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4o-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Then sign in so AzureCliCredential can get a token
 az login
 ```
@@ -85,8 +85,8 @@ See [`01-dotnet-agent-framework.cs`](./01-dotnet-agent-framework.cs) for the com
 ```csharp
 #!/usr/bin/dotnet run
 
-#:package Microsoft.Extensions.AI@9.*
-#:package Microsoft.Agents.AI.OpenAI@1.*-*
+#:package Microsoft.Extensions.AI@10.4.1
+#:package Microsoft.Agents.AI.OpenAI@1.1.0
 #:package Azure.AI.OpenAI@2.1.0
 #:package Azure.Identity@1.13.1
 
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4o-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -140,8 +140,8 @@ var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCred
 // Configure agent with travel planning instructions and random destination tool
 // The agent can now plan trips using the GetRandomDestination function
 AIAgent agent = azureClient
-    .GetOpenAIResponseClient(deployment)
-    .CreateAIAgent(
+    .GetChatClient(deployment)
+    .AsAIAgent(
         instructions: "You are a helpful AI Agent that can help plan vacations for customers at random destinations",
         tools: [AIFunctionFactory.Create(GetRandomDestination)]
     );

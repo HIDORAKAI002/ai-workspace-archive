@@ -133,6 +133,12 @@ Join the [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) to c
 
 ---
 
+## Smoke-Testing This Agent (Optional)
+
+Once you learn to deploy agents in [Lesson 16](../16-deploying-scalable-agents/README.md), you can add a fast post-deploy health check for this lesson's `TravelAgent` with the ready-made catalog [`tests/lesson-01-smoke-tests.json`](../tests/lesson-01-smoke-tests.json). See [`tests/README.md`](../tests/README.md) for how to run it.
+
+---
+
 ## Previous Lesson
 
 [Course Setup](../00-course-setup/README.md)

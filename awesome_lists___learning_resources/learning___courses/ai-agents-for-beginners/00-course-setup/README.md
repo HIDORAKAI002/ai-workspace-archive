@@ -124,7 +124,7 @@ All Python notebooks are labelled `*-python-agent-framework.ipynb`.
 
 - **Azure CLI** — Required for authentication. Install from [aka.ms/installazurecli](https://aka.ms/installazurecli).
 - **Azure Subscription** — For access to Microsoft Foundry and Microsoft Foundry Agent Service.
-- **Microsoft Foundry Project** — A project with a deployed model (e.g., `gpt-4o`). See [Step 1](#step-1-create-a-microsoft-foundry-project) below.
+- **Microsoft Foundry Project** — A project with a deployed model (e.g., `gpt-5-mini`). See [Step 1](#step-1-create-a-microsoft-foundry-project) below.
 
 We have included a `requirements.txt` file in the root of this repository that contains all the required Python packages to run the code samples.
 
@@ -151,7 +151,7 @@ You need an Microsoft Foundry **hub** and **project** with a deployed model to r
 1. Go to [ai.azure.com](https://ai.azure.com) and sign in with your Azure account.
 2. Create a **hub** (or use an existing one). See: [Hub resources overview](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
 3. Inside the hub, create a **project**.
-4. Deploy a model (e.g., `gpt-4o`) from **Models + Endpoints** → **Deploy model**.
+4. Deploy a model (e.g., `gpt-5-mini`) from **Models + Endpoints** → **Deploy model**.
 
 ### Step 2: Retrieve Your Project Endpoint and Model Deployment Name
 
@@ -161,7 +161,7 @@ From your project in the Microsoft Foundry portal:
 
 ![Project Connection String](./images/project-endpoint.png)
 
-- **Model Deployment Name** — Go to **Models + Endpoints**, select your deployed model, and note the **Deployment name** (e.g., `gpt-4o`).
+- **Model Deployment Name** — Go to **Models + Endpoints**, select your deployed model, and note the **Deployment name** (e.g., `gpt-5-mini`).
 
 ### Step 3: Sign in to Azure with `az login`
 
@@ -209,7 +209,7 @@ Open `.env` and fill in these two values:
 
 ```env
 AZURE_AI_PROJECT_ENDPOINT=https://<your-project>.services.ai.azure.com/api/projects/<your-project-id>
-AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4o
+AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5-mini
 ```
 
 | Variable | Where to find it |
@@ -243,7 +243,7 @@ Some notebooks in lessons 6 and 8 call **Azure OpenAI** directly (using the **Re
 | Variable | Where to find it |
 |----------|-----------------|
 | `AZURE_OPENAI_ENDPOINT` | Azure portal → your **Azure OpenAI** resource → **Keys and Endpoint** → Endpoint (e.g. `https://<your-resource>.openai.azure.com`) |
-| `AZURE_OPENAI_DEPLOYMENT` | The name of your deployed model (e.g. `gpt-4o-mini`) that supports the Responses API |
+| `AZURE_OPENAI_DEPLOYMENT` | The name of your deployed model (e.g. `gpt-5-mini`) that supports the Responses API |
 | `AZURE_OPENAI_API_KEY` | Optional — only if you use key-based auth instead of `az login` / Entra ID |
 
 > The Responses API uses the stable `/openai/v1/` endpoint, so no `api-version` is required. Sign in with `az login` to use keyless Entra ID authentication.

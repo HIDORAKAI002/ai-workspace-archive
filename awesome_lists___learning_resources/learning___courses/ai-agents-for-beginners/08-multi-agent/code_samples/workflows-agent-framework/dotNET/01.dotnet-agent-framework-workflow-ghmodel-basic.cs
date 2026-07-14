@@ -1,11 +1,11 @@
 #!/usr/bin/dotnet run
-#:package Microsoft.Extensions.AI@9.9.1
+#:package Microsoft.Extensions.AI@10.*
 #:package Azure.AI.OpenAI@2.1.0
 #:package Azure.Identity@1.15.0
 #:package System.Linq.Async@6.0.3
-#:package OpenTelemetry.Api@1.0.0
-#:package Microsoft.Agents.AI.Workflows@1.0.0-preview.251001.3
-#:package Microsoft.Agents.AI.OpenAI@1.0.0-preview.251001.3
+#:package OpenTelemetry.Api@1.*
+#:package Microsoft.Agents.AI.Workflows@1.*
+#:package Microsoft.Agents.AI.OpenAI@1.*-*
 #:package DotNetEnv@3.1.1
 
 using System;
@@ -23,7 +23,7 @@ Env.Load("../../../.env");
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4o-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -46,11 +46,15 @@ const string FrontDeskAgentInstructions = @"""
     Consider suggestions when refining an idea.
     """;
 
-// Create AI agents with specialized instructions
-AIAgent reviewerAgent = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(
-    name: ReviewerAgentName, instructions: ReviewerAgentInstructions);
-AIAgent frontDeskAgent = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(
-    name: FrontDeskAgentName, instructions: FrontDeskAgentInstructions);
+// Create AI agents with specialized instructions (convert to IChatClient to align with Microsoft.Extensions.AI abstractions and avoid type ambiguity)
+AIAgent reviewerAgent = azureClient.GetChatClient(deployment).AsIChatClient().AsAIAgent(
+    name: ReviewerAgentName,
+    instructions: ReviewerAgentInstructions,
+    description: "Reviews travel recommendations for authenticity.");
+AIAgent frontDeskAgent = azureClient.GetChatClient(deployment).AsIChatClient().AsAIAgent(
+    name: FrontDeskAgentName,
+    instructions: FrontDeskAgentInstructions,
+    description: "Provides concise travel activity recommendations.");
 
 // Build workflow with sequential agent execution
 var workflow = new WorkflowBuilder(frontDeskAgent)
@@ -63,7 +67,7 @@ ChatMessage userMessage = new ChatMessage(ChatRole.User, [
 ]);
 
 // Execute workflow with streaming
-StreamingRun run = await InProcessExecution.StreamAsync(workflow, userMessage);
+StreamingRun run = await InProcessExecution.RunStreamingAsync(workflow, userMessage);
 
 // Process workflow events and collect results
 await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
@@ -71,7 +75,7 @@ string id = "";
 string messageData = "";
 await foreach (WorkflowEvent evt in run.WatchStreamAsync().ConfigureAwait(false))
 {
-    if (evt is AgentRunUpdateEvent executorComplete)
+    if (evt is AgentResponseUpdateEvent executorComplete)
     {
         if (id == "")
         {
@@ -79,7 +83,10 @@ await foreach (WorkflowEvent evt in run.WatchStreamAsync().ConfigureAwait(false)
         }
         if (id == executorComplete.ExecutorId)
         {
-            messageData += executorComplete.Data.ToString();
+            if (executorComplete.Data is not null)
+            {
+                messageData += executorComplete.Data.ToString();
+            }
         }
         else
         {

@@ -107,7 +107,7 @@ client = AsyncAzureOpenAI(
 )
 
 resp = await client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4.1",
     messages=[{"role": "user", "content": "Hello"}],
     max_tokens=500,
 )
@@ -148,7 +148,7 @@ client = AzureOpenAI(
 )
 
 resp = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4.1",
     messages=[{"role": "user", "content": "Hello"}],
     max_tokens=500,
 )

@@ -14,7 +14,9 @@ This notebook demonstrates enterprise-grade planning and design patterns for bui
 
 **Required Dependencies:**
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
 <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
 <PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
@@ -23,7 +25,7 @@ This notebook demonstrates enterprise-grade planning and design patterns for bui
 **Environment Configuration (.env file):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## Running the Code
@@ -49,7 +51,7 @@ dotnet run 07-dotnet-agent-framework.cs
 The complete implementation is available in `07-dotnet-agent-framework.cs`, which demonstrates:
 
 - Loading environment configuration with DotNetEnv
-- Configuring the Azure OpenAI client for the Responses API
+- Configuring the Azure OpenAI client and creating an AI agent using `GetChatClient().AsAIAgent()`
 - Defining structured data models (Plan and TravelPlan) with JSON serialization
 - Creating an AI agent with structured output using JSON schema
 - Executing planning requests with type-safe responses
@@ -85,8 +87,10 @@ public class TravelPlan
 The agent is configured to return responses matching the TravelPlan schema:
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
