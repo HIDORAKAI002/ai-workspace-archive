@@ -5,12 +5,12 @@ import type { AgentCapabilities } from "@phoenix/agent/extensions/capabilities";
 import type { components } from "@phoenix/api/__generated__/v1";
 import type { AgentModelSelection } from "@phoenix/components/agent/useGenerateSessionSummary";
 import {
+  getEffectiveAttachUserId,
   getEffectiveTraceRecordingSettings,
   type AgentObservabilitySettings,
   type AgentPermissions,
   type AgentServerConfig,
 } from "@phoenix/store/agentStore";
-import { getTimeZone, toLocalISOWithOffset } from "@phoenix/utils/timeUtils";
 
 import type { ClientToolTimingRecorder } from "./clientToolTimings";
 import type { TurnTraceContext } from "./turnTraceContext";
@@ -60,23 +60,6 @@ export type AgentChatRequestBodyPatch = Pick<
   BuildAgentChatRequestBodyResult,
   "requestedSkills"
 >;
-
-/**
- * Build request-only browser clock context for resolving relative time phrases.
- *
- * This is intentionally generated at send time instead of stored in agent
- * state: it changes every turn and should not appear as user-visible page
- * context.
- */
-function buildCurrentAppContext(): AgentContext {
-  const now = new Date();
-  const timeZone = getTimeZone();
-  return {
-    type: "app",
-    currentDateTime: toLocalISOWithOffset(now, timeZone),
-    timeZone,
-  };
-}
 
 /**
  * Build GraphQL context from the current capability snapshot.
@@ -137,7 +120,6 @@ export function buildAgentChatRequestBody({
     observability,
   });
   const requestContexts = [
-    buildCurrentAppContext(),
     buildGraphQLContext(capabilities),
     buildWebAccessContext(capabilities),
     buildSubagentsContext(capabilities),
@@ -151,7 +133,7 @@ export function buildAgentChatRequestBody({
     messageId,
     ingestTraces: traceRecording.ingestTraces,
     exportRemoteTraces: traceRecording.exportRemoteTraces,
-    attachUserId: observability.attachUserId,
+    attachUserId: getEffectiveAttachUserId({ agentsConfig, observability }),
     editPermission: permissions.edits,
     contexts: requestContexts,
     model: modelSelection,
