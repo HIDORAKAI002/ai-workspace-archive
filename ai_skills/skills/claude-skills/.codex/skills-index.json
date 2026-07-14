@@ -738,6 +738,18 @@
       "description": ">-"
     },
     {
+      "name": "memory-review",
+      "source": "../../engineering-team/self-improving-agent/skills/memory-review",
+      "category": "engineering",
+      "description": "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics. Use when the user runs /si:memory-review or asks what has been learned and what should be promoted or pruned."
+    },
+    {
+      "name": "memory-status",
+      "source": "../../engineering-team/self-improving-agent/skills/memory-status",
+      "category": "engineering",
+      "description": "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations. Use when the user runs /si:memory-status or asks how full or healthy the agent memory is."
+    },
+    {
       "name": "migrate",
       "source": "../../engineering-team/playwright-pro/skills/migrate",
       "category": "engineering",
@@ -790,12 +802,6 @@
       "source": "../../engineering-team/playwright-pro/skills/review",
       "category": "engineering",
       "description": ">-"
-    },
-    {
-      "name": "review",
-      "source": "../../engineering-team/self-improving-agent/skills/review",
-      "category": "engineering",
-      "description": "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics. Use when the user runs /si:review or asks what has been learned and what should be promoted or pruned."
     },
     {
       "name": "security-pen-testing",
@@ -892,12 +898,6 @@
       "source": "../../engineering-team/snowflake-development/skills/snowflake-development",
       "category": "engineering",
       "description": "Use when writing Snowflake SQL, building data pipelines with Dynamic Tables or Streams/Tasks, using Cortex AI functions, creating Cortex Agents, writing Snowpark Python, configuring dbt for Snowflake, or troubleshooting Snowflake errors."
-    },
-    {
-      "name": "status",
-      "source": "../../engineering-team/self-improving-agent/skills/status",
-      "category": "engineering",
-      "description": "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations. Use when the user runs /si:status or asks how full or healthy the agent memory is."
     },
     {
       "name": "stripe-integration-expert",
