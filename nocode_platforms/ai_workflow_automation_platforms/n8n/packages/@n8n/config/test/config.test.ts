@@ -230,6 +230,7 @@ describe('GlobalConfig', () => {
 			publicationOutboxFailedRetentionHours: 168,
 			publicationOutboxCleanupIntervalSeconds: 1200,
 			publicationOutboxCleanupBatchSize: 1000,
+			publicationReconcileIntervalSeconds: 10,
 			autosaveDisabled: false,
 		},
 		endpoints: {
@@ -355,6 +356,7 @@ describe('GlobalConfig', () => {
 			outputRedactionPlaceholder: '[REDACTED]',
 			runDebugEnabled: false,
 			thinkingEnabled: true,
+			durableLog: false,
 		},
 		queue: {
 			health: {
