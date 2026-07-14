@@ -240,6 +240,24 @@ export class AgentModel {
   };
 
   /**
+   * Stricter than {@link existsById}: the agent must be owned (created) by this
+   * user, regardless of workspace visibility. `existsById` uses the visibility
+   * -aware ownership predicate, so a *public* workspace agent created by another
+   * member also returns true — which is only "can see", not "can edit". Callers
+   * that bind credentials/config to an agent (e.g. agent-scoped connectors) must
+   * use this so a member can't attach an account to someone else's shared agent.
+   */
+  existsOwnedById = async (id: string): Promise<boolean> => {
+    const rows = await this.db
+      .select({ id: agents.id })
+      .from(agents)
+      .where(and(eq(agents.id, id), eq(agents.userId, this.userId)))
+      .limit(1);
+
+    return rows.length > 0;
+  };
+
+  /**
    * Lightweight lookup of an agent's currently-configured model + provider,
    * used to snapshot the model into a task config so later changes to the
    * agent's default model don't silently affect already-created tasks.

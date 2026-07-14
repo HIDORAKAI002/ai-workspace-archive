@@ -12,6 +12,8 @@ export interface ConnectorTool {
 }
 
 export interface ConnectorWithTools {
+  /** Set when this connector is fully owned by an agent (Copy / Connect-new). */
+  agentId?: string | null;
   credentials: unknown;
   id: string;
   identifier: string;
