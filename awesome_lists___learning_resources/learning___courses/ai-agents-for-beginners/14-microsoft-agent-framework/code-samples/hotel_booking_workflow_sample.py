@@ -205,12 +205,12 @@ async def main() -> None:
         chat_client = OpenAIChatClient(
             azure_endpoint=azure_openai_endpoint,
             credential=AzureCliCredential(),
-            model_id=os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-4o-mini"),
+            model_id=os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-5-mini"),
         )
         print("Using Azure OpenAI (Responses API) provider")
     else:
         # Default: OpenAI
-        chat_client = OpenAIChatClient(model_id="gpt-4o")
+        chat_client = OpenAIChatClient(model_id="gpt-5-mini")
         print("Using OpenAI provider")
 
 

@@ -1,11 +1,11 @@
 #!/usr/bin/dotnet run
-#:package Microsoft.Extensions.AI@9.9.1
+#:package Microsoft.Extensions.AI@10.*
 #:package Azure.AI.OpenAI@2.1.0
 #:package Azure.Identity@1.15.0
 #:package System.Linq.Async@6.0.3
-#:package OpenTelemetry.Api@1.0.0
-#:package Microsoft.Agents.AI.Workflows@1.0.0-preview.251001.3
-#:package Microsoft.Agents.AI.OpenAI@1.0.0-preview.251001.3
+#:package OpenTelemetry.Api@1.*
+#:package Microsoft.Agents.AI.Workflows@1.*
+#:package Microsoft.Agents.AI.OpenAI@1.*-*
 #:package DotNetEnv@3.1.1
 
 using System;
@@ -16,6 +16,8 @@ using Azure.Identity;
 using Microsoft.Extensions.AI;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
+using OpenAI.Chat;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using DotNetEnv;
 
 // Load environment variables from .env file
@@ -24,7 +26,7 @@ Env.Load("../../../.env");
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4o-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 // Path to furniture image for analysis
 var imgPath = "../imgs/home.png";
@@ -68,17 +70,17 @@ async Task<byte[]> OpenImageBytesAsync(string path)
 var imageBytes = await OpenImageBytesAsync(imgPath);
 
 // Create AI agents for the sequential workflow
-AIAgent salesagent = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(
+AIAgent salesAgent = azureClient.GetChatClient(deployment).AsAIAgent(
     name: SalesAgentName, instructions: SalesAgentInstructions);
-AIAgent priceagent = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(
+AIAgent priceAgent = azureClient.GetChatClient(deployment).AsAIAgent(
     name: PriceAgentName, instructions: PriceAgentInstructions);
-AIAgent quoteagent = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(
+AIAgent quoteAgent = azureClient.GetChatClient(deployment).AsAIAgent(
     name: QuoteAgentName, instructions: QuoteAgentInstructions);
 
 // Build sequential workflow: Sales → Price → Quote
-var workflow = new WorkflowBuilder(salesagent)
-    .AddEdge(salesagent, priceagent)
-    .AddEdge(priceagent, quoteagent)
+var workflow = new WorkflowBuilder(salesAgent)
+    .AddEdge(salesAgent, priceAgent)
+    .AddEdge(priceAgent, quoteAgent)
     .Build();
 
 // Create user message with image and instructions
@@ -88,7 +90,7 @@ ChatMessage userMessage = new ChatMessage(ChatRole.User, [
 ]);
 
 // Execute workflow with streaming
-StreamingRun run = await InProcessExecution.StreamAsync(workflow, userMessage);
+StreamingRun run = await InProcessExecution.RunStreamingAsync(workflow, userMessage);
 
 // Process workflow events and collect results
 await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
@@ -96,7 +98,7 @@ string id = "";
 string messageData = "";
 await foreach (WorkflowEvent evt in run.WatchStreamAsync().ConfigureAwait(false))
 {
-    if (evt is AgentRunUpdateEvent executorComplete)
+    if (evt is AgentResponseUpdateEvent executorComplete)
     {
         if (id == "")
         {
@@ -104,7 +106,7 @@ await foreach (WorkflowEvent evt in run.WatchStreamAsync().ConfigureAwait(false)
         }
         if (id == executorComplete.ExecutorId)
         {
-            messageData += executorComplete.Data.ToString();
+            messageData += executorComplete.Data?.ToString();
         }
         else
         {

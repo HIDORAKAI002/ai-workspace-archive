@@ -137,6 +137,10 @@ Join the [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) to m
 - <a href="https://arxiv.org/abs/2305.11738" target="_blank">2305.11738 CRITIC: Large Language Models Can Self-Correct with Tool-Interactive Critiquing</a>
 - <a href="https://arxiv.org/abs/2501.09136" target="_blank">2501.09136 Agentic Retrieval-Augmented Generation: A Survey on Agentic RAG</a>
 
+## Smoke-Testing This Agent (Optional)
+
+After you learn to deploy agents in [Lesson 16](../16-deploying-scalable-agents/README.md), you can smoke-test this lesson's `TravelRAGAgent` — checking that its answers stay grounded in the knowledge base — with [`tests/lesson-05-smoke-tests.json`](../tests/lesson-05-smoke-tests.json). See [`tests/README.md`](../tests/README.md) for how to run it.
+
 ## Previous Lesson
 
 [Tool Use Design Pattern](../04-tool-use/README.md)

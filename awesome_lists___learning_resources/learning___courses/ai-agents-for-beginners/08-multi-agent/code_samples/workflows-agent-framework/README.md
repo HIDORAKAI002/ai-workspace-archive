@@ -63,7 +63,7 @@ In the Python example, we first define and create the two agents, each with spec
 # Define agent roles and instructions
 REVIEWER_NAME = "Concierge"
 REVIEWER_INSTRUCTIONS = """
-    You are an are hotel concierge who has opinions about providing the most local and authentic experiences for travelers...
+    You are a hotel concierge who has opinions about providing the most local and authentic experiences for travelers...
     """
 
 FRONTDESK_NAME = "FrontDesk"
@@ -112,7 +112,7 @@ The .NET implementation follows a very similar logic. First, constants are defin
 
 const string ReviewerAgentName = "Concierge";
 const string ReviewerAgentInstructions = @"
-    You are an are hotel concierge who has opinions about providing the most local and authentic experiences for travelers...";
+    You are a hotel concierge who has opinions about providing the most local and authentic experiences for travelers...";
 
 const string FrontDeskAgentName = "FrontDesk";
 const string FrontDeskAgentInstructions = @"""
@@ -125,9 +125,9 @@ The agents are created using an `AzureOpenAIClient` (Responses API), and then th
 // 01.dotnet-agent-framework-workflow-ghmodel-basic.ipynb
 
 // Create AIAgent instances
-AIAgent reviewerAgent = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(
+AIAgent reviewerAgent = azureClient.GetChatClient(deployment).AsAIAgent(
     name:ReviewerAgentName,instructions:ReviewerAgentInstructions);
-AIAgent frontDeskAgent  = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(
+AIAgent frontDeskAgent  = azureClient.GetChatClient(deployment).AsAIAgent(
     name:FrontDeskAgentName,instructions:FrontDeskAgentInstructions);
 
 // Build the workflow
@@ -194,9 +194,9 @@ The .NET example mirrors the Python version. Three agents (`salesagent`, `pricea
 // 02.dotnet-agent-framework-workflow-ghmodel-sequential.ipynb
 
 // Create agent instances
-AIAgent salesagent = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(...);
-AIAgent priceagent  = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(...);
-AIAgent quoteagent = azureClient.GetOpenAIResponseClient(deployment).CreateAIAgent(...);
+AIAgent salesagent = azureClient.GetChatClient(deployment).AsAIAgent(...);
+AIAgent priceagent  = azureClient.GetChatClient(deployment).AsAIAgent(...);
+AIAgent quoteagent = azureClient.GetChatClient(deployment).AsAIAgent(...);
 
 // Build the workflow by adding edges sequentially
 var workflow = new WorkflowBuilder(salesagent)
@@ -205,7 +205,7 @@ var workflow = new WorkflowBuilder(salesagent)
             .Build();
 ```
 
-The user's message is constructed with both the image data (as bytes) and the text prompt. The `InProcessExecution.StreamAsync` method initiates the workflow, and the final output is captured from the stream.
+The user's message is constructed with both the image data (as bytes) and the text prompt. The `InProcessExecution.RunStreamingAsync` method initiates the workflow, and the final output is captured from the stream.
 
 ### Case 3: Concurrent Workflow
 

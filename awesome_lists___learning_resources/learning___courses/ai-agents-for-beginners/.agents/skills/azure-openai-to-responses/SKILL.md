@@ -85,10 +85,10 @@ This queries Azure ARM live and shows a compatibility matrix — which models su
 
 ### ⚠️ Older model limitations
 
-> **WARNING**: Older models (e.g., `gpt-4o`, `gpt-4`) may not support all Responses API features fully.
+> **WARNING**: Older models (those predating `gpt-4.1`) may not support all Responses API features fully.
 >
 > Known limitations with older models:
-> - **`reasoning` parameter**: Not supported on `gpt-4o-mini`, `gpt-4o`, and many non-reasoning models. Only migrate `reasoning` if it was already present in the original code.
+> - **`reasoning` parameter**: Not supported on many non-reasoning models. Only migrate `reasoning` if it was already present in the original code.
 > - **`seed` parameter**: Not supported in Responses API at all — remove from all requests.
 > - **Structured output via `text.format`**: Older models may not enforce `strict: true` JSON schemas reliably.
 > - **Tool orchestration**: GPT-5+ orchestrates tool calls as part of internal reasoning. Older models on Responses still work but lack this deep integration.
@@ -105,7 +105,7 @@ O-series models have unique parameter constraints. When migrating apps that targ
 - **`top_p`**: Not supported on o-series — remove if present.
 - **Tool use**: O-series models support tools via the Responses API the same as GPT models, but tool call orchestration quality varies by model.
 
-**Action — proactive model advisory**: During the scan phase, check which model the app targets (deployment names, env vars, config). If the model is `gpt-4o` or older (not gpt-4.1+), proactively tell the user:
+**Action — proactive model advisory**: During the scan phase, check which model the app targets (deployment names, env vars, config). If the model predates `gpt-4.1` (not gpt-4.1+), proactively tell the user:
 - The migration will work for basic text, chat, streaming, and tools on their current model.
 - Newer models (`gpt-5.1`, `gpt-5.2`) offer better tool orchestration, structured output enforcement, reasoning, and cross-region availability.
 - They should consider upgrading their deployment when ready — it's not blocking the migration.

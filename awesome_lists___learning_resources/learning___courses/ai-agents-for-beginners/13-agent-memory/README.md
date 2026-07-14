@@ -163,3 +163,10 @@ A common pattern for self-improving agents involves introducing a **"knowledge a
 ## Got More Questions About Agent Memory?
 
 Join the [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) to meet with other learners, attend office hours and get your AI Agents questions answered.
+## Previous Lesson
+
+[Context Engineering for AI Agents](../12-context-engineering/README.md)
+
+## Next Lesson
+
+[Exploring Microsoft Agent Framework](../14-microsoft-agent-framework/README.md)

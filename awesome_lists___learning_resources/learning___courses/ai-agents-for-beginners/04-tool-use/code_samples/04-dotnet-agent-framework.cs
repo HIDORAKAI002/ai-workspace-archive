@@ -13,6 +13,7 @@ using Microsoft.Extensions.AI;
 
 using Azure.AI.OpenAI;
 using Azure.Identity;
+using OpenAI.Chat;
 
 // ============================================================================
 // TOOL USE DESIGN PATTERN DEMONSTRATION
@@ -179,7 +180,7 @@ static string EstimateTripCost(
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4o-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -217,8 +218,8 @@ Always mention which tools you used so users understand the agent's capabilities
 // Create AI Agent with Multiple Tools
 // This demonstrates the Tool Use Design Pattern with a variety of tool types
 AIAgent agent = azureClient
-    .GetOpenAIResponseClient(deployment)
-    .CreateAIAgent(
+    .GetChatClient(deployment)
+    .AsAIAgent(
         name: AGENT_NAME,
         instructions: AGENT_INSTRUCTIONS,
         tools: [

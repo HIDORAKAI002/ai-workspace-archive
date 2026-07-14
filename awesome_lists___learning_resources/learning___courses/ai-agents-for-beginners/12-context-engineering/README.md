@@ -171,3 +171,10 @@ Let's say we want an AI agent to **"Book me a trip to Paris."**
 ## Got More Questions About Context Engineering?
 
 Join the [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) to meet with other learners, attend office hours and get your AI Agents questions answered.
+## Previous Lesson
+
+[Agentic Protocols](../11-agentic-protocols/README.md)
+
+## Next Lesson
+
+[Memory for AI Agents](../13-agent-memory/README.md)
