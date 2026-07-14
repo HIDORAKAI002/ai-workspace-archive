@@ -122,6 +122,9 @@ func NewRouter(
 
 // Setup setup routes
 func (r *Router) Setup(engine *gin.Engine) {
+
+	SetupEERouter(engine)
+	
 	// Mark all responses from Go with a header for debugging.
 	engine.Use(func(c *gin.Context) {
 		c.Header("X-API-Source", "go")
@@ -539,7 +542,7 @@ func (r *Router) Setup(engine *gin.Engine) {
 				provider.PUT("/:provider_name/instances/:instance_name", r.providerHandler.AlterProviderInstance)
 				provider.DELETE("/:provider_name/instances", r.providerHandler.DropProviderInstance)
 				provider.GET("/:provider_name/instances/:instance_name/models", r.providerHandler.ListInstanceModels)
-				provider.PATCH("/:provider_name/instances/:instance_name/models/*model_name", r.providerHandler.EnableOrDisableModel)
+				provider.PATCH("/:provider_name/instances/:instance_name/models/*model_name", r.providerHandler.AlterModel)
 				provider.POST("/:provider_name/instances/:instance_name/models", r.providerHandler.AddModel)
 				provider.DELETE("/:provider_name/instances/:instance_name/models", r.providerHandler.DropInstanceModels)
 				v1.POST("/chat/to_model", r.providerHandler.ChatToModel)
