@@ -56,14 +56,13 @@ beforeEach(() => {
 
 describe("billTeam", () => {
   it("marks billing as already tracked when request tracking succeeds", async () => {
-    await billTeam("team-1", "sub-1", 3, 123, {
+    await billTeam("team-1", 3, 123, {
       endpoint: "search",
       jobId: "job-1",
     });
 
     expect(queueBillingOperation).toHaveBeenCalledWith([
       "team-1",
-      "sub-1",
       3,
       123,
       { endpoint: "search", jobId: "job-1" },
@@ -86,7 +85,7 @@ describe("billTeam", () => {
   it("refunds Autumn when queueing fails after request tracking", async () => {
     queueBillingOperation.mockResolvedValueOnce({ success: false });
 
-    await billTeam("team-1", "sub-1", 3, 123, {
+    await billTeam("team-1", 3, 123, {
       endpoint: "search",
       jobId: "job-1",
     });
@@ -107,14 +106,13 @@ describe("billTeam", () => {
   it("leaves batch tracking enabled when request tracking is off", async () => {
     trackCredits.mockResolvedValueOnce(false);
 
-    await billTeam("team-1", "sub-1", 3, 123, {
+    await billTeam("team-1", 3, 123, {
       endpoint: "search",
       jobId: "job-1",
     });
 
     expect(queueBillingOperation).toHaveBeenCalledWith([
       "team-1",
-      "sub-1",
       3,
       123,
       { endpoint: "search", jobId: "job-1" },

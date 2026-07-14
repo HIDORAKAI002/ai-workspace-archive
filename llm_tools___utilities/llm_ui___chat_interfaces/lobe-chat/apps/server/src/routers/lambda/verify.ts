@@ -1,10 +1,14 @@
 import { VerifySkill } from '@lobechat/builtin-skills';
+import { normalizeVerifySurface, verifySurfaces } from '@lobechat/const/verify';
 import type { VerifyCheckItem } from '@lobechat/types';
 import { TRPCError } from '@trpc/server';
 import { asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { wsCompatProcedure } from '@/business/server/trpc-middlewares/workspaceAuth';
+import {
+  requireWorkspaceRoleWhenScoped,
+  wsCompatProcedure,
+} from '@/business/server/trpc-middlewares/workspaceAuth';
 import { AgentOperationModel } from '@/database/models/agentOperation';
 import { FileModel } from '@/database/models/file';
 import { LlmGenerationTracingModel } from '@/database/models/llmGenerationTracing';
@@ -30,6 +34,8 @@ import {
   VerifyPlanGeneratorService,
   VerifyReporterService,
 } from '@/server/services/verify';
+
+import { assertWorkspaceRowManageable } from './_helpers/assertWorkspaceRowManageable';
 
 /**
  * Skills that `verify.getSkillBundle` will materialize to a builder's disk via
@@ -83,6 +89,7 @@ const rubricConfigSchema = z.object({
 });
 
 const checkItemSchema = z.object({
+  description: z.string().optional(),
   id: z.string(),
   index: z.number(),
   onFail: onFailSchema,
@@ -116,13 +123,34 @@ const pullRequestContextSchema = z.object({
   url: webUrlSchema.optional(),
 });
 
+/**
+ * A surface, canonicalized at the door.
+ *
+ * Not a bare `z.enum`: `lh` is installed independently of this server, so an
+ * older CLI still posts the historical spellings — `electron` alone accounts for
+ * most of the surfaces ever written. Rejecting those would break ingest for
+ * every client that hasn't upgraded, to no benefit, since they name a surface we
+ * can resolve. So known spellings are normalized (`electron` → `desktop`) and
+ * only a value that names no surface at all is rejected — the column still ends
+ * up with nothing but the closed set.
+ */
+const surfaceSchema = z.string().transform((value, ctx) => {
+  const surface = normalizeVerifySurface(value);
+  if (surface) return surface;
+
+  ctx.addIssue({
+    code: 'custom',
+    message: `"${value}" is not a product surface. Expected one of: ${verifySurfaces.join(', ')}. A test kind ("unit", "backend") or a runtime mode ("packaged build") is not a surface.`,
+  });
+  return z.NEVER;
+});
+
 const runContextSchema = z.object({
   branch: z.string().optional(),
   commit: z.string().optional(),
   entry: z.string().optional(),
-  focus: z.string().optional(),
   pullRequest: pullRequestContextSchema.optional(),
-  surfaces: z.array(z.string()).optional(),
+  surfaces: z.array(surfaceSchema).optional(),
   testedAt: z.string().optional(),
 });
 
@@ -135,6 +163,7 @@ const updateRunInputSchema = verifyRunIdInputSchema.extend({
     context: runContextSchema.optional(),
     goal: z.string().optional(),
     metadata: runMetadataSchema.optional(),
+    plan: z.array(checkItemSchema).optional(),
     scenario: z.enum(['coding']).optional(),
     title: z.string().trim().min(1).max(200).optional(),
   }),
@@ -187,6 +216,10 @@ const verifyProcedure = wsCompatProcedure.use(serverDatabase).use(async (opts) =
   });
 });
 
+// Writes: workspace mode requires at least the member role, gating viewers
+// out (read-only role) while personal mode passes through unrestricted.
+const verifyWriteProcedure = verifyProcedure.use(requireWorkspaceRoleWhenScoped('member'));
+
 const publicVerifyReportProcedure = publicProcedure.use(serverDatabase);
 
 const resolveVerifyRun = async (ctx: { runModel: VerifyRunModel }, verifyRunId: string) => {
@@ -226,7 +259,7 @@ const resolveRunByOperation = async (ctx: { runModel: VerifyRunModel }, operatio
 
 export const verifyRouter = router({
   // ---- criteria (reusable atomic standards) ----
-  createCriterion: verifyProcedure
+  createCriterion: verifyWriteProcedure
     .input(
       z.object({
         documentId: z.string().optional(),
@@ -239,13 +272,19 @@ export const verifyRouter = router({
     )
     .mutation(async ({ ctx, input }) => ctx.criterionModel.create(input)),
 
-  deleteCriterion: verifyProcedure
+  deleteCriterion: verifyWriteProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => ctx.criterionModel.delete(input.id)),
+    .mutation(async ({ ctx, input }) => {
+      const criterion = await ctx.criterionModel.findById(input.id);
+      // Missing row → keep the delete idempotent, nothing to authorize.
+      if (!criterion) return;
+      assertWorkspaceRowManageable(ctx, criterion.userId, 'verify criterion');
+      return ctx.criterionModel.delete(input.id);
+    }),
 
   listCriteria: verifyProcedure.query(async ({ ctx }) => ctx.criterionModel.query()),
 
-  updateCriterion: verifyProcedure
+  updateCriterion: verifyWriteProcedure
     .input(
       z.object({
         id: z.string(),
@@ -260,10 +299,17 @@ export const verifyRouter = router({
         }),
       }),
     )
-    .mutation(async ({ ctx, input }) => ctx.criterionModel.update(input.id, input.value)),
+    .mutation(async ({ ctx, input }) => {
+      const criterion = await ctx.criterionModel.findById(input.id);
+      if (!criterion) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Verification criterion not found' });
+      }
+      assertWorkspaceRowManageable(ctx, criterion.userId, 'verify criterion');
+      return ctx.criterionModel.update(input.id, input.value);
+    }),
 
   // ---- rubrics (named criteria groups) ----
-  createRubric: verifyProcedure
+  createRubric: verifyWriteProcedure
     .input(
       z.object({
         config: rubricConfigSchema.optional(),
@@ -273,9 +319,15 @@ export const verifyRouter = router({
     )
     .mutation(async ({ ctx, input }) => ctx.rubricModel.create(input)),
 
-  deleteRubric: verifyProcedure
+  deleteRubric: verifyWriteProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => ctx.rubricModel.delete(input.id)),
+    .mutation(async ({ ctx, input }) => {
+      const rubric = await ctx.rubricModel.findById(input.id);
+      // Missing row → keep the delete idempotent, nothing to authorize.
+      if (!rubric) return;
+      assertWorkspaceRowManageable(ctx, rubric.userId, 'verify rubric');
+      return ctx.rubricModel.delete(input.id);
+    }),
 
   getRubric: verifyProcedure
     .input(z.object({ id: z.string() }))
@@ -287,18 +339,23 @@ export const verifyRouter = router({
 
   listRubrics: verifyProcedure.query(async ({ ctx }) => ctx.rubricModel.query()),
 
-  setRubricCriteria: verifyProcedure
+  setRubricCriteria: verifyWriteProcedure
     .input(
       z.object({
         criteria: z.array(z.object({ criterionId: z.string(), sortOrder: z.number().optional() })),
         rubricId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) =>
-      ctx.rubricModel.setCriteria(input.rubricId, input.criteria),
-    ),
+    .mutation(async ({ ctx, input }) => {
+      const rubric = await ctx.rubricModel.findById(input.rubricId);
+      if (!rubric) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Verification rubric not found' });
+      }
+      assertWorkspaceRowManageable(ctx, rubric.userId, 'verify rubric');
+      return ctx.rubricModel.setCriteria(input.rubricId, input.criteria);
+    }),
 
-  updateRubric: verifyProcedure
+  updateRubric: verifyWriteProcedure
     .input(
       z.object({
         id: z.string(),
@@ -309,17 +366,25 @@ export const verifyRouter = router({
         }),
       }),
     )
-    .mutation(async ({ ctx, input }) => ctx.rubricModel.update(input.id, input.value)),
+    .mutation(async ({ ctx, input }) => {
+      const rubric = await ctx.rubricModel.findById(input.id);
+      if (!rubric) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Verification rubric not found' });
+      }
+      assertWorkspaceRowManageable(ctx, rubric.userId, 'verify rubric');
+      return ctx.rubricModel.update(input.id, input.value);
+    }),
 
   // ---- per-run plan ----
-  confirmPlan: verifyProcedure
+  confirmPlan: verifyWriteProcedure
     .input(z.object({ operationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const run = await ctx.runModel.ensureForOperation(input.operationId);
+      assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
       return ctx.runModel.confirmPlan(run.id);
     }),
 
-  generateDraftPlan: verifyProcedure
+  generateDraftPlan: verifyWriteProcedure
     .input(
       z.object({
         context: z.string().optional(),
@@ -332,14 +397,20 @@ export const verifyRouter = router({
         verifyRubricId: z.string().nullish(),
       }),
     )
-    .mutation(async ({ ctx, input }) => ctx.planGenerator.generateDraftPlan(input)),
+    .mutation(async ({ ctx, input }) => {
+      // The generator ends with setPlan() on the operation's run — resolve it
+      // and gate on the run owner before writing (same as confirmPlan).
+      const run = await ctx.runModel.ensureForOperation(input.operationId);
+      assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
+      return ctx.planGenerator.generateDraftPlan(input);
+    }),
 
   /**
    * Config-time: turn a one-sentence acceptance requirement into proposed
    * criteria for the user to review/edit. Traced (TRACING_SCENARIOS.VerifyPlanGen),
    * returns drafts only — nothing persisted, no operation needed.
    */
-  generateCriteria: verifyProcedure
+  generateCriteria: verifyWriteProcedure
     .input(
       z.object({
         context: z.string().optional(),
@@ -351,7 +422,7 @@ export const verifyRouter = router({
     .mutation(async ({ ctx, input }) => ctx.planGenerator.generateCriteria(input)),
 
   /** Persist (user-edited) drafts as standalone criteria; returns their ids in order. */
-  createCriteria: verifyProcedure
+  createCriteria: verifyWriteProcedure
     .input(
       z.object({
         drafts: z.array(
@@ -425,22 +496,25 @@ export const verifyRouter = router({
     .input(z.object({ operationId: z.string() }))
     .query(async ({ ctx, input }) => ctx.runModel.getStateByOperation(input.operationId)),
 
-  skipPlan: verifyProcedure
+  skipPlan: verifyWriteProcedure
     .input(z.object({ operationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const run = await ctx.runModel.findByOperation(input.operationId);
-      if (run) await ctx.runModel.updateStatus(run.id, null);
+      if (!run) return;
+      assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
+      await ctx.runModel.updateStatus(run.id, null);
     }),
 
-  updateDraftItems: verifyProcedure
+  updateDraftItems: verifyWriteProcedure
     .input(z.object({ items: z.array(checkItemSchema), operationId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const run = await ctx.runModel.ensureForOperation(input.operationId);
+      assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
       return ctx.runModel.replacePlanItems(run.id, input.items);
     }),
 
   // ---- results / execution ----
-  executeVerify: verifyProcedure
+  executeVerify: verifyWriteProcedure
     .input(
       z.object({
         batchLlm: z.boolean().optional(),
@@ -451,6 +525,11 @@ export const verifyRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      // Execution writes verdicts onto the run's result rows — only the run
+      // creator (or a workspace owner) may drive another member's session.
+      const existingRun = await ctx.runModel.findByOperation(input.operationId);
+      if (existingRun) assertWorkspaceRowManageable(ctx, existingRun.userId, 'verify run');
+
       await ctx.executorService.execute(input);
       // Settle the run through the SAME finalizer the completion-time gate uses
       // (runVerifyOnCompletion → finalizeVerifyRun): repair-aware tail (spawn a
@@ -482,17 +561,19 @@ export const verifyRouter = router({
     }),
 
   // ---- feedback (data flywheel) ----
-  submitDecision: verifyProcedure
+  submitDecision: verifyWriteProcedure
     .input(z.object({ decision: decisionSchema, resultId: z.string() }))
-    .mutation(async ({ ctx, input }) =>
-      ctx.feedbackService.submitDecision(input.resultId, input.decision),
-    ),
+    .mutation(async ({ ctx, input }) => {
+      const result = await resolveCheckResult(ctx, input.resultId);
+      assertWorkspaceRowManageable(ctx, result.userId, 'verify result');
+      return ctx.feedbackService.submitDecision(result.id, input.decision);
+    }),
 
   // ---- ingest (standalone sessions: results / evidence / report, e.g. agent-testing) ----
   // A verification session that isn't a live Agent Run (no executor): an external
   // harness creates the run, ingests each check's verdict + evidence, and writes a
   // report — all keyed by verifyRunId.
-  createRun: verifyProcedure
+  createRun: verifyWriteProcedure
     .input(
       z.object({
         // The active scenario's context, rendered as the report's scope header.
@@ -500,6 +581,9 @@ export const verifyRouter = router({
         goal: z.string().optional(),
         metadata: runMetadataSchema.optional(),
         operationId: z.string().optional(),
+        // The checks the run set out to make, authored before it ran. Kept next
+        // to the results so a planned-but-never-executed item stays visible.
+        plan: z.array(checkItemSchema).optional(),
         scenario: z.enum(['coding']).optional(),
         source: runSourceSchema.optional(),
         title: z.string().optional(),
@@ -511,6 +595,7 @@ export const verifyRouter = router({
         goal: input.goal,
         metadata: input.metadata,
         operationId: input.operationId,
+        plan: input.plan,
         scenario: input.scenario,
         source: input.source ?? 'agent-testing',
         title: input.title,
@@ -525,8 +610,9 @@ export const verifyRouter = router({
   // results (→ their evidence) and its report via the schema FKs, so one delete
   // tears down the published bundle. Ownership-scoped: resolveVerifyRun 404s a
   // run that isn't the caller's before we touch it.
-  deleteRun: verifyProcedure.input(verifyRunIdInputSchema).mutation(async ({ ctx, input }) => {
+  deleteRun: verifyWriteProcedure.input(verifyRunIdInputSchema).mutation(async ({ ctx, input }) => {
     const run = await resolveVerifyRun(ctx, input.verifyRunId);
+    assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
 
     await ctx.runModel.delete(run.id);
     return { id: run.id, success: true };
@@ -576,8 +662,9 @@ export const verifyRouter = router({
     return ctx.resultModel.listByRun(run.id);
   }),
 
-  updateRun: verifyProcedure.input(updateRunInputSchema).mutation(async ({ ctx, input }) => {
+  updateRun: verifyWriteProcedure.input(updateRunInputSchema).mutation(async ({ ctx, input }) => {
     const run = await resolveVerifyRun(ctx, input.verifyRunId);
+    assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
 
     const updated = await ctx.runModel.update(
       run.id,
@@ -585,6 +672,7 @@ export const verifyRouter = router({
         context: input.value.context,
         goal: input.value.goal,
         metadata: input.value.metadata,
+        plan: input.value.plan,
         scenario: input.value.scenario,
         title: input.value.title,
       }),
@@ -592,7 +680,7 @@ export const verifyRouter = router({
     return { data: updated, success: true };
   }),
 
-  ingestResult: verifyProcedure
+  ingestResult: verifyWriteProcedure
     .input(
       z
         .object({
@@ -623,6 +711,8 @@ export const verifyRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const run = await resolveVerifyRun(ctx, input.verifyRunId);
+      // The conflict-update overwrites the run's existing result rows.
+      assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
 
       return ctx.resultModel.upsertByCheckItem({
         checkItemId: input.checkItemId,
@@ -646,19 +736,23 @@ export const verifyRouter = router({
   // re-ingest path calls this for cases a later report round dropped, so
   // updating a session in place stays a full replace and never accretes stale
   // checks. resolveCheckResult 404s a result that isn't the caller's.
-  deleteResult: verifyProcedure
+  deleteResult: verifyWriteProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const result = await resolveCheckResult(ctx, input.id);
+      assertWorkspaceRowManageable(ctx, result.userId, 'verify result');
 
       await ctx.resultModel.delete(result.id);
       return { id: result.id, success: true };
     }),
 
-  uploadEvidence: verifyProcedure
+  uploadEvidence: verifyWriteProcedure
     .input(uploadEvidenceInputSchema)
     .mutation(async ({ ctx, input }) => {
       const result = await resolveCheckResult(ctx, input.checkResultId);
+      // Attaching evidence mutates another member's result — creator-scoped,
+      // mirroring submitCheckEvidence.
+      assertWorkspaceRowManageable(ctx, result.userId, 'verify result');
 
       return ctx.evidenceModel.create({
         capturedAt: new Date(),
@@ -679,7 +773,7 @@ export const verifyRouter = router({
    * pre-existing `checkResultId` — solving the run-start handle gap. Evidence
    * is optional (attach mid-run) and verdict is optional (set later by review).
    */
-  submitCheckEvidence: verifyProcedure
+  submitCheckEvidence: verifyWriteProcedure
     .input(
       z
         .object({
@@ -721,6 +815,8 @@ export const verifyRouter = router({
       const run = input.verifyRunId
         ? await resolveVerifyRun(ctx, input.verifyRunId)
         : await resolveRunByOperation(ctx, input.operationId!);
+      // The idempotent upsert overwrites the run's existing result rows.
+      assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
 
       // `required` / `verifierType` / index / title are stable per plan item, so
       // hydrate them from the run plan rather than hardcoding defaults — otherwise
@@ -774,7 +870,7 @@ export const verifyRouter = router({
       return ctx.evidenceModel.listByCheckResult(result.id);
     }),
 
-  deleteEvidence: verifyProcedure
+  deleteEvidence: verifyWriteProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const evidence = await ctx.evidenceModel.findById(input.id);
@@ -782,12 +878,13 @@ export const verifyRouter = router({
       if (!evidence) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Verification evidence not found' });
       }
+      assertWorkspaceRowManageable(ctx, evidence.userId, 'verify evidence');
 
       await ctx.evidenceModel.delete(evidence.id);
       return { id: evidence.id, success: true };
     }),
 
-  upsertReport: verifyProcedure
+  upsertReport: verifyWriteProcedure
     .input(
       z.object({
         content: z.string().optional(),
@@ -804,6 +901,8 @@ export const verifyRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const run = await resolveVerifyRun(ctx, input.verifyRunId);
+      // The upsert overwrites the run's existing report row.
+      assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
 
       return ctx.reportModel.upsertByRun({
         content: input.content ?? null,
@@ -829,7 +928,7 @@ export const verifyRouter = router({
    * evidence (verdict / stats computed deterministically). Distinct from
    * `upsertReport`, which stores a report a standalone harness computed itself.
    */
-  regenerateReport: verifyProcedure
+  regenerateReport: verifyWriteProcedure
     .input(
       z.object({
         deliverable: z.string(),
@@ -840,6 +939,7 @@ export const verifyRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const run = await resolveVerifyRun(ctx, input.verifyRunId);
+      assertWorkspaceRowManageable(ctx, run.userId, 'verify run');
       return ctx.reporterService.generateReport({
         deliverable: input.deliverable,
         goal: input.goal,
@@ -852,14 +952,25 @@ export const verifyRouter = router({
    * One-shot payload for the standalone report viewer: the session, its report,
    * and every check result with its evidence — addressed purely by verifyRunId
    * (no operation / chat context required).
+   *
+   * Public: a report URL is shareable, so anyone with the id gets the checks and
+   * evidence. `isOwner` gates what only the author may see — today the origin
+   * conversation, which is redacted for everyone else.
    */
   getReportBundle: publicVerifyReportProcedure
     .input(verifyRunIdInputSchema)
     .query(async ({ ctx, input }) => {
-      const run = await ctx.serverDB.query.verifyRuns.findFirst({
+      const found = await ctx.serverDB.query.verifyRuns.findFirst({
         where: eq(verifyRuns.id, input.verifyRunId),
       });
-      if (!run) return null;
+      if (!found) return null;
+
+      const isOwner = Boolean(ctx.userId) && ctx.userId === found.userId;
+      // `origin` points at the author's private topic/agent — never hand it to a
+      // visitor holding nothing but the shared link.
+      const { origin: _origin, ...publicMetadata } = found.metadata ?? {};
+      const run =
+        isOwner || !found.metadata?.origin ? found : { ...found, metadata: publicMetadata };
       const [report, results] = await Promise.all([
         ctx.serverDB.query.verifyReports.findFirst({
           where: eq(verifyReports.verifyRunId, input.verifyRunId),
@@ -929,6 +1040,6 @@ export const verifyRouter = router({
           };
         }),
       );
-      return { report: report ?? null, results: resultsWithEvidence, run };
+      return { isOwner, report: report ?? null, results: resultsWithEvidence, run };
     }),
 });

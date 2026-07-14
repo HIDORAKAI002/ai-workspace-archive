@@ -82,7 +82,6 @@ const processBillingJobInternal = async (token: string, job: Job) => {
       // This is an individual billing operation that should be queued for batch processing
       const {
         team_id,
-        subscription_id,
         credits,
         billing,
         endpoint,
@@ -100,7 +99,6 @@ const processBillingJobInternal = async (token: string, job: Job) => {
       // Add to the REDIS batch queue
       await queueBillingOperation(
         team_id,
-        subscription_id,
         credits,
         api_key_id ?? null,
         resolveBillingMetadata({

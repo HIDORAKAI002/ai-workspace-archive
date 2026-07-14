@@ -24,7 +24,6 @@ const LOCK_TIMEOUT = 30000; // 30 seconds lock timeout
 // Define interfaces for billing operations
 interface BillingOperation {
   team_id: string;
-  subscription_id: string | null;
   credits: number;
   billing?: BillingMetadata;
   endpoint?: BillingEndpoint;
@@ -37,7 +36,6 @@ interface BillingOperation {
 // Grouped billing operations for batch processing
 interface GroupedBillingOperation {
   team_id: string;
-  subscription_id: string | null;
   total_credits: number;
   billing: BillingMetadata;
   is_extract: boolean;
@@ -79,7 +77,6 @@ async function refundRequestTrackedCredits(group: GroupedBillingOperation) {
         source: "processBillingBatch",
         ...toAutumnBillingProperties(group.billing),
         apiKeyId: group.api_key_id,
-        subscriptionId: group.subscription_id,
       },
       featureId: featureIdForBillingEndpoint(group.billing.endpoint),
     });
@@ -130,7 +127,7 @@ export async function processBillingBatch() {
       `📦 Processing batch of ${operations.length} billing operations`,
     );
 
-    // Group operations by team_id and subscription_id
+    // Group operations by team_id, endpoint, is_extract, and api_key_id
     const groupedOperations = new Map<string, GroupedBillingOperation>();
 
     for (const op of operations) {
@@ -139,12 +136,11 @@ export async function processBillingBatch() {
           op.billing ?? (op.endpoint ? { endpoint: op.endpoint } : undefined),
         isExtract: op.is_extract,
       });
-      const key = `${op.team_id}:${op.subscription_id ?? "null"}:${billing.endpoint}:${op.is_extract}:${op.api_key_id}`;
+      const key = `${op.team_id}:${billing.endpoint}:${op.is_extract}:${op.api_key_id}`;
 
       if (!groupedOperations.has(key)) {
         groupedOperations.set(key, {
           team_id: op.team_id,
-          subscription_id: op.subscription_id,
           total_credits: 0,
           billing,
           is_extract: op.is_extract,
@@ -164,7 +160,6 @@ export async function processBillingBatch() {
         `🔄 Billing team ${group.team_id} for ${group.total_credits} credits`,
         {
           team_id: group.team_id,
-          subscription_id: group.subscription_id,
           total_credits: group.total_credits,
           billing: group.billing,
           operation_count: group.operations.length,
@@ -185,7 +180,6 @@ export async function processBillingBatch() {
           message: "No DB, bypassed.",
         })(
           group.team_id,
-          group.subscription_id,
           group.total_credits,
           group.api_key_id,
           logger,
@@ -263,7 +257,6 @@ export function startBillingBatchProcessing() {
  */
 export async function queueBillingOperation(
   team_id: string,
-  subscription_id: string | null | undefined,
   credits: number,
   api_key_id: number | null,
   billing: BillingMetadata,
@@ -278,7 +271,6 @@ export async function queueBillingOperation(
 
   logger.info(`Queueing billing operation for team ${team_id}`, {
     team_id,
-    subscription_id,
     credits,
     billing,
     is_extract,
@@ -287,7 +279,6 @@ export async function queueBillingOperation(
   try {
     const operation: BillingOperation = {
       team_id,
-      subscription_id: subscription_id ?? null,
       credits,
       billing,
       is_extract,
@@ -335,7 +326,6 @@ export async function queueBillingOperation(
 // Modified version of the billing function for batch operations
 async function supaBillTeam(
   team_id: string,
-  subscription_id: string | null | undefined,
   credits: number,
   api_key_id: number | null,
   __logger?: any,
@@ -345,7 +335,6 @@ async function supaBillTeam(
     module: "credit_billing",
     method: "supaBillTeam",
     teamId: team_id,
-    subscriptionId: subscription_id,
     credits,
   });
 
@@ -360,7 +349,7 @@ async function supaBillTeam(
   try {
     data = await billTeam7({
       team_id,
-      subscription_id: subscription_id ?? null,
+      subscription_id: null,
       credits,
       api_key_id: api_key_id ?? null,
       is_extract,
