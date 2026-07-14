@@ -185,7 +185,6 @@ async function billScrapeJob(
           "bill_team",
           {
             team_id: job.data.team_id,
-            subscription_id: undefined,
             credits: creditsToBeBilled,
             billing,
             is_extract: false,
@@ -250,18 +249,14 @@ function billThreatBlockedDiscoveries(
     blocked.map(x => x.decision),
   );
   if (threatScanCredits <= 0) return;
-  billTeam(
-    args.teamId,
-    undefined,
-    threatScanCredits,
-    args.apiKeyId,
-    args.billing,
-  ).catch(error => {
-    logger.error(
-      `Failed to bill team ${args.teamId} for ${threatScanCredits} threat scan credit(s)`,
-      { error },
-    );
-  });
+  billTeam(args.teamId, threatScanCredits, args.apiKeyId, args.billing).catch(
+    error => {
+      logger.error(
+        `Failed to bill team ${args.teamId} for ${threatScanCredits} threat scan credit(s)`,
+        { error },
+      );
+    },
+  );
 }
 
 async function processJob(job: NuQJob<ScrapeJobSingleUrls>) {
