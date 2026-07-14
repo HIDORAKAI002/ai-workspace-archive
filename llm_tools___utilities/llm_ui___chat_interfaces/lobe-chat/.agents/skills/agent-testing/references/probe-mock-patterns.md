@@ -1237,3 +1237,49 @@ nodeintegration, plugins, disablewebsecurity, allowpopups, preload, …`). The h
   ```
   Tag the resolved element with a `data-probe` attribute and drive it with `agent-browser click '[data-probe=...]'` (trusted CDP input, D18).
 - **Corollary**: the phantom also owns the tooltip text of whatever component it duplicates, so an `innerText`/aria grep can "find" a control that the user cannot see. Assert on `getBoundingClientRect()` before believing a control is present.
+### C8. ✅ An agent-browser session can silently LOSE its seeded cookies — a 401, not `document.cookie`, is the signal
+
+- **Situation**: verifying an owner-only affordance (a link the server renders only for the
+  report's author). The page rendered without it, and the bundle came back `isOwner: false`
+  even though the row's `userId` matched the seeded user — which reads exactly like a bug in
+  the ownership check.
+- **Doesn't work**: `document.cookie` as the auth probe. Better Auth's session cookie is
+  **httpOnly**, so `document.cookie` is legitimately `[]` on a fully authenticated page —
+  `cookieCount: 0` proves nothing either way.
+- **Doesn't work**: trusting `setup-auth.sh web-seed`'s success line for the rest of the run.
+  It verified the session at `/`; the session can still be empty later (this run's page had
+  also drifted to `about:blank` at one point — see D14).
+- **Works**: probe the SERVER, not the document — call any authed procedure from the page and
+  read the status. `401` = no session reached the server; `200` = you are really signed in.
+  ```js
+  const r = await fetch(
+    base +
+      '/trpc/lambda/user.getUserState?input=' +
+      encodeURIComponent(JSON.stringify({ json: {} })),
+    { credentials: 'include' },
+  );
+  r.status; // 401 → re-seed; 200 → the session is live
+  ```
+  Recover with `agent-browser close --all` + `setup-auth.sh web-seed`, then re-open the route.
+  After re-seeding, the same bundle returned `isOwner: true` with the owner-only link rendered —
+  the code was correct all along.
+- **Why it matters**: an auth-scoped assertion (owner-only / permission-gated UI) fails
+  IDENTICALLY whether the gate is broken or the session is missing. Always establish that the
+  session is live (a 200 from an authed procedure) BEFORE concluding the gate is wrong —
+  otherwise you publish a false bug against your own change.
+
+### E23. In zsh, a loop variable named `path` overwrites the command search path
+
+- **Situation**: parsing a Netscape cookie jar with `while read ... path ...` and then invoking
+  browser commands inside the loop. The first iteration succeeds at assigning the fields, but the
+  next executable fails with `command not found`.
+- **Cause**: zsh exposes `path` as a special array tied to `PATH`; assigning the cookie path field
+  (usually `/`) replaces the process command search path.
+- **Works**: name the field `cookie_path` (and similarly avoid other zsh special parameter names),
+  then pass it to the cookie command. This is a shell failure, not an auth or browser failure.
+
+### E24. Vite throws `EMFILE` — terminate Agent Testing and ask the user for help
+
+- **Situation**: an isolated frontend-only Vite surface exits at startup with `EMFILE: too many open files, watch`, while the intended port is free and the shell can successfully create thousands of `fs.watch` handles in a control process.
+- **Likely causes (not established)**: multiple LobeHub Cloud worktrees or clones are running file watchers; or a previously used workspace still has watchers owned by a surviving terminal process or a VS Code window, even after its visible terminal was closed.
+- **Required action**: immediately terminate Agent Testing, report the observed `EMFILE`, and ask the user to inspect and clean up other worktrees, terminal processes, or VS Code windows. Do not kill user-owned processes, close editor windows, change Vite watch mode, fall back to a one-shot static build, or publish a Verify report from a degraded surface.

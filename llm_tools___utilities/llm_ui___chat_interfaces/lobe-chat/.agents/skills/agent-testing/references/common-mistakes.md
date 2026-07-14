@@ -511,3 +511,49 @@ working recipes, seeded fixtures, exact remaining assertions). Timebox any
 environment rabbit hole to a couple of probes, then switch to a disposable local
 substitute (e.g. spin up a local instance and override the connection env var for
 the test server) instead of diagnosing shared infrastructure.
+
+---
+
+## Case 20 — Calling a server-side permission change "no UI surface" and shipping an API-transcript-only report
+
+**Wrong approach**: for a change that only edits TRPC routers (tightening who may
+mutate a shared resource), classifying the run as backend-only and publishing a
+verify report whose evidence is exclusively curl/API probe transcripts. The user
+opened the report and asked "完全没有截图吗？".
+
+**Why it's wrong**: a permission tightening IS a UI-visible state — the blocked
+user still sees the edit/delete affordances and now gets a rejection (error toast /
+failed action) when clicking them. "The diff touches no .tsx file" does not mean
+"no UI surface"; the UI surface is the product behavior the change alters, not the
+files it edits.
+
+**What it breaks**: the report cannot show what a real blocked user experiences
+(is the rejection surfaced comprehensibly? silently swallowed? a raw error?), and
+it misses UX follow-ups the screenshot would expose (e.g. affordances that should
+be hidden/disabled for users who will always be rejected).
+
+**Correct approach**: for any authorization/permission change, drive the REAL UI
+as the blocked role and screenshot the rejection state (and the allowed role's
+success state) in addition to API probes. If the rejection renders as a raw or
+missing error message, report that as a finding instead of leaving it undiscovered.
+
+---
+
+## Case 21 — Turning a feature verification into an unbounded dev-environment repair
+
+**Wrong approach**: after the normal product surface fails to boot, repeatedly modify
+shared dev configuration, reinstall the entire workspace, and investigate unrelated
+dependency/context problems before running any assertion for the feature under test.
+
+**Why it's wrong**: environment readiness is a gate, not the test goal. A workaround
+that changes shared configuration can also make the verification less representative,
+while an open-ended repair loop produces no feature evidence.
+
+**What it breaks**: the user waits through a long sequence of setup experiments, the
+working tree gains unrelated edits, and the run still has no reportable test result.
+
+**Correct approach**: follow only recovery paths already documented by this skill. If the
+observed failure mode is not covered, stop the test immediately, revert any experimental
+changes, summarize the exact checks and evidence collected, and ask the user for help before
+continuing. Do not repair the environment, switch surfaces, or invent a fallback without user
+direction.
