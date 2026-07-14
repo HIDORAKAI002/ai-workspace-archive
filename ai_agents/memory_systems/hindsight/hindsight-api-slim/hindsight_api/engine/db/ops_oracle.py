@@ -13,6 +13,8 @@ from .base import DatabaseConnection
 from .ops import DataAccessOps, TagListingParts
 from .result import DictResultRow as ResultRow
 
+ORACLE_IN_LIST_LIMIT = 1000
+
 
 class OracleOps(DataAccessOps):
     """Oracle-specific data access operations."""
@@ -830,6 +832,157 @@ class OracleOps(DataAccessOps):
         )
 
     # -- Task claiming operations ------------------------------------------
+
+    async def prune_terminal_operations(
+        self,
+        conn: DatabaseConnection,
+        table: str,
+        cutoff: datetime,
+        *,
+        batch_size: int,
+    ) -> int:
+        # Oracle rejects a row-limited SELECT ... FOR UPDATE (ORA-02014). Pick
+        # the deterministic bounded IDs first, then lock only that candidate
+        # set and re-check eligibility before deleting in the same transaction.
+        # Clamp to Oracle's 1000-expression IN-list limit because the adapter
+        # expands the candidate UUID list into individual bind variables.
+        # Cancelled children cannot complete parent aggregation, so retain the
+        # parent guard only for completed/failed children. Before removing a
+        # cancelled child, preserve its signal by cancelling a pending parent
+        # in this transaction and refreshing the parent's retention window.
+        # Validate metadata before HEXTORAW: CASE makes malformed UUIDs yield
+        # NULL while keeping the indexed RAW parent.operation_id key unwrapped.
+        effective_batch_size = min(batch_size, ORACLE_IN_LIST_LIMIT)
+        candidates = await conn.fetch(
+            f"""
+            SELECT candidate_operation.operation_id
+            FROM {table} candidate_operation
+            WHERE candidate_operation.status IN ('completed', 'failed', 'cancelled')
+              AND candidate_operation.updated_at < $1
+              AND (
+                  candidate_operation.status = 'cancelled'
+                  OR NOT EXISTS (
+                      SELECT 1
+                      FROM {table} parent
+                      WHERE parent.operation_id = CASE
+                          WHEN REGEXP_LIKE(
+                              JSON_VALUE(
+                                  candidate_operation.result_metadata,
+                                  '$.parent_operation_id' RETURNING VARCHAR2(36) NULL ON ERROR
+                              ),
+                              '^[0-9A-Fa-f]{{8}}-[0-9A-Fa-f]{{4}}-[0-9A-Fa-f]{{4}}-[0-9A-Fa-f]{{4}}-[0-9A-Fa-f]{{12}}$'
+                          )
+                          THEN HEXTORAW(REPLACE(
+                              JSON_VALUE(
+                                  candidate_operation.result_metadata,
+                                  '$.parent_operation_id' RETURNING VARCHAR2(36) NULL ON ERROR
+                              ),
+                              '-',
+                              ''
+                          ))
+                          ELSE NULL
+                      END
+                        AND parent.bank_id = candidate_operation.bank_id
+                  )
+              )
+            ORDER BY candidate_operation.updated_at, candidate_operation.operation_id
+            LIMIT $2
+            """,
+            cutoff,
+            effective_batch_size,
+        )
+        if not candidates:
+            return 0
+
+        candidate_ids = [row["operation_id"] for row in candidates]
+        locked = await conn.fetch(
+            f"""
+            SELECT candidate_operation.operation_id
+            FROM {table} candidate_operation
+            WHERE candidate_operation.operation_id = ANY($1)
+              AND candidate_operation.status IN ('completed', 'failed', 'cancelled')
+              AND candidate_operation.updated_at < $2
+              AND (
+                  candidate_operation.status = 'cancelled'
+                  OR NOT EXISTS (
+                      SELECT 1
+                      FROM {table} parent
+                      WHERE parent.operation_id = CASE
+                          WHEN REGEXP_LIKE(
+                              JSON_VALUE(
+                                  candidate_operation.result_metadata,
+                                  '$.parent_operation_id' RETURNING VARCHAR2(36) NULL ON ERROR
+                              ),
+                              '^[0-9A-Fa-f]{{8}}-[0-9A-Fa-f]{{4}}-[0-9A-Fa-f]{{4}}-[0-9A-Fa-f]{{4}}-[0-9A-Fa-f]{{12}}$'
+                          )
+                          THEN HEXTORAW(REPLACE(
+                              JSON_VALUE(
+                                  candidate_operation.result_metadata,
+                                  '$.parent_operation_id' RETURNING VARCHAR2(36) NULL ON ERROR
+                              ),
+                              '-',
+                              ''
+                          ))
+                          ELSE NULL
+                      END
+                        AND parent.bank_id = candidate_operation.bank_id
+                  )
+              )
+            ORDER BY candidate_operation.updated_at, candidate_operation.operation_id
+            FOR UPDATE OF candidate_operation.operation_id SKIP LOCKED
+            """,
+            candidate_ids,
+            cutoff,
+        )
+        if not locked:
+            return 0
+        operation_ids = [row["operation_id"] for row in locked]
+        await conn.execute(
+            f"""
+            UPDATE {table} parent
+            SET status = 'cancelled',
+                updated_at = now(),
+                completed_at = COALESCE(parent.completed_at, now()),
+                error_message = COALESCE(
+                    parent.error_message,
+                    'Cancelled because a child operation was cancelled'
+                )
+            WHERE parent.status = 'pending'
+              AND EXISTS (
+                  SELECT 1
+                  FROM {table} candidate_operation
+                  WHERE candidate_operation.operation_id = ANY($1)
+                    AND candidate_operation.status = 'cancelled'
+                    AND candidate_operation.updated_at < $2
+                    AND candidate_operation.bank_id = parent.bank_id
+                    AND parent.operation_id = CASE
+                        WHEN REGEXP_LIKE(
+                            JSON_VALUE(
+                                candidate_operation.result_metadata,
+                                '$.parent_operation_id' RETURNING VARCHAR2(36) NULL ON ERROR
+                            ),
+                            '^[0-9A-Fa-f]{{8}}-[0-9A-Fa-f]{{4}}-[0-9A-Fa-f]{{4}}-[0-9A-Fa-f]{{4}}-[0-9A-Fa-f]{{12}}$'
+                        )
+                        THEN HEXTORAW(REPLACE(
+                            JSON_VALUE(
+                                candidate_operation.result_metadata,
+                                '$.parent_operation_id' RETURNING VARCHAR2(36) NULL ON ERROR
+                            ),
+                            '-',
+                            ''
+                        ))
+                        ELSE NULL
+                    END
+              )
+            """,
+            operation_ids,
+            cutoff,
+        )
+        await conn.execute(
+            f"DELETE FROM {table} WHERE operation_id = ANY($1)",
+            operation_ids,
+        )
+        return len(operation_ids)
 
     async def _claim_consolidation_tasks(
         self,
