@@ -1,6 +1,6 @@
 # AI Agents for Beginners - A Course
 
-![AI Agents for Beginners](./images/repo-thumbnailv2.png)
+![AI Agents for Beginners](./images/repo-thumbnailv3.png)
 
 ## A course teaching everything you need to know to start building AI Agents
 
@@ -110,8 +110,8 @@ Do you have suggestions or found spelling or code errors? [Raise an issue](https
 | Managing Agentic Memory                      | [Link](./13-agent-memory/README.md)     |      [Video](https://youtu.be/QrYbHesIxpw?si=vZkVwKrQ4ieCcIPx)                                                      |                                                                                        |
 | Exploring Microsoft Agent Framework                         | [Link](./14-microsoft-agent-framework/README.md)                            |                                                            |                                                                                        |
 | Building Computer Use Agents (CUA)           | [Link](./15-browser-use/README.md)     |                                                            | [Link](https://docs.browser-use.com/examples/templates/playwright-integration)         |
-| Deploying Scalable Agents                    | Coming Soon                            |                                                            |                                                                                        |
-| Creating Local AI Agents                     | Coming Soon                               |                                                            |                                                                                        |
+| Deploying Scalable Agents                    | [Link](./16-deploying-scalable-agents/README.md) |                                                    | [Link](https://learn.microsoft.com/azure/ai-foundry/agents/overview)                   |
+| Creating Local AI Agents                     | [Link](./17-creating-local-ai-agents/README.md)  |                                                    | [Link](https://learn.microsoft.com/azure/ai-foundry/foundry-local/)                    |
 | Securing AI Agents                           | [Link](./18-securing-ai-agents/README.md)  |                                                            | [Link](https://aka.ms/ai-agents-beginners/collection?WT.mc_id=academic-105485-koreyst) |
 
 ## 🎒 Other Courses

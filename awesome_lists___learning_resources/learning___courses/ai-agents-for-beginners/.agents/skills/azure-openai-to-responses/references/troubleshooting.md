@@ -56,7 +56,7 @@
 4. Replace Chat `content[].type: "text"` with Responses `content[].type: "input_text"` for user/system inputs.
 5. For `text.format`, supply a proper dict (e.g., `{"type": "json_schema", "name": "Output", "schema": ..., "strict": True}`), not a plain string.
 6. The `seed` parameter is not supported in Responses; remove it from requests.
-7. **Reasoning**: Only include `reasoning` if the original code already used it. Do not add `reasoning` to API calls that didn't have it — many models (e.g., gpt-4o-mini) don't support this parameter.
+7. **Reasoning**: Only include `reasoning` if the original code already used it. Do not add `reasoning` to API calls that didn't have it — many non-reasoning models don't support this parameter.
 8. **`max_output_tokens` sizing**: For reasoning models (GPT-5-mini, GPT-5, o-series), use `max_output_tokens=4096` or higher — not 50–1000. The model uses reasoning tokens internally before generating visible output; too-low limits cause truncated or empty responses.
 9. **O-series `max_completion_tokens`**: If the original code used `max_completion_tokens` (Azure-specific for o-series), replace with `max_output_tokens`. The Responses API does not accept `max_completion_tokens`.
 10. **O-series `reasoning_effort`**: If the original code uses `reasoning_effort` (low/medium/high), migrate it to `reasoning={"effort": "<value>"}` in the Responses API call.

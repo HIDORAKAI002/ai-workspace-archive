@@ -12,6 +12,7 @@ using Microsoft.Extensions.AI;
 
 using Azure.AI.OpenAI;
 using Azure.Identity;
+using OpenAI.Chat;
 
 // Tool Function: Random Destination Generator
 // This static method will be available to the agent as a callable tool
@@ -46,7 +47,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4o-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -78,8 +79,8 @@ Always prioritize user preferences. If they mention a specific destination like 
 // Configure agent with name, detailed instructions, and available tools
 // This demonstrates the .NET agent creation pattern with full configuration
 AIAgent agent = azureClient
-    .GetOpenAIResponseClient(deployment)
-    .CreateAIAgent(
+    .GetChatClient(deployment)
+    .AsAIAgent(
         name: AGENT_NAME,
         instructions: AGENT_INSTRUCTIONS,
         tools: [AIFunctionFactory.Create(GetRandomDestination)]

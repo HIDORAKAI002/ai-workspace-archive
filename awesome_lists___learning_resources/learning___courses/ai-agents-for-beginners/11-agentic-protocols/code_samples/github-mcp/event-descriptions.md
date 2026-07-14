@@ -35,9 +35,11 @@ Getting started to build agents and multi-agent teams using AutoGen v0.4. We wil
 
 ## Description
 
-Thanks to GitHub Models, all you need to build your first AI Agent is a GitHub account! GitHub Models includes powerful models like OpenAI gpt-4o, DeepSeek-R1, Llama-3.1, and many more, ready to try out in the playground or in your code.
+Thanks to GitHub Models, all you need to build your first AI Agent is a GitHub account! GitHub Models includes powerful models like OpenAI gpt-4.1, DeepSeek-R1, Llama-3.1, and many more, ready to try out in the playground or in your code.
 In this session, we'll demonstrate how to connect to GitHub Models from Python, and then build agents using popular Python packages like PydanticAI, AutoGen, and Semantic Kernel.
 You can follow along live in GitHub Codespaces, or try the examples yourself anytime after the session.
+
+> **Note:** GitHub Models is deprecated (retiring July 2026). Do not use GitHub Models for new projects — use **Microsoft Foundry** models instead.
 
 ## URL
 <https://developer.microsoft.com/en-us/reactor/events/25481/>

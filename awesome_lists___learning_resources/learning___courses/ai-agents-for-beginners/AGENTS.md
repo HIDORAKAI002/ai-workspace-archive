@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This repository contains "AI Agents for Beginners" - a comprehensive educational course teaching everything needed to build AI Agents. The course consists of 18 lessons covering fundamentals, design patterns, frameworks, and production deployment of AI agents.
+This repository contains "AI Agents for Beginners" - a comprehensive educational course teaching everything needed to build AI Agents. The course consists of 18 lessons (numbered 00-18) covering fundamentals, design patterns, frameworks, production deployment, local/on-device agents, and security of AI agents.
 
 **Key Technologies:**
 - Python 3.12+
@@ -54,7 +54,7 @@ This repository contains "AI Agents for Beginners" - a comprehensive educational
 
 For **Microsoft Foundry** (Required):
 - `AZURE_AI_PROJECT_ENDPOINT` - Microsoft Foundry project endpoint
-- `AZURE_AI_MODEL_DEPLOYMENT_NAME` - Model deployment name (e.g., gpt-4o)
+- `AZURE_AI_MODEL_DEPLOYMENT_NAME` - Model deployment name (e.g., gpt-5-mini)
 
 For **Azure AI Search** (Lesson 05 - RAG):
 - `AZURE_SEARCH_SERVICE_ENDPOINT` - Azure AI Search endpoint
@@ -117,6 +117,10 @@ Open notebooks in Jupyter and execute cells sequentially. Each notebook is self-
 - Configuration loading
 - Example agent implementations
 - Expected outputs in markdown cells
+
+### Smoke-Testing Deployed Agents
+
+For lessons where an agent is deployed as a Microsoft Foundry hosted agent (01, 04, 05, 16), the repo ships smoke-test catalogs under `tests/` that are run by the `.github/workflows/smoke-test.yml` workflow via the [AI Smoke Test](https://github.com/marketplace/actions/ai-smoke-test) action. These are a lightweight post-deploy gate (is the agent reachable and following basic prompt expectations?), complementing the evaluation pipeline in Lessons 10 and 16. See [tests/README.md](./tests/README.md) for the catalog-to-lesson-to-agent mapping. Lesson 17 runs locally with Foundry Local and has no hosted endpoint, so it is validated by running its notebook directly.
 
 ## Code Style
 
@@ -286,6 +290,8 @@ Each lesson follows a consistent pattern:
 Format: `<lesson-number>-python-agent-framework.ipynb`
 - `01-python-agent-framework.ipynb` - Lesson 1, MAF Python
 - `14-sequential.ipynb` - Lesson 14, MAF advanced patterns
+- `16-python-agent-framework.ipynb` - Lesson 16, production customer-support agent
+- `17-local-agent-foundry-local.ipynb` - Lesson 17, local agent with Foundry Local + Qwen
 
 ### Special Directories
 

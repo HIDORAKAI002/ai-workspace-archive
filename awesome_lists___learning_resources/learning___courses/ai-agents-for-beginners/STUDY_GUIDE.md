@@ -78,7 +78,9 @@ to build.
 | Build a RAG-based agent | 05 | 04, 06, 12 |
 | Design multi-step workflows | 07 | 08, 09, 14 |
 | Understand multi-agent systems | 08 | 07, 09, 11 |
-| Prepare agents for production | 06, 10 | 12, 13, 18 |
+| Prepare agents for production | 06, 10 | 12, 13, 16, 18 |
+| Deploy and scale agents on Foundry | 10, 16 | 06, 13, 18 |
+| Build local / offline-first agents | 17 | 04, 05, 11 |
 | Explore protocols and browser automation | 11, 15 | 10, 18 |
 
 Tip: if you are new to agents, do not skip Lessons 01-06. They give you the
@@ -103,10 +105,20 @@ vocabulary you will need for the rest of the course.
 | [13 - Agent Memory](./13-agent-memory/README.md) | How agents can save useful information across interactions. | Choose one safe preference your demo could remember. |
 | [14 - Microsoft Agent Framework](./14-microsoft-agent-framework/README.md) | Framework-specific building blocks for agents and workflows, plus hosting LangChain/LangGraph agents on Microsoft Foundry. | Map your demo steps to framework concepts. |
 | [15 - Computer Use Agents](./15-browser-use/README.md) | How agents can interact with browser or UI surfaces, including real-world examples like Microsoft Project Opal. | Pick one browser task that should still require user confirmation. |
+| [16 - Deploying Scalable Agents](./16-deploying-scalable-agents/README.md) | How to take an agent from prototype to a scalable, observable production deployment on Microsoft Foundry (hosted agents, model routing, caching, evaluation gates, smoke tests). | List the production concerns your demo still needs: hosting, routing, cost, evaluation. |
+| [17 - Creating Local AI Agents](./17-creating-local-ai-agents/README.md) | How to build local-first agents that run entirely on your machine with Foundry Local and Qwen (local tools, local RAG, local MCP). | Decide which parts of your demo should stay private and run locally. |
 | [18 - Securing AI Agents](./18-securing-ai-agents/README.md) | How to make agent actions more auditable and tamper-evident. | Decide what actions in your demo should be logged or receipted. |
 
-Lessons 16 and 17 are listed in the main README as coming soon. Add them to your
-study plan when lesson content is available.
+## Validating Deployed Agents with Smoke Tests
+
+When you deploy an agent (Lesson 16), a **smoke test** is the cheapest first
+check that the deployment actually answers. This repo ships ready-to-run
+catalogs under [tests/](./tests/README.md) for the deployable agents in Lessons
+01, 04, 05, and 16, wired to the
+[AI Smoke Test](https://github.com/marketplace/actions/ai-smoke-test) GitHub
+Action. Run them from the **Actions** tab after deploying the lesson's agent.
+Smoke tests are a first gate — offline and online evaluation (Lessons 10 and 16)
+tell you how *good* the agent is.
 
 ## Key Ideas In Beginner-Friendly Terms
 

@@ -16,13 +16,13 @@ threading in a single API surface.
 Prerequisites
 -------------
 - An Azure subscription and a Microsoft Foundry project.
-- A deployed chat model that supports the Responses API (e.g. gpt-4.1 or gpt-5-mini).
+- A deployed chat model that supports the Responses API (e.g. gpt-5-mini or gpt-5-nano).
 - Python 3.10+ and the Azure CLI signed in (`az login`).
 - Install the hosting extra:
       pip install -U "langchain-azure-ai[hosting]>=1.2.4" azure-identity
 - Set environment variables:
       FOUNDRY_PROJECT_ENDPOINT=https://<resource>.services.ai.azure.com/api/projects/<project>
-      FOUNDRY_MODEL_NAME=gpt-4.1
+      FOUNDRY_MODEL_NAME=gpt-5-mini
 
 Run locally
 -----------
@@ -60,7 +60,7 @@ _AZURE_AI_SCOPE = "https://ai.azure.com/.default"
 def build_chat_model() -> ChatOpenAI:
     """Create a ChatOpenAI bound to the Foundry project's Responses endpoint."""
     project_endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"].rstrip("/")
-    deployment = os.environ.get("FOUNDRY_MODEL_NAME", "gpt-4.1")
+    deployment = os.environ.get("FOUNDRY_MODEL_NAME", "gpt-5-mini")
 
     credential = DefaultAzureCredential()
     project = AIProjectClient(endpoint=project_endpoint, credential=credential)
