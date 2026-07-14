@@ -1,17 +1,17 @@
 ---
-name: "status"
-description: "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations. Use when the user runs /si:status or asks how full or healthy the agent memory is."
+name: "memory-status"
+description: "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations. Use when the user runs /si:memory-status or asks how full or healthy the agent memory is."
 ---
 
-# /si:status — Memory Health Dashboard
+# /si:memory-status — Memory Health Dashboard
 
 Quick overview of your project's memory state across all memory systems.
 
 ## Usage
 
 ```
-/si:status                    # Full dashboard
-/si:status --brief            # One-line summary
+/si:memory-status                    # Full dashboard
+/si:memory-status --brief            # One-line summary
 ```
 
 ## What It Reports
@@ -84,7 +84,7 @@ done
 ### Brief mode
 
 ```
-/si:status --brief
+/si:memory-status --brief
 ```
 
 Output: `📊 Memory: {{n}}/200 lines | {{count}} rules | {{status_emoji}} {{status_word}}`
@@ -92,12 +92,12 @@ Output: `📊 Memory: {{n}}/200 lines | {{count}} rules | {{status_emoji}} {{sta
 ## Interpretation
 
 - **Green (< 60%)**: Plenty of room. Auto-memory is working well.
-- **Yellow (60-90%)**: Getting full. Consider running `/si:review` to promote or clean up.
-- **Red (> 90%)**: Near capacity. Auto-memory may start dropping older entries. Run `/si:review` now.
+- **Yellow (60-90%)**: Getting full. Consider running `/si:memory-review` to promote or clean up.
+- **Red (> 90%)**: Near capacity. Auto-memory may start dropping older entries. Run `/si:memory-review` now.
 
 ## Tips
 
-- Run `/si:status --brief` as a quick check anytime
-- If capacity is yellow+, run `/si:review` to identify promotion candidates
+- Run `/si:memory-status --brief` as a quick check anytime
+- If capacity is yellow+, run `/si:memory-review` to identify promotion candidates
 - Stale entries waste space — delete references to files that no longer exist
 - Topic files are fine — Claude creates them to keep MEMORY.md under 200 lines

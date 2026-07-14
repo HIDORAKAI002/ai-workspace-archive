@@ -1,19 +1,19 @@
 ---
-name: "review"
-description: "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics. Use when the user runs /si:review or asks what has been learned and what should be promoted or pruned."
+name: "memory-review"
+description: "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics. Use when the user runs /si:memory-review or asks what has been learned and what should be promoted or pruned."
 ---
 
-# /si:review — Analyze Auto-Memory
+# /si:memory-review — Analyze Auto-Memory
 
 Performs a comprehensive audit of Claude Code's auto-memory and produces actionable recommendations.
 
 ## Usage
 
 ```
-/si:review                    # Full review
-/si:review --quick            # Summary only (counts + top 3 candidates)
-/si:review --stale            # Focus on stale/outdated entries
-/si:review --candidates       # Show only promotion candidates
+/si:memory-review                    # Full review
+/si:memory-review --quick            # Summary only (counts + top 3 candidates)
+/si:memory-review --stale            # Focus on stale/outdated entries
+/si:memory-review --candidates       # Show only promotion candidates
 ```
 
 ## What It Does
@@ -113,14 +113,14 @@ Memory Health:
 ## When to Use
 
 - After completing a major feature or debugging session
-- When `/si:status` shows MEMORY.md is over 150 lines
+- When `/si:memory-status` shows MEMORY.md is over 150 lines
 - Weekly during active development
 - Before starting a new project phase
 - After onboarding a new team member (review what Claude learned)
 
 ## Tips
 
-- Run `/si:review --quick` frequently (low overhead)
+- Run `/si:memory-review --quick` frequently (low overhead)
 - Full review is most valuable when MEMORY.md is getting crowded
 - Act on promotion candidates promptly — they're proven patterns
 - Don't hesitate to delete stale entries — auto-memory will re-learn if needed
