@@ -1158,8 +1158,15 @@ DEFAULT_CONFIG = {
         # only controls how inbound user images are presented.
         "image_input_mode": "auto",
         "disabled_toolsets": [],
+
+        # Per-model reasoning effort overrides (spelling-tolerant).
+        # Dict mapping model names (any reasonable spelling) to effort levels.
+        # Takes precedence over agent.reasoning_effort when the current model
+        # matches a key in this dict.
+        # Edit directly in config.yaml (no CLI support due to dots in keys).
+        "reasoning_overrides": {},
     },
-    
+
     "terminal": {
         "backend": "local",
         "modal_mode": "auto",
@@ -3702,6 +3709,21 @@ OPTIONAL_ENV_VARS = {
     "XIAOMI_BASE_URL": {
         "description": "Xiaomi MiMo base URL override (default: https://api.xiaomimimo.com/v1)",
         "prompt": "Xiaomi base URL (leave empty for default)",
+        "url": None,
+        "password": False,
+        "category": "provider",
+        "advanced": True,
+    },
+    "UPSTAGE_API_KEY": {
+        "description": "Upstage API key for Solar LLM models",
+        "prompt": "Upstage API Key",
+        "url": "https://console.upstage.ai/api-keys",
+        "password": True,
+        "category": "provider",
+    },
+    "UPSTAGE_BASE_URL": {
+        "description": "Upstage base URL override (default: https://api.upstage.ai/v1)",
+        "prompt": "Upstage base URL (leave empty for default)",
         "url": None,
         "password": False,
         "category": "provider",
