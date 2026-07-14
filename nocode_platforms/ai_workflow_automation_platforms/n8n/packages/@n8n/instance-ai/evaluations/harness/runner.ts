@@ -300,6 +300,7 @@ export async function runWorkflowTestCase(
 				claimedWorkflowIds: config.claimedWorkflowIds,
 				logger,
 				laneTag: config.laneTag,
+				workflowExpected: workflowExpectedForCase(testCase),
 			});
 
 	if (isPrebuilt && build.success && !build.workflowChecks) {
@@ -352,6 +353,18 @@ export async function runWorkflowTestCase(
 					return allFailVerdicts(expectationsToJudge, 'judge error');
 				})
 			: Promise.resolve<BuildExpectationResult[]>([]);
+
+	// Answer-only cases (workflowExpectedForCase === false) legitimately end
+	// without a saved workflow — buildWorkflow reports them as a successful
+	// no-workflow build. Grade them on the conversation via the author
+	// expectations below; there are no scenarios to execute.
+	if (build.success && !build.workflowId) {
+		result.workflowBuildSuccess = true;
+		result.buildTrace = build.buildTrace;
+		const expectationResults = await expectationsPromise;
+		if (expectationResults.length > 0) result.buildExpectationResults = expectationResults;
+		return result;
+	}
 
 	if (!build.success || !build.workflowId) {
 		result.buildError = build.error;
@@ -521,6 +534,9 @@ export interface BuildResult {
 	 *  gone, reconstruction drift, restore failed) — a harness/framework problem,
 	 *  not an agent build failure. Routed to `framework_issue`. */
 	seedingFailed?: boolean;
+	/** Transport-level failure (network error, or the lane unreachable right
+	 *  after failing — e.g. timed out against a dead lane). Routed to `framework_issue`. */
+	transportFailure?: boolean;
 }
 
 export interface BuildWorkflowConfig {
@@ -555,6 +571,20 @@ export interface BuildWorkflowConfig {
 	allowWorkflowListDiffFallback?: boolean;
 	/** Let callers that own their own scoring avoid duplicate binary checks. */
 	skipWorkflowChecks?: boolean;
+	/** False for answer-only cases: ending the conversation without a saved
+	 *  workflow is then a valid outcome, not a failed build. Defaults to true. */
+	workflowExpected?: boolean;
+}
+
+/** A case needs a workflow iff something judges one: execution scenarios or
+ *  outcome expectations. Cases with neither are graded on the conversation. */
+export function workflowExpectedForCase(
+	testCase: Pick<WorkflowTestCase, 'executionScenarios' | 'outcomeExpectations'>,
+): boolean {
+	return (
+		(testCase.executionScenarios?.length ?? 0) > 0 ||
+		(testCase.outcomeExpectations?.length ?? 0) > 0
+	);
 }
 
 /** A conversation is multi-turn if it has more than one turn, or if the only
@@ -771,6 +801,28 @@ export async function buildWorkflow(config: BuildWorkflowConfig): Promise<BuildR
 		);
 
 		if (outcome.workflowsCreated.length === 0) {
+			// Answer-only cases (no execution scenarios, no outcome expectations)
+			// are graded on the conversation — ending without a workflow is a
+			// valid outcome for them, not a failed build.
+			if (config.workflowExpected === false) {
+				logger.info(
+					`  Conversation completed without a workflow (none expected) [${String(Math.round((Date.now() - buildStart) / 1000))}s] [thread ${threadId}]`,
+				);
+				return {
+					success: true,
+					workflowJsons: [],
+					buildTrace,
+					createdWorkflowIds: restoredWorkflowIds,
+					createdDataTableIds: [...outcome.dataTablesCreated, ...restoredDataTableIds],
+					conversationMetrics,
+					events,
+					threadId,
+					proxyDecisionStats,
+					transcript,
+					credentialViewPinned,
+					seedingFailed,
+				};
+			}
 			return {
 				success: false,
 				error: summarizeMissingWorkflowError(events),
@@ -874,17 +926,21 @@ export async function executeScenario(
 
 /**
  * Clean up workflows and data tables created during a build.
+ *
+ * Returns false when any deletion failed so callers can retry later.
  */
 export async function cleanupBuild(
 	client: N8nClient,
 	build: BuildResult,
 	logger: EvalLogger,
-): Promise<void> {
+): Promise<boolean> {
+	let clean = true;
+
 	for (const id of build.createdWorkflowIds) {
 		try {
 			await client.deleteWorkflow(id);
 		} catch {
-			// Best-effort cleanup
+			clean = false; // Best-effort cleanup
 		}
 	}
 
@@ -895,14 +951,26 @@ export async function cleanupBuild(
 				try {
 					await client.deleteDataTable(projectId, dtId);
 				} catch {
-					// Best-effort cleanup
+					clean = false; // Best-effort cleanup
 				}
 			}
 			logger.verbose(`  Cleaned up ${String(build.createdDataTableIds.length)} data table(s)`);
 		} catch {
-			// Non-fatal — project ID lookup may fail
+			clean = false; // Non-fatal — project ID lookup may fail
 		}
 	}
+
+	// Clears backend thread state (run-state registries, memory) that otherwise
+	// grows one entry per build for the container's lifetime.
+	if (build.threadId) {
+		try {
+			await client.deleteThread(build.threadId);
+		} catch {
+			clean = false; // Best-effort cleanup
+		}
+	}
+
+	return clean;
 }
 
 // ---------------------------------------------------------------------------

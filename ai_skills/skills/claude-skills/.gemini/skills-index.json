@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "name": "gemini-cli-skills",
-  "total_skills": 418,
+  "total_skills": 420,
   "skills": [
     {
       "name": "README",
@@ -939,6 +939,16 @@
       "description": "Use when a security incident has been detected or declared and needs classification, triage, escalation path determination, and forensic evidence collection. Covers SEV1-SEV4 classification, false positive filtering, incident taxonomy, and NIST SP 800-61 lifecycle."
     },
     {
+      "name": "memory-review",
+      "category": "engineering",
+      "description": "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics. Use when the user runs /si:memory-review or asks what has been learned and what should be promoted or pruned."
+    },
+    {
+      "name": "memory-status",
+      "category": "engineering",
+      "description": "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations. Use when the user runs /si:memory-status or asks how full or healthy the agent memory is."
+    },
+    {
       "name": "migrate",
       "category": "engineering",
       "description": ">-"
@@ -976,7 +986,7 @@
     {
       "name": "review",
       "category": "engineering",
-      "description": "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics. Use when the user runs /si:review or asks what has been learned and what should be promoted or pruned."
+      "description": ">-"
     },
     {
       "name": "security-pen-testing",

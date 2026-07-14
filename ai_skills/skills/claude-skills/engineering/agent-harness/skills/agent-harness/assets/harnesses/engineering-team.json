@@ -301,6 +301,34 @@
       "references": []
     },
     {
+      "name": "memory-review",
+      "path": "engineering-team/self-improving-agent/skills/memory-review",
+      "description": "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics. Use when the user runs /si:memory-review or asks what has been learned and what should be promoted or pruned.",
+      "tools": [],
+      "agentic_signals": {
+        "goal_intake": true,
+        "refusal_gate": false,
+        "verification": true,
+        "loop_discipline": false,
+        "close_out": false
+      },
+      "references": []
+    },
+    {
+      "name": "memory-status",
+      "path": "engineering-team/self-improving-agent/skills/memory-status",
+      "description": "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations. Use when the user runs /si:memory-status or asks how full or healthy the agent memory is.",
+      "tools": [],
+      "agentic_signals": {
+        "goal_intake": false,
+        "refusal_gate": false,
+        "verification": true,
+        "loop_discipline": false,
+        "close_out": false
+      },
+      "references": []
+    },
+    {
       "name": "promote",
       "path": "engineering-team/self-improving-agent/skills/promote",
       "description": "Graduate a proven pattern from auto-memory (MEMORY.md) to CLAUDE.md or .claude/rules/ for permanent enforcement. Use when the user runs /si:promote or asks to make a learned behavior permanent.",
@@ -329,20 +357,6 @@
       "references": []
     },
     {
-      "name": "review",
-      "path": "engineering-team/self-improving-agent/skills/review",
-      "description": "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics. Use when the user runs /si:review or asks what has been learned and what should be promoted or pruned.",
-      "tools": [],
-      "agentic_signals": {
-        "goal_intake": true,
-        "refusal_gate": false,
-        "verification": true,
-        "loop_discipline": false,
-        "close_out": false
-      },
-      "references": []
-    },
-    {
       "name": "self-improving-agent",
       "path": "engineering-team/self-improving-agent/skills/self-improving-agent",
       "description": "Curate Claude Code's auto-memory into durable project knowledge. Analyze MEMORY.md for patterns, promote proven learnings to CLAUDE.md and .claude/rules/, extract recurring solutions into reusable skills. Use when: (1) reviewing what Claude has learned about your project, (2) graduating a pattern from notes to enforced rules, (3) turning a debugging solution into a skill, (4) checking memory health and capacity.",
@@ -351,20 +365,6 @@
         "goal_intake": false,
         "refusal_gate": false,
         "verification": false,
-        "loop_discipline": false,
-        "close_out": false
-      },
-      "references": []
-    },
-    {
-      "name": "status",
-      "path": "engineering-team/self-improving-agent/skills/status",
-      "description": "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations. Use when the user runs /si:status or asks how full or healthy the agent memory is.",
-      "tools": [],
-      "agentic_signals": {
-        "goal_intake": false,
-        "refusal_gate": false,
-        "verification": true,
         "loop_discipline": false,
         "close_out": false
       },

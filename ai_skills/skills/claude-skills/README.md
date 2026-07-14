@@ -381,7 +381,7 @@ MIT — see [LICENSE](LICENSE) for details.
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=alirezarezvani/claude-skills&type=Date)](https://star-history.com/#alirezarezvani/claude-skills&Date)
+[Star History Chart](https://www.star-history.com/?type=date&repos=alirezarezvani%2Fclaude-skills)
 
 ---
 
