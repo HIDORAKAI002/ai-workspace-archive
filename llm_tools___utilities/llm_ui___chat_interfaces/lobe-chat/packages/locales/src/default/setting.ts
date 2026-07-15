@@ -13,6 +13,8 @@ export default {
   'agentImport.modal.knowledgeNotice': 'Knowledge bindings and files are not copied yet.',
   'agentImport.success': 'Agent copied to {{name}}.',
   'agentImport.title': 'Copy to Workspace',
+  'agentConnectorUsage.goToAgent': 'Go to agent',
+  'agentConnectorUsage.label': 'Used by agent',
   'accountDeletion.cancelButton': 'Cancel Deletion',
   'accountDeletion.cancelConfirmTitle': 'Cancel account deletion request?',
   'accountDeletion.cancelFailed': 'Failed to cancel deletion request',
@@ -714,7 +716,9 @@ export default {
   'settingAgent.agentTools.pickerEmpty': 'No user connectors available to add',
   'settingAgent.agentTools.priorityHint': 'Run priority',
   'settingAgent.agentTools.priorityTooltip':
-    'When identifiers collide, the Agent tool overrides the User tool at runtime (Agent > Workspace > Personal).',
+    'When tools share a name, the agent-exclusive tool runs first at runtime; your user tools come next.',
+  'settingAgent.agentTools.priorityTooltipWorkspace':
+    'When tools share a name, this agent-scoped tool runs first at runtime; the workspace user tools are the fallback.',
   'settingAgent.agentTools.removeOwnedConfirm':
     'Delete this agent-exclusive connector? Its credentials will be removed.',
   'settingAgent.agentTools.tabAgent': 'Agent Tools',
@@ -1074,6 +1078,7 @@ export default {
     'Select a voice for the current agent, different TTS services support different voices',
   'settingTTS.voice.preview': 'Voice Preview',
   'settingTTS.voice.title': 'Text-to-Speech Voice',
+  'skillGroup.agentConnectors': 'Agent Connectors',
   'skillGroup.builtinSkills': 'Built-in Skills',
   'skillGroup.builtinTools': 'Built-in Tools',
   'skillGroup.communityConnectors': 'OAuth Connectors',

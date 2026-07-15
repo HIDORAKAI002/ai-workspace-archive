@@ -79,9 +79,6 @@ jobs:
         with:
           version: 10
 
-      - run: pnpm config set store-dir ~/.pnpm-store
-      - run: mkdir -p ~/.pnpm-store
-
       - name: Install FoundationDB client library
         run: |
           curl -fsSL -o /tmp/fdb-clients.deb \
@@ -97,7 +94,7 @@ jobs:
             apps/test-site/pnpm-lock.yaml
             apps/playwright-service-ts/pnpm-lock.yaml
 
-      - run: pnpm fetch
+      - run: pnpm dlx pnpm@11.4.0 fetch
         working-directory: apps/api
       - run: pnpm fetch
         working-directory: apps/test-site
@@ -118,7 +115,7 @@ jobs:
 
       - name: Build native lib
         if: steps.napi_restore.outputs.cache-hit != 'true'
-        run: pnpm install
+        run: pnpm dlx pnpm@11.4.0 install
         working-directory: apps/api/native
 
       - name: Cache native lib
@@ -216,7 +213,7 @@ jobs:
         working-directory: ./
 
       - name: Install API dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: pnpm dlx pnpm@11.4.0 install --frozen-lockfile --ignore-scripts
         working-directory: apps/api
         env:
           npm_config_ignore_scripts: 'true'
@@ -262,7 +259,7 @@ jobs:
           echo "docker:docker@127.0.0.1:4500" > /tmp/fdb.cluster
 
       - name: Run tests
-        run: pnpm harness pnpm test:snips
+        run: pnpm dlx pnpm@11.4.0 harness pnpm test:snips
         working-directory: apps/api
         env:
           npm_config_ignore_scripts: 'true' # required currently to prevent re-building cached native lib
@@ -478,7 +475,7 @@ jobs:
 
   #     - uses: pnpm/action-setup@v4
   #       with:
-  #         version: 10
+  #         version: 11.4.0
 
   #     - run: pnpm config set store-dir ~/.pnpm-store
   #     - run: mkdir -p ~/.pnpm-store
@@ -589,10 +586,7 @@ jobs:
 
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
         with:
-          version: 10
-
-      - run: pnpm config set store-dir ~/.pnpm-store
-      - run: mkdir -p ~/.pnpm-store
+          version: 11.4.0
 
       - uses: actions/setup-node@v6
         with:

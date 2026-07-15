@@ -466,44 +466,35 @@ class TestListCustomAgents:
 
 
 class TestMemoryFilePath:
-    def test_global_memory_path(self, tmp_path):
+    def test_global_memory_path(self, tmp_path, monkeypatch):
         """None agent_name should return global memory file."""
-        from deerflow.agents.memory.storage import FileMemoryStorage
-        from deerflow.config.memory_config import MemoryConfig
+        from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+        from deerflow.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
 
-        with (
-            patch("deerflow.agents.memory.storage.get_paths", return_value=_make_paths(tmp_path)),
-            patch("deerflow.agents.memory.storage.get_memory_config", return_value=MemoryConfig(storage_path="")),
-        ):
-            storage = FileMemoryStorage()
-            path = storage._get_memory_file_path(None)
+        monkeypatch.setenv("DEERMEM_DATA_DIR", str(tmp_path))
+        storage = FileMemoryStorage(DeerMemConfig())
+        path = storage._get_memory_file_path(None)
         assert path == tmp_path / "memory.json"
 
-    def test_agent_memory_path(self, tmp_path):
+    def test_agent_memory_path(self, tmp_path, monkeypatch):
         """Providing agent_name should return per-agent memory file."""
-        from deerflow.agents.memory.storage import FileMemoryStorage
-        from deerflow.config.memory_config import MemoryConfig
+        from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+        from deerflow.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
 
-        with (
-            patch("deerflow.agents.memory.storage.get_paths", return_value=_make_paths(tmp_path)),
-            patch("deerflow.agents.memory.storage.get_memory_config", return_value=MemoryConfig(storage_path="")),
-        ):
-            storage = FileMemoryStorage()
-            path = storage._get_memory_file_path("code-reviewer")
+        monkeypatch.setenv("DEERMEM_DATA_DIR", str(tmp_path))
+        storage = FileMemoryStorage(DeerMemConfig())
+        path = storage._get_memory_file_path("code-reviewer")
         assert path == tmp_path / "agents" / "code-reviewer" / "memory.json"
 
-    def test_different_paths_for_different_agents(self, tmp_path):
-        from deerflow.agents.memory.storage import FileMemoryStorage
-        from deerflow.config.memory_config import MemoryConfig
+    def test_different_paths_for_different_agents(self, tmp_path, monkeypatch):
+        from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+        from deerflow.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
 
-        with (
-            patch("deerflow.agents.memory.storage.get_paths", return_value=_make_paths(tmp_path)),
-            patch("deerflow.agents.memory.storage.get_memory_config", return_value=MemoryConfig(storage_path="")),
-        ):
-            storage = FileMemoryStorage()
-            path_global = storage._get_memory_file_path(None)
-            path_a = storage._get_memory_file_path("agent-a")
-            path_b = storage._get_memory_file_path("agent-b")
+        monkeypatch.setenv("DEERMEM_DATA_DIR", str(tmp_path))
+        storage = FileMemoryStorage(DeerMemConfig())
+        path_global = storage._get_memory_file_path(None)
+        path_a = storage._get_memory_file_path("agent-a")
+        path_b = storage._get_memory_file_path("agent-b")
 
         assert path_global != path_a
         assert path_global != path_b
@@ -694,6 +685,32 @@ class TestAgentsAPI:
                 }
             ],
         }
+
+    def test_update_memory_only_user_dir_with_legacy_agent_returns_409(self, agent_client, tmp_path):
+        """Regression for #3390's PUT /api/agents/{name} guard.
+
+        A per-user agent directory can exist containing only memory.json
+        (written the first time this user chats with a legacy shared
+        agent). The stale guard checked bare directory existence and
+        missed this case, letting the route silently fork a brand-new
+        config.yaml/SOUL.md into the memory-only directory instead of
+        blocking with the migration-script guidance.
+        """
+        legacy_dir = tmp_path / "agents" / "legacy-agent"
+        legacy_dir.mkdir(parents=True)
+        (legacy_dir / "config.yaml").write_text("name: legacy-agent\ndescription: legacy\n", encoding="utf-8")
+        (legacy_dir / "SOUL.md").write_text("legacy soul", encoding="utf-8")
+
+        user_agent_dir = tmp_path / "users" / "test-user-autouse" / "agents" / "legacy-agent"
+        user_agent_dir.mkdir(parents=True)
+        (user_agent_dir / "memory.json").write_text("{}", encoding="utf-8")
+
+        response = agent_client.put("/api/agents/legacy-agent", json={"soul": "should not write"})
+
+        assert response.status_code == 409
+        assert not (user_agent_dir / "config.yaml").exists()
+        assert not (user_agent_dir / "SOUL.md").exists()
+        assert (user_agent_dir / "memory.json").exists(), "the user's existing memory must be left untouched"
 
     def test_update_missing_agent_404(self, agent_client):
         response = agent_client.put("/api/agents/ghost-agent", json={"soul": "new"})
