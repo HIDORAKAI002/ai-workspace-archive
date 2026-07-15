@@ -127,6 +127,7 @@ This collection includes 9 email automation templates for n8n covering Gmail, Ou
 | InboxZero Lite - AI Email Classifier | AI classifies Gmail emails as urgent, important, info, or spam using OpenAI gpt-4o-mini. Lightweight single-workflow setup with Google Sheets logging. | Ops | [Link to Template](Gmail_and_Email_Automation/InboxZero%20Lite%20-%20AI%20Email%20Classifier.json) |
 | LeadPilot Lite - AI Cold Email Writer | AI writes personalized cold emails from a Google Sheets lead list using OpenAI. Generates subject lines and body text tailored to each prospect. | Sales | [Link to Template](Gmail_and_Email_Automation/LeadPilot%20Lite%20-%20AI%20Cold%20Email%20Writer.json) |
 | Daily Email Notification | Summarizes daily inbox emails using local LLM (Ollama) and sends notifications via Telegram or ntfy. | Ops | [Link to Template](Gmail_and_Email_Automation/Daily%20Email%20Notification.json) |
+| Website-Grounded Cold Email Writer | Fetches each lead's real website, extracts the page text, and writes a personalized cold email grounded only in that content. Flags thin or broken sites for human review instead of inventing facts. | Sales | [Link to Template](Gmail_and_Email_Automation/Website-Grounded%20Cold%20Email%20Writer.json) |
 
 
 > 🚀 **Automate any workflow.** [Create your free n8n account and start building →](https://n8n.partnerlinks.io/h1pwwf5m4toe)
@@ -150,6 +151,7 @@ Explore 20 Telegram automation templates for n8n, including AI chatbots with Lan
 | Telegram AI bot with LangChain nodes | Uses LangChain nodes for advanced AI conversations and tool use in Telegram. | Support | [Link to Template](Telegram/Telegram%20AI%20bot%20with%20LangChain%20nodes.json) |
 | Telegram AI Chatbot | A general-purpose AI chatbot template for Telegram that can be customized for various use cases. | Support | [Link to Template](Telegram/Telegram%20AI%20Chatbot.json) |
 | Telegram Bot with Supabase memory and OpenAI assistant integration | Adds long-term memory with Supabase to a Telegram bot, coupled with OpenAI for rich, context-aware conversations. | Support | [Link to Template](Telegram/Telegram%20Bot%20with%20Supabase%20memory%20and%20OpenAI%20assistant%20integration.json) |
+| Telegram AI Support Bot with Conversation Memory | Turns a Telegram bot into an AI support assistant with per-customer conversation memory and multilingual replies; works with OpenAI or local models via Ollama. | Support | [Link to Template](Telegram/Telegram%20AI%20Support%20Bot%20with%20Conversation%20Memory.json) |
 | Telegram chat with PDF | Allows users to upload a PDF to Telegram and chat with its contents using AI-powered summarization and Q&A. | Ops | [Link to Template](Telegram/Telegram%20chat%20with%20PDF.json) |
 | 🤖 Telegram Messaging Agent for Text_Audio_Images | Multi-modal agent that processes text, audio, and images in Telegram chats using AI for responses. | Support | [Link to Template](Telegram/%F0%9F%A4%96%20Telegram%20Messaging%20Agent%20for%20Text_Audio_Images.json) |
 | Telegram to Spotify with OpenAI | Lets users request songs or playlists in Telegram and automatically create them in Spotify via OpenAI. | Marketing | [Link to Template](Telegram/Telegram%20to%20Spotify%20with%20OpenAI.json) |
@@ -343,13 +345,14 @@ This is the largest category with 17 AI and LLM templates for n8n. Templates inc
 
 ### How do I build WhatsApp chatbots with n8n?
 
-This section includes 4 WhatsApp automation templates for n8n. Automate sales meeting preparation with AI and Apify, build your first WhatsApp chatbot, create a full business RAG chatbot powered by OpenAI, or set up professional AI-powered message responses. Ideal for customer service, sales, and business communication workflows.
+This section includes 5 WhatsApp and cross-channel messaging automation templates for n8n. Automate sales meeting preparation with AI and Apify, build WhatsApp chatbots, or use one workflow to receive and send messages across WhatsApp, Instagram DM, and Facebook Messenger. Ideal for customer service, sales, and business communication workflows.
 
 | Title | Description | Department | Link |
 |---|---|---|---|
 | Automate Sales Meeting Prep with AI & APIFY Sent To WhatsApp | This workflow automates sales meeting preparation using AI and Apify, sending relevant information to WhatsApp. | Sales/AI/Automation | [Link to Template](./WhatsApp/Automate%20Sales%20Meeting%20Prep%20with%20AI%20&%20APIFY%20Sent%20To%20WhatsApp.json) |
 | Building Your First WhatsApp Chatbot | This workflow guides you through building your first WhatsApp chatbot. | Customer Service/Development | [Link to Template](./WhatsApp/Building%20Your%20First%20WhatsApp%20Chatbot.json) |
 | Complete business WhatsApp AI-Powered RAG Chatbot using OpenAI | This workflow builds a complete business WhatsApp AI-powered RAG chatbot using OpenAI. | Customer Service/AI/Development | [Link to Template](./WhatsApp/Complete%20business%20WhatsApp%20AI-Powered%20RAG%20Chatbot%20using%20OpenAI.json) |
+| Receive and Send Messages Across WhatsApp, Instagram and Facebook Messenger with Fiwano | Demonstrates a minimal receive → custom logic → send pattern across three official Meta APIs. Fiwano unifies the channels into one Trigger/Action node set and normalized payload; replace the middle with any routing, CRM, helpdesk, or AI logic. | Customer Service/Development | [Link to Template](./WhatsApp/Receive%20and%20Send%20Messages%20Across%20WhatsApp%2C%20Instagram%20and%20Facebook%20Messenger%20with%20Fiwano.json) |
 | Respond to WhatsApp Messages with AI Like a Pro! | This workflow enables professional AI-powered responses to WhatsApp messages. | Customer Service/AI/Communication | [Link to Template](./WhatsApp/Respond%20to%20WhatsApp%20Messages%20with%20AI%20Like%20a%20Pro!.json) |
 
 > 🚀 **Automate any workflow.** [Create your free n8n account and start building →](https://n8n.partnerlinks.io/h1pwwf5m4toe)
@@ -373,6 +376,7 @@ Explore 13 social media automation templates for n8n covering Instagram, Twitter
 | AI Social Media Content Generator with Ollama | Generates optimized posts for Twitter, LinkedIn, Reddit, and Instagram from a single topic using Ollama local AI with built-in quality review. | Marketing/AI/Content | [Link to Template](Instagram_Twitter_Social_Media/AI%20Social%20Media%20Content%20Generator%20with%20Ollama.json) |
 | FlowScribe Lite - AI Content Repurposing (4 Platforms) | Converts one blog post into four optimized social media posts for Twitter, LinkedIn, Instagram, and Facebook using OpenAI. | Marketing/Content | [Link to Template](Instagram_Twitter_Social_Media/FlowScribe%20Lite%20-%20AI%20Content%20Repurposing%204%20Platforms.json) |
 | Monitor X Search with Xquik | Searches X with Xquik, normalizes matching posts, and builds an email-ready social listening digest. | Marketing/Analytics | [Link to Template](Instagram_Twitter_Social_Media/Monitor%20X%20Search%20with%20Xquik.json) |
+| Grounded Article to Thread and LinkedIn Post | Turns a pasted article or transcript into a numbered X/Twitter thread and a LinkedIn post, with every fact grounded in the source text. Flags thin input for human review instead of padding filler. | Marketing/Content/AI | [Link to Template](Instagram_Twitter_Social_Media/Grounded%20Article%20to%20Thread%20and%20LinkedIn%20Post.json) |
 
 > 🚀 **Automate any workflow.** [Create your free n8n account and start building →](https://n8n.partnerlinks.io/h1pwwf5m4toe)
 
