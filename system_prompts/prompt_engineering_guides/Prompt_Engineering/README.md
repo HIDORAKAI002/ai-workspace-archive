@@ -10,6 +10,28 @@ Welcome to one of the most extensive and dynamic collections of Prompt Engineeri
 
 > **22 hands-on tutorials** covering everything from basic prompt templates to advanced techniques like chain-of-thought, self-consistency, and tree-of-thought prompting.
 
+<h2 align="center">🎓 From prompts to production</h2>
+
+<div align="center">
+
+**[Prompt to Production](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=course-free-module-cta&target=https%3A%2F%2Fwww.diamant-ai.com%2Fcourses%3Futm_source%3Dgithub%26utm_medium%3Dreadme%26utm_campaign%3Dprompt-engineering&retarget=0&text=course-free-module-cta)** - my full course on building software with AI the way professionals do: the methods and paradigms behind reliable, efficient, modular production systems, taught systematically. 17 modules, each pairing a video lecture with a hands-on lab, from your first structured prompt to a working production system.
+
+### 🎁 Try a full module, free
+
+<table>
+<tr>
+<td align="center">🎬<br><b>7-minute<br>video lecture</b></td>
+<td align="center">🛠️<br><b>Hands-on<br>tutorial</b></td>
+<td align="center">🤖<br><b>AI assistant<br>inside Claude Code</b></td>
+</tr>
+</table>
+
+One `npm install` adds the module's AI assistant to your Claude Code, and it guides you through the tutorial as you build.
+
+<a href="https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=course-free-module-cta&target=https%3A%2F%2Fwww.diamant-ai.com%2Fcourses%3Futm_source%3Dgithub%26utm_medium%3Dreadme%26utm_campaign%3Dprompt-engineering&retarget=0&text=course-free-module-cta"><img src="images/free-module-button.svg" alt="Claim your free module" width="420"></a>
+
+</div>
+
 ## 🎯 Sponsors
 
 <div align="center">
@@ -40,12 +62,6 @@ Welcome to one of the most extensive and dynamic collections of Prompt Engineeri
 </div>
 
 [![DiamantAI's newsletter](images/substack_image.png)](https://newsletter.diamant-ai.com/?r=336pe4&utm_campaign=pub-share-checklist)
-
-## 🎓 From prompts to production
-
-**[Prompt to Production](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=course-waitlist-cta&target=https%3A%2F%2Fdiamant-ai.com%2Fcourses%3Futm_source%3Dgithub%26utm_medium%3Dreadme%26utm_campaign%3Dprompt-engineering&retarget=0&text=course-waitlist-cta)** - my full course on building software with AI the way professionals do: the methods and paradigms behind reliable, efficient, modular production systems, taught systematically. 16 lectures, each with a hands-on lab, from your first structured prompt to a working production system.
-
-**[Join the waiting list →](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=course-waitlist-cta&target=https%3A%2F%2Fdiamant-ai.com%2Fcourses%3Futm_source%3Dgithub%26utm_medium%3Dreadme%26utm_campaign%3Dprompt-engineering&retarget=0&text=course-waitlist-cta)** · everyone on the list locks in the founding price, lower than public launch
 
 ## Introduction
 

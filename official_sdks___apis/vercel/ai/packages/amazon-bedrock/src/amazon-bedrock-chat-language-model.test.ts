@@ -201,6 +201,40 @@ const opusAnthropicModel = new AmazonBedrockChatLanguageModel(
 
 let mockOptions: { success: boolean; errorValue?: any } = { success: true };
 
+describe('doGenerate request metadata', () => {
+  it('should return the request body', async () => {
+    prepareJsonFixtureResponse('amazon-bedrock-text');
+
+    const result = await model.doGenerate({
+      prompt: TEST_PROMPT,
+    });
+
+    expect(result.request?.body).toMatchInlineSnapshot(`
+      {
+        "additionalModelRequestFields": undefined,
+        "additionalModelResponseFieldPaths": [
+          "/delta/stop_sequence",
+        ],
+        "messages": [
+          {
+            "content": [
+              {
+                "text": "Hello",
+              },
+            ],
+            "role": "user",
+          },
+        ],
+        "system": [
+          {
+            "text": "System Prompt",
+          },
+        ],
+      }
+    `);
+  });
+});
+
 describe('doStream', () => {
   beforeEach(() => {
     mockOptions = { success: true, errorValue: undefined };
@@ -283,6 +317,37 @@ describe('doStream', () => {
           "connection": "keep-alive",
           "content-type": "text/event-stream",
           "test-header": "test-value",
+        }
+      `);
+    });
+
+    it('should return the request body', async () => {
+      const result = await model.doStream({
+        prompt: TEST_PROMPT,
+        includeRawChunks: false,
+      });
+
+      expect(result.request?.body).toMatchInlineSnapshot(`
+        {
+          "additionalModelRequestFields": undefined,
+          "additionalModelResponseFieldPaths": [
+            "/delta/stop_sequence",
+          ],
+          "messages": [
+            {
+              "content": [
+                {
+                  "text": "Hello",
+                },
+              ],
+              "role": "user",
+            },
+          ],
+          "system": [
+            {
+              "text": "System Prompt",
+            },
+          ],
         }
       `);
     });

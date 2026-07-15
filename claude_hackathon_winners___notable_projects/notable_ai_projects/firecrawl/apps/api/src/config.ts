@@ -244,6 +244,12 @@ const configSchema = z.object({
   FIRE_PDF_PERCENT: z.coerce.number().min(0).max(100).default(10),
   FIRE_PDF_BASE_URL: z.string().optional(),
   FIRE_PDF_API_KEY: z.string().optional(),
+  // Async /jobs rollout is a separate, server-controlled cohort inside
+  // traffic already selected for FirePDF. It is disabled by default.
+  FIRE_PDF_ASYNC_PERCENT: z.coerce.number().min(0).max(100).default(0),
+  FIRE_PDF_ASYNC_FORCE_TEAM_IDS: z.string().optional(),
+  FIRE_PDF_ASYNC_DISABLE_TEAM_IDS: z.string().optional(),
+  FIRE_PDF_ASYNC_ALLOW_REQUEST_OVERRIDE: z.stringbool().default(false),
 
   // RunPod
   RUNPOD_MU_API_KEY: z.string().optional(),
