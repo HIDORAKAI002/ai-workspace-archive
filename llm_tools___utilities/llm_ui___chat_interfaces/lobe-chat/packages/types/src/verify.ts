@@ -40,8 +40,72 @@ export type VerifyVerdict = 'passed' | 'failed' | 'uncertain';
 /** Human feedback on a result, feeding the data flywheel. */
 export type VerifyUserDecision = 'accepted' | 'rejected' | 'overridden';
 
+// ============================================
+// Acceptance — business-level delivery acceptance aggregate
+// ============================================
+
 /**
- * Denormalized rollup of a verification session's pipeline state — mirrors the
+ * The product object being accepted. Kept polymorphic so the acceptance aggregate
+ * is not coupled to task-only workflows: a future run can accept a topic,
+ * document, artifact, release, etc. without another schema reshape.
+ */
+export type AcceptanceSubjectType = 'task' | 'topic' | 'document';
+
+/**
+ * Business-level acceptance state. Check-level and run-level verdicts stay in the
+ * verify vocabulary (`passed` / `failed`); the aggregate exposes the user's
+ * outcome language (`accepted` / `rejected`).
+ *
+ * `delivered`: verification settled positively and the aggregate now waits for
+ * the user's accept/reject — the human decision closes the lifecycle, the
+ * verifier's verdict is only a recommendation.
+ */
+export type AcceptanceStatus =
+  | 'pending'
+  | 'planned'
+  | 'verifying'
+  | 'repairing'
+  | 'delivered'
+  | 'accepted'
+  | 'rejected'
+  | 'errored';
+
+/**
+ * AI-generated visualization for an acceptance report (`acceptances.visual_render`).
+ * One jsonb bag (not a bare text column) so generation provenance and future
+ * knobs (theme, assets) never need a migration.
+ *
+ * The `html` payload is model-produced — viewers MUST render it inside a
+ * sandboxed iframe, never inject it into the host document.
+ */
+export interface AcceptanceVisualRender {
+  generatedAt?: string;
+  /** Producer of the visualization, e.g. a model id. */
+  generatedBy?: string;
+  /** Self-contained HTML document filled in by the AI. */
+  html: string;
+}
+
+/**
+ * Acceptance policy/config snapshot. The source may be a task's `config.verify`,
+ * a topic-level override, or a document acceptance rule, so it lives with the
+ * generic aggregate rather than only in task types.
+ */
+export interface AcceptanceConfig {
+  enabled?: boolean;
+  maxIterations?: number;
+  verifierAgentId?: string;
+  verifyCriteriaIds?: string[];
+  verifyRubricId?: string;
+}
+
+/** Generic acceptance extension bag for cross-subject state we have not modeled yet. */
+export interface AcceptanceMetadata {
+  [key: string]: unknown;
+}
+
+/**
+ * Denormalized rollup of a verification round's pipeline state — mirrors the
  * legacy `agent_operations.verify_status` set so the two stay interchangeable
  * while results/reports migrate from being operation-anchored to run-anchored.
  *
@@ -59,15 +123,15 @@ export type VerifyRunStatus =
   | 'delivered';
 
 /**
- * What produced a verification session.
+ * What produced a verification round.
  * - agent:         verifying a real Agent Run (`verify_runs.operation_id` set)
- * - agent-testing: a standalone session ingested from the agent-testing harness
+ * - agent-testing: a standalone round ingested from the agent-testing harness
  *   (no Agent Run — `operation_id` is null)
  */
 export type VerifyRunSource = 'agent' | 'agent-testing';
 
 /**
- * The kind of thing a verification session checks. Orthogonal to `source` (which
+ * The kind of thing a verification round checks. Orthogonal to `source` (which
  * records what *produced* the run): `scenario` drives how the report renders its
  * scope header and scenario-specific detail. Open-ended — new scenarios add a
  * value here plus their own {@link VerifyRunContext} shape.
@@ -93,6 +157,23 @@ export type VerifyEvidenceType =
 
 /** Who / what captured an evidence artifact (provenance). */
 export type VerifyEvidenceCapturedBy = 'agent-browser' | 'cdp' | 'cli' | 'program' | 'llm_judge';
+
+/**
+ * Provenance of a user's acceptance decision on a verify round
+ * (`verify_runs.decision_detail`). One bag so the decision can carry richer
+ * evidence — a note, attachments, who and when — without new columns; the
+ * `verify_runs.user_decision` verb stays the queryable field.
+ */
+export interface VerifyRunDecisionDetail {
+  /** Free-form reason, e.g. the reject note that seeds the next repair round. */
+  comment?: string;
+  /** When the decision was made (ISO 8601). */
+  decidedAt?: string;
+  /** Who made the decision (user id) — set when it may differ from the run owner. */
+  decidedBy?: string;
+  /** Attachments backing the decision (annotated screenshots, etc.) — FKs to files. */
+  fileIds?: string[];
+}
 
 /**
  * The LobeHub conversation an ingested report was authored in. Lets the report
@@ -346,8 +427,8 @@ export interface VerifyEvidence {
 
 /**
  * A delivery-verification report. A generated artifact (not a computed one):
- * `summary` / `content` are written by an LLM from the session's check results +
- * evidence. Tied to a verification session via `verifyRunId` (which itself
+ * `summary` / `content` are written by an LLM from the round's check results +
+ * evidence. Tied to a verification round via `verifyRunId` (which itself
  * optionally links back to an Agent Run).
  */
 export interface VerifyReport {
@@ -370,6 +451,6 @@ export interface VerifyReport {
   uncertainChecks?: number | null;
   /** Overall Claim, reusing the verdict vocabulary. */
   verdict?: VerifyVerdict | null;
-  /** The verification session this report summarizes. */
+  /** The verification round this report summarizes. */
   verifyRunId: string;
 }

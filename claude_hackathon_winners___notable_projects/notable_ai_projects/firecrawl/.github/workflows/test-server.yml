@@ -77,7 +77,7 @@ jobs:
 
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
         with:
-          version: 10
+          version: 11.4.0
 
       - name: Install FoundationDB client library
         run: |
@@ -94,7 +94,7 @@ jobs:
             apps/test-site/pnpm-lock.yaml
             apps/playwright-service-ts/pnpm-lock.yaml
 
-      - run: pnpm dlx pnpm@11.4.0 fetch
+      - run: pnpm fetch
         working-directory: apps/api
       - run: pnpm fetch
         working-directory: apps/test-site
@@ -115,7 +115,7 @@ jobs:
 
       - name: Build native lib
         if: steps.napi_restore.outputs.cache-hit != 'true'
-        run: pnpm dlx pnpm@11.4.0 install
+        run: pnpm install
         working-directory: apps/api/native
 
       - name: Cache native lib
@@ -213,7 +213,7 @@ jobs:
         working-directory: ./
 
       - name: Install API dependencies
-        run: pnpm dlx pnpm@11.4.0 install --frozen-lockfile --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
         working-directory: apps/api
         env:
           npm_config_ignore_scripts: 'true'
@@ -259,7 +259,7 @@ jobs:
           echo "docker:docker@127.0.0.1:4500" > /tmp/fdb.cluster
 
       - name: Run tests
-        run: pnpm dlx pnpm@11.4.0 harness pnpm test:snips
+        run: pnpm harness pnpm test:snips
         working-directory: apps/api
         env:
           npm_config_ignore_scripts: 'true' # required currently to prevent re-building cached native lib

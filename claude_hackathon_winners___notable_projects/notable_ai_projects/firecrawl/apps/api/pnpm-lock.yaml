@@ -166,8 +166,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       geoip-country:
-        specifier: ^5.0.202607110104
-        version: 5.0.202607110104
+        specifier: ^5.0.202607150057
+        version: 5.0.202607150057
       he:
         specifier: ^1.2.0
         version: 1.2.0
@@ -3049,8 +3049,8 @@ packages:
     resolution: {integrity: sha512-zV/5HKTfCeKWnxG0Dmrw51hEWFGfcF2xiXqcA3+J90WDuP0SvoiSO5ORvcBsifmx/FoIjgQN3oNOGaQ5PhLFkg==}
     engines: {node: '>=18'}
 
-  geoip-country@5.0.202607110104:
-    resolution: {integrity: sha512-Acug9yXKPmy0QnrI41i/8QUpBfO2HY82OVZMTWYMy9Iq0SRDybEDIZOnVy5VWN3z9xqYc0tpK8ugpo1TrdX6CA==}
+  geoip-country@5.0.202607150057:
+    resolution: {integrity: sha512-BsCnrL6DluGwo4CfvCys6q9P+1DJp7CxaJOCRHarkpHQmgjPDZu6n56euBRlullrcB5dwTRODNqlcNTP/Sv4zQ==}
     engines: {node: '>=10.20.0'}
 
   get-east-asian-width@1.3.1:
@@ -6989,7 +6989,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  geoip-country@5.0.202607110104:
+  geoip-country@5.0.202607150057:
     dependencies:
       async: 2.6.4
       countries-list: 3.1.1
