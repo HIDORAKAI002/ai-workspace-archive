@@ -1,9 +1,9 @@
-# Atmintis AI agentams  
-[![Agent Memory](../../../translated_images/lt/lesson-13-thumbnail.959e3bc52d210c64.webp)](https://youtu.be/QrYbHesIxpw?si=qNYW6PL3fb3lTPMk)
+# Atmintis AI Agentams 
+[![Agentų atmintis](../../../translated_images/lt/lesson-13-thumbnail.959e3bc52d210c64.webp)](https://youtu.be/QrYbHesIxpw?si=qNYW6PL3fb3lTPMk)
 
-Kalbant apie unikalius AI agentų kūrimo privalumus, dažniausiai aptariami du dalykai: galimybė naudotis įrankiais užduotims atlikti ir gebėjimas tobulėti laikui bėgant. Atmintis yra savęs tobulinančio agento kūrimo pagrindas, leidžiantis kurti geresnę patirtį mūsų naudotojams.
+Kalbant apie unikalius AI Agentų kūrimo privalumus dažniausiai minimos dvi pagrindinės savybės: galimybė iškviesti įrankius užduotims atlikti ir gebėjimas tobulėti laikui bėgant. Atmintis yra saviugdos agento, kuris gali kurti geresnes patirtis mūsų vartotojams, pagrindas.
 
-Šioje pamokoje apžvelgsime, kas yra atmintis AI agentams, kaip ją valdyti ir naudoti mūsų programų naudai.
+Šiame pamokoje apžvelgsime, kas yra atmintis AI agentams, kaip ją valdyti ir kaip ją panaudoti mūsų programų naudai.
 
 ## Įvadas
 
@@ -11,158 +11,165 @@ Kalbant apie unikalius AI agentų kūrimo privalumus, dažniausiai aptariami du 
 
 • **AI agentų atminties supratimą**: Kas yra atmintis ir kodėl ji svarbi agentams.
 
-• **Atminties įgyvendinimą ir saugojimą**: Praktinius būdus, kaip suteikti atminties galimybes savo AI agentams, akcentuojant trumpalaikę ir ilgalaikę atmintį.
+• **Atminties įgyvendinimą ir saugojimą**: Praktinius metodus, kaip pridėti atminties funkcijas jūsų AI agentams, sutelkiant dėmesį į trumpalaikę ir ilgalaikę atmintį.
 
-• **AI agentų savęs tobulinimą**: Kaip atmintis leidžia agentams mokytis iš ankstesnių sąveikų ir tobulėti laikui bėgant.
+• **Kaip padaryti AI agentus savitobulinančius**: Kaip atmintis leidžia agentams mokytis iš ankstesnių sąveikų ir tobulėti laikui bėgant.
 
-## Galimos įgyvendinimo versijos
+## Galimi įgyvendinimai
 
-Šioje pamokoje pateikiami du išsamūs užrašų knygelės vadovėliai:
+Ši pamoka apima du išsamius užrašų knygelių vadovus:
 
-• **[13-agent-memory.ipynb](./13-agent-memory.ipynb)**: Įgyvendina atmintį naudojant Mem0 ir Azure AI Search su Microsoft Agent Framework
+• **[13-agent-memory.ipynb](./13-agent-memory.ipynb)**: Atminties įgyvendinimas naudojant Mem0 ir Azure AI Search su Microsoft Agent Framework
 
-• **[13-agent-memory-cognee.ipynb](./13-agent-memory-cognee.ipynb)**: Įgyvendina struktūrizuotą atmintį naudojant Cognee, automatiškai kuria žinių grafą, pagrįstą įterpimais, vizualizuoja grafiką ir protingą paiešką
+• **[13-agent-memory-cognee.ipynb](./13-agent-memory-cognee.ipynb)**: Įgyvendina struktūruotą atmintį naudojant Cognee, automatiškai kuriant žinių grafą, pagrįstą įterpimais, vizualizuojant grafą ir intelektualų paiešką
 
 ## Mokymosi tikslai
 
-Baigę šią pamoką jūs sugebėsite:
+Baigę šią pamoką, žinosite, kaip:
 
-• **Skirti įvairius AI agentų atminties tipus**, įskaitant darbo, trumpalaikę ir ilgalaikę atmintį, taip pat specializuotas formas, kaip persona ir epizodinė atmintis.
+• **Atskirti įvairius AI agentų atminties tipus**, įskaitant darbo, trumpalaikę ir ilgalaikę atmintį, taip pat specializuotas formas, tokias kaip persona ir epizodinė atmintis.
 
 • **Įgyvendinti ir valdyti trumpalaikę bei ilgalaikę atmintį AI agentams** naudojant Microsoft Agent Framework, pasitelkiant įrankius kaip Mem0, Cognee, Whiteboard atmintį ir integruojant su Azure AI Search.
 
-• **Suprasti savęs tobulinančių AI agentų principus** ir kaip tvirti atminties valdymo mechanizmai prisideda prie nuolatinio mokymosi ir prisitaikymo.
+• **Suprasti savitobulinančių AI agentų principus** ir kaip patikimos atminties valdymo sistemos prisideda prie nuolatinio mokymosi ir prisitaikymo.
 
 ## AI agentų atminties supratimas
 
-Pagrindinė AI agentų atmintis reiškia mechanizmus, leidžiančius jiems išlaikyti ir atsiminti informaciją. Ši informacija gali būti specifiniai pokalbio duomenys, naudotojo pageidavimai, praeities veiksmai ar net išmokti modeliai.
+Iš esmės **atmintis AI agentams reiškia mechanizmus, leidžiančius jiems išlaikyti ir prisiminti informaciją**. Ši informacija gali būti specifinės ištraukos apie pokalbį, vartotojo pageidavimus, ankstesnius veiksmus ar net išmoktus modelius.
 
-Be atminties AI programėlės dažnai būna be būsenos, tai reiškia, kad kiekviena sąveika prasideda iš naujo. Tai sukuria pasikartojančią ir varginančią naudotojo patirtį, kai agentas „pamiršta“ ankstesnį kontekstą ar pageidavimus.
+Be atminties, AI programos dažnai yra bevalstės, t. y. kiekviena sąveika prasideda nuo nulio. Tai sukelia pasikartojančią ir erzinančią vartotojo patirtį, kur agentas „pamiršta“ ankstesnį kontekstą arba pageidavimus.
 
-### Kodėl atmintis svarbi?
+### Kodėl atmintis yra svarbi?
 
-Agento intelektas glaudžiai susijęs su gebėjimu prisiminti ir naudoti praeities informaciją. Atmintis leidžia agentams būti:
+Agento intelektas glaudžiai susijęs su jo gebėjimu prisiminti ir panaudoti ankstesnę informaciją. Atmintis leidžia agentams būti:
 
-• **Reflektuojančiais**: mokytis iš praeities veiksmų ir rezultatų.
+• **Reflektuojančiais**: Mokantis iš ankstesnių veiksmų ir rezultatų.
 
-• **Interaktyviais**: palaikyti kontekstą vykstant pokalbiui.
+• **Interaktyviais**: Išlaikyti kontekstą vykstančio pokalbio metu.
 
-• **Proaktyviais ir reaguojančiais**: numatyti poreikius arba reaguoti tinkamai, remiantis istoriniais duomenimis.
+• **Proaktyviais ir reaktyviais**: Numatyti poreikius arba tinkamai reaguoti remiantis istorine informacija.
 
-• **Autonominiais**: veikti nepriklausomiau, pasitelkiant saugomą žinių bazę.
+• **Autonomiškais**: Veikti savarankiškiau remiantis saugoma informacija.
 
-Įgyvendinant atmintį siekiama padaryti agentus patikimesnius ir kompetentingesnius.
+Atminties įgyvendinimo tikslas – padaryti agentus **patikimesniais ir pajėgesniais**.
 
 ### Atminties tipai
 
-#### Darbinė atmintis
+#### Darbo atmintis
 
-Įsivaizduokite tai kaip užrašų popierių, kurį agentas naudoja vykdant vieną užduotį ar mąstymo procesą. Ji laiko informaciją, reikalingą kitam žingsniui apskaičiuoti.
+Galvokite apie tai kaip apie užrašų lapą, kurį agentas naudoja vienos einamos užduoties ar minties proceso metu. Ji laiko būtiną informaciją, reikalingą kitam žingsniui apskaičiuoti.
 
-AI agentų darbinė atmintis dažnai fiksuoja svarbiausią pokalbio informaciją, net jei visas pokalbio istorijos ilgis yra ilgas arba sutrumpintas. Ji koncentruojasi į pagrindinių elementų, tokių kaip reikalavimai, pasiūlymai, sprendimai ir veiksmai, išgavimą.
+AI agentams darbo atmintis dažnai kaupia svarbiausią informaciją iš pokalbio, net jei visas pokalbio istorijos ilgis yra ilgas arba sutrumpintas. Jos dėmesys sutelktas į pagrindinių elementų išgavimą, tokių kaip reikalavimai, pasiūlymai, sprendimai ir veiksmai.
 
-**Darbinės atminties pavyzdys**
+**Darbo atminties pavyzdys**
 
-Kelionių užsakymo agentas gali fiksuoti vartotojo specifinį prašymą, pvz., „Noriu užsakyti kelionę į Paryžių“. Šis reikalavimas laikomas tiesioginiame agente esančiame kontekste, kad nukreiptų esamą sąveiką.
+Kelionių užsakymo agentui darbo atmintis gali užfiksuoti dabartinį vartotojo užklausą, pavyzdžiui, „Noriu užsakyti kelionę į Paryžių“. Šis konkretus reikalavimas saugomas agente esamame kontekste, kad nukreiptų dabartinę sąveiką.
 
 #### Trumpalaikė atmintis
 
-Šis atminties tipas saugo informaciją vieno pokalbio ar sesijos metu. Tai esamo pokalbio kontekstas, leidžiantis agentui grįžti prie ankstesnių dialogo posūkių.
+Šis atminties tipas saugo informaciją viso vieno pokalbio ar sesijos metu. Tai dabartinio pokalbio kontekstas, leidžiantis agentui prisiminti ankstesnius dialogo posūkius.
 
-[Microsoft Agent Framework](https://github.com/microsoft/agent-framework) Python SDK pavyzdžiuose tai atitinka `AgentSession`, sukurtą naudojant `agent.create_session()`. Sesija yra framework įmontuota trumpalaikė atmintis: ji palaiko pokalbio kontekstą, kol ta pati sesija naudojama, tačiau šis kontekstas neišsaugomas, kai sesija baigiasi arba programa paleidžiama iš naujo. Naudokite ilgalaikę atmintį faktams ir pageidavimams, kuriuos reikia išlaikyti per sesijas, dažniausiai per duomenų bazę, vektorių indeksą ar kitą nuolatinę saugyklą.
+[Microsoft Agent Framework](https://github.com/microsoft/agent-framework) Python SDK pavyzdžiuose tai atitinka `AgentSession`, sukurtą su `agent.create_session()`. Sesija yra karkaso įmontuota trumpalaikė atmintis: ji laiko pokalbio kontekstą, kol ta pati sesija naudojama, bet šis kontekstas nesaugomas, kai sesija baigiasi arba programa paleidžiama iš naujo. Naudokite ilgalaikę atmintį faktams ir pageidavimams, kurių reikia išlaikyti per kelias sesijas, paprastai per duomenų bazę, vektorinį indeksą arba kitą nuolatinę saugyklą.
 
 **Trumpalaikės atminties pavyzdys**
 
-Jei vartotojas klausia „Kiek kainuotų skrydis į Paryžių?“ ir po to priduria „O kaip dėl apgyvendinimo ten?“, trumpalaikė atmintis užtikrina, kad agentas supranta, jog „ten“ tas pats kaip „Paryžiuje“ šiame pokalbyje.
+Jei vartotojas klausia: „Kiek kainuotų skrydis į Paryžių?“ ir vėliau klausia „O kaip dėl apgyvendinimo ten?“, trumpalaikė atmintis užtikrina, kad agentas supranta, kad „ten“ reiškia „Paryžių“ tame pačiame pokalbyje.
 
 #### Ilgalaikė atmintis
 
-Tai informacija, kuri išlieka per daugelį pokalbių ar sesijų. Ji leidžia agentams prisiminti vartotojo pageidavimus, istorines sąveikas ar bendrą žinių bazę ilgesniam laikui. Tai svarbu personalizavimui.
+Tai informacija, kuri išlieka per kelis pokalbius ar sesijas. Ji leidžia agentams prisiminti vartotojo pageidavimus, istorines sąveikas arba bendrą žinių bagažą ilgesnį laiką. Tai svarbu personalizacijai.
 
 **Ilgalaikės atminties pavyzdys**
 
-Ilgalaikė atmintis gali saugoti, kad „Ben mėgsta slidinėjimą ir lauko veiklas, mėgsta kavą su kalnų vaizdu ir vengia pažengusių slidinėjimo trasų dėl praeities traumos“. Ši informacija, surinkta iš ankstesnių sąveikų, įtakoja rekomendacijas būsimose kelionių planavimo sesijose, darant jas labai suasmenintas.
+Ilgalaikė atmintis gali saugoti, kad „Benas mėgsta slidinėjimą ir lauko veiklas, mėgsta kavą su kalnų vaizdu ir nori vengti pažangių slidinėjimo trasų dėl ankstesnės traumos“. Ši informacija, išmokta iš ankstesnių sąveikų, veikia rekomendacijas būsimose kelionių planavimo sesijose, darant jas labai personalizuotas.
 
-#### Persona atmintis
+#### Personos atmintis
 
-Šis specializuotas atminties tipas padeda agentui ugdyti nuoseklią „asmenybę“ arba „personą“. Ji leidžia agentui atsiminti detales apie save ar savo numatytą vaidmenį, todėl sąveikos tampa sklandesnės ir labiau orientuotos.
+Šis specializuotas atminties tipas padeda agentui sukurti nuoseklią „asmenybę“ arba „personą“. Tai leidžia agentui prisiminti detales apie save ar savo numatytą vaidmenį, darant sąveikas sklandesnes ir tikslingesnes.
 
-**Persona atminties pavyzdys**  
-Jei kelionių agentas yra sukurtas kaip „ekspertas slidinėjimo planuotojas“, persona atmintis gali sustiprinti šį vaidmenį, veikiant atsakymams, atitinkantiems eksperto toną ir žinias.
+**Personos atminties pavyzdys**
+Jei kelionių agentas suprogramuotas būti „ekspertu slidinėjimo planuotoju“, personos atmintis gali sustiprinti šį vaidmenį, lemiančią atsakymus, kurie atitinka eksperto toną ir žinias.
 
-#### Darbo eigų / epizodinė atmintis
+#### Darbo eigos/Epizodinė atmintis
 
-Ši atmintis saugo veiksmų seką, kurią agentas atlieka sudėtingos užduoties metu, įtraukiant sėkmes ir nesėkmes. Tai tarsi prisiminimas apie konkrečius „epizodus“ ar patirtis, kad būtų galima iš jų mokytis.
+Ši atmintis saugo agento žingsnių seką sudėtingos užduoties metu, įskaitant sėkmes ir nesėkmes. Tai tarsi prisiminimas apie konkrečius „epizodus“ ar praeities patirtis, iš kurių mokomasi.
 
 **Epizodinės atminties pavyzdys**
 
-Jei agentas bandė užsakyti konkretų skrydį, bet nepavyko dėl prieinamumo trūkumo, epizodinė atmintis gali įrašyti šią nesėkmę, leidžiant agentui bandyti kitus skrydžius arba informuoti vartotoją apie problemą labiau informuotai vėlesniu bandymu.
+Jei agentas bandė užsakyti konkretų skrydį, bet tai nepavyko dėl neprieinamumo, epizodinė atmintis gali užfiksuoti šią nesėkmę, leidžianti agentui bandyti kitus skrydžius ar labiau informuotai pranešti naudotojui apie problemą kito bandymo metu.
 
-#### Subjekto atmintis
+#### Objektų (Entity) atmintis
 
-Tai apima konkrečių subjektų (kaip žmonės, vietos ar daiktai) ir įvykių iš pokalbių išgavimą ir įsimintį. Tai leidžia agentui sukurti struktūruotą supratimą apie aptartus svarbius elementus.
+Tai apima specifinių objektų (pvz., žmonių, vietų ar daiktų) ir įvykių ištraukimą bei įsimintį iš pokalbių. Leidžia agentui kurti struktūruotą supratimą apie svarbiausias aptartas temas.
 
-**Subjekto atminties pavyzdys**
+**Objektų atminties pavyzdys**
 
-Iš pokalbio apie praeitą kelionę agentas gali išskirti „Paryžių“, „Eifelio bokštą“ ir „vakarienę restorane Le Chat Noir“ kaip subjektus. Ateities sąveikoje agentas galėtų prisiminti „Le Chat Noir“ ir pasiūlyti padaryti naują rezervaciją.
+Iš pokalbio apie praeitą kelionę agentas gali išgauti „Paryžių“, „Eifelio bokštą“ ir „vakarienę Le Chat Noir restorane“ kaip objektus. Ateityje agentas galėtų prisiminti „Le Chat Noir“ ir pasiūlyti padaryti naują rezervaciją ten.
 
-#### Struktūrizuota RAG (Retrieval Augmented Generation)
+#### Struktūrizuotas RAG (Retrieval Augmented Generation)
 
-Nors RAG yra platesnė technika, „Struktūrizuota RAG“ išskiriama kaip galinga atminties technologija. Ji ištraukia tankią, struktūruotą informaciją iš įvairių šaltinių (pokalbių, el. laiškų, vaizdų) ir naudoja ją tikslumui, atgaminimui ir greičiui pagerinti atsakymuose. Skirtingai nuo klasikinio RAG, kuris remiasi tik semantiniu panašumu, Struktūrizuota RAG veikia pagal esamą informacijos struktūrą.
+Nors RAG yra platesnė technika, "Struktūrizuotas RAG" išskiriamas kaip galinga atminties technologija. Ji ištraukia tankią, struktūruotą informaciją iš įvairių šaltinių (pokalbių, el. laiškų, paveikslėlių) ir naudoja ją tikslumui, atkūrimui ir greičiui gerinti atsakymuose. Skirtingai nuo klasikinio RAG, kuris remiasi tik semantiniu panašumu, Struktūrizuotas RAG dirba su informacijos struktūra.
 
-**Struktūrizuotos RAG pavyzdys**
+**Struktūrizuoto RAG pavyzdys**
 
-Užuot tik suradusi raktinius žodžius, Struktūrizuota RAG gali išanalizuoti skrydžio detales (vietą, datą, laiką, oro linijas) iš el. laiško ir saugoti juos struktūruotu formatu. Tai leidžia užduoti tikslius klausimus, pvz., „Kokį skrydį į Paryžių užsakiau antradienį?“
+Vietoje vien tik raktinių žodžių sutapimo, Struktūrizuotas RAG galėtų ištirti skrydžio duomenis (tikslą, datą, laiką, oro linijas) iš el. laiško ir saugoti juos struktūrizuotu formatu. Tai leidžia tikslinius užklausimus, pvz., „Kokį skrydį į Paryžių užsakiau antradienį?“
 
 ## Atminties įgyvendinimas ir saugojimas
 
-Atminties įgyvendinimas AI agentams apima sistemingą **atminties valdymo** procesą, įskaitant generavimą, saugojimą, gavimą, integravimą, atnaujinimą ir net „pamiršimą“ (arba ištrynimą) informacijos. Ypatingai svarbus yra informacijos gavimas.
+Atminties įgyvendinimas AI agentams apima sistemingą procesą – **atminties valdymą**, kuris apima informacijos generavimą, saugojimą, paiešką, integravimą, atnaujinimą ir netgi „pamiršimą“ (arba ištrynimą). Paieška yra ypač svarbus aspektas.
 
 ### Specializuoti atminties įrankiai
 
 #### Mem0
 
-Vienas iš būdų saugoti ir valdyti agentų atmintį yra naudoti specializuotus įrankius, kaip Mem0. Mem0 veikia kaip nuolatinis atminties sluoksnis, leidžiantis agentams prisiminti svarbias sąveikas, saugoti naudotojų pageidavimus ir faktinį kontekstą bei mokytis iš sėkmių ir nesėkmių laikui bėgant. Idėja yra, kad be būsenos agentai tampa būseną turinčiais.
+Vienas iš būdų saugoti ir valdyti agentų atmintį yra naudoti specializuotus įrankius, kaip Mem0. Mem0 veikia kaip nuolatinės atminties sluoksnis, leidžiantis agentams prisiminti svarbias sąveikas, saugoti vartotojo pageidavimus ir faktinį kontekstą, ir mokytis iš sėkmių bei nesėkmių laikui bėgant. Idėja yra, kad bevalstės agentūros virsta būsenos turinčiomis.
 
-Jis veikia per **dvikartį atminties srautą: išgavimą ir atnaujinimą**. Pirmiausia, žinutės, pridėtos prie agento siūlo, siunčiamos Mem0 paslaugai, kuri naudoja Didelį Kalbos Modelį (LLM), apibendrinti pokalbio istoriją ir išgauti naujas atmintis. Vėliau LLM valdomas atnaujinimo etapas nusprendžia, ar pridėti, pakeisti ar ištrinti šias atmintis, saugodamas jas mišriame duomenų saugyklos pavidale, apimančiame vektorių, grafo ir reikšmių porų duomenų bazes. Ši sistema taip pat palaiko įvairius atminties tipus ir gali įtraukti grafo atmintį santykiams tarp subjektų valdyti.
+Tai veikia per **dviejų etapų atminties procesą: išgavimą ir atnaujinimą**. Pirma, agentui pridėtos žinutės siunčiamos Mem0 paslaugai, kuri naudoja Didelį kalbos modelį (LLM) pokalbio istorijai santraukai ir naujų atmintinių išgavimui. Vėliau, LLM vedamas atnaujinimo etapas nusprendžia, ar pridėti, modifikuoti ar ištrinti šias atmintis, saugodamas jas hibridinėje duomenų saugykloje, galinčioje apimti vektorinę, grafų ir raktų-reikšmių duomenų bazes. Ši sistema palaiko įvairius atminties tipus ir gali įtraukti grafų atmintį valdyti santykiams tarp objektų.
 
 #### Cognee
 
-Kita galinga priemonė yra **Cognee**, atviro kodo semantinė atmintis AI agentams, kuri paverčia struktūruotus ir nestruktūruotus duomenis į užklausomus žinių grafus, pagrįstus įterpimais. Cognee siūlo **dvigubos saugyklos architektūrą**, kuri apjungia vektorių panašumo paiešką su grafo ryšiais, leidžiančią agentams suprasti ne tik ką informacija yra panaši, bet ir kaip sąvokos yra susijusios.
+Kitas galingas požiūris yra naudoti **Cognee**, atvirojo kodo semantinę atmintį AI agentams, kuri paverčia struktūruotus ir nestruktūruotus duomenis į užklausomis pasiekiamus žinių grafus, pagrįstus įterpimais. Cognee teikia **dvipusę saugyklos architektūrą**, derindama vektorinę panašumo paiešką su grafų santykiais, leidžiančią agentams suprasti ne tik panašumas informacijos, bet ir kaip sąvokos susijusios.
 
-Jis puikiai tinka **mišriai paieškai**, kuri sujungia vektorių panašumą, grafo struktūrą ir LLM loginį samprotavimą - nuo žaliavinių fragmentų paieškos iki klausimų atsakymo, žinančio grafo kontekstą. Ši sistema palaiko **gyvą atmintį**, kuri vystosi ir auga, tuo pačiu išlikdama užklausoma kaip viena sujungta grafo struktūra, palaikydama tiek trumpalaikį sesijos kontekstą, tiek ilgalaikę nuolatinę atmintį.
+Ji pasižymi **hibridine paieška**, kuri sujungia vektorinius panašumus, grafų struktūrą ir LLM sprendimą – nuo žalių fragmentų paieškos iki klausimų atsakymo, žinant grafą. Sistema palaiko **gyvą atmintį**, kuri vystosi ir auga, tuo pačiu lieka užklausomis pasiekiama kaip vienas susietas grafas, palaikydama trumpalaikį sesijos kontekstą ir ilgalaikę nuolatinę atmintį.
 
-Cognee užrašų knygelės vadovėlis ([13-agent-memory-cognee.ipynb](./13-agent-memory-cognee.ipynb)) demonstruoja šio vieningo atminties sluoksnio kūrimą, pateikdamas praktinius pavyzdžius, kaip įvesti įvairius duomenų šaltinius, vizualizuoti žinių grafiką ir užduoti klausimus su skirtingomis paieškos strategijomis, pritaikytomis konkretiems agentų poreikiams.
+Cognee užrašų knygelės vadovas ([13-agent-memory-cognee.ipynb](./13-agent-memory-cognee.ipynb)) demonstruoja, kaip kurti vieningą atminties sluoksnį, su praktiniais pavyzdžiais, kaip priimti įvairius duomenų šaltinius, vizualizuoti žinių grafą ir užduoti klausimus naudojant skirtingas paieškos strategijas, pritaikytas specifiniams agentų poreikiams.
 
-### Atminties saugojimas naudojant RAG
+### Atminties saugojimas su RAG
 
-Be specializuotų atminties įrankių, kaip Mem0, galite pasinaudoti galingomis paieškos paslaugomis, kaip **Azure AI Search**, kaip atminties saugojimo ir gavimo dalimi, ypač struktūrizuotam RAG.
+Be specializuotų atminties įrankių kaip Mem0, galima naudoti patikimas paieškos paslaugas, tokias kaip **Azure AI Search, kaip pagrindinę atminties saugojimo ir atgaivinimo sistemą**, ypač struktūrizuotam RAG.
 
-Tai leidžia pagrįsti agentų atsakymus savo duomenimis, užtikrinant labiau aktualius ir tikslius atsakymus. Azure AI Search gali būti naudojama saugoti vartotojo specifines kelionių atmintis, produktų katalogus ar bet kokias kitas domenų žinias.
+Tai leidžia paremti agentų atsakymus jūsų pačių duomenimis, užtikrinant daug tinkamesnius ir tikslesnius atsakymus. Azure AI Search gali būti panaudotas saugoti vartotojo kelionių atminties, produktų katalogus ar bet kokias kitas srities žinias.
 
-Azure AI Search palaiko tokias galimybes kaip **Struktūrizuota RAG**, kuri puikiai ištraukia ir gauna tankią, struktūruotą informaciją iš didelių duomenų rinkinių, kaip pokalbių istorijos, el. laiškai ar net vaizdai. Tai suteikia „superžmogišką tikslumą ir išsaugojimą“ lyginant su tradiciniais teksto fragmentų ir įterpimų metodais.
+Azure AI Search palaiko galimybes, tokias kaip **Struktūrizuotas RAG**, kuris išsiskiria gebėjimu išgauti ir atgaivinti tankią, struktūruotą informaciją iš didelių duomenų rinkinių kaip pokalbių istorijos, el. laiškai ar net paveikslėliai. Tai suteikia „žmogišką tikslumą ir atkūrimą“ palyginus su tradiciniais teksto fragmentų ir įterpimų metodais.
 
-## Kaip padaryti AI agentus savęs tobulinančiais
+## Kaip padaryti AI agentus savitobulinančiais
 
-Dažnas savęs tobulinančių agentų modelis apima **„žinių agento“** įvedimą. Šis atskiras agentas stebi pagrindinį pokalbį tarp vartotojo ir pagrindinio agento. Jo vaidmuo yra:
+Bendras savitobulinančių agentų modelis apima **„žinių agento“** įvedimą. Šis atskiras agentas stebi pagrindinį vartotojo ir pirminio agente pokalbį. Jo vaidmuo yra:
 
-1. **Identifikuoti vertingą informaciją**: nustatyti, ar bet kuri pokalbio dalis verta išsaugoti kaip bendrą žinią arba specifinį vartotojo pageidavimą.
+1. **Nustatyti vertingą informaciją**: Nustatyti, ar bet kuri pokalbio dalis verta būti išsaugota kaip bendros žinios arba specifinis vartotojo pageidavimas.
 
-2. **Išgauti ir apibendrinti**: sutraukti esmę arba pageidavimą iš pokalbio.
+2. **Ištraukti ir santraukinti**: Išskirti esminį mokymąsi ar pageidavimą iš pokalbio.
 
-3. **Saugyklos žinių bazėje**: išsaugoti šią informaciją, dažnai vektorinėse duomenų bazėse, kad galėtų būti vėliau pasiimta.
+3. **Saugojimas žinių bazėje**: Išsaugoti šią informaciją dažnai vektorinėje duomenų bazėje, kad ją būtų galima atkurti vėliau.
 
-4. **Papildyti būsimus užklausimus**: kai vartotojas pateikia naują užklausą, žinių agentas surenka atitinkamą saugomą informaciją ir prideda ją prie vartotojo užklausos, suteikdamas svarbų kontekstą pagrindiniam agentui (panašiai kaip RAG).
+4. **Papildyti būsimus užklausimus**: Kai vartotojas inicijuoja naują užklausą, žinių agentas suranda susijusią saugomą informaciją ir priduria ją prie vartotojo prašymo, suteikdamas pagrindinį kontekstą pirminiam agentui (panašiai kaip RAG).
 
-### Atminties optimizavimai
+### Atminties optimizacijos
 
-• **Vėlinimo valdymas**: siekiant išvengti naudotojo sąveikų sulėtėjimo, pradžioje galima naudoti pigesnį ir greitesnį modelį, kuris greitai patikrina, ar informacija verta saugoti ar gauti, o sudėtingesnę ištraukimo / gavimo procedūrą aktyvuoja tik prireikus.
+• **Vėlinimo valdymas**: Siekiant išvengti vartotojo sąveikos sulėtėjimo, iš pradžių galima naudoti pigesnį, greitesnį modelį, kad greitai patikrintų, ar informacija verta saugojimo ar paieškos, o sudėtingesnį išgavimą/paiešką įjungti tik prireikus.
 
-• **Žinių bazės priežiūra**: didėjant žinių bazei, rečiau naudojama informacija gali būti perkelta į „šaltą saugyklą“, siekiant sumažinti išlaidas.
+• **Žinių bazės priežiūra**: Augančiai žinių bazei mažiau naudojama informacija gali būti perkeliama į „šaltąją saugyklą“ siekiant valdyti kaštus.
 
-## Ar turite daugiau klausimų apie agentų atmintį?
+## Turite daugiau klausimų apie agentų atmintį?
 
-Prisijunkite prie [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord), susipažinkite su kitais besimokančiais, dalyvaukite konsultacijose ir gaukite atsakymus į klausimus apie AI agentus.
+Prisijunkite prie [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) susitikti su kitais besimokančiais, dalyvauti konsultacijose ir gauti atsakymus į savo AI agentų klausimus.
+## Ankstesnė pamoka
+
+[AI agentų konteksto inžinerija](../12-context-engineering/README.md)
+
+## Kitoji pamoka
+
+[Microsoft Agent Framework tyrinėjimas](../14-microsoft-agent-framework/README.md)
 
 ---
 

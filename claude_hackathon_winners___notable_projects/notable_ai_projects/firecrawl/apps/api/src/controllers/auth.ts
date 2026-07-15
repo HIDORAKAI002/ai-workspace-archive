@@ -214,8 +214,7 @@ async function resolveOAuthToken(
   }
 }
 
-/** @public used by auto_charge.ts (disabled, Autumn handles auto-recharge) */
-export async function getACUC(
+async function getACUC(
   api_key: string,
   cacheOnly = false,
   useCache = true,
