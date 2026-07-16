@@ -1,8 +1,9 @@
 import { type AgentState } from '@lobechat/agent-runtime';
 import { LobeActivatorIdentifier } from '@lobechat/builtin-tool-activator';
+import { resolveSubAgentModel } from '@lobechat/const';
 import { type OperationToolSet } from '@lobechat/context-engine';
 import { type ToolType } from '@lobechat/observability-otel/modules/agent-runtime';
-import { type ChatToolPayload } from '@lobechat/types';
+import { type ChatToolPayload, type LobeAgentConfig } from '@lobechat/types';
 import debug from 'debug';
 
 import { type LobeChatDatabase } from '@/database/type';
@@ -115,8 +116,22 @@ export const buildServerVirtualSubAgentRunner = (
   const topicId = ctx.topicId ?? state.metadata?.topicId;
   if (!agentId || !topicId) return undefined;
 
+  const parentAgentConfig = state.metadata?.agentConfig as LobeAgentConfig | undefined;
+
   return {
     run: async ({ agentId: targetAgentId, description, instruction, timeout }) => {
+      // This runner serves two tools, and only one of them may swap the model:
+      //   - `callSubAgent` names no agent, so the child is an anonymous clone of
+      //     the parent — it takes the parent's `agencyConfig.subagent` model.
+      //   - `callAgent` names an existing agent, which carries a model the user
+      //     configured on it. Overriding that would discard a deliberate choice,
+      //     the same way forcing a group member onto the sub-agent default would.
+      // Resolved here at the spawn site so the execution side never has to
+      // re-derive it from the parent config.
+      const subAgentModel = targetAgentId
+        ? undefined
+        : resolveSubAgentModel(parentAgentConfig?.agencyConfig?.subagent);
+
       // 1. Create the pending placeholder tool message (mirrors the normal
       //    tool-message shape in call_tool) that anchors the isolation thread
       //    and renders a loading state until the bridge backfills it.
@@ -140,8 +155,10 @@ export const buildServerVirtualSubAgentRunner = (
         agentId: targetAgentId ?? agentId,
         groupId: state.metadata?.groupId ?? undefined,
         instruction,
+        model: subAgentModel?.model,
         parentMessageId: placeholder.id,
         parentOperationId: ctx.operationId,
+        provider: subAgentModel?.provider,
         timeout,
         title: description,
         topicId,
