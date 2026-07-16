@@ -1,6 +1,6 @@
 // Sampling/Roots/Logging are SEP-2577-deprecated; internal references are expected.
 #![expect(deprecated)]
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use crate::{
     error::ErrorData as McpError,
@@ -30,11 +30,54 @@ impl<H: ServerHandler> Service<RoleServer> for H {
         let mrtr_supported = protocol_version
             .as_ref()
             .is_some_and(|v| v.as_str() >= ProtocolVersion::V_2026_07_28.as_str());
+        let requested_version = context.meta.protocol_version();
+        let uses_inline_negotiation = !matches!(&request, ClientRequest::InitializeRequest(_));
+        if uses_inline_negotiation && let Some(requested_version) = requested_version.as_ref() {
+            let supported_versions = self.supported_protocol_versions();
+            if !supported_versions.contains(requested_version) {
+                return Err(McpError::unsupported_protocol_version(
+                    requested_version.clone(),
+                    &supported_versions,
+                ));
+            }
+        }
+        // Self-contained metadata is required only when the request itself uses
+        // the inline lifecycle: a discover opener, a session that started without
+        // `initialize`, or a request that declares 2026-07-28+ in its own _meta.
+        // Sessions that negotiated via `initialize` (or `serve_directly`) keep the
+        // session model and may omit per-request metadata.
+        let requires_request_metadata = uses_inline_negotiation
+            && (matches!(&request, ClientRequest::DiscoverRequest(_))
+                || context.peer.request_metadata_required()
+                || requested_version.as_ref().is_some_and(|version| {
+                    version.as_str() >= ProtocolVersion::V_2026_07_28.as_str()
+                }));
+        if requires_request_metadata {
+            // Inline lifecycle requests are defined by the 2026-07-28 protocol.
+            // Validate that lifecycle contract even when a request selects an
+            // older application protocol version.
+            let missing = context
+                .meta
+                .missing_required_keys(&ProtocolVersion::V_2026_07_28);
+            if !missing.is_empty() {
+                return Err(McpError::invalid_params(
+                    format!(
+                        "request _meta is missing or has malformed required fields: {}",
+                        missing.join(", ")
+                    ),
+                    None,
+                ));
+            }
+        }
         let result = match request {
             ClientRequest::InitializeRequest(request) => self
                 .initialize(request.params, context)
                 .await
                 .map(ServerResult::InitializeResult),
+            ClientRequest::DiscoverRequest(_request) => self
+                .discover(context)
+                .await
+                .map(ServerResult::DiscoverResult),
             ClientRequest::PingRequest(_request) => {
                 self.ping(context).await.map(ServerResult::empty)
             }
@@ -224,6 +267,20 @@ macro_rules! server_handler_methods {
                 info.protocol_version,
             );
             std::future::ready(Ok(info))
+        }
+        /// Return the protocol versions supported by this server.
+        fn supported_protocol_versions(&self) -> Cow<'static, [ProtocolVersion]> {
+            Cow::Borrowed(ProtocolVersion::KNOWN_VERSIONS)
+        }
+        /// Return this server's discovery information.
+        fn discover(
+            &self,
+            context: RequestContext<RoleServer>,
+        ) -> impl Future<Output = Result<DiscoverResult, McpError>> + MaybeSendFuture + '_ {
+            std::future::ready(Ok(DiscoverResult::from_server_info(
+                self.supported_protocol_versions().into_owned(),
+                self.get_info(),
+            )))
         }
         fn complete(
             &self,
@@ -477,6 +534,17 @@ macro_rules! impl_server_handler_for_wrapper {
                 context: RequestContext<RoleServer>,
             ) -> impl Future<Output = Result<InitializeResult, McpError>> + MaybeSendFuture + '_ {
                 (**self).initialize(request, context)
+            }
+
+            fn supported_protocol_versions(&self) -> Cow<'static, [ProtocolVersion]> {
+                (**self).supported_protocol_versions()
+            }
+
+            fn discover(
+                &self,
+                context: RequestContext<RoleServer>,
+            ) -> impl Future<Output = Result<DiscoverResult, McpError>> + MaybeSendFuture + '_ {
+                (**self).discover(context)
             }
 
             fn complete(

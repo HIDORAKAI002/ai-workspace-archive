@@ -83,6 +83,7 @@ from ..tool import (
     get_function_tool_origin,
 )
 from ..tracing import Span, SpanError, agent_span, get_current_trace, task_span, turn_span
+from ..tracing.config import include_task_and_turn_spans
 from ..tracing.model_tracing import get_model_tracing_impl
 from ..tracing.span_data import AgentSpanData, TaskSpanData
 from ..usage import Usage, _response_usage_to_usage
@@ -486,8 +487,9 @@ async def start_streaming(
         )
 
     current_trace = streamed_result.trace or get_current_trace()
+    use_task_and_turn_spans = include_task_and_turn_spans(run_config.tracing)
     current_task_span: Span[TaskSpanData] | None = (
-        task_span(name=current_trace.name) if current_trace else None
+        task_span(name=current_trace.name) if current_trace and use_task_and_turn_spans else None
     )
     if current_task_span:
         current_task_span.start(mark_as_current=True)
@@ -859,7 +861,9 @@ async def start_streaming(
                 break
 
             all_tools = await get_all_tools(execution_agent, context_wrapper)
-            await initialize_computer_tools(tools=all_tools, context_wrapper=context_wrapper)
+            all_tools = await initialize_computer_tools(
+                tools=all_tools, context_wrapper=context_wrapper
+            )
 
             if current_span is None:
                 handoff_names = [
@@ -1012,11 +1016,16 @@ async def start_streaming(
                     current_agent.name,
                 )
                 turn_usage_start = snapshot_usage(context_wrapper.usage)
-                current_turn_span = turn_span(
-                    turn=current_turn,
-                    agent_name=current_agent.name,
+                current_turn_span = (
+                    turn_span(
+                        turn=current_turn,
+                        agent_name=current_agent.name,
+                    )
+                    if use_task_and_turn_spans
+                    else None
                 )
-                current_turn_span.start(mark_as_current=True)
+                if current_turn_span:
+                    current_turn_span.start(mark_as_current=True)
                 try:
                     if (
                         session is not None
@@ -1040,21 +1049,17 @@ async def start_streaming(
                         server_conversation_tracker,
                         pending_server_items=pending_server_items,
                         session=session,
-                        session_items_to_rewind=(
-                            streamed_result._original_input_for_persistence
-                            if session is not None and server_conversation_tracker is None
-                            else None
-                        ),
                         reasoning_item_id_policy=resolved_reasoning_item_id_policy,
                         prompt_cache_key_resolver=prompt_cache_key_resolver,
                         error_handlers=error_handlers,
                     )
                 finally:
-                    attach_usage_to_span(
-                        current_turn_span,
-                        usage_delta(turn_usage_start, context_wrapper.usage),
-                    )
-                    current_turn_span.finish(reset_current=True)
+                    if current_turn_span:
+                        attach_usage_to_span(
+                            current_turn_span,
+                            usage_delta(turn_usage_start, context_wrapper.usage),
+                        )
+                        current_turn_span.finish(reset_current=True)
                 logger.debug(
                     "Turn %s complete, next_step type=%s",
                     current_turn,
@@ -1180,7 +1185,14 @@ async def start_streaming(
                         current_span,
                         SpanError(
                             message="Error in agent run",
-                            data={"error": str(e)},
+                            data={
+                                "error": _error_tracing.get_trace_error(
+                                    trace_include_sensitive_data=(
+                                        run_config.trace_include_sensitive_data
+                                    ),
+                                    error_message=str(e),
+                                )
+                            },
                         ),
                     )
                 raise
@@ -1203,7 +1215,12 @@ async def start_streaming(
                 current_span,
                 SpanError(
                     message="Error in agent run",
-                    data={"error": str(e)},
+                    data={
+                        "error": _error_tracing.get_trace_error(
+                            trace_include_sensitive_data=run_config.trace_include_sensitive_data,
+                            error_message=str(e),
+                        )
+                    },
                 ),
             )
         streamed_result.is_complete = True
@@ -1263,7 +1280,6 @@ async def run_single_turn_streamed(
     all_tools: list[Tool],
     server_conversation_tracker: OpenAIServerConversationTracker | None = None,
     session: Session | None = None,
-    session_items_to_rewind: list[TResponseInputItem] | None = None,
     pending_server_items: list[RunItem] | None = None,
     reasoning_item_id_policy: ReasoningItemIdPolicy | None = None,
     prompt_cache_key_resolver: PromptCacheKeyResolver | None = None,
@@ -1464,8 +1480,6 @@ async def run_single_turn_streamed(
     model_settings = model_settings_with_prompt_cache_key(model_settings, prompt_cache_key)
 
     async def rewind_model_request() -> None:
-        items_to_rewind = session_items_to_rewind if session_items_to_rewind is not None else []
-        await rewind_session_items(session, items_to_rewind, server_conversation_tracker)
         if server_conversation_tracker is not None:
             server_conversation_tracker.rewind_input(filtered.input)
 

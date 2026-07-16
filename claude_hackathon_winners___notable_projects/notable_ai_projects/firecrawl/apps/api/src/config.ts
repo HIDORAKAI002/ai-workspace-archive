@@ -165,6 +165,9 @@ const configSchema = z.object({
   HIGHLIGHT_MODEL_TOKEN: z.string().optional(),
   HIGHLIGHT_SHADOW_RATE: z.coerce.number().min(0).max(1).default(0),
 
+  // Exchange (routed data sources service)
+  FIRE_EXCHANGE_URL: z.url().optional(),
+
   // Fire Engine
   FIRE_ENGINE_BETA_URL: z.string().optional(),
   FIRE_ENGINE_STAGING_URL: z.string().optional(),

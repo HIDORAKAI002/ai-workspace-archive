@@ -24,6 +24,9 @@ module Anthropic
         optional :output_config, -> { Anthropic::Beta::BetaOutputConfig }, nil?: true
 
         # @!attribute speed
+        #   Inference speed mode. `fast` provides significantly faster output token
+        #   generation at premium pricing. Not all models support `fast`; invalid
+        #   combinations are rejected at create time.
         #
         #   @return [Symbol, Anthropic::Models::Beta::BetaFallbackParam::Speed, nil]
         optional :speed, enum: -> { Anthropic::Beta::BetaFallbackParam::Speed }, nil?: true
@@ -39,10 +42,10 @@ module Anthropic
         #
         #   One entry in the `fallbacks` chain on a `/v1/messages` request.
         #
-        #   `model` is required. The four override fields (`max_tokens`, `thinking`,
-        #   `output_config`, and `speed`) replace the corresponding top-level field for this
-        #   attempt only and are validated as if the request were made to `model`. Any other
-        #   key is rejected at parse time.
+        #   `model` is required. The override fields (`max_tokens`, `thinking`,
+        #   `output_config`, and `speed`) set the corresponding parameter for this attempt
+        #   only and are validated as if the request were made to `model`. Any other key is
+        #   rejected at parse time.
         #
         #   @param model [Symbol, String, Anthropic::Models::Model] The model that will complete your prompt.
         #
@@ -50,10 +53,14 @@ module Anthropic
         #
         #   @param output_config [Anthropic::Models::Beta::BetaOutputConfig, nil]
         #
-        #   @param speed [Symbol, Anthropic::Models::Beta::BetaFallbackParam::Speed, nil]
+        #   @param speed [Symbol, Anthropic::Models::Beta::BetaFallbackParam::Speed, nil] Inference speed mode. `fast` provides significantly faster output token generati
         #
         #   @param thinking [Anthropic::Models::Beta::BetaThinkingConfigEnabled, Anthropic::Models::Beta::BetaThinkingConfigDisabled, Anthropic::Models::Beta::BetaThinkingConfigAdaptive, nil]
 
+        # Inference speed mode. `fast` provides significantly faster output token
+        # generation at premium pricing. Not all models support `fast`; invalid
+        # combinations are rejected at create time.
+        #
         # @see Anthropic::Models::Beta::BetaFallbackParam#speed
         module Speed
           extend Anthropic::Internal::Type::Enum

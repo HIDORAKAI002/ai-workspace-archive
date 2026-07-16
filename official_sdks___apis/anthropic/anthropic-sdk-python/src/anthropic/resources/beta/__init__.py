@@ -24,6 +24,14 @@ from .agents import (
     AgentsWithStreamingResponse,
     AsyncAgentsWithStreamingResponse,
 )
+from .dreams import (
+    Dreams,
+    AsyncDreams,
+    DreamsWithRawResponse,
+    AsyncDreamsWithRawResponse,
+    DreamsWithStreamingResponse,
+    AsyncDreamsWithStreamingResponse,
+)
 from .models import (
     Models,
     AsyncModels,
@@ -47,6 +55,14 @@ from .vaults import (
     AsyncVaultsWithRawResponse,
     VaultsWithStreamingResponse,
     AsyncVaultsWithStreamingResponse,
+)
+from .tunnels import (
+    Tunnels,
+    AsyncTunnels,
+    TunnelsWithRawResponse,
+    AsyncTunnelsWithRawResponse,
+    TunnelsWithStreamingResponse,
+    AsyncTunnelsWithStreamingResponse,
 )
 from .messages import (
     Messages,
@@ -181,6 +197,18 @@ __all__ = [
     "AsyncUserProfilesWithRawResponse",
     "UserProfilesWithStreamingResponse",
     "AsyncUserProfilesWithStreamingResponse",
+    "Dreams",
+    "AsyncDreams",
+    "DreamsWithRawResponse",
+    "AsyncDreamsWithRawResponse",
+    "DreamsWithStreamingResponse",
+    "AsyncDreamsWithStreamingResponse",
+    "Tunnels",
+    "AsyncTunnels",
+    "TunnelsWithRawResponse",
+    "AsyncTunnelsWithRawResponse",
+    "TunnelsWithStreamingResponse",
+    "AsyncTunnelsWithStreamingResponse",
     "Beta",
     "AsyncBeta",
     "BetaWithRawResponse",

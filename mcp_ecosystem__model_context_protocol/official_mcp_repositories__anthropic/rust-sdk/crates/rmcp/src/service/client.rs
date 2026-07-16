@@ -10,17 +10,19 @@ use crate::{
         ArgumentInfo, CallToolRequest, CallToolRequestParams, CallToolResponse, CallToolResult,
         CancelledNotification, CancelledNotificationParam, ClientInfo, ClientJsonRpcMessage,
         ClientNotification, ClientRequest, ClientResult, CompleteRequest, CompleteRequestParams,
-        CompleteResult, CompletionContext, CompletionInfo, DEFAULT_MRTR_MAX_ROUNDS, ErrorData,
-        GetExtensions, GetMeta, GetPromptRequest, GetPromptRequestParams, GetPromptResponse,
-        GetPromptResult, InitializeRequest, InitializedNotification, InputRequest,
-        InputRequiredResult, InputResponses, JsonRpcResponse, ListPromptsRequest,
-        ListPromptsResult, ListResourceTemplatesRequest, ListResourceTemplatesResult,
-        ListResourcesRequest, ListResourcesResult, ListToolsRequest, ListToolsResult,
-        NumberOrString, PaginatedRequestParams, ProgressNotification, ProgressNotificationParam,
+        CompleteResult, CompletionContext, CompletionInfo, DEFAULT_MRTR_MAX_ROUNDS,
+        DiscoverRequest, DiscoverRequestParams, DiscoverResult, ErrorData, GetExtensions, GetMeta,
+        GetPromptRequest, GetPromptRequestParams, GetPromptResponse, GetPromptResult,
+        InitializeRequest, InitializedNotification, InputRequest, InputRequiredResult,
+        InputResponses, JsonRpcResponse, ListPromptsRequest, ListPromptsResult,
+        ListResourceTemplatesRequest, ListResourceTemplatesResult, ListResourcesRequest,
+        ListResourcesResult, ListToolsRequest, ListToolsResult, NumberOrString,
+        PaginatedRequestParams, ProgressNotification, ProgressNotificationParam, ProtocolVersion,
         ReadResourceRequest, ReadResourceRequestParams, ReadResourceResponse, ReadResourceResult,
-        Reference, RequestId, RootsListChangedNotification, ServerInfo, ServerJsonRpcMessage,
-        ServerNotification, ServerRequest, ServerResult, SetLevelRequest, SetLevelRequestParams,
-        SubscribeRequest, SubscribeRequestParams, UnsubscribeRequest, UnsubscribeRequestParams,
+        Reference, RequestId, RequestMetaObject, RootsListChangedNotification, ServerInfo,
+        ServerJsonRpcMessage, ServerNotification, ServerRequest, ServerResult, SetLevelRequest,
+        SetLevelRequestParams, SubscribeRequest, SubscribeRequestParams, UnsubscribeRequest,
+        UnsubscribeRequestParams,
     },
     transport::DynamicTransportError,
 };
@@ -51,6 +53,17 @@ pub enum ClientInitializeError {
 
     #[error("JSON-RPC error: {0}")]
     JsonRpcError(ErrorData),
+
+    #[error(
+        "no compatible protocol version (client: {client_supported:?}, server: {server_supported:?})"
+    )]
+    NoCompatibleProtocolVersion {
+        client_supported: Vec<ProtocolVersion>,
+        server_supported: Vec<ProtocolVersion>,
+    },
+
+    #[error("discover startup requires at least one preferred protocol version")]
+    NoPreferredProtocolVersion,
 
     #[error("Cancelled")]
     Cancelled,
@@ -147,6 +160,19 @@ where
 #[expect(clippy::exhaustive_structs, reason = "intentionally exhaustive")]
 pub struct RoleClient;
 
+/// Select the first client-preferred protocol version supported by the server.
+///
+/// Returns `None` when no version is shared.
+pub fn select_protocol_version(
+    client_preference: &[ProtocolVersion],
+    server_supported: &[ProtocolVersion],
+) -> Option<ProtocolVersion> {
+    client_preference
+        .iter()
+        .find(|version| server_supported.contains(version))
+        .cloned()
+}
+
 impl ServiceRole for RoleClient {
     type Req = ClientRequest;
     type Resp = ClientResult;
@@ -161,6 +187,43 @@ impl ServiceRole for RoleClient {
 }
 
 pub type ServerSink = Peer<RoleClient>;
+
+/// Selects how a client establishes its MCP lifecycle.
+///
+/// Existing [`ServiceExt::serve`] behavior remains legacy initialization.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum ClientLifecycleMode {
+    /// Use the legacy `initialize` / `notifications/initialized` handshake.
+    Initialize,
+    /// Use `server/discover` and send self-contained per-request metadata.
+    Discover {
+        preferred_versions: Vec<ProtocolVersion>,
+    },
+    /// Probe with `server/discover`, falling back only when the peer proves it is legacy.
+    Auto {
+        preferred_versions: Vec<ProtocolVersion>,
+        legacy_version: Option<ProtocolVersion>,
+    },
+}
+
+/// Client-specific lifecycle entry points.
+pub trait ClientServiceExt: Service<RoleClient> + Sized {
+    fn serve_with_lifecycle<T, E, A>(
+        self,
+        transport: T,
+        lifecycle: ClientLifecycleMode,
+    ) -> impl Future<Output = Result<RunningService<RoleClient, Self>, ClientInitializeError>>
+    + MaybeSendFuture
+    where
+        T: IntoTransport<RoleClient, E, A>,
+        E: std::error::Error + Send + Sync + 'static,
+    {
+        serve_client_with_lifecycle(self, transport, lifecycle)
+    }
+}
+
+impl<S: Service<RoleClient>> ClientServiceExt for S {}
 
 impl<S: Service<RoleClient>> ServiceExt<RoleClient> for S {
     fn serve_with_ct<T, E, A>(
@@ -187,7 +250,13 @@ where
     T: IntoTransport<RoleClient, E, A>,
     E: std::error::Error + Send + Sync + 'static,
 {
-    serve_client_with_ct(service, transport, Default::default()).await
+    serve_client_with_lifecycle_and_ct(
+        service,
+        transport,
+        ClientLifecycleMode::Initialize,
+        Default::default(),
+    )
+    .await
 }
 
 pub async fn serve_client_with_ct<S, T, E, A>(
@@ -200,8 +269,36 @@ where
     T: IntoTransport<RoleClient, E, A>,
     E: std::error::Error + Send + Sync + 'static,
 {
+    serve_client_with_lifecycle_and_ct(service, transport, ClientLifecycleMode::Initialize, ct)
+        .await
+}
+
+pub async fn serve_client_with_lifecycle<S, T, E, A>(
+    service: S,
+    transport: T,
+    lifecycle: ClientLifecycleMode,
+) -> Result<RunningService<RoleClient, S>, ClientInitializeError>
+where
+    S: Service<RoleClient>,
+    T: IntoTransport<RoleClient, E, A>,
+    E: std::error::Error + Send + Sync + 'static,
+{
+    serve_client_with_lifecycle_and_ct(service, transport, lifecycle, Default::default()).await
+}
+
+pub async fn serve_client_with_lifecycle_and_ct<S, T, E, A>(
+    service: S,
+    transport: T,
+    lifecycle: ClientLifecycleMode,
+    ct: CancellationToken,
+) -> Result<RunningService<RoleClient, S>, ClientInitializeError>
+where
+    S: Service<RoleClient>,
+    T: IntoTransport<RoleClient, E, A>,
+    E: std::error::Error + Send + Sync + 'static,
+{
     tokio::select! {
-        result = serve_client_with_ct_inner(service, transport.into_transport(), ct.clone()) => { result }
+        result = serve_client_with_ct_inner(service, transport.into_transport(), lifecycle, ct.clone()) => { result }
         _ = ct.cancelled() => {
             Err(ClientInitializeError::Cancelled)
         }
@@ -211,6 +308,7 @@ where
 async fn serve_client_with_ct_inner<S, T>(
     service: S,
     transport: T,
+    lifecycle: ClientLifecycleMode,
     ct: CancellationToken,
 ) -> Result<RunningService<RoleClient, S>, ClientInitializeError>
 where
@@ -219,12 +317,71 @@ where
 {
     let mut transport = transport.into_transport();
     let id_provider = <Arc<AtomicU32RequestIdProvider>>::default();
+    let (peer, peer_rx) = Peer::new(id_provider.clone(), None);
+    let client_info = service.get_info();
 
-    // service
+    match lifecycle {
+        ClientLifecycleMode::Initialize => {
+            legacy_startup(&service, &mut transport, &id_provider, &peer, client_info).await?;
+        }
+        ClientLifecycleMode::Discover { preferred_versions } => {
+            discover_startup(
+                &service,
+                &mut transport,
+                &id_provider,
+                &peer,
+                &client_info,
+                preferred_versions,
+            )
+            .await?;
+        }
+        ClientLifecycleMode::Auto {
+            preferred_versions,
+            legacy_version,
+        } => {
+            let discover_result = discover_startup(
+                &service,
+                &mut transport,
+                &id_provider,
+                &peer,
+                &client_info,
+                preferred_versions,
+            )
+            .await;
+            match discover_result {
+                Ok(()) => {}
+                Err(ClientInitializeError::JsonRpcError(error))
+                    if error.code == crate::model::ErrorCode::METHOD_NOT_FOUND =>
+                {
+                    let mut legacy_info = client_info;
+                    if let Some(version) = legacy_version {
+                        legacy_info.protocol_version = version;
+                    }
+                    legacy_startup(&service, &mut transport, &id_provider, &peer, legacy_info)
+                        .await?;
+                }
+                Err(error) => return Err(error),
+            }
+        }
+    }
+    Ok(serve_inner(service, transport, peer, peer_rx, ct))
+}
+
+async fn legacy_startup<S, T>(
+    service: &S,
+    transport: &mut T,
+    id_provider: &Arc<AtomicU32RequestIdProvider>,
+    peer: &Peer<RoleClient>,
+    client_info: ClientInfo,
+) -> Result<(), ClientInitializeError>
+where
+    S: Service<RoleClient>,
+    T: Transport<RoleClient> + 'static,
+{
     let id = id_provider.next_request_id();
     let init_request = InitializeRequest {
         method: Default::default(),
-        params: service.get_info(),
+        params: client_info,
         extensions: Default::default(),
     };
     transport
@@ -238,15 +395,8 @@ where
             context: "send initialize request".into(),
         })?;
 
-    let (peer, peer_rx) = Peer::new(id_provider, None);
-
-    let (response, response_id) = expect_response(
-        &mut transport,
-        "initialize response",
-        &service,
-        peer.clone(),
-    )
-    .await?;
+    let (response, response_id) =
+        expect_response(transport, "initialize response", service, peer.clone()).await?;
 
     if id != response_id {
         return Err(ClientInitializeError::ConflictInitResponseId(
@@ -270,7 +420,115 @@ where
     transport.send(notification).await.map_err(|error| {
         ClientInitializeError::transport::<T>(error, "send initialized notification")
     })?;
-    Ok(serve_inner(service, transport, peer, peer_rx, ct))
+    Ok(())
+}
+
+async fn discover_startup<S, T>(
+    service: &S,
+    transport: &mut T,
+    id_provider: &Arc<AtomicU32RequestIdProvider>,
+    peer: &Peer<RoleClient>,
+    client_info: &ClientInfo,
+    preferred_versions: Vec<ProtocolVersion>,
+) -> Result<(), ClientInitializeError>
+where
+    S: Service<RoleClient>,
+    T: Transport<RoleClient> + 'static,
+{
+    if preferred_versions.is_empty() {
+        return Err(ClientInitializeError::NoPreferredProtocolVersion);
+    }
+
+    let mut attempted = Vec::new();
+    let mut candidate = preferred_versions[0].clone();
+    loop {
+        attempted.push(candidate.clone());
+
+        let meta = RequestMetaObject::with_client_context(
+            candidate.clone(),
+            client_info.client_info.clone(),
+            client_info.capabilities.clone(),
+        );
+        let mut discover = DiscoverRequest::new(DiscoverRequestParams {});
+        discover.extensions.insert(meta);
+        let id = id_provider.next_request_id();
+        transport
+            .send(ClientJsonRpcMessage::request(
+                ClientRequest::DiscoverRequest(discover),
+                id.clone(),
+            ))
+            .await
+            .map_err(|error| {
+                ClientInitializeError::transport::<T>(error, "send discover request")
+            })?;
+
+        match expect_response(transport, "discover response", service, peer.clone()).await {
+            Ok((ServerResult::DiscoverResult(result), response_id)) => {
+                if response_id != id {
+                    return Err(ClientInitializeError::ConflictInitResponseId(
+                        id,
+                        response_id,
+                    ));
+                }
+                let Some(selected) =
+                    select_protocol_version(&preferred_versions, &result.supported_versions)
+                else {
+                    return Err(ClientInitializeError::NoCompatibleProtocolVersion {
+                        client_supported: preferred_versions,
+                        server_supported: result.supported_versions,
+                    });
+                };
+                peer.set_peer_info(ServerInfo {
+                    protocol_version: selected.clone(),
+                    capabilities: result.capabilities,
+                    server_info: result.server_info,
+                    instructions: result.instructions,
+                    meta: result.meta,
+                });
+                peer.set_client_request_metadata(ClientRequestMetadata {
+                    protocol_version: selected,
+                    client_info: client_info.client_info.clone(),
+                    client_capabilities: client_info.capabilities.clone(),
+                });
+                return Ok(());
+            }
+            Ok((response, _)) => {
+                return Err(ClientInitializeError::ExpectedInitResult(Some(response)));
+            }
+            Err(ClientInitializeError::JsonRpcError(error))
+                if error.code == crate::model::ErrorCode::UNSUPPORTED_PROTOCOL_VERSION =>
+            {
+                let supported = error
+                    .data
+                    .as_ref()
+                    .and_then(|data| data.get("supported"))
+                    .cloned()
+                    .and_then(|value| serde_json::from_value::<Vec<ProtocolVersion>>(value).ok())
+                    .unwrap_or_default();
+                let may_retry_current = attempted
+                    .iter()
+                    .filter(|version| *version == &candidate)
+                    .count()
+                    == 1;
+                let next = preferred_versions
+                    .iter()
+                    .find(|version| {
+                        supported.contains(version)
+                            && (!attempted.contains(version)
+                                || (may_retry_current && *version == &candidate))
+                    })
+                    .cloned();
+                let Some(next) = next else {
+                    return Err(ClientInitializeError::NoCompatibleProtocolVersion {
+                        client_supported: preferred_versions,
+                        server_supported: supported,
+                    });
+                };
+                candidate = next;
+            }
+            Err(error) => return Err(error),
+        }
+    }
 }
 
 macro_rules! method {
@@ -363,6 +621,22 @@ macro_rules! method {
 }
 
 impl Peer<RoleClient> {
+    /// Discover the server's supported protocol versions and capabilities.
+    ///
+    /// The high-level client currently exposes this peer only after initialization;
+    /// pre-initialization probing is planned as follow-up work.
+    pub async fn discover(&self, meta: RequestMetaObject) -> Result<DiscoverResult, ServiceError> {
+        let mut request = DiscoverRequest::new(DiscoverRequestParams {});
+        request.extensions.insert(meta);
+        let result = self
+            .send_request(ClientRequest::DiscoverRequest(request))
+            .await?;
+        match result {
+            ServerResult::DiscoverResult(result) => Ok(result),
+            _ => Err(ServiceError::UnexpectedResponse),
+        }
+    }
+
     /// Send one `tools/call` request and return either a final result or an MRTR
     /// `InputRequiredResult` without driving any follow-up rounds.
     pub async fn call_tool_once(

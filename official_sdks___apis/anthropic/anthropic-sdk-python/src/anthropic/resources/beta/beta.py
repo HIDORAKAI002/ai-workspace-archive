@@ -10,6 +10,14 @@ from .files import (
     FilesWithStreamingResponse,
     AsyncFilesWithStreamingResponse,
 )
+from .dreams import (
+    Dreams,
+    AsyncDreams,
+    DreamsWithRawResponse,
+    AsyncDreamsWithRawResponse,
+    DreamsWithStreamingResponse,
+    AsyncDreamsWithStreamingResponse,
+)
 from .models import (
     Models,
     AsyncModels,
@@ -68,6 +76,14 @@ from .deployment_runs import (
     AsyncDeploymentRunsWithRawResponse,
     DeploymentRunsWithStreamingResponse,
     AsyncDeploymentRunsWithStreamingResponse,
+)
+from .tunnels.tunnels import (
+    Tunnels,
+    AsyncTunnels,
+    TunnelsWithRawResponse,
+    AsyncTunnelsWithRawResponse,
+    TunnelsWithStreamingResponse,
+    AsyncTunnelsWithStreamingResponse,
 )
 from .messages.messages import (
     Messages,
@@ -159,6 +175,14 @@ class Beta(SyncAPIResource):
         return UserProfiles(self._client)
 
     @cached_property
+    def dreams(self) -> Dreams:
+        return Dreams(self._client)
+
+    @cached_property
+    def tunnels(self) -> Tunnels:
+        return Tunnels(self._client)
+
+    @cached_property
     def with_raw_response(self) -> BetaWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -232,6 +256,14 @@ class AsyncBeta(AsyncAPIResource):
         return AsyncUserProfiles(self._client)
 
     @cached_property
+    def dreams(self) -> AsyncDreams:
+        return AsyncDreams(self._client)
+
+    @cached_property
+    def tunnels(self) -> AsyncTunnels:
+        return AsyncTunnels(self._client)
+
+    @cached_property
     def with_raw_response(self) -> AsyncBetaWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -303,6 +335,14 @@ class BetaWithRawResponse:
     def user_profiles(self) -> UserProfilesWithRawResponse:
         return UserProfilesWithRawResponse(self._beta.user_profiles)
 
+    @cached_property
+    def dreams(self) -> DreamsWithRawResponse:
+        return DreamsWithRawResponse(self._beta.dreams)
+
+    @cached_property
+    def tunnels(self) -> TunnelsWithRawResponse:
+        return TunnelsWithRawResponse(self._beta.tunnels)
+
 
 class AsyncBetaWithRawResponse:
     def __init__(self, beta: AsyncBeta) -> None:
@@ -355,6 +395,14 @@ class AsyncBetaWithRawResponse:
     @cached_property
     def user_profiles(self) -> AsyncUserProfilesWithRawResponse:
         return AsyncUserProfilesWithRawResponse(self._beta.user_profiles)
+
+    @cached_property
+    def dreams(self) -> AsyncDreamsWithRawResponse:
+        return AsyncDreamsWithRawResponse(self._beta.dreams)
+
+    @cached_property
+    def tunnels(self) -> AsyncTunnelsWithRawResponse:
+        return AsyncTunnelsWithRawResponse(self._beta.tunnels)
 
 
 class BetaWithStreamingResponse:
@@ -409,6 +457,14 @@ class BetaWithStreamingResponse:
     def user_profiles(self) -> UserProfilesWithStreamingResponse:
         return UserProfilesWithStreamingResponse(self._beta.user_profiles)
 
+    @cached_property
+    def dreams(self) -> DreamsWithStreamingResponse:
+        return DreamsWithStreamingResponse(self._beta.dreams)
+
+    @cached_property
+    def tunnels(self) -> TunnelsWithStreamingResponse:
+        return TunnelsWithStreamingResponse(self._beta.tunnels)
+
 
 class AsyncBetaWithStreamingResponse:
     def __init__(self, beta: AsyncBeta) -> None:
@@ -461,3 +517,11 @@ class AsyncBetaWithStreamingResponse:
     @cached_property
     def user_profiles(self) -> AsyncUserProfilesWithStreamingResponse:
         return AsyncUserProfilesWithStreamingResponse(self._beta.user_profiles)
+
+    @cached_property
+    def dreams(self) -> AsyncDreamsWithStreamingResponse:
+        return AsyncDreamsWithStreamingResponse(self._beta.dreams)
+
+    @cached_property
+    def tunnels(self) -> AsyncTunnelsWithStreamingResponse:
+        return AsyncTunnelsWithStreamingResponse(self._beta.tunnels)

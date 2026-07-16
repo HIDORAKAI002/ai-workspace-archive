@@ -87,6 +87,7 @@ import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
+import type { ExchangeScrapeMetadata } from "../../lib/exchange";
 import {
   checkUrl,
   type ThreatCheckDedup,
@@ -101,6 +102,7 @@ export type ScrapeUrlResponse =
       success: true;
       document: Document;
       unsupportedFeatures?: Set<FeatureFlag>;
+      exchange?: ExchangeScrapeMetadata;
       /**
        * Threat protection decisions made for this scrape (initial domain
        * check + any redirect re-checks, in order). Read by the billing layer
@@ -1071,6 +1073,7 @@ async function scrapeURLLoop(meta: Meta): Promise<ScrapeUrlResponse> {
       success: true,
       document,
       unsupportedFeatures: result.unsupportedFeatures,
+      exchange: engineResult.exchange,
     };
   });
 }
