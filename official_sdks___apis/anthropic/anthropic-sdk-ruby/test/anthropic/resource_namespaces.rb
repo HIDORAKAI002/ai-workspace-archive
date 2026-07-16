@@ -27,6 +27,9 @@ module Anthropic
         module Skills
         end
 
+        module Tunnels
+        end
+
         module Vaults
         end
       end
@@ -51,11 +54,17 @@ module Anthropic
       module Threads
       end
 
+      module Tunnels
+      end
+
       module Vaults
       end
     end
 
     module Helpers
+      module Sessions
+      end
+
       module ToolRunner
       end
 

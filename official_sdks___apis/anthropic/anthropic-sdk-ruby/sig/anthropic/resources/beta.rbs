@@ -27,6 +27,10 @@ module Anthropic
 
       attr_reader user_profiles: Anthropic::Resources::Beta::UserProfiles
 
+      attr_reader dreams: Anthropic::Resources::Beta::Dreams
+
+      attr_reader tunnels: Anthropic::Resources::Beta::Tunnels
+
       def initialize: (client: Anthropic::Client) -> void
     end
   end
