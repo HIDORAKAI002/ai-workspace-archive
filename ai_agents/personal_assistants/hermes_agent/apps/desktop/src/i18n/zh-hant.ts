@@ -1523,6 +1523,8 @@ export const zhHant = defineLocale({
       sessionRunning: '工作階段執行中',
       needsInput: '需要您的輸入',
       waitingForAnswer: '等待您的回答',
+      finishedUnread: '已完成 — 未讀',
+      backgroundRunning: '背景任務執行中',
       handoffOrigin: platform => `從 ${platform} 轉接`,
       renamed: '已重新命名',
       renameFailed: '重新命名失敗',
