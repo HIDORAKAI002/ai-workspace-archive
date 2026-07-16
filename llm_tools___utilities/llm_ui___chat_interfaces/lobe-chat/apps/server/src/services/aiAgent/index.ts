@@ -137,6 +137,10 @@ import {
 } from '@/server/services/agentSignal/featureGate';
 import { shouldSuppressSignal } from '@/server/services/agentSignal/suppressSignal';
 import { ComposioService } from '@/server/services/composio';
+import {
+  buildLastSyncedAtMap,
+  scheduleStaleConnectorToolsRefresh,
+} from '@/server/services/connector/refresh';
 import { deviceGateway } from '@/server/services/deviceGateway';
 import { getScopedOnlineDevices } from '@/server/services/deviceGateway/scopedDevices';
 import { DocumentService } from '@/server/services/document';
@@ -1213,7 +1217,10 @@ export class AiAgentService {
     // documents stay keyed on `resolvedAgentId`.
     const persistAgentId = appContext?.agentSignal?.agentId ?? resolvedAgentId;
 
-    // Apply per-call model/provider overrides (e.g. from task.config)
+    // Apply per-call model/provider overrides. Sources include task.config and
+    // the callSubAgent spawn site, which resolves the sub-agent's default model
+    // from the parent agent's `agencyConfig.subagent` and passes it explicitly —
+    // so this execution path never has to special-case sub-agents.
     if (modelOverride) agentConfig.model = modelOverride;
     if (providerOverride) agentConfig.provider = providerOverride;
 
@@ -2530,6 +2537,28 @@ export class AiAgentService {
           : [];
 
       connectorManifests = buildConnectorManifests(connectorsMcp, connectorTools);
+
+      // Auto-refresh stale connector tool lists in the background so upstream MCP
+      // tool changes propagate without the user manually re-syncing — the freshness
+      // the connectors migration lost from the old plugin system. Reuses the tools
+      // just fetched as the last-sync marker (no extra query), HTTP-only, throttled,
+      // and deferred via after() so it adds no latency to this run. Wrapped
+      // defensively: it is a pure optimization and must never break the agent run.
+      try {
+        // The background sync decrypts stored OAuth/bearer credentials to auth
+        // against the MCP server, so it needs a gatekeeper-backed model — the
+        // same `connectorGateKeeper` used above. `this.connectorModel` has none,
+        // which would decrypt to null and make an authed connector 401 → error.
+        const refreshConnectorModel = connectorGateKeeper
+          ? new ConnectorModel(this.db, this.userId, this.workspaceId, connectorGateKeeper)
+          : this.connectorModel;
+        scheduleStaleConnectorToolsRefresh(connectorsMcp, buildLastSyncedAtMap(connectorTools), {
+          connectorModel: refreshConnectorModel,
+          connectorToolModel: this.connectorToolModel,
+        });
+      } catch (err) {
+        log('execAgent: failed to schedule connector tool refresh (ignored): %O', err);
+      }
 
       // Only connectors that ACTUALLY produced a manifest (enabled + with synced
       // tools) replace a same-named plugin. Deriving the set from connectorsMcp
@@ -4065,6 +4094,11 @@ export class AiAgentService {
     this.execAgentThreadRun(params, {
       isSubAgent: true,
       logScope: 'execVirtualSubAgent',
+      // Sub-agent model is resolved at the spawn site (callSubAgent runner) from
+      // the parent agent's `agencyConfig.subagent` and threaded through here as an
+      // explicit override, so execAgent never re-reads the parent config.
+      model: params.model,
+      provider: params.provider,
       resumeParentOnComplete: true,
     });
 
@@ -4272,6 +4306,14 @@ export class AiAgentService {
       isSubAgent: boolean;
       logScope: 'execSubAgent' | 'execVirtualSubAgent';
       /**
+       * Explicit model/provider override for the spawned run. The callSubAgent
+       * spawn site resolves the sub-agent model from the parent agent's config
+       * and passes it here; left undefined for group members (they keep their
+       * own model).
+       */
+      model?: string;
+      provider?: string;
+      /**
        * Marks the run's orchestration role on its operation metadata. Isolated
        * group members pass `'member'` so the inactivity-watchdog abandon path can
        * tell them apart from genuine `callSubAgent` children — both share
@@ -4390,8 +4432,11 @@ export class AiAgentService {
       appContext,
       autoStart: true,
       hooks,
+      // Explicit sub-agent model override resolved at the spawn site.
+      model: options.model,
       parentOperationId,
       prompt: instruction,
+      provider: options.provider,
       trigger: inheritedTrigger,
       userInterventionConfig: { approvalMode: 'headless' },
     });
