@@ -263,12 +263,34 @@ export class HeterogeneousPersistenceHandler {
    * this topic can include `--resume <id>`.
    */
   async finish(params: {
-    error?: { message: string; type: string };
+    error?: { body?: Record<string, unknown>; message: string; type: string };
     operationId: string;
     result: 'success' | 'error' | 'cancelled';
     sessionId?: string;
+    /**
+     * Needed to bootstrap state for a failed run that never ingested: a
+     * process-level failure (spawn ENOENT, auth printed straight to stderr)
+     * produces ZERO stream events, so no ingest ever created an
+     * `OperationState` for this op.
+     */
+    topicId?: string;
   }): Promise<void> {
-    const state = operationStates.get(params.operationId);
+    let state = operationStates.get(params.operationId);
+
+    // A run that died before producing any stream event has no state — but its
+    // terminal error must still land on the assistant message HERE, before the
+    // caller publishes `agent_runtime_end`. The client refetches messages on
+    // that event, so deferring the write to CompletionLifecycle (which runs
+    // after the publish) races the refetch and the error card doesn't render
+    // live. Bootstrap from topic.metadata.runningOperation like ingest does;
+    // a stale/mismatched operation stays a no-op.
+    if (!state && params.result === 'error' && params.error && params.topicId) {
+      try {
+        state = await this.loadOrCreateState(params.operationId, params.topicId);
+      } catch {
+        return;
+      }
+    }
     if (!state) return;
 
     try {
@@ -974,7 +996,7 @@ export class HeterogeneousPersistenceHandler {
   /** Final safety flush triggered by `heteroFinish`. */
   private async flushFinalState(
     state: OperationState,
-    error: { message: string; type: string } | undefined,
+    error: { body?: Record<string, unknown>; message: string; type: string } | undefined,
     result: 'success' | 'error' | 'cancelled',
   ) {
     if (!state.main.accContent && !state.main.accReasoning && !error && result !== 'error') {
@@ -989,6 +1011,8 @@ export class HeterogeneousPersistenceHandler {
       // Same canonical normalization as the in-stream `setError` path — the CLI's
       // free-form `{ message, type }` runs through formatErrorForState so the
       // terminal flush and the in-stream write produce one classified error shape.
+      // A structured `body` (status-guide error: agentType + code) passes
+      // through untouched — the client's guide UI gates on it.
       updateValue.error = formatErrorForState(error);
     }
 
