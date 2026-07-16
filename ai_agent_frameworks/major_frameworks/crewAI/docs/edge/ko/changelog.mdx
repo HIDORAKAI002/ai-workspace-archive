@@ -4,6 +4,98 @@ description: "CrewAI의 제품 업데이트, 개선 사항 및 버그 수정"
 icon: "clock"
 mode: "wide"
 ---
+<Update label="2026년 7월 16일">
+  ## v1.15.3
+
+  [GitHub 릴리스 보기](https://github.com/crewAIInc/crewAI/releases/tag/1.15.3)
+
+  ## 변경 사항
+
+  ### 기능
+  - PlusAPI 클라이언트에 조직 ID 매개변수 추가
+  - @on을 중심으로 단계 가로채기 포인트 및 실행 훅 문서 재작업
+  - 실행 경계 가로채기 포인트 연결
+  - 일반 가로채기 훅 디스패처 추가
+  - TUI(헤드리스 터미널 대체)에서 선언적 흐름 실행
+
+  ### 버그 수정
+  - OUTPUT 훅 결과와 kickoff-completed 이벤트 동기화
+  - null 리포지토리 에이전트 속성 수정
+  - after_llm_call 훅이 네이티브 도구 실행을 방해하지 않도록 보장
+  - 핸들러가 히스토리를 잘라낼 때 턴 응답의 중복 추가 방지
+  - 도구 결과 캐싱을 기본값이 아닌 선택 사항으로 설정
+  - 생성 시 작성된 도구 설명 재작성 중지
+  - 에이전트 및 크루 결과에서 두 이름 아래의 토큰 사용량 노출
+  - kickoff 결과에 대한 호출당 사용 메트릭 보고
+  - route_turn()이 falsy를 반환할 때 이전 턴의 의도를 재생하지 않도록 중지
+
+  ### 문서화
+  - 실행 훅 그룹화 업데이트 및 모든 훅 컨텍스트 문서화
+
+  ## 기여자
+
+  @joaomdmoura, @lorenzejay, @lucasgomide, @vinibrsl
+
+</Update>
+
+<Update label="2026년 7월 16일">
+  ## v1.15.3a2
+
+  [GitHub 릴리스 보기](https://github.com/crewAIInc/crewAI/releases/tag/1.15.3a2)
+
+  ## 변경 사항
+
+  ### 버그 수정
+  - OUTPUT 훅 결과와 kickoff-completed 이벤트의 동기화 수정
+
+  ### 문서
+  - v1.15.3a1에 대한 스냅샷 및 변경 로그 업데이트
+
+  ### 의존성 업데이트
+  - PYSEC-2026-3447 문제를 해결하기 위해 setuptools를 0.83.0으로 업데이트
+
+  ## 기여자
+
+  @lucasgomide, @vinibrsl
+
+</Update>
+
+<Update label="2026년 7월 16일">
+  ## v1.15.3a1
+
+  [GitHub 릴리스 보기](https://github.com/crewAIInc/crewAI/releases/tag/1.15.3a1)
+
+  ## 변경 사항
+
+  ### 기능
+  - PlusAPI 클라이언트에 조직 ID 매개변수 추가.
+  - `@on` 주위의 실행 후크 문서를 재작업하고 단계 가로채기 포인트 추가.
+  - 실행 경계 가로채기 포인트 연결.
+  - 일반 가로채기 후크 디스패처 추가.
+  - TUI(헤드리스 터미널 대체)에서 선언적 흐름 실행.
+  - 사용자 정의 OpenAI URL 개선.
+
+  ### 버그 수정
+  - null 리포지토리 에이전트 속성 수정.
+  - 기본 도구 실행이 중단되지 않도록 `after_llm_call` 후크 수정.
+  - 핸들러가 기록을 잘라낼 때 턴 응답을 이중으로 추가하는 것을 중지.
+  - 도구 결과 캐싱을 기본값이 아닌 선택적으로 설정.
+  - 생성 시 작성된 도구 설명을 재작성하는 것을 중지.
+  - 에이전트 및 크루 결과에서 두 이름으로 토큰 사용량 노출.
+  - 시작 결과에서 호출당 사용 메트릭 보고.
+  - `route_turn()`이 falsy를 반환할 때 이전 턴의 의도를 재생하지 않도록 중지.
+  - 시작 및 흐름 완료 이벤트 전에 메모리 쓰기 배수.
+
+  ### 문서
+  - 실행 후크를 그룹화하고 모든 후크 컨텍스트 문서화.
+  - 실행 후크에 대한 문서 업데이트.
+
+  ## 기여자
+
+  @joaomdmoura, @lorenzejay, @lucasgomide, @vinibrsl
+
+</Update>
+
 <Update label="2026년 7월 7일">
   ## v1.15.2
 

@@ -34,6 +34,9 @@ module Anthropic
         end
         attr_writer :output_config
 
+        # Inference speed mode. `fast` provides significantly faster output token
+        # generation at premium pricing. Not all models support `fast`; invalid
+        # combinations are rejected at create time.
         sig do
           returns(
             T.nilable(Anthropic::Beta::BetaFallbackParam::Speed::OrSymbol)
@@ -56,10 +59,10 @@ module Anthropic
 
         # One entry in the `fallbacks` chain on a `/v1/messages` request.
         #
-        # `model` is required. The four override fields (`max_tokens`, `thinking`,
-        # `output_config`, and `speed`) replace the corresponding top-level field for this
-        # attempt only and are validated as if the request were made to `model`. Any other
-        # key is rejected at parse time.
+        # `model` is required. The override fields (`max_tokens`, `thinking`,
+        # `output_config`, and `speed`) set the corresponding parameter for this attempt
+        # only and are validated as if the request were made to `model`. Any other key is
+        # rejected at parse time.
         sig do
           params(
             model: T.any(Anthropic::Model::OrSymbol, String),
@@ -85,6 +88,9 @@ module Anthropic
           model:,
           max_tokens: nil,
           output_config: nil,
+          # Inference speed mode. `fast` provides significantly faster output token
+          # generation at premium pricing. Not all models support `fast`; invalid
+          # combinations are rejected at create time.
           speed: nil,
           thinking: nil
         )
@@ -112,6 +118,9 @@ module Anthropic
         def to_hash
         end
 
+        # Inference speed mode. `fast` provides significantly faster output token
+        # generation at premium pricing. Not all models support `fast`; invalid
+        # combinations are rejected at create time.
         module Speed
           extend Anthropic::Internal::Type::Enum
 
