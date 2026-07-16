@@ -308,6 +308,10 @@ export const mobileRoutes: RouteObject[] = [
             ),
             path: 'provider',
           },
+          {
+            element: redirectElement('/settings/credential'),
+            path: 'creds',
+          },
           // Other settings tabs (common, agent, memory, tts, about, etc.)
           {
             element: dynamicElement(
@@ -315,6 +319,13 @@ export const mobileRoutes: RouteObject[] = [
               'Mobile > Settings > Tab',
             ),
             path: ':tab',
+          },
+          {
+            element: dynamicElement(
+              () => import('@/routes/(main)/settings'),
+              'Mobile > Settings > Tab > Sub',
+            ),
+            path: ':tab/:sub',
           },
         ],
         element: dynamicLayout(
@@ -456,6 +467,20 @@ export const mobileRoutes: RouteObject[] = [
                   'Mobile > Workspace > Settings > Audit Log',
                 ),
                 path: 'audit-log',
+              },
+              {
+                element: dynamicElement(
+                  () => import('@/routes/(main)/[workspaceSlug]/settings/oauth-apps'),
+                  'Mobile > Workspace > Settings > OAuth Apps',
+                ),
+                path: 'oauth-apps',
+              },
+              {
+                element: dynamicElement(
+                  () => import('@/routes/(main)/[workspaceSlug]/settings/oauth-apps'),
+                  'Mobile > Workspace > Settings > OAuth App Detail',
+                ),
+                path: 'oauth-apps/:sub',
               },
             ],
             element: dynamicLayout(

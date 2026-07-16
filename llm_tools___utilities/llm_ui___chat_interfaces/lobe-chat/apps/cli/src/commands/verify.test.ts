@@ -6,11 +6,14 @@ import { Command } from 'commander';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  deriveReportVerdict,
+  genericContextFromResult,
   originFromEnv,
   parseSubjectRef,
   planFromResult,
   registerVerifyCommand,
   reportEvidence,
+  scenarioFromResult,
   subjectFromEnv,
   subjectFromResult,
   surfacesFromResult,
@@ -499,6 +502,66 @@ describe('verify ingest-report — every run is an immutable acceptance round', 
     });
   });
 
+  it('passes a non-coding scenario and its context bag through to the run', async () => {
+    const verify = mockTrpcClient.verify as Record<string, any>;
+    writeFileSync(
+      path.join(dir, 'result.json'),
+      JSON.stringify({
+        cases: [],
+        context: { question: 'How mature is X?', sourceCount: 8 },
+        scenario: 'research',
+      }),
+    );
+
+    await run(['ingest-report', dir, '--json']);
+
+    expect(verify.createRun.mutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({ question: 'How mature is X?', sourceCount: 8 }),
+        scenario: 'research',
+      }),
+    );
+  });
+
+  it('finishes the human (non-json) output path for a non-coding report', async () => {
+    // Regression: `pullRequest` was block-scoped inside the coding branch while
+    // the text success output still read it, so every non-json ingest crashed
+    // with a ReferenceError AFTER creating the run.
+    const verify = mockTrpcClient.verify as Record<string, any>;
+    writeFileSync(
+      path.join(dir, 'result.json'),
+      JSON.stringify({
+        cases: [],
+        context: { question: 'How mature is X?' },
+        scenario: 'research',
+      }),
+    );
+
+    await run(['ingest-report', dir]);
+
+    expect(verify.createRun.mutate).toHaveBeenCalledWith(
+      expect.objectContaining({ scenario: 'research' }),
+    );
+    // The success tail printed — the command reached past the run creation.
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('verifyRunId'));
+  });
+
+  it('rejects an unknown scenario instead of silently tagging the run coding', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+      throw new Error(`process.exit ${code}`);
+    }) as never);
+    writeFileSync(path.join(dir, 'result.json'), JSON.stringify({ cases: [], scenario: 'poetry' }));
+
+    try {
+      await expect(run(['ingest-report', dir, '--json'])).rejects.toThrow('process.exit 1');
+      expect(
+        (mockTrpcClient.verify as Record<string, any>).createRun.mutate,
+      ).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
   it('creates another run when the same report directory is ingested again', async () => {
     const verify = mockTrpcClient.verify as Record<string, any>;
     verify.createRun.mutate
@@ -517,6 +580,44 @@ describe('verify ingest-report — every run is an immutable acceptance round', 
       acceptanceId: 'acceptance-1',
       verifyRunId: 'run-second',
     });
+  });
+});
+
+describe('scenarioFromResult / genericContextFromResult — non-coding scenarios', () => {
+  it('defaults to coding and passes any known scenario through', () => {
+    expect(scenarioFromResult({})).toBe('coding');
+    expect(scenarioFromResult({ scenario: 'research' })).toBe('research');
+    expect(scenarioFromResult({ scenario: 'writing' })).toBe('writing');
+    expect(scenarioFromResult({ scenario: 'generic' })).toBe('generic');
+  });
+
+  it('hard-errors on a scenario nothing renders', () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+      throw new Error(`process.exit ${code}`);
+    }) as never);
+
+    try {
+      expect(() => scenarioFromResult({ scenario: 'poetry' })).toThrow('process.exit 1');
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
+  it('lifts shared provenance defaults but lets explicit context keys win', () => {
+    expect(
+      genericContextFromResult({
+        context: { testedAt: '2026-07-16T10:00:00Z', wordCount: 82_000, work: '长夜' },
+        createdAt: '2026-07-15T00:00:00Z',
+        entry: 'lh doc export',
+      }),
+    ).toEqual({
+      entry: 'lh doc export',
+      testedAt: '2026-07-16T10:00:00Z',
+      wordCount: 82_000,
+      work: '长夜',
+    });
+
+    expect(genericContextFromResult({})).toBeUndefined();
   });
 });
 
@@ -607,6 +708,24 @@ describe('originFromEnv — in-app provenance', () => {
     delete process.env.LOBEHUB_OPERATION_ID;
 
     expect(originFromEnv()).toBeUndefined();
+  });
+});
+
+describe('deriveReportVerdict — headline fallback when summary.verdict is absent', () => {
+  it('derives passed when every case passed', () => {
+    expect(deriveReportVerdict([{ result: 'passed' }, { result: 'ok' }])).toBe('passed');
+  });
+
+  it('any failed case fails the report', () => {
+    expect(deriveReportVerdict([{ result: 'passed' }, { result: 'failed' }])).toBe('failed');
+  });
+
+  it('a non-passed, non-failed case makes the report uncertain', () => {
+    expect(deriveReportVerdict([{ result: 'passed' }, { result: 'blocked' }])).toBe('uncertain');
+  });
+
+  it('no cases → no derived verdict', () => {
+    expect(deriveReportVerdict([])).toBeUndefined();
   });
 });
 

@@ -406,6 +406,11 @@ export const discoverKeys = {
     locale,
     params,
   ]),
+  skillComments: def('discover:skillComments', (identifier: string, params: unknown) => [
+    'discover:skillComments',
+    identifier,
+    params,
+  ]),
   skillDetail: def(
     'discover:skillDetail',
     (locale: string, identifier: string, version?: string) => [
@@ -420,6 +425,19 @@ export const discoverKeys = {
     locale,
     params,
   ]),
+  skillRatingDistribution: def('discover:skillRatingDistribution', (identifier: string) => [
+    'discover:skillRatingDistribution',
+    identifier,
+  ]),
+  skillRelated: def(
+    'discover:skillRelated',
+    (locale: string, category: string, identifier: string) => [
+      'discover:skillRelated',
+      locale,
+      category,
+      identifier,
+    ],
+  ),
   userProfile: def('discover:userProfile', (locale: string, username: string) => [
     'discover:userProfile',
     locale,
@@ -715,6 +733,7 @@ export const verifyKeys = {
     'verify:acceptanceBundle',
     acceptanceId,
   ]),
+  acceptances: def('verify:acceptances', () => ['verify:acceptances']),
   criteria: def('verify:criteria', () => ['verify:criteria']),
   instruction: def('verify:instruction', (documentId: string) => [
     'verify:instruction',
@@ -859,6 +878,12 @@ export const ollamaKeys = {
   downloadModel: def('ollama:downloadModel', (model: string) => ['ollama:downloadModel', model]),
 };
 export const authKeys = {
+  oauthAppById: def('auth:oauthAppById', (id: string) => ['auth:oauthAppById', id]),
+  oauthAppList: def('auth:oauthAppList', () => ['auth:oauthAppList']),
+  oidcClientMetadata: def('auth:oidcClientMetadata', (clientId: string) => [
+    'auth:oidcClientMetadata',
+    clientId,
+  ]),
   oidcInteraction: def('auth:oidcInteraction', (uid: string) => ['auth:oidcInteraction', uid]),
 };
 export const cronKeys = {

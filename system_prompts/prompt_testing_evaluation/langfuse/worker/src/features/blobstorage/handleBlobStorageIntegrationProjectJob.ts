@@ -46,7 +46,10 @@ import {
 } from "./abortClassification";
 import { isSigtermReceived } from "../health";
 import { TimedGzip, ZLIB_DEFAULT_LEVEL, type GzipStats } from "./gzipStream";
-import { isCustomerFaultError } from "./isCustomerFaultError";
+import {
+  BLOB_INTEGRATION_DISABLED_METRIC,
+  classifyCustomerFault,
+} from "./isCustomerFaultError";
 import { ByteCounter, TimedByteCounter } from "./byteCounters";
 import { WORKER_HOST_ID } from "../../utils/hostId";
 import {
@@ -58,6 +61,8 @@ import {
   type ObservationFieldGroupFull,
   isEnrichedBlobExportAvailable,
   isEnrichedBlobExportSource,
+  isLegacyBlobExportSource,
+  isLegacyBlobExporter,
   resolveBlobExportTuning,
   DEFAULT_BLOB_EXPORT_PART_SIZE_BYTES,
 } from "@langfuse/shared";
@@ -74,6 +79,10 @@ import {
   formatBlobExportTimestamp,
   type BlobExportManifestFile,
 } from "./manifest";
+import {
+  buildBlobExportDeprecationNotice,
+  buildBlobExportDeprecationNoticeKey,
+} from "./deprecationNotice";
 
 export const BlobExportFormat = {
   JSON_RAW: "json-raw",
@@ -1095,6 +1104,59 @@ const writeBlobExportManifest = async (params: {
   );
 };
 
+// LFE-10896: drop a plain-text deprecation notice into the export destination
+// for legacy-source projects. Best-effort — a failure to write the notice must
+// not fail the export run, so it is called after the manifest commit point and
+// swallows its own error.
+const writeBlobExportDeprecationNotice = async (params: {
+  storageService: StorageService;
+  prefix?: string;
+  projectId: string;
+}): Promise<void> => {
+  const key = buildBlobExportDeprecationNoticeKey({
+    prefix: params.prefix,
+    projectId: params.projectId,
+  });
+  try {
+    await params.storageService.uploadFile({
+      fileName: key,
+      fileType: "text/plain; charset=utf-8",
+      data: buildBlobExportDeprecationNotice(),
+    });
+    logger.info(
+      `[BLOB INTEGRATION] Wrote legacy-source deprecation notice for project ${params.projectId}: key=${key}`,
+    );
+  } catch (error) {
+    logger.warn(
+      `[BLOB INTEGRATION] Failed to write legacy-source deprecation notice for project ${params.projectId} (key=${key}); export run is unaffected`,
+      error,
+    );
+  }
+};
+
+// Counterpart to the writer: once a project migrates off a legacy source (the
+// action the notice asks for), a notice left from an earlier run would linger
+// with now-false claims. Best-effort delete on the non-legacy path clears it.
+// Idempotent — deleting a non-existent key is a no-op — and never fails the run.
+const removeBlobExportDeprecationNotice = async (params: {
+  storageService: StorageService;
+  prefix?: string;
+  projectId: string;
+}): Promise<void> => {
+  const key = buildBlobExportDeprecationNoticeKey({
+    prefix: params.prefix,
+    projectId: params.projectId,
+  });
+  try {
+    await params.storageService.deleteFiles([key]);
+  } catch (error) {
+    logger.warn(
+      `[BLOB INTEGRATION] Failed to remove stale deprecation notice for project ${params.projectId} (key=${key}); export run is unaffected`,
+      error,
+    );
+  }
+};
+
 export const handleBlobStorageIntegrationProjectJob = async (
   job: Job<TQueueJobTypes[QueueName.BlobStorageIntegrationProcessingQueue]>,
 ) => {
@@ -1197,6 +1259,11 @@ export const handleBlobStorageIntegrationProjectJob = async (
     return;
   }
 
+  // Legacy-source deprecation is a Cloud policy (see blob-export-gate.ts:
+  // isLegacyBlobExportAllowed / isLegacyBlobExporter both exempt self-hosted),
+  // so the deprecation notice below is Cloud-only too.
+  const isCloud = Boolean(env.NEXT_PUBLIC_LANGFUSE_CLOUD_REGION);
+
   try {
     // Fail loudly rather than export from unpopulated tables when an enriched
     // source survives on a deployment without the enriched path, e.g. after a
@@ -1204,10 +1271,7 @@ export const handleBlobStorageIntegrationProjectJob = async (
     // (LFE-10296).
     if (
       isEnrichedBlobExportSource(blobStorageIntegration.exportSource) &&
-      !isEnrichedBlobExportAvailable(
-        Boolean(env.NEXT_PUBLIC_LANGFUSE_CLOUD_REGION),
-        v4AllowPreviewOptIn(env),
-      )
+      !isEnrichedBlobExportAvailable(isCloud, v4AllowPreviewOptIn(env))
     ) {
       throw new Error(
         "The configured export source includes enriched observations, but enriched export is not available on this deployment. Select a different export source in the blob storage integration settings, or re-enable enriched export (V4 preview opt-in) on this deployment.",
@@ -1365,6 +1429,28 @@ export const handleBlobStorageIntegrationProjectJob = async (
       files: runFiles,
     });
 
+    // Cloud-only v3-deprecation notice; both sides best-effort (never fail the run).
+    if (isCloud) {
+      if (isLegacyBlobExportSource(blobStorageIntegration.exportSource)) {
+        await writeBlobExportDeprecationNotice({
+          storageService,
+          prefix: blobStorageIntegration.prefix || undefined,
+          projectId,
+        });
+      } else if (
+        // Gate cleanup on "old enough to have written a notice": otherwise every
+        // enriched-only export adds a needless per-run s3:DeleteObject on the
+        // destination, which is write-only for many customers.
+        isLegacyBlobExporter(blobStorageIntegration.createdAt, isCloud)
+      ) {
+        await removeBlobExportDeprecationNotice({
+          storageService,
+          prefix: blobStorageIntegration.prefix || undefined,
+          projectId,
+        });
+      }
+    }
+
     // Determine if we've caught up with present-day data
     const caughtUp = maxTimestamp.getTime() >= uncappedMaxTimestamp.getTime();
 
@@ -1430,8 +1516,11 @@ export const handleBlobStorageIntegrationProjectJob = async (
     // 0-based, so the final attempt is attempts - 1.
     const isFinalAttempt =
       (job.attemptsMade ?? 0) >= (job.opts?.attempts ?? 1) - 1;
+    // The reason bucket doubles as the disable decision (defined => disable) and
+    // as the tag on the disable log + metric below.
+    const customerFaultReason = classifyCustomerFault(error);
     const disableForCustomerFault =
-      isFinalAttempt && isCustomerFaultError(error);
+      isFinalAttempt && customerFaultReason !== undefined;
 
     // True only for the worker that actually flips enabled true→false, so the
     // "disabled" email (which bypasses the cooldown) is sent exactly once and
@@ -1460,8 +1549,14 @@ export const handleBlobStorageIntegrationProjectJob = async (
         disableClaimRan = true;
         persistedDisable = count === 1;
         if (persistedDisable) {
+          // Tag by reason so SSRF/abuse disables (ssrf_blocked_endpoint) can be
+          // separated from customer misconfig, and a mass-disable regression is
+          // visible as a spike in the non-SSRF buckets after rollout.
+          const reason = customerFaultReason ?? "unknown";
+          recordIncrement(BLOB_INTEGRATION_DISABLED_METRIC, 1, { reason });
           logger.warn(
-            `[BLOB INTEGRATION] Disabled blob storage integration for project ${projectId} after a customer-config/credential failure: ${errorMessage}`,
+            `[BLOB INTEGRATION] Disabled blob storage integration for project ${projectId} after a customer fault (reason=${reason}): ${errorMessage}`,
+            { blobStorageDisableReason: reason, projectId },
           );
         }
       }

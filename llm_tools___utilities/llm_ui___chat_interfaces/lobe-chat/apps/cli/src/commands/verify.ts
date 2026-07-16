@@ -2,11 +2,17 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import type { AcceptanceSubjectType, VerifyRunOrigin, VerifySurface } from '@lobechat/const/verify';
+import type {
+  AcceptanceSubjectType,
+  VerifyRunOrigin,
+  VerifyRunScenario,
+  VerifySurface,
+} from '@lobechat/const/verify';
 import {
   acceptanceSubjectTypes,
   normalizeVerifySurface,
   verifyEvidenceTypes,
+  verifyRunScenarios,
   verifySurfaces,
 } from '@lobechat/const/verify';
 import type { Command } from 'commander';
@@ -59,6 +65,19 @@ function toVerdict(raw: unknown): Verdict {
   if (['pass', 'passed', 'ok', 'success'].includes(s)) return 'passed';
   if (['fail', 'failed', 'error'].includes(s)) return 'failed';
   return 'uncertain'; // partial / blocked / skipped / pending / unknown
+}
+
+/**
+ * The report's headline verdict when the author didn't set `summary.verdict`:
+ * derived from the ingested cases, so a report can never ship verdict-less and
+ * render as a permanent "?" in every list surface.
+ */
+export function deriveReportVerdict(cases: unknown[]): Verdict | undefined {
+  const verdicts = cases.map((c) => toVerdict((c as any)?.result ?? (c as any)?.verdict));
+  if (verdicts.length === 0) return undefined;
+  if (verdicts.includes('failed')) return 'failed';
+  if (verdicts.includes('uncertain')) return 'uncertain';
+  return 'passed';
 }
 
 /** Pick an evidence medium from a file extension. */
@@ -244,6 +263,45 @@ export function surfacesFromResult(result: Record<string, unknown>): VerifySurfa
   }
 
   return canonical.length > 0 ? canonical : undefined;
+}
+
+/**
+ * What kind of delivery the report verified. Defaults to `coding` — the
+ * agent-testing harness's home turf — and rejects an unknown value rather than
+ * storing a scenario nothing renders (mirrors the strict surface policy: the
+ * author still has the context to fix it).
+ */
+export function scenarioFromResult(result: Record<string, unknown>): VerifyRunScenario {
+  const raw = result.scenario;
+  if (raw === undefined) return 'coding';
+  if (typeof raw === 'string' && (verifyRunScenarios as readonly string[]).includes(raw)) {
+    return raw as VerifyRunScenario;
+  }
+
+  log.error(
+    `result.json "scenario" must be one of: ${verifyRunScenarios.join(', ')} — rejected: ${JSON.stringify(raw)}`,
+  );
+  process.exit(1);
+}
+
+/**
+ * A non-coding scenario's scope, passed through from result.json `context` as
+ * the scenario's own bag (the server stores it as-is; known shapes live in
+ * `@lobechat/types`). Top-level `entry` / `createdAt` are lifted as defaults so
+ * every scenario gets the shared provenance fields for free; explicit `context`
+ * keys win.
+ */
+export function genericContextFromResult(
+  result: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  const bag = objectValue(result.context) ?? {};
+  const entries = Object.entries({
+    entry: firstString(result.entry),
+    testedAt: firstString(result.createdAt),
+    ...bag,
+  }).filter(([, v]) => v !== undefined);
+
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 
 /** Reject an out-of-vocabulary plan value rather than storing a word nothing reads. */
@@ -1367,30 +1425,38 @@ export function registerVerifyCommand(program: Command) {
         const reportMdPath = path.join(dir, 'report.md');
         const content = existsSync(reportMdPath) ? readFileSync(reportMdPath, 'utf8') : undefined;
 
-        // The scenario's context for the report's scope header, lifted from
-        // result.json's top-level fields. Drop empty keys so the bag stays clean.
-        const branch = typeof result.branch === 'string' ? result.branch : undefined;
-        const surfaces = surfacesFromResult(result);
-        // An authored PR wins; otherwise ask `gh` what the branch's PR is, so the
-        // report links to it without the author having to remember the field.
-        const pullRequest = pullRequestFromResult(result) ?? pullRequestFromBranch(branch);
-        const contextEntries = Object.entries({
-          branch,
-          commit: typeof result.commit === 'string' ? result.commit : undefined,
-          entry: typeof result.entry === 'string' ? result.entry : undefined,
-          pullRequest,
-          surfaces,
-          testedAt: typeof result.createdAt === 'string' ? result.createdAt : undefined,
-        }).filter(([, v]) => v !== undefined);
-        const context = contextEntries.length > 0 ? Object.fromEntries(contextEntries) : undefined;
+        // What kind of delivery this report verified (default: coding).
+        const scenario = scenarioFromResult(result);
+
+        // The scenario's context for the report's scope header. Coding lifts the
+        // well-known top-level fields (branch / commit / surfaces / PR); every
+        // other scenario passes result.json `context` through as its own bag.
+        // `pullRequest` is hoisted: the success output (text and --json) prints
+        // the PR link after the ingest, whatever the scenario resolved to.
+        let context: Record<string, unknown> | undefined;
+        let pullRequest: ReturnType<typeof pullRequestFromResult>;
+        if (scenario === 'coding') {
+          const branch = typeof result.branch === 'string' ? result.branch : undefined;
+          const surfaces = surfacesFromResult(result);
+          // An authored PR wins; otherwise ask `gh` what the branch's PR is, so the
+          // report links to it without the author having to remember the field.
+          pullRequest = pullRequestFromResult(result) ?? pullRequestFromBranch(branch);
+          const contextEntries = Object.entries({
+            branch,
+            commit: typeof result.commit === 'string' ? result.commit : undefined,
+            entry: typeof result.entry === 'string' ? result.entry : undefined,
+            pullRequest,
+            surfaces,
+            testedAt: typeof result.createdAt === 'string' ? result.createdAt : undefined,
+          }).filter(([, v]) => v !== undefined);
+          context = contextEntries.length > 0 ? Object.fromEntries(contextEntries) : undefined;
+        } else {
+          context = genericContextFromResult(result);
+        }
 
         // What the run set out to check, written before it ran. Paired with the
         // results by `id`, so the report can show a planned item that never ran.
         const plan = planFromResult(result);
-
-        // The harness verifies software changes; tag the run so the viewer renders
-        // the coding scope header. Overridable via result.json `scenario`.
-        const scenario = result.scenario === 'coding' ? 'coding' : ('coding' as const);
 
         // Every agent-testing report belongs to an acceptance. Explicit CLI input
         // wins, then result.json, then the authoring topic echoed by the runtime.
@@ -1422,6 +1488,13 @@ export function registerVerifyCommand(program: Command) {
         const client = await getTrpcClient();
         const goal = options.goal ?? (typeof result.focus === 'string' ? result.focus : undefined);
         const title = options.title ?? result.title;
+        // The title is the run's identity in every list surface — an untitled
+        // run renders as a placeholder forever, so say so before it ships.
+        if (!title) {
+          log.warn(
+            'result.json has no "title" — the run will list as untitled; set result.title (or pass --title)',
+          );
+        }
         // The in-app conversation that ran this harness, if any (env-supplied).
         // Strictly the authoring conversation. `--operation` names the Agent Run
         // under test and is passed to `createRun` below — a different relation.
@@ -1536,7 +1609,10 @@ export function registerVerifyCommand(program: Command) {
           summary: conclusion,
           totalChecks: summary.total ?? cases.length,
           uncertainChecks: (summary.blocked ?? 0) + (summary.uncertain ?? 0) || undefined,
-          verdict: summary.verdict ? toVerdict(summary.verdict) : undefined,
+          // An explicit summary.verdict wins; otherwise the headline is derived
+          // from the ingested cases (deriveReportVerdict) so no report ships
+          // verdict-less and lists as a permanent "?".
+          verdict: summary.verdict ? toVerdict(summary.verdict) : deriveReportVerdict(cases),
           verifyRunId: runId,
         });
 
@@ -1558,6 +1634,7 @@ export function registerVerifyCommand(program: Command) {
               origin,
               planItems: plan?.length ?? 0,
               pullRequest,
+              scenario,
               subject: subject.ref,
               unplanned,
               verifyRunId: runId,

@@ -48,6 +48,7 @@ import WorkspaceSlugSettingsCredsPage from '@/routes/(main)/[workspaceSlug]/sett
 import WorkspaceSlugSettingsDevicesPage from '@/routes/(main)/[workspaceSlug]/settings/devices';
 import WorkspaceSlugSettingsGeneralPage from '@/routes/(main)/[workspaceSlug]/settings/general';
 import WorkspaceSlugSettingsMembersPage from '@/routes/(main)/[workspaceSlug]/settings/members';
+import WorkspaceSlugSettingsOAuthAppsPage from '@/routes/(main)/[workspaceSlug]/settings/oauth-apps';
 import WorkspaceSlugSettingsPlansPage from '@/routes/(main)/[workspaceSlug]/settings/plans';
 import WorkspaceSlugSettingsProviderPage from '@/routes/(main)/[workspaceSlug]/settings/provider';
 import WorkspaceSlugSettingsServiceModelPage from '@/routes/(main)/[workspaceSlug]/settings/service-model';
@@ -55,6 +56,8 @@ import WorkspaceSlugSettingsSkillPage from '@/routes/(main)/[workspaceSlug]/sett
 import WorkspaceSlugSettingsStatsPage from '@/routes/(main)/[workspaceSlug]/settings/stats';
 import WorkspaceSlugSettingsStoragePage from '@/routes/(main)/[workspaceSlug]/settings/storage';
 import WorkspaceSlugSettingsUsagePage from '@/routes/(main)/[workspaceSlug]/settings/usage';
+import AcceptanceWorkspace from '@/routes/(main)/acceptance';
+import AcceptanceEmptyPage from '@/routes/(main)/acceptance/empty';
 // Pages — sync import
 import AgentPage from '@/routes/(main)/agent';
 import DesktopChatLayout from '@/routes/(main)/agent/_layout';
@@ -671,6 +674,10 @@ export const desktopRoutes: RouteObject[] = [
             handle: { settingsTab: SettingsTabs.Memory },
             path: 'memory',
           },
+          {
+            element: redirectElement('/settings/credential'),
+            path: 'creds',
+          },
           // Other settings tabs
           {
             element: <SettingsTabPage />,
@@ -722,6 +729,8 @@ export const desktopRoutes: RouteObject[] = [
                   { element: <WorkspaceSlugSettingsServiceModelPage />, path: 'service-model' },
                   { element: <WorkspaceSlugSettingsCredsPage />, path: 'creds' },
                   { element: <WorkspaceSlugSettingsApiKeyPage />, path: 'apikey' },
+                  { element: <WorkspaceSlugSettingsOAuthAppsPage />, path: 'oauth-apps' },
+                  { element: <WorkspaceSlugSettingsOAuthAppsPage />, path: 'oauth-apps/:sub' },
                   { element: <WorkspaceSlugSettingsAuditLogPage />, path: 'audit-log' },
                   { element: <WorkspaceSlugSettingsStoragePage />, path: 'storage' },
                   { element: <WorkspaceSlugSettingsDevicesPage />, path: 'devices' },
@@ -810,12 +819,21 @@ export const desktopRoutes: RouteObject[] = [
     path: '/verify',
   },
 
-  // Subject-level delivery acceptance — separate from single-run verify reports.
+  // Subject-level delivery acceptance — the verify workspace's twin: a
+  // master-detail with the acceptance list on the left.
   {
-    element: <AcceptanceReportPage />,
+    children: [
+      { element: <AcceptanceEmptyPage />, index: true },
+      {
+        element: <AcceptanceReportPage />,
+        handle: { meta: acceptanceRouteMeta },
+        path: ':acceptanceId',
+      },
+    ],
+    element: <AcceptanceWorkspace />,
     errorElement: <ErrorBoundary />,
     handle: { meta: acceptanceRouteMeta },
-    path: '/acceptance/:acceptanceId',
+    path: '/acceptance',
   },
 
   // Devtools route (outside main layout, dev-only)

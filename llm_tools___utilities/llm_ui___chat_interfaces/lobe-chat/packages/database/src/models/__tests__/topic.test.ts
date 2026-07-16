@@ -908,5 +908,89 @@ describe('TopicModel', () => {
       expect(cleared.status).toBe('running');
       expect(cleared.metadata?.scheduledRun).toBeNull();
     });
+
+    it('re-points a pending run at a new failed message, preserving the claim and payload', async () => {
+      await serverDB.insert(topics).values({
+        id: 'scheduled-repoint',
+        metadata: {
+          scheduledRun: { ...scheduledRun, claim: { claimedAt: '', expiresAt: '', id: 'claim-1' } },
+        },
+        status: 'scheduled',
+        title: 'repoint',
+        userId,
+      });
+
+      await TopicModel.repointScheduledRunFailedMessage(
+        serverDB,
+        'scheduled-repoint',
+        'assistant-retry-1',
+        'claim-1',
+      );
+
+      const [row] = await serverDB.select().from(topics).where(eq(topics.id, 'scheduled-repoint'));
+      // Only the failed-message pointer moves — the lease and the rest of the
+      // payload must survive the merge.
+      expect(row.metadata?.scheduledRun).toMatchObject({
+        claim: { id: 'claim-1' },
+        failedAssistantMessageId: 'assistant-retry-1',
+        kind: 'resume_after_rate_limit',
+        runAt: scheduledRun.runAt,
+        userMessageId: 'user-message',
+      });
+    });
+
+    it('does not let a stale dispatch attempt re-point a re-armed schedule', async () => {
+      // The failed attempt's claim lease expired and the user (or a newer tick)
+      // re-armed / re-claimed the schedule — the old writer must lose.
+      await serverDB.insert(topics).values({
+        id: 'scheduled-reclaimed',
+        metadata: {
+          scheduledRun: { ...scheduledRun, claim: { claimedAt: '', expiresAt: '', id: 'new' } },
+        },
+        status: 'scheduled',
+        title: 'reclaimed',
+        userId,
+      });
+
+      await TopicModel.repointScheduledRunFailedMessage(
+        serverDB,
+        'scheduled-reclaimed',
+        'assistant-stale-attempt',
+        'old',
+      );
+
+      const [row] = await serverDB
+        .select()
+        .from(topics)
+        .where(eq(topics.id, 'scheduled-reclaimed'));
+      expect(row.metadata?.scheduledRun).toMatchObject({
+        claim: { id: 'new' },
+        failedAssistantMessageId: 'assistant-failed',
+      });
+    });
+
+    it('does not resurrect a cancelled schedule when re-pointing', async () => {
+      await serverDB.insert(topics).values({
+        id: 'scheduled-cancelled',
+        metadata: { scheduledRun: null },
+        status: 'active',
+        title: 'cancelled',
+        userId,
+      });
+
+      await TopicModel.repointScheduledRunFailedMessage(
+        serverDB,
+        'scheduled-cancelled',
+        'assistant-retry-2',
+        'claim-1',
+      );
+
+      const [row] = await serverDB
+        .select()
+        .from(topics)
+        .where(eq(topics.id, 'scheduled-cancelled'));
+      expect(row.metadata?.scheduledRun).toBeNull();
+      expect(row.status).toBe('active');
+    });
   });
 });
