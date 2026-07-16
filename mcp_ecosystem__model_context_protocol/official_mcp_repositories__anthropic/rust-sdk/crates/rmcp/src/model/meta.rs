@@ -189,6 +189,7 @@ variant_extension! {
     ClientRequest: RequestMetaObject {
         PingRequest
         InitializeRequest
+        DiscoverRequest
         CompleteRequest
         SetLevelRequest
         GetPromptRequest
@@ -435,6 +436,19 @@ impl RequestMetaObject {
     pub fn with_progress_token(token: ProgressToken) -> Self {
         let mut meta = Self::new();
         meta.set_progress_token(token);
+        meta
+    }
+
+    /// Create request metadata with the client context SEP-2575 requires on every request.
+    pub fn with_client_context(
+        protocol_version: ProtocolVersion,
+        client_info: Implementation,
+        client_capabilities: ClientCapabilities,
+    ) -> Self {
+        let mut meta = Self::new();
+        meta.set_protocol_version(protocol_version);
+        meta.set_client_info(client_info);
+        meta.set_client_capabilities(client_capabilities);
         meta
     }
 
