@@ -15,7 +15,11 @@ import type {
   AgentStreamEvent,
   UploadHeterogeneousImage,
 } from '@lobechat/heterogeneous-agents/spawn';
-import { createFileStoreImageUploader, spawnAgent } from '@lobechat/heterogeneous-agents/spawn';
+import {
+  classifyHeteroProcessFailure,
+  createFileStoreImageUploader,
+  spawnAgent,
+} from '@lobechat/heterogeneous-agents/spawn';
 import type { Command } from 'commander';
 
 import { getTrpcClient } from '../api/client';
@@ -597,6 +601,31 @@ const exec = async (options: ExecOptions): Promise<void> => {
   }
 
   /**
+   * Build the `finish` error payload. Process-level failures the agent CLI
+   * never got to report in-stream (spawn ENOENT because the CLI isn't
+   * installed, an auth failure printed straight to stderr) are classified into
+   * the structured status-guide shape and attached as `body`, so the client
+   * renders the dedicated install/sign-in guide instead of the generic error
+   * card. Unclassifiable failures keep the flat `{ message, type }` everything
+   * downstream already handles.
+   *
+   * A classified error is always typed `AgentRuntimeError` — matching how the
+   * adapters' in-stream classified errors (overloaded / rate_limit) persist —
+   * instead of leaking the transport-internal `type` the failure happened to
+   * surface through (`stream_error` for a spawn ENOENT reads wrong on a
+   * "CLI not installed" error).
+   */
+  const buildFinishError = (
+    message: string,
+    type: string,
+    errnoCode?: string,
+  ): { body?: Record<string, unknown>; message: string; type: string } => {
+    const classified = classifyHeteroProcessFailure({ agentType, detail: message, errnoCode });
+    if (!classified) return { message, type };
+    return { body: { ...classified }, message: classified.message, type: 'AgentRuntimeError' };
+  };
+
+  /**
    * Spawn one agent process and stream all its events into the server ingester.
    *
    * When `interceptResumeErrors` is true, any `error`-type event whose
@@ -649,7 +678,7 @@ const exec = async (options: ExecOptions): Promise<void> => {
         try {
           await serverIngester.drain();
           await sink.finish({
-            error: { message, type: 'AgentRuntimeError' },
+            error: buildFinishError(message, 'AgentRuntimeError'),
             result: 'error',
           });
         } catch {
@@ -756,8 +785,16 @@ const exec = async (options: ExecOptions): Promise<void> => {
       if (serverIngester && sink) {
         try {
           await serverIngester.drain();
+          // A spawn failure (missing CLI binary / cwd) surfaces HERE, not via
+          // `exit`: `spawnAgent` fails the event stream on the child's `error`
+          // event, so this catch runs and exits before the finish block below.
+          // Pass the raw errno code along for precise classification.
           await sink.finish({
-            error: { message: String(err), type: 'stream_error' },
+            error: buildFinishError(
+              String(err),
+              'stream_error',
+              (err as NodeJS.ErrnoException | null)?.code,
+            ),
             result: 'error',
           });
         } catch {
@@ -894,7 +931,7 @@ const exec = async (options: ExecOptions): Promise<void> => {
     const errorDetail = result.terminalErrorMessage || stderrTail;
     const finishError =
       !exitedClean && errorDetail
-        ? { message: errorDetail.slice(-1024), type: 'AgentRuntimeError' }
+        ? buildFinishError(errorDetail.slice(-1024), 'AgentRuntimeError')
         : undefined;
 
     try {
