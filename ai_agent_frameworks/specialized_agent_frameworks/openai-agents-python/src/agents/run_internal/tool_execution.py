@@ -74,6 +74,7 @@ from ..tool import (
     ShellCommandOutput,
     Tool,
     ToolOrigin,
+    _computer_tool_uses_run_scoped_initializer,
     get_function_tool_origin,
     invoke_function_tool,
     maybe_invoke_function_tool_failure_error_function,
@@ -576,15 +577,27 @@ async def initialize_computer_tools(
     *,
     tools: list[Tool],
     context_wrapper: RunContextWrapper[Any],
-) -> None:
-    """Resolve computer tools ahead of model invocation so each run gets its own instance."""
+) -> list[Tool]:
+    """Resolve computer tools and return run-local copies for model invocation."""
     computer_tools = [tool for tool in tools if isinstance(tool, ComputerTool)]
     if not computer_tools:
-        return
+        return tools
 
-    await asyncio.gather(
+    run_scoped_tools = {
+        tool for tool in computer_tools if _computer_tool_uses_run_scoped_initializer(tool)
+    }
+
+    resolved_computers = await asyncio.gather(
         *(resolve_computer(tool=tool, run_context=context_wrapper) for tool in computer_tools)
     )
+    resolved_by_tool = dict(zip(computer_tools, resolved_computers, strict=True))
+
+    return [
+        dataclasses.replace(tool, computer=resolved_by_tool[tool])
+        if isinstance(tool, ComputerTool) and tool in run_scoped_tools
+        else tool
+        for tool in tools
+    ]
 
 
 def get_mapping_or_attr(target: Any, key: str) -> Any:
