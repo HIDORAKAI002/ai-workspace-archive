@@ -56,9 +56,9 @@ export type AcceptanceSubjectType = 'task' | 'topic' | 'document';
  * verify vocabulary (`passed` / `failed`); the aggregate exposes the user's
  * outcome language (`accepted` / `rejected`).
  *
- * `delivered`: verification settled positively and the aggregate now waits for
- * the user's accept/reject — the human decision closes the lifecycle, the
- * verifier's verdict is only a recommendation.
+ * `delivered`: verification settled (passed OR failed) and the aggregate now
+ * waits for the user's accept/reject — the human decision closes the lifecycle,
+ * the verifier's verdict is only a recommendation either way.
  */
 export type AcceptanceStatus =
   | 'pending'
@@ -315,6 +315,12 @@ export interface VerifyRunMetadata {
  * `sourceRubricId` are provenance pointers only.
  */
 export interface VerifyCheckItem {
+  /**
+   * Grouping key for the acceptance union view (a page section / feature
+   * domain, authored by the harness that writes the plan). Free-form label;
+   * checks without one fall back to surface grouping.
+   */
+  category?: string;
   /** One-sentence summary of what this check verifies. */
   description?: string;
   /** The document holding the detailed judging instruction / rule body, if any. */
@@ -331,6 +337,12 @@ export interface VerifyCheckItem {
   sourceCriterionId?: string | null;
   /** Provenance: the rubric (group) this item came in through, or null. */
   sourceRubricId?: string | null;
+  /**
+   * Generation declaration: the older check-item ids THIS item replaces. The
+   * acceptance union folds the superseded items into this item's iteration
+   * timeline instead of listing semantically-dead checks side by side.
+   */
+  supersedes?: string[];
   title: string;
   verifierConfig: Record<string, unknown>;
   verifierType: VerifierType;
@@ -355,6 +367,14 @@ export interface VerifyAgentPlanConfig {
   method?: string;
   /** Evidence media this item must produce — gated, not decorative. */
   requiredEvidence?: RequiredEvidenceSpec[];
+  /**
+   * The product surface THIS item was exercised on — the acceptance union view
+   * groups checks by it. Optional and per-item on purpose: the run-level
+   * `context.surfaces` records where the round ran as a whole, while one round
+   * routinely mixes web + cli + desktop checks. Same closed set as
+   * {@link VerifySurface}; a missing value renders ungrouped.
+   */
+  surface?: VerifySurface;
 }
 
 /**
