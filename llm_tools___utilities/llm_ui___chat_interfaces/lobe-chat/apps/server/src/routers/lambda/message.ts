@@ -290,6 +290,9 @@ export const messageRouter = router({
         groupId: z.string().nullish(),
         pageSize: z.number().optional(),
         sessionId: z.string().nullish(),
+        // Mid-stream refetches skip the Work-summary assembly — see
+        // `QueryMessageParams.skipWorks`.
+        skipWorks: z.boolean().optional(),
         threadId: z.string().nullish(),
         topicId: z.string().nullish(),
         topicShareId: z.string().optional(),
@@ -314,7 +317,10 @@ export const messageRouter = router({
         const fileService = new FileService(ctx.serverDB, share.ownerId, shareWorkspaceId);
 
         return messageModel.query(
-          { ...queryParams, topicId: share.topicId },
+          // Force skipWorks: Work summaries join LIVE task/version state (not a
+          // share-time snapshot), so serving them here would leak post-share
+          // mutations to anonymous visitors. Share pages render no Work chips.
+          { ...queryParams, skipWorks: true, topicId: share.topicId },
           {
             postProcessUrl: (path, file) =>
               fileService.getFileAccessUrl({ id: file.id, url: path }),

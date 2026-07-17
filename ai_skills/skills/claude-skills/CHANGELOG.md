@@ -5,6 +5,30 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — fable-goal: ramble → autonomous /goal prompt (this PR)
+
+### Added — `productivity/fable-goal`
+
+Improved port of `duncan-buildroom/freeskills` `fable-goal` (informal "free to use
+and modify" grant — quoted in the `attribution` block, not relicensed). Converts a
+rambling description of a desired outcome into one polished, copy-paste /goal
+prompt for a fresh autonomous session — the prompt is the deliverable, never the
+build. Adds over upstream: wrong-tool check, observable-done principle, six-slot
+extraction (deliverable/quantity/stakes/tools/quality/destination), per-medium
+verification defaults, six-point pre-delivery self-check, anti-pattern list +
+failure-mode catalog reference, second worked example in a non-web medium. Ships
+`goal_prompt_self_check.py` (stdlib runner for the mechanically checkable
+self-check subset; exit 0/1, `--sample`, `--output json`) and the
+`/cs:fable-goal` command. Intentionally no `agents/`/`assets/` (single reasoning
+pass; see plugin README design notes). SKILL.md is a full PASS on the
+write-a-skill 6-item checklist.
+
+### Changed — counters trued up
+
+skills 357 → 358 (this PR also trues up pre-existing engineering-row drift
+355 → 357), tools 602 → 603, refs 731 → 732, commands 109 → 110, plugins
+83 → 84; plus a stale "711 reference docs" claim in README line 30 fixed to 732.
+
 ## [Unreleased] — housekeeping: CHANGELOG backfill + per-domain counter validation
 
 ### Added — `derive_counters.py` per-domain table validation

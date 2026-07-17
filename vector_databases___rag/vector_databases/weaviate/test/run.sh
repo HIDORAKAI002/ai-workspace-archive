@@ -31,6 +31,7 @@ function main() {
   only_module_value=false
   run_unit_and_integration_tests=false
   run_unit_tests=false
+  unit_shard=""
   run_integration_tests=false
   run_integration_tests_only_vector_package=false
   run_integration_tests_without_vector_package=false
@@ -58,10 +59,16 @@ function main() {
   run_acceptance_reindex_concurrent=false
   run_acceptance_reindex_mt=false
   run_acceptance_reindex_backup=false
+  run_acceptance_drop_vector_index=false
+  run_acceptance_drop_vector_index_cluster=false
+  run_acceptance_drop_vector_index_restart_cluster=false
+  run_acceptance_drop_vector_index_rolling_restart=false
 
   while [[ "$#" -gt 0 ]]; do
       case $1 in
           --unit-only|-u) run_all_tests=false; run_unit_tests=true;;
+          --unit-only-adapters|-uad) run_all_tests=false; run_unit_tests=true; unit_shard="adapters";;
+          --unit-only-non-adapters|-una) run_all_tests=false; run_unit_tests=true; unit_shard="non-adapters";;
           --unit-and-integration-only|-ui) run_all_tests=false; run_unit_and_integration_tests=true;;
           --integration-only|-i) run_all_tests=false; run_integration_tests=true;;
           --integration-vector-package-only|-ivpo) run_all_tests=false; run_integration_tests=true; run_integration_tests_only_vector_package=true;;
@@ -114,11 +121,17 @@ function main() {
           --acceptance-reindex-concurrent|-arc) run_all_tests=false; run_acceptance_reindex_concurrent=true;;
           --acceptance-reindex-mt|-armt) run_all_tests=false; run_acceptance_reindex_mt=true;;
           --acceptance-reindex-backup|-arb) run_all_tests=false; run_acceptance_reindex_backup=true;;
+          --acceptance-drop-vector-index|-advi) run_all_tests=false; run_acceptance_drop_vector_index=true;;
+          --acceptance-drop-vector-index-cluster|-advic) run_all_tests=false; run_acceptance_drop_vector_index_cluster=true;;
+          --acceptance-drop-vector-index-restart-cluster|-advirc) run_all_tests=false; run_acceptance_drop_vector_index_restart_cluster=true;;
+          --acceptance-drop-vector-index-rolling-restart|-advirr) run_all_tests=false; run_acceptance_drop_vector_index_rolling_restart=true;;
           --benchmark-only|-b) run_all_tests=false; run_benchmark=true;;
           --cleanup) run_all_tests=false; run_cleanup=true;;
           --help|-h) printf '%s\n' \
               "Options:"\
               "--unit-only | -u"\
+              "--unit-only-adapters | -uad"\
+              "--unit-only-non-adapters | -una"\
               "--unit-and-integration-only | -ui"\
               "--integration-only | -i"\
               "--acceptance-only | -a"\
@@ -406,6 +419,26 @@ function main() {
     echo "running backup × runtime-reindex acceptance tests"
     run_acceptance_reindex_backup
   fi
+
+  if $run_acceptance_drop_vector_index; then
+    echo "running drop-vector-index acceptance tests"
+    run_acceptance_drop_vector_index
+  fi
+
+  if $run_acceptance_drop_vector_index_cluster; then
+    echo "running drop-vector-index cluster acceptance tests"
+    run_acceptance_drop_vector_index_cluster
+  fi
+
+  if $run_acceptance_drop_vector_index_restart_cluster; then
+    echo "running drop-vector-index restart cluster acceptance tests"
+    run_acceptance_drop_vector_index_restart_cluster
+  fi
+
+  if $run_acceptance_drop_vector_index_rolling_restart; then
+    echo "running drop-vector-index rolling-restart acceptance tests"
+    run_acceptance_drop_vector_index_rolling_restart
+  fi
   echo "Done!"
 }
 
@@ -440,7 +473,17 @@ function run_unit_tests() {
     echo "Skipping unit test"
     return
   fi
-  go test -race -coverprofile=coverage-unit.txt -covermode=atomic -count 1 $(go list ./... | grep -v 'test/acceptance' | grep -v 'test/modules') | grep -v '\[no test files\]'
+  local packages
+  packages=$(go list ./... | grep -v 'test/acceptance' | grep -v 'test/modules')
+  # The adapters/* tree is slow to compile but fast to run, so its shard has idle
+  # run-phase capacity. Co-locate the heaviest run-bound non-adapters package
+  # (usecases/replica) there to balance wall-clock across shards.
+  local adapters_extra='/usecases/replica'
+  case "$unit_shard" in
+    adapters)     packages=$(echo "$packages" | grep -E "/adapters/|$adapters_extra");;
+    non-adapters) packages=$(echo "$packages" | grep -vE "/adapters/|$adapters_extra");;
+  esac
+  go test -race -coverprofile=coverage-unit.txt -covermode=atomic -count 1 $packages | grep -v '\[no test files\]'
 }
 
 function run_integration_tests() {
@@ -583,6 +626,7 @@ function get_fast_acceptance_packages() {
     | grep -v 'test/acceptance/reindex_mt' \
     | grep -v 'test/acceptance/reindex_backup' \
     | grep -v 'test/acceptance/distributed_tasks' \
+    | grep -v 'test/acceptance/drop_vector_index' \
     | sed 's|.*/test/acceptance/|test/acceptance/|'
 }
 
@@ -955,6 +999,34 @@ function run_acceptance_reindex_backup() {
   echo_green "acceptance — reindex-backup"
   run_aof_group "reindex-backup" \
     test/acceptance/reindex_backup
+}
+
+function run_acceptance_drop_vector_index() {
+  build_weaviate_test_image
+  echo_green "acceptance — drop-vector-index"
+  run_aof_group "drop-vector-index" \
+    test/acceptance/drop_vector_index
+}
+
+function run_acceptance_drop_vector_index_cluster() {
+  build_weaviate_test_image
+  echo_green "acceptance — drop-vector-index-cluster"
+  AOF_GROUP_RUN='^TestDropVectorIndex_Cluster$' \
+    run_aof_group "drop-vector-index-cluster" test/acceptance/drop_vector_index
+}
+
+function run_acceptance_drop_vector_index_restart_cluster() {
+  build_weaviate_test_image
+  echo_green "acceptance — drop-vector-index-restart-cluster"
+  AOF_GROUP_RUN='^TestDropVectorIndex_Restart_Cluster$' \
+    run_aof_group "drop-vector-index-restart-cluster" test/acceptance/drop_vector_index
+}
+
+function run_acceptance_drop_vector_index_rolling_restart() {
+  build_weaviate_test_image
+  echo_green "acceptance — drop-vector-index-rolling-restart"
+  AOF_GROUP_RUN='^TestDropVectorIndex_RollingRestart_Cluster$' \
+    run_aof_group "drop-vector-index-rolling-restart" test/acceptance/drop_vector_index
 }
 
 # get_fast_go_client_packages returns a list of fast go client test packages.

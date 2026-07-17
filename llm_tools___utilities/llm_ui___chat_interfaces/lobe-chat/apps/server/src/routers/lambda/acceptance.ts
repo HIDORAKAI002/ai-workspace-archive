@@ -1,4 +1,8 @@
-import { acceptanceSubjectTypes } from '@lobechat/const/verify';
+import {
+  acceptanceCheckReviewActions,
+  acceptanceSubjectTypes,
+  acceptanceVisibilities,
+} from '@lobechat/const/verify';
 import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
@@ -8,6 +12,7 @@ import {
   wsCompatProcedure,
 } from '@/business/server/trpc-middlewares/workspaceAuth';
 import { VerifyRunModel } from '@/database/models/verifyRun';
+import { WorkspaceMemberModel } from '@/database/models/workspaceMember';
 import type { AcceptanceItem } from '@/database/schemas/verify';
 import { acceptances } from '@/database/schemas/verify';
 import { publicProcedure, router } from '@/libs/trpc/lambda';
@@ -15,6 +20,7 @@ import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 import {
   AcceptanceService,
   buildAcceptanceCheckUnion,
+  buildCheckReviewOverlay,
   createEvidenceFileResolver,
 } from '@/server/services/verify';
 
@@ -22,7 +28,7 @@ import { assertWorkspaceRowManageable } from './_helpers/assertWorkspaceRowManag
 
 const subjectTypeSchema = z.enum(acceptanceSubjectTypes);
 
-/** Reads addressed purely by acceptance id — the id is the read capability. */
+/** Reads addressed purely by acceptance id — visibility is checked in the handler. */
 const publicAcceptanceProcedure = publicProcedure.use(serverDatabase);
 
 const acceptanceProcedure = wsCompatProcedure.use(serverDatabase).use(async (opts) => {
@@ -146,10 +152,10 @@ export const acceptanceRouter = router({
    * final evidence (file-URL enriched) and round provenance.
    *
    * Public like the verify report viewer: the acceptance URL is meant to be
-   * linked from PRs/reports, so anyone holding the id can read it — no session
-   * required. `isOwner` gates what only the author may see (the origin
-   * conversation, redacted for everyone else). A per-aggregate `visibility`
-   * override is planned but not shipped yet.
+   * linked from PRs/reports, so a `public` aggregate is readable by anyone
+   * holding the id. `private` stays gated to the owner and (for workspace
+   * scope) workspace members. A denied read is a NOT_FOUND, never a
+   * FORBIDDEN — existence must not leak through the error code.
    */
   getBundle: publicAcceptanceProcedure
     .input(z.object({ id: z.string() }))
@@ -162,6 +168,17 @@ export const acceptanceRouter = router({
       }
 
       const isOwner = Boolean(ctx.userId) && ctx.userId === acceptance.userId;
+      let canRead = isOwner || acceptance.visibility === 'public';
+      if (!canRead && ctx.userId && acceptance.workspaceId) {
+        const member = await new WorkspaceMemberModel(ctx.serverDB, ctx.userId).getMember(
+          acceptance.workspaceId,
+          ctx.userId,
+        );
+        canRead = Boolean(member);
+      }
+      if (!canRead) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Acceptance not found' });
+      }
 
       // Sub-reads (rounds / results / evidence) are ownership-scoped models, so
       // read them AS the aggregate's owner — same pattern as the evidence file
@@ -225,18 +242,37 @@ export const acceptanceRouter = router({
       });
       const latestReport = [...rounds].reverse().find((r) => r.report)?.report ?? null;
 
+      // The authoring conversation (agent + topic), resolved for the header —
+      // owner-only, same redaction rule as `run.metadata.origin`.
+      const origin = isOwner ? await ownerService.resolveOrigin(runs) : null;
+
+      const currentRoundIndex = runs.at(-1)?.roundIndex ?? 0;
+      const resultsById = new Map(results.map((result) => [result.id, result]));
+
       return {
         acceptance,
         isOwner,
-        checks: checks.map((check) => ({
-          ...check,
-          evidence: check.result ? (evidenceByResult.get(check.result.id) ?? []) : [],
-          timeline: check.timeline.map((entry) => ({
-            ...entry,
-            evidence: evidenceByResult.get(entry.resultId) ?? [],
-          })),
-        })),
+        checks: checks.map((check) => {
+          // Projected from the result rows' user_decision(+detail) — the
+          // events carry no user ids, so nothing needs redacting here.
+          const { reviews, userReview } = buildCheckReviewOverlay(
+            check,
+            resultsById,
+            currentRoundIndex,
+          );
+          return {
+            ...check,
+            evidence: check.result ? (evidenceByResult.get(check.result.id) ?? []) : [],
+            reviews,
+            timeline: check.timeline.map((entry) => ({
+              ...entry,
+              evidence: evidenceByResult.get(entry.resultId) ?? [],
+            })),
+            userReview,
+          };
+        }),
         latestReport,
+        origin,
         rounds,
         subject,
       };
@@ -244,6 +280,91 @@ export const acceptanceRouter = router({
 
   /** Recent acceptances (with subject headers), newest first — list panel + CLI. */
   list: acceptanceProcedure.query(async ({ ctx }) => ctx.acceptanceService.listWithSubjects()),
+
+  /**
+   * The user's verdict on individual union checks — `accept` settles a check
+   * for good ("已验收,不用再管"); `reject` records feedback the next verify
+   * round reads as its re-tasking input. A group-level "accept all" is the
+   * same call with many ids. Independent of the aggregate-level accept/reject:
+   * reviewing checks never moves the acceptance lifecycle.
+   */
+  reviewChecks: acceptanceWriteProcedure
+    .input(
+      z
+        .object({
+          action: z.enum(acceptanceCheckReviewActions),
+          annotations: z
+            .array(
+              z.object({
+                comment: z.string().max(2000).optional(),
+                evidenceId: z.string(),
+                rect: z.object({
+                  height: z.number().min(0).max(1),
+                  width: z.number().min(0).max(1),
+                  x: z.number().min(0).max(1),
+                  y: z.number().min(0).max(1),
+                }),
+              }),
+            )
+            .max(20)
+            .optional(),
+          checkItemIds: z.array(z.string()).min(1).max(200),
+          comment: z.string().max(2000).optional(),
+          id: z.string(),
+        })
+        // A reject IS its feedback — without a note (either global or on an
+        // annotated region) the next round has nothing to act on.
+        .refine(
+          (value) =>
+            value.action !== 'reject' ||
+            Boolean(value.comment?.trim()) ||
+            Boolean(value.annotations?.some((annotation) => annotation.comment?.trim())),
+          { message: 'Rejecting a check requires a comment' },
+        ),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const acceptance = await resolveAcceptance(ctx, input.id);
+      assertWorkspaceRowManageable(ctx, acceptance.userId, 'acceptance');
+
+      try {
+        return await ctx.acceptanceService.reviewChecks(acceptance.id, {
+          action: input.action,
+          annotations: input.annotations,
+          checkItemIds: input.checkItemIds,
+          comment: input.comment?.trim() || undefined,
+        });
+      } catch (error) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: error instanceof Error ? error.message : 'Failed to review checks',
+        });
+      }
+    }),
+
+  /**
+   * Flip who can read the acceptance beyond its creator. Creation defaults are
+   * scope-dependent (personal → public, workspace → private); this is the
+   * deliberate override.
+   */
+  setVisibility: acceptanceWriteProcedure
+    .input(z.object({ id: z.string(), visibility: z.enum(acceptanceVisibilities) }))
+    .mutation(async ({ ctx, input }) => {
+      const acceptance = await resolveAcceptance(ctx, input.id);
+      assertWorkspaceRowManageable(ctx, acceptance.userId, 'acceptance');
+
+      const updated = await ctx.acceptanceService.acceptanceModel.update(acceptance.id, {
+        visibility: input.visibility,
+      });
+      // Cascade to every chained round: each round's report page is its own
+      // shareable URL, so it must follow the umbrella (clobbering per-round
+      // overrides on purpose — the aggregate flip is the deliberate act).
+      await new VerifyRunModel(
+        ctx.serverDB,
+        acceptance.userId,
+        acceptance.workspaceId ?? undefined,
+      ).setVisibilityByAcceptance(acceptance.id, input.visibility);
+      return updated;
+    }),
 
   /**
    * The user rejects the delivery. The comment is a re-tasking input: it is
