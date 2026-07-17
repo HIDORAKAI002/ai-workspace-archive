@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [KULLANIM DIŞI: 2026-07-28 SÜRÜM ADAYI](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contextler, Model Context Protocol'de temel bir kavramdır ve birden fazla istek ve oturum arasında konuşma geçmişini ve paylaşılan durumu kalıcı olarak koruyan bir katman sağlar.
+# MCP Kök Bağlamlar
+
+> **Kullanım dışı bildirim:** `2026-07-28` MCP spesifikasyon sürüm adayı, Kökleri araç parametreleri, kaynak URI'ları veya sunucu yapılandırması lehine kullanım dışı bırakıyor. Kökler `2025-11-25` sürümünde ve resmi kullanım dışı bildiriminden sonra en az bir yıl daha çalışmaya devam eder, bu yüzden bu dersteki her şey geçerlidir - ancak yeni sunucu tasarımları değiştirme modelini değerlendirmelidir. Bkz. [MCP’de Neler Değişiyor: 2026-07-28 Sürüm Adayı](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Kök bağlamlar, birden çok istek ve oturum boyunca konuşma geçmişi ve paylaşılan durumu sürdürmek için kalıcı bir katman sağlayan Model Bağlam Protokolü'nün temel bir kavramıdır.
 
 ## Giriş
 
-Bu derste, MCP'de root contextlerin nasıl oluşturulacağını, yönetileceğini ve kullanılacağını inceleyeceğiz.
+Bu derste, MCP'de kök bağlamların nasıl oluşturulacağını, yönetileceğini ve kullanılacağını keşfedeceğiz.
 
 ## Öğrenme Hedefleri
 
-Bu dersin sonunda şunları yapabileceksiniz:
+Dersin sonunda şunları yapabileceksiniz:
 
-- Root contextlerin amacı ve yapısını anlamak
-- MCP istemci kütüphanelerini kullanarak root contextler oluşturmak ve yönetmek
-- Root contextleri .NET, Java, JavaScript ve Python uygulamalarında uygulamak
-- Çok turlu konuşmalar ve durum yönetimi için root contextleri kullanmak
-- Root context yönetimi için en iyi uygulamaları hayata geçirmek
+- Kök bağlamların amacını ve yapısını anlamak
+- MCP istemci kitaplıklarını kullanarak kök bağlamlar oluşturmak ve yönetmek
+- Kök bağlamları .NET, Java, JavaScript ve Python uygulamalarında uygulamak
+- Çok turlu konuşmalar ve durum yönetimi için kök bağlamları kullanmak
+- Kök bağlam yönetimi için en iyi uygulamaları uygulamak
 
-## Root Contextleri Anlamak
+## Kök Bağlamları Anlamak
 
-Root contextler, ilişkili etkileşimler dizisi için geçmişi ve durumu tutan kapsayıcılar olarak hizmet eder. Bunlar şunları sağlar:
+Kök bağlamlar, bir dizi ilgili etkileşim için geçmişi ve durumu tutan konteynerler olarak hizmet eder. Şunları sağlarlar:
 
-- **Konuşma Sürekliliği**: Tutarlı çok turlu konuşmaların sürdürülmesi
-- **Bellek Yönetimi**: Etkileşimler arasında bilgi depolama ve geri çağırma
-- **Durum Yönetimi**: Karmaşık iş akışlarında ilerlemenin takibi
-- **Context Paylaşımı**: Birden fazla istemcinin aynı konuşma durumuna erişebilmesi
+- **Konuşma Sürekliliği**: Tutarlı çok turlu konuşmaları sürdürmek
+- **Bellek Yönetimi**: Etkileşimler arasında bilgiyi depolamak ve geri getirmek
+- **Durum Yönetimi**: Karmaşık iş akışlarında ilerlemeyi takip etmek
+- **Bağlam Paylaşımı**: Birden fazla istemcinin aynı konuşma durumuna erişmesini sağlamak
 
-MCP'de root contextlerin temel özellikleri şunlardır:
+MCP'de kök bağlamların şu temel özellikleri vardır:
 
-- Her root context benzersiz bir kimliğe sahiptir.
-- Konuşma geçmişi, kullanıcı tercihleri ve diğer meta verileri içerebilirler.
-- Gerektiğinde oluşturulabilir, erişilebilir ve arşivlenebilirler.
-- İnce taneli erişim kontrolü ve izinleri desteklerler.
+- Her kök bağlamın benzersiz bir kimliği vardır.
+- Konuşma geçmişi, kullanıcı tercihleri ve diğer metadata içerebilirler.
+- İhtiyaç duyulduğunda oluşturulabilir, erişilebilir ve arşivlenebilirler.
+- Ayrıntılı erişim kontrolü ve izinleri desteklerler.
 
-## Root Context Yaşam Döngüsü
+## Kök Bağlam Yaşam Döngüsü
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Kök Bağlamı Oluştur] --> B[Meta Verilerle Başlat]
+    B --> C[Bağlam Kimliği ile İstekleri Gönder]
+    C --> D[Sonuçlarla Bağlamı Güncelle]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Tamamlandığında Bağlamı Arşivle]
 ```
 
-## Root Contextlerle Çalışmak
+## Kök Bağlamlarla Çalışma
 
-İşte root contextlerin nasıl oluşturulup yönetileceğine dair bir örnek.
+İşte kök bağlamları oluşturma ve yönetme örneği.
 
 ### C# Uygulaması
 
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-Yukarıdaki kodda şunları yaptık:
+Önceki kodda şunları yaptık:
 
-1. Bir müşteri destek oturumu için root context oluşturduk.
-1. Modelin durumu korumasını sağlayarak bu context içinde birden fazla mesaj gönderdik.
-1. Konuşmaya bağlı olarak ilgili meta verilerle contexti güncelledik.
-1. Konuşma geçmişini anlamak için context bilgilerini aldık.
-1. Konuşma tamamlandığında contexti arşivledik.
+1. Bir müşteri destek oturumu için kök bağlam oluşturduk.
+1. Modelin durumu koruyabilmesi için o bağlam içinde birden çok mesaj gönderdik.
+1. Konuşmaya bağlı olarak bağlamı ilgili metadata ile güncelledik.
+1. Konuşma geçmişini anlamak için bağlam bilgisini aldık.
+1. Konuşma tamamlandığında bağlamı arşivledik.
 
-## Örnek: Finansal Analiz için Root Context Uygulaması
+## Örnek: Finansal analiz için Kök Bağlam Uygulaması
 
-Bu örnekte, bir finansal analiz oturumu için root context oluşturacağız ve birden fazla etkileşim boyunca durumu nasıl koruyacağımızı göstereceğiz.
+Bu örnekte, birkaç etkileşim boyunca durumu sürdürmeyi gösteren finansal analiz oturumu için bir kök bağlam oluşturacağız.
 
 ### Java Uygulaması
 
 ```java
-// Java Example: Root Context Implementation
+// Java Örneği: Kök Bağlam Uygulaması
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Bağlam meta verisi oluştur
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Yeni bir kök bağlam oluştur
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. İlk etkileşim
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Yanıtla elde edilen önemli bilgilerle bağlamı güncelle
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // İkinci etkileşim - aynı bağlamı kullanarak
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Analiz oturumunun özetini oluştur
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Özeti bağlam meta verisine kaydet
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Güncellenmiş bağlam bilgisini al
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. İşlem tamamlandığında bağlamı arşivle
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-Yukarıdaki kodda şunları yaptık:
+Önceki kodda şunları yaptık:
 
-1. Finansal analiz oturumu için root context oluşturduk.
-2. Modelin durumu korumasını sağlayarak bu context içinde birden fazla mesaj gönderdik.
-3. Konuşmaya bağlı olarak ilgili meta verilerle contexti güncelledik.
-4. Analiz oturumunun özetini oluşturup context meta verilerine kaydettik.
-5. Konuşma tamamlandığında contexti arşivledik.
+1. Finansal analiz oturumu için bir kök bağlam oluşturduk.
+2. Modelin durumu koruyabilmesi için o bağlam içinde birden çok mesaj gönderdik.
+3. Konuşmaya bağlı olarak bağlamı ilgili metadata ile güncelledik.
+4. Analiz oturumunun özetini oluşturarak bağlam metadata'sında sakladık.
+5. Konuşma tamamlandığında bağlamı arşivledik.
 
-## Örnek: Root Context Yönetimi
+## Örnek: Kök Bağlam Yönetimi
 
-Root contextleri etkili şekilde yönetmek, konuşma geçmişi ve durumun korunması için çok önemlidir. Aşağıda root context yönetiminin nasıl uygulanacağına dair bir örnek bulunmaktadır.
+Kök bağlamları etkin bir şekilde yönetmek, konuşma geçmişi ve durumu sürdürmek için çok önemlidir. Aşağıda kök bağlam yönetiminin nasıl uygulanacağına dair bir örnek bulunmaktadır.
 
 ### JavaScript Uygulaması
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScript Örneği: MCP Kök Bağlamlarını Yönetme
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // MCP istemcisini başlat
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Bağlam yöneticisini başlat
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Belirtilen bağlamı kullanarak mesajı gönder
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // İsteğe bağlı olarak, konuşmadan önemli çıkarımları sakla
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Olası çıkarımları çıkar (gerçek bir uygulamada bu daha sofistike olur)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Olası çıkarımları belirlemek için basit bir kestirim yöntemi
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Çıkarımları bağlam meta verilerinde sakla
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Kritik olmayan hata, sadece uyarı kaydı yap
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Modelden şu ana kadar olan konuşmanın özetini oluşturmasını iste
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Özeti bağlam meta verilerinde sakla
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Arşivlemeden önce son bir özet oluştur
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Bağlamı arşivle
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Örnek kullanım
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Ürün destek konuşması için yeni bir bağlam oluştur
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Konuşmadaki ilk mesaj
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Aynı bağlamda takip mesajı
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Bağlam hakkında bilgi al
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Konuşma özetini oluştur ve göster
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. İşlem tamamlandığında bağlamı arşivle
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Herhangi bir hatayı zarifçe ele al
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-Yukarıdaki kodda şunları yaptık:
+Önceki kodda şunları yaptık:
 
-1. `createConversationContext` fonksiyonuyla ürün destek konuşması için bir root context oluşturduk. Bu durumda context, veritabanı performans sorunlarıyla ilgili.
+1. `createConversationContext` fonksiyonu ile veri tabanı performans sorunlarıyla ilgili bir ürün destek konuşması için kök bağlam oluşturduk.
 
-1. `sendMessage` fonksiyonunu kullanarak bu context içinde birden fazla mesaj gönderdik ve modelin durumu korumasını sağladık. Gönderilen mesajlar yavaş sorgu performansı ve indeks yapılandırması hakkındaydı.
+1. `sendMessage` fonksiyonunu kullanarak o bağlam içinde yavaş sorgu performansı ve indeks yapılandırması hakkında birden çok mesaj gönderdik, böylece model durumu koruyabildi.
 
-1. Konuşmaya bağlı olarak ilgili meta verilerle contexti güncelledik.
+1. Konuşmaya bağlı olarak bağlamı ilgili metadata ile güncelledik.
 
-1. `generateContextSummary` fonksiyonuyla konuşmanın özetini oluşturup context meta verilerine kaydettik.
+1. `generateContextSummary` fonksiyonu ile konuşmanın özetini oluşturarak bağlam metadata'sında sakladık.
 
-1. Konuşma tamamlandığında `archiveContext` fonksiyonuyla contexti arşivledik.
+1. `archiveContext` fonksiyonu ile konuşma tamamlandığında bağlamı arşivledik.
 
-1. Hataları düzgün şekilde ele alarak sağlamlığı sağladık.
+1. Hataları nazikçe yöneterek sağlamlığı sağladık.
 
-## Çok Turlu Yardım için Root Context
+## Çok Turlu Yardım için Kök Bağlam
 
-Bu örnekte, çok turlu yardım oturumu için root context oluşturacağız ve birden fazla etkileşim boyunca durumu nasıl koruyacağımızı göstereceğiz.
+Bu örnekte, çok turlu yardım oturumu için bir kök bağlam oluşturacağız ve birden fazla etkileşim boyunca durumu nasıl sürdüreceğimizi göstereceğiz.
 
 ### Python Uygulaması
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python Örneği: Çok Turlu Yardım için Kök Bağlam
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Sağlanmışsa kullanıcı bilgilerini ekle
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Kök bağlamı oluştur
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Bağlam kimliği ile seçenekleri oluştur
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Belirtilmişse araçları ekle
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # İsteği bağlam içinde gönder
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Konuşma ilerlemesi ile bağlam meta verilerini güncelle
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Öncelikle bir özet istemi oluştur
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Özeti meta verilere kaydet
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Bağlamı arşivle
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Örnek kullanım
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Oturum oluştur
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. İlk etkileşim
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Aynı bağlamdaki ikinci etkileşim
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Geçmişi al
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Oturumu sonlandır
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-Yukarıdaki kodda şunları yaptık:
+Önceki kodda şunları yaptık:
 
-1. `create_session` fonksiyonuyla teknik destek oturumu için root context oluşturduk. Context, isim ve teknik seviye gibi kullanıcı bilgilerini içeriyor.
+1. `create_session` fonksiyonu ile kullanıcı bilgileri (isim, teknik seviye gibi) içeren teknik destek oturumu için kök bağlam oluşturduk.
 
-1. `send_message` fonksiyonunu kullanarak bu context içinde birden fazla mesaj gönderdik ve modelin durumu korumasını sağladık. Gönderilen mesajlar otomatik ölçeklendirme özelliğiyle ilgili sorunlardı.
+1. `send_message` fonksiyonunu kullanarak o bağlam içinde otomatik ölçeklendirme özelliği ile ilgili sorunlara dair birden fazla mesaj gönderdik, böylece model durumu koruyabildi.
 
-1. `get_conversation_history` fonksiyonuyla konuşma geçmişini aldık; bu fonksiyon context bilgisi ve mesajları sağlar.
+1. `get_conversation_history` fonksiyonuyla konuşma geçmişini alarak bağlam bilgisi ve mesajlara eriştik.
 
-1. `end_session` fonksiyonuyla contexti arşivleyip bir özet oluşturduk. Özet, konuşmanın önemli noktalarını yakalar.
+1. `end_session` fonksiyonunu kullanarak bağlamı arşivleyip bir özet oluşturarak oturumu sonlandırdık. Özet konuşmadan önemli noktaları yakalar.
 
-## Root Context En İyi Uygulamaları
+## Kök Bağlam En İyi Uygulamaları
 
-Root contextleri etkili şekilde yönetmek için bazı en iyi uygulamalar şunlardır:
+İşte kök bağlamları etkili yönetmek için bazı en iyi uygulamalar:
 
-- **Odaklanmış Contextler Oluşturun**: Farklı konuşma amaçları veya alanları için ayrı root contextler oluşturarak netliği koruyun.
+- **Odaklanmış Bağlamlar Oluşturun**: Farklı konuşma amaçları veya alanları için ayrı kök bağlamlar oluşturarak açıklık sağlayın.
 
-- **Süre Sonu Politikaları Belirleyin**: Depolamayı yönetmek ve veri saklama politikalarına uymak için eski contextleri arşivleme veya silme politikaları uygulayın.
+- **Süre Sonu Politikaları Belirleyin**: Eski bağlamları arşivlemek veya silmek için politikalar uygulayarak depolamayı yönetip veri saklama politikalarına uyun.
 
-- **İlgili Meta Verileri Saklayın**: Konuşmayla ilgili önemli bilgileri ileride kullanmak üzere context meta verilerinde tutun.
+- **İlgili Metadata Saklayın**: Konuşmayla ilgili önemli bilgileri daha sonra kullanılmak üzere bağlam metadata'sında tutun.
 
-- **Context ID'lerini Tutarlı Kullanın**: Bir context oluşturulduktan sonra, sürekliliği sağlamak için tüm ilgili isteklerde aynı ID'yi kullanın.
+- **Bağlam Kimliklerini Tutarlı Kullanın**: Bir bağlam oluşturulduktan sonra, sürekliliği sağlamak için tüm ilişkili isteklerde kimliğini tutarlı şekilde kullanın.
 
-- **Özetler Oluşturun**: Context büyüdüğünde, önemli bilgileri yakalamak ve context boyutunu yönetmek için özetler oluşturmayı düşünün.
+- **Özetler Oluşturun**: Bir bağlam büyüdüğünde, boyutu yönetirken temel bilgileri yakalamak için özetler oluşturmayı düşünün.
 
-- **Erişim Kontrolü Uygulayın**: Çok kullanıcılı sistemlerde, konuşma contextlerinin gizliliği ve güvenliği için uygun erişim kontrolleri uygulayın.
+- **Erişim Kontrolü Uygulayın**: Çok kullanıcı sistemlerinde konuşma bağlamlarının gizliliğini ve güvenliğini sağlamak için uygun erişim kontrolleri kurun.
 
-- **Context Sınırlamalarını Yönetin**: Context boyutu sınırlamalarının farkında olun ve çok uzun konuşmalar için stratejiler geliştirin.
+- **Bağlam Kısıtlamalarını Yönetin**: Bağlam boyutu kısıtlamalarının farkında olun ve çok uzun konuşmalar için stratejiler uygulayın.
 
-- **Tamamlandığında Arşivleyin**: Konuşmalar tamamlandığında contextleri arşivleyerek kaynakları boşaltırken konuşma geçmişini koruyun.
+- **Konuşma Tamamlandığında Arşivleyin**: Kaynakları serbest bırakmak ve konuşma geçmişini korumak için konuşma tamamlandığında bağlamları arşivleyin.
 
-## Sonraki Adımlar
+## Sonraki Ne Var
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Yönlendirme](../mcp-routing/README.md)
 
-**Feragatname**:  
-Bu belge, AI çeviri servisi [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba göstersek de, otomatik çevirilerin hatalar veya yanlışlıklar içerebileceğini lütfen unutmayın. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalar veya yorum hatalarından sorumlu değiliz.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

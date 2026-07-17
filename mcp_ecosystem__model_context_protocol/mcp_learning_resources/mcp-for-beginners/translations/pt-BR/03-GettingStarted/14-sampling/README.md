@@ -1,26 +1,28 @@
-# Amostragem - delegar recursos para o Cliente
+> [OBSOLETO: CANDIDATO A LANÇAMENTO 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
 
-> **Aviso de descontinuação:** o candidato à especificação MCP `2026-07-28` marca a Amostragem como obsoleta em favor da integração direta com APIs de provedores LLM. A amostragem continua funcionando em `2025-11-25` e por pelo menos um ano após qualquer descontinuação formal, então tudo nesta lição permanece válido — mas novos designs de servidor devem avaliar o padrão substituto. Veja [O que está mudando no MCP: candidato à versão 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+# Sampling - delegar funcionalidades ao Cliente
 
-Às vezes, você precisa que o Cliente MCP e o Servidor MCP colaborem para alcançar um objetivo comum. Pode haver um caso onde o Servidor requer a ajuda de um LLM que está no cliente. Para essa situação, amostragem é o que você deve usar.
+> **Aviso de descontinuação:** o candidato a lançamento da especificação MCP `2026-07-28` marca o Sampling como obsoleto em favor da integração direta com APIs de provedores LLM. Sampling continua funcionando em `2025-11-25` e por pelo menos um ano após qualquer descontinuação formal, então tudo nesta lição permanece válido — mas novos designs de servidores devem avaliar o padrão substituto. Veja [O que está mudando no MCP: Candidato a lançamento 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Vamos explorar alguns casos de uso e como construir uma solução envolvendo amostragem.
+Às vezes, você precisa que o Cliente MCP e o Servidor MCP colaborem para atingir um objetivo comum. Você pode ter um caso em que o Servidor requer a ajuda de um LLM que está no cliente. Para essa situação, o sampling é o que você deve usar.
+
+Vamos explorar alguns casos de uso e como construir uma solução envolvendo sampling.
 
 ## Visão Geral
 
-Nesta lição, focamos em explicar quando e onde usar Amostragem e como configurá-la.
+Nesta lição, focamos em explicar quando e onde usar Sampling e como configurá-lo.
 
 ## Objetivos de Aprendizagem
 
-Neste capítulo, vamos:
+Neste capítulo, iremos:
 
-- Explicar o que é Amostragem e quando usá-la.
-- Mostrar como configurar Amostragem no MCP.
-- Fornecer exemplos de Amostragem em ação.
+- Explicar o que é Sampling e quando usá-lo.
+- Mostrar como configurar Sampling no MCP.
+- Fornecer exemplos de Sampling em ação.
 
-## O que é Amostragem e por que usá-la?
+## O que é Sampling e por que usá-lo?
 
-Amostragem é um recurso avançado que funciona da seguinte maneira:
+Sampling é um recurso avançado que funciona da seguinte maneira:
 
 ```mermaid
 sequenceDiagram
@@ -29,19 +31,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Postagem no blog do autor
+    User->>MCP Client: Postagem do blog do autor
     MCP Client->>MCP Server: Chamada da ferramenta (rascunho da postagem do blog)
     MCP Server->>MCP Client: Solicitação de amostragem (criar resumo)
     MCP Client->>LLM: Gerar resumo da postagem do blog
     LLM->>MCP Client: Resultado do resumo
-    MCP Client->>MCP Server: Resposta de amostragem (resumo)
-    MCP Server->>MCP Client: Postagem do blog completa (rascunho + resumo)
+    MCP Client->>MCP Server: Resposta da amostragem (resumo)
+    MCP Server->>MCP Client: Postagem completa do blog (rascunho + resumo)
     MCP Client->>User: Postagem do blog pronta
 ```
 
-### Solicitação de amostragem
+### Solicitação de Sampling
 
-Ok, agora que temos uma visão geral de um cenário plausível, vamos falar sobre a solicitação de amostragem que o servidor envia de volta para o cliente. Veja como essa solicitação pode parecer no formato JSON-RPC:
+Ok, agora que temos uma visão geral de um cenário plausível, vamos falar sobre a solicitação de sampling que o servidor envia de volta ao cliente. Veja como essa solicitação pode parecer no formato JSON-RPC:
 
 ```json
 {
@@ -73,17 +75,17 @@ Ok, agora que temos uma visão geral de um cenário plausível, vamos falar sobr
 }
 ```
 
-Há algumas coisas aqui que vale destacar:
+Existem algumas coisas interessantes aqui para destacar:
 
-- Prompt, sob conteúdo -> texto, é o nosso prompt que é uma instrução para o LLM resumir o conteúdo do post do blog.
+- Prompt, em content -> text, é nosso prompt que é uma instrução para o LLM resumir o conteúdo do post do blog.
 
-- **modelPreferences**. Esta seção é exatamente isso, uma preferência, uma recomendação sobre qual configuração usar com o LLM. O usuário pode escolher seguir essas recomendações ou alterá-las. Neste caso, há recomendações sobre o modelo a ser usado e prioridade de velocidade e inteligência.
-- **systemPrompt**, este é seu prompt normal de sistema que dá personalidade ao seu LLM e contém instruções de orientação.
+- **modelPreferences**. Esta seção é exatamente isso, uma preferência, uma recomendação de qual configuração usar com o LLM. O usuário pode optar por seguir essas recomendações ou modificá-las. Neste caso, há recomendações sobre qual modelo usar e prioridade entre velocidade e inteligência.
+- **systemPrompt**, este é seu prompt normal de sistema que dá ao seu LLM uma personalidade e contém instruções de orientação.
 - **maxTokens**, esta é outra propriedade usada para indicar quantos tokens são recomendados para essa tarefa.
 
-### Resposta de amostragem
+### Resposta de Sampling
 
-Essa resposta é o que o Cliente MCP acaba enviando de volta para o Servidor MCP e é o resultado do cliente chamar o LLM, esperar por essa resposta e então construir essa mensagem. Veja como pode parecer no JSON-RPC:
+Essa resposta é o que o Cliente MCP acaba enviando de volta ao Servidor MCP e é o resultado do cliente chamar o LLM, aguardar essa resposta e então construir essa mensagem. Veja como pode ser no JSON-RPC:
 
 ```json
 {
@@ -101,13 +103,13 @@ Essa resposta é o que o Cliente MCP acaba enviando de volta para o Servidor MCP
 }
 ```
 
-Note como a resposta é um resumo do post do blog exatamente como pedimos. Também note que o `model` usado não é o que pedimos, mas "gpt-5" em vez de "claude-3-sonnet". Isso ilustra que o usuário pode mudar de ideia sobre o que usar e que sua solicitação de amostragem é uma recomendação.
+Note como a resposta é um resumo do post do blog exatamente como pedimos. Também note como o `model` usado não é o que pedimos, mas "gpt-5" em vez de "claude-3-sonnet". Isso ilustra que o usuário pode mudar de ideia sobre o que usar e que sua solicitação de sampling é uma recomendação.
 
-Ok, agora que entendemos o fluxo principal e a tarefa útil para usá-lo "criação de post de blog + resumo", vamos ver o que precisamos fazer para fazê-lo funcionar.
+Ok, agora que entendemos o fluxo principal e uma tarefa útil para usar isso "criação de post de blog + resumo", vamos ver o que precisamos fazer para fazê-lo funcionar.
 
-### Tipos de mensagem
+### Tipos de mensagens
 
-As mensagens de amostragem não se restringem apenas a texto, você também pode enviar imagens e áudio. Veja como o JSON-RPC fica diferente:
+Mensagens de sampling não estão limitadas apenas a texto, você também pode enviar imagens e áudio. Veja como o JSON-RPC fica diferente:
 
 **Texto**
 
@@ -138,13 +140,13 @@ As mensagens de amostragem não se restringem apenas a texto, você também pode
 }
 ```
 
-> NOTA: para informações mais detalhadas sobre Amostragem, confira a [documentação oficial](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> NOTA: para informações mais detalhadas sobre Sampling, confira a [documentação oficial](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Como Configurar Amostragem no Cliente
+## Como Configurar Sampling no Cliente
 
 > Nota: se você está construindo apenas um servidor, não precisa fazer muito aqui.
 
-Em um cliente, você precisa especificar o recurso da seguinte forma:
+Em um cliente, você precisa especificar a funcionalidade da seguinte forma:
 
 ```json
 {
@@ -154,15 +156,15 @@ Em um cliente, você precisa especificar o recurso da seguinte forma:
 }
 ```
 
-Isso será então detectado quando seu cliente escolhido iniciar com o servidor.
+Isso será então detectado quando seu cliente escolhido inicializar com o servidor.
 
-## Exemplo de Amostragem em Ação - Criar um Post de Blog
+## Exemplo de Sampling em Ação - Criar um Post de Blog
 
-Vamos codificar um servidor de amostragem juntos, precisaremos fazer o seguinte:
+Vamos codificar um servidor de sampling juntos, precisaremos fazer o seguinte:
 
 1. Criar uma ferramenta no Servidor.
-1. Essa ferramenta deve criar uma solicitação de amostragem
-1. A ferramenta deve esperar a solicitação de amostragem do cliente ser respondida.
+1. Essa ferramenta deve criar uma solicitação de sampling
+1. A ferramenta deve esperar pela resposta à solicitação de sampling do cliente.
 1. Então o resultado da ferramenta deve ser produzido.
 
 Vamos ver o código passo a passo:
@@ -178,9 +180,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Criar uma solicitação de amostragem
+### -2- Criar uma solicitação de sampling
 
-Estenda sua ferramenta com o código a seguir:
+Estenda sua ferramenta com o seguinte código:
 
 **python**
 
@@ -206,7 +208,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Esperar a resposta e retornar a resposta
+### -3- Aguarde a resposta e retorne a resposta
 
 **python**
 
@@ -215,7 +217,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# retornar o produto completo
+# retorne o produto completo
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -284,7 +286,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # retorna o post completo do blog
+    # retornar o post completo do blog
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -303,7 +305,7 @@ if __name__ == "__main__":
 Para testar isso no Visual Studio Code, faça o seguinte:
 
 1. Inicie o servidor no terminal
-1. Adicione ao *mcp.json* (e certifique-se de que está iniciado) algo assim:
+1. Adicione-o ao *mcp.json* (e certifique-se de que está iniciado) algo como:
 
    ```json
    "servers": {
@@ -320,31 +322,31 @@ Para testar isso no Visual Studio Code, faça o seguinte:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Permita que a amostragem aconteça. Na primeira vez que testar, será apresentada uma caixa de diálogo adicional que você precisará aceitar, depois verá a caixa de diálogo normal para pedir a execução de uma ferramenta
+1. Permita que o sampling aconteça. Na primeira vez que testar isso, será apresentado um diálogo adicional que você precisará aceitar, depois verá o diálogo normal para pedir que execute uma ferramenta
 
-1. Inspecione os resultados. Você verá os resultados tanto renderizados agradavelmente no GitHub Copilot Chat quanto poderá inspecionar a resposta JSON bruta.
+1. Veja os resultados. Você verá os resultados renderizados de forma agradável no GitHub Copilot Chat, mas também poderá inspecionar a resposta JSON bruta.
 
-**Bônus**. A ferramenta Visual Studio Code tem ótimo suporte para amostragem. Você pode configurar o acesso à amostragem no seu servidor instalado navegando assim:
+**Bônus**. As ferramentas do Visual Studio Code têm ótimo suporte para sampling. Você pode configurar o acesso a Sampling no seu servidor instalado navegando assim:
 
 1. Navegue até a seção de extensões.
 1. Selecione o ícone de engrenagem para seu servidor instalado na seção "MCP SERVERS - INSTALLED".
-1 Selecione "Configurar Acesso ao Modelo", aqui você pode selecionar quais Modelos o GitHub Copilot pode usar ao realizar amostragem. Você também pode ver todas as solicitações de amostragem recentes selecionando "Mostrar solicitações de amostragem".
+1 Selecione "Configure Model Access", aqui você pode selecionar quais Modelos o GitHub Copilot está permitido usar ao realizar sampling. Você também pode ver todas as solicitações de sampling recentes selecionando "Show Sampling requests".
 
 ## Tarefa
 
-Nesta tarefa, você construirá uma amostragem um pouco diferente, ou seja, uma integração de amostragem que suporta gerar uma descrição de produto. Aqui está seu cenário:
+Nesta tarefa, você vai construir um Sampling um pouco diferente, nomeadamente uma integração de sampling que suporte gerar uma descrição de produto. Aqui está seu cenário:
 
-**Cenário**: O trabalhador do back office em um e-commerce precisa de ajuda, leva muito tempo para gerar descrições de produto. Portanto, você deve construir uma solução onde possa chamar uma ferramenta "create_product" com "title" e "keywords" como argumentos e que deve produzir um produto completo incluindo um campo "description" que deve ser preenchido pelo LLM do cliente.
+**Cenário**: O trabalhador do back office de um e-commerce precisa de ajuda, leva tempo demais para gerar descrições de produtos. Portanto, você deve construir uma solução onde possa chamar uma ferramenta "create_product" com "title" e "keywords" como argumentos e ela deve produzir um produto completo incluindo um campo "description" que deve ser preenchido por um LLM do cliente.
 
-DICA: use o que aprendeu anteriormente para construir este servidor e sua ferramenta usando uma solicitação de amostragem.
+DICA: use o que aprendeu anteriormente para construir este servidor e sua ferramenta usando uma solicitação de sampling.
 
 ## Solução
 
 [Solução](./solution/README.md)
 
-## Principais Aprendizados
+## Principais Conclusões
 
-Amostragem é um recurso poderoso que permite ao servidor delegar tarefas ao cliente quando precisa da ajuda de um LLM.
+Sampling é um recurso poderoso que permite que o servidor delegue tarefas ao cliente quando precisa da ajuda de um LLM.
 
 ## O que vem a seguir
 

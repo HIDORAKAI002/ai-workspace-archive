@@ -1,13 +1,13 @@
 # Geavanceerd servergebruik
 
-Er zijn twee verschillende soorten servers beschikbaar in de MCP SDK, je normale server en de laag-niveau server. Normaal gebruik je de reguliere server om er functies aan toe te voegen. Voor sommige gevallen wil je echter vertrouwen op de laag-niveau server, zoals:
+Er zijn twee verschillende typen servers beschikbaar in de MCP SDK, je normale server en de low-level server. Normaal gesproken zou je de reguliere server gebruiken om er functies aan toe te voegen. In sommige gevallen wil je echter vertrouwen op de low-level server, zoals:
 
-- Betere architectuur. Het is mogelijk om een schone architectuur te creëren met zowel de reguliere server als een laag-niveau server, maar het valt te betogen dat het iets eenvoudiger is met een laag-niveau server.
-- Beschikbaarheid van functies. Sommige geavanceerde functies kunnen alleen worden gebruikt met een laag-niveau server. Je zult dit in latere hoofdstukken zien wanneer we sampling en elicitation toevoegen.
+- Betere architectuur. Het is mogelijk om een schone architectuur te creëren met zowel de reguliere server als een low-level server, maar er valt te beargumenteren dat het iets makkelijker is met een low-level server.
+- Beschikbaarheid van functies. Sommige geavanceerde functies kunnen alleen worden gebruikt met een low-level server. Dit zul je in latere hoofdstukken zien wanneer we sampling toevoegen (deprecated in releasestatus `2026-07-28`) en elicitation.
 
-## Reguliere server vs laag-niveau server
+## Reguliere server vs low-level server
 
-Zo ziet het creëren van een MCP Server eruit met de reguliere server
+Zo ziet het aanmaken van een MCP Server eruit met de reguliere server
 
 **Python**
 
@@ -29,7 +29,7 @@ const server = new McpServer({
   version: "1.0.0"
 });
 
-// Voeg een toevoegingshulpmiddel toe
+// Voeg een toevoeginstrument toe
 server.registerTool("add",
   {
     title: "Addition Tool",
@@ -42,16 +42,16 @@ server.registerTool("add",
 );
 ```
 
-Het punt is dat je expliciet elke tool, resource of prompt toevoegt die je wilt dat de server heeft. Daar is niets mis mee.
+Het punt is dat je expliciet elk hulpmiddel, resource of prompt toevoegt dat je wilt dat de server heeft. Daar is niks mis mee.  
 
-### Laag-niveau server benadering
+### Low-level serverbenadering
 
-Echter, als je de laag-niveau server benadering gebruikt, moet je er anders over denken. In plaats van elke tool te registreren, maak je twee handlers per functie-type (tools, resources of prompts). Bijvoorbeeld tools hebben dan slechts twee functies zoals:
+Echter, wanneer je de low-level serverbenadering gebruikt, moet je er anders over nadenken. In plaats van elk hulpmiddel te registreren, maak je twee handlers per type functie (hulpmiddelen, resources of prompts). Zo hebben hulpmiddelen bijvoorbeeld maar twee functies zoals hieronder:
 
-- Alle tools op een lijst zetten. Eén functie is verantwoordelijk voor alle pogingen om tools te tonen.
-- Oproepen van alle tools afhandelen. Hier is er ook maar één functie die oproepen naar een tool afhandelt.
+- Alle hulpmiddelen vermelden. Eén functie is verantwoordelijk voor alle pogingen om hulpmiddelen te vermelden.
+- Het aanroepen van hulpmiddelen afhandelen. Hier is ook maar één functie die het aanroepen van een hulpmiddel afhandelt.
 
-Dat klinkt als mogelijk minder werk toch? Dus in plaats van een tool te registreren, hoef ik alleen ervoor te zorgen dat de tool wordt weergegeven als ik alle tools opvraag en dat die wordt aangeroepen bij een binnenkomend verzoek om een tool aan te roepen.
+Dat klinkt als mogelijk minder werk toch? Dus in plaats van een hulpmiddel te registreren hoef ik alleen maar te zorgen dat het hulpmiddel wordt vermeld wanneer ik alle hulpmiddelen opsom en dat het wordt aangeroepen als er een binnenkomend verzoek is om een hulpmiddel aan te roepen. 
 
 Laten we eens kijken hoe de code er nu uitziet:
 
@@ -81,7 +81,7 @@ async def handle_list_tools() -> list[types.Tool]:
 
 ```typescript
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Retourneer de lijst van geregistreerde gereedschappen
+  // Geef de lijst van geregistreerde hulpmiddelen terug
   return {
     tools: [{
         name: "add",
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Hier hebben we nu een functie die een lijst met functies teruggeeft. Elk item in de toolslijst heeft nu velden als `name`, `description` en `inputSchema` om te voldoen aan het return-type. Dit stelt ons in staat onze tools en functie-definities elders te plaatsen. We kunnen nu al onze tools maken in een tools map en hetzelfde geldt voor alle functies, zodat je project er ineens zo uit kan zien:
+Hier hebben we nu een functie die een lijst met functies retourneert. Elk item in de hulmiddelenlijst heeft nu velden zoals `naam`, `beschrijving` en `inputSchema` om te voldoen aan het retourneertype. Dit stelt ons in staat om onze hulpmiddelen en functiedefinities elders te plaatsen. We kunnen nu al onze hulpmiddelen maken in een tools-map en hetzelfde geldt voor al je functies zodat je project er plotseling zo uit kan zien:
 
 ```text
 app
@@ -113,9 +113,9 @@ app
 ----| product-description
 ```
 
-Dat is geweldig, onze architectuur kan er best schoon uitzien.
+Dat is geweldig, onze architectuur kan er behoorlijk netjes uitzien.
 
-Wat betreft het aanroepen van tools, is het dan hetzelfde idee, één handler om een tool aan te roepen, welke tool dan ook? Ja, precies, hier is de code daarvoor:
+En het aanroepen van hulpmiddelen, is dat dan hetzelfde idee, één handler om een hulpmiddel aan te roepen, om welk hulpmiddel dan ook? Ja, precies, hier is de code daarvoor:
 
 **Python**
 
@@ -166,18 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-Zoals je kunt zien aan bovenstaande code, moeten we de op te roepen tool en de argumenten uitlezen, en dan moeten we overgaan tot het aanroepen van de tool.
+Zoals je kunt zien in bovenstaande code, moeten we het hulpmiddel identificeren dat moet worden aangeroepen en met welke argumenten, en dan moeten we doorgaan met het aanroepen van het hulpmiddel.
 
-## Verbetering van de benadering met validatie
+## De benadering verbeteren met validatie
 
-Tot nu toe heb je gezien hoe je alle registraties om tools, resources en prompts toe te voegen kunt vervangen door deze twee handlers per functie-type. Wat moeten we nog meer doen? Nou, we moeten wat validatie toevoegen om ervoor te zorgen dat de tool wordt aangeroepen met de juiste argumenten. Elke runtime heeft haar eigen oplossing hiervoor, bijvoorbeeld Python gebruikt Pydantic en TypeScript gebruikt Zod. Het idee is dat we het volgende doen:
+Tot nu toe heb je gezien hoe al je registraties om hulpmiddelen, resources en prompts toe te voegen, kunnen worden vervangen door deze twee handlers per type functie. Wat moeten we nog meer doen? Nou, we moeten een vorm van validatie toevoegen om ervoor te zorgen dat het hulpmiddel wordt aangeroepen met de juiste argumenten. Iedere runtime heeft hier zijn eigen oplossing voor, bijvoorbeeld gebruikt Python Pydantic en TypeScript gebruikt Zod. Het idee is dat we het volgende doen:
 
-- Verplaats de logica voor het maken van een functie (tool, resource of prompt) naar de daarvoor bestemde map.
-- Voeg een manier toe om een binnenkomend verzoek te valideren dat bijvoorbeeld vraagt om een tool aan te roepen.
+- Verplaats de logica voor het maken van een functie (hulpmiddel, resource of prompt) naar de dedicated map ervan.
+- Voeg een manier toe om een binnenkomend verzoek te valideren dat bijvoorbeeld vraagt om een hulpmiddel aan te roepen.
 
 ### Maak een functie aan
 
-Om een functie te maken, moeten we een bestand aanmaken voor die functie en ervoor zorgen dat het de verplichte velden bevat die nodig zijn voor die functie. Welke velden dat zijn verschilt een beetje tussen tools, resources en prompts.
+Om een functie aan te maken, moeten we een bestand voor die functie maken en ervoor zorgen dat het de verplichte velden bevat die voor die functie nodig zijn. Welke velden verschillen enigszins tussen hulpmiddelen, resources en prompts.
 
 **Python**
 
@@ -213,10 +213,10 @@ tool_add = {
 }
 ```
 
-Hier zie je hoe we het volgende doen:
+hier zie je hoe we het volgende doen:
 
-- Een schema creëren met Pydantic `AddInputModel` met velden `a` en `b` in het bestand *schema.py*.
-- Proberen de binnenkomende aanvraag te parsen naar het type `AddInputModel`, als er een mismatch is in parameters zal dit crashen:
+- Maak een schema aan met Pydantic `AddInputModel` met velden `a` en `b` in bestand *schema.py*.
+- Probeer het binnenkomende verzoek te parsen als type `AddInputModel`, als er een mismatch in parameters is, zal dit crashen:
 
    ```python
    # add.py
@@ -227,7 +227,7 @@ Hier zie je hoe we het volgende doen:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-Je kunt kiezen of je deze parse-logica in de tool-aanroep zelf plaatst of in de handler-functie.
+Je kunt kiezen of je deze parseerlogica in de tool-aanroep zelf zet of in de handlerfunctie.
 
 **TypeScript**
 
@@ -288,7 +288,7 @@ export default {
 } as Tool;
 ```
 
-- In de handler die alle tool-aanroepen afhandelt, proberen we nu de binnenkomende aanvraag te parsen naar het opgegeven schema van de tool:
+- In de handler die alle tool-aanspraken afhandelt, proberen we nu het binnenkomende verzoek te parsen naar het door het hulpmiddel gedefinieerde schema:
 
     ```typescript
     const Schema = tool.rawSchema;
@@ -297,27 +297,27 @@ export default {
        const input = Schema.parse(request.params.arguments);
     ```
 
-    als dat lukt, gaan we over tot het aanroepen van de daadwerkelijke tool:
+    als dat lukt dan gaan we door met het aanroepen van het daadwerkelijke hulpmiddel:
 
     ```typescript
     const result = await tool.callback(input);
     ```
 
-Zoals je ziet creëert deze benadering een geweldige architectuur omdat alles zijn plek heeft, de *server.ts* is een heel klein bestand dat alleen de request handlers aan elkaar knoopt en elke functie staat in zijn eigen map, dus tools/, resources/ of /prompts.
+Zoals je ziet, creëert deze benadering een mooie architectuur omdat alles een plek heeft, het *server.ts* is een heel klein bestand dat alleen de verzoekhandlers aansluit en elke functie bevindt zich in hun respectievelijke map, dat wil zeggen tools/, resources/ of /prompts.
 
-Geweldig, laten we dit nu proberen te bouwen.
+Geweldig, laten we dit als volgende proberen te bouwen.
 
-## Oefening: Het maken van een laag-niveau server
+## Oefening: Een low-level server maken
 
-In deze oefening gaan we het volgende doen:
+In deze oefening doen we het volgende:
 
-1. Maak een laag-niveau server die het tonen van tools en het aanroepen van tools afhandelt.
-1. Implementeer een architectuur waarop je verder kunt bouwen.
-1. Voeg validatie toe om ervoor te zorgen dat je tool-aanroepen goed worden gevalideerd.
+1. Maak een low-level server die het vermelden en aanroepen van hulpmiddelen afhandelt.
+1. Implementeer een architectuur waarop je kunt voortbouwen.
+1. Voeg validatie toe om ervoor te zorgen dat je tool-aanroepen correct worden gevalideerd.
 
 ### -1- Maak een architectuur
 
-Het eerste wat we moeten aanpakken is een architectuur die ons helpt schalen naarmate we meer functies toevoegen, zo ziet dat eruit:
+Het eerste wat we moeten aanpakken is een architectuur die ons helpt schaalbaar te zijn als we meer functies toevoegen, zo ziet het eruit:
 
 **Python**
 
@@ -340,11 +340,11 @@ server.ts
 client.ts
 ```
 
-Nu hebben we een architectuur opgezet die ervoor zorgt dat we gemakkelijk nieuwe tools kunnen toevoegen in een tools map. Voel je vrij om dit te volgen om submappen toe te voegen voor resources en prompts.
+Nu hebben we een architectuur opgezet die ervoor zorgt dat we gemakkelijk nieuwe hulpmiddelen kunnen toevoegen in een tools-map. Voel je vrij om deze te volgen om submappen voor resources en prompts toe te voegen.
 
-### -2- Maak een tool aan
+### -2- Een hulpmiddel creëren
 
-Laten we eens zien hoe het maken van een tool eruitziet. Eerst moet deze worden aangemaakt in zijn *tool* submap zoals hier:
+Laten we eens kijken hoe het creëren van een hulpmiddel eruitziet. Eerst moet het gemaakt worden in zijn *tool* submap zoals volgt:
 
 **Python**
 
@@ -371,9 +371,9 @@ tool_add = {
 }
 ```
 
-Wat we hier zien is hoe we naam, beschrijving en input-schema definiëren met Pydantic en een handler die wordt aangeroepen zodra deze tool wordt aangeroepen. Tot slot exposen we `tool_add`, wat een dictionary is die al deze eigenschappen bevat.
+Wat we hier zien is hoe we naam, beschrijving en input schema definiëren met Pydantic en een handler die wordt aangeroepen zodra dit hulpmiddel wordt opgeroepen. Ten slotte exposeren we `tool_add` wat een dictionary is met al deze eigenschappen.
 
-Daarnaast is er *schema.py* dat wordt gebruikt om het inputschema te definiëren dat onze tool gebruikt:
+Er is ook *schema.py* dat wordt gebruikt om het input schema te definiëren dat door ons hulpmiddel wordt gebruikt:
 
 ```python
 from pydantic import BaseModel
@@ -383,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-We moeten ook *__init__.py* vullen om ervoor te zorgen dat de tools directory als een module wordt gezien. Bovendien moeten we de modules daarin ook exposen zoals hier:
+We moeten ook *__init__.py* vullen om ervoor te zorgen dat de tools map als module wordt behandeld. Daarnaast moeten we de modules binnenin zoals volgt exposeren:
 
 ```python
 from .add import tool_add
@@ -393,7 +393,7 @@ tools = {
 }
 ```
 
-We kunnen dit bestand blijven aanvullen naarmate we meer tools toevoegen.
+We kunnen dit bestand blijven uitbreiden naarmate we meer hulpmiddelen toevoegen.
 
 **TypeScript**
 
@@ -414,14 +414,14 @@ export default {
 } as Tool;
 ```
 
-Hier maken we een dictionary aan bestaande uit eigenschappen:
+Hier maken we een dictionary bestaande uit eigenschappen:
 
-- name, dit is de naam van de tool.
-- rawSchema, dit is het Zod schema, het wordt gebruikt om binnenkomende verzoeken die deze tool willen aanroepen te valideren.
-- inputSchema, dit schema wordt door de handler gebruikt.
-- callback, dit wordt gebruikt om de tool aan te roepen.
+- naam, dit is de naam van het hulpmiddel.
+- rawSchema, dit is het Zod-schema, dit wordt gebruikt om binnenkomende verzoeken voor het aanroepen van dit hulpmiddel te valideren.
+- inputSchema, dit schema wordt gebruikt door de handler.
+- callback, dit wordt gebruikt om het hulpmiddel aan te roepen.
 
-Er is ook `Tool` dat wordt gebruikt om deze dictionary om te zetten in een type dat de MCP server handler kan accepteren en het ziet er zo uit:
+Er is ook `Tool` dat wordt gebruikt om deze dictionary om te zetten in een type dat door de mcp server handler geaccepteerd kan worden en ziet er zo uit:
 
 ```typescript
 import { z } from 'zod';
@@ -434,7 +434,7 @@ export interface Tool {
 }
 ```
 
-En er is *schema.ts* waar we de inputschema's opslaan voor elke tool die er zo uitzien met voorlopig maar één schema, maar naarmate we meer tools toevoegen kunnen we meer invoeren:
+En er is *schema.ts* waar we de input schemas voor elk hulpmiddel opslaan, er is er op dit moment maar één maar naarmate we hulpmiddelen toevoegen kunnen we meer items toevoegen:
 
 ```typescript
 import { z } from 'zod';
@@ -442,16 +442,16 @@ import { z } from 'zod';
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 ```
 
-Geweldig, laten we nu doorgaan met het afhandelen van het tonen van onze tools.
+Geweldig, laten we doorgaan met het afhandelen van de lijst van onze hulpmiddelen.
 
-### -3- Afhandelen van tool lijst
+### -3- Hulpmiddelenlijst afhandelen
 
-Om de lijst van tools af te handelen, moeten we een request handler opzetten. Dit is wat we aan ons serverbestand moeten toevoegen:
+Vervolgens moeten we een request handler opzetten om onze hulpmiddelen op te sommen. Dit moeten we toevoegen aan ons serverbestand:
 
 **Python**
 
 ```python
-# code weggelaten ter beknoptheid
+# code weggelaten voor beknoptheid
 from tools import tools
 
 @server.list_tools()
@@ -470,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-Hier voegen we de decorator `@server.list_tools` toe en de bijbehorende functie `handle_list_tools`. In die functie moeten we een lijst met tools produceren. Let erop dat elke tool een naam, beschrijving en inputSchema moet hebben.
+Hier voegen we decorator `@server.list_tools` toe en de implementerende functie `handle_list_tools`. In die laatste moeten we een lijst met hulpmiddelen produceren. Let op hoe elk hulpmiddel een naam, beschrijving en inputSchema moet hebben.   
 
 **TypeScript**
 
-Om de request handler voor het tonen van tools op te zetten, moeten we `setRequestHandler` aanroepen op de server met een schema passend bij wat we willen doen, in dit geval `ListToolsRequestSchema`.
+Om de request handler voor het opsommen van hulpmiddelen op te zetten, moeten we `setRequestHandler` aanroepen op de server met een schema dat past bij wat we willen doen, in dit geval `ListToolsRequestSchema`. 
 
 ```typescript
 // index.ts
@@ -492,22 +492,22 @@ tools.push(subtractTool);
 import { tools } from './tools/index.js';
 
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Geef de lijst met geregistreerde tools terug
+  // Geef de lijst van geregistreerde tools terug
   return {
     tools: tools
   };
 });
 ```
 
-Geweldig, nu hebben we het stukje over tools tonen opgelost, laten we kijken hoe we tools kunnen aanroepen.
+Geweldig, nu hebben we het stuk over het opsommen van hulpmiddelen opgelost, laten we kijken hoe we hulpmiddelen kunnen aanroepen.
 
-### -4- Afhandelen van het aanroepen van een tool
+### -4- Het aanroepen van een hulpmiddel afhandelen
 
-Om een tool aan te roepen, moeten we nog een request handler opzetten, deze keer gericht op een verzoek dat specificeert welke functie we willen aanroepen en met welke argumenten.
+Om een hulpmiddel aan te roepen, moeten we een andere request handler opzetten, deze keer gericht op het verwerken van een verzoek dat specificeert welke functie moet worden aangeroepen en met welke argumenten.
 
 **Python**
 
-Laten we de decorator `@server.call_tool` gebruiken en deze implementeren met een functie zoals `handle_call_tool`. In die functie moeten we de naam van de tool, zijn argumenten eruit halen en ervoor zorgen dat de argumenten geldig zijn voor de betreffende tool. We kunnen de validatie van argumenten in deze functie doen of later in de daadwerkelijke tool.
+Laten we de decorator `@server.call_tool` gebruiken en deze implementeren met een functie zoals `handle_call_tool`. Binnen deze functie moeten we de naam van het hulpmiddel, de argumenten parsen en zeker stellen dat de argumenten geldig zijn voor het betreffende hulpmiddel. We kunnen de argumenten valideren in deze functie of downstream in het daadwerkelijke hulpmiddel.
 
 ```python
 @server.call_tool()
@@ -515,7 +515,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # tools is een woordenboek met toolnamen als sleutels
+    # tools is een woordenboek met gereedschapsnamen als sleutels
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -523,7 +523,7 @@ async def handle_call_tool(
 
     result = "default"
     try:
-        # roep de tool aan
+        # activeer het gereedschap
         result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)
     except Exception as e:
         raise ValueError(f"Error calling tool {name}: {str(e)}")
@@ -533,33 +533,33 @@ async def handle_call_tool(
     ]
 ```
 
-Dit gebeurt er:
+Dit is wat er gebeurt:
 
-- Onze toolnaam is al aanwezig als de invoerparameter `name` die ook geldt voor onze argumenten in de vorm van de dictionary `arguments`.
+- Onze hulpmiddelnaam is al aanwezig als de invoerparameter `name` wat ook geldt voor onze argumenten in de vorm van de dictionary `arguments`.
 
-- De tool wordt aangeroepen met `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. De validatie van de argumenten gebeurt in de `handler` eigenschap die verwijst naar een functie, als dat mislukt wordt er een uitzondering opgeworpen.
+- Het hulpmiddel wordt aangeroepen met `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. De validatie van de argumenten gebeurt in de `handler` eigenschap die verwijst naar een functie, als dat faalt zal het een exceptie werpen. 
 
-Daar heb je het, nu hebben we een volledig begrip van het tonen en aanroepen van tools via een laag-niveau server.
+Daar hebben we nu een volledig begrip van het opsommen en aanroepen van hulpmiddelen met een low-level server.
 
 Zie het [volledige voorbeeld](./code/README.md) hier
 
 ## Opdracht
 
-Breid de code die je hebt gekregen uit met een aantal tools, resources en prompts en merk op dat je alleen bestanden in de tools directory hoeft toe te voegen en nergens anders.
+Breid de code die je hebt gekregen uit met een aantal hulpmiddelen, resources en prompts en reflecteer erop hoe je alleen bestanden hoeft toe te voegen in de tools-directory en nergens anders. 
 
 *Geen oplossing gegeven*
 
 ## Samenvatting
 
-In dit hoofdstuk hebben we gezien hoe de laag-niveau server-benadering werkt en hoe dat ons kan helpen een mooie architectuur te creëren waarop we kunnen voortbouwen. We hebben ook validatie besproken en je hebt gezien hoe je met validatiebibliotheken kunt werken om schema's te maken voor invoervalidatie.
+In dit hoofdstuk hebben we gezien hoe de low-level serverbenadering werkte en hoe dat ons kan helpen om een nette architectuur te maken waarop we kunnen blijven bouwen. We hebben ook validatie besproken en je hebt gezien hoe je met validatiebibliotheken kunt werken om schema's te maken voor inputvalidatie.
 
-## Wat is het volgende
+## Wat volgt
 
 - Volgende: [Eenvoudige authenticatie](../11-simple-auth/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsdienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet als de gezaghebbende bron worden beschouwd. Voor cruciale informatie wordt een professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor enige misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

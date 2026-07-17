@@ -1,26 +1,28 @@
-# 取樣 - 將功能委派給 Client
+> [已棄用：2026-07-28 釋出候選版](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
 
-> **停用通知：** `2026-07-28` MCP 規格候選版本標記取樣為棄用，建議改為直接整合 LLM 供應商 API。取樣在 `2025-11-25` 版本及任何正式棄用後至少一年內仍然可用，因此本課程內容仍有效 — 但新的伺服器設計應評估替代方案。詳見 [MCP 的變更內容：2026-07-28 發行候選版本](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
+# 採樣 - 將功能委派給用戶端
 
-有時候，你需要 MCP Client 與 MCP Server 協作以達成共同目標。你可能會遇到伺服器需要遍及在客戶端的 LLM 幫助的情況。這時，取樣是你應該使用的功能。
+> **棄用通知：** `2026-07-28` MCP 規範釋出候選版將採樣標記為棄用，改為直接整合 LLM 供應商 API。採樣在 `2025-11-25` 版本及正式棄用後至少一年內仍可使用，因此本課程內容依然有效 — 但新的伺服器設計應評估替代方案。詳見 [MCP 的變更：2026-07-28 釋出候選版](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
 
-讓我們來探討一些使用案例，以及如何建立一個包含取樣的解決方案。
+有時，你需要 MCP 用戶端與 MCP 伺服器合作來達成共同目標。你可能會遇到伺服器需要客戶端上的 LLM 協助的情況。針對此情境，應使用採樣功能。
+
+讓我們來探討一些使用案例以及如何建構包含採樣的解決方案。
 
 ## 概述
 
-在本課程中，我們將重點說明何時何地使用取樣，以及如何配置它。
+在本課程中，我們將聚焦說明何時何地使用採樣以及如何設定它。
 
 ## 學習目標
 
-在本章中，我們將：
+在本章中，我們會：
 
-- 解釋什麼是取樣以及何時使用它。
-- 示範如何在 MCP 中配置取樣。
-- 提供取樣應用的範例。
+- 解釋什麼是採樣以及何時使用它。
+- 示範如何在 MCP 中配置採樣。
+- 提供採樣應用的範例。
 
-## 什麼是取樣及為何使用它？
+## 什麼是採樣及為何使用它？
 
-取樣是一個進階功能，其運作方式如下：
+採樣是一項進階功能，其運作方式如下：
 
 ```mermaid
 sequenceDiagram
@@ -30,18 +32,18 @@ sequenceDiagram
     participant MCP Server
 
     User->>MCP Client: 作者部落格文章
-    MCP Client->>MCP Server: 工具呼叫（部落格文章草稿）
+    MCP Client->>MCP Server: 工具調用（部落格文章草稿）
     MCP Server->>MCP Client: 取樣請求（建立摘要）
     MCP Client->>LLM: 產生部落格文章摘要
     LLM->>MCP Client: 摘要結果
     MCP Client->>MCP Server: 取樣回應（摘要）
     MCP Server->>MCP Client: 完整部落格文章（草稿 + 摘要）
-    MCP Client->>User: 部落格文章完成
+    MCP Client->>User: 部落格文章準備完成
 ```
 
-### 取樣請求
+### 採樣請求
 
-好的，現在我們對一個可信的場景有了高層次的了解，接下來談談伺服器發送回客戶端的取樣請求。以下是此類請求的 JSON-RPC 格式示例：
+好的，現在我們對一個可信場景有了大致了解，接下來談談伺服器發回給用戶端的採樣請求。此類請求在 JSON-RPC 格式下可能長這樣：
 
 ```json
 {
@@ -75,15 +77,15 @@ sequenceDiagram
 
 這裡有幾點值得說明：
 
-- 在 content -> text 底下的 Prompt，就是我們給 LLM 的指令，讓它來摘要部落格文章內容。
+- Prompt 中 content -> text 是我們用來指示 LLM 對部落格文章內容進行摘要的提示。
 
-- **modelPreferences**。此部分就是偏好設定，是對該 LLM 應使用何種配置的建議。用戶可選擇接受這些建議或修改它們。本例中對應使用的模型、速度以及智能優先順序都有建議。
-- **systemPrompt**，這是你的正常系統提示，賦予 LLM 個性並包含指導指令。
-- **maxTokens**，這是另一個屬性，用來指明這個任務建議使用多少令牌數。
+- **modelPreferences**。此區域即為偏好設置，是對應使用哪種 LLM 配置的建議。使用者可決定是否接受或修改這些建議。本例中建議了要使用的模型，以及速度與智慧優先的設定。
+- **systemPrompt**，這是常規的系統提示，用以賦予 LLM 個性並包含指導性說明。
+- **maxTokens**，此屬性用於表示推薦在此任務中使用的最大 token 數量。
 
-### 取樣回應
+### 採樣回應
 
-此回應是 MCP Client 最終發送回 MCP Server 的訊息，為客戶端呼叫 LLM、等待回應後組成。以下是其 JSON-RPC 格式示例：
+這個回應即為 MCP 客戶端經過呼叫 LLM，等待結果後構造並返回給 MCP 伺服器的訊息。它在 JSON-RPC 格式中可能長這樣：
 
 ```json
 {
@@ -101,13 +103,13 @@ sequenceDiagram
 }
 ```
 
-請注意，回應是我們要求的部落格文章摘要。另外注意，實際使用的 `model` 不是我們請求的，而是 "gpt-5" 取代了 "claude-3-sonnet"。這說明用戶可以改變使用的模型，代表取樣請求只是建議。
+請注意回應正是如我們所要求的部落格文章摘要。同時注意所使用的模型並非我們原先請求的，而是使用 "gpt-5" 而非 "claude-3-sonnet"。此範例用以說明使用者可以改變所用模型，而你的採樣請求為一種建議。
 
-好的，既然了解主要流程及有用的任務場景：「部落格文章創作 + 摘要」，接下來看看如何實作它。
+好，了解主要流程與用於「部落格文章撰寫 + 摘要」的實用任務後，接著看看啟用此功能需要做什麼。
 
 ### 訊息類型
 
-取樣訊息不僅限於文字，也能傳送圖片和音訊。以下是 JSON-RPC 格式的差異示例：
+採樣訊息並不限於純文字，還可以傳送圖片和音訊。下面示範 JSON-RPC 的差異：
 
 <strong>文字</strong>
 
@@ -138,13 +140,13 @@ sequenceDiagram
 }
 ```
 
-> 注意：更多取樣詳細資訊請參考[官方文件](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> 注意：欲取得更詳細的採樣資訊，請參閱[官方文件](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## 如何在 Client 配置取樣
+## 如何在用戶端配置採樣
 
-> 注意：如果你僅在建構伺服器，這部分不需做太多設定。
+> 注意：如果你只構建伺服器端，這裡幾乎不需多做什麼。
 
-在 Client 端，你需要如此指定此功能：
+在用戶端，你需要像下面這樣指定以下功能：
 
 ```json
 {
@@ -154,18 +156,18 @@ sequenceDiagram
 }
 ```
 
-在你選擇的 Client 初始化與伺服器連線時，它就會被接收。
+這樣一來，當你選擇的用戶端初始化連接至伺服器時便會採用此設定。
 
-## 取樣實作範例 - 創作一篇部落格文章
+## 採樣實戰範例 - 建立部落格文章
 
-我們一起來編寫一個取樣伺服器，需完成以下步驟：
+讓我們一起編寫採樣伺服器，將需要執行的步驟如下：
 
-1. 在伺服器端建立一個工具。
-1. 該工具應建立取樣請求。
-1. 工具應等待客戶端對取樣請求的回應。
-1. 然後產生工具結果。
+1. 在伺服器上建立一個工具。
+1. 這個工具應建立採樣請求。
+1. 工具需等待用戶端對採樣請求的回應。
+1. 最後產生工具的結果。
 
-我們逐步看以下程式碼：
+讓我們分步看看程式碼：
 
 ### -1- 建立工具
 
@@ -178,9 +180,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- 建立取樣請求
+### -2- 建立採樣請求
 
-在你的工具中追加如下程式碼：
+在你的工具中加入以下程式碼：
 
 **python**
 
@@ -206,7 +208,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- 等待回應並返回結果
+### -3- 等待回應並返回
 
 **python**
 
@@ -215,7 +217,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# 返回完整的產品
+# 返回完整產品
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -284,7 +286,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # 回傳完整的部落格文章
+    # 返回完整的部落格文章
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -295,15 +297,15 @@ if __name__ == "__main__":
     # mcp.run()
     mcp.run(transport="streamable-http")
 
-# 使用以下指令執行應用程式: python server.py
+# 使用以下指令執行應用程式：python server.py
 ```
 
-### -5- 在 Visual Studio Code 中測試
+### -5- 在 Visual Studio Code 測試
 
-要在 Visual Studio Code 中進行測試，請執行以下步驟：
+若要在 Visual Studio Code 中測試，請依照以下步驟：
 
 1. 在終端機啟動伺服器
-1. 把它加到 *mcp.json* （並確保已啟動），例如這樣：
+1. 將其加入 *mcp.json*（並確認已啟動），例如：
 
    ```json
    "servers": {
@@ -314,41 +316,41 @@ if __name__ == "__main__":
    }
    ```
 
-1. 輸入提示語：
+1. 輸入提示詞：
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. 允許取樣執行。第一次測試會出現一個額外對話框，你需要接受，然後會看到正常的要求執行工具對話框。
+1. 允許採樣進行。首次測試時，你會看到一個需接受的額外對話框，之後會看到正常的執行工具對話框。
 
-1. 檢視結果。你會在 GitHub Copilot Chat 以漂亮版面看到結果，也可以查看原始 JSON 回應。
+1. 檢查結果。在 GitHub Copilot Chat 中可看到格式良好的結果呈現，亦可檢視原始 JSON 回應。
 
-<strong>額外資訊</strong>。Visual Studio Code 工具有很好的取樣支援。你可以透過以下步驟在已安裝的伺服器中配置取樣存取：
+<strong>額外資訊</strong>。Visual Studio Code 工具對採樣有良好支援。你可以這樣配置已安裝伺服器的採樣存取權限：
 
-1. 進入擴充功能區。
-1. 在「MCP SERVERS - INSTALLED」區段中，選擇已安裝伺服器的齒輪圖示。
-1 選擇「Configure Model Access」，在此可設定 GitHub Copilot 在執行取樣時允許使用哪些模型。也可以透過「Show Sampling requests」查看最近所有取樣請求。
+1. 前往擴充功能區。
+1. 在「MCP SERVERS - INSTALLED」區域，選擇你已安裝伺服器的齒輪圖示。
+1. 選擇「Configure Model Access」，此處可選擇 GitHub Copilot 在執行採樣時允許使用哪些模型。你也可以選擇「Show Sampling requests」查看近期發生的採樣請求。
 
 ## 作業
 
-在此作業中，你將建構一個略有不同的取樣整合，支援生成產品描述。以下是你的情境：
+本作業中，你將建立稍微不同的採樣整合——支援生成產品描述的採樣。以下是你的場景：
 
-<strong>情境</strong>：電商後台工作人員需要幫助，生成產品描述耗費太多時間。因此，你將建立一套解決方案，可呼叫名為 "create_product" 的工具，帶入 "title" 和 "keywords" 作為參數，並應由客戶端 LLM 填充完整產品，包括 "description" 欄位。
+<strong>場景</strong>：電商後台工作者需要協助，產出產品描述花費太多時間。因此，你將建立一個方案，可以呼叫名為 "create_product" 的工具，並以 "title" 和 "keywords" 做為參數，產出完整產品，包括需由用戶端 LLM 填寫的 "description" 欄位。
 
-提示：利用之前學到的內容，使用取樣請求構建此伺服器及其工具。
+提示：利用前面所學，透過採樣請求構建此伺服器及其工具。
 
 ## 解答
 
 [解答](./solution/README.md)
 
-## 主要重點
+## 重要重點
 
-取樣是功能強大的特性，可讓伺服器在需要 LLM 協助時，委派任務給客戶端。
+採樣是一項強大功能，允許伺服器在需要 LLM 協助時，將任務委派給用戶端。
 
-## 下一步
+## 後續步驟
 
-- [第四章 - 實作練習](../../04-PracticalImplementation/README.md)
+- [第四章 - 實務實作](../../04-PracticalImplementation/README.md)
 
 ---
 

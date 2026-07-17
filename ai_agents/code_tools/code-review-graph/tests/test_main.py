@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import threading
 
 import pytest
 
+import code_review_graph.tools.docs as docs_module
 from code_review_graph import main as crg_main
 
 
@@ -57,6 +59,33 @@ class TestResolveRepoRoot:
     def test_client_arg_used_when_no_flag(self):
         crg_main._default_repo_root = None
         assert crg_main._resolve_repo_root("/explicit") == "/explicit"
+
+
+def test_docs_wrapper_falls_back_to_packaged_docs_with_resolved_repo(
+    tmp_path, monkeypatch,
+):
+    """The server's resolved repo must not hide wheel-packaged docs."""
+    package_dir = tmp_path / "site-packages" / "code_review_graph"
+    tools_dir = package_dir / "tools"
+    docs_dir = package_dir / "docs"
+    tools_dir.mkdir(parents=True)
+    docs_dir.mkdir()
+    (docs_dir / "LLM-OPTIMIZED-REFERENCE.md").write_text(
+        '<section name="usage">packaged docs</section>\n',
+        encoding="utf-8",
+    )
+
+    repo_root = tmp_path / "repo"
+    (repo_root / ".code-review-graph").mkdir(parents=True)
+    monkeypatch.setattr(docs_module, "__file__", str(tools_dir / "docs.py"))
+    monkeypatch.setattr(crg_main, "_default_repo_root", str(repo_root))
+    tool = getattr(crg_main.get_docs_section_tool, "fn", None)
+    get_docs = tool or crg_main.get_docs_section_tool
+
+    result = get_docs(section_name="usage")
+
+    assert result["status"] == "ok"
+    assert result["content"] == "packaged docs"
 
 
 class TestServeMainTransport:
@@ -116,6 +145,14 @@ class TestLongRunningToolsAreAsync:
         "generate_wiki_tool",
     }
 
+    HEAVY_TOOL_IMPLS = {
+        "build_or_update_graph_tool": "build_or_update_graph",
+        "run_postprocess_tool": "run_postprocess",
+        "embed_graph_tool": "embed_graph",
+        "detect_changes_tool": "detect_changes_func",
+        "generate_wiki_tool": "generate_wiki_func",
+    }
+
     def test_heavy_tools_are_coroutines(self):
         """Regression guard for #46/#136: the 5 long-running MCP tools must
         stay ``async def`` so FastMCP can offload their blocking work via
@@ -167,6 +204,35 @@ class TestLongRunningToolsAreAsync:
                 f"blocking work; otherwise Windows MCP clients will hang. "
                 f"See #46, #136."
             )
+
+    @pytest.mark.parametrize("tool_name,impl_name", HEAVY_TOOL_IMPLS.items())
+    @pytest.mark.asyncio
+    async def test_provenance_sqlite_read_runs_off_event_loop(
+        self, tool_name, impl_name, monkeypatch,
+    ):
+        event_loop_thread = threading.get_ident()
+        provenance_threads = []
+
+        def fake_impl(*args, **kwargs):
+            return {"status": "ok", "impl": impl_name}
+
+        def fake_with_provenance(result, repo_root=None):
+            provenance_threads.append(threading.get_ident())
+            return {**result, "_graph": {"updated_at": "worker"}}
+
+        monkeypatch.delenv("CRG_TOOL_TIMEOUT", raising=False)
+        monkeypatch.setattr(crg_main, impl_name, fake_impl)
+        monkeypatch.setattr(
+            crg_main, "with_provenance", fake_with_provenance, raising=False,
+        )
+        tool = getattr(crg_main, tool_name)
+        underlying = getattr(tool, "fn", None) or tool
+        result = await underlying()
+
+        assert result["impl"] == impl_name
+        assert result["_graph"]["updated_at"] == "worker"
+        assert provenance_threads
+        assert all(tid != event_loop_thread for tid in provenance_threads)
 
     @pytest.mark.asyncio
     async def test_detect_changes_timeout_uses_error_response_shape(
@@ -243,6 +309,55 @@ class TestLongRunningToolsAreAsync:
                         f"and will silently break the guard.  Use "
                         f"getattr(crg_main, tool_name) instead."
                     )
+
+
+class TestGraphBackedToolProvenanceCoverage:
+    """Every single-repository graph tool must expose freshness metadata."""
+
+    TOOL_CATEGORIES = {
+        "build": {"build_or_update_graph_tool", "run_postprocess_tool"},
+        "context_and_search": {
+            "get_minimal_context_tool", "get_impact_radius_tool",
+            "query_graph_tool", "get_review_context_tool",
+            "semantic_search_nodes_tool", "find_large_functions_tool",
+            "traverse_graph_tool",
+        },
+        "embeddings_and_stats": {"embed_graph_tool", "list_graph_stats_tool"},
+        "flows_and_communities": {
+            "list_flows_tool", "get_flow_tool", "get_affected_flows_tool",
+            "list_communities_tool", "get_community_tool",
+            "get_architecture_overview_tool",
+        },
+        "review_and_refactor": {
+            "detect_changes_tool", "refactor_tool", "apply_refactor_tool",
+        },
+        "wiki_and_analysis": {
+            "generate_wiki_tool", "get_wiki_page_tool", "get_hub_nodes_tool",
+            "get_bridge_nodes_tool", "get_knowledge_gaps_tool",
+            "get_surprising_connections_tool", "get_suggested_questions_tool",
+        },
+    }
+
+    @pytest.mark.parametrize("category,tool_names", TOOL_CATEGORIES.items())
+    def test_every_graph_backed_tool_category_attaches_provenance(
+        self, category, tool_names,
+    ):
+        assert tool_names, f"{category} must name at least one tool"
+        for tool_name in tool_names:
+            tool = getattr(crg_main, tool_name, None)
+            assert tool is not None, f"{category}: missing {tool_name}"
+            underlying = getattr(tool, "fn", None) or tool
+            assert "with_provenance" in inspect.getsource(underlying), (
+                f"{category}: {tool_name} does not attach graph provenance"
+            )
+
+    @pytest.mark.parametrize("tool_name", [
+        "get_docs_section_tool", "list_repos_tool", "cross_repo_search_tool",
+    ])
+    def test_non_single_repository_tools_do_not_claim_one_graph(self, tool_name):
+        tool = getattr(crg_main, tool_name)
+        underlying = getattr(tool, "fn", None) or tool
+        assert "with_provenance" not in inspect.getsource(underlying)
 
 class TestApplyToolFilter:
     """Tests for _apply_tool_filter (``serve --tools`` / ``CRG_TOOLS``).

@@ -1,53 +1,57 @@
-# MCP Root Contexts
+> [ЗАСТАРЕЛО: КАНДИДАТ ЗА ИЗДАЊЕ 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexti су основни појам у Model Context Protocol-у који обезбеђују трајни слој за одржавање историје разговора и заједничког стања кроз више захтева и сесија.
+# MCP Основни Контексти
+
+> **Обавештење о застаревању:** кандидат за издање MCP спецификације `2026-07-28` означава Основне Контексте као застареле у корист параметара алата, URI ресурса или конфигурације сервера. Основни Контексти настављају да раде у `2025-11-25` и најмање годину дана након формалног застаревања, тако да све у овој лекцији остаје валидно - али нови дизајни сервера треба да процене образац замене. Погледајте [Шта се мења у MCP: Кандидат за издање 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Основни контексти су фундаментални појам у Model Context Protocol који обезбеђује постојан слој за одржавање историје разговора и заједничког стања кроз више захтева и сесија.
 
 ## Увод
 
-У овој лекцији ћемо истражити како се креирају, управљају и користе root context-и у MCP-у.
+У овој лекцији ћемо истражити како да креирамо, управљамо и користимо основне контексте у MCP.
 
 ## Циљеви учења
 
 На крају ове лекције моћи ћете да:
 
-- Разумете сврху и структуру root context-а
-- Креирате и управљате root context-има користећи MCP клијентске библиотеке
-- Имплементирате root context-е у .NET, Java, JavaScript и Python апликацијама
-- Користите root context-е за вишекратне разговоре и управљање стањем
-- Примењујете најбоље праксе за управљање root context-ом
+- Разумете сврху и структуру основних контекста
+- Креирате и управљате основним контекстима користећи MCP клиентске библиотеке
+- Имплементирате основне контексте у .NET, Java, JavaScript и Python апликацијама
+- Користите основне контексте за вишекратне разговоре и управљање стањем
+- Примените најбоље праксе за управљање основним контекстима
 
-## Разумевање root context-а
+## Разумевање Основних Контекста
 
-Root context-и служе као контејнери који чувају историју и стање за низ повезаних интеракција. Они омогућавају:
+Основни контексти служе као контејнери који чувају историју и стање серије повезаних интеракција. Они омогућавају:
 
-- **Трајност разговора**: Одржавање кохерентних вишекратних разговора
-- **Управљање меморијом**: Чување и преузимање информација кроз интеракције
-- **Управљање стањем**: Праћење напретка у сложеним радним токовима
-- **Дељење контекста**: Омогућавање више клијената да приступе истом стању разговора
+- **Постојаност разговора**: Одржавање кохерентних вишекратних разговора
+- **Управљање меморијом**: Складиштење и преузимање информација кроз интеракције
+- **Управљање стањем**: Праћење напретка у сложеним токовима рада
+- **Деловање контекста**: Дозвољавање више клијената да приступе истом стању разговора
 
-У MCP-у, root context-и имају следеће кључне карактеристике:
+У MCP, основни контексти имају следеће кључне карактеристике:
 
-- Сваки root context има јединствени идентификатор.
-- Могу садржати историју разговора, корисничке преференције и друге метаподатке.
+- Сваки основни контекст има јединствени идентификатор.
+- Могу да садрже историју разговора, корисничке преференције и другу метаподатке.
 - Могу се креирати, приступати и архивирати по потреби.
-- Подржавају фино подешену контролу приступа и дозволе.
+- Подржавају прецизну контролу приступа и дозволе.
 
-## Животни циклус root context-а
+## Животни циклус основног контекста
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Креирај коренски контекст] --> B[Иницијализуј са метаподацима]
+    B --> C[Пошаљи захтеве са ИД контекста]
+    C --> D[Ажурирај контекст резултатима]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Архивирај контекст када је завршен]
 ```
 
-## Рад са root context-има
+## Рад са основним контекстима
 
-Ево примера како се креирају и управљају root context-има.
+Ево примера како се креирају и управљају основним контекстима.
 
-### C# имплементација
+### Имплементација у C#
 
 ```csharp
 // .NET Example: Root Context Management
@@ -124,20 +128,20 @@ public class RootContextExample
 
 У претходном коду смо:
 
-1. Креирали root context за сесију корисничке подршке.
-1. Послали више порука у оквиру тог context-а, омогућавајући моделу да одржава стање.
-1. Ажурирали context релевантним метаподацима на основу разговора.
-1. Преузели информације о context-у да бисмо разумели историју разговора.
-1. Архивирали context када је разговор завршен.
+1. Креирали основни контекст за сесију корисничке подршке.
+1. Послали више порука у оквиру тог контекста, дозвољавајући моделу да одржи стање.
+1. Ажурирали контекст релевантним метаподацима на основу разговора.
+1. Преузели информације из контекста да бисмо разумели историју разговора.
+1. Архивирали контекст када је разговор завршен.
 
-## Пример: Имплементација root context-а за финансијску анализу
+## Пример: Имплементација Основног Контекста за финансијску анализу
 
-У овом примеру ћемо креирати root context за сесију финансијске анализе, показујући како одржати стање кроз више интеракција.
+У овом примеру ћемо креирати основни контекст за сесију финансијске анализе, показујући како одржавати стање кроз више интеракција.
 
-### Java имплементација
+### Имплементација у Java
 
 ```java
-// Java Example: Root Context Implementation
+// Пример у Јави: Имплементација коренског контекста
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Креирајте метаподатке контекста
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Креирајте нови коренски контекст
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Прва интеракција
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Ажурирајте контекст важним информацијама добијеним из одговора
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Друга интеракција - коришћење истог контекста
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Генеришите резиме сесије анализе
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Сачувајте резиме у метаподатке контекста
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Преузмите ажуриране информације о контексту
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Архивирајте контекст када завршите
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 У претходном коду смо:
 
-1. Креирали root context за сесију финансијске анализе.
-2. Послали више порука у оквиру тог context-а, омогућавајући моделу да одржава стање.
-3. Ажурирали context релевантним метаподацима на основу разговора.
-4. Генерисали резиме сесије анализе и сачували га у метаподацима context-а.
-5. Архивирали context када је разговор завршен.
+1. Креирали основни контекст за сесију финансијске анализе.
+2. Послали више порука у оквиру тог контекста, дозвољавајући моделу да одржи стање.
+3. Ажурирали контекст релевантним метаподацима на основу разговора.
+4. Генерисали резиме сесије анализе и сачували га у метаподацима контекста.
+5. Архивирали контекст када је разговор завршен.
 
-## Пример: Управљање root context-ом
+## Пример: Управљање Основним Контекстом
 
-Ефикасно управљање root context-има је кључно за одржавање историје разговора и стања. Испод је пример како имплементирати управљање root context-ом.
+Ефикасно управљање основним контекстима је кључно за одржавање историје разговора и стања. Испод је пример како имплементирати управљање основним контекстом.
 
-### JavaScript имплементација
+### Имплементација у JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// Пример у ЈаваСкрипту: Управљање MCP Роот Контекстима
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Иницијализуј MCP клијента
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Иницијализуј менаџер контекста
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Пошаљи поруку користећи одређени контекст
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Опционо сачувај важне увиде из разговора
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Извуци потенцијалне увиде (у правом апликацији ово би било софистицираније)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Једноставна хеуристика за идентификовање потенцијалних увида
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Сачувај увиде у метаподатке контекста
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Некритична грешка, само евидентирај упозорење
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Замоли модел да генерише резиме досадашњег разговора
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Сачувај резиме у метаподатке контекста
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Генериши коначни резиме пре архивирања
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Архивирај контекст
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Пример коришћења
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Направи нови контекст за разговор о подршци производу
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Прва порука у разговору
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Праћење поруке у истом контексту
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Добиј информације о контексту
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Генериши и прикажи резиме разговора
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Архивирај контекст када завршиш
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Накнадно обради грешке на смирен начин
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 У претходном коду смо:
 
-1. Креирали root context за разговор о подршци производа помоћу функције `createConversationContext`. У овом случају, context се односи на проблеме са перформансама базе података.
+1. Креирали основни контекст за разговор о техничкој подршци производа функцијом `createConversationContext`. У овом случају, контекст се односи на проблеме са перформансама базе података.
 
-1. Послали више порука у оквиру тог context-а, омогућавајући моделу да одржава стање помоћу функције `sendMessage`. Поруке се односе на споре упите и конфигурацију индекса.
+1. Послали више порука у оквиру тог контекста, дозвољавајући моделу да одржи стање функцијом `sendMessage`. Поруке које се шаљу су о спором извршавању упита и конфигурацији индекса.
 
-1. Ажурирали context релевантним метаподацима на основу разговора.
+1. Ажурирали контекст релевантним метаподацима на основу разговора.
 
-1. Генерисали резиме разговора и сачували га у метаподацима context-а помоћу функције `generateContextSummary`.
+1. Генерисали резиме разговора и сачували га у метаподацима контекста функцијом `generateContextSummary`.
 
-1. Архивирали context када је разговор завршен помоћу функције `archiveContext`.
+1. Архивирали контекст када је разговор завршен функцијом `archiveContext`.
 
-1. Обрадили грешке на прикладан начин како бисмо обезбедили стабилност.
+1. Успешно руковали грешкама како би обезбедили робусност.
 
-## Root context за вишекратну помоћ
+## Основни Контекст за Вишекратну Помоћ
 
-У овом примеру ћемо креирати root context за сесију вишекратне помоћи, показујући како одржати стање кроз више интеракција.
+У овом примеру ћемо креирати основни контекст за сесију вишекратне помоћи, показујући како одржавати стање кроз више интеракција.
 
-### Python имплементација
+### Имплементација у Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python пример: Рут контекст за мулти-тура помоћ
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Додај информације о кориснику ако су наведене
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Направи рут контекст
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Креирај опције са ID контекста
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Додај алате ако су спецификовани
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Пошаљи упит у оквиру контекста
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Ажурирај метаподатке контекста са напретком разговора
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Прvo генериши подстицај за резиме
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Сачувај резиме у метаподацима
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Архивирај контекст
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Пример коришћења
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Направи сесију
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Прва интеракција
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Друга интеракција у истом контексту
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Узми историју
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Заврши сесију
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 У претходном коду смо:
 
-1. Креирали root context за сесију техничке подршке помоћу функције `create_session`. Context укључује корисничке информације као што су име и технички ниво.
+1. Креирали основни контекст за сесију техничке подршке функцијом `create_session`. Контекст укључује информације о кориснику као што су име и технички ниво.
 
-1. Послали више порука у оквиру тог context-а, омогућавајући моделу да одржава стање помоћу функције `send_message`. Поруке се односе на проблеме са функцијом аутоматског скалирања.
+1. Послали више порука у оквиру тог контекста, дозвољавајући моделу да одржи стање функцијом `send_message`. Поруке су о проблемима са функцијом аутоматског скалирања.
 
-1. Преузели историју разговора користећи функцију `get_conversation_history`, која пружа информације о context-у и поруке.
+1. Преузели историју разговора користећи функцију `get_conversation_history`, која пружа информације о контексту и поруке.
 
-1. Завршили сесију архивирањем context-а и генерисањем резимеа помоћу функције `end_session`. Резиме обухвата кључне тачке из разговора.
+1. Завршили сесију архивирањем контекста и генерисањем резимеа функцијом `end_session`. Резиме садржи кључне тачке из разговора.
 
-## Најбоље праксе за root context
+## Најбоље праксе за Основни Контекст
 
-Ево неколико најбољих пракси за ефикасно управљање root context-има:
+Ево неких најбољих пракси за ефикасно управљање основним контекстима:
 
-- **Креирајте фокусиране context-е**: Креирајте посебне root context-е за различите сврхе разговора или домене ради јасноће.
+- **Креирање Фокусираних Контекста**: Креирајте одвојене основне контексте за различите сврхе разговора или домене ради јасноће.
 
-- **Поставите политике истека**: Имплементирајте политике за архивирање или брисање старих context-а ради управљања простором и усаглашености са политикама чувања података.
+- **Постављање политика истека**: Обезбедите политике за архивирање или брисање старих контекста ради управљања складиштењем и усклађености са политикама задржавања података.
 
-- **Чувајте релевантне метаподатке**: Користите метаподатке context-а за чување важних информација о разговору које могу бити корисне касније.
+- **Складиштење релевантних метаподатака**: Користите метаподатке контекста за чување важних информација о разговору које могу бити корисне касније.
 
-- **Конзистентно користите ID context-а**: Када се context креира, користите његов ID доследно за све повезане захтеве ради одржавања континуитета.
+- **Конзистентна употреба ID-ја контекста**: Када је контекст креиран, користите његов ID доследно за све повезане захтеве ради одржавања континуитета.
 
-- **Генеришите резиме**: Када context постане велики, размислите о генерисању резимеа који обухватају суштинске информације уз контролу величине context-а.
+- **Генерисање резимеа**: Када контекст постане велики, размотрите генерисање резимеа да бисте сажели суштинске информације и управљали величином контекста.
 
-- **Имплементирајте контролу приступа**: За системе са више корисника, обезбедите одговарајућу контролу приступа ради приватности и безбедности разговора.
+- **Имплементација контроле приступа**: За вишекорисничке системе имплементирајте адекватне контроле приступа како бисте осигурали приватност и безбедност контекста разговора.
 
-- **Решавајте ограничења context-а**: Будите свесни ограничења величине context-а и примените стратегије за руковање веома дугим разговорима.
+- **Руковање ограничењима контекста**: Будите свесни ограничења величине контекста и примените стратегије за руковалање веома дугим разговораима.
 
-- **Архивирајте када је готово**: Архивирајте context-е када су разговори завршени како бисте ослободили ресурсе уз очување историје разговора.
+- **Архивирање по завршетку**: Архивирајте контексте када су разговори завршени да бисте ослободили ресурсе уз очување историје разговора.
 
 ## Шта следи
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Рутинг](../mcp-routing/README.md)
 
-**Одрицање од одговорности**:  
-Овај документ је преведен коришћењем AI сервиса за превођење [Co-op Translator](https://github.com/Azure/co-op-translator). Иако тежимо прецизности, молимо вас да имате у виду да аутоматски преводи могу садржати грешке или нетачности. Оригинални документ на његовом изворном језику треба сматрати ауторитетним извором. За критичне информације препоручује се професионални људски превод. Нисмо одговорни за било каква неспоразума или погрешна тумачења која произилазе из коришћења овог превода.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Изјава о одрицању одговорности**:
+Овај документ је преведен коришћењем услуге за аутоматски превод [Co-op Translator](https://github.com/Azure/co-op-translator). Иако тежимо тачности, имајте у виду да аутоматски преводи могу садржати грешке или нетачности. Оригинални документ на његовом изворном језику треба сматрати ауторитативним извором. За критичне информације препоручује се професионални људски превод. Нисмо одговорни за било каква неспоразума или погрешна тумачења која произилазе из коришћења овог превода.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

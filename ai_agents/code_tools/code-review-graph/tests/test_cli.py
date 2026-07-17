@@ -178,6 +178,37 @@ class TestBuildUpdateCommands:
 
 
 class TestDetectChangesCommand:
+    def test_churn_flag_is_forwarded_to_analysis(self, tmp_path, capsys):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (repo / ".git").mkdir()
+        (repo / "app.py").write_text("x = 1\n", encoding="utf-8")
+        argv = [
+            "code-review-graph",
+            "detect-changes",
+            "--repo",
+            str(repo),
+            "--churn",
+        ]
+
+        with patch.object(sys, "argv", argv):
+            with patch("code_review_graph.graph.GraphStore") as mock_store:
+                mock_store.return_value = MagicMock()
+                with patch("code_review_graph.incremental.get_db_path") as mock_db:
+                    mock_db.return_value = MagicMock()
+                    with patch(
+                        "code_review_graph.incremental.get_changed_files",
+                        return_value=["app.py"],
+                    ):
+                        with patch(
+                            "code_review_graph.changes.analyze_changes",
+                            return_value={"summary": "with churn"},
+                        ) as analyze:
+                            cli.main()
+
+        assert json.loads(capsys.readouterr().out)["summary"] == "with churn"
+        assert analyze.call_args.kwargs["include_churn"] is True
+
     def test_brief_output_includes_token_savings_panel(self, tmp_path, capsys):
         """v2.3.5: --brief output renders a boxed Token Savings panel.
 

@@ -1,26 +1,28 @@
-# Uchunguzi - kupeana sifa kwa Mteja
+> [IMEPITWA TUMIA: MWAKA 2026-07-28 MGOMO WA KUTOLEWA](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
 
-> **Tangazo la kuachwa:** mgombea wa toleo la tambulisho la MCP la `2026-07-28` unaonyesha Uchunguzi kuwa umeachwa kwa ajili ya muunganisho wa moja kwa moja na API za mtoa huduma wa LLM. Uchunguzi unaendelea kufanya kazi katika `2025-11-25` na kwa angalau mwaka mmoja baada ya kuachwa rasmi, hivyo kila kitu katika somo hili kinabaki halali — lakini miundo mipya ya seva inapaswa kutathmini muundo wa kubadilisha. Angalia [Mabadiliko katika MCP: Mgombea wa Toleo la 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+# Sampuli - kuagiza vipengele kwa Mteja
 
-Wakati mwingine, unahitaji Mteja wa MCP na Seva ya MCP kushirikiana ili kufikia lengo la pamoja. Unaweza kuwa na hali ambapo Seva inahitaji msaada wa LLM ambayo iko kwenye mteja. Kwa hali hii, uchunguzi ndio unapaswa kutumia.
+> **Taarifa ya kumezwa matumizi:** mgomo wa maelezo ya MCP wa `2026-07-28` unaonyesha Sampuli kama imepitwa matumizi kwa faida ya ushirikiano wa moja kwa moja na API za mtoa huduma wa LLM. Sampuli inaendelea kufanya kazi katika `2025-11-25` na kwa angalau mwaka mmoja baada ya kuachiliwa rasmi kupitwa, hivyo kila kitu katika somo hili kinabaki halali — lakini miundombinu mipya ya seva inapaswa kutathmini mfano wa uingizaji. Angalia [Mabadiliko katika MCP: Mgomo wa Kutoelezwa wa 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Hebu tuchunguze baadhi ya matumizi na jinsi ya kujenga suluhisho linalohusisha uchunguzi.
+Wakati mwingine, unahitaji Mteja MCP na Seva MCP kushirikiana kufanikisha lengo la pamoja. Unaweza kuwa na kesi ambapo Seva inahitaji msaada wa LLM iliyoko kwa mteja. Kwa hali hii, sampuli ndiyo unapaswa kutumia.
+
+Hebu tuchunguze baadhi ya matumizi na jinsi ya kujenga suluhisho linalohusisha sampuli.
 
 ## Muhtasari
 
-Katika somo hili, tunazingatia kuelezea lini na wapi kutumia Uchunguzi na jinsi ya kuupangilia.
+Katika somo hili, tunazingatia kuelezea lini na wapi kutumia Sampuli na jinsi ya kuipanga.
 
 ## Malengo ya Kujifunza
 
-Katika sura hii, tuta:
+Katika sura hii, tutafanya:
 
-- Elezea ni nini Uchunguzi na lini kuutumia.
-- Onyesha jinsi ya kupanga Uchunguzi katika MCP.
-- Toa mifano ya Uchunguzi ukiwa unafanya kazi.
+- Eleza ni nini Sampuli na lini ya kuitumia.
+- Onyesha jinsi ya kuanzisha Sampuli katika MCP.
+- Toa mifano ya Sampuli katika utekelezaji.
 
-## Ni nini Uchunguzi na kwa nini kuutumia?
+## Ni nini Sampuli na kwa nini itumike?
 
-Uchunguzi ni sifa ya juu inayofanya kazi kwa njia ifuatayo:
+Sampuli ni kipengele cha hali ya juu kinachofanya kazi kwa njia ifuatayo:
 
 ```mermaid
 sequenceDiagram
@@ -29,9 +31,9 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Chapisho la blogu la mwandishi
-    MCP Client->>MCP Server: Simu ya zana (rasimu ya chapisho la blogu)
-    MCP Server->>MCP Client: Ombi la sampuli (tengeneza muhtasari)
+    User->>MCP Client: Chapisho la blogu la Mwandishi
+    MCP Client->>MCP Server: Mwito wa zana (rasimu ya chapisho la blogu)
+    MCP Server->>MCP Client: OMBI LA KUPIMA (tengeneza muhtasari)
     MCP Client->>LLM: Tengeneza muhtasari wa chapisho la blogu
     LLM->>MCP Client: Matokeo ya muhtasari
     MCP Client->>MCP Server: Majibu ya sampuli (muhtasari)
@@ -39,9 +41,9 @@ sequenceDiagram
     MCP Client->>User: Chapisho la blogu lipo tayari
 ```
 
-### Ombi la Uchunguzi
+### Ombi la Sampuli
 
-Sawa, sasa tuna mtazamo wa juu wa hali inayowezekana, hebu tuzungumze kuhusu ombi la uchunguzi ambalo seva inarudisha kwa mteja. Hapa ni kama ombi kama hilo linavyoweza kuonekana kwa muundo wa JSON-RPC:
+Sawa, sasa tuna mtazamo wa juu wa hali halisi ya kuaminika, hebu tuzungumze kuhusu ombi la sampuli ambalo seva inaturudishia kwa mteja. Hivi ndivyo ombi kama hilo linavyoonekana kwa mfumo wa JSON-RPC:
 
 ```json
 {
@@ -73,17 +75,17 @@ Sawa, sasa tuna mtazamo wa juu wa hali inayowezekana, hebu tuzungumze kuhusu omb
 }
 ```
 
-Kuna mambo machache hapa yanayostahili kutajwa:
+Kuna mambo machache hapa yanayofaa kutajwa:
 
-- Prompt, chini ya content -> text, ni maagizo yetu kwa LLM ya kufupisha maudhui ya makala ya blogu.
+- Ombi, chini ya content -> text, ni ombi letu ambalo ni maelekezo kwa LLM kuchambua maudhui ya chapisho la blogu.
 
-- **modelPreferences**. Sehemu hii ni upendeleo tu, mapendekezo ya usanidi wa kutumia LLM. Mtumiaji anaweza kuchagua kuzingatia mapendekezo haya au kubadilisha. Katika kesi hii kuna mapendekezo juu ya mfano wa kutumia na kipaumbele cha kasi na akili.
-- **systemPrompt**, huu ni ujumbe wako wa kawaida wa mfumo unaompa LLM sifa na una maelekezo ya mwongozo.
-- **maxTokens**, hii ni mali nyingine inayotumika kusema idadi ya tokeni inayopendekezwa kwa kazi hii.
+- **modelPreferences**. Sehemu hii ni hiyo, ni mapendeleo, pendekezo la usanidi wa kutumia LLM. Mtumiaji anaweza kuchagua kufuata mapendekezo haya au kuyabadilisha. Katika kesi hii kuna mapendekezo kuhusu mfano wa kutumia na kipaumbele cha kasi na akili.
+- **systemPrompt**, hii ni ombi lako la kawaida la mfumo linalompatia LLM yako utu na lina maelekezo ya mwongozo.
+- **maxTokens**, hii ni sifa nyingine inayotumiwa kusema ni token ngapi zinapendekezwa kutumika kwa kazi hii.
 
-### Jibu la Uchunguzi
+### Jibu la Sampuli
 
-Jibu hili ndilo MCP Client hufanya kumrudisha MCP Server na ni matokeo ya mteja kupiga simu LLM, kusubiri jibu hilo kisha kutengeneza ujumbe huu. Hapa ni jinsi linavyoweza kuonekana katika JSON-RPC:
+Jibu hili ndilo Mteja MCP anamaliza kurudisha kwa Seva MCP na ni matokeo ya mteja kupiga simu LLM, kusubiri jibu hilo na kisha kutengeneza ujumbe huu. Hivi ndivyo linavyoonekana kwa JSON-RPC:
 
 ```json
 {
@@ -101,13 +103,13 @@ Jibu hili ndilo MCP Client hufanya kumrudisha MCP Server na ni matokeo ya mteja 
 }
 ```
 
-Angalia jinsi jibu ni muhtasari wa makala ya blogu kama tulivyoomba. Pia angalia jinsi `model` iliyotumika si ile tuliyoomba bali "gpt-5" badala ya "claude-3-sonnet". Hii ni kuonyesha kwamba mtumiaji anaweza kubadilisha mawazo juu ya kinachotakiwa kutumia na ombi lako la uchunguzi ni mapendekezo.
+Angalia jinsi jibu linavyochanganya muhtasari wa chapisho la blogu kama tulivyotaka. Pia angalia jinsi `model` iliyotumika si ile tuliyoomba bali "gpt-5" badala ya "claude-3-sonnet". Hii ni kuonyesha kwamba mtumiaji anaweza kubadilisha maoni juu ya kile cha kutumia na kuwa ombi lako la sampuli ni pendekezo.
 
-Sawa, sasa tunapoelewa mtiririko kuu, na kazi muhimu kutumia kwa "kuunda makala ya blogu + muhtasari", hebu tuone tunachohitaji kufanya ili kuifanya ifanye kazi.
+Sawa, sasa tumeelewa mtiririko mkuu, na kazi muhimu ya kuitumia kwa "kutengeneza chapisho la blogu + muhtasari", hebu tuone tunapaswa kufanya nini ili kufanya ifanye kazi.
 
 ### Aina za Ujumbe
 
-Ujumbe wa uchunguzi hauzuiliwi kwa maandishi tu bali unaweza pia kutuma picha na sauti. Hii ni jinsi JSON-RPC inavyoonekana tofauti:
+Ujumbe za sampuli hazibaganiwi kwa maandishi tu bali unaweza pia kutuma picha na sauti. Hivi ndivyo JSON-RPC inavyoonekana tofauti:
 
 **Maandishi**
 
@@ -118,7 +120,7 @@ Ujumbe wa uchunguzi hauzuiliwi kwa maandishi tu bali unaweza pia kutuma picha na
 }
 ```
 
-**Maudhui ya Picha**
+**Maudhui ya picha**
 
 ```json
 {
@@ -128,7 +130,7 @@ Ujumbe wa uchunguzi hauzuiliwi kwa maandishi tu bali unaweza pia kutuma picha na
 }
 ```
 
-**Maudhui ya Sauti**
+**Maudhui ya sauti**
 
 ```json
 {
@@ -138,13 +140,13 @@ Ujumbe wa uchunguzi hauzuiliwi kwa maandishi tu bali unaweza pia kutuma picha na
 }
 ```
 
-> NOTE: kwa maelezo zaidi kuhusu Uchunguzi, angalia [nyaraka rasmi](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> TAARIFU: kwa taarifa zaidi kuhusu Sampuli, angalia [nyaraka rasmi](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Jinsi ya Kupangilia Uchunguzi katika Mteja
+## Jinsi ya Kuanzisha Sampuli kwa Mteja
 
 > Kumbuka: kama unajenga seva tu, huna haja ya kufanya mengi hapa.
 
-Katika mteja, unahitaji kufafanua sifa ifuatayo hivi:
+Kwa mteja, unahitaji kufafanua kipengele ifuatavyo kama hivi:
 
 ```json
 {
@@ -154,18 +156,18 @@ Katika mteja, unahitaji kufafanua sifa ifuatayo hivi:
 }
 ```
 
-Hii itachukuliwa wakati mteja wako aliyechaguliwa anapoanzisha na seva.
+Hii kisha itachukuliwa wakati mteja uliyochagua anapoanzisha kwa seva.
 
-## Mfano wa Uchunguzi Unaofanya Kazi - Tengeneza Kifungu cha Blogu
+## Mfano wa Sampuli Katika Utekelezaji - Tengeneza Chapisho la Blogu
 
-Hebu tuchapishe seva ya uchunguzi pamoja, tutahitaji kufanya yafuatayo:
+Hebu tuchapishe seva ya sampuli pamoja, tutahitaji kufanya yafuatayo:
 
 1. Tengeneza chombo kwenye Seva.
-1. Chombo hicho kinapaswa kuunda ombi la uchunguzi
-1. Chombo kisubiri jibu la uchunguzi la mteja.
+1. Chombo hicho kinapaswa kuunda ombi la sampuli
+1. Chombo kinapaswa kusubiri jibu la ombi la sampuli la mteja.
 1. Kisha matokeo ya chombo yanapaswa kutolewa.
 
-Hebu tuangalie msimbo hatua kwa hatua:
+Hebu tuone msimbo hatua kwa hatua:
 
 ### -1- Tengeneza chombo
 
@@ -178,9 +180,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Tengeneza ombi la uchunguzi
+### -2- Tengeneza ombi la sampuli
 
-Panua chombo chako kwa msimbo huu:
+Panjua chombo chako kwa msimbo ufuatao:
 
 **python**
 
@@ -284,7 +286,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # rudisha chapisho la blogi kamili
+    # rudisha chapisho kamili la blogi
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -302,8 +304,8 @@ if __name__ == "__main__":
 
 Ili kuipima hii katika Visual Studio Code, fanya yafuatayo:
 
-1. Anzisha seva kwenye terminali
-1. Iongeze kwenye *mcp.json* (na hakikisha imeanzishwa) mfano kama ifuatavyo:
+1. Anzisha seva kwenye terminal
+1. Iweke kwenye *mcp.json* (na hakikisha imeanzishwa) mfano kama hivi:
 
    ```json
    "servers": {
@@ -320,35 +322,35 @@ Ili kuipima hii katika Visual Studio Code, fanya yafuatayo:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Ruhusu uchunguzi ufanyike. Mara ya kwanza unapo jaribu hii utaonyeshwa kidirisha kingine zaidi unahitaji kukikubali, kisha utaona kidirisha cha kawaida cha kukuuliza utumie chombo
+1. Ruhusu sampuli ifanyike. Mara ya kwanza unapotaka hii utaonyeshwa mazungumzo ya ziada unayopaswa kukubali, kisha utaona mazungumzo ya kawaida ya kukuomba uendeshe chombo
 
-1. Kagua matokeo. Utaona matokeo yakiwa yametengenezwa vizuri katika GitHub Copilot Chat lakini pia unaweza kukagua jibu ghalani la JSON.
+1. Kagua matokeo. Utaona matokeo yote yakiwa yamepangwa vizuri katika GitHub Copilot Chat lakini pia unaweza kuangalia jibu la moja kwa moja la JSON.
 
-**Ziada**. Zana za Visual Studio Code zina msaada mzuri kwa uchunguzi. Unaweza kupanga upatikanaji wa Uchunguzi kwenye seva uliyoweka kwa kusogea sehemu hiyo hivi:
+**Ziada**. Zana za Visual Studio Code zina msaada mzuri kwa sampuli. Unaweza kufafanua Upatikanaji wa Sampuli kwenye seva uliyoisakinisha kwa kuvinjari kama ifuatavyo:
 
-1. Nenda kwenye sehemu ya ugani.
-1. Chagua ikoni ya gia ya seva yako iliyowekwa katika sehemu ya "MCP SERVERS - INSTALLED".
-1 Chagua "Configure Model Access", hapa unaweza kuchagua ni modeli zipi GitHub Copilot inaruhusiwa kutumia wakati wa kufanya uchunguzi. Pia unaweza kuona maombi yote ya uchunguzi yaliyotokea hivi karibuni kwa kuchagua "Show Sampling requests".
+1. Nenda sehemu ya upanuzi.
+1. Chagua ikoni ya gia kwa seva uliyoisakinisha katika sehemu "MCP SERVERS - INSTALLED".
+1 Chagua "Configure Model Access", hapa unaweza kuchagua ni Modeli zipi GitHub Copilot inaruhusiwa kutumia wakati wa kufanya sampuli. Pia unaweza kuona maombi yote ya sampuli yaliyotokea hivi karibuni kwa kuchagua "Show Sampling requests".
 
-## Kazi
+## Kazi ya Nyuma
 
-Katika kazi hii, utajenga Uchunguzi kidogo tofauti yaani muunganiko wa uchunguzi unaounga mkono uzalishaji wa maelezo ya bidhaa. Huu ndio ulimwengu wako:
+Katika kazi hii ya nyuma, utajenga sampuli inayotofautiana kidogo yaani ushirikiano wa sampuli unaounga mkono kuzalisha maelezo ya bidhaa. Huu ndiyo muktadha wako:
 
-**Hali**: Mfanyakazi wa ofisi nyuma katika e-commerce anahitaji msaada, inachukua muda mwingi sana kuunda maelezo ya bidhaa. Kwa hiyo, unapaswa kujenga suluhisho ambapo unaweza kuitisha chombo "create_product" ukiwa na "title" na "keywords" kama hoja na kinapaswa kuzalisha bidhaa kamili ikiwa na sehemu ya "description" inayotakiwa kujazwa na LLM ya mteja.
+**Muktadha**: Mfanyakazi wa ofisi wa nyuma katika e-commerce anahitaji msaada, inachukua muda mrefu sana kuzalisha maelezo ya bidhaa. Kwa hiyo, unapaswa kujenga suluhisho ambapo unaweza kupiga simu chombo "create_product" na hoja "title" na "keywords" na kinapaswa kutoa bidhaa kamili ikiwa na uwanja wa "description" ambao unapaswa kujazwa na LLM ya mteja.
 
-TUMIA: tumia uliyojifunza mapema kujenga seva hii na chombo chake kwa kutumia ombi la uchunguzi.
+KIPENDELEO: tumia kile ulichojifunza awali kujenga seva hii na chombo chake kwa kutumia ombi la sampuli.
 
 ## Suluhisho
 
 [Suluhisho](./solution/README.md)
 
-## Muhimu wa Kukumbuka
+## Mambo Muhimu Kuibuka
 
-Uchunguzi ni sifa yenye nguvu inayoruhusu seva kupeana majukumu kwa mteja anapohitaji msaada wa LLM.
+Sampuli ni kipengele chenye nguvu kinachomruhusu seva kuagiza kazi kwa mteja inapohitaji msaada wa LLM.
 
 ## Kinachofuata
 
-- [Sura 4 - Utekelezaji wa vitendo](../../04-PracticalImplementation/README.md)
+- [Sura ya 4 - Utekelezaji wa vitendo](../../04-PracticalImplementation/README.md)
 
 ---
 

@@ -1,58 +1,62 @@
-# Model Bağlam Protokolünde Örnekleme
+> [KALDIRILDI: 2026-07-28 SÜRÜM ADAYI](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Örnekleme, sunucuların istemci aracılığıyla LLM tamamlamaları talep etmesini sağlayan güçlü bir MCP özelliğidir. Bu, gelişmiş ajan davranışlarını mümkün kılarken güvenlik ve gizliliği korur. Doğru örnekleme yapılandırması, yanıt kalitesini ve performansını önemli ölçüde artırabilir. MCP, modellerin metin üretimini rastgelelik, yaratıcılık ve tutarlılığı etkileyen belirli parametrelerle kontrol etmek için standart bir yol sunar.
+# Model Context Protocol'de Örnekleme
+
+> **Kaldırılma bildirimi:** `2026-07-28` MCP spesifikasyon sürüm adayı, Örneklemeyi doğrudan LLM sağlayıcı API'leri ile entegrasyon lehine kaldırılmış olarak işaretlemektedir. Örnekleme, `2025-11-25` sürümünde ve herhangi bir resmi kaldırılmadan sonraki en az bir yıl boyunca çalışmaya devam edecektir, bu nedenle bu dersteki her şey geçerli kalır; ancak yeni sunucu tasarımları yedek deseni değerlendirmelidir. bkz. [MCP'deki Değişiklikler: 2026-07-28 Sürüm Adayı](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Örnekleme, sunucuların istemci aracılığıyla LLM tamamlamalarını talep etmesini sağlayan güçlü bir MCP özelliğidir ve güvenlik ile gizliliği korurken sofistike ajan davranışlarını mümkün kılar. Doğru örnekleme yapılandırması, yanıt kalitesi ve performansını önemli ölçüde artırabilir. MCP, modellerin rastgelelik, yaratıcılık ve tutarlılığı etkileyen belirli parametrelerle nasıl metin oluşturduğunu kontrol etmek için standart bir yol sağlar.
 
 ## Giriş
 
-Bu derste, MCP isteklerinde örnekleme parametrelerinin nasıl yapılandırılacağını ve örneklemenin temel protokol mekaniklerini inceleyeceğiz.
+Bu derste, MCP isteklerinde örnekleme parametrelerinin nasıl yapılandırılacağını keşfedeceğiz ve örneklemenin temel protokol mekaniklerini anlayacağız.
 
 ## Öğrenme Hedefleri
 
 Bu dersin sonunda şunları yapabileceksiniz:
 
-- MCP’de bulunan temel örnekleme parametrelerini anlamak.
-- Farklı kullanım senaryoları için örnekleme parametrelerini yapılandırmak.
-- Tekrarlanabilir sonuçlar için deterministik örneklemeyi uygulamak.
-- Bağlama ve kullanıcı tercihlerine göre örnekleme parametrelerini dinamik olarak ayarlamak.
-- Model performansını çeşitli senaryolarda artırmak için örnekleme stratejileri uygulamak.
-- MCP’nin istemci-sunucu akışında örneklemenin nasıl çalıştığını anlamak.
+- MCP’de bulunan temel örnekleme parametrelerini anlayın.
+- Farklı kullanım durumları için örnekleme parametrelerini yapılandırın.
+- Tekrarlanabilir sonuçlar için deterministik örnekleme uygulayın.
+- Bağlama ve kullanıcı tercihlerine göre örnekleme parametrelerini dinamik olarak ayarlayın.
+- Çeşitli senaryolarda model performansını artırmak için örnekleme stratejileri uygulayın.
+- MCP’nin istemci-sunucu akışında örneklemenin nasıl çalıştığını anlayın.
 
 ## MCP’de Örnekleme Nasıl Çalışır
 
-MCP’de örnekleme akışı şu adımları izler:
+MCP'deki örnekleme akışı şu adımları izler:
 
-1. Sunucu, istemciye `sampling/createMessage` isteği gönderir
-2. İstemci isteği inceler ve gerekirse değişiklik yapabilir
-3. İstemci bir LLM’den örnekleme yapar
+1. Sunucu istemciye `sampling/createMessage` isteği gönderir
+2. İstemci isteği inceler ve değiştirebilir
+3. İstemci bir LLM'den örnekleme yapar
 4. İstemci tamamlamayı gözden geçirir
-5. İstemci sonucu sunucuya geri gönderir
+5. İstemci sonucu sunucuya döner
 
-Bu insan-döngüsünde tasarım, kullanıcıların LLM’nin ne gördüğü ve ne ürettiği üzerinde kontrol sahibi olmasını sağlar.
+Bu insan döngüsünde tasarım, kullanıcıların LLM'nin ne gördüğü ve ne oluşturduğunu kontrol etmelerini sağlar.
 
 ## Örnekleme Parametreleri Genel Bakış
 
 MCP, istemci isteklerinde yapılandırılabilen aşağıdaki örnekleme parametrelerini tanımlar:
 
 | Parametre | Açıklama | Tipik Aralık |
-|-----------|----------|--------------|
+|-----------|-------------|---------------|
 | `temperature` | Token seçiminde rastgeleliği kontrol eder | 0.0 - 1.0 |
-| `maxTokens` | Üretilecek maksimum token sayısı | Tam sayı değeri |
-| `stopSequences` | Üretimi durduran özel diziler | String dizisi |
-| `metadata` | Sağlayıcıya özgü ek parametreler | JSON nesnesi |
+| `maxTokens` | Oluşturulacak maksimum token sayısı | Tam sayı değeri |
+| `stopSequences` | Karşılaşıldığında üretimi durduran özel diziler | Dize dizisi |
+| `metadata` | Sağlayıcıya özel ek parametreler | JSON nesnesi |
 
-Birçok LLM sağlayıcısı, `metadata` alanı aracılığıyla aşağıdaki ek parametreleri destekler:
+Birçok LLM sağlayıcısı, `metadata` alanı aracılığıyla aşağıdakileri içerebilecek ek parametreleri destekler:
 
 | Yaygın Uzantı Parametresi | Açıklama | Tipik Aralık |
-|---------------------------|----------|--------------|
-| `top_p` | Nucleus örnekleme - tokenları en yüksek kümülatif olasılığa göre sınırlar | 0.0 - 1.0 |
-| `top_k` | Token seçiminde en yüksek K seçeneği ile sınırlar | 1 - 100 |
-| `presence_penalty` | Metinde daha önce geçen tokenları cezalandırır | -2.0 - 2.0 |
-| `frequency_penalty` | Metindeki token tekrar sıklığını cezalandırır | -2.0 - 2.0 |
-| `seed` | Tekrarlanabilir sonuçlar için belirli rastgele tohum | Tam sayı değeri |
+|-----------|-------------|---------------|
+| `top_p` | Nükleus örneklemesi - tokenleri en yüksek kümülatif olasılığa sınırlar | 0.0 - 1.0 |
+| `top_k` | Token seçimini en iyi K seçenekle sınırlar | 1 - 100 |
+| `presence_penalty` | Tokenleri metinde şimdiye kadar bulunma durumuna göre cezalandırır | -2.0 - 2.0 |
+| `frequency_penalty` | Tokenleri metinde şimdiye kadar görülme sıklığına göre cezalandırır | -2.0 - 2.0 |
+| `seed` | Tekrarlanabilir sonuçlar için özel rastgele tohum | Tam sayı değeri |
 
 ## Örnek İstek Formatı
 
-İşte MCP’de istemciden örnekleme talep etme örneği:
+İşte MCP’de istemciden örnekleme isteği yapmaya bir örnek:
 
 ```json
 {
@@ -91,9 +95,9 @@ Birçok LLM sağlayıcısı, `metadata` alanı aracılığıyla aşağıdaki ek 
 }
 ```
 
-## İnsan Denetimi Kontrolleri
+## Döngüde İnsan Kontrolleri
 
-MCP örneklemesi insan gözetimi düşünülerek tasarlanmıştır:
+MCP örneklemesi insan denetimi gözetilerek tasarlanmıştır:
 
 - **İstemler için**:
   - İstemciler, kullanıcılara önerilen istemi göstermelidir
@@ -105,9 +109,9 @@ MCP örneklemesi insan gözetimi düşünülerek tasarlanmıştır:
   - İstemciler, kullanıcılara tamamlamayı göstermelidir
   - Kullanıcılar tamamlamaları değiştirebilmeli veya reddedebilmelidir
   - İstemciler tamamlamaları filtreleyebilir veya değiştirebilir
-  - Kullanıcılar hangi modelin kullanılacağını kontrol eder
+  - Hangi modelin kullanılacağını kullanıcılar kontrol eder
 
-Bu ilkeler ışığında, farklı programlama dillerinde örneklemenin nasıl uygulanacağına ve LLM sağlayıcıları arasında yaygın olarak desteklenen parametrelere odaklanacağız.
+Bu ilkeler ışığında, LLM sağlayıcıları arasında yaygın olarak desteklenen parametrelere odaklanarak farklı programlama dillerinde örnekleme nasıl uygulanır inceleyelim.
 
 ## Güvenlik Hususları
 
@@ -117,18 +121,18 @@ MCP’de örnekleme uygularken şu güvenlik en iyi uygulamalarını göz önün
 - İstemlerden ve tamamlamalardan hassas bilgileri temizleyin
 - Kötüye kullanımı önlemek için hız sınırları uygulayın
 - Olağandışı örnekleme kullanımını izleyin
-- Verileri güvenli protokollerle şifreleyin
-- Kullanıcı veri gizliliğini ilgili düzenlemelere uygun şekilde yönetin
-- Uyumluluk ve güvenlik için örnekleme isteklerini denetleyin
-- Maliyet riskini uygun sınırlarla kontrol edin
+- Veri iletimini güvenli protokollerle şifreleyin
+- İlgili düzenlemelere uygun olarak kullanıcı veri gizliliğini yönetin
+- Uygunluk ve güvenlik için örnekleme isteklerini denetleyin
+- Maliyet maruziyetini uygun sınırlarla kontrol edin
 - Örnekleme istekleri için zaman aşımı uygulayın
-- Model hatalarını uygun yedeklerle nazikçe yönetin
+- Model hatalarını uygun yedekleme yöntemleri ile zarifçe yönetin
 
-Örnekleme parametreleri, dil modellerinin davranışını ince ayarlayarak deterministik ve yaratıcı çıktılar arasında istenen dengeyi sağlar.
+Örnekleme parametreleri, deterministik ve yaratıcı çıktıların istenen dengesi için dil modeli davranışını ince ayar yapmaya olanak tanır.
 
-Şimdi bu parametrelerin farklı programlama dillerinde nasıl yapılandırıldığına bakalım.
+Bu parametrelerin farklı programlama dillerinde nasıl yapılandırıldığına bakalım.
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -166,47 +170,47 @@ public class SamplingExample
 
 Yukarıdaki kodda:
 
-- Belirli bir sunucu URL’si ile MCP istemcisi oluşturduk.
-- `temperature`, `top_p` ve `top_k` gibi örnekleme parametreleriyle bir istek yapılandırdık.
-- İsteği gönderdik ve oluşturulan metni yazdırdık.
-- Şunları kullandık:
-    - `allowedTools` ile modelin üretim sırasında kullanabileceği araçları belirttik. Bu örnekte, yaratıcı uygulama fikirleri üretmek için `ideaGenerator` ve `marketAnalyzer` araçlarını kullandık.
-    - `frequencyPenalty` ve `presencePenalty` ile çıktıdaki tekrarları ve çeşitliliği kontrol ettik.
-    - `temperature` ile çıktının rastgeleliğini kontrol ettik; daha yüksek değerler daha yaratıcı yanıtlar sağlar.
-    - `top_p` ile token seçimlerini en yüksek kümülatif olasılık kütlesine katkıda bulunanlarla sınırlandırarak metin kalitesini artırdık.
-    - `top_k` ile modeli en olası K token ile sınırlandırarak daha tutarlı yanıtlar elde ettik.
-    - `frequencyPenalty` ve `presencePenalty` ile tekrarları azaltıp çeşitliliği teşvik ettik.
+- Belirli bir sunucu URL'si ile MCP istemcisi oluşturuldu.
+- `temperature`, `top_p` ve `top_k` gibi örnekleme parametreleri ile istek yapılandırıldı.
+- İstek gönderildi ve oluşturulan metin yazdırıldı.
+- Şunlar kullanıldı:
+    - Modelin oluşturma sırasında kullanabileceği araçları belirtmek için `allowedTools`. Bu örnekte, yaratıcı uygulama fikirleri oluşturmak için `ideaGenerator` ve `marketAnalyzer` araçları izin verildi.
+    - Çıktıdaki tekrar ve çeşitliliği kontrol etmek için `frequencyPenalty` ve `presencePenalty`.
+    - Çıktının rastgeleliğini kontrol etmek için `temperature`. Daha yüksek değerler daha yaratıcı yanıtlar getirir.
+    - Üretilen metnin kalitesini artırmak için token seçimlerini en yüksek kümülatif olasılık kütlesiyle sınırlayan `top_p`.
+    - Daha tutarlı yanıtlar üretmeye yardımcı olan, modeli en olası K token ile sınırlandıran `top_k`.
+    - Üretilen metindeki tekrarları azaltmak ve çeşitliliği artırmak için `frequencyPenalty` ve `presencePenalty`.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// JavaScript Örneği: Sıcaklık ve Top-P örnekleme yapılandırması
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // MCP istemcisini başlat
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // Farklı örnekleme parametreleri ile isteği yapılandır
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // Daha yüksek sıcaklık = daha fazla rastgelelik/yaratıcılık
+    topP: 0.92,          // İlk %92 olasılık kütlesine sahip tokenları dikkate al
+    frequencyPenalty: 0.6, // Token dizilerinin tekrarını azalt
+    presencePenalty: 0.4   // Şimdiye kadar metinde geçen tokenları cezalandır
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // Daha düşük sıcaklık = daha belirleyici/gerçekçi
+    topP: 0.85,          // Biraz daha odaklanmış token seçimi
+    frequencyPenalty: 0.2, // Minimal tekrar cezası
+    presencePenalty: 0.1   // Minimal varlık cezası
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // Farklı örnekleme yapılandırmaları ile iki istek gönder
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -239,55 +243,55 @@ demonstrateSampling();
 
 Yukarıdaki kodda:
 
-- Sunucu URL’si ve API anahtarı ile MCP istemcisi başlattık.
-- Yaratıcı görevler ve gerçekçi görevler için iki farklı örnekleme parametre seti yapılandırdık.
-- Bu yapılandırmalarla istekler gönderdik ve modelin her görev için belirli araçları kullanmasına izin verdik.
-- Farklı örnekleme parametrelerinin etkilerini göstermek için oluşturulan yanıtları yazdırdık.
-- `allowedTools` ile modelin üretim sırasında kullanabileceği araçları belirttik. Yaratıcı görevlerde `ideaGenerator` ve `environmentalImpactTool`, gerçekçi görevlerde ise `factChecker` ve `dataAnalysisTool` araçlarını kullandık.
-- `temperature` ile çıktının rastgeleliğini kontrol ettik; daha yüksek değerler daha yaratıcı yanıtlar sağlar.
-- `top_p` ile token seçimlerini en yüksek kümülatif olasılık kütlesine katkıda bulunanlarla sınırlandırarak metin kalitesini artırdık.
-- `frequencyPenalty` ve `presencePenalty` ile tekrarları azaltıp çeşitliliği teşvik ettik.
-- `top_k` ile modeli en olası K token ile sınırlandırarak daha tutarlı yanıtlar elde ettik.
+- Sunucu URL'si ve API anahtarı ile MCP istemcisi başlatıldı.
+- Yaratıcı görevler ve gerçek bilgiler için iki farklı örnekleme parametre grubu yapılandırıldı.
+- Bu yapılandırmalarla istekler gönderildi ve modelin her görev için belirli araçları kullanmasına izin verildi.
+- Farklı örnekleme parametrelerinin etkisini göstermek için oluşturulan yanıtlar yazdırıldı.
+- Yaratıcı görevler için `ideaGenerator` ve `environmentalImpactTool`, gerçek bilgiler için `factChecker` ve `dataAnalysisTool` araçlarının kullanılmasına izin vermek için `allowedTools` kullanıldı.
+- Çıktının rastgeleliğini kontrol etmek için `temperature` kullanıldı, daha yüksek değerler daha yaratıcı yanıtlar sağlar.
+- Üretilen metnin kalitesini artırmak için token seçimlerini en yüksek kümülatif olasılık kütlesi ile sınırlamak için `top_p` kullanıldı.
+- Tekrarı azaltmak ve çeşitliliği teşvik etmek için `frequencyPenalty` ve `presencePenalty` kullanıldı.
+- Daha tutarlı yanıtlar üretmeye yardımcı olmak için modeli en olası K token ile sınırlamak üzere `top_k` kullanıldı.
 
 ---
 
 ## Deterministik Örnekleme
 
-Tutarlı çıktılar gerektiren uygulamalar için deterministik örnekleme tekrarlanabilir sonuçlar sağlar. Bunu, sabit bir rastgele tohum kullanarak ve sıcaklığı sıfıra ayarlayarak yapar.
+Tutarlı çıktı gerektiren uygulamalarda, deterministik örnekleme tekrarlanabilir sonuçlar sağlar. Bunu, sabit bir rastgele tohum kullanarak ve sıcaklığı sıfıra ayarlayarak yapar.
 
-Aşağıdaki örnek uygulamalar, farklı programlama dillerinde deterministik örneklemeyi göstermektedir.
+Aşağıdaki örnek uygulama, farklı programlama dillerinde deterministik örneklemeyi göstermek içindir.
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// Java Örneği: Sabit tohumla deterministik yanıtlar
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // Deterministik sonuçlar için sabit tohum kullanma
         
-        // First request with fixed seed
+        // Sabit tohum ile ilk istek
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // Maksimum deterministiklik için sıfır sıcaklık
             .build();
             
-        // Second request with the same seed
+        // Aynı tohumla ikinci istek
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // Her iki isteği de çalıştır
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // Aynı tohum ve sıcaklık=0 nedeniyle yanıtlar aynı olmalıdır
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -298,17 +302,17 @@ public class DeterministicSamplingExample {
 
 Yukarıdaki kodda:
 
-- Belirtilen sunucu URL’si ile MCP istemcisi oluşturduk.
-- Aynı istem için sabit tohum ve sıfır sıcaklıkla iki istek yapılandırdık.
-- Her iki isteği gönderdik ve oluşturulan metni yazdırdık.
-- Yanıtların deterministik örnekleme yapılandırması (aynı tohum ve sıcaklık) nedeniyle aynı olduğunu gösterdik.
-- `setSeed` ile sabit rastgele tohum belirledik, böylece model aynı girdi için her zaman aynı çıktıyı üretir.
-- `temperature` değerini sıfıra ayarlayarak maksimum deterministikliği sağladık; model her zaman en olası sonraki tokenı rastgelelik olmadan seçer.
+- Belirtilen sunucu URL'si ile MCP istemcisi oluşturuldu.
+- Aynı istemle, sabit tohum ve sıfır sıcaklık ile iki istek yapılandırıldı.
+- Her iki istek gönderildi ve oluşturulan metin yazdırıldı.
+- Yanıtların, örnekleme yapılandırmasının deterministik olması nedeniyle (aynı tohum ve sıcaklık) aynı olduğu gösterildi.
+- Aynı girdide her seferinde aynı çıktıyı üretmesi için `setSeed` ile sabit bir rastgele tohum belirlendi.
+- Maksimum deterministiklik için `temperature` sıfıra ayarlandı; model her zaman en olası sonraki tokeni rastgelelik olmadan seçecektir.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// JavaScript Örneği: Tohum kontrolü ile belirleyici yanıtlar
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -320,19 +324,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // Sabit tohum ile ilk istek
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // Maksimum belirleyicilik için sıfır sıcaklık
     });
     
-    // Second request with same seed and temperature
+    // Aynı tohum ve sıcaklık ile ikinci istek
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // Farklı tohum ama aynı sıcaklık ile üçüncü istek
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -354,26 +358,26 @@ deterministicSampling();
 
 Yukarıdaki kodda:
 
-- Sunucu URL’si ile MCP istemcisi başlattık.
-- Aynı istem için sabit tohum ve sıfır sıcaklıkla iki istek yapılandırdık.
-- Her iki isteği gönderdik ve oluşturulan metni yazdırdık.
-- Yanıtların deterministik örnekleme yapılandırması (aynı tohum ve sıcaklık) nedeniyle aynı olduğunu gösterdik.
-- `seed` ile sabit rastgele tohum belirledik, böylece model aynı girdi için her zaman aynı çıktıyı üretir.
-- `temperature` değerini sıfıra ayarlayarak maksimum deterministikliği sağladık; model her zaman en olası sonraki tokenı rastgelelik olmadan seçer.
-- Üçüncü istek için farklı bir tohum kullanarak, aynı istem ve sıcaklıkla tohum değişikliğinin farklı çıktılar ürettiğini gösterdik.
+- Sunucu URL'si ile MCP istemcisi başlatıldı.
+- Aynı istemle, sabit tohum ve sıfır sıcaklık ile iki istek yapılandırıldı.
+- Her iki istek gönderildi ve oluşturulan metin yazdırıldı.
+- Yanıtların, örnekleme yapılandırmasının deterministik olması nedeniyle (aynı tohum ve sıcaklık) aynı olduğu gösterildi.
+- Aynı girdide her seferinde aynı çıktıyı üretmek için `seed` ile sabit rastgele tohum belirlendi.
+- Maksimum deterministiklik için `temperature` sıfıra ayarlandı; model her zaman en olası sonraki tokeni rastgelelik olmadan seçecektir.
+- Üçüncü istek için farklı bir tohum kullanıldı; bu, aynı istem ve sıcaklıkla tohum değiştirme durumunda farklı çıktılar elde edildiğini göstermek içindir.
 
 ---
 
 ## Dinamik Örnekleme Yapılandırması
 
-Akıllı örnekleme, her isteğin bağlamı ve gereksinimlerine göre parametreleri uyarlamayı içerir. Bu, görev türü, kullanıcı tercihleri veya geçmiş performansa bağlı olarak `temperature`, `top_p` ve cezalar gibi parametrelerin dinamik olarak ayarlanması anlamına gelir.
+Akıllı örnekleme, bağlama ve her isteğin gereksinimlerine göre parametreleri ayarlar. Bu, görev türü, kullanıcı tercihleri veya geçmiş performansa bağlı olarak `temperature`, `top_p` ve cezalar gibi parametrelerin dinamik olarak ayarlanması anlamına gelir.
 
-Farklı programlama dillerinde dinamik örneklemenin nasıl uygulanacağına bakalım.
+Dinamik örneklemeyi farklı programlama dillerinde nasıl uygulayacağımıza bakalım.
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# Python Örneği: İstek bağlamına dayalı dinamik örnekleme
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -381,7 +385,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # Farklı görev türleri için örnekleme ön ayarlarını tanımlayın
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -389,22 +393,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # Temel ön ayarı seçin
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # Sağlanmışsa kullanıcı tercihlerine göre ayarlayın
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # Yaratıcılık tercihlerine göre sıcaklığı ölçeklendirin (1-10)
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # İstenen yanıt çeşitliliğine göre top_p değerini ayarlayın
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # Özel örnekleme parametreleriyle istek oluşturun ve gönderin
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -412,7 +416,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # Şeffaflık için örnekleme meta verileri ile yanıtı döndürün
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -422,30 +426,30 @@ class DynamicSamplingService:
 
 Yukarıdaki kodda:
 
-- Uyarlanabilir örneklemeyi yöneten `DynamicSamplingService` sınıfı oluşturduk.
-- Farklı görev türleri için (yaratıcı, gerçekçi, kod, analitik) örnekleme ön ayarları tanımladık.
-- Görev türüne göre temel örnekleme ön ayarını seçtik.
-- Kullanıcı tercihleri (yaratıcılık seviyesi, çeşitlilik) doğrultusunda örnekleme parametrelerini ayarladık.
-- Dinamik yapılandırılmış örnekleme parametreleriyle isteği gönderdik.
-- Üretilen metni, uygulanan örnekleme parametreleri ve görev türü ile birlikte şeffaflık için döndürdük.
-- `temperature` ile çıktının rastgeleliğini kontrol ettik; daha yüksek değerler daha yaratıcı yanıtlar sağlar.
-- `top_p` ile token seçimlerini en yüksek kümülatif olasılık kütlesine katkıda bulunanlarla sınırlandırarak metin kalitesini artırdık.
-- `frequency_penalty` ile tekrarları azaltıp çeşitliliği teşvik ettik.
-- `user_preferences` ile kullanıcı tanımlı yaratıcılık ve çeşitlilik seviyelerine göre örnekleme parametrelerinin özelleştirilmesine izin verdik.
-- `task_type` ile isteğin doğasına göre uygun örnekleme stratejisini belirledik, böylece daha hedefe yönelik yanıtlar sağladık.
-- `send_request` yöntemiyle yapılandırılmış örnekleme parametreleriyle istem göndererek modelin belirtilen gereksinimlere göre metin üretmesini sağladık.
-- `generated_text` ile model yanıtını alıp, örnekleme parametreleri ve görev türü ile birlikte döndürdük.
-- `min` ve `max` fonksiyonlarıyla kullanıcı tercihlerini geçerli aralıklarda tutarak geçersiz örnekleme yapılandırmalarını önledik.
+- Uyarlanabilir örneklemeyi yöneten `DynamicSamplingService` sınıfı oluşturuldu.
+- Farklı görev türleri (yaratıcı, gerçek, kod, analitik) için örnekleme ön ayarları tanımlandı.
+- Görev türüne bağlı olarak temel örnekleme ön ayarı seçildi.
+- Kullanıcı tercihleri (yaratıcılık seviyesi ve çeşitlilik gibi) bazında örnekleme parametreleri ayarlandı.
+- Dinamik yapılandırılmış örnekleme parametreleri ile istek gönderildi.
+- Şeffaflık için modelin oluşturduğu metin, uygulanan örnekleme parametreleri ve görev türü ile birlikte döndürüldü.
+- Üretilen metnin rastgeleliğini kontrol etmek için `temperature` kullanıldı, yüksek değerler daha yaratıcı yanıtlar getirir.
+- Token seçimlerini en yüksek kümülatif olasılık kütlesine katkıda bulunanlarla sınırlandırmak için `top_p` kullanıldı, bu da oluşturulan metnin kalitesini artırdı.
+- Tekrarı azaltmak ve çeşitliliği teşvik etmek için `frequency_penalty` kullanıldı.
+- Kullanıcı tanımlı yaratıcılık ve çeşitlilik seviyelerine bağlı örnekleme parametrelerinin özelleştirilmesine izin vermek için `user_preferences` kullanıldı.
+- İstek için uygun örnekleme stratejisini belirlemek adına `task_type` kullanıldı, bu sayede görev türüne göre daha özelleştirilmiş yanıtlar sağlandı.
+- Belirtilen gereksinimlere göre model metin oluşturması için yapılandırılmış parametrelerle istem gönderildi (`send_request`).
+- Modelin yanıtını almak için `generated_text` kullanıldı, ardından analiz veya gösterim için örnekleme parametreleri ve görev türü ile birlikte döndürüldü.
+- Geçersiz örnekleme yapılandırmalarını önlemek için kullanıcı tercihleri geçerli aralıkta sınırlandı (`min` ve `max` fonksiyonları).
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript Dynamic](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// JavaScript Örneği: Kullanıcı bağlamına dayalı dinamik örnekleme yapılandırması
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // Temel örnekleme profillerini tanımla
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -453,15 +457,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // Geçmiş performansı takip et
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // İstekte görev türünü algıla
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // Basit sezgisel algılama - ML sınıflandırmasıyla geliştirilebilir
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -482,57 +486,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // Açık bir tür algılanmazsa varsayılan olarak sohbet modu seç
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // Bağlam ve kullanıcı tercihlerine göre örnekleme parametrelerini hesapla
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // Görev türünü algıla
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // Temel profili al
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // Kullanıcı tercihlerine göre ayarla
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // 1-10 aralığından uygun sıcaklık aralığına ölçeklendir
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // Daha yüksek kesinlik, daha düşük topP (daha odaklı seçim) anlamına gelir
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // Daha yüksek tutarlılık, daha düşük cezalar demektir
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // Performans geçmişinden öğrenilen ayarları uygula
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // Basit uyarlamalı mantık - daha karmaşık algoritmalarla geliştirilebilir
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // Sadece yakın geçmişi dikkate al
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // Ortalama performans puanlarını hesapla
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // Performans eşik altındaysa parametreleri ayarla
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // Daha güvenli değerlere hafif ayar
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -540,32 +544,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // Gelecek ayarlamalar için performansı kaydet
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // Yanıt kalitesinin 0-1 arası derecelendirmesi
     });
     
-    // Limit history size
+    // Geçmiş boyutunu sınırla
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // Optimize edilmiş örnekleme parametrelerini al
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // Optimize edilmiş parametrelerle isteği gönder
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // Kullanıcı geri bildirim sağlarsa, gelecekteki optimizasyon için kaydet
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -578,7 +582,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// Örnek kullanım
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -587,13 +591,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // Özel kullanıcı tercihlerine sahip yaratıcı görev
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // Yüksek yaratıcılık (1-10)
+          consistency: 3  // Düşük tutarlılık (1-10)
         }
       }
     );
@@ -603,14 +607,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // Kod üretme görevi
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // Düşük yaratıcılık
+          precision: 8,   // Yüksek kesinlik
+          consistency: 9  // Yüksek tutarlılık
         }
       }
     );
@@ -630,25 +634,25 @@ demonstrateAdaptiveSampling();
 
 Yukarıdaki kodda:
 
-- Görev türü ve kullanıcı tercihlerine göre dinamik örneklemeyi yöneten `AdaptiveSamplingManager` sınıfı oluşturduk.
-- Farklı görev türleri için (yaratıcı, gerçekçi, kod, sohbet) örnekleme profilleri tanımladık.
-- Basit sezgisel yöntemlerle istemden görev türünü tespit eden bir yöntem uyguladık.
-- Tespit edilen görev türü ve kullanıcı tercihlerine göre örnekleme parametrelerini hesapladık.
-- Geçmiş performansa dayalı öğrenilmiş ayarlamaları uygulayarak örnekleme parametrelerini optimize ettik.
-- Gelecekteki ayarlamalar için performansı kaydettik, böylece sistem geçmiş etkileşimlerden öğrenebilsin.
-- Dinamik yapılandırılmış örnekleme parametreleriyle istekler gönderdik ve oluşturulan metni, uygulanan parametreler ve tespit edilen görev türü ile birlikte döndürdük.
-- Şunları kullandık:
-    - `userPreferences` ile kullanıcı tanımlı yaratıcılık, hassasiyet ve tutarlılık seviyelerine göre örnekleme parametrelerinin özelleştirilmesine izin verdik.
-    - `detectTaskType` ile isteme dayalı görev türünü belirleyerek daha hedefe yönelik yanıtlar sağladık.
-    - `recordPerformance` ile oluşturulan yanıtların performansını kaydederek sistemin zamanla uyum sağlamasını sağladık.
-    - `applyLearnedAdjustments` ile geçmiş performansa dayalı örnekleme parametrelerini değiştirerek modelin yüksek kaliteli yanıtlar üretme yeteneğini artırdık.
-    - `generateResponse` ile uyarlanabilir örnekleme ile yanıt üretme sürecini kapsülledik, böylece farklı istemler ve bağlamlarla kolayca çağrılabilir hale getirdik.
-    - `allowedTools` ile modelin üretim sırasında kullanabileceği araçları belirledik, böylece daha bağlama duyarlı yanıtlar sağladık.
-    - `feedbackScore` ile kullanıcıların oluşturulan yanıtın kalitesi hakkında geri bildirim vermesine olanak tanıdık, bu da model performansının zamanla iyileştirilmesini destekler.
-    - `performanceHistory` ile geçmiş etkileşimlerin kaydını tutarak sistemin önceki başarı ve başarısızlıklardan öğrenmesini sağladık.
-    - `getSamplingParameters` ile isteğin bağlamına göre örnekleme parametrelerini dinamik olarak ayarladık, böylece model davranışını daha esnek ve duyarlı hale getirdik.
-    - `detectTaskType` ile isteme dayalı görev sınıflandırması yaparak farklı istek türleri için uygun örnekleme stratejileri uyguladık.
-    - `samplingProfiles` ile farklı görev türleri için temel örnekleme yapılandırmaları tanımlayarak isteğin doğasına göre hızlı ayarlamalar yaptık.
+- Görev türü ve kullanıcı tercihlerine göre dinamik örnekleme yöneten `AdaptiveSamplingManager` sınıfı oluşturuldu.
+- Farklı görev türleri (yaratıcı, gerçek, kod, sohbet) için örnekleme profilleri tanımlandı.
+- Basit kestirimler kullanarak istemden görev türü algılayan yöntem uygulandı.
+- Algılanan görev türü ve kullanıcı tercihleri temel alınarak örnekleme parametreleri hesaplandı.
+- Örnekleme parametrelerini optimize etmek için geçmiş performansa dayalı öğrenilen ayarlamalar uygulandı.
+- Geçmiş etkileşimlerden öğrenmek üzere performans kayıtları tutuldu.
+- Dinamik olarak yapılandırılmış örnekleme parametreleri ile istekler gönderildi, oluşturulan metin ve ilgili parametreler ile algılanan görev türü geri döndürüldü.
+- Şunlar kullanıldı:
+    - `userPreferences`, kullanıcı tanımlı yaratıcılık, hassasiyet ve tutarlılık seviyelerine bağlı örnekleme parametrelerinin özelleştirilmesine izin verir.
+    - `detectTaskType`, istemden görev türünü belirlemek için kullanılır, böylece farklı istek türlerine uygun örnekleme stratejileri uygulanabilir.
+    - `recordPerformance`, oluşturulan yanıtların performansını kaydederek sistemin zamanla adapte olmasını sağlar.
+    - `applyLearnedAdjustments`, geçmiş performansa göre örnekleme parametrelerini değiştirir ve modelin yüksek kaliteli yanıtlar üretme yeteneğini artırır.
+    - `generateResponse`, farklı istemler ve bağlamlarla çağrılabilir uyarlanabilir örneklemeyle yanıt üretim sürecini kapsar.
+    - `allowedTools`, modelin oluşturma sırasında kullanabileceği araçları belirtir ve daha bağlam duyarlı yanıtlar sağlar.
+    - `feedbackScore`, kullanıcıların oluşturulan yanıtın kalitesi hakkında geri bildirim vermesine olanak tanır; bu, model performansının zamanla iyileştirilmesinde kullanılır.
+    - `performanceHistory`, geçmiş etkileşimlerin kaydını tutar ve sistemin önceki başarı ve başarısızlıklardan öğrenmesini sağlar.
+    - `getSamplingParameters`, isteğin bağlamına göre örnekleme parametrelerini dinamik olarak ayarlar, böylece daha esnek ve duyarlı model davranışı sağlar.
+    - `detectTaskType`, isteme göre görevi sınıflandırır ve farklı istek türleri için uygun örnekleme stratejilerinin uygulanmasına olanak tanır.
+    - `samplingProfiles`, farklı görev türleri için temel örnekleme yapılandırmaları tanımlar ve isteğin doğasına göre hızlı ayarlamalara izin verir.
 
 ---
 
@@ -656,5 +660,9 @@ Yukarıdaki kodda:
 
 - [5.7 Ölçeklendirme](../mcp-scaling/README.md)
 
-**Feragatname**:  
-Bu belge, AI çeviri servisi [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba gösterilse de, otomatik çevirilerin hatalar veya yanlışlıklar içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu oluşabilecek yanlış anlamalar veya yorum hatalarından sorumlu değiliz.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

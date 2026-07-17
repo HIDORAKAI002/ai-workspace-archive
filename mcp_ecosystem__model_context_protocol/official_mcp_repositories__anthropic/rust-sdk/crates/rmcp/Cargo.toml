@@ -426,3 +426,12 @@ required-features = [
   "transport-streamable-http-client-reqwest",
 ]
 path = "tests/test_streamable_http_connection_reuse.rs"
+
+[[test]]
+name = "test_streamable_http_disconnect_cancel"
+required-features = [
+  "server",
+  "transport-streamable-http-server",
+  "reqwest",
+]
+path = "tests/test_streamable_http_disconnect_cancel.rs"

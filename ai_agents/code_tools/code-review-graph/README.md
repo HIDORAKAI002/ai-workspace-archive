@@ -55,7 +55,7 @@ code-review-graph build            # parse your codebase
 One command sets up everything. `install` detects which AI coding tools you have, writes the correct MCP configuration for each one, installs platform-native hooks/skills where supported, and injects graph-aware instructions into your platform rules. It auto-detects whether you installed via `uvx` or `pip`/`pipx` and generates the right config. Restart your editor/tool after installing.
 
 <p align="center">
-  <img src="diagrams/diagram8_supported_platforms.png" alt="One Install, Every Platform: auto-detects Codex, Claude Code, Cursor, Windsurf, Zed, Continue, OpenCode, Antigravity, Gemini CLI, Qwen, Qoder, Kiro, and GitHub Copilot" width="85%" />
+  <img src="diagrams/diagram8_supported_platforms.png" alt="One Install, Every Platform: auto-detects Codex, Claude Code, CodeBuddy Code, Cursor, Windsurf, Zed, Continue, OpenCode, Antigravity, Gemini CLI, Qwen, Qoder, Kiro, and GitHub Copilot" width="85%" />
 </p>
 
 To target a specific platform:
@@ -68,6 +68,7 @@ code-review-graph install --platform gemini-cli   # configure only Gemini CLI
 code-review-graph install --platform kiro         # configure only Kiro
 code-review-graph install --platform copilot      # configure only GitHub Copilot (VS Code)
 code-review-graph install --platform copilot-cli  # configure only GitHub Copilot CLI
+code-review-graph install --platform codebuddy    # configure only CodeBuddy Code
 ```
 
 Requires Python 3.10+. For the best experience, install [uv](https://docs.astral.sh/uv/) (the MCP config will use `uvx` if available, otherwise falls back to the `code-review-graph` command directly).
@@ -125,6 +126,11 @@ Large monorepos are where token waste is most painful. The graph cuts through th
 
 Parser support covers functions, classes, imports, call sites, inheritance, and test detection across the current parser surface, using Tree-sitter where available and targeted fallbacks where needed. Current support includes Python, JavaScript/TypeScript/TSX, Go, Rust, Java, C/C++, C#, Ruby, Kotlin, Swift, PHP, Scala, Solidity, Dart, R, Perl, Lua/Luau, Objective-C, shell scripts, Elixir, Zig, PowerShell, Julia, ReScript, GDScript, Nix, Verilog/SystemVerilog, SQL, Vue/Svelte SFCs, Astro files parsed through the TypeScript parser, Jupyter/Databricks notebooks (`.ipynb`), and Perl XS files (`.xs`).
 
+PHP projects additionally get repository-bounded Composer PSR-4 resolution,
+Blade template references, and Laravel Route/Eloquent semantic edges when the
+source includes explicit framework imports, model inheritance, and receiver
+evidence.
+
 ### Add your own language (no fork needed)
 
 If your repo uses a language the parser does not cover yet, drop a `languages.toml` into `.code-review-graph/` mapping file extensions to any grammar bundled in `tree_sitter_language_pack`, plus the tree-sitter node types for functions, classes, imports, and calls:
@@ -158,7 +164,7 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: tirth8205/code-review-graph@v2.3.6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -242,7 +248,7 @@ The benchmark also runs an honest **co-change mode**: the predictor is seeded wi
 - **Impact "recall 1.0" is graph-derived and circular:** the historical ground truth comes from the same graph edges the predictor walks, so it is an upper bound by construction. The honest co-change mode (grade against files actually co-changed in the same commit) is measured alongside it; expect those numbers to be substantially lower.
 - **Small single-file changes:** Graph context can exceed naive file reads for trivial edits (see express results above). The overhead is the structural metadata that enables multi-file analysis.
 - **Search quality (MRR 0.35):** Keyword search finds the right result in the top-4 for most queries, but ranking needs improvement. Express queries return 0 hits due to module-pattern naming.
-- **Flow detection (33% recall):** Only reliably detects entry points in Python repos (fastapi, httpx) where framework patterns are recognized. JavaScript and Go flow detection needs work.
+- **Flow detection (33% recall):** Framework and conventional entry patterns are strongest for Python and PHP/Laravel. JavaScript and Go flow detection needs work.
 - **Precision vs recall trade-off:** Impact analysis is deliberately conservative. It flags files that *might* be affected, which means some false positives in large dependency graphs.
 
 ---
@@ -253,6 +259,7 @@ The benchmark also runs an honest **co-change mode**: the predictor is seeded wi
 |---------|---------|
 | **Incremental updates** | Re-parses only changed files. Subsequent updates complete in under 2 seconds. |
 | **Broad language + notebook support** | Python, JavaScript/TypeScript/TSX, Go, Rust, Java, C/C++, C#, Ruby, Kotlin, Swift, PHP, Scala, Solidity, Dart, R, Perl, Lua/Luau, Objective-C, shell scripts, Elixir, Zig, PowerShell, Julia, ReScript, GDScript, Nix, Verilog/SystemVerilog, SQL, Vue/Svelte SFCs, Astro files parsed through the TypeScript parser, Jupyter/Databricks (.ipynb), and Perl XS (.xs) |
+| **Framework-aware PHP parsing** | Repository-bounded Composer PSR-4 imports, Blade template references, and evidence-gated Laravel Route-to-controller and Eloquent relationship edges |
 | **Blast-radius analysis** | Shows which functions, classes, and files are likely affected by a change |
 | **Auto-update hooks** | Hooks and watch mode can update the graph on file saves and supported commit hooks |
 | **Semantic search** | Optional vector embeddings via sentence-transformers, Google Gemini, MiniMax, or any OpenAI-compatible endpoint (real OpenAI, Azure, new-api, LiteLLM, vLLM, LocalAI) |
@@ -475,13 +482,13 @@ Note: in git repos, only tracked files are indexed (`git ls-files`), so gitignor
 Optional dependency groups:
 
 ```bash
-pip install code-review-graph[embeddings]          # Local vector embeddings (sentence-transformers)
-pip install code-review-graph[google-embeddings]   # Google Gemini embeddings
-pip install code-review-graph[communities]         # Community detection (igraph)
-pip install code-review-graph[enrichment]          # Python call-resolution enrichment (Jedi)
-pip install code-review-graph[eval]                # Evaluation benchmarks (matplotlib)
-pip install code-review-graph[wiki]                # Wiki generation with LLM summaries (ollama)
-pip install code-review-graph[all]                 # All optional dependencies
+pip install "code-review-graph[embeddings]"          # Local vector embeddings (sentence-transformers)
+pip install "code-review-graph[google-embeddings]"   # Google Gemini embeddings
+pip install "code-review-graph[communities]"         # Community detection (igraph)
+pip install "code-review-graph[enrichment]"          # Python call-resolution enrichment (Jedi)
+pip install "code-review-graph[eval]"                # Evaluation benchmarks (matplotlib)
+pip install "code-review-graph[wiki]"                # Wiki generation with LLM summaries (ollama)
+pip install "code-review-graph[all]"                 # All optional dependencies
 ```
 
 ### Environment Variables
@@ -646,5 +653,5 @@ MIT. See [LICENSE](LICENSE).
 <br>
 <a href="https://code-review-graph.com">code-review-graph.com</a><br><br>
 <code>pip install code-review-graph && code-review-graph install</code><br>
-<sub>Works with Codex, Claude Code, Cursor, Windsurf, Zed, Continue, OpenCode, Antigravity, Gemini CLI, Qwen, Qoder, Kiro, GitHub Copilot, and GitHub Copilot CLI</sub>
+<sub>Works with Codex, Claude Code, CodeBuddy Code, Cursor, Windsurf, Zed, Continue, OpenCode, Antigravity, Gemini CLI, Qwen, Qoder, Kiro, GitHub Copilot, and GitHub Copilot CLI</sub>
 </p>

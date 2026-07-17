@@ -13,6 +13,7 @@ export { JailbreakDemo } from "./elements/security";
 export { EmbeddingsDemo, LLMCapabilitiesDemo } from "./elements/ai-demos";
 export { TextToImageDemo, TextToVideoDemo } from "./elements/media-demos";
 export { SummarizationDemo, ContextPlayground } from "./elements/context-demos";
+export { LoopEngineeringLab } from "./elements/loop-engineering-lab";
 export { BookPartsNav } from "./elements/navigation";
 export { TokenPredictionDemo } from "./elements/token-prediction";
 export { DiffView, VersionDiff } from "./elements/diff-view";

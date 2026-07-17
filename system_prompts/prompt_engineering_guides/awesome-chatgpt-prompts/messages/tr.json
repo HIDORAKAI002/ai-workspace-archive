@@ -1251,7 +1251,7 @@
     "interactiveBanner": {
       "badge": "İnteraktif Versiyon Mevcut",
       "title": "Daha Detaylı ve İnteraktif Bir Deneyim mi İstiyorsunuz?",
-      "description": "25 bölüm, uygulamalı alıştırmalar ve gerçek dünya örnekleri içeren kapsamlı interaktif rehberimizle AI prompt yazımında ustalaşın.",
+      "description": "26 bölüm, uygulamalı alıştırmalar ve gerçek dünya örnekleri içeren kapsamlı interaktif rehberimizle AI prompt yazımında ustalaşın.",
       "cta": "İnteraktif Kitabı Oku"
     },
     "generalTips": {
@@ -1743,7 +1743,7 @@
       "part4": "Bölüm 4: En İyi Uygulamalar",
       "part5": "Bölüm 5: Kullanım Senaryoları",
       "part6": "Bölüm 6: Sonuç",
-      "chapters": "25 İnteraktif Bölüm"
+      "chapters": "26 İnteraktif Bölüm"
     },
     "startReading": "Okumaya Başla",
     "skipToChapter1": "1. Bölüme Atla",
@@ -1800,6 +1800,7 @@
       "12-handling-edge-cases": "Uç Durumları Ele Alma",
       "13-multimodal-prompting": "Çok Modlu Prompting",
       "14-context-engineering": "Bağlam Mühendisliği",
+      "14a-loop-engineering": "Döngü Mühendisliği",
       "25-agents-and-skills": "Ajanlar ve Yetenekler",
       "15-common-pitfalls": "Yaygın Tuzaklar",
       "16-ethics-responsible-use": "Etik ve Sorumlu Kullanım",
@@ -1830,6 +1831,7 @@
       "12-handling-edge-cases": "Beklenmedik girdilerle başa çıkma",
       "13-multimodal-prompting": "Görüntü, ses ve video ile çalışma",
       "14-context-engineering": "RAG, embedding'ler, fonksiyon çağırma ve MCP",
+      "14a-loop-engineering": "Harekete geçen, doğrulayan, uyum sağlayan ve ne zaman duracağını bilen geri bildirim döngüleri tasarlama",
       "25-agents-and-skills": "Yeniden kullanılabilir yetenek paketleriyle AI ajanları oluşturma",
       "15-common-pitfalls": "Kaçınılması gereken hatalar",
       "16-ethics-responsible-use": "AI'da etik değerlendirmeler",

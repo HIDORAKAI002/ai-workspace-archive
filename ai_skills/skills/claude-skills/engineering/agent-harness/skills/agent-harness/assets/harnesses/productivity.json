@@ -1,7 +1,7 @@
 {
   "schema": "agent-harness/manifest.v1",
   "domain": "productivity",
-  "skill_count": 7,
+  "skill_count": 11,
   "loop_defaults": {
     "max_attempts_per_task": 3,
     "max_loop_iterations": 12,
@@ -155,6 +155,76 @@
       ]
     },
     {
+      "name": "deep-work",
+      "path": "productivity/deep-work/skills/deep-work",
+      "description": "Use when someone wants to plan a deep work day, time-block their calendar or task list, budget or cut shallow work, protect focus hours, track deep-work sessions and streaks, run an end-of-day shutdown ritual, or says \"/deep-work\" or \"/time-block\". Classifies tasks deep vs shallow, builds an energy-first time-blocked schedule that refuses deep demand past the 4-hour ceiling, batches shallow work into at most two windows, and logs focus sessions against a weekly target.",
+      "tools": [
+        {
+          "script": "productivity/deep-work/skills/deep-work/scripts/focus_session_logger.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/deep-work/skills/deep-work/scripts/focus_session_logger.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/deep-work/skills/deep-work/scripts/focus_session_logger.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        },
+        {
+          "script": "productivity/deep-work/skills/deep-work/scripts/shallow_work_auditor.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/deep-work/skills/deep-work/scripts/shallow_work_auditor.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/deep-work/skills/deep-work/scripts/shallow_work_auditor.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        },
+        {
+          "script": "productivity/deep-work/skills/deep-work/scripts/time_block_planner.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/deep-work/skills/deep-work/scripts/time_block_planner.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/deep-work/skills/deep-work/scripts/time_block_planner.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        }
+      ],
+      "agentic_signals": {
+        "goal_intake": true,
+        "refusal_gate": true,
+        "verification": true,
+        "loop_discipline": true,
+        "close_out": false
+      },
+      "references": [
+        "deep_work_canon.md",
+        "shallow_work_budget.md",
+        "time_blocking_method.md"
+      ]
+    },
+    {
       "name": "inbox-setup",
       "path": "productivity/email/skills/inbox-setup",
       "description": "One-time setup skill that builds a personalized inbox triage knowledge base via interactive interview. Interviews the user about their email patterns, business context, reply style, and priorities using grill-me discipline (one question at a time, forcing format where possible, dependency-ordered, each question explains why I'm asking), then generates the knowledge base files that power the companion 'inbox-triage' skill. Run this once before using inbox-triage for the first time. Re-run when business, pricing, or priorities change significantly. Triggers: 'set up my inbox', 'configure \u2026",
@@ -282,6 +352,40 @@
         "drafts_only_safety.md",
         "kb_file_contract.md",
         "triage_decision_framework.md"
+      ]
+    },
+    {
+      "name": "fable-goal",
+      "path": "productivity/fable-goal/skills/fable-goal",
+      "description": "Convert a rambling description of a desired outcome into one polished, autonomous /goal prompt ready to paste into a fresh session. Use when the user says \"/fable-goal\", \"turn this into a goal prompt\", \"write me a fable prompt\", \"write the prompt that builds X\", or rambles about something they want made and asks for the prompt that makes it happen. The output is a single copy-paste prompt, never the build itself. Do NOT use when the user wants the thing built right now in this session \u2014 only when they want the PROMPT that will make it happen in a fresh session.",
+      "tools": [
+        {
+          "script": "productivity/fable-goal/skills/fable-goal/scripts/goal_prompt_self_check.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/fable-goal/skills/fable-goal/scripts/goal_prompt_self_check.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/fable-goal/skills/fable-goal/scripts/goal_prompt_self_check.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        }
+      ],
+      "agentic_signals": {
+        "goal_intake": false,
+        "refusal_gate": false,
+        "verification": true,
+        "loop_discipline": true,
+        "close_out": true
+      },
+      "references": [
+        "goal_prompt_patterns.md"
       ]
     },
     {
@@ -425,6 +529,76 @@
       ]
     },
     {
+      "name": "meetings",
+      "path": "productivity/meetings/skills/meetings",
+      "description": "Use when someone wants to decide whether a meeting is worth calling, price a meeting in dollars, build a timeboxed agenda with desired outcomes, or turn messy meeting notes into owned action items \u2014 or says \"should this be a meeting\", \"/cs:meeting-prep\", or \"/cs:meeting-actions\". Runs a cost gate (ASYNC / NOT-READY / MEET), builds a decision-first agenda, and extracts an owner + due-date checklist that flags every orphan.",
+      "tools": [
+        {
+          "script": "productivity/meetings/skills/meetings/scripts/action_item_extractor.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/meetings/skills/meetings/scripts/action_item_extractor.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/meetings/skills/meetings/scripts/action_item_extractor.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        },
+        {
+          "script": "productivity/meetings/skills/meetings/scripts/agenda_builder.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/meetings/skills/meetings/scripts/agenda_builder.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/meetings/skills/meetings/scripts/agenda_builder.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        },
+        {
+          "script": "productivity/meetings/skills/meetings/scripts/meeting_cost_calculator.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/meetings/skills/meetings/scripts/meeting_cost_calculator.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/meetings/skills/meetings/scripts/meeting_cost_calculator.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        }
+      ],
+      "agentic_signals": {
+        "goal_intake": true,
+        "refusal_gate": true,
+        "verification": true,
+        "loop_discipline": true,
+        "close_out": true
+      },
+      "references": [
+        "action_item_discipline.md",
+        "agenda_discipline.md",
+        "meeting_cost_canon.md"
+      ]
+    },
+    {
       "name": "reflect",
       "path": "productivity/reflect/skills/reflect",
       "description": "Mid-conversation reflection skill that pauses execution and zooms out from detail-mode to honestly reassess direction, assumptions, and bias. Use when the user says 'reflect', 'take a step back', 'step back', 'zoom out', 'are we missing something', 'bigger picture', 'sanity check this', 'are we on track', 'are we overthinking this', 'forest for the trees', or any variation signaling intent to break out of detail-mode and reassess. Also trigger when the conversation has gone deep on implementation details without strategic check-in, or when the user shows signs of being stuck \u2014 that's often \u2026",
@@ -562,6 +736,76 @@
         "adversarial_panel_canon.md",
         "cheapest_test_canon.md",
         "verdict_synthesis_method.md"
+      ]
+    },
+    {
+      "name": "weekly-review",
+      "path": "productivity/weekly-review/skills/weekly-review",
+      "description": "Use when someone wants to run a weekly review, close open loops, audit stalled projects and commitments, get their system back to trusted, restart a lapsed review habit, or says \"/cs:weekly-review\". Walks David Allen's three-phase loop \u2014 GET CLEAR, GET CURRENT, GET CREATIVE \u2014 with deterministic scripts that inventory open loops, gate the checklist with named gaps, and score commitment health 0-100.",
+      "tools": [
+        {
+          "script": "productivity/weekly-review/skills/weekly-review/scripts/commitment_auditor.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/weekly-review/skills/weekly-review/scripts/commitment_auditor.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/weekly-review/skills/weekly-review/scripts/commitment_auditor.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        },
+        {
+          "script": "productivity/weekly-review/skills/weekly-review/scripts/open_loop_scanner.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/weekly-review/skills/weekly-review/scripts/open_loop_scanner.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/weekly-review/skills/weekly-review/scripts/open_loop_scanner.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        },
+        {
+          "script": "productivity/weekly-review/skills/weekly-review/scripts/weekly_review_gate.py",
+          "wired": true,
+          "supports_sample": true,
+          "verification": [
+            {
+              "cmd": "python3 productivity/weekly-review/skills/weekly-review/scripts/weekly_review_gate.py --help",
+              "expect_exit": 0,
+              "kind": "smoke"
+            },
+            {
+              "cmd": "python3 productivity/weekly-review/skills/weekly-review/scripts/weekly_review_gate.py --sample",
+              "expect_exit": 0,
+              "kind": "sample"
+            }
+          ]
+        }
+      ],
+      "agentic_signals": {
+        "goal_intake": true,
+        "refusal_gate": true,
+        "verification": true,
+        "loop_discipline": true,
+        "close_out": true
+      },
+      "references": [
+        "gtd_weekly_review_canon.md",
+        "open_loop_psychology.md",
+        "review_cadence_design.md"
       ]
     }
   ]

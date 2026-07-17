@@ -1,46 +1,50 @@
+> [已弃用：2026-07-28 发布候选版本](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # MCP 根上下文
 
-根上下文是模型上下文协议中的一个基本概念，提供了一个持久层，用于在多个请求和会话之间维护对话历史和共享状态。
+> **弃用通知：** `2026-07-28` MCP 规范发布候选版本将根标记为弃用，建议使用工具参数、资源 URI 或服务器配置来替代。根在 `2025-11-25` 版本以及任何正式弃用后一年的时间内仍然可用，因此本课中内容依旧有效——但新的服务器设计应评估替代方案。详情见 [MCP 的变化：2026-07-28 发布候选版本](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
+
+根上下文是模型上下文协议中的一个基本概念，提供了一个持久的层，用于维护跨多次请求和会话的对话历史和共享状态。
 
 ## 介绍
 
-在本课中，我们将探讨如何在 MCP 中创建、管理和使用根上下文。
+在本课中，我们将探索如何在 MCP 中创建、管理和使用根上下文。
 
 ## 学习目标
 
-完成本课后，您将能够：
+通过本课，你将能够：
 
 - 理解根上下文的目的和结构
 - 使用 MCP 客户端库创建和管理根上下文
-- 在 .NET、Java、JavaScript 和 Python 应用中实现根上下文
+- 在 .NET、Java、JavaScript 和 Python 应用程序中实现根上下文
 - 利用根上下文进行多轮对话和状态管理
-- 实施根上下文管理的最佳实践
+- 实践根上下文管理的最佳做法
 
-## 理解根上下文
+## 了解根上下文
 
 根上下文作为容器，保存一系列相关交互的历史和状态。它们支持：
 
-- **对话持久性**：保持连贯的多轮对话
-- **记忆管理**：跨交互存储和检索信息
-- **状态管理**：跟踪复杂工作流的进展
-- **上下文共享**：允许多个客户端访问相同的对话状态
+- <strong>对话持久化</strong>：维持连贯的多轮对话
+- <strong>记忆管理</strong>：跨交互存储和检索信息
+- <strong>状态管理</strong>：跟踪复杂工作流的进展
+- <strong>上下文共享</strong>：允许多个客户端访问相同的对话状态
 
-在 MCP 中，根上下文具有以下关键特性：
+在 MCP 中，根上下文具有以下关键特征：
 
 - 每个根上下文都有唯一标识符。
-- 可以包含对话历史、用户偏好及其他元数据。
+- 可以包含对话历史、用户偏好和其他元数据。
 - 可以根据需要创建、访问和归档。
-- 支持细粒度的访问控制和权限管理。
+- 支持细粒度访问控制和权限管理。
 
 ## 根上下文生命周期
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[创建根上下文] --> B[使用元数据初始化]
+    B --> C[发送带上下文ID的请求]
+    C --> D[用结果更新上下文]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[完成时归档上下文]
 ```
 
 ## 使用根上下文
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-在上述代码中，我们：
+在上面的代码中我们：
 
-1. 为客户支持会话创建了一个根上下文。
-2. 在该上下文中发送了多条消息，使模型能够维护状态。
-3. 根据对话更新了相关元数据。
-4. 检索了上下文信息以了解对话历史。
-5. 在对话完成后归档了该上下文。
+1. 创建了一个用于客户支持会话的根上下文。
+1. 在该上下文中发送了多条消息，使模型能够维护状态。
+1. 根据对话更新了相关元数据。
+1. 检索上下文信息以了解对话历史。
+1. 对话完成后归档了该上下文。
 
-## 示例：金融分析的根上下文实现
+## 示例：用于财务分析的根上下文实现
 
-在此示例中，我们将为金融分析会话创建根上下文，演示如何在多次交互中维护状态。
+本示例中，我们将创建一个用于财务分析会话的根上下文，演示如何跨多次交互维护状态。
 
 ### Java 实现
 
 ```java
-// Java Example: Root Context Implementation
+// Java 示例：根上下文实现
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // 创建上下文元数据
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. 创建一个新的根上下文
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. 第一次交互
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. 使用从响应中获得的重要信息更新上下文
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // 第二次交互 - 使用相同的上下文
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. 生成分析会话摘要
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // 将摘要存储在上下文元数据中
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // 获取更新后的上下文信息
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. 完成后归档上下文
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-在上述代码中，我们：
+在上面的代码中我们：
 
-1. 为金融分析会话创建了一个根上下文。
+1. 创建了一个用于财务分析会话的根上下文。
 2. 在该上下文中发送了多条消息，使模型能够维护状态。
 3. 根据对话更新了相关元数据。
-4. 生成了分析会话的摘要并存储在上下文元数据中。
-5. 在对话完成后归档了该上下文。
+4. 生成了分析会话摘要并存储在上下文元数据中。
+5. 会话完成后归档了该上下文。
 
 ## 示例：根上下文管理
 
-有效管理根上下文对于维护对话历史和状态至关重要。以下是实现根上下文管理的示例。
+有效管理根上下文对于维护对话历史和状态至关重要。以下是根上下文管理的实现示例。
 
 ### JavaScript 实现
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScript 示例：管理 MCP 根上下文
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // 初始化 MCP 客户端
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // 初始化上下文管理器
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // 使用指定的上下文发送消息
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // 可选地存储对话中的重要见解
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // 提取潜在见解（在真实应用中，这会更复杂）
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // 识别潜在见解的简单启发式方法
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // 将见解存储在上下文元数据中
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // 非关键错误，只需记录警告
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // 让模型生成迄今为止对话的摘要
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // 将摘要存储在上下文元数据中
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // 归档前生成最终摘要
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // 归档上下文
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// 示例用法
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. 为产品支持对话创建新上下文
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. 对话中的第一条消息
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // 同一上下文中的后续消息
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. 获取上下文信息
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. 生成并显示对话摘要
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. 完成后归档上下文
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. 优雅地处理任何错误
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-在上述代码中，我们：
+在上面的代码中我们：
 
-1. 使用函数 `createConversationContext` 创建了一个关于数据库性能问题的产品支持对话根上下文。
+1. 使用函数 `createConversationContext` 创建了一个产品支持对话的根上下文。在此案例中，上下文涉及数据库性能问题。
 
-2. 使用函数 `sendMessage` 在该上下文中发送了多条消息，使模型能够维护状态。发送的消息涉及查询性能缓慢和索引配置。
+1. 使用函数 `sendMessage` 在该上下文中发送了关于慢查询性能和索引配置的多条消息，使模型能够维护状态。
 
-3. 根据对话更新了相关元数据。
+1. 根据对话内容更新了相关元数据。
 
-4. 使用函数 `generateContextSummary` 生成了对话摘要并存储在上下文元数据中。
+1. 使用函数 `generateContextSummary` 生成对话摘要并存储在上下文元数据中。
 
-5. 使用函数 `archiveContext` 在对话完成后归档了该上下文。
+1. 会话完成后使用函数 `archiveContext` 归档了上下文。
 
-6. 优雅地处理了错误，确保系统的健壮性。
+1. 进行了错误处理以确保系统健壮性。
 
-## 多轮辅助的根上下文
+## 多轮协助的根上下文
 
-在此示例中，我们将为多轮辅助会话创建根上下文，演示如何在多次交互中维护状态。
+本示例中，我们将创建一个多轮协助会话的根上下文，演示如何跨多次交互维护状态。
 
 ### Python 实现
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python 示例：多轮辅助的根上下文
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # 如果提供，添加用户信息
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # 创建根上下文
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # 使用上下文 ID 创建选项
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # 如果指定，添加工具
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # 在上下文中发送提示
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # 用对话进度更新上下文元数据
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # 首先生成总结提示
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # 将总结存储在元数据中
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # 归档上下文
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# 示例用法
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. 创建会话
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. 第一次交互
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # 在同一上下文中的第二次交互
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. 获取历史记录
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. 结束会话
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-在上述代码中，我们：
+在上面的代码中我们：
 
-1. 使用函数 `create_session` 为技术支持会话创建了根上下文。上下文包含用户信息，如姓名和技术水平。
+1. 使用函数 `create_session` 创建了一个技术支持会话的根上下文。上下文包含用户信息如姓名和技术水平。
 
-2. 使用函数 `send_message` 在该上下文中发送了多条消息，使模型能够维护状态。发送的消息涉及自动扩展功能的问题。
+1. 使用函数 `send_message` 在该上下文中发送了多条关于自动扩缩容功能问题的消息，使模型能够维护状态。
 
-3. 使用函数 `get_conversation_history` 检索了对话历史，获取上下文信息和消息。
+1. 使用函数 `get_conversation_history` 检索对话历史，提供上下文信息和消息。
 
-4. 使用函数 `end_session` 结束会话，归档上下文并生成摘要。摘要捕捉了对话的关键点。
+1. 使用函数 `end_session` 结束会话，通过归档上下文并生成摘要，摘要捕捉了对话的关键点。
 
 ## 根上下文最佳实践
 
-以下是有效管理根上下文的一些最佳实践：
+以下是一些有效管理根上下文的最佳实践：
 
-- **创建专注的上下文**：针对不同的对话目的或领域创建独立的根上下文，以保持清晰。
+- <strong>创建专注的上下文</strong>：为不同的对话目的或领域创建独立的根上下文，以保持清晰。
 
-- **设置过期策略**：实施归档或删除旧上下文的策略，以管理存储并遵守数据保留政策。
+- <strong>设置过期策略</strong>：实施策略归档或删除旧上下文，以管理存储并遵守数据保留政策。
 
-- **存储相关元数据**：利用上下文元数据存储对话中可能后续有用的重要信息。
+- <strong>存储相关元数据</strong>：利用上下文元数据保存可能后续有用的重要对话信息。
 
-- **一致使用上下文 ID**：创建上下文后，所有相关请求都应一致使用该 ID，以保持连续性。
+- **一致使用上下文 ID**：上下文创建后，对所有相关请求保持一致使用其 ID 以维护连续性。
 
-- **生成摘要**：当上下文变大时，考虑生成摘要以捕捉关键信息，同时控制上下文大小。
+- <strong>生成摘要</strong>：当上下文规模变大时，考虑生成摘要以捕获关键信息，同时管理上下文大小。
 
-- **实施访问控制**：对于多用户系统，实施适当的访问控制，确保对话上下文的隐私和安全。
+- <strong>实施访问控制</strong>：对于多用户系统，实施适当的访问控制确保对话上下文的隐私和安全。
 
-- **处理上下文限制**：注意上下文大小限制，并制定策略应对超长对话。
+- <strong>处理上下文限制</strong>：意识到上下文大小限制，并实施策略处理极长的对话。
 
-- **完成时归档**：对话完成后归档上下文，释放资源，同时保留对话历史。
+- <strong>完成时归档</strong>：当对话完成时归档上下文，释放资源同时保留对话历史。
 
 ## 接下来
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 路由](../mcp-routing/README.md)
 
-**免责声明**：  
-本文件使用 AI 翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 进行翻译。虽然我们力求准确，但请注意，自动翻译可能包含错误或不准确之处。原始文件的母语版本应被视为权威来源。对于重要信息，建议采用专业人工翻译。对于因使用本翻译而产生的任何误解或误释，我们概不负责。
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免责声明**：
+本文件由 AI 翻译服务 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻译完成。尽管我们力求准确，但请注意，自动翻译可能包含错误或不准确之处。原始语言版文件应视为权威来源。对于重要信息，建议使用专业人工翻译。我们对因使用本翻译而产生的任何误解或误释不承担责任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

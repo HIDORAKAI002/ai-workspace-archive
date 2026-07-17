@@ -1251,7 +1251,7 @@
     "interactiveBanner": {
       "badge": "Interactive Version Available",
       "title": "Want a More Detailed & Interactive Experience?",
-      "description": "Dive deeper with our comprehensive interactive guide featuring 25 chapters, hands-on exercises, and real-world examples to master AI prompting.",
+      "description": "Dive deeper with our comprehensive interactive guide featuring 26 chapters, hands-on exercises, and real-world examples to master AI prompting.",
       "cta": "Read the Interactive Book"
     },
     "generalTips": {
@@ -1743,7 +1743,7 @@
       "part4": "Part 4: Best Practices",
       "part5": "Part 5: Use Cases",
       "part6": "Part 6: Conclusion",
-      "chapters": "25 Interactive Chapters"
+      "chapters": "26 Interactive Chapters"
     },
     "startReading": "Start Reading",
     "skipToChapter1": "Skip to Chapter 1",
@@ -1800,6 +1800,7 @@
       "12-handling-edge-cases": "Handling Edge Cases",
       "13-multimodal-prompting": "Multimodal Prompting",
       "14-context-engineering": "Context Engineering",
+      "14a-loop-engineering": "Loop Engineering",
       "25-agents-and-skills": "Agents & Skills",
       "15-common-pitfalls": "Common Pitfalls",
       "16-ethics-responsible-use": "Ethics & Responsible Use",
@@ -1830,6 +1831,7 @@
       "12-handling-edge-cases": "Dealing with unexpected inputs",
       "13-multimodal-prompting": "Working with images, audio, and video",
       "14-context-engineering": "RAG, embeddings, function calling, and MCP",
+      "14a-loop-engineering": "Designing feedback cycles that act, verify, adapt, and know when to stop",
       "25-agents-and-skills": "Building AI agents with reusable skill packages",
       "15-common-pitfalls": "Mistakes to avoid",
       "16-ethics-responsible-use": "Ethical considerations in AI",

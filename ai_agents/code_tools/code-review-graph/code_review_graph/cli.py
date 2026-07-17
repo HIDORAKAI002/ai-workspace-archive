@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 _PLATFORM_CHOICES = [
     "codex", "claude", "claude-code", "cursor", "windsurf", "zed",
     "continue", "opencode", "antigravity", "gemini-cli", "qwen", "kiro", "qoder",
-    "copilot", "copilot-cli", "all",
+    "copilot", "copilot-cli", "codebuddy", "all",
 ]
 
 
@@ -243,6 +243,8 @@ def _handle_init(args: argparse.Namespace) -> None:
         generate_skills,
         inject_claude_md,
         inject_platform_instructions,
+        install_codebuddy_hooks,
+        install_codebuddy_skills,
         install_codex_hooks,
         install_cursor_hooks,
         install_gemini_cli_hooks,
@@ -263,6 +265,11 @@ def _handle_init(args: argparse.Namespace) -> None:
         if target in ("gemini-cli", "all"):
             gemini_skills_dir = install_gemini_cli_skills(repo_root)
             print(f"Installed Gemini CLI skills in {gemini_skills_dir}")
+
+        # CodeBuddy discovers project skills under .codebuddy/skills/.
+        if target in ("codebuddy", "all"):
+            codebuddy_skills_dir = install_codebuddy_skills(repo_root)
+            print(f"Installed CodeBuddy skills in {codebuddy_skills_dir}")
 
     # Confirm before writing instruction files (#173). --yes skips the
     # prompt; --no-instructions skips the whole block.
@@ -290,6 +297,12 @@ def _handle_init(args: argparse.Namespace) -> None:
         qoder_skills_dir = install_qoder_skills(repo_root)
         if qoder_skills_dir:
             print(f"Installed Qoder skills to {qoder_skills_dir}")
+    if not skip_hooks and target in ("codebuddy", "all"):
+        try:
+            codebuddy_settings = install_codebuddy_hooks(repo_root)
+            print(f"Installed CodeBuddy hooks in {codebuddy_settings}")
+        except Exception as exc:
+            logger.warning("Could not install CodeBuddy hooks: %s", exc)
     if not skip_hooks and target in ("codex", "all"):
         hooks_path = install_codex_hooks(repo_root)
         print(f"Installed Codex hooks in {hooks_path}")
@@ -635,6 +648,13 @@ def main() -> None:
              "full JSON. Read-only against the existing graph.",
     )
     detect_cmd.add_argument("--repo", default=None, help="Repository root (auto-detected)")
+    detect_cmd.add_argument(
+        "--churn",
+        action="store_true",
+        help="Add an opt-in change-frequency term to risk scores. Counts "
+             "commits per file over 90 days by default; set "
+             "CRG_CHURN_WINDOW_DAYS to adjust.",
+    )
     detect_cmd.add_argument(
         "--verify",
         action="store_true",
@@ -1208,6 +1228,7 @@ def main() -> None:
                     changed,
                     repo_root=str(repo_root),
                     base=base,
+                    include_churn=getattr(args, "churn", False),
                 )
                 original_tokens = estimate_file_tokens(repo_root, changed)
                 attach_context_savings(

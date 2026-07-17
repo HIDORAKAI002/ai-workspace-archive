@@ -855,8 +855,11 @@ function moveTooltip(ev) {
   tooltip.style.left = x + "px"; tooltip.style.top = y + "px";
 }
 function hideTooltip() { tooltip.classList.remove("visible"); }
-var W = innerWidth, H = innerHeight;
-var svg = d3.select("svg").attr("viewBox", [0, 0, W, H]);
+var svgEl = document.getElementById("graph-svg");
+function getW() { return svgEl.clientWidth || window.innerWidth || 800; }
+function getH() { return svgEl.clientHeight || window.innerHeight || 600; }
+var W = getW(), H = getH();
+var svg = d3.select("#graph-svg").attr("viewBox", [0, 0, W, H]);
 var gRoot = svg.append("g");
 var currentTransform = d3.zoomIdentity;
 var zoomBehavior = d3.zoom()
@@ -1071,13 +1074,27 @@ if (N > 2000) {
   nodes.forEach(function(n) { if (n.kind === "File") collapsedFiles.add(n.qualified_name); });
 }
 updateNodes();
-function fitGraph() {
+function syncViewport() {
+  W = getW(); H = getH();
+  svg.attr("viewBox", [0, 0, W, H]);
+  simulation.force("center", d3.forceCenter(W / 2, H / 2));
+  simulation.force("x", d3.forceX(W / 2).strength(0.03));
+  simulation.force("y", d3.forceY(H / 2).strength(0.03));
+}
+function fitGraph(retries) {
+  if (retries === undefined) retries = 10;
   var b = gRoot.node().getBBox();
-  if (b.width === 0 || b.height === 0) return;
+  if (b.width === 0 || b.height === 0) {
+    if (retries > 0) requestAnimationFrame(function() { fitGraph(retries - 1); });
+    return;
+  }
   var pad = 0.1;
   var fw = b.width * (1 + 2*pad), fh = b.height * (1 + 2*pad);
-  var s = Math.min(W / fw, H / fh, 2.5);
-  var tx = W/2 - (b.x + b.width/2)*s, ty = H/2 - (b.y + b.height/2)*s;
+  var cw = getW(), ch = getH();
+  W = cw; H = ch;
+  svg.attr("viewBox", [0, 0, W, H]);
+  var s = Math.min(cw / fw, ch / fh, 2.5);
+  var tx = cw/2 - (b.x + b.width/2)*s, ty = ch/2 - (b.y + b.height/2)*s;
   svg.transition().duration(600).call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(s));
 }
 var loadingOverlay = document.getElementById("loading-overlay");
@@ -1088,7 +1105,12 @@ if (nodes.length === 0) {
 }
 simulation.on("end", function() {
   loadingOverlay.classList.add("hidden");
-  fitGraph();
+  syncViewport();
+  requestAnimationFrame(function() { fitGraph(); });
+});
+window.addEventListener("resize", function() {
+  syncViewport();
+  requestAnimationFrame(function() { fitGraph(); });
 });
 function zoomToNode(qn) {
   var nd = nodeById.get(qn);
@@ -1097,7 +1119,7 @@ function zoomToNode(qn) {
   var tx = W/2 - nd.x*s, ty = H/2 - nd.y*s;
   svg.transition().duration(600).call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(s));
 }
-document.getElementById("btn-fit").addEventListener("click", fitGraph);
+document.getElementById("btn-fit").addEventListener("click", function() { fitGraph(); });
 document.getElementById("btn-labels").addEventListener("click", function() {
   showLabels = !showLabels;
   this.classList.toggle("active");
@@ -1605,7 +1627,7 @@ _AGGREGATED_HTML_TEMPLATE = r"""<!DOCTYPE html>
 <div id="stats-bar" role="status" aria-label="Graph statistics"></div>
 <div id="tooltip"></div>
 <button id="btn-back" aria-label="Back to overview">&larr; Back to Overview</button>
-<svg role="img" aria-label="Interactive code knowledge graph visualization (aggregated view)."></svg>
+<svg id="graph-svg" role="img" aria-label="Interactive code knowledge graph visualization (aggregated view)."></svg>
 <script>
 "use strict";
 var graphData = __GRAPH_DATA__;
@@ -1755,8 +1777,11 @@ function moveTooltip(ev) {
 function hideTooltip() { tooltip.classList.remove("visible"); }
 
 /* --- SVG setup --- */
-var W = innerWidth, H = innerHeight;
-var svg = d3.select("svg").attr("viewBox", [0, 0, W, H]);
+var svgEl = document.getElementById("graph-svg");
+function getW() { return svgEl.clientWidth || window.innerWidth || 800; }
+function getH() { return svgEl.clientHeight || window.innerHeight || 600; }
+var W = getW(), H = getH();
+var svg = d3.select("#graph-svg").attr("viewBox", [0, 0, W, H]);
 var gRoot = svg.append("g");
 var currentTransform = d3.zoomIdentity;
 var zoomBehavior = d3.zoom()
@@ -1922,7 +1947,10 @@ function renderGraph(nodesData, edgesData, drillDown) {
       .attr("y", function(d) { return d.y; });
   });
 
-  simulation.on("end", fitGraph);
+  simulation.on("end", function() {
+    syncViewport();
+    requestAnimationFrame(function() { fitGraph(); });
+  });
   updateLabelVisibility();
 }
 
@@ -1974,15 +2002,37 @@ function highlightConnected(d, on) {
   }
 }
 
-function fitGraph() {
+function syncViewport() {
+  W = getW(); H = getH();
+  svg.attr("viewBox", [0, 0, W, H]);
+  if (simulation) {
+    simulation.force("center", d3.forceCenter(W / 2, H / 2));
+    simulation.force("x", d3.forceX(W / 2).strength(0.03));
+    simulation.force("y", d3.forceY(H / 2).strength(0.03));
+  }
+}
+
+function fitGraph(retries) {
+  if (retries === undefined) retries = 10;
   var b = gRoot.node().getBBox();
-  if (b.width === 0 || b.height === 0) return;
+  if (b.width === 0 || b.height === 0) {
+    if (retries > 0) requestAnimationFrame(function() { fitGraph(retries - 1); });
+    return;
+  }
   var pad = 0.1;
   var fw = b.width * (1 + 2 * pad), fh = b.height * (1 + 2 * pad);
-  var s = Math.min(W / fw, H / fh, 2.5);
-  var tx = W / 2 - (b.x + b.width / 2) * s, ty = H / 2 - (b.y + b.height / 2) * s;
+  var cw = getW(), ch = getH();
+  W = cw; H = ch;
+  svg.attr("viewBox", [0, 0, W, H]);
+  var s = Math.min(cw / fw, ch / fh, 2.5);
+  var tx = cw / 2 - (b.x + b.width / 2) * s, ty = ch / 2 - (b.y + b.height / 2) * s;
   svg.transition().duration(600).call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(s));
 }
+
+window.addEventListener("resize", function() {
+  syncViewport();
+  requestAnimationFrame(function() { fitGraph(); });
+});
 
 function zoomToNode(qn) {
   var nd = currentNodes.find(function(n) { return n.qualified_name === qn; });
@@ -2102,7 +2152,7 @@ document.getElementById("btn-back").addEventListener("click", function() {
 });
 
 /* --- Controls --- */
-document.getElementById("btn-fit").addEventListener("click", fitGraph);
+document.getElementById("btn-fit").addEventListener("click", function() { fitGraph(); });
 document.getElementById("btn-labels").addEventListener("click", function() {
   showLabels = !showLabels;
   this.classList.toggle("active");

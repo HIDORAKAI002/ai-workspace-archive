@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import sqlite3
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from ..graph import GraphStore
 from ..incremental import find_project_root, get_db_path
+
+_PROVENANCE_READ_TIMEOUT_SECONDS = 0.05
 
 
 def _error_response(
@@ -14,6 +18,76 @@ def _error_response(
 ) -> dict[str, Any]:
     """Build a standardised error response dict."""
     return {"status": status, "error": message, "summary": message, **extra}
+
+
+def graph_provenance(repo_root: str | None = None) -> dict[str, Any] | None:
+    """Return best-effort build metadata for one repository's graph.
+
+    The metadata read is deliberately read-only. Missing, incomplete, or
+    unreadable graph databases must never make the enclosing tool call fail.
+    """
+    try:
+        root = _resolve_root(repo_root)
+        db_path = get_db_path(root)
+        if not db_path.exists():
+            return None
+
+        # ``as_uri`` escapes URI-significant path characters before the
+        # read-only mode query is appended. It also handles Windows drives.
+        database_uri = f"{db_path.resolve().as_uri()}?mode=ro"
+        # Provenance is optional and reads only three local metadata rows.
+        # Allow a brief commit boundary, but never inherit sqlite3's 5-second
+        # default wait when a build or migration holds an exclusive lock.
+        connection = sqlite3.connect(
+            database_uri,
+            uri=True,
+            timeout=_PROVENANCE_READ_TIMEOUT_SECONDS,
+        )
+        try:
+            rows = dict(connection.execute(
+                "SELECT key, value FROM metadata WHERE key IN "
+                "('last_updated', 'git_branch', 'git_head_sha')"
+            ).fetchall())
+        finally:
+            connection.close()
+
+        updated_at = rows.get("last_updated")
+        if not isinstance(updated_at, str) or not updated_at:
+            return None
+
+        provenance: dict[str, Any] = {"updated_at": updated_at}
+        try:
+            built_at = datetime.fromisoformat(updated_at)
+            # Match aware timestamps with an aware ``now`` in the same
+            # timezone; None preserves the stored naive/local format.
+            now = datetime.now(tz=built_at.tzinfo)
+            provenance["age_seconds"] = max(
+                0, int((now - built_at).total_seconds()),
+            )
+        except (OverflowError, TypeError, ValueError):
+            # A malformed timestamp only removes the derived age. The raw
+            # timestamp and independently valid branch/SHA remain useful.
+            pass
+
+        branch = rows.get("git_branch")
+        if isinstance(branch, str) and branch:
+            provenance["built_on_branch"] = branch
+        head_sha = rows.get("git_head_sha")
+        if isinstance(head_sha, str) and head_sha:
+            provenance["built_at_sha"] = head_sha
+        return provenance
+    except Exception:
+        return None
+
+
+def with_provenance(result: Any, repo_root: str | None = None) -> Any:
+    """Attach a ``_graph`` envelope without changing existing fields."""
+    if not isinstance(result, dict) or "_graph" in result:
+        return result
+    provenance = graph_provenance(repo_root)
+    if provenance:
+        result["_graph"] = provenance
+    return result
 
 # Common JS/TS builtin method names filtered from callers_of results.
 # "Who calls .map()?" returns hundreds of hits and is never useful.

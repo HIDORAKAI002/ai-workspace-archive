@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [डिप्रेकेटेड: 2026-07-28 रिलिज क्यान्डिडेट](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexts मोडेल कन्टेक्स्ट प्रोटोकलमा एउटा आधारभूत अवधारणा हो जसले बहु अनुरोध र सत्रहरूमा कुराकानी इतिहास र साझा अवस्थालाई कायम राख्न स्थायी तह प्रदान गर्छ।
+# MCP रुट सन्दर्भहरू
+
+> **अप्रचलन सूचना:** `2026-07-28` MCP विनिर्देश रिलिज क्यान्डिडेटले रुटलाई उपकरण प्यारामिटरहरू, स्रोत URI, वा सर्भर कन्फिगरेसनको पक्षमा अप्रचलित बनाएको छ। रुटहरू `2025-11-25` मा र औपचारिक अप्रचलन पछि कम्तीमा एक वर्षसम्म काम गर्न जारी रहनेछन्, त्यसैले यो पाठमा सबै कुरा मान्य छ - तर नयाँ सर्भर डिजाइनहरूले प्रतिस्थापन ढाँचालाई मूल्याङ्कन गर्नुपर्छ। हेर्नुहोस् [MCP मा के परिवर्तन हुँदैछ: 2026-07-28 रिलिज क्यान्डिडेट](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)।
+
+रुट सन्दर्भहरू मोडल सन्दर्भ प्रोटोकलमा एक मौलिक अवधारणा हुन् जुन बहु अनुरोध र सत्रहरूमा वार्तालाप इतिहास र साझा अवस्था कायम राख्न स्थायी तह प्रदान गर्छन्।
 
 ## परिचय
 
-यस पाठमा, हामी MCP मा root contexts कसरी सिर्जना गर्ने, व्यवस्थापन गर्ने, र प्रयोग गर्ने बारेमा अध्ययन गर्नेछौं।
+यस पाठमा, हामी MCP मा रुट सन्दर्भहरू कसरी सिर्जना गर्ने, व्यवस्थापन गर्ने, र उपयोग गर्ने भनेर अन्वेषण गर्नेछौं। 
 
-## सिकाइका उद्देश्यहरू
+## सिकाइ उद्देश्यहरू
 
-यस पाठको अन्त्यसम्म, तपाईं सक्षम हुनुहुनेछ:
+यस पाठको अन्त्यमा, तपाईं सक्षम हुनुहुनेछ:
 
-- root contexts को उद्देश्य र संरचना बुझ्न
-- MCP क्लाइन्ट लाइब्रेरीहरू प्रयोग गरी root contexts सिर्जना र व्यवस्थापन गर्न
-- .NET, Java, JavaScript, र Python एप्लिकेसनहरूमा root contexts लागू गर्न
-- बहु-चरणीय कुराकानी र अवस्था व्यवस्थापनका लागि root contexts प्रयोग गर्न
-- root context व्यवस्थापनका लागि उत्तम अभ्यासहरू कार्यान्वयन गर्न
+- रुट सन्दर्भहरूको उद्देश्य र संरचना बुझ्न
+- MCP क्लाइन्ट लाइब्रेरीहरू प्रयोग गरेर रुट सन्दर्भहरू सिर्जना र व्यवस्थापन गर्न
+- .NET, Java, JavaScript, र Python अनुप्रयोगहरूमा रुट सन्दर्भहरू कार्यान्वयन गर्न
+- बहु-चक्र वार्तालापहरू र अवस्था व्यवस्थापनका लागि रुट सन्दर्भहरू प्रयोग गर्न
+- रुट सन्दर्भ व्यवस्थापनको लागि उत्कृष्ट अभ्यासहरू कार्यान्वयन गर्न
 
-## Root Contexts बुझ्न
+## रुट सन्दर्भहरू बुझ्न
 
-Root contexts ती कन्टेनरहरू हुन् जसले सम्बन्धित अन्तरक्रियाहरूको श्रृंखलाको इतिहास र अवस्थालाई सम्हाल्छन्। यीले निम्न कुराहरू सक्षम पार्छन्:
+रुट सन्दर्भहरू अनुक्रमिक सम्बन्धित अन्तरक्रियाहरूको इतिहास र अवस्था समात्ने कन्टेनरको रुपमा काम गर्छन्। तिनीहरूले सक्षम गर्छन्:
 
-- **कुराकानी निरन्तरता**: सुसंगत बहु-चरणीय कुराकानी कायम राख्न
-- **स्मृति व्यवस्थापन**: अन्तरक्रियाहरूमा जानकारी भण्डारण र पुनःप्राप्त गर्न
-- **अवस्था व्यवस्थापन**: जटिल कार्यप्रवाहहरूमा प्रगति ट्र्याक गर्न
-- **कन्टेक्स्ट साझेदारी**: धेरै क्लाइन्टहरूले एउटै कुराकानी अवस्थामा पहुँच पाउन
+- **वार्तालाप स्थायित्व**: संगत बहु-चरण वार्तालाप कायम राख्न
+- **मेमोरी व्यवस्थापन**: अन्तरक्रियाहरूमा जानकारी भण्डारण र पुन:प्राप्ति
+- **अवस्था व्यवस्थापन**: जटिल कार्यप्रवाहहरूमा प्रगतिको ट्र्याकिङ
+- **सन्दर्भ साझा गर्ने**: धेरै क्लाइन्टहरूलाई एउटै वार्तालाप अवस्थामा पहुँच दिन
 
-MCP मा, root contexts का यी मुख्य विशेषताहरू छन्:
+MCP मा, रुट सन्दर्भहरूको केही प्रमुख विशेषताहरू छन्:
 
-- प्रत्येक root context को एक अनौठो पहिचानकर्ता हुन्छ।
-- तिनीहरूले कुराकानी इतिहास, प्रयोगकर्ता प्राथमिकताहरू, र अन्य मेटाडाटा समावेश गर्न सक्छन्।
-- आवश्यक अनुसार तिनीहरू सिर्जना, पहुँच, र संग्रहित गर्न सकिन्छ।
-- तिनीहरूले सूक्ष्म पहुँच नियन्त्रण र अनुमति समर्थन गर्छन्।
+- प्रत्येक रुट सन्दर्भसँग एउटा अद्वितीय पहिचानकर्ता हुन्छ।
+- तिनीहरूले वार्तालाप इतिहास, प्रयोगकर्ता प्राथमिकताहरू, र अन्य मेटाडाटा समावेश गर्न सक्छन्।
+- तिनीहरू आवश्यकतानुसार सिर्जना, पहुँच, र आर्काइभ गर्न सकिन्छ।
+- तिनीहरूले सूक्ष्म पहुंच नियन्त्रण र अनुमति समर्थन गर्दछन्।
 
-## Root Context जीवनचक्र
+## रुट सन्दर्भ जीवनचक्र
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[मूल सन्दर्भ सिर्जना गर्नुहोस्] --> B[मेटाडाटा सहित आरम्भ गर्नुहोस्]
+    B --> C[सन्दर्भ ID संग अनुरोधहरू पठाउनुहोस्]
+    C --> D[परिणामहरू सहित सन्दर्भ अद्यावधिक गर्नुहोस्]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[पूरा भएपछि सन्दर्भ अभिलेख गर्नुहोस्]
 ```
 
-## Root Contexts सँग काम गर्ने तरिका
+## रुट सन्दर्भहरूसँग काम गर्दै
 
-यहाँ root contexts कसरी सिर्जना र व्यवस्थापन गर्ने भन्ने उदाहरण छ।
+यहाँ रुट सन्दर्भहरू कसरी सिर्जना र व्यवस्थापन गर्ने एउटा उदाहरण छ। 
 
 ### C# कार्यान्वयन
 
@@ -124,20 +128,20 @@ public class RootContextExample
 
 माथिको कोडमा हामीले:
 
-1. ग्राहक समर्थन सत्रका लागि root context सिर्जना गर्यौं।
-2. सोही context भित्र धेरै सन्देशहरू पठायौं, जसले मोडेललाई अवस्था कायम राख्न अनुमति दियो।
-3. कुराकानीको आधारमा सान्दर्भिक मेटाडाटासहित context अपडेट गर्यौं।
-4. कुराकानी इतिहास बुझ्न context जानकारी पुनःप्राप्त गर्यौं।
-5. कुराकानी पूरा भएपछि context संग्रहित गर्यौं।
+1. ग्राहक समर्थन सत्रको लागि रुट सन्दर्भ सिर्जना गर्यौं।
+1. त्यस सन्दर्भ भित्र धेरै सन्देशहरू पठायौं, जसले मोडललाई अवस्था कायम राख्न अनुमति दियो।
+1. वार्तालापको आधारमा सन्दर्भलाई सान्दर्भिक मेटाडाटाले अपडेट गर्यौं।
+1. वार्तालाप इतिहास बुझ्न सन्दर्भ जानकारी प्राप्त गर्यौं।
+1. वार्तालाप पूरा भएसँगै सन्दर्भलाई आर्काइभ गर्यौं।
 
-## उदाहरण: वित्तीय विश्लेषणका लागि Root Context कार्यान्वयन
+## उदाहरण: वित्तीय विश्लेषणका लागि रुट सन्दर्भ कार्यान्वयन
 
-यस उदाहरणमा, हामी वित्तीय विश्लेषण सत्रका लागि root context सिर्जना गर्नेछौं, जसले बहु अन्तरक्रियाहरूमा अवस्था कसरी कायम राख्ने देखाउँछ।
+यस उदाहरणमा, हामी वित्तीय विश्लेषण सत्रको लागि रुट सन्दर्भ सिर्जना गर्नेछौं, जसले बहु अन्तरक्रियाहरूमा कसरी अवस्था कायम गर्ने देखाउँछ।
 
 ### Java कार्यान्वयन
 
 ```java
-// Java Example: Root Context Implementation
+// Java उदाहरण: रुट सन्दर्भ कार्यान्वयन
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // सन्दर्भ मेटाडाटा सिर्जना गर्नुहोस्
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. नयाँ रुट सन्दर्भ सिर्जना गर्नुहोस्
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. पहिलो अन्तरक्रिया
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. प्रतिक्रिया बाट प्राप्त महत्वपूर्ण जानकारीसहित सन्दर्भ अपडेट गर्नुहोस्
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // दोस्रो अन्तरक्रिया - उस्तै सन्दर्भ प्रयोग गर्दै
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. विश्लेषण सत्रको सारांश सिर्जना गर्नुहोस्
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // सारांशलाई सन्दर्भ मेटाडाटामा सङ्ग्रह गर्नुहोस्
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // अद्यावधिक सन्दर्भ जानकारी प्राप्त गर्नुहोस्
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. कार्य सम्पन्न हुँदा सन्दर्भ संग्रहित गर्नुहोस्
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 माथिको कोडमा हामीले:
 
-1. वित्तीय विश्लेषण सत्रका लागि root context सिर्जना गर्यौं।
-2. सोही context भित्र धेरै सन्देशहरू पठायौं, जसले मोडेललाई अवस्था कायम राख्न अनुमति दियो।
-3. कुराकानीको आधारमा सान्दर्भिक मेटाडाटासहित context अपडेट गर्यौं।
-4. विश्लेषण सत्रको सारांश तयार गरी context मेटाडाटामा भण्डारण गर्यौं।
-5. कुराकानी पूरा भएपछि context संग्रहित गर्यौं।
+1. वित्तीय विश्लेषण सत्रको लागि रुट सन्दर्भ सिर्जना गर्यौं।
+2. त्यस सन्दर्भ भित्र धेरै सन्देशहरू पठायौं, जसले मोडललाई अवस्था कायम राख्न अनुमति दियो।
+3. वार्तालापको आधारमा सन्दर्भलाई सान्दर्भिक मेटाडाटाले अपडेट गर्यौं।
+4. विश्लेषण सत्रको सारांश तयार गर्यौं र यसलाई सन्दर्भ मेटाडाटामा संग्रह गर्यौं।
+5. वार्तालाप पूरा भएपछि सन्दर्भलाई आर्काइभ गर्यौं।
 
-## उदाहरण: Root Context व्यवस्थापन
+## उदाहरण: रुट सन्दर्भ व्यवस्थापन
 
-Root contexts लाई प्रभावकारी रूपमा व्यवस्थापन गर्नु कुराकानी इतिहास र अवस्था कायम राख्न अत्यन्त महत्वपूर्ण छ। तल root context व्यवस्थापन कसरी कार्यान्वयन गर्ने उदाहरण छ।
+रुट सन्दर्भहरू प्रभावकारी रूपमा व्यवस्थापन गर्नु वार्तालाप इतिहास र अवस्था कायम राख्न अत्यावश्यक छ। तल रुट सन्दर्भ व्यवस्थापन कसरी कार्यान्वयन गर्ने एउटा उदाहरण छ।
 
 ### JavaScript कार्यान्वयन
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScript उदाहरण: MCP मूल सन्दर्भ व्यवस्थापन
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // MCP क्लाइन्ट सुरु गर्नुहोस्
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // सन्दर्भ व्यवस्थापक सुरु गर्नुहोस्
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // निर्दिष्ट सन्दर्भ प्रयोग गरी सन्देश पठाउनुहोस्
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // वैकल्पिक रूपमा कुराकानीका महत्वपूर्ण तथ्य भण्डारण गर्नुहोस्
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // सम्भावित तथ्यहरू निकाल्नुहोस् (एक वास्तविक अनुप्रयोगमा यो अधिक जटिल हुनेछ)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // सम्भावित तथ्यहरू पहिचान गर्न सरल नियम
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // तथ्यहरू सन्दर्भ मेटाडाटामा भण्डारण गर्नुहोस्
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // गैर-गम्भीर त्रुटि, त्यसैले केवल चेतावनी लग गर्नुहोस्
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // मोडेललाई अहिलेसम्मको कुराकानीको सारांश उत्पादन गर्न भन्नुहोस्
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // सारांश सन्दर्भ मेटाडाटामा भण्डारण गर्नुहोस्
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // संग्रहण अघि अन्तिम सारांश उत्पादन गर्नुहोस्
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // सन्दर्भ संग्रह गर्नुहोस्
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// उदाहरण प्रयोग
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. उत्पादन समर्थन कुराकानीका लागि नयाँ सन्दर्भ सिर्जना गर्नुहोस्
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. कुराकानीमा पहिलो सन्देश
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // उही सन्दर्भमा फलोअप सन्देश
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. सन्दर्भ बारे जानकारी प्राप्त गर्नुहोस्
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. कुराकानी सारांश उत्पादन गरी देखाउनुहोस्
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. समाप्त भएपछि सन्दर्भ संग्रह गर्नुहोस्
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. कुनै पनि त्रुटिलाई सहजरूपमा व्यवस्थापन गर्नुहोस्
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 माथिको कोडमा हामीले:
 
-1. `createConversationContext` फंक्शन प्रयोग गरी उत्पादन समर्थन कुराकानीका लागि root context सिर्जना गर्यौं। यस अवस्थामा, context डेटाबेस प्रदर्शन समस्याहरू सम्बन्धी छ।
+1. `createConversationContext` फन्क्सनसँग उत्पादन समर्थन वार्तालापको लागि रुट सन्दर्भ सिर्जना गर्यौं। यो सन्दर्भ डेटाबेस प्रदर्शन समस्याहरूको बारेमा छ।
 
-2. सोही context भित्र धेरै सन्देशहरू `sendMessage` फंक्शनमार्फत पठायौं, जसले मोडेललाई अवस्था कायम राख्न अनुमति दियो। पठाइएका सन्देशहरू सुस्त क्वेरी प्रदर्शन र इन्डेक्स कन्फिगरेसन सम्बन्धी थिए।
+1. `sendMessage` फन्क्सन प्रयोग गरेर त्यस सन्दर्भ भित्र धेरै सन्देशहरू पठायौं, जसले मोडललाई अवस्था कायम राख्न अनुमति दियो। पठाइएका सन्देशहरू ढिलो क्वेरी प्रदर्शन र अनुक्रमणिका कन्फिगरेसनका बारेमा थिए।
 
-3. कुराकानीको आधारमा सान्दर्भिक मेटाडाटासहित context अपडेट गर्यौं।
+1. वार्तालापको आधारमा सन्दर्भलाई सान्दर्भिक मेटाडाटाले अपडेट गर्यौं।
 
-4. `generateContextSummary` फंक्शन प्रयोग गरी कुराकानीको सारांश तयार गरी context मेटाडाटामा भण्डारण गर्यौं।
+1. `generateContextSummary` फन्क्सन प्रयोग गरेर वार्तालापको सारांश तयार गर्यौं र यसलाई सन्दर्भ मेटाडाटामा संग्रह गर्यौं।
 
-5. कुराकानी पूरा भएपछि `archiveContext` फंक्शन प्रयोग गरी context संग्रहित गर्यौं।
+1. वार्तालाप पूरा भएपछि सन्दर्भलाई `archiveContext` फन्क्सन प्रयोग गरेर आर्काइभ गर्यौं।
 
-6. त्रुटिहरूलाई सहज रूपमा व्यवस्थापन गर्यौं ताकि प्रणाली बलियो रहोस्।
+1. मजबुती सुनिश्चित गर्न त्रुटिहरूलाई सजिलोसँग ह्यान्डल गर्यौं।
 
-## बहु-चरणीय सहायता लागि Root Context
+## बहु-चक्र सहायता लागि रुट सन्दर्भ
 
-यस उदाहरणमा, हामी बहु-चरणीय सहायता सत्रका लागि root context सिर्जना गर्नेछौं, जसले बहु अन्तरक्रियाहरूमा अवस्था कसरी कायम राख्ने देखाउँछ।
+यस उदाहरणमा, हामी बहु-चक्र सहायता सत्रको लागि रुट सन्दर्भ सिर्जना गर्नेछौं, जसले बहु अन्तरक्रियाहरूमा कसरी अवस्था कायम गर्ने देखाउँछ।
 
 ### Python कार्यान्वयन
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python उदाहरण: बहु-चरण सहायता को लागि रूट सन्दर्भ
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # प्रयोगकर्ता जानकारी थप्नुहोस् यदि प्रदान गरिएको छ भने
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # रूट सन्दर्भ सिर्जना गर्नुहोस्
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # सन्दर्भ ID सँग विकल्पहरू सिर्जना गर्नुहोस्
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # उपकरणहरू थप्नुहोस् यदि निर्दिष्ट गरिएको छ भने
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # सन्दर्भ भित्र प्रॉम्प्ट पठाउनुहोस्
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # वार्तालाप प्रगतिको साथ सन्दर्भ मेटाडाटा अपडेट गर्नुहोस्
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # पहिले सारांश प्रॉम्प्ट उत्पन्न गर्नुहोस्
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # मेटाडाटामा सारांश भण्डारण गर्नुहोस्
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # सन्दर्भ सङ्ग्रह गर्नुहोस्
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# उदाहरण प्रयोग
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. सत्र सिर्जना गर्नुहोस्
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. पहिलो अन्तरक्रिया
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # समान सन्दर्भमा दोस्रो अन्तरक्रिया
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. इतिहास प्राप्त गर्नुहोस्
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. सत्र समाप्त गर्नुहोस्
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 माथिको कोडमा हामीले:
 
-1. `create_session` फंक्शन प्रयोग गरी प्राविधिक समर्थन सत्रका लागि root context सिर्जना गर्यौं। context मा प्रयोगकर्ताको नाम र प्राविधिक स्तर जस्ता जानकारी समावेश छन्।
+1. `create_session` फन्क्सनसँग प्राविधिक समर्थन सत्रको लागि रुट सन्दर्भ सिर्जना गर्यौं। सन्दर्भमा प्रयोगकर्ताको नाम र प्राविधिक स्तर जस्ता जानकारी समावेश छ।
 
-2. सोही context भित्र धेरै सन्देशहरू `send_message` फंक्शनमार्फत पठायौं, जसले मोडेललाई अवस्था कायम राख्न अनुमति दियो। पठाइएका सन्देशहरू अटो-स्केलिङ सुविधा सम्बन्धी समस्याहरू थिए।
+1. `send_message` फन्क्सन प्रयोग गरेर त्यस सन्दर्भ भित्र धेरै सन्देशहरू पठायौं, जसले मोडललाई अवस्था कायम राख्न अनुमति दियो। पठाइएका सन्देशहरू अटो-स्केलिङ सुविधा सम्बन्धी समस्याहरूका बारेमा थिए।
 
-3. `get_conversation_history` फंक्शन प्रयोग गरी कुराकानी इतिहास पुनःप्राप्त गर्यौं, जसले context जानकारी र सन्देशहरू प्रदान गर्छ।
+1. `get_conversation_history` फन्क्सन प्रयोग गरेर वार्तालाप इतिहास प्राप्त गर्यौं जसले सन्दर्भ जानकारी र सन्देशहरू प्रदान गर्छ।
 
-4. `end_session` फंक्शन प्रयोग गरी सत्र समाप्त गर्यौं, context संग्रहित गर्यौं र सारांश तयार गर्यौं। सारांशले कुराकानीका मुख्य बुँदाहरू समेट्छ।
+1. `end_session` फन्क्सन प्रयोग गरेर सत्र समाप्त गर्दै सन्दर्भ आर्काइभ गर्यौं र सारांश तयार गर्यौं। सारांशले वार्तालापका मुख्य बुँदाहरू समेट्छ।
 
-## Root Context का लागि उत्तम अभ्यासहरू
+## रुट सन्दर्भ उत्कृष्ट अभ्यासहरू
 
-यहाँ root contexts लाई प्रभावकारी रूपमा व्यवस्थापन गर्न केही उत्तम अभ्यासहरू छन्:
+यहाँ रुट सन्दर्भहरू प्रभावकारी रूपमा व्यवस्थापनको लागि केही उत्कृष्ट अभ्यासहरू छन्:
 
-- **केन्द्रित Contexts सिर्जना गर्नुहोस्**: विभिन्न कुराकानी उद्देश्य वा डोमेनका लागि अलग-अलग root contexts सिर्जना गरेर स्पष्टता कायम राख्नुहोस्।
+- **केन्द्रित सन्दर्भहरू सिर्जना गर्नुहोस्**: स्पष्टता कायम राख्न विभिन्न वार्तालाप उद्देश्य वा डोमेनहरूका लागि अलग रुट सन्दर्भहरू सिर्जना गर्नुहोस्।
 
-- **समाप्ति नीति सेट गर्नुहोस्**: पुराना contexts लाई संग्रहित वा मेटाउने नीतिहरू लागू गरेर भण्डारण व्यवस्थापन र डाटा संरक्षण नीतिहरूको पालना गर्नुहोस्।
+- **समाप्ति नीतिहरू सेट गर्नुहोस्**: संग्रह वा पुराना सन्दर्भहरू मेट्ने नीतिहरू कार्यान्वयन गरेर भण्डारण व्यवस्थापन गर्नुहोस् र डाटा अवधारण नीतिहरू पालना गर्नुहोस्।
 
-- **सान्दर्भिक मेटाडाटा भण्डारण गर्नुहोस्**: कुराकानीसँग सम्बन्धित महत्वपूर्ण जानकारी पछि उपयोगका लागि context मेटाडाटामा राख्नुहोस्।
+- **सान्दर्भिक मेटाडाटा संग्रह गर्नुहोस्**: सन्दर्भ मेटाडाटामा वार्तालापको महत्वपूर्ण जानकारी संग्रह गर्नुहोस् जुन पछि उपयोगी हुन सक्छ।
 
-- **Context IDs को निरन्तर प्रयोग गर्नुहोस्**: एक पटक context सिर्जना भएपछि, सबै सम्बन्धित अनुरोधहरूमा यसको ID निरन्तर प्रयोग गरेर निरन्तरता कायम राख्नुहोस्।
+- **सन्दर्भ ID को निरन्तर प्रयोग गर्नुहोस्**: सन्दर्भ सिर्जना भइसकेपछि सबै सम्बन्धित अनुरोधहरूका लागि यसको ID निरन्तर प्रयोग गरेर निरन्तरता कायम राख्नुहोस्।
 
-- **सारांशहरू तयार गर्नुहोस्**: जब context ठूलो हुन्छ, आवश्यक जानकारी समेट्न र context आकार व्यवस्थापन गर्न सारांशहरू तयार गर्ने विचार गर्नुहोस्।
+- **सारांशहरू उत्पादन गर्नुहोस्**: सन्दर्भ ठूलो भएपछि, आवश्यक जानकारी समेट्न र सन्दर्भ आकार व्यवस्थापन गर्न सारांशहरू उत्पादन गर्ने विचार गर्नुस्।
 
-- **पहुँच नियन्त्रण लागू गर्नुहोस्**: बहु-प्रयोगकर्ता प्रणालीहरूमा, कुराकानी context को गोपनीयता र सुरक्षा सुनिश्चित गर्न उचित पहुँच नियन्त्रण लागू गर्नुहोस्।
+- **पहुँच नियन्त्रण कार्यान्वयन गर्नुहोस्**: बहु-प्रयोगकर्ता प्रणालीहरूको लागि, वार्तालाप सन्दर्भहरूको गोपनीयता र सुरक्षा सुनिश्चित गर्न उपयुक्त पहुँच नियन्त्रणहरू लागू गर्नुहोस्।
 
-- **Context सीमाहरूको ख्याल राख्नुहोस्**: context आकार सीमाहरूको जानकारी राख्नुहोस् र धेरै लामो कुराकानीहरूका लागि रणनीतिहरू लागू गर्नुहोस्।
+- **सन्दर्भ सीमाहरू ह्यान्डल गर्नुहोस्**: सन्दर्भ आकार सीमाहरूमा सचेत हुनुहोस् र धेरै लामो वार्तालापहरू ह्यान्डल गर्न रणनीतिहरू कार्यान्वयन गर्नुहोस्।
 
-- **पूरा भएपछि संग्रहित गर्नुहोस्**: कुराकानी पूरा भएपछि context संग्रहित गरेर स्रोतहरू मुक्त गर्नुहोस् र कुराकानी इतिहास सुरक्षित राख्नुहोस्।
+- **पूरा भएसँगै आर्काइभ गर्नुहोस्**: वार्तालाप पूरा भएपछि सन्दर्भहरू संग्रह गरेर स्रोतहरू मुक्त गर्नुहोस् र वार्तालाप इतिहास सुरक्षित गर्नुहोस्।
 
-## के छ अर्को
+## अब के हुन्छ
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 रूटिङ](../mcp-routing/README.md)
 
-**अस्वीकरण**:  
-यो दस्तावेज AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरी अनुवाद गरिएको हो। हामी शुद्धताका लागि प्रयासरत छौं, तर कृपया ध्यान दिनुहोस् कि स्वचालित अनुवादमा त्रुटि वा अशुद्धता हुन सक्छ। मूल दस्तावेज यसको मूल भाषामा नै अधिकारिक स्रोत मानिनु पर्छ। महत्वपूर्ण जानकारीका लागि व्यावसायिक मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट उत्पन्न कुनै पनि गलतफहमी वा गलत व्याख्याका लागि हामी जिम्मेवार छैनौं।
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**अस्वीकरण**:
+यो दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरेर अनुवाद गरिएको हो। हामी सही हुन प्रयास गर्छौं, तर कृपया जानकार हुनुस् कि स्वचालित अनुवादमा त्रुटिहरू वा अशुद्धताहरू हुन सक्छन्। मूल दस्तावेज़ यसको मूल भाषामा आधिकारिक स्रोत मानिनुपर्छ। महत्वपूर्ण जानकारीका लागि व्यावसायिक मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट उत्पन्न कुनै पनि गलत बुझाइ वा त्रुटिको लागि हामी जिम्मेवार छैनौं।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

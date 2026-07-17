@@ -1251,7 +1251,7 @@
     "interactiveBanner": {
       "badge": "互动版本已上线",
       "title": "想要更详细的互动体验？",
-      "description": "通过我们包含25章内容、实践练习和真实案例的综合互动指南，深入掌握AI提示词技巧。",
+      "description": "通过我们包含26章内容、实践练习和真实案例的综合互动指南，深入掌握AI提示词技巧。",
       "cta": "阅读互动电子书"
     },
     "generalTips": {
@@ -1743,7 +1743,7 @@
       "part4": "第4部分：最佳实践",
       "part5": "第5部分：用例",
       "part6": "第6部分：结论",
-      "chapters": "25个互动章节"
+      "chapters": "26个互动章节"
     },
     "startReading": "开始阅读",
     "skipToChapter1": "跳至第1章",
@@ -1800,6 +1800,7 @@
       "12-handling-edge-cases": "处理边界情况",
       "13-multimodal-prompting": "多模态提示词",
       "14-context-engineering": "上下文工程",
+      "14a-loop-engineering": "循环工程",
       "25-agents-and-skills": "代理和技能",
       "15-common-pitfalls": "常见陷阱",
       "16-ethics-responsible-use": "伦理和负责任使用",
@@ -1830,6 +1831,7 @@
       "12-handling-edge-cases": "处理意外输入",
       "13-multimodal-prompting": "处理图像、音频和视频",
       "14-context-engineering": "RAG、嵌入、函数调用和MCP",
+      "14a-loop-engineering": "设计能够行动、验证、调整并知道何时停止的反馈循环",
       "25-agents-and-skills": "使用可重用技能包构建AI代理",
       "15-common-pitfalls": "要避免的错误",
       "16-ethics-responsible-use": "AI中的伦理考虑",

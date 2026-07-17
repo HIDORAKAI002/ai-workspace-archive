@@ -1,0 +1,405 @@
+L'ingegneria del contesto decide **cosa può vedere il modello**. L'ingegneria dei loop decide **cosa fa il sistema subito dopo**.
+
+Invece di una persona che legge una risposta dopo l'altra e scrive il prompt successivo, un loop trasforma quel lavoro di follow-up in un sistema progettato. Assegna un obiettivo all'IA, la lascia agire, osserva feedback reale, valuta il risultato e poi si adatta oppure si ferma.
+
+<Callout type="info" title="La Definizione in Breve">
+L'ingegneria dei loop è la pratica di progettare il ciclo di feedback attorno a un sistema IA: l'obiettivo, le azioni, le osservazioni, la valutazione, lo stato, i guardrail e le regole di arresto che portano il lavoro verso un risultato verificabile.
+</Callout>
+
+## Da un Buon Prompt a un Buon Loop
+
+Un prompt può produrre un ottimo primo tentativo. Un loop serve quando il numero di passi non si può conoscere in anticipo, l'ambiente può cambiare, o il primo tentativo va verificato rispetto alle evidenze.
+
+<Compare
+  before={{
+    label: "Prompt One-Shot",
+    content: "Chiedi → Genera → Restituisci\n\nIl modello produce una risposta. Una persona decide se ha funzionato e scrive il prompt successivo."
+  }}
+  after={{
+    label: "Loop Ingegnerizzato",
+    content: "Inquadra → Agisci → Osserva → Valuta → Adatta\n                 ↑______________________↓\n\nIl sistema raccoglie evidenze, registra lo stato e continua solo finché un altro passaggio è utile."
+  }}
+/>
+
+Questa idea si fonda su pattern agentici precedenti. Il [paper ReAct](https://arxiv.org/abs/2210.03629) ha mostrato il valore di alternare azioni e osservazioni provenienti da un ambiente esterno. Il [pattern evaluator-optimizer](https://www.anthropic.com/engineering/building-effective-agents) di Anthropic aggiunge un passo di feedback distinto, mentre la [guida pratica agli agenti](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) di OpenAI descrive le esecuzioni degli agenti come loop governati da condizioni di uscita. Il termine più recente, **ingegneria dei loop** (loop engineering), porta l'attenzione sulla progettazione deliberata dell'intero ciclo.
+
+## Le Cinque Mosse
+
+<InfoGrid items={[
+  { label: "1. Inquadra", description: "Trasforma l'intento in un obiettivo, vincoli, criteri di successo e un budget.", color: "blue" },
+  { label: "2. Agisci", description: "Scegli una singola azione delimitata: cercare, modificare, calcolare, chiamare uno strumento o chiedere a una persona.", color: "amber" },
+  { label: "3. Osserva", description: "Raccogli ciò che è realmente accaduto: output dei test, risposte delle API, citazioni o feedback degli utenti.", color: "cyan" },
+  { label: "4. Valuta", description: "Confronta le evidenze con criteri espliciti — non con la sicurezza del modello.", color: "purple" },
+  { label: "5. Adatta", description: "Aggiorna lo stato, cambia il piano, riprova in sicurezza, coinvolgi un umano o fermati.", color: "green" },
+]} />
+
+Il loop non sono le frecce. L'ingegneria vive nei **contratti tra le frecce**: cosa conta come azione, quali osservazioni sono affidabili, chi le valuta, quale stato sopravvive ed esattamente quando l'esecuzione termina.
+
+<LoopEngineeringLab content={{
+  eyebrow: "Controllo del loop / simulatore interattivo",
+  title: "Percorri passo dopo passo un ciclo di feedback funzionante",
+  description: "Scegli un task, poi avanza un segnale alla volta. Nota come il progresso nasce da evidenze ambientali e valutazioni esplicite — non dal chiedere al modello se ritiene di aver finito.",
+  chooseScenarioLabel: "Scegli un loop",
+  goalLabel: "Obiettivo",
+  stopRuleLabel: "Regola di arresto",
+  evidenceLabel: "Evidenze affidabili",
+  iterationLabel: "Iterazione",
+  progressLabel: "Progresso verificato",
+  openIssuesLabel: "Problemi aperti",
+  currentSignalLabel: "Segnale corrente",
+  advanceLabel: "Avanza di un passo",
+  nextIterationLabel: "Inizia l'iterazione successiva",
+  resetLabel: "Reimposta il loop",
+  completeLabel: "Obiettivo verificato",
+  completeDescription: "I criteri di successo sono soddisfatti, le evidenze sono registrate e il loop si ferma invece di spendere un altro ciclo.",
+  stages: [
+    { id: "frame", label: "Inquadra", verb: "Rileggi il contratto" },
+    { id: "act", label: "Agisci", verb: "Fai una mossa delimitata" },
+    { id: "observe", label: "Osserva", verb: "Leggi il feedback esterno" },
+    { id: "evaluate", label: "Valuta", verb: "Applica la griglia di valutazione" },
+    { id: "adapt", label: "Adatta", verb: "Aggiorna la prossima mossa" },
+  ],
+  scenarios: [
+    {
+      id: "code",
+      label: "Riparare un bug nel checkout",
+      goal: "Correggere i totali del checkout senza alterare il comportamento corretto degli sconti.",
+      stopRule: "Il test di regressione mirato passa, l'intera suite del checkout passa e il lint è pulito — oppure i tre tentativi sono esauriti e il loop passa la mano a un umano.",
+      evidence: "Passi di riproduzione, output dei test, il diff del codice e la suite di regressione finale.",
+      cycles: [
+        {
+          action: "Riprodurre il totale segnalato e aggiungere un test che fallisce per il caso imposta più sconto percentuale.",
+          observation: "Il test fallisce di un centesimo solo quando l'imposta viene arrotondata prima dell'applicazione dello sconto.",
+          evaluation: "Il bug è riprodotto con un segnale deterministico, ma la sua origine non è ancora corretta.",
+          adaptation: "Ispezionare il punto di arrotondamento e modificare solo il percorso di calcolo del totale dell'ordine.",
+          progress: 34,
+          openIssues: 2,
+        },
+        {
+          action: "Spostare l'arrotondamento al confine monetario finale ed eseguire i test mirati del checkout.",
+          observation: "La regressione passa, ma un test di integrazione dei coupon ora fallisce su uno sconto a importo fisso.",
+          evaluation: "Il primo sintomo è risolto, ma la modifica è troppo ampia. La regola di arresto non è soddisfatta.",
+          adaptation: "Restringere la patch e aggiungere un caso che separi l'arrotondamento delle imposte da quello dei coupon.",
+          progress: 71,
+          openIssues: 1,
+        },
+        {
+          action: "Applicare la correzione mirata al calcolo, poi eseguire la regressione, l'intera suite del checkout e il lint.",
+          observation: "Tutti i controlli passano. Il diff tocca una sola funzione di calcolo e il nuovo test di regressione.",
+          evaluation: "Ogni criterio di successo ha evidenze indipendenti e nessun limite di budget è stato superato.",
+          adaptation: "Fermarsi, conservare l'output dei test e consegnare il piccolo diff a un revisore umano.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "research",
+      label: "Verificare un'affermazione di ricerca",
+      goal: "Valutare l'affermazione secondo cui il lavoro da remoto aumenta sempre la produttività del team.",
+      stopRule: "Una conclusione calibrata è supportata da almeno tre fonti credibili, con disaccordi e limiti dichiarati.",
+      evidence: "Link diretti alle fonti, date di pubblicazione, metodologie degli studi, dimensioni dei campioni e metriche citate.",
+      cycles: [
+        {
+          action: "Cercare evidenze recenti e risalire alla fonte della statistica più ripetuta sulla produttività.",
+          observation: "La maggior parte degli articoli ripete un sondaggio di un vendor senza linkare il questionario o il campione grezzo.",
+          evaluation: "L'evidenza è popolare, ma non abbastanza solida da sostenere un'affermazione assoluta.",
+          adaptation: "Dare priorità a studi peer-reviewed e dataset pubblici; cercare anche risultati contrari.",
+          progress: 28,
+          openIssues: 3,
+        },
+        {
+          action: "Confrontare due studi peer-reviewed con un dataset nazionale sul lavoro.",
+          observation: "I risultati variano in base al tipo di attività, al metodo di misurazione e al fatto che il lavoro sia interamente remoto o ibrido.",
+          evaluation: "Le evidenze contraddicono la parola 'sempre'. Una conclusione condizionata sta diventando difendibile.",
+          adaptation: "Verificare se gli studi distinguono tra output, ore lavorate e produttività percepita.",
+          progress: 68,
+          openIssues: 1,
+        },
+        {
+          action: "Costruire una tabella delle evidenze e verificare ogni affermazione sulla fonte originale.",
+          observation: "Le fonti indicano effetti misti e identificano autonomia, coordinamento e tipo di attività come variabili chiave.",
+          evaluation: "La conclusione è supportata, l'incertezza è visibile e la soglia di fonti è raggiunta.",
+          adaptation: "Fermarsi con una risposta formulata con le dovute riserve e conservare la tabella delle evidenze per la revisione.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "writing",
+      label: "Rifinire un'email di lancio",
+      goal: "Creare un'email di lancio concisa che spieghi il beneficio e ottenga clic qualificati verso la demo.",
+      stopRule: "L'email supera la griglia sul tono di voce, resta sotto le 140 parole, contiene una sola call to action chiara e regge una verifica fattuale.",
+      evidence: "Conteggio parole, punteggi della griglia, validazione dei link, dati di prodotto di partenza e note del revisore.",
+      cycles: [
+        {
+          action: "Scrivere una bozza dal brief di prodotto e valutarla con la griglia su pubblico e tono di voce.",
+          observation: "La bozza è di 204 parole, si apre con le funzionalità e contiene due call to action in concorrenza tra loro.",
+          evaluation: "I fatti sono accurati, ma i criteri di gerarchia e lunghezza falliscono.",
+          adaptation: "Aprire con il risultato per il cliente, rimuovere l'azione secondaria e tagliare i dettagli implementativi.",
+          progress: 41,
+          openIssues: 3,
+        },
+        {
+          action: "Riscrivere l'apertura e comprimere il corpo in un'unica sequenza problema-beneficio-prova.",
+          observation: "L'email è di 126 parole e ha una sola CTA, ma la frase di prova esagera un risultato della beta.",
+          evaluation: "La struttura passa. La calibrazione fattuale non supera ancora la griglia.",
+          adaptation: "Sostituire l'affermazione generica con il risultato misurato della beta e richiedere una verifica fattuale finale.",
+          progress: 79,
+          openIssues: 1,
+        },
+        {
+          action: "Inserire la metrica verificata, validare il link ed eseguire un'ultima volta la griglia completa.",
+          observation: "L'email è di 132 parole, il link funziona, i fatti corrispondono al brief e ogni voce della griglia passa.",
+          evaluation: "L'artefatto soddisfa l'asticella di qualità definita, con evidenze verificabili.",
+          adaptation: "Fermarsi e inviare la versione approvata al responsabile della campagna.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+  ],
+}} />
+
+## Scrivi Prima il Contratto del Loop
+
+Prima di scegliere un modello o un framework, scrivi un piccolo contratto. Se questi campi sono vaghi, il loop trasformerà l'ambiguità in costi ripetuti.
+
+```yaml
+goal: "Quale stato osservabile deve diventare vero?"
+inputs: "Cosa avvia il loop?"
+state: "Quali fatti e tentativi persistono tra le iterazioni?"
+actions: "Quali strumenti può usare il sistema, e con quali permessi?"
+observations: "Quali segnali esterni tornano indietro da quelle azioni?"
+evaluator: "Quale griglia di valutazione o quali controlli deterministici giudicano il risultato?"
+success: "Quali evidenze dimostrano che l'obiettivo è raggiunto?"
+failure: "Quali condizioni richiedono un recupero o l'aiuto di un umano?"
+budget: "Massimo di turni, tempo, token, denaro o effetti collaterali"
+```
+
+<Callout type="warning" title="Un Loop Senza Uscita È una Modalità di Fallimento">
+Definisci sempre tre uscite: **successo** quando le evidenze soddisfano l'obiettivo, **fallimento** quando il recupero non è più utile, e **budget esaurito** quando il loop raggiunge il limite di costo o di rischio consentito.
+</Callout>
+
+## Le Osservazioni Devono Venire dal Mondo
+
+Il modello che dice "questo sembra corretto" non è un'evidenza forte. Un'osservazione utile è prodotta da qualcosa di esterno alla risposta che si sta giudicando.
+
+<table>
+  <thead>
+    <tr>
+      <th>Task</th>
+      <th>Osservazione debole</th>
+      <th>Osservazione forte</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Riparazione di codice</td>
+      <td>"La correzione dovrebbe funzionare."</td>
+      <td>Il fallimento originale viene riprodotto, poi la regressione e l'intera suite passano.</td>
+    </tr>
+    <tr>
+      <td>Ricerca</td>
+      <td>"Diverse fonti concordano."</td>
+      <td>Le affermazioni rimandano alle fonti originali, con date, metodologie e disaccordi registrati.</td>
+    </tr>
+    <tr>
+      <td>Estrazione di dati</td>
+      <td>"Il JSON sembra valido."</td>
+      <td>La validazione dello schema passa e i record campionati corrispondono alla fonte.</td>
+    </tr>
+    <tr>
+      <td>Contenuti</td>
+      <td>"Il testo sembra chiaro."</td>
+      <td>Supera una griglia di valutazione definita, una verifica fattuale, il controllo dei link e i test con il pubblico.</td>
+    </tr>
+    <tr>
+      <td>Operazioni</td>
+      <td>"La richiesta è andata a buon fine."</td>
+      <td>Il sistema esterno restituisce lo stato atteso ed esiste un record di audit.</td>
+    </tr>
+  </tbody>
+</table>
+
+Ecco perché gli strumenti contano: test, browser, database, validatori e revisione umana trasformano una supposizione interna in un risultato osservabile.
+
+## Separa Chi Produce da Chi Verifica
+
+Per il lavoro a basso rischio, un solo modello può scrivere e auto-revisionarsi. Per il lavoro importante, usa un verificatore con un compito diverso e un'autorità limitata.
+
+<InfoGrid columns={2} items={[
+  { label: "Autore", description: "Propone la modifica, chiama gli strumenti di azione e spiega quali evidenze andrebbero raccolte.", color: "amber" },
+  { label: "Verificatore", description: "Riceve l'obiettivo, l'artefatto e le evidenze; applica la griglia di valutazione; non può riscrivere in silenzio il lavoro che giudica.", color: "green" },
+]} />
+
+Il verificatore non deve per forza essere un'altra IA. Preferisci il valutatore più deterministico disponibile:
+
+1. **Controlli esatti** — tipi, schemi, vincoli, permessi, hash
+2. **Controlli eseguibili** — test, linter, simulazioni, validazione dei link
+3. **Controlli a griglia** — un modello indipendente o un umano che applica criteri espliciti
+4. **Controlli sugli esiti** — comportamento reale degli utenti o metriche di produzione nel tempo
+
+<Callout type="tip" title="La Sicurezza Non È un'Evidenza">
+Un punteggio di confidenza generato dallo stesso modello che ha prodotto l'artefatto è comunque un output del modello. Trattalo come un indizio per l'instradamento, non come una prova.
+</Callout>
+
+## Lo Stato È la Spina Dorsale del Loop
+
+Il contesto è ciò che il modello vede **in questo turno**. Lo stato è il registro compatto che permette al turno successivo di proseguire senza ripetere né dimenticare il lavoro.
+
+<Checklist title="Stato Utile del Loop" items={[
+  { text: "L'obiettivo corrente e i criteri di accettazione" },
+  { text: "Le azioni già tentate e i loro risultati osservabili" },
+  { text: "Gli artefatti prodotti, con versioni o riferimenti stabili" },
+  { text: "I verdetti del valutatore e i problemi irrisolti" },
+  { text: "Il budget consumato e i permessi ancora disponibili" },
+  { text: "La ragione per continuare, fermarsi o passare la mano a un umano" },
+]} />
+
+Conserva decisioni ed evidenze concise — non la catena di pensiero privata di un modello. Un buono stato è piccolo, ispezionabile e sicuro da riprendere.
+
+## Forme Comuni di Loop
+
+### Il Loop di Riparazione
+
+`riproduci → cambia una cosa sola → esegui i controlli → diagnostica → ripeti o fermati`
+
+Ideale per codice, configurazioni, pulizia dei dati e qualsiasi task con feedback eseguibile.
+
+### Il Loop Evaluator-Optimizer
+
+`genera → assegna un punteggio con una griglia → restituisci feedback mirato → rivedi`
+
+Ideale per scrittura, traduzione, critica di design e output la cui qualità migliora grazie a un feedback ben articolato.
+
+### Il Loop di Ricerca
+
+`cerca → esamina le fonti → individua lacune o conflitti → cerca di nuovo → sintetizza`
+
+Ideale quando la completezza non è nota in anticipo. La regola di arresto dovrebbe misurare la copertura delle evidenze, non il numero di risultati di ricerca.
+
+### Il Loop con Approvazione Umana
+
+`prepara → verifica automaticamente → metti in pausa prima dell'azione ad alto rischio → un umano approva o reindirizza`
+
+Ideale per pagamenti, pubblicazioni, cancellazioni, modifiche degli accessi, decisioni mediche o legali e altre azioni con conseguenze importanti.
+
+## Modalità di Fallimento da Eliminare in Fase di Progetto
+
+<table>
+  <thead>
+    <tr>
+      <th>Fallimento</th>
+      <th>Cosa è successo</th>
+      <th>Risposta ingegneristica</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Retry infinito</td>
+      <td>Il loop non ha un'uscita misurabile per successo o budget.</td>
+      <td>Aggiungi stati terminali espliciti e un tetto rigido alle iterazioni.</td>
+    </tr>
+    <tr>
+      <td>Auto-compiacimento</td>
+      <td>L'autore accetta la propria risposta plausibile senza evidenze.</td>
+      <td>Usa controlli deterministici o un verificatore indipendente.</td>
+    </tr>
+    <tr>
+      <td>Valanga di contesto</td>
+      <td>Ogni iterazione accumula tutto finché il modello perde il segnale.</td>
+      <td>Rendi persistente uno stato strutturato e ricostruisci solo il contesto rilevante.</td>
+    </tr>
+    <tr>
+      <td>Oscillazione</td>
+      <td>Il loop oscilla tra due correzioni.</td>
+      <td>Rileva gli stati ripetuti e imponi una strategia diversa o il passaggio a un umano.</td>
+    </tr>
+    <tr>
+      <td>Deriva dell'obiettivo</td>
+      <td>I miglioramenti locali prendono il posto dell'obiettivo originale.</td>
+      <td>Rileggi a ogni ciclo l'obiettivo immutabile e i criteri di accettazione.</td>
+    </tr>
+    <tr>
+      <td>Ripetizione non sicura</td>
+      <td>Un errore reversibile diventa dannoso se ripetuto.</td>
+      <td>Limita permessi, effetti collaterali, frequenza, spesa e raggio d'impatto.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Un'Implementazione Minima
+
+```typescript
+let state = initialize(goal, acceptanceCriteria, budget);
+
+while (state.budget.remaining > 0) {
+  const context = assembleRelevantContext(state);
+  const proposedAction = await maker.chooseAction(context);
+  const observation = await tools.executeWithinPolicy(proposedAction);
+  const verdict = await evaluator.check({ goal, observation, state });
+
+  state = recordIteration(state, { proposedAction, observation, verdict });
+
+  if (verdict.status === "passed") return complete(state);
+  if (verdict.status === "unsafe" || verdict.status === "blocked") {
+    return escalateToHuman(state);
+  }
+
+  state = adaptPlan(state, verdict.feedback);
+}
+
+return stopWithBudgetReport(state);
+```
+
+Il codice è la parte facile. Le domande difficili sono domande di dominio: quale test dimostra che il bug è sparito? Quale fonte è autorevole? Quale azione è reversibile? Chi può approvare il passo finale? Quelle decisioni sono il vero lavoro dell'ingegneria dei loop.
+
+## Pratica: Progetta un Loop
+
+<TryIt
+  title="Scrivi la Bozza di un Contratto di Loop"
+  description="Sostituisci le variabili con un task ricorrente del tuo lavoro. Chiedi all'IA di mettere in discussione le evidenze deboli e le regole di arresto ambigue."
+  prompt={`Progetta un loop di lavoro IA delimitato per questo task:
+
+TASK: \${task:smistare ogni mattina le nuove richieste di assistenza clienti}
+
+Definisci:
+1. L'obiettivo osservabile
+2. Il trigger e gli input richiesti
+3. Le azioni consentite e i permessi degli strumenti
+4. Le osservazioni affidabili provenienti dall'ambiente esterno
+5. Il valutatore e la sua griglia di valutazione
+6. Lo stato che persiste tra le iterazioni
+7. Le uscite per successo, fallimento e budget esaurito
+8. I punti di approvazione umana per le azioni rischiose
+9. Un formato di trace che renda verificabile ogni iterazione
+
+Poi individua le tre modalità di fallimento più probabili nel tuo progetto e rivedi il loop per prevenirle.`}
+/>
+
+<Quiz
+  question="Un agente modifica il codice, rilegge il diff e dice che il bug è risolto. Qual è la parte mancante più importante del loop?"
+  options={[
+    "Un system prompt più lungo",
+    "Un'osservazione esterna valutata rispetto a una regola di arresto",
+    "Un secondo passaggio di editing",
+    "Una finestra di contesto più grande"
+  ]}
+  correctIndex={1}
+  explanation="L'agente ha prodotto e ispezionato un artefatto, ma non ha raccolto evidenze indipendenti. Riprodurre il fallimento ed eseguire i test pertinenti creerebbe un segnale osservabile che una regola di arresto può valutare."
+/>
+
+## Letture di Approfondimento
+
+- [Loop Engineering — Addy Osmani](https://addyosmani.com/blog/loop-engineering/) — la recente formulazione dell'idea di sostituire i prompt di follow-up manuali con un sistema progettato, più avvertenze pratiche su verifica e responsabilità umana
+- [Building Effective Agents — Anthropic](https://www.anthropic.com/engineering/building-effective-agents) — workflow evaluator-optimizer, feedback dall'ambiente, condizioni di arresto e indicazioni su quando la complessità agentica è giustificata
+- [A Practical Guide to Building Agents — OpenAI](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) — esecuzioni degli agenti, condizioni di uscita, strumenti, guardrail e intervento umano
+- [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) — la ricerca fondativa sull'alternanza tra azioni e osservazioni provenienti da un ambiente esterno
+
+## Riepilogo
+
+<Callout type="tip" title="Costruisci il Feedback, Non Solo il Prompt">
+Un loop affidabile ha un obiettivo misurabile, azioni delimitate, osservazioni affidabili, un valutatore esplicito, uno stato compatto, uscite sicure e giudizio umano dove le conseguenze lo richiedono. Il modello è dentro il loop; l'ingegnere resta responsabile del loop.
+</Callout>

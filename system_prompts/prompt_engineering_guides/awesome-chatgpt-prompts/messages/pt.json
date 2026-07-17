@@ -1251,7 +1251,7 @@
     "interactiveBanner": {
       "badge": "Versão Interativa Disponível",
       "title": "Quer uma Experiência Mais Detalhada e Interativa?",
-      "description": "Aprofunde-se com nosso guia interativo completo com 25 capítulos, exercícios práticos e exemplos do mundo real para dominar prompts de IA.",
+      "description": "Aprofunde-se com nosso guia interativo completo com 26 capítulos, exercícios práticos e exemplos do mundo real para dominar prompts de IA.",
       "cta": "Ler o Livro Interativo"
     },
     "generalTips": {
@@ -1743,7 +1743,7 @@
       "part4": "Parte 4: Melhores Práticas",
       "part5": "Parte 5: Casos de Uso",
       "part6": "Parte 6: Conclusão",
-      "chapters": "25 Capítulos Interativos"
+      "chapters": "26 Capítulos Interativos"
     },
     "startReading": "Começar a Ler",
     "skipToChapter1": "Ir para o Capítulo 1",
@@ -1800,6 +1800,7 @@
       "12-handling-edge-cases": "Tratamento de Casos Limites",
       "13-multimodal-prompting": "Prompting Multimodal",
       "14-context-engineering": "Engenharia de Contexto",
+      "14a-loop-engineering": "Engenharia de Loop",
       "25-agents-and-skills": "Agentes e Habilidades",
       "15-common-pitfalls": "Erros Comuns",
       "16-ethics-responsible-use": "Ética e Uso Responsável",
@@ -1830,6 +1831,7 @@
       "12-handling-edge-cases": "Lidar com entradas inesperadas",
       "13-multimodal-prompting": "Trabalhar com imagens, áudio e vídeo",
       "14-context-engineering": "RAG, embeddings, chamadas de função e MCP",
+      "14a-loop-engineering": "Projetar loops de feedback que agem, verificam, se adaptam e sabem quando parar",
       "25-agents-and-skills": "Construir agentes de IA com pacotes de habilidades reutilizáveis",
       "15-common-pitfalls": "Erros a evitar",
       "16-ethics-responsible-use": "Considerações éticas em IA",

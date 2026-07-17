@@ -1,6 +1,10 @@
-# MCP Root Contexts
+> [ВИДАЛЕНО: РЕЛІЗ-КАНДИДАТ 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Кореневі контексти — це фундаментальна концепція в Model Context Protocol, яка забезпечує постійний рівень для збереження історії розмови та спільного стану між кількома запитами та сесіями.
+# Кореневі контексти MCP
+
+> **Повідомлення про видалення:** кандидат у реліз специфікації MCP `2026-07-28` позначає корені як застарілі на користь параметрів інструментів, URI ресурсів або конфігурації сервера. Корені продовжують працювати у версії `2025-11-25` та принаймні ще рік після будь-якого офіційного зняття з підтримки, тому все в цьому уроці залишається дійсним — але нові серверні рішення повинні оцінити модель заміщення. Дивіться [Що змінюється в MCP: Реліз-кандидат 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Кореневі контексти — це фундаментальна концепція в Model Context Protocol, яка забезпечує стійкий рівень для збереження історії розмови та спільного стану між кількома запитами та сесіями.
 
 ## Вступ
 
@@ -12,35 +16,35 @@
 
 - Розуміти призначення та структуру кореневих контекстів
 - Створювати та керувати кореневими контекстами за допомогою клієнтських бібліотек MCP
-- Реалізовувати кореневі контексти в додатках на .NET, Java, JavaScript та Python
-- Використовувати кореневі контексти для багатокрокових розмов і управління станом
-- Впроваджувати найкращі практики управління кореневими контекстами
+- Запроваджувати кореневі контексти у додатках .NET, Java, JavaScript та Python
+- Використовувати кореневі контексти для багаторівневих розмов і управління станом
+- Впроваджувати найкращі практики керування кореневими контекстами
 
 ## Розуміння кореневих контекстів
 
-Кореневі контексти слугують контейнерами, які зберігають історію та стан для серії пов’язаних взаємодій. Вони дозволяють:
+Кореневі контексти слугують контейнерами, які зберігають історію та стан для серії пов’язаних взаємодій. Вони забезпечують:
 
-- **Збереження розмови**: підтримувати послідовні багатокрокові розмови
-- **Управління пам’яттю**: зберігати та отримувати інформацію між взаємодіями
-- **Управління станом**: відстежувати прогрес у складних робочих процесах
-- **Спільний доступ до контексту**: дозволяти кільком клієнтам отримувати доступ до одного й того ж стану розмови
+- **Збереження розмови**: підтримку послідовних багатокрокових розмов
+- **Управління пам’яттю**: зберігання та отримання інформації між взаємодіями
+- **Управління станом**: відстеження прогресу у складних робочих процесах
+- **Спільний доступ до контексту**: дозвіл кільком клієнтам доступу до одного й того ж стану розмови
 
 У MCP кореневі контексти мають такі ключові характеристики:
 
 - Кожен кореневий контекст має унікальний ідентифікатор.
-- Вони можуть містити історію розмов, уподобання користувача та інші метадані.
-- Їх можна створювати, отримувати доступ і архівувати за потребою.
-- Вони підтримують детальний контроль доступу та права.
+- Вони можуть містити історію розмов, налаштування користувача та інші метадані.
+- Їх можна створювати, отримувати доступ і архівувати за потреби.
+- Вони підтримують тонке керування доступом і дозволами.
 
 ## Життєвий цикл кореневого контексту
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Створити кореневий контекст] --> B[Ініціалізувати з метаданими]
+    B --> C[Надсилати запити з ідентифікатором контексту]
+    C --> D[Оновити контекст з результатами]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Архівувати контекст після завершення]
 ```
 
 ## Робота з кореневими контекстами
@@ -122,13 +126,13 @@ public class RootContextExample
 }
 ```
 
-У наведеному коді ми:
+У наведеному вище коді ми:
 
 1. Створили кореневий контекст для сесії підтримки клієнтів.
-1. Надіслали кілька повідомлень у цьому контексті, що дозволило моделі зберігати стан.
+1. Відправили кілька повідомлень у цьому контексті, дозволяючи моделі підтримувати стан.
 1. Оновили контекст відповідними метаданими на основі розмови.
-1. Отримали інформацію про контекст, щоб зрозуміти історію розмови.
-1. Архівували контекст після завершення розмови.
+1. Отримали інформацію контексту для розуміння історії розмови.
+1. Архівували контекст, коли розмова була завершена.
 
 ## Приклад: Реалізація кореневого контексту для фінансового аналізу
 
@@ -137,7 +141,7 @@ public class RootContextExample
 ### Реалізація на Java
 
 ```java
-// Java Example: Root Context Implementation
+// Приклад Java: Реалізація кореневого контексту
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Створити метадані контексту
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Створити новий кореневий контекст
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Перша взаємодія
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Оновити контекст важливою інформацією, отриманою з відповіді
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Друга взаємодія - використання того ж контексту
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Згенерувати резюме сесії аналізу
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Зберегти резюме в метаданих контексту
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Отримати оновлену інформацію контексту
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Архівувати контекст після завершення
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -223,30 +227,30 @@ public class RootContextsDemo {
 У наведеному коді ми:
 
 1. Створили кореневий контекст для сесії фінансового аналізу.
-2. Надіслали кілька повідомлень у цьому контексті, що дозволило моделі зберігати стан.
+2. Відправили кілька повідомлень у цьому контексті, дозволяючи моделі підтримувати стан.
 3. Оновили контекст відповідними метаданими на основі розмови.
-4. Згенерували підсумок сесії аналізу та зберегли його в метаданих контексту.
-5. Архівували контекст після завершення розмови.
+4. Згенерували підсумок сесії аналізу і зберегли його в метаданих контексту.
+5. Архівували контекст, коли розмова була завершена.
 
-## Приклад: Управління кореневими контекстами
+## Приклад: Керування кореневим контекстом
 
-Ефективне управління кореневими контекстами є ключовим для збереження історії розмов і стану. Нижче наведено приклад реалізації управління кореневими контекстами.
+Ефективне керування кореневими контекстами є ключовим для збереження історії та стану розмови. Нижче наведено приклад, як реалізувати керування кореневим контекстом.
 
 ### Реалізація на JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// Приклад на JavaScript: Управління кореневими контекстами MCP
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Ініціалізуйте клієнта MCP
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Ініціалізуйте менеджер контексту
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Надішліть повідомлення, використовуючи вказаний контекст
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // За потреби збережіть важливі висновки з розмови
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Витягніть потенційні висновки (у реальному застосунку це було б складніше)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Проста евристика для виявлення потенційних висновків
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Збережіть висновки у метаданих контексту
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Некритична помилка, тому просто зафіксуйте попередження
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Запитайте модель створити підсумок розмови на цей момент
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Збережіть підсумок у метаданих контексту
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Згенеруйте остаточний підсумок перед архівацією
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Архівуйте контекст
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Приклад використання
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Створіть новий контекст для розмови щодо підтримки продукту
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Перше повідомлення в розмові
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Наступне повідомлення в тому ж контексті
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Отримайте інформацію про контекст
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Згенеруйте та відобразіть підсумок розмови
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Архівуйте контекст після завершення
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Коректно обробляйте будь-які помилки
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-У наведеному коді ми:
+У наведеному вище коді ми:
 
-1. Створили кореневий контекст для розмови з підтримкою продукту за допомогою функції `createConversationContext`. У цьому випадку контекст стосується проблем з продуктивністю бази даних.
+1. Створили кореневий контекст для розмови з підтримки продукту за допомогою функції `createConversationContext`. У цьому випадку контекст стосується проблем з продуктивністю бази даних.
 
-1. Надіслали кілька повідомлень у цьому контексті, що дозволило моделі зберігати стан за допомогою функції `sendMessage`. Повідомлення стосуються повільного виконання запитів і налаштування індексів.
+1. Відправили кілька повідомлень у цьому контексті, дозволяючи моделі підтримувати стан за допомогою функції `sendMessage`. Надіслані повідомлення стосуються повільної роботи запитів та конфігурації індексів.
 
-1. Оновили контекст відповідними метаданими на основі розмови.
+1. Оновили контекст релевантними метаданими на основі розмови.
 
-1. Згенерували підсумок розмови та зберегли його в метаданих контексту за допомогою функції `generateContextSummary`.
+1. Згенерували підсумок розмови і зберегли його у метаданих контексту за допомогою функції `generateContextSummary`.
 
-1. Архівували контекст після завершення розмови за допомогою функції `archiveContext`.
+1. Архівували контекст, коли розмова була завершена за допомогою функції `archiveContext`.
 
 1. Обробили помилки коректно для забезпечення надійності.
 
-## Кореневий контекст для багатокрокової допомоги
+## Кореневий контекст для багатокрокової підтримки
 
-У цьому прикладі ми створимо кореневий контекст для сесії багатокрокової допомоги, демонструючи, як підтримувати стан між кількома взаємодіями.
+У цьому прикладі ми створимо кореневий контекст для сесії багатокрокової підтримки, демонструючи, як підтримувати стан між кількома взаємодіями.
 
 ### Реалізація на Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Приклад на Python: Кореневий контекст для багатокрокової допомоги
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Додати інформацію про користувача, якщо вона надана
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Створити кореневий контекст
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Створити параметри з ідентифікатором контексту
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Додати інструменти, якщо вказано
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Надіслати підказку в межах контексту
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Оновити метадані контексту з прогресом розмови
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Спочатку згенерувати підказку для підсумку
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Зберегти підсумок у метаданих
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Архівувати контекст
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Приклад використання
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Створити сесію
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Перша взаємодія
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Друга взаємодія в тому ж контексті
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Отримати історію
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Завершити сесію
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 У наведеному коді ми:
 
-1. Створили кореневий контекст для сесії технічної підтримки за допомогою функції `create_session`. Контекст містить інформацію про користувача, таку як ім’я та технічний рівень.
+1. Створили кореневий контекст для сесії технічної підтримки за допомогою функції `create_session`. Контекст включає інформацію про користувача, таку як ім’я та технічний рівень.
 
-1. Надіслали кілька повідомлень у цьому контексті, що дозволило моделі зберігати стан за допомогою функції `send_message`. Повідомлення стосуються проблем з функцією автозмасштабування.
+1. Відправили кілька повідомлень у цьому контексті, дозволяючи моделі підтримувати стан за допомогою функції `send_message`. Надіслані повідомлення стосуються проблем з функцією автозмасштабування.
 
-1. Отримали історію розмови за допомогою функції `get_conversation_history`, яка надає інформацію про контекст і повідомлення.
+1. Отримали історію розмов за допомогою функції `get_conversation_history`, яка надає інформацію про контекст та повідомлення.
 
-1. Завершили сесію, архівувавши контекст і згенерувавши підсумок за допомогою функції `end_session`. Підсумок відображає ключові моменти розмови.
+1. Завершили сесію, архівувавши контекст і згенерувавши підсумок за допомогою функції `end_session`. Підсумок фіксує ключові моменти розмови.
 
-## Найкращі практики для кореневих контекстів
+## Найкращі практики кореневого контексту
 
-Ось кілька найкращих практик для ефективного управління кореневими контекстами:
+Нижче наведені деякі найкращі практики ефективного керування кореневими контекстами:
 
-- **Створюйте сфокусовані контексти**: створюйте окремі кореневі контексти для різних цілей розмов або доменів, щоб зберігати ясність.
+- **Створюйте сфокусовані контексти**: створюйте окремі кореневі контексти для різних цілей або доменів розмов, щоб зберігати чіткість.
 
-- **Встановлюйте політики терміну дії**: впроваджуйте політики архівування або видалення старих контекстів для керування зберіганням і дотримання політик зберігання даних.
+- **Встановлюйте політики зберігання**: реалізуйте політики для архівування або видалення застарілих контекстів для управління сховищем і дотримання правил зберігання даних.
 
-- **Зберігайте релевантні метадані**: використовуйте метадані контексту для збереження важливої інформації про розмову, яка може знадобитися пізніше.
+- **Зберігайте релевантні метадані**: використовуйте метадані контексту для збереження важливої інформації про розмову, яка може бути корисною пізніше.
 
-- **Послідовно використовуйте ID контексту**: після створення контексту послідовно використовуйте його ID для всіх пов’язаних запитів, щоб підтримувати безперервність.
+- **Використовуйте ідентифікатори контексту послідовно**: після створення контексту використовуйте його ID послідовно для всіх пов’язаних запитів, щоб зберігати цілісність.
 
-- **Генеруйте підсумки**: коли контекст стає великим, розглядайте можливість створення підсумків для збереження суттєвої інформації при контролі розміру контексту.
+- **Генеруйте підсумки**: коли контекст стає великим, розглядайте можливість генерації підсумків для фіксації основної інформації при управлінні розміром контексту.
 
-- **Впроваджуйте контроль доступу**: для багатокористувацьких систем впроваджуйте належний контроль доступу для забезпечення конфіденційності та безпеки контекстів розмов.
+- **Впроваджуйте контроль доступу**: для мультикористувацьких систем реалізуйте належні засоби контролю доступу задля забезпечення приватності та безпеки контекстів розмов.
 
-- **Ураховуйте обмеження контексту**: будьте обізнані про обмеження розміру контексту та впроваджуйте стратегії для роботи з дуже довгими розмовами.
+- **Обробляйте обмеження контексту**: враховуйте обмеження розміру контексту та впроваджуйте стратегії для роботи з надто довгими розмовами.
 
-- **Архівуйте після завершення**: архівуйте контексти після завершення розмов, щоб звільнити ресурси, зберігаючи при цьому історію розмови.
+- **Архівуйте після завершення**: архівуйте контексти, коли розмови завершені, щоб звільнити ресурси, зберігаючи при цьому історію розмови.
 
 ## Що далі
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Маршрутизація](../mcp-routing/README.md)
 
-**Відмова від відповідальності**:  
-Цей документ було перекладено за допомогою сервісу автоматичного перекладу [Co-op Translator](https://github.com/Azure/co-op-translator). Хоча ми прагнемо до точності, будь ласка, майте на увазі, що автоматичні переклади можуть містити помилки або неточності. Оригінальний документ рідною мовою слід вважати авторитетним джерелом. Для критично важливої інформації рекомендується звертатися до професійного людського перекладу. Ми не несемо відповідальності за будь-які непорозуміння або неправильні тлумачення, що виникли внаслідок використання цього перекладу.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Відмова від відповідальності**:
+Цей документ було перекладено за допомогою сервісу штучного інтелекту для перекладу [Co-op Translator](https://github.com/Azure/co-op-translator). Хоча ми прагнемо до точності, будь ласка, майте на увазі, що автоматичні переклади можуть містити помилки або неточності. Оригінальний документ рідною мовою слід вважати авторитетним джерелом. Для критично важливої інформації рекомендується професійний людський переклад. Ми не несемо відповідальності за будь-які непорозуміння або неправильні тлумачення, що виникли внаслідок використання цього перекладу.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

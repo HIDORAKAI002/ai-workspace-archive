@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [ΑΠΑΡΧΑΙΩΜΕΝΟ: ΥΠΟΨΗΦΙΟ ΓΙΑ ΕΚΔΟΣΗ 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Οι root contexts είναι μια βασική έννοια στο Model Context Protocol που παρέχει ένα μόνιμο επίπεδο για τη διατήρηση του ιστορικού συνομιλίας και της κοινής κατάστασης σε πολλαπλά αιτήματα και συνεδρίες.
+# Ρίζες Περιεχομένων MCP
+
+> **Ειδοποίηση απαραιώσεως:** ο υποψήφιος για έκδοση προδιαγραφής MCP `2026-07-28` χαρακτηρίζει τις Ρίζες ως απαρχαιωμένες υπέρ παραμέτρων εργαλείων, URIs πόρων ή ρυθμίσεων διακομιστή. Οι ρίζες συνεχίζουν να λειτουργούν στο `2025-11-25` και για τουλάχιστον έναν χρόνο μετά οποιαδήποτε επίσημη απαρχαίωση, οπότε όλα σε αυτό το μάθημα παραμένουν έγκυρα - αλλά τα νέα σχέδια διακομιστών θα πρέπει να αξιολογήσουν το πρότυπο αντικατάστασης. Δείτε [Τι αλλάζει στο MCP: Ο υποψήφιος για έκδοση 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Οι ρίζες περιεχομένων είναι μια θεμελιώδης έννοια στο Πρωτόκολλο Συμφραζομένων Μοντέλου που παρέχει ένα επίμονο επίπεδο για τη διατήρηση ιστορικού συνομιλίας και κοινής κατάστασης σε πολλαπλά αιτήματα και συνεδρίες.
 
 ## Εισαγωγή
 
-Σε αυτό το μάθημα, θα εξερευνήσουμε πώς να δημιουργούμε, να διαχειριζόμαστε και να χρησιμοποιούμε root contexts στο MCP.
+Σε αυτό το μάθημα, θα εξερευνήσουμε πώς να δημιουργούμε, να διαχειριζόμαστε και να αξιοποιούμε τις ρίζες περιεχομένων στο MCP. 
 
 ## Στόχοι Μάθησης
 
-Στο τέλος αυτού του μαθήματος, θα μπορείτε να:
+Μέχρι το τέλος αυτού του μαθήματος, θα μπορείτε να:
 
-- Κατανοείτε τον σκοπό και τη δομή των root contexts
-- Δημιουργείτε και να διαχειρίζεστε root contexts χρησιμοποιώντας τις βιβλιοθήκες πελάτη MCP
-- Υλοποιείτε root contexts σε εφαρμογές .NET, Java, JavaScript και Python
-- Χρησιμοποιείτε root contexts για συνομιλίες πολλαπλών βημάτων και διαχείριση κατάστασης
-- Εφαρμόζετε βέλτιστες πρακτικές για τη διαχείριση root contexts
+- Κατανοείτε τον σκοπό και τη δομή των ριζών περιεχομένων
+- Δημιουργείτε και διαχειρίζεστε ρίζες περιεχομένων χρησιμοποιώντας τις βιβλιοθήκες πελατών MCP
+- Εφαρμόζετε ρίζες περιεχομένων σε εφαρμογές .NET, Java, JavaScript και Python
+- Αξιοποιείτε τις ρίζες περιεχομένων για διαλόγους πολλαπλών βημάτων και διαχείριση κατάστασης
+- Εφαρμόζετε βέλτιστες πρακτικές για τη διαχείριση ριζών περιεχομένων
 
-## Κατανόηση των Root Contexts
+## Κατανόηση των Ριζών Περιεχομένων
 
-Τα root contexts λειτουργούν ως δοχεία που κρατούν το ιστορικό και την κατάσταση για μια σειρά σχετικών αλληλεπιδράσεων. Επιτρέπουν:
+Οι ρίζες περιεχομένων λειτουργούν ως δοχεία που κρατούν το ιστορικό και την κατάσταση μιας σειράς σχετικών αλληλεπιδράσεων. Επιτρέπουν:
 
-- **Διατήρηση Συνομιλίας**: Διατήρηση συνεκτικών συνομιλιών πολλαπλών βημάτων
-- **Διαχείριση Μνήμης**: Αποθήκευση και ανάκτηση πληροφοριών μεταξύ αλληλεπιδράσεων
-- **Διαχείριση Κατάστασης**: Παρακολούθηση προόδου σε πολύπλοκες ροές εργασίας
-- **Κοινή Χρήση Πλαισίου**: Επιτρέπουν σε πολλούς πελάτες να έχουν πρόσβαση στην ίδια κατάσταση συνομιλίας
+- **Διατήρηση Συνομιλίας**: Διατήρηση συνεκτικών διαλόγων πολλαπλών βημάτων
+- **Διαχείριση Μνήμης**: Αποθήκευση και ανάκτηση πληροφοριών μέσω των αλληλεπιδράσεων
+- **Διαχείριση Κατάστασης**: Παρακολούθηση προόδου σε πολύπλοκες ροές εργασιών
+- **Κοινή Χρήση Περιεχομένου**: Επιτρέποντας σε πολλούς πελάτες να έχουν πρόσβαση στην ίδια κατάσταση συνομιλίας
 
-Στο MCP, τα root contexts έχουν τα εξής βασικά χαρακτηριστικά:
+Στο MCP, οι ρίζες περιεχομένων έχουν τα εξής βασικά χαρακτηριστικά:
 
-- Κάθε root context έχει ένα μοναδικό αναγνωριστικό.
+- Κάθε ρίζα περιεχομένων έχει ένα μοναδικό αναγνωριστικό.
 - Μπορούν να περιέχουν ιστορικό συνομιλίας, προτιμήσεις χρήστη και άλλα μεταδεδομένα.
-- Μπορούν να δημιουργηθούν, να προσπελαστούν και να αρχειοθετηθούν ανάλογα με τις ανάγκες.
-- Υποστηρίζουν λεπτομερή έλεγχο πρόσβασης και δικαιώματα.
+- Μπορούν να δημιουργούνται, να προσπελαύνονται και να αρχειοθετούνται κατά περίπτωση.
+- Υποστηρίζουν λεπτομερή έλεγχο πρόσβασης και άδειες.
 
-## Κύκλος Ζωής Root Context
+## Κύκλος Ζωής Ρίζας Περιεχομένου
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Δημιουργία Ριζικού Πλαισίου] --> B[Αρχικοποίηση με Μεταδεδομένα]
+    B --> C[Αποστολή Αιτημάτων με Αναγνωριστικό Πλαισίου]
+    C --> D[Ενημέρωση Πλαισίου με Αποτελέσματα]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Αρχειοθέτηση Πλαισίου Όταν Ολοκληρωθεί]
 ```
 
-## Εργασία με Root Contexts
+## Εργασία με Ρίζες Περιεχομένων
 
-Ακολουθεί ένα παράδειγμα για το πώς να δημιουργήσετε και να διαχειριστείτε root contexts.
+Ακολουθεί ένα παράδειγμα για το πώς να δημιουργείτε και να διαχειρίζεστε ρίζες περιεχομένων. 
 
 ### Υλοποίηση σε C#
 
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-Στον παραπάνω κώδικα έχουμε:
+Στον προηγούμενο κώδικα έχουμε:
 
-1. Δημιουργήσει ένα root context για μια συνεδρία υποστήριξης πελατών.
-1. Στείλει πολλαπλά μηνύματα μέσα σε αυτό το context, επιτρέποντας στο μοντέλο να διατηρεί την κατάσταση.
-1. Ενημερώσει το context με σχετικά μεταδεδομένα βάσει της συνομιλίας.
-1. Ανακτήσει πληροφορίες του context για να κατανοήσει το ιστορικό της συνομιλίας.
-1. Αρχειοθετήσει το context όταν η συνομιλία ολοκληρώθηκε.
+1. Δημιουργήσει μια ρίζα περιεχομένου για μια συνεδρία υποστήριξης πελατών.
+1. Στείλει πολλαπλά μηνύματα μέσα σε αυτό το περιεχόμενο, επιτρέποντας στο μοντέλο να διατηρεί κατάσταση.
+1. Ενημερώσει το περιεχόμενο με σχετικά μεταδεδομένα βασισμένα στη συνομιλία.
+1. Ανακτήσει πληροφορίες περιεχομένου για να κατανοήσει το ιστορικό συνομιλίας.
+1. Αρχειοθετήσει το περιεχόμενο όταν η συνομιλία ολοκληρώθηκε.
 
-## Παράδειγμα: Υλοποίηση Root Context για χρηματοοικονομική ανάλυση
+## Παράδειγμα: Υλοποίηση Ρίζας Περιεχομένου για χρηματοοικονομική ανάλυση
 
-Σε αυτό το παράδειγμα, θα δημιουργήσουμε ένα root context για μια συνεδρία χρηματοοικονομικής ανάλυσης, δείχνοντας πώς να διατηρείται η κατάσταση σε πολλαπλές αλληλεπιδράσεις.
+Σε αυτό το παράδειγμα, θα δημιουργήσουμε μια ρίζα περιεχομένου για μια συνεδρία χρηματοοικονομικής ανάλυσης, παρουσιάζοντας πώς να διατηρείτε την κατάσταση μέσα από πολλαπλές αλληλεπιδράσεις.
 
 ### Υλοποίηση σε Java
 
 ```java
-// Java Example: Root Context Implementation
+// Παράδειγμα Java: Υλοποίηση Ρίζας Πλαισίου
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Δημιουργία μεταδεδομένων πλαισίου
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Δημιουργία νέου ριζικού πλαισίου
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Πρώτη αλληλεπίδραση
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Ενημέρωση πλαισίου με σημαντικές πληροφορίες που αποκτήθηκαν από την απάντηση
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Δεύτερη αλληλεπίδραση - χρήση του ίδιου πλαισίου
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Δημιουργία περίληψης της συνεδρίας ανάλυσης
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Αποθήκευση της περίληψης στα μεταδεδομένα πλαισίου
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Λήψη ενημερωμένων πληροφοριών πλαισίου
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Αρχειοθέτηση πλαισίου όταν ολοκληρωθεί
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-Στον παραπάνω κώδικα έχουμε:
+Στον προηγούμενο κώδικα, έχουμε:
 
-1. Δημιουργήσει ένα root context για μια συνεδρία χρηματοοικονομικής ανάλυσης.
-2. Στείλει πολλαπλά μηνύματα μέσα σε αυτό το context, επιτρέποντας στο μοντέλο να διατηρεί την κατάσταση.
-3. Ενημερώσει το context με σχετικά μεταδεδομένα βάσει της συνομιλίας.
-4. Δημιουργήσει μια περίληψη της συνεδρίας ανάλυσης και την αποθήκευσε στα μεταδεδομένα του context.
-5. Αρχειοθετήσει το context όταν η συνομιλία ολοκληρώθηκε.
+1. Δημιουργήσει μια ρίζα περιεχομένου για μια συνεδρία χρηματοοικονομικής ανάλυσης.
+2. Στείλει πολλαπλά μηνύματα μέσα σε αυτό το περιεχόμενο, επιτρέποντας στο μοντέλο να διατηρεί κατάσταση.
+3. Ενημερώσει το περιεχόμενο με σχετικά μεταδεδομένα βασισμένα στη συνομιλία.
+4. Δημιουργήσει μια περίληψη της συνεδρίας ανάλυσης και την αποθηκεύσει στα μεταδεδομένα του περιεχομένου.
+5. Αρχειοθετήσει το περιεχόμενο όταν ολοκληρώθηκε η συνομιλία.
 
-## Παράδειγμα: Διαχείριση Root Context
+## Παράδειγμα: Διαχείριση Ρίζας Περιεχομένου
 
-Η αποτελεσματική διαχείριση των root contexts είναι κρίσιμη για τη διατήρηση του ιστορικού συνομιλίας και της κατάστασης. Παρακάτω υπάρχει ένα παράδειγμα υλοποίησης διαχείρισης root context.
+Η αποτελεσματική διαχείριση των ριζών περιεχομένων είναι κρίσιμη για τη διατήρηση του ιστορικού συνομιλίας και της κατάστασης. Ακολουθεί ένα παράδειγμα εφαρμογής διαχείρισης ρίζας περιεχομένου.
 
 ### Υλοποίηση σε JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// Παράδειγμα JavaScript: Διαχείριση των MCP Root Contexts
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Αρχικοποίηση του πελάτη MCP
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Αρχικοποίηση διαχειριστή συμφραζομένων
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Αποστολή μηνύματος χρησιμοποιώντας το συγκεκριμένο πλαίσιο
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Προαιρετικά αποθήκευση σημαντικών πληροφοριών από τη συνομιλία
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Εξαγωγή πιθανών πληροφοριών (σε μια πραγματική εφαρμογή, αυτό θα ήταν πιο εξελιγμένο)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Απλός κανόνας για τον εντοπισμό πιθανών πληροφοριών
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Αποθήκευση πληροφοριών στα μεταδεδομένα του πλαισίου
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Μη κρίσιμο σφάλμα, οπότε απλά καταγράψτε προειδοποίηση
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Ζητήστε από το μοντέλο να δημιουργήσει περίληψη της συνομιλίας μέχρι στιγμής
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Αποθήκευση της περίληψης στα μεταδεδομένα του πλαισίου
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Δημιουργία τελικής περίληψης πριν την αρχειοθέτηση
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Αρχειοθέτηση του πλαισίου
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Παράδειγμα χρήσης
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Δημιουργήστε ένα νέο πλαίσιο για μια συνομιλία υποστήριξης προϊόντος
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Πρώτο μήνυμα στη συνομιλία
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Μήνυμα παρακολούθησης στο ίδιο πλαίσιο
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Λάβετε πληροφορίες για το πλαίσιο
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Δημιουργήστε και εμφανίστε περίληψη της συνομιλίας
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Αρχειοθετήστε το πλαίσιο όταν τελειώσετε
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Αντιμετωπίστε τυχόν σφάλματα με ευγένεια
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-Στον παραπάνω κώδικα έχουμε:
+Στον προηγούμενο κώδικα έχουμε:
 
-1. Δημιουργήσει ένα root context για μια συνομιλία υποστήριξης προϊόντος με τη συνάρτηση `createConversationContext`. Σε αυτή την περίπτωση, το context αφορά προβλήματα απόδοσης βάσης δεδομένων.
+1. Δημιουργήσει μια ρίζα περιεχομένου για μια συνομιλία υποστήριξης προϊόντος με τη λειτουργία `createConversationContext`. Σε αυτή την περίπτωση, το περιεχόμενο αφορά προβλήματα απόδοσης βάσης δεδομένων.
 
-1. Στείλει πολλαπλά μηνύματα μέσα σε αυτό το context, επιτρέποντας στο μοντέλο να διατηρεί την κατάσταση με τη συνάρτηση `sendMessage`. Τα μηνύματα αφορούν αργή απόδοση ερωτημάτων και ρύθμιση ευρετηρίων.
+1. Στείλει πολλαπλά μηνύματα μέσα σε αυτό το περιεχόμενο, επιτρέποντας στο μοντέλο να διατηρεί κατάσταση με τη λειτουργία `sendMessage`. Τα μηνύματα που στέλνονται αφορούν αργές αποδόσεις ερωτημάτων και διαμόρφωση ευρετηρίων.
 
-1. Ενημερώσει το context με σχετικά μεταδεδομένα βάσει της συνομιλίας.
+1. Ενημερώσει το περιεχόμενο με σχετικά μεταδεδομένα βασισμένα στη συνομιλία.
 
-1. Δημιουργήσει μια περίληψη της συνομιλίας και την αποθήκευσε στα μεταδεδομένα του context με τη συνάρτηση `generateContextSummary`.
+1. Δημιουργήσει μια περίληψη της συνομιλίας και την αποθηκεύσει στα μεταδεδομένα με τη λειτουργία `generateContextSummary`.
 
-1. Αρχειοθετήσει το context όταν η συνομιλία ολοκληρώθηκε με τη συνάρτηση `archiveContext`.
+1. Αρχειοθετήσει το περιεχόμενο όταν ολοκληρώθηκε η συνομιλία με τη λειτουργία `archiveContext`.
 
-1. Διαχειρίστηκε τα σφάλματα με ομαλό τρόπο για να εξασφαλίσει αξιοπιστία.
+1. Διαχειριστεί σφάλματα με επιδεξιότητα για να εξασφαλίσει αξιοπιστία.
 
-## Root Context για Βοήθεια Πολλαπλών Βημάτων
+## Ρίζα Περιεχομένου για Πολυβηματική Υποστήριξη
 
-Σε αυτό το παράδειγμα, θα δημιουργήσουμε ένα root context για μια συνεδρία βοήθειας πολλαπλών βημάτων, δείχνοντας πώς να διατηρείται η κατάσταση σε πολλαπλές αλληλεπιδράσεις.
+Σε αυτό το παράδειγμα, θα δημιουργήσουμε μια ρίζα περιεχομένου για μια συνεδρία πολυβηματικής υποστήριξης, παρουσιάζοντας πώς να διατηρούμε κατάσταση μέσα από πολλαπλές αλληλεπιδράσεις.
 
 ### Υλοποίηση σε Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Παράδειγμα Python: Βασικό Πλαίσιο για Πολυγλωσσική Βοήθεια
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Προσθήκη πληροφοριών χρήστη αν παρέχονται
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Δημιουργία του βασικού πλαισίου
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Δημιουργία επιλογών με αναγνωριστικό πλαισίου
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Προσθήκη εργαλείων αν καθορίζονται
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Αποστολή της προτροπής μέσα στο πλαίσιο
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Ενημέρωση μεταδεδομένων πλαισίου με την πρόοδο της συνομιλίας
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Δημιουργία πρώτα περίληψης προτροπής
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Αποθήκευση περίληψης στα μεταδεδομένα
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Αρχειοθέτηση του πλαισίου
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Παράδειγμα χρήσης
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Δημιουργία συνεδρίας
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Πρώτη αλληλεπίδραση
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Δεύτερη αλληλεπίδραση στο ίδιο πλαίσιο
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Λήψη ιστορικού
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Λήξη συνεδρίας
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-Στον παραπάνω κώδικα έχουμε:
+Στον προηγούμενο κώδικα έχουμε:
 
-1. Δημιουργήσει ένα root context για μια συνεδρία τεχνικής υποστήριξης με τη συνάρτηση `create_session`. Το context περιλαμβάνει πληροφορίες χρήστη όπως όνομα και τεχνικό επίπεδο.
+1. Δημιουργήσει μια ρίζα περιεχομένου για μια συνεδρία τεχνικής υποστήριξης με τη λειτουργία `create_session`. Το περιεχόμενο περιλαμβάνει πληροφορίες χρήστη όπως όνομα και τεχνικό επίπεδο.
 
-1. Στείλει πολλαπλά μηνύματα μέσα σε αυτό το context, επιτρέποντας στο μοντέλο να διατηρεί την κατάσταση με τη συνάρτηση `send_message`. Τα μηνύματα αφορούν προβλήματα με τη λειτουργία αυτόματης κλιμάκωσης.
+1. Στείλει πολλαπλά μηνύματα μέσα σε αυτό το περιεχόμενο, επιτρέποντας στο μοντέλο να διατηρεί κατάσταση με τη λειτουργία `send_message`. Τα μηνύματα αφορούν προβλήματα με τη λειτουργία αυτόματης κλιμάκωσης.
 
-1. Ανακτήσει το ιστορικό συνομιλίας χρησιμοποιώντας τη συνάρτηση `get_conversation_history`, που παρέχει πληροφορίες context και μηνύματα.
+1. Ανακτήσει το ιστορικό συνομιλίας χρησιμοποιώντας τη λειτουργία `get_conversation_history`, που παρέχει πληροφορίες περιεχομένου και μηνύματα.
 
-1. Τερμάτισε τη συνεδρία αρχειοθετώντας το context και δημιουργώντας μια περίληψη με τη συνάρτηση `end_session`. Η περίληψη καταγράφει τα βασικά σημεία της συνομιλίας.
+1. Ολοκληρώσει τη συνεδρία αρχειοθετώντας το περιεχόμενο και δημιουργώντας μια περίληψη με τη λειτουργία `end_session`. Η περίληψη καταγράφει τα βασικά σημεία της συνομιλίας.
 
-## Βέλτιστες Πρακτικές για Root Context
+## Βέλτιστες Πρακτικές για τις Ρίζες Περιεχομένων
 
-Ακολουθούν μερικές βέλτιστες πρακτικές για την αποτελεσματική διαχείριση των root contexts:
+Εδώ είναι μερικές βέλτιστες πρακτικές για την αποτελεσματική διαχείριση ριζών περιεχομένων:
 
-- **Δημιουργήστε Εστιασμένα Contexts**: Δημιουργήστε ξεχωριστά root contexts για διαφορετικούς σκοπούς ή τομείς συνομιλίας για να διατηρείτε την σαφήνεια.
+- **Δημιουργήστε Εστιασμένα Περιεχόμενα**: Δημιουργήστε ξεχωριστές ρίζες περιεχομένων για διαφορετικούς σκοπούς ή τομείς συνομιλίας για να διατηρήσετε την σαφήνεια.
 
-- **Ορίστε Πολιτικές Λήξης**: Εφαρμόστε πολιτικές για αρχειοθέτηση ή διαγραφή παλαιών contexts για τη διαχείριση αποθηκευτικού χώρου και τη συμμόρφωση με πολιτικές διατήρησης δεδομένων.
+- **Θέστε Πολιτικές Λήξης**: Εφαρμόστε πολιτικές για αρχειοθέτηση ή διαγραφή παλαιών περιεχομένων για διαχείριση αποθηκευτικού χώρου και συμμόρφωση με πολιτικές διατήρησης δεδομένων.
 
-- **Αποθηκεύστε Σχετικά Μεταδεδομένα**: Χρησιμοποιήστε τα μεταδεδομένα του context για να αποθηκεύετε σημαντικές πληροφορίες της συνομιλίας που μπορεί να είναι χρήσιμες αργότερα.
+- **Αποθηκεύστε Σχετικά Μεταδεδομένα**: Χρησιμοποιήστε τα μεταδεδομένα του περιεχομένου για να αποθηκεύσετε σημαντικές πληροφορίες της συνομιλίας που μπορεί να είναι χρήσιμες αργότερα.
 
-- **Χρησιμοποιήστε Συνεπή Αναγνωριστικά Context**: Μόλις δημιουργηθεί ένα context, χρησιμοποιήστε το αναγνωριστικό του με συνέπεια για όλα τα σχετικά αιτήματα για να διατηρείτε τη συνέχεια.
+- **Χρησιμοποιήστε τα Αναγνωριστικά Περιεχομένου Συστηματικά**: Μόλις δημιουργηθεί ένα περιεχόμενο, χρησιμοποιήστε το ID του συστηματικά για όλα τα σχετικά αιτήματα για να διατηρείται η συνέχεια.
 
-- **Δημιουργήστε Περιλήψεις**: Όταν ένα context μεγαλώνει πολύ, σκεφτείτε να δημιουργήσετε περιλήψεις για να καταγράψετε τις βασικές πληροφορίες ενώ διαχειρίζεστε το μέγεθος του context.
+- **Δημιουργήστε Περιλήψεις**: Όταν ένα περιεχόμενο μεγαλώνει πολύ, σκεφτείτε να δημιουργήσετε περιλήψεις για να καταγράψετε ουσιώδεις πληροφορίες ενώ διαχειρίζεστε το μέγεθος του περιεχομένου.
 
-- **Εφαρμόστε Έλεγχο Πρόσβασης**: Για συστήματα με πολλούς χρήστες, εφαρμόστε κατάλληλους ελέγχους πρόσβασης για να διασφαλίσετε την ιδιωτικότητα και την ασφάλεια των contexts συνομιλίας.
+- **Εφαρμόστε Έλεγχο Πρόσβασης**: Για συστήματα με πολλούς χρήστες, εφαρμόστε σωστούς ελέγχους πρόσβασης για να εξασφαλίσετε την ιδιωτικότητα και ασφάλεια των ριζών συνομιλίας.
 
-- **Διαχειριστείτε Περιορισμούς Context**: Να είστε ενήμεροι για τους περιορισμούς μεγέθους του context και εφαρμόστε στρατηγικές για τη διαχείριση πολύ μεγάλων συνομιλιών.
+- **Αντιμετωπίστε τους Περιορισμούς Περιεχομένου**: Να είστε ενήμεροι για τους περιορισμούς μεγέθους της ρίζας περιεχομένου και να εφαρμόζετε στρατηγικές για τη διαχείριση πολύ μεγάλων συνομιλιών.
 
-- **Αρχειοθετήστε Όταν Ολοκληρωθεί**: Αρχειοθετήστε τα contexts όταν οι συνομιλίες ολοκληρωθούν για να ελευθερώσετε πόρους διατηρώντας παράλληλα το ιστορικό συνομιλίας.
+- **Αρχειοθετήστε Όταν Ολοκληρωθεί**: Αρχειοθετήστε τις ρίζες όταν οι συνομιλίες ολοκληρώνονται για να ελευθερώσετε πόρους διατηρώντας ταυτόχρονα το ιστορικό συνομιλίας.
 
 ## Τι ακολουθεί
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Δρομολόγηση](../mcp-routing/README.md)
 
-**Αποποίηση ευθυνών**:  
-Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία αυτόματης μετάφρασης AI [Co-op Translator](https://github.com/Azure/co-op-translator). Παρόλο που επιδιώκουμε την ακρίβεια, παρακαλούμε να γνωρίζετε ότι οι αυτόματες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη γλώσσα του θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Αποποίηση ευθυνών**:
+Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Ενώ επιδιώκουμε την ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

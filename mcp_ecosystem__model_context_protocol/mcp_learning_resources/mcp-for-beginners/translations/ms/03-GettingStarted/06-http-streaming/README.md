@@ -1,62 +1,62 @@
-# Penyiaran HTTPS dengan Protokol Konteks Model (MCP)
+# Penstriman HTTPS dengan Protokol Konteks Model (MCP)
 
-Bab ini menyediakan panduan komprehensif untuk melaksanakan penyiaran selamat, boleh skala, dan masa nyata dengan Protokol Konteks Model (MCP) menggunakan HTTPS. Ia merangkumi motivasi untuk penyiaran, mekanisme pengangkutan yang tersedia, cara melaksanakan HTTP boleh disiarkan dalam MCP, amalan terbaik keselamatan, migrasi dari SSE, dan panduan praktikal untuk membina aplikasi MCP penyiaran anda sendiri.
+Bab ini menyediakan panduan menyeluruh untuk melaksanakan penstriman yang selamat, boleh skala, dan masa nyata dengan Protokol Konteks Model (MCP) menggunakan HTTPS. Ia merangkumi motivasi untuk penstriman, mekanisme penghantaran yang tersedia, cara melaksanakan HTTP yang boleh distrim dalam MCP, amalan terbaik keselamatan, migrasi dari SSE, dan panduan praktikal untuk membina aplikasi MCP penstriman anda sendiri.
 
-> **Melihat ke hadapan:** pelajaran ini menerangkan HTTP Boleh Disiarkan di bawah **Spesifikasi MCP 2025-11-25**, di mana sesi ditubuhkan semasa `initialize` dan dipautkan dengan pengepala `Mcp-Session-Id`. Calon keluaran `2026-07-28` menghapuskan jabat tangan dan ID sesi sepenuhnya, menjadikan setiap permintaan berdikari dan boleh diarahkan ke mana-mana contoh pelayan tanpa sesi melekit. Lihat [Apa Yang Berubah dalam MCP: Calon Keluaran 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) untuk perincian.
+> **Melihat ke hadapan:** pelajaran ini menerangkan HTTP Boleh Strim di bawah **Spesifikasi MCP 2025-11-25**, di mana sesi ditetapkan semasa `initialize` dan diikat dengan header `Mcp-Session-Id`. Calon pelepasan `2026-07-28` membuang jabat tangan dan ID sesi sepenuhnya, menjadikan setiap permintaan berdikari dan boleh dihalakan ke mana-mana contoh pelayan tanpa sesi melekat. Lihat [Apa Yang Berubah dalam MCP: Calon Pelepasan 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) untuk butiran.
 
-## Mekanisme Pengangkutan dan Penyiaran dalam MCP
+## Mekanisme Penghantaran dan Penstriman dalam MCP
 
-Bahagian ini meneroka mekanisme pengangkutan yang berbeza yang tersedia dalam MCP dan peranan mereka dalam membolehkan keupayaan penyiaran untuk komunikasi masa nyata antara pelanggan dan pelayan.
+Bahagian ini meneroka pelbagai mekanisme penghantaran yang tersedia dalam MCP dan peranan mereka dalam membolehkan keupayaan penstriman untuk komunikasi masa nyata antara klien dan pelayan.
 
-### Apakah Mekanisme Pengangkutan?
+### Apakah Mekanisme Penghantaran?
 
-Mekanisme pengangkutan mentakrifkan bagaimana data ditukar antara pelanggan dan pelayan. MCP menyokong pelbagai jenis pengangkutan untuk memenuhi persekitaran dan keperluan yang berbeza:
+Mekanisme penghantaran mentakrifkan bagaimana data dipertukarkan antara klien dan pelayan. MCP menyokong pelbagai jenis penghantaran untuk menyesuaikan dengan persekitaran dan keperluan yang berbeza:
 
 - **stdio**: Input/output standard, sesuai untuk alat tempatan dan berasaskan CLI. Mudah tetapi tidak sesuai untuk web atau awan.
-- **SSE (Server-Sent Events)**: Membenarkan pelayan menolak kemas kini masa nyata ke pelanggan melalui HTTP. Baik untuk UI web, tetapi terhad dalam kebolehan skala dan fleksibiliti. Sejak Spesifikasi MCP 2025-06-18, pengangkutan berdiri sendiri SSE (Server-Sent Events) telah ditamatkan dan digantikan oleh pengangkutan "Streamable HTTP".
-- **Streamable HTTP**: Pengangkutan penyiaran berasaskan HTTP moden, menyokong pemberitahuan dan skala lebih baik. Disyorkan untuk kebanyakan senario pengeluaran dan awan.
+- **SSE (Server-Sent Events)**: Membolehkan pelayan menghantar kemas kini masa nyata kepada klien melalui HTTP. Baik untuk UI web, tetapi terhad dari segi kebolehsikalaan dan fleksibiliti. Sejak Spesifikasi MCP 2025-06-18, penghantaran SSE (Server-Sent Events) berdiri sendiri telah digantikan oleh penghantaran "HTTP Boleh Strim".
+- **HTTP Boleh Strim**: Penghantaran penstriman berasaskan HTTP moden, menyokong notifikasi dan kebolehsikalaan lebih baik. Disyorkan untuk kebanyakan senario pengeluaran dan awan.
 
 ### Jadual Perbandingan
 
-Lihat jadual perbandingan di bawah untuk memahami perbezaan antara mekanisme pengangkutan ini:
+Lihat jadual perbandingan di bawah untuk memahami perbezaan antara mekanisme penghantaran ini:
 
-| Pengangkutan      | Kemas Kini Masa Nyata | Penyiaran | Kebolehan Skala | Kes Penggunaan          |
-|------------------|-----------------------|-----------|-----------------|-------------------------|
-| stdio            | Tidak                 | Tidak     | Rendah          | Alat CLI tempatan       |
-| SSE              | Ya                    | Ya        | Sederhana       | Web, kemas kini masa nyata|
-| Streamable HTTP  | Ya                    | Ya        | Tinggi          | Awan, berbilang pelanggan|
+| Penghantaran      | Kemas Kini Masa Nyata | Penstriman | Kebolehsikalaan | Kes Penggunaan          |
+|------------------|----------------------|------------|-----------------|-------------------------|
+| stdio            | Tidak                | Tidak      | Rendah          | Alat CLI tempatan       |
+| SSE              | Ya                   | Ya         | Sederhana       | Web, kemas kini masa nyata|
+| HTTP Boleh Strim | Ya                   | Ya         | Tinggi          | Awan, berbilang klien   |
 
-> **Petua:** Memilih pengangkutan yang betul mempengaruhi prestasi, kebolehan skala, dan pengalaman pengguna. **Streamable HTTP** disyorkan untuk aplikasi moden, boleh skala, dan sedia awan.
+> **Tip:** Memilih penghantaran yang tepat memberi kesan kepada prestasi, kebolehsikalaan, dan pengalaman pengguna. **HTTP Boleh Strim** disyorkan untuk aplikasi moden, boleh skala, dan sedia awan.
 
-Perhatikan pengangkutan stdio dan SSE yang telah ditunjukkan dalam bab sebelum ini dan bagaimana HTTP boleh disiarkan adalah pengangkutan yang dibincangkan dalam bab ini.
+Perhatikan penghantaran stdio dan SSE yang anda lihat dalam bab sebelum ini dan bagaimana HTTP boleh strim adalah penghantaran yang dibincangkan dalam bab ini.
 
-## Penyiaran: Konsep dan Motivasi
+## Penstriman: Konsep dan Motivasi
 
-Memahami konsep asas dan motivasi di sebalik penyiaran adalah penting untuk melaksanakan sistem komunikasi masa nyata yang berkesan.
+Memahami konsep asas dan motivasi di sebalik penstriman adalah penting untuk melaksanakan sistem komunikasi masa nyata yang berkesan.
 
-**Penyiaran** adalah teknik dalam pengaturcaraan rangkaian yang membenarkan data dihantar dan diterima dalam potongan kecil yang boleh diurus atau sebagai satu siri peristiwa, dan bukannya menunggu keseluruhan respons selesai. Ini amat berguna untuk:
+**Penstriman** ialah teknik dalam pengaturcaraan rangkaian yang membolehkan data dihantar dan diterima dalam bahagian kecil yang boleh diurus atau sebagai satu siri acara, daripada menunggu keseluruhan respons siap. Ini amat berguna untuk:
 
-- Fail besar atau dataset.
+- Fail atau set data besar.
 - Kemas kini masa nyata (contohnya, sembang, bar kemajuan).
-- Pengiraan jangka panjang di mana anda mahu pengguna terus dimaklumkan.
+- Pengiraan jangka panjang di mana anda mahu pengguna sentiasa dimaklumkan.
 
-Ini yang anda perlu tahu tentang penyiaran secara am:
+Inilah yang anda perlu tahu tentang penstriman secara umum:
 
 - Data dihantar secara progresif, bukan sekaligus.
-- Pelanggan boleh memproses data sebaik tiba.
-- Mengurangkan latensi yang dirasa dan meningkatkan pengalaman pengguna.
+- Klien boleh memproses data sebaik tiba.
+- Mengurangkan latensi yang dirasai dan meningkatkan pengalaman pengguna.
 
-### Mengapa menggunakan penyiaran?
+### Kenapa guna penstriman?
 
-Sebab menggunakan penyiaran adalah seperti berikut:
+Sebab-sebab menggunakan penstriman adalah:
 
-- Pengguna mendapat maklum balas segera, bukan hanya di akhir
+- Pengguna mendapat maklum balas serta-merta, bukan hanya di akhir
 - Membolehkan aplikasi masa nyata dan UI responsif
-- Penggunaan sumber rangkaian dan pengiraan lebih cekap
+- Penggunaan sumber rangkaian dan pengkomputeran lebih cekap
 
-### Contoh Mudah: Pelayan & Pelanggan Penyiaran HTTP
+### Contoh Mudah: Pelayan & Klien Penstriman HTTP
 
-Ini contoh mudah bagaimana penyiaran boleh dilaksanakan:
+Berikut adalah contoh mudah bagaimana penstriman boleh dilaksanakan:
 
 #### Python
 
@@ -79,7 +79,7 @@ def stream():
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 ```
 
-**Pelanggan (Python, menggunakan requests):**
+**Klien (Python, menggunakan requests):**
 
 ```python
 import requests
@@ -90,17 +90,17 @@ with requests.get("http://localhost:8000/stream", stream=True) as r:
             print(line.decode())
 ```
 
-Contoh ini menunjukkan pelayan menghantar satu siri mesej kepada pelanggan sebaik mesej tersedia, bukan menunggu semua mesej siap.
+Contoh ini menunjukkan pelayan menghantar satu siri mesej kepada klien apabila mesej tersebut tersedia, dan bukannya menunggu semua mesej sedia.
 
-**Bagaimana ia berfungsi:**
+**Cara ia berfungsi:**
 
-- Pelayan menyerahkan setiap mesej sebaik ia siap.
-- Pelanggan menerima dan mencetak setiap potongan sebaik ia tiba.
+- Pelayan mengeluarkan setiap mesej apabila ia sedia.
+- Klien menerima dan mencetak setiap bahagian semasa tiba.
 
 **Keperluan:**
 
-- Pelayan mesti menggunakan respons berpenstriman (contoh, `StreamingResponse` dalam FastAPI).
-- Pelanggan mesti memproses respons sebagai penstriman (`stream=True` dalam requests).
+- Pelayan mesti menggunakan respons penstriman (contoh, `StreamingResponse` dalam FastAPI).
+- Klien mesti memproses respons sebagai strim (`stream=True` dalam requests).
 - Content-Type biasanya `text/event-stream` atau `application/octet-stream`.
 
 #### Java
@@ -140,7 +140,7 @@ public class CalculatorController {
 }
 ```
 
-**Pelanggan (Java, menggunakan Spring WebFlux WebClient):**
+**Klien (Java, menggunakan Spring WebFlux WebClient):**
 
 ```java
 @SpringBootApplication
@@ -170,74 +170,74 @@ public class CalculatorClientApplication implements CommandLineRunner {
 
 **Nota Pelaksanaan Java:**
 
-- Menggunakan stack reaktif Spring Boot dengan `Flux` untuk penstriman
+- Menggunakan tumpukan reaktif Spring Boot dengan `Flux` untuk penstriman
 - `ServerSentEvent` menyediakan penstriman acara berstruktur dengan jenis acara
 - `WebClient` dengan `bodyToFlux()` membolehkan penggunaan penstriman reaktif
 - `delayElements()` mensimulasikan masa pemprosesan antara acara
-- Acara boleh mempunyai jenis (`info`, `result`) bagi pengendalian pelanggan lebih baik
+- Acara boleh mempunyai jenis (`info`, `result`) untuk pengendalian klien yang lebih baik
 
-### Perbandingan: Penyiaran Klasik vs Penyiaran MCP
+### Perbandingan: Penstriman Klasik vs Penstriman MCP
 
-Perbezaan antara cara penyiaran berfungsi secara "klasik" berbanding cara ia berfungsi dalam MCP boleh digambarkan seperti berikut:
+Perbezaan cara penstriman berfungsi secara "klasik" berbanding dalam MCP boleh digambarkan seperti berikut:
 
-| Ciri                  | Penyiaran HTTP Klasik         | Penyiaran MCP (Pemberitahuan)    |
-|-----------------------|-------------------------------|---------------------------------|
-| Respons utama          | Chunked                       | Tunggal, di akhir               |
-| Kemas kini kemajuan    | Dihantar sebagai potongan data| Dihantar sebagai pemberitahuan   |
-| Keperluan pelanggan    | Mesti memproses penstriman     | Mesti melaksanakan pengendali mesej |
-| Kes penggunaan         | Fail besar, aliran token AI   | Kemajuan, log, maklum balas masa nyata |
+| Ciri                  | Penstriman HTTP Klasik       | Penstriman MCP (Notifikasi)      |
+|-----------------------|------------------------------|---------------------------------|
+| Respons utama          | Berbentuk potongan            | Tunggal, di hujung              |
+| Kemas kini kemajuan    | Dihantar sebagai potongan data| Dihantar sebagai notifikasi      |
+| Keperluan klien       | Mesti memproses strim        | Mesti melaksanakan pengendali mesej |
+| Kes penggunaan         | Fail besar, aliran token AI  | Kemajuan, log, maklum balas masa nyata |
 
 ### Perbezaan Utama Diperhatikan
 
 Selain itu, berikut adalah beberapa perbezaan utama:
 
 - **Corak Komunikasi:**
-  - Penyiaran HTTP klasik: Menggunakan penyandian penghantaran berpotongan mudah untuk menghantar data dalam potongan
-  - Penyiaran MCP: Menggunakan sistem pemberitahuan berstruktur dengan protokol JSON-RPC
+  - Penstriman HTTP klasik: Menggunakan kod penstriman potongan mudah untuk menghantar data secara potongan
+  - Penstriman MCP: Menggunakan sistem notifikasi berstruktur dengan protokol JSON-RPC
 
 - **Format Mesej:**
-  - HTTP klasik: Potongan teks biasa dengan barisan baru
+  - HTTP klasik: Potongan teks biasa dengan garis baru
   - MCP: Objek LoggingMessageNotification berstruktur dengan metadata
 
-- **Pelaksanaan Pelanggan:**
-  - HTTP klasik: Pelanggan mudah yang memproses respons penstriman
-  - MCP: Pelanggan lebih canggih dengan pengendali mesej untuk memproses jenis mesej berbeza
+- **Pelaksanaan Klien:**
+  - HTTP klasik: Klien mudah yang memproses respons penstriman
+  - MCP: Klien lebih sofistikated dengan pengendali mesej untuk memproses pelbagai jenis mesej
 
 - **Kemas Kini Kemajuan:**
   - HTTP klasik: Kemajuan adalah sebahagian daripada aliran respons utama
-  - MCP: Kemajuan dihantar melalui mesej pemberitahuan berasingan manakala respons utama datang di akhir
+  - MCP: Kemajuan dihantar melalui mesej notifikasi berasingan manakala respons utama datang di hujung
 
 ### Cadangan
 
-Ada beberapa perkara kami cadangkan bila memilih antara melaksanakan penyiaran klasik (sebagai titik hujung yang kami tunjukkan di atas menggunakan `/stream`) berbanding memilih penyiaran melalui MCP.
+Terdapat beberapa perkara yang kami cadangkan apabila memilih antara melaksanakan penstriman klasik (seperti titik akhir yang kami tunjukkan di atas menggunakan `/stream`) berbanding memilih penstriman melalui MCP.
 
-- **Untuk keperluan penyiaran mudah:** Penyiaran HTTP klasik lebih mudah dilaksanakan dan mencukupi untuk keperluan penyiaran asas.
+- **Untuk keperluan penstriman mudah:** Penstriman HTTP klasik lebih mudah dilaksanakan dan mencukupi untuk keperluan penstriman asas.
 
-- **Untuk aplikasi interaktif yang kompleks:** Penyiaran MCP menyediakan pendekatan lebih berstruktur dengan metadata lebih kaya dan pemisahan antara pemberitahuan dan hasil akhir.
+- **Untuk aplikasi kompleks dan interaktif:** Penstriman MCP menyediakan pendekatan lebih berstruktur dengan metadata yang lebih kaya dan pemisahan antara notifikasi dan hasil akhir.
 
-- **Untuk aplikasi AI:** Sistem pemberitahuan MCP sangat berguna untuk tugasan AI jangka panjang di mana anda mahu pengguna terus dimaklumkan tentang kemajuan.
+- **Untuk aplikasi AI:** Sistem notifikasi MCP amat berguna untuk tugas AI jangka panjang di mana anda mahu sentiasa memaklumkan pengguna tentang kemajuan.
 
-## Penyiaran dalam MCP
+## Penstriman dalam MCP
 
-Baiklah, jadi anda telah melihat beberapa cadangan dan perbandingan setakat ini mengenai perbezaan antara penyiaran klasik dan penyiaran dalam MCP. Mari kita terangkan secara terperinci bagaimana anda boleh memanfaatkan penyiaran dalam MCP.
+Baiklah, jadi anda telah melihat beberapa cadangan dan perbandingan setakat ini mengenai perbezaan antara penstriman klasik dan penstriman dalam MCP. Mari kita lihat dengan terperinci bagaimana anda boleh memanfaatkan penstriman dalam MCP.
 
-Memahami bagaimana penyiaran berfungsi dalam rangka MCP adalah penting untuk membina aplikasi responsif yang memberikan maklum balas masa nyata kepada pengguna sepanjang operasi jangka panjang.
+Memahami bagaimana penstriman berfungsi dalam rangka kerja MCP adalah penting untuk membina aplikasi responsif yang menyediakan maklum balas masa nyata kepada pengguna semasa operasi berjalan lama.
 
-Dalam MCP, penyiaran bukan mengenai menghantar respons utama secara berpotongan, tetapi menghantar **pemberitahuan** kepada pelanggan semasa alat memproses permintaan. Pemberitahuan ini boleh merangkumi kemas kini kemajuan, log, atau peristiwa lain.
+Dalam MCP, penstriman bukan mengenai menghantar respons utama dalam potongan, tetapi mengenai menghantar **notifikasi** kepada klien semasa alat memproses permintaan. Notifikasi ini boleh termasuk kemas kini kemajuan, log, atau acara lain.
 
-### Bagaimana ia berfungsi
+### Cara ia berfungsi
 
-Hasil utama masih dihantar sebagai satu respons tunggal. Walau bagaimanapun, pemberitahuan boleh dihantar sebagai mesej berasingan sepanjang pemprosesan dan dengan itu mengemas kini pelanggan secara masa nyata. Pelanggan mesti dapat mengendalikan dan memaparkan pemberitahuan ini.
+Keputusan utama masih dihantar sebagai satu respons tunggal. Walau bagaimanapun, notifikasi boleh dihantar sebagai mesej berasingan semasa pemprosesan dan dengan itu mengemas kini klien secara masa nyata. Klien mesti dapat mengendalikan dan memaparkan notifikasi ini.
 
-## Apakah itu Pemberitahuan?
+## Apakah Notifikasi?
 
-Kami kata "Pemberitahuan", apa maksud itu dalam konteks MCP?
+Kami sebut "Notifikasi", apa maksudnya dalam konteks MCP?
 
-Pemberitahuan ialah mesej yang dihantar dari pelayan ke pelanggan untuk memberitahu tentang kemajuan, status, atau peristiwa lain semasa operasi jangka panjang. Pemberitahuan memupuk ketelusan dan pengalaman pengguna.
+Notifikasi ialah mesej yang dihantar dari pelayan kepada klien untuk memaklumkan tentang kemajuan, status, atau acara lain semasa operasi berjalan lama. Notifikasi meningkatkan ketelusan dan pengalaman pengguna.
 
-Contohnya, pelanggan sepatutnya menghantar pemberitahuan sebaik jabat tangan awal dengan pelayan selesai dilakukan.
+Contohnya, klien dijangka menghantar notifikasi apabila jabat tangan awal dengan pelayan telah dibuat.
 
-Pemberitahuan kelihatan seperti berikut sebagai mesej JSON:
+Notifikasi kelihatan seperti mesej JSON berikut:
 
 ```json
 {
@@ -249,9 +249,11 @@ Pemberitahuan kelihatan seperti berikut sebagai mesej JSON:
 }
 ```
 
-Pemberitahuan tergolong dalam topik dalam MCP yang dirujuk sebagai ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
+Notifikasi tergolong dalam topik dalam MCP yang dirujuk sebagai ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
 
-Untuk mengaktifkan logging, pelayan perlu mengaktifkannya sebagai ciri/keupayaan seperti berikut:
+> **Notis Penghentian:** calon pelepasan spesifikasi MCP `2026-07-28` menandakan primitif Logging sebagai dihentikan demi `stderr` untuk penghantaran stdio dan OpenTelemetry untuk pemerhatian berstruktur. Logging terus berfungsi dalam `2025-11-25` dan sekurang-kurangnya setahun selepas apa-apa penghentian rasmi. Lihat [Apa Yang Berubah dalam MCP: Calon Pelepasan 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Untuk menjayakan logging, pelayan perlu mengaktifkannya sebagai ciri/kemampuan seperti berikut:
 
 ```json
 {
@@ -264,26 +266,26 @@ Untuk mengaktifkan logging, pelayan perlu mengaktifkannya sebagai ciri/keupayaan
 > [!NOTE]
 > Bergantung pada SDK yang digunakan, logging mungkin diaktifkan secara lalai, atau anda mungkin perlu mengaktifkannya secara eksplisit dalam konfigurasi pelayan anda.
 
-Terdapat pelbagai jenis pemberitahuan:
+Terdapat pelbagai jenis notifikasi:
 
-| Tahap      | Penerangan                      | Contoh Kes Penggunaan          |
-|-----------|--------------------------------|-------------------------------|
-| debug     | Maklumat debugging terperinci  | Titik masuk/keluar fungsi     |
-| info      | Mesej maklumat umum             | Kemas kini kemajuan operasi   |
-| notice    | Peristiwa biasa tetapi penting  | Perubahan konfigurasi         |
-| warning   | Keadaan amaran                 | Penggunaan ciri yang tidak disokong lagi |
-| error     | Keadaan ralat                  | Kegagalan operasi             |
-| critical  | Keadaan kritikal               | Kegagalan komponen sistem     |
-| alert     | Tindakan mesti diambil segera  | Pengesanan kerosakan data     |
-| emergency | Sistem tidak boleh digunakan   | Kegagalan sistem sepenuhnya   |
+| Tahap     | Penerangan                  | Contoh Kes Penggunaan          |
+|-----------|-----------------------------|-------------------------------|
+| debug     | Maklumat debug terperinci   | Titik masuk/keluar fungsi      |
+| info      | Mesej maklumat umum         | Kemas kini kemajuan operasi    |
+| notice    | Acara normal tetapi penting | Perubahan konfigurasi          |
+| warning   | Keadaan amaran              | Penggunaan ciri yang tidak lagi disokong |
+| error     | Keadaan ralat               | Kegagalan operasi              |
+| critical  | Keadaan kritikal            | Kegagalan komponen sistem      |
+| alert     | Tindakan mesti diambil segera | Pengesanan kerosakan data    |
+| emergency | Sistem tidak boleh digunakan| Kegagalan sistem sepenuhnya    |
 
-## Melaksanakan Pemberitahuan dalam MCP
+## Melaksanakan Notifikasi dalam MCP
 
-Untuk melaksanakan pemberitahuan dalam MCP, anda perlu menyediakan kedua-dua pihak pelayan dan pelanggan untuk mengendalikan kemas kini masa nyata. Ini membolehkan aplikasi anda memberikan maklum balas segera kepada pengguna sepanjang operasi jangka panjang.
+Untuk melaksanakan notifikasi dalam MCP, anda perlu menyediakan kedua-dua bahagian pelayan dan klien untuk mengendalikan kemas kini masa nyata. Ini membolehkan aplikasi anda memberikan maklum balas serta-merta kepada pengguna semasa operasi berjalan lama.
 
-### Pihak pelayan: Menghantar Pemberitahuan
+### Bahagian Pelayan: Menghantar Notifikasi
 
-Mari mulakan dengan pihak pelayan. Dalam MCP, anda mentakrifkan alat yang boleh menghantar pemberitahuan semasa memproses permintaan. Pelayan menggunakan objek konteks (biasanya `ctx`) untuk menghantar mesej kepada pelanggan.
+Mari mulakan dengan bahagian pelayan. Dalam MCP, anda mentakrifkan alat yang boleh menghantar notifikasi semasa memproses permintaan. Pelayan menggunakan objek konteks (biasanya `ctx`) untuk menghantar mesej kepada klien.
 
 #### Python
 
@@ -296,9 +298,9 @@ async def process_files(message: str, ctx: Context) -> TextContent:
     return TextContent(type="text", text=f"Done: {message}")
 ```
 
-Dalam contoh sebelum ini, alat `process_files` menghantar tiga pemberitahuan kepada pelanggan semasa memproses setiap fail. Kaedah `ctx.info()` digunakan untuk menghantar mesej maklumat.
+Dalam contoh di atas, alat `process_files` menghantar tiga notifikasi kepada klien semasa memproses setiap fail. Kaedah `ctx.info()` digunakan untuk menghantar mesej maklumat.
 
-Selain itu, untuk mengaktifkan pemberitahuan, pastikan pelayan anda menggunakan pengangkutan berpenstriman (seperti `streamable-http`) dan pelanggan anda melaksanakan pengendali mesej untuk memproses pemberitahuan. Ini cara anda boleh menyediakan pelayan menggunakan pengangkutan `streamable-http`:
+Selain itu, untuk mengaktifkan notifikasi, pastikan pelayan anda menggunakan penghantaran penstriman (seperti `streamable-http`) dan klien anda melaksanakan pengendali mesej untuk memproses notifikasi. Berikut cara menyediakan pelayan untuk menggunakan penghantaran `streamable-http`:
 
 ```python
 mcp.run(transport="streamable-http")
@@ -321,9 +323,9 @@ public async Task<TextContent> ProcessFiles(string message, ToolContext ctx)
 }
 ```
 
-Dalam contoh .NET ini, alat `ProcessFiles` dihias dengan atribut `Tool` dan menghantar tiga pemberitahuan kepada pelanggan semasa memproses setiap fail. Kaedah `ctx.Info()` digunakan untuk menghantar mesej maklumat.
+Dalam contoh .NET ini, alat `ProcessFiles` dihiasi dengan atribut `Tool` dan menghantar tiga notifikasi kepada klien semasa memproses setiap fail. Kaedah `ctx.Info()` digunakan untuk menghantar mesej maklumat.
 
-Untuk mengaktifkan pemberitahuan dalam pelayan MCP .NET anda, pastikan anda menggunakan pengangkutan berpenstriman:
+Untuk mengaktifkan notifikasi dalam pelayan MCP .NET anda, pastikan anda menggunakan penghantaran penstriman:
 
 ```csharp
 var builder = McpBuilder.Create();
@@ -333,9 +335,9 @@ await builder
     .RunAsync();
 ```
 
-### Pihak pelanggan: Menerima Pemberitahuan
+### Bahagian Klien: Menerima Notifikasi
 
-Pelanggan mesti melaksanakan pengendali mesej untuk memproses dan memaparkan pemberitahuan sebaik tiba.
+Klien mesti melaksanakan pengendali mesej untuk memproses dan memaparkan notifikasi semasa ia tiba.
 
 #### Python
 
@@ -354,7 +356,7 @@ async with ClientSession(
 ) as session:
 ```
 
-Dalam kod sebelum ini, fungsi `message_handler` memeriksa sama ada mesej masuk adalah pemberitahuan. Jika ya, ia mencetak pemberitahuan; jika tidak, ia memprosesnya sebagai mesej pelayan biasa. Juga perhatikan bagaimana `ClientSession` diinisialisasi dengan `message_handler` untuk mengendalikan pemberitahuan masuk.
+Dalam kod tadi, fungsi `message_handler` memeriksa sama ada mesej masuk adalah notifikasi. Jika ya, ia mencetak notifikasi; jika tidak, ia memprosesnya sebagai mesej pelayan biasa. Juga perhatikan bagaimana `ClientSession` diinisialisasi dengan `message_handler` untuk mengendalikan notifikasi yang masuk.
 
 #### .NET
 
@@ -385,15 +387,15 @@ await client.InitializeAsync();
 // Now the client will process notifications through the MessageHandler
 ```
 
-Dalam contoh .NET ini, fungsi `MessageHandler` memeriksa sama ada mesej masuk adalah pemberitahuan. Jika ya, ia mencetak pemberitahuan; jika tidak, ia memprosesnya sebagai mesej pelayan biasa. `ClientSession` diinisialisasi dengan pengendali mesej melalui `ClientSessionOptions`.
+Dalam contoh .NET ini, fungsi `MessageHandler` memeriksa sama ada mesej masuk adalah notifikasi. Jika ya, ia mencetak notifikasi; jika tidak, ia memprosesnya sebagai mesej pelayan biasa. `ClientSession` diinisialisasi dengan pengendali mesej melalui `ClientSessionOptions`.
 
-Untuk mengaktifkan pemberitahuan, pastikan pelayan anda menggunakan pengangkutan berpenstriman (seperti `streamable-http`) dan pelanggan anda melaksanakan pengendali mesej untuk memproses pemberitahuan.
+Untuk mengaktifkan notifikasi, pastikan pelayan anda menggunakan penghantaran penstriman (seperti `streamable-http`) dan klien anda melaksanakan pengendali mesej untuk memproses notifikasi.
 
-## Pemberitahuan Kemajuan & Senario
+## Notifikasi Kemajuan & Senario
 
-Bahagian ini menerangkan konsep pemberitahuan kemajuan dalam MCP, mengapa ia penting, dan cara melaksanakannya menggunakan Streamable HTTP. Anda juga akan menemui tugasan praktikal untuk mengukuhkan pemahaman anda.
+Bahagian ini menerangkan konsep notifikasi kemajuan dalam MCP, mengapa ia penting, dan bagaimana melaksanakannya menggunakan HTTP Boleh Strim. Anda juga akan menemui tugasan praktikal untuk menguatkan pemahaman anda.
 
-Pemberitahuan kemajuan adalah mesej masa nyata yang dihantar dari pelayan ke pelanggan semasa operasi jangka panjang. Daripada menunggu seluruh proses selesai, pelayan sentiasa mengemas kini pelanggan tentang status terkini. Ini meningkatkan ketelusan, pengalaman pengguna, dan memudahkan pengesan masalah.
+Notifikasi kemajuan adalah mesej masa nyata yang dihantar dari pelayan ke klien semasa operasi berjalan lama. Daripada menunggu keseluruhan proses selesai, pelayan sentiasa mengemas kini klien tentang status terkini. Ini meningkatkan ketelusan, pengalaman pengguna, dan memudahkan penyahpepijatan.
 
 **Contoh:**
 
@@ -406,22 +408,23 @@ Pemberitahuan kemajuan adalah mesej masa nyata yang dihantar dari pelayan ke pel
 
 ```
 
-### Kenapa Gunakan Pemberitahuan Kemajuan?
+### Kenapa Guna Notifikasi Kemajuan?
 
-Pemberitahuan kemajuan penting atas beberapa sebab:
+Notifikasi kemajuan penting untuk beberapa sebab:
 
 - **Pengalaman pengguna lebih baik:** Pengguna melihat kemas kini semasa kerja berjalan, bukan hanya di akhir.
-- **Maklum balas masa nyata:** Pelanggan boleh memaparkan bar kemajuan atau log, menjadikan aplikasi rasa responsif.
-- **Pengesan masalah dan pemantauan lebih mudah:** Pembangun dan pengguna boleh melihat di mana proses mungkin perlahan atau tersekat.
+- **Maklum balas masa nyata:** Klien boleh memaparkan bar kemajuan atau log, menjadikan aplikasi rasa responsif.
+- **Penyahpepijatan dan pemantauan lebih mudah:** Pembangun dan pengguna boleh melihat di mana proses mungkin perlahan atau tersekat.
 
-### Cara Melaksanakan Pemberitahuan Kemajuan
+### Cara Melaksanakan Notifikasi Kemajuan
 
-Berikut cara anda boleh melaksanakan pemberitahuan kemajuan dalam MCP:
+Berikut cara anda boleh melaksanakan notifikasi kemajuan dalam MCP:
 
-- **Di pelayan:** Gunakan `ctx.info()` atau `ctx.log()` untuk menghantar pemberitahuan semasa setiap item diproses. Ini menghantar mesej kepada pelanggan sebelum hasil utama siap.
-- **Di pelanggan:** Laksanakan pengendali mesej yang mendengar dan memaparkan pemberitahuan sebaik ia tiba. Pengendali ini membezakan antara pemberitahuan dan hasil akhir.
+- **Pada pelayan:** Gunakan `ctx.info()` atau `ctx.log()` untuk menghantar notifikasi semasa setiap item diproses. Ini menghantar mesej kepada klien sebelum keputusan utama sedia.
+- **Pada klien:** Laksanakan pengendali mesej yang mendengar dan memaparkan notifikasi semasa tiba. Pengendali ini membezakan antara notifikasi dan hasil akhir.
 
 **Contoh Pelayan:**
+
 
 #### Python
 
@@ -448,128 +451,127 @@ async def message_handler(message):
 
 ## Pertimbangan Keselamatan
 
-Apabila melaksanakan pelayan MCP dengan pengangkutan berasaskan HTTP, keselamatan menjadi keutamaan utama yang memerlukan perhatian rapi terhadap pelbagai vektor serangan dan mekanisme perlindungan.
+Apabila melaksanakan pelayan MCP dengan pengangkutan berasaskan HTTP, keselamatan menjadi keutamaan utama yang memerlukan perhatian rapi kepada pelbagai vektor serangan dan mekanisme perlindungan.
 
 ### Gambaran Keseluruhan
 
-Keselamatan kritikal apabila mendedahkan pelayan MCP melalui HTTP. Streamable HTTP memperkenalkan permukaan serangan baru dan memerlukan konfigurasi teliti.
+Keselamatan adalah penting apabila mendedahkan pelayan MCP melalui HTTP. HTTP yang boleh distrim memperkenalkan permukaan serangan baru dan memerlukan konfigurasi yang teliti.
 
-### Poin Utama
+### Perkara Utama
 
-
-- **Pengesahan Header Origin**: Sentiasa sahkan header `Origin` untuk mengelakkan serangan DNS rebinding.
-- **Binding Localhost**: Untuk pembangunan tempatan, ikat server ke `localhost` untuk mengelakkan pendedahan kepada internet awam.
-- **Autentikasi**: Laksanakan autentikasi (contohnya, kunci API, OAuth) untuk pengeluaran.
-- **CORS**: Konfigurasikan polisi Perkongsian Sumber Merentas-Asal (CORS) untuk mengehadkan akses.
+- **Pengesahan Tajuk Origin**: Sentiasa sahkan tajuk `Origin` untuk mengelakkan serangan pengikatan semula DNS.
+- **Pengikatan Localhost**: Untuk pembangunan tempatan, ikat pelayan ke `localhost` untuk mengelakkan pendedahan kepada internet awam.
+- **Pengesahan**: Laksanakan pengesahan (contohnya, kekunci API, OAuth) untuk penghantaran pengeluaran.
+- **CORS**: Konfigurasikan dasar Perkongsian Sumber Rentas Asal (CORS) untuk mengehadkan akses.
 - **HTTPS**: Gunakan HTTPS dalam pengeluaran untuk menyulitkan trafik.
 
 ### Amalan Terbaik
 
-- Jangan sekali-kali mempercayai permintaan masuk tanpa pengesahan.
-- Log dan pantau semua akses dan kesilapan.
-- Kemas kini bergantung secara berkala untuk menampal kelemahan keselamatan.
+- Jangan mempercayai permintaan masuk tanpa pengesahan.
+- Catat dan pantau semua akses dan ralat.
+- Kemas kini kebergantungan secara berkala untuk menampal kelemahan keselamatan.
 
 ### Cabaran
 
-- Mengimbangi keselamatan dengan kemudahan pembangunan
-- Memastikan keserasian dengan pelbagai persekitaran klien
+- Menyeimbangkan keselamatan dengan kemudahan pembangunan
+- Memastikan keserasian dengan pelbagai persekitaran pelanggan
 
-## Naik taraf dari SSE ke Streamable HTTP
+## Meningkatkan dari SSE ke HTTP yang Boleh Distrim
 
-Untuk aplikasi yang kini menggunakan Server-Sent Events (SSE), migrasi ke Streamable HTTP menyediakan keupayaan yang dipertingkatkan dan kelangsungan jangka panjang yang lebih baik untuk pelaksanaan MCP anda.
+Untuk aplikasi yang kini menggunakan Server-Sent Events (SSE), migrasi ke HTTP yang Boleh Distrim memberikan keupayaan yang dipertingkatkan dan kelestarian jangka panjang yang lebih baik untuk pelaksanaan MCP anda.
 
-### Kenapa Naik Taraf?
+### Mengapa Meningkatkan?
 
-Terdapat dua sebab kuat untuk naik taraf dari SSE ke Streamable HTTP:
+Terdapat dua sebab kukuh untuk meningkatkan dari SSE ke HTTP yang Boleh Distrim:
 
-- Streamable HTTP menawarkan skalabiliti, keserasian, dan sokongan pemberitahuan yang lebih kaya berbanding SSE.
+- HTTP yang Boleh Distrim menawarkan kebolehskalaan, keserasian, dan sokongan pemberitahuan yang lebih kaya berbanding SSE.
 - Ia adalah pengangkutan yang disyorkan untuk aplikasi MCP baru.
 
 ### Langkah Migrasi
 
-Berikut adalah cara anda boleh migrasi dari SSE ke Streamable HTTP dalam aplikasi MCP anda:
+Berikut adalah cara anda boleh migrasi dari SSE ke HTTP yang Boleh Distrim dalam aplikasi MCP anda:
 
-- **Kemaskini kod server** untuk menggunakan `transport="streamable-http"` dalam `mcp.run()`.
-- **Kemaskini kod klien** untuk menggunakan `streamablehttp_client` menggantikan klien SSE.
-- **Laksanakan pengendali mesej** dalam klien untuk memproses pemberitahuan.
-- **Uji keserasian** dengan alat dan aliran kerja sedia ada.
+- **Kemas kini kod pelayan** untuk menggunakan `transport="streamable-http"` dalam `mcp.run()`.
+- **Kemas kini kod pelanggan** untuk menggunakan `streamablehttp_client` menggantikan pelanggan SSE.
+- **Laksanakan pengendali mesej** dalam pelanggan untuk memproses pemberitahuan.
+- **Uji keserasian** dengan alat dan aliran kerja yang sedia ada.
 
 ### Mengekalkan Keserasian
 
-Adalah disyorkan untuk mengekalkan keserasian dengan klien SSE sedia ada sepanjang proses migrasi. Berikut adalah beberapa strategi:
+Disyorkan untuk mengekalkan keserasian dengan pelanggan SSE sedia ada semasa proses migrasi. Berikut adalah beberapa strategi:
 
-- Anda boleh menyokong kedua-dua SSE dan Streamable HTTP dengan menjalankan kedua-dua pengangkutan pada titik akhir yang berbeza.
-- Migrasi klien secara berperingkat ke pengangkutan baru.
+- Anda boleh menyokong kedua-dua SSE dan HTTP yang Boleh Distrim dengan menjalankan kedua-dua pengangkutan pada titik akhir yang berbeza.
+- Migrasi pelanggan secara beransur-ansur ke pengangkutan baru.
 
 ### Cabaran
 
-Pastikan anda mengatasi cabaran berikut semasa migrasi:
+Pastikan anda menangani cabaran berikut semasa migrasi:
 
-- Memastikan semua klien dikemas kini
+- Memastikan semua pelanggan dikemas kini
 - Mengendalikan perbezaan dalam penghantaran pemberitahuan
 
 ## Pertimbangan Keselamatan
 
-Keselamatan harus menjadi keutamaan tertinggi apabila melaksanakan mana-mana server, terutama apabila menggunakan pengangkutan berasaskan HTTP seperti Streamable HTTP dalam MCP.
+Keselamatan harus menjadi keutamaan utama apabila melaksanakan mana-mana pelayan, terutamanya apabila menggunakan pengangkutan berasaskan HTTP seperti HTTP yang Boleh Distrim dalam MCP.
 
-Apabila melaksanakan server MCP dengan pengangkutan berasaskan HTTP, keselamatan menjadi keprihatinan utama yang memerlukan perhatian teliti terhadap pelbagai vektor serangan dan mekanisme perlindungan.
+Apabila melaksanakan pelayan MCP dengan pengangkutan berasaskan HTTP, keselamatan menjadi keutamaan utama yang memerlukan perhatian rapi kepada pelbagai vektor serangan dan mekanisme perlindungan.
 
 ### Gambaran Keseluruhan
 
-Keselamatan adalah kritikal apabila mendedahkan server MCP melalui HTTP. Streamable HTTP memperkenalkan permukaan serangan baru dan memerlukan konfigurasi yang teliti.
+Keselamatan adalah penting apabila mendedahkan pelayan MCP melalui HTTP. HTTP yang boleh distrim memperkenalkan permukaan serangan baru dan memerlukan konfigurasi yang teliti.
 
 Berikut adalah beberapa pertimbangan keselamatan utama:
 
-- **Pengesahan Header Origin**: Sentiasa sahkan header `Origin` untuk mengelakkan serangan DNS rebinding.
-- **Binding Localhost**: Untuk pembangunan tempatan, ikat server ke `localhost` untuk mengelakkan pendedahan kepada internet awam.
-- **Autentikasi**: Laksanakan autentikasi (contohnya, kunci API, OAuth) untuk pengeluaran.
-- **CORS**: Konfigurasikan polisi Perkongsian Sumber Merentas-Asal (CORS) untuk mengehadkan akses.
+- **Pengesahan Tajuk Origin**: Sentiasa sahkan tajuk `Origin` untuk mengelakkan serangan pengikatan semula DNS.
+- **Pengikatan Localhost**: Untuk pembangunan tempatan, ikat pelayan ke `localhost` untuk mengelakkan pendedahan kepada internet awam.
+- **Pengesahan**: Laksanakan pengesahan (contohnya, kekunci API, OAuth) untuk penghantaran pengeluaran.
+- **CORS**: Konfigurasikan dasar Perkongsian Sumber Rentas Asal (CORS) untuk mengehadkan akses.
 - **HTTPS**: Gunakan HTTPS dalam pengeluaran untuk menyulitkan trafik.
 
 ### Amalan Terbaik
 
-Selain itu, berikut adalah beberapa amalan terbaik untuk diikuti ketika melaksanakan keselamatan dalam server streaming MCP anda:
+Selain itu, berikut adalah beberapa amalan terbaik yang perlu diikuti apabila melaksanakan keselamatan dalam pelayan penstriman MCP anda:
 
-- Jangan sekali-kali mempercayai permintaan masuk tanpa pengesahan.
-- Log dan pantau semua akses dan kesilapan.
-- Kemas kini bergantung secara berkala untuk menampal kelemahan keselamatan.
+- Jangan mempercayai permintaan masuk tanpa pengesahan.
+- Catat dan pantau semua akses dan ralat.
+- Kemas kini kebergantungan secara berkala untuk menampal kelemahan keselamatan.
 
 ### Cabaran
 
-Anda akan menghadapi beberapa cabaran apabila melaksanakan keselamatan dalam server streaming MCP:
+Anda akan menghadapi beberapa cabaran apabila melaksanakan keselamatan dalam pelayan penstriman MCP:
 
-- Mengimbangi keselamatan dengan kemudahan pembangunan
-- Memastikan keserasian dengan pelbagai persekitaran klien
+- Menyeimbangkan keselamatan dengan kemudahan pembangunan
+- Memastikan keserasian dengan pelbagai persekitaran pelanggan
 
 ### Tugasan: Bina Aplikasi MCP Streaming Anda Sendiri
 
 **Senario:**
-Bina server dan klien MCP di mana server memproses senarai item (contohnya, fail atau dokumen) dan menghantar pemberitahuan untuk setiap item yang diproses. Klien harus memaparkan setiap pemberitahuan sebaik ia diterima.
+Bina pelayan dan pelanggan MCP di mana pelayan memproses senarai item (contohnya, fail atau dokumen) dan menghantar pemberitahuan untuk setiap item yang diproses. Pelanggan harus memaparkan setiap pemberitahuan sebaik sahaja ia tiba.
 
 **Langkah-langkah:**
 
-1. Laksanakan alat server yang memproses senarai dan menghantar pemberitahuan untuk setiap item.
-2. Laksanakan klien dengan pengendali mesej untuk memaparkan pemberitahuan secara masa sebenar.
-3. Uji pelaksanaan anda dengan menjalankan server dan klien, dan perhatikan pemberitahuan.
+1. Laksanakan alat pelayan yang memproses senarai dan menghantar pemberitahuan untuk setiap item.
+2. Laksanakan pelanggan dengan pengendali mesej untuk memaparkan pemberitahuan secara masa nyata.
+3. Uji pelaksanaan anda dengan menjalankan kedua-dua pelayan dan pelanggan, dan perhatikan pemberitahuan.
 
 [Penyelesaian](./solution/README.md)
 
 ## Bacaan Lanjut & Apa Seterusnya?
 
-Untuk meneruskan perjalanan anda dengan streaming MCP dan mengembangkan pengetahuan anda, bahagian ini menyediakan sumber tambahan dan langkah-langkah yang disyorkan untuk membina aplikasi yang lebih maju.
+Untuk meneruskan perjalanan anda dengan penstriman MCP dan meluaskan pengetahuan anda, bahagian ini menyediakan sumber tambahan dan cadangan langkah seterusnya untuk membina aplikasi yang lebih maju.
 
 ### Bacaan Lanjut
 
-- [Microsoft: Pengenalan kepada HTTP Streaming](https://learn.microsoft.com/aspnet/core/fundamentals/http-requests?view=aspnetcore-8.0&WT.mc_id=%3Fwt.mc_id%3DMVP_452430#streaming)
+- [Microsoft: Pengenalan kepada Penstriman HTTP](https://learn.microsoft.com/aspnet/core/fundamentals/http-requests?view=aspnetcore-8.0&WT.mc_id=%3Fwt.mc_id%3DMVP_452430#streaming)
 - [Microsoft: Server-Sent Events (SSE)](https://learn.microsoft.com/azure/application-gateway/for-containers/server-sent-events?tabs=server-sent-events-gateway-api&WT.mc_id=%3Fwt.mc_id%3DMVP_452430)
 - [Microsoft: CORS dalam ASP.NET Core](https://learn.microsoft.com/aspnet/core/security/cors?view=aspnetcore-8.0&WT.mc_id=%3Fwt.mc_id%3DMVP_452430)
-- [Python requests: Permintaan Streaming](https://requests.readthedocs.io/en/latest/user/advanced/#streaming-requests)
+- [Python requests: Permintaan Penstriman](https://requests.readthedocs.io/en/latest/user/advanced/#streaming-requests)
 
 ### Apa Seterusnya?
 
-- Cuba bina alat MCP yang lebih maju yang menggunakan streaming untuk analitik masa nyata, sembang, atau penyuntingan kolaboratif.
-- Terokai integrasi streaming MCP dengan rangka kerja frontend (React, Vue, dan lain-lain) untuk kemas kini UI secara langsung.
-- Seterusnya: [Menggunakan Alat AI untuk VSCode](../07-aitk/README.md)
+- Cuba bina alat MCP yang lebih maju yang menggunakan penstriman untuk analitik masa nyata, sembang, atau suntingan kolaboratif.
+- Terokai integrasi penstriman MCP dengan rangka kerja depan (React, Vue, dan lain-lain) untuk kemas kini UI secara langsung.
+- Seterusnya: [Menggunakan AI Toolkit untuk VSCode](../07-aitk/README.md)
 
 ---
 

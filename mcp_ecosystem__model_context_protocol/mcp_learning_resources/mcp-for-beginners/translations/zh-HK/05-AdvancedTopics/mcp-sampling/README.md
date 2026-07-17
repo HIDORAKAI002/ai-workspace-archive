@@ -1,58 +1,62 @@
-# Sampling in Model Context Protocol
+> [已棄用：2026-07-28 發行候選版本](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Sampling 是 MCP 的一個強大功能，允許伺服器透過客戶端請求 LLM 的完成結果，從而實現複雜的代理行為，同時保持安全性和私隱。合適的 sampling 配置能顯著提升回應質素和效能。MCP 提供了一種標準化方式，透過特定參數控制模型生成文本的隨機性、創意和連貫性。
+# Model Context Protocol 中的採樣
+
+> **棄用通知：** `2026-07-28` MCP 規範發行候選版本標記採樣為棄用，推薦改用與大型語言模型提供者 API 的直接整合。採樣在 `2025-11-25` 版本及正式棄用後至少一年內仍繼續有效，因此本課程內容依然有效——但新的伺服器設計應評估替代方案。詳見 [MCP 變更內容：2026-07-28 發行候選版本](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)。
+
+採樣是 MCP 的一項強大功能，允許伺服器透過用戶端請求大型語言模型完成，啟用複雜的代理行為，同時保持安全與隱私。適當的採樣配置能顯著提升回應品質與效能。MCP 提供標準化方式控制模型產生文本的方式，設置影響隨機性、創造力與連貫性的特定參數。
 
 ## 介紹
 
-本課程將探討如何在 MCP 請求中配置 sampling 參數，並了解 sampling 的底層協議機制。
+本課程將探討如何在 MCP 請求中配置採樣參數，以及理解採樣的協定機制。
 
 ## 學習目標
 
-完成本課程後，你將能夠：
+完成本課程後，您將能夠：
 
-- 理解 MCP 中可用的主要 sampling 參數。
-- 為不同使用場景配置 sampling 參數。
-- 實現可重現結果的確定性 sampling。
-- 根據上下文和用戶偏好動態調整 sampling 參數。
-- 應用 sampling 策略提升模型在各種場景下的表現。
-- 理解 MCP 客戶端與伺服器間 sampling 的運作流程。
+- 理解 MCP 中可用的重要採樣參數。
+- 為不同使用情境配置採樣參數。
+- 實現確定性採樣以取得可重現的結果。
+- 根據上下文與用戶偏好動態調整採樣參數。
+- 應用採樣策略以提升模型於各種場景下的效能。
+- 理解 MCP 用戶端與伺服器之間採樣的工作流程。
 
-## MCP 中的 Sampling 運作方式
+## MCP 中採樣的運作方式
 
-MCP 的 sampling 流程如下：
+MCP 採樣流程依序如下：
 
-1. 伺服器向客戶端發送 `sampling/createMessage` 請求
-2. 客戶端審核請求並可進行修改
-3. 客戶端從 LLM 進行抽樣
-4. 客戶端審核完成結果
-5. 客戶端將結果返回給伺服器
+1. 伺服器向用戶端發送 `sampling/createMessage` 請求
+2. 用戶端審查請求並可進行修改
+3. 用戶端從大型語言模型抽樣
+4. 用戶端審查完成結果
+5. 用戶端回傳結果給伺服器
 
-這種人機互動設計確保用戶能掌控 LLM 所見及生成的內容。
+此人機互動設計確保使用者掌控大型語言模型的輸入與輸出內容。
 
-## Sampling 參數概覽
+## 採樣參數總覽
 
-MCP 定義了以下可在客戶端請求中配置的 sampling 參數：
+MCP 定義以下可於用戶端請求中配置的採樣參數：
 
 | 參數 | 說明 | 典型範圍 |
 |-----------|-------------|---------------|
-| `temperature` | 控制選擇 token 的隨機程度 | 0.0 - 1.0 |
-| `maxTokens` | 最大生成 token 數量 | 整數值 |
+| `temperature` | 控制標記選擇的隨機性 | 0.0 - 1.0 |
+| `maxTokens` | 最大產生的標記數量 | 整數值 |
 | `stopSequences` | 遇到自訂停止序列即停止生成 | 字串陣列 |
-| `metadata` | 其他供應商特定參數 | JSON 物件 |
+| `metadata` | 其他提供者特定參數 | JSON 物件 |
 
-許多 LLM 供應商透過 `metadata` 欄位支持額外參數，包括：
+許多大型語言模型提供者透過 `metadata` 欄位支援額外參數，可能包含：
 
 | 常見擴展參數 | 說明 | 典型範圍 |
 |-----------|-------------|---------------|
-| `top_p` | Nucleus sampling，限制 token 選擇於累積概率最高部分 | 0.0 - 1.0 |
-| `top_k` | 限制 token 選擇於前 K 個選項 | 1 - 100 |
-| `presence_penalty` | 根據文本中 token 出現與否進行懲罰 | -2.0 - 2.0 |
-| `frequency_penalty` | 根據文本中 token 出現頻率進行懲罰 | -2.0 - 2.0 |
-| `seed` | 指定隨機種子以實現可重現結果 | 整數值 |
+| `top_p` | 核心採樣法——限制標記於最高累積機率質量 | 0.0 - 1.0 |
+| `top_k` | 限制標記選擇於前 K 大選項 | 1 - 100 |
+| `presence_penalty` | 根據標記出現與否進行懲罰 | -2.0 - 2.0 |
+| `frequency_penalty` | 根據標記出現頻率進行懲罰 | -2.0 - 2.0 |
+| `seed` | 指定隨機種子以重現結果 | 整數值 |
 
 ## 範例請求格式
 
-以下是 MCP 中向客戶端請求 sampling 的範例：
+以下為一次 MCP 用戶端請求採樣的範例：
 
 ```json
 {
@@ -77,7 +81,7 @@ MCP 定義了以下可在客戶端請求中配置的 sampling 參數：
 
 ## 回應格式
 
-客戶端返回完成結果：
+用戶端回傳完成結果：
 
 ```json
 {
@@ -91,44 +95,44 @@ MCP 定義了以下可在客戶端請求中配置的 sampling 參數：
 }
 ```
 
-## 人機互動控制
+## 人機互動監控
 
-MCP sampling 設計時考慮了人類監督：
+MCP 採樣設計強調有人監管：
 
-- **對於提示詞**：
-  - 客戶端應向用戶展示建議的提示詞
-  - 用戶應能修改或拒絕提示詞
+- **針對提示詞：**
+  - 用戶端應向使用者展示擬定的提示詞
+  - 使用者應能修改或拒絕提示詞
   - 系統提示詞可被過濾或修改
-  - 上下文包含由客戶端控制
+  - 上下文納入由用戶端控制
 
-- **對於完成結果**：
-  - 客戶端應向用戶展示完成結果
-  - 用戶應能修改或拒絕完成結果
-  - 客戶端可過濾或修改完成結果
-  - 用戶控制使用哪個模型
+- **針對完成結果：**
+  - 用戶端應向使用者展示完成結果
+  - 使用者應能修改或拒絕完成結果
+  - 用戶端可過濾或修改完成結果
+  - 使用者可控制所使用的模型
 
-基於這些原則，接下來我們將展示如何在不同程式語言中實作 sampling，重點放在各大 LLM 供應商普遍支持的參數。
+有此原則基礎下，接著我們將看如何在不同程式語言實作採樣，重點為大型語言模型提供者普遍支援的參數。
 
-## 安全考量
+## 安全注意事項
 
-實作 MCP sampling 時，請注意以下安全最佳實踐：
+實作 MCP 採樣時，請考慮以下安全最佳實踐：
 
-- **驗證所有訊息內容**，確保安全後再發送給客戶端
-- **清理提示詞和完成結果中的敏感資訊**
-- **實施速率限制**以防止濫用
-- **監控 sampling 使用情況**，偵測異常模式
-- **使用安全協議加密傳輸資料**
-- **依照相關法規處理用戶資料私隱**
-- **審計 sampling 請求**以確保合規與安全
-- **控制成本暴露**，設定適當限制
-- **為 sampling 請求設置逾時機制**
-- **妥善處理模型錯誤**，提供適當備援方案
+- <strong>驗證所有訊息內容</strong> 後再傳送給用戶端
+- <strong>對提示詞與完成結果敏感資訊進行淨化</strong>
+- <strong>實施速率限制</strong> 防止濫用
+- <strong>監控採樣使用狀況</strong> 偵測異常模式
+- <strong>傳輸資料加密</strong> 使用安全協定
+- <strong>根據相關法規處理用戶資料隱私</strong>
+- <strong>審計採樣請求</strong> 以符合法規與安全需求
+- <strong>控制成本暴露</strong> 設置適當限額
+- <strong>實施採樣請求逾時機制</strong>
+- <strong>妥善處理模型錯誤</strong> 並設置適當備援
 
-Sampling 參數可微調語言模型行為，達成確定性與創意輸出間的理想平衡。
+採樣參數允許微調語言模型行為，以達成確定性與創意輸出的理想平衡。
 
-接下來看看如何在不同程式語言中配置這些參數。
+接著我們將看如何在不同程式語言配置這些參數。
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -164,49 +168,49 @@ public class SamplingExample
 }
 ```
 
-在上述程式碼中，我們：
+在前述程式碼中，我們已經：
 
-- 建立了帶有特定伺服器 URL 的 MCP 客戶端。
-- 配置了包含 `temperature`、`top_p` 和 `top_k` 等 sampling 參數的請求。
-- 發送請求並列印生成的文本。
-- 使用了：
-    - `allowedTools` 指定模型生成時可使用的工具，此例中允許 `ideaGenerator` 和 `marketAnalyzer` 工具協助產生創意應用點子。
-    - `frequencyPenalty` 和 `presencePenalty` 控制輸出中的重複度與多樣性。
-    - `temperature` 控制輸出的隨機性，數值越高回應越具創意。
-    - `top_p` 限制 token 選擇於累積概率最高部分，提升生成文本質量。
-    - `top_k` 限制模型只從前 K 個最可能的 token 中選擇，有助生成更連貫的回應。
-    - `frequencyPenalty` 和 `presencePenalty` 減少重複並鼓勵多樣性。
+- 建立一個具特定伺服器 URL 的 MCP 用戶端。
+- 配置了包含 `temperature`、`top_p` 與 `top_k` 等採樣參數的請求。
+- 傳送請求並印出產生的文本。
+- 使用：
+    - `allowedTools` 指定模型在生成時可使用的工具。本例允許 `ideaGenerator` 和 `marketAnalyzer` 工具協助生成創意應用構思。
+    - `frequencyPenalty` 與 `presencePenalty` 控制輸出重複度與多樣性。
+    - `temperature` 控制輸出的隨機性，較高值帶來更具創造性的回應。
+    - `top_p` 限制標記選擇於累計最高機率群，提高生成文本品質。
+    - `top_k` 限制模型於前 K 高機率標記，協助生成更連貫的回應。
+    - `frequencyPenalty` 與 `presencePenalty` 避免重複並促進文本多樣性。
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// JavaScript 範例：溫度及Top-P取樣配置
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // 初始化 MCP 客戶端
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // 使用不同取樣參數配置請求
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // 溫度越高 = 越多隨機性/創意
+    topP: 0.92,          // 考慮累積機率質量達到92%的詞元
+    frequencyPenalty: 0.6, // 減少詞元序列重複
+    presencePenalty: 0.4   // 懲罰已經出現過的詞元
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // 溫度越低 = 越具決定性/事實性
+    topP: 0.85,          // 稍微更專注的詞元選擇
+    frequencyPenalty: 0.2, // 最小重複懲罰
+    presencePenalty: 0.1   // 最小出現懲罰
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // 使用不同取樣配置發送兩個請求
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -237,57 +241,57 @@ async function demonstrateSampling() {
 demonstrateSampling();
 ```
 
-在上述程式碼中，我們：
+在前述程式碼中，我們已經：
 
-- 初始化了帶有伺服器 URL 和 API 金鑰的 MCP 客戶端。
-- 配置了兩組 sampling 參數：一組用於創意任務，另一組用於事實性任務。
-- 使用這些配置發送請求，允許模型針對不同任務使用特定工具。
-- 列印生成的回應，展示不同 sampling 參數的效果。
-- 使用 `allowedTools` 指定模型生成時可使用的工具，創意任務允許 `ideaGenerator` 和 `environmentalImpactTool`，事實性任務允許 `factChecker` 和 `dataAnalysisTool`。
-- 使用 `temperature` 控制輸出的隨機性，數值越高回應越具創意。
-- 使用 `top_p` 限制 token 選擇於累積概率最高部分，提升生成文本質量。
-- 使用 `frequencyPenalty` 和 `presencePenalty` 減少重複並鼓勵多樣性。
-- 使用 `top_k` 限制模型只從前 K 個最可能的 token 中選擇，有助生成更連貫的回應。
+- 初始化一個帶有伺服器 URL 與 API 金鑰的 MCP 用戶端。
+- 配置兩組採樣參數：一組用於創意任務，另一組用於事實核查任務。
+- 使用這些配置發送請求，允許模型針對每個任務使用特定工具。
+- 印出生成的回應以展示不同採樣參數的效果。
+- 使用 `allowedTools` 指定模型在生成時可使用的工具。本例中創意任務允許 `ideaGenerator` 和 `environmentalImpactTool`，事實核查任務允許 `factChecker` 和 `dataAnalysisTool`。
+- 使用 `temperature` 控制輸出隨機性，較高值帶來更具創造性的回應。
+- 使用 `top_p` 限制標記選擇於累計最高機率群，提高生成文本品質。
+- 使用 `frequencyPenalty` 與 `presencePenalty` 減少重複並促進輸出多樣性。
+- 使用 `top_k` 限制模型於前 K 高機率標記，協助生成更連貫的回應。
 
 ---
 
-## 確定性 Sampling
+## 確定性採樣
 
-對於需要一致輸出的應用，確定性 sampling 可確保結果可重現。其方法是使用固定的隨機種子並將 temperature 設為零。
+對於需要結果一致的應用，確定性採樣可確保結果可重現。其作法是使用固定的隨機種子並將溫度設為零。
 
-以下示範如何在不同程式語言中實作確定性 sampling。
+以下範例展示如何在不同程式語言實作確定性採樣。
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// Java 範例：使用固定種子獲得確定性回應
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // 使用固定種子以獲得確定性結果
         
-        // First request with fixed seed
+        // 使用固定種子的第一次請求
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // 設定溫度為零以達至最大確定性
             .build();
             
-        // Second request with the same seed
+        // 使用同一種子的第二次請求
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // 執行兩個請求
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // 由於相同的種子及溫度=0，回應應該相同
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -296,19 +300,19 @@ public class DeterministicSamplingExample {
 }
 ```
 
-在上述程式碼中，我們：
+在前述程式碼中，我們已經：
 
-- 建立了帶有指定伺服器 URL 的 MCP 客戶端。
-- 配置了兩個請求，使用相同提示詞、固定種子和零 temperature。
-- 發送兩個請求並列印生成文本。
-- 展示由於 sampling 配置的確定性（相同種子和 temperature），回應結果完全相同。
-- 使用 `setSeed` 指定固定隨機種子，確保相同輸入每次生成相同輸出。
-- 將 `temperature` 設為零，確保最大確定性，模型總是選擇最可能的下一個 token，無隨機性。
+- 建立一個指定伺服器 URL 的 MCP 用戶端。
+- 配置兩個使用相同提示詞、固定種子與零溫度的請求。
+- 傳送兩個請求並列印生成文字。
+- 展示因採樣配置確定性（同種子及溫度）而回應相同。
+- 使用 `setSeed` 指定固定隨機種子，確保模型對相同輸入每次生成相同輸出。
+- 將 `temperature` 設為零以確保最大確定性，即模型總是選擇最可能的下一個標記，不帶隨機性。
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// JavaScript 示例：使用種子控制的確定性回應
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -320,19 +324,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // 使用固定種子的第一次請求
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // 使用零溫度以達到最大確定性
     });
     
-    // Second request with same seed and temperature
+    // 使用相同種子和溫度的第二次請求
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // 使用不同種子但相同溫度的第三次請求
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -352,28 +356,28 @@ async function deterministicSampling() {
 deterministicSampling();
 ```
 
-在上述程式碼中，我們：
+在前述程式碼中，我們已經：
 
-- 初始化了帶有伺服器 URL 的 MCP 客戶端。
-- 配置了兩個請求，使用相同提示詞、固定種子和零 temperature。
-- 發送兩個請求並列印生成文本。
-- 展示由於 sampling 配置的確定性（相同種子和 temperature），回應結果完全相同。
-- 使用 `seed` 指定固定隨機種子，確保相同輸入每次生成相同輸出。
-- 將 `temperature` 設為零，確保最大確定性，模型總是選擇最可能的下一個 token，無隨機性。
-- 對第三個請求使用不同種子，展示即使提示詞和 temperature 相同，改變種子也會產生不同輸出。
+- 初始化一個帶伺服器 URL 的 MCP 用戶端。
+- 配置兩個使用相同提示詞、固定種子與零溫度的請求。
+- 傳送兩個請求並列印生成文字。
+- 展示因採樣配置確定性（同種子及溫度）而回應相同。
+- 使用 `seed` 指定固定隨機種子，確保模型對相同輸入每次生成相同輸出。
+- 將 `temperature` 設為零以確保最大確定性，即模型總是選擇最可能的下一個標記，不帶隨機性。
+- 對第三個請求使用不同的種子，展示變更種子會產生不同輸出，即使提示詞與溫度相同。
 
 ---
 
-## 動態 Sampling 配置
+## 動態採樣配置
 
-智慧 sampling 會根據每次請求的上下文和需求調整參數。這意味著根據任務類型、用戶偏好或歷史表現，動態調整 temperature、top_p 和懲罰參數。
+智慧採樣會根據每次請求的上下文和需求調整參數。意味著根據任務類型、使用者偏好或歷史效能動態調整如溫度、top_p 及懲罰等參數。
 
-以下示範如何在不同程式語言中實作動態 sampling。
+讓我們看看如何在不同程式語言實作動態採樣。
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# Python 範例：基於請求上下文的動態取樣
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -381,7 +385,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # 為不同任務類型定義取樣預設
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -389,22 +393,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # 選擇基本預設
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # 如有提供，根據用戶偏好進行調整
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # 根據創意偏好（1-10）調整溫度參數
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # 根據期望的回應多樣性調整 top_p
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # 建立並發送具自訂取樣參數的請求
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -412,7 +416,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # 回傳含取樣元資料的回應以增加透明度
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -420,32 +424,32 @@ class DynamicSamplingService:
         }
 ```
 
-在上述程式碼中，我們：
+在前述程式碼中，我們已經：
 
-- 建立了 `DynamicSamplingService` 類別，管理自適應 sampling。
-- 定義了不同任務類型（創意、事實、程式碼、分析）的 sampling 預設配置。
-- 根據任務類型選擇基礎 sampling 預設。
-- 根據用戶偏好（如創意程度和多樣性）調整 sampling 參數。
-- 發送帶有動態配置 sampling 參數的請求。
-- 返回生成文本及所用 sampling 參數和任務類型，確保透明度。
-- 使用 `temperature` 控制輸出的隨機性，數值越高回應越具創意。
-- 使用 `top_p` 限制 token 選擇於累積概率最高部分，提升生成文本質量。
-- 使用 `frequency_penalty` 減少重複並鼓勵多樣性。
-- 使用 `user_preferences` 允許根據用戶定義的創意和多樣性等級自訂 sampling 參數。
-- 使用 `task_type` 決定請求的適當 sampling 策略，根據任務性質提供更貼切回應。
-- 使用 `send_request` 方法發送帶有配置 sampling 參數的提示詞，確保模型依指定需求生成文本。
-- 使用 `generated_text` 取得模型回應，並連同 sampling 參數和任務類型一併返回，方便後續分析或展示。
-- 使用 `min` 和 `max` 函數確保用戶偏好值在有效範圍內，避免無效配置。
+- 建立一個管理適應性採樣的 `DynamicSamplingService` 類別。
+- 定義不同任務類型（創意、事實核查、程式碼、分析）的採樣預設。
+- 根據任務類型選擇基礎採樣預設。
+- 根據使用者偏好如創造力和多樣性調整採樣參數。
+- 傳送帶有動態配置採樣參數的請求。
+- 回傳生成文本，附帶使用的採樣參數與任務類型以供透明檢視。
+- 使用 `temperature` 控制輸出隨機性，較高數值帶來更具創造性的回應。
+- 使用 `top_p` 限制標記選擇於最高累積概率質量，提高生成文本品質。
+- 使用 `frequency_penalty` 減少重複並促進多樣性。
+- 使用 `user_preferences` 允許依用戶自定義創造力和多樣性層級來定製採樣參數。
+- 使用 `task_type` 決定適合請求的採樣策略，根據任務性質提供更量身定制的回應。
+- 使用 `send_request` 方法發送帶配置採樣參數的提示詞，確保模型按指定要求生成文本。
+- 使用 `generated_text` 取得模型回應並連同採樣參數及任務類型回傳，方便進一步分析或顯示。
+- 使用 `min` 和 `max` 函數確保使用者偏好在有效範圍內，防止無效採樣配置。
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript 動態](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// JavaScript 範例：根據用戶情境動態取樣配置
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // 定義基礎取樣設定檔
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -453,15 +457,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // 追蹤歷史表現
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // 從提示辨識任務類型
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // 簡單啟發式偵測 - 可用機器學習分類增強
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -482,57 +486,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // 若未偵測到明確類型，預設為對話型
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // 根據情境和用戶喜好計算取樣參數
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // 偵測任務類型
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // 取得基礎設定檔
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // 根據用戶喜好調整
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // 將 1-10 縮放到合適的溫度範圍
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // 精確度越高，topP 越低（選擇越集中）
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // 一致性越高，懲罰越低
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // 套用從表現歷史中學習的調整
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // 簡單自適應邏輯 - 可用更複雜演算法增強
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // 僅考慮近期歷史
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // 計算平均表現分數
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // 若表現低於門檻，調整參數
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // 輕微調整至較安全的值
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -540,32 +544,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // 記錄表現供未來調整使用
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // 0-1 回應品質評分
     });
     
-    // Limit history size
+    // 限制歷史大小
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // 取得最佳化取樣參數
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // 使用最佳化參數發送請求
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // 若用戶提供回饋，記錄以便未來優化
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -578,7 +582,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// 範例用法
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -587,13 +591,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // 創意任務與自訂用戶喜好
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // 高創意（1-10）
+          consistency: 3  // 低一致性（1-10）
         }
       }
     );
@@ -603,14 +607,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // 程式碼生成任務
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // 低創意
+          precision: 8,   // 高精確度
+          consistency: 9  // 高一致性
         }
       }
     );
@@ -628,33 +632,37 @@ async function demonstrateAdaptiveSampling() {
 demonstrateAdaptiveSampling();
 ```
 
-在上述程式碼中，我們：
+在前述程式碼中，我們已經：
 
-- 建立了 `AdaptiveSamplingManager` 類別，根據任務類型和用戶偏好管理動態 sampling。
-- 定義了不同任務類型（創意、事實、程式碼、對話）的 sampling 配置檔。
-- 實作方法透過簡單啟發式判斷提示詞的任務類型。
-- 根據偵測到的任務類型和用戶偏好計算 sampling 參數。
-- 應用基於歷史表現的學習調整，優化 sampling 參數。
-- 記錄表現以便未來調整，讓系統能從過往互動中學習。
-- 發送帶有動態配置 sampling 參數的請求，並返回生成文本及所用參數和偵測到的任務類型。
-- 使用了：
-    - `userPreferences` 允許根據用戶定義的創意、精確度和一致性等級自訂 sampling 參數。
-    - `detectTaskType` 根據提示詞判斷任務性質，提供更貼切回應。
-    - `recordPerformance` 記錄生成回應的表現，讓系統能持續調整和改進。
-    - `applyLearnedAdjustments` 根據歷史表現調整 sampling 參數，提升模型生成高質量回應的能力。
-    - `generateResponse` 封裝整個生成流程，方便以不同提示詞和上下文呼叫。
-    - `allowedTools` 指定模型生成時可使用的工具，提升回應的上下文感知能力。
-    - `feedbackScore` 允許用戶對生成回應質量提供反饋，進一步優化模型表現。
-    - `performanceHistory` 保存過往互動紀錄，讓系統從成功與失敗中學習。
-    - `getSamplingParameters` 根據請求上下文動態調整 sampling 參數，使模型行為更靈活且具回應性。
-    - `detectTaskType` 分類提示詞所屬任務，讓系統針對不同請求採用適當 sampling 策略。
-    - `samplingProfiles` 定義不同任務類型的基礎 sampling 配置，方便根據請求性質快速調整。
+- 建立管理動態採樣的 `AdaptiveSamplingManager` 類別，根據任務類型和使用者偏好調整。
+- 定義不同任務類型（創意、事實核查、程式碼、對話）的採樣配置。
+- 實作簡單啟發式方法偵測提示詞的任務類型。
+- 根據偵測到的任務類型和使用者偏好計算採樣參數。
+- 根據歷史效能應用學習的調整，優化採樣參數。
+- 紀錄效能以供未來調整，使系統能從過去互動中學習。
+- 傳送動態配置採樣參數的請求，回傳生成文本及應用參數與偵測的任務類型。
+- 使用：
+    - `userPreferences` 允許根據用戶定義的創造力、精確度和一致性層級定製採樣參數。
+    - `detectTaskType` 根據提示詞判斷任務性質，實現更量身定制的回應。
+    - `recordPerformance` 紀錄生成回應的效能，使系統能隨時間調整與提升。
+    - `applyLearnedAdjustments` 根據歷史效能修改採樣參數，加強模型產生高品質回應的能力。
+    - `generateResponse` 封裝整個以自適應採樣生成回應的流程，便於針對不同提示詞和上下文呼叫。
+    - `allowedTools` 指定模型生成時可使用的工具，允許更具情境感知的回應。
+    - `feedbackScore` 讓使用者提供生成回應品質反饋，可用以持續優化模型表現。
+    - `performanceHistory` 保存過去互動紀錄，讓系統從先前成功和失敗經驗學習。
+    - `getSamplingParameters` 根據請求上下文動態調整採樣參數，使模型行為更靈活、回應更具適應性。
+    - `detectTaskType` 基於提示詞分類任務，讓系統針對不同類型請求應用適當採樣策略。
+    - `samplingProfiles` 為不同任務類型定義基礎採樣配置，使調整更快捷方便。
 
 ---
 
-## 下一步
+## 後續內容
 
-- [5.7 Scaling](../mcp-scaling/README.md)
+- [5.7 擴展規模](../mcp-scaling/README.md)
 
-**免責聲明**：  
-本文件乃使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們致力於確保準確性，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議採用專業人工翻譯。我們不對因使用本翻譯而引起的任何誤解或誤釋承擔責任。
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責聲明**：
+本文件由 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻譯而成。雖然我們致力於確保準確性，但請注意，機器自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議進行專業人工翻譯。我們不對因使用本翻譯而產生的任何誤解或誤釋承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

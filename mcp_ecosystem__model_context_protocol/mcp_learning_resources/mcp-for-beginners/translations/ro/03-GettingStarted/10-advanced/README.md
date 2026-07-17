@@ -1,20 +1,20 @@
 # Utilizarea avansată a serverului
 
-Există două tipuri diferite de servere expuse în MCP SDK, serverul normal și serverul de nivel jos. De obicei, ai folosi serverul obișnuit pentru a adăuga funcționalități. Totuși, în unele cazuri vrei să te bazezi pe serverul de nivel jos, cum ar fi:
+Există două tipuri diferite de servere expuse în MCP SDK, serverul obișnuit și serverul la nivel scăzut. De obicei, ai folosi serverul obișnuit pentru a adăuga funcționalități. Totuși, în anumite cazuri, vrei să te bazezi pe serverul la nivel scăzut, cum ar fi:
 
-- Arhitectură mai bună. Este posibil să creezi o arhitectură curată atât cu serverul obișnuit, cât și cu un server de nivel jos, dar se poate argumenta că este puțin mai ușor cu un server de nivel jos.
-- Disponibilitatea funcționalităților. Unele funcționalități avansate pot fi folosite doar cu un server de nivel jos. Vei vedea asta în capitolele următoare pe măsură ce adăugăm sampling și elicitation.
+- Arhitectură mai bună. Este posibil să creezi o arhitectură curată atât cu serverul obișnuit, cât și cu unul la nivel scăzut, dar se poate argumenta că este puțin mai ușor cu un server la nivel scăzut.
+- Disponibilitatea funcționalităților. Unele funcționalități avansate pot fi folosite doar cu un server la nivel scăzut. Vei vedea acest lucru în capitolele următoare când vom adăuga sampling (depreciat în candidatul de lansare `2026-07-28`) și elicitation.
 
-## Server obișnuit vs server de nivel jos
+## Server obișnuit vs server la nivel scăzut
 
-Iată cum arată crearea unui Server MCP cu serverul obișnuit
+Iată cum arată crearea unui server MCP cu serverul obișnuit
 
 **Python**
 
 ```python
 mcp = FastMCP("Demo")
 
-# Adaugă un instrument de adunare
+# Adaugă un instrument de adiție
 @mcp.tool()
 def add(a: int, b: int) -> int:
     """Add two numbers"""
@@ -42,18 +42,18 @@ server.registerTool("add",
 );
 ```
 
-Ideea este că adaugi explicit fiecare instrument, resursă sau prompt pe care vrei ca serverul să îl aibă. Nu este nimic în neregulă cu asta.  
+Ideea este că adaugi explicit fiecare unealtă, resursă sau prompt pe care vrei să îl aibă serverul. Nimic greșit în asta.  
 
-### Abordarea serverului de nivel jos
+### Abordarea serverului la nivel scăzut
 
-Totuși, când folosești abordarea serverului de nivel jos trebuie să gândești diferit. În loc să înregistrezi fiecare instrument, creezi două handler-e per tip de funcționalitate (instrumente, resurse sau prompturi). De exemplu, instrumentele au doar două funcții astfel:
+Totuși, când folosești abordarea serverului la nivel scăzut, trebuie să te gândești diferit. În loc să înregistrezi fiecare unealtă, creezi două funcții handler pentru fiecare tip de funcționalitate (unelte, resurse sau prompturi). Deci, de exemplu, uneltele vor avea doar două funcții astfel:
 
-- Listarea tuturor instrumentelor. O funcție răspunde pentru toate încercările de a lista instrumentele.
-- Gestionarea apelării tuturor instrumentelor. Aici este doar o funcție care tratează apelurile către un instrument
+- Listarea tuturor uneltelor. O funcție va fi responsabilă pentru toate încercările de listare a uneltelor.
+- gestionarea apelurilor către uneltele respective. Și aici există o singură funcție care gestionează apelurile către o unealtă.
 
-Sună ca mai puțină muncă, nu? Deci, în loc să înregistrez un instrument, trebuie doar să mă asigur că instrumentul este listat când listez toate instrumentele și că este apelat când există o cerere de apel a unui instrument.
+Pare că este mai puțin de lucru, nu? În loc să înregistrez o unealtă, trebuie doar să mă asigur că unealta este listată când listez toate uneltele și că este apelată când există o cerere de apelare a unui instrument.
 
-Să vedem cum arată acum codul:
+Hai să vedem cum arată acum codul:
 
 **Python**
 
@@ -81,7 +81,7 @@ async def handle_list_tools() -> list[types.Tool]:
 
 ```typescript
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Returnează lista instrumentelor înregistrate
+  // Returnează lista de unelte înregistrate
   return {
     tools: [{
         name: "add",
@@ -99,7 +99,7 @@ server.setRequestHandler(ListToolsRequestSchema, async (request) => {
 });
 ```
 
-Aici avem o funcție care returnează o listă de funcționalități. Fiecare element din lista de instrumente are acum câmpuri precum `name`, `description` și `inputSchema` pentru a respecta tipul de returnare. Aceasta ne permite să plasăm definițiile instrumentelor și ale funcționalităților în altă parte. Putem crea toate instrumentele noastre într-un folder tools și la fel pentru toate funcționalitățile astfel încât proiectul să poată fi organizat astfel:
+Aici avem acum o funcție care returnează o listă de funcționalități. Fiecare intrare din lista de unelte are acum câmpuri precum `name`, `description` și `inputSchema` pentru a respecta tipul de returnare. Acest lucru ne permite să plasăm uneltele și definițiile caracteristicilor în altă parte. Putem acum să creăm toate uneltele în dosarul tools și același lucru se aplică pentru toate funcționalitățile, astfel proiectul tău poate fi organizat astfel:
 
 ```text
 app
@@ -113,9 +113,9 @@ app
 ----| product-description
 ```
 
-Este grozav, arhitectura noastră poate arăta foarte curat.
+Este grozav, arhitectura noastră poate fi făcută să arate foarte curat.
 
-Dar pentru apelarea instrumentelor, este aceeași idee, un handler pentru a apela un instrument, oricare ar fi acela? Da, exact, iată codul pentru asta:
+Dar apelarea uneltelor, e aceeași idee, un singur handler pentru a apela o unealtă, indiferent care? Da, exact, iată codul pentru asta:
 
 **Python**
 
@@ -125,7 +125,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # tools este un dicționar cu numele uneltelor ca chei
+    # tools este un dicționar cu numele instrumentelor ca și chei
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -158,7 +158,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
     
     // args: request.params.arguments
-    // TODO apelează unealta,
+    // TODO să apeleze instrumentul,
 
     return {
        content: [{ type: "text", text: `Tool ${name} called with arguments: ${JSON.stringify(input)}, result: ${JSON.stringify(result)}` }]
@@ -166,18 +166,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 ```
 
-După cum se vede din codul de mai sus, trebuie să extragem instrumentul de apelat, cu ce argumente și apoi să procedăm la apelarea instrumentului.
+După cum vezi din codul de mai sus, trebuie să extragem unealta ce trebuie apelată, cu ce argumente, iar apoi trebuie să continuăm cu apelarea uneltei.
 
 ## Îmbunătățirea abordării cu validare
 
-Până acum, ai văzut cum toate înregistrările tale pentru a adăuga instrumente, resurse și prompturi pot fi înlocuite cu acești doi handleri per tip de funcționalitate. Ce mai trebuie făcut? Ei bine, ar trebui să adăugăm o formă de validare pentru a ne asigura că instrumentul este apelat cu argumentele corecte. Fiecare runtime are propria soluție pentru asta, de exemplu Python folosește Pydantic și TypeScript folosește Zod. Ideea este să facem următoarele:
+Până acum, ai văzut cum toate înregistrările tale pentru a adăuga unelte, resurse și prompturi pot fi înlocuite cu aceste două handler-e pentru fiecare tip de funcționalitate. Ce altceva mai trebuie să facem? Ei bine, ar trebui să adăugăm o formă de validare pentru a ne asigura că unealta este apelată cu argumentele corecte. Fiecare runtime are propria soluție pentru asta, de exemplu Python folosește Pydantic, iar TypeScript folosește Zod. Ideea este să facem următoarele:
 
-- Mutăm logica de creare a unei funcționalități (instrument, resursă sau prompt) în folderul său dedicat.
-- Adăugăm o metodă de validare a unei cereri care, de exemplu, solicită apelarea unui instrument.
+- Mutăm logica pentru crearea unei funcționalități (unealtă, resursă sau prompt) în dosarul dedicat ei.
+- Adăugăm o metodă de validare pentru o cerere de apelare a unui instrument.
 
 ### Crearea unei funcționalități
 
-Pentru a crea o funcționalitate, trebuie să creezi un fișier pentru acea funcționalitate și să te asiguri că are câmpurile obligatorii necesare. Câmpurile diferă puțin între instrumente, resurse și prompturi.
+Pentru a crea o funcționalitate, va trebui să creăm un fișier pentru aceea funcționalitate și să ne asigurăm că are câmpurile obligatorii pentru acea funcționalitate. Care câmpuri diferă puțin între unelte, resurse și prompturi.
 
 **Python**
 
@@ -216,18 +216,18 @@ tool_add = {
 aici poți vedea cum facem următoarele:
 
 - Creăm un schema folosind Pydantic `AddInputModel` cu câmpurile `a` și `b` în fișierul *schema.py*.
-- Încercăm să parsam cererea care vine pentru a fi de tipul `AddInputModel`, dacă există o nepotrivire în parametri, aceasta va genera o eroare:
+- Încercăm să parse-ăm cererea de intrare să fie de tip `AddInputModel`, dacă există o nepotrivire a parametrilor, aceasta va arunca o eroare:
 
    ```python
    # add.py
     try:
-        # Validează intrarea folosind model Pydantic
+        # Validează intrarea folosind modelul Pydantic
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
    ```
 
-Poți alege să pui această logică de parsing în apelul instrumentului propriu-zis sau în funcția handler.
+Poți alege dacă să pui logica de parsare în apelul uneltei sau în funcția handler.
 
 **TypeScript**
 
@@ -288,7 +288,7 @@ export default {
 } as Tool;
 ```
 
-- În handlerul care gestionează toate apelurile instrumentelor, încercăm acum să parsam cererea care vine conform schemei definite a instrumentului:
+- În handler-ul care gestionează toate apelurile către unelte, încercăm acum să parse-ăm cererea în schema definită de unealtă:
 
     ```typescript
     const Schema = tool.rawSchema;
@@ -297,27 +297,27 @@ export default {
        const input = Schema.parse(request.params.arguments);
     ```
 
-    dacă asta funcționează atunci continuăm să apelăm instrumentul propriu-zis:
+    dacă asta merge, atunci continuăm să apelăm unealta efectivă:
 
     ```typescript
     const result = await tool.callback(input);
     ```
 
-După cum vezi, această abordare creează o arhitectură foarte bună, căci totul are locul său, *server.ts* este un fișier foarte mic care doar conectează handler-ele pentru cereri iar fiecare funcționalitate este în folderul său respectiv, adică tools/, resources/ sau prompts/.
+După cum vezi, această abordare creează o arhitectură excelentă pentru că totul are locul său, fișierul *server.ts* este un fișier foarte mic care doar conectează handler-ele pentru cereri, iar fiecare funcționalitate este în dosarul său respectiv, adică tools/, resources/ sau /prompts.
 
-Perfect, să încercăm să construim asta în continuare.
+Grozav, să încercăm să construim asta următorul pas. 
 
-## Exercițiu: Crearea unui server de nivel jos
+## Exercițiu: Crearea unui server la nivel scăzut
 
 În acest exercițiu, vom face următoarele:
 
-1. Creăm un server de nivel jos care gestionează listarea instrumentelor și apelarea instrumentelor.
-1. Implementăm o arhitectură pe care poți construi în continuare.
-1. Adăugăm validare pentru a ne asigura că apelurile către instrumentele tale sunt validate corespunzător.
+1. Creăm un server la nivel scăzut care gestionează listarea uneltelor și apelarea uneltelor.
+1. Implementăm o arhitectură pe care poți construi.
+1. Adăugăm validare pentru a ne asigura că apelurile uneltei sunt validate corect.
 
-### -1- Crearea arhitecturii
+### -1- Crearea unei arhitecturi
 
-Primul lucru pe care trebuie să îl rezolvăm este o arhitectură care să ne ajute să scalăm pe măsură ce adăugăm mai multe funcționalități, iată cum arată:
+Primul lucru pe care trebuie să-l abordăm este o arhitectură care ne ajută să scalăm pe măsură ce adăugăm mai multe caracteristici, iată cum arată:
 
 **Python**
 
@@ -340,11 +340,11 @@ server.ts
 client.ts
 ```
 
-Acum am configurat o arhitectură care asigură că putem adăuga ușor noi instrumente într-un folder tools. Simte-te liber să urmezi acest model pentru a adăuga subdirectoare pentru resources și prompts.
+Acum am stabilit o arhitectură care ne asigură că putem adăuga ușor unelte noi într-un dosar tools. Simte-te liber să faci același lucru pentru subdirectoare pentru resurse și prompturi.
 
-### -2- Crearea unui instrument
+### -2- Crearea unei unelte
 
-Să vedem cum arată crearea unui instrument. Mai întâi, trebuie creat în subdirectorul *tool* astfel:
+Să vedem cum arată crearea unei unelte. Mai întâi, trebuie creată în subdirectorul său *tool* astfel:
 
 **Python**
 
@@ -353,12 +353,12 @@ from .schema import AddInputModel
 
 async def add_handler(args) -> float:
     try:
-        # Validează intrarea folosind modelul Pydantic
+        # Validează inputul folosind modelul Pydantic
         input_model = AddInputModel(**args)
     except Exception as e:
         raise ValueError(f"Invalid input: {str(e)}")
 
-    # TODO: adaugă Pydantic, astfel încât să putem crea un AddInputModel și să validăm argumentele
+    # TODO: adăugați Pydantic, astfel încât să putem crea un AddInputModel și să validăm argumentele
 
     """Handler function for the add tool."""
     return float(input_model.a) + float(input_model.b)
@@ -371,9 +371,9 @@ tool_add = {
 }
 ```
 
-Ce vedem aici este cum definim numele, descrierea și schema de intrare folosind Pydantic și un handler care va fi invocat odată ce acest instrument este apelat. În final, expunem `tool_add` care este un dicționar ce conține toate aceste proprietăți.
+Ceea ce vedem aici este cum definim numele, descrierea și schema de input folosind Pydantic și un handler care va fi invocat atunci când această unealtă este apelată. În cele din urmă, expunem `tool_add`, care este un dicționar ce conține toate aceste proprietăți.
 
-Mai este și *schema.py* folosit pentru a defini schema de intrare folosită de instrumentul nostru:
+Există și *schema.py* care este folosit pentru a defini schema de input utilizată de unealtă:
 
 ```python
 from pydantic import BaseModel
@@ -383,7 +383,7 @@ class AddInputModel(BaseModel):
     b: float
 ```
 
-De asemenea, trebuie să completăm *__init__.py* pentru a ne asigura că directorul tools este tratat ca modul. În plus, trebuie să expunem modulele din acesta astfel:
+De asemenea, trebuie să umplem *__init__.py* pentru a asigura că directorul tools este tratat ca un modul. În plus, trebuie să expunem modulele din el astfel:
 
 ```python
 from .add import tool_add
@@ -393,7 +393,7 @@ tools = {
 }
 ```
 
-Putem continua să adăugăm în acest fișier pe măsură ce adăugăm mai multe instrumente.
+Putem continua să adăugăm în acest fișier pe măsură ce adăugăm mai multe unelte.
 
 **TypeScript**
 
@@ -416,12 +416,12 @@ export default {
 
 Aici creăm un dicționar format din proprietăți:
 
-- name, numele instrumentului.
-- rawSchema, aceasta este schema Zod care va fi folosită pentru validarea cererilor de apelare a acestui instrument.
-- inputSchema, această schemă va fi utilizată de handler.
-- callback, folosit pentru a invoca instrumentul.
+- name, acesta este numele uneltei.
+- rawSchema, aceasta este schema Zod, va fi folosită pentru a valida cererile de apelare a uneltei.
+- inputSchema, această schemă va fi folosită de handler.
+- callback, este folosit pentru a invoca unealta.
 
-Mai este și `Tool` folosită pentru a converti acest dicționar într-un tip pe care handler-ul serverului mcp îl poate accepta și arată astfel:
+Există și `Tool` care este folosit pentru a converti acest dicționar într-un tip ce poate fi acceptat de handler-ul serverului mcp și arată astfel:
 
 ```typescript
 import { z } from 'zod';
@@ -434,7 +434,7 @@ export interface Tool {
 }
 ```
 
-Și există *schema.ts* unde păstrăm schemele de intrare pentru fiecare instrument, arătând astfel cu o singură schemă deocamdată, dar pe măsură ce adăugăm instrumente putem adăuga mai multe intrări:
+Și există *schema.ts* unde stocăm schemele de input pentru fiecare unealtă, care arată astfel, momentan doar cu o schemă, dar pe măsură ce adăugăm unelte putem adăuga mai multe intrări:
 
 ```typescript
 import { z } from 'zod';
@@ -442,11 +442,11 @@ import { z } from 'zod';
 export const MathInputSchema = z.object({ a: z.number(), b: z.number() });
 ```
 
-Perfect, să continuăm cu gestionarea listării instrumentelor.
+Grozav, să trecem la gestionarea listării uneltelor noastre.
 
-### -3- Gestionarea listării instrumentelor
+### -3- Gestionarea listării uneltelor
 
-Pentru a gestiona listarea instrumentelor trebuie să configurăm un handler pentru această cerere. Iată ce trebuie să adăugăm în fișierul serverului:
+În continuare, pentru a gestiona listarea uneltelor, trebuie să configurăm un handler de cerere pentru acest lucru. Iată ce trebuie să adăugăm în fișierul serverului:
 
 **Python**
 
@@ -470,11 +470,11 @@ async def handle_list_tools() -> list[types.Tool]:
     return tool_list
 ```
 
-Aici adăugăm decoratorul `@server.list_tools` și funcția implementatoare `handle_list_tools`. În aceasta, trebuie să producem o listă de instrumente. Observă că fiecare instrument trebuie să aibă un nume, descriere și inputSchema.   
+Aici adăugăm decoratorul `@server.list_tools` și funcția de implementare `handle_list_tools`. În aceasta din urmă trebuie să producem o listă de unelte. Observă că fiecare unealtă trebuie să aibă un nume, o descriere și un inputSchema.   
 
 **TypeScript**
 
-Pentru a configura handler-ul cererii de listare a instrumentelor, trebuie să apelăm `setRequestHandler` pe server cu o schemă care se potrivește cu ceea ce dorim să facem, în acest caz `ListToolsRequestSchema`.
+Pentru a configura handler-ul de cerere pentru listarea uneltelor, trebuie să apelăm `setRequestHandler` pe server cu o schemă care se potrivește cu ce încercăm să facem, în acest caz `ListToolsRequestSchema`. 
 
 ```typescript
 // index.ts
@@ -492,22 +492,22 @@ tools.push(subtractTool);
 import { tools } from './tools/index.js';
 
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-  // Returnează lista instrumentelor înregistrate
+  // Returnează lista uneltelor înregistrate
   return {
     tools: tools
   };
 });
 ```
 
-Perfect, acum am rezolvat partea de listare a instrumentelor, să vedem cum putem apela instrumentele.
+Grozav, acum am rezolvat partea cu listarea uneltelor, să vedem cum am putea apela uneltele.
 
-### -4- Gestionarea apelării unui instrument
+### -4- Gestionarea apelării unei unelte
 
-Pentru a apela un instrument, trebuie să configurăm un alt handler pentru cereri, de data asta axat pe tratarea cererii care specifică ce funcționalitate să se apeleze și cu ce argumente.
+Pentru a apela o unealtă, trebuie să configurăm un alt handler de cereri, de data aceasta concentrat pe a trata o cerere care specifică ce funcționalitate să se apeleze și cu ce argumente.
 
 **Python**
 
-Să folosim decoratorul `@server.call_tool` și să îl implementăm cu o funcție ca `handle_call_tool`. În această funcție trebuie să extragem numele instrumentului, argumentele sale și să ne asigurăm că argumentele sunt valide pentru instrumentul în cauză. Putem valida argumentele fie aici, fie în handler-ul propriuzis al instrumentului.
+Folosim decoratorul `@server.call_tool` și îl implementăm cu o funcție cum ar fi `handle_call_tool`. În acea funcție, trebuie să extragem numele uneltei, argumentele sale și să ne asigurăm că argumentele sunt valide pentru unealta în cauză. Putem fie să validăm argumentele în această funcție, fie mai jos, în unealta propriu-zisă.
 
 ```python
 @server.call_tool()
@@ -515,7 +515,7 @@ async def handle_call_tool(
     name: str, arguments: dict[str, str] | None
 ) -> list[types.TextContent]:
     
-    # tools este un dicționar cu numele instrumentelor ca și chei
+    # tools este un dicționar cu numele uneltelor ca și chei
     if name not in tools.tools:
         raise ValueError(f"Unknown tool: {name}")
     
@@ -523,7 +523,7 @@ async def handle_call_tool(
 
     result = "default"
     try:
-        # apelează instrumentul
+        # apelează unealta
         result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)
     except Exception as e:
         raise ValueError(f"Error calling tool {name}: {str(e)}")
@@ -535,23 +535,23 @@ async def handle_call_tool(
 
 Iată ce se întâmplă:
 
-- Numele instrumentului este deja prezent ca parametrul de intrare `name` care este adevărat pentru argumentele noastre sub forma dicționarului `arguments`.
+- Numele uneltei este deja prezent ca parametru de intrare `name` care este adevărat și pentru argumentele noastre sub forma dicționarului `arguments`.
 
-- Instrumentul este apelat cu `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Validarea argumentelor are loc în proprietatea `handler` care indică o funcție, iar dacă aceasta eșuează va arunca o excepție.
+- Unealta este apelată cu `result = await tool["handler"](../../../../03-GettingStarted/10-advanced/arguments)`. Validarea argumentelor se face în proprietatea `handler` care indică o funcție, dacă aceasta eșuează va ridica o excepție. 
 
-Acum avem o înțelegere completă despre listarea și apelarea instrumentelor folosind un server de nivel jos.
+Acum avem o înțelegere completă despre listarea și apelarea uneltelor folosind un server la nivel scăzut.
 
 Vezi [exemplul complet](./code/README.md) aici
 
 ## Tema
 
-Extinde codul oferit cu mai multe instrumente, resurse și prompturi și reflectă asupra faptului că trebuie doar să adaugi fișiere în directorul tools și nicăieri altundeva.
+Extinde codul primit cu mai multe unelte, resurse și prompturi și reflectă asupra modului în care observi că trebuie să adaugi doar fișiere în directorul tools și nicăieri altundeva. 
 
-*Nicio soluție oferită*
+*Nu se oferă soluție*
 
 ## Rezumat
 
-În acest capitol, am văzut cum funcționează abordarea serverului de nivel jos și cum aceasta ne poate ajuta să creăm o arhitectură plăcută pe care o putem continua să o construim. Am discutat de asemenea despre validare și ți s-a arătat cum să lucrezi cu biblioteci de validare pentru a crea scheme de validare a inputului.
+În acest capitol, am văzut cum funcționează abordarea serverului la nivel scăzut și cum ne poate ajuta să creăm o arhitectură frumoasă pe care să continuăm să construim. Am discutat de asemenea despre validare și ți s-a arătat cum să lucrezi cu biblioteci de validare pentru a crea scheme pentru validarea inputului.
 
 ## Ce urmează
 
@@ -560,6 +560,6 @@ Extinde codul oferit cu mai multe instrumente, resurse și prompturi și reflect
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Declinare a responsabilității**:  
-Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). Deși ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională umană. Nu ne asumăm răspunderea pentru orice neînțelegeri sau interpretări greșite rezultate din utilizarea acestei traduceri.
+**Declinare a responsabilității**:
+Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). În timp ce ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un om. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care decurg din utilizarea acestei traduceri.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

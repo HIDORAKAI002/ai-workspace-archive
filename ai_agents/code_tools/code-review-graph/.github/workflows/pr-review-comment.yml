@@ -1,0 +1,165 @@
+# Posts the report produced by the unprivileged PR Review workflow. This
+# workflow runs from the default branch, never checks out PR code, and treats
+# every downloaded artifact byte as untrusted input.
+name: PR Review Comment
+
+on:
+  workflow_run:
+    workflows: ["PR Review"]
+    types: [completed]
+
+permissions:
+  actions: read
+  pull-requests: write
+
+jobs:
+  comment:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Locate one bounded report artifact
+        id: artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAX_ARCHIVE_BYTES: "100000"
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          mapfile -t artifact_rows < <(gh api --method GET \
+            "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts" \
+            -f per_page=100 \
+            --jq '.artifacts[] | select(
+              .name == "crg-report" and (.expired | not)
+            ) | [.id, .size_in_bytes] | @tsv')
+          if [ "${#artifact_rows[@]}" -ne 1 ]; then
+            echo "Expected exactly one non-expired crg-report artifact." >&2
+            exit 1
+          fi
+
+          IFS=$'\t' read -r artifact_id artifact_size <<< "${artifact_rows[0]}"
+          case "${artifact_id}" in
+            ''|*[!0-9]*) echo "Invalid artifact ID." >&2; exit 1 ;;
+          esac
+          case "${artifact_size}" in
+            ''|*[!0-9]*) echo "Invalid artifact size." >&2; exit 1 ;;
+          esac
+          if [ "${artifact_size}" -eq 0 ] || \
+             [ "${artifact_size}" -gt "${MAX_ARCHIVE_BYTES}" ]; then
+            echo "Artifact archive is empty or exceeds the size cap." >&2
+            exit 1
+          fi
+          printf 'artifact-id=%s\n' "${artifact_id}" >> "${GITHUB_OUTPUT}"
+
+      - name: Download report artifact into runner temp
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ steps.artifact.outputs.artifact-id }}
+          path: ${{ runner.temp }}/crg-report-download
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate and wrap untrusted report
+        env:
+          COMMENT_BODY: ${{ runner.temp }}/crg-comment-body.md
+          DOWNLOAD_DIR: ${{ runner.temp }}/crg-report-download
+          MAX_BODY_BYTES: "65000"
+          MAX_PR_NUMBER_BYTES: "12"
+          MAX_REPORT_BYTES: "60000"
+          TRUSTED_MARKER: <!-- code-review-graph-report -->
+          VALIDATED_PR_NUMBER: ${{ runner.temp }}/crg-pr-number.txt
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          root = Path(os.environ["DOWNLOAD_DIR"])
+          if not root.is_dir() or root.is_symlink():
+              raise SystemExit("Artifact extraction root is not a safe directory")
+
+          entries = {path.name: path for path in root.iterdir()}
+          expected = {"crg-comment.md", "pr-number.txt"}
+          if set(entries) != expected:
+              raise SystemExit("Artifact must contain exactly the expected files")
+          if any(path.is_symlink() or not path.is_file() for path in entries.values()):
+              raise SystemExit("Artifact entries must be regular files")
+
+          pr_file = entries["pr-number.txt"]
+          if pr_file.stat().st_size > int(os.environ["MAX_PR_NUMBER_BYTES"]):
+              raise SystemExit("PR number artifact is too large")
+          try:
+              pr_text = pr_file.read_bytes().decode("ascii")
+          except UnicodeDecodeError as exc:
+              raise SystemExit("PR number must be ASCII") from exc
+          if re.fullmatch(r"[1-9][0-9]{0,9}\n?", pr_text) is None:
+              raise SystemExit("PR number must contain only a positive integer")
+
+          report_file = entries["crg-comment.md"]
+          report_size = report_file.stat().st_size
+          if report_size == 0 or report_size > int(os.environ["MAX_REPORT_BYTES"]):
+              raise SystemExit("Report artifact is empty or too large")
+          try:
+              text = report_file.read_bytes().decode("utf-8")
+          except UnicodeDecodeError as exc:
+              raise SystemExit("Report must be valid UTF-8") from exc
+          if any(ord(char) < 32 and char not in "\n\r\t" for char in text):
+              raise SystemExit("Report contains disallowed control characters")
+          if "\x7f" in text:
+              raise SystemExit("Report contains disallowed control characters")
+
+          marker = os.environ["TRUSTED_MARKER"]
+          text = text.replace(marker, "")
+          text = text.replace("\r\n", "\n").replace("\r", "\n").lstrip("\n")
+          if not text.startswith("## code-review-graph review\n"):
+              raise SystemExit("Report has an unexpected heading")
+          if "*Powered by [code-review-graph]" not in text:
+              raise SystemExit("Report is missing its expected footer")
+
+          # Prevent PR-controlled report text from creating GitHub mentions.
+          text = text.replace("@", "&#64;")
+          body = f"{marker}\n\n{text}"
+          body_bytes = body.encode("utf-8")
+          if len(body_bytes) > int(os.environ["MAX_BODY_BYTES"]):
+              raise SystemExit("Wrapped comment exceeds the GitHub body limit")
+
+          Path(os.environ["COMMENT_BODY"]).write_bytes(body_bytes)
+          Path(os.environ["VALIDATED_PR_NUMBER"]).write_text(
+              str(int(pr_text)), encoding="ascii"
+          )
+          PY
+
+      - name: Upsert sticky PR comment
+        env:
+          COMMENT_BODY: ${{ runner.temp }}/crg-comment-body.md
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          PR_NUMBER_FILE: ${{ runner.temp }}/crg-pr-number.txt
+        run: |
+          set -euo pipefail
+          pr_number=$(cat "${PR_NUMBER_FILE}")
+          actual_sha=$(gh api \
+            "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}" --jq '.head.sha')
+          if [ "${actual_sha}" != "${HEAD_SHA}" ]; then
+            echo "PR head does not match the analyzed commit; refusing to comment." >&2
+            exit 1
+          fi
+
+          comment_id=$(gh api \
+            "repos/${GITHUB_REPOSITORY}/issues/${pr_number}/comments" \
+            --paginate \
+            --jq '.[] | select(
+              .user.login == "github-actions[bot]" and
+              (.body | startswith("<!-- code-review-graph-report -->"))
+            ) | .id' | sed -n '1p')
+          if [ -n "${comment_id}" ]; then
+            gh api --method PATCH --silent \
+              "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" \
+              -F body=@"${COMMENT_BODY}"
+          else
+            gh api --method POST --silent \
+              "repos/${GITHUB_REPOSITORY}/issues/${pr_number}/comments" \
+              -F body=@"${COMMENT_BODY}"
+          fi

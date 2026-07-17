@@ -1,53 +1,57 @@
-# MCP Root Contexts
+> [অপরিহার্য: ২০২৬-০৭-২৮ রিলিজ ক্যান্ডিডেট](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexts হল Model Context Protocol-এর একটি মৌলিক ধারণা যা একাধিক অনুরোধ এবং সেশনের মধ্যে কথোপকথনের ইতিহাস এবং শেয়ার করা অবস্থা বজায় রাখার জন্য একটি স্থায়ী স্তর প্রদান করে।
+# এমসিপি রুট কনটেক্সটস্
+
+> **বর্জনের নোটিশ:** `২০২৬-০৭-২৮` এমসিপি স্পেসিফিকেশন রিলিজ ক্যান্ডিডেট টুল প্যারামিটারস্, রিসোর্স ইউআরআই, অথবা সার্ভার কনফিগারেশনের পক্ষে রুটস্ কে বর্জনযোগ্য হিসেবে চিহ্নিত করেছে। রুটস্ `২০২৫-১১-২৫` পর্যন্ত এবং আনুষ্ঠানিক বর্জনের কমপক্ষে এক বছর পরেও কার্যকর থাকে, তাই এই পাঠের সবকিছু বৈধই থাকবে — কিন্তু নতুন সার্ভার ডিজাইন গুলো বর্জনের পরিবর্তন প্যাটার্ন মূল্যায়ন করা উচিত। দেখুন [এমসিপি তে কি পরিবর্তন হচ্ছে: ২০২৬-০৭-২৮ রিলিজ ক্যান্ডিডেট](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)।
+
+রুট কনটেক্সটগুলো মডেল কনটেক্সট প্রোটোকলের একটি মৌলিক ধারণা যা একাধিক অনুরোধ এবং সেশনের মাঝে কথোপকথনের ইতিহাস এবং ভাগ করা অবস্থা বজায় রাখার জন্য একটি স্থায়ী স্তর প্রদান করে।
 
 ## পরিচিতি
 
-এই পাঠে, আমরা MCP-তে root contexts কীভাবে তৈরি, পরিচালনা এবং ব্যবহার করা যায় তা অন্বেষণ করব।
+এই পাঠে, আমরা এমসিপি তে রুট কনটেক্সট তৈরি, পরিচালনা এবং ব্যবহার করার পদ্ধতি জানব।
 
-## শেখার উদ্দেশ্য
+## শিখনের লক্ষ্যসমূহ
 
 এই পাঠের শেষে, আপনি সক্ষম হবেন:
 
-- root contexts-এর উদ্দেশ্য এবং কাঠামো বুঝতে
-- MCP ক্লায়েন্ট লাইব্রেরি ব্যবহার করে root contexts তৈরি এবং পরিচালনা করতে
-- .NET, Java, JavaScript, এবং Python অ্যাপ্লিকেশনগুলিতে root contexts বাস্তবায়ন করতে
-- বহু-পর্যায়ের কথোপকথন এবং অবস্থা ব্যবস্থাপনার জন্য root contexts ব্যবহার করতে
-- root context ব্যবস্থাপনার সেরা অনুশীলনগুলি প্রয়োগ করতে
+- রুট কনটেক্সটের উদ্দেশ্য ও গঠন বুঝতে
+- এমসিপি ক্লায়েন্ট লাইব্রেরি ব্যবহার করে রুট কনটেক্সট তৈরি এবং পরিচালনা করতে
+- .NET, জাভা, জাভাস্ক্রিপ্ট, এবং পাইথন অ্যাপ্লিকেশনে রুট কনটেক্সট প্রয়োগ করতে
+- মাল্টি-টার্ন কথোপকথন এবং স্টেট ম্যানেজমেন্টের জন্য রুট কনটেক্সট ব্যবহার করতে
+- রুট কনটেক্সট পরিচালনার জন্য সেরা পদ্ধতি প্রয়োগ করতে
 
-## Root Contexts বোঝা
+## রুট কনটেক্সটগুলি বুঝা
 
-Root contexts হল এমন ধারক যা সম্পর্কিত একাধিক ইন্টারঅ্যাকশনের ইতিহাস এবং অবস্থা ধারণ করে। এগুলো সক্ষম করে:
+রুট কনটেক্সটগুলো একটি ধারার সম্পর্কিত সংলাপের ইতিহাস এবং অবস্থা ধারণকারী ধারক হিসেবে কাজ করে। এগুলো সক্ষম করে:
 
-- **কথোপকথনের স্থায়িত্ব**: সুসংগত বহু-পর্যায়ের কথোপকথন বজায় রাখা
-- **মেমরি ব্যবস্থাপনা**: ইন্টারঅ্যাকশনের মধ্যে তথ্য সংরক্ষণ এবং পুনরুদ্ধার
-- **অবস্থা ব্যবস্থাপনা**: জটিল ওয়ার্কফ্লোতে অগ্রগতি ট্র্যাক করা
-- **কন্টেক্সট শেয়ারিং**: একাধিক ক্লায়েন্টকে একই কথোপকথন অবস্থা অ্যাক্সেস করার অনুমতি দেওয়া
+- **কথোপকথন স্থায়িত্ব**: স্পষ্ট ও ধারাবাহিক মাল্টি-টার্ন কথোপকথন বজায় রাখা
+- **মেমরি ম্যানেজমেন্ট**: কথোপকথনের মাঝে তথ্য সংরক্ষণ এবং পুনরুদ্ধার
+- **স্টেট ম্যানেজমেন্ট**: জটিল ওয়ার্কফ্লোতে অগ্রগতি ট্র্যাক করা
+- **কনটেক্সট শেয়ারিং**: একাধিক ক্লায়েন্টকে একই কথোপকথন অবস্থা প্রবেশাধিকার দেওয়া
 
-MCP-তে, root contexts-এর প্রধান বৈশিষ্ট্যগুলি হল:
+এমসিপিতে, রুট কনটেক্সটের প্রধান বৈশিষ্ট্যগুলো হলো:
 
-- প্রতিটি root context-এর একটি অনন্য শনাক্তকারী থাকে।
-- এগুলো কথোপকথনের ইতিহাস, ব্যবহারকারীর পছন্দ এবং অন্যান্য মেটাডেটা ধারণ করতে পারে।
-- প্রয়োজন অনুযায়ী এগুলো তৈরি, অ্যাক্সেস এবং আর্কাইভ করা যায়।
-- সূক্ষ্ম-স্তরের অ্যাক্সেস নিয়ন্ত্রণ এবং অনুমতি সমর্থন করে।
+- প্রতিটি রুট কনটেক্সটের একটি অনন্য সনাক্তকারী থাকে।
+- এতে কথোপকথন ইতিহাস, ব্যবহারকারীর প্রেফারেন্স এবং অন্যান্য মেটাডেটা থাকতে পারে।
+- রুট কনটেক্সট তৈরি, প্রবেশ ও আর্কাইভ করা যায় যেভাবে প্রয়োজন।
+- ফাইন-গ্রেইনড এক্সেস কন্ট্রোল ও অনুমতি সমর্থন করে।
 
-## Root Context Lifecycle
+## রুট কনটেক্সটের জীবনচক্র
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[রুট প্রসঙ্গ তৈরি করুন] --> B[মেটাডেটা দিয়ে শুরু করুন]
+    B --> C[প্রসঙ্গ আইডি সহ অনুরোধ প্রেরণ করুন]
+    C --> D[ফলাফল সহ প্রসঙ্গ আপডেট করুন]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[সম্পূর্ণ হলে প্রসঙ্গ সংরক্ষণ করুন]
 ```
 
-## Root Contexts নিয়ে কাজ করা
+## রুট কনটেক্সট নিয়ে কাজ করা
 
-এখানে root contexts কীভাবে তৈরি এবং পরিচালনা করা যায় তার একটি উদাহরণ দেওয়া হল।
+এখানে রুট কনটেক্সট তৈরি এবং পরিচালনার একটি উদাহরণ দেওয়া হলো।
 
-### C# বাস্তবায়ন
+### সি# ইমপ্লিমেন্টেশন
 
 ```csharp
 // .NET Example: Root Context Management
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-উপরের কোডে আমরা:
+উপরের কোডে আমরা করেছি:
 
-1. একটি গ্রাহক সহায়তা সেশনের জন্য root context তৈরি করেছি।
-2. ঐ context-এর মধ্যে একাধিক বার্তা পাঠিয়েছি, যাতে মডেল অবস্থা বজায় রাখতে পারে।
-3. কথোপকথনের ভিত্তিতে প্রাসঙ্গিক মেটাডেটা দিয়ে context আপডেট করেছি।
-4. কথোপকথনের ইতিহাস বুঝতে context তথ্য পুনরুদ্ধার করেছি।
-5. কথোপকথন শেষ হলে context আর্কাইভ করেছি।
+1. গ্রাহক সাপোর্ট সেশনের জন্য একটি রুট কনটেক্সট তৈরি করেছি।
+1. ঐ কনটেক্সটের মধ্যে একাধিক বার্তা পাঠিয়েছি, মডেলকে অবস্থা বজায় রাখতে সক্ষম করেছি।
+1. কথোপকথনের ভিত্তিতে প্রাসঙ্গিক মেটাডেটা দিয়ে কনটেক্সট আপডেট করেছি।
+1. কথোপকথন ইতিহাস বোঝার জন্য কনটেক্সট তথ্য পুনরুদ্ধার করেছি।
+1. কথোপকথন শেষ হলে কনটেক্সট আর্কাইভ করেছি।
 
-## উদাহরণ: আর্থিক বিশ্লেষণের জন্য Root Context বাস্তবায়ন
+## উদাহরণ: আর্থিক বিশ্লেষণের জন্য রুট কনটেক্সট বাস্তবায়ন
 
-এই উদাহরণে, আমরা একটি আর্থিক বিশ্লেষণ সেশনের জন্য root context তৈরি করব, যা একাধিক ইন্টারঅ্যাকশনের মধ্যে অবস্থা বজায় রাখার পদ্ধতি প্রদর্শন করবে।
+এই উদাহরণে, আমরা আর্থিক বিশ্লেষণ সেশনের জন্য রুট কনটেক্সট তৈরি করব, যা একাধিক আন্তঃক্রিয়ার মাধ্যমে অবস্থা বজায় রাখার পদ্ধতি প্রদর্শন করে।
 
-### Java বাস্তবায়ন
+### জাভা ইমপ্লিমেন্টেশন
 
 ```java
-// Java Example: Root Context Implementation
+// জাভা উদাহরণ: রুট কনটেক্সট ইমপ্লিমেন্টেশন
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // কনটেক্সট মেটাডাটা তৈরি করুন
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // ১. নতুন একটি রুট কনটেক্সট তৈরি করুন
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // ২. প্রথম ইন্টারঅ্যাকশন
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // ৩. প্রতিক্রিয়া থেকে প্রাপ্ত গুরুত্বপূর্ণ তথ্য দিয়ে কনটেক্সট আপডেট করুন
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // দ্বিতীয় ইন্টারঅ্যাকশন - একই কনটেক্সট ব্যবহার করে
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // ৪. বিশ্লেষণ সেশনের একটি সারাংশ তৈরি করুন
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // সারাংশটি কনটেক্সট মেটাডাটায় সংরক্ষণ করুন
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // আপডেট হওয়া কনটেক্সট তথ্য পান
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // ৫. কাজ শেষ হলে কনটেক্সট সংরক্ষণ করুন
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-উপরের কোডে আমরা:
+উপরের কোডে আমরা করেছি:
 
-1. একটি আর্থিক বিশ্লেষণ সেশনের জন্য root context তৈরি করেছি।
-2. ঐ context-এর মধ্যে একাধিক বার্তা পাঠিয়েছি, যাতে মডেল অবস্থা বজায় রাখতে পারে।
-3. কথোপকথনের ভিত্তিতে প্রাসঙ্গিক মেটাডেটা দিয়ে context আপডেট করেছি।
-4. বিশ্লেষণ সেশনের সারাংশ তৈরি করে সেটি context মেটাডেটায় সংরক্ষণ করেছি।
-5. কথোপকথন শেষ হলে context আর্কাইভ করেছি।
+1. আর্থিক বিশ্লেষণ সেশনের জন্য একটি রুট কনটেক্সট তৈরি করেছি।
+2. ঐ কনটেক্সটের মধ্যে একাধিক বার্তা পাঠিয়েছি, মডেলকে অবস্থা বজায় রাখতে সক্ষম করেছি।
+3. কথোপকথনের ভিত্তিতে প্রাসঙ্গিক মেটাডেটা দিয়ে কনটেক্সট আপডেট করেছি।
+4. বিশ্লেষণ সেশনের সারাংশ তৈরি করে কনটেক্সট মেটাডেটায় সংরক্ষণ করেছি।
+5. কথোপকথন শেষ হলে কনটেক্সট আর্কাইভ করেছি।
 
-## উদাহরণ: Root Context ব্যবস্থাপনা
+## উদাহরণ: রুট কনটেক্সট ব্যবস্থাপনা
 
-কথোপকথনের ইতিহাস এবং অবস্থা বজায় রাখার জন্য root contexts কার্যকরভাবে পরিচালনা করা অত্যন্ত গুরুত্বপূর্ণ। নিচে root context ব্যবস্থাপনা বাস্তবায়নের একটি উদাহরণ দেওয়া হল।
+কথোপকথন ইতিহাস ও অবস্থা বজায় রাখার জন্য রুট কনটেক্সট কার্যকরভাবে পরিচালনা করা অত্যন্ত গুরুত্বপূর্ণ। নিচে রুট কনটেক্সট ব্যবস্থাপনার একটি উদাহরণ দেওয়া হলো।
 
-### JavaScript বাস্তবায়ন
+### জাভাস্ক্রিপ্ট ইমপ্লিমেন্টেশন
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScript উদাহরণ: MCP রুট কনটেক্সটগুলি পরিচালনা করা
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // MCP ক্লায়েন্ট শুরু করুন
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // কনটেক্সট ম্যানেজার শুরু করুন
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // নির্দিষ্ট করা কনটেক্সট ব্যবহার করে বার্তা পাঠান
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // ঐচ্ছিকভাবে কথোপকথনের গুরুত্বপূর্ণ অন্তর্দৃষ্টি সংরক্ষণ করুন
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // সম্ভাব্য অন্তর্দৃষ্টি বের করুন (একটি বাস্তব অ্যাপে, এটি আরও জটিল হবে)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // সম্ভাব্য অন্তর্দৃষ্টি চিহ্নিত করার জন্য সহজ নীতি
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // কনটেক্সট মেটাডেটায় অন্তর্দৃষ্টি সংরক্ষণ করুন
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // অপ্রয়োজনীয় ত্রুটি, তাই শুধু সতর্কতা লগ করুন
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // এখন পর্যন্ত কথোপকথনের সারসংক্ষেপ তৈরি করতে মডেলকে প্রশ্ন করুন
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // সারসংক্ষেপ কনটেক্সট মেটাডেটায় সংরক্ষণ করুন
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // সংরক্ষণের আগে একটি চূড়ান্ত সারসংক্ষেপ তৈরি করুন
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // কনটেক্সট আর্কাইভ করুন
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// উদাহরণ ব্যবহারের
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. একটি পণ্য সহায়তা কথোপকথনের জন্য নতুন কনটেক্সট তৈরি করুন
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // ২. কথোপকথনের প্রথম বার্তা
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // একই কনটেক্সটে ফলো-আপ বার্তা
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // ৩. কনটেক্সট সম্পর্কে তথ্য পান
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // ৪. কথোপকথনের সারসংক্ষেপ তৈরি করুন এবং প্রদর্শন করুন
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // ৫. কাজ শেষ হলে কনটেক্সট আর্কাইভ করুন
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // ৬. যেকোনো ত্রুটি সুন্দরভাবে পরিচালনা করুন
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-উপরের কোডে আমরা:
+উপরের কোডে আমরা করেছি:
 
-1. `createConversationContext` ফাংশন ব্যবহার করে একটি পণ্য সহায়তা কথোপকথনের জন্য root context তৈরি করেছি। এই ক্ষেত্রে, context ডাটাবেস পারফরম্যান্স সমস্যার বিষয়ে।
+1. `createConversationContext` ফাংশন ব্যবহার করে প্রোডাক্ট সাপোর্ট কথোপকথনের জন্য একটি রুট কনটেক্সট তৈরি করেছি। এখানে কনটেক্সটটি ডাটাবেস পারফরমেন্স সমস্যা নিয়ে।
 
-2. ঐ context-এর মধ্যে একাধিক বার্তা পাঠিয়েছি, যাতে মডেল অবস্থা বজায় রাখতে পারে, `sendMessage` ফাংশন ব্যবহার করে। পাঠানো বার্তাগুলো ধীরগতির কুয়েরি পারফরম্যান্স এবং ইনডেক্স কনফিগারেশন সম্পর্কিত।
+1. `sendMessage` ফাংশন ব্যবহার করে ঐ কনটেক্সটের মধ্যে একাধিক বার্তা পাঠিয়েছি, মডেলকে অবস্থা বজায় রাখতে সক্ষম করেছি। পাঠানো বার্তাগুলো ছিল ধীর কুয়েরি পারফরমেন্স এবং ইনডেক্স কনফিগারেশন বিষয়ে।
 
-3. কথোপকথনের ভিত্তিতে প্রাসঙ্গিক মেটাডেটা দিয়ে context আপডেট করেছি।
+1. কথোপকথনের ভিত্তিতে প্রাসঙ্গিক মেটাডেটা দিয়ে কনটেক্সট আপডেট করেছি।
 
-4. কথোপকথনের সারাংশ তৈরি করে সেটি context মেটাডেটায় `generateContextSummary` ফাংশন দিয়ে সংরক্ষণ করেছি।
+1. `generateContextSummary` ফাংশন দিয়ে কথোপকথনের সারাংশ তৈরি করে কনটেক্সট মেটাডেটায় সংরক্ষণ করেছি।
 
-5. কথোপকথন শেষ হলে `archiveContext` ফাংশন ব্যবহার করে context আর্কাইভ করেছি।
+1. কথোপকথন শেষ হলে `archiveContext` ফাংশন দিয়ে কনটেক্সট আর্কাইভ করেছি।
 
-6. ত্রুটি সুষ্ঠুভাবে পরিচালনা করেছি যাতে স্থায়িত্ব নিশ্চিত হয়।
+1. ত্রুটিগুলো সুন্দরভাবে পরিচালনা করেছি যাতে স্থায়িত্ব নিশ্চিত হয়।
 
-## বহু-পর্যায়ের সহায়তার জন্য Root Context
+## মাল্টি-টার্ন সহায়তার জন্য রুট কনটেক্সট
 
-এই উদাহরণে, আমরা একটি বহু-পর্যায়ের সহায়তা সেশনের জন্য root context তৈরি করব, যা একাধিক ইন্টারঅ্যাকশনের মধ্যে অবস্থা বজায় রাখার পদ্ধতি প্রদর্শন করবে।
+এই উদাহরণে, আমরা মাল্টি-টার্ন সহায়তা সেশনের জন্য একটি রুট কনটেক্সট তৈরি করব, যা একাধিক আন্তঃক্রিয়ার মাধ্যমে অবস্থা বজায় রাখার পদ্ধতি প্রদর্শন করে।
 
-### Python বাস্তবায়ন
+### পাইথন ইমপ্লিমেন্টেশন
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# পাইথন উদাহরণ: মাল্টি-টার্ন সহায়তার জন্য রুট প্রসঙ্গ
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # যদি দেওয়া হয় তবে ব্যবহারকারীর তথ্য যুক্ত করুন
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # রুট প্রসঙ্গ তৈরি করুন
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # প্রসঙ্গ আইডি সহ বিকল্প তৈরি করুন
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # নির্দিষ্ট করা হলে সরঞ্জাম যোগ করুন
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # প্রসঙ্গের মধ্যে প্রম্পট পাঠান
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # কথোপকথনের অগ্রগতি সহ প্রসঙ্গ মেটাডেটা আপডেট করুন
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # প্রথমে একটি সারাংশ প্রম্পট তৈরি করুন
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # মেটাডেটায় সারাংশ সংরক্ষণ করুন
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # প্রসঙ্গ সংরক্ষণ করুন
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# উদাহরণের ব্যবহার
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # ১. সেশন তৈরি করুন
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # ২. প্রথম ইন্টারঅ্যাকশন
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # একই প্রসঙ্গে দ্বিতীয় ইন্টারঅ্যাকশন
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # ৩. ইতিহাস পান
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # ৪. সেশন শেষ করুন
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-উপরের কোডে আমরা:
+উপরের কোডে আমরা করেছি:
 
-1. `create_session` ফাংশন ব্যবহার করে একটি প্রযুক্তিগত সহায়তা সেশনের জন্য root context তৈরি করেছি। context-এ ব্যবহারকারীর নাম এবং প্রযুক্তিগত স্তরের মতো তথ্য অন্তর্ভুক্ত রয়েছে।
+1. `create_session` ফাংশন ব্যবহার করে একটি টেকনিক্যাল সাপোর্ট সেশনের জন্য রুট কনটেক্সট তৈরি করেছি। কনটেক্সটটিতে ব্যবহারকারীর তথ্য যেমন নাম এবং প্রযুক্তিগত স্তর অন্তর্ভুক্ত ছিল।
 
-2. ঐ context-এর মধ্যে একাধিক বার্তা পাঠিয়েছি, যাতে মডেল অবস্থা বজায় রাখতে পারে, `send_message` ফাংশন ব্যবহার করে। পাঠানো বার্তাগুলো অটো-স্কেলিং ফিচারের সমস্যাগুলো সম্পর্কে।
+1. `send_message` ফাংশন ব্যবহার করে ঐ কনটেক্সটের মধ্যে একাধিক বার্তা পাঠিয়েছি, মডেলকে অবস্থা বজায় রাখতে সক্ষম করেছি। এই বার্তাগুলো ছিল অটো-স্কেলিং ফিচারের সমস্যা সম্বন্ধে।
 
-3. `get_conversation_history` ফাংশন ব্যবহার করে কথোপকথনের ইতিহাস পুনরুদ্ধার করেছি, যা context তথ্য এবং বার্তাগুলো প্রদান করে।
+1. `get_conversation_history` ফাংশন ব্যবহার করে কথোপকথন ইতিহাস পুনরুদ্ধার করেছি, যা কনটেক্সট তথ্য এবং বার্তা প্রদান করে।
 
-4. `end_session` ফাংশন ব্যবহার করে সেশন শেষ করেছি, context আর্কাইভ এবং সারাংশ তৈরি করে। সারাংশ কথোপকথনের মূল পয়েন্টগুলো ধারণ করে।
+1. সেশন শেষ করে কনটেক্সট আর্কাইভ এবং একটি সারাংশ তৈরি করেছি `end_session` ফাংশনের মাধ্যমে। সারাংশটি কথোপকথনের মূল পয়েন্টগুলো ধারণ করে।
 
-## Root Context সেরা অনুশীলন
+## রুট কনটেক্সটের জন্য সেরা পদ্ধতি
 
-root contexts কার্যকরভাবে পরিচালনার জন্য কিছু সেরা অনুশীলন:
+রুট কনটেক্সট কার্যকরভাবে পরিচালনার জন্য কিছু সেরা পদ্ধতি নিচে দেওয়া হলো:
 
-- **কেন্দ্রিত context তৈরি করুন**: বিভিন্ন কথোপকথনের উদ্দেশ্য বা ডোমেইনের জন্য আলাদা root contexts তৈরি করুন যাতে স্পষ্টতা বজায় থাকে।
+- **মনোনিবেশিত কনটেক্সট তৈরি করুন**: বিভিন্ন কথোপকথনের উদ্দেশ্য বা ডোমেইনের জন্য পৃথক রুট কনটেক্সট তৈরি করুন যাতে স্পষ্টতা বজায় থাকে।
 
-- **মেয়াদ শেষের নীতি নির্ধারণ করুন**: পুরানো contexts আর্কাইভ বা মুছে ফেলার নীতি প্রয়োগ করুন যাতে স্টোরেজ নিয়ন্ত্রণ এবং ডেটা সংরক্ষণ নীতিমালা মেনে চলা যায়।
+- **মেয়াদ উত্তীর্ণ নীতি নির্ধারণ করুন**: পুরাতন কনটেক্সট আর্কাইভ বা মুছে ফেলার নীতি প্রয়োগ করুন যাতে স্টোরেজ নিয়ন্ত্রণ এবং ডাটা রিটেনশন নীতিমালি মেনে চলে।
 
-- **প্রাসঙ্গিক মেটাডেটা সংরক্ষণ করুন**: কথোপকথনের গুরুত্বপূর্ণ তথ্য context মেটাডেটায় সংরক্ষণ করুন যা ভবিষ্যতে কাজে লাগতে পারে।
+- **প্রাসঙ্গিক মেটাডেটা সংরক্ষণ করুন**: কথোপকথন সম্পর্কিত গুরুত্বপূর্ণ তথ্য সংরক্ষণের জন্য কনটেক্সট মেটাডেটা ব্যবহার করুন যা পরবর্তীতে কাজে লাগতে পারে।
 
-- **Context ID ধারাবাহিকভাবে ব্যবহার করুন**: একবার context তৈরি হলে, তার ID ধারাবাহিকভাবে সব সম্পর্কিত অনুরোধে ব্যবহার করুন যাতে ধারাবাহিকতা বজায় থাকে।
+- **কনটেক্সট আইডি ধারাবাহিকভাবে ব্যবহার করুন**: একবার কনটেক্সট তৈরি হলে এর আইডি সকল সম্পর্কিত অনুরোধে ধারাবাহিকভাবে ব্যবহার করুন যাতে সম্পর্ক বজায় থাকে।
 
-- **সারাংশ তৈরি করুন**: যখন context বড় হয়ে যায়, তখন গুরুত্বপূর্ণ তথ্য ধারণের জন্য সারাংশ তৈরি করার কথা ভাবুন যাতে context আকার নিয়ন্ত্রণে থাকে।
+- **সারাংশ তৈরি করুন**: যখন কোনও কনটেক্সট বড় হয়ে যায়, তখন প্রয়োজনীয় তথ্য ধারণের জন্য সারাংশ তৈরি করা বিবেচনা করুন, এতে কনটেক্সট আকার নিয়ন্ত্রণে থাকে।
 
-- **অ্যাক্সেস নিয়ন্ত্রণ বাস্তবায়ন করুন**: বহু-ব্যবহারকারী সিস্টেমের জন্য, কথোপকথন context-এর গোপনীয়তা এবং নিরাপত্তা নিশ্চিত করতে সঠিক অ্যাক্সেস নিয়ন্ত্রণ প্রয়োগ করুন।
+- **এক্সেস কন্ট্রোল প্রয়োগ করুন**: মাল্টি-ইউজার সিস্টেমের জন্য কথোপকথন কনটেক্সটের গোপনীয়তা ও নিরাপত্তার জন্য যথাযথ এক্সেস কন্ট্রোল বাস্তবায়ন করুন।
 
-- **Context সীমাবদ্ধতা মোকাবেলা করুন**: context আকারের সীমাবদ্ধতা সম্পর্কে সচেতন থাকুন এবং দীর্ঘ কথোপকথন পরিচালনার জন্য কৌশল গ্রহণ করুন।
+- **কনটেক্সট সীমাবদ্ধতা মোকাবেলা করুন**: কনটেক্সট আকারের সীমাবদ্ধতা সম্পর্কে সচেতন থাকুন এবং খুব দীর্ঘ কথোপকথনের ক্ষেত্রে ব্যবস্থাপনা কৌশল গ্রহণ করুন।
 
-- **কথোপকথন শেষ হলে আর্কাইভ করুন**: কথোপকথন শেষ হলে context আর্কাইভ করুন যাতে সংস্থান মুক্ত হয় এবং কথোপকথনের ইতিহাস সংরক্ষিত থাকে।
+- **কথোপকথন সম্পন্ন হলে আর্কাইভ করুন**: কথোপকথন শেষ হলে কনটেক্সট আর্কাইভ করুন যাতে রিসোর্স মুক্ত হয় এবং কথোপকথনের ইতিহাস সংরক্ষিত থাকে।
 
-## পরবর্তী ধাপ
+## পরবর্তী বিষয়
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [৫.৫ রাউটিং](../mcp-routing/README.md)
 
-**অস্বীকৃতি**:  
-এই নথিটি AI অনুবাদ সেবা [Co-op Translator](https://github.com/Azure/co-op-translator) ব্যবহার করে অনূদিত হয়েছে। আমরা যথাসাধ্য সঠিকতার চেষ্টা করি, তবে স্বয়ংক্রিয় অনুবাদে ত্রুটি বা অসঙ্গতি থাকতে পারে। মূল নথিটি তার নিজস্ব ভাষায়ই কর্তৃত্বপূর্ণ উৎস হিসেবে বিবেচিত হওয়া উচিত। গুরুত্বপূর্ণ তথ্যের জন্য পেশাদার মানব অনুবাদ গ্রহণ করার পরামর্শ দেওয়া হয়। এই অনুবাদের ব্যবহারে সৃষ্ট কোনো ভুল বোঝাবুঝি বা ভুল ব্যাখ্যার জন্য আমরা দায়ী নই।
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**অস্বীকৃতি**:
+এই নথিটি AI অনুবাদ পরিষেবা [Co-op Translator](https://github.com/Azure/co-op-translator) ব্যবহার করে অনূদিত হয়েছে। যদিও আমরা শুদ্ধতার জন্য চেষ্টা করি, অনুগ্রহ করে মনে রাখবেন যে স্বয়ংক্রিয় অনুবাদে ত্রুটি বা অসঙ্গতি থাকতে পারে। মূল নথিটি তার স্বভাষায় কর্তৃত্বপূর্ণ উৎস হিসেবে বিবেচিত হওয়া উচিত। গুরুত্বপূর্ণ তথ্যের জন্য পেশাদার মানব অনুবাদ সুপারিশ করা হয়। এই অনুবাদের ব্যবহারে প্রয়োজনীয় ভুল বোঝাবুঝি বা ভুল ব্যাখ্যার জন্য আমরা দায়বদ্ধ নই।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

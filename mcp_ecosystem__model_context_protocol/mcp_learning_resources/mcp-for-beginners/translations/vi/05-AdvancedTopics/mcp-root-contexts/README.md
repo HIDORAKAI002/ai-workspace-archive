@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [KHÔNG KHUYẾN KHÍCH SỬ DỤNG: ỨNG CỬ PHÁT HÀNH 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexts là một khái niệm cơ bản trong Model Context Protocol, cung cấp một lớp lưu trữ bền vững để duy trì lịch sử cuộc trò chuyện và trạng thái chung qua nhiều yêu cầu và phiên làm việc.
+# Ngữ cảnh Root MCP
+
+> **Thông báo ngừng hỗ trợ:** ứng cử phát hành đặc tả MCP `2026-07-28` đánh dấu Roots là không được khuyến khích sử dụng, thay vào đó dùng các tham số công cụ, URI tài nguyên, hoặc cấu hình máy chủ. Roots vẫn hoạt động trong phiên bản `2025-11-25` và ít nhất một năm sau khi bị ngừng chính thức, nên tất cả trong bài học này vẫn còn hiệu lực - nhưng thiết kế máy chủ mới nên xem xét mô hình thay thế. Xem [Có gì thay đổi trong MCP: Ứng cử phát hành 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Ngữ cảnh root là một khái niệm cơ bản trong Model Context Protocol cung cấp một lớp lưu trữ liên tục để duy trì lịch sử đối thoại và trạng thái chung qua nhiều yêu cầu và phiên làm việc.
 
 ## Giới thiệu
 
-Trong bài học này, chúng ta sẽ tìm hiểu cách tạo, quản lý và sử dụng root contexts trong MCP.
+Trong bài học này, chúng ta sẽ khám phá cách tạo, quản lý và sử dụng ngữ cảnh root trong MCP.
 
 ## Mục tiêu học tập
 
-Sau bài học này, bạn sẽ có thể:
+Đến cuối bài học này, bạn sẽ có khả năng:
 
-- Hiểu mục đích và cấu trúc của root contexts
-- Tạo và quản lý root contexts bằng các thư viện client MCP
-- Triển khai root contexts trong các ứng dụng .NET, Java, JavaScript và Python
-- Sử dụng root contexts cho các cuộc trò chuyện nhiều lượt và quản lý trạng thái
-- Áp dụng các thực hành tốt nhất trong quản lý root contexts
+- Hiểu được mục đích và cấu trúc của ngữ cảnh root
+- Tạo và quản lý ngữ cảnh root bằng các thư viện khách MCP
+- Triển khai ngữ cảnh root trong các ứng dụng .NET, Java, JavaScript và Python
+- Sử dụng ngữ cảnh root cho các cuộc hội thoại đa lượt và quản lý trạng thái
+- Thực hiện các phương pháp tốt nhất cho quản lý ngữ cảnh root
 
-## Hiểu về Root Contexts
+## Hiểu về Ngữ cảnh Root
 
-Root contexts đóng vai trò như các vùng chứa lưu giữ lịch sử và trạng thái cho một chuỗi các tương tác liên quan. Chúng cho phép:
+Ngữ cảnh root hoạt động như các container giữ lịch sử và trạng thái cho một chuỗi các tương tác liên quan. Chúng cho phép:
 
-- **Duy trì cuộc trò chuyện**: Giữ cho các cuộc trò chuyện nhiều lượt được mạch lạc
-- **Quản lý bộ nhớ**: Lưu trữ và truy xuất thông tin qua các tương tác
+- **Duy trì cuộc hội thoại**: Bảo đảm hội thoại đa lượt được mạch lạc
+- **Quản lý bộ nhớ**: Lưu giữ và truy xuất thông tin qua các tương tác
 - **Quản lý trạng thái**: Theo dõi tiến trình trong các quy trình phức tạp
-- **Chia sẻ ngữ cảnh**: Cho phép nhiều client truy cập cùng một trạng thái cuộc trò chuyện
+- **Chia sẻ ngữ cảnh**: Cho phép nhiều khách hàng truy cập cùng trạng thái đối thoại
 
-Trong MCP, root contexts có các đặc điểm chính sau:
+Trong MCP, ngữ cảnh root có những đặc điểm chính sau:
 
-- Mỗi root context có một định danh duy nhất.
-- Chúng có thể chứa lịch sử cuộc trò chuyện, sở thích người dùng và các siêu dữ liệu khác.
+- Mỗi ngữ cảnh root có một định danh duy nhất.
+- Có thể chứa lịch sử đối thoại, sở thích người dùng, và các siêu dữ liệu khác.
 - Có thể được tạo, truy cập và lưu trữ khi cần thiết.
 - Hỗ trợ kiểm soát truy cập và quyền hạn chi tiết.
 
-## Vòng đời của Root Context
+## Vòng đời ngữ cảnh Root
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Tạo Ngữ Cảnh Gốc] --> B[Khởi Tạo với Siêu Dữ Liệu]
+    B --> C[Gửi Yêu Cầu với ID Ngữ Cảnh]
+    C --> D[Cập Nhật Ngữ Cảnh với Kết Quả]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Lưu Trữ Ngữ Cảnh Khi Hoàn Thành]
 ```
 
-## Làm việc với Root Contexts
+## Làm việc với Ngữ cảnh Root
 
-Dưới đây là ví dụ về cách tạo và quản lý root contexts.
+Dưới đây là ví dụ về cách tạo và quản lý ngữ cảnh root.
 
 ### Triển khai C#
 
@@ -124,20 +128,20 @@ public class RootContextExample
 
 Trong đoạn mã trên, chúng ta đã:
 
-1. Tạo một root context cho phiên hỗ trợ khách hàng.
-2. Gửi nhiều tin nhắn trong context đó, cho phép mô hình duy trì trạng thái.
-3. Cập nhật context với các siêu dữ liệu liên quan dựa trên cuộc trò chuyện.
-4. Truy xuất thông tin context để hiểu lịch sử cuộc trò chuyện.
-5. Lưu trữ context khi cuộc trò chuyện kết thúc.
+1. Tạo một ngữ cảnh root cho phiên hỗ trợ khách hàng.
+1. Gửi nhiều tin nhắn trong ngữ cảnh đó, cho phép mô hình duy trì trạng thái.
+1. Cập nhật ngữ cảnh với siêu dữ liệu liên quan dựa trên cuộc hội thoại.
+1. Truy xuất thông tin ngữ cảnh để hiểu lịch sử cuộc hội thoại.
+1. Lưu trữ ngữ cảnh khi cuộc hội thoại hoàn thành.
 
-## Ví dụ: Triển khai Root Context cho phân tích tài chính
+## Ví dụ: Triển khai Ngữ cảnh Root cho phân tích tài chính
 
-Trong ví dụ này, chúng ta sẽ tạo một root context cho phiên phân tích tài chính, minh họa cách duy trì trạng thái qua nhiều tương tác.
+Trong ví dụ này, chúng ta sẽ tạo một ngữ cảnh root cho phiên phân tích tài chính, trình bày cách duy trì trạng thái qua nhiều tương tác.
 
 ### Triển khai Java
 
 ```java
-// Java Example: Root Context Implementation
+// Ví dụ Java: Triển khai Ngữ cảnh Gốc
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Tạo siêu dữ liệu ngữ cảnh
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Tạo một ngữ cảnh gốc mới
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Tương tác đầu tiên
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Cập nhật ngữ cảnh với thông tin quan trọng thu được từ phản hồi
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Tương tác thứ hai - sử dụng cùng ngữ cảnh
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Tạo tóm tắt của phiên phân tích
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Lưu tóm tắt vào siêu dữ liệu ngữ cảnh
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Lấy thông tin ngữ cảnh đã cập nhật
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Lưu trữ ngữ cảnh khi hoàn thành
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 Trong đoạn mã trên, chúng ta đã:
 
-1. Tạo một root context cho phiên phân tích tài chính.
-2. Gửi nhiều tin nhắn trong context đó, cho phép mô hình duy trì trạng thái.
-3. Cập nhật context với các siêu dữ liệu liên quan dựa trên cuộc trò chuyện.
-4. Tạo bản tóm tắt phiên phân tích và lưu trữ trong siêu dữ liệu của context.
-5. Lưu trữ context khi cuộc trò chuyện kết thúc.
+1. Tạo một ngữ cảnh root cho phiên phân tích tài chính.
+2. Gửi nhiều tin nhắn trong ngữ cảnh đó, cho phép mô hình duy trì trạng thái.
+3. Cập nhật ngữ cảnh với siêu dữ liệu liên quan dựa trên cuộc hội thoại.
+4. Tạo tóm tắt phiên phân tích và lưu trữ nó trong siêu dữ liệu ngữ cảnh.
+5. Lưu trữ ngữ cảnh khi cuộc hội thoại hoàn thành.
 
-## Ví dụ: Quản lý Root Context
+## Ví dụ: Quản lý Ngữ cảnh Root
 
-Quản lý root contexts hiệu quả là rất quan trọng để duy trì lịch sử và trạng thái cuộc trò chuyện. Dưới đây là ví dụ về cách triển khai quản lý root context.
+Quản lý ngữ cảnh root hiệu quả là rất quan trọng để duy trì lịch sử cuộc hội thoại và trạng thái. Dưới đây là ví dụ về cách triển khai quản lý ngữ cảnh root.
 
 ### Triển khai JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// Ví dụ JavaScript: Quản lý các ngữ cảnh gốc MCP
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Khởi tạo client MCP
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Khởi tạo trình quản lý ngữ cảnh
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Gửi tin nhắn sử dụng ngữ cảnh đã chỉ định
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Tùy chọn lưu trữ những nhận định quan trọng từ cuộc trò chuyện
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Trích xuất những nhận định tiềm năng (trong ứng dụng thực tế, việc này sẽ tinh vi hơn)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Heuristic đơn giản để xác định những nhận định tiềm năng
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Lưu nhận định trong siêu dữ liệu ngữ cảnh
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Lỗi không quan trọng, chỉ ghi cảnh báo
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Yêu cầu mô hình tạo tóm tắt cuộc trò chuyện đến hiện tại
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Lưu tóm tắt trong siêu dữ liệu ngữ cảnh
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Tạo tóm tắt cuối cùng trước khi lưu trữ
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Lưu trữ ngữ cảnh
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Ví dụ sử dụng
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Tạo ngữ cảnh mới cho cuộc trò chuyện hỗ trợ sản phẩm
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Tin nhắn đầu tiên trong cuộc trò chuyện
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Tin nhắn tiếp theo trong cùng ngữ cảnh
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Lấy thông tin về ngữ cảnh
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Tạo và hiển thị tóm tắt cuộc trò chuyện
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Lưu trữ ngữ cảnh khi hoàn thành
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Xử lý mọi lỗi một cách nhẹ nhàng
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 Trong đoạn mã trên, chúng ta đã:
 
-1. Tạo một root context cho cuộc trò chuyện hỗ trợ sản phẩm với hàm `createConversationContext`. Trong trường hợp này, context liên quan đến các vấn đề về hiệu suất cơ sở dữ liệu.
+1. Tạo một ngữ cảnh root cho cuộc hội thoại hỗ trợ sản phẩm với hàm `createConversationContext`. Trong trường hợp này, ngữ cảnh là về các vấn đề hiệu suất cơ sở dữ liệu.
 
-2. Gửi nhiều tin nhắn trong context đó, cho phép mô hình duy trì trạng thái với hàm `sendMessage`. Các tin nhắn gửi đi liên quan đến hiệu suất truy vấn chậm và cấu hình chỉ mục.
+1. Gửi nhiều tin nhắn trong ngữ cảnh đó, cho phép mô hình duy trì trạng thái với hàm `sendMessage`. Các tin nhắn gửi đi liên quan đến hiệu suất truy vấn chậm và cấu hình chỉ mục.
 
-3. Cập nhật context với các siêu dữ liệu liên quan dựa trên cuộc trò chuyện.
+1. Cập nhật ngữ cảnh với siêu dữ liệu liên quan dựa trên cuộc hội thoại.
 
-4. Tạo bản tóm tắt cuộc trò chuyện và lưu trữ trong siêu dữ liệu context với hàm `generateContextSummary`.
+1. Tạo bản tóm tắt cuộc hội thoại và lưu vào siêu dữ liệu ngữ cảnh với hàm `generateContextSummary`.
 
-5. Lưu trữ context khi cuộc trò chuyện kết thúc với hàm `archiveContext`.
+1. Lưu trữ ngữ cảnh khi cuộc hội thoại hoàn thành với hàm `archiveContext`.
 
-6. Xử lý lỗi một cách linh hoạt để đảm bảo độ bền vững.
+1. Xử lý lỗi một cách linh hoạt để đảm bảo sự ổn định.
 
-## Root Context cho Hỗ trợ Nhiều Lượt
+## Ngữ cảnh Root cho Hỗ trợ Đa lượt
 
-Trong ví dụ này, chúng ta sẽ tạo một root context cho phiên hỗ trợ nhiều lượt, minh họa cách duy trì trạng thái qua nhiều tương tác.
+Trong ví dụ này, chúng ta sẽ tạo một ngữ cảnh root cho phiên hỗ trợ đa lượt, trình bày cách duy trì trạng thái qua nhiều tương tác.
 
 ### Triển khai Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Ví dụ Python: Ngữ cảnh gốc cho Hỗ trợ Đa lượt
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Thêm thông tin người dùng nếu có
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Tạo ngữ cảnh gốc
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Tạo tùy chọn với ID ngữ cảnh
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Thêm công cụ nếu được chỉ định
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Gửi lời nhắc trong ngữ cảnh
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Cập nhật siêu dữ liệu ngữ cảnh với tiến trình hội thoại
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Tạo lời nhắc tóm tắt trước
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Lưu trữ tóm tắt trong siêu dữ liệu
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Lưu trữ ngữ cảnh
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Ví dụ sử dụng
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Tạo phiên
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Tương tác đầu tiên
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Tương tác thứ hai trong cùng ngữ cảnh
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Lấy lịch sử
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Kết thúc phiên
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 Trong đoạn mã trên, chúng ta đã:
 
-1. Tạo một root context cho phiên hỗ trợ kỹ thuật với hàm `create_session`. Context bao gồm thông tin người dùng như tên và trình độ kỹ thuật.
+1. Tạo một ngữ cảnh root cho phiên hỗ trợ kỹ thuật với hàm `create_session`. Ngữ cảnh bao gồm thông tin người dùng như tên và trình độ kỹ thuật.
 
-2. Gửi nhiều tin nhắn trong context đó, cho phép mô hình duy trì trạng thái với hàm `send_message`. Các tin nhắn gửi đi liên quan đến các vấn đề với tính năng tự động mở rộng.
+1. Gửi nhiều tin nhắn trong ngữ cảnh đó, cho phép mô hình duy trì trạng thái với hàm `send_message`. Các tin nhắn gửi về vấn đề tính năng tự động mở rộng.
 
-3. Truy xuất lịch sử cuộc trò chuyện bằng hàm `get_conversation_history`, cung cấp thông tin context và các tin nhắn.
+1. Truy xuất lịch sử cuộc hội thoại bằng hàm `get_conversation_history`, cung cấp thông tin ngữ cảnh và các tin nhắn.
 
-4. Kết thúc phiên làm việc bằng cách lưu trữ context và tạo bản tóm tắt với hàm `end_session`. Bản tóm tắt ghi lại các điểm chính của cuộc trò chuyện.
+1. Kết thúc phiên làm việc bằng cách lưu trữ ngữ cảnh và tạo bản tóm tắt với hàm `end_session`. Bản tóm tắt ghi lại các điểm quan trọng từ cuộc hội thoại.
 
-## Thực hành tốt nhất cho Root Context
+## Thực hành tốt nhất cho Ngữ cảnh Root
 
-Dưới đây là một số thực hành tốt nhất để quản lý root contexts hiệu quả:
+Dưới đây là một số thực hành tốt nhất để quản lý ngữ cảnh root hiệu quả:
 
-- **Tạo các context tập trung**: Tạo các root context riêng biệt cho các mục đích hoặc lĩnh vực cuộc trò chuyện khác nhau để giữ sự rõ ràng.
+- **Tạo ngữ cảnh tập trung**: Tạo các ngữ cảnh root riêng biệt cho các mục đích hoặc lĩnh vực đối thoại khác nhau để duy trì sự rõ ràng.
 
-- **Đặt chính sách hết hạn**: Áp dụng các chính sách lưu trữ hoặc xóa các context cũ để quản lý bộ nhớ và tuân thủ chính sách lưu trữ dữ liệu.
+- **Đặt chính sách hết hạn**: Triển khai chính sách lưu trữ hoặc xóa các ngữ cảnh cũ để quản lý dung lượng và tuân thủ quy định lưu trữ dữ liệu.
 
-- **Lưu trữ siêu dữ liệu liên quan**: Sử dụng siêu dữ liệu context để lưu giữ thông tin quan trọng về cuộc trò chuyện có thể hữu ích sau này.
+- **Lưu trữ siêu dữ liệu liên quan**: Dùng siêu dữ liệu ngữ cảnh để lưu các thông tin quan trọng về cuộc hội thoại có thể hữu ích sau này.
 
-- **Sử dụng ID context nhất quán**: Khi một context được tạo, sử dụng ID của nó một cách nhất quán cho tất cả các yêu cầu liên quan để duy trì tính liên tục.
+- **Sử dụng ID ngữ cảnh nhất quán**: Khi ngữ cảnh được tạo, dùng ID đó nhất quán cho tất cả các yêu cầu liên quan để duy trì sự liên tục.
 
-- **Tạo bản tóm tắt**: Khi context trở nên lớn, hãy cân nhắc tạo các bản tóm tắt để ghi lại thông tin thiết yếu đồng thời quản lý kích thước context.
+- **Tạo tóm tắt**: Khi ngữ cảnh trở nên lớn, cân nhắc tạo các bản tóm tắt để ghi lại thông tin thiết yếu trong khi quản lý kích thước ngữ cảnh.
 
-- **Triển khai kiểm soát truy cập**: Đối với hệ thống đa người dùng, triển khai kiểm soát truy cập phù hợp để đảm bảo quyền riêng tư và bảo mật của các context cuộc trò chuyện.
+- **Triển khai kiểm soát truy cập**: Đối với hệ thống nhiều người dùng, thực hiện kiểm soát truy cập phù hợp để đảm bảo quyền riêng tư và bảo mật ngữ cảnh cuộc hội thoại.
 
-- **Xử lý giới hạn context**: Nhận biết các giới hạn về kích thước context và áp dụng các chiến lược xử lý cho các cuộc trò chuyện rất dài.
+- **Xử lý giới hạn ngữ cảnh**: Nhận biết giới hạn về kích thước ngữ cảnh và triển khai các chiến lược để xử lý các cuộc hội thoại rất dài.
 
-- **Lưu trữ khi hoàn thành**: Lưu trữ các context khi cuộc trò chuyện kết thúc để giải phóng tài nguyên đồng thời giữ lại lịch sử cuộc trò chuyện.
+- **Lưu trữ khi hoàn thành**: Lưu trữ các ngữ cảnh khi cuộc hội thoại kết thúc để giải phóng tài nguyên đồng thời bảo tồn lịch sử cuộc hội thoại.
 
-## Tiếp theo
+## Tiếp theo là
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Định tuyến](../mcp-routing/README.md)
 
-**Tuyên bố từ chối trách nhiệm**:  
-Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc không chính xác. Tài liệu gốc bằng ngôn ngữ gốc của nó nên được coi là nguồn chính xác và đáng tin cậy. Đối với các thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp do con người thực hiện. Chúng tôi không chịu trách nhiệm về bất kỳ sự hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Tuyên bố miễn trừ trách nhiệm**:
+Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc sai sót. Tài liệu gốc bằng ngôn ngữ gốc nên được coi là nguồn tin chính thức. Đối với thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm về bất kỳ hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

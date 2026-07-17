@@ -37,7 +37,7 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: tirth8205/code-review-graph@v2.3.6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -45,6 +45,10 @@ jobs:
 
 That is the whole setup. The default `GITHUB_TOKEN` provided by Actions is
 sufficient — no PAT, no API key, no third-party service.
+
+Self-hosted runners must be version `2.327.1` or newer. The composite action
+uses Node 24-based GitHub actions, including `actions/setup-python@v6`,
+`actions/cache@v6`, and the recommended `actions/checkout@v7` example.
 
 To turn the review into a merge gate:
 
@@ -63,6 +67,12 @@ To turn the review into a merge gate:
 | `comment` | no | `true` | Post (and keep updated) the sticky PR comment. Set to `false` to run analysis/gating without commenting. |
 | `fail-on-risk` | no | `none` | Fail the job when the overall risk score reaches a level: `none` (never fail), `high` (risk ≥ 0.70), `critical` (risk ≥ 0.85). |
 | `python-version` | no | `3.12` | Python version used to run code-review-graph (3.10+ supported). |
+
+## Outputs
+
+| Output | Description |
+|--------|-------------|
+| `comment-file` | Runner-local path to the rendered markdown report. Use with `comment: false` when a separate trusted workflow will publish it. |
 
 ### Risk levels
 
@@ -123,10 +133,11 @@ database) with `actions/cache`:
 
 ## Security notes
 
-- **Token scope**: the action needs only `pull-requests: write` (to post the
-  comment) and `contents: read` (for checkout). Grant exactly that in the
-  workflow's `permissions:` block — the examples above do. The token is used
-  for nothing except listing/creating/updating the one PR comment.
+- **Token scope**: direct commenting needs `contents: read` for checkout and
+  `pull-requests: write` to post the comment. In the split fork-safe setup,
+  the analysis workflow needs only `contents: read`; the trusted commenter
+  needs only `actions: read` and `pull-requests: write`. Grant exactly those
+  permissions in each workflow.
 - **Local-first**: analysis runs entirely on the runner. No code, diff, or
   metadata leaves GitHub's infrastructure; there is no external API, account,
   or key.
@@ -139,16 +150,29 @@ database) with `actions/cache`:
 - **Pinning**: when consuming the action from another repository, pin
   `uses:` to a release tag or commit SHA rather than `@main`.
 - **Fork PRs**: `pull_request` runs from forks receive a read-only
-  `GITHUB_TOKEN`, so the comment step will fail for fork PRs unless you use
-  `pull_request_target` — which checks out trusted base-branch workflow
-  code; understand [the security implications](https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/)
-  before switching, or set `comment: false` for fork PRs.
+  `GITHUB_TOKEN`, so they cannot post the comment directly. Use an
+  unprivileged `pull_request` workflow with `comment: false`, upload the
+  `comment-file` as an artifact, and publish it from a separate trusted
+  `workflow_run` workflow. See
+  [`.github/workflows/pr-review.yml`](../.github/workflows/pr-review.yml) and
+  [`.github/workflows/pr-review-comment.yml`](../.github/workflows/pr-review-comment.yml).
+  GitHub loads the `workflow_run` workflow from the default branch, so the
+  trusted commenting half becomes active only after that workflow is merged.
+  The privileged workflow must verify the source event and analyzed commit,
+  extract only under `runner.temp`, cap and validate the artifact, and add its
+  own sticky marker before posting. Avoid `pull_request_target` with a checkout
+  of PR code because it can execute untrusted code with a privileged token
+  ([details](https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/)).
 
 ## Dogfooding
 
 This repository runs the action on its own PRs via
 [`.github/workflows/pr-review.yml`](../.github/workflows/pr-review.yml),
-which `uses: ./` (the local `action.yml`).
+which runs the local `action.yml` without write permissions and uploads the
+rendered report. The trusted
+[`pr-review-comment.yml`](../.github/workflows/pr-review-comment.yml) workflow
+validates that artifact and posts the sticky comment without checking out or
+executing PR-controlled code.
 
 ## Rendering script
 
