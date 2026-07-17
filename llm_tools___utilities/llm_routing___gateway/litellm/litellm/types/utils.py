@@ -197,6 +197,9 @@ class ModelInfoBase(ProviderSpecificModelInfo, total=False):
     cache_read_input_token_cost_above_272k_tokens: Optional[float]
     cache_read_input_token_cost_above_272k_tokens_priority: Optional[float]
     cache_read_input_token_cost_above_512k_tokens: Optional[float]
+    # Smallest prefix this model will actually cache, whatever caching mechanism its provider uses.
+    # Absent means the provider-agnostic default applies; see MINIMUM_PROMPT_CACHE_TOKEN_COUNT.
+    prompt_cache_min_tokens: Optional[int]
     input_cost_per_character: Optional[float]  # only for vertex ai models
     input_cost_per_audio_token: Optional[float]
     input_cost_per_token_above_128k_tokens: Optional[float]  # only for vertex ai models
@@ -325,6 +328,7 @@ class CallTypes(str, Enum):
     cancel_batch = "cancel_batch"
     pass_through = "pass_through_endpoint"
     anthropic_messages = "anthropic_messages"
+    aanthropic_messages = "aanthropic_messages"
     get_assistants = "get_assistants"
     aget_assistants = "aget_assistants"
     create_assistants = "create_assistants"
@@ -493,6 +497,7 @@ CallTypesLiteral = Literal[
     "pass_through_endpoint",
     "allm_passthrough_route",
     "anthropic_messages",
+    "aanthropic_messages",
     "aretrieve_batch",
     "retrieve_batch",
     "generate_content",
@@ -1474,6 +1479,9 @@ class PromptTokensDetailsWrapper(
     web_search_requests: Optional[int] = None
     """Number of web search requests made by the tool call. Used for Anthropic to calculate web search cost."""
 
+    tool_use_tokens: Optional[int] = None
+    """Prompt tokens consumed by server-side tool use (e.g. Gemini grounding via googleSearch)."""
+
     character_count: Optional[int] = None
     """Character count sent to the model. Used for Vertex AI multimodal embeddings."""
 
@@ -1504,6 +1512,8 @@ class PromptTokensDetailsWrapper(
             del self.audio_length_seconds
         if self.web_search_requests is None:
             del self.web_search_requests
+        if self.tool_use_tokens is None:
+            del self.tool_use_tokens
         if self.cache_creation_tokens is None:
             del self.cache_creation_tokens
         if self.cache_creation_token_details is None:

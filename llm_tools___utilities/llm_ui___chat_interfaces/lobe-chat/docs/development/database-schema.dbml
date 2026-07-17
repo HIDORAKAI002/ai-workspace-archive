@@ -2498,6 +2498,7 @@ table acceptances {
   subject_type text [not null]
   subject_id text [not null]
   status text [not null, default: 'pending']
+  visibility text [not null, default: 'public']
   requirement text
   config jsonb [default: `{}`]
   visual_render jsonb
@@ -2512,6 +2513,7 @@ table acceptances {
     workspace_id [name: 'acceptances_workspace_id_idx']
     (subject_type, subject_id) [name: 'acceptances_subject_idx']
     status [name: 'acceptances_status_idx']
+    (workspace_id, visibility, user_id) [name: 'acceptances_workspace_visibility_idx']
     (user_id, subject_type, subject_id) [name: 'acceptances_personal_subject_unique', unique]
     (workspace_id, subject_type, subject_id) [name: 'acceptances_workspace_subject_unique', unique]
   }
@@ -2538,6 +2540,7 @@ table verify_check_results {
   metadata jsonb
   suggestion text
   user_decision text
+  user_decision_detail jsonb
   is_false_positive boolean
   is_false_negative boolean
   repair_operation_id text
@@ -2673,6 +2676,7 @@ table verify_runs {
   round_index integer
   operation_id text
   source text [not null, default: 'agent']
+  visibility text [not null, default: 'public']
   scenario text
   title text
   goal text

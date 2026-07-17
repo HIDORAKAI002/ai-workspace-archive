@@ -104,7 +104,7 @@ This C-Level advisory skills collection provides executive leadership guidance f
 - Building organizational culture
 - Managing stakeholder relationships
 
-**Learn More:** [ceo-advisor/SKILL.md](ceo-advisor/SKILL.md)
+**Learn More:** [ceo-advisor/SKILL.md](skills/ceo-advisor/SKILL.md)
 
 ---
 
@@ -138,7 +138,7 @@ This C-Level advisory skills collection provides executive leadership guidance f
 - Making architecture decisions
 - Measuring engineering performance
 
-**Learn More:** [cto-advisor/SKILL.md](cto-advisor/SKILL.md)
+**Learn More:** [cto-advisor/SKILL.md](skills/cto-advisor/SKILL.md)
 
 ---
 
