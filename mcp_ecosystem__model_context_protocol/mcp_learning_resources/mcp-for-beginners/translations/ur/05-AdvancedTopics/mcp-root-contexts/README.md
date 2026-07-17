@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [منسوخ شدہ: 2026-07-28 رلیز کینڈیڈیٹ](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexts ماڈل کانٹیکسٹ پروٹوکول کا ایک بنیادی تصور ہیں جو متعدد درخواستوں اور سیشنز کے دوران گفتگو کی تاریخ اور مشترکہ حالت کو برقرار رکھنے کے لیے ایک مستقل سطح فراہم کرتے ہیں۔
+# MCP روٹ کانٹیکسٹس
+
+> **منسوخی کا نوٹس:** `2026-07-28` MCP وضاحت رلیز کینڈیڈیٹ نے ٹول پیرامیٹرز، وسائل کے URI، یا سرور کنفیگریشن کے حق میں روٹس کو منسوخ قرار دیا ہے۔ روٹس `2025-11-25` میں کام کرتے رہیں گے اور کسی بھی رسمی منسوخی کے کم از کم ایک سال بعد تک کام کرتے رہیں گے، لہٰذا اس سبق کی تمام معلومات درست ہیں - لیکن نئے سرور ڈیزائنز کو اس تبدیلی کے نمونہ کا جائزہ لینا چاہیے۔ دیکھیں [MCP میں کیا تبدیل ہو رہا ہے: 2026-07-28 رلیز کینڈیڈیٹ](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)۔
+
+روٹ کانٹیکسٹس ماڈل کانٹیکسٹ پروٹوکول میں ایک بنیادی تصور ہیں جو گفتگو کی تاریخ اور شیئرڈ اسٹیٹ کو متعدد درخواستوں اور سیشنز کے دوران برقرار رکھنے کے لیے ایک مستقل پرت فراہم کرتے ہیں۔
 
 ## تعارف
 
-اس سبق میں، ہم MCP میں root contexts بنانے، منظم کرنے، اور استعمال کرنے کا طریقہ سیکھیں گے۔
+اس سبق میں، ہم MCP میں روٹ کانٹیکسٹس بنانے، منظم کرنے، اور استعمال کرنے کا طریقہ سیکھیں گے۔
 
-## سیکھنے کے مقاصد
+## تعلیمی مقاصد
 
-اس سبق کے اختتام تک، آپ قابل ہوں گے کہ:
+اس سبق کے آخر تک، آپ یہ کر سکیں گے:
 
-- root contexts کے مقصد اور ساخت کو سمجھیں
-- MCP کلائنٹ لائبریریز کا استعمال کرتے ہوئے root contexts بنائیں اور منظم کریں
-- .NET، Java، JavaScript، اور Python ایپلیکیشنز میں root contexts نافذ کریں
-- ملٹی ٹرن گفتگو اور حالت کے انتظام کے لیے root contexts کا استعمال کریں
-- root context کے انتظام کے بہترین طریقے اپنائیں
+- روٹ کانٹیکسٹس کے مقصد اور ساخت کو سمجھنا
+- MCP کلائنٹ لائبریریز استعمال کرتے ہوئے روٹ کانٹیکسٹس بنانا اور منظم کرنا
+- .NET، جاوا، جاوا اسکرپٹ، اور پائتھن ایپلیکیشنز میں روٹ کانٹیکسٹس نافذ کرنا
+- ملٹی ٹرن گفتگو اور اسٹیٹ مینجمنٹ کے لیے روٹ کانٹیکسٹس کا استعمال کرنا
+- روٹ کانٹیکسٹ مینجمنٹ کی بہترین طریقہ کار اپنانا
 
-## root contexts کو سمجھنا
+## روٹ کانٹیکسٹس کو سمجھنا
 
-root contexts ایسے کنٹینرز کے طور پر کام کرتے ہیں جو متعلقہ تعاملات کی تاریخ اور حالت کو محفوظ رکھتے ہیں۔ یہ درج ذیل کی اجازت دیتے ہیں:
+روٹ کانٹیکسٹس ایسے کنٹینرز کے طور پر کام کرتے ہیں جو متعلقہ تعاملات کی تاریخ اور اسٹیٹ کو رکھتے ہیں۔ یہ درج ذیل کی سہولت دیتے ہیں:
 
-- **گفتگو کی مستقل مزاجی**: مربوط ملٹی ٹرن گفتگو کو برقرار رکھنا  
-- **میموری مینجمنٹ**: تعاملات کے دوران معلومات کو ذخیرہ اور بازیافت کرنا  
-- **حالت کا انتظام**: پیچیدہ ورک فلو میں پیش رفت کو ٹریک کرنا  
-- **کانٹیکسٹ شیئرنگ**: متعدد کلائنٹس کو ایک ہی گفتگو کی حالت تک رسائی دینا  
+- **گفتگو کی استقامت**: مربوط ملٹی ٹرن گفتگو برقرار رکھنا
+- **میموری مینجمنٹ**: تعاملات کے دوران معلومات کو ذخیرہ اور بازیافت کرنا
+- **اسٹیٹ مینجمنٹ**: پیچیدہ ورک فلو میں پیش رفت کو ٹریک کرنا
+- **کانٹیکسٹ شیئرنگ**: متعدد کلائنٹس کو ایک ہی گفتگو کی حالت تک رسائی دینا
 
-MCP میں، root contexts کی یہ اہم خصوصیات ہیں:
+MCP میں، روٹ کانٹیکسٹس کی یہ اہم خصوصیات ہیں:
 
-- ہر root context کا ایک منفرد شناخت کنندہ ہوتا ہے۔  
-- یہ گفتگو کی تاریخ، صارف کی ترجیحات، اور دیگر میٹا ڈیٹا رکھ سکتے ہیں۔  
-- انہیں ضرورت کے مطابق بنایا، رسائی حاصل کی، اور محفوظ کیا جا سکتا ہے۔  
-- یہ باریک بینی سے رسائی کنٹرول اور اجازتوں کی حمایت کرتے ہیں۔  
+- ہر روٹ کانٹیکسٹ کا ایک منفرد شناخت کنندہ ہوتا ہے۔
+- یہ گفتگو کی تاریخ، صارف کی ترجیحات، اور دیگر میٹا ڈیٹا رکھ سکتے ہیں۔
+- یہ ضرورت کے مطابق بنائے، حاصل کیے، اور محفوظ کیے جا سکتے ہیں۔
+- یہ باریک سطحی رسائی کنٹرول اور اجازتوں کی حمایت کرتے ہیں۔
 
-## root context کا لائف سائیکل
+## روٹ کانٹیکسٹ کی زندگی کا چکر
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[جڑ سیاق و سباق تخلیق کریں] --> B[میٹاڈیٹا کے ساتھ آغاز کریں]
+    B --> C[سیاق و سباق کی شناخت کے ساتھ درخواستیں بھیجیں]
+    C --> D[نتائج کے ساتھ سیاق و سباق کو اپ ڈیٹ کریں]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[مکمل ہونے پر سیاق و سباق کو محفوظ کریں]
 ```
 
-## root contexts کے ساتھ کام کرنا
+## روٹ کانٹیکسٹس کے ساتھ کام کرنا
 
-یہاں ایک مثال ہے کہ root contexts کو کیسے بنایا اور منظم کیا جائے۔
+یہاں ایک مثال ہے کہ کیسے روٹ کانٹیکسٹس بنائے اور منظم کیے جائیں۔
 
 ### C# نفاذ
 
@@ -124,20 +128,20 @@ public class RootContextExample
 
 پچھلے کوڈ میں ہم نے:
 
-1. کسٹمر سپورٹ سیشن کے لیے ایک root context بنایا۔  
-2. اس کانٹیکسٹ میں متعدد پیغامات بھیجے، جس سے ماڈل کو حالت برقرار رکھنے کی اجازت ملی۔  
-3. گفتگو کی بنیاد پر متعلقہ میٹا ڈیٹا کے ساتھ کانٹیکسٹ کو اپ ڈیٹ کیا۔  
-4. گفتگو کی تاریخ کو سمجھنے کے لیے کانٹیکسٹ کی معلومات حاصل کی۔  
-5. جب گفتگو مکمل ہوئی تو کانٹیکسٹ کو محفوظ کیا۔  
+1. کسٹمر سپورٹ سیشن کے لیے ایک روٹ کانٹیکسٹ بنایا۔
+1. اُس کانٹیکسٹ میں متعدد پیغامات بھیجے، تاکہ ماڈل اسٹیٹ کو برقرار رکھ سکے۔
+1. گفتگو کی بنیاد پر متعلقہ میٹا ڈیٹا کے ساتھ کانٹیکسٹ کو اپ ڈیٹ کیا۔
+1. گفتگو کی تاریخ کو سمجھنے کے لیے کانٹیکسٹ کی معلومات حاصل کیں۔
+1. جب گفتگو مکمل ہو گئی تو کانٹیکسٹ کو محفوظ کیا۔
 
-## مثال: مالیاتی تجزیے کے لیے root context کا نفاذ
+## مثال: مالیاتی تجزیہ کے لیے روٹ کانٹیکسٹ کا نفاذ
 
-اس مثال میں، ہم مالیاتی تجزیے کے سیشن کے لیے ایک root context بنائیں گے، جو متعدد تعاملات کے دوران حالت کو برقرار رکھنے کا مظاہرہ کرے گا۔
+اس مثال میں، ہم ایک مالیاتی تجزیہ سیشن کے لیے روٹ کانٹیکسٹ بنائیں گے، جو متعدد تعاملات کے دوران اسٹیٹ کو برقرار رکھنے کا مظاہرہ کرے گا۔
 
-### Java نفاذ
+### جاوا نفاذ
 
 ```java
-// Java Example: Root Context Implementation
+// جاوا مثال: روٹ کانٹیکسٹ کی عملی شکل
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // کانٹیکسٹ میٹا ڈیٹا تیار کریں
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1۔ نیا روٹ کانٹیکسٹ بنائیں
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2۔ پہلا تعامل
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3۔ جواب سے حاصل شدہ اہم معلومات کے ساتھ کانٹیکسٹ کو اپ ڈیٹ کریں
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // دوسرا تعامل - ایک ہی کانٹیکسٹ کا استعمال کرتے ہوئے
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4۔ تجزیہ سیشن کا خلاصہ تیار کریں
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // خلاصہ کو کانٹیکسٹ میٹا ڈیٹا میں محفوظ کریں
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // تازہ ترین کانٹیکسٹ معلومات حاصل کریں
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5۔ مکمل ہونے پر کانٹیکسٹ کو محفوظ کریں
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 پچھلے کوڈ میں ہم نے:
 
-1. مالیاتی تجزیے کے سیشن کے لیے ایک root context بنایا۔  
-2. اس کانٹیکسٹ میں متعدد پیغامات بھیجے، جس سے ماڈل کو حالت برقرار رکھنے کی اجازت ملی۔  
-3. گفتگو کی بنیاد پر متعلقہ میٹا ڈیٹا کے ساتھ کانٹیکسٹ کو اپ ڈیٹ کیا۔  
-4. تجزیے کے سیشن کا خلاصہ تیار کیا اور اسے کانٹیکسٹ میٹا ڈیٹا میں محفوظ کیا۔  
-5. جب گفتگو مکمل ہوئی تو کانٹیکسٹ کو محفوظ کیا۔  
+1. مالیاتی تجزیہ سیشن کے لیے ایک روٹ کانٹیکسٹ بنایا۔
+2. اُس کانٹیکسٹ میں متعدد پیغامات بھیجے، تاکہ ماڈل اسٹیٹ کو برقرار رکھ سکے۔
+3. گفتگو کی بنیاد پر متعلقہ میٹا ڈیٹا کے ساتھ کانٹیکسٹ کو اپ ڈیٹ کیا۔
+4. تجزیہ سیشن کا خلاصہ تیار کیا اور اسے کانٹیکسٹ میٹا ڈیٹا میں محفوظ کیا۔
+5. جب گفتگو مکمل ہو گئی تو کانٹیکسٹ کو محفوظ کیا۔
 
-## مثال: root context کا انتظام
+## مثال: روٹ کانٹیکسٹ مینجمنٹ
 
-root contexts کا مؤثر انتظام گفتگو کی تاریخ اور حالت کو برقرار رکھنے کے لیے بہت اہم ہے۔ ذیل میں root context کے انتظام کا ایک نفاذ دیا گیا ہے۔
+گفتگو کی تاریخ اور اسٹیٹ کو بہتر طریقے سے برقرار رکھنے کے لیے روٹ کانٹیکسٹس کو مؤثر طریقے سے منظم کرنا ضروری ہے۔ ذیل میں روٹ کانٹیکسٹ مینجمنٹ کے نفاذ کی ایک مثال دی گئی ہے۔
 
-### JavaScript نفاذ
+### جاوا اسکرپٹ نفاذ
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// جاوا اسکرپٹ مثال: MCP روٹ کانٹیکسٹ کو منظم کرنا
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // MCP کلائنٹ کو شروع کریں
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // کانٹیکسٹ مینیجر کو شروع کریں
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // مخصوص کانٹیکسٹ کا استعمال کرتے ہوئے پیغام بھیجیں
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // گفتگو سے اہم بصیرت کو اختیاری طور پر ذخیرہ کریں
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // ممکنہ بصیرت نکالیں (حقیقی ایپ میں یہ زیادہ پیچیدہ ہوگا)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // ممکنہ بصیرت کی شناخت کے لیے سادہ ہیورسٹک
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // بصیرت کو کانٹیکسٹ کے میٹا ڈیٹا میں ذخیرہ کریں
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // غیر اہم خطا، لہٰذا صرف وارننگ لاگ کریں
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // ماڈل سے اب تک کی گفتگو کا خلاصہ تیار کرنے کو کہیں
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // خلاصہ کو کانٹیکسٹ کے میٹا ڈیٹا میں ذخیرہ کریں
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // محفوظ کرنے سے پہلے حتمی خلاصہ تیار کریں
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // کانٹیکسٹ کو آرکائیو کریں
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// استعمال کی مثال
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. پروڈکٹ سپورٹ گفتگو کے لیے نیا کانٹیکسٹ بنائیں
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. گفتگو میں پہلا پیغام
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // اسی کانٹیکسٹ میں فالو اپ پیغام
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. کانٹیکسٹ کے بارے میں معلومات حاصل کریں
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. گفتگو کا خلاصہ تیار کریں اور دکھائیں
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. کام مکمل ہونے پر کانٹیکسٹ کو آرکائیو کریں
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. کسی بھی غلطی کو آرام سے سنبھالیں
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,21 +479,26 @@ demonstrateContextSession();
 
 پچھلے کوڈ میں ہم نے:
 
-1. `createConversationContext` فنکشن کے ذریعے پروڈکٹ سپورٹ گفتگو کے لیے ایک root context بنایا۔ اس معاملے میں، کانٹیکسٹ ڈیٹا بیس کی کارکردگی کے مسائل کے بارے میں ہے۔  
-2. `sendMessage` فنکشن کے ذریعے اس کانٹیکسٹ میں متعدد پیغامات بھیجے، جس سے ماڈل کو حالت برقرار رکھنے کی اجازت ملی۔ بھیجے گئے پیغامات سست کوئری کی کارکردگی اور انڈیکس کی ترتیب کے بارے میں ہیں۔  
-3. گفتگو کی بنیاد پر متعلقہ میٹا ڈیٹا کے ساتھ کانٹیکسٹ کو اپ ڈیٹ کیا۔  
-4. `generateContextSummary` فنکشن کے ذریعے گفتگو کا خلاصہ تیار کیا اور اسے کانٹیکسٹ میٹا ڈیٹا میں محفوظ کیا۔  
-5. `archiveContext` فنکشن کے ذریعے جب گفتگو مکمل ہوئی تو کانٹیکسٹ کو محفوظ کیا۔  
-6. غلطیوں کو مؤثر طریقے سے سنبھالا تاکہ مضبوطی کو یقینی بنایا جا سکے۔  
+1. ایک پروڈکٹ سپورٹ گفتگو کے لیے `createConversationContext` فنکشن کے ساتھ روٹ کانٹیکسٹ بنایا۔ اس کیس میں، کانٹیکسٹ ڈیٹا بیس کی کارکردگی کے مسائل کے بارے میں ہے۔
 
-## ملٹی ٹرن معاونت کے لیے root context
+1. اُس کانٹیکسٹ میں متعدد پیغامات بھیجے تاکہ ماڈل اسٹیٹ کو برقرار رکھ سکے، `sendMessage` فنکشن کے ذریعے۔ بھیجے جانے والے پیغامات سست استفسار کی کارکردگی اور انڈیکس کنفیگریشن کے بارے میں ہیں۔
 
-اس مثال میں، ہم ملٹی ٹرن معاونت کے سیشن کے لیے ایک root context بنائیں گے، جو متعدد تعاملات کے دوران حالت کو برقرار رکھنے کا مظاہرہ کرے گا۔
+1. گفتگو کی بنیاد پر متعلقہ میٹا ڈیٹا کے ساتھ کانٹیکسٹ کو اپ ڈیٹ کیا۔
 
-### Python نفاذ
+1. گفتگو کا خلاصہ تیار کیا اور اسے کانٹیکسٹ میٹا ڈیٹا میں `generateContextSummary` فنکشن کے ذریعے محفوظ کیا۔
+
+1. جب گفتگو مکمل ہو گئی تو کانٹیکسٹ کو `archiveContext` فنکشن کے ساتھ محفوظ کیا۔
+
+1. خامیوں کو خوبصورتی سے سنبھالا تاکہ مضبوطی یقینی بن سکے۔
+
+## ملٹی ٹرن معاونت کے لیے روٹ کانٹیکسٹ
+
+اس مثال میں، ہم ایک ملٹی ٹرن معاونت سیشن کے لیے روٹ کانٹیکسٹ بنائیں گے، جو متعدد تعاملات کے دوران اسٹیٹ کو برقرار رکھنے کا مظاہرہ کرے گا۔
+
+### پائتھن نفاذ
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# پائتھون مثال: کثیر مرحلے کی مدد کے لیے جڑ کا سیاق و سباق
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -506,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # اگر فراہم کیا گیا ہو تو صارف کی معلومات شامل کریں
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # جڑ کا سیاق و سباق بنائیں
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # سیاق و سباق کے شناختی نمبر کے ساتھ اختیارات بنائیں
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # اگر مخصوص کیا گیا ہو تو اوزار شامل کریں
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # سیاق و سباق کے اندر پرامپٹ بھیجیں
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # بات چیت کی پیش رفت کے ساتھ سیاق و سباق کا میٹا ڈیٹا اپ ڈیٹ کریں
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -551,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # پہلے خلاصہ پرامپٹ تیار کریں
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # میٹا ڈیٹا میں خلاصہ ذخیرہ کریں
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -567,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # سیاق و سباق کو محفوظ کریں
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -575,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# استعمال کی مثال
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. سیشن بنائیں
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. پہلی بات چیت
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -594,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # اسی سیاق و سباق میں دوسری بات چیت
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. تاریخ حاصل کریں
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. سیشن ختم کریں
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -615,27 +624,41 @@ if __name__ == "__main__":
 
 پچھلے کوڈ میں ہم نے:
 
-1. `create_session` فنکشن کے ذریعے تکنیکی سپورٹ سیشن کے لیے ایک root context بنایا۔ کانٹیکسٹ میں صارف کی معلومات شامل ہیں جیسے نام اور تکنیکی سطح۔  
-2. `send_message` فنکشن کے ذریعے اس کانٹیکسٹ میں متعدد پیغامات بھیجے، جس سے ماڈل کو حالت برقرار رکھنے کی اجازت ملی۔ بھیجے گئے پیغامات آٹو اسکیلنگ فیچر کے مسائل کے بارے میں ہیں۔  
-3. `get_conversation_history` فنکشن کے ذریعے گفتگو کی تاریخ حاصل کی، جو کانٹیکسٹ کی معلومات اور پیغامات فراہم کرتا ہے۔  
-4. `end_session` فنکشن کے ذریعے سیشن ختم کیا، کانٹیکسٹ کو محفوظ کیا اور خلاصہ تیار کیا۔ خلاصہ گفتگو کے اہم نکات کو قید کرتا ہے۔  
+1. `create_session` فنکشن کے ساتھ تکنیکی سپورٹ سیشن کے لیے روٹ کانٹیکسٹ بنایا۔ کانٹیکسٹ میں صارف کی معلومات جیسے نام اور تکنیکی سطح شامل ہے۔
 
-## root context کے بہترین طریقے
+1. اُس کانٹیکسٹ میں متعدد پیغامات بھیجے تاکہ ماڈل اسٹیٹ کو برقرار رکھ سکے، `send_message` فنکشن کے ذریعے۔ بھیجے جانے والے پیغامات آٹو-اسکیلنگ کی خصوصیت کے مسائل کے بارے میں ہیں۔
 
-root contexts کے مؤثر انتظام کے لیے چند بہترین طریقے درج ذیل ہیں:
+1. `get_conversation_history` فنکشن کے ذریعے گفتگو کی تاریخ حاصل کی، جو کانٹیکسٹ معلومات اور پیغامات فراہم کرتا ہے۔
 
-- **مرکوز کانٹیکسٹس بنائیں**: مختلف گفتگو کے مقاصد یا شعبوں کے لیے الگ الگ root contexts بنائیں تاکہ وضاحت برقرار رہے۔  
-- **میعاد ختم ہونے کی پالیسیاں مقرر کریں**: پرانے کانٹیکسٹس کو محفوظ کرنے یا حذف کرنے کی پالیسیاں نافذ کریں تاکہ ذخیرہ اندوزی کا انتظام ہو اور ڈیٹا برقرار رکھنے کی پالیسیوں کی تعمیل ہو۔  
-- **متعلقہ میٹا ڈیٹا ذخیرہ کریں**: گفتگو کے بارے میں اہم معلومات کو کانٹیکسٹ میٹا ڈیٹا میں محفوظ کریں جو بعد میں مفید ہو سکتی ہیں۔  
-- **کانٹیکسٹ IDs کا مستقل استعمال کریں**: ایک بار کانٹیکسٹ بن جانے کے بعد، اس کا ID تمام متعلقہ درخواستوں میں مستقل طور پر استعمال کریں تاکہ تسلسل برقرار رہے۔  
-- **خلاصے تیار کریں**: جب کانٹیکسٹ بڑا ہو جائے تو اہم معلومات کو قید کرنے کے لیے خلاصے تیار کرنے پر غور کریں تاکہ کانٹیکسٹ کا حجم قابو میں رہے۔  
-- **رسائی کنٹرول نافذ کریں**: کثیر صارف نظاموں کے لیے، گفتگو کے کانٹیکسٹس کی رازداری اور سیکیورٹی کو یقینی بنانے کے لیے مناسب رسائی کنٹرول نافذ کریں۔  
-- **کانٹیکسٹ کی حدود کو سنبھالیں**: کانٹیکسٹ کے سائز کی حدود سے آگاہ رہیں اور بہت طویل گفتگو کے لیے حکمت عملی اپنائیں۔  
-- **مکمل ہونے پر محفوظ کریں**: جب گفتگو مکمل ہو جائے تو کانٹیکسٹس کو محفوظ کریں تاکہ وسائل آزاد ہوں اور گفتگو کی تاریخ محفوظ رہے۔  
+1. سیشن کا خاتمہ `end_session` فنکشن کے ساتھ کیا، جس میں کانٹیکسٹ کو محفوظ کیا گیا اور خلاصہ بنایا گیا۔ خلاصہ گفتگو کے اہم نکات کو قید کرتا ہے۔
+
+## روٹ کانٹیکسٹ کے بہترین طریقے
+
+یہاں روٹ کانٹیکسٹس کو مؤثر طریقے سے منظم کرنے کے لیے کچھ بہترین طریقے ہیں:
+
+- **مرکوز کانٹیکسٹس بنائیں**: مختلف گفتگو کے مقاصد یا شعبوں کے لیے مختلف روٹ کانٹیکسٹس بنائیں تاکہ وضاحت برقرار رہے۔
+
+- **میعاد ختم ہونے کی پالیسیاں مرتب کریں**: پرانے کانٹیکسٹس کو محفوظ کرنے یا حذف کرنے کی پالیسیاں نافذ کریں تاکہ ذخیرہ اور ڈیٹا برقرار رکھنے کی پالیسیاں پوری ہوں۔
+
+- **متعلقہ میٹا ڈیٹا ذخیرہ کریں**: گفتگو کے اہم معلومات کو محفوظ کرنے کے لیے کانٹیکسٹ میٹا ڈیٹا کا استعمال کریں جو بعد میں مفید ہو سکتی ہے۔
+
+- **کانٹیکسٹ IDs کا مستقل استعمال کریں**: جب کانٹیکسٹ بنا لیا جائے تو اس کا شناختی نمبر مستقل طور پر تمام متعلقہ درخواستوں میں استعمال کریں تاکہ تسلسل برقرار رہے۔
+
+- **خلاصے تیار کریں**: جب کانٹیکسٹ بہت بڑا ہو جائے تو اہم معلومات کو قید کرنے کے لیے خلاصے بنانا غور کریں تاکہ کانٹیکسٹ کا حجم منظم کیا جا سکے۔
+
+- **رسائی کنٹرول نافذ کریں**: کثیر صارف نظام کے لیے مناسب رسائی کنٹرول نافذ کریں تاکہ گفتگو کے کانٹیکسٹس کی رازداری اور سلامتی یقینی بنائی جا سکے۔
+
+- **کانٹیکسٹ کی محدودیت کا خیال رکھیں**: کانٹیکسٹ کے سائز کی حدود سے آگاہ رہیں اور بہت طویل گفتگو کے لیے حکمت عملی وضع کریں۔
+
+- **مکمل ہونے پر محفوظ کریں**: جب گفتگو مکمل ہو جائے تو کانٹیکسٹس کو محفوظ کریں تاکہ وسائل آزاد ہوں اور گفتگو کی تاریخ برقرار رہے۔
 
 ## آگے کیا ہے
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 روٹنگ](../mcp-routing/README.md)
 
-**دستخطی نوٹ**:  
-یہ دستاویز AI ترجمہ سروس [Co-op Translator](https://github.com/Azure/co-op-translator) کے ذریعے ترجمہ کی گئی ہے۔ اگرچہ ہم درستگی کے لیے کوشاں ہیں، براہ کرم آگاہ رہیں کہ خودکار ترجمے میں غلطیاں یا عدم درستیاں ہو سکتی ہیں۔ اصل دستاویز اپنی مادری زبان میں ہی معتبر ماخذ سمجھی جانی چاہیے۔ اہم معلومات کے لیے پیشہ ور انسانی ترجمہ کی سفارش کی جاتی ہے۔ اس ترجمے کے استعمال سے پیدا ہونے والی کسی بھی غلط فہمی یا غلط تشریح کی ذمہ داری ہم پر عائد نہیں ہوتی۔
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ڈس کلیمر**:
+یہ دستاویز AI ترجمہ سروس [Co-op Translator](https://github.com/Azure/co-op-translator) کے ذریعے ترجمہ کی گئی ہے۔ جبکہ ہم درستگی کے لیے کوشاں ہیں، براہ کرم اس بات سے آگاہ رہیں کہ خودکار ترجمے میں غلطیاں یا عدم درستیاں ہو سکتی ہیں۔ اصل دستاویز اپنے مادری زبان میں مستند ماخذ سمجھی جائے گی۔ حساس معلومات کے لیے پیشہ ور انسانی ترجمہ کی سفارش کی جاتی ہے۔ اس ترجمے کے استعمال سے پیدا ہونے والی کسی بھی غلط فہمی یا غلط تشریح کی ذمہ داری ہم قبول نہیں کرتے۔
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

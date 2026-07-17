@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [ZASTARJELO: IZDANJE KANDIDATA 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexti su temeljni koncept u Model Context Protocolu koji pružaju trajni sloj za održavanje povijesti razgovora i zajedničkog stanja kroz više zahtjeva i sesija.
+# MCP Korijenski Konteksti
+
+> **Obavijest o zastarijevanju:** kandidatsko izdanje specifikacije MCP `2026-07-28` označava Korijene kao zastarjele u korist parametara alata, URI-ja resursa ili konfiguracije poslužitelja. Korijeni nastavljaju raditi u `2025-11-25` i barem godinu dana nakon bilo kakvog formalnog zastarijevanja, tako da je sve u ovoj lekciji i dalje valjano - ali novi dizajni poslužitelja trebaju procijeniti zamjenski obrazac. Pogledajte [Što se mijenja u MCP: Izdanje kandidata 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Korijenski konteksti temeljni su koncept u Model Context Protocolu koji pružaju trajni sloj za održavanje povijesti razgovora i zajedničkog stanja kroz više zahtjeva i sesija.
 
 ## Uvod
 
-U ovom ćemo poglavlju istražiti kako kreirati, upravljati i koristiti root contexte u MCP-u.
+U ovoj lekciji istražit ćemo kako stvoriti, upravljati i koristiti korijenske kontekste u MCP-u.
 
 ## Ciljevi učenja
 
-Na kraju ovog poglavlja moći ćete:
+Na kraju ove lekcije moći ćete:
 
-- Razumjeti svrhu i strukturu root contexta  
-- Kreirati i upravljati root contextima koristeći MCP klijentske biblioteke  
-- Implementirati root contexte u .NET, Java, JavaScript i Python aplikacijama  
-- Iskoristiti root contexte za višekratne razgovore i upravljanje stanjem  
-- Primijeniti najbolje prakse za upravljanje root contextima  
+- Razumjeti svrhu i strukturu korijenskih konteksta
+- Stvoriti i upravljati korijenskim kontekstima koristeći MCP klijentske biblioteke
+- Implementirati korijenske kontekte u .NET, Java, JavaScript i Python aplikacijama
+- Iskoristiti korijenske kontekte za višekratne razgovore i upravljanje stanjem
+- Primijeniti najbolje prakse za upravljanje korijenskim kontekstima
 
-## Razumijevanje root contexta
+## Razumijevanje korijenskih konteksta
 
-Root contexti služe kao spremnici koji čuvaju povijest i stanje za niz povezanih interakcija. Omogućuju:
+Korijenski konteksti služe kao spremnici koji drže povijest i stanje za niz povezanih interakcija. Oni omogućuju:
 
-- **Očuvanje razgovora**: održavanje koherentnih višekratnih razgovora  
-- **Upravljanje memorijom**: pohranu i dohvat informacija kroz interakcije  
-- **Upravljanje stanjem**: praćenje napretka u složenim radnim tokovima  
-- **Dijeljenje konteksta**: omogućavanje pristupa istom stanju razgovora više klijenata  
+- **Postojanost razgovora**: Održavanje koherentnih višekratnih razgovora
+- **Upravljanje memorijom**: Pohranu i dohvat informacija kroz interakcije
+- **Upravljanje stanjem**: Praćenje napretka u složenim radnim tokovima
+- **Dijeljenje konteksta**: Omogućavanje više klijenata da pristupe istom stanju razgovora
 
-U MCP-u, root contexti imaju sljedeće ključne karakteristike:
+U MCP-u, korijenski konteksti imaju ove ključne karakteristike:
 
-- Svaki root context ima jedinstveni identifikator.  
-- Mogu sadržavati povijest razgovora, korisničke postavke i druge metapodatke.  
-- Mogu se kreirati, pristupati im i arhivirati po potrebi.  
-- Podržavaju detaljnu kontrolu pristupa i dozvole.  
+- Svaki korijenski kontekst ima jedinstveni identifikator.
+- Mogu sadržavati povijest razgovora, korisničke preferencije i druge metapodatke.
+- Mogu se stvarati, pristupati im i arhivirati po potrebi.
+- Podržavaju detaljnu kontrolu pristupa i dozvole.
 
-## Životni ciklus root contexta
+## Životni ciklus korijenskog konteksta
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Stvori korijenski kontekst] --> B[Inicijaliziraj s metapodacima]
+    B --> C[Pošalji zahtjeve s ID-jem konteksta]
+    C --> D[Ažuriraj kontekst s rezultatima]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Arhiviraj kontekst kad je dovršen]
 ```
 
-## Rad s root contextima
+## Rad s korijenskim kontekstima
 
-Evo primjera kako kreirati i upravljati root contextima.
+Evo primjera kako stvoriti i upravljati korijenskim kontekstima.
 
 ### Implementacija u C#
 
@@ -124,20 +128,20 @@ public class RootContextExample
 
 U prethodnom kodu smo:
 
-1. Kreirali root context za sesiju korisničke podrške.  
-1. Poslali više poruka unutar tog contexta, omogućujući modelu održavanje stanja.  
-1. Ažurirali context relevantnim metapodacima na temelju razgovora.  
-1. Dohvatili informacije o contextu kako bismo razumjeli povijest razgovora.  
-1. Arhivirali context kada je razgovor završen.  
+1. Stvorili korijenski kontekst za sesiju korisničke podrške.
+1. Poslali više poruka unutar tog konteksta, dopuštajući modelu održavanje stanja.
+1. Ažurirali kontekst s relevantnim metapodacima na temelju razgovora.
+1. Dohvatili informacije o kontekstu kako bismo razumjeli povijest razgovora.
+1. Arhivirali kontekst nakon završetka razgovora.
 
-## Primjer: Implementacija root contexta za financijsku analizu
+## Primjer: Implementacija korijenskog konteksta za financijsku analizu
 
-U ovom primjeru kreirat ćemo root context za sesiju financijske analize, pokazujući kako održavati stanje kroz više interakcija.
+U ovom primjeru stvorit ćemo korijenski kontekst za sesiju financijske analize, pokazujući kako održavati stanje kroz više interakcija.
 
 ### Implementacija u Javi
 
 ```java
-// Java Example: Root Context Implementation
+// Java primjer: Implementacija korijenskog konteksta
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Kreiraj meta podatke konteksta
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Kreiraj novi korijenski kontekst
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Prva interakcija
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Ažuriraj kontekst važnim informacijama dobivenim iz odgovora
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Druga interakcija - korištenje istog konteksta
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Generiraj sažetak sesije analize
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Spremi sažetak u meta podatke konteksta
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Dohvati ažurirane informacije konteksta
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Arhiviraj kontekst kad završiš
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 U prethodnom kodu smo:
 
-1. Kreirali root context za sesiju financijske analize.  
-2. Poslali više poruka unutar tog contexta, omogućujući modelu održavanje stanja.  
-3. Ažurirali context relevantnim metapodacima na temelju razgovora.  
-4. Generirali sažetak sesije analize i pohranili ga u metapodatke contexta.  
-5. Arhivirali context kada je razgovor završen.  
+1. Stvorili korijenski kontekst za sesiju financijske analize.
+2. Poslali više poruka unutar tog konteksta, dopuštajući modelu održavanje stanja.
+3. Ažurirali kontekst s relevantnim metapodacima na temelju razgovora.
+4. Generirali sažetak sesije analize i pohranili ga u metapodatke konteksta.
+5. Arhivirali kontekst nakon završetka razgovora.
 
-## Primjer: Upravljanje root contextima
+## Primjer: Upravljanje korijenskim kontekstom
 
-Učinkovito upravljanje root contextima ključno je za održavanje povijesti razgovora i stanja. Ispod je primjer kako implementirati upravljanje root contextima.
+Učinkovito upravljanje korijenskim kontekstima ključno je za održavanje povijesti i stanja razgovora. Ispod je primjer implementacije upravljanja korijenskim kontekstom.
 
 ### Implementacija u JavaScriptu
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// Primjer JavaScripta: Upravljanje MCP Root Kontekstima
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Inicijalizirajte MCP klijenta
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Inicijalizirajte upravitelj kontekstom
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Pošaljite poruku koristeći specificirani kontekst
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Po želji spremite važne uvide iz razgovora
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Izvucite potencijalne uvide (u stvarnoj aplikaciji to bi bilo sofisticiranije)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Jednostavan heuristički pristup za prepoznavanje potencijalnih uvida
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Spremite uvide u metapodatke konteksta
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Nije kritična pogreška, pa samo zabilježite upozorenje
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Zamolite model da generira sažetak dosadašnjeg razgovora
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Spremite sažetak u metapodatke konteksta
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Generirajte završni sažetak prije arhiviranja
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Arhivirajte kontekst
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Primjer korištenja
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Kreirajte novi kontekst za razgovor o podršci proizvoda
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Prva poruka u razgovoru
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Slijedeća poruka u istom kontekstu
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Dohvatite informacije o kontekstu
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Generirajte i prikažite sažetak razgovora
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Arhivirajte kontekst kada završite
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Rukujte eventualnim pogreškama na uredan način
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 U prethodnom kodu smo:
 
-1. Kreirali root context za razgovor o podršci proizvoda funkcijom `createConversationContext`. U ovom slučaju, context se odnosi na probleme s performansama baze podataka.  
+1. Stvorili korijenski kontekst za razgovor o podršci proizvoda s funkcijom `createConversationContext`. U ovom slučaju, kontekst je o problemima s performansama baze podataka.
 
-1. Poslali više poruka unutar tog contexta, omogućujući modelu održavanje stanja funkcijom `sendMessage`. Poruke se odnose na sporu izvedbu upita i konfiguraciju indeksa.  
+1. Poslali više poruka unutar tog konteksta, dopuštajući modelu održavanje stanja s funkcijom `sendMessage`. Poruke su o sporim upitima i konfiguraciji indeksa.
 
-1. Ažurirali context relevantnim metapodacima na temelju razgovora.  
+1. Ažurirali kontekst s relevantnim metapodacima na temelju razgovora.
 
-1. Generirali sažetak razgovora i pohranili ga u metapodatke contexta funkcijom `generateContextSummary`.  
+1. Generirali sažetak razgovora i pohranili ga u metapodatke konteksta funkcijom `generateContextSummary`.
 
-1. Arhivirali context kada je razgovor završen funkcijom `archiveContext`.  
+1. Arhivirali kontekst nakon završetka razgovora koristeći funkciju `archiveContext`.
 
-1. Rukovali pogreškama na način koji osigurava stabilnost.  
+1. Handlirali greške na elegantan način radi osiguravanja robusnosti.
 
-## Root context za višekratnu pomoć
+## Korijenski kontekst za višeokretalnu pomoć
 
-U ovom primjeru kreirat ćemo root context za sesiju višekratne pomoći, pokazujući kako održavati stanje kroz više interakcija.
+U ovom primjeru stvorit ćemo korijenski kontekst za sesiju višekratne pomoći, pokazujući kako održavati stanje kroz više interakcija.
 
 ### Implementacija u Pythonu
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python primjer: Korijenski kontekst za višekratnu pomoć
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Dodaj informacije o korisniku ako su dostupne
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Kreiraj korijenski kontekst
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Kreiraj opcije s ID-om konteksta
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Dodaj alate ako su navedeni
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Pošalji upit unutar konteksta
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Ažuriraj metapodatke konteksta s napretkom razgovora
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Prvo generiraj sažetak upita
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Pohrani sažetak u metapodatke
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Arhiviraj kontekst
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Primjer korištenja
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Kreiraj sesiju
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Prva interakcija
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Druga interakcija u istom kontekstu
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Dohvati povijest
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Završi sesiju
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 U prethodnom kodu smo:
 
-1. Kreirali root context za sesiju tehničke podrške funkcijom `create_session`. Context uključuje korisničke podatke poput imena i tehničke razine.  
+1. Stvorili korijenski kontekst za sesiju tehničke podrške s funkcijom `create_session`. Kontekst uključuje informacije o korisniku kao što su ime i tehnička razina.
 
-1. Poslali više poruka unutar tog contexta, omogućujući modelu održavanje stanja funkcijom `send_message`. Poruke se odnose na probleme s funkcijom automatskog skaliranja.  
+1. Poslali više poruka unutar tog konteksta, dopuštajući modelu održavanje stanja s funkcijom `send_message`. Poruke su o problemima s funkcijom automatskog skaliranja.
 
-1. Dohvatili povijest razgovora koristeći funkciju `get_conversation_history`, koja pruža informacije o contextu i porukama.  
+1. Dohvatili povijest razgovora funkcijom `get_conversation_history`, koja pruža informacije o kontekstu i porukama.
 
-1. Završili sesiju arhiviranjem contexta i generiranjem sažetka funkcijom `end_session`. Sažetak obuhvaća ključne točke iz razgovora.  
+1. Završili sesiju arhiviranjem konteksta i generiranjem sažetka funkcijom `end_session`. Sažetak hvata ključne točke iz razgovora.
 
-## Najbolje prakse za root context
+## Najbolje prakse za korijenske kontekste
 
-Evo nekoliko najboljih praksi za učinkovito upravljanje root contextima:
+Evo nekoliko najboljih praksi za učinkovito upravljanje korijenskim kontekstima:
 
-- **Kreirajte fokusirane contexte**: Kreirajte zasebne root contexte za različite svrhe razgovora ili domene radi jasnoće.  
+- **Stvarajte fokusirane kontekste**: Stvarajte odvojene korijenske kontekte za različite svrhe razgovora ili domene radi jasnoće.
 
-- **Postavite politike isteka**: Implementirajte politike za arhiviranje ili brisanje starih contexta radi upravljanja prostorom i usklađenosti s pravilima čuvanja podataka.  
+- **Postavite politike isteka**: Implementirajte politike za arhiviranje ili brisanje starih konteksta radi upravljanja pohranom i usklađenosti s pravilima zadržavanja podataka.
 
-- **Pohranjujte relevantne metapodatke**: Koristite metapodatke contexta za pohranu važnih informacija o razgovoru koje bi mogle biti korisne kasnije.  
+- **Pohranite relevantne metapodatke**: Koristite metapodatke konteksta za pohranu važnih informacija o razgovoru koje bi mogle biti korisne kasnije.
 
-- **Dosljedno koristite ID contexta**: Nakon što je context kreiran, dosljedno koristite njegov ID za sve povezane zahtjeve radi kontinuiteta.  
+- **Dosljedno koristite ID konteksta**: Kada je kontekst stvoren, dosljedno koristite njegov ID za sve povezane zahtjeve radi održavanja kontinuiteta.
 
-- **Generirajte sažetke**: Kada context postane velik, razmotrite generiranje sažetaka koji hvataju bitne informacije uz upravljanje veličinom contexta.  
+- **Generirajte sažetke**: Kada kontekst postane veliki, razmotrite generiranje sažetaka za hvatanje esencijalnih informacija uz upravljanje veličinom konteksta.
 
-- **Implementirajte kontrolu pristupa**: Za sustave s više korisnika, osigurajte pravilnu kontrolu pristupa radi privatnosti i sigurnosti razgovora.  
+- **Primijenite kontrolu pristupa**: Za sustave s više korisnika implementirajte odgovarajuće kontrole pristupa kako biste osigurali privatnost i sigurnost konteksta razgovora.
 
-- **Rukujte ograničenjima contexta**: Budite svjesni ograničenja veličine contexta i implementirajte strategije za upravljanje vrlo dugim razgovorima.  
+- **Nosite se s ograničenjima konteksta**: Budite svjesni ograničenja veličine konteksta i implementirajte strategije za rukovanje vrlo dugim razgovorima.
 
-- **Arhivirajte po završetku**: Arhivirajte contexte kada su razgovori završeni kako biste oslobodili resurse, a pritom sačuvali povijest razgovora.  
+- **Arhivirajte po završetku**: Arhivirajte kontekste kada su razgovori završeni radi oslobađanja resursa uz očuvanje povijesti razgovora.
 
 ## Što slijedi
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Usmjeravanje](../mcp-routing/README.md)
 
-**Odricanje od odgovornosti**:  
-Ovaj dokument je preveden korištenjem AI usluge za prevođenje [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati pogreške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za kritične informacije preporučuje se profesionalni ljudski prijevod. Ne snosimo odgovornost za bilo kakva nesporazuma ili pogrešna tumačenja koja proizlaze iz korištenja ovog prijevoda.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Napomena**:
+Ovaj dokument je preveden korištenjem AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati greške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za važne informacije preporuča se profesionalni ljudski prijevod. Nismo odgovorni za bilo kakva nesporazumevanja ili pogrešne interpretacije koje proizlaze iz korištenja ovog prijevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

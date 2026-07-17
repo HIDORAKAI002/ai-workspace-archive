@@ -1251,7 +1251,7 @@
     "interactiveBanner": {
       "badge": "Versione Interattiva Disponibile",
       "title": "Vuoi un'Esperienza Più Dettagliata e Interattiva?",
-      "description": "Approfondisci con la nostra guida interattiva completa con 25 capitoli, esercizi pratici ed esempi reali per padroneggiare i prompt IA.",
+      "description": "Approfondisci con la nostra guida interattiva completa con 26 capitoli, esercizi pratici ed esempi reali per padroneggiare i prompt IA.",
       "cta": "Leggi il Libro Interattivo"
     },
     "generalTips": {
@@ -1743,7 +1743,7 @@
       "part4": "Parte 4: Best Practice",
       "part5": "Parte 5: Casi d'Uso",
       "part6": "Parte 6: Conclusione",
-      "chapters": "25 Capitoli Interattivi"
+      "chapters": "26 Capitoli Interattivi"
     },
     "startReading": "Inizia a Leggere",
     "skipToChapter1": "Vai al Capitolo 1",
@@ -1800,6 +1800,7 @@
       "12-handling-edge-cases": "Gestione dei Casi Limite",
       "13-multimodal-prompting": "Prompting Multimodale",
       "14-context-engineering": "Ingegneria del Contesto",
+      "14a-loop-engineering": "Ingegneria dei Loop",
       "25-agents-and-skills": "Agenti e Skill",
       "15-common-pitfalls": "Errori Comuni",
       "16-ethics-responsible-use": "Etica e Uso Responsabile",
@@ -1830,6 +1831,7 @@
       "12-handling-edge-cases": "Gestire input inaspettati",
       "13-multimodal-prompting": "Lavorare con immagini, audio e video",
       "14-context-engineering": "RAG, embeddings, function calling e MCP",
+      "14a-loop-engineering": "Progettare cicli di feedback che agiscono, verificano, si adattano e sanno quando fermarsi",
       "25-agents-and-skills": "Costruire agenti AI con pacchetti di skill riutilizzabili",
       "15-common-pitfalls": "Errori da evitare",
       "16-ethics-responsible-use": "Considerazioni etiche nell'AI",

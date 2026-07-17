@@ -1,26 +1,28 @@
-# Vzorcevanje - delegiranje funkcij odjemalcu
+> [OPRAVLJENO: KANDIDAT ZA IZDAJO 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
 
-> **Obvestilo o opustitvi:** različica MCP specifikacije '2026-07-28' označuje vzorcevanje kot opuščeno v korist neposredne integracije z API-ji ponudnikov LLM. Vzorcevanje še vedno deluje v '2025-11-25' in še vsaj eno leto po uradni opustitvi, tako da vse v tej lekciji ostaja veljavno — vendar naj nove zasnove strežnikov ocenijo nadomestni vzorec. Glej [Kaj se spreminja v MCP: Kandidat za izdajo 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+# Sampling - delegiranje funkcij odjemalcu
 
-Včasih potrebujemo sodelovanje MCP odjemalca in MCP strežnika za dosego skupnega cilja. Morda imate primer, kjer strežnik potrebuje pomoč LLM-ja, ki teče na odjemalcu. V takšni situaciji je vzorcevanje tisto, kar morate uporabiti.
+> **Obvestilo o opuščanju:** kandidati za izdajo specifikacije MCP `2026-07-28` označujejo Sampling kot opuščeno v prid neposredni integraciji z API-ji ponudnikov LLM. Sampling še vedno deluje v `2025-11-25` in vsaj eno leto po formalnem opuščanju, zato je vse v tej lekciji še vedno veljavno — vendar naj novi strežniški dizajni ocenijo zamenjavni vzorec. Glej [Kaj se spreminja v MCP: Kandidat za izdajo 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Raziščimo nekaj primerov uporabe in kako zgraditi rešitev, ki vključuje vzorcevanje.
+Včasih morata MCP klient in MCP strežnik sodelovati, da dosežeta skupni cilj. Morda imate primer, kjer strežnik potrebuje pomoč LLM, ki teče na klientu. V tem primeru je sampling tisto, kar bi morali uporabiti.
+
+Raziščimo nekaj primerov uporabe in kako zgraditi rešitev, ki vključuje sampling.
 
 ## Pregled
 
-V tej lekciji se osredotočamo na razlago, kdaj in kje uporabiti vzorcevanje ter kako ga konfigurirati.
+V tej lekciji se osredotočamo na razlago, kdaj in kje uporabiti Sampling ter kako ga konfigurirati.
 
 ## Cilji učenja
 
 V tem poglavju bomo:
 
-- Razložili, kaj je vzorcevanje in kdaj ga uporabiti.
-- Pokažemo, kako konfigurirati vzorcevanje v MCP.
-- Dali primere vzorcevanja v praksi.
+- Razložili, kaj je Sampling in kdaj ga uporabiti.
+- Pokažemo, kako konfigurirati Sampling v MCP.
+- Predstavili primere delovanja Sampling.
 
-## Kaj je vzorcevanje in zakaj ga uporabiti?
+## Kaj je Sampling in zakaj ga uporabiti?
 
-Vzorcevanje je napredna funkcija, ki deluje na naslednji način:
+Sampling je napredna funkcija, ki deluje na naslednji način:
 
 ```mermaid
 sequenceDiagram
@@ -29,19 +31,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Objave avtorjevega bloga
-    MCP Client->>MCP Server: Klic orodja (osnutek objave bloga)
+    User->>MCP Client: Avtorjev objava na blogu
+    MCP Client->>MCP Server: Klic orodja (osnutek objave na blogu)
     MCP Server->>MCP Client: Zahteva za vzorčenje (ustvari povzetek)
-    MCP Client->>LLM: Ustvari povzetek objave bloga
+    MCP Client->>LLM: Ustvari povzetek objave na blogu
     LLM->>MCP Client: Rezultat povzetka
     MCP Client->>MCP Server: Odgovor na vzorčenje (povzetek)
-    MCP Server->>MCP Client: Celotna objava bloga (osnutek + povzetek)
-    MCP Client->>User: Objave bloga pripravljene
+    MCP Server->>MCP Client: Končna objava na blogu (osnutek + povzetek)
+    MCP Client->>User: Objavljena objava na blogu pripravljena
 ```
 
-### Zahteva za vzorcevanje
+### Zahteva za sampling
 
-Ok, zdaj imamo splošen pogled na verjeten scenarij, pogovorimo se o zahtevi za vzorcevanje, ki jo strežnik pošlje odjemalcu. Takšna zahteva v formatu JSON-RPC je lahko videti takole:
+V redu, zdaj imamo splošni pogled na verjeten scenarij, pogovorimo se o zahtevi za sampling, ki jo strežnik pošlje klientu. Takšna zahteva lahko izgleda takole v formatu JSON-RPC:
 
 ```json
 {
@@ -73,17 +75,17 @@ Ok, zdaj imamo splošen pogled na verjeten scenarij, pogovorimo se o zahtevi za 
 }
 ```
 
-Tu je nekaj stvari, ki jih je vredno izpostaviti:
+Tu je nekaj pomembnih stvari, ki jih velja izpostaviti:
 
-- Poziv, pod content -> text, je naš poziv, ki je navodilo LLM-ju, naj povzame vsebino bloga.
+- Prompt, v vsebini -> text, je naš poziv, ki je navodilo LLM-ju za povzetek vsebine blog zapisa.
 
-- **modelPreferences**. Ta razdelek je ravno to, preference, priporočilo glede konfiguracije LLM-ja. Uporabnik se lahko odloči, ali bo sledil tem priporočilom ali jih spremenil. V tem primeru so priporočila glede uporabe modela in prioritete hitrosti ter inteligence.
-- **systemPrompt**, to je vaš običajen sistemski poziv, ki da vašemu LLM-ju osebnost in vsebuje navodila.
-- **maxTokens**, to je lastnost, ki pove, koliko tokenov je priporočeno za to opravilo.
+- **modelPreferences**. Ta razdelek je zgolj preference, priporočilo za konfiguracijo, ki jo naj bi uporabili z LLM. Uporabnik se lahko odloči, ali gre po teh priporočilih ali jih spremeni. V tem primeru so priporočila, kateri model uporabiti in prioriteta hitrosti ter inteligence.
+- **systemPrompt**, to je običajni sistemski poziv, ki vašemu LLM-ju daje osebnost in vsebuje navodila.
+- **maxTokens**, to je še ena lastnost, ki pove, koliko žetonov je priporočljivo uporabiti za to nalogo.
 
-### Odgovor na vzorcevanje
+### Odgovor na sampling
 
-Ta odgovor je tisto, kar MCP odjemalec pošlje nazaj MCP strežniku in je rezultat klica LLM-ja, počakanja na odgovor ter sestave sporočila. Lahko je videti takole v JSON-RPC:
+Ta odgovor je tisto, kar MCP klient na koncu pošlje nazaj MCP strežniku in je rezultat klica LLM-ja, čakanja na odgovor in nato sestave tega sporočila. Takole lahko izgleda v JSON-RPC:
 
 ```json
 {
@@ -101,13 +103,13 @@ Ta odgovor je tisto, kar MCP odjemalec pošlje nazaj MCP strežniku in je rezult
 }
 ```
 
-Opazite, da je odgovor povzetek bloga, tako kot smo prosili. Prav tako opazite, da uporabljen `model` ni tisti, ki smo ga zahtevali, ampak "gpt-5" namesto "claude-3-sonnet". To ilustrira, da lahko uporabnik spremeni odločitev o uporabi in da je vaša zahteva za vzorcevanje priporočilo.
+Opazite, da je odgovor povzetek blog zapisa, kot smo zahtevali. Prav tako opazite, da uporabljen `model` ni tisti, ki smo ga zahtevali, ampak "gpt-5" namesto "claude-3-sonnet". To kaže, da lahko uporabnik spremeni odločitev o uporabi in da je vaša zahteva za sampling priporočilo.
 
-Ok, zdaj ko razumemo glavni tok in primerno opravilo za to "ustvarjanje blog zapisa + povzetek", poglejmo, kaj moramo narediti, da bo delovalo.
+V redu, zdaj ko razumemo glavni tok in uporabno nalogo za "ustvarjanje blog zapisa + povzetek", poglejmo, kaj moramo narediti, da deluje.
 
 ### Vrste sporočil
 
-Sporočila za vzorcevanje niso omejena le na besedilo, ampak lahko pošljete tudi slike in zvok. Tako je izgled JSON-RPC drugačen:
+Sporočila za sampling niso omejena le na besedilo, ampak lahko pošljete tudi slike in zvok. Tako se JSON-RPC razlikuje:
 
 **Besedilo**
 
@@ -138,13 +140,13 @@ Sporočila za vzorcevanje niso omejena le na besedilo, ampak lahko pošljete tud
 }
 ```
 
-> OPOMBA: za podrobnejše informacije o vzorčenju si oglejte [uradno dokumentacijo](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> OPOMBA: za bolj podrobne informacije o Sampling glejte [uradne dokumente](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Kako konfigurirati vzorcevanje v odjemalcu
+## Kako konfigurirati Sampling v Klientu
 
-> Opomba: če gradite samo strežnik, tukaj ni veliko potrebe po nastavitvah.
+> Opomba: če izdelujete samo strežnik, tukaj večinoma ni potrebno kaj narediti.
 
-V odjemalcu morate funkcijo nastaviti na naslednji način:
+V klientu morate določiti naslednjo funkcijo, kot sledi:
 
 ```json
 {
@@ -154,16 +156,16 @@ V odjemalcu morate funkcijo nastaviti na naslednji način:
 }
 ```
 
-To bo nato zajeto, ko se bo vaš izbrani odjemalec povezal s strežnikom.
+To bo nato zaznal, ko se vaš izbrani klient poveže s strežnikom.
 
-## Primer vzorcevanja v praksi - Ustvarjanje blog zapisa
+## Primer delovanja Sampling - Ustvarjanje blog zapisa
 
-Napišimo skupaj vzorčni strežnik, za to moramo narediti naslednje:
+Napišimo sampling strežnik skupaj; potrebno bo narediti naslednje:
 
 1. Ustvariti orodje na strežniku.
-1. Orodje naj ustvari zahtevo za vzorcevanje.
-1. Orodje naj počaka na odgovor odjemalčeve zahteve za vzorcevanje.
-1. Nato naj se ustvari rezultat orodja.
+1. Orodje naj ustvari zahtevo za sampling.
+1. Orodje naj počaka na odgovor na zahtevo za sampling od klienta.
+1. Nato naj bo rezultat orodja proizveden.
 
 Poglejmo kodo korak za korakom:
 
@@ -178,9 +180,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Ustvari zahtevo za vzorcevanje
+### -2- Ustvari zahtevo za sampling
 
-Razširite svoj alat z naslednjo kodo:
+Razširite orodje s sledečo kodo:
 
 **python**
 
@@ -206,7 +208,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Počakaj na odgovor in ga vrni
+### -3- Počakaj na odgovor in vrni odgovor
 
 **python**
 
@@ -215,7 +217,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# vrni končni izdelek
+# vrni celoten izdelek
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -284,7 +286,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # vrni celoten blog objavo
+    # vrni celoten blog zapis
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -300,10 +302,10 @@ if __name__ == "__main__":
 
 ### -5- Testiranje v Visual Studio Code
 
-Za testiranje v Visual Studio Code naredite naslednje:
+Za preizkus v Visual Studio Code naredite naslednje:
 
 1. Zaženite strežnik v terminalu
-1. Dodajte ga v *mcp.json* (in poskrbite, da je zagnan), nekaj takega:
+1. Dodajte ga v *mcp.json* (in zagotovite, da teče), npr. nekaj takega:
 
    ```json
    "servers": {
@@ -320,35 +322,35 @@ Za testiranje v Visual Studio Code naredite naslednje:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Dovolite vzorcevanje. Prvič ko to preizkušate, boste prejeli dodatno pogovorno okno, ki ga morate potrditi, nato pa običajno pogovorno okno za uporabo orodja.
+1. Dovolite izvajanje samplinga. Prvič, ko to preizkusite, se pojavi dodatno okno, ki ga morate potrditi, nato se prikaže običajno okno z zahtevo za zagon orodja.
 
-1. Preverite rezultate. Videli jih boste lepo prikazane v GitHub Copilot Chat, lahko pa tudi pregledate surovi JSON odgovor.
+1. Preglejte rezultate. Rezultate boste videli lepo prikazane v GitHub Copilot Chat, lahko pa pregledate tudi surov JSON odgovor.
 
-**Bonus**. Orodja Visual Studio Code zelo dobro podpirajo vzorcevanje. Dostop do vzorcevanja na vašem nameščenem strežniku lahko konfigurirate tako, da:
+**Bonus**. Orodja za Visual Studio Code odlično podpirajo sampling. Dostop do Sampling lahko konfigurirate na vašem nameščenem strežniku tako, da:
 
-1. Odprete razdelek z razširitvami.
-1. Izberete ikono zobnika za vaš nameščeni strežnik v razdelku "MCP SERVERS - INSTALLED".
-1 Izberete "Configure Model Access", kjer lahko izberete, katere modele lahko GitHub Copilot uporablja pri vzorčenju. Prav tako lahko vidite vse zadnje zahteve za vzorcevanje s klikom na "Show Sampling requests".
+1. Pojdite v sekcijo razširitev.
+1. Izberite ikono nastavitev za vaš nameščeni strežnik v razdelku "MCP SERVERS - INSTALLED".
+1 Izberite "Configure Model Access" (Konfiguriraj dostop do modela), kjer lahko izberete, katere modele lahko GitHub Copilot uporablja pri samplingu. Vidite lahko tudi vse nedavne zahteve za sampling s klikom "Show Sampling requests" (Prikaži zahteve za sampling).
 
 ## Naloga
 
-V tej nalogi boste zgradili nekoliko drugačno vzorčenje, in sicer integracijo vzorcevanja, ki podpira generiranje opisa izdelka. Tukaj je vaš scenarij:
+V tej nalogi boste zgradili nekoliko drugačen Sampling, in sicer integracijo za sampling, ki podpira generiranje opisa izdelka. Tukaj je vaš scenarij:
 
-**Scenarij**: Delo v upravi e-trgovine zahteva veliko časa za generiranje opisov izdelkov. Zato morate zgraditi rešitev, kjer lahko pokličete orodje "create_product" z argumentoma "title" in "keywords", ki naj ustvari celoten izdelek vključno z poljem "description", ki ga napolni odjemalčev LLM.
+**Scenarij**: Delo v back office pri e-trgovini je zamudno, saj traja predolgo generiranje opisov izdelkov. Zato morate zgraditi rešitev, kjer lahko pokličete orodje "create_product" z argumentoma "title" in "keywords", ki ustvari popoln izdelek vključno s poljem "description", ki ga izpolni LLM na klientu.
 
-NAMIG: uporabite, kar ste se naučili prej, za konstrukcijo tega strežnika in njegovega orodja z uporabo zahteve za vzorcevanje.
+NASVET: uporabite prej pridobljeno znanje, da sestavite ta strežnik in orodje z uporabo zahteve za sampling.
 
 ## Rešitev
 
 [Rešitev](./solution/README.md)
 
-## Ključna spoznanja
+## Ključne ugotovitve
 
-Vzorcevanje je močna funkcija, ki omogoča strežniku, da delegira naloge odjemalcu, ko potrebuje pomoč LLM-ja.
+Sampling je močna funkcija, ki strežniku omogoča delegiranje nalog klientu, kadar potrebuje pomoč LLM.
 
 ## Kaj sledi
 
-- [Poglavje 4 - Praktična implementacija](../../04-PracticalImplementation/README.md)
+- [Poglavje 4 - Praktična izvedba](../../04-PracticalImplementation/README.md)
 
 ---
 

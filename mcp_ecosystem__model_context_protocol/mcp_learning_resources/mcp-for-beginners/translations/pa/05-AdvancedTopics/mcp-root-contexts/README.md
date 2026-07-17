@@ -1,53 +1,57 @@
+> [ਪੁਰਾਣਾ ਹੋ ਚੁੱਕਾ: 2026-07-28 ਰਿਲੀਜ਼ ਉਮੀਦਵਾਰ](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # MCP ਰੂਟ ਕਾਂਟੈਕਸਟ
 
-ਰੂਟ ਕਾਂਟੈਕਸਟ ਮਾਡਲ ਕਾਂਟੈਕਸਟ ਪ੍ਰੋਟੋਕੋਲ ਵਿੱਚ ਇੱਕ ਮੂਲ ਭਾਵਨਾ ਹਨ ਜੋ ਕਈ ਬੇਨਤੀਆਂ ਅਤੇ ਸੈਸ਼ਨਾਂ ਵਿੱਚ ਗੱਲਬਾਤ ਦਾ ਇਤਿਹਾਸ ਅਤੇ ਸਾਂਝੀ ਸਥਿਤੀ ਨੂੰ ਲਗਾਤਾਰ ਬਣਾਈ ਰੱਖਣ ਲਈ ਇੱਕ ਸਥਾਈ ਪਰਤ ਪ੍ਰਦਾਨ ਕਰਦੇ ਹਨ।
+> **ਪੁਰਾਣੇ ਹੋਣ ਦੀ ਸੂਚਨਾ:** `2026-07-28` MCP ਵਿਸ਼ੇਸ਼ਤਾ ਰਿਲੀਜ਼ ਉਮੀਦਵਾਰ ਰੂਟ ਨੂੰ ਟੂਲ ਪੈਰਾਮੀਟਰਾਂ, ਸਰੋਤ URI, ਜਾਂ ਸਰਵਰ ਕਨਫਿਗਰੇਸ਼ਨ ਦੀ ਥਾਂ ਵਿੱਚ ਪੁਰਾਣਾ ਕਰ ਦਿੰਦਾ ਹੈ। ਰੂਟ `2025-11-25` ਵਿੱਚ ਕੰਮ ਕਰਦੇ ਰਹਿੰਦੇ ਹਨ ਅਤੇ ਕਿਸੇ ਵੀ ਰਸਮੀ ਪੁਰਾਣੇ ਹੋਣ ਤੋਂ ਘੱਟੋ-ਘੱਟ ਇੱਕ ਸਾਲ ਬਾਅਦ ਤਕ ਲਾਗੂ ਰਹਿੰਦੇ ਹਨ, ਇਸ ਲਈ ਇਸ ਸਬਕ ਵਿੱਚ ਸਭ ਕੁਝ ਵੈਧ ਰਹਿੰਦਾ ਹੈ - ਪਰ ਨਵੇਂ ਸਰਵਰ ਡਿਜ਼ਾਈਨ ਨੂੰ ਬਦਲਣ ਵਾਲੇ ਪੈਟਰਨ ਦਾ ਮੁਲਾਂਕਣ ਕਰਨਾ ਚਾਹੀਦਾ ਹੈ। ਵੇਖੋ [MCP ਵਿੱਚ ਕੀ ਬਦਲ ਰਿਹਾ ਹੈ: 2026-07-28 ਰਿਲੀਜ਼ ਉਮੀਦਵਾਰ](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-## ਪਰਿਚਯ
+ਰੂਟ ਕਾਂਟੈਕਸਟ ਮਾਡਲ ਕਾਂਟੈਕਸਟ ਪ੍ਰੋਟੋਕੋਲ ਵਿੱਚ ਇਕ ਮੂਲਭੂਤ ਧਾਰਨਾ ਹਨ ਜੋ ਕਿ ਗੱਲਬਾਤ ਦੇ ਇਤਿਹਾਸ ਅਤੇ ਸਾਂਝੇ ઇહારો ਨੂੰ ਕਈ ਬੇਨਤੀਅਾਂ ਅਤੇ ਸੈਸ਼ਨਾਂ ਵਿੱਚ ਕਾਇਮ ਰੱਖਣ ਲਈ ਇੱਕ ਪੱਕੀ ਪਰਤ ਪ੍ਰਦਾਨ ਕਰਦੇ ਹਨ।
 
-ਇਸ ਪਾਠ ਵਿੱਚ, ਅਸੀਂ MCP ਵਿੱਚ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਉਣ, ਪ੍ਰਬੰਧਨ ਕਰਨ ਅਤੇ ਵਰਤਣ ਦੇ ਤਰੀਕੇ ਬਾਰੇ ਜਾਣੂ ਹੋਵਾਂਗੇ।
+## ਜਾਣ-ਪਛਾਣ
 
-## ਸਿੱਖਣ ਦੇ ਉਦੇਸ਼
+ਇਸ ਸਬਕ ਵਿੱਚ, ਅਸੀਂ ਦੇਖਾਂਗੇ ਕਿ MCP ਵਿੱਚ ਰੂਟ ਕਾਂਟੈਕਸਟ ਕਿਵੇਂ ਬਣਾਏ, ਪ੍ਰਬੰਧਿਤ ਕੀਤੇ ਜਾਂਦੇ ਹਨ ਅਤੇ ਵਰਤੋਂ ਕੀਤੀ ਜਾਂਦੀ ਹੈ।
 
-ਇਸ ਪਾਠ ਦੇ ਅੰਤ ਤੱਕ, ਤੁਸੀਂ ਸਮਰੱਥ ਹੋਵੋਗੇ:
+## ਸਿੱਖਣ ਦੇ ਉਦਦੇਸ਼
 
-- ਰੂਟ ਕਾਂਟੈਕਸਟ ਦੇ ਮਕਸਦ ਅਤੇ ਢਾਂਚੇ ਨੂੰ ਸਮਝਣਾ
-- MCP ਕਲਾਇੰਟ ਲਾਇਬ੍ਰੇਰੀਜ਼ ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਉਣਾ ਅਤੇ ਪ੍ਰਬੰਧਿਤ ਕਰਨਾ
+ਇਸ ਸਬਕ ਦੇ ਅੰਤ ਵਿੱਚ, ਤੁਸੀਂ ਸਮਰੱਥ ਹੋਵੋਗੇ:
+
+- ਰੂਟ ਕਾਂਟੈਕਸਟ ਦੇ ਉਦੇਸ਼ ਅਤੇ ਸਰਚਨਾ ਨੂੰ ਸਮਝਣਾ
+- MCP ਕਲਾਇੰਟ ਲਾਇਬ੍ਰੇਰੀਆਂ ਦੀ ਵਰਤੋਂ ਨਾਲ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਉਣਾ ਅਤੇ ਪ੍ਰਬੰਧਿਤ ਕਰਨਾ
 - .NET, ਜਾਵਾ, ਜਾਵਾਸਕ੍ਰਿਪਟ ਅਤੇ ਪਾਇਥਨ ਐਪਲੀਕੇਸ਼ਨਾਂ ਵਿੱਚ ਰੂਟ ਕਾਂਟੈਕਸਟ ਲਾਗੂ ਕਰਨਾ
-- ਬਹੁ-ਚਰਣ ਗੱਲਬਾਤਾਂ ਅਤੇ ਸਥਿਤੀ ਪ੍ਰਬੰਧਨ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ ਦੀ ਵਰਤੋਂ ਕਰਨਾ
-- ਰੂਟ ਕਾਂਟੈਕਸਟ ਪ੍ਰਬੰਧਨ ਲਈ ਸਰਵੋਤਮ ਅਭਿਆਸ ਲਾਗੂ ਕਰਨਾ
+- ਬਹੁ-ਚੱਕਰ ਵਾਲੀਆਂ ਗੱਲਬਾਤਾਂ ਅਤੇ ਹਾਲਤ ਪ੍ਰਬੰਧਨ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ ਵਰਤਣਾ
+- ਰੂਟ ਕਾਂਟੈਕਸਟ ਪ੍ਰਬੰਧਨ ਲਈ ਸਭ ਤੋਂ ਵਧੀਆ ਅਭਿਆਸ ਲਾਗੂ ਕਰਨਾ
 
 ## ਰੂਟ ਕਾਂਟੈਕਸਟ ਨੂੰ ਸਮਝਣਾ
 
-ਰੂਟ ਕਾਂਟੈਕਸਟ ਉਹ ਕੰਟੇਨਰ ਹੁੰਦੇ ਹਨ ਜੋ ਸੰਬੰਧਿਤ ਇੰਟਰੈਕਸ਼ਨਾਂ ਦੀ ਲੜੀ ਲਈ ਇਤਿਹਾਸ ਅਤੇ ਸਥਿਤੀ ਨੂੰ ਸੰਭਾਲਦੇ ਹਨ। ਇਹ ਸਹੂਲਤ ਦਿੰਦੇ ਹਨ:
+ਰੂਟ ਕਾਂਟੈਕਸਟ ਓਹ ਹਿਸੇ ਹੁੰਦੇ ਹਨ ਜੋ ਕਈ ਸੰਬੰਧਤ ਇੰਟਰਐਕਸ਼ਨਾਂ ਦਾ ਇਤਿਹਾਸ ਅਤੇ ਹਾਲਤ ਰੱਖਦੇ ਹਨ। ਇਹ ਯੋਗ ਬਣਾਉਂਦੇ ਹਨ:
 
-- **ਗੱਲਬਾਤ ਦੀ ਲਗਾਤਾਰਤਾ**: ਸਹੀ ਅਤੇ ਲਗਾਤਾਰ ਬਹੁ-ਚਰਣ ਗੱਲਬਾਤਾਂ ਨੂੰ ਬਣਾਈ ਰੱਖਣਾ
-- **ਮੈਮੋਰੀ ਪ੍ਰਬੰਧਨ**: ਇੰਟਰੈਕਸ਼ਨਾਂ ਵਿੱਚ ਜਾਣਕਾਰੀ ਸਟੋਰ ਅਤੇ ਪ੍ਰਾਪਤ ਕਰਨਾ
-- **ਸਥਿਤੀ ਪ੍ਰਬੰਧਨ**: ਜਟਿਲ ਕਾਰਜ ਪ੍ਰਵਾਹਾਂ ਵਿੱਚ ਤਰੱਕੀ ਨੂੰ ਟਰੈਕ ਕਰਨਾ
-- **ਕਾਂਟੈਕਸਟ ਸਾਂਝਾ ਕਰਨਾ**: ਕਈ ਕਲਾਇੰਟਾਂ ਨੂੰ ਇੱਕੋ ਗੱਲਬਾਤ ਸਥਿਤੀ ਤੱਕ ਪਹੁੰਚ ਦੇਣਾ
+- **ਗੱਲਬਾਤ ਦੀ ਸਥਿਰਤਾ**: ਸੰਗਠਿਤ ਬਹੁ-ਚੱਕਰ ਗੱਲਬਾਤਾਂ ਨੂੰ ਕਾਇਮ ਰੱਖਣਾ
+- **ਯਾਦاشت ਪ੍ਰਬੰਧਨ**: ਇੰਟਰਐਕਸ਼ਨਾਂ ਵਿੱਚ ਸੂਚਨਾ ਸੰਗ੍ਰਹਿਤ ਅਤੇ ਪਰਤ ਲੈਣਾ
+- **ਹਾਲਤ ਪ੍ਰਬੰਧਨ**: ਜਟਿਲ ਕਾਰਜ ਪ੍ਰਵਾਹਾਂ ਵਿੱਚ ਪ੍ਰਗਟਿ ਦੀ ਨਿਗਰਾਨੀ
+- **ਕਾਂਟੈਕਸਟ ਸਾਂਝਾ ਕਰਨਾ**: ਕਈ ਕਲਾਇੰਟਾਂ ਨੂੰ ਇੱਕੋ ਗੱਲਬਾਤ ਹਾਲਤ ਤੱਕ ਪਹੁੰਚ ਪ੍ਰਦਾਨ ਕਰਨਾ
 
-MCP ਵਿੱਚ, ਰੂਟ ਕਾਂਟੈਕਸਟਾਂ ਦੀਆਂ ਇਹ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਹਨ:
+MCP ਵਿੱਚ, ਰੂਟ ਕਾਂਟੈਕਸਟ ਦੇ ਇਹ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਹਨ:
 
-- ਹਰ ਰੂਟ ਕਾਂਟੈਕਸਟ ਦਾ ਇੱਕ ਵਿਲੱਖਣ ਪਹਿਚਾਣਕ ਹੈ।
-- ਇਹ ਗੱਲਬਾਤ ਦਾ ਇਤਿਹਾਸ, ਯੂਜ਼ਰ ਪਸੰਦਾਂ ਅਤੇ ਹੋਰ ਮੈਟਾਡੇਟਾ ਰੱਖ ਸਕਦੇ ਹਨ।
-- ਇਹ ਜਰੂਰਤ ਅਨੁਸਾਰ ਬਣਾਏ, ਪ੍ਰਾਪਤ ਕੀਤੇ ਅਤੇ ਆਰਕਾਈਵ ਕੀਤੇ ਜਾ ਸਕਦੇ ਹਨ।
-- ਇਹ ਸੁਖੜ-ਪੱਧਰੀ ਪਹੁੰਚ ਨਿਯੰਤਰਣ ਅਤੇ ਅਧਿਕਾਰਾਂ ਦਾ ਸਮਰਥਨ ਕਰਦੇ ਹਨ।
+- ਹਰ ਇੱਕ ਰੂਟ ਕਾਂਟੈਕਸਟ ਦਾ ਇਕ ਵਿਲੱਖਣ ਪਛਾਣਕ ਹੈ।
+- ਇਹ ਗੱਲਬਾਤ ਇਤਿਹਾਸ, ਉਪਭੋਗਤਾ ਪਸੰਦਾਂ ਅਤੇ ਹੋਰ ਮੇਟਾਡਾਟਾ ਰੱਖ ਸਕਦੇ ਹਨ।
+- ਜਰੂਰਤ ਅਨੁਸਾਰ ਬਣਾਏ, ਐਕਸੈੱਸ ਅਤੇ ਆਰਕਾਈਵ ਕੀਤੇ ਜਾ ਸਕਦੇ ਹਨ।
+- ਇਹ ਸੁਖਮਾਂਸ਼ੀ ਐਕਸੈੱਸ ਕੰਟਰੋਲ ਅਤੇ ਅਧਿਕਾਰਾਂ ਦਾ ਸਮਰਥਨ ਕਰਦੇ ਹਨ।
 
-## ਰੂਟ ਕਾਂਟੈਕਸਟ ਦਾ ਜੀਵਨ ਚੱਕਰ
+## ਰੂਟ ਕਾਂਟੈਕਸਟ ਜੀਵਨ ਚਕਰ
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[ਰੂਟ ਸੰਦਰਭ ਬਣਾਓ] --> B[ਮੈਟਾਡੇਟਾ ਨਾਲ ਸ਼ੁਰੂਆਤ ਕਰੋ]
+    B --> C[ਸੰਦਰਭ ID ਦੇ ਨਾਲ ਬੇਨਤੀਆਂ ਭੇਜੋ]
+    C --> D[ਨਤੀਜਿਆਂ ਨਾਲ ਸੰਦਰਭ ਅਪਡੇਟ ਕਰੋ]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਸੰਦਰਭ ਨੂੰ ਅਰਕਾਈਵ ਕਰੋ]
 ```
 
 ## ਰੂਟ ਕਾਂਟੈਕਸਟ ਨਾਲ ਕੰਮ ਕਰਨਾ
 
-ਇੱਥੇ ਇੱਕ ਉਦਾਹਰਨ ਹੈ ਕਿ ਕਿਵੇਂ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਏ ਅਤੇ ਪ੍ਰਬੰਧਿਤ ਕੀਤੇ ਜਾ ਸਕਦੇ ਹਨ।
+ਇੱਥੇ ਇੱਕ ਉਦਾਹਰਣ ਦਿੱਤੀ ਗਈ ਹੈ ਕਿ ਰੂਟ ਕਾਂਟੈਕਸਟ ਕਿਵੇਂ ਬਣਾਏ ਅਤੇ ਪ੍ਰਬੰਧਿਤ ਕੀਤੇ ਜਾਂਦੇ ਹਨ।
 
-### C# ਲਾਗੂ ਕਰਨ ਦਾ ਤਰੀਕਾ
+### C# ਲਾਗੂ ਕਰਨਾ
 
 ```csharp
 // .NET Example: Root Context Management
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-ਉਪਰੋਕਤ ਕੋਡ ਵਿੱਚ ਅਸੀਂ:
+ਉਸ ਕੋਡ ਵਿੱਚ ਅਸੀਂ:
 
-1. ਗਾਹਕ ਸਹਾਇਤਾ ਸੈਸ਼ਨ ਲਈ ਇੱਕ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਇਆ।
-2. ਉਸ ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਕਈ ਸੁਨੇਹੇ ਭੇਜੇ, ਜਿਸ ਨਾਲ ਮਾਡਲ ਸਥਿਤੀ ਨੂੰ ਬਣਾਈ ਰੱਖ ਸਕਦਾ ਹੈ।
-3. ਗੱਲਬਾਤ ਦੇ ਅਧਾਰ 'ਤੇ ਸੰਬੰਧਿਤ ਮੈਟਾਡੇਟਾ ਨਾਲ ਕਾਂਟੈਕਸਟ ਨੂੰ ਅਪਡੇਟ ਕੀਤਾ।
-4. ਗੱਲਬਾਤ ਦੇ ਇਤਿਹਾਸ ਨੂੰ ਸਮਝਣ ਲਈ ਕਾਂਟੈਕਸਟ ਜਾਣਕਾਰੀ ਪ੍ਰਾਪਤ ਕੀਤੀ।
-5. ਗੱਲਬਾਤ ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕੀਤਾ।
+1. ਗਾਹਕ ਸਮਰਥਨ ਸੈਸ਼ਨ ਲਈ ਇੱਕ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਇਆ।
+1. ਉਸ ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਕਈ ਸਨੇਹੇ ਭੇਜੇ, ਜਿਸ ਨਾਲ ਮਾਡਲ ਹਾਲਤ ਕਾਇਮ ਰੱਖ ਸਕਿਆ।
+1. ਗੱਲਬਾਤ ਦੇ ਅਧਾਰ 'ਤੇ ਸੰਬੰਧਤ ਮੇਟਾਡਾਟਾ ਨਾਲ ਕਾਂਟੈਕਸਟ ਨੂੰ ਅਪਡੇਟ ਕੀਤਾ।
+1. ਗੱਲਬਾਤ ਇਤਿਹਾਸ ਨੂੰ ਸਮਝਣ ਲਈ ਕਾਂਟੈਕਸਟ ਜਾਣਕਾਰੀ ਪ੍ਰਾਪਤ ਕੀਤੀ।
+1. ਗੱਲਬਾਤ ਸਥਿਤੀ ਪੂਰੀ ਹੋਣ 'ਤੇ ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕੀਤਾ।
 
-## ਉਦਾਹਰਨ: ਵਿੱਤੀ ਵਿਸ਼ਲੇਸ਼ਣ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ ਲਾਗੂ ਕਰਨਾ
+## ਉਦਾਹਰਣ: ਵਿੱਤੀ ਵਿਸ਼ਲੇਸ਼ਣ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ ਅਮਲੀਕਰਨ
 
-ਇਸ ਉਦਾਹਰਨ ਵਿੱਚ, ਅਸੀਂ ਵਿੱਤੀ ਵਿਸ਼ਲੇਸ਼ਣ ਸੈਸ਼ਨ ਲਈ ਇੱਕ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਵਾਂਗੇ, ਜੋ ਕਈ ਇੰਟਰੈਕਸ਼ਨਾਂ ਵਿੱਚ ਸਥਿਤੀ ਨੂੰ ਬਣਾਈ ਰੱਖਣ ਦਾ ਤਰੀਕਾ ਦਿਖਾਏਗਾ।
+ਇਸ ਉਦਾਹਰਣ ਵਿੱਚ, ਅਸੀਂ ਵਿੱਤੀ ਵਿਸ਼ਲੇਸ਼ਣ ਸੈਸ਼ਨ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਵਾਂਗੇ, ਜੋ ਕਈ ਇੰਟਰਐਕਸ਼ਨਾਂ ਵਿੱਚ ਹਾਲਤ ਕਾਇਮ ਕਰਨ ਦਾ ਪ੍ਰਦਰਸ਼ਨ ਕਰਦਾ ਹੈ।
 
-### ਜਾਵਾ ਲਾਗੂ ਕਰਨ ਦਾ ਤਰੀਕਾ
+### ਜਾਵਾ ਲਾਗੂ ਕਰਨਾ
 
 ```java
-// Java Example: Root Context Implementation
+// ਜਾਵਾ ਉਦਾਹਰਣ: ਰੂਟ ਸੰਦਰਭ ਅਮਲਦਾਰੀ
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // ਸੰਦਰਭ ਮੈਟਾਡੇਟਾ ਬਣਾਓ
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. ਇੱਕ ਨਵਾਂ ਰੂਟ ਸੰਦਰਭ ਬਣਾਓ
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. ਪਹਿਲੀ ਪਰਸਪਰਕਿਰਿਆ
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. ਪ੍ਰਤਿਕਿਰਿਆ ਤੋਂ ਪ੍ਰਾਪਤ ਮਹੱਤਵਪੂਰਣ ਜਾਣਕਾਰੀ ਨਾਲ ਸੰਦਰਭ ਨੂੰ ਅਪਡੇਟ ਕਰੋ
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // ਦੂਜੀ ਪਰਸਪਰਕਿਰਿਆ - ਉਸੇ ਸੰਦਰਭ ਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹੋਏ
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. ਵਿਸ਼ਲੇਸ਼ਣ ਸੈਸ਼ਨ ਦਾ ਸਾਰ ਬਣਾਓ
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // ਸਾਰ ਨੂੰ ਸੰਦਰਭ ਮੈਟਾਡੇਟਾ ਵਿੱਚ ਸਟੋਰ ਕਰੋ
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // ਅਪਡੇਟ ਕੀਤੀ ਸੰਦਰਭ ਜਾਣਕਾਰੀ ਪ੍ਰਾਪਤ ਕਰੋ
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. ਕੰਮ ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਸੰਦਰਭ ਨੂੰ ਆਰਕਾਈਵ ਕਰੋ
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-ਉਪਰੋਕਤ ਕੋਡ ਵਿੱਚ ਅਸੀਂ:
+ਉਸ ਕੋਡ ਵਿੱਚ ਅਸੀਂ:
 
 1. ਵਿੱਤੀ ਵਿਸ਼ਲੇਸ਼ਣ ਸੈਸ਼ਨ ਲਈ ਇੱਕ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਇਆ।
-2. ਉਸ ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਕਈ ਸੁਨੇਹੇ ਭੇਜੇ, ਜਿਸ ਨਾਲ ਮਾਡਲ ਸਥਿਤੀ ਨੂੰ ਬਣਾਈ ਰੱਖ ਸਕਦਾ ਹੈ।
-3. ਗੱਲਬਾਤ ਦੇ ਅਧਾਰ 'ਤੇ ਸੰਬੰਧਿਤ ਮੈਟਾਡੇਟਾ ਨਾਲ ਕਾਂਟੈਕਸਟ ਨੂੰ ਅਪਡੇਟ ਕੀਤਾ।
-4. ਵਿਸ਼ਲੇਸ਼ਣ ਸੈਸ਼ਨ ਦਾ ਸਾਰ ਤਿਆਰ ਕੀਤਾ ਅਤੇ ਕਾਂਟੈਕਸਟ ਮੈਟਾਡੇਟਾ ਵਿੱਚ ਸਟੋਰ ਕੀਤਾ।
-5. ਗੱਲਬਾਤ ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕੀਤਾ।
+2. ਉਸ ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਕਈ ਸਨੇਹੇ ਭੇਜੇ, ਜਿਸ ਨਾਲ ਮਾਡਲ ਹਾਲਤ ਕਾਇਮ ਰੱਖ ਸਕਿਆ।
+3. ਗੱਲਬਾਤ ਦੇ ਅਧਾਰ 'ਤੇ ਸੰਬੰਧਤ ਮੇਟਾਡਾਟਾ ਨਾਲ ਕਾਂਟੈਕਸਟ ਨੂੰ ਅਪਡੇਟ ਕੀਤਾ।
+4. ਵਿਸ਼ਲੇਸ਼ਣ ਸੈਸ਼ਨ ਦਾ ਸਰੰਸ਼ ਉਤਪੰਨ ਕੀਤਾ ਅਤੇ ਕਾਂਟੈਕਸਟ ਮੇਟਾਡਾਟਾ ਵਿੱਚ ਸੰਭਾਲਿਆ।
+5. ਗੱਲਬਾਤ ਸਥਿਤੀ ਪੂਰੀ ਹੋਣ 'ਤੇ ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕੀਤਾ।
 
-## ਉਦਾਹਰਨ: ਰੂਟ ਕਾਂਟੈਕਸਟ ਪ੍ਰਬੰਧਨ
+## ਉਦਾਹਰਣ: ਰੂਟ ਕਾਂਟੈਕਸਟ ਪ੍ਰਬੰਧਨ
 
-ਰੂਟ ਕਾਂਟੈਕਸਟਾਂ ਦਾ ਪ੍ਰਭਾਵਸ਼ਾਲੀ ਪ੍ਰਬੰਧਨ ਗੱਲਬਾਤ ਦੇ ਇਤਿਹਾਸ ਅਤੇ ਸਥਿਤੀ ਨੂੰ ਬਣਾਈ ਰੱਖਣ ਲਈ ਬਹੁਤ ਜ਼ਰੂਰੀ ਹੈ। ਹੇਠਾਂ ਇੱਕ ਉਦਾਹਰਨ ਦਿੱਤੀ ਗਈ ਹੈ ਕਿ ਕਿਵੇਂ ਰੂਟ ਕਾਂਟੈਕਸਟ ਪ੍ਰਬੰਧਨ ਲਾਗੂ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ।
+ਗੱਲਬਾਤ ਇਤਿਹਾਸ ਅਤੇ ਹਾਲਤ ਕਾਇਮ ਰੱਖਣ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ ਦੀ ਪ੍ਰਭਾਵਸ਼ੀਲ ਪ੍ਰਬੰਧਗੀ ਜਰੂਰੀ ਹੈ। ਹੇਠਾਂ ਦਿੱਤਾ ਉਦਾਹਰਣ ਇਸ ਨੂੰ ਲਾਗੂ ਕਰਨ ਦਾ ਤਰੀਕਾ ਦਿਖਾਉਂਦਾ ਹੈ।
 
-### ਜਾਵਾਸਕ੍ਰਿਪਟ ਲਾਗੂ ਕਰਨ ਦਾ ਤਰੀਕਾ
+### ਜਾਵਾਸਕ੍ਰਿਪਟ ਲਾਗੂ ਕਰਨਾ
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// ਜਾਵਾਸਕ੍ਰਿਪਟ ਉਦਾਹਰਨ: MCP ਰੂਟ ਕੰਟੈਕਸਟਾਂ ਦਾ ਪ੍ਰਬੰਧਨ
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // MCP ਕਲਾਇੰਟ ਨੂੰ ਸ਼ੁਰੂ ਕਰੋ
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // ਕੰਟੈਕਸਟ ਮੈਨੇਜਰ ਸ਼ੁਰੂ ਕਰੋ
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // ਦਿੱਏ ਗਏ ਕੰਟੈਕਸਟ ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਸੁਨੇਹਾ ਭੇਜੋ
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // ਗੱਲਬਾਤ ਤੋਂ ਜਰੂਰੀ ਜਾਣਕਾਰੀਆਂ ਨੂੰ ਵਿਕਲਪਿਕ ਤੌਰ 'ਤੇ ਸੰਭਾਲੋ
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // ਸੰਭਾਵਿਤ ਜਾਣਕਾਰੀਆਂ ਨੂੰ ਨਿਕਾਲੋ (ਅਸਲੀ ਐਪ ਵਿੱਚ ਇਹ ਹੋਰ ਵਿਚਾਰਸ਼ੀਲ ਹੋਵੇਗਾ)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // ਸੰਭਾਵਿਤ ਜਾਣਕਾਰੀਆਂ ਪਛਾਣਣ ਲਈ ਸਧਾਰਣ ਹਿਊਰਿਸਟਿਕ
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // ਜਾਣਕਾਰੀਆਂ ਨੂੰ ਕੰਟੈਕਸਟ ਮੈਟਾ ਡੇਟਾ ਵਿੱਚ ਸੰਭਾਲੋ
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // ਗੈਰ-ਮਹੱਤਵਪੂਰਨ ਗਲਤੀ, ਇਸ ਲਈ ਸਿਰਫ ਚੇਤਾਵਨੀ ਲਿੱਖੋ
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // ਮਾਡਲ ਨੂੰ ਹੁਣ ਤਕ ਦੀ ਗੱਲਬਾਤ ਦਾ ਸਾਰ ਬਣਾਉਣ ਲਈ ਕਹੋ
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // ਸਾਰ ਨੂੰ ਕੰਟੈਕਸਟ ਮੈਟਾ ਡੇਟਾ ਵਿੱਚ ਸੰਭਾਲੋ
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // ਆਰਕਾਈਵ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਅੰਤਿਮ ਸਾਰ ਤਿਆਰ ਕਰੋ
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // ਕੰਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕਰੋ
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// ਉਦਾਹਰਨ ਵਰਤੋਂ
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. ਪੁਰੋਡਕਟ ਸਪੋਰਟ ਗੱਲਬਾਤ ਲਈ ਨਵਾਂ ਕੰਟੈਕਸਟ ਬਣਾਓ
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. ਗੱਲਬਾਤ ਵਿੱਚ ਪਹਿਲਾ ਸੁਨੇਹਾ
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // ਉਸੇ ਕੰਟੈਕਸਟ ਵਿੱਚ ਫਾਲੋ-ਅਪ ਸੁਨੇਹਾ
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. ਕੰਟੈਕਸਟ ਬਾਰੇ ਜਾਣਕਾਰੀ ਪ੍ਰਾਪਤ ਕਰੋ
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. ਗੱਲਬਾਤ ਦਾ ਸਾਰ ਜਨਰੇਟ ਕਰਕੇ ਦਿਖਾਓ
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. ਕੰਟੈਕਸਟ ਨੂੰ ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਆਰਕਾਈਵ ਕਰੋ
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. ਕੋਈ ਵੀ ਗਲਤੀਆਂ ਨਰਮਾਈ ਨਾਲ ਸੰਭਾਲੋ
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-ਉਪਰੋਕਤ ਕੋਡ ਵਿੱਚ ਅਸੀਂ:
+ਉਸ ਕੋਡ ਵਿੱਚ ਅਸੀਂ:
 
-1. ਫੰਕਸ਼ਨ `createConversationContext` ਨਾਲ ਪ੍ਰੋਡਕਟ ਸਹਾਇਤਾ ਗੱਲਬਾਤ ਲਈ ਇੱਕ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਇਆ। ਇਸ ਮਾਮਲੇ ਵਿੱਚ, ਕਾਂਟੈਕਸਟ ਡੇਟਾਬੇਸ ਪ੍ਰਦਰਸ਼ਨ ਸਮੱਸਿਆਵਾਂ ਬਾਰੇ ਹੈ।
+1. ਫੰਕਸ਼ਨ `createConversationContext` ਨਾਲ ਇੱਕ ਉਤਪਾਦ ਸਮਰਥਨ ਗੱਲਬਾਤ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਇਆ। ਇਸ ਮਾਮਲੇ ਵਿੱਚ, ਕਾਂਟੈਕਸਟ ਡੇਟਾਬੇਸ ਪ੍ਰਦਰਸ਼ਨ ਮੁੱਦਿਆਂ ਬਾਰੇ ਹੈ।
 
-2. ਫੰਕਸ਼ਨ `sendMessage` ਨਾਲ ਉਸ ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਕਈ ਸੁਨੇਹੇ ਭੇਜੇ, ਜੋ ਮਾਡਲ ਨੂੰ ਸਥਿਤੀ ਬਣਾਈ ਰੱਖਣ ਦੀ ਆਗਿਆ ਦਿੰਦੇ ਹਨ। ਭੇਜੇ ਗਏ ਸੁਨੇਹੇ ਧੀਮੀ ਕਵੈਰੀ ਪ੍ਰਦਰਸ਼ਨ ਅਤੇ ਇੰਡੈਕਸ ਸੰਰਚਨਾ ਬਾਰੇ ਹਨ।
+1. ਫੰਕਸ਼ਨ `sendMessage` ਨਾਲ ਉਸ ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਕਈ ਸਨੇਹੇ ਭੇਜੇ, ਮਾਡਲ ਨੂੰ ਹਾਲਤ ਕਾਇਮ ਰੱਖਣ ਦੀ ਆਗਿਆ ਦਿੰਦੇ ਹੋਏ। ਭੇਜੇ ਜਾ ਰਹੇ ਸਨੇਹੇ ਸਲੋ ਕਵੇਰੀ ਪ੍ਰਦਰਸ਼ਨ ਅਤੇ ਇੰਡੈਕਸ ਕਨਫਿਗਰੇਸ਼ਨ ਬਾਰੇ ਹਨ।
 
-3. ਗੱਲਬਾਤ ਦੇ ਅਧਾਰ 'ਤੇ ਸੰਬੰਧਿਤ ਮੈਟਾਡੇਟਾ ਨਾਲ ਕਾਂਟੈਕਸਟ ਨੂੰ ਅਪਡੇਟ ਕੀਤਾ।
+1. ਗੱਲਬਾਤ ਦੇ ਅਧਾਰ `context` ਨੂ ਸੰਬੰਧਤ ਮੇਟਾਡਾਟਾ ਨਾਲ ਅਪਡੇਟ ਕੀਤਾ।
 
-4. ਫੰਕਸ਼ਨ `generateContextSummary` ਨਾਲ ਗੱਲਬਾਤ ਦਾ ਸਾਰ ਤਿਆਰ ਕੀਤਾ ਅਤੇ ਕਾਂਟੈਕਸਟ ਮੈਟਾਡੇਟਾ ਵਿੱਚ ਸਟੋਰ ਕੀਤਾ।
+1. ਗੱਲਬਾਤ ਦਾ ਸਰੰਸ਼ ਤਿਆਰ ਕੀਤਾ ਅਤੇ ਫੰਕਸ਼ਨ `generateContextSummary` ਨਾਲ ਕਾਂਟੈਕਸਟ ਮੇਟਾਡਾਟਾ ਵਿੱਚ ਸੰਭਾਲਿਆ।
 
-5. ਗੱਲਬਾਤ ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਫੰਕਸ਼ਨ `archiveContext` ਨਾਲ ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕੀਤਾ।
+1. ਗੱਲਬਾਤ ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਫੰਕਸ਼ਨ `archiveContext` ਨਾਲ ਕਾਂਟੈਕਸਟ ਆਰਕਾਈਵ ਕੀਤਾ।
 
-6. ਗਲਤੀਆਂ ਨੂੰ ਸੁਚੱਜੇ ਢੰਗ ਨਾਲ ਸੰਭਾਲਿਆ ਤਾਂ ਜੋ ਮਜ਼ਬੂਤੀ ਯਕੀਨੀ ਬਣਾਈ ਜਾ ਸਕੇ।
+1. ਦੋਸ਼ਾਂ ਨੂੰ ਸੁਲਝਾਉਣ ਵਿੱਚ ਸੁਹਜਤਾ ਹੈਕ，ਹਾਲਤ ਹੋਂਦ ਵਾਲੀ ਹੈ।
 
-## ਬਹੁ-ਚਰਣ ਸਹਾਇਤਾ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ
+## ਬਹੁ-ਚੱਕਰ ਮਦਦਾਂ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ
 
-ਇਸ ਉਦਾਹਰਨ ਵਿੱਚ, ਅਸੀਂ ਬਹੁ-ਚਰਣ ਸਹਾਇਤਾ ਸੈਸ਼ਨ ਲਈ ਇੱਕ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਵਾਂਗੇ, ਜੋ ਕਈ ਇੰਟਰੈਕਸ਼ਨਾਂ ਵਿੱਚ ਸਥਿਤੀ ਨੂੰ ਬਣਾਈ ਰੱਖਣ ਦਾ ਤਰੀਕਾ ਦਿਖਾਏਗਾ।
+ਇਸ ਉਦਾਹਰਣ ਵਿੱਚ, ਅਸੀਂ ਬਹੁ-ਚੱਕਰ ਮਦਦ ਸੈਸ਼ਨ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਵਾਂਗੇ, ਕਈ ਇੰਟਰਐਕਸ਼ਨਾਂ ਵਿੱਚ ਹਾਲਤ ਕਾਇਮ ਕਰਨ ਦਿਖਾਉਂਦੇ ਹੋਏ।
 
-### ਪਾਇਥਨ ਲਾਗੂ ਕਰਨ ਦਾ ਤਰੀਕਾ
+### ਪਾਇਥਨ ਲਾਗੂ ਕਰਨਾ
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# ਪਾਇਥਨ ਉਦਾਹਰਨ: ਬਹੁ-ਮੁੜ ਸਹਾਇਤਾ ਲਈ ਮੂਲ ਸੰਦਰਭ
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # ਜੇ ਦਿੱਤਾ ਗਿਆ ਹੋਵੇ ਤਾਂ ਉਪਭੋਗਤਾ ਜਾਣਕਾਰੀ ਸ਼ਾਮਲ ਕਰੋ
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # ਮੂਲ ਸੰਦਰਭ ਬਣਾਓ
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # ਸੰਦਰਭ ID ਨਾਲ ਵਿਕਲਪ ਬਣਾਓ
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # ਜੇ ਦਿੱਖਾਇਆ ਗਿਆ ਹੋਵੇ ਤਾਂ ਸੰਦ ਸ਼ਾਮਲ ਕਰੋ
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # ਸੰਦਰਭ ਦੇ ਅੰਦਰ ਪ੍ਰਾਂਪਟ ਭੇਜੋ
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # ਗੱਲਬਾਤ ਦੀ ਤਰੱਕੀ ਨਾਲ ਸੰਦਰਭ ਮੈਟਾਡੇਟਾ ਅੱਪਡੇਟ ਕਰੋ
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # ਪਹਿਲਾਂ ਸਾਰਾਂਸ਼ ਪ੍ਰਾਂਪਟ ਬਣਾਓ
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # ਸਾਰਾਂਸ਼ ਮੈਟਾਡੇਟਾ ਵਿੱਚ ਸਟੋਰ ਕਰੋ
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # ਸੰਦਰਭ ਸੰਗ੍ਰਹਿਤ ਕਰੋ
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# ਉਦਾਹਰਨ ਵਰਤੋਂ
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. ਸੈਸ਼ਨ ਬਣਾਓ
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. ਪਹਿਲੀ ਮੁਲਾਕਾਤ
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # ਇਕੋ ਸੰਦਰਭ ਵਿੱਚ ਦੂਜੀ ਮੁਲਾਕਾਤ
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. ਇਤਿਹਾਸ ਪ੍ਰਾਪਤ ਕਰੋ
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. ਸੈਸ਼ਨ ਖਤਮ ਕਰੋ
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-ਉਪਰੋਕਤ ਕੋਡ ਵਿੱਚ ਅਸੀਂ:
+ਉਸ ਕੋਡ ਵਿੱਚ ਅਸੀਂ:
 
-1. ਫੰਕਸ਼ਨ `create_session` ਨਾਲ ਤਕਨੀਕੀ ਸਹਾਇਤਾ ਸੈਸ਼ਨ ਲਈ ਇੱਕ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਇਆ। ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਯੂਜ਼ਰ ਜਾਣਕਾਰੀ ਜਿਵੇਂ ਨਾਮ ਅਤੇ ਤਕਨੀਕੀ ਪੱਧਰ ਸ਼ਾਮਲ ਹਨ।
+1. ਫੰਕਸ਼ਨ `create_session` ਨਾਲ ਇੱਕ ਤਕਨੀਕੀ ਸਮਰਥਨ ਸੈਸ਼ਨ ਲਈ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਇਆ। ਇਸ ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਉਪਭੋਗਤਾ ਜਾਣਕਾਰੀ ਜਿਵੇਂ ਨਾਮ ਅਤੇ ਤਕਨੀਕੀ ਪੱਧਰ ਸ਼ਾਮਲ ਹਨ।
 
-2. ਫੰਕਸ਼ਨ `send_message` ਨਾਲ ਉਸ ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਕਈ ਸੁਨੇਹੇ ਭੇਜੇ, ਜੋ ਮਾਡਲ ਨੂੰ ਸਥਿਤੀ ਬਣਾਈ ਰੱਖਣ ਦੀ ਆਗਿਆ ਦਿੰਦੇ ਹਨ। ਭੇਜੇ ਗਏ ਸੁਨੇਹੇ ਆਟੋ-ਸਕੇਲਿੰਗ ਫੀਚਰ ਨਾਲ ਸੰਬੰਧਿਤ ਸਮੱਸਿਆਵਾਂ ਬਾਰੇ ਹਨ।
+1. ਫੰਕਸ਼ਨ `send_message` ਨਾਲ ਉਸ ਕਾਂਟੈਕਸਟ ਵਿੱਚ ਕਈ ਸਨੇਹੇ ਭੇਜੇ, ਮਾਡਲ ਨੂੰ ਹਾਲਤ ਕਾਇਮ ਰੱਖਣ ਦੀ ਆਗਿਆ ਦਿੰਦੇ ਹੋਏ। ਭੇਜੇ ਜਾ ਰਹੇ ਸਨੇਹੇ ਆਟੋ-ਸਕੇਲਿੰਗ ਫੀਚਰ ਨਾਲ ਸਬੰਧਤ ਮੁੱਦਿਆਂ ਬਾਰੇ ਹਨ।
 
-3. ਫੰਕਸ਼ਨ `get_conversation_history` ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਗੱਲਬਾਤ ਦਾ ਇਤਿਹਾਸ ਪ੍ਰਾਪਤ ਕੀਤਾ, ਜੋ ਕਾਂਟੈਕਸਟ ਜਾਣਕਾਰੀ ਅਤੇ ਸੁਨੇਹੇ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ।
+1. ਫੰਕਸ਼ਨ `get_conversation_history` ਨਾਲ ਗੱਲਬਾਤ ਇਤਿਹਾਸ ਪ੍ਰਾਪਤ ਕੀਤਾ, ਜੋ ਕਿ ਕਾਂਟੈਕਸਟ ਜਾਣਕਾਰੀ ਅਤੇ ਸਨੇਹੇ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ।
 
-4. ਫੰਕਸ਼ਨ `end_session` ਨਾਲ ਸੈਸ਼ਨ ਖਤਮ ਕੀਤਾ, ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕੀਤਾ ਅਤੇ ਗੱਲਬਾਤ ਦੇ ਮੁੱਖ ਬਿੰਦੂਆਂ ਦਾ ਸਾਰ ਤਿਆਰ ਕੀਤਾ।
+1. ਫੰਕਸ਼ਨ `end_session` ਨਾਲ ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕਰ ਕੇ ਅਤੇ ਇੱਕ ਸਰੰਸ਼ ਉਤਪੰਨ ਕਰਕੇ ਸੈਸ਼ਨ ਖਤਮ ਕੀਤਾ। ਸਰੰਸ਼ ਗੱਲਬਾਤ ਦੇ ਮੁੱਖ ਬਿੰਦੂਆਂ ਨੂੰ ਕੈਪਚਰ ਕਰਦਾ ਹੈ।
 
-## ਰੂਟ ਕਾਂਟੈਕਸਟ ਲਈ ਸਰਵੋਤਮ ਅਭਿਆਸ
+## ਰੂਟ ਕਾਂਟੈਕਸਟ ਲਈ ਬਿਹਤਰ ਅਭਿਆਸ
 
-ਰੂਟ ਕਾਂਟੈਕਸਟਾਂ ਨੂੰ ਪ੍ਰਭਾਵਸ਼ਾਲੀ ਤਰੀਕੇ ਨਾਲ ਪ੍ਰਬੰਧਿਤ ਕਰਨ ਲਈ ਕੁਝ ਸਰਵੋਤਮ ਅਭਿਆਸ ਇਹ ਹਨ:
+ਇੱਥੇ ਕੁਝ ਬਿਹਤਰ ਅਭਿਆਸ ਦਿੱਤੇ ਗਏ ਹਨ ਜੋ ਰੂਟ ਕਾਂਟੈਕਸਟ ਨੂੰ ਪ੍ਰਭਾਵਸ਼ਾਲੀ ਢੰਗ ਨਾਲ ਪ੍ਰਬੰਧਿਤ ਕਰਨ ਵਿੱਚ ਮਦਦ ਕਰਦੇ ਹਨ:
 
-- **ਕੇਂਦਰਿਤ ਕਾਂਟੈਕਸਟ ਬਣਾਓ**: ਵੱਖ-ਵੱਖ ਗੱਲਬਾਤ ਦੇ ਮਕਸਦਾਂ ਜਾਂ ਖੇਤਰਾਂ ਲਈ ਵੱਖ-ਵੱਖ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਓ ਤਾਂ ਜੋ ਸਪਸ਼ਟਤਾ ਬਣੀ ਰਹੇ।
+- **ਲਕੜੀ ਧ੍ਰੁਵਿਤ ਕਾਂਟੈਕਸਟ ਬਣਾਓ**: ਵੱਖ-ਵੱਖ ਗੱਲਬਾਤ ਦੇ ਮਕਸਦਾਂ ਜਾਂ ਖੇਤਰਾਂ ਲਈ ਵੱਖ-ਵੱਖ ਰੂਟ ਕਾਂਟੈਕਸਟ ਬਣਾਓ ਤਾਂ ਜੋ ਸਪਸ਼ਟਤਾ ਬਰਕਰਾਰ ਰਹੇ।
 
-- **ਮਿਆਦ ਨੀਤੀਆਂ ਸੈੱਟ ਕਰੋ**: ਪੁਰਾਣੇ ਕਾਂਟੈਕਸਟਾਂ ਨੂੰ ਆਰਕਾਈਵ ਜਾਂ ਮਿਟਾਉਣ ਲਈ ਨੀਤੀਆਂ ਲਾਗੂ ਕਰੋ ਤਾਂ ਜੋ ਸਟੋਰੇਜ ਪ੍ਰਬੰਧਿਤ ਰਹੇ ਅਤੇ ਡਾਟਾ ਰੱਖਣ ਨੀਤੀਆਂ ਦੀ ਪਾਲਣਾ ਹੋਵੇ।
+- **ਮਿਆਦ ਹੱਦ ਨੀਤੀਆਂ ਸੈੱਟ ਕਰੋ**: ਸਟੋਰੇਜ ਦਾ ਪ੍ਰਬੰਧ ਕਰਨ ਅਤੇ ਡਾਟਾ ਸੰਭਾਲ ਨੀਤੀਆਂ ਦੇ ਪਾਲਣ ਲਈ ਪੁਰਾਣੇ ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਜਾਂ ਮਿਟਾਉਣ ਲਈ ਨੀਤੀਆਂ ਲਗਾਓ।
 
-- **ਸੰਬੰਧਿਤ ਮੈਟਾਡੇਟਾ ਸਟੋਰ ਕਰੋ**: ਗੱਲਬਾਤ ਬਾਰੇ ਮਹੱਤਵਪੂਰਨ ਜਾਣਕਾਰੀ ਨੂੰ ਬਾਅਦ ਵਿੱਚ ਵਰਤਣ ਲਈ ਕਾਂਟੈਕਸਟ ਮੈਟਾਡੇਟਾ ਵਿੱਚ ਸਟੋਰ ਕਰੋ।
+- **ਸੰਬੰਧਤ ਮੇਟਾਡਾਟਾ ਸਟੋਰ ਕਰੋ**: ਗੱਲਬਾਤ ਬਾਰੇ ਮਹੱਤਵਪੂਰਣ ਜਾਣਕਾਰੀ ਸੰਭਾਲਣ ਲਈ ਕਾਂਟੈਕਸਟ ਮੇਟਾਡਾਟਾ ਦੀ ਵਰਤੋਂ ਕਰੋ ਜੋ ਬਾਅਦ ਵਿੱਚ ਲਾਭਦਾਇਕ ਹੋ ਸਕਦੀ ਹੈ।
 
-- **ਕਾਂਟੈਕਸਟ ID ਦੀ ਲਗਾਤਾਰ ਵਰਤੋਂ ਕਰੋ**: ਜਦੋਂ ਇੱਕ ਕਾਂਟੈਕਸਟ ਬਣ ਜਾਂਦਾ ਹੈ, ਤਾਂ ਉਸਦਾ ID ਸਾਰੇ ਸੰਬੰਧਿਤ ਬੇਨਤੀਆਂ ਲਈ ਲਗਾਤਾਰ ਵਰਤੋਂ, ਤਾਂ ਜੋ ਲਗਾਤਾਰਤਾ ਬਣੀ ਰਹੇ।
+- **ਕਾਂਟੈਕਸਟ ID ਨੂੰ ਲਗਾਤਾਰ ਵਰਤੋ**: ਇੱਕ ਵਾਰੀ ਕਾਂਟੈਕਸਟ ਬਨਾਇਆ ਜਾਣ ਤੋਂ ਬਾਅਦ, ਉਸਦਾ ID ਸਾਰੀਆਂ ਸੰਬੰਧਿਤ ਬੇਨਤੀਆਂ ਲਈ ਲਗਾਤਾਰ ਵਰਤ ਕੇ ਧਾਰ ਜਾਰੀ ਰੱਖੋ।
 
-- **ਸਾਰ ਤਿਆਰ ਕਰੋ**: ਜਦੋਂ ਕਾਂਟੈਕਸਟ ਵੱਡਾ ਹੋ ਜਾਵੇ, ਤਾਂ ਜਰੂਰੀ ਜਾਣਕਾਰੀ ਕੈਪਚਰ ਕਰਨ ਲਈ ਸਾਰ ਤਿਆਰ ਕਰਨ ਬਾਰੇ ਸੋਚੋ, ਇਸ ਨਾਲ ਕਾਂਟੈਕਸਟ ਦਾ ਆਕਾਰ ਸੰਭਾਲਿਆ ਜਾ ਸਕਦਾ ਹੈ।
+- **ਸਰੰਸ਼ ਤਿਆਰ ਕਰੋ**: ਜਦੋਂ ਕਾਂਟੈਕਸਟ ਵੱਡਾ ਹੋ ਜਾਵੇ, ਤਾਂ ਜ਼ਰੂਰੀ ਜਾਣਕਾਰੀ ਕੈਪਚਰ ਕਰਨ ਲਈ ਸਰੰਸ਼ ਬਣਾਉਣ ਬਾਰੇ ਸੋਚੋ ਜਿਸ ਨਾਲ ਕਾਂਟੈਕਸਟ ਦਾ ਆਕਾਰ ਪ੍ਰਬੰਧਿਤ ਕੀਤਾ ਜਾ ਸਕੇ।
 
-- **ਪਹੁੰਚ ਨਿਯੰਤਰਣ ਲਾਗੂ ਕਰੋ**: ਬਹੁ-ਯੂਜ਼ਰ ਪ੍ਰਣਾਲੀਆਂ ਲਈ, ਗੱਲਬਾਤ ਕਾਂਟੈਕਸਟਾਂ ਦੀ ਪ੍ਰਾਈਵੇਸੀ ਅਤੇ ਸੁਰੱਖਿਆ ਯਕੀਨੀ ਬਣਾਉਣ ਲਈ ਢੰਗ ਨਾਲ ਪਹੁੰਚ ਨਿਯੰਤਰਣ ਲਾਗੂ ਕਰੋ।
+- **ਐਕਸੈੱਸ ਕੰਟਰੋਲ ਲਾਗੂ ਕਰੋ**: ਬਹੁ-ਉਪਭੋਗਤਾ ਪ੍ਰਣਾਲੀਆਂ ਲਈ ਗੱਲਬਾਤ ਕਾਂਟੈਕਸਟ ਦੀ ਪ੍ਰਾਈਵੇਸੀ ਅਤੇ ਸੁਰੱਖਿਆ ਯਕੀਨੀ ਬਣਾਉਣ ਲਈ ਢੰਗ ਨਾਲ ਐਕਸੈੱਸ ਕੰਟਰੋਲ ਲਾਗੂ ਕਰੋ।
 
-- **ਕਾਂਟੈਕਸਟ ਸੀਮਾਵਾਂ ਦਾ ਧਿਆਨ ਰੱਖੋ**: ਕਾਂਟੈਕਸਟ ਦੇ ਆਕਾਰ ਦੀਆਂ ਸੀਮਾਵਾਂ ਨੂੰ ਜਾਣੋ ਅਤੇ ਬਹੁਤ ਲੰਬੀਆਂ ਗੱਲਬਾਤਾਂ ਨੂੰ ਸੰਭਾਲਣ ਲਈ ਰਣਨੀਤੀਆਂ ਲਾਗੂ ਕਰੋ।
+- **ਕਾਂਟੈਕਸਟ ਸੀਮਾਵਾਂ ਨੂੰ ਸਮਝੋ**: ਕਾਂਟੈਕਸਟ ਦੇ ਆਕਾਰ ਦੀਆਂ ਸੀਮਾਵਾਂ ਬਾਰੇ ਜਾਣੂ ਰਹੋ ਅਤੇ ਬਹੁਤ ਲੰਬੀਆਂ ਗੱਲਬਾਤਾਂ ਲਈ ਹੱਲ ਲੱਭਣ ਲਈ ਯੋਜਨਾਵਾਂ ਬਣਾਓ।
 
-- **ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਆਰਕਾਈਵ ਕਰੋ**: ਗੱਲਬਾਤ ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕਰੋ ਤਾਂ ਜੋ ਸਰੋਤ ਮੁਕਤ ਹੋਣ ਅਤੇ ਗੱਲਬਾਤ ਦਾ ਇਤਿਹਾਸ ਸੁਰੱਖਿਅਤ ਰਹੇ।
+- **ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਆਰਕਾਈਵ ਕਰੋ**: ਗੱਲਬਾਤ ਮੁਕੰਮਲ ਹੋਣ 'ਤੇ ਕਾਂਟੈਕਸਟ ਨੂੰ ਆਰਕਾਈਵ ਕਰੋ ਤਾਂ ਜੋ ਸਰੋਤ ਮੁਕਤ ਕਰਕੇ ਗੱਲਬਾਤ ਇਤਿਹਾਸ ਬچਾਇਆ ਜਾ ਸਕੇ।
 
 ## ਅਗਲਾ ਕੀ ਹੈ
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 ਰਾਊਟਿੰਗ](../mcp-routing/README.md)
 
-**ਅਸਵੀਕਾਰੋਪੱਤਰ**:  
-ਇਹ ਦਸਤਾਵੇਜ਼ AI ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਅਨੁਵਾਦਿਤ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾ ਲਈ ਕੋਸ਼ਿਸ਼ ਕਰਦੇ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮਰਥਤਾਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਪ੍ਰਮਾਣਿਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਮਹੱਤਵਪੂਰਨ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੀ ਵਰਤੋਂ ਤੋਂ ਉਤਪੰਨ ਕਿਸੇ ਵੀ ਗਲਤਫਹਿਮੀ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆ ਲਈ ਜ਼ਿੰਮੇਵਾਰ ਨਹੀਂ ਹਾਂ।
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ਅਸਵੀਕਾਰੋਪਣ**:
+ਇਸ ਦਸਤਾਵੇਜ਼ ਦਾ ਅਨੁਵਾਦ ਏਆਈ ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾਵਾਂ ਲਈ ਯਤਨਸ਼ੀਲ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮੱਤਿਆਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਅਧਿਕਾਰਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਜਰੂਰੀ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫ਼ਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੇ ਉਪਯੋਗ ਤੋਂ ਪੈਦਾ ਹੋਣ ਵਾਲੀਆਂ ਕਿਸੇ ਵੀ ਗਲਤਫਹਿਮੀਆਂ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆਵਾਂ ਲਈ ਜਵਾਬਦੇਹ ਨਹੀਂ ਹਾਂ।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

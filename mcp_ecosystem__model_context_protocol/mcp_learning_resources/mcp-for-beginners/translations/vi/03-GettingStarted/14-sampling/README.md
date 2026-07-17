@@ -1,26 +1,28 @@
-# Sampling - ủy quyền tính năng cho Client
+> [ĐÃ NGỪNG HỖ TRỢ: ỨNG CỬ PHÁT HÀNH 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
 
-> **Thông báo ngừng hỗ trợ:** bản phát hành ứng viên đặc tả MCP `2026-07-28` đánh dấu Sampling là tính năng ngừng hỗ trợ để ưu tiên tích hợp trực tiếp với API nhà cung cấp LLM. Sampling vẫn hoạt động trong `2025-11-25` và ít nhất một năm sau bất kỳ ngừng hỗ trợ chính thức nào, do đó mọi nội dung trong bài học này vẫn còn hợp lệ — nhưng các thiết kế máy chủ mới nên xem xét mẫu thay thế. Xem [Có gì thay đổi trong MCP: Ứng viên phát hành 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+# Lấy mẫu - ủy quyền tính năng cho Client
 
-Đôi khi, bạn cần MCP Client và MCP Server phối hợp cùng nhau để đạt được mục tiêu chung. Có thể bạn gặp trường hợp Server cần đến sự trợ giúp của LLM nằm trên client. Trong trường hợp này, sampling là lựa chọn bạn nên dùng.
+> **Thông báo ngừng hỗ trợ:** ứng cử phát hành đặc tả MCP `2026-07-28` đánh dấu Lấy mẫu là tính năng đã ngừng hỗ trợ ủng hộ cho tích hợp trực tiếp với API nhà cung cấp LLM. Lấy mẫu vẫn hoạt động trong phiên bản `2025-11-25` và ít nhất một năm sau khi chính thức ngừng hỗ trợ, vì vậy tất cả nội dung bài học này vẫn còn hiệu lực — nhưng các thiết kế server mới nên đánh giá mẫu thay thế. Xem [Những Thay Đổi trong MCP: Ứng Cử Phát Hành 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Hãy khám phá một số trường hợp sử dụng và cách xây dựng giải pháp liên quan đến sampling.
+Đôi khi, bạn cần Client MCP và Server MCP hợp tác đạt một mục tiêu chung. Có thể xảy ra trường hợp Server cần giúp đỡ từ LLM nằm trên client. Trong trường hợp này, lấy mẫu là cái bạn nên dùng.
+
+Hãy cùng khám phá một số trường hợp sử dụng và cách xây dựng giải pháp có liên quan đến lấy mẫu.
 
 ## Tổng quan
 
-Trong bài học này, chúng ta tập trung giải thích khi nào và ở đâu nên sử dụng Sampling và cách cấu hình nó.
+Trong bài học này, chúng ta tập trung giải thích khi nào và ở đâu nên dùng Lấy mẫu và cách cấu hình nó.
 
 ## Mục tiêu học tập
 
-Trong chương này, chúng ta sẽ:
+Trong chương này, bạn sẽ:
 
-- Giải thích Sampling là gì và khi nào nên dùng.
-- Hướng dẫn cách cấu hình Sampling trong MCP.
-- Cung cấp ví dụ về Sampling trong thực tế.
+- Giải thích Lấy mẫu là gì và khi nào dùng nó.
+- Chỉ cách cấu hình Lấy mẫu trong MCP.
+- Cung cấp ví dụ thực tế về Lấy mẫu.
 
-## Sampling là gì và tại sao dùng nó?
+## Lấy mẫu là gì và tại sao dùng nó?
 
-Sampling là một tính năng nâng cao hoạt động theo cách sau:
+Lấy mẫu là một tính năng nâng cao hoạt động theo cách sau:
 
 ```mermaid
 sequenceDiagram
@@ -29,19 +31,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Viết bài đăng blog
-    MCP Client->>MCP Server: Gọi công cụ (bản nháp bài đăng)
+    User->>MCP Client: Bài đăng blog của tác giả
+    MCP Client->>MCP Server: Gọi công cụ (bản nháp bài đăng blog)
     MCP Server->>MCP Client: Yêu cầu lấy mẫu (tạo tóm tắt)
     MCP Client->>LLM: Tạo tóm tắt bài đăng blog
     LLM->>MCP Client: Kết quả tóm tắt
     MCP Client->>MCP Server: Phản hồi lấy mẫu (tóm tắt)
     MCP Server->>MCP Client: Hoàn thành bài đăng blog (bản nháp + tóm tắt)
-    MCP Client->>User: Bài đăng blog đã sẵn sàng
+    MCP Client->>User: Bài đăng blog sẵn sàng
 ```
 
-### Yêu cầu sampling
+### Yêu cầu lấy mẫu
 
-Ok, giờ chúng ta đã có cái nhìn tổng quan về một kịch bản hợp lý, hãy nói về yêu cầu sampling mà server gửi lại cho client. Đây là cách một yêu cầu như vậy có thể trông trong định dạng JSON-RPC:
+Ok, giờ chúng ta đã có cái nhìn bao quát về một kịch bản khả thi, hãy nói về yêu cầu lấy mẫu mà server gửi lại cho client. Đây là ví dụ yêu cầu dạng JSON-RPC:
 
 ```json
 {
@@ -75,15 +77,15 @@ Ok, giờ chúng ta đã có cái nhìn tổng quan về một kịch bản hợ
 
 Có vài điểm đáng chú ý:
 
-- Prompt, dưới content -> text, là đoạn prompt của chúng ta, là hướng dẫn để LLM tóm tắt nội dung bài blog.
+- Prompt, dưới content -> text, là lời nhắc – tức là chỉ dẫn cho LLM tóm tắt nội dung bài blog.
 
-- **modelPreferences**. Phần này đơn giản là tùy chọn, một đề xuất cấu hình nên dùng với LLM. Người dùng có thể chọn theo đề xuất hoặc thay đổi. Ở đây có đề xuất về model sử dụng, độ ưu tiên tốc độ và trí tuệ.
-- **systemPrompt**, đây là prompt hệ thống bình thường của bạn, cung cấp cá tính cho LLM và chứa hướng dẫn.
-- **maxTokens**, thuộc tính khác dùng để chỉ số token được đề xuất cho nhiệm vụ này.
+- **modelPreferences**. Phần này chỉ là sở thích, đề xuất về cấu hình dùng với LLM. Người dùng có thể chọn theo đề xuất hoặc đổi lại. Trong trường hợp này có đề xuất model dùng, ưu tiên tốc độ và độ thông minh.
+- **systemPrompt**, đây là prompt hệ thống bình thường của bạn, cung cấp cho LLM tính cách và hướng dẫn.
+- **maxTokens**, đây là thuộc tính nói số token được đề xuất dùng cho tác vụ này.
 
-### Phản hồi sampling
+### Phản hồi lấy mẫu
 
-Phản hồi này là kết quả MCP Client gửi lại MCP Server sau khi client gọi LLM, chờ phản hồi và xây dựng thông điệp này. Đây là cách nó có thể trông trong JSON-RPC:
+Phản hồi này là cái Client MCP gửi lại Server MCP, kết quả của việc client gọi LLM, chờ phản hồi rồi dựng thông điệp này. Đây là ví dụ JSON-RPC:
 
 ```json
 {
@@ -101,13 +103,13 @@ Phản hồi này là kết quả MCP Client gửi lại MCP Server sau khi clie
 }
 ```
 
-Lưu ý phản hồi là một bản trừu tượng của bài blog như chúng ta đã yêu cầu. Cũng lưu ý model dùng không phải cái đã yêu cầu mà là "gpt-5" thay vì "claude-3-sonnet". Điều này minh họa người dùng có thể thay đổi ý định về model dùng và yêu cầu sampling chỉ là đề xuất.
+Lưu ý phản hồi là bản tóm tắt bài blog đúng như yêu cầu. Cũng chú ý model được dùng không phải cái ta yêu cầu mà là "gpt-5" thay vì "claude-3-sonnet". Điều này để minh họa người dùng có thể đổi ý chọn model sử dụng và yêu cầu lấy mẫu của bạn chỉ là đề xuất.
 
-Ok, giờ ta hiểu luồng chính rồi, và nhiệm vụ hữu ích để dùng nó là "tạo + tóm tắt bài blog", ta xem cần làm gì để hoạt động.
+Ok, giờ chúng ta đã hiểu dòng chảy chính, và tác vụ hữu ích dùng nó “tạo bài blog + tóm tắt”, hãy xem cần làm gì để nó hoạt động.
 
-### Các loại thông điệp
+### Các loại tin nhắn
 
-Thông điệp Sampling không chỉ giới hạn ở văn bản mà còn có thể gửi ảnh và audio. Đây là cách JSON-RPC khác biệt:
+Tin nhắn lấy mẫu không giới hạn chỉ văn bản mà bạn còn có thể gửi hình ảnh và âm thanh. Dưới đây là cách JSON-RPC khác nhau:
 
 **Văn bản**
 
@@ -118,7 +120,7 @@ Thông điệp Sampling không chỉ giới hạn ở văn bản mà còn có th
 }
 ```
 
-**Nội dung ảnh**
+**Nội dung hình ảnh**
 
 ```json
 {
@@ -138,13 +140,13 @@ Thông điệp Sampling không chỉ giới hạn ở văn bản mà còn có th
 }
 ```
 
-> NOTE: để biết thông tin chi tiết hơn về Sampling, xem [tài liệu chính thức](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> LƯU Ý: để biết thêm chi tiết về Lấy mẫu, xem tài liệu chính thức tại [đây](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Cách cấu hình Sampling trên Client
+## Cách cấu hình Lấy mẫu trên Client
 
-> Lưu ý: nếu bạn chỉ xây dựng server, không cần làm nhiều bước này.
+> Lưu ý: nếu bạn chỉ xây dựng server, bạn không cần làm nhiều bước ở đây.
 
-Trên client, bạn cần chỉ định tính năng sau như sau:
+Trên client, bạn cần khai báo tính năng này như sau:
 
 ```json
 {
@@ -154,18 +156,18 @@ Trên client, bạn cần chỉ định tính năng sau như sau:
 }
 ```
 
-Điều này sẽ được lấy khi client bạn chọn khởi tạo cùng server.
+Sau đó tính năng này sẽ được kích hoạt khi client của bạn khởi tạo kết nối server.
 
-## Ví dụ về Sampling trong thực tế - Tạo bài Blog
+## Ví dụ Lấy mẫu thực tế - Tạo bài blog
 
-Hãy cùng viết code server sampling, ta cần làm các bước sau:
+Hãy cùng viết code server lấy mẫu, chúng ta cần làm:
 
 1. Tạo một công cụ trên Server.
-1. Công cụ đó tạo yêu cầu sampling.
-1. Công cụ chờ phản hồi sampling từ client.
-1. Sau đó, công cụ tạo kết quả.
+1. Công cụ đó tạo yêu cầu lấy mẫu
+1. Công cụ đợi yêu cầu lấy mẫu của client được trả lời.
+1. Rồi công cụ trả kết quả.
 
-Xem mã từng bước:
+Hãy xem code từng bước:
 
 ### -1- Tạo công cụ
 
@@ -178,9 +180,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Tạo yêu cầu sampling
+### -2- Tạo yêu cầu lấy mẫu
 
-Mở rộng công cụ với mã sau:
+Mở rộng công cụ bằng code sau:
 
 **python**
 
@@ -206,7 +208,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Chờ phản hồi và trả về kết quả
+### -3- Đợi phản hồi và trả về
 
 **python**
 
@@ -222,7 +224,7 @@ return json.dumps({
 })
 ```
 
-### -4- Mã đầy đủ
+### -4- Code đầy đủ
 
 **python**
 
@@ -284,7 +286,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # trả về bài đăng blog hoàn chỉnh
+    # trả về bài đăng blog đầy đủ
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -292,18 +294,18 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 if __name__ == "__main__":
     print("Starting server...")
-    # mcp.run()
+    # mcp.chạy()
     mcp.run(transport="streamable-http")
 
 # chạy ứng dụng với: python server.py
 ```
 
-### -5- Kiểm thử trong Visual Studio Code
+### -5- Thử nghiệm trong Visual Studio Code
 
-Để kiểm thử trong Visual Studio Code, làm theo:
+Để thử trong Visual Studio Code, làm như sau:
 
 1. Khởi động server trong terminal
-1. Thêm nó vào *mcp.json* (và đảm bảo nó đã chạy) ví dụ như sau:
+1. Thêm vào *mcp.json* (và đảm bảo server đã chạy) ví dụ như:
 
    ```json
    "servers": {
@@ -320,31 +322,31 @@ if __name__ == "__main__":
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Cho phép sampling diễn ra. Lần đầu thử bạn sẽ thấy một hộp thoại bổ sung cần chấp nhận, sau đó sẽ thấy hộp thoại bình thường yêu cầu bạn chạy công cụ
+1. Cho phép lấy mẫu diễn ra. Lần đầu test bạn sẽ thấy hộp thoại phụ thêm phải đồng ý, rồi mới thấy hộp thoại bình thường hỏi cho phép chạy tool.
 
-1. Kiểm tra kết quả. Bạn sẽ thấy kết quả được hiển thị đẹp trong GitHub Copilot Chat, cũng có thể xem phản hồi JSON thô.
+1. Kiểm tra kết quả. Bạn sẽ thấy kết quả dựng đẹp trong GitHub Copilot Chat và cũng có thể xem phản hồi JSON thô.
 
-**Thêm**. Công cụ Visual Studio Code hỗ trợ sampling rất tốt. Bạn có thể cấu hình truy cập Sampling cho server đã cài bằng cách:
+**Thưởng**. Công cụ Visual Studio Code hỗ trợ lấy mẫu rất tốt. Bạn có thể cấu hình truy cập Lấy mẫu trên server đã cài bằng cách mở tới nó như sau:
 
 1. Vào phần extension.
-1. Chọn biểu tượng bánh răng cho server bạn đã cài trong mục "MCP SERVERS - INSTALLED".
-1. Chọn "Configure Model Access", tại đây bạn có thể chọn Model nào GitHub Copilot được phép dùng khi sampling. Cũng có thể xem toàn bộ yêu cầu sampling gần đây bằng cách chọn "Show Sampling requests".
+1. Chọn biểu tượng bánh răng cho server đã cài tại phần "MCP SERVERS - INSTALLED".
+1 Chọn "Configure Model Access", ở đây bạn có thể chọn Model nào GitHub Copilot được phép dùng khi lấy mẫu. Bạn cũng có thể xem tất cả yêu cầu lấy mẫu gần đây bằng cách chọn "Show Sampling requests".
 
 ## Bài tập
 
-Trong bài tập này, bạn sẽ xây dựng Sampling hơi khác, cụ thể là một tích hợp sampling hỗ trợ tạo mô tả sản phẩm. Đây là kịch bản:
+Trong bài tập này, bạn sẽ tạo một lấy mẫu hơi khác, một tích hợp lấy mẫu hỗ trợ tạo mô tả sản phẩm. Đây là kịch bản của bạn:
 
-**Kịch bản**: Nhân viên văn phòng hậu cần cho một trang thương mại điện tử cần giúp, tốn quá nhiều thời gian tạo mô tả sản phẩm. Do đó bạn xây dựng giải pháp gọi một công cụ "create_product" với các tham số "title" và "keywords" và nó sẽ tạo ra một sản phẩm hoàn chỉnh bao gồm trường "description" được điền bởi LLM của client.
+**Kịch bản**: Nhân viên hậu cần tại thương mại điện tử cần trợ giúp, vì mất quá nhiều thời gian tạo mô tả sản phẩm. Vì vậy bạn sẽ xây một giải pháp có công cụ "create_product" với tham số "title" và "keywords" và nó sẽ tạo sản phẩm hoàn chỉnh bao gồm trường "description" do LLM của client tạo ra.
 
-TIP: dùng kiến thức đã học để xây dựng server và công cụ này qua yêu cầu sampling.
+MẸO: dùng những gì bạn học ở trên để xây server và công cụ bằng yêu cầu lấy mẫu.
 
 ## Giải pháp
 
 [Giải pháp](./solution/README.md)
 
-## Những điểm chính rút ra
+## Những điểm chính cần nhớ
 
-Sampling là tính năng mạnh mẽ cho phép server ủy nhiệm nhiệm vụ cho client khi cần đến sự trợ giúp của LLM.
+Lấy mẫu là tính năng mạnh cho phép server ủy quyền tác vụ cho client khi cần giúp từ LLM.
 
 ## Tiếp theo
 

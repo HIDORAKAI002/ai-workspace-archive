@@ -1,51 +1,55 @@
+> [מיושן: מועמד לגרסת שחרור 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # הקשרים שורשיים ב-MCP
 
-הקשרים שורשיים הם מושג יסודי בפרוטוקול הקשר של המודל, המספק שכבה מתמשכת לשמירת היסטוריית השיחה ומצב משותף לאורך מספר בקשות ומפגשים.
+> **הודעת אי-תוקף:** מועמד להפקת מפרט MCP מ-`2026-07-28` מסמן את השורשים כמיושנים לטובת פרמטרים של כלי, URI של משאבים או תצורת שרת. השורשים ממשיכים לפעול ב-`2025-11-25` ולפחות שנה לאחר כל אי-תוקף פורמלי, כך שכל מה בשיעור זה נשאר תקף - אבל עיצובי שרת חדשים צריכים להעריך את תבנית ההחלפה. ראה [מה משתנה ב-MCP: מועמד להפקת 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+הקשרים שורשיים הם מושג בסיסי בפרוטוקול הקשרי המודל שמספק שכבה מתמשכת לשמירת היסטוריית שיחה ומצב משותף על פני מספר בקשות ומפגשים.
 
 ## מבוא
 
-בשיעור זה נלמד כיצד ליצור, לנהל ולהשתמש בהקשרים שורשיים ב-MCP.
+בשיעור זה, נחקור כיצד ליצור, לנהל ולהשתמש בהקשרים שורשיים ב-MCP.
 
 ## מטרות הלמידה
 
-בסיום השיעור תוכל/י:
+בסוף שיעור זה, תוכל:
 
-- להבין את המטרה והמבנה של הקשרים שורשיים  
-- ליצור ולנהל הקשרים שורשיים באמצעות ספריות הלקוח של MCP  
-- ליישם הקשרים שורשיים באפליקציות .NET, Java, JavaScript ו-Python  
-- להשתמש בהקשרים שורשיים לשיחות מרובות סבבים ולניהול מצב  
-- ליישם שיטות עבודה מומלצות לניהול הקשרים שורשיים  
+- להבין את המטרה והמבנה של הקשרים שורשיים
+- ליצור ולנהל הקשרים שורשיים באמצעות ספריות לקוח של MCP
+- ליישם הקשרים שורשיים ביישומי .NET, Java, JavaScript ו-Python
+- לנצל הקשרים שורשיים לשיחות מרובות סבבים ולניהול מצב
+- ליישם נהלי עבודה מומלצים לניהול הקשרים שורשיים
 
 ## הבנת הקשרים שורשיים
 
-הקשרים שורשיים משמשים כמכלים שמכילים את ההיסטוריה והמצב עבור סדרת אינטראקציות קשורות. הם מאפשרים:
+הקשרים שורשיים משמשים כמכלים שמכילים את ההיסטוריה והמצב של סדרת אינטראקציות קשורות. הם מאפשרים:
 
-- **התמדה בשיחה**: שמירה על שיחות מרובות סבבים בצורה קוהרנטית  
-- **ניהול זיכרון**: אחסון ושליפת מידע לאורך האינטראקציות  
-- **ניהול מצב**: מעקב אחר התקדמות בתהליכים מורכבים  
-- **שיתוף הקשר**: מתן גישה למספר לקוחות לאותו מצב שיחה  
+- **התמדה בשיחה**: שמירה על שיחות מרובות סבבים קוהרנטיות
+- **ניהול זיכרון**: אחסון ושליפת מידע לאורך אינטראקציות
+- **ניהול מצב**: מעקב אחרי התקדמות בתזרימי עבודה מורכבים
+- **שיתוף הקשר**: מתן גישה למספר לקוחות למצב השיחה האחיד
 
-ב-MCP, להקשרים שורשיים יש את התכונות המרכזיות הבאות:
+ב-MCP, להקשרים שורשיים יש את המאפיינים המרכזיים הבאים:
 
-- לכל הקשר שורשי יש מזהה ייחודי.  
-- הם יכולים להכיל היסטוריית שיחה, העדפות משתמש ומטא-דאטה נוספת.  
-- ניתן ליצור, לגשת ולארכב אותם לפי הצורך.  
-- הם תומכים בשליטה מדויקת על גישה והרשאות.  
+- לכל הקשר שורשי יש מזהה ייחודי.
+- הם יכולים להכיל היסטוריית שיחה, העדפות משתמש ומטה-נתונים נוספים.
+- ניתן ליצור, לגשת ולארכיב אותם לפי הצורך.
+- הם תומכים בשליטה גישה ובתית מורכבת והרשאות.
 
-## מחזור החיים של הקשר השורשי
+## מחזור חיים של הקשר שורשי
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[צור הקשר שורש] --> B[אתחל עם מטה-נתונים]
+    B --> C[שלח בקשות עם מזהה ההקשר]
+    C --> D[עדכן את ההקשר עם התוצאות]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[ארכב את ההקשר כשהוא הושלם]
 ```
 
 ## עבודה עם הקשרים שורשיים
 
-להלן דוגמה כיצד ליצור ולנהל הקשרים שורשיים.
+הנה דוגמה כיצד ליצור ולנהל הקשרים שורשיים.
 
 ### יישום ב-C#
 
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד שניתן לעיל:
 
-1. יצירת קשר שורשי למפגש תמיכת לקוחות.  
-1. שליחת מספר הודעות בתוך אותו הקשר, המאפשרת למודל לשמור על המצב.  
-1. עדכון הקשר עם מטא-דאטה רלוונטית בהתאם לשיחה.  
-1. שליפת מידע מהקשר להבנת היסטוריית השיחה.  
-1. ארכוב הקשר כאשר השיחה הושלמה.  
+1. יצרנו קשר שורשי למפגש תמיכת לקוחות.
+1. שלחנו מספר הודעות בתוך אותו הקשר, ואפשרנו למודל לשמור על המצב.
+1. עדכנו את ההקשר עם מטה-נתונים רלוונטיים בהתבסס על השיחה.
+1. שלפנו מידע מההקשר כדי להבין את היסטוריית השיחה.
+1. ארכיבנו את ההקשר כאשר השיחה הושלמה.
 
-## דוגמה: יישום קשר שורשי לניתוח פיננסי
+## דוגמה: יישום הקשר שורשי לניתוח פיננסי
 
-בדוגמה זו ניצור קשר שורשי למפגש ניתוח פיננסי, המדגים כיצד לשמור על מצב לאורך מספר אינטראקציות.
+בדוגמה זו, ניצור קשר שורשי למפגש ניתוח פיננסי, נדגים כיצד לשמור על מצב כשמתבצעות אינטראקציות מרובות.
 
 ### יישום ב-Java
 
 ```java
-// Java Example: Root Context Implementation
+// דוגמה ב-Java: יישום הקשר שורש
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // צור מטא-נתוני הקשר
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. צור הקשר שורש חדש
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. אינטראקציה ראשונה
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. עדכן את ההקשר עם מידע חשוב שהתקבל מהתגובה
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // אינטראקציה שנייה - שימוש באותו הקשר
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. הפק סיכום של מושב הניתוח
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // אחסן את הסיכום במטא-נתוני ההקשר
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // קבל מידע מעודכן של ההקשר
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. ארכב את ההקשר כשהעבודה הושלמה
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד שניתן לעיל:
 
-1. יצירת קשר שורשי למפגש ניתוח פיננסי.  
-2. שליחת מספר הודעות בתוך אותו הקשר, המאפשרת למודל לשמור על המצב.  
-3. עדכון הקשר עם מטא-דאטה רלוונטית בהתאם לשיחה.  
-4. יצירת סיכום של מפגש הניתוח ואחסונו במטא-דאטה של הקשר.  
-5. ארכוב הקשר כאשר השיחה הושלמה.  
+1. יצרנו קשר שורשי למפגש ניתוח פיננסי.
+2. שלחנו מספר הודעות בתוך אותו הקשר, ואפשרנו למודל לשמור על המצב.
+3. עדכנו את ההקשר עם מטה-נתונים רלוונטיים בהתבסס על השיחה.
+4. הפקנו סיכום של הפגישה ושמרנו אותו במטה-נתוני ההקשר.
+5. ארכיבנו את ההקשר כאשר השיחה הושלמה.
 
-## דוגמה: ניהול קשר שורשי
+## דוגמה: ניהול הקשר שורשי
 
-ניהול יעיל של הקשרים שורשיים הוא קריטי לשמירת היסטוריית השיחה והמצב. להלן דוגמה ליישום ניהול קשר שורשי.
+ניהול יעיל של הקשרים שורשיים הוא חיוני לשמירת היסטוריית שיחה ומצב. להלן דוגמה כיצד ליישם ניהול הקשר שורשי.
 
 ### יישום ב-JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// דוגמת JavaScript: ניהול הקשרים שורשיים של MCP
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // אתחל את הלקוח של MCP
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // אתחל את מנהל ההקשר
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // שלח את ההודעה תוך שימוש בהקשר שצוין
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // ניתן לאחסן תובנות חשובות מהשיחה
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // חילוץ תובנות פוטנציאליות (באפליקציה אמיתית יהיה יותר מתוחכם)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // מבחן פשוט לזיהוי תובנות פוטנציאליות
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // אחסן תובנות במטא-דאטה של ההקשר
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // שגיאה לא קריטית, אז רק תרשום אזהרה
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // בקש מהמודל ליצור סיכום של השיחה עד כה
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // אחסן את הסיכום במטא-דאטה של ההקשר
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // צור סיכום סופי לפני הארכיון
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // ארכב את ההקשר
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// דוגמת שימוש
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. צור הקשר חדש לשיחת תמיכת מוצרים
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. ההודעה הראשונה בשיחה
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // הודעת המשך באותו הקשר
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. קבל מידע על ההקשר
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. צור והצג סיכום השיחה
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. ארכב את ההקשר בסיום
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. טיפל בשגיאות בחן
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד שניתן לעיל:
 
-1. יצירת קשר שורשי לשיחת תמיכה במוצר באמצעות הפונקציה `createConversationContext`. במקרה זה, הקשר עוסק בבעיות ביצועי מסד נתונים.  
+1. יצרנו קשר שורשי לשיחת תמיכה במוצר עם הפונקציה `createConversationContext`. במקרה זה, ההקשר עוסק בבעיות ביצוע של מסד הנתונים.
 
-1. שליחת מספר הודעות בתוך אותו הקשר, המאפשרת למודל לשמור על המצב באמצעות הפונקציה `sendMessage`. ההודעות עוסקות בביצוע שאילתות איטיות וקונפיגורציית אינדקסים.  
+1. שלחנו מספר הודעות בתוך ההקשר, ואפשרנו למודל לשמור על המצב באמצעות הפונקציה `sendMessage`. ההודעות שנשלחות עוסקות בביצועים איטיים של שאילתות ובקביעת אינדקס.
 
-1. עדכון הקשר עם מטא-דאטה רלוונטית בהתאם לשיחה.  
+1. עדכנו את ההקשר עם מטה-נתונים מתאימים בהתבסס על השיחה.
 
-1. יצירת סיכום של השיחה ואחסונו במטא-דאטה של הקשר באמצעות הפונקציה `generateContextSummary`.  
+1. הפקנו סיכום של השיחה ושמרנו אותו במטה-נתוני ההקשר עם הפונקציה `generateContextSummary`.
 
-1. ארכוב הקשר כאשר השיחה הושלמה באמצעות הפונקציה `archiveContext`.  
+1. ארכיבנו את ההקשר כאשר השיחה הושלמה עם הפונקציה `archiveContext`.
 
-1. טיפול בשגיאות בצורה חלקה להבטחת יציבות.  
+1. טיפלנו בשגיאות בשיקול דעת להבטחת עמידות.
 
-## קשר שורשי לסיוע מרובה סבבים
+## הקשר שורשי לסיוע מרובה סבבים
 
-בדוגמה זו ניצור קשר שורשי למפגש סיוע מרובה סבבים, המדגים כיצד לשמור על מצב לאורך מספר אינטראקציות.
+בדוגמה זו, ניצור קשר שורשי למפגש סיוע מרובה סבבים, נדגים כיצד לשמור על מצב לאורך אינטראקציות מרובות.
 
 ### יישום ב-Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# דוגמה בפייתון: הקשר שורש לעזרה רב-פנית
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # הוסף מידע על המשתמש אם סופק
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # צור את הקשר השורש
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # צור אפשרויות עם מזהה ההקשר
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # הוסף כלים אם צוינו
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # שלח את ההנחייה בתוך ההקשר
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # עדכן את המטה-נתונים של ההקשר עם התקדמות השיחה
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # הפק הנחיית סיכום ראשונה
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # שמור את הסיכום במטה-נתונים
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # ארכב את ההקשר
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# דוגמה לשימוש
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. צור סשן
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. אינטראקציה ראשונה
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # אינטראקציה שנייה באותו הקשר
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. קבל היסטוריה
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. סגור את הסשן
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד שניתן לעיל:
 
-1. יצירת קשר שורשי למפגש תמיכה טכנית באמצעות הפונקציה `create_session`. הקשר כולל מידע על המשתמש כגון שם ורמת ידע טכנית.  
+1. יצרנו קשר שורשי למפגש תמיכה טכנית עם הפונקציה `create_session`. ההקשר כולל מידע על המשתמש כמו שם ורמת טכניות.
 
-1. שליחת מספר הודעות בתוך אותו הקשר, המאפשרת למודל לשמור על המצב באמצעות הפונקציה `send_message`. ההודעות עוסקות בבעיות בתכונת האוטו-סקיילינג.  
+1. שלחנו מספר הודעות בתוך ההקשר, ואפשרנו למודל לשמור על המצב באמצעות הפונקציה `send_message`. ההודעות עוסקות בבעיות בתכונת האוטו-סקיילינג.
 
-1. שליפת היסטוריית השיחה באמצעות הפונקציה `get_conversation_history`, המספקת מידע על הקשר והודעות.  
+1. שלפנו היסטוריית שיחה עם הפונקציה `get_conversation_history`, המספקת מידע והודעות על ההקשר.
 
-1. סיום המפגש על ידי ארכוב הקשר ויצירת סיכום באמצעות הפונקציה `end_session`. הסיכום מתעד נקודות מפתח מהשיחה.  
+1. סיימנו את המפגש על ידי ארכיב ההקשר והפקת סיכום עם הפונקציה `end_session`. הסיכום תופס נקודות מפתח מהשיחה.
 
-## שיטות עבודה מומלצות לקשר שורשי
+## נהלי עבודה מומלצים להקשרים שורשיים
 
-להלן כמה שיטות עבודה מומלצות לניהול יעיל של הקשרים שורשיים:
+להלן כמה נהלים מומלצים לניהול תקין של הקשרים שורשיים:
 
-- **יצירת הקשרים ממוקדים**: צרו הקשרים שורשיים נפרדים למטרות שיחה או תחומים שונים לשמירה על בהירות.  
+- **יצירת הקשרים ממוקדים**: צור הקשרים שורשיים נפרדים למטרות שיחה שונות או תחומים לשמירה על בהירות.
 
-- **הגדרת מדיניות תפוגה**: יישמו מדיניות לארכוב או מחיקת הקשרים ישנים לניהול אחסון ועמידה במדיניות שמירת נתונים.  
+- **קבע מדיניות פקיעה**: יישם מדיניות לארכיבת או מחיקת הקשרים ישנים לניהול אחסון ועמידה במדיניות שמירת נתונים.
 
-- **אחסון מטא-דאטה רלוונטית**: השתמשו במטא-דאטה של הקשר לאחסון מידע חשוב על השיחה שעשוי להיות שימושי בעתיד.  
+- **אחסן מטה-נתונים רלוונטיים**: השתמש במטה-נתוני ההקשר לאחסון מידע חשוב מהשיחה שעשוי להיות שימושי בעתיד.
 
-- **שימוש עקבי במזהי הקשר**: לאחר יצירת קשר, השתמשו במזהה שלו בעקביות בכל הבקשות הקשורות לשמירת רצף.  
+- **השתמש במזהי הקשר בעקביות**: ברגע שנוצר קשר, השתמש במזהה שלו בעקביות עבור כל הבקשות הקשורות לשמירה על רצף.
 
-- **יצירת סיכומים**: כאשר הקשר גדל, שקלו ליצור סיכומים ללכידת מידע חיוני תוך ניהול גודל הקשר.  
+- **ייצר סיכומים**: כאשר הקשר גדל, שקול לייצר סיכומים לתפיסת המידע החיוני תוך ניהול גודל ההקשר.
 
-- **יישום בקרת גישה**: במערכות מרובות משתמשים, יישמו בקרות גישה מתאימות להבטחת פרטיות וביטחון הקשרים.  
+- **יישם בקרות גישה**: במערכות רב-משתמשיות, יישם בקרות גישה נאותות להבטחת פרטיות וביטחון של הקשרים שורשיים.
 
-- **התמודדות עם מגבלות הקשר**: היו מודעים למגבלות גודל הקשר ויישמו אסטרטגיות לטיפול בשיחות ארוכות מאוד.  
+- **טפל במגבלות ההקשר**: היה מודע למגבלות גודל ההקשר ויישם אסטרטגיות להתמודדות עם שיחות ארוכות מאוד.
 
-- **ארכוב בסיום**: ארכבו קשרים כאשר השיחות הושלמו לשחרור משאבים תוך שמירת היסטוריית השיחה.  
+- **ארכיב עם סיום**: ארכב קשרים כאשר השיחות מסתיימות כדי לשחרר משאבים תוך שמירת היסטוריית השיחה.
 
 ## מה הלאה
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 ניתוב](../mcp-routing/README.md)
 
-**כתב ויתור**:  
-מסמך זה תורגם באמצעות שירות תרגום מבוסס בינה מלאכותית [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון כי תרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. המסמך המקורי בשפת המקור שלו נחשב למקור הסמכותי. למידע קריטי מומלץ להשתמש בתרגום מקצועי על ידי מתרגם אנושי. אנו לא נושאים באחריות לכל אי-הבנה או פרשנות שגויה הנובעת משימוש בתרגום זה.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**כתב ויתור**:
+מסמך זה תורגם באמצעות שירות תרגום אוטומטי [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון שתרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. יש להחשיב את המסמך המקורי בשפתו הטבעית כמקור הסמכות. למידע קריטי מומלץ להשתמש בתרגום מקצועי על ידי מתרגם אדם. אנו לא אחראים לכל אי-הבנה או פירוש שגוי הנובע מהשימוש בתרגום זה.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

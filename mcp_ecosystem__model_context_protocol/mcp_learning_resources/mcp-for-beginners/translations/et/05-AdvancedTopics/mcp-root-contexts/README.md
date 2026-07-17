@@ -1,53 +1,57 @@
-# MCP Põhikontekstid
+> [VANANENUD: 2026-07-28 VÄLJAANDMINE KANDIDAAT](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Põhikontekstid on Model Context Protocoli (MCP) oluline osa, mis pakuvad püsivat kihti vestluste ajaloo ja jagatud oleku säilitamiseks mitme päringu ja sessiooni jooksul.
+# MCP juurkontekstid
+
+> **Vananemisavaldus:** `2026-07-28` MCP spetsifikatsiooni väljaandmiskandidaat märgib juured vananenuks tööriista parameetrite, ressurssi URI-de või serveri konfiguratsiooni kasuks. Juured töötavad edasi versioonis `2025-11-25` ja vähemalt aasta järgi pärast ametlikku vananemist, nii et kõik selle õppetunni sisu kehtib endiselt – kuid uute serveri disainide puhul tuleks hinnata asendusmustri kasutamist. Vaata [Mis muutub MCP-s: 2026-07-28 väljaandmiskandidaat](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Juurkontekstid on Model Context Protocoli põhikontseptsioon, mis pakuvad püsivat kihti vestluse ajaloo ja jagatud oleku säilitamiseks mitme päringu ja seansi vahel.
 
 ## Sissejuhatus
 
-Selles õppetükis uurime, kuidas luua, hallata ja kasutada MCP põhikontekste.
+Selles õppetükis uurime, kuidas luua, hallata ja kasutada juurkontekste MCP-s.
 
-## Õppeeesmärgid
+## Õpieesmärgid
 
-Selle õppetüki lõpuks oskate:
+Selle õppetüki lõpuks oskad sa:
 
-- Mõista põhikontekstide eesmärki ja struktuuri
-- Luua ja hallata põhikontekste MCP klienditeekide abil
-- Rakendada põhikontekste .NET-, Java-, JavaScript- ja Python-rakendustes
-- Kasutada põhikontekste mitme pöördega vestlusteks ja oleku haldamiseks
-- Rakendada parimaid tavasid põhikontekstide haldamiseks
+- Mõista juurkontekstide eesmärki ja ülesehitust
+- Luua ja hallata juurkontekste MCP klienditeekide abil
+- Rakendada juurkontekste .NET, Java, JavaScripti ja Python rakendustes
+- Kasutada juurkontekste mitme vooru vestlusteks ja oleku haldamiseks
+- Rakendada juurkontekstide haldamise parimaid tavasid
 
-## Põhikontekstide mõistmine
+## Juurkontekstide mõistmine
 
-Põhikontekstid toimivad konteineritena, mis hoiavad seotud interaktsioonide ajalugu ja olekut. Need võimaldavad:
+Juurkontekstid toimivad konteineritena, mis hoiavad seotud suhtluste ajalugu ja olekut. Need võimaldavad:
 
-- **Vestluse püsivust**: Säilitada sidusaid mitme pöördega vestlusi
-- **Mälu haldamist**: Salvestada ja taastada teavet interaktsioonide vahel
-- **Oleku haldamist**: Jälgida edenemist keerukates töövoogudes
-- **Konteksti jagamist**: Võimaldada mitmel kliendil juurdepääsu samale vestluse olekule
+- **Vestluse püsimine**: Järjepidevate mitme vooru vestluste säilitamine
+- **Mälu haldus**: Teabe salvestamine ja pärimine suhtluste vahel
+- **Oleku haldus**: Edusammude jälgimine keerulistes töövoogudes
+- **Konteksti jagamine**: Lubades mitmel kliendil pääseda juurde samale vestluse olekule
 
-MCP-s on põhikontekstidel järgmised peamised omadused:
+MCP-s on juurkontekstidel järgmised põhiomadused:
 
-- Igal põhikontekstil on unikaalne identifikaator.
-- Need võivad sisaldada vestluse ajalugu, kasutaja eelistusi ja muud metaandmeid.
+- Igal juurkontekstil on unikaalne identifikaator.
+- Neis võib sisalduda vestluse ajalugu, kasutaja eelistusi ja muud metaandmed.
 - Neid saab luua, kasutada ja arhiveerida vastavalt vajadusele.
-- Need toetavad peeneteralist juurdepääsu kontrolli ja õigusi.
+- Nad toetavad peenhäälestatud juurdepääsukontrolli ja õigusi.
 
-## Põhikonteksti elutsükkel
+## Juurkonteksti elutsükkel
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Loo juurkontekst] --> B[Initsialiseeri metainfo abil]
+    B --> C[Saada päringud konteksti ID-ga]
+    C --> D[Uuenda konteksti tulemustega]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Arhiivi kontekst pärast lõpetamist]
 ```
 
-## Põhikontekstidega töötamine
+## Töötamine juurkontekstidega
 
-Siin on näide, kuidas luua ja hallata põhikontekste.
+Siin on näide, kuidas luua ja hallata juurkontekste.
 
-### C# Rakendus
+### C# rakendus
 
 ```csharp
 // .NET Example: Root Context Management
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me:
 
-1. Loonud põhikonteksti klienditoe sessiooni jaoks.
-2. Saatnud mitu sõnumit selles kontekstis, võimaldades mudelil olekut säilitada.
-3. Uuendanud konteksti vestluse põhjal asjakohaste metaandmetega.
-4. Taastanud konteksti teabe, et mõista vestluse ajalugu.
-5. Arhiveerinud konteksti, kui vestlus oli lõppenud.
+1. Loodud juurkonteksti klienditoe sessiooni jaoks.
+1. Saadetud mitmeid sõnumeid selles kontekstis, võimaldades mudelil säilitada olekut.
+1. Uuendanud konteksti asjakohaste metaandmetega vastavalt vestlusele.
+1. Pärinud kontekstitabeli, et mõista vestluse ajalugu.
+1. Arhiveerinud konteksti, kui vestlus oli lõpetatud.
 
-## Näide: Põhikonteksti rakendamine finantsanalüüsiks
+## Näide: Juurkonteksti rakendus finantsanalüüsi jaoks
 
-Selles näites loome põhikonteksti finantsanalüüsi sessiooni jaoks, näidates, kuidas säilitada olekut mitme interaktsiooni jooksul.
+Selles näites loome juurkonteksti finantsanalüüsi sessiooniks, demonstreerides oleku säilitamist mitme suhtluse vältel.
 
-### Java Rakendus
+### Java rakendus
 
 ```java
-// Java Example: Root Context Implementation
+// Java näide: juurkonteksti teostus
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Loo konteksti metaandmed
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Loo uus juurkontekst
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Esimene suhtlus
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Uuenda konteksti olulisest vastusest saadud teabega
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Teine suhtlus – sama konteksti kasutamine
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Koosta analüüsiseansi kokkuvõte
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Salvesta kokkuvõte konteksti metaandmetesse
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Hangi uuendatud konteksti teave
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Arhiveeri kontekst, kui valmis
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me:
 
-1. Loonud põhikonteksti finantsanalüüsi sessiooni jaoks.
-2. Saatnud mitu sõnumit selles kontekstis, võimaldades mudelil olekut säilitada.
-3. Uuendanud konteksti vestluse põhjal asjakohaste metaandmetega.
-4. Loonud analüüsi sessiooni kokkuvõtte ja salvestanud selle konteksti metaandmetesse.
-5. Arhiveerinud konteksti, kui vestlus oli lõppenud.
+1. Loodud juurkonteksti finantsanalüüsi sessiooni jaoks.
+2. Saadetud mitmeid sõnumeid selles kontekstis, võimaldades mudelil säilitada olekut.
+3. Uuendanud konteksti asjakohaste metaandmetega vastavalt vestlusele.
+4. Koostanud sessiooni kokkuvõtte ja salvestanud selle konteksti metaandmetesse.
+5. Arhiveerinud konteksti, kui vestlus oli lõpetatud.
 
-## Näide: Põhikonteksti haldamine
+## Näide: Juurkonteksti haldus
 
-Põhikontekstide tõhus haldamine on vestluse ajaloo ja oleku säilitamiseks ülioluline. Allpool on näide, kuidas rakendada põhikonteksti haldamist.
+Juurkontekstide tõhus haldamine on oluline vestluste ajaloo ja oleku säilitamiseks. Allpool on näide, kuidas juurkonteksti haldust rakendada.
 
-### JavaScript Rakendus
+### JavaScripti rakendus
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScripti näide: MCP juurkontekstide haldamine
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // MCP kliendi initsialiseerimine
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Konteksti halduri initsialiseerimine
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Saada sõnum määratud konteksti abil
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Valikuliselt salvestada vestlusest olulised teadmised
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Võimalike teadmiste väljavõtmine (päris rakenduses oleks see keerukam)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Lihtne heuristika võimalike teadmiste tuvastamiseks
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Salvesta teadmised konteksti metainfosse
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Mittekriitiline viga, seega logi lihtsalt hoiatust
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Palu mudelil genereerida seni toimunud vestluse kokkuvõte
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Salvesta kokkuvõte konteksti metainfosse
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Genereeri lõplik kokkuvõte enne arhiveerimist
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Arhiveeri kontekst
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Näidiskasutus
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Loo uus kontekst tootetoe vestluseks
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Vestluse esimene sõnum
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Järgnev sõnum samas kontekstis
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Hangi teavet konteksti kohta
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Genereeri ja kuva vestluse kokkuvõte
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Arhiveeri kontekst kui töö lõpetatud
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Käsitle kõik vead sujuvalt
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me:
 
-1. Loonud põhikonteksti toote toe vestluse jaoks funktsiooniga `createConversationContext`. Antud juhul on kontekst seotud andmebaasi jõudlusprobleemidega.
+1. Loodud juurkonteksti toote toe vestluses funktsiooniga `createConversationContext`. Seekord käsitles kontekst andmebaasi jõudlusprobleeme.
 
-2. Saatnud mitu sõnumit selles kontekstis, võimaldades mudelil olekut säilitada funktsiooniga `sendMessage`. Saadetud sõnumid käsitlevad aeglase päringu jõudlust ja indeksi konfiguratsiooni.
+1. Saadetud mitmeid sõnumeid selles kontekstis funktsiooniga `sendMessage`. Saadetavad sõnumid olid seotud aeglase päringu jõudluse ja indeksi konfiguratsiooniga.
 
-3. Uuendanud konteksti vestluse põhjal asjakohaste metaandmetega.
+1. Uuendanud konteksti asjakohaste metaandmetega vastavalt vestlusele.
 
-4. Loonud vestluse kokkuvõtte ja salvestanud selle konteksti metaandmetesse funktsiooniga `generateContextSummary`.
+1. Koostanud vestluse kokkuvõtte ja salvestanud selle konteksti metaandmetesse funktsiooniga `generateContextSummary`.
 
-5. Arhiveerinud konteksti, kui vestlus oli lõppenud, funktsiooniga `archiveContext`.
+1. Arhiveerinud konteksti, kui vestlus oli lõpetatud funktsiooniga `archiveContext`.
 
-6. Käsitlenud vigu sujuvalt, et tagada töökindlus.
+1. Käsitlenud tõrkeid sujuvalt stabiilsuse tagamiseks.
 
-## Põhikontekst mitme pöördega abistamiseks
+## Juurkontekst mitmevoorulise abi jaoks
 
-Selles näites loome põhikonteksti mitme pöördega abistamise sessiooni jaoks, näidates, kuidas säilitada olekut mitme interaktsiooni jooksul.
+Selles näites loome juurkonteksti mitme vooru abisessiooniks, demonstreerides oleku säilitamist mitme suhtluse vältel.
 
-### Python Rakendus
+### Pythoni rakendus
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Pythoni näide: juurkontekst mitme vooru abistamiseks
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Lisa kasutaja info, kui see on olemas
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Loo juurkontekst
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Loo valikud koos kontekti ID-ga
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Lisa tööriistad, kui need on määratud
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Saada prompt konteksi sees
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Uuenda konteksti metaandmeid vestluse edenemisega
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Tekita esmalt kokkuvõtte prompt
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Salvesta kokkuvõte metaandmetesse
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Arhiveeri kontekst
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Näite kasutamine
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Loo seanss
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Esimene suhtlus
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Teine suhtlus samas kontekstis
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Võta ajalugu
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Lõpeta seanss
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,41 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me:
 
-1. Loonud põhikonteksti tehnilise toe sessiooni jaoks funktsiooniga `create_session`. Kontekst sisaldab kasutaja teavet, nagu nimi ja tehniline tase.
+1. Loodud juurkonteksti tehnilise toe sessiooni jaoks funktsiooniga `create_session`. Kontekst hõlmab kasutajateavet nagu nimi ja tehniline tase.
 
-2. Saatnud mitu sõnumit selles kontekstis, võimaldades mudelil olekut säilitada funktsiooniga `send_message`. Saadetud sõnumid käsitlevad probleeme automaatse skaleerimise funktsiooniga.
+1. Saadetud mitmeid sõnumeid selles kontekstis funktsiooniga `send_message`. Saadetavad sõnumid olid seotud auto-skaalumise funktsiooniga seotud probleemidega.
 
-3. Taastanud vestluse ajaloo funktsiooniga `get_conversation_history`, mis pakub konteksti teavet ja sõnumeid.
+1. Pärinud vestluse ajaloo funktsiooniga `get_conversation_history`, mis annab konteksti info ja sõnumid.
 
-4. Lõpetanud sessiooni, arhiveerides konteksti ja luues kokkuvõtte funktsiooniga `end_session`. Kokkuvõte hõlmab vestluse peamisi punkte.
+1. Lõpetanud sessiooni, arhiveerides konteksti ja koostades kokkuvõtte funktsiooniga `end_session`. Kokkuvõte hõlmab vestluse põhipunkte.
 
-## Põhikonteksti parimad tavad
+## Juurkonteksti parimad tavad
 
-Siin on mõned parimad tavad põhikontekstide tõhusaks haldamiseks:
+Siin on mõned parimad tavad juurkontekstide tõhusaks haldamiseks:
 
-- **Loo fokuseeritud kontekstid**: Loo eraldi põhikontekstid erinevate vestluse eesmärkide või valdkondade jaoks, et säilitada selgus.
+- **Loo fookustatud kontekstid:** Loo erinevate vestluse eesmärkide või valdkondade jaoks eraldi juurkontekstid, et säilitada selgust.
 
-- **Määra aegumispoliitikad**: Rakenda poliitikaid vanade kontekstide arhiveerimiseks või kustutamiseks, et hallata salvestusruumi ja järgida andmete säilitamise poliitikaid.
+- **Sea aegumispoliitikad:** Rakenda poliitikaid vanade kontekstide arhiveerimiseks või kustutamiseks, et hallata salvestust ja järgida andmete säilitamise nõudeid.
 
-- **Salvesta asjakohased metaandmed**: Kasuta konteksti metaandmeid, et salvestada olulist teavet vestluse kohta, mis võib hiljem kasulik olla.
+- **Salvesta olulised metaandmed:** Kasuta konteksti metaandmeid, et säilitada vestluse kohta olulist teavet, mis võib hiljem kasuks tulla.
 
-- **Kasuta konteksti ID-sid järjekindlalt**: Kui kontekst on loodud, kasuta selle ID-d järjekindlalt kõigi seotud päringute jaoks, et säilitada järjepidevus.
+- **Kasuta konteksti ID-sid järjekindlalt:** Kui kontekst on loodud, kasuta selle ID-d järjekindlalt kõigi seotud päringute puhul, et säilitada järjepidevus.
 
-- **Loo kokkuvõtteid**: Kui kontekst muutub suureks, kaalu kokkuvõtete loomist, et jäädvustada olulist teavet ja hallata konteksti suurust.
+- **Koosta kokkuvõtteid:** Kui kontekst muutub suureks, kaalu kokkuvõtete koostamist, et tabada olulisi andmeid ja hallata konteksti suurust.
 
-- **Rakenda juurdepääsu kontrolli**: Mitme kasutajaga süsteemide puhul rakenda korralikku juurdepääsu kontrolli, et tagada vestluskontekstide privaatsus ja turvalisus.
+- **Rakenda juurdepääsukontrolli:** Mitme kasutajaga süsteemide puhul rakenda korralikku juurdepääsukontrolli, et tagada vestluse kontekstide privaatsus ja turvalisus.
 
-- **Käsitle konteksti piiranguid**: Ole teadlik konteksti suuruse piirangutest ja rakenda strateegiaid väga pikkade vestluste haldamiseks.
+- **Käsitle konteksti piiranguid:** Ole teadlik konteksti suuruse piirangutest ja rakenda strateegiaid väga pikkade vestluste käsitlemiseks.
 
-- **Arhiveeri, kui valmis**: Arhiveeri kontekstid, kui vestlused on lõppenud, et vabastada ressursse ja säilitada vestluse ajalugu.
+- **Arhiveeri pärast lõpetamist:** Arhiveeri kontekstid, kui vestlused on lõpetatud, et vabastada ressursse ja säilitada vestluse ajalugu.
 
-## Mis edasi
+## Mis järgmiseks
 
-- [5.5 Suunamine](../mcp-routing/README.md)
+- [5.5 Marsruutimine](../mcp-routing/README.md)
 
 ---
 
-**Lahtiütlus**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame tagada täpsust, palume arvestada, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Algne dokument selle algses keeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitame kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgenduste eest.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

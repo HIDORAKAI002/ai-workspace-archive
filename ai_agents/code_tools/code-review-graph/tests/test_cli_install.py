@@ -96,3 +96,82 @@ def test_handle_init_cursor_installs_cursor_hooks(monkeypatch, tmp_path, capsys)
 
     assert called["cursor_hooks"] is True
     assert "Installed Cursor hooks" in out
+
+
+def test_handle_init_codebuddy_installs_only_codebuddy_native_files(
+    monkeypatch, tmp_path, capsys
+):
+    import code_review_graph.skills as skills_module
+
+    assert "codebuddy" in __import__(
+        "code_review_graph.cli", fromlist=["_PLATFORM_CHOICES"]
+    )._PLATFORM_CHOICES
+
+    monkeypatch.setattr(
+        "code_review_graph.incremental.find_repo_root",
+        lambda: tmp_path,
+    )
+    monkeypatch.setattr(
+        "code_review_graph.incremental.ensure_repo_gitignore_excludes_crg",
+        lambda repo_root: "created",
+    )
+    monkeypatch.setattr(
+        "code_review_graph.skills.install_platform_configs",
+        lambda repo_root, target, dry_run=False: ["CodeBuddy Code"],
+    )
+
+    called = {
+        "claude_skills": False,
+        "codebuddy_skills": False,
+        "codebuddy_hooks": False,
+        "codebuddy_instructions": False,
+    }
+
+    def _generate_skills(repo_root):
+        called["claude_skills"] = True
+        return repo_root / ".claude" / "skills"
+
+    def _install_codebuddy_skills(repo_root):
+        called["codebuddy_skills"] = True
+        return repo_root / ".codebuddy" / "skills"
+
+    def _install_codebuddy_hooks(repo_root):
+        called["codebuddy_hooks"] = True
+        return repo_root / ".codebuddy" / "settings.json"
+
+    def _inject_platform_instructions(repo_root, target="all"):
+        called["codebuddy_instructions"] = target == "codebuddy"
+        return ["CODEBUDDY.md"]
+
+    monkeypatch.setattr(skills_module, "generate_skills", _generate_skills)
+    monkeypatch.setattr(
+        skills_module,
+        "install_codebuddy_skills",
+        _install_codebuddy_skills,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        skills_module,
+        "install_codebuddy_hooks",
+        _install_codebuddy_hooks,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        skills_module,
+        "inject_platform_instructions",
+        _inject_platform_instructions,
+    )
+
+    args = _args(tmp_path, "codebuddy")
+    args.no_instructions = False
+    _handle_init(args)
+    out = capsys.readouterr().out
+
+    assert called == {
+        "claude_skills": False,
+        "codebuddy_skills": True,
+        "codebuddy_hooks": True,
+        "codebuddy_instructions": True,
+    }
+    assert "Installed CodeBuddy skills" in out
+    assert "Installed CodeBuddy hooks" in out

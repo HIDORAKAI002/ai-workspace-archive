@@ -109,6 +109,14 @@ _ENTRY_NAME_PATTERNS: list[re.Pattern[str]] = [
     ),
 ]
 
+# Framework and language conventions that must not pollute other parsers.
+_LANGUAGE_ENTRY_NAME_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
+    "php": (
+        re.compile(r"^(boot|register)$"),
+        re.compile(r"^__invoke$"),
+    ),
+}
+
 
 # ---------------------------------------------------------------------------
 # Entry-point detection
@@ -132,6 +140,9 @@ def _has_framework_decorator(node: GraphNode) -> bool:
 def _matches_entry_name(node: GraphNode) -> bool:
     """Return True if *node*'s name matches a conventional entry-point pattern."""
     for pat in _ENTRY_NAME_PATTERNS:
+        if pat.search(node.name):
+            return True
+    for pat in _LANGUAGE_ENTRY_NAME_PATTERNS.get(node.language, ()):
         if pat.search(node.name):
             return True
     return False

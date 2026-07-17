@@ -1,58 +1,62 @@
-# Sampling trong Giao thức Model Context Protocol
+> [KHÔNG KHUYẾN KHÍCH SỬ DỤNG: 2026-07-28 BẢN PHÁT HÀNH ỨNG CỬ](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Sampling là một tính năng mạnh mẽ của MCP cho phép server yêu cầu các kết quả hoàn thành từ LLM thông qua client, giúp tạo ra các hành vi tác nhân phức tạp đồng thời đảm bảo an ninh và quyền riêng tư. Cấu hình sampling phù hợp có thể cải thiện đáng kể chất lượng và hiệu suất phản hồi. MCP cung cấp một cách chuẩn hóa để kiểm soát cách các mô hình tạo văn bản với các tham số cụ thể ảnh hưởng đến độ ngẫu nhiên, sáng tạo và tính mạch lạc.
+# Lấy mẫu trong Model Context Protocol
+
+> **Thông báo ngừng hỗ trợ:** bản ứng cử đặc tả MCP `2026-07-28` đánh dấu Lấy mẫu là không được ưu tiên nữa nhằm chuyển sang tích hợp trực tiếp với API nhà cung cấp LLM. Lấy mẫu vẫn hoạt động trong `2025-11-25` và ít nhất một năm sau bất kỳ ngừng hỗ trợ chính thức nào, vì vậy mọi thứ trong bài học này vẫn còn hiệu lực - nhưng thiết kế máy chủ mới nên đánh giá mẫu thay thế. Xem [Những thay đổi trong MCP: Bản phát hành ứng cử 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Lấy mẫu là một tính năng mạnh mẽ của MCP cho phép máy chủ yêu cầu các hoàn thành của LLM thông qua khách hàng, tạo điều kiện cho các hành vi tác nhân tinh vi trong khi duy trì bảo mật và quyền riêng tư. Cấu hình lấy mẫu phù hợp có thể cải thiện đáng kể chất lượng phản hồi và hiệu suất. MCP cung cấp một cách chuẩn hóa để kiểm soát cách mô hình tạo ra văn bản với các tham số cụ thể ảnh hưởng đến tính ngẫu nhiên, sáng tạo, và tính mạch lạc.
 
 ## Giới thiệu
 
-Trong bài học này, chúng ta sẽ tìm hiểu cách cấu hình các tham số sampling trong các yêu cầu MCP và hiểu cơ chế giao thức sampling bên dưới.
+Trong bài học này, chúng ta sẽ khám phá cách cấu hình các tham số lấy mẫu trong các yêu cầu MCP và hiểu các cơ chế giao thức nền tảng của lấy mẫu.
 
 ## Mục tiêu học tập
 
-Sau bài học này, bạn sẽ có thể:
+Đến cuối bài học, bạn sẽ có khả năng:
 
-- Hiểu các tham số sampling chính có trong MCP.
-- Cấu hình các tham số sampling cho các trường hợp sử dụng khác nhau.
-- Triển khai sampling xác định để có kết quả có thể tái tạo.
-- Điều chỉnh tham số sampling một cách linh hoạt dựa trên ngữ cảnh và sở thích người dùng.
-- Áp dụng các chiến lược sampling để nâng cao hiệu suất mô hình trong nhiều tình huống.
-- Hiểu cách sampling hoạt động trong luồng client-server của MCP.
+- Hiểu các tham số lấy mẫu chính có trong MCP.
+- Cấu hình các tham số lấy mẫu cho các trường hợp sử dụng khác nhau.
+- Triển khai lấy mẫu xác định để có kết quả có thể tái tạo.
+- Điều chỉnh tham số lấy mẫu một cách động dựa trên bối cảnh và sở thích người dùng.
+- Áp dụng các chiến lược lấy mẫu để nâng cao hiệu suất mô hình trong nhiều kịch bản.
+- Hiểu cách lấy mẫu hoạt động trong luồng khách-hàng máy chủ của MCP.
 
-## Cách Sampling hoạt động trong MCP
+## Cách hoạt động của Lấy mẫu trong MCP
 
-Luồng sampling trong MCP theo các bước sau:
+Luồng lấy mẫu trong MCP theo các bước sau:
 
-1. Server gửi yêu cầu `sampling/createMessage` đến client
-2. Client xem xét yêu cầu và có thể chỉnh sửa nó
-3. Client thực hiện sampling từ LLM
-4. Client xem lại kết quả hoàn thành
-5. Client trả kết quả về server
+1. Máy chủ gửi yêu cầu `sampling/createMessage` đến khách hàng
+2. Khách hàng xem xét yêu cầu và có thể sửa đổi nó
+3. Khách hàng lấy mẫu từ LLM
+4. Khách hàng xem lại kết quả hoàn thành
+5. Khách hàng trả kết quả về máy chủ
 
-Thiết kế có sự tham gia của con người này đảm bảo người dùng kiểm soát được những gì LLM nhìn thấy và tạo ra.
+Thiết kế có sự can thiệp của con người này đảm bảo người dùng duy trì quyền kiểm soát những gì LLM nhìn thấy và tạo ra.
 
-## Tổng quan các tham số Sampling
+## Tổng quan về các Tham số Lấy mẫu
 
-MCP định nghĩa các tham số sampling sau có thể cấu hình trong yêu cầu của client:
+MCP định nghĩa các tham số lấy mẫu sau có thể cấu hình trong các yêu cầu của khách hàng:
 
 | Tham số | Mô tả | Phạm vi điển hình |
-|---------|--------|-------------------|
-| `temperature` | Điều khiển độ ngẫu nhiên trong việc chọn token | 0.0 - 1.0 |
-| `maxTokens` | Số lượng token tối đa được tạo ra | Giá trị nguyên |
-| `stopSequences` | Các chuỗi tùy chỉnh dừng việc tạo khi gặp phải | Mảng chuỗi |
-| `metadata` | Các tham số bổ sung theo nhà cung cấp | Đối tượng JSON |
+|-----------|-------------|---------------|
+| `temperature` | Kiểm soát tính ngẫu nhiên trong lựa chọn token | 0.0 - 1.0 |
+| `maxTokens` | Số lượng token tối đa để tạo ra | Giá trị nguyên |
+| `stopSequences` | Các chuỗi tùy chỉnh dừng sinh khi gặp phải | Mảng các chuỗi |
+| `metadata` | Tham số bổ sung đặc thù nhà cung cấp | Đối tượng JSON |
 
-Nhiều nhà cung cấp LLM hỗ trợ các tham số mở rộng qua trường `metadata`, có thể bao gồm:
+Nhiều nhà cung cấp LLM hỗ trợ các tham số bổ sung thông qua trường `metadata`, có thể bao gồm:
 
-| Tham số mở rộng phổ biến | Mô tả | Phạm vi điển hình |
-|-------------------------|--------|-------------------|
-| `top_p` | Nucleus sampling - giới hạn token trong xác suất tích lũy hàng đầu | 0.0 - 1.0 |
-| `top_k` | Giới hạn lựa chọn token trong top K lựa chọn | 1 - 100 |
-| `presence_penalty` | Phạt token dựa trên sự xuất hiện của chúng trong văn bản trước đó | -2.0 - 2.0 |
-| `frequency_penalty` | Phạt token dựa trên tần suất xuất hiện trong văn bản trước đó | -2.0 - 2.0 |
-| `seed` | Hạt giống ngẫu nhiên cố định để có kết quả tái tạo | Giá trị nguyên |
+| Tham số Mở rộng Thông dụng | Mô tả | Phạm vi điển hình |
+|-----------|-------------|---------------|
+| `top_p` | Lấy mẫu hạt nhân - giới hạn token vào xác suất tích lũy hàng đầu | 0.0 - 1.0 |
+| `top_k` | Giới hạn lựa chọn token chỉ vào top K lựa chọn | 1 - 100 |
+| `presence_penalty` | Phạt token dựa trên sự xuất hiện của nó trong văn bản hiện tại | -2.0 - 2.0 |
+| `frequency_penalty` | Phạt token dựa trên tần suất xuất hiện trong văn bản hiện tại | -2.0 - 2.0 |
+| `seed` | Hạt ngẫu nhiên cố định để tái tạo kết quả | Giá trị nguyên |
 
-## Ví dụ định dạng yêu cầu
+## Ví dụ Định dạng Yêu cầu
 
-Dưới đây là ví dụ yêu cầu sampling từ client trong MCP:
+Dưới đây là ví dụ yêu cầu lấy mẫu từ khách hàng trong MCP:
 
 ```json
 {
@@ -75,9 +79,9 @@ Dưới đây là ví dụ yêu cầu sampling từ client trong MCP:
 }
 ```
 
-## Định dạng phản hồi
+## Định dạng Phản hồi
 
-Client trả về kết quả hoàn thành:
+Khách hàng trả về một kết quả hoàn thành:
 
 ```json
 {
@@ -91,44 +95,44 @@ Client trả về kết quả hoàn thành:
 }
 ```
 
-## Kiểm soát có sự tham gia của con người
+## Kiểm soát con người trong vòng lặp
 
-Sampling trong MCP được thiết kế với sự giám sát của con người:
+MCP lấy mẫu được thiết kế với sự giám sát của con người:
 
-- **Đối với prompt**:
-  - Client nên hiển thị prompt đề xuất cho người dùng
-  - Người dùng có thể chỉnh sửa hoặc từ chối prompt
-  - Prompt hệ thống có thể được lọc hoặc chỉnh sửa
-  - Việc đưa ngữ cảnh vào được client kiểm soát
+- **Đối với lời nhắc**:
+  - Khách hàng nên hiển thị lời nhắc đề xuất cho người dùng
+  - Người dùng nên có khả năng sửa đổi hoặc từ chối lời nhắc
+  - Lời nhắc hệ thống có thể được lọc hoặc sửa đổi
+  - Việc đưa ngữ cảnh được kiểm soát bởi khách hàng
 
 - **Đối với kết quả hoàn thành**:
-  - Client nên hiển thị kết quả hoàn thành cho người dùng
-  - Người dùng có thể chỉnh sửa hoặc từ chối kết quả
-  - Client có thể lọc hoặc chỉnh sửa kết quả
+  - Khách hàng nên hiển thị kết quả hoàn thành cho người dùng
+  - Người dùng nên có khả năng sửa đổi hoặc từ chối kết quả hoàn thành
+  - Khách hàng có thể lọc hoặc sửa đổi kết quả hoàn thành
   - Người dùng kiểm soát mô hình được sử dụng
 
-Với các nguyên tắc này, hãy cùng xem cách triển khai sampling trong các ngôn ngữ lập trình khác nhau, tập trung vào các tham số được hỗ trợ phổ biến bởi các nhà cung cấp LLM.
+Với các nguyên tắc này, hãy cùng xem cách triển khai lấy mẫu trong các ngôn ngữ lập trình khác nhau, tập trung vào các tham số được nhiều nhà cung cấp LLM hỗ trợ.
 
-## Các lưu ý về bảo mật
+## Các cân nhắc về bảo mật
 
-Khi triển khai sampling trong MCP, hãy cân nhắc các thực hành bảo mật sau:
+Khi triển khai lấy mẫu trong MCP, xem xét các thực hành bảo mật tốt sau:
 
-- **Xác thực toàn bộ nội dung tin nhắn** trước khi gửi đến client
-- **Làm sạch thông tin nhạy cảm** từ prompt và kết quả hoàn thành
-- **Áp dụng giới hạn tốc độ** để ngăn chặn lạm dụng
-- **Giám sát việc sử dụng sampling** để phát hiện các mẫu bất thường
-- **Mã hóa dữ liệu khi truyền tải** bằng các giao thức an toàn
+- **Xác thực toàn bộ nội dung tin nhắn** trước khi gửi cho khách hàng
+- **Làm sạch thông tin nhạy cảm** khỏi lời nhắc và kết quả
+- **Triển khai giới hạn tốc độ** để ngăn chặn lạm dụng
+- **Giám sát việc sử dụng lấy mẫu** để phát hiện các mẫu bất thường
+- **Mã hóa dữ liệu khi truyền** bằng các giao thức an toàn
 - **Xử lý quyền riêng tư dữ liệu người dùng** theo các quy định liên quan
-- **Kiểm tra các yêu cầu sampling** để đảm bảo tuân thủ và an ninh
-- **Kiểm soát chi phí** với các giới hạn phù hợp
-- **Áp dụng timeout** cho các yêu cầu sampling
-- **Xử lý lỗi mô hình một cách mềm dẻo** với các phương án dự phòng thích hợp
+- **Kiểm tra yêu cầu lấy mẫu** về tuân thủ và bảo mật
+- **Kiểm soát chi phí phơi bày** với giới hạn phù hợp
+- **Thực hiện thời gian chờ** cho các yêu cầu lấy mẫu
+- **Xử lý lỗi mô hình một cách nhẹ nhàng** với các phương án dự phòng phù hợp
 
-Các tham số sampling cho phép tinh chỉnh hành vi của mô hình ngôn ngữ để đạt được sự cân bằng mong muốn giữa kết quả xác định và sáng tạo.
+Các tham số lấy mẫu cho phép điều chỉnh hành vi của mô hình ngôn ngữ để đạt được sự cân bằng mong muốn giữa đầu ra xác định và sáng tạo.
 
 Hãy cùng xem cách cấu hình các tham số này trong các ngôn ngữ lập trình khác nhau.
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -164,49 +168,49 @@ public class SamplingExample
 }
 ```
 
-Trong đoạn mã trên, chúng ta đã:
+Trong đoạn mã trước, chúng ta đã:
 
-- Tạo một client MCP với URL server cụ thể.
-- Cấu hình yêu cầu với các tham số sampling như `temperature`, `top_p`, và `top_k`.
+- Tạo một khách hàng MCP với URL máy chủ cụ thể.
+- Cấu hình một yêu cầu với các tham số lấy mẫu như `temperature`, `top_p`, và `top_k`.
 - Gửi yêu cầu và in ra văn bản được tạo.
-- Sử dụng:
-    - `allowedTools` để chỉ định các công cụ mà mô hình có thể sử dụng trong quá trình tạo. Trong trường hợp này, chúng ta cho phép các công cụ `ideaGenerator` và `marketAnalyzer` hỗ trợ tạo ý tưởng ứng dụng sáng tạo.
-    - `frequencyPenalty` và `presencePenalty` để kiểm soát sự lặp lại và đa dạng trong đầu ra.
-    - `temperature` để điều khiển độ ngẫu nhiên của kết quả, giá trị cao hơn dẫn đến phản hồi sáng tạo hơn.
-    - `top_p` để giới hạn lựa chọn token trong tập hợp có xác suất tích lũy hàng đầu, nâng cao chất lượng văn bản tạo ra.
-    - `top_k` để giới hạn mô hình chỉ chọn trong top K token có xác suất cao nhất, giúp tạo ra phản hồi mạch lạc hơn.
-    - `frequencyPenalty` và `presencePenalty` để giảm sự lặp lại và khuyến khích đa dạng trong văn bản tạo ra.
+- Đã sử dụng:
+    - `allowedTools` để chỉ định các công cụ mà mô hình có thể sử dụng trong quá trình tạo văn bản. Trong trường hợp này, chúng ta cho phép công cụ `ideaGenerator` và `marketAnalyzer` hỗ trợ tạo ý tưởng ứng dụng sáng tạo.
+    - `frequencyPenalty` và `presencePenalty` để kiểm soát sự lặp lại và đa dạng trong kết quả.
+    - `temperature` để kiểm soát tính ngẫu nhiên của đầu ra, giá trị cao hơn dẫn đến phản hồi sáng tạo hơn.
+    - `top_p` để giới hạn lựa chọn token vào những token góp phần vào xác suất tích lũy hàng đầu, nâng cao chất lượng văn bản tạo ra.
+    - `top_k` để hạn chế mô hình chỉ chọn trong top K token có xác suất cao nhất, giúp tạo các phản hồi mạch lạc hơn.
+    - `frequencyPenalty` và `presencePenalty` để giảm trùng lặp và khuyến khích đa dạng trong văn bản sinh ra.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// Ví dụ JavaScript: Cấu hình nhiệt độ và lấy mẫu Top-P
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // Khởi tạo client MCP
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // Cấu hình yêu cầu với các tham số lấy mẫu khác nhau
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // Nhiệt độ cao hơn = ngẫu nhiên/sáng tạo hơn
+    topP: 0.92,          // Xem xét các token có khối xác suất top 92%
+    frequencyPenalty: 0.6, // Giảm lặp lại chuỗi token
+    presencePenalty: 0.4   // Phạt các token đã xuất hiện trong văn bản cho đến nay
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // Nhiệt độ thấp hơn = xác định hơn/dựa trên sự thật hơn
+    topP: 0.85,          // Lựa chọn token tập trung hơn một chút
+    frequencyPenalty: 0.2, // Hình phạt lặp lại tối thiểu
+    presencePenalty: 0.1   // Hình phạt hiện diện tối thiểu
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // Gửi hai yêu cầu với các cấu hình lấy mẫu khác nhau
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -237,57 +241,57 @@ async function demonstrateSampling() {
 demonstrateSampling();
 ```
 
-Trong đoạn mã trên, chúng ta đã:
+Trong đoạn mã trước, chúng ta đã:
 
-- Khởi tạo một client MCP với URL server và khóa API.
-- Cấu hình hai bộ tham số sampling: một cho tác vụ sáng tạo và một cho tác vụ thực tế.
+- Khởi tạo một khách hàng MCP với URL máy chủ và khóa API.
+- Cấu hình hai bộ tham số lấy mẫu: một cho các tác vụ sáng tạo và một cho các tác vụ thực tế.
 - Gửi các yêu cầu với các cấu hình này, cho phép mô hình sử dụng các công cụ cụ thể cho từng tác vụ.
-- In ra các phản hồi được tạo để minh họa hiệu quả của các tham số sampling khác nhau.
-- Sử dụng `allowedTools` để chỉ định các công cụ mà mô hình có thể sử dụng trong quá trình tạo. Trong trường hợp này, chúng ta cho phép `ideaGenerator` và `environmentalImpactTool` cho tác vụ sáng tạo, và `factChecker` cùng `dataAnalysisTool` cho tác vụ thực tế.
-- Sử dụng `temperature` để điều khiển độ ngẫu nhiên của kết quả, giá trị cao hơn dẫn đến phản hồi sáng tạo hơn.
-- Sử dụng `top_p` để giới hạn lựa chọn token trong tập hợp có xác suất tích lũy hàng đầu, nâng cao chất lượng văn bản tạo ra.
-- Sử dụng `frequencyPenalty` và `presencePenalty` để giảm sự lặp lại và khuyến khích đa dạng trong đầu ra.
-- Sử dụng `top_k` để giới hạn mô hình chỉ chọn trong top K token có xác suất cao nhất, giúp tạo ra phản hồi mạch lạc hơn.
+- In các phản hồi được tạo ra để trình bày hiệu quả của các tham số lấy mẫu khác nhau.
+- Đã sử dụng `allowedTools` để chỉ định công cụ mà mô hình có thể sử dụng trong quá trình tạo văn bản. Ở đây, chúng ta cho phép công cụ `ideaGenerator` và `environmentalImpactTool` cho các tác vụ sáng tạo, và `factChecker` cùng `dataAnalysisTool` cho các tác vụ thực tế.
+- Sử dụng `temperature` để kiểm soát tính ngẫu nhiên của đầu ra, giá trị cao hơn cho phản hồi sáng tạo hơn.
+- Sử dụng `top_p` để giới hạn lựa chọn token vào các token góp phần vào xác suất tích lũy hàng đầu, nâng cao chất lượng văn bản tạo ra.
+- Sử dụng `frequencyPenalty` và `presencePenalty` để giảm trùng lặp và khuyến khích đa dạng.
+- Sử dụng `top_k` để giới hạn mô hình chỉ chọn trong top K token có xác suất cao nhất, giúp tạo phản hồi mạch lạc hơn.
 
 ---
 
-## Sampling xác định
+## Lấy mẫu xác định
 
-Đối với các ứng dụng cần kết quả nhất quán, sampling xác định đảm bảo kết quả có thể tái tạo. Cách thực hiện là sử dụng hạt giống ngẫu nhiên cố định và đặt nhiệt độ bằng 0.
+Đối với các ứng dụng cần đầu ra nhất quán, lấy mẫu xác định đảm bảo kết quả có thể tái tạo. Cách làm là sử dụng hạt ngẫu nhiên cố định và đặt tham số temperature bằng 0.
 
-Hãy xem ví dụ triển khai dưới đây để minh họa sampling xác định trong các ngôn ngữ lập trình khác nhau.
+Hãy xem ví dụ triển khai dưới đây để chứng minh lấy mẫu xác định trong các ngôn ngữ lập trình khác nhau.
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// Ví dụ Java: Phản hồi xác định với hạt giống cố định
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // Sử dụng hạt giống cố định cho kết quả xác định
         
-        // First request with fixed seed
+        // Yêu cầu đầu tiên với hạt giống cố định
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // Nhiệt độ bằng không để đạt độ xác định tối đa
             .build();
             
-        // Second request with the same seed
+        // Yêu cầu thứ hai với cùng hạt giống
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // Thực thi cả hai yêu cầu
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // Phản hồi nên giống hệt nhau do cùng hạt giống và nhiệt độ=0
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -296,19 +300,19 @@ public class DeterministicSamplingExample {
 }
 ```
 
-Trong đoạn mã trên, chúng ta đã:
+Trong đoạn mã trước, chúng ta đã:
 
-- Tạo một client MCP với URL server được chỉ định.
-- Cấu hình hai yêu cầu với cùng một prompt, hạt giống cố định và nhiệt độ bằng 0.
-- Gửi cả hai yêu cầu và in ra văn bản được tạo.
-- Minh họa rằng các phản hồi giống hệt nhau do tính xác định của cấu hình sampling (cùng hạt giống và nhiệt độ).
-- Sử dụng `setSeed` để chỉ định hạt giống ngẫu nhiên cố định, đảm bảo mô hình tạo ra cùng một kết quả cho cùng một đầu vào mỗi lần.
-- Đặt `temperature` bằng 0 để đảm bảo tính xác định tối đa, nghĩa là mô hình luôn chọn token tiếp theo có xác suất cao nhất mà không có ngẫu nhiên.
+- Tạo một khách hàng MCP với URL máy chủ được chỉ định.
+- Cấu hình hai yêu cầu với cùng một lời nhắc, hạt ngẫu nhiên cố định và nhiệt độ bằng 0.
+- Gửi cả hai yêu cầu và in ra văn bản tạo ra.
+- Minh họa rằng các phản hồi giống hệt nhau do tính chất xác định của cấu hình lấy mẫu (cùng hạt và temperature).
+- Sử dụng `setSeed` để chỉ định hạt ngẫu nhiên cố định, đảm bảo mô hình tạo ra đầu ra giống nhau cho cùng một đầu vào mỗi lần.
+- Đặt `temperature` bằng 0 để đảm bảo tối đa tính xác định, nghĩa là mô hình luôn chọn token khả thi nhất kế tiếp mà không có ngẫu nhiên.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// Ví dụ JavaScript: Phản hồi xác định với điều khiển seed
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -320,19 +324,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // Yêu cầu đầu tiên với seed cố định
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // Nhiệt độ bằng 0 để đạt tính xác định tối đa
     });
     
-    // Second request with same seed and temperature
+    // Yêu cầu thứ hai với cùng seed và nhiệt độ
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // Yêu cầu thứ ba với seed khác nhưng cùng nhiệt độ
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -352,28 +356,28 @@ async function deterministicSampling() {
 deterministicSampling();
 ```
 
-Trong đoạn mã trên, chúng ta đã:
+Trong đoạn mã trước, chúng ta đã:
 
-- Khởi tạo một client MCP với URL server.
-- Cấu hình hai yêu cầu với cùng một prompt, hạt giống cố định và nhiệt độ bằng 0.
-- Gửi cả hai yêu cầu và in ra văn bản được tạo.
-- Minh họa rằng các phản hồi giống hệt nhau do tính xác định của cấu hình sampling (cùng hạt giống và nhiệt độ).
-- Sử dụng `seed` để chỉ định hạt giống ngẫu nhiên cố định, đảm bảo mô hình tạo ra cùng một kết quả cho cùng một đầu vào mỗi lần.
-- Đặt `temperature` bằng 0 để đảm bảo tính xác định tối đa, nghĩa là mô hình luôn chọn token tiếp theo có xác suất cao nhất mà không có ngẫu nhiên.
-- Sử dụng hạt giống khác cho yêu cầu thứ ba để cho thấy việc thay đổi hạt giống sẽ tạo ra kết quả khác, ngay cả khi cùng prompt và nhiệt độ.
+- Khởi tạo một khách hàng MCP với URL máy chủ.
+- Cấu hình hai yêu cầu với cùng một lời nhắc, hạt ngẫu nhiên cố định và nhiệt độ bằng 0.
+- Gửi cả hai yêu cầu và in ra văn bản tạo ra.
+- Minh họa rằng các phản hồi giống hệt nhau do tính xác định của cấu hình lấy mẫu (cùng hạt và temperature).
+- Sử dụng `seed` để chỉ định hạt ngẫu nhiên cố định, đảm bảo mô hình tạo ra đầu ra giống nhau cho cùng một đầu vào mỗi lần.
+- Đặt `temperature` bằng 0 để đảm bảo tối đa tính xác định, nghĩa là mô hình luôn chọn token khả thi nhất kế tiếp mà không có ngẫu nhiên.
+- Sử dụng một hạt khác cho yêu cầu thứ ba để minh họa rằng thay đổi hạt dẫn đến đầu ra khác nhau, ngay cả với cùng lời nhắc và nhiệt độ.
 
 ---
 
-## Cấu hình Sampling động
+## Cấu hình Lấy mẫu Động
 
-Sampling thông minh điều chỉnh các tham số dựa trên ngữ cảnh và yêu cầu của từng yêu cầu. Điều này có nghĩa là điều chỉnh linh hoạt các tham số như temperature, top_p và các hình phạt dựa trên loại tác vụ, sở thích người dùng hoặc hiệu suất lịch sử.
+Lấy mẫu thông minh điều chỉnh các tham số dựa trên bối cảnh và yêu cầu của mỗi yêu cầu. Điều đó có nghĩa là điều chỉnh động các tham số như temperature, top_p, và các hình phạt dựa trên loại tác vụ, sở thích người dùng, hoặc hiệu suất lịch sử.
 
-Hãy xem cách triển khai sampling động trong các ngôn ngữ lập trình khác nhau.
+Hãy xem cách triển khai lấy mẫu động trong các ngôn ngữ lập trình khác nhau.
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# Ví dụ Python: Lấy mẫu động dựa trên ngữ cảnh yêu cầu
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -381,7 +385,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # Định nghĩa các mẫu thiết lập trước cho các loại nhiệm vụ khác nhau
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -389,22 +393,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # Chọn mẫu thiết lập cơ bản
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # Điều chỉnh dựa trên sở thích người dùng nếu có
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # Thay đổi nhiệt độ dựa trên sở thích sáng tạo (1-10)
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # Điều chỉnh top_p dựa trên mức độ đa dạng câu trả lời mong muốn
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # Tạo và gửi yêu cầu với các tham số lấy mẫu tùy chỉnh
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -412,7 +416,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # Trả về phản hồi cùng với siêu dữ liệu lấy mẫu để minh bạch thông tin
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -420,32 +424,32 @@ class DynamicSamplingService:
         }
 ```
 
-Trong đoạn mã trên, chúng ta đã:
+Trong đoạn mã trước, chúng ta đã:
 
-- Tạo lớp `DynamicSamplingService` quản lý sampling thích ứng.
-- Định nghĩa các cấu hình sampling mặc định cho các loại tác vụ khác nhau (sáng tạo, thực tế, mã, phân tích).
-- Chọn cấu hình sampling cơ bản dựa trên loại tác vụ.
-- Điều chỉnh các tham số sampling dựa trên sở thích người dùng, như mức độ sáng tạo và đa dạng.
-- Gửi yêu cầu với các tham số sampling được cấu hình động.
-- Trả về văn bản được tạo cùng với các tham số sampling và loại tác vụ để minh bạch.
-- Sử dụng `temperature` để điều khiển độ ngẫu nhiên của kết quả, giá trị cao hơn dẫn đến phản hồi sáng tạo hơn.
-- Sử dụng `top_p` để giới hạn lựa chọn token trong tập hợp có xác suất tích lũy hàng đầu, nâng cao chất lượng văn bản tạo ra.
-- Sử dụng `frequency_penalty` để giảm sự lặp lại và khuyến khích đa dạng trong đầu ra.
-- Sử dụng `user_preferences` để cho phép tùy chỉnh các tham số sampling dựa trên mức độ sáng tạo và đa dạng do người dùng định nghĩa.
-- Sử dụng `task_type` để xác định chiến lược sampling phù hợp cho yêu cầu, cho phép phản hồi được cá nhân hóa dựa trên tính chất của tác vụ.
-- Sử dụng phương thức `send_request` để gửi prompt với các tham số sampling đã cấu hình, đảm bảo mô hình tạo văn bản theo yêu cầu.
-- Sử dụng `generated_text` để lấy phản hồi của mô hình, sau đó trả về cùng với các tham số sampling và loại tác vụ để phân tích hoặc hiển thị.
-- Sử dụng các hàm `min` và `max` để đảm bảo sở thích người dùng nằm trong phạm vi hợp lệ, tránh cấu hình sampling không hợp lệ.
+- Tạo lớp `DynamicSamplingService` quản lý lấy mẫu thích ứng.
+- Định nghĩa các thiết lập lấy mẫu cho các loại tác vụ khác nhau (sáng tạo, thực tế, mã, phân tích).
+- Chọn một thiết lập lấy mẫu cơ bản dựa trên loại tác vụ.
+- Điều chỉnh các tham số lấy mẫu dựa trên sở thích người dùng, chẳng hạn mức độ sáng tạo và đa dạng.
+- Gửi yêu cầu với các tham số lấy mẫu được cấu hình động.
+- Trả về văn bản tạo ra cùng với các tham số lấy mẫu áp dụng và loại tác vụ để minh bạch.
+- Sử dụng `temperature` để kiểm soát tính ngẫu nhiên của đầu ra, giá trị cao hơn dẫn đến phản hồi sáng tạo hơn.
+- Sử dụng `top_p` để giới hạn lựa chọn token vào các token góp phần vào xác suất tích lũy hàng đầu, nâng cao chất lượng văn bản tạo ra.
+- Sử dụng `frequency_penalty` để giảm trùng lặp và khuyến khích đa dạng trong đầu ra.
+- Sử dụng `user_preferences` cho phép tùy chỉnh các tham số lấy mẫu dựa trên mức độ sáng tạo và đa dạng do người dùng xác định.
+- Sử dụng `task_type` để xác định chiến lược lấy mẫu thích hợp cho yêu cầu, cho phép tạo ra phản hồi phù hợp hơn dựa trên bản chất nhiệm vụ.
+- Sử dụng phương thức `send_request` để gửi lời nhắc với các tham số lấy mẫu đã cấu hình, đảm bảo mô hình tạo văn bản theo yêu cầu đã chỉ định.
+- Sử dụng `generated_text` để lấy phản hồi của mô hình, rồi trả về cùng các tham số lấy mẫu và loại tác vụ để phân tích hoặc hiển thị thêm.
+- Sử dụng các hàm `min` và `max` để đảm bảo sở thích người dùng được giới hạn trong phạm vi hợp lệ, ngăn cấu hình lấy mẫu không hợp lệ.
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript Động](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// Ví dụ JavaScript: Cấu hình lấy mẫu động dựa trên ngữ cảnh người dùng
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // Định nghĩa hồ sơ lấy mẫu cơ bản
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -453,15 +457,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // Theo dõi hiệu suất lịch sử
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // Phát hiện loại tác vụ từ lời nhắc
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // Phát hiện đơn giản theo quy tắc - có thể cải thiện bằng phân loại ML
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -482,57 +486,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // Mặc định chuyển sang hội thoại nếu không phát hiện rõ loại
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // Tính toán tham số lấy mẫu dựa trên ngữ cảnh và sở thích người dùng
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // Phát hiện loại tác vụ
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // Lấy hồ sơ cơ bản
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // Điều chỉnh dựa trên sở thích người dùng
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // Tỉ lệ từ 1-10 sang khoảng nhiệt độ phù hợp
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // Độ chính xác cao hơn có nghĩa là topP thấp hơn (lựa chọn tập trung hơn)
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // Độ nhất quán cao hơn nghĩa là ít hình phạt hơn
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // Áp dụng điều chỉnh đã học từ lịch sử hiệu suất
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // Logic thích ứng đơn giản - có thể cải thiện với thuật toán tinh vi hơn
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // Chỉ xem xét lịch sử gần đây
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // Tính điểm hiệu suất trung bình
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // Nếu hiệu suất dưới ngưỡng, điều chỉnh tham số
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // Điều chỉnh nhẹ về giá trị an toàn hơn
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -540,32 +544,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // Ghi lại hiệu suất để điều chỉnh trong tương lai
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // Đánh giá 0-1 về chất lượng phản hồi
     });
     
-    // Limit history size
+    // Giới hạn kích thước lịch sử
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // Lấy tham số lấy mẫu tối ưu
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // Gửi yêu cầu với tham số tối ưu
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // Nếu người dùng cung cấp phản hồi, ghi lại để tối ưu hóa sau
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -578,7 +582,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// Ví dụ sử dụng
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -587,13 +591,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // Tác vụ sáng tạo với sở thích người dùng tùy chỉnh
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // Độ sáng tạo cao (1-10)
+          consistency: 3  // Độ nhất quán thấp (1-10)
         }
       }
     );
@@ -603,14 +607,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // Tác vụ tạo mã
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // Độ sáng tạo thấp
+          precision: 8,   // Độ chính xác cao
+          consistency: 9  // Độ nhất quán cao
         }
       }
     );
@@ -628,33 +632,37 @@ async function demonstrateAdaptiveSampling() {
 demonstrateAdaptiveSampling();
 ```
 
-Trong đoạn mã trên, chúng ta đã:
+Trong đoạn mã trước, chúng ta đã:
 
-- Tạo lớp `AdaptiveSamplingManager` quản lý sampling động dựa trên loại tác vụ và sở thích người dùng.
-- Định nghĩa các cấu hình sampling cho các loại tác vụ khác nhau (sáng tạo, thực tế, mã, hội thoại).
-- Triển khai phương pháp phát hiện loại tác vụ từ prompt bằng các quy tắc đơn giản.
-- Tính toán các tham số sampling dựa trên loại tác vụ được phát hiện và sở thích người dùng.
-- Áp dụng các điều chỉnh học được dựa trên hiệu suất lịch sử để tối ưu hóa các tham số sampling.
+- Tạo lớp `AdaptiveSamplingManager` quản lý lấy mẫu động dựa trên loại tác vụ và sở thích người dùng.
+- Định nghĩa các hồ sơ lấy mẫu cho các loại tác vụ khác nhau (sáng tạo, thực tế, mã, hội thoại).
+- Triển khai phương pháp để phát hiện loại tác vụ từ lời nhắc sử dụng các quy tắc đơn giản.
+- Tính toán các tham số lấy mẫu dựa trên loại tác vụ phát hiện được và sở thích người dùng.
+- Áp dụng các điều chỉnh học được dựa trên hiệu suất lịch sử để tối ưu tham số lấy mẫu.
 - Ghi lại hiệu suất để điều chỉnh trong tương lai, cho phép hệ thống học hỏi từ các tương tác trước.
-- Gửi các yêu cầu với tham số sampling được cấu hình động và trả về văn bản tạo cùng với các tham số áp dụng và loại tác vụ được phát hiện.
-- Sử dụng:
-    - `userPreferences` để cho phép tùy chỉnh các tham số sampling dựa trên mức độ sáng tạo, chính xác và nhất quán do người dùng định nghĩa.
-    - `detectTaskType` để xác định bản chất của tác vụ dựa trên prompt, cho phép phản hồi được cá nhân hóa hơn.
-    - `recordPerformance` để ghi lại hiệu suất của các phản hồi tạo ra, giúp hệ thống thích nghi và cải thiện theo thời gian.
-    - `applyLearnedAdjustments` để điều chỉnh các tham số sampling dựa trên hiệu suất lịch sử, nâng cao khả năng tạo phản hồi chất lượng cao của mô hình.
-    - `generateResponse` để bao gói toàn bộ quá trình tạo phản hồi với sampling thích ứng, giúp dễ dàng gọi với các prompt và ngữ cảnh khác nhau.
-    - `allowedTools` để chỉ định các công cụ mà mô hình có thể sử dụng trong quá trình tạo, cho phép phản hồi phù hợp với ngữ cảnh hơn.
-    - `feedbackScore` để người dùng có thể đánh giá chất lượng phản hồi tạo ra, từ đó cải thiện hiệu suất mô hình theo thời gian.
-    - `performanceHistory` để lưu trữ các tương tác trước đó, giúp hệ thống học hỏi từ thành công và thất bại.
-    - `getSamplingParameters` để điều chỉnh tham số sampling một cách linh hoạt dựa trên ngữ cảnh yêu cầu, cho phép mô hình hoạt động linh hoạt và phản ứng tốt hơn.
-    - `detectTaskType` để phân loại tác vụ dựa trên prompt, giúp áp dụng các chiến lược sampling phù hợp cho từng loại yêu cầu.
-    - `samplingProfiles` để định nghĩa các cấu hình sampling cơ bản cho các loại tác vụ khác nhau, cho phép điều chỉnh nhanh chóng dựa trên tính chất yêu cầu.
+- Gửi yêu cầu với các tham số lấy mẫu cấu hình động và trả lại văn bản tạo ra cùng các tham số áp dụng và loại tác vụ phát hiện.
+- Đã sử dụng:
+    - `userPreferences` cho phép tùy chỉnh tham số lấy mẫu dựa trên mức độ sáng tạo, chính xác và nhất quán do người dùng xác định.
+    - `detectTaskType` để xác định bản chất tác vụ dựa trên lời nhắc, giúp tạo phản hồi phù hợp hơn.
+    - `recordPerformance` để ghi lại hiệu suất của các phản hồi được tạo ra, cho phép hệ thống thích ứng và cải thiện theo thời gian.
+    - `applyLearnedAdjustments` để điều chỉnh tham số lấy mẫu dựa trên hiệu suất lịch sử, nâng cao khả năng tạo phản hồi chất lượng của mô hình.
+    - `generateResponse` để đóng gói toàn bộ quá trình tạo phản hồi với lấy mẫu thích ứng, giúp gọi dễ dàng với các lời nhắc và bối cảnh khác nhau.
+    - `allowedTools` để chỉ định các công cụ mô hình có thể sử dụng khi tạo văn bản, giúp tạo các phản hồi có ngữ cảnh hơn.
+    - `feedbackScore` để cho phép người dùng cung cấp phản hồi về chất lượng phản hồi được tạo ra, có thể dùng để tinh chỉnh hiệu suất mô hình theo thời gian.
+    - `performanceHistory` để duy trì hồ sơ các tương tác trước đây, cho phép hệ thống học hỏi từ thành công và thất bại trước đó.
+    - `getSamplingParameters` để điều chỉnh tham số lấy mẫu động dựa trên bối cảnh yêu cầu, cho phép hành vi mô hình linh hoạt và đáp ứng hơn.
+    - `detectTaskType` để phân loại tác vụ dựa trên lời nhắc, giúp hệ thống áp dụng các chiến lược lấy mẫu phù hợp cho các loại yêu cầu khác nhau.
+    - `samplingProfiles` để định nghĩa các cấu hình lấy mẫu cơ bản cho từng loại tác vụ, giúp điều chỉnh nhanh chóng dựa trên bản chất yêu cầu.
 
 ---
 
 ## Tiếp theo là gì
 
-- [5.7 Scaling](../mcp-scaling/README.md)
+- [5.7 Mở rộng quy mô](../mcp-scaling/README.md)
 
-**Tuyên bố từ chối trách nhiệm**:  
-Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng các bản dịch tự động có thể chứa lỗi hoặc không chính xác. Tài liệu gốc bằng ngôn ngữ gốc của nó nên được coi là nguồn chính xác và đáng tin cậy. Đối với các thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp do con người thực hiện. Chúng tôi không chịu trách nhiệm về bất kỳ sự hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Tuyên bố miễn trừ trách nhiệm**:
+Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc sai sót. Tài liệu gốc bằng ngôn ngữ gốc nên được coi là nguồn tin chính thức. Đối với thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm về bất kỳ hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

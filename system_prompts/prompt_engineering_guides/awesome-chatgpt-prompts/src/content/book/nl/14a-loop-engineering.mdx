@@ -1,0 +1,405 @@
+Context engineering bepaalt **wat het model kan zien**. Loop engineering bepaalt **wat het systeem daarna doet**.
+
+In plaats van dat iemand telkens opnieuw een antwoord leest en de volgende prompt schrijft, maakt een loop van dat vervolgwerk een ontworpen systeem. Het geeft een AI een doel, laat hem handelen, observeert echte feedback, evalueert het resultaat en past de aanpak aan — of stopt.
+
+<Callout type="info" title="De Korte Definitie">
+Loop engineering is het bewust ontwerpen van de feedbackcyclus rond een AI-systeem: het doel, de acties, observaties, evaluatie, state, guardrails en stopregels die het werk richting een verifieerbaar resultaat bewegen.
+</Callout>
+
+## Van een goede prompt naar een goede loop
+
+Een prompt kan een sterke eerste poging opleveren. Een loop is nuttig wanneer het aantal stappen vooraf niet bekend is, de omgeving kan veranderen, of de eerste poging aan bewijs getoetst moet worden.
+
+<Compare
+  before={{
+    label: "Eenmalige prompt",
+    content: "Vraag → Genereer → Antwoord\n\nHet model produceert een antwoord. Een mens beoordeelt of het gelukt is en schrijft de volgende prompt."
+  }}
+  after={{
+    label: "Ontworpen loop",
+    content: "Kaderen → Handelen → Observeren → Evalueren → Aanpassen\n                 ↑______________________↓\n\nHet systeem verzamelt bewijs, legt state vast en gaat alleen door zolang een volgende ronde nuttig is."
+  }}
+/>
+
+Dit idee bouwt voort op eerdere agent-patronen. De [ReAct-paper](https://arxiv.org/abs/2210.03629) liet zien hoe waardevol het is om acties af te wisselen met observaties uit een externe omgeving. Het [evaluator-optimizer-patroon](https://www.anthropic.com/engineering/building-effective-agents) van Anthropic voegt daar een aparte feedbackstap aan toe, en de [praktische gids voor agents](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) van OpenAI beschrijft agent-runs als loops die worden begrensd door exitcondities. De nieuwere term **loop engineering** richt de aandacht op het bewust ontwerpen van die hele cyclus.
+
+## De vijf zetten
+
+<InfoGrid items={[
+  { label: "1. Kaderen", description: "Vertaal de intentie naar een doel, randvoorwaarden, succescriteria en een budget.", color: "blue" },
+  { label: "2. Handelen", description: "Kies één begrensde actie: zoeken, bewerken, rekenen, een tool aanroepen of een mens iets vragen.", color: "amber" },
+  { label: "3. Observeren", description: "Verzamel wat er werkelijk gebeurd is: testuitvoer, API-resultaten, bronvermeldingen of gebruikersfeedback.", color: "cyan" },
+  { label: "4. Evalueren", description: "Leg het bewijs naast expliciete criteria — niet naast het zelfvertrouwen van het model.", color: "purple" },
+  { label: "5. Aanpassen", description: "Werk de state bij, wijzig het plan, probeer veilig opnieuw, escaleer of stop.", color: "green" },
+]} />
+
+De loop zit niet in de pijlen. Het echte engineeringwerk zit in de **contracten tussen de pijlen**: wat telt als actie, welke observaties betrouwbaar zijn, wie ze beoordeelt, welke state bewaard blijft en wanneer de uitvoering precies eindigt.
+
+<LoopEngineeringLab content={{
+  eyebrow: "Loopbesturing / interactieve simulator",
+  title: "Doorloop stap voor stap een werkende feedbackloop",
+  description: "Kies een taak en ga telkens één signaal verder. Let op hoe de voortgang voortkomt uit bewijs uit de omgeving en expliciete evaluatie — niet uit de vraag aan het model of het zich klaar voelt.",
+  chooseScenarioLabel: "Kies een loop",
+  goalLabel: "Doel",
+  stopRuleLabel: "Stopregel",
+  evidenceLabel: "Vertrouwd bewijs",
+  iterationLabel: "Iteratie",
+  progressLabel: "Geverifieerde voortgang",
+  openIssuesLabel: "Open punten",
+  currentSignalLabel: "Huidig signaal",
+  advanceLabel: "Eén stap verder",
+  nextIterationLabel: "Start de volgende iteratie",
+  resetLabel: "Loop resetten",
+  completeLabel: "Doel geverifieerd",
+  completeDescription: "Aan de succescriteria is voldaan, het bewijs is vastgelegd en de loop stopt in plaats van nog een cyclus te verbruiken.",
+  stages: [
+    { id: "frame", label: "Kaderen", verb: "Herlees het contract" },
+    { id: "act", label: "Handelen", verb: "Doe één begrensde zet" },
+    { id: "observe", label: "Observeren", verb: "Lees de externe feedback" },
+    { id: "evaluate", label: "Evalueren", verb: "Pas de rubric toe" },
+    { id: "adapt", label: "Aanpassen", verb: "Stel de volgende zet bij" },
+  ],
+  scenarios: [
+    {
+      id: "code",
+      label: "Repareer een bug in de checkout",
+      goal: "Corrigeer de ordertotalen in de checkout zonder geldig kortingsgedrag te veranderen.",
+      stopRule: "De gerichte regressietest slaagt, de volledige checkout-suite slaagt en lint is schoon — of drie pogingen zijn verbruikt en de loop escaleert.",
+      evidence: "Reproductiestappen, testuitvoer, de code-diff en de afsluitende regressiesuite.",
+      cycles: [
+        {
+          action: "Reproduceer het gerapporteerde totaal en voeg een falende test toe voor btw plus procentuele korting.",
+          observation: "De test faalt met precies één cent, maar alleen wanneer de btw wordt afgerond vóórdat de korting wordt toegepast.",
+          evaluation: "De bug is gereproduceerd met een deterministisch signaal, maar de oorzaak is nog niet verholpen.",
+          adaptation: "Onderzoek de afrondingsgrens en wijzig alleen het berekeningspad van het ordertotaal.",
+          progress: 34,
+          openIssues: 2,
+        },
+        {
+          action: "Verplaats de afronding naar de laatste monetaire grens en draai gerichte checkout-tests.",
+          observation: "De regressietest slaagt, maar één integratietest voor coupons faalt nu op een korting met een vast bedrag.",
+          evaluation: "Het eerste symptoom is verholpen, maar de wijziging is te breed. Aan de stopregel is niet voldaan.",
+          adaptation: "Maak de patch smaller en voeg een testcase toe die btw-afronding scheidt van couponafronding.",
+          progress: 71,
+          openIssues: 1,
+        },
+        {
+          action: "Pas de smalle rekenfix toe en draai daarna de regressietest, de volledige checkout-suite en lint.",
+          observation: "Alle checks slagen. De diff raakt één berekeningsfunctie en de nieuwe regressietest.",
+          evaluation: "Elk succescriterium heeft onafhankelijk bewijs en geen enkele budgetlimiet is overschreden.",
+          adaptation: "Stop, bewaar de testuitvoer en geef de kleine diff door aan een menselijke reviewer.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "research",
+      label: "Verifieer een onderzoeksclaim",
+      goal: "Beoordeel de bewering dat werken op afstand de teamproductiviteit altijd verhoogt.",
+      stopRule: "Een gekalibreerde conclusie wordt onderbouwd door minstens drie geloofwaardige bronnen, met vermelding van tegenstrijdigheden en beperkingen.",
+      evidence: "Directe bronlinks, publicatiedata, onderzoeksmethoden, steekproefgroottes en geciteerde cijfers.",
+      cycles: [
+        {
+          action: "Zoek naar recent bewijs en herleid de meest herhaalde productiviteitsstatistiek tot de oorspronkelijke bron.",
+          observation: "De meeste artikelen herhalen een leveranciersenquête zonder link naar de vragenlijst of de ruwe steekproef.",
+          evaluation: "Het bewijs is populair, maar niet sterk genoeg om een absolute claim te dragen.",
+          adaptation: "Geef voorrang aan peer-reviewed studies en openbare datasets; zoek ook naar tegengestelde bevindingen.",
+          progress: 28,
+          openIssues: 3,
+        },
+        {
+          action: "Vergelijk twee peer-reviewed studies met een nationale arbeidsmarktdataset.",
+          observation: "De resultaten verschillen per taaktype, meetmethode en of er volledig remote dan wel hybride wordt gewerkt.",
+          evaluation: "Het bewijs spreekt het woord 'altijd' tegen. Een voorwaardelijke conclusie begint verdedigbaar te worden.",
+          adaptation: "Controleer of de studies onderscheid maken tussen output, gewerkte uren en ervaren productiviteit.",
+          progress: 68,
+          openIssues: 1,
+        },
+        {
+          action: "Stel een bewijstabel op en verifieer elke claim aan de hand van de oorspronkelijke bron.",
+          observation: "De bronnen wijzen op gemengde effecten en noemen autonomie, coördinatie en taaktype als sleutelvariabelen.",
+          evaluation: "De conclusie is onderbouwd, de onzekerheid is zichtbaar en de brondrempel is gehaald.",
+          adaptation: "Stop met een genuanceerd antwoord en bewaar de bewijstabel voor review.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "writing",
+      label: "Verfijn een lancerings-e-mail",
+      goal: "Schrijf een beknopte lancerings-e-mail die het voordeel uitlegt en gekwalificeerde demokliks oplevert.",
+      stopRule: "De e-mail doorstaat de tone-of-voice-rubric, blijft onder de 140 woorden, bevat één duidelijke call-to-action en overleeft een feitencheck.",
+      evidence: "Woordenaantal, rubric-scores, linkvalidatie, productfeiten uit de briefing en notities van de reviewer.",
+      cycles: [
+        {
+          action: "Schrijf een eerste versie op basis van de productbriefing en scoor het resultaat op de doelgroep- en tone-of-voice-rubric.",
+          observation: "Het concept telt 204 woorden, opent met features en bevat twee concurrerende calls-to-action.",
+          evaluation: "De feiten kloppen, maar de criteria voor hiërarchie en lengte falen.",
+          adaptation: "Open met het resultaat voor de klant, schrap de secundaire actie en snijd implementatiedetails weg.",
+          progress: 41,
+          openIssues: 3,
+        },
+        {
+          action: "Herschrijf de opening en comprimeer de bodytekst tot één opbouw van probleem, voordeel en bewijs.",
+          observation: "De e-mail telt 126 woorden en heeft één CTA, maar de bewijszin overdrijft een bètaresultaat.",
+          evaluation: "De structuur voldoet nu. De feitelijke onderbouwing zakt nog steeds voor de rubric.",
+          adaptation: "Vervang de brede claim door het gemeten bètaresultaat en vraag om een laatste feitencheck.",
+          progress: 79,
+          openIssues: 1,
+        },
+        {
+          action: "Voeg het geverifieerde cijfer in, valideer de link en loop de volledige rubric nog één keer na.",
+          observation: "De e-mail telt 132 woorden, de link werkt, de feiten kloppen met de briefing en elk rubric-onderdeel slaagt.",
+          evaluation: "Het artefact haalt de gedefinieerde kwaliteitslat, met controleerbaar bewijs.",
+          adaptation: "Stop en stuur de goedgekeurde versie naar de campagne-eigenaar.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+  ],
+}} />
+
+## Schrijf eerst het loopcontract
+
+Schrijf eerst een klein contract, nog vóór je een model of framework kiest. Zijn deze velden vaag, dan vertaalt de loop die vaagheid in herhaalde kosten.
+
+```yaml
+goal: "Welke waarneembare toestand moet waar worden?"
+inputs: "Wat start de loop?"
+state: "Welke feiten en pogingen blijven tussen iteraties bewaard?"
+actions: "Welke tools mag het systeem gebruiken, en met welke permissies?"
+observations: "Welke externe signalen komen er van die acties terug?"
+evaluator: "Welke rubric of deterministische checks beoordelen het resultaat?"
+success: "Welk bewijs toont aan dat het doel bereikt is?"
+failure: "Welke omstandigheden vragen om herstel of menselijke hulp?"
+budget: "Maximum aantal beurten, tijd, tokens, geld of neveneffecten"
+```
+
+<Callout type="warning" title="Een Loop Zonder Uitgang Is een Faalmodus">
+Definieer altijd drie uitgangen: **succes** wanneer het bewijs aan het doel voldoet, **falen** wanneer herstel niet langer zinvol is, en **budget op** wanneer de loop zijn toegestane kosten- of risicogrens bereikt.
+</Callout>
+
+## Observaties moeten uit de wereld komen
+
+Dat het model zegt “dit ziet er correct uit”, is geen sterk bewijs. Een bruikbare observatie wordt geproduceerd door iets buiten het antwoord dat beoordeeld wordt.
+
+<table>
+  <thead>
+    <tr>
+      <th>Taak</th>
+      <th>Zwakke observatie</th>
+      <th>Sterke observatie</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Code repareren</td>
+      <td>“De fix zou moeten werken.”</td>
+      <td>De oorspronkelijke fout wordt gereproduceerd, waarna de regressietest en de volledige suite slagen.</td>
+    </tr>
+    <tr>
+      <td>Onderzoek</td>
+      <td>“Meerdere bronnen zijn het erover eens.”</td>
+      <td>Claims linken naar de oorspronkelijke bronnen, met datums, methoden en tegenstrijdigheden vastgelegd.</td>
+    </tr>
+    <tr>
+      <td>Data-extractie</td>
+      <td>“De JSON lijkt geldig.”</td>
+      <td>De schemavalidatie slaagt en steekproefsgewijs gecontroleerde records komen overeen met de bron.</td>
+    </tr>
+    <tr>
+      <td>Content</td>
+      <td>“De tekst voelt helder.”</td>
+      <td>De tekst doorstaat een benoemde rubric, een feitencheck, linkcontroles en doelgroeptests.</td>
+    </tr>
+    <tr>
+      <td>Operations</td>
+      <td>“Het verzoek is gelukt.”</td>
+      <td>Het externe systeem meldt de verwachte toestand en er is een auditspoor vastgelegd.</td>
+    </tr>
+  </tbody>
+</table>
+
+Daarom doen tools ertoe: tests, browsers, databases, validators en menselijke review maken van een interne gok een waarneembaar resultaat.
+
+## Scheid de maker van de controleur
+
+Voor werk met weinig risico kan één model zowel schrijven als zichzelf nakijken. Voor belangrijk werk gebruik je een controleur met een andere taak en beperkte bevoegdheden.
+
+<InfoGrid columns={2} items={[
+  { label: "Maker", description: "Stelt de wijziging voor, roept actietools aan en legt uit welk bewijs verzameld moet worden.", color: "amber" },
+  { label: "Controleur", description: "Ontvangt het doel, het artefact en het bewijs; past de rubric toe; mag het werk dat hij beoordeelt niet stilletjes herschrijven.", color: "green" },
+]} />
+
+De controleur hoeft geen tweede AI te zijn. Kies bij voorkeur de meest deterministische beoordelaar die beschikbaar is:
+
+1. **Exacte checks** — types, schema's, constraints, permissies, hashes
+2. **Uitvoerbare checks** — tests, linters, simulaties, linkvalidatie
+3. **Rubric-checks** — een onafhankelijk model of mens dat benoemde criteria hanteert
+4. **Uitkomstchecks** — echt gebruikersgedrag of productiemetrics over langere tijd
+
+<Callout type="tip" title="Zelfvertrouwen Is Geen Bewijs">
+Een confidencescore van hetzelfde model dat het artefact maakte, is nog steeds modeluitvoer. Behandel die als een hint voor de routering, niet als bewijs.
+</Callout>
+
+## State is de ruggengraat van de loop
+
+Context is wat het model **deze beurt** ziet. State is het compacte verslag waarmee de volgende beurt verder kan zonder werk te herhalen of te vergeten.
+
+<Checklist title="Nuttige loop-state" items={[
+  { text: "Het huidige doel en de acceptatiecriteria" },
+  { text: "Al geprobeerde acties en hun waarneembare resultaten" },
+  { text: "Geproduceerde artefacten, met versies of stabiele verwijzingen" },
+  { text: "Oordelen van de beoordelaar en onopgeloste punten" },
+  { text: "Verbruikt budget en nog beschikbare permissies" },
+  { text: "De reden om door te gaan, te stoppen of te escaleren" },
+]} />
+
+Bewaar beknopte beslissingen en bewijs — niet de interne gedachtegang van een model. Goede state is klein, inspecteerbaar en veilig om mee te hervatten.
+
+## Veelvoorkomende loopvormen
+
+### De reparatieloop
+
+`reproduceer → verander één ding → draai de checks → stel een diagnose → herhaal of stop`
+
+Ideaal voor code, configuratie, dataopschoning en elke taak met uitvoerbare feedback.
+
+### De evaluator-optimizer-loop
+
+`genereer → scoor met een rubric → geef gerichte feedback → herzie`
+
+Ideaal voor schrijven, vertalen, designkritiek en output waarvan de kwaliteit verbetert door verwoorde feedback.
+
+### De onderzoeksloop
+
+`zoek → inspecteer bronnen → vind hiaten of conflicten → zoek opnieuw → synthetiseer`
+
+Ideaal wanneer de volledigheid vooraf niet bekend is. De stopregel moet de bewijsdekking meten, niet het aantal zoekresultaten.
+
+### De loop met menselijke goedkeuring
+
+`bereid voor → verifieer automatisch → pauzeer vóór risicovolle acties → een mens keurt goed of stuurt bij`
+
+Ideaal voor betalingen, publiceren, verwijderen, toegangswijzigingen, medische of juridische beslissingen en andere acties met grote gevolgen.
+
+## Faalmodi die je wegontwerpt
+
+<table>
+  <thead>
+    <tr>
+      <th>Faalmodus</th>
+      <th>Wat er gebeurt</th>
+      <th>Engineeringantwoord</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Eindeloos opnieuw proberen</td>
+      <td>De loop heeft geen meetbare succes- of budgetuitgang.</td>
+      <td>Voeg expliciete eindtoestanden en een harde iteratielimiet toe.</td>
+    </tr>
+    <tr>
+      <td>Zelffelicitatie</td>
+      <td>De maker accepteert zijn eigen plausibele antwoord zonder bewijs.</td>
+      <td>Gebruik deterministische checks of een onafhankelijke controleur.</td>
+    </tr>
+    <tr>
+      <td>Contextsneeuwbal</td>
+      <td>Elke iteratie plakt alles erbij totdat het model het signaal kwijtraakt.</td>
+      <td>Bewaar gestructureerde state en bouw alleen relevante context opnieuw op.</td>
+    </tr>
+    <tr>
+      <td>Pingpongen</td>
+      <td>De loop wisselt heen en weer tussen twee fixes.</td>
+      <td>Detecteer herhaalde toestanden en eis een andere strategie of escalatie.</td>
+    </tr>
+    <tr>
+      <td>Doelverschuiving</td>
+      <td>Lokale verbeteringen verdringen het oorspronkelijke doel.</td>
+      <td>Herlees elke cyclus het onveranderlijke doel en de acceptatiecriteria.</td>
+    </tr>
+    <tr>
+      <td>Onveilige herhaling</td>
+      <td>Een omkeerbare fout wordt schadelijk zodra hij wordt herhaald.</td>
+      <td>Beperk permissies, neveneffecten, tempo, uitgaven en de blast radius.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Een minimale implementatie
+
+```typescript
+let state = initialize(goal, acceptanceCriteria, budget);
+
+while (state.budget.remaining > 0) {
+  const context = assembleRelevantContext(state);
+  const proposedAction = await maker.chooseAction(context);
+  const observation = await tools.executeWithinPolicy(proposedAction);
+  const verdict = await evaluator.check({ goal, observation, state });
+
+  state = recordIteration(state, { proposedAction, observation, verdict });
+
+  if (verdict.status === "passed") return complete(state);
+  if (verdict.status === "unsafe" || verdict.status === "blocked") {
+    return escalateToHuman(state);
+  }
+
+  state = adaptPlan(state, verdict.feedback);
+}
+
+return stopWithBudgetReport(state);
+```
+
+De code is het makkelijke deel. De moeilijke vragen zijn domeinvragen: welke test bewijst dat de bug weg is? Welke bron is gezaghebbend? Welke actie is omkeerbaar? Wie mag de laatste stap goedkeuren? Die beslissingen zijn het eigenlijke werk van loop engineering.
+
+## Oefening: ontwerp een loop
+
+<TryIt
+  title="Stel een loopcontract op"
+  description="Vervang de variabelen door een terugkerende taak uit je eigen werk. Vraag de AI om zwak bewijs en vage stopregels ter discussie te stellen."
+  prompt={`Ontwerp een begrensde AI-werkloop voor deze taak:
+
+TAAK: \${task:elke ochtend nieuwe supporttickets triëren}
+
+Definieer:
+1. Het waarneembare doel
+2. De trigger en de vereiste input
+3. Toegestane acties en toolpermissies
+4. Vertrouwde observaties uit de externe omgeving
+5. De beoordelaar en zijn rubric
+6. De state die tussen iteraties bewaard blijft
+7. Uitgangen voor succes, falen en een uitgeput budget
+8. Menselijke goedkeuringsmomenten voor risicovolle acties
+9. Een traceformaat dat elke iteratie controleerbaar maakt
+
+Benoem daarna de drie meest waarschijnlijke faalmodi in je ontwerp en pas de loop aan om ze te voorkomen.`}
+/>
+
+<Quiz
+  question="Een agent bewerkt code, leest de diff terug en zegt dat de bug is opgelost. Wat is het belangrijkste ontbrekende onderdeel van de loop?"
+  options={[
+    "Een langere system prompt",
+    "Een externe observatie, getoetst aan een stopregel",
+    "Een tweede bewerkingsronde",
+    "Een groter contextvenster"
+  ]}
+  correctIndex={1}
+  explanation="De agent heeft een artefact geproduceerd en bekeken, maar geen onafhankelijk bewijs verzameld. Door de fout te reproduceren en relevante tests te draaien ontstaat een waarneembaar signaal dat een stopregel kan toetsen."
+/>
+
+## Verder lezen
+
+- [Loop Engineering — Addy Osmani](https://addyosmani.com/blog/loop-engineering/) — de recente framing waarin handmatige vervolgprompts plaatsmaken voor een ontworpen systeem, plus praktische waarschuwingen over verificatie en menselijke verantwoordelijkheid
+- [Building Effective Agents — Anthropic](https://www.anthropic.com/engineering/building-effective-agents) — evaluator-optimizer-workflows, feedback uit de omgeving, stopcondities en richtlijnen voor wanneer agentische complexiteit gerechtvaardigd is
+- [A Practical Guide to Building Agents — OpenAI](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) — agent-runs, exitcondities, tools, guardrails en menselijk ingrijpen
+- [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) — fundamenteel onderzoek naar het afwisselen van acties met observaties uit een externe omgeving
+
+## Samenvatting
+
+<Callout type="tip" title="Bouw de Feedback, Niet Alleen de Prompt">
+Een betrouwbare loop heeft een meetbaar doel, begrensde acties, vertrouwde observaties, een expliciete beoordelaar, compacte state, veilige uitgangen en menselijk oordeel waar de gevolgen daarom vragen. Het model zit in de loop; de engineer blijft verantwoordelijk voor de loop.
+</Callout>

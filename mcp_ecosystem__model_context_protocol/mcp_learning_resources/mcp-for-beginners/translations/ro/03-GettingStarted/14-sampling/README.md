@@ -1,26 +1,28 @@
+> [DEPRECATED: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
+
 # Sampling - delegarea funcționalităților către Client
 
-> **Notificare de depreciere:** candidatul pentru lansarea specificației MCP din `2026-07-28` marchează Sampling ca învechit în favoarea integrării directe cu API-urile furnizorilor LLM. Sampling continuă să funcționeze în `2025-11-25` și cel puțin un an după orice depreciere formală, deci tot ce este în această lecție rămâne valabil — dar noile designuri de servere ar trebui să evalueze modelul de înlocuire. Vezi [Ce se schimbă în MCP: Candidatul pentru lansarea din 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+> **Notificare de deprecizare:** candidatul de lansare a specificației MCP `2026-07-28` marchează Sampling ca depreciat în favoarea integrării directe cu API-urile furnizorilor LLM. Sampling continuă să funcționeze în `2025-11-25` și cel puțin un an după orice deprecizare formală, astfel că tot ce este în această lecție rămâne valabil — dar noile designuri de server ar trebui să evalueze modelul de înlocuire. Vezi [Ce se schimbă în MCP: Candidatul de lansare 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Uneori, este nevoie ca Clientul MCP și Serverul MCP să colaboreze pentru a atinge un scop comun. S-ar putea să ai o situație în care Serverul are nevoie de ajutorul unui LLM care stă pe client. Pentru această situație, Sampling este ceea ce ar trebui să folosești.
+Uneori, ai nevoie ca Clientul MCP și Serverul MCP să colaboreze pentru a atinge un scop comun. Poate exista un caz în care Serverul necesită ajutorul unui LLM care se află pe client. Pentru această situație, sampling este ceea ce ar trebui să folosești.
 
-Hai să explorăm câteva cazuri de utilizare și cum să construim o soluție care implică sampling.
+Să explorăm câteva cazuri de utilizare și cum să construim o soluție implicând sampling.
 
 ## Prezentare generală
 
-În această lecție ne concentrăm pe explicarea când și unde să folosești Sampling și cum să îl configurezi.
+În această lecție, ne concentrăm pe explicarea când și unde să folosești Sampling și cum să îl configurezi.
 
 ## Obiective de învățare
 
-În acest capitol vom:
+În acest capitol, vom:
 
-- Explica ce este Sampling și când să îl folosești.
-- Arăt cum să configurezi Sampling în MCP.
+- Explica ce este Sampling și când să-l folosești.
+- Arăta cum să configurezi Sampling în MCP.
 - Oferi exemple de Sampling în acțiune.
 
-## Ce este Sampling și de ce să îl folosești?
+## Ce este Sampling și de ce să-l folosești?
 
-Sampling este o funcție avansată care funcționează în următorul mod:
+Sampling este o funcționalitate avansată care funcționează în felul următor:
 
 ```mermaid
 sequenceDiagram
@@ -29,19 +31,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Postare de blog a autorului
-    MCP Client->>MCP Server: Apel al instrumentului (schiță postare blog)
+    User->>MCP Client: Postare pe blog de către autor
+    MCP Client->>MCP Server: Apel instrument (schiță postare blog)
     MCP Server->>MCP Client: Cerere de eșantionare (creare rezumat)
-    MCP Client->>LLM: Generare rezumat postare blog
+    MCP Client->>LLM: Generează rezumatul postării pe blog
     LLM->>MCP Client: Rezultat rezumat
     MCP Client->>MCP Server: Răspuns eșantionare (rezumat)
-    MCP Server->>MCP Client: Postare blog completă (schiță + rezumat)
-    MCP Client->>User: Postare blog gata
+    MCP Server->>MCP Client: Postare completă pe blog (schiță + rezumat)
+    MCP Client->>User: Postare pe blog gata
 ```
 
-### Cerere de sampling
+### Cererea de Sampling
 
-Ok, acum avem o privire de ansamblu asupra unui scenariu credibil, să vorbim despre cererea de sampling pe care serverul o trimite către client. Iată cum poate arăta o astfel de cerere în format JSON-RPC:
+Ok, acum că avem o vedere de ansamblu a unui scenariu credibil, să discutăm despre cererea de sampling pe care serverul o trimite clientului. Iată cum poate arăta o astfel de cerere în format JSON-RPC:
 
 ```json
 {
@@ -73,17 +75,17 @@ Ok, acum avem o privire de ansamblu asupra unui scenariu credibil, să vorbim de
 }
 ```
 
-Sunt câteva aspecte care merită menționate aici:
+Sunt câteva lucruri demne de menționat aici:
 
-- Prompt-ul, sub content -> text, este promptul nostru, o instrucțiune pentru LLM să rezume conținutul unui articol de blog.
+- Prompt-ul, sub content -> text, este prompt-ul nostru care este o instrucțiune pentru LLM de a rezuma conținutul unei postări de blog.
 
-- **modelPreferences**. Această secțiune este exact asta, o preferință, o recomandare despre ce configurație să se folosească cu LLM. Utilizatorul poate alege să urmeze aceste recomandări sau să le modifice. În acest caz sunt recomandări despre modelul de folosit și prioritatea pentru viteză și inteligență.
-- **systemPrompt**, acesta este promptul normal al sistemului care îi dă LLM-ului o personalitate și conține instrucțiuni de ghidare.
-- **maxTokens**, aceasta este o altă proprietate folosită pentru a specifica câți tokens se recomandă a fi folosiți pentru această sarcină.
+- **modelPreferences**. Această secțiune este fix asta, o preferință, o recomandare despre ce configurație să folosești cu LLM. Utilizatorul poate alege dacă urmează aceste recomandări sau le schimbă. În acest caz, există recomandări privind modelul de folosit și prioritățile de viteză și inteligență.
+- **systemPrompt**, acesta este prompt-ul normal de sistem care oferă LLM-ului tău o personalitate și conține instrucțiuni de ghidare.
+- **maxTokens**, această proprietate este folosită pentru a indica câți tokeni sunt recomandați pentru această sarcină.
 
-### Răspuns de sampling
+### Răspunsul la Sampling
 
-Acest răspuns este ceea ce Clientul MCP trimite înapoi Serverului MCP și este rezultatul clientului care apelează LLM-ul, așteaptă acel răspuns și apoi construiește acest mesaj. Iată cum poate arăta în JSON-RPC:
+Acest răspuns este ceea ce Clientul MCP ajunge să trimită înapoi Serverului MCP și este rezultatul apelului clientului către LLM, așteptarea răspunsului și apoi construirea acestui mesaj. Iată cum poate arăta în JSON-RPC:
 
 ```json
 {
@@ -101,13 +103,13 @@ Acest răspuns este ceea ce Clientul MCP trimite înapoi Serverului MCP și este
 }
 ```
 
-Observă cum răspunsul este un rezumat al articolului de blog așa cum am cerut. De asemenea, observă că modelul `model` folosit nu este cel pe care l-am cerut, ci "gpt-5" în loc de "claude-3-sonnet". Acest lucru ilustrează că utilizatorul poate să-și schimbe părerea despre ce să folosească și că cererea ta de sampling este o recomandare.
+Observă cum răspunsul este un rezumat al postării de blog exact cum am cerut. De asemenea, observă cum modelul folosit `model` nu este cel pe care l-am cerut, ci "gpt-5" în loc de "claude-3-sonnet". Acest exemplu ilustrează că utilizatorul poate să își schimbe opinia despre ce să folosească și că cererea ta de sampling este o recomandare.
 
-Ok, acum că înțelegem fluxul principal și o sarcină utilă de folosit este "crearea + rezumatul unui articol de blog", să vedem ce trebuie să facem pentru a funcționa.
+Ok, acum că înțelegem fluxul principal și o sarcină utilă pentru a-l folosi „crearea postării de blog + rezumat”, să vedem ce trebuie să facem pentru a-l pune în funcțiune.
 
 ### Tipuri de mesaje
 
-Mesajele de sampling nu se limitează doar la text, ci poți trimite și imagini și audio. Iată cum arată JSON-RPC diferit:
+Mesajele de sampling nu sunt limitate doar la text, ci poți trimite și imagini și audio. Iată cum diferă JSON-RPC-ul:
 
 **Text**
 
@@ -142,9 +144,9 @@ Mesajele de sampling nu se limitează doar la text, ci poți trimite și imagini
 
 ## Cum să configurezi Sampling în Client
 
-> Notă: dacă construiești doar un server nu este nevoie să faci mare lucru aici.
+> Notă: dacă construiești doar un server, nu ai nevoie să faci prea multe aici.
 
-Într-un client, trebuie să specifici funcția următoare astfel:
+Într-un client, trebuie să specifici această funcționalitate astfel:
 
 ```json
 {
@@ -154,20 +156,20 @@ Mesajele de sampling nu se limitează doar la text, ci poți trimite și imagini
 }
 ```
 
-Acest lucru va fi preluat când clientul tău ales se initializează cu serverul.
+Aceasta va fi preluată când clientul ales inițializează conexiunea cu serverul.
 
-## Exemplu de Sampling în acțiune - Crearea unui articol de blog
+## Exemplu de Sampling în Acțiune - Crearea unei Postări de Blog
 
-Hai să codăm împreună un server de sampling, vom avea nevoie să facem următoarele:
+Să codăm împreună un server de sampling, va trebui să facem următoarele:
 
-1. Creează un tool pe Server.
-1. Tool-ul respectiv trebuie să creeze o cerere de sampling
-1. Tool-ul trebuie să aștepte răspunsul la cererea de sampling a clientului.
-1. Apoi trebuie produs rezultatul tool-ului.
+1. Creăm un instrument pe Server.
+1. Acest instrument trebuie să creeze o cerere de sampling.
+1. Instrumentul trebuie să aștepte răspunsul la cererea de sampling a clientului.
+1. Apoi să producă rezultatul instrumentului.
 
-Hai să vedem codul pas cu pas:
+Să vedem codul pas cu pas:
 
-### -1- Crearea tool-ului
+### -1- Crearea instrumentului
 
 **python**
 
@@ -180,7 +182,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ### -2- Crearea unei cereri de sampling
 
-Extinde tool-ul tău cu următorul cod:
+Extinde-ți instrumentul cu următorul cod:
 
 **python**
 
@@ -222,7 +224,7 @@ return json.dumps({
 })
 ```
 
-### -4- Codul complet
+### -4- Cod complet
 
 **python**
 
@@ -300,10 +302,10 @@ if __name__ == "__main__":
 
 ### -5- Testarea în Visual Studio Code
 
-Pentru a testa acest lucru în Visual Studio Code, fă următoarele:
+Pentru a testa asta în Visual Studio Code, fă următoarele:
 
 1. Pornește serverul în terminal
-1. Adaugă-l în *mcp.json* (și asigură-te că este pornit) ceva de genul:
+1. Adaugă-l în *mcp.json* (și asigură-te că e pornit) ceva de genul:
 
    ```json
    "servers": {
@@ -320,31 +322,31 @@ Pentru a testa acest lucru în Visual Studio Code, fă următoarele:
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Permite să se execute sampling. Prima dată când testezi asta, ți se va prezenta un dialog suplimentar pe care va trebui să îl accepți, apoi vei vedea dialogul normal care îți cere să rulezi un tool
+1. Permite sampling-ul. Prima dată când testezi asta, ți se va prezenta un dialog suplimentar pe care va trebui să îl accepți, apoi vei vedea dialogul normal care te întreabă să rulezi un instrument
 
-1. Verifică rezultatele. Vei vedea rezultatele afișate frumos în GitHub Copilot Chat, dar poți verifica și răspunsul JSON brut.
+1. Inspectează rezultatele. Vei vedea rezultatele afișate frumos în GitHub Copilot Chat, dar poți inspecta și răspunsul JSON brut.
 
 **Bonus**. Instrumentele Visual Studio Code au suport excelent pentru sampling. Poți configura accesul Sampling pe serverul instalat navigând astfel:
 
-1. Accesează secțiunea extensii.
-1. Selectează iconița roată pentru serverul instalat din secțiunea "MCP SERVERS - INSTALLED".
-1. Selectează "Configure Model Access", aici poți selecta ce Modele GitHub Copilot este permis să le folosească când face sampling. De asemenea, poți vedea toate cererile de sampling recente selectând "Show Sampling requests".
+1. Navighează la secțiunea de extensii.
+1. Selectează pictograma de rotiță pentru serverul instalat în secțiunea "MCP SERVERS - INSTALLED".
+1 Selectează "Configure Model Access", aici poți selecta modelele pe care GitHub Copilot este permis să le folosească pentru sampling. De asemenea, poți vedea toate cererile de sampling realizate recent selectând "Show Sampling requests".
 
 ## Tema
 
-În această temă, vei construi un Sampling puțin diferit, și anume o integrare de sampling care suportă generarea unei descrieri de produs. Iată scenariul tău:
+În această temă, vei construi un Sampling ușor diferit, respectiv o integrare de sampling care susține generarea unei descrieri de produs. Iată scenariul tău:
 
-**Scenariu**: lucrătorul back office de la un e-commerce are nevoie de ajutor, durează mult prea mult să genereze descrieri de produs. Prin urmare, trebuie să construiești o soluție unde poți apela un tool "create_product" cu argumentele "title" și "keywords" și să producă un produs complet inclusiv un câmp "description" care să fie populat de un LLM al clientului.
+**Scenariu**: Lucrătorul din back office la un magazin online are nevoie de ajutor, îi ia prea mult timp să genereze descrieri de produse. Prin urmare, trebuie să construiești o soluție în care poți apela un instrument "create_product" cu "title" și "keywords" ca argumente și ar trebui să producă un produs complet cu un câmp "description" populat de LLM-ul clientului.
 
-SUGESTIE: folosește ceea ce ai învățat mai devreme pentru a construi acest server și tool-ul său folosind o cerere de sampling.
+SUGESTIE: folosește ceea ce ai învățat mai devreme pentru a construi acest server și instrumentul său folosind o cerere de sampling.
 
 ## Soluție
 
 [Soluție](./solution/README.md)
 
-## Principalele idei reținute
+## Concluzii cheie
 
-Sampling este o funcție puternică care permite serverului să delege sarcini clientului atunci când are nevoie de ajutorul unui LLM.
+Sampling este o caracteristică puternică care permite serverului să delege sarcini clientului când are nevoie de ajutorul unui LLM.
 
 ## Ce urmează
 

@@ -1,51 +1,55 @@
+> [DEPRECATED: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # MCP Root Contexts
 
-Root contexts er et grunnleggende konsept i Model Context Protocol som gir et vedvarende lag for å opprettholde samtalehistorikk og delt tilstand på tvers av flere forespørsler og økter.
+> **Avviksmelding:** MCP-spesifikasjonskandidaten for utgivelsen `2026-07-28` markerer Roots som avviklet til fordel for verktøyparametere, ressurs-URIer eller serverkonfigurasjon. Roots fungerer fortsatt i `2025-11-25` og i minst ett år etter enhver formell avvikling, så alt i denne leksjonen forblir gyldig – men nye serverdesign bør vurdere erstatningsmønsteret. Se [Hva endres i MCP: Utgivelseskandidat 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Root-kontekster er et grunnleggende konsept i Model Context Protocol som gir et vedvarende lag for å opprettholde samtalehistorikk og delt tilstand på tvers av flere forespørsler og økter.
 
 ## Introduksjon
 
-I denne leksjonen skal vi utforske hvordan man oppretter, administrerer og bruker root contexts i MCP.
+I denne leksjonen skal vi utforske hvordan man oppretter, administrerer og bruker root-kontekster i MCP.
 
 ## Læringsmål
 
-Etter denne leksjonen vil du kunne:
+Mot slutten av denne leksjonen skal du kunne:
 
-- Forstå formålet og strukturen til root contexts  
-- Opprette og administrere root contexts ved hjelp av MCP-klientbiblioteker  
-- Implementere root contexts i .NET, Java, JavaScript og Python-applikasjoner  
-- Bruke root contexts for flertrinnssamtaler og tilstandsadministrasjon  
-- Implementere beste praksis for håndtering av root contexts  
+- Forstå formålet og strukturen til root-kontekster
+- Opprette og administrere root-kontekster ved hjelp av MCP-klientbiblioteker
+- Implementere root-kontekster i .NET, Java, JavaScript og Python-applikasjoner
+- Bruke root-kontekster for samtaler med flere runder og tilstandsadministrasjon
+- Implementere beste praksis for håndtering av root-kontekster
 
-## Forstå root contexts
+## Forstå root-kontekster
 
-Root contexts fungerer som beholdere som holder historikk og tilstand for en serie relaterte interaksjoner. De muliggjør:
+Root-kontekster fungerer som beholdere som holder historikk og tilstand for en serie relaterte interaksjoner. De gjør det mulig å:
 
-- **Samtalepersistens**: Opprettholde sammenhengende flertrinnssamtaler  
-- **Minnehåndtering**: Lagring og henting av informasjon på tvers av interaksjoner  
-- **Tilstandsadministrasjon**: Spore fremdrift i komplekse arbeidsflyter  
-- **Deling av kontekst**: Tillate flere klienter å få tilgang til samme samtaletilstand  
+- **Samtalepersistens**: Opprettholde koherente samtaler med flere runder
+- **Minnehåndtering**: Lagring og henting av informasjon på tvers av interaksjoner
+- **Tilstandsadministrasjon**: Sporing av fremdrift i komplekse arbeidsflyter
+- **Kontekstdeling**: La flere klienter få tilgang til samme samtaletilstand
 
-I MCP har root contexts disse viktige egenskapene:
+I MCP har root-kontekster disse nøkkelfunksjonene:
 
-- Hver root context har en unik identifikator.  
-- De kan inneholde samtalehistorikk, brukerpreferanser og annen metadata.  
-- De kan opprettes, aksesseres og arkiveres etter behov.  
-- De støtter detaljert tilgangskontroll og tillatelser.  
+- Hver root-kontekst har en unik identifikator.
+- De kan inneholde samtalehistorikk, brukerpreferanser og annen metadata.
+- De kan opprettes, aksesseres og arkiveres etter behov.
+- De støtter detaljert tilgangskontroll og tillatelser.
 
-## Livssyklus for root context
+## Livssyklus for root-kontekst
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Opprett Rot Kontekst] --> B[Initialiser med Metadata]
+    B --> C[Send Forespørsler med Kontekst ID]
+    C --> D[Oppdater Kontekst med Resultater]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Arkiver Kontekst Når Fullført]
 ```
 
-## Arbeide med root contexts
+## Arbeide med root-kontekster
 
-Her er et eksempel på hvordan man oppretter og administrerer root contexts.
+Her er et eksempel på hvordan man oppretter og administrerer root-kontekster.
 
 ### C#-implementasjon
 
@@ -124,20 +128,20 @@ public class RootContextExample
 
 I koden ovenfor har vi:
 
-1. Opprettet en root context for en kundestøtteøkt.  
-1. Sendt flere meldinger innenfor den konteksten, slik at modellen kan opprettholde tilstand.  
-1. Oppdatert konteksten med relevant metadata basert på samtalen.  
-1. Hentet kontekstinformasjon for å forstå samtalehistorikken.  
-1. Arkivert konteksten når samtalen var fullført.  
+1. Opprettet en root-kontekst for en kundesupportøkt.
+1. Sendt flere meldinger innenfor den konteksten, slik at modellen kan opprettholde tilstand.
+1. Oppdatert konteksten med relevant metadata basert på samtalen.
+1. Hentet kontekstinformasjon for å forstå samtalehistorikken.
+1. Arkivert konteksten da samtalen var fullført.
 
-## Eksempel: Root context-implementasjon for finansiell analyse
+## Eksempel: Implementering av root-kontekst for finansanalyse
 
-I dette eksempelet oppretter vi en root context for en finansiell analyseøkt, og viser hvordan man opprettholder tilstand på tvers av flere interaksjoner.
+I dette eksemplet skal vi opprette en root-kontekst for en finansanalyseøkt og demonstrere hvordan man opprettholder tilstand på tvers av flere interaksjoner.
 
 ### Java-implementasjon
 
 ```java
-// Java Example: Root Context Implementation
+// Java Eksempel: Rotkontekst Implementering
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Opprett kontekstmetadata
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Opprett en ny rotkontekst
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Første interaksjon
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Oppdater kontekst med viktig informasjon hentet fra responsen
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Andre interaksjon - bruker samme kontekst
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Generer et sammendrag av analysesesjonen
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Lagre sammendraget i kontekstmetadata
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Hent oppdatert kontekstinformasjon
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Arkiver konteksten når du er ferdig
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 I koden ovenfor har vi:
 
-1. Opprettet en root context for en finansiell analyseøkt.  
-2. Sendt flere meldinger innenfor den konteksten, slik at modellen kan opprettholde tilstand.  
-3. Oppdatert konteksten med relevant metadata basert på samtalen.  
-4. Generert et sammendrag av analyseøkten og lagret det i kontekstmetadata.  
-5. Arkivert konteksten når samtalen var fullført.  
+1. Opprettet en root-kontekst for en finansanalyseøkt.
+2. Sendt flere meldinger innenfor den konteksten, slik at modellen kan opprettholde tilstand.
+3. Oppdatert konteksten med relevant metadata basert på samtalen.
+4. Generert et sammendrag av analyseøkten og lagret det i kontekstmetadataen.
+5. Arkivert konteksten da samtalen var fullført.
 
-## Eksempel: Håndtering av root contexts
+## Eksempel: Administrasjon av root-kontekst
 
-Effektiv håndtering av root contexts er avgjørende for å opprettholde samtalehistorikk og tilstand. Nedenfor er et eksempel på hvordan man implementerer håndtering av root contexts.
+Å administrere root-kontekster effektivt er avgjørende for å opprettholde samtalehistorikk og tilstand. Nedenfor er et eksempel på hvordan man implementerer root-kontekstadministrasjon.
 
 ### JavaScript-implementasjon
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScript-eksempel: Håndtering av MCP-root-kontekster
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Initialiser MCP-klienten
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Initialiser kontekstbehandler
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Send meldingen ved å bruke den spesifiserte konteksten
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Valgfritt lagre viktige innsikter fra samtalen
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Ekstraher potensielle innsikter (i en ekte app vil dette være mer sofistikert)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Enkel heuristikk for å identifisere potensielle innsikter
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Lagre innsikter i kontekstmetadata
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Ikke-kritisk feil, så bare logg advarsel
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Be modellen om å generere en oppsummering av samtalen så langt
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Lagre oppsummeringen i kontekstmetadata
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Generer en endelig oppsummering før arkivering
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Arkiver konteksten
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Eksempel på bruk
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Opprett en ny kontekst for en produktstøttesamtale
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Første melding i samtalen
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Oppfølgingsmelding i samme kontekst
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Hent informasjon om konteksten
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Generer og vis samtaleoppsummering
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Arkiver konteksten når du er ferdig
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Håndter eventuelle feil på en smidig måte
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 I koden ovenfor har vi:
 
-1. Opprettet en root context for en produktsupport-samtale med funksjonen `createConversationContext`. I dette tilfellet handler konteksten om problemer med databaseytelse.  
+1. Opprettet en root-kontekst for en produktsupport-samtale med funksjonen `createConversationContext`. I dette tilfellet handler konteksten om databaseytelsesproblemer.
 
-1. Sendt flere meldinger innenfor den konteksten, slik at modellen kan opprettholde tilstand med funksjonen `sendMessage`. Meldinger som sendes handler om treg spørringsytelse og indekskonfigurasjon.  
+1. Sendt flere meldinger innenfor den konteksten, slik at modellen kan opprettholde tilstand med funksjonen `sendMessage`. Meldingenes tema er treg spørringsytelse og indekskonfigurasjon.
 
-1. Oppdatert konteksten med relevant metadata basert på samtalen.  
+1. Oppdatert konteksten med relevant metadata basert på samtalen.
 
-1. Generert et sammendrag av samtalen og lagret det i kontekstmetadata med funksjonen `generateContextSummary`.  
+1. Generert et sammendrag av samtalen og lagret dette i kontekstmetadataen med funksjonen `generateContextSummary`.
 
-1. Arkivert konteksten når samtalen var fullført med funksjonen `archiveContext`.  
+1. Arkivert konteksten når samtalen var fullført med funksjonen `archiveContext`.
 
-1. Håndtert feil på en robust måte for å sikre stabilitet.  
+1. Håndtert feil på en smidig måte for å sikre robusthet.
 
-## Root context for flertrinnsassistanse
+## Root-kontekst for fleromgangshjelp
 
-I dette eksempelet oppretter vi en root context for en flertrinns assistanseøkt, og viser hvordan man opprettholder tilstand på tvers av flere interaksjoner.
+I dette eksemplet skal vi opprette en root-kontekst for en fleromgangshjelp-økt, og demonstrere hvordan man opprettholder tilstand på tvers av flere interaksjoner.
 
 ### Python-implementasjon
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python-eksempel: Rotkontekst for fleromgangshjelp
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Legg til brukerinformasjon hvis oppgitt
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Opprett rotkonteksten
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Opprett alternativer med kontekst-ID
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Legg til verktøy hvis spesifisert
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Send prompten innenfor konteksten
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Oppdater kontekstmetadata med samtalefremgang
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Generer en sammendrags-prompt først
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Lagre sammendrag i metadata
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Arkiver konteksten
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Eksempel på bruk
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Opprett sesjon
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Første interaksjon
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Andre interaksjon i samme kontekst
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Hent historikk
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Avslutt sesjon
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 I koden ovenfor har vi:
 
-1. Opprettet en root context for en teknisk support-økt med funksjonen `create_session`. Konteksten inkluderer brukerinformasjon som navn og teknisk nivå.  
+1. Opprettet en root-kontekst for en teknisk supportøkt med funksjonen `create_session`. Konteksten inkluderer brukeropplysninger som navn og teknisk nivå.
 
-1. Sendt flere meldinger innenfor den konteksten, slik at modellen kan opprettholde tilstand med funksjonen `send_message`. Meldinger som sendes handler om problemer med autoskalering.  
+1. Sendt flere meldinger innenfor den konteksten, slik at modellen kan opprettholde tilstand med funksjonen `send_message`. Meldingenes tema er problemer med auto-skaleringsfunksjonen.
 
-1. Hentet samtalehistorikk ved hjelp av funksjonen `get_conversation_history`, som gir kontekstinformasjon og meldinger.  
+1. Hentet samtalehistorikk ved å bruke funksjonen `get_conversation_history`, som gir kontekstinformasjon og meldinger.
 
-1. Avsluttet økten ved å arkivere konteksten og generere et sammendrag med funksjonen `end_session`. Sammendraget fanger opp viktige punkter fra samtalen.  
+1. Avsluttet økten ved å arkivere konteksten og generere et sammendrag med funksjonen `end_session`. Sammendraget fanger opp viktige punkter fra samtalen.
 
-## Beste praksis for root contexts
+## Beste praksis for root-kontekst
 
-Her er noen beste praksiser for effektiv håndtering av root contexts:
+Her er noen beste praksiser for effektiv håndtering av root-kontekster:
 
-- **Opprett fokuserte kontekster**: Lag separate root contexts for ulike samtaleformål eller domener for å opprettholde klarhet.  
+- **Opprett fokuserte kontekster**: Opprett separate root-kontekster for forskjellige samtalehensikter eller domener for å opprettholde klarhet.
 
-- **Sett utløpsregler**: Implementer regler for arkivering eller sletting av gamle kontekster for å håndtere lagring og overholde retningslinjer for datalagring.  
+- **Sett utløpspolicyer**: Implementer retningslinjer for arkivering eller sletting av gamle kontekster for å håndtere lagring og overholde retningslinjer for datalagring.
 
-- **Lagre relevant metadata**: Bruk kontekstmetadata til å lagre viktig informasjon om samtalen som kan være nyttig senere.  
+- **Lagre relevant metadata**: Bruk kontekstmetadata for å lagre viktig informasjon om samtalen som kan være nyttig senere.
 
-- **Bruk kontekst-ID-er konsekvent**: Når en kontekst er opprettet, bruk dens ID konsekvent for alle relaterte forespørsler for å opprettholde kontinuitet.  
+- **Bruk kontekst-IDer konsistent**: Når en kontekst er opprettet, bruk ID-en konsistent for alle tilknyttede forespørsler for å opprettholde kontinuitet.
 
-- **Generer sammendrag**: Når en kontekst blir stor, vurder å generere sammendrag for å fange essensiell informasjon samtidig som kontekststørrelsen håndteres.  
+- **Generer sammendrag**: Når en kontekst vokser seg stor, vurder å generere sammendrag for å fange essensiell informasjon samtidig som man håndterer kontekststørrelse.
 
-- **Implementer tilgangskontroll**: For systemer med flere brukere, implementer riktig tilgangskontroll for å sikre personvern og sikkerhet for samtalekontekster.  
+- **Implementer tilgangskontroll**: For systemer med flere brukere, implementer riktig tilgangskontroll for å sikre personvern og sikkerhet for samtalekontekster.
 
-- **Håndter kontekstbegrensninger**: Vær oppmerksom på begrensninger i kontekststørrelse og implementer strategier for å håndtere svært lange samtaler.  
+- **Håndter kontekstbegrensninger**: Vær oppmerksom på begrensninger i kontekststørrelse og implementer strategier for å håndtere svært lange samtaler.
 
-- **Arkiver når ferdig**: Arkiver kontekster når samtaler er fullført for å frigjøre ressurser samtidig som samtalehistorikken bevares.  
+- **Arkiver når fullført**: Arkiver kontekster når samtaler er fullført for å frigjøre ressurser samtidig som samtalehistorikken bevares.
 
-## Hva nå
+## Hva er det neste?
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Ruting](../mcp-routing/README.md)
 
-**Ansvarsfraskrivelse**:  
-Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vennligst vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal anses som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Ansvarsfraskrivelse**:
+Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal betraktes som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

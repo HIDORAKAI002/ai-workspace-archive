@@ -37,22 +37,14 @@
  *   fixture.mjs list --subject topic:tpc_xxx
  *       List the subject's check fixtures.
  */
-import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename, dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
-// Anchor to the checkout being TESTED (cwd's git toplevel — correct when the
-// main checkout's script is invoked inside a worktree), not the script's own
-// checkout; fall back to script-relative outside any repo.
-const repoRoot = () => {
-  try {
-    return execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
-  } catch {
-    return resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
-  }
-};
-const REPO_ROOT = repoRoot();
+const { basename, join } = path;
+
+// The generic skill is invoked from the consumer repository. Keep all
+// generated fixtures and reports anchored to that explicit working directory.
+const REPO_ROOT = process.cwd();
 
 const fail = (msg) => {
   console.error(`fixture.mjs: ${msg}`);

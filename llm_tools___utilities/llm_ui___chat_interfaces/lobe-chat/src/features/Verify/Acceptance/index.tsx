@@ -37,6 +37,10 @@ import { useParams } from 'react-router';
 
 import NeuralNetworkLoading from '@/components/NeuralNetworkLoading';
 import AgentProfilePopup from '@/features/AgentProfileCard/AgentProfilePopup';
+// The workspace-scoped mutate — a bare `import { mutate } from 'swr'` misses
+// every `useClientDataSWR` subscriber (augmented keys + custom cache provider).
+import { mutate as globalMutate } from '@/libs/swr';
+import { verifyKeys } from '@/libs/swr/keys';
 import { verifyService } from '@/services/verify';
 
 import { useAcceptanceBundle } from '../hooks';
@@ -50,6 +54,8 @@ import CheckList, {
   isException,
   isGroupFullyAccepted,
 } from './CheckList';
+import DecisionBar from './DecisionBar';
+import FeedbackDrawer, { type FeedbackListEntry } from './FeedbackDrawer';
 import LedgerPanel, { type AcceptanceRound } from './LedgerPanel';
 import { openAcceptModal } from './modals';
 
@@ -181,6 +187,7 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
   const [reportRound, setReportRound] = useState<AcceptanceRound | null>(null);
   const [pending, setPending] = useState(false);
   const [actionError, setActionError] = useState<string>();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const status = data?.acceptance.status;
 
@@ -246,6 +253,14 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
 
   const { acceptance, checks, isOwner, latestReport, origin, rounds, subject } = data;
   const currentRound = rounds.at(-1);
+  // Group-scoped feedback lives on each round's decision detail — flatten the
+  // chain into the derived per-entry view (roundIndex from the carrying run).
+  const groupFeedbackEntries = rounds.flatMap((round) =>
+    (round.run.decisionDetail?.groupFeedback ?? []).map((entry) => ({
+      ...entry,
+      roundIndex: round.run.roundIndex ?? 0,
+    })),
+  );
   // The latest coding round's context — rendered with the latest report card
   // (it describes what THAT round verified), not as aggregate-level identity.
   // A round with no scenario predates the column and is a coding round; a
@@ -323,6 +338,9 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       setActionError(undefined);
       await action();
       await mutate();
+      // The list panel derives its glyph from the same status — a decision
+      // here must not leave a stale icon there until a hard refresh.
+      void globalMutate(verifyKeys.acceptances());
       return true;
     } catch (cause) {
       setActionError(cause instanceof Error ? cause.message : t('acceptance.actionError'));
@@ -342,119 +360,93 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
   const handleReview = (input: CheckReviewInput) =>
     runAction(() => verifyService.reviewChecks({ id: acceptance.id, ...input }));
 
-  const decisionBanner = () => {
-    if (LIVE_STATUSES.has(acceptance.status))
-      return (
-        <Flexbox
-          horizontal
-          align={'center'}
-          className={styles.banner}
-          gap={10}
-          style={{ background: cssVar.colorInfoBg }}
-        >
-          <Icon spin color={cssVar.colorInfo} icon={Loader2} size={16} />
-          <Flexbox flex={1} gap={2}>
-            <Text strong style={{ fontSize: 13 }}>
-              {t(`acceptance.status.${acceptance.status}`)}
-            </Text>
-            <Text fontSize={12} type={'secondary'}>
-              {t('acceptance.banner.liveHint')}
-            </Text>
-          </Flexbox>
-        </Flexbox>
-      );
+  // Group-scoped feedback — for concerns that belong to no single check (the
+  // checks themselves may be accepted) yet must reach the next round.
+  const handleGroupFeedback = (category: string, comment: string) =>
+    runAction(() => verifyService.addGroupFeedback({ category, comment, id: acceptance.id }));
 
-    if (acceptance.status === 'accepted')
-      return (
-        <Flexbox
-          horizontal
-          align={'center'}
-          className={styles.banner}
-          gap={10}
-          style={{ background: cssVar.colorSuccessBg }}
-        >
-          <Icon color={cssVar.colorSuccess} icon={BadgeCheck} size={18} />
-          <Flexbox flex={1} gap={2}>
-            <Text strong style={{ fontSize: 13 }}>
-              {t('acceptance.banner.accepted', {
-                time: acceptance.completedAt
-                  ? dayjs(acceptance.completedAt).format('YYYY-MM-DD HH:mm')
-                  : '',
-              })}
-            </Text>
-            <Text fontSize={12} type={'secondary'}>
-              {countsText} · {t('acceptance.banner.acceptedHint', { count: rounds.length })}
-            </Text>
-          </Flexbox>
-        </Flexbox>
-      );
+  // The floating bar's one-line state + supporting line — the old banner's
+  // content, relocated to where the decision actually happens.
+  const barState = LIVE_STATUSES.has(acceptance.status)
+    ? ('live' as const)
+    : acceptance.status === 'accepted'
+      ? ('accepted' as const)
+      : acceptance.status === 'rejected'
+        ? ('rejected' as const)
+        : ('settled' as const);
+  const hasException = counts.exceptions > 0;
+  const barTexts = {
+    accepted: {
+      statusText: t('acceptance.banner.accepted', {
+        time: acceptance.completedAt
+          ? dayjs(acceptance.completedAt).format('YYYY-MM-DD HH:mm')
+          : '',
+      }),
+      subText: `${countsText} · ${t('acceptance.banner.acceptedHint', { count: rounds.length })}`,
+    },
+    live: {
+      statusText: t(`acceptance.status.${acceptance.status}` as any),
+      subText: t('acceptance.banner.liveHint'),
+    },
+    rejected: {
+      statusText: t('acceptance.banner.rejected'),
+      subText: currentRound?.run.decisionDetail?.comment ?? t('acceptance.banner.rejectedHint'),
+    },
+    settled: {
+      statusText: hasException
+        ? t('acceptance.banner.exceptions', { count: counts.exceptions })
+        : t('acceptance.banner.clean', { count: rounds.length }),
+      subText: `${countsText} · ${t('acceptance.banner.decisionHint')}`,
+    },
+  }[barState];
 
-    if (acceptance.status === 'rejected') {
-      const reason = currentRound?.run.decisionDetail?.comment;
-      return (
-        <Flexbox className={styles.banner} gap={6} style={{ background: cssVar.colorErrorBg }}>
-          <Flexbox horizontal align={'center'} gap={10}>
-            <Icon color={cssVar.colorError} icon={RotateCcw} size={16} />
-            <Text strong style={{ fontSize: 13 }}>
-              {t('acceptance.banner.rejected')}
-            </Text>
-          </Flexbox>
-          {reason && (
-            <Text fontSize={12} type={'secondary'}>
-              {t('acceptance.banner.rejectedReason', { reason })}
-            </Text>
-          )}
-          <Text fontSize={12} type={'secondary'}>
-            {t('acceptance.banner.rejectedHint')}
-          </Text>
-        </Flexbox>
-      );
-    }
+  // Every feedback event, flattened for the clearing list: per-check rejects
+  // (each review event) + group/global notes, active vs consumed by round.
+  const currentRoundIndex = currentRound?.run.roundIndex ?? 0;
+  const feedbackEntries: FeedbackListEntry[] = [
+    ...checks.flatMap((check) =>
+      check.reviews
+        .filter((review) => review.action === 'reject')
+        .map((review) => ({
+          annotationCount: review.annotations?.length || undefined,
+          checkId: check.id,
+          checkSeq: check.seq,
+          comment: review.comment ?? '',
+          createdAt: review.createdAt,
+          kind: 'check' as const,
+          roundIndex: review.roundIndex,
+          stale: review.roundIndex < currentRoundIndex,
+          title: check.title,
+        })),
+    ),
+    ...groupFeedbackEntries.map((entry) => ({
+      comment: entry.comment,
+      createdAt: entry.createdAt,
+      groupLabel: entry.category,
+      kind: 'group' as const,
+      roundIndex: entry.roundIndex,
+      stale: entry.roundIndex < currentRoundIndex,
+    })),
+  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const activeFeedbackCount = feedbackEntries.filter((entry) => !entry.stale).length;
 
-    // delivered / errored — the round chain settled; the decision is the user's.
-    const hasException = counts.exceptions > 0;
-    return (
-      <Flexbox
-        horizontal
-        align={'center'}
-        className={styles.banner}
-        gap={12}
-        style={{ background: hasException ? cssVar.colorWarningBg : cssVar.colorSuccessBg }}
-      >
-        <Icon
-          color={hasException ? cssVar.colorWarning : cssVar.colorSuccess}
-          icon={hasException ? HelpCircle : BadgeCheck}
-          size={18}
-        />
-        <Flexbox flex={1} gap={2}>
-          <Text strong style={{ fontSize: 13 }}>
-            {hasException
-              ? t('acceptance.banner.exceptions', { count: counts.exceptions })
-              : t('acceptance.banner.clean', { count: rounds.length })}
-          </Text>
-          <Text fontSize={12} type={'secondary'}>
-            {countsText} · {t('acceptance.banner.decisionHint')}
-          </Text>
-        </Flexbox>
-        {/* Whole-delivery reject is deliberately NOT exposed yet — per-check
-            reject-with-feedback is the send-back path; only the closing
-            accept ships for now. */}
-        <Button
-          disabled={pending}
-          type={'primary'}
-          onClick={() =>
-            openAcceptModal({
-              exceptions: checks.filter((check) => isException(check)).map((check) => check.title),
-              onConfirm: () => runAction(() => verifyService.acceptDelivery(acceptance.id)),
-              subjectTitle: subject.title ?? subject.id,
-            })
-          }
-        >
-          {t('acceptance.actions.accept')}
-        </Button>
-      </Flexbox>
-    );
+  const jumpToCheck = (checkId: string) => {
+    setFeedbackOpen(false);
+    setExpanded((previous) => new Set(previous).add(checkId));
+    // Wait a paint so a collapsed group/row has rendered before scrolling.
+    setTimeout(() => {
+      document
+        .querySelector(`[data-check-row="${checkId}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
   };
+
+  const handleAccept = () =>
+    openAcceptModal({
+      exceptions: checks.filter((check) => isException(check)).map((check) => check.title),
+      onConfirm: () => runAction(() => verifyService.acceptDelivery(acceptance.id)),
+      subjectTitle: subject.title ?? subject.id,
+    });
 
   return (
     <Flexbox horizontal className={styles.page}>
@@ -527,7 +519,7 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
                       align={'center'}
                       className={styles.scopeChip}
                       gap={6}
-                      style={{ cursor: 'default' }}
+                      style={{ cursor: 'default', fontSize: 14 }}
                     >
                       <Avatar
                         avatar={origin.agent.avatar ?? undefined}
@@ -544,8 +536,18 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
                     align={'center'}
                     className={cx(styles.scopeChip, styles.scopeLink)}
                     gap={4}
+                    style={{ fontSize: 14 }}
                     title={t('acceptance.origin.openTopic')}
-                    onClick={() => window.open(`/chat?topic=${origin.topic!.id}`, '_blank')}
+                    onClick={() =>
+                      window.open(
+                        // The canonical conversation route needs the agent;
+                        // without one, the legacy topic deep-link is the way in.
+                        origin.agent
+                          ? `/agent/${origin.agent.id}/${origin.topic!.id}`
+                          : `/chat?topic=${origin.topic!.id}`,
+                        '_blank',
+                      )
+                    }
                   >
                     <Icon icon={MessagesSquare} size={13} />
                     {origin.topic.title ?? subject.title ?? origin.topic.id}
@@ -556,9 +558,6 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
             )}
           </Flexbox>
 
-          {/* Decision bar — the user closes the lifecycle (P-12). Owner-only:
-              the closing accept is the author's call, never a visitor's. */}
-          {isOwner && decisionBanner()}
           {actionError && <Text type={'danger'}>{actionError}</Text>}
 
           {/* The acceptance goal — THE thing this delivery is judged against,
@@ -674,8 +673,11 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
             {rounds.length > 1 && (
               <Select
                 size={'small'}
-                style={{ width: 110 }}
+                // Filled + the Segmented's exact height so the two read as
+                // one control family, not a stray bordered input.
+                style={{ height: 34, width: 110 }}
                 value={roundFilter === null ? 'all' : String(roundFilter)}
+                variant={'filled'}
                 options={[
                   { label: t('acceptance.filter.roundAll'), value: 'all' },
                   ...[...rounds].reverse().map((round) => ({
@@ -704,10 +706,13 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
             canReview={isOwner}
             checks={checks}
             collapsedGroups={collapsedGroups}
+            currentRound={currentRound?.run.roundIndex ?? 0}
             expanded={expanded}
             filter={filter}
+            groupFeedback={groupFeedbackEntries}
             reviewPending={pending}
             round={roundFilter}
+            onGroupFeedback={handleGroupFeedback}
             onReview={handleReview}
             onRound={gotoRound}
             onToggleGroup={(key) =>
@@ -737,9 +742,30 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
               })
             }
           />
-          <Flexbox style={{ height: 24 }} />
+          {/* The floating decision strip — owner-only: closing the loop and
+              queueing feedback are the author's calls, never a visitor's. */}
+          {isOwner && (
+            <DecisionBar
+              feedbackCount={activeFeedbackCount}
+              hasException={hasException}
+              pending={pending}
+              state={barState}
+              statusText={barTexts.statusText}
+              subText={barTexts.subText}
+              onAccept={handleAccept}
+              onOpenFeedback={() => setFeedbackOpen(true)}
+            />
+          )}
+          <Flexbox style={{ height: 8 }} />
         </Flexbox>
       </Flexbox>
+
+      <FeedbackDrawer
+        entries={feedbackEntries}
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        onJumpToCheck={jumpToCheck}
+      />
 
       {/* Round ledger — audit detail, off the decision path (P-13). No edge
           handle: opening happens from the page-corner toggle, closing from the

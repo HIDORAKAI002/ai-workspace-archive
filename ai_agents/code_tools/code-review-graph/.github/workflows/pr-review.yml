@@ -1,4 +1,6 @@
 # Dogfoods the local composite action (action.yml at the repo root) on PRs.
+# This run is intentionally unprivileged. A separate workflow_run workflow
+# validates the rendered report and posts the sticky comment.
 name: PR Review
 
 on:
@@ -7,15 +9,34 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run code-review-graph review
+        id: review
         uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment: "false"
           fail-on-risk: none
+      - name: Stage report artifact
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/crg-report
+          COMMENT_FILE: ${{ steps.review.outputs.comment-file }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          rm -rf -- "${ARTIFACT_DIR}"
+          mkdir -p -- "${ARTIFACT_DIR}"
+          cp -- "${COMMENT_FILE}" "${ARTIFACT_DIR}/crg-comment.md"
+          printf '%s\n' "${PR_NUMBER}" > "${ARTIFACT_DIR}/pr-number.txt"
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: crg-report
+          path: ${{ runner.temp }}/crg-report/
+          if-no-files-found: error
+          retention-days: 1

@@ -1,53 +1,57 @@
-# MCP Root Contexts
+> [NABAWASAN NG SILA: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Ang root contexts ay isang pangunahing konsepto sa Model Context Protocol na nagbibigay ng tuloy-tuloy na layer para mapanatili ang kasaysayan ng pag-uusap at shared state sa maraming kahilingan at sesyon.
+# MCP Mga Ugat na Konteksto
+
+> **Pabatid sa Pagbawas:** ang `2026-07-28` MCP specification release candidate ay nagmamarka ng Roots bilang nabawasan pabor sa mga parametro ng tool, resource URIs, o server configuration. Patuloy na gumagana ang Roots sa `2025-11-25` at sa loob ng hindi bababa sa isang taon matapos ang pormal na pagbawas, kaya ang lahat ng nasa araling ito ay nananatiling wasto - ngunit ang mga bagong disenyo ng server ay dapat suriin ang pattern ng kapalit. Tingnan ang [Ano ang Nagbabago sa MCP: Ang 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Ang mga root context ay isang pangunahing konsepto sa Model Context Protocol na nagbibigay ng matibay na patong para mapanatili ang kasaysayan ng pag-uusap at pinagsamang estado sa maraming mga kahilingan at session.
 
 ## Panimula
 
-Sa araling ito, tatalakayin natin kung paano gumawa, mag-manage, at gumamit ng root contexts sa MCP.
+Sa araling ito, susuriin natin kung paano gumawa, pamahalaan, at gamitin ang mga root context sa MCP.
 
 ## Mga Layunin sa Pagkatuto
 
 Sa pagtatapos ng araling ito, magagawa mong:
 
-- Maunawaan ang layunin at estruktura ng root contexts
-- Gumawa at mag-manage ng root contexts gamit ang MCP client libraries
-- Ipatupad ang root contexts sa .NET, Java, JavaScript, at Python na mga aplikasyon
-- Gamitin ang root contexts para sa multi-turn na pag-uusap at pamamahala ng estado
-- Ipatupad ang mga pinakamahusay na kasanayan sa pamamahala ng root context
+- Maunawaan ang layunin at estruktura ng mga root context
+- Gumawa at pamahalaan ang mga root context gamit ang MCP client libraries
+- Ipatupad ang mga root context sa mga aplikasyon ng .NET, Java, JavaScript, at Python
+- Gamitin ang mga root context para sa mga multi-turn na pag-uusap at pamamahala ng estado
+- Ipatupad ang mga pinakamahusay na kasanayan para sa pamamahala ng root context
 
-## Pag-unawa sa Root Contexts
+## Pag-unawa sa Mga Root Context
 
-Ang root contexts ay nagsisilbing lalagyan na nagtatago ng kasaysayan at estado para sa serye ng magkakaugnay na interaksyon. Pinapahintulutan nila ang:
+Ang mga root context ay nagsisilbing mga lalagyan na nagtataglay ng kasaysayan at estado para sa isang serye ng magkakaugnay na interaksyon. Pinapagana nila ang:
 
 - **Pagpapatuloy ng Pag-uusap**: Pagpapanatili ng magkakaugnay na multi-turn na pag-uusap
 - **Pamamahala ng Memorya**: Pag-iimbak at pagkuha ng impormasyon sa mga interaksyon
-- **Pamamahala ng Estado**: Pagsubaybay sa progreso sa mga komplikadong workflow
+- **Pamamahala ng Estado**: Pagsubaybay sa progreso sa mga kumplikadong workflow
 - **Pagbabahagi ng Konteksto**: Pagbibigay-daan sa maraming kliyente na ma-access ang parehong estado ng pag-uusap
 
-Sa MCP, ang mga root contexts ay may mga sumusunod na pangunahing katangian:
+Sa MCP, ang mga root context ay may mga pangunahing katangian:
 
 - Bawat root context ay may natatanging identifier.
-- Maaari itong maglaman ng kasaysayan ng pag-uusap, mga kagustuhan ng user, at iba pang metadata.
-- Maaari itong likhain, ma-access, at ma-archive ayon sa pangangailangan.
-- Sinusuportahan nito ang masusing kontrol sa access at mga permiso.
+- Maaari nilang taglayin ang kasaysayan ng pag-uusap, mga kagustuhan ng gumagamit, at iba pang metadata.
+- Maaari silang malikha, ma-access, at ma-archive kung kinakailangan.
+- Sinuportahan nila ang masusing kontrol sa pag-access at mga pahintulot.
 
 ## Lifecycle ng Root Context
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Lumikha ng Ugat na Konteksto] --> B[I-initialize gamit ang Metadata]
+    B --> C[Magpadala ng mga Kahilingan gamit ang ID ng Konteksto]
+    C --> D[I-update ang Konteksto gamit ang mga Resulta]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[I-archive ang Konteksto Kapag Kumpleto na]
 ```
 
-## Paggamit ng Root Contexts
+## Paggana sa Mga Root Context
 
-Narito ang isang halimbawa kung paano gumawa at mag-manage ng root contexts.
+Narito ang isang halimbawa kung paano gumawa at pamahalaan ang mga root context.
 
-### Implementasyon sa C#
+### Pagpapatupad sa C#
 
 ```csharp
 // .NET Example: Root Context Management
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-Sa naunang code ay:
+Sa nabanggit na code ay:
 
-1. Nilikha ang isang root context para sa isang customer support session.
+1. Nakagawa ng root context para sa isang session ng customer support.
 1. Nagpadala ng maraming mensahe sa loob ng kontekstong iyon, na nagpapahintulot sa modelo na mapanatili ang estado.
-1. In-update ang context gamit ang mga kaugnay na metadata base sa pag-uusap.
-1. Kinuha ang impormasyon ng context upang maunawaan ang kasaysayan ng pag-uusap.
-1. In-archive ang context nang matapos ang pag-uusap.
+1. Na-update ang konteksto gamit ang mahalagang metadata base sa pag-uusap.
+1. Nakuha ang impormasyon ng konteksto upang maunawaan ang kasaysayan ng pag-uusap.
+1. Na-archive ang konteksto nang matapos ang pag-uusap.
 
-## Halimbawa: Implementasyon ng Root Context para sa financial analysis
+## Halimbawa: Pagpapatupad ng Root Context para sa pagsusuring pinansyal
 
-Sa halimbawang ito, gagawa tayo ng root context para sa isang financial analysis session, na nagpapakita kung paano mapanatili ang estado sa maraming interaksyon.
+Sa halimbawang ito, gagawa tayo ng root context para sa isang session ng pagsusuring pinansyal, na nagpapakita kung paano mapanatili ang estado sa maraming interaksyon.
 
-### Implementasyon sa Java
+### Pagpapatupad sa Java
 
 ```java
-// Java Example: Root Context Implementation
+// Halimbawa ng Java: Implementasyon ng Root Context
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Gumawa ng metadata ng konteksto
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Gumawa ng bagong root context
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Unang pakikipag-ugnayan
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. I-update ang konteksto gamit ang mahahalagang impormasyon mula sa tugon
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Pangalawang pakikipag-ugnayan - gamit ang parehong konteksto
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Gumawa ng buod ng sesyon ng pagsusuri
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Itago ang buod sa metadata ng konteksto
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Kuhanin ang na-update na impormasyon ng konteksto
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. I-archive ang konteksto kapag tapos na
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-Sa naunang code ay:
+Sa nabanggit na code, kami ay:
 
-1. Nilikha ang isang root context para sa financial analysis session.
+1. Nakagawa ng root context para sa session ng pagsusuring pinansyal.
 2. Nagpadala ng maraming mensahe sa loob ng kontekstong iyon, na nagpapahintulot sa modelo na mapanatili ang estado.
-3. In-update ang context gamit ang mga kaugnay na metadata base sa pag-uusap.
-4. Nilikha ang isang buod ng analysis session at iniimbak ito sa context metadata.
-5. In-archive ang context nang matapos ang pag-uusap.
+3. Na-update ang konteksto gamit ang mahalagang metadata base sa pag-uusap.
+4. Nakabuo ng buod ng session ng pagsusuri at iniimbak ito sa metadata ng konteksto.
+5. Na-archive ang konteksto nang matapos ang pag-uusap.
 
 ## Halimbawa: Pamamahala ng Root Context
 
-Mahalaga ang epektibong pamamahala ng root contexts para mapanatili ang kasaysayan ng pag-uusap at estado. Narito ang isang halimbawa kung paano ipatupad ang pamamahala ng root context.
+Ang epektibong pamamahala ng mga root context ay mahalaga para mapanatili ang kasaysayan ng pag-uusap at estado. Narito ang isang halimbawa kung paano ipatupad ang pamamahala ng root context.
 
-### Implementasyon sa JavaScript
+### Pagpapatupad sa JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// Halimbawa sa JavaScript: Pamamahala ng MCP Root Contexts
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // I-initialize ang MCP client
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // I-initialize ang context manager
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Ipadala ang mensahe gamit ang tinukoy na konteksto
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Opsyonal na itabi ang mahalagang mga insight mula sa pag-uusap
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Kunin ang mga posibleng insight (sa tunay na app, mas sopistikado ito)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Simpleng heuristic para matukoy ang posibleng mga insight
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Itabi ang mga insight sa metadata ng konteksto
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Hindi kritikal na error, kaya mag-log na lang ng babala
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Hilingin sa modelo na gumawa ng buod ng pag-uusap hanggang ngayon
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Itabi ang buod sa metadata ng konteksto
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Gumawa ng panghuling buod bago i-archive
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // I-archive ang konteksto
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Halimbawa ng paggamit
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Gumawa ng bagong konteksto para sa pag-uusap tungkol sa suporta ng produkto
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Unang mensahe sa pag-uusap
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Kasunod na mensahe sa parehong konteksto
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Kunin ang impormasyon tungkol sa konteksto
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Gumawa at ipakita ang buod ng pag-uusap
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. I-archive ang konteksto kapag tapos na
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Harapin ang anumang error nang maayos
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-Sa naunang code ay:
+Sa nabanggit na code ay:
 
-1. Nilikha ang isang root context para sa pag-uusap tungkol sa suporta sa produkto gamit ang function na `createConversationContext`. Sa kasong ito, ang context ay tungkol sa mga isyu sa performance ng database.
+1. Nakagawa ng root context para sa isang pag-uusap ukol sa suporta ng produkto gamit ang function na `createConversationContext`. Sa kasong ito, ang konteksto ay tungkol sa mga isyu sa performance ng database.
 
-1. Nagpadala ng maraming mensahe sa loob ng kontekstong iyon, na nagpapahintulot sa modelo na mapanatili ang estado gamit ang function na `sendMessage`. Ang mga mensaheng ipinadala ay tungkol sa mabagal na query performance at configuration ng index.
+1. Nagpadala ng maraming mensahe sa loob ng kontekstong iyon, na nagpapahintulot sa modelo na mapanatili ang estado gamit ang function na `sendMessage`. Ang mga ipinadalang mensahe ay tungkol sa mabagal na performance ng query at configuration ng index.
 
-1. In-update ang context gamit ang mga kaugnay na metadata base sa pag-uusap.
+1. Na-update ang konteksto gamit ang mahalagang metadata base sa pag-uusap.
 
-1. Nilikha ang isang buod ng pag-uusap at iniimbak ito sa context metadata gamit ang function na `generateContextSummary`.
+1. Nakabuo ng buod ng pag-uusap at iniimbak ito sa metadata ng konteksto gamit ang function na `generateContextSummary`.
 
-1. In-archive ang context nang matapos ang pag-uusap gamit ang function na `archiveContext`.
+1. Na-archive ang konteksto nang matapos ang pag-uusap gamit ang function na `archiveContext`.
 
-1. Maayos na hinawakan ang mga error upang matiyak ang katatagan.
+1. Maingat na hinawakan ang mga error upang masigurong matibay ang proseso.
 
-## Root Context para sa Multi-Turn Assistance
+## Root Context para sa Multi-Turn na Tulong
 
-Sa halimbawang ito, gagawa tayo ng root context para sa multi-turn assistance session, na nagpapakita kung paano mapanatili ang estado sa maraming interaksyon.
+Sa halimbawang ito, gagawa tayo ng root context para sa session ng multi-turn na tulong, na nagpapakita kung paano mapanatili ang estado sa maraming interaksyon.
 
-### Implementasyon sa Python
+### Pagpapatupad sa Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Halimbawa ng Python: Root na Konteksto para sa Multi-Turn na Tulong
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Idagdag ang impormasyon ng user kung ibinigay
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Gumawa ng root na konteksto
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Gumawa ng mga opsyon gamit ang ID ng konteksto
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Magdagdag ng mga kasangkapan kung tinukoy
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Ipadala ang prompt sa loob ng konteksto
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # I-update ang metadata ng konteksto kasama ang progreso ng pag-uusap
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Bumuo muna ng summary prompt
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Itabi ang summary sa metadata
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # I-archive ang konteksto
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Halimbawa ng paggamit
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Gumawa ng session
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Unang interaksyon
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Pangalawang interaksyon sa parehong konteksto
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Kunin ang kasaysayan
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Tapusin ang session
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-Sa naunang code ay:
+Sa nabanggit na code ay:
 
-1. Nilikha ang isang root context para sa technical support session gamit ang function na `create_session`. Kasama sa context ang impormasyon ng user tulad ng pangalan at antas ng teknikal na kaalaman.
+1. Nakagawa ng root context para sa isang session ng teknikal na suporta gamit ang function na `create_session`. Kasama sa konteksto ang impormasyon ng gumagamit tulad ng pangalan at antas ng teknikalidad.
 
-1. Nagpadala ng maraming mensahe sa loob ng kontekstong iyon, na nagpapahintulot sa modelo na mapanatili ang estado gamit ang function na `send_message`. Ang mga mensaheng ipinadala ay tungkol sa mga isyu sa auto-scaling feature.
+1. Nagpadala ng maraming mensahe sa loob ng kontekstong iyon, na nagpapahintulot sa modelo na mapanatili ang estado gamit ang function na `send_message`. Ang mga ipinadalang mensahe ay tungkol sa mga isyu sa auto-scaling na tampok.
 
-1. Kinuha ang kasaysayan ng pag-uusap gamit ang function na `get_conversation_history`, na nagbibigay ng impormasyon tungkol sa context at mga mensahe.
+1. Nakuha ang kasaysayan ng pag-uusap gamit ang function na `get_conversation_history`, na nagbibigay ng impormasyon sa konteksto at mga mensahe.
 
-1. Tinapos ang session sa pamamagitan ng pag-archive ng context at paglikha ng buod gamit ang function na `end_session`. Ang buod ay naglalaman ng mga mahahalagang punto mula sa pag-uusap.
+1. Tinapos ang session sa pamamagitan ng pag-archive ng konteksto at paggawa ng buod gamit ang function na `end_session`. Kinukuha ng buod ang mga mahalagang punto sa pag-uusap.
 
 ## Mga Pinakamahusay na Kasanayan sa Root Context
 
-Narito ang ilang pinakamahusay na kasanayan para sa epektibong pamamahala ng root contexts:
+Narito ang ilang pinakamahusay na kasanayan para sa epektibong pamamahala ng mga root context:
 
-- **Gumawa ng Nakatuon na Contexts**: Gumawa ng hiwalay na root contexts para sa iba't ibang layunin o domain ng pag-uusap upang mapanatili ang kalinawan.
+- **Gumawa ng Nakatuong Mga Konteksto**: Gumawa ng hiwalay na root context para sa iba't ibang layunin ng pag-uusap o domain upang mapanatili ang linaw.
 
-- **Magtakda ng Mga Patakaran sa Pag-expire**: Magpatupad ng mga patakaran para i-archive o tanggalin ang mga lumang context upang pamahalaan ang storage at sumunod sa mga patakaran sa pag-iingat ng data.
+- **Magtakda ng mga Patakaran sa Pag-expire**: Magpatupad ng mga patakaran para i-archive o burahin ang mga lumang konteksto upang pamahalaan ang imbakan at sumunod sa mga patakaran ng pag-iimbak ng data.
 
-- **Mag-imbak ng Kaugnay na Metadata**: Gamitin ang context metadata para mag-imbak ng mahahalagang impormasyon tungkol sa pag-uusap na maaaring magamit sa hinaharap.
+- **Mag-imbak ng Mahahalagang Metadata**: Gamitin ang metadata ng konteksto upang mag-imbak ng mahahalagang impormasyon tungkol sa pag-uusap na maaaring makatulong sa susunod.
 
-- **Gamitin nang Konsistent ang Context IDs**: Kapag nalikha na ang isang context, gamitin nang pare-pareho ang ID nito para sa lahat ng kaugnay na kahilingan upang mapanatili ang tuloy-tuloy na daloy.
+- **Gamitin ng Konsistenteng ang Mga ID ng Konteksto**: Kapag nakagawa ng konteksto, gamitin nang tuloy-tuloy ang ID nito para sa lahat ng kaugnay na kahilingan upang mapanatili ang tuloy-tuloy na daloy.
 
-- **Gumawa ng Mga Buod**: Kapag lumaki na ang context, isaalang-alang ang paggawa ng mga buod upang makuha ang mahahalagang impormasyon habang pinamamahalaan ang laki ng context.
+- **Gumawa ng Mga Buod**: Kapag lumalaki ang konteksto, isaalang-alang ang paggawa ng mga buod upang makuha ang mahalagang impormasyon habang pinamamahalaan ang laki ng konteksto.
 
-- **Ipatupad ang Kontrol sa Access**: Para sa mga multi-user na sistema, ipatupad ang tamang kontrol sa access upang matiyak ang privacy at seguridad ng mga conversation contexts.
+- **Magpatupad ng Kontrol sa Pag-access**: Para sa mga multi-user na sistema, magpatupad ng angkop na kontrol sa pag-access upang masiguro ang privacy at seguridad ng mga konteksto ng pag-uusap.
 
-- **Harapin ang Mga Limitasyon ng Context**: Maging maalam sa mga limitasyon sa laki ng context at magpatupad ng mga estratehiya para sa napakahabang pag-uusap.
+- **Harapin ang Mga Limitasyon ng Konteksto**: Maging maalam sa mga limitasyon sa laki ng konteksto at magpatupad ng mga estratehiya para sa paghawak ng napakahabang mga pag-uusap.
 
-- **I-archive Kapag Tapos Na**: I-archive ang mga context kapag natapos na ang pag-uusap upang makalaya ang mga resources habang pinapanatili ang kasaysayan ng pag-uusap.
+- **I-archive Kapag Tapos na**: I-archive ang mga konteksto kapag tapos na ang mga pag-uusap upang palayain ang mga resources habang pinapanatili ang kasaysayan ng pag-uusap.
 
 ## Ano ang Susunod
 
 - [5.5 Routing](../mcp-routing/README.md)
 
-**Paalala**:  
-Ang dokumentong ito ay isinalin gamit ang AI translation service na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagamat nagsusumikap kami para sa katumpakan, pakatandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o di-tumpak na impormasyon. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang hindi pagkakaunawaan o maling interpretasyon na maaaring magmula sa paggamit ng pagsasaling ito.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Pagtatanggi**:
+Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't nagsusumikap kami para sa katumpakan, pakatandaan na ang awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang maling pagkakaintindi o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -2,8 +2,8 @@
 
 import json
 import os
-import subprocess
 import stat
+import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -23,6 +23,7 @@ from code_review_graph.skills import (
     _in_poetry_project,
     _in_uv_project,
     _opencode_plugin_content,
+    _strip_jsonc,
     generate_codex_hooks_config,
     generate_cursor_hooks_config,
     generate_hooks_config,
@@ -30,9 +31,9 @@ from code_review_graph.skills import (
     inject_claude_md,
     inject_platform_instructions,
     install_codex_hooks,
+    install_cursor_hooks,
     install_gemini_cli_hooks,
     install_gemini_cli_skills,
-    install_cursor_hooks,
     install_git_hook,
     install_hooks,
     install_opencode_plugin,
@@ -42,6 +43,71 @@ from code_review_graph.skills import (
 _needs_tomllib = pytest.mark.skipif(
     tomllib is None, reason="tomllib requires Python 3.11+",
 )
+
+
+class TestStripJsonc:
+    """JSONC sanitizer must not corrupt string values (GH #553)."""
+
+    def test_comma_inside_string_preserved(self):
+        # The original #553 repro: a comma inside a string, immediately before a
+        # line whose first non-space char is `}`. A naive regex deleted it.
+        src = (
+            '{\n'
+            '  "mcp": {\n'
+            '    "my-server": {\n'
+            '      "command": ["x"],\n'
+            '      "description": "foo, bar"\n'
+            '    }\n'
+            '  }\n'
+            '}\n'
+        )
+        parsed = json.loads(_strip_jsonc(src))
+        assert parsed["mcp"]["my-server"]["description"] == "foo, bar"
+
+    def test_url_with_double_slash_preserved(self):
+        # The `//` comment stripper must not truncate `https://...` inside a string.
+        src = '{"url": "https://mcp.example.com/path", "n": 1}'
+        parsed = json.loads(_strip_jsonc(src))
+        assert parsed["url"] == "https://mcp.example.com/path"
+        assert parsed["n"] == 1
+
+    def test_real_trailing_comma_before_brace_removed(self):
+        src = '{"a": 1, "b": 2,}'
+        assert json.loads(_strip_jsonc(src)) == {"a": 1, "b": 2}
+
+    def test_real_trailing_comma_before_bracket_removed(self):
+        src = '{"list": [1, 2, 3,]}'
+        assert json.loads(_strip_jsonc(src)) == {"list": [1, 2, 3]}
+
+    def test_line_comment_removed(self):
+        src = '{\n  "a": 1 // inline comment\n}'
+        assert json.loads(_strip_jsonc(src)) == {"a": 1}
+
+    def test_block_comment_removed(self):
+        src = '{\n  /* leading */ "a": 1\n}'
+        assert json.loads(_strip_jsonc(src)) == {"a": 1}
+
+    def test_comment_markers_inside_string_preserved(self):
+        src = '{"a": "x // y", "b": "p /* q */ r"}'
+        parsed = json.loads(_strip_jsonc(src))
+        assert parsed["a"] == "x // y"
+        assert parsed["b"] == "p /* q */ r"
+
+    def test_escaped_quote_does_not_break_string_tracking(self):
+        # The escaped quote must not end the string early; the comma after it is
+        # data, and the `}` that follows is structural.
+        src = '{"a": "he said \\"hi, there\\"", "b": 2,}'
+        parsed = json.loads(_strip_jsonc(src))
+        assert parsed["a"] == 'he said "hi, there"'
+        assert parsed["b"] == 2
+
+    def test_trailing_comma_then_comment_then_close(self):
+        src = '{\n  "a": 1, // trailing then comment\n}'
+        assert json.loads(_strip_jsonc(src)) == {"a": 1}
+
+    def test_strict_json_unchanged(self):
+        src = '{"a": [1, 2], "b": {"c": "d, e"}}'
+        assert json.loads(_strip_jsonc(src)) == json.loads(src)
 
 
 class TestGenerateSkills:
@@ -60,12 +126,12 @@ class TestGenerateSkills:
             "review-changes",
         ]
         for d in skills_dir.iterdir():
-            assert (d / "skill.md").is_file()
+            assert (d / "SKILL.md").is_file()
 
     def test_skill_files_have_frontmatter(self, tmp_path):
         skills_dir = generate_skills(tmp_path)
         for subdir in skills_dir.iterdir():
-            path = subdir / "skill.md"
+            path = subdir / "SKILL.md"
             content = path.read_text()
             assert content.startswith("---\n")
             assert "name:" in content
@@ -75,6 +141,24 @@ class TestGenerateSkills:
             assert lines[0] == "---"
             closing_idx = content.index("---", 4)
             assert closing_idx > 0
+
+    def test_skill_frontmatter_names_match_lowercase_directories(self, tmp_path):
+        """Generated and bundled skills use the discovery-safe name format."""
+        generated = generate_skills(tmp_path)
+        bundled = Path(__file__).parents[1] / "skills"
+
+        for skill_name in (
+            "debug-issue",
+            "explore-codebase",
+            "refactor-safely",
+            "review-changes",
+        ):
+            for skill_file in (
+                generated / skill_name / "SKILL.md",
+                bundled / skill_name / "SKILL.md",
+            ):
+                content = skill_file.read_text(encoding="utf-8")
+                assert f"\nname: {skill_name}\n" in content
 
     def test_custom_skills_dir(self, tmp_path):
         custom = tmp_path / "my-skills"
@@ -87,7 +171,7 @@ class TestGenerateSkills:
         """Every skill template must reference get_minimal_context."""
         skills_dir = generate_skills(tmp_path)
         for subdir in skills_dir.iterdir():
-            content = (subdir / "skill.md").read_text()
+            content = (subdir / "SKILL.md").read_text()
             assert "get_minimal_context" in content, (
                 f"{subdir.name} missing get_minimal_context reference"
             )
@@ -96,7 +180,7 @@ class TestGenerateSkills:
         """Every skill template must reference detail_level."""
         skills_dir = generate_skills(tmp_path)
         for subdir in skills_dir.iterdir():
-            content = (subdir / "skill.md").read_text()
+            content = (subdir / "SKILL.md").read_text()
             assert "detail_level" in content, (
                 f"{subdir.name} missing detail_level reference"
             )
@@ -118,7 +202,7 @@ class TestGenerateHooksConfig:
         config = generate_hooks_config(Path("/repo"))
         assert "PostToolUse" in config["hooks"]
         entry = config["hooks"]["PostToolUse"][0]
-        assert entry["matcher"] == "Edit|Write|Bash"
+        assert entry["matcher"] == "Edit|Write"
         inner = entry["hooks"][0]
         assert inner["type"] == "command"
         assert "update" in inner["command"]
@@ -152,17 +236,51 @@ class TestGenerateHooksConfig:
                 assert "hooks" in entry, f"{hook_type} entry missing 'hooks' array"
                 assert "command" not in entry, f"{hook_type} has bare 'command' outside hooks[]"
 
-    def test_repo_root_embedded_in_commands(self):
-        config = generate_hooks_config(Path("/my/project"))
-        post_cmd = config["hooks"]["PostToolUse"][0]["hooks"][0]["command"]
-        session_cmd = config["hooks"]["SessionStart"][0]["hooks"][0]["command"]
-        assert "/my/project" in post_cmd
-        assert "/my/project" in session_cmd
+    def test_hooks_have_path_guard(self):
+        """Regression test for #549: hooks must guard against missing binary."""
+        config = generate_hooks_config(Path("/repo"))
+        for hook_type, entries in config["hooks"].items():
+            for entry in entries:
+                for hook in entry["hooks"]:
+                    assert "command -v code-review-graph" in hook["command"], (
+                        f"{hook_type} hook missing PATH guard — will fail noisily"
+                        " when binary is not on PATH (e.g. project venv)"
+                    )
 
-    def test_quotes_repo_paths_with_spaces(self):
-        config = generate_hooks_config(Path("/repo with spaces"))
-        post_cmd = config["hooks"]["PostToolUse"][0]["hooks"][0]["command"]
-        assert '"' in post_cmd  # path is JSON-encoded so spaces are quoted
+    def test_hooks_use_dynamic_repo_root(self):
+        """Regression test for #558: hooks must not embed absolute paths.
+
+        The repo root should be resolved at runtime via git rev-parse so
+        settings.json is shareable across collaborators.
+        """
+        config = generate_hooks_config(Path("/my/specific/checkout/path"))
+        for hook_type, entries in config["hooks"].items():
+            for entry in entries:
+                for hook in entry["hooks"]:
+                    assert "git rev-parse --show-toplevel" in hook["command"], (
+                        f"{hook_type} hook should use git rev-parse --show-toplevel"
+                        " to resolve repo root dynamically"
+                    )
+
+    def test_hooks_no_absolute_path_embedded(self):
+        """Regression test for #558: no absolute path should appear in commands."""
+        config = generate_hooks_config(Path("/home/user/projects/my-repo"))
+        for hook_type, entries in config["hooks"].items():
+            for entry in entries:
+                for hook in entry["hooks"]:
+                    assert "/home/user/projects/my-repo" not in hook["command"], (
+                        f"{hook_type} hook embeds absolute path — settings.json"
+                        " is not shareable across collaborators"
+                    )
+
+    def test_post_tool_use_matcher_excludes_bash(self):
+        """Regression test for #549: Bash matcher fires on every shell command."""
+        config = generate_hooks_config(Path("/repo"))
+        matcher = config["hooks"]["PostToolUse"][0]["matcher"]
+        assert "Bash" not in matcher, (
+            "PostToolUse matcher includes Bash — fires on every shell command"
+            " (git status, ls, test runs), not just file mutations"
+        )
 
     def test_entries_use_claude_code_hook_schema(self):
         """Regression guard for the Claude Code hook schema.
@@ -430,7 +548,8 @@ class TestGenerateCodexHooksConfig:
 
 class TestInstallCodexHooks:
     def test_creates_hooks_file(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Path.home() ignores HOME on Windows; patch it like the cursor tests do.
+        monkeypatch.setattr("code_review_graph.skills.Path.home", lambda: tmp_path)
         hooks_path = install_codex_hooks(tmp_path / "repo")
         assert hooks_path == tmp_path / ".codex" / "hooks.json"
         assert hooks_path.exists()
@@ -440,7 +559,8 @@ class TestInstallCodexHooks:
         assert "SessionStart" in data["hooks"]
 
     def test_merges_with_existing(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Path.home() ignores HOME on Windows; patch it like the cursor tests do.
+        monkeypatch.setattr("code_review_graph.skills.Path.home", lambda: tmp_path)
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         existing = {
@@ -460,7 +580,8 @@ class TestInstallCodexHooks:
         assert "SessionStart" in data["hooks"]
 
     def test_creates_hooks_backup(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Path.home() ignores HOME on Windows; patch it like the cursor tests do.
+        monkeypatch.setattr("code_review_graph.skills.Path.home", lambda: tmp_path)
         codex_dir = tmp_path / ".codex"
         codex_dir.mkdir(parents=True)
         existing = {"hooks": {"Stop": []}}
@@ -475,7 +596,8 @@ class TestInstallCodexHooks:
         assert backup == existing
 
     def test_idempotent_by_command(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Path.home() ignores HOME on Windows; patch it like the cursor tests do.
+        monkeypatch.setattr("code_review_graph.skills.Path.home", lambda: tmp_path)
         repo_root = tmp_path / "repo"
         install_codex_hooks(repo_root)
         install_codex_hooks(repo_root)
@@ -555,6 +677,7 @@ class TestInjectPlatformInstructionsFiltering:
             "AGENTS.md", "GEMINI.md", ".cursorrules", ".windsurfrules",
             "QODER.md", ".kiro/steering/code-review-graph.md",
             ".github/code-review-graph.instruction.md",
+            "CODEBUDDY.md",
         }
 
     def test_default_is_all(self, tmp_path):
@@ -563,6 +686,7 @@ class TestInjectPlatformInstructionsFiltering:
             "AGENTS.md", "GEMINI.md", ".cursorrules", ".windsurfrules",
             "QODER.md", ".kiro/steering/code-review-graph.md",
             ".github/code-review-graph.instruction.md",
+            "CODEBUDDY.md",
         }
 
     def test_claude_writes_nothing(self, tmp_path):
@@ -609,6 +733,176 @@ class TestInjectPlatformInstructionsFiltering:
         assert not (tmp_path / "GEMINI.md").exists()
         assert not (tmp_path / ".cursorrules").exists()
         assert not (tmp_path / ".windsurfrules").exists()
+
+    def test_codebuddy_writes_only_codebuddy_md_and_is_idempotent(self, tmp_path):
+        first = inject_platform_instructions(tmp_path, target="codebuddy")
+        second = inject_platform_instructions(tmp_path, target="codebuddy")
+
+        assert first == ["CODEBUDDY.md"]
+        assert second == []
+        content = (tmp_path / "CODEBUDDY.md").read_text(encoding="utf-8")
+        assert content.count(_CLAUDE_MD_SECTION_MARKER) == 1
+        assert "detect_changes_tool" in content
+        assert not (tmp_path / "CLAUDE.md").exists()
+        assert not (tmp_path / "AGENTS.md").exists()
+
+
+class TestCodeBuddyPlatform:
+    def test_platform_uses_official_project_mcp_contract(self):
+        assert "codebuddy" in PLATFORMS
+        platform = PLATFORMS["codebuddy"]
+
+        assert platform["name"] == "CodeBuddy Code"
+        assert platform["config_path"](Path("/tmp/project")) == Path(
+            "/tmp/project/.mcp.json"
+        )
+        assert platform["key"] == "mcpServers"
+        assert platform["format"] == "object"
+        assert platform["needs_type"] is True
+
+    def test_install_preserves_jsonc_content(self, tmp_path):
+        mcp_path = tmp_path / ".mcp.json"
+        mcp_path.write_text(
+            "{\n"
+            "  // CodeBuddy supports JSONC in project MCP files\n"
+            '  "dashboard": "https://example.test/a,b",\n'
+            '  "mcpServers": {\n'
+            '    "existing": {"command": "existing"},\n'
+            "  },\n"
+            "}\n",
+            encoding="utf-8",
+        )
+
+        configured = install_platform_configs(tmp_path, target="codebuddy")
+
+        assert configured == ["CodeBuddy Code"]
+        data = json.loads(mcp_path.read_text(encoding="utf-8"))
+        assert data["dashboard"] == "https://example.test/a,b"
+        assert data["mcpServers"]["existing"]["command"] == "existing"
+        assert data["mcpServers"]["code-review-graph"]["type"] == "stdio"
+
+    def test_all_dedupes_only_claude_and_codebuddy_shared_contract(
+        self, tmp_path, capsys
+    ):
+        shared_path = tmp_path / ".mcp.json"
+        other_platform = {
+            "name": "Other shared client",
+            "config_path": lambda root: shared_path,
+            "key": "servers",
+            "detect": lambda: True,
+            "format": "object",
+            "needs_type": False,
+        }
+        with patch.dict(
+            PLATFORMS,
+            {
+                "claude": {**PLATFORMS["claude"], "detect": lambda: True},
+                "codebuddy": {**PLATFORMS["codebuddy"], "detect": lambda: True},
+                "other-shared": other_platform,
+            },
+            clear=True,
+        ):
+            configured = install_platform_configs(tmp_path, target="all")
+
+        assert configured == ["Claude Code", "CodeBuddy Code", "Other shared client"]
+        data = json.loads(shared_path.read_text(encoding="utf-8"))
+        assert "code-review-graph" in data["mcpServers"]
+        assert "code-review-graph" in data["servers"]
+        # Claude and CodeBuddy share one exact contract/write. A different
+        # contract that happens to share the path must still be processed.
+        assert capsys.readouterr().out.count(f"configured {shared_path}") == 2
+
+    def test_all_does_not_credit_shared_alias_when_write_is_unsafe(
+        self, tmp_path, capsys
+    ):
+        original = "{ this is not valid JSONC }\n"
+        (tmp_path / ".mcp.json").write_text(original, encoding="utf-8")
+        with patch.dict(
+            PLATFORMS,
+            {
+                "claude": {**PLATFORMS["claude"], "detect": lambda: True},
+                "codebuddy": {**PLATFORMS["codebuddy"], "detect": lambda: True},
+            },
+            clear=True,
+        ):
+            configured = install_platform_configs(tmp_path, target="all")
+
+        assert configured == []
+        assert (tmp_path / ".mcp.json").read_text(encoding="utf-8") == original
+        assert "skipping to avoid data loss" in capsys.readouterr().out
+
+    def test_project_skills_use_uppercase_skill_file(self, tmp_path):
+        from code_review_graph.skills import install_codebuddy_skills
+
+        skills_root = install_codebuddy_skills(tmp_path)
+
+        assert skills_root == tmp_path / ".codebuddy" / "skills"
+        assert {path.name for path in skills_root.iterdir()} == {
+            "debug-issue",
+            "explore-codebase",
+            "refactor-safely",
+            "review-changes",
+        }
+        for skill_dir in skills_root.iterdir():
+            content = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+            assert content.startswith("---\n")
+            assert f"name: {skill_dir.name}\n" in content
+            assert "description:" in content
+            assert "get_minimal_context" in content
+
+    def test_project_hooks_preserve_user_settings_and_resolve_repo_at_runtime(
+        self, tmp_path
+    ):
+        from code_review_graph.skills import install_codebuddy_hooks
+
+        repo_root = tmp_path / "repo with spaces"
+        settings_path = repo_root / ".codebuddy" / "settings.json"
+        settings_path.parent.mkdir(parents=True)
+        user_hook = {
+            "matcher": "Read",
+            "hooks": [{"type": "command", "command": "echo user"}],
+        }
+        settings_path.write_text(
+            json.dumps(
+                {
+                    "model": "custom-model",
+                    "hooks": {"PostToolUse": [user_hook]},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result = install_codebuddy_hooks(repo_root)
+
+        assert result == settings_path
+        assert settings_path.with_suffix(".json.bak").exists()
+        data = json.loads(settings_path.read_text(encoding="utf-8"))
+        assert data["model"] == "custom-model"
+        assert user_hook in data["hooks"]["PostToolUse"]
+        installed = [
+            hook
+            for entries in data["hooks"].values()
+            for entry in entries
+            for hook in entry["hooks"]
+            if "code-review-graph" in hook.get("command", "")
+        ]
+        assert installed
+        for hook in installed:
+            command = hook["command"]
+            assert "command -v code-review-graph" in command
+            assert "git rev-parse --show-toplevel" in command
+            assert str(repo_root) not in command
+
+        crg_entry = next(
+            entry
+            for entry in data["hooks"]["PostToolUse"]
+            if any("code-review-graph" in hook.get("command", "") for hook in entry["hooks"])
+        )
+        assert crg_entry["matcher"] == "Edit|Write|Bash"
+
+        first = settings_path.read_text(encoding="utf-8")
+        install_codebuddy_hooks(repo_root)
+        assert settings_path.read_text(encoding="utf-8") == first
 
 
 class TestInstallPlatformConfigs:
@@ -765,11 +1059,58 @@ class TestInstallPlatformConfigs:
     def test_install_opencode_config(self, tmp_path):
         configured = install_platform_configs(tmp_path, target="opencode")
         assert "OpenCode" in configured
-        config_path = tmp_path / ".opencode.json"
+        config_path = tmp_path / "opencode.jsonc"
         data = json.loads(config_path.read_text())
-        entry = data["mcpServers"]["code-review-graph"]
-        assert entry["type"] == "stdio"
-        assert entry["env"] == []
+        entry = data["mcp"]["code-review-graph"]
+        command, args = _detect_serve_command()
+        assert entry == {
+            "type": "local",
+            "command": [command, *args, "--repo", str(tmp_path)],
+        }
+        assert "cwd" not in entry
+
+    def test_install_opencode_prefers_existing_jsonc_and_preserves_servers(self, tmp_path):
+        config_path = tmp_path / "opencode.jsonc"
+        config_path.write_text(
+            '{\n  // keep this server\n  "mcp": {\n'
+            '    "other": {"type": "local", "command": ["other"]},\n'
+            "  },\n}\n",
+            encoding="utf-8",
+        )
+        (tmp_path / "opencode.json").write_text("{}", encoding="utf-8")
+
+        install_platform_configs(tmp_path, target="opencode")
+
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+        assert "other" in data["mcp"]
+        assert "code-review-graph" in data["mcp"]
+        assert (tmp_path / "opencode.json").read_text(encoding="utf-8") == "{}"
+
+    def test_install_opencode_uses_existing_json(self, tmp_path):
+        config_path = tmp_path / "opencode.json"
+        config_path.write_text(json.dumps({"mcp": {"other": {}}}), encoding="utf-8")
+
+        install_platform_configs(tmp_path, target="opencode")
+
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+        assert "other" in data["mcp"]
+        assert "code-review-graph" in data["mcp"]
+        assert not (tmp_path / "opencode.jsonc").exists()
+
+    def test_install_opencode_warns_about_legacy_dotfile(self, tmp_path, capsys):
+        legacy = tmp_path / ".opencode.json"
+        legacy.write_text(
+            json.dumps({"mcpServers": {"code-review-graph": {"command": "uvx"}}}),
+            encoding="utf-8",
+        )
+
+        install_platform_configs(tmp_path, target="opencode")
+
+        output = capsys.readouterr().out
+        assert ".opencode.json" in output
+        assert "legacy" in output.lower()
+        assert legacy.exists()
+        assert (tmp_path / "opencode.jsonc").exists()
 
     def test_install_gemini_cli_config(self, tmp_path):
         gemini_config = tmp_path / ".gemini" / "settings.json"
@@ -860,7 +1201,7 @@ class TestInstallPlatformConfigs:
         assert "OpenCode" in configured
         assert codex_config.exists()
         assert (tmp_path / ".mcp.json").exists()
-        assert (tmp_path / ".opencode.json").exists()
+        assert (tmp_path / "opencode.jsonc").exists()
 
     def test_merge_existing_servers(self, tmp_path):
         """Should not overwrite existing MCP servers."""
@@ -1068,6 +1409,7 @@ class TestInstallCursorHooks:
         assert (hooks_dir / "crg-session-start.sh").exists()
         assert (hooks_dir / "crg-pre-commit.sh").exists()
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="POSIX exec bits")
     def test_scripts_are_executable(self, tmp_path):
         with patch("code_review_graph.skills.Path.home", return_value=tmp_path):
             install_cursor_hooks()
@@ -1372,7 +1714,7 @@ class TestCopilotCLIPlatform:
         assert "code-review-graph" in data["servers"]
 
     def test_copilot_cli_writes_only_copilot_instructions(self, tmp_path):
-        """inject_platform_instructions with target='copilot-cli' writes .github/code-review-graph.instruction.md."""
+        """Copilot CLI injection writes its GitHub instruction file."""
         updated = inject_platform_instructions(tmp_path, target="copilot-cli")
         assert ".github/code-review-graph.instruction.md" in updated
         instructions = tmp_path / ".github" / "code-review-graph.instruction.md"
@@ -1647,3 +1989,201 @@ class TestInstallOpenCodePlugin:
         # Should be readable as UTF-8 without errors
         content = result.read_text(encoding="utf-8")
         assert len(content) > 0
+
+
+class TestInstallConfigDataLoss:
+    """Regression tests for #344: ``install_platform_configs`` must never
+    destroy a user's existing platform config. Two residual bugs remained
+    on main even after the JSONC-stripping fix:
+
+    * a top-level JSON *array* hit ``existing.get(...)`` and crashed with
+      AttributeError before writing;
+    * an *empty* settings file was mis-flagged "unparseable" and skipped,
+      so a fresh install on an empty file silently did nothing.
+    """
+
+    def _run_zed(self, settings_path: Path, root: Path):
+        with patch.dict(
+            PLATFORMS,
+            {
+                "zed": {
+                    **PLATFORMS["zed"],
+                    "config_path": lambda r: settings_path,
+                    "detect": lambda: True,
+                },
+            },
+        ):
+            return install_platform_configs(root, target="zed")
+
+    def _run_continue(self, settings_path: Path, root: Path):
+        with patch.dict(
+            PLATFORMS,
+            {
+                "continue": {
+                    **PLATFORMS["continue"],
+                    "config_path": lambda r: settings_path,
+                    "detect": lambda: True,
+                },
+            },
+        ):
+            return install_platform_configs(root, target="continue")
+
+    def test_malformed_json_is_preserved_not_overwritten(self, tmp_path, capsys):
+        settings = tmp_path / "zed" / "settings.json"
+        settings.parent.mkdir(parents=True)
+        original = "{ this is not valid json }\n"
+        settings.write_text(original, encoding="utf-8")
+
+        configured = self._run_zed(settings, tmp_path)
+
+        assert "Zed" not in configured
+        assert settings.read_text(encoding="utf-8") == original
+        assert "unparseable" in capsys.readouterr().out
+
+    def test_top_level_array_does_not_crash_and_is_preserved(self, tmp_path, capsys):
+        """The actual residual bug: a top-level array crashed install with
+        ``AttributeError: 'list' object has no attribute 'get'``."""
+        settings = tmp_path / "zed" / "settings.json"
+        settings.parent.mkdir(parents=True)
+        original = '["not", "an", "object"]'
+        settings.write_text(original, encoding="utf-8")
+
+        # Must not raise.
+        configured = self._run_zed(settings, tmp_path)
+
+        assert "Zed" not in configured
+        assert settings.read_text(encoding="utf-8") == original
+        out = capsys.readouterr().out
+        assert "not a top-level object" in out
+
+    def test_empty_file_is_treated_as_fresh_config(self, tmp_path):
+        """An empty settings.json is a valid empty config, not a parse
+        failure — install should write a fresh config rather than skip."""
+        settings = tmp_path / "zed" / "settings.json"
+        settings.parent.mkdir(parents=True)
+        settings.write_text("", encoding="utf-8")
+
+        configured = self._run_zed(settings, tmp_path)
+
+        assert "Zed" in configured
+        data = json.loads(settings.read_text(encoding="utf-8"))
+        assert "code-review-graph" in data["context_servers"]
+
+    def test_jsonc_comments_still_supported(self, tmp_path):
+        """Guard: the empty-file / array checks must not regress main's
+        JSONC support — a comment-bearing Zed config must still merge."""
+        settings = tmp_path / "zed" / "settings.json"
+        settings.parent.mkdir(parents=True)
+        settings.write_text(
+            "{\n"
+            '  // user theme preference\n'
+            '  "theme": "One Dark",\n'
+            "}\n",
+            encoding="utf-8",
+        )
+
+        configured = self._run_zed(settings, tmp_path)
+
+        assert "Zed" in configured
+        data = json.loads(settings.read_text(encoding="utf-8"))
+        # User's existing setting preserved AND our server added.
+        assert data["theme"] == "One Dark"
+        assert "code-review-graph" in data["context_servers"]
+
+    def test_array_platform_preserves_wrong_typed_server_collection(
+        self, tmp_path, capsys
+    ):
+        config = tmp_path / ".continue" / "config.json"
+        config.parent.mkdir(parents=True)
+        original = '{\n  "mcpServers": {"legacy": "keep-me"}\n}\n'
+        config.write_text(original, encoding="utf-8")
+
+        configured = self._run_continue(config, tmp_path)
+
+        assert "Continue" not in configured
+        assert config.read_text(encoding="utf-8") == original
+        out = capsys.readouterr().out
+        assert "mcpServers" in out
+        assert "expected a JSON array" in out
+        assert "skipping to avoid data loss" in out
+
+    def test_object_platform_preserves_wrong_typed_server_collection(
+        self, tmp_path, capsys
+    ):
+        settings = tmp_path / "zed" / "settings.json"
+        settings.parent.mkdir(parents=True)
+        original = '{\n  "context_servers": ["legacy-server"]\n}\n'
+        settings.write_text(original, encoding="utf-8")
+
+        configured = self._run_zed(settings, tmp_path)
+
+        assert "Zed" not in configured
+        assert settings.read_text(encoding="utf-8") == original
+        out = capsys.readouterr().out
+        assert "context_servers" in out
+        assert "expected a JSON object" in out
+        assert "skipping to avoid data loss" in out
+
+
+class TestGeneratedHooksGuardGitRepo:
+    """Regression coverage for #312: generated Claude Code hooks must guard
+    the ``update`` / ``status`` commands behind a git-repo check so that, in
+    a monorepo whose workspace root has no ``.git``, the PostToolUse hook
+    no-ops silently instead of erroring on every tool call.
+    """
+
+    def test_post_tool_use_command_guarded_by_git_check(self):
+        config = generate_hooks_config(Path("/repo"))
+        cmd = config["hooks"]["PostToolUse"][0]["hooks"][0]["command"]
+        # Must short-circuit on the git check before calling update.
+        assert "git rev-parse --git-dir" in cmd
+        idx_guard = cmd.index("git rev-parse --git-dir")
+        idx_update = cmd.index("code-review-graph update")
+        assert idx_guard < idx_update, "git guard must precede the update call"
+
+    def test_session_start_command_guarded_by_git_check(self):
+        config = generate_hooks_config(Path("/repo"))
+        cmd = config["hooks"]["SessionStart"][0]["hooks"][0]["command"]
+        assert "git rev-parse --git-dir" in cmd
+        idx_guard = cmd.index("git rev-parse --git-dir")
+        idx_status = cmd.index("code-review-graph status")
+        assert idx_guard < idx_status
+
+
+class TestInstallSkillsRespectTargetPlatform:
+    """Regression coverage for #350: ``install --platform cursor`` must NOT
+    generate Claude Code skills under ``.claude/skills/`` — that directory
+    is only read by Claude Code, and creating it for other platforms
+    confused users into thinking the tool wrote Claude config unprompted.
+    """
+
+    def _run_install(self, tmp_path, platform: str) -> bool:
+        import argparse
+
+        from code_review_graph import cli as crg_cli
+
+        args = argparse.Namespace(
+            command="install",
+            repo=str(tmp_path),
+            platform=platform,
+            yes=True,
+            dry_run=False,
+            no_skills=False,
+            no_hooks=True,
+            no_instructions=True,
+        )
+        with patch("builtins.input", return_value="n"):
+            crg_cli._handle_init(args)
+        return (tmp_path / ".claude" / "skills").is_dir()
+
+    def test_cursor_install_does_not_create_claude_skills(self, tmp_path):
+        assert self._run_install(tmp_path, "cursor") is False
+
+    def test_windsurf_install_does_not_create_claude_skills(self, tmp_path):
+        assert self._run_install(tmp_path, "windsurf") is False
+
+    def test_claude_install_creates_skills(self, tmp_path):
+        assert self._run_install(tmp_path, "claude") is True
+
+    def test_all_target_creates_skills(self, tmp_path):
+        assert self._run_install(tmp_path, "all") is True

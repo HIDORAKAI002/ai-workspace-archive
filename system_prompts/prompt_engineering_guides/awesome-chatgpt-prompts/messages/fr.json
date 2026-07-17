@@ -1251,7 +1251,7 @@
     "interactiveBanner": {
       "badge": "Version Interactive Disponible",
       "title": "Vous voulez une expérience plus détaillée et interactive ?",
-      "description": "Approfondissez avec notre guide interactif complet comprenant 25 chapitres, des exercices pratiques et des exemples concrets pour maîtriser les prompts IA.",
+      "description": "Approfondissez avec notre guide interactif complet comprenant 26 chapitres, des exercices pratiques et des exemples concrets pour maîtriser les prompts IA.",
       "cta": "Lire le Livre Interactif"
     },
     "generalTips": {
@@ -1743,7 +1743,7 @@
       "part4": "Partie 4 : Bonnes Pratiques",
       "part5": "Partie 5 : Cas d'Utilisation",
       "part6": "Partie 6 : Conclusion",
-      "chapters": "25 Chapitres Interactifs"
+      "chapters": "26 Chapitres Interactifs"
     },
     "startReading": "Commencer la Lecture",
     "skipToChapter1": "Aller au Chapitre 1",
@@ -1800,6 +1800,7 @@
       "12-handling-edge-cases": "Gestion des Cas Limites",
       "13-multimodal-prompting": "Prompting Multimodal",
       "14-context-engineering": "Ingénierie du Contexte",
+      "14a-loop-engineering": "Ingénierie de Boucle",
       "25-agents-and-skills": "Agents et Compétences",
       "15-common-pitfalls": "Pièges Courants",
       "16-ethics-responsible-use": "Éthique et Utilisation Responsable",
@@ -1830,6 +1831,7 @@
       "12-handling-edge-cases": "Gérer les entrées inattendues",
       "13-multimodal-prompting": "Travailler avec images, audio et vidéo",
       "14-context-engineering": "RAG, embeddings, appels de fonction et MCP",
+      "14a-loop-engineering": "Concevoir des boucles de rétroaction qui agissent, vérifient, s'adaptent et savent quand s'arrêter",
       "25-agents-and-skills": "Construire des agents IA avec des packages de compétences réutilisables",
       "15-common-pitfalls": "Erreurs à éviter",
       "16-ethics-responsible-use": "Considérations éthiques dans l'IA",

@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [VEROUDERD: 2026-07-28 RELEASE KANDIDAAT](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexts zijn een fundamenteel concept binnen het Model Context Protocol en bieden een blijvende laag voor het bewaren van gespreksgeschiedenis en gedeelde status over meerdere verzoeken en sessies heen.
+# MCP Root Contexten
+
+> **Afschaffingsmelding:** de `2026-07-28` MCP specificatie release kandidaat markeert Roots als verouderd ten gunste van toolparameters, resource-URI's of serverconfiguratie. Roots blijven werken in `2025-11-25` en minstens een jaar na elke formele afschaffing, dus alles in deze les blijft geldig – maar nieuwe serverontwerpen moeten het vervangingspatroon evalueren. Zie [Wat verandert er in MCP: De 2026-07-28 Release Kandidaat](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Root-contexten zijn een fundamenteel concept in het Model Context Protocol dat een persistente laag biedt voor het bijhouden van gespreksgeschiedenis en gedeelde status over meerdere verzoeken en sessies heen.
 
 ## Introductie
 
-In deze les gaan we onderzoeken hoe je root contexts kunt aanmaken, beheren en gebruiken in MCP.
+In deze les zullen we verkennen hoe root-contexten te maken, beheren en gebruiken in MCP.
 
 ## Leerdoelen
 
-Aan het einde van deze les kun je:
+Aan het eind van deze les zul je in staat zijn om:
 
-- Het doel en de structuur van root contexts begrijpen
-- Root contexts aanmaken en beheren met behulp van MCP clientbibliotheken
-- Root contexts implementeren in .NET, Java, JavaScript en Python applicaties
-- Root contexts gebruiken voor meerstapsgesprekken en statusbeheer
-- Best practices toepassen voor het beheer van root contexts
+- Het doel en de structuur van root-contexten te begrijpen
+- Root-contexten te maken en beheren met MCP-clientbibliotheken
+- Root-contexten te implementeren in .NET, Java, JavaScript en Python toepassingen
+- Root-contexten te gebruiken voor meertraps-gesprekken en statusbeheer
+- Best practices voor root-contextbeheer toe te passen
 
-## Root Contexts begrijpen
+## Root-contexten begrijpen
 
-Root contexts fungeren als containers die de geschiedenis en status bewaren voor een reeks gerelateerde interacties. Ze maken het mogelijk om:
+Root-contexten dienen als containers die de geschiedenis en status vasthouden voor een reeks gerelateerde interacties. Ze maken het mogelijk:
 
-- **Gesprek persistentie**: Het behouden van samenhangende meerstapsgesprekken
-- **Geheugenbeheer**: Informatie opslaan en ophalen over meerdere interacties heen
-- **Statusbeheer**: Voortgang bijhouden in complexe workflows
-- **Context delen**: Meerdere clients toegang geven tot dezelfde gesprekstatus
+- **Gesprek persistentie**: coherente meertraps-gesprekken onderhouden
+- **Geheugenbeheer**: informatie opslaan en ophalen over interacties heen
+- **Statusbeheer**: voortgang volgen in complexe workflows
+- **Contextdeling**: meerdere clients toegang geven tot dezelfde gespreksstatus
 
-In MCP hebben root contexts de volgende belangrijke kenmerken:
+In MCP hebben root-contexten de volgende kernkenmerken:
 
-- Elke root context heeft een unieke identifier.
+- Elke root-context heeft een unieke identifier.
 - Ze kunnen gespreksgeschiedenis, gebruikersvoorkeuren en andere metadata bevatten.
-- Ze kunnen worden aangemaakt, benaderd en gearchiveerd wanneer nodig.
+- Ze kunnen worden aangemaakt, benaderd en gearchiveerd indien nodig.
 - Ze ondersteunen fijnmazige toegangscontrole en permissies.
 
-## Levenscyclus van Root Contexts
+## Levenscyclus van Root-contexten
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Maak Root Context aan] --> B[Initialiseer met Metadata]
+    B --> C[Verstuur Verzoeken met Context ID]
+    C --> D[Update Context met Resultaten]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Archiveer Context Wanneer Voltooid]
 ```
 
-## Werken met Root Contexts
+## Werken met Root-contexten
 
-Hier is een voorbeeld van hoe je root contexts kunt aanmaken en beheren.
+Hier is een voorbeeld van hoe root-contexten te maken en beheren.
 
 ### C# Implementatie
 
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-In bovenstaande code hebben we:
+In de bovenstaande code hebben we:
 
-1. Een root context aangemaakt voor een klantenservice sessie.
-1. Meerdere berichten binnen die context verzonden, zodat het model de status kan behouden.
+1. Een root-context aangemaakt voor een klantenservice-sessie.
+1. Meerdere berichten verstuurd binnen die context, waardoor het model de status kan behouden.
 1. De context bijgewerkt met relevante metadata op basis van het gesprek.
 1. Contextinformatie opgehaald om de gespreksgeschiedenis te begrijpen.
-1. De context gearchiveerd toen het gesprek was afgerond.
+1. De context gearchiveerd nadat het gesprek was afgerond.
 
-## Voorbeeld: Root Context Implementatie voor financiële analyse
+## Voorbeeld: Implementatie van Root-context voor financiële analyse
 
-In dit voorbeeld maken we een root context aan voor een financiële analysesessie, waarbij we laten zien hoe je de status over meerdere interacties kunt behouden.
+In dit voorbeeld maken we een root-context voor een financiële analysesessie, en demonstreren we hoe status over meerdere interacties wordt behouden.
 
 ### Java Implementatie
 
 ```java
-// Java Example: Root Context Implementation
+// Java Voorbeeld: Root Context Implementatie
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Contextmetadata maken
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Maak een nieuwe root context aan
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Eerste interactie
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Werk context bij met belangrijke informatie verkregen uit reactie
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Tweede interactie - gebruikmakend van dezelfde context
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Genereer een samenvatting van de analysesessie
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Sla de samenvatting op in contextmetadata
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Verkrijg bijgewerkte contextinformatie
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Archiveer context wanneer klaar
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-In bovenstaande code hebben we:
+In de bovenstaande code hebben we:
 
-1. Een root context aangemaakt voor een financiële analysesessie.
-2. Meerdere berichten binnen die context verzonden, zodat het model de status kan behouden.
+1. Een root-context aangemaakt voor een financiële analysesessie.
+2. Meerdere berichten verstuurd binnen die context, waardoor het model status kan behouden.
 3. De context bijgewerkt met relevante metadata op basis van het gesprek.
 4. Een samenvatting van de analysesessie gegenereerd en opgeslagen in de contextmetadata.
 5. De context gearchiveerd toen het gesprek was afgerond.
 
-## Voorbeeld: Root Context Beheer
+## Voorbeeld: Root-contextbeheer
 
-Het effectief beheren van root contexts is cruciaal voor het behouden van gespreksgeschiedenis en status. Hieronder staat een voorbeeld van hoe je root context beheer kunt implementeren.
+Effectief beheren van root-contexten is cruciaal voor het behouden van gespreksgeschiedenis en status. Hieronder een voorbeeld van hoe root-contextbeheer te implementeren.
 
 ### JavaScript Implementatie
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScript Voorbeeld: Beheren van MCP Root Contexten
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Initialiseer de MCP-client
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Initialiseer contextbeheerder
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Verstuur het bericht met de opgegeven context
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Optioneel belangrijke inzichten uit het gesprek opslaan
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Haal potentiële inzichten eruit (in een echte app zou dit geavanceerder zijn)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Simpele heuristiek om potentiële inzichten te identificeren
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Sla inzichten op in contextmetadata
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Niet-kritieke fout, dus alleen waarschuwing loggen
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Vraag het model om een samenvatting van het gesprek tot nu toe te genereren
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Sla de samenvatting op in contextmetadata
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Genereer een definitieve samenvatting voordat je archiveert
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Archiveer de context
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Voorbeeld gebruik
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Maak een nieuwe context aan voor een productondersteuningsgesprek
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Eerste bericht in het gesprek
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Vervolgbericht in dezelfde context
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Verkrijg informatie over de context
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Genereer en toon samenvatting van het gesprek
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Archiveer de context wanneer klaar
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Handel eventuele fouten netjes af
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,11 +477,11 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-In bovenstaande code hebben we:
+In de bovenstaande code hebben we:
 
-1. Een root context aangemaakt voor een productondersteuningsgesprek met de functie `createConversationContext`. In dit geval gaat de context over problemen met databaseprestaties.
+1. Een root-context aangemaakt voor een productondersteuningsgesprek met de functie `createConversationContext`. In dit geval gaat de context over prestatieproblemen van een database.
 
-1. Meerdere berichten binnen die context verzonden, zodat het model de status kan behouden met de functie `sendMessage`. De berichten gaan over trage queryprestaties en indexconfiguratie.
+1. Meerdere berichten verstuurd binnen die context, waardoor het model status kan behouden met de functie `sendMessage`. De berichten gaan over trage queryprestaties en indexconfiguratie.
 
 1. De context bijgewerkt met relevante metadata op basis van het gesprek.
 
@@ -485,16 +489,16 @@ In bovenstaande code hebben we:
 
 1. De context gearchiveerd toen het gesprek was afgerond met de functie `archiveContext`.
 
-1. Fouten op een nette manier afgehandeld om robuustheid te waarborgen.
+1. Fouten soepel afgehandeld om robuustheid te waarborgen.
 
-## Root Context voor Meerstapsassistentie
+## Root-context voor Meertraps Assistentie
 
-In dit voorbeeld maken we een root context aan voor een meerstapsassistentiesessie, waarbij we laten zien hoe je de status over meerdere interacties kunt behouden.
+In dit voorbeeld maken we een root-context voor een meertraps assistentiesessie, en tonen we hoe staat over meerdere interacties behouden blijft.
 
 ### Python Implementatie
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python Voorbeeld: Root Context voor Multi-Turn Assistentie
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Voeg gebruikersinformatie toe indien opgegeven
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Maak de root context aan
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Maak opties met context-ID
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Voeg tools toe indien gespecificeerd
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Verstuur de prompt binnen de context
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Werk contextmetadata bij met gespreksvoortgang
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Genereer eerst een samenvattende prompt
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Sla samenvatting op in metadata
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Archiveer de context
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Voorbeeld gebruik
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Maak sessie aan
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Eerste interactie
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Tweede interactie in dezelfde context
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Haal geschiedenis op
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Beëindig sessie
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-In bovenstaande code hebben we:
+In de bovenstaande code hebben we:
 
-1. Een root context aangemaakt voor een technische supportsessie met de functie `create_session`. De context bevat gebruikersinformatie zoals naam en technisch niveau.
+1. Een root-context aangemaakt voor een technische supportsessie met de functie `create_session`. De context bevat gebruikersinformatie zoals naam en technisch niveau.
 
-1. Meerdere berichten binnen die context verzonden, zodat het model de status kan behouden met de functie `send_message`. De berichten gaan over problemen met de auto-scaling functie.
+1. Meerdere berichten verstuurd binnen die context, waardoor het model status kan behouden met de functie `send_message`. De berichten gaan over problemen met de autoscale-functie.
 
 1. Gespreksgeschiedenis opgehaald met de functie `get_conversation_history`, die contextinformatie en berichten levert.
 
-1. De sessie beëindigd door de context te archiveren en een samenvatting te genereren met de functie `end_session`. De samenvatting bevat de belangrijkste punten uit het gesprek.
+1. De sessie beëindigd door de context te archiveren en een samenvatting te genereren met de functie `end_session`. De samenvatting legt de belangrijkste punten van het gesprek vast.
 
-## Best Practices voor Root Contexts
+## Best practices Root-context
 
-Hier zijn enkele best practices voor het effectief beheren van root contexts:
+Hier volgen enkele best practices voor het effectief beheren van root-contexten:
 
-- **Maak gerichte contexts aan**: Maak aparte root contexts voor verschillende gespreksonderwerpen of domeinen om overzicht te behouden.
+- **Maak Gerichte Contexten**: Maak aparte root-contexten voor verschillende gespreksdoelen of domeinen voor duidelijkheid.
 
-- **Stel vervalbeleid in**: Implementeer beleid om oude contexts te archiveren of te verwijderen om opslag te beheren en te voldoen aan bewaarbeleid.
+- **Stel Verloopregels in**: Implementeer regels om oude contexten te archiveren of verwijderen voor opslagbeheer en naleving van gegevensbewaarbeleid.
 
-- **Sla relevante metadata op**: Gebruik contextmetadata om belangrijke informatie over het gesprek op te slaan die later nuttig kan zijn.
+- **Sla Relevante Metadata op**: Gebruik contextmetadata om belangrijke informatie over het gesprek op te slaan die later nuttig kan zijn.
 
-- **Gebruik context-ID’s consequent**: Gebruik de ID van een context consistent voor alle gerelateerde verzoeken om continuïteit te waarborgen.
+- **Gebruik Context-ID's Consistent**: Gebruik na het aanmaken van een context consistent de ID voor alle gerelateerde verzoeken om continuïteit te waarborgen.
 
-- **Genereer samenvattingen**: Wanneer een context te groot wordt, overweeg dan samenvattingen te maken om essentiële informatie vast te leggen en de contextgrootte te beheersen.
+- **Genereer Samenvattingen**: Overweeg het genereren van samenvattingen zodra een context groot wordt om essentiële informatie vast te leggen en contextgrootte te beheren.
 
-- **Implementeer toegangscontrole**: Voor systemen met meerdere gebruikers, zorg voor goede toegangscontrole om privacy en beveiliging van gesprekcontexts te waarborgen.
+- **Implementeer Toegangscontrole**: Voor multi-gebruikerssystemen implementeer juiste toegangsniveaus om privacy en beveiliging van gesprekscontexten te garanderen.
 
-- **Houd rekening met contextlimieten**: Wees bewust van de limieten in contextgrootte en implementeer strategieën voor het omgaan met zeer lange gesprekken.
+- **Ga om met Contextbeperkingen**: Wees bewust van contextgroottebeperkingen en implementeer strategieën voor het omgaan met zeer lange gesprekken.
 
-- **Archiveer wanneer afgerond**: Archiveer contexts wanneer gesprekken zijn afgerond om middelen vrij te maken en toch de gespreksgeschiedenis te bewaren.
+- **Archiveer bij Afronding**: Archiveer contexten als gesprekken voltooid zijn om resources vrij te maken en toch gespreksgeschiedenis te behouden.
 
-## Wat volgt
+## Wat nu
 
 - [5.5 Routing](../mcp-routing/README.md)
 
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsdienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet als de gezaghebbende bron worden beschouwd. Voor cruciale informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

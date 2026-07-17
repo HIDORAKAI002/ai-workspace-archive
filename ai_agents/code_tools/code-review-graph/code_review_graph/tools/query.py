@@ -284,6 +284,32 @@ def query_graph(
                         "file": e.file_path,
                     })
                     edges_out.append(edge_to_dict(e))
+            # C# fallback: `using X.Y;` directives produce IMPORTS_FROM edges
+            # whose target is the raw namespace string, not a file path, so
+            # the path lookup above misses them. Resolve the target file's
+            # declared namespace(s) and also search edges by namespace.
+            # See: #310
+            if node is not None and node.language == "csharp":
+                declared_ns: list[str] = []
+                for n in store.get_nodes_by_file(node.file_path):
+                    if n.kind == "File":
+                        declared_ns = list(
+                            n.extra.get("csharp_namespaces", []) or []
+                        )
+                        break
+                seen_sources = {r.get("importer") for r in results}
+                for ns in declared_ns:
+                    for e in store.get_edges_by_target(ns):
+                        if e.kind != "IMPORTS_FROM":
+                            continue
+                        if e.source_qualified in seen_sources:
+                            continue
+                        results.append({
+                            "importer": e.source_qualified,
+                            "file": e.file_path,
+                        })
+                        edges_out.append(edge_to_dict(e))
+                        seen_sources.add(e.source_qualified)
 
         elif pattern == "children_of":
             for e in store.get_edges_by_source(qn):
@@ -293,19 +319,29 @@ def query_graph(
                         results.append(node_to_dict(child))
 
         elif pattern == "tests_for":
-            for e in store.get_edges_by_target(qn):
-                if e.kind == "TESTED_BY":
-                    test = store.get_node(e.source_qualified)
-                    if test:
-                        results.append(node_to_dict(test))
+            # Keep the normal sanitized node response while adding the
+            # direct/indirect marker returned by the bounded store lookup.
+            seen: set[str] = set()
+            for match in store.get_transitive_tests(qn):
+                test_qn = match.get("qualified_name")
+                if not isinstance(test_qn, str) or test_qn in seen:
+                    continue
+                test = store.get_node(test_qn)
+                if test:
+                    result = node_to_dict(test)
+                    result["indirect"] = bool(match.get("indirect", False))
+                    results.append(result)
+                    seen.add(test_qn)
             # Also search by naming convention
             name = node.name if node else target
             test_nodes = store.search_nodes(f"test_{name}", limit=10)
             test_nodes += store.search_nodes(f"Test{name}", limit=10)
-            seen = {r.get("qualified_name") for r in results}
             for t in test_nodes:
                 if t.qualified_name not in seen and t.is_test:
-                    results.append(node_to_dict(t))
+                    result = node_to_dict(t)
+                    result["indirect"] = False
+                    results.append(result)
+                    seen.add(t.qualified_name)
 
         elif pattern == "inheritors_of":
             for e in store.get_edges_by_target(qn):
@@ -340,7 +376,7 @@ def query_graph(
             minimal_results = [
                 {
                     k: r[k]
-                    for k in ("name", "kind", "file_path")
+                    for k in ("name", "kind", "file_path", "indirect")
                     if k in r
                 }
                 for r in results[:5]
@@ -403,14 +439,13 @@ def semantic_search_nodes(
     """
     store, root = _get_store(repo_root)
     try:
+        mode_out: list[str] = []
         results = hybrid_search(
             store, query, kind=kind, limit=limit, context_files=context_files,
-            model=model, provider=provider,
+            model=model, provider=provider, _out_mode=mode_out,
         )
 
-        search_mode = "hybrid"
-        if not results:
-            search_mode = "keyword"
+        search_mode = mode_out[0] if mode_out else "keyword"
 
         summary = f"Found {len(results)} node(s) matching '{query}'" + (
             f" (kind={kind})" if kind else ""

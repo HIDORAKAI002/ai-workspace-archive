@@ -1,53 +1,57 @@
-# MCP Root Contexts
+> [เลิกใช้: ตัวอย่างเวอร์ชันปล่อย 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexts เป็นแนวคิดพื้นฐานใน Model Context Protocol ที่ให้ชั้นข้อมูลถาวรสำหรับเก็บประวัติการสนทนาและสถานะที่ใช้ร่วมกันระหว่างคำขอและเซสชันหลายๆ ครั้ง
+# MCP รากของบริบท
+
+> **ประกาศเลิกใช้:** ตัวอย่างเวอร์ชันปล่อยสเปค MCP `2026-07-28` กำหนดให้ Roots เลิกใช้และแนะนำให้ใช้พารามิเตอร์เครื่องมือ, URI ของทรัพยากร, หรือการตั้งค่าเซิร์ฟเวอร์แทน Roots ยังคงทำงานในเวอร์ชัน `2025-11-25` และอย่างน้อยหนึ่งปีหลังการเลิกใช้ทางการ ดังนั้นเนื้อหาในบทเรียนนี้ยังคงใช้งานได้ - แต่การออกแบบเซิร์ฟเวอร์ใหม่ควรพิจารณารูปแบบการทดแทน ดูเพิ่มเติมที่ [What’s Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)
+
+รากของบริบทเป็นแนวคิดพื้นฐานใน Model Context Protocol ที่ให้ชั้นที่คงทนสำหรับเก็บประวัติการสนทนาและสถานะร่วมกันในหลายคำขอและหลายเซสชัน
 
 ## บทนำ
 
-ในบทเรียนนี้ เราจะเรียนรู้วิธีสร้าง จัดการ และใช้งาน root contexts ใน MCP
+ในบทเรียนนี้ เราจะสำรวจวิธีสร้าง จัดการ และใช้งานรากของบริบทใน MCP
 
 ## วัตถุประสงค์การเรียนรู้
 
 เมื่อจบบทเรียนนี้ คุณจะสามารถ:
 
-- เข้าใจวัตถุประสงค์และโครงสร้างของ root contexts
-- สร้างและจัดการ root contexts โดยใช้ไลบรารีลูกค้า MCP
-- นำ root contexts ไปใช้ในแอปพลิเคชัน .NET, Java, JavaScript และ Python
-- ใช้ root contexts สำหรับการสนทนาแบบหลายรอบและการจัดการสถานะ
-- นำแนวทางปฏิบัติที่ดีที่สุดสำหรับการจัดการ root contexts ไปใช้
+- เข้าใจวัตถุประสงค์และโครงสร้างของรากของบริบท
+- สร้างและจัดการรากของบริบทโดยใช้ไลบรารีไคลเอนต์ MCP
+- ใช้งานรากของบริบทในแอปพลิเคชัน .NET, Java, JavaScript และ Python
+- ใช้รากของบริบทสำหรับการสนทนาแบบหลายรอบและการจัดการสถานะ
+- นำแนวทางปฏิบัติที่ดีที่สุดสำหรับการจัดการรากของบริบทไปใช้งาน
 
-## ความเข้าใจเกี่ยวกับ Root Contexts
+## ทำความเข้าใจกับรากของบริบท
 
-Root contexts ทำหน้าที่เป็นภาชนะที่เก็บประวัติและสถานะของชุดการโต้ตอบที่เกี่ยวข้องกัน ช่วยให้:
+รากของบริบททำหน้าที่เป็นภาชนะที่เก็บประวัติและสถานะสำหรับชุดของปฏิสัมพันธ์ที่เกี่ยวข้องกัน ซึ่งช่วย:
 
-- **การรักษาการสนทนา**: รักษาการสนทนาแบบหลายรอบให้สอดคล้องกัน
-- **การจัดการหน่วยความจำ**: เก็บและดึงข้อมูลข้ามการโต้ตอบ
-- **การจัดการสถานะ**: ติดตามความคืบหน้าในเวิร์กโฟลว์ที่ซับซ้อน
-- **การแชร์บริบท**: อนุญาตให้ลูกค้าหลายรายเข้าถึงสถานะการสนทนาเดียวกันได้
+- **การเก็บรักษาการสนทนา**: รักษาการสนทนาแบบหลายรอบอย่างสอดคล้อง
+- **การจัดการหน่วยความจำ**: การจัดเก็บและเรียกคืนข้อมูลข้ามปฏิสัมพันธ์
+- **การจัดการสถานะ**: การติดตามความคืบหน้าในกระบวนการซับซ้อน
+- **การแชร์บริบท**: อนุญาตให้ไคลเอนต์หลายรายเข้าถึงสถานะการสนทนาเดียวกัน
 
-ใน MCP, root contexts มีลักษณะสำคัญดังนี้:
+ใน MCP รากของบริบทมีลักษณะสำคัญดังนี้:
 
-- แต่ละ root context มีตัวระบุที่ไม่ซ้ำกัน
-- สามารถเก็บประวัติการสนทนา, ความชอบของผู้ใช้ และเมตาดาต้าอื่นๆ
+- รากของบริบทแต่ละรายการมีตัวระบุเฉพาะ
+- พวกมันสามารถเก็บประวัติการสนทนา, ความชอบของผู้ใช้, และเมตาดาทาอื่น ๆ
 - สามารถสร้าง, เข้าถึง และเก็บถาวรได้ตามต้องการ
-- รองรับการควบคุมการเข้าถึงและสิทธิ์อย่างละเอียด
+- สนับสนุนการควบคุมการเข้าถึงและสิทธิ์ในระดับละเอียด
 
-## วงจรชีวิตของ Root Context
+## วงจรชีวิตของรากบริบท
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[สร้างบริบทราก] --> B[เริ่มต้นด้วยข้อมูลเมตา]
+    B --> C[ส่งคำขอพร้อมรหัสบริบท]
+    C --> D[อัปเดตบริบทด้วยผลลัพธ์]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[จัดเก็บบริบทเมื่อเสร็จสิ้น]
 ```
 
-## การทำงานกับ Root Contexts
+## การทำงานกับรากของบริบท
 
-ตัวอย่างนี้แสดงวิธีสร้างและจัดการ root contexts
+นี่คือตัวอย่างวิธีสร้างและจัดการรากของบริบท
 
-### การใช้งานใน C#
+### ตัวอย่างการใช้งานใน C#
 
 ```csharp
 // .NET Example: Root Context Management
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-ในโค้ดข้างต้น เราได้:
+ในโค้ดตัวอย่างก่อนหน้านี้ เราได้:
 
-1. สร้าง root context สำหรับเซสชันสนับสนุนลูกค้า
+1. สร้างรากของบริบทสำหรับเซสชันฝ่ายสนับสนุนลูกค้า
 1. ส่งข้อความหลายข้อความภายในบริบทนั้น เพื่อให้โมเดลสามารถรักษาสถานะได้
-1. อัปเดตบริบทด้วยเมตาดาต้าที่เกี่ยวข้องตามการสนทนา
-1. ดึงข้อมูลบริบทเพื่อเข้าใจประวัติการสนทนา
-1. เก็บถาวรบริบทเมื่อการสนทนาสิ้นสุดลง
+1. อัปเดตบริบทด้วยเมตาดาทาที่เกี่ยวข้องตามการสนทนา
+1. ดึงข้อมูลบริบทเพื่อทำความเข้าใจประวัติการสนทนา
+1. เก็บถาวรบริบทเมื่อการสนทนาเสร็จสิ้น
 
-## ตัวอย่าง: การใช้งาน Root Context สำหรับการวิเคราะห์การเงิน
+## ตัวอย่าง: การใช้งานรากของบริบทสำหรับการวิเคราะห์การเงิน
 
-ในตัวอย่างนี้ เราจะสร้าง root context สำหรับเซสชันวิเคราะห์การเงิน เพื่อแสดงวิธีรักษาสถานะข้ามการโต้ตอบหลายครั้ง
+ในตัวอย่างนี้ เราจะสร้างรากของบริบทสำหรับเซสชันวิเคราะห์การเงิน พร้อมสาธิตวิธีรักษาสถานะในหลายปฏิสัมพันธ์
 
-### การใช้งานใน Java
+### ตัวอย่างการใช้งานใน Java
 
 ```java
-// Java Example: Root Context Implementation
+// ตัวอย่าง Java: การใช้งาน Root Context
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // สร้างเมตาดาต้าของบริบท
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. สร้าง root context ใหม่
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. การโต้ตอบครั้งแรก
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. อัปเดตบริบทด้วยข้อมูลสำคัญที่ได้รับจากการตอบกลับ
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // การโต้ตอบครั้งที่สอง - ใช้บริบทเดียวกัน
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. สร้างสรุปของเซสชันวิเคราะห์
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // เก็บสรุปลงในเมตาดาต้าของบริบท
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // ดึงข้อมูลบริบทที่อัปเดตแล้ว
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. จัดเก็บบริบทเมื่อเสร็จสิ้น
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-ในโค้ดข้างต้น เราได้:
+ในโค้ดตัวอย่างก่อนหน้านี้ เราได้:
 
-1. สร้าง root context สำหรับเซสชันวิเคราะห์การเงิน
-2. ส่งข้อความหลายข้อความภายในบริบทนั้น เพื่อให้โมเดลสามารถรักษาสถานะได้
-3. อัปเดตบริบทด้วยเมตาดาต้าที่เกี่ยวข้องตามการสนทนา
-4. สร้างสรุปของเซสชันวิเคราะห์และเก็บไว้ในเมตาดาต้าของบริบท
-5. เก็บถาวรบริบทเมื่อการสนทนาสิ้นสุดลง
+1. สร้างรากของบริบทสำหรับเซสชันวิเคราะห์ทางการเงิน
+2. ส่งข้อความหลายข้อความภายในบริบทนั้น เพื่อให้โมเดลรักษาสถานะได้
+3. อัปเดตบริบทด้วยเมตาดาทาที่เกี่ยวข้องตามการสนทนา
+4. สร้างสรุปของเซสชันวิเคราะห์และเก็บไว้ในเมตาดาทาของบริบท
+5. เก็บถาวรบริบทเมื่อการสนทนาเสร็จสิ้น
 
-## ตัวอย่าง: การจัดการ Root Context
+## ตัวอย่าง: การจัดการรากของบริบท
 
-การจัดการ root contexts อย่างมีประสิทธิภาพเป็นสิ่งสำคัญสำหรับการรักษาประวัติการสนทนาและสถานะ ด้านล่างเป็นตัวอย่างการใช้งานการจัดการ root context
+การจัดการรากของบริบทอย่างมีประสิทธิภาพสำคัญสำหรับการรักษาประวัติการสนทนาและสถานะ ด้านล่างคือตัวอย่างการใช้งานการจัดการรากของบริบท
 
-### การใช้งานใน JavaScript
+### ตัวอย่างการใช้งานใน JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// ตัวอย่าง JavaScript: การจัดการ MCP Root Contexts
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // เริ่มต้นไคลเอนต์ MCP
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // เริ่มต้นตัวจัดการบริบท
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // ส่งข้อความโดยใช้บริบทที่ระบุ
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // จัดเก็บข้อมูลเชิงลึกที่สำคัญจากบทสนทนาได้ตามต้องการ
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // สกัดข้อมูลเชิงลึกที่เป็นไปได้ (ในแอปจริงจะซับซ้อนกว่า)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // วิธีง่าย ๆ ในการระบุข้อมูลเชิงลึกที่เป็นไปได้
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // จัดเก็บข้อมูลเชิงลึกในข้อมูลเมตาของบริบท
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // เป็นข้อผิดพลาดที่ไม่ร้ายแรง ดังนั้นจึงแค่บันทึกคำเตือน
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // ขอให้โมเดลสร้างสรุปบทสนทนาจนถึงตอนนี้
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // จัดเก็บสรุปในข้อมูลเมตาของบริบท
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // สร้างสรุปสุดท้ายก่อนทำการเก็บถาวร
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // เก็บถาวรบริบท
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// ตัวอย่างการใช้งาน
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. สร้างบริบทใหม่สำหรับการสนับสนุนผลิตภัณฑ์
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. ข้อความแรกในบทสนทนา
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // ข้อความติดตามในบริบทเดียวกัน
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. รับข้อมูลเกี่ยวกับบริบท
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. สร้างและแสดงสรุปบทสนทนา
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. เก็บถาวรบริบทเมื่อเสร็จสิ้น
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. จัดการข้อผิดพลาดอย่างมีวิจารณญาณ
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-ในโค้ดข้างต้น เราได้:
+ในโค้ดตัวอย่างก่อนหน้านี้ เราได้:
 
-1. สร้าง root context สำหรับการสนทนาสนับสนุนผลิตภัณฑ์ด้วยฟังก์ชัน `createConversationContext` ในกรณีนี้ บริบทเกี่ยวกับปัญหาประสิทธิภาพฐานข้อมูล
+1. สร้างรากของบริบทสำหรับการสนทนาฝ่ายสนับสนุนผลิตภัณฑ์ด้วยฟังก์ชัน `createConversationContext` ในกรณีนี้บริบทเกี่ยวกับปัญหาประสิทธิภาพฐานข้อมูล
 
-1. ส่งข้อความหลายข้อความภายในบริบทนั้น เพื่อให้โมเดลสามารถรักษาสถานะด้วยฟังก์ชัน `sendMessage` ข้อความที่ส่งเกี่ยวกับประสิทธิภาพการค้นหาช้าและการตั้งค่าอินเด็กซ์
+1. ส่งข้อความหลายข้อความภายในบริบทนั้น เพื่อให้โมเดลรักษาสถานะด้วยฟังก์ชัน `sendMessage` ข้อความที่ส่งเกี่ยวกับประสิทธิภาพการค้นหาช้าที่และการตั้งค่าดัชนี
 
-1. อัปเดตบริบทด้วยเมตาดาต้าที่เกี่ยวข้องตามการสนทนา
+1. อัปเดตบริบทด้วยเมตาดาทาที่เกี่ยวข้องตามการสนทนา
 
-1. สร้างสรุปของการสนทนาและเก็บไว้ในเมตาดาต้าของบริบทด้วยฟังก์ชัน `generateContextSummary`
+1. สร้างสรุปของการสนทนาและเก็บไว้ในเมตาดาทาของบริบทด้วยฟังก์ชัน `generateContextSummary`
 
-1. เก็บถาวรบริบทเมื่อการสนทนาสิ้นสุดด้วยฟังก์ชัน `archiveContext`
+1. เก็บถาวรบริบทเมื่อการสนทนาเสร็จสิ้นด้วยฟังก์ชัน `archiveContext`
 
-1. จัดการข้อผิดพลาดอย่างเหมาะสมเพื่อความมั่นคง
+1. จัดการข้อผิดพลาดอย่างราบรื่นเพื่อให้มีความทนทาน
 
-## Root Context สำหรับการช่วยเหลือแบบหลายรอบ
+## รากบริบทสำหรับความช่วยเหลือแบบหลายรอบ
 
-ในตัวอย่างนี้ เราจะสร้าง root context สำหรับเซสชันช่วยเหลือแบบหลายรอบ เพื่อแสดงวิธีรักษาสถานะข้ามการโต้ตอบหลายครั้ง
+ในตัวอย่างนี้ เราจะสร้างรากของบริบทสำหรับเซสชันช่วยเหลือแบบหลายรอบ โดยสาธิตวิธีรักษาสถานะในหลายปฏิสัมพันธ์
 
-### การใช้งานใน Python
+### ตัวอย่างการใช้งานใน Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# ตัวอย่าง Python: รากฐานบริบทสำหรับการช่วยเหลือหลายรอบ
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # เพิ่มข้อมูลผู้ใช้ถ้ามีการระบุ
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # สร้างบริบทหลัก
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # สร้างตัวเลือกพร้อมกับไอดีบริบท
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # เพิ่มเครื่องมือถ้ามีการระบุ
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # ส่งคำสั่งภายในบริบท
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # อัปเดตเมตาดาต้าของบริบทพร้อมความก้าวหน้าของการสนทนา
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # สร้างคำสั่งสรุปก่อน
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # เก็บสรุปในเมตาดาต้า
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # จัดเก็บบริบท
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# ตัวอย่างการใช้งาน
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. สร้างเซสชัน
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. การโต้ตอบครั้งแรก
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # การโต้ตอบครั้งที่สองในบริบทเดียวกัน
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. ดึงประวัติ
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. สิ้นสุดเซสชัน
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-ในโค้ดข้างต้น เราได้:
+ในโค้ดตัวอย่างก่อนหน้านี้ เราได้:
 
-1. สร้าง root context สำหรับเซสชันสนับสนุนทางเทคนิคด้วยฟังก์ชัน `create_session` บริบทประกอบด้วยข้อมูลผู้ใช้ เช่น ชื่อและระดับความรู้ทางเทคนิค
+1. สร้างรากของบริบทสำหรับเซสชันสนับสนุนทางเทคนิคด้วยฟังก์ชัน `create_session` บริบทนี้รวมข้อมูลผู้ใช้เช่นชื่อและระดับเทคนิค
 
-1. ส่งข้อความหลายข้อความภายในบริบทนั้น เพื่อให้โมเดลสามารถรักษาสถานะด้วยฟังก์ชัน `send_message` ข้อความที่ส่งเกี่ยวกับปัญหาฟีเจอร์ auto-scaling
+1. ส่งข้อความหลายข้อความภายในบริบทนั้น เพื่อให้โมเดลรักษาสถานะด้วยฟังก์ชัน `send_message` ข้อความที่ส่งเกี่ยวกับปัญหาฟีเจอร์การปรับขนาดอัตโนมัติ
 
 1. ดึงประวัติการสนทนาด้วยฟังก์ชัน `get_conversation_history` ซึ่งให้ข้อมูลบริบทและข้อความ
 
-1. สิ้นสุดเซสชันโดยเก็บถาวรบริบทและสร้างสรุปด้วยฟังก์ชัน `end_session` สรุปจะจับประเด็นสำคัญจากการสนทนา
+1. สิ้นสุดเซสชันด้วยการเก็บถาวรบริบทและสร้างสรุปด้วยฟังก์ชัน `end_session` สรุปจับประเด็นสำคัญจากการสนทนา
 
-## แนวทางปฏิบัติที่ดีที่สุดสำหรับ Root Context
+## แนวทางปฏิบัติที่ดีที่สุดสำหรับรากของบริบท
 
-นี่คือแนวทางปฏิบัติที่ดีที่สุดสำหรับการจัดการ root contexts อย่างมีประสิทธิภาพ:
+นี่คือแนวทางปฏิบัติที่ดีที่สุดสำหรับการจัดการรากของบริบทอย่างมีประสิทธิภาพ:
 
-- **สร้างบริบทที่เน้นจุดประสงค์ชัดเจน**: สร้าง root contexts แยกตามวัตถุประสงค์หรือโดเมนของการสนทนาเพื่อความชัดเจน
+- **สร้างบริบทที่เฉพาะเจาะจง**: สร้างรากของบริบทแยกสำหรับวัตถุประสงค์หรือโดเมนการสนทนาต่าง ๆ เพื่อรักษาความชัดเจน
 
-- **ตั้งนโยบายหมดอายุ**: ใช้นโยบายในการเก็บถาวรหรือการลบบริบทเก่าเพื่อจัดการพื้นที่จัดเก็บและปฏิบัติตามนโยบายการเก็บข้อมูล
+- **กำหนดนโยบายหมดอายุ**: นำนโยบายมาใช้เพื่อเก็บถาวรหรือลบรากของบริบทเก่า เพื่อจัดการพื้นที่เก็บข้อมูลและปฏิบัติตามนโยบายการเก็บรักษาข้อมูล
 
-- **เก็บเมตาดาต้าที่เกี่ยวข้อง**: ใช้เมตาดาต้าของบริบทเพื่อเก็บข้อมูลสำคัญเกี่ยวกับการสนทนาที่อาจมีประโยชน์ในภายหลัง
+- **เก็บเมตาดาทาที่เกี่ยวข้อง**: ใช้เมตาดาทาของบริบทเพื่อเก็บข้อมูลสำคัญเกี่ยวกับการสนทนาที่อาจมีประโยชน์ในภายหลัง
 
-- **ใช้ ID บริบทอย่างสม่ำเสมอ**: เมื่อสร้างบริบทแล้ว ให้ใช้ ID นั้นอย่างต่อเนื่องสำหรับคำขอที่เกี่ยวข้องทั้งหมดเพื่อรักษาความต่อเนื่อง
+- **ใช้รหัสบริบทอย่างสม่ำเสมอ**: เมื่อสร้างบริบทแล้ว ใช้รหัสบริบทเดิมสำหรับคำขอที่เกี่ยวข้องทั้งหมดเพื่อรักษาความต่อเนื่อง
 
-- **สร้างสรุป**: เมื่อบริบทมีขนาดใหญ่ ควรพิจารณาสร้างสรุปเพื่อจับข้อมูลสำคัญในขณะที่จัดการขนาดบริบท
+- **สร้างสรุป**: เมื่อบริบทมีขนาดใหญ่ ให้พิจารณาสร้างสรุปเพื่อจับข้อมูลสำคัญขณะบริหารขนาดบริบท
 
-- **ใช้การควบคุมการเข้าถึง**: สำหรับระบบที่มีผู้ใช้หลายคน ควรใช้การควบคุมการเข้าถึงที่เหมาะสมเพื่อรักษาความเป็นส่วนตัวและความปลอดภัยของบริบทการสนทนา
+- **ใช้งานการควบคุมการเข้าถึง**: สำหรับระบบหลายผู้ใช้ ให้ติดตั้งการควบคุมการเข้าถึงที่เหมาะสมเพื่อรับประกันความเป็นส่วนตัวและความปลอดภัยของบริบทสนทนา
 
-- **จัดการข้อจำกัดของบริบท**: ตระหนักถึงข้อจำกัดของขนาดบริบทและวางแผนกลยุทธ์สำหรับการจัดการการสนทนายาวๆ
+- **จัดการข้อจำกัดของบริบท**: ตระหนักถึงข้อจำกัดขนาดบริบทและวางกลยุทธ์สำหรับการจัดการการสนทนายาวมาก ๆ
 
-- **เก็บถาวรเมื่อเสร็จสิ้น**: เก็บถาวรบริบทเมื่อการสนทนาสิ้นสุดเพื่อคืนทรัพยากรในขณะที่ยังเก็บประวัติการสนทนาไว้
+- **เก็บถาวรเมื่อเสร็จสิ้น**: เก็บถาวรบริบทเมื่อการสนทนาเสร็จสิ้นเพื่อปล่อยทรัพยากรในขณะเดียวกันก็รักษาประวัติการสนทนาไว้
 
-## ต่อไปคืออะไร
+## ขั้นตอนถัดไป
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 การกำหนดเส้นทาง](../mcp-routing/README.md)
 
-**ข้อจำกัดความรับผิดชอบ**:  
-เอกสารนี้ได้รับการแปลโดยใช้บริการแปลภาษาอัตโนมัติ [Co-op Translator](https://github.com/Azure/co-op-translator) แม้เราจะพยายามให้ความถูกต้องสูงสุด แต่โปรดทราบว่าการแปลอัตโนมัติอาจมีข้อผิดพลาดหรือความไม่ถูกต้อง เอกสารต้นฉบับในภาษาต้นทางถือเป็นแหล่งข้อมูลที่เชื่อถือได้ สำหรับข้อมูลที่สำคัญ ขอแนะนำให้ใช้บริการแปลโดยผู้เชี่ยวชาญมนุษย์ เราไม่รับผิดชอบต่อความเข้าใจผิดหรือการตีความผิดใด ๆ ที่เกิดจากการใช้การแปลนี้
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ปฏิเสธความรับผิดชอบ**:
+เอกสารนี้ได้รับการแปลโดยใช้บริการแปลภาษา AI [Co-op Translator](https://github.com/Azure/co-op-translator) ขณะที่เราพยายามให้ความถูกต้อง โปรดทราบว่าการแปลโดยอัตโนมัติอาจมีข้อผิดพลาดหรือความไม่ถูกต้อง เอกสารต้นฉบับในภาษาต้นทางควรถูกพิจารณาเป็นแหล่งข้อมูลที่เชื่อถือได้ สำหรับข้อมูลที่สำคัญ แนะนำให้ใช้การแปลโดยมนุษย์มืออาชีพ เราไม่รับผิดชอบต่อความเข้าใจผิดหรือการตีความที่ผิดพลาดที่เกิดขึ้นจากการใช้การแปลนี้
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

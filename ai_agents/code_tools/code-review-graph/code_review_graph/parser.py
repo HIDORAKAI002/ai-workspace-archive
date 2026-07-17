@@ -6,11 +6,14 @@ Extracts structural nodes (classes, functions, imports, types) and edges
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import logging
 import re
+import threading
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple, Optional
 
@@ -33,6 +36,10 @@ _SQL_TABLE_RE = re.compile(
     re.IGNORECASE,
 )
 
+_PYTHON_STAR_CACHE_MAX = 15_000
+_PYTHON_STAR_EXPORT_CACHE: dict[tuple[str, int, int], dict[str, str]] = {}
+_PYTHON_STAR_EXPORT_CACHE_LOCK = threading.RLock()
+
 # SQL keywords that can appear after FROM/JOIN but are NOT table names.
 _SQL_KEYWORDS: frozenset[str] = frozenset({
     "SELECT", "WHERE", "GROUP", "ORDER", "HAVING", "LIMIT", "OFFSET",
@@ -43,6 +50,79 @@ _SQL_KEYWORDS: frozenset[str] = frozenset({
 })
 
 logger = logging.getLogger(__name__)
+
+
+_PhpPsr4Mappings = tuple[tuple[str, tuple[str, ...]], ...]
+
+
+def _path_is_within(path: Path, root: Path) -> bool:
+    """Return whether *path* is inside *root* after both are resolved."""
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+@lru_cache(maxsize=128)
+def _read_php_composer_psr4(
+    composer_path: str,
+    repo_root: str,
+    _mtime_ns: int,
+    _size: int,
+) -> _PhpPsr4Mappings:
+    """Read immutable, shape-safe PSR-4 mappings from one composer.json."""
+    composer = Path(composer_path)
+    root = Path(repo_root)
+    try:
+        data = json.loads(
+            composer.read_text(encoding="utf-8", errors="replace"),
+        )
+    except (OSError, json.JSONDecodeError):
+        return ()
+    if not isinstance(data, dict):
+        return ()
+
+    combined: dict[str, list[str]] = {}
+    for section_name in ("autoload", "autoload-dev"):
+        section = data.get(section_name)
+        if not isinstance(section, dict):
+            continue
+        psr4 = section.get("psr-4")
+        if not isinstance(psr4, dict):
+            continue
+        for raw_prefix, raw_paths in psr4.items():
+            if not isinstance(raw_prefix, str):
+                continue
+            prefix = raw_prefix.lstrip("\\").rstrip("\\")
+            candidate_paths = (
+                [raw_paths] if isinstance(raw_paths, str)
+                else raw_paths if isinstance(raw_paths, list)
+                else []
+            )
+            destinations = combined.setdefault(prefix, [])
+            for raw_path in candidate_paths:
+                if not isinstance(raw_path, str):
+                    continue
+                try:
+                    destination = (composer.parent / raw_path).resolve()
+                except (OSError, RuntimeError, ValueError):
+                    continue
+                if not _path_is_within(destination, root):
+                    continue
+                destination_str = str(destination)
+                if destination_str not in destinations:
+                    destinations.append(destination_str)
+
+    return tuple(
+        (prefix, tuple(destinations))
+        for prefix, destinations in sorted(
+            combined.items(),
+            key=lambda item: (-len(item[0]), item[0]),
+        )
+        if destinations
+    )
+
 
 # ---------------------------------------------------------------------------
 # Data models for extracted entities
@@ -195,13 +275,17 @@ _CLASS_TYPES: dict[str, list[str]] = {
     "csharp": [
         "class_declaration", "interface_declaration",
         "enum_declaration", "struct_declaration",
+        "record_declaration", "record_struct_declaration",
     ],
     "ruby": ["class", "module"],
     "r": [],  # Classes detected via call pattern-matching, not AST node types
     "perl": ["package_statement", "class_statement", "role_statement"],
     "kotlin": ["class_declaration", "object_declaration"],
     "swift": ["class_declaration", "struct_declaration", "protocol_declaration"],
-    "php": ["class_declaration", "interface_declaration"],
+    "php": [
+        "class_declaration", "interface_declaration",
+        "trait_declaration", "enum_declaration",
+    ],
     "scala": [
         "class_definition", "trait_definition", "object_definition", "enum_definition",
     ],
@@ -225,7 +309,10 @@ _CLASS_TYPES: dict[str, list[str]] = {
     # Nix: attrset bindings aren't "classes"; dispatched via
     # _extract_nix_constructs.
     "nix": [],
-    "zig": ["container_declaration"],
+    # Zig has no single class node; struct/union/enum/opaque are VarDecl
+    # whose RHS is a SuffixExpr > ContainerDecl. Dispatched via
+    # _extract_zig_constructs.
+    "zig": [],
     "powershell": ["class_statement"],
     "julia": [
         "struct_definition", "abstract_definition", "module_definition",
@@ -283,7 +370,10 @@ _FUNCTION_TYPES: dict[str, list[str]] = {
     # Nix: `attrpath = expr;` bindings become Function nodes —
     # handled in _extract_nix_constructs.
     "nix": [],
-    "zig": ["fn_proto", "fn_decl"],
+    # Zig: FnProto+Block pairs sit inside a Decl node; the standard generic
+    # walker can't bridge the FnProto signature to its sibling Block body,
+    # so the whole thing is dispatched via _extract_zig_constructs.
+    "zig": [],
     "powershell": ["function_statement"],
     # Julia: short-form functions `f(x) = expr` parse as `assignment` nodes
     # (not a dedicated definition node) and are handled in
@@ -335,8 +425,9 @@ _IMPORT_TYPES: dict[str, list[str]] = {
     # `inputs.*.url` strings become IMPORTS_FROM edges —
     # handled in _extract_nix_constructs.
     "nix": [],
-    # Zig: @import("...") is a builtin_call_expr — handled
-    # generically via call types below.
+    # Zig: @import("path") is a SuffixExpr containing a BUILTINIDENTIFIER
+    # "@import" + FnCallArguments holding a STRINGLITERALSINGLE. Handled in
+    # _extract_zig_constructs as part of VarDecl processing.
     "zig": [],
     "powershell": [],
     # Julia: import/using are import_statement nodes.
@@ -375,6 +466,7 @@ _CALL_TYPES: dict[str, list[str]] = {
         "member_call_expression",
         "scoped_call_expression",
         "nullsafe_member_call_expression",
+        "object_creation_expression",
     ],
     "scala": ["call_expression", "instance_expression", "generic_function"],
     "solidity": ["call_expression"],
@@ -392,7 +484,11 @@ _CALL_TYPES: dict[str, list[str]] = {
     # Nix: function application is ubiquitous; only import/callPackage
     # produce edges, in _extract_nix_constructs.
     "nix": [],
-    "zig": ["call_expression", "builtin_call_expr"],
+    # Zig calls are SuffixExpr/FieldOrFnCall nodes containing FnCallArguments.
+    # Mapping SuffixExpr here would over-match (every expression is a
+    # SuffixExpr); calls are walked explicitly in
+    # _extract_zig_calls_in_subtree from inside function bodies.
+    "zig": [],
     "powershell": ["command_expression"],
     "julia": [
         "call_expression",
@@ -785,6 +881,95 @@ def _is_test_function(
     return False
 
 
+def _modifier_annotation_names(node) -> list[str]:
+    """Return annotation names from a ``modifiers`` child of *node*.
+
+    Covers Java/Kotlin/C# where annotations live inside a ``modifiers``
+    node as ``annotation`` / ``marker_annotation`` children. The leading
+    ``@`` is stripped. See: #295
+    """
+    names: list[str] = []
+    for sub in node.children:
+        if sub.type == "modifiers":
+            for mod in sub.children:
+                if mod.type in ("annotation", "marker_annotation"):
+                    text = mod.text.decode("utf-8", errors="replace")
+                    names.append(text.lstrip("@").strip())
+    return names
+
+
+def _python_decorator_names(node) -> list[str]:
+    """Return decorators wrapping a Python definition in source order."""
+    parent = node.parent
+    if parent is None or parent.type != "decorated_definition":
+        return []
+
+    names: list[str] = []
+    for sibling in parent.children:
+        if sibling.type != "decorator":
+            continue
+        text = sibling.text.decode("utf-8", errors="replace")
+        names.append(text.lstrip("@").strip())
+    return names
+
+
+def _csharp_attribute_names(node) -> list[str]:
+    """Return C# attribute names from ``attribute_list`` children of *node*.
+
+    C# attributes (``[HttpGet]``, ``[Authorize]``, ``[ApiController]``) are
+    ``attribute_list`` nodes, each wrapping one or more ``attribute`` nodes
+    whose first ``identifier`` is the attribute name. The bracket wrapper
+    and any argument list are dropped. See: #295
+    """
+    names: list[str] = []
+    for sub in node.children:
+        if sub.type != "attribute_list":
+            continue
+        for attr in sub.children:
+            if attr.type != "attribute":
+                continue
+            for ident in attr.children:
+                if ident.type in ("identifier", "qualified_name"):
+                    names.append(ident.text.decode("utf-8", errors="replace").strip())
+                    break
+    return names
+
+
+def _csharp_namespaces(root_node) -> list[str]:
+    """Return all namespaces declared in a C# compilation unit.
+
+    Handles both the block form (``namespace_declaration``) and the C# 10+
+    file-scoped form (``file_scoped_namespace_declaration``). A single file
+    may declare multiple namespaces; all are returned in source order.
+    See: #310
+    """
+    namespaces: list[str] = []
+    stack = [(root_node, None)]
+
+    while stack:
+        node, parent_namespace = stack.pop()
+        current_namespace = parent_namespace
+        if node.type in (
+            "namespace_declaration", "file_scoped_namespace_declaration",
+        ):
+            for c in node.children:
+                if c.type in ("qualified_name", "identifier"):
+                    text = c.text.decode("utf-8", errors="replace").strip()
+                    if text:
+                        current_namespace = (
+                            f"{parent_namespace}.{text}"
+                            if parent_namespace
+                            else text
+                        )
+                        namespaces.append(current_namespace)
+                    break
+        stack.extend(
+            (child, current_namespace)
+            for child in reversed(node.children)
+        )
+    return namespaces
+
+
 def file_hash(path: Path) -> str:
     """SHA-256 hash of file contents."""
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -799,8 +984,24 @@ class CodeParser:
     """Parses source files using Tree-sitter and extracts structural information."""
 
     _MODULE_CACHE_MAX = 15_000  # Evict cache to cap memory on huge monorepos
+    _BLADE_COMMENT_RE = re.compile(r"\{\{--.*?(?:--\}\}|$)", re.DOTALL)
+    _BLADE_DIRECTIVE_RE = re.compile(
+        r"""(?<!@)@(extends|include|component|livewire)\s*\(\s*(['"])([^'"]+)\2\s*\)""",
+    )
+    _LARAVEL_ROUTE_FACADE = "Illuminate\\Support\\Facades\\Route"
+    _LARAVEL_ELOQUENT_MODEL = "Illuminate\\Database\\Eloquent\\Model"
+    _LARAVEL_ROUTE_VERBS = frozenset({
+        "get", "post", "put", "patch", "delete", "options",
+        "any", "match", "resource", "apiResource",
+    })
+    _LARAVEL_RELATIONSHIPS = frozenset({
+        "hasMany", "hasOne", "belongsTo", "belongsToMany",
+        "morphTo", "morphMany", "morphOne", "morphToMany",
+        "morphedByMany", "hasManyThrough", "hasOneThrough",
+    })
 
     def __init__(self, repo_root: Optional[Path] = None) -> None:
+        self._repo_root = Path(repo_root).resolve() if repo_root is not None else None
         self._parsers: dict[str, object] = {}
         self._module_file_cache: dict[str, Optional[str]] = {}
         self._export_symbol_cache: dict[str, Optional[str]] = {}
@@ -861,6 +1062,8 @@ class CodeParser:
         only runs when the extension lookup returns ``None`` **and** the path
         has no suffix at all.  See issue #237.
         """
+        if path.name.lower().endswith(".blade.php"):
+            return "blade"
         suffix = path.suffix.lower()
         lang = self._extension_map.get(suffix)
         if lang is not None:
@@ -953,6 +1156,9 @@ class CodeParser:
         if not language:
             return [], []
 
+        if language == "blade":
+            return self._parse_blade(path, source)
+
         # Vue SFCs: parse with vue parser, then delegate script blocks to JS/TS
         if language == "vue":
             return self._parse_vue(path, source)
@@ -1000,6 +1206,14 @@ class CodeParser:
 
         # File node
         test_file = _is_test_file(file_path_str)
+        file_extra: dict = {}
+        # C#: record the namespace(s) this file declares so query-time
+        # fallbacks can resolve namespace-form IMPORTS_FROM targets (from
+        # `using X.Y;` directives) back to the declaring file. See: #310
+        if language == "csharp":
+            ns_list = _csharp_namespaces(tree.root_node)
+            if ns_list:
+                file_extra["csharp_namespaces"] = ns_list
         nodes.append(NodeInfo(
             kind="File",
             name=file_path_str,
@@ -1008,12 +1222,17 @@ class CodeParser:
             line_end=source.count(b"\n") + 1,
             language=language,
             is_test=test_file,
+            extra=file_extra,
         ))
 
         # Pre-scan for import mappings and defined names
         import_map, defined_names = self._collect_file_scope(
             tree.root_node, language, source,
         )
+        if language == "python":
+            self._expand_python_star_imports(
+                tree.root_node, file_path_str, import_map,
+            )
 
         # Walk the tree
         self._extract_from_tree(
@@ -1021,17 +1240,24 @@ class CodeParser:
             import_map=import_map, defined_names=defined_names,
         )
 
+        if language == "php":
+            self._extract_php_laravel_edges(
+                tree.root_node,
+                file_path_str,
+                edges,
+            )
+
         # Resolve bare call targets to qualified names using same-file definitions
         edges = self._resolve_call_targets(nodes, edges, file_path_str)
 
         # Generate TESTED_BY edges: when a test function calls a production
         # function, create an edge from the production function back to the test.
-        if test_file:
-            test_qnames = set()
-            for n in nodes:
-                if n.is_test:
-                    qn = self._qualify(n.name, n.file_path, n.parent_name)
-                    test_qnames.add(qn)
+        test_qnames = set()
+        for n in nodes:
+            if n.is_test:
+                qn = self._qualify(n.name, n.file_path, n.parent_name)
+                test_qnames.add(qn)
+        if test_qnames:
             for edge in list(edges):
                 if edge.kind == "CALLS" and edge.source in test_qnames:
                     edges.append(EdgeInfo(
@@ -1042,6 +1268,51 @@ class CodeParser:
                         line=edge.line,
                     ))
 
+        return nodes, edges
+
+    @classmethod
+    def _mask_blade_comments(cls, text: str) -> str:
+        """Mask Blade comments while preserving offsets and line numbers."""
+        def replace_comment(match: re.Match[str]) -> str:
+            return "".join(
+                char if char in "\r\n" else " "
+                for char in match.group(0)
+            )
+
+        return cls._BLADE_COMMENT_RE.sub(replace_comment, text)
+
+    def _parse_blade(
+        self,
+        path: Path,
+        source: bytes,
+    ) -> tuple[list[NodeInfo], list[EdgeInfo]]:
+        """Parse static Blade template references without a Tree-sitter grammar."""
+        text = source.decode("utf-8", errors="replace")
+        masked = self._mask_blade_comments(text)
+        file_path = str(path)
+        nodes = [
+            NodeInfo(
+                kind="File",
+                name=file_path,
+                file_path=file_path,
+                line_start=1,
+                line_end=source.count(b"\n") + 1,
+                language="blade",
+                is_test=_is_test_file(file_path),
+            ),
+        ]
+        edges: list[EdgeInfo] = []
+        for match in self._BLADE_DIRECTIVE_RE.finditer(masked):
+            directive = match.group(1)
+            target = match.group(3)
+            edges.append(EdgeInfo(
+                kind="REFERENCES" if directive == "livewire" else "IMPORTS_FROM",
+                source=file_path,
+                target=target,
+                file_path=file_path,
+                line=masked.count("\n", 0, match.start()) + 1,
+                extra={"blade_directive": directive},
+            ))
         return nodes, edges
 
     def _parse_vue(
@@ -1446,6 +1717,10 @@ class CodeParser:
             import_map, defined_names = self._collect_file_scope(
                 tree.root_node, lang, concat_bytes,
             )
+            if lang == "python":
+                self._expand_python_star_imports(
+                    tree.root_node, file_path_str, import_map,
+                )
             self._extract_from_tree(
                 tree.root_node, concat_bytes, lang,
                 file_path_str, all_nodes, all_edges,
@@ -2251,6 +2526,19 @@ class CodeParser:
 
             # --- Lua/Luau-specific constructs ---
             if language in ("lua", "luau") and self._extract_lua_constructs(
+                child, node_type, source, language, file_path,
+                nodes, edges, enclosing_class, enclosing_func,
+                import_map, defined_names, _depth,
+            ):
+                continue
+
+            # --- Zig-specific constructs ---
+            # Zig's grammar emits PascalCase Decl/VarDecl/FnProto/SuffixExpr
+            # nodes that don't fit the generic class/function/import/call
+            # dispatch. _extract_zig_constructs handles top-level Decl and
+            # TestDecl nodes (functions, structs/unions/enums, @import,
+            # test blocks) and walks call sites itself.
+            if language == "zig" and self._extract_zig_constructs(
                 child, node_type, source, language, file_path,
                 nodes, edges, enclosing_class, enclosing_func,
                 import_map, defined_names, _depth,
@@ -3701,6 +3989,379 @@ class CodeParser:
         return None
 
     # ------------------------------------------------------------------
+    # Zig-specific helpers
+    # ------------------------------------------------------------------
+
+    _ZIG_CONTAINER_KINDS = frozenset({"struct", "union", "enum", "opaque"})
+
+    def _extract_zig_constructs(
+        self,
+        child,
+        node_type: str,
+        source: bytes,
+        language: str,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+        import_map: Optional[dict[str, str]],
+        defined_names: Optional[set[str]],
+        _depth: int,
+    ) -> bool:
+        """Handle Zig's PascalCase AST shapes.
+
+        Top-level forms recognised:
+          - ``Decl > FnProto + Block``         -> Function/Test node
+          - ``Decl > VarDecl`` with ``@import`` -> IMPORTS_FROM edge
+          - ``Decl > VarDecl`` with ``ContainerDecl`` (struct/union/enum/
+            opaque) -> Class node, recurse for nested methods
+          - ``TestDecl``                        -> Test node
+
+        Returns True if the construct was fully handled and the main loop
+        should skip generic recursion. Returns False to let generic
+        recursion continue (e.g. unknown / line_comment children).
+        """
+        if node_type == "TestDecl":
+            return self._handle_zig_test_decl(
+                child, source, language, file_path, nodes, edges,
+                enclosing_class, enclosing_func,
+                import_map, defined_names, _depth,
+            )
+
+        if node_type != "Decl":
+            return False
+
+        fn_proto = None
+        body_block = None
+        var_decl = None
+        for sub in child.children:
+            t = sub.type
+            if t == "FnProto" and fn_proto is None:
+                fn_proto = sub
+            elif t == "Block" and fn_proto is not None and body_block is None:
+                body_block = sub
+            elif t == "VarDecl" and var_decl is None:
+                var_decl = sub
+
+        if fn_proto is not None:
+            return self._handle_zig_fn_decl(
+                child, fn_proto, body_block, source, language, file_path,
+                nodes, edges, enclosing_class, enclosing_func,
+                import_map, defined_names, _depth,
+            )
+
+        if var_decl is not None:
+            return self._handle_zig_var_decl(
+                child, var_decl, source, language, file_path,
+                nodes, edges, enclosing_class, enclosing_func,
+                import_map, defined_names, _depth,
+            )
+
+        return False
+
+    def _handle_zig_fn_decl(
+        self,
+        decl,
+        fn_proto,
+        body_block,
+        source: bytes,
+        language: str,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+        import_map: Optional[dict[str, str]],
+        defined_names: Optional[set[str]],
+        _depth: int,
+    ) -> bool:
+        """Emit a Function/Test node for ``fn name(...) ReturnType { body }``."""
+        name: Optional[str] = None
+        for sub in fn_proto.children:
+            if sub.type == "IDENTIFIER":
+                name = sub.text.decode("utf-8", errors="replace")
+                break
+        if not name:
+            return False
+
+        is_test = _is_test_function(name, file_path)
+        kind = "Test" if is_test else "Function"
+        qualified = self._qualify(name, file_path, enclosing_class)
+
+        nodes.append(NodeInfo(
+            kind=kind,
+            name=name,
+            file_path=file_path,
+            line_start=decl.start_point[0] + 1,
+            line_end=decl.end_point[0] + 1,
+            language=language,
+            parent_name=enclosing_class,
+            is_test=is_test,
+        ))
+        container = (
+            self._qualify(enclosing_class, file_path, None)
+            if enclosing_class
+            else file_path
+        )
+        edges.append(EdgeInfo(
+            kind="CONTAINS",
+            source=container,
+            target=qualified,
+            file_path=file_path,
+            line=decl.start_point[0] + 1,
+        ))
+
+        if body_block is not None:
+            self._extract_zig_calls_in_subtree(
+                body_block, file_path, edges, enclosing_class, name,
+            )
+        return True
+
+    def _handle_zig_var_decl(
+        self,
+        decl,
+        var_decl,
+        source: bytes,
+        language: str,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+        import_map: Optional[dict[str, str]],
+        defined_names: Optional[set[str]],
+        _depth: int,
+    ) -> bool:
+        """Handle ``const Name = <expr>;`` decls.
+
+        Recognises @import (-> IMPORTS_FROM) and struct/union/enum/opaque
+        ContainerDecl (-> Class node + recurse). For other expressions,
+        scans the RHS for nested call sites so call edges aren't lost.
+        """
+        var_name: Optional[str] = None
+        rhs_suffix = None
+        for sub in var_decl.children:
+            t = sub.type
+            if t == "IDENTIFIER" and var_name is None:
+                var_name = sub.text.decode("utf-8", errors="replace")
+            elif t == "ErrorUnionExpr" and rhs_suffix is None:
+                for inner in sub.children:
+                    if inner.type == "SuffixExpr":
+                        rhs_suffix = inner
+                        break
+
+        if not var_name or rhs_suffix is None:
+            return False
+
+        suffix_children = list(rhs_suffix.children)
+
+        # @import("path") -> IMPORTS_FROM edge
+        if (
+            len(suffix_children) >= 2
+            and suffix_children[0].type == "BUILTINIDENTIFIER"
+            and suffix_children[0].text == b"@import"
+            and suffix_children[1].type == "FnCallArguments"
+        ):
+            target = self._zig_extract_import_target(suffix_children[1])
+            if target is not None:
+                resolved = self._resolve_module_to_file(
+                    target, file_path, language,
+                )
+                edges.append(EdgeInfo(
+                    kind="IMPORTS_FROM",
+                    source=file_path,
+                    target=resolved if resolved else target,
+                    file_path=file_path,
+                    line=decl.start_point[0] + 1,
+                ))
+                return True
+
+        # struct / union / enum / opaque -> Class node
+        container_decl = None
+        for inner in suffix_children:
+            if inner.type == "ContainerDecl":
+                container_decl = inner
+                break
+
+        if container_decl is not None:
+            kind_label = "struct"
+            for cd in container_decl.children:
+                if cd.type == "ContainerDeclType":
+                    for kw in cd.children:
+                        txt = kw.text.decode("utf-8", errors="replace")
+                        if txt in self._ZIG_CONTAINER_KINDS:
+                            kind_label = txt
+                            break
+                    break
+
+            nodes.append(NodeInfo(
+                kind="Class",
+                name=var_name,
+                file_path=file_path,
+                line_start=decl.start_point[0] + 1,
+                line_end=decl.end_point[0] + 1,
+                language=language,
+                parent_name=enclosing_class,
+                extra={"zig_kind": kind_label},
+            ))
+            edges.append(EdgeInfo(
+                kind="CONTAINS",
+                source=(
+                    self._qualify(enclosing_class, file_path, None)
+                    if enclosing_class
+                    else file_path
+                ),
+                target=self._qualify(var_name, file_path, enclosing_class),
+                file_path=file_path,
+                line=decl.start_point[0] + 1,
+            ))
+            self._extract_from_tree(
+                container_decl, source, language, file_path, nodes, edges,
+                enclosing_class=var_name,
+                enclosing_func=enclosing_func,
+                import_map=import_map,
+                defined_names=defined_names,
+                _depth=_depth + 1,
+            )
+            return True
+
+        # Plain ``const x = expr;`` — still scan RHS for call sites so
+        # call edges aren't lost when calls appear at module scope.
+        self._extract_zig_calls_in_subtree(
+            rhs_suffix, file_path, edges,
+            enclosing_class, enclosing_func,
+        )
+        return True
+
+    def _handle_zig_test_decl(
+        self,
+        child,
+        source: bytes,
+        language: str,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+        import_map: Optional[dict[str, str]],
+        defined_names: Optional[set[str]],
+        _depth: int,
+    ) -> bool:
+        """Handle ``test "label" { ... }`` blocks."""
+        label: Optional[str] = None
+        body_block = None
+        for sub in child.children:
+            if sub.type == "STRINGLITERALSINGLE":
+                raw = sub.text.decode("utf-8", errors="replace")
+                stripped = raw.strip().strip('"').strip("'")
+                if stripped:
+                    label = stripped
+            elif sub.type == "Block":
+                body_block = sub
+
+        line_no = child.start_point[0] + 1
+        base = f"test:{label}" if label else "test"
+        synthetic = f"{base}@L{line_no}"
+        qualified = self._qualify(synthetic, file_path, enclosing_class)
+
+        nodes.append(NodeInfo(
+            kind="Test",
+            name=synthetic,
+            file_path=file_path,
+            line_start=child.start_point[0] + 1,
+            line_end=child.end_point[0] + 1,
+            language=language,
+            parent_name=enclosing_class,
+            is_test=True,
+        ))
+        edges.append(EdgeInfo(
+            kind="CONTAINS",
+            source=(
+                self._qualify(enclosing_class, file_path, None)
+                if enclosing_class
+                else file_path
+            ),
+            target=qualified,
+            file_path=file_path,
+            line=line_no,
+        ))
+
+        if body_block is not None:
+            self._extract_zig_calls_in_subtree(
+                body_block, file_path, edges, enclosing_class, synthetic,
+            )
+        return True
+
+    @staticmethod
+    def _zig_extract_import_target(args_node) -> Optional[str]:
+        """Pull the string argument out of ``@import("path")``.
+
+        Walks FnCallArguments > ErrorUnionExpr > SuffixExpr >
+        STRINGLITERALSINGLE. Returns the unquoted contents or None.
+        """
+        for arg in args_node.children:
+            if arg.type != "ErrorUnionExpr":
+                continue
+            for sub in arg.children:
+                if sub.type != "SuffixExpr":
+                    continue
+                for s in sub.children:
+                    if s.type == "STRINGLITERALSINGLE":
+                        raw = s.text.decode("utf-8", errors="replace")
+                        return raw.strip().strip('"').strip("'")
+        return None
+
+    def _extract_zig_calls_in_subtree(
+        self,
+        root,
+        file_path: str,
+        edges: list[EdgeInfo],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+    ) -> None:
+        """Walk a subtree and emit a CALLS edge for each call site.
+
+        A call site is a ``SuffixExpr`` or ``FieldOrFnCall`` node whose
+        direct children include a ``FnCallArguments``; the callee is the
+        IDENTIFIER (or BUILTINIDENTIFIER) immediately preceding it. The
+        builtin ``@import`` is skipped here because it's already modelled
+        as IMPORTS_FROM by _handle_zig_var_decl.
+        """
+        src_qn = (
+            self._qualify(enclosing_func, file_path, enclosing_class)
+            if enclosing_func
+            else file_path
+        )
+        stack = [root]
+        while stack:
+            node = stack.pop()
+            if node.type in ("SuffixExpr", "FieldOrFnCall"):
+                children = node.children
+                for i, ch in enumerate(children):
+                    if ch.type != "FnCallArguments" or i == 0:
+                        continue
+                    prev = children[i - 1]
+                    callee: Optional[str] = None
+                    if prev.type == "IDENTIFIER":
+                        callee = prev.text.decode("utf-8", errors="replace")
+                    elif prev.type == "BUILTINIDENTIFIER":
+                        txt = prev.text.decode("utf-8", errors="replace")
+                        if txt != "@import":
+                            callee = txt
+                    if callee:
+                        edges.append(EdgeInfo(
+                            kind="CALLS",
+                            source=src_qn,
+                            target=callee,
+                            file_path=file_path,
+                            line=node.start_point[0] + 1,
+                        ))
+                    break
+            for ch in node.children:
+                stack.append(ch)
+
+    # ------------------------------------------------------------------
     # JS/TS: variable-assigned functions  (const foo = () => {})
     # ------------------------------------------------------------------
 
@@ -4296,6 +4957,25 @@ class CodeParser:
                 role = "workflow_interface" if is_wf else "activity_interface"
                 extra["temporal_role"] = role
 
+        # Class-level annotation persistence for all annotation-bearing
+        # languages.  Kotlin (@HiltViewModel, @AndroidEntryPoint) and C#
+        # ([ApiController], [Route]) lost this metadata entirely; Java reuses
+        # the list already gathered above.  Stored in ``modifiers`` (string)
+        # and ``extra["decorators"]`` (list).  See: #295
+        if language == "java":
+            class_decorators = list(class_annotations)
+        else:
+            class_decorators = _modifier_annotation_names(child)
+            if language == "python":
+                class_decorators.extend(_python_decorator_names(child))
+            if language == "csharp":
+                class_decorators.extend(_csharp_attribute_names(child))
+        class_modifiers: Optional[str] = (
+            ",".join(class_decorators) if class_decorators else None
+        )
+        if class_decorators and "decorators" not in extra:
+            extra["decorators"] = class_decorators
+
         node = NodeInfo(
             kind="Class",
             name=name,
@@ -4304,6 +4984,7 @@ class CodeParser:
             line_end=child.end_point[0] + 1,
             language=language,
             parent_name=enclosing_class,
+            modifiers=class_modifiers,
             extra=extra,
         )
         nodes.append(node)
@@ -4412,6 +5093,12 @@ class CodeParser:
                     inner = inner[:-1]
                 deco_list.append(inner.strip())
                 sib = sib.prev_sibling
+        # C#: attributes use `attribute_list` child nodes ([HttpGet],
+        # [Authorize]) rather than `modifiers > annotation`. Capture the
+        # attribute name from each `attribute_list > attribute > identifier`.
+        # See: #295
+        if language == "csharp":
+            deco_list.extend(_csharp_attribute_names(child))
         if deco_list:
             decorators = tuple(deco_list)
 
@@ -4445,6 +5132,15 @@ class CodeParser:
                     child, name, enclosing_class, file_path, edges,
                 )
 
+        # Persist annotations/decorators so consumers can filter on them
+        # (e.g. "show me all @Composable functions").  Stored in BOTH
+        # ``modifiers`` (comma-joined string) and ``extra["decorators"]``
+        # (list) — merged into the existing method_extra dict rather than a
+        # separate one.  See: #295
+        modifiers_str: Optional[str] = ",".join(deco_list) if deco_list else None
+        if deco_list:
+            method_extra["decorators"] = list(deco_list)
+
         node = NodeInfo(
             kind=kind,
             name=name,
@@ -4455,6 +5151,7 @@ class CodeParser:
             parent_name=parent_name,
             params=params,
             return_type=ret_type,
+            modifiers=modifiers_str,
             is_test=is_test,
             extra=method_extra,
         )
@@ -4716,6 +5413,518 @@ class CodeParser:
             ))
 
         return False
+
+    # ------------------------------------------------------------------
+    # PHP / Laravel semantic constructs
+    # ------------------------------------------------------------------
+
+    def _extract_php_laravel_edges(
+        self,
+        root,
+        file_path: str,
+        edges: list[EdgeInfo],
+    ) -> None:
+        """Run evidence-gated Laravel analysis without altering generic calls."""
+        self._walk_php_laravel_sequence(
+            root,
+            file_path,
+            edges,
+            namespace="",
+        )
+
+    def _walk_php_laravel_sequence(
+        self,
+        container,
+        file_path: str,
+        edges: list[EdgeInfo],
+        namespace: str,
+    ) -> None:
+        """Walk a PHP namespace scope, applying imports in source order."""
+        current_namespace = namespace
+        imports: dict[str, str] = {}
+
+        for child in container.children:
+            if child.type == "namespace_definition":
+                child_namespace = self._php_namespace_name(child)
+                block = next(
+                    (
+                        part for part in child.children
+                        if part.type == "compound_statement"
+                    ),
+                    None,
+                )
+                if block is not None:
+                    self._walk_php_laravel_sequence(
+                        block,
+                        file_path,
+                        edges,
+                        namespace=child_namespace,
+                    )
+                else:
+                    current_namespace = child_namespace
+                    imports = {}
+                continue
+
+            if child.type == "namespace_use_declaration":
+                imports.update(self._php_import_bindings(child))
+                continue
+
+            self._walk_php_laravel_node(
+                child,
+                file_path,
+                edges,
+                current_namespace,
+                imports,
+                enclosing_class=None,
+                enclosing_func=None,
+                eloquent_model=False,
+            )
+
+    def _walk_php_laravel_node(
+        self,
+        node,
+        file_path: str,
+        edges: list[EdgeInfo],
+        namespace: str,
+        imports: dict[str, str],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+        eloquent_model: bool,
+    ) -> None:
+        """Walk one PHP subtree with its namespace and enclosing-class evidence."""
+        if node.type in self._class_types["php"]:
+            class_name = self._get_name(node, "php", "class")
+            is_eloquent = (
+                node.type == "class_declaration"
+                and self._php_class_extends_eloquent_model(
+                    node,
+                    namespace,
+                    imports,
+                )
+            )
+            for child in node.children:
+                self._walk_php_laravel_node(
+                    child,
+                    file_path,
+                    edges,
+                    namespace,
+                    imports,
+                    enclosing_class=class_name,
+                    enclosing_func=None,
+                    eloquent_model=is_eloquent,
+                )
+            return
+
+        if node.type in self._function_types["php"]:
+            function_name = self._get_name(node, "php", "function")
+            for child in node.children:
+                self._walk_php_laravel_node(
+                    child,
+                    file_path,
+                    edges,
+                    namespace,
+                    imports,
+                    enclosing_class=enclosing_class,
+                    enclosing_func=function_name or enclosing_func,
+                    eloquent_model=eloquent_model,
+                )
+            return
+
+        if node.type == "scoped_call_expression":
+            self._emit_laravel_route_edge(
+                node,
+                file_path,
+                edges,
+                namespace,
+                imports,
+                enclosing_class,
+                enclosing_func,
+            )
+        elif node.type == "member_call_expression" and eloquent_model:
+            self._emit_laravel_relationship_edge(
+                node,
+                file_path,
+                edges,
+                namespace,
+                imports,
+                enclosing_class,
+                enclosing_func,
+            )
+
+        for child in node.children:
+            self._walk_php_laravel_node(
+                child,
+                file_path,
+                edges,
+                namespace,
+                imports,
+                enclosing_class,
+                enclosing_func,
+                eloquent_model,
+            )
+
+    @staticmethod
+    def _php_namespace_name(node) -> str:
+        for child in node.children:
+            if child.type == "namespace_name":
+                return child.text.decode(
+                    "utf-8", errors="replace",
+                ).strip("\\")
+        return ""
+
+    @staticmethod
+    def _php_import_bindings(node) -> dict[str, str]:
+        """Return case-insensitive local class aliases for a PHP use statement."""
+        statement = node.text.decode("utf-8", errors="replace").lstrip()
+        lowered = statement.casefold()
+        if lowered.startswith("use function ") or lowered.startswith("use const "):
+            return {}
+
+        group = next(
+            (
+                child for child in node.children
+                if child.type == "namespace_use_group"
+            ),
+            None,
+        )
+        prefix = ""
+        if group is not None:
+            for child in node.children:
+                if child.type == "namespace_name":
+                    prefix = child.text.decode(
+                        "utf-8", errors="replace",
+                    ).strip("\\")
+                    break
+            clauses = [
+                child for child in group.children
+                if child.type == "namespace_use_clause"
+            ]
+        else:
+            clauses = [
+                child for child in node.children
+                if child.type == "namespace_use_clause"
+            ]
+
+        bindings: dict[str, str] = {}
+        for clause in clauses:
+            imported: Optional[str] = None
+            alias: Optional[str] = None
+            seen_alias = False
+            for child in clause.children:
+                if child.type == "as":
+                    seen_alias = True
+                    continue
+                if imported is None and child.type in ("qualified_name", "name"):
+                    imported = child.text.decode(
+                        "utf-8", errors="replace",
+                    ).strip("\\")
+                    continue
+                if seen_alias and child.type == "name":
+                    alias = child.text.decode(
+                        "utf-8", errors="replace",
+                    )
+            if not imported:
+                continue
+            qualified = f"{prefix}\\{imported}" if prefix else imported
+            local_name = alias or qualified.rsplit("\\", 1)[-1]
+            bindings[local_name.casefold()] = qualified
+        return bindings
+
+    @staticmethod
+    def _php_resolve_class_reference(
+        reference: str,
+        namespace: str,
+        imports: dict[str, str],
+    ) -> str:
+        """Resolve a PHP class reference through aliases and its namespace."""
+        absolute = reference.startswith("\\")
+        normalized = reference.strip("\\")
+        if not normalized:
+            return ""
+        if absolute:
+            return normalized
+
+        head, separator, tail = normalized.partition("\\")
+        imported = imports.get(head.casefold())
+        if imported:
+            return f"{imported}\\{tail}" if separator else imported
+        if namespace:
+            return f"{namespace}\\{normalized}"
+        return normalized
+
+    def _php_class_extends_eloquent_model(
+        self,
+        node,
+        namespace: str,
+        imports: dict[str, str],
+    ) -> bool:
+        for base in self._get_bases(node, "php", b""):
+            resolved = self._php_resolve_class_reference(
+                base,
+                namespace,
+                imports,
+            )
+            if resolved.casefold() == self._LARAVEL_ELOQUENT_MODEL.casefold():
+                return True
+        return False
+
+    @staticmethod
+    def _php_scoped_call_parts(node) -> tuple[Optional[str], Optional[str]]:
+        named = [
+            child for child in node.children
+            if child.type in ("name", "qualified_name")
+        ]
+        if len(named) < 2:
+            return None, None
+        receiver = named[0].text.decode("utf-8", errors="replace")
+        method = named[-1].text.decode("utf-8", errors="replace")
+        return receiver, method
+
+    @staticmethod
+    def _php_class_constant_reference(node) -> Optional[str]:
+        class_reference: Optional[str] = None
+        constant: Optional[str] = None
+        for child in node.children:
+            if class_reference is None and child.type in ("name", "qualified_name"):
+                class_reference = child.text.decode(
+                    "utf-8", errors="replace",
+                )
+            elif child.type == "name":
+                constant = child.text.decode(
+                    "utf-8", errors="replace",
+                )
+        if class_reference and constant and constant.casefold() == "class":
+            return class_reference
+        return None
+
+    def _php_route_handler(
+        self,
+        node,
+    ) -> Optional[tuple[str, str]]:
+        arguments = next(
+            (child for child in node.children if child.type == "arguments"),
+            None,
+        )
+        if arguments is None:
+            return None
+        args = [
+            child for child in arguments.children
+            if child.type == "argument"
+        ]
+        if len(args) < 2:
+            return None
+        array = next(
+            (
+                child for child in args[1].children
+                if child.type == "array_creation_expression"
+            ),
+            None,
+        )
+        if array is None:
+            return None
+        elements = [
+            child for child in array.children
+            if child.type == "array_element_initializer"
+        ]
+        if len(elements) != 2:
+            return None
+
+        class_access = next(
+            (
+                child for child in elements[0].children
+                if child.type == "class_constant_access_expression"
+            ),
+            None,
+        )
+        method_string = next(
+            (
+                child for child in elements[1].children
+                if child.type in ("string", "encapsed_string")
+            ),
+            None,
+        )
+        if class_access is None or method_string is None:
+            return None
+        class_reference = self._php_class_constant_reference(class_access)
+        method = method_string.text.decode(
+            "utf-8", errors="replace",
+        ).strip("'\"")
+        if (
+            not class_reference
+            or re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", method) is None
+        ):
+            return None
+        return class_reference, method
+
+    def _php_semantic_target(
+        self,
+        class_reference: str,
+        namespace: str,
+        imports: dict[str, str],
+        file_path: str,
+        method: Optional[str] = None,
+    ) -> str:
+        qualified_class = self._php_resolve_class_reference(
+            class_reference,
+            namespace,
+            imports,
+        )
+        short_name = qualified_class.rsplit("\\", 1)[-1]
+        resolved_file = self._resolve_module_to_file(
+            qualified_class,
+            file_path,
+            "php",
+        )
+        if resolved_file:
+            target = f"{resolved_file}::{short_name}"
+        else:
+            target = short_name
+        return f"{target}.{method}" if method else target
+
+    def _php_laravel_caller(
+        self,
+        file_path: str,
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+    ) -> str:
+        if enclosing_func:
+            return self._qualify(
+                enclosing_func,
+                file_path,
+                enclosing_class,
+            )
+        if enclosing_class:
+            return self._qualify(enclosing_class, file_path, None)
+        return file_path
+
+    def _emit_laravel_route_edge(
+        self,
+        node,
+        file_path: str,
+        edges: list[EdgeInfo],
+        namespace: str,
+        imports: dict[str, str],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+    ) -> None:
+        receiver, verb = self._php_scoped_call_parts(node)
+        if not receiver or verb not in self._LARAVEL_ROUTE_VERBS:
+            return
+        resolved_receiver = self._php_resolve_class_reference(
+            receiver,
+            namespace,
+            imports,
+        )
+        if resolved_receiver.casefold() != self._LARAVEL_ROUTE_FACADE.casefold():
+            return
+        handler = self._php_route_handler(node)
+        if handler is None:
+            return
+        controller, method = handler
+        edges.append(EdgeInfo(
+            kind="CALLS",
+            source=self._php_laravel_caller(
+                file_path,
+                enclosing_class,
+                enclosing_func,
+            ),
+            target=self._php_semantic_target(
+                controller,
+                namespace,
+                imports,
+                file_path,
+                method,
+            ),
+            file_path=file_path,
+            line=node.start_point[0] + 1,
+            extra={
+                "framework": "laravel",
+                "laravel_kind": "route",
+                "route_verb": verb,
+            },
+        ))
+
+    def _emit_laravel_relationship_edge(
+        self,
+        node,
+        file_path: str,
+        edges: list[EdgeInfo],
+        namespace: str,
+        imports: dict[str, str],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+    ) -> None:
+        if not node.children or node.children[0].type != "variable_name":
+            return
+        receiver = node.children[0].text.decode(
+            "utf-8", errors="replace",
+        )
+        if receiver != "$this":
+            return
+        method_node = next(
+            (
+                child for child in reversed(node.children)
+                if child.type == "name"
+            ),
+            None,
+        )
+        if method_node is None:
+            return
+        relationship = method_node.text.decode(
+            "utf-8", errors="replace",
+        )
+        if relationship not in self._LARAVEL_RELATIONSHIPS:
+            return
+
+        arguments = next(
+            (child for child in node.children if child.type == "arguments"),
+            None,
+        )
+        if arguments is None:
+            return
+        first_argument = next(
+            (
+                child for child in arguments.children
+                if child.type == "argument"
+            ),
+            None,
+        )
+        if first_argument is None:
+            return
+        class_access = next(
+            (
+                child for child in first_argument.children
+                if child.type == "class_constant_access_expression"
+            ),
+            None,
+        )
+        if class_access is None:
+            return
+        target_model = self._php_class_constant_reference(class_access)
+        if target_model is None:
+            return
+
+        edges.append(EdgeInfo(
+            kind="REFERENCES",
+            source=self._php_laravel_caller(
+                file_path,
+                enclosing_class,
+                enclosing_func,
+            ),
+            target=self._php_semantic_target(
+                target_model,
+                namespace,
+                imports,
+                file_path,
+            ),
+            file_path=file_path,
+            line=node.start_point[0] + 1,
+            extra={
+                "framework": "laravel",
+                "laravel_kind": "eloquent_relationship",
+                "relationship": relationship,
+            },
+        ))
 
     @staticmethod
     def _get_java_method_and_receiver(node) -> tuple[Optional[str], Optional[str]]:
@@ -5301,6 +6510,202 @@ class CodeParser:
 
         return import_map, defined_names
 
+    def _expand_python_star_imports(
+        self,
+        root,
+        file_path: str,
+        import_map: dict[str, str],
+        resolving: frozenset[str] = frozenset(),
+    ) -> None:
+        """Add public names from repository-local Python star imports."""
+        for child in root.children:
+            if child.type != "import_from_statement":
+                continue
+            if not any(part.type == "wildcard_import" for part in child.children):
+                continue
+            module_node = child.child_by_field_name("module_name")
+            if module_node is None:
+                continue
+            module = module_node.text.decode("utf-8", errors="replace")
+            resolved = self._resolve_python_module_in_repo(module, file_path)
+            if resolved is None or resolved in resolving:
+                continue
+            for name, origin in self._get_python_star_exports(
+                resolved, resolving,
+            ).items():
+                import_map.setdefault(name, origin)
+
+    def _get_python_star_exports(
+        self,
+        module_file: str,
+        resolving: frozenset[str] = frozenset(),
+    ) -> dict[str, str]:
+        """Return exported names mapped to their repository-local origin files."""
+        try:
+            module_path = Path(module_file).resolve()
+            file_stat = module_path.stat()
+        except (OSError, ValueError):
+            return {}
+        resolved_module = str(module_path)
+        if resolved_module in resolving:
+            return {}
+
+        cache_key = (resolved_module, file_stat.st_mtime_ns, file_stat.st_size)
+        with _PYTHON_STAR_EXPORT_CACHE_LOCK:
+            cached = _PYTHON_STAR_EXPORT_CACHE.get(cache_key)
+            if cached is not None:
+                return dict(cached)
+
+            exports = self._read_python_star_exports(
+                module_path, resolving,
+            )
+            stale_keys = [
+                key for key in _PYTHON_STAR_EXPORT_CACHE
+                if key[0] == resolved_module and key != cache_key
+            ]
+            for stale_key in stale_keys:
+                _PYTHON_STAR_EXPORT_CACHE.pop(stale_key, None)
+            if len(_PYTHON_STAR_EXPORT_CACHE) >= _PYTHON_STAR_CACHE_MAX:
+                oldest_keys = list(_PYTHON_STAR_EXPORT_CACHE)[: _PYTHON_STAR_CACHE_MAX // 2]
+                for oldest_key in oldest_keys:
+                    _PYTHON_STAR_EXPORT_CACHE.pop(oldest_key, None)
+            _PYTHON_STAR_EXPORT_CACHE[cache_key] = dict(exports)
+            return exports
+
+    def _read_python_star_exports(
+        self,
+        module_path: Path,
+        resolving: frozenset[str],
+    ) -> dict[str, str]:
+        """Read and parse one Python module for star-export discovery."""
+        resolved_module = str(module_path)
+        try:
+            source = module_path.read_bytes()
+        except (OSError, PermissionError):
+            return {}
+        try:
+            parser = self._get_parser("python")
+            if not parser:
+                return {}
+            tree = parser.parse(source)  # type: ignore[union-attr]
+            import_map, defined_names = self._collect_file_scope(
+                tree.root_node, "python", source,
+            )
+
+            origins: dict[str, str] = {}
+            next_resolving = resolving | {resolved_module}
+            self._expand_python_star_imports(
+                tree.root_node, resolved_module, origins, next_resolving,
+            )
+            for name, module in import_map.items():
+                origin = self._resolve_python_module_in_repo(module, resolved_module)
+                if origin is not None:
+                    origins[name] = origin
+            for name in defined_names:
+                origins[name] = resolved_module
+
+            explicit_exports = self._extract_python_dunder_all(tree.root_node)
+            if explicit_exports is not None:
+                return {
+                    name: origins.get(name, resolved_module)
+                    for name in explicit_exports
+                }
+            return {
+                name: origin
+                for name, origin in origins.items()
+                if not name.startswith("_")
+            }
+        except Exception as exc:
+            logger.debug(
+                "Skipping Python star exports for %s: %s",
+                module_path,
+                exc,
+            )
+            return {}
+
+    @staticmethod
+    def _extract_python_dunder_all(root) -> Optional[set[str]]:
+        """Return literal string names from ``__all__``, or None if absent."""
+        for child in root.children:
+            if child.type != "assignment":
+                continue
+            left = child.child_by_field_name("left")
+            if left is None or left.type != "identifier" or left.text != b"__all__":
+                continue
+            right = child.child_by_field_name("right")
+            if right is None:
+                return set()
+            try:
+                value = ast.literal_eval(right.text.decode("utf-8", errors="replace"))
+            except (SyntaxError, ValueError):
+                return set()
+            if not isinstance(value, (list, tuple)):
+                return set()
+            return {name for name in value if isinstance(name, str)}
+        return None
+
+    def _python_repo_boundary(self, file_path: str) -> Path:
+        """Return the filesystem boundary for safe Python import lookup."""
+        caller_dir = Path(file_path).resolve().parent
+        if self._repo_root is not None:
+            return self._repo_root
+        for candidate in (caller_dir, *caller_dir.parents):
+            if (candidate / ".git").exists() or (candidate / ".svn").exists():
+                return candidate
+        return caller_dir
+
+    @staticmethod
+    def _path_is_within(path: Path, boundary: Path) -> bool:
+        """Return whether *path* is *boundary* or one of its descendants."""
+        try:
+            path.relative_to(boundary)
+        except ValueError:
+            return False
+        return True
+
+    def _resolve_python_module_in_repo(
+        self, module: str, file_path: str,
+    ) -> Optional[str]:
+        """Resolve a Python module without traversing above the repository."""
+        caller_dir = Path(file_path).resolve().parent
+        boundary = self._python_repo_boundary(file_path)
+        leading_dots = len(module) - len(module.lstrip("."))
+        module_name = module[leading_dots:]
+        relative = Path(*module_name.split(".")) if module_name else Path()
+
+        search_roots: list[Path] = []
+        if leading_dots:
+            base = caller_dir
+            for _ in range(leading_dots - 1):
+                if base == boundary:
+                    return None
+                base = base.parent
+            search_roots.append(base)
+        else:
+            current = caller_dir
+            while self._path_is_within(current, boundary):
+                search_roots.append(current)
+                if current == boundary:
+                    break
+                current = current.parent
+
+        for root in search_roots:
+            base = root / relative
+            candidates = (
+                base.with_suffix(".py") if module_name else base / "__init__.py",
+                base / "__init__.py",
+            )
+            for candidate in candidates:
+                try:
+                    resolved = candidate.resolve()
+                except (OSError, ValueError):
+                    continue
+                if not self._path_is_within(resolved, boundary):
+                    continue
+                if resolved.is_file():
+                    return str(resolved)
+        return None
+
     def _collect_js_exported_local_names(
         self, node, defined_names: set[str],
     ) -> None:
@@ -5429,6 +6834,20 @@ class CodeParser:
                 pass
             return None
 
+        if language == "zig":
+            # Zig: only relative ``@import("./foo.zig")`` paths are
+            # resolvable here. ``@import("std")`` and other package-style
+            # imports stay unresolved (the caller falls back to the raw
+            # module string as the edge target).
+            if module.endswith(".zig"):
+                try:
+                    target = (caller_dir / module).resolve()
+                    if target.is_file():
+                        return str(target)
+                except (OSError, ValueError):
+                    pass
+            return None
+
         if language == "python":
             rel_path = module.replace(".", "/")
             candidates = [rel_path + ".py", rel_path + "/__init__.py"]
@@ -5531,7 +6950,131 @@ class CodeParser:
                         break
                     current = current.parent
 
+        elif language == "php":
+            composer_resolved = self._resolve_php_composer_module(
+                module, caller_dir,
+            )
+            if composer_resolved:
+                return composer_resolved
+
+            # ``use App\Domain\Entity\Job;`` — convert namespace separators to
+            # a relative path and walk up from the caller's directory to find
+            # the file, mirroring the Java resolver. PSR-4 layouts where a
+            # namespace segment maps to a real directory (e.g. ``App\Foo`` ->
+            # ``.../App/Foo``) resolve; vendor/global classes (``\Exception``)
+            # and ``use function`` / ``use const`` targets with no matching
+            # file stay unresolved and keep the bare FQN, like JDK imports.
+            rel_path = module.replace("\\", "/").lstrip("/") + ".php"
+            try:
+                boundary = self._php_repository_boundary(caller_dir)
+                current = caller_dir.resolve()
+            except (OSError, RuntimeError, ValueError):
+                return None
+            if boundary is None or not _path_is_within(current, boundary):
+                return None
+
+            while _path_is_within(current, boundary):
+                try:
+                    target = (current / rel_path).resolve()
+                except (OSError, RuntimeError, ValueError):
+                    target = None
+                if (
+                    target is not None
+                    and _path_is_within(target, boundary)
+                    and target.is_file()
+                ):
+                    return str(target)
+                if current == boundary:
+                    break
+                current = current.parent
+
         return None
+
+    def _resolve_php_composer_module(
+        self,
+        module: str,
+        caller_dir: Path,
+    ) -> Optional[str]:
+        """Resolve a PHP class through the nearest bounded Composer project."""
+        boundary = self._php_repository_boundary(caller_dir)
+        if boundary is None:
+            return None
+        mappings = self._find_php_composer_psr4(caller_dir, boundary)
+        if not mappings:
+            return None
+
+        normalized_module = module.lstrip("\\")
+        for prefix, destinations in mappings:
+            if prefix:
+                if normalized_module == prefix:
+                    relative = ""
+                elif normalized_module.startswith(prefix + "\\"):
+                    relative = normalized_module[len(prefix) + 1:]
+                else:
+                    continue
+            else:
+                relative = normalized_module
+            if not relative:
+                continue
+            relative_path = relative.replace("\\", "/") + ".php"
+            for destination in destinations:
+                try:
+                    target = (Path(destination) / relative_path).resolve()
+                except (OSError, RuntimeError, ValueError):
+                    continue
+                if not _path_is_within(target, boundary):
+                    continue
+                if target.is_file():
+                    return str(target)
+        return None
+
+    def _php_repository_boundary(self, start: Path) -> Optional[Path]:
+        """Return a safe Composer search boundary for *start*."""
+        try:
+            resolved_start = start.resolve()
+        except (OSError, RuntimeError, ValueError):
+            return None
+
+        if self._repo_root is not None:
+            if _path_is_within(resolved_start, self._repo_root):
+                return self._repo_root
+            return None
+
+        current = resolved_start
+        while True:
+            if (current / ".git").exists() or (current / ".svn").exists():
+                return current
+            if current == current.parent:
+                break
+            current = current.parent
+        # With no explicit or discoverable repository, never climb above the
+        # caller directory looking for unrelated Composer configuration.
+        return resolved_start
+
+    def _find_php_composer_psr4(
+        self,
+        start: Path,
+        boundary: Path,
+    ) -> _PhpPsr4Mappings:
+        """Find and parse the nearest composer.json without crossing *boundary*."""
+        current = start.resolve()
+        while _path_is_within(current, boundary):
+            composer = current / "composer.json"
+            if composer.is_file():
+                try:
+                    composer_stat = composer.stat()
+                except OSError:
+                    return ()
+                return _read_php_composer_psr4(
+                    str(composer.resolve()),
+                    str(boundary),
+                    composer_stat.st_mtime_ns,
+                    composer_stat.st_size,
+                )
+            if current == boundary:
+                break
+            current = current.parent
+        return ()
 
     def _find_dart_pubspec_root(
         self, start: Path, pkg_name: str,
@@ -5591,7 +7134,18 @@ class CodeParser:
         language: str,
     ) -> Optional[str]:
         """Resolve an imported symbol to its defining qualified name when possible."""
-        resolved = self._resolve_module_to_file(module, file_path, language)
+        module_path = Path(module)
+        if language == "python" and module_path.is_absolute():
+            try:
+                candidate = module_path.resolve()
+            except (OSError, ValueError):
+                return None
+            boundary = self._python_repo_boundary(file_path)
+            if not self._path_is_within(candidate, boundary) or not candidate.is_file():
+                return None
+            resolved = str(candidate)
+        else:
+            resolved = self._resolve_module_to_file(module, file_path, language)
         if not resolved:
             return None
 
@@ -6085,7 +7639,36 @@ class CodeParser:
                             for ident in sub.children:
                                 if ident.type in ("type_identifier", "generic_type"):
                                     bases.append(ident.text.decode("utf-8", errors="replace"))
-        elif language in ("csharp", "kotlin"):
+        elif language == "csharp":
+            # C# wraps ``: Base, IFace`` in a base_list. Iterate named type
+            # entries so punctuation is excluded while qualified/generic names
+            # are preserved across tree-sitter-c-sharp grammar versions.
+            # Enum base_list nodes describe storage types, not inheritance.
+            if node.type == "enum_declaration":
+                return bases
+            for child in node.children:
+                if child.type != "base_list":
+                    continue
+                for sub in child.children:
+                    if not sub.is_named or sub.type == "argument_list":
+                        continue
+                    if sub.type == "primary_constructor_base_type":
+                        # Positional records contain Base(args); retain only Base.
+                        type_node = sub.child_by_field_name("type")
+                        if type_node is not None:
+                            bases.append(
+                                type_node.text.decode("utf-8", errors="replace")
+                            )
+                        else:
+                            for nested in sub.children:
+                                if nested.is_named and nested.type != "argument_list":
+                                    bases.append(
+                                        nested.text.decode("utf-8", errors="replace")
+                                    )
+                                    break
+                        continue
+                    bases.append(sub.text.decode("utf-8", errors="replace"))
+        elif language == "kotlin":
             # Look for superclass/interfaces in extends/implements clauses
             for child in node.children:
                 if child.type in (
@@ -6209,6 +7792,16 @@ class CodeParser:
                             bases.append(
                                 idents[0].text.decode("utf-8", errors="replace"),
                             )
+        elif language == "php":
+            # class Foo extends Bar implements Baz, Qux { ... }
+            for child in node.children:
+                if child.type not in ("base_clause", "class_interface_clause"):
+                    continue
+                for base in child.children:
+                    if base.type in ("name", "qualified_name"):
+                        bases.append(
+                            base.text.decode("utf-8", errors="replace"),
+                        )
         return bases
 
     def _extract_import(self, node, language: str, source: bytes) -> list[str]:
@@ -6394,6 +7987,47 @@ class CodeParser:
                     txt = child.text.decode("utf-8", errors="replace")
                     if txt and txt != "extends":
                         imports.append(txt)
+        elif language == "php":
+            # ``namespace_use_declaration`` covers several shapes:
+            #   use A\B\C;            use A\B\C as D;
+            #   use function A\b;     use const A\B;
+            #   use A\B, C\D;         (comma-separated clauses)
+            #   use A\B\{C, D as E};  (grouped — clause names are relative to A\B)
+            # Record the fully-qualified name of each imported symbol, ignoring
+            # any ``as`` alias and stripping a leading ``\``, so IMPORTS_FROM
+            # targets are clean FQNs that _do_resolve_module can map to files.
+            # Without this branch PHP falls through to the raw-text fallback and
+            # stores the entire ``use ...;`` statement as the edge target.
+            def _php_clause_fqn(clause) -> Optional[str]:
+                for sub in clause.children:
+                    if sub.type in ("qualified_name", "name"):
+                        return sub.text.decode(
+                            "utf-8", errors="replace",
+                        ).lstrip("\\")
+                return None
+
+            group_node = None
+            prefix = ""
+            for child in node.children:
+                if child.type == "namespace_name":
+                    prefix = child.text.decode(
+                        "utf-8", errors="replace",
+                    ).strip("\\")
+                elif child.type == "namespace_use_group":
+                    group_node = child
+
+            if group_node is not None:
+                for clause in group_node.children:
+                    if clause.type == "namespace_use_clause":
+                        rel = _php_clause_fqn(clause)
+                        if rel:
+                            imports.append(f"{prefix}\\{rel}" if prefix else rel)
+            else:
+                for clause in node.children:
+                    if clause.type == "namespace_use_clause":
+                        fqn = _php_clause_fqn(clause)
+                        if fqn:
+                            imports.append(fqn)
         elif language in self._custom_languages:
             # Custom languages (languages.toml): prefer the grammar's
             # module-ish field over the raw statement text (e.g. Erlang
@@ -6471,6 +8105,13 @@ class CodeParser:
                     return parts[0]
                 return None
 
+            if node.type == "object_creation_expression":
+                for child in node.children:
+                    if child.type in ("name", "qualified_name"):
+                        raw = child.text.decode("utf-8", errors="replace")
+                        return _normalize_php_name(raw)
+                return None
+
         # Scala: instance_expression (new Foo(...)) – extract the type name
         if node.type == "instance_expression":
             for child in node.children:
@@ -6546,7 +8187,8 @@ class CodeParser:
         member_types = (
             "attribute", "member_expression",
             "field_expression", "selector_expression",
-            "navigation_expression",
+            "navigation_expression", "member_access_expression",
+            "conditional_access_expression",
         )
         if first.type in member_types:
             # Get the rightmost identifier (the method name)
@@ -6560,6 +8202,10 @@ class CodeParser:
                 if child.type == "navigation_suffix":
                     for sub in child.children:
                         if sub.type == "simple_identifier":
+                            return sub.text.decode("utf-8", errors="replace")
+                if child.type == "member_binding_expression":
+                    for sub in child.children:
+                        if sub.type == "identifier":
                             return sub.text.decode("utf-8", errors="replace")
             return first.text.decode("utf-8", errors="replace")
 

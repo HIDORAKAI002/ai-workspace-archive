@@ -31,10 +31,11 @@ import type { ApiRoute } from '@mastra/core/server';
 import { TaskSignalProvider } from '@mastra/core/signals';
 import { InMemoryHarness, MastraCompositeStore } from '@mastra/core/storage';
 import { DEFAULT_GOAL_JUDGE_PROMPT } from '@mastra/core/tools';
+import type { MastraVector } from '@mastra/core/vector';
 import { DuckDBStore } from '@mastra/duckdb';
 
 import { GithubSignals } from '@mastra/github-signals';
-import { LibSQLVector } from '@mastra/libsql';
+import { LibSQLStore, LibSQLVector } from '@mastra/libsql';
 import {
   Observability,
   MastraStorageExporter,
@@ -42,6 +43,7 @@ import {
   SensitiveDataFilter,
 } from '@mastra/observability';
 
+import { hasCredentialStoreProvider } from './agents/credential-resolver.js';
 import { getDynamicInstructions } from './agents/instructions.js';
 import { getDynamicMemory } from './agents/memory.js';
 import { createMastraCodeGateway, getDynamicModel, getGoalJudgeModel, resolveModel } from './agents/model.js';
@@ -80,6 +82,7 @@ import { createAmazonBedrockGateway } from './providers/amazon-bedrock-gateway.j
 import { setAuthStorage } from './providers/claude-max.js';
 import { setAuthStorage as setGitHubCopilotAuthStorage } from './providers/github-copilot.js';
 import { setAuthStorage as setOpenAIAuthStorage } from './providers/openai-codex.js';
+import { setAuthStorage as setXAIAuthStorage } from './providers/xai.js';
 
 import { stateSchema } from './schema.js';
 import type { MastraCodeState } from './schema.js';
@@ -95,6 +98,7 @@ import {
 import type { StorageConfig } from './utils/project.js';
 import { createSignalsPubSub } from './utils/signals-pubsub.js';
 import { createStorage, createVectorStore } from './utils/storage-factory.js';
+import type { StorageResult } from './utils/storage-factory.js';
 import { createStorageMaintenance, DEFAULT_RETENTION, resolveLocalDbFiles } from './utils/storage-maintenance.js';
 import type { StorageMaintenance } from './utils/storage-maintenance.js';
 import { acquireThreadLock, releaseThreadLock } from './utils/thread-lock.js';
@@ -183,8 +187,14 @@ export interface MastraCodeConfig {
   postToolObserver?: PostToolObserver;
   /** Tools removed from the dynamic tool set before exposure to the model */
   disabledTools?: string[];
-  /** Custom storage config instead of auto-detected default */
-  storage?: StorageConfig;
+  /**
+   * Custom storage config instead of auto-detected default, or a pre-built
+   * store instance. An instance is used as-is: no connection test and no
+   * LibSQL fallback — if the injected store fails, that's a hard error.
+   */
+  storage?: StorageConfig | MastraCompositeStore;
+  /** Pre-built vector store instance for recall search. Skips the default vector store creation. */
+  vectorStore?: MastraVector;
   /** Observational memory scope. Default: auto-detected from env/config files, falls back to 'thread' */
   omScope?: 'thread' | 'resource';
   /** Path to a custom settings.json file. Default: global settings */
@@ -235,6 +245,7 @@ export function createAuthStorage() {
   setAuthStorage(authStorage);
   setOpenAIAuthStorage(authStorage);
   setGitHubCopilotAuthStorage(authStorage);
+  setXAIAuthStorage(authStorage);
   return authStorage;
 }
 
@@ -303,26 +314,31 @@ export async function createMastraCodeAgentController(config?: MastraCodeConfig)
   }
 
   // Load user-entered API keys from auth.json into process.env
-  // (only sets env vars that aren't already present — env vars take precedence)
-  try {
-    const registry = PROVIDER_REGISTRY as Record<string, ProviderConfig>;
-    const providerEnvVars: Record<string, string | undefined> = {};
-    for (const [provider, cfg] of Object.entries(registry)) {
-      const envVars = cfg?.apiKeyEnvVar;
-      providerEnvVars[provider] = Array.isArray(envVars) ? envVars[0] : envVars;
+  // (only sets env vars that aren't already present — env vars take precedence).
+  // Skipped in deployed multi-tenant mode: when a per-tenant credential store
+  // provider is registered, provider keys are resolved per request and must
+  // never leak into process-global env vars.
+  if (!hasCredentialStoreProvider()) {
+    try {
+      const registry = PROVIDER_REGISTRY as Record<string, ProviderConfig>;
+      const providerEnvVars: Record<string, string | undefined> = {};
+      for (const [provider, cfg] of Object.entries(registry)) {
+        const envVars = cfg?.apiKeyEnvVar;
+        providerEnvVars[provider] = Array.isArray(envVars) ? envVars[0] : envVars;
+      }
+      providerEnvVars[MASTRA_GATEWAY_PROVIDER] ??= 'MASTRA_GATEWAY_API_KEY';
+      authStorage.loadStoredApiKeysIntoEnv(providerEnvVars);
+    } catch {
+      // Registry unavailable — load well-known provider keys so non-gateway flows still work
+      authStorage.loadStoredApiKeysIntoEnv({
+        [MASTRA_GATEWAY_PROVIDER]: 'MASTRA_GATEWAY_API_KEY',
+        anthropic: 'ANTHROPIC_API_KEY',
+        openai: 'OPENAI_API_KEY',
+        google: 'GOOGLE_GENERATIVE_AI_API_KEY',
+        cerebras: 'CEREBRAS_API_KEY',
+        deepseek: 'DEEPSEEK_API_KEY',
+      });
     }
-    providerEnvVars[MASTRA_GATEWAY_PROVIDER] ??= 'MASTRA_GATEWAY_API_KEY';
-    authStorage.loadStoredApiKeysIntoEnv(providerEnvVars);
-  } catch {
-    // Registry unavailable — load well-known provider keys so non-gateway flows still work
-    authStorage.loadStoredApiKeysIntoEnv({
-      [MASTRA_GATEWAY_PROVIDER]: 'MASTRA_GATEWAY_API_KEY',
-      anthropic: 'ANTHROPIC_API_KEY',
-      openai: 'OPENAI_API_KEY',
-      google: 'GOOGLE_GENERATIVE_AI_API_KEY',
-      cerebras: 'CEREBRAS_API_KEY',
-      deepseek: 'DEEPSEEK_API_KEY',
-    });
   }
 
   const mgApiKey = process.env['MASTRA_GATEWAY_API_KEY'] ?? storedGatewayKey;
@@ -365,9 +381,16 @@ export async function createMastraCodeAgentController(config?: MastraCodeConfig)
     throw new Error('crossProcessPubSub requires a pubsub instance');
   }
 
-  // Storage
-  const storageConfig = config?.storage ?? getStorageConfig(project.rootPath, globalSettings.storage, configDir);
-  const storageResult = await createStorage(storageConfig);
+  // Storage. An injected instance is used as-is — no connection test, no
+  // LibSQL fallback: if the injected store fails, that's a hard error.
+  const injectedStorage = config?.storage instanceof MastraCompositeStore ? config.storage : undefined;
+  const storageConfig = injectedStorage
+    ? undefined
+    : ((config?.storage as StorageConfig | undefined) ??
+      getStorageConfig(project.rootPath, globalSettings.storage, configDir));
+  const storageResult: StorageResult = injectedStorage
+    ? { storage: injectedStorage, backend: injectedStorage instanceof LibSQLStore ? 'libsql' : 'pg' }
+    : await createStorage(storageConfig!);
   const storageWarning = storageResult.warning;
 
   // Observability storage (DuckDB — separate file for OLAP-style trace/score/feedback queries).
@@ -466,8 +489,11 @@ export async function createMastraCodeAgentController(config?: MastraCodeConfig)
     },
   });
 
-  // Vector store for recall search (separate DB file to avoid bloating main storage)
-  const vectorStore = await createVectorStore(storageConfig, storageResult.backend);
+  // Vector store for recall search (separate DB file to avoid bloating main
+  // storage). An injected instance is used as-is; with an injected storage
+  // instance and no injected vector store, recall search stays vector-less.
+  const vectorStore =
+    config?.vectorStore ?? (storageConfig ? await createVectorStore(storageConfig, storageResult.backend) : undefined);
 
   // Maintenance handle for /prune: prunes via the inner store (whose retention
   // config covers every domain, including legacy libsql observability spans)
@@ -478,7 +504,7 @@ export async function createMastraCodeAgentController(config?: MastraCodeConfig)
     storage: storageResult.storage,
     backend: storageResult.backend,
     retention: DEFAULT_RETENTION,
-    localDbFiles: resolveLocalDbFiles(storageConfig, storageResult.backend),
+    localDbFiles: storageConfig ? resolveLocalDbFiles(storageConfig, storageResult.backend) : [],
     closeVector: vectorStore instanceof LibSQLVector ? () => vectorStore.close() : undefined,
   });
 

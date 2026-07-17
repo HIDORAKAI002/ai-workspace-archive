@@ -1,58 +1,62 @@
+> [HÄVITETTY: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # Otanta Model Context Protocolissa
 
-Otanta on tehokas MCP-ominaisuus, joka mahdollistaa palvelimien pyytää LLM-valmisteluja asiakkaan kautta, mahdollistaen kehittyneet agenttikäyttäytymiset samalla kun turvataan turvallisuus ja yksityisyys. Oikea otantakonfiguraatio voi merkittävästi parantaa vastausten laatua ja suorituskykyä. MCP tarjoaa standardoidun tavan hallita, miten mallit tuottavat tekstiä tietyillä parametreilla, jotka vaikuttavat satunnaisuuteen, luovuuteen ja johdonmukaisuuteen.
+> **Poistumisilmoitus:** `2026-07-28` MCP-spesifikaation julkaisuversio merkitsee otannan vanhentuneeksi suoran integraation hyväksi LLM-palveluntarjoajien APIen kanssa. Otanta toimii edelleen `2025-11-25` -versiossa ja ainakin vuoden ajan muodollisen poistamisen jälkeen, joten tämän oppitunnin sisältö on edelleen pätevää – mutta uusien palvelinsuunnittelujen tulisi arvioida korvaavaa mallia. Katso [Mitä MCP:ssä muuttuu: 2026-07-28 release candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Otanta on tehokas MCP-ominaisuus, joka antaa palvelimille mahdollisuuden pyytää LLM-valmiuksia asiakkaan kautta, mahdollistaen monimutkaisia itsenäisiä toimintoja samalla kun säilytetään turvallisuus ja yksityisyys. Oikea otanta-asetus voi parantaa merkittävästi vasteen laatua ja suorituskykyä. MCP tarjoaa standardoidun tavan hallita, miten mallit generoivat tekstiä tiettyjen parametrien avulla, jotka vaikuttavat satunnaisuuteen, luovuuteen ja johdonmukaisuuteen.
 
 ## Johdanto
 
-Tässä oppitunnissa tutustumme siihen, miten otantaparametreja konfiguroidaan MCP-pyynnöissä ja ymmärrämme otannan taustalla olevat protokollamekanismit.
+Tässä oppitunnissa tutkimme, miten otantaparametreja konfiguroidaan MCP-pyynnöissä sekä ymmärrämme otannan taustalla olevan protokollan toimintamekanismit.
 
 ## Oppimistavoitteet
 
 Oppitunnin lopussa osaat:
 
-- Ymmärtää MCP:n keskeiset otantaparametrit.
-- Konfiguroida otantaparametreja eri käyttötarkoituksiin.
-- Toteuttaa deterministisen otannan toistettavien tulosten saamiseksi.
-- Säätää otantaparametreja dynaamisesti kontekstin ja käyttäjäasetusten mukaan.
+- Ymmärtää keskeiset MCP:ssä käytettävät otantaparametrit.
+- Määrittää otantaparametrit eri käyttötapauksiin.
+- Toteuttaa deterministisen otannan toistettavia tuloksia varten.
+- Säädellä otantaparametreja dynaamisesti kontekstin ja käyttäjän mieltymysten mukaan.
 - Soveltaa otantastrategioita mallin suorituskyvyn parantamiseksi eri tilanteissa.
-- Ymmärtää, miten otanta toimii MCP:n asiakas-palvelin -virrassa.
+- Ymmärtää, miten otanta toimii MCP:n asiakas-palvelin-välitteisessä toimintavirrassa.
 
 ## Miten otanta toimii MCP:ssä
 
-MCP:n otantaprosessi etenee seuraavasti:
+Otantaprosessi MCP:ssä etenee seuraavasti:
 
 1. Palvelin lähettää `sampling/createMessage` -pyynnön asiakkaalle
 2. Asiakas tarkistaa pyynnön ja voi muokata sitä
 3. Asiakas ottaa otannan LLM:stä
-4. Asiakas tarkistaa valmistelun
+4. Asiakas tarkistaa valmiin tuloksen
 5. Asiakas palauttaa tuloksen palvelimelle
 
-Tämä ihmisen ohjaama malli varmistaa, että käyttäjät säilyttävät kontrollin siitä, mitä LLM näkee ja tuottaa.
+Tämä ihmisen osallistama malli varmistaa, että käyttäjät hallitsevat sitä, mitä LLM näkee ja tuottaa.
 
 ## Otantaparametrien yleiskatsaus
 
-MCP määrittelee seuraavat otantaparametrit, joita voidaan konfiguroida asiakaspyynnöissä:
+MCP määrittelee seuraavat otantaparametrit, jotka voidaan asettaa asiakaspyynnöissä:
 
 | Parametri | Kuvaus | Tyypillinen arvoalue |
-|-----------|--------|---------------------|
+|-----------|-------------|---------------|
 | `temperature` | Hallitsee satunnaisuutta token-valinnassa | 0.0 - 1.0 |
-| `maxTokens` | Maksimimäärä tuotettavia tokeneita | Kokonaisluku |
-| `stopSequences` | Mukautetut sekvenssit, jotka pysäyttävät generoinnin kohdatessaan | Merkkijonotaulukko |
+| `maxTokens` | Maksimi tokenien määrä generoitavaksi | Kokonaisluku |
+| `stopSequences` | Mukautetut sekvenssit, jotka lopettavat generoinnin kohdatessaan | Merkkijonotaulukko |
 | `metadata` | Lisäparametrit palveluntarjoajakohtaisesti | JSON-objekti |
 
 Monet LLM-palveluntarjoajat tukevat lisäparametreja `metadata`-kentän kautta, jotka voivat sisältää:
 
 | Yleinen laajennusparametri | Kuvaus | Tyypillinen arvoalue |
-|----------------------------|--------|---------------------|
-| `top_p` | Nucleus-otanta – rajoittaa tokenit kumulatiivisen todennäköisyyden huippuun | 0.0 - 1.0 |
-| `top_k` | Rajoittaa token-valinnan top K vaihtoehtoihin | 1 - 100 |
+|-----------|-------------|---------------|
+| `top_p` | Nucleus-otanta – rajoittaa valinnan todennäköisimpien tokenien joukkoon | 0.0 - 1.0 |
+| `top_k` | Rajoittaa token-valinnan korkeimman K vaihtoehtoon | 1 - 100 |
 | `presence_penalty` | Rankaiseminen tokenien esiintymisen perusteella tekstissä | -2.0 - 2.0 |
-| `frequency_penalty` | Rankaiseminen tokenien esiintymistiheyden perusteella tekstissä | -2.0 - 2.0 |
+| `frequency_penalty` | Rankaiseminen tokenien esiintymistiheyden mukaan tekstissä | -2.0 - 2.0 |
 | `seed` | Kiinteä satunnaissiementä toistettaville tuloksille | Kokonaisluku |
 
-## Esimerkkipyyntömuoto
+## Esimerkkipyyntömalli
 
-Tässä esimerkki otantapyynnöstä asiakkaalle MCP:ssä:
+Tässä esimerkki otantapyynnöstä asiakaskohdassa MCP:ssä:
 
 ```json
 {
@@ -77,7 +81,7 @@ Tässä esimerkki otantapyynnöstä asiakkaalle MCP:ssä:
 
 ## Vastausmuoto
 
-Asiakas palauttaa valmistelutuloksen:
+Asiakas palauttaa valmiin vastauksen:
 
 ```json
 {
@@ -91,44 +95,44 @@ Asiakas palauttaa valmistelutuloksen:
 }
 ```
 
-## Ihminen ohjauksessa
+## Ihmisen kontrolli mukana
 
-MCP:n otanta on suunniteltu ihmisen valvonnalla:
+MCP-otanta on suunniteltu ihmisen valvonnalla:
 
-- **Kehotteille**:
-  - Asiakkaiden tulisi näyttää käyttäjille ehdotettu kehotte
-  - Käyttäjien tulisi voida muokata tai hylätä kehotteet
-  - Järjestelmäkehotteita voidaan suodattaa tai muokata
-  - Kontekstin sisällyttäminen on asiakkaan hallinnassa
+- **Kehoteissa**:
+  - Asiakkaiden tulisi näyttää käyttäjille ehdotettu kehote
+  - Käyttäjien tulisi voida muokata tai hylätä kehotteita
+  - Järjestelmäkehote voidaan suodattaa tai muuttaa
+  - Asiakas hallitsee kontekstin sisällyttämistä
 
-- **Valmisteluille**:
-  - Asiakkaiden tulisi näyttää käyttäjille valmistelu
-  - Käyttäjien tulisi voida muokata tai hylätä valmistelut
-  - Asiakkaat voivat suodattaa tai muokata valmisteluja
-  - Käyttäjät hallitsevat, mitä mallia käytetään
+- **Valmiissa vastauksissa**:
+  - Asiakkaiden tulisi näyttää käyttäjille valmis vastaus
+  - Käyttäjien tulisi voida muokata tai hylätä vastauksia
+  - Asiakkaat voivat suodattaa tai muokata vastauksia
+  - Käyttäjät valitsevat käytettävän mallin
 
-Näiden periaatteiden pohjalta tarkastellaan, miten otanta toteutetaan eri ohjelmointikielillä, keskittyen yleisesti LLM-palveluntarjoajien tukemiin parametreihin.
+Näillä periaatteilla katsotaan, miten otanta toteutetaan eri ohjelmointikielillä keskittyen yleisesti tuettuihin parametreihin LLM-palveluntarjoajien kesken.
 
 ## Turvallisuusnäkökohdat
 
-Otantaa toteutettaessa MCP:ssä huomioi seuraavat turvallisuuskäytännöt:
+Otantaa toteuttaessa MCP:ssä huomioi seuraavat parhaat turvallisuuskäytännöt:
 
-- **Varmista kaikkien viestien sisältö** ennen lähettämistä asiakkaalle
-- **Puhdista arkaluonteiset tiedot** kehotteista ja valmisteluista
-- **Ota käyttöön käyttörajoitukset** väärinkäytösten estämiseksi
-- **Seuraa otannan käyttöä** epätavallisten mallien varalta
-- **Salaa tiedonsiirto** turvallisilla protokollilla
-- **Käsittele käyttäjätietojen yksityisyyttä** sovellettavien säädösten mukaisesti
-- **Tarkasta otantapyynnöt** vaatimustenmukaisuuden ja turvallisuuden varmistamiseksi
-- **Hallinnoi kustannuksia** sopivilla rajoituksilla
-- **Käytä aikakatkaisuja** otantapyynnöille
-- **Käsittele mallivirheet joustavasti** sopivilla varajärjestelyillä
+- **Varmista viestisisällön validiteetti** ennen sen lähettämistä asiakkaalle
+- **Puhdista arkaluontoiset tiedot** kehotteista ja valmiista vastauksista
+- **Ota käyttöön rajoituksia** estämään väärinkäyttöä
+- **Valvo otannan käyttöä** epäilyttävien mallien varalta
+- **Salaa tiedot siirron aikana** turvallisilla protokollilla
+- **Käsittele käyttäjätietojen yksityisyys** sovellettavien säädösten mukaisesti
+- **Tarkasta otantapyynnöt** sääntöjen ja turvallisuuden varmistamiseksi
+- **Hallitse kustannusvaikutuksia** sopivilla rajoituksilla
+- **Käytä aikakatkaisuja** otantapyyntöihin
+- **Käsittele mallivirheitä tyylikkäästi** asianmukaisten varajärjestelyjen avulla
 
-Otantaparametrit mahdollistavat kielimallien käyttäytymisen hienosäädön halutun tasapainon saavuttamiseksi determinististen ja luovien vastausten välillä.
+Otannan parametrit mahdollistavat kielimallin käyttäytymisen hienosäädön halutun deterministisen ja luovan vasteen tasapainon saavuttamiseksi.
 
-Tarkastellaan, miten näitä parametreja konfiguroidaan eri ohjelmointikielillä.
+Katsotaan, miten näitä parametreja konfiguroidaan eri ohjelmointikielissä.
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -164,49 +168,49 @@ public class SamplingExample
 }
 ```
 
-Edellisessä koodissa olemme:
+Edellä olevassa koodissa olemme:
 
-- Luoneet MCP-asiakkaan tietylle palvelin-URL:lle.
-- Konfiguroineet pyynnön otantaparametreilla kuten `temperature`, `top_p` ja `top_k`.
-- Lähettäneet pyynnön ja tulostaneet tuotetun tekstin.
+- Luoneet MCP-asiakkaan tietylle palvelimen URL-osoitteelle.
+- Määrittäneet pyynnön, jossa on otantaparametreja kuten `temperature`, `top_p` ja `top_k`.
+- Lähettäneet pyynnön ja tulostaneet generoidun tekstin.
 - Käyttäneet:
-    - `allowedTools` määrittämään, mitä työkaluja malli voi käyttää generoinnin aikana. Tässä tapauksessa sallimme `ideaGenerator`- ja `marketAnalyzer`-työkalut auttamaan luovien sovellusideoiden tuottamisessa.
-    - `frequencyPenalty` ja `presencePenalty` toistojen hallintaan ja monimuotoisuuden lisäämiseen tuotoksessa.
-    - `temperature` hallitsemaan tuotoksen satunnaisuutta, korkeammat arvot johtavat luovempiin vastauksiin.
-    - `top_p` rajoittamaan token-valinnan niihin, jotka muodostavat kumulatiivisen todennäköisyyden huipun, parantaen tuotetun tekstin laatua.
-    - `top_k` rajoittamaan mallin valitsemaan top K todennäköisintä tokenia, mikä auttaa tuottamaan johdonmukaisempia vastauksia.
-    - `frequencyPenalty` ja `presencePenalty` vähentämään toistoa ja kannustamaan monimuotoisuuteen tuotetussa tekstissä.
+    - `allowedTools` määrittämään mitkä työkalut malli voi käyttää generoinnin aikana. Tässä sallitimme `ideaGenerator`- ja `marketAnalyzer`-työkalut auttamaan luovien sovellusideoiden luomisessa.
+    - `frequencyPenalty` ja `presencePenalty` kontrolloimaan toistoa ja monimuotoisuutta tuotoksessa.
+    - `temperature` hallitsemaan tuotoksen satunnaisuutta, missä korkeammat arvot johtavat luovempiin vastauksiin.
+    - `top_p` rajoittamaan token-valintaa niihin, jotka muodostavat suurimman kumulatiivisen todennäköisyyden massan, parantaen tekstin laatua.
+    - `top_k` rajoittamaan mallin valitsemaan todennäköisimmät K tokenia, mikä voi auttaa johdonmukaisempien vastausten tuottamisessa.
+    - `frequencyPenalty` ja `presencePenalty` vähentämään toistoa ja edistämään monimuotoisuutta generoidussa tekstissä.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// JavaScript-esimerkki: Lämpötila- ja Top-P-näytteenottokonfiguraatio
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // Alusta MCP-asiakas
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // Määritä pyyntö eri näytteenottoparametreilla
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // Korkeampi lämpötila = enemmän satunnaisuutta/luovuutta
+    topP: 0.92,          // Ota huomioon tokenit, joilla on 92 % todennäköisyysmassa
+    frequencyPenalty: 0.6, // Vähennä token-jaksojen toistoa
+    presencePenalty: 0.4   // Rangaista tokeneita, jotka ovat jo esiintyneet tekstissä
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // Matala lämpötila = deterministisempi/tosiasiallisempi
+    topP: 0.85,          // Hieman kohdennetumpi token-valinta
+    frequencyPenalty: 0.2, // Minimaalinen toistotakuu
+    presencePenalty: 0.1   // Minimaalinen esiintymisrangaistus
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // Lähetä kaksi pyyntöä eri näytteenottokonfiguraatioilla
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -237,57 +241,57 @@ async function demonstrateSampling() {
 demonstrateSampling();
 ```
 
-Edellisessä koodissa olemme:
+Edellä olevassa koodissa olemme:
 
-- Alustaneet MCP-asiakkaan palvelin-URL:llä ja API-avaimella.
-- Konfiguroineet kaksi otantaparametrien sarjaa: yhden luoville tehtäville ja toisen faktapohjaisille tehtäville.
-- Lähettäneet pyynnöt näillä konfiguraatioilla, sallien mallin käyttää tiettyjä työkaluja kullekin tehtävälle.
-- Tulostaneet tuotetut vastaukset havainnollistaaksemme eri otantaparametrien vaikutuksia.
-- Käyttäneet `allowedTools` määrittämään, mitä työkaluja malli voi käyttää generoinnin aikana. Tässä tapauksessa sallimme `ideaGenerator` ja `environmentalImpactTool` luoville tehtäville, sekä `factChecker` ja `dataAnalysisTool` faktapohjaisille tehtäville.
-- Käyttäneet `temperature` hallitsemaan tuotoksen satunnaisuutta, korkeammat arvot johtavat luovempiin vastauksiin.
-- Käyttäneet `top_p` rajoittamaan token-valinnan niihin, jotka muodostavat kumulatiivisen todennäköisyyden huipun, parantaen tuotetun tekstin laatua.
-- Käyttäneet `frequencyPenalty` ja `presencePenalty` vähentämään toistoa ja kannustamaan monimuotoisuuteen tuotoksessa.
-- Käyttäneet `top_k` rajoittamaan mallin valitsemaan top K todennäköisintä tokenia, mikä auttaa tuottamaan johdonmukaisempia vastauksia.
+- Alustaneet MCP-asiakkaan palvelimen URL-osoitteella ja API-avaimella.
+- Määrittäneet kaksi otantaparametrien asetusta: yhden luoviin tehtäviin ja toisen faktuaalisiin tehtäviin.
+- Lähettäneet pyynnöt näillä asetuksilla antaen mallin käyttää tiettyjä työkaluja kussakin tehtävässä.
+- Tulostaneet generoituja vastauksia havainnollistaaksemme eri otantaparametrien vaikutuksia.
+- Käyttäneet `allowedTools` määrittämään, mitkä työkalut malli voi käyttää generoinnissa. Tässä sallitimme `ideaGenerator`- ja `environmentalImpactTool`-työkalut luoviin tehtäviin sekä `factChecker`- ja `dataAnalysisTool`-työkalut faktuaalisiin tehtäviin.
+- Käyttäneet `temperature` hallitsemaan tuotoksen satunnaisuutta, jossa korkeammat arvot johtavat luovempiin vastauksiin.
+- Käyttäneet `top_p` rajoittamaan token-valintaa niihin, jotka muodostavat suurimman kumulatiivisen todennäköisyysmassan parantaen generoidun tekstin laatua.
+- Käyttäneet `frequencyPenalty` ja `presencePenalty` vähentämään toistoa ja edistämään monimuotoisuutta tuotoksessa.
+- Käyttäneet `top_k` rajoittamaan mallin valinta korkeimman todennäköisyyden omaaviin K tokeneihin, mikä voi auttaa johdonmukaisten vastausten generoinnissa.
 
 ---
 
 ## Deterministinen otanta
 
-Sovelluksissa, jotka vaativat johdonmukaisia tuloksia, deterministinen otanta takaa toistettavat tulokset. Tämä saavutetaan käyttämällä kiinteää satunnaissiementä ja asettamalla temperature nollaan.
+Sovelluksissa, jotka vaativat johdonmukaisia tuloksia, deterministinen otanta varmistaa toistettavat lopputulokset. Tämä saavutetaan käyttämällä kiinteää satunnaissiementä ja asettamalla lämpötila nollaksi.
 
-Tarkastellaan alla olevaa esimerkkitoteutusta, joka havainnollistaa determinististä otantaa eri ohjelmointikielillä.
+Tarkastellaan alle esimerkkitoteutusta deterministisen otannan havainnollistamiseksi eri ohjelmointikielillä.
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// Java-esimerkki: Deterministiset vastaukset kiinteällä siemenellä
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // Kiinteän siemenen käyttö determinististen tulosten saamiseksi
         
-        // First request with fixed seed
+        // Ensimmäinen pyyntö kiinteällä siemenellä
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // Nolla lämpötila maksimaalista determinismiä varten
             .build();
             
-        // Second request with the same seed
+        // Toinen pyyntö samalla siemenellä
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // Suorita molemmat pyynnöt
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // Vastauksien tulisi olla identtiset saman siemenen ja lämpötilan 0 vuoksi
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -296,19 +300,19 @@ public class DeterministicSamplingExample {
 }
 ```
 
-Edellisessä koodissa olemme:
+Edellä olevassa koodissa olemme:
 
-- Luoneet MCP-asiakkaan määritellyllä palvelin-URL:llä.
-- Konfiguroineet kaksi pyyntöä samalla kehotteella, kiinteällä siemenellä ja nollalla temperature-arvolla.
-- Lähettäneet molemmat pyynnöt ja tulostaneet tuotetun tekstin.
-- Havainnollistaneet, että vastaukset ovat identtisiä deterministisen otantakonfiguraation (sama siemen ja temperature) vuoksi.
-- Käyttäneet `setSeed` määrittämään kiinteän satunnaissiementä, varmistaen, että malli tuottaa saman tuloksen samalla syötteellä joka kerta.
-- Asettaneet `temperature` arvoksi nolla maksimaalisen determinismin varmistamiseksi, eli malli valitsee aina todennäköisimmän seuraavan tokenin ilman satunnaisuutta.
+- Luoneet MCP-asiakkaan tietylle palvelimen URL-osoitteelle.
+- Määrittäneet kaksi pyyntöä samalla kehotteella, kiinteällä siemenellä ja nollalämpötilalla.
+- Lähettäneet molemmat pyynnöt ja tulostaneet generoidun tekstin.
+- Havainnollistaneet, että vastaukset ovat identtisiä otannan deterministisen luonteen vuoksi (sama siemen ja lämpötila).
+- Käyttäneet `setSeed` määrittämään kiinteän satunnaissiementä varmistaen, että malli tuottaa saman tuloksen joka kerta samalle syötteelle.
+- Asetettu `temperature` arvoon nolla maksimaalisen determinismin saavuttamiseksi, jolloin malli valitsee aina todennäköisimmän seuraavan tokenin ilman satunnaisuutta.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// JavaScript-esimerkki: Määritelmälliset vastaukset siemenen hallinnalla
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -320,19 +324,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // Ensimmäinen pyyntö kiinteällä siemenellä
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // Nolla lämpötila maksimaaliseen määrämukaisuuteen
     });
     
-    // Second request with same seed and temperature
+    // Toinen pyyntö samalla siemenellä ja lämpötilalla
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // Kolmas pyyntö eri siemenellä mutta samalla lämpötilalla
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -352,28 +356,28 @@ async function deterministicSampling() {
 deterministicSampling();
 ```
 
-Edellisessä koodissa olemme:
+Edellä olevassa koodissa olemme:
 
-- Alustaneet MCP-asiakkaan palvelin-URL:llä.
-- Konfiguroineet kaksi pyyntöä samalla kehotteella, kiinteällä siemenellä ja nollalla temperature-arvolla.
-- Lähettäneet molemmat pyynnöt ja tulostaneet tuotetun tekstin.
-- Havainnollistaneet, että vastaukset ovat identtisiä deterministisen otantakonfiguraation (sama siemen ja temperature) vuoksi.
-- Käyttäneet `seed` määrittämään kiinteän satunnaissiementä, varmistaen, että malli tuottaa saman tuloksen samalla syötteellä joka kerta.
-- Asettaneet `temperature` arvoksi nolla maksimaalisen determinismin varmistamiseksi, eli malli valitsee aina todennäköisimmän seuraavan tokenin ilman satunnaisuutta.
-- Käyttäneet eri siementä kolmannessa pyynnössä osoittaaksemme, että siemenen vaihtaminen johtaa erilaisiin tuloksiin, vaikka kehotte ja temperature pysyvät samoina.
+- Alustaneet MCP-asiakkaan palvelimen URL-osoitteella.
+- Määrittäneet kaksi pyyntöä samalla kehotteella, kiinteällä siemenellä ja nollalämpötilalla.
+- Lähettäneet molemmat pyynnöt ja tulostaneet generoidun tekstin.
+- Havainnollistaneet, että vastaukset ovat identtisiä otannan deterministisen luonteen vuoksi (sama siemen ja lämpötila).
+- Käyttäneet `seed` määrittämään kiinteän satunnaissiementä, varmistaen saman tuloksen tuottamisen jokaisella samalle syötteelle.
+- Asetettu `temperature` arvoon nolla maksimaalisen determinismin varmistamiseksi, jossa malli valitsee aina todennäköisimmän seuraavan tokenin ilman satunnaisuutta.
+- Käytetty eri siementä kolmannessa pyynnössä osoittaakseen, että siemenen vaihtaminen johtaa erilaisiin vastauksiin, vaikka kehotteet ja lämpötila olisivat samat.
 
 ---
 
 ## Dynaaminen otantakonfiguraatio
 
-Älykäs otanta mukauttaa parametreja kontekstin ja pyynnön vaatimusten mukaan. Tämä tarkoittaa temperature-, top_p- ja rangaistusten dynaamista säätämistä tehtävätyypin, käyttäjäasetusten tai aiemman suorituskyvyn perusteella.
+Älykäs otanta mukauttaa parametreja kontekstin ja pyynnön vaatimusten mukaan. Tämä tarkoittaa, että parametreja kuten lämpötila, top_p ja rangaistukset säädetään dynaamisesti tehtävätyypin, käyttäjän mieltymysten tai historiallisen suorituskyvyn perusteella.
 
-Tarkastellaan, miten dynaaminen otanta toteutetaan eri ohjelmointikielillä.
+Katsotaan, miten dynaaminen otanta toteutetaan eri ohjelmointikielillä.
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# Python-esimerkki: Dynaaminen näytteenotto pyyntöyhteyden perusteella
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -381,7 +385,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # Määritä näytteenottopresettit eri tehtävätyypeille
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -389,22 +393,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # Valitse peruspresetti
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # Säädä käyttäjän mieltymysten perusteella, jos niitä on annettu
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # Skaalaa lämpötila luovuusmieltymyksen (1-10) perusteella
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # Säädä top_p halutun vastausvaihtelun mukaan
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # Luo ja lähetä pyyntö mukautetuilla näytteenottoparametreilla
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -412,7 +416,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # Palauta vastaus näytteenottometatietojen kanssa läpinäkyvyyden vuoksi
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -420,32 +424,32 @@ class DynamicSamplingService:
         }
 ```
 
-Edellisessä koodissa olemme:
+Edellä olevassa koodissa olemme:
 
-- Luoneet `DynamicSamplingService`-luokan, joka hallinnoi adaptiivista otantaa.
-- Määritelleet otantapresetit eri tehtävätyypeille (luova, faktapohjainen, koodi, analyyttinen).
-- Valinneet perusotantapresetin tehtävätyypin perusteella.
-- Säätäneet otantaparametreja käyttäjäasetusten, kuten luovuuden ja monimuotoisuuden, mukaan.
-- Lähettäneet pyynnön dynaamisesti konfiguroiduilla otantaparametreilla.
-- Palauttaneet tuotetun tekstin sekä käytetyt otantaparametrit ja tehtävätyypin läpinäkyvyyden vuoksi.
-- Käyttäneet `temperature` hallitsemaan tuotoksen satunnaisuutta, korkeammat arvot johtavat luovempiin vastauksiin.
-- Käyttäneet `top_p` rajoittamaan token-valinnan niihin, jotka muodostavat kumulatiivisen todennäköisyyden huipun, parantaen tuotetun tekstin laatua.
-- Käyttäneet `frequency_penalty` vähentämään toistoa ja kannustamaan monimuotoisuuteen tuotoksessa.
-- Käyttäneet `user_preferences` mahdollistamaan otantaparametrien mukautuksen käyttäjän määrittelemien luovuus- ja monimuotoisuustasojen mukaan.
-- Käyttäneet `task_type` määrittämään sopivan otantastrategian pyynnölle, mahdollistaen räätälöidympiä vastauksia tehtävän luonteen perusteella.
-- Käyttäneet `send_request`-metodia lähettämään kehotteen konfiguroiduilla otantaparametreilla, varmistaen, että malli tuottaa tekstiä määriteltyjen vaatimusten mukaisesti.
-- Käyttäneet `generated_text` hakemaan mallin vastauksen, joka palautetaan yhdessä otantaparametrien ja tehtävätyypin kanssa jatkoanalyysiä tai näyttöä varten.
-- Käyttäneet `min` ja `max` -funktioita varmistamaan, että käyttäjäasetukset pysyvät sallituissa rajoissa, estäen virheelliset otantakonfiguraatiot.
+- Luoneet `DynamicSamplingService`-luokan, joka hallitsee adaptiivista otantaa.
+- Määritelleet otantaesiasetukset eri tehtävätyypeille (luova, faktuaalinen, koodi, analyyttinen).
+- Valinneet perusotanta-asetuksen tehtävän tyypin perusteella.
+- Säädelleet otantaparametreja käyttäjän mieltymysten mukaan kuten luovuustaso ja monimuotoisuus.
+- Lähetetty pyyntö dynaamisesti määritellyillä otantaparametreilla.
+- Palautettu generoitua tekstiä soveltuvien otantaparametrien ja tehtävätyypin kanssa läpinäkyvyyden takaamiseksi.
+- Käytetty `temperature` hallitsemaan satunnaisuutta, jossa korkeammat arvot johtavat luovempiin vastauksiin.
+- Käytetty `top_p` rajoittamaan token-valintaa niihin, jotka muodostavat suurimman kumulatiivisen todennäköisyyksien massan, parantaen tekstin laatua.
+- Käytetty `frequency_penalty` vähentämään toistoa ja kannustamaan monimuotoisuuteen tuotoksessa.
+- Käytetty `user_preferences` mahdollistaen otantaparametrien mukautuksen käyttäjän määrittelemien luovuuden ja monimuotoisuuden tasojen mukaan.
+- Käytetty `task_type` määrittämään sopiva otantastrategia pyynnölle, mahdollistaen räätälöidymmät vastaukset tehtävän luonteen perusteella.
+- Käytetty `send_request` -metodia kehotteen lähettämiseen määriteltyjen otantaparametrien kanssa, varmistaen mallin tekstin generoinnin vaatimusten mukaisesti.
+- Käytetty `generated_text` mallin vastauksen hakemiseen, joka palautetaan sovellettujen parametrien ja tehtävätyypin kanssa jatkoanalyysiä tai näyttöä varten.
+- Käytetty `min` ja `max` -funktioita varmistamaan, että käyttäjän mieltymykset pysyvät sallituissa rajoissa, estäen virheelliset otantakonfiguraatiot.
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript Dynamic](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// JavaScript-esimerkki: Dynaaminen otantakonfiguraatio käyttäjäkontekstin perusteella
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // Määrittele perustason otantaprofiilit
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -453,15 +457,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // Seuraa historiallista suorituskykyä
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // Tunnista tehtävätyyppi kehotteesta
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // Yksinkertainen heuristinen tunnistus - voidaan parantaa koneoppimisen luokituksella
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -482,57 +486,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // Oletusarvoisesti keskustelu, jos tyyppiä ei selkeästi tunnisteta
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // Laske otannan parametrit kontekstin ja käyttäjäasetusten perusteella
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // Tunnista tehtävän tyyppi
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // Hae perusprofiili
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // Säädä käyttäjäasetusten mukaan
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // Skaalaa 1-10 sopivaksi lämpötila-alueeksi
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // Korkeampi tarkkuus tarkoittaa pienempää topP-arvoa (tarkempi valinta)
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // Korkeampi johdonmukaisuus tarkoittaa pienempiä rangaistuksia
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // Käytä suoritushistorian opittuja säätöjä
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // Yksinkertainen adaptiivinen logiikka - voidaan parantaa kehittyneemmillä algoritmeilla
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // Huomioi vain viimeaikainen historia
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // Laske suorituskyvyn keskiarvopisteet
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // Jos suorituskyky on kynnysarvon alapuolella, säädä parametreja
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // Hieman säädä turvallisempiin arvoihin
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -540,32 +544,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // Tallenna suorituskyky tulevia säätöjä varten
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // 0-1 arvio vastauksen laadusta
     });
     
-    // Limit history size
+    // Rajoita historian kokoa
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // Hae optimoidut otannan parametrit
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // Lähetä pyyntö optimoiduilla parametreilla
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // Jos käyttäjä antaa palautetta, tallenna se tulevaa optimointia varten
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -578,7 +582,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// Esimerkkikäyttö
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -587,13 +591,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // Luova tehtävä, jossa omat käyttäjäasetukset
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // Korkea luovuus (1-10)
+          consistency: 3  // Matala johdonmukaisuus (1-10)
         }
       }
     );
@@ -603,14 +607,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // Koodin generointitehtävä
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // Matala luovuus
+          precision: 8,   // Korkea tarkkuus
+          consistency: 9  // Korkea johdonmukaisuus
         }
       }
     );
@@ -628,27 +632,37 @@ async function demonstrateAdaptiveSampling() {
 demonstrateAdaptiveSampling();
 ```
 
-Edellisessä koodissa olemme:
+Edellä olevassa koodissa olemme:
 
-- Luoneet `AdaptiveSamplingManager`-luokan, joka hallinnoi dynaamista otantaa tehtävätyypin ja käyttäjäasetusten perusteella.
-- Määritelleet otantaprofiilit eri tehtävätyypeille (luova, faktapohjainen, koodi, keskustelu).
-- Toteuttaneet menetelmän tehtävätyypin tunnistamiseksi kehotteesta yksinkertaisin heuristiikoin.
-- Laskeneet otantaparametrit tunnistetun tehtävätyypin ja käyttäjäasetusten perusteella.
-- Soveltaneet opittuja säätöjä aiemman suorituskyvyn perusteella optimoidakseen otantaparametreja.
-- Tallentaneet suorituskykytiedot tulevia säätöjä varten, mahdollistaen järjestelmän oppimisen aiemmista vuorovaikutuksista.
-- Lähettäneet pyynnöt dynaamisesti konfiguroiduilla otantaparametreilla ja palauttaneet tuotetun tekstin sekä käytetyt parametrit ja tunnistetun tehtävätyypin.
+- Luoneet `AdaptiveSamplingManager`-luokan hallitsemaan dynaamista otantaa tehtävätyypin ja käyttäjän mieltymysten pohjalta.
+- Määritelleet otantaprofiilit eri tehtävätyypeille (luova, faktuaalinen, koodi, keskustelu).
+- Toteuttaneet metodin, joka havaitsee tehtävätyypin kehotteesta yksinkertaisin heuristiikoin.
+- Laskeneet otantaparametreja havaittuun tehtävätyyppiin ja käyttäjän mieltymyksiin perustuen.
+- Soveltaneet historialliseen suorituskykyyn perustuvia opittuja säätöjä optimoidakseen otantaparametrit.
+- Kirjanneet suoritustiedot tulevia säätöjä varten, mahdollistaen järjestelmän oppimisen aiemmista vuorovaikutuksista.
+- Lähettäneet pyynnöt dynaamisesti määritellyillä otantaparametreilla ja palauttaneet generoidun tekstin sovellettujen parametrien ja tunnistetun tehtävätyypin kera.
 - Käyttäneet:
-    - `userPreferences` mahdollistamaan otantaparametrien mukautuksen käyttäjän määrittelemien luovuus-, tarkkuus- ja johdonmukaisuustasojen mukaan.
+    - `userPreferences` mahdollistaakseni otantaparametrien mukauttamisen käyttäjän määrittelemän luovuuden, tarkkuuden ja johdonmukaisuuden tason mukaan.
     - `detectTaskType` määrittämään tehtävän luonteen kehotteen perusteella, mahdollistaen räätälöidympiä vastauksia.
-    - `recordPerformance` kirjaamaan tuotettujen vastausten suorituskyvyn, mahdollistaen järjestelmän sopeutumisen ja parantamisen ajan myötä.
-    - `applyLearnedAdjustments` muokkaamaan otantaparametreja aiemman suorituskyvyn perusteella, parantaen mallin kykyä tuottaa laadukkaita vastauksia.
-    - `generateResponse` kapseloimaan koko prosessin vastauksen tuottamiseksi adaptiivisella otannalla, tehden siitä helpon kutsua eri kehotteilla ja konteksteilla.
-    - `allowedTools` määrittämään, mitä työkaluja malli voi käyttää generoinnin aikana, mahdollistaen kontekstin huomioivia vastauksia.
-    - `feedbackScore` antamaan käyttäjille mahdollisuuden antaa palautetta tuotetun vastauksen laadusta, jota voidaan käyttää mallin suorituskyvyn jatkokehitykseen.
-    - `performanceHistory` ylläpitämään tietoja aiemmista vuorovaikutuksista, mahdollistaen järjestelmän oppimisen menestyksistä ja epäonnistumisista.
-    - `getSamplingParameters` dynaamisesti säätämään otantaparametreja pyynnön kontekstin mukaan, mahdollistaen joustavamman ja reagoivamman mallikäyttäytymisen.
-    - `detectTaskType` luokittelemaan tehtävän kehotteen perusteella, mahdollistaen sopivien otantastrategioiden soveltamisen eri pyyntötyypeille.
-    - `samplingProfiles` määrittelemään perusotantakonfiguraatiot eri tehtävä
+    - `recordPerformance` kirjaamaan generoituja vastauksia suorituskyvyn seuraamiseksi, antaen järjestelmän sopeutua ja kehittyä ajan myötä.
+    - `applyLearnedAdjustments` muokkaamaan otantaparametreja historiallisen suorituskyvyn perusteella, parantaen mallin kykyä tuottaa laadukkaita vastauksia.
+    - `generateResponse` kapseloimaan koko prosessin adaptiivisella otannalla, helpottaen kutsua eri kehotteilla ja konteksteissa.
+    - `allowedTools` määrittämään, mitä työkaluja malli voi käyttää generoinnin aikana, mahdollistaen kontekstisensitiivisempiä vastauksia.
+    - `feedbackScore` mahdollistamaan käyttäjille palautteen antamisen generoidun vastauksen laadusta, jota voidaan käyttää mallin suorituskyvyn parantamiseen ajan myötä.
+    - `performanceHistory` ylläpitämään aiempien vuorovaikutusten tietoja, antaen järjestelmän oppia menneistä onnistumisista ja epäonnistumisista.
+    - `getSamplingParameters` dynaamisesti muokkaamaan otantaparametreja pyynnön kontekstin perusteella, mahdollistaen joustavamman ja reaktiivisemman mallin käyttäytymisen.
+    - `detectTaskType` luokittelemaan tehtävä kehotteen perusteella, mahdollistaen järjestelmän soveltaa sopivia otantastrategioita eri pyyntölajeihin.
+    - `samplingProfiles` määrittelemään perustason otantakonfiguraatiot eri tehtävätyypeille, mahdollistaen nopean säädön pyynnön luonteen mukaan.
 
-**Vastuuvapauslauseke**:  
-Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, huomioithan, että automaattikäännöksissä saattaa esiintyä virheitä tai epätarkkuuksia. Alkuperäistä asiakirjaa sen alkuperäiskielellä tulee pitää virallisena lähteenä. Tärkeissä tiedoissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+---
+
+## Mitä seuraavaksi
+
+- [5.7 Skaalaus](../mcp-scaling/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vastuuvapauslauseke**:
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

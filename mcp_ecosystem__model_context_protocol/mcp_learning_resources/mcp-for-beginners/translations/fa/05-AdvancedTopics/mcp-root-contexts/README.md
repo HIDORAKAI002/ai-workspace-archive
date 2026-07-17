@@ -1,51 +1,55 @@
-# زمینه‌های ریشه‌ای MCP
+> [منسوخ شده: کاندید انتشار 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-زمینه‌های ریشه‌ای یک مفهوم اساسی در پروتکل مدل کانتکست هستند که لایه‌ای پایدار برای حفظ تاریخچه گفتگو و وضعیت مشترک در چندین درخواست و جلسه فراهم می‌کنند.
+# زمینه‌های ریشه MCP
+
+> **اطلاعیه منسوخ شدن:** نسخه کاندید مشخصات MCP با تاریخ 2026-07-28، زمینه‌های ریشه (Roots) را به نفع پارامترهای ابزار، نشانی‌های منابع (URIs) یا پیکربندی سرور منسوخ اعلام می‌کند. زمینه‌های ریشه همچنان در نسخه 2025-11-25 و حداقل یک سال پس از هر اعلام رسمی منسوخ بودن کار می‌کنند، بنابراین همه مطالب این درس معتبر باقی می‌مانند - اما طراحی‌های جدید سرور باید الگوی جایگزین را ارزیابی کنند. بخش «چه چیزهایی در MCP تغییر می‌کند: کاندید انتشار 2026-07-28» را مشاهده کنید. (../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md)
+
+زمینه‌های ریشه یک مفهوم بنیادی در پروتکل مدل زمینه هستند که لایه‌ای پایدار برای حفظ تاریخچه گفتگو و حالت مشترک بین چندین درخواست و نشست فراهم می‌کنند.
 
 ## مقدمه
 
-در این درس، نحوه ایجاد، مدیریت و استفاده از زمینه‌های ریشه‌ای در MCP را بررسی خواهیم کرد.
+در این درس، خواهیم دید چگونه زمینه‌های ریشه را ایجاد، مدیریت و استفاده کنیم.
 
 ## اهداف یادگیری
 
-در پایان این درس، شما قادر خواهید بود:
+تا پایان این درس، قادر خواهید بود:
 
-- هدف و ساختار زمینه‌های ریشه‌ای را درک کنید
-- زمینه‌های ریشه‌ای را با استفاده از کتابخانه‌های کلاینت MCP ایجاد و مدیریت کنید
-- زمینه‌های ریشه‌ای را در برنامه‌های .NET، Java، JavaScript و Python پیاده‌سازی کنید
-- از زمینه‌های ریشه‌ای برای گفتگوهای چندمرحله‌ای و مدیریت وضعیت استفاده کنید
-- بهترین روش‌ها را برای مدیریت زمینه‌های ریشه‌ای به کار ببرید
+- هدف و ساختار زمینه‌های ریشه را درک کنید
+- زمینه‌های ریشه را با استفاده از کتابخانه‌های کلاینت MCP ایجاد و مدیریت کنید
+- زمینه‌های ریشه را در برنامه‌های .NET، جاوا، جاوااسکریپت و پایتون پیاده‌سازی کنید
+- از زمینه‌های ریشه برای گفتگوهای چندمرحله‌ای و مدیریت حالت استفاده کنید
+- بهترین شیوه‌های مدیریت زمینه ریشه را پیاده کنید
 
-## درک زمینه‌های ریشه‌ای
+## درک زمینه‌های ریشه
 
-زمینه‌های ریشه‌ای به عنوان ظرف‌هایی عمل می‌کنند که تاریخچه و وضعیت یک سری تعاملات مرتبط را نگه می‌دارند. آن‌ها امکان می‌دهند:
+زمینه‌های ریشه به عنوان مخازنی عمل می‌کنند که تاریخچه و حالت یک سری تعاملات مرتبط را نگه می‌دارند. آنها امکان موارد زیر را فراهم می‌کنند:
 
-- **پایداری گفتگو**: حفظ گفتگوهای چندمرحله‌ای منسجم
-- **مدیریت حافظه**: ذخیره و بازیابی اطلاعات در طول تعاملات
-- **مدیریت وضعیت**: پیگیری پیشرفت در جریان‌های کاری پیچیده
-- **اشتراک‌گذاری زمینه**: اجازه دادن به چندین کلاینت برای دسترسی به وضعیت یکسان گفتگو
+- **پایداری گفتگو**: حفظ گفتگوهای چندمرحله‌ای هماهنگ
+- **مدیریت حافظه**: ذخیره و بازیابی اطلاعات در طی تعاملات
+- **مدیریت حالت**: پیگیری پیشرفت در گردش‌کارهای پیچیده
+- **اشتراک‌گذاری زمینه**: اجازه دسترسی چندین کلاینت به حالت یکسان گفتگو
 
-در MCP، زمینه‌های ریشه‌ای ویژگی‌های کلیدی زیر را دارند:
+در MCP، زمینه‌های ریشه خصوصیات کلیدی زیر را دارند:
 
-- هر زمینه ریشه‌ای یک شناسه یکتا دارد.
-- می‌توانند شامل تاریخچه گفتگو، ترجیحات کاربر و سایر فراداده‌ها باشند.
-- می‌توان آن‌ها را ایجاد، دسترسی و آرشیو کرد.
+- هر زمینه ریشه یک شناسه یکتا دارد.
+- می‌توانند تاریخچه گفتگو، ترجیحات کاربر و متادیتای دیگر را ذخیره کنند.
+- می‌توانند به هنگام نیاز ایجاد، دسترسی یا آرشیو شوند.
 - از کنترل دسترسی دقیق و مجوزها پشتیبانی می‌کنند.
 
-## چرخه عمر زمینه ریشه‌ای
+## چرخه عمر زمینه ریشه
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[ایجاد زمینه ریشه] --> B[مقداردهی اولیه با فراداده]
+    B --> C[ارسال درخواست‌ها با شناسه زمینه]
+    C --> D[به‌روزرسانی زمینه با نتایج]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[آرشیو زمینه پس از اتمام]
 ```
 
-## کار با زمینه‌های ریشه‌ای
+## کار با زمینه‌های ریشه
 
-در اینجا مثالی از نحوه ایجاد و مدیریت زمینه‌های ریشه‌ای آورده شده است.
+در اینجا نمونه‌ای از چگونگی ایجاد و مدیریت زمینه‌های ریشه آورده شده است.
 
 ### پیاده‌سازی C#
 
@@ -124,20 +128,20 @@ public class RootContextExample
 
 در کد بالا ما:
 
-1. یک زمینه ریشه‌ای برای جلسه پشتیبانی مشتری ایجاد کردیم.
-2. چندین پیام در آن زمینه ارسال کردیم تا مدل بتواند وضعیت را حفظ کند.
-3. زمینه را با فراداده‌های مرتبط بر اساس گفتگو به‌روزرسانی کردیم.
-4. اطلاعات زمینه را برای درک تاریخچه گفتگو بازیابی کردیم.
-5. پس از پایان گفتگو، زمینه را آرشیو کردیم.
+1. یک زمینه ریشه برای جلسه پشتیبانی مشتری ایجاد کردیم.
+1. چند پیام در داخل همان زمینه ارسال کردیم تا مدل بتواند حالت را حفظ کند.
+1. زمینه را با متادیتای مرتبط بر اساس گفتگو به‌روزرسانی کردیم.
+1. اطلاعات زمینه را برای درک تاریخچه گفتگو بازیابی کردیم.
+1. زمانی که گفتگو به پایان رسید، زمینه را آرشیو کردیم.
 
-## مثال: پیاده‌سازی زمینه ریشه‌ای برای تحلیل مالی
+## مثال: پیاده‌سازی زمینه ریشه برای تحلیل مالی
 
-در این مثال، یک زمینه ریشه‌ای برای جلسه تحلیل مالی ایجاد می‌کنیم و نشان می‌دهیم چگونه وضعیت را در چندین تعامل حفظ کنیم.
+در این مثال، زمینه ریشه‌ای برای جلسه تحلیل مالی ایجاد می‌کنیم تا نشان دهیم چگونه حالت را در طول چند تعامل حفظ کنیم.
 
-### پیاده‌سازی Java
+### پیاده‌سازی جاوا
 
 ```java
-// Java Example: Root Context Implementation
+// مثال جاوا: پیاده‌سازی زمینه ریشه
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // ایجاد فراداده زمینه
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // ۱. ایجاد زمینه ریشه جدید
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // ۲. اولین تعامل
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // ۳. به‌روزرسانی زمینه با اطلاعات مهم به‌دست آمده از پاسخ
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // تعامل دوم - استفاده از همان زمینه
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // ۴. تولید خلاصه‌ای از جلسه تحلیل
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // ذخیره خلاصه در فراداده زمینه
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // گرفتن اطلاعات به‌روزرسانی شده زمینه
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // ۵. آرشیو کردن زمینه پس از اتمام
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 در کد بالا ما:
 
-1. یک زمینه ریشه‌ای برای جلسه تحلیل مالی ایجاد کردیم.
-2. چندین پیام در آن زمینه ارسال کردیم تا مدل بتواند وضعیت را حفظ کند.
-3. زمینه را با فراداده‌های مرتبط بر اساس گفتگو به‌روزرسانی کردیم.
-4. خلاصه‌ای از جلسه تحلیل تولید کرده و در فراداده‌های زمینه ذخیره کردیم.
-5. پس از پایان گفتگو، زمینه را آرشیو کردیم.
+1. یک زمینه ریشه برای جلسه تحلیل مالی ایجاد کردیم.
+2. چند پیام در داخل همان زمینه ارسال کردیم تا مدل بتواند حالت را حفظ کند.
+3. زمینه را با متادیتای مرتبط به‌روزرسانی کردیم.
+4. خلاصه‌ای از جلسه تحلیل ایجاد و در متادیتای زمینه ذخیره کردیم.
+5. زمانی که گفتگو کامل شد، زمینه را آرشیو کردیم.
 
-## مثال: مدیریت زمینه ریشه‌ای
+## مثال: مدیریت زمینه ریشه
 
-مدیریت مؤثر زمینه‌های ریشه‌ای برای حفظ تاریخچه و وضعیت گفتگو حیاتی است. در ادامه مثالی از نحوه پیاده‌سازی مدیریت زمینه ریشه‌ای آورده شده است.
+مدیریت موثر زمینه‌های ریشه برای حفظ تاریخچه و حالت گفتگو اهمیت دارد. در ادامه نمونه‌ای از پیاده‌سازی مدیریت زمینه ریشه آورده شده است.
 
-### پیاده‌سازی JavaScript
+### پیاده‌سازی جاوااسکریپت
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// مثال جاوااسکریپت: مدیریت زمینه‌های ریشه MCP
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // مقداردهی اولیه کلاینت MCP
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // مقداردهی اولیه مدیر زمینه
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // ارسال پیام با استفاده از زمینه مشخص شده
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // به صورت اختیاری، ذخیره‌ی نکات مهم از گفتگو
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // استخراج نکات بالقوه (در یک برنامه واقعی، این کار پیشرفته‌تر است)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // قاعده ساده برای شناسایی نکات بالقوه
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // ذخیره نکات در فراداده‌ی زمینه
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // خطای غیر بحرانی، پس فقط ثبت هشدار
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // درخواست از مدل برای تولید خلاصه گفتگو تا کنون
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // ذخیره خلاصه در فراداده‌ی زمینه
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // تولید خلاصه نهایی پیش از بایگانی
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // بایگانی زمینه
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// مثال استفاده
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // ۱. ایجاد زمینه جدید برای گفتگوی پشتیبانی محصول
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // ۲. پیام اول در گفتگو
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // پیام پیگیری در همان زمینه
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // ۳. دریافت اطلاعات درباره زمینه
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // ۴. تولید و نمایش خلاصه گفتگو
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // ۵. بایگانی زمینه زمانی که کار تمام شد
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // ۶. مدیریت خطاها به صورت آرام و بدون مشکل
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 در کد بالا ما:
 
-1. یک زمینه ریشه‌ای برای گفتگو پشتیبانی محصول با تابع `createConversationContext` ایجاد کردیم. در این مورد، زمینه درباره مشکلات عملکرد پایگاه داده است.
+1. زمینه ریشه‌ای برای گفتگو پشتیبانی محصول با تابع `createConversationContext` ایجاد کردیم. در این مورد، زمینه درباره مسائل عملکرد دیتابیس است.
 
-2. چندین پیام در آن زمینه ارسال کردیم تا مدل بتواند وضعیت را با تابع `sendMessage` حفظ کند. پیام‌ها درباره عملکرد کند کوئری‌ها و پیکربندی ایندکس‌ها هستند.
+1. چند پیام در زمینه ارسال کردیم تا مدل بتواند حالت را با تابع `sendMessage` حفظ کند. پیام‌ها درباره عملکرد کند کوئری و پیکربندی ایندکس هستند.
 
-3. زمینه را با فراداده‌های مرتبط بر اساس گفتگو به‌روزرسانی کردیم.
+1. زمینه را با متادیتای مرتبط بر اساس گفتگو به‌روزرسانی کردیم.
 
-4. خلاصه‌ای از گفتگو تولید کرده و در فراداده‌های زمینه با تابع `generateContextSummary` ذخیره کردیم.
+1. خلاصه‌ای از گفتگو تولید کرده و در متادیتای زمینه به‌وسیله تابع `generateContextSummary` ذخیره کردیم.
 
-5. پس از پایان گفتگو، زمینه را با تابع `archiveContext` آرشیو کردیم.
+1. هنگام اتمام گفتگو، زمینه را با تابع `archiveContext` آرشیو کردیم.
 
-6. خطاها را به‌خوبی مدیریت کردیم تا پایداری حفظ شود.
+1. خطاها را به‌صورت قابل اعتماد مدیریت کردیم.
 
-## زمینه ریشه‌ای برای کمک چندمرحله‌ای
+## زمینه ریشه برای کمک چندمرحله‌ای
 
-در این مثال، یک زمینه ریشه‌ای برای جلسه کمک چندمرحله‌ای ایجاد می‌کنیم و نشان می‌دهیم چگونه وضعیت را در چندین تعامل حفظ کنیم.
+در این مثال، زمینه ریشه‌ای برای یک جلسه کمک چندمرحله‌ای ایجاد می‌کنیم تا نشان دهیم چگونه حالت را در چند تعامل حفظ کنیم.
 
-### پیاده‌سازی Python
+### پیاده‌سازی پایتون
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# نمونه پایتون: زمینه اصلی برای کمک چندمرحله‌ای
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # افزودن اطلاعات کاربر در صورت ارائه
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # ایجاد زمینه ریشه
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # ایجاد گزینه‌ها با شناسه زمینه
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # افزودن ابزارها در صورت مشخص شدن
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # ارسال درخواست درون زمینه
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # به‌روزرسانی متادیتای زمینه با پیشرفت گفتگو
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # ابتدا یک درخواست خلاصه تولید کن
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # ذخیره خلاصه در متادیتا
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # آرشیو کردن زمینه
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# نمونه استفاده
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # ۱. ایجاد جلسه
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # ۲. تعامل اول
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # تعامل دوم در همان زمینه
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # ۳. دریافت تاریخچه
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # ۴. پایان جلسه
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 در کد بالا ما:
 
-1. یک زمینه ریشه‌ای برای جلسه پشتیبانی فنی با تابع `create_session` ایجاد کردیم. زمینه شامل اطلاعات کاربر مانند نام و سطح فنی است.
+1. با تابع `create_session` زمینه ریشه‌ای برای جلسه پشتیبانی فنی ایجاد کردیم. زمینه شامل اطلاعات کاربر از جمله نام و سطح فنی است.
 
-2. چندین پیام در آن زمینه ارسال کردیم تا مدل بتواند وضعیت را با تابع `send_message` حفظ کند. پیام‌ها درباره مشکلات ویژگی مقیاس‌گذاری خودکار هستند.
+1. چند پیام در همان زمینه ارسال کردیم تا مدل بتواند حالت را با تابع `send_message` حفظ کند. پیام‌ها درباره مشکلات ویژگی مقیاس‌بندی خودکار هستند.
 
-3. تاریخچه گفتگو را با تابع `get_conversation_history` بازیابی کردیم که اطلاعات زمینه و پیام‌ها را فراهم می‌کند.
+1. با تابع `get_conversation_history` تاریخچه گفتگو را بازیابی کردیم که اطلاعات زمینه و پیام‌ها را ارائه می‌دهد.
 
-4. جلسه را با آرشیو کردن زمینه و تولید خلاصه با تابع `end_session` پایان دادیم. خلاصه نکات کلیدی گفتگو را ثبت می‌کند.
+1. جلسه را با آرشیو کردن زمینه و تولید خلاصه با تابع `end_session` پایان دادیم. خلاصه نکات کلیدی گفتگو را ثبت می‌کند.
 
-## بهترین روش‌ها برای زمینه ریشه‌ای
+## بهترین شیوه‌های زمینه ریشه
 
-در اینجا چند بهترین روش برای مدیریت مؤثر زمینه‌های ریشه‌ای آورده شده است:
+در اینجا برخی از بهترین شیوه‌ها برای مدیریت موثر زمینه‌های ریشه آورده شده است:
 
-- **ایجاد زمینه‌های متمرکز**: برای اهداف یا حوزه‌های مختلف گفتگو، زمینه‌های ریشه‌ای جداگانه ایجاد کنید تا وضوح حفظ شود.
+- **ایجاد زمینه‌های متمرکز**: برای اهداف یا حوزه‌های مختلف گفتگو، زمینه‌های ریشه جداگانه ایجاد کنید تا وضوح حفظ شود.
 
-- **تنظیم سیاست‌های انقضا**: سیاست‌هایی برای آرشیو یا حذف زمینه‌های قدیمی پیاده‌سازی کنید تا مدیریت ذخیره‌سازی و رعایت سیاست‌های نگهداری داده‌ها انجام شود.
+- **تعیین سیاست‌های انقضا**: سیاست‌هایی برای آرشیو یا حذف زمینه‌های قدیمی جهت مدیریت ذخیره‌سازی و انطباق با سیاست‌های نگهداری داده‌ها اجرا کنید.
 
-- **ذخیره فراداده‌های مرتبط**: از فراداده‌های زمینه برای ذخیره اطلاعات مهم درباره گفتگو که ممکن است بعداً مفید باشد استفاده کنید.
+- **ذخیره متادیتای مرتبط**: از متادیتای زمینه برای ذخیره اطلاعات مهم درباره گفتگو استفاده کنید که ممکن است بعدا مفید باشد.
 
 - **استفاده مداوم از شناسه‌های زمینه**: پس از ایجاد زمینه، شناسه آن را به طور مداوم برای همه درخواست‌های مرتبط استفاده کنید تا پیوستگی حفظ شود.
 
-- **تولید خلاصه‌ها**: وقتی زمینه بزرگ می‌شود، تولید خلاصه‌ها را در نظر بگیرید تا اطلاعات ضروری ثبت شده و اندازه زمینه مدیریت شود.
+- **تولید خلاصه‌ها**: زمانی که زمینه بزرگ می‌شود، خلاصه‌هایی تولید کنید تا اطلاعات ضروری ثبت و مدیریت اندازه زمینه ممکن شود.
 
-- **پیاده‌سازی کنترل دسترسی**: برای سیستم‌های چندکاربره، کنترل‌های دسترسی مناسب را برای حفظ حریم خصوصی و امنیت زمینه‌های گفتگو اعمال کنید.
+- **پیاده‌سازی کنترل دسترسی**: برای سیستم‌های چندکاربره، کنترل دسترسی مناسب را اجرا کنید تا حریم خصوصی و امنیت زمینه‌های گفتگو حفظ شود.
 
-- **مدیریت محدودیت‌های زمینه**: از محدودیت‌های اندازه زمینه آگاه باشید و استراتژی‌هایی برای مدیریت گفتگوهای بسیار طولانی پیاده‌سازی کنید.
+- **مدیریت محدودیت‌های زمینه**: از محدودیت‌های اندازه زمینه آگاه باشید و راهکارهایی برای مدیریت گفتگوهای بسیار طولانی پیاده کنید.
 
-- **آرشیو پس از اتمام**: پس از پایان گفتگوها، زمینه‌ها را آرشیو کنید تا منابع آزاد شده و تاریخچه گفتگو حفظ شود.
+- **آرشیو هنگام اتمام**: زمانی که گفتگو کامل شد، زمینه‌ها را آرشیو کنید تا منابع آزاد و تاریخچه گفتگو حفظ شود.
 
-## مرحله بعد
+## ادامه مطلب
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 مسیریابی](../mcp-routing/README.md)
 
-**سلب مسئولیت**:  
-این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما در تلاش برای دقت هستیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است حاوی خطاها یا نواقصی باشند. سند اصلی به زبان بومی خود باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما مسئول هیچ گونه سوءتفاهم یا تفسیر نادرستی که از استفاده از این ترجمه ناشی شود، نیستیم.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**سلب مسئولیت**:
+این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما در تلاش برای دقت هستیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است شامل خطاها یا نادرستی‌هایی باشند. سند اصلی به زبان مادری خود باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما در قبال هرگونه سوء تفاهم یا برداشت نادرست ناشی از استفاده از این ترجمه مسئولیتی نداریم.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

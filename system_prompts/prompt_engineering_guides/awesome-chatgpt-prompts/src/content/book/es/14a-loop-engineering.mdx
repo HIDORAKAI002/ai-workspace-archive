@@ -1,0 +1,405 @@
+La ingeniería de contexto decide **qué puede ver el modelo**. La ingeniería de bucles decide **qué hace el sistema a continuación**.
+
+En lugar de que una persona lea una respuesta una y otra vez y escriba el siguiente prompt, un bucle convierte ese trabajo de seguimiento en un sistema diseñado. Le da a la IA un objetivo, la deja actuar, observa retroalimentación real, evalúa el resultado y se adapta o se detiene.
+
+<Callout type="info" title="La Definición Corta">
+La ingeniería de bucles es la práctica de diseñar el ciclo de retroalimentación alrededor de un sistema de IA: el objetivo, las acciones, las observaciones, la evaluación, el estado, las salvaguardas y las reglas de parada que llevan el trabajo hacia un resultado verificable.
+</Callout>
+
+## De un Buen Prompt a un Buen Bucle
+
+Un prompt puede producir un primer intento sólido. Un bucle es útil cuando el número de pasos no se puede conocer de antemano, el entorno puede cambiar, o el primer intento debe contrastarse con evidencia.
+
+<Compare
+  before={{
+    label: "Prompt Único",
+    content: "Preguntar → Generar → Devolver\n\nEl modelo produce una respuesta. Una persona decide si funcionó y escribe el siguiente prompt."
+  }}
+  after={{
+    label: "Bucle Diseñado",
+    content: "Encuadrar → Actuar → Observar → Evaluar → Adaptar\n                 ↑______________________↓\n\nEl sistema reúne evidencia, registra el estado y continúa solo mientras otra pasada resulte útil."
+  }}
+/>
+
+Esta idea se apoya en patrones de agentes anteriores. El [artículo de ReAct](https://arxiv.org/abs/2210.03629) demostró el valor de intercalar acciones con observaciones de un entorno externo. El [patrón evaluador-optimizador](https://www.anthropic.com/engineering/building-effective-agents) de Anthropic añade un paso de retroalimentación independiente, mientras que la [guía práctica de agentes](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) de OpenAI describe las ejecuciones de agentes como bucles gobernados por condiciones de salida. El término más reciente, **ingeniería de bucles**, pone el foco en diseñar deliberadamente todo ese ciclo.
+
+## Los Cinco Movimientos
+
+<InfoGrid items={[
+  { label: "1. Encuadrar", description: "Convierte la intención en un objetivo, restricciones, criterios de éxito y un presupuesto.", color: "blue" },
+  { label: "2. Actuar", description: "Elige una sola acción acotada: buscar, editar, calcular, llamar a una herramienta o preguntar a una persona.", color: "amber" },
+  { label: "3. Observar", description: "Recoge lo que realmente ocurrió: salida de pruebas, resultados de API, citas o retroalimentación de usuarios.", color: "cyan" },
+  { label: "4. Evaluar", description: "Compara la evidencia con criterios explícitos, no con la confianza del modelo.", color: "purple" },
+  { label: "5. Adaptar", description: "Actualiza el estado, cambia el plan, reintenta de forma segura, escala o detente.", color: "green" },
+]} />
+
+El bucle no son las flechas. La ingeniería vive en los **contratos entre las flechas**: qué cuenta como acción, qué observaciones son fiables, quién las evalúa, qué estado sobrevive y exactamente cuándo termina la ejecución.
+
+<LoopEngineeringLab content={{
+  eyebrow: "Control de bucles / simulador interactivo",
+  title: "Recorre paso a paso un bucle de retroalimentación en funcionamiento",
+  description: "Elige una tarea y avanza una señal a la vez. Fíjate en cómo el progreso proviene de evidencia del entorno y de una evaluación explícita, no de preguntarle al modelo si le parece que ha terminado.",
+  chooseScenarioLabel: "Elige un bucle",
+  goalLabel: "Objetivo",
+  stopRuleLabel: "Regla de parada",
+  evidenceLabel: "Evidencia fiable",
+  iterationLabel: "Iteración",
+  progressLabel: "Progreso verificado",
+  openIssuesLabel: "Problemas abiertos",
+  currentSignalLabel: "Señal actual",
+  advanceLabel: "Avanzar un paso",
+  nextIterationLabel: "Comenzar la siguiente iteración",
+  resetLabel: "Reiniciar bucle",
+  completeLabel: "Objetivo verificado",
+  completeDescription: "Los criterios de éxito se cumplen, la evidencia queda registrada y el bucle se detiene en lugar de gastar otro ciclo.",
+  stages: [
+    { id: "frame", label: "Encuadrar", verb: "Relee el contrato" },
+    { id: "act", label: "Actuar", verb: "Haz un movimiento acotado" },
+    { id: "observe", label: "Observar", verb: "Lee la retroalimentación externa" },
+    { id: "evaluate", label: "Evaluar", verb: "Aplica la rúbrica" },
+    { id: "adapt", label: "Adaptar", verb: "Ajusta el siguiente movimiento" },
+  ],
+  scenarios: [
+    {
+      id: "code",
+      label: "Reparar un bug en el checkout",
+      goal: "Corregir los totales del checkout sin alterar el comportamiento válido de los descuentos.",
+      stopRule: "La prueba de regresión específica pasa, la suite completa del checkout pasa y el lint está limpio; o se agotan tres intentos y el bucle escala a un humano.",
+      evidence: "Pasos de reproducción, salida de las pruebas, el diff del código y la suite de regresión final.",
+      cycles: [
+        {
+          action: "Reproducir el total reportado y añadir una prueba que falle para impuesto más descuento porcentual.",
+          observation: "La prueba falla por un centavo solo cuando el impuesto se redondea antes de aplicar el descuento.",
+          evaluation: "El bug se reproduce con una señal determinista, pero su origen aún no está corregido.",
+          adaptation: "Inspeccionar la frontera de redondeo y cambiar solo la ruta de cálculo del total del pedido.",
+          progress: 34,
+          openIssues: 2,
+        },
+        {
+          action: "Mover el redondeo a la frontera monetaria final y ejecutar las pruebas específicas del checkout.",
+          observation: "La regresión pasa, pero una prueba de integración de cupones ahora falla con un descuento de monto fijo.",
+          evaluation: "El primer síntoma está corregido, pero el cambio es demasiado amplio. La regla de parada no se cumple.",
+          adaptation: "Acotar el parche y añadir un caso que separe el redondeo de impuestos del redondeo de cupones.",
+          progress: 71,
+          openIssues: 1,
+        },
+        {
+          action: "Aplicar la corrección acotada del cálculo y luego ejecutar la regresión, la suite completa del checkout y el lint.",
+          observation: "Todas las comprobaciones pasan. El diff toca una sola función de cálculo y la nueva prueba de regresión.",
+          evaluation: "Cada criterio de éxito tiene evidencia independiente y no se superó ningún límite de presupuesto.",
+          adaptation: "Detenerse, conservar la salida de las pruebas y entregar el diff pequeño a un revisor humano.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "research",
+      label: "Verificar una afirmación de investigación",
+      goal: "Evaluar la afirmación de que el trabajo remoto siempre aumenta la productividad del equipo.",
+      stopRule: "Una conclusión calibrada está respaldada por al menos tres fuentes creíbles, con los desacuerdos y las limitaciones declarados.",
+      evidence: "Enlaces directos a las fuentes, fechas de publicación, métodos de los estudios, tamaños de muestra y métricas citadas.",
+      cycles: [
+        {
+          action: "Buscar evidencia reciente y rastrear la estadística de productividad más repetida hasta su fuente.",
+          observation: "La mayoría de los artículos repiten una encuesta de un proveedor sin enlazar su cuestionario ni su muestra original.",
+          evaluation: "La evidencia es popular, pero no lo bastante sólida para respaldar una afirmación absoluta.",
+          adaptation: "Priorizar estudios revisados por pares y conjuntos de datos públicos; buscar también hallazgos contrarios.",
+          progress: 28,
+          openIssues: 3,
+        },
+        {
+          action: "Comparar dos estudios revisados por pares con un conjunto de datos laborales nacional.",
+          observation: "Los resultados varían según el tipo de tarea, el método de medición y si el trabajo es totalmente remoto o híbrido.",
+          evaluation: "La evidencia contradice la palabra «siempre». Una conclusión condicional empieza a ser defendible.",
+          adaptation: "Comprobar si los estudios distinguen entre producción, horas trabajadas y productividad percibida.",
+          progress: 68,
+          openIssues: 1,
+        },
+        {
+          action: "Construir una tabla de evidencia y verificar cada afirmación contra la fuente original.",
+          observation: "Las fuentes respaldan efectos mixtos e identifican la autonomía, la coordinación y el tipo de tarea como variables clave.",
+          evaluation: "La conclusión está respaldada, la incertidumbre es visible y se alcanza el umbral de fuentes.",
+          adaptation: "Detenerse con una respuesta matizada y conservar la tabla de evidencia para su revisión.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "writing",
+      label: "Pulir un correo de lanzamiento",
+      goal: "Crear un correo de lanzamiento conciso que explique el beneficio y consiga clics de demo cualificados.",
+      stopRule: "El correo pasa la rúbrica de voz, se mantiene por debajo de 140 palabras, contiene una sola llamada a la acción clara y sobrevive a una revisión factual.",
+      evidence: "Recuento de palabras, puntuaciones de la rúbrica, validación de enlaces, datos verificados del producto y notas del revisor.",
+      cycles: [
+        {
+          action: "Redactar a partir del brief del producto y puntuar el resultado contra la rúbrica de audiencia y voz.",
+          observation: "El borrador tiene 204 palabras, abre con funcionalidades y contiene dos llamadas a la acción que compiten entre sí.",
+          evaluation: "Los datos son precisos, pero los criterios de jerarquía y extensión fallan.",
+          adaptation: "Abrir con el resultado para el cliente, eliminar la acción secundaria y recortar los detalles de implementación.",
+          progress: 41,
+          openIssues: 3,
+        },
+        {
+          action: "Reescribir la apertura y comprimir el cuerpo en una única secuencia problema-beneficio-prueba.",
+          observation: "El correo tiene 126 palabras y una sola CTA, pero la frase de prueba exagera un resultado de la beta.",
+          evaluation: "La estructura pasa. La calibración factual aún no cumple la rúbrica.",
+          adaptation: "Sustituir la afirmación genérica por el resultado medido de la beta y pedir una verificación factual final.",
+          progress: 79,
+          openIssues: 1,
+        },
+        {
+          action: "Insertar la métrica verificada, validar el enlace y ejecutar la rúbrica completa una vez más.",
+          observation: "El correo tiene 132 palabras, el enlace funciona, los datos coinciden con el brief y todos los puntos de la rúbrica pasan.",
+          evaluation: "El artefacto satisface el estándar de calidad definido con evidencia revisable.",
+          adaptation: "Detenerse y enviar la versión aprobada a la persona responsable de la campaña.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+  ],
+}} />
+
+## Escribe Primero el Contrato del Bucle
+
+Antes de elegir un modelo o un framework, escribe un pequeño contrato. Si estos campos son vagos, el bucle convertirá la ambigüedad en costo repetido.
+
+```yaml
+goal: "¿Qué estado observable debería hacerse realidad?"
+inputs: "¿Qué pone en marcha el bucle?"
+state: "¿Qué hechos e intentos persisten entre iteraciones?"
+actions: "¿Qué herramientas puede usar el sistema, y con qué permisos?"
+observations: "¿Qué señales externas devuelven esas acciones?"
+evaluator: "¿Qué rúbrica o comprobaciones deterministas juzgan el resultado?"
+success: "¿Qué evidencia demuestra que el objetivo está cumplido?"
+failure: "¿Qué condiciones exigen recuperación o ayuda humana?"
+budget: "Máximo de turnos, tiempo, tokens, dinero o efectos secundarios"
+```
+
+<Callout type="warning" title="Un Bucle Sin Salida Es un Modo de Fallo">
+Define siempre tres salidas: **éxito** cuando la evidencia satisface el objetivo, **fallo** cuando la recuperación ya no es útil, y **presupuesto agotado** cuando el bucle alcanza su límite permitido de costo o riesgo.
+</Callout>
+
+## Las Observaciones Deben Venir del Mundo
+
+Que el modelo diga «esto parece correcto» no es evidencia sólida. Una observación útil la produce algo externo a la respuesta que se está juzgando.
+
+<table>
+  <thead>
+    <tr>
+      <th>Tarea</th>
+      <th>Observación débil</th>
+      <th>Observación sólida</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Reparación de código</td>
+      <td>«La corrección debería funcionar.»</td>
+      <td>Se reproduce el fallo original y luego pasan la regresión y la suite completa.</td>
+    </tr>
+    <tr>
+      <td>Investigación</td>
+      <td>«Varias fuentes coinciden.»</td>
+      <td>Las afirmaciones enlazan a fuentes originales con fechas, métodos y desacuerdos registrados.</td>
+    </tr>
+    <tr>
+      <td>Extracción de datos</td>
+      <td>«El JSON parece válido.»</td>
+      <td>La validación del esquema pasa y los registros muestreados coinciden con la fuente.</td>
+    </tr>
+    <tr>
+      <td>Contenido</td>
+      <td>«El texto se siente claro.»</td>
+      <td>Pasa una rúbrica con nombre, una revisión factual, comprobaciones de enlaces y pruebas con la audiencia.</td>
+    </tr>
+    <tr>
+      <td>Operaciones</td>
+      <td>«La solicitud tuvo éxito.»</td>
+      <td>El sistema externo devuelve el estado esperado y existe un registro de auditoría.</td>
+    </tr>
+  </tbody>
+</table>
+
+Por eso importan las herramientas: las pruebas, los navegadores, las bases de datos, los validadores y la revisión humana convierten una suposición interna en un resultado observable.
+
+## Separa a Quien Crea de Quien Verifica
+
+Para trabajo de bajo riesgo, un mismo modelo puede redactar y autorrevisarse. Para trabajo importante, usa un verificador con una función distinta y autoridad limitada.
+
+<InfoGrid columns={2} items={[
+  { label: "Creador", description: "Propone el cambio, llama a las herramientas de acción y explica qué evidencia debe recogerse.", color: "amber" },
+  { label: "Verificador", description: "Recibe el objetivo, el artefacto y la evidencia; aplica la rúbrica; no puede reescribir en silencio el trabajo que califica.", color: "green" },
+]} />
+
+El verificador no tiene por qué ser otra IA. Prefiere el evaluador más determinista que tengas disponible:
+
+1. **Comprobaciones exactas** — tipos, esquemas, restricciones, permisos, hashes
+2. **Comprobaciones ejecutables** — pruebas, linters, simulaciones, validación de enlaces
+3. **Comprobaciones con rúbrica** — un modelo independiente o un humano que aplica criterios con nombre
+4. **Comprobaciones de resultado** — comportamiento real de usuarios o métricas de producción a lo largo del tiempo
+
+<Callout type="tip" title="La Confianza No Es Evidencia">
+Una puntuación de confianza generada por el mismo modelo que creó el artefacto sigue siendo una salida del modelo. Trátala como una pista para enrutar, no como una prueba.
+</Callout>
+
+## El Estado Es la Columna Vertebral del Bucle
+
+El contexto es lo que el modelo ve **en este turno**. El estado es el registro compacto que permite que el siguiente turno continúe sin repetir ni olvidar trabajo.
+
+<Checklist title="Estado Útil de un Bucle" items={[
+  { text: "El objetivo actual y los criterios de aceptación" },
+  { text: "Las acciones ya intentadas y sus resultados observables" },
+  { text: "Los artefactos producidos, con versiones o referencias estables" },
+  { text: "Los veredictos del evaluador y los problemas sin resolver" },
+  { text: "El presupuesto consumido y los permisos aún disponibles" },
+  { text: "La razón para continuar, detenerse o escalar" },
+]} />
+
+Almacena decisiones y evidencia concisas, no la cadena de pensamiento privada de un modelo. Un buen estado es pequeño, inspeccionable y seguro de retomar.
+
+## Formas Comunes de Bucle
+
+### El Bucle de Reparación
+
+`reproducir → cambiar una sola cosa → ejecutar comprobaciones → diagnosticar → repetir o detenerse`
+
+Ideal para código, configuración, limpieza de datos y cualquier tarea con retroalimentación ejecutable.
+
+### El Bucle Evaluador-Optimizador
+
+`generar → puntuar con una rúbrica → devolver retroalimentación específica → revisar`
+
+Ideal para escritura, traducción, crítica de diseño y resultados cuya calidad mejora con retroalimentación articulada.
+
+### El Bucle de Investigación
+
+`buscar → inspeccionar fuentes → identificar lagunas o conflictos → volver a buscar → sintetizar`
+
+Ideal cuando la completitud no se conoce de antemano. La regla de parada debería medir la cobertura de la evidencia, no la cantidad de resultados de búsqueda.
+
+### El Bucle con Aprobación Humana
+
+`preparar → verificar automáticamente → pausar antes de la acción de alto riesgo → un humano aprueba o redirige`
+
+Ideal para pagos, publicaciones, eliminaciones, cambios de acceso, decisiones médicas o legales y otras acciones con consecuencias.
+
+## Modos de Fallo que Hay que Eliminar desde el Diseño
+
+<table>
+  <thead>
+    <tr>
+      <th>Fallo</th>
+      <th>Qué ocurrió</th>
+      <th>Respuesta de ingeniería</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Reintento infinito</td>
+      <td>El bucle no tiene una salida medible de éxito ni de presupuesto.</td>
+      <td>Añade estados terminales explícitos y un tope estricto de iteraciones.</td>
+    </tr>
+    <tr>
+      <td>Autocomplacencia</td>
+      <td>El creador acepta su propia respuesta plausible sin evidencia.</td>
+      <td>Usa comprobaciones deterministas o un verificador independiente.</td>
+    </tr>
+    <tr>
+      <td>Bola de nieve de contexto</td>
+      <td>Cada iteración lo acumula todo hasta que el modelo pierde la señal.</td>
+      <td>Persiste estado estructurado y reconstruye solo el contexto relevante.</td>
+    </tr>
+    <tr>
+      <td>Vaivén</td>
+      <td>El bucle alterna inútilmente entre dos arreglos.</td>
+      <td>Detecta estados repetidos y exige una estrategia distinta o escalar a un humano.</td>
+    </tr>
+    <tr>
+      <td>Deriva del objetivo</td>
+      <td>Las mejoras locales sustituyen al objetivo original.</td>
+      <td>Relee el objetivo inmutable y los criterios de aceptación en cada ciclo.</td>
+    </tr>
+    <tr>
+      <td>Repetición insegura</td>
+      <td>Un error reversible se vuelve dañino cuando se repite.</td>
+      <td>Limita permisos, efectos secundarios, ritmo, gasto y alcance del daño.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Una Implementación Mínima
+
+```typescript
+let state = initialize(goal, acceptanceCriteria, budget);
+
+while (state.budget.remaining > 0) {
+  const context = assembleRelevantContext(state);
+  const proposedAction = await maker.chooseAction(context);
+  const observation = await tools.executeWithinPolicy(proposedAction);
+  const verdict = await evaluator.check({ goal, observation, state });
+
+  state = recordIteration(state, { proposedAction, observation, verdict });
+
+  if (verdict.status === "passed") return complete(state);
+  if (verdict.status === "unsafe" || verdict.status === "blocked") {
+    return escalateToHuman(state);
+  }
+
+  state = adaptPlan(state, verdict.feedback);
+}
+
+return stopWithBudgetReport(state);
+```
+
+El código es la parte fácil. Las preguntas difíciles son preguntas de dominio: ¿Qué prueba demuestra que el bug desapareció? ¿Qué fuente es autorizada? ¿Qué acción es reversible? ¿Quién puede aprobar el paso final? Esas decisiones son el verdadero trabajo de la ingeniería de bucles.
+
+## Práctica: Diseña un Bucle
+
+<TryIt
+  title="Redacta un Contrato de Bucle"
+  description="Sustituye las variables por una tarea recurrente de tu propio trabajo. Pídele a la IA que cuestione la evidencia débil y las reglas de parada ambiguas."
+  prompt={`Diseña un bucle de trabajo de IA acotado para esta tarea:
+
+TAREA: \${task:clasificar cada mañana los nuevos tickets de soporte al cliente}
+
+Define:
+1. El objetivo observable
+2. El disparador y las entradas requeridas
+3. Las acciones permitidas y los permisos de herramientas
+4. Las observaciones fiables provenientes del entorno externo
+5. El evaluador y su rúbrica
+6. El estado que persiste entre iteraciones
+7. Las salidas de éxito, fallo y presupuesto agotado
+8. Los puntos de aprobación humana para acciones arriesgadas
+9. Un formato de traza que haga auditable cada iteración
+
+Luego identifica los tres modos de fallo más probables de tu diseño y revisa el bucle para prevenirlos.`}
+/>
+
+<Quiz
+  question="Un agente edita código, relee el diff y dice que el bug está corregido. ¿Cuál es la pieza faltante más importante del bucle?"
+  options={[
+    "Un prompt de sistema más largo",
+    "Una observación externa evaluada contra una regla de parada",
+    "Una segunda pasada de edición",
+    "Una ventana de contexto más grande"
+  ]}
+  correctIndex={1}
+  explanation="El agente ha producido e inspeccionado un artefacto, pero no ha reunido evidencia independiente. Reproducir el fallo y ejecutar las pruebas relevantes crearía una señal observable que una regla de parada puede evaluar."
+/>
+
+## Lecturas Adicionales
+
+- [Loop Engineering — Addy Osmani](https://addyosmani.com/blog/loop-engineering/) — el planteamiento reciente de sustituir los prompts de seguimiento manuales por un sistema diseñado, con advertencias prácticas sobre verificación y responsabilidad humana
+- [Building Effective Agents — Anthropic](https://www.anthropic.com/engineering/building-effective-agents) — flujos de trabajo evaluador-optimizador, retroalimentación del entorno, condiciones de parada y orientación sobre cuándo se justifica la complejidad agéntica
+- [A Practical Guide to Building Agents — OpenAI](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) — ejecuciones de agentes, condiciones de salida, herramientas, salvaguardas e intervención humana
+- [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) — investigación fundacional sobre intercalar acciones con observaciones de un entorno externo
+
+## Resumen
+
+<Callout type="tip" title="Construye la Retroalimentación, No Solo el Prompt">
+Un bucle fiable tiene un objetivo medible, acciones acotadas, observaciones fiables, un evaluador explícito, estado compacto, salidas seguras y juicio humano donde las consecuencias lo exigen. El modelo está dentro del bucle; el ingeniero sigue siendo responsable del bucle.
+</Callout>

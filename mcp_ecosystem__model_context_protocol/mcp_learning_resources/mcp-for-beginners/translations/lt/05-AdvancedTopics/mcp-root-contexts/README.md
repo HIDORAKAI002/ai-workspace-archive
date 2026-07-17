@@ -1,53 +1,57 @@
-# MCP Pagrindinės Kontekstai
+> [NEBENAUDOTINA: 2026-07-28 LEIDIMO KANDIDATAS](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Pagrindiniai kontekstai yra esminė Model Context Protocol (MCP) koncepcija, kuri užtikrina nuolatinį sluoksnį pokalbių istorijai ir bendros būsenos palaikymui per kelias užklausas ir sesijas.
+# MCP Šaknų kontekstai
+
+> **Neberodomas pranešimas:** `2026-07-28` MCP specifikacijos leidimo kandidatas žymi Šaknis kaip nebereikalingas, jas keičiant įrankių parametrais, išteklių URI arba serverio konfigūracija. Šaknys veikia `2025-11-25` versijoje ir bent metus po bet kokio oficialaus atsisakymo, todėl viskas šioje pamokoje išlieka tinkama – bet nauji serverio dizainai turėtų įvertinti pakeitimo modelį. Žr. [Kas keičiasi MCP: 2026-07-28 leidimo kandidatas](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Šaknų kontekstai yra pagrindinė Modelio konteksto protokolo sąvoka, užtikrinanti nuolatinį sluoksnį pokalbių istorijos ir bendros būsenos palaikymui per kelis užklausų ir sesijų ciklus.
 
 ## Įvadas
 
-Šioje pamokoje nagrinėsime, kaip kurti, valdyti ir naudoti pagrindinius kontekstus MCP.
+Šioje pamokoje išnagrinėsime, kaip kurti, valdyti ir naudoti šaknų kontekstus MCP.
 
 ## Mokymosi tikslai
 
-Šios pamokos pabaigoje jūs galėsite:
+Baigę šią pamoką, galėsite:
 
-- Suprasti pagrindinių kontekstų paskirtį ir struktūrą
-- Kurti ir valdyti pagrindinius kontekstus naudojant MCP klientų bibliotekas
-- Įgyvendinti pagrindinius kontekstus .NET, Java, JavaScript ir Python programose
-- Naudoti pagrindinius kontekstus daugiapakopiams pokalbiams ir būsenos valdymui
-- Taikyti geriausias praktikas pagrindinių kontekstų valdyme
+- Suprasti šaknų kontekstų paskirtį ir struktūrą
+- Kurti ir valdyti šaknų kontekstus naudojant MCP klientų bibliotekas
+- Įgyvendinti šaknų kontekstus .NET, Java, JavaScript ir Python programose
+- Naudoti šaknų kontekstus daugiajame pokalbyje ir būsenos valdyme
+- Įgyvendinti geriausias praktikas šaknų kontekstų valdyme
 
-## Pagrindinių Kontekstų Supratimas
+## Supratimas apie Šaknų kontekstus
 
-Pagrindiniai kontekstai veikia kaip konteineriai, kuriuose saugoma susijusių sąveikų istorija ir būsena. Jie leidžia:
+Šaknų kontekstai veikia kaip konteineriai, kuriuose saugoma istorija ir būsena serijai susijusių sąveikų. Jie leidžia:
 
-- **Pokalbių tęstinumą**: Užtikrinti nuoseklius daugiapakopius pokalbius
-- **Atminties valdymą**: Saugojimą ir informacijos gavimą tarp sąveikų
-- **Būsenos valdymą**: Progreso sekimą sudėtinguose darbo procesuose
-- **Konteksto dalijimąsi**: Leidžia keliems klientams pasiekti tą pačią pokalbio būseną
+- **Pokalbių nuoseklumas**: Palaikyti sklandžias daugiaetapes diskusijas
+- **Atminties valdymas**: Saugojimą ir informacijos gavimą per sąveikas
+- **Būsenos valdymas**: Sekti pažangą sudėtinguose darbo procesuose
+- **Konteksto dalijimasis**: Leisti keliems klientams pasiekti tą pačią pokalbio būseną
 
-MCP pagrindiniai kontekstai turi šias pagrindines savybes:
+MCP, šaknų kontekstai turi šias pagrindines savybes:
 
-- Kiekvienas pagrindinis kontekstas turi unikalų identifikatorių.
-- Jie gali apimti pokalbių istoriją, naudotojo nuostatas ir kitus metaduomenis.
+- Kiekvienas šaknų kontekstas turi unikalų identifikatorių.
+- Jie gali talpinti pokalbių istoriją, vartotojo nuostatas ir kitą metaduomenų informaciją.
 - Jie gali būti kuriami, pasiekiami ir archyvuojami pagal poreikį.
-- Jie palaiko detalią prieigos kontrolę ir leidimus.
+- Jie palaiko smulkų prieigos kontrolę ir leidimus.
 
-## Pagrindinio Konteksto Gyvavimo Ciklas
+## Šaknų konteksto gyvavimo ciklas
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Sukurti pagrindinį kontekstą] --> B[Inicializuoti su metaduomenimis]
+    B --> C[Siųsti užklausas su konteksto ID]
+    C --> D[Atnaujinti kontekstą su rezultatais]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Archyvuoti kontekstą, kai baigta]
 ```
 
-## Darbas su Pagrindiniais Kontekstais
+## Darbas su Šaknų Kontekstais
 
-Štai pavyzdys, kaip kurti ir valdyti pagrindinius kontekstus.
+Štai pavyzdys, kaip kurti ir valdyti šaknų kontekstus.
 
-### C# Įgyvendinimas
+### C# įgyvendinimas
 
 ```csharp
 // .NET Example: Root Context Management
@@ -124,20 +128,20 @@ public class RootContextExample
 
 Ankstesniame kode mes:
 
-1. Sukūrėme pagrindinį kontekstą klientų aptarnavimo sesijai.
-2. Siuntėme kelias žinutes tame kontekste, leidžiant modeliui išlaikyti būseną.
-3. Atnaujinome kontekstą su atitinkamais metaduomenimis pagal pokalbį.
-4. Gavome konteksto informaciją, kad suprastume pokalbio istoriją.
-5. Archyvavome kontekstą, kai pokalbis buvo baigtas.
+1. Sukūrėme šaknų kontekstą klientų palaikymo sesijai.
+1. Išsiuntėme kelis pranešimus viduje to konteksto, leidžiant modeliui palaikyti būseną.
+1. Atnaujinome kontekstą aktualiais metaduomenimis, remiantis pokalbiu.
+1. Gautą konteksto informaciją, siekiant suprasti pokalbio istoriją.
+1. Archyvavome kontekstą, kai pokalbis buvo baigtas.
 
-## Pavyzdys: Pagrindinio Konteksto Įgyvendinimas Finansinei Analizei
+## Pavyzdys: Šaknų konteksto įgyvendinimas finansų analizei
 
-Šiame pavyzdyje sukursime pagrindinį kontekstą finansinės analizės sesijai, parodydami, kaip išlaikyti būseną per kelias sąveikas.
+Šiame pavyzdyje kursime šaknų kontekstą finansų analizės sesijai, demonstruodami, kaip palaikyti būseną per kelias sąveikas.
 
-### Java Įgyvendinimas
+### Java įgyvendinimas
 
 ```java
-// Java Example: Root Context Implementation
+// Java pavyzdys: Šakninis konteksto įgyvendinimas
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Sukurti konteksto metaduomenis
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Sukurkite naują šakninį kontekstą
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Pirmas sąveika
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Atnaujinkite kontekstą svarbia informacija, gauta iš atsakymo
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Antras sąveika - naudojant tą patį kontekstą
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Sugeneruokite analizės sesijos santrauką
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Išsaugokite santrauką konteksto metaduomenyse
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Gaukite atnaujintą konteksto informaciją
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Archivizuokite kontekstą pasibaigus darbui
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 Ankstesniame kode mes:
 
-1. Sukūrėme pagrindinį kontekstą finansinės analizės sesijai.
-2. Siuntėme kelias žinutes tame kontekste, leidžiant modeliui išlaikyti būseną.
-3. Atnaujinome kontekstą su atitinkamais metaduomenimis pagal pokalbį.
-4. Sugeneravome analizės sesijos santrauką ir išsaugojome ją konteksto metaduomenyse.
-5. Archyvavome kontekstą, kai pokalbis buvo baigtas.
+1. Sukūrėme šaknų kontekstą finansų analizės sesijai.
+2. Išsiuntėme kelis pranešimus viduje to konteksto, leidžiant modeliui palaikyti būseną.
+3. Atnaujinome kontekstą aktualiais metaduomenimis, remiantis pokalbiu.
+4. Sugeneravome analizės sesijos santrauką ir įrašėme ją į konteksto metaduomenis.
+5. Archyvavome kontekstą, kai pokalbis buvo užbaigtas.
 
-## Pavyzdys: Pagrindinio Konteksto Valdymas
+## Pavyzdys: Šaknų kontekstų valdymas
 
-Efektyvus pagrindinių kontekstų valdymas yra svarbus pokalbių istorijos ir būsenos palaikymui. Žemiau pateikiamas pavyzdys, kaip įgyvendinti pagrindinio konteksto valdymą.
+Efektyvus šaknų kontekstų valdymas yra esminis siekiant palaikyti pokalbių istoriją ir būseną. Žemiau pateiktas pavyzdys, kaip įgyvendinti šaknų kontekstų valdymą.
 
-### JavaScript Įgyvendinimas
+### JavaScript įgyvendinimas
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScript pavyzdys: MCP Root kontekstų valdymas
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Inicializuoti MCP klientą
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Inicializuoti kontekstų valdytoją
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Išsiųsti žinutę naudojant nurodytą kontekstą
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Pasirinktinai saugoti svarbias pokalbio įžvalgas
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Išgauti galimas įžvalgas (realiame pritaikyme tai būtų sudėtingiau)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Paprasta heuristika galimų įžvalgų identifikavimui
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Saugo įžvalgas konteksto metaduomenyse
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Nesvarbi klaida, todėl tiesiog užfiksuoti įspėjimą
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Paprašyti modelio sukurti iki šiol vykusio pokalbio santrauką
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Saugo santrauką konteksto metaduomenyse
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Sukurti galutinę santrauką prieš archyvavimą
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Archyvuoti kontekstą
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Pavyzdinis naudojimas
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Sukurti naują kontekstą produkto palaikymo pokalbiui
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Pirmoji pokalbio žinutė
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Tolimesnė žinutė tame pačiame kontekste
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Gauti informaciją apie kontekstą
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Generuoti ir parodyti pokalbio santrauką
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Baigus archyvuoti kontekstą
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Tvarkingai tvarkyti bet kokias klaidas
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 Ankstesniame kode mes:
 
-1. Sukūrėme pagrindinį kontekstą produktų palaikymo pokalbiui su funkcija `createConversationContext`. Šiuo atveju kontekstas susijęs su duomenų bazės našumo problemomis.
+1. Sukūrėme šaknų kontekstą produkto palaikymo pokalbiui su funkcija `createConversationContext`. Šiuo atveju kontekstas yra apie duomenų bazės našumo problemas.
 
-2. Siuntėme kelias žinutes tame kontekste, leidžiant modeliui išlaikyti būseną su funkcija `sendMessage`. Siunčiamos žinutės susijusios su lėto užklausų vykdymo ir indeksų konfigūravimo problemomis.
+1. Išsiuntėme kelis pranešimus tame kontekste, leidžiant modeliui palaikyti būseną su funkcija `sendMessage`. Siunčiami pranešimai apie lėtą užklausų vykdymą ir indeksų konfigūraciją.
 
-3. Atnaujinome kontekstą su atitinkamais metaduomenimis pagal pokalbį.
+1. Atnaujinome kontekstą aktualiais metaduomenimis, remiantis pokalbiu.
 
-4. Sugeneravome pokalbio santrauką ir išsaugojome ją konteksto metaduomenyse su funkcija `generateContextSummary`.
+1. Sugeneravome pokalbio santrauką ir įrašėme ją į konteksto metaduomenis su funkcija `generateContextSummary`.
 
-5. Archyvavome kontekstą, kai pokalbis buvo baigtas, naudodami funkciją `archiveContext`.
+1. Archyvavome kontekstą, kai pokalbis buvo baigtas, naudojant funkciją `archiveContext`.
 
-6. Tvarkėme klaidas, kad užtikrintume patikimumą.
+1. Klaidų tvarkymas buvo atliktas sklandžiai siekiant užtikrinti patikimumą.
 
-## Pagrindinis Kontekstas Daugiapakopiam Pagalbos Teikimui
+## Šaknų kontekstas daugiaetapėms pagalbos sesijoms
 
-Šiame pavyzdyje sukursime pagrindinį kontekstą daugiapakopiam pagalbos teikimui, parodydami, kaip išlaikyti būseną per kelias sąveikas.
+Šiame pavyzdyje kursime šaknų kontekstą daugiaetapei pagalbos sesijai, demonstruodami, kaip palaikyti būseną per kelias sąveikas.
 
-### Python Įgyvendinimas
+### Python įgyvendinimas
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python pavyzdys: šakninis kontekstas daugkartiniam pagalbos sukeitimui
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Pridėti vartotojo informaciją, jei pateikta
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Sukurkite šakninį kontekstą
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Sukurkite pasirinkimus su konteksto ID
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Pridėti įrankius, jei nurodyta
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Siųsti raginimą kontekste
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Atnaujinti konteksto metaduomenis su pokalbio eiga
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Pirmiausia generuoti santraukos raginimą
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Saugyti santrauką metaduomenyse
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Archyvuoti kontekstą
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Naudojimo pavyzdys
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Sukurti sesiją
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Pirmas sąveikos etapas
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Antras sąveikos etapas tame pačiame kontekste
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Gauti istoriją
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Baigti sesiją
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,33 +624,33 @@ if __name__ == "__main__":
 
 Ankstesniame kode mes:
 
-1. Sukūrėme pagrindinį kontekstą techninės pagalbos sesijai su funkcija `create_session`. Kontekstas apima naudotojo informaciją, tokią kaip vardas ir techninis lygis.
+1. Sukūrėme šaknų kontekstą techninės pagalbos sesijai su funkcija `create_session`. Kontekste yra vartotojo informacija, tokia kaip vardas ir techninis lygis.
 
-2. Siuntėme kelias žinutes tame kontekste, leidžiant modeliui išlaikyti būseną su funkcija `send_message`. Siunčiamos žinutės susijusios su automatinio mastelio keitimo funkcijos problemomis.
+1. Išsiuntėme kelis pranešimus tame kontekste, leidžiant modeliui palaikyti būseną su funkcija `send_message`. Pranešimai yra apie problemas su automatinio mastelio keitimo funkcija.
 
-3. Gavome pokalbio istoriją naudodami funkciją `get_conversation_history`, kuri pateikia konteksto informaciją ir žinutes.
+1. Gavome pokalbių istoriją naudodami funkciją `get_conversation_history`, kuri teikia konteksto informaciją ir pranešimus.
 
-4. Baigėme sesiją archyvuodami kontekstą ir sugeneruodami santrauką su funkcija `end_session`. Santrauka apima pagrindinius pokalbio aspektus.
+1. Baigėme sesiją archyvuodami kontekstą ir sugeneruodami santrauką su funkcija `end_session`. Santrauka apima svarbius pokalbio punktus.
 
-## Pagrindinių Kontekstų Geriausios Praktikos
+## Šaknų kontekstų geriausios praktikos
 
-Štai keletas geriausių praktikų, kaip efektyviai valdyti pagrindinius kontekstus:
+Štai keletas geriausių praktikų efektyviam šaknų kontekstų valdymui:
 
-- **Kurkite aiškius kontekstus**: Sukurkite atskirus pagrindinius kontekstus skirtingiems pokalbių tikslams ar sritims, kad išlaikytumėte aiškumą.
+- **Kurti susitelkusius kontekstus**: Kurkite atskirus šaknų kontekstus skirtingoms pokalbių paskirtims ar sritims, kad būtų išlaikytas aiškumas.
 
-- **Nustatykite galiojimo politiką**: Įgyvendinkite politiką, kad archyvuotumėte ar ištrintumėte senus kontekstus, siekiant valdyti saugojimą ir laikytis duomenų saugojimo politikos.
+- **Nustatyti galiojimo politiką**: Įgyvendinkite politiką senų kontekstų archyvavimui ar ištrynimui, kad valdytumėte saugojimą ir atitiktumėte duomenų saugojimo taisykles.
 
-- **Saugokite svarbius metaduomenis**: Naudokite konteksto metaduomenis svarbiai informacijai apie pokalbį saugoti, kuri gali būti naudinga vėliau.
+- **Saugojimo aktualūs metaduomenys**: Naudokite konteksto metaduomenis, kad saugotumėte svarbią informaciją apie pokalbį, kuri gali praversti vėliau.
 
-- **Nuosekliai naudokite konteksto ID**: Kai kontekstas sukurtas, nuosekliai naudokite jo ID visoms susijusioms užklausoms, kad išlaikytumėte tęstinumą.
+- **Naudokite konteksto ID nuosekliai**: Sukūrus kontekstą, naudokite jo ID nuosekliai visoms susijusioms užklausoms, kad būtų palaikomas tęstinumas.
 
-- **Generuokite santraukas**: Kai kontekstas tampa didelis, apsvarstykite galimybę generuoti santraukas, kad užfiksuotumėte esminę informaciją ir valdytumėte konteksto dydį.
+- **Generuoti santraukas**: Kai kontekstas tampa didelis, apsvarstykite galimybę kurti santraukas, kurios sugrupuotų svarbiausią informaciją valdant konteksto dydį.
 
-- **Įgyvendinkite prieigos kontrolę**: Daugiafunkcėse sistemose įgyvendinkite tinkamą prieigos kontrolę, kad užtikrintumėte pokalbių kontekstų privatumą ir saugumą.
+- **Įgyvendinti prieigos kontrolę**: Daugiauserių sistemų atveju užtikrinkite tinkamą prieigos kontrolę, kad būtų saugomas pokalbių kontekstų privatumą ir saugumas.
 
-- **Tvarkykite konteksto apribojimus**: Žinokite apie konteksto dydžio apribojimus ir įgyvendinkite strategijas labai ilgų pokalbių valdymui.
+- **Tvarkyti konteksto apribojimus**: Žinokite apie konteksto dydžio ribas ir įgyvendinkite strategijas ilgų pokalbių tvarkymui.
 
-- **Archyvuokite, kai baigta**: Archyvuokite kontekstus, kai pokalbiai baigti, kad atlaisvintumėte resursus, išsaugodami pokalbio istoriją.
+- **Archyvuoti pabaigus**: Archyvuokite kontekstus, kai pokalbiai baigti, kad atlaisvintumėte išteklius ir išsaugotumėte pokalbių istoriją.
 
 ## Kas toliau
 
@@ -654,5 +658,7 @@ Ankstesniame kode mes:
 
 ---
 
-**Atsakomybės apribojimas**:  
-Šis dokumentas buvo išverstas naudojant AI vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Kritinei informacijai rekomenduojama profesionali žmogaus vertimo paslauga. Mes neprisiimame atsakomybės už nesusipratimus ar klaidingus interpretavimus, atsiradusius naudojant šį vertimą.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
