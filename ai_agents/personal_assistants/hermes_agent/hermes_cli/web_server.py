@@ -3282,12 +3282,20 @@ def _spawn_hermes_action(subcommand: List[str], name: str) -> subprocess.Popen:
 
     cmd = [_dashboard_spawn_executable(), "-m", "hermes_cli.main", *subcommand]
 
+    # The dashboard runs *inside* the gateway process, so os.environ carries
+    # _HERMES_GATEWAY=1. Inheriting it makes a spawned `hermes gateway restart`
+    # trip the in-process restart-loop guard and exit 1 — silently failing the
+    # dashboard's auto-restart paths. The gateway's own restart watcher already
+    # drops it (gateway/run.py); mirror that here (#52470).
+    action_env = {**os.environ, "HERMES_NONINTERACTIVE": "1"}
+    action_env.pop("_HERMES_GATEWAY", None)
+
     popen_kwargs: Dict[str, Any] = {
         "cwd": str(PROJECT_ROOT),
         "stdin": subprocess.DEVNULL,
         "stdout": log_file,
         "stderr": subprocess.STDOUT,
-        "env": {**os.environ, "HERMES_NONINTERACTIVE": "1"},
+        "env": action_env,
     }
     if sys.platform == "win32":
         popen_kwargs["creationflags"] = windows_detach_flags()
@@ -16098,7 +16106,8 @@ async def pty_ws(ws: WebSocket) -> None:
         return
 
     # --- spawn PTY ------------------------------------------------------
-    resume = ws.query_params.get("resume") or None
+    raw_resume = ws.query_params.get("resume") or None
+    resume = raw_resume
     profile = ws.query_params.get("profile") or None
     channel = _channel_or_close_code(ws)
     sidecar_url = _build_sidecar_url(channel) if channel else None
@@ -16141,6 +16150,12 @@ async def pty_ws(ws: WebSocket) -> None:
 
 
     attach_token = ws.query_params.get("attach") or None
+    registry_resume = raw_resume
+    if raw_resume and env:
+        registry_resume = env.get("HERMES_TUI_RESUME") or raw_resume
+    if attach_token is not None and (registry_resume or profile):
+        # Key explicit resumes on their canonical target, never the active-session fallback.
+        attach_token = f"{attach_token}\0{profile or ''}\0{registry_resume or ''}"
 
     def _spawn():
         return PtyBridge.spawn(argv, cwd=cwd, env=env)
@@ -17761,6 +17776,32 @@ def start_server(
                 "There is no unauthenticated public-bind option — to keep it "
                 "local, bind 127.0.0.1 and tunnel in (SSH / Tailscale)."
             )
+            # Hint when credentials exist but the bundled provider is blocked
+            # (#54489).
+            try:
+                from hermes_cli.config import load_config as _load_cfg
+                from hermes_cli.plugins_cmd import _BASIC_AUTH_PLUGIN_KEYS
+
+                _cfg = _load_cfg()
+                _ba = (_cfg.get("dashboard") or {}).get("basic_auth") or {}
+                _disabled = (_cfg.get("plugins") or {}).get("disabled") or []
+                # Basic auth only activates with a username AND a credential
+                # (plaintext password or password_hash); don't fire the hint on
+                # a half-configured block.
+                _has_creds = bool(_ba.get("username")) and bool(
+                    _ba.get("password_hash") or _ba.get("password")
+                )
+                if _has_creds and (set(_disabled) & _BASIC_AUTH_PLUGIN_KEYS):
+                    _fix_hint = (
+                        "The 'basic' dashboard-auth plugin is in "
+                        "plugins.disabled but dashboard.basic_auth is "
+                        "configured.\n"
+                        "Remove 'basic' from plugins.disabled (or run "
+                        "`hermes plugins enable basic`), then restart the "
+                        "dashboard.\n\n"
+                    ) + _fix_hint
+            except Exception:
+                pass
             if skip_reasons:
                 raise SystemExit(
                     f"Refusing to bind dashboard to {host} — the auth gate "
