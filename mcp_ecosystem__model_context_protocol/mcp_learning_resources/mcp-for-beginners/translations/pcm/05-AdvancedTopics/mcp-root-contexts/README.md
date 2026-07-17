@@ -1,36 +1,40 @@
+> [DEPRECATED: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # MCP Root Contexts
 
-Root contexts na one important idea for Model Context Protocol wey dey provide one layer wey go dey permanent to keep conversation history and shared state for plenty requests and sessions.
+> **Deprecation notice:** di `2026-07-28` MCP specification release candidate don mark Roots as deprecated for tool parameters, resource URIs, or server configuration. Roots still dey work for `2025-11-25` and for at least one year after any official deprecation, so everything for dis lesson still valid - but new server designs suppose check the new replacement method. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Root contexts na important idea for Model Context Protocol wey dey provide persistent layer to keep conversation history and shared state for many requests and sessions.
 
 ## Introduction
 
-For dis lesson, we go learn how to create, manage, and use root contexts for MCP.
+For dis lesson, we go explore how to create, manage, and use root contexts for MCP. 
 
 ## Learning Objectives
 
-By the time we finish dis lesson, you go fit:
+By di time we finish dis lesson, you go fit:
 
-- Understand wetin root contexts dey do and how dem dey structured
-- Create and manage root contexts with MCP client libraries
-- Use root contexts for .NET, Java, JavaScript, and Python applications
+- Understand di purpose and structure of root contexts
+- Create and manage root contexts using MCP client libraries
+- Implement root contexts for .NET, Java, JavaScript, and Python applications
 - Use root contexts for multi-turn conversations and state management
-- Follow best practices for root context management
+- Implement best practices for root context management
 
 ## Understanding Root Contexts
 
-Root contexts na like container wey dey hold history and state for series of related interactions. Dem dey help for:
+Root contexts like containers wey dey hold history and state for series of connected interactions. Dem enable:
 
-- **Conversation Persistence**: To keep multi-turn conversations wey make sense
-- **Memory Management**: To store and collect information across interactions
+- **Conversation Persistence**: To keep multi-turn conversation smooth
+- **Memory Management**: To store and find info across interactions
 - **State Management**: To track progress for complex workflows
-- **Context Sharing**: To allow plenty clients access the same conversation state
+- **Context Sharing**: To allow many clients access di same conversation state
 
-For MCP, root contexts get these main features:
+For MCP, root contexts get di following important features:
 
-- Each root context get im own unique identifier.
-- Dem fit hold conversation history, user preferences, and other metadata.
-- You fit create, access, and archive dem anytime you need.
-- Dem dey support fine-grained access control and permissions.
+- Each root context get unique identifier.
+- Dem fit get conversation history, user preferences, and other metadata.
+- Dem fit be created, accessed, and archived when necessary.
+- Dem support fine-grained access control and permissions.
 
 ## Root Context Lifecycle
 
@@ -45,7 +49,7 @@ flowchart TD
 
 ## Working with Root Contexts
 
-See example of how to create and manage root contexts.
+Dis na example how to create and manage root contexts. 
 
 ### C# Implementation
 
@@ -122,17 +126,17 @@ public class RootContextExample
 }
 ```
 
-For the code wey dey above, we don:
+For di code wey come before we don:
 
-1. Create root context for one customer support session.
-1. Send plenty messages inside that context, so the model fit keep state.
-1. Update the context with metadata wey relate to the conversation.
-1. Collect context information to understand the conversation history.
-1. Archive the context when the conversation finish.
+1. Created root context for customer support session.
+1. Sent many messages inside dat context, make model fit maintain state.
+1. Updated context with important metadata based on di conversation.
+1. Retrieved context information to sabi di conversation history.
+1. Archived di context wen conversation finish.
 
 ## Example: Root Context Implementation for financial analysis
 
-For dis example, we go create root context for financial analysis session, to show how to keep state across plenty interactions.
+For dis example, we go create root context for financial analysis session, show how to maintain state for multiple interactions.
 
 ### Java Implementation
 
@@ -162,13 +166,13 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Make context metadata
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Make new root context
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Update context wit important tori wey response give
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Second interaction - dey use di same context
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Make summary of di analysis session
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Put di summary for context metadata
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Carry updated context tori come
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,24 +217,24 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Keep context for storage when you don finish
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-For the code wey dey above, we don:
+For di code wey come before we don:
 
-1. Create root context for financial analysis session.
-2. Send plenty messages inside that context, so the model fit keep state.
-3. Update the context with metadata wey relate to the conversation.
-4. Generate summary of the analysis session and store am for the context metadata.
-5. Archive the context when the conversation finish.
+1. Created root context for financial analysis session.
+2. Sent many messages inside dat context, make model fit maintain state.
+3. Updated context with important metadata based on di conversation.
+4. Generated summary of analysis session and store am for context metadata.
+5. Archived di context wen conversation finish.
 
 ## Example: Root Context Management
 
-To manage root contexts well na important thing to keep conversation history and state. See example of how to manage root contexts.
+Managing root contexts well na very important to maintain conversation history and state. Below na example how to implement root context management.
 
 ### JavaScript Implementation
 
@@ -240,13 +244,13 @@ const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Start MCP client
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Start context manager
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Send message using de specified context
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // You fit save important insight from the talk
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Comot possible insight (for real app, e go dey more better)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Simple way to sabi possible insights
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Save insights for context metadata
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // No be big error, just log warning
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Ask model to make summary of the konversation till now
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Save the summary for context metadata
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,7 +406,7 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Make final summary before dem archive am
       const summary = await this.generateContextSummary(contextId);
       
       // Archive the context
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Example use
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Create new context for product support talk
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. First message wey them talk
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Next message for the same context
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Collect information about the context
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Make and show summary of the talk
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Archive the context after finish
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Handle any error make e soft and easy
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,23 +477,23 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-For the code wey dey above, we don:
+For di code wey come before we don:
 
-1. Create root context for one product support conversation with the function `createConversationContext`. For dis case, the context na about database performance issues.
+1. Created root context for product support conversation with di function `createConversationContext`. For dis case, di context na about database performance wahala.
 
-1. Send plenty messages inside that context, so the model fit keep state with the function `sendMessage`. The messages wey dem dey send na about slow query performance and index configuration.
+1. Sent many messages inside dat context, make model fit maintain state with di function `sendMessage`. Di messages na about slow query performance and index configuration.
 
-1. Update the context with metadata wey relate to the conversation.
+1. Updated di context with important metadata wey fit from di conversation.
 
-1. Generate summary of the conversation and store am for the context metadata with the function `generateContextSummary`.
+1. Generated summary of di conversation and store am for di context metadata with function `generateContextSummary`.
 
-1. Archive the context when the conversation finish with the function `archiveContext`.
+1. Archived di context wen conversation end with function `archiveContext`.
 
-1. Handle errors well to make sure everything dey okay.
+1. Handle errors well to make sure di system strong.
 
 ## Root Context for Multi-Turn Assistance
 
-For dis example, we go create root context for multi-turn assistance session, to show how to keep state across plenty interactions.
+For dis example, we go create root context for multi-turn assistance session, show how to maintain state across several interactions.
 
 ### Python Implementation
 
@@ -618,43 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-For the code wey dey above, we don:
+For di code wey come before we don:
 
-1. Create root context for one technical support session with the function `create_session`. The context get user information like name and technical level.
+1. Created root context for technical support session wit function `create_session`. Di context get user info like name and technical level.
 
-1. Send plenty messages inside that context, so the model fit keep state with the function `send_message`. The messages wey dem dey send na about issues with the auto-scaling feature.
+1. Sent many messages inside dat context, make model fit maintain state with function `send_message`. Di messages na about problem with auto-scaling feature.
 
-1. Collect conversation history with the function `get_conversation_history`, wey dey provide context information and messages.
+1. Retrieve conversation history using function `get_conversation_history` wey give context info and messages.
 
-1. End the session by archiving the context and generating summary with the function `end_session`. The summary dey capture key points from the conversation.
+1. End di session by archiving di context and generating summary with function `end_session`. Di summary dey capture important points from di conversation.
 
 ## Root Context Best Practices
 
-See some best practices to manage root contexts well:
+Dis na some best practices to manage root contexts well:
 
-- **Create Focused Contexts**: Create different root contexts for different conversation purposes or domains to keep everything clear.
+- **Create Focused Contexts**: Create separate root contexts for different conversation reasons or domains to keep am clear.
 
-- **Set Expiration Policies**: Put policies to archive or delete old contexts to manage storage and follow data retention rules.
+- **Set Expiration Policies**: Put policies to archive or delete old contexts to manage storage and fit data retention laws.
 
-- **Store Relevant Metadata**: Use context metadata to keep important information about the conversation wey fit help later.
+- **Store Relevant Metadata**: Use context metadata to keep important information about di conversation wey fit help later.
 
-- **Use Context IDs Consistently**: Once you don create context, use im ID well for all related requests to keep continuity.
+- **Use Context IDs Consistently**: After you create context, use its ID steady for all related requests to keep things consistent.
 
-- **Generate Summaries**: When context don big, try generate summaries to keep the main information while managing context size.
+- **Generate Summaries**: When context become big, try generate summaries to catch important info while controlling context size.
 
-- **Implement Access Control**: For systems wey plenty people dey use, put proper access controls to make sure conversation contexts dey private and secure.
+- **Implement Access Control**: For multi-user systems, put correct access controls to protect privacy and security of conversation contexts.
 
-- **Handle Context Limitations**: Know the size limits for context and plan how to manage very long conversations.
+- **Handle Context Limitations**: Know context size limits and plan how to handle very long conversations.
 
-- **Archive When Complete**: Archive contexts when conversations don finish to free resources and still keep the conversation history.
+- **Archive When Complete**: Archive contexts wen conversations finish to free resources but still keep conversation history.
 
-## What's next
+## Wetin come next
 
 - [5.5 Routing](../mcp-routing/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dis dokyument don use AI transle-shon service [Co-op Translator](https://github.com/Azure/co-op-translator) do di transle-shon. Even as we dey try make am correct, abeg make you sabi say transle-shon wey machine do fit get mistake or no dey accurate well. Di original dokyument for im native language na di one wey you go take as di correct source. For important mata, e good make professional human transle-shon dey use. We no go fit take blame for any misunderstanding or wrong interpretation wey fit happen because you use dis transle-shon.
+**Disclaimer**:
+Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you know say automated translation fit get errors or mistakes. Di original document for dia own language na im be di correct source. For important info, make person wey sabi human translation do am. We no go responsible for any misunderstanding or wrong understanding wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

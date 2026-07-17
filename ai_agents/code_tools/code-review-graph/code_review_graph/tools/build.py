@@ -25,6 +25,11 @@ def _run_postprocess(
     When *full_rebuild* is False and *changed_files* are available,
     uses incremental flow/community detection for faster updates.
 
+    Records structured stage durations in ``build_result["postprocess_timing"]``.
+    Minimal processing reports ``signatures_s`` and ``fts_s``; full processing
+    additionally reports ``flows_s``, ``communities_s``, and ``summaries_s``.
+    Each duration is a nonnegative float measured in seconds.
+
     Returns a list of warning strings (empty on success).
     """
     warnings: list[str] = []
@@ -34,6 +39,8 @@ def _run_postprocess(
         return warnings
 
     # -- Signatures + FTS (fast, always run unless "none") --
+    timing: dict[str, float] = {}
+    stage_started = time.perf_counter()
     try:
         rows = store.get_nodes_without_signature()
         for row in rows:
@@ -58,7 +65,12 @@ def _run_postprocess(
     except (sqlite3.OperationalError, TypeError, KeyError) as e:
         logger.warning("Signature computation failed: %s", e)
         warnings.append(f"Signature computation failed: {type(e).__name__}: {e}")
+    timing["signatures_s"] = max(
+        0.0,
+        round(time.perf_counter() - stage_started, 6),
+    )
 
+    stage_started = time.perf_counter()
     try:
         from code_review_graph.search import rebuild_fts_index
 
@@ -68,13 +80,19 @@ def _run_postprocess(
     except (sqlite3.OperationalError, ImportError) as e:
         logger.warning("FTS index rebuild failed: %s", e)
         warnings.append(f"FTS index rebuild failed: {type(e).__name__}: {e}")
+    timing["fts_s"] = max(
+        0.0,
+        round(time.perf_counter() - stage_started, 6),
+    )
 
     if postprocess == "minimal":
+        build_result["postprocess_timing"] = timing
         return warnings
 
     # -- Expensive: flows + communities (only for "full") --
     use_incremental = not full_rebuild and bool(changed_files)
 
+    stage_started = time.perf_counter()
     try:
         if use_incremental:
             from code_review_graph.flows import incremental_trace_flows
@@ -90,7 +108,12 @@ def _run_postprocess(
     except (sqlite3.OperationalError, ImportError) as e:
         logger.warning("Flow detection failed: %s", e)
         warnings.append(f"Flow detection failed: {type(e).__name__}: {e}")
+    timing["flows_s"] = max(
+        0.0,
+        round(time.perf_counter() - stage_started, 6),
+    )
 
+    stage_started = time.perf_counter()
     try:
         if use_incremental:
             from code_review_graph.communities import (
@@ -112,14 +135,24 @@ def _run_postprocess(
     except (sqlite3.OperationalError, ImportError) as e:
         logger.warning("Community detection failed: %s", e)
         warnings.append(f"Community detection failed: {type(e).__name__}: {e}")
+    timing["communities_s"] = max(
+        0.0,
+        round(time.perf_counter() - stage_started, 6),
+    )
 
     # -- Compute pre-computed summary tables --
+    stage_started = time.perf_counter()
     try:
         _compute_summaries(store)
         build_result["summaries_computed"] = True
     except (sqlite3.OperationalError, Exception) as e:
         logger.warning("Summary computation failed: %s", e)
         warnings.append(f"Summary computation failed: {type(e).__name__}: {e}")
+    timing["summaries_s"] = max(
+        0.0,
+        round(time.perf_counter() - stage_started, 6),
+    )
+    build_result["postprocess_timing"] = timing
 
     store.set_metadata(
         "last_postprocessed_at",

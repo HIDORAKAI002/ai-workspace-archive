@@ -1,6 +1,9 @@
 """Tests for graph visualization export."""
 
 import json
+import re
+import shutil
+import subprocess
 
 import pytest
 
@@ -305,6 +308,89 @@ def test_generate_html_includes_loading_and_empty_state(store_with_data, tmp_pat
     assert "loading-overlay" in content
     assert "empty-state" in content
     assert "No nodes to display" in content
+
+
+def test_generate_html_uses_id_selector_for_svg(store_with_data, tmp_path):
+    """Regression test for #523: d3.select("svg") selects the legend icon, not the canvas.
+
+    The legend <nav> contains inline <svg> icons that appear before #graph-svg
+    in document order. d3.select("svg") returns the first match — a 16px legend
+    icon — causing the entire force graph to render inside it. The fix targets
+    #graph-svg by id.
+    """
+    from code_review_graph.visualization import generate_html
+
+    output_path = tmp_path / "graph.html"
+    generate_html(store_with_data, output_path)
+    content = output_path.read_text()
+    assert 'd3.select("#graph-svg")' in content, (
+        "HTML should use d3.select('#graph-svg') to target the main canvas, "
+        "not d3.select('svg') which selects the first inline legend icon"
+    )
+    assert 'd3.select("svg")' not in content, (
+        "No bare d3.select('svg') should remain — it selects legend icons"
+    )
+
+
+def test_community_mode_uses_id_selector_for_svg(large_store, tmp_path):
+    """Regression test for #523: community/aggregated template must also use #graph-svg."""
+    from code_review_graph.visualization import generate_html
+
+    output_path = tmp_path / "community.html"
+    generate_html(large_store, output_path, mode="community")
+    content = output_path.read_text()
+    assert 'd3.select("#graph-svg")' in content
+    assert 'd3.select("svg")' not in content
+    assert 'id="graph-svg"' in content, (
+        "Aggregated template's <svg> must have id='graph-svg' for the selector to work"
+    )
+
+
+def _assert_responsive_graph_script(content):
+    """Check the generated graph script remains responsive and valid JavaScript."""
+    assert 'var svgEl = document.getElementById("graph-svg");' in content
+    assert "function getW()" in content
+    assert "function getH()" in content
+    assert "function fitGraph(retries)" in content
+    assert "if (retries === undefined) retries = 10;" in content
+    assert "requestAnimationFrame(function() { fitGraph(retries - 1); });" in content
+    assert 'window.addEventListener("resize", function() {' in content
+    assert r'window.addEventListener(\"resize\"' not in content
+
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is required for generated JavaScript syntax validation")
+    inline_scripts = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", content, re.DOTALL)
+    assert inline_scripts
+    for script in inline_scripts:
+        if not script.strip():
+            continue
+        result = subprocess.run(
+            [node, "--check"],
+            input=script,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        assert result.returncode == 0, result.stderr
+
+
+def test_full_mode_retries_layout_and_tracks_viewport(store_with_data, tmp_path):
+    """Full mode must recover if layout is unavailable before the first paint."""
+    from code_review_graph.visualization import generate_html
+
+    output_path = tmp_path / "graph.html"
+    generate_html(store_with_data, output_path, mode="full")
+    _assert_responsive_graph_script(output_path.read_text())
+
+
+def test_community_mode_retries_layout_and_tracks_viewport(large_store, tmp_path):
+    """Aggregated mode must use the same bounded layout recovery path."""
+    from code_review_graph.visualization import generate_html
+
+    output_path = tmp_path / "community.html"
+    generate_html(large_store, output_path, mode="community")
+    _assert_responsive_graph_script(output_path.read_text())
 
 
 def test_generate_html_includes_focus_visible(store_with_data, tmp_path):

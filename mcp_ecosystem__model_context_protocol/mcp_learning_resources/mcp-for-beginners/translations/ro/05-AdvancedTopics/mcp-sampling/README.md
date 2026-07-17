@@ -1,58 +1,62 @@
-# Sampling în Protocolul Model Context
+> [DEPRECATED: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Sampling-ul este o funcționalitate puternică a MCP care permite serverelor să solicite completări LLM prin client, facilitând comportamente agentice sofisticate, menținând în același timp securitatea și confidențialitatea. Configurarea corectă a sampling-ului poate îmbunătăți semnificativ calitatea răspunsurilor și performanța. MCP oferă o metodă standardizată de a controla modul în care modelele generează text, prin parametri specifici care influențează aleatorietatea, creativitatea și coerența.
+# Eșantionarea în Model Context Protocol
+
+> **Notificare de depreciere:** candidatul pentru lansarea specificației MCP `2026-07-28` marchează Eșantionarea ca fiind depreciată în favoarea integrării directe cu API-urile furnizorilor LLM. Eșantionarea continuă să funcționeze în `2025-11-25` și cel puțin un an după orice depreciere formală, deci tot ce este în această lecție rămâne valabil - dar noile designuri de servere ar trebui să evalueze modelul de înlocuire. Vezi [Ce se schimbă în MCP: Candidatul pentru lansarea din 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Eșantionarea este o caracteristică puternică MCP care permite serverelor să solicite completări LLM prin client, permițând comportamente sofisticate agentice în timp ce menține securitatea și confidențialitatea. Configurația corectă de eșantionare poate îmbunătăți dramatic calitatea și performanța răspunsurilor. MCP oferă o modalitate standardizată de a controla cum generează modelele text cu parametri specifici care influențează aleatorietatea, creativitatea și coerența.
 
 ## Introducere
 
-În această lecție, vom explora cum să configurăm parametrii de sampling în cererile MCP și să înțelegem mecanismele de bază ale protocolului de sampling.
+În această lecție vom explora cum să configurăm parametrii de eșantionare în cererile MCP și să înțelegem mecanica de bază a protocolului de eșantionare.
 
 ## Obiective de învățare
 
-La finalul acestei lecții, vei putea:
+La finalul acestei lecții vei putea:
 
-- Înțelege principalii parametri de sampling disponibili în MCP.
-- Configura parametrii de sampling pentru diferite cazuri de utilizare.
-- Implementa sampling determinist pentru rezultate reproductibile.
-- Ajusta dinamic parametrii de sampling în funcție de context și preferințele utilizatorului.
-- Aplica strategii de sampling pentru a îmbunătăți performanța modelului în diverse scenarii.
-- Înțelege cum funcționează sampling-ul în fluxul client-server al MCP.
+- Să înțelegi parametrii cheie de eșantionare disponibili în MCP.
+- Să configurezi parametrii de eșantionare pentru diferite cazuri de utilizare.
+- Să implementezi eșantionarea deterministă pentru rezultate reproducibile.
+- Să ajustezi dinamic parametrii de eșantionare pe baza contextului și preferințelor utilizatorului.
+- Să aplici strategii de eșantionare pentru a îmbunătăți performanța modelului în diverse scenarii.
+- Să înțelegi cum funcționează eșantionarea în fluxul client-server al MCP.
 
-## Cum funcționează Sampling-ul în MCP
+## Cum funcționează eșantionarea în MCP
 
-Fluxul de sampling în MCP urmează acești pași:
+Fluxul de eșantionare în MCP urmează acești pași:
 
 1. Serverul trimite o cerere `sampling/createMessage` către client
-2. Clientul analizează cererea și poate să o modifice
-3. Clientul realizează sampling-ul dintr-un LLM
-4. Clientul verifică completarea
-5. Clientul returnează rezultatul către server
+2. Clientul examinează cererea și poate să o modifice
+3. Clientul face eșantionarea de la un LLM
+4. Clientul revizuiește completarea
+5. Clientul trimite rezultatul înapoi serverului
 
-Acest design cu om în buclă asigură că utilizatorii păstrează controlul asupra a ceea ce vede și generează LLM-ul.
+Acest design cu om în buclă asigură că utilizatorii controlează ce vede și ce generează LLM.
 
-## Prezentare generală a parametrilor de sampling
+## Prezentare generală a parametrilor de eșantionare
 
-MCP definește următorii parametri de sampling care pot fi configurați în cererile clientului:
+MCP definește următorii parametri de eșantionare care pot fi configurați în cererile clientului:
 
 | Parametru | Descriere | Interval tipic |
-|-----------|-----------|---------------|
-| `temperature` | Controlează aleatorietatea în selecția tokenilor | 0.0 - 1.0 |
-| `maxTokens` | Numărul maxim de tokeni de generat | Valoare întreagă |
-| `stopSequences` | Secvențe personalizate care opresc generarea când sunt întâlnite | Array de stringuri |
+|-----------|-------------|---------------|
+| `temperature` | Controlează aleatorietatea în selecția token-urilor | 0.0 - 1.0 |
+| `maxTokens` | Numărul maxim de token-uri de generat | Valoare întreagă |
+| `stopSequences` | Secvențe personalizate care opresc generarea când sunt întâlnite | Array de șiruri |
 | `metadata` | Parametri suplimentari specifici furnizorului | Obiect JSON |
 
-Mulți furnizori LLM suportă parametri adiționali prin câmpul `metadata`, care pot include:
+Mulți furnizori LLM acceptă parametri suplimentari prin câmpul `metadata`, care pot include:
 
-| Parametru Extensie Comun | Descriere | Interval tipic |
-|-------------------------|-----------|----------------|
-| `top_p` | Sampling nucleu - limitează tokenii la probabilitatea cumulativă de top | 0.0 - 1.0 |
-| `top_k` | Limitează selecția tokenilor la primele K opțiuni | 1 - 100 |
-| `presence_penalty` | Penalizează tokenii în funcție de prezența lor în textul generat până acum | -2.0 - 2.0 |
-| `frequency_penalty` | Penalizează tokenii în funcție de frecvența lor în textul generat până acum | -2.0 - 2.0 |
-| `seed` | Seed aleator fix pentru rezultate reproductibile | Valoare întreagă |
+| Parametru Extins Comun | Descriere | Interval tipic |
+|-----------|-------------|---------------|
+| `top_p` | Eșantionare nucleu - limitează token-urile la probabilitatea cumulativă superioară | 0.0 - 1.0 |
+| `top_k` | Limitează selecția token-urilor la primele K opțiuni | 1 - 100 |
+| `presence_penalty` | Penalizează token-urile bazat pe prezența lor în textul generat până acum | -2.0 - 2.0 |
+| `frequency_penalty` | Penalizează token-urile bazat pe frecvența lor în textul generat până acum | -2.0 - 2.0 |
+| `seed` | Sămânță aleatoare specifică pentru rezultate reproducibile | Valoare întreagă |
 
-## Exemplu de format al cererii
+## Format exemplu de cerere
 
-Iată un exemplu de cerere pentru sampling de la un client în MCP:
+Iată un exemplu de solicitare a eșantionării de la un client în MCP:
 
 ```json
 {
@@ -75,7 +79,7 @@ Iată un exemplu de cerere pentru sampling de la un client în MCP:
 }
 ```
 
-## Formatul răspunsului
+## Format răspuns
 
 Clientul returnează un rezultat de completare:
 
@@ -93,42 +97,42 @@ Clientul returnează un rezultat de completare:
 
 ## Controlul cu om în buclă
 
-Sampling-ul MCP este conceput cu supraveghere umană în minte:
+Eșantionarea MCP este proiectată având în vedere supravegherea umană:
 
 - **Pentru prompturi**:
-  - Clienții ar trebui să afișeze utilizatorilor promptul propus
+  - Clienții ar trebui să arate utilizatorilor promptul propus
   - Utilizatorii ar trebui să poată modifica sau respinge prompturile
-  - Prompturile de sistem pot fi filtrate sau modificate
+  - Prompturile sistemului pot fi filtrate sau modificate
   - Includerea contextului este controlată de client
 
 - **Pentru completări**:
-  - Clienții ar trebui să afișeze utilizatorilor completarea
+  - Clienții ar trebui să arate utilizatorilor completarea
   - Utilizatorii ar trebui să poată modifica sau respinge completările
   - Clienții pot filtra sau modifica completările
   - Utilizatorii controlează ce model este folosit
 
-Având aceste principii în vedere, să vedem cum să implementăm sampling în diferite limbaje de programare, concentrându-ne pe parametrii susținuți în mod obișnuit de furnizorii LLM.
+Având aceste principii în minte, să vedem cum să implementăm eșantionarea în diferite limbaje de programare, concentrându-ne pe parametrii susținuți în mod obișnuit de către furnizorii LLM.
 
 ## Considerații de securitate
 
-Când implementezi sampling în MCP, ia în considerare următoarele bune practici de securitate:
+Când implementezi eșantionarea în MCP, ia în considerare aceste bune practici de securitate:
 
-- **Validează tot conținutul mesajelor** înainte de a le trimite clientului
-- **Curăță informațiile sensibile** din prompturi și completări
+- **Validează tot conținutul mesajului** înainte de a-l trimite clientului
+- **Securizează informațiile sensibile** din prompturi și completări
 - **Implementează limite de rată** pentru a preveni abuzurile
-- **Monitorizează utilizarea sampling-ului** pentru tipare neobișnuite
+- **Monitorizează utilizarea eșantionării** pentru modele neobișnuite
 - **Criptează datele în tranzit** folosind protocoale sigure
-- **Gestionează confidențialitatea datelor utilizatorilor** conform reglementărilor relevante
-- **Audită cererile de sampling** pentru conformitate și securitate
+- **Gestionează confidențialitatea datelor utilizatorului** conform reglementărilor relevante
+- **Audită cererile de eșantionare** pentru conformitate și securitate
 - **Controlează expunerea costurilor** cu limite adecvate
-- **Implementează timeout-uri** pentru cererile de sampling
-- **Gestionează erorile modelului cu fallback-uri adecvate**
+- **Implementează timeout-uri** pentru cererile de eșantionare
+- **Gestionează erorile modelului cu grație** prin mecanisme de rezervă adecvate
 
-Parametrii de sampling permit reglarea fină a comportamentului modelelor lingvistice pentru a obține echilibrul dorit între rezultate deterministe și creative.
+Parametrii de eșantionare permit reglarea fină a comportamentului modelelor de limbaj pentru a atinge echilibrul dorit între rezultate deterministe și creative.
 
 Să vedem cum să configurăm acești parametri în diferite limbaje de programare.
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -164,49 +168,49 @@ public class SamplingExample
 }
 ```
 
-În codul precedent am:
+În codul de mai sus am:
 
-- Creat un client MCP cu un URL specific al serverului.
-- Configurat o cerere cu parametri de sampling precum `temperature`, `top_p` și `top_k`.
-- Trimite cererea și afișează textul generat.
+- Creat un client MCP cu un URL de server specific.
+- Configurat o cerere cu parametri de eșantionare precum `temperature`, `top_p` și `top_k`.
+- Trimisi cererea și afișat textul generat.
 - Folosit:
-    - `allowedTools` pentru a specifica ce unelte poate folosi modelul în timpul generării. În acest caz, am permis uneltele `ideaGenerator` și `marketAnalyzer` pentru a ajuta la generarea de idei creative pentru aplicații.
-    - `frequencyPenalty` și `presencePenalty` pentru a controla repetiția și diversitatea în output.
-    - `temperature` pentru a controla aleatorietatea output-ului, unde valori mai mari duc la răspunsuri mai creative.
-    - `top_p` pentru a limita selecția tokenilor la cei care contribuie la masa cumulativă de probabilitate de top, îmbunătățind calitatea textului generat.
-    - `top_k` pentru a restricționa modelul la primii K tokeni cei mai probabili, ceea ce poate ajuta la generarea unor răspunsuri mai coerente.
-    - `frequencyPenalty` și `presencePenalty` pentru a reduce repetiția și a încuraja diversitatea în textul generat.
+    - `allowedTools` pentru a specifica ce instrumente poate folosi modelul în timpul generării. În acest caz, am permis instrumentele `ideaGenerator` și `marketAnalyzer` pentru a ajuta la generarea ideilor creative pentru aplicații.
+    - `frequencyPenalty` și `presencePenalty` pentru a controla repetarea și diversitatea în output.
+    - `temperature` pentru a controla aleatorietatea răspunsului, valorile mai mari ducând la răspunsuri mai creative.
+    - `top_p` pentru a limita selecția de token-uri la cele care contribuie la masa de probabilitate cumulativă de top, îmbunătățind calitatea textului generat.
+    - `top_k` pentru a restricționa modelul la primele K token-uri cele mai probabile, ceea ce poate ajuta la generarea unor răspunsuri mai coerente.
+    - `frequencyPenalty` și `presencePenalty` pentru a reduce repetarea și a încuraja diversitatea în textul generat.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// Exemplu JavaScript: Configurarea temperaturii și a eșantionării Top-P
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // Inițializează clientul MCP
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // Configurează cererea cu diferiți parametri de eșantionare
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // Temperatură mai mare = mai multă aleatorietate/creativitate
+    topP: 0.92,          // Ia în considerare token-urile cu o masă de probabilitate de 92%
+    frequencyPenalty: 0.6, // Reduce repetarea secvențelor de token-uri
+    presencePenalty: 0.4   // Penalizează token-urile care au apărut deja în text
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // Temperatură mai scăzută = mai determinist/factual
+    topP: 0.85,          // Selecție de token-uri ușor mai concentrată
+    frequencyPenalty: 0.2, // Penalizare minimă pentru repetare
+    presencePenalty: 0.1   // Penalizare minimă pentru prezență
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // Trimite două cereri cu configurări diferite de eșantionare
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -237,57 +241,57 @@ async function demonstrateSampling() {
 demonstrateSampling();
 ```
 
-În codul precedent am:
+În codul de mai sus am:
 
 - Inițializat un client MCP cu un URL de server și o cheie API.
-- Configurat două seturi de parametri de sampling: unul pentru sarcini creative și altul pentru sarcini factuale.
-- Trimite cereri cu aceste configurații, permițând modelului să folosească unelte specifice pentru fiecare sarcină.
-- Afișat răspunsurile generate pentru a demonstra efectele diferiților parametri de sampling.
-- Folosit `allowedTools` pentru a specifica ce unelte poate folosi modelul în timpul generării. În acest caz, am permis `ideaGenerator` și `environmentalImpactTool` pentru sarcini creative, și `factChecker` și `dataAnalysisTool` pentru sarcini factuale.
-- Folosit `temperature` pentru a controla aleatorietatea output-ului, unde valori mai mari duc la răspunsuri mai creative.
-- Folosit `top_p` pentru a limita selecția tokenilor la cei care contribuie la masa cumulativă de probabilitate de top, îmbunătățind calitatea textului generat.
-- Folosit `frequencyPenalty` și `presencePenalty` pentru a reduce repetiția și a încuraja diversitatea în output.
-- Folosit `top_k` pentru a restricționa modelul la primii K tokeni cei mai probabili, ceea ce poate ajuta la generarea unor răspunsuri mai coerente.
+- Configurat două seturi de parametri de eșantionare: unul pentru sarcini creative și altul pentru sarcini factuale.
+- Trimisi cereri cu aceste configurații, permițând modelului să folosească instrumente specifice pentru fiecare sarcină.
+- Afișat răspunsurile generate pentru a demonstra efectele diferiților parametri de eșantionare.
+- Folosit `allowedTools` pentru a specifica ce instrumente poate folosi modelul în timpul generării. În acest caz, am permis `ideaGenerator` și `environmentalImpactTool` pentru sarcini creative, și `factChecker` și `dataAnalysisTool` pentru sarcini factuale.
+- Folosit `temperature` pentru a controla aleatorietatea răspunsului, valorile mai mari ducând la răspunsuri mai creative.
+- Folosit `top_p` pentru a limita selecția de token-uri la cele care contribuie la masa de probabilitate cumulativă de top, îmbunătățind calitatea textului generat.
+- Folosit `frequencyPenalty` și `presencePenalty` pentru a reduce repetarea și a încuraja diversitatea în output.
+- Folosit `top_k` pentru a restricționa modelul la primele K token-uri cele mai probabile, ceea ce poate ajuta la generarea unor răspunsuri mai coerente.
 
 ---
 
-## Sampling determinist
+## Eșantionare deterministă
 
-Pentru aplicațiile care necesită rezultate consistente, sampling-ul determinist asigură rezultate reproductibile. Acest lucru se realizează prin utilizarea unui seed aleator fix și setarea temperaturii la zero.
+Pentru aplicațiile care necesită rezultate consistente, eșantionarea deterministă asigură rezultate reproducibile. Cum face asta: folosind o sămânță aleatoare fixă și setând temperatura la zero.
 
-Să vedem mai jos o implementare exemplu care demonstrează sampling-ul determinist în diferite limbaje de programare.
+Să vedem mai jos o implementare exemplu pentru a demonstra eșantionarea deterministă în diferite limbaje de programare.
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// Exemplu Java: Răspunsuri deterministe cu sămânță fixă
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // Utilizarea unei sămânțe fixe pentru rezultate deterministe
         
-        // First request with fixed seed
+        // Prima cerere cu sămânță fixă
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // Temperatură zero pentru determinism maxim
             .build();
             
-        // Second request with the same seed
+        // A doua cerere cu aceeași sămânță
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // Execută ambele cereri
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // Răspunsurile ar trebui să fie identice datorită aceleiași sămânțe și temperaturii=0
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -296,19 +300,19 @@ public class DeterministicSamplingExample {
 }
 ```
 
-În codul precedent am:
+În codul de mai sus am:
 
-- Creat un client MCP cu un URL specificat al serverului.
-- Configurat două cereri cu același prompt, seed fix și temperatură zero.
-- Trimite ambele cereri și afișează textul generat.
-- Demonstrat că răspunsurile sunt identice datorită naturii deterministe a configurației de sampling (același seed și temperatură).
-- Folosit `setSeed` pentru a specifica un seed aleator fix, asigurând că modelul generează același output pentru aceeași intrare de fiecare dată.
-- Setat `temperature` la zero pentru a asigura maximă determinare, ceea ce înseamnă că modelul va selecta întotdeauna tokenul următor cel mai probabil, fără aleatorietate.
+- Creat un client MCP cu un URL de server specificat.
+- Configurat două cereri cu același prompt, sămânță fixă și temperatura zero.
+- Trimisi ambele cereri și afișat textul generat.
+- Demonstrat că răspunsurile sunt identice datorită naturii deterministe a configurației de eșantionare (aceeași sămânță și temperatură).
+- Folosit `setSeed` pentru a specifica o sămânță aleatoare fixă, asigurând că modelul generează același output pentru aceeași intrare de fiecare dată.
+- Setat `temperature` la zero pentru a asigura determinism maxim, însemnând că modelul va selecta întotdeauna următorul token cel mai probabil fără aleatorietate.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// Exemplu JavaScript: Răspunsuri deterministe cu controlul sămânței
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -320,19 +324,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // Prima cerere cu sămânță fixă
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // Temperatura zero pentru determinism maxim
     });
     
-    // Second request with same seed and temperature
+    // A doua cerere cu aceeași sămânță și temperatură
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // A treia cerere cu sămânță diferită, dar aceeași temperatură
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -352,28 +356,28 @@ async function deterministicSampling() {
 deterministicSampling();
 ```
 
-În codul precedent am:
+În codul de mai sus am:
 
 - Inițializat un client MCP cu un URL de server.
-- Configurat două cereri cu același prompt, seed fix și temperatură zero.
-- Trimite ambele cereri și afișează textul generat.
-- Demonstrat că răspunsurile sunt identice datorită naturii deterministe a configurației de sampling (același seed și temperatură).
-- Folosit `seed` pentru a specifica un seed aleator fix, asigurând că modelul generează același output pentru aceeași intrare de fiecare dată.
-- Setat `temperature` la zero pentru a asigura maximă determinare, ceea ce înseamnă că modelul va selecta întotdeauna tokenul următor cel mai probabil, fără aleatorietate.
-- Folosit un seed diferit pentru a treia cerere pentru a arăta că schimbarea seed-ului duce la output-uri diferite, chiar și cu același prompt și temperatură.
+- Configurat două cereri cu același prompt, sămânță fixă și temperatura zero.
+- Trimisi ambele cereri și afișat textul generat.
+- Demonstrat că răspunsurile sunt identice datorită naturii deterministe a configurației de eșantionare (aceeași sămânță și temperatură).
+- Folosit `seed` pentru a specifica o sămânță aleatoare fixă, asigurând că modelul generează același rezultat pentru aceeași intrare de fiecare dată.
+- Setat `temperature` la zero pentru a asigura determinism maxim, însemnând că modelul va selecta întotdeauna următorul token cel mai probabil fără aleatorietate.
+- Folosit o sămânță diferită pentru a treia cerere pentru a arăta că schimbarea sămânței duce la rezultate diferite, chiar și cu același prompt și temperatură.
 
 ---
 
-## Configurare dinamică a sampling-ului
+## Configurarea dinamică a eșantionării
 
-Sampling-ul inteligent adaptează parametrii în funcție de context și cerințele fiecărei cereri. Aceasta înseamnă ajustarea dinamică a parametrilor precum temperature, top_p și penalizări în funcție de tipul sarcinii, preferințele utilizatorului sau performanța istorică.
+Eșantionarea inteligentă adaptează parametrii în funcție de context și cerințele fiecărei cereri. Aceasta înseamnă ajustarea dinamică a parametrilor precum temperature, top_p și penalizările în funcție de tipul sarcinii, preferințele utilizatorului sau performanța istorică.
 
-Să vedem cum să implementăm sampling dinamic în diferite limbaje de programare.
+Să vedem cum să implementăm eșantionarea dinamică în diferite limbaje de programare.
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# Exemplu Python: Eșantionare dinamică bazată pe contextul cererii
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -381,7 +385,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # Definirea presetărilor de eșantionare pentru diferite tipuri de sarcini
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -389,22 +393,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # Selectează presetarea de bază
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # Ajustează în funcție de preferințele utilizatorului dacă sunt furnizate
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # Scalează temperatura în funcție de preferința pentru creativitate (1-10)
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # Ajustează top_p în funcție de diversitatea dorită a răspunsului
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # Creează și trimite cererea cu parametri personalizați de eșantionare
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -412,7 +416,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # Returnează răspunsul cu metadate de eșantionare pentru transparență
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -420,32 +424,32 @@ class DynamicSamplingService:
         }
 ```
 
-În codul precedent am:
+În codul de mai sus am:
 
-- Creat o clasă `DynamicSamplingService` care gestionează sampling-ul adaptiv.
-- Definit presetări de sampling pentru diferite tipuri de sarcini (creative, factuale, cod, analitice).
-- Selectat o presetare de sampling de bază în funcție de tipul sarcinii.
-- Ajustat parametrii de sampling în funcție de preferințele utilizatorului, cum ar fi nivelul de creativitate și diversitate.
-- Trimite cererea cu parametrii de sampling configurați dinamic.
-- Returnat textul generat împreună cu parametrii de sampling aplicați și tipul sarcinii pentru transparență.
-- Folosit `temperature` pentru a controla aleatorietatea output-ului, unde valori mai mari duc la răspunsuri mai creative.
-- Folosit `top_p` pentru a limita selecția tokenilor la cei care contribuie la masa cumulativă de probabilitate de top, îmbunătățind calitatea textului generat.
-- Folosit `frequency_penalty` pentru a reduce repetiția și a încuraja diversitatea în output.
-- Folosit `user_preferences` pentru a permite personalizarea parametrilor de sampling în funcție de nivelurile de creativitate și diversitate definite de utilizator.
-- Folosit `task_type` pentru a determina strategia de sampling potrivită pentru cerere, permițând răspunsuri mai adaptate în funcție de natura sarcinii.
-- Folosit metoda `send_request` pentru a trimite promptul cu parametrii de sampling configurați, asigurând că modelul generează text conform cerințelor specificate.
-- Folosit `generated_text` pentru a prelua răspunsul modelului, care este apoi returnat împreună cu parametrii de sampling și tipul sarcinii pentru analiză sau afișare.
-- Folosit funcțiile `min` și `max` pentru a asigura că preferințele utilizatorului sunt limitate în intervale valide, prevenind configurații invalide de sampling.
+- Creat o clasă `DynamicSamplingService` care gestionează eșantionarea adaptivă.
+- Definit presetări de eșantionare pentru diferite tipuri de sarcini (creative, factuale, cod, analitice).
+- Selectat un preset de bază în funcție de tipul sarcinii.
+- Ajustat parametrii de eșantionare în funcție de preferințele utilizatorului, cum ar fi nivelul de creativitate și diversitate.
+- Trimisi cererea cu parametrii de eșantionare configurați dinamic.
+- Returnat textul generat împreună cu parametrii de eșantionare aplicați și tipul sarcinii pentru transparență.
+- Folosit `temperature` pentru a controla aleatorietatea răspunsului, valorile mai mari ducând la răspunsuri mai creative.
+- Folosit `top_p` pentru a limita selecția de token-uri la cele care contribuie la masa de probabilitate cumulativă de top, îmbunătățind calitatea textului generat.
+- Folosit `frequency_penalty` pentru a reduce repetarea și a încuraja diversitatea în output.
+- Folosit `user_preferences` pentru a permite personalizarea parametrilor de eșantionare în funcție de nivelurile definite de creativitate și diversitate ale utilizatorului.
+- Folosit `task_type` pentru a determina strategia de eșantionare adecvată pentru cerere, permițând răspunsuri mai adaptate în funcție de natura sarcinii.
+- Folosit metoda `send_request` pentru a trimite promptul cu parametrii de eșantionare configurați, asigurând generarea textului conform cerințelor specificate.
+- Folosit `generated_text` pentru a prelua răspunsul modelului, care este apoi returnat împreună cu parametrii de eșantionare și tipul sarcinii pentru analiză sau afișare ulterioară.
+- Folosit funcțiile `min` și `max` pentru a asigura că preferințele utilizatorului sunt limitate la intervale valide, prevenind configurații invalide de eșantionare.
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript Dynamic](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// Exemplu JavaScript: Configurare dinamică a eșantionării bazată pe contextul utilizatorului
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // Definirea profilurilor de eșantionare de bază
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -453,15 +457,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // Urmărirea performanței istorice
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // Detectarea tipului de sarcină din prompt
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // Detecție euristică simplă - ar putea fi îmbunătățită cu clasificare ML
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -482,57 +486,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // Setare implicită la conversațional dacă nu se detectează un tip clar
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // Calcularea parametrilor de eșantionare pe baza contextului și preferințelor utilizatorului
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // Detectarea tipului de sarcină
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // Obținerea profilului de bază
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // Ajustare bazată pe preferințele utilizatorului
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // Scala de la 1-10 la intervalul corespunzător de temperatură
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // Precizie mai mare înseamnă topP mai mic (selecție mai concentrată)
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // Consistență mai mare înseamnă penalizări mai mici
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // Aplicarea ajustărilor învățate din istoricul performanței
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // Logică adaptivă simplă - ar putea fi îmbunătățită cu algoritmi mai sofisticați
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // Se consideră doar istoricul recent
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // Calcularea scorurilor medii de performanță
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // Dacă performanța este sub prag, se ajustează parametrii
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // Ajustare ușoară spre valori mai sigure
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -540,32 +544,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // Înregistrarea performanței pentru ajustări viitoare
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // Evaluare 0-1 a calității răspunsului
     });
     
-    // Limit history size
+    // Limitarea mărimii istoricului
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // Obținerea parametrilor de eșantionare optimi
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // Trimiterea cererii cu parametrii optimi
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // Dacă utilizatorul oferă feedback, se înregistrează pentru optimizare viitoare
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -578,7 +582,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// Exemplu de utilizare
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -587,13 +591,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // Sarcină creativă cu preferințe personalizate ale utilizatorului
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // Creativitate ridicată (1-10)
+          consistency: 3  // Consistență scăzută (1-10)
         }
       }
     );
@@ -603,14 +607,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // Sarcină de generare de cod
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // Creativitate scăzută
+          precision: 8,   // Precizie ridicată
+          consistency: 9  // Consistență ridicată
         }
       }
     );
@@ -628,27 +632,27 @@ async function demonstrateAdaptiveSampling() {
 demonstrateAdaptiveSampling();
 ```
 
-În codul precedent am:
+În codul de mai sus am:
 
-- Creat o clasă `AdaptiveSamplingManager` care gestionează sampling-ul dinamic în funcție de tipul sarcinii și preferințele utilizatorului.
-- Definit profile de sampling pentru diferite tipuri de sarcini (creative, factuale, cod, conversaționale).
-- Implementat o metodă pentru a detecta tipul sarcinii din prompt folosind euristici simple.
-- Calculat parametrii de sampling pe baza tipului de sarcină detectat și a preferințelor utilizatorului.
-- Aplicat ajustări învățate pe baza performanței istorice pentru a optimiza parametrii de sampling.
-- Înregistrat performanța pentru ajustări viitoare, permițând sistemului să învețe din interacțiunile anterioare.
-- Trimite cereri cu parametrii de sampling configurați dinamic și returnează textul generat împreună cu parametrii aplicați și tipul sarcinii detectat.
+- Creat o clasă `AdaptiveSamplingManager` care gestionează eșantionarea dinamică în funcție de tipul sarcinii și preferințele utilizatorului.
+- Definit profiluri de eșantionare pentru diferite tipuri de sarcini (creative, factuale, cod, conversaționale).
+- Implementat o metodă pentru a detecta tipul sarcinii din prompt folosind heuristici simple.
+- Calculat parametrii de eșantionare pe baza tipului sarcinii detectat și a preferințelor utilizatorului.
+- Aplicat ajustări învățate în baza performanței istorice pentru optimizarea parametrilor de eșantionare.
+- Înregistrat performanța pentru ajustări viitoare, permițând sistemului să învețe din interacțiuni anterioare.
+- Trimisi cereri cu parametrii de eșantionare configurați dinamic și returnat textul generat împreună cu parametrii aplicați și tipul sarcinii detectat.
 - Folosit:
-    - `userPreferences` pentru a permite personalizarea parametrilor de sampling în funcție de nivelurile de creativitate, precizie și consistență definite de utilizator.
+    - `userPreferences` pentru a permite personalizarea parametrilor de eșantionare în funcție de nivelurile definite de creativitate, precizie și consistență ale utilizatorului.
     - `detectTaskType` pentru a determina natura sarcinii pe baza promptului, permițând răspunsuri mai adaptate.
-    - `recordPerformance` pentru a înregistra performanța răspunsurilor generate, facilitând adaptarea și îmbunătățirea în timp.
-    - `applyLearnedAdjustments` pentru a modifica parametrii de sampling pe baza performanței istorice, sporind capacitatea modelului de a genera răspunsuri de calitate.
-    - `generateResponse` pentru a encapsula întregul proces de generare a unui răspuns cu sampling adaptiv, făcând ușor apelul cu prompturi și contexte diferite.
-    - `allowedTools` pentru a specifica ce unelte poate folosi modelul în timpul generării, permițând răspunsuri mai conștiente de context.
+    - `recordPerformance` pentru a înregistra performanța răspunsurilor generate, capabil să adapteze și să îmbunătățească sistemul în timp.
+    - `applyLearnedAdjustments` pentru a modifica parametrii de eșantionare pe baza performanței istorice, îmbunătățind capacitatea modelului de a genera răspunsuri de înaltă calitate.
+    - `generateResponse` pentru a encapsula întregul proces de generare a unui răspuns cu eșantionare adaptivă, făcând apelul facil cu diferite prompturi și contexte.
+    - `allowedTools` pentru a specifica ce instrumente poate folosi modelul în timpul generării, permițând răspunsuri mai conștiente de context.
     - `feedbackScore` pentru a permite utilizatorilor să ofere feedback asupra calității răspunsului generat, care poate fi folosit pentru a rafina performanța modelului în timp.
-    - `performanceHistory` pentru a menține un istoric al interacțiunilor anterioare, permițând sistemului să învețe din succese și eșecuri.
-    - `getSamplingParameters` pentru a ajusta dinamic parametrii de sampling în funcție de contextul cererii, permițând un comportament mai flexibil și receptiv al modelului.
-    - `detectTaskType` pentru a clasifica sarcina pe baza promptului, permițând aplicarea strategiilor de sampling potrivite pentru diferite tipuri de cereri.
-    - `samplingProfiles` pentru a defini configurații de sampling de bază pentru diferite tipuri de sarcini, permițând ajustări rapide în funcție de natura cererii.
+    - `performanceHistory` pentru a menține o înregistrare a interacțiunilor anterioare, permițând sistemului să învețe din succese și eșecuri precedente.
+    - `getSamplingParameters` pentru a ajusta dinamic parametrii de eșantionare pe baza contextului cererii, permițând un comportament al modelului mai flexibil și receptiv.
+    - `detectTaskType` pentru a clasifica sarcina pe baza promptului, permițând sistemului să aplice strategii adecvate de eșantionare pentru diferite tipuri de cereri.
+    - `samplingProfiles` pentru a defini configurații de eșantionare de bază pentru diferite tipuri de sarcini, permițând ajustări rapide în funcție de natura cererii.
 
 ---
 
@@ -656,5 +660,9 @@ demonstrateAdaptiveSampling();
 
 - [5.7 Scalare](../mcp-scaling/README.md)
 
-**Declinare de responsabilitate**:  
-Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). Deși ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un specialist uman. Nu ne asumăm răspunderea pentru eventualele neînțelegeri sau interpretări greșite rezultate din utilizarea acestei traduceri.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Declinare a responsabilității**:
+Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). În timp ce ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un om. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care decurg din utilizarea acestei traduceri.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

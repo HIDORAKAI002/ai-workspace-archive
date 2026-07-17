@@ -1,24 +1,24 @@
 # HTTPS Streaming wit Model Context Protocol (MCP)
 
-Dis chapter dey give beta guide to implemente secure, scalable, and real-time streaming wit Model Context Protocol (MCP) use HTTPS. E cover why streaming important, di transport methods wey dey, how to implement streamable HTTP for MCP, security best practices, how to migrate from SSE, plus practical guide for build your own streaming MCP apps.
+Dis chapter dey give one comprehensive guide to how person fit do secure, scalable, real-time streaming wit Model Context Protocol (MCP) with HTTPS. E dey talk about why streaming beta, di different transport ways wey dey, how to implement streamable HTTP for MCP, security best practices, how to move from SSE, plus practical steps to build your own streaming MCP applications. 
 
-> **Looking ahead:** dis lesson dey describe Streamable HTTP under **MCP Specification 2025-11-25**, where session go start during `initialize` and pinned wit `Mcp-Session-Id` header. Di `2026-07-28` release candidate go remove handshake and session ID completely, make every request self-contained and fit go any server instance without sticky sessions. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) for details.
+> **Lookin ahead:** dis lesson talk about Streamable HTTP under **MCP Specification 2025-11-25**, wey say session go start inside `initialize` and e go carry `Mcp-Session-Id` header. Di `2026-07-28` release candidate go commot handshake and session ID finish, make every request self-contained and fit run for any server instance without sticky sessions. Check [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) for details.
 
-## Transport Mechanisms and Streaming in MCP
+## Transport Ways and Streaming for MCP
 
-Dis part go look di different transport mechanisms wey MCP get and how dem dey help enable streaming for real-time communication between clients and servers.
+Dis section go look di different transport ways wey dey MCP and how dem dey help streaming for real-time communication between clients and servers.
 
-### Wetin Transport Mechanism Mean?
+### Wetin be Transport Mechanism?
 
-Transport mechanism na how data dey waka between client and server. MCP support plenti transport types to fit different environment and needs:
+Transport mechanism na how data dey waka between client and server. MCP get plenty transport types wey fit different situations and requirements:
 
-- **stdio**: Standard input/output, beta for local and CLI tools. Easy but no too fit for web or cloud.
-- **SSE (Server-Sent Events)**: Allow servers to push real-time updates to clients over HTTP. Good for web UI, but e no too scale well or flexible. As MCP Specification 2025-06-18 go, di standalone SSE transport don deprecated, dem don replace am wit "Streamable HTTP" transport.
-- **Streamable HTTP**: Modern HTTP-based streaming transport, dey support notifications and better scalability. Na im dem recommend for most production and cloud scenarios.
+- **stdio**: Standard input/output, e good for local and CLI-based tools. E simple but e no good for web or cloud.
+- **SSE (Server-Sent Events)**: Make server fit push real-time updates to client over HTTP. E beta for web UIs, but e no too scale well and no too flexible. As per MCP Specification 2025-06-18, standalone SSE (Server-Sent Events) transport don deprecated and dem don replace am with "Streamable HTTP" transport.
+- **Streamable HTTP**: Modern HTTP-based streaming transport, e dey support notifications and better scalability. Na im we go recommend for most production and cloud cases.
 
 ### Comparison Table
 
-Make you check di comparison table below to sabi di difference between these transport mechanisms:
+Look di comparison table below make you sabi wetin dey different for these transport ways:
 
 | Transport         | Real-time Updates | Streaming | Scalability | Use Case                |
 |-------------------|------------------|-----------|-------------|-------------------------|
@@ -26,41 +26,41 @@ Make you check di comparison table below to sabi di difference between these tra
 | SSE               | Yes              | Yes       | Medium      | Web, real-time updates  |
 | Streamable HTTP   | Yes              | Yes       | High        | Cloud, multi-client     |
 
-> **Tip:** To choose the right transport go affect how e go perform, scalability, and how user go take experience am. **Streamable HTTP** na im dem recommend for modern, scalable, and cloud-ready apps.
+> **Tip:** How you choose di transport fit affect performance, scalability, plus user experience. **Streamable HTTP** na di one wey we recommend for modern, scalable, and cloud-ready applications.
 
-Make you remember di transports stdio and SSE wey dem show you for di previous chapters and how Streamable HTTP na di transport wey dis chapter dey talk about.
+Make you remember di transports stdio and SSE wey we show you before and how streamable HTTP na di transport wey dis chapter dey cover.
 
-## Streaming: Concepts and Motivation
+## Streaming: Concepts and Why E Important
 
-To sabi di main ideas and reasons behind streaming dey important for to fit implement correct real-time communication systems.
+To sabi di basic ideas and why streaming dey important na key if you wan implement good real-time communication systems.
 
-**Streaming** na network programming technique wey allow data to dey sent and receive in small kawa kawa or as sequence of events instead of to wait make entire response ready. E beta for:
+**Streaming** na technique for network programming wey make data fit dey send and receive small small parts or as series of events, no be to wait make whole response ready. E especially beta for:
 
-- Big files or datasets.
+- Big files or big datasets.
 - Real-time updates (like chat, progress bars).
-- Long-running computations wey you wan keep user dey informed.
+- Long computations wey you want dey tell user wetin happening.
 
-Here be wetin you need sabi about streaming for high level:
+Dis na wetin you need know about streaming on top:
 
-- Data dey come small small, no come all-at-once.
+- Data dey show small small as e ready, no be all at once.
 - Client fit process data as e dey come.
-- E reduce di feeling say e too slow and improve user experience.
+- E reduce waiting time wey person dey feel and make user experiens better.
 
-### Why Use Streaming?
+### Why You Go Use Streaming?
 
-Reasons why streaming better be like dis:
+Di reasons to use streaming be:
 
-- Users fit get feedback immediately, no be only at di end.
-- E enable real-time apps and responsive UI.
-- E better for network and compute resources usage.
+- Users go get feedback sharp sharp, no be only at di end
+- E fit make real-time apps and responsive UIs work well
+- E better to use network and compute resources
 
 ### Simple Example: HTTP Streaming Server & Client
 
-Here na simple example how streaming fit work:
+Dis na simple example how person fit do streaming:
 
 #### Python
 
-**Server (Python, dey use FastAPI and StreamingResponse):**
+**Server (Python, using FastAPI and StreamingResponse):**
 
 ```python
 from fastapi import FastAPI
@@ -79,7 +79,7 @@ def stream():
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 ```
 
-**Client (Python, dey use requests):**
+**Client (Python, using requests):**
 
 ```python
 import requests
@@ -90,22 +90,22 @@ with requests.get("http://localhost:8000/stream", stream=True) as r:
             print(line.decode())
 ```
 
-Dis example show server dey send series of messages to client as dem dey ready, no be waiting till all messages ready.
+Dis example dey show how server dey send messages to client as dem ready instead of waiting all messages ready before sending.
 
 **How e dey work:**
 
-- Server dey yield each message as e ready.
-- Client dey receive and print each chunk as e reach.
+- Server dey send each message as e ready.
+- Client dey receive and print each chunk as e land.
 
-**Wetin you need:**
+**Requirements:**
 
-- Server must send streaming response (for example `StreamingResponse` for FastAPI).
-- Client must process response as stream (`stream=True` inside requests).
-- Content-Type fit be `text/event-stream` or `application/octet-stream`.
+- Server must use streaming response (like `StreamingResponse` for FastAPI).
+- Client must fit process di response as stream (`stream=True` for requests).
+- Content-Type usually `text/event-stream` or `application/octet-stream`.
 
 #### Java
 
-**Server (Java, dey use Spring Boot and Server-Sent Events):**
+**Server (Java, using Spring Boot and Server-Sent Events):**
 
 ```java
 @RestController
@@ -140,7 +140,7 @@ public class CalculatorController {
 }
 ```
 
-**Client (Java, dey use Spring WebFlux WebClient):**
+**Client (Java, using Spring WebFlux WebClient):**
 
 ```java
 @SpringBootApplication
@@ -170,74 +170,74 @@ public class CalculatorClientApplication implements CommandLineRunner {
 
 **Java Implementation Notes:**
 
-- E dey use Spring Boot reactive stack wit `Flux` for streaming
-- `ServerSentEvent` dey provide structured event streaming wit event types
-- `WebClient` wit `bodyToFlux()` dey enable reactive streaming consumption
+- Uses Spring Boot reactive stack with `Flux` for streaming
+- `ServerSentEvent` dey provide structured event streaming with event types
+- `WebClient` with `bodyToFlux()` enable reactive streaming consumption
 - `delayElements()` dey simulate processing time between events
-- Events fit get types (`info`, `result`) to help client handle better
+- Events fit get types (`info`, `result`) to help client handle am well
 
 ### Comparison: Classic Streaming vs MCP Streaming
 
-Difference between traditional streaming and how e be for MCP fit show like dis:
+Wetin dey different for how streaming dey work the "classical" way against how e dey work for MCP fit dey shown like dis:
 
 | Feature                | Classic HTTP Streaming         | MCP Streaming (Notifications)      |
 |------------------------|-------------------------------|-------------------------------------|
-| Main response          | Chunked                       | Single, at end                      |
+| Main response          | Chunked                       | Single, na di end                      |
 | Progress updates       | Sent as data chunks           | Sent as notifications               |
 | Client requirements    | Must process stream           | Must implement message handler      |
-| Use case               | Big files, AI token streams   | Progress, logs, real-time feedback  |
+| Use case               | Large files, AI token streams | Progress, logs, real-time feedback  |
 
-### Key Differences Observed
+### Key Differences Wey We See
 
-Additionally, here be some key differences:
+Plus, here be some key differences:
 
 - **Communication Pattern:**
-  - Classic HTTP streaming: E use simple chunked transfer encoding send data in chunks
-  - MCP streaming: E get structured notification system with JSON-RPC protocol
+  - Classic HTTP streaming: Uses simple chunked transfer encoding to send data in chunks
+  - MCP streaming: Uses structured notification system with JSON-RPC protocol
 
 - **Message Format:**
-  - Classic HTTP: Plain text chunks with newlines
+  - Classic HTTP: Plain text chunks wit newlines
   - MCP: Structured LoggingMessageNotification objects wit metadata
 
 - **Client Implementation:**
-  - Classic HTTP: Simple client wey process streaming responses
-  - MCP: Beta more sophisticated client with message handler to process different message types
+  - Classic HTTP: Simple client wey processes streaming responses
+  - MCP: Sophisticated client wit message handler to process different types messages
 
 - **Progress Updates:**
-  - Classic HTTP: Progress na part of main response stream
-  - MCP: Progress na separate notifications, main response na only at end
+  - Classic HTTP: Progress dey part of main response stream
+  - MCP: Progress dey sent as separate notification messages, main response go come at di end
 
 ### Recommendations
 
-Some tips for choose between classical streaming (as endpoint dey `/stream`) and streaming via MCP:
+Some tins we recommend as you wan choose between classical streaming (di endpoint we show you before with `/stream`) or streaming with MCP.
 
-- **For simple streaming needs:** Classic HTTP streaming easy to implement and e good for basic streaming needs.
+- **For simple streaming needs:** Classic HTTP streaming dey simple and enough for basic streaming.
 
-- **For complex, interactive apps:** MCP streaming get better structure wit rich metadata and separate notifications from final result.
+- **For complex, interactive apps:** MCP streaming get more structured way with richer metadata and make notification and final result separate.
 
-- **For AI apps:** MCP notification system dey very useful for long-running AI tasks wey you want make users dey informed of progress.
+- **For AI apps:** MCP notification system beta for long AI tasks where you wan keep users updated.
 
-## Streaming in MCP
+## Streaming for MCP
 
-Ok, so you don see some recommendations and comparison so far about classical streaming and streaming in MCP. Make we enter detail how you fit use streaming in MCP.
+Ok, you don see recommendations and comparisons about classical streaming vs MCP streaming. Now make we talk true how you fit use streaming for MCP.
 
-To sabi how streaming dey work inside MCP framework important to build responsive apps wey go give real-time feedback to users during long process.
+To sabi how streaming take work inside MCP framework important so app fit show real-time feedback to user during long operations.
 
-For MCP, streaming no mean say main response go send in chunks, but na **notifications** go dey send to client while tool dey process request. These notifications fit be progress updates, logs, or other events.
+For MCP, streaming no mean say main response go send small small chunks, but na to send **notifications** to client while tool dey process request. These notifications fit get progress updates, logs, or other events.
 
 ### How e dey work
 
-Main result still dey sent as one single response. But notifications fit send as separate messages during process and update client in real time. Client must fit handle and display these notifications.
+Main result still dey send as single response. But notifications fit send as separate messages while processing and update client in real time. Client must fit handle and show these notifications.
 
 ## Wetin be Notification?
 
-We talk "Notification", wetin dat mean for MCP?
+We talk "Notification", wetin e mean for MCP matter?
 
-Notification na message wey server send to client to tell im about progress, status, or other events during long task. Notifications dey improve transparency and user experience.
+Notification na message wey server send client to inform about progress, status, or other events during long operation. Notifications dey make thing clear and better for user experience.
 
-For example, client suppose send notification once handshake with server don complete.
+Example be say client suppose send notification once handshake with server don happen.
 
-Notification dey look like JSON message like dis:
+Notification fit look like dis as JSON message:
 
 ```json
 {
@@ -249,9 +249,11 @@ Notification dey look like JSON message like dis:
 }
 ```
 
-Notifications dey belong to topic inside MCP wey dem call ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
+Notifications dey belong to topic for MCP wey dem call ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
 
-To fit make logging work, server need enable am as feature or capability like dis:
+> **Deprecation notice:** di `2026-07-28` MCP specification release candidate mark Logging primitive as deprecated, dem recommend `stderr` for stdio transports and OpenTelemetry for structured observability. Logging go still work for `2025-11-25` and for at least one year after formal deprecation. Check [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+To make logging work, server need enable am as feature/capability like dis:
 
 ```json
 {
@@ -262,28 +264,28 @@ To fit make logging work, server need enable am as feature or capability like di
 ```
 
 > [!NOTE]
-> Depending on which SDK you dey use, logging fit dey enabled by default, or you fit need to explicitly enable am for your server configuration.
+> Depending on di SDK wey you dey use, logging fit dey enabled by default, or you fit need explicitly enable am for your server configuration.
 
-Dem get different types of notifications:
+Di different types of notifications be:
 
 | Level     | Description                    | Example Use Case                |
 |-----------|-------------------------------|---------------------------------|
-| debug     | Detailed debugging information | Function entry/exit points      |
+| debug     | Detailed debugging info         | Function entry/exit points      |
 | info      | General informational messages | Operation progress updates      |
 | notice    | Normal but significant events  | Configuration changes           |
 | warning   | Warning conditions             | Deprecated feature usage        |
 | error     | Error conditions               | Operation failures              |
 | critical  | Critical conditions            | System component failures       |
 | alert     | Action must be taken immediately | Data corruption detected      |
-| emergency | System is unusable             | Complete system failure         |
+| emergency | System no fit work             | Complete system failure         |
 
-## Implementing Notifications in MCP
+## How To Implement Notifications for MCP
 
-To implement notifications for MCP, you need to set both server and client side to handle real-time updates. Dis go make your app fit give immediate feedback to users as long process dey run.
+To implement notifications for MCP, you need set both server and client sides to handle real-time updates. This go make your app dey give immediate feedback to users during long tasks.
 
-### Server-side: Sending Notifications
+### Server side: Sending Notifications
 
-Make we start with server side. For MCP, you go define tools wey fit send notifications while dem dey process requests. Server dey use context object (usually `ctx`) send messages to client.
+Make we start from server side. For MCP, you define tools wey fit send notifications while dem dey process requests. Server dey use context object (usually `ctx`) to send messages to client.
 
 #### Python
 
@@ -296,9 +298,9 @@ async def process_files(message: str, ctx: Context) -> TextContent:
     return TextContent(type="text", text=f"Done: {message}")
 ```
 
-For di example wey just pass, `process_files` tool dey send three notifications to client as e dey process each file. `ctx.info()` method dey use to send informational messages.
+For di example before, `process_files` tool dey send three notifications to client as e dey process each file. `ctx.info()` method dey used to send informational messages.
 
-Also, to enable notifications, make sure your server dey use streaming transport (like `streamable-http`) and your client fit implement message handler to process notifications. See how to set server to use `streamable-http` transport:
+Plus, to enable notifications, make sure your server dey use streaming transport (like `streamable-http`) and your client get message handler to process notifications. Dis na how to set your server for `streamable-http`:
 
 ```python
 mcp.run(transport="streamable-http")
@@ -321,9 +323,9 @@ public async Task<TextContent> ProcessFiles(string message, ToolContext ctx)
 }
 ```
 
-For dis .NET example, `ProcessFiles` tool get `Tool` attribute and e dey send three notifications to client while e dey process each file. `ctx.Info()` method dey send informational messages.
+For dis .NET example, `ProcessFiles` tool don carry `Tool` attribute and e dey send three notifications to client as e dey process each file. `ctx.Info()` method dey used to send informations.
 
-To enable notifications for your .NET MCP server, make sure sey you dey use streaming transport:
+To enable notifications for your .NET MCP server, make sure say you dey use streaming transport:
 
 ```csharp
 var builder = McpBuilder.Create();
@@ -333,7 +335,7 @@ await builder
     .RunAsync();
 ```
 
-### Client-side: Receiving Notifications
+### Client side: Receiving Notifications
 
 Client must implement message handler to process and show notifications as dem dey come.
 
@@ -354,7 +356,7 @@ async with ClientSession(
 ) as session:
 ```
 
-For di code before, `message_handler` function dey check if message wey dey enter na notification. If e be notification, e go print am; if no be, e go process am as normal server message. Also, note how `ClientSession` dey initialize wit `message_handler` to handle notifications.
+From code before, `message_handler` function dey check if message wey enter na notification. If na, e go print am; if no, e go process as normal server message. Also see how `ClientSession` start wit `message_handler` to handle incoming notifications.
 
 #### .NET
 
@@ -385,15 +387,15 @@ await client.InitializeAsync();
 // Now the client will process notifications through the MessageHandler
 ```
 
-For dis .NET example, `MessageHandler` function dey check if incoming message na notification. If e be, e go print notification; if no be, e go process as regular server message. `ClientSession` initialized with message handler inside `ClientSessionOptions`.
+For dis .NET example, `MessageHandler` function dey check if incoming message na notification. If na, e print; if no, e process like normal server message. `ClientSession` dey start with message handler through `ClientSessionOptions`.
 
-To enable notifications, make sure sey your server dey use streaming transport (like `streamable-http`) and your client fit process notifications with message handler.
+To enable notifications, make sure your server dey use streaming transport (like `streamable-http`) and your client get message handler to process notifications.
 
 ## Progress Notifications & Scenarios
 
-Dis section go explain wetin progress notifications mean for MCP, why e important, and how to implement am wit Streamable HTTP. You go also see practical assignment to help your understanding.
+Dis section go explain wetin be progress notifications for MCP, why e important, and how to implement am using Streamable HTTP. You go still find practical task to help you understand better.
 
-Progress notifications na real-time messages wey server dey send to client during long process. E no wait finish all before e notify client; e dey keep client dey updated about current status. This one dey improve transparency, user experience, plus e make debugging easy.
+Progress notifications na real-time messages wey server send client during long operations. Instead of waiting make whole work finish, server dey keep client updated about current status. Dis dey make thing clear, improve user experience and e make debugging easier.
 
 **Example:**
 
@@ -406,22 +408,23 @@ Progress notifications na real-time messages wey server dey send to client durin
 
 ```
 
-### Why Use Progress Notifications?
+### Why You Go Use Progress Notifications?
 
-Progress notifications important for plenti reasons:
+Progress notifications important for some reasons:
 
-- **Better user experience:** Users go see updates as work dey go on, no be only at end.
-- **Real-time feedback:** Clients fit show progress bars or logs, make app sef dey feel responsive.
-- **Easier debugging and monitoring:** Developers and users fit see where process dey slow or stuck.
+- **Better user experience:** Users go dey see update as work dey go, no be only at end.
+- **Real-time feedback:** Clients fit show progress bars or logs, e make app dey quick respond.
+- **Easier debugging and monitoring:** Developers and users fit see where work fit slow down or jam.
 
 ### How to Implement Progress Notifications
 
-Here na how to implement progress notifications inside MCP:
+Dis na how you fit implement progress notifications for MCP:
 
-- **For server:** Use `ctx.info()` or `ctx.log()` send notifications as each item process finish. Dis one go send message before main result ready.
-- **For client:** Implement message handler wey go listen and show notifications as dem reach. Dis handler go sabi difference between notifications and final result.
+- **For server:** Use `ctx.info()` or `ctx.log()` to send notifications as each item dey process. This one go send message to client before main result ready.
+- **For client:** Implement message handler wey go dey listen and display notifications as dem dey come. Dis handler go sabi difference between notifications and final result.
 
 **Server Example:**
+
 
 #### Python
 
@@ -448,113 +451,114 @@ async def message_handler(message):
 
 ## Security Considerations
 
-When you dey implement MCP servers wit HTTP-based transports, security na very big mata wey need careful attention to many attack ways and protections.
+Wen you dey implement MCP servers wen use HTTP-based transports, security na top mata wey need make you pay beta attention to plenti attack way dem fit use and how to protect.
 
 ### Overview
 
-Security critical when you dey expose MCP servers over HTTP. Streamable HTTP dey open new attack surfaces and need careful configuration.
+Security na important tin wen you dey expose MCP servers for inside HTTP. Streamable HTTP bring new beta attack ways and e need well well configuration.
 
 ### Key Points
-- **Origin Header Validation**: Always validate di `Origin` header to prevent DNS rebinding attacks.
-- **Localhost Binding**: For local development, bind servers to `localhost` to avoid exposing dem to di public internet.
-- **Authentication**: Implement authentication (e.g., API keys, OAuth) for production deployments.
-- **CORS**: Configure Cross-Origin Resource Sharing (CORS) policies to restrict access.
-- **HTTPS**: Use HTTPS for production to encrypt traffic.
+
+- **Origin Header Validation**: Always check the `Origin` header to comot any DNS rebinding attacks.
+- **Localhost Binding**: For local development, make server dem dey bind to `localhost` so dat e no go open for public internet.
+- **Authentication**: Put for ground authentication like API keys, OAuth for your production setup dem.
+- **CORS**: Setup Cross-Origin Resource Sharing (CORS) policies make e restrict who fit access.
+- **HTTPS**: Use HTTPS for production to yarn your traffic well.
 
 ### Best Practices
 
-- No ever trust incoming requests without validation.
-- Log and monitor all access and errors.
-- Regularly update dependencies to patch security vulnerabilities.
+- No ever trust request wey just enter without you check am.
+- Log and monitor all access and any error wey show.
+- Always update your dependencies make you fit patch any security weakness.
 
 ### Challenges
 
-- Balancing security with ease of development
-- Ensuring compatibility with various client environments
+- How to balance security and beta development convenience
+- How to make am compatible with different client environment dem
 
 ## Upgrading from SSE to Streamable HTTP
 
-For applications wey dey use Server-Sent Events (SSE) currently, migrating to Streamable HTTP dey give better capabilities and better long-term sustainability for your MCP implementations.
+For apps wey dey use Server-Sent Events (SSE) now, if you comot go Streamable HTTP, e go give you better power and e go last well for your MCP versions.
 
 ### Why Upgrade?
 
-Two main reasons dey why you suppose upgrade from SSE to Streamable HTTP:
+Two big reasons dey why you for upgrade from SSE to Streamable HTTP:
 
-- Streamable HTTP get better scalability, compatibility, and richer notification support pass SSE.
-- Na di recommended transport for new MCP applications.
+- Streamable HTTP get better scalability, e dey compatible more, and e get rich notification support pass SSE.
+- Na im be the recommended transport for new MCP apps.
 
 ### Migration Steps
 
-Here how you fit migrate from SSE to Streamable HTTP for your MCP applications:
+Na so you fit take migrate from SSE go Streamable HTTP for your MCP apps dem:
 
-- **Update server code** to use `transport="streamable-http"` for `mcp.run()`.
-- **Update client code** to use `streamablehttp_client` instead of SSE client.
-- **Implement a message handler** for the client to process notifications.
-- **Test for compatibility** with existing tools and workflows.
+- **Update your server code** make e use `transport="streamable-http"` inside `mcp.run()`.
+- **Update your client code** make e use `streamablehttp_client` no be SSE client again.
+- **Implement message handler** for the client for process notifications.
+- **Test to see compatibility** with tools and workflow wey you dey use already.
 
 ### Maintaining Compatibility
 
-E dey recommended to maintain compatibility with existing SSE clients during the migration process. Here be some strategies:
+E good make you still make your app fit run SSE client dem and also Streamable HTTP client dem while you dey do migration. Na dis way:
 
-- You fit support both SSE and Streamable HTTP by running both transports on different endpoints.
-- Gradually migrate clients to di new transport.
+- You fit support SSE and Streamable HTTP together by running the two transports for different endpoints.
+- Slowly migrate your clients go the new transport.
 
 ### Challenges
 
-Make sure say you handle these challenges during migration:
+You need address these challenges wen you dey migrate:
 
-- Ensuring say all clients dey updated
-- Handling differences in notification delivery
+- Make sure all clients don update
+- Handle the difference between how notifications go come through
 
 ## Security Considerations
 
-Security suppose be top priority when you dey implement any server, specially wen you dey use HTTP-based transports like Streamable HTTP for MCP.
+Security suppose always be your main priority wen you dey implement any server, mostly when you dey use HTTP-based transports like Streamable HTTP inside MCP. 
 
-When you dey implement MCP servers with HTTP-based transports, security go become big concern wey need careful attention to multiple attack vectors and protection mechanisms.
+Wen you dey implement MCP servers wen use HTTP-based transports, security na paramount concern wey need careful eye on plenti attack vectors and how to protect well.
 
 ### Overview
 
-Security dey critical when you dey expose MCP servers over HTTP. Streamable HTTP dey bring new attack surfaces and e need careful configuration.
+Security dey critical wen you expose MCP servers for HTTP. Streamable HTTP bring new beta attack surfaces and e need well well setup.
 
-Here be some key security considerations:
+Na some key security things be these:
 
-- **Origin Header Validation**: Always validate di `Origin` header to prevent DNS rebinding attacks.
-- **Localhost Binding**: For local development, bind servers to `localhost` to avoid exposing dem to di public internet.
-- **Authentication**: Implement authentication (e.g., API keys, OAuth) for production deployments.
-- **CORS**: Configure Cross-Origin Resource Sharing (CORS) policies to restrict access.
-- **HTTPS**: Use HTTPS for production to encrypt traffic.
+- **Origin Header Validation**: Always check the `Origin` header well to stop DNS rebinding attacks.
+- **Localhost Binding**: For inside local development, bind your servers to `localhost` so dat dem no go dey open for everybody online.
+- **Authentication**: Implement authentication like API keys, OAuth for your production environment.
+- **CORS**: Setup Cross-Origin Resource Sharing (CORS) policy make e restrict the access.
+- **HTTPS**: Use HTTPS for production to encrypt wetin pass for traffic.
 
 ### Best Practices
 
-Also, here be some best practices to follow when you dey implement security for your MCP streaming server:
+Plus, here be some best practices to dey follow wen you dey do security setup for your MCP streaming server:
 
-- No ever trust incoming requests without validation.
-- Log and monitor all access and errors.
-- Regularly update dependencies to patch security vulnerabilities.
+- No ever trust any request wey come without you check am first.
+- Make you dey log and dey monitor all access and error dem.
+- Make you dey update your dependencies well well to patch any security holes.
 
 ### Challenges
 
-You go face some challenges when you dey implement security for MCP streaming servers:
+You go face some wahala wen you dey put security for MCP streaming servers:
 
-- Balancing security with ease of development
-- Ensuring compatibility with various client environments
+- How to balance security with ease of development
+- How to make am compatible with different client environments
 
 ### Assignment: Build Your Own Streaming MCP App
 
 **Scenario:**
-Build MCP server and client wey the server dey process list of items (e.g., files or documents) and dey send notification for each item wey e process. The client suppose show each notification as e land.
+Build one MCP server and client wey server go dey process list of tins (like files or documents) and e go dey send notification each time e finish one item. The client go show each notification once e don land.
 
 **Steps:**
 
-1. Implement server tool wey dey process list and dey send notifications for each item.
-2. Implement client with message handler to show notifications for real time.
-3. Test your implementation by running both server and client, then watch the notifications.
+1. Make one server tool wey go process list and send notifications for each item.
+2. Make client with message handler to show notifications for real time.
+3. Test your work by running both server and client, and dey watch the notifications.
 
 [Solution](./solution/README.md)
 
 ## Further Reading & What Next?
 
-To continue your journey with MCP streaming plus increase your knowledge, this section provide additional resources and suggested next steps to build more advanced applications.
+To carry go your journey with MCP streaming and learn more, dis section get more resources and suggestions on wetin to do next to build advanced level apps.
 
 ### Further Reading
 
@@ -565,8 +569,8 @@ To continue your journey with MCP streaming plus increase your knowledge, this s
 
 ### What Next?
 
-- Try build more advanced MCP tools wey use streaming for real-time analytics, chat, or collaborative editing.
-- Explore how to integrate MCP streaming with frontend frameworks (React, Vue, etc.) for live UI updates.
+- Try build more advanced MCP tools wey go use streaming for real-time analytics, chat, or make people fit collaborate to edit things.
+- Try combine MCP streaming with frontend framework dem (React, Vue, etc.) to get live UI updates.
 - Next: [Utilising AI Toolkit for VSCode](../07-aitk/README.md)
 
 ---

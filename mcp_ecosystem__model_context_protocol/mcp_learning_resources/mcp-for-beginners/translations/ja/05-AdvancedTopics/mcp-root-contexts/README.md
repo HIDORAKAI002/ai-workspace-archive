@@ -1,53 +1,57 @@
+> [非推奨: 2026-07-28 リリース候補](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # MCP ルートコンテキスト
 
-ルートコンテキストは、Model Context Protocol の基本的な概念であり、複数のリクエストやセッションにわたって会話履歴や共有状態を持続的に保持するためのレイヤーを提供します。
+> **非推奨通知:** MCP 仕様の `2026-07-28` リリース候補では、ルートはツールパラメーター、リソースURI、またはサーバー構成に置き換えられるものとして非推奨とされています。ルートは `2025-11-25` バージョンおよび正式な廃止後少なくとも1年間機能するため、このレッスンの内容はすべて有効ですが、新しいサーバーデザインでは置換パターンの評価が推奨されます。詳細は [MCPの変更点: 2026-07-28 リリース候補](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md) を参照してください。
+
+ルートコンテキストは、複数のリクエストやセッションにわたって会話履歴と共有状態を保持するための持続的なレイヤーを提供する、Model Context Protocolの基本的な概念です。
 
 ## はじめに
 
-このレッスンでは、MCP におけるルートコンテキストの作成、管理、活用方法について学びます。
+本レッスンでは、MCPにおけるルートコンテキストの作成、管理、活用方法を探ります。
 
 ## 学習目標
 
-このレッスンを終える頃には、以下ができるようになります：
+本レッスンの終了時には、以下が可能になります:
 
-- ルートコンテキストの目的と構造を理解する
-- MCP クライアントライブラリを使ってルートコンテキストを作成・管理する
-- .NET、Java、JavaScript、Python アプリケーションでルートコンテキストを実装する
-- マルチターン会話や状態管理にルートコンテキストを活用する
-- ルートコンテキスト管理のベストプラクティスを実践する
+- ルートコンテキストの目的と構造の理解
+- MCPクライアントライブラリを用いたルートコンテキストの作成と管理
+- .NET、Java、JavaScript、Pythonアプリケーションでのルートコンテキスト実装
+- 複数ターンの会話および状態管理のためのルートコンテキストの活用
+- ルートコンテキスト管理のベストプラクティスの実装
 
 ## ルートコンテキストの理解
 
-ルートコンテキストは、一連の関連するやり取りの履歴や状態を保持するコンテナとして機能します。これにより以下が可能になります：
+ルートコンテキストは関連する一連の対話の履歴と状態を保持するコンテナとして機能します。これによって次のことが可能です:
 
-- **会話の持続性**：一貫したマルチターン会話の維持
-- **メモリ管理**：やり取りをまたいだ情報の保存と取得
-- **状態管理**：複雑なワークフローの進行状況の追跡
-- **コンテキスト共有**：複数のクライアントが同じ会話状態にアクセス可能
+- <strong>会話の永続性</strong>: 一貫した複数ターンの会話の維持
+- <strong>メモリ管理</strong>: 対話をまたいだ情報の保存と取得
+- <strong>状態管理</strong>: 複雑なワークフローの進行状況の追跡
+- <strong>コンテキスト共有</strong>: 複数のクライアントが同じ会話状態にアクセス可能にすること
 
-MCP におけるルートコンテキストの主な特徴は以下の通りです：
+MCPにおけるルートコンテキストの主要な特徴は以下の通りです:
 
-- 各ルートコンテキストは一意の識別子を持つ
-- 会話履歴、ユーザーの好み、その他のメタデータを含めることができる
-- 必要に応じて作成、アクセス、アーカイブが可能
-- 細かいアクセス制御や権限管理をサポート
+- 各ルートコンテキストは一意の識別子を持っています。
+- 会話履歴、ユーザーの設定、その他のメタデータを含めることができます。
+- 必要に応じて作成、アクセス、アーカイブが可能です。
+- 詳細なアクセス制御と権限をサポートしています。
 
 ## ルートコンテキストのライフサイクル
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[ルートコンテキストを作成] --> B[メタデータで初期化]
+    B --> C[コンテキストIDを使ってリクエストを送信]
+    C --> D[結果でコンテキストを更新]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[完了時にコンテキストをアーカイブ]
 ```
 
-## ルートコンテキストの操作
+## ルートコンテキストの操作方法
 
-以下はルートコンテキストの作成と管理の例です。
+ルートコンテキストの作成と管理の例を示します。
 
-### C# 実装例
+### C#による実装
 
 ```csharp
 // .NET Example: Root Context Management
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-上記のコードでは以下を行っています：
+先のコードでは以下を行いました:
 
-1. カスタマーサポートセッション用のルートコンテキストを作成しました。
-2. そのコンテキスト内で複数のメッセージを送信し、モデルが状態を維持できるようにしました。
-3. 会話に基づいて関連するメタデータでコンテキストを更新しました。
-4. 会話履歴を理解するためにコンテキスト情報を取得しました。
-5. 会話が完了したらコンテキストをアーカイブしました。
+1. カスタマーサポートセッションのためのルートコンテキストを作成。
+1. そのコンテキスト内で複数のメッセージを送信し、モデルによる状態維持を実現。
+1. 会話に基づいて関連メタデータでコンテキストを更新。
+1. 会話履歴を理解するためにコンテキスト情報を取得。
+1. 会話完了後にコンテキストをアーカイブ。
 
-## 例：金融分析のためのルートコンテキスト実装
+## 例：金融分析におけるルートコンテキスト実装
 
-この例では、金融分析セッション用のルートコンテキストを作成し、複数のやり取りにわたって状態を維持する方法を示します。
+本例では、金融分析セッションのためのルートコンテキストを作成し、複数の対話をまたいだ状態の維持方法を示します。
 
-### Java 実装例
+### Javaによる実装
 
 ```java
-// Java Example: Root Context Implementation
+// Javaの例：ルートコンテキストの実装
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // コンテキストメタデータを作成する
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. 新しいルートコンテキストを作成する
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. 最初の対話
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. 応答から得た重要な情報でコンテキストを更新する
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // 2回目の対話 - 同じコンテキストを使用
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. 分析セッションの要約を生成する
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // 要約をコンテキストメタデータに保存する
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // 更新されたコンテキスト情報を取得する
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. 完了したらコンテキストをアーカイブする
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-上記のコードでは以下を行っています：
+先のコードでは以下を行いました:
 
-1. 金融分析セッション用のルートコンテキストを作成しました。
-2. そのコンテキスト内で複数のメッセージを送信し、モデルが状態を維持できるようにしました。
-3. 会話に基づいて関連するメタデータでコンテキストを更新しました。
-4. 分析セッションの要約を生成し、コンテキストのメタデータに保存しました。
-5. 会話が完了したらコンテキストをアーカイブしました。
+1. 金融分析セッションのためのルートコンテキストを作成。
+2. そのコンテキスト内で複数のメッセージを送信し、モデルによる状態維持を実現。
+3. 会話に基づいて関連メタデータでコンテキストを更新。
+4. 分析セッションの概要を生成し、コンテキストメタデータに保存。
+5. 会話完了後にコンテキストをアーカイブ。
 
 ## 例：ルートコンテキスト管理
 
-ルートコンテキストを効果的に管理することは、会話履歴や状態を維持する上で重要です。以下はルートコンテキスト管理の実装例です。
+ルートコンテキストを効果的に管理することは、会話履歴と状態の維持に不可欠です。以下はルートコンテキスト管理の実装例です。
 
-### JavaScript 実装例
+### JavaScriptによる実装
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScriptの例：MCPルートコンテキストの管理
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // MCPクライアントを初期化する
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // コンテキストマネージャを初期化する
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // 指定されたコンテキストを使ってメッセージを送信する
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // 会話から重要な洞察を任意で保存する
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // 潜在的な洞察を抽出する（実際のアプリではより高度になる）
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // 潜在的な洞察を特定するための単純なヒューリスティック
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // 洞察をコンテキストのメタデータに保存する
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // 重大でないエラーなので警告としてログに記録するだけ
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // モデルにこれまでの会話の要約を生成させる
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // 要約をコンテキストのメタデータに保存する
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // アーカイブ前に最終的な要約を作成する
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // コンテキストをアーカイブする
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// 利用例
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. 製品サポートの会話用に新しいコンテキストを作成する
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. 会話の最初のメッセージ
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // 同じコンテキストのフォローアップメッセージ
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. コンテキストの情報を取得する
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. 会話の要約を生成して表示する
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. 終了時にコンテキストをアーカイブする
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. エラーを適切に処理する
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,23 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-上記のコードでは以下を行っています：
+先のコードでは以下を行いました:
 
-1. `createConversationContext` 関数を使って、データベースのパフォーマンス問題に関する製品サポート会話用のルートコンテキストを作成しました。
-2. `sendMessage` 関数を使って、そのコンテキスト内で複数のメッセージを送信し、モデルが状態を維持できるようにしました。送信されたメッセージは遅いクエリのパフォーマンスやインデックス設定に関するものです。
-3. 会話に基づいて関連するメタデータでコンテキストを更新しました。
-4. `generateContextSummary` 関数を使って会話の要約を生成し、コンテキストのメタデータに保存しました。
-5. 会話が完了したら `archiveContext` 関数でコンテキストをアーカイブしました。
-6. エラー処理を適切に行い、堅牢性を確保しました。
+1. 関数 `createConversationContext` を使い、製品サポートの会話のためのルートコンテキストを作成。今回はデータベースのパフォーマンス問題に関する内容です。
 
-## マルチターン支援のためのルートコンテキスト
+1. 関数 `sendMessage` を使い、そのコンテキスト内で複数のメッセージを送信し、モデルによる状態維持を実現。送信されたメッセージは遅いクエリパフォーマンスとインデックス設定に関するものです。
 
-この例では、マルチターン支援セッション用のルートコンテキストを作成し、複数のやり取りにわたって状態を維持する方法を示します。
+1. 会話に基づいて関連メタデータでコンテキストを更新。
 
-### Python 実装例
+1. 関数 `generateContextSummary` を使い、会話の概要を生成してコンテキストメタデータに保存。
+
+1. 会話完了後に関数 `archiveContext` でコンテキストをアーカイブ。
+
+1. エラー処理を適切に行い堅牢性を確保。
+
+## 複数ターンアシスタンスのためのルートコンテキスト
+
+本例では、複数ターンアシスタンスセッションのためのルートコンテキストを作成し、複数対話をまたいだ状態の維持方法を示します。
+
+### Pythonによる実装
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python例：マルチターン支援のルートコンテキスト
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -506,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # 提供された場合、ユーザー情報を追加
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # ルートコンテキストを作成
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # コンテキストIDを使用してオプションを作成
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # 指定された場合、ツールを追加
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # コンテキスト内でプロンプトを送信
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # 会話の進行状況でコンテキストメタデータを更新
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -551,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # まず要約プロンプトを生成
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # 要約をメタデータに保存
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -567,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # コンテキストをアーカイブ
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -575,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# 使用例
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. セッションを作成
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. 最初のやり取り
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -594,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # 同じコンテキストでの2回目のやり取り
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. 履歴を取得
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. セッションを終了
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -613,31 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-上記のコードでは以下を行っています：
+先のコードでは以下を行いました:
 
-1. `create_session` 関数を使って、名前や技術レベルなどのユーザー情報を含む技術サポートセッション用のルートコンテキストを作成しました。
-2. `send_message` 関数を使って、そのコンテキスト内で複数のメッセージを送信し、モデルが状態を維持できるようにしました。送信されたメッセージはオートスケーリング機能の問題に関するものです。
-3. `get_conversation_history` 関数を使って会話履歴を取得し、コンテキスト情報やメッセージを確認しました。
-4. `end_session` 関数を使ってセッションを終了し、コンテキストをアーカイブするとともに会話の要点をまとめた要約を生成しました。
+1. 関数 `create_session` を使い、技術サポートセッションのためのルートコンテキストを作成。コンテキストには名前や技術レベルなどのユーザー情報が含まれます。
+
+1. 関数 `send_message` を使い、そのコンテキスト内で複数のメッセージを送信し、モデルによる状態維持を実現。メッセージはオートスケーリング機能の問題に関するものです。
+
+1. 関数 `get_conversation_history` を使い、コンテキスト情報とメッセージを取得。
+
+1. 関数 `end_session` を使ってセッションを終了し、コンテキストをアーカイブし概要を生成。概要には会話の重要ポイントが含まれます。
 
 ## ルートコンテキストのベストプラクティス
 
-ルートコンテキストを効果的に管理するためのベストプラクティスを紹介します：
+ルートコンテキストを効果的に管理するためのベストプラクティスを以下に示します:
 
-- **目的に応じたコンテキスト作成**：異なる会話目的やドメインごとに別々のルートコンテキストを作成し、明確さを保つ。
-- **有効期限ポリシーの設定**：古いコンテキストをアーカイブまたは削除するポリシーを実装し、ストレージ管理やデータ保持ポリシーに準拠する。
-- **関連メタデータの保存**：会話に関する重要な情報を後で活用できるようにコンテキストのメタデータに保存する。
-- **コンテキストIDの一貫使用**：コンテキスト作成後は、そのIDを関連するすべてのリクエストで一貫して使用し、連続性を保つ。
-- **要約の生成**：コンテキストが大きくなった場合は、重要な情報をまとめた要約を作成し、コンテキストサイズを管理する。
-- **アクセス制御の実装**：マルチユーザーシステムでは、会話コンテキストのプライバシーとセキュリティを確保するために適切なアクセス制御を実装する。
-- **コンテキスト制限への対応**：コンテキストサイズの制限を理解し、非常に長い会話に対処するための戦略を講じる。
-- **完了時のアーカイブ**：会話が完了したらコンテキストをアーカイブし、リソースを解放しつつ会話履歴を保持する。
+- <strong>集中的なコンテキスト作成</strong>: 明確さを保つために、異なる会話目的やドメインごとに別々のルートコンテキストを作成する。
 
-## 次に進むには
+- <strong>有効期限ポリシーの設定</strong>: 古いコンテキストをアーカイブまたは削除するポリシーを実装し、ストレージ管理およびデータ保持ポリシーに準拠する。
+
+- <strong>関連メタデータの保存</strong>: 会話に関する重要情報を後で利用できるようにコンテキストメタデータに保存する。
+
+- **コンテキストIDの一貫した使用**: 一度作成したコンテキストは、そのIDを関連リクエスト全てに一貫して使用し、連続性を維持する。
+
+- <strong>概要の生成</strong>: コンテキストが大きくなった場合は概要を生成し、重要情報を捕捉しつつコンテキストサイズを管理する。
+
+- <strong>アクセス制御の実装</strong>: 複数ユーザーシステムでは、会話コンテキストのプライバシーとセキュリティを確保するため適切なアクセス制御を実装する。
+
+- <strong>コンテキストの制限への対応</strong>: コンテキストサイズ制限を意識し、非常に長い会話に対する処理戦略を実装する。
+
+- <strong>完了時のアーカイブ</strong>: 会話が完了したらコンテキストをアーカイブし、会話履歴を保存しつつリソースを解放する。
+
+## 次に学ぶこと
 
 - [5.5 ルーティング](../mcp-routing/README.md)
 
+---
+
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**免責事項**：  
-本書類はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を使用して翻訳されました。正確性の向上に努めておりますが、自動翻訳には誤りや不正確な部分が含まれる可能性があります。原文の言語によるオリジナル文書が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や誤訳についても、当方は責任を負いかねます。
+**免責事項**：
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,0 +1,405 @@
+Context engineering decides **what the model can see**. Loop engineering decides **what the system does next**.
+
+Instead of a person repeatedly reading an answer and writing the next prompt, a loop turns that follow-up work into a designed system. It gives an AI a goal, lets it act, observes real feedback, evaluates the result, and either adapts or stops.
+
+<Callout type="info" title="The Short Definition">
+Loop engineering is the practice of designing the feedback cycle around an AI system: the goal, actions, observations, evaluation, state, guardrails, and stop rules that move work toward a verifiable result.
+</Callout>
+
+## From a Good Prompt to a Good Loop
+
+A prompt can produce a strong first attempt. A loop is useful when the number of steps cannot be known in advance, the environment can change, or the first attempt must be checked against evidence.
+
+<Compare
+  before={{
+    label: "One-Shot Prompt",
+    content: "Ask → Generate → Return\n\nThe model produces an answer. A person decides whether it worked and writes the next prompt."
+  }}
+  after={{
+    label: "Engineered Loop",
+    content: "Frame → Act → Observe → Evaluate → Adapt\n                 ↑______________________↓\n\nThe system gathers evidence, records state, and continues only while another pass is useful."
+  }}
+/>
+
+This idea builds on earlier agent patterns. The [ReAct paper](https://arxiv.org/abs/2210.03629) showed the value of interleaving actions with observations from an external environment. Anthropic's [evaluator-optimizer pattern](https://www.anthropic.com/engineering/building-effective-agents) adds a distinct feedback step, while OpenAI's [practical guide to agents](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) describes agent runs as loops governed by exit conditions. The newer term **loop engineering** focuses attention on deliberately designing that whole cycle.
+
+## The Five Moves
+
+<InfoGrid items={[
+  { label: "1. Frame", description: "Turn intent into a goal, constraints, success criteria, and a budget.", color: "blue" },
+  { label: "2. Act", description: "Choose one bounded action: search, edit, calculate, call a tool, or ask a person.", color: "amber" },
+  { label: "3. Observe", description: "Collect what actually happened: test output, API results, citations, or user feedback.", color: "cyan" },
+  { label: "4. Evaluate", description: "Compare the evidence with explicit criteria—not with the model's confidence.", color: "purple" },
+  { label: "5. Adapt", description: "Update state, change the plan, retry safely, escalate, or stop.", color: "green" },
+]} />
+
+The loop is not the arrows. The engineering lives in the **contracts between the arrows**: what counts as an action, which observations are trustworthy, who evaluates them, what state survives, and exactly when execution ends.
+
+<LoopEngineeringLab content={{
+  eyebrow: "Loop control / interactive simulator",
+  title: "Step through a working feedback loop",
+  description: "Choose a task, then advance one signal at a time. Notice how progress comes from environmental evidence and explicit evaluation—not from asking the model whether it feels finished.",
+  chooseScenarioLabel: "Choose a loop",
+  goalLabel: "Goal",
+  stopRuleLabel: "Stop rule",
+  evidenceLabel: "Trusted evidence",
+  iterationLabel: "Iteration",
+  progressLabel: "Verified progress",
+  openIssuesLabel: "Open issues",
+  currentSignalLabel: "Current signal",
+  advanceLabel: "Advance one step",
+  nextIterationLabel: "Begin next iteration",
+  resetLabel: "Reset loop",
+  completeLabel: "Goal verified",
+  completeDescription: "The success criteria are satisfied, evidence is recorded, and the loop stops instead of spending another cycle.",
+  stages: [
+    { id: "frame", label: "Frame", verb: "Re-read the contract" },
+    { id: "act", label: "Act", verb: "Make one bounded move" },
+    { id: "observe", label: "Observe", verb: "Read external feedback" },
+    { id: "evaluate", label: "Evaluate", verb: "Apply the rubric" },
+    { id: "adapt", label: "Adapt", verb: "Update the next move" },
+  ],
+  scenarios: [
+    {
+      id: "code",
+      label: "Repair a checkout bug",
+      goal: "Fix the checkout totals without changing valid discount behavior.",
+      stopRule: "The targeted regression test passes, the full checkout suite passes, and lint is clean—or three attempts are exhausted and the loop escalates.",
+      evidence: "Reproduction steps, test output, the code diff, and the final regression suite.",
+      cycles: [
+        {
+          action: "Reproduce the reported total and add a failing test for tax plus a percentage discount.",
+          observation: "The test fails by one cent only when tax is rounded before the discount is applied.",
+          evaluation: "The bug is reproduced with a deterministic signal, but the root cause is not fixed yet.",
+          adaptation: "Inspect the rounding boundary and change only the order-total calculation path.",
+          progress: 34,
+          openIssues: 2,
+        },
+        {
+          action: "Move rounding to the final monetary boundary and run targeted checkout tests.",
+          observation: "The regression test passes, but one coupon integration test now fails on a fixed-amount discount.",
+          evaluation: "The first symptom is fixed, but the change is too broad. The stop rule is not satisfied.",
+          adaptation: "Narrow the patch and add a case that separates tax rounding from coupon rounding.",
+          progress: 71,
+          openIssues: 1,
+        },
+        {
+          action: "Apply the narrow calculation fix, then run the regression test, the full checkout suite, and lint.",
+          observation: "All checks pass. The diff touches one calculation function and the new regression test.",
+          evaluation: "Every success criterion has independent evidence, and no budget limit was exceeded.",
+          adaptation: "Stop, preserve the test output, and hand the small diff to a human reviewer.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "research",
+      label: "Verify a research claim",
+      goal: "Assess the claim that remote work always increases team productivity.",
+      stopRule: "A calibrated conclusion is supported by at least three credible sources, with disagreements and limitations stated.",
+      evidence: "Direct source links, publication dates, study methods, sample sizes, and quoted metrics.",
+      cycles: [
+        {
+          action: "Search for recent evidence and trace the most repeated productivity statistic to its source.",
+          observation: "Most articles repeat a vendor survey without linking its questionnaire or raw sample.",
+          evaluation: "The evidence is popular but not strong enough to support an absolute claim.",
+          adaptation: "Prioritize peer-reviewed studies and public datasets; search for contrary findings too.",
+          progress: 28,
+          openIssues: 3,
+        },
+        {
+          action: "Compare two peer-reviewed studies with a national labor dataset.",
+          observation: "Results vary by task type, measurement method, and whether work is fully remote or hybrid.",
+          evaluation: "The evidence contradicts the word 'always'. A conditional conclusion is becoming defensible.",
+          adaptation: "Check whether the studies distinguish output, hours worked, and perceived productivity.",
+          progress: 68,
+          openIssues: 1,
+        },
+        {
+          action: "Build an evidence table and verify every claim against the original source.",
+          observation: "The sources support mixed effects and identify autonomy, coordination, and task type as key variables.",
+          evaluation: "The conclusion is supported, uncertainty is visible, and the source threshold is met.",
+          adaptation: "Stop with a qualified answer and retain the evidence table for review.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "writing",
+      label: "Polish a launch email",
+      goal: "Create a concise launch email that explains the benefit and earns qualified demo clicks.",
+      stopRule: "The email passes the voice rubric, stays under 140 words, contains one clear call to action, and survives a factual review.",
+      evidence: "Word count, rubric scores, link validation, source product facts, and reviewer notes.",
+      cycles: [
+        {
+          action: "Draft from the product brief and score the result against the audience and voice rubric.",
+          observation: "The draft is 204 words, opens with features, and contains two competing calls to action.",
+          evaluation: "Facts are accurate, but the hierarchy and length criteria fail.",
+          adaptation: "Lead with the customer outcome, remove the secondary action, and cut implementation detail.",
+          progress: 41,
+          openIssues: 3,
+        },
+        {
+          action: "Rewrite the opening and compress the body into one problem-benefit-proof sequence.",
+          observation: "The email is 126 words and has one CTA, but the proof sentence overstates a beta result.",
+          evaluation: "Structure passes. Factual calibration still fails the rubric.",
+          adaptation: "Replace the broad claim with the measured beta result and request a final fact check.",
+          progress: 79,
+          openIssues: 1,
+        },
+        {
+          action: "Insert the verified metric, validate the link, and run the complete rubric once more.",
+          observation: "The email is 132 words, the link resolves, facts match the brief, and every rubric item passes.",
+          evaluation: "The artifact satisfies the defined quality bar with reviewable evidence.",
+          adaptation: "Stop and send the approved version to the campaign owner.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+  ],
+}} />
+
+## Write the Loop Contract First
+
+Before choosing a model or framework, write a small contract. If these fields are vague, the loop will turn ambiguity into repeated cost.
+
+```yaml
+goal: "What observable state should become true?"
+inputs: "What starts the loop?"
+state: "What facts and attempts persist between iterations?"
+actions: "Which tools may the system use, and with what permissions?"
+observations: "What external signals come back from those actions?"
+evaluator: "Which rubric or deterministic checks judge the result?"
+success: "What evidence proves the goal is complete?"
+failure: "Which conditions require recovery or human help?"
+budget: "Maximum turns, time, tokens, money, or side effects"
+```
+
+<Callout type="warning" title="A Loop Without an Exit Is a Failure Mode">
+Always define three exits: **success** when evidence satisfies the goal, **failure** when recovery is no longer useful, and **budget exhausted** when the loop reaches its allowed cost or risk boundary.
+</Callout>
+
+## Observations Must Come From the World
+
+The model saying “this looks correct” is not strong evidence. A useful observation is produced by something outside the answer being judged.
+
+<table>
+  <thead>
+    <tr>
+      <th>Task</th>
+      <th>Weak observation</th>
+      <th>Strong observation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Code repair</td>
+      <td>“The fix should work.”</td>
+      <td>The original failure is reproduced, then the regression test and the full suite pass.</td>
+    </tr>
+    <tr>
+      <td>Research</td>
+      <td>“Several sources agree.”</td>
+      <td>Claims link to original sources with dates, methods, and disagreements recorded.</td>
+    </tr>
+    <tr>
+      <td>Data extraction</td>
+      <td>“The JSON seems valid.”</td>
+      <td>Schema validation passes and sampled records match the source.</td>
+    </tr>
+    <tr>
+      <td>Content</td>
+      <td>“The copy feels clear.”</td>
+      <td>It passes a named rubric, factual review, link checks, and audience testing.</td>
+    </tr>
+    <tr>
+      <td>Operations</td>
+      <td>“The request succeeded.”</td>
+      <td>The external system returns the expected state and an audit record exists.</td>
+    </tr>
+  </tbody>
+</table>
+
+This is why tools matter: tests, browsers, databases, validators, and human review turn an internal guess into an observable result.
+
+## Separate the Maker From the Checker
+
+For low-risk work, one model can draft and self-review. For important work, use a checker with a different job and limited authority.
+
+<InfoGrid columns={2} items={[
+  { label: "Maker", description: "Proposes the change, calls action tools, and explains what evidence should be collected.", color: "amber" },
+  { label: "Checker", description: "Receives the goal, artifact, and evidence; applies the rubric; cannot silently rewrite the work it grades.", color: "green" },
+]} />
+
+The checker does not have to be another AI. Prefer the most deterministic evaluator available:
+
+1. **Exact checks** — types, schemas, constraints, permissions, hashes
+2. **Executable checks** — tests, linters, simulations, link validation
+3. **Rubric checks** — an independent model or human using named criteria
+4. **Outcome checks** — real user behavior or production metrics over time
+
+<Callout type="tip" title="Confidence Is Not Evidence">
+A confidence score generated by the same model that made the artifact is still a model output. Treat it as a routing hint, not proof.
+</Callout>
+
+## State Is the Spine of the Loop
+
+Context is what the model sees **this turn**. State is the compact record that lets the next turn continue without repeating or forgetting work.
+
+<Checklist title="Useful Loop State" items={[
+  { text: "The current goal and acceptance criteria" },
+  { text: "Actions already attempted and their observable results" },
+  { text: "Artifacts produced, with versions or stable references" },
+  { text: "Evaluator verdicts and unresolved issues" },
+  { text: "Budget consumed and permissions still available" },
+  { text: "The reason for continuing, stopping, or escalating" },
+]} />
+
+Store concise decisions and evidence—not a model's private chain of thought. Good state is small, inspectable, and safe to resume.
+
+## Common Loop Shapes
+
+### The Repair Loop
+
+`reproduce → change one thing → run checks → diagnose → repeat or stop`
+
+Best for code, configuration, data cleanup, and any task with executable feedback.
+
+### The Evaluator-Optimizer Loop
+
+`generate → score with a rubric → return targeted feedback → revise`
+
+Best for writing, translation, design critique, and outputs whose quality improves through articulated feedback.
+
+### The Research Loop
+
+`search → inspect sources → identify gaps or conflicts → search again → synthesize`
+
+Best when completeness is not known in advance. The stop rule should measure evidence coverage, not the number of search results.
+
+### The Human-Gated Loop
+
+`prepare → verify automatically → pause before high-risk action → human approves or redirects`
+
+Best for payments, publishing, deletion, access changes, medical or legal decisions, and other consequential actions.
+
+## Failure Modes to Design Out
+
+<table>
+  <thead>
+    <tr>
+      <th>Failure</th>
+      <th>What happened</th>
+      <th>Engineering response</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Infinite retry</td>
+      <td>The loop has no measurable success or budget exit.</td>
+      <td>Add explicit terminal states and a hard iteration cap.</td>
+    </tr>
+    <tr>
+      <td>Self-congratulation</td>
+      <td>The maker accepts its own plausible answer without evidence.</td>
+      <td>Use deterministic checks or an independent checker.</td>
+    </tr>
+    <tr>
+      <td>Context snowball</td>
+      <td>Every iteration appends everything until the model loses the signal.</td>
+      <td>Persist structured state and rebuild only relevant context.</td>
+    </tr>
+    <tr>
+      <td>Thrashing</td>
+      <td>The loop alternates between two fixes.</td>
+      <td>Detect repeated states and require a different strategy or escalation.</td>
+    </tr>
+    <tr>
+      <td>Goal drift</td>
+      <td>Local improvements replace the original objective.</td>
+      <td>Re-read the immutable goal and acceptance criteria each cycle.</td>
+    </tr>
+    <tr>
+      <td>Unsafe repetition</td>
+      <td>A reversible mistake becomes harmful when repeated.</td>
+      <td>Limit permissions, side effects, rate, spend, and blast radius.</td>
+    </tr>
+  </tbody>
+</table>
+
+## A Minimal Implementation
+
+```typescript
+let state = initialize(goal, acceptanceCriteria, budget);
+
+while (state.budget.remaining > 0) {
+  const context = assembleRelevantContext(state);
+  const proposedAction = await maker.chooseAction(context);
+  const observation = await tools.executeWithinPolicy(proposedAction);
+  const verdict = await evaluator.check({ goal, observation, state });
+
+  state = recordIteration(state, { proposedAction, observation, verdict });
+
+  if (verdict.status === "passed") return complete(state);
+  if (verdict.status === "unsafe" || verdict.status === "blocked") {
+    return escalateToHuman(state);
+  }
+
+  state = adaptPlan(state, verdict.feedback);
+}
+
+return stopWithBudgetReport(state);
+```
+
+The code is the easy part. The hard questions are domain questions: Which test proves the bug is gone? Which source is authoritative? Which action is reversible? Who can approve the final step? Those decisions are the actual work of loop engineering.
+
+## Practice: Design a Loop
+
+<TryIt
+  title="Draft a Loop Contract"
+  description="Replace the variables with a recurring task from your own work. Ask the AI to challenge weak evidence and ambiguous stop rules."
+  prompt={`Design a bounded AI work loop for this task:
+
+TASK: \${task:triage new customer support issues each morning}
+
+Define:
+1. The observable goal
+2. The trigger and required inputs
+3. Allowed actions and tool permissions
+4. Trusted observations from the external environment
+5. The evaluator and its rubric
+6. State that persists between iterations
+7. Success, failure, and budget-exhausted exits
+8. Human approval gates for risky actions
+9. A trace format that makes every iteration auditable
+
+Then identify the three most likely failure modes in your design and revise the loop to prevent them.`}
+/>
+
+<Quiz
+  question="An agent edits code, rereads the diff, and says the bug is fixed. What is the most important missing part of the loop?"
+  options={[
+    "A longer system prompt",
+    "An external observation evaluated against a stop rule",
+    "A second editing pass",
+    "A larger context window"
+  ]}
+  correctIndex={1}
+  explanation="The agent has produced and inspected an artifact, but it has not gathered independent evidence. Reproducing the failure and running relevant tests would create an observable signal that a stop rule can evaluate."
+/>
+
+## Further Reading
+
+- [Loop Engineering — Addy Osmani](https://addyosmani.com/blog/loop-engineering/) — the recent framing of replacing manual follow-up prompts with a designed system, plus practical cautions about verification and human responsibility
+- [Building Effective Agents — Anthropic](https://www.anthropic.com/engineering/building-effective-agents) — evaluator-optimizer workflows, environmental feedback, stopping conditions, and guidance on when agentic complexity is justified
+- [A Practical Guide to Building Agents — OpenAI](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) — agent runs, exit conditions, tools, guardrails, and human intervention
+- [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) — foundational research on interleaving actions with observations from an external environment
+
+## Summary
+
+<Callout type="tip" title="Build the Feedback, Not Just the Prompt">
+A reliable loop has a measurable goal, bounded actions, trusted observations, an explicit evaluator, compact state, safe exits, and human judgment where consequences demand it. The model is inside the loop; the engineer remains responsible for the loop.
+</Callout>

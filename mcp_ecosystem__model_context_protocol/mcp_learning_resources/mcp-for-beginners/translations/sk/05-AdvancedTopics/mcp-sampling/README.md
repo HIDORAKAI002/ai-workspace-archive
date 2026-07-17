@@ -1,58 +1,62 @@
-# Sampling v protokole Model Context Protocol
+> [ZASTARALÉ: KANDIDÁT NA VYDANIE 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Sampling je výkonná funkcia MCP, ktorá umožňuje serverom žiadať o dokončenia LLM prostredníctvom klienta, čím umožňuje sofistikované agentné správanie pri zachovaní bezpečnosti a súkromia. Správna konfigurácia samplingu môže výrazne zlepšiť kvalitu odpovedí a výkon. MCP poskytuje štandardizovaný spôsob, ako riadiť generovanie textu modelmi pomocou špecifických parametrov, ktoré ovplyvňujú náhodnosť, kreativitu a koherenciu.
+# Sampling v Model Context Protocol
+
+> **Oznámenie o zastaraní:** kandidát na vydanie špecifikácie MCP `2026-07-28` označuje Sampling za zastaraný v prospech priamej integrácie s API poskytovateľov LLM. Sampling naďalej funguje v `2025-11-25` a aspoň rok po formálnom zastaraní, takže všetko v tejto lekcii zostáva platné - ale nové návrhy serverov by mali zvážiť náhradný vzor. Pozrite si [Čo sa mení v MCP: Kandidát na vydanie 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Sampling je silná funkcia MCP, ktorá umožňuje serverom žiadať dokončenia LLM prostredníctvom klienta, čo umožňuje sofistikované agentné správanie pri zachovaní bezpečnosti a súkromia. Správna konfigurácia sampleingu môže dramaticky zlepšiť kvalitu a výkon odpovedí. MCP poskytuje štandardizovaný spôsob ako ovládať, ako modely generujú text s použitím špecifických parametrov, ktoré ovplyvňujú náhodnosť, kreativitu a súdržnosť.
 
 ## Úvod
 
-V tejto lekcii preskúmame, ako nakonfigurovať sampling parametre v MCP požiadavkách a pochopíme základné mechanizmy protokolu samplingu.
+V tejto lekcii preskúmame, ako nakonfigurovať parametre sampleingu v požiadavkách MCP a porozumieme základným protokolovým mechanizmom sampleingu.
 
-## Ciele učenia
+## Výukové ciele
 
-Na konci tejto lekcie budete schopní:
+Po skončení tejto lekcie budete schopní:
 
-- Pochopiť kľúčové sampling parametre dostupné v MCP.
-- Nakonfigurovať sampling parametre pre rôzne použitia.
-- Implementovať deterministický sampling pre reprodukovateľné výsledky.
-- Dynamicky upravovať sampling parametre na základe kontextu a preferencií používateľa.
-- Použiť sampling stratégie na zlepšenie výkonu modelu v rôznych scenároch.
+- Pochopiť kľúčové parametre sampleingu dostupné v MCP.
+- Konfigurovať parametre sampleingu pre rôzne použitia.
+- Implementovať deterministický sampling pre opakovateľné výsledky.
+- Dynamicky upravovať parametre sampleingu podľa kontextu a preferencií používateľa.
+- Použiť stratégie sampleingu na zlepšenie výkonu modelu v rôznych scenároch.
 - Pochopiť, ako sampling funguje v klient-server toku MCP.
 
 ## Ako sampling funguje v MCP
 
-Samplingový tok v MCP prebieha nasledovne:
+Priebeh sampleingu v MCP nasledovne:
 
-1. Server pošle klientovi požiadavku `sampling/createMessage`
+1. Server pošle požiadavku `sampling/createMessage` klientovi
 2. Klient požiadavku skontroluje a môže ju upraviť
 3. Klient vykoná sampling z LLM
-4. Klient skontroluje dokončenie
+4. Klient dokončenie skontroluje
 5. Klient vráti výsledok serveru
 
 Tento dizajn s človekom v slučke zabezpečuje, že používatelia majú kontrolu nad tým, čo LLM vidí a generuje.
 
-## Prehľad sampling parametrov
+## Prehľad parametrov sampleingu
 
-MCP definuje nasledujúce sampling parametre, ktoré je možné konfigurovať v požiadavkách klienta:
+MCP definuje nasledujúce parametre sampleingu, ktoré môžu byť konfigurované v požiadavkách klienta:
 
 | Parameter | Popis | Typický rozsah |
 |-----------|-------------|---------------|
-| `temperature` | Riadi náhodnosť pri výbere tokenov | 0.0 - 1.0 |
+| `temperature` | Ovláda náhodnosť vo výbere tokenov | 0.0 - 1.0 |
 | `maxTokens` | Maximálny počet tokenov na generovanie | Celé číslo |
-| `stopSequences` | Vlastné sekvencie, ktoré zastavia generovanie pri ich výskyte | Pole reťazcov |
+| `stopSequences` | Vlastné sekvencie, ktoré zastavia generovanie ak sa vyskytnú | Pole reťazcov |
 | `metadata` | Ďalšie parametre špecifické pre poskytovateľa | JSON objekt |
 
 Mnoho poskytovateľov LLM podporuje ďalšie parametre cez pole `metadata`, ktoré môžu obsahovať:
 
-| Bežný rozšírený parameter | Popis | Typický rozsah |
+| Bežný rozširujúci parameter | Popis | Typický rozsah |
 |-----------|-------------|---------------|
-| `top_p` | Nucleus sampling - obmedzuje tokeny na najvyššiu kumulatívnu pravdepodobnosť | 0.0 - 1.0 |
+| `top_p` | Nucleus sampling – obmedzuje tokeny na top kumulatívnu pravdepodobnosť | 0.0 - 1.0 |
 | `top_k` | Obmedzuje výber tokenov na top K možností | 1 - 100 |
-| `presence_penalty` | Penalizuje tokeny na základe ich prítomnosti v texte doteraz | -2.0 - 2.0 |
-| `frequency_penalty` | Penalizuje tokeny na základe ich frekvencie v texte doteraz | -2.0 - 2.0 |
-| `seed` | Špecifické náhodné semeno pre reprodukovateľné výsledky | Celé číslo |
+| `presence_penalty` | Penalizuje tokeny podľa ich výskytu v texte | -2.0 - 2.0 |
+| `frequency_penalty` | Penalizuje tokeny podľa ich frekvencie v texte | -2.0 - 2.0 |
+| `seed` | Konkrétne náhodné semeno pre reprodukovateľné výsledky | Celé číslo |
 
 ## Príklad formátu požiadavky
 
-Tu je príklad požiadavky na sampling od klienta v MCP:
+Tu je príklad požiadavky na sampling klientovi v MCP:
 
 ```json
 {
@@ -93,42 +97,42 @@ Klient vráti výsledok dokončenia:
 
 ## Ovládanie človekom v slučke
 
-Sampling v MCP je navrhnutý s ohľadom na ľudský dohľad:
+Sampling v MCP je navrhnutý s ohľadom na dohľad človeka:
 
 - **Pre prompt-y**:
-  - Klienti by mali používateľom zobraziť navrhovaný prompt
-  - Používatelia by mali mať možnosť prompt upraviť alebo odmietnuť
-  - Systémové prompt-y môžu byť filtrované alebo upravované
+  - Klienti by mali používateľom zobrazovať navrhovaný prompt
+  - Používatelia by mali mať možnosť prompt upraviť alebo zamietnuť
+  - Systémové prompt-y môžu byť filtrované alebo upravené
   - Zahrnutie kontextu riadi klient
 
 - **Pre dokončenia**:
-  - Klienti by mali používateľom zobraziť dokončenie
-  - Používatelia by mali mať možnosť dokončenie upraviť alebo odmietnuť
+  - Klienti by mali používateľom zobrazovať dokončenie
+  - Používatelia by mali mať možnosť dokončenia upraviť alebo zamietnuť
   - Klienti môžu filtrovať alebo upravovať dokončenia
-  - Používatelia kontrolujú, ktorý model sa použije
+  - Používatelia riadia, ktorý model sa použije
 
-S týmito princípmi na pamäti sa pozrime, ako implementovať sampling v rôznych programovacích jazykoch, so zameraním na parametre, ktoré sú bežne podporované naprieč poskytovateľmi LLM.
+S týmito princípmi na pamäti sa pozrime, ako implementovať sampling v rôznych programovacích jazykoch so zameraním na parametre, ktoré podporujú väčšina poskytovateľov LLM.
 
 ## Bezpečnostné úvahy
 
-Pri implementácii samplingu v MCP zvážte tieto bezpečnostné odporúčania:
+Pri implementácii sampleingu v MCP zvážte tieto bezpečnostné odporúčania:
 
-- **Overte celý obsah správy** pred jej odoslaním klientovi
+- **Validujte všetok obsah správ** pred ich odoslaním klientovi
 - **Sanitizujte citlivé informácie** z promptov a dokončení
-- **Implementujte limity rýchlosti** na zabránenie zneužitia
-- **Monitorujte používanie samplingu** pre nezvyčajné vzory
+- **Implementujte limity rýchlosti** pre zabránenie zneužitia
+- **Monitorujte používanie sampleingu** pre neobvyklé vzory
 - **Šifrujte dáta počas prenosu** pomocou bezpečných protokolov
-- **Zaobchádzajte s ochranou osobných údajov používateľov** podľa príslušných predpisov
-- **Auditujte sampling požiadavky** pre súlad a bezpečnosť
-- **Kontrolujte náklady** pomocou vhodných limitov
-- **Implementujte timeouty** pre sampling požiadavky
-- **Zvládajte chyby modelu** s vhodnými záložnými mechanizmami
+- **Zaobchádzajte s ochranou údajov používateľov** v súlade s miestnymi predpismi
+- **Auditujte požiadavky na sampling** pre súlad a bezpečnosť
+- **Kontrolujte výdaje nákladov** vhodnými limitmi
+- **Implementujte časové limity** pre požiadavky na sampling
+- **Zaobchádzajte s chybami modelu** elegantne s vhodnými záložnými riešeniami
 
-Sampling parametre umožňujú jemné doladenie správania jazykových modelov na dosiahnutie požadovanej rovnováhy medzi deterministickými a kreatívnymi výstupmi.
+Parametre sampleingu umožňujú jemné doladenie správania jazykových modelov, aby sa dosiahla požadovaná rovnováha medzi deterministickými a kreatívnymi výstupmi.
 
 Pozrime sa, ako nakonfigurovať tieto parametre v rôznych programovacích jazykoch.
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -166,47 +170,47 @@ public class SamplingExample
 
 V predchádzajúcom kóde sme:
 
-- Vytvorili MCP klienta so špecifickou URL servera.
-- Nakonfigurovali požiadavku so sampling parametrami ako `temperature`, `top_p` a `top_k`.
-- Odoslali požiadavku a vytlačili vygenerovaný text.
+- Vytvorili klienta MCP so špecifickou URL servera.
+- Nakonfigurovali požiadavku s parametrami sampleingu ako `temperature`, `top_p` a `top_k`.
+- Odoslali požiadavku a vypísali generovaný text.
 - Použili:
-    - `allowedTools` na špecifikovanie nástrojov, ktoré môže model počas generovania použiť. V tomto prípade sme povolili nástroje `ideaGenerator` a `marketAnalyzer` na pomoc pri generovaní kreatívnych nápadov na aplikácie.
-    - `frequencyPenalty` a `presencePenalty` na kontrolu opakovania a rozmanitosti výstupu.
-    - `temperature` na riadenie náhodnosti výstupu, kde vyššie hodnoty vedú k kreatívnejším odpovediam.
-    - `top_p` na obmedzenie výberu tokenov na tie, ktoré prispievajú k najvyššej kumulatívnej pravdepodobnosti, čím sa zvyšuje kvalita generovaného textu.
+    - `allowedTools` na špecifikovanie, ktoré nástroje môže model používať počas generovania. V tomto prípade sme povolili nástroje `ideaGenerator` a `marketAnalyzer` na pomoc pri tvorbe kreatívnych nápadov pre aplikácie.
+    - `frequencyPenalty` a `presencePenalty` na kontrolu opakovania a rôznorodosti výstupu.
+    - `temperature` na ovládanie náhodnosti výstupu, kde vyššie hodnoty vedú k kreatívnejším odpovediam.
+    - `top_p` na obmedzenie výberu tokenov na tie, ktoré prispievajú k najvyššej kumulatívnej pravdepodobnosti, zvyšujúcej kvalitu generovaného textu.
     - `top_k` na obmedzenie modelu na top K najpravdepodobnejších tokenov, čo môže pomôcť pri generovaní koherentnejších odpovedí.
-    - `frequencyPenalty` a `presencePenalty` na zníženie opakovania a podporu rozmanitosti v generovanom texte.
+    - `frequencyPenalty` a `presencePenalty` na zníženie opakovania a podporu rôznorodosti v generovanom texte.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// Príklad JavaScriptu: Konfigurácia teploty a Top-P vzorkovania
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // Inicializujte MCP klienta
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // Konfigurujte požiadavku s rôznymi parametrami vzorkovania
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // Vyššia teplota = väčšia náhodnosť/kreativita
+    topP: 0.92,          // Zohľadnite tokeny s top 92% pravdepodobnostnou hmotnosťou
+    frequencyPenalty: 0.6, // Znížte opakovanie sekvencií tokenov
+    presencePenalty: 0.4   // Penalizujte tokeny, ktoré sa už v texte objavili
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // Nižšia teplota = viac deterministické/faktické
+    topP: 0.85,          // O niečo viac zameraný výber tokenov
+    frequencyPenalty: 0.2, // Minimálny trest za opakovanie
+    presencePenalty: 0.1   // Minimálny trest za prítomnosť
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // Odoslať dve požiadavky s rôznymi konfiguráciami vzorkovania
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -239,15 +243,15 @@ demonstrateSampling();
 
 V predchádzajúcom kóde sme:
 
-- Inicializovali MCP klienta s URL servera a API kľúčom.
-- Nakonfigurovali dve sady sampling parametrov: jednu pre kreatívne úlohy a druhú pre faktické úlohy.
+- Inicializovali klienta MCP s URL servera a API kľúčom.
+- Nakonfigurovali dva súbory parametrov sampleingu: jeden pre kreatívne úlohy a druhý pre faktické úlohy.
 - Odoslali požiadavky s týmito konfiguráciami, umožňujúc modelu používať špecifické nástroje pre každú úlohu.
-- Vytlačili vygenerované odpovede na demonštráciu efektov rôznych sampling parametrov.
-- Použili `allowedTools` na špecifikovanie nástrojov, ktoré môže model počas generovania použiť. V tomto prípade sme povolili `ideaGenerator` a `environmentalImpactTool` pre kreatívne úlohy a `factChecker` a `dataAnalysisTool` pre faktické úlohy.
-- Použili `temperature` na riadenie náhodnosti výstupu, kde vyššie hodnoty vedú k kreatívnejším odpovediam.
-- Použili `top_p` na obmedzenie výberu tokenov na tie, ktoré prispievajú k najvyššej kumulatívnej pravdepodobnosti, čím sa zvyšuje kvalita generovaného textu.
-- Použili `frequencyPenalty` a `presencePenalty` na zníženie opakovania a podporu rozmanitosti vo výstupe.
-- Použili `top_k` na obmedzenie modelu na top K najpravdepodobnejších tokenov, čo môže pomôcť pri generovaní koherentnejších odpovedí.
+- Vypísali generované odpovede, aby sme demonštrovali vplyv rôznych parametrov sampleingu.
+- Použili sme `allowedTools` na špecifikovanie nástrojov, ktoré môže model používať počas generovania. V tomto prípade sme povolili `ideaGenerator` a `environmentalImpactTool` pre kreatívne úlohy a `factChecker` a `dataAnalysisTool` pre faktické úlohy.
+- Použili sme `temperature` na ovládanie náhodnosti výstupu, kde vyššie hodnoty vedú k kreatívnejším odpovediam.
+- Použili sme `top_p` na obmedzenie výberu tokenov na tie, ktoré prispievajú k najvyššej kumulatívnej pravdepodobnosti, čím sa zvyšuje kvalita generovaného textu.
+- Použili sme `frequencyPenalty` a `presencePenalty` na zníženie opakovania a podporu rôznorodosti vo výstupe.
+- Použili sme `top_k` na obmedzenie modelu na top K najpravdepodobnejších tokenov, čo môže pomôcť pri generovaní koherentnejších odpovedí.
 
 ---
 
@@ -255,39 +259,39 @@ V predchádzajúcom kóde sme:
 
 Pre aplikácie vyžadujúce konzistentné výstupy zabezpečuje deterministický sampling reprodukovateľné výsledky. Dosahuje sa to použitím pevného náhodného semena a nastavením teploty na nulu.
 
-Pozrime sa na ukážkovú implementáciu deterministického samplingu v rôznych programovacích jazykoch.
+Pozrime sa na ukážkovú implementáciu na demonštráciu deterministického sampleingu v rôznych programovacích jazykoch.
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// Java príklad: Deterministické odpovede s pevne daným seedom
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // Použitie pevne daného seedu pre deterministické výsledky
         
-        // First request with fixed seed
+        // Prvá požiadavka s pevným seedom
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // Nulová teplota pre maximálny determinismus
             .build();
             
-        // Second request with the same seed
+        // Druhá požiadavka s rovnakým seedom
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // Vykonaj obe požiadavky
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // Odpovede by mali byť identické vďaka rovnakému seedu a teplote=0
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -298,17 +302,17 @@ public class DeterministicSamplingExample {
 
 V predchádzajúcom kóde sme:
 
-- Vytvorili MCP klienta so špecifikovanou URL servera.
-- Nakonfigurovali dve požiadavky s rovnakým promptom, pevným seedom a nulovou teplotou.
-- Odoslali obe požiadavky a vytlačili vygenerovaný text.
-- Ukázali, že odpovede sú identické vďaka deterministickej povahe sampling konfigurácie (rovnaký seed a teplota).
-- Použili `setSeed` na špecifikovanie pevného náhodného semena, čím sa zabezpečí, že model vždy vygeneruje rovnaký výstup pre rovnaký vstup.
-- Nastavili `temperature` na nulu, aby sa zabezpečila maximálna deterministickosť, teda model vždy vyberie najpravdepodobnejší nasledujúci token bez náhodnosti.
+- Vytvorili klienta MCP so zadanou URL servera.
+- Nakonfigurovali dve požiadavky s rovnakým promptom, pevným semenom a nulovou teplotou.
+- Odoslali obe požiadavky a vypísali generovaný text.
+- Ukázali, že odpovede sú identické vďaka deterministickej povahe konfigurácie sampleingu (rovnaké semeno a teplota).
+- Použili `setSeed` na špecifikovanie pevného náhodného semena, ktoré zabezpečuje, že model vždy pre rovnaký vstup generuje rovnaký výstup.
+- Nastavili `temperature` na nulu pre maximálnu deterministickosť, čo znamená, že model vždy vyberie najpravdepodobnejší nasledujúci token bez náhodnosti.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// Príklad JavaScriptu: Deterministické odpovede s riadením semienka
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -320,19 +324,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // Prvý požiadavok s pevne daným semienkom
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // Nulová teplota pre maximálnu deterministickosť
     });
     
-    // Second request with same seed and temperature
+    // Druhý požiadavok s rovnakým semienkom a teplotou
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // Tretí požiadavok s iným semienkom, ale rovnakou teplotou
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -354,26 +358,26 @@ deterministicSampling();
 
 V predchádzajúcom kóde sme:
 
-- Inicializovali MCP klienta s URL servera.
-- Nakonfigurovali dve požiadavky s rovnakým promptom, pevným seedom a nulovou teplotou.
-- Odoslali obe požiadavky a vytlačili vygenerovaný text.
-- Ukázali, že odpovede sú identické vďaka deterministickej povahe sampling konfigurácie (rovnaký seed a teplota).
-- Použili `seed` na špecifikovanie pevného náhodného semena, čím sa zabezpečí, že model vždy vygeneruje rovnaký výstup pre rovnaký vstup.
-- Nastavili `temperature` na nulu, aby sa zabezpečila maximálna deterministickosť, teda model vždy vyberie najpravdepodobnejší nasledujúci token bez náhodnosti.
-- Použili iné semeno pre tretiu požiadavku, aby sme ukázali, že zmena semena vedie k odlišným výstupom, aj keď prompt a teplota zostávajú rovnaké.
+- Inicializovali klienta MCP s URL servera.
+- Nakonfigurovali dve požiadavky s rovnakým promptom, pevným semenom a nulovou teplotou.
+- Odoslali obe požiadavky a vypísali generovaný text.
+- Ukázali, že odpovede sú identické vďaka deterministickej povahe konfigurácie sampleingu (rovnaké semeno a teplota).
+- Použili `seed` na špecifikovanie pevného náhodného semena, zabezpečujúceho rovnaký výstup pre rovnaký vstup zakaždým.
+- Nastavili `temperature` na nulu pre maximálnu deterministickosť, teda model vždy vyberie najpravdepodobnejší nasledujúci token bez náhodnosti.
+- Použili iné semeno pre tretiu požiadavku, aby sme ukázali, že zmena semena vedie k rôznym výstupom, aj pri rovnakom prompte a teplote.
 
 ---
 
-## Dynamická konfigurácia samplingu
+## Dynamická konfigurácia sampleingu
 
-Inteligentný sampling prispôsobuje parametre na základe kontextu a požiadaviek každej požiadavky. To znamená dynamickú úpravu parametrov ako temperature, top_p a penalizácie podľa typu úlohy, preferencií používateľa alebo historického výkonu.
+Inteligentný sampling prispôsobuje parametre na základe kontextu a požiadaviek každej požiadavky. To znamená dynamicky upravovať parametre ako temperature, top_p a penalty podľa typu úlohy, preferencií používateľa alebo historického výkonu.
 
 Pozrime sa, ako implementovať dynamický sampling v rôznych programovacích jazykoch.
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# Python príklad: Dynamické vzorkovanie založené na kontexte požiadavky
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -381,7 +385,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # Definovať prednastavenia vzorkovania pre rôzne typy úloh
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -389,22 +393,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # Vybrať základné prednastavenie
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # Upraviť podľa preferencií používateľa, ak sú poskytnuté
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # Nastaviť teplotu podľa preferencie kreativity (1-10)
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # Upraviť top_p podľa požadovanej rôznorodosti odpovedí
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # Vytvoriť a odoslať požiadavku s vlastnými parametrami vzorkovania
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -412,7 +416,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # Vrátiť odpoveď s metadátami vzorkovania pre transparentnosť
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -423,29 +427,29 @@ class DynamicSamplingService:
 V predchádzajúcom kóde sme:
 
 - Vytvorili triedu `DynamicSamplingService`, ktorá spravuje adaptívny sampling.
-- Definovali sampling prednastavenia pre rôzne typy úloh (kreatívne, faktické, kód, analytické).
-- Vybrali základné sampling prednastavenie podľa typu úlohy.
-- Upravili sampling parametre na základe preferencií používateľa, ako je úroveň kreativity a rozmanitosti.
-- Odoslali požiadavku s dynamicky nakonfigurovanými sampling parametrami.
-- Vrátili vygenerovaný text spolu s použitými sampling parametrami a typom úlohy pre transparentnosť.
-- Použili `temperature` na riadenie náhodnosti výstupu, kde vyššie hodnoty vedú k kreatívnejším odpovediam.
+- Definovali vzory sampleingu pre rôzne typy úloh (kreatívne, faktické, kódové, analytické).
+- Vybrali základný vzor sampleingu na základe typu úlohy.
+- Upravili parametre sampleingu na základe preferencií používateľa, ako sú úroveň kreativity a rôznorodosti.
+- Odoslali požiadavku s dynamicky nakonfigurovanými parametrami sampleingu.
+- Vrátili generovaný text spolu s použitými parametrami sampleingu a typom úlohy pre transparentnosť.
+- Použili `temperature` na ovládanie náhodnosti výstupu, kde vyššie hodnoty vedú k kreatívnejším odpovediam.
 - Použili `top_p` na obmedzenie výberu tokenov na tie, ktoré prispievajú k najvyššej kumulatívnej pravdepodobnosti, čím sa zvyšuje kvalita generovaného textu.
-- Použili `frequency_penalty` na zníženie opakovania a podporu rozmanitosti vo výstupe.
-- Použili `user_preferences` na umožnenie prispôsobenia sampling parametrov na základe používateľom definovanej úrovne kreativity a rozmanitosti.
-- Použili `task_type` na určenie vhodnej sampling stratégie pre požiadavku, čo umožňuje lepšie prispôsobené odpovede podľa povahy úlohy.
-- Použili metódu `send_request` na odoslanie promptu s nakonfigurovanými sampling parametrami, čím sa zabezpečí, že model generuje text podľa špecifikovaných požiadaviek.
-- Použili `generated_text` na získanie odpovede modelu, ktorá je následne vrátená spolu so sampling parametrami a typom úlohy na ďalšiu analýzu alebo zobrazenie.
-- Použili funkcie `min` a `max` na zabezpečenie, že používateľské preferencie sú obmedzené v platných rozsahoch, čím sa zabráni neplatným sampling konfiguráciám.
+- Použili `frequency_penalty` na zníženie opakovania a podporu rôznorodosti výstupu.
+- Použili `user_preferences` na umožnenie prispôsobenia parametrov sampleingu podľa používateľom definovaných úrovní kreativity a rôznorodosti.
+- Použili `task_type` na určenie vhodnej stratégie sampleingu pre požiadavku, čím umožnili cielené odpovede podľa povahy úlohy.
+- Použili metódu `send_request` na odoslanie promptu s nakonfigurovanými parametrami sampleingu, aby model generoval text podľa špecifikovaných požiadaviek.
+- Použili `generated_text` na získanie odpovede modelu, ktorá je následne vrátená spolu s parametrami sampleingu a typom úlohy na ďalšiu analýzu alebo zobrazenie.
+- Použili funkcie `min` a `max` na zaistenie, že používateľské preferencie sú ohraničené v platných rozsahoch, aby sa zabránilo neplatným konfiguráciám sampleingu.
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript Dynamický](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// Príklad JavaScript: Dynamická konfigurácia vzoriek na základe kontextu používateľa
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // Definujte základné profily vzoriek
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -453,15 +457,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // Sledovanie historickej výkonnosti
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // Zistiť typ úlohy z promptu
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // Jednoduché heuristické rozpoznávanie - môže byť vylepšené pomocou ML klasifikácie
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -482,57 +486,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // Predvolené na konverzačné, ak nie je zistený jasný typ
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // Vypočítať parametre vzoriek na základe kontextu a preferencií používateľa
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // Detekovať typ úlohy
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // Získať základný profil
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // Upravte podľa preferencií používateľa
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // Škálovanie od 1 do 10 na vhodný rozsah teploty
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // Vyššia presnosť znamená nižšie topP (viac zameraný výber)
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // Vyššia konzistencia znamená nižšie tresty
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // Použiť naučené úpravy z histórie výkonnosti
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // Jednoduchá adaptívna logika - môže byť vylepšená sofistikovanejšími algoritmami
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // Zohľadniť iba nedávnu históriu
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // Vypočítať priemerné skóre výkonnosti
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // Ak je výkonnosť pod prahom, upraviť parametre
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // Jemná úprava smerom k bezpečnejším hodnotám
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -540,32 +544,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // Zaznamenať výkonnosť pre budúce úpravy
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // Hodnotenie kvality odpovede od 0 do 1
     });
     
-    // Limit history size
+    // Obmedziť veľkosť histórie
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // Získať optimalizované parametre vzoriek
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // Odoslať požiadavku s optimalizovanými parametrami
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // Ak používateľ poskytne spätnú väzbu, zaznamenať ju pre budúcu optimalizáciu
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -578,7 +582,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// Príklad použitia
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -587,13 +591,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // Kreatívna úloha s vlastnými preferenciami používateľa
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // Vysoká kreativita (1-10)
+          consistency: 3  // Nízka konzistencia (1-10)
         }
       }
     );
@@ -603,14 +607,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // Úloha generovania kódu
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // Nízka kreativita
+          precision: 8,   // Vysoká presnosť
+          consistency: 9  // Vysoká konzistencia
         }
       }
     );
@@ -631,30 +635,34 @@ demonstrateAdaptiveSampling();
 V predchádzajúcom kóde sme:
 
 - Vytvorili triedu `AdaptiveSamplingManager`, ktorá spravuje dynamický sampling na základe typu úlohy a preferencií používateľa.
-- Definovali sampling profily pre rôzne typy úloh (kreatívne, faktické, kód, konverzačné).
+- Definovali profily sampleingu pre rôzne typy úloh (kreatívne, faktické, kódové, konverzačné).
 - Implementovali metódu na detekciu typu úlohy z promptu pomocou jednoduchých heuristík.
-- Vypočítali sampling parametre na základe detegovaného typu úlohy a preferencií používateľa.
-- Aplikovali naučené úpravy na základe historického výkonu na optimalizáciu sampling parametrov.
+- Vypočítali parametre sampleingu na základe detegovaného typu úlohy a preferencií používateľa.
+- Aplikovali naučené úpravy na základe historického výkonu za účelom optimalizácie parametrov sampleingu.
 - Zaznamenali výkon pre budúce úpravy, čo umožňuje systému učiť sa z minulých interakcií.
-- Odoslali požiadavky s dynamicky nakonfigurovanými sampling parametrami a vrátili vygenerovaný text spolu s použitými parametrami a detegovaným typom úlohy.
+- Odoslali požiadavky s dynamicky nakonfigurovanými parametrami sampleingu a vrátili generovaný text spolu s použitými parametrami a detegovaným typom úlohy.
 - Použili:
-    - `userPreferences` na umožnenie prispôsobenia sampling parametrov na základe používateľom definovaných úrovní kreativity, presnosti a konzistencie.
-    - `detectTaskType` na určenie povahy úlohy podľa promptu, čo umožňuje lepšie prispôsobené odpovede.
-    - `recordPerformance` na zaznamenávanie výkonu generovaných odpovedí, čo umožňuje systému adaptovať sa a zlepšovať v čase.
-    - `applyLearnedAdjustments` na úpravu sampling parametrov na základe historického výkonu, čím sa zvyšuje schopnosť modelu generovať kvalitné odpovede.
-    - `generateResponse` na zabalenie celého procesu generovania odpovede s adaptívnym samplingom, čo uľahčuje volanie s rôznymi promptmi a kontextmi.
-    - `allowedTools` na špecifikovanie nástrojov, ktoré môže model počas generovania použiť, čo umožňuje kontextovo uvedomelejšie odpovede.
-    - `feedbackScore` na umožnenie používateľom poskytovať spätnú väzbu o kvalite generovanej odpovede, ktorá môže byť použitá na ďalšie zlepšenie výkonu modelu v čase.
-    - `performanceHistory` na udržiavanie záznamu minulých interakcií, čo umožňuje systému učiť sa z predchádzajúcich úspechov a neúspechov.
-    - `getSamplingParameters` na dynamickú úpravu sampling parametrov na základe kontextu požiadavky, čo umožňuje flexibilnejšie a responzívnejšie správanie modelu.
-    - `detectTaskType` na klasifikáciu úlohy podľa promptu, čo umožňuje systému aplikovať vhodné sampling stratégie pre rôzne typy požiadaviek.
-    - `samplingProfiles` na definovanie základných sampling konfigurácií pre rôzne typy úloh, čo umožňuje rýchle úpravy podľa povahy požiadavky.
+    - `userPreferences` na prispôsobenie parametrov sampleingu podľa používateľmi definovaných úrovní kreativity, presnosti a konzistencie.
+    - `detectTaskType` na určenie povahy úlohy podľa promptu, umožňujúce cielené odpovede.
+    - `recordPerformance` na zaznamenanie výkonu generovaných odpovedí, čo umožňuje systému adaptovať sa a zlepšovať v priebehu času.
+    - `applyLearnedAdjustments` na úpravu parametrov sampleingu na základe historického výkonu, čím sa zlepšuje schopnosť modelu generovať kvalitné odpovede.
+    - `generateResponse` na zapuzdrenie celého procesu generovania odpovede s adaptívnym samplingom, čo uľahčuje volanie s rôznymi promptmi a kontextami.
+    - `allowedTools` na špecifikovanie, ktoré nástroje môže model používať počas generovania, čím sa umožňujú kontextovo uvedomelé odpovede.
+    - `feedbackScore` na umožnenie používateľom poskytovať spätnú väzbu o kvalite generovanej odpovede, ktorú možno využiť na ďalšie zdokonaľovanie výkonu modelu.
+    - `performanceHistory` na udržiavanie záznamu predchádzajúcich interakcií, čo umožňuje systému učiť sa z minulých úspechov a neúspechov.
+    - `getSamplingParameters` na dynamickú úpravu parametrov sampleingu podľa kontextu požiadavky, čo umožňuje flexibilnejšie a reagujúce správanie modelu.
+    - `detectTaskType` na klasifikáciu úlohy podľa promptu, čo umožňuje systému aplikovať vhodné stratégie sampleingu pre rôzne typy požiadaviek.
+    - `samplingProfiles` na definovanie základných konfigurácií sampleingu pre rôzne typy úloh, čo umožňuje rýchle úpravy podľa povahy požiadavky.
 
 ---
 
 ## Čo ďalej
 
-- [5.7 Scaling](../mcp-scaling/README.md)
+- [5.7 Škálovanie](../mcp-scaling/README.md)
 
-**Vyhlásenie o zodpovednosti**:  
-Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Aj keď sa snažíme o presnosť, prosím, majte na pamäti, že automatizované preklady môžu obsahovať chyby alebo nepresnosti. Originálny dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za akékoľvek nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

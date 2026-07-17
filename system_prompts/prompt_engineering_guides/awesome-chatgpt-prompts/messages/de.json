@@ -1251,7 +1251,7 @@
     "interactiveBanner": {
       "badge": "Interaktive Version Verfügbar",
       "title": "Möchten Sie ein detaillierteres und interaktives Erlebnis?",
-      "description": "Tauchen Sie tiefer ein mit unserem umfassenden interaktiven Leitfaden mit 25 Kapiteln, praktischen Übungen und Beispielen aus der Praxis.",
+      "description": "Tauchen Sie tiefer ein mit unserem umfassenden interaktiven Leitfaden mit 26 Kapiteln, praktischen Übungen und Beispielen aus der Praxis.",
       "cta": "Das interaktive Buch lesen"
     },
     "generalTips": {
@@ -1743,7 +1743,7 @@
       "part4": "Teil 4: Best Practices",
       "part5": "Teil 5: Anwendungsfälle",
       "part6": "Teil 6: Fazit",
-      "chapters": "25 Interaktive Kapitel"
+      "chapters": "26 Interaktive Kapitel"
     },
     "startReading": "Jetzt Lesen",
     "skipToChapter1": "Zu Kapitel 1 springen",
@@ -1800,6 +1800,7 @@
       "12-handling-edge-cases": "Umgang mit Grenzfällen",
       "13-multimodal-prompting": "Multimodales Prompting",
       "14-context-engineering": "Kontext-Engineering",
+      "14a-loop-engineering": "Loop-Engineering",
       "25-agents-and-skills": "Agenten & Skills",
       "15-common-pitfalls": "Häufige Fallstricke",
       "16-ethics-responsible-use": "Ethik & Verantwortungsvolle Nutzung",
@@ -1830,6 +1831,7 @@
       "12-handling-edge-cases": "Mit unerwarteten Eingaben umgehen",
       "13-multimodal-prompting": "Mit Bildern, Audio und Video arbeiten",
       "14-context-engineering": "RAG, Embeddings, Function Calling und MCP",
+      "14a-loop-engineering": "Feedbackschleifen entwerfen, die handeln, prüfen, sich anpassen und rechtzeitig stoppen",
       "25-agents-and-skills": "KI-Agenten mit wiederverwendbaren Skill-Paketen erstellen",
       "15-common-pitfalls": "Fehler, die Sie vermeiden sollten",
       "16-ethics-responsible-use": "Ethische Überlegungen in der KI",

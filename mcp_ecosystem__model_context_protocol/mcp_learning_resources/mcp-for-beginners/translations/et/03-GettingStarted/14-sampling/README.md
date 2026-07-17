@@ -1,26 +1,28 @@
-# Proovinäide – volitame funktsioonid kliendile
+> [VANANENUD: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
 
-> **Aegumisteade:** `2026-07-28` MCP spetsifikatsiooni väljaandmise kandidaat märgib proovinäite aegunuks, eelistades otsest integreerimist LLM pakkujate API-dega. Proovinäide jätkab töötamist `2025-11-25` ja vähemalt aasta pärast ametlikku aegumist, seega on selle õppetunni sisu endiselt kehtiv — kuid uued serveri disainid peaksid hindama asendusmustrid. Vaata [Mis MCP-s muutub: 2026-07-28 väljalaske kandidaat](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+# Proovivõtt - omaduste delegeerimine kliendile
 
-Mõnikord vajavad MCP klient ja MCP server koostöönd ühiseks eesmärgiks. Võib esineda olukordi, kus server vajab abi kliendil asuvast LLM-ist. Sellisel juhul tuleks kasutada proovinäidet.
+> **Märkus vananemise kohta:** `2026-07-28` MCP spetsifikatsiooni release candidate märkis Proovivõtu vananenuks, eelistades otsest integreerimist LLM pakkujate API-dega. Proovivõtt töötab jätkuvalt `2025-11-25` ja vähemalt aasta pärast ametlikku vananemist, seega on selle õppetüki sisu endiselt kehtiv — kuid uued serveridisainid peaksid hindama asendusmustri kasutamist. Vaata [Mida muutub MCP-s: 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-Vaatame mõnda kasutusjuhtu ja kuidas ehitada lahendus, mis hõlmab proovinäidet.
+Mõnikord on vaja, et MCP klient ja MCP server teeksid koostööd ühise eesmärgi saavutamiseks. Võib olla olukord, kus server vajab abi kliendis asuvast LLM-ist. Sellisel juhul tuleks kasutada proovivõttu.
+
+Vaatame mõningaid kasutusjuhte ja kuidas proovivõtu lahendust ehitada.
 
 ## Ülevaade
 
-Selles õppetükis keskendume proovinäite kasutamisele — millal ja kus seda kasutada ning kuidas seda seadistada.
+Selles õppetükis keskendume proovivõtu kasutamise aegadele ja kohtadele ning selle seadistamisele.
 
 ## Õpieesmärgid
 
 Selles peatükis:
 
-- Selgitame, mis on proovinäide ja millal seda kasutada.
-- Näitame, kuidas seadistada proovinäidet MCP-s.
-- Toome näiteid proovinäite rakendamisest.
+- Selgitame, mis on proovivõtt ja millal seda kasutada.
+- Näitame, kuidas MCP-s proovivõttu seadistada.
+- Anname näiteid proovivõtu kasutamisest.
 
-## Mis on proovinäide ja miks seda kasutada?
+## Mis on proovivõtt ja miks seda kasutada?
 
-Proovinäide on täiustatud funktsioon, mis töötab järgmiselt:
+Proovivõtt on arenenud funktsioon, mis töötab järgmiselt:
 
 ```mermaid
 sequenceDiagram
@@ -29,19 +31,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: Autor blogipostitus
+    User->>MCP Client: Autori blogipostitus
     MCP Client->>MCP Server: Tööriista kõne (blogipostituse mustand)
-    MCP Server->>MCP Client: Valimi päring (loo kokkuvõte)
-    MCP Client->>LLM: Genereeri blogipostituse kokkuvõte
+    MCP Server->>MCP Client: Valimi päring (kokkuvõtte loomine)
+    MCP Client->>LLM: Blogipostituse kokkuvõtte genereerimine
     LLM->>MCP Client: Kokkuvõtte tulemus
     MCP Client->>MCP Server: Valimi vastus (kokkuvõte)
     MCP Server->>MCP Client: Täielik blogipostitus (mustand + kokkuvõte)
     MCP Client->>User: Blogipostitus valmis
 ```
 
-### Proovinäite päring
+### Proovivõtu päring
 
-Nüüd, kui meil on ülevaade usutavast stsenaariumist, räägime serveri kliendile tagastatavast proovinäite päringust. Selline päring võib JSON-RPC formaadis välja näha nii:
+Nüüd, kui meil on üldine ülevaade usutavast stsenaariumist, räägime serveri kliendile tagastatavast proovivõtu päringust. Selline päring võib JSON-RPC formaadis välja näha järgmine:
 
 ```json
 {
@@ -73,17 +75,17 @@ Nüüd, kui meil on ülevaade usutavast stsenaariumist, räägime serveri kliend
 }
 ```
 
-Siit väärib tähelepanu:
+Siin on paar märkimisväärset asja:
 
-- Prompt, sisuga -> tekst, on meie üleskutse, mis on juhend LLM-ile blogipostituse sisu kokkuvõtmiseks.
+- Prompt, sisu -> tekst, on meie juhis, mille abil palutakse LLM-il blogipostituse sisu kokku võtta.
 
-- **modelPreferences**. See sektsioon ongi selline eelistus, soovitus, millist konfiguratsiooni LLM-iga kasutada. Kasutaja võib otsustada, kas neid soovitusi järgida või muuta. Selles näites on soovitused kasutatava mudeli, kiiruse ja intelligentsuse prioriteedi kohta.
-- **systemPrompt**, see on tavapärane süsteemi juhend, mis annab LLM-ile iseloomu ja juhiseid.
-- **maxTokens**, on veel üks omadus, mis näitab, kui palju tokeneid selle ülesande jaoks soovitatakse kasutada.
+- **modelPreferences**. See osa on soovitus, millist konfiguratsiooni LLM-iga kasutada. Kasutaja võib otsustada järgida seda soovitust või muuta seda. Antud juhul on soovitused mudeli, kiiruse ja intelligentsuse prioriteedi kohta.
+- **systemPrompt**, see on sinu tavaline süsteemiprompt, mis annab su LLM-ile iseloomu ja juhised.
+- **maxTokens**, see on veel üks omadus, mis näitab, mitu tokenit selle ülesande jaoks soovitatakse kasutada.
 
-### Proovinäite vastus
+### Proovivõtu vastus
 
-See vastus on see, mida MCP klient lõppkokkuvõttes MCP serverile tagastab – see on kliendi poolt LLM-ile edastatud päringu vastus, mille järel konstrueeritakse see sõnum. Näeb JSON-RPC formaadis välja nii:
+See vastus on see, mida MCP klient saadab tagasi MCP serverile ning on kliendi poolt LLM-i kutsumise, vastuse ootamise ja sõnumi koostamise tulemus. Selline välja näeb JSON-RPC formaadis:
 
 ```json
 {
@@ -101,13 +103,13 @@ See vastus on see, mida MCP klient lõppkokkuvõttes MCP serverile tagastab – 
 }
 ```
 
-Tähelepanuväärne on, et vastus on blogipostituse kokkuvõte, nagu palusime. Samuti paneb tähele, et kasutatud mudel pole see, mida küsiti, vaid "gpt-5" mudel "claude-3-sonnet" asemel. See illustreerib, et kasutaja võib kasutada teist mudelit ning proovinäite päring on soovitus.
+Pane tähele, et vastus on blogipostituse kokkuvõte, nagu palusime. Samuti pane tähele, et kasutatud `model` pole see, mida me küsisime, vaid "gpt-5" "claude-3-sonnet" asemel. See illustreerib, et kasutaja võib oma meelt muuta ja sinu proovivõtu päring on soovituslik.
 
-Kui nüüd mõistame peamist voogu ja kasulikku ülesannet – "blogipostituse loomine + kokkuvõte" –, vaatame, mida on vaja teha selle töölepanemiseks.
+Nüüd, kui mõistame peamist voogu ja kasulikku ülesannet "blogipostituse loomine + kokkuvõte", vaatame, mida selle toimimiseks vaja on teha.
 
-### Sõnumite tüübid
+### Sõnumitüübid
 
-Proovinäite sõnumeid ei piirata ainult tekstiga, saadetavad võivad olla ka pildid ja heli. Siin on, kuidas JSON-RPC erineb:
+Proovivõtu sõnumid ei ole piiratud ainult tekstiga, vaid võid saata ka pilte ja heli. Nii näeb JSON-RPC erisusi välja:
 
 **Tekst**
 
@@ -138,13 +140,13 @@ Proovinäite sõnumeid ei piirata ainult tekstiga, saadetavad võivad olla ka pi
 }
 ```
 
-> NOTE: lisateabe saamiseks proovinäite kohta vaata [ametlikku dokumentatsiooni](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
+> MÄRGE: proovivõtu üksikasjalikuma info kohta vaata [ametlikku dokumentatsiooni](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Kuidas konfigureerida proovinäidet kliendis
+## Kuidas proovivõttu kliendis seadistada
 
-> Märkus: kui ehitad ainult serverit, pole vaja siin palju teha.
+> Märkus: kui ehitad ainult serverit, pole siin palju vaja teha.
 
-Kliendis tuleb määratleda järgmised funktsioonid nii:
+Kliendis tuleb määrata järgmine omadus selliselt:
 
 ```json
 {
@@ -154,16 +156,16 @@ Kliendis tuleb määratleda järgmised funktsioonid nii:
 }
 ```
 
-Neid võetakse kasutusele, kui sinu valitud klient ühendub serveriga.
+See valitakse üles, kui sinu valitud klient serveriga ühendust loob.
 
-## Näide proovinäite tööst – loo blogipostitus
+## Näide proovivõtu kasutamisest - blogipostituse loomine
 
-Kodeerime koos proovinäite serveri, peame tegema järgmist:
+Kodeerime koos proovivõtuserveri, järgmist on vaja teha:
 
 1. Loo serveris tööriist.
-2. See tööriist peaks looma proovinäite päringu.
-3. Tööriist peab ootama kliendi proovinäite vastust.
-4. Seejärel peab tööriist tootma tulemuse.
+1. See tööriist peaks looma proovivõtu päringu.
+1. Tööriist peaks ootama kliendi proovivõtu vastust.
+1. Seejärel peaks tööriista tulemus valmima.
 
 Vaatame koodi samm-sammult:
 
@@ -178,9 +180,9 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ```
 
-### -2- Loo proovinäite päring
+### -2- Loo proovivõtu päring
 
-Täienda tööriista järgmise koodiga:
+Lisa oma tööriista järgmine kood:
 
 **python**
 
@@ -206,7 +208,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Oota vastust ja tagasta see
+### -3- Oota vastust ja tagasta vastus
 
 **python**
 
@@ -215,7 +217,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# tagastab kogu toote
+# tagastage täielik toode
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -284,7 +286,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # tagasta täielik blogipostitus
+    # tagastab kogu blogipostituse
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -300,10 +302,10 @@ if __name__ == "__main__":
 
 ### -5- Testimine Visual Studio Code'is
 
-Testimiseks Visual Studio Code'is tee järgmist:
+Selle testimiseks Visual Studio Code'is tee järgmist:
 
 1. Käivita server terminalis
-1. Lisa see *mcp.json* faili (ja veendu, et on käivitatud), nt selliselt:
+1. Lisa see *mcp.json*-i (ja veendu, et see on tööle pandud), näiteks nii:
 
    ```json
    "servers": {
@@ -314,41 +316,41 @@ Testimiseks Visual Studio Code'is tee järgmist:
    }
    ```
 
-1. Sisesta prompt:
+1. Tippige prompt:
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Luba proovinäide toimida. Esimese testimise korral kuvatakse lisadialoog, mille tuleb kinnitada, seejärel ilmub tavapärane dialoog tööriista käivitamiseks.
+1. Luba proovivõtt toimuda. Esimest korda testides ilmub lisadialoog, mille tuleb kinnitada, seejärel näed tavapärast dialoogi, mis palub tööriista käivitada
 
-1. Vaata tulemusi. Tulemid kuvatakse ilusasti GitHub Copilot Chat'is, kuid võid ka vaadata raw JSON vastust.
+1. Uuri tulemusi. Näed tulemusi nii ilusti renderdatud kujul GitHub Copilot Chatis kui ka võid vaadata toore JSON vastust.
 
-**Boonus.** Visual Studio Code tööriistad toetavad suurepäraselt proovinäidet. Sa saad konfigureerida proovinäite ligipääsu oma paigaldatud serverile järgmiselt:
+**Boonus**. Visual Studio Code tööriistad toetavad proovivõttu suurepäraselt. Sa võid proovivõtu ligipääsu konfigureerida oma paigaldatud serverilt, navigeerides sinna nii:
 
-1. Mine laienduste sektsiooni.
-1. Vali hammasratta ikoon oma paigaldatud serveri kõrval "MCP SERVERS - INSTALLED" osas.
-1 Vali "Configure Model Access", siin saad valida, milliseid mudeleid GitHub Copilot tohib proovinäite rakendamisel kasutada. Näed ka kõiki viimasel ajal tehtud proovinäite päringuid, valides "Show Sampling requests".
+1. Ava laienduste sektsioon.
+1. Vali hammasratta ikoon oma paigaldatud serveri juures "MCP SERVERS - INSTALLED" sektsioonis.
+1. Vali "Configure Model Access", siin saad valida, milliseid mudeleid GitHub Copilot võib proovivõtu tegemisel kasutada. Näed ka kõiki hiljutisi proovivõtu päringuid, valides "Show Sampling requests".
 
-## Ülesanne
+## Kodune ülesanne
 
-Selles ülesandes ehitad veidi teistlaadse proovinäite ehk proovinäite integratsiooni, mis toetab tootekirjelduste loomist. Sinu stsenaarium:
+Selles ülesandes ehitad veidi erineva proovivõtu, nimelt proovivõtu integratsiooni, mis toetab tootekirjelduse genereerimist. Siin on sinu stsenaarium:
 
-**Stsenaarium**: e-kaubanduse tagakontori töötajal on abi vaja, kuna tootekirjelduste loomine võtab liiga palju aega. Seetõttu pead looma lahenduse, kus saad kutsuda tööriista "create_product" koos argumentidega "title" ja "keywords", mis peaks tootma täieliku toote koos "description" väljaga, mille täidab kliendi LLM.
+**Stsenaarium**: e-kaubanduse back office töötaja vajab abi, sest tootekirjelduste loomine võtab liiga kaua aega. Seega ehitad lahenduse, kus kutsud tööriista "create_product" koos argumentidega "title" ja "keywords", mille tulemusena luuakse täielik toode, sealhulgas "description" väli, mida täidab kliendi LLM.
 
-NIPP: kasuta varasemaid teadmisi serveri ja tööriista ehitamiseks proovinäite päringuga.
+VINK: kasuta varasemalt õpitud teadmisi serveri ja tööriista ülesehitamiseks proovivõtu päringu abil.
 
 ## Lahendus
 
 [Lahendus](./solution/README.md)
 
-## Olulised mõtted
+## Peamised mõtted
 
-Proovinäide on võimas funktsioon, mis võimaldab serveril tööülesandeid edasi anda kliendile, kui vaja on LLM abi.
+Proovivõtt on võimas omadus, mis võimaldab serveril delegeerida ülesandeid kliendile, kui vajab abi LLM-ilt.
 
 ## Mis edasi
 
-- [4. peatükk – praktiline rakendamine](../../04-PracticalImplementation/README.md)
+- [Peatükk 4 - Praktiline rakendamine](../../04-PracticalImplementation/README.md)
 
 ---
 

@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [ELAVULT: 2026-07-28 KIADÁSI JELÖLT](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-A root contextok alapvető fogalmak a Model Context Protocolban, amelyek egy állandó réteget biztosítanak a beszélgetési előzmények és a megosztott állapot több kérés és munkamenet során történő megőrzéséhez.
+# MCP Gyökér Kontextusok
+
+> **Elavulási értesítés:** a `2026-07-28` MCP specifikáció kiadási jelöltje a Gyökereket elavultnak jelöli az eszközparaméterek, erőforrás URI-k vagy szerver konfiguráció javára. A Gyökerek továbbra is működnek a `2025-11-25` verzióban, valamint legalább egy évig bármely hivatalos elavulás után, tehát ez a leckében szereplő minden érvényes marad - de az új szerverterveknek érdemes megvizsgálniuk a helyettesítő mintát. Lásd [Mi változik az MCP-ben: a 2026-07-28 Kiadási Jelölt](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+A gyökér kontextusok a Model Context Protocol alapvető fogalmai, amelyek egy kitartó réteget biztosítanak a beszélgetési előzmények és megosztott állapot több kérés és munkamenet közötti fenntartásához.
 
 ## Bevezetés
 
-Ebben a leckében megvizsgáljuk, hogyan lehet létrehozni, kezelni és használni a root contextokat az MCP-ben.
+Ebben a leckében megvizsgáljuk, hogyan lehet létrehozni, kezelni és használni gyökér kontextusokat az MCP-ben.
 
 ## Tanulási célok
 
-A lecke végére képes leszel:
+A lecke végére képes lesz:
 
-- Megérteni a root contextok célját és felépítését
-- Létrehozni és kezelni root contextokat az MCP klienskönyvtárak segítségével
-- Megvalósítani root contextokat .NET, Java, JavaScript és Python alkalmazásokban
-- Használni a root contextokat többszörös körös beszélgetésekhez és állapotkezeléshez
-- Alkalmazni a legjobb gyakorlatokat a root context kezelésében
+- Megérteni a gyökér kontextusok célját és szerkezetét
+- Létrehozni és kezelni gyökér kontextusokat MCP klienskönyvtárak segítségével
+- Megvalósítani gyökér kontextusokat .NET, Java, JavaScript és Python alkalmazásokban
+- Használni gyökér kontextusokat többkörös beszélgetésekhez és állapotkezeléshez
+- Alkalmazni a legjobb gyakorlatokat a gyökér kontextus kezelésében
 
-## A root contextok megértése
+## A Gyökér Kontextusok megértése
 
-A root contextok olyan tárolók, amelyek egy sor kapcsolódó interakció előzményeit és állapotát tartják. Ezek lehetővé teszik:
+A gyökér kontextusok konténerekként szolgálnak, amelyek tartalmazzák a kapcsolódó interakciók sorozatának előzményeit és állapotát. Ezek lehetővé teszik:
 
-- **Beszélgetés megőrzése**: Koherens, többszörös körös beszélgetések fenntartása
-- **Memóriakezelés**: Információk tárolása és előhívása az interakciók között
-- **Állapotkezelés**: Haladás követése összetett munkafolyamatokban
-- **Kontekstus megosztás**: Több kliens számára ugyanazon beszélgetési állapot elérhetővé tétele
+- **Beszélgetés kitartása**: Koherens többkörös beszélgetések fenntartása
+- **Emlékezetkezelés**: Információk tárolása és lekérése interakciók között
+- **Állapotkezelés**: Előrehaladás követése összetett munkafolyamatokban
+- **Kontextus megosztás**: Lehetővé téve, hogy több kliens hozzáférjen ugyanahhoz a beszélgetési állapothoz
 
-Az MCP-ben a root contextoknak ezek a fő jellemzői:
+Az MCP-ben a gyökér kontextusoknak ezek a kulcsjellemzői vannak:
 
-- Minden root context egyedi azonosítóval rendelkezik.
-- Tartalmazhatnak beszélgetési előzményeket, felhasználói beállításokat és egyéb metaadatokat.
-- Létrehozhatók, elérhetők és archiválhatók igény szerint.
-- Finomhangolt hozzáférés-vezérlést és jogosultságokat támogatnak.
+- Minden gyökér kontextus egyedi azonosítóval rendelkezik.
+- Tartalmazhat beszélgetési előzményeket, felhasználói preferenciákat és egyéb metaadatokat.
+- Szükség szerint létrehozhatóak, elérhetőek és archiválhatóak.
+- Finomhangolt hozzáférés-szabályozást és jogosultságokat támogatnak.
 
-## Root context életciklus
+## A Gyökér Kontextus Élettartama
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Gyökér Kontextus Létrehozása] --> B[Inicializálás Metaadatokkal]
+    B --> C[Kérések Küldése Kontextus Azonosítóval]
+    C --> D[Kontextus Frissítése Eredményekkel]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Kontextus Archiválása Befejezéskor]
 ```
 
-## Root contextok kezelése
+## Gyökér Kontextusok kezelése
 
-Íme egy példa arra, hogyan lehet létrehozni és kezelni root contextokat.
+Íme egy példa arra, hogyan lehet létrehozni és kezelni gyökér kontextusokat.
 
 ### C# megvalósítás
 
@@ -122,22 +126,22 @@ public class RootContextExample
 }
 ```
 
-A fenti kódban:
+A fenti kódban a következőket tettük:
 
-1. Létrehoztunk egy root contextot egy ügyféltámogatási munkamenethez.
-2. Több üzenetet küldtünk ebben a contextben, lehetővé téve a modell számára az állapot fenntartását.
-3. Frissítettük a contextet a beszélgetés alapján releváns metaadatokkal.
-4. Lekértük a context információit a beszélgetési előzmények megértéséhez.
-5. Archiváltuk a contextet, amikor a beszélgetés befejeződött.
+1. Létrehoztunk egy gyökér kontextust egy ügyfélszolgálati munkamenethez.
+1. Több üzenetet küldtünk ebben a kontextusban, lehetővé téve a modell számára az állapot fenntartását.
+1. Frissítettük a kontextust a beszélgetés alapján releváns metaadatokkal.
+1. Lekértük a kontextus információkat a beszélgetés előzményeinek megértéséhez.
+1. Archiváltuk a kontextust, amikor a beszélgetés befejeződött.
 
-## Példa: Root context megvalósítása pénzügyi elemzéshez
+## Példa: Gyökér Kontextus megvalósítása pénzügyi elemzéshez
 
-Ebben a példában létrehozunk egy root contextot egy pénzügyi elemzési munkamenethez, bemutatva, hogyan lehet az állapotot több interakción keresztül megőrizni.
+Ebben a példában egy gyökér kontextust hozunk létre egy pénzügyi elemzési munkamenethez, bemutatva, hogyan lehet fenntartani az állapotot több interakción keresztül.
 
 ### Java megvalósítás
 
 ```java
-// Java Example: Root Context Implementation
+// Java példa: Gyökér kontextus megvalósítása
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Kontextus metaadatok létrehozása
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Új gyökér kontextus létrehozása
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Első interakció
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Kontextus frissítése a válaszból nyert fontos információkkal
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Második interakció - ugyanazt a kontextust használva
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Az elemzési munkamenet összefoglalójának generálása
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Az összefoglaló tárolása a kontextus metaadataiban
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Frissített kontextus információ lekérése
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. A kontextus archiválása a munka befejezésekor
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-A fenti kódban:
+A fenti kódban a következőket tettük:
 
-1. Létrehoztunk egy root contextot egy pénzügyi elemzési munkamenethez.
-2. Több üzenetet küldtünk ebben a contextben, lehetővé téve a modell számára az állapot fenntartását.
-3. Frissítettük a contextet a beszélgetés alapján releváns metaadatokkal.
-4. Összefoglalót készítettünk az elemzési munkamenetről, és elmentettük a context metaadatai közé.
-5. Archiváltuk a contextet, amikor a beszélgetés befejeződött.
+1. Létrehoztunk egy gyökér kontextust egy pénzügyi elemzési munkamenethez.
+2. Több üzenetet küldtünk ebben a kontextusban, lehetővé téve a modell számára az állapot fenntartását.
+3. Frissítettük a kontextust a beszélgetés alapján releváns metaadatokkal.
+4. Egy összefoglalót készítettünk az elemzési munkamenetről, és eltároltuk a kontextus metaadatai között.
+5. Archiváltuk a kontextust, amikor a beszélgetés befejeződött.
 
-## Példa: Root context kezelés
+## Példa: Gyökér Kontextus kezelés
 
-A root contextok hatékony kezelése kulcsfontosságú a beszélgetési előzmények és állapot megőrzéséhez. Az alábbi példa bemutatja a root context kezelés megvalósítását.
+A gyökér kontextusok hatékony kezelése kulcsfontosságú a beszélgetési előzmények és állapot fenntartásához. Az alábbiakban egy példa arra, hogyan lehet megvalósítani a gyökér kontextus kezelést.
 
-### JavaScript megvalósítás
+### JavaScript megvalósítás  
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScript példa: MCP gyökér kontextusok kezelése
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // MCP kliens inicializálása
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Kontextuskezelő inicializálása
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Üzenet küldése a megadott kontextus használatával
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Opcióként fontos felismerések tárolása a beszélgetésből
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Potenciális felismerések kinyerése (egy valós alkalmazásban ez kifinomultabb lenne)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Egyszerű heurisztika potenciális felismerések azonosítására
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Felismerések tárolása a kontextus metaadataiban
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Nem kritikus hiba, ezért csak figyelmeztetés naplózása
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Kérje meg a modellt, hogy generáljon összefoglalót eddigi beszélgetésről
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Összefoglaló tárolása a kontextus metaadataiban
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Végső összefoglaló generálása archiválás előtt
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Kontextus archiválása
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Példa használat
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Új kontextus létrehozása egy terméktámogatási beszélgetéshez
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Első üzenet a beszélgetésben
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Utókövető üzenet ugyanabban a kontextusban
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Információk lekérése a kontextusról
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Beszélgetés összefoglaló generálása és megjelenítése
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Kontextus archiválása a befejezés után
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Hibák szelíd kezelése
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -473,28 +477,28 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-A fenti kódban:
+A fenti kódban a következőket tettük:
 
-1. Létrehoztunk egy root contextot egy terméktámogatási beszélgetéshez a `createConversationContext` függvénnyel. Ebben az esetben a context adatbázis teljesítményproblémákról szól.
+1. Létrehoztunk egy gyökér kontextust egy terméktámogatási beszélgetéshez a `createConversationContext` függvénnyel. Ebben az esetben a kontextus adatbázis teljesítmény problémákról szól.
 
-2. Több üzenetet küldtünk ebben a contextben, lehetővé téve a modell számára az állapot fenntartását a `sendMessage` függvénnyel. Az üzenetek lassú lekérdezési teljesítményről és index konfigurációról szólnak.
+1. Több üzenetet küldtünk ebben a kontextusban, lehetővé téve a modell számára az állapot fenntartását a `sendMessage` függvénnyel. A küldött üzenetek lassú lekérdezési teljesítményről és index konfigurációról szólnak.
 
-3. Frissítettük a contextet a beszélgetés alapján releváns metaadatokkal.
+1. Frissítettük a kontextust a beszélgetés alapján releváns metaadatokkal.
 
-4. Összefoglalót generáltunk a beszélgetésről, és elmentettük a context metaadatai közé a `generateContextSummary` függvénnyel.
+1. Egy összefoglalót generáltunk a beszélgetésről, és eltároltuk a kontextus metaadataiban a `generateContextSummary` függvénnyel.
 
-5. Archiváltuk a contextet a beszélgetés befejezésekor az `archiveContext` függvénnyel.
+1. Archiváltuk a kontextust, amikor a beszélgetés befejeződött a `archiveContext` függvénnyel.
 
-6. Hibakezelést alkalmaztunk a megbízhatóság biztosítása érdekében.
+1. Hiba esetén szépen kezeltük a helyzetet a robosztusság érdekében.
 
-## Root context többszörös körös segítségnyújtáshoz
+## Gyökér Kontextus többlépéses segítséghez
 
-Ebben a példában létrehozunk egy root contextot egy többszörös körös segítségnyújtási munkamenethez, bemutatva, hogyan lehet az állapotot több interakción keresztül megőrizni.
+Ebben a példában létrehozunk egy gyökér kontextust egy többlépéses segítségnyújtási munkamenethez, bemutatva, hogyan lehet fenntartani az állapotot több interakción keresztül.
 
 ### Python megvalósítás
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python példa: Gyökér kontextus többfordulós segítségnyújtáshoz
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Felhasználói információ hozzáadása, ha meg van adva
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # A gyökér kontextus létrehozása
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Opciók létrehozása kontextus azonosítóval
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Eszközök hozzáadása, ha meg vannak adva
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Útmutató elküldése a kontextuson belül
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Kontextus metaadatainak frissítése a beszélgetés előrehaladásával
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Először összefoglaló útmutató generálása
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Összefoglaló tárolása a metaadatokban
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Kontextus archiválása
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Példa használat
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Munkamenet létrehozása
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Első interakció
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Második interakció ugyanabban a kontextusban
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Előzmények lekérése
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Munkamenet befejezése
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -618,39 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-A fenti kódban:
+A fenti kódban a következőket tettük:
 
-1. Létrehoztunk egy root contextot egy műszaki támogatási munkamenethez a `create_session` függvénnyel. A context tartalmazza a felhasználó adatait, például nevet és technikai szintet.
+1. Létrehoztunk egy gyökér kontextust egy műszaki támogatási munkamenethez a `create_session` függvénnyel. A kontextus tartalmaz felhasználói információkat, például nevet és technikai szintet.
 
-2. Több üzenetet küldtünk ebben a contextben, lehetővé téve a modell számára az állapot fenntartását a `send_message` függvénnyel. Az üzenetek az automatikus skálázási funkcióval kapcsolatos problémákról szólnak.
+1. Több üzenetet küldtünk ebben a kontextusban, lehetővé téve a modell számára az állapot fenntartását a `send_message` függvénnyel. A küldött üzenetek az automatikus méretezési funkció problémáiról szólnak.
 
-3. Lekértük a beszélgetési előzményeket a `get_conversation_history` függvénnyel, amely kontextusinformációkat és üzeneteket szolgáltat.
+1. Lekértük a beszélgetési előzményeket a `get_conversation_history` függvénnyel, amely kontextus információkat és üzeneteket szolgáltat.
 
-4. Befejeztük a munkamenetet a context archiválásával és összefoglaló generálásával az `end_session` függvénnyel. Az összefoglaló rögzíti a beszélgetés fő pontjait.
+1. Befejeztük a munkamenetet úgy, hogy archiváltuk a kontextust és létrehoztunk egy összefoglalót az `end_session` függvénnyel. Az összefoglaló rögzíti a beszélgetés fő pontjait.
 
-## Root context legjobb gyakorlatok
+## Gyökér Kontextus legjobb gyakorlatok
 
-Íme néhány legjobb gyakorlat a root contextok hatékony kezeléséhez:
+Íme néhány legjobb gyakorlat a gyökér kontextusok hatékony kezeléséhez:
 
-- **Fókuszált contextok létrehozása**: Külön root contextokat hozz létre különböző beszélgetési célokra vagy területekre a tisztaság megőrzése érdekében.
+- **Fókuszált kontextusok létrehozása**: Külön gyökér kontextusokat hozzon létre különböző beszélgetési célokra vagy területekre a áttekinthetőség érdekében.
 
-- **Lejárati szabályok beállítása**: Alkalmazz archiválási vagy törlési szabályokat a régi contextok kezelésére, hogy optimalizáld a tárhelyet és megfelelj az adatmegőrzési előírásoknak.
+- **Lejárati szabályok beállítása**: Vezessen be szabályokat a régi kontextusok archiválására vagy törlésére a tárolás kezelése és az adatmegőrzési szabályok betartása érdekében.
 
-- **Releváns metaadatok tárolása**: Használd a context metaadatait fontos információk tárolására, amelyek később hasznosak lehetnek.
+- **Fontos metaadatok tárolása**: Használja a kontextus metaadatait a beszélgetéssel kapcsolatos fontos információk tárolására, amelyek később hasznosak lehetnek.
 
-- **Kontekstusazonosítók következetes használata**: Miután létrehoztál egy contextot, használd annak azonosítóját következetesen az összes kapcsolódó kérésnél a folytonosság érdekében.
+- **Konzisztens kontextus-azonosító használata**: Miután egy kontextus létrejött, konzisztensen használja annak azonosítóját az összes kapcsolódó kérésnél a folytonosság érdekében.
 
-- **Összefoglalók generálása**: Ha egy context túl nagyra nő, fontold meg összefoglalók készítését, hogy a lényeges információkat megőrizd, miközben kezelhető méretű maradjon.
+- **Összefoglalók generálása**: Ha egy kontextus nagyra nő, érdemes összefoglalókat készíteni, hogy rögzítsük a lényeges információkat, miközben kezeljük a kontextus méretét.
 
-- **Hozzáférés-vezérlés megvalósítása**: Többfelhasználós rendszerek esetén alkalmazz megfelelő hozzáférés-vezérlést a beszélgetési contextok adatvédelme és biztonsága érdekében.
+- **Hozzáférés-szabályozás megvalósítása**: Többfelhasználós rendszerek esetén valósítson meg megfelelő hozzáférés-ellenőrzést a beszélgetési kontextusok adatvédelme és biztonsága érdekében.
 
-- **Kontekstus korlátok kezelése**: Légy tisztában a context méretkorlátokkal, és dolgozz ki stratégiákat nagyon hosszú beszélgetések kezelésére.
+- **Kontextus korlátok kezelése**: Legyen tudatában a kontextus méretbeli korlátainak, és alkalmazzon stratégiákat a nagyon hosszú beszélgetések kezelésére.
 
-- **Archiválás a befejezéskor**: Archiváld a contextokat a beszélgetések befejezésekor, hogy felszabadítsd az erőforrásokat, miközben megőrzöd a beszélgetési előzményeket.
+- **Archiválás befejezéskor**: Archiválja a kontextusokat, amikor a beszélgetések befejeződnek, hogy felszabadítsa az erőforrásokat, miközben megőrzi a beszélgetési előzményeket.
 
 ## Mi következik
 
 - [5.5 Routing](../mcp-routing/README.md)
 
-**Jogi nyilatkozat**:  
-Ez a dokumentum az AI fordító szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár a pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén szakmai, emberi fordítást javaslunk. Nem vállalunk felelősséget az ebből a fordításból eredő félreértésekért vagy téves értelmezésekért.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,12 +1,20 @@
 use std::{
-    borrow::Cow, collections::HashMap, convert::Infallible, fmt::Display, sync::Arc, time::Duration,
+    borrow::Cow,
+    collections::HashMap,
+    convert::Infallible,
+    fmt::Display,
+    pin::Pin,
+    sync::Arc,
+    task::{Context, Poll},
+    time::Duration,
 };
 
 use bytes::Bytes;
-use futures::{StreamExt, future::BoxFuture};
+use futures::{Stream, StreamExt, future::BoxFuture};
 use http::{HeaderMap, Method, Request, Response, header::ALLOW};
 use http_body::Body;
 use http_body_util::{BodyExt, Full, combinators::BoxBody};
+use pin_project_lite::pin_project;
 use tokio_stream::wrappers::ReceiverStream;
 use tokio_util::sync::CancellationToken;
 
@@ -22,7 +30,7 @@ use crate::{
         ProtocolVersion, RequestId, ServerJsonRpcMessage,
     },
     serve_server,
-    service::serve_directly,
+    service::serve_directly_with_ct,
     transport::{
         OneshotTransport, TransportAdapterIdentity,
         common::{
@@ -852,14 +860,28 @@ where
         request.request.extensions_mut().insert(parts);
         let (transport, mut receiver) =
             OneshotTransport::<RoleServer>::new(ClientJsonRpcMessage::Request(request));
-        let service = serve_directly(service, transport, peer_info);
+        // Give this stateless request its own cancellation token so a client
+        // disconnect can cancel the in-flight handler (#857), as in the
+        // non-negotiated stateless path below.
+        let request_ct = CancellationToken::new();
+        let service = serve_directly_with_ct(service, transport, peer_info, request_ct.clone());
         tokio::spawn(async move {
             let _ = service.waiting().await;
         });
 
         let cancel = self.config.cancellation_token.child_token();
+        // Cancel the handler if the client disconnects while it is still
+        // producing its first message (this future is dropped before
+        // `receiver.recv()` completes). Disarmed once the handler emits
+        // anything, so a normal response is never cancelled.
+        let mut disconnect_guard = Some(request_ct.clone().drop_guard());
         let first = tokio::select! {
-            message = receiver.recv() => message,
+            message = receiver.recv() => {
+                if let Some(guard) = disconnect_guard.take() {
+                    guard.disarm();
+                }
+                message
+            }
             _ = cancel.cancelled() => None,
         }
         .ok_or_else(|| {
@@ -870,9 +892,18 @@ where
         })?;
 
         if self.config.json_response || jsonrpc_http_status(&first) != http::StatusCode::OK {
+            // This message is the whole reply, so `receiver` is dropped here and
+            // anything the handler emits afterwards is undeliverable. Cancel it so
+            // a still-running handler stops instead of running on unobserved: its
+            // terminal `send` would otherwise fail before adding the termination
+            // permit, leaving the serve loop parked forever. A no-op when the
+            // handler already completed.
+            request_ct.cancel();
             return jsonrpc_message_response(first, true);
         }
 
+        // The handler may still be streaming, so guard the response: dropping it
+        // (client disconnect) must cancel the handler.
         let stream = futures::stream::once(async move { first })
             .chain(ReceiverStream::new(receiver))
             .map(|message| {
@@ -880,7 +911,7 @@ where
                 ServerSseMessage::from_message(message)
             });
         Ok(sse_stream_response(
-            stream,
+            CancelOnDisconnect::new(stream, request_ct),
             self.config.sse_keep_alive,
             self.config.cancellation_token.child_token(),
         ))
@@ -1544,7 +1575,13 @@ where
                     request.request.extensions_mut().insert(part);
                     let (transport, mut receiver) =
                         OneshotTransport::<RoleServer>::new(ClientJsonRpcMessage::Request(request));
-                    let service = serve_directly(service, transport, peer_info);
+                    // Give this stateless request its own cancellation token so a
+                    // client disconnect can cancel the in-flight handler (#857). A
+                    // stateless request is one-shot (no session, no resumption), so a
+                    // dropped response is terminal and safe to cancel.
+                    let request_ct = CancellationToken::new();
+                    let service =
+                        serve_directly_with_ct(service, transport, peer_info, request_ct.clone());
                     tokio::spawn(async move {
                         // on service created
                         let _ = service.waiting().await;
@@ -1554,8 +1591,19 @@ where
                         // emits an intermediate notification or request, preserve
                         // the complete message sequence by falling back to SSE.
                         let cancel = self.config.cancellation_token.child_token();
+                        // Cancel the handler if the client disconnects while it is
+                        // still producing its first message (this future is dropped
+                        // before `receiver.recv()` completes). Disarmed once the
+                        // handler emits anything, so a normal response is never
+                        // cancelled.
+                        let mut disconnect_guard = Some(request_ct.clone().drop_guard());
                         let Some(message) = (tokio::select! {
-                            res = receiver.recv() => res,
+                            res = receiver.recv() => {
+                                if let Some(guard) = disconnect_guard.take() {
+                                    guard.disarm();
+                                }
+                                res
+                            }
                             _ = cancel.cancelled() => None,
                         }) else {
                             return Err(internal_error_response("empty response")(
@@ -1579,6 +1627,9 @@ where
                                 .body(Full::new(Bytes::from(body)).boxed())
                                 .expect("valid response"))
                         } else {
+                            // The handler emitted an intermediate message and is still
+                            // running, so guard the streamed sequence too: dropping it
+                            // (client disconnect) must cancel the handler.
                             let first = futures::stream::once(async move {
                                 ServerSseMessage::from_message(message)
                             });
@@ -1587,17 +1638,19 @@ where
                                 ServerSseMessage::from_message(message)
                             });
                             Ok(sse_stream_response(
-                                first.chain(remaining),
+                                CancelOnDisconnect::new(first.chain(remaining), request_ct),
                                 self.config.sse_keep_alive,
                                 self.config.cancellation_token.child_token(),
                             ))
                         }
                     } else {
-                        // SSE mode (default): original behaviour preserved unchanged
+                        // SSE mode (default): cancel the handler if the client
+                        // disconnects (drops the response stream) before it completes.
                         let stream = ReceiverStream::new(receiver).map(|message| {
                             tracing::trace!(?message);
                             ServerSseMessage::from_message(message)
                         });
+                        let stream = CancelOnDisconnect::new(stream, request_ct);
                         Ok(sse_stream_response(
                             stream,
                             self.config.sse_keep_alive,
@@ -1678,5 +1731,54 @@ where
             capabilities: ClientCapabilities::default(),
             client_info: Implementation::default(),
         })
+    }
+}
+
+pin_project! {
+    /// Wraps a stateless SSE response stream so a client disconnect cancels the
+    /// in-flight request.
+    ///
+    /// A stateless streamable-HTTP request is one-shot: it has no session and no
+    /// resumption, so a dropped response stream means the client is gone for
+    /// good. When the stream is dropped *before* it ends naturally, the request's
+    /// cancellation token is fired, which stops the dedicated `serve_directly`
+    /// loop and cancels the handler's `RequestContext::ct` (see #857). If the
+    /// stream ends naturally (the request completed), the guard is disarmed so
+    /// normal completion cancels nothing.
+    struct CancelOnDisconnect<S> {
+        #[pin]
+        inner: S,
+        ct: Option<CancellationToken>,
+    }
+    impl<S> PinnedDrop for CancelOnDisconnect<S> {
+        fn drop(this: Pin<&mut Self>) {
+            let this = this.project();
+            if let Some(ct) = this.ct.take() {
+                ct.cancel();
+            }
+        }
+    }
+}
+
+impl<S> CancelOnDisconnect<S> {
+    fn new(inner: S, ct: CancellationToken) -> Self {
+        Self {
+            inner,
+            ct: Some(ct),
+        }
+    }
+}
+
+impl<S: Stream> Stream for CancelOnDisconnect<S> {
+    type Item = S::Item;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.project();
+        let polled = this.inner.poll_next(cx);
+        if let Poll::Ready(None) = &polled {
+            // Ended naturally: the request completed, so don't cancel on drop.
+            *this.ct = None;
+        }
+        polled
     }
 }

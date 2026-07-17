@@ -18,6 +18,7 @@ To target a specific platform instead of auto-detecting all:
 code-review-graph install --platform codex
 code-review-graph install --platform cursor
 code-review-graph install --platform claude-code
+code-review-graph install --platform codebuddy
 ```
 
 ### Supported Platforms
@@ -26,11 +27,12 @@ code-review-graph install --platform claude-code
 |----------|-------------|
 | **Codex** | `~/.codex/config.toml` + `~/.codex/hooks.json` |
 | **Claude Code** | `.mcp.json` + `.claude/settings.json` |
+| **CodeBuddy Code** | `.mcp.json` + `CODEBUDDY.md` + `.codebuddy/settings.json` + `.codebuddy/skills/<name>/SKILL.md` |
 | **Cursor** | `.cursor/mcp.json` |
 | **Windsurf** | `~/.codeium/windsurf/mcp_config.json` |
 | **Zed** | `.zed/settings.json` |
 | **Continue** | `.continue/config.json` |
-| **OpenCode** | `.opencode.json` |
+| **OpenCode** | `opencode.jsonc` (preferred) or `opencode.json` |
 | **Antigravity** | `~/.gemini/antigravity/mcp_config.json` |
 | **Gemini CLI** | `.gemini/settings.json` |
 | **Qwen Code** | `~/.qwen/settings.json` |
@@ -38,6 +40,13 @@ code-review-graph install --platform claude-code
 | **Qoder** | `.qoder/mcp.json` |
 | **GitHub Copilot** | `.vscode/mcp.json` |
 | **GitHub Copilot CLI** | `~/.copilot/mcp-config.json` |
+
+The CodeBuddy project layout follows its official documentation for
+[MCP configuration](https://www.codebuddy.ai/docs/cli/mcp),
+[skills](https://www.codebuddy.ai/docs/cli/skills), and
+[hooks](https://www.codebuddy.ai/docs/cli/hooks). The shared `.mcp.json` is
+merged with JSONC awareness, while hook commands resolve the repository at
+runtime so committed settings do not contain one developer's checkout path.
 
 ## Core Workflow
 

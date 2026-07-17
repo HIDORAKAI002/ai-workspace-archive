@@ -1,53 +1,57 @@
-# MCP Root Contexts
+> [VANHENTUNUT: 2026-07-28 JULKAISUEHDOKAS](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contextit ovat keskeinen käsite Model Context Protocolissa, joka tarjoaa pysyvän kerroksen keskusteluhistorian ja jaetun tilan ylläpitämiseen useiden pyyntöjen ja istuntojen välillä.
+# MCP Juuriympäristöt
+
+> **Vanhentumisilmoitus:** MCP spesifikaation versioehdokas `2026-07-28` merkitsee Rootsien vanhentuneiksi työkaluparametrien, resurssi-URI:iden tai palvelimen konfiguraation hyväksi. Rootsit toimivat edelleen versiossa `2025-11-25` ja vähintään vuoden ajan minkä tahansa virallisen vanhentumisilmoituksen jälkeen, joten tämän oppitunnin kaikki sisältö on edelleen voimassa – mutta uusien palvelinsuunnitelmien tulee harkita korvaavaa mallia. Katso lisää kohdasta [Mitä MCP:ssa muuttuu: 2026-07-28 Julkaisuehdokas](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Juuriympäristöt ovat keskeinen käsite Model Context Protocolissa, joka tarjoaa pysyvän kerroksen keskusteluhistorian ja jaetun tilan ylläpitämiseen usean pyynnön ja istunnon yli.
 
 ## Johdanto
 
-Tässä oppitunnissa tutustumme siihen, miten root contextit luodaan, hallitaan ja hyödynnetään MCP:ssä.
+Tässä oppitunnissa tutustumme siihen, miten luoda, hallita ja hyödyntää juuriympäristöjä MCP:ssä.
 
 ## Oppimistavoitteet
 
 Oppitunnin lopussa osaat:
 
-- Ymmärtää root contextien tarkoituksen ja rakenteen
-- Luoda ja hallita root contexteja MCP-asiakirjastojen avulla
-- Toteuttaa root contexteja .NET-, Java-, JavaScript- ja Python-sovelluksissa
-- Hyödyntää root contexteja monivaiheisissa keskusteluissa ja tilanhallinnassa
-- Soveltaa parhaita käytäntöjä root contextien hallinnassa
+- Ymmärtää juuriympäristöjen tarkoituksen ja rakenteen
+- Luoda ja hallita juuriympäristöjä MCP-asiakirjastojen avulla
+- Toteuttaa juuriympäristöt .NET-, Java-, JavaScript- ja Python-sovelluksissa
+- Hyödyntää juuriympäristöjä monivaiheisissa keskusteluissa ja tilanhallinnassa
+- Soveltaa parhaita käytäntöjä juuriympäristöjen hallinnassa
 
-## Root Contextien ymmärtäminen
+## Juuriympäristöjen ymmärtäminen
 
-Root contextit toimivat säiliöinä, jotka pitävät sisällään sarjan toisiinsa liittyvien vuorovaikutusten historian ja tilan. Ne mahdollistavat:
+Juuriympäristöt toimivat säiliöinä, jotka säilyttävät sarjan toisiinsa liittyviä vuorovaikutuksia ja tilaa. Ne mahdollistavat:
 
-- **Keskustelun pysyvyyden**: Monivaiheisten keskustelujen johdonmukaisen ylläpidon
-- **Muistinhallinnan**: Tiedon tallentamisen ja hakemisen vuorovaikutusten välillä
-- **Tilanhallinnan**: Edistymisen seuraamisen monimutkaisissa työnkuluissa
-- **Contextin jakamisen**: Useiden asiakkaiden pääsyn samaan keskustelutilaan
+- **Keskustelun pysyvyys**: Johdonmukaisten monivaiheisten keskusteluiden ylläpitäminen
+- **Muistinhallinta**: Tiedon tallentaminen ja hakeminen vuorovaikutusten välillä
+- **Tilanhallinta**: Edistymisen seuranta monimutkaisissa työnkuluissa
+- **Ympäristön jakaminen**: Mahdollistaa useiden asiakkaiden pääsyn samaan keskustelutilaan
 
-MCP:ssä root contexteilla on seuraavat keskeiset ominaisuudet:
+MCP:ssä juuriympäristöillä on seuraavat keskeiset ominaisuudet:
 
-- Jokaisella root contextilla on yksilöllinen tunniste.
-- Ne voivat sisältää keskusteluhistorian, käyttäjäasetukset ja muuta metadataa.
+- Jokaisella juuriympäristöllä on ainutlaatuinen tunniste.
+- Ne voivat sisältää keskusteluhistorian, käyttäjän mieltymykset ja muuta metatietoa.
 - Ne voidaan luoda, käyttää ja arkistoida tarpeen mukaan.
-- Ne tukevat tarkkaa käyttöoikeuksien hallintaa.
+- Ne tukevat hienojakoista pääsynhallintaa ja käyttöoikeuksia.
 
-## Root Contextin elinkaari
+## Juuriympäristön elinkaari
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Luo juurikonteksti] --> B[Alusta metatiedoilla]
+    B --> C[Lähetä pyynnöt kontekstin tunnuksella]
+    C --> D[Päivitä kontekstia tuloksilla]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Arkistoi konteksti, kun valmis]
 ```
 
-## Root Contextien kanssa työskentely
+## Työskentely juuriympäristöjen kanssa
 
-Tässä esimerkki root contextien luomisesta ja hallinnasta.
+Tässä on esimerkki siitä, miten luoda ja hallita juuriympäristöjä.
 
-### C#-toteutus
+### C# Toteutus
 
 ```csharp
 // .NET Example: Root Context Management
@@ -124,20 +128,20 @@ public class RootContextExample
 
 Edellisessä koodissa olemme:
 
-1. Luoneet root contextin asiakastukisessiota varten.
-1. Lähettäneet useita viestejä kyseisessä contextissa, jolloin malli pystyy ylläpitämään tilaa.
-1. Päivittäneet contextin asiaankuuluvalla metadatalla keskustelun perusteella.
-1. Hainneet contextin tietoja keskusteluhistorian ymmärtämiseksi.
-1. Arkistoineet contextin, kun keskustelu oli päättynyt.
+1. Luoneet juuriympäristön asiakastukisessiolle.
+1. Lähettäneet useita viestejä kyseisessä ympäristössä, jolloin malli voi ylläpitää tilaa.
+1. Päivittäneet ympäristön asiaankuuluvilla metatiedoilla keskustelun perusteella.
+1. Haettu ympäristön tietoa keskusteluhistorian ymmärtämiseksi.
+1. Arkistoitu ympäristö, kun keskustelu oli päättynyt.
 
-## Esimerkki: Root Contextin toteutus talousanalyysia varten
+## Esimerkki: Juuriympäristön toteutus talousanalyysille
 
-Tässä esimerkissä luomme root contextin talousanalyysisessiota varten, demonstroiden tilan ylläpitoa useiden vuorovaikutusten yli.
+Tässä esimerkissä luomme juuriympäristön talousanalyysisessiolle, joka osoittaa, miten ylläpitää tilaa useiden vuorovaikutusten yli.
 
-### Java-toteutus
+### Java Toteutus
 
 ```java
-// Java Example: Root Context Implementation
+// Java-esimerkki: Juurikontekstin toteutus
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Luo kontekstin metatiedot
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Luo uusi juurikonteksti
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Ensimmäinen vuorovaikutus
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Päivitä konteksti saatujen tärkeiden tietojen avulla vastauksesta
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Toinen vuorovaikutus - käytä samaa kontekstia
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Luo yhteenveto analyysisessiosta
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Tallenna yhteenveto kontekstin metatietoihin
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Hae päivitetyt kontekstin tiedot
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Arkistoi konteksti, kun se on valmis
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 Edellisessä koodissa olemme:
 
-1. Luoneet root contextin talousanalyysisessiota varten.
-2. Lähettäneet useita viestejä kyseisessä contextissa, jolloin malli pystyy ylläpitämään tilaa.
-3. Päivittäneet contextin asiaankuuluvalla metadatalla keskustelun perusteella.
-4. Luoneet analyysisession yhteenvedon ja tallentaneet sen contextin metadataan.
-5. Arkistoineet contextin, kun keskustelu oli päättynyt.
+1. Luoneet juuriympäristön talousanalyysisessiolle.
+2. Lähettäneet useita viestejä kyseisessä ympäristössä, jolloin malli voi ylläpitää tilaa.
+3. Päivittäneet ympäristön asiaankuuluvilla metatiedoilla keskustelun perusteella.
+4. Luoneet yhteenvedon analyysisessiosta ja tallentaneet sen ympäristön metatietoihin.
+5. Arkistoineet ympäristön, kun keskustelu oli päättynyt.
 
-## Esimerkki: Root Contextin hallinta
+## Esimerkki: Juuriympäristön hallinta
 
-Root contextien tehokas hallinta on ratkaisevaa keskusteluhistorian ja tilan ylläpidossa. Alla on esimerkki root contextin hallinnan toteutuksesta.
+Juuriympäristöjen tehokas hallinta on ratkaisevan tärkeää keskusteluhistorian ja tilan ylläpitämiseksi. Alla on esimerkki, miten juuriympäristön hallinta voidaan toteuttaa.
 
-### JavaScript-toteutus
+### JavaScript Toteutus
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// JavaScript-esimerkki: MCP-pääkontekstien hallinta
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Alusta MCP-asiakas
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Alusta kontekstinhallinta
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Lähetä viesti määritetyllä kontekstilla
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Tallenna tarvittaessa keskustelun tärkeitä oivalluksia
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Etsi mahdollisia oivalluksia (todellisessa sovelluksessa tämä olisi monimutkaisempaa)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Yksinkertainen heuristiikka mahdollisten oivallusten tunnistamiseen
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Tallenna oivallukset kontekstin metatietoihin
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Ei-kriittinen virhe, kirjaa vain varoitus
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Pyydä mallia laatimaan yhteenveto tähän asti käydystä keskustelusta
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Tallenna yhteenveto kontekstin metatietoihin
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Luo lopullinen yhteenveto ennen arkistointia
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Arkistoi konteksti
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Esimerkin käyttö
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Luo uusi konteksti tuotteentukikeskustelua varten
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Keskustelun ensimmäinen viesti
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Jatkoviestillä samassa kontekstissa
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Hanki tietoa kontekstista
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Luo ja näytä keskustelun yhteenveto
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Arkistoi konteksti valmiina
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Käsittele mahdolliset virheet joustavasti
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 Edellisessä koodissa olemme:
 
-1. Luoneet root contextin tuotetukikeskustelua varten funktiolla `createConversationContext`. Tässä tapauksessa context liittyy tietokannan suorituskykyongelmiin.
+1. Luoneet juuriympäristön tuotetukikeskustelulle funktiolla `createConversationContext`. Tässä ympäristö käsittelee tietokannan suorituskykyyn liittyviä ongelmia.
 
-1. Lähettäneet useita viestejä kyseisessä contextissa, jolloin malli pystyy ylläpitämään tilaa funktiolla `sendMessage`. Lähetetyt viestit koskevat hitaita kyselysuorituksia ja indeksointiasetuksia.
+1. Lähettäneet useita viestejä kyseisessä ympäristössä, jolloin malli voi ylläpitää tilaa funktiolla `sendMessage`. Lähetettävät viestit koskevat hitaita kyselysuorituksia ja indeksoinnin asetuksia.
 
-1. Päivittäneet contextin asiaankuuluvalla metadatalla keskustelun perusteella.
+1. Päivittäneet ympäristön asiaankuuluvilla metatiedoilla keskustelun perusteella.
 
-1. Luoneet keskustelun yhteenvedon ja tallentaneet sen contextin metadataan funktiolla `generateContextSummary`.
+1. Luoneet yhteenvedon keskustelusta ja tallentaneet sen ympäristön metatietoihin funktiolla `generateContextSummary`.
 
-1. Arkistoineet contextin keskustelun päätyttyä funktiolla `archiveContext`.
+1. Arkistoineet ympäristön keskustelun päätyttyä funktiolla `archiveContext`.
 
-1. Käsitelleet virheitä sujuvasti varmistaen järjestelmän vakauden.
+1. Käsitelleet virheitä joustavasti varmistaaksemme vakaan toiminnan.
 
-## Root Context monivaiheiseen avustukseen
+## Juuriympäristö monivaiheisessa avustuksessa
 
-Tässä esimerkissä luomme root contextin monivaiheista avustussessiota varten, demonstroiden tilan ylläpitoa useiden vuorovaikutusten yli.
+Tässä esimerkissä luomme juuriympäristön monivaiheiselle avustussessiolle, joka osoittaa tilan ylläpitämisen useiden vuorovaikutusten yli.
 
-### Python-toteutus
+### Python Toteutus
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Python-esimerkki: Juuriympäristö monivaiheiselle avustukselle
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Lisää käyttäjätiedot, jos ne on annettu
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Luo juuriympäristö
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Luo asetukset sisältäen kontekstin tunnisteen
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Lisää työkalut, jos ne on määritelty
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Lähetä kehotus kontekstissa
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Päivitä kontekstin metatiedot keskustelun edistymisen mukaan
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Luo ensin yhteenvetokehotus
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Tallenna yhteenveto metatietoihin
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Arkistoi konteksti
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Esimerkin käyttö
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Luo istunto
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Ensimmäinen vuorovaikutus
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Toinen vuorovaikutus samassa kontekstissa
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Hae historia
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Lopeta istunto
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 Edellisessä koodissa olemme:
 
-1. Luoneet root contextin teknisen tuen sessiota varten funktiolla `create_session`. Context sisältää käyttäjätietoja, kuten nimen ja teknisen tason.
+1. Luoneet juuriympäristön teknisen tukisession yhteyteen funktiolla `create_session`. Ympäristö sisältää käyttäjätietoja kuten nimi ja tekninen taso.
 
-1. Lähettäneet useita viestejä kyseisessä contextissa, jolloin malli pystyy ylläpitämään tilaa funktiolla `send_message`. Lähetetyt viestit koskevat auto-skaalausominaisuuden ongelmia.
+1. Lähettäneet useita viestejä kyseisessä ympäristössä, jolloin malli voi ylläpitää tilaa funktiolla `send_message`. Lähetettävät viestit käsittelevät automaattisen skaalausominaisuuden ongelmia.
 
-1. Hainneet keskusteluhistorian funktiolla `get_conversation_history`, joka tarjoaa context-tiedot ja viestit.
+1. Haettu keskusteluhistoria funktiolla `get_conversation_history`, joka tarjoaa ympäristötiedot ja viestit.
 
-1. Päättäneet session arkistoimalla contextin ja luomalla yhteenvedon funktiolla `end_session`. Yhteenveto tiivistää keskustelun keskeiset kohdat.
+1. Päättänyt session arkistoimalla ympäristön ja luomalla yhteenvedon funktiolla `end_session`. Yhteenveto tiivistää keskustelun keskeiset kohdat.
 
-## Root Contextin parhaat käytännöt
+## Juuriympäristöjen parhaat käytännöt
 
-Tässä muutamia parhaita käytäntöjä root contextien tehokkaaseen hallintaan:
+Tässä on joitakin parhaita käytäntöjä juuriympäristöjen tehokkaaseen hallintaan:
 
-- **Luo kohdennettuja contexteja**: Luo erilliset root contextit eri keskustelutarkoituksia tai toimialoja varten selkeyden ylläpitämiseksi.
+- **Luo fokusoituja ympäristöjä**: Luo erilliset juuriympäristöt eri keskustelutarkoituksia tai -alueita varten selkeyden säilyttämiseksi.
 
-- **Aseta vanhenemiskäytännöt**: Toteuta käytännöt vanhojen contextien arkistointiin tai poistoon tallennustilan hallitsemiseksi ja tietosuojavaatimusten noudattamiseksi.
+- **Aseta vanhenemispolitiikat**: Toteuta politiikat vanhojen ympäristöjen arkistointiin tai poistoon tallennustilan hallitsemiseksi ja tietojen säilyttämiskäytäntöjen noudattamiseksi.
 
-- **Tallenna oleellinen metadata**: Käytä contextin metadataa tallentaaksesi tärkeitä tietoja keskustelusta, jotka voivat olla hyödyllisiä myöhemmin.
+- **Tallenna asiaankuuluvat metatiedot**: Käytä ympäristön metatietoja tallentaaksesi keskustelun kannalta tärkeitä tietoja myöhempää käyttöä varten.
 
-- **Käytä context ID:tä johdonmukaisesti**: Kun context on luotu, käytä sen tunnistetta johdonmukaisesti kaikissa siihen liittyvissä pyynnöissä jatkuvuuden varmistamiseksi.
+- **Käytä ympäristön tunnisteita johdonmukaisesti**: Kun ympäristö on luotu, käytä sen tunnistetta johdonmukaisesti kaikissa siihen liittyvissä pyynnöissä jatkuvuuden säilyttämiseksi.
 
-- **Luo yhteenvetoja**: Kun context kasvaa suureksi, harkitse yhteenvetojen luomista, jotta keskeinen tieto säilyy ja contextin koko pysyy hallittavana.
+- **Luo yhteenvetoja**: Kun ympäristö kasvaa suureksi, harkitse yhteenvedon luomista olennaisten tietojen tallentamiseksi ja ympäristön koon hallitsemiseksi.
 
-- **Toteuta käyttöoikeuksien hallinta**: Monikäyttäjäjärjestelmissä toteuta asianmukaiset käyttöoikeudet keskusteluiden yksityisyyden ja turvallisuuden varmistamiseksi.
+- **Toteuta pääsynhallinta**: Monikäyttäjäjärjestelmissä toteuta asianmukaiset pääsynhallintamekanismit keskusteluympäristöjen yksityisyyden ja turvallisuuden takaamiseksi.
 
-- **Huomioi contextin rajoitukset**: Ole tietoinen contextin koon rajoituksista ja toteuta strategioita hyvin pitkien keskustelujen käsittelyyn.
+- **Ota huomioon ympäristön rajoitukset**: Ole tietoinen ympäristön koon rajoituksista ja toteuta strategioita hyvin pitkien keskustelujen käsittelemiseksi.
 
-- **Arkistoi keskustelun päätyttyä**: Arkistoi contextit keskustelun päätyttyä vapauttaaksesi resursseja ja säilyttääksesi keskusteluhistorian.
+- **Arkistoi keskustelun päätyttyä**: Arkistoi ympäristöt keskustelun päätyttyä vapauttaaksesi resursseja säilyttäen samalla keskusteluhistorian.
 
 ## Mitä seuraavaksi
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Reititys](../mcp-routing/README.md)
 
-**Vastuuvapauslauseke**:  
-Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, huomioithan, että automaattikäännöksissä saattaa esiintyä virheitä tai epätarkkuuksia. Alkuperäistä asiakirjaa sen alkuperäiskielellä tulee pitää virallisena lähteenä. Tärkeissä tiedoissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vastuuvapauslauseke**:
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

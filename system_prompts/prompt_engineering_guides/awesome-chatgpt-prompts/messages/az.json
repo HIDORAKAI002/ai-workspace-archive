@@ -1251,7 +1251,7 @@
     "interactiveBanner": {
       "badge": "İnteraktiv Versiya Mövcuddur",
       "title": "Daha Ətraflı və İnteraktiv Təcrübə İstəyirsiniz?",
-      "description": "25 fəsil, praktiki təmrinlər və real dünya nümunələri ilə hərtarafəli interaktiv rəhbərimizlə AI prompt yazmağı mənimsaəyin.",
+      "description": "26 fəsil, praktiki təmrinlər və real dünya nümunələri ilə hərtarafəli interaktiv rəhbərimizlə AI prompt yazmağı mənimsaəyin.",
       "cta": "İnteraktiv Kitabı Oxuyun"
     },
     "generalTips": {
@@ -1743,7 +1743,7 @@
       "part4": "Hissə 4: Ən Yaxşı Təcrübələr",
       "part5": "Hissə 5: İstifadə Halları",
       "part6": "Hissə 6: Nəticə",
-      "chapters": "25 İnteraktiv Fəsil"
+      "chapters": "26 İnteraktiv Fəsil"
     },
     "startReading": "Oxumağa Başla",
     "skipToChapter1": "1-ci Fəsilə Keç",
@@ -1800,6 +1800,7 @@
       "12-handling-edge-cases": "Kənar Hallarla Məşğul Olmaq",
       "13-multimodal-prompting": "Multimodal Prompting",
       "14-context-engineering": "Kontekst Mühəndisliyi",
+      "14a-loop-engineering": "Dövrə Mühəndisliyi",
       "25-agents-and-skills": "Agentlər və Bacarıqlar",
       "15-common-pitfalls": "Ümumi Səhvlər",
       "16-ethics-responsible-use": "Etika və Məsuliyyətli İstifadə",
@@ -1830,6 +1831,7 @@
       "12-handling-edge-cases": "Gözlənilməz girişlərlə məşğul olmaq",
       "13-multimodal-prompting": "Şəkillər, audio və video ilə işləmək",
       "14-context-engineering": "RAG, embeddinglər, funksiya çağırışı və MCP",
+      "14a-loop-engineering": "Hərəkət edən, yoxlayan, uyğunlaşan və nə vaxt dayanacağını bilən əks əlaqə dövrələri hazırlamaq",
       "25-agents-and-skills": "Təkrar istifadə edilə bilən bacarıq paketləri ilə AI agentləri qurmaq",
       "15-common-pitfalls": "Qarşısı alınmalı səhvlər",
       "16-ethics-responsible-use": "AI-da etik mülahizələr",

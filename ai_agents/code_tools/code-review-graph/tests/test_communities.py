@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+import code_review_graph.communities as communities_module
 from code_review_graph.communities import (
     IGRAPH_AVAILABLE,
     _compute_cohesion,
@@ -21,9 +22,57 @@ from code_review_graph.graph import GraphEdge, GraphNode, GraphStore
 from code_review_graph.parser import EdgeInfo, NodeInfo
 
 
+def _community_node(
+    node_id: int,
+    qualified_name: str,
+    *,
+    kind: str = "Function",
+    is_test: bool = False,
+    file_path: str | None = None,
+) -> GraphNode:
+    """Build a compact GraphNode fixture for community algorithm tests."""
+    path, _, name = qualified_name.partition("::")
+    return GraphNode(
+        id=node_id,
+        kind=kind,
+        name=name,
+        qualified_name=qualified_name,
+        file_path=file_path or path,
+        line_start=1,
+        line_end=2,
+        language="python",
+        parent_name=None,
+        params=None,
+        return_type=None,
+        is_test=is_test,
+        file_hash="fixture",
+        extra={},
+    )
+
+
+def _community_edge(
+    edge_id: int,
+    source: str,
+    target: str,
+    *,
+    kind: str = "CALLS",
+) -> GraphEdge:
+    """Build a compact GraphEdge fixture for community algorithm tests."""
+    return GraphEdge(
+        id=edge_id,
+        kind=kind,
+        source_qualified=source,
+        target_qualified=target,
+        file_path="fixture.py",
+        line=edge_id,
+        extra={},
+    )
+
+
 class TestCommunities:
     def setup_method(self):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()  # release the handle before GraphStore reopens it on Windows
         self.store = GraphStore(self.tmp.name)
 
     def teardown_method(self):
@@ -590,3 +639,372 @@ class TestCommunities:
         # Pass a file that IS part of existing communities
         result = incremental_detect_communities(self.store, ["auth.py"])
         assert result > 0
+
+
+class TestCommunityPrReconciliation:
+    """Regression coverage retained from overlapping PRs #600/#603/#605."""
+
+    def test_slug_splits_camel_case(self):
+        assert communities_module._to_slug("AuthService") == "auth-service"
+
+    def test_slug_truncates_at_a_word_boundary(self):
+        assert (
+            communities_module._to_slug(
+                "SuperLongAuthenticationServiceManager"
+            )
+            == "super-long-authentication"
+        )
+
+    def test_mixed_community_name_uses_production_members(self):
+        production = _community_node(
+            1,
+            "src/auth.py::authenticate_user",
+            file_path="src/auth.py",
+        )
+        tests = [
+            _community_node(
+                2,
+                "tests/test_auth.py::should_return_user",
+                kind="Test",
+                is_test=True,
+                file_path="src/auth.py",
+            ),
+            _community_node(
+                3,
+                "tests/test_auth.py::expected_user_when_valid",
+                kind="Test",
+                is_test=True,
+                file_path="src/auth.py",
+            ),
+        ]
+
+        assert communities_module._generate_community_name(
+            [production, *tests]
+        ) == communities_module._generate_community_name([production])
+
+    def test_pure_test_name_filters_bdd_noise(self):
+        tests = [
+            _community_node(
+                1,
+                "tests/test_auth.py::should_return_token",
+                kind="Test",
+                is_test=True,
+            ),
+            _community_node(
+                2,
+                "tests/test_auth.py::should_raise_error",
+                kind="Test",
+                is_test=True,
+            ),
+        ]
+
+        name = communities_module._generate_community_name(tests)
+
+        assert all(word not in name for word in ("should", "return", "raise"))
+
+    def test_test_reassignment_counts_unique_subjects(self):
+        nodes = {
+            0: _community_node(1, "a.py::alpha"),
+            1: _community_node(2, "b.py::bravo"),
+            2: _community_node(3, "b.py::charlie"),
+            3: _community_node(
+                4,
+                "tests/test_feature.py::test_feature",
+                kind="Test",
+                is_test=True,
+            ),
+        }
+        qn_to_idx = {node.qualified_name: idx for idx, node in nodes.items()}
+        test_qn = nodes[3].qualified_name
+        edges = [
+            _community_edge(1, nodes[0].qualified_name, test_qn, kind="TESTED_BY"),
+            _community_edge(2, nodes[0].qualified_name, test_qn, kind="TESTED_BY"),
+            _community_edge(3, test_qn, nodes[1].qualified_name, kind="TESTED_BY"),
+            _community_edge(4, nodes[2].qualified_name, test_qn, kind="TESTED_BY"),
+        ]
+
+        reassigned = communities_module._reassign_test_nodes(
+            [[0, 3], [1, 2]], nodes, qn_to_idx, edges
+        )
+
+        assert reassigned == [[0], [3, 1, 2]]
+
+    def test_test_reassignment_keeps_current_cluster_on_a_tie(self):
+        nodes = {
+            0: _community_node(1, "a.py::alpha"),
+            1: _community_node(2, "b.py::bravo"),
+            2: _community_node(
+                3,
+                "tests/test_feature.py::test_feature",
+                kind="Test",
+                is_test=True,
+            ),
+        }
+        qn_to_idx = {node.qualified_name: idx for idx, node in nodes.items()}
+        edges = [
+            _community_edge(
+                1,
+                nodes[0].qualified_name,
+                nodes[2].qualified_name,
+                kind="TESTED_BY",
+            ),
+            _community_edge(
+                2,
+                nodes[2].qualified_name,
+                nodes[1].qualified_name,
+                kind="TESTED_BY",
+            ),
+        ]
+
+        reassigned = communities_module._reassign_test_nodes(
+            [[0, 2], [1]], nodes, qn_to_idx, edges
+        )
+
+        assert reassigned == [[0, 2], [1]]
+
+    def test_test_reassignment_is_independent_of_edge_order(self):
+        nodes = {
+            0: _community_node(
+                1,
+                "tests/test_feature.py::test_alpha",
+                kind="Test",
+                is_test=True,
+            ),
+            1: _community_node(
+                2,
+                "tests/test_feature.py::test_bravo",
+                kind="Test",
+                is_test=True,
+            ),
+            2: _community_node(3, "src/feature.py::subject"),
+        }
+        qn_to_idx = {node.qualified_name: idx for idx, node in nodes.items()}
+        edges = [
+            _community_edge(
+                1,
+                nodes[0].qualified_name,
+                nodes[2].qualified_name,
+                kind="TESTED_BY",
+            ),
+            _community_edge(
+                2,
+                nodes[1].qualified_name,
+                nodes[2].qualified_name,
+                kind="TESTED_BY",
+            ),
+        ]
+
+        forward = communities_module._reassign_test_nodes(
+            [[0, 1], [2]], nodes, qn_to_idx, edges
+        )
+        reverse = communities_module._reassign_test_nodes(
+            [[0, 1], [2]], nodes, qn_to_idx, list(reversed(edges))
+        )
+
+        assert forward == reverse == [[], [0, 1, 2]]
+
+    def test_duplicate_names_keep_largest_name_and_make_others_unique(self):
+        communities = [
+            {
+                "id": 10,
+                "name": "services-auth",
+                "size": 3,
+                "members": ["auth.py::login", "auth.py::logout", "auth.py::token"],
+            },
+            {
+                "id": 11,
+                "name": "services-auth",
+                "size": 2,
+                "members": ["billing.py::invoice", "billing.py::charge"],
+            },
+        ]
+        nodes = [
+            _community_node(1, "auth.py::login"),
+            _community_node(2, "auth.py::logout"),
+            _community_node(3, "auth.py::token"),
+            _community_node(4, "billing.py::invoice"),
+            _community_node(5, "billing.py::charge"),
+        ]
+
+        communities_module._dedupe_community_names(communities, nodes)
+
+        assert communities[0]["name"] == "services-auth"
+        assert communities[1]["name"].startswith("services-auth-")
+        assert len({community["name"] for community in communities}) == 2
+
+    def test_duplicate_name_suffix_ignores_test_vocabulary(self):
+        communities = [
+            {
+                "id": 10,
+                "name": "services",
+                "size": 5,
+                "members": [f"auth.py::auth_{index}" for index in range(5)],
+            },
+            {
+                "id": 11,
+                "name": "services",
+                "size": 4,
+                "members": [
+                    "billing.py::invoice",
+                    "tests/test_billing.py::mock_gateway_one",
+                    "tests/test_billing.py::mock_gateway_two",
+                    "tests/test_billing.py::mock_gateway_three",
+                ],
+            },
+        ]
+        nodes = [
+            *[
+                _community_node(index, f"auth.py::auth_{index}")
+                for index in range(5)
+            ],
+            _community_node(6, "billing.py::invoice"),
+            *[
+                _community_node(
+                    index + 7,
+                    f"tests/test_billing.py::mock_gateway_{name}",
+                    kind="Test",
+                    is_test=True,
+                )
+                for index, name in enumerate(("one", "two", "three"))
+            ],
+        ]
+
+        communities_module._dedupe_community_names(communities, nodes)
+
+        assert communities[1]["name"] == "services-invoice"
+
+    @pytest.mark.skipif(not IGRAPH_AVAILABLE, reason="igraph not installed")
+    def test_oversized_split_uses_member_names_and_real_cohesion(self):
+        nodes = [
+            *[
+                _community_node(i, f"services/auth.py::auth_{name}")
+                for i, name in enumerate(("load", "save", "delete"), start=1)
+            ],
+            *[
+                _community_node(i, f"services/billing.py::billing_{name}")
+                for i, name in enumerate(("load", "save", "delete"), start=4)
+            ],
+        ]
+        left = [node.qualified_name for node in nodes[:3]]
+        right = [node.qualified_name for node in nodes[3:]]
+        edges = [
+            _community_edge(1, left[0], left[1]),
+            _community_edge(2, left[0], left[2]),
+            _community_edge(3, left[1], left[2]),
+            _community_edge(4, right[0], right[1]),
+            _community_edge(5, right[0], right[2]),
+            _community_edge(6, right[1], right[2]),
+            _community_edge(7, left[0], right[0]),
+        ]
+        parent = {
+            "id": 7,
+            "name": "services-parent",
+            "level": 0,
+            "size": 6,
+            "members": [node.qualified_name for node in nodes],
+            "dominant_language": "python",
+        }
+
+        split = communities_module._split_oversized(
+            [parent], nodes, edges, threshold_pct=0.1, min_split_size=2
+        )
+
+        assert len(split) == 2
+        assert any("auth" in community["name"] for community in split)
+        assert any("billing" in community["name"] for community in split)
+        assert {community["cohesion"] for community in split} == {0.75}
+
+        duplicate_bridge_edges = [
+            *edges,
+            *[
+                _community_edge(edge_id, left[0], right[0])
+                for edge_id in range(8, 48)
+            ],
+        ]
+        duplicate_split = communities_module._split_oversized(
+            [parent],
+            nodes,
+            duplicate_bridge_edges,
+            threshold_pct=0.1,
+            min_split_size=2,
+        )
+        expected_partition = {
+            frozenset(community["members"])
+            for community in split
+        }
+        duplicate_partition = {
+            frozenset(community["members"])
+            for community in duplicate_split
+        }
+
+        assert duplicate_partition == expected_partition
+
+    @pytest.mark.parametrize("bare_subjects", [False, True])
+    @pytest.mark.skipif(not IGRAPH_AVAILABLE, reason="igraph not installed")
+    def test_oversized_split_keeps_tests_with_their_subjects(
+        self, bare_subjects: bool
+    ):
+        production = [
+            _community_node(i, f"src/feature.py::feature_{i}")
+            for i in range(1, 5)
+        ]
+        tests = [
+            _community_node(
+                i + 4,
+                f"tests/test_feature.py::test_feature_{i}",
+                kind="Test",
+                is_test=True,
+            )
+            for i in range(1, 5)
+        ]
+        nodes = [*production, *tests]
+        edges: list[GraphEdge] = []
+        edge_id = 1
+        for group in (production, tests):
+            for left_idx, left_node in enumerate(group):
+                for right_node in group[left_idx + 1:]:
+                    edges.append(
+                        _community_edge(
+                            edge_id,
+                            left_node.qualified_name,
+                            right_node.qualified_name,
+                        )
+                    )
+                    edge_id += 1
+        for production_node, test_node in zip(production, tests):
+            edges.append(
+                _community_edge(
+                    edge_id,
+                    (
+                        production_node.name
+                        if bare_subjects
+                        else production_node.qualified_name
+                    ),
+                    test_node.qualified_name,
+                    kind="TESTED_BY",
+                )
+            )
+            edge_id += 1
+        parent = {
+            "id": 8,
+            "name": "feature-parent",
+            "level": 0,
+            "size": len(nodes),
+            "members": [node.qualified_name for node in nodes],
+            "dominant_language": "python",
+        }
+
+        split = communities_module._split_oversized(
+            [parent], nodes, edges, threshold_pct=0.1, min_split_size=2
+        )
+        member_to_community = {
+            member: index
+            for index, community in enumerate(split)
+            for member in community["members"]
+        }
+
+        for production_node, test_node in zip(production, tests):
+            assert (
+                member_to_community[production_node.qualified_name]
+                == member_to_community[test_node.qualified_name]
+            )

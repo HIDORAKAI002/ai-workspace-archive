@@ -1,58 +1,62 @@
-# דגימה בפרוטוקול הקשר מודל (Model Context Protocol)
+> [מיושן: מועמד שחרור 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-דגימה היא תכונה חזקה ב-MCP שמאפשרת לשרתים לבקש השלמות LLM דרך הלקוח, ומאפשרת התנהגויות סוכניות מתוחכמות תוך שמירה על אבטחה ופרטיות. תצורת הדגימה הנכונה יכולה לשפר משמעותית את איכות התגובה והביצועים. MCP מספק דרך סטנדרטית לשלוט באיך מודלים מייצרים טקסט עם פרמטרים ספציפיים שמשפיעים על אקראיות, יצירתיות וקוהרנטיות.
+# דגימה בפרוטוקול הקשר דגם
+
+> **הודעת מיושנות:** מועמד שחרור מפרט MCP `2026-07-28` מסמן את הדגימה כמיושנת לטובת אינטגרציה ישירה עם ממשקי API של ספקי LLM. הדגימה ממשיכה לעבוד ב-`2025-11-25` ולפחות שנה לאחר כל מיושנות פורמלית, כך שכל התוכן בשיעור זה נשאר בתוקף – אך עיצובים חדשים לשרתים צריכים לבחון את דפוס ההחלפה. ראה [מה משתנה ב-MCP: מועמד שחרור 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+דגימה היא תכונה חזקה ב-MCP שמאפשרת לשרתים לבקש השלמות LLM דרך הלקוח, ומאפשרת התנהגויות סוכניות מתוחכמות תוך שמירה על אבטחה ופרטיות. הקונפיגורציה הנכונה של הדגימה יכולה לשפר באופן דרמטי את איכות התגובה והביצועים. MCP מספק דרך מאורגנת לשלוט כיצד דגמים מייצרים טקסט עם פרמטרים ספציפיים שמשפיעים על אקראיות, יצירתיות וקוהרנטיות.
 
 ## מבוא
 
-בשיעור זה נחקור כיצד להגדיר פרמטרי דגימה בבקשות MCP ונבין את המכניקה הבסיסית של פרוטוקול הדגימה.
+בשיעור זה נחקור כיצד להגדיר פרמטרי דגימה בבקשות MCP ולהבין את מנגנוני הפרוטוקול שמתחת לדגימה.
 
 ## מטרות הלמידה
 
-בסיום השיעור תוכלו:
+בסוף שיעור זה תוכל ל:
 
 - להבין את פרמטרי הדגימה המרכזיים הזמינים ב-MCP.
-- להגדיר פרמטרי דגימה למקרים שונים.
-- ליישם דגימה דטרמיניסטית לתוצאות שחוזרות על עצמן.
-- להתאים דינמית את פרמטרי הדגימה בהתאם להקשר ולהעדפות המשתמש.
-- ליישם אסטרטגיות דגימה לשיפור ביצועי המודל בתרחישים שונים.
-- להבין כיצד הדגימה פועלת בזרימת לקוח-שרת ב-MCP.
+- להגדיר פרמטרי דגימה למקרים שונים של שימוש.
+- ליישם דגימה דטרמיניסטית לקבלת תוצאות חוזרות.
+- להתאים דינמית פרמטרי דגימה בהתבסס על הקשר והעדפות המשתמש.
+- להחיל אסטרטגיות דגימה לשיפור ביצועי הדגם בתרחישים שונים.
+- להבין כיצד הדגימה פועלת בזרם הלקוח-שרת של MCP.
 
-## כיצד פועלת הדגימה ב-MCP
+## כיצד פועלת דגימה ב-MCP
 
-זרימת הדגימה ב-MCP עוברת את השלבים הבאים:
+זרם הדגימה ב-MCP עוקב אחרי הצעדים הבאים:
 
-1. השרת שולח בקשת `sampling/createMessage` ללקוח  
-2. הלקוח בוחן את הבקשה ויכול לשנותה  
-3. הלקוח מבצע דגימה מ-LLM  
-4. הלקוח בוחן את ההשלמה  
-5. הלקוח מחזיר את התוצאה לשרת  
+1. השרת שולח בקשת `sampling/createMessage` ללקוח
+2. הלקוח בודק את הבקשה ויכול לשנות אותה
+3. הלקוח מבצע דגימה מ-LLM
+4. הלקוח בודק את ההשלמה
+5. הלקוח מחזיר את התוצאה לשרת
 
-עיצוב זה עם אדם בלולאה מבטיח שהמשתמשים שומרים על שליטה במה שה-LLM רואה ומייצר.
+עיצוב זה עם אדם בתהליך מבטיח שהמשתמשים שומרים על שליטה במה שה-LLM רואה ומייצר.
 
 ## סקירת פרמטרי דגימה
 
-MCP מגדיר את פרמטרי הדגימה הבאים שניתן להגדיר בבקשות הלקוח:
+MCP מגדיר את פרמטרי הדגימה הבאים שניתן להגדיר בבקשות ללקוח:
 
 | פרמטר | תיאור | טווח טיפוסי |
-|--------|--------|--------------|
-| `temperature` | שולט באקראיות בבחירת הטוקנים | 0.0 - 1.0 |
+|-----------|-------------|---------------|
+| `temperature` | שולט באקראיות בבחירת טוקנים | 0.0 - 1.0 |
 | `maxTokens` | מספר מקסימלי של טוקנים ליצירה | ערך שלם |
-| `stopSequences` | רצפים מותאמים שמפסיקים את היצירה כשהם מופיעים | מערך מחרוזות |
+| `stopSequences` | רצפים מותאמים שעוצרים יצירה כאשר נתקלים בהם | מערך מחרוזות |
 | `metadata` | פרמטרים נוספים ספציפיים לספק | אובייקט JSON |
 
-רבים מספקי LLM תומכים בפרמטרים נוספים דרך שדה ה-`metadata`, שיכולים לכלול:
+ספקי LLM רבים תומכים בפרמטרים נוספים דרך שדה `metadata`, שעשוי לכלול:
 
 | פרמטר הרחבה נפוץ | תיאור | טווח טיפוסי |
-|-------------------|--------|--------------|
-| `top_p` | דגימת נוקליאוס - מגביל טוקנים לסיכוי מצטבר עליון | 0.0 - 1.0 |
-| `top_k` | מגביל את בחירת הטוקנים ל-K העליונים | 1 - 100 |
+|-----------|-------------|---------------|
+| `top_p` | דגימת גרעין - מגביל טוקנים למסה מצטברת עליונה | 0.0 - 1.0 |
+| `top_k` | מגביל בחירת טוקנים לאפשרויות K העליונות | 1 - 100 |
 | `presence_penalty` | מעניש טוקנים לפי נוכחותם בטקסט עד כה | -2.0 - 2.0 |
-| `frequency_penalty` | מעניש טוקנים לפי תדירותם בטקסט עד כה | -2.0 - 2.0 |
-| `seed` | זרע אקראי ספציפי לתוצאות שחוזרות על עצמן | ערך שלם |
+| `frequency_penalty` | מעניש טוקנים לפי שכיחותם בטקסט עד כה | -2.0 - 2.0 |
+| `seed` | זרע אקראי ספציפי לתוצאות חוזרות | ערך שלם |
 
-## דוגמת פורמט בקשה
+## פורמט דוגמת בקשה
 
-הנה דוגמה לבקשת דגימה מלקוח ב-MCP:
+להלן דוגמה לבקשת דגימה מלקוח ב-MCP:
 
 ```json
 {
@@ -91,44 +95,44 @@ MCP מגדיר את פרמטרי הדגימה הבאים שניתן להגדיר
 }
 ```
 
-## בקרות אדם בלולאה
+## בקרות אדם בתהליך
 
-דגימת MCP מעוצבת עם פיקוח אנושי:
+דגימת MCP מעוצבת עם השגחה אנושית:
 
-- **עבור פרומפטים**:  
-  - הלקוחות צריכים להציג למשתמשים את הפרומפט המוצע  
-  - המשתמשים צריכים להיות מסוגלים לשנות או לדחות את הפרומפטים  
-  - פרומפטים מערכתיים יכולים להיות מסוננים או מותאמים  
-  - הכללת ההקשר נשלטת על ידי הלקוח  
+- **עבור פרומפטים**:
+  - על הלקוחות להציג למשתמשים את הפרומפט המוצע
+  - על המשתמשים להיות מסוגלים לשנות או לדחות פרומפטים
+  - פרומפטים של המערכת יכולים להיות מסוננים או מותאמים
+  - הכללת הקשר נשלטת על ידי הלקוח
 
-- **עבור השלמות**:  
-  - הלקוחות צריכים להציג למשתמשים את ההשלמה  
-  - המשתמשים צריכים להיות מסוגלים לשנות או לדחות השלמות  
-  - הלקוחות יכולים לסנן או לשנות השלמות  
-  - המשתמשים שולט על איזה מודל משמש  
+- **עבור השלמות**:
+  - על הלקוחות להציג למשתמשים את ההשלמה
+  - על המשתמשים להיות מסוגלים לשנות או לדחות השלמות
+  - הלקוחות יכולים לסנן או לשנות השלמות
+  - המשתמשים שואלים איזה דגם ישמש
 
-עם עקרונות אלו, נבחן כיצד ליישם דגימה בשפות תכנות שונות, תוך התמקדות בפרמטרים הנתמכים בדרך כלל על ידי ספקי LLM.
+עם עקרונות אלו נבחן כיצד ליישם דגימה בשפות תכנות שונות, תוך התמקדות בפרמטרים הנתמכים בדרך כלל על ידי ספקי LLM.
 
 ## שיקולי אבטחה
 
-בעת יישום דגימה ב-MCP, יש לקחת בחשבון את שיטות האבטחה הטובות הבאות:
+בעת יישום דגימה ב-MCP, יש לשקול את שיטות האבטחה הטובות הבאות:
 
-- **לאמת את כל תוכן ההודעה** לפני שליחתה ללקוח  
-- **לנקות מידע רגיש** מהפרומפטים ומההשלמות  
-- **ליישם הגבלות קצב** למניעת שימוש לרעה  
-- **לנטר שימוש בדגימה** לזיהוי דפוסים חריגים  
-- **להצפין נתונים בתעבורה** באמצעות פרוטוקולים מאובטחים  
-- **לטפל בפרטיות נתוני המשתמש** בהתאם לתקנות הרלוונטיות  
-- **לבצע ביקורת על בקשות דגימה** לצורך תאימות ואבטחה  
-- **לשלוט בחשיפת עלויות** עם הגבלות מתאימות  
-- **ליישם זמני המתנה** לבקשות דגימה  
-- **לטפל בשגיאות מודל בעדינות** עם פתרונות חלופיים מתאימים  
+- **לבדוק את כל תוכן ההודעה** לפני שליחתו ללקוח
+- **לטהר מידע רגיש** מפרומפטים והשלמות
+- ** ליישם מגבלות קצב** למניעת שימוש לרעה
+- **לנטר שימוש בדגימה** לדפוסים חריגים
+- **להצפין נתונים במעבר** באמצעות פרוטוקולים מאובטחים
+- **לטפל בפרטיות נתוני משתמש** בהתאם לרגולציות הרלוונטיות
+- **לבדוק בקשות דגימה** לצורך תאימות ואבטחה
+- **לשלוט בעלויות** עם מגבלות מתאימות
+- **ליישם תזמון פסק זמן** לבקשות דגימה
+- **לטפל בשגיאות דגם בחן** באמצעות פתרונות חלופיים מתאימים
 
-פרמטרי הדגימה מאפשרים לכוונן את התנהגות מודלי השפה כדי להשיג את האיזון הרצוי בין פלט דטרמיניסטי ליצירתי.
+פרמטרי דגימה מאפשרים כוונון מדויק של התנהגות דגמי שפה להשגת האיזון הרצוי בין תוצאות דטרמיניסטיות ליצירתיות.
 
-בואו נבחן כיצד להגדיר פרמטרים אלו בשפות תכנות שונות.
+בואו נבחן כיצד להגדיר פרמטרים אלה בשפות תכנות שונות.
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -164,48 +168,49 @@ public class SamplingExample
 }
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד הקודם עשינו:
 
-- יצירת לקוח MCP עם כתובת URL ספציפית של השרת.  
-- הגדרת בקשה עם פרמטרי דגימה כמו `temperature`, `top_p` ו-`top_k`.  
-- שליחת הבקשה והדפסת הטקסט שנוצר.  
-- שימוש ב-`allowedTools` לציון הכלים שהמודל יכול להשתמש בהם במהלך היצירה. במקרה זה, אפשרנו את הכלים `ideaGenerator` ו-`marketAnalyzer` לסייע ביצירת רעיונות יצירתיים לאפליקציה.  
-- שימוש ב-`frequencyPenalty` ו-`presencePenalty` לשליטה על חזרתיות וגיוון בפלט.  
-- שימוש ב-`temperature` לשליטה באקראיות הפלט, כאשר ערכים גבוהים יותר מובילים לתגובות יצירתיות יותר.  
-- שימוש ב-`top_p` להגבלת בחירת הטוקנים לאלו התורמים למסת הסיכוי המצטברת העליונה, לשיפור איכות הטקסט שנוצר.  
-- שימוש ב-`top_k` להגבלת המודל לטוקנים הסבירים ביותר ב-K העליונים, מה שיכול לסייע ביצירת תגובות קוהרנטיות יותר.  
-- שימוש ב-`frequencyPenalty` ו-`presencePenalty` להפחתת חזרתיות ועידוד גיוון בטקסט שנוצר.
+- יצרנו לקוח MCP עם URL של שרת ספציפי.
+- הגדרנו בקשה עם פרמטרי דגימה כמו `temperature`, `top_p` ו-`top_k`.
+- שלחנו את הבקשה והדפסנו את הטקסט שנוצר.
+- השתמשנו ב:
+    - `allowedTools` כדי לציין אילו כלים המודל יכול להשתמש בהם במהלך היצירה. במקרה זה אפשרנו את הכלים `ideaGenerator` ו-`marketAnalyzer` לסייע ביצירת רעיונות אפליקציות יצירתיות.
+    - `frequencyPenalty` ו-`presencePenalty` לשליטה בחזרתיות ובמגוון הפלט.
+    - `temperature` לשליטה באקראיות הפלט, כאשר ערכים גבוהים מובילים לתגובות יצירתיות יותר.
+    - `top_p` להגבלת בחירת הטוקנים לאלה התורמים למסה המצטברת העליונה, מה שמשפר את איכות הטקסט שנוצר.
+    - `top_k` להגבלה את המודל לטוקנים ה-K הסבירים ביותר, מה שיכול לסייע ביצירת תגובות קוהרנטיות יותר.
+    - `frequencyPenalty` ו-`presencePenalty` להפחתת חזרתיות ולעידוד גיוון בטקסט שנוצר.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// דוגמה ב-JavaScript: תצורת מדגם בטמפרטורה ובטופ-P
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // אתחול לקוח MCP
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // הגדרת בקשה עם פרמטרים שונים לדגימה
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // טמפרטורה גבוהה יותר = יותר אקראיות/יצירתיות
+    topP: 0.92,          // התחשבות בטוקנים עם מסת סבירות של 92% העליונות
+    frequencyPenalty: 0.6, // הפחתת חזרת שרשרת טוקנים
+    presencePenalty: 0.4   // הענשת טוקנים שכבר הופיעו בטקסט עד כה
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // טמפרטורה נמוכה יותר = יותר חיזוי ודאי/עובדתי
+    topP: 0.85,          // בחירת טוקנים מעט ממוקדת יותר
+    frequencyPenalty: 0.2, // עונש חזרה מינימלי
+    presencePenalty: 0.1   // עונש נוכחות מינימלי
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // שליחת שתי בקשות עם תצורות דגימה שונות
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -236,57 +241,57 @@ async function demonstrateSampling() {
 demonstrateSampling();
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד הקודם עשינו:
 
-- אתחול לקוח MCP עם כתובת URL של השרת ומפתח API.  
-- הגדרת שתי קבוצות פרמטרי דגימה: אחת למשימות יצירתיות ואחת למשימות עובדתיות.  
-- שליחת בקשות עם ההגדרות הללו, תוך מתן אפשרות למודל להשתמש בכלים ספציפיים לכל משימה.  
-- הדפסת התגובות שנוצרו להדגמת השפעות פרמטרי הדגימה השונים.  
-- שימוש ב-`allowedTools` לציון הכלים שהמודל יכול להשתמש בהם במהלך היצירה. במקרה זה, אפשרנו את `ideaGenerator` ו-`environmentalImpactTool` למשימות יצירתיות, ואת `factChecker` ו-`dataAnalysisTool` למשימות עובדתיות.  
-- שימוש ב-`temperature` לשליטה באקראיות הפלט, כאשר ערכים גבוהים יותר מובילים לתגובות יצירתיות יותר.  
-- שימוש ב-`top_p` להגבלת בחירת הטוקנים לאלו התורמים למסת הסיכוי המצטברת העליונה, לשיפור איכות הטקסט שנוצר.  
-- שימוש ב-`frequencyPenalty` ו-`presencePenalty` להפחתת חזרתיות ועידוד גיוון בפלט.  
-- שימוש ב-`top_k` להגבלת המודל לטוקנים הסבירים ביותר ב-K העליונים, מה שיכול לסייע ביצירת תגובות קוהרנטיות יותר.
+- יזמנו לקוח MCP עם URL של שרת ומפתח API.
+- הגדרנו שתי קבוצות של פרמטרי דגימה: אחת למשימות יצירתיות ואחת למשימות עובדתיות.
+- שלחנו בקשות עם ההגדרות הללו, ואפשרנו למודל להשתמש בכלים ספציפיים לכל משימה.
+- הדפסנו את התגובות שנוצרו כדי להדגים את ההשפעות של פרמטרי דגימה שונים.
+- השתמשנו ב-`allowedTools` כדי לציין אילו כלים המודל יכול להשתמש בהם במהלך היצירה. במקרה זה אפשרנו את הכלים `ideaGenerator` ו-`environmentalImpactTool` למשימות יצירתיות, ואת `factChecker` ו-`dataAnalysisTool` למשימות עובדתיות.
+- השתמשנו ב-`temperature` לשליטה באקראיות הפלט, כאשר ערכים גבוהים מובילים לתגובות יצירתיות יותר.
+- השתמשנו ב-`top_p` להגבלת בחירת הטוקנים לאלה התורמים למסה המצטברת העליונה, מה שמשפר את איכות הטקסט שנוצר.
+- השתמשנו ב-`frequencyPenalty` ו-`presencePenalty` להפחתת חזרתיות ולעידוד גיוון בפלט.
+- השתמשנו ב-`top_k` להגבלה את המודל לטוקנים ה-K הסבירים ביותר, מה שיכול לסייע ביצירת תגובות קוהרנטיות יותר.
 
 ---
 
 ## דגימה דטרמיניסטית
 
-ליישומים שדורשים פלט עקבי, דגימה דטרמיניסטית מבטיחה תוצאות שחוזרות על עצמן. היא עושה זאת באמצעות שימוש בזרע אקראי קבוע והגדרת הטמפרטורה לאפס.
+עבור אפליקציות שדורשות תוצאות עקביות, דגימה דטרמיניסטית מבטיחה תוצאות חוזרות. היא עושה זאת על ידי שימוש בזרע אקראי קבוע והגדרת הטמפרטורה לאפס.
 
-נבחן למטה דוגמת יישום להדגמת דגימה דטרמיניסטית בשפות תכנות שונות.
+נבחן למטה יישום דוגמה להדגמת דגימה דטרמיניסטית בשפות תכנות שונות.
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// דוגמת Java: תגובות דטרמיניסטיות עם זרע קבוע
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // שימוש בזרע קבוע לתוצאות דטרמיניסטיות
         
-        // First request with fixed seed
+        // בקשה ראשונה עם זרע קבוע
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // טמפרטורה אפס למקסימום דטרמיניזם
             .build();
             
-        // Second request with the same seed
+        // בקשה שנייה עם אותו זרע
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // ביצוע שתי הבקשות
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // התגובות צריכות להיות זהות בגלל אותו זרע וטמפרטורה=0
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -295,19 +300,19 @@ public class DeterministicSamplingExample {
 }
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד הקודם עשינו:
 
-- יצירת לקוח MCP עם כתובת URL של שרת מוגדרת.  
-- הגדרת שתי בקשות עם אותו פרומפט, זרע קבוע וטמפרטורה אפסית.  
-- שליחת שתי הבקשות והדפסת הטקסט שנוצר.  
-- הוכחה שהתשובות זהות בזכות טבע דטרמיניסטי של תצורת הדגימה (אותו זרע וטמפרטורה).  
-- שימוש ב-`setSeed` לציון זרע אקראי קבוע, שמבטיח שהמודל יפיק את אותו פלט עבור אותו קלט בכל פעם.  
-- הגדרת `temperature` לאפס כדי להבטיח דטרמיניזם מקסימלי, כלומר שהמודל תמיד יבחר את הטוקן הסביר ביותר הבא ללא אקראיות.
+- יצרנו לקוח MCP עם URL של שרת מוגדר.
+- הגדרנו שתי בקשות עם אותו פרומפט, זרע קבוע, וטמפרטורה אפס.
+- שלחנו את שתי הבקשות והדפסנו את הטקסט שנוצר.
+- הדגמנו שהתשובות זהות בשל המהות הדטרמיניסטית של קונפיגורציית הדגימה (אותו זרע וטמפרטורה).
+- השתמשנו ב-`setSeed` כדי לציין זרע אקראי קבוע, להבטיח שהמודל יפיק תמיד את אותו פלט עבור אותו קלט.
+- הגדרנו את `temperature` לאפס כדי להבטיח דטרמיניזם מקסימלי, כלומר המודל תמיד ייבחר את הטוקן הסביר ביותר הבא ללא אקראיות.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// דוגמת JavaScript: תגובות דטרמיניסטיות עם שליטת זרע
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -319,19 +324,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // בקשה ראשונה עם זרע קבוע
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // טמפרטורה אפסית למקסימום דטרמיניזם
     });
     
-    // Second request with same seed and temperature
+    // בקשה שנייה עם אותו זרע וטמפרטורה
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // בקשה שלישית עם זרע שונה אך אותה טמפרטורה
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -351,28 +356,28 @@ async function deterministicSampling() {
 deterministicSampling();
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד הקודם עשינו:
 
-- אתחול לקוח MCP עם כתובת URL של השרת.  
-- הגדרת שתי בקשות עם אותו פרומפט, זרע קבוע וטמפרטורה אפסית.  
-- שליחת שתי הבקשות והדפסת הטקסט שנוצר.  
-- הוכחה שהתשובות זהות בזכות טבע דטרמיניסטי של תצורת הדגימה (אותו זרע וטמפרטורה).  
-- שימוש ב-`seed` לציון זרע אקראי קבוע, שמבטיח שהמודל יפיק את אותו פלט עבור אותו קלט בכל פעם.  
-- הגדרת `temperature` לאפס כדי להבטיח דטרמיניזם מקסימלי, כלומר שהמודל תמיד יבחר את הטוקן הסביר ביותר הבא ללא אקראיות.  
-- שימוש בזרע שונה עבור הבקשה השלישית כדי להראות ששינוי הזרע מביא לתוצאות שונות, גם עם אותו פרומפט וטמפרטורה.
+- יזמנו לקוח MCP עם URL של שרת.
+- הגדרנו שתי בקשות עם אותו פרומפט, זרע קבוע, וטמפרטורה אפס.
+- שלחנו את שתי הבקשות והדפסנו את הטקסט שנוצר.
+- הדגמנו שהתשובות זהות בשל המהות הדטרמיניסטית של קונפיגורציית הדגימה (אותו זרע וטמפרטורה).
+- השתמשנו ב-`seed` כדי לציין זרע אקראי קבוע, להבטיח שהמודל יפיק תמיד את אותו פלט עבור אותו קלט.
+- הגדרנו את `temperature` לאפס כדי להבטיח דטרמיניזם מקסימלי, כלומר המודל תמיד ייבחר את הטוקן הסביר ביותר הבא ללא אקראיות.
+- השתמשנו בזרע שונה עבור הבקשה השלישית להראות ששינוי הזרע מביא לתוצאות שונות, אפילו עם אותו פרומפט וטמפרטורה.
 
 ---
 
-## תצורת דגימה דינמית
+## קונפיגורציית דגימה דינמית
 
-דגימה חכמה מתאימה את הפרמטרים בהתאם להקשר ולדרישות כל בקשה. כלומר, התאמת פרמטרים כמו temperature, top_p וענישות בהתאם לסוג המשימה, העדפות המשתמש או ביצועים היסטוריים.
+דגימה חכמה מתאימה פרמטרים בהתבסס על ההקשר וצרכי כל בקשה. זאת אומרת, התאמה דינמית של פרמטרים כמו temperature, top_p ו-penalties בהתבסס על סוג המשימה, העדפות המשתמש או ביצועים היסטוריים.
 
 נבחן כיצד ליישם דגימה דינמית בשפות תכנות שונות.
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# דוגמת פייתון: דגימה דינמית מבוססת על הקשר הבקשה
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -380,7 +385,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # הגדר תצורות דגימה מראש עבור סוגי משימות שונים
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -388,22 +393,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # בחר תצורת בסיס
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # התאם בהתאם להעדפות המשתמש אם סופקו
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # קנה מידה לטמפרטורה בהתבסס על העדפת יצירתיות (1-10)
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # התאם את top_p בהתבסס על גיוון התגובה הרצוי
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # צור ושלח בקשה עם פרמטרי דגימה מותאמים אישית
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -411,7 +416,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # החזר תגובה עם מטה-נתוני דגימה לשקיפות
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -419,32 +424,32 @@ class DynamicSamplingService:
         }
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד הקודם עשינו:
 
-- יצירת מחלקת `DynamicSamplingService` שמנהלת דגימה אדפטיבית.  
-- הגדרת פרופילי דגימה מראש לסוגי משימות שונים (יצירתי, עובדתית, קוד, אנליטי).  
-- בחירת פרופיל דגימה בסיסי בהתאם לסוג המשימה.  
-- התאמת פרמטרי הדגימה בהתאם להעדפות המשתמש, כמו רמת יצירתיות וגיוון.  
-- שליחת הבקשה עם פרמטרי הדגימה שהוגדרו דינמית.  
-- החזרת הטקסט שנוצר יחד עם פרמטרי הדגימה וסוג המשימה לשקיפות.  
-- שימוש ב-`temperature` לשליטה באקראיות הפלט, כאשר ערכים גבוהים יותר מובילים לתגובות יצירתיות יותר.  
-- שימוש ב-`top_p` להגבלת בחירת הטוקנים לאלו התורמים למסת הסיכוי המצטברת העליונה, לשיפור איכות הטקסט שנוצר.  
-- שימוש ב-`frequency_penalty` להפחתת חזרתיות ועידוד גיוון בפלט.  
-- שימוש ב-`user_preferences` לאפשר התאמה אישית של פרמטרי הדגימה על בסיס רמות יצירתיות וגיוון שהוגדרו על ידי המשתמש.  
-- שימוש ב-`task_type` לקביעת אסטרטגיית הדגימה המתאימה לבקשה, לאפשר תגובות מותאמות יותר לפי אופי המשימה.  
-- שימוש בשיטת `send_request` לשליחת הפרומפט עם פרמטרי הדגימה שהוגדרו, להבטיח שהמודל יפיק טקסט בהתאם לדרישות.  
-- שימוש ב-`generated_text` לקבלת תגובת המודל, שמוחזרת יחד עם פרמטרי הדגימה וסוג המשימה לניתוח או הצגה.  
-- שימוש בפונקציות `min` ו-`max` להבטיח שהעדפות המשתמש יוגבלו לטווחים תקינים, למניעת תצורות דגימה לא חוקיות.
+- יצרנו מחלקת `DynamicSamplingService` שמנהלת דגימה אדפטיבית.
+- הגדרנו תצורות דגימה מראש לסוגי משימות שונים (יצירתיות, עובדתיות, קוד, אנליטית).
+- בחרנו תצורת דגימה בסיסית בהתבסס על סוג המשימה.
+- התאמת פרמטרי הדגימה בהתבסס על העדפות המשתמש, כמו רמת יצירתיות ומגוון.
+- שלחנו את הבקשה עם פרמטרי הדגימה המוגדרים דינמית.
+- החזרנו את הטקסט שנוצר יחד עם פרמטרי הדגימה וסוג המשימה לשקיפות.
+- השתמשנו ב-`temperature` לשליטה באקראיות הפלט, כאשר ערכים גבוהים מובילים לתגובות יצירתיות יותר.
+- השתמשנו ב-`top_p` להגבלת בחירת הטוקנים לאלה התורמים למסה המצטברת העליונה, מה שמשפר את איכות הטקסט שנוצר.
+- השתמשנו ב-`frequency_penalty` להפחתת חזרתיות ולעידוד גיוון בפלט.
+- השתמשנו ב-`user_preferences` לאפשר התאמה אישית של פרמטרי הדגימה בהתבסס על רמות יצירתיות ומגוון שהוגדרו על ידי המשתמש.
+- השתמשנו ב-`task_type` כדי להחליט על אסטרטגיית הדגימה המתאימה לבקשה, לאפשר תגובות ממוקדות יותר בהתאם לאופי המשימה.
+- השתמשנו בשיטה `send_request` לשליחת הפרומפט עם פרמטרי הדגימה המוגדרים, להבטיח שהמודל יפיק טקסט בהתאם לדרישות.
+- השתמשנו ב-`generated_text` כדי לקבל את תגובת המודל, שמוחזרת יחד עם פרמטרי הדגימה וסוג המשימה לניתוח או תצוגה.
+- השתמשנו בפונקציות `min` ו-`max` כדי לוודא שהעדפות המשתמש מוגבלות בתוך טווחים תקינים, למנוע קונפיגורציות דגימה לא חוקיות.
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript דינמי](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// דוגמת JavaScript: תצורת דגימה דינמית מבוססת הקשר משתמש
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // הגדרת פרופילי דגימה בסיסיים
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -452,15 +457,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // מעקב ביצועים היסטוריים
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // זיהוי סוג המשימה מתוך ההנחיה
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // זיהוי משוער פשוט - ניתן לשפר באמצעות סיווג ML
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -481,57 +486,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // ברירת מחדל לשיח conversational אם לא מזוהה סוג ברור
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // חישוב פרמטרי דגימה בהתבסס על ההקשר והעדפות המשתמש
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // זיהוי סוג המשימה
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // קבלת פרופיל בסיסי
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // התאמה על פי העדפות המשתמש
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // המרה מסולם 1-10 לטווח טמפרטורה מתאים
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // דיוק גבוה יותר משמעותו topP נמוך יותר (בחירה ממוקדת יותר)
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // עקביות גבוהה יותר משמעותה עונשים נמוכים יותר
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // יישום התאמות שנלמדו מההיסטוריה של הביצועים
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // לוגיקה אדפטיבית פשוטה - ניתן לשפר עם אלגוריתמים מתקדמים יותר
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // התחשבות רק בהיסטוריה האחרונה
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // חישוב ציוני ביצוע ממוצעים
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // אם הביצועים נמוכים מהסף, להתאים את הפרמטרים
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // התאמה קלה לערכים בטוחים יותר
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -539,32 +544,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // רישום ביצועים להתאמות עתידיות
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // דירוג 0-1 של איכות התגובה
     });
     
-    // Limit history size
+    // הגבלת גודל ההיסטוריה
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // קבלת פרמטרי דגימה מותאמים אופטימלית
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // שליחת בקשה עם הפרמטרים המותאמים
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // אם המשתמש מספק משוב, לרשום זאת לאופטימיזציה עתידית
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -577,7 +582,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// דוגמת שימוש
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -586,13 +591,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // משימה יצירתית עם העדפות משתמש מותאמות אישית
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // יצירתיות גבוהה (1-10)
+          consistency: 3  // עקביות נמוכה (1-10)
         }
       }
     );
@@ -602,14 +607,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // משימת יצירת קוד
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // יצירתיות נמוכה
+          precision: 8,   // דיוק גבוה
+          consistency: 9  // עקביות גבוהה
         }
       }
     );
@@ -627,32 +632,37 @@ async function demonstrateAdaptiveSampling() {
 demonstrateAdaptiveSampling();
 ```
 
-בקוד שלמעלה ביצענו:
+בקוד הקודם עשינו:
 
-- יצירת מחלקת `AdaptiveSamplingManager` שמנהלת דגימה דינמית על בסיס סוג המשימה והעדפות המשתמש.  
-- הגדרת פרופילי דגימה לסוגי משימות שונים (יצירתי, עובדתית, קוד, שיחתי).  
-- יישום שיטה לזיהוי סוג המשימה מהפרומפט באמצעות היריסטיקות פשוטות.  
-- חישוב פרמטרי דגימה בהתבסס על סוג המשימה שזוהה והעדפות המשתמש.  
-- יישום התאמות שנלמדו בהתבסס על ביצועים היסטוריים לאופטימיזציה של פרמטרי הדגימה.  
-- תיעוד ביצועים להתאמות עתידיות, המאפשר למערכת ללמוד מאינטראקציות קודמות.  
-- שליחת בקשות עם פרמטרי דגימה שהוגדרו דינמית והחזרת הטקסט שנוצר יחד עם הפרמטרים שהוחלו וסוג המשימה שזוהה.  
-- שימוש ב-`userPreferences` לאפשר התאמה אישית של פרמטרי הדגימה על בסיס רמות יצירתיות, דיוק ועקביות שהוגדרו על ידי המשתמש.  
-- שימוש ב-`detectTaskType` לקביעת אופי המשימה מהפרומפט, לאפשר תגובות מותאמות יותר.  
-- שימוש ב-`recordPerformance` לתיעוד ביצועי התגובות שנוצרו, לאפשר למערכת להסתגל ולשפר עם הזמן.  
-- שימוש ב-`applyLearnedAdjustments` לשינוי פרמטרי הדגימה בהתבסס על ביצועים היסטוריים, לשיפור יכולת המודל לייצר תגובות איכותיות.  
-- שימוש ב-`generateResponse` לאריזת כל תהליך יצירת התגובה עם דגימה אדפטיבית, להקל על קריאה עם פרומפטים והקשרים שונים.  
-- שימוש ב-`allowedTools` לציון הכלים שהמודל יכול להשתמש בהם במהלך היצירה, לאפשר תגובות מודעות להקשר.  
-- שימוש ב-`feedbackScore` לאפשר למשתמשים לספק משוב על איכות התגובה שנוצרה, שניתן להשתמש בו לשיפור ביצועי המודל לאורך זמן.  
-- שימוש ב-`performanceHistory` לשמירת רשומות של אינטראקציות קודמות, לאפשר למערכת ללמוד מהצלחות וכישלונות.  
-- שימוש ב-`getSamplingParameters` להתאמת פרמטרי הדגימה דינמית בהתאם להקשר הבקשה, לאפשר התנהגות מודל גמישה ותגובתית יותר.  
-- שימוש ב-`detectTaskType` לסיווג המשימה על בסיס הפרומפט, לאפשר יישום אסטרטגיות דגימה מתאימות לסוגי בקשות שונים.  
-- שימוש ב-`samplingProfiles` להגדרת תצורות דגימה בסיסיות לסוגי משימות שונים, לאפשר התאמות מהירות בהתאם לאופי הבקשה.
+- יצרנו מחלקת `AdaptiveSamplingManager` שמנהלת דגימה דינמית בהתבסס על סוג משימה והעדפות המשתמש.
+- הגדרנו פרופילי דגימה לסוגי משימה שונים (יצירתיות, עובדתיות, קוד, שיחתי).
+- יישמנו שיטה לזיהוי סוג המשימה מתוך הפרומפט באמצעות הסקות פשוטות.
+- חישבנו פרמטרי דגימה בהתבסס על סוג המשימה שזוהה והעדפות המשתמש.
+- יישמנו התאמות שנלמדו בהתבסס על ביצועים היסטוריים לאופטימיזציה של פרמטרי הדגימה.
+- רשמנו ביצועים להסתגלויות עתידיות, מה שמאפשר למערכת ללמוד מאינטראקציות קודמות.
+- שלחנו בקשות עם פרמטרי דגימה מוגדרים דינמית והחזירו את הטקסט שנוצר יחד עם הפרמטרים שהוחלו וסוג המשימה שזוהה.
+- השתמשנו ב:
+    - `userPreferences` כדי לאפשר התאמה אישית של פרמטרי הדגימה בהתבסס על רמות יצירתיות, דיוק ועקביות שהוגדרו על ידי המשתמש.
+    - `detectTaskType` כדי להחליט על אופי המשימה בהתבסס על הפרומפט, לאפשר תגובות ממוקדות יותר.
+    - `recordPerformance` לרישום ביצועי תגובות שנוצרו, מה שמאפשר למערכת להסתגל ולשפר עם הזמן.
+    - `applyLearnedAdjustments` לשינוי פרמטרי הדגימה בהתבסס על ביצועים היסטוריים, משפר את יכולת המודל לייצר תגובות איכותיות.
+    - `generateResponse` לארוז את כל תהליך יצירת התגובה עם דגימה אדפטיבית, מאפשר קריאה נוחה עם פרומפטים והקשרים שונים.
+    - `allowedTools` לציון אילו כלים המודל יכול להשתמש בהם במהלך היצירה, מאפשר תגובות מודעות להקשר יותר.
+    - `feedbackScore` לאפשר למשתמשים לספק משוב על איכות התגובה, שניתן להשתמש בו כדי לחדד עוד יותר את ביצועי המודל לאורך זמן.
+    - `performanceHistory` לשמירת היסטוריית אינטראקציות, מה שמאפשר למערכת ללמוד מהצלחות וכישלונות קודמים.
+    - `getSamplingParameters` להתאמת פרמטרי הדגימה דינמית בהתבסס על הקשר הבקשה, לאפשר התנהגות מודל גמישה ותגובה.
+    - `detectTaskType` לסיווג המשימה על בסיס הפרומפט, מה שמאפשר למערכת להחיל אסטרטגיות דגימה מתאימות לסוגי בקשות שונים.
+    - `samplingProfiles` להגדרת תצורות דגימה בסיסיות לסוגי משימות שונים, לאפשר התאמות מהירות בהתבסס על אופי הבקשה.
 
 ---
 
 ## מה הלאה
 
-- [5.7 Scaling](../mcp-scaling/README.md)
+- [5.7 סקיילינג](../mcp-scaling/README.md)
 
-**כתב ויתור**:  
-מסמך זה תורגם באמצעות שירות תרגום מבוסס בינה מלאכותית [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון כי תרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. המסמך המקורי בשפת המקור שלו נחשב למקור הסמכותי. למידע קריטי מומלץ להשתמש בתרגום מקצועי על ידי מתרגם אנושי. אנו לא נושאים באחריות לכל אי-הבנה או פרשנות שגויה הנובעת משימוש בתרגום זה.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**כתב ויתור**:
+מסמך זה תורגם באמצעות שירות תרגום אוטומטי [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון שתרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. יש להחשיב את המסמך המקורי בשפתו הטבעית כמקור הסמכות. למידע קריטי מומלץ להשתמש בתרגום מקצועי על ידי מתרגם אדם. אנו לא אחראים לכל אי-הבנה או פירוש שגוי הנובע מהשימוש בתרגום זה.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

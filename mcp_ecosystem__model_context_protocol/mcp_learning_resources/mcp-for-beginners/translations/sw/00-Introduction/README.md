@@ -1,86 +1,86 @@
-# Utangulizi wa Itifaki ya Muktadha wa Mfano (MCP): Kwa Nini Inajali kwa Maombi ya AI Yanayoweza Kupanuka
+# Utangulizi wa Itifaki ya Muktadha wa Mfano (MCP): Kwa Nini Inafaa kwa Programu za AI Zinazoweza Kupanuka
 
 [![Utangulizi wa Itifaki ya Muktadha wa Mfano](../../../translated_images/sw/01.a467036d886b5fb5.webp)](https://youtu.be/agBbdiOPLQA)
 
-_(Bonyeza picha hapo juu kutazama video ya somo hili)_
+_(Bofya picha hapo juu kuangalia video ya somo hili)_
 
-Maombi ya AI ya kizazi ni hatua nzuri mbele kwani mara nyingi huruhusu mtumiaji kuingiliana na programu kwa kutumia maagizo ya lugha asilia. Hata hivyo, kadri muda na rasilimali zinavyoingizwa katika programu kama hizo, unataka kuhakikisha unaweza kuunganisha kwa urahisi utendaji na rasilimali kwa njia ambayo ni rahisi kupanua, kwamba programu yako inaweza kuhudumia zaidi ya mfano mmoja unaotumika, na kushughulikia undani mbalimbali wa mifano. Kwa ufupi, kujenga programu za AI za kizazi ni rahisi kuanzia, lakini zinapokua na kuwa ngumu zaidi, unahitaji kuanza kufafanua usanifu na kuna uwezekano unahitaji kutegemea kiwango cha kawaida ili kuhakikisha programu zako zinajengwa kwa njia thabiti. Hapa ndipo MCP inakuja kuweka mambo mpangilio na kutoa kiwango cha kawaida.
+Programu za AI zinazozalisha ni hatua nzuri mbele kwani mara nyingi hutoa uwezo kwa mtumiaji kuingiliana na programu kupitia maelekezo ya lugha ya asili. Hata hivyo, kadiri muda na rasilimali zinavyowekezwa katika programu kama hizi, unataka kuhakikisha unaweza kuunganisha kazi na rasilimali kwa urahisi kwa njia ambayo ni rahisi kupanua, kwamba programu yako inaweza kushughulikia zaidi ya mfano mmoja unaotumika, na kushughulikia changamoto mbalimbali za mfano. Kwa kifupi, kujenga programu za Gen AI ni rahisi kuanzia, lakini zinapokua na kuwa ngumu zaidi, unahitaji kuanza kufafanua usanifu na kuna uwezekano utahitaji kutegemea kiwango cha kawaida ili kuhakikisha programu zako zinajengwa kwa njia thabiti. Hapa ndipo MCP inaingia kupanga mambo na kutoa kiwango cha kawaida.
 
 ---
 
 ## **🔍 Itifaki ya Muktadha wa Mfano (MCP) ni Nini?**
 
-**Itifaki ya Muktadha wa Mfano (MCP)** ni **kiolesura kilichofunguliwa, cha kiwango cha kawaida** kinachoruhusu Mifano Mikubwa ya Lugha (LLMs) kuingiliana kwa urahisi na zana za nje, API, na vyanzo vya data. Inatoa usanifu thabiti wa kuboresha utendaji wa mfano wa AI zaidi ya data zao za mafunzo, kuwezesha mifumo ya AI yenye akili zaidi, inayoweza kupanuka, na inayojibu haraka.
+**Itifaki ya Muktadha wa Mfano (MCP)** ni **kiolesura kilichofunguliwa na kimewekwa kiwango cha kawaida** kinachowezesha Modeli Kubwa za Lugha (LLMs) kuingiliana kwa urahisi na zana za nje, API, na vyanzo vya data. Inatoa usanifu thabiti wa kuboresha utendaji wa mifano ya AI zaidi ya data zao za mafunzo, kuruhusu mifumo ya AI kuwa na akili zaidi, inayoweza kupanuka, na inayojibu kwa ufanisi zaidi.
 
 ---
 
-## **🎯 Kwa Nini Ubora wa Kawaida katika AI Unajali**
+## **🎯 Kwa Nini Kuwepo kwa Kiwango cha Kawaida katika AI Ni Muhimu**
 
-Kadri maombi ya AI ya kizazi yanavyokuwa magumu zaidi, ni muhimu kutumia viwango vinavyohakikisha **uwezo wa kupanuka, upanuzi, utunzaji,** na **kuepuka mtego wa muuzaji mmoja**. MCP inashughulikia mahitaji haya kwa:
+Kadiri programu za AI zinazozalisha zinavyoongezeka kuwa ngumu zaidi, ni muhimu kupitisha viwango vinavyohakikisha **uwezeshaji wa upanuzi, upanuzi, utunzaji,** na **kuepuka utegemezi wa muuzaji mmoja.** MCP inashughulikia mahitaji haya kwa:
 
-- Kuunganisha kwa pamoja zana na mifano
-- Kupunguza suluhisho dhaifu na za kipekee
-- Kuruhusu mifano mingi kutoka kwa wauzaji tofauti kuishi ndani ya mfumo mmoja
+- Kuunganisha kwa pamoja ushirikiano wa mfano na zana
+- Kupunguza suluhisho dhaifu, za kipekee
+- Kuwezesha mifano mingi kutoka kwa wauzaji tofauti kuishi katika mfumo mmoja
 
-**Kumbuka:** Ingawa MCP inajitangaza kama kiwango cha wazi, hakuna mipango ya kuweka MCP kama kiwango cha kawaida kupitia taasisi yoyote zilizopo za viwango kama IEEE, IETF, W3C, ISO, au taasisi nyingine yoyote ya viwango.
+**Kumbuka:** Ingawa MCP inajitangaza kama kiwango cha wazi, hakuna mipango ya kuiingiza MCP kupitia taasisi zozote za viwango zilizopo kama IEEE, IETF, W3C, ISO, au taasisi nyingine za viwango.
 
 ---
 
 ## **📚 Malengo ya Kujifunza**
 
-Mwisho wa makala hii, utaweza:
+Mwishoni mwa makala hii, utaweza:
 
-- Kufafanua **Itifaki ya Muktadha wa Mfano (MCP)** na matumizi yake
-- Kuelewa jinsi MCP inavyoboresha mawasiliano kati ya mfano na zana
-- Kubainisha vipengele vikuu vya usanifu wa MCP
-- Kuchunguza matumizi halisi ya MCP katika muktadha wa biashara na maendeleo
+- Eleza **Itifaki ya Muktadha wa Mfano (MCP)** na matumizi yake
+- Elewa jinsi MCP inavyosanidi mawasiliano ya mfano-na-zana
+- Tambua vipengele vikuu vya usanifu wa MCP
+- Chunguza matumizi halisi ya MCP katika mazingira ya mashirika na maendeleo
 
 ---
 
-## **💡 Kwa Nini Itifaki ya Muktadha wa Mfano (MCP) ni Mabadiliko Makubwa**
+## **💡 Kwa Nini Itifaki ya Muktadha wa Mfano (MCP) Ni Mabadiliko Makubwa**
 
-### **🔗 MCP Inatatua Ugawanyiko katika Mwingiliano wa AI**
+### **🔗 MCP Inatatua Mgawanyiko katika Mwingiliano wa AI**
 
-Kabla ya MCP, kuunganisha mifano na zana kunahitaji:
+Kabla ya MCP, kuunganisha mifano na zana ilihitaji:
 
-- Msimbo wa kawaida kwa kila jozi ya zana-mfano
+- Msimbo maalum kwa kila jozi ya mfano-zana
 - API zisizo za kawaida kwa kila muuzaji
-- Kuvunjwa mara kwa mara kwa sababu za masasisho
-- Ugumu wa kupanuka kwa zana nyingi zaidi
+- Kuvunjika mara kwa mara kutokana na masasisho
+- Ugumu wa kupanuka kwa zana zaidi
 
-### **✅ Manufaa ya Ubora wa Kawaida wa MCP**
+### **✅ Manufaa ya Kiwango cha Kawaida cha MCP**
 
-| **Manufaa**              | **Maelezo**                                                                 |
-|--------------------------|------------------------------------------------------------------------------|
-| Uwezo wa Kuingiliana     | LLMs hufanya kazi kwa urahisi na zana kutoka kwa wauzaji tofauti             |
-| Mwelekeo wa Kuwa Thabiti | Tabia ya umoja kote majukwaa na zana                                         |
-| Matumizi ya Upya         | Zana zilizojengwa mara moja zinaweza kutumika kwa miradi na mifumo mingine    |
-| Kuendesha Maendeleo Haraka | Punguza muda wa maendeleo kwa kutumia violesura vya kawaida, plug-and-play    |
+| **Manufaa**              | **Maelezo**                                                                |
+|--------------------------|--------------------------------------------------------------------------------|
+| Ushirikiano             | Modeli za LLM hufanya kazi kwa urahisi na zana kutoka kwa wauzaji tofauti                       |
+| Ulinganifu              | Tabia moja kwa moja katika majukwaa na zana                                    |
+| Utumiaji Upya           | Zana zilizojengwa mara moja zinaweza kutumika katika miradi na mifumo mbalimbali                       |
+| Kuendeleza Haraka       | Punguza muda wa maendeleo kwa kutumia violesura vya kawaida, vya plug-and-play                |
 
 ---
 
-## **🧱 Muhtasari wa Usanifu wa Juu wa MCP**
+## **🧱 Muhtasari wa Usanifu wa MCP wa Ngazi ya Juu**
 
-MCP hufuata **mfano wa mteja-mtumiaji**, ambapo:
+MCP inafuata **mfano wa mteja-mtumiaji**, ambapo:
 
-- **Wenyeji wa MCP** wanaendesha mifano ya AI
-- **Wateja wa MCP** huanzisha maombi
-- **Seva za MCP** hutoa muktadha, zana, na uwezo
+- **MCP Hosts** huendesha mifano ya AI
+- **MCP Clients** huanzisha ombi
+- **MCP Servers** hutumikia muktadha, zana, na uwezo
 
-### **Vipengele Muhimu:**
+### **Vipengele Vikuu:**
 
-- **Rasilimali** – Data kavu au inayobadilika kwa mifano  
-- **Maagizo** – Mipango iliyoandaliwa kwa ajili ya kizazi kilichoongozwa  
-- **Zana** – Kazi zinazotekelezeka kama utafutaji, hesabu  
-- **Kupima Sampuli** – Tabia za wakala kupitia mwingiliano wa mara kwa mara  
-- **Uhamasishaji** – Maombi yanayotolewa na seva kwa ajili ya maoni ya mtumiaji  
-- **Mizizi** – Mipaka ya mfumo wa faili kwa udhibiti wa upatikanaji seva  
+- **Rasilimali** – Data zisizobadilika au zinazobadilika kwa mifano  
+- **Maelekezo** – Matayarisho ya taratibu za uzalishaji  
+- **Zana** – Kazi zinazotekelezwa kama utafutaji, hesabu  
+- **Kuchuja Sampuli** – Tabia ya mawakala kupitia mwingiliano wa kurudiwa (imeachwa rasmi katika toleo la mvulana la `2026-07-28`)
+- **Kutoa Maoni** – Maombi yanayotokana na seva kwa usaidizi wa mtumiaji
+- **Mizizi** – Mipaka ya mfumo wa faili kwa udhibiti wa ufikiaji wa seva (imeachwa rasmi katika toleo la mvulana la `2026-07-28`)
 
 ### **Usanifu wa Itifaki:**
 
-MCP inatumia usanifu wa tabaka mbili:
-- **Tabaka la Data**: Mawasiliano kwa kutumia JSON-RPC 2.0 pamoja na usimamizi wa mzunguko wa maisha na kanuni msingi
-- **Tabaka la Usafirishaji**: Mawasiliano ya STDIO (ndani) na HTTP inayoweza kuendelea na SSE (kwa mbali)
+MCP hutumia usanifu wa tabaka mbili:
+- **Tabaka la Data**: Mawasiliano ya JSON-RPC 2.0 yenye usimamizi wa mzunguko wa maisha na misingi
+- **Tabaka la Usafirishaji**: STDIO (ndayo) na HTTP inayoweza kutiririka na SSE (mbalimbali) kama njia za mawasiliano
 
 ---
 
@@ -89,45 +89,45 @@ MCP inatumia usanifu wa tabaka mbili:
 Seva za MCP hufanya kazi kwa njia ifuatayo:
 
 - **Mtiririko wa Maombi**:
-    1. Ombi linaanzishwa na mtumiaji wa mwisho au programu inayotenda kwa niaba yake.
-    2. **Mteja wa MCP** hutuma ombi kwa **Mwenyeji wa MCP**, ambaye hushughulikia uendeshaji wa Mfano wa AI.
-    3. **Mfano wa AI** hupokea maagizo ya mtumiaji na unaweza kuomba upatikanaji wa zana za nje au data kupitia simu moja au zaidi za zana.
-    4. **Mwenyeji wa MCP**, si moja kwa moja mfano, hukutana na **Seva za MCP** zinazofaa kwa kutumia itifaki ya kawaida.
-- **Utendaji wa Mwenyeji wa MCP**:
-    - **Kumbukumbu ya Zana**: Inahifadhi orodha ya zana zilizopo na uwezo wao.
-    - **Uthibitishaji**: Huthibitisha ruhusa za upatikanaji wa zana.
-    - **Mshughulikiaji wa Maombi**: Husindika maombi yanayokuja ya zana kutoka kwa mfano.
-    - **Mfinyazo wa Majibu**: Huunda mwonekano wa matokeo ya zana kwa mfano kuelewa.
+    1. Ombi huanzishwa na mtumiaji wa mwisho au programu inayowakilisha.
+    2. **MCP Client** hutuma ombi kwa **MCP Host**, ambaye anasimamia mtandao wa Mfano wa AI.
+    3. **Mfano wa AI** hupokea maelekezo kutoka kwa mtumiaji na huenda ukaomba ufikiaji wa zana za nje au data kupitia simu za zana moja au zaidi.
+    4. **MCP Host**, si mfano moja kwa moja, huwasiliana na **Seva za MCP** zinazohitajika kwa kutumia itifaki ya kawaida.
+- **Ustadi wa MCP Host**:
+    - **Sajili ya Zana**: Inahifadhi orodha ya zana zinazopatikana na uwezo wao.
+    - **Uthibitishaji**: Huhakikisha ruhusa za kupata zana.
+    - **Mshughulikaji wa Maombi**: Hushughulikia maombi yanayoingia kutoka kwa mfano.
+    - **Mtengenezaji wa Majibu**: Huunda matokeo ya zana kwa muundo unaoeleweka na mfano.
 - **Utekelezaji wa Seva za MCP**:
-    - **Mwenyeji wa MCP** hupeleka simu za zana kwa seva moja au zaidi za MCP, kila moja ikionyesha kazi maalum (mfano, utafutaji, hesabu, maswali ya hifadhidata).
-    - **Seva za MCP** hufanya kazi zao husika na kurudisha matokeo kwa **Mwenyeji wa MCP** kwa muundo thabiti.
-    - **Mwenyeji wa MCP** huunda na kuwasilisha matokeo haya kwa **Mfano wa AI**.
-- **Ukomo wa Jibu**:
+    - **MCP Host** huwaelekeza simu za zana kwa seva moja au zaidi za MCP, kila moja ikitoa kazi maalum (mfano, utafutaji, hesabu, maswali ya hifadhidata).
+    - **Seva za MCP** hufanya shughuli zao na kurudisha matokeo kwa **MCP Host** kwa muundo thabiti.
+    - **MCP Host** huunda na kupitisha matokeo haya kwa **Mfano wa AI**.
+- **Kumaliza Majibu**:
     - **Mfano wa AI** huingiza matokeo ya zana katika jibu la mwisho.
-    - **Mwenyeji wa MCP** hutuma jibu hili tena kwa **Mteja wa MCP**, ambaye humfikishia kwa mtumiaji wa mwisho au programu inayoitisha.
+    - **MCP Host** hutuma jibu hili tena kwa **MCP Client**, ambaye huwasilisha kwa mtumiaji wa mwisho au programu inayoitisha.
     
 
 ```mermaid
 ---
-title: Miundombinu ya MCP na Mwingiliano wa Vipengele
-description: Mchoro unaoonyesha mtiririko wa vipengele katika MCP.
+title: MCP Architecture and Component Interactions
+description: A diagram showing the flows of the components in MCP.
 ---
 graph TD
-    Client[Mteja/Maombi ya MCP] -->|Kutuma Ombi| H[Host wa MCP]
-    H -->|Kuitisha| A[Mfano wa AI]
-    A -->|Ombi la Kuitisha Zana| H
-    H -->|Itifaki ya MCP| T1[Zana ya Seva ya MCP 01: Utafutaji wa Wavuti]
-    H -->|Itifaki ya MCP| T2[Zana ya Seva ya MCP 02: Zana ya Kikokotoo]
-    H -->|Itifaki ya MCP| T3[Zana ya Seva ya MCP 03: Zana ya Ufikiaji wa Hifadhidata]
-    H -->|Itifaki ya MCP| T4[Zana ya Seva ya MCP 04: Zana ya Mfumo wa Faili]
-    H -->|Kutuma Jibu| Client
+    Client[Mteja/Mfunguo wa MCP] -->|Tuma Ombi| H[Mwenyezi wa MCP]
+    H -->|Inaitisha| A[Mfano wa AI]
+    A -->|Ombi la Kuitikia Zana| H
+    H -->|MCP Protocol| T1[MCP Server Tool 01: Utafutaji wa Wavuti
+    H -->|MCP Protocol| T2[MCP Server Tool 02: Zana ya Kihesabu
+    H -->|MCP Protocol| T3[MCP Server Tool 03: Zana ya Kufikia Hifadhidata
+    H -->|MCP Protocol| T4[MCP Server Tool 04: Zana ya Mfumo wa Faili
+    H -->|Tuma Jibu| Client
 
-    subgraph "Vipengele vya Host wa MCP"
+    subgraph "Vijumlisho vya Mwenyezi wa MCP"
         H
-        G[Rejista ya Zana]
+        G[Usajili wa Zana]
         I[Uthibitishaji]
         J[Mshughulikiaji wa Ombi]
-        K[Mratibu wa Majibu]
+        K[Msimamizi wa Muundo wa Jibu]
     end
 
     H <--> G
@@ -147,85 +147,89 @@ graph TD
     style T3 fill:#c2f0c2,stroke:#333,stroke-width:1px
     style T4 fill:#c2f0c2,stroke:#333,stroke-width:1px
 ```
+
 ## 👨‍💻 Jinsi ya Kujenga Seva ya MCP (Kwa Mifano)
 
-Seva za MCP huruhusu kupanua uwezo wa LLM kwa kutoa data na utendaji.
+Seva za MCP zinakuwezesha kuongeza uwezo wa LLM kwa kutoa data na huduma. 
 
-Uko tayari kujaribu? Hapa kuna SDK za lugha na/au stack maalum zilizo na mifano ya kuunda seva rahisi za MCP kwa lugha/stacks tofauti:
+Tayari kujaribu? Hapa kuna SDK maalum za lugha na/au miradi pamoja na mifano ya kuunda seva rahisi za MCP katika lugha/miradi tofauti:
 
-- **Python SDK**: https://github.com/modelcontextprotocol/python-sdk
+- **SDK ya Python**: https://github.com/modelcontextprotocol/python-sdk
 
-- **TypeScript SDK**: https://github.com/modelcontextprotocol/typescript-sdk
+- **SDK ya TypeScript**: https://github.com/modelcontextprotocol/typescript-sdk
 
-- **Java SDK**: https://github.com/modelcontextprotocol/java-sdk
+- **SDK ya Java**: https://github.com/modelcontextprotocol/java-sdk
 
-- **C#/.NET SDK**: https://github.com/modelcontextprotocol/csharp-sdk
+- **SDK ya C#/.NET**: https://github.com/modelcontextprotocol/csharp-sdk
 
 
-## 🌍 Matumizi Halisi ya Dunia ya MCP
+## 🌍 Matumizi Halisi ya MCP
 
-MCP inaruhusu matumizi mbalimbali kwa kupanua uwezo wa AI:
+MCP inaruhusu matumizi mbalimbali kwa kuongeza uwezo wa AI:
 
-| **Matumizi**                | **Maelezo**                                                                  |
-|-----------------------------|------------------------------------------------------------------------------|
-| Uunganishaji wa Data Biashara | Kuunganisha LLM na hifadhidata, CRM, au zana za ndani                        |
-| Mifumo ya AI ya Wakala       | Kuwezesha mawakala huru kwa upatikanaji wa zana na mchakato wa maamuzi      |
-| Maombi ya Multi-modal        | Kuunganisha zana za maandishi, picha, na sauti ndani ya programu moja ya AI |
-| Uunganishaji wa Data kwa Wakati Halisi | Kuleta data ya moja kwa moja katika mwingiliano wa AI kwa matokeo sahihi na ya sasa |
+| **Matumizi**              | **Maelezo**                                                                |
+|------------------------------|--------------------------------------------------------------------------------|
+| Muungano wa Data wa Shirika | Kuunganisha LLM na hifadhidata, CRM, au zana za ndani                             |
+| Mifumo ya AI ya Mawakala     | Kuwezesha mawakala huru kwa ufikiaji wa zana na taratibu za maamuzi        |
+| Programu Zenye Njia Mbalimbali   | Kuunganisha zana za maandishi, picha, na sauti ndani ya programu moja ya AI            |
+| Muunganisho wa Data wa Muda Halisi  | Kuleta data ya moja kwa moja katika mwingiliano wa AI kwa matokeo sahihi na ya sasa        |
+
 
 ### 🧠 MCP = Kiwango cha Kawaida kwa Mwingiliano wa AI
 
-Itifaki ya Muktadha wa Mfano (MCP) hutumikia kama kiwango cha kawaida cha ulimwengu wa AI, kama vile USB-C ilivyoleta kiwango cha viunganishi vya vifaa. Katika ulimwengu wa AI, MCP hutoa kiolesura cha kawaida, kuruhusu mifano (wateja) kuunganishwa kwa urahisi na zana za nje na watoa data (seva). Hii inaondoa haja ya itifaki tofauti za kipekee kwa kila API au chanzo cha data.
+Itifaki ya Muktadha wa Mfano (MCP) hufanya kazi kama kiwango cha kawaida kwa mwingiliano wa AI, kama vile USB-C ilivyosanidi miunganisho ya kifaa. Katika dunia ya AI, MCP hutoa kiolesura thabiti, kuruhusu mifano (wateja) kuungana kwa urahisi na zana na watoa data wa nje (seva). Hii inaondoa haja ya taratibu mbalimbali za kipekee kwa API au chanzo cha data.
 
-Chini ya MCP, zana inayoungwa mkono na MCP (inayojulikana kama seva ya MCP) hufuata kiwango kimoja cha pamoja. Seva hizi zinaweza kuorodhesha zana au vitendo vinavyotoa na kutekeleza vitendo hivyo wanapoombwa na wakala wa AI. Jukwaa za wakala wa AI zinazounga mkono MCP zina uwezo wa kugundua zana zilizopo kutoka kwa seva na kuzitumia kupitia itifaki hii ya kawaida.
+Chini ya MCP, zana inayolingana na MCP (inayejulikana kama seva ya MCP) hufuata kiwango cha kawaida. Seva hizi zinaweza kuorodhesha zana au vitendo vinavyotolewa na kutekeleza vitendo hivyo vinapohitajika na wakala wa AI. Majukwaa ya wakala wa AI yanayotumia MCP yana uwezo wa kugundua zana zinazopatikana kutoka kwa seva na kuzitumia kupitia itifaki hii ya kawaida.
 
-### 💡 Huwezesha upatikanaji wa maarifa
+### 💡 Hurahisisha upatikanaji wa maarifa
 
-Zaidi ya kutoa zana, MCP pia huwezesha upatikanaji wa maarifa. Inaruhusu maombi kutoa muktadha kwa mifano mikubwa ya lugha (LLMs) kwa kuziunganisha na vyanzo mbalimbali vya data. Kwa mfano, seva ya MCP inaweza kuwakilisha hazina ya nyaraka ya kampuni, kuruhusu mawakala kupata taarifa muhimu kwa mahitaji. Seva nyingine inaweza kushughulikia vitendo maalum kama kutuma barua pepe au kusasisha rekodi. Kutazama kwa wakala, hizi ni zana ambazo anaweza kutumia—baadhi ya zana hurudisha data (muktadha wa maarifa), wengine hutekeleza vitendo. MCP husimamia vyote kwa ufanisi.
+Zaidi ya kutoa zana, MCP pia hurahisisha upatikanaji wa maarifa. Inaruhusu programu kutoa muktadha kwa modeli kubwa za lugha (LLMs) kwa kuziunganisha na vyanzo mbalimbali vya data. Kwa mfano, seva ya MCP inaweza kuwakilisha hazina ya hati ya kampuni, kuruhusu mawakala kupata taarifa muhimu wanapohitaji. Seva nyingine inaweza kushughulikia vitendo kama kutuma barua pepe au kusasisha rekodi. Kwa mtazamo wa wakala, hizi ni zana anazoweza kutumia—baadhi ya zana hurudisha data (muktadha wa maarifa), wakati zingine hutekeleza vitendo. MCP inasimamia vyote kwa ufanisi.
 
-Wakala anayejumuika na seva ya MCP hujifunza moja kwa moja uwezo wa seva na data inayopatikana kupitia muundo mmoja wa kawaida. Ubora huu huwezesha upatikanaji wa zana kisicho na kikomo. Kwa mfano, kuongezwa kwa seva mpya ya MCP kwenye mfumo wa wakala humfanya zana zake zitumike mara moja bila hitaji la kurekebisha maagizo ya wakala.
+Wakala anayejumuika na seva ya MCP hujifunza moja kwa moja uwezo wa seva na data inayopatikana kupitia muundo wa kawaida. Kiwango hiki kinaruhusu upatikanaji wa zana kwa njia ya mabadiliko. Kwa mfano, kuongeza seva mpya ya MCP katika mfumo wa wakala hufanya kazi zake zitumike mara moja bila hitaji la kubadilisha maelekezo ya wakala.
 
-Uunganishaji huu uliorahisishwa unalingana na mtiririko unaoonyeshwa kwenye mchoro ufuatao, ambapo seva hutoa zana na maarifa, kuhakikisha ushirikiano rahisi kati ya mifumo.
+Ushirikiano huu uliorahisishwa unaendana na mtiririko unaoonyeshwa katika mchoro ufuatao, ambapo seva hutoa zana na maarifa, kuhakikisha ushirikiano rahisi kati ya mifumo. 
 
-### 👉 Mfano: Suluhisho la Wakala Unaoweza Kupanuka
+### 👉 Mfano: Suluhisho la Wakala Linaloweza Kupanuka
 
 ```mermaid
 ---
-title: Suluhisho la Wakala Linaloweza Kupanuka na MCP
-description: Mchoro unaoonyesha jinsi mtumiaji anavyoshirikiana na LLM inayounganisha na seva nyingi za MCP, kila seva ikitoa maarifa na zana, ikianzisha usanifu wa mfumo wa AI unaoweza kupanuka
+title: Scalable Agent Solution with MCP
+description: A diagram illustrating how a user interacts with an LLM that connects to multiple MCP servers, with each server providing both knowledge and tools, creating a scalable AI system architecture
 ---
 graph TD
-    User -->|Agizo| LLM
-    LLM -->|Jibu| User
+    User -->|Ombi| LLM
+    LLM -->|Majibu| User
     LLM -->|MCP| ServerA
     LLM -->|MCP| ServerB
-    ServerA -->|Konekteta wa ulimwengu| ServerB
+    ServerA -->|Kiunganishi cha ulimwengu| ServerB
     ServerA --> KnowledgeA
     ServerA --> ToolsA
     ServerB --> KnowledgeB
     ServerB --> ToolsB
 
-    subgraph Server A
+    subgraph Seva A
         KnowledgeA[Maarifa]
-        ToolsA[Vifaa]
+        ToolsA[Zana]
     end
 
-    subgraph Server B
+    subgraph Seva B
         KnowledgeB[Maarifa]
-        ToolsB[Vifaa]
+        ToolsB[Zana]
     end
-```Kifunganishi cha Ulimwenguni huriwezesha seva za MCP kuungumza na kushirikiana uwezo, kuruhusu ServerA kuwasilisha kazi kwa ServerB au kupata zana na maarifa yake. Hii inafedhesha zana na data kati ya seva, kuunga mkono usanifu wa wakala unaoweza kupanuka na wa moduli. Kwa sababu MCP huweka kiwango cha wazi cha kuonyesha zana, mawakala wanaweza kugundua na kupeleka maombi kati ya seva bila kuingizwa kwa mikono.
+```
+Kifuniko cha Universal huwezesha seva za MCP kuwasiliana na kushirikiana uwezo, kuruhusu ServerA kupeana kazi kwa ServerB au kupata zana na maarifa yake. Hii inaunganisha zana na data kuvuka seva, kuunga mkono usanifu wa wakala unaoweza kupanuka na kuwa na vipengele tofauti. Kwa sababu MCP inastandadisha ufichuzi wa zana, mawakala wanaweza kugundua zana kwa wakati halisi na kuelekeza maombi kati ya seva bila uunganisho wa msimbo mgumu.
 
-Ufadhili wa zana na maarifa: Zana na data zinaweza kupatikana kati ya seva, kuwezesha usanifu wa wakala unaoweza kupanuka na wa moduli zaidi.
 
-### 🔄 Hali Zinazoendelea Za MCP na Muunganisho wa LLM Upande wa Mteja
+Muungano wa zana na maarifa: Zana na data zinaweza kupatikana kupitia seva, kuruhusu usanifu wa wakala uliopanuka na wenye vipengele tofauti.
 
-Mbali na usanifu wa msingi wa MCP, kuna hali juu ambapo mteja na seva wote wana LLMs, kuruhusu mwingiliano zaidi ya hali ya juu. Katika mchoro ufuatao, **Programu ya Mteja** inaweza kuwa IDE yenye zana kadhaa za MCP zinazopatikana kwa mtumiaji na LLM:
+### 🔄 Hali za Juu za MCP na Ujumuishaji wa LLM upande wa Mteja
+
+Zaidi ya usanifu wa msingi wa MCP, kuna hali za juu ambapo mteja na seva zote zina LLM, kuruhusu mwingiliano wa hali ya juu zaidi. Katika mchoro ufuatao, **App ya Mteja** inaweza kuwa IDE yenye zana nyingi za MCP zinazopatikana kwa mtumiaji kupitia LLM:
 
 ```mermaid
 ---
-title: Hali Zinazoendelea za MCP na Muunganisho wa LLM wa Mteja-Seva
-description: Mchoro wa mfululizo unaoonyesha mtiririko wa mwingiliano wa kina kati ya mtumiaji, programu ya mteja, LLM ya mteja, seva nyingi za MCP, na LLM ya seva, ukionyesha ugunduzi wa zana, mwingiliano wa mtumiaji, kupiga simu moja kwa moja kwa zana, na hatua za mazungumzo ya vipengele
+title: Advanced MCP Scenarios with Client-Server LLM Integration
+description: A sequence diagram showing the detailed interaction flow between user, client application, client LLM, multiple MCP servers, and server LLM, illustrating tool discovery, user interaction, direct tool calling, and feature negotiation phases
 ---
 sequenceDiagram
     autonumber
@@ -236,90 +240,91 @@ sequenceDiagram
     participant Server2 as 📚 Seva ya MCP 2
     participant ServerLLM as 🤖 LLM ya Seva
     
-    %% Discovery Phase
+    %% Awamu ya Ugunduzi
     rect rgb(220, 240, 255)
-        Note over ClientApp, Server2: HATUA YA UGUNDUZI WA ZANA
-        ClientApp->>+Server1: Omba zana/rasilimali zilizopo
+        Note over ClientApp, Server2: AWAMU YA UGUNDUZI WA ZANA
+        ClientApp->>+Server1: Omba zana/rasilimali zinazopatikana
         Server1-->>-ClientApp: Rudisha orodha ya zana (JSON)
-        ClientApp->>+Server2: Omba zana/rasilimali zilizopo
+        ClientApp->>+Server2: Omba zana/rasilimali zinazopatikana
         Server2-->>-ClientApp: Rudisha orodha ya zana (JSON)
-        Note right of ClientApp: Hifadhi orodha ya zana<br/>iliyokunjwa eneo la mteja
+        Note right of ClientApp: Hifadhi katala ya zana zilizounganishwa<br/>kielektroniki
     end
     
-    %% User Interaction
+    %% Mwingiliano wa Mtumiaji
     rect rgb(255, 240, 220)
-        Note over User, ClientLLM: HATUA YA MWINGILIANO WA MTUMIAJI
-        User->>+ClientApp: Ingiza ombi kwa lugha asilia
-        ClientApp->>+ClientLLM: Wasilisha ombi + orodha ya zana
+        Note over User, ClientLLM: AWAMU YA MWINGILIANO WA MTUMIAJI
+        User->>+ClientApp: Ingiza ombi la lugha asilia
+        ClientApp->>+ClientLLM: Tuma ombi + katala ya zana
         ClientLLM->>-ClientLLM: Changanua ombi & chagua zana
     end
     
-    %% Scenario A: Direct Tool Calling
-    alt Kupiga Simu Moja kwa Moja kwa Zana
+    %% Tukio A: Kupiga Simu Zana Moja kwa Moja
+    alt Kupiga Simu Zana Moja kwa Moja
         rect rgb(220, 255, 220)
-            Note over ClientApp, Server1: NJIA A: KUPIGA SIMU MOJA KWA MOJA KWA ZANA
+            Note over ClientApp, Server1: TUKIO A: KUPIGA SIMU ZANA MOJA KWA MOJA
             ClientLLM->>+ClientApp: Omba utekelezaji wa zana
             ClientApp->>+Server1: Tekeleza zana maalum
             Server1-->>-ClientApp: Rudisha matokeo
-            ClientApp->>+ClientLLM: Chakata matokeo
+            ClientApp->>+ClientLLM: Kushughulikia matokeo
             ClientLLM-->>-ClientApp: Tengeneza jibu
             ClientApp-->>-User: Onyesha jibu la mwisho
         end
     
-    %% Scenario B: Feature Negotiation (VS Code style)
-    else Mazungumzo ya Vipengele (mtindo wa VS Code)
+    %% Tukio B: Mazungumzo ya Kipengele (mtindo wa VS Code)
+    else Mazungumzo ya Kipengele (mtindo wa VS Code)
         rect rgb(255, 220, 220)
-            Note over ClientApp, ServerLLM: NJIA B: MAZUNGUMZO YA VIPENGELE
+            Note over ClientApp, ServerLLM: TUKIO B: MAZUNGUMZO YA KIPENGELE
             ClientLLM->>+ClientApp: Tambua uwezo unaohitajika
-            ClientApp->>+Server2: Jadili vipengele/u uwezo
-            Server2->>+ServerLLM: Omba muktadha wa ziada
+            ClientApp->>+Server2: Fanya mazungumzo ya vipengele/uwezo
+            Server2->>+ServerLLM: Omba muktadha zaidi
             ServerLLM-->>-Server2: Toa muktadha
-            Server2-->>-ClientApp: Rudisha vipengele vilivyopo
-            ClientApp->>+Server2: Piga simu kwa zana zilizojadiliana
+            Server2-->>-ClientApp: Rudisha vipengele vinavyopatikana
+            ClientApp->>+Server2: Piga simu zana zilizokubalika
             Server2-->>-ClientApp: Rudisha matokeo
-            ClientApp->>+ClientLLM: Chakata matokeo
+            ClientApp->>+ClientLLM: Kushughulikia matokeo
             ClientLLM-->>-ClientApp: Tengeneza jibu
             ClientApp-->>-User: Onyesha jibu la mwisho
         end
     end
 ```
-## 🔐 Manufaa Halisi ya MCP
 
-Hapa kuna manufaa halisi ya kutumia MCP:
+## 🔐 Manufaa ya Kivitendo ya MCP
 
-- **Uhai wa Taarifa**: Mifano inaweza kupata taarifa za kisasa zaidi zaidi ya data zao za mafunzo
-- **Kupanua Uwezo**: Mifano inaweza kutumia zana maalum kwa kazi ambazo hawajafunzwa
-- **Kupunguza Holabaluba**: Vyanzo vya data vya nje hutoa msingi wa ukweli
-- **Faragha**: Data nyeti inaweza kubaki ndani ya mazingira salama badala ya kuingizwa katika maagizo
+Hapa kuna manufaa ya kivitendo ya kutumia MCP:
 
-## 📌 Mambo Muhimu ya Kumbuka
+- **Ufreshi**: Modeli zinaweza kupata taarifa za sasa zaidi kuliko data zao za mafunzo
+- **Upanuzi wa Uwezo**: Modeli zinaweza kutumia zana maalum kwa kazi ambazo hazikufundishwa
+- **Kupunguza Kumtamanisha**: Vyanzo vya data vya nje vinatoa msingi wa kivitendo
+- **Faragha**: Taarifa nyeti zinaweza kubaki ndani ya mazingira salama badala ya kuingizwa kwenye maelekezo
 
-Haya ni mambo muhimu ya kumbuka kwa kutumia MCP:
+## 📌 Muhimu wa Kumbuka
 
-- **MCP** hutangaza jinsi mifano ya AI inavyoingiliana na zana na data
-- Huongeza **upanzi, uthabiti, na uwezo wa kuingiliana**
-- MCP husaidia **kupunguza muda wa maendeleo, kuboresha kuaminika, na kupanua uwezo wa mfano**
-- Usanifu wa mteja-mtumiaji **huwezesha maombi ya AI yenye kubadilika na upanuzi**
+Haya ni mambo muhimu ya kukumbuka kuhusu MCP:
 
-## 🧠 Zoeee
+- **MCP** inaboresha jinsi modeli za AI zinavyoingiliana na zana na data
+- Inaongeza **uwezeshaji, ulinganifu, na ushirikiano**
+- MCP husaidia **kupunguza muda wa maendeleo, kuboresha uaminifu, na kupanua uwezo wa mfano**
+- Usanifu wa mteja-mtumiaji **unawezesha programu za AI zinazobadilika na zinazopanuka**
+
+## 🧠 Mazoezi
 
 Fikiria kuhusu programu ya AI unayovutiwa kuijenga.
 
-- Ni **zifo gani za nje au data** zinaweza kuongeza uwezo wake?
-- MCP ingeweza kuifanya muunganisho kuwa **rahisi na wa kuaminika zaidi?**
+- Ni zana au data gani za nje zinaweza kuongeza uwezo wake?
+- MCP inaweza kufanya ujumuishaji kuwa wa rahisi zaidi na wa kuaminika vipi?
 
-## Rasilimali Zaidi
+## Vyanzo Zaidi vya Kujifunza
 
-- [Hifadhi ya MCP GitHub](https://github.com/modelcontextprotocol)
+- [Hazina ya MCP kwenye GitHub](https://github.com/modelcontextprotocol)
 
 
-## Nini Kifuatavyo
+## Kifuatiliacho
 
-Kifuatavyo: [Sura ya 1: Dhana Msingi](../01-CoreConcepts/README.md)
+Kifuatazo: [Sura 1: Dhana za Msingi](../01-CoreConcepts/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Kiadhabu**:
-Nyaraka hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kwa usahihi, tafadhali fahamu kuwa tafsiri za kiotomatiki zinaweza kuwa na makosa au kasoro. Nyaraka ya asili katika lugha yake ya asili inapaswa kuzingatiwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya mtaalamu wa binadamu inapendekezwa. Hatubebei lawama kwa kutoelewana au tafsiri potofu zinazotokana na matumizi ya tafsiri hii.
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

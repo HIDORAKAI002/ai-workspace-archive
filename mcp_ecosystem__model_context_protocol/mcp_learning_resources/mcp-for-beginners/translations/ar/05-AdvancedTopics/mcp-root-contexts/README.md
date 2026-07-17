@@ -1,51 +1,55 @@
+> [مهمَل: مرشح الإصدار 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # سياقات الجذر في MCP
 
-تُعد سياقات الجذر مفهومًا أساسيًا في بروتوكول سياق النموذج، حيث توفر طبقة دائمة للحفاظ على سجل المحادثة والحالة المشتركة عبر عدة طلبات وجلسات.
+> **تنويه التوقف:** ترشيح إصدار مواصفة MCP `2026-07-28` يمثل إشارة إلى تقادم الجذور لصالح معلمات الأدوات، عناوين الموارد، أو تهيئة الخادم. تستمر الجذور في العمل في `2025-11-25` ولمدة لا تقل عن عام بعد أي إيقاف رسمي، لذا يبقى كل شيء في هذا الدرس صالحًا - لكن يجب على تصميمات الخوادم الجديدة تقييم نمط الاستبدال. انظر [ما الذي يتغير في MCP: مرشح إصدار 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
 
-## المقدمة
+سياقات الجذر هي مفهوم أساسي في بروتوكول سياق النموذج يوفر طبقة دائمة للحفاظ على تاريخ المحادثة والحالة المشتركة عبر عدة طلبات وجلسات.
 
-في هذا الدرس، سنستعرض كيفية إنشاء وإدارة واستخدام سياقات الجذر في MCP.
+## مقدمة
+
+في هذا الدرس، سوف نستكشف كيفية إنشاء وإدارة واستخدام سياقات الجذر في MCP.
 
 ## أهداف التعلم
 
-بنهاية هذا الدرس، ستكون قادرًا على:
+بحلول نهاية هذا الدرس، ستتمكن من:
 
-- فهم الغرض والتركيب الخاص بسياقات الجذر  
-- إنشاء وإدارة سياقات الجذر باستخدام مكتبات عميل MCP  
-- تنفيذ سياقات الجذر في تطبيقات .NET وJava وJavaScript وPython  
-- استخدام سياقات الجذر للمحادثات متعددة الأدوار وإدارة الحالة  
-- تطبيق أفضل الممارسات لإدارة سياقات الجذر  
+- فهم غرض وهيكل سياقات الجذر
+- إنشاء وإدارة سياقات الجذر باستخدام مكتبات عميل MCP
+- تنفيذ سياقات الجذر في تطبيقات .NET، Java، JavaScript، وPython
+- استخدام سياقات الجذر للمحادثات متعددة الأدوار وإدارة الحالة
+- تطبيق أفضل الممارسات لإدارة سياقات الجذر
 
 ## فهم سياقات الجذر
 
-تعمل سياقات الجذر كحاويات تحتفظ بتاريخ وحالة سلسلة من التفاعلات المرتبطة. وهي تتيح:
+تعمل سياقات الجذر كحاويات تحتوي على التاريخ والحالة لسلسلة من التداخلات ذات الصلة. تسمح بـ:
 
-- **استمرارية المحادثة**: الحفاظ على محادثات متعددة الأدوار متماسكة  
-- **إدارة الذاكرة**: تخزين واسترجاع المعلومات عبر التفاعلات  
-- **إدارة الحالة**: تتبع التقدم في سير العمل المعقد  
-- **مشاركة السياق**: السماح لعدة عملاء بالوصول إلى نفس حالة المحادثة  
+- **استمرارية المحادثة**: الحفاظ على محادثات متعددة الأدوار متماسكة
+- **إدارة الذاكرة**: تخزين واسترجاع المعلومات عبر التداخلات
+- **إدارة الحالة**: تتبع التقدم في سير العمل المعقد
+- **مشاركة السياق**: السماح لعدة عملاء بالوصول إلى نفس حالة المحادثة
 
-في MCP، تتميز سياقات الجذر بالخصائص التالية:
+في MCP، تتميز سياقات الجذر بالخصائص الأساسية التالية:
 
-- لكل سياق جذر معرف فريد  
-- يمكن أن تحتوي على سجل المحادثة، تفضيلات المستخدم، وبيانات وصفية أخرى  
-- يمكن إنشاؤها والوصول إليها وأرشفتها حسب الحاجة  
-- تدعم تحكمًا دقيقًا في الوصول والصلاحيات  
+- كل سياق جذر له معرف فريد.
+- يمكن أن تحتوي على تاريخ المحادثة وتفضيلات المستخدم وبيانات وصفية أخرى.
+- يمكن إنشاؤها والوصول إليها وأرشفتها حسب الحاجة.
+- تدعم تحكمًا دقيقًا في الوصول والأذونات.
 
 ## دورة حياة سياق الجذر
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[إنشاء السياق الجذري] --> B[التهيئة باستخدام بيانات التعريف]
+    B --> C[إرسال الطلبات مع معرف السياق]
+    C --> D[تحديث السياق بالنتائج]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[أرشفة السياق عند الاكتمال]
 ```
 
 ## العمل مع سياقات الجذر
 
-فيما يلي مثال على كيفية إنشاء وإدارة سياقات الجذر.
+إليك مثال على كيفية إنشاء وإدارة سياقات الجذر.
 
 ### تنفيذ C#
 
@@ -124,20 +128,20 @@ public class RootContextExample
 
 في الكود السابق قمنا بـ:
 
-1. إنشاء سياق جذر لجلسة دعم العملاء.  
-2. إرسال عدة رسائل ضمن ذلك السياق، مما يسمح للنموذج بالحفاظ على الحالة.  
-3. تحديث السياق بالبيانات الوصفية ذات الصلة بناءً على المحادثة.  
-4. استرجاع معلومات السياق لفهم تاريخ المحادثة.  
-5. أرشفة السياق عند اكتمال المحادثة.  
+1. إنشاء سياق جذر لجلسة دعم العملاء.
+1. إرسال رسائل متعددة ضمن ذلك السياق، مما يسمح للنموذج بالحفاظ على الحالة.
+1. تحديث السياق ببيانات وصفية ذات صلة بناءً على المحادثة.
+1. استرجاع معلومات السياق لفهم تاريخ المحادثة.
+1. أرشفة السياق عند اكتمال المحادثة.
 
-## مثال: تنفيذ سياق جذر لتحليل مالي
+## مثال: تنفيذ سياق الجذر لتحليل مالي
 
-في هذا المثال، سننشئ سياق جذر لجلسة تحليل مالي، موضحين كيفية الحفاظ على الحالة عبر عدة تفاعلات.
+في هذا المثال، سنقوم بإنشاء سياق جذر لجلسة تحليل مالي، موضحين كيفية الحفاظ على الحالة عبر عدة تداخلات.
 
 ### تنفيذ Java
 
 ```java
-// Java Example: Root Context Implementation
+// مثال جافا: تنفيذ السياق الجذري
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // إنشاء بيانات وصفية للسياق
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. إنشاء سياق جذري جديد
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. التفاعل الأول
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. تحديث السياق بالمعلومات المهمة التي تم الحصول عليها من الاستجابة
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // التفاعل الثاني - باستخدام نفس السياق
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. إنشاء ملخص لجلسة التحليل
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // تخزين الملخص في البيانات الوصفية للسياق
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // الحصول على معلومات السياق المحدثة
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. أرشفة السياق عند الانتهاء
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-في الكود السابق قمنا بـ:
+في الكود السابق، قمنا بـ:
 
-1. إنشاء سياق جذر لجلسة تحليل مالي.  
-2. إرسال عدة رسائل ضمن ذلك السياق، مما يسمح للنموذج بالحفاظ على الحالة.  
-3. تحديث السياق بالبيانات الوصفية ذات الصلة بناءً على المحادثة.  
-4. توليد ملخص لجلسة التحليل وتخزينه في البيانات الوصفية للسياق.  
-5. أرشفة السياق عند اكتمال المحادثة.  
+1. إنشاء سياق جذر لجلسة تحليل مالي.
+2. إرسال رسائل متعددة ضمن ذلك السياق، مما يسمح للنموذج بالحفاظ على الحالة.
+3. تحديث السياق ببيانات وصفية ذات صلة بناءً على المحادثة.
+4. إنشاء ملخص لجلسة التحليل وتخزينه في بيانات وصفية للسياق.
+5. أرشفة السياق عند اكتمال المحادثة.
 
 ## مثال: إدارة سياق الجذر
 
-إدارة سياقات الجذر بشكل فعال أمر حيوي للحفاظ على سجل المحادثة والحالة. فيما يلي مثال على كيفية تنفيذ إدارة سياق الجذر.
+إدارة سياقات الجذر بفعالية أمر بالغ الأهمية للحفاظ على تاريخ المحادثة والحالة. أدناه مثال على كيفية تنفيذ إدارة سياق الجذر.
 
 ### تنفيذ JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// مثال جافا سكريبت: إدارة سياقات الجذر MCP
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // تهيئة عميل MCP
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // تهيئة مدير السياق
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // إرسال الرسالة باستخدام السياق المحدد
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // تخزين الرؤى المهمة من المحادثة بشكل اختياري
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // استخراج الرؤى المحتملة (في تطبيق حقيقي، سيكون ذلك أكثر تعقيدًا)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // قاعدة بسيطة لتحديد الرؤى المحتملة
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // تخزين الرؤى في بيانات التعريف الخاصة بالسياق
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // خطأ غير حرج، لذا قم فقط بتسجيل تحذير
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // طلب من النموذج إنشاء ملخص للمحادثة حتى الآن
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // تخزين الملخص في بيانات التعريف الخاصة بالسياق
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // إنشاء ملخص نهائي قبل الأرشفة
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // أرشفة السياق
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// مثال للاستخدام
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. إنشاء سياق جديد لمحادثة دعم المنتج
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. الرسالة الأولى في المحادثة
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // رسالة متابعة في نفس السياق
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. الحصول على معلومات حول السياق
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. إنشاء وعرض ملخص المحادثة
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. أرشفة السياق عند الانتهاء
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. التعامل مع أي أخطاء بسلاسة
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,21 +479,26 @@ demonstrateContextSession();
 
 في الكود السابق قمنا بـ:
 
-1. إنشاء سياق جذر لمحادثة دعم المنتج باستخدام الدالة `createConversationContext`. في هذه الحالة، السياق يتعلق بمشاكل أداء قاعدة البيانات.  
-2. إرسال عدة رسائل ضمن ذلك السياق، مما يسمح للنموذج بالحفاظ على الحالة باستخدام الدالة `sendMessage`. الرسائل المرسلة تتعلق بأداء الاستعلام البطيء وتكوين الفهرس.  
-3. تحديث السياق بالبيانات الوصفية ذات الصلة بناءً على المحادثة.  
-4. توليد ملخص للمحادثة وتخزينه في البيانات الوصفية للسياق باستخدام الدالة `generateContextSummary`.  
-5. أرشفة السياق عند اكتمال المحادثة باستخدام الدالة `archiveContext`.  
-6. التعامل مع الأخطاء بسلاسة لضمان المتانة.  
+1. إنشاء سياق جذر لمحادثة دعم المنتج باستخدام الدالة `createConversationContext`. في هذه الحالة، السياق يتعلق بمشاكل أداء قاعدة البيانات.
+
+1. إرسال عدة رسائل ضمن ذلك السياق، مما يسمح للنموذج بالحفاظ على الحالة باستخدام الدالة `sendMessage`. الرسائل المرسلة عن بطء أداء الاستعلام وتكوين الفهرس.
+
+1. تحديث السياق ببيانات وصفية ذات صلة بناءً على المحادثة.
+
+1. توليد ملخص للمحادثة وتخزينه في بيانات وصفية للسياق باستخدام الدالة `generateContextSummary`.
+
+1. أرشفة السياق عند اكتمال المحادثة باستخدام الدالة `archiveContext`.
+
+1. التعامل مع الأخطاء بسلاسة لضمان المتانة.
 
 ## سياق الجذر للمساعدة متعددة الأدوار
 
-في هذا المثال، سننشئ سياق جذر لجلسة مساعدة متعددة الأدوار، موضحين كيفية الحفاظ على الحالة عبر عدة تفاعلات.
+في هذا المثال، سنقوم بإنشاء سياق جذر لجلسة مساعدة متعددة الأدوار، موضحين كيفية الحفاظ على الحالة عبر عدة تداخلات.
 
 ### تنفيذ Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# مثال بايثون: السياق الجذري للمساعدة متعددة الأدوار
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -506,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # أضف معلومات المستخدم إذا تم توفيرها
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # إنشاء السياق الجذري
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # إنشاء الخيارات باستخدام معرف السياق
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # أضف الأدوات إذا تم تحديدها
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # أرسل الموجه ضمن السياق
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # تحديث بيانات التعريف الخاصة بالسياق مع تقدم المحادثة
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -551,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # إنشاء موجه الملخص أولاً
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # تخزين الملخص في بيانات التعريف
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -567,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # أرشفة السياق
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -575,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# مثال على الاستخدام
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. إنشاء الجلسة
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. التفاعل الأول
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -594,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # التفاعل الثاني في نفس السياق
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. الحصول على السجل
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. إنهاء الجلسة
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -615,27 +624,41 @@ if __name__ == "__main__":
 
 في الكود السابق قمنا بـ:
 
-1. إنشاء سياق جذر لجلسة دعم فني باستخدام الدالة `create_session`. يتضمن السياق معلومات المستخدم مثل الاسم والمستوى الفني.  
-2. إرسال عدة رسائل ضمن ذلك السياق، مما يسمح للنموذج بالحفاظ على الحالة باستخدام الدالة `send_message`. الرسائل المرسلة تتعلق بمشاكل في ميزة التوسع التلقائي.  
-3. استرجاع سجل المحادثة باستخدام الدالة `get_conversation_history`، التي توفر معلومات السياق والرسائل.  
-4. إنهاء الجلسة بأرشفة السياق وتوليد ملخص باستخدام الدالة `end_session`. يلتقط الملخص النقاط الرئيسية من المحادثة.  
+1. إنشاء سياق جذر لجلسة دعم فني باستخدام الدالة `create_session`. يتضمن السياق معلومات المستخدم مثل الاسم والمستوى الفني.
 
-## أفضل الممارسات لسياق الجذر
+1. إرسال عدة رسائل ضمن ذلك السياق، مما يسمح للنموذج بالحفاظ على الحالة باستخدام الدالة `send_message`. الرسائل المرسلة عن مشكلات في ميزة التوسع التلقائي.
+
+1. استرجاع تاريخ المحادثة باستخدام الدالة `get_conversation_history` التي توفر معلومات وسياق الرسائل.
+
+1. إنهاء الجلسة عن طريق أرشفة السياق وتوليد ملخص باستخدام الدالة `end_session`. يحفظ الملخص النقاط الرئيسية من المحادثة.
+
+## أفضل ممارسات سياق الجذر
 
 إليك بعض أفضل الممارسات لإدارة سياقات الجذر بفعالية:
 
-- **إنشاء سياقات مركزة**: أنشئ سياقات جذر منفصلة لأغراض أو مجالات محادثة مختلفة للحفاظ على الوضوح.  
-- **تحديد سياسات انتهاء الصلاحية**: طبق سياسات لأرشفة أو حذف السياقات القديمة لإدارة التخزين والامتثال لسياسات الاحتفاظ بالبيانات.  
-- **تخزين البيانات الوصفية ذات الصلة**: استخدم البيانات الوصفية للسياق لتخزين معلومات مهمة عن المحادثة قد تكون مفيدة لاحقًا.  
-- **استخدام معرفات السياق بشكل متسق**: بمجرد إنشاء السياق، استخدم معرفه بشكل متسق لجميع الطلبات ذات الصلة للحفاظ على الاستمرارية.  
-- **توليد الملخصات**: عندما يكبر حجم السياق، فكر في توليد ملخصات لالتقاط المعلومات الأساسية مع إدارة حجم السياق.  
-- **تطبيق تحكم الوصول**: في الأنظمة متعددة المستخدمين، طبق ضوابط وصول مناسبة لضمان خصوصية وأمان سياقات المحادثة.  
-- **التعامل مع قيود السياق**: كن على دراية بقيود حجم السياق وطبق استراتيجيات للتعامل مع المحادثات الطويلة جدًا.  
-- **الأرشفة عند الانتهاء**: قم بأرشفة السياقات عند اكتمال المحادثات لتحرير الموارد مع الحفاظ على سجل المحادثة.  
+- **إنشاء سياقات مركزة**: أنشئ سياقات جذر منفصلة لأغراض أو مجالات محادثة مختلفة للحفاظ على الوضوح.
+
+- **تحديد سياسات انتهاء الصلاحية**: طبق سياسات لأرشفة أو حذف السياقات القديمة لإدارة التخزين والامتثال لسياسات الاحتفاظ بالبيانات.
+
+- **تخزين البيانات الوصفية ذات الصلة**: استخدم بيانات وصفية للسياق لتخزين معلومات مهمة عن المحادثة قد تكون مفيدة لاحقًا.
+
+- **استخدام معرفات السياق بشكل متسق**: بمجرد إنشاء السياق، استخدم معرفه باستمرار لجميع الطلبات ذات الصلة للحفاظ على الاستمرارية.
+
+- **إنشاء ملخصات**: عندما يكبر السياق، فكر في إنشاء ملخصات لالتقاط المعلومات الأساسية مع إدارة حجم السياق.
+
+- **تطبيق التحكم في الوصول**: في أنظمة متعددة المستخدمين، طبق ضوابط وصول مناسبة لضمان خصوصية وأمان سياقات المحادثة.
+
+- **التعامل مع قيود السياق**: كن على علم بحدود حجم السياق وطبق استراتيجيات للتعامل مع المحادثات الطويلة جدًا.
+
+- **الأرشفة عند الاكتمال**: أرشف السياقات عند اكتمال المحادثات لتحرير الموارد مع الحفاظ على تاريخ المحادثة.
 
 ## ما التالي
 
 - [5.5 التوجيه](../mcp-routing/README.md)
 
-**إخلاء مسؤولية**:  
-تمت ترجمة هذا المستند باستخدام خدمة الترجمة الآلية [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى لتحقيق الدقة، يرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الموثوق به. للمعلومات الهامة، يُنصح بالاعتماد على الترجمة البشرية المهنية. نحن غير مسؤولين عن أي سوء فهم أو تفسير ناتج عن استخدام هذه الترجمة.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**تنويه**:
+تمت ترجمة هذا المستند باستخدام خدمة الترجمة بالذكاء الاصطناعي [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى للدقة، يرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الرسمي والمعتمد. للمعلومات الهامة، يُنصح بالاستعانة بترجمة بشرية محترفة. نحن غير مسؤولين عن أي سوء فهم أو تفسير ناتج عن استخدام هذه الترجمة.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

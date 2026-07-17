@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [DIBERHENTIKAN: KANDIDAT RILIS 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexts adalah konsep dasar dalam Model Context Protocol yang menyediakan lapisan persisten untuk mempertahankan riwayat percakapan dan status bersama di berbagai permintaan dan sesi.
+# Konteks Root MCP
+
+> **Pemberitahuan penghentian:** kandidat rilis spesifikasi MCP `2026-07-28` menandai Roots sebagai deprecated demi parameter alat, URI sumber daya, atau konfigurasi server. Roots tetap berfungsi pada `2025-11-25` dan setidaknya selama satu tahun setelah penghentian resmi, jadi semua dalam pelajaran ini tetap valid - namun desain server baru sebaiknya mengevaluasi pola penggantinya. Lihat [Apa yang Berubah dalam MCP: Kandidat Rilis 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Konteks root adalah konsep dasar dalam Model Context Protocol yang menyediakan lapisan persisten untuk menjaga riwayat percakapan dan status bersama di berbagai permintaan dan sesi.
 
 ## Pendahuluan
 
-Dalam pelajaran ini, kita akan mempelajari cara membuat, mengelola, dan memanfaatkan root contexts di MCP.
+Dalam pelajaran ini, kita akan mengeksplorasi cara membuat, mengelola, dan menggunakan konteks root dalam MCP. 
 
 ## Tujuan Pembelajaran
 
 Pada akhir pelajaran ini, Anda akan dapat:
 
-- Memahami tujuan dan struktur root contexts
-- Membuat dan mengelola root contexts menggunakan pustaka klien MCP
-- Mengimplementasikan root contexts dalam aplikasi .NET, Java, JavaScript, dan Python
-- Memanfaatkan root contexts untuk percakapan multi-putaran dan manajemen status
-- Menerapkan praktik terbaik untuk pengelolaan root context
+- Memahami tujuan dan struktur konteks root
+- Membuat dan mengelola konteks root menggunakan pustaka klien MCP
+- Mengimplementasikan konteks root pada aplikasi .NET, Java, JavaScript, dan Python
+- Memanfaatkan konteks root untuk percakapan multi-giliran dan manajemen status
+- Menerapkan praktik terbaik untuk pengelolaan konteks root
 
-## Memahami Root Contexts
+## Memahami Konteks Root
 
-Root contexts berfungsi sebagai wadah yang menyimpan riwayat dan status untuk serangkaian interaksi yang saling terkait. Mereka memungkinkan:
+Konteks root berfungsi sebagai wadah yang memuat riwayat dan status untuk serangkaian interaksi terkait. Mereka memungkinkan:
 
-- **Persistensi Percakapan**: Mempertahankan percakapan multi-putaran yang koheren
-- **Manajemen Memori**: Menyimpan dan mengambil informasi di berbagai interaksi
-- **Manajemen Status**: Melacak kemajuan dalam alur kerja yang kompleks
+- **Persistensi Percakapan**: Mempertahankan percakapan multi-giliran yang koheren
+- **Manajemen Memori**: Menyimpan dan mengambil informasi antar interaksi
+- **Manajemen Status**: Melacak kemajuan dalam alur kerja kompleks
 - **Berbagi Konteks**: Memungkinkan beberapa klien mengakses status percakapan yang sama
 
-Dalam MCP, root contexts memiliki karakteristik utama berikut:
+Dalam MCP, konteks root memiliki karakteristik utama berikut:
 
-- Setiap root context memiliki pengenal unik.
-- Mereka dapat berisi riwayat percakapan, preferensi pengguna, dan metadata lainnya.
+- Setiap konteks root memiliki pengenal unik.
+- Mereka dapat memuat riwayat percakapan, preferensi pengguna, dan metadata lainnya.
 - Mereka dapat dibuat, diakses, dan diarsipkan sesuai kebutuhan.
 - Mereka mendukung kontrol akses dan izin yang terperinci.
 
-## Siklus Hidup Root Context
+## Siklus Hidup Konteks Root
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Buat Konteks Root] --> B[Inisialisasi dengan Metadata]
+    B --> C[Kirim Permintaan dengan ID Konteks]
+    C --> D[Perbarui Konteks dengan Hasil]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Arsipkan Konteks Saat Selesai]
 ```
 
-## Bekerja dengan Root Contexts
+## Bekerja dengan Konteks Root
 
-Berikut adalah contoh cara membuat dan mengelola root contexts.
+Berikut ini contoh cara membuat dan mengelola konteks root. 
 
 ### Implementasi C#
 
@@ -124,20 +128,20 @@ public class RootContextExample
 
 Dalam kode sebelumnya kami telah:
 
-1. Membuat root context untuk sesi dukungan pelanggan.
+1. Membuat konteks root untuk sesi dukungan pelanggan.
 1. Mengirim beberapa pesan dalam konteks tersebut, memungkinkan model mempertahankan status.
 1. Memperbarui konteks dengan metadata relevan berdasarkan percakapan.
 1. Mengambil informasi konteks untuk memahami riwayat percakapan.
 1. Mengarsipkan konteks saat percakapan selesai.
 
-## Contoh: Implementasi Root Context untuk analisis keuangan
+## Contoh: Implementasi Konteks Root untuk analisa keuangan
 
-Dalam contoh ini, kita akan membuat root context untuk sesi analisis keuangan, menunjukkan cara mempertahankan status di berbagai interaksi.
+Dalam contoh ini, kita akan membuat konteks root untuk sesi analisa keuangan, menunjukkan cara mempertahankan status dalam beberapa interaksi.
 
 ### Implementasi Java
 
 ```java
-// Java Example: Root Context Implementation
+// Contoh Java: Implementasi Root Context
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Buat metadata konteks
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Buat root context baru
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Interaksi pertama
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Perbarui konteks dengan informasi penting yang didapat dari respons
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Interaksi kedua - menggunakan konteks yang sama
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Buat ringkasan dari sesi analisis
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Simpan ringkasan dalam metadata konteks
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Dapatkan informasi konteks yang diperbarui
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,40 +217,40 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Arsipkan konteks saat selesai
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
 }
 ```
 
-Dalam kode sebelumnya, kami telah:
+Dalam kode sebelumnya kami telah:
 
-1. Membuat root context untuk sesi analisis keuangan.
+1. Membuat konteks root untuk sesi analisa keuangan.
 2. Mengirim beberapa pesan dalam konteks tersebut, memungkinkan model mempertahankan status.
-3. Memperbarui konteks dengan metadata relevan berdasarkan percakapan.
-4. Menghasilkan ringkasan sesi analisis dan menyimpannya dalam metadata konteks.
+3. Memperbarui konteks dengan metadata relevan dari percakapan.
+4. Membuat ringkasan sesi analisa dan menyimpannya di metadata konteks.
 5. Mengarsipkan konteks saat percakapan selesai.
 
-## Contoh: Manajemen Root Context
+## Contoh: Manajemen Konteks Root
 
-Mengelola root contexts secara efektif sangat penting untuk mempertahankan riwayat percakapan dan status. Berikut adalah contoh cara mengimplementasikan manajemen root context.
+Mengelola konteks root secara efektif sangat penting untuk menjaga riwayat percakapan dan status. Berikut contoh cara mengimplementasikan manajemen konteks root.
 
 ### Implementasi JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// Contoh JavaScript: Mengelola Konteks Root MCP
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Inisialisasi klien MCP
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Inisialisasi pengelola konteks
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Kirim pesan menggunakan konteks yang ditentukan
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Opsional menyimpan wawasan penting dari percakapan
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Ekstrak wawasan potensial (dalam aplikasi nyata, ini akan lebih canggih)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Heuristik sederhana untuk mengidentifikasi wawasan potensial
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Simpan wawasan dalam metadata konteks
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Kesalahan non-kritis, jadi hanya catat peringatan
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Minta model untuk menghasilkan ringkasan percakapan sejauh ini
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Simpan ringkasan dalam metadata konteks
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Hasilkan ringkasan akhir sebelum mengarsipkan
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Arsipkan konteks
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Contoh penggunaan
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Buat konteks baru untuk percakapan dukungan produk
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Pesan pertama dalam percakapan
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Pesan lanjutan dalam konteks yang sama
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Dapatkan informasi tentang konteks
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Hasilkan dan tampilkan ringkasan percakapan
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Arsipkan konteks setelah selesai
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Tangani setiap kesalahan dengan baik
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 Dalam kode sebelumnya kami telah:
 
-1. Membuat root context untuk percakapan dukungan produk dengan fungsi `createConversationContext`. Dalam kasus ini, konteksnya tentang masalah performa database.
+1. Membuat konteks root untuk percakapan dukungan produk dengan fungsi `createConversationContext`. Dalam kasus ini, konteksnya tentang masalah kinerja database.
 
-1. Mengirim beberapa pesan dalam konteks tersebut, memungkinkan model mempertahankan status dengan fungsi `sendMessage`. Pesan yang dikirim berkaitan dengan performa query yang lambat dan konfigurasi indeks.
+1. Mengirim beberapa pesan dalam konteks tersebut, memungkinkan model mempertahankan status dengan fungsi `sendMessage`. Pesan yang dikirim tentang performa query lambat dan konfigurasi indeks.
 
 1. Memperbarui konteks dengan metadata relevan berdasarkan percakapan.
 
-1. Menghasilkan ringkasan percakapan dan menyimpannya dalam metadata konteks dengan fungsi `generateContextSummary`.
+1. Membuat ringkasan percakapan dan menyimpannya dalam metadata konteks dengan fungsi `generateContextSummary`.
 
-1. Mengarsipkan konteks saat percakapan selesai dengan fungsi `archiveContext`.
+1. Mengarsipkan konteks setelah percakapan selesai dengan fungsi `archiveContext`.
 
-1. Menangani kesalahan dengan baik untuk memastikan ketahanan.
+1. Menangani error secara sangat baik untuk memastikan ketangguhan.
 
-## Root Context untuk Bantuan Multi-Putaran
+## Konteks Root untuk Bantuan Multi-Giliran
 
-Dalam contoh ini, kita akan membuat root context untuk sesi bantuan multi-putaran, menunjukkan cara mempertahankan status di berbagai interaksi.
+Dalam contoh ini, kita akan membuat konteks root untuk sesi bantuan multi-giliran, menunjukkan cara mempertahankan status dalam beberapa interaksi.
 
 ### Implementasi Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Contoh Python: Konteks Root untuk Bantuan Multi-Turn
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Tambahkan informasi pengguna jika disediakan
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Buat konteks root
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Buat opsi dengan ID konteks
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Tambahkan alat jika ditentukan
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Kirim prompt dalam konteks
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Perbarui metadata konteks dengan kemajuan percakapan
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Hasilkan prompt ringkasan terlebih dahulu
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Simpan ringkasan dalam metadata
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Arsipkan konteks
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Contoh penggunaan
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Buat sesi
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Interaksi pertama
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Interaksi kedua dalam konteks yang sama
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Dapatkan riwayat
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Akhiri sesi
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 Dalam kode sebelumnya kami telah:
 
-1. Membuat root context untuk sesi dukungan teknis dengan fungsi `create_session`. Konteks mencakup informasi pengguna seperti nama dan tingkat teknis.
+1. Membuat konteks root untuk sesi dukungan teknis dengan fungsi `create_session`. Konteks memuat informasi pengguna seperti nama dan tingkat teknis.
 
-1. Mengirim beberapa pesan dalam konteks tersebut, memungkinkan model mempertahankan status dengan fungsi `send_message`. Pesan yang dikirim berkaitan dengan masalah fitur auto-scaling.
+1. Mengirim beberapa pesan dalam konteks tersebut, memungkinkan model mempertahankan status dengan fungsi `send_message`. Pesan yang dikirim terkait masalah fitur auto-scaling.
 
 1. Mengambil riwayat percakapan menggunakan fungsi `get_conversation_history`, yang menyediakan informasi konteks dan pesan.
 
-1. Mengakhiri sesi dengan mengarsipkan konteks dan menghasilkan ringkasan dengan fungsi `end_session`. Ringkasan menangkap poin-poin penting dari percakapan.
+1. Mengakhiri sesi dengan mengarsipkan konteks dan membuat ringkasan menggunakan fungsi `end_session`. Ringkasan menangkap poin penting dari percakapan.
 
-## Praktik Terbaik Root Context
+## Praktik Terbaik Konteks Root
 
-Berikut beberapa praktik terbaik untuk mengelola root contexts secara efektif:
+Berikut beberapa praktik terbaik untuk mengelola konteks root secara efektif:
 
-- **Buat Konteks yang Terfokus**: Buat root contexts terpisah untuk tujuan atau domain percakapan yang berbeda agar tetap jelas.
+- **Buat Konteks Terfokus**: Buat konteks root terpisah untuk tujuan atau domain percakapan berbeda agar tetap jelas.
 
-- **Tetapkan Kebijakan Kadaluarsa**: Terapkan kebijakan untuk mengarsipkan atau menghapus konteks lama guna mengelola penyimpanan dan mematuhi kebijakan retensi data.
+- **Tetapkan Kebijakan Kedaluwarsa**: Terapkan kebijakan untuk mengarsipkan atau menghapus konteks lama guna mengelola penyimpanan dan mematuhi kebijakan retensi data.
 
-- **Simpan Metadata Relevan**: Gunakan metadata konteks untuk menyimpan informasi penting tentang percakapan yang mungkin berguna di kemudian hari.
+- **Simpan Metadata Relevan**: Gunakan metadata konteks untuk menyimpan informasi penting tentang percakapan yang mungkin berguna kemudian.
 
-- **Gunakan ID Konteks Secara Konsisten**: Setelah konteks dibuat, gunakan ID-nya secara konsisten untuk semua permintaan terkait agar kontinuitas terjaga.
+- **Gunakan ID Konteks Secara Konsisten**: Setelah konteks dibuat, gunakan ID-nya secara konsisten untuk semua permintaan terkait agar kesinambungan terjaga.
 
-- **Buat Ringkasan**: Saat konteks menjadi besar, pertimbangkan untuk membuat ringkasan guna menangkap informasi penting sekaligus mengelola ukuran konteks.
+- **Buat Ringkasan**: Saat konteks menjadi besar, pertimbangkan membuat ringkasan untuk menangkap informasi penting sambil mengelola ukuran konteks.
 
-- **Terapkan Kontrol Akses**: Untuk sistem multi-pengguna, terapkan kontrol akses yang tepat untuk memastikan privasi dan keamanan konteks percakapan.
+- **Terapkan Kontrol Akses**: Untuk sistem multi-pengguna, terapkan kontrol akses yang tepat demi privasi dan keamanan konteks percakapan.
 
-- **Tangani Batasan Konteks**: Sadari batasan ukuran konteks dan terapkan strategi untuk menangani percakapan yang sangat panjang.
+- **Tangani Batasan Konteks**: Sadari batas ukuran konteks dan terapkan strategi untuk menangani percakapan yang sangat panjang.
 
-- **Arsipkan Saat Selesai**: Arsipkan konteks saat percakapan selesai untuk membebaskan sumber daya sekaligus mempertahankan riwayat percakapan.
+- **Arsipkan Setelah Selesai**: Arsipkan konteks saat percakapan selesai untuk membebaskan sumber daya sambil mempertahankan riwayat percakapan.
 
 ## Selanjutnya
 
 - [5.5 Routing](../mcp-routing/README.md)
 
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk akurasi, harap diperhatikan bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sahih. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang salah yang timbul dari penggunaan terjemahan ini.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk mencapai akurasi, harap diketahui bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sah. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang keliru yang timbul dari penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,0 +1,405 @@
+Kontekst mühəndisliyi **modelin nəyi görə biləcəyinə** qərar verir. Dövrə mühəndisliyi **sistemin bundan sonra nə edəcəyinə** qərar verir.
+
+İnsanın cavabı dəfələrlə oxuyub növbəti promptu yazması əvəzinə, dövrə bu təqib işini layihələndirilmiş sistemə çevirir. O, süni intellektə məqsəd verir, ona hərəkət etməyə imkan yaradır, real əks əlaqəni müşahidə edir, nəticəni qiymətləndirir və ya uyğunlaşır, ya da dayanır.
+
+<Callout type="info" title="Qısa Tərif">
+Dövrə mühəndisliyi süni intellekt sistemi ətrafındakı əks əlaqə dövrəsinin layihələndirilməsi təcrübəsidir: işi yoxlanıla bilən nəticəyə doğru aparan məqsəd, hərəkətlər, müşahidələr, qiymətləndirmə, vəziyyət, qoruyucu mexanizmlər və dayanma qaydaları.
+</Callout>
+
+## Yaxşı Promptdan Yaxşı Dövrəyə
+
+Prompt güclü ilk cəhd yarada bilər. Dövrə isə addımların sayı əvvəlcədən bilinmədikdə, mühit dəyişə bildikdə və ya ilk cəhd sübutlarla yoxlanılmalı olduqda faydalıdır.
+
+<Compare
+  before={{
+    label: "Birdəfəlik Prompt",
+    content: "Soruş → Yarat → Qaytar\n\nModel cavab hazırlayır. Onun işləyib-işləmədiyinə insan qərar verir və növbəti promptu yazır."
+  }}
+  after={{
+    label: "Mühəndisləşdirilmiş Dövrə",
+    content: "Çərçivələ → Hərəkət et → Müşahidə et → Qiymətləndir → Uyğunlaş\n                 ↑______________________↓\n\nSistem sübut toplayır, vəziyyəti qeyd edir və yalnız daha bir dövr faydalı olduğu müddətdə davam edir."
+  }}
+/>
+
+Bu fikir əvvəlki agent nümunələri üzərində qurulub. [ReAct məqaləsi](https://arxiv.org/abs/2210.03629) hərəkətlərin xarici mühitdən gələn müşahidələrlə növbələnməsinin dəyərini göstərdi. Anthropic-in [qiymətləndirici-optimallaşdırıcı nümunəsi](https://www.anthropic.com/engineering/building-effective-agents) ayrıca əks əlaqə addımı əlavə edir, OpenAI-nin [agentlərə dair praktiki bələdçisi](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) isə agent icralarını çıxış şərtləri ilə idarə olunan dövrələr kimi təsvir edir. Daha yeni termin olan **loop engineering** (dövrə mühəndisliyi) diqqəti bütün bu dövrün şüurlu şəkildə layihələndirilməsinə yönəldir.
+
+## Beş Hərəkət
+
+<InfoGrid items={[
+  { label: "1. Çərçivələ", description: "Niyyəti məqsədə, məhdudiyyətlərə, uğur meyarlarına və büdcəyə çevirin.", color: "blue" },
+  { label: "2. Hərəkət et", description: "Bir məhdud hərəkət seçin: axtarın, redaktə edin, hesablayın, alət çağırın və ya insandan soruşun.", color: "amber" },
+  { label: "3. Müşahidə et", description: "Əslində baş verənləri toplayın: test çıxışı, API nəticələri, sitatlar və ya istifadəçi rəyi.", color: "cyan" },
+  { label: "4. Qiymətləndir", description: "Sübutları modelin əminliyi ilə deyil, açıq meyarlarla müqayisə edin.", color: "purple" },
+  { label: "5. Uyğunlaş", description: "Vəziyyəti yeniləyin, planı dəyişin, təhlükəsiz şəkildə yenidən cəhd edin, eskalasiya edin və ya dayanın.", color: "green" },
+]} />
+
+Dövrə oxlardan ibarət deyil. Mühəndislik **oxlar arasındakı müqavilələrdədir**: nəyin hərəkət sayıldığı, hansı müşahidələrin etibarlı olduğu, onları kimin qiymətləndirdiyi, hansı vəziyyətin qorunub saxlandığı və icranın dəqiq nə vaxt bitdiyi.
+
+<LoopEngineeringLab content={{
+  eyebrow: "Dövrə nəzarəti / interaktiv simulyator",
+  title: "İşləyən əks əlaqə dövrəsini addım-addım keçin",
+  description: "Tapşırıq seçin, sonra siqnalları bir-bir irəlilədin. Diqqət yetirin: irəliləyiş modeldən özünü bitmiş hiss edib-etmədiyini soruşmaqdan deyil, mühitdən gələn sübutlardan və açıq qiymətləndirmədən qaynaqlanır.",
+  chooseScenarioLabel: "Dövrə seçin",
+  goalLabel: "Məqsəd",
+  stopRuleLabel: "Dayanma qaydası",
+  evidenceLabel: "Etibarlı sübut",
+  iterationLabel: "İterasiya",
+  progressLabel: "Təsdiqlənmiş irəliləyiş",
+  openIssuesLabel: "Açıq məsələlər",
+  currentSignalLabel: "Cari siqnal",
+  advanceLabel: "Bir addım irəliləyin",
+  nextIterationLabel: "Növbəti iterasiyaya başlayın",
+  resetLabel: "Dövrəni sıfırlayın",
+  completeLabel: "Məqsəd təsdiqləndi",
+  completeDescription: "Uğur meyarları ödənilib, sübutlar qeydə alınıb və dövrə daha bir iterasiyaya vaxt sərf etmək əvəzinə dayanır.",
+  stages: [
+    { id: "frame", label: "Çərçivələ", verb: "Müqaviləni yenidən oxuyun" },
+    { id: "act", label: "Hərəkət et", verb: "Bir məhdud hərəkət edin" },
+    { id: "observe", label: "Müşahidə et", verb: "Xarici əks əlaqəni oxuyun" },
+    { id: "evaluate", label: "Qiymətləndir", verb: "Rubrikanı tətbiq edin" },
+    { id: "adapt", label: "Uyğunlaş", verb: "Növbəti hərəkəti yeniləyin" },
+  ],
+  scenarios: [
+    {
+      id: "code",
+      label: "Ödəniş xətasını düzəldin",
+      goal: "Etibarlı endirim davranışını dəyişmədən ödəniş yekunlarını düzəldin.",
+      stopRule: "Hədəflənmiş reqressiya testi keçir, tam ödəniş test paketi keçir və lint təmizdir — yaxud üç cəhd tükənir və dövrə eskalasiya edir.",
+      evidence: "Reproduksiya addımları, test çıxışı, kod diff-i və yekun reqressiya paketi.",
+      cycles: [
+        {
+          action: "Bildirilən yekunu reproduksiya edin və vergi üstəgəl faiz endirimi üçün uğursuz olan test əlavə edin.",
+          observation: "Test yalnız vergi endirimdən əvvəl yuvarlaqlaşdırıldıqda bir sent fərqlə uğursuz olur.",
+          evaluation: "Xəta deterministik siqnalla reproduksiya olunub, lakin mənbəyi hələ düzəldilməyib.",
+          adaptation: "Yuvarlaqlaşdırma sərhədini yoxlayın və yalnız sifariş yekununun hesablanması yolunu dəyişin.",
+          progress: 34,
+          openIssues: 2,
+        },
+        {
+          action: "Yuvarlaqlaşdırmanı son pul sərhədinə keçirin və hədəflənmiş ödəniş testlərini işə salın.",
+          observation: "Reqressiya keçir, lakin bir kupon inteqrasiya testi indi sabit məbləğli endirimdə uğursuz olur.",
+          evaluation: "İlk simptom aradan qaldırılıb, lakin dəyişiklik həddindən artıq genişdir. Dayanma qaydası ödənilmir.",
+          adaptation: "Yamağı daraldın və vergi yuvarlaqlaşdırmasını kupon yuvarlaqlaşdırmasından ayıran test halı əlavə edin.",
+          progress: 71,
+          openIssues: 1,
+        },
+        {
+          action: "Dar hesablama düzəlişini tətbiq edin, sonra reqressiyanı, tam ödəniş test paketini və linti işə salın.",
+          observation: "Bütün yoxlamalar keçir. Diff bir hesablama funksiyasına və yeni reqressiya testinə toxunur.",
+          evaluation: "Hər uğur meyarının müstəqil sübutu var və heç bir büdcə limiti aşılmayıb.",
+          adaptation: "Dayanın, test çıxışını saxlayın və kiçik diff-i insan rəyçiyə təhvil verin.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "research",
+      label: "Tədqiqat iddiasını yoxlayın",
+      goal: "Uzaqdan işin komanda məhsuldarlığını həmişə artırdığı iddiasını qiymətləndirin.",
+      stopRule: "Kalibrlənmiş nəticə ən azı üç mötəbər mənbə ilə dəstəklənir, fikir ayrılıqları və məhdudiyyətlər göstərilir.",
+      evidence: "Birbaşa mənbə linkləri, nəşr tarixləri, tədqiqat metodları, seçmə ölçüləri və sitat gətirilən göstəricilər.",
+      cycles: [
+        {
+          action: "Ən yeni sübutları axtarın və ən çox təkrarlanan məhsuldarlıq statistikasını mənbəyinə qədər izləyin.",
+          observation: "Əksər məqalələr anketinə və ya xam seçməsinə link vermədən bir satıcı sorğusunu təkrarlayır.",
+          evaluation: "Sübut populyardır, lakin mütləq iddianı dəstəkləmək üçün kifayət qədər güclü deyil.",
+          adaptation: "Ekspert rəyindən keçmiş tədqiqatlara və açıq verilənlər dəstlərinə üstünlük verin; əks tapıntıları da axtarın.",
+          progress: 28,
+          openIssues: 3,
+        },
+        {
+          action: "Ekspert rəyindən keçmiş iki tədqiqatı milli əmək verilənlər dəsti ilə müqayisə edin.",
+          observation: "Nəticələr tapşırıq növünə, ölçmə metoduna və işin tam uzaqdan, yoxsa hibrid olmasına görə dəyişir.",
+          evaluation: "Sübutlar “həmişə” sözü ilə ziddiyyət təşkil edir. Şərti nəticə getdikcə müdafiə oluna bilən olur.",
+          adaptation: "Tədqiqatların hasilatı, işlənmiş saatları və qavranılan məhsuldarlığı ayırd edib-etmədiyini yoxlayın.",
+          progress: 68,
+          openIssues: 1,
+        },
+        {
+          action: "Sübut cədvəli qurun və hər iddianı orijinal mənbə ilə tutuşdurub yoxlayın.",
+          observation: "Mənbələr qarışıq effektləri dəstəkləyir və muxtariyyəti, koordinasiyanı və tapşırıq növünü əsas dəyişənlər kimi müəyyən edir.",
+          evaluation: "Nəticə dəstəklənir, qeyri-müəyyənlik görünür və mənbə həddi ödənilir.",
+          adaptation: "Şərtləndirilmiş cavabla dayanın və sübut cədvəlini baxış üçün saxlayın.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "writing",
+      label: "Təqdimat e-poçtunu cilalayın",
+      goal: "Faydanı izah edən və keyfiyyətli demo klikləri qazanan yığcam təqdimat e-poçtu yaradın.",
+      stopRule: "E-poçt üslub rubrikasını keçir, 140 sözdən aşağı qalır, bir aydın hərəkətə çağırış ehtiva edir və fakt yoxlamasından uğurla keçir.",
+      evidence: "Söz sayı, rubrika balları, linkin yoxlanması, məhsul haqqında mənbə faktları və rəyçi qeydləri.",
+      cycles: [
+        {
+          action: "Məhsul brifindən qaralama hazırlayın və nəticəni auditoriya və üslub rubrikası üzrə qiymətləndirin.",
+          observation: "Qaralama 204 sözdür, xüsusiyyətlərlə açılır və bir-biri ilə rəqabət aparan iki hərəkətə çağırış ehtiva edir.",
+          evaluation: "Faktlar dəqiqdir, lakin iyerarxiya və uzunluq meyarları keçmir.",
+          adaptation: "Müştərinin qazandığı nəticə ilə başlayın, ikinci dərəcəli hərəkəti çıxarın və icra detallarını ixtisar edin.",
+          progress: 41,
+          openIssues: 3,
+        },
+        {
+          action: "Girişi yenidən yazın və əsas mətni bir problem-fayda-sübut ardıcıllığına sıxın.",
+          observation: "E-poçt 126 sözdür və bir CTA-sı var, lakin sübut cümləsi beta nəticəsini şişirdir.",
+          evaluation: "Struktur keçir. Fakt kalibrləməsi hələ də rubrikadan keçmir.",
+          adaptation: "Geniş iddianı ölçülmüş beta nəticəsi ilə əvəz edin və yekun fakt yoxlaması xahiş edin.",
+          progress: 79,
+          openIssues: 1,
+        },
+        {
+          action: "Təsdiqlənmiş göstəricini daxil edin, linki yoxlayın və tam rubrikanı bir daha tətbiq edin.",
+          observation: "E-poçt 132 sözdür, link açılır, faktlar brifə uyğun gəlir və hər rubrika maddəsi keçir.",
+          evaluation: "Artefakt müəyyən edilmiş keyfiyyət səviyyəsini baxıla bilən sübutlarla ödəyir.",
+          adaptation: "Dayanın və təsdiqlənmiş versiyanı kampaniya sahibinə göndərin.",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+  ],
+}} />
+
+## Əvvəlcə Dövrə Müqaviləsini Yazın
+
+Model və ya freymvork seçməzdən əvvəl kiçik bir müqavilə yazın. Bu sahələr qeyri-müəyyən qalarsa, dövrə qeyri-müəyyənliyi təkrarlanan xərcə çevirəcək.
+
+```yaml
+goal: "Hansı müşahidə edilə bilən vəziyyət gerçəkləşməlidir?"
+inputs: "Dövrəni nə işə salır?"
+state: "İterasiyalar arasında hansı faktlar və cəhdlər qorunur?"
+actions: "Sistem hansı alətlərdən və hansı icazələrlə istifadə edə bilər?"
+observations: "Bu hərəkətlərdən hansı xarici siqnallar qayıdır?"
+evaluator: "Nəticəni hansı rubrika və ya deterministik yoxlamalar qiymətləndirir?"
+success: "Məqsədin tamamlandığını hansı sübutlar təsdiqləyir?"
+failure: "Hansı şərtlər bərpa və ya insan köməyi tələb edir?"
+budget: "Maksimum növbə sayı, vaxt, token, pul və ya yan təsirlər"
+```
+
+<Callout type="warning" title="Çıxışı Olmayan Dövrə Uğursuzluq Rejimidir">
+Həmişə üç çıxış müəyyənləşdirin: sübutlar məqsədi təmin etdikdə **uğur**, bərpa artıq faydalı olmadıqda **uğursuzluq** və dövrə icazə verilən xərc və ya risk sərhədinə çatdıqda **büdcə tükənməsi**.
+</Callout>
+
+## Müşahidələr Dünyadan Gəlməlidir
+
+Modelin “bu düzgün görünür” deməsi güclü sübut deyil. Faydalı müşahidə mühakimə olunan cavabdan kənarda duran bir şey tərəfindən yaradılır.
+
+<table>
+  <thead>
+    <tr>
+      <th>Tapşırıq</th>
+      <th>Zəif müşahidə</th>
+      <th>Güclü müşahidə</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Kod təmiri</td>
+      <td>“Düzəliş işləməlidir.”</td>
+      <td>Əvvəlcə orijinal uğursuzluq reproduksiya olunur, sonra reqressiya və tam test paketi keçir.</td>
+    </tr>
+    <tr>
+      <td>Tədqiqat</td>
+      <td>“Bir neçə mənbə razılaşır.”</td>
+      <td>İddialar tarixləri, metodları və fikir ayrılıqları qeydə alınmış orijinal mənbələrə link verir.</td>
+    </tr>
+    <tr>
+      <td>Məlumatların çıxarılması</td>
+      <td>“JSON etibarlı görünür.”</td>
+      <td>Sxem yoxlaması keçir və seçmə qeydlər mənbəyə uyğun gəlir.</td>
+    </tr>
+    <tr>
+      <td>Məzmun</td>
+      <td>“Mətn aydın görünür.”</td>
+      <td>Adı müəyyən rubrikadan, fakt yoxlamasından, link yoxlamalarından və auditoriya testindən keçir.</td>
+    </tr>
+    <tr>
+      <td>Əməliyyatlar</td>
+      <td>“Sorğu uğurla nəticələndi.”</td>
+      <td>Xarici sistem gözlənilən vəziyyəti qaytarır və audit qeydi mövcuddur.</td>
+    </tr>
+  </tbody>
+</table>
+
+Alətlər buna görə vacibdir: testlər, brauzerlər, verilənlər bazaları, validatorlar və insan baxışı daxili təxmini müşahidə edilə bilən nəticəyə çevirir.
+
+## Yaradanı Yoxlayıcıdan Ayırın
+
+Aşağı riskli iş üçün bir model həm qaralama hazırlaya, həm də öz işini yoxlaya bilər. Vacib iş üçün isə vəzifəsi fərqli və səlahiyyəti məhdud olan yoxlayıcıdan istifadə edin.
+
+<InfoGrid columns={2} items={[
+  { label: "Yaradan", description: "Dəyişikliyi təklif edir, hərəkət alətlərini çağırır və hansı sübutların toplanmalı olduğunu izah edir.", color: "amber" },
+  { label: "Yoxlayıcı", description: "Məqsədi, artefaktı və sübutları alır; rubrikanı tətbiq edir; qiymətləndirdiyi işi səssizcə yenidən yaza bilməz.", color: "green" },
+]} />
+
+Yoxlayıcının başqa bir süni intellekt olması şərt deyil. Mövcud olan ən deterministik qiymətləndiriciyə üstünlük verin:
+
+1. **Dəqiq yoxlamalar** — tiplər, sxemlər, məhdudiyyətlər, icazələr, hash-lər
+2. **İcra edilə bilən yoxlamalar** — testlər, linterlər, simulyasiyalar, linklərin yoxlanması
+3. **Rubrika yoxlamaları** — müstəqil model və ya adı müəyyən meyarlardan istifadə edən insan
+4. **Nəticə yoxlamaları** — zamanla real istifadəçi davranışı və ya produksiya göstəriciləri
+
+<Callout type="tip" title="Əminlik Sübut Deyil">
+Artefaktı yaradan modelin özü tərəfindən verilən əminlik balı da model çıxışıdır. Onu sübut kimi yox, yönləndirmə işarəsi kimi qəbul edin.
+</Callout>
+
+## Vəziyyət Dövrənin Onurğasıdır
+
+Kontekst modelin **bu növbədə** gördüyüdür. Vəziyyət isə növbəti növbənin işi təkrarlamadan və ya unutmadan davam etməsinə imkan verən yığcam qeyddir.
+
+<Checklist title="Faydalı Dövrə Vəziyyəti" items={[
+  { text: "Cari məqsəd və qəbul meyarları" },
+  { text: "Artıq cəhd edilmiş hərəkətlər və onların müşahidə edilə bilən nəticələri" },
+  { text: "Yaradılmış artefaktlar — versiyaları və ya sabit istinadları ilə" },
+  { text: "Qiymətləndiricinin hökmləri və həll olunmamış məsələlər" },
+  { text: "Sərf olunmuş büdcə və hələ də mövcud olan icazələr" },
+  { text: "Davam etmə, dayanma və ya eskalasiya səbəbi" },
+]} />
+
+Yığcam qərarları və sübutları saxlayın — modelin daxili düşüncə zəncirini yox. Yaxşı vəziyyət kiçikdir, yoxlanıla biləndir və işi ondan təhlükəsiz davam etdirmək mümkündür.
+
+## Ümumi Dövrə Formaları
+
+### Təmir Dövrəsi
+
+`reproduksiya edin → bir şeyi dəyişin → yoxlamaları işə salın → diaqnoz qoyun → təkrarlayın və ya dayanın`
+
+Kod, konfiqurasiya, məlumat təmizliyi və icra edilə bilən əks əlaqəsi olan istənilən tapşırıq üçün ən yaxşısıdır.
+
+### Qiymətləndirici-Optimallaşdırıcı Dövrə
+
+`yaradın → rubrika ilə bal verin → hədəflənmiş rəy qaytarın → yenidən işləyin`
+
+Yazı, tərcümə, dizayn tənqidi və keyfiyyəti aydın ifadə olunmuş rəylə yaxşılaşan nəticələr üçün ən yaxşısıdır.
+
+### Tədqiqat Dövrəsi
+
+`axtarın → mənbələri yoxlayın → boşluqları və ya ziddiyyətləri müəyyənləşdirin → yenidən axtarın → sintez edin`
+
+Tamlıq əvvəlcədən bilinməyəndə ən yaxşısıdır. Dayanma qaydası axtarış nəticələrinin sayını yox, sübutların əhatə dairəsini ölçməlidir.
+
+### İnsan Təsdiqli Dövrə
+
+`hazırlayın → avtomatik yoxlayın → yüksək riskli hərəkətdən əvvəl dayanın → insan təsdiqləyir və ya istiqaməti dəyişir`
+
+Ödənişlər, dərc etmə, silmə, giriş hüququ dəyişiklikləri, tibbi və ya hüquqi qərarlar və digər ciddi nəticələri olan hərəkətlər üçün ən yaxşısıdır.
+
+## Dizaynla Aradan Qaldırılmalı Uğursuzluq Rejimləri
+
+<table>
+  <thead>
+    <tr>
+      <th>Uğursuzluq</th>
+      <th>Nə baş verdi</th>
+      <th>Mühəndislik cavabı</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Sonsuz təkrar cəhd</td>
+      <td>Dövrənin ölçülə bilən uğur və ya büdcə çıxışı yoxdur.</td>
+      <td>Açıq yekun vəziyyətlər və sərt iterasiya limiti əlavə edin.</td>
+    </tr>
+    <tr>
+      <td>Özünü təbrik etmə</td>
+      <td>Yaradan öz inandırıcı cavabını sübut olmadan qəbul edir.</td>
+      <td>Deterministik yoxlamalardan və ya müstəqil yoxlayıcıdan istifadə edin.</td>
+    </tr>
+    <tr>
+      <td>Kontekst qartopu</td>
+      <td>Hər iterasiya model siqnalı itirənə qədər hər şeyi üstünə əlavə edir.</td>
+      <td>Strukturlaşdırılmış vəziyyəti qalıcı saxlayın və yalnız müvafiq konteksti yenidən qurun.</td>
+    </tr>
+    <tr>
+      <td>Var-gəl</td>
+      <td>Dövrə iki düzəliş arasında növbələşir.</td>
+      <td>Təkrarlanan vəziyyətləri aşkar edin və fərqli strategiya və ya eskalasiya tələb edin.</td>
+    </tr>
+    <tr>
+      <td>Məqsəd sürüşməsi</td>
+      <td>Yerli təkmilləşdirmələr ilkin məqsədi əvəz edir.</td>
+      <td>Hər dövrdə dəyişməz məqsədi və qəbul meyarlarını yenidən oxuyun.</td>
+    </tr>
+    <tr>
+      <td>Təhlükəli təkrarlama</td>
+      <td>Geri qaytarıla bilən səhv təkrarlananda zərərli olur.</td>
+      <td>İcazələri, yan təsirləri, sürəti, xərci və təsir dairəsini məhdudlaşdırın.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Minimal Tətbiq
+
+```typescript
+let state = initialize(goal, acceptanceCriteria, budget);
+
+while (state.budget.remaining > 0) {
+  const context = assembleRelevantContext(state);
+  const proposedAction = await maker.chooseAction(context);
+  const observation = await tools.executeWithinPolicy(proposedAction);
+  const verdict = await evaluator.check({ goal, observation, state });
+
+  state = recordIteration(state, { proposedAction, observation, verdict });
+
+  if (verdict.status === "passed") return complete(state);
+  if (verdict.status === "unsafe" || verdict.status === "blocked") {
+    return escalateToHuman(state);
+  }
+
+  state = adaptPlan(state, verdict.feedback);
+}
+
+return stopWithBudgetReport(state);
+```
+
+Kod işin asan hissəsidir. Çətin suallar sahəyə aid suallardır: Hansı test xətanın aradan qalxdığını sübut edir? Hansı mənbə mötəbərdir? Hansı hərəkət geri qaytarıla biləndir? Yekun addımı kim təsdiqləyə bilər? Dövrə mühəndisliyinin əsl işi məhz bu qərarlardır.
+
+## Təcrübə: Dövrə Dizayn Edin
+
+<TryIt
+  title="Dövrə Müqaviləsi Hazırlayın"
+  description="Dəyişənləri öz işinizdən təkrarlanan bir tapşırıqla əvəz edin. Süni intellektdən zəif sübutları və qeyri-müəyyən dayanma qaydalarını sorğulamasını xahiş edin."
+  prompt={`Bu tapşırıq üçün sərhədləri müəyyən edilmiş süni intellekt iş dövrəsi dizayn et:
+
+TAPŞIRIQ: \${task:hər səhər yeni müştəri dəstəyi müraciətlərini çeşidləmək}
+
+Bunları müəyyən et:
+1. Müşahidə edilə bilən məqsəd
+2. İşəsalma (trigger) və tələb olunan girişlər
+3. İcazə verilən hərəkətlər və alət icazələri
+4. Xarici mühitdən gələn etibarlı müşahidələr
+5. Qiymətləndirici və onun rubrikası
+6. İterasiyalar arasında qorunan vəziyyət
+7. Uğur, uğursuzluq və büdcə tükənməsi çıxışları
+8. Riskli hərəkətlər üçün insan təsdiqi qapıları
+9. Hər iterasiyanı auditə yararlı edən iz formatı
+
+Sonra dizaynında ən ehtimallı üç uğursuzluq rejimini müəyyənləşdir və onların qarşısını almaq üçün dövrəyə yenidən baxış ver.`}
+/>
+
+<Quiz
+  question="Agent kodu redaktə edir, diff-i yenidən oxuyur və xətanın düzəldildiyini deyir. Dövrənin ən vacib çatışmayan hissəsi hansıdır?"
+  options={[
+    "Daha uzun sistem promptu",
+    "Dayanma qaydası ilə qiymətləndirilən xarici müşahidə",
+    "İkinci redaktə gedişi",
+    "Daha böyük kontekst pəncərəsi"
+  ]}
+  correctIndex={1}
+  explanation="Agent artefakt yaradıb və ona baxıb, lakin müstəqil sübut toplamayıb. Uğursuzluğu reproduksiya etmək və müvafiq testləri işə salmaq dayanma qaydasının qiymətləndirə biləcəyi müşahidə edilə bilən siqnal yaradardı."
+/>
+
+## Əlavə Oxu
+
+- [Loop Engineering — Addy Osmani](https://addyosmani.com/blog/loop-engineering/) — əl ilə yazılan təqib promptlarını layihələndirilmiş sistemlə əvəz etməyin yeni çərçivəsi, üstəgəl yoxlama və insan məsuliyyəti barədə praktiki xəbərdarlıqlar
+- [Effektiv Agentlərin Qurulması — Anthropic](https://www.anthropic.com/engineering/building-effective-agents) — qiymətləndirici-optimallaşdırıcı iş axınları, mühitdən gələn əks əlaqə, dayanma şərtləri və agent mürəkkəbliyinin nə vaxt özünü doğrultduğuna dair göstərişlər
+- [Agentlərin Qurulmasına dair Praktiki Bələdçi — OpenAI](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) — agent icraları, çıxış şərtləri, alətlər, qoruyucu mexanizmlər və insan müdaxiləsi
+- [ReAct: Dil Modellərində Düşünmə və Hərəkətin Sinergiyası](https://arxiv.org/abs/2210.03629) — hərəkətlərin xarici mühitdən gələn müşahidələrlə növbələnməsinə dair fundamental tədqiqat
+
+## Xülasə
+
+<Callout type="tip" title="Təkcə Promptu Deyil, Əks Əlaqəni Qurun">
+Etibarlı dövrənin ölçülə bilən məqsədi, məhdud hərəkətləri, etibarlı müşahidələri, açıq qiymətləndiricisi, yığcam vəziyyəti, təhlükəsiz çıxışları və nəticələrin ciddi olduğu yerlərdə insan mühakiməsi olur. Model dövrənin içindədir; dövrəyə görə məsuliyyət isə mühəndisin üzərində qalır.
+</Callout>

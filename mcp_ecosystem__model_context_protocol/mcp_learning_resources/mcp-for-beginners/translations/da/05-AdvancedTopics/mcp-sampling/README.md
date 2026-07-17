@@ -1,58 +1,62 @@
+> [FORÆLDET: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # Sampling i Model Context Protocol
 
-Sampling er en kraftfuld MCP-funktion, der gør det muligt for servere at anmode om LLM-fuldførelser via klienten, hvilket muliggør avancerede agent-lignende adfærd samtidig med, at sikkerhed og privatliv bevares. Den rette sampling-konfiguration kan markant forbedre svarenes kvalitet og ydeevne. MCP tilbyder en standardiseret måde at styre, hvordan modeller genererer tekst med specifikke parametre, der påvirker tilfældighed, kreativitet og sammenhæng.
+> **Forældelsesmeddelelse:** MCP-specifikationsreleasekandidaten `2026-07-28` markerer Sampling som forældet til fordel for direkte integration med LLM-udbyder-API'er. Sampling fortsætter med at fungere i `2025-11-25` og mindst et år efter enhver formel forældelse, så alt i denne lektion forbliver gyldigt - men nye serverdesigns bør evaluere erstatningsmønstret. Se [Hvad ændres i MCP: Releasekandidaten 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Sampling er en kraftfuld MCP-funktion, der tillader servere at anmode om LLM-fuldførelser gennem klienten, hvilket muliggør sofistikerede agentiske adfærdsmønstre samtidig med at sikkerhed og privatliv opretholdes. Den rette samplingkonfiguration kan dramatisk forbedre responskvalitet og ydeevne. MCP tilbyder en standardiseret måde at kontrollere, hvordan modeller genererer tekst med specifikke parametre, der påvirker tilfældighed, kreativitet og sammenhæng.
 
 ## Introduktion
 
-I denne lektion vil vi udforske, hvordan man konfigurerer sampling-parametre i MCP-forespørgsler og forstå de underliggende protokolmekanismer for sampling.
+I denne lektion vil vi udforske, hvordan man konfigurerer samplingparametre i MCP-anmodninger og forstå de underliggende protokolmekanismer for sampling.
 
 ## Læringsmål
 
-Når du har gennemført denne lektion, vil du kunne:
+Ved slutningen af denne lektion vil du kunne:
 
-- Forstå de vigtigste sampling-parametre, der er tilgængelige i MCP.
-- Konfigurere sampling-parametre til forskellige anvendelsestilfælde.
+- Forstå de vigtigste samplingparametre, der er tilgængelige i MCP.
+- Konfigurere samplingparametre til forskellige anvendelsestilfælde.
 - Implementere deterministisk sampling for reproducerbare resultater.
-- Dynamisk justere sampling-parametre baseret på kontekst og brugerpræferencer.
-- Anvende sampling-strategier for at forbedre modelpræstation i forskellige scenarier.
+- Dynamisk justere samplingparametre baseret på kontekst og brugerpræferencer.
+- Anvende samplingstrategier til at forbedre modelpræstation i forskellige scenarier.
 - Forstå, hvordan sampling fungerer i klient-server-flowet i MCP.
 
 ## Hvordan Sampling Fungerer i MCP
 
 Sampling-flowet i MCP følger disse trin:
 
-1. Serveren sender en `sampling/createMessage`-forespørgsel til klienten  
-2. Klienten gennemgår forespørgslen og kan ændre den  
-3. Klienten sampler fra en LLM  
-4. Klienten gennemgår fuldførelsen  
-5. Klienten returnerer resultatet til serveren  
+1. Server sender en `sampling/createMessage`-anmodning til klienten
+2. Klienten gennemgår anmodningen og kan ændre den
+3. Klienten sampler fra en LLM
+4. Klienten gennemgår fuldførelsen
+5. Klienten returnerer resultatet til serveren
 
-Dette design med mennesket i loop sikrer, at brugerne bevarer kontrollen over, hvad LLM’en ser og genererer.
+Dette design med menneskelig involvering sikrer, at brugerne bevarer kontrol over, hvad LLM'en ser og genererer.
 
-## Oversigt over Sampling-parametre
+## Oversigt over Samplingparametre
 
-MCP definerer følgende sampling-parametre, som kan konfigureres i klientforespørgsler:
+MCP definerer følgende samplingparametre, som kan konfigureres i klientanmodninger:
 
-| Parameter       | Beskrivelse                              | Typisk interval    |
-|-----------------|----------------------------------------|--------------------|
-| `temperature`   | Styrer tilfældighed i token-udvælgelse | 0.0 - 1.0          |
-| `maxTokens`     | Maksimalt antal tokens, der genereres  | Heltal             |
-| `stopSequences` | Egendefinerede sekvenser, der stopper generering ved opdagelse | Array af strenge   |
-| `metadata`      | Yderligere leverandørspecifikke parametre | JSON-objekt        |
+| Parameter | Beskrivelse | Typisk Interval |
+|-----------|-------------|----------------|
+| `temperature` | Kontrollerer tilfældighed i tokenvalg | 0.0 - 1.0 |
+| `maxTokens` | Maksimalt antal tokens, der skal genereres | Heltal |
+| `stopSequences` | Tilpassede sekvenser, der stopper generering ved møde | Array af strenge |
+| `metadata` | Yderligere udbyderspecifikke parametre | JSON-objekt |
 
-Mange LLM-udbydere understøtter yderligere parametre via `metadata`-feltet, som kan inkludere:
+Mange LLM-udbydere understøtter yderligere parametre gennem `metadata`-feltet, som kan inkludere:
 
-| Almindelig Udvidelsesparameter | Beskrivelse                                         | Typisk interval    |
-|-------------------------------|----------------------------------------------------|--------------------|
-| `top_p`                       | Nucleus sampling - begrænser tokens til top kumulativ sandsynlighed | 0.0 - 1.0          |
-| `top_k`                       | Begrænser token-udvælgelse til top K muligheder    | 1 - 100            |
-| `presence_penalty`            | Straffer tokens baseret på deres tilstedeværelse i teksten hidtil | -2.0 - 2.0          |
-| `frequency_penalty`           | Straffer tokens baseret på deres hyppighed i teksten hidtil | -2.0 - 2.0          |
-| `seed`                        | Specifik tilfældig seed for reproducerbare resultater | Heltal             |
+| Almindeligt Udvidelsesparameter | Beskrivelse | Typisk Interval |
+|-----------|-------------|----------------|
+| `top_p` | Nucleus sampling - begrænser tokens til top kumulativ sandsynlighed | 0.0 - 1.0 |
+| `top_k` | Begrænser tokenvalg til top K muligheder | 1 - 100 |
+| `presence_penalty` | Straffer tokens baseret på deres tilstedeværelse i teksten indtil nu | -2.0 - 2.0 |
+| `frequency_penalty` | Straffer tokens baseret på deres frekvens i teksten indtil nu | -2.0 - 2.0 |
+| `seed` | Specifik tilfældig seed for reproducerbare resultater | Heltal |
 
-## Eksempel på Forespørgselsformat
+## Eksempel på Anmodningsformat
 
-Her er et eksempel på, hvordan man anmoder om sampling fra en klient i MCP:
+Her er et eksempel på at anmode om sampling fra en klient i MCP:
 
 ```json
 {
@@ -91,44 +95,44 @@ Klienten returnerer et fuldførelsesresultat:
 }
 ```
 
-## Mennesket i Loop-kontroller
+## Menneskelig Kontrol i Loop
 
 MCP-sampling er designet med menneskelig overvågning for øje:
 
-- **For prompts**:  
-  - Klienter bør vise brugerne den foreslåede prompt  
-  - Brugere skal kunne ændre eller afvise prompts  
-  - Systemprompts kan filtreres eller ændres  
-  - Inklusion af kontekst styres af klienten  
+- **For prompts**:
+  - Klienter bør vise brugerne den foreslåede prompt
+  - Brugere bør kunne ændre eller afvise prompts
+  - Systemprompts kan filtreres eller ændres
+  - Inklusion af kontekst styres af klienten
 
-- **For fuldførelser**:  
-  - Klienter bør vise brugerne fuldførelsen  
-  - Brugere skal kunne ændre eller afvise fuldførelser  
-  - Klienter kan filtrere eller ændre fuldførelser  
-  - Brugere styrer, hvilken model der anvendes  
+- **For fuldførelser**:
+  - Klienter bør vise brugerne fuldførelsen
+  - Brugere bør kunne ændre eller afvise fuldførelser
+  - Klienter kan filtrere eller ændre fuldførelser
+  - Brugere kontrollerer, hvilken model der bruges
 
-Med disse principper in mente, lad os se på, hvordan sampling implementeres i forskellige programmeringssprog med fokus på de parametre, der ofte understøttes på tværs af LLM-udbydere.
+Med disse principper i tankerne, lad os se på, hvordan sampling implementeres i forskellige programmeringssprog med fokus på parametrene, som almindeligvis understøttes på tværs af LLM-udbydere.
 
 ## Sikkerhedsovervejelser
 
-Når sampling implementeres i MCP, bør følgende sikkerhedspraksis overvejes:
+Når sampling implementeres i MCP, bør følgende sikkerhedspraksisser overvejes:
 
-- **Valider alt beskedindhold** før det sendes til klienten  
-- **Rens følsomme oplysninger** fra prompts og fuldførelser  
-- **Implementer ratebegrænsninger** for at forhindre misbrug  
-- **Overvåg sampling-brug** for usædvanlige mønstre  
-- **Krypter data under overførsel** med sikre protokoller  
-- **Håndter brugerdata-privatliv** i overensstemmelse med gældende regler  
-- **Revider sampling-forespørgsler** for overholdelse og sikkerhed  
-- **Kontroller omkostningseksponering** med passende grænser  
-- **Implementer timeouts** for sampling-forespørgsler  
-- **Håndter model-fejl yndefuldt** med passende fallback-mekanismer  
+- **Valider alt beskedindhold** før det sendes til klienten
+- **Rens følsomme oplysninger** fra prompts og fuldførelser
+- **Implementer hastighedsbegrænsninger** for at forhindre misbrug
+- **Overvåg samplingbrug** for usædvanlige mønstre
+- **Krypter data under overførsel** med sikre protokoller
+- **Håndter brugerdata-privatliv** i overensstemmelse med relevante regler
+- **Revider samplinganmodninger** for overholdelse og sikkerhed
+- **Kontroller omkostningseksponering** med passende grænser
+- **Implementer timeout** for samplinganmodninger
+- **Håndter model-fejl yndefuldt** med passende fallback-løsninger
 
-Sampling-parametre tillader finjustering af sprogmodellers adfærd for at opnå den ønskede balance mellem deterministiske og kreative output.
+Samplingparametre tillader finjustering af sprogmodellers adfærd for at opnå den ønskede balance mellem deterministiske og kreative output.
 
-Lad os se på, hvordan disse parametre konfigureres i forskellige programmeringssprog.
+Lad os se på, hvordan man konfigurerer disse parametre i forskellige programmeringssprog.
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -166,47 +170,47 @@ public class SamplingExample
 
 I den foregående kode har vi:
 
-- Oprettet en MCP-klient med en specifik server-URL.  
-- Konfigureret en forespørgsel med sampling-parametre som `temperature`, `top_p` og `top_k`.  
-- Sendt forespørgslen og udskrevet den genererede tekst.  
-- Brugte:  
-    - `allowedTools` til at specificere, hvilke værktøjer modellen kan bruge under genereringen. I dette tilfælde tillod vi `ideaGenerator` og `marketAnalyzer` til at hjælpe med at generere kreative app-idéer.  
-    - `frequencyPenalty` og `presencePenalty` til at kontrollere gentagelse og variation i output.  
-    - `temperature` til at styre tilfældigheden i output, hvor højere værdier fører til mere kreative svar.  
-    - `top_p` til at begrænse udvælgelsen af tokens til dem, der bidrager til den øverste kumulative sandsynlighed, hvilket forbedrer kvaliteten af den genererede tekst.  
-    - `top_k` til at begrænse modellen til de top K mest sandsynlige tokens, hvilket kan hjælpe med at generere mere sammenhængende svar.  
-    - `frequencyPenalty` og `presencePenalty` til at reducere gentagelse og fremme variation i den genererede tekst.
+- Oprettet en MCP-klient med en specifik server-URL.
+- Konfigureret en anmodning med samplingparametre som `temperature`, `top_p` og `top_k`.
+- Sendt anmodningen og udskrevet den genererede tekst.
+- Brugte:
+    - `allowedTools` til at specificere, hvilke værktøjer modellen kan bruge under generering. I dette tilfælde tillod vi `ideaGenerator` og `marketAnalyzer` til at hjælpe med at generere kreative appidéer.
+    - `frequencyPenalty` og `presencePenalty` til at kontrollere gentagelse og diversitet i outputtet.
+    - `temperature` til at kontrollere tilfældigheden i outputtet, hvor højere værdier fører til mere kreative svar.
+    - `top_p` til at begrænse valg af tokens til dem, der bidrager til den højeste kumulative sandsynlighed, hvilket forbedrer kvaliteten af genereret tekst.
+    - `top_k` til at begrænse modellen til de top K mest sandsynlige tokens, hvilket kan hjælpe med at generere mere sammenhængende svar.
+    - `frequencyPenalty` og `presencePenalty` til at reducere gentagelse og opmuntre diversitet i den genererede tekst.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// JavaScript-eksempel: Temperatur- og Top-P-samplekonfiguration
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // Initialiser MCP-klienten
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // Konfigurer forespørgsel med forskellige sampleparametre
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // Højere temperatur = mere tilfældighed/kreativitet
+    topP: 0.92,          // Overvej tokens med top 92 % sandsynlighedsmængde
+    frequencyPenalty: 0.6, // Reducer gentagelse af tokensekvenser
+    presencePenalty: 0.4   // Straf tokens, der tidligere er optrådt i teksten
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // Lavere temperatur = mere deterministisk/faktuel
+    topP: 0.85,          // En smule mere fokuseret tokenvalg
+    frequencyPenalty: 0.2, // Minimal gentagelsesstraf
+    presencePenalty: 0.1   // Minimal tilstedeværelsesstraf
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // Send to forespørgsler med forskellige samplekonfigurationer
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -239,55 +243,55 @@ demonstrateSampling();
 
 I den foregående kode har vi:
 
-- Initialiseret en MCP-klient med en server-URL og API-nøgle.  
-- Konfigureret to sæt sampling-parametre: et til kreative opgaver og et andet til faktuelle opgaver.  
-- Sendt forespørgsler med disse konfigurationer, hvor modellen fik lov til at bruge specifikke værktøjer til hver opgave.  
-- Udskrevet de genererede svar for at demonstrere effekten af forskellige sampling-parametre.  
-- Brugte `allowedTools` til at specificere, hvilke værktøjer modellen kan bruge under genereringen. I dette tilfælde tillod vi `ideaGenerator` og `environmentalImpactTool` til kreative opgaver, og `factChecker` og `dataAnalysisTool` til faktuelle opgaver.  
-- Brugte `temperature` til at styre tilfældigheden i output, hvor højere værdier fører til mere kreative svar.  
-- Brugte `top_p` til at begrænse udvælgelsen af tokens til dem, der bidrager til den øverste kumulative sandsynlighed, hvilket forbedrer kvaliteten af den genererede tekst.  
-- Brugte `frequencyPenalty` og `presencePenalty` til at reducere gentagelse og fremme variation i output.  
+- Initialiseret en MCP-klient med en server-URL og API-nøgle.
+- Konfigureret to sæt samplingparametre: ét til kreative opgaver og ét til faktuelle opgaver.
+- Sendt anmodninger med disse konfigurationer, hvilket tillader modellen at bruge specifikke værktøjer til hver opgave.
+- Udskrevet de genererede svar for at demonstrere effekterne af forskellige samplingparametre.
+- Brugte `allowedTools` til at specificere, hvilke værktøjer modellen kan bruge under generering. I dette tilfælde tillod vi `ideaGenerator` og `environmentalImpactTool` til kreative opgaver, og `factChecker` og `dataAnalysisTool` til faktuelle opgaver.
+- Brugte `temperature` til at kontrollere tilfældigheden i outputtet, hvor højere værdier fører til mere kreative svar.
+- Brugte `top_p` til at begrænse valg af tokens til dem, der bidrager til den højeste kumulative sandsynlighed, hvilket forbedrer kvaliteten af genereret tekst.
+- Brugte `frequencyPenalty` og `presencePenalty` til at reducere gentagelse og opmuntre diversitet i outputtet.
 - Brugte `top_k` til at begrænse modellen til de top K mest sandsynlige tokens, hvilket kan hjælpe med at generere mere sammenhængende svar.
 
 ---
 
 ## Deterministisk Sampling
 
-For applikationer, der kræver konsistente output, sikrer deterministisk sampling reproducerbare resultater. Det opnås ved at bruge en fast tilfældig seed og sætte temperaturen til nul.
+For applikationer, der kræver konsistente output, sikrer deterministisk sampling reproducerbare resultater. Det gør den ved at bruge en fast tilfældig seed og sætte temperaturen til nul.
 
-Lad os se på nedenstående eksempelimplementering, der demonstrerer deterministisk sampling i forskellige programmeringssprog.
+Lad os se på et eksempel nedenfor, der demonstrerer deterministisk sampling i forskellige programmeringssprog.
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// Java Eksempel: Deterministiske svar med fast seed
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // Brug af et fast seed for deterministiske resultater
         
-        // First request with fixed seed
+        // Første forespørgsel med fast seed
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // Nultemperatur for maksimal determinisme
             .build();
             
-        // Second request with the same seed
+        // Anden forespørgsel med samme seed
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // Udfør begge forespørgsler
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // Svarene bør være identiske på grund af samme seed og temperatur=0
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -298,17 +302,17 @@ public class DeterministicSamplingExample {
 
 I den foregående kode har vi:
 
-- Oprettet en MCP-klient med en specificeret server-URL.  
-- Konfigureret to forespørgsler med samme prompt, fast seed og temperatur nul.  
-- Sendt begge forespørgsler og udskrevet den genererede tekst.  
-- Demonstreret, at svarene er identiske på grund af den deterministiske karakter af sampling-konfigurationen (samme seed og temperatur).  
-- Brugte `setSeed` til at angive en fast tilfældig seed, hvilket sikrer, at modellen genererer det samme output for samme input hver gang.  
+- Oprettet en MCP-klient med en specificeret server-URL.
+- Konfigureret to anmodninger med samme prompt, fast seed og nul temperatur.
+- Sendt begge anmodninger og udskrevet den genererede tekst.
+- Demonstreret, at svarene er identiske på grund af samplingkonfigurationens deterministiske natur (samme seed og temperatur).
+- Brugte `setSeed` til at specificere en fast tilfældig seed, hvilket sikrer, at modellen genererer samme output for samme input hver gang.
 - Satte `temperature` til nul for at sikre maksimal determinisme, hvilket betyder, at modellen altid vælger den mest sandsynlige næste token uden tilfældighed.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// JavaScript-eksempel: Deterministiske svar med kontrol over seed
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -320,19 +324,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // Første forespørgsel med fast seed
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // Temperatur nul for maksimal determinisme
     });
     
-    // Second request with same seed and temperature
+    // Anden forespørgsel med samme seed og temperatur
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // Tredje forespørgsel med forskelligt seed, men samme temperatur
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -354,26 +358,26 @@ deterministicSampling();
 
 I den foregående kode har vi:
 
-- Initialiseret en MCP-klient med en server-URL.  
-- Konfigureret to forespørgsler med samme prompt, fast seed og temperatur nul.  
-- Sendt begge forespørgsler og udskrevet den genererede tekst.  
-- Demonstreret, at svarene er identiske på grund af den deterministiske karakter af sampling-konfigurationen (samme seed og temperatur).  
-- Brugte `seed` til at angive en fast tilfældig seed, hvilket sikrer, at modellen genererer det samme output for samme input hver gang.  
-- Satte `temperature` til nul for at sikre maksimal determinisme, hvilket betyder, at modellen altid vælger den mest sandsynlige næste token uden tilfældighed.  
-- Brugte en anden seed til den tredje forespørgsel for at vise, at ændring af seed resulterer i forskellige output, selv med samme prompt og temperatur.
+- Initialiseret en MCP-klient med en server-URL.
+- Konfigureret to anmodninger med samme prompt, fast seed og nul temperatur.
+- Sendt begge anmodninger og udskrevet den genererede tekst.
+- Demonstreret, at svarene er identiske på grund af samplingkonfigurationens deterministiske natur (samme seed og temperatur).
+- Brugte `seed` til at specificere en fast tilfældig seed, hvilket sikrer, at modellen genererer samme output for samme input hver gang.
+- Satte `temperature` til nul for at sikre maksimal determinisme, hvilket betyder, at modellen altid vælger den mest sandsynlige næste token uden tilfældighed.
+- Brugte en anden seed til den tredje anmodning for at vise, at ændring af seed resulterer i forskellige output, selv med samme prompt og temperatur.
 
 ---
 
-## Dynamisk Sampling-konfiguration
+## Dynamisk Samplingkonfiguration
 
-Intelligent sampling tilpasser parametre baseret på konteksten og kravene i hver forespørgsel. Det betyder dynamisk justering af parametre som temperature, top_p og strafparametre baseret på opgavetype, brugerpræferencer eller historisk præstation.
+Intelligent sampling tilpasser parametre baseret på konteksten og kravene i hver anmodning. Det betyder dynamisk justering af parametre som temperatur, top_p og straffe baseret på opgavetype, brugerpræferencer eller historisk ydeevne.
 
 Lad os se på, hvordan man implementerer dynamisk sampling i forskellige programmeringssprog.
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# Python Eksempel: Dynamisk prøveudtagning baseret på anmodningskontekst
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -381,7 +385,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # Definer prøveudtagningsforudindstillinger for forskellige opgavetyper
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -389,22 +393,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # Vælg basisforudindstilling
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # Juster baseret på brugerpræferencer, hvis angivet
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # Skaler temperatur baseret på kreativitetspreference (1-10)
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # Juster top_p baseret på ønsket svardiversitet
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # Opret og send anmodning med brugerdefinerede prøveudtagningsparametre
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -412,7 +416,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # Returner svar med prøveudtagningsmetadata for gennemsigtighed
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -422,30 +426,30 @@ class DynamicSamplingService:
 
 I den foregående kode har vi:
 
-- Oprettet en `DynamicSamplingService`-klasse, der håndterer adaptiv sampling.  
-- Defineret sampling-forudindstillinger for forskellige opgavetyper (kreativ, faktuel, kode, analytisk).  
-- Valgt en grundlæggende sampling-forudindstilling baseret på opgavetypen.  
-- Justeret sampling-parametre baseret på brugerpræferencer som kreativitet og variation.  
-- Sendt forespørgslen med de dynamisk konfigurerede sampling-parametre.  
-- Returneret den genererede tekst sammen med de anvendte sampling-parametre og opgavetypen for gennemsigtighed.  
-- Brugte `temperature` til at styre tilfældigheden i output, hvor højere værdier fører til mere kreative svar.  
-- Brugte `top_p` til at begrænse udvælgelsen af tokens til dem, der bidrager til den øverste kumulative sandsynlighed, hvilket forbedrer kvaliteten af den genererede tekst.  
-- Brugte `frequency_penalty` til at reducere gentagelse og fremme variation i output.  
-- Brugte `user_preferences` til at tillade tilpasning af sampling-parametre baseret på brugerdefinerede niveauer af kreativitet og variation.  
-- Brugte `task_type` til at bestemme den passende sampling-strategi for forespørgslen, hvilket muliggør mere skræddersyede svar baseret på opgavens karakter.  
-- Brugte `send_request`-metoden til at sende prompten med de konfigurerede sampling-parametre, hvilket sikrer, at modellen genererer tekst i overensstemmelse med de specificerede krav.  
-- Brugte `generated_text` til at hente modellens svar, som derefter returneres sammen med sampling-parametre og opgavetype til yderligere analyse eller visning.  
-- Brugte `min` og `max` funktioner til at sikre, at brugerpræferencer holdes inden for gyldige intervaller og forhindrer ugyldige sampling-konfigurationer.
+- Oprettet en `DynamicSamplingService`-klasse, der håndterer adaptiv sampling.
+- Defineret sampling-forudindstillinger for forskellige opgavetyper (kreativ, faktuel, kode, analytisk).
+- Valgt en basis sampling-forudindstilling baseret på opgavetypen.
+- Justeret samplingparametre baseret på brugerpræferencer, såsom kreativt niveau og diversitet.
+- Sendt anmodningen med de dynamisk konfigurerede samplingparametre.
+- Returneret den genererede tekst sammen med de anvendte samplingparametre og opgavetype for gennemsigtighed.
+- Brugte `temperature` til at kontrollere tilfældigheden i outputtet, hvor højere værdier fører til mere kreative svar.
+- Brugte `top_p` til at begrænse valg af tokens til dem, der bidrager til den højeste kumulative sandsynlighed, hvilket forbedrer kvaliteten af genereret tekst.
+- Brugte `frequency_penalty` til at reducere gentagelse og opmuntre diversitet i outputtet.
+- Brugte `user_preferences` til at tillade tilpasning af samplingparametre baseret på brugerdefinerede niveauer af kreativitet og diversitet.
+- Brugte `task_type` til at bestemme den passende samplingstrategi for anmodningen, hvilket tillader mere skræddersyede svar baseret på opgavens art.
+- Brugte `send_request`-metoden til at sende prompten med de konfigurerede samplingparametre, hvilket sikrer, at modellen genererer tekst i henhold til de specificerede krav.
+- Brugte `generated_text` til at hente modellens svar, som derefter returneres sammen med samplingparametre og opgavetype til yderligere analyse eller visning.
+- Brugte `min` og `max` funktioner til at sikre, at brugerpræferencer er spændt inden for gyldige intervaller, hvilket forhindrer ugyldige samplingkonfigurationer.
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript Dynamic](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// JavaScript-eksempel: Dynamisk prøveudtagningskonfiguration baseret på brugerkontekst
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // Definer grundlæggende prøveudtagningsprofiler
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -453,15 +457,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // Spor historisk ydeevne
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // Registrer opgavetype fra prompt
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // Enkel heuristisk detektion - kan forbedres med ML-klassificering
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -482,57 +486,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // Standard til samtale, hvis ingen klar type opdages
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // Beregn prøveudtagningsparametre baseret på kontekst og brugerpræferencer
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // Registrer typen af opgave
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // Hent grundprofil
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // Juster baseret på brugerpræferencer
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // Skaler fra 1-10 til passende temperaturinterval
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // Højere præcision betyder lavere topP (mere fokuseret udvælgelse)
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // Højere konsistens betyder lavere sanktioner
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // Anvend lærte justeringer fra ydeevnehistorik
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // Enkel adaptiv logik - kan forbedres med mere sofistikerede algoritmer
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // Overvej kun nylig historik
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // Beregn gennemsnitlige præstationsscore
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // Hvis ydeevnen er under tærskel, juster parametrene
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // Let justering mod sikrere værdier
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -540,32 +544,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // Registrer ydeevne til fremtidige justeringer
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // 0-1 vurdering af responsens kvalitet
     });
     
-    // Limit history size
+    // Begræns historiestørrelse
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // Hent optimerede prøveudtagningsparametre
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // Send forespørgsel med optimerede parametre
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // Hvis brugeren giver feedback, registrer det til fremtidig optimering
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -578,7 +582,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// Eksempel på brug
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -587,13 +591,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // Kreativ opgave med brugerdefinerede præferencer
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // Høj kreativitet (1-10)
+          consistency: 3  // Lav konsistens (1-10)
         }
       }
     );
@@ -603,14 +607,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // Kodegenereringsopgave
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // Lav kreativitet
+          precision: 8,   // Høj præcision
+          consistency: 9  // Høj konsistens
         }
       }
     );
@@ -630,31 +634,35 @@ demonstrateAdaptiveSampling();
 
 I den foregående kode har vi:
 
-- Oprettet en `AdaptiveSamplingManager`-klasse, der håndterer dynamisk sampling baseret på opgavetype og brugerpræferencer.  
-- Defineret sampling-profiler for forskellige opgavetyper (kreativ, faktuel, kode, samtale).  
-- Implementeret en metode til at opdage opgavetypen ud fra prompten ved hjælp af simple heuristikker.  
-- Beregnet sampling-parametre baseret på den opdagede opgavetype og brugerpræferencer.  
-- Anvendt lærte justeringer baseret på historisk præstation for at optimere sampling-parametre.  
-- Registreret præstation for fremtidige justeringer, hvilket gør det muligt for systemet at lære af tidligere interaktioner.  
-- Sendt forespørgsler med dynamisk konfigurerede sampling-parametre og returneret den genererede tekst sammen med anvendte parametre og opdaget opgavetype.  
-- Brugte:  
-    - `userPreferences` til at tillade tilpasning af sampling-parametre baseret på brugerdefinerede niveauer af kreativitet, præcision og konsistens.  
-    - `detectTaskType` til at bestemme opgavens karakter baseret på prompten, hvilket muliggør mere skræddersyede svar.  
-    - `recordPerformance` til at logge præstationen af genererede svar, så systemet kan tilpasse og forbedre sig over tid.  
-    - `applyLearnedAdjustments` til at ændre sampling-parametre baseret på historisk præstation, hvilket forbedrer modellens evne til at generere svar af høj kvalitet.  
-    - `generateResponse` til at indkapsle hele processen med at generere et svar med adaptiv sampling, hvilket gør det nemt at kalde med forskellige prompts og kontekster.  
-    - `allowedTools` til at specificere, hvilke værktøjer modellen kan bruge under genereringen, hvilket muliggør mere kontekstbevidste svar.  
-    - `feedbackScore` til at lade brugere give feedback på kvaliteten af det genererede svar, som kan bruges til yderligere at forbedre modellens præstation over tid.  
-    - `performanceHistory` til at opretholde en oversigt over tidligere interaktioner, hvilket gør det muligt for systemet at lære af tidligere succeser og fejl.  
-    - `getSamplingParameters` til dynamisk at justere sampling-parametre baseret på konteksten i forespørgslen, hvilket muliggør mere fleksibel og responsiv modeladfærd.  
-    - `detectTaskType` til at klassificere opgaven baseret på prompten, hvilket gør det muligt for systemet at anvende passende sampling-strategier for forskellige typer forespørgsler.  
-    - `samplingProfiles` til at definere grundlæggende sampling-konfigurationer for forskellige opgavetyper, hvilket muliggør hurtige justeringer baseret på opgavens karakter.
+- Oprettet en `AdaptiveSamplingManager`-klasse, der håndterer dynamisk sampling baseret på opgavetype og brugerpræferencer.
+- Defineret samplingprofiler for forskellige opgavetyper (kreativ, faktuel, kode, samtale).
+- Implementeret en metode til at opdage opgavetypen fra prompten ved hjælp af simple heuristikker.
+- Beregnet samplingparametre baseret på den opdagede opgavetype og brugerpræferencer.
+- Anvendt lærte justeringer baseret på historisk ydeevne for at optimere samplingparametre.
+- Registreret ydeevne til fremtidige justeringer, hvilket tillader systemet at lære af tidligere interaktioner.
+- Sendt anmodninger med dynamisk konfigurerede samplingparametre og returneret den genererede tekst sammen med anvendte parametre og opdaget opgavetype.
+- Brugte:
+    - `userPreferences` til at tillade tilpasning af samplingparametre baseret på brugerdefinerede niveauer af kreativitet, præcision og konsistens.
+    - `detectTaskType` til at bestemme opgavens art baseret på prompten, hvilket muliggør mere skræddersyede svar.
+    - `recordPerformance` til at logge ydeevnen af genererede svar, hvilket giver systemet mulighed for at tilpasse og forbedre sig over tid.
+    - `applyLearnedAdjustments` til at ændre samplingparametre baseret på historisk ydeevne, hvilket forbedrer modellens evne til at generere svar af høj kvalitet.
+    - `generateResponse` til at omslutte hele processen af at generere et svar med adaptiv sampling, hvilket gør det nemt at kalde med forskellige prompts og kontekster.
+    - `allowedTools` til at specificere, hvilke værktøjer modellen kan bruge under generering, hvilket muliggør mere kontekstbevidste svar.
+    - `feedbackScore` til at tillade brugere at give feedback på kvaliteten af det genererede svar, som kan bruges til yderligere at forbedre modellens ydeevne over tid.
+    - `performanceHistory` til at opretholde en registrering af tidligere interaktioner, hvilket gør det muligt for systemet at lære af tidligere succeser og fejl.
+    - `getSamplingParameters` til dynamisk at justere samplingparametre baseret på anmodningens kontekst, hvilket muliggør mere fleksibel og responsiv modeladfærd.
+    - `detectTaskType` til at klassificere opgaven baseret på prompten, hvilket muliggør, at systemet kan anvende passende samplingstrategier for forskellige typer anmodninger.
+    - `samplingProfiles` til at definere basis-samplingkonfigurationer for forskellige opgavetyper, hvilket tillader hurtige justeringer baseret på anmodningens art.
 
 ---
 
 ## Hvad er det næste
 
-- [5.7 Scaling](../mcp-scaling/README.md)
+- [5.7 Skalering](../mcp-scaling/README.md)
 
-**Ansvarsfraskrivelse**:  
-Dette dokument er blevet oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, bedes du være opmærksom på, at automatiserede oversættelser kan indeholde fejl eller unøjagtigheder. Det oprindelige dokument på dets oprindelige sprog bør betragtes som den autoritative kilde. For kritisk information anbefales professionel menneskelig oversættelse. Vi påtager os intet ansvar for misforståelser eller fejltolkninger, der opstår som følge af brugen af denne oversættelse.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Ansvarsfraskrivelse**:
+Dette dokument er blevet oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, skal du være opmærksom på, at automatiserede oversættelser kan indeholde fejl eller unøjagtigheder. Det originale dokument på dets oprindelige sprog bør betragtes som den autoritative kilde. For kritisk information anbefales professionel menneskelig oversættelse. Vi påtager os intet ansvar for misforståelser eller fejltolkninger, der opstår som følge af brugen af denne oversættelse.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

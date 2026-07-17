@@ -1,12 +1,17 @@
 """Tests for change impact analysis (changes.py)."""
 
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from code_review_graph.changes import (
+    _parse_numstat,
     _parse_unified_diff,
     analyze_changes,
+    compute_file_churn,
     compute_risk_score,
     map_changes_to_nodes,
     parse_git_diff_ranges,
@@ -19,6 +24,7 @@ from code_review_graph.parser import EdgeInfo, NodeInfo
 class TestChanges:
     def setup_method(self):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()  # release the handle before GraphStore reopens it on Windows
         self.store = GraphStore(self.tmp.name)
 
     def teardown_method(self):
@@ -63,11 +69,13 @@ class TestChanges:
         self.store.upsert_edge(edge)
         self.store.commit()
 
-    def _add_tested_by(self, test_qn: str, target_qn: str, path: str = "app.py") -> None:
+    def _add_tested_by(self, production_qn: str, test_qn: str, path: str = "app.py") -> None:
+        # TESTED_BY edges are stored as source=production, target=test
+        # by the parser. See: #515
         edge = EdgeInfo(
             kind="TESTED_BY",
-            source=test_qn,
-            target=target_qn,
+            source=production_qn,
+            target=test_qn,
             file_path=path,
             line=1,
         )
@@ -225,7 +233,7 @@ class TestChanges:
         self._add_func("untested_func", path="a.py", line_start=1, line_end=10)
         self._add_func("tested_func", path="b.py", line_start=1, line_end=10)
         self._add_func("test_tested_func", path="test_b.py", is_test=True)
-        self._add_tested_by("test_b.py::test_tested_func", "b.py::tested_func", "test_b.py")
+        self._add_tested_by("b.py::tested_func", "test_b.py::test_tested_func", "test_b.py")
 
         untested = self.store.get_node("a.py::untested_func")
         tested = self.store.get_node("b.py::tested_func")
@@ -367,7 +375,7 @@ class TestChanges:
 
         # Only tested_c has a test.
         self._add_func("test_c", path="test_app.py", is_test=True)
-        self._add_tested_by("test_app.py::test_c", "app.py::tested_c", "test_app.py")
+        self._add_tested_by("app.py::tested_c", "test_app.py::test_c", "test_app.py")
 
         result = analyze_changes(
             self.store,
@@ -438,17 +446,18 @@ class TestChanges:
             patch("code_review_graph.tools.review._get_store") as mock_get_store,
             patch("code_review_graph.tools.review.get_changed_files", return_value=[]),
             patch("code_review_graph.tools.review.get_staged_and_unstaged", return_value=[]),
+            # Prevent the tool from closing our shared store, then restore the
+            # real method so teardown releases the database handle on Windows.
+            patch.object(self.store, "close"),
         ):
             mock_get_store.return_value = (self.store, Path("/fake/repo"))
-            # Prevent the store from being closed by the tool
-            # (our teardown handles it).
-            self.store.close = lambda: None
 
             result = detect_changes_func(base="HEAD~1", repo_root="/fake/repo")
             assert result["status"] == "ok"
             assert result["risk_score"] == 0.0
             assert result["changed_functions"] == []
             assert result["test_gaps"] == []
+        assert getattr(self.store.close, "__func__", None) is GraphStore.close
 
     def test_detect_changes_tool_with_changes(self):
         """detect_changes_func returns full analysis for changed files."""
@@ -463,9 +472,9 @@ class TestChanges:
                 "code_review_graph.tools.review.parse_git_diff_ranges",
                 return_value={"app.py": [(1, 10)]},
             ),
+            patch.object(self.store, "close"),
         ):
             mock_get_store.return_value = (self.store, Path("/fake/repo"))
-            self.store.close = lambda: None
 
             result = detect_changes_func(base="HEAD~1", repo_root="/fake/repo")
             assert result["status"] == "ok"
@@ -473,6 +482,7 @@ class TestChanges:
             assert "risk_score" in result
             assert "test_gaps" in result
             assert "review_priorities" in result
+        assert getattr(self.store.close, "__func__", None) is GraphStore.close
 
 
 class TestAnalyzeChangesFunctionCap:
@@ -480,6 +490,7 @@ class TestAnalyzeChangesFunctionCap:
 
     def setup_method(self):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()  # release the handle before GraphStore reopens it on Windows
         self.store = GraphStore(self.tmp.name)
 
     def teardown_method(self):
@@ -530,6 +541,7 @@ class TestAnalyzeChangesInternalParseRemap:
 
     def setup_method(self):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()  # release the handle before GraphStore reopens it on Windows
         self.store = GraphStore(self.tmp.name)
 
     def teardown_method(self):
@@ -630,3 +642,151 @@ class TestAnalyzeChangesInternalParseRemap:
         # No remapping: keys passed through exactly as the caller gave them.
         assert list(captured["ranges"]) == ["app.py"]
         assert any(f["name"] == "rel_func" for f in result["changed_functions"])
+
+
+def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    """Run a deterministic, non-interactive Git command in *repo*."""
+    return subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.email=test@example.com",
+            "-c",
+            "user.name=Test",
+            "-c",
+            "commit.gpgsign=false",
+            *args,
+        ],
+        capture_output=True,
+        check=True,
+        cwd=repo,
+        stdin=subprocess.DEVNULL,
+        text=True,
+        timeout=10,
+    )
+
+
+class TestFileChurn:
+    """Per-file commit counts used by opt-in temporal risk scoring."""
+
+    def test_parse_nul_numstat_preserves_tabs_and_newlines_in_paths(self):
+        unusual = "src/has\ttab\nand-newline.py"
+        raw = f"3\t1\tsrc/app.py\0-\t-\t{unusual}\0" + "1\t0\tsrc/app.py\0"
+
+        assert _parse_numstat(raw) == {
+            "src/app.py": 2,
+            unusual: 1,
+        }
+
+    def test_compute_file_churn_counts_commits(self, tmp_path):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        _git(repo, "init", "-q")
+
+        app = repo / "app.py"
+        app.write_text("a = 1\n", encoding="utf-8")
+        _git(repo, "add", "app.py")
+        _git(repo, "commit", "-q", "-m", "one")
+
+        app.write_text("a = 2\n", encoding="utf-8")
+        util = repo / "util.py"
+        util.write_text("b = 1\n", encoding="utf-8")
+        _git(repo, "add", ".")
+        _git(repo, "commit", "-q", "-m", "two")
+
+        assert compute_file_churn(str(repo)) == {
+            "app.py": 2,
+            "util.py": 1,
+        }
+
+    def test_invalid_environment_window_is_fail_soft(self, monkeypatch):
+        monkeypatch.setenv("CRG_CHURN_WINDOW_DAYS", "not-an-integer")
+        with patch("code_review_graph.changes.subprocess.run") as run:
+            assert compute_file_churn("/repo") == {}
+        run.assert_not_called()
+
+    def test_git_log_uses_nul_terminated_paths(self):
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="1\t0\tapp.py\0", stderr="",
+        )
+        with patch(
+            "code_review_graph.changes.subprocess.run",
+            return_value=completed,
+        ) as run:
+            assert compute_file_churn("/repo", window_days=30) == {"app.py": 1}
+
+        command = run.call_args.args[0]
+        assert "-z" in command
+        assert "--no-renames" in command
+
+
+class TestRiskScoreChurn:
+    def setup_method(self):
+        self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()
+        self.store = GraphStore(self.tmp.name)
+        self.store.upsert_node(NodeInfo(
+            kind="Function",
+            name="hot_func",
+            file_path="app.py",
+            line_start=1,
+            line_end=10,
+            language="python",
+        ))
+        self.store.commit()
+
+    def teardown_method(self):
+        self.store.close()
+        Path(self.tmp.name).unlink(missing_ok=True)
+
+    def test_churn_is_default_off_and_saturates_at_point_fifteen(self):
+        node = self.store.get_node("app.py::hot_func")
+        assert node is not None
+
+        baseline = compute_risk_score(self.store, node)
+        assert compute_risk_score(self.store, node, churn_counts=None) == baseline
+        saturated = compute_risk_score(
+            self.store, node, churn_counts={"app.py": 10},
+        )
+        extreme = compute_risk_score(
+            self.store, node, churn_counts={"app.py": 10_000},
+        )
+
+        assert saturated - baseline == pytest.approx(0.15)
+        assert extreme == saturated
+
+    def test_analyze_changes_matches_absolute_graph_paths(self, tmp_path):
+        absolute = str(tmp_path / "app.py")
+        self.store.upsert_node(NodeInfo(
+            kind="Function",
+            name="absolute_hot_func",
+            file_path=absolute,
+            line_start=1,
+            line_end=10,
+            language="python",
+        ))
+        self.store.commit()
+        kwargs = {
+            "changed_files": [absolute],
+            "changed_ranges": {absolute: [(1, 2)]},
+            "repo_root": str(tmp_path),
+        }
+
+        baseline = analyze_changes(self.store, **kwargs)
+        with patch(
+            "code_review_graph.changes.compute_file_churn",
+            return_value={"app.py": 10},
+        ):
+            churned = analyze_changes(self.store, include_churn=True, **kwargs)
+
+        assert churned["risk_score"] - baseline["risk_score"] == pytest.approx(0.15)
+
+    def test_analyze_changes_does_not_compute_churn_by_default(self, tmp_path):
+        with patch("code_review_graph.changes.compute_file_churn") as churn:
+            analyze_changes(
+                self.store,
+                changed_files=["app.py"],
+                changed_ranges={"app.py": [(1, 2)]},
+                repo_root=str(tmp_path),
+            )
+        churn.assert_not_called()

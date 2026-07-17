@@ -12,6 +12,7 @@ export { JailbreakDemo } from "./security";
 export { EmbeddingsDemo, LLMCapabilitiesDemo } from "./ai-demos";
 export { TextToImageDemo, TextToVideoDemo } from "./media-demos";
 export { SummarizationDemo, ContextPlayground } from "./context-demos";
+export { LoopEngineeringLab } from "./loop-engineering-lab";
 export { BookPartsNav } from "./navigation";
 export { TokenPredictionDemo } from "./token-prediction";
 export { DiffView, VersionDiff } from "./diff-view";

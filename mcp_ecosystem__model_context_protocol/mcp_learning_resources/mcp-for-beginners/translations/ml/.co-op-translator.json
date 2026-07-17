@@ -1,7 +1,7 @@
 {
   "00-Introduction/README.md": {
-    "original_hash": "588d386126af00e97debce8e38cf87da",
-    "translation_date": "2026-02-08T05:57:57+00:00",
+    "original_hash": "11adfa4545aafc850a177402de63e3f9",
+    "translation_date": "2026-07-13T15:21:13+00:00",
     "source_file": "00-Introduction/README.md",
     "language_code": "ml"
   },
@@ -173,6 +173,12 @@
     "source_file": "03-GettingStarted/03-llm-client/solution/python/README.md",
     "language_code": "ml"
   },
+  "03-GettingStarted/03-llm-client/solution/rust/README.md": {
+    "original_hash": "e710b793477c8a486b5ada2bd8cb12b9",
+    "translation_date": "2026-07-13T15:44:42+00:00",
+    "source_file": "03-GettingStarted/03-llm-client/solution/rust/README.md",
+    "language_code": "ml"
+  },
   "03-GettingStarted/03-llm-client/solution/typescript/README.md": {
     "original_hash": "6d6315e03f591fb5a39be91da88585dc",
     "translation_date": "2025-12-11T12:57:20+00:00",
@@ -222,8 +228,8 @@
     "language_code": "ml"
   },
   "03-GettingStarted/06-http-streaming/README.md": {
-    "original_hash": "f8d3d88350363416018b63662bbebb11",
-    "translation_date": "2026-07-09T08:02:48+00:00",
+    "original_hash": "b60da59101bd45984bf96bad2aecc280",
+    "translation_date": "2026-07-13T15:32:55+00:00",
     "source_file": "03-GettingStarted/06-http-streaming/README.md",
     "language_code": "ml"
   },
@@ -288,8 +294,8 @@
     "language_code": "ml"
   },
   "03-GettingStarted/10-advanced/README.md": {
-    "original_hash": "56f63542fb918dfad6c74a8004c65b52",
-    "translation_date": "2026-04-25T10:59:23+00:00",
+    "original_hash": "6b8c13d4353e4d308c6f3e1372ec6f67",
+    "translation_date": "2026-07-13T15:30:31+00:00",
     "source_file": "03-GettingStarted/10-advanced/README.md",
     "language_code": "ml"
   },
@@ -378,8 +384,8 @@
     "language_code": "ml"
   },
   "03-GettingStarted/14-sampling/README.md": {
-    "original_hash": "7d3d913f76e09d7d394e7018bb62d1b8",
-    "translation_date": "2026-07-09T08:03:42+00:00",
+    "original_hash": "8d27fe3cfe0c5df6f5927babaa7cb8d0",
+    "translation_date": "2026-07-13T15:33:57+00:00",
     "source_file": "03-GettingStarted/14-sampling/README.md",
     "language_code": "ml"
   },
@@ -438,8 +444,8 @@
     "language_code": "ml"
   },
   "03-GettingStarted/README.md": {
-    "original_hash": "ca652b136fbc15422809dc3ac262a9a4",
-    "translation_date": "2026-03-03T20:36:14+00:00",
+    "original_hash": "eddb1398f097e678a9b94632b67d2eae",
+    "translation_date": "2026-07-13T15:19:26+00:00",
     "source_file": "03-GettingStarted/README.md",
     "language_code": "ml"
   },
@@ -528,8 +534,8 @@
     "language_code": "ml"
   },
   "05-AdvancedTopics/README.md": {
-    "original_hash": "1630894019299d50f2c91321198b4e37",
-    "translation_date": "2026-07-09T07:37:20+00:00",
+    "original_hash": "5ba8851658b3c063fad8475514079d56",
+    "translation_date": "2026-07-13T15:18:26+00:00",
     "source_file": "05-AdvancedTopics/README.md",
     "language_code": "ml"
   },
@@ -594,8 +600,8 @@
     "language_code": "ml"
   },
   "05-AdvancedTopics/mcp-root-contexts/README.md": {
-    "original_hash": "ebdb86db46113f1cbd59ce4c74caaa79",
-    "translation_date": "2025-12-11T15:15:20+00:00",
+    "original_hash": "ff537f6cdb1596468f83948b9c2381ad",
+    "translation_date": "2026-07-13T15:26:52+00:00",
     "source_file": "05-AdvancedTopics/mcp-root-contexts/README.md",
     "language_code": "ml"
   },
@@ -606,8 +612,8 @@
     "language_code": "ml"
   },
   "05-AdvancedTopics/mcp-sampling/README.md": {
-    "original_hash": "193889b580c86bbb1e4f577114a5ce4e",
-    "translation_date": "2025-12-11T15:34:41+00:00",
+    "original_hash": "693feab85368b8799a060020290c8ab6",
+    "translation_date": "2026-07-13T15:28:59+00:00",
     "source_file": "05-AdvancedTopics/mcp-sampling/README.md",
     "language_code": "ml"
   },

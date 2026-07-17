@@ -795,6 +795,10 @@ export async function generateText<
       const pendingDeferredToolCalls = new Map<string, { toolName: string }>();
 
       do {
+        if (steps.length > 0) {
+          mergedAbortSignal?.throwIfAborted();
+        }
+
         // Set up step timeout if configured
         const stepTimeoutId = setAbortTimeout({
           abortController: stepAbortController,

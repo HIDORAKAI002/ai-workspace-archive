@@ -1,56 +1,60 @@
-# Campionamento nel Protocollo Model Context
+> [DEPRECATO: VERSIONE CANDIDATA 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Il campionamento è una potente funzionalità di MCP che permette ai server di richiedere completamenti LLM tramite il client, abilitando comportamenti agentici sofisticati mantenendo sicurezza e privacy. La configurazione corretta del campionamento può migliorare notevolmente la qualità e le prestazioni delle risposte. MCP fornisce un modo standardizzato per controllare come i modelli generano testo con parametri specifici che influenzano casualità, creatività e coerenza.
+# Campionamento in Model Context Protocol
+
+> **Avviso di deprecazione:** la release candidate della specifica MCP `2026-07-28` segna il campionamento come deprecato a favore dell'integrazione diretta con le API del provider LLM. Il campionamento continua a funzionare in `2025-11-25` e per almeno un anno dopo qualsiasi deprecazione formale, quindi tutto in questa lezione rimane valido - ma i nuovi design di server dovrebbero valutare il modello di sostituzione. Vedi [Cosa cambia in MCP: La release candidate 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Il campionamento è una funzionalità potente di MCP che permette ai server di richiedere completamenti LLM tramite il client, abilitando comportamenti agentici sofisticati mantenendo sicurezza e privacy. La configurazione di campionamento corretta può migliorare drasticamente la qualità e le prestazioni della risposta. MCP fornisce un modo standardizzato per controllare come i modelli generano testo con parametri specifici che influenzano casualità, creatività e coerenza.
 
 ## Introduzione
 
-In questa lezione esploreremo come configurare i parametri di campionamento nelle richieste MCP e capire i meccanismi di protocollo sottostanti al campionamento.
+In questa lezione esploreremo come configurare i parametri di campionamento nelle richieste MCP e capire i meccanismi di protocollo sottostanti del campionamento.
 
 ## Obiettivi di Apprendimento
 
-Al termine di questa lezione sarai in grado di:
+Alla fine di questa lezione sarai in grado di:
 
-- Comprendere i principali parametri di campionamento disponibili in MCP.
-- Configurare i parametri di campionamento per diversi casi d’uso.
-- Implementare il campionamento deterministico per risultati riproducibili.
-- Regolare dinamicamente i parametri di campionamento in base al contesto e alle preferenze dell’utente.
+- Comprendere i parametri chiave di campionamento disponibili in MCP.
+- Configurare i parametri di campionamento per diversi casi d'uso.
+- Implementare campionamento deterministico per risultati riproducibili.
+- Regolare dinamicamente i parametri di campionamento in base al contesto e alle preferenze dell'utente.
 - Applicare strategie di campionamento per migliorare le prestazioni del modello in vari scenari.
-- Capire come funziona il campionamento nel flusso client-server di MCP.
+- Comprendere come funziona il campionamento nel flusso client-server di MCP.
 
-## Come Funziona il Campionamento in MCP
+## Come funziona il campionamento in MCP
 
 Il flusso di campionamento in MCP segue questi passaggi:
 
-1. Il server invia una richiesta `sampling/createMessage` al client  
-2. Il client esamina la richiesta e può modificarla  
-3. Il client esegue il campionamento da un LLM  
-4. Il client rivede il completamento  
-5. Il client restituisce il risultato al server  
+1. Il server invia una richiesta `sampling/createMessage` al client
+2. Il client esamina la richiesta e può modificarla
+3. Il client campiona da un LLM
+4. Il client esamina il completamento
+5. Il client restituisce il risultato al server
 
-Questo design con l’intervento umano garantisce che gli utenti mantengano il controllo su ciò che l’LLM vede e genera.
+Questo design con intervento umano garantisce che gli utenti mantengano il controllo su cosa l'LLM vede e genera.
 
-## Panoramica dei Parametri di Campionamento
+## Panoramica dei parametri di campionamento
 
-MCP definisce i seguenti parametri di campionamento configurabili nelle richieste client:
+MCP definisce i seguenti parametri di campionamento che possono essere configurati nelle richieste client:
 
 | Parametro | Descrizione | Intervallo Tipico |
-|-----------|-------------|-------------------|
+|-----------|-------------|---------------|
 | `temperature` | Controlla la casualità nella selezione dei token | 0.0 - 1.0 |
 | `maxTokens` | Numero massimo di token da generare | Valore intero |
-| `stopSequences` | Sequenze personalizzate che interrompono la generazione quando incontrate | Array di stringhe |
-| `metadata` | Parametri aggiuntivi specifici del provider | Oggetto JSON |
+| `stopSequences` | Sequenze personalizzate che fermano la generazione quando incontrate | Array di stringhe |
+| `metadata` | Ulteriori parametri specifici del provider | Oggetto JSON |
 
-Molti provider LLM supportano parametri aggiuntivi tramite il campo `metadata`, che possono includere:
+Molti provider LLM supportano parametri aggiuntivi attraverso il campo `metadata`, che possono includere:
 
 | Parametro Estensione Comune | Descrizione | Intervallo Tipico |
-|----------------------------|-------------|-------------------|
-| `top_p` | Campionamento a nucleo - limita i token alla probabilità cumulativa più alta | 0.0 - 1.0 |
+|-----------|-------------|---------------|
+| `top_p` | Campionamento nucleare - limita i token alla somma cumulativa di probabilità più alta | 0.0 - 1.0 |
 | `top_k` | Limita la selezione dei token alle prime K opzioni | 1 - 100 |
 | `presence_penalty` | Penalizza i token in base alla loro presenza nel testo finora | -2.0 - 2.0 |
 | `frequency_penalty` | Penalizza i token in base alla loro frequenza nel testo finora | -2.0 - 2.0 |
-| `seed` | Seed casuale specifico per risultati riproducibili | Valore intero |
+| `seed` | Specifica un seme casuale per risultati riproducibili | Valore intero |
 
-## Esempio di Formato della Richiesta
+## Esempio di formato richiesta
 
 Ecco un esempio di richiesta di campionamento da un client in MCP:
 
@@ -75,7 +79,7 @@ Ecco un esempio di richiesta di campionamento da un client in MCP:
 }
 ```
 
-## Formato della Risposta
+## Formato della risposta
 
 Il client restituisce un risultato di completamento:
 
@@ -91,44 +95,44 @@ Il client restituisce un risultato di completamento:
 }
 ```
 
-## Controlli con Intervento Umano
+## Controlli con intervento umano
 
-Il campionamento MCP è progettato tenendo conto della supervisione umana:
+Il campionamento MCP è progettato con supervisione umana in mente:
 
 - **Per i prompt**:
-  - I client dovrebbero mostrare agli utenti il prompt proposto  
-  - Gli utenti dovrebbero poter modificare o rifiutare i prompt  
-  - I prompt di sistema possono essere filtrati o modificati  
-  - L’inclusione del contesto è controllata dal client  
+  - I client dovrebbero mostrare agli utenti il prompt proposto
+  - Gli utenti dovrebbero poter modificare o rifiutare i prompt
+  - I prompt di sistema possono essere filtrati o modificati
+  - L'inclusione del contesto è controllata dal client
 
 - **Per i completamenti**:
-  - I client dovrebbero mostrare agli utenti il completamento  
-  - Gli utenti dovrebbero poter modificare o rifiutare i completamenti  
-  - I client possono filtrare o modificare i completamenti  
-  - Gli utenti controllano quale modello viene utilizzato  
+  - I client dovrebbero mostrare agli utenti il completamento
+  - Gli utenti dovrebbero poter modificare o rifiutare i completamenti
+  - I client possono filtrare o modificare i completamenti
+  - Gli utenti controllano quale modello è usato
 
-Con questi principi in mente, vediamo come implementare il campionamento in diversi linguaggi di programmazione, concentrandoci sui parametri comunemente supportati dai provider LLM.
+Tenendo presenti questi principi, vediamo come implementare il campionamento in diversi linguaggi di programmazione, concentrandoci sui parametri comunemente supportati tra i provider LLM.
 
-## Considerazioni sulla Sicurezza
+## Considerazioni sulla sicurezza
 
-Quando si implementa il campionamento in MCP, considera queste best practice di sicurezza:
+Quando si implementa il campionamento in MCP, considera queste migliori pratiche di sicurezza:
 
-- **Valida tutto il contenuto dei messaggi** prima di inviarlo al client  
-- **Sanifica le informazioni sensibili** da prompt e completamenti  
-- **Implementa limiti di frequenza** per prevenire abusi  
-- **Monitora l’uso del campionamento** per rilevare pattern insoliti  
-- **Cripta i dati in transito** usando protocolli sicuri  
-- **Gestisci la privacy dei dati utente** secondo le normative vigenti  
-- **Audita le richieste di campionamento** per conformità e sicurezza  
-- **Controlla l’esposizione ai costi** con limiti appropriati  
-- **Implementa timeout** per le richieste di campionamento  
-- **Gestisci gli errori del modello con fallback appropriati**  
+- **Valida tutto il contenuto del messaggio** prima di inviarlo al client
+- **Sanifica informazioni sensibili** da prompt e completamenti
+- **Implementa limiti di velocità** per prevenire abusi
+- **Monitora l'uso del campionamento** per schemi insoliti
+- **Cripta i dati in transito** usando protocolli sicuri
+- **Gestisci la privacy dei dati utente** secondo le normative rilevanti
+- **Audita le richieste di campionamento** per conformità e sicurezza
+- **Controlla l'esposizione ai costi** con limiti adeguati
+- **Implementa timeout** per le richieste di campionamento
+- **Gestisci errori del modello con grazia** usando fallback appropriati
 
-I parametri di campionamento permettono di affinare il comportamento dei modelli linguistici per raggiungere il giusto equilibrio tra output deterministici e creativi.
+I parametri di campionamento permettono di affinare il comportamento dei modelli linguistici per raggiungere l'equilibrio desiderato tra output deterministici e creativi.
 
 Vediamo come configurare questi parametri in diversi linguaggi di programmazione.
 
-# [.NET](../../../../05-AdvancedTopics/mcp-sampling)
+# [.NET](#tab-dotnet)
 
 ```csharp
 // .NET Example: Configuring sampling parameters in MCP
@@ -166,47 +170,47 @@ public class SamplingExample
 
 Nel codice precedente abbiamo:
 
-- Creato un client MCP con un URL server specifico.  
-- Configurato una richiesta con parametri di campionamento come `temperature`, `top_p` e `top_k`.  
-- Inviato la richiesta e stampato il testo generato.  
-- Usato:  
-    - `allowedTools` per specificare quali strumenti il modello può usare durante la generazione. In questo caso, abbiamo permesso gli strumenti `ideaGenerator` e `marketAnalyzer` per assistere nella generazione di idee creative per app.  
-    - `frequencyPenalty` e `presencePenalty` per controllare ripetizioni e diversità nell’output.  
-    - `temperature` per controllare la casualità dell’output, dove valori più alti portano a risposte più creative.  
-    - `top_p` per limitare la selezione dei token a quelli che contribuiscono alla massa cumulativa di probabilità più alta, migliorando la qualità del testo generato.  
-    - `top_k` per restringere il modello ai primi K token più probabili, aiutando a generare risposte più coerenti.  
+- Creato un client MCP con un URL specifico del server.
+- Configurato una richiesta con parametri di campionamento come `temperature`, `top_p` e `top_k`.
+- Inviato la richiesta e stampato il testo generato.
+- Usato:
+    - `allowedTools` per specificare quali strumenti il modello può usare durante la generazione. In questo caso, abbiamo permesso agli strumenti `ideaGenerator` e `marketAnalyzer` di assistere nella generazione di idee creative per app.
+    - `frequencyPenalty` e `presencePenalty` per controllare ripetizione e diversità nell'output.
+    - `temperature` per controllare la casualità dell'output, dove valori più alti portano a risposte più creative.
+    - `top_p` per limitare la selezione dei token a quelli che contribuiscono alla massa cumulativa di probabilità più alta, migliorando la qualità del testo generato.
+    - `top_k` per restringere il modello ai primi K token più probabili, che può aiutare a generare risposte più coerenti.
     - `frequencyPenalty` e `presencePenalty` per ridurre la ripetizione e incoraggiare la diversità nel testo generato.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript)
 
 ```javascript
-// JavaScript Example: Temperature and Top-P sampling configuration
+// Esempio JavaScript: Configurazione della temperatura e del campionamento Top-P
 const { McpClient } = require('@mcp/client');
 
 async function demonstrateSampling() {
-  // Initialize the MCP client
+  // Inizializza il client MCP
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com',
     apiKey: process.env.MCP_API_KEY
   });
   
-  // Configure request with different sampling parameters
+  // Configura la richiesta con parametri di campionamento diversi
   const creativeSampling = {
-    temperature: 0.9,    // Higher temperature = more randomness/creativity
-    topP: 0.92,          // Consider tokens with top 92% probability mass
-    frequencyPenalty: 0.6, // Reduce repetition of token sequences
-    presencePenalty: 0.4   // Penalize tokens that have appeared in the text so far
+    temperature: 0.9,    // Temperatura più alta = maggiore casualità/creatività
+    topP: 0.92,          // Considera token con massa di probabilità top al 92%
+    frequencyPenalty: 0.6, // Riduci la ripetizione delle sequenze di token
+    presencePenalty: 0.4   // Penalizza i token che sono già apparsi nel testo finora
   };
   
   const factualSampling = {
-    temperature: 0.2,    // Lower temperature = more deterministic/factual
-    topP: 0.85,          // Slightly more focused token selection
-    frequencyPenalty: 0.2, // Minimal repetition penalty
-    presencePenalty: 0.1   // Minimal presence penalty
+    temperature: 0.2,    // Temperatura più bassa = più deterministico/fattuale
+    topP: 0.85,          // Selezione di token leggermente più focalizzata
+    frequencyPenalty: 0.2, // Penalità di ripetizione minima
+    presencePenalty: 0.1   // Penalità di presenza minima
   };
   
   try {
-    // Send two requests with different sampling configurations
+    // Invia due richieste con configurazioni di campionamento diverse
     const creativeResponse = await client.sendPrompt(
       "Generate innovative ideas for sustainable urban transportation",
       {
@@ -239,55 +243,55 @@ demonstrateSampling();
 
 Nel codice precedente abbiamo:
 
-- Inizializzato un client MCP con un URL server e una chiave API.  
-- Configurato due set di parametri di campionamento: uno per compiti creativi e un altro per compiti fattuali.  
-- Inviato richieste con queste configurazioni, permettendo al modello di usare strumenti specifici per ogni compito.  
-- Stampato le risposte generate per mostrare gli effetti di diversi parametri di campionamento.  
-- Usato `allowedTools` per specificare quali strumenti il modello può usare durante la generazione. In questo caso, abbiamo permesso `ideaGenerator` e `environmentalImpactTool` per compiti creativi, e `factChecker` e `dataAnalysisTool` per compiti fattuali.  
-- Usato `temperature` per controllare la casualità dell’output, dove valori più alti portano a risposte più creative.  
-- Usato `top_p` per limitare la selezione dei token a quelli che contribuiscono alla massa cumulativa di probabilità più alta, migliorando la qualità del testo generato.  
-- Usato `frequencyPenalty` e `presencePenalty` per ridurre la ripetizione e incoraggiare la diversità nell’output.  
-- Usato `top_k` per limitare il modello ai primi K token più probabili, aiutando a generare risposte più coerenti.
+- Inizializzato un client MCP con un URL server e una chiave API.
+- Configurato due set di parametri di campionamento: uno per compiti creativi e un altro per compiti fattuali.
+- Inviato richieste con queste configurazioni, consentendo al modello di usare strumenti specifici per ogni compito.
+- Stampato le risposte generate per mostrare gli effetti dei diversi parametri di campionamento.
+- Usato `allowedTools` per specificare quali strumenti il modello può usare durante la generazione. In questo caso, abbiamo permesso `ideaGenerator` e `environmentalImpactTool` per compiti creativi, e `factChecker` e `dataAnalysisTool` per compiti fattuali.
+- Usato `temperature` per controllare la casualità dell'output, dove valori più alti portano a risposte più creative.
+- Usato `top_p` per limitare la selezione dei token a quelli che contribuiscono alla massa cumulativa di probabilità più alta, migliorando la qualità del testo generato.
+- Usato `frequencyPenalty` e `presencePenalty` per ridurre la ripetizione e incoraggiare la diversità nell'output.
+- Usato `top_k` per limitare il modello ai primi K token più probabili, che può aiutare a generare risposte più coerenti.
 
 ---
 
 ## Campionamento Deterministico
 
-Per applicazioni che richiedono output consistenti, il campionamento deterministico garantisce risultati riproducibili. Lo fa usando un seed casuale fisso e impostando la temperatura a zero.
+Per applicazioni che richiedono output consistenti, il campionamento deterministico assicura risultati riproducibili. Ciò si ottiene usando un seme casuale fisso e impostando la temperatura a zero.
 
-Vediamo un esempio di implementazione per dimostrare il campionamento deterministico in diversi linguaggi di programmazione.
+Vediamo la seguente implementazione di esempio per dimostrare il campionamento deterministico in diversi linguaggi di programmazione.
 
-# [Java](../../../../05-AdvancedTopics/mcp-sampling)
+# [Java](#tab/java)
 
 ```java
-// Java Example: Deterministic responses with fixed seed
+// Esempio Java: Risposte deterministiche con seed fisso
 public class DeterministicSamplingExample {
     public void demonstrateDeterministicResponses() {
         McpClient client = new McpClient.Builder()
             .setServerUrl("https://mcp-server-example.com")
             .build();
             
-        long fixedSeed = 12345; // Using a fixed seed for deterministic results
+        long fixedSeed = 12345; // Utilizzo di un seed fisso per risultati deterministici
         
-        // First request with fixed seed
+        // Prima richiesta con seed fisso
         McpRequest request1 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
-            .setTemperature(0.0) // Zero temperature for maximum determinism
+            .setTemperature(0.0) // Temperatura zero per massima determinismo
             .build();
             
-        // Second request with the same seed
+        // Seconda richiesta con lo stesso seed
         McpRequest request2 = new McpRequest.Builder()
             .setPrompt("Generate a random number between 1 and 100")
             .setSeed(fixedSeed)
             .setTemperature(0.0)
             .build();
         
-        // Execute both requests
+        // Esegui entrambe le richieste
         McpResponse response1 = client.sendRequest(request1);
         McpResponse response2 = client.sendRequest(request2);
         
-        // Responses should be identical due to same seed and temperature=0
+        // Le risposte dovrebbero essere identiche grazie allo stesso seed e temperatura=0
         System.out.println("Response 1: " + response1.getGeneratedText());
         System.out.println("Response 2: " + response2.getGeneratedText());
         System.out.println("Are responses identical: " + 
@@ -298,17 +302,17 @@ public class DeterministicSamplingExample {
 
 Nel codice precedente abbiamo:
 
-- Creato un client MCP con un URL server specificato.  
-- Configurato due richieste con lo stesso prompt, seed fisso e temperatura zero.  
-- Inviato entrambe le richieste e stampato il testo generato.  
-- Dimostrato che le risposte sono identiche grazie alla natura deterministica della configurazione di campionamento (stesso seed e temperatura).  
-- Usato `setSeed` per specificare un seed casuale fisso, assicurando che il modello generi sempre lo stesso output per lo stesso input.  
-- Impostato `temperature` a zero per garantire massima determinismo, cioè il modello selezionerà sempre il token successivo più probabile senza casualità.
+- Creato un client MCP con un URL server specificato.
+- Configurato due richieste con lo stesso prompt, seme fisso e temperatura zero.
+- Inviato entrambe le richieste e stampato il testo generato.
+- Dimostrato che le risposte sono identiche grazie alla natura deterministica della configurazione di campionamento (stesso seme e temperatura).
+- Usato `setSeed` per specificare un seme casuale fisso, assicurando che il modello generi la stessa uscita per lo stesso input ogni volta.
+- Impostato `temperature` a zero per garantire il massimo determinismo, significando che il modello selezionerà sempre il token successivo più probabile senza casualità.
 
-# [JavaScript](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript](#tab/javascript-deterministic)
 
 ```javascript
-// JavaScript Example: Deterministic responses with seed control
+// Esempio di JavaScript: Risposte deterministiche con controllo del seme
 const { McpClient } = require('@mcp/client');
 
 async function deterministicSampling() {
@@ -320,19 +324,19 @@ async function deterministicSampling() {
   const prompt = "Generate a random password with 8 characters";
   
   try {
-    // First request with fixed seed
+    // Prima richiesta con seme fisso
     const response1 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
-      temperature: 0.0  // Zero temperature for maximum determinism
+      temperature: 0.0  // Temperatura zero per massimo determinismo
     });
     
-    // Second request with same seed and temperature
+    // Seconda richiesta con lo stesso seme e temperatura
     const response2 = await client.sendPrompt(prompt, {
       seed: fixedSeed,
       temperature: 0.0
     });
     
-    // Third request with different seed but same temperature
+    // Terza richiesta con seme diverso ma stessa temperatura
     const response3 = await client.sendPrompt(prompt, {
       seed: 67890,
       temperature: 0.0
@@ -354,26 +358,26 @@ deterministicSampling();
 
 Nel codice precedente abbiamo:
 
-- Inizializzato un client MCP con un URL server.  
-- Configurato due richieste con lo stesso prompt, seed fisso e temperatura zero.  
-- Inviato entrambe le richieste e stampato il testo generato.  
-- Dimostrato che le risposte sono identiche grazie alla natura deterministica della configurazione di campionamento (stesso seed e temperatura).  
-- Usato `seed` per specificare un seed casuale fisso, assicurando che il modello generi sempre lo stesso output per lo stesso input.  
-- Impostato `temperature` a zero per garantire massima determinismo, cioè il modello selezionerà sempre il token successivo più probabile senza casualità.  
-- Usato un seed diverso per la terza richiesta per mostrare che cambiando il seed si ottengono output differenti, anche con lo stesso prompt e temperatura.
+- Inizializzato un client MCP con un URL server.
+- Configurato due richieste con lo stesso prompt, seme fisso e temperatura zero.
+- Inviato entrambe le richieste e stampato il testo generato.
+- Dimostrato che le risposte sono identiche grazie alla natura deterministica della configurazione di campionamento (stesso seme e temperatura).
+- Usato `seed` per specificare un seme casuale fisso, assicurando che il modello generi la stessa uscita per lo stesso input ogni volta.
+- Impostato `temperature` a zero per garantire il massimo determinismo, significando che il modello selezionerà sempre il token successivo più probabile senza casualità.
+- Usato un seme diverso per la terza richiesta per mostrare che cambiare il seme produce output differenti, anche con lo stesso prompt e temperatura.
 
 ---
 
 ## Configurazione Dinamica del Campionamento
 
-Il campionamento intelligente adatta i parametri in base al contesto e alle esigenze di ogni richiesta. Ciò significa regolare dinamicamente parametri come temperature, top_p e penalità in base al tipo di compito, alle preferenze dell’utente o alle prestazioni storiche.
+Il campionamento intelligente adatta i parametri in base al contesto e ai requisiti di ogni richiesta. Ciò significa regolare dinamicamente parametri come temperature, top_p e penalità basandosi sul tipo di compito, le preferenze dell'utente o la performance storica.
 
 Vediamo come implementare il campionamento dinamico in diversi linguaggi di programmazione.
 
-# [Python](../../../../05-AdvancedTopics/mcp-sampling)
+# [Python](#tab/python)
 
 ```python
-# Python Example: Dynamic sampling based on request context
+# Esempio Python: campionamento dinamico basato sul contesto della richiesta
 class DynamicSamplingService:
     def __init__(self, mcp_client):
         self.client = mcp_client
@@ -381,7 +385,7 @@ class DynamicSamplingService:
     async def generate_with_adaptive_sampling(self, prompt, task_type, user_preferences=None):
         """Uses different sampling strategies based on task type and user preferences"""
         
-        # Define sampling presets for different task types
+        # Definire i preset di campionamento per diversi tipi di attività
         sampling_presets = {
             "creative": {"temperature": 0.9, "top_p": 0.95, "frequency_penalty": 0.7},
             "factual": {"temperature": 0.2, "top_p": 0.85, "frequency_penalty": 0.2},
@@ -389,22 +393,22 @@ class DynamicSamplingService:
             "analytical": {"temperature": 0.4, "top_p": 0.92, "frequency_penalty": 0.3}
         }
         
-        # Select base preset
+        # Selezionare il preset base
         sampling_params = sampling_presets.get(task_type, sampling_presets["factual"])
         
-        # Adjust based on user preferences if provided
+        # Regolare in base alle preferenze dell'utente se fornite
         if user_preferences:
             if "creativity_level" in user_preferences:
-                # Scale temperature based on creativity preference (1-10)
+                # Scalare la temperatura in base alla preferenza di creatività (1-10)
                 creativity = min(max(user_preferences["creativity_level"], 1), 10) / 10
                 sampling_params["temperature"] = 0.1 + (0.9 * creativity)
             
             if "diversity" in user_preferences:
-                # Adjust top_p based on desired response diversity
+                # Regolare top_p in base alla diversità della risposta desiderata
                 diversity = min(max(user_preferences["diversity"], 1), 10) / 10
                 sampling_params["top_p"] = 0.6 + (0.39 * diversity)
         
-        # Create and send request with custom sampling parameters
+        # Creare e inviare la richiesta con parametri di campionamento personalizzati
         response = await self.client.send_request(
             prompt=prompt,
             temperature=sampling_params["temperature"],
@@ -412,7 +416,7 @@ class DynamicSamplingService:
             frequency_penalty=sampling_params["frequency_penalty"]
         )
         
-        # Return response with sampling metadata for transparency
+        # Restituire la risposta con i metadati di campionamento per trasparenza
         return {
             "text": response.generated_text,
             "applied_sampling": sampling_params,
@@ -422,30 +426,30 @@ class DynamicSamplingService:
 
 Nel codice precedente abbiamo:
 
-- Creato una classe `DynamicSamplingService` che gestisce il campionamento adattivo.  
-- Definito preset di campionamento per diversi tipi di compito (creativo, fattuale, codice, analitico).  
-- Selezionato un preset base di campionamento in base al tipo di compito.  
-- Regolato i parametri di campionamento in base alle preferenze dell’utente, come livello di creatività e diversità.  
-- Inviato la richiesta con i parametri di campionamento configurati dinamicamente.  
-- Restituito il testo generato insieme ai parametri di campionamento applicati e al tipo di compito per trasparenza.  
-- Usato `temperature` per controllare la casualità dell’output, dove valori più alti portano a risposte più creative.  
-- Usato `top_p` per limitare la selezione dei token a quelli che contribuiscono alla massa cumulativa di probabilità più alta, migliorando la qualità del testo generato.  
-- Usato `frequency_penalty` per ridurre la ripetizione e incoraggiare la diversità nell’output.  
-- Usato `user_preferences` per permettere la personalizzazione dei parametri di campionamento basata sui livelli di creatività e diversità definiti dall’utente.  
-- Usato `task_type` per determinare la strategia di campionamento appropriata per la richiesta, permettendo risposte più mirate in base alla natura del compito.  
-- Usato il metodo `send_request` per inviare il prompt con i parametri di campionamento configurati, assicurando che il modello generi testo secondo i requisiti specificati.  
-- Usato `generated_text` per recuperare la risposta del modello, che viene poi restituita insieme ai parametri di campionamento e al tipo di compito per ulteriori analisi o visualizzazione.  
-- Usato le funzioni `min` e `max` per assicurare che le preferenze dell’utente siano limitate a intervalli validi, evitando configurazioni di campionamento non valide.
+- Creato una classe `DynamicSamplingService` che gestisce il campionamento adattivo.
+- Definito preset di campionamento per diversi tipi di compiti (creativo, fattuale, codice, analitico).
+- Selezionato un preset base di campionamento in base al tipo di compito.
+- Regolato i parametri di campionamento basandosi sulle preferenze dell'utente, come livello di creatività e diversità.
+- Inviato la richiesta con parametri di campionamento configurati dinamicamente.
+- Restituito il testo generato insieme ai parametri di campionamento applicati e al tipo di compito per trasparenza.
+- Usato `temperature` per controllare la casualità dell'output, dove valori più alti portano a risposte più creative.
+- Usato `top_p` per limitare la selezione dei token a quelli che contribuiscono alla massa cumulativa di probabilità più alta, migliorando la qualità del testo generato.
+- Usato `frequency_penalty` per ridurre la ripetizione e incoraggiare la diversità nell'output.
+- Usato `user_preferences` per permettere la personalizzazione dei parametri di campionamento basata sui livelli di creatività e diversità definiti dall'utente.
+- Usato `task_type` per determinare la strategia di campionamento appropriata per la richiesta, permettendo risposte più su misura in base alla natura del compito.
+- Usato il metodo `send_request` per inviare il prompt con i parametri di campionamento configurati, assicurandosi che il modello generi testo secondo i requisiti specificati.
+- Usato `generated_text` per recuperare la risposta del modello, poi restituita insieme ai parametri di campionamento e al tipo di compito per ulteriori analisi o visualizzazione.
+- Usato le funzioni `min` e `max` per garantire che le preferenze dell'utente siano limitate entro intervalli validi, prevenendo configurazioni di campionamento non valide.
 
-# [JavaScript Dynamic](../../../../05-AdvancedTopics/mcp-sampling)
+# [JavaScript Dinamico](#tab/javascript-dynamic)
 
 ```javascript
-// JavaScript Example: Dynamic sampling configuration based on user context
+// Esempio JavaScript: Configurazione dinamica del campionamento basata sul contesto utente
 class AdaptiveSamplingManager {
   constructor(mcpClient) {
     this.client = mcpClient;
     
-    // Define base sampling profiles
+    // Definire profili di campionamento base
     this.samplingProfiles = {
       creative: { temperature: 0.85, topP: 0.94, frequencyPenalty: 0.7, presencePenalty: 0.5 },
       factual: { temperature: 0.2, topP: 0.85, frequencyPenalty: 0.3, presencePenalty: 0.1 },
@@ -453,15 +457,15 @@ class AdaptiveSamplingManager {
       conversational: { temperature: 0.7, topP: 0.9, frequencyPenalty: 0.6, presencePenalty: 0.4 }
     };
     
-    // Track historical performance
+    // Tracciare le prestazioni storiche
     this.performanceHistory = [];
   }
   
-  // Detect task type from prompt
+  // Rilevare il tipo di attività dal prompt
   detectTaskType(prompt, context = {}) {
     const promptLower = prompt.toLowerCase();
     
-    // Simple heuristic detection - could be enhanced with ML classification
+    // Rilevamento euristico semplice - potrebbe essere migliorato con classificazione ML
     if (context.taskType) return context.taskType;
     
     if (promptLower.includes('code') || 
@@ -482,57 +486,57 @@ class AdaptiveSamplingManager {
       return 'creative';
     }
     
-    // Default to conversational if no clear type is detected
+    // Impostare di default su conversazionale se non viene rilevato un tipo chiaro
     return 'conversational';
   }
   
-  // Calculate sampling parameters based on context and user preferences
+  // Calcolare i parametri di campionamento basati sul contesto e le preferenze utente
   getSamplingParameters(prompt, context = {}) {
-    // Detect the type of task
+    // Rilevare il tipo di attività
     const taskType = this.detectTaskType(prompt, context);
     
-    // Get base profile
+    // Ottenere il profilo base
     let params = {...this.samplingProfiles[taskType]};
     
-    // Adjust based on user preferences
+    // Regolare in base alle preferenze utente
     if (context.userPreferences) {
       const { creativity, precision, consistency } = context.userPreferences;
       
       if (creativity !== undefined) {
-        // Scale from 1-10 to appropriate temperature range
+        // Ridimensionare da 1-10 alla gamma di temperatura appropriata
         params.temperature = 0.1 + (creativity * 0.09); // 0.1-1.0
       }
       
       if (precision !== undefined) {
-        // Higher precision means lower topP (more focused selection)
+        // Maggiore precisione significa topP più basso (selezione più focalizzata)
         params.topP = 1.0 - (precision * 0.05); // 0.5-1.0
       }
       
       if (consistency !== undefined) {
-        // Higher consistency means lower penalties
+        // Maggiore coerenza significa penalità più basse
         params.frequencyPenalty = 0.1 + ((10 - consistency) * 0.08); // 0.1-0.9
       }
     }
     
-    // Apply learned adjustments from performance history
+    // Applicare aggiustamenti appresi dalla storia delle prestazioni
     this.applyLearnedAdjustments(params, taskType);
     
     return params;
   }
   
   applyLearnedAdjustments(params, taskType) {
-    // Simple adaptive logic - could be enhanced with more sophisticated algorithms
+    // Logica adattativa semplice - potrebbe essere migliorata con algoritmi più sofisticati
     const relevantHistory = this.performanceHistory
       .filter(entry => entry.taskType === taskType)
-      .slice(-5); // Only consider recent history
+      .slice(-5); // Considerare solo la storia recente
     
     if (relevantHistory.length > 0) {
-      // Calculate average performance scores
+      // Calcolare i punteggi medi delle prestazioni
       const avgScore = relevantHistory.reduce((sum, entry) => sum + entry.score, 0) / relevantHistory.length;
       
-      // If performance is below threshold, adjust parameters
+      // Se le prestazioni sono sotto la soglia, regolare i parametri
       if (avgScore < 0.7) {
-        // Slight adjustment toward safer values
+        // Leggero aggiustamento verso valori più sicuri
         params.temperature = Math.max(params.temperature * 0.9, 0.1);
         params.topP = Math.max(params.topP * 0.95, 0.5);
       }
@@ -540,32 +544,32 @@ class AdaptiveSamplingManager {
   }
   
   recordPerformance(prompt, samplingParams, response, score) {
-    // Record performance for future adjustments
+    // Registrare le prestazioni per aggiustamenti futuri
     this.performanceHistory.push({
       timestamp: Date.now(),
       taskType: this.detectTaskType(prompt),
       samplingParams,
       responseLength: response.generatedText.length,
-      score // 0-1 rating of response quality
+      score // Valutazione 0-1 della qualità della risposta
     });
     
-    // Limit history size
+    // Limitare la dimensione della storia
     if (this.performanceHistory.length > 100) {
       this.performanceHistory.shift();
     }
   }
   
   async generateResponse(prompt, context = {}) {
-    // Get optimized sampling parameters
+    // Ottenere i parametri di campionamento ottimizzati
     const samplingParams = this.getSamplingParameters(prompt, context);
     
-    // Send request with optimized parameters
+    // Inviare richiesta con parametri ottimizzati
     const response = await this.client.sendPrompt(prompt, {
       ...samplingParams,
       allowedTools: context.allowedTools || []
     });
     
-    // If user provides feedback, record it for future optimization
+    // Se l’utente fornisce feedback, registrarlo per l’ottimizzazione futura
     if (context.recordPerformance) {
       this.recordPerformance(prompt, samplingParams, response, context.feedbackScore || 0.5);
     }
@@ -578,7 +582,7 @@ class AdaptiveSamplingManager {
   }
 }
 
-// Example usage
+// Esempio di utilizzo
 async function demonstrateAdaptiveSampling() {
   const client = new McpClient({
     serverUrl: 'https://mcp-server-example.com'
@@ -587,13 +591,13 @@ async function demonstrateAdaptiveSampling() {
   const samplingManager = new AdaptiveSamplingManager(client);
   
   try {
-    // Creative task with custom user preferences
+    // Attività creativa con preferenze personalizzate dell’utente
     const creativeResult = await samplingManager.generateResponse(
       "Write a short poem about artificial intelligence",
       {
         userPreferences: {
-          creativity: 9,  // High creativity (1-10)
-          consistency: 3  // Low consistency (1-10)
+          creativity: 9,  // Alta creatività (1-10)
+          consistency: 3  // Bassa coerenza (1-10)
         }
       }
     );
@@ -603,14 +607,14 @@ async function demonstrateAdaptiveSampling() {
     console.log('Applied sampling:', creativeResult.appliedSamplingParams);
     console.log(creativeResult.response.generatedText);
     
-    // Code generation task
+    // Attività di generazione codice
     const codeResult = await samplingManager.generateResponse(
       "Write a JavaScript function to calculate the Fibonacci sequence",
       {
         userPreferences: {
-          creativity: 2,  // Low creativity
-          precision: 8,   // High precision
-          consistency: 9  // High consistency
+          creativity: 2,  // Bassa creatività
+          precision: 8,   // Alta precisione
+          consistency: 9  // Alta coerenza
         }
       }
     );
@@ -630,31 +634,35 @@ demonstrateAdaptiveSampling();
 
 Nel codice precedente abbiamo:
 
-- Creato una classe `AdaptiveSamplingManager` che gestisce il campionamento dinamico basato sul tipo di compito e sulle preferenze dell’utente.  
-- Definito profili di campionamento per diversi tipi di compito (creativo, fattuale, codice, conversazionale).  
-- Implementato un metodo per rilevare il tipo di compito dal prompt usando euristiche semplici.  
-- Calcolato i parametri di campionamento in base al tipo di compito rilevato e alle preferenze dell’utente.  
-- Applicato aggiustamenti appresi basati sulle prestazioni storiche per ottimizzare i parametri di campionamento.  
-- Registrato le prestazioni per aggiustamenti futuri, permettendo al sistema di apprendere dalle interazioni passate.  
-- Inviato richieste con parametri di campionamento configurati dinamicamente e restituito il testo generato insieme ai parametri applicati e al tipo di compito rilevato.  
-- Usato:  
-    - `userPreferences` per permettere la personalizzazione dei parametri di campionamento basata sui livelli di creatività, precisione e coerenza definiti dall’utente.  
-    - `detectTaskType` per determinare la natura del compito basandosi sul prompt, permettendo risposte più mirate.  
-    - `recordPerformance` per registrare le prestazioni delle risposte generate, consentendo al sistema di adattarsi e migliorare nel tempo.  
-    - `applyLearnedAdjustments` per modificare i parametri di campionamento basandosi sulle prestazioni storiche, migliorando la capacità del modello di generare risposte di alta qualità.  
-    - `generateResponse` per incapsulare l’intero processo di generazione di una risposta con campionamento adattivo, facilitando l’uso con prompt e contesti diversi.  
-    - `allowedTools` per specificare quali strumenti il modello può usare durante la generazione, permettendo risposte più contestualizzate.  
-    - `feedbackScore` per permettere agli utenti di fornire feedback sulla qualità della risposta generata, che può essere usato per affinare ulteriormente le prestazioni del modello nel tempo.  
-    - `performanceHistory` per mantenere un registro delle interazioni passate, consentendo al sistema di apprendere da successi e insuccessi precedenti.  
-    - `getSamplingParameters` per regolare dinamicamente i parametri di campionamento in base al contesto della richiesta, permettendo un comportamento del modello più flessibile e reattivo.  
-    - `detectTaskType` per classificare il compito basandosi sul prompt, consentendo al sistema di applicare strategie di campionamento appropriate per diversi tipi di richieste.  
-    - `samplingProfiles` per definire configurazioni base di campionamento per diversi tipi di compito, permettendo aggiustamenti rapidi in base alla natura della richiesta.
+- Creato una classe `AdaptiveSamplingManager` che gestisce il campionamento dinamico in base a tipo di compito e preferenze utente.
+- Definito profili di campionamento per diversi tipi di compito (creativo, fattuale, codice, conversazionale).
+- Implementato un metodo per rilevare il tipo di compito dal prompt usando semplici euristiche.
+- Calcolato i parametri di campionamento basandosi sul tipo di compito rilevato e sulle preferenze dell'utente.
+- Applicato aggiustamenti appresi basati sulla performance storica per ottimizzare i parametri di campionamento.
+- Registrato le performance per futuri aggiustamenti, permettendo al sistema di apprendere dalle interazioni passate.
+- Inviato richieste con parametri di campionamento configurati dinamicamente e restituito il testo generato con i parametri applicati e tipo di compito rilevato.
+- Usato:
+    - `userPreferences` per permettere la personalizzazione dei parametri di campionamento basata su creatività, precisione e livelli di coerenza definiti dall'utente.
+    - `detectTaskType` per determinare la natura del compito basato sul prompt, permettendo risposte più su misura.
+    - `recordPerformance` per registrare la performance delle risposte generate, consentendo al sistema di adattarsi e migliorare nel tempo.
+    - `applyLearnedAdjustments` per modificare i parametri di campionamento basati sulla performance storica, migliorando la capacità del modello di generare risposte di alta qualità.
+    - `generateResponse` per incapsulare l'intero processo di generazione di una risposta con campionamento adattivo, facilitando la chiamata con prompt e contesti differenti.
+    - `allowedTools` per specificare quali strumenti il modello può usare durante la generazione, permettendo risposte più contestualizzate.
+    - `feedbackScore` per permettere agli utenti di fornire feedback sulla qualità della risposta generata, che può essere usato per affinare ulteriormente le prestazioni del modello nel tempo.
+    - `performanceHistory` per mantenere un registro delle interazioni passate, consentendo al sistema di apprendere dai successi e fallimenti precedenti.
+    - `getSamplingParameters` per regolare dinamicamente i parametri di campionamento basati sul contesto della richiesta, consentendo comportamenti del modello più flessibili e reattivi.
+    - `detectTaskType` per classificare il compito in base al prompt, permettendo al sistema di applicare strategie di campionamento appropriate per diversi tipi di richieste.
+    - `samplingProfiles` per definire configurazioni base di campionamento per vari tipi di compito, consentendo regolazioni rapide basate sulla natura della richiesta.
 
 ---
 
-## Cosa c’è dopo
+## Cosa c'è dopo
 
 - [5.7 Scaling](../mcp-scaling/README.md)
 
-**Disclaimer**:  
-Questo documento è stato tradotto utilizzando il servizio di traduzione automatica [Co-op Translator](https://github.com/Azure/co-op-translator). Pur impegnandoci per garantire accuratezza, si prega di notare che le traduzioni automatiche possono contenere errori o imprecisioni. Il documento originale nella sua lingua nativa deve essere considerato la fonte autorevole. Per informazioni critiche, si raccomanda una traduzione professionale effettuata da un umano. Non ci assumiamo alcuna responsabilità per eventuali malintesi o interpretazioni errate derivanti dall’uso di questa traduzione.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Questo documento è stato tradotto utilizzando il servizio di traduzione AI [Co-op Translator](https://github.com/Azure/co-op-translator). Sebbene ci impegniamo per garantire la precisione, si prega di notare che le traduzioni automatizzate possono contenere errori o imprecisioni. Il documento originale nella sua lingua nativa deve essere considerato la fonte autorevole. Per informazioni critiche, si raccomanda una traduzione professionale effettuata da un essere umano. Non siamo responsabili per eventuali malintesi o interpretazioni errate derivanti dall’uso di questa traduzione.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

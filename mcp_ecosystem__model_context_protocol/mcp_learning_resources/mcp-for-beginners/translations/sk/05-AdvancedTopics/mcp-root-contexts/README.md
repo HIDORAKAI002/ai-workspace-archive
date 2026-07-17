@@ -1,51 +1,55 @@
-# MCP Root Contexts
+> [ZASTARANÉ: 2026-07-28 VERZIA NA SCHVÁLENIE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Root contexty sú základným pojmom v Model Context Protocol, ktorý poskytuje trvalú vrstvu na uchovávanie histórie konverzácií a zdieľaného stavu naprieč viacerými požiadavkami a reláciami.
+# MCP Koreňové Kontexty
+
+> **Upozornenie na zastaranie:** kandidátska verzia špecifikácie MCP `2026-07-28` označuje koreňové kontexty ako zastarané v prospech parametrov nástroja, URI zdrojov alebo konfigurácie servera. Koreňové kontexty naďalej fungujú v `2025-11-25` a minimálne rok po akejkoľvek formálnej deprekácii, takže všetko v tejto lekcii zostáva platné - ale nové návrhy serverov by mali vyhodnotiť vzor nahradenia. Pozrite si [Čo sa mení v MCP: Verzia na schválenie 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Koreňové kontexty sú základným konceptom v Model Context Protocol, ktorý poskytuje perzistentnú vrstvu na uchovávanie histórie konverzácie a zdieľaného stavu v rámci viacerých požiadaviek a relácií.
 
 ## Úvod
 
-V tejto lekcii preskúmame, ako vytvárať, spravovať a využívať root contexty v MCP.
+V tejto lekcii preskúmame, ako vytvárať, spravovať a využívať koreňové kontexty v MCP.
 
 ## Ciele učenia
 
 Na konci tejto lekcie budete schopní:
 
-- Pochopiť účel a štruktúru root contextov
-- Vytvárať a spravovať root contexty pomocou MCP klientskych knižníc
-- Implementovať root contexty v aplikáciách .NET, Java, JavaScript a Python
-- Využívať root contexty pre viackolové konverzácie a správu stavu
-- Aplikovať osvedčené postupy pri správe root contextov
+- Pochopiť účel a štruktúru koreňových kontextov
+- Vytvárať a spravovať koreňové kontexty pomocou MCP klientskych knižníc
+- Implementovať koreňové kontexty v aplikáciách .NET, Java, JavaScript a Python
+- Využívať koreňové kontexty pre viackolové konverzácie a správu stavu
+- Zavádzať osvedčené postupy pre správu koreňových kontextov
 
-## Pochopenie root contextov
+## Pochopenie koreňových kontextov
 
-Root contexty slúžia ako kontajnery, ktoré uchovávajú históriu a stav pre sériu súvisiacich interakcií. Umožňujú:
+Koreňové kontexty slúžia ako kontajnery, ktoré uchovávajú históriu a stav pre sériu súvisiacich interakcií. Umožňujú:
 
-- **Trvalosť konverzácie**: Udržiavanie koherentných viackolových konverzácií
+- **Perzistenciu konverzácie**: Udržiavanie súdržných viackolových konverzácií
 - **Správu pamäte**: Ukladanie a získavanie informácií naprieč interakciami
-- **Správu stavu**: Sledovanie pokroku v zložitých pracovných postupoch
+- **Správu stavu**: Sledovanie postupu v zložitých pracovných postupoch
 - **Zdieľanie kontextu**: Umožnenie viacerým klientom prístup k rovnakému stavu konverzácie
 
-V MCP majú root contexty tieto kľúčové vlastnosti:
+V MCP majú koreňové kontexty tieto kľúčové vlastnosti:
 
-- Každý root context má jedinečný identifikátor.
+- Každý koreňový kontext má jedinečný identifikátor.
 - Môžu obsahovať históriu konverzácie, používateľské preferencie a ďalšie metadáta.
-- Môžu byť vytvorené, prístupné a archivované podľa potreby.
-- Podporujú jemnozrnnú kontrolu prístupu a oprávnenia.
+- Môžu byť vytvárané, pristupované a archivované podľa potreby.
+- Podporujú jemnozrnné riadenie prístupu a oprávnenia.
 
-## Životný cyklus root contextu
+## Životný cyklus koreňového kontextu
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Vytvoriť koreňový kontext] --> B[Inicializovať s metadátami]
+    B --> C[Odoslať požiadavky s ID kontextu]
+    C --> D[Aktualizovať kontext s výsledkami]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Archivovať kontext po dokončení]
 ```
 
-## Práca s root contextmi
+## Práca s koreňovými kontextami
 
-Tu je príklad, ako vytvoriť a spravovať root contexty.
+Tu je príklad, ako vytvoriť a spravovať koreňové kontexty.
 
 ### Implementácia v C#
 
@@ -124,20 +128,20 @@ public class RootContextExample
 
 V predchádzajúcom kóde sme:
 
-1. Vytvorili root context pre reláciu zákazníckej podpory.
-1. Odoslali viacero správ v rámci tohto kontextu, čo umožnilo modelu udržiavať stav.
-1. Aktualizovali kontext o relevantné metadáta na základe konverzácie.
-1. Získali informácie o kontexte, aby sme pochopili históriu konverzácie.
-1. Archivovali kontext po ukončení konverzácie.
+1. Vytvorili koreňový kontext pre reláciu zákazníckej podpory.
+1. Odoslali viac správ v rámci tohto kontextu, čo umožnilo modelu udržiavať stav.
+1. Aktualizovali kontext relevantnými metadátami na základe konverzácie.
+1. Získali informácie o kontexte na pochopenie histórie konverzácie.
+1. Archivovali kontext, keď bola konverzácia ukončená.
 
-## Príklad: Implementácia root contextu pre finančnú analýzu
+## Príklad: Implementácia koreňového kontextu pre finančnú analýzu
 
-V tomto príklade vytvoríme root context pre reláciu finančnej analýzy, ukazujúc, ako udržiavať stav naprieč viacerými interakciami.
+V tomto príklade vytvoríme koreňový kontext pre reláciu finančnej analýzy, demonštrujúc, ako udržiavať stav naprieč viacerými interakciami.
 
-### Implementácia v Jave
+### Implementácia v Java
 
 ```java
-// Java Example: Root Context Implementation
+// Java Príklad: Implementácia koreňového kontextu
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Vytvoriť metadáta kontextu
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Vytvorte nový koreňový kontext
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Prvá interakcia
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Aktualizovať kontext s dôležitými informáciami získanými z odpovede
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Druhá interakcia - použitie rovnakého kontextu
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Vygenerovať zhrnutie analýzy
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Uložiť zhrnutie do metadát kontextu
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Získať aktualizované informácie kontextu
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Archivovať kontext po dokončení
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -222,31 +226,31 @@ public class RootContextsDemo {
 
 V predchádzajúcom kóde sme:
 
-1. Vytvorili root context pre reláciu finančnej analýzy.
-2. Odoslali viacero správ v rámci tohto kontextu, čo umožnilo modelu udržiavať stav.
-3. Aktualizovali kontext o relevantné metadáta na základe konverzácie.
+1. Vytvorili koreňový kontext pre reláciu finančnej analýzy.
+2. Odoslali viac správ v rámci tohto kontextu, čo umožnilo modelu udržiavať stav.
+3. Aktualizovali kontext relevantnými metadátami na základe konverzácie.
 4. Vytvorili súhrn relácie analýzy a uložili ho do metadát kontextu.
-5. Archivovali kontext po ukončení konverzácie.
+5. Archivovali kontext, keď bola konverzácia ukončená.
 
-## Príklad: Správa root contextov
+## Príklad: Správa koreňového kontextu
 
-Efektívna správa root contextov je kľúčová pre udržiavanie histórie konverzácií a stavu. Nižšie je príklad, ako implementovať správu root contextov.
+Efektívna správa koreňových kontextov je kľúčová pre udržiavanie histórie a stavu konverzácie. Nižšie je príklad, ako implementovať správu koreňového kontextu.
 
-### Implementácia v JavaScripte
+### Implementácia v JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// Príklad JavaScript: Správa MCP koreňových kontextov
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Inicializujte MCP klienta
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Inicializujte správcu kontextu
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Odošlite správu pomocou špecifikovaného kontextu
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Voliteľne uložte dôležité postrehy z konverzácie
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Extrahujte potenciálne postrehy (v reálnej aplikácii by to bolo sofistikovanejšie)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Jednoduchá heuristika na identifikáciu potenciálnych postrehov
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Uložte postrehy do metadát kontextu
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Nekritická chyba, takže iba zaznamenajte varovanie
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Požiadajte model, aby vygeneroval zhrnutie doterajšej konverzácie
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Uložte zhrnutie do metadát kontextu
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Vygenerujte konečné zhrnutie pred archiváciou
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Archivujte kontext
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Príklad použitia
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Vytvorte nový kontext pre konverzáciu o podpore produktu
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Prvá správa v konverzácii
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Nasledujúca správa v rovnakom kontexte
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Získajte informácie o kontexte
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Vytvorte a zobrazte zhrnutie konverzácie
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Archivujte kontext po dokončení
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Ošetrite prípadné chyby jemne
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -475,26 +479,26 @@ demonstrateContextSession();
 
 V predchádzajúcom kóde sme:
 
-1. Vytvorili root context pre konverzáciu o podpore produktu pomocou funkcie `createConversationContext`. Kontext sa týka problémov s výkonom databázy.
+1. Vytvorili koreňový kontext pre konverzáciu o podpore produktu pomocou funkcie `createConversationContext`. V tomto prípade je kontext o problémoch s výkonom databázy.
 
-1. Odoslali viacero správ v rámci tohto kontextu, čo umožnilo modelu udržiavať stav pomocou funkcie `sendMessage`. Správy sa týkajú pomalého výkonu dotazov a konfigurácie indexov.
+1. Odoslali viac správ v rámci tohto kontextu, čo umožnilo modelu udržiavať stav pomocou funkcie `sendMessage`. Správy sa týkajú pomalého vykonávania dopytov a konfigurácie indexov.
 
-1. Aktualizovali kontext o relevantné metadáta na základe konverzácie.
+1. Aktualizovali kontext relevantnými metadátami na základe konverzácie.
 
 1. Vytvorili súhrn konverzácie a uložili ho do metadát kontextu pomocou funkcie `generateContextSummary`.
 
 1. Archivovali kontext po ukončení konverzácie pomocou funkcie `archiveContext`.
 
-1. Ošetřili chyby tak, aby bola zabezpečená robustnosť.
+1. Ošetrenie chýb pre zabezpečenie stability.
 
-## Root context pre viackolovú asistenciu
+## Koreňový kontext pre viackolovú asistenciu
 
-V tomto príklade vytvoríme root context pre reláciu viackolovej asistencie, ukazujúc, ako udržiavať stav naprieč viacerými interakciami.
+V tomto príklade vytvoríme koreňový kontext pre reláciu viackolovej asistencie, demonštrujúc, ako udržiavať stav naprieč viacerými interakciami.
 
 ### Implementácia v Pythone
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Príklad Python: Koreňový kontext pre viackolovú asistenciu
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Pridajte informácie o používateľovi, ak sú poskytnuté
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Vytvorte koreňový kontext
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Vytvorte možnosti s ID kontextu
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Pridajte nástroje, ak sú špecifikované
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Odoslať prompt v rámci kontextu
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Aktualizujte metadata kontextu s priebehom konverzácie
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Najprv vygenerujte zhrňujúci prompt
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Uložte zhrnutie do metadát
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Archivujte kontext
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Príklad použitia
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Vytvoriť reláciu
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Prvá interakcia
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Druhá interakcia v tom istom kontexte
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Získať históriu
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Ukončiť reláciu
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -620,37 +624,41 @@ if __name__ == "__main__":
 
 V predchádzajúcom kóde sme:
 
-1. Vytvorili root context pre reláciu technickej podpory pomocou funkcie `create_session`. Kontext obsahuje informácie o používateľovi, ako meno a technickú úroveň.
+1. Vytvorili koreňový kontext pre reláciu technickej podpory pomocou funkcie `create_session`. Kontext obsahuje informácie o používateľovi ako meno a technická úroveň.
 
-1. Odoslali viacero správ v rámci tohto kontextu, čo umožnilo modelu udržiavať stav pomocou funkcie `send_message`. Správy sa týkajú problémov s funkciou auto-scaling.
+1. Odoslali viac správ v rámci tohto kontextu, čo umožnilo modelu udržiavať stav pomocou funkcie `send_message`. Správy sa týkajú problémov s funkciou automatického škálovania.
 
-1. Získali históriu konverzácie pomocou funkcie `get_conversation_history`, ktorá poskytuje informácie o kontexte a správach.
+1. Získali históriu konverzácie pomocou funkcie `get_conversation_history`, ktorá poskytuje informácie o kontexte a správy.
 
-1. Ukončili reláciu archiváciou kontextu a vytvorením súhrnu pomocou funkcie `end_session`. Súhrn zachytáva kľúčové body z konverzácie.
+1. Ukončili reláciu archiváciou kontextu a vytvorením súhrnu pomocou funkcie `end_session`. Súhrn zachytáva kľúčové body konverzácie.
 
-## Osvedčené postupy pre root contexty
+## Osvedčené postupy pre koreňové kontexty
 
-Tu sú niektoré osvedčené postupy pre efektívnu správu root contextov:
+Tu sú niektoré osvedčené postupy pre efektívnu správu koreňových kontextov:
 
-- **Vytvárajte zamerané contexty**: Vytvárajte samostatné root contexty pre rôzne účely alebo oblasti konverzácií, aby ste zachovali prehľadnosť.
+- **Vytvárajte zamerané kontexty**: Vytvárajte samostatné koreňové kontexty pre rôzne účely konverzácie alebo domény, aby sa zachovala jasnosť.
 
-- **Nastavte politiky expirácie**: Implementujte pravidlá na archiváciu alebo vymazanie starých contextov, aby ste spravovali úložisko a dodržiavali pravidlá uchovávania dát.
+- **Nastavte pravidlá expirácií**: Zavádzajte pravidlá na archiváciu alebo mazanie starých kontextov, aby ste spravovali úložisko a dodržiavali pravidlá uchovávania údajov.
 
 - **Ukladajte relevantné metadáta**: Používajte metadáta kontextu na uloženie dôležitých informácií o konverzácii, ktoré môžu byť neskôr užitočné.
 
-- **Konzistentne používajte ID kontextu**: Po vytvorení kontextu používajte jeho ID konzistentne pre všetky súvisiace požiadavky, aby ste zachovali kontinuitu.
+- **Konzistentne používajte ID kontextov**: Akonáhle je kontext vytvorený, používajte jeho ID konzistentne pre všetky súvisiace požiadavky na udržanie kontinuity.
 
-- **Vytvárajte súhrny**: Keď kontext narastie, zvážte vytvorenie súhrnov, ktoré zachytia podstatné informácie a zároveň spravujú veľkosť kontextu.
+- **Vytvárajte súhrny**: Keď kontext narastie, zvážte vytvorenie súhrnov na zachytenie podstatných informácií pri správe veľkosti kontextu.
 
-- **Implementujte kontrolu prístupu**: Pre systémy s viacerými používateľmi zabezpečte správnu kontrolu prístupu, aby ste ochránili súkromie a bezpečnosť konverzačných contextov.
+- **Implementujte riadenie prístupu**: Pre systémy viac používateľov zavádzajte správne riadenie prístupu na zabezpečenie súkromia a bezpečnosti kontextov konverzácie.
 
-- **Riešte obmedzenia kontextu**: Buďte si vedomí limitov veľkosti kontextu a implementujte stratégie na zvládanie veľmi dlhých konverzácií.
+- **Zvládajte obmedzenia kontextu**: Buďte si vedomí obmedzení veľkosti kontextu a implementujte stratégie na zvládnutie veľmi dlhých konverzácií.
 
-- **Archivujte po dokončení**: Archivujte contexty po ukončení konverzácií, aby ste uvoľnili zdroje a zároveň zachovali históriu konverzácie.
+- **Archivujte po dokončení**: Archivujte kontexty po ukončení konverzácií na uvoľnenie zdrojov pri zachovaní histórie konverzácie.
 
-## Čo ďalej
+## Čo bude ďalej
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Smerovanie](../mcp-routing/README.md)
 
-**Vyhlásenie o zodpovednosti**:  
-Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Aj keď sa snažíme o presnosť, prosím, majte na pamäti, že automatizované preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho rodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za akékoľvek nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

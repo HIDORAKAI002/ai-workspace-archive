@@ -1,0 +1,405 @@
+上下文工程决定**模型能看到什么**。循环工程决定**系统接下来做什么**。
+
+循环不再让人反复阅读答案、再动手写下一条提示词，而是把这种后续跟进工作变成一个精心设计的系统。它给 AI 一个目标，让它行动，观察真实反馈，评估结果，然后要么调整、要么停止。
+
+<Callout type="info" title="一句话定义">
+循环工程是围绕 AI 系统设计反馈周期的实践：目标、行动、观察、评估、状态、护栏和停止规则，共同推动工作走向一个可验证的结果。
+</Callout>
+
+## 从好提示词到好循环
+
+一条提示词可以产出出色的第一稿。但当步骤数量无法预先确定、环境可能变化、或者第一次尝试必须对照证据检验时，循环才真正派上用场。
+
+<Compare
+  before={{
+    label: "一次性提示词",
+    content: "提问 → 生成 → 返回\n\n模型给出一个答案。由人来判断它是否有效，并写出下一条提示词。"
+  }}
+  after={{
+    label: "工程化循环",
+    content: "界定 → 行动 → 观察 → 评估 → 调整\n                 ↑______________________↓\n\n系统收集证据、记录状态，只有当再跑一轮仍有价值时才继续。"
+  }}
+/>
+
+这一思想建立在更早的智能体模式之上。[ReAct 论文](https://arxiv.org/abs/2210.03629)展示了将行动与来自外部环境的观察交替进行的价值。Anthropic 的[评估器-优化器模式](https://www.anthropic.com/engineering/building-effective-agents)增加了一个独立的反馈步骤，而 OpenAI 的[智能体构建实用指南](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/)则把智能体的运行描述为受退出条件约束的循环。较新的术语**循环工程**把注意力聚焦到有意识地设计整个循环这件事上。
+
+## 五个动作
+
+<InfoGrid items={[
+  { label: "1. 界定", description: "把意图转化为目标、约束、成功标准和预算。", color: "blue" },
+  { label: "2. 行动", description: "选择一个有边界的动作：搜索、编辑、计算、调用工具，或询问人类。", color: "amber" },
+  { label: "3. 观察", description: "收集实际发生了什么：测试输出、API 结果、引用来源或用户反馈。", color: "cyan" },
+  { label: "4. 评估", description: "拿证据对照明确的标准——而不是对照模型的自信程度。", color: "purple" },
+  { label: "5. 调整", description: "更新状态、修改计划、安全地重试、上报人工，或者停止。", color: "green" },
+]} />
+
+循环的关键不在那些箭头，而在**箭头之间的契约**里：什么算一次行动，哪些观察值得信赖，由谁来评估，哪些状态需要保留，以及执行究竟在什么时候结束。
+
+<LoopEngineeringLab content={{
+  eyebrow: "循环控制 / 交互式模拟器",
+  title: "逐步走完一个真实的反馈循环",
+  description: "选择一个任务，然后一次推进一个信号。注意进展是如何来自环境证据和明确的评估——而不是来自询问模型它是否觉得已经做完了。",
+  chooseScenarioLabel: "选择一个循环",
+  goalLabel: "目标",
+  stopRuleLabel: "停止规则",
+  evidenceLabel: "可信证据",
+  iterationLabel: "迭代",
+  progressLabel: "已验证的进展",
+  openIssuesLabel: "未决问题",
+  currentSignalLabel: "当前信号",
+  advanceLabel: "推进一步",
+  nextIterationLabel: "开始下一次迭代",
+  resetLabel: "重置循环",
+  completeLabel: "目标已验证",
+  completeDescription: "成功标准已满足，证据已记录在案，循环随即停止，而不是再白白消耗一个周期。",
+  stages: [
+    { id: "frame", label: "界定", verb: "重读契约" },
+    { id: "act", label: "行动", verb: "执行一个有边界的动作" },
+    { id: "observe", label: "观察", verb: "读取外部反馈" },
+    { id: "evaluate", label: "评估", verb: "套用评分标准" },
+    { id: "adapt", label: "调整", verb: "更新下一步行动" },
+  ],
+  scenarios: [
+    {
+      id: "code",
+      label: "修复结账 bug",
+      goal: "修正结账总额的计算错误，同时不改变正常的折扣行为。",
+      stopRule: "针对性的回归测试通过、完整的结账测试套件通过、lint 无告警——或者三次尝试用尽后，循环上报人工。",
+      evidence: "复现步骤、测试输出、代码 diff，以及最终的回归测试套件结果。",
+      cycles: [
+        {
+          action: "复现被报告的错误总额，并针对『税费加百分比折扣』的场景添加一个会失败的测试。",
+          observation: "只有当税费在应用折扣之前被四舍五入时，测试才会出现一美分的偏差。",
+          evaluation: "bug 已通过确定性信号成功复现，但根因尚未修复。",
+          adaptation: "检查舍入发生的边界，只修改订单总额的计算路径。",
+          progress: 34,
+          openIssues: 2,
+        },
+        {
+          action: "把四舍五入移到最终的金额边界处，并运行针对性的结账测试。",
+          observation: "回归测试通过了，但一个优惠券集成测试现在在固定金额折扣上失败。",
+          evaluation: "最初的症状已消除，但改动范围过大。停止规则尚未满足。",
+          adaptation: "收窄补丁范围，并新增一个把税费舍入与优惠券舍入区分开的测试用例。",
+          progress: 71,
+          openIssues: 1,
+        },
+        {
+          action: "应用收窄后的计算修复，然后运行回归测试、完整的结账套件和 lint。",
+          observation: "所有检查全部通过。diff 只涉及一个计算函数和新增的回归测试。",
+          evaluation: "每条成功标准都有独立证据支持，且没有超出任何预算限制。",
+          adaptation: "停止循环，保留测试输出，把这个小 diff 交给人工审阅者。",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "research",
+      label: "核实研究结论",
+      goal: "评估『远程办公总能提升团队生产力』这一说法。",
+      stopRule: "得出一个经过校准的结论，至少有三个可信来源支持，并明确说明分歧和局限。",
+      evidence: "原始来源链接、发表日期、研究方法、样本量，以及引用的具体指标。",
+      cycles: [
+        {
+          action: "搜索近期证据，并把被转引最多的那条生产力统计数据追溯到它的原始出处。",
+          observation: "大多数文章都在转述某厂商的一份调查，却没有附上问卷或原始样本。",
+          evaluation: "这份证据流传很广，但不足以支撑一个绝对化的断言。",
+          adaptation: "优先查找同行评审研究和公开数据集，同时也搜索相反的结论。",
+          progress: 28,
+          openIssues: 3,
+        },
+        {
+          action: "把两项同行评审研究与一份国家级劳动力数据集进行对比。",
+          observation: "结果因任务类型、测量方法，以及是完全远程还是混合办公而各不相同。",
+          evaluation: "证据与『总能』这个词相矛盾。一个带条件的结论正变得站得住脚。",
+          adaptation: "核查这些研究是否区分了产出、工作时长和主观感知的生产力。",
+          progress: 68,
+          openIssues: 1,
+        },
+        {
+          action: "建立一张证据表，把每条论断都对照原始来源逐一核实。",
+          observation: "这些来源支持效果好坏不一的结论，并指出自主性、协调和任务类型是关键变量。",
+          evaluation: "结论有据可依，不确定性清晰可见，来源数量也达到了门槛。",
+          adaptation: "以一个带限定条件的答案收尾，并保留证据表以备审查。",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+    {
+      id: "writing",
+      label: "打磨发布邮件",
+      goal: "写一封简洁的产品发布邮件，讲清价值，并带来高质量的演示预约点击。",
+      stopRule: "邮件通过语气风格评分标准、篇幅控制在 140 词以内、只包含一个明确的行动号召，并通过事实审查。",
+      evidence: "字数统计、评分标准得分、链接校验结果、产品事实依据，以及审阅者的批注。",
+      cycles: [
+        {
+          action: "根据产品简报起草初稿，并按受众和语气风格评分标准给结果打分。",
+          observation: "初稿长达 204 词，开头堆砌功能，还包含两个互相竞争的行动号召。",
+          evaluation: "事实准确无误，但信息层次和篇幅两项标准不达标。",
+          adaptation: "开头改为客户收益，删掉次要的行动号召，并砍掉实现细节。",
+          progress: 41,
+          openIssues: 3,
+        },
+        {
+          action: "重写开头，把正文压缩成『问题—收益—佐证』的单一序列。",
+          observation: "邮件缩到 126 词，只剩一个 CTA，但佐证那句话夸大了 beta 测试的结果。",
+          evaluation: "结构达标了。事实表述的分寸仍不符合评分标准。",
+          adaptation: "把宽泛的说法替换成实测的 beta 数据，并申请最后一轮事实核查。",
+          progress: 79,
+          openIssues: 1,
+        },
+        {
+          action: "填入核实过的指标，校验链接，再完整跑一遍评分标准。",
+          observation: "邮件为 132 词，链接可正常打开，事实与简报一致，评分标准逐项通过。",
+          evaluation: "成品达到了预先定义的质量门槛，且证据可供复查。",
+          adaptation: "停止循环，把批准通过的版本发给活动负责人。",
+          progress: 100,
+          openIssues: 0,
+        },
+      ],
+    },
+  ],
+}} />
+
+## 先写循环契约
+
+在挑选模型或框架之前，先写一份小小的契约。如果这些字段含糊不清，循环只会把模糊性变成一轮又一轮的成本。
+
+```yaml
+goal: "哪个可观察的状态应当变为真？"
+inputs: "什么触发这个循环？"
+state: "哪些事实和尝试记录要在迭代之间保留？"
+actions: "系统可以使用哪些工具，拥有哪些权限？"
+observations: "这些行动会返回哪些外部信号？"
+evaluator: "由哪套评分标准或确定性检查来裁定结果？"
+success: "什么证据能证明目标已经完成？"
+failure: "哪些情况需要恢复措施或人工介入？"
+budget: "轮次、时间、token、金钱或副作用的上限"
+```
+
+<Callout type="warning" title="没有出口的循环本身就是一种故障模式">
+永远定义三个出口：证据满足目标时的**成功**，恢复已不再有意义时的**失败**，以及循环触及允许的成本或风险边界时的**预算耗尽**。
+</Callout>
+
+## 观察必须来自真实世界
+
+模型说一句"这看起来是对的"，并不是有力的证据。有用的观察，必须由被评判的答案之外的东西产生。
+
+<table>
+  <thead>
+    <tr>
+      <th>任务</th>
+      <th>弱观察</th>
+      <th>强观察</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>代码修复</td>
+      <td>"这个修复应该有效。"</td>
+      <td>先复现原始故障，然后回归测试和完整测试套件全部通过。</td>
+    </tr>
+    <tr>
+      <td>研究</td>
+      <td>"好几个来源都这么说。"</td>
+      <td>每条论断都链接到原始来源，并记录了日期、方法和分歧。</td>
+    </tr>
+    <tr>
+      <td>数据提取</td>
+      <td>"这段 JSON 看起来是合法的。"</td>
+      <td>Schema 校验通过，且抽样记录与源数据一致。</td>
+    </tr>
+    <tr>
+      <td>内容创作</td>
+      <td>"文案读起来挺清楚的。"</td>
+      <td>通过了一套明确命名的评分标准、事实审查、链接检查和受众测试。</td>
+    </tr>
+    <tr>
+      <td>运维操作</td>
+      <td>"请求成功了。"</td>
+      <td>外部系统返回了预期状态，并且留有审计记录。</td>
+    </tr>
+  </tbody>
+</table>
+
+这正是工具重要的原因：测试、浏览器、数据库、校验器和人工审查，把内部的猜测变成了可观察的结果。
+
+## 把生成者和检查者分开
+
+低风险的工作可以让同一个模型起草并自查。重要的工作则要用一个职责不同、权限受限的检查者。
+
+<InfoGrid columns={2} items={[
+  { label: "生成者", description: "提出修改方案，调用行动类工具，并说明应当收集哪些证据。", color: "amber" },
+  { label: "检查者", description: "接收目标、产出物和证据；套用评分标准；不能悄悄改写自己正在评判的工作。", color: "green" },
+]} />
+
+检查者不一定非得是另一个 AI。优先选择手头最具确定性的评估器：
+
+1. **精确检查** — 类型、schema、约束、权限、哈希值
+2. **可执行检查** — 测试、linter、模拟、链接校验
+3. **评分标准检查** — 使用明确标准的独立模型或人类
+4. **结果检查** — 真实的用户行为，或长期的生产环境指标
+
+<Callout type="tip" title="自信不等于证据">
+由制造产出物的同一个模型生成的置信度分数，依然只是模型输出。把它当作路由提示，而不是证明。
+</Callout>
+
+## 状态是循环的脊梁
+
+上下文是模型**这一轮**看到的东西。状态则是一份精简的记录，让下一轮得以继续，而不必重复工作，也不会遗忘进展。
+
+<Checklist title="有用的循环状态" items={[
+  { text: "当前的目标和验收标准" },
+  { text: "已经尝试过的行动及其可观察的结果" },
+  { text: "已产出的成果，附版本号或稳定引用" },
+  { text: "评估器的裁定和尚未解决的问题" },
+  { text: "已消耗的预算和仍然可用的权限" },
+  { text: "继续、停止或上报人工的理由" },
+]} />
+
+存储简明的决策和证据——而不是模型私有的思维链。好的状态体量小、可审查、可以安全地恢复运行。
+
+## 常见的循环形态
+
+### 修复循环
+
+`复现 → 只改一处 → 运行检查 → 诊断 → 重复或停止`
+
+最适合代码、配置、数据清理，以及任何有可执行反馈的任务。
+
+### 评估器-优化器循环
+
+`生成 → 按评分标准打分 → 返回针对性反馈 → 修改`
+
+最适合写作、翻译、设计评审，以及那些通过清晰表述的反馈就能提升质量的产出。
+
+### 研究循环
+
+`搜索 → 检视来源 → 找出缺口或矛盾 → 再次搜索 → 综合归纳`
+
+最适合完整性无法预先知晓的场景。停止规则应当衡量证据覆盖度，而不是搜索结果的数量。
+
+### 人工把关循环
+
+`准备 → 自动验证 → 在高风险动作前暂停 → 人工批准或调整方向`
+
+最适合付款、发布、删除、权限变更、医疗或法律决策，以及其他后果重大的行动。
+
+## 需要在设计中排除的故障模式
+
+<table>
+  <thead>
+    <tr>
+      <th>故障</th>
+      <th>发生了什么</th>
+      <th>工程上的应对</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>无限重试</td>
+      <td>循环没有可衡量的成功出口，也没有预算出口。</td>
+      <td>添加明确的终止状态和硬性的迭代上限。</td>
+    </tr>
+    <tr>
+      <td>自我表扬</td>
+      <td>生成者在没有证据的情况下就接受了自己那个看似合理的答案。</td>
+      <td>使用确定性检查或独立的检查者。</td>
+    </tr>
+    <tr>
+      <td>上下文滚雪球</td>
+      <td>每次迭代都往上下文里追加所有内容，直到模型丢失信号。</td>
+      <td>持久化结构化状态，每轮只重建相关的上下文。</td>
+    </tr>
+    <tr>
+      <td>来回摇摆</td>
+      <td>循环在两个修复方案之间来回切换。</td>
+      <td>检测重复出现的状态，强制换用不同策略或上报人工。</td>
+    </tr>
+    <tr>
+      <td>目标漂移</td>
+      <td>局部优化悄悄取代了最初的目标。</td>
+      <td>每个周期都重读那份不可变更的目标和验收标准。</td>
+    </tr>
+    <tr>
+      <td>不安全的重复</td>
+      <td>一个本可挽回的错误，在反复发生后变得有害。</td>
+      <td>限制权限、副作用、频率、开销和影响范围。</td>
+    </tr>
+  </tbody>
+</table>
+
+## 一个最小实现
+
+```typescript
+let state = initialize(goal, acceptanceCriteria, budget);
+
+while (state.budget.remaining > 0) {
+  const context = assembleRelevantContext(state);
+  const proposedAction = await maker.chooseAction(context);
+  const observation = await tools.executeWithinPolicy(proposedAction);
+  const verdict = await evaluator.check({ goal, observation, state });
+
+  state = recordIteration(state, { proposedAction, observation, verdict });
+
+  if (verdict.status === "passed") return complete(state);
+  if (verdict.status === "unsafe" || verdict.status === "blocked") {
+    return escalateToHuman(state);
+  }
+
+  state = adaptPlan(state, verdict.feedback);
+}
+
+return stopWithBudgetReport(state);
+```
+
+代码是最容易的部分。真正难的是领域问题：哪个测试能证明 bug 已经消失？哪个来源是权威的？哪个动作是可逆的？谁有权批准最后一步？这些决定才是循环工程的真正工作。
+
+## 练习：设计一个循环
+
+<TryIt
+  title="起草一份循环契约"
+  description="把变量替换成你自己工作中反复出现的任务。让 AI 挑战薄弱的证据和含糊的停止规则。"
+  prompt={`为下面这个任务设计一个有边界的 AI 工作循环：
+
+任务：\${task:每天早上对新的客户支持工单进行分级}
+
+请定义：
+1. 可观察的目标
+2. 触发条件和所需输入
+3. 允许的行动和工具权限
+4. 来自外部环境的可信观察
+5. 评估器及其评分标准
+6. 在迭代之间保留的状态
+7. 成功、失败和预算耗尽三种出口
+8. 高风险行动的人工审批关卡
+9. 一种让每次迭代都可审计的追踪记录格式
+
+然后指出你的设计中最可能出现的三种故障模式，并修改循环来预防它们。`}
+/>
+
+<Quiz
+  question="一个智能体编辑了代码、重读了 diff，然后声称 bug 已经修复。这个循环最重要的缺失环节是什么？"
+  options={[
+    "更长的系统提示词",
+    "一个对照停止规则进行评估的外部观察",
+    "再编辑一遍",
+    "更大的上下文窗口"
+  ]}
+  correctIndex={1}
+  explanation="这个智能体生成并检视了自己的产出物，但没有收集任何独立证据。复现故障并运行相关测试，才能产生一个可供停止规则评估的可观察信号。"
+/>
+
+## 延伸阅读
+
+- [Loop Engineering — Addy Osmani](https://addyosmani.com/blog/loop-engineering/) — 用设计好的系统取代人工后续提示词的最新提法，以及关于验证和人类责任的实用告诫
+- [Building Effective Agents — Anthropic](https://www.anthropic.com/engineering/building-effective-agents) — 评估器-优化器工作流、环境反馈、停止条件，以及智能体复杂度何时才算物有所值的指导
+- [A Practical Guide to Building Agents — OpenAI](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/) — 智能体运行、退出条件、工具、护栏和人工干预
+- [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) — 关于将行动与外部环境观察交替进行的奠基性研究
+
+## 小结
+
+<Callout type="tip" title="构建反馈机制，而不只是提示词">
+一个可靠的循环拥有可衡量的目标、有边界的行动、可信的观察、明确的评估器、精简的状态、安全的出口，以及在后果重大之处保留的人类判断。模型在循环之内；对循环负责的始终是工程师。
+</Callout>

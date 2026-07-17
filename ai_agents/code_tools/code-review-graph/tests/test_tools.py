@@ -1,6 +1,8 @@
 """Tests for MCP tool functions."""
 
+import os
 import tempfile
+import time
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -12,6 +14,7 @@ import code_review_graph.tools.docs as docs_module
 from code_review_graph.graph import GraphStore, _sanitize_name, node_to_dict
 from code_review_graph.parser import EdgeInfo, NodeInfo
 from code_review_graph.tools import (
+    _validate_repo_root,
     get_affected_flows_func,
     get_architecture_overview_func,
     get_community_func,
@@ -21,14 +24,15 @@ from code_review_graph.tools import (
     get_review_context,
     list_communities_func,
     list_flows,
+    list_graph_stats,
     query_graph,
-    _validate_repo_root,
 )
 
 
 class TestTools:
     def setup_method(self):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()  # release the handle before GraphStore reopens it on Windows
         self.store = GraphStore(self.tmp.name)
         self._seed_data()
 
@@ -145,6 +149,26 @@ class TestTools:
         results = self.store.search_nodes("auth login")
         names = {r.name for r in results}
         assert "login" in names or "AuthService" in names
+
+    def test_search_mode_fts(self, monkeypatch, tmp_path):
+        """semantic_search_nodes reports search_mode='fts' when only FTS contributes."""
+        import code_review_graph.tools.query as query_mod
+        from code_review_graph.search import rebuild_fts_index
+        from code_review_graph.tools.query import semantic_search_nodes
+
+        tmp_db = tmp_path / "test.db"
+        store = GraphStore(tmp_db)
+        store.upsert_node(NodeInfo(
+            kind="Function", name="login", file_path="/repo/auth.py",
+            line_start=1, line_end=10, language="python",
+        ))
+        store.commit()
+        rebuild_fts_index(store)
+
+        monkeypatch.setattr(query_mod, "_get_store", lambda repo_root=None: (store, tmp_path))
+        result = semantic_search_nodes("login")
+        assert result["status"] == "ok"
+        assert result["search_mode"] == "fts"
 
     def test_search_edges_by_target_name(self):
         """Search for edges by unqualified target name."""
@@ -369,6 +393,135 @@ class TestRepoRootValidation:
             _validate_repo_root(tmp_path)
 
 
+class TestQueryGraphTestsFor:
+    """Regression tests for #515: query_graph(pattern='tests_for')
+    must follow direct TESTED_BY edges (source=production, target=test)
+    rather than relying on the naming-convention fallback.
+    """
+
+    def setup_method(self):
+        import tempfile as _tempfile
+        self._tmpdir = _tempfile.TemporaryDirectory()
+        self.repo_root = Path(self._tmpdir.name)
+        # _validate_repo_root requires .git or .code-review-graph.
+        (self.repo_root / ".code-review-graph").mkdir()
+        # find_project_root / get_db_path look here for the DB.
+        from code_review_graph.incremental import get_db_path
+        self.db_path = get_db_path(self.repo_root)
+        self.store = GraphStore(str(self.db_path))
+        self._seed_graph()
+
+    def teardown_method(self):
+        self.store.close()
+        self._tmpdir.cleanup()
+
+    def _seed_graph(self):
+        # Production function with an unconventional name so the
+        # naming-convention fallback (test_<name> / Test<name>) cannot match.
+        self.store.upsert_node(NodeInfo(
+            kind="File", name="/src/calc.py", file_path="/src/calc.py",
+            line_start=1, line_end=20, language="python",
+        ))
+        self.store.upsert_node(NodeInfo(
+            kind="Function", name="combine", file_path="/src/calc.py",
+            line_start=1, line_end=5, language="python",
+        ))
+        self.store.upsert_node(NodeInfo(
+            kind="Function", name="orchestrate", file_path="/src/calc.py",
+            line_start=7, line_end=12, language="python",
+        ))
+        self.store.upsert_node(NodeInfo(
+            kind="File", name="/tests/spec.py", file_path="/tests/spec.py",
+            line_start=1, line_end=20, language="python",
+        ))
+        self.store.upsert_node(NodeInfo(
+            kind="Test", name="verify_\x01combine_behaviour",
+            file_path="/tests/spec.py",
+            line_start=1, line_end=5, language="python", is_test=True,
+        ))
+        self.store.upsert_node(NodeInfo(
+            kind="Function", name="shared_name", file_path="/src/first.py",
+            line_start=1, line_end=5, language="python",
+        ))
+        self.store.upsert_node(NodeInfo(
+            kind="Function", name="shared_name", file_path="/src/second.py",
+            line_start=1, line_end=5, language="python",
+        ))
+        # Parser-canonical direction: source=production, target=test.
+        self.store.upsert_edge(EdgeInfo(
+            kind="TESTED_BY",
+            source="/src/calc.py::combine",
+            target="/tests/spec.py::verify_\x01combine_behaviour",
+            file_path="/tests/spec.py", line=1,
+        ))
+        self.store.upsert_edge(EdgeInfo(
+            kind="CALLS",
+            source="/src/calc.py::orchestrate",
+            target="/src/calc.py::combine",
+            file_path="/src/calc.py", line=9,
+        ))
+        self.store.commit()
+        # Release the writer connection so query_graph can open its own.
+        self.store.close()
+
+    def test_query_graph_tests_for_finds_direct_edge(self):
+        from code_review_graph.tools import query_graph
+        result = query_graph(
+            pattern="tests_for",
+            target="/src/calc.py::combine",
+            repo_root=str(self.repo_root),
+        )
+        assert result["status"] == "ok"
+        match = next(
+            r for r in result["results"]
+            if r["qualified_name"] == "/tests/spec.py::verify_combine_behaviour"
+        )
+        assert match["name"] == "verify_combine_behaviour"
+        assert match["indirect"] is False
+        assert set(match) == {
+            "id", "kind", "name", "qualified_name", "file_path",
+            "line_start", "line_end", "language", "parent_name", "is_test",
+            "indirect",
+        }
+
+    def test_query_graph_tests_for_finds_one_hop_indirect_test(self):
+        from code_review_graph.tools import query_graph
+
+        result = query_graph(
+            pattern="tests_for",
+            target="/src/calc.py::orchestrate",
+            repo_root=str(self.repo_root),
+        )
+
+        assert result["status"] == "ok"
+        match = next(
+            r for r in result["results"]
+            if r["qualified_name"] == "/tests/spec.py::verify_combine_behaviour"
+        )
+        assert match["indirect"] is True
+        assert match["is_test"] is True
+
+        minimal = query_graph(
+            pattern="tests_for",
+            target="/src/calc.py::orchestrate",
+            repo_root=str(self.repo_root),
+            detail_level="minimal",
+        )
+        assert minimal["results"][0]["indirect"] is True
+
+    def test_query_graph_tests_for_keeps_ambiguous_target_explicit(self):
+        from code_review_graph.tools import query_graph
+
+        result = query_graph(
+            pattern="tests_for",
+            target="shared_name",
+            repo_root=str(self.repo_root),
+        )
+
+        assert result["status"] == "ambiguous"
+        assert len(result["candidates"]) == 2
+
+
 class TestGetDocsSection:
     """Tests for the get_docs_section tool."""
 
@@ -557,6 +710,7 @@ class TestFindLargeFunctions:
 
     def setup_method(self):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()  # release the handle before GraphStore reopens it on Windows
         self.store = GraphStore(self.tmp.name)
         # Create functions of various sizes
         self.store.upsert_node(NodeInfo(
@@ -1155,7 +1309,7 @@ class TestBuildPostprocess:
         assert "communities_detected" not in result
         assert "fts_indexed" not in result
 
-    def test_postprocess_minimal_has_fts_no_flows(self):
+    def test_postprocess_minimal_has_fts_no_flows(self, capsys):
         from unittest.mock import patch
 
         from code_review_graph.tools.build import build_or_update_graph
@@ -1173,8 +1327,15 @@ class TestBuildPostprocess:
         assert result.get("signatures_updated") is True
         assert "flows_detected" not in result
         assert "communities_detected" not in result
+        timing = result["postprocess_timing"]
+        assert set(timing) == {"signatures_s", "fts_s"}
+        assert all(
+            isinstance(value, float) and value >= 0
+            for value in timing.values()
+        )
+        assert capsys.readouterr().out == ""
 
-    def test_postprocess_full_matches_default(self):
+    def test_postprocess_full_matches_default(self, capsys):
         from unittest.mock import patch
 
         from code_review_graph.tools.build import build_or_update_graph
@@ -1192,6 +1353,19 @@ class TestBuildPostprocess:
         # Full postprocess should have flows and communities
         assert "flows_detected" in result
         assert "communities_detected" in result
+        timing = result["postprocess_timing"]
+        assert set(timing) == {
+            "signatures_s",
+            "fts_s",
+            "flows_s",
+            "communities_s",
+            "summaries_s",
+        }
+        assert all(
+            isinstance(value, float) and value >= 0
+            for value in timing.values()
+        )
+        assert capsys.readouterr().out == ""
 
 
 class TestComputeSummaries:
@@ -1202,6 +1376,7 @@ class TestComputeSummaries:
 
     def setup_method(self):
         self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()  # release the handle before GraphStore reopens it on Windows
         self.store = GraphStore(self.tmp.name)
         self._seed_graph()
 
@@ -1563,3 +1738,210 @@ class TestGetMinimalContext:
             task="refactor auth module", repo_root=str(self.root),
         )
         assert "refactor" in result["next_tool_suggestions"]
+
+
+class TestGraphProvenance:
+    """Freshness metadata attached to single-repository graph responses."""
+
+    @staticmethod
+    def _make_repo(tmp_path, metadata=None, name="repo"):
+        repo = tmp_path / name
+        repo.mkdir(parents=True)
+        (repo / ".git").mkdir()
+        graph_dir = repo / ".code-review-graph"
+        graph_dir.mkdir()
+        store = GraphStore(graph_dir / "graph.db")
+        try:
+            store.upsert_node(NodeInfo(
+                kind="Function", name="handle", file_path="src/app.py",
+                line_start=1, line_end=3, language="python",
+            ))
+            for key, value in (metadata or {}).items():
+                store.set_metadata(key, value)
+            store.commit()
+        finally:
+            store.close()
+        return repo
+
+    def test_reads_all_metadata_via_read_only_sqlite_uri(
+        self, tmp_path, monkeypatch,
+    ):
+        repo = self._make_repo(tmp_path, {
+            "last_updated": "2000-01-02T03:04:05",
+            "git_branch": "feature/x",
+            "git_head_sha": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+        })
+        real_connect = common_module.sqlite3.connect
+        connection_args = {}
+
+        def recording_connect(database, *args, **kwargs):
+            connection_args.update(database=database, uri=kwargs.get("uri"))
+            return real_connect(database, *args, **kwargs)
+
+        monkeypatch.setattr(common_module.sqlite3, "connect", recording_connect)
+        provenance = common_module.graph_provenance(str(repo))
+
+        assert provenance["updated_at"] == "2000-01-02T03:04:05"
+        assert provenance["built_on_branch"] == "feature/x"
+        assert provenance["built_at_sha"] == (
+            "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
+        )
+        assert provenance["age_seconds"] > 0
+        assert connection_args["database"].endswith("?mode=ro")
+        assert connection_args["uri"] is True
+
+    def test_exclusive_lock_fails_soft_promptly(self, tmp_path):
+        repo = self._make_repo(
+            tmp_path, {"last_updated": "2000-01-02T03:04:05"},
+        )
+        db_path = repo / ".code-review-graph" / "graph.db"
+        locker = common_module.sqlite3.connect(db_path)
+        try:
+            # GraphStore uses WAL, where writers do not block readers. Switch
+            # this fixture to rollback journalling so BEGIN EXCLUSIVE models a
+            # build or migration holding a database-wide lock.
+            journal_mode = locker.execute(
+                "PRAGMA journal_mode=DELETE",
+            ).fetchone()[0]
+            assert journal_mode == "delete"
+            locker.execute("BEGIN EXCLUSIVE")
+
+            started = time.monotonic()
+            provenance = common_module.graph_provenance(str(repo))
+            elapsed = time.monotonic() - started
+        finally:
+            locker.rollback()
+            locker.close()
+
+        assert provenance is None
+        assert elapsed < 1.0
+
+    @pytest.mark.parametrize("repo_name", [
+        "repo %40 #fragment",
+        "repo [windows-like] %23 #hash",
+    ])
+    def test_reads_metadata_from_uri_significant_paths(self, tmp_path, repo_name):
+        repo = self._make_repo(
+            tmp_path, {"last_updated": "2000-01-02T03:04:05"}, repo_name,
+        )
+        provenance = common_module.graph_provenance(str(repo))
+        assert provenance["updated_at"] == "2000-01-02T03:04:05"
+
+    @pytest.mark.skipif(os.name != "nt", reason="native Windows path semantics")
+    def test_reads_metadata_from_native_windows_path(self, tmp_path):
+        repo = self._make_repo(
+            tmp_path, {"last_updated": "2000-01-02T03:04:05"},
+            "repo %23 #windows",
+        )
+        assert "\\" in str(repo)
+        provenance = common_module.graph_provenance(str(repo))
+        assert provenance["updated_at"] == "2000-01-02T03:04:05"
+
+    def test_timezone_aware_timestamp_keeps_metadata_and_age(self, tmp_path):
+        repo = self._make_repo(tmp_path, {
+            "last_updated": "2000-01-02T03:04:05+05:30",
+            "git_branch": "feature/timezone",
+            "git_head_sha": "deadbeef",
+        })
+        provenance = common_module.graph_provenance(str(repo))
+
+        assert provenance["updated_at"] == "2000-01-02T03:04:05+05:30"
+        assert provenance["built_on_branch"] == "feature/timezone"
+        assert provenance["built_at_sha"] == "deadbeef"
+        assert provenance["age_seconds"] > 0
+
+    def test_timezone_aware_future_timestamp_clamps_age(self, tmp_path):
+        repo = self._make_repo(
+            tmp_path, {"last_updated": "2999-01-01T00:00:00-07:00"},
+        )
+        assert common_module.graph_provenance(str(repo))["age_seconds"] == 0
+
+    def test_malformed_timestamp_omits_only_age(self, tmp_path):
+        repo = self._make_repo(tmp_path, {
+            "last_updated": "not-a-date",
+            "git_branch": "feature/malformed-time",
+            "git_head_sha": "cafebabe",
+        })
+        assert common_module.graph_provenance(str(repo)) == {
+            "updated_at": "not-a-date",
+            "built_on_branch": "feature/malformed-time",
+            "built_at_sha": "cafebabe",
+        }
+
+    def test_naive_future_timestamp_clamps_age(self, tmp_path):
+        repo = self._make_repo(
+            tmp_path, {"last_updated": "2999-01-01T00:00:00"},
+        )
+        assert common_module.graph_provenance(str(repo))["age_seconds"] == 0
+
+    def test_branch_and_sha_are_optional(self, tmp_path):
+        repo = self._make_repo(
+            tmp_path, {"last_updated": "2000-01-02T03:04:05"},
+        )
+        provenance = common_module.graph_provenance(str(repo))
+        assert "built_on_branch" not in provenance
+        assert "built_at_sha" not in provenance
+
+    def test_missing_last_updated_has_no_envelope(self, tmp_path):
+        repo = self._make_repo(tmp_path, {"git_branch": "main"})
+        assert common_module.graph_provenance(str(repo)) is None
+
+    def test_missing_graph_database_has_no_envelope(self, tmp_path):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (repo / ".git").mkdir()
+        assert common_module.graph_provenance(str(repo)) is None
+
+    def test_corrupt_graph_database_has_no_envelope(self, tmp_path):
+        repo = tmp_path / "repo"
+        (repo / ".git").mkdir(parents=True)
+        graph_dir = repo / ".code-review-graph"
+        graph_dir.mkdir()
+        (graph_dir / "graph.db").write_bytes(b"not a sqlite database")
+        assert common_module.graph_provenance(str(repo)) is None
+
+    def test_invalid_repo_root_has_no_envelope(self, tmp_path):
+        assert common_module.graph_provenance(str(tmp_path / "missing")) is None
+
+    def test_with_provenance_preserves_response_fields(self, tmp_path):
+        repo = self._make_repo(
+            tmp_path, {"last_updated": "2000-01-02T03:04:05"},
+        )
+        response = {"status": "ok", "results": [{"name": "handle"}]}
+        result = common_module.with_provenance(response, str(repo))
+        assert result is response
+        assert result["status"] == "ok"
+        assert result["results"] == [{"name": "handle"}]
+        assert result["_graph"]["updated_at"] == "2000-01-02T03:04:05"
+
+    def test_with_provenance_handles_noop_cases(self, tmp_path):
+        repo_without_metadata = self._make_repo(tmp_path, name="empty")
+        response = {"status": "ok"}
+        assert common_module.with_provenance(
+            response, str(repo_without_metadata),
+        ) == response
+
+        repo = self._make_repo(
+            tmp_path, {"last_updated": "2000-01-02T03:04:05"}, "full",
+        )
+        assert common_module.with_provenance([1, 2], str(repo)) == [1, 2]
+        assert common_module.with_provenance(None, str(repo)) is None
+        existing = {"_graph": {"updated_at": "existing"}}
+        assert common_module.with_provenance(existing, str(repo)) is existing
+        assert existing["_graph"] == {"updated_at": "existing"}
+
+    def test_registered_sync_tool_preserves_existing_fields(self, tmp_path):
+        from code_review_graph.main import list_graph_stats_tool
+
+        repo = self._make_repo(tmp_path, {
+            "last_updated": "2000-01-02T03:04:05",
+            "git_branch": "main",
+        })
+        expected = list_graph_stats(repo_root=str(repo))
+        underlying = getattr(list_graph_stats_tool, "fn", None) or list_graph_stats_tool
+        result = underlying(repo_root=str(repo))
+
+        envelope = result.pop("_graph")
+        assert result == expected
+        assert envelope["updated_at"] == "2000-01-02T03:04:05"
+        assert envelope["built_on_branch"] == "main"

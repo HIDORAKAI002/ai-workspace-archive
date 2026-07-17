@@ -1251,7 +1251,7 @@
     "interactiveBanner": {
       "badge": "인터랙티브 버전 제공",
       "title": "더 상세하고 인터랙티브한 경험을 원하시나요?",
-      "description": "25개 챕터, 실습 연습, 실제 예제가 포함된 종합 인터랙티브 가이드로 AI 프롬프트를 마스터하세요.",
+      "description": "26개 챕터, 실습 연습, 실제 예제가 포함된 종합 인터랙티브 가이드로 AI 프롬프트를 마스터하세요.",
       "cta": "인터랙티브 북 읽기"
     },
     "generalTips": {
@@ -1743,7 +1743,7 @@
       "part4": "파트 4: 모범 사례",
       "part5": "파트 5: 사용 사례",
       "part6": "파트 6: 결론",
-      "chapters": "25개 인터랙티브 챕터"
+      "chapters": "26개 인터랙티브 챕터"
     },
     "startReading": "읽기 시작",
     "skipToChapter1": "1장으로 이동",
@@ -1800,6 +1800,7 @@
       "12-handling-edge-cases": "엣지 케이스 처리",
       "13-multimodal-prompting": "멀티모달 프롬프팅",
       "14-context-engineering": "컨텍스트 엔지니어링",
+      "14a-loop-engineering": "루프 엔지니어링",
       "25-agents-and-skills": "에이전트와 스킬",
       "15-common-pitfalls": "흔한 실수",
       "16-ethics-responsible-use": "윤리와 책임있는 사용",
@@ -1830,6 +1831,7 @@
       "12-handling-edge-cases": "예상치 못한 입력 처리하기",
       "13-multimodal-prompting": "이미지, 오디오, 비디오 작업",
       "14-context-engineering": "RAG, 임베딩, 함수 호출 및 MCP",
+      "14a-loop-engineering": "행동하고 검증하고 적응하며 언제 멈출지 아는 피드백 루프 설계",
       "25-agents-and-skills": "재사용 가능한 스킬 패키지로 AI 에이전트 구축",
       "15-common-pitfalls": "피해야 할 실수",
       "16-ethics-responsible-use": "AI의 윤리적 고려사항",

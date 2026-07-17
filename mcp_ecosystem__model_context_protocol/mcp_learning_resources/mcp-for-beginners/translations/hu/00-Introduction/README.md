@@ -1,130 +1,130 @@
-# Bevezetés a Model Context Protocol (MCP) témakörébe: Miért fontos a skálázható AI alkalmazások számára
+# Bevezetés a Model Context Protocol-ba (MCP): Miért fontos a skálázható AI alkalmazások számára
 
-[![Introduction to Model Context Protocol](../../../translated_images/hu/01.a467036d886b5fb5.webp)](https://youtu.be/agBbdiOPLQA)
+[![Bevezetés a Model Context Protocol-ba](../../../translated_images/hu/01.a467036d886b5fb5.webp)](https://youtu.be/agBbdiOPLQA)
 
 _(Kattintson a fenti képre a lecke videójának megtekintéséhez)_
 
-A generatív AI alkalmazások nagy előrelépést jelentenek, mivel gyakran lehetővé teszik a felhasználó számára, hogy természetes nyelvi utasításokat adjon az alkalmazásnak. Azonban, ahogy egyre több időt és erőforrást fektetnek ezekbe az alkalmazásokba, fontos, hogy biztosítsuk a funkciók és erőforrások egyszerű integrálását úgy, hogy könnyen bővíthető legyen, az alkalmazás több modell használatát is támogassa, és kezelje a különböző modellbeli részleteket. Röviden: generatív AI alkalmazásokat könnyű elkezdeni fejleszteni, de ahogy nőnek és egyre összetettebbé válnak, szükségessé válik egy architektúra meghatározása, és valószínűleg egy szabványra kell támaszkodni, hogy az alkalmazások következetesen épüljenek fel. Itt jön képbe az MCP, amely rendezi a dolgokat és biztosítja a szabványt.
+A generatív AI alkalmazások nagy előrelépést jelentenek, mivel gyakran lehetővé teszik a felhasználó számára, hogy természetes nyelvi utasításokkal lépjen interakcióba az alkalmazással. Azonban, ahogy egyre több időt és erőforrást fektetnek ezekbe az alkalmazásokba, fontos, hogy könnyedén integrálhassunk funkciókat és erőforrásokat úgy, hogy az könnyen bővíthető legyen, az alkalmazás egyszerre több modellt tudjon kezelni, és kezelje a különféle modellbeli részleteket. Röviden: a generatív AI alkalmazások építése kezdetben könnyű, de ahogy nőnek és összetettebbé válnak, meg kell kezdeni egy architektúra meghatározását, és valószínűleg egy szabványra kell támaszkodni annak érdekében, hogy az alkalmazások egységes módon épüljenek fel. Ebben segít az MCP, hogy szervezetten működjön és szabványt biztosítson.
 
 ---
 
 ## **🔍 Mi az a Model Context Protocol (MCP)?**
 
-A **Model Context Protocol (MCP)** egy **nyílt, szabványosított interfész**, amely lehetővé teszi a Nagy Nyelvi Modellek (LLM-ek) zökkenőmentes együttműködését külső eszközökkel, API-kkal és adatokkal. Egységes architektúrát kínál az AI modellek funkcionalitásának kibővítésére a tanító adatokon túl, így intelligensebb, skálázhatóbb és gyorsabban reagáló AI rendszereket tesz lehetővé.
+A **Model Context Protocol (MCP)** egy **nyílt, szabványosított interfész**, amely lehetővé teszi a nagy nyelvi modellek (LLM-ek) zökkenőmentes kommunikációját külső eszközökkel, API-kkal és adatforrásokkal. Egy egységes architektúrát nyújt, amely meghaladja az AI modellek tanító adatait, így okosabbá, skálázhatóbbá és reagálóképesebbé teszi az AI rendszereket.
 
 ---
 
 ## **🎯 Miért fontos a szabványosítás az AI-ban**
 
-Ahogy a generatív AI alkalmazások egyre összetettebbé válnak, létfontosságú szabványokat alkalmazni, amelyek biztosítják a **skálázhatóságot, bővíthetőséget, karbantarthatóságot**, illetve segítenek **elkerülni a szállítófüggőséget**. Az MCP ezeket az igényeket az alábbi módokon kezeli:
+Ahogy a generatív AI alkalmazások egyre összetettebbé válnak, elengedhetetlen szabványokat alkalmazni, amelyek biztosítják a **skálázhatóságot, bővíthetőséget, karbantarthatóságot** és az **eladói lekötés elkerülését**. Az MCP ezekre a kihívásokra ad választ azáltal, hogy:
 
-- Modell-eszköz integrációk egységesítése
-- Sérülékeny, egyedi megoldások csökkentése
-- Több különböző gyártótól származó modell együttélésének lehetővé tétele egy ökoszisztémán belül
+- Egyesíti a modell-eszköz integrációkat
+- Csökkenti a törékeny, egyedi megoldásokat
+- Lehetővé teszi több különböző gyártó modelljeinek egyidejű létezését egy ökoszisztémán belül
 
-**Megjegyzés:** Az MCP ugyan nyílt szabványként határozza meg magát, de nincs terv ilyen szabványosításra sem az IEEE, sem az IETF, W3C, ISO vagy más szabványosító testületek keretében.
+**Megjegyzés:** Az MCP ugyan nyílt szabványként pozícionálja magát, de nincs terv arra, hogy az IEEE, IETF, W3C, ISO vagy bármely más szabványosító testület által szabványosított legyen.
 
 ---
 
 ## **📚 Tanulási célok**
 
-A cikk végére képes leszel:
+A cikk végére képes lesz:
 
 - Meghatározni a **Model Context Protocol (MCP)** fogalmát és felhasználási eseteit
-- Megérteni, hogyan szabványosítja az MCP a modell és eszköz közti kommunikációt
-- Azonosítani az MCP architektúra főbb összetevőit
-- Felfedezni az MCP valós üzleti és fejlesztési alkalmazásait
+- Megérteni, hogyan szabványosítja az MCP a modell-eszköz kommunikációt
+- Azonosítani az MCP architektúra fő komponenseit
+- Felfedezni az MCP valós alkalmazásait vállalati és fejlesztői környezetben
 
 ---
 
-## **💡 Miért forradalmi a Model Context Protocol (MCP)**
+## **💡 Miért tartják a Model Context Protocolt (MCP) forradalminak**
 
-### **🔗 Az MCP megoldja az AI interakciók széttagoltságát**
+### **🔗 Az MCP megoldja az AI interakciók fragmentációját**
 
-Az MCP előtt a modellek és eszközök integrálásához:
+Az MCP előtt a modellek és eszközök integrálása a következőket igényelte:
 
-- Egyedi kód írása kellett eszköz-modell páronként
-- Nem szabványosított API-k minden gyártónál
-- Gyakori meghibásodások frissítések miatt
-- Gyenge skálázhatóság sok eszköz esetén
+- Egyedi kód minden eszköz-modell pároshoz
+- Nem szabványos API-k minden egyes gyártónál
+- Gyakori megszakadások a frissítések miatt
+- Rossz skálázhatóság több eszközzel
 
-### **✅ Az MCP szabványosítás előnyei**
+### **✅ Az MCP szabványosításának előnyei**
 
-| **Előny**                | **Leírás**                                                                     |
-|--------------------------|--------------------------------------------------------------------------------|
-| Interoperabilitás        | Az LLM-ek zökkenőmentesen működnek együtt különböző gyártók eszközeivel        |
-| Következetesség          | Egységes viselkedés platformok és eszközök között                             |
-| Újrahasznosíthatóság     | Egyszer épített eszközök új projektekben és rendszerekben is használhatók      |
-| Gyorsabb fejlesztés      | Standardizált, plug-and-play interfészek használatával csökken a fejlesztési idő |
+| **Előny**             | **Leírás**                                                                    |
+|----------------------|------------------------------------------------------------------------------|
+| Interoperabilitás     | LLM-ek zökkenőmentes együttműködése eszközökkel különböző gyártóktól          |
+| Következetesség      | Egységes viselkedés platformok és eszközök között                            |
+| Újrahasznosíthatóság | Egyszer elkészített eszközök több projektben és rendszerben is használhatók  |
+| Gyorsított fejlesztés | Csökkenti a fejlesztési időt szabványos, plug-and-play interfészekkel       |
 
 ---
 
-## **🧱 MCP magas szintű architektúra áttekintése**
+## **🧱 Áttekintés az MCP magas szintű architektúrájáról**
 
-Az MCP egy **kliens-szerver modell**, ahol:
+Az MCP **kliens-szerver modellt** követ, ahol:
 
-- **MCP hosztok** futtatják az AI modelleket
-- **MCP kliensek** indítják a kéréseket
-- **MCP szerverek** szolgáltatják a kontextust, eszközöket és képességeket
+- **MCP Hostok** futtatják az AI modelleket
+- **MCP Kliensek** indítják a kéréseket
+- **MCP Szerverek** szolgáltatják a kontextust, eszközöket és képességeket
 
-### **Főbb összetevők:**
+### **Fő komponensek:**
 
-- **Erőforrások** – statikus vagy dinamikus adatok a modellek számára  
-- **Promotok** – előre definiált munkafolyamatok irányított generáláshoz  
-- **Eszközök** – végrehajtható funkciók, mint keresés, számítások  
-- **Mintavételezés** – ügynöki viselkedés rekurzív interakciókon keresztül
-- **Kiváltás** – szerver által kezdeményezett kérdések a felhasználótól
-- **Gyökerek** – fájlrendszer-határok a szerver hozzáférésének szabályozására
+- **Erőforrások** – Statikus vagy dinamikus adatok a modelleknek  
+- **Prompt-ok** – Előre meghatározott munkafolyamatok a generáláshoz  
+- **Eszközök** – Végrehajtható függvények, mint keresés, számítások  
+- **Mintavételezés** – Ügynöki viselkedés rekurzív interakciók révén (elavult a `2026-07-28` kiadás-jelöltben)
+- **Elicitáció** – Szerver által indított felhasználói input kérések
+- **Roots** – Fájlrendszer határok a szerver hozzáférés vezérléséhez (elavult a `2026-07-28` kiadás-jelöltben)
 
 ### **Protokoll architektúra:**
 
 Az MCP két rétegű architektúrát használ:
 - **Adat réteg**: JSON-RPC 2.0 alapú kommunikáció életciklus-kezeléssel és primitívekkel
-- **Szállítási réteg**: STDIO (helyi) és Streamable HTTP SSE-vel (távoli) kommunikációs csatornák
+- **Szállítási réteg**: STDIO (helyi) és stream-elhető HTTP SSE-vel (távoli) kommunikációs csatornák
 
 ---
 
 ## Hogyan működnek az MCP szerverek
 
-Az MCP szerverek az alábbi módon működnek:
+Az MCP szerverek a következő módon működnek:
 
-- **Kérés folyamata**:
-    1. Egy kérést egy végfelhasználó vagy annak nevében eljáró szoftver indít.
-    2. Az **MCP kliens** elküldi a kérést egy **MCP hosztnak**, amely kezeli az AI modell futtatókörnyezetét.
-    3. Az **AI modell** megkapja a felhasználói promptot, és kérheti külső eszközök vagy adatok elérését egy vagy több eszközhíváson keresztül.
-    4. Az **MCP hoszt**, nem maga a modell, kommunikál a megfelelő **MCP szerver(ek) kel** a szabványos protokollt használva.
-- **MCP hoszt funkciói**:
-    - **Eszközregiszter**: karbantartja az elérhető eszközök és képességeik katalógusát.
-    - **Hitelesítés**: ellenőrzi a jogosultságokat az eszközhozzáféréshez.
-    - **Kéréskezelő**: feldolgozza a modell által küldött eszközkéréseket.
-    - **Válaszformázó**: eszköz kimeneteit olyan formátumba alakítja, amit a modell ért meg.
+- **Kérelem folyamata**:
+    1. A kérést egy végfelhasználó vagy az ő nevében eljáró szoftver indítja.
+    2. Az **MCP kliens** elküldi a kérést egy **MCP hosztnak**, amely az AI modell futtatókörnyezetét kezeli.
+    3. Az **AI modell** megkapja a felhasználói utasítást, és kérheti külső eszközök vagy adatok elérését egy vagy több eszközhíváson keresztül.
+    4. Az **MCP hoszt**, nem maga a modell, kommunikál a megfelelő **MCP szerver(ek)kel** a szabványos protokoll használatával.
+- **MCP hoszt funkciók**:
+    - **Eszköznyilvántartás**: Nyilvántartja az elérhető eszközök és képességeik katalógusát.
+    - **Hitelesítés**: Ellenőrzi az eszközhozzáférési engedélyeket.
+    - **Kérelemkezelő**: Feldolgozza a modellből érkező eszközkéréseket.
+    - **Válaszformázó**: Strukturálja az eszköz kimeneteit a modell számára érthető formátumba.
 - **MCP szerver végrehajtás**:
-    - Az **MCP hoszt** továbbítja az eszközhívásokat egy vagy több, speciális funkciókat kínáló **MCP szervernek** (pl. keresés, számítások, adatbázis-lekérdezések).
+    - Az **MCP hoszt** továbbítja az eszközhívásokat egy vagy több, specializált funkciókat kínáló **MCP szervernek** (pl. keresés, számítások, adatbázis lekérdezések).
     - Az **MCP szerverek** végrehajtják a műveleteket és egységes formátumban visszaküldik az eredményeket az **MCP hosztnak**.
     - Az **MCP hoszt** formázza és továbbítja ezeket az eredményeket az **AI modellnek**.
-- **Válasz befejezése**:
+- **Válasz lezárása**:
     - Az **AI modell** beépíti az eszközök kimeneteit a végső válaszba.
-    - Az **MCP hoszt** visszaküldi ezt a választ az **MCP kliensnek**, amely továbbítja az végfelhasználónak vagy a hívó szoftvernek.
+    - Az **MCP hoszt** továbbítja ezt a választ az **MCP kliensnek**, amely azt eljuttatja a végfelhasználónak vagy a hívó szoftvernek.
     
 
 ```mermaid
 ---
-title: MCP architektúra és komponens interakciók
-description: Az MCP komponenseinek folyamatait bemutató diagram.
+title: MCP Architecture and Component Interactions
+description: A diagram showing the flows of the components in MCP.
 ---
 graph TD
-    Client[MCP kliens/alkalmazás] -->|Kérés küldése| H[MCP gazda]
-    H -->|Meghívás| A[MI modell]
-    A -->|Eszköz hívási kérés| H
-    H -->|MCP protokoll| T1[MCP szerver eszköz 01: Web keresés]
-    H -->|MCP protokoll| T2[MCP szerver eszköz 02: Számológép eszköz]
-    H -->|MCP protokoll| T3[MCP szerver eszköz 03: Adatbázis elérés eszköz]
-    H -->|MCP protokoll| T4[MCP szerver eszköz 04: Fájlrendszer eszköz]
+    Client[MCP kliens/alkalmazás] -->|Kérés küldése| H[MCP hoszt]
+    H -->|Meghívja| A[AI modell]
+    A -->|Eszköz hívás kérése| H
+    H -->|MCP Protocol| T1[MCP Server Tool 01: Webes keresés
+    H -->|MCP Protocol| T2[MCP Server Tool 02: Számológép eszköz
+    H -->|MCP Protocol| T3[MCP Server Tool 03: Adatbázis hozzáférési eszköz
+    H -->|MCP Protocol| T4[MCP Server Tool 04: Fájlrendszer eszköz
     H -->|Válasz küldése| Client
 
-    subgraph "MCP gazda komponensek"
+    subgraph "MCP hoszt összetevők"
         H
-        G[Eszköz nyilvántartás]
+        G[Eszköz regiszter]
         I[Hitelesítés]
         J[Kérés kezelő]
         K[Válasz formázó]
@@ -147,11 +147,12 @@ graph TD
     style T3 fill:#c2f0c2,stroke:#333,stroke-width:1px
     style T4 fill:#c2f0c2,stroke:#333,stroke-width:1px
 ```
+
 ## 👨‍💻 Hogyan építsünk MCP szervert (példákkal)
 
-Az MCP szerverek lehetővé teszik az LLM-ek képességeinek bővítését adatok és funkcionalitás biztosításával.
+Az MCP szerverek lehetővé teszik, hogy bővítsük a LLM képességeit adat- és funkcionalitásszolgáltatással. 
 
-Készen áll kipróbálni? Íme néhány nyelv- és/vagy technológiai stack specifikus SDK, példákkal egyszerű MCP szerverek létrehozásához különböző nyelveken/tech stackeken:
+Készen áll kipróbálni? Itt vannak nyelv- és/vagy stack-specifikus SDK-k példákkal, amelyekkel egyszerű MCP szervereket hozhat létre különböző nyelveken/technológiákon:
 
 - **Python SDK**: https://github.com/modelcontextprotocol/python-sdk
 
@@ -162,38 +163,38 @@ Készen áll kipróbálni? Íme néhány nyelv- és/vagy technológiai stack spe
 - **C#/.NET SDK**: https://github.com/modelcontextprotocol/csharp-sdk
 
 
-## 🌍 MCP valós alkalmazási esetei
+## 🌍 MCP valós használati esetek
 
-Az MCP széles körű alkalmazásokat tesz lehetővé az AI képességek kibővítésén keresztül:
+Az MCP lehetővé teszi az AI képességek széles körű kiterjesztését:
 
-| **Alkalmazás**              | **Leírás**                                                                     |
-|------------------------------|--------------------------------------------------------------------------------|
-| Vállalati adat integráció    | LLM-ek csatlakoztatása adatbázisokhoz, CRM-ekhez vagy belső eszközökhöz        |
-| Ügynöki AI rendszerek        | Autonóm ügynökök engedélyezése eszközhozzáféréssel és döntési munkafolyamatokkal |
-| Többmodalitású alkalmazások  | Szöveg, kép és hang eszközök kombinálása egyetlen egységes AI alkalmazásban   |
-| Valós idejű adat integráció  | Élő adatok bevitele az AI interakciókba a pontosabb, aktuális kimenetekért     |
+| **Alkalmazás**               | **Leírás**                                                                    |
+|------------------------------|------------------------------------------------------------------------------|
+| Vállalati adat integráció     | LLM-ek csatlakoztatása adatbázisokhoz, CRM-ekhez vagy belső eszközökhöz      |
+| Ügynöki AI rendszerek        | Autonóm ügynökök engedélyezése eszköz-hozzáféréssel és döntéshozatali munkafolyamatokkal |
+| Többmodalitású alkalmazások  | Szöveg, kép és hang eszközök kombinálása egy egységes AI alkalmazásban        |
+| Valós idejű adat integráció  | Élő adatok bevonása AI interakciókba a pontosabb, aktuális eredményekért       |
 
 
-### 🧠 MCP = Univerzális szabvány az AI interakciókhoz
+### 🧠 MCP = Az AI interakciók univerzális szabványa
 
-A Model Context Protocol (MCP) olyan univerzális szabványként működik az AI interakciókhoz, mint amilyen a USB-C a fizikai eszközcsatlakozásokhoz. Az AI világában az MCP egységes interfészt biztosít, amely lehetővé teszi, hogy a modellek (kliensek) zökkenőmentesen integrálódjanak külső eszközökkel és adatforrásokkal (szerverekkel). Ez megszünteti az egyedi, különböző protokollok szükségességét minden API-hoz vagy adatforráshoz.
+A Model Context Protocol (MCP) az AI interakciók egyetemes szabványaként működik, hasonlóan ahhoz, ahogy az USB-C szabványosította az eszközök fizikai csatlakozását. Az AI világában az MCP egységes interfészt biztosít, amely lehetővé teszi, hogy a modellek (kliensek) zökkenőmentesen integrálódjanak külső eszközökkel és adatforrás szolgáltatókkal (szerverek). Ez megszünteti az egyes API-k vagy adatforrások különféle, egyedi protokolljainak használatát.
 
-Az MCP kompatibilis eszköz (MCP szerverként említve) egységes szabvány szerint működik. Ezek a szerverek felsorolhatják a nyújtott eszközöket vagy műveleteket, és végrehajthatják ezeket, amikor egy AI ügynök kéri. Az MCP-kompatibilis AI ügynök platformok képesek felfedezni a szervereken elérhető eszközöket és a szabványos protokollon keresztül meghívni azokat.
+Az MCP alatt az MCP-kompatibilis eszköz (MCP szerverként említve) egy egységes szabványt követ. Ezek a szerverek feltüntethetik az általuk kínált eszközöket vagy műveleteket, és végrehajtják ezeket az AI ügynök kérésére. Az MCP-t támogató AI ügynök platformok képesek felfedezni a szerverek által kínált eszközöket, és szabványos protokollon keresztül meghívni azokat.
 
 ### 💡 Megkönnyíti a tudáshoz való hozzáférést
 
-Az eszközök nyújtása mellett az MCP megkönnyíti a tudáshoz való hozzáférést is. Lehetővé teszi, hogy az alkalmazások kontextust nyújtsanak az LLM-eknek, összekapcsolva őket különféle adatforrásokkal. Például egy MCP szerver képviselheti egy vállalat dokumentumtárát, lehetővé téve az ügynökök számára, hogy igény szerint releváns információkat szerezzenek. Egy másik szerver speciális műveleteket kezelhet, például e-mailek küldését vagy rekordok frissítését. Az ügynök szemszögéből ezek csupán eszközök, néhány adatot (tudás kontextust) visszaad, mások pedig műveleteket hajtanak végre. Az MCP hatékonyan kezeli mindkettőt.
+Az eszközök kínálása mellett az MCP támogatja a tudáshoz való hozzáférést is. Lehetővé teszi, hogy az alkalmazások kontextust szolgáltassanak a nagy nyelvi modelleknek (LLM-eknek) különböző adatforrások összekapcsolásával. Például egy MCP szerver egy vállalat dokumentumtárát képviselheti, lehetővé téve az ügynökök számára, hogy igény szerint lekérjenek releváns információkat. Egy másik szerver specifikus műveleteket végezhet, például e-mailek küldését vagy rekordok frissítését. Az ügynök szempontjából ezek egyszerűen eszközök, amelyeket használhat — néhány eszköz adatot (tudásalapú kontextust) szolgáltat, míg mások műveleteket hajtanak végre. Az MCP hatékonyan kezeli mindkettőt.
 
-Egy ügynök, amely csatlakozik egy MCP szerverhez, automatikusan megismeri a szerver elérhető képességeit és hozzáférhető adatait egy szabványos formátumon keresztül. Ez a szabványosítás dinamikus eszköz rendelkezésre állást tesz lehetővé. Például egy új MCP szerver hozzáadása egy ügynök rendszeréhez azonnali használhatóságot biztosít a funkciók számára anélkül, hogy az ügynök utasításait tovább kellene testreszabni.
+Az MCP szerverhez kapcsolódó ügynök automatikusan megtanulja a szerver elérhető képességeit és hozzáférhető adatait egy szabványos formátumon keresztül. Ez a szabványosítás dinamikus eszköz elérhetőséget tesz lehetővé. Például egy új MCP szerver hozzáadása az ügynök rendszeréhez azonnal használhatóvá teszi annak funkcióit további testreszabás nélkül.
 
-Ez az egyszerűsített integráció összhangban áll az alábbi ábrán bemutatott folyamattal, ahol a szerverek eszközöket és tudást biztosítanak, elősegítve az zökkenőmentes együttműködést a rendszerek között.
+Ez a gördülékeny integráció illeszkedik a következő ábrán bemutatott folyamathoz, ahol a szerverek egyszerre szolgáltatnak eszközöket és tudást, biztosítva a rendszerek közötti zökkenőmentes együttműködést.
 
 ### 👉 Példa: Skálázható ügynök megoldás
 
 ```mermaid
 ---
-title: Skálázható Ügynök Megoldás MCP-vel
-description: Egy diagram, amely bemutatja, hogyan lép kapcsolatba a felhasználó egy LLM-mel, amely több MCP szerverhez csatlakozik, ahol minden szerver tudást és eszközöket nyújt, így egy skálázható MI rendszer architektúrát létrehozva
+title: Scalable Agent Solution with MCP
+description: A diagram illustrating how a user interacts with an LLM that connects to multiple MCP servers, with each server providing both knowledge and tools, creating a scalable AI system architecture
 ---
 graph TD
     User -->|Prompt| LLM
@@ -201,117 +202,120 @@ graph TD
     LLM -->|MCP| ServerA
     LLM -->|MCP| ServerB
     ServerA -->|Univerzális csatlakozó| ServerB
-    ServerA --> TudásA
-    ServerA --> EszközökA
-    ServerB --> TudásB
-    ServerB --> EszközökB
+    ServerA --> KnowledgeA
+    ServerA --> ToolsA
+    ServerB --> KnowledgeB
+    ServerB --> ToolsB
 
-    subgraph Server A
-        TudásA[Tudás]
-        EszközökA[Eszközök]
+    subgraph A szerver
+        KnowledgeA[Tudás]
+        ToolsA[Eszközök]
     end
 
-    subgraph Server B
-        TudásB[Tudás]
-        EszközökB[Eszközök]
+    subgraph B szerver
+        KnowledgeB[Tudás]
+        ToolsB[Eszközök]
     end
-```Az Universal Connector lehetővé teszi, hogy az MCP szerverek kommunikáljanak és megosszák képességeiket egymással, lehetővé téve, hogy ServerA feladatokat delegáljon ServerB-nek vagy hozzáférjen annak eszközeihez és tudásához. Ez az eszközök és adatok federációját valósítja meg a szerverek között, támogatva a skálázható és moduláris ügynök architektúrákat. Mivel az MCP szabványosítja az eszközök közzétételét, az ügynökök dinamikusan felfedezhetik és irányíthatják a kéréseket a szerverek között anélkül, hogy kódba ágyazott integrációkra lenne szükség.
+```
+Az Universal Connector lehetővé teszi az MCP szerverek közötti kommunikációt és képességek megosztását, így a ServerA feladatokat delegálhat a ServerB-nek, vagy hozzáférhet annak eszközeihez és tudásához. Ez az eszközök és adatok szerverek közti szövetséges rendszerét hozza létre, támogatva a skálázható és moduláris ügynök architektúrákat. Mivel az MCP szabványosítja az eszközök elérhetőségét, az ügynökök dinamikusan fedezhetik fel és irányíthatják a kéréseket a szerverek között anélkül, hogy keménykódolt integrációkra lenne szükség.
 
-Eszköz- és tudás-federáció: Eszközök és adatok elérhetők szerverek között, lehetővé téve skálázhatóbb és modulárisabb ügynöki architektúrákat.
+
+Eszköz- és tudáskooperáció: Az eszközök és adatok hozzáférhetők szerverek között, támogatóbbá téve skálázhatóbb és modulárisabb ügynöki architektúrákat.
 
 ### 🔄 Fejlett MCP forgatókönyvek kliensoldali LLM integrációval
 
-Az alap MCP architektúrán túl léteznek fejlett forgatókönyvek, ahol mind kliens, mind szerver tartalmaz LLM-et, lehetővé téve összetettebb interakciókat. Az alábbi ábrán a **Kliensalkalmazás** lehet egy IDE, amely több MCP eszközt tesz elérhetővé az LLM által történő használatra:
+Az alap MCP architektúrán túl vannak fejlett forgatókönyvek, ahol mind a kliens, mind a szerver tartalmaz LLM-eket, lehetővé téve összetettebb interakciókat. A következő ábrán a **Kliens alkalmazás** lehet egy IDE, amely számos MCP eszköz elérését biztosítja a LLM számára:
 
 ```mermaid
 ---
-title: Fejlett MCP forgatókönyvek kliens-szerver LLM integrációval
-description: Egy szekvenciadiagram, amely részletesen bemutatja a felhasználó, kliensalkalmazás, kliens LLM, több MCP szerver és szerver LLM közötti interakció folyamatát, illusztrálva az eszközfelismerést, felhasználói interakciót, közvetlen eszközhívást és a funkciók tárgyalási szakaszát
+title: Advanced MCP Scenarios with Client-Server LLM Integration
+description: A sequence diagram showing the detailed interaction flow between user, client application, client LLM, multiple MCP servers, and server LLM, illustrating tool discovery, user interaction, direct tool calling, and feature negotiation phases
 ---
 sequenceDiagram
     autonumber
     actor User as 👤 Felhasználó
-    participant ClientApp as 🖥️ Kliensalkalmazás
-    participant ClientLLM as 🧠 Kliens LLM
-    participant Server1 as 🔧 MCP Szerver 1
-    participant Server2 as 📚 MCP Szerver 2
+    participant ClientApp as 🖥️ Ügyfél alkalmazás
+    participant ClientLLM as 🧠 Ügyfél LLM
+    participant Server1 as 🔧 MCP szerver 1
+    participant Server2 as 📚 MCP szerver 2
     participant ServerLLM as 🤖 Szerver LLM
     
-    %% Discovery Phase
+    %% Felfedezési fázis
     rect rgb(220, 240, 255)
-        Note over ClientApp, Server2: ESZKÖZ FELISMERÉSI SZAKASZ
-        ClientApp->>+Server1: Elérhető eszközök/erőforrások lekérése
-        Server1-->>-ClientApp: Eszközlista visszaküldése (JSON)
-        ClientApp->>+Server2: Elérhető eszközök/erőforrások lekérése
-        Server2-->>-ClientApp: Eszközlista visszaküldése (JSON)
-        Note right of ClientApp: Kombinált eszköz<br/>katalógus helyi tárolása
+        Note over ClientApp, Server2: ESZKÖZ FELFEDEZÉSI FÁZIS
+        ClientApp->>+Server1: Kérés elérhető eszközökre/erőforrásokra
+        Server1-->>-ClientApp: Eszközlista visszaadása (JSON)
+        ClientApp->>+Server2: Kérés elérhető eszközökre/erőforrásokra
+        Server2-->>-ClientApp: Eszközlista visszaadása (JSON)
+        Note right of ClientApp: Egyesített eszközkatalógus helyi tárolása
     end
     
-    %% User Interaction
+    %% Felhasználói interakció
     rect rgb(255, 240, 220)
-        Note over User, ClientLLM: FELHASZNÁLÓI INTERAKCIÓS SZAKASZ
-        User->>+ClientApp: Természetes nyelvű utasítás bevitele
-        ClientApp->>+ClientLLM: Utasítás + eszközkatalógus továbbítása
-        ClientLLM->>-ClientLLM: Utasítás elemzése és eszközök kiválasztása
+        Note over User, ClientLLM: FELHASZNÁLÓI INTERAKCIÓ FÁZIS
+        User->>+ClientApp: Természetes nyelvű bemenet megadása
+        ClientApp->>+ClientLLM: Bemenet és eszközkatalógus továbbítása
+        ClientLLM->>-ClientLLM: Bemenet elemzése és eszközök kiválasztása
     end
     
-    %% Scenario A: Direct Tool Calling
-    alt Közvetlen Eszközhívás
+    %% A forgatókönyv: Közvetlen eszközhívás
+    alt Közvetlen eszközhívás
         rect rgb(220, 255, 220)
             Note over ClientApp, Server1: A FORGATÓKÖNYV: KÖZVETLEN ESZKÖZHÍVÁS
-            ClientLLM->>+ClientApp: Eszköz végrehajtásának kérése
-            ClientApp->>+Server1: Meghatározott eszköz végrehajtása
-            Server1-->>-ClientApp: Eredmények visszaküldése
+            ClientLLM->>+ClientApp: Eszköz végrehajtás kérése
+            ClientApp->>+Server1: Konkrét eszköz végrehajtása
+            Server1-->>-ClientApp: Eredmények visszaadása
             ClientApp->>+ClientLLM: Eredmények feldolgozása
             ClientLLM-->>-ClientApp: Válasz generálása
             ClientApp-->>-User: Végső válasz megjelenítése
         end
     
-    %% Scenario B: Feature Negotiation (VS Code style)
-    else Funkció Tárgyalás (VS Code stílus)
+    %% B forgatókönyv: Funkció tárgyalás (VS Code stílus)
+    else Funkció tárgyalás (VS Code stílus)
         rect rgb(255, 220, 220)
-            Note over ClientApp, ServerLLM: B FORGATÓKÖNYV: FUNKCIÓ TÁRGYALÁS
+            Note over ClientApp, ServerLLM: B FORGATÓKÖNYV: FÜGGVÉNY TÁRGYALÁS
             ClientLLM->>+ClientApp: Szükséges képességek azonosítása
             ClientApp->>+Server2: Funkciók/képességek tárgyalása
             Server2->>+ServerLLM: További kontextus kérése
-            ServerLLM-->>-Server2: Kontextus biztosítása
-            Server2-->>-ClientApp: Elérhető funkciók visszaküldése
-            ClientApp->>+Server2: Tárgyalt eszközök hívása
-            Server2-->>-ClientApp: Eredmények visszaküldése
+            ServerLLM-->>-Server2: Kontextus megadása
+            Server2-->>-ClientApp: Elérhető funkciók visszaadása
+            ClientApp->>+Server2: Megtárgyalt eszközök hívása
+            Server2-->>-ClientApp: Eredmények visszaadása
             ClientApp->>+ClientLLM: Eredmények feldolgozása
             ClientLLM-->>-ClientApp: Válasz generálása
             ClientApp-->>-User: Végső válasz megjelenítése
         end
     end
 ```
+
 ## 🔐 Az MCP gyakorlati előnyei
 
 Az MCP használatának gyakorlati előnyei:
 
-- **Frissesség**: A modellek hozzáférhetnek az aktuális, képzésen túli információkhoz
-- **Képességbővítés**: A modellek speciális eszközöket használhatnak olyan feladatokra, amelyekre nem voltak kiképezve
-- **Csökkentett hamis információ**: Külső adatforrások tényalapú megalapozást biztosítanak
-- **Adatvédelem**: Érzékeny adatok biztonságos környezetben maradhatnak, nem kell őket promptokba ágyazni
+- **Frissesség**: A modellek friss, tanító adatokon túli információkhoz férhetnek hozzá
+- **Képességbővítés**: A modellek speciális eszközöket használhatnak olyan feladatokhoz, amelyekhez nem volt tréningjük
+- **Csökkentett téveszmék**: Külső adatforrások tényalapú megalapozást biztosítanak
+- **Adatvédelem**: Érzékeny adatok biztonságban maradhatnak helyi környezetben, nem a promptokban
 
-## 📌 Főbb tanulságok
+## 📌 Fontos tanulságok
 
-A MCP használatának legfőbb tanulságai:
+A következők a legfontosabb tanulságok az MCP használatáról:
 
-- Az **MCP** szabványosítja, hogyan kommunikálnak az AI modellek eszközökkel és adatokkal
+- Az **MCP** szabványosítja, hogyan kommunikálnak az AI modellek az eszközökkel és adatokkal
 - Támogatja a **bővíthetőséget, következetességet és interoperabilitást**
-- Az MCP segít **csökkenteni a fejlesztési időt, javítani a megbízhatóságot és bővíteni a modell képességeit**
+- Az MCP segít **csökkenteni a fejlesztési időt, növelni a megbízhatóságot és bővíteni a modell képességeit**
 - A kliens-szerver architektúra **rugalmas, bővíthető AI alkalmazásokat tesz lehetővé**
 
 ## 🧠 Gyakorlat
 
-Gondolkozzon el egy AI alkalmazáson, amelyet érdekesnek találna fejleszteni.
+Gondoljon egy olyan AI alkalmazásra, amely érdekelné, hogy megépítse.
 
-- Milyen **külső eszközök vagy adatok** növelhetnék a képességeit?
-- Hogyan tehetné az MCP az integrációt **egyszerűbbé és megbízhatóbbá**?
+- Milyen **külső eszközök vagy adatok** növelnék a képességeit?
+- Hogyan teheti az MCP az integrációt **egyszerűbbé és megbízhatóbbá**?
 
-## További erőforrások
+## További források
 
-- [MCP GitHub tárház](https://github.com/modelcontextprotocol)
+- [MCP GitHub tárhely](https://github.com/modelcontextprotocol)
 
 
 ## Mi következik
@@ -321,6 +325,6 @@ Következő: [1. fejezet: Alapfogalmak](../01-CoreConcepts/README.md)
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Felelősségkizárás**:
-Ezt a dokumentumot az AI fordító szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével fordítottuk. Bár a pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti, anyanyelvi dokumentum tekinthető a hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javaslunk. A jelen fordítás használatából eredő félreértésekért vagy helytelen értelmezésekért nem vállalunk felelősséget.
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
