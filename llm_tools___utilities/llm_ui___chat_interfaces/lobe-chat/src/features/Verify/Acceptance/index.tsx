@@ -3,6 +3,7 @@
 import type { VerifyCodingScope } from '@lobechat/types';
 import {
   ActionIcon,
+  Avatar,
   Center,
   DraggablePanel,
   Drawer,
@@ -12,41 +13,45 @@ import {
   Tag,
   Text,
 } from '@lobehub/ui';
-import { Button, Segmented } from '@lobehub/ui/base-ui';
+import { Button, Segmented, Select } from '@lobehub/ui/base-ui';
 import { createStaticStyles, cssVar, cx } from 'antd-style';
 import dayjs from 'dayjs';
 import {
   BadgeCheck,
-  CheckCircle2,
   ChevronsDownUp,
   ChevronsUpDown,
-  FileText,
+  CircleDashed,
   GitBranch,
   GitCommitHorizontal,
   GitPullRequest,
   HelpCircle,
   Loader2,
+  MessagesSquare,
   PanelRightOpen,
   RotateCcw,
-  X,
+  SquareArrowOutUpRight,
 } from 'lucide-react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 
 import NeuralNetworkLoading from '@/components/NeuralNetworkLoading';
+import AgentProfilePopup from '@/features/AgentProfileCard/AgentProfilePopup';
 import { verifyService } from '@/services/verify';
 
 import { useAcceptanceBundle } from '../hooks';
 import ReportViewer from '../ReportViewer';
 import CheckList, {
   type CheckFilter,
+  checkFilterState,
+  type CheckReviewInput,
   groupChecks,
   hasVisualEvidence,
   isException,
+  isGroupFullyAccepted,
 } from './CheckList';
 import LedgerPanel, { type AcceptanceRound } from './LedgerPanel';
-import { openAcceptModal, openRejectModal } from './modals';
+import { openAcceptModal } from './modals';
 
 const styles = createStaticStyles(({ css }) => ({
   banner: css`
@@ -60,12 +65,23 @@ const styles = createStaticStyles(({ css }) => ({
     border-radius: ${cssVar.borderRadiusLG};
     background: ${cssVar.colorBgContainer};
   `,
-  /* Floats over the headerless report drawer — the report hero is the header. */
-  drawerClose: css`
+  countBadge: css`
+    padding-block: 1px;
+    padding-inline: 7px;
+    border-radius: 99px;
+
+    font-size: 12px;
+    color: ${cssVar.colorTextSecondary};
+
+    background: ${cssVar.colorFillTertiary};
+  `,
+  /* Pinned to the page's top-right corner — the way back to the collapsed
+     ledger, without a permanent handle tab on the edge. */
+  ledgerToggle: css`
     position: absolute;
     z-index: 10;
     inset-block-start: 16px;
-    inset-inline-end: 20px;
+    inset-inline-end: 16px;
 
     border: 1px solid ${cssVar.colorBorderSecondary};
 
@@ -85,7 +101,7 @@ const styles = createStaticStyles(({ css }) => ({
     width: 100%;
     height: 100%;
 
-    background: ${cssVar.colorBgLayout};
+    background: ${cssVar.colorBgContainer};
   `,
   requirementLabel: css`
     font-size: 12px;
@@ -95,14 +111,25 @@ const styles = createStaticStyles(({ css }) => ({
   `,
   scopeChip: css`
     font-size: 12px;
-    color: ${cssVar.colorTextTertiary};
+    color: ${cssVar.colorTextSecondary};
   `,
   scopeLink: css`
     cursor: pointer;
-    color: ${cssVar.colorTextTertiary};
+    color: ${cssVar.colorTextSecondary};
 
     &:hover {
       color: ${cssVar.colorText};
+      text-decoration: underline;
+    }
+  `,
+  /** Quiet drawer entry — supporting affordance, not a boxed button. */
+  viewReportLink: css`
+    cursor: pointer;
+    font-size: 12px;
+    color: ${cssVar.colorTextQuaternary};
+
+    &:hover {
+      color: ${cssVar.colorTextSecondary};
     }
   `,
   summaryClamp: css`
@@ -128,12 +155,6 @@ const styles = createStaticStyles(({ css }) => ({
 /** Aggregate states in which the round chain is still executing. */
 const LIVE_STATUSES = new Set(['pending', 'planned', 'verifying', 'repairing']);
 
-/**
- * The user-closure decision bar (accept / reject) is NOT shipping in this
- * release — kept behind this switch (with its modals) until the loop launches.
- */
-const ENABLE_DECISION_BAR = false;
-
 interface AcceptancePageProps {
   /**
    * Render for a specific aggregate instead of the route param — the portal
@@ -151,6 +172,7 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
   const { data, error, isLoading, mutate } = useAcceptanceBundle(acceptanceId ?? null);
 
   const [filter, setFilter] = useState<CheckFilter>('all');
+  const [roundFilter, setRoundFilter] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
   const [seeded, setSeeded] = useState(false);
@@ -170,7 +192,8 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
   }, [status, mutate]);
 
   // Exceptions and visually-evidenced checks start expanded (P-08) — once,
-  // on first load, so the user's own toggling is never overwritten.
+  // on first load, so the user's own toggling is never overwritten. Groups the
+  // user already accepted in full are settled business: they start collapsed.
   useEffect(() => {
     if (seeded || !data) return;
     setExpanded(
@@ -180,17 +203,26 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
           .map((check) => check.id),
       ),
     );
+    setCollapsedGroups(
+      new Set(
+        groupChecks(data.checks, t('acceptance.group.uncategorized'))
+          .filter((group) => isGroupFullyAccepted(group.checks))
+          .map((group) => group.key),
+      ),
+    );
     setSeeded(true);
-  }, [data, seeded]);
+  }, [data, seeded, t]);
 
   const counts = useMemo(() => {
     const checks = data?.checks ?? [];
     return {
+      accepted: checks.filter((check) => checkFilterState(check) === 'accepted').length,
       exceptions: checks.filter((check) => isException(check)).length,
       failed: checks.filter((check) => check.state === 'failed').length,
-      fixed: checks.filter((check) => check.fixed).length,
+      needsFix: checks.filter((check) => checkFilterState(check) === 'needsFix').length,
       notExecuted: checks.filter((check) => check.state === 'not_executed').length,
       passed: checks.filter((check) => check.state === 'passed').length,
+      pending: checks.filter((check) => checkFilterState(check) === 'pending').length,
       total: checks.length,
       uncertain: checks.filter((check) => check.state === 'uncertain').length,
     };
@@ -212,11 +244,12 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       </Center>
     );
 
-  const { acceptance, checks, latestReport, rounds, subject } = data;
+  const { acceptance, checks, isOwner, latestReport, origin, rounds, subject } = data;
   const currentRound = rounds.at(-1);
-  // The scope header comes from the latest round that carries a coding context.
+  // The latest coding round's context — rendered with the latest report card
+  // (it describes what THAT round verified), not as aggregate-level identity.
   // A round with no scenario predates the column and is a coding round; a
-  // non-coding round's context carries none of the chips this header renders.
+  // non-coding round's context carries none of the chips the card renders.
   const scope = [...rounds]
     .reverse()
     .find((round) => (round.run.scenario ?? 'coding') === 'coding' && round.run.context)?.run
@@ -239,12 +272,13 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
     .filter(Boolean)
     .join(' · ');
 
-  // The header's one-glance verdict: lifecycle state wins; a settled chain
-  // falls back to whether any exception is left for the user to judge.
+  // The header's one-glance state: the lifecycle isn't over until the user
+  // closes it — a settled-but-undecided chain reads as "in progress", never
+  // as a green all-clear the user hasn't given.
   const verdictMeta: {
     bg: string;
     color: string;
-    icon: typeof CheckCircle2;
+    icon: typeof BadgeCheck;
     label: string;
     spin?: boolean;
   } = LIVE_STATUSES.has(acceptance.status)
@@ -276,19 +310,12 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
               icon: HelpCircle,
               label: t('acceptance.status.errored'),
             }
-          : counts.exceptions > 0
-            ? {
-                bg: cssVar.colorWarningBg,
-                color: cssVar.colorWarning,
-                icon: HelpCircle,
-                label: t('acceptance.verdict.exceptions', { count: counts.exceptions }),
-              }
-            : {
-                bg: cssVar.colorSuccessBg,
-                color: cssVar.colorSuccess,
-                icon: CheckCircle2,
-                label: t('acceptance.verdict.passed'),
-              };
+          : {
+              bg: cssVar.colorInfoBg,
+              color: cssVar.colorInfo,
+              icon: CircleDashed,
+              label: t('acceptance.verdict.inProgress'),
+            };
 
   const runAction = async (action: () => Promise<unknown>) => {
     try {
@@ -309,6 +336,11 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
     setHighlightRound(round);
     setLedgerExpand(true);
   };
+
+  // Per-check user review — accept settles a check for good; reject records
+  // the feedback the next verify round reads.
+  const handleReview = (input: CheckReviewInput) =>
+    runAction(() => verifyService.reviewChecks({ id: acceptance.id, ...input }));
 
   const decisionBanner = () => {
     if (LIVE_STATUSES.has(acceptance.status))
@@ -391,7 +423,7 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       >
         <Icon
           color={hasException ? cssVar.colorWarning : cssVar.colorSuccess}
-          icon={hasException ? HelpCircle : CheckCircle2}
+          icon={hasException ? HelpCircle : BadgeCheck}
           size={18}
         />
         <Flexbox flex={1} gap={2}>
@@ -404,17 +436,9 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
             {countsText} · {t('acceptance.banner.decisionHint')}
           </Text>
         </Flexbox>
-        <Button
-          disabled={pending}
-          onClick={() =>
-            openRejectModal({
-              onConfirm: (comment) =>
-                runAction(() => verifyService.rejectDelivery(acceptance.id, comment)),
-            })
-          }
-        >
-          {t('acceptance.actions.reject')}
-        </Button>
+        {/* Whole-delivery reject is deliberately NOT exposed yet — per-check
+            reject-with-feedback is the send-back path; only the closing
+            accept ships for now. */}
         <Button
           disabled={pending}
           type={'primary'}
@@ -434,6 +458,16 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
 
   return (
     <Flexbox horizontal className={styles.page}>
+      {/* The reopen affordance lives at the page corner — no edge handle tab. */}
+      {!ledgerExpand && (
+        <ActionIcon
+          className={styles.ledgerToggle}
+          icon={PanelRightOpen}
+          size={'small'}
+          title={t('acceptance.ledger.expand')}
+          onClick={() => setLedgerExpand(true)}
+        />
+      )}
       <Flexbox flex={1} style={{ minWidth: 0, overflow: 'auto' }}>
         <Flexbox
           gap={16}
@@ -441,27 +475,9 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
           paddingInline={24}
           style={{ margin: '0 auto', maxWidth: 920, width: '100%' }}
         >
-          {/* Header — identity, then the at-a-glance verdict, then provenance.
-                Three separate lines because they answer three different
-                questions: what is this / how did it end / where did it run. */}
+          {/* Header — state first (the lifecycle isn't closed until the user
+              closes it), then identity, then the origin conversation. */}
           <Flexbox gap={10}>
-            <Flexbox horizontal align={'center'} gap={10}>
-              <Text as={'h1'} style={{ fontSize: 18, margin: 0 }}>
-                {subject.title ?? subject.id}
-              </Text>
-              <Tag size={'small'}>{t(`acceptance.subject.${subject.type}`)}</Tag>
-              <Flexbox flex={1} />
-              {!ledgerExpand && (
-                <ActionIcon
-                  icon={PanelRightOpen}
-                  size={'small'}
-                  title={t('acceptance.ledger.expand')}
-                  onClick={() => setLedgerExpand(true)}
-                />
-              )}
-            </Flexbox>
-
-            {/* Verdict line — the page's answer, readable without scrolling */}
             <Flexbox horizontal align={'center'} gap={10} wrap={'wrap'}>
               <span
                 className={styles.verdictPill}
@@ -485,91 +501,153 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
               </Text>
             </Flexbox>
 
-            {/* Provenance — where the verified code came from */}
-            <Flexbox horizontal align={'center'} gap={16} wrap={'wrap'}>
-              {scope?.branch && (
-                <Flexbox horizontal align={'center'} className={styles.scopeChip} gap={4}>
-                  <Icon icon={GitBranch} size={13} /> {scope.branch}
-                </Flexbox>
-              )}
-              {scope?.commit && (
-                <Flexbox horizontal align={'center'} className={styles.scopeChip} gap={4}>
-                  <Icon icon={GitCommitHorizontal} size={13} /> {scope.commit.slice(0, 10)}
-                </Flexbox>
-              )}
-              {scope?.pullRequest?.number &&
-                (scope.pullRequest.url ? (
-                  <a
-                    className={cx(styles.scopeChip, styles.scopeLink)}
-                    href={scope.pullRequest.url}
-                    rel={'noreferrer'}
-                    target={'_blank'}
-                  >
-                    <Flexbox horizontal align={'center'} gap={4}>
-                      <Icon icon={GitPullRequest} size={13} /> #{scope.pullRequest.number}
-                    </Flexbox>
-                  </a>
-                ) : (
-                  <Flexbox horizontal align={'center'} className={styles.scopeChip} gap={4}>
-                    <Icon icon={GitPullRequest} size={13} /> #{scope.pullRequest.number}
-                  </Flexbox>
-                ))}
+            <Flexbox horizontal align={'center'} gap={10}>
+              <Text as={'h1'} style={{ fontSize: 18, margin: 0 }}>
+                {subject.title ?? subject.id}
+              </Text>
+              <Tag size={'small'}>{t(`acceptance.subject.${subject.type}`)}</Tag>
             </Flexbox>
+
+            {/* Origin — the conversation this acceptance belongs to (agent +
+                topic). Owner-only: the server redacts it for shared links. */}
+            {(origin?.agent || origin?.topic) && (
+              <Flexbox horizontal align={'center'} gap={16} wrap={'wrap'}>
+                {origin.agent && (
+                  <AgentProfilePopup
+                    agentId={origin.agent.id}
+                    trigger={'hover'}
+                    agent={{
+                      avatar: origin.agent.avatar ?? undefined,
+                      backgroundColor: origin.agent.backgroundColor ?? undefined,
+                      title: origin.agent.title ?? undefined,
+                    }}
+                  >
+                    <Flexbox
+                      horizontal
+                      align={'center'}
+                      className={styles.scopeChip}
+                      gap={6}
+                      style={{ cursor: 'default' }}
+                    >
+                      <Avatar
+                        avatar={origin.agent.avatar ?? undefined}
+                        background={origin.agent.backgroundColor ?? undefined}
+                        size={18}
+                      />
+                      {origin.agent.title ?? t('acceptance.origin.agentFallback')}
+                    </Flexbox>
+                  </AgentProfilePopup>
+                )}
+                {origin.topic && (
+                  <Flexbox
+                    horizontal
+                    align={'center'}
+                    className={cx(styles.scopeChip, styles.scopeLink)}
+                    gap={4}
+                    title={t('acceptance.origin.openTopic')}
+                    onClick={() => window.open(`/chat?topic=${origin.topic!.id}`, '_blank')}
+                  >
+                    <Icon icon={MessagesSquare} size={13} />
+                    {origin.topic.title ?? subject.title ?? origin.topic.id}
+                    <Icon icon={SquareArrowOutUpRight} size={12} />
+                  </Flexbox>
+                )}
+              </Flexbox>
+            )}
           </Flexbox>
 
-          {/* The acceptance bar — what this delivery is judged against.
-                Prominence through typography (a lede under the heading), not
-                chrome: no card, no border. */}
-          {acceptance.requirement && (
-            <Flexbox gap={4} style={{ maxWidth: 760 }}>
+          {/* Decision bar — the user closes the lifecycle (P-12). Owner-only:
+              the closing accept is the author's call, never a visitor's. */}
+          {isOwner && decisionBanner()}
+          {actionError && <Text type={'danger'}>{actionError}</Text>}
+
+          {/* The acceptance goal — THE thing this delivery is judged against,
+              one prominent card. The latest report summary (and the chips
+              describing what that round verified) is supporting context inside
+              it, never the headline. */}
+          <Flexbox className={styles.card} gap={12} padding={16}>
+            <Flexbox gap={4}>
               <Text className={styles.requirementLabel}>{t('acceptance.requirementLabel')}</Text>
-              <Text style={{ fontSize: 15, lineHeight: 1.7 }}>{acceptance.requirement}</Text>
-            </Flexbox>
-          )}
-
-          {/* Decision bar — the user closes the lifecycle (P-12). Hidden
-                until the accept/reject loop ships. */}
-          {ENABLE_DECISION_BAR && decisionBanner()}
-          {ENABLE_DECISION_BAR && actionError && <Text type={'danger'}>{actionError}</Text>}
-
-          {/* Latest report narrative — an entry point, not the page's spine */}
-          {latestReport?.summary && (
-            <Flexbox className={styles.card} gap={8} padding={16}>
-              <Flexbox horizontal align={'center'} gap={8}>
-                <Icon color={cssVar.colorTextSecondary} icon={FileText} size={15} />
-                <Text strong style={{ fontSize: 13 }}>
-                  {t('acceptance.latestSummary')}
-                  {currentRound
-                    ? ` · ${t('acceptance.round', { round: currentRound.run.roundIndex })}`
-                    : ''}
-                </Text>
-                <Flexbox flex={1} />
-                <Button
-                  size={'small'}
-                  type={'text'}
-                  onClick={() =>
-                    setReportRound([...rounds].reverse().find((r) => r.report) ?? null)
-                  }
-                >
-                  {t('acceptance.viewFullReport')}
-                </Button>
-              </Flexbox>
-              <Text className={styles.summaryClamp} fontSize={13} type={'secondary'}>
-                {latestReport.summary}
+              <Text style={{ fontSize: 15, lineHeight: 1.7 }}>
+                {acceptance.requirement ?? t('acceptance.requirementEmpty')}
               </Text>
             </Flexbox>
-          )}
+            {(latestReport?.summary || scope) && (
+              <Flexbox
+                gap={8}
+                paddingBlock={'12px 0'}
+                style={{ borderBlockStart: `1px solid ${cssVar.colorBorderSecondary}` }}
+              >
+                {/* label → the summary itself → provenance chips, all flush
+                    left; the drawer entry is a quiet text link, not a button. */}
+                <Flexbox horizontal align={'center'} gap={8}>
+                  <Text fontSize={12} type={'secondary'}>
+                    {t('acceptance.latestSummary')}
+                    {currentRound
+                      ? ` · ${t('acceptance.round', { round: currentRound.run.roundIndex })}`
+                      : ''}
+                  </Text>
+                  <Flexbox flex={1} />
+                  {latestReport && (
+                    <span
+                      className={styles.viewReportLink}
+                      onClick={() =>
+                        setReportRound([...rounds].reverse().find((r) => r.report) ?? null)
+                      }
+                    >
+                      {t('acceptance.viewFullReport')}
+                    </span>
+                  )}
+                </Flexbox>
+                {latestReport?.summary && (
+                  <Text className={styles.summaryClamp} fontSize={13} type={'secondary'}>
+                    {latestReport.summary}
+                  </Text>
+                )}
+                {scope && (
+                  <Flexbox horizontal align={'center'} gap={16} wrap={'wrap'}>
+                    {scope.branch && (
+                      <Flexbox horizontal align={'center'} className={styles.scopeChip} gap={4}>
+                        <Icon icon={GitBranch} size={13} /> {scope.branch}
+                      </Flexbox>
+                    )}
+                    {scope.commit && (
+                      <Flexbox horizontal align={'center'} className={styles.scopeChip} gap={4}>
+                        <Icon icon={GitCommitHorizontal} size={13} /> {scope.commit.slice(0, 10)}
+                      </Flexbox>
+                    )}
+                    {scope.pullRequest?.number &&
+                      (scope.pullRequest.url ? (
+                        <a
+                          className={cx(styles.scopeChip, styles.scopeLink)}
+                          href={scope.pullRequest.url}
+                          rel={'noreferrer'}
+                          target={'_blank'}
+                          title={scope.pullRequest.title ?? scope.pullRequest.url}
+                        >
+                          <Flexbox horizontal align={'center'} gap={4}>
+                            <Icon icon={GitPullRequest} size={13} /> #{scope.pullRequest.number}
+                          </Flexbox>
+                        </a>
+                      ) : (
+                        <Flexbox horizontal align={'center'} className={styles.scopeChip} gap={4}>
+                          <Icon icon={GitPullRequest} size={13} /> #{scope.pullRequest.number}
+                        </Flexbox>
+                      ))}
+                  </Flexbox>
+                )}
+              </Flexbox>
+            )}
+          </Flexbox>
 
           {/* Check union — the complete inventory, familiar sections (P-14).
               The row wraps so narrow embeds (the chat portal) drop the filter
               controls to a second line instead of crushing the text vertical. */}
-          <Flexbox horizontal align={'center'} gap={12} wrap={'wrap'}>
+          <Flexbox horizontal align={'center'} gap={8} wrap={'wrap'}>
             <Text strong style={{ fontSize: 14, whiteSpace: 'nowrap' }}>
               {t('acceptance.checks.title')}
             </Text>
-            <Text fontSize={12} style={{ whiteSpace: 'nowrap' }} type={'secondary'}>
-              {t('acceptance.checks.subtitle', { count: counts.total, rounds: rounds.length })}
-            </Text>
+            <span className={styles.countBadge}>{counts.total}</span>
             <Flexbox flex={1} />
             <Segmented
               size={'small'}
@@ -577,31 +655,60 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
               options={[
                 { label: t('acceptance.filter.all', { count: counts.total }), value: 'all' },
                 {
-                  label: t('acceptance.filter.exception', { count: counts.exceptions }),
-                  value: 'exception',
+                  label: t('acceptance.filter.pending', { count: counts.pending }),
+                  value: 'pending',
                 },
-                { label: t('acceptance.filter.fixed', { count: counts.fixed }), value: 'fixed' },
+                {
+                  label: t('acceptance.filter.needsFix', { count: counts.needsFix }),
+                  value: 'needsFix',
+                },
+                {
+                  label: t('acceptance.filter.accepted', { count: counts.accepted }),
+                  value: 'accepted',
+                },
               ]}
               onChange={(value) => setFilter(value as CheckFilter)}
             />
-            <Button
-              icon={<Icon icon={allGroupsCollapsed ? ChevronsUpDown : ChevronsDownUp} />}
+            {/* Which round touched a check — audit slicing, orthogonal to the
+                review-state segments. */}
+            {rounds.length > 1 && (
+              <Select
+                size={'small'}
+                style={{ width: 110 }}
+                value={roundFilter === null ? 'all' : String(roundFilter)}
+                options={[
+                  { label: t('acceptance.filter.roundAll'), value: 'all' },
+                  ...[...rounds].reverse().map((round) => ({
+                    label: t('acceptance.round', { round: round.run.roundIndex }),
+                    value: String(round.run.roundIndex),
+                  })),
+                ]}
+                onChange={(value) => setRoundFilter(value === 'all' ? null : Number(value))}
+              />
+            )}
+            <ActionIcon
+              icon={allGroupsCollapsed ? ChevronsUpDown : ChevronsDownUp}
               size={'small'}
+              title={
+                allGroupsCollapsed
+                  ? t('acceptance.group.expandAll')
+                  : t('acceptance.group.collapseAll')
+              }
               onClick={() =>
                 setCollapsedGroups(allGroupsCollapsed ? new Set() : new Set(groupKeys))
               }
-            >
-              {allGroupsCollapsed
-                ? t('acceptance.group.expandAll')
-                : t('acceptance.group.collapseAll')}
-            </Button>
+            />
           </Flexbox>
 
           <CheckList
+            canReview={isOwner}
             checks={checks}
             collapsedGroups={collapsedGroups}
             expanded={expanded}
             filter={filter}
+            reviewPending={pending}
+            round={roundFilter}
+            onReview={handleReview}
             onRound={gotoRound}
             onToggleGroup={(key) =>
               setCollapsedGroups((previous) => {
@@ -634,10 +741,10 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
         </Flexbox>
       </Flexbox>
 
-      {/* Round ledger — audit detail, off the decision path (P-13) */}
+      {/* Round ledger — audit detail, off the decision path (P-13). No edge
+          handle: opening happens from the page-corner toggle, closing from the
+          ledger's own header action. */}
       <DraggablePanel
-        expandable
-        showHandleWhenCollapsed
         defaultSize={{ width: 340 }}
         expand={ledgerExpand}
         minWidth={300}
@@ -658,7 +765,8 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       {/* Per-round report drill-down — the full verify run view, not a
           markdown excerpt: same content as /verify/:runId, opened in place.
           No drawer header: the report's own hero (title + verdict pill) is the
-          header; a floating close sits over it. */}
+          header; the Drawer's OWN floating close renders even with noHeader,
+          so no extra close button here (two would overlap). */}
       <Drawer
         destroyOnHidden
         noHeader
@@ -674,13 +782,6 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       >
         {reportRound && (
           <Flexbox style={{ height: '100%', position: 'relative' }}>
-            <ActionIcon
-              className={styles.drawerClose}
-              icon={X}
-              size={'small'}
-              title={t('acceptance.reportDrawer.close')}
-              onClick={() => setReportRound(null)}
-            />
             <ReportViewer runId={reportRound.run.id} />
           </Flexbox>
         )}
