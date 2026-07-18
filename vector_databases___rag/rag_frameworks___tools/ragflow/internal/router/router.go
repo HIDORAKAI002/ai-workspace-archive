@@ -167,6 +167,7 @@ func (r *Router) Setup(engine *gin.Engine) {
 		// Query: ?type=builtin returns built-in templates (default).
 		if r.pipelineHandler != nil {
 			apiNoAuth.GET("/pipelines", r.pipelineHandler.ListPipelines)
+			apiNoAuth.GET("/pipelines/:id", r.pipelineHandler.GetPipeline)
 		}
 
 		// searchbots
@@ -318,7 +319,6 @@ func (r *Router) Setup(engine *gin.Engine) {
 			// Document routes
 			documents := v1.Group("/documents")
 			{
-				documents.POST("", r.documentHandler.CreateDocument)
 				documents.POST("/upload", r.documentHandler.UploadInfo)
 				documents.GET("", r.documentHandler.ListDocuments)
 				documents.GET("/artifact/:filename", r.documentHandler.GetDocumentArtifact)
@@ -352,6 +352,8 @@ func (r *Router) Setup(engine *gin.Engine) {
 				chat.POST("/completions", r.chatSessionHandler.ChatCompletions)
 				chat.POST("/mindmap", r.chatHandler.MindMap)
 				chat.POST("/recommendation", r.chatHandler.Recommendation)
+				chat.POST("/audio/speech", r.chatHandler.ChatAudioSpeech)
+				chat.POST("/audio/transcription", r.chatHandler.ChatAudioTranscription)
 			}
 			v1.POST("/openai/:chat_id/chat/completions", r.openaiChatHandler.OpenAIChatCompletions)
 

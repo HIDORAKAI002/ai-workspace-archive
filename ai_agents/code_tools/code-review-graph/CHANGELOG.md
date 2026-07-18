@@ -2,8 +2,32 @@
 
 ## [Unreleased]
 
+## [2.3.7] - 2026-07-18
+
+**Maintainer-reconciliation release.** This release packages the verified work
+merged since v2.3.6: broader language and framework coverage, safer graph and
+CLI workflows, platform-install hardening, daemon reliability, and the final
+CodeQL security fixes. The four client-validation drafts remain excluded. No
+breaking changes.
+
 ### Added
 
+- Expanded CLI-first workflows with CommonJS `require()` parsing, ten focused
+  graph commands, quiet and JSON output, bounded enrichment, and dead-code
+  analysis (PRs #95, #340, and #341).
+- Added safe Java and Spring modeling for request endpoints, WebFlux routes,
+  value-redacted application configuration, scheduled triggers, application
+  events, Lombok constructor injection, runtime callbacks, and method
+  references (PRs #462, #577, #589, #590, and #591).
+- Added repository-bounded PHP/Laravel semantics and Julia qualified-scope
+  parsing, plus evidence-backed typed-member resolution, Python star-import
+  expansion, Python class decorators, and C# inheritance edges (PRs #628,
+  #638, #639, #643, #647, and #649).
+- Added bounded transitive test coverage, opt-in churn risk, weighted
+  impact-radius ranking, and graph provenance on MCP responses (PRs #636,
+  #640, #644, and #646).
+- Added CodeBuddy Code MCP configuration and project skills using its official
+  shared project contract (PR #633).
 - Added Terraform/OpenTofu structural parsing for resources, data sources,
   modules, variables, outputs, locals, providers, and expression references.
   References resolve across sibling files in a Terraform module, and local
@@ -47,6 +71,20 @@
 
 ### Fixed
 
+- Made minimal-context and review analysis non-blocking, shared changed-file
+  discovery across review tools, bounded automatic repository detection, and
+  cached graph access so MCP requests avoid repeated scans (PRs #394 and #457).
+- Corrected semantic-search mode reporting, skipped unavailable native grammar
+  parsers safely, and surfaced graph staleness, omitted counts, and symbol
+  disambiguation in responses (PRs #458, #459, and #538).
+- Hardened daemon startup and persistence: foreground lifecycle state is ready
+  before serving, generated TOML escapes strings, and Windows PID checks use
+  waitable handles without leaking temporary handles (PRs #630 and #632).
+- Preserved undecodable subprocess output, expanded trailing-slash ignores,
+  retained nested source directories, and excluded AWS CDK synth output without
+  hiding source trees (PRs #566, #583, and #635).
+- Reconciled community detection placement/splitting and restored responsive
+  visualization sizing without changing graph data (PRs #641 and #642).
 - Serialized first-use local embedding dependency imports and model construction
   across MCP worker threads. POSIX startup remains lazy, failed loads are not
   cached, and Windows retains its main-thread prewarm (#610, replacing PR #611).
@@ -91,6 +129,24 @@
   `use function` / `use const`) and resolved to absolute `.php` paths by walking
   up from the importing file, mirroring the existing Java resolver. Vendor/global
   classes with no local file stay as the bare FQN.
+
+### Changed
+
+- Updated supported async, embedding, watchdog, checkout, cache, and Python
+  setup dependencies while keeping the published compatibility bounds explicit
+  (PRs #544, #629, and #631).
+- Fork pull-request reviews now use a least-privilege two-stage workflow, and
+  evaluation configs use larger pinned commits for reproducible measurements
+  (PRs #468 and #634).
+- Build output now exposes post-processing stage timings for performance
+  diagnosis (PR #637).
+
+### Security
+
+- Closed all three open high-severity CodeQL alerts: the PyPI diagnostic now
+  uses the default secure TLS context, URL checks compare parsed hostnames, and
+  visualization tests use structural HTML parsing instead of unsafe regular
+  expressions (PR #657).
 
 ## [2.3.6] - 2026-06-10
 
